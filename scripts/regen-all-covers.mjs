@@ -7,7 +7,7 @@
  *  - Logo de marca centrado abajo (compositing directo, sin eliminar píxeles)
  *  - Posts editoriales: categoría en texto accent
  */
-import sharp from '../node_modules/sharp/lib/index.js';
+import sharp from 'sharp';
 import { rename } from 'fs/promises';
 
 const W = 1200, H = 630;
@@ -25,7 +25,9 @@ const accentBar = Buffer.from(`<svg width="${W}" height="6" xmlns="http://www.w3
 const spLogoRaw = await sharp('public/images/logos/socialpro-full.png')
   .resize({ width: 280, height: 280, fit: 'inside' })
   .toBuffer();
-const { width: spW, height: spH } = await sharp(spLogoRaw).metadata();
+const spMeta = await sharp(spLogoRaw).metadata();
+const spW = spMeta.width ?? 280;
+const spH = spMeta.height ?? 280;
 
 const posts = [
   {
@@ -78,7 +80,7 @@ for (const post of posts) {
       brandH = lm.height ?? 150;
       brandLeft = Math.round((W - brandW) / 2);
     } catch (e) {
-      console.warn(`  logo error: ${e.message}`);
+      console.warn(`  logo error: ${e instanceof Error ? e.message : String(e)}`);
     }
   }
 

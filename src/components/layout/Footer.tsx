@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
+import { WA_HREF, CONTACT_EMAIL } from '@/lib/constants';
 
 const NAV_COLS = [
   {
@@ -24,7 +25,7 @@ const NAV_COLS = [
   {
     title: 'Marcas',
     links: [
-      { href: '/servicios', label: 'Campañas iGaming' },
+      { href: '/servicios/igaming', label: 'Campañas iGaming' },
       { href: '/servicios', label: 'Talent Management' },
       { href: '/marcas/login', label: 'Portal de Marcas' },
       { href: '/contacto', label: 'Solicitar propuesta' },
@@ -127,16 +128,16 @@ export function Footer() {
             {/* Contact */}
             <address className="space-y-2 not-italic">
               <a
-                href="mailto:marketing@socialpro.es"
+                href={`mailto:${CONTACT_EMAIL}`}
                 className="flex items-center gap-2.5 text-sm text-white/40 hover:text-white transition-colors group"
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-sp-orange">
                   <rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
                 </svg>
-                marketing@socialpro.es
+                {CONTACT_EMAIL}
               </a>
               <a
-                href="https://wa.me/34604868426"
+                href={WA_HREF}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2.5 text-sm text-white/40 hover:text-white transition-colors group"

@@ -19,7 +19,9 @@ try {
   }
 } catch {}
 
-const sql = neon(process.env.DATABASE_URL!);
+const dbUrl = process.env.DATABASE_URL;
+if (!dbUrl) throw new Error('[razer-post] DATABASE_URL is not set');
+const sql = neon(dbUrl);
 const db = drizzle(sql, { schema });
 
 const RAZER_BODY = `Cuando RAZER buscaba reforzar su presencia en el mercado gaming hispanohablante, no recurrió a publicidad convencional. Buscó algo que la audiencia gaming España no puede ignorar: sus propios creadores de contenido, usando los productos en su setup real, en directo, sin guion.
@@ -111,6 +113,7 @@ async function main() {
     excerpt:
       'Cómo SocialPro ejecutó una activación multicanal para RAZER con 13 creadores del ecosistema gaming, logrando 2.5M+ de alcance, 185K interacciones y un ROI de 3.2x. El modelo de campaña de hardware gaming que funciona.',
     bodyMd: RAZER_BODY,
+    coverUrl: '/images/blog/razer-socialpro-creadores-gaming.jpg',
     author: 'SocialPro',
     status: 'published' as const,
     publishedAt: new Date('2026-04-24'),

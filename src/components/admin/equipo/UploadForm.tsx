@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState, useTransition } from 'react';
+import { useRef, useState, useTransition, useEffect } from 'react';
 import Image from 'next/image';
 import { uploadTeamPhotoAction } from '@/app/admin/(dashboard)/equipo/fotos/actions';
 
@@ -21,9 +21,17 @@ export function UploadForm({ member }: { member: Member }) {
   const [isPending, startTransition] = useTransition();
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // Revoke blob URL on change or unmount to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      if (preview?.startsWith('blob:')) URL.revokeObjectURL(preview);
+    };
+  }, [preview]);
+
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (preview?.startsWith('blob:')) URL.revokeObjectURL(preview);
     setPreview(URL.createObjectURL(file));
     setSuccess(false);
     setError(null);

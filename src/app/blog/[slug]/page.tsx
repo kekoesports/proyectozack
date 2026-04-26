@@ -74,9 +74,19 @@ function renderParagraph(text: string, key: number) {
   );
 }
 
-/** Convert **bold** and *italic* inline markdown to HTML */
-function renderInline(text: string): string {
+/** Escape HTML entities to prevent XSS before injecting into the DOM */
+function escapeHtml(text: string): string {
   return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+/** Convert **bold** and *italic* inline markdown to HTML (input is pre-escaped) */
+function renderInline(text: string): string {
+  return escapeHtml(text)
     .replace(/\*\*(.+?)\*\*/g, '<strong class="font-semibold text-sp-dark">$1</strong>')
     .replace(/\*(.+?)\*/g, '<em>$1</em>');
 }
@@ -121,7 +131,7 @@ export default async function BlogPostPage({ params }: PageProps) {
             {post.title}
           </h1>
           {post.publishedAt && (
-            <time className="text-sm text-white/35">
+            <time dateTime={post.publishedAt.toISOString()} className="text-sm text-white/35">
               {new Date(post.publishedAt).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })}
             </time>
           )}

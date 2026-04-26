@@ -64,7 +64,7 @@ export function BlogCard({ post }: BlogCardProps) {
       {/* Texto */}
       <div className="px-1">
         {post.publishedAt && (
-          <time className="text-xs text-sp-muted tracking-wide">
+          <time dateTime={post.publishedAt.toISOString()} className="text-xs text-sp-muted tracking-wide">
             {new Date(post.publishedAt).toLocaleDateString('es-ES', {
               year: 'numeric', month: 'long', day: 'numeric',
             })}

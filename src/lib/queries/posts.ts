@@ -15,8 +15,8 @@ export async function getPostSlugs(): Promise<{ slug: string }[]> {
 }
 
 async function attachTalents(rows: Post[]): Promise<PostWithTalents[]> {
-  const allSlugs = [...new Set(rows.flatMap((p) => (p.talentSlugs as string[] | null) ?? []))];
-  let avatarMap: Map<string, TalentAvatar> = new Map();
+  const allSlugs = [...new Set(rows.flatMap((p) => p.talentSlugs ?? []))];
+  const avatarMap = new Map<string, TalentAvatar>();
 
   if (allSlugs.length > 0) {
     const talentRows = await db
@@ -28,7 +28,7 @@ async function attachTalents(rows: Post[]): Promise<PostWithTalents[]> {
 
   return rows.map((p) => ({
     ...p,
-    talentAvatars: ((p.talentSlugs as string[] | null) ?? [])
+    talentAvatars: (p.talentSlugs ?? [])
       .map((s) => avatarMap.get(s))
       .filter(Boolean) as TalentAvatar[],
   }));

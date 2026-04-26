@@ -16,7 +16,7 @@ const BRAND_LOGO_MAP: Record<string, string> = {
 };
 
 export function CaseCard({ caseStudy }: CaseCardProps) {
-  const logoSrc = caseStudy.logoUrl || BRAND_LOGO_MAP[caseStudy.brandName] || null;
+  const logoSrc = caseStudy.logoUrl ?? BRAND_LOGO_MAP[caseStudy.brandName];
 
   const metrics = [
     caseStudy.reach          ? { value: caseStudy.reach,          label: 'Alcance'      } : null,
@@ -41,7 +41,7 @@ export function CaseCard({ caseStudy }: CaseCardProps) {
                 alt={caseStudy.brandName}
                 width={160}
                 height={48}
-                className="object-contain max-h-12 brightness-0 invert"
+                className="object-contain max-h-12 mix-blend-screen"
               />
             ) : (
               <span className="font-display text-xl font-black text-white tracking-tight">

@@ -1,8 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-
-const WA_LINK = 'https://wa.me/34604868426?text=Hola%2C%20me%20interesa%20conocer%20m%C3%A1s%20sobre%20SocialPro';
+import { WA_LINK } from '@/lib/constants';
 
 export function WhatsAppWidget() {
   const [hovered, setHovered] = useState(false);
@@ -17,7 +16,7 @@ export function WhatsAppWidget() {
           transform: hovered ? 'scale(1) translateX(0)' : 'scale(0.9) translateX(8px)',
         }}
       >
-        <div className="bg-sp-dark text-white text-sm font-semibold px-4 py-2 rounded-xl shadow-lg whitespace-nowrap">
+        <div className="relative bg-sp-dark text-white text-sm font-semibold px-4 py-2 rounded-xl shadow-lg whitespace-nowrap">
           ¿Hablamos? 👋
           <div className="absolute right-[-6px] top-1/2 -translate-y-1/2 w-0 h-0"
             style={{ borderLeft: '6px solid #1a1a2e', borderTop: '5px solid transparent', borderBottom: '5px solid transparent' }}

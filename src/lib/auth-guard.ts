@@ -48,16 +48,13 @@ async function loadSession(loginPath: string): Promise<SessionWithRole> {
 }
 
 export async function requireRole(role: Role, loginPath: string): Promise<SessionWithRole> {
-  const safePath = ALLOWED_LOGIN_PATHS.has(loginPath) ? loginPath : '/';
-
   if (process.env.NODE_ENV === 'development') {
     return { user: { id: 'dev', email: 'dev@localhost', name: 'Dev', role } };
   }
 
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session) redirect(safePath);
-
-  const userRole = (session.user as { role?: string | null }).role ?? null;
+  const safePath = ALLOWED_LOGIN_PATHS.has(loginPath) ? loginPath : '/';
+  const session = await loadSession(loginPath);
+  const userRole = session.user.role;
 
   if (userRole !== role) {
     const home = homeForRole(userRole);
@@ -65,14 +62,7 @@ export async function requireRole(role: Role, loginPath: string): Promise<Sessio
     redirect(safePath);
   }
 
-  return {
-    user: {
-      id: session.user.id,
-      email: session.user.email,
-      name: session.user.name,
-      role: userRole,
-    },
-  };
+  return session;
 }
 
 export async function requireAnyRole(
