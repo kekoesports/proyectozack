@@ -4,7 +4,6 @@ import { getAllActiveGiveaways, getAllFinishedGiveaways, extractUniqueBrands } f
 import { getAllCodes, getFeaturedCodes } from '@/lib/queries/creatorCodes';
 import { getAllTalents } from '@/lib/queries/talents';
 import { GiveawaysHub } from '@/components/giveaways/GiveawaysHub';
-import { HeroSection } from '@/components/giveaways/HeroSection';
 
 export const metadata: Metadata = {
   title: 'Códigos y Recompensas Gaming — SocialPro',
@@ -27,7 +26,6 @@ export default async function GiveawaysPage(): Promise<React.JSX.Element> {
   const allGiveaways = [...active, ...finished];
   const brands = extractUniqueBrands(allGiveaways, codes);
 
-  // Build creators — include those with codes OR giveaways
   const codeCountMap = new Map<number, number>();
   for (const c of codes) {
     codeCountMap.set(c.talentId, (codeCountMap.get(c.talentId) ?? 0) + 1);
@@ -93,25 +91,23 @@ export default async function GiveawaysPage(): Promise<React.JSX.Element> {
               Rewards Hub
             </span>
           </div>
-          {active.length > 0 && (
-            <div className="flex items-center gap-1.5">
-              <span className="h-1.5 w-1.5 rounded-full bg-sp-orange animate-pulse" />
-              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-sp-orange/70">
-                {active.length} sorteos activos
-              </span>
-            </div>
-          )}
+          <div className="flex items-center gap-4">
+            <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/25 hidden sm:inline">
+              {codes.length} códigos · {creators.length} creadores
+            </span>
+            {active.length > 0 && (
+              <div className="flex items-center gap-1.5">
+                <span className="h-1.5 w-1.5 rounded-full bg-sp-orange animate-pulse" />
+                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-sp-orange/70">
+                  {active.length} en vivo
+                </span>
+              </div>
+            )}
+          </div>
         </div>
       </header>
 
-      {/* Hero */}
-      <HeroSection
-        codesCount={codes.length}
-        activeGiveawaysCount={active.length}
-        creatorsCount={creators.length}
-      />
-
-      {/* Main interactive hub */}
+      {/* Main hub — codes visible immediately */}
       <GiveawaysHub
         active={active}
         finished={finished}
