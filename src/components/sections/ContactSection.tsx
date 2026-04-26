@@ -120,7 +120,7 @@ export function ContactSection(): React.JSX.Element {
           </div>
         </FadeInOnScroll>
 
-        <div className="grid md:grid-cols-2 gap-10 items-start">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10 items-start">
           {/* Left — info cards */}
           <FadeInOnScroll delay={0.1}>
             <div className="space-y-4">

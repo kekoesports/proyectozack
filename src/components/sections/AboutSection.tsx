@@ -8,7 +8,7 @@ import { AboutCard } from '@/components/sections/AboutCard';
 export function AboutSection() {
   return (
     <section id="nosotros" className="py-24 bg-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid md:grid-cols-2 gap-16 items-center">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 items-center">
         <FadeInOnScroll>
           <SectionTag>Sobre SocialPro</SectionTag>
           <SectionHeading className="mb-6">
@@ -30,7 +30,7 @@ export function AboutSection() {
             </p>
           </div>
         </FadeInOnScroll>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {[
             { label: 'España & LatAm', sub: 'Mercados principales' },
             { label: '+14 años', sub: 'Experiencia en gaming' },

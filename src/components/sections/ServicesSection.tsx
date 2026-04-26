@@ -123,7 +123,7 @@ export function ServicesSection() {
             transition={{ duration: 0.3, ease: 'easeOut' }}
             className="rounded-3xl p-8 md:p-10 mb-10 text-white bg-sp-grad"
           >
-            <h3 className="font-display text-2xl md:text-3xl font-black uppercase mb-6">{current.title}</h3>
+            <h3 className="font-display text-xl sm:text-2xl md:text-3xl font-black uppercase mb-6">{current.title}</h3>
             <ol className="space-y-3">
               {current.steps.map((step, i) => (
                 <m.li

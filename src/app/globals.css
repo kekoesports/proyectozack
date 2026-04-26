@@ -158,12 +158,17 @@
   * {
     @apply border-border outline-ring/50;
   }
-  body {
-    @apply bg-background text-foreground;
-    font-family: var(--font-body);
-  }
+  /* SocialPro: dark base prevents white flash on overscroll / between sections */
   html {
     @apply font-sans;
+    background-color: var(--color-sp-black);
+  }
+  body {
+    @apply text-foreground;
+    background-color: var(--color-sp-black);
+    font-family: var(--font-body);
+    /* Avoid bouncy white area on iOS / trackpads exposing the html bg */
+    overscroll-behavior-y: none;
   }
 }
 

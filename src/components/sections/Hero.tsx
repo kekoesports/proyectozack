@@ -83,7 +83,7 @@ export function Hero() {
           Gaming &amp; Esports · Europa · LatAm · Turquía
         </m.span>
 
-        <h1 className="font-display text-[4rem] sm:text-[6.5rem] md:text-[8rem] lg:text-[10rem] font-black uppercase leading-[0.85] tracking-tight mb-10">
+        <h1 className="font-display text-[2.75rem] xs:text-[3.5rem] sm:text-[5rem] md:text-[7rem] lg:text-[10rem] font-black uppercase leading-[0.85] tracking-tight mb-10">
           <m.span
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}

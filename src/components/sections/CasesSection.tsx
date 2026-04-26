@@ -22,7 +22,7 @@ export function CasesSection({ cases }: CasesSectionProps): React.JSX.Element {
             </SectionHeading>
           </div>
         </FadeInOnScroll>
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {cases.map((c, i) => (
             <FadeInOnScroll key={c.id} delay={i * STAGGER.base}>
               <CaseCard caseStudy={c} />

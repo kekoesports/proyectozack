@@ -17,7 +17,7 @@ export function CtaSection(): React.JSX.Element {
         <m.h2
           variants={fadeUp}
           transition={{ duration: DURATION.slow, ease: EASE.out }}
-          className="font-display text-5xl md:text-6xl font-black uppercase mb-6"
+          className="font-display text-3xl sm:text-5xl md:text-6xl font-black uppercase mb-6"
         >
           Diseñemos tu <GradientText>próxima campaña</GradientText>
         </m.h2>

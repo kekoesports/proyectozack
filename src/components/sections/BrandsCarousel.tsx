@@ -28,15 +28,14 @@ export function BrandsCarousel({ brands }: BrandsCarouselProps) {
               key={`${brand.slug}-${i}`}
               className="mx-4 shrink-0 transition-opacity opacity-80 hover:opacity-100"
             >
-              <div className="bg-white rounded-xl border border-sp-border shadow-sm flex items-center justify-center"
-                   style={{ width: 160, height: 64 }}>
+              <div className="bg-white rounded-xl border border-sp-border shadow-sm flex items-center justify-center w-32 h-14 sm:w-40 sm:h-16">
                 {brand.logoUrl ? (
                   <Image
                     src={brand.logoUrl}
                     alt={brand.displayName}
                     width={120}
                     height={30}
-                    style={{ width: 120, height: 30, objectFit: 'contain' }}
+                    className="h-6 sm:h-[30px] w-auto max-w-[100px] sm:max-w-[120px] object-contain"
                   />
                 ) : (
                   <span className="text-xs font-bold text-sp-dark uppercase tracking-wide">{brand.displayName}</span>
