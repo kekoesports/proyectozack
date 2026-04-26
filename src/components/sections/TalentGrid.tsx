@@ -7,7 +7,7 @@ import type { TalentWithRelations } from '@/types';
 import { FilterTabs } from '@/components/ui/FilterTabs';
 import { TalentCard } from './TalentCard';
 import { TalentModal } from './TalentModal';
-import { DURATION, EASE, STAGGER, VIEWPORT } from '@/lib/animation';
+import { DURATION, EASE, STAGGER } from '@/lib/animation';
 
 type TalentGridProps = {
   readonly talents: TalentWithRelations[];
@@ -32,14 +32,8 @@ export function TalentGrid({ talents }: TalentGridProps): React.JSX.Element {
     <>
       <FilterTabs instanceId="talent-filter" tabs={FILTERS} active={filter} onChange={setFilter} />
 
-      {/* Grid */}
-      <m.div
-        initial={{ opacity: 0, y: 16 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={VIEWPORT}
-        transition={{ duration: DURATION.base, ease: EASE.out }}
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
-      >
+      {/* Grid: wrapper plano para no tapar el contenido en móvil con whileInView */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         <AnimatePresence mode="popLayout">
           {visible.map((talent, index) => (
             <m.div
@@ -48,7 +42,12 @@ export function TalentGrid({ talents }: TalentGridProps): React.JSX.Element {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ duration: DURATION.base, ease: EASE.out, delay: index * STAGGER.tight }}
+              transition={{
+                duration: DURATION.base,
+                ease: EASE.out,
+                // Cap del stagger a 8 items: evita delays >0.4s en móvil con muchas cards
+                delay: Math.min(index, 8) * STAGGER.tight,
+              }}
             >
               <TalentCard
                 talent={talent}
@@ -57,7 +56,7 @@ export function TalentGrid({ talents }: TalentGridProps): React.JSX.Element {
             </m.div>
           ))}
         </AnimatePresence>
-      </m.div>
+      </div>
 
       {/* Modal */}
       <AnimatePresence>
