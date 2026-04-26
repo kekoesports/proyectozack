@@ -162,6 +162,7 @@
   html {
     @apply font-sans;
     background-color: var(--color-sp-black);
+    scroll-behavior: smooth;
   }
   body {
     @apply text-foreground;
