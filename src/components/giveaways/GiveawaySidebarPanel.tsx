@@ -1,53 +1,70 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
-import Link from 'next/link';
 import type { GiveawayWithTalent } from '@/types';
 
-type CardProps = {
-  readonly giveaway: GiveawayWithTalent;
-};
+function useCountdown(endsAt: Date) {
+  const calc = useCallback(() => {
+    const diff = endsAt.getTime() - Date.now();
+    if (diff <= 0) return null;
+    return {
+      d: Math.floor(diff / 86400000),
+      h: Math.floor((diff % 86400000) / 3600000),
+      m: Math.floor((diff % 3600000) / 60000),
+      s: Math.floor((diff % 60000) / 1000),
+    };
+  }, [endsAt]);
 
-function SidebarGiveawayCard({ giveaway }: CardProps): React.JSX.Element {
-  const [expired, setExpired] = useState(false);
-  const isActive = !expired && new Date(giveaway.endsAt) > new Date();
-  const handleExpired = useCallback(() => setExpired(true), []);
+  const [time, setTime] = useState(calc);
+  useEffect(() => {
+    const id = setInterval(() => setTime(calc()), 1000);
+    return () => clearInterval(id);
+  }, [calc]);
+  return time;
+}
 
-  // Auto-expire after mount
-  if (!isActive && !expired) handleExpired();
+function SorteoSidebarCard({ giveaway }: { giveaway: GiveawayWithTalent }): React.JSX.Element {
+  const time = useCountdown(giveaway.endsAt);
+  const isActive = time !== null;
 
-  if (!isActive) return <></>;
+  const digits = time
+    ? [
+        { v: time.d, l: 'Días' },
+        { v: time.h, l: 'Hrs' },
+        { v: time.m, l: 'Min' },
+        { v: time.s, l: 'Seg' },
+      ]
+    : null;
 
   return (
-    <div className="rounded-xl border border-white/[0.07] bg-[#0d0d0d] overflow-hidden group hover:border-sp-orange/25 transition-all duration-300">
-      {/* Brand bar */}
-      <div className="flex items-center gap-2 px-3 py-2 bg-white/[0.03] border-b border-white/[0.05]">
+    <div className="rounded-xl border border-white/[0.08] overflow-hidden bg-[#0c0c0c] group hover:border-sp-orange/30 transition-all duration-300">
+      {/* Brand header */}
+      <div className="flex items-center gap-2 px-3 py-2 border-b border-white/[0.05] bg-white/[0.02]">
         {giveaway.brandLogo ? (
           /* eslint-disable-next-line @next/next/no-img-element */
-          <img
-            src={giveaway.brandLogo}
-            alt={giveaway.brandName}
-            className="h-4 w-4 rounded object-contain bg-white/5 shrink-0"
-          />
+          <img src={giveaway.brandLogo} alt={giveaway.brandName} className="h-4 w-4 rounded object-contain" />
         ) : (
           <div className="h-4 w-4 rounded bg-sp-orange/20 flex items-center justify-center text-[8px] font-black text-sp-orange shrink-0">
             {giveaway.brandName.charAt(0)}
           </div>
         )}
-        <span className="text-[10px] font-black uppercase tracking-[0.1em] text-white/60 truncate flex-1">
+        <span className="flex-1 text-[10px] font-black uppercase tracking-[0.1em] text-white/50 truncate">
           {giveaway.brandName}
         </span>
-        <span className="flex items-center gap-1 shrink-0">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-        </span>
+        {isActive && (
+          <span className="flex items-center gap-1 shrink-0">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="text-[9px] font-black uppercase text-emerald-400/70">Live</span>
+          </span>
+        )}
       </div>
 
       {/* Prize image */}
-      <div className="relative h-28 bg-gradient-to-b from-white/[0.02] to-black/20 overflow-hidden">
+      <div className="relative w-full h-32 overflow-hidden bg-gradient-to-b from-white/[0.03] to-black/30">
         <div
-          className="absolute inset-0 opacity-20 group-hover:opacity-40 transition-opacity"
-          style={{ background: 'radial-gradient(ellipse at 50% 40%, rgba(245,99,42,0.2) 0%, transparent 70%)' }}
+          className="absolute inset-0 opacity-20 group-hover:opacity-40 transition-opacity duration-500"
+          style={{ background: 'radial-gradient(ellipse at 50% 40%, rgba(245,99,42,0.25) 0%, transparent 70%)' }}
           aria-hidden
         />
         {giveaway.imageUrl ? (
@@ -56,7 +73,7 @@ function SidebarGiveawayCard({ giveaway }: CardProps): React.JSX.Element {
             alt={giveaway.title}
             fill
             sizes="200px"
-            className="object-contain p-4 drop-shadow-[0_0_12px_rgba(245,99,42,0.15)] transition-transform duration-500 group-hover:scale-105 gw-sp-float"
+            className="object-contain p-4 drop-shadow-[0_0_16px_rgba(245,99,42,0.2)] transition-transform duration-500 group-hover:scale-105 gw-sp-float"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-white/10 text-3xl font-black">?</div>
@@ -64,26 +81,41 @@ function SidebarGiveawayCard({ giveaway }: CardProps): React.JSX.Element {
       </div>
 
       {/* Info */}
-      <div className="px-3 pt-2.5 pb-1">
-        <p className="text-[11px] font-black text-white/85 leading-tight line-clamp-2 mb-1">
+      <div className="px-3 pt-2.5 pb-2">
+        <p className="text-[11px] font-black text-white/85 leading-tight line-clamp-2 mb-1.5">
           {giveaway.title}
         </p>
         {giveaway.value && (
-          <p className="text-base font-black gw-sp-value">{giveaway.value}</p>
+          <p className="text-xl font-black gw-sp-value mb-2">{giveaway.value}</p>
         )}
-      </div>
 
-      {/* CTA */}
-      <div className="px-3 pb-3 pt-1">
-        <a
-          href={giveaway.redirectUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center justify-center gap-1.5 w-full py-2 rounded-lg bg-sp-grad text-white text-[10px] font-black uppercase tracking-[0.12em] gw-sp-btn-glow transition-all hover:opacity-90"
-        >
-          Participar
-          <span aria-hidden>→</span>
-        </a>
+        {/* Countdown */}
+        {digits ? (
+          <div className="grid grid-cols-4 gap-1 mb-3">
+            {digits.map(({ v, l }) => (
+              <div key={l} className="rounded-lg bg-black/40 border border-white/[0.06] py-1.5 text-center">
+                <p className="text-sm font-black text-white/90 tabular-nums leading-none">
+                  {String(v).padStart(2, '0')}
+                </p>
+                <p className="text-[8px] uppercase tracking-wider text-white/30 mt-0.5">{l}</p>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-[10px] font-bold uppercase tracking-wider text-white/25 mb-3">Finalizado</p>
+        )}
+
+        {/* CTA */}
+        {isActive && (
+          <a
+            href={giveaway.redirectUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-1.5 w-full py-2.5 rounded-lg bg-sp-grad text-white text-[11px] font-black uppercase tracking-[0.12em] gw-sp-btn-glow transition-all hover:opacity-90"
+          >
+            Participar →
+          </a>
+        )}
       </div>
     </div>
   );
@@ -94,34 +126,26 @@ type GiveawaySidebarPanelProps = {
 };
 
 export function GiveawaySidebarPanel({ giveaways }: GiveawaySidebarPanelProps): React.JSX.Element | null {
-  if (giveaways.length === 0) return null;
+  const active = giveaways.filter((g) => new Date(g.endsAt) > new Date());
+  if (active.length === 0) return null;
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-3 px-1">
-        <h2 className="text-[10px] font-black uppercase tracking-[0.25em] text-white/35">
+      <div className="flex items-center justify-between mb-3 px-0.5">
+        <h2 className="text-[10px] font-black uppercase tracking-[0.25em] text-white/40">
           Sorteos activos
         </h2>
-        <span className="flex items-center gap-1">
+        <div className="flex items-center gap-1.5">
           <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-          <span className="text-[10px] font-bold text-emerald-400/60 tabular-nums">{giveaways.length}</span>
-        </span>
+          <span className="text-[10px] font-bold text-emerald-400/60 tabular-nums">{active.length}</span>
+        </div>
       </div>
 
       <div className="space-y-3">
-        {giveaways.map((g) => (
-          <SidebarGiveawayCard key={g.id} giveaway={g} />
+        {active.map((g) => (
+          <SorteoSidebarCard key={g.id} giveaway={g} />
         ))}
       </div>
-
-      {giveaways.length > 2 && (
-        <Link
-          href="/sorteos"
-          className="flex items-center justify-center gap-1.5 mt-3 text-[9px] font-black uppercase tracking-[0.2em] text-white/25 hover:text-sp-orange/60 transition-colors"
-        >
-          Ver todos →
-        </Link>
-      )}
     </div>
   );
 }
