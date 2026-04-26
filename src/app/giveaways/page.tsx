@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import { getAllActiveGiveaways, getAllFinishedGiveaways, extractUniqueBrands } from '@/lib/queries/giveawaysHub';
-import { getAllCodes } from '@/lib/queries/creatorCodes';
+import { getAllCodes, getFeaturedCodes } from '@/lib/queries/creatorCodes';
 import { getTopWinners, getRecentWinners } from '@/lib/queries/giveawayWinners';
 import { getAllTalents } from '@/lib/queries/talents';
 import { GiveawaysHub } from '@/components/giveaways/GiveawaysHub';
@@ -29,10 +29,11 @@ function computeTotalValue(giveaways: { value: string | null }[]): string {
 }
 
 export default async function GiveawaysPage() {
-  const [active, finished, codes, talents, topWinnersData, recentWinnersData] = await Promise.all([
+  const [active, finished, codes, featuredCodes, talents, topWinnersData, recentWinnersData] = await Promise.all([
     getAllActiveGiveaways(),
     getAllFinishedGiveaways(),
     getAllCodes(),
+    getFeaturedCodes(),
     getAllTalents(),
     getTopWinners(),
     getRecentWinners(),
@@ -119,6 +120,7 @@ export default async function GiveawaysPage() {
         active={active}
         finished={finished}
         codes={codes}
+        featuredCodes={featuredCodes}
         creators={creators}
         brands={brands}
         topWinners={topWinnersData}

@@ -10,6 +10,7 @@ export * from './analytics';
 export * from './agencyCreators';
 export * from './giveaways';
 export * from './creatorCodes';
+export * from './codeClicks';
 export * from './giveawayWinners';
 export * from './targets';
 export * from './statsShares';

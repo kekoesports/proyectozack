@@ -11,6 +11,15 @@ export async function getAllCodes(): Promise<CreatorCodeWithTalent[]> {
   return rows as CreatorCodeWithTalent[];
 }
 
+export async function getFeaturedCodes(): Promise<CreatorCodeWithTalent[]> {
+  const rows = await db.query.creatorCodes.findMany({
+    where: (c, { eq }) => eq(c.isFeatured, true),
+    with: { talent: true },
+    orderBy: (c, { asc }) => [asc(c.sortOrder)],
+  });
+  return rows as CreatorCodeWithTalent[];
+}
+
 export async function getCodesByTalent(talentId: number): Promise<CreatorCode[]> {
   return db
     .select()
@@ -23,9 +32,13 @@ export async function createCode(data: {
   talentId: number;
   code: string;
   brandName: string;
-  brandLogo?: string | null | undefined;
+  brandLogo?: string | null;
   redirectUrl: string;
-  description?: string | null | undefined;
+  description?: string | null;
+  badge?: string | null;
+  isFeatured?: boolean;
+  category?: string | null;
+  ctaText?: string | null;
   sortOrder?: number;
 }): Promise<CreatorCode> {
   const [row] = await db.insert(creatorCodes).values(data).returning();

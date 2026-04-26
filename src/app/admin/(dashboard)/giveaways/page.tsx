@@ -206,8 +206,40 @@ export default async function AdminGiveawaysPage({ searchParams }: PageProps): P
             <input name="brandLogo" type="url" className="w-full rounded-lg border border-sp-admin-border bg-sp-admin-bg px-3 py-2 text-sm text-sp-admin-text" />
           </div>
           <div>
-            <label className="block text-sm font-semibold text-sp-admin-muted mb-1">Descripción</label>
-            <input name="description" maxLength={300} className="w-full rounded-lg border border-sp-admin-border bg-sp-admin-bg px-3 py-2 text-sm text-sp-admin-text" />
+            <label className="block text-sm font-semibold text-sp-admin-muted mb-1">Descripción (beneficio exacto)</label>
+            <input name="description" maxLength={300} placeholder="100% extra en tu primer depósito" className="w-full rounded-lg border border-sp-admin-border bg-sp-admin-bg px-3 py-2 text-sm text-sp-admin-text placeholder:text-sp-admin-muted/40" />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-sp-admin-muted mb-1">CTA personalizado</label>
+            <input name="ctaText" maxLength={100} placeholder="Activar bonus" className="w-full rounded-lg border border-sp-admin-border bg-sp-admin-bg px-3 py-2 text-sm text-sp-admin-text placeholder:text-sp-admin-muted/40" />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-sp-admin-muted mb-1">Badge</label>
+            <select name="badge" className="w-full rounded-lg border border-sp-admin-border bg-sp-admin-bg px-3 py-2 text-sm text-sp-admin-text">
+              <option value="">Sin badge</option>
+              <option value="TOP">🔥 TOP</option>
+              <option value="RECOMENDADO">⭐ Recomendado</option>
+              <option value="MEJOR_BONUS">💎 Mejor bonus</option>
+              <option value="NUEVO">✨ Nuevo</option>
+              <option value="MAS_USADO">🚀 Más usado</option>
+              <option value="EXCLUSIVO">👑 Exclusivo</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-sp-admin-muted mb-1">Categoría</label>
+            <select name="category" className="w-full rounded-lg border border-sp-admin-border bg-sp-admin-bg px-3 py-2 text-sm text-sp-admin-text">
+              <option value="">Sin categoría</option>
+              <option value="casino">Casino</option>
+              <option value="apuestas">Apuestas</option>
+              <option value="skins_cs2">Skins CS2</option>
+              <option value="otros">Otros</option>
+            </select>
+          </div>
+          <div className="flex items-center gap-3">
+            <input type="checkbox" name="isFeatured" id="isFeatured" className="rounded" />
+            <label htmlFor="isFeatured" className="text-sm font-semibold text-sp-admin-muted">
+              Destacado (aparece en sección &ldquo;Mejores recompensas&rdquo;)
+            </label>
           </div>
           <div className="md:col-span-2">
             <button type="submit" className="px-6 py-2 rounded-lg bg-sp-admin-accent text-sp-admin-bg text-sm font-bold hover:opacity-90 transition-opacity">
@@ -228,7 +260,9 @@ export default async function AdminGiveawaysPage({ searchParams }: PageProps): P
                 <th className="text-left px-6 py-3 font-semibold text-sp-admin-muted text-[11px] uppercase tracking-wider">Código</th>
                 <th className="text-left px-6 py-3 font-semibold text-sp-admin-muted text-[11px] uppercase tracking-wider">Creador</th>
                 <th className="text-left px-6 py-3 font-semibold text-sp-admin-muted text-[11px] uppercase tracking-wider">Marca</th>
-                <th className="text-left px-6 py-3 font-semibold text-sp-admin-muted text-[11px] uppercase tracking-wider">URL</th>
+                <th className="text-left px-6 py-3 font-semibold text-sp-admin-muted text-[11px] uppercase tracking-wider">Badge</th>
+                <th className="text-left px-6 py-3 font-semibold text-sp-admin-muted text-[11px] uppercase tracking-wider">Categ.</th>
+                <th className="text-left px-6 py-3 font-semibold text-sp-admin-muted text-[11px] uppercase tracking-wider">Dest.</th>
                 <th className="text-left px-6 py-3 font-semibold text-sp-admin-muted text-[11px] uppercase tracking-wider">Acciones</th>
               </tr>
             </thead>
@@ -238,15 +272,12 @@ export default async function AdminGiveawaysPage({ searchParams }: PageProps): P
                   <td className="px-6 py-4 font-mono font-bold text-sp-admin-text">{c.code}</td>
                   <td className="px-6 py-4 text-sp-admin-muted">{c.talent.name}</td>
                   <td className="px-6 py-4 text-sp-admin-muted">{c.brandName}</td>
-                  <td className="px-6 py-4 text-sp-admin-muted truncate max-w-[200px]">
-                    <a
-                      href={c.redirectUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-sp-admin-accent hover:underline break-all"
-                    >
-                      {c.redirectUrl}
-                    </a>
+                  <td className="px-6 py-4 text-sp-admin-muted text-xs">{c.badge ?? '—'}</td>
+                  <td className="px-6 py-4 text-sp-admin-muted text-xs">{c.category ?? '—'}</td>
+                  <td className="px-6 py-4">
+                    {c.isFeatured && (
+                      <span className="inline-flex px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-900/30 text-amber-400">★</span>
+                    )}
                   </td>
                   <td className="px-6 py-4">
                     <form action={deleteCodeAction}>

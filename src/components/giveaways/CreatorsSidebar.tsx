@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import Link from 'next/link';
 import { motion } from 'motion/react';
 import type { Talent } from '@/types';
 
@@ -35,37 +36,46 @@ export function CreatorsSidebar({ creators, selected, onSelectAction }: Creators
           </button>
 
           {creators.map((c) => (
-            <motion.button
-              key={c.id}
-              type="button"
-              onClick={() => onSelectAction(c.id)}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all ${
-                selected === c.id
-                  ? 'gw-creator-active text-white'
-                  : 'text-white/50 hover:text-white/80 hover:bg-white/[0.03]'
-              }`}
-              whileHover={{ x: 2 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              <div className="relative w-8 h-8 rounded-lg overflow-hidden shrink-0 border border-white/10">
-                {c.photoUrl ? (
-                  <Image src={c.photoUrl} alt={c.name} fill sizes="32px" className="object-cover" />
-                ) : (
-                  <div
-                    className="w-full h-full flex items-center justify-center text-[10px] font-black text-white/60"
-                    style={{ background: `linear-gradient(135deg, ${c.gradientC1}, ${c.gradientC2})` }}
-                  >
-                    {c.initials}
-                  </div>
-                )}
-              </div>
-              <div className="min-w-0">
-                <p className="text-xs font-bold uppercase tracking-wide truncate">{c.name}</p>
-                <p className="text-[10px] text-white/30">
-                  {c.giveawayCount} {c.giveawayCount === 1 ? 'sorteo' : 'sorteos'}
-                </p>
-              </div>
-            </motion.button>
+            <div key={c.id} className="relative group/row flex items-center">
+              <motion.button
+                type="button"
+                onClick={() => onSelectAction(c.id)}
+                className={`flex-1 flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all ${
+                  selected === c.id
+                    ? 'gw-creator-active text-white'
+                    : 'text-white/50 hover:text-white/80 hover:bg-white/[0.03]'
+                }`}
+                whileHover={{ x: 2 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <div className="relative w-8 h-8 rounded-lg overflow-hidden shrink-0 border border-white/10">
+                  {c.photoUrl ? (
+                    <Image src={c.photoUrl} alt={c.name} fill sizes="32px" className="object-cover" />
+                  ) : (
+                    <div
+                      className="w-full h-full flex items-center justify-center text-[10px] font-black text-white/60"
+                      style={{ background: `linear-gradient(135deg, ${c.gradientC1}, ${c.gradientC2})` }}
+                    >
+                      {c.initials}
+                    </div>
+                  )}
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs font-bold uppercase tracking-wide truncate">{c.name}</p>
+                  <p className="text-[10px] text-white/30">
+                    {c.giveawayCount} {c.giveawayCount === 1 ? 'sorteo' : 'sorteos'}
+                  </p>
+                </div>
+              </motion.button>
+              {/* Link to creator page */}
+              <Link
+                href={`/c/${c.slug}`}
+                title={`Ver página de ${c.name}`}
+                className="opacity-0 group-hover/row:opacity-100 transition-opacity px-1.5 text-white/25 hover:text-sp-orange text-xs"
+              >
+                ↗
+              </Link>
+            </div>
           ))}
         </div>
       </aside>
