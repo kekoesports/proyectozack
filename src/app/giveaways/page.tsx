@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
+import Link from 'next/link';
 import { getAllActiveGiveaways, getAllFinishedGiveaways, extractUniqueBrands } from '@/lib/queries/giveawaysHub';
 import { getAllCodes, getFeaturedCodes } from '@/lib/queries/creatorCodes';
 import { getAllTalents } from '@/lib/queries/talents';
@@ -103,6 +104,12 @@ export default async function GiveawaysPage(): Promise<React.JSX.Element> {
                 </span>
               </div>
             )}
+            <Link
+              href="/sorteos"
+              className="hidden sm:inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wider text-white/30 hover:text-sp-orange/80 transition-colors border border-white/[0.06] hover:border-sp-orange/30 rounded-full px-3 py-1"
+            >
+              🎁 Sorteos
+            </Link>
           </div>
         </div>
       </header>
