@@ -44,7 +44,7 @@ export function FiltersBar({
   onClearAction,
 }: FiltersBarProps): React.JSX.Element {
   return (
-    <div className="sticky top-14 z-30 py-3 mb-6 border-b border-white/[0.05] bg-[#09090f]/85 backdrop-blur-md">
+    <div className="sticky top-[84px] z-30 py-3 mb-6 border-b border-white/[0.05] bg-[#09090f]/85 backdrop-blur-md">
       <div className="flex items-center gap-2 flex-wrap">
         {/* Category chips — horizontal scroll on mobile */}
         <div className="flex items-center gap-1.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden shrink-0">

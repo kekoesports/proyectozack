@@ -75,7 +75,7 @@ export default async function GiveawaysPage(): Promise<React.JSX.Element> {
       )}
 
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-[#09090f]/90 backdrop-blur-xl border-b border-white/[0.04]">
+      <header className="sticky top-0 z-50 bg-[#09090f]/92 backdrop-blur-xl border-b border-white/[0.04]">
         <div className="max-w-7xl mx-auto px-6 h-14 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Image
@@ -88,7 +88,7 @@ export default async function GiveawaysPage(): Promise<React.JSX.Element> {
             />
             <span className="text-white/15">|</span>
             <span className="font-display text-sm font-bold uppercase tracking-[0.15em] text-white/40">
-              Rewards Hub
+              Sorteos & Códigos
             </span>
           </div>
           <div className="flex items-center gap-4">
@@ -106,6 +106,24 @@ export default async function GiveawaysPage(): Promise<React.JSX.Element> {
           </div>
         </div>
       </header>
+
+      {/* SocialPro brand ticker — sticky debajo del header, siempre visible */}
+      <div className="sticky top-14 z-40 overflow-hidden bg-[#09090f]/80 backdrop-blur-sm border-b border-white/[0.03]">
+        <div className="gw-sp-ticker-track whitespace-nowrap">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <span key={i} className="inline-flex items-center gap-5 px-6 py-2">
+              <span className="text-[9px] font-black uppercase tracking-[0.45em] text-white/22">SOCIALPRO</span>
+              <span className="text-sp-orange/25 text-[8px]" aria-hidden>◆</span>
+              <span className="text-[9px] font-black uppercase tracking-[0.4em] text-white/16">SORTEOS</span>
+              <span className="text-sp-orange/20 text-[8px]" aria-hidden>◆</span>
+              <span className="text-[9px] font-black uppercase tracking-[0.4em] text-white/16">CÓDIGOS</span>
+              <span className="text-sp-orange/20 text-[8px]" aria-hidden>◆</span>
+              <span className="text-[9px] font-black uppercase tracking-[0.4em] text-white/16">RECOMPENSAS GAMING</span>
+              <span className="text-sp-orange/25 text-[8px]" aria-hidden>◆</span>
+            </span>
+          ))}
+        </div>
+      </div>
 
       {/* Main hub — codes visible immediately */}
       <GiveawaysHub
