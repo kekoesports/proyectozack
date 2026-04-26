@@ -26,7 +26,10 @@ npx playwright test e2e/contact.spec.ts   # single e2e file
 
 # Database
 npx drizzle-kit generate       # generate migration SQL from schema changes
-npx drizzle-kit migrate        # apply migrations to DATABASE_URL
+npm run migrate                # apply migrations via neon-http (matches app driver)
+# Note: do NOT use `npx drizzle-kit migrate` — it uses @neondatabase/serverless
+# over websockets and hangs in this project. Use `npm run migrate` instead,
+# which runs scripts/migrate.ts using the same neon-http driver as src/lib/db.ts.
 ```
 
 Test files live at `src/__tests__/{client,server}/**/*.test.ts(x)` and `src/__tests__/fuzz/**/*.fuzz.ts`.

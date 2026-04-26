@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "migrate": "tsx scripts/migrate.ts",
     "test": "TS_NODE_PROJECT=tsconfig.jest.json jest --passWithNoTests",
     "test:watch": "TS_NODE_PROJECT=tsconfig.jest.json jest --watch",
     "test:coverage": "TS_NODE_PROJECT=tsconfig.jest.json jest --coverage",
