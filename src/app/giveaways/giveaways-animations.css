@@ -166,12 +166,12 @@
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.35) 50%, transparent 100%);
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.5) 50%, transparent 100%);
   transform: translateX(-250%);
   animation: gw-sp-shimmer-sweep 4s linear infinite;
   pointer-events: none;
-  /* pseudo-element sits above text clip; use mix-blend-mode overlay */
-  mix-blend-mode: overlay;
+  /* mix-blend-mode: overlay was unreliable in Safari iOS; use opacity instead */
+  opacity: 0.7;
 }
 
 /* SP button glow — opacity on pseudo avoids per-frame box-shadow repaint */

@@ -31,7 +31,7 @@ export function GiveawayGrid({ giveaways, title }: GiveawayGridProps) {
         variants={container}
         initial="hidden"
         whileInView="show"
-        viewport={{ once: true, margin: '-50px' }}
+        viewport={{ once: true, amount: 0.1 }}
         className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"
       >
         {giveaways.map((g) => (

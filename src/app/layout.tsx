@@ -5,6 +5,7 @@ import { Nav } from '@/components/layout/Nav';
 import { Footer } from '@/components/layout/Footer';
 import { PublicChrome } from '@/components/layout/PublicChrome';
 import { CookieConsent } from '@/components/layout/CookieConsent';
+import { MotionRoot } from '@/components/layout/MotionRoot';
 import { SITE_URL, absoluteUrl } from '@/lib/site-url';
 
 const inter = Inter({
@@ -162,10 +163,12 @@ export default function RootLayout({
         />
       </head>
       <body className={`${inter.variable} ${barlowCondensed.variable} antialiased`}>
-        <PublicChrome nav={<Nav />} footer={<Footer />}>
-          {children}
-        </PublicChrome>
-        <CookieConsent />
+        <MotionRoot>
+          <PublicChrome nav={<Nav />} footer={<Footer />}>
+            {children}
+          </PublicChrome>
+          <CookieConsent />
+        </MotionRoot>
       </body>
     </html>
   );
