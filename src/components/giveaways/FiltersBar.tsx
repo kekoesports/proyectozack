@@ -25,6 +25,7 @@ type FiltersBarProps = {
   readonly brands: readonly BrandOption[];
   readonly totalCount: number;
   readonly hasFilters: boolean;
+  readonly activeGiveawaysCount: number;
   readonly onCategoryAction: (c: CategoryValue) => void;
   readonly onSortAction: (s: SortOption) => void;
   readonly onBrandAction: (b: string | null) => void;
@@ -38,6 +39,7 @@ export function FiltersBar({
   brands,
   totalCount,
   hasFilters,
+  activeGiveawaysCount,
   onCategoryAction,
   onSortAction,
   onBrandAction,
@@ -98,6 +100,17 @@ export function FiltersBar({
             </option>
           ))}
         </select>
+
+        {/* Giveaways button */}
+        {activeGiveawaysCount > 0 && (
+          <a
+            href="#sorteos-activos"
+            className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.1em] bg-emerald-500/10 border border-emerald-500/25 text-emerald-400/80 hover:bg-emerald-500/15 hover:text-emerald-400 transition-all"
+          >
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            {activeGiveawaysCount} {activeGiveawaysCount === 1 ? 'Sorteo' : 'Sorteos'}
+          </a>
+        )}
 
         {/* Right side: clear + count */}
         <div className="ml-auto flex items-center gap-3 shrink-0">

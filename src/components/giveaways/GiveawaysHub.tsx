@@ -7,6 +7,7 @@ import { BrandsSidebar } from './BrandsSidebar';
 import { FeaturedCodesSection } from './FeaturedCodesSection';
 import { CodeCard } from './CodeCard';
 import { GiveawaySection } from './GiveawaySection';
+import { GiveawaySidebarPanel } from './GiveawaySidebarPanel';
 import { FiltersBar, type CategoryValue, type SortOption } from './FiltersBar';
 import type { BrandOption } from '@/lib/queries/giveawaysHub';
 import type { GiveawayWithTalent, CreatorCodeWithTalent, Talent } from '@/types';
@@ -125,6 +126,7 @@ export function GiveawaysHub({
             brands={brands}
             totalCount={filteredCodes.length}
             hasFilters={hasFilters}
+            activeGiveawaysCount={active.length}
             onCategoryAction={setSelectedCategory}
             onSortAction={setSort}
             onBrandAction={setSelectedBrand}
@@ -169,8 +171,14 @@ export function GiveawaysHub({
           <GiveawaySection active={filteredActive} finished={filteredFinished} />
         </div>
 
-        {/* RIGHT: Brand sidebar (desktop only) */}
-        <aside className="hidden lg:block w-48 xl:w-52 shrink-0">
+        {/* RIGHT: sidebar (desktop only) — sorteos + marcas */}
+        <aside className="hidden lg:flex flex-col w-48 xl:w-52 shrink-0 gap-6">
+          {/* Sorteos activos */}
+          <div id="sorteos-activos">
+            <GiveawaySidebarPanel giveaways={active} />
+          </div>
+
+          {/* Filtrar por marca */}
           <BrandsSidebar
             brands={brands}
             selected={selectedBrand}
