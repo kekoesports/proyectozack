@@ -2,15 +2,65 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
+import { useState } from 'react';
 import type { Talent } from '@/types';
 
-type Creator = Talent & { giveawayCount: number; codeCount: number };
-
 type CreatorsSidebarProps = {
-  readonly creators: readonly Creator[];
+  readonly creators: readonly (Talent & { codeCount: number; giveawayCount: number })[];
   readonly selected: number | null;
   readonly onSelectAction: (id: number | null) => void;
 };
+
+type AvatarProps = {
+  readonly photoUrl: string | null | undefined;
+  readonly name: string;
+  readonly initials: string;
+  readonly gradientC1: string;
+  readonly gradientC2: string;
+  readonly sizePx: number;
+  readonly textClass: string;
+};
+
+/**
+ * Resilient avatar: shows the photo when available, gracefully falls back to a
+ * gradient with initials if `photoUrl` is missing OR the image fails to load.
+ * This prevents broken-image alt-text from leaking through (the original bug:
+ * `Therealfer.jpg` vs `therealfer.jpg` case mismatch).
+ */
+function CreatorAvatar({
+  photoUrl,
+  name,
+  initials,
+  gradientC1,
+  gradientC2,
+  sizePx,
+  textClass,
+}: AvatarProps): React.JSX.Element {
+  const [failed, setFailed] = useState(false);
+  const showPhoto = Boolean(photoUrl) && !failed;
+
+  return (
+    <div
+      className={`absolute inset-0 flex items-center justify-center font-black text-white/85 ${textClass}`}
+      style={{ background: `linear-gradient(135deg, ${gradientC1}, ${gradientC2})` }}
+    >
+      {/* Initials always rendered as fallback layer underneath */}
+      <span aria-hidden={showPhoto} className="select-none">
+        {initials}
+      </span>
+      {showPhoto && (
+        <Image
+          src={photoUrl as string}
+          alt={name}
+          fill
+          sizes={`${sizePx}px`}
+          className="object-cover"
+          onError={() => setFailed(true)}
+        />
+      )}
+    </div>
+  );
+}
 
 export function CreatorsSidebar({ creators, selected, onSelectAction }: CreatorsSidebarProps): React.JSX.Element {
   return (
@@ -71,16 +121,15 @@ export function CreatorsSidebar({ creators, selected, onSelectAction }: Creators
                         : '0 0 0 1px rgba(255,255,255,0.07)',
                     }}
                   >
-                    {c.photoUrl ? (
-                      <Image src={c.photoUrl} alt={c.name} fill sizes="40px" className="object-cover" />
-                    ) : (
-                      <div
-                        className="w-full h-full flex items-center justify-center text-[10px] font-black text-white"
-                        style={{ background: `linear-gradient(135deg, ${c.gradientC1}, ${c.gradientC2})` }}
-                      >
-                        {c.initials}
-                      </div>
-                    )}
+                    <CreatorAvatar
+                      photoUrl={c.photoUrl}
+                      name={c.name}
+                      initials={c.initials}
+                      gradientC1={c.gradientC1}
+                      gradientC2={c.gradientC2}
+                      sizePx={40}
+                      textClass="text-[10px]"
+                    />
                   </div>
 
                   {/* Info */}
@@ -161,16 +210,15 @@ export function CreatorsSidebar({ creators, selected, onSelectAction }: Creators
                     isActive ? 'ring-2 ring-sp-orange ring-offset-2 ring-offset-[#09090f]' : 'ring-1 ring-white/10'
                   }`}
                 >
-                  {c.photoUrl ? (
-                    <Image src={c.photoUrl} alt={c.name} fill sizes="48px" className="object-cover" />
-                  ) : (
-                    <div
-                      className="w-full h-full flex items-center justify-center text-[11px] font-black text-white"
-                      style={{ background: `linear-gradient(135deg, ${c.gradientC1}, ${c.gradientC2})` }}
-                    >
-                      {c.initials}
-                    </div>
-                  )}
+                  <CreatorAvatar
+                    photoUrl={c.photoUrl}
+                    name={c.name}
+                    initials={c.initials}
+                    gradientC1={c.gradientC1}
+                    gradientC2={c.gradientC2}
+                    sizePx={48}
+                    textClass="text-[11px]"
+                  />
                 </div>
                 <span className={`text-[10px] font-bold uppercase tracking-wide truncate w-full text-center ${isActive ? 'text-white' : 'text-white/55'}`}>
                   {c.name}
