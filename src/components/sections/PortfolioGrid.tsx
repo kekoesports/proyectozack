@@ -6,9 +6,10 @@ import * as m from 'motion/react-client';
 import { AnimatePresence } from 'motion/react';
 import type { PortfolioItem } from '@/types';
 import { FilterTabs } from '@/components/ui/FilterTabs';
+import { DURATION, EASE, STAGGER, VIEWPORT } from '@/lib/animation';
 
 type PortfolioGridProps = {
-  items: PortfolioItem[];
+  readonly items: PortfolioItem[];
 }
 
 const FILTERS = [
@@ -30,7 +31,7 @@ function dedupeByImage(items: PortfolioItem[]): PortfolioItem[] {
   });
 }
 
-export function PortfolioGrid({ items }: PortfolioGridProps) {
+export function PortfolioGrid({ items }: PortfolioGridProps): React.JSX.Element {
   const [filter, setFilter] = useState<FilterKey>('all');
 
   const uniqueItems = useMemo(() => dedupeByImage(items), [items]);
@@ -38,18 +39,23 @@ export function PortfolioGrid({ items }: PortfolioGridProps) {
 
   return (
     <>
-      <FilterTabs tabs={FILTERS} active={filter} onChange={setFilter} />
+      <FilterTabs instanceId="portfolio-filter" tabs={FILTERS} active={filter} onChange={setFilter} />
 
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+      <m.div
+        className="grid grid-cols-2 md:grid-cols-3 gap-4"
+        initial="hidden"
+        whileInView="visible"
+        viewport={VIEWPORT}
+      >
         <AnimatePresence mode="popLayout">
-          {visible.map((item) => (
+          {visible.map((item, index) => (
             <m.div
               key={item.id}
               layout
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ duration: 0.3, ease: 'easeOut' }}
+              transition={{ duration: DURATION.base, ease: EASE.out, delay: index * STAGGER.tight }}
               className="group relative rounded-2xl overflow-hidden bg-sp-bg2 aspect-video"
             >
               {item.imageUrl ? (
@@ -66,8 +72,8 @@ export function PortfolioGrid({ items }: PortfolioGridProps) {
                 </div>
               )}
               {/* Overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
-                <div className="absolute bottom-3 left-3 right-3">
+              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+                <div className="px-3 pt-6 pb-3">
                   <p className="text-white text-xs font-bold leading-tight line-clamp-2">{item.title}</p>
                   <p className="text-white/60 text-xs mt-0.5">{item.creatorName}</p>
                   {item.views && (
@@ -78,7 +84,7 @@ export function PortfolioGrid({ items }: PortfolioGridProps) {
             </m.div>
           ))}
         </AnimatePresence>
-      </div>
+      </m.div>
     </>
   );
 }

@@ -1,7 +1,9 @@
+import { STAGGER } from '@/lib/animation';
 import { SectionTag } from '@/components/ui/SectionTag';
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { GradientText } from '@/components/ui/GradientText';
 import { FadeInOnScroll } from '@/components/ui/FadeInOnScroll';
+import { AboutCard } from '@/components/sections/AboutCard';
 
 export function AboutSection() {
   return (
@@ -35,11 +37,8 @@ export function AboutSection() {
             { label: 'iGaming', sub: 'Especialización principal' },
             { label: '100% tracking', sub: 'Resultados medibles' },
           ].map(({ label, sub }, i) => (
-            <FadeInOnScroll key={sub} delay={0.15 + i * 0.08}>
-              <div className="rounded-2xl bg-sp-off border border-sp-border p-5">
-                <div className="font-display text-2xl font-black gradient-text">{label}</div>
-                <div className="text-xs text-sp-muted mt-1">{sub}</div>
-              </div>
+            <FadeInOnScroll key={sub} delay={i * STAGGER.base}>
+              <AboutCard item={{ label, sub }} />
             </FadeInOnScroll>
           ))}
         </div>

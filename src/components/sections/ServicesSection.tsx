@@ -107,6 +107,7 @@ export function ServicesSection() {
         </FadeInOnScroll>
 
         <FilterTabs
+          instanceId="services-filter"
           tabs={SERVICES.map((s) => ({ key: s.id, label: s.label }))}
           active={active}
           onChange={setActive}

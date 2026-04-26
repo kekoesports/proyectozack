@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import * as m from 'motion/react-client';
 import { AnimatePresence } from 'motion/react';
+import { DURATION, EASE } from '@/lib/animation';
 import { Target, Gamepad2 } from 'lucide-react';
 import { SectionTag } from '@/components/ui/SectionTag';
 import { SectionHeading } from '@/components/ui/SectionHeading';
@@ -78,7 +79,7 @@ const selectClasses =
   'w-full rounded-xl border border-white/10 bg-sp-black px-4 py-3 text-sm text-white outline-none focus:border-sp-orange transition-colors';
 const labelClasses = 'block text-xs font-semibold text-sp-muted2 mb-1.5 uppercase tracking-widest';
 
-export function ContactSection() {
+export function ContactSection(): React.JSX.Element {
   const [status, setStatus] = useState<'idle' | 'sending' | 'ok' | 'error'>('idle');
 
   const {
@@ -158,15 +159,30 @@ export function ContactSection() {
           {/* Right — form */}
           <FadeInOnScroll delay={0.2}>
             <div>
+              <AnimatePresence mode="wait">
               {status === 'ok' ? (
-                <div className="rounded-2xl border border-white/10 bg-white/5 p-8 text-center">
+                <m.div
+                  key="success"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: DURATION.base, ease: EASE.out }}
+                  className="rounded-2xl border border-white/10 bg-white/5 p-8 text-center"
+                >
                   <div className="w-12 h-12 rounded-full bg-green-500/15 border border-green-500/30 flex items-center justify-center mx-auto mb-3">
                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                   </div>
                   <h3 className="font-bold text-white mb-2">¡Mensaje enviado!</h3>
                   <p className="text-sm text-sp-muted2">Te respondemos en menos de 24h.</p>
-                </div>
+                </m.div>
               ) : (
+                <m.div
+                  key="form"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: DURATION.base, ease: EASE.out }}
+                >
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
                   <div className="grid sm:grid-cols-2 gap-4">
                     <div>
@@ -334,7 +350,9 @@ export function ContactSection() {
                     {status === 'sending' ? 'Enviando...' : 'Enviar mensaje →'}
                   </button>
                 </form>
+                </m.div>
               )}
+              </AnimatePresence>
             </div>
           </FadeInOnScroll>
         </div>

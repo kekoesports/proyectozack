@@ -3,14 +3,16 @@
 import { useEffect, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import * as m from 'motion/react-client';
 import type { TalentWithRelations } from '@/types';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { SocialIcon } from '@/components/ui/SocialIcon';
 import { gradientStyle } from '@/lib/gradient';
+import { DURATION, EASE } from '@/lib/animation';
 
 type TalentModalProps = {
-  talent: TalentWithRelations;
-  onClose: () => void;
+  readonly talent: TalentWithRelations;
+  readonly onClose: () => void;
 }
 
 const FOCUSABLE = [
@@ -22,7 +24,7 @@ const FOCUSABLE = [
   '[tabindex]:not([tabindex="-1"])',
 ].join(',');
 
-export function TalentModal({ talent, onClose }: TalentModalProps) {
+export function TalentModal({ talent, onClose }: TalentModalProps): React.JSX.Element {
   const onCloseRef = useRef(onClose);
   const dialogRef = useRef<HTMLDivElement>(null);
 
@@ -46,8 +48,9 @@ export function TalentModal({ talent, onClose }: TalentModalProps) {
       const nodes = Array.from(dialog.querySelectorAll<HTMLElement>(FOCUSABLE));
       if (nodes.length === 0) return;
 
-      const first = nodes[0]!;
-      const last = nodes[nodes.length - 1]!;
+      const first = nodes[0];
+      const last = nodes[nodes.length - 1];
+      if (!first || !last) return;
 
       if (e.shiftKey) {
         if (document.activeElement === first) {
@@ -69,17 +72,25 @@ export function TalentModal({ talent, onClose }: TalentModalProps) {
   const grad = gradientStyle(talent.gradientC1, talent.gradientC2);
 
   return (
-    <div
+    <m.div
       className="modal-backdrop"
       onClick={onClose}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: DURATION.base, ease: EASE.out }}
     >
-      <div
+      <m.div
         ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby="talent-modal-name"
         className="relative w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-3xl bg-white shadow-2xl"
         onClick={(e) => e.stopPropagation()}
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        transition={{ duration: DURATION.fast, ease: EASE.out }}
       >
         {/* Header image */}
         <header className="relative h-56" style={{ background: grad }}>
@@ -185,7 +196,7 @@ export function TalentModal({ talent, onClose }: TalentModalProps) {
             Contactar para colaboración
           </a>
         </section>
-      </div>
-    </div>
+      </m.div>
+    </m.div>
   );
 }

@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import { STAGGER } from '@/lib/animation';
 import type { Collaborator } from '@/types';
 import { SectionTag } from '@/components/ui/SectionTag';
 import { SectionHeading } from '@/components/ui/SectionHeading';
@@ -13,10 +14,10 @@ const ArrowUpRight = () => (
 );
 
 type CollabsSectionProps = {
-  collaborators: Collaborator[];
+  readonly collaborators: Collaborator[];
 }
 
-export function CollabsSection({ collaborators }: CollabsSectionProps) {
+export function CollabsSection({ collaborators }: CollabsSectionProps): React.JSX.Element {
   return (
     <section className="py-24 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -63,7 +64,7 @@ export function CollabsSection({ collaborators }: CollabsSectionProps) {
             );
 
             return (
-              <FadeInOnScroll key={c.id} delay={i * 0.1}>
+              <FadeInOnScroll key={c.id} delay={i * STAGGER.base}>
                 {c.profileUrl ? (
                   <a
                     href={c.profileUrl}

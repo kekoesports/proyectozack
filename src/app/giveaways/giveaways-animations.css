@@ -1,0 +1,254 @@
+/* ── Giveaway animations & component styles ─────────────────────────────── */
+/* Extracted from globals.css — scoped to the /giveaways route via layout import */
+
+/* Card glow on hover */
+.gw-card-glow {
+  position: relative;
+}
+.gw-card-glow::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, transparent 40%, rgba(195,252,0,0.15) 50%, transparent 60%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+.gw-card-glow:hover::before {
+  opacity: 1;
+}
+
+/* Button glow pulse — opacity on pseudo avoids per-frame box-shadow repaint */
+@keyframes giveaway-glow-fade {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}
+.giveaway-btn-glow {
+  position: relative;
+}
+.giveaway-btn-glow::before {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: inherit;
+  box-shadow: 0 0 20px rgba(195,252,0,0.5), inset 0 0 10px rgba(195,252,0,0.1);
+  opacity: 0.3;
+  animation: giveaway-glow-fade 2s ease-in-out infinite;
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Prize image float */
+@keyframes gw-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+.gw-float {
+  animation: gw-float 3s ease-in-out infinite;
+  will-change: transform;
+}
+
+/* Countdown digit glow */
+.gw-digit {
+  background: linear-gradient(180deg, #0d0e10 0%, #080909 100%);
+  border: 1px solid rgba(195,252,0,0.08);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.03), 0 2px 8px rgba(0,0,0,0.5);
+}
+
+/* Section title with line */
+.gw-section-title {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.gw-section-title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(195,252,0,0.2), transparent);
+}
+
+/* Stat counter shimmer — uses transform on pseudo for GPU-safe repaint-free animation */
+@keyframes gw-shimmer-sweep {
+  from { transform: translateX(-250%); }
+  to   { transform: translateX(250%); }
+}
+.gw-value-shimmer {
+  position: relative;
+  display: inline-block;
+  color: #C3FC00;
+  overflow: hidden;
+}
+.gw-value-shimmer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(232,255,128,0.6) 50%, transparent 100%);
+  transform: translateX(-250%);
+  animation: gw-shimmer-sweep 3s linear infinite;
+  pointer-events: none;
+}
+
+/* Ticker marquee — casino-style scrolling bar */
+@keyframes gw-ticker {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+.gw-ticker-track {
+  display: flex;
+  width: max-content;
+  animation: gw-ticker 25s linear infinite;
+  padding: 6px 0;
+}
+.gw-ticker-track:hover {
+  animation-play-state: paused;
+}
+
+/* Card shine sweep — diagonal light pass */
+@keyframes gw-shine {
+  0% { transform: translateX(-100%) rotate(25deg); }
+  100% { transform: translateX(300%) rotate(25deg); }
+}
+.gw-card-glow::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 30%;
+  height: 200%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(195,252,0,0.04),
+    rgba(255,255,255,0.06),
+    rgba(195,252,0,0.04),
+    transparent
+  );
+  transform: rotate(25deg) translateX(-100%);
+  pointer-events: none;
+  z-index: 1;
+}
+.gw-card-glow:hover::after {
+  animation: gw-shine 0.8s ease-out forwards;
+}
+
+/* HOT badge pulse */
+@keyframes gw-hot-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+.gw-hot-badge {
+  animation: gw-hot-pulse 1.5s ease-in-out infinite;
+}
+
+/* ── Giveaway Hub — SP brand theme ───────────────────────────────────── */
+
+/* SP shimmer — uses transform on pseudo for GPU-safe repaint-free animation */
+@keyframes gw-sp-shimmer-sweep {
+  from { transform: translateX(-250%); }
+  to   { transform: translateX(250%); }
+}
+.gw-sp-value {
+  position: relative;
+  display: inline-block;
+  background: linear-gradient(90deg, #f5632a 0%, #e03070 35%, #c42880 62%, #8b3aad 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  overflow: hidden;
+}
+.gw-sp-value::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.35) 50%, transparent 100%);
+  transform: translateX(-250%);
+  animation: gw-sp-shimmer-sweep 4s linear infinite;
+  pointer-events: none;
+  /* pseudo-element sits above text clip; use mix-blend-mode overlay */
+  mix-blend-mode: overlay;
+}
+
+/* SP button glow — opacity on pseudo avoids per-frame box-shadow repaint */
+@keyframes gw-sp-glow-fade {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}
+.gw-sp-btn-glow {
+  position: relative;
+}
+.gw-sp-btn-glow::before {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: inherit;
+  box-shadow: 0 0 20px rgba(224,48,112,0.45), inset 0 0 10px rgba(245,99,42,0.1);
+  opacity: 0.3;
+  animation: gw-sp-glow-fade 2s ease-in-out infinite;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.gw-sp-card {
+  position: relative;
+}
+.gw-sp-card::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, transparent 40%, rgba(245,99,42,0.2) 50%, rgba(139,58,173,0.15) 60%, transparent 70%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+  z-index: 0;
+}
+.gw-sp-card:hover::before {
+  opacity: 1;
+}
+
+.gw-sp-card::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 30%;
+  height: 200%;
+  background: linear-gradient(90deg, transparent, rgba(245,99,42,0.04), rgba(255,255,255,0.06), rgba(139,58,173,0.04), transparent);
+  transform: rotate(25deg) translateX(-100%);
+  pointer-events: none;
+  z-index: 1;
+}
+.gw-sp-card:hover::after {
+  animation: gw-shine 0.8s ease-out forwards;
+}
+
+.gw-sp-ticker-track {
+  display: flex;
+  width: max-content;
+  animation: gw-ticker 25s linear infinite;
+  padding: 6px 0;
+}
+
+.gw-creator-active {
+  background: linear-gradient(90deg, rgba(245,99,42,0.1), transparent);
+  border-left: 2px solid #f5632a;
+}
+
+@keyframes gw-sp-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+.gw-sp-float {
+  animation: gw-sp-float 3s ease-in-out infinite;
+}

@@ -1,25 +1,30 @@
 'use client';
+import * as m from 'motion/react-client';
+import { useReducedMotion } from 'motion/react';
 
-import * as motion from 'motion/react-client';
+import { DURATION, EASE, VIEWPORT, fadeUp } from '@/lib/animation';
+
 import type { ReactNode } from 'react';
 
 type FadeInOnScrollProps = {
-  children: ReactNode;
-  className?: string;
-  /** Delay in seconds before animation starts after becoming visible */
-  delay?: number;
-}
+  readonly children: ReactNode;
+  readonly className?: string;
+  readonly delay?: number;
+};
 
-export function FadeInOnScroll({ children, className = '', delay = 0 }: FadeInOnScrollProps) {
+export function FadeInOnScroll({ children, className = '', delay = 0 }: FadeInOnScrollProps): React.JSX.Element {
+  const reduced = useReducedMotion();
+  if (reduced) return <div className={className}>{children}</div>;
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 24 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.1 }}
-      transition={{ duration: 0.6, ease: 'easeOut', delay }}
+    <m.div
+      initial="hidden"
+      whileInView="visible"
+      viewport={VIEWPORT}
+      variants={fadeUp}
+      transition={{ duration: DURATION.slow, ease: EASE.out, delay }}
       className={className}
     >
       {children}
-    </motion.div>
+    </m.div>
   );
 }
