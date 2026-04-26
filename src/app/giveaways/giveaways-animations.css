@@ -252,3 +252,19 @@
 .gw-sp-float {
   animation: gw-sp-float 3s ease-in-out infinite;
 }
+
+/* ── Reduced motion — disable all animations for accessibility ───────── */
+@media (prefers-reduced-motion: reduce) {
+  .gw-card-glow::before,
+  .gw-card-glow::after,
+  .giveaway-btn-glow::before,
+  .gw-float,
+  .gw-value-shimmer::after,
+  .gw-ticker-track,
+  .gw-hot-badge,
+  .gw-sp-value::after,
+  .gw-sp-btn-glow::before,
+  .gw-sp-float {
+    animation: none;
+  }
+}

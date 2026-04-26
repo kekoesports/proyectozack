@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import * as m from 'motion/react-client';
-import { useMotionValue, useSpring, useTransform } from 'motion/react';
+import { useMotionValue, useSpring, useTransform, useReducedMotion } from 'motion/react';
 import Image from 'next/image';
 
 const HERO_STATS = [
@@ -12,6 +12,7 @@ const HERO_STATS = [
 ] as const;
 
 export function Hero() {
+  const reduced = useReducedMotion();
   const mouseX = useMotionValue(0.5);
   const mouseY = useMotionValue(0.5);
 
@@ -25,13 +26,14 @@ export function Hero() {
   const orangeY = useTransform(smoothY, [0, 1], [20, -20]);
 
   useEffect(() => {
+    if (reduced) return;
     const onMouseMove = (e: MouseEvent) => {
       mouseX.set(e.clientX / window.innerWidth);
       mouseY.set(e.clientY / window.innerHeight);
     };
     window.addEventListener('mousemove', onMouseMove, { passive: true });
     return () => window.removeEventListener('mousemove', onMouseMove);
-  }, [mouseX, mouseY]);
+  }, [mouseX, mouseY, reduced]);
 
   return (
     <section className="relative bg-sp-black text-white overflow-hidden min-h-dvh flex flex-col pt-16">
@@ -138,9 +140,9 @@ export function Hero() {
             </m.a>
             <m.a
               href="/casos"
-              whileHover={{ scale: 1.05, backgroundColor: 'rgba(255,255,255,0.1)' }}
+              whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="px-10 py-4 rounded-full font-bold text-white text-sm tracking-widest uppercase border border-white/10 backdrop-blur-sm transition-colors"
+              className="px-10 py-4 rounded-full font-bold text-white text-sm tracking-widest uppercase border border-white/10 backdrop-blur-sm transition-colors hover:bg-white/10"
             >
               Ver Casos de Éxito
             </m.a>
