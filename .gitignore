@@ -41,3 +41,6 @@ yarn-error.log*
 next-env.d.ts
 .gstack/
 .firecrawl/
+
+# weave coordinator runtime state (sessions, plans, active execution)
+.weave/
