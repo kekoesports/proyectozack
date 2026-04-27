@@ -9,10 +9,10 @@ import type { CaseStudyWithRelations } from '@/types';
  *
  * @cache none
  * @visibility public
- * @returns array de `{ slug }` (puede ser vacío). Nunca null.
+ * @returns array de `{ slug, updatedAt }` (puede ser vacío). Nunca null.
  */
-export async function getCaseSlugs(): Promise<{ slug: string }[]> {
-  return db.select({ slug: caseStudies.slug }).from(caseStudies);
+export async function getCaseSlugs(): Promise<{ slug: string; updatedAt: Date }[]> {
+  return db.select({ slug: caseStudies.slug, updatedAt: caseStudies.updatedAt }).from(caseStudies);
 }
 
 /**

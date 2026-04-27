@@ -28,6 +28,7 @@ export const talents = pgTable('talents', {
   creatorCountry: varchar('creator_country', { length: 2 }),
   audienceStatus: varchar('audience_status', { length: 20 }), // 'activo'|'inactivo'|'pendiente'|'potencial'
   lastStatsUpdateAt: timestamp('last_stats_update_at', { withTimezone: true }),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
 }, (t) => [
   index('talents_slug_idx').on(t.slug),
   index('talents_platform_idx').on(t.platform),

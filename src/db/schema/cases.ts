@@ -1,4 +1,4 @@
-import { pgTable, serial, varchar, text, integer, index } from 'drizzle-orm/pg-core';
+import { pgTable, serial, varchar, text, integer, index, timestamp } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 import { talents } from './talents';
 
@@ -15,6 +15,7 @@ export const caseStudies = pgTable('case_studies', {
   roiMultiplier: varchar('roi_multiplier', { length: 20 }),
   heroImageUrl: varchar('hero_image_url', { length: 500 }),
   excerpt: text('excerpt'),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
 }, (t) => [
   index('case_studies_slug_idx').on(t.slug),
 ]);

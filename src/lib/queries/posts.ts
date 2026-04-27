@@ -12,11 +12,11 @@ export type PostWithTalents = Post & { talentAvatars: TalentAvatar[] };
  *
  * @cache none
  * @visibility public
- * @returns array de `{ slug }` (puede ser vacío). Nunca null.
+ * @returns array de `{ slug, updatedAt }` (puede ser vacío). Nunca null.
  */
-export async function getPostSlugs(): Promise<{ slug: string }[]> {
+export async function getPostSlugs(): Promise<{ slug: string; updatedAt: Date }[]> {
   return db
-    .select({ slug: posts.slug })
+    .select({ slug: posts.slug, updatedAt: posts.updatedAt })
     .from(posts)
     .where(eq(posts.status, 'published'));
 }

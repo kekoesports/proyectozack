@@ -71,6 +71,7 @@ function toTalentBase(t: Talent): Talent {
     creatorCountry: t.creatorCountry,
     audienceStatus: t.audienceStatus,
     lastStatsUpdateAt: t.lastStatsUpdateAt,
+    updatedAt: t.updatedAt,
   };
 }
 

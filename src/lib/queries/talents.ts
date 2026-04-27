@@ -20,10 +20,10 @@ export type TalentFilters = {
  *
  * @cache none
  * @visibility public
- * @returns array de `{ slug }` (puede ser vacío). Nunca null.
+ * @returns array de `{ slug, updatedAt }` (puede ser vacío). Nunca null.
  */
-export async function getTalentSlugs(): Promise<{ slug: string }[]> {
-  return db.select({ slug: talents.slug }).from(talents).where(eq(talents.visibility, 'public'));
+export async function getTalentSlugs(): Promise<{ slug: string; updatedAt: Date }[]> {
+  return db.select({ slug: talents.slug, updatedAt: talents.updatedAt }).from(talents).where(eq(talents.visibility, 'public'));
 }
 
 /**
