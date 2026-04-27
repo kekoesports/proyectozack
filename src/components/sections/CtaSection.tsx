@@ -1,18 +1,31 @@
 'use client';
 
 import * as m from 'motion/react-client';
-import { GradientText } from '@/components/ui/GradientText';
-import { DURATION, EASE, VIEWPORT, fadeUp, staggerContainer } from '@/lib/animation';
+import { useReducedMotion } from 'motion/react';
 
+import { GradientText } from '@/components/ui/GradientText';
+import { useVisibilityFailSafe } from '@/lib/use-visibility-failsafe';
+import { DURATION, EASE, fadeUp, staggerContainer } from '@/lib/animation';
+
+/**
+ * Final CTA. Animations are wired through controlled `animate=` (not
+ * `whileInView`) plus a fail-safe so the section can never be left
+ * permanently invisible if the IntersectionObserver fails to fire.
+ */
 export function CtaSection(): React.JSX.Element {
+  const reduced = useReducedMotion();
+  const [ref, visible] = useVisibilityFailSafe<HTMLDivElement>();
+
+  const animateState = reduced || visible ? 'visible' : 'hidden';
+
   return (
     <section className="py-24 bg-sp-black text-white text-center">
       <m.div
+        ref={ref}
         className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8"
         variants={staggerContainer()}
         initial="hidden"
-        whileInView="visible"
-        viewport={VIEWPORT}
+        animate={animateState}
       >
         <m.h2
           variants={fadeUp}

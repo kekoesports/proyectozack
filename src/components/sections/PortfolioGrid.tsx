@@ -6,7 +6,7 @@ import * as m from 'motion/react-client';
 import { AnimatePresence } from 'motion/react';
 import type { PortfolioItem } from '@/types';
 import { FilterTabs } from '@/components/ui/FilterTabs';
-import { DURATION, EASE, STAGGER, VIEWPORT } from '@/lib/animation';
+import { DURATION, EASE, STAGGER } from '@/lib/animation';
 
 type PortfolioGridProps = {
   readonly items: PortfolioItem[];
@@ -41,12 +41,15 @@ export function PortfolioGrid({ items }: PortfolioGridProps): React.JSX.Element 
     <>
       <FilterTabs instanceId="portfolio-filter" tabs={FILTERS} active={filter} onChange={setFilter} />
 
-      <m.div
-        className="grid grid-cols-2 md:grid-cols-3 gap-4"
-        initial="hidden"
-        whileInView="visible"
-        viewport={VIEWPORT}
-      >
+      {/*
+        Grid is a plain div: the previous m.div used `initial="hidden"` +
+        `whileInView` without any matching `variants`, so it produced no
+        visible animation but DID leave the subtree at opacity 0 if the
+        IntersectionObserver never fired (root cause of the landing-page
+        "black void" bug). Each item still animates individually via the
+        AnimatePresence children below.
+      */}
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
         <AnimatePresence mode="popLayout">
           {visible.map((item, index) => (
             <m.div
@@ -84,7 +87,7 @@ export function PortfolioGrid({ items }: PortfolioGridProps): React.JSX.Element 
             </m.div>
           ))}
         </AnimatePresence>
-      </m.div>
+      </div>
     </>
   );
 }
