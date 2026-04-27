@@ -45,8 +45,9 @@ test.describe('Public routes smoke', () => {
     // The "Insights & Tendencias" heading is rendered regardless of whether
     // there are posts — the empty state ("Próximamente nuevos artículos.")
     // sits right below it. This keeps the test green against an empty DB.
+    // Scope to level 2 to disambiguate from the sr-only <h1> SEO heading.
     await expect(
-      page.getByRole('heading', { name: /insights/i }),
+      page.getByRole('heading', { level: 2, name: /insights/i }),
     ).toBeVisible();
   });
 
