@@ -37,6 +37,18 @@
   --color-sp-admin-accent: #f5632a;
   --color-sp-admin-hover: #252542;
 
+  /* Semantic state tokens */
+  --color-sp-success: #22c55e;
+  --color-sp-success-bg: rgba(34, 197, 94, 0.12);
+  --color-sp-warning: #eab308;
+  --color-sp-warning-bg: rgba(234, 179, 8, 0.12);
+  --color-sp-danger: #ef4444;
+  --color-sp-danger-bg: rgba(239, 68, 68, 0.12);
+  --color-sp-neutral: #71717a;
+  --color-sp-neutral-bg: rgba(113, 113, 122, 0.12);
+  --color-sp-info: #3b82f6;
+  --color-sp-info-bg: rgba(59, 130, 246, 0.12);
+
   /* Brand fonts */
   --font-display: "Barlow Condensed", sans-serif;
   --font-body: Inter, sans-serif;

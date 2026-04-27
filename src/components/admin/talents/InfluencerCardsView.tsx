@@ -1,41 +1,60 @@
 'use client';
 
-import Link from 'next/link';
 import Image from 'next/image';
-import { useMemo, useState, useTransition } from 'react';
-import type { AdminRosterRow } from '@/lib/queries/talents';
-import type { TalentSocial, TalentVertical } from '@/types';
+import { useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import * as m from 'motion/react-client';
+import { StateBadge } from '@/components/admin/ui/StateBadge';
+import { EmptyState } from '@/components/admin/ui/EmptyState';
+import { parseFollowers, formatCompact } from '@/lib/format';
 import { TALENT_VERTICAL_LABELS, TALENT_VERTICALS } from '@/lib/schemas/talentBusiness';
-import { setTalentStatusAction, updateSocialGeoAction } from '@/app/admin/(dashboard)/talents/actions';
+import type { AdminRosterRow } from '@/lib/queries/talents';
+import type { TalentVertical } from '@/types';
+import type { Tone } from '@/components/admin/ui/StateBadge';
+
+// ── Status → tone mapping ────────────────────────────────────────────
 
 type TalentStatus = 'active' | 'available' | 'inactive';
 
-const STATUS_LABELS: Record<TalentStatus, string> = {
+const STATUS_TONE: Record<string, Tone> = {
+  active: 'success',
+  available: 'info',
+  inactive: 'neutral',
+  // audienceStatus values
+  activo: 'success',
+  inactivo: 'neutral',
+  pendiente: 'warning',
+  potencial: 'info',
+};
+
+const STATUS_LABELS: Record<string, string> = {
   active: 'Activo',
   available: 'Disponible',
   inactive: 'Inactivo',
+  activo: 'Activo',
+  inactivo: 'Inactivo',
+  pendiente: 'Pendiente',
+  potencial: 'Potencial',
 };
 
-const STATUS_STYLES: Record<TalentStatus, string> = {
-  active: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
-  available: 'bg-blue-500/15 text-blue-400 border-blue-500/30',
-  inactive: 'bg-slate-500/15 text-slate-400 border-slate-500/30',
+const PLATFORM_LABELS: Record<string, string> = {
+  twitch: 'Twitch',
+  youtube: 'YouTube',
+  instagram: 'Instagram',
+  tiktok: 'TikTok',
+  x: 'X',
+  twitter: 'X',
+  kick: 'Kick',
 };
 
-const PLATFORM_EMOJI: Record<string, string> = {
-  twitch: '📺',
-  youtube: '📹',
-  instagram: '📷',
-  tiktok: '🎵',
-  x: '𝕏',
-  twitter: '𝕏',
-  kick: '🦵',
-};
+// ── Props ────────────────────────────────────────────────────────────
 
 type Props = {
   readonly creators: readonly AdminRosterRow[];
   readonly verticalsByTalent: Readonly<Record<number, readonly TalentVertical[]>>;
 };
+
+// ── Main component ───────────────────────────────────────────────────
 
 export function InfluencerCardsView({ creators, verticalsByTalent }: Props): React.ReactElement {
   const [search, setSearch] = useState('');
@@ -114,7 +133,7 @@ export function InfluencerCardsView({ creators, verticalsByTalent }: Props): Rea
         >
           <option value="">Todas plataformas</option>
           {platforms.map((p) => (
-            <option key={p} value={p}>{p}</option>
+            <option key={p} value={p}>{PLATFORM_LABELS[p] ?? p}</option>
           ))}
         </select>
 
@@ -123,15 +142,33 @@ export function InfluencerCardsView({ creators, verticalsByTalent }: Props): Rea
         </span>
       </div>
 
-      {/* Grid */}
+      {/* Grid / Empty state */}
       {filtered.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-sp-admin-border p-12 text-center">
-          <p className="text-sm text-sp-admin-muted">Sin resultados con los filtros actuales.</p>
-        </div>
+        creators.length === 0 ? (
+          <EmptyState
+            variant="no-data"
+            title="Sin talentos"
+            description="Importa talentos para empezar"
+            action={
+              <button
+                type="button"
+                className="inline-flex items-center gap-2 rounded-xl bg-sp-admin-accent px-4 py-2 text-sm font-semibold text-white hover:opacity-90 transition-opacity cursor-pointer"
+              >
+                Importar
+              </button>
+            }
+          />
+        ) : (
+          <EmptyState
+            variant="no-results"
+            title="Sin resultados"
+            description="Prueba con otros filtros"
+          />
+        )
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {filtered.map((c) => (
-            <InfluencerCard
+            <TalentCard
               key={c.id}
               creator={c}
               verticals={verticalsByTalent[c.id] ?? []}
@@ -143,290 +180,167 @@ export function InfluencerCardsView({ creators, verticalsByTalent }: Props): Rea
   );
 }
 
-// ────────────────────────────────────────────────────────────────────
+// ── Card ─────────────────────────────────────────────────────────────
 
 type CardProps = {
   readonly creator: AdminRosterRow;
   readonly verticals: readonly TalentVertical[];
 };
 
-function InfluencerCard({ creator, verticals }: CardProps): React.ReactElement {
-  const [status, setStatus] = useState<TalentStatus>(creator.status as TalentStatus);
-  const [pending, startTransition] = useTransition();
-  const [editingGeoId, setEditingGeoId] = useState<number | null>(null);
+function TalentCard({ creator, verticals }: CardProps): React.ReactElement {
+  const router = useRouter();
 
-  const onChangeStatus = (next: TalentStatus): void => {
-    if (next === status) return;
-    const prev = status;
-    setStatus(next);
-    startTransition(async () => {
-      const r = await setTalentStatusAction(creator.id, next);
-      if (!r.success) setStatus(prev);
-    });
+  // Resolve status: prefer audienceStatus if set, fall back to status
+  const displayStatus: string = creator.audienceStatus ?? creator.status;
+  const tone: Tone = STATUS_TONE[displayStatus] ?? 'neutral';
+  const statusLabel: string = STATUS_LABELS[displayStatus] ?? displayStatus;
+
+  // Platform chips: from socials (up to 3)
+  const platformChips = useMemo(() => {
+    const seen = new Set<string>();
+    const chips: string[] = [];
+    for (const s of creator.socials) {
+      const key = s.platform.toLowerCase();
+      if (!seen.has(key)) {
+        seen.add(key);
+        chips.push(key);
+      }
+      if (chips.length >= 3) break;
+    }
+    // Fallback to verticals if no socials
+    if (chips.length === 0) {
+      return verticals.slice(0, 3).map((v) => TALENT_VERTICAL_LABELS[v] ?? v);
+    }
+    return chips.map((p) => PLATFORM_LABELS[p] ?? p);
+  }, [creator.socials, verticals]);
+
+  // Total followers
+  const totalFollowers = useMemo(() => {
+    if (creator.socials.length === 0) return null;
+    const total = creator.socials.reduce(
+      (sum, s) => sum + parseFollowers(s.followersDisplay),
+      0,
+    );
+    return total > 0 ? formatCompact(total) : null;
+  }, [creator.socials]);
+
+  const handleClick = (): void => {
+    router.push(`/admin/talents/${creator.id}`);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent): void => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      handleClick();
+    }
   };
 
   return (
-    <div className="rounded-2xl bg-sp-admin-card border border-sp-admin-border overflow-hidden flex flex-col">
-      {/* Photo */}
-      <div
-        className="relative aspect-[4/3] w-full"
-        style={{
-          background: `linear-gradient(135deg, ${creator.gradientC1}, ${creator.gradientC2})`,
-        }}
-      >
-        {creator.photoUrl ? (
-          <Image
-            src={creator.photoUrl}
-            alt={creator.name}
-            fill
-            className="object-cover"
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-          />
-        ) : (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <span className="font-display text-6xl font-black text-white/90">{creator.initials}</span>
-          </div>
-        )}
-        <div className="absolute top-2 right-2">
-          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border backdrop-blur-sm ${STATUS_STYLES[status]}`}>
-            {STATUS_LABELS[status]}
-          </span>
-        </div>
+    <m.div
+      whileHover={{ y: -4, scale: 1.02 }}
+      transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+      onClick={handleClick}
+      onKeyDown={handleKeyDown}
+      role="button"
+      tabIndex={0}
+      aria-label={`Ver perfil de ${creator.name}`}
+      className="relative rounded-2xl bg-sp-admin-card border border-sp-admin-border overflow-hidden flex flex-col cursor-pointer focus-visible:outline-2 focus-visible:outline-sp-admin-accent focus-visible:outline-offset-2"
+    >
+      {/* Status badge — top right */}
+      <div className="absolute top-3 right-3 z-10">
+        <StateBadge tone={tone} variant="soft">
+          {statusLabel}
+        </StateBadge>
       </div>
 
-      {/* Body */}
-      <div className="flex-1 p-4 space-y-3">
-        <div className="flex items-start justify-between gap-2">
-          <div className="min-w-0">
-            <Link href={`/admin/talents/${creator.id}/negocio`} className="block">
-              <h3 className="font-bold text-sp-admin-text truncate hover:underline">{creator.name}</h3>
-            </Link>
-            <p className="text-[11px] text-sp-admin-muted truncate">
-              {creator.role}{creator.game ? ` · ${creator.game}` : ''}
-            </p>
+      {/* Avatar area */}
+      <div className="flex flex-col items-center pt-8 pb-4 px-4 gap-3">
+        <Avatar creator={creator} />
+
+        {/* Name + slug */}
+        <div className="text-center min-w-0 w-full">
+          <p className="font-bold text-sp-admin-text truncate text-sm leading-tight">
+            {creator.name}
+          </p>
+          <p className="text-[11px] text-sp-admin-muted truncate mt-0.5">
+            @{creator.slug}
+          </p>
+        </div>
+
+        {/* Platform chips */}
+        {platformChips.length > 0 && (
+          <div className="flex flex-wrap justify-center gap-1">
+            {platformChips.map((chip) => (
+              <StateBadge key={chip} tone="info" variant="dot">
+                {chip}
+              </StateBadge>
+            ))}
           </div>
-          {creator.creatorCountry && (
-            <span className="shrink-0 text-[10px] uppercase tracking-wider font-mono font-semibold text-sp-admin-muted border border-sp-admin-border rounded px-1.5 py-0.5">
-              {creator.creatorCountry}
-            </span>
+        )}
+
+        {/* Total followers */}
+        <div className="text-center">
+          {totalFollowers !== null ? (
+            <>
+              <p className="text-2xl font-black text-sp-admin-text tabular-nums leading-none">
+                {totalFollowers}
+              </p>
+              <p className="text-[10px] text-sp-admin-muted uppercase tracking-wider mt-0.5">
+                seguidores
+              </p>
+            </>
+          ) : (
+            <p className="text-2xl font-black text-sp-admin-muted leading-none">—</p>
           )}
         </div>
-
-        {/* Verticals */}
-        {verticals.length > 0 && (
-          <div className="flex flex-wrap gap-1">
-            {verticals.map((v) => (
-              <span
-                key={v}
-                className="text-[10px] font-semibold text-sp-admin-muted bg-sp-admin-bg border border-sp-admin-border rounded-full px-2 py-0.5"
-              >
-                {TALENT_VERTICAL_LABELS[v]}
-              </span>
-            ))}
-          </div>
-        )}
-
-        {/* Socials */}
-        {creator.socials.length > 0 && (
-          <div className="space-y-2 pt-2 border-t border-sp-admin-border">
-            {creator.socials.map((s) => (
-              <SocialRow
-                key={s.id}
-                social={s}
-                isEditingGeo={editingGeoId === s.id}
-                onStartEditGeo={() => setEditingGeoId(s.id)}
-                onStopEditGeo={() => setEditingGeoId(null)}
-              />
-            ))}
-          </div>
-        )}
       </div>
 
-      {/* Footer — status toggle */}
-      <div className="border-t border-sp-admin-border p-3 flex items-center justify-between gap-2">
-        <div className="flex items-center gap-1 text-[10px] font-semibold">
-          {(['active', 'available', 'inactive'] as const).map((s) => (
-            <button
-              key={s}
-              type="button"
-              onClick={() => onChangeStatus(s)}
-              disabled={pending}
-              className={`px-2 py-1 rounded-full border transition-colors cursor-pointer ${
-                status === s
-                  ? STATUS_STYLES[s]
-                  : 'border-sp-admin-border text-sp-admin-muted hover:text-sp-admin-text hover:bg-sp-admin-hover'
-              }`}
-            >
-              {STATUS_LABELS[s]}
-            </button>
-          ))}
-        </div>
-        <Link
-          href={`/admin/talents/${creator.id}/negocio`}
-          className="text-[10px] font-semibold text-sp-admin-muted hover:text-sp-admin-text px-2 py-1 rounded hover:bg-sp-admin-hover"
-        >
-          Editar
-        </Link>
+      {/* Footer */}
+      <div className="border-t border-sp-admin-border px-4 py-2.5 flex items-center justify-between gap-2 mt-auto">
+        <span className="text-[10px] text-sp-admin-muted truncate">
+          {creator.role}{creator.game ? ` · ${creator.game}` : ''}
+        </span>
+        {creator.creatorCountry && (
+          <span className="shrink-0 text-[10px] uppercase tracking-wider font-mono font-semibold text-sp-admin-muted border border-sp-admin-border rounded px-1.5 py-0.5">
+            {creator.creatorCountry}
+          </span>
+        )}
       </div>
-    </div>
+    </m.div>
   );
 }
 
-// ────────────────────────────────────────────────────────────────────
+// ── Avatar ───────────────────────────────────────────────────────────
 
-type SocialRowProps = {
-  readonly social: TalentSocial;
-  readonly isEditingGeo: boolean;
-  readonly onStartEditGeo: () => void;
-  readonly onStopEditGeo: () => void;
+type AvatarProps = {
+  readonly creator: AdminRosterRow;
 };
 
-function SocialRow({ social, isEditingGeo, onStartEditGeo, onStopEditGeo }: SocialRowProps): React.ReactElement {
-  const emoji = PLATFORM_EMOJI[social.platform.toLowerCase()] ?? '🔗';
-  const geoSummary = formatGeos(social.topGeos);
+function Avatar({ creator }: AvatarProps): React.ReactElement {
+  if (creator.photoUrl) {
+    return (
+      <div className="relative w-20 h-20 rounded-full overflow-hidden shrink-0 ring-2 ring-sp-admin-border">
+        <Image
+          src={creator.photoUrl}
+          alt={creator.name}
+          fill
+          className="object-cover"
+          sizes="80px"
+        />
+      </div>
+    );
+  }
 
   return (
-    <div className="text-xs">
-      <div className="flex items-center gap-2">
-        <span className="shrink-0">{emoji}</span>
-        {social.profileUrl ? (
-          <a href={social.profileUrl} target="_blank" rel="noreferrer" className="text-sp-admin-text hover:underline truncate">
-            {social.handle}
-          </a>
-        ) : (
-          <span className="text-sp-admin-text truncate">{social.handle}</span>
-        )}
-        <span className="shrink-0 text-sp-admin-muted tabular-nums">{social.followersDisplay}</span>
-      </div>
-      <div className="flex items-center gap-2 pl-5 mt-0.5">
-        {geoSummary ? (
-          <span className="text-[10px] text-sp-admin-muted truncate">{geoSummary}</span>
-        ) : (
-          <span className="text-[10px] italic text-sp-admin-muted">Sin geo stats</span>
-        )}
-        <button
-          type="button"
-          onClick={onStartEditGeo}
-          className="text-[10px] font-semibold text-sp-admin-accent hover:underline cursor-pointer"
-        >
-          {geoSummary ? 'editar' : 'añadir'}
-        </button>
-      </div>
-      {isEditingGeo && <GeoEditor social={social} onDone={onStopEditGeo} />}
-    </div>
-  );
-}
-
-function formatGeos(topGeos: TalentSocial['topGeos']): string | null {
-  if (!topGeos || topGeos.length === 0) return null;
-  return topGeos.map((g) => `${g.country} ${g.pct}%`).join(' · ');
-}
-
-// ────────────────────────────────────────────────────────────────────
-
-type GeoEditorProps = {
-  readonly social: TalentSocial;
-  readonly onDone: () => void;
-};
-
-function GeoEditor({ social, onDone }: GeoEditorProps): React.ReactElement {
-  const initial = social.topGeos ?? [];
-  const [entries, setEntries] = useState<Array<{ country: string; pct: string }>>(
-    initial.length > 0
-      ? initial.map((g) => ({ country: g.country, pct: String(g.pct) }))
-      : [{ country: '', pct: '' }],
-  );
-  const [pending, startTransition] = useTransition();
-  const [error, setError] = useState<string | null>(null);
-
-  const updateEntry = (idx: number, field: 'country' | 'pct', value: string): void => {
-    setEntries((prev) => prev.map((e, i) => (i === idx ? { ...e, [field]: value } : e)));
-  };
-
-  const addRow = (): void => {
-    setEntries((prev) => [...prev, { country: '', pct: '' }]);
-  };
-
-  const removeRow = (idx: number): void => {
-    setEntries((prev) => prev.filter((_, i) => i !== idx));
-  };
-
-  const save = (): void => {
-    const parsed: Array<{ country: string; pct: number }> = [];
-    for (const e of entries) {
-      const c = e.country.trim();
-      const p = parseFloat(e.pct);
-      if (!c || Number.isNaN(p)) continue;
-      parsed.push({ country: c, pct: p });
-    }
-    setError(null);
-    startTransition(async () => {
-      const r = await updateSocialGeoAction(social.id, parsed);
-      if (!r.success) {
-        setError(r.error ?? 'Error');
-      } else {
-        onDone();
-      }
-    });
-  };
-
-  return (
-    <div className="mt-2 rounded-lg bg-sp-admin-bg border border-sp-admin-border p-2 space-y-2">
-      <p className="text-[10px] uppercase tracking-wider font-semibold text-sp-admin-muted">Geo stats · {social.platform}</p>
-      {entries.map((e, idx) => (
-        <div key={idx} className="flex items-center gap-2">
-          <input
-            value={e.country}
-            onChange={(ev) => updateEntry(idx, 'country', ev.target.value)}
-            placeholder="ES"
-            maxLength={3}
-            className="w-14 rounded border border-sp-admin-border bg-sp-admin-card px-2 py-1 text-xs uppercase font-mono"
-          />
-          <input
-            value={e.pct}
-            onChange={(ev) => updateEntry(idx, 'pct', ev.target.value)}
-            placeholder="45"
-            type="number"
-            min="0"
-            max="100"
-            step="0.1"
-            className="w-16 rounded border border-sp-admin-border bg-sp-admin-card px-2 py-1 text-xs tabular-nums"
-          />
-          <span className="text-[10px] text-sp-admin-muted">%</span>
-          <button
-            type="button"
-            onClick={() => removeRow(idx)}
-            className="ml-auto text-[10px] font-semibold text-red-400 hover:bg-red-500/10 px-1.5 py-0.5 rounded cursor-pointer"
-          >
-            ✕
-          </button>
-        </div>
-      ))}
-      <button
-        type="button"
-        onClick={addRow}
-        className="text-[10px] font-semibold text-sp-admin-muted hover:text-sp-admin-text"
-      >
-        + país
-      </button>
-      {error && <p className="text-[10px] text-red-400">{error}</p>}
-      <div className="flex items-center gap-2 justify-end pt-1">
-        <button
-          type="button"
-          onClick={onDone}
-          className="text-[10px] font-semibold text-sp-admin-muted hover:text-sp-admin-text px-2 py-1"
-        >
-          Cancelar
-        </button>
-        <button
-          type="button"
-          onClick={save}
-          disabled={pending}
-          className="text-[10px] font-bold bg-sp-admin-accent text-sp-admin-bg px-3 py-1 rounded-full hover:opacity-90 disabled:opacity-50 cursor-pointer"
-        >
-          {pending ? 'Guardando…' : 'Guardar'}
-        </button>
-      </div>
+    <div
+      className="w-20 h-20 rounded-full shrink-0 flex items-center justify-center ring-2 ring-sp-admin-border"
+      style={{
+        background: `linear-gradient(135deg, ${creator.gradientC1}, ${creator.gradientC2})`,
+      }}
+    >
+      <span className="font-display text-2xl font-black text-white/90 select-none">
+        {creator.initials}
+      </span>
     </div>
   );
 }

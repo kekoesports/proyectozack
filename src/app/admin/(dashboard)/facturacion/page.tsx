@@ -1,8 +1,12 @@
 import { db } from '@/lib/db';
-import { crmBrands, talents } from '@/db/schema';
-import { asc } from 'drizzle-orm';
+import { campaigns, crmBrands, talents } from '@/db/schema';
+import { asc, eq, isNull } from 'drizzle-orm';
+import { requireAnyRole } from '@/lib/auth-guard';
+import { canDelete } from '@/lib/permissions';
 import { listInvoices, getInvoiceSummary, getUsedInvoiceCategories } from '@/lib/queries/invoices';
 import { InvoicesManager } from '@/components/admin/invoices/InvoicesManager';
+
+import type { Role } from '@/lib/auth-guard';
 
 function formatMoney(n: number, currency = 'EUR'): string {
   return new Intl.NumberFormat('es-ES', { style: 'currency', currency, maximumFractionDigits: 0 }).format(n);
@@ -21,16 +25,35 @@ function monthRange(): { from: string; to: string; label: string } {
 }
 
 export default async function AdminInvoicesPage(): Promise<React.ReactElement> {
+  const session = await requireAnyRole(['admin', 'manager'], '/admin/login');
+  const role = (session.user.role ?? 'staff') as Role;
   const month = monthRange();
 
-  const [invoices, summaryMonth, summaryYTD, brandsList, talentsList, categories] = await Promise.all([
+  const [invoices, summaryMonth, summaryYTD, brandsList, talentsList, campaignsRows, categories] = await Promise.all([
     listInvoices(),
     getInvoiceSummary(month.from, month.to),
     getInvoiceSummary(`${new Date().getFullYear()}-01-01`),
     db.select({ id: crmBrands.id, name: crmBrands.name }).from(crmBrands).orderBy(asc(crmBrands.name)),
     db.select({ id: talents.id, name: talents.name }).from(talents).orderBy(asc(talents.name)),
+    db
+      .select({
+        id: campaigns.id,
+        name: campaigns.name,
+        brandName: crmBrands.name,
+        talentName: talents.name,
+      })
+      .from(campaigns)
+      .innerJoin(crmBrands, eq(crmBrands.id, campaigns.brandId))
+      .innerJoin(talents, eq(talents.id, campaigns.talentId))
+      .where(isNull(campaigns.archivedAt))
+      .orderBy(asc(campaigns.name)),
     getUsedInvoiceCategories(),
   ]);
+
+  const campaignOptions = campaignsRows.map((c) => ({
+    id: c.id,
+    label: `${c.brandName} × ${c.talentName} — ${c.name}`,
+  }));
 
   return (
     <div>
@@ -56,7 +79,9 @@ export default async function AdminInvoicesPage(): Promise<React.ReactElement> {
         invoices={invoices}
         brands={brandsList}
         talents={talentsList}
+        campaigns={campaignOptions}
         categories={categories}
+        canDelete={canDelete(role)}
       />
     </div>
   );

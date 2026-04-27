@@ -2,16 +2,20 @@
 
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
+
 import { requireAnyRole } from '@/lib/auth-guard';
+import { assertCanDelete } from '@/lib/permissions';
 import {
   completeTask,
   createTask,
   deleteTask,
-  isStaffUser,
+  isAssignableTaskUser,
   updateTask,
 } from '@/lib/queries/crmTasks';
 import { taskFormSchema, taskPatchSchema } from '@/lib/schemas/task';
 import { getIsoWeekLabel } from '@/lib/week';
+
+import type { Role } from '@/lib/auth-guard';
 
 export type { TaskFormInput } from '@/lib/schemas/task';
 
@@ -35,8 +39,8 @@ function weekLabelForDueDate(dueDate: string | null): string {
 }
 
 async function assertStaffOwner(ownerId: string): Promise<string | null> {
-  const ok = await isStaffUser(ownerId);
-  return ok ? null : 'El usuario asignado debe ser admin o staff';
+  const ok = await isAssignableTaskUser(ownerId);
+  return ok ? null : 'El usuario asignado debe ser admin, manager o staff';
 }
 
 function compactPatch<T extends Record<string, unknown>>(
@@ -50,7 +54,7 @@ function compactPatch<T extends Record<string, unknown>>(
 }
 
 export async function createTaskAction(input: unknown): Promise<ActionResult> {
-  await requireAnyRole(['admin', 'staff'], '/admin/login');
+  const session = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
 
   const parsed = taskFormSchema.safeParse(input);
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? 'Datos inválidos' };
@@ -63,6 +67,9 @@ export async function createTaskAction(input: unknown): Promise<ActionResult> {
     title: data.title,
     description: data.description,
     ownerId: data.ownerId,
+    assignedToUserId: data.assignedToUserId ?? data.ownerId,
+    createdByUserId: data.createdByUserId ?? session.user.id,
+    recurrenceTemplateId: data.recurrenceTemplateId ?? null,
     dueDate: data.dueDate,
     priority: data.priority,
     status: data.status,
@@ -77,7 +84,7 @@ export async function createTaskAction(input: unknown): Promise<ActionResult> {
 }
 
 export async function updateTaskAction(id: number, input: unknown): Promise<ActionResult> {
-  await requireAnyRole(['admin', 'staff'], '/admin/login');
+  await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
 
   const parsed = taskFormSchema.safeParse(input);
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? 'Datos inválidos' };
@@ -86,7 +93,15 @@ export async function updateTaskAction(id: number, input: unknown): Promise<Acti
   if (ownerErr) return { error: ownerErr };
 
   await updateTask(id, {
-    ...parsed.data,
+    title: parsed.data.title,
+    description: parsed.data.description,
+    ownerId: parsed.data.ownerId,
+    assignedToUserId: parsed.data.assignedToUserId ?? parsed.data.ownerId,
+    recurrenceTemplateId: parsed.data.recurrenceTemplateId ?? null,
+    dueDate: parsed.data.dueDate,
+    priority: parsed.data.priority,
+    status: parsed.data.status,
+    category: parsed.data.category,
     relatedType: parsed.data.relatedType ?? null,
     relatedId: parsed.data.relatedId ?? null,
   });
@@ -98,7 +113,7 @@ export async function updateTaskPartialAction(
   id: unknown,
   input: unknown,
 ): Promise<ActionResult> {
-  await requireAnyRole(['admin', 'staff'], '/admin/login');
+  await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
 
   const parsedId = z.number().int().positive().safeParse(id);
   if (!parsedId.success) return { error: 'ID inválido' };
@@ -111,7 +126,13 @@ export async function updateTaskPartialAction(
     if (ownerErr) return { error: ownerErr };
   }
 
-  const updated = await updateTask(parsedId.data, compactPatch(parsed.data));
+  const updated = await updateTask(
+    parsedId.data,
+    compactPatch({
+      ...parsed.data,
+      assignedToUserId: parsed.data.ownerId ?? parsed.data.assignedToUserId,
+    }),
+  );
   if (updated === null) return { error: 'Tarea no encontrada' };
 
   revalidateAll();
@@ -119,15 +140,21 @@ export async function updateTaskPartialAction(
 }
 
 export async function completeTaskAction(id: number): Promise<ActionResult> {
-  await requireAnyRole(['admin', 'staff'], '/admin/login');
+  await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
   await completeTask(id);
   revalidateAll();
   return {};
 }
 
 export async function deleteTaskAction(id: number): Promise<ActionResult> {
-  await requireAnyRole(['admin', 'staff'], '/admin/login');
-  await deleteTask(id);
-  revalidateAll();
-  return {};
+  try {
+    const session = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
+    assertCanDelete(session.user.role as Role);
+    await deleteTask(id);
+    revalidateAll();
+    return {};
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : 'unknown';
+    return { error: msg !== 'unknown' ? msg : 'Error al eliminar tarea' };
+  }
 }

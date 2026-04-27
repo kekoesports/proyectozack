@@ -1,6 +1,6 @@
-import { eq, and, gte, lte, inArray, asc, sql } from 'drizzle-orm';
+import { eq, and, gte, lte, inArray, asc, desc, sql, max, lt } from 'drizzle-orm';
 import { db } from '@/lib/db';
-import { talentMetricSnapshots, talentSocials } from '@/db/schema';
+import { talentMetricSnapshots, talentSocials, talents } from '@/db/schema';
 import { normalizeTrackablePlatform, TRACKABLE_SOCIAL_PLATFORM_KEYS } from '@/lib/platform';
 import type { TalentMetricSnapshot } from '@/types';
 
@@ -113,6 +113,9 @@ export async function getLatestSnapshots(): Promise<TalentMetricSnapshot[]> {
       metricType: talentMetricSnapshots.metricType,
       value: talentMetricSnapshots.value,
       snapshotDate: talentMetricSnapshots.snapshotDate,
+      topGeos: talentMetricSnapshots.topGeos,
+      notes: talentMetricSnapshots.notes,
+      updatedByUserId: talentMetricSnapshots.updatedByUserId,
       createdAt: talentMetricSnapshots.createdAt,
     })
     .from(talentMetricSnapshots)
@@ -153,6 +156,9 @@ export async function getEarliestSnapshots(from: string): Promise<TalentMetricSn
       metricType: talentMetricSnapshots.metricType,
       value: talentMetricSnapshots.value,
       snapshotDate: talentMetricSnapshots.snapshotDate,
+      topGeos: talentMetricSnapshots.topGeos,
+      notes: talentMetricSnapshots.notes,
+      updatedByUserId: talentMetricSnapshots.updatedByUserId,
       createdAt: talentMetricSnapshots.createdAt,
     })
     .from(talentMetricSnapshots)
@@ -181,6 +187,25 @@ export async function countTrackedTalents(): Promise<number> {
   return rows[0]?.count ?? 0;
 }
 
+/** Get all snapshots for a talent grouped by platform, ordered by snapshotDate DESC */
+export async function getLatestSnapshotsByPlatform(
+  talentId: number,
+): Promise<Record<string, TalentMetricSnapshot[]>> {
+  const rows = await db
+    .select()
+    .from(talentMetricSnapshots)
+    .where(eq(talentMetricSnapshots.talentId, talentId))
+    .orderBy(desc(talentMetricSnapshots.snapshotDate));
+
+  const grouped: Record<string, TalentMetricSnapshot[]> = {};
+  for (const row of rows) {
+    const platform = row.platform;
+    if (!grouped[platform]) grouped[platform] = [];
+    grouped[platform]!.push(row);
+  }
+  return grouped;
+}
+
 /** Get snapshots for a single talent */
 export async function getTalentSnapshots(
   talentId: number,
@@ -198,4 +223,140 @@ export async function getTalentSnapshots(
       ),
     )
     .orderBy(asc(talentMetricSnapshots.snapshotDate));
+}
+
+export type StaleCreator = {
+  readonly id: number;
+  readonly name: string;
+  readonly slug: string;
+  readonly lastSnapshotDate: Date | null;
+};
+
+/**
+ * Creators whose last snapshot is older than daysThreshold days (or have no snapshot).
+ * Uses talents.lastStatsUpdateAt if available, falls back to max(snapshotDate) from snapshots.
+ */
+export async function getStaleStatsCreators(daysThreshold: number): Promise<StaleCreator[]> {
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - daysThreshold);
+  const cutoffStr = cutoff.toISOString().slice(0, 10); // YYYY-MM-DD
+
+  // Subquery: latest snapshot date per talent
+  const latestPerTalent = db
+    .select({
+      talentId: talentMetricSnapshots.talentId,
+      lastDate: max(talentMetricSnapshots.snapshotDate).as('last_date'),
+    })
+    .from(talentMetricSnapshots)
+    .groupBy(talentMetricSnapshots.talentId)
+    .as('latest_per_talent');
+
+  const rows = await db
+    .select({
+      id: talents.id,
+      name: talents.name,
+      slug: talents.slug,
+      lastDate: latestPerTalent.lastDate,
+    })
+    .from(talents)
+    .leftJoin(latestPerTalent, eq(talents.id, latestPerTalent.talentId))
+    .where(
+      sql`(${latestPerTalent.lastDate} IS NULL OR ${latestPerTalent.lastDate} < ${cutoffStr})`,
+    )
+    .orderBy(asc(latestPerTalent.lastDate));
+
+  return rows.map((r) => ({
+    id: r.id,
+    name: r.name,
+    slug: r.slug,
+    lastSnapshotDate: r.lastDate !== null ? new Date(r.lastDate) : null,
+  }));
+}
+
+export type TopCreatorByFollowers = {
+  readonly id: number;
+  readonly name: string;
+  readonly slug: string;
+  readonly photoUrl: string | null;
+  readonly gradientC1: string;
+  readonly gradientC2: string;
+  readonly initials: string;
+  readonly totalFollowers: number;
+  readonly platforms: string[];
+};
+
+/**
+ * Top creators by total followers (sum of latest snapshot value per platform).
+ * Falls back to talentSocials.followersDisplay if no snapshots exist.
+ */
+export async function getTopCreatorsByFollowers(limit: number): Promise<TopCreatorByFollowers[]> {
+  // Get latest snapshot per talent+platform (metricType = subscribers|followers)
+  const latestSnapshotDates = db
+    .select({
+      talentId: talentMetricSnapshots.talentId,
+      platform: talentMetricSnapshots.platform,
+      maxDate: max(talentMetricSnapshots.snapshotDate).as('max_date'),
+    })
+    .from(talentMetricSnapshots)
+    .where(inArray(talentMetricSnapshots.metricType, ['subscribers', 'followers']))
+    .groupBy(talentMetricSnapshots.talentId, talentMetricSnapshots.platform)
+    .as('latest_snapshot_dates');
+
+  // Join to get the actual values
+  const snapshotValues = await db
+    .select({
+      talentId: talentMetricSnapshots.talentId,
+      platform: talentMetricSnapshots.platform,
+      value: talentMetricSnapshots.value,
+    })
+    .from(talentMetricSnapshots)
+    .innerJoin(
+      latestSnapshotDates,
+      and(
+        eq(talentMetricSnapshots.talentId, latestSnapshotDates.talentId),
+        eq(talentMetricSnapshots.platform, latestSnapshotDates.platform),
+        eq(talentMetricSnapshots.snapshotDate, latestSnapshotDates.maxDate),
+      ),
+    )
+    .where(inArray(talentMetricSnapshots.metricType, ['subscribers', 'followers']));
+
+  // Aggregate per talent
+  const snapshotMap = new Map<number, { total: number; platforms: Set<string> }>();
+  for (const row of snapshotValues) {
+    const entry = snapshotMap.get(row.talentId) ?? { total: 0, platforms: new Set<string>() };
+    entry.total += row.value;
+    entry.platforms.add(row.platform);
+    snapshotMap.set(row.talentId, entry);
+  }
+
+  // Get all talents
+  const allTalents = await db
+    .select({
+      id: talents.id,
+      name: talents.name,
+      slug: talents.slug,
+      photoUrl: talents.photoUrl,
+      gradientC1: talents.gradientC1,
+      gradientC2: talents.gradientC2,
+      initials: talents.initials,
+    })
+    .from(talents);
+
+  return allTalents
+    .map((t) => {
+      const snap = snapshotMap.get(t.id);
+      return {
+        id: t.id,
+        name: t.name,
+        slug: t.slug,
+        photoUrl: t.photoUrl ?? null,
+        gradientC1: t.gradientC1,
+        gradientC2: t.gradientC2,
+        initials: t.initials,
+        totalFollowers: snap?.total ?? 0,
+        platforms: snap ? [...snap.platforms] : [],
+      };
+    })
+    .sort((a, b) => b.totalFollowers - a.totalFollowers)
+    .slice(0, limit);
 }

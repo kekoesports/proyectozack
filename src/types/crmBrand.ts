@@ -1,5 +1,6 @@
 import type { InferSelectModel, InferInsertModel } from 'drizzle-orm';
 import type { crmBrands, crmBrandContacts, crmBrandFollowups } from '@/db/schema';
+import type { BrandFollowupDerivedStatus } from '@/lib/schemas/crmBrand';
 
 export type CrmBrand = InferSelectModel<typeof crmBrands>;
 export type NewCrmBrand = InferInsertModel<typeof crmBrands>;
@@ -23,4 +24,8 @@ export type CrmBrandRow = CrmBrand & {
   readonly contactCount: number;
   readonly primaryContact: CrmBrandContact | null;
   readonly ownerName: string | null;
+};
+
+export type CrmBrandWithDerived = CrmBrandRow & {
+  readonly followupStatus: BrandFollowupDerivedStatus;
 };

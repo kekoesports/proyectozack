@@ -14,7 +14,7 @@ import { TaskList } from '@/components/admin/tasks/TaskList';
 export const metadata = { title: 'Mi Semana | Admin' };
 
 export default async function MiSemanaPage(): Promise<ReactElement> {
-  const session = await requireAnyRole(['admin', 'staff'], '/admin/login');
+  const session = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
   const weekLabel = getIsoWeekLabel(new Date());
 
   const [tasks, users, suggestedCategories, rolledCount, relatedOptions] = await Promise.all([

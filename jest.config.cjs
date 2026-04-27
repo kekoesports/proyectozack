@@ -1,9 +1,10 @@
-import type { Config } from 'jest';
-import nextJest from 'next/jest.js';
+/* eslint-disable @typescript-eslint/no-require-imports */
+const nextJest = require('next/jest.js');
 
 const createJestConfig = nextJest({ dir: './' });
 
-const config: Config = {
+/** @type {import('jest').Config} */
+const config = {
   projects: [
     {
       displayName: 'client',
@@ -45,7 +46,6 @@ const config: Config = {
       ],
     },
   ],
-
   collectCoverageFrom: [
     'src/**/*.{ts,tsx}',
     '!src/**/*.d.ts',
@@ -58,4 +58,4 @@ const config: Config = {
   ],
 };
 
-export default createJestConfig(config);
+module.exports = createJestConfig(config);

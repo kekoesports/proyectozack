@@ -1,4 +1,4 @@
-import { pgTable, serial, varchar, text, integer, pgEnum, index, jsonb } from 'drizzle-orm/pg-core';
+import { pgTable, serial, varchar, text, integer, pgEnum, index, jsonb, timestamp } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
 // platform: real values from source data are 'twitch' | 'youtube' only
@@ -26,6 +26,8 @@ export const talents = pgTable('talents', {
   topGeos: jsonb('top_geos').$type<Array<{ country: string; pct: number }>>(),
   audienceLanguage: text('audience_language'),
   creatorCountry: varchar('creator_country', { length: 2 }),
+  audienceStatus: varchar('audience_status', { length: 20 }), // 'activo'|'inactivo'|'pendiente'|'potencial'
+  lastStatsUpdateAt: timestamp('last_stats_update_at', { withTimezone: true }),
 }, (t) => [
   index('talents_slug_idx').on(t.slug),
   index('talents_platform_idx').on(t.platform),

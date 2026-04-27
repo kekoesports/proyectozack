@@ -1,19 +1,25 @@
 import { db } from '@/lib/db';
 import { user as userTable } from '@/db/schema';
-import { eq, desc } from 'drizzle-orm';
+import { eq, desc, inArray } from 'drizzle-orm';
+
 import { requireAnyRole } from '@/lib/auth-guard';
 import { InviteBrandForm } from '@/components/admin/brands/invite-form';
 import { BrandsCrmManager } from '@/components/admin/brands/BrandsCrmManager';
 import { BrandsTabs } from '@/components/admin/brands/BrandsTabs';
 import { listCrmBrands, getBrandContacts, listBrandFollowups, listUpcomingFollowups } from '@/lib/queries/crmBrands';
+import { listAllCampaigns } from '@/lib/queries/campaigns';
+
+import type { Role } from '@/lib/auth-guard';
+import type { CampaignRow } from '@/types';
 
 export default async function AdminBrandsPage(): Promise<React.ReactElement> {
-  const session = await requireAnyRole(['admin', 'staff'], '/admin/login');
-  const isStaff = session.user.role === 'staff';
-  const filterUserId = isStaff ? session.user.id : undefined;
+  const session = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
+  const role = session.user.role as Role;
+  const isStaff = role === 'staff';
+  const isManager = role === 'manager';
 
-  const [brandUsers, crmBrands, upcomingFollowups] = await Promise.all([
-    isStaff
+  const [brandUsers, crmBrandsList, upcomingFollowups, staffUsers, allCampaigns] = await Promise.all([
+    isStaff || isManager
       ? Promise.resolve([])
       : db
           .select({
@@ -25,15 +31,21 @@ export default async function AdminBrandsPage(): Promise<React.ReactElement> {
           .from(userTable)
           .where(eq(userTable.role, 'brand'))
           .orderBy(desc(userTable.createdAt)),
-    listCrmBrands(filterUserId),
-    listUpcomingFollowups(filterUserId),
+    listCrmBrands({ userId: session.user.id, role }),
+    listUpcomingFollowups({ userId: session.user.id, role }),
+    db
+      .select({ id: userTable.id, name: userTable.name })
+      .from(userTable)
+      .where(inArray(userTable.role, ['admin', 'manager', 'staff']))
+      .orderBy(userTable.name),
+    listAllCampaigns(),
   ]);
 
   const contactsByBrand: Record<number, Awaited<ReturnType<typeof getBrandContacts>>> = {};
   const followupsByBrand: Record<number, Awaited<ReturnType<typeof listBrandFollowups>>> = {};
 
   await Promise.all(
-    crmBrands.map(async (b) => {
+    crmBrandsList.map(async (b) => {
       const [contacts, followups] = await Promise.all([
         getBrandContacts(b.id),
         listBrandFollowups(b.id),
@@ -43,20 +55,34 @@ export default async function AdminBrandsPage(): Promise<React.ReactElement> {
     }),
   );
 
+  // Group campaigns by brandId (client-side filtering avoids N+1 queries)
+  const campaignsByBrand: Record<number, CampaignRow[]> = {};
+  for (const c of allCampaigns) {
+    const existing = campaignsByBrand[c.brandId];
+    if (existing) {
+      existing.push(c);
+    } else {
+      campaignsByBrand[c.brandId] = [c];
+    }
+  }
+
   const tabs = [
     {
       key: 'crm',
       label: 'CRM',
       content: (
         <BrandsCrmManager
-          brands={crmBrands}
+          brands={crmBrandsList}
           contactsByBrand={contactsByBrand}
           followupsByBrand={followupsByBrand}
           upcomingFollowups={upcomingFollowups}
+          campaignsByBrand={campaignsByBrand}
+          isManager={isManager}
+          staffUsers={staffUsers}
         />
       ),
     },
-    ...(!isStaff
+    ...(!isStaff && !isManager
       ? [
           {
             key: 'portal',

@@ -1,9 +1,38 @@
-import { and, asc, desc, eq, inArray, sql } from 'drizzle-orm';
-import { db } from '@/lib/db';
-import { crmTasks, crmBrands, talents, invoices, user } from '@/db/schema';
-import type { CrmTask, NewCrmTask, CrmTaskStatus, TeamTasksSummary } from '@/types';
+import { and, asc, desc, eq, getTableColumns, inArray, isNull, lte, ne, or, sql } from 'drizzle-orm';
 
-type UpdatableFields = Pick<CrmTask, 'title' | 'description' | 'dueDate' | 'priority' | 'status' | 'category' | 'ownerId' | 'relatedType' | 'relatedId'>;
+import { campaigns, crmBrands, crmTaskTemplates, crmTasks, invoices, talents, user } from '@/db/schema';
+import { db } from '@/lib/db';
+import { getIsoWeekLabel } from '@/lib/week';
+
+import type { Role } from '@/lib/auth-guard';
+import type {
+  CrmTask,
+  CrmTaskStatus,
+  CrmTaskTemplate,
+  NewCrmTask,
+  TeamTasksSummary,
+} from '@/types';
+
+type TaskSession = {
+  readonly userId: string;
+  readonly role: Role;
+};
+
+type UpdatableFields = Pick<
+  CrmTask,
+  | 'title'
+  | 'description'
+  | 'dueDate'
+  | 'priority'
+  | 'status'
+  | 'category'
+  | 'ownerId'
+  | 'assignedToUserId'
+  | 'createdByUserId'
+  | 'recurrenceTemplateId'
+  | 'relatedType'
+  | 'relatedId'
+>;
 
 const PRIORITY_ORDER = sql`CASE ${crmTasks.priority}
   WHEN 'alta' THEN 0
@@ -11,19 +40,74 @@ const PRIORITY_ORDER = sql`CASE ${crmTasks.priority}
   WHEN 'baja' THEN 2
 END`;
 
-export async function getTasksForWeek(weekLabel: string): Promise<readonly CrmTask[]> {
+function todayMadridIso(date = new Date()): string {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Europe/Madrid',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(date);
+}
+
+function toIsoDate(date: Date): string {
+  return date.toISOString().slice(0, 10);
+}
+
+function endOfWeekIso(date: Date): string {
+  const utc = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+  const day = utc.getUTCDay();
+  const daysUntilSunday = day === 0 ? 0 : 7 - day;
+  utc.setUTCDate(utc.getUTCDate() + daysUntilSunday);
+  return toIsoDate(utc);
+}
+
+function endOfMonthIso(date: Date): string {
+  const utc = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + 1, 0));
+  return toIsoDate(utc);
+}
+
+function visibilityCondition(session?: TaskSession) {
+  if (!session || session.role === 'admin' || session.role === 'manager') return undefined;
+  return or(
+    eq(crmTasks.assignedToUserId, session.userId),
+    eq(crmTasks.createdByUserId, session.userId),
+    eq(crmTasks.ownerId, session.userId),
+  );
+}
+
+export async function getTasksForWeek(
+  weekLabel: string,
+  options?: { readonly session?: TaskSession },
+): Promise<readonly CrmTask[]> {
+  const filters = [eq(crmTasks.weekLabel, weekLabel)];
+  const visible = visibilityCondition(options?.session);
+  if (visible !== undefined) filters.push(visible);
+
   return db
-    .select()
+    .select({
+      ...getTableColumns(crmTasks),
+      recurrence: crmTaskTemplates.recurrence,
+    })
     .from(crmTasks)
-    .where(eq(crmTasks.weekLabel, weekLabel))
+    .leftJoin(crmTaskTemplates, eq(crmTaskTemplates.id, crmTasks.recurrenceTemplateId))
+    .where(and(...filters))
     .orderBy(asc(PRIORITY_ORDER), asc(crmTasks.dueDate), desc(crmTasks.createdAt));
 }
 
 export async function getMyTasks(ownerId: string, weekLabel: string): Promise<readonly CrmTask[]> {
   return db
-    .select()
+    .select({
+      ...getTableColumns(crmTasks),
+      recurrence: crmTaskTemplates.recurrence,
+    })
     .from(crmTasks)
-    .where(and(eq(crmTasks.ownerId, ownerId), eq(crmTasks.weekLabel, weekLabel)))
+    .leftJoin(crmTaskTemplates, eq(crmTaskTemplates.id, crmTasks.recurrenceTemplateId))
+    .where(
+      and(
+        eq(crmTasks.weekLabel, weekLabel),
+        or(eq(crmTasks.assignedToUserId, ownerId), eq(crmTasks.ownerId, ownerId)),
+      ),
+    )
     .orderBy(asc(PRIORITY_ORDER), asc(crmTasks.dueDate), desc(crmTasks.createdAt));
 }
 
@@ -48,7 +132,7 @@ export async function getTeamTasksSummary(weekLabel: string): Promise<readonly T
     })
     .from(user)
     .leftJoin(crmTasks, eq(crmTasks.ownerId, user.id))
-    .where(inArray(user.role, ['admin', 'staff']))
+    .where(inArray(user.role, ['admin', 'manager', 'staff']))
     .groupBy(user.id, user.name, user.email, user.role)
     .orderBy(asc(user.name));
 
@@ -103,14 +187,18 @@ export async function completeTask(id: number): Promise<CrmTask | null> {
   return row ?? null;
 }
 
-export async function isStaffUser(userId: string): Promise<boolean> {
+export async function isAssignableTaskUser(userId: string): Promise<boolean> {
   const [row] = await db
     .select({ role: user.role })
     .from(user)
     .where(eq(user.id, userId))
     .limit(1);
   if (!row) return false;
-  return row.role === 'admin' || row.role === 'staff';
+  return row.role === 'admin' || row.role === 'manager' || row.role === 'staff';
+}
+
+export async function isStaffUser(userId: string): Promise<boolean> {
+  return isAssignableTaskUser(userId);
 }
 
 export async function deleteTask(id: number): Promise<void> {
@@ -148,11 +236,13 @@ export async function rollOverPendingTasks(
 export type RelatedOptionList = {
   readonly brand: ReadonlyArray<{ readonly id: number; readonly label: string }>;
   readonly talent: ReadonlyArray<{ readonly id: number; readonly label: string }>;
+  readonly campaign: ReadonlyArray<{ readonly id: number; readonly label: string }>;
   readonly invoice: ReadonlyArray<{ readonly id: number; readonly label: string }>;
+  readonly general: ReadonlyArray<{ readonly id: number; readonly label: string }>;
 };
 
 export async function getTaskRelatedOptions(): Promise<RelatedOptionList> {
-  const [brandRows, talentRows, invoiceRows] = await Promise.all([
+  const [brandRows, talentRows, invoiceRows, campaignRows] = await Promise.all([
     db.select({ id: crmBrands.id, name: crmBrands.name }).from(crmBrands).orderBy(asc(crmBrands.name)),
     db.select({ id: talents.id, name: talents.name }).from(talents).orderBy(asc(talents.name)),
     db
@@ -160,17 +250,34 @@ export async function getTaskRelatedOptions(): Promise<RelatedOptionList> {
       .from(invoices)
       .orderBy(desc(invoices.issueDate))
       .limit(200),
+    db
+      .select({
+        id: campaigns.id,
+        name: campaigns.name,
+        brandName: crmBrands.name,
+        talentName: talents.name,
+      })
+      .from(campaigns)
+      .innerJoin(crmBrands, eq(crmBrands.id, campaigns.brandId))
+      .innerJoin(talents, eq(talents.id, campaigns.talentId))
+      .where(isNull(campaigns.archivedAt))
+      .orderBy(desc(campaigns.createdAt)),
   ]);
 
   return {
     brand: brandRows.map((r) => ({ id: r.id, label: r.name })),
     talent: talentRows.map((r) => ({ id: r.id, label: r.name })),
+    campaign: campaignRows.map((r) => ({
+      id: r.id,
+      label: r.brandName && r.talentName ? `${r.brandName} × ${r.talentName}` : r.name,
+    })),
     invoice: invoiceRows.map((r) => ({ id: r.id, label: r.number ? `${r.number} — ${r.concept}` : r.concept })),
+    general: [],
   };
 }
 
 export type RelatedLabel = {
-  readonly type: 'brand' | 'talent' | 'invoice';
+  readonly type: 'brand' | 'talent' | 'campaign' | 'invoice';
   readonly id: number;
   readonly label: string;
 };
@@ -180,10 +287,12 @@ export async function resolveRelatedLabels(
 ): Promise<ReadonlyMap<string, RelatedLabel>> {
   const brandIds = new Set<number>();
   const talentIds = new Set<number>();
+  const campaignIds = new Set<number>();
   const invoiceIds = new Set<number>();
   for (const t of tasks) {
     if (t.relatedType === 'brand' && t.relatedId) brandIds.add(t.relatedId);
     else if (t.relatedType === 'talent' && t.relatedId) talentIds.add(t.relatedId);
+    else if (t.relatedType === 'campaign' && t.relatedId) campaignIds.add(t.relatedId);
     else if (t.relatedType === 'invoice' && t.relatedId) invoiceIds.add(t.relatedId);
   }
 
@@ -196,6 +305,26 @@ export async function resolveRelatedLabels(
   if (talentIds.size > 0) {
     const rows = await db.select({ id: talents.id, name: talents.name }).from(talents).where(inArray(talents.id, [...talentIds]));
     for (const r of rows) map.set(`talent:${r.id}`, { type: 'talent', id: r.id, label: r.name });
+  }
+  if (campaignIds.size > 0) {
+    const rows = await db
+      .select({
+        id: campaigns.id,
+        name: campaigns.name,
+        brandName: crmBrands.name,
+        talentName: talents.name,
+      })
+      .from(campaigns)
+      .innerJoin(crmBrands, eq(crmBrands.id, campaigns.brandId))
+      .innerJoin(talents, eq(talents.id, campaigns.talentId))
+      .where(inArray(campaigns.id, [...campaignIds]));
+    for (const r of rows) {
+      map.set(`campaign:${r.id}`, {
+        type: 'campaign',
+        id: r.id,
+        label: r.brandName && r.talentName ? `${r.brandName} × ${r.talentName}` : r.name,
+      });
+    }
   }
   if (invoiceIds.size > 0) {
     const rows = await db.select({
@@ -221,4 +350,164 @@ export async function getRolledOverCount(ownerId: string, weekLabel: string): Pr
       ),
     );
   return row?.count ?? 0;
+}
+
+export type UrgentTask = {
+  readonly id: number;
+  readonly title: string;
+  readonly priority: string;
+  readonly dueDate: Date | null;
+  readonly ownerName: string | null;
+};
+
+export async function getUrgentTasks({
+  session,
+  limit = 5,
+}: {
+  readonly session?: TaskSession;
+  readonly limit?: number;
+} = {}): Promise<readonly UrgentTask[]> {
+  const filters = [ne(crmTasks.status, 'completada'), lte(crmTasks.dueDate, todayMadridIso())];
+  const visible = visibilityCondition(session);
+  if (visible !== undefined) filters.push(visible);
+
+  const rows = await db
+    .select({
+      id: crmTasks.id,
+      title: crmTasks.title,
+      priority: crmTasks.priority,
+      dueDate: crmTasks.dueDate,
+      ownerName: user.name,
+    })
+    .from(crmTasks)
+    .leftJoin(user, eq(user.id, crmTasks.ownerId))
+    .where(and(...filters))
+    .orderBy(asc(PRIORITY_ORDER), asc(crmTasks.dueDate))
+    .limit(limit);
+
+  return rows.map((r) => ({
+    id: r.id,
+    title: r.title,
+    priority: r.priority,
+    dueDate: r.dueDate !== null ? new Date(r.dueDate) : null,
+    ownerName: r.ownerName ?? null,
+  }));
+}
+
+export async function getTasksByTemplateForWeek(
+  templateId: number,
+  weekLabel: string,
+): Promise<readonly CrmTask[]> {
+  return db
+    .select()
+    .from(crmTasks)
+    .where(and(eq(crmTasks.recurrenceTemplateId, templateId), eq(crmTasks.weekLabel, weekLabel)))
+    .orderBy(asc(crmTasks.createdAt));
+}
+
+type RecurringTargetUser = {
+  readonly id: string;
+  readonly role: string | null;
+};
+
+export function buildRecurringTaskInstances({
+  templates,
+  users,
+  fallbackCreatorUserId,
+  today,
+  weekLabel,
+}: {
+  readonly templates: readonly CrmTaskTemplate[];
+  readonly users: readonly RecurringTargetUser[];
+  readonly fallbackCreatorUserId: string | null;
+  readonly today: Date;
+  readonly weekLabel: string;
+}): readonly NewCrmTask[] {
+  const internalUsers = users.filter(
+    (u) => u.role === 'admin' || u.role === 'manager' || u.role === 'staff',
+  );
+  const todayIso = toIsoDate(today);
+  const isFirstDayOfMonth = todayIso.endsWith('-01');
+  const rows: NewCrmTask[] = [];
+
+  for (const template of templates) {
+    if (!template.active) continue;
+
+    let dueDate: string;
+    if (template.recurrence === 'daily') {
+      dueDate = todayIso;
+    } else if (template.recurrence === 'weekly') {
+      dueDate = endOfWeekIso(today);
+    } else {
+      if (!isFirstDayOfMonth) continue;
+      dueDate = endOfMonthIso(today);
+    }
+
+    const targetIds = template.defaultAssigneeUserId
+      ? [template.defaultAssigneeUserId]
+      : internalUsers.map((u) => u.id);
+
+    for (const assignedToUserId of targetIds) {
+      const createdByUserId = template.defaultAssigneeUserId ?? fallbackCreatorUserId ?? assignedToUserId;
+      rows.push({
+        title: template.title,
+        description: template.description,
+        ownerId: assignedToUserId,
+        assignedToUserId,
+        createdByUserId,
+        recurrenceTemplateId: template.id,
+        dueDate,
+        priority: template.defaultPriority,
+        status: 'pendiente',
+        category: template.category,
+        weekLabel,
+        rolledOver: false,
+        rolledFromWeek: null,
+        relatedType: null,
+        relatedId: null,
+      });
+    }
+  }
+
+  return rows;
+}
+
+export async function regenerateRecurringTasks({
+  today = new Date(),
+  weekLabel,
+}: {
+  readonly today?: Date;
+  readonly weekLabel?: string;
+} = {}): Promise<{ readonly generated: number }> {
+  const currentWeek = weekLabel ?? getIsoWeekLabel(today);
+  const templates = await db
+    .select()
+    .from(crmTaskTemplates)
+    .where(eq(crmTaskTemplates.active, true))
+    .orderBy(asc(crmTaskTemplates.id));
+
+  const users = await db
+    .select({ id: user.id, role: user.role })
+    .from(user)
+    .where(inArray(user.role, ['admin', 'manager', 'staff']))
+    .orderBy(asc(user.name));
+
+  const fallbackCreatorUserId = users.find((u) => u.role === 'admin')?.id ?? null;
+  const rows = buildRecurringTaskInstances({
+    templates,
+    users,
+    fallbackCreatorUserId,
+    today,
+    weekLabel: currentWeek,
+  });
+
+  if (rows.length === 0) return { generated: 0 };
+
+  const inserted = await db
+    .insert(crmTasks)
+    .values([...rows])
+    .onConflictDoNothing()
+    .returning({ id: crmTasks.id });
+
+  return { generated: inserted.length };
 }

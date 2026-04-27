@@ -14,11 +14,16 @@ import { TaskWorkspace } from '@/components/admin/tasks/TaskWorkspace';
 export const metadata: Metadata = { title: 'Tareas | Admin' };
 
 export default async function TareasPage(): Promise<ReactElement> {
-  const session = await requireAnyRole(['admin', 'staff'], '/admin/login');
+  const session = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
   const weekLabel = getIsoWeekLabel(new Date());
 
   const [tasks, users, suggestedCategories, relatedOptions] = await Promise.all([
-    getTasksForWeek(weekLabel),
+    getTasksForWeek(weekLabel, {
+      session: {
+        userId: session.user.id,
+        role: session.user.role as 'admin' | 'manager' | 'staff',
+      },
+    }),
     getAllStaffUsers(),
     getUsedCategories(),
     getTaskRelatedOptions(),

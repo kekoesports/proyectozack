@@ -69,6 +69,8 @@ function toTalentBase(t: Talent): Talent {
     topGeos: t.topGeos,
     audienceLanguage: t.audienceLanguage,
     creatorCountry: t.creatorCountry,
+    audienceStatus: t.audienceStatus,
+    lastStatsUpdateAt: t.lastStatsUpdateAt,
   };
 }
 

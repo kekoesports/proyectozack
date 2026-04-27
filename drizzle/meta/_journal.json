@@ -232,6 +232,41 @@
       "when": 1777217818624,
       "tag": "0032_swift_johnny_blaze",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1777225868503,
+      "tag": "0033_curved_white_tiger",
+      "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1777228607915,
+      "tag": "0034_noisy_diamondback",
+      "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1777231185674,
+      "tag": "0035_silly_jasper_sitwell",
+      "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1777234800000,
+      "tag": "0036_task_templates",
+      "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "7",
+      "when": 1777238217647,
+      "tag": "0037_invoices_finance",
+      "breakpoints": true
     }
   ]
 }

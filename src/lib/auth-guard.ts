@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation';
 import { headers } from 'next/headers';
 import { auth } from '@/lib/auth';
 
-type Role = 'admin' | 'brand' | 'staff';
+export type Role = 'admin' | 'brand' | 'staff' | 'manager';
 
 /** Only these paths are valid redirect targets — prevents open redirect. */
 const ALLOWED_LOGIN_PATHS = new Set(['/admin/login', '/marcas/login']);
@@ -18,6 +18,7 @@ type SessionWithRole = {
 
 function homeForRole(role: string | null | undefined): string | null {
   if (role === 'admin') return '/admin';
+  if (role === 'manager') return '/admin';
   if (role === 'brand') return '/marcas';
   if (role === 'staff') return '/admin/mi-semana';
   return null;

@@ -1,7 +1,11 @@
 import type { InferSelectModel, InferInsertModel } from 'drizzle-orm';
-import type { crmTasks } from '@/db/schema';
 
-export type CrmTask = InferSelectModel<typeof crmTasks>;
+import type { crmTasks } from '@/db/schema';
+import type { CrmTaskRecurrence } from './crmTaskTemplate';
+
+export type CrmTask = InferSelectModel<typeof crmTasks> & {
+  readonly recurrence?: CrmTaskRecurrence | null;
+};
 export type NewCrmTask = InferInsertModel<typeof crmTasks>;
 
 export type CrmTaskPriority = CrmTask['priority'];

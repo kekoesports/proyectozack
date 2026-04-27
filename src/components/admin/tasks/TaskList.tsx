@@ -6,6 +6,7 @@ import * as Popover from '@radix-ui/react-popover';
 import type { CrmTask, CrmTaskPriority, CrmTaskStatus } from '@/types';
 import { Avatar } from '@/components/admin/Avatar';
 import { PriorityBadge } from './PriorityBadge';
+import { RecurrenceBadge } from './RecurrenceBadge';
 import { TaskStatusBadge } from './TaskStatusBadge';
 import { TaskModal } from './TaskModal';
 import {
@@ -288,6 +289,11 @@ export function TaskList({
                         <span className={`font-medium ${isDone ? 'text-sp-admin-muted line-through' : 'text-sp-admin-text'}`}>
                           {t.title}
                         </span>
+                        {t.recurrenceTemplateId !== null && t.recurrence && (
+                          <span className="ml-2 inline-flex align-middle">
+                            <RecurrenceBadge frequency={t.recurrence} />
+                          </span>
+                        )}
                         {t.rolledOver && (
                           <span className="ml-2 text-[10px] text-amber-400" title={`Arrastrada de ${t.rolledFromWeek}`}>↻</span>
                         )}
