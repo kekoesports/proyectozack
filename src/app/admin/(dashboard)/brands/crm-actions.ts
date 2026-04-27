@@ -343,7 +343,12 @@ export async function updateFollowupAction(
   const parsed = updateFollowupSchema.safeParse(formToObject(formData));
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? 'Datos inválidos' };
 
-  const { id, brandId, ...rest } = parsed.data;
+  const { id, brandId, scheduledAt, nextActionAt, ...rest } = parsed.data;
+  const patchData = {
+    ...rest,
+    scheduledAt: scheduledAt ? new Date(scheduledAt) : undefined,
+    nextActionAt: parseOptionalDate(nextActionAt),
+  };
 
   if (brandId !== undefined) {
     try {
@@ -360,7 +365,7 @@ export async function updateFollowupAction(
   }
 
   try {
-    await updateBrandFollowup(id, compact(rest) as Partial<Parameters<typeof updateBrandFollowup>[1]>);
+    await updateBrandFollowup(id, compact(patchData) as Partial<Parameters<typeof updateBrandFollowup>[1]>);
     revalidatePath('/admin/brands');
     if (brandId !== undefined) revalidatePath(`/admin/brands/${brandId}`);
     return { success: true, id };
