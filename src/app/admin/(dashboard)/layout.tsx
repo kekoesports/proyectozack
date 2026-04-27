@@ -1,6 +1,6 @@
 import { requireAnyRole } from '@/lib/auth-guard';
-import { AdminSidebar, type NavGroup } from '@/components/admin/AdminSidebar';
-import { AdminHeader } from '@/components/admin/AdminHeader';
+import { AdminSidebar, type NavGroup } from '@/features/admin/_shared/components/AdminSidebar';
+import { AdminHeader } from '@/features/admin/_shared/components/AdminHeader';
 import {
   DashboardIcon,
   TalentIcon,
@@ -17,7 +17,7 @@ import {
   ChartIcon,
   CampaignIcon,
   SettingsIcon,
-} from '@/components/admin/SidebarIcons';
+} from '@/features/admin/_shared/components/SidebarIcons';
 import type { ReactNode } from 'react';
 
 type AdminLayoutProps = {

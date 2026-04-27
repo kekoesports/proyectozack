@@ -5,7 +5,7 @@ import { crmBrands, talents } from '@/db/schema';
 import { listImports } from '@/lib/queries/invoiceImports';
 import { listTemplates } from '@/lib/queries/invoiceImportTemplates';
 import { getUsedInvoiceCategories } from '@/lib/queries/invoices';
-import { ImportInbox } from '@/components/admin/invoices/ImportInbox';
+import { ImportInbox } from '@/features/admin/invoices/components/ImportInbox';
 
 export default async function AdminInvoiceImportPage(): Promise<React.ReactElement> {
   const [pending, reviewed, brandsList, talentsList, categories, templates] = await Promise.all([

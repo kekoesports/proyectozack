@@ -18,6 +18,14 @@ function asImportWithDraft(row: InvoiceImport): InvoiceImportWithDraft {
   };
 }
 
+/**
+ * Lista los imports de facturas (con su draft parseado), opcionalmente filtrados por estado.
+ * Ordenados por `createdAt DESC, id DESC`.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns array de `InvoiceImportWithDraft`.
+ */
 export async function listImports(
   status?: InvoiceImportStatus,
 ): Promise<readonly InvoiceImportWithDraft[]> {
@@ -29,6 +37,13 @@ export async function listImports(
   return rows.map(asImportWithDraft);
 }
 
+/**
+ * Devuelve un import de factura por id, con su draft tipado.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns `InvoiceImportWithDraft` o `null` si no existe.
+ */
 export async function getImport(id: number): Promise<InvoiceImportWithDraft | null> {
   const [row] = await db
     .select()
@@ -38,6 +53,13 @@ export async function getImport(id: number): Promise<InvoiceImportWithDraft | nu
   return row ? asImportWithDraft(row) : null;
 }
 
+/**
+ * Busca un import por (`fileHash`, `sourceRowIndex`) — usado para detectar duplicados.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns `InvoiceImport` o `null`.
+ */
 export async function getImportByHash(
   fileHash: string,
   sourceRowIndex = -1,
@@ -77,6 +99,14 @@ type CreateImportArgs = {
   readonly createdByUserId: string | null;
 };
 
+/**
+ * Crea un import de factura. Lanza `DuplicateImportError` si ya existe un import con
+ * el mismo `(fileHash, sourceRowIndex)`.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns la fila `InvoiceImport` creada.
+ */
 export async function createImport(args: CreateImportArgs): Promise<InvoiceImport> {
   const rowIndex = args.sourceRowIndex ?? -1;
   const existing = await getImportByHash(args.fileHash, rowIndex);
@@ -115,6 +145,14 @@ type CreateManyImportsArgs = {
   readonly createdByUserId: string | null;
 };
 
+/**
+ * Inserta múltiples imports en bulk (un row index por fila del fichero), ignorando
+ * duplicados existentes en la combinación `(fileHash, sourceRowIndex)`.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns array de los imports realmente insertados (puede ser menor que `args.rows`).
+ */
 export async function createManyImports(
   args: CreateManyImportsArgs,
 ): Promise<readonly InvoiceImport[]> {
@@ -139,6 +177,14 @@ export async function createManyImports(
     .returning();
 }
 
+/**
+ * Aprueba un import pendiente: crea la factura definitiva a partir del draft final
+ * y marca el import como `approved` (sólo si seguía `pending`).
+ *
+ * @cache none
+ * @visibility admin
+ * @returns `{ importId, invoiceId }`.
+ */
 export async function approveImport(
   id: number,
   finalDraft: ApproveImportInput,
@@ -166,6 +212,14 @@ export async function approveImport(
   return { importId: id, invoiceId: invoice.id };
 }
 
+/**
+ * Rechaza un import pendiente (`status -> 'rejected'`, `reviewedAt = now`).
+ * Idempotente: sólo afecta a imports en `status = 'pending'`.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns void.
+ */
 export async function rejectImport(id: number): Promise<void> {
   await db
     .update(invoiceImports)
@@ -173,6 +227,16 @@ export async function rejectImport(id: number): Promise<void> {
     .where(and(eq(invoiceImports.id, id), eq(invoiceImports.status, 'pending')));
 }
 
+/**
+ * Cuenta imports en estado `pending` — usado por el badge del nav admin.
+ *
+ * Nota: usa `select id + .length` en lugar de `count(*)`. Funciona pero es ineficiente
+ * con muchos imports.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns número de imports pendientes de revisión.
+ */
 export async function countPendingImports(): Promise<number> {
   const rows = await db
     .select({ id: invoiceImports.id })

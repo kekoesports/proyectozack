@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { getCaseStudies } from '@/lib/queries/cases';
-import { CasesSection } from '@/components/sections/CasesSection';
+import { CasesSection } from '@/features/marketing-site/components/CasesSection';
 
 export const revalidate = 3600;
 

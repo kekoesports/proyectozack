@@ -1,4 +1,4 @@
-import { normalizePlatform } from '@/lib/platform';
+import { normalizePlatform } from '@/lib/utils/platform';
 
 const PATHS: Record<string, string> = {
   twitch:
@@ -19,6 +19,17 @@ type SocialIconProps = {
   className?: string;
 }
 
+/**
+ * Icono SVG inline para una red social. Resuelve `type` a un path conocido
+ * (twitch, youtube, instagram, x, tiktok, kick) vía `normalizePlatform`.
+ *
+ * @kind server
+ * @feature ui
+ * @example
+ * ```tsx
+ * <SocialIcon type="youtube" size={18} />
+ * ```
+ */
 export function SocialIcon({ type, color = 'currentColor', size = 16, className = '' }: SocialIconProps) {
   const path = PATHS[normalizePlatform(type) ?? ''] ?? '';
   return (

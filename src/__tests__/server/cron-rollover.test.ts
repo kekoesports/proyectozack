@@ -16,7 +16,7 @@ jest.mock('@/lib/queries/crmTasks', () => ({
   regenerateRecurringTasks: (...args: unknown[]) => mockRegenerateRecurringTasks(...args),
 }));
 
-jest.mock('@/lib/week', () => ({
+jest.mock('@/lib/utils/week', () => ({
   getIsoWeekLabel: jest.fn(() => '2026-W19'),
   previousWeek: jest.fn(() => '2026-W18'),
 }));

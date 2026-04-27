@@ -1,6 +1,12 @@
 import { and, eq, sql, gte, lte, isNotNull, ne } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { invoices, crmBrands, talents } from '@/db/schema';
+import {
+  SETTLED_INCOME_STATUSES,
+  SETTLED_EXPENSE_STATUSES,
+  PENDING_INCOME_STATUSES,
+  PENDING_EXPENSE_STATUSES,
+} from '@/lib/utils/invoice-status';
 
 import type { InvoiceCompany } from '@/types';
 
@@ -66,6 +72,21 @@ function buildBaseConditions(filters: PnLFilters) {
   return conds;
 }
 
+/**
+ * P&L mensual completo: ingresos, gastos, pagos a creators, comisión de agencia,
+ * margen bruto, pendiente cobro/pago y breakdowns por mes y categoría.
+ *
+ * Reglas clave:
+ * - Excluye anuladas en todo el cálculo.
+ * - `status='cobrada'` y `'pagada'` se consideran ambos liquidados (settled income/expense).
+ * - `pagosCreadores` es subset de `gastos` (no se descuenta del margen bruto, ya está dentro).
+ * - `comisionAgencia = settled income con campaignId − settled expense con campaignId+talentId`.
+ * - Si se filtra por `sector` o `geo`, hace LEFT JOIN con `crmBrands`.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns `PnLResult` (objeto con totales y breakdowns; nunca null).
+ */
 export async function getPnL(filters: PnLFilters = {}): Promise<PnLResult> {
   const baseConds = buildBaseConditions(filters);
 
@@ -122,10 +143,10 @@ export async function getPnL(filters: PnLFilters = {}): Promise<PnLResult> {
   const monthMap = new Map<string, { ingresos: number; gastos: number }>();
   const categoryMap = new Map<string, { total: number; count: number }>();
 
-  const SETTLED_INCOME = new Set(['cobrada', 'pagada']);
-  const SETTLED_EXPENSE = new Set(['cobrada', 'pagada']);
-  const PENDING_INCOME = new Set(['emitida', 'no_cobrada', 'parcial', 'vencida']);
-  const PENDING_EXPENSE = new Set(['emitida', 'no_pagada', 'parcial', 'vencida']);
+  const SETTLED_INCOME = new Set<string>(SETTLED_INCOME_STATUSES);
+  const SETTLED_EXPENSE = new Set<string>(SETTLED_EXPENSE_STATUSES);
+  const PENDING_INCOME = new Set<string>(PENDING_INCOME_STATUSES);
+  const PENDING_EXPENSE = new Set<string>(PENDING_EXPENSE_STATUSES);
 
   for (const row of rows) {
     const amount = Number(row.totalAmount ?? 0);
@@ -195,7 +216,20 @@ export type PnLBrandTotal = {
   readonly ingresos: number;
 };
 
-export async function getTopBrandsByRevenue(filters: PnLFilters = {}, limit = 10): Promise<readonly PnLBrandTotal[]> {
+/**
+ * Top brands por **facturación bruta** (suma de `totalAmount` en facturas
+ * `kind='income'` no anuladas). Incluye pendientes y parciales; NO filtra por
+ * status liquidado.
+ *
+ * Nombre con prefijo `GrossInvoiced` para distinguir de la lógica liquidada
+ * de `getPnL` (que sólo cuenta `cobrada`/`pagada`). Si la UI muestra "ingreso
+ * por marca", usar `getPnL` filtrado por brand, no esta función.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns array `<= limit` ordenado por facturación DESC.
+ */
+export async function getTopBrandsByGrossInvoiced(filters: PnLFilters = {}, limit = 10): Promise<readonly PnLBrandTotal[]> {
   const conds = [
     ne(invoices.status, 'anulada'),
     eq(invoices.kind, 'income'),
@@ -231,7 +265,19 @@ export type PnLTalentTotal = {
   readonly pagado: number;
 };
 
-export async function getTopTalentsByPayments(filters: PnLFilters = {}, limit = 10): Promise<readonly PnLTalentTotal[]> {
+/**
+ * Top talents por **expense bruto facturado** (suma de `totalAmount` en
+ * facturas `kind='expense'` no anuladas asociadas al talent). Incluye
+ * pendientes y parciales; NO filtra por status liquidado.
+ *
+ * Nombre con `GrossInvoiced` para distinguir de la lógica liquidada de
+ * `getPnL.pagosCreadores` (que sólo suma `cobrada`/`pagada`).
+ *
+ * @cache none
+ * @visibility admin
+ * @returns array `<= limit` ordenado por expense bruto DESC.
+ */
+export async function getTopTalentsByGrossInvoiced(filters: PnLFilters = {}, limit = 10): Promise<readonly PnLTalentTotal[]> {
   const conds = [
     ne(invoices.status, 'anulada'),
     eq(invoices.kind, 'expense'),

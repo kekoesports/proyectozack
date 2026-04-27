@@ -34,6 +34,14 @@ function rowToTemplate(row: {
   };
 }
 
+/**
+ * Lista plantillas de mapeo de columnas, opcionalmente filtradas por `sourceType`.
+ * Ordenado por `updatedAt DESC`.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns array de `ImportTemplate`.
+ */
 export async function listTemplates(
   sourceType?: InvoiceDraftSource,
 ): Promise<readonly ImportTemplate[]> {
@@ -59,8 +67,12 @@ function headersOverlap(a: readonly string[], b: readonly string[]): number {
 }
 
 /**
- * Find the best-matching template for a given source + headers.
- * Returns null if no template overlaps >= 70% of the incoming headers.
+ * Devuelve la plantilla que mejor encaja con `sourceType` y headers entrantes,
+ * basándose en overlap de cabeceras normalizadas. Null si ninguna alcanza el 70%.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns `ImportTemplate` con score >= 0.7, o `null`.
  */
 export async function findTemplateBySignature(
   sourceType: InvoiceDraftSource,
@@ -82,6 +94,13 @@ type UpsertTemplateArgs = {
   readonly sampleHeaders: readonly string[];
 };
 
+/**
+ * Upsert de plantilla por `(sourceType, name)`: actualiza mapping + headers + `updatedAt`.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns la `ImportTemplate` resultante.
+ */
 export async function upsertTemplate(args: UpsertTemplateArgs): Promise<ImportTemplate> {
   const [row] = await db
     .insert(invoiceImportTemplates)
@@ -104,6 +123,13 @@ export async function upsertTemplate(args: UpsertTemplateArgs): Promise<ImportTe
   return rowToTemplate(row);
 }
 
+/**
+ * Borra una plantilla de mapeo por id.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns void.
+ */
 export async function deleteTemplate(id: number): Promise<void> {
   await db.delete(invoiceImportTemplates).where(and(eq(invoiceImportTemplates.id, id)));
 }

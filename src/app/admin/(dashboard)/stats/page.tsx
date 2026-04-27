@@ -3,9 +3,9 @@ import { requireRole } from '@/lib/auth-guard';
 import { getActiveStatsShares } from '@/lib/queries/stats';
 import { getStaleStatsCreators, getTopCreatorsByFollowers } from '@/lib/queries/analytics';
 import { env } from '@/lib/env';
-import { ShareLinkPanel } from '@/components/admin/stats/ShareLinkPanel';
-import { RankingTable } from '@/components/admin/stats/RankingTable';
-import { EmptyState } from '@/components/admin/ui/EmptyState';
+import { ShareLinkPanel } from '@/features/admin/stats/components/ShareLinkPanel';
+import { RankingTable } from '@/features/admin/stats/components/RankingTable';
+import { EmptyState } from '@/features/admin/_shared/components/EmptyState';
 
 import type { ReactElement } from 'react';
 

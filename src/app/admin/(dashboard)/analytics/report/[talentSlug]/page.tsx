@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import { getTalentBySlugAdmin } from '@/lib/queries/talents';
 import { getTalentSnapshots } from '@/lib/queries/analytics';
-import { GrowthReport } from '@/components/admin/analytics/GrowthReport';
+import { GrowthReport } from '@/features/admin/analytics/components/GrowthReport';
 
 type ReportPageProps = {
   params: Promise<{ talentSlug: string }>;

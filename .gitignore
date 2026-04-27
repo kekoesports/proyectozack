@@ -58,3 +58,6 @@ next-env.d.ts
 # ad-hoc visual testing screenshots (Playwright MCP)
 visual-*.png
 crm-*-smoke.png
+
+# Local agent/IDE settings (never commit)
+.claude/settings.local.json

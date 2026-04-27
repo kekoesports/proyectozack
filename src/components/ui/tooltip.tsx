@@ -2,7 +2,7 @@
 
 import { Tooltip as TooltipPrimitive } from "@base-ui/react/tooltip"
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils/cn"
 
 function TooltipProvider({
   delay = 0,
@@ -17,6 +17,22 @@ function TooltipProvider({
   )
 }
 
+/**
+ * Tooltip shadcn-style sobre `@base-ui/react/tooltip`. Se usa junto con
+ * `TooltipProvider`, `TooltipTrigger` y `TooltipContent`.
+ *
+ * @kind client
+ * @feature ui
+ * @example
+ * ```tsx
+ * <TooltipProvider>
+ *   <Tooltip>
+ *     <TooltipTrigger render={<Link href="/admin" />}>Admin</TooltipTrigger>
+ *     <TooltipContent side="right">Panel de administración</TooltipContent>
+ *   </Tooltip>
+ * </TooltipProvider>
+ * ```
+ */
 function Tooltip({ ...props }: TooltipPrimitive.Root.Props) {
   return <TooltipPrimitive.Root data-slot="tooltip" {...props} />
 }

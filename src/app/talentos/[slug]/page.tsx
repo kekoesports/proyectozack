@@ -6,10 +6,10 @@ import { getTalentSlugs, getTalentBySlug } from '@/lib/queries/talents';
 import { SectionTag } from '@/components/ui/SectionTag';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { SocialIcon } from '@/components/ui/SocialIcon';
-import { gradientStyle } from '@/lib/gradient';
-import { buildBreadcrumbJsonLd } from '@/lib/breadcrumbs';
+import { gradientStyle } from '@/lib/utils/gradient';
+import { buildBreadcrumbJsonLd } from '@/lib/utils/breadcrumbs';
 import { absoluteUrl } from '@/lib/site-url';
-import { truncateMetaDescription } from '@/lib/text';
+import { truncateMetaDescription } from '@/lib/utils/text';
 
 export const revalidate = 3600;
 

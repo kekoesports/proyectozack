@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { FiscalExports } from '@/components/admin/invoices/FiscalExports';
+import { FiscalExports } from '@/features/admin/invoices/components/FiscalExports';
 
 export default function AdminInvoiceExportsPage(): React.ReactElement {
   const currentYear = new Date().getFullYear();

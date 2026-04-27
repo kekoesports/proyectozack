@@ -3,9 +3,9 @@ import { user as userTable } from '@/db/schema';
 import { eq, desc, inArray } from 'drizzle-orm';
 
 import { requireAnyRole } from '@/lib/auth-guard';
-import { InviteBrandForm } from '@/components/admin/brands/invite-form';
-import { BrandsCrmManager } from '@/components/admin/brands/BrandsCrmManager';
-import { BrandsTabs } from '@/components/admin/brands/BrandsTabs';
+import { InviteBrandForm } from '@/features/admin/brands/components/invite-form';
+import { BrandsCrmManager } from '@/features/admin/brands/components/BrandsCrmManager';
+import { BrandsTabs } from '@/features/admin/brands/components/BrandsTabs';
 import { listCrmBrands, getBrandContacts, listBrandFollowups, listUpcomingFollowups } from '@/lib/queries/crmBrands';
 import { listAllCampaigns } from '@/lib/queries/campaigns';
 

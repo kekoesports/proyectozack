@@ -9,7 +9,7 @@ import { db } from '@/lib/db';
 import { invoices, user as userTable } from '@/db/schema';
 import { listCrmBrands, getBrandContacts } from '@/lib/queries/crmBrands';
 import { getAllTalents } from '@/lib/queries/talents';
-import { CampaignDetailTabs } from '@/components/admin/campaigns/CampaignDetailTabs';
+import { CampaignDetailTabs } from '@/features/admin/campaigns/components/CampaignDetailTabs';
 
 import type { Role } from '@/lib/auth-guard';
 import type { CrmBrandContact } from '@/types';

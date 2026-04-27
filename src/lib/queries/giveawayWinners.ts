@@ -3,6 +3,13 @@ import { db } from '@/lib/db';
 import { giveawayWinners } from '@/db/schema';
 import type { GiveawayWinnerWithGiveaway } from '@/types';
 
+/**
+ * Últimos ganadores con su sorteo asociado, ordenados por wonAt DESC, para el hub público de sorteos.
+ *
+ * @cache none
+ * @visibility public
+ * @returns array de GiveawayWinnerWithGiveaway (puede ser vacío). Nunca null.
+ */
 export async function getRecentWinners(limit = 10): Promise<GiveawayWinnerWithGiveaway[]> {
   const rows = await db.query.giveawayWinners.findMany({
     with: { giveaway: true },
@@ -12,6 +19,13 @@ export async function getRecentWinners(limit = 10): Promise<GiveawayWinnerWithGi
   return rows as GiveawayWinnerWithGiveaway[];
 }
 
+/**
+ * Ranking de ganadores agregando wins por (winnerName, winnerAvatar), ordenado por wins DESC, para el leaderboard público.
+ *
+ * @cache none
+ * @visibility public
+ * @returns array de `{ winnerName, winnerAvatar, wins }` (puede ser vacío). Nunca null.
+ */
 export async function getTopWinners(limit = 10): Promise<{ winnerName: string; winnerAvatar: string | null; wins: number }[]> {
   return db
     .select({
@@ -25,6 +39,13 @@ export async function getTopWinners(limit = 10): Promise<{ winnerName: string; w
     .limit(limit);
 }
 
+/**
+ * Lista todos los ganadores con su sorteo, ordenados por wonAt DESC, para el panel admin.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns array de GiveawayWinnerWithGiveaway (puede ser vacío). Nunca null.
+ */
 export async function getAllWinners(): Promise<GiveawayWinnerWithGiveaway[]> {
   const rows = await db.query.giveawayWinners.findMany({
     with: { giveaway: true },
@@ -33,6 +54,13 @@ export async function getAllWinners(): Promise<GiveawayWinnerWithGiveaway[]> {
   return rows as GiveawayWinnerWithGiveaway[];
 }
 
+/**
+ * Inserta un ganador para un sorteo concreto, invocado desde el panel admin al cerrar un sorteo.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns void.
+ */
 export async function createWinner(data: {
   giveawayId: number;
   winnerName: string;
@@ -42,6 +70,13 @@ export async function createWinner(data: {
   await db.insert(giveawayWinners).values(data);
 }
 
+/**
+ * Elimina un ganador por id, invocado desde el panel admin.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns void.
+ */
 export async function deleteWinner(id: number): Promise<void> {
   await db.delete(giveawayWinners).where(eq(giveawayWinners.id, id));
 }

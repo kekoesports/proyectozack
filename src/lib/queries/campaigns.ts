@@ -40,10 +40,10 @@ export type CampaignWithRelations = CampaignRow &
   };
 
 export type CampaignBrandSummary = {
-  campaigns: CampaignRow[];
-  totalAmountBrand: number;
-  totalCommission: number;
-  count: number;
+  readonly campaigns: readonly CampaignRow[];
+  readonly totalAmountBrand: number;
+  readonly totalCommission: number;
+  readonly count: number;
 };
 
 export type CampaignTalentSummary = {
@@ -98,6 +98,15 @@ function derivedPaymentStatus(
 
 // ── Queries ───────────────────────────────────────────────────────────────────
 
+/**
+ * Lista campañas con filtros opcionales (status, brand, talent, sector, geo, etc.). Excluye
+ * archivadas por defecto. Aplica filtro de visibilidad si el rol lo requiere (staff).
+ *
+ * @cache none
+ * @visibility admin
+ * @scope staff
+ * @returns array (puede ser vacío). Nunca null. `CampaignRow` plano sin relaciones.
+ */
 export async function listCampaigns(opts?: {
   filters?: CampaignFilters;
   session?: { userId: string; role: Role };
@@ -166,6 +175,14 @@ export async function listCampaigns(opts?: {
   return rows.map((row) => ({ ...row }));
 }
 
+/**
+ * Carga una campaña con todas sus relaciones (brand, talent, brandContact, responsibleUser)
+ * más estado de pago derivado y `commissionAmount = amountBrand - amountTalent`.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns shape rico `CampaignWithRelations` o `undefined` si no existe.
+ */
 export async function getCampaignWithRelations(
   id: number,
 ): Promise<CampaignWithRelations | undefined> {
@@ -292,6 +309,13 @@ export async function getCampaignWithRelations(
   };
 }
 
+/**
+ * Lista campañas no archivadas de una marca con sumarios `totalAmountBrand` y `totalCommission`.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns `{ campaigns, totalAmountBrand, totalCommission, count }`. EUR-only.
+ */
 export async function listCampaignsByBrand(
   brandId: number,
 ): Promise<CampaignBrandSummary> {
@@ -321,6 +345,13 @@ export async function listCampaignsByBrand(
   };
 }
 
+/**
+ * Lista campañas no archivadas de un talent con sumarios `totalAmountTalent` y total generado.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns `{ campaigns, totalAmountTalent, totalGeneratedForTalent, count }`. EUR-only.
+ */
 export async function listCampaignsByTalent(
   talentId: number,
 ): Promise<CampaignTalentSummary> {
@@ -350,6 +381,14 @@ export async function listCampaignsByTalent(
   };
 }
 
+/**
+ * Crea una campaña con valores por defecto (status `propuesta`, visibility `team`,
+ * importes 0). EUR-only; los amounts viajan como string para mantener precisión.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns la fila insertada. Lanza si la inserción falla.
+ */
 export async function createCampaign(input: CreateCampaignInput): Promise<CampaignRow> {
   const [row] = await db
     .insert(campaigns)
@@ -383,6 +422,14 @@ export async function createCampaign(input: CreateCampaignInput): Promise<Campai
   return row;
 }
 
+/**
+ * Patch parcial de una campaña. Distingue `'foo' in patch` (permite null explícito) de
+ * `patch.foo !== undefined` (no permite borrar). Refresca `updatedAt`.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns la fila actualizada o `undefined` si no existe.
+ */
 export async function updateCampaign(
   id: number,
   patch: Partial<CreateCampaignInput>,
@@ -420,6 +467,13 @@ export async function updateCampaign(
 
   return row ?? undefined;
 }
+/**
+ * Soft-archive de una campaña fijando `archivedAt = now`. Las queries por defecto la ocultan.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns la fila actualizada o `undefined` si no existe.
+ */
 export async function archiveCampaign(id: number): Promise<CampaignRow | undefined> {
   const [row] = await db
     .update(campaigns)
@@ -429,6 +483,13 @@ export async function archiveCampaign(id: number): Promise<CampaignRow | undefin
 
   return row ?? undefined;
 }
+/**
+ * Restaura una campaña archivada poniendo `archivedAt = null`.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns la fila actualizada o `undefined` si no existe.
+ */
 export async function unarchiveCampaign(id: number): Promise<CampaignRow | undefined> {
   const [row] = await db
     .update(campaigns)
@@ -438,6 +499,14 @@ export async function unarchiveCampaign(id: number): Promise<CampaignRow | undef
 
   return row ?? undefined;
 }
+/**
+ * Calcula el estado de pago derivado de una campaña sumando facturas `cobrada` (income/expense)
+ * y comparando con los importes acordados → `'no' | 'parcial' | 'si'`.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns `{ brandPaid, talentPaid, totalInvoicedBrand, totalPaidTalent }`. EUR-only.
+ */
 export async function getCampaignPaymentStatus(
   campaignId: number,
   amountBrand: number,
@@ -480,6 +549,15 @@ export async function getCampaignPaymentStatus(
   };
 }
 
+/**
+ * Lanza si el usuario no puede editar la campaña. Admin/manager pasan; staff debe ser
+ * `assignedToUserId` o `createdByUserId`. Usar antes de mutaciones desde rutas API.
+ *
+ * @cache none
+ * @visibility admin
+ * @scope staff
+ * @returns void. Lanza `forbidden:edit:campaign` si no autorizado.
+ */
 export async function assertCanEditCampaign(
   campaignId: number,
   session: { userId: string; role: Role },
@@ -506,6 +584,14 @@ export async function assertCanEditCampaign(
 
 // ── Admin ─────────────────────────────────────────────────────────────────────
 
+/**
+ * Variante admin: lista TODAS las campañas sin filtro de visibilidad por rol.
+ *
+ * @cache none
+ * @visibility admin
+ * @scope admin
+ * @returns array (puede ser vacío). Nunca null.
+ */
 export async function listAllCampaigns(opts?: {
   includeArchived?: boolean;
 }): Promise<CampaignRow[]> {
@@ -522,6 +608,13 @@ export async function listAllCampaigns(opts?: {
   return rows;
 }
 
+/**
+ * Lookup ligero por id sin relaciones ni payment status. Usar cuando solo se necesita la fila plana.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns `CampaignRow | undefined`.
+ */
 export async function getCampaignById(id: number): Promise<CampaignRow | undefined> {
   const [row] = await db
     .select()
@@ -531,6 +624,14 @@ export async function getCampaignById(id: number): Promise<CampaignRow | undefin
 
   return row ?? undefined;
 }
+/**
+ * Devuelve solo los IDs de owner/asignado de una campaña para checks de permiso (`canAccess*`).
+ *
+ * @cache none
+ * @visibility admin
+ * @scope staff
+ * @returns `{ assignedToUserId, createdByUserId }` o `undefined` si no existe.
+ */
 export async function getCampaignForPermission(
   campaignId: number,
 ): Promise<{ assignedToUserId: string | null; createdByUserId: string | null } | undefined> {

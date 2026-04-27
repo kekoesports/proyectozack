@@ -55,6 +55,15 @@ function isStaff(role: Role): boolean {
 // caps the pattern length (Drizzle parametrises but Postgres still evaluates).
 const QUERY_LENGTH_CAP = 100;
 
+/**
+ * Búsqueda global ILIKE sobre brands, talents, campaigns, invoices, tasks y contacts.
+ * Capa el patrón a 100 chars; staff aplica filtro de visibilidad por created_by/assigned_to.
+ *
+ * @cache none
+ * @visibility admin
+ * @scope staff
+ * @returns `{ query, groups, tookMs }`. `groups` siempre tiene las 6 keys (puede ser arrays vacíos).
+ */
 export async function globalSearch(
   rawQuery: string,
   options: { readonly session: SearchSession; readonly limit?: number },

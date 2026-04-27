@@ -4,7 +4,7 @@ import { db } from '@/lib/db';
 import { talents } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { getTalentBusiness, getTalentVerticals } from '@/lib/queries/talentBusiness';
-import { TalentBusinessForm } from '@/components/admin/talents/TalentBusinessForm';
+import { TalentBusinessForm } from '@/features/admin/talents/components/TalentBusinessForm';
 
 export default async function TalentBusinessPage({ params }: { params: Promise<{ id: string }> }): Promise<React.ReactElement> {
   const { id } = await params;

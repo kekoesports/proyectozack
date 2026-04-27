@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { regenerateRecurringTasks, rollOverPendingTasks } from '@/lib/queries/crmTasks';
-import { getIsoWeekLabel, previousWeek } from '@/lib/week';
+import { getIsoWeekLabel, previousWeek } from '@/lib/utils/week';
 
 export const dynamic = 'force-dynamic';
 

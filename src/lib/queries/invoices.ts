@@ -91,6 +91,14 @@ async function attachFiles(rows: readonly InvoiceListRow[]): Promise<readonly In
   }));
 }
 
+/**
+ * Lista facturas con joins de brand y talent + ficheros adjuntos. Por defecto excluye
+ * `status='anulada'` salvo que `includeAnuladas`, `status` o `statuses` lo soliciten.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns array `InvoiceWithRelations` ordenado por `issueDate DESC, id DESC`.
+ */
 export async function listInvoices(filters: InvoiceFilters = {}): Promise<readonly InvoiceWithRelations[]> {
   const conds = [];
   if (filters.kind) conds.push(eq(invoices.kind, filters.kind));
@@ -109,14 +117,13 @@ export async function listInvoices(filters: InvoiceFilters = {}): Promise<readon
   if (filters.category) conds.push(ilike(invoices.category, `%${filters.category}%`));
   if (filters.search) {
     const q = `%${filters.search}%`;
-    conds.push(
-      or(
-        ilike(invoices.concept, q),
-        ilike(invoices.number, q),
-        ilike(invoices.counterpartyName, q),
-        ilike(invoices.category, q),
-      )!,
+    const searchClause = or(
+      ilike(invoices.concept, q),
+      ilike(invoices.number, q),
+      ilike(invoices.counterpartyName, q),
+      ilike(invoices.category, q),
     );
+    if (searchClause !== undefined) conds.push(searchClause);
   }
 
   const rows = await db
@@ -130,11 +137,25 @@ export async function listInvoices(filters: InvoiceFilters = {}): Promise<readon
   return attachFiles(rows as readonly InvoiceListRow[]);
 }
 
+/**
+ * Lookup de factura por id, sin joins ni ficheros.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns `Invoice` o `null`.
+ */
 export async function getInvoice(id: number): Promise<Invoice | null> {
   const [row] = await db.select().from(invoices).where(eq(invoices.id, id)).limit(1);
   return row ?? null;
 }
 
+/**
+ * Factura por id con joins de brand/talent y ficheros adjuntos resueltos.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns `InvoiceWithRelations` o `null`.
+ */
 export async function getInvoiceWithFiles(id: number): Promise<InvoiceWithRelations | null> {
   const rows = await db
     .select(INVOICE_LIST_COLUMNS)
@@ -148,6 +169,17 @@ export async function getInvoiceWithFiles(id: number): Promise<InvoiceWithRelati
   return first ?? null;
 }
 
+/**
+ * Resumen agregado del módulo de facturación: ingresos, gastos, neto, pendiente y vencido.
+ * Las anuladas se excluyen de los totales. Vencido usa hoy en TZ Madrid.
+ *
+ * Nota: `pendingIncome` no contempla `status='pagada'` (que también es income liquidado),
+ * pero como `pagada` no aparece en la lista de `IN (...)`, queda fuera del pendiente — OK.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns `InvoiceSummary`.
+ */
 export async function getInvoiceSummary(from?: string, to?: string): Promise<InvoiceSummary> {
   const conds = [];
   if (from) conds.push(gte(invoices.issueDate, from));
@@ -207,11 +239,26 @@ async function sumIncomeBetween(from: string, to: string, company?: InvoiceCompa
   return Number(row?.total ?? 0);
 }
 
+/**
+ * Ingresos cobrados/pagados en el mes en curso (`status IN ('cobrada','pagada')`),
+ * opcionalmente filtrado por empresa fiscal.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns total ingresos del mes actual en EUR.
+ */
 export async function getMonthRevenue(opts?: { readonly company?: InvoiceCompany }): Promise<number> {
   const { from, to } = buildMonthRange(new Date());
   return sumIncomeBetween(from, to, opts?.company);
 }
 
+/**
+ * Ingresos cobrados/pagados en el mes anterior — usado para el delta MoM del dashboard.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns total ingresos del mes anterior en EUR.
+ */
 export async function getPreviousMonthRevenue(opts?: { readonly company?: InvoiceCompany }): Promise<number> {
   const now = new Date();
   const prev = new Date(now.getFullYear(), now.getMonth() - 1, 1);
@@ -225,6 +272,14 @@ export type RevenueTrendPoint = {
   readonly gastos: number;
 };
 
+/**
+ * Serie temporal mensual ingresos/gastos para los últimos `months` meses (incluye actual).
+ * Excluye anuladas. Rellena meses sin datos con `0/0`.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns array de longitud `months` ordenado cronológicamente (mes más antiguo primero).
+ */
 export async function getRevenueTrend(months = 12, opts?: { readonly company?: InvoiceCompany }): Promise<readonly RevenueTrendPoint[]> {
   const now = new Date();
   const start = new Date(now.getFullYear(), now.getMonth() - months + 1, 1);
@@ -272,6 +327,14 @@ export async function getRevenueTrend(months = 12, opts?: { readonly company?: I
   }));
 }
 
+/**
+ * Categorías de factura realmente usadas, ordenadas por frecuencia DESC.
+ * Sirve para autocompletado del campo `category` en formularios.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns array de strings (sin nulls).
+ */
 export async function getUsedInvoiceCategories(): Promise<readonly string[]> {
   const rows = await db
     .select({ category: invoices.category, uses: sql<number>`count(*)::int` })
@@ -282,12 +345,26 @@ export async function getUsedInvoiceCategories(): Promise<readonly string[]> {
   return rows.map((r) => r.category).filter((c): c is string => Boolean(c));
 }
 
+/**
+ * Inserta una factura. Lanza si el insert no devuelve fila.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns la `Invoice` creada.
+ */
 export async function createInvoice(values: NewInvoice): Promise<Invoice> {
   const [row] = await db.insert(invoices).values(values).returning();
   if (!row) throw new Error('Failed to insert invoice');
   return row;
 }
 
+/**
+ * Actualiza parcialmente una factura por id. Bumpa `updatedAt` automáticamente.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns la fila actualizada o `null` si el id no existía.
+ */
 export async function updateInvoice(id: number, patch: Partial<NewInvoice>): Promise<Invoice | null> {
   const [row] = await db
     .update(invoices)
@@ -297,6 +374,14 @@ export async function updateInvoice(id: number, patch: Partial<NewInvoice>): Pro
   return row ?? null;
 }
 
+/**
+ * Facturas de tipo `income` no anuladas visibles para un usuario del portal de marca,
+ * resueltas vía `crmBrands.portalUserId`. Pensada para el brand portal.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns array `InvoiceWithRelations` ordenado por `issueDate DESC, id DESC`.
+ */
 export async function getInvoicesForBrandUser(portalUserId: string): Promise<readonly InvoiceWithRelations[]> {
   const rows = await db
     .select(INVOICE_LIST_COLUMNS)
@@ -315,6 +400,15 @@ export async function getInvoicesForBrandUser(portalUserId: string): Promise<rea
   return attachFiles(rows as readonly InvoiceListRow[]);
 }
 
+/**
+ * Borra una factura por id. La acción que la invoca debe llamar `assertCanDelete`
+ * — manager NO puede borrar facturas (ver `invoices-actions.ts:249`).
+ *
+ * @cache none
+ * @visibility admin
+ * @scope admin (manager bloqueado en la action layer)
+ * @returns void.
+ */
 export async function deleteInvoice(id: number): Promise<void> {
   await db.delete(invoices).where(eq(invoices.id, id));
 }

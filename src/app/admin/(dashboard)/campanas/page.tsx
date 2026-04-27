@@ -6,7 +6,7 @@ import { requireAnyRole } from '@/lib/auth-guard';
 import { listCampaigns } from '@/lib/queries/campaigns';
 import { listCrmBrands, getBrandContacts } from '@/lib/queries/crmBrands';
 import { getAllTalents } from '@/lib/queries/talents';
-import { CampaignsList } from '@/components/admin/campaigns/CampaignsList';
+import { CampaignsList } from '@/features/admin/campaigns/components/CampaignsList';
 
 import type { Role } from '@/lib/auth-guard';
 import type { CrmBrandContact } from '@/types';

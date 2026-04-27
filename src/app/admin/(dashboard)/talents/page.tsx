@@ -1,10 +1,10 @@
 import Link from 'next/link';
 import { getAdminRosterWithGrowth } from '@/lib/queries/talents';
 import { listAllVerticals } from '@/lib/queries/talentBusiness';
-import { RosterSpreadsheet } from '@/components/admin/talents/RosterSpreadsheet';
-import { InfluencerCardsView } from '@/components/admin/talents/InfluencerCardsView';
-import { InfluencerImport } from '@/components/admin/talents/InfluencerImport';
-import { BrandsTabs } from '@/components/admin/brands/BrandsTabs';
+import { RosterSpreadsheet } from '@/features/admin/talents/components/RosterSpreadsheet';
+import { InfluencerCardsView } from '@/features/admin/talents/components/InfluencerCardsView';
+import { InfluencerImport } from '@/features/admin/talents/components/InfluencerImport';
+import { BrandsTabs } from '@/features/admin/brands/components/BrandsTabs';
 import type { TalentVertical } from '@/types';
 
 export default async function AdminTalentsPage(): Promise<React.ReactElement> {

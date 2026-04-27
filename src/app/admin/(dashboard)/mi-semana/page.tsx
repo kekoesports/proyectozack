@@ -7,9 +7,9 @@ import {
   getTaskRelatedOptions,
 } from '@/lib/queries/crmTasks';
 import { getAllStaffUsers } from '@/lib/queries/staffUsers';
-import { getIsoWeekLabel } from '@/lib/week';
-import { RolledOverBanner } from '@/components/admin/tasks/RolledOverBanner';
-import { TaskList } from '@/components/admin/tasks/TaskList';
+import { getIsoWeekLabel } from '@/lib/utils/week';
+import { RolledOverBanner } from '@/features/admin/tasks/components/RolledOverBanner';
+import { TaskList } from '@/features/admin/tasks/components/TaskList';
 
 export const metadata = { title: 'Mi Semana | Admin' };
 

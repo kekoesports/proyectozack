@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 
 import { requireAnyRole } from '@/lib/auth-guard';
 import { getPnL } from '@/lib/queries/pnl';
-import { startOfLocalYearIso, todayLocalIso } from '@/lib/date';
+import { startOfLocalYearIso, todayLocalIso } from '@/lib/utils/date';
 
 import type { InvoiceCompany } from '@/types';
 import type { PnLFilters } from '@/lib/queries/pnl';

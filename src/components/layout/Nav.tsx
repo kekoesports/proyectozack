@@ -15,6 +15,14 @@ const NAV_LINKS = [
   { href: '/contacto', label: 'Contacto' },
 ];
 
+/**
+ * Barra de navegación pública sticky con barra de progreso de scroll,
+ * menú mobile animado (AnimatePresence) y CTA principal. Usa un listener
+ * nativo de scroll por fiabilidad en Safari iOS.
+ *
+ * @kind client
+ * @feature layout
+ */
 export function Nav() {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);

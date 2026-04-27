@@ -4,9 +4,9 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { getCaseSlugs, getCaseBySlug } from '@/lib/queries/cases';
 import { SectionTag } from '@/components/ui/SectionTag';
-import { buildBreadcrumbJsonLd } from '@/lib/breadcrumbs';
+import { buildBreadcrumbJsonLd } from '@/lib/utils/breadcrumbs';
 import { absoluteUrl } from '@/lib/site-url';
-import { truncateMetaDescription } from '@/lib/text';
+import { truncateMetaDescription } from '@/lib/utils/text';
 
 export const revalidate = 3600;
 

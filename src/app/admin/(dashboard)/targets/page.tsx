@@ -1,6 +1,6 @@
 import { getAllTargets } from '@/lib/queries/targets';
 import { getAllBrandUsers } from '@/lib/queries/brandUsers';
-import { TargetsSpreadsheet } from '@/components/admin/targets/TargetsSpreadsheet';
+import { TargetsSpreadsheet } from '@/features/admin/targets/components/TargetsSpreadsheet';
 
 export default async function AdminTargetsPage(): Promise<React.ReactElement> {
   const [targets, brands] = await Promise.all([

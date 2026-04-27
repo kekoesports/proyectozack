@@ -5,9 +5,9 @@ import Link from 'next/link';
 import { getTalentSlugs, getTalentBySlug } from '@/lib/queries/talents';
 import { getActiveGiveaways, getFinishedGiveaways } from '@/lib/queries/giveaways';
 import { getCodesByTalent } from '@/lib/queries/creatorCodes';
-import { CodeCard } from '@/components/giveaways/CodeCard';
-import { GiveawayCarousel } from '@/components/giveaways/GiveawayCarousel';
-import { GiveawayHubCard } from '@/components/giveaways/GiveawayHubCard';
+import { CodeCard } from '@/features/giveaways/components/CodeCard';
+import { GiveawayCarousel } from '@/features/giveaways/components/GiveawayCarousel';
+import { GiveawayHubCard } from '@/features/giveaways/components/GiveawayHubCard';
 import { absoluteUrl } from '@/lib/site-url';
 import type { CreatorCodeWithTalent, GiveawayWithTalent, Talent } from '@/types';
 

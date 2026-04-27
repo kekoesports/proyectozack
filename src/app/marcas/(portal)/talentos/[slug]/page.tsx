@@ -5,8 +5,8 @@ import { getTalentBySlug } from '@/lib/queries/talents';
 import { getTalentCampaignsForBrand } from '@/lib/queries/brands';
 import { SocialIcon } from '@/components/ui/SocialIcon';
 import { StatusBadge } from '@/components/ui/StatusBadge';
-import { gradientStyle } from '@/lib/gradient';
-import { BrandTalentFichaClient } from '@/components/brand/BrandTalentFichaClient';
+import { gradientStyle } from '@/lib/utils/gradient';
+import { BrandTalentFichaClient } from '@/features/brand-portal/components/BrandTalentFichaClient';
 
 type PageProps = {
   params: Promise<{ slug: string }>;

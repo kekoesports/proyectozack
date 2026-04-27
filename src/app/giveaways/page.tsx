@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { getAllActiveGiveaways, getAllFinishedGiveaways, extractUniqueBrands } from '@/lib/queries/giveawaysHub';
 import { getAllCodes, getFeaturedCodes } from '@/lib/queries/creatorCodes';
 import { getAllTalents } from '@/lib/queries/talents';
-import { GiveawaysHub } from '@/components/giveaways/GiveawaysHub';
+import { GiveawaysHub } from '@/features/giveaways/components/GiveawaysHub';
 
 export const metadata: Metadata = {
   title: 'Códigos y Recompensas Gaming — SocialPro',

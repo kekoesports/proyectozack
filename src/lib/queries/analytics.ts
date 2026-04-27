@@ -1,11 +1,17 @@
 import { eq, and, gte, lte, inArray, asc, desc, sql, max, lt } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { talentMetricSnapshots, talentSocials, talents } from '@/db/schema';
-import { toLocalIsoDate } from '@/lib/date';
-import { normalizeTrackablePlatform, TRACKABLE_SOCIAL_PLATFORM_KEYS } from '@/lib/platform';
+import { toLocalIsoDate } from '@/lib/utils/date';
+import { normalizeTrackablePlatform, TRACKABLE_SOCIAL_PLATFORM_KEYS } from '@/lib/utils/platform';
 import type { TalentMetricSnapshot } from '@/types';
 
-/** Fetch all talent_socials rows that have a platformId for YouTube or Twitch */
+/**
+ * Devuelve los talent_socials con `platformId` para plataformas trackeables (YouTube/Twitch).
+ *
+ * @cache none
+ * @visibility admin
+ * @returns array `{ talentId, platform, platformId }` listo para los cron jobs de stats.
+ */
 export async function getTrackableSocials() {
   const rows = await db
     .select({
@@ -36,7 +42,13 @@ export async function getTrackableSocials() {
   });
 }
 
-/** Insert a snapshot, ignoring duplicates */
+/**
+ * Inserta un snapshot de métrica, ignorando duplicados (talentId+platform+metricType+date).
+ *
+ * @cache none
+ * @visibility admin
+ * @returns void.
+ */
 export async function insertSnapshot(data: {
   talentId: number;
   platform: string;
@@ -63,7 +75,13 @@ export async function insertSnapshot(data: {
     });
 }
 
-/** Get snapshots for a date range, optionally filtered by talent/platform */
+/**
+ * Snapshots dentro de un rango de fechas, opcionalmente filtrados por talent/platform.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns array ordenado por `snapshotDate ASC`.
+ */
 export async function getSnapshots(opts: {
   from: string;
   to: string;
@@ -89,7 +107,13 @@ export async function getSnapshots(opts: {
     .orderBy(asc(talentMetricSnapshots.snapshotDate));
 }
 
-/** Get the latest snapshot per talent per platform */
+/**
+ * Último snapshot por (talent, platform, metricType) — usado en growth reports.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns array de snapshots, uno por combinación talent+platform+metricType.
+ */
 export async function getLatestSnapshots(): Promise<TalentMetricSnapshot[]> {
   const latestDates = db
     .select({
@@ -131,7 +155,13 @@ export async function getLatestSnapshots(): Promise<TalentMetricSnapshot[]> {
     );
 }
 
-/** Get the earliest snapshot per talent per platform within a date range */
+/**
+ * Primer snapshot por (talent, platform, metricType) dentro de un rango — baseline de growth.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns array de snapshots con `snapshotDate >= from` agregado por mín.
+ */
 export async function getEarliestSnapshots(from: string): Promise<TalentMetricSnapshot[]> {
   const earliestDates = db
     .select({
@@ -174,7 +204,13 @@ export async function getEarliestSnapshots(from: string): Promise<TalentMetricSn
     );
 }
 
-/** Count talents that have at least one platformId configured */
+/**
+ * Cuenta talents con al menos un `platformId` configurado en plataformas trackeables.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns número de talents distintos con tracking activo.
+ */
 export async function countTrackedTalents(): Promise<number> {
   const rows = await db
     .select({ count: sql<number>`count(distinct ${talentSocials.talentId})` })
@@ -188,7 +224,13 @@ export async function countTrackedTalents(): Promise<number> {
   return rows[0]?.count ?? 0;
 }
 
-/** Get all snapshots for a talent grouped by platform, ordered by snapshotDate DESC */
+/**
+ * Todos los snapshots de un talent agrupados por platform y ordenados `snapshotDate DESC`.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns objeto `{ [platform]: TalentMetricSnapshot[] }`.
+ */
 export async function getLatestSnapshotsByPlatform(
   talentId: number,
 ): Promise<Record<string, TalentMetricSnapshot[]>> {
@@ -207,7 +249,13 @@ export async function getLatestSnapshotsByPlatform(
   return grouped;
 }
 
-/** Get snapshots for a single talent */
+/**
+ * Snapshots de un talent concreto en un rango — alimenta `/admin/analytics/report/[talentSlug]`.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns array ordenado por `snapshotDate ASC`.
+ */
 export async function getTalentSnapshots(
   talentId: number,
   from: string,
@@ -234,8 +282,15 @@ export type StaleCreator = {
 };
 
 /**
- * Creators whose last snapshot is older than daysThreshold days (or have no snapshot).
- * Uses talents.lastStatsUpdateAt if available, falls back to max(snapshotDate) from snapshots.
+ * Creators con último snapshot más antiguo que `daysThreshold` días (o sin snapshots).
+ * Usado por el widget "stats desactualizadas" del dashboard.
+ *
+ * Nota: el comentario JSDoc previo decía que usa `talents.lastStatsUpdateAt`, pero
+ * realmente sólo agrega `max(snapshotDate)` desde `talentMetricSnapshots`.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns array ordenado por `lastSnapshotDate ASC` (los más antiguos primero).
  */
 export async function getStaleStatsCreators(daysThreshold: number): Promise<StaleCreator[]> {
   const cutoff = new Date();
@@ -287,8 +342,14 @@ export type TopCreatorByFollowers = {
 };
 
 /**
- * Top creators by total followers (sum of latest snapshot value per platform).
- * Falls back to talentSocials.followersDisplay if no snapshots exist.
+ * Top creators por followers totales (suma del último snapshot por plataforma).
+ *
+ * Nota: el comentario previo decía "falls back to talentSocials.followersDisplay" pero
+ * el fallback no está implementado — talents sin snapshot devuelven `totalFollowers: 0`.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns array de tamaño `<= limit` ordenado por `totalFollowers DESC`.
  */
 export async function getTopCreatorsByFollowers(limit: number): Promise<TopCreatorByFollowers[]> {
   // Get latest snapshot per talent+platform (metricType = subscribers|followers)

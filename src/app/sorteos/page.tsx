@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 import { getAllActiveGiveaways, getAllFinishedGiveaways } from '@/lib/queries/giveawaysHub';
-import { SorteoCard } from '@/components/sorteos/SorteoCard';
+import { SorteoCard } from '@/features/giveaways/components/SorteoCard';
 
 export const metadata: Metadata = {
   title: 'Sorteos de Skins — SocialPro',

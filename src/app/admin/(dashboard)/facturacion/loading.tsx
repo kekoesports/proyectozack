@@ -1,4 +1,4 @@
-import { Skeleton, TableSkeleton } from '@/components/admin/ui/Skeleton';
+import { Skeleton, TableSkeleton } from '@/features/admin/_shared/components/Skeleton';
 
 export default function InvoicesLoading(): React.ReactElement {
   return (

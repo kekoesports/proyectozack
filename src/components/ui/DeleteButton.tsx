@@ -4,6 +4,17 @@ type DeleteButtonProps = {
   name: string;
 }
 
+/**
+ * Botón "Eliminar" con `confirm()` nativo. Pensado para formularios de admin
+ * que envían un `<form>` con server action; aborta el submit si el usuario cancela.
+ *
+ * @kind client
+ * @feature ui
+ * @example
+ * ```tsx
+ * <DeleteButton name="este talento" />
+ * ```
+ */
 export function DeleteButton({ name }: DeleteButtonProps) {
   return (
     <button

@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { getPosts } from '@/lib/queries/posts';
 import { SectionTag } from '@/components/ui/SectionTag';
 import { SectionHeading } from '@/components/ui/SectionHeading';
-import { BlogCard } from '@/components/blog/BlogCard';
+import { BlogCard } from '@/features/blog/components/BlogCard';
 
 export const revalidate = 3600;
 

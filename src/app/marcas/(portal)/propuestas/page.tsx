@@ -1,8 +1,8 @@
 import { requireRole } from '@/lib/auth-guard';
 import { getBrandProposals } from '@/lib/queries/brands';
-import { EmptyState } from '@/components/brand/EmptyState';
+import { EmptyState } from '@/features/brand-portal/components/EmptyState';
 import Image from 'next/image';
-import { gradientStyle } from '@/lib/gradient';
+import { gradientStyle } from '@/lib/utils/gradient';
 
 const statusColors: Record<string, string> = {
   pendiente: 'bg-amber-100 text-amber-700',

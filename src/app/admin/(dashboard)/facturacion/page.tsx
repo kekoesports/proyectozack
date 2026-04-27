@@ -4,7 +4,7 @@ import { asc, eq, isNull } from 'drizzle-orm';
 import { requireAnyRole } from '@/lib/auth-guard';
 import { canDelete } from '@/lib/permissions';
 import { listInvoices, getInvoiceSummary, getUsedInvoiceCategories } from '@/lib/queries/invoices';
-import { InvoicesManager } from '@/components/admin/invoices/InvoicesManager';
+import { InvoicesManager } from '@/features/admin/invoices/components/InvoicesManager';
 
 import type { Role } from '@/lib/auth-guard';
 

@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { sql, asc } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { talents, creatorCodes, giveaways } from '@/db/schema';
-import { TalentPhotoCard } from '@/components/admin/talents/TalentPhotoCard';
+import { TalentPhotoCard } from '@/features/admin/talents/components/TalentPhotoCard';
 
 export const metadata = { title: 'Fotos talents · Admin' };
 export const dynamic = 'force-dynamic';

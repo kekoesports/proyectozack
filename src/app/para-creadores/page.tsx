@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { SectionTag } from '@/components/ui/SectionTag';
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { GradientText } from '@/components/ui/GradientText';
-import { CreatorApplyForm } from '@/components/sections/CreatorApplyForm';
+import { CreatorApplyForm } from '@/features/contact/components/CreatorApplyForm';
 
 export const metadata: Metadata = {
   title: 'Gestión y Patrocinios para Streamers',

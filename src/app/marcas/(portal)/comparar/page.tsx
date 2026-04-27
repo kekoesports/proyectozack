@@ -1,9 +1,9 @@
 import { requireRole } from '@/lib/auth-guard';
 import { getTalentsByIds } from '@/lib/queries/talents';
 import Image from 'next/image';
-import { gradientStyle } from '@/lib/gradient';
+import { gradientStyle } from '@/lib/utils/gradient';
 import Link from 'next/link';
-import { EmptyState } from '@/components/brand/EmptyState';
+import { EmptyState } from '@/features/brand-portal/components/EmptyState';
 
 type PageProps = {
   searchParams: Promise<{ ids?: string }>;

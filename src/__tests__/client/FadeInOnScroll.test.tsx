@@ -1,7 +1,7 @@
 import { act, render, renderHook, screen } from '@testing-library/react';
 
 import { FadeInOnScroll } from '@/components/ui/FadeInOnScroll';
-import { useVisibilityFailSafe } from '@/lib/use-visibility-failsafe';
+import { useVisibilityFailSafe } from '@/lib/utils/use-visibility-failsafe';
 
 /**
  * Regression tests for the public landing-page "black void" bug.

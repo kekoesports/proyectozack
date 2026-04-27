@@ -1,4 +1,4 @@
-import { sql, eq, gt, lt, lte, ne, and, or, isNull, isNotNull, asc } from 'drizzle-orm';
+import { sql, eq, gt, lt, lte, ne, and, or, inArray, isNull, isNotNull, asc } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import {
   talents,
@@ -12,10 +12,14 @@ import {
   campaigns,
   invoices,
 } from '@/db/schema';
-import { getSocialPlatformKey } from '@/lib/platform';
+import { getSocialPlatformKey } from '@/lib/utils/platform';
 import { countAgencyCreators } from './agencyCreators';
 import { getAllTalents } from './talents';
-import { parseFollowers, formatCompact, totalFollowersForCreator } from '@/lib/format';
+import { parseFollowers, formatCompact, totalFollowersForCreator } from '@/lib/utils/format';
+import {
+  PENDING_INCOME_FILTER,
+  PENDING_EXPENSE_FILTER,
+} from '@/lib/utils/invoice-status';
 
 import type { Role } from '@/lib/auth-guard';
 
@@ -86,6 +90,13 @@ function buildFollowersByPlatform(allTalents: Awaited<ReturnType<typeof getAllTa
   return followersByPlatform;
 }
 
+/**
+ * Datos completos del dashboard admin: stats agregadas + top creators.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns `{ stats, topCreators }` calculados sobre datos reales (no mocks).
+ */
 export async function getAdminDashboardData(limit = 5): Promise<AdminDashboardData> {
   const now = new Date();
 
@@ -127,12 +138,31 @@ export async function getAdminDashboardData(limit = 5): Promise<AdminDashboardDa
   };
 }
 
+/**
+ * Stats agregadas del dashboard admin (talents, brands, contacts, giveaways, followers).
+ *
+ * @cache none
+ * @visibility admin
+ * @returns `DashboardStats`. Wrapper sobre `getAdminDashboardData`.
+ */
 export async function getAdminDashboardStats(): Promise<DashboardStats> {
   const { stats } = await getAdminDashboardData();
   return stats;
 }
 
-export async function getTopCreatorsByFollowers(limit = 5): Promise<TopCreator[]> {
+/**
+ * Top creators del dashboard admin (basado en `talentSocials.followersDisplay`
+ * parseado, agregado por talent).
+ *
+ * Renombrado desde `getTopCreatorsByFollowers` (sept 2026) para eliminar
+ * colisión con la función homónima en `analytics.ts`, que usa `talentMetricSnapshots`
+ * y devuelve un shape distinto (`TopCreatorByFollowers` con avatar/iniciales).
+ *
+ * @cache none
+ * @visibility admin
+ * @returns array de `TopCreator` (tamaño `<= limit`).
+ */
+export async function getDashboardTopCreators(limit = 5): Promise<TopCreator[]> {
   const { topCreators } = await getAdminDashboardData(limit);
   return topCreators;
 }
@@ -146,6 +176,13 @@ export type RecentContact = {
   createdAt: Date;
 };
 
+/**
+ * Últimos `limit` contact submissions ordenados por `createdAt DESC` para el dashboard admin.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns array de `RecentContact`.
+ */
 export async function getRecentContacts(limit = 5): Promise<RecentContact[]> {
   const rows = await db
     .select({
@@ -166,8 +203,12 @@ export async function getRecentContacts(limit = 5): Promise<RecentContact[]> {
 // ── CRM Dashboard queries ─────────────────────────────────────────────────────
 
 /**
- * Count follow-ups that are overdue:
- * status='vencido' OR (scheduledAt < today AND completedAt IS NULL AND status='pendiente')
+ * Cuenta follow-ups vencidos: `status='vencido'` o `scheduledAt < hoy AND status='pendiente'`,
+ * siempre con `completedAt IS NULL`. Widget del dashboard CRM.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns número de follow-ups vencidos.
  */
 export async function getOverdueFollowupsCount(): Promise<number> {
   const today = new Date();
@@ -193,7 +234,13 @@ export async function getOverdueFollowupsCount(): Promise<number> {
 }
 
 /**
- * Count urgent tasks: dueDate <= today AND status != 'completada'
+ * Cuenta tareas urgentes (`dueDate <= hoy` Madrid TZ, `status != 'completada'`).
+ * Si la sesión es `staff`, filtra a tareas asignadas/creadas/owned por el user.
+ *
+ * @cache none
+ * @visibility admin
+ * @scope admin | manager | staff (staff sólo ve sus propias tareas)
+ * @returns número de tareas urgentes visibles para el rol.
  */
 export async function getUrgentTasksCount(session?: TaskSession): Promise<number> {
   const todayMadrid = new Intl.DateTimeFormat('en-CA', {
@@ -224,7 +271,14 @@ export type UpcomingFollowup = {
 };
 
 /**
- * Get upcoming follow-ups for the next N days (default 7), not yet completed.
+ * Follow-ups programados para los próximos 7 días que aún no han sido completados.
+ *
+ * Atención: el JSDoc previo dice "next N days (default 7)" pero el rango está hardcoded
+ * a 7 días — el parámetro `limit` controla sólo el LIMIT de filas, no el rango temporal.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns array `<= limit` ordenado por `scheduledAt ASC`.
  */
 export async function getUpcomingFollowups(limit = 10): Promise<readonly UpcomingFollowup[]> {
   const now = new Date();
@@ -261,7 +315,13 @@ export type UrgentTask = {
 };
 
 /**
- * Get urgent tasks: dueDate <= today AND status != 'completada', top N by priority then dueDate.
+ * Top `limit` tareas urgentes (`dueDate <= hoy`, no completadas) ordenadas por prioridad y fecha.
+ * Filtra por sesión si el rol es staff (sólo tareas asignadas/creadas/owned).
+ *
+ * @cache none
+ * @visibility admin
+ * @scope admin | manager | staff (staff sólo ve sus propias tareas)
+ * @returns array `<= limit` ordenado por priority (alta→baja) y `dueDate ASC`.
  */
 export async function getUrgentTasks(limit = 5, session?: TaskSession): Promise<readonly UrgentTask[]> {
   const todayMadrid = new Intl.DateTimeFormat('en-CA', {
@@ -305,7 +365,11 @@ export async function getUrgentTasks(limit = 5, session?: TaskSession): Promise<
 }
 
 /**
- * Count active brands (status = 'activa').
+ * Cuenta brands del CRM con `status = 'activa'` para el widget del dashboard.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns número de brands activas.
  */
 export async function getActiveBrandsCount(): Promise<number> {
   const [row] = await db
@@ -317,7 +381,12 @@ export async function getActiveBrandsCount(): Promise<number> {
 }
 
 /**
- * Count creators whose last snapshot is older than daysThreshold days (or have no snapshot).
+ * Cuenta creators con último snapshot anterior a `daysThreshold` días (o sin snapshots).
+ * Wrapper sobre `getStaleStatsCreators` (analytics) que sólo devuelve el count.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns número de creators con stats desactualizadas.
  */
 export async function getStaleStatsCount(daysThreshold = 30): Promise<number> {
   const { getStaleStatsCreators } = await import('./analytics');
@@ -328,7 +397,11 @@ export async function getStaleStatsCount(daysThreshold = 30): Promise<number> {
 // ── Campaign Dashboard queries ────────────────────────────────────────────────
 
 /**
- * Count active campaigns: status = 'activa' AND archivedAt IS NULL.
+ * Cuenta campañas activas (`status = 'activa'` AND `archivedAt IS NULL`) — widget del dashboard.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns número de campañas activas no archivadas.
  */
 export async function getActiveCampaignsCount(): Promise<number> {
   const [row] = await db
@@ -345,8 +418,16 @@ export async function getActiveCampaignsCount(): Promise<number> {
 }
 
 /**
- * Total pending brand payments (income invoices not yet collected):
- * kind = 'income', status != 'cobrada', campaignId IS NOT NULL.
+ * Total pendiente de cobro a brands en facturas vinculadas a campañas.
+ * Suma facturas `kind='income'` con `status` IN `PENDING_INCOME_STATUSES`
+ * (emitida / no_cobrada / parcial / vencida) y `campaignId IS NOT NULL`.
+ *
+ * Excluye drafts (`borrador`), liquidadas (`cobrada`/`pagada`) y anuladas.
+ * Misma semántica que `pnl.ts:pendienteCobro`.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns suma de `totalAmount` en EUR.
  */
 export async function getPendingBrandPaymentsTotal(): Promise<number> {
   const [row] = await db
@@ -357,7 +438,7 @@ export async function getPendingBrandPaymentsTotal(): Promise<number> {
     .where(
       and(
         eq(invoices.kind, 'income'),
-        ne(invoices.status, 'cobrada'),
+        inArray(invoices.status, PENDING_INCOME_FILTER),
         isNotNull(invoices.campaignId),
       ),
     );
@@ -366,8 +447,16 @@ export async function getPendingBrandPaymentsTotal(): Promise<number> {
 }
 
 /**
- * Total pending talent payments (expense invoices not yet collected):
- * kind = 'expense', status != 'cobrada', campaignId IS NOT NULL.
+ * Total pendiente de pago a talents en facturas vinculadas a campañas.
+ * Suma facturas `kind='expense'` con `status` IN `PENDING_EXPENSE_STATUSES`
+ * (emitida / no_pagada / parcial / vencida) y `campaignId IS NOT NULL`.
+ *
+ * Excluye drafts, liquidadas (`cobrada`/`pagada`) y anuladas.
+ * Misma semántica que `pnl.ts:pendientePago`.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns suma de `totalAmount` en EUR.
  */
 export async function getPendingTalentPaymentsTotal(): Promise<number> {
   const [row] = await db
@@ -378,7 +467,7 @@ export async function getPendingTalentPaymentsTotal(): Promise<number> {
     .where(
       and(
         eq(invoices.kind, 'expense'),
-        ne(invoices.status, 'cobrada'),
+        inArray(invoices.status, PENDING_EXPENSE_FILTER),
         isNotNull(invoices.campaignId),
       ),
     );

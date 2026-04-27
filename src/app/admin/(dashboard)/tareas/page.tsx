@@ -8,8 +8,8 @@ import {
   resolveRelatedLabels,
 } from '@/lib/queries/crmTasks';
 import { getAllStaffUsers } from '@/lib/queries/staffUsers';
-import { getIsoWeekLabel } from '@/lib/week';
-import { TaskWorkspace } from '@/components/admin/tasks/TaskWorkspace';
+import { getIsoWeekLabel } from '@/lib/utils/week';
+import { TaskWorkspace } from '@/features/admin/tasks/components/TaskWorkspace';
 
 export const metadata: Metadata = { title: 'Tareas | Admin' };
 

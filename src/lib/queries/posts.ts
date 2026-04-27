@@ -7,6 +7,13 @@ import type { Post } from '@/types';
 export type TalentAvatar = { slug: string; name: string; role: string; platform: string; photoUrl: string | null; initials: string; gradientC1: string; gradientC2: string };
 export type PostWithTalents = Post & { talentAvatars: TalentAvatar[] };
 
+/**
+ * Devuelve los slugs de posts publicados, usado para `generateStaticParams` en `/blog/[slug]`.
+ *
+ * @cache none
+ * @visibility public
+ * @returns array de `{ slug }` (puede ser vacío). Nunca null.
+ */
 export async function getPostSlugs(): Promise<{ slug: string }[]> {
   return db
     .select({ slug: posts.slug })
@@ -34,6 +41,13 @@ async function attachTalents(rows: Post[]): Promise<PostWithTalents[]> {
   }));
 }
 
+/**
+ * Lista posts publicados ordenados por publishedAt DESC y enriquecidos con avatares de talents mencionados, para `/blog`.
+ *
+ * @cache none
+ * @visibility public
+ * @returns array de PostWithTalents (puede ser vacío). Nunca null.
+ */
 export async function getPosts(): Promise<PostWithTalents[]> {
   const rows = await db.query.posts.findMany({
     where: eq(posts.status, 'published'),
@@ -42,6 +56,13 @@ export async function getPosts(): Promise<PostWithTalents[]> {
   return attachTalents(rows);
 }
 
+/**
+ * Devuelve un post por slug enriquecido con avatares de talents mencionados, para la ficha `/blog/[slug]`.
+ *
+ * @cache wrapped in React cache() for request dedupe
+ * @visibility public
+ * @returns PostWithTalents | undefined (nunca null) si no existe el slug.
+ */
 export const getPostBySlug = cache(async (slug: string): Promise<PostWithTalents | undefined> => {
   const row = await db.query.posts.findFirst({ where: eq(posts.slug, slug) });
   if (!row) return undefined;

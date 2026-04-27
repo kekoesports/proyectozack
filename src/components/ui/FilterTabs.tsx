@@ -2,7 +2,7 @@
 
 import * as m from 'motion/react-client';
 
-import { BRAND_GRADIENT } from '@/lib/gradient';
+import { BRAND_GRADIENT } from '@/lib/utils/gradient';
 
 type Tab<K extends string> = {
   key: K;
@@ -16,6 +16,22 @@ type FilterTabsProps<K extends string> = {
   readonly instanceId: string;
 }
 
+/**
+ * Tabs de filtro con indicador animado (gradient pill) que se desplaza entre
+ * pestañas usando `layoutId`. Genérico sobre la clave de cada tab.
+ *
+ * @kind client
+ * @feature ui
+ * @example
+ * ```tsx
+ * <FilterTabs
+ *   instanceId="services-filter"
+ *   tabs={[{ key: 'all', label: 'Todos' }, { key: 'igaming', label: 'iGaming' }]}
+ *   active={active}
+ *   onChange={setActive}
+ * />
+ * ```
+ */
 export function FilterTabs<K extends string>({ tabs, active, onChange, instanceId }: FilterTabsProps<K>): React.JSX.Element {
   const layoutId = `${instanceId}-active-tab`;
 

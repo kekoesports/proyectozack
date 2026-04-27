@@ -149,7 +149,7 @@ El panel `/admin/*` es un CRM operativo completo. Fases completadas:
 - `listInvoices` filtra `status != 'anulada'` por defecto. Toggle "Mostrar anuladas".
 - `InvoiceDrawer` con `InvoiceCategoryField` (autocomplete + sub-select IA condicional) y `InvoiceFileFields` (factura + extracto via Vercel Blob → `files`).
 - Manager NO puede borrar facturas (`assertCanDelete`). Puede anular.
-- P&L: `src/lib/queries/pnl.ts` con `getPnL`, `getTopBrandsByRevenue`, `getTopTalentsByPayments`.
+- P&L: `src/lib/queries/pnl.ts` con `getPnL`, `getTopBrandsByGrossInvoiced`, `getTopTalentsByGrossInvoiced`. Las dos top-N suman bruto facturado (incluye pendientes), no liquidado — usar `getPnL` filtrado por brand/talent si se quiere "ingreso liquidado".
 - Página `/admin/pl` con 8 KPI cards, tabla mensual, top categorías de gasto, filtros sticky.
 - Export `/admin/pl/export` → CSV BOM UTF-8 + separador `;` (compatible Excel ES).
 - Dashboard: `RevenueMonthWidget` y `RevenueTrendChart` (recharts) con datos reales.

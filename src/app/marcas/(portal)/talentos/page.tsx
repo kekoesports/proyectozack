@@ -1,8 +1,8 @@
 import { getTalents } from '@/lib/queries/talents';
 import type { TalentFilters } from '@/lib/queries/talents';
-import { FilterChips } from '@/components/brand/FilterChips';
-import { EmptyState } from '@/components/brand/EmptyState';
-import { BrandTalentCard } from '@/components/brand/BrandTalentCard';
+import { FilterChips } from '@/features/brand-portal/components/FilterChips';
+import { EmptyState } from '@/features/brand-portal/components/EmptyState';
+import { BrandTalentCard } from '@/features/brand-portal/components/BrandTalentCard';
 import { Suspense } from 'react';
 
 type PageProps = {

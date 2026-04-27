@@ -20,6 +20,14 @@ import type {
 
 // ── Pure helpers ──────────────────────────────────────────────────────────────
 
+/**
+ * Calcula el estado derivado del follow-up de una marca a partir de su `nextFollowupAt`.
+ * Comparación a granularidad de día (no hora). Sin `nextFollowupAt` → `sin_followup`.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns `'sin_followup' | 'vencido' | 'hoy' | 'pendiente'`.
+ */
 export function computeFollowupStatus(
   nextFollowupAt: Date | null | undefined,
 ): BrandFollowupDerivedStatus {
@@ -38,6 +46,15 @@ export function computeFollowupStatus(
 
 // ── Brands ────────────────────────────────────────────────────────────────────
 
+/**
+ * Lista marcas del CRM con contacto primario y status de follow-up derivado. Excluye archivadas por defecto.
+ * Aplica filtro de visibilidad si el rol lo requiere (staff: created_by o assigned_to).
+ *
+ * @cache none
+ * @visibility admin
+ * @scope staff
+ * @returns array readonly (puede ser vacío). Nunca null.
+ */
 export async function listCrmBrands(opts?: {
   userId?: string;
   role?: Role;
@@ -106,6 +123,13 @@ export async function listCrmBrands(opts?: {
   }));
 }
 
+/**
+ * Carga una marca del CRM por id con todos sus contactos (primarios primero).
+ *
+ * @cache none
+ * @visibility admin
+ * @returns marca con `contacts[]` o `null` si no existe.
+ */
 export async function getCrmBrand(id: number): Promise<CrmBrandWithContacts | null> {
   const [brand] = await db.select().from(crmBrands).where(eq(crmBrands.id, id)).limit(1);
   if (!brand) return null;
@@ -119,6 +143,13 @@ export async function getCrmBrand(id: number): Promise<CrmBrandWithContacts | nu
   return { ...brand, contacts };
 }
 
+/**
+ * Lista los contactos de una marca del CRM. Primarios primero, luego por nombre ASC.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns array readonly (puede ser vacío). Nunca null.
+ */
 export async function getBrandContacts(brandId: number): Promise<readonly CrmBrandContact[]> {
   return db
     .select()
@@ -127,12 +158,26 @@ export async function getBrandContacts(brandId: number): Promise<readonly CrmBra
     .orderBy(desc(crmBrandContacts.isPrimary), asc(crmBrandContacts.name));
 }
 
+/**
+ * Inserta una marca nueva en el CRM.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns la fila insertada. Lanza si la inserción falla.
+ */
 export async function createCrmBrand(values: NewCrmBrand): Promise<CrmBrand> {
   const [row] = await db.insert(crmBrands).values(values).returning();
   if (!row) throw new Error('Failed to insert crm brand');
   return row;
 }
 
+/**
+ * Actualiza parcialmente una marca del CRM y refresca `updatedAt`.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns la fila actualizada o `null` si no existe.
+ */
 export async function updateCrmBrand(
   id: number,
   patch: Partial<NewCrmBrand>,
@@ -145,10 +190,25 @@ export async function updateCrmBrand(
   return row ?? null;
 }
 
+/**
+ * Borra una marca del CRM por id (cascade vía FK en contactos/follow-ups).
+ *
+ * @cache none
+ * @visibility admin
+ * @returns void.
+ */
 export async function deleteCrmBrand(id: number): Promise<void> {
   await db.delete(crmBrands).where(eq(crmBrands.id, id));
 }
 
+/**
+ * Crea un contacto de marca en el CRM. Si `isPrimary=true`, demueve los demás contactos
+ * primarios de la misma marca antes de insertar.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns la fila insertada. Lanza si la inserción falla.
+ */
 export async function createBrandContact(values: NewCrmBrandContact): Promise<CrmBrandContact> {
   if (values.isPrimary) {
     await db
@@ -161,6 +221,14 @@ export async function createBrandContact(values: NewCrmBrandContact): Promise<Cr
   return row;
 }
 
+/**
+ * Actualiza un contacto de marca. Si `patch.isPrimary=true`, demueve a los demás contactos
+ * primarios de la misma marca antes de actualizar.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns la fila actualizada o `null` si no existe.
+ */
 export async function updateBrandContact(
   id: number,
   patch: Partial<NewCrmBrandContact>,
@@ -185,10 +253,24 @@ export async function updateBrandContact(
   return row ?? null;
 }
 
+/**
+ * Borra un contacto de marca por id.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns void.
+ */
 export async function deleteBrandContact(id: number): Promise<void> {
   await db.delete(crmBrandContacts).where(eq(crmBrandContacts.id, id));
 }
 
+/**
+ * Devuelve el `ownerUserId` de una marca del CRM. Útil para checks de permiso.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns userId del owner o `null` (si la marca no existe o no tiene owner).
+ */
 export async function getCrmBrandOwner(brandId: number): Promise<string | null> {
   const [row] = await db
     .select({ ownerUserId: crmBrands.ownerUserId })
@@ -200,6 +282,13 @@ export async function getCrmBrandOwner(brandId: number): Promise<string | null> 
 
 // ── Follow-ups ────────────────────────────────────────────────────────────────
 
+/**
+ * Lista todos los follow-ups (pendientes y completados) de una marca, ordenados por `scheduledAt` ASC.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns array readonly (puede ser vacío). Nunca null.
+ */
 export async function listBrandFollowups(brandId: number): Promise<readonly CrmBrandFollowup[]> {
   return db
     .select()
@@ -208,6 +297,15 @@ export async function listBrandFollowups(brandId: number): Promise<readonly CrmB
     .orderBy(asc(crmBrandFollowups.scheduledAt));
 }
 
+/**
+ * Lista follow-ups pendientes (no completados) en una ventana de N días (default 30) con info de marca.
+ * Aplica filtro de visibilidad si el rol lo requiere (staff: solo asignados a sí mismo).
+ *
+ * @cache none
+ * @visibility admin
+ * @scope staff
+ * @returns array readonly con `brandName` (puede ser vacío). Nunca null.
+ */
 export async function listUpcomingFollowups(opts?: {
   userId?: string;
   role?: Role;
@@ -253,12 +351,26 @@ export async function listUpcomingFollowups(opts?: {
   return rows;
 }
 
+/**
+ * Crea un follow-up para una marca del CRM.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns la fila insertada. Lanza si la inserción falla.
+ */
 export async function createBrandFollowup(values: NewCrmBrandFollowup): Promise<CrmBrandFollowup> {
   const [row] = await db.insert(crmBrandFollowups).values(values).returning();
   if (!row) throw new Error('Failed to insert followup');
   return row;
 }
 
+/**
+ * Actualiza parcialmente un follow-up de marca y refresca `updatedAt`.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns la fila actualizada o `null` si no existe.
+ */
 export async function updateBrandFollowup(
   id: number,
   patch: Partial<NewCrmBrandFollowup>,
@@ -271,6 +383,13 @@ export async function updateBrandFollowup(
   return row ?? null;
 }
 
+/**
+ * Marca un follow-up como completado fijando `completedAt = now`.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns void.
+ */
 export async function completeBrandFollowup(id: number): Promise<void> {
   await db
     .update(crmBrandFollowups)
@@ -278,12 +397,27 @@ export async function completeBrandFollowup(id: number): Promise<void> {
     .where(eq(crmBrandFollowups.id, id));
 }
 
+/**
+ * Borra un follow-up de marca por id.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns void.
+ */
 export async function deleteBrandFollowup(id: number): Promise<void> {
   await db.delete(crmBrandFollowups).where(eq(crmBrandFollowups.id, id));
 }
 
 // ── Admin helpers ─────────────────────────────────────────────────────────────
 
+/**
+ * Devuelve solo los IDs de propietario/asignado de una marca para checks de permiso (`canAccess*`).
+ *
+ * @cache none
+ * @visibility admin
+ * @scope staff
+ * @returns `{ assignedToUserId, createdByUserId }` o `undefined` si la marca no existe.
+ */
 export async function getCrmBrandForPermission(
   brandId: number,
 ): Promise<{ assignedToUserId: string | null; createdByUserId: string | null } | undefined> {

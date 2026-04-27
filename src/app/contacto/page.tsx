@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { ContactSection } from '@/components/sections/ContactSection';
+import { ContactSection } from '@/features/contact/components/ContactSection';
 
 export const metadata: Metadata = {
   title: 'Contacta con Nuestra Agencia Gaming',

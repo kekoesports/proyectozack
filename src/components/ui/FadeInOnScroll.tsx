@@ -2,8 +2,8 @@
 import * as m from 'motion/react-client';
 import { useReducedMotion } from 'motion/react';
 
-import { useVisibilityFailSafe } from '@/lib/use-visibility-failsafe';
-import { DURATION, EASE, fadeUp } from '@/lib/animation';
+import { useVisibilityFailSafe } from '@/lib/utils/use-visibility-failsafe';
+import { DURATION, EASE, fadeUp } from '@/lib/utils/animation';
 
 import type { ReactNode } from 'react';
 

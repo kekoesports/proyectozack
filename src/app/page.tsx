@@ -5,22 +5,22 @@ import { getCaseStudies } from '@/lib/queries/cases';
 import { getPortfolioItems } from '@/lib/queries/portfolio';
 
 // Above-fold + Server Components: loaded eagerly
-import { Hero } from '@/components/sections/Hero';
-import { Marquee } from '@/components/sections/Marquee';
-import { BrandsCarousel } from '@/components/sections/BrandsCarousel';
-import { TalentSection } from '@/components/sections/TalentSection';
-import { CollabsSection } from '@/components/sections/CollabsSection';
-import { CasesSection } from '@/components/sections/CasesSection';
-import { PortfolioSection } from '@/components/sections/PortfolioSection';
-import { AboutSection } from '@/components/sections/AboutSection';
-import { TeamGrid } from '@/components/sections/TeamGrid';
+import { Hero } from '@/features/marketing-site/components/Hero';
+import { Marquee } from '@/features/marketing-site/components/Marquee';
+import { BrandsCarousel } from '@/features/marketing-site/components/BrandsCarousel';
+import { TalentSection } from '@/features/marketing-site/components/TalentSection';
+import { CollabsSection } from '@/features/marketing-site/components/CollabsSection';
+import { CasesSection } from '@/features/marketing-site/components/CasesSection';
+import { PortfolioSection } from '@/features/marketing-site/components/PortfolioSection';
+import { AboutSection } from '@/features/marketing-site/components/AboutSection';
+import { TeamGrid } from '@/features/marketing-site/components/TeamGrid';
 
 // Client components below-fold: lazy-load JS, SSR preserved
-const MetricsSection  = dynamic(() => import('@/components/sections/MetricsSection').then(m => ({ default: m.MetricsSection })));
-const ServicesSection = dynamic(() => import('@/components/sections/ServicesSection').then(m => ({ default: m.ServicesSection })));
-const CtaSection      = dynamic(() => import('@/components/sections/CtaSection').then(m => ({ default: m.CtaSection })));
-const FaqSection      = dynamic(() => import('@/components/sections/FaqSection').then(m => ({ default: m.FaqSection })));
-const ContactSection  = dynamic(() => import('@/components/sections/ContactSection').then(m => ({ default: m.ContactSection })));
+const MetricsSection  = dynamic(() => import('@/features/marketing-site/components/MetricsSection').then(m => ({ default: m.MetricsSection })));
+const ServicesSection = dynamic(() => import('@/features/marketing-site/components/ServicesSection').then(m => ({ default: m.ServicesSection })));
+const CtaSection      = dynamic(() => import('@/features/marketing-site/components/CtaSection').then(m => ({ default: m.CtaSection })));
+const FaqSection      = dynamic(() => import('@/features/marketing-site/components/FaqSection').then(m => ({ default: m.FaqSection })));
+const ContactSection  = dynamic(() => import('@/features/contact/components/ContactSection').then(m => ({ default: m.ContactSection })));
 
 // Revalidate every hour (ISR)
 export const revalidate = 3600;

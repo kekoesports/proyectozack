@@ -3,13 +3,24 @@
 import * as m from 'motion/react-client';
 import { useReducedMotion } from 'motion/react';
 
-import { DURATION, EASE, VIEWPORT } from '@/lib/animation';
+import { DURATION, EASE, VIEWPORT } from '@/lib/utils/animation';
 
 type SectionTagProps = {
   readonly children: string;
   readonly className?: string;
 };
 
+/**
+ * Etiqueta de sección (eyebrow) en uppercase + naranja de marca, con
+ * animación `whileInView` que respeta `prefers-reduced-motion`.
+ *
+ * @kind client
+ * @feature ui
+ * @example
+ * ```tsx
+ * <SectionTag>Servicios</SectionTag>
+ * ```
+ */
 export function SectionTag({ children, className = '' }: SectionTagProps): React.JSX.Element {
   const reduced = useReducedMotion();
   const cls = `inline-block text-xs font-semibold uppercase tracking-widest text-sp-orange mb-3 ${className}`;

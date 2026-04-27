@@ -2,9 +2,9 @@ import Link from 'next/link';
 import type { ReactElement } from 'react';
 import { requireAnyRole } from '@/lib/auth-guard';
 import { getTeamTasksSummary } from '@/lib/queries/crmTasks';
-import { getIsoWeekLabel } from '@/lib/week';
-import { Avatar } from '@/components/admin/Avatar';
-import { InviteStaffForm } from '@/components/admin/equipo/InviteStaffForm';
+import { getIsoWeekLabel } from '@/lib/utils/week';
+import { Avatar } from '@/features/admin/_shared/components/Avatar';
+import { InviteStaffForm } from '@/features/admin/equipo/components/InviteStaffForm';
 
 export const metadata = { title: 'Equipo | Admin' };
 

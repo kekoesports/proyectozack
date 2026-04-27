@@ -1,6 +1,6 @@
 import { render, screen, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { EditDrawer } from '@/components/admin/ui/EditDrawer';
+import { EditDrawer } from '@/features/admin/_shared/components/EditDrawer';
 
 // Mock motion/react and motion/react-client to avoid animation issues in tests
 jest.mock('motion/react', () => ({

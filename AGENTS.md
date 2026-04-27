@@ -143,3 +143,111 @@ Complex CSS (marquee, gradient text, modals) stays in `globals.css`.
 - `parseFollowers("-")` must return 0. Creators with 0 followers sort to bottom regardless of direction.
 - Migration 0003 has `CREATE TABLE` for auth tables that may already exist.
 - Dev auth bypass: `requireRole()` returns mock session — test real auth in staging.
+
+## Component Conventions (LLM-first)
+
+> Source of truth para descubrir, crear, mover o documentar componentes.
+> El plan completo de reorg vive en `.weave/plans/frontend-modular-reorg.md`.
+> El manifest navegable de componentes vive en `src/components/CATALOG.md`.
+
+### Layout físico
+
+```
+src/
+  app/                              # Next.js routes — THIN: solo data fetching + render de feature
+  features/<feature>/               # Lógica + UI por dominio
+    components/                     # Componentes de la feature
+    components/<Composite>/         # Carpeta cuando hay sub-componentes privados
+      <Composite>.tsx               # Entry point del composite (named export)
+      <Composite>.parts.tsx         # Sub-componentes privados (no se importan fuera de la feature)
+    hooks/                          # use<Foo>.ts — opcional
+    schemas/                        # Zod schemas locales a la feature — opcional
+    api/                            # Handlers gordos extraídos de app/api — opcional
+    data.ts                         # Composer de queries para esta feature — opcional
+    README.md                       # OBLIGATORIO
+  components/
+    ui/                             # Primitivos GLOBALES sin acoplamiento a feature
+    layout/                         # Chrome de la app (Nav, Footer, Sidebars)
+    CATALOG.md                      # Manifest autogenerado
+  lib/
+    queries/, schemas/, services/, parsers/, utils/
+    db.ts, env.ts, auth.ts, auth-guard.ts, permissions.ts, site-url.ts
+  types/                            # InferSelectModel + types compuestos
+  db/schema/                        # Drizzle source of truth
+```
+
+### Reglas de ubicación
+
+| Tipo | Dónde va | Ejemplo |
+|---|---|---|
+| Primitivo de UI sin lógica de negocio | `components/ui/` | `GradientText`, `SectionTag`, `Tooltip` |
+| Chrome de aplicación | `components/layout/` | `Nav`, `Footer`, `PortalSidebar` |
+| Componente acoplado a una ruta o flujo | `features/<f>/components/` | `Hero` (marketing), `BrandTalentCard` (brand-portal) |
+| Sub-componente privado de un composite | `features/<f>/components/<X>/<X>.parts.tsx` | `BrandsCrmManager.parts.tsx` |
+| Handler de API >100 LOC | `features/<f>/api/<handler>.ts` invocado desde `app/api/.../route.ts` | |
+
+### Reglas de archivo
+
+1. **Un componente por archivo, named export, PascalCase.** Nombre archivo = nombre export.
+2. **`'use client'` solo cuando sea estrictamente necesario** (state, events, browser APIs, motion, refs).
+3. **Sin barrel `index.ts`** en subcarpetas de `components/` o `features/`. Imports completos: `@/features/admin/talents/components/InfluencerCardsView`.
+4. **Props siempre `Readonly<...>`** + `type Props` (nunca `interface`).
+5. **Archivos < 300 LOC** (objetivo) · **< 500 LOC** (hard limit). Splitear en `<X>.parts.tsx` o sub-carpeta.
+6. **Imports cross-feature solo desde la "puerta pública"** (top-level `components/` de la feature destino). Nunca importar desde `features/foo/components/internal/...` desde otra feature.
+7. **Páginas y route handlers son thin shells** (≤ 60 LOC). Toda lógica vive en la feature.
+
+### TSDoc obligatorio en cada componente exportado
+
+```ts
+/**
+ * Hero de la home con auras parallax y gradient typography.
+ *
+ * @kind client
+ * @feature marketing-site
+ * @route /
+ *
+ * @example
+ * ```tsx
+ * <Hero />
+ * ```
+ */
+export function Hero() { ... }
+```
+
+Tags reconocidos:
+
+- `@kind server | client` — obligatorio.
+- `@feature <feature-slug>` — obligatorio para componentes en `features/`.
+- `@route <pathname>` — opcional, indica dónde se renderiza.
+- `@example` — obligatorio para componentes con props no triviales.
+- `@deprecated <reason>` — opcional, marcar antes de borrar.
+
+### TSDoc para queries (`lib/queries/`)
+
+```ts
+/**
+ * Devuelve talents públicos ordenados por sortOrder ASC.
+ *
+ * @cache wrapped in React `cache()` for request dedupe.
+ * @visibility public (filters `visibility = 'public'`).
+ * @returns array (puede ser vacío). Nunca null.
+ */
+export const getTalents = cache(async (): Promise<TalentWithRelations[]> => { ... });
+```
+
+### Cómo añadir un componente nuevo
+
+1. Identifica feature destino. Si no existe, **discutir antes de crear** una nueva.
+2. Decide kind: server por defecto, client solo si necesita interactividad.
+3. Crea el archivo en `features/<f>/components/<Nombre>.tsx` con TSDoc completo.
+4. Si introduces sub-componentes privados, usa `<Nombre>/<Nombre>.tsx` + `<Nombre>.parts.tsx`.
+5. Si excedes 300 LOC, plan de split antes de mergear.
+6. Tests: client → `src/__tests__/client/<feature>/...`, server → `src/__tests__/server/<feature>/...`.
+7. Tras crear/mover: `npm run catalog` (regenera `CATALOG.md`).
+
+### Cómo descubrir componentes existentes (LLM)
+
+1. Empieza por `src/components/CATALOG.md` (tabla con todos los componentes).
+2. Lee el `README.md` de la feature relevante.
+3. Lee el TSDoc del componente concreto.
+4. Solo entonces abre el `.tsx`.

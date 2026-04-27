@@ -1,4 +1,4 @@
-import { gradientStyle, BRAND_GRADIENT } from '@/lib/gradient';
+import { gradientStyle, BRAND_GRADIENT } from '@/lib/utils/gradient';
 
 describe('gradientStyle', () => {
   it('returns a 135deg linear-gradient string', () => {

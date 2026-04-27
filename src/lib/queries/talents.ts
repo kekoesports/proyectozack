@@ -2,7 +2,7 @@ import { cache } from 'react';
 import { eq, and, inArray, sql, type SQL } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { talents, talentTags, talentStats, talentSocials, talentBusiness, talentVerticals } from '@/db/schema';
-import { parseFollowers, formatFollowers, slugify, initialsOf } from '@/lib/import-utils';
+import { parseFollowers, formatFollowers, slugify, initialsOf } from '@/lib/utils/import-utils';
 import type { TalentWithRelations, TalentBusiness, TalentVertical, TalentSocial, TalentTag } from '@/types';
 import type { Talent } from '@/types';
 
@@ -15,10 +15,24 @@ export type TalentFilters = {
   status?: 'active' | 'available';
 }
 
+/**
+ * Devuelve los slugs de talents públicos, usado para `generateStaticParams` en `/talentos/[slug]`.
+ *
+ * @cache none
+ * @visibility public
+ * @returns array de `{ slug }` (puede ser vacío). Nunca null.
+ */
 export async function getTalentSlugs(): Promise<{ slug: string }[]> {
   return db.select({ slug: talents.slug }).from(talents).where(eq(talents.visibility, 'public'));
 }
 
+/**
+ * Lista talents públicos con tags/stats/socials, filtrables por platform, tags, status, etc., ordenados por sortOrder ASC, para el listado/cards público.
+ *
+ * @cache none
+ * @visibility public
+ * @returns array de TalentWithRelations (puede ser vacío). Nunca null.
+ */
 export async function getTalents(filters?: TalentFilters): Promise<TalentWithRelations[]> {
   const conditions: SQL[] = [eq(talents.visibility, 'public')];
 
@@ -52,6 +66,13 @@ export async function getTalents(filters?: TalentFilters): Promise<TalentWithRel
   return rows;
 }
 
+/**
+ * Devuelve un talent público por slug con tags/stats/socials, para la ficha `/talentos/[slug]`.
+ *
+ * @cache wrapped in React cache() for request dedupe
+ * @visibility public
+ * @returns TalentWithRelations | undefined (nunca null) si el slug no existe o no es público.
+ */
 export const getTalentBySlug = cache(async (slug: string): Promise<TalentWithRelations | undefined> => {
   const row = await db.query.talents.findFirst({
     where: and(eq(talents.slug, slug), eq(talents.visibility, 'public')),
@@ -64,6 +85,13 @@ export const getTalentBySlug = cache(async (slug: string): Promise<TalentWithRel
   return row ?? undefined;
 });
 
+/**
+ * Devuelve talents (sin filtro de visibility) por sus ids con tags/stats/socials, usado en relaciones internas como brand-portal o casos.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns array de TalentWithRelations (vacío si `ids` está vacío). Nunca null.
+ */
 export async function getTalentsByIds(ids: number[]): Promise<TalentWithRelations[]> {
   if (ids.length === 0) return [];
   return db.query.talents.findMany({
@@ -78,6 +106,13 @@ export async function getTalentsByIds(ids: number[]): Promise<TalentWithRelation
 
 // ── Admin queries (no visibility filter) ────────────────────────────
 
+/**
+ * Lista todos los talents (sin filtro de visibility) con tags/stats/socials ordenados por sortOrder ASC, para el panel admin.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns array de TalentWithRelations (puede ser vacío). Nunca null.
+ */
 export async function getAllTalents(): Promise<TalentWithRelations[]> {
   return db.query.talents.findMany({
     with: {
@@ -89,10 +124,24 @@ export async function getAllTalents(): Promise<TalentWithRelations[]> {
   });
 }
 
+/**
+ * Devuelve los slugs de todos los talents (incluidos internos), para flujos admin de generación/listado.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns array de `{ slug }` (puede ser vacío). Nunca null.
+ */
 export async function getAllTalentSlugs(): Promise<{ slug: string }[]> {
   return db.select({ slug: talents.slug }).from(talents);
 }
 
+/**
+ * Devuelve un talent por slug sin filtro de visibility, para vistas admin de edición/preview.
+ *
+ * @cache wrapped in React cache() for request dedupe
+ * @visibility admin
+ * @returns TalentWithRelations | undefined (nunca null) si no existe el slug.
+ */
 export const getTalentBySlugAdmin = cache(async (slug: string): Promise<TalentWithRelations | undefined> => {
   const row = await db.query.talents.findFirst({
     where: eq(talents.slug, slug),
@@ -120,8 +169,11 @@ export type AdminRosterRow = TalentWithRelations & {
 };
 
 /**
- * Fetch all talents with their socials + 30-day growth from snapshots.
- * Merges `talentMetricSnapshots` data into each talent row.
+ * Lista de admin roster: todos los talents con sus relaciones más datos de crecimiento a 30 días desde `talentMetricSnapshots`.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns array de AdminRosterRow `TalentWithRelations & { growth: GrowthData[] }` (puede ser vacío). Nunca null.
  */
 export async function getAdminRosterWithGrowth(): Promise<AdminRosterRow[]> {
   const { getLatestSnapshots, getEarliestSnapshots } = await import('./analytics');
@@ -179,6 +231,13 @@ export type TalentFullProfile = Talent & {
   tags: TalentTag[];
 };
 
+/**
+ * Perfil completo de un talent por id: incluye tags, socials, business y verticals, para vistas admin de detalle.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns TalentFullProfile | undefined (nunca null) si el id no existe.
+ */
 export async function getTalentFullProfile(id: number): Promise<TalentFullProfile | undefined> {
   const row = await db.query.talents.findFirst({
     where: eq(talents.id, id),
@@ -224,10 +283,11 @@ export type UpsertTalentFromImportResult = {
 };
 
 /**
- * Upsert a talent from import data.
- * Deduplication: first by slug, then by (platform, handle) in talentSocials.
- * - Match → UPDATE fields
- * - No match → INSERT new talent (inactive + internal)
+ * Upsert de un talent desde datos de import: dedup primero por slug, luego por (platform, handle) en `talentSocials`; si no hay match, INSERTA un talent nuevo (status `inactive`, visibility `internal`).
+ *
+ * @cache none
+ * @visibility admin
+ * @returns UpsertTalentFromImportResult `{ action: 'created' | 'updated' | 'skipped', id }`.
  */
 export async function upsertTalentFromImport(
   input: UpsertTalentFromImportInput,

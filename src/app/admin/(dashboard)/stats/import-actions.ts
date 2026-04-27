@@ -6,7 +6,7 @@ import { z } from 'zod';
 import { db } from '@/lib/db';
 import { talentSocials } from '@/db/schema';
 import { requireRole } from '@/lib/auth-guard';
-import { parseSheetRows, diffAgainstRoster, type CurrentTalent } from '@/lib/statsImport';
+import { parseSheetRows, diffAgainstRoster, type CurrentTalent } from '@/lib/utils/statsImport';
 
 const PLATFORM_HEX: Record<string, string> = {
   youtube: '#FF0000',

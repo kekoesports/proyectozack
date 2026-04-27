@@ -10,7 +10,14 @@ export type StaffUserRow = {
   readonly role: string | null;
 };
 
-/** Internal users that can own or receive CRM tasks. */
+/**
+ * Usuarios internos (admin/manager/staff) que pueden ser owner o assignee de tareas CRM.
+ * Ordenados por nombre.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns array de `StaffUserRow` (id, name, email, role).
+ */
 export async function getAllStaffUsers(): Promise<readonly StaffUserRow[]> {
   return db
     .select({
@@ -24,6 +31,14 @@ export async function getAllStaffUsers(): Promise<readonly StaffUserRow[]> {
     .orderBy(asc(user.name));
 }
 
+/**
+ * Devuelve el id del primer admin (orden alfabético por nombre) — usado como fallback
+ * para asignar owner/createdBy cuando no hay sesión.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns string id o `undefined` si no hay admins.
+ */
 export async function getFirstAdminUserId(): Promise<string | undefined> {
   const [row] = await db
     .select({ id: user.id })

@@ -14,22 +14,22 @@ import {
 } from '@/lib/queries/dashboard';
 import { getMonthRevenue, getPreviousMonthRevenue, getRevenueTrend } from '@/lib/queries/invoices';
 import { getStaleStatsCreators } from '@/lib/queries/analytics';
-import { formatCompact } from '@/lib/format';
-import { platformMatchesKey, SOCIAL_PLATFORMS } from '@/lib/platform';
-import { KpiCard } from '@/components/admin/ui/KpiCard';
-import { AlertsWidget } from '@/components/admin/dashboard/AlertsWidget';
-import { UpcomingFollowupsWidget } from '@/components/admin/dashboard/UpcomingFollowupsWidget';
-import { UrgentTasksWidget } from '@/components/admin/dashboard/UrgentTasksWidget';
-import { StaleStatsWidget } from '@/components/admin/dashboard/StaleStatsWidget';
-import { ActiveCampaignsWidget } from '@/components/admin/dashboard/ActiveCampaignsWidget';
-import { PendingPaymentsWidget } from '@/components/admin/dashboard/PendingPaymentsWidget';
-import { RevenueMonthWidget } from '@/components/admin/dashboard/RevenueMonthWidget';
-import { RevenueTrendChart } from '@/components/admin/dashboard/RevenueTrendChart';
+import { formatCompact } from '@/lib/utils/format';
+import { platformMatchesKey, SOCIAL_PLATFORMS } from '@/lib/utils/platform';
+import { KpiCard } from '@/features/admin/_shared/components/KpiCard';
+import { AlertsWidget } from '@/features/admin/dashboard/components/AlertsWidget';
+import { UpcomingFollowupsWidget } from '@/features/admin/dashboard/components/UpcomingFollowupsWidget';
+import { UrgentTasksWidget } from '@/features/admin/dashboard/components/UrgentTasksWidget';
+import { StaleStatsWidget } from '@/features/admin/dashboard/components/StaleStatsWidget';
+import { ActiveCampaignsWidget } from '@/features/admin/dashboard/components/ActiveCampaignsWidget';
+import { PendingPaymentsWidget } from '@/features/admin/dashboard/components/PendingPaymentsWidget';
+import { RevenueMonthWidget } from '@/features/admin/dashboard/components/RevenueMonthWidget';
+import { RevenueTrendChart } from '@/features/admin/dashboard/components/RevenueTrendChart';
 import {
   ContactIcon,
   ChartIcon,
   StarIcon,
-} from '@/components/admin/SidebarIcons';
+} from '@/features/admin/_shared/components/SidebarIcons';
 
 import type { ReactElement } from 'react';
 

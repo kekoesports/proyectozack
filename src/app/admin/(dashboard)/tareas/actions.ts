@@ -13,7 +13,7 @@ import {
   updateTask,
 } from '@/lib/queries/crmTasks';
 import { taskFormSchema, taskPatchSchema } from '@/lib/schemas/task';
-import { getIsoWeekLabel } from '@/lib/week';
+import { getIsoWeekLabel } from '@/lib/utils/week';
 
 import type { Role } from '@/lib/auth-guard';
 

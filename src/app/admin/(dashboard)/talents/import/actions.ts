@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { eq, and } from 'drizzle-orm';
 import { requireRole } from '@/lib/auth-guard';
 import { upsertTalentFromImport } from '@/lib/queries/talents';
-import { parseCsv, slugify } from '@/lib/import-utils';
+import { parseCsv, slugify } from '@/lib/utils/import-utils';
 import { db } from '@/lib/db';
 import { talents, talentSocials, talentBusiness } from '@/db/schema';
 

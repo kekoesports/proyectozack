@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { put } from '@vercel/blob';
 import { requireRole } from '@/lib/auth-guard';
-import { hashFile } from '@/lib/hash';
+import { hashFile } from '@/lib/utils/hash';
 import {
   approveImportSchema,
   INVOICE_DRAFT_SOURCES,

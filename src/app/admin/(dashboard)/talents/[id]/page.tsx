@@ -6,7 +6,7 @@ import { getTalentFullProfile } from '@/lib/queries/talents';
 import { getLatestSnapshotsByPlatform } from '@/lib/queries/analytics';
 import { listFilesByEntity } from '@/lib/queries/files';
 import { listCampaignsByTalent } from '@/lib/queries/campaigns';
-import { TalentProfileTabs } from '@/components/admin/talents/TalentProfileTabs';
+import { TalentProfileTabs } from '@/features/admin/talents/components/TalentProfileTabs';
 
 export default async function TalentProfilePage({
   params,

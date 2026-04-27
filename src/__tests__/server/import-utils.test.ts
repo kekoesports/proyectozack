@@ -6,7 +6,7 @@ import {
   slugify,
   initialsOf,
   validateMappedRow,
-} from '@/lib/import-utils';
+} from '@/lib/utils/import-utils';
 
 // ── parseCsvLine ──────────────────────────────────────────────────────
 

@@ -6,11 +6,11 @@ import { db } from '@/lib/db';
 import { crmBrands, talents } from '@/db/schema';
 import { requireAnyRole } from '@/lib/auth-guard';
 import { getPnL } from '@/lib/queries/pnl';
-import { startOfLocalYearIso, todayLocalIso } from '@/lib/date';
-import { PnLOverviewCards } from '@/components/admin/pnl/PnLOverviewCards';
-import { PnLBreakdownTable } from '@/components/admin/pnl/PnLBreakdownTable';
-import { PnLCategoryList } from '@/components/admin/pnl/PnLCategoryList';
-import { PnLFilters } from '@/components/admin/pnl/PnLFilters';
+import { startOfLocalYearIso, todayLocalIso } from '@/lib/utils/date';
+import { PnLOverviewCards } from '@/features/admin/pnl/components/PnLOverviewCards';
+import { PnLBreakdownTable } from '@/features/admin/pnl/components/PnLBreakdownTable';
+import { PnLCategoryList } from '@/features/admin/pnl/components/PnLCategoryList';
+import { PnLFilters } from '@/features/admin/pnl/components/PnLFilters';
 
 import type { InvoiceCompany } from '@/types';
 import type { PnLFilters as PnLFiltersType } from '@/lib/queries/pnl';
