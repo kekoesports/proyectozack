@@ -100,6 +100,7 @@ export function ContactSection(): React.JSX.Element {
               ) : (
                 <m.div
                   key="form"
+                  data-motion-fallback=""
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}

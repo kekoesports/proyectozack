@@ -185,6 +185,27 @@
   }
 }
 
+/*
+ * Motion safety net.
+ *
+ * Components using `initial="hidden"` / `initial={{ opacity: 0 }}` serialize
+ * `style="opacity: 0"` into the SSR HTML. A JS fail-safe (useVisibilityFailSafe)
+ * already covers the case where motion hydrates late or IntersectionObserver
+ * never fires. This CSS rule covers the worst case: motion chunk fails to load
+ * at all (CSP block, ad-blocker, network drop). After 3s the keyframe forces
+ * opacity/transform to their final state. CSS animation styles override inline
+ * styles, but WAAPI (motion's runtime) overrides CSS animation, so normal
+ * motion playback wins during the first 3s and this is invisible.
+ *
+ * Apply to any wrapper that sets opacity:0 via `initial`.
+ */
+@keyframes motion-fallback-reveal {
+  to { opacity: 1; transform: none; }
+}
+[data-motion-fallback] {
+  animation: motion-fallback-reveal 1ms linear 3s forwards;
+}
+
 /* ── Marquee animation ───────────────────────────────────────────────────── */
 @keyframes marquee {
   from { transform: translateX(0); }

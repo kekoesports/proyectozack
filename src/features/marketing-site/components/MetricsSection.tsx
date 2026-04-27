@@ -3,11 +3,11 @@
 import { useRef, useEffect } from 'react';
 import { useCountUp } from 'react-countup';
 import * as m from 'motion/react-client';
-import { useInView } from 'motion/react';
 import { SectionTag } from '@/components/ui/SectionTag';
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { GradientText } from '@/components/ui/GradientText';
 import { FadeInOnScroll } from '@/components/ui/FadeInOnScroll';
+import { useVisibilityFailSafe } from '@/lib/utils/use-visibility-failsafe';
 
 type Metric = {
   end: number;
@@ -48,12 +48,15 @@ function AnimatedMetric({ metric, index, started }: { metric: Metric; index: num
     if (started) start();
   }, [started, start]);
 
+  const [tileRef, tileVisible] = useVisibilityFailSafe<HTMLDivElement>();
+
   return (
     <m.div
+      ref={tileRef}
+      data-motion-fallback=""
       className="px-4 py-6 text-center"
       initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
+      animate={tileVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
       transition={{ duration: 0.5, delay: index * 0.08 }}
     >
       <span
@@ -82,8 +85,7 @@ function AnimatedMetric({ metric, index, started }: { metric: Metric; index: num
  * ```
  */
 export function MetricsSection() {
-  const gridRef = useRef<HTMLDivElement>(null);
-  const started = useInView(gridRef, { once: true, amount: 0.2 });
+  const [gridRef, started] = useVisibilityFailSafe<HTMLDivElement>({ amount: 0.2 });
 
   return (
     <section className="py-20 bg-sp-off">

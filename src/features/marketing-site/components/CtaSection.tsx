@@ -22,6 +22,7 @@ export function CtaSection(): React.JSX.Element {
     <section className="py-24 bg-sp-black text-white text-center">
       <m.div
         ref={ref}
+        data-motion-fallback=""
         className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8"
         variants={staggerContainer()}
         initial="hidden"

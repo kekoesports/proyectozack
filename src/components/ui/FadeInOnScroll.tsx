@@ -32,6 +32,7 @@ export function FadeInOnScroll({
   return (
     <m.div
       ref={ref}
+      data-motion-fallback=""
       initial="hidden"
       animate={visible ? 'visible' : 'hidden'}
       variants={fadeUp}
