@@ -207,18 +207,17 @@ export function TaskModal({ onCloseAction, task, users, suggestedCategories, def
 
             <div className="col-span-2">
               <Field label="Categoría">
-                <input
+                <select
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
-                  list="task-categories"
                   className={inputCls}
                   required
-                  maxLength={40}
-                  placeholder="ej. outreach, sales, ops…"
-                />
-                <datalist id="task-categories">
-                  {suggestedCategories.map((c) => <option key={c} value={c} />)}
-                </datalist>
+                >
+                  <option value="">— Seleccionar categoría —</option>
+                  {suggestedCategories.map((c) => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
               </Field>
             </div>
 

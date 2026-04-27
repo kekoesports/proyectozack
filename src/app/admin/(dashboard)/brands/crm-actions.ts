@@ -57,6 +57,13 @@ function compact<T extends Record<string, unknown>>(obj: T): Record<string, unkn
   return out;
 }
 
+/** Convert date string (YYYY-MM-DD) to Date object, or undefined if empty/invalid */
+function parseOptionalDate(val: string | undefined | null): Date | undefined {
+  if (!val || val.trim() === '') return undefined;
+  const d = new Date(val);
+  return isNaN(d.getTime()) ? undefined : d;
+}
+
 // ── Permission helpers ────────────────────────────────────────────────────────
 
 async function assertCanEditBrand(
@@ -87,7 +94,13 @@ export async function createBrandAction(
   const parsed = createCrmBrandSchema.safeParse(formToObject(formData));
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? 'Datos inválidos' };
 
-  const data = { ...parsed.data, createdByUserId: session.user.id };
+  const { lastContactAt, nextFollowupAt, ...rest } = parsed.data;
+  const data = {
+    ...rest,
+    createdByUserId: session.user.id,
+    lastContactAt: parseOptionalDate(lastContactAt),
+    nextFollowupAt: parseOptionalDate(nextFollowupAt),
+  };
 
   try {
     const row = await createCrmBrand(nullify(data) as Parameters<typeof createCrmBrand>[0]);
@@ -109,7 +122,13 @@ export async function updateBrandAction(
   const parsed = updateCrmBrandSchema.safeParse(formToObject(formData));
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? 'Datos inválidos' };
 
-  const { id, ...rest } = parsed.data;
+  const { id, lastContactAt, nextFollowupAt, ...rest } = parsed.data;
+  const patchData = {
+    ...rest,
+    lastContactAt: parseOptionalDate(lastContactAt),
+    nextFollowupAt: parseOptionalDate(nextFollowupAt),
+    updatedAt: new Date(),
+  };
 
   try {
     await assertCanEditBrand(id, { userId: session.user.id, role: session.user.role as Role });
@@ -123,7 +142,7 @@ export async function updateBrandAction(
   try {
     await updateCrmBrand(
       id,
-      compact({ ...rest, updatedAt: new Date() }) as Partial<Parameters<typeof updateCrmBrand>[1]>,
+      compact(patchData) as Partial<Parameters<typeof updateCrmBrand>[1]>,
     );
     revalidatePath('/admin/brands');
     revalidatePath(`/admin/brands/${id}`);
