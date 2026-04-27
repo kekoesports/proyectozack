@@ -2,6 +2,7 @@ import { and, asc, desc, eq, getTableColumns, inArray, isNull, lte, ne, or, sql 
 
 import { campaigns, crmBrands, crmTaskTemplates, crmTasks, invoices, talents, user } from '@/db/schema';
 import { db } from '@/lib/db';
+import { toLocalIsoDate } from '@/lib/date';
 import { getIsoWeekLabel } from '@/lib/week';
 
 import type { Role } from '@/lib/auth-guard';
@@ -50,7 +51,9 @@ function todayMadridIso(date = new Date()): string {
 }
 
 function toIsoDate(date: Date): string {
-  return date.toISOString().slice(0, 10);
+  // Use LOCAL Y/M/D — `toISOString()` would shift to UTC and rebobinate
+  // a day in any tz east of UTC (Madrid GMT+1).
+  return toLocalIsoDate(date);
 }
 
 function endOfWeekIso(date: Date): string {

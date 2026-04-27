@@ -6,6 +6,7 @@ import { db } from '@/lib/db';
 import { crmBrands, talents } from '@/db/schema';
 import { requireAnyRole } from '@/lib/auth-guard';
 import { getPnL } from '@/lib/queries/pnl';
+import { startOfLocalYearIso, todayLocalIso } from '@/lib/date';
 import { PnLOverviewCards } from '@/components/admin/pnl/PnLOverviewCards';
 import { PnLBreakdownTable } from '@/components/admin/pnl/PnLBreakdownTable';
 import { PnLCategoryList } from '@/components/admin/pnl/PnLCategoryList';
@@ -30,12 +31,9 @@ function parseSearchParam(value: string | string[] | undefined): string {
 }
 
 function defaultRange(): { from: string; to: string } {
-  const now = new Date();
-  const start = new Date(now.getFullYear(), 0, 1);
-  return {
-    from: start.toISOString().slice(0, 10),
-    to: now.toISOString().slice(0, 10),
-  };
+  // Use LOCAL Y/M/D — `toISOString()` would shift to UTC and rebobinate
+  // a day in any tz east of UTC (e.g. Madrid GMT+1 → 31/12 instead of 01/01).
+  return { from: startOfLocalYearIso(), to: todayLocalIso() };
 }
 
 type PageProps = {

@@ -49,7 +49,12 @@ next-env.d.ts
 /test-results
 /playwright-report
 /blob-report
+/.playwright-mcp
 
 # local dev-server logs
 .dev-server.log
 .dev-server.err.log
+
+# ad-hoc visual testing screenshots (Playwright MCP)
+visual-*.png
+crm-*-smoke.png

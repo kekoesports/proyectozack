@@ -1,6 +1,7 @@
 import { eq, and, gte, lte, inArray, asc, desc, sql, max, lt } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { talentMetricSnapshots, talentSocials, talents } from '@/db/schema';
+import { toLocalIsoDate } from '@/lib/date';
 import { normalizeTrackablePlatform, TRACKABLE_SOCIAL_PLATFORM_KEYS } from '@/lib/platform';
 import type { TalentMetricSnapshot } from '@/types';
 
@@ -239,7 +240,7 @@ export type StaleCreator = {
 export async function getStaleStatsCreators(daysThreshold: number): Promise<StaleCreator[]> {
   const cutoff = new Date();
   cutoff.setDate(cutoff.getDate() - daysThreshold);
-  const cutoffStr = cutoff.toISOString().slice(0, 10); // YYYY-MM-DD
+  const cutoffStr = toLocalIsoDate(cutoff); // YYYY-MM-DD (local tz)
 
   // Subquery: latest snapshot date per talent
   const latestPerTalent = db
