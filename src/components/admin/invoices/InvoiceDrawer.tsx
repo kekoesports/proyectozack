@@ -1,6 +1,7 @@
 'use client';
 
 import { useActionState, useEffect, useMemo, useState } from 'react';
+import type { ReactElement } from 'react';
 
 import {
   createInvoiceAction,
@@ -55,7 +56,14 @@ type Props =
       readonly onClose: () => void;
     };
 
-export function InvoiceDrawer(props: Props): React.ReactElement {
+export function InvoiceDrawer(props: Props): ReactElement {
+  // Remount the inner form whenever the target invoice changes — avoids
+  // calling setState inside an effect (react-hooks/set-state-in-effect).
+  const formKey = props.mode === 'edit' ? `edit-${props.invoice.id}` : 'create';
+  return <InvoiceDrawerForm key={formKey} {...props} />;
+}
+
+function InvoiceDrawerForm(props: Props): ReactElement {
   const { mode, isOpen, brands, talents, campaigns, categories, onClose } = props;
   const invoice = mode === 'edit' ? props.invoice : null;
   const action = mode === 'create' ? createInvoiceAction : updateInvoiceAction;
@@ -64,13 +72,6 @@ export function InvoiceDrawer(props: Props): React.ReactElement {
   const [net, setNet] = useState<string>(invoice?.netAmount ?? '0.00');
   const [vat, setVat] = useState<string>(invoice?.vatPct ?? '21.00');
   const [withholding, setWithholding] = useState<string>(invoice?.withholdingPct ?? '0.00');
-
-  useEffect(() => {
-    if (!isOpen) return;
-    setNet(invoice?.netAmount ?? '0.00');
-    setVat(invoice?.vatPct ?? '21.00');
-    setWithholding(invoice?.withholdingPct ?? '0.00');
-  }, [isOpen, invoice?.id, invoice?.netAmount, invoice?.vatPct, invoice?.withholdingPct]);
 
   const total = useMemo(() => {
     const n = Number(net);
