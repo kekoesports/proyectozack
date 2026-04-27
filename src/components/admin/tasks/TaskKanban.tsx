@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react';
 import type { CrmTask, CrmTaskStatus, CrmTaskPriority } from '@/types';
 import { updateTaskPartialAction } from '@/app/admin/(dashboard)/tareas/actions';
 import { Avatar } from '@/components/admin/Avatar';
+import { RecurrenceBadge } from './RecurrenceBadge';
 import type { RelatedLabel } from '@/lib/queries/crmTasks';
 
 type UserOption = { readonly id: string; readonly name: string };
@@ -101,6 +102,7 @@ export function TaskKanban({ tasks, users, relatedLabels, onOpenAction }: Props)
                       </div>
                       <div className="flex items-center justify-between flex-wrap gap-1">
                         <span className="text-[10px] uppercase tracking-wider text-sp-admin-muted">{t.category}</span>
+                        {t.recurrenceTemplateId !== null && t.recurrence && <RecurrenceBadge frequency={t.recurrence} />}
                         {t.dueDate && (
                           <span className={`text-[10px] tabular-nums px-1.5 py-0.5 rounded ${overdue ? 'bg-red-500/15 text-red-400' : 'text-sp-admin-muted'}`}>
                             {t.dueDate.slice(5)}

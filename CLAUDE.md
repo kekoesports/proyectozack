@@ -44,6 +44,7 @@ npm run test:coverage
 - `RESEND_API_KEY`
 - `BETTER_AUTH_SECRET`
 - `NEXT_PUBLIC_SITE_URL`
+- `BLOB_READ_WRITE_TOKEN` — Vercel Blob token. Requerido para upload/delete de archivos (GEO stats, facturas, contratos). Obtener en Vercel Dashboard → Storage → Blob → Token.
 
 ### File Structure (target — being built out)
 
@@ -105,6 +106,74 @@ See `roadmap.md` Phase 2 for exact column definitions. Tables:
 - Auth: `user` (with `role` text column), `session`, `account`, `verification`
 
 Enums: `platform` (twitch|youtube), `status` (active|available), `portfolio_type` (thumb|video|campaign), `proposal_status` (pendiente|en_revision|aceptada|rechazada).
+
+## CRM Modules (Fases 1–6 — completadas 26-04-2026)
+
+El panel `/admin/*` es un CRM operativo completo. Fases completadas:
+
+### Fase 1 — Base operativa
+- Roles `admin | manager | staff` con `requireAnyRole`. `manager` ve todo pero NO puede borrar (`assertCanDelete`).
+- Tokens semánticos en `globals.css @theme {}` (NO en `tailwind.config.ts` — no existe).
+- Componentes base: `StateBadge`, `EmptyState`, `EditDrawer`, `KpiCard`, `FilterBar`.
+- `src/lib/permissions.ts`: `canSeeAll`, `canDelete`, `assertCanDelete`, `needsVisibilityFilter`.
+- Marcas/contactos/follow-ups ampliados con enums geo (turquía/india/japón), sectores (crypto/fmcg/tech/gaming_brands), estados (contactada/en_negociacion/cerrada/no_interesa), canal (telegram/discord/whatsapp/reunión).
+- Dashboard accionable con widgets reales: follow-ups vencidos, tareas urgentes, campañas activas, cobros/pagos pendientes.
+
+### Fase 2 — Talentos
+- Cards renovadas, perfil con tabs Stats/GEO/Negocio/Histórico.
+- `talentMetricSnapshots` ampliada con `top_geos` jsonb, `peakViewers`, `hoursBroadcast`.
+- Tabla `files` genérica (`src/db/schema/files.ts`) para adjuntos polimórficos.
+- Import CSV con mapeo de columnas.
+
+### Fase 3 — Campañas/Tratos
+- Módulo completo: `campaigns` con `brandId`, `talentId`, `brandContactId`, `responsibleUserId`, `assignedToUserId`, `createdByUserId`, `archivedAt`.
+- Cálculos automáticos: `commissionAmount = amountBrand - amountTalent`, `commissionPct`. NO columnas generadas SQL (decisión #11).
+- EUR-only (decisión #2): sin dropdown moneda, `currency='EUR'` fijo.
+- Pagos reales = `invoices.campaignId` (decisión #5). `amountBrand/amountTalent` = presupuesto previsto.
+- Vistas: lista, detalle, por marca, por talent. Filtros multi-criterio.
+- Migración `0035_silly_jasper_sitwell`.
+
+### Fase 4 — Tareas recurrentes
+- `crm_task_templates` con 18 plantillas seed (`npm run seed:tasks`).
+- `crm_tasks` ampliada: `assignedToUserId`, `createdByUserId`, `recurrenceTemplateId`.
+- `crm_task_related_type` extendido con `campaign` y `general`.
+- Cron `/api/cron/rollover-tasks` hace rollover semanal + regeneración recurrente (idempotente via unique index).
+- Visibilidad: admin/manager ven todo; staff sólo asignadas/creadas/owner.
+- UI: `/admin/tareas/plantillas`, `RecurrenceBadge`, `UrgentTasksWidget` con datos reales.
+- Migración `0036_task_templates`.
+
+### Fase 5 — Finanzas
+- `invoices` ampliada: `company` (spain/andorra/argentina/…), `paymentMethod` (banco/crypto/…), `aiTool` (chatgpt/claude/…), `paidAmount`, `invoiceFileId`, `statementFileId`.
+- `invoice_status` extendido: `pagada`, `parcial`, `no_cobrada`, `no_pagada`.
+- Backfill `invoices.fileUrl` → tabla `files` via `npm run migrate:invoice-files`.
+- `listInvoices` filtra `status != 'anulada'` por defecto. Toggle "Mostrar anuladas".
+- `InvoiceDrawer` con `InvoiceCategoryField` (autocomplete + sub-select IA condicional) y `InvoiceFileFields` (factura + extracto via Vercel Blob → `files`).
+- Manager NO puede borrar facturas (`assertCanDelete`). Puede anular.
+- P&L: `src/lib/queries/pnl.ts` con `getPnL`, `getTopBrandsByRevenue`, `getTopTalentsByPayments`.
+- Página `/admin/pl` con 8 KPI cards, tabla mensual, top categorías de gasto, filtros sticky.
+- Export `/admin/pl/export` → CSV BOM UTF-8 + separador `;` (compatible Excel ES).
+- Dashboard: `RevenueMonthWidget` y `RevenueTrendChart` (recharts) con datos reales.
+- Migración `0037_invoices_finance`.
+
+### Fase 6 — Pulido visual
+- Buscador global ILIKE: `src/lib/queries/search.ts` cubre marcas, talentos, campañas, facturas, tareas, contactos. Visibility filter para staff.
+- `GlobalSearch` en `AdminHeader`: popover con grupos, debounce 200ms, Cmd/Ctrl+K, navegación por teclado.
+- API `/api/admin/search` con limit configurable.
+- Sidebar reorganizada con grupos visuales (CRM / Operaciones / Finanzas / Más). Outreach mantiene ruta `/admin/targets`.
+- `Skeleton` y `TableSkeleton` reutilizables. `loading.tsx` en rutas críticas.
+- Empty states sistemáticos en todos los módulos.
+- Responsive: sin overflow horizontal en iPhone SE (375px) y iPad (768px). Hamburger menu funcional en móvil.
+
+### Gotchas CRM
+- Tokens en `globals.css @theme {}` — NO en `tailwind.config.ts` (no existe).
+- `talentSocials.platform` usa claves cortas (`yt`, `tw`); `talentMetricSnapshots.platform` usa nombres completos (`youtube`, `twitch`).
+- `parseFollowers("-")` debe retornar 0.
+- `invoice_status` incluye `cobrada` Y `pagada` (ambos = "settled income"). Queries P&L usan `IN ('cobrada','pagada')`.
+- `campaigns.amountBrand/amountTalent` = presupuesto previsto, NO pagos reales. Pagos reales = `invoices` con `campaignId`.
+- `crm_task_templates` tiene unique index en `title` — seed es idempotente.
+- Migración 0003 tiene `CREATE TABLE` para tablas auth que pueden ya existir.
+- Dev auth bypass: `requireRole()` retorna mock session — probar auth real en staging.
+- `npm run migrate` usa `neon-http` (correcto). NO usar `npx drizzle-kit migrate` (usa websockets y cuelga).
 
 ## Database Migrations
 - **Drizzle is the single source of truth.** Never create tables or alter columns via raw SQL, seed scripts, or the Neon console. All schema changes go through `npx drizzle-kit generate` → `npx drizzle-kit migrate`.

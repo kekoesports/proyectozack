@@ -1,15 +1,21 @@
 import type { InferSelectModel, InferInsertModel } from 'drizzle-orm';
 import type { invoices } from '@/db/schema';
+import type { FileRecord } from '@/types';
 
 export type Invoice = InferSelectModel<typeof invoices>;
 export type NewInvoice = InferInsertModel<typeof invoices>;
 
 export type InvoiceKind = Invoice['kind'];
 export type InvoiceStatus = Invoice['status'];
+export type InvoiceCompany = NonNullable<Invoice['company']>;
+export type InvoicePaymentMethod = NonNullable<Invoice['paymentMethod']>;
+export type InvoiceAiTool = NonNullable<Invoice['aiTool']>;
 
 export type InvoiceWithRelations = Invoice & {
   readonly brandName: string | null;
   readonly talentName: string | null;
+  readonly invoiceFile?: FileRecord | null;
+  readonly statementFile?: FileRecord | null;
 };
 
 export type InvoiceSummary = {

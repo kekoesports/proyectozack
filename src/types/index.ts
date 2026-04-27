@@ -7,7 +7,25 @@ export type * from './content';
 export type * from './analytics';
 export type * from './target';
 export type * from './crmTask';
+export type * from './crmTaskTemplate';
 export type * from './crmBrand';
 export type * from './invoice';
 export type * from './invoiceImport';
 export type * from './talentBusiness';
+export type { BrandFollowupDerivedStatus } from '@/lib/schemas/crmBrand';
+export type { FileType, FileRelatedType } from '@/lib/schemas/file';
+
+import type { InferSelectModel } from 'drizzle-orm';
+import type { files, campaigns } from '@/db/schema';
+import type { CampaignDerived, CampaignPaymentDerivedStatus } from '@/lib/schemas/campaign';
+export { computeCampaignDerived } from '@/lib/schemas/campaign';
+
+export type FileRecord = InferSelectModel<typeof files>;
+
+export type CampaignRow = InferSelectModel<typeof campaigns>;
+export type Campaign = CampaignRow & CampaignDerived & {
+  readonly brandPaid: CampaignPaymentDerivedStatus;
+  readonly talentPaid: CampaignPaymentDerivedStatus;
+  readonly totalInvoicedBrand: number;
+  readonly totalPaidTalent: number;
+};

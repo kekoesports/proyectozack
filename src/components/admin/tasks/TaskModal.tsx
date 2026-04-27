@@ -22,7 +22,9 @@ type Props = {
 const RELATED_TYPE_LABELS: Record<CrmTaskRelatedType, string> = {
   brand: 'Marca',
   talent: 'Talent',
+  campaign: 'Campaña',
   invoice: 'Factura',
+  general: 'General',
 };
 
 const PRIORITIES: readonly CrmTaskPriority[] = ['alta', 'media', 'baja'];
@@ -231,7 +233,7 @@ export function TaskModal({ onCloseAction, task, users, suggestedCategories, def
                     >
                       Ninguna
                     </button>
-                    {(['brand', 'talent', 'invoice'] as const).map((k) => (
+                    {(['brand', 'talent', 'campaign', 'invoice', 'general'] as const).map((k) => (
                       <button
                         key={k}
                         type="button"
@@ -242,7 +244,7 @@ export function TaskModal({ onCloseAction, task, users, suggestedCategories, def
                       </button>
                     ))}
                   </div>
-                  {relatedType && (
+                  {relatedType && relatedType !== 'general' && (
                     <>
                       <input
                         type="search"

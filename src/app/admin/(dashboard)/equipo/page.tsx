@@ -9,7 +9,7 @@ import { InviteStaffForm } from '@/components/admin/equipo/InviteStaffForm';
 export const metadata = { title: 'Equipo | Admin' };
 
 export default async function EquipoAdminPage(): Promise<ReactElement> {
-  const session = await requireAnyRole(['admin', 'staff'], '/admin/login');
+  const session = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
   const weekLabel = getIsoWeekLabel(new Date());
   const summary = await getTeamTasksSummary(weekLabel);
 

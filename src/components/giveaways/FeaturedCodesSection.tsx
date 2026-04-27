@@ -15,8 +15,7 @@ type FeaturedCodesSectionProps = {
 };
 
 export function FeaturedCodesSection({ codes }: FeaturedCodesSectionProps): React.JSX.Element | null {
-  if (codes.length === 0) return null;
-
+  // Hooks must be called unconditionally — the early return goes AFTER hook calls.
   const ref = useRef<HTMLDivElement | null>(null);
 
   const scroll = useCallback((dir: 'left' | 'right') => {
@@ -24,6 +23,8 @@ export function FeaturedCodesSection({ codes }: FeaturedCodesSectionProps): Reac
     if (!el) return;
     el.scrollBy({ left: dir === 'left' ? -320 : 320, behavior: 'smooth' });
   }, []);
+
+  if (codes.length === 0) return null;
 
   return (
     <section id="codigos-destacados" className="mb-12">

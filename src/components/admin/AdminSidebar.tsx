@@ -10,19 +10,27 @@ type NavItem = {
   readonly label: string;
   readonly icon: React.ReactNode;
   readonly prefetch?: boolean;
-}
+};
+
+export type NavGroup = {
+  readonly key: string;
+  readonly label: string;
+  readonly items: readonly NavItem[];
+};
 
 type AdminSidebarProps = {
   readonly primaryNav: readonly NavItem[];
+  readonly groups?: readonly NavGroup[];
   readonly moreNav: readonly NavItem[];
   readonly userName: string;
   readonly userRole: string;
   readonly userEmail: string;
   readonly logoutHref: string;
-}
+};
 
 export function AdminSidebar({
   primaryNav,
+  groups,
   moreNav,
   userName,
   userRole,
@@ -115,6 +123,26 @@ export function AdminSidebar({
             />
           ))}
 
+          {groups && groups.length > 0 && (
+            <div className="mt-2 flex flex-col gap-2">
+              {groups.map((group) => (
+                <div key={group.key} className="flex flex-col gap-0.5">
+                  <h3 className="px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-sp-admin-muted/80">
+                    {group.label}
+                  </h3>
+                  {group.items.map((item) => (
+                    <NavLink
+                      key={item.href}
+                      item={item}
+                      active={isActive(item.href)}
+                      onClose={() => setOpen(false)}
+                    />
+                  ))}
+                </div>
+              ))}
+            </div>
+          )}
+
           {moreNav.length > 0 && (
             <div className="mt-2 pt-2 border-t border-sp-admin-border">
               <button
@@ -190,7 +218,7 @@ type NavLinkProps = {
   readonly active: boolean;
   readonly onClose: () => void;
   readonly indent?: boolean;
-}
+};
 
 function NavLink({ item, active, onClose, indent = false }: NavLinkProps): React.ReactElement {
   const prefetch = item.prefetch ?? null;

@@ -11,13 +11,17 @@ export type RelatedOption = {
 export type RelatedOptions = {
   readonly brand: readonly RelatedOption[];
   readonly talent: readonly RelatedOption[];
+  readonly campaign: readonly RelatedOption[];
   readonly invoice: readonly RelatedOption[];
+  readonly general: readonly RelatedOption[];
 };
 
 const TYPE_LABELS: Record<CrmTaskRelatedType, string> = {
   brand: 'Marca',
   talent: 'Talent',
+  campaign: 'Campaña',
   invoice: 'Factura',
+  general: 'General',
 };
 
 type Props = {
@@ -52,7 +56,7 @@ export function RelatedSelector({ options, initialType, initialId }: Props): Rea
           <input type="radio" name="relatedTypePicker" checked={type === ''} onChange={() => { setType(''); setId(''); }} className="sr-only" />
           Ninguna
         </label>
-        {(['brand', 'talent', 'invoice'] as const).map((k) => (
+        {(['brand', 'talent', 'campaign', 'invoice', 'general'] as const).map((k) => (
           <label key={k} className={`px-3 py-2 rounded-lg border cursor-pointer text-xs font-semibold text-center transition-colors ${type === k ? 'bg-sp-admin-accent/10 border-sp-admin-accent text-sp-admin-accent' : 'border-sp-admin-border text-sp-admin-muted hover:text-sp-admin-text'}`}>
             <input type="radio" name="relatedTypePicker" checked={type === k} onChange={() => { setType(k); setId(''); }} className="sr-only" />
             {TYPE_LABELS[k]}
@@ -60,7 +64,7 @@ export function RelatedSelector({ options, initialType, initialId }: Props): Rea
         ))}
       </div>
 
-      {type && (
+      {type && type !== 'general' && (
         <>
           <input
             type="search"

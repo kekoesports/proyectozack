@@ -14,9 +14,29 @@ import { user } from './auth';
 
 export const crmBrandStatusEnum = pgEnum('crm_brand_status', [
   'lead',
+  'contactada',
+  'en_negociacion',
   'activa',
   'pausada',
+  'cerrada',
+  'no_interesa',
   'archivada',
+]);
+
+export const crmFollowupChannelEnum = pgEnum('crm_followup_channel', [
+  'email',
+  'telegram',
+  'discord',
+  'whatsapp',
+  'reunion',
+  'llamada',
+  'otro',
+]);
+
+export const crmFollowupStatusEnum = pgEnum('crm_followup_status', [
+  'pendiente',
+  'hecho',
+  'vencido',
 ]);
 
 export const crmBrands = pgTable(
@@ -37,6 +57,12 @@ export const crmBrands = pgTable(
 
     portalUserId: text('portal_user_id').references(() => user.id, { onDelete: 'set null' }),
 
+    createdByUserId: text('created_by_user_id').references(() => user.id, { onDelete: 'set null' }),
+    assignedToUserId: text('assigned_to_user_id').references(() => user.id, { onDelete: 'set null' }),
+
+    lastContactAt: timestamp('last_contact_at', { withTimezone: true }),
+    nextFollowupAt: timestamp('next_followup_at', { withTimezone: true }),
+
     notes: text('notes'),
 
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
@@ -47,6 +73,9 @@ export const crmBrands = pgTable(
     index('crm_brands_owner_idx').on(t.ownerUserId),
     index('crm_brands_portal_user_idx').on(t.portalUserId),
     index('crm_brands_name_idx').on(t.name),
+    index('crm_brands_created_by_idx').on(t.createdByUserId),
+    index('crm_brands_assigned_to_idx').on(t.assignedToUserId),
+    index('crm_brands_next_followup_idx').on(t.nextFollowupAt),
   ],
 );
 
@@ -63,6 +92,9 @@ export const crmBrandContacts = pgTable(
     telegram: varchar('telegram', { length: 80 }),
     discord: varchar('discord', { length: 80 }),
     whatsapp: varchar('whatsapp', { length: 40 }),
+    linkedin: varchar('linkedin', { length: 200 }),
+    country: varchar('country', { length: 2 }),
+    notes: text('notes'),
     isPrimary: boolean('is_primary').notNull().default(false),
 
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
@@ -83,18 +115,32 @@ export const crmBrandFollowups = pgTable(
     scheduledAt: timestamp('scheduled_at', { withTimezone: true }).notNull(),
     note: text('note').notNull(),
     completedAt: timestamp('completed_at', { withTimezone: true }),
+
+    channel: crmFollowupChannelEnum('channel'),
+    summary: text('summary'),
+    nextAction: text('next_action'),
+    nextActionAt: timestamp('next_action_at', { withTimezone: true }),
+    status: crmFollowupStatusEnum('status').notNull().default('pendiente'),
+    assignedToUserId: text('assigned_to_user_id').references(() => user.id, { onDelete: 'set null' }),
+    responsibleUserId: text('responsible_user_id').references(() => user.id, { onDelete: 'set null' }),
+
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
     index('crm_brand_followups_brand_idx').on(t.brandId),
     index('crm_brand_followups_scheduled_idx').on(t.scheduledAt),
     index('crm_brand_followups_completed_idx').on(t.completedAt),
+    index('crm_brand_followups_status_idx').on(t.status),
+    index('crm_brand_followups_assigned_to_idx').on(t.assignedToUserId),
   ],
 );
 
 export const crmBrandsRelations = relations(crmBrands, ({ one, many }) => ({
   owner: one(user, { fields: [crmBrands.ownerUserId], references: [user.id], relationName: 'crmBrandOwner' }),
   portalUser: one(user, { fields: [crmBrands.portalUserId], references: [user.id], relationName: 'crmBrandPortalUser' }),
+  createdBy: one(user, { fields: [crmBrands.createdByUserId], references: [user.id], relationName: 'crmBrandCreatedBy' }),
+  assignedTo: one(user, { fields: [crmBrands.assignedToUserId], references: [user.id], relationName: 'crmBrandAssignedTo' }),
   contacts: many(crmBrandContacts),
   followups: many(crmBrandFollowups),
 }));
@@ -105,5 +151,7 @@ export const crmBrandContactsRelations = relations(crmBrandContacts, ({ one }) =
 
 export const crmBrandFollowupsRelations = relations(crmBrandFollowups, ({ one }) => ({
   brand: one(crmBrands, { fields: [crmBrandFollowups.brandId], references: [crmBrands.id] }),
-  createdBy: one(user, { fields: [crmBrandFollowups.createdByUserId], references: [user.id] }),
+  createdBy: one(user, { fields: [crmBrandFollowups.createdByUserId], references: [user.id], relationName: 'followupCreatedBy' }),
+  assignedTo: one(user, { fields: [crmBrandFollowups.assignedToUserId], references: [user.id], relationName: 'followupAssignedTo' }),
+  responsible: one(user, { fields: [crmBrandFollowups.responsibleUserId], references: [user.id], relationName: 'followupResponsible' }),
 }));

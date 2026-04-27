@@ -8,6 +8,10 @@ const STATUS_LABELS: Record<InvoiceStatus, string> = {
   cobrada: 'Pagada',
   vencida: 'Vencida',
   anulada: 'Anulada',
+  pagada: 'Pagada',
+  parcial: 'Parcial',
+  no_cobrada: 'No cobrada',
+  no_pagada: 'No pagada',
 };
 
 const STATUS_STYLES: Record<InvoiceStatus, string> = {
@@ -16,6 +20,10 @@ const STATUS_STYLES: Record<InvoiceStatus, string> = {
   cobrada: 'bg-emerald-100 text-emerald-700',
   vencida: 'bg-red-100 text-red-700',
   anulada: 'bg-zinc-100 text-zinc-600',
+  pagada: 'bg-emerald-100 text-emerald-700',
+  parcial: 'bg-amber-100 text-amber-700',
+  no_cobrada: 'bg-amber-100 text-amber-700',
+  no_pagada: 'bg-amber-100 text-amber-700',
 };
 
 function formatMoney(amount: string, currency: string): string {

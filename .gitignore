@@ -44,3 +44,12 @@ next-env.d.ts
 
 # weave coordinator runtime state (sessions, plans, active execution)
 .weave/
+
+# playwright artifacts
+/test-results
+/playwright-report
+/blob-report
+
+# local dev-server logs
+.dev-server.log
+.dev-server.err.log

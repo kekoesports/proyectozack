@@ -231,3 +231,14 @@ export function LogoutIcon() {
     </svg>
   );
 }
+
+export function CampaignIcon() {
+  return (
+    <svg {...s}>
+      <rect x="2" y="7" width="16" height="11" rx="2" />
+      <path d="M6 7V5a4 4 0 0 1 8 0v2" />
+      <line x1="10" y1="11" x2="10" y2="14" />
+      <circle cx="10" cy="14" r="1" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
