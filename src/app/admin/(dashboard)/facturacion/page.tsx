@@ -24,6 +24,29 @@ function monthRange(): { from: string; to: string; label: string } {
   };
 }
 
+type FinanceCardProps = {
+  readonly label: string;
+  readonly value: string;
+  readonly sub?: string | undefined;
+  readonly accent: string;
+  readonly subAccent?: string | undefined;
+};
+
+function FinanceCard({ label, value, sub, accent, subAccent }: FinanceCardProps): React.ReactElement {
+  return (
+    <div className="rounded-lg bg-sp-admin-card shadow-[0_1px_3px_rgba(0,0,0,0.06)] overflow-hidden">
+      <div className="h-[2px]" style={{ background: accent }} />
+      <div className="px-4 py-3">
+        <p className="text-[9px] font-bold uppercase tracking-[0.16em] text-sp-admin-muted leading-none">{label}</p>
+        <p className="text-lg font-bold tabular-nums mt-1 leading-none" style={{ color: accent }}>{value}</p>
+        {sub && (
+          <p className="text-[9px] font-semibold mt-1" style={{ color: subAccent ?? '#ef4444' }}>{sub}</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default async function AdminInvoicesPage(): Promise<React.ReactElement> {
   const session = await requireAnyRole(['admin', 'manager'], '/admin/login');
   const role = (session.user.role ?? 'staff') as Role;
@@ -54,25 +77,60 @@ export default async function AdminInvoicesPage(): Promise<React.ReactElement> {
     id: c.id,
     label: `${c.brandName} × ${c.talentName} — ${c.name}`,
   }));
+  const incomeCount = invoices.filter((i) => i.kind === 'income').length;
+  const expenseCount = invoices.filter((i) => i.kind === 'expense').length;
 
   return (
-    <div>
-      <div className="flex items-end justify-between flex-wrap gap-4 mb-8">
-        <h1 className="font-display text-4xl font-black uppercase text-sp-admin-text">Facturación</h1>
-        <p className="text-xs text-sp-admin-muted uppercase tracking-wider">Vista mensual: {month.label}</p>
+    <div className="space-y-4">
+      <AdminPageHeader
+        title="Facturación"
+        subtitle={`Vista mensual: ${month.label}`}
+        stats={[
+          { label: 'ingresos', value: incomeCount, accent: '#16a34a' },
+          { label: 'gastos', value: expenseCount, accent: '#f59e0b' },
+          { label: 'total', value: invoices.length },
+        ]}
+        actions={[
+          { label: 'Importar', href: '/admin/facturacion/import' },
+          { label: 'Exportar fiscal', href: '/admin/facturacion/exports' },
+        ]}
+      />
+
+      {/* KPIs del mes */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+        <FinanceCard
+          label="Ingresos del mes"
+          value={formatMoney(summaryMonth.incomeTotal)}
+          accent="#16a34a"
+        />
+        <FinanceCard
+          label="Gastos del mes"
+          value={formatMoney(summaryMonth.expenseTotal)}
+          accent="#f59e0b"
+        />
+        <FinanceCard
+          label="Neto del mes"
+          value={formatMoney(summaryMonth.netTotal)}
+          accent={summaryMonth.netTotal >= 0 ? '#16a34a' : '#ef4444'}
+        />
+        <FinanceCard
+          label="Pendiente cobro"
+          value={formatMoney(summaryMonth.pendingIncome)}
+          sub={summaryMonth.overdueIncome > 0 ? `${formatMoney(summaryMonth.overdueIncome)} vencido` : undefined}
+          accent="#5b9bd5"
+          subAccent="#ef4444"
+        />
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <KpiCard label="Ingresos del mes" value={formatMoney(summaryMonth.incomeTotal)} accent="emerald" />
-        <KpiCard label="Gastos del mes" value={formatMoney(summaryMonth.expenseTotal)} accent="amber" />
-        <KpiCard label="Neto del mes" value={formatMoney(summaryMonth.netTotal)} accent={summaryMonth.netTotal >= 0 ? 'emerald' : 'red'} />
-        <KpiCard label="Pendiente cobro" value={formatMoney(summaryMonth.pendingIncome)} sub={summaryMonth.overdueIncome > 0 ? `${formatMoney(summaryMonth.overdueIncome)} vencido` : undefined} accent="blue" />
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        <KpiCard label="Ingresos YTD" value={formatMoney(summaryYTD.incomeTotal)} accent="emerald" small />
-        <KpiCard label="Gastos YTD" value={formatMoney(summaryYTD.expenseTotal)} accent="amber" small />
-        <KpiCard label="Neto YTD" value={formatMoney(summaryYTD.netTotal)} accent={summaryYTD.netTotal >= 0 ? 'emerald' : 'red'} small />
+      {/* KPIs YTD */}
+      <div className="grid grid-cols-3 gap-2">
+        <FinanceCard label={`Ingresos ${new Date().getFullYear()}`} value={formatMoney(summaryYTD.incomeTotal)} accent="#16a34a" />
+        <FinanceCard label={`Gastos ${new Date().getFullYear()}`} value={formatMoney(summaryYTD.expenseTotal)} accent="#f59e0b" />
+        <FinanceCard
+          label={`Neto ${new Date().getFullYear()}`}
+          value={formatMoney(summaryYTD.netTotal)}
+          accent={summaryYTD.netTotal >= 0 ? '#16a34a' : '#ef4444'}
+        />
       </div>
 
       <InvoicesManager
@@ -83,22 +141,6 @@ export default async function AdminInvoicesPage(): Promise<React.ReactElement> {
         categories={categories}
         canDelete={canDelete(role)}
       />
-    </div>
-  );
-}
-
-function KpiCard({ label, value, sub, accent, small = false }: { readonly label: string; readonly value: string; readonly sub?: string | undefined; readonly accent: 'emerald' | 'amber' | 'red' | 'blue'; readonly small?: boolean }): React.ReactElement {
-  const accentColor = {
-    emerald: 'text-emerald-400',
-    amber: 'text-amber-400',
-    red: 'text-red-400',
-    blue: 'text-blue-400',
-  }[accent];
-  return (
-    <div className="rounded-2xl bg-sp-admin-card border border-sp-admin-border p-5">
-      <p className="text-[11px] uppercase tracking-wider font-semibold text-sp-admin-muted mb-2">{label}</p>
-      <p className={`font-display ${small ? 'text-2xl' : 'text-3xl'} font-black ${accentColor} tabular-nums`}>{value}</p>
-      {sub && <p className="text-[10px] uppercase tracking-wider text-red-400 mt-1">{sub}</p>}
     </div>
   );
 }

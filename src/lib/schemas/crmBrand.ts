@@ -19,6 +19,8 @@ export const CRM_BRAND_STATUSES = [
   'contactada',
   'en_negociacion',
   'activa',
+  'inactiva',
+  'perdida',
   'pausada',
   'cerrada',
   'no_interesa',

@@ -302,6 +302,13 @@
       "when": 1777447079130,
       "tag": "0042_orange_fabian_cortez",
       "breakpoints": true
+    },
+    {
+      "idx": 43,
+      "version": "7",
+      "when": 1777335406546,
+      "tag": "0043_careful_shinobi_shaw",
+      "breakpoints": true
     }
   ]
 }

@@ -11,6 +11,7 @@ export type * from './crmTaskTemplate';
 export type * from './crmBrand';
 export type * from './invoice';
 export type * from './invoiceImport';
+export type * from './campaign';
 export type * from './talentBusiness';
 export type { BrandFollowupDerivedStatus } from '@/lib/schemas/crmBrand';
 export type { FileType, FileRelatedType } from '@/lib/schemas/file';

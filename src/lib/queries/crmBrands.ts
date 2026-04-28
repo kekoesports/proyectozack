@@ -334,6 +334,7 @@ export async function listUpcomingFollowups(opts?: {
       createdByUserId: crmBrandFollowups.createdByUserId,
       scheduledAt: crmBrandFollowups.scheduledAt,
       note: crmBrandFollowups.note,
+      priority: crmBrandFollowups.priority,
       completedAt: crmBrandFollowups.completedAt,
       channel: crmBrandFollowups.channel,
       summary: crmBrandFollowups.summary,

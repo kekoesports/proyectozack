@@ -27,7 +27,6 @@ export default async function AdminCampanasPage(): Promise<React.ReactElement> {
       .orderBy(userTable.name),
   ]);
 
-  // Load contacts for each brand (for the drawer's contact select)
   const contactsByBrand: Record<number, readonly CrmBrandContact[]> = {};
   await Promise.all(
     crmBrandsList.map(async (b) => {

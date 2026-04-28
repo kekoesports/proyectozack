@@ -1,4 +1,4 @@
-import { sql, eq, gt, lt, lte, ne, and, or, inArray, isNull, isNotNull, asc } from 'drizzle-orm';
+import { sql, eq, gt, lt, lte, ne, and, or, inArray, isNull, isNotNull, asc, gte } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import {
   talents,
