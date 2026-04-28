@@ -27,15 +27,22 @@
   /* Brand gradient */
   --background-image-sp-grad: linear-gradient(135deg, #f5632a 0%, #e03070 35%, #c42880 62%, #8b3aad 100%);
 
-  /* Admin dark panel */
-  --color-sp-admin-bg: #1a1a2e;
-  --color-sp-admin-card: #1e1e36;
-  --color-sp-admin-border: #2d2d4a;
-  --color-sp-admin-sidebar: #12121f;
-  --color-sp-admin-text: #e8e8f0;
-  --color-sp-admin-muted: #7a7a9a;
+  /* Admin — contenido */
+  --color-sp-admin-bg: #eeeef5;
+  --color-sp-admin-card: #ffffff;
+  --color-sp-admin-border: #e2e2ec;
+  --color-sp-admin-text: #16161f;
+  --color-sp-admin-muted: #72728a;
   --color-sp-admin-accent: #f5632a;
-  --color-sp-admin-hover: #252542;
+  --color-sp-admin-hover: #f5f5fa;
+
+  /* Admin — sidebar navy */
+  --color-sp-admin-sidebar: #1e2235;
+  --color-sp-admin-sidebar-text: #c4c4d8;
+  --color-sp-admin-sidebar-muted: #565670;
+  --color-sp-admin-sidebar-border: #272b42;
+  --color-sp-admin-sidebar-hover: #252940;
+  --color-sp-admin-sidebar-active: #2e3350;
 
   /* Brand fonts */
   --font-display: "Barlow Condensed", sans-serif;
@@ -281,6 +288,21 @@
   border: 1px solid rgba(100, 116, 139, 0.3);
 }
 
+/* ── Admin sidebar hero ──────────────────────────────────────────────────── */
+
+@keyframes sp-admin-glow-breathe {
+  0%, 100% { opacity: 0.18; }
+  50%       { opacity: 0.28; }
+}
+
+.sp-admin-glow-breathe {
+  animation: sp-admin-glow-breathe 6s ease-in-out infinite;
+}
+
+.sp-admin-hero-bg {
+  background: linear-gradient(135deg, #1a1a2e 0%, #2d1b4e 100%);
+}
+
 /* ── Reduced motion — disable landing animations ─────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   .marquee-track,
@@ -291,7 +313,10 @@
   .hero-aura-orange {
     animation: none;
   }
-  .hero-logo-float {
+  .hero-logo-float,
+  .sp-admin-hero-bg,
+  .sp-admin-hero-blob-a,
+  .sp-admin-hero-blob-b {
     animation: none;
   }
 }
