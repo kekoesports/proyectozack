@@ -103,74 +103,63 @@ export function TalentCard({ creator, verticals }: CardProps): React.ReactElemen
 
   return (
     <m.div
-      whileHover={{ y: -4, scale: 1.02 }}
-      transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+      whileHover={{ y: -3, boxShadow: '0 8px 24px rgba(0,0,0,0.12)' }}
+      transition={{ type: 'spring', stiffness: 400, damping: 25 }}
       onClick={handleClick}
       onKeyDown={handleKeyDown}
       role="button"
       tabIndex={0}
       aria-label={`Ver perfil de ${creator.name}`}
-      className="relative rounded-2xl bg-sp-admin-card border border-sp-admin-border overflow-hidden flex flex-col cursor-pointer focus-visible:outline-2 focus-visible:outline-sp-admin-accent focus-visible:outline-offset-2"
+      className="relative rounded-xl bg-sp-admin-card shadow-[0_1px_3px_rgba(0,0,0,0.06)] overflow-hidden flex flex-col cursor-pointer focus-visible:outline-2 focus-visible:outline-sp-admin-accent focus-visible:outline-offset-2"
     >
-      {/* Status badge — top right */}
-      <div className="absolute top-3 right-3 z-10">
-        <StateBadge tone={tone} variant="soft">
-          {statusLabel}
-        </StateBadge>
-      </div>
-
-      {/* Avatar area */}
-      <div className="flex flex-col items-center pt-8 pb-4 px-4 gap-3">
+      {/* Foto cuadrada centrada en cara */}
+      <div
+        className="relative aspect-square w-full overflow-hidden"
+        style={{ background: `linear-gradient(135deg, ${creator.gradientC1}, ${creator.gradientC2})` }}
+      >
         <Avatar creator={creator} />
 
-        {/* Name + slug */}
-        <div className="text-center min-w-0 w-full">
-          <p className="font-bold text-sp-admin-text truncate text-sm leading-tight">
-            {creator.name}
-          </p>
-          <p className="text-[11px] text-sp-admin-muted truncate mt-0.5">
-            @{creator.slug}
-          </p>
+        {/* Status badge */}
+        <div className="absolute top-2 right-2 z-10">
+          <StateBadge tone={tone} variant="soft">{statusLabel}</StateBadge>
         </div>
 
-        {/* Platform chips */}
-        {platformChips.length > 0 && (
-          <div className="flex flex-wrap justify-center gap-1">
-            {platformChips.map((chip) => (
-              <StateBadge key={chip} tone="info" variant="dot">
-                {chip}
-              </StateBadge>
-            ))}
+        {/* País */}
+        {creator.creatorCountry && (
+          <div className="absolute top-2 left-2 z-10">
+            <span className="text-[9px] font-bold uppercase tracking-wider text-white bg-black/30 backdrop-blur-sm rounded px-1.5 py-0.5">
+              {creator.creatorCountry}
+            </span>
           </div>
         )}
 
-        {/* Total followers */}
-        <div className="text-center">
-          {totalFollowers !== null ? (
-            <>
-              <p className="text-2xl font-black text-sp-admin-text tabular-nums leading-none">
-                {totalFollowers}
-              </p>
-              <p className="text-[10px] text-sp-admin-muted uppercase tracking-wider mt-0.5">
-                seguidores
-              </p>
-            </>
-          ) : (
-            <p className="text-2xl font-black text-sp-admin-muted leading-none">—</p>
-          )}
-        </div>
+        {/* Total followers — overlay inferior */}
+        {totalFollowers !== null && (
+          <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/60 to-transparent px-3 py-2">
+            <p className="text-base font-black text-white tabular-nums leading-none">{totalFollowers}</p>
+            <p className="text-[8px] text-white/70 uppercase tracking-wide">seguidores</p>
+          </div>
+        )}
+      </div>
+
+      {/* Info compacta */}
+      <div className="px-3 pt-2 pb-1">
+        <p className="font-bold text-[12px] text-sp-admin-text truncate leading-tight">{creator.name}</p>
+        {creator.game && <p className="text-[10px] text-sp-admin-muted truncate">{creator.game}</p>}
+
+        {/* Platform chips — max 2 */}
+        {platformChips.length > 0 && (
+          <div className="flex flex-wrap gap-1 mt-1.5">
+            {platformChips.slice(0, 2).map((chip) => (
+              <StateBadge key={chip} tone="info" variant="dot">{chip}</StateBadge>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Footer */}
-      <div className="border-t border-sp-admin-border px-4 py-2.5 flex items-center justify-between gap-2 mt-auto">
-        <span className="text-[10px] text-sp-admin-muted truncate">
-          {creator.role}{creator.game ? ` · ${creator.game}` : ''}
-        </span>
-        {creator.creatorCountry && (
-          <span className="shrink-0 text-[10px] uppercase tracking-wider font-mono font-semibold text-sp-admin-muted border border-sp-admin-border rounded px-1.5 py-0.5">
-            {creator.creatorCountry}
-          </span>
-        )}
+      <div className="border-t border-sp-admin-border/60 px-3 py-1.5 mt-auto">
+        <span className="text-[9px] text-sp-admin-muted truncate block">{creator.role}</span>
       </div>
     </m.div>
   );
@@ -185,26 +174,19 @@ type AvatarProps = {
 function Avatar({ creator }: AvatarProps): React.ReactElement {
   if (creator.photoUrl) {
     return (
-      <div className="relative w-20 h-20 rounded-full overflow-hidden shrink-0 ring-2 ring-sp-admin-border">
-        <Image
-          src={creator.photoUrl}
-          alt={creator.name}
-          fill
-          className="object-cover"
-          sizes="80px"
-        />
-      </div>
+      <Image
+        src={creator.photoUrl}
+        alt={creator.name}
+        fill
+        className="object-cover object-top"
+        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 20vw"
+      />
     );
   }
 
   return (
-    <div
-      className="w-20 h-20 rounded-full shrink-0 flex items-center justify-center ring-2 ring-sp-admin-border"
-      style={{
-        background: `linear-gradient(135deg, ${creator.gradientC1}, ${creator.gradientC2})`,
-      }}
-    >
-      <span className="font-display text-2xl font-black text-white/90 select-none">
+    <div className="absolute inset-0 flex items-center justify-center">
+      <span className="font-display text-4xl font-black text-white/90 select-none">
         {creator.initials}
       </span>
     </div>

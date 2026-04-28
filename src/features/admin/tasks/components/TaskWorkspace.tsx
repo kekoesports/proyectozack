@@ -24,10 +24,22 @@ type Props = {
 
 type ViewMode = 'list' | 'kanban' | 'calendar';
 
-const VIEWS: ReadonlyArray<{ readonly key: ViewMode; readonly label: string; readonly icon: string }> = [
-  { key: 'list', label: 'Lista', icon: '☰' },
-  { key: 'kanban', label: 'Kanban', icon: '▦' },
-  { key: 'calendar', label: 'Calendario', icon: '📅' },
+const VIEWS: ReadonlyArray<{ readonly key: ViewMode; readonly label: string; readonly icon: React.ReactNode }> = [
+  { key: 'list', label: 'Lista', icon: (
+    <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" aria-hidden>
+      <line x1="2" y1="3" x2="11" y2="3"/><line x1="2" y1="6.5" x2="11" y2="6.5"/><line x1="2" y1="10" x2="7" y2="10"/>
+    </svg>
+  )},
+  { key: 'kanban', label: 'Kanban', icon: (
+    <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" aria-hidden>
+      <rect x="1" y="2" width="3" height="9" rx="1"/><rect x="5" y="2" width="3" height="6" rx="1"/><rect x="9" y="2" width="3" height="7.5" rx="1"/>
+    </svg>
+  )},
+  { key: 'calendar', label: 'Calendario', icon: (
+    <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" aria-hidden>
+      <rect x="1" y="2" width="11" height="10" rx="1.5"/><line x1="1" y1="5" x2="12" y2="5"/><line x1="4" y1="1" x2="4" y2="3.5"/><line x1="9" y1="1" x2="9" y2="3.5"/>
+    </svg>
+  )},
 ];
 
 /**
@@ -56,24 +68,54 @@ export function TaskWorkspace(props: Props): React.ReactElement {
 
   const activeIdParam = searchParams.get('t');
 
+  const pending    = props.tasks.filter((t) => t.status === 'pendiente').length;
+  const inProgress = props.tasks.filter((t) => t.status === 'en_progreso').length;
+  const done       = props.tasks.filter((t) => t.status === 'completada').length;
+  const overdue    = props.tasks.filter((t) => t.status !== 'completada' && t.dueDate !== null && new Date(t.dueDate) < new Date()).length;
+
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-end">
-        <div className="inline-flex rounded-full bg-sp-admin-card border border-sp-admin-border p-0.5">
+      {/* KPIs de la semana */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        {[
+          { label: 'Pendientes',  value: pending,    color: '#72728a' },
+          { label: 'En curso',    value: inProgress, color: '#f59e0b' },
+          { label: 'Completadas', value: done,       color: '#16a34a' },
+          { label: 'Vencidas',    value: overdue,    color: overdue > 0 ? '#ef4444' : '#72728a' },
+        ].map((s) => (
+          <div key={s.label} className="rounded-lg bg-sp-admin-card shadow-[0_1px_3px_rgba(0,0,0,0.06)] overflow-hidden">
+            <div className="h-[2px]" style={{ background: s.color }} />
+            <div className="px-4 py-3">
+              <p className="text-[9px] font-bold uppercase tracking-wide text-sp-admin-muted">{s.label}</p>
+              <p className="text-xl font-bold mt-0.5" style={{ color: s.color }}>{s.value}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Toolbar: semana + view switcher */}
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-[11px] text-sp-admin-muted hidden sm:block tabular-nums">
+          {props.tasks.length} {props.tasks.length === 1 ? 'tarea' : 'tareas'} · {props.weekLabel}
+        </p>
+        <div className="flex items-center gap-0.5 bg-sp-admin-card border border-sp-admin-border rounded-lg p-0.5 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
           {VIEWS.map((v) => {
             const isActive = view === v.key;
             return (
               <button
                 key={v.key}
                 type="button"
+                title={v.label}
                 onClick={() => {
-                  // Si veníamos de list con ?t=xx, limpiar ese param al cambiar de vista
                   if (activeIdParam && v.key !== 'list') router.replace(pathname, { scroll: false });
                   setView(v.key);
                 }}
-                className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors cursor-pointer ${isActive ? 'bg-sp-admin-accent text-sp-admin-bg' : 'text-sp-admin-muted hover:text-sp-admin-text'}`}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[11px] font-semibold transition-all cursor-pointer ${
+                  isActive ? 'bg-sp-admin-accent text-white shadow-sm' : 'text-sp-admin-muted hover:text-sp-admin-text hover:bg-sp-admin-hover'
+                }`}
               >
-                <span className="mr-1.5">{v.icon}</span>{v.label}
+                {v.icon}
+                <span className="hidden sm:inline">{v.label}</span>
               </button>
             );
           })}
