@@ -1,5 +1,5 @@
 {
-  "id": "8856ef64-2f7c-4ad6-b1df-ca10602e3a45",
+  "id": "d9354a64-55dc-48f6-9110-0cd396033a2d",
   "prevId": "e51cf08a-b6b3-4ee7-aee4-81d661c70deb",
   "version": "7",
   "dialect": "postgresql",
@@ -3379,18 +3379,6 @@
           "primaryKey": false,
           "notNull": false
         },
-        "linkedin": {
-          "name": "linkedin",
-          "type": "varchar(200)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "country": {
-          "name": "country",
-          "type": "varchar(2)",
-          "primaryKey": false,
-          "notNull": false
-        },
         "notes": {
           "name": "notes",
           "type": "text",
@@ -3506,66 +3494,22 @@
           "primaryKey": false,
           "notNull": true
         },
+        "priority": {
+          "name": "priority",
+          "type": "crm_followup_priority",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'media'"
+        },
         "completed_at": {
           "name": "completed_at",
           "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": false
         },
-        "channel": {
-          "name": "channel",
-          "type": "crm_followup_channel",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "summary": {
-          "name": "summary",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "next_action": {
-          "name": "next_action",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "next_action_at": {
-          "name": "next_action_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "status": {
-          "name": "status",
-          "type": "crm_followup_status",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'pendiente'"
-        },
-        "assigned_to_user_id": {
-          "name": "assigned_to_user_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "responsible_user_id": {
-          "name": "responsible_user_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
         "created_at": {
           "name": "created_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "updated_at": {
-          "name": "updated_at",
           "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true,
@@ -3618,26 +3562,11 @@
           "method": "btree",
           "with": {}
         },
-        "crm_brand_followups_status_idx": {
-          "name": "crm_brand_followups_status_idx",
+        "crm_brand_followups_priority_idx": {
+          "name": "crm_brand_followups_priority_idx",
           "columns": [
             {
-              "expression": "status",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "crm_brand_followups_assigned_to_idx": {
-          "name": "crm_brand_followups_assigned_to_idx",
-          "columns": [
-            {
-              "expression": "assigned_to_user_id",
+              "expression": "priority",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -3669,32 +3598,6 @@
           "tableTo": "user",
           "columnsFrom": [
             "created_by_user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "set null",
-          "onUpdate": "no action"
-        },
-        "crm_brand_followups_assigned_to_user_id_user_id_fk": {
-          "name": "crm_brand_followups_assigned_to_user_id_user_id_fk",
-          "tableFrom": "crm_brand_followups",
-          "tableTo": "user",
-          "columnsFrom": [
-            "assigned_to_user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "set null",
-          "onUpdate": "no action"
-        },
-        "crm_brand_followups_responsible_user_id_user_id_fk": {
-          "name": "crm_brand_followups_responsible_user_id_user_id_fk",
-          "tableFrom": "crm_brand_followups",
-          "tableTo": "user",
-          "columnsFrom": [
-            "responsible_user_id"
           ],
           "columnsTo": [
             "id"
@@ -3751,13 +3654,13 @@
         },
         "geo": {
           "name": "geo",
-          "type": "varchar(30)",
+          "type": "varchar(80)",
           "primaryKey": false,
           "notNull": false
         },
         "country": {
           "name": "country",
-          "type": "varchar(2)",
+          "type": "varchar(50)",
           "primaryKey": false,
           "notNull": false
         },
@@ -3778,30 +3681,6 @@
         "portal_user_id": {
           "name": "portal_user_id",
           "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "created_by_user_id": {
-          "name": "created_by_user_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "assigned_to_user_id": {
-          "name": "assigned_to_user_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "last_contact_at": {
-          "name": "last_contact_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "next_followup_at": {
-          "name": "next_followup_at",
-          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": false
         },
@@ -3886,51 +3765,6 @@
           "concurrently": false,
           "method": "btree",
           "with": {}
-        },
-        "crm_brands_created_by_idx": {
-          "name": "crm_brands_created_by_idx",
-          "columns": [
-            {
-              "expression": "created_by_user_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "crm_brands_assigned_to_idx": {
-          "name": "crm_brands_assigned_to_idx",
-          "columns": [
-            {
-              "expression": "assigned_to_user_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "crm_brands_next_followup_idx": {
-          "name": "crm_brands_next_followup_idx",
-          "columns": [
-            {
-              "expression": "next_followup_at",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
         }
       },
       "foreignKeys": {
@@ -3953,32 +3787,6 @@
           "tableTo": "user",
           "columnsFrom": [
             "portal_user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "set null",
-          "onUpdate": "no action"
-        },
-        "crm_brands_created_by_user_id_user_id_fk": {
-          "name": "crm_brands_created_by_user_id_user_id_fk",
-          "tableFrom": "crm_brands",
-          "tableTo": "user",
-          "columnsFrom": [
-            "created_by_user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "set null",
-          "onUpdate": "no action"
-        },
-        "crm_brands_assigned_to_user_id_user_id_fk": {
-          "name": "crm_brands_assigned_to_user_id_user_id_fk",
-          "tableFrom": "crm_brands",
-          "tableTo": "user",
-          "columnsFrom": [
-            "assigned_to_user_id"
           ],
           "columnsTo": [
             "id"
@@ -4309,6 +4117,18 @@
         "file_path": {
           "name": "file_path",
           "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "entity": {
+          "name": "entity",
+          "type": "varchar(80)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "payment_method": {
+          "name": "payment_method",
+          "type": "varchar(80)",
           "primaryKey": false,
           "notNull": false
         },
@@ -4854,6 +4674,303 @@
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
+    },
+    "public.campaigns": {
+      "name": "campaigns",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "brand_id": {
+          "name": "brand_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "talent_id": {
+          "name": "talent_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar(200)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "sector": {
+          "name": "sector",
+          "type": "varchar(80)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "geo": {
+          "name": "geo",
+          "type": "varchar(80)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "campaign_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'negociacion'"
+        },
+        "start_date": {
+          "name": "start_date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "end_date": {
+          "name": "end_date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "deliverables": {
+          "name": "deliverables",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "notes": {
+          "name": "notes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "brand_payment": {
+          "name": "brand_payment",
+          "type": "numeric(12, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "talent_payment": {
+          "name": "talent_payment",
+          "type": "numeric(12, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "agency_fee": {
+          "name": "agency_fee",
+          "type": "numeric(12, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "agency_fee_percent": {
+          "name": "agency_fee_percent",
+          "type": "numeric(5, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "brand_paid": {
+          "name": "brand_paid",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "brand_paid_date": {
+          "name": "brand_paid_date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "brand_paid_amount": {
+          "name": "brand_paid_amount",
+          "type": "numeric(12, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "brand_payment_method": {
+          "name": "brand_payment_method",
+          "type": "varchar(80)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "talent_paid": {
+          "name": "talent_paid",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "talent_paid_date": {
+          "name": "talent_paid_date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "talent_paid_amount": {
+          "name": "talent_paid_amount",
+          "type": "numeric(12, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "talent_payment_method": {
+          "name": "talent_payment_method",
+          "type": "varchar(80)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "owner_user_id": {
+          "name": "owner_user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "campaigns_brand_idx": {
+          "name": "campaigns_brand_idx",
+          "columns": [
+            {
+              "expression": "brand_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "campaigns_talent_idx": {
+          "name": "campaigns_talent_idx",
+          "columns": [
+            {
+              "expression": "talent_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "campaigns_status_idx": {
+          "name": "campaigns_status_idx",
+          "columns": [
+            {
+              "expression": "status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "campaigns_owner_idx": {
+          "name": "campaigns_owner_idx",
+          "columns": [
+            {
+              "expression": "owner_user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "campaigns_start_date_idx": {
+          "name": "campaigns_start_date_idx",
+          "columns": [
+            {
+              "expression": "start_date",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "campaigns_brand_id_crm_brands_id_fk": {
+          "name": "campaigns_brand_id_crm_brands_id_fk",
+          "tableFrom": "campaigns",
+          "tableTo": "crm_brands",
+          "columnsFrom": [
+            "brand_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "campaigns_talent_id_talents_id_fk": {
+          "name": "campaigns_talent_id_talents_id_fk",
+          "tableFrom": "campaigns",
+          "tableTo": "talents",
+          "columnsFrom": [
+            "talent_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "campaigns_owner_user_id_user_id_fk": {
+          "name": "campaigns_owner_user_id_user_id_fk",
+          "tableFrom": "campaigns",
+          "tableTo": "user",
+          "columnsFrom": [
+            "owner_user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
     }
   },
   "enums": {
@@ -4961,35 +5078,23 @@
       "schema": "public",
       "values": [
         "lead",
-        "contactada",
+        "contactado",
         "en_negociacion",
+        "propuesta_enviada",
         "activa",
+        "inactiva",
+        "perdida",
         "pausada",
-        "cerrada",
-        "no_interesa",
         "archivada"
       ]
     },
-    "public.crm_followup_channel": {
-      "name": "crm_followup_channel",
+    "public.crm_followup_priority": {
+      "name": "crm_followup_priority",
       "schema": "public",
       "values": [
-        "email",
-        "telegram",
-        "discord",
-        "whatsapp",
-        "reunion",
-        "llamada",
-        "otro"
-      ]
-    },
-    "public.crm_followup_status": {
-      "name": "crm_followup_status",
-      "schema": "public",
-      "values": [
-        "pendiente",
-        "hecho",
-        "vencido"
+        "alta",
+        "media",
+        "baja"
       ]
     },
     "public.talent_vertical": {
@@ -5046,6 +5151,17 @@
         "pending",
         "approved",
         "rejected"
+      ]
+    },
+    "public.campaign_status": {
+      "name": "campaign_status",
+      "schema": "public",
+      "values": [
+        "negociacion",
+        "activa",
+        "pausada",
+        "finalizada",
+        "cancelada"
       ]
     }
   },
