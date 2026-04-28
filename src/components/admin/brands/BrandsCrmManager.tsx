@@ -31,17 +31,27 @@ import {
 } from '@/lib/schemas/crmBrand';
 
 const STATUS_LABELS: Record<CrmBrandStatus, string> = {
-  lead: 'Lead',
-  activa: 'Activa',
-  pausada: 'Pausada',
-  archivada: 'Archivada',
+  lead:              'Lead',
+  contactado:        'Contactado',
+  en_negociacion:    'En negociación',
+  propuesta_enviada: 'Propuesta enviada',
+  activa:            'Activa',
+  inactiva:          'Inactiva',
+  perdida:           'Perdida',
+  pausada:           'Pausada',
+  archivada:         'Archivada',
 };
 
 const STATUS_STYLES: Record<CrmBrandStatus, string> = {
-  lead: 'bg-blue-500/15 text-blue-400 border-blue-500/30',
-  activa: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
-  pausada: 'bg-amber-500/15 text-amber-400 border-amber-500/30',
-  archivada: 'bg-slate-500/15 text-slate-400 border-slate-500/30',
+  lead:              'bg-blue-500/15 text-blue-400 border-blue-500/30',
+  contactado:        'bg-sky-500/15 text-sky-400 border-sky-500/30',
+  en_negociacion:    'bg-amber-500/15 text-amber-400 border-amber-500/30',
+  propuesta_enviada: 'bg-orange-500/15 text-orange-400 border-orange-500/30',
+  activa:            'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
+  inactiva:          'bg-slate-500/15 text-slate-400 border-slate-500/30',
+  perdida:           'bg-red-500/15 text-red-400 border-red-500/30',
+  pausada:           'bg-amber-500/15 text-amber-400 border-amber-500/30',
+  archivada:         'bg-slate-500/15 text-slate-400 border-slate-500/30',
 };
 
 const TIPO_LABELS: Record<string, string> = {
@@ -70,51 +80,107 @@ export function BrandsCrmManager({
   const [showCreate, setShowCreate] = useState(false);
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [editingBrandId, setEditingBrandId] = useState<number | null>(null);
+  const [search, setSearch] = useState('');
+  const [filterStatus, setFilterStatus] = useState('');
 
   const overdue = upcomingFollowups.filter((f) => new Date(f.scheduledAt) < new Date());
   const upcoming = upcomingFollowups.filter((f) => new Date(f.scheduledAt) >= new Date());
 
+  const filteredBrands = brands.filter((b) => {
+    const q = search.toLowerCase();
+    const matchSearch = !search || b.name.toLowerCase().includes(q) || (b.ownerName ?? '').toLowerCase().includes(q);
+    const matchStatus = !filterStatus || b.status === filterStatus;
+    return matchSearch && matchStatus;
+  });
+
+  const activaCount = brands.filter((b) => b.status === 'activa').length;
+  const leadCount = brands.filter((b) => b.status === 'lead').length;
+  const negCount = brands.filter((b) => b.status === 'en_negociacion').length;
+
   return (
-    <div className="space-y-6">
-      {/* Follow-up widget */}
-      {upcomingFollowups.length > 0 && (
-        <div className="rounded-2xl bg-sp-admin-card border border-sp-admin-border p-5">
-          <h3 className="text-xs uppercase tracking-wider font-semibold text-sp-admin-muted mb-3">
-            Próximos seguimientos
-          </h3>
-          {overdue.length > 0 && (
-            <div className="mb-3">
-              <p className="text-[10px] uppercase tracking-wider text-red-400 font-semibold mb-2">Vencidos</p>
-              <div className="space-y-1.5">
-                {overdue.map((f) => (
-                  <FollowupWidgetRow key={f.id} followup={f} isOverdue />
-                ))}
-              </div>
-            </div>
-          )}
-          {upcoming.length > 0 && (
-            <div>
-              <p className="text-[10px] uppercase tracking-wider text-sp-admin-muted font-semibold mb-2">Próximos 30 días</p>
-              <div className="space-y-1.5">
-                {upcoming.map((f) => (
-                  <FollowupWidgetRow key={f.id} followup={f} isOverdue={false} />
-                ))}
-              </div>
-            </div>
-          )}
+    <div className="space-y-4">
+
+      {/* Alertas de seguimientos */}
+      {(overdue.length > 0 || upcoming.length > 0) && (
+        <div className="rounded-xl bg-sp-admin-card shadow-[0_1px_3px_rgba(0,0,0,0.06)] overflow-hidden">
+          <div className="px-4 py-2.5 border-b border-sp-admin-border/60 bg-sp-admin-hover/40 flex items-center gap-2">
+            {overdue.length > 0 && (
+              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-red-600 bg-red-50 border border-red-200 px-2 py-0.5 rounded-full">
+                ⚠ {overdue.length} vencidos
+              </span>
+            )}
+            <h3 className="text-[10px] font-bold uppercase tracking-[0.18em] text-sp-admin-muted">
+              Próximos seguimientos
+            </h3>
+            <span className="text-[10px] text-sp-admin-muted ml-auto">{upcoming.length} pendientes</span>
+          </div>
+          <div className="divide-y divide-sp-admin-border/40">
+            {[...overdue, ...upcoming.slice(0, 4)].map((f) => {
+              const isOv = new Date(f.scheduledAt) < new Date();
+              return (
+                <div key={f.id} className={`flex items-center gap-3 px-4 py-2.5 hover:bg-sp-admin-hover transition-colors ${isOv ? 'bg-red-50/40' : ''}`}>
+                  <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isOv ? 'bg-red-500' : 'bg-emerald-500'}`} />
+                  <span className="font-semibold text-[12px] text-sp-admin-text shrink-0">{f.brandName}</span>
+                  <span className="text-[11px] text-sp-admin-muted truncate flex-1">{f.note}</span>
+                  <span className={`text-[10px] font-semibold shrink-0 tabular-nums ${isOv ? 'text-red-500' : 'text-sp-admin-muted'}`}>
+                    {new Date(f.scheduledAt).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
 
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-sp-admin-muted">
-          {brands.length} {brands.length === 1 ? 'marca' : 'marcas'} en el CRM
-        </p>
+      {/* Stats rápidas */}
+      <div className="grid grid-cols-3 gap-2">
+        {[
+          { label: 'Leads',        value: leadCount,   color: '#5b9bd5' },
+          { label: 'En negoc.',    value: negCount,    color: '#f59e0b' },
+          { label: 'Activas',      value: activaCount, color: '#16a34a' },
+        ].map((s) => (
+          <button
+            key={s.label}
+            type="button"
+            onClick={() => setFilterStatus(filterStatus === s.label.toLowerCase().replace(' ', '_') ? '' : (
+              s.label === 'Leads' ? 'lead' : s.label === 'Activas' ? 'activa' : 'en_negociacion'
+            ))}
+            className="rounded-lg bg-sp-admin-card shadow-[0_1px_3px_rgba(0,0,0,0.06)] overflow-hidden text-left hover:shadow-md transition-shadow"
+          >
+            <div className="h-[2px]" style={{ background: s.color }} />
+            <div className="px-4 py-3">
+              <p className="text-[9px] font-bold uppercase tracking-wide text-sp-admin-muted">{s.label}</p>
+              <p className="text-xl font-bold mt-0.5" style={{ color: s.color }}>{s.value}</p>
+            </div>
+          </button>
+        ))}
+      </div>
+
+      {/* Toolbar: búsqueda + filtro + CTA */}
+      <div className="flex items-center gap-2 flex-wrap">
+        <input
+          type="search"
+          placeholder="Buscar marca, responsable…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="flex-1 min-w-[200px] h-8 rounded-lg border border-sp-admin-border bg-white px-3 text-[12px] text-sp-admin-text placeholder:text-sp-admin-muted/60 focus:outline-none focus:border-sp-admin-accent/50 shadow-[0_1px_2px_rgba(0,0,0,0.04)]"
+        />
+        <select
+          value={filterStatus}
+          onChange={(e) => setFilterStatus(e.target.value)}
+          className="h-8 rounded-lg border border-sp-admin-border bg-white px-2 text-[12px] text-sp-admin-text focus:outline-none focus:border-sp-admin-accent/50"
+        >
+          <option value="">Todos los estados</option>
+          {Object.entries(STATUS_LABELS).map(([k, v]) => (
+            <option key={k} value={k}>{v}</option>
+          ))}
+        </select>
         <button
           type="button"
           onClick={() => setShowCreate((v) => !v)}
           className={BTN_PRIMARY}
         >
-          {showCreate ? 'Cancelar' : '+ Nueva marca'}
+          {showCreate ? '× Cancelar' : '+ Nueva marca'}
         </button>
       </div>
 
@@ -125,28 +191,32 @@ export function BrandsCrmManager({
         />
       )}
 
-      {brands.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-sp-admin-border p-12 text-center">
+      {filteredBrands.length === 0 ? (
+        <div className="rounded-xl border border-dashed border-sp-admin-border bg-sp-admin-card p-12 text-center">
           <p className="text-sm text-sp-admin-muted">
-            No hay marcas registradas todavía. Crea la primera para empezar tu CRM.
+            {search || filterStatus ? 'No hay marcas con esos filtros.' : 'No hay marcas registradas todavía.'}
           </p>
+          {!search && !filterStatus && (
+            <button type="button" onClick={() => setShowCreate(true)} className="mt-3 text-[12px] font-semibold text-sp-admin-accent hover:opacity-70 transition-opacity">
+              Crear la primera marca →
+            </button>
+          )}
         </div>
       ) : (
-        <div className="rounded-2xl bg-sp-admin-card border border-sp-admin-border overflow-hidden">
-          <table className="w-full text-sm">
+        <div className="rounded-xl bg-sp-admin-card shadow-[0_1px_3px_rgba(0,0,0,0.06)] overflow-hidden">
+          <table className="w-full">
             <thead>
-              <tr className="border-b border-sp-admin-border bg-sp-admin-bg/50">
-                <th className="text-left px-6 py-3 font-semibold text-sp-admin-muted text-[11px] uppercase tracking-wider">Marca</th>
-                <th className="text-left px-6 py-3 font-semibold text-sp-admin-muted text-[11px] uppercase tracking-wider">Tipo</th>
-                <th className="text-left px-6 py-3 font-semibold text-sp-admin-muted text-[11px] uppercase tracking-wider">Estado</th>
-                <th className="text-left px-6 py-3 font-semibold text-sp-admin-muted text-[11px] uppercase tracking-wider">Sector</th>
-                <th className="text-left px-6 py-3 font-semibold text-sp-admin-muted text-[11px] uppercase tracking-wider">Owner</th>
-                <th className="text-left px-6 py-3 font-semibold text-sp-admin-muted text-[11px] uppercase tracking-wider">Contacto principal</th>
-                <th className="px-6 py-3"></th>
+              <tr className="border-b border-sp-admin-border bg-sp-admin-hover/40">
+                <th className="text-left px-4 py-2.5 text-[9px] font-bold text-sp-admin-muted uppercase tracking-[0.18em]">Marca</th>
+                <th className="text-left px-4 py-2.5 text-[9px] font-bold text-sp-admin-muted uppercase tracking-[0.18em] hidden md:table-cell">Estado</th>
+                <th className="text-left px-4 py-2.5 text-[9px] font-bold text-sp-admin-muted uppercase tracking-[0.18em] hidden lg:table-cell">Sector</th>
+                <th className="text-left px-4 py-2.5 text-[9px] font-bold text-sp-admin-muted uppercase tracking-[0.18em] hidden lg:table-cell">Contacto</th>
+                <th className="text-left px-4 py-2.5 text-[9px] font-bold text-sp-admin-muted uppercase tracking-[0.18em] hidden xl:table-cell">Owner</th>
+                <th className="px-4 py-2.5 text-[9px] font-bold text-sp-admin-muted uppercase tracking-[0.18em] text-right">{filteredBrands.length} marcas</th>
               </tr>
             </thead>
             <tbody>
-              {brands.map((brand) => {
+              {filteredBrands.map((brand) => {
                 const isExpanded = expandedId === brand.id;
                 const isEditing = editingBrandId === brand.id;
                 const contacts = contactsByBrand[brand.id] ?? [];
@@ -221,61 +291,97 @@ function BrandRow({ brand, contacts, followups, isExpanded, isEditing, onToggleE
 
   const pendingFollowups = followups.filter((f) => !f.completedAt).length;
 
+  // Genera color de avatar a partir del nombre
+  const avatarColors = ['#f5632a', '#8b3aad', '#5b9bd5', '#c42880', '#16a34a', '#e8a800'];
+  const avatarColor = avatarColors[brand.name.charCodeAt(0) % avatarColors.length]!;
+  const initials = brand.name.slice(0, 2).toUpperCase();
+
   return (
     <>
       <tr
-        className={`border-b border-sp-admin-border/50 last:border-0 hover:bg-sp-admin-hover transition-colors cursor-pointer ${isExpanded ? 'bg-sp-admin-hover/40' : ''}`}
+        className={`border-b border-sp-admin-border/40 last:border-0 hover:bg-sp-admin-hover transition-colors cursor-pointer ${isExpanded ? 'bg-sp-admin-hover/60' : ''}`}
         onClick={onToggleExpand}
       >
-        <td className="px-6 py-4 font-medium text-sp-admin-text">
-          <div className="flex items-center gap-2">
-            <span className={`text-xs transition-transform ${isExpanded ? 'rotate-90' : ''}`}>▸</span>
-            <span>{brand.name}</span>
+        {/* Marca — avatar + nombre */}
+        <td className="px-4 py-3">
+          <div className="flex items-center gap-3">
+            <div
+              className="w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-bold text-white shrink-0"
+              style={{ background: `linear-gradient(135deg, ${avatarColor}cc, ${avatarColor}88)` }}
+            >
+              {initials}
+            </div>
+            <div className="min-w-0">
+              <a
+                href={`/admin/brands/${brand.id}`}
+                onClick={(e) => e.stopPropagation()}
+                className="text-[13px] font-semibold text-sp-admin-text hover:text-sp-admin-accent transition-colors truncate block"
+              >
+                {brand.name}
+              </a>
+              {brand.website && (
+                <span className="text-[10px] text-sp-admin-muted truncate block">{brand.website.replace(/^https?:\/\//, '')}</span>
+              )}
+            </div>
             {pendingFollowups > 0 && (
-              <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 font-bold">
-                {pendingFollowups} seguim.
+              <span className="shrink-0 text-[9px] px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 border border-amber-200 font-bold">
+                {pendingFollowups}
               </span>
             )}
           </div>
         </td>
-        <td className="px-6 py-4 text-sp-admin-muted text-xs">
-          {brand.tipo ? TIPO_LABELS[brand.tipo] ?? brand.tipo : '—'}
-        </td>
-        <td className="px-6 py-4">
-          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${STATUS_STYLES[brand.status]}`}>
+
+        {/* Estado */}
+        <td className="px-4 py-3 hidden md:table-cell">
+          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border ${STATUS_STYLES[brand.status]}`}>
             {STATUS_LABELS[brand.status]}
           </span>
         </td>
-        <td className="px-6 py-4 text-sp-admin-muted text-xs">
-          {brand.sector ? (SECTOR_LABELS[brand.sector as CrmBrandSector] ?? brand.sector) : '—'}
+
+        {/* Sector */}
+        <td className="px-4 py-3 hidden lg:table-cell">
+          <span className="text-[11px] text-sp-admin-muted">
+            {brand.sector ? (SECTOR_LABELS[brand.sector as CrmBrandSector] ?? brand.sector) : '—'}
+          </span>
         </td>
-        <td className="px-6 py-4 text-sp-admin-muted">{brand.ownerName ?? '—'}</td>
-        <td className="px-6 py-4 text-sp-admin-muted">
+
+        {/* Contacto principal */}
+        <td className="px-4 py-3 hidden lg:table-cell">
           {primary ? (
-            <div className="flex flex-col">
-              <span className="text-sp-admin-text font-medium">{primary.name}</span>
-              {primary.email && <span className="text-xs">{primary.email}</span>}
+            <div>
+              <p className="text-[12px] font-medium text-sp-admin-text">{primary.name}</p>
+              {primary.email && <p className="text-[10px] text-sp-admin-muted truncate max-w-[140px]">{primary.email}</p>}
             </div>
           ) : (
-            <span className="text-xs italic">Sin contacto principal</span>
+            <span className="text-[10px] text-sp-admin-muted/50 italic">Sin contacto</span>
           )}
         </td>
-        <td className="px-6 py-4 text-right whitespace-nowrap">
-          <button
-            type="button"
-            onClick={(e) => { e.stopPropagation(); onEdit(); }}
-            className={BTN_GHOST}
-          >
-            Editar
-          </button>
-          <button
-            type="button"
-            onClick={(e) => { e.stopPropagation(); onDelete(); }}
-            disabled={isPending}
-            className="px-3 py-1.5 rounded-full text-xs font-semibold text-red-400 hover:bg-red-500/10 disabled:opacity-50 transition-colors cursor-pointer"
-          >
-            Borrar
-          </button>
+
+        {/* Owner */}
+        <td className="px-4 py-3 hidden xl:table-cell">
+          <span className="text-[11px] text-sp-admin-muted">{brand.ownerName ?? '—'}</span>
+        </td>
+
+        {/* Acciones */}
+        <td className="px-4 py-3 text-right whitespace-nowrap">
+          <div className="flex items-center justify-end gap-1">
+            <span className={`text-[10px] transition-transform mr-1 text-sp-admin-muted ${isExpanded ? 'rotate-90' : ''}`}>▸</span>
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); onEdit(); }}
+              className="px-2.5 py-1 rounded-lg text-[11px] font-semibold text-sp-admin-muted hover:text-sp-admin-text hover:bg-sp-admin-hover transition-colors"
+            >
+              Editar
+            </button>
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); onDelete(); }}
+              disabled={isPending}
+              className="px-2.5 py-1 rounded-lg text-[11px] font-semibold text-red-400 hover:bg-red-50 disabled:opacity-50 transition-colors"
+            >
+              ×
+            </button>
+          </div>
         </td>
       </tr>
       {isExpanded && (

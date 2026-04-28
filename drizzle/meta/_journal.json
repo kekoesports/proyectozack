@@ -232,6 +232,13 @@
       "when": 1777217818624,
       "tag": "0032_swift_johnny_blaze",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1777335406546,
+      "tag": "0033_careful_shinobi_shaw",
+      "breakpoints": true
     }
   ]
 }

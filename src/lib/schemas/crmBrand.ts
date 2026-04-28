@@ -14,7 +14,17 @@ const optEmail = z.preprocess(
   z.email().max(180).optional(),
 );
 
-export const CRM_BRAND_STATUSES = ['lead', 'activa', 'pausada', 'archivada'] as const;
+export const CRM_BRAND_STATUSES = [
+  'lead',
+  'contactado',
+  'en_negociacion',
+  'propuesta_enviada',
+  'activa',
+  'inactiva',
+  'perdida',
+  'pausada',
+  'archivada',
+] as const;
 export type CrmBrandStatus = (typeof CRM_BRAND_STATUSES)[number];
 
 export const CRM_BRAND_TIPOS = ['agencia', 'marca'] as const;

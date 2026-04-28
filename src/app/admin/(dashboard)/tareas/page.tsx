@@ -1,4 +1,5 @@
 import { Suspense, type ReactElement } from 'react';
+import { AdminPageHeader } from '@/components/admin/AdminPageHeader';
 import type { Metadata } from 'next';
 import { requireAnyRole } from '@/lib/auth-guard';
 import {
@@ -31,14 +32,22 @@ export default async function TareasPage(): Promise<ReactElement> {
     name: u.name,
   }));
 
-  return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="font-display text-4xl font-black uppercase text-sp-admin-text">Tareas</h1>
-        <p className="text-sm text-sp-admin-muted mt-1">Semana actual del equipo</p>
-      </div>
+  const pendingCount = tasks.filter((t) => t.status !== 'completada').length;
+  const doneCount = tasks.filter((t) => t.status === 'completada').length;
 
-      <Suspense fallback={<div className="text-sm text-sp-admin-muted">Cargando tareas…</div>}>
+  return (
+    <div className="space-y-4">
+      <AdminPageHeader
+        title="Tareas"
+        subtitle={weekLabel}
+        stats={[
+          { label: 'pendientes', value: pendingCount, accent: '#f5632a' },
+          { label: 'completadas', value: doneCount, accent: '#16a34a' },
+          { label: 'total', value: tasks.length },
+        ]}
+      />
+
+      <Suspense fallback={<p className="text-sm text-sp-admin-muted">Cargando tareas…</p>}>
         <TaskWorkspace
           tasks={tasks}
           users={userOptions}

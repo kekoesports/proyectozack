@@ -10,4 +10,5 @@ export type * from './crmTask';
 export type * from './crmBrand';
 export type * from './invoice';
 export type * from './invoiceImport';
+export type * from './campaign';
 export type * from './talentBusiness';

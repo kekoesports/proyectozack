@@ -9,15 +9,25 @@ import {
   pgEnum,
   index,
 } from 'drizzle-orm/pg-core';
+// Note: crmBrandStatusEnum uses pgEnum; followup priority uses varchar(10)
 import { relations } from 'drizzle-orm';
 import { user } from './auth';
 
 export const crmBrandStatusEnum = pgEnum('crm_brand_status', [
   'lead',
+  'contactado',
+  'en_negociacion',
+  'propuesta_enviada',
   'activa',
+  'inactiva',
+  'perdida',
   'pausada',
   'archivada',
 ]);
+
+// priority stored as varchar(10) in DB (alta|media|baja)
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const _crmFollowupPriorityValues = ['alta', 'media', 'baja'] as const;
 
 export const crmBrands = pgTable(
   'crm_brands',
@@ -29,12 +39,11 @@ export const crmBrands = pgTable(
     website: text('website'),
     tipo: varchar('tipo', { length: 20 }),
     sector: varchar('sector', { length: 80 }),
-    geo: varchar('geo', { length: 30 }),
-    country: varchar('country', { length: 2 }),
+    geo: varchar('geo', { length: 80 }),
+    country: varchar('country', { length: 50 }),
 
     status: crmBrandStatusEnum('status').notNull().default('lead'),
     ownerUserId: text('owner_user_id').references(() => user.id, { onDelete: 'set null' }),
-
     portalUserId: text('portal_user_id').references(() => user.id, { onDelete: 'set null' }),
 
     notes: text('notes'),
@@ -63,6 +72,7 @@ export const crmBrandContacts = pgTable(
     telegram: varchar('telegram', { length: 80 }),
     discord: varchar('discord', { length: 80 }),
     whatsapp: varchar('whatsapp', { length: 40 }),
+    notes: text('notes'),
     isPrimary: boolean('is_primary').notNull().default(false),
 
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
@@ -82,6 +92,7 @@ export const crmBrandFollowups = pgTable(
     createdByUserId: text('created_by_user_id').references(() => user.id, { onDelete: 'set null' }),
     scheduledAt: timestamp('scheduled_at', { withTimezone: true }).notNull(),
     note: text('note').notNull(),
+    priority: varchar('priority', { length: 10 }).notNull().default('media'),
     completedAt: timestamp('completed_at', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
@@ -89,6 +100,7 @@ export const crmBrandFollowups = pgTable(
     index('crm_brand_followups_brand_idx').on(t.brandId),
     index('crm_brand_followups_scheduled_idx').on(t.scheduledAt),
     index('crm_brand_followups_completed_idx').on(t.completedAt),
+    index('crm_brand_followups_priority_idx').on(t.priority),
   ],
 );
 

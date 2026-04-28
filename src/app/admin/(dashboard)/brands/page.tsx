@@ -1,3 +1,4 @@
+import { AdminPageHeader } from '@/components/admin/AdminPageHeader';
 import { db } from '@/lib/db';
 import { user as userTable } from '@/db/schema';
 import { eq, desc } from 'drizzle-orm';
@@ -95,9 +96,20 @@ export default async function AdminBrandsPage(): Promise<React.ReactElement> {
       : []),
   ];
 
+  const activaCount = crmBrands.filter((b) => b.status === 'activa').length;
+  const leadCount = crmBrands.filter((b) => b.status === 'lead').length;
+
   return (
     <div>
-      <h1 className="font-display text-4xl font-black uppercase text-sp-admin-text mb-8">Marcas</h1>
+      <AdminPageHeader
+        title="Marcas"
+        subtitle="Gestión de marcas CRM y portal"
+        stats={[
+          { label: 'activas', value: activaCount, accent: '#16a34a' },
+          { label: 'leads', value: leadCount, accent: '#8b3aad' },
+          { label: 'total', value: crmBrands.length },
+        ]}
+      />
       <BrandsTabs defaultKey="crm" tabs={tabs} />
     </div>
   );

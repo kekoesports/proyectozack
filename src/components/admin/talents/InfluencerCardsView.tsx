@@ -73,63 +73,59 @@ export function InfluencerCardsView({ creators, verticalsByTalent }: Props): Rea
     return { active, available, inactive };
   }, [creators]);
 
+  const INPUT_CLS = 'h-8 rounded-lg border border-sp-admin-border bg-white px-3 text-[12px] text-sp-admin-text placeholder:text-sp-admin-muted/60 focus:outline-none focus:border-sp-admin-accent/50 shadow-[0_1px_2px_rgba(0,0,0,0.04)]';
+
   return (
-    <div className="space-y-5">
-      {/* Filters */}
-      <div className="flex flex-wrap items-center gap-3 rounded-2xl bg-sp-admin-card border border-sp-admin-border p-4">
+    <div className="space-y-4">
+      {/* KPI rápido */}
+      <div className="grid grid-cols-3 gap-2">
+        {[
+          { label: 'Activos',      value: counts.active,    color: '#16a34a', filter: 'active' as TalentStatus },
+          { label: 'Disponibles',  value: counts.available, color: '#5b9bd5', filter: 'available' as TalentStatus },
+          { label: 'Inactivos',    value: counts.inactive,  color: '#72728a', filter: 'inactive' as TalentStatus },
+        ].map((s) => (
+          <button
+            key={s.label}
+            type="button"
+            onClick={() => setStatusFilter(statusFilter === s.filter ? 'all' : s.filter)}
+            className={`rounded-lg bg-sp-admin-card shadow-[0_1px_3px_rgba(0,0,0,0.06)] overflow-hidden text-left hover:shadow-md transition-shadow ${statusFilter === s.filter ? 'ring-1 ring-sp-admin-accent/40' : ''}`}
+          >
+            <div className="h-[2px]" style={{ background: s.color }} />
+            <div className="px-4 py-3">
+              <p className="text-[9px] font-bold uppercase tracking-wide text-sp-admin-muted">{s.label}</p>
+              <p className="text-xl font-bold mt-0.5" style={{ color: s.color }}>{s.value}</p>
+            </div>
+          </button>
+        ))}
+      </div>
+
+      {/* Filtros */}
+      <div className="flex flex-wrap items-center gap-2">
         <input
           type="search"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Buscar por nombre..."
-          className="min-w-[220px] flex-1 rounded-xl border border-sp-admin-border bg-sp-admin-bg px-3 py-2 text-sm text-sp-admin-text outline-none focus:border-sp-admin-accent transition-colors"
+          placeholder="Buscar influencer…"
+          className={`${INPUT_CLS} flex-1 min-w-[180px]`}
         />
-
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value as TalentStatus | 'all')}
-          className="rounded-xl border border-sp-admin-border bg-sp-admin-bg px-3 py-2 text-sm text-sp-admin-text"
-        >
-          <option value="all">Todos ({creators.length})</option>
-          <option value="active">Activos ({counts.active})</option>
-          <option value="available">Disponibles ({counts.available})</option>
-          <option value="inactive">Inactivos ({counts.inactive})</option>
-        </select>
-
-        <select
-          value={verticalFilter}
-          onChange={(e) => setVerticalFilter(e.target.value as TalentVertical | '')}
-          className="rounded-xl border border-sp-admin-border bg-sp-admin-bg px-3 py-2 text-sm text-sp-admin-text"
-        >
+        <select value={verticalFilter} onChange={(e) => setVerticalFilter(e.target.value as TalentVertical | '')} className={INPUT_CLS}>
           <option value="">Todos los sectores</option>
-          {TALENT_VERTICALS.map((v) => (
-            <option key={v} value={v}>{TALENT_VERTICAL_LABELS[v]}</option>
-          ))}
+          {TALENT_VERTICALS.map((v) => <option key={v} value={v}>{TALENT_VERTICAL_LABELS[v]}</option>)}
         </select>
-
-        <select
-          value={platformFilter}
-          onChange={(e) => setPlatformFilter(e.target.value)}
-          className="rounded-xl border border-sp-admin-border bg-sp-admin-bg px-3 py-2 text-sm text-sp-admin-text"
-        >
-          <option value="">Todas plataformas</option>
-          {platforms.map((p) => (
-            <option key={p} value={p}>{p}</option>
-          ))}
+        <select value={platformFilter} onChange={(e) => setPlatformFilter(e.target.value)} className={INPUT_CLS}>
+          <option value="">Todas las plataformas</option>
+          {platforms.map((p) => <option key={p} value={p}>{p.charAt(0).toUpperCase() + p.slice(1)}</option>)}
         </select>
-
-        <span className="text-xs text-sp-admin-muted tabular-nums ml-auto">
-          {filtered.length} / {creators.length}
-        </span>
+        <span className="text-[11px] text-sp-admin-muted tabular-nums ml-auto">{filtered.length} de {creators.length}</span>
       </div>
 
-      {/* Grid */}
+      {/* Grid — más columnas para cards más pequeñas */}
       {filtered.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-sp-admin-border p-12 text-center">
+        <div className="rounded-xl border border-dashed border-sp-admin-border bg-sp-admin-card p-12 text-center">
           <p className="text-sm text-sp-admin-muted">Sin resultados con los filtros actuales.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3">
           {filtered.map((c) => (
             <InfluencerCard
               key={c.id}
@@ -165,71 +161,88 @@ function InfluencerCard({ creator, verticals }: CardProps): React.ReactElement {
     });
   };
 
+  // Top social para mostrar seguidores en la card
+  const topSocial = creator.socials[0];
+
   return (
-    <div className="rounded-2xl bg-sp-admin-card border border-sp-admin-border overflow-hidden flex flex-col">
-      {/* Photo */}
+    <div className="group rounded-xl bg-sp-admin-card shadow-[0_1px_3px_rgba(0,0,0,0.06)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.1)] overflow-hidden flex flex-col transition-all duration-200">
+
+      {/* Foto cuadrada — centrada en la cara */}
       <div
-        className="relative aspect-[4/3] w-full"
-        style={{
-          background: `linear-gradient(135deg, ${creator.gradientC1}, ${creator.gradientC2})`,
-        }}
+        className="relative aspect-square w-full overflow-hidden"
+        style={{ background: `linear-gradient(135deg, ${creator.gradientC1}, ${creator.gradientC2})` }}
       >
         {creator.photoUrl ? (
           <Image
             src={creator.photoUrl}
             alt={creator.name}
             fill
-            className="object-cover"
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+            className="object-cover object-top"
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
           />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">
-            <span className="font-display text-6xl font-black text-white/90">{creator.initials}</span>
+            <span className="text-4xl font-black text-white/90">{creator.initials}</span>
           </div>
         )}
+
+        {/* Overlay degradado inferior para que el texto sea legible */}
+        <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/60 to-transparent" />
+
+        {/* Seguidores top social */}
+        {topSocial && (
+          <div className="absolute bottom-2 left-2 flex items-center gap-1">
+            <span className="text-[9px] text-white/70">{PLATFORM_EMOJI[topSocial.platform.toLowerCase()] ?? '🔗'}</span>
+            <span className="text-[10px] font-bold text-white tabular-nums">{topSocial.followersDisplay}</span>
+          </div>
+        )}
+
+        {/* Status badge */}
         <div className="absolute top-2 right-2">
-          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border backdrop-blur-sm ${STATUS_STYLES[status]}`}>
+          <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-bold border backdrop-blur-md ${STATUS_STYLES[status]}`}>
             {STATUS_LABELS[status]}
           </span>
         </div>
-      </div>
 
-      {/* Body */}
-      <div className="flex-1 p-4 space-y-3">
-        <div className="flex items-start justify-between gap-2">
-          <div className="min-w-0">
-            <Link href={`/admin/talents/${creator.id}/negocio`} className="block">
-              <h3 className="font-bold text-sp-admin-text truncate hover:underline">{creator.name}</h3>
-            </Link>
-            <p className="text-[11px] text-sp-admin-muted truncate">
-              {creator.role}{creator.game ? ` · ${creator.game}` : ''}
-            </p>
-          </div>
-          {creator.creatorCountry && (
-            <span className="shrink-0 text-[10px] uppercase tracking-wider font-mono font-semibold text-sp-admin-muted border border-sp-admin-border rounded px-1.5 py-0.5">
+        {/* País */}
+        {creator.creatorCountry && (
+          <div className="absolute top-2 left-2">
+            <span className="text-[9px] font-bold uppercase tracking-wider text-white/80 bg-black/30 backdrop-blur-sm rounded px-1.5 py-0.5">
               {creator.creatorCountry}
             </span>
-          )}
-        </div>
+          </div>
+        )}
+      </div>
 
-        {/* Verticals */}
+      {/* Info compacta */}
+      <div className="px-3 pt-2.5 pb-1">
+        <Link href={`/admin/talents/${creator.id}/negocio`} className="block">
+          <h3 className="font-bold text-[13px] text-sp-admin-text truncate hover:text-sp-admin-accent transition-colors">
+            {creator.name}
+          </h3>
+        </Link>
+        {creator.game && (
+          <p className="text-[10px] text-sp-admin-muted truncate">{creator.game}</p>
+        )}
+
+        {/* Sectores — max 2 pills */}
         {verticals.length > 0 && (
-          <div className="flex flex-wrap gap-1">
-            {verticals.map((v) => (
-              <span
-                key={v}
-                className="text-[10px] font-semibold text-sp-admin-muted bg-sp-admin-bg border border-sp-admin-border rounded-full px-2 py-0.5"
-              >
+          <div className="flex flex-wrap gap-1 mt-1.5">
+            {verticals.slice(0, 2).map((v) => (
+              <span key={v} className="text-[8px] font-semibold text-sp-admin-muted bg-sp-admin-hover border border-sp-admin-border rounded-full px-1.5 py-0.5">
                 {TALENT_VERTICAL_LABELS[v]}
               </span>
             ))}
+            {verticals.length > 2 && (
+              <span className="text-[8px] font-semibold text-sp-admin-muted">+{verticals.length - 2}</span>
+            )}
           </div>
         )}
 
-        {/* Socials */}
+        {/* Redes sociales — compacto */}
         {creator.socials.length > 0 && (
-          <div className="space-y-2 pt-2 border-t border-sp-admin-border">
-            {creator.socials.map((s) => (
+          <div className="mt-2 pt-2 border-t border-sp-admin-border/60 space-y-1">
+            {creator.socials.slice(0, 2).map((s) => (
               <SocialRow
                 key={s.id}
                 social={s}
@@ -242,31 +255,21 @@ function InfluencerCard({ creator, verticals }: CardProps): React.ReactElement {
         )}
       </div>
 
-      {/* Footer — status toggle */}
-      <div className="border-t border-sp-admin-border p-3 flex items-center justify-between gap-2">
-        <div className="flex items-center gap-1 text-[10px] font-semibold">
-          {(['active', 'available', 'inactive'] as const).map((s) => (
-            <button
-              key={s}
-              type="button"
-              onClick={() => onChangeStatus(s)}
-              disabled={pending}
-              className={`px-2 py-1 rounded-full border transition-colors cursor-pointer ${
-                status === s
-                  ? STATUS_STYLES[s]
-                  : 'border-sp-admin-border text-sp-admin-muted hover:text-sp-admin-text hover:bg-sp-admin-hover'
-              }`}
-            >
-              {STATUS_LABELS[s]}
-            </button>
-          ))}
-        </div>
-        <Link
-          href={`/admin/talents/${creator.id}/negocio`}
-          className="text-[10px] font-semibold text-sp-admin-muted hover:text-sp-admin-text px-2 py-1 rounded hover:bg-sp-admin-hover"
-        >
-          Editar
-        </Link>
+      {/* Footer: cambiar estado + editar */}
+      <div className="px-3 pb-3 pt-1 mt-auto flex items-center gap-1">
+        {(['active', 'available', 'inactive'] as const).map((s) => (
+          <button
+            key={s}
+            type="button"
+            onClick={() => onChangeStatus(s)}
+            disabled={pending}
+            className={`flex-1 py-0.5 rounded-full border text-[8px] font-bold transition-colors cursor-pointer ${
+              status === s ? STATUS_STYLES[s] : 'border-sp-admin-border text-sp-admin-muted hover:bg-sp-admin-hover'
+            }`}
+          >
+            {STATUS_LABELS[s]}
+          </button>
+        ))}
       </div>
     </div>
   );

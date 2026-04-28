@@ -165,6 +165,7 @@ export async function listUpcomingFollowups(ownerUserId?: string): Promise<reado
       createdByUserId: crmBrandFollowups.createdByUserId,
       scheduledAt: crmBrandFollowups.scheduledAt,
       note: crmBrandFollowups.note,
+      priority: crmBrandFollowups.priority,
       completedAt: crmBrandFollowups.completedAt,
       createdAt: crmBrandFollowups.createdAt,
     })

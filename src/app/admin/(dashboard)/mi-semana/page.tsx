@@ -1,4 +1,5 @@
 import type { ReactElement } from 'react';
+import { AdminPageHeader } from '@/components/admin/AdminPageHeader';
 import { requireAnyRole } from '@/lib/auth-guard';
 import {
   getMyTasks,
@@ -25,12 +26,19 @@ export default async function MiSemanaPage(): Promise<ReactElement> {
     getTaskRelatedOptions(),
   ]);
 
+  const pendingCount = tasks.filter((t) => t.status !== 'completada').length;
+  const doneCount = tasks.filter((t) => t.status === 'completada').length;
+
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="font-display text-4xl font-black uppercase text-sp-admin-text">Mi semana</h1>
-        <p className="text-sm text-sp-admin-muted mt-1">Tus tareas para {weekLabel}</p>
-      </div>
+    <div className="space-y-4">
+      <AdminPageHeader
+        title="Mi semana"
+        subtitle={weekLabel}
+        stats={[
+          { label: 'pendientes', value: pendingCount, accent: pendingCount > 0 ? '#f5632a' : '#72728a' },
+          { label: 'completadas', value: doneCount, accent: '#16a34a' },
+        ]}
+      />
 
       <RolledOverBanner count={rolledCount} />
 

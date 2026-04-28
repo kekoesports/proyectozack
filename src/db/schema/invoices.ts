@@ -55,6 +55,10 @@ export const invoices = pgTable(
     fileUrl: text('file_url'),
     filePath: text('file_path'),
 
+    // Entidad contable y método de cobro/pago
+    entity: varchar('entity', { length: 80 }),
+    paymentMethod: varchar('payment_method', { length: 80 }),
+
     notes: text('notes'),
 
     createdByUserId: text('created_by_user_id').references(() => user.id, { onDelete: 'set null' }),

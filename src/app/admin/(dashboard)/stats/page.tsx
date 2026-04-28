@@ -1,4 +1,5 @@
 import { requireRole } from '@/lib/auth-guard';
+import { AdminPageHeader } from '@/components/admin/AdminPageHeader';
 import { getStatsRollup, getActiveStatsShares } from '@/lib/queries/stats';
 import { env } from '@/lib/env';
 import { StatsTable } from '@/components/admin/stats/StatsTable';
@@ -38,11 +39,15 @@ export default async function AdminStatsPage(): Promise<ReactElement> {
   }));
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="font-display text-4xl font-black uppercase text-sp-admin-text">Stats</h1>
-        <p className="text-sm text-sp-admin-muted mt-1">{rollup.channelCount} canales en el roster</p>
-      </div>
+    <div className="space-y-4">
+      <AdminPageHeader
+        title="Estadísticas"
+        stats={[
+          { label: 'canales', value: rollup.channelCount, accent: '#f5632a' },
+          { label: 'links activos', value: shareRows.length },
+        ]}
+        actions={[{ label: 'Exportar', href: '#' }]}
+      />
 
       <KpiCards data={rollup} />
 
