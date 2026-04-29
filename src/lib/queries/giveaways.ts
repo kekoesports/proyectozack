@@ -3,6 +3,13 @@ import { db } from '@/lib/db';
 import { giveaways } from '@/db/schema';
 import type { Giveaway, GiveawayWithTalent } from '@/types';
 
+/**
+ * Sorteos activos (endsAt > now) de un talent, ordenados por endsAt ASC, para la ficha pública del creador.
+ *
+ * @cache none
+ * @visibility public
+ * @returns array de Giveaway (puede ser vacío). Nunca null.
+ */
 export async function getActiveGiveaways(talentId: number): Promise<Giveaway[]> {
   return db
     .select()
@@ -16,6 +23,13 @@ export async function getActiveGiveaways(talentId: number): Promise<Giveaway[]> 
     .orderBy(asc(giveaways.endsAt));
 }
 
+/**
+ * Sorteos ya finalizados (endsAt <= now) de un talent, ordenados por endsAt DESC, para historial en la ficha pública.
+ *
+ * @cache none
+ * @visibility public
+ * @returns array de Giveaway (puede ser vacío). Nunca null.
+ */
 export async function getFinishedGiveaways(talentId: number): Promise<Giveaway[]> {
   return db
     .select()
@@ -29,6 +43,13 @@ export async function getFinishedGiveaways(talentId: number): Promise<Giveaway[]
     .orderBy(desc(giveaways.endsAt));
 }
 
+/**
+ * Lista todos los sorteos (sin filtro temporal) con su talent, ordenados por createdAt DESC, para el panel admin.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns array de GiveawayWithTalent (puede ser vacío). Nunca null.
+ */
 export async function getAllGiveaways(): Promise<GiveawayWithTalent[]> {
   const rows = await db.query.giveaways.findMany({
     with: { talent: true },
@@ -37,6 +58,13 @@ export async function getAllGiveaways(): Promise<GiveawayWithTalent[]> {
   return rows as GiveawayWithTalent[];
 }
 
+/**
+ * Devuelve un sorteo por id con su talent asociado, usado en flujos de edición y detalle.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns GiveawayWithTalent | undefined (nunca null) si no existe.
+ */
 export async function getGiveawayById(id: number): Promise<GiveawayWithTalent | undefined> {
   const row = await db.query.giveaways.findFirst({
     where: eq(giveaways.id, id),
@@ -45,6 +73,13 @@ export async function getGiveawayById(id: number): Promise<GiveawayWithTalent | 
   return row as GiveawayWithTalent | undefined;
 }
 
+/**
+ * Inserta un nuevo sorteo en la BD, invocado desde el panel admin.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns Giveaway recién creado (nunca undefined; lanza si insert no devuelve fila).
+ */
 export async function createGiveaway(data: {
   talentId: number;
   title: string;
@@ -62,6 +97,13 @@ export async function createGiveaway(data: {
   return row!;
 }
 
+/**
+ * Actualiza campos de un sorteo existente y refresca `updatedAt`, invocado desde el panel admin.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns void.
+ */
 export async function updateGiveaway(
   id: number,
   data: Partial<typeof giveaways.$inferInsert>,
@@ -69,6 +111,13 @@ export async function updateGiveaway(
   await db.update(giveaways).set({ ...data, updatedAt: new Date() }).where(eq(giveaways.id, id));
 }
 
+/**
+ * Elimina un sorteo por id, invocado desde el panel admin.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns void.
+ */
 export async function deleteGiveaway(id: number): Promise<void> {
   await db.delete(giveaways).where(eq(giveaways.id, id));
 }

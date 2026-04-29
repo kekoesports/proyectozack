@@ -1,7 +1,7 @@
 import { requireRole } from '@/lib/auth-guard';
 import { getBrandTargets } from '@/lib/queries/targets';
 
-import { BrandTargetsSpreadsheet } from '@/components/brand/targets/BrandTargetsSpreadsheet';
+import { BrandTargetsSpreadsheet } from '@/features/brand-portal/components/BrandTargetsSpreadsheet';
 
 export default async function BrandTargetsPage(): Promise<React.ReactElement> {
   const session = await requireRole('brand', '/marcas/login');

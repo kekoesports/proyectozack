@@ -11,7 +11,17 @@ export const metadata: Metadata = {
 
 export default function GiveawaysLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="min-h-screen bg-sp-black text-white font-sans">
+    <div
+      className="min-h-screen text-white font-sans relative overflow-x-hidden"
+      style={{ background: '#09090f' }}
+    >
+      {/* Animated background blobs */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden>
+        <div className="gw-bg-blob gw-bg-blob-purple" />
+        <div className="gw-bg-blob gw-bg-blob-orange" />
+        <div className="gw-bg-blob gw-bg-blob-pink" />
+      </div>
+
       <div className="relative z-10">{children}</div>
     </div>
   );

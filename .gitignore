@@ -41,3 +41,28 @@ yarn-error.log*
 next-env.d.ts
 .gstack/
 .firecrawl/
+
+# weave coordinator runtime state (sessions, plans, active execution)
+.weave/
+
+# playwright artifacts
+/test-results
+/playwright-report
+/blob-report
+/.playwright-mcp
+
+# local dev-server logs
+.dev-server.log
+.dev-server.err.log
+
+# Python scraper
+scraper/__pycache__/
+scraper/sources/__pycache__/
+scraper/*.pyc
+
+# ad-hoc visual testing screenshots (Playwright MCP)
+visual-*.png
+crm-*-smoke.png
+
+# Local agent/IDE settings (never commit)
+.claude/settings.local.json

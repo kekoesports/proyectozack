@@ -25,6 +25,19 @@ type PublicChromeProps = {
   children: ReactNode;
 }
 
+/**
+ * Wrapper que decide si renderizar el chrome público (Nav + Footer +
+ * WhatsAppWidget + Lenis smooth scroll) o pasar `children` desnudos en rutas
+ * de portal (`/admin`, `/marcas`, `/creadores`, `/giveaways`, `/c/`).
+ * Las páginas de login conservan el chrome público.
+ *
+ * @kind client
+ * @feature layout
+ * @example
+ * ```tsx
+ * <PublicChrome nav={<Nav />} footer={<Footer />}>{children}</PublicChrome>
+ * ```
+ */
 export function PublicChrome({ nav, footer, children }: PublicChromeProps) {
   const pathname = usePathname();
   const isPortal = isPortalRoute(pathname);

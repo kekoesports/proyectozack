@@ -19,6 +19,14 @@ function subscribeToStorage(callback: () => void) {
   return () => window.removeEventListener('storage', callback);
 }
 
+/**
+ * Banner de consentimiento de cookies. Persiste la decisión en localStorage
+ * y monta `<Analytics>` (GTM) solo si el usuario ha aceptado y existe
+ * `NEXT_PUBLIC_GTM_ID`. Sincroniza entre pestañas con `useSyncExternalStore`.
+ *
+ * @kind client
+ * @feature layout
+ */
 export function CookieConsent() {
   const storedConsent = useSyncExternalStore(
     subscribeToStorage,

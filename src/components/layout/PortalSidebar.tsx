@@ -26,6 +26,25 @@ type PortalSidebarProps = {
   variant?: 'light' | 'dark';
 }
 
+/**
+ * Sidebar compartida por los portales de admin y marcas. Colapsa a barra de
+ * iconos en desktop con tooltips, y a drawer overlay en mobile. Soporta
+ * variante `light` (marcas) y `dark` (admin).
+ *
+ * @kind client
+ * @feature layout
+ * @example
+ * ```tsx
+ * <PortalSidebar
+ *   title="Admin"
+ *   subtitle="SocialPro"
+ *   navItems={ADMIN_NAV}
+ *   userEmail={session.user.email}
+ *   logoutHref="/admin/logout"
+ *   variant="dark"
+ * />
+ * ```
+ */
 export function PortalSidebar({
   title,
   navItems,

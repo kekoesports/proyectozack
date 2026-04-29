@@ -1,6 +1,6 @@
 import { requireRole } from '@/lib/auth-guard';
 import { getBrandCampaigns, getBrandProposals } from '@/lib/queries/brands';
-import { EmptyState } from '@/components/brand/EmptyState';
+import { EmptyState } from '@/features/brand-portal/components/EmptyState';
 import Link from 'next/link';
 
 export default async function BrandDashboardPage() {

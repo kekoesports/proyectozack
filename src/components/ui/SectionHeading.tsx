@@ -6,6 +6,17 @@ type SectionHeadingProps = {
   className?: string;
 }
 
+/**
+ * Encabezado `<h2>` con la tipografía display de la marca para títulos de
+ * sección en la web pública.
+ *
+ * @kind server
+ * @feature ui
+ * @example
+ * ```tsx
+ * <SectionHeading>Nuestros talentos</SectionHeading>
+ * ```
+ */
 export function SectionHeading({ children, className = '' }: SectionHeadingProps) {
   return (
     <h2

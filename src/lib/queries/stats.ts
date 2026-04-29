@@ -1,7 +1,7 @@
 import { eq, isNull } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { talents, talentSocials, statsShares } from '@/db/schema';
-import { parseFollowers, formatCompact } from '@/lib/format';
+import { parseFollowers, formatCompact } from '@/lib/utils/format';
 
 export type StatsGeoEntry = {
   readonly country: string;
@@ -112,11 +112,25 @@ async function fetchAllTalentsWithSocials(): Promise<
   });
 }
 
+/**
+ * Calcula el rollup global de stats sobre todos los talents (reach total, channel count, avg reach, filas), para vistas internas/admin de stats.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns StatsRollup `{ totalReach, totalReachFormatted, channelCount, avgReachPerChannel, avgReachFormatted, rows }`.
+ */
 export async function getStatsRollup(): Promise<StatsRollup> {
   const rows = await fetchAllTalentsWithSocials();
   return buildRollup(rows);
 }
 
+/**
+ * Igual que `getStatsRollup` pero protegido por un token de share válido (no revocado), para `/stats/[token]`.
+ *
+ * @cache none
+ * @visibility public
+ * @returns StatsRollup si el token existe y no está revocado; `null` si no es válido.
+ */
 export async function getStatsRollupByToken(token: string): Promise<StatsRollup | null> {
   const share = await db
     .select()
@@ -131,6 +145,13 @@ export async function getStatsRollupByToken(token: string): Promise<StatsRollup 
   return buildRollup(rows);
 }
 
+/**
+ * Lista los tokens de stats share activos (sin `revokedAt`), para gestión de enlaces compartidos en admin.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns array de filas de `statsShares` activas (puede ser vacío). Nunca null.
+ */
 export async function getActiveStatsShares(): Promise<
   Array<typeof statsShares.$inferSelect>
 > {

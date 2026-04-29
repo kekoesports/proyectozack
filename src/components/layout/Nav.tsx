@@ -1,11 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import * as m from 'motion/react-client';
-import { AnimatePresence } from 'motion/react';
-import { useScroll, useMotionValueEvent } from 'motion/react';
+import { AnimatePresence, useMotionValue } from 'motion/react';
 
 const NAV_LINKS = [
   { href: '/talentos', label: 'Talentos' },
@@ -16,15 +15,52 @@ const NAV_LINKS = [
   { href: '/contacto', label: 'Contacto' },
 ];
 
+/**
+ * Barra de navegación pública sticky con barra de progreso de scroll,
+ * menú mobile animado (AnimatePresence) y CTA principal. Usa un listener
+ * nativo de scroll por fiabilidad en Safari iOS.
+ *
+ * @kind client
+ * @feature layout
+ */
 export function Nav() {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const { scrollY, scrollYProgress } = useScroll();
+  // Scroll progress driven by a native listener (more reliable than motion's
+  // useScroll on Safari iOS, where momentum scrolling delays motion events).
+  const scrollProgress = useMotionValue(0);
 
-  useMotionValueEvent(scrollY, 'change', (latest) => {
-    const isScrolled = latest > 50;
-    setScrolled((prev) => (prev !== isScrolled ? isScrolled : prev));
-  });
+  useEffect(() => {
+    let rafId = 0;
+    let pending = false;
+
+    const update = (): void => {
+      pending = false;
+      const y = window.scrollY;
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = max > 0 ? Math.min(1, Math.max(0, y / max)) : 0;
+      scrollProgress.set(progress);
+      setScrolled((prev) => {
+        const next = y > 50;
+        return prev === next ? prev : next;
+      });
+    };
+
+    const onScroll = (): void => {
+      if (pending) return;
+      pending = true;
+      rafId = requestAnimationFrame(update);
+    };
+
+    update();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+      cancelAnimationFrame(rafId);
+    };
+  }, [scrollProgress]);
 
   return (
     <nav
@@ -39,7 +75,7 @@ export function Nav() {
         className="absolute bottom-0 left-0 right-0 h-[1px] origin-left"
         style={{
           background: 'linear-gradient(90deg,#f5632a 0%,#e03070 50%,#8b3aad 100%)',
-          scaleX: scrollYProgress,
+          scaleX: scrollProgress,
         }}
       />
 

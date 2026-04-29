@@ -1,6 +1,6 @@
 import { requireAnyRole } from '@/lib/auth-guard';
-import { AdminSidebar } from '@/components/admin/AdminSidebar';
-import { AdminHeader } from '@/components/admin/AdminHeader';
+import { AdminSidebar, type NavGroup } from '@/features/admin/_shared/components/AdminSidebar';
+import { AdminHeader } from '@/features/admin/_shared/components/AdminHeader';
 import {
   DashboardIcon,
   TalentIcon,
@@ -14,7 +14,10 @@ import {
   InvoiceIcon,
   AnalyticsIcon,
   CaseIcon,
-} from '@/components/admin/SidebarIcons';
+  ChartIcon,
+  CampaignIcon,
+  SettingsIcon,
+} from '@/features/admin/_shared/components/SidebarIcons';
 import type { ReactNode } from 'react';
 
 type AdminLayoutProps = {
@@ -23,40 +26,85 @@ type AdminLayoutProps = {
 
 const ADMIN_PRIMARY_NAV = [
   { href: '/admin', label: 'Panel', icon: <DashboardIcon /> },
-  { href: '/admin/brands', label: 'Marcas', icon: <BrandIcon /> },
-  { href: '/admin/talents', label: 'Talentos', icon: <TalentIcon />, prefetch: false },
-  { href: '/admin/targets', label: 'Campañas', icon: <TargetsIcon />, prefetch: false },
-  { href: '/admin/tareas', label: 'Tareas', icon: <TasksIcon /> },
-  { href: '/admin/facturacion', label: 'Facturación', icon: <InvoiceIcon />, prefetch: false },
-  { href: '/admin/stats', label: 'Estadísticas', icon: <StatsIcon />, prefetch: false },
-  { href: '/admin/equipo', label: 'Equipo', icon: <TeamIcon /> },
 ] as const;
 
+const ADMIN_GROUPS: readonly NavGroup[] = [
+  {
+    key: 'crm',
+    label: 'CRM',
+    items: [
+      { href: '/admin/brands', label: 'Marcas', icon: <BrandIcon /> },
+      { href: '/admin/campanas', label: 'Campañas', icon: <CampaignIcon />, prefetch: false },
+      { href: '/admin/talents', label: 'Talentos', icon: <TalentIcon />, prefetch: false },
+      { href: '/admin/targets', label: 'Outreach', icon: <TargetsIcon />, prefetch: false },
+    ],
+  },
+  {
+    key: 'ops',
+    label: 'Operaciones',
+    items: [
+      { href: '/admin/tareas', label: 'Tareas', icon: <TasksIcon /> },
+      { href: '/admin/mi-semana', label: 'Mi semana', icon: <MyWeekIcon /> },
+      { href: '/admin/equipo', label: 'Equipo', icon: <TeamIcon /> },
+    ],
+  },
+  {
+    key: 'finanzas',
+    label: 'Finanzas',
+    items: [
+      { href: '/admin/facturacion', label: 'Facturación', icon: <InvoiceIcon />, prefetch: false },
+      { href: '/admin/pl', label: 'P&L', icon: <ChartIcon />, prefetch: false },
+    ],
+  },
+];
+
 const ADMIN_MORE_NAV = [
-  { href: '/admin/mi-semana', label: 'Mi semana', icon: <MyWeekIcon /> },
+  { href: '/admin/tareas/plantillas', label: 'Plantillas', icon: <SettingsIcon /> },
   { href: '/admin/giveaways', label: 'Sorteos', icon: <GiveawayIcon />, prefetch: false },
-  { href: '/admin/analytics', label: 'Analítica', icon: <AnalyticsIcon />, prefetch: false },
   { href: '/admin/cases', label: 'Casos', icon: <CaseIcon />, prefetch: false },
+  { href: '/admin/analytics', label: 'Analítica', icon: <AnalyticsIcon />, prefetch: false },
+  { href: '/admin/stats', label: 'Tendencias', icon: <StatsIcon />, prefetch: false },
 ] as const;
 
 const STAFF_PRIMARY_NAV = [
   { href: '/admin/mi-semana', label: 'Mi semana', icon: <MyWeekIcon /> },
-  { href: '/admin/tareas', label: 'Tareas', icon: <TasksIcon /> },
-  { href: '/admin/brands', label: 'Marcas', icon: <BrandIcon /> },
-  { href: '/admin/targets', label: 'Campañas', icon: <TargetsIcon />, prefetch: false },
-  { href: '/admin/equipo', label: 'Equipo', icon: <TeamIcon /> },
 ] as const;
 
+const STAFF_GROUPS: readonly NavGroup[] = [
+  {
+    key: 'crm',
+    label: 'CRM',
+    items: [
+      { href: '/admin/brands', label: 'Marcas', icon: <BrandIcon /> },
+      { href: '/admin/campanas', label: 'Campañas', icon: <CampaignIcon />, prefetch: false },
+      { href: '/admin/targets', label: 'Outreach', icon: <TargetsIcon />, prefetch: false },
+    ],
+  },
+  {
+    key: 'ops',
+    label: 'Operaciones',
+    items: [
+      { href: '/admin/tareas', label: 'Tareas', icon: <TasksIcon /> },
+      { href: '/admin/equipo', label: 'Equipo', icon: <TeamIcon /> },
+    ],
+  },
+];
+
 export default async function AdminLayout({ children }: AdminLayoutProps): Promise<React.ReactElement> {
-  const session = await requireAnyRole(['admin', 'staff'], '/admin/login');
+  const session = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
   const isStaff = session.user.role === 'staff';
-  const primaryNav = isStaff ? STAFF_PRIMARY_NAV : ADMIN_PRIMARY_NAV;
-  const moreNav = isStaff ? [] : ADMIN_MORE_NAV;
+  const isManager = session.user.role === 'manager';
+  // manager gets the same full nav as admin; only staff gets the restricted nav
+  const useStaffNav = isStaff && !isManager;
+  const primaryNav = useStaffNav ? STAFF_PRIMARY_NAV : ADMIN_PRIMARY_NAV;
+  const groups = useStaffNav ? STAFF_GROUPS : ADMIN_GROUPS;
+  const moreNav = useStaffNav ? [] : ADMIN_MORE_NAV;
 
   return (
     <div className="min-h-screen bg-sp-admin-bg flex overflow-x-hidden">
       <AdminSidebar
         primaryNav={primaryNav}
+        groups={groups}
         moreNav={moreNav}
         userName={session.user.name}
         userRole={session.user.role ?? ''}

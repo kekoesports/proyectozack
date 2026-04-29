@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { ServicesSection } from '@/components/sections/ServicesSection';
+import { ServicesSection } from '@/features/marketing-site/components/ServicesSection';
 
 export const metadata: Metadata = {
   title: 'Agencia Marketing Gaming e iGaming',

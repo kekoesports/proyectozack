@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import { getStatsRollupByToken } from '@/lib/queries/stats';
-import { StatsView } from '@/components/stats/StatsView';
+import { StatsView } from '@/features/talent-stats-public/components/StatsView';
 import { env } from '@/lib/env';
 import type { Metadata } from 'next';
 import type { ReactElement } from 'react';

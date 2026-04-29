@@ -1,4 +1,7 @@
-import { NextRequest } from 'next/server';
+/**
+ * Tests for the contact tRPC router (trpc.contact.submit).
+ * Tests the mutation logic directly via a caller — no HTTP layer.
+ */
 
 jest.mock('@/lib/db', () => ({
   db: {
@@ -11,6 +14,9 @@ jest.mock('@/lib/email', () => ({
   sendContactEmail: jest.fn().mockResolvedValue(undefined),
 }));
 jest.mock('@/lib/auth', () => ({ auth: {} }));
+jest.mock('next/headers', () => ({
+  headers: jest.fn().mockResolvedValue(new Map()),
+}));
 jest.mock('@/lib/env', () => ({
   env: {
     DATABASE_URL: 'postgresql://test:test@localhost:5432/test',
@@ -20,62 +26,56 @@ jest.mock('@/lib/env', () => ({
   },
 }));
 
-import { POST } from '@/app/api/contact/route';
+import { appRouter } from '@/server/routers/_app';
 import { db } from '@/lib/db';
 import { sendContactEmail } from '@/lib/email';
 
-const makeRequest = (body: unknown) =>
-  new NextRequest('http://localhost/api/contact', {
-    method: 'POST',
-    body: JSON.stringify(body),
-    headers: { 'Content-Type': 'application/json' },
-  });
+const caller = appRouter.createCaller({ session: null });
 
-describe('POST /api/contact', () => {
+describe('trpc.contact.submit', () => {
   beforeEach(() => jest.clearAllMocks());
 
-  it('returns 200 and inserts into db on valid payload', async () => {
-    const res = await POST(makeRequest({
+  it('inserts into db on valid payload', async () => {
+    const result = await caller.contact.submit({
       name: 'Alice',
       email: 'alice@example.com',
       type: 'brand',
       message: 'Looking to collaborate on a campaign.',
-    }));
-    expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ success: true });
+    });
+    expect(result).toEqual({ success: true });
     expect((db.insert as jest.Mock)).toHaveBeenCalledTimes(1);
   });
 
-  it('returns 422 on invalid payload', async () => {
-    const res = await POST(makeRequest({
-      name: 'Alice',
-      email: 'alice@example.com',
-      type: 'brand',
-      message: 'short',
-    }));
-    expect(res.status).toBe(422);
-    const json = await res.json();
-    expect(json.error).toBe('Validation failed');
+  it('throws on invalid email', async () => {
+    await expect(
+      caller.contact.submit({
+        name: 'Alice',
+        email: 'not-an-email',
+        type: 'brand',
+        message: 'Looking to collaborate on a campaign.',
+      }),
+    ).rejects.toThrow();
   });
 
-  it('returns 400 on non-JSON body', async () => {
-    const req = new NextRequest('http://localhost/api/contact', {
-      method: 'POST',
-      body: 'not json',
-      headers: { 'Content-Type': 'application/json' },
-    });
-    const res = await POST(req);
-    expect(res.status).toBe(400);
+  it('throws on short message', async () => {
+    await expect(
+      caller.contact.submit({
+        name: 'Alice',
+        email: 'alice@example.com',
+        type: 'brand',
+        message: 'short',
+      }),
+    ).rejects.toThrow();
   });
 
-  it('still returns 200 if sendContactEmail throws', async () => {
+  it('still returns success if sendContactEmail throws', async () => {
     (sendContactEmail as jest.Mock).mockRejectedValueOnce(new Error('Resend down'));
-    const res = await POST(makeRequest({
+    const result = await caller.contact.submit({
       name: 'Alice',
       email: 'alice@example.com',
       type: 'brand',
       message: 'Looking to collaborate on a campaign.',
-    }));
-    expect(res.status).toBe(200);
+    });
+    expect(result).toEqual({ success: true });
   });
 });

@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { getTeam } from '@/lib/queries/content';
-import { AboutSection } from '@/components/sections/AboutSection';
-import { TeamGrid } from '@/components/sections/TeamGrid';
+import { AboutSection } from '@/features/marketing-site/components/AboutSection';
+import { TeamGrid } from '@/features/marketing-site/components/TeamGrid';
 
 export const revalidate = 3600;
 

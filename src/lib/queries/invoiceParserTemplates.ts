@@ -33,6 +33,14 @@ function rowToTemplate(row: {
   };
 }
 
+/**
+ * Devuelve la plantilla de parser PDF (regiones + hints) por NIF del emisor.
+ * El NIF se normaliza a mayúsculas antes de la búsqueda.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns `ParserTemplate` o `null` si no hay plantilla para ese NIF.
+ */
 export async function getParserTemplateByNif(nif: string): Promise<ParserTemplate | null> {
   const [row] = await db
     .select()
@@ -49,6 +57,14 @@ type UpsertArgs = {
   readonly hints?: Record<string, string> | null;
 };
 
+/**
+ * Upsert de plantilla de parser PDF por NIF (clave única). Actualiza nombre, regiones,
+ * hints y `updatedAt`.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns la `ParserTemplate` resultante.
+ */
 export async function upsertParserTemplate(args: UpsertArgs): Promise<ParserTemplate> {
   const [row] = await db
     .insert(invoiceParserTemplates)

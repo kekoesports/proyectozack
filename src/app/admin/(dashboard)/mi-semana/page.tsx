@@ -7,14 +7,14 @@ import {
   getTaskRelatedOptions,
 } from '@/lib/queries/crmTasks';
 import { getAllStaffUsers } from '@/lib/queries/staffUsers';
-import { getIsoWeekLabel } from '@/lib/week';
-import { RolledOverBanner } from '@/components/admin/tasks/RolledOverBanner';
-import { TaskList } from '@/components/admin/tasks/TaskList';
+import { getIsoWeekLabel } from '@/lib/utils/week';
+import { RolledOverBanner } from '@/features/admin/tasks/components/RolledOverBanner';
+import { TaskList } from '@/features/admin/tasks/components/TaskList';
 
 export const metadata = { title: 'Mi Semana | Admin' };
 
 export default async function MiSemanaPage(): Promise<ReactElement> {
-  const session = await requireAnyRole(['admin', 'staff'], '/admin/login');
+  const session = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
   const weekLabel = getIsoWeekLabel(new Date());
 
   const [tasks, users, suggestedCategories, rolledCount, relatedOptions] = await Promise.all([

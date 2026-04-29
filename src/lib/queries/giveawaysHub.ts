@@ -9,6 +9,13 @@ export type BrandOption = {
   readonly count: number;
 };
 
+/**
+ * Todos los sorteos activos (endsAt > now) con talent asociado, ordenados por endsAt ASC, para el hub público de sorteos.
+ *
+ * @cache none
+ * @visibility public
+ * @returns array de GiveawayWithTalent (puede ser vacío). Nunca null.
+ */
 export async function getAllActiveGiveaways(): Promise<GiveawayWithTalent[]> {
   const rows = await db.query.giveaways.findMany({
     where: gt(giveaways.endsAt, new Date()),
@@ -18,6 +25,13 @@ export async function getAllActiveGiveaways(): Promise<GiveawayWithTalent[]> {
   return rows as GiveawayWithTalent[];
 }
 
+/**
+ * Todos los sorteos finalizados (endsAt <= now) con talent, ordenados por endsAt DESC, para el archivo público del hub.
+ *
+ * @cache none
+ * @visibility public
+ * @returns array de GiveawayWithTalent (puede ser vacío). Nunca null.
+ */
 export async function getAllFinishedGiveaways(): Promise<GiveawayWithTalent[]> {
   const rows = await db.query.giveaways.findMany({
     where: lte(giveaways.endsAt, new Date()),
@@ -27,6 +41,13 @@ export async function getAllFinishedGiveaways(): Promise<GiveawayWithTalent[]> {
   return rows as GiveawayWithTalent[];
 }
 
+/**
+ * Combina sorteos y códigos para extraer marcas únicas con conteo agregado, ordenadas por count DESC, para los filtros del hub.
+ *
+ * @cache none
+ * @visibility public
+ * @returns array de BrandOption `{ name, logo, count }` (puede ser vacío). Nunca null.
+ */
 export function extractUniqueBrands(
   giveaways: readonly GiveawayWithTalent[],
   codes: readonly CreatorCodeWithTalent[] = [],

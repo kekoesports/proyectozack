@@ -2,14 +2,14 @@ import Link from 'next/link';
 import type { ReactElement } from 'react';
 import { requireAnyRole } from '@/lib/auth-guard';
 import { getTeamTasksSummary } from '@/lib/queries/crmTasks';
-import { getIsoWeekLabel } from '@/lib/week';
-import { Avatar } from '@/components/admin/Avatar';
-import { InviteStaffForm } from '@/components/admin/equipo/InviteStaffForm';
+import { getIsoWeekLabel } from '@/lib/utils/week';
+import { Avatar } from '@/features/admin/_shared/components/Avatar';
+import { InviteStaffForm } from '@/features/admin/equipo/components/InviteStaffForm';
 
 export const metadata = { title: 'Equipo | Admin' };
 
 export default async function EquipoAdminPage(): Promise<ReactElement> {
-  const session = await requireAnyRole(['admin', 'staff'], '/admin/login');
+  const session = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
   const weekLabel = getIsoWeekLabel(new Date());
   const summary = await getTeamTasksSummary(weekLabel);
 

@@ -1,7 +1,7 @@
 import { db } from '@/lib/db';
 import { teamMembers } from '@/db/schema';
 import { asc } from 'drizzle-orm';
-import { UploadForm } from '@/components/admin/equipo/UploadForm';
+import { UploadForm } from '@/features/admin/equipo/components/UploadForm';
 
 export const metadata = { title: 'Equipo | Admin' };
 

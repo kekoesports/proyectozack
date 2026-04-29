@@ -1,8 +1,15 @@
 'use client';
 
 import { useState } from 'react';
-import { WA_LINK } from '@/lib/constants';
+import { WA_LINK } from '@/lib/utils/constants';
 
+/**
+ * Botón flotante de WhatsApp (esquina inferior derecha) con tooltip on-hover
+ * y anillo de pulso. Apunta a `WA_LINK` de `lib/utils/constants`.
+ *
+ * @kind client
+ * @feature layout
+ */
 export function WhatsAppWidget() {
   const [hovered, setHovered] = useState(false);
 

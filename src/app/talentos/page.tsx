@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { getTalents } from '@/lib/queries/talents';
-import { TalentSection } from '@/components/sections/TalentSection';
+import { TalentSection } from '@/features/marketing-site/components/TalentSection';
 
 export const revalidate = 3600;
 

@@ -14,6 +14,7 @@ export const posts = pgTable('posts', {
   publishedAt: timestamp('published_at', { withTimezone: true }),
   sortOrder: integer('sort_order').notNull().default(0),
   talentSlugs: jsonb('talent_slugs').$type<string[]>(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
 }, (t) => [
   index('posts_slug_idx').on(t.slug),
   index('posts_status_idx').on(t.status),

@@ -1,4 +1,4 @@
-import { pgTable, serial, varchar, text, integer, pgEnum, index, jsonb } from 'drizzle-orm/pg-core';
+import { pgTable, serial, varchar, text, integer, pgEnum, index, jsonb, timestamp, boolean } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
 // platform: real values from source data are 'twitch' | 'youtube' only
@@ -7,6 +7,25 @@ export const platformEnum = pgEnum('platform', ['twitch', 'youtube']);
 export const statusEnum = pgEnum('status', ['active', 'available', 'inactive']);
 // visibility: controls whether talent appears on public site
 export const visibilityEnum = pgEnum('visibility', ['public', 'internal']);
+
+// cnmcStatus: compliance with Spanish LGCA (Ley General de Comunicación Audiovisual)
+// registrado   = registered in CNMC Registro Estatal de Prestadores Audiovisuales
+// pendiente    = needs registration (>10k followers with commercial activity)
+// en_tramite   = registration in progress
+// no_aplica    = <10k followers or no commercial activity
+export const cnmcStatusEnum = pgEnum('cnmc_status', [
+  'registrado', 'pendiente', 'en_tramite', 'no_aplica',
+]);
+
+// taxType: Spanish/international fiscal classification for IRPF withholding
+// autonomo_es  = Spanish self-employed, standard 15% IRPF (or 7% in first year)
+// autonomo_es_nuevo = Spanish self-employed, first-year reduced 7% IRPF
+// sl_sa        = Spanish company (Sociedad Limitada / Anónima), no IRPF withholding
+// latam        = Latin American resident (no Spanish IRPF, may need EU VAT rules)
+// no_residente = Non-EU resident
+export const taxTypeEnum = pgEnum('talent_tax_type', [
+  'autonomo_es', 'autonomo_es_nuevo', 'sl_sa', 'latam', 'no_residente',
+]);
 
 export const talents = pgTable('talents', {
   id: serial('id').primaryKey(),
@@ -26,6 +45,23 @@ export const talents = pgTable('talents', {
   topGeos: jsonb('top_geos').$type<Array<{ country: string; pct: number }>>(),
   audienceLanguage: text('audience_language'),
   creatorCountry: varchar('creator_country', { length: 2 }),
+  audienceStatus: varchar('audience_status', { length: 20 }), // 'activo'|'inactivo'|'pendiente'|'potencial'
+  lastStatsUpdateAt: timestamp('last_stats_update_at', { withTimezone: true }),
+
+  // ── Compliance CNMC (Ley General de Comunicación Audiovisual, vigente oct-2025) ──
+  cnmcStatus: cnmcStatusEnum('cnmc_status').notNull().default('no_aplica'),
+  cnmcRegisteredAt: timestamp('cnmc_registered_at', { withTimezone: true }),
+  cnmcNotes: text('cnmc_notes'),
+  // Seguro de Responsabilidad Civil — obligatorio para talentos registrados en CNMC
+  hasRcInsurance: boolean('has_rc_insurance').notNull().default(false),
+
+  // ── Fiscalidad española ──
+  taxType: taxTypeEnum('tax_type'),
+  nif: varchar('nif', { length: 20 }),           // NIF/CIF/NIE del talent o su sociedad
+  fiscalName: varchar('fiscal_name', { length: 250 }), // Nombre fiscal (puede diferir del nombre artístico)
+  fiscalAddress: text('fiscal_address'),          // Dirección fiscal completa
+
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
 }, (t) => [
   index('talents_slug_idx').on(t.slug),
   index('talents_platform_idx').on(t.platform),

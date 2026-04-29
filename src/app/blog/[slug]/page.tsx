@@ -4,10 +4,10 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getPostSlugs, getPostBySlug } from '@/lib/queries/posts';
 import { SectionTag } from '@/components/ui/SectionTag';
-import { TalentMiniCard } from '@/components/blog/TalentMiniCard';
-import { buildBreadcrumbJsonLd } from '@/lib/breadcrumbs';
+import { TalentMiniCard } from '@/features/blog/components/TalentMiniCard';
+import { buildBreadcrumbJsonLd } from '@/lib/utils/breadcrumbs';
 import { absoluteUrl } from '@/lib/site-url';
-import { truncateMetaDescription, truncateMetaTitle } from '@/lib/text';
+import { truncateMetaDescription, truncateMetaTitle } from '@/lib/utils/text';
 
 export const revalidate = 3600;
 

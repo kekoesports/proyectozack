@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { requireRole } from '@/lib/auth-guard';
 import { updateTalentBusinessSchema } from '@/lib/schemas/talentBusiness';
 import { upsertTalentBusiness, setTalentVerticals } from '@/lib/queries/talentBusiness';
+import { compact } from '@/lib/utils/objects';
 
 type ActionState = {
   readonly error?: string;
@@ -25,11 +26,6 @@ function formToObject(formData: FormData): Record<string, unknown> {
   return obj;
 }
 
-function compact<T extends Record<string, unknown>>(obj: T): Record<string, unknown> {
-  const out: Record<string, unknown> = {};
-  for (const [k, v] of Object.entries(obj)) if (v !== undefined) out[k] = v;
-  return out;
-}
 
 export async function updateTalentBusinessAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
   await requireRole('admin', '/admin/login');

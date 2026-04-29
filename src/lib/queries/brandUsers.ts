@@ -9,6 +9,13 @@ export type BrandUserRow = {
   email: string;
 };
 
+/**
+ * Lista todos los usuarios con rol `brand` (portal de marcas) ordenados por más recientes.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns array (puede ser vacío). Nunca null. Shape: `{ id, name, email }`.
+ */
 export async function getAllBrandUsers(): Promise<BrandUserRow[]> {
   return db
     .select({

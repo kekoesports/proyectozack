@@ -19,10 +19,24 @@ function countUpsertResults(rows: Array<{ id: number; xmax: string }>): { insert
   return { inserted, updated: rows.length - inserted, ids: rows.map((r) => r.id) };
 }
 
+/**
+ * Lista todos los targets de outreach (Twitch/YouTube/IG/Kick) ordenados por más recientes.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns array (puede ser vacío). Nunca null.
+ */
 export async function getAllTargets(): Promise<Target[]> {
   return db.select().from(targets).orderBy(desc(targets.createdAt));
 }
 
+/**
+ * Busca targets existentes por (platform, username[]) para deduplicar antes de un upsert.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns array `{ id, username }` (puede ser vacío). Nunca null.
+ */
 export async function getTargetsByPlatformAndUsernames(
   platform: 'instagram' | 'youtube' | 'twitch' | 'kick',
   usernames: string[],
@@ -35,6 +49,14 @@ export async function getTargetsByPlatformAndUsernames(
     .where(and(eq(targets.platform, platform), inArray(targets.username, usernames)));
 }
 
+/**
+ * Lista los targets asignados a un usuario marca del portal, ordenados por última actualización.
+ *
+ * @cache none
+ * @visibility admin
+ * @scope brand
+ * @returns array (puede ser vacío). Nunca null.
+ */
 export async function getBrandTargets(brandUserId: string): Promise<Target[]> {
   return db
     .select()
@@ -43,6 +65,13 @@ export async function getBrandTargets(brandUserId: string): Promise<Target[]> {
     .orderBy(desc(targets.updatedAt), desc(targets.createdAt));
 }
 
+/**
+ * Devuelve agregados de targets agrupados por estado y por plataforma.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns objeto `{ byStatus, byPlatform }`, cada uno mapa `string -> count`.
+ */
 export async function getTargetStats(): Promise<{
   byStatus: Record<string, number>;
   byPlatform: Record<string, number>;
@@ -66,6 +95,13 @@ export async function getTargetStats(): Promise<{
   return { byStatus, byPlatform };
 }
 
+/**
+ * Upsert masivo de targets desde un CSV con un `batchId`. No sobrescribe `status` ni `notes`.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns `{ inserted, updated, ids }` calculado a partir de la columna sistema `xmax`.
+ */
 export async function upsertTargetsFromCSV(
   rows: CsvTargetRow[],
   batchId: string,
@@ -127,6 +163,13 @@ export async function upsertTargetsFromCSV(
   return countUpsertResults(result);
 }
 
+/**
+ * Cambia el estado de un target. Si pasa a `contactado` registra `contactedAt = now`.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns void.
+ */
 export async function updateTargetStatus(
   id: number,
   status: Target['status'],
@@ -141,10 +184,24 @@ export async function updateTargetStatus(
     .where(eq(targets.id, id));
 }
 
+/**
+ * Actualiza el campo `notes` de un target.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns void.
+ */
 export async function updateTargetNotes(id: number, notes: string): Promise<void> {
   await db.update(targets).set({ notes, updatedAt: new Date() }).where(eq(targets.id, id));
 }
 
+/**
+ * Crea un target individual con todos sus metadatos opcionales (followers, bio, flags…).
+ *
+ * @cache none
+ * @visibility admin
+ * @returns la fila insertada.
+ */
 export async function createTarget(data: CreateTargetInput): Promise<Target> {
   const [row] = await db
     .insert(targets)
@@ -171,15 +228,36 @@ export async function createTarget(data: CreateTargetInput): Promise<Target> {
   return row!;
 }
 
+/**
+ * Borra una lista de targets por id. No-op si `ids` está vacío.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns void.
+ */
 export async function deleteTargets(ids: number[]): Promise<void> {
   if (ids.length === 0) return;
   await db.delete(targets).where(inArray(targets.id, ids));
 }
 
+/**
+ * Borra TODOS los targets de la tabla. Operación destructiva, solo admin.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns void.
+ */
 export async function deleteAllTargets(): Promise<void> {
   await db.delete(targets);
 }
 
+/**
+ * Upsert masivo programático (no CSV) de targets. No sobrescribe `status` ni `notes`.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns `{ inserted, updated, ids }` derivado de `xmax`.
+ */
 export async function bulkUpsertTargets(
   rows: CreateTargetInput[],
 ): Promise<{ inserted: number; updated: number; ids: number[] }> {
@@ -236,6 +314,14 @@ export async function bulkUpsertTargets(
   return countUpsertResults(result);
 }
 
+/**
+ * Asigna en bloque una lista de targets a un usuario marca del portal.
+ *
+ * @cache none
+ * @visibility admin
+ * @scope brand
+ * @returns `{ assigned }` con el número de filas modificadas.
+ */
 export async function assignTargetsToBrand(
   brandUserId: string,
   targetIds: number[],
@@ -251,6 +337,14 @@ export async function assignTargetsToBrand(
   return { assigned: result.length };
 }
 
+/**
+ * Cambia el estado de un target asignado al brand portal, validando `brandUserId` por seguridad.
+ *
+ * @cache none
+ * @visibility admin
+ * @scope brand
+ * @returns void. Si `brandUserId` no coincide, no actualiza nada.
+ */
 export async function updateBrandTargetStatus(
   brandUserId: string,
   targetId: number,
@@ -271,6 +365,14 @@ export async function updateBrandTargetStatus(
     );
 }
 
+/**
+ * Actualiza las notas de un target asignado al brand portal, validando `brandUserId`.
+ *
+ * @cache none
+ * @visibility admin
+ * @scope brand
+ * @returns void.
+ */
 export async function updateBrandTargetNotes(
   brandUserId: string,
   targetId: number,
@@ -287,6 +389,13 @@ export async function updateBrandTargetNotes(
     );
 }
 
+/**
+ * Cambio masivo de estado para una lista de targets. Stamps `contactedAt` si pasa a `contactado`.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns void. No-op si `ids` está vacío.
+ */
 export async function bulkUpdateStatus(
   ids: number[],
   status: Target['status'],

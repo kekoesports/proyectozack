@@ -11,6 +11,17 @@ type StatusBadgeProps = {
   className?: string;
 }
 
+/**
+ * Badge de estado (`active` / `available` / `inactive`) con color y label en
+ * español derivados de la clase `badge-*` definida en `globals.css`.
+ *
+ * @kind server
+ * @feature ui
+ * @example
+ * ```tsx
+ * <StatusBadge status="active" />
+ * ```
+ */
 export function StatusBadge({ status, className = '' }: StatusBadgeProps) {
   return (
     <span

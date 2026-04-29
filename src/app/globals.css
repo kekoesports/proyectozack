@@ -37,6 +37,18 @@
   --color-sp-admin-accent: #f5632a;
   --color-sp-admin-hover: #252542;
 
+  /* Semantic state tokens */
+  --color-sp-success: #22c55e;
+  --color-sp-success-bg: rgba(34, 197, 94, 0.12);
+  --color-sp-warning: #eab308;
+  --color-sp-warning-bg: rgba(234, 179, 8, 0.12);
+  --color-sp-danger: #ef4444;
+  --color-sp-danger-bg: rgba(239, 68, 68, 0.12);
+  --color-sp-neutral: #71717a;
+  --color-sp-neutral-bg: rgba(113, 113, 122, 0.12);
+  --color-sp-info: #3b82f6;
+  --color-sp-info-bg: rgba(59, 130, 246, 0.12);
+
   /* Brand fonts */
   --font-display: "Barlow Condensed", sans-serif;
   --font-body: Inter, sans-serif;
@@ -162,6 +174,7 @@
   html {
     @apply font-sans;
     background-color: var(--color-sp-black);
+    scroll-behavior: smooth;
   }
   body {
     @apply text-foreground;
@@ -170,6 +183,27 @@
     /* Avoid bouncy white area on iOS / trackpads exposing the html bg */
     overscroll-behavior-y: none;
   }
+}
+
+/*
+ * Motion safety net.
+ *
+ * Components using `initial="hidden"` / `initial={{ opacity: 0 }}` serialize
+ * `style="opacity: 0"` into the SSR HTML. A JS fail-safe (useVisibilityFailSafe)
+ * already covers the case where motion hydrates late or IntersectionObserver
+ * never fires. This CSS rule covers the worst case: motion chunk fails to load
+ * at all (CSP block, ad-blocker, network drop). After 3s the keyframe forces
+ * opacity/transform to their final state. CSS animation styles override inline
+ * styles, but WAAPI (motion's runtime) overrides CSS animation, so normal
+ * motion playback wins during the first 3s and this is invisible.
+ *
+ * Apply to any wrapper that sets opacity:0 via `initial`.
+ */
+@keyframes motion-fallback-reveal {
+  to { opacity: 1; transform: none; }
+}
+[data-motion-fallback] {
+  animation: motion-fallback-reveal 1ms linear 3s forwards;
 }
 
 /* ── Marquee animation ───────────────────────────────────────────────────── */
@@ -252,6 +286,7 @@
   position: fixed;
   inset: 0;
   background: rgba(14, 14, 14, 0.85);
+  -webkit-backdrop-filter: blur(4px);
   backdrop-filter: blur(4px);
   z-index: 50;
   display: flex;

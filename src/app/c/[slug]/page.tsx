@@ -5,9 +5,9 @@ import Link from 'next/link';
 import { getTalentSlugs, getTalentBySlug } from '@/lib/queries/talents';
 import { getActiveGiveaways, getFinishedGiveaways } from '@/lib/queries/giveaways';
 import { getCodesByTalent } from '@/lib/queries/creatorCodes';
-import { CodeCard } from '@/components/giveaways/CodeCard';
-import { GiveawayCarousel } from '@/components/giveaways/GiveawayCarousel';
-import { GiveawayHubCard } from '@/components/giveaways/GiveawayHubCard';
+import { CodeCard } from '@/features/giveaways/components/CodeCard';
+import { GiveawayCarousel } from '@/features/giveaways/components/GiveawayCarousel';
+import { GiveawayHubCard } from '@/features/giveaways/components/GiveawayHubCard';
 import { absoluteUrl } from '@/lib/site-url';
 import type { CreatorCodeWithTalent, GiveawayWithTalent, Talent } from '@/types';
 
@@ -50,7 +50,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
-function toTalentBase(t: Talent): Talent {
+function toTalentBase(t: Talent & Record<string, unknown>): Talent {
   return {
     id: t.id,
     slug: t.slug,
@@ -69,6 +69,18 @@ function toTalentBase(t: Talent): Talent {
     topGeos: t.topGeos,
     audienceLanguage: t.audienceLanguage,
     creatorCountry: t.creatorCountry,
+    audienceStatus: t.audienceStatus,
+    lastStatsUpdateAt: t.lastStatsUpdateAt,
+    updatedAt: t.updatedAt,
+    // Compliance & fiscal fields (admin-only, not exposed publicly)
+    cnmcStatus: t.cnmcStatus,
+    cnmcRegisteredAt: t.cnmcRegisteredAt,
+    cnmcNotes: t.cnmcNotes,
+    hasRcInsurance: t.hasRcInsurance,
+    taxType: t.taxType,
+    nif: t.nif,
+    fiscalName: t.fiscalName,
+    fiscalAddress: t.fiscalAddress,
   };
 }
 
@@ -87,7 +99,7 @@ export default async function CreatorHubPage({ params }: PageProps): Promise<Rea
     notFound();
   }
 
-  const base = toTalentBase(talent as unknown as Talent);
+  const base = toTalentBase(talent);
   const codesWithTalent: CreatorCodeWithTalent[] = codes.map((c) => ({ ...c, talent: base }));
   const activeWithTalent: GiveawayWithTalent[] = active.map((g) => ({ ...g, talent: base }));
   const finishedWithTalent: GiveawayWithTalent[] = finished.map((g) => ({ ...g, talent: base }));

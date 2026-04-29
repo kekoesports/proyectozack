@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { WA_HREF, CONTACT_EMAIL } from '@/lib/constants';
+import { WA_HREF, CONTACT_EMAIL } from '@/lib/utils/constants';
 
 const NAV_COLS = [
   {
@@ -82,6 +82,13 @@ const STATS = [
   { value: '3', label: 'Mercados activos' },
 ];
 
+/**
+ * Footer global de la web pública: stats strip, columnas de navegación,
+ * datos de contacto, redes sociales y bottom bar con enlaces legales.
+ *
+ * @kind server
+ * @feature layout
+ */
 export function Footer() {
   return (
     <footer className="bg-sp-black text-white">

@@ -6,12 +6,19 @@ type AnalyticsProps = {
   gtmId?: string;
 }
 
-/**
- * GTM shell — renders only when a container ID is provided and consent is given.
- * Usage: <Analytics gtmId="GTM-XXXXXXX" />
- */
 const GTM_ID_RE = /^GTM-[A-Z0-9]{1,10}$/;
 
+/**
+ * Wrapper de Google Tag Manager. Inyecta el script GTM solo cuando hay un
+ * `gtmId` válido. La consent gating se aplica desde fuera (CookieConsent).
+ *
+ * @kind client
+ * @feature layout
+ * @example
+ * ```tsx
+ * <Analytics gtmId={process.env.NEXT_PUBLIC_GTM_ID} />
+ * ```
+ */
 export function Analytics({ gtmId }: AnalyticsProps) {
   if (!gtmId || !GTM_ID_RE.test(gtmId)) return null;
 
