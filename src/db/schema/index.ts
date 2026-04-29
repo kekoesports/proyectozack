@@ -26,3 +26,7 @@ export * from './files';
 export * from './campaigns';
 export * from './deliverables';
 export * from './alerts';
+export * from './issuedInvoices';
+export * from './brandBriefs';
+export * from './contracts';
+export * from './contractTemplates';

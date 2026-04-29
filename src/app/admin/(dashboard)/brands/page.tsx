@@ -122,18 +122,18 @@ export default async function AdminBrandsPage(): Promise<React.ReactElement> {
       : []),
   ];
 
-  const activaCount = crmBrands.filter((b) => b.status === 'activa').length;
-  const leadCount = crmBrands.filter((b) => b.status === 'lead').length;
+  const activaCount = crmBrandsList.filter((b) => b.status === 'activa').length;
+  const leadCount   = crmBrandsList.filter((b) => b.status === 'lead').length;
 
   return (
     <div>
       <AdminPageHeader
         title="Marcas"
-        subtitle="Gestión de marcas CRM y portal"
+        subtitle="Gestión de marcas CRM"
         stats={[
           { label: 'activas', value: activaCount, accent: '#16a34a' },
-          { label: 'leads', value: leadCount, accent: '#8b3aad' },
-          { label: 'total', value: crmBrands.length },
+          { label: 'leads',   value: leadCount,   accent: '#8b3aad' },
+          { label: 'total',   value: crmBrandsList.length },
         ]}
       />
       <BrandsTabs defaultKey="crm" tabs={tabs} />

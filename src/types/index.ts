@@ -13,6 +13,10 @@ export type * from './invoice';
 export type * from './invoiceImport';
 export type * from './campaign';
 export type * from './talentBusiness';
+export type * from './invoiceExtract';
+export type * from './issuedInvoice';
+export type * from './brandBrief';
+export type * from './contract';
 export type { BrandFollowupDerivedStatus } from '@/lib/schemas/crmBrand';
 export type { FileType, FileRelatedType } from '@/lib/schemas/file';
 

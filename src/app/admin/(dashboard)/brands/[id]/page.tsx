@@ -1,9 +1,12 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { requireAnyRole } from '@/lib/auth-guard';
-import { getCrmBrand, getBrandContacts, listBrandFollowups, listUpcomingFollowups } from '@/lib/queries/crmBrands';
+import { getCrmBrand, getBrandContacts, listBrandFollowups } from '@/lib/queries/crmBrands';
 import { listCampaigns, getBrandCampaignSummary } from '@/lib/queries/campaigns';
 import { listInvoices } from '@/lib/queries/invoices';
+import { listBriefs } from '@/lib/queries/brandBriefs';
+import { BrandBriefsTab } from '@/components/admin/brands/BrandBriefsTab';
+import { BrandsTabs } from '@/components/admin/brands/BrandsTabs';
 
 // ── Helpers ──────────────────────────────────────────────────────────
 
@@ -53,15 +56,16 @@ export default async function BrandDetailPage({
   const brandId = Number(id);
   if (isNaN(brandId)) notFound();
 
-  await requireAnyRole(['admin', 'staff'], '/admin/login');
+  const session = await requireAnyRole(['admin', 'staff'], '/admin/login');
 
-  const [brand, contacts, followups, campaigns, invoices, campaignSummary] = await Promise.all([
+  const [brand, contacts, followups, campaigns, invoices, campaignSummary, briefs] = await Promise.all([
     getCrmBrand(brandId),
     getBrandContacts(brandId),
     listBrandFollowups(brandId),
     listCampaigns({ brandId }),
     listInvoices({ brandId }),
     getBrandCampaignSummary(brandId),
+    listBriefs(brandId),
   ]);
 
   if (!brand) notFound();
@@ -77,10 +81,11 @@ export default async function BrandDetailPage({
   const pendingFollowups = followups.filter((f) => !f.completedAt);
   const overdueFollowups = pendingFollowups.filter((f) => new Date(f.scheduledAt) < now);
 
-  return (
-    <div className="space-y-4 max-w-[1200px]">
+  const isAdmin = session.user.role === 'admin';
 
-      {/* Breadcrumb */}
+  const resumenContent = (
+    <div className="space-y-4">
+      {/* Breadcrumb — only inside tab */}
       <div className="flex items-center gap-2 text-[11px] text-sp-admin-muted">
         <Link href="/admin/brands" className="hover:text-sp-admin-accent transition-colors">Marcas</Link>
         <span>›</span>
@@ -326,6 +331,35 @@ export default async function BrandDetailPage({
         )}
       </div>
 
+    </div>
+  );
+
+  return (
+    <div className="space-y-4 max-w-[1200px]">
+      {/* Breadcrumb fuera de los tabs */}
+      <div className="flex items-center gap-2 text-[11px] text-sp-admin-muted">
+        <Link href="/admin/brands" className="hover:text-sp-admin-accent transition-colors">Marcas</Link>
+        <span>›</span>
+        <span className="text-sp-admin-text font-medium">{brand.name}</span>
+      </div>
+
+      <BrandsTabs
+        defaultKey="resumen"
+        tabs={[
+          { key: 'resumen', label: 'Resumen',  content: resumenContent },
+          {
+            key:     'briefs',
+            label:   `Briefs${briefs.length > 0 ? ` (${briefs.length})` : ''}`,
+            content: (
+              <BrandBriefsTab
+                brandId={brandId}
+                briefs={briefs}
+                isAdmin={isAdmin}
+              />
+            ),
+          },
+        ]}
+      />
     </div>
   );
 }

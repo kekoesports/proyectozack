@@ -283,6 +283,24 @@ export async function annulInvoiceAction(id: number): Promise<ActionState> {
   }
 }
 
+export async function bulkDeleteInvoicesAction(ids: number[]): Promise<ActionState> {
+  await requireAnyRole(['admin'], '/admin/login');
+  if (ids.length === 0) return {};
+  try {
+    for (const id of ids) {
+      const existing = await getInvoice(id);
+      if (existing?.filePath)        try { await del(existing.filePath);        } catch { /* ignore */ }
+      if (existing?.receiptFilePath) try { await del(existing.receiptFilePath); } catch { /* ignore */ }
+      await deleteInvoice(id);
+    }
+    revalidatePath('/admin/facturacion');
+    return { success: true };
+  } catch (err) {
+    console.error('[admin] bulkDeleteInvoices error:', err instanceof Error ? err.message : 'unknown');
+    return { error: 'Error al eliminar movimientos' };
+  }
+}
+
 export async function markInvoicePaidAction(id: number): Promise<ActionState> {
   await requireAnyRole(['admin', 'manager'], '/admin/login');
   const today = new Intl.DateTimeFormat('en-CA', {

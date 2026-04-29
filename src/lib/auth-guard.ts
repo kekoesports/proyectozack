@@ -4,8 +4,7 @@ import { auth } from '@/lib/auth';
 
 export type Role = 'admin' | 'brand' | 'staff' | 'manager';
 
-/** Only these paths are valid redirect targets — prevents open redirect. */
-const ALLOWED_LOGIN_PATHS = new Set(['/admin/login', '/marcas/login']);
+const ALLOWED_LOGIN_PATHS = new Set(['/admin/login']);
 
 type SessionWithRole = {
   user: {
@@ -34,11 +33,9 @@ function homeForRole(role: string | null | undefined): string | null {
 }
 
 async function loadSession(loginPath: string): Promise<SessionWithRole> {
-  const safePath = ALLOWED_LOGIN_PATHS.has(loginPath) ? loginPath : '/';
+  const safePath = ALLOWED_LOGIN_PATHS.has(loginPath) ? loginPath : '/admin/login';
 
   if (process.env.NODE_ENV === 'development') {
-    // Dev bypass: the caller decides which role to mock via requireRole/requireAnyRole.
-    // When multiple roles are allowed we prefer 'admin' as the highest-privilege default.
     return { user: { id: 'dev', email: 'dev@localhost', name: 'Dev', role: 'admin' } };
   }
 
@@ -49,10 +46,10 @@ async function loadSession(loginPath: string): Promise<SessionWithRole> {
 
   return {
     user: {
-      id: session.user.id,
+      id:    session.user.id,
       email: session.user.email,
-      name: session.user.name,
-      role: userRole,
+      name:  session.user.name,
+      role:  userRole,
     },
   };
 }
@@ -62,8 +59,8 @@ export async function requireRole<R extends Role>(role: R, loginPath: string): P
     return { user: { id: 'dev', email: 'dev@localhost', name: 'Dev', role } };
   }
 
-  const safePath = ALLOWED_LOGIN_PATHS.has(loginPath) ? loginPath : '/';
-  const session = await loadSession(loginPath);
+  const safePath = ALLOWED_LOGIN_PATHS.has(loginPath) ? loginPath : '/admin/login';
+  const session  = await loadSession(loginPath);
   const userRole = session.user.role;
 
   if (userRole !== role) {
@@ -87,7 +84,7 @@ export async function requireAnyRole<R extends Role>(
     return { user: { id: 'dev', email: 'dev@localhost', name: 'Dev', role: mockRole } };
   }
 
-  const session = await loadSession(safePath);
+  const session  = await loadSession(safePath);
   const userRole = session.user.role;
 
   if (!userRole || !(roles as readonly string[]).includes(userRole as R)) {

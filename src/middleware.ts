@@ -47,7 +47,6 @@ const RATE_LIMITS: { pattern: RegExp; limit: number; windowMs: number }[] = [
   { pattern: /^\/api\/auth\/forget-password/, limit: 5, windowMs: 15 * 60 * 1000 },
   { pattern: /^\/api\/contact$/,      limit: 5,  windowMs: 60 * 1000 },
   { pattern: /^\/api\/creator-apply$/,limit: 3,  windowMs: 60 * 1000 },
-  { pattern: /^\/api\/marcas\/proposals$/,limit: 10, windowMs: 60 * 1000 },
 ];
 
 function getClientIp(req: NextRequest): string {
