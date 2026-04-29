@@ -76,10 +76,11 @@ export function BrandsSidebar({
                 }`}
               >
                 {b.logo ? (
-                  /* eslint-disable-next-line @next/next/no-img-element */
                   <img
                     src={b.logo}
-                    alt=""
+                    alt={b.name}
+                    width={24}
+                    height={24}
                     className="h-6 w-6 rounded-full object-contain bg-white/5 p-0.5"
                   />
                 ) : (
@@ -136,10 +137,9 @@ export function BrandsSidebar({
               }`}
             >
               {b.logo ? (
-                /* eslint-disable-next-line @next/next/no-img-element */
                 <img
                   src={b.logo}
-                  alt=""
+                  alt={b.name}
                   width={32}
                   height={32}
                   className="h-8 w-8 rounded-md object-contain bg-white/5 p-1"

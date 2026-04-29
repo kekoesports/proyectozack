@@ -9,6 +9,7 @@ import { gradientStyle } from '@/lib/utils/gradient';
 type TalentCardProps = {
   talent: TalentWithRelations;
   onOpen: () => void;
+  priority?: boolean;
 }
 
 /**
@@ -22,7 +23,7 @@ type TalentCardProps = {
  * <TalentCard talent={talent} onOpen={() => setSelected(talent)} />
  * ```
  */
-export function TalentCard({ talent, onOpen }: TalentCardProps) {
+export function TalentCard({ talent, onOpen, priority = false }: TalentCardProps) {
   const grad = gradientStyle(talent.gradientC1, talent.gradientC2);
 
   return (
@@ -38,6 +39,7 @@ export function TalentCard({ talent, onOpen }: TalentCardProps) {
             alt={talent.name}
             fill
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+            priority={priority}
             className="object-cover object-top group-hover:scale-105 transition-transform duration-300"
           />
         ) : (

@@ -39,13 +39,15 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       title,
       description,
       url: absoluteUrl(`/casos/${slug}`),
-      images: hasImage ? [{ url: caseStudy.heroImageUrl!, width: 1200, height: 630 }] : undefined,
+      images: hasImage
+        ? [{ url: caseStudy.heroImageUrl!, width: 1200, height: 630 }]
+        : [{ url: absoluteUrl('/og-default.jpg'), width: 1200, height: 630 }],
     },
     twitter: {
       card: 'summary_large_image',
       title,
       description,
-      images: hasImage ? [caseStudy.heroImageUrl!] : undefined,
+      images: hasImage ? [caseStudy.heroImageUrl!] : [absoluteUrl('/og-default.jpg')],
     },
   };
 }
@@ -63,17 +65,21 @@ export default async function CaseStudyPage({ params }: PageProps) {
   ].filter((m) => m.value);
 
   const breadcrumbJsonLd = buildBreadcrumbJsonLd([
-    { name: 'Casos de Éxito', url: absoluteUrl('/#casos') },
+    { name: 'Casos de Éxito', url: absoluteUrl('/casos') },
     { name: caseStudy.brandName, url: absoluteUrl(`/casos/${slug}`) },
   ]);
 
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Article',
+    '@id': absoluteUrl(`/casos/${slug}`),
     headline: caseStudy.title,
-    author: { '@type': 'Organization', name: 'SocialPro' },
-    publisher: { '@type': 'Organization', name: 'SocialPro' },
+    url: absoluteUrl(`/casos/${slug}`),
+    inLanguage: 'es',
+    author: { '@type': 'Organization', name: 'SocialPro', url: absoluteUrl('/') },
+    publisher: { '@type': 'Organization', name: 'SocialPro', url: absoluteUrl('/') },
     description: caseStudy.excerpt || caseStudy.body[0]?.paragraph || '',
+    dateModified: caseStudy.updatedAt.toISOString(),
   };
 
   return (
@@ -92,7 +98,7 @@ export default async function CaseStudyPage({ params }: PageProps) {
         <div className="max-w-4xl mx-auto px-6">
           {/* Back link */}
           <Link
-            href="/#casos"
+            href="/casos"
             className="inline-flex items-center gap-1.5 text-sm text-white/50 hover:text-white transition-colors mb-8"
           >
             <span aria-hidden="true">&larr;</span> Volver a casos
@@ -155,14 +161,24 @@ export default async function CaseStudyPage({ params }: PageProps) {
             <div className="mb-10">
               <SectionTag>Creadores participantes</SectionTag>
               <div className="flex flex-wrap gap-2 mt-2">
-                {caseStudy.creators.map((c) => (
-                  <span
-                    key={c.id}
-                    className="text-sm px-3 py-1.5 rounded-full bg-sp-off text-sp-dark font-medium"
-                  >
-                    {c.creatorName}
-                  </span>
-                ))}
+                {caseStudy.creators.map((c) =>
+                  c.talentSlug ? (
+                    <Link
+                      key={c.id}
+                      href={`/talentos/${c.talentSlug}`}
+                      className="text-sm px-3 py-1.5 rounded-full bg-sp-off text-sp-dark font-medium hover:bg-sp-orange/10 hover:text-sp-orange transition-colors"
+                    >
+                      {c.creatorName}
+                    </Link>
+                  ) : (
+                    <span
+                      key={c.id}
+                      className="text-sm px-3 py-1.5 rounded-full bg-sp-off text-sp-dark font-medium"
+                    >
+                      {c.creatorName}
+                    </span>
+                  )
+                )}
               </div>
             </div>
           )}

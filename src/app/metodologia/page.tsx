@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { SectionTag } from '@/components/ui/SectionTag';
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { GradientText } from '@/components/ui/GradientText';
+import { absoluteUrl, SITE_URL } from '@/lib/site-url';
 
 export const metadata: Metadata = {
   title: 'Metodología de Campañas Gaming',
@@ -10,6 +11,20 @@ export const metadata: Metadata = {
     'Nuestro proceso de trabajo: discovery, matching, ejecución y reporting. Campañas medibles con ROI demostrable.',
   alternates: {
     canonical: '/metodologia',
+  },
+  openGraph: {
+    title: 'Metodología de Campañas Gaming | SocialPro',
+    description:
+      'Proceso probado en 4 fases: discovery, matching, ejecución y reporting. Campañas medibles con ROI demostrable.',
+    url: absoluteUrl('/metodologia'),
+    images: [{ url: absoluteUrl('/og-default.jpg'), width: 1200, height: 630 }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Metodología de Campañas Gaming | SocialPro',
+    description:
+      'Proceso en 4 fases: discovery, matching, ejecución y reporting. ROI demostrable en cada campaña.',
+    images: [absoluteUrl('/og-default.jpg')],
   },
 };
 
@@ -69,9 +84,33 @@ const KPIS = [
   { label: 'Retention', desc: 'Valor a largo plazo de los usuarios captados' },
 ];
 
+const howToJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'HowTo',
+  '@id': absoluteUrl('/metodologia'),
+  name: 'Cómo ejecutamos campañas de influencer marketing gaming',
+  description:
+    'Proceso probado en 4 fases para campañas de influencer marketing gaming con ROI demostrable. Discovery, matching, ejecución y reporting.',
+  inLanguage: 'es',
+  publisher: { '@type': 'Organization', name: 'SocialPro', url: SITE_URL },
+  step: PHASES.map((phase) => ({
+    '@type': 'HowToStep',
+    name: phase.title,
+    text: phase.desc,
+    itemListElement: phase.details.map((d) => ({
+      '@type': 'HowToDirection',
+      text: d,
+    })),
+  })),
+};
+
 export default function MetodologiaPage() {
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(howToJsonLd) }}
+      />
       {/* ── Hero ── */}
       <section className="bg-sp-black pt-32 pb-20">
         <div className="max-w-4xl mx-auto px-6 text-center">

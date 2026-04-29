@@ -46,12 +46,14 @@ export const metadata: Metadata = {
     siteName: 'SocialPro',
     locale: 'es_ES',
     type: 'website',
+    images: [{ url: absoluteUrl('/og-default.jpg'), width: 1200, height: 630, alt: 'SocialPro — Agencia Gaming & Esports' }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'SocialPro — Agencia Gaming & Esports',
     description:
       'Conectamos streamers y creadores con las mejores marcas de iGaming. +13 años, +15M views/mes.',
+    images: [absoluteUrl('/og-default.jpg')],
   },
   manifest: '/manifest.json',
 };

@@ -42,8 +42,13 @@ function SorteoSidebarCard({ giveaway }: { giveaway: GiveawayWithTalent }): Reac
       {/* Brand header */}
       <div className="flex items-center gap-2 px-3 py-2 border-b border-white/[0.05] bg-white/[0.02]">
         {giveaway.brandLogo ? (
-          /* eslint-disable-next-line @next/next/no-img-element */
-          <img src={giveaway.brandLogo} alt={giveaway.brandName} className="h-4 w-4 rounded object-contain" />
+          <Image
+            src={giveaway.brandLogo}
+            alt={giveaway.brandName}
+            width={16}
+            height={16}
+            className="rounded object-contain"
+          />
         ) : (
           <div className="h-4 w-4 rounded bg-sp-orange/20 flex items-center justify-center text-[8px] font-black text-sp-orange shrink-0">
             {giveaway.brandName.charAt(0)}

@@ -40,9 +40,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       title,
       description,
       url: absoluteUrl(`/talentos/${slug}`),
+      type: 'profile',
       images: talent.photoUrl
         ? [{ url: talent.photoUrl, width: 600, height: 600 }]
-        : undefined,
+        : [{ url: absoluteUrl('/og-default.jpg'), width: 1200, height: 630 }],
     },
     twitter: {
       card: 'summary_large_image',
@@ -61,17 +62,31 @@ export default async function TalentPage({ params }: PageProps) {
   const grad = gradientStyle(talent.gradientC1, talent.gradientC2);
 
   const breadcrumbJsonLd = buildBreadcrumbJsonLd([
-    { name: 'Talentos', url: absoluteUrl('/#talentos') },
+    { name: 'Talentos', url: absoluteUrl('/talentos') },
     { name: talent.name, url: absoluteUrl(`/talentos/${slug}`) },
   ]);
+
+  const interactionStats = talent.socials
+    .filter((s) => s.followersDisplay && s.followersDisplay !== '-')
+    .map((s) => ({
+      '@type': 'InteractionCounter',
+      interactionType: 'https://schema.org/FollowAction',
+      userInteractionCount: s.followersDisplay,
+      name: s.platform,
+    }));
 
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Person',
+    '@id': absoluteUrl(`/talentos/${slug}`),
     name: talent.name,
     jobTitle: talent.role,
     description: talent.bio,
-    worksFor: { '@type': 'Organization', name: 'SocialPro' },
+    url: absoluteUrl(`/talentos/${slug}`),
+    ...(talent.photoUrl ? { image: talent.photoUrl } : {}),
+    ...(talent.tags.length > 0 ? { knowsAbout: talent.tags.map((t) => t.tag) } : {}),
+    ...(interactionStats.length > 0 ? { interactionStatistic: interactionStats } : {}),
+    worksFor: { '@type': 'Organization', name: 'SocialPro', url: absoluteUrl('/') },
     sameAs: talent.socials
       .filter((s) => s.profileUrl)
       .map((s) => s.profileUrl),
@@ -97,7 +112,7 @@ export default async function TalentPage({ params }: PageProps) {
         <div className="relative max-w-5xl mx-auto px-6 pt-16 pb-20 md:pt-20 md:pb-24">
           {/* Back link */}
           <Link
-            href="/#talentos"
+            href="/talentos"
             className="inline-flex items-center gap-1.5 text-sm text-white/60 hover:text-white transition-colors mb-8"
           >
             <span aria-hidden="true">&larr;</span> Volver a talentos
@@ -144,6 +159,7 @@ export default async function TalentPage({ params }: PageProps) {
         <div className="max-w-4xl mx-auto px-6">
           {/* Bio */}
           <div className="mb-12">
+            <h2 className="sr-only">{`Sobre ${talent.name}`}</h2>
             <SectionTag>{`Sobre ${talent.name}`}</SectionTag>
             <p className="text-base text-sp-muted leading-relaxed max-w-2xl">
               {talent.bio}
@@ -153,6 +169,7 @@ export default async function TalentPage({ params }: PageProps) {
           {/* Stats grid */}
           {talent.stats.length > 0 && (
             <div className="mb-12">
+              <h2 className="sr-only">Estadísticas</h2>
               <SectionTag>Estadísticas</SectionTag>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-2">
                 {talent.stats.map((stat) => (
@@ -174,6 +191,7 @@ export default async function TalentPage({ params }: PageProps) {
           {/* Tags */}
           {talent.tags.length > 0 && (
             <div className="mb-12">
+              <h2 className="sr-only">Especialidades</h2>
               <SectionTag>Especialidades</SectionTag>
               <div className="flex flex-wrap gap-2 mt-2">
                 {talent.tags.map((t) => (
@@ -191,6 +209,7 @@ export default async function TalentPage({ params }: PageProps) {
           {/* Socials */}
           {talent.socials.length > 0 && (
             <div className="mb-12">
+              <h2 className="sr-only">Redes sociales</h2>
               <SectionTag>Redes sociales</SectionTag>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2">
                 {talent.socials.map((s) => (

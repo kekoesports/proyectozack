@@ -19,6 +19,7 @@ const STATIC_DATES = {
   paraCreadores: new Date('2025-04-27'),
   blog:          new Date('2025-04-27'),
   giveaways:     new Date('2025-04-27'),
+  sorteos:       new Date('2025-04-27'),
 } as const;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -44,6 +45,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const creatorHubEntries: MetadataRoute.Sitemap = talentSlugs.map((t) => ({
     url: absoluteUrl(`/c/${t.slug}`),
+    lastModified: t.updatedAt,
+    changeFrequency: 'weekly',
+    priority: 0.7,
+  }));
+
+  const creadorEntries: MetadataRoute.Sitemap = talentSlugs.map((t) => ({
+    url: absoluteUrl(`/creadores/${t.slug}`),
     lastModified: t.updatedAt,
     changeFrequency: 'weekly',
     priority: 0.7,
@@ -123,9 +131,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'daily',
       priority: 0.9,
     },
+    {
+      url: absoluteUrl('/sorteos'),
+      lastModified: STATIC_DATES.sorteos,
+      changeFrequency: 'daily',
+      priority: 0.8,
+    },
     ...caseEntries,
     ...talentEntries,
     ...creatorHubEntries,
+    ...creadorEntries,
     ...postEntries,
   ];
 }

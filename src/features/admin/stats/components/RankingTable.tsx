@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import Link from 'next/link';
 import { formatCompact } from '@/lib/utils/format';
 import { EmptyState } from '@/features/admin/_shared/components/EmptyState';
@@ -41,9 +42,11 @@ function CreatorAvatar({
 }): React.ReactElement {
   if (photoUrl !== null) {
     return (
-      <img
+      <Image
         src={photoUrl}
         alt={name}
+        width={32}
+        height={32}
         className="w-8 h-8 rounded-full object-cover shrink-0"
       />
     );

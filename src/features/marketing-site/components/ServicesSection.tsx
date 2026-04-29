@@ -186,9 +186,9 @@ export function ServicesSection() {
                 <div
                   className="absolute left-0 top-0 bottom-0 w-[3px] rounded-l-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-[linear-gradient(180deg,#f5632a_0%,#e03070_50%,#8b3aad_100%)]"
                 />
-                <h5 className="font-display text-base font-black uppercase mb-2 text-sp-dark group-hover:text-sp-orange transition-colors duration-300">
+                <h4 className="font-display text-base font-black uppercase mb-2 text-sp-dark group-hover:text-sp-orange transition-colors duration-300">
                   {title}
-                </h5>
+                </h4>
                 <p className="text-sm text-sp-muted leading-relaxed">{desc}</p>
               </div>
             </FadeInOnScroll>

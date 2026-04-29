@@ -1,7 +1,7 @@
 import { cache } from 'react';
-import { eq } from 'drizzle-orm';
+import { eq, inArray } from 'drizzle-orm';
 import { db } from '@/lib/db';
-import { caseStudies } from '@/db/schema';
+import { caseStudies, talents } from '@/db/schema';
 import type { CaseStudyWithRelations } from '@/types';
 
 /**
@@ -23,7 +23,7 @@ export async function getCaseSlugs(): Promise<{ slug: string; updatedAt: Date }[
  * @returns array de CaseStudyWithRelations (puede ser vacío). Nunca null.
  */
 export async function getCaseStudies(): Promise<CaseStudyWithRelations[]> {
-  return db.query.caseStudies.findMany({
+  const rows = await db.query.caseStudies.findMany({
     with: {
       body: { orderBy: (b, { asc }) => [asc(b.sortOrder)] },
       tags: true,
@@ -31,6 +31,10 @@ export async function getCaseStudies(): Promise<CaseStudyWithRelations[]> {
     },
     orderBy: (c, { asc }) => [asc(c.sortOrder)],
   });
+  return rows.map((row) => ({
+    ...row,
+    creators: row.creators.map((c) => ({ ...c, talentSlug: null })),
+  }));
 }
 
 /**
@@ -49,5 +53,28 @@ export const getCaseBySlug = cache(async (slug: string): Promise<CaseStudyWithRe
       creators: true,
     },
   });
-  return row ?? undefined;
+  if (!row) return undefined;
+
+  // Enrich creators with talent slug for internal linking
+  const talentIds = row.creators
+    .map((c) => c.talentId)
+    .filter((id): id is number => id !== null);
+
+  const talentSlugs =
+    talentIds.length > 0
+      ? await db
+          .select({ id: talents.id, slug: talents.slug })
+          .from(talents)
+          .where(inArray(talents.id, talentIds))
+      : [];
+
+  const slugMap = new Map(talentSlugs.map((t) => [t.id, t.slug]));
+
+  return {
+    ...row,
+    creators: row.creators.map((c) => ({
+      ...c,
+      talentSlug: c.talentId !== null ? (slugMap.get(c.talentId) ?? null) : null,
+    })),
+  };
 });

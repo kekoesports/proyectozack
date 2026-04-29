@@ -64,6 +64,7 @@ export function TalentGrid({ talents }: TalentGridProps): React.JSX.Element {
               <TalentCard
                 talent={talent}
                 onOpen={() => setSelected(talent)}
+                priority={index < 4}
               />
             </m.div>
           ))}

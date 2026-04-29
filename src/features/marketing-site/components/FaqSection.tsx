@@ -104,25 +104,8 @@ function FaqAccordionItem({ item, isOpen, onToggle }: { item: FaqItem; isOpen: b
 export function FaqSection() {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
-  const faqSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'FAQPage',
-    mainEntity: FAQS.map((faq) => ({
-      '@type': 'Question',
-      name: faq.question,
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: faq.answer,
-      },
-    })),
-  };
-
   return (
     <section id="faq" className="py-24 bg-white">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
-      />
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
         <FadeInOnScroll>
           <div className="text-center mb-12">

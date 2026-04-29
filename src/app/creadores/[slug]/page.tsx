@@ -36,13 +36,15 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       title,
       description,
       url: absoluteUrl(`/creadores/${slug}`),
-      images: ogImage ? [{ url: ogImage }] : undefined,
+      images: ogImage
+        ? [{ url: ogImage, width: 600, height: 600 }]
+        : [{ url: absoluteUrl('/og-default.jpg'), width: 1200, height: 630 }],
     },
     twitter: {
       card: 'summary_large_image',
       title,
       description,
-      images: ogImage ? [ogImage] : undefined,
+      images: ogImage ? [ogImage] : [absoluteUrl('/og-default.jpg')],
     },
   };
 }

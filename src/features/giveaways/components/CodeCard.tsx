@@ -104,10 +104,11 @@ export function CodeCard({ code, featured = false }: CodeCardProps): React.JSX.E
           aria-hidden
         />
         {code.brandLogo ? (
-          /* eslint-disable-next-line @next/next/no-img-element */
-          <img
+          <Image
             src={code.brandLogo}
             alt={code.brandName}
+            width={120}
+            height={featured ? 64 : 56}
             className={`relative z-10 max-w-[60%] object-contain drop-shadow-[0_2px_12px_rgba(0,0,0,0.5)] transition-transform duration-500 group-hover:scale-105 ${featured ? 'max-h-16' : 'max-h-14'}`}
           />
         ) : (

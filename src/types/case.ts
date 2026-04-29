@@ -6,8 +6,12 @@ export type CaseBodyRow = InferSelectModel<typeof caseBody>;
 export type CaseTag = InferSelectModel<typeof caseTags>;
 export type CaseCreator = InferSelectModel<typeof caseCreators>;
 
+export type CaseCreatorWithSlug = CaseCreator & {
+  talentSlug: string | null;
+};
+
 export type CaseStudyWithRelations = CaseStudy & {
   body: CaseBodyRow[];
   tags: CaseTag[];
-  creators: CaseCreator[];
+  creators: CaseCreatorWithSlug[];
 };

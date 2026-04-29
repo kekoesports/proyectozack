@@ -13,8 +13,19 @@ export const metadata: Metadata = {
     canonical: '/servicios/igaming',
   },
   openGraph: {
+    title: 'Agencia de Campañas iGaming España | SocialPro',
+    description:
+      'Campañas iGaming con streamers verificados en España y LatAm. Compliance, FTD tracking y ROI demostrable.',
     url: absoluteUrl('/servicios/igaming'),
     type: 'website',
+    images: [{ url: absoluteUrl('/og-default.jpg'), width: 1200, height: 630 }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Agencia de Campañas iGaming España | SocialPro',
+    description:
+      'Campañas iGaming con streamers verificados. Compliance DGOJ, FTD tracking y ROI demostrable.',
+    images: [absoluteUrl('/og-default.jpg')],
   },
 };
 

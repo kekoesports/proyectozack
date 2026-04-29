@@ -19,6 +19,8 @@ const NAV_COLS = [
     links: [
       { href: '/para-creadores', label: 'Para Creadores' },
       { href: '/talentos', label: 'Ver Roster' },
+      { href: '/giveaways', label: 'Giveaways' },
+      { href: '/sorteos', label: 'Sorteos de Skins' },
       { href: '/contacto', label: 'Trabaja con nosotros' },
     ],
   },

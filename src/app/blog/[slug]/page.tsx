@@ -107,12 +107,33 @@ export default async function BlogPostPage({ params }: PageProps) {
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'BlogPosting',
+    '@id': absoluteUrl(`/blog/${slug}`),
     headline: post.title,
     description: post.excerpt,
-    author: { '@type': 'Person', name: post.author, worksFor: { '@type': 'Organization', name: 'SocialPro' } },
-    publisher: { '@type': 'Organization', name: 'SocialPro' },
+    url: absoluteUrl(`/blog/${slug}`),
+    inLanguage: 'es',
+    author: {
+      '@type': 'Person',
+      name: post.author,
+      worksFor: { '@type': 'Organization', name: 'SocialPro' },
+    },
+    publisher: {
+      '@type': 'Organization',
+      name: 'SocialPro',
+      url: absoluteUrl('/'),
+    },
     datePublished: post.publishedAt?.toISOString(),
-    image: post.coverUrl || undefined,
+    dateModified: post.updatedAt.toISOString(),
+    ...(post.coverUrl ? { image: post.coverUrl } : {}),
+    ...(post.talentAvatars.length > 0
+      ? {
+          mentions: post.talentAvatars.map((t) => ({
+            '@type': 'Person',
+            name: t.name,
+            url: absoluteUrl(`/talentos/${t.slug}`),
+          })),
+        }
+      : {}),
   };
 
   return (

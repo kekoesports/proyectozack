@@ -3,6 +3,7 @@ import { SectionTag } from '@/components/ui/SectionTag';
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { GradientText } from '@/components/ui/GradientText';
 import { CreatorApplyForm } from '@/features/contact/components/CreatorApplyForm';
+import { absoluteUrl } from '@/lib/site-url';
 
 export const metadata: Metadata = {
   title: 'Gestión y Patrocinios para Streamers',
@@ -10,6 +11,20 @@ export const metadata: Metadata = {
     'Únete al roster de SocialPro. Conseguimos patrocinios con las mejores marcas de iGaming, hardware y entretenimiento para streamers en España y LatAm.',
   alternates: {
     canonical: '/para-creadores',
+  },
+  openGraph: {
+    title: 'Gestión y Patrocinios para Streamers | SocialPro',
+    description:
+      'Únete al roster de SocialPro. Patrocinios con las mejores marcas de iGaming, hardware y entretenimiento para streamers en España y LatAm.',
+    url: absoluteUrl('/para-creadores'),
+    images: [{ url: absoluteUrl('/og-default.jpg'), width: 1200, height: 630 }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Gestión y Patrocinios para Streamers | SocialPro',
+    description:
+      'Únete al roster de SocialPro. Patrocinios reales con marcas top de iGaming y hardware.',
+    images: [absoluteUrl('/og-default.jpg')],
   },
 };
 

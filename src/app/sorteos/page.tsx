@@ -3,12 +3,27 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { getAllActiveGiveaways, getAllFinishedGiveaways } from '@/lib/queries/giveawaysHub';
 import { SorteoCard } from '@/features/giveaways/components/SorteoCard';
+import { absoluteUrl } from '@/lib/site-url';
 
 export const metadata: Metadata = {
   title: 'Sorteos de Skins — SocialPro',
   description:
     'Participa en los mejores sorteos de skins CS2 y recompensas gaming de tus creadores favoritos.',
   alternates: { canonical: '/sorteos' },
+  openGraph: {
+    title: 'Sorteos de Skins Gaming | SocialPro',
+    description:
+      'Participa en los mejores sorteos de skins CS2 y recompensas gaming de tus creadores favoritos.',
+    url: absoluteUrl('/sorteos'),
+    images: [{ url: absoluteUrl('/og-default.jpg'), width: 1200, height: 630 }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Sorteos de Skins Gaming | SocialPro',
+    description:
+      'Skins CS2 y recompensas gaming. Sorteos gratis con tus creadores favoritos.',
+    images: [absoluteUrl('/og-default.jpg')],
+  },
 };
 
 export const revalidate = 3600;

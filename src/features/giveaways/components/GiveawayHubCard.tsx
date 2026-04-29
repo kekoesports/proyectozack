@@ -46,11 +46,12 @@ export function GiveawayHubCard({ giveaway }: GiveawayHubCardProps): React.JSX.E
       {/* Brand bar — logo protagonista */}
       <div className="flex items-center gap-2.5 px-4 py-3 bg-white/[0.03] border-b border-white/[0.04]">
         {giveaway.brandLogo ? (
-          /* eslint-disable-next-line @next/next/no-img-element */
-          <img
+          <Image
             src={giveaway.brandLogo}
             alt={giveaway.brandName}
-            className="h-6 w-6 rounded-md object-contain bg-white/5 p-0.5 shrink-0"
+            width={24}
+            height={24}
+            className="rounded-md object-contain bg-white/5 p-0.5 shrink-0"
           />
         ) : (
           <div className="h-6 w-6 rounded-md bg-sp-orange/20 flex items-center justify-center text-[10px] font-black text-sp-orange shrink-0">

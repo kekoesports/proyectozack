@@ -3,6 +3,7 @@ import { getPosts } from '@/lib/queries/posts';
 import { SectionTag } from '@/components/ui/SectionTag';
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { BlogCard } from '@/features/blog/components/BlogCard';
+import { absoluteUrl } from '@/lib/site-url';
 
 export const revalidate = 3600;
 
@@ -11,6 +12,20 @@ export const metadata: Metadata = {
   description:
     'Artículos sobre marketing gaming, esports, estrategias para creadores y tendencias del sector iGaming en España y Latinoamérica.',
   alternates: { canonical: '/blog' },
+  openGraph: {
+    title: 'Marketing Gaming — Insights y Tendencias | SocialPro',
+    description:
+      'Artículos sobre marketing gaming, esports, estrategias para creadores y tendencias del sector iGaming en España y Latinoamérica.',
+    url: absoluteUrl('/blog'),
+    images: [{ url: absoluteUrl('/og-default.jpg'), width: 1200, height: 630 }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Marketing Gaming — Insights y Tendencias | SocialPro',
+    description:
+      'Artículos sobre marketing gaming, esports y tendencias del sector iGaming en español.',
+    images: [absoluteUrl('/og-default.jpg')],
+  },
 };
 
 export default async function BlogPage() {
