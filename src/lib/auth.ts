@@ -3,6 +3,7 @@ import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { db } from './db';
 import { env } from './env';
 import { SITE_URL } from './site-url';
+import { sendPasswordResetEmail } from './email';
 
 /** Derive www/non-www variants + production domain so auth works regardless of env config. */
 function getSiteOrigins(siteUrl: string): string[] {
@@ -29,6 +30,13 @@ export const auth = betterAuth({
     minPasswordLength: 12,
     maxPasswordLength: 128,
     revokeSessionsOnPasswordReset: true,
+    sendResetPassword: async ({ user, url }) => {
+      await sendPasswordResetEmail({
+        email: user.email,
+        name: user.name,
+        resetUrl: url,
+      });
+    },
   },
   database: drizzleAdapter(db, { provider: 'pg' }),
   session: {

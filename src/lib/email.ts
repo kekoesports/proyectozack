@@ -3,6 +3,7 @@ import { env } from './env';
 import { SITE_URL } from './site-url';
 
 const resend = new Resend(env.RESEND_API_KEY);
+const SITE_HOSTNAME = new URL(SITE_URL).hostname;
 
 /** Escape user-supplied strings before embedding in HTML email templates. */
 function escapeHtml(str: string): string {
@@ -54,8 +55,7 @@ export async function sendStaffInviteEmail(payload: {
   let loginUrl = '#';
   try {
     const parsed = new URL(payload.loginUrl);
-    const siteUrl = new URL(SITE_URL);
-    if (parsed.hostname === siteUrl.hostname) loginUrl = payload.loginUrl;
+    if (parsed.hostname === SITE_HOSTNAME) loginUrl = payload.loginUrl;
   } catch {
     // Malformed URL — fall through to '#'
   }
@@ -83,6 +83,40 @@ export async function sendStaffInviteEmail(payload: {
   });
 }
 
+export async function sendPasswordResetEmail(payload: {
+  email: string;
+  name: string;
+  resetUrl: string;
+}): Promise<void> {
+  const name = escapeHtml(payload.name);
+  let resetUrl = '#';
+  try {
+    const parsed = new URL(payload.resetUrl);
+    if (parsed.hostname === SITE_HOSTNAME) resetUrl = payload.resetUrl;
+  } catch { /* fall through */ }
+
+  await resend.emails.send({
+    from: 'SocialPro <noreply@socialpro.es>',
+    to: payload.email,
+    subject: 'Restablecer contraseña — SocialPro',
+    html: `
+      <div style="font-family: Inter, sans-serif; max-width: 480px; margin: 0 auto;">
+        <h2 style="font-family: 'Barlow Condensed', sans-serif; text-transform: uppercase;">
+          Restablecer contraseña
+        </h2>
+        <p>Hola <strong>${name}</strong>,</p>
+        <p>Haz clic en el botón para establecer tu contraseña. El enlace caduca en 1 hora.</p>
+        <p>
+          <a href="${resetUrl}" style="display:inline-block;padding:12px 32px;background:linear-gradient(135deg,#f5632a 0%,#e03070 35%,#c42880 62%,#8b3aad 100%);color:#fff;text-decoration:none;border-radius:9999px;font-weight:bold;">
+            Establecer contraseña
+          </a>
+        </p>
+        <p style="color: #6b6864; font-size: 13px;">Si no solicitaste este cambio, ignora este email.</p>
+      </div>
+    `,
+  });
+}
+
 export async function sendBrandInviteEmail(payload: {
   brandEmail: string;
   brandName: string;
@@ -93,8 +127,7 @@ export async function sendBrandInviteEmail(payload: {
   let resetUrl = '#';
   try {
     const parsed = new URL(payload.resetUrl);
-    const siteUrl = new URL(SITE_URL);
-    if (parsed.hostname === siteUrl.hostname) resetUrl = payload.resetUrl;
+    if (parsed.hostname === SITE_HOSTNAME) resetUrl = payload.resetUrl;
   } catch {
     // Malformed URL — fall through to '#'
   }

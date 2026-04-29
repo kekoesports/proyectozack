@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import AuthCard from '@/components/ui/AuthCard';
 
 export default function AdminLoginPage(): React.ReactElement {
   const router = useRouter();
@@ -36,46 +37,39 @@ export default function AdminLoginPage(): React.ReactElement {
   };
 
   return (
-    <div className="min-h-screen bg-sp-admin-bg flex items-center justify-center p-4">
-      <div className="w-full max-w-sm bg-sp-admin-card border border-sp-admin-border rounded-2xl shadow-xl p-8">
-        <div className="text-center mb-8">
-          <span className="font-display text-2xl font-black uppercase gradient-text">SocialPro</span>
-          <p className="text-sm text-sp-admin-muted mt-1">Panel de administración</p>
+    <AuthCard subtitle="Panel de administración" backHref="/admin/forgot-password" backLabel="¿Olvidaste tu contraseña?">
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label className="block text-xs font-semibold text-sp-admin-muted mb-1.5">Email</label>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            className="w-full rounded-xl border border-sp-admin-border bg-sp-admin-bg px-4 py-3 text-sm text-sp-admin-text outline-none focus:border-sp-admin-accent transition-colors"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-semibold text-sp-admin-muted mb-1.5">Contraseña</label>
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            className="w-full rounded-xl border border-sp-admin-border bg-sp-admin-bg px-4 py-3 text-sm text-sp-admin-text outline-none focus:border-sp-admin-accent transition-colors"
+          />
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-xs font-semibold text-sp-admin-muted mb-1.5">Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full rounded-xl border border-sp-admin-border bg-sp-admin-bg px-4 py-3 text-sm text-sp-admin-text outline-none focus:border-sp-admin-accent transition-colors"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-semibold text-sp-admin-muted mb-1.5">Contraseña</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="w-full rounded-xl border border-sp-admin-border bg-sp-admin-bg px-4 py-3 text-sm text-sp-admin-text outline-none focus:border-sp-admin-accent transition-colors"
-            />
-          </div>
+        {error && <p className="text-xs text-red-400">{error}</p>}
 
-          {error && <p className="text-xs text-red-400">{error}</p>}
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-3 rounded-full font-bold text-sp-admin-bg text-sm disabled:opacity-60 bg-sp-admin-accent hover:opacity-90 transition-opacity"
-          >
-            {loading ? 'Entrando...' : 'Iniciar sesión'}
-          </button>
-        </form>
-      </div>
-    </div>
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full py-3 rounded-full font-bold text-sp-admin-bg text-sm disabled:opacity-60 bg-sp-admin-accent hover:opacity-90 transition-opacity"
+        >
+          {loading ? 'Entrando...' : 'Iniciar sesión'}
+        </button>
+      </form>
+    </AuthCard>
   );
 }

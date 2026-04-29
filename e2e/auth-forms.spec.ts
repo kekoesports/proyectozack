@@ -77,6 +77,14 @@ test.describe('Auth forms', () => {
     });
   });
 
+  test('has "¿Olvidaste tu contraseña?" link pointing to /admin/forgot-password', async ({ page }) => {
+    await page.goto('/admin/login', { waitUntil: 'domcontentloaded' });
+
+    const link = page.getByRole('link', { name: '¿Olvidaste tu contraseña?' });
+    await expect(link).toBeVisible();
+    await expect(link).toHaveAttribute('href', '/admin/forgot-password');
+  });
+
   test.describe('/marcas/login', () => {
     test('page renders with email and password inputs visible', async ({ page }) => {
       await page.goto('/marcas/login', { waitUntil: 'domcontentloaded' });
@@ -123,6 +131,128 @@ test.describe('Auth forms', () => {
       await expect(page.getByText('Credenciales incorrectas')).toBeVisible({
         timeout: 10_000,
       });
+    });
+  });
+
+  test.describe('/admin/forgot-password', () => {
+    test('page renders with email input and submit button', async ({ page }) => {
+      await page.goto('/admin/forgot-password', { waitUntil: 'domcontentloaded' });
+
+      await expect(page.locator('input[type="email"]')).toBeVisible();
+      await expect(page.getByRole('button', { name: 'Enviar enlace' })).toBeVisible();
+    });
+
+    test('"Volver al login" link points to /admin/login', async ({ page }) => {
+      await page.goto('/admin/forgot-password', { waitUntil: 'domcontentloaded' });
+
+      const link = page.getByRole('link', { name: 'Volver al login' });
+      await expect(link).toBeVisible();
+      await expect(link).toHaveAttribute('href', '/admin/login');
+    });
+
+    test('shows success message after submission (mocked API)', async ({ page }) => {
+      await page.route('**/api/auth/forget-password', (route) =>
+        route.fulfill({ status: 200, body: '{}' }),
+      );
+
+      await page.goto('/admin/forgot-password', { waitUntil: 'domcontentloaded' });
+      await page.locator('input[type="email"]').fill('staff@example.com');
+      await page.getByRole('button', { name: 'Enviar enlace' }).click();
+
+      await expect(page.getByText(/Si el email está registrado/)).toBeVisible({ timeout: 5_000 });
+    });
+
+    test('shows loading state "Enviando..." while request is in flight', async ({ page }) => {
+      await page.route('**/api/auth/forget-password', async (route) => {
+        await new Promise((resolve) => setTimeout(resolve, 2_000));
+        await route.fulfill({ status: 200, body: '{}' });
+      });
+
+      await page.goto('/admin/forgot-password', { waitUntil: 'domcontentloaded' });
+      await page.locator('input[type="email"]').fill('staff@example.com');
+
+      const clickPromise = page.getByRole('button', { name: 'Enviar enlace' }).click();
+      await expect(page.getByRole('button', { name: 'Enviando...' })).toBeVisible({ timeout: 3_000 });
+      await clickPromise;
+    });
+  });
+
+  test.describe('/admin/reset-password', () => {
+    test('without token shows "Enlace inválido o expirado"', async ({ page }) => {
+      await page.goto('/admin/reset-password', { waitUntil: 'domcontentloaded' });
+
+      await expect(page.getByText('Enlace inválido o expirado.')).toBeVisible();
+      await expect(page.getByRole('button', { name: 'Guardar contraseña' })).toBeDisabled();
+    });
+
+    test('with token shows two password inputs and enabled submit', async ({ page }) => {
+      await page.goto('/admin/reset-password?token=abc123', { waitUntil: 'domcontentloaded' });
+
+      const inputs = page.locator('input[type="password"]');
+      await expect(inputs).toHaveCount(2);
+      await expect(page.getByRole('button', { name: 'Guardar contraseña' })).toBeEnabled();
+    });
+
+    test('"Volver al login" link points to /admin/login', async ({ page }) => {
+      await page.goto('/admin/reset-password?token=abc123', { waitUntil: 'domcontentloaded' });
+
+      const link = page.getByRole('link', { name: 'Volver al login' });
+      await expect(link).toBeVisible();
+      await expect(link).toHaveAttribute('href', '/admin/login');
+    });
+
+    test('mismatched passwords shows validation error', async ({ page }) => {
+      await page.goto('/admin/reset-password?token=abc123', { waitUntil: 'domcontentloaded' });
+
+      const inputs = page.locator('input[type="password"]');
+      await inputs.nth(0).fill('password-one-1234');
+      await inputs.nth(1).fill('password-two-5678');
+      await page.getByRole('button', { name: 'Guardar contraseña' }).click();
+
+      await expect(page.getByText('Las contraseñas no coinciden.')).toBeVisible();
+    });
+
+    test('password shorter than 12 chars shows validation error', async ({ page }) => {
+      await page.goto('/admin/reset-password?token=abc123', { waitUntil: 'domcontentloaded' });
+
+      const inputs = page.locator('input[type="password"]');
+      // Remove HTML minlength so the form submits and the JS guard runs.
+      await inputs.nth(0).evaluate((el: HTMLInputElement) => el.removeAttribute('minlength'));
+      await inputs.nth(0).fill('tooshort');
+      await inputs.nth(1).fill('tooshort');
+      await page.getByRole('button', { name: 'Guardar contraseña' }).click();
+
+      await expect(page.getByText(/al menos 12 caracteres/)).toBeVisible();
+    });
+
+    test('successful reset shows confirmation and loading state (mocked API)', async ({ page }) => {
+      await page.route('**/api/auth/reset-password', (route) =>
+        route.fulfill({ status: 200, body: '{}' }),
+      );
+
+      await page.goto('/admin/reset-password?token=validtoken', { waitUntil: 'domcontentloaded' });
+
+      const inputs = page.locator('input[type="password"]');
+      await inputs.nth(0).fill('new-secure-password-1');
+      await inputs.nth(1).fill('new-secure-password-1');
+      await page.getByRole('button', { name: 'Guardar contraseña' }).click();
+
+      await expect(page.getByText('Contraseña actualizada.')).toBeVisible({ timeout: 5_000 });
+    });
+
+    test('expired/invalid token from API shows error message', async ({ page }) => {
+      await page.route('**/api/auth/reset-password', (route) =>
+        route.fulfill({ status: 400, body: '{"error":"Invalid token"}' }),
+      );
+
+      await page.goto('/admin/reset-password?token=expiredtoken', { waitUntil: 'domcontentloaded' });
+
+      const inputs = page.locator('input[type="password"]');
+      await inputs.nth(0).fill('new-secure-password-1');
+      await inputs.nth(1).fill('new-secure-password-1');
+      await page.getByRole('button', { name: 'Guardar contraseña' }).click();
+
+      await expect(page.getByText(/expirado o no es válido/)).toBeVisible({ timeout: 5_000 });
     });
   });
 });
