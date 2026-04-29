@@ -72,6 +72,15 @@ function toTalentBase(t: Talent): Talent {
     audienceStatus: t.audienceStatus,
     lastStatsUpdateAt: t.lastStatsUpdateAt,
     updatedAt: t.updatedAt,
+    // Compliance & fiscal fields (admin-only, not exposed publicly)
+    cnmcStatus: t.cnmcStatus,
+    cnmcRegisteredAt: t.cnmcRegisteredAt,
+    cnmcNotes: t.cnmcNotes,
+    hasRcInsurance: t.hasRcInsurance,
+    taxType: t.taxType,
+    nif: t.nif,
+    fiscalName: t.fiscalName,
+    fiscalAddress: t.fiscalAddress,
   };
 }
 

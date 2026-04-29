@@ -30,7 +30,13 @@ export type CampaignFilters = {
 export type CampaignWithRelations = CampaignRow &
   CampaignDerived & {
     brand: { id: number; name: string; sector: string | null; geo: string | null };
-    talent: { id: number; name: string; slug: string; photoUrl: string | null };
+    talent: {
+      id: number;
+      name: string;
+      slug: string;
+      photoUrl: string | null;
+      cnmcStatus: 'registrado' | 'pendiente' | 'en_tramite' | 'no_aplica' | null;
+    };
     brandContact: { id: number; name: string; email: string | null } | null;
     responsibleUser: { id: string; name: string } | null;
     brandPaid: CampaignPaymentDerivedStatus;
@@ -217,6 +223,11 @@ export async function getCampaignWithRelations(
       archivedAt: campaigns.archivedAt,
       createdAt: campaigns.createdAt,
       updatedAt: campaigns.updatedAt,
+      estimatedCostAgency: campaigns.estimatedCostAgency,
+      estimatedMarginPct: campaigns.estimatedMarginPct,
+      cnmcChecklistOk: campaigns.cnmcChecklistOk,
+      cnmcChecklistAt: campaigns.cnmcChecklistAt,
+      cnmcChecklistUserId: campaigns.cnmcChecklistUserId,
       // Brand fields
       brandName: crmBrands.name,
       brandSector: crmBrands.sector,
@@ -225,6 +236,7 @@ export async function getCampaignWithRelations(
       talentName: talents.name,
       talentSlug: talents.slug,
       talentPhotoUrl: talents.photoUrl,
+      talentCnmcStatus: talents.cnmcStatus,
       // Brand contact fields
       brandContactName: crmBrandContacts.name,
       brandContactEmail: crmBrandContacts.email,
@@ -280,6 +292,11 @@ export async function getCampaignWithRelations(
     archivedAt: row.archivedAt,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
+    estimatedCostAgency: row.estimatedCostAgency ?? null,
+    estimatedMarginPct: row.estimatedMarginPct ?? null,
+    cnmcChecklistOk: row.cnmcChecklistOk,
+    cnmcChecklistAt: row.cnmcChecklistAt ?? null,
+    cnmcChecklistUserId: row.cnmcChecklistUserId ?? null,
     ...derived,
     brand: {
       id: row.brandId,
@@ -292,6 +309,7 @@ export async function getCampaignWithRelations(
       name: row.talentName,
       slug: row.talentSlug,
       photoUrl: row.talentPhotoUrl ?? null,
+      cnmcStatus: row.talentCnmcStatus ?? null,
     },
     brandContact:
       row.brandContactId !== null && row.brandContactName !== null

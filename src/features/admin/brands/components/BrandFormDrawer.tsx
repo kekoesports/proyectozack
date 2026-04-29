@@ -285,6 +285,138 @@ export function BrandFormDrawer({
           />
         </div>
 
+        {/* Rate cards & workspace defaults */}
+        <div className="border-t border-sp-admin-border/50 pt-4">
+          <p className="text-[11px] uppercase tracking-wider font-semibold text-sp-admin-muted mb-3">
+            Workspace / Tarifas
+          </p>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className={LABEL} htmlFor="bfd-rate-nano">Tarifa Nano (€)</label>
+              <input
+                id="bfd-rate-nano"
+                name="defaultRateCard[nano]"
+                type="number"
+                min="0"
+                step="50"
+                defaultValue={brand?.defaultRateCard?.nano ?? ''}
+                className={INPUT}
+                placeholder="0"
+              />
+            </div>
+            <div>
+              <label className={LABEL} htmlFor="bfd-rate-micro">Tarifa Micro (€)</label>
+              <input
+                id="bfd-rate-micro"
+                name="defaultRateCard[micro]"
+                type="number"
+                min="0"
+                step="50"
+                defaultValue={brand?.defaultRateCard?.micro ?? ''}
+                className={INPUT}
+                placeholder="0"
+              />
+            </div>
+            <div>
+              <label className={LABEL} htmlFor="bfd-rate-macro">Tarifa Macro (€)</label>
+              <input
+                id="bfd-rate-macro"
+                name="defaultRateCard[macro]"
+                type="number"
+                min="0"
+                step="50"
+                defaultValue={brand?.defaultRateCard?.macro ?? ''}
+                className={INPUT}
+                placeholder="0"
+              />
+            </div>
+            <div>
+              <label className={LABEL} htmlFor="bfd-rate-mega">Tarifa Mega (€)</label>
+              <input
+                id="bfd-rate-mega"
+                name="defaultRateCard[mega]"
+                type="number"
+                min="0"
+                step="50"
+                defaultValue={brand?.defaultRateCard?.mega ?? ''}
+                className={INPUT}
+                placeholder="0"
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3 mt-3">
+            <div>
+              <label className={LABEL} htmlFor="bfd-agency-fee">Fee agencia (%)</label>
+              <input
+                id="bfd-agency-fee"
+                name="agencyFeePct"
+                type="number"
+                min="0"
+                max="100"
+                step="0.5"
+                defaultValue={brand?.agencyFeePct ?? ''}
+                className={INPUT}
+                placeholder="20"
+              />
+            </div>
+            <div>
+              <label className={LABEL} htmlFor="bfd-payment-terms">Días de pago</label>
+              <input
+                id="bfd-payment-terms"
+                name="paymentTermsDays"
+                type="number"
+                min="0"
+                step="1"
+                defaultValue={brand?.paymentTermsDays ?? ''}
+                className={INPUT}
+                placeholder="30"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Datos fiscales */}
+        <div className="border-t border-sp-admin-border/50 pt-4">
+          <p className="text-[11px] uppercase tracking-wider font-semibold text-sp-admin-muted mb-3">
+            Datos fiscales
+          </p>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div>
+              <label className={LABEL} htmlFor="bfd-nif">NIF / CIF</label>
+              <input
+                id="bfd-nif"
+                name="nif"
+                maxLength={30}
+                defaultValue={brand?.nif ?? ''}
+                className={INPUT}
+                placeholder="B12345678"
+              />
+            </div>
+            <div>
+              <label className={LABEL} htmlFor="bfd-billing-email">Email facturación</label>
+              <input
+                id="bfd-billing-email"
+                name="billingEmail"
+                type="email"
+                defaultValue={brand?.billingEmail ?? ''}
+                className={INPUT}
+                placeholder="billing@marca.com"
+              />
+            </div>
+            <div className="sm:col-span-2">
+              <label className={LABEL} htmlFor="bfd-fiscal-name">Nombre fiscal</label>
+              <input
+                id="bfd-fiscal-name"
+                name="fiscalName"
+                maxLength={250}
+                defaultValue={brand?.fiscalName ?? ''}
+                className={INPUT}
+                placeholder="Razón social legal completa"
+              />
+            </div>
+          </div>
+        </div>
+
         {/* Error */}
         {state.error && (
           <p className="rounded-lg bg-red-500/10 px-3 py-2 text-xs text-red-400">

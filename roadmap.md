@@ -49,9 +49,9 @@ All 6 phases of the CRM redesign are complete. See `CLAUDE.md` section "CRM Modu
   - Fase 6: 3 specs (search API) + 10 specs (responsive iPhone SE + iPad)
 - `npx drizzle-kit generate`: "No schema changes" — cadena de snapshots íntegra.
 
-### Security audit + Review (Warp + Weft, 26-04-2026)
+### Security audit + Review (26-04-2026)
 
-**Warp (Security)**: 3 CRITICALs + 3 HIGHs + 3 MEDIUMs reportados → CRITICALs y HIGHs corregidos:
+**Security**: 3 CRITICALs + 3 HIGHs + 3 MEDIUMs reportados → CRITICALs y HIGHs corregidos:
 - C1: Cron `/api/cron/rollover-tasks` ahora fail-closed sin `CRON_SECRET`. Tests añadidos (503 sin secret, 200 con `x-vercel-cron: 1`).
 - C2: `escapeCsv` neutraliza prefijos de fórmula (`=+-@\t\r`).
 - C3: Path de Vercel Blob ahora usa `crypto.randomBytes(16).toString('hex')` (32 hex chars) — no enumerable.
@@ -59,7 +59,7 @@ All 6 phases of the CRM redesign are complete. See `CLAUDE.md` section "CRM Modu
 - H2: `invoices.notes` capped a `.max(5000)`.
 - H3: Search query `q` capped a 100 chars (route handler + query layer).
 
-**Weft (Quality)**: 3 BLOCKERs + 2 MINORs reportados → BLOCKERs corregidos:
+**Quality review**: 3 BLOCKERs + 2 MINORs reportados → BLOCKERs corregidos:
 - B1: `margenNeto` eliminado de `PnLResult` (era idéntico a `margenBruto`).
 - B2: `drizzle/meta/0036_snapshot.json` reconstruido (cadena id→prevId reparada).
 - B3: `TaskTemplatesManager` muestra labels (`Diaria/Semanal/Mensual`).

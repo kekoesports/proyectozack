@@ -96,6 +96,13 @@ export async function listCrmBrands(opts?: {
       notes: crmBrands.notes,
       createdAt: crmBrands.createdAt,
       updatedAt: crmBrands.updatedAt,
+      // Rate cards & workspace defaults
+      defaultRateCard: crmBrands.defaultRateCard,
+      agencyFeePct: crmBrands.agencyFeePct,
+      paymentTermsDays: crmBrands.paymentTermsDays,
+      billingEmail: crmBrands.billingEmail,
+      nif: crmBrands.nif,
+      fiscalName: crmBrands.fiscalName,
       contactCount: sql<number>`(SELECT COUNT(*)::int FROM ${crmBrandContacts} WHERE ${crmBrandContacts.brandId} = ${crmBrands.id})`,
       ownerName: user.name,
     })

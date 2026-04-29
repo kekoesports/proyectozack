@@ -103,6 +103,10 @@ const optEnum = <T extends string>(values: readonly [T, ...T[]]) =>
     z.enum(values).optional(),
   );
 
+// Rate card tier keys
+export const BRAND_TALENT_TIERS = ['nano', 'micro', 'macro', 'mega'] as const;
+export type BrandTalentTier = (typeof BRAND_TALENT_TIERS)[number];
+
 const brandFields = z.object({
   name: z.string().min(1).max(200),
   legalName: optStr(250),
@@ -119,6 +123,18 @@ const brandFields = z.object({
   lastContactAt: z.string().optional(),
   nextFollowupAt: z.string().optional(),
   notes: z.string().optional(),
+  // Rate cards & workspace defaults
+  defaultRateCard: z.object({
+    nano: z.coerce.number().nonnegative().optional(),
+    micro: z.coerce.number().nonnegative().optional(),
+    macro: z.coerce.number().nonnegative().optional(),
+    mega: z.coerce.number().nonnegative().optional(),
+  }).optional(),
+  agencyFeePct: z.coerce.number().min(0).max(100).optional(),
+  paymentTermsDays: z.coerce.number().int().nonnegative().optional(),
+  billingEmail: optEmail,
+  nif: optStr(30),
+  fiscalName: optStr(250),
 });
 
 export const createCrmBrandSchema = brandFields;

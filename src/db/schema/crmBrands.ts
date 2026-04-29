@@ -8,6 +8,8 @@ import {
   timestamp,
   pgEnum,
   index,
+  numeric,
+  jsonb,
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 import { user } from './auth';
@@ -64,6 +66,21 @@ export const crmBrands = pgTable(
     nextFollowupAt: timestamp('next_followup_at', { withTimezone: true }),
 
     notes: text('notes'),
+
+    // ── Rate cards & workspace defaults (competitive intelligence gap vs Sprout Workspaces) ──
+    // Default talent day rates by tier (EUR). JSON: { nano?: number, micro?: number, macro?: number, mega?: number }
+    defaultRateCard: jsonb('default_rate_card')
+      .$type<{ nano?: number; micro?: number; macro?: number; mega?: number }>(),
+    // Agency service fee (%) applied on top of talent cost for this brand
+    agencyFeePct: numeric('agency_fee_pct', { precision: 5, scale: 2 }),
+    // Standard payment terms in days (e.g. 30, 45, 60)
+    paymentTermsDays: integer('payment_terms_days'),
+    // Billing contact email (may differ from CRM contacts)
+    billingEmail: varchar('billing_email', { length: 180 }),
+    // Brand's NIF/CIF for invoicing
+    nif: varchar('nif', { length: 30 }),
+    // Fiscal/legal name for invoice generation
+    fiscalName: varchar('fiscal_name', { length: 250 }),
 
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),

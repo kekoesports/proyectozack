@@ -426,6 +426,38 @@ export function CampaignForm({
         </select>
       </Field>
 
+      {/* Estimates — coste interno estimado y margen previsto */}
+      <div className="border-t border-sp-admin-border/50 pt-3">
+        <p className="text-[11px] uppercase tracking-wider font-semibold text-sp-admin-muted mb-3">
+          Estimaciones internas
+        </p>
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Coste estimado agencia (€)" hint="Horas + gastos internos previstos">
+            <input
+              type="number"
+              name="estimatedCostAgency"
+              min="0"
+              step="10"
+              defaultValue={campaign?.estimatedCostAgency ?? ''}
+              placeholder="0"
+              className={inputCls}
+            />
+          </Field>
+          <Field label="Margen previsto (%)" hint="Comisión estimada sobre el deal">
+            <input
+              type="number"
+              name="estimatedMarginPct"
+              min="0"
+              max="100"
+              step="0.5"
+              defaultValue={campaign?.estimatedMarginPct ?? ''}
+              placeholder="20"
+              className={inputCls}
+            />
+          </Field>
+        </div>
+      </div>
+
       {/* Notas */}
       <Field label="Notas">
         <textarea

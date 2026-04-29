@@ -25,3 +25,4 @@ export * from './invoiceImportTemplates';
 export * from './invoiceParserTemplates';
 export * from './files';
 export * from './campaigns';
+export * from './deliverables';

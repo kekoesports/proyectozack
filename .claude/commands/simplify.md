@@ -51,21 +51,19 @@ Mark the diff todo completed before launching reviewers.
 
 Each reviewer gets the full diff + changed file list + `AGENTS.md` conventions in its prompt.
 
-**Subagent assignments — use these exact specialised agents, not `general`:**
+**Subagent assignments:**
 
 | Reviewer | `subagent_type` | Why this agent |
 |---|---|---|
-| 1 — Code Reuse | `thread` | Codebase Explorer — fast at searching for prior art across `src/lib/`, hooks, utils, components. |
-| 2 — Code Quality | `weft` | Reviewer/Auditor — built for convention/quality enforcement; reads `AGENTS.md` natively. |
-| 3 — Efficiency | `weft` | Reviewer/Auditor — second `weft` instance with a different lens (perf/leaks/boundaries). Two `weft` calls are intentional; do not collapse. |
-
-If a listed subagent is unavailable in this session, fall back to `general` and note it in the final summary — but never silently downgrade.
+| 1 — Code Reuse | `explore` | Read-only codebase explorer — fast at searching for prior art across `src/lib/`, hooks, utils, components. |
+| 2 — Code Quality | `general` | General-purpose agent for convention/quality enforcement; reads `AGENTS.md`. |
+| 3 — Efficiency | `general` | Second `general` instance with a different lens (perf/leaks/boundaries). Two calls are intentional; do not collapse. |
 
 Each reviewer must return:
 - A short list of findings: `{ file, line(s), severity: high|med|low, problem, suggested fix }`
 - An overall verdict: APPLY ALL / APPLY SELECTED / NOTHING TO FIX
 
-### Reviewer 1 — Code Reuse  *(subagent_type: `thread`)*
+### Reviewer 1 — Code Reuse  *(subagent_type: `explore`)*
 
 > You are reviewing a diff for **reinvention of existing code**. Goal: don't write what already exists.
 >
@@ -78,7 +76,7 @@ Each reviewer must return:
 >
 > Skip CSS files unless they duplicate tokens defined in `src/app/globals.css @theme`.
 
-### Reviewer 2 — Code Quality  *(subagent_type: `weft`)*
+### Reviewer 2 — Code Quality  *(subagent_type: `general`)*
 
 > You are reviewing a diff for **hacky patterns and avoidable complexity**. Project conventions in `AGENTS.md` are authoritative — flag violations.
 >
@@ -94,7 +92,7 @@ Each reviewer must return:
 >
 > Report concrete fixes, not vibes.
 
-### Reviewer 3 — Efficiency  *(subagent_type: `weft`)*
+### Reviewer 3 — Efficiency  *(subagent_type: `general`)*
 
 > You are reviewing a diff for **unnecessary work, leaks, and hot-path bloat**.
 >

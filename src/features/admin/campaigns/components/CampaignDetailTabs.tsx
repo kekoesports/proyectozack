@@ -8,24 +8,27 @@ import { CampaignSummaryCard } from '@/features/admin/campaigns/components/Campa
 import { CampaignPayments } from '@/features/admin/campaigns/components/CampaignPayments';
 import { CampaignFiles } from '@/features/admin/campaigns/components/CampaignFiles';
 import { CampaignDrawer } from '@/features/admin/campaigns/components/CampaignDrawer';
+import { CampaignCnmcChecklist } from '@/features/admin/campaigns/components/CampaignCnmcChecklist';
+import { CampaignDeliverables } from '@/features/admin/campaigns/components/CampaignDeliverables';
 import { CAMPAIGN_STATUS_LABELS } from '@/lib/schemas/campaign';
 import { archiveCampaignAction } from '@/app/admin/(dashboard)/campanas/actions';
 
 import type { Tone } from '@/features/admin/_shared/components/StateBadge';
 import type { CampaignWithRelations } from '@/lib/queries/campaigns';
+import type { DeliverableWithComments } from '@/lib/queries/deliverables';
 import type { CampaignStatus } from '@/lib/schemas/campaign';
 import type { FileRecord, Invoice, CrmBrandContact } from '@/types';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-type Tab = 'resumen' | 'pagos' | 'archivos' | 'notas' | 'tareas';
+type Tab = 'resumen' | 'pagos' | 'archivos' | 'notas' | 'deliverables';
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'resumen', label: 'Resumen' },
   { id: 'pagos', label: 'Pagos' },
+  { id: 'deliverables', label: 'Deliverables' },
   { id: 'archivos', label: 'Archivos' },
   { id: 'notas', label: 'Notas' },
-  { id: 'tareas', label: 'Tareas' },
 ];
 
 const STATUS_TONE: Record<CampaignStatus, Tone> = {
@@ -47,6 +50,7 @@ type Props = {
   readonly campaign: CampaignWithRelations;
   readonly campaignFiles: readonly FileRecord[];
   readonly campaignInvoices: readonly Invoice[];
+  readonly campaignDeliverables: readonly DeliverableWithComments[];
   readonly isManager: boolean;
   readonly brands: readonly BrandOption[];
   readonly talents: readonly TalentOption[];
@@ -67,6 +71,7 @@ export function CampaignDetailTabs({
   campaign,
   campaignFiles,
   campaignInvoices,
+  campaignDeliverables,
   isManager,
   brands,
   talents,
@@ -151,7 +156,10 @@ export function CampaignDetailTabs({
       {/* Tab content */}
       <div className="mt-6">
         {activeTab === 'resumen' && (
-          <CampaignSummaryCard campaign={campaign} />
+          <div className="space-y-4">
+            <CampaignSummaryCard campaign={campaign} />
+            <CampaignCnmcChecklist campaign={campaign} isManager={isManager} />
+          </div>
         )}
 
         {activeTab === 'pagos' && (
@@ -179,13 +187,13 @@ export function CampaignDetailTabs({
           </div>
         )}
 
-        {activeTab === 'tareas' && (
-          <div className="rounded-2xl border border-sp-admin-border bg-sp-admin-card p-5">
-            <h2 className="font-bold text-sp-admin-text text-sm mb-3">Tareas</h2>
-            <p className="text-sm text-sp-admin-muted italic">
-              Gestión de tareas disponible próximamente.
-            </p>
-          </div>
+        {activeTab === 'deliverables' && (
+          <CampaignDeliverables
+            campaignId={campaign.id}
+            talentId={campaign.talentId}
+            deliverables={campaignDeliverables}
+            isManager={isManager}
+          />
         )}
       </div>
 

@@ -147,7 +147,6 @@ Complex CSS (marquee, gradient text, modals) stays in `globals.css`.
 ## Component Conventions (LLM-first)
 
 > Source of truth para descubrir, crear, mover o documentar componentes.
-> El plan completo de reorg vive en `.weave/plans/frontend-modular-reorg.md`.
 > El manifest navegable de componentes vive en `src/components/CATALOG.md`.
 
 ### Layout físico

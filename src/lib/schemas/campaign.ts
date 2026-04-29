@@ -55,21 +55,38 @@ const baseCampaign = z.object({
   brandId: z.coerce.number().int().positive(),
   talentId: z.coerce.number().int().positive(),
   brandContactId: z.coerce.number().int().positive().optional(),
-  responsibleUserId: z.string().optional(),
-  assignedToUserId: z.string().optional(),
+  responsibleUserId: z.preprocess(
+    (v) => (typeof v === 'string' && v.trim() === '' ? undefined : v),
+    z.string().optional(),
+  ),
+  assignedToUserId: z.preprocess(
+    (v) => (typeof v === 'string' && v.trim() === '' ? undefined : v),
+    z.string().optional(),
+  ),
   actionType: z.enum(CAMPAIGN_ACTION_TYPES),
   status: z.enum(CAMPAIGN_STATUSES).default('propuesta'),
-  startDate: z.string().optional(),
-  endDate: z.string().optional(),
-  deliveryDeadline: z.string().optional(),
-  briefingUrl: z.string().url().optional().or(z.literal('')),
-  contentUrl: z.string().url().optional().or(z.literal('')),
-  notes: z.string().optional(),
+  startDate: z.preprocess((v) => (typeof v === 'string' && v.trim() === '' ? undefined : v), z.string().optional()),
+  endDate: z.preprocess((v) => (typeof v === 'string' && v.trim() === '' ? undefined : v), z.string().optional()),
+  deliveryDeadline: z.preprocess((v) => (typeof v === 'string' && v.trim() === '' ? undefined : v), z.string().optional()),
+  briefingUrl: z.preprocess((v) => (typeof v === 'string' && v.trim() === '' ? undefined : v), z.string().url().optional()),
+  contentUrl: z.preprocess((v) => (typeof v === 'string' && v.trim() === '' ? undefined : v), z.string().url().optional()),
+  notes: z.preprocess((v) => (typeof v === 'string' && v.trim() === '' ? undefined : v), z.string().optional()),
   amountBrand: z.coerce.number().nonnegative().default(0),
   amountTalent: z.coerce.number().nonnegative().default(0),
-  brandPaymentMethod: z.enum(CAMPAIGN_PAYMENT_METHODS).optional(),
-  talentPaymentMethod: z.enum(CAMPAIGN_PAYMENT_METHODS).optional(),
+  brandPaymentMethod: z.preprocess(
+    (v) => (typeof v === 'string' && v.trim() === '' ? undefined : v),
+    z.enum(CAMPAIGN_PAYMENT_METHODS).optional(),
+  ),
+  talentPaymentMethod: z.preprocess(
+    (v) => (typeof v === 'string' && v.trim() === '' ? undefined : v),
+    z.enum(CAMPAIGN_PAYMENT_METHODS).optional(),
+  ),
   visibility: z.enum(['team', 'private']).default('team'),
+  // Estimates vs actuals
+  estimatedCostAgency: z.coerce.number().nonnegative().optional(),
+  estimatedMarginPct: z.coerce.number().min(0).max(100).optional(),
+  // CNMC compliance checklist
+  cnmcChecklistOk: z.coerce.boolean().optional().default(false),
 });
 
 export const createCampaignSchema = baseCampaign.refine(

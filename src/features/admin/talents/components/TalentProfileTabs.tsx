@@ -5,11 +5,13 @@ import { TalentStatsByPlatform } from '@/features/admin/talents/components/Talen
 import { TalentGeoFiles } from '@/features/admin/talents/components/TalentGeoFiles';
 import { TalentBusinessForm } from '@/features/admin/talents/components/TalentBusinessForm';
 import { TalentCampaignsTab } from '@/features/admin/talents/components/TalentCampaignsTab';
+import { TalentComplianceForm } from '@/features/admin/talents/components/TalentComplianceForm';
 import type { TalentFullProfile } from '@/lib/queries/talents';
 import type { CampaignTalentSummary } from '@/lib/queries/campaigns';
 import type { TalentMetricSnapshot, FileRecord } from '@/types';
+import { CNMC_STATUS_LABELS, CNMC_STATUS_COLORS, TALENT_TAX_TYPE_LABELS } from '@/lib/schemas/talentCompliance';
 
-type Tab = 'overview' | 'stats' | 'geo' | 'negocio' | 'campanas';
+type Tab = 'overview' | 'stats' | 'geo' | 'negocio' | 'campanas' | 'compliance';
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'overview', label: 'Overview' },
@@ -17,6 +19,7 @@ const TABS: { id: Tab; label: string }[] = [
   { id: 'geo', label: 'GEO' },
   { id: 'negocio', label: 'Negocio' },
   { id: 'campanas', label: 'Campañas' },
+  { id: 'compliance', label: 'Compliance' },
 ];
 
 const PLATFORM_LABELS: Record<string, string> = {
@@ -126,6 +129,19 @@ export function TalentProfileTabs({ talent, snapshotsByPlatform, geoFiles, isMan
                   })}
                 />
               )}
+              {talent.cnmcStatus && (
+                <InfoRow
+                  label="CNMC"
+                  value={
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${CNMC_STATUS_COLORS[talent.cnmcStatus]}`}>
+                      {CNMC_STATUS_LABELS[talent.cnmcStatus]}
+                    </span>
+                  }
+                />
+              )}
+              {talent.taxType && (
+                <InfoRow label="Tipo fiscal" value={TALENT_TAX_TYPE_LABELS[talent.taxType]} />
+              )}
             </div>
           </section>
 
@@ -232,6 +248,10 @@ export function TalentProfileTabs({ talent, snapshotsByPlatform, geoFiles, isMan
           campaigns={campaignSummary.campaigns}
           summary={campaignSummary}
         />
+      )}
+
+      {activeTab === 'compliance' && (
+        <TalentComplianceForm talent={talent} />
       )}
     </div>
   );

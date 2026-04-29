@@ -38,10 +38,22 @@ type ActionState = {
 
 function formToObject(formData: FormData): Record<string, unknown> {
   const obj: Record<string, unknown> = {};
+  const rateCard: Record<string, number> = {};
+
   for (const [key, value] of formData.entries()) {
     if (value instanceof File) continue;
+    // Parse defaultRateCard[tier] fields into a nested object
+    const rateMatch = key.match(/^defaultRateCard\[(\w+)\]$/);
+    if (rateMatch) {
+      const tier = rateMatch[1];
+      const num = parseFloat(String(value));
+      if (!isNaN(num) && num > 0 && tier) rateCard[tier] = num;
+      continue;
+    }
     obj[key] = value;
   }
+
+  if (Object.keys(rateCard).length > 0) obj.defaultRateCard = rateCard;
   return obj;
 }
 

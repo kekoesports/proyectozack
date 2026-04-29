@@ -520,5 +520,43 @@ async function insertBusinessFromMapped(
   }
 }
 
+// ── Admin ──
+
+/**
+ * Actualiza los datos de compliance CNMC y fiscalidad española del talent.
+ *
+ * @visibility admin
+ * @returns void. Lanza en error de DB.
+ */
+export async function updateTalentCompliance(
+  talentId: number,
+  data: {
+    cnmcStatus?: 'registrado' | 'pendiente' | 'en_tramite' | 'no_aplica';
+    cnmcRegisteredAt?: string | null;
+    cnmcNotes?: string;
+    hasRcInsurance?: boolean;
+    taxType?: 'autonomo_es' | 'autonomo_es_nuevo' | 'sl_sa' | 'latam' | 'no_residente' | null;
+    nif?: string;
+    fiscalName?: string;
+    fiscalAddress?: string;
+  },
+): Promise<void> {
+  const set: Record<string, unknown> = {};
+  if (data.cnmcStatus !== undefined) set.cnmcStatus = data.cnmcStatus;
+  if (data.cnmcRegisteredAt !== undefined) {
+    set.cnmcRegisteredAt = data.cnmcRegisteredAt ? new Date(data.cnmcRegisteredAt) : null;
+  }
+  if (data.cnmcNotes !== undefined) set.cnmcNotes = data.cnmcNotes || null;
+  if (data.hasRcInsurance !== undefined) set.hasRcInsurance = data.hasRcInsurance;
+  if ('taxType' in data) set.taxType = data.taxType ?? null;
+  if (data.nif !== undefined) set.nif = data.nif || null;
+  if (data.fiscalName !== undefined) set.fiscalName = data.fiscalName || null;
+  if (data.fiscalAddress !== undefined) set.fiscalAddress = data.fiscalAddress || null;
+
+  if (Object.keys(set).length === 0) return;
+
+  await db.update(talents).set(set).where(eq(talents.id, talentId));
+}
+
 // Re-export for convenience
 export { talents, talentTags, talentStats, talentSocials };

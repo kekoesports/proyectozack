@@ -1,4 +1,4 @@
-import { pgEnum, pgTable, serial, varchar, text, integer, numeric, date, timestamp, index } from 'drizzle-orm/pg-core';
+import { pgEnum, pgTable, serial, varchar, text, integer, numeric, date, timestamp, index, boolean } from 'drizzle-orm/pg-core';
 import { user } from './auth';
 import { crmBrands, crmBrandContacts } from './crmBrands';
 import { talents } from './talents';
@@ -49,6 +49,15 @@ export const campaigns = pgTable('campaigns', {
   // NO commission_amount / commission_pct columns (decisión #11 — calculado en TS)
   // NO currency (decisión #2 — EUR-only)
   // NO brand_paid / talent_paid (decisión #5 — calculado desde invoices)
+
+  // ── Estimates vs. Actuals (competitive intelligence gap vs Workamajig) ──
+  // Presupuesto estimado al crear la propuesta (puede diferir del amount_brand/amount_talent final)
+  estimatedCostAgency: numeric('estimated_cost_agency', { precision: 12, scale: 2 }), // coste interno estimado (horas + gastos)
+  estimatedMarginPct: numeric('estimated_margin_pct', { precision: 5, scale: 2 }),   // margen previsto en %
+  // Compliance CNMC: checklist de campaña antes de activar
+  cnmcChecklistOk: boolean('cnmc_checklist_ok').notNull().default(false), // todos los items del checklist verificados
+  cnmcChecklistAt: timestamp('cnmc_checklist_at', { withTimezone: true }),  // cuándo se verificó
+  cnmcChecklistUserId: text('cnmc_checklist_user_id'),                     // quién lo verificó
 
   brandPaymentMethod: campaignPaymentMethodEnum('brand_payment_method'),
   talentPaymentMethod: campaignPaymentMethodEnum('talent_payment_method'),

@@ -5,6 +5,7 @@ import { eq, inArray } from 'drizzle-orm';
 import { requireAnyRole } from '@/lib/auth-guard';
 import { getCampaignWithRelations } from '@/lib/queries/campaigns';
 import { listFilesByEntity } from '@/lib/queries/files';
+import { listDeliverablesByCampaign } from '@/lib/queries/deliverables';
 import { db } from '@/lib/db';
 import { invoices, user as userTable } from '@/db/schema';
 import { listCrmBrands, getBrandContacts } from '@/lib/queries/crmBrands';
@@ -27,7 +28,7 @@ export default async function CampaignDetailPage({
   const role = session.user.role as Role;
   const isManager = role === 'manager';
 
-  const [campaign, campaignFiles, campaignInvoices, crmBrandsList, allTalents, staffUsers] =
+  const [campaign, campaignFiles, campaignInvoices, campaignDeliverables, crmBrandsList, allTalents, staffUsers] =
     await Promise.all([
       getCampaignWithRelations(campaignId),
       listFilesByEntity('campaign', campaignId),
@@ -36,6 +37,7 @@ export default async function CampaignDetailPage({
         .from(invoices)
         .where(eq(invoices.campaignId, campaignId))
         .orderBy(invoices.issueDate),
+      listDeliverablesByCampaign(campaignId),
       listCrmBrands(),
       getAllTalents(),
       db
@@ -72,6 +74,7 @@ export default async function CampaignDetailPage({
         campaign={campaign}
         campaignFiles={campaignFiles}
         campaignInvoices={campaignInvoices}
+        campaignDeliverables={campaignDeliverables}
         isManager={isManager}
         brands={brands}
         talents={talents}

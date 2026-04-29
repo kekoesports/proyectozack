@@ -130,19 +130,8 @@ export async function getLatestSnapshots(): Promise<TalentMetricSnapshot[]> {
     )
     .as('latest');
 
-  return db
-    .select({
-      id: talentMetricSnapshots.id,
-      talentId: talentMetricSnapshots.talentId,
-      platform: talentMetricSnapshots.platform,
-      metricType: talentMetricSnapshots.metricType,
-      value: talentMetricSnapshots.value,
-      snapshotDate: talentMetricSnapshots.snapshotDate,
-      topGeos: talentMetricSnapshots.topGeos,
-      notes: talentMetricSnapshots.notes,
-      updatedByUserId: talentMetricSnapshots.updatedByUserId,
-      createdAt: talentMetricSnapshots.createdAt,
-    })
+  const rows = await db
+    .select({ tms: talentMetricSnapshots })
     .from(talentMetricSnapshots)
     .innerJoin(
       latestDates,
@@ -153,6 +142,7 @@ export async function getLatestSnapshots(): Promise<TalentMetricSnapshot[]> {
         eq(talentMetricSnapshots.snapshotDate, latestDates.maxDate),
       ),
     );
+  return rows.map((r) => r.tms);
 }
 
 /**
@@ -179,19 +169,8 @@ export async function getEarliestSnapshots(from: string): Promise<TalentMetricSn
     )
     .as('earliest');
 
-  return db
-    .select({
-      id: talentMetricSnapshots.id,
-      talentId: talentMetricSnapshots.talentId,
-      platform: talentMetricSnapshots.platform,
-      metricType: talentMetricSnapshots.metricType,
-      value: talentMetricSnapshots.value,
-      snapshotDate: talentMetricSnapshots.snapshotDate,
-      topGeos: talentMetricSnapshots.topGeos,
-      notes: talentMetricSnapshots.notes,
-      updatedByUserId: talentMetricSnapshots.updatedByUserId,
-      createdAt: talentMetricSnapshots.createdAt,
-    })
+  const rows = await db
+    .select({ tms: talentMetricSnapshots })
     .from(talentMetricSnapshots)
     .innerJoin(
       earliestDates,
@@ -202,6 +181,7 @@ export async function getEarliestSnapshots(from: string): Promise<TalentMetricSn
         eq(talentMetricSnapshots.snapshotDate, earliestDates.minDate),
       ),
     );
+  return rows.map((r) => r.tms);
 }
 
 /**
