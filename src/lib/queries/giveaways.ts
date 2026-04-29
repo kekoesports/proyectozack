@@ -59,21 +59,6 @@ export async function getAllGiveaways(): Promise<GiveawayWithTalent[]> {
 }
 
 /**
- * Devuelve un sorteo por id con su talent asociado, usado en flujos de edición y detalle.
- *
- * @cache none
- * @visibility admin
- * @returns GiveawayWithTalent | undefined (nunca null) si no existe.
- */
-export async function getGiveawayById(id: number): Promise<GiveawayWithTalent | undefined> {
-  const row = await db.query.giveaways.findFirst({
-    where: eq(giveaways.id, id),
-    with: { talent: true },
-  });
-  return row as GiveawayWithTalent | undefined;
-}
-
-/**
  * Inserta un nuevo sorteo en la BD, invocado desde el panel admin.
  *
  * @cache none

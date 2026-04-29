@@ -265,17 +265,6 @@ export async function isAssignableTaskUser(userId: string): Promise<boolean> {
 }
 
 /**
- * Alias de `isAssignableTaskUser`. Mantiene una API legacy para call-sites antiguos.
- *
- * @cache none
- * @visibility admin
- * @returns `true` si el usuario es admin/manager/staff.
- */
-export async function isStaffUser(userId: string): Promise<boolean> {
-  return isAssignableTaskUser(userId);
-}
-
-/**
  * Borra una tarea por id (hard delete).
  *
  * @cache none
@@ -508,25 +497,6 @@ export async function getUrgentTasks({
     dueDate: r.dueDate !== null ? new Date(r.dueDate) : null,
     ownerName: r.ownerName ?? null,
   }));
-}
-
-/**
- * Lista las instancias generadas de una plantilla recurrente para una semana concreta.
- * Útil para evitar duplicados cuando se re-ejecuta la generación.
- *
- * @cache none
- * @visibility admin
- * @returns array readonly (puede ser vacío). Nunca null.
- */
-export async function getTasksByTemplateForWeek(
-  templateId: number,
-  weekLabel: string,
-): Promise<readonly CrmTask[]> {
-  return db
-    .select()
-    .from(crmTasks)
-    .where(and(eq(crmTasks.recurrenceTemplateId, templateId), eq(crmTasks.weekLabel, weekLabel)))
-    .orderBy(asc(crmTasks.createdAt));
 }
 
 type RecurringTargetUser = {

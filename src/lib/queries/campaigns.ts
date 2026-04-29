@@ -328,42 +328,6 @@ export async function getCampaignWithRelations(
 }
 
 /**
- * Lista campañas no archivadas de una marca con sumarios `totalAmountBrand` y `totalCommission`.
- *
- * @cache none
- * @visibility admin
- * @returns `{ campaigns, totalAmountBrand, totalCommission, count }`. EUR-only.
- */
-export async function listCampaignsByBrand(
-  brandId: number,
-): Promise<CampaignBrandSummary> {
-  const rows = await db
-    .select()
-    .from(campaigns)
-    .where(and(eq(campaigns.brandId, brandId), isNull(campaigns.archivedAt)))
-    .orderBy(desc(campaigns.createdAt));
-
-  const aggregates = await db
-    .select({
-      totalAmountBrand: sql<string>`COALESCE(SUM(${campaigns.amountBrand}), 0)`,
-      totalAmountTalent: sql<string>`COALESCE(SUM(${campaigns.amountTalent}), 0)`,
-    })
-    .from(campaigns)
-    .where(and(eq(campaigns.brandId, brandId), isNull(campaigns.archivedAt)));
-
-  const agg = aggregates[0];
-  const totalAmountBrand = Number(agg?.totalAmountBrand ?? 0);
-  const totalAmountTalent = Number(agg?.totalAmountTalent ?? 0);
-
-  return {
-    campaigns: rows,
-    totalAmountBrand,
-    totalCommission: totalAmountBrand - totalAmountTalent,
-    count: rows.length,
-  };
-}
-
-/**
  * Lista campañas no archivadas de un talent con sumarios `totalAmountTalent` y total generado.
  *
  * @cache none
@@ -626,42 +590,4 @@ export async function listAllCampaigns(opts?: {
   return rows;
 }
 
-/**
- * Lookup ligero por id sin relaciones ni payment status. Usar cuando solo se necesita la fila plana.
- *
- * @cache none
- * @visibility admin
- * @returns `CampaignRow | undefined`.
- */
-export async function getCampaignById(id: number): Promise<CampaignRow | undefined> {
-  const [row] = await db
-    .select()
-    .from(campaigns)
-    .where(eq(campaigns.id, id))
-    .limit(1);
-
-  return row ?? undefined;
-}
-/**
- * Devuelve solo los IDs de owner/asignado de una campaña para checks de permiso (`canAccess*`).
- *
- * @cache none
- * @visibility admin
- * @scope staff
- * @returns `{ assignedToUserId, createdByUserId }` o `undefined` si no existe.
- */
-export async function getCampaignForPermission(
-  campaignId: number,
-): Promise<{ assignedToUserId: string | null; createdByUserId: string | null } | undefined> {
-  const [row] = await db
-    .select({
-      assignedToUserId: campaigns.assignedToUserId,
-      createdByUserId: campaigns.createdByUserId,
-    })
-    .from(campaigns)
-    .where(eq(campaigns.id, campaignId))
-    .limit(1);
-
-  return row ?? undefined;
-}
 

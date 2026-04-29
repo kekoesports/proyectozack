@@ -34,5 +34,3 @@ export const PENDING_EXPENSE_STATUSES: readonly InvoiceStatus[] = [
 /** Mutable copies typed as `InvoiceStatus[]` for drizzle's `inArray`. */
 export const PENDING_INCOME_FILTER: InvoiceStatus[] = [...PENDING_INCOME_STATUSES];
 export const PENDING_EXPENSE_FILTER: InvoiceStatus[] = [...PENDING_EXPENSE_STATUSES];
-export const SETTLED_INCOME_FILTER: InvoiceStatus[] = [...SETTLED_INCOME_STATUSES];
-export const SETTLED_EXPENSE_FILTER: InvoiceStatus[] = [...SETTLED_EXPENSE_STATUSES];

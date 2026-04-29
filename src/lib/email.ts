@@ -2,7 +2,7 @@ import { Resend } from 'resend';
 import { env } from './env';
 import { SITE_URL } from './site-url';
 
-export const resend = new Resend(env.RESEND_API_KEY);
+const resend = new Resend(env.RESEND_API_KEY);
 
 /** Escape user-supplied strings before embedding in HTML email templates. */
 function escapeHtml(str: string): string {

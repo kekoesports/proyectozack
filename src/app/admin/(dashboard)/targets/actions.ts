@@ -6,18 +6,14 @@ import {
   upsertTargetsFromCSV,
   updateTargetStatus,
   updateTargetNotes,
-  createTarget,
   deleteTargets,
   deleteAllTargets,
-  bulkUpdateStatus,
   assignTargetsToBrand,
 } from '@/lib/queries/targets';
 import {
   csvTargetRowSchema,
-  createTargetSchema,
   updateTargetStatusSchema,
   updateTargetNotesSchema,
-  bulkStatusSchema,
 } from '@/lib/schemas/target';
 import { randomUUID } from 'crypto';
 
@@ -153,32 +149,6 @@ export async function updateNotesAction(formData: FormData): Promise<void> {
   revalidatePath(REVALIDATE);
 }
 
-// ─── Manual create ────────────────────────────────────────────────────────────
-
-export async function createTargetAction(formData: FormData): Promise<void> {
-  await requireRole('admin', '/admin/login');
-
-  const raw = {
-    username: formData.get('username') as string,
-    fullName: (formData.get('fullName') as string) || undefined,
-    platform: formData.get('platform') as string,
-    profileUrl: formData.get('profileUrl') as string,
-    followers: Number(formData.get('followers') ?? 0),
-    bio: (formData.get('bio') as string) || undefined,
-    notes: (formData.get('notes') as string) || undefined,
-    discoveredVia: 'manual',
-  };
-
-  const parsed = createTargetSchema.safeParse(raw);
-  if (!parsed.success) {
-    console.error('createTarget validation failed:', parsed.error.issues.map((e) => e.message).join(', '));
-    return;
-  }
-
-  await createTarget(parsed.data);
-  revalidatePath(REVALIDATE);
-}
-
 // ─── Delete ───────────────────────────────────────────────────────────────────
 
 export async function deleteTargetsAction(formData: FormData): Promise<void> {
@@ -196,26 +166,6 @@ export async function deleteTargetsAction(formData: FormData): Promise<void> {
   revalidatePath(REVALIDATE);
 }
 
-// ─── Bulk status ──────────────────────────────────────────────────────────────
-
-export async function bulkStatusAction(formData: FormData): Promise<void> {
-  await requireRole('admin', '/admin/login');
-
-  const raw = formData.get('ids') as string | null;
-  const status = formData.get('status') as string | null;
-  if (!raw || !status) return;
-
-  const ids = raw
-    .split(',')
-    .map(Number)
-    .filter((n) => n > 0);
-
-  const parsed = bulkStatusSchema.safeParse({ ids, status });
-  if (!parsed.success) return;
-
-  await bulkUpdateStatus(parsed.data.ids, parsed.data.status);
-  revalidatePath(REVALIDATE);
-}
 
 export async function assignTargetsToBrandAction(
   formData: FormData,

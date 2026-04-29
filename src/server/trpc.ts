@@ -53,19 +53,6 @@ export const router = t.router;
 /** Public procedure with no auth — open to anonymous callers. */
 export const publicProcedure = t.procedure;
 
-
-
-/**
- * Procedure that requires an authenticated session with any valid role.
- * Throws UNAUTHORIZED if no session is present.
- */
-export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
-  if (!ctx.session) {
-    throw new TRPCError({ code: 'UNAUTHORIZED' });
-  }
-  return next({ ctx: { session: ctx.session } });
-});
-
 /**
  * Procedure that requires `brand` role.
  * In development, mirrors auth-guard behaviour: always passes with role `brand`

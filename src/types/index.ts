@@ -18,7 +18,6 @@ export type { FileType, FileRelatedType } from '@/lib/schemas/file';
 import type { InferSelectModel } from 'drizzle-orm';
 import type { files, campaigns } from '@/db/schema';
 import type { CampaignDerived, CampaignPaymentDerivedStatus } from '@/lib/schemas/campaign';
-export { computeCampaignDerived } from '@/lib/schemas/campaign';
 
 export type FileRecord = InferSelectModel<typeof files>;
 

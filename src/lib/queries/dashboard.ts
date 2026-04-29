@@ -138,35 +138,6 @@ export async function getAdminDashboardData(limit = 5): Promise<AdminDashboardDa
   };
 }
 
-/**
- * Stats agregadas del dashboard admin (talents, brands, contacts, giveaways, followers).
- *
- * @cache none
- * @visibility admin
- * @returns `DashboardStats`. Wrapper sobre `getAdminDashboardData`.
- */
-export async function getAdminDashboardStats(): Promise<DashboardStats> {
-  const { stats } = await getAdminDashboardData();
-  return stats;
-}
-
-/**
- * Top creators del dashboard admin (basado en `talentSocials.followersDisplay`
- * parseado, agregado por talent).
- *
- * Renombrado desde `getTopCreatorsByFollowers` (sept 2026) para eliminar
- * colisión con la función homónima en `analytics.ts`, que usa `talentMetricSnapshots`
- * y devuelve un shape distinto (`TopCreatorByFollowers` con avatar/iniciales).
- *
- * @cache none
- * @visibility admin
- * @returns array de `TopCreator` (tamaño `<= limit`).
- */
-export async function getDashboardTopCreators(limit = 5): Promise<TopCreator[]> {
-  const { topCreators } = await getAdminDashboardData(limit);
-  return topCreators;
-}
-
 export type RecentContact = {
   id: number;
   name: string;
@@ -378,20 +349,6 @@ export async function getActiveBrandsCount(): Promise<number> {
     .where(eq(crmBrands.status, 'activa'));
 
   return row?.count ?? 0;
-}
-
-/**
- * Cuenta creators con último snapshot anterior a `daysThreshold` días (o sin snapshots).
- * Wrapper sobre `getStaleStatsCreators` (analytics) que sólo devuelve el count.
- *
- * @cache none
- * @visibility admin
- * @returns número de creators con stats desactualizadas.
- */
-export async function getStaleStatsCount(daysThreshold = 30): Promise<number> {
-  const { getStaleStatsCreators } = await import('./analytics');
-  const stale = await getStaleStatsCreators(daysThreshold);
-  return stale.length;
 }
 
 // ── Campaign Dashboard queries ────────────────────────────────────────────────

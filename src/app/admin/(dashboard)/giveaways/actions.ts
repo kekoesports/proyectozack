@@ -2,8 +2,8 @@
 
 import { revalidatePath } from 'next/cache';
 import { requireRole } from '@/lib/auth-guard';
-import { createGiveaway, updateGiveaway, deleteGiveaway } from '@/lib/queries/giveaways';
-import { createGiveawaySchema, updateGiveawaySchema } from '@/lib/schemas/giveaway';
+import { createGiveaway, deleteGiveaway } from '@/lib/queries/giveaways';
+import { createGiveawaySchema } from '@/lib/schemas/giveaway';
 import { db } from '@/lib/db';
 import { talents } from '@/db/schema';
 import { eq } from 'drizzle-orm';
@@ -41,33 +41,6 @@ export async function createGiveawayAction(formData: FormData): Promise<void> {
 
   const talent = await db.select({ slug: talents.slug }).from(talents).where(eq(talents.id, parsed.data.talentId)).then((r) => r[0]);
   if (talent) revalidatePath(`/creadores/${talent.slug}`);
-  revalidatePath('/admin/giveaways');
-}
-
-export async function updateGiveawayAction(formData: FormData): Promise<void> {
-  await requireRole('admin', '/admin/login');
-  const id = Number(formData.get('id'));
-  if (!id) return;
-
-  const raw: Record<string, unknown> = {};
-  for (const [key, val] of formData.entries()) {
-    if (key === 'id' || key === 'talentSlug' || !val) continue;
-    raw[key] = key === 'talentId' || key === 'sortOrder' ? Number(val) : val;
-  }
-
-  const parsed = updateGiveawaySchema.safeParse(raw);
-  if (!parsed.success) {
-    console.error('[updateGiveawayAction] validation failed:', parsed.error.issues[0]?.message ?? 'Datos inválidos');
-    return;
-  }
-
-  const updateData = Object.fromEntries(
-    Object.entries(parsed.data).filter(([, v]) => v !== undefined),
-  ) as Parameters<typeof updateGiveaway>[1];
-  await updateGiveaway(id, updateData);
-
-  const talentSlug = formData.get('talentSlug') as string;
-  if (talentSlug) revalidatePath(`/creadores/${talentSlug}`);
   revalidatePath('/admin/giveaways');
 }
 

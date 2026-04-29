@@ -150,26 +150,6 @@ export async function getInvoice(id: number): Promise<Invoice | null> {
 }
 
 /**
- * Factura por id con joins de brand/talent y ficheros adjuntos resueltos.
- *
- * @cache none
- * @visibility admin
- * @returns `InvoiceWithRelations` o `null`.
- */
-export async function getInvoiceWithFiles(id: number): Promise<InvoiceWithRelations | null> {
-  const rows = await db
-    .select(INVOICE_LIST_COLUMNS)
-    .from(invoices)
-    .leftJoin(crmBrands, eq(crmBrands.id, invoices.brandId))
-    .leftJoin(talents, eq(talents.id, invoices.talentId))
-    .where(eq(invoices.id, id))
-    .limit(1);
-  if (rows.length === 0) return null;
-  const [first] = await attachFiles(rows as readonly InvoiceListRow[]);
-  return first ?? null;
-}
-
-/**
  * Resumen agregado del módulo de facturación: ingresos, gastos, neto, pendiente y vencido.
  * Las anuladas se excluyen de los totales. Vencido usa hoy en TZ Madrid.
  *

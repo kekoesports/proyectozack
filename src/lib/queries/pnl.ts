@@ -1,6 +1,6 @@
-import { and, eq, sql, gte, lte, isNotNull, ne } from 'drizzle-orm';
+import { and, eq, sql, gte, lte, ne } from 'drizzle-orm';
 import { db } from '@/lib/db';
-import { invoices, crmBrands, talents } from '@/db/schema';
+import { invoices, crmBrands } from '@/db/schema';
 import {
   SETTLED_INCOME_STATUSES,
   SETTLED_EXPENSE_STATUSES,
@@ -210,99 +210,3 @@ export async function getPnL(filters: PnLFilters = {}): Promise<PnLResult> {
   };
 }
 
-export type PnLBrandTotal = {
-  readonly brandId: number;
-  readonly brandName: string;
-  readonly ingresos: number;
-};
-
-/**
- * Top brands por **facturación bruta** (suma de `totalAmount` en facturas
- * `kind='income'` no anuladas). Incluye pendientes y parciales; NO filtra por
- * status liquidado.
- *
- * Nombre con prefijo `GrossInvoiced` para distinguir de la lógica liquidada
- * de `getPnL` (que sólo cuenta `cobrada`/`pagada`). Si la UI muestra "ingreso
- * por marca", usar `getPnL` filtrado por brand, no esta función.
- *
- * @cache none
- * @visibility admin
- * @returns array `<= limit` ordenado por facturación DESC.
- */
-export async function getTopBrandsByGrossInvoiced(filters: PnLFilters = {}, limit = 10): Promise<readonly PnLBrandTotal[]> {
-  const conds = [
-    ne(invoices.status, 'anulada'),
-    eq(invoices.kind, 'income'),
-    isNotNull(invoices.brandId),
-  ];
-  if (filters.from) conds.push(gte(invoices.issueDate, filters.from));
-  if (filters.to) conds.push(lte(invoices.issueDate, filters.to));
-  if (filters.company) conds.push(eq(invoices.company, filters.company));
-
-  const rows = await db
-    .select({
-      brandId: invoices.brandId,
-      brandName: crmBrands.name,
-      ingresos: sql<string>`COALESCE(SUM(${invoices.totalAmount}), 0)::text`,
-    })
-    .from(invoices)
-    .innerJoin(crmBrands, eq(crmBrands.id, invoices.brandId))
-    .where(and(...conds))
-    .groupBy(invoices.brandId, crmBrands.name)
-    .orderBy(sql`SUM(${invoices.totalAmount}) DESC`)
-    .limit(limit);
-
-  return rows.map((row) => ({
-    brandId: row.brandId ?? 0,
-    brandName: row.brandName,
-    ingresos: Number(row.ingresos),
-  }));
-}
-
-export type PnLTalentTotal = {
-  readonly talentId: number;
-  readonly talentName: string;
-  readonly pagado: number;
-};
-
-/**
- * Top talents por **expense bruto facturado** (suma de `totalAmount` en
- * facturas `kind='expense'` no anuladas asociadas al talent). Incluye
- * pendientes y parciales; NO filtra por status liquidado.
- *
- * Nombre con `GrossInvoiced` para distinguir de la lógica liquidada de
- * `getPnL.pagosCreadores` (que sólo suma `cobrada`/`pagada`).
- *
- * @cache none
- * @visibility admin
- * @returns array `<= limit` ordenado por expense bruto DESC.
- */
-export async function getTopTalentsByGrossInvoiced(filters: PnLFilters = {}, limit = 10): Promise<readonly PnLTalentTotal[]> {
-  const conds = [
-    ne(invoices.status, 'anulada'),
-    eq(invoices.kind, 'expense'),
-    isNotNull(invoices.talentId),
-  ];
-  if (filters.from) conds.push(gte(invoices.issueDate, filters.from));
-  if (filters.to) conds.push(lte(invoices.issueDate, filters.to));
-  if (filters.company) conds.push(eq(invoices.company, filters.company));
-
-  const rows = await db
-    .select({
-      talentId: invoices.talentId,
-      talentName: talents.name,
-      pagado: sql<string>`COALESCE(SUM(${invoices.totalAmount}), 0)::text`,
-    })
-    .from(invoices)
-    .innerJoin(talents, eq(talents.id, invoices.talentId))
-    .where(and(...conds))
-    .groupBy(invoices.talentId, talents.name)
-    .orderBy(sql`SUM(${invoices.totalAmount}) DESC`)
-    .limit(limit);
-
-  return rows.map((row) => ({
-    talentId: row.talentId ?? 0,
-    talentName: row.talentName,
-    pagado: Number(row.pagado),
-  }));
-}
