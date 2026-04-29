@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { httpBatchLink } from '@trpc/client';
+import superjson from 'superjson';
 import { trpc, makeQueryClient } from '@/lib/trpc/client';
 
 /**
@@ -21,6 +22,7 @@ export function TRPCProvider({
       links: [
         httpBatchLink({
           url: '/api/trpc',
+          transformer: superjson,
         }),
       ],
     }),

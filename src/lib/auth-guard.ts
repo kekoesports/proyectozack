@@ -14,7 +14,16 @@ type SessionWithRole = {
     name: string;
     role: string | null;
   };
-}
+};
+
+type SessionWithNarrowedRole<R extends Role> = {
+  user: {
+    id: string;
+    email: string;
+    name: string;
+    role: R;
+  };
+};
 
 function homeForRole(role: string | null | undefined): string | null {
   if (role === 'admin') return '/admin';
@@ -48,7 +57,7 @@ async function loadSession(loginPath: string): Promise<SessionWithRole> {
   };
 }
 
-export async function requireRole(role: Role, loginPath: string): Promise<SessionWithRole> {
+export async function requireRole<R extends Role>(role: R, loginPath: string): Promise<SessionWithNarrowedRole<R>> {
   if (process.env.NODE_ENV === 'development') {
     return { user: { id: 'dev', email: 'dev@localhost', name: 'Dev', role } };
   }
@@ -63,29 +72,29 @@ export async function requireRole(role: Role, loginPath: string): Promise<Sessio
     redirect(safePath);
   }
 
-  return session;
+  return { user: { ...session.user, role: userRole as R } };
 }
 
-export async function requireAnyRole(
-  roles: readonly Role[],
+export async function requireAnyRole<R extends Role>(
+  roles: readonly R[],
   loginPath: string,
-): Promise<SessionWithRole> {
+): Promise<SessionWithNarrowedRole<R>> {
   const safePath = ALLOWED_LOGIN_PATHS.has(loginPath) ? loginPath : '/';
 
   if (process.env.NODE_ENV === 'development') {
-    const override = process.env.DEV_ROLE_OVERRIDE as Role | undefined;
-    const mockRole = (override && (roles as readonly string[]).includes(override) ? override : roles[0]) ?? 'admin';
+    const override = process.env.DEV_ROLE_OVERRIDE as R | undefined;
+    const mockRole = (override && (roles as readonly string[]).includes(override) ? override : roles[0]) ?? ('admin' as R);
     return { user: { id: 'dev', email: 'dev@localhost', name: 'Dev', role: mockRole } };
   }
 
   const session = await loadSession(safePath);
   const userRole = session.user.role;
 
-  if (!userRole || !(roles as readonly string[]).includes(userRole)) {
+  if (!userRole || !(roles as readonly string[]).includes(userRole as R)) {
     const home = homeForRole(userRole);
     if (home) redirect(home);
     redirect(safePath);
   }
 
-  return session;
+  return { user: { ...session.user, role: userRole as R } };
 }

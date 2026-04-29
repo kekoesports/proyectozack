@@ -8,6 +8,7 @@ import { assertCanDelete } from '@/lib/permissions';
 import { createInvoiceSchema, updateInvoiceSchema } from '@/lib/schemas/invoice';
 import { createInvoice, updateInvoice, deleteInvoice, getInvoice } from '@/lib/queries/invoices';
 import { createFile } from '@/lib/queries/files';
+import { compact, nullify } from '@/lib/utils/objects';
 
 import type { FileRecord, NewInvoice } from '@/types';
 
@@ -51,18 +52,6 @@ function formToObject(formData: FormData): Record<string, unknown> {
     obj[key] = value;
   }
   return obj;
-}
-
-function compact<T extends Record<string, unknown>>(obj: T): Record<string, unknown> {
-  const out: Record<string, unknown> = {};
-  for (const [k, v] of Object.entries(obj)) if (v !== undefined) out[k] = v;
-  return out;
-}
-
-function nullify<T extends Record<string, unknown>>(obj: T): Record<string, unknown> {
-  const out: Record<string, unknown> = {};
-  for (const [k, v] of Object.entries(obj)) out[k] = v === undefined ? null : v;
-  return out;
 }
 
 async function uploadAttachment(
@@ -153,7 +142,9 @@ export async function createInvoiceAction(_prev: ActionState, formData: FormData
     return { error: 'Error al crear la factura' };
   }
 
-  // Upload optional invoice file + statement file
+  // Upload optional invoice file + statement file.
+  // On any upload failure, roll back by deleting the invoice row so we never
+  // leave a dangling invoice without its required file attachment.
   try {
     const invoiceFileResult = await processFileSlot(
       formData,
@@ -163,7 +154,12 @@ export async function createInvoiceAction(_prev: ActionState, formData: FormData
       createdId,
       session.user.id,
     );
-    if (invoiceFileResult && 'error' in invoiceFileResult) return { error: invoiceFileResult.error };
+    if (invoiceFileResult && 'error' in invoiceFileResult) {
+      await deleteInvoice(createdId).catch((e: unknown) => {
+        console.error('[admin] invoice rollback failed:', e instanceof Error ? e.message : 'unknown');
+      });
+      return { error: invoiceFileResult.error };
+    }
 
     const statementFileResult = await processFileSlot(
       formData,
@@ -173,7 +169,12 @@ export async function createInvoiceAction(_prev: ActionState, formData: FormData
       createdId,
       session.user.id,
     );
-    if (statementFileResult && 'error' in statementFileResult) return { error: statementFileResult.error };
+    if (statementFileResult && 'error' in statementFileResult) {
+      await deleteInvoice(createdId).catch((e: unknown) => {
+        console.error('[admin] invoice rollback failed:', e instanceof Error ? e.message : 'unknown');
+      });
+      return { error: statementFileResult.error };
+    }
 
     const patch: Record<string, unknown> = {};
     if (invoiceFileResult && 'fileId' in invoiceFileResult) patch.invoiceFileId = invoiceFileResult.fileId;
@@ -184,6 +185,9 @@ export async function createInvoiceAction(_prev: ActionState, formData: FormData
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'unknown';
     console.error('[admin] invoice upload error:', msg);
+    await deleteInvoice(createdId).catch((e: unknown) => {
+      console.error('[admin] invoice rollback failed:', e instanceof Error ? e.message : 'unknown');
+    });
     return { error: 'Error al subir el archivo' };
   }
 

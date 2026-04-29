@@ -83,7 +83,6 @@ export function GlobalSearch(): React.ReactElement {
   useEffect(() => {
     const handle = setTimeout(() => {
       setDebouncedQuery(query);
-      setActiveIndex(0);
     }, 200);
     return () => clearTimeout(handle);
   }, [query]);
@@ -151,6 +150,7 @@ export function GlobalSearch(): React.ReactElement {
         value={query}
         onChange={(event) => {
           setQuery(event.target.value);
+          setActiveIndex(0);
           setOpen(true);
         }}
         onFocus={() => setOpen(true)}

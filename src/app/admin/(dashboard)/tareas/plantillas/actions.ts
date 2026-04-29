@@ -7,20 +7,14 @@ import { assertCanDelete } from '@/lib/permissions';
 import { createTaskTemplateSchema, updateTaskTemplateSchema } from '@/lib/schemas/taskTemplate';
 import { createTaskTemplate, deleteTaskTemplate, updateTaskTemplate } from '@/lib/queries/taskTemplates';
 
+import { compact } from '@/lib/utils/objects';
+
 import type { Role } from '@/lib/auth-guard';
 
 type ActionResult = { readonly error?: string };
 
 function revalidateTemplates(): void {
   revalidatePath('/admin/tareas/plantillas');
-}
-
-function compact<T extends Record<string, unknown>>(obj: T): Record<string, unknown> {
-  const out: Record<string, unknown> = {};
-  for (const [key, value] of Object.entries(obj)) {
-    if (value !== undefined) out[key] = value;
-  }
-  return out;
 }
 
 export async function createTaskTemplateAction(formData: FormData): Promise<ActionResult> {

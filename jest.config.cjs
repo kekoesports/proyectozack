@@ -16,7 +16,7 @@ const config = {
         '^.+\\.tsx?$': ['ts-jest', { tsconfig: '<rootDir>/tsconfig.jest.json' }],
       },
       transformIgnorePatterns: [
-        '/node_modules/(?!(@t3-oss|@neondatabase|drizzle-orm|better-auth|@better-auth)/)',
+        '/node_modules/(?!(@t3-oss|@neondatabase|drizzle-orm|better-auth|@better-auth|superjson|@upstash)/)',
       ],
     },
     {
@@ -29,7 +29,7 @@ const config = {
         '^.+\\.tsx?$': ['ts-jest', { tsconfig: '<rootDir>/tsconfig.jest.json' }],
       },
       transformIgnorePatterns: [
-        '/node_modules/(?!(@t3-oss|@neondatabase|drizzle-orm|better-auth|@better-auth)/)',
+        '/node_modules/(?!(@t3-oss|@neondatabase|drizzle-orm|better-auth|@better-auth|superjson|@upstash)/)',
       ],
     },
     {
@@ -42,7 +42,7 @@ const config = {
         '^.+\\.tsx?$': ['ts-jest', { tsconfig: '<rootDir>/tsconfig.jest.json' }],
       },
       transformIgnorePatterns: [
-        '/node_modules/(?!(@t3-oss|@neondatabase|drizzle-orm|better-auth|@better-auth)/)',
+        '/node_modules/(?!(@t3-oss|@neondatabase|drizzle-orm|better-auth|@better-auth|superjson|@upstash)/)',
       ],
     },
   ],

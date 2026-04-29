@@ -50,7 +50,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
-function toTalentBase(t: Talent): Talent {
+function toTalentBase(t: Talent & Record<string, unknown>): Talent {
   return {
     id: t.id,
     slug: t.slug,
@@ -99,7 +99,7 @@ export default async function RootCreatorPage({ params }: PageProps): Promise<Re
     notFound();
   }
 
-  const base = toTalentBase(talent as unknown as Talent);
+  const base = toTalentBase(talent);
   const codesWithTalent: CreatorCodeWithTalent[] = codes.map((c) => ({ ...c, talent: base }));
   const activeWithTalent: GiveawayWithTalent[] = active.map((g) => ({ ...g, talent: base }));
   const finishedWithTalent: GiveawayWithTalent[] = finished.map((g) => ({ ...g, talent: base }));

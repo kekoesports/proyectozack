@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { requireRole } from '@/lib/auth-guard';
 import { updateTalentComplianceSchema } from '@/lib/schemas/talentCompliance';
 import { updateTalentCompliance } from '@/lib/queries/talents';
+import { compact } from '@/lib/utils/objects';
 
 type ActionState = {
   readonly error?: string;
@@ -21,14 +22,6 @@ function formToObject(formData: FormData): Record<string, unknown> {
   return obj;
 }
 
-// Strip undefined values to satisfy exactOptionalPropertyTypes
-function compact(obj: Record<string, unknown>): Record<string, unknown> {
-  const out: Record<string, unknown> = {};
-  for (const [k, v] of Object.entries(obj)) {
-    if (v !== undefined) out[k] = v;
-  }
-  return out;
-}
 
 export async function updateTalentComplianceAction(
   _prev: ActionState,

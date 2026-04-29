@@ -28,6 +28,8 @@ import {
   getCrmBrandForPermission,
 } from '@/lib/queries/crmBrands';
 
+import { compact, nullify } from '@/lib/utils/objects';
+
 import type { Role } from '@/lib/auth-guard';
 
 type ActionState = {
@@ -55,18 +57,6 @@ function formToObject(formData: FormData): Record<string, unknown> {
 
   if (Object.keys(rateCard).length > 0) obj.defaultRateCard = rateCard;
   return obj;
-}
-
-function nullify<T extends Record<string, unknown>>(obj: T): Record<string, unknown> {
-  const out: Record<string, unknown> = {};
-  for (const [k, v] of Object.entries(obj)) out[k] = v === undefined ? null : v;
-  return out;
-}
-
-function compact<T extends Record<string, unknown>>(obj: T): Record<string, unknown> {
-  const out: Record<string, unknown> = {};
-  for (const [k, v] of Object.entries(obj)) if (v !== undefined) out[k] = v;
-  return out;
 }
 
 /** Convert date string (YYYY-MM-DD) to Date object, or undefined if empty/invalid */

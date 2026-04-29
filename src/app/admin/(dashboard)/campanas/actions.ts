@@ -13,19 +13,10 @@ import {
   assertCanEditCampaign,
 } from '@/lib/queries/campaigns';
 
+import { compact } from '@/lib/utils/objects';
+
 import type { Role } from '@/lib/auth-guard';
 import type { CreateCampaignInput } from '@/lib/queries/campaigns';
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
-/** Strip keys whose value is undefined — required for exactOptionalPropertyTypes. */
-function compact<T extends Record<string, unknown>>(obj: T): Record<string, unknown> {
-  const out: Record<string, unknown> = {};
-  for (const [k, v] of Object.entries(obj)) {
-    if (v !== undefined) out[k] = v;
-  }
-  return out;
-}
 
 // ── createCampaignAction ──────────────────────────────────────────────────────
 

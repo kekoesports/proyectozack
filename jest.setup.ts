@@ -40,3 +40,19 @@ jest.mock('next/cache', () => ({
   unstable_cache: jest.fn((fn: (...a: unknown[]) => unknown) => fn),
   unstable_noStore: jest.fn(),
 }));
+
+// superjson is ESM-only — mock it in Jest (CJS) environments.
+// tRPC uses it only for serialization over the wire; callers work fine without it.
+jest.mock('superjson', () => ({
+  default: {
+    serialize: (v: unknown) => ({ json: v, meta: undefined }),
+    deserialize: (v: { json: unknown }) => v.json,
+    stringify: (v: unknown) => JSON.stringify(v),
+    parse: (v: string) => JSON.parse(v),
+  },
+}));
+
+// @upstash/ratelimit and @upstash/redis are not needed in unit tests.
+jest.mock('@/lib/rate-limit', () => ({
+  checkRateLimit: jest.fn().mockResolvedValue(true),
+}));
