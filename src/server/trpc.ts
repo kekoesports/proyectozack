@@ -3,7 +3,6 @@ import { headers } from 'next/headers';
 import { cache } from 'react';
 import superjson from 'superjson';
 import { auth } from '@/lib/auth';
-import { checkRateLimit } from '@/lib/rate-limit';
 import type { Role } from '@/lib/auth-guard';
 
 export type TRPCContext = {
@@ -54,27 +53,7 @@ export const router = t.router;
 /** Public procedure with no auth — open to anonymous callers. */
 export const publicProcedure = t.procedure;
 
-/**
- * Rate-limited public procedure.
- * Limits requests by IP to 10 per 60s using Upstash Redis.
- * Falls through without limit if Upstash is not configured (dev/test).
- */
-export const rateLimitedProcedure = t.procedure.use(async ({ next }) => {
-  const h = await headers();
-  const ip =
-    h.get('x-forwarded-for')?.split(',')[0]?.trim() ??
-    h.get('x-real-ip') ??
-    'anonymous';
 
-  const allowed = await checkRateLimit(ip);
-  if (!allowed) {
-    throw new TRPCError({
-      code: 'TOO_MANY_REQUESTS',
-      message: 'Demasiadas solicitudes. Inténtalo de nuevo en unos minutos.',
-    });
-  }
-  return next();
-});
 
 /**
  * Procedure that requires an authenticated session with any valid role.

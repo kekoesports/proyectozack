@@ -51,8 +51,3 @@ jest.mock('superjson', () => ({
     parse: (v: string) => JSON.parse(v),
   },
 }));
-
-// @upstash/ratelimit and @upstash/redis are not needed in unit tests.
-jest.mock('@/lib/rate-limit', () => ({
-  checkRateLimit: jest.fn().mockResolvedValue(true),
-}));

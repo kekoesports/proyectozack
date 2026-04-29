@@ -1,6 +1,6 @@
 import { TRPCError } from '@trpc/server';
 import { headers } from 'next/headers';
-import { router, rateLimitedProcedure } from '@/server/trpc';
+import { router, publicProcedure } from '@/server/trpc';
 import { db } from '@/lib/db';
 import { contactSubmissions } from '@/db/schema';
 import { sendContactEmail } from '@/lib/email';
@@ -15,7 +15,7 @@ async function hashIp(ip: string): Promise<string> {
 }
 
 export const contactRouter = router({
-  submit: rateLimitedProcedure
+  submit: publicProcedure
     .input(contactBodySchema)
     .mutation(async ({ input }) => {
       const h = await headers();

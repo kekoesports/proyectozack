@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
-import { router, rateLimitedProcedure } from '@/server/trpc';
+import { router, publicProcedure } from '@/server/trpc';
 import { db } from '@/lib/db';
 import { creatorApplications } from '@/db/schema';
 
@@ -14,7 +14,7 @@ const creatorApplySchema = z.object({
 });
 
 export const creatorApplyRouter = router({
-  submit: rateLimitedProcedure
+  submit: publicProcedure
     .input(creatorApplySchema)
     .mutation(async ({ input }) => {
       try {
