@@ -1,10 +1,13 @@
 """
 Liquipedia CS2 + Valorant player pages → Instagram handles.
-Uses Firecrawl (JS-rendered) because Liquipedia requires JavaScript.
+Uses Liquipedia's public MediaWiki API — no scraping, no JS needed, no Firecrawl.
+Polite: Liquipedia asks for 1 req/s and a descriptive User-Agent.
 """
 import logging
 import re
 import time
+
+import requests
 
 from scraper.models import DiscoveredProfile
 
@@ -14,80 +17,93 @@ _IG_URL_RE = re.compile(
     r'instagram\.com/([A-Za-z0-9_.]{3,30})(?:/|\b)',
     re.IGNORECASE,
 )
-_IGNORED_IG = {"p", "reel", "stories", "explore", "direct", "accounts", "reels"}
+_IGNORED_IG = {"p", "reel", "reels", "stories", "explore", "direct", "accounts"}
 
-# Direct player pages and team pages with known IG links
-# (index pages don't list IG; we target team rosters directly)
-_CS2_TEAM_PAGES = [
-    "https://liquipedia.net/counterstrike/Natus_Vincere",
-    "https://liquipedia.net/counterstrike/FaZe_Clan",
-    "https://liquipedia.net/counterstrike/Team_Vitality",
-    "https://liquipedia.net/counterstrike/G2_Esports",
-    "https://liquipedia.net/counterstrike/Team_Spirit",
-    "https://liquipedia.net/counterstrike/Virtus.pro",
-    "https://liquipedia.net/counterstrike/Heroic",
-    "https://liquipedia.net/counterstrike/MOUZ",
-    "https://liquipedia.net/counterstrike/Astralis",
-    "https://liquipedia.net/counterstrike/Cloud9",
-    "https://liquipedia.net/counterstrike/ENCE",
-    "https://liquipedia.net/counterstrike/Complexity_Gaming",
+_HEADERS = {
+    "User-Agent": "SocialProScraper/1.0 (https://socialpro.es; admin@socialpro.es) python-requests/2.31",
+}
+
+# Liquipedia MediaWiki API endpoint
+_CS2_API = "https://liquipedia.net/counterstrike/api.php"
+_VAL_API  = "https://liquipedia.net/valorant/api.php"
+
+# Player page titles to fetch (wiki page names)
+_CS2_PLAYERS = [
+    "S1mple", "Electronic", "B1T", "NiKo", "ZywOo", "rain", "karrigan",
+    "broky", "Twistzz", "ropz", "device", "dupreeh", "Magisk", "gla1ve",
+    "blameF", "k0nfig", "sh1ro", "Ax1Le", "JAME", "HObbit", "torzsi",
+    "siuhy", "xertioN", "headtr1ck", "frozen", "stavn", "TeSeS", "jabbi",
+    "hallzerk", "HooXi", "Brollan", "hampus", "YEKINDAR", "iM", "Snappi",
+    "Stewie2K", "NAF", "EliGE", "Twistzz", "FalleN", "fer", "coldzera",
+    "KSCERATO", "yuurih", "arT", "saffee",
 ]
 
-_VAL_TEAM_PAGES = [
-    "https://liquipedia.net/valorant/Team_Liquid",
-    "https://liquipedia.net/valorant/Sentinels",
-    "https://liquipedia.net/valorant/NRG_Esports",
-    "https://liquipedia.net/valorant/Cloud9",
-    "https://liquipedia.net/valorant/LOUD",
-    "https://liquipedia.net/valorant/FNATIC",
-    "https://liquipedia.net/valorant/KRU_Esports",
-    "https://liquipedia.net/valorant/Paper_Rex",
-    "https://liquipedia.net/valorant/NAVI",
-    "https://liquipedia.net/valorant/Team_Heretics",
-    "https://liquipedia.net/valorant/G2_Esports",
+_VAL_PLAYERS = [
+    "TenZ", "Shroud", "yay", "Asuna", "Wardell", "ShahZaM", "SicK",
+    "zombs", "Sinatraa", "subroza", "Derke", "Boaster", "Alfajer",
+    "nAts", "SACY", "pancada", "aspas", "Less", "cauanzin", "crashies",
+    "Victor", "s0m", "Chronicle", "Mako", "something", "Jamppi",
+    "Leo", "ScreaM", "RieNs", "Nivera",
 ]
 
-# Player-specific search pages that list socials
-_CS2_PLAYER_SEARCH = "https://liquipedia.net/counterstrike/Special:Search?search=instagram&ns0=1"
-_VAL_PLAYER_SEARCH = "https://liquipedia.net/valorant/Special:Search?search=instagram&ns0=1"
+
+def _fetch_wikitext(api_url: str, title: str) -> str:
+    params = {
+        "action": "query",
+        "titles": title,
+        "prop": "revisions",
+        "rvprop": "content",
+        "format": "json",
+        "formatversion": "2",
+    }
+    try:
+        resp = requests.get(api_url, params=params, headers=_HEADERS, timeout=15)
+        resp.raise_for_status()
+        data = resp.json()
+        pages = data.get("query", {}).get("pages", [])
+        if pages and "revisions" in pages[0]:
+            return pages[0]["revisions"][0].get("content", "")
+    except Exception as exc:
+        log.warning("[liquipedia] API fetch failed for %s: %s", title, exc)
+    return ""
 
 
 def _extract_handles(text: str) -> list[str]:
-    handles: list[str] = []
+    handles = []
     for m in _IG_URL_RE.finditer(text):
         h = m.group(1).strip().rstrip("/")
-        if h.lower() not in _IGNORED_IG and len(h) >= 3:
+        if h.lower() not in _IGNORED_IG:
+            handles.append(h)
+    # Also match |instagram=handle in wiki infoboxes
+    for m in re.finditer(r'\|\s*instagram\s*=\s*([A-Za-z0-9_.]{3,30})', text, re.IGNORECASE):
+        h = m.group(1).strip()
+        if h and h.lower() not in _IGNORED_IG:
             handles.append(h)
     return list(dict.fromkeys(handles))
 
 
-def scrape(firecrawl_client, config) -> list[DiscoveredProfile]:
+def scrape(firecrawl_client, config) -> list[DiscoveredProfile]:  # noqa: ARG001
     profiles: list[DiscoveredProfile] = []
 
-    page_groups = [
-        (_CS2_TEAM_PAGES, "cs2"),
-        (_VAL_TEAM_PAGES, "valorant"),
+    groups = [
+        (_CS2_API, _CS2_PLAYERS, "cs2"),
+        (_VAL_API, _VAL_PLAYERS, "valorant"),
     ]
 
-    for pages, niche in page_groups:
-        for url in pages:
-            log.info("[liquipedia] %s (niche=%s)", url, niche)
-            try:
-                result = firecrawl_client.scrape(url)
-                text = result.get("markdown", "") or result.get("content", "")
-                handles = _extract_handles(text)
-                log.info("[liquipedia] %d handles from %s", len(handles), url.split("/")[-1])
+    for api_url, players, niche in groups:
+        for player in players:
+            log.info("[liquipedia] %s (niche=%s)", player, niche)
+            wikitext = _fetch_wikitext(api_url, player)
+            if wikitext:
+                handles = _extract_handles(wikitext)
+                log.info("[liquipedia] %s → %d handles", player, len(handles))
                 for h in handles:
-                    profiles.append(
-                        DiscoveredProfile(
-                            username=h,
-                            niche=niche,
-                            discovered_via="liquipedia",
-                            import_batch_id=config.BATCH_ID,
-                        )
-                    )
-            except Exception as exc:
-                log.warning("[liquipedia] failed (%s): %s", url.split("/")[-1], exc)
-            time.sleep(config.REQUEST_DELAY_SECONDS)
+                    profiles.append(DiscoveredProfile(
+                        username=h,
+                        niche=niche,
+                        discovered_via="liquipedia",
+                        import_batch_id=config.BATCH_ID,
+                    ))
+            time.sleep(1.2)  # Liquipedia asks ~1 req/s
 
     return profiles

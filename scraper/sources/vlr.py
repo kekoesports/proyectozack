@@ -1,9 +1,12 @@
 """
-VLR.gg Valorant player/team pages → Instagram handles.
-Uses Firecrawl for JS-rendered content.
+VLR.gg Valorant player pages → Instagram handles.
+Uses requests directly — VLR.gg renders player socials in static HTML.
 """
 import logging
 import re
+import time
+
+import requests
 
 from scraper.models import DiscoveredProfile
 
@@ -13,66 +16,76 @@ _IG_URL_RE = re.compile(
     r'instagram\.com/([A-Za-z0-9_.]{3,30})(?:/|\b)',
     re.IGNORECASE,
 )
-_PLAYER_LINK_RE = re.compile(r'/player/\d+/[a-z0-9_-]+', re.IGNORECASE)
+_IGNORED_IG = {"p", "reel", "reels", "stories", "explore", "direct", "accounts"}
 
-_IGNORED_HANDLES = {"p", "reel", "stories", "explore", "direct", "accounts"}
+_HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/124.0.0.0 Safari/537.36",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Accept-Language": "en-US,en;q=0.5",
+}
+
+# VLR.gg player profile URLs (player ID + slug)
+_PLAYER_URLS = [
+    "https://www.vlr.gg/player/2/tenz",
+    "https://www.vlr.gg/player/1866/yay",
+    "https://www.vlr.gg/player/1094/asuna",
+    "https://www.vlr.gg/player/896/wardell",
+    "https://www.vlr.gg/player/93/shahzam",
+    "https://www.vlr.gg/player/1195/sinatraa",
+    "https://www.vlr.gg/player/253/zombs",
+    "https://www.vlr.gg/player/9/subroza",
+    "https://www.vlr.gg/player/1063/sick",
+    "https://www.vlr.gg/player/7/naf",
+    "https://www.vlr.gg/player/5/crashies",
+    "https://www.vlr.gg/player/1161/victor",
+    "https://www.vlr.gg/player/4866/derke",
+    "https://www.vlr.gg/player/4060/boaster",
+    "https://www.vlr.gg/player/4058/alfajer",
+    "https://www.vlr.gg/player/4062/nats",
+    "https://www.vlr.gg/player/4061/chronicle",
+    "https://www.vlr.gg/player/1389/sacy",
+    "https://www.vlr.gg/player/1386/pancada",
+    "https://www.vlr.gg/player/1386/aspas",
+    "https://www.vlr.gg/player/5048/less",
+    "https://www.vlr.gg/player/10586/cauanzin",
+    "https://www.vlr.gg/player/1002/scream",
+    "https://www.vlr.gg/player/1001/nivera",
+    "https://www.vlr.gg/player/466/jamppi",
+    "https://www.vlr.gg/player/24/zeek",
+    "https://www.vlr.gg/player/8/leaf",
+    "https://www.vlr.gg/player/6/s0m",
+    "https://www.vlr.gg/player/11/drone",
+    "https://www.vlr.gg/player/12/aproto",
+]
 
 
-def _clean_handle(h: str) -> str | None:
-    h = h.strip().rstrip("/")
-    if h.lower() in _IGNORED_HANDLES:
-        return None
-    return h
-
-
-def scrape(firecrawl_client, config) -> list[DiscoveredProfile]:
+def scrape(firecrawl_client, config) -> list[DiscoveredProfile]:  # noqa: ARG001
     profiles: list[DiscoveredProfile] = []
-    urls = config.SOURCES["vlr_players"]["urls"]
+    session = requests.Session()
+    session.headers.update(_HEADERS)
 
-    for url in urls:
-        log.info("[vlr] scraping rankings: %s", url)
+    for url in _PLAYER_URLS:
+        slug = url.split("/")[-1]
+        log.info("[vlr] player: %s", slug)
         try:
-            result = firecrawl_client.scrape(url)
-            text = result.get("markdown", "") or result.get("content", "")
-
-            # Step 1: find player profile links to crawl deeper
-            player_paths = list(dict.fromkeys(_PLAYER_LINK_RE.findall(text)))
-            log.info("[vlr] found %d player profile links", len(player_paths))
-
-            # Step 2: crawl each player page for IG links
-            for path in player_paths[:50]:  # cap at 50 players per run
-                player_url = f"https://www.vlr.gg{path}"
-                try:
-                    p_result = firecrawl_client.scrape(player_url)
-                    p_text = p_result.get("markdown", "") or p_result.get("content", "")
-                    for m in _IG_URL_RE.finditer(p_text):
-                        handle = _clean_handle(m.group(1))
-                        if handle:
-                            profiles.append(
-                                DiscoveredProfile(
-                                    username=handle,
-                                    niche="valorant",
-                                    discovered_via="vlr_players",
-                                    import_batch_id=config.BATCH_ID,
-                                )
-                            )
-                except Exception as exc:
-                    log.warning("[vlr] player page failed (%s): %s", path, exc)
-
-            # Also scan ranking page itself
-            for m in _IG_URL_RE.finditer(text):
-                handle = _clean_handle(m.group(1))
-                if handle:
-                    profiles.append(
-                        DiscoveredProfile(
-                            username=handle,
-                            niche="valorant",
-                            discovered_via="vlr_players",
-                            import_batch_id=config.BATCH_ID,
-                        )
-                    )
-
+            resp = session.get(url, timeout=15)
+            resp.raise_for_status()
+            handles = []
+            for m in _IG_URL_RE.finditer(resp.text):
+                h = m.group(1).strip().rstrip("/")
+                if h.lower() not in _IGNORED_IG:
+                    handles.append(h)
+            handles = list(dict.fromkeys(handles))
+            log.info("[vlr] %s → %d handles", slug, len(handles))
+            for h in handles:
+                profiles.append(DiscoveredProfile(
+                    username=h,
+                    niche="valorant",
+                    discovered_via="vlr",
+                    import_batch_id=config.BATCH_ID,
+                ))
         except Exception as exc:
-            log.error("[vlr] failed: %s", exc)
+            log.warning("[vlr] %s failed: %s", slug, exc)
+        time.sleep(config.REQUEST_DELAY_SECONDS)
 
     return profiles

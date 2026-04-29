@@ -55,6 +55,11 @@ next-env.d.ts
 .dev-server.log
 .dev-server.err.log
 
+# Python scraper
+scraper/__pycache__/
+scraper/sources/__pycache__/
+scraper/*.pyc
+
 # ad-hoc visual testing screenshots (Playwright MCP)
 visual-*.png
 crm-*-smoke.png
