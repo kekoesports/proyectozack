@@ -1,5 +1,4 @@
 import type { InferSelectModel, InferInsertModel } from 'drizzle-orm';
-
 import type { crmTasks } from '@/db/schema';
 import type { CrmTaskRecurrence } from './crmTaskTemplate';
 

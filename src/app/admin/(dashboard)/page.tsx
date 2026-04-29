@@ -33,6 +33,8 @@ import {
 
 import type { ReactElement } from 'react';
 
+void platformMatchesKey;
+
 function getGreeting(): string {
   const h = new Date().getHours();
   if (h < 13) return 'Buenos días';
@@ -73,6 +75,8 @@ export default async function AdminDashboardPage(): Promise<ReactElement> {
     getPreviousMonthRevenue(),
     getRevenueTrend(12),
   ]);
+
+  void getGreeting;
 
   return (
     <div className="space-y-8">

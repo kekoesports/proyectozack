@@ -106,6 +106,28 @@ export async function createBrandAction(
 
   try {
     const row = await createCrmBrand(nullify(data) as Parameters<typeof createCrmBrand>[0]);
+
+    // Crear contacto principal si se proporcionó en el formulario
+    const contactName = (formData.get('contactName') as string | null)?.trim();
+    if (contactName) {
+      const trim = (k: string): string | null => {
+        const v = (formData.get(k) as string | null)?.trim();
+        return v || null;
+      };
+      await createBrandContact({
+        brandId:   row.id,
+        name:      contactName,
+        role:      trim('contactRole'),
+        email:     trim('contactEmail'),
+        telegram:  trim('contactTelegram'),
+        discord:   trim('contactDiscord'),
+        phone:     trim('contactPhone'),
+        whatsapp:  null,
+        notes:     null,
+        isPrimary: true,
+      });
+    }
+
     revalidatePath('/admin/brands');
     return { success: true, id: row.id };
   } catch (err) {

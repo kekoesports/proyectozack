@@ -43,7 +43,22 @@ export const CRM_BRAND_SECTORES = [
   'otros',
 ] as const;
 
-export const SECTOR_LABELS: Record<(typeof CRM_BRAND_SECTORES)[number], string> = {
+export const CRM_BRAND_GEOS = [
+  'spain',
+  'latam',
+  'europa',
+  'turquia',
+  'india',
+  'japon',
+  'global',
+  'otros',
+] as const;
+
+export type CrmBrandTipo = (typeof CRM_BRAND_TIPOS)[number];
+export type CrmBrandSector = (typeof CRM_BRAND_SECTORES)[number];
+export type CrmBrandGeo = (typeof CRM_BRAND_GEOS)[number];
+
+export const SECTOR_LABELS: Record<CrmBrandSector, string> = {
   cs2_cases: 'CS2 Cases',
   cs2_marketplace: 'Marketplace CS2',
   casino: 'Casino',
@@ -56,18 +71,7 @@ export const SECTOR_LABELS: Record<(typeof CRM_BRAND_SECTORES)[number], string> 
   otros: 'Otros',
 };
 
-export const CRM_BRAND_GEOS = [
-  'spain',
-  'latam',
-  'europa',
-  'turquia',
-  'india',
-  'japon',
-  'global',
-  'otros',
-] as const;
-
-export const GEO_LABELS: Record<(typeof CRM_BRAND_GEOS)[number], string> = {
+export const GEO_LABELS: Record<CrmBrandGeo, string> = {
   spain: 'Spain',
   latam: 'LATAM',
   europa: 'Europa',
@@ -90,14 +94,28 @@ export const CRM_FOLLOWUP_CHANNELS = [
 
 export const CRM_FOLLOWUP_STATUSES = ['pendiente', 'hecho', 'vencido'] as const;
 
-export type CrmBrandTipo = (typeof CRM_BRAND_TIPOS)[number];
-export type CrmBrandSector = (typeof CRM_BRAND_SECTORES)[number];
-export type CrmBrandGeo = (typeof CRM_BRAND_GEOS)[number];
 export type CrmFollowupChannel = (typeof CRM_FOLLOWUP_CHANNELS)[number];
 export type CrmFollowupStatus = (typeof CRM_FOLLOWUP_STATUSES)[number];
 
 // Tipo derivado al cargar marca, NO columna en DB
 export type BrandFollowupDerivedStatus = 'sin_followup' | 'pendiente' | 'hoy' | 'vencido';
+
+export const LOOKING_FOR_OPTIONS = [
+  { value: 'trafico_latam',  label: 'Tráfico LATAM'  },
+  { value: 'trafico_spain',  label: 'Tráfico España'  },
+  { value: 'twitch',         label: 'Twitch'          },
+  { value: 'youtube',        label: 'YouTube'         },
+  { value: 'instagram',      label: 'Instagram'       },
+  { value: 'kick',           label: 'Kick'            },
+  { value: 'otros',          label: 'Otros'           },
+] as const;
+
+export const DEAL_TYPE_OPTIONS = [
+  { value: 'cpa',       label: 'CPA'           },
+  { value: 'revshare',  label: 'Revenue Share' },
+  { value: 'pago_fijo', label: 'Pago fijo'     },
+  { value: 'hibrido',   label: 'Híbrido'       },
+] as const;
 
 const optEnum = <T extends string>(values: readonly [T, ...T[]]) =>
   z.preprocess(
@@ -110,20 +128,28 @@ export const BRAND_TALENT_TIERS = ['nano', 'micro', 'macro', 'mega'] as const;
 export type BrandTalentTier = (typeof BRAND_TALENT_TIERS)[number];
 
 const brandFields = z.object({
-  name: z.string().min(1).max(200),
-  legalName: optStr(250),
-  website: optUrl,
-  tipo: optEnum(CRM_BRAND_TIPOS),
-  sector: optEnum(CRM_BRAND_SECTORES),
-  geo: optEnum(CRM_BRAND_GEOS),
-  country: optStr(2),
-  status: z.enum(CRM_BRAND_STATUSES).default('lead'),
-  ownerUserId: optStr(100),
+  name:         z.string().min(1).max(200),
+  legalName:    optStr(250),
+  website:      optUrl,
+  tipo:         optEnum(CRM_BRAND_TIPOS),
+  sector:       optEnum(CRM_BRAND_SECTORES),
+  geo:          optEnum(CRM_BRAND_GEOS),
+  country:      optStr(50),
+  status:       z.enum(CRM_BRAND_STATUSES).default('lead'),
+  ownerUserId:  optStr(100),
   portalUserId: optStr(100),
   createdByUserId: optStr(100),
   assignedToUserId: optStr(100),
   lastContactAt: z.string().optional(),
   nextFollowupAt: z.string().optional(),
+
+  // Nuevos campos
+  geoTargets:  optStr(500),
+  lookingFor:  optStr(500),
+  dealTypes:   optStr(200),
+  taxId:       optStr(30),
+  address:     z.string().optional(),
+
   notes: z.string().optional(),
   // Rate cards & workspace defaults
   defaultRateCard: z.object({

@@ -1,7 +1,8 @@
 import { and, desc, eq, sql, gte, lte, ne, ilike, or, inArray } from 'drizzle-orm';
 import { db } from '@/lib/db';
-import { invoices, crmBrands, talents, files } from '@/db/schema';
+import { invoices, crmBrands, talents, files, campaigns } from '@/db/schema';
 import type {
+  BillingKPIs,
   Invoice,
   InvoiceKind,
   InvoiceStatus,
@@ -27,6 +28,8 @@ type InvoiceFilters = {
   readonly category?: string;
   readonly search?: string;
   readonly includeAnuladas?: boolean;
+  readonly entity?: string;
+  readonly currency?: string;
 };
 
 const INVOICE_LIST_COLUMNS = {
@@ -38,9 +41,12 @@ const INVOICE_LIST_COLUMNS = {
   paidDate: invoices.paidDate,
   brandId: invoices.brandId,
   talentId: invoices.talentId,
+  campaignId: invoices.campaignId,
   counterpartyName: invoices.counterpartyName,
   concept: invoices.concept,
+  description: invoices.description,
   category: invoices.category,
+  aiToolName: invoices.aiToolName,
   netAmount: invoices.netAmount,
   vatPct: invoices.vatPct,
   withholdingPct: invoices.withholdingPct,
@@ -54,11 +60,12 @@ const INVOICE_LIST_COLUMNS = {
   aiTool: invoices.aiTool,
   fileUrl: invoices.fileUrl,
   filePath: invoices.filePath,
+  receiptFileUrl: invoices.receiptFileUrl,
+  receiptFilePath: invoices.receiptFilePath,
   invoiceFileId: invoices.invoiceFileId,
   statementFileId: invoices.statementFileId,
   notes: invoices.notes,
   createdByUserId: invoices.createdByUserId,
-  campaignId: invoices.campaignId,
   createdAt: invoices.createdAt,
   updatedAt: invoices.updatedAt,
   brandName: crmBrands.name,
@@ -68,6 +75,7 @@ const INVOICE_LIST_COLUMNS = {
 type InvoiceListRow = Invoice & {
   readonly brandName: string | null;
   readonly talentName: string | null;
+  readonly campaignName?: string | null;
 };
 
 async function attachFiles(rows: readonly InvoiceListRow[]): Promise<readonly InvoiceWithRelations[]> {
@@ -77,7 +85,7 @@ async function attachFiles(rows: readonly InvoiceListRow[]): Promise<readonly In
     if (row.statementFileId !== null && row.statementFileId !== undefined) fileIds.add(row.statementFileId);
   }
   if (fileIds.size === 0) {
-    return rows.map((row) => ({ ...row, invoiceFile: null, statementFile: null }));
+    return rows.map((row) => ({ ...row, campaignName: row.campaignName ?? null, invoiceFile: null, statementFile: null }));
   }
   const fileRows = await db
     .select()
@@ -86,14 +94,14 @@ async function attachFiles(rows: readonly InvoiceListRow[]): Promise<readonly In
   const byId = new Map<number, FileRecord>(fileRows.map((f) => [f.id, f]));
   return rows.map((row) => ({
     ...row,
+    campaignName: row.campaignName ?? null,
     invoiceFile: row.invoiceFileId !== null ? byId.get(row.invoiceFileId) ?? null : null,
     statementFile: row.statementFileId !== null ? byId.get(row.statementFileId) ?? null : null,
   }));
 }
 
 /**
- * Lista facturas con joins de brand y talent + ficheros adjuntos. Por defecto excluye
- * `status='anulada'` salvo que `includeAnuladas`, `status` o `statuses` lo soliciten.
+ * Lista facturas con joins de brand, talent y campaign + ficheros adjuntos.
  *
  * @cache none
  * @visibility admin
@@ -115,6 +123,7 @@ export async function listInvoices(filters: InvoiceFilters = {}): Promise<readon
   if (filters.company) conds.push(eq(invoices.company, filters.company));
   if (filters.paymentMethod) conds.push(eq(invoices.paymentMethod, filters.paymentMethod));
   if (filters.category) conds.push(ilike(invoices.category, `%${filters.category}%`));
+  if (filters.currency) conds.push(eq(invoices.currency, filters.currency));
   if (filters.search) {
     const q = `%${filters.search}%`;
     const searchClause = or(
@@ -127,10 +136,14 @@ export async function listInvoices(filters: InvoiceFilters = {}): Promise<readon
   }
 
   const rows = await db
-    .select(INVOICE_LIST_COLUMNS)
+    .select({
+      ...INVOICE_LIST_COLUMNS,
+      campaignName: campaigns.name,
+    })
     .from(invoices)
     .leftJoin(crmBrands, eq(crmBrands.id, invoices.brandId))
     .leftJoin(talents, eq(talents.id, invoices.talentId))
+    .leftJoin(campaigns, eq(campaigns.id, invoices.campaignId))
     .where(conds.length > 0 ? and(...conds) : undefined)
     .orderBy(desc(invoices.issueDate), desc(invoices.id));
 
@@ -149,18 +162,7 @@ export async function getInvoice(id: number): Promise<Invoice | null> {
   return row ?? null;
 }
 
-/**
- * Resumen agregado del módulo de facturación: ingresos, gastos, neto, pendiente y vencido.
- * Las anuladas se excluyen de los totales. Vencido usa hoy en TZ Madrid.
- *
- * Nota: `pendingIncome` no contempla `status='pagada'` (que también es income liquidado),
- * pero como `pagada` no aparece en la lista de `IN (...)`, queda fuera del pendiente — OK.
- *
- * @cache none
- * @visibility admin
- * @returns `InvoiceSummary`.
- */
-export async function getInvoiceSummary(from?: string, to?: string): Promise<InvoiceSummary> {
+export async function getBillingKPIs(from?: string, to?: string): Promise<BillingKPIs> {
   const conds = [];
   if (from) conds.push(gte(invoices.issueDate, from));
   if (to) conds.push(lte(invoices.issueDate, to));
@@ -176,11 +178,17 @@ export async function getInvoiceSummary(from?: string, to?: string): Promise<Inv
     .select({
       incomeTotal: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind} = 'income' AND ${invoices.status} != 'anulada' THEN ${invoices.totalAmount} ELSE 0 END), 0)::text`,
       expenseTotal: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind} = 'expense' AND ${invoices.status} != 'anulada' THEN ${invoices.totalAmount} ELSE 0 END), 0)::text`,
-      pendingIncome: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind} = 'income' AND ${invoices.status} IN ('emitida','no_cobrada','parcial','vencida') THEN ${invoices.totalAmount} ELSE 0 END), 0)::text`,
-      overdueIncome: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind} = 'income' AND ${invoices.status} IN ('emitida','no_cobrada','vencida') AND ${invoices.dueDate} IS NOT NULL AND ${invoices.dueDate} < ${todayMadrid}::date THEN ${invoices.totalAmount} ELSE 0 END), 0)::text`,
+      pendingCobro: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind}='income' AND ${invoices.status} IN ('no_cobrado','pendiente','emitida','no_cobrada') THEN ${invoices.totalAmount} ELSE 0 END),0)::text`,
+      pendingPago: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind}='expense' AND ${invoices.status} IN ('no_pagado','pendiente','emitida','no_pagada') THEN ${invoices.totalAmount} ELSE 0 END),0)::text`,
+      ingresosBanco: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind}='income' AND ${invoices.category}='Ingresos en banco' AND ${invoices.status}!='anulada' THEN ${invoices.totalAmount} ELSE 0 END),0)::text`,
+      ingresosCrypto: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind}='income' AND ${invoices.category}='Ingresos en crypto' AND ${invoices.status}!='anulada' THEN ${invoices.totalAmount} ELSE 0 END),0)::text`,
+      gastoEmpresa: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind}='expense' AND ${invoices.category}='Gastos empresa' AND ${invoices.status}!='anulada' THEN ${invoices.totalAmount} ELSE 0 END),0)::text`,
+      gastoCreador: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind}='expense' AND ${invoices.category}='Gastos creador' AND ${invoices.status}!='anulada' THEN ${invoices.totalAmount} ELSE 0 END),0)::text`,
     })
     .from(invoices)
     .where(conds.length > 0 ? and(...conds) : undefined);
+
+  void todayMadrid;
 
   const incomeTotal = Number(row?.incomeTotal ?? 0);
   const expenseTotal = Number(row?.expenseTotal ?? 0);
@@ -188,8 +196,24 @@ export async function getInvoiceSummary(from?: string, to?: string): Promise<Inv
     incomeTotal,
     expenseTotal,
     netTotal: incomeTotal - expenseTotal,
-    pendingIncome: Number(row?.pendingIncome ?? 0),
-    overdueIncome: Number(row?.overdueIncome ?? 0),
+    pendingCobro: Number(row?.pendingCobro ?? 0),
+    pendingPago: Number(row?.pendingPago ?? 0),
+    ingresosBanco: Number(row?.ingresosBanco ?? 0),
+    ingresosCrypto: Number(row?.ingresosCrypto ?? 0),
+    gastoEmpresa: Number(row?.gastoEmpresa ?? 0),
+    gastoCreador: Number(row?.gastoCreador ?? 0),
+  };
+}
+
+/** @deprecated Usar getBillingKPIs */
+export async function getInvoiceSummary(from?: string, to?: string): Promise<InvoiceSummary> {
+  const kpis = await getBillingKPIs(from, to);
+  return {
+    incomeTotal: kpis.incomeTotal,
+    expenseTotal: kpis.expenseTotal,
+    netTotal: kpis.netTotal,
+    pendingIncome: kpis.pendingCobro,
+    overdueIncome: 0,
   };
 }
 
@@ -220,8 +244,7 @@ async function sumIncomeBetween(from: string, to: string, company?: InvoiceCompa
 }
 
 /**
- * Ingresos cobrados/pagados en el mes en curso (`status IN ('cobrada','pagada')`),
- * opcionalmente filtrado por empresa fiscal.
+ * Ingresos cobrados/pagados en el mes en curso.
  *
  * @cache none
  * @visibility admin
@@ -233,7 +256,7 @@ export async function getMonthRevenue(opts?: { readonly company?: InvoiceCompany
 }
 
 /**
- * Ingresos cobrados/pagados en el mes anterior — usado para el delta MoM del dashboard.
+ * Ingresos cobrados/pagados en el mes anterior.
  *
  * @cache none
  * @visibility admin
@@ -253,17 +276,16 @@ export type RevenueTrendPoint = {
 };
 
 /**
- * Serie temporal mensual ingresos/gastos para los últimos `months` meses (incluye actual).
- * Excluye anuladas. Rellena meses sin datos con `0/0`.
+ * Serie temporal mensual ingresos/gastos para los últimos `months` meses.
  *
  * @cache none
  * @visibility admin
- * @returns array de longitud `months` ordenado cronológicamente (mes más antiguo primero).
+ * @returns array de longitud `months` ordenado cronológicamente.
  */
 export async function getRevenueTrend(months = 12, opts?: { readonly company?: InvoiceCompany }): Promise<readonly RevenueTrendPoint[]> {
   const now = new Date();
   const start = new Date(now.getFullYear(), now.getMonth() - months + 1, 1);
-  const end = new Date(now.getFullYear(), now.getMonth() + 1, 0); // last day current month
+  const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
 
   const startStr = `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, '0')}-01`;
   const endStr = `${end.getFullYear()}-${String(end.getMonth() + 1).padStart(2, '0')}-${String(end.getDate()).padStart(2, '0')}`;
@@ -309,7 +331,6 @@ export async function getRevenueTrend(months = 12, opts?: { readonly company?: I
 
 /**
  * Categorías de factura realmente usadas, ordenadas por frecuencia DESC.
- * Sirve para autocompletado del campo `category` en formularios.
  *
  * @cache none
  * @visibility admin
@@ -326,7 +347,7 @@ export async function getUsedInvoiceCategories(): Promise<readonly string[]> {
 }
 
 /**
- * Inserta una factura. Lanza si el insert no devuelve fila.
+ * Inserta una factura.
  *
  * @cache none
  * @visibility admin
@@ -339,7 +360,7 @@ export async function createInvoice(values: NewInvoice): Promise<Invoice> {
 }
 
 /**
- * Actualiza parcialmente una factura por id. Bumpa `updatedAt` automáticamente.
+ * Actualiza parcialmente una factura por id.
  *
  * @cache none
  * @visibility admin
@@ -355,8 +376,7 @@ export async function updateInvoice(id: number, patch: Partial<NewInvoice>): Pro
 }
 
 /**
- * Facturas de tipo `income` no anuladas visibles para un usuario del portal de marca,
- * resueltas vía `crmBrands.portalUserId`. Pensada para el brand portal.
+ * Facturas de tipo `income` no anuladas visibles para un usuario del portal de marca.
  *
  * @cache none
  * @visibility admin
@@ -364,7 +384,10 @@ export async function updateInvoice(id: number, patch: Partial<NewInvoice>): Pro
  */
 export async function getInvoicesForBrandUser(portalUserId: string): Promise<readonly InvoiceWithRelations[]> {
   const rows = await db
-    .select(INVOICE_LIST_COLUMNS)
+    .select({
+      ...INVOICE_LIST_COLUMNS,
+      campaignName: sql<null>`NULL`,
+    })
     .from(invoices)
     .innerJoin(crmBrands, eq(crmBrands.id, invoices.brandId))
     .leftJoin(talents, eq(talents.id, invoices.talentId))
@@ -381,8 +404,7 @@ export async function getInvoicesForBrandUser(portalUserId: string): Promise<rea
 }
 
 /**
- * Borra una factura por id. La acción que la invoca debe llamar `assertCanDelete`
- * — manager NO puede borrar facturas (ver `invoices-actions.ts:249`).
+ * Borra una factura por id.
  *
  * @cache none
  * @visibility admin

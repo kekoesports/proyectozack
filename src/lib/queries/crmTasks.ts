@@ -1,6 +1,7 @@
 import { and, asc, desc, eq, getTableColumns, inArray, isNull, lte, ne, or, sql } from 'drizzle-orm';
 
-import { campaigns, crmBrands, crmTaskTemplates, crmTasks, invoices, talents, user } from '@/db/schema';
+import { campaigns, crmBrands, crmTasks, invoices, talents, user } from '@/db/schema';
+import { crmTaskTemplates } from '@/db/schema/crmTaskTemplates';
 import { db } from '@/lib/db';
 import { toLocalIsoDate } from '@/lib/utils/date';
 import { getIsoWeekLabel } from '@/lib/utils/week';
@@ -51,8 +52,6 @@ function todayMadridIso(date = new Date()): string {
 }
 
 function toIsoDate(date: Date): string {
-  // Use LOCAL Y/M/D — `toISOString()` would shift to UTC and rebobinate
-  // a day in any tz east of UTC (Madrid GMT+1).
   return toLocalIsoDate(date);
 }
 
@@ -141,7 +140,6 @@ export async function getMyTasks(ownerId: string, weekLabel: string): Promise<re
  * @returns array readonly con un row por usuario interno (incluso si no tiene tareas).
  */
 export async function getTeamTasksSummary(weekLabel: string): Promise<readonly TeamTasksSummary[]> {
-  // Today in Madrid-civil date for the overdue comparison — due_date is a DATE.
   const todayMadrid = new Intl.DateTimeFormat('en-CA', {
     timeZone: 'Europe/Madrid',
     year: 'numeric',
@@ -189,8 +187,7 @@ export async function getUsedCategories(): Promise<readonly string[]> {
 }
 
 /**
- * Crea una tarea en el CRM. Los campos derivados (`completedAt`, `rolledOver`, `rolledFromWeek`)
- * los gestiona el sistema, por eso se excluyen del input.
+ * Crea una tarea en el CRM.
  *
  * @cache none
  * @visibility admin
@@ -205,8 +202,7 @@ export async function createTask(
 }
 
 /**
- * Patch parcial de una tarea. Si el patch fija `status='completada'`, stamp `completedAt=NOW()`
- * (preservando si ya existe). Si cambia el status a otro valor, resetea `completedAt=null`.
+ * Patch parcial de una tarea.
  *
  * @cache none
  * @visibility admin
@@ -232,7 +228,7 @@ export async function updateTask(
 }
 
 /**
- * Atajo para marcar una tarea como completada. Stamp `status='completada'` y `completedAt=now`.
+ * Atajo para marcar una tarea como completada.
  *
  * @cache none
  * @visibility admin
@@ -275,6 +271,11 @@ export async function deleteTask(id: number): Promise<void> {
   await db.delete(crmTasks).where(eq(crmTasks.id, id));
 }
 
+export async function deleteTasks(ids: readonly number[]): Promise<void> {
+  if (ids.length === 0) return;
+  await db.delete(crmTasks).where(inArray(crmTasks.id, [...ids]));
+}
+
 /**
  * Moves every pending/in_progress task from `fromWeek` into `toWeek`, stamping
  * `rolled_over=true` and `rolled_from_week=fromWeek`. Idempotent across the
@@ -313,12 +314,11 @@ export type RelatedOptionList = {
 
 /**
  * Devuelve listas de opciones (brand/talent/campaign/invoice) para el selector de
- * relacionado en el form de crear/editar tarea. Invoice limit 200 por rendimiento.
+ * relacionado en el form de crear/editar tarea.
  *
  * @cache none
  * @visibility admin
- * @returns objeto con 5 keys (`brand`, `talent`, `campaign`, `invoice`, `general`),
- *   cada una array de `{ id, label }`. `general` siempre vacío (placeholder).
+ * @returns objeto con 5 keys (`brand`, `talent`, `campaign`, `invoice`, `general`).
  */
 export async function getTaskRelatedOptions(): Promise<RelatedOptionList> {
   const [brandRows, talentRows, invoiceRows, campaignRows] = await Promise.all([
@@ -363,11 +363,11 @@ export type RelatedLabel = {
 
 /**
  * Para una lista de tareas, resuelve los labels humanos de sus `relatedType:relatedId` en una
- * sola pasada (4 queries IN). Útil para listas con badges contextuales.
+ * sola pasada (4 queries IN).
  *
  * @cache none
  * @visibility admin
- * @returns map readonly `"<type>:<id>" -> { type, id, label }`. Solo contiene entries resueltos.
+ * @returns map readonly `"<type>:<id>" -> { type, id, label }`.
  */
 export async function resolveRelatedLabels(
   tasks: readonly CrmTask[],
@@ -427,7 +427,6 @@ export async function resolveRelatedLabels(
 
 /**
  * Cuenta cuántas tareas del usuario fueron arrastradas (rolled over) desde una semana anterior.
- * Útil para mostrar un badge de "deuda" semanal en el dashboard.
  *
  * @cache none
  * @visibility admin
@@ -458,12 +457,11 @@ export type UrgentTask = {
 
 /**
  * Lista tareas urgentes (no completadas y con dueDate ≤ hoy Madrid) para el banner del CRM.
- * Aplica filtro de visibilidad si el rol lo requiere (staff).
  *
  * @cache none
  * @visibility admin
  * @scope staff
- * @returns array readonly capped a `limit` (default 5). `dueDate` se rehidrata como `Date | null`.
+ * @returns array readonly capped a `limit` (default 5).
  */
 export async function getUrgentTasks({
   session,
@@ -506,8 +504,7 @@ type RecurringTargetUser = {
 
 /**
  * Helper puro (sin DB): a partir de plantillas activas, usuarios internos y la fecha actual,
- * construye las filas a insertar para la semana. `daily`→hoy, `weekly`→fin de semana,
- * `monthly`→solo el día 1 con dueDate fin de mes.
+ * construye las filas a insertar para la semana.
  *
  * @cache none
  * @visibility admin
@@ -577,8 +574,7 @@ export function buildRecurringTaskInstances({
 
 /**
  * Job de regeneración: lee plantillas activas + usuarios internos, construye las instancias
- * con `buildRecurringTaskInstances` y las inserta con `onConflictDoNothing` (idempotente
- * dentro de la misma semana). Útil para cron diario.
+ * y las inserta con `onConflictDoNothing` (idempotente dentro de la misma semana).
  *
  * @cache none
  * @visibility admin
@@ -597,6 +593,7 @@ export async function regenerateRecurringTasks({
     .from(crmTaskTemplates)
     .where(eq(crmTaskTemplates.active, true))
     .orderBy(asc(crmTaskTemplates.id));
+
 
   const users = await db
     .select({ id: user.id, role: user.role })
@@ -622,4 +619,59 @@ export async function regenerateRecurringTasks({
     .returning({ id: crmTasks.id });
 
   return { generated: inserted.length };
+}
+
+// ── Plantillas semanales (CRUD) ───────────────────────────────────────
+
+export async function getTaskTemplates(): Promise<readonly CrmTaskTemplate[]> {
+  const rows = await db
+    .select()
+    .from(crmTaskTemplates)
+    .orderBy(asc(crmTaskTemplates.id));
+  return rows;
+}
+
+export async function createTaskTemplate(values: {
+  title:    string;
+  category: string;
+  defaultPriority?: 'alta' | 'media' | 'baja';
+  priority?: 'alta' | 'media' | 'baja';
+}): Promise<CrmTaskTemplate> {
+  const { priority, defaultPriority, ...rest } = values;
+  const [row] = await db.insert(crmTaskTemplates).values({
+    ...rest,
+    defaultPriority: defaultPriority ?? priority ?? 'media',
+  }).returning();
+  if (!row) throw new Error('Failed to insert template');
+  return row;
+}
+
+export async function updateTaskTemplate(
+  id: number,
+  patch: Partial<{ title: string; category: string; defaultPriority: 'alta' | 'media' | 'baja'; priority: 'alta' | 'media' | 'baja'; isActive: boolean; active: boolean }>,
+): Promise<CrmTaskTemplate | null> {
+  const { isActive, priority, ...rest } = patch;
+  const setPatch: Record<string, unknown> = { ...rest, updatedAt: new Date() };
+  if (isActive !== undefined) setPatch.active = isActive;
+  if (priority !== undefined) setPatch.defaultPriority = priority;
+  const [row] = await db
+    .update(crmTaskTemplates)
+    .set(setPatch)
+    .where(eq(crmTaskTemplates.id, id))
+    .returning();
+  return row ?? null;
+}
+
+export async function deleteTaskTemplate(id: number): Promise<void> {
+  await db.delete(crmTaskTemplates).where(eq(crmTaskTemplates.id, id));
+}
+
+/** Comprueba si ya existe una tarea con ese título exacto en la semana dada. */
+export async function taskExistsForWeek(title: string, weekLabel: string): Promise<boolean> {
+  const [row] = await db
+    .select({ id: crmTasks.id })
+    .from(crmTasks)
+    .where(and(eq(crmTasks.weekLabel, weekLabel), eq(crmTasks.title, title)))
+    .limit(1);
+  return row !== undefined;
 }

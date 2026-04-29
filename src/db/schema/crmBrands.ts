@@ -5,13 +5,14 @@ import {
   varchar,
   text,
   boolean,
+  date,
   timestamp,
   pgEnum,
   index,
   numeric,
   jsonb,
 } from 'drizzle-orm/pg-core';
-// Note: crmBrandStatusEnum uses pgEnum; followup priority uses varchar(10)
+// crmBrandStatusEnum uses pgEnum; followup priority uses varchar(10)
 import { relations } from 'drizzle-orm';
 import { user } from './auth';
 
@@ -64,8 +65,21 @@ export const crmBrands = pgTable(
     createdByUserId: text('created_by_user_id').references(() => user.id, { onDelete: 'set null' }),
     assignedToUserId: text('assigned_to_user_id').references(() => user.id, { onDelete: 'set null' }),
 
-    lastContactAt: timestamp('last_contact_at', { withTimezone: true }),
-    nextFollowupAt: timestamp('next_followup_at', { withTimezone: true }),
+    // GEO objetivo multi-select (comma-separated: 'latam,spain')
+    geoTargets: text('geo_targets'),
+
+    // Info de negocio
+    lookingFor: text('looking_for'),   // comma-separated
+    dealTypes:  text('deal_types'),    // comma-separated
+
+    // Info legal
+    taxId:   varchar('tax_id',  { length: 30 }),
+    address: text('address'),
+
+    // Seguimiento
+    lastContactAt:  timestamp('last_contact_at',   { withTimezone: true }),
+    nextFollowupAt: timestamp('next_followup_at',  { withTimezone: true }),
+    nextFollowUpAt: date('next_follow_up_at'),
 
     notes: text('notes'),
 

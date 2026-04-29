@@ -2,24 +2,24 @@
 
 import { useState } from 'react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
-import type { CrmTask } from '@/types';
+import type { CrmTask, CrmTaskTemplate } from '@/types';
+import type { RelatedLabel } from '@/lib/queries/crmTasks';
+import { TaskTemplatesPanel } from './TaskTemplatesPanel';
 import { TaskList } from './TaskList';
 import { TaskKanban } from './TaskKanban';
 import { TaskCalendar } from './TaskCalendar';
 import { TaskModal } from './TaskModal';
-import type { RelatedLabel } from '@/lib/queries/crmTasks';
-import type { RelatedOptions } from './RelatedSelector';
-
 type UserOption = { readonly id: string; readonly name: string };
 
 type Props = {
   readonly tasks: readonly CrmTask[];
   readonly users: readonly UserOption[];
   readonly currentUserId: string;
-  readonly suggestedCategories: readonly string[];
+  readonly suggestedCategories?: readonly string[];
   readonly weekLabel: string;
-  readonly relatedOptions: RelatedOptions;
-  readonly relatedLabels: ReadonlyMap<string, RelatedLabel>;
+  readonly relatedOptions?: unknown;
+  readonly relatedLabels?: ReadonlyMap<string, RelatedLabel> | undefined;
+  readonly templates?: readonly CrmTaskTemplate[] | undefined;
 };
 
 type ViewMode = 'list' | 'kanban' | 'calendar';
@@ -98,6 +98,7 @@ export function TaskWorkspace(props: Props): React.ReactElement {
         <p className="text-[11px] text-sp-admin-muted hidden sm:block tabular-nums">
           {props.tasks.length} {props.tasks.length === 1 ? 'tarea' : 'tareas'} · {props.weekLabel}
         </p>
+
         <div className="flex items-center gap-0.5 bg-sp-admin-card border border-sp-admin-border rounded-lg p-0.5 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
           {VIEWS.map((v) => {
             const isActive = view === v.key;
@@ -122,13 +123,26 @@ export function TaskWorkspace(props: Props): React.ReactElement {
         </div>
       </div>
 
-      {view === 'list' && <TaskList {...props} />}
+      {/* Panel de plantillas semanales */}
+      <TaskTemplatesPanel tasks={props.tasks} weekLabel={props.weekLabel} templates={props.templates ?? []} />
+
+      {/* Vistas */}
+      {view === 'list' && (
+        <TaskList
+          tasks={props.tasks}
+          users={props.users}
+          currentUserId={props.currentUserId}
+          suggestedCategories={props.suggestedCategories ?? []}
+          weekLabel={props.weekLabel}
+          relatedOptions={props.relatedOptions as never}
+        />
+      )}
 
       {view === 'kanban' && (
         <TaskKanban
           tasks={props.tasks}
           users={props.users}
-          relatedLabels={props.relatedLabels}
+          {...(props.relatedLabels !== undefined ? { relatedLabels: props.relatedLabels } : {})}
           onOpenAction={openTask}
         />
       )}
@@ -144,9 +158,8 @@ export function TaskWorkspace(props: Props): React.ReactElement {
           onCloseAction={closeModal}
           task={modalTask}
           users={props.users}
-          suggestedCategories={props.suggestedCategories}
           defaultOwnerId={props.currentUserId}
-          relatedOptions={props.relatedOptions}
+          {...(props.suggestedCategories !== undefined ? { suggestedCategories: props.suggestedCategories } : {})}
         />
       )}
     </div>
