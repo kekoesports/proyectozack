@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { trpc } from '@/lib/trpc/client';
 
 const schema = z.object({
   name: z.string().min(2, 'Nombre requerido'),
@@ -35,6 +36,7 @@ const fieldClass =
  */
 export function CreatorApplyForm() {
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const applyMutation = trpc.creatorApply.submit.useMutation();
 
   const {
     register,
@@ -46,12 +48,7 @@ export function CreatorApplyForm() {
   async function onSubmit(data: FormData) {
     setStatus('loading');
     try {
-      const res = await fetch('/api/creator-apply', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
-      if (!res.ok) throw new Error();
+      await applyMutation.mutateAsync(data);
       setStatus('success');
       reset();
     } catch {

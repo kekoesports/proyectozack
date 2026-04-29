@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { SearchIcon } from '@/features/admin/_shared/components/SidebarIcons';
+import { trpc } from '@/lib/trpc/client';
 
 import type { GlobalSearchResults, SearchGroup, SearchHit } from '@/lib/queries/search';
 
@@ -62,13 +63,30 @@ export function GlobalSearch(): React.ReactElement {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
-  const [results, setResults] = useState<GlobalSearchResults>(EMPTY_RESULTS);
-  const [loading, setLoading] = useState(false);
+  const [debouncedQuery, setDebouncedQuery] = useState('');
   const [activeIndex, setActiveIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
+  const searchEnabled = debouncedQuery.trim().length >= 2;
+
+  const { data, isFetching } = trpc.search.global.useQuery(
+    { q: debouncedQuery.trim() },
+    { enabled: searchEnabled, placeholderData: (prev) => prev },
+  );
+
+  const results: GlobalSearchResults = data ?? EMPTY_RESULTS;
+  const loading = isFetching;
   const flat = flatten(results);
+
+  // Debounce input → debouncedQuery
+  useEffect(() => {
+    const handle = setTimeout(() => {
+      setDebouncedQuery(query);
+      setActiveIndex(0);
+    }, 200);
+    return () => clearTimeout(handle);
+  }, [query]);
 
   // Cmd/Ctrl+K toggles search
   useEffect(() => {
@@ -97,35 +115,6 @@ export function GlobalSearch(): React.ReactElement {
     window.addEventListener('mousedown', handler);
     return () => window.removeEventListener('mousedown', handler);
   }, [open]);
-
-  // Debounced fetch
-  useEffect(() => {
-    if (query.trim().length < 2) {
-      setResults(EMPTY_RESULTS);
-      setActiveIndex(0);
-      return;
-    }
-    const handle = setTimeout(async () => {
-      setLoading(true);
-      try {
-        const params = new URLSearchParams({ q: query.trim() });
-        const response = await fetch(`/api/admin/search?${params.toString()}`, {
-          credentials: 'include',
-        });
-        if (!response.ok) {
-          setResults(EMPTY_RESULTS);
-          return;
-        }
-        const data = (await response.json()) as GlobalSearchResults;
-        setResults(data);
-        setActiveIndex(0);
-      } finally {
-        setLoading(false);
-      }
-    }, 200);
-
-    return () => clearTimeout(handle);
-  }, [query]);
 
   const goTo = useCallback(
     (hit: SearchHit) => {

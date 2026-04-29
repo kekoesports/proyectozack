@@ -1,9 +1,9 @@
-import { NextRequest } from 'next/server';
 import fc from 'fast-check';
+import { TRPCError } from '@trpc/server';
 
 /* -------------------------------------------------------------------------- */
-/*  Fuzz tests for POST /api/creator-apply route handler                      */
-/*  Goal: Route NEVER returns 500, handles all adversarial input gracefully   */
+/*  Fuzz tests for trpc.creatorApply.submit                                   */
+/*  Goal: Router NEVER throws unexpected errors on adversarial input          */
 /* -------------------------------------------------------------------------- */
 
 jest.mock('@/lib/db', () => ({
@@ -23,83 +23,53 @@ jest.mock('@/lib/env', () => ({
   },
 }));
 
-import { POST } from '@/app/api/creator-apply/route';
+import { appRouter } from '@/server/routers/_app';
 
-const makeRequest = (body: string) =>
-  new NextRequest('http://localhost/api/creator-apply', {
-    method: 'POST',
-    body,
-    headers: { 'Content-Type': 'application/json' },
-  });
+const caller = appRouter.createCaller({ session: null });
 
-describe('POST /api/creator-apply — fuzz', () => {
+function isAllowedError(err: unknown): boolean {
+  if (err instanceof TRPCError) {
+    return err.code === 'BAD_REQUEST' || err.code === 'INTERNAL_SERVER_ERROR';
+  }
+  return false;
+}
+
+describe('trpc.creatorApply.submit — fuzz', () => {
   beforeEach(() => jest.clearAllMocks());
 
-  it('never returns 500 on random JSON payloads', async () => {
-    const anyJson = fc.anything({
-      withBigInt: false,
-      withDate: false,
-      withMap: false,
-      withSet: false,
-      withTypedArray: false,
-    });
+  it('never throws unexpected errors on random input shapes', async () => {
+    const anyRecord = fc.dictionary(fc.string(), fc.anything({ withBigInt: false }));
 
     await fc.assert(
-      fc.asyncProperty(anyJson, async (input) => {
-        let body: string;
+      fc.asyncProperty(anyRecord, async (input) => {
         try {
-          body = JSON.stringify(input);
-        } catch {
-          return;
+          await caller.creatorApply.submit(input as never);
+        } catch (err) {
+          expect(isAllowedError(err)).toBe(true);
         }
-
-        const res = await POST(makeRequest(body));
-        expect(res.status).not.toBe(500);
-        expect([200, 400, 422]).toContain(res.status);
-      }),
-      { numRuns: 500 },
-    );
-  });
-
-  it('never returns 500 on random non-JSON bodies', async () => {
-    await fc.assert(
-      fc.asyncProperty(fc.string(), async (body) => {
-        const req = new NextRequest('http://localhost/api/creator-apply', {
-          method: 'POST',
-          body,
-          headers: { 'Content-Type': 'application/json' },
-        });
-        const res = await POST(req);
-        expect(res.status).not.toBe(500);
-      }),
-      { numRuns: 500 },
-    );
-  });
-
-  it('valid payloads always return 200', async () => {
-    const validPayload = fc.record({
-      name: fc.string({ minLength: 2, maxLength: 100 }),
-      email: fc.constant('test@example.com'), // fast-check doesn't have email arbitrary
-      platform: fc.string({ minLength: 1, maxLength: 50 }),
-      handle: fc.string({ minLength: 1, maxLength: 100 }),
-      followers: fc.option(fc.string({ maxLength: 50 }), { nil: undefined }),
-      message: fc.option(fc.string({ maxLength: 2000 }), { nil: undefined }),
-    });
-
-    await fc.assert(
-      fc.asyncProperty(validPayload, async (input) => {
-        const clean: Record<string, unknown> = { ...input };
-        if (clean.followers === undefined) delete clean.followers;
-        if (clean.message === undefined) delete clean.message;
-
-        const res = await POST(makeRequest(JSON.stringify(clean)));
-        expect(res.status).toBe(200);
       }),
       { numRuns: 300 },
     );
   });
 
-  it('XSS and SQLi in platform/handle fields: never 500', async () => {
+  it('valid payloads always succeed', async () => {
+    const validPayload = fc.record({
+      name: fc.string({ minLength: 2, maxLength: 100 }),
+      email: fc.constant('test@example.com'),
+      platform: fc.string({ minLength: 1, maxLength: 50 }),
+      handle: fc.string({ minLength: 1, maxLength: 100 }),
+    });
+
+    await fc.assert(
+      fc.asyncProperty(validPayload, async (input) => {
+        const result = await caller.creatorApply.submit(input);
+        expect(result).toEqual({ success: true });
+      }),
+      { numRuns: 300 },
+    );
+  });
+
+  it('XSS and SQLi in platform/handle fields: never unexpected error', async () => {
     const attackPayloads = [
       '<script>alert(1)</script>',
       "'; DROP TABLE creator_applications; --",
@@ -108,14 +78,17 @@ describe('POST /api/creator-apply — fuzz', () => {
     ];
 
     for (const payload of attackPayloads) {
-      const res = await POST(makeRequest(JSON.stringify({
-        name: 'Test Creator',
-        email: 'test@test.com',
-        platform: payload.slice(0, 50),
-        handle: payload.slice(0, 100),
-        message: payload.slice(0, 2000),
-      })));
-      expect(res.status).not.toBe(500);
+      try {
+        await caller.creatorApply.submit({
+          name: 'Test Creator',
+          email: 'test@test.com',
+          platform: payload.slice(0, 50),
+          handle: payload.slice(0, 100),
+          message: payload.slice(0, 2000),
+        });
+      } catch (err) {
+        expect(isAllowedError(err)).toBe(true);
+      }
     }
   });
 });

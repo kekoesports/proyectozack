@@ -4,6 +4,7 @@ import { useState, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'motion/react';
+import { trpc } from '@/lib/trpc/client';
 import type { CreatorCodeWithTalent } from '@/types';
 
 const BADGE_STYLES: Record<string, string> = {
@@ -31,14 +32,6 @@ const CATEGORY_LABELS: Record<string, string> = {
   otros: 'Otros',
 };
 
-function trackClick(codeId: number, action: 'copy' | 'cta'): void {
-  fetch('/api/giveaways/click', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ codeId, action }),
-  }).catch(() => {});
-}
-
 type CodeCardProps = {
   readonly code: CreatorCodeWithTalent;
   readonly featured?: boolean;
@@ -57,19 +50,20 @@ type CodeCardProps = {
  */
 export function CodeCard({ code, featured = false }: CodeCardProps): React.JSX.Element {
   const [copied, setCopied] = useState(false);
+  const trackClickMutation = trpc.giveaways.trackClick.useMutation();
 
   const handleCopy = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     e.stopPropagation();
     void navigator.clipboard.writeText(code.code);
     setCopied(true);
-    trackClick(code.id, 'copy');
+    trackClickMutation.mutate({ codeId: code.id, action: 'copy' });
     setTimeout(() => setCopied(false), 2000);
-  }, [code.code, code.id]);
+  }, [code.code, code.id, trackClickMutation]);
 
   const handleCta = useCallback(() => {
-    trackClick(code.id, 'cta');
-  }, [code.id]);
+    trackClickMutation.mutate({ codeId: code.id, action: 'cta' });
+  }, [code.id, trackClickMutation]);
 
   const offer = code.description?.trim() || `Beneficios exclusivos con ${code.brandName}`;
   const ctaLabel = code.ctaText?.trim() || 'Usar código';

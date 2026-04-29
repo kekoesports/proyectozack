@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { trpc } from '@/lib/trpc/client';
+import type { ProposalInput } from '@/lib/schemas/proposal';
 
 type ProposalModalProps = {
   talentId: number;
@@ -20,16 +22,22 @@ type ProposalModalProps = {
  * ```
  */
 export function ProposalModal({ talentId, talentName, onClose }: ProposalModalProps) {
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<{
+    campaignType: ProposalInput['campaignType'] | '';
+    budgetRange: ProposalInput['budgetRange'] | '';
+    timeline: ProposalInput['timeline'] | '';
+    message: string;
+  }>({
     campaignType: '',
     budgetRange: '',
     timeline: '',
     message: '',
   });
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const onCloseRef = useRef(onClose);
+  const submitMutation = trpc.proposals.submit.useMutation();
+
   useEffect(() => { onCloseRef.current = onClose; }, [onClose]);
 
   useEffect(() => {
@@ -40,35 +48,30 @@ export function ProposalModal({ talentId, talentName, onClose }: ProposalModalPr
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
     setError('');
 
-    try {
-      const res = await fetch('/api/marcas/proposals', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          talentId,
-          campaignType: form.campaignType,
-          budgetRange: form.budgetRange,
-          timeline: form.timeline,
-          message: form.message,
-        }),
-      });
+    if (!form.campaignType || !form.budgetRange || !form.timeline) {
+      setError('Completa todos los campos obligatorios');
+      return;
+    }
 
-      if (res.ok) {
-        setSuccess(true);
-        setTimeout(() => onCloseRef.current(), 1500);
-      } else {
-        const data = await (res.json() as Promise<{ error?: string }>).catch((): { error?: string } => ({}));
-        setError(data.error ?? 'Error al enviar propuesta');
-      }
-    } catch {
-      setError('Error de red');
-    } finally {
-      setLoading(false);
+    try {
+      await submitMutation.mutateAsync({
+        talentId,
+        campaignType: form.campaignType,
+        budgetRange: form.budgetRange,
+        timeline: form.timeline,
+        message: form.message,
+      });
+      setSuccess(true);
+      setTimeout(() => onCloseRef.current(), 1500);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Error al enviar propuesta';
+      setError(msg);
     }
   };
+
+  const loading = submitMutation.isPending;
 
   const selectClass = 'w-full rounded-xl border border-sp-border px-4 py-3 text-sm outline-none focus:border-sp-orange transition-colors bg-white';
 
@@ -99,21 +102,21 @@ export function ProposalModal({ talentId, talentName, onClose }: ProposalModalPr
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-xs font-semibold text-sp-dark mb-1.5">Tipo de campana</label>
-              <select value={form.campaignType} onChange={(e) => setForm({ ...form, campaignType: e.target.value })} required className={selectClass}>
+              <select value={form.campaignType} onChange={(e) => setForm({ ...form, campaignType: e.target.value as ProposalInput['campaignType'] | '' })} required className={selectClass}>
                 <option value="">Seleccionar...</option>
                 {['Streaming', 'YouTube', 'Social', 'Evento', 'Otro'].map((v) => <option key={v} value={v}>{v}</option>)}
               </select>
             </div>
             <div>
               <label className="block text-xs font-semibold text-sp-dark mb-1.5">Presupuesto</label>
-              <select value={form.budgetRange} onChange={(e) => setForm({ ...form, budgetRange: e.target.value })} required className={selectClass}>
+              <select value={form.budgetRange} onChange={(e) => setForm({ ...form, budgetRange: e.target.value as ProposalInput['budgetRange'] | '' })} required className={selectClass}>
                 <option value="">Seleccionar...</option>
                 {['<5K', '5-10K', '10-25K', '25K+', 'A definir'].map((v) => <option key={v} value={v}>{v}</option>)}
               </select>
             </div>
             <div>
               <label className="block text-xs font-semibold text-sp-dark mb-1.5">Timeline</label>
-              <select value={form.timeline} onChange={(e) => setForm({ ...form, timeline: e.target.value })} required className={selectClass}>
+              <select value={form.timeline} onChange={(e) => setForm({ ...form, timeline: e.target.value as ProposalInput['timeline'] | '' })} required className={selectClass}>
                 <option value="">Seleccionar...</option>
                 {['1 semana', '2 semanas', '1 mes', '2+ meses', 'Flexible'].map((v) => <option key={v} value={v}>{v}</option>)}
               </select>

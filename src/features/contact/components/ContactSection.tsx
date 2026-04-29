@@ -10,6 +10,7 @@ import { SectionTag } from '@/components/ui/SectionTag';
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { GradientText } from '@/components/ui/GradientText';
 import { FadeInOnScroll } from '@/components/ui/FadeInOnScroll';
+import { trpc } from '@/lib/trpc/client';
 import {
   contactSchema,
   TYPES,
@@ -38,6 +39,7 @@ import {
  */
 export function ContactSection(): React.JSX.Element {
   const [status, setStatus] = useState<'idle' | 'sending' | 'ok' | 'error'>('idle');
+  const submitMutation = trpc.contact.submit.useMutation();
 
   const {
     register,
@@ -52,12 +54,7 @@ export function ContactSection(): React.JSX.Element {
   const onSubmit = async (data: ContactForm) => {
     setStatus('sending');
     try {
-      const res = await fetch('/api/contact', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
-      if (!res.ok) throw new Error('Server error');
+      await submitMutation.mutateAsync(data);
       setStatus('ok');
       reset();
     } catch {
