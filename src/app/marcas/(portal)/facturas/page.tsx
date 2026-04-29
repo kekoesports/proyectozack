@@ -3,19 +3,25 @@ import { getInvoicesForBrandUser } from '@/lib/queries/invoices';
 import type { InvoiceStatus } from '@/types';
 
 const STATUS_LABELS: Record<InvoiceStatus, string> = {
-  borrador: 'Borrador',
-  emitida: 'Emitida',
-  cobrada: 'Pagada',
-  vencida: 'Vencida',
-  anulada: 'Anulada',
+  borrador:   'Borrador',
+  emitida:    'Emitida',
+  cobrada:    'Pagada',
+  vencida:    'Vencida',
+  anulada:    'Anulada',
+  no_cobrado: 'Pendiente',
+  no_pagado:  'Pendiente',
+  pendiente:  'Pendiente',
 };
 
 const STATUS_STYLES: Record<InvoiceStatus, string> = {
-  borrador: 'bg-slate-100 text-slate-600',
-  emitida: 'bg-blue-100 text-blue-700',
-  cobrada: 'bg-emerald-100 text-emerald-700',
-  vencida: 'bg-red-100 text-red-700',
-  anulada: 'bg-zinc-100 text-zinc-600',
+  borrador:   'bg-slate-100 text-slate-600',
+  emitida:    'bg-blue-100 text-blue-700',
+  cobrada:    'bg-emerald-100 text-emerald-700',
+  vencida:    'bg-red-100 text-red-700',
+  anulada:    'bg-zinc-100 text-zinc-600',
+  no_cobrado: 'bg-amber-100 text-amber-700',
+  no_pagado:  'bg-amber-100 text-amber-700',
+  pendiente:  'bg-amber-100 text-amber-700',
 };
 
 function formatMoney(amount: string, currency: string): string {

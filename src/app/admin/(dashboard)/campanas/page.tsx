@@ -20,23 +20,32 @@ export default async function CampanasPage(): Promise<React.ReactElement> {
     getAllStaffUsers(),
   ]);
 
-  const activeCount = campaigns.filter((c) => c.status === 'activa').length;
-  const totalRevenue = campaigns.reduce((s, c) => s + Number(c.amountBrand ?? 0), 0);
-  const pendingPayment = campaigns.filter((c) => !c.brandPaid).reduce((s, c) => s + Number(c.amountBrand ?? 0), 0);
-
-  const formatEur = (n: number) =>
+  const eur = (n: number) =>
     new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(n);
+
+  const totalRevenue    = campaigns.reduce((s, c) => s + Number(c.amountBrand ?? 0), 0);
+  const totalTalent     = campaigns.reduce((s, c) => s + Number(c.amountTalent ?? 0), 0);
+  const totalMargin     = totalRevenue - totalTalent;
+  const pendingBrand    = campaigns.filter((c) => !c.brandPaid).reduce((s, c) => s + Number(c.amountBrand ?? 0), 0);
+  const pendingTalent   = campaigns.filter((c) => !c.talentPaid).reduce((s, c) => s + Number(c.amountTalent ?? 0), 0);
+  const activeCount     = campaigns.filter((c) => c.status === 'activa').length;
+  const finishedCount   = campaigns.filter((c) => c.status === 'finalizada').length;
 
   return (
     <div className="space-y-4">
       <AdminPageHeader
         title="Tratos"
+        subtitle="Gestión de campañas, acuerdos y pagos"
         stats={[
-          { label: 'total', value: campaigns.length },
-          { label: 'activos', value: activeCount, accent: '#16a34a' },
-          { label: 'revenue', value: formatEur(totalRevenue), accent: '#f5632a' },
-          { label: 'pendiente cobro', value: formatEur(pendingPayment), accent: '#f59e0b' },
+          { label: 'total',          value: campaigns.length },
+          { label: 'activos',        value: activeCount,       accent: '#16a34a' },
+          { label: 'finalizados',    value: finishedCount,     accent: '#5b9bd5' },
+          { label: 'revenue',        value: eur(totalRevenue), accent: '#f5632a' },
+          { label: 'pdte. cobro',    value: eur(pendingBrand), accent: '#f59e0b' },
+          { label: 'pdte. talent',   value: eur(pendingTalent),accent: '#ef4444' },
+          { label: 'margen total',   value: eur(totalMargin),  accent: totalMargin >= 0 ? '#16a34a' : '#ef4444' },
         ]}
+        actions={[{ label: '+ Nuevo trato', href: '#', primary: true }]}
       />
 
       <CampaignsManager

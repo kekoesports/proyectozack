@@ -14,6 +14,7 @@ import { relations } from 'drizzle-orm';
 import { user } from './auth';
 import { crmBrands } from './crmBrands';
 import { talents } from './talents';
+import { campaigns } from './campaigns';
 
 export const invoiceKindEnum = pgEnum('invoice_kind', ['income', 'expense']);
 export const invoiceStatusEnum = pgEnum('invoice_status', [
@@ -22,6 +23,9 @@ export const invoiceStatusEnum = pgEnum('invoice_status', [
   'cobrada',
   'vencida',
   'anulada',
+  'no_cobrado',
+  'no_pagado',
+  'pendiente',
 ]);
 
 export const invoices = pgTable(
@@ -38,10 +42,13 @@ export const invoices = pgTable(
 
     brandId: integer('brand_id').references(() => crmBrands.id, { onDelete: 'set null' }),
     talentId: integer('talent_id').references(() => talents.id, { onDelete: 'set null' }),
+    campaignId: integer('campaign_id').references(() => campaigns.id, { onDelete: 'set null' }),
     counterpartyName: varchar('counterparty_name', { length: 200 }),
 
     concept: text('concept').notNull(),
+    description: text('description'),
     category: varchar('category', { length: 80 }),
+    aiToolName: varchar('ai_tool_name', { length: 100 }),
 
     netAmount: numeric('net_amount', { precision: 12, scale: 2 }).notNull(),
     vatPct: numeric('vat_pct', { precision: 5, scale: 2 }).notNull().default('21.00'),
@@ -54,6 +61,8 @@ export const invoices = pgTable(
 
     fileUrl: text('file_url'),
     filePath: text('file_path'),
+    receiptFileUrl: text('receipt_file_url'),
+    receiptFilePath: text('receipt_file_path'),
 
     // Entidad contable y método de cobro/pago
     entity: varchar('entity', { length: 80 }),
@@ -75,11 +84,13 @@ export const invoices = pgTable(
     index('invoices_due_date_idx').on(t.dueDate),
     index('invoices_category_idx').on(t.category),
     index('invoices_series_idx').on(t.series),
+    index('invoices_campaign_idx').on(t.campaignId),
   ],
 );
 
 export const invoicesRelations = relations(invoices, ({ one }) => ({
   brand: one(crmBrands, { fields: [invoices.brandId], references: [crmBrands.id] }),
   talent: one(talents, { fields: [invoices.talentId], references: [talents.id] }),
+  campaign: one(campaigns, { fields: [invoices.campaignId], references: [campaigns.id] }),
   createdBy: one(user, { fields: [invoices.createdByUserId], references: [user.id] }),
 }));

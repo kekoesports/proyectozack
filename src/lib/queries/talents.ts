@@ -91,6 +91,19 @@ export async function getAllTalentSlugs(): Promise<{ slug: string }[]> {
   return db.select({ slug: talents.slug }).from(talents);
 }
 
+/** Carga un talento por ID con todas sus relaciones para el perfil admin. */
+export async function getTalentById(id: number): Promise<TalentWithRelations | null> {
+  const row = await db.query.talents.findFirst({
+    where: eq(talents.id, id),
+    with: {
+      tags: true,
+      stats: { orderBy: (s, { asc }) => [asc(s.sortOrder)] },
+      socials: { orderBy: (s, { asc }) => [asc(s.sortOrder)] },
+    },
+  });
+  return row ?? null;
+}
+
 export const getTalentBySlugAdmin = cache(async (slug: string): Promise<TalentWithRelations | undefined> => {
   const row = await db.query.talents.findFirst({
     where: eq(talents.slug, slug),

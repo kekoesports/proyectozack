@@ -1,44 +1,33 @@
 import { db } from '@/lib/db';
-import { crmBrands, talents } from '@/db/schema';
+import { crmBrands, talents, campaigns } from '@/db/schema';
 import { asc } from 'drizzle-orm';
-import { listInvoices, getInvoiceSummary, getUsedInvoiceCategories } from '@/lib/queries/invoices';
+import { listInvoices, getBillingKPIs } from '@/lib/queries/invoices';
 import { InvoicesManager } from '@/components/admin/invoices/InvoicesManager';
-import { AdminPageHeader } from '@/components/admin/AdminPageHeader';
-import Link from 'next/link';
+import { requireRole } from '@/lib/auth-guard';
+
+export const metadata = { title: 'Facturación | Admin' };
 
 function formatMoney(n: number, currency = 'EUR'): string {
   return new Intl.NumberFormat('es-ES', { style: 'currency', currency, maximumFractionDigits: 0 }).format(n);
 }
 
-function monthRange(): { from: string; to: string; label: string } {
-  const now = new Date();
-  const y = now.getFullYear();
-  const m = String(now.getMonth() + 1).padStart(2, '0');
-  const last = new Date(y, now.getMonth() + 1, 0).getDate();
-  return {
-    from: `${y}-${m}-01`,
-    to: `${y}-${m}-${String(last).padStart(2, '0')}`,
-    label: now.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' }),
-  };
-}
-
-type FinanceCardProps = {
+type KpiCardProps = {
   readonly label: string;
   readonly value: string;
-  readonly sub?: string | undefined;
   readonly accent: string;
+  readonly sub?: string | undefined;
   readonly subAccent?: string | undefined;
 };
 
-function FinanceCard({ label, value, sub, accent, subAccent }: FinanceCardProps): React.ReactElement {
+function KpiCard({ label, value, accent, sub, subAccent }: KpiCardProps): React.ReactElement {
   return (
-    <div className="rounded-lg bg-sp-admin-card shadow-[0_1px_3px_rgba(0,0,0,0.06)] overflow-hidden">
+    <div className="rounded-xl bg-sp-admin-card shadow-[0_1px_3px_rgba(0,0,0,0.06)] overflow-hidden">
       <div className="h-[2px]" style={{ background: accent }} />
       <div className="px-4 py-3">
-        <p className="text-[9px] font-bold uppercase tracking-[0.16em] text-sp-admin-muted leading-none">{label}</p>
-        <p className="text-lg font-bold tabular-nums mt-1 leading-none" style={{ color: accent }}>{value}</p>
+        <p className="text-[9px] font-black uppercase tracking-[0.18em] text-sp-admin-muted leading-none">{label}</p>
+        <p className="text-[17px] font-bold tabular-nums mt-1.5 leading-none" style={{ color: accent }}>{value}</p>
         {sub && (
-          <p className="text-[9px] font-semibold mt-1" style={{ color: subAccent ?? '#ef4444' }}>{sub}</p>
+          <p className="text-[9px] font-semibold mt-1 leading-none" style={{ color: subAccent ?? '#6b7280' }}>{sub}</p>
         )}
       </div>
     </div>
@@ -46,70 +35,105 @@ function FinanceCard({ label, value, sub, accent, subAccent }: FinanceCardProps)
 }
 
 export default async function AdminInvoicesPage(): Promise<React.ReactElement> {
-  const month = monthRange();
+  await requireRole('admin', '/admin/login');
 
-  const [invoices, summaryMonth, summaryYTD, brandsList, talentsList, categories] = await Promise.all([
+  const yearStart = `${new Date().getFullYear()}-01-01`;
+
+  const [invoices, kpis, brandsList, talentsList, campaignsList] = await Promise.all([
     listInvoices(),
-    getInvoiceSummary(month.from, month.to),
-    getInvoiceSummary(`${new Date().getFullYear()}-01-01`),
+    getBillingKPIs(yearStart),
     db.select({ id: crmBrands.id, name: crmBrands.name }).from(crmBrands).orderBy(asc(crmBrands.name)),
     db.select({ id: talents.id, name: talents.name }).from(talents).orderBy(asc(talents.name)),
-    getUsedInvoiceCategories(),
+    db.select({
+      id: campaigns.id,
+      name: campaigns.name,
+      brandId: campaigns.brandId,
+      talentId: campaigns.talentId,
+    }).from(campaigns).orderBy(asc(campaigns.name)),
   ]);
 
-  const incomeCount = invoices.filter((i) => i.kind === 'income').length;
+  const incomeCount  = invoices.filter((i) => i.kind === 'income').length;
   const expenseCount = invoices.filter((i) => i.kind === 'expense').length;
+  const year = new Date().getFullYear();
 
   return (
     <div className="space-y-4">
-      <AdminPageHeader
-        title="Facturación"
-        subtitle={`Vista mensual: ${month.label}`}
-        stats={[
-          { label: 'ingresos', value: incomeCount, accent: '#16a34a' },
-          { label: 'gastos', value: expenseCount, accent: '#f59e0b' },
-          { label: 'total', value: invoices.length },
-        ]}
-        actions={[
-          { label: 'Importar', href: '/admin/facturacion/import' },
-          { label: 'Exportar fiscal', href: '/admin/facturacion/exports' },
-        ]}
-      />
+      {/* Header */}
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <h1 className="text-xl font-bold text-sp-admin-text leading-none">Facturación</h1>
+          <p className="text-[11px] text-sp-admin-muted mt-1">Control de ingresos, gastos, cobros y pagos</p>
+        </div>
+        <div className="flex items-center gap-2 text-[10px] text-sp-admin-muted">
+          <span className="inline-flex items-center gap-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />
+            <strong className="text-sp-admin-text">{incomeCount}</strong> ingresos
+          </span>
+          <span className="inline-flex items-center gap-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 inline-block" />
+            <strong className="text-sp-admin-text">{expenseCount}</strong> gastos
+          </span>
+          <span className="text-sp-admin-muted/50">·</span>
+          <span className="text-sp-admin-muted/70">{year}</span>
+        </div>
+      </div>
 
-      {/* KPIs del mes */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-        <FinanceCard
-          label="Ingresos del mes"
-          value={formatMoney(summaryMonth.incomeTotal)}
+      {/* KPIs principales */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2">
+        <KpiCard
+          label="Ingresos totales"
+          value={formatMoney(kpis.incomeTotal)}
           accent="#16a34a"
         />
-        <FinanceCard
-          label="Gastos del mes"
-          value={formatMoney(summaryMonth.expenseTotal)}
+        <KpiCard
+          label="Gastos totales"
+          value={formatMoney(kpis.expenseTotal)}
           accent="#f59e0b"
         />
-        <FinanceCard
-          label="Neto del mes"
-          value={formatMoney(summaryMonth.netTotal)}
-          accent={summaryMonth.netTotal >= 0 ? '#16a34a' : '#ef4444'}
-        />
-        <FinanceCard
-          label="Pendiente cobro"
-          value={formatMoney(summaryMonth.pendingIncome)}
-          sub={summaryMonth.overdueIncome > 0 ? `${formatMoney(summaryMonth.overdueIncome)} vencido` : undefined}
-          accent="#5b9bd5"
+        <KpiCard
+          label="Margen neto"
+          value={formatMoney(kpis.netTotal)}
+          accent={kpis.netTotal >= 0 ? '#16a34a' : '#ef4444'}
+          sub={kpis.netTotal < 0 ? 'Gastos superiores a ingresos' : undefined}
           subAccent="#ef4444"
+        />
+        <KpiCard
+          label="Pendiente cobro"
+          value={formatMoney(kpis.pendingCobro)}
+          accent="#5b9bd5"
+          sub={kpis.pendingCobro > 0 ? 'Ingresos sin cobrar' : undefined}
+          subAccent="#f59e0b"
+        />
+        <KpiCard
+          label="Pendiente pago"
+          value={formatMoney(kpis.pendingPago)}
+          accent="#e03070"
+          sub={kpis.pendingPago > 0 ? 'Gastos sin pagar' : undefined}
+          subAccent="#f59e0b"
         />
       </div>
 
-      {/* KPIs YTD */}
-      <div className="grid grid-cols-3 gap-2">
-        <FinanceCard label={`Ingresos ${new Date().getFullYear()}`} value={formatMoney(summaryYTD.incomeTotal)} accent="#16a34a" />
-        <FinanceCard label={`Gastos ${new Date().getFullYear()}`} value={formatMoney(summaryYTD.expenseTotal)} accent="#f59e0b" />
-        <FinanceCard
-          label={`Neto ${new Date().getFullYear()}`}
-          value={formatMoney(summaryYTD.netTotal)}
-          accent={summaryYTD.netTotal >= 0 ? '#16a34a' : '#ef4444'}
+      {/* KPIs desglose */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+        <KpiCard
+          label="Ingresos en banco"
+          value={formatMoney(kpis.ingresosBanco)}
+          accent="#059669"
+        />
+        <KpiCard
+          label="Ingresos en crypto"
+          value={formatMoney(kpis.ingresosCrypto)}
+          accent="#7c3aed"
+        />
+        <KpiCard
+          label="Gastos empresa"
+          value={formatMoney(kpis.gastoEmpresa)}
+          accent="#d97706"
+        />
+        <KpiCard
+          label="Gastos creadores"
+          value={formatMoney(kpis.gastoCreador)}
+          accent="#dc2626"
         />
       </div>
 
@@ -117,7 +141,7 @@ export default async function AdminInvoicesPage(): Promise<React.ReactElement> {
         invoices={invoices}
         brands={brandsList}
         talents={talentsList}
-        categories={categories}
+        campaigns={campaignsList}
       />
     </div>
   );

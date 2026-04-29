@@ -12,3 +12,4 @@ export type * from './invoice';
 export type * from './invoiceImport';
 export type * from './campaign';
 export type * from './talentBusiness';
+export type * from './invoiceExtract';

@@ -187,14 +187,14 @@ export function TalentModal({ talent, onClose }: TalentModalProps): React.JSX.El
           </Link>
 
           {/* CTA */}
-          <a
+          <Link
             href="/contacto"
             onClick={onClose}
             className="block text-center w-full py-3.5 rounded-full font-bold text-white text-sm"
             style={{ background: grad }}
           >
             Contactar para colaboración
-          </a>
+          </Link>
         </section>
       </m.div>
     </m.div>

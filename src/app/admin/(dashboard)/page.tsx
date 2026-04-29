@@ -6,13 +6,14 @@ import {
   getMonthlyRevenue,
   getDealStats,
 } from '@/lib/queries/dashboard';
+import { getDashboardAlerts } from '@/lib/queries/alerts';
+import { DashboardAlerts } from '@/components/admin/dashboard/DashboardAlerts';
 import { getIsoWeekLabel, getWeekStart } from '@/lib/week';
 import {
   MOCK_PIPELINE_TOTAL,
   MOCK_PIPELINE_TREND,
   MOCK_ACTIVITY,
   MOCK_INSIGHTS,
-  MOCK_DEALS_WON,
 } from '@/lib/mock-dashboard-data';
 
 import { StatCard }         from '@/components/admin/dashboard/StatCard';
@@ -48,13 +49,14 @@ export default async function AdminDashboardPage(): Promise<ReactElement> {
   const weekStart = getWeekStart(weekLabel);
   const weekStr = weekStart.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' });
 
-  const [{ stats }, brandCounts, pendingTasks, followups, revenue, deals] = await Promise.all([
+  const [{ stats }, brandCounts, pendingTasks, followups, revenue, deals, { alerts, summary: alertSummary }] = await Promise.all([
     getAdminDashboardData(),
     getCrmBrandCounts(),
     getDashboardPendingTasks(weekLabel),
     getDashboardUpcomingFollowups(8),
     getMonthlyRevenue(),
     getDealStats(),
+    getDashboardAlerts(),
   ]);
 
   return (
@@ -146,6 +148,9 @@ export default async function AdminDashboardPage(): Promise<ReactElement> {
           href="/admin/giveaways"
         />
       </div>
+
+      {/* ── Alertas críticas ──────────────────────────────────── */}
+      <DashboardAlerts alerts={alerts} summary={alertSummary} />
 
       {/* ── Follow-ups + Pipeline chart ──────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-3">

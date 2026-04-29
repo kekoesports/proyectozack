@@ -1,5 +1,7 @@
 import type { InferSelectModel, InferInsertModel } from 'drizzle-orm';
-import type { crmTasks } from '@/db/schema';
+import type { crmTasks, crmTaskTemplates } from '@/db/schema';
+
+export type CrmTaskTemplate = InferSelectModel<typeof crmTaskTemplates>;
 
 export type CrmTask = InferSelectModel<typeof crmTasks>;
 export type NewCrmTask = InferInsertModel<typeof crmTasks>;

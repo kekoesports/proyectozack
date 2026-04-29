@@ -6,12 +6,20 @@ import { requireAnyRole } from '@/lib/auth-guard';
 import {
   completeTask,
   createTask,
+  createTaskTemplate,
   deleteTask,
+  deleteTasks,
+  deleteTaskTemplate,
+  getTaskTemplates,
   isStaffUser,
+  rollOverPendingTasks,
+  taskExistsForWeek,
   updateTask,
+  updateTaskTemplate,
 } from '@/lib/queries/crmTasks';
 import { taskFormSchema, taskPatchSchema } from '@/lib/schemas/task';
 import { getIsoWeekLabel } from '@/lib/week';
+import type { CrmTaskTemplate } from '@/types';
 
 export type { TaskFormInput } from '@/lib/schemas/task';
 
@@ -130,4 +138,129 @@ export async function deleteTaskAction(id: number): Promise<ActionResult> {
   await deleteTask(id);
   revalidateAll();
   return {};
+}
+
+export async function bulkDeleteTasksAction(ids: number[]): Promise<ActionResult> {
+  await requireAnyRole(['admin', 'staff'], '/admin/login');
+  if (ids.length === 0) return {};
+  await deleteTasks(ids);
+  revalidateAll();
+  return {};
+}
+
+// ── Plantillas semanales ──────────────────────────────────────────────
+
+export type CreateTemplatesResult = {
+  readonly created: number;
+  readonly skipped: number;
+  readonly error?: string;
+};
+
+/** Crea solo las plantillas activas que NO existen todavía en la semana actual. */
+export async function createWeeklyTemplatesAction(): Promise<CreateTemplatesResult> {
+  const session  = await requireAnyRole(['admin', 'staff'], '/admin/login');
+  const weekLabel = getIsoWeekLabel(new Date());
+  const templates = await getTaskTemplates();
+  const active    = templates.filter((t) => t.isActive);
+  let created = 0;
+  let skipped = 0;
+
+  for (const tpl of active) {
+    const exists = await taskExistsForWeek(tpl.title, weekLabel);
+    if (exists) { skipped++; continue; }
+    try {
+      await createTask({
+        title: tpl.title, description: null, ownerId: session.user.id,
+        dueDate: null, priority: tpl.priority, status: 'pendiente',
+        category: tpl.category, weekLabel, relatedType: null, relatedId: null,
+      });
+      created++;
+    } catch { skipped++; }
+  }
+
+  revalidateAll();
+  return { created, skipped };
+}
+
+/** Crea la tarea de una plantilla específica por ID (si no existe ya esta semana). */
+export async function createSingleTemplateAction(templateId: number): Promise<ActionResult> {
+  const session   = await requireAnyRole(['admin', 'staff'], '/admin/login');
+  const weekLabel = getIsoWeekLabel(new Date());
+  const templates = await getTaskTemplates();
+  const tpl       = templates.find((t) => t.id === templateId);
+  if (!tpl) return { error: 'Plantilla no encontrada' };
+
+  const exists = await taskExistsForWeek(tpl.title, weekLabel);
+  if (exists) return { error: 'Ya existe esta semana' };
+
+  try {
+    await createTask({
+      title: tpl.title, description: null, ownerId: session.user.id,
+      dueDate: null, priority: tpl.priority, status: 'pendiente',
+      category: tpl.category, weekLabel, relatedType: null, relatedId: null,
+    });
+    revalidateAll();
+    return {};
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : 'unknown';
+    console.error('[admin] createSingleTemplate error:', msg);
+    return { error: 'Error al crear la tarea' };
+  }
+}
+
+// ── CRUD de definiciones de plantillas ────────────────────────────────
+
+export async function saveTemplateDefinitionAction(
+  id: number | null,
+  data: { title: string; category: string; priority: 'alta' | 'media' | 'baja' },
+): Promise<{ error?: string; template?: CrmTaskTemplate | undefined }> {
+  await requireAnyRole(['admin', 'staff'], '/admin/login');
+  const title = data.title.trim();
+  if (!title) return { error: 'El título no puede estar vacío' };
+
+  try {
+    if (id) {
+      const updated = await updateTaskTemplate(id, data);
+      revalidatePath('/admin/tareas');
+      return { template: updated ?? undefined };
+    } else {
+      const created = await createTaskTemplate(data);
+      revalidatePath('/admin/tareas');
+      return { template: created };
+    }
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : 'unknown';
+    console.error('[admin] saveTemplateDefinition error:', msg);
+    return { error: 'Error al guardar la plantilla' };
+  }
+}
+
+export async function toggleTemplateActiveAction(id: number, isActive: boolean): Promise<ActionResult> {
+  await requireAnyRole(['admin', 'staff'], '/admin/login');
+  await updateTaskTemplate(id, { isActive });
+  revalidatePath('/admin/tareas');
+  return {};
+}
+
+export async function deleteTemplateDefinitionAction(id: number): Promise<ActionResult> {
+  await requireAnyRole(['admin', 'staff'], '/admin/login');
+  await deleteTaskTemplate(id);
+  revalidatePath('/admin/tareas');
+  return {};
+}
+
+// ── Arrastre automático ───────────────────────────────────────────────
+
+export type RollOverResult = {
+  readonly rolled: number;
+};
+
+/** Arrastra tareas pendientes/en_progreso de la semana anterior a la actual. */
+export async function rollOverTasksAction(): Promise<RollOverResult> {
+  await requireAnyRole(['admin', 'staff'], '/admin/login');
+  const currentWeek = getIsoWeekLabel(new Date());
+  const prevWeek    = getIsoWeekLabel(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000));
+  const result = await rollOverPendingTasks(prevWeek, currentWeek);
+  revalidateAll();
+  return result;
 }

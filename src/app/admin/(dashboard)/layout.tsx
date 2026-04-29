@@ -29,16 +29,16 @@ const ADMIN_PRIMARY_NAV = [
   { href: '/admin/campanas',    label: 'Tratos',       icon: <DealsIcon />,    prefetch: false },
   { href: '/admin/tareas',      label: 'Tareas',       icon: <TasksIcon /> },
   { href: '/admin/facturacion', label: 'Facturación',  icon: <InvoiceIcon />,  prefetch: false },
-  { href: '/admin/stats',       label: 'Estadísticas', icon: <StatsIcon />,    prefetch: false },
   { href: '/admin/equipo',      label: 'Equipo',       icon: <TeamIcon /> },
 ] as const;
 
 const ADMIN_MORE_NAV = [
-  { href: '/admin/mi-semana', label: 'Mi semana',  icon: <MyWeekIcon /> },
-  { href: '/admin/targets',   label: 'Prospección', icon: <TargetsIcon />, prefetch: false },
-  { href: '/admin/giveaways', label: 'Sorteos',     icon: <GiveawayIcon />, prefetch: false },
-  { href: '/admin/analytics', label: 'Analítica',   icon: <AnalyticsIcon />, prefetch: false },
-  { href: '/admin/cases',     label: 'Casos',       icon: <CaseIcon />,     prefetch: false },
+  { href: '/admin/mi-semana', label: 'Mi semana',    icon: <MyWeekIcon /> },
+  { href: '/admin/targets',   label: 'Prospección',  icon: <TargetsIcon />,  prefetch: false },
+  { href: '/admin/giveaways', label: 'Sorteos',       icon: <GiveawayIcon />, prefetch: false },
+  { href: '/admin/analytics', label: 'Analítica',    icon: <AnalyticsIcon />,prefetch: false },
+  { href: '/admin/cases',     label: 'Casos',         icon: <CaseIcon />,     prefetch: false },
+  { href: '/admin/stats',     label: 'Estadísticas', icon: <StatsIcon />,    prefetch: false },
 ] as const;
 
 const STAFF_PRIMARY_NAV = [

@@ -2,24 +2,24 @@
 
 import { useState } from 'react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
-import type { CrmTask } from '@/types';
+import type { CrmTask, CrmTaskTemplate } from '@/types';
+import type { RelatedLabel } from '@/lib/queries/crmTasks';
+import { TaskTemplatesPanel } from './TaskTemplatesPanel';
 import { TaskList } from './TaskList';
 import { TaskKanban } from './TaskKanban';
 import { TaskCalendar } from './TaskCalendar';
 import { TaskModal } from './TaskModal';
-import type { RelatedLabel } from '@/lib/queries/crmTasks';
-import type { RelatedOptions } from './RelatedSelector';
-
 type UserOption = { readonly id: string; readonly name: string };
 
 type Props = {
   readonly tasks: readonly CrmTask[];
   readonly users: readonly UserOption[];
   readonly currentUserId: string;
-  readonly suggestedCategories: readonly string[];
+  readonly suggestedCategories?: readonly string[];
   readonly weekLabel: string;
-  readonly relatedOptions: RelatedOptions;
-  readonly relatedLabels: ReadonlyMap<string, RelatedLabel>;
+  readonly relatedOptions?: unknown;
+  readonly relatedLabels?: ReadonlyMap<string, RelatedLabel> | undefined;
+  readonly templates?: readonly CrmTaskTemplate[] | undefined;
 };
 
 type ViewMode = 'list' | 'kanban' | 'calendar';
@@ -63,24 +63,32 @@ const VIEWS: ReadonlyArray<{ readonly key: ViewMode; readonly label: string; rea
 
 // Estadísticas rápidas de las tareas
 function TaskStats({ tasks, weekLabel }: { readonly tasks: readonly CrmTask[]; readonly weekLabel: string }): React.ReactElement {
-  const pending = tasks.filter((t) => t.status === 'pendiente').length;
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
+  const tomorrowStr = tomorrow.toISOString().slice(0, 10);
+
+  const pending    = tasks.filter((t) => t.status === 'pendiente').length;
   const inProgress = tasks.filter((t) => t.status === 'en_progreso').length;
-  const done = tasks.filter((t) => t.status === 'completada').length;
-  const overdue = tasks.filter((t) => t.status !== 'completada' && t.dueDate !== null && new Date(t.dueDate) < new Date()).length;
+  const done       = tasks.filter((t) => t.status === 'completada').length;
+  const overdue    = tasks.filter((t) => t.status !== 'completada' && t.dueDate !== null && t.dueDate < todayStr).length;
+  const dueToday   = tasks.filter((t) => t.status !== 'completada' && t.dueDate === todayStr).length;
+  const rolled     = tasks.filter((t) => t.rolledOver).length;
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
       {[
-        { label: 'Pendientes',   value: pending,    color: '#72728a' },
-        { label: 'En curso',     value: inProgress, color: '#f59e0b' },
-        { label: 'Completadas',  value: done,       color: '#16a34a' },
-        { label: 'Vencidas',     value: overdue,    color: overdue > 0 ? '#ef4444' : '#72728a' },
+        { label: 'Pendientes',  value: pending,    color: '#72728a' },
+        { label: 'En curso',    value: inProgress, color: '#f59e0b' },
+        { label: 'Completadas', value: done,       color: '#16a34a' },
+        { label: 'Vencidas',    value: overdue,    color: overdue > 0 ? '#ef4444' : '#72728a' },
+        { label: 'Vencen hoy',  value: dueToday,   color: dueToday > 0 ? '#f59e0b' : '#72728a' },
+        { label: 'Arrastradas', value: rolled,     color: rolled > 0 ? '#8b3aad' : '#72728a' },
       ].map((s) => (
         <div key={s.label} className="rounded-lg bg-sp-admin-card shadow-[0_1px_3px_rgba(0,0,0,0.06)] overflow-hidden">
           <div className="h-[2px]" style={{ background: s.color }} />
-          <div className="px-4 py-3">
-            <p className="text-[9px] font-bold uppercase tracking-wide text-sp-admin-muted">{s.label}</p>
-            <p className="text-xl font-bold mt-0.5" style={{ color: s.color }}>{s.value}</p>
+          <div className="px-3 py-2.5">
+            <p className="text-[8px] font-bold uppercase tracking-wide text-sp-admin-muted truncate">{s.label}</p>
+            <p className="text-[18px] font-bold mt-0.5" style={{ color: s.color }}>{s.value}</p>
           </div>
         </div>
       ))}
@@ -113,9 +121,11 @@ export function TaskWorkspace(props: Props): React.ReactElement {
 
       {/* Toolbar: selector de vista */}
       <div className="flex items-center justify-between gap-3">
-        <p className="text-[11px] text-sp-admin-muted hidden sm:block">
-          {props.tasks.length} {props.tasks.length === 1 ? 'tarea' : 'tareas'} · {props.weekLabel}
-        </p>
+        <div className="flex items-center gap-3">
+          <p className="text-[11px] text-sp-admin-muted hidden sm:block">
+            {props.tasks.length} {props.tasks.length === 1 ? 'tarea' : 'tareas'} · {props.weekLabel}
+          </p>
+        </div>
 
         {/* View switcher */}
         <div className="flex items-center gap-0.5 bg-sp-admin-card border border-sp-admin-border rounded-lg p-0.5 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
@@ -144,6 +154,9 @@ export function TaskWorkspace(props: Props): React.ReactElement {
         </div>
       </div>
 
+      {/* Panel de plantillas semanales */}
+      <TaskTemplatesPanel tasks={props.tasks} weekLabel={props.weekLabel} templates={props.templates ?? []} />
+
       {/* Vistas */}
       {view === 'list' && <TaskList {...props} />}
 
@@ -151,7 +164,6 @@ export function TaskWorkspace(props: Props): React.ReactElement {
         <TaskKanban
           tasks={props.tasks}
           users={props.users}
-          relatedLabels={props.relatedLabels}
           onOpenAction={openTask}
         />
       )}
@@ -166,9 +178,7 @@ export function TaskWorkspace(props: Props): React.ReactElement {
           onCloseAction={closeModal}
           task={modalTask}
           users={props.users}
-          suggestedCategories={props.suggestedCategories}
           defaultOwnerId={props.currentUserId}
-          relatedOptions={props.relatedOptions}
         />
       )}
     </div>

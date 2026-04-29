@@ -2,8 +2,6 @@
 
 import { useActionState, useState, useTransition } from 'react';
 import {
-  createBrandAction,
-  updateBrandAction,
   deleteBrandAction,
   createContactAction,
   updateContactAction,
@@ -12,6 +10,7 @@ import {
   completeFollowupAction,
   deleteFollowupAction,
 } from '@/app/admin/(dashboard)/brands/crm-actions';
+import { BrandFormModal } from './BrandFormModal';
 import type {
   CrmBrandRow,
   CrmBrandContact,
@@ -21,9 +20,6 @@ import type {
 } from '@/types';
 import {
   CRM_BRAND_STATUSES,
-  CRM_BRAND_TIPOS,
-  CRM_BRAND_SECTORES,
-  CRM_BRAND_GEOS,
   SECTOR_LABELS,
   GEO_LABELS,
   type CrmBrandSector,
@@ -54,10 +50,6 @@ const STATUS_STYLES: Record<CrmBrandStatus, string> = {
   archivada:         'bg-slate-500/15 text-slate-400 border-slate-500/30',
 };
 
-const TIPO_LABELS: Record<string, string> = {
-  agencia: 'Agencia',
-  marca: 'Marca',
-};
 
 type BrandsCrmManagerProps = {
   readonly brands: readonly CrmBrandRow[];
@@ -80,6 +72,7 @@ export function BrandsCrmManager({
   const [showCreate, setShowCreate] = useState(false);
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [editingBrandId, setEditingBrandId] = useState<number | null>(null);
+  const editingBrand = editingBrandId !== null ? (brands.find((b) => b.id === editingBrandId) ?? null) : null;
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
 
@@ -184,11 +177,14 @@ export function BrandsCrmManager({
         </button>
       </div>
 
+      {/* Modal crear */}
       {showCreate && (
-        <BrandForm
-          mode="create"
-          onDone={() => setShowCreate(false)}
-        />
+        <BrandFormModal onClose={() => setShowCreate(false)} />
+      )}
+
+      {/* Modal editar */}
+      {editingBrand && (
+        <BrandFormModal brand={editingBrand} onClose={() => setEditingBrandId(null)} />
       )}
 
       {filteredBrands.length === 0 ? (
@@ -209,9 +205,9 @@ export function BrandsCrmManager({
               <tr className="border-b border-sp-admin-border bg-sp-admin-hover/40">
                 <th className="text-left px-4 py-2.5 text-[9px] font-bold text-sp-admin-muted uppercase tracking-[0.18em]">Marca</th>
                 <th className="text-left px-4 py-2.5 text-[9px] font-bold text-sp-admin-muted uppercase tracking-[0.18em] hidden md:table-cell">Estado</th>
-                <th className="text-left px-4 py-2.5 text-[9px] font-bold text-sp-admin-muted uppercase tracking-[0.18em] hidden lg:table-cell">Sector</th>
                 <th className="text-left px-4 py-2.5 text-[9px] font-bold text-sp-admin-muted uppercase tracking-[0.18em] hidden lg:table-cell">Contacto</th>
-                <th className="text-left px-4 py-2.5 text-[9px] font-bold text-sp-admin-muted uppercase tracking-[0.18em] hidden xl:table-cell">Owner</th>
+                <th className="text-left px-4 py-2.5 text-[9px] font-bold text-sp-admin-muted uppercase tracking-[0.18em] hidden xl:table-cell">Follow-up</th>
+                <th className="text-left px-4 py-2.5 text-[9px] font-bold text-sp-admin-muted uppercase tracking-[0.18em] hidden xl:table-cell">Sector</th>
                 <th className="px-4 py-2.5 text-[9px] font-bold text-sp-admin-muted uppercase tracking-[0.18em] text-right">{filteredBrands.length} marcas</th>
               </tr>
             </thead>
@@ -289,7 +285,14 @@ function BrandRow({ brand, contacts, followups, isExpanded, isEditing, onToggleE
     });
   };
 
-  const pendingFollowups = followups.filter((f) => !f.completedAt).length;
+  const pendingFollowups = followups.filter((f) => !f.completedAt);
+  const pendingFollowupsCount = pendingFollowups.length;
+
+  // Próximo follow-up pendiente
+  const nextFollowup = pendingFollowups
+    .slice()
+    .sort((a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime())[0] ?? null;
+  const isOverdueFollowup = nextFollowup ? new Date(nextFollowup.scheduledAt) < new Date() : false;
 
   // Genera color de avatar a partir del nombre
   const avatarColors = ['#f5632a', '#8b3aad', '#5b9bd5', '#c42880', '#16a34a', '#e8a800'];
@@ -323,9 +326,9 @@ function BrandRow({ brand, contacts, followups, isExpanded, isEditing, onToggleE
                 <span className="text-[10px] text-sp-admin-muted truncate block">{brand.website.replace(/^https?:\/\//, '')}</span>
               )}
             </div>
-            {pendingFollowups > 0 && (
+            {pendingFollowupsCount > 0 && (
               <span className="shrink-0 text-[9px] px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 border border-amber-200 font-bold">
-                {pendingFollowups}
+                {pendingFollowupsCount}
               </span>
             )}
           </div>
@@ -345,21 +348,45 @@ function BrandRow({ brand, contacts, followups, isExpanded, isEditing, onToggleE
           </span>
         </td>
 
-        {/* Contacto principal */}
+        {/* Contacto — nombre + telegram o email */}
         <td className="px-4 py-3 hidden lg:table-cell">
           {primary ? (
-            <div>
-              <p className="text-[12px] font-medium text-sp-admin-text">{primary.name}</p>
-              {primary.email && <p className="text-[10px] text-sp-admin-muted truncate max-w-[140px]">{primary.email}</p>}
+            <div className="min-w-0">
+              <p className="text-[12px] font-medium text-sp-admin-text truncate">{primary.name}</p>
+              {primary.telegram ? (
+                <p className="text-[10px] text-sp-admin-muted flex items-center gap-1">
+                  <span className="text-sky-500">✈</span> @{primary.telegram}
+                </p>
+              ) : primary.email ? (
+                <p className="text-[10px] text-sp-admin-muted truncate max-w-[140px]">{primary.email}</p>
+              ) : null}
             </div>
           ) : (
             <span className="text-[10px] text-sp-admin-muted/50 italic">Sin contacto</span>
           )}
         </td>
 
-        {/* Owner */}
+        {/* Follow-up — próxima fecha */}
         <td className="px-4 py-3 hidden xl:table-cell">
-          <span className="text-[11px] text-sp-admin-muted">{brand.ownerName ?? '—'}</span>
+          {nextFollowup ? (
+            <div className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-[10px] font-semibold ${
+              isOverdueFollowup
+                ? 'bg-red-50 text-red-600 border border-red-200'
+                : 'bg-amber-50 text-amber-700 border border-amber-200'
+            }`}>
+              <span>{isOverdueFollowup ? '⚠' : '📅'}</span>
+              {new Date(nextFollowup.scheduledAt).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })}
+            </div>
+          ) : (
+            <span className="text-[10px] text-sp-admin-muted/40">—</span>
+          )}
+        </td>
+
+        {/* Sector */}
+        <td className="px-4 py-3 hidden xl:table-cell">
+          <span className="text-[11px] text-sp-admin-muted">
+            {brand.sector ? (SECTOR_LABELS[brand.sector as CrmBrandSector] ?? brand.sector) : '—'}
+          </span>
         </td>
 
         {/* Acciones */}
@@ -369,7 +396,7 @@ function BrandRow({ brand, contacts, followups, isExpanded, isEditing, onToggleE
             <button
               type="button"
               onClick={(e) => { e.stopPropagation(); onEdit(); }}
-              className="px-2.5 py-1 rounded-lg text-[11px] font-semibold text-sp-admin-muted hover:text-sp-admin-text hover:bg-sp-admin-hover transition-colors"
+              className="px-2.5 py-1 rounded-lg text-[11px] font-semibold text-sp-admin-muted hover:text-sp-admin-accent hover:bg-sp-admin-hover transition-colors"
             >
               Editar
             </button>
@@ -386,21 +413,17 @@ function BrandRow({ brand, contacts, followups, isExpanded, isEditing, onToggleE
       </tr>
       {isExpanded && (
         <tr className="bg-sp-admin-bg/40">
-          <td colSpan={7} className="px-6 py-5">
-            {isEditing ? (
-              <BrandForm mode="edit" brand={brand} onDone={onCloseEdit} />
-            ) : (
-              <div className="space-y-4">
-                <BrandDetails brand={brand} />
-                <ContactsList
-                  brandId={brand.id}
-                  contacts={contacts}
-                  showAddForm={showAddContact}
-                  onToggleAdd={() => setShowAddContact((v) => !v)}
-                />
-                <FollowupsList brandId={brand.id} followups={followups} />
-              </div>
-            )}
+          <td colSpan={6} className="px-6 py-5">
+            <div className="space-y-4">
+              <BrandDetails brand={brand} />
+              <ContactsList
+                brandId={brand.id}
+                contacts={contacts}
+                showAddForm={showAddContact}
+                onToggleAdd={() => setShowAddContact((v) => !v)}
+              />
+              <FollowupsList brandId={brand.id} followups={followups} />
+            </div>
           </td>
         </tr>
       )}
@@ -443,94 +466,7 @@ function Field({ label, value, link = false }: { readonly label: string; readonl
   );
 }
 
-type BrandFormProps =
-  | { readonly mode: 'create'; readonly onDone: () => void; readonly brand?: undefined }
-  | { readonly mode: 'edit'; readonly brand: CrmBrandRow; readonly onDone: () => void };
-
-function BrandForm({ mode, brand, onDone }: BrandFormProps): React.ReactElement {
-  const action = mode === 'create' ? createBrandAction : updateBrandAction;
-  const [state, formAction, isPending] = useActionState(action, {});
-
-  if (state.success && !isPending) {
-    setTimeout(onDone, 0);
-  }
-
-  return (
-    <form action={formAction} className="rounded-2xl bg-sp-admin-card border border-sp-admin-border p-5 space-y-4">
-      <h3 className="font-bold text-sp-admin-text text-sm">
-        {mode === 'create' ? 'Nueva marca' : `Editar ${brand.name}`}
-      </h3>
-      {mode === 'edit' && <input type="hidden" name="id" value={brand.id} />}
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div>
-          <label className={LABEL}>Nombre *</label>
-          <input name="name" required defaultValue={brand?.name} className={INPUT} />
-        </div>
-        <div>
-          <label className={LABEL}>Razón social</label>
-          <input name="legalName" defaultValue={brand?.legalName ?? ''} className={INPUT} />
-        </div>
-        <div>
-          <label className={LABEL}>Web</label>
-          <input name="website" type="url" placeholder="https://..." defaultValue={brand?.website ?? ''} className={INPUT} />
-        </div>
-        <div>
-          <label className={LABEL}>Tipo</label>
-          <select name="tipo" defaultValue={brand?.tipo ?? ''} className={INPUT}>
-            <option value="">— Sin especificar —</option>
-            {CRM_BRAND_TIPOS.map((t) => (
-              <option key={t} value={t}>{TIPO_LABELS[t]}</option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className={LABEL}>Sector</label>
-          <select name="sector" defaultValue={brand?.sector ?? ''} className={INPUT}>
-            <option value="">— Sin especificar —</option>
-            {CRM_BRAND_SECTORES.map((s) => (
-              <option key={s} value={s}>{SECTOR_LABELS[s]}</option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className={LABEL}>Geo</label>
-          <select name="geo" defaultValue={brand?.geo ?? ''} className={INPUT}>
-            <option value="">— Sin especificar —</option>
-            {CRM_BRAND_GEOS.map((g) => (
-              <option key={g} value={g}>{GEO_LABELS[g]}</option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className={LABEL}>País (ISO 2)</label>
-          <input name="country" maxLength={2} placeholder="ES" defaultValue={brand?.country ?? ''} className={INPUT} />
-        </div>
-        <div>
-          <label className={LABEL}>Estado</label>
-          <select name="status" defaultValue={brand?.status ?? 'lead'} className={INPUT}>
-            {CRM_BRAND_STATUSES.map((s) => (
-              <option key={s} value={s}>{STATUS_LABELS[s]}</option>
-            ))}
-          </select>
-        </div>
-        <div className="md:col-span-3">
-          <label className={LABEL}>Notas internas</label>
-          <textarea name="notes" rows={3} defaultValue={brand?.notes ?? ''} className={INPUT} />
-        </div>
-      </div>
-
-      {state.error && <p className="text-xs text-red-400">{state.error}</p>}
-
-      <div className="flex items-center gap-2 justify-end">
-        <button type="button" onClick={onDone} className={BTN_GHOST}>Cancelar</button>
-        <button type="submit" disabled={isPending} className={BTN_PRIMARY}>
-          {isPending ? 'Guardando...' : mode === 'create' ? 'Crear marca' : 'Guardar cambios'}
-        </button>
-      </div>
-    </form>
-  );
-}
+// BrandFormModal importado desde ./BrandFormModal
 
 type ContactsListProps = {
   readonly brandId: number;
@@ -596,12 +532,32 @@ function ContactCard({ contact, brandId }: { readonly contact: CrmBrandContact; 
           <button type="button" onClick={onDelete} disabled={isPending} className="px-2 py-1 rounded text-[10px] font-semibold text-red-400 hover:bg-red-500/10 disabled:opacity-50 cursor-pointer">Borrar</button>
         </div>
       </div>
-      <div className="space-y-1 text-xs text-sp-admin-muted">
-        {contact.email && <p>📧 {contact.email}</p>}
-        {contact.phone && <p>📞 {contact.phone}</p>}
-        {contact.telegram && <p>✈️ {contact.telegram}</p>}
-        {contact.discord && <p>🎮 {contact.discord}</p>}
-        {contact.whatsapp && <p>💬 {contact.whatsapp}</p>}
+      <div className="mt-2 space-y-1">
+        {contact.telegram && (
+          <p className="flex items-center gap-1.5 text-[11px] text-sky-600">
+            <span className="font-bold">✈</span> @{contact.telegram}
+          </p>
+        )}
+        {contact.email && (
+          <p className="flex items-center gap-1.5 text-[11px] text-sp-admin-muted truncate">
+            <span>✉</span> {contact.email}
+          </p>
+        )}
+        {contact.phone && (
+          <p className="flex items-center gap-1.5 text-[11px] text-sp-admin-muted">
+            <span>☎</span> {contact.phone}
+          </p>
+        )}
+        {contact.discord && (
+          <p className="flex items-center gap-1.5 text-[11px] text-sp-admin-muted">
+            <span>🎮</span> {contact.discord}
+          </p>
+        )}
+        {contact.whatsapp && (
+          <p className="flex items-center gap-1.5 text-[11px] text-sp-admin-muted">
+            <span>💬</span> {contact.whatsapp}
+          </p>
+        )}
       </div>
     </div>
   );

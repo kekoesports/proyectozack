@@ -2,34 +2,72 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useMemo, useState, useTransition } from 'react';
+import { useCallback, useMemo, useState, useTransition } from 'react';
 import type { AdminRosterRow } from '@/lib/queries/talents';
-import type { TalentSocial, TalentVertical } from '@/types';
+import type { TalentVertical } from '@/types';
 import { TALENT_VERTICAL_LABELS, TALENT_VERTICALS } from '@/lib/schemas/talentBusiness';
-import { setTalentStatusAction, updateSocialGeoAction } from '@/app/admin/(dashboard)/talents/actions';
+import { setTalentStatusAction } from '@/app/admin/(dashboard)/talents/actions';
+import { exportTalentsToExcel } from './TalentExport';
+import { AddTalentModal } from './AddTalentModal';
+import { getFlagImageUrl, countryFlagEmoji } from '@/lib/flag-images';
 
+// 'available' se trata como 'active' visualmente — solo ofrecemos Activo/Inactivo
 type TalentStatus = 'active' | 'available' | 'inactive';
 
 const STATUS_LABELS: Record<TalentStatus, string> = {
-  active: 'Activo',
-  available: 'Disponible',
-  inactive: 'Inactivo',
+  active:    'Activo',
+  available: 'Activo',   // visible = Activo
+  inactive:  'Inactivo',
 };
 
-const STATUS_STYLES: Record<TalentStatus, string> = {
-  active: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
-  available: 'bg-blue-500/15 text-blue-400 border-blue-500/30',
-  inactive: 'bg-slate-500/15 text-slate-400 border-slate-500/30',
+const STATUS_ACTIVE_STYLE: Record<TalentStatus, string> = {
+  active:    'bg-emerald-500 text-white shadow-sm shadow-emerald-200',
+  available: 'bg-emerald-500 text-white shadow-sm shadow-emerald-200',
+  inactive:  'bg-slate-400 text-white shadow-sm',
 };
 
-const PLATFORM_EMOJI: Record<string, string> = {
-  twitch: '📺',
-  youtube: '📹',
-  instagram: '📷',
-  tiktok: '🎵',
-  x: '𝕏',
-  twitter: '𝕏',
-  kick: '🦵',
+// ── Helpers ───────────────────────────────────────────────────────────
+
+// countryFlag ahora usa getFlagImageUrl + countryFlagEmoji del módulo flag-images
+
+/** Parsea correctamente "46.6K" → 46600, "1.2M" → 1200000, "63" → 63 */
+function parseFollowerCount(display: string): number {
+  const s = display.trim();
+  if (!s || s === '—' || s === '-') return 0;
+  const upper = s.toUpperCase();
+  const num = parseFloat(s.replace(/[^0-9.]/g, ''));
+  if (isNaN(num)) return 0;
+  if (upper.includes('M')) return Math.round(num * 1_000_000);
+  if (upper.includes('K')) return Math.round(num * 1_000);
+  return Math.round(num);
+}
+
+/** Formatea un número total de seguidores en formato compacto */
+function formatFollowers(n: number): string {
+  if (n === 0) return '0';
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1).replace('.0', '')}M`;
+  if (n >= 1_000)     return `${Math.round(n / 1_000)}K`;
+  return String(n);
+}
+
+const PLATFORM_COLOR: Record<string, string> = {
+  twitch:    '#9147ff',
+  youtube:   '#ff0000',
+  instagram: '#e1306c',
+  tiktok:    '#000000',
+  x:         '#1da1f2',
+  twitter:   '#1da1f2',
+  kick:      '#53fc18',
+};
+
+const PLATFORM_LABEL: Record<string, string> = {
+  twitch:    'Twitch',
+  youtube:   'YouTube',
+  instagram: 'IG',
+  tiktok:    'TikTok',
+  x:         'X',
+  twitter:   'X',
+  kick:      'Kick',
 };
 
 type Props = {
@@ -42,10 +80,43 @@ export function InfluencerCardsView({ creators, verticalsByTalent }: Props): Rea
   const [statusFilter, setStatusFilter] = useState<TalentStatus | 'all'>('all');
   const [verticalFilter, setVerticalFilter] = useState<TalentVertical | ''>('');
   const [platformFilter, setPlatformFilter] = useState<string>('');
+  const [countryFilter, setCountryFilter] = useState<string>('');
+
+  // Modal añadir talento
+  const [showAdd, setShowAdd] = useState(false);
+
+  // Selección para exportar
+  const [selectMode, setSelectMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+
+  const toggleSelect = useCallback((id: number) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  }, []);
+
+  const selectAll = useCallback((ids: number[]) => {
+    setSelectedIds(new Set(ids));
+  }, []);
+
+  const clearSelection = useCallback(() => {
+    setSelectedIds(new Set());
+    setSelectMode(false);
+  }, []);
+
+  // handleExport se define después de filtered (más abajo)
 
   const platforms = useMemo(() => {
     const set = new Set<string>();
     for (const c of creators) for (const s of c.socials) set.add(s.platform);
+    return [...set].sort();
+  }, [creators]);
+
+  const countries = useMemo(() => {
+    const set = new Set<string>();
+    for (const c of creators) if (c.creatorCountry) set.add(c.creatorCountry.toUpperCase());
     return [...set].sort();
   }, [creators]);
 
@@ -59,9 +130,10 @@ export function InfluencerCardsView({ creators, verticalsByTalent }: Props): Rea
         if (!vs.includes(verticalFilter)) return false;
       }
       if (platformFilter && !c.socials.some((s) => s.platform === platformFilter)) return false;
+      if (countryFilter && (c.creatorCountry ?? '').toUpperCase() !== countryFilter) return false;
       return true;
     });
-  }, [creators, search, statusFilter, verticalFilter, platformFilter, verticalsByTalent]);
+  }, [creators, search, statusFilter, verticalFilter, platformFilter, countryFilter, verticalsByTalent]);
 
   const counts = useMemo(() => {
     let active = 0, available = 0, inactive = 0;
@@ -73,6 +145,13 @@ export function InfluencerCardsView({ creators, verticalsByTalent }: Props): Rea
     return { active, available, inactive };
   }, [creators]);
 
+  const handleExport = useCallback(() => {
+    const toExport = selectedIds.size > 0
+      ? creators.filter((c) => selectedIds.has(c.id))
+      : filtered;
+    exportTalentsToExcel(toExport, verticalsByTalent);
+  }, [selectedIds, creators, filtered, verticalsByTalent]);
+
   const INPUT_CLS = 'h-8 rounded-lg border border-sp-admin-border bg-white px-3 text-[12px] text-sp-admin-text placeholder:text-sp-admin-muted/60 focus:outline-none focus:border-sp-admin-accent/50 shadow-[0_1px_2px_rgba(0,0,0,0.04)]';
 
   return (
@@ -80,14 +159,14 @@ export function InfluencerCardsView({ creators, verticalsByTalent }: Props): Rea
       {/* KPI rápido */}
       <div className="grid grid-cols-3 gap-2">
         {[
-          { label: 'Activos',      value: counts.active,    color: '#16a34a', filter: 'active' as TalentStatus },
-          { label: 'Disponibles',  value: counts.available, color: '#5b9bd5', filter: 'available' as TalentStatus },
-          { label: 'Inactivos',    value: counts.inactive,  color: '#72728a', filter: 'inactive' as TalentStatus },
+          { label: 'Activos',   value: counts.active + counts.available, color: '#16a34a', filter: 'active' as TalentStatus },
+          { label: 'Inactivos', value: counts.inactive,                  color: '#72728a', filter: 'inactive' as TalentStatus },
+          { label: 'Total',     value: creators.length,                  color: '#f5632a', filter: 'all' as const },
         ].map((s) => (
           <button
             key={s.label}
             type="button"
-            onClick={() => setStatusFilter(statusFilter === s.filter ? 'all' : s.filter)}
+            onClick={() => setStatusFilter(s.filter === 'all' ? 'all' : (statusFilter === s.filter ? 'all' : s.filter as TalentStatus | 'all'))}
             className={`rounded-lg bg-sp-admin-card shadow-[0_1px_3px_rgba(0,0,0,0.06)] overflow-hidden text-left hover:shadow-md transition-shadow ${statusFilter === s.filter ? 'ring-1 ring-sp-admin-accent/40' : ''}`}
           >
             <div className="h-[2px]" style={{ background: s.color }} />
@@ -99,7 +178,7 @@ export function InfluencerCardsView({ creators, verticalsByTalent }: Props): Rea
         ))}
       </div>
 
-      {/* Filtros */}
+      {/* Filtros + botón añadir */}
       <div className="flex flex-wrap items-center gap-2">
         <input
           type="search"
@@ -116,7 +195,62 @@ export function InfluencerCardsView({ creators, verticalsByTalent }: Props): Rea
           <option value="">Todas las plataformas</option>
           {platforms.map((p) => <option key={p} value={p}>{p.charAt(0).toUpperCase() + p.slice(1)}</option>)}
         </select>
-        <span className="text-[11px] text-sp-admin-muted tabular-nums ml-auto">{filtered.length} de {creators.length}</span>
+        {countries.length > 0 && (
+          <select value={countryFilter} onChange={(e) => setCountryFilter(e.target.value)} className={INPUT_CLS}>
+            <option value="">Todos los países</option>
+            {countries.map((c) => (
+              <option key={c} value={c}>{countryFlagEmoji(c)} {c}</option>
+            ))}
+          </select>
+        )}
+        {/* Botón añadir talento */}
+        <button
+          type="button"
+          onClick={() => setShowAdd(true)}
+          className="flex items-center gap-1.5 h-8 px-3 rounded-lg bg-sp-admin-accent text-white text-[12px] font-semibold hover:bg-sp-admin-accent/90 transition-colors"
+        >
+          + Añadir talento
+        </button>
+
+        <span className="text-[11px] text-sp-admin-muted tabular-nums">{filtered.length} de {creators.length}</span>
+
+        {/* Exportar */}
+        {!selectMode ? (
+          <button
+            type="button"
+            onClick={() => setSelectMode(true)}
+            className="ml-auto flex items-center gap-1.5 h-8 px-3 rounded-lg border border-sp-admin-border text-[12px] font-semibold text-sp-admin-muted hover:text-sp-admin-text hover:bg-sp-admin-hover transition-colors"
+          >
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" aria-hidden>
+              <path d="M7 1v12M1 7h12"/>
+            </svg>
+            Exportar Excel
+          </button>
+        ) : (
+          <div className="ml-auto flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => selectAll(filtered.map((c) => c.id))}
+              className="h-8 px-3 rounded-lg border border-sp-admin-border text-[11px] font-semibold text-sp-admin-muted hover:bg-sp-admin-hover transition-colors"
+            >
+              Sel. todos ({filtered.length})
+            </button>
+            <button
+              type="button"
+              onClick={handleExport}
+              className="h-8 px-3 rounded-lg bg-emerald-600 text-white text-[12px] font-bold hover:bg-emerald-700 transition-colors flex items-center gap-1.5"
+            >
+              ⬇ Descargar{selectedIds.size > 0 ? ` (${selectedIds.size})` : ` todo (${filtered.length})`}
+            </button>
+            <button
+              type="button"
+              onClick={clearSelection}
+              className="h-8 px-3 rounded-lg border border-sp-admin-border text-[12px] font-semibold text-red-500 hover:bg-red-50 transition-colors"
+            >
+              Cancelar
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Grid — más columnas para cards más pequeñas */}
@@ -131,10 +265,16 @@ export function InfluencerCardsView({ creators, verticalsByTalent }: Props): Rea
               key={c.id}
               creator={c}
               verticals={verticalsByTalent[c.id] ?? []}
+              selectMode={selectMode}
+              selected={selectedIds.has(c.id)}
+              onToggleSelect={() => toggleSelect(c.id)}
             />
           ))}
         </div>
       )}
+
+      {/* Modal añadir talento */}
+      {showAdd && <AddTalentModal onClose={() => setShowAdd(false)} />}
     </div>
   );
 }
@@ -144,12 +284,14 @@ export function InfluencerCardsView({ creators, verticalsByTalent }: Props): Rea
 type CardProps = {
   readonly creator: AdminRosterRow;
   readonly verticals: readonly TalentVertical[];
+  readonly selectMode?: boolean;
+  readonly selected?: boolean;
+  readonly onToggleSelect?: () => void;
 };
 
-function InfluencerCard({ creator, verticals }: CardProps): React.ReactElement {
+function InfluencerCard({ creator, verticals, selectMode = false, selected = false, onToggleSelect }: CardProps): React.ReactElement {
   const [status, setStatus] = useState<TalentStatus>(creator.status as TalentStatus);
   const [pending, startTransition] = useTransition();
-  const [editingGeoId, setEditingGeoId] = useState<number | null>(null);
 
   const onChangeStatus = (next: TalentStatus): void => {
     if (next === status) return;
@@ -161,12 +303,19 @@ function InfluencerCard({ creator, verticals }: CardProps): React.ReactElement {
     });
   };
 
-  // Top social para mostrar seguidores en la card
-  const topSocial = creator.socials[0];
+  // Total seguidores correctamente calculado
+  const totalFollowers = useMemo(() => {
+    if (creator.socials.length === 0) return null;
+    const total = creator.socials.reduce((sum, s) => sum + parseFollowerCount(s.followersDisplay), 0);
+    if (total === 0) return null;
+    return formatFollowers(total);
+  }, [creator.socials]);
 
   return (
-    <div className="group rounded-xl bg-sp-admin-card shadow-[0_1px_3px_rgba(0,0,0,0.06)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.1)] overflow-hidden flex flex-col transition-all duration-200">
-
+    <Link
+      href={`/admin/talents/${creator.id}`}
+      className="group rounded-xl bg-sp-admin-card shadow-[0_1px_3px_rgba(0,0,0,0.06)] hover:shadow-[0_6px_20px_rgba(0,0,0,0.12)] overflow-hidden flex flex-col transition-all duration-200 hover:-translate-y-0.5"
+    >
       {/* Foto cuadrada — centrada en la cara */}
       <div
         className="relative aspect-square w-full overflow-hidden"
@@ -177,7 +326,7 @@ function InfluencerCard({ creator, verticals }: CardProps): React.ReactElement {
             src={creator.photoUrl}
             alt={creator.name}
             fill
-            className="object-cover object-top"
+            className="object-cover object-top group-hover:scale-105 transition-transform duration-500"
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
           />
         ) : (
@@ -186,43 +335,105 @@ function InfluencerCard({ creator, verticals }: CardProps): React.ReactElement {
           </div>
         )}
 
-        {/* Overlay degradado inferior para que el texto sea legible */}
-        <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/60 to-transparent" />
+        {/* Overlay degradado para legibilidad */}
+        <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/70 to-transparent" />
 
-        {/* Seguidores top social */}
-        {topSocial && (
-          <div className="absolute bottom-2 left-2 flex items-center gap-1">
-            <span className="text-[9px] text-white/70">{PLATFORM_EMOJI[topSocial.platform.toLowerCase()] ?? '🔗'}</span>
-            <span className="text-[10px] font-bold text-white tabular-nums">{topSocial.followersDisplay}</span>
+        {/* Plataformas con seguidores — overlay inferior */}
+        <div className="absolute bottom-2 left-2 right-2 flex items-end justify-between">
+          <div>
+            {creator.socials.slice(0, 2).map((s) => {
+              const key = s.platform.toLowerCase();
+              const color = PLATFORM_COLOR[key] ?? '#fff';
+              const label = PLATFORM_LABEL[key] ?? s.platform.slice(0, 2).toUpperCase();
+              return (
+                <div key={s.id} className="flex items-center gap-1 mb-0.5">
+                  <div className="w-3.5 h-3.5 rounded-full flex items-center justify-center text-white text-[6px] font-black shrink-0"
+                    style={{ background: color }}>
+                    {label.charAt(0)}
+                  </div>
+                  <span className="text-[11px] font-bold text-white tabular-nums leading-none">
+                    {s.followersDisplay || '—'}
+                  </span>
+                </div>
+              );
+            })}
           </div>
-        )}
-
-        {/* Status badge */}
-        <div className="absolute top-2 right-2">
-          <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-bold border backdrop-blur-md ${STATUS_STYLES[status]}`}>
-            {STATUS_LABELS[status]}
-          </span>
         </div>
 
-        {/* País */}
-        {creator.creatorCountry && (
-          <div className="absolute top-2 left-2">
-            <span className="text-[9px] font-bold uppercase tracking-wider text-white/80 bg-black/30 backdrop-blur-sm rounded px-1.5 py-0.5">
-              {creator.creatorCountry}
-            </span>
+        {/* Dot de estado o checkbox de selección */}
+        <div className="absolute top-2 right-2">
+          {selectMode ? (
+            <button
+              type="button"
+              onClick={(e) => { e.preventDefault(); onToggleSelect?.(); }}
+              className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
+                selected
+                  ? 'bg-sp-admin-accent border-sp-admin-accent text-white'
+                  : 'bg-white/80 border-white/60'
+              }`}
+            >
+              {selected && (
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden>
+                  <path d="M2 5l2.5 2.5L8 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              )}
+            </button>
+          ) : (
+            <span className={`w-2.5 h-2.5 rounded-full block ${
+              status === 'inactive' ? 'bg-slate-400' : 'bg-emerald-500'
+            } ring-2 ring-white/80`} />
+          )}
+        </div>
+
+        {/* Bandera del país — top left (imagen redonda si existe, emoji si no) */}
+        {creator.creatorCountry && (() => {
+          const imgUrl = getFlagImageUrl(creator.creatorCountry);
+          return (
+            <div className="absolute top-2 left-2" title={creator.creatorCountry}>
+              {imgUrl ? (
+                <img
+                  src={imgUrl}
+                  alt={creator.creatorCountry}
+                  className="w-6 h-6 rounded-full object-cover drop-shadow-md ring-1 ring-white/50"
+                />
+              ) : (
+                <span className="text-xl leading-none drop-shadow-md">
+                  {countryFlagEmoji(creator.creatorCountry)}
+                </span>
+              )}
+            </div>
+          );
+        })()}
+
+        {/* Plataformas — bottom right con puntos de color */}
+        {creator.socials.length > 0 && (
+          <div className="absolute bottom-2.5 right-2.5 flex items-center gap-1">
+            {creator.socials.slice(0, 3).map((s) => {
+              const key = s.platform.toLowerCase();
+              const color = PLATFORM_COLOR[key] ?? '#ffffff';
+              const label = PLATFORM_LABEL[key] ?? s.platform;
+              return (
+                <div
+                  key={s.id}
+                  className="w-4 h-4 rounded-full flex items-center justify-center text-white text-[6px] font-black shrink-0"
+                  style={{ background: color }}
+                  title={`${label}: ${s.followersDisplay}`}
+                >
+                  {label.charAt(0)}
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
 
-      {/* Info compacta */}
-      <div className="px-3 pt-2.5 pb-1">
-        <Link href={`/admin/talents/${creator.id}/negocio`} className="block">
-          <h3 className="font-bold text-[13px] text-sp-admin-text truncate hover:text-sp-admin-accent transition-colors">
-            {creator.name}
-          </h3>
-        </Link>
+      {/* Info */}
+      <div className="px-3 pt-2.5 pb-2">
+        <h3 className="font-bold text-[13px] text-sp-admin-text truncate group-hover:text-sp-admin-accent transition-colors">
+          {creator.name}
+        </h3>
         {creator.game && (
-          <p className="text-[10px] text-sp-admin-muted truncate">{creator.game}</p>
+          <p className="text-[10px] text-sp-admin-muted truncate mt-0.5">{creator.game}</p>
         )}
 
         {/* Sectores — max 2 pills */}
@@ -234,202 +445,37 @@ function InfluencerCard({ creator, verticals }: CardProps): React.ReactElement {
               </span>
             ))}
             {verticals.length > 2 && (
-              <span className="text-[8px] font-semibold text-sp-admin-muted">+{verticals.length - 2}</span>
+              <span className="text-[8px] text-sp-admin-muted">+{verticals.length - 2}</span>
             )}
           </div>
         )}
-
-        {/* Redes sociales — compacto */}
-        {creator.socials.length > 0 && (
-          <div className="mt-2 pt-2 border-t border-sp-admin-border/60 space-y-1">
-            {creator.socials.slice(0, 2).map((s) => (
-              <SocialRow
-                key={s.id}
-                social={s}
-                isEditingGeo={editingGeoId === s.id}
-                onStartEditGeo={() => setEditingGeoId(s.id)}
-                onStopEditGeo={() => setEditingGeoId(null)}
-              />
-            ))}
-          </div>
-        )}
       </div>
 
-      {/* Footer: cambiar estado + editar */}
-      <div className="px-3 pb-3 pt-1 mt-auto flex items-center gap-1">
-        {(['active', 'available', 'inactive'] as const).map((s) => (
-          <button
-            key={s}
-            type="button"
-            onClick={() => onChangeStatus(s)}
-            disabled={pending}
-            className={`flex-1 py-0.5 rounded-full border text-[8px] font-bold transition-colors cursor-pointer ${
-              status === s ? STATUS_STYLES[s] : 'border-sp-admin-border text-sp-admin-muted hover:bg-sp-admin-hover'
-            }`}
-          >
-            {STATUS_LABELS[s]}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// ────────────────────────────────────────────────────────────────────
-
-type SocialRowProps = {
-  readonly social: TalentSocial;
-  readonly isEditingGeo: boolean;
-  readonly onStartEditGeo: () => void;
-  readonly onStopEditGeo: () => void;
-};
-
-function SocialRow({ social, isEditingGeo, onStartEditGeo, onStopEditGeo }: SocialRowProps): React.ReactElement {
-  const emoji = PLATFORM_EMOJI[social.platform.toLowerCase()] ?? '🔗';
-  const geoSummary = formatGeos(social.topGeos);
-
-  return (
-    <div className="text-xs">
-      <div className="flex items-center gap-2">
-        <span className="shrink-0">{emoji}</span>
-        {social.profileUrl ? (
-          <a href={social.profileUrl} target="_blank" rel="noreferrer" className="text-sp-admin-text hover:underline truncate">
-            {social.handle}
-          </a>
-        ) : (
-          <span className="text-sp-admin-text truncate">{social.handle}</span>
-        )}
-        <span className="shrink-0 text-sp-admin-muted tabular-nums">{social.followersDisplay}</span>
-      </div>
-      <div className="flex items-center gap-2 pl-5 mt-0.5">
-        {geoSummary ? (
-          <span className="text-[10px] text-sp-admin-muted truncate">{geoSummary}</span>
-        ) : (
-          <span className="text-[10px] italic text-sp-admin-muted">Sin geo stats</span>
-        )}
-        <button
-          type="button"
-          onClick={onStartEditGeo}
-          className="text-[10px] font-semibold text-sp-admin-accent hover:underline cursor-pointer"
-        >
-          {geoSummary ? 'editar' : 'añadir'}
-        </button>
-      </div>
-      {isEditingGeo && <GeoEditor social={social} onDone={onStopEditGeo} />}
-    </div>
-  );
-}
-
-function formatGeos(topGeos: TalentSocial['topGeos']): string | null {
-  if (!topGeos || topGeos.length === 0) return null;
-  return topGeos.map((g) => `${g.country} ${g.pct}%`).join(' · ');
-}
-
-// ────────────────────────────────────────────────────────────────────
-
-type GeoEditorProps = {
-  readonly social: TalentSocial;
-  readonly onDone: () => void;
-};
-
-function GeoEditor({ social, onDone }: GeoEditorProps): React.ReactElement {
-  const initial = social.topGeos ?? [];
-  const [entries, setEntries] = useState<Array<{ country: string; pct: string }>>(
-    initial.length > 0
-      ? initial.map((g) => ({ country: g.country, pct: String(g.pct) }))
-      : [{ country: '', pct: '' }],
-  );
-  const [pending, startTransition] = useTransition();
-  const [error, setError] = useState<string | null>(null);
-
-  const updateEntry = (idx: number, field: 'country' | 'pct', value: string): void => {
-    setEntries((prev) => prev.map((e, i) => (i === idx ? { ...e, [field]: value } : e)));
-  };
-
-  const addRow = (): void => {
-    setEntries((prev) => [...prev, { country: '', pct: '' }]);
-  };
-
-  const removeRow = (idx: number): void => {
-    setEntries((prev) => prev.filter((_, i) => i !== idx));
-  };
-
-  const save = (): void => {
-    const parsed: Array<{ country: string; pct: number }> = [];
-    for (const e of entries) {
-      const c = e.country.trim();
-      const p = parseFloat(e.pct);
-      if (!c || Number.isNaN(p)) continue;
-      parsed.push({ country: c, pct: p });
-    }
-    setError(null);
-    startTransition(async () => {
-      const r = await updateSocialGeoAction(social.id, parsed);
-      if (!r.success) {
-        setError(r.error ?? 'Error');
-      } else {
-        onDone();
-      }
-    });
-  };
-
-  return (
-    <div className="mt-2 rounded-lg bg-sp-admin-bg border border-sp-admin-border p-2 space-y-2">
-      <p className="text-[10px] uppercase tracking-wider font-semibold text-sp-admin-muted">Geo stats · {social.platform}</p>
-      {entries.map((e, idx) => (
-        <div key={idx} className="flex items-center gap-2">
-          <input
-            value={e.country}
-            onChange={(ev) => updateEntry(idx, 'country', ev.target.value)}
-            placeholder="ES"
-            maxLength={3}
-            className="w-14 rounded border border-sp-admin-border bg-sp-admin-card px-2 py-1 text-xs uppercase font-mono"
-          />
-          <input
-            value={e.pct}
-            onChange={(ev) => updateEntry(idx, 'pct', ev.target.value)}
-            placeholder="45"
-            type="number"
-            min="0"
-            max="100"
-            step="0.1"
-            className="w-16 rounded border border-sp-admin-border bg-sp-admin-card px-2 py-1 text-xs tabular-nums"
-          />
-          <span className="text-[10px] text-sp-admin-muted">%</span>
-          <button
-            type="button"
-            onClick={() => removeRow(idx)}
-            className="ml-auto text-[10px] font-semibold text-red-400 hover:bg-red-500/10 px-1.5 py-0.5 rounded cursor-pointer"
-          >
-            ✕
-          </button>
-        </div>
-      ))}
-      <button
-        type="button"
-        onClick={addRow}
-        className="text-[10px] font-semibold text-sp-admin-muted hover:text-sp-admin-text"
+      {/* Footer: toggle Activo / Inactivo */}
+      <div
+        className="px-3 pb-3 pt-2 mt-auto border-t border-sp-admin-border/50 flex items-center gap-1.5"
+        onClick={(e) => e.preventDefault()}
       >
-        + país
-      </button>
-      {error && <p className="text-[10px] text-red-400">{error}</p>}
-      <div className="flex items-center gap-2 justify-end pt-1">
-        <button
-          type="button"
-          onClick={onDone}
-          className="text-[10px] font-semibold text-sp-admin-muted hover:text-sp-admin-text px-2 py-1"
-        >
-          Cancelar
-        </button>
-        <button
-          type="button"
-          onClick={save}
-          disabled={pending}
-          className="text-[10px] font-bold bg-sp-admin-accent text-sp-admin-bg px-3 py-1 rounded-full hover:opacity-90 disabled:opacity-50 cursor-pointer"
-        >
-          {pending ? 'Guardando…' : 'Guardar'}
-        </button>
+        {(['active', 'inactive'] as const).map((s) => {
+          const isCurrentStatus = status === 'available' ? s === 'active' : status === s;
+          return (
+            <button
+              key={s}
+              type="button"
+              onClick={(e) => { e.preventDefault(); onChangeStatus(s); }}
+              disabled={pending}
+              className={`flex-1 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                isCurrentStatus
+                  ? STATUS_ACTIVE_STYLE[s]
+                  : 'bg-sp-admin-hover text-sp-admin-muted hover:bg-sp-admin-border/60 border border-sp-admin-border'
+              }`}
+            >
+              {s === 'active' ? 'Activo' : 'Inactivo'}
+            </button>
+          );
+        })}
       </div>
-    </div>
+    </Link>
   );
 }
+

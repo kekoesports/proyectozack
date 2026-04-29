@@ -10,8 +10,22 @@ export type InvoiceStatus = Invoice['status'];
 export type InvoiceWithRelations = Invoice & {
   readonly brandName: string | null;
   readonly talentName: string | null;
+  readonly campaignName: string | null;
 };
 
+export type BillingKPIs = {
+  readonly incomeTotal: number;
+  readonly expenseTotal: number;
+  readonly netTotal: number;
+  readonly pendingCobro: number;
+  readonly pendingPago: number;
+  readonly ingresosBanco: number;
+  readonly ingresosCrypto: number;
+  readonly gastoEmpresa: number;
+  readonly gastoCreador: number;
+};
+
+/** @deprecated Use BillingKPIs */
 export type InvoiceSummary = {
   readonly incomeTotal: number;
   readonly expenseTotal: number;

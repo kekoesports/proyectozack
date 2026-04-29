@@ -1,18 +1,17 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useTransition } from 'react';
+import Link from 'next/link';
 import type { CampaignWithRelations } from '@/types';
 import {
   createCampaignAction,
   updateCampaignAction,
   deleteCampaignAction,
-  markBrandPaidAction,
-  markTalentPaidAction,
 } from '@/app/admin/(dashboard)/campanas/campaign-actions';
 
 // ── Constantes ────────────────────────────────────────────────────────
 
-const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
+export const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
   negociacion:     { label: 'Negociación',   color: '#8b3aad', bg: '#8b3aad14' },
   activa:          { label: 'Activa',        color: '#16a34a', bg: '#16a34a14' },
   pausada:         { label: 'Pausada',       color: '#f59e0b', bg: '#f59e0b14' },
@@ -20,85 +19,114 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }
   cancelada:       { label: 'Cancelada',     color: '#ef4444', bg: '#ef444414' },
 };
 
-const PAYMENT_METHODS = [
+export const PAYMENT_METHODS = [
   'Crypto agencia', 'Crypto Zack', 'Banco SocialPro', 'Banco Stark', 'Otro',
 ];
 
-const SECTORS = ['CS2 Cases', 'Marketplace CS2', 'Casino', 'Casas de apuestas', 'Periféricos', 'Gaming', 'Esports', 'Otros'];
-const GEOS = ['LATAM', 'Spain', 'Europa', 'Turquía', 'India', 'Japón', 'Global', 'Otro'];
+export const SECTORS = [
+  'CS2 Cases', 'Marketplace CS2', 'Casino', 'Casas de apuestas',
+  'Periféricos', 'Gaming', 'Esports', 'Crypto', 'Otros',
+];
 
-function formatMoney(n: string | number | null | undefined): string {
+export const GEOS = [
+  'LATAM', 'Spain', 'Europa', 'Turquía', 'India', 'Japón', 'Global', 'Otro',
+];
+
+// ── Helpers ───────────────────────────────────────────────────────────
+
+export function formatMoney(n: string | number | null | undefined): string {
   if (!n) return '—';
   return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(Number(n));
 }
 
-function calcNetMargin(c: CampaignWithRelations): number {
-  const brand = Number(c.amountBrand ?? 0);
+export function calcNetMargin(c: CampaignWithRelations): number {
+  const brand  = Number(c.amountBrand ?? 0);
   const talent = Number(c.amountTalent ?? 0);
-  const fee = Number(c.agencyFee ?? 0);
+  const fee    = Number(c.agencyFee ?? 0);
   return brand - talent - fee;
 }
 
-// ── Status badge ──────────────────────────────────────────────────────
+// ── Badges ────────────────────────────────────────────────────────────
 
-function StatusBadge({ status }: { readonly status: string }): React.ReactElement {
+export function StatusBadge({ status }: { readonly status: string }): React.ReactElement {
   const cfg = STATUS_CONFIG[status] ?? { label: status, color: '#72728a', bg: '#72728a14' };
   return (
-    <span
-      className="inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide"
-      style={{ color: cfg.color, background: cfg.bg }}
-    >
+    <span className="inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide"
+      style={{ color: cfg.color, background: cfg.bg }}>
       {cfg.label}
     </span>
   );
 }
 
-// ── Payment indicator ─────────────────────────────────────────────────
-
-function PaidBadge({ paid, label }: { readonly paid: boolean; readonly label: string }): React.ReactElement {
+export function PaidBadge({ paid }: { readonly paid: boolean }): React.ReactElement {
+  if (paid) {
+    return (
+      <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+        ✓ Cobrado
+      </span>
+    );
+  }
   return (
-    <span className={`inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wide ${paid ? 'text-emerald-600' : 'text-sp-admin-muted'}`}>
-      <span className={`w-1.5 h-1.5 rounded-full ${paid ? 'bg-emerald-500' : 'bg-sp-admin-muted/40'}`} />
-      {label}
+    <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
+      ○ Pendiente
     </span>
   );
 }
 
-// ── Campaign form modal ────────────────────────────────────────────────
+// ── Form con cálculo automático ───────────────────────────────────────
 
-type BrandOption = { id: number; name: string };
+type BrandOption  = { id: number; name: string };
 type TalentOption = { id: number; name: string };
-type UserOption = { id: string; name: string };
+type UserOption   = { id: string; name: string };
 
 type CampaignFormProps = {
   readonly campaign: CampaignWithRelations | null;
-  readonly brands: readonly BrandOption[];
+  readonly brands:  readonly BrandOption[];
   readonly talents: readonly TalentOption[];
-  readonly users: readonly UserOption[];
+  readonly users:   readonly UserOption[];
   readonly onClose: () => void;
 };
 
 function CampaignForm({ campaign, brands, talents, users, onClose }: CampaignFormProps): React.ReactElement {
   const isEdit = campaign !== null;
+  const [isPending, startTransition] = useTransition();
 
-  async function handleSubmit(fd: FormData): Promise<void> {
-    if (isEdit) { await updateCampaignAction(fd); } else { await createCampaignAction(fd); }
-    onClose();
-  }
+  // Campos económicos controlados para cálculo en tiempo real
+  const [amountBrand,  setAmountBrand]  = useState(String(campaign?.amountBrand  ?? ''));
+  const [amountTalent, setAmountTalent] = useState(String(campaign?.amountTalent ?? ''));
+  const [agencyFee,    setAgencyFee]    = useState(String(campaign?.agencyFee    ?? ''));
+
+  // Cálculos automáticos
+  const bNum = parseFloat(amountBrand)  || 0;
+  const tNum = parseFloat(amountTalent) || 0;
+  const fNum = parseFloat(agencyFee)    || 0;
+  const margin    = bNum - tNum - fNum;
+  const marginPct = bNum > 0 ? ((bNum - tNum) / bNum * 100).toFixed(1) : '0';
+  const autoFee   = bNum > 0 && tNum > 0 ? bNum - tNum : fNum;
+
+  const handleSubmit = (fd: FormData): void => {
+    fd.set('amountBrand',       amountBrand);
+    fd.set('amountTalent',      amountTalent);
+    fd.set('agencyFee',         String(autoFee));
+    fd.set('agencyFeePercent',  marginPct);
+    startTransition(async () => {
+      if (isEdit) { await updateCampaignAction(fd); } else { await createCampaignAction(fd); }
+      onClose();
+    });
+  };
 
   const INPUT = 'w-full rounded-lg border border-sp-admin-border bg-sp-admin-bg px-3 py-2 text-[13px] text-sp-admin-text placeholder:text-sp-admin-muted/60 focus:outline-none focus:border-sp-admin-accent/50';
   const LABEL = 'block text-[10px] font-bold uppercase tracking-[0.14em] text-sp-admin-muted mb-1';
-  const COL2 = 'grid grid-cols-2 gap-3';
+  const COL2  = 'grid grid-cols-2 gap-3';
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" onClick={onClose}>
-      <div
-        className="bg-sp-admin-card rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
-        onClick={(e) => e.stopPropagation()}
-      >
+      <div className="bg-sp-admin-card rounded-xl shadow-2xl w-full max-w-2xl max-h-[92vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}>
+
         <div className="px-6 py-4 border-b border-sp-admin-border flex items-center justify-between sticky top-0 bg-sp-admin-card z-10">
           <h2 className="text-base font-bold text-sp-admin-text">{isEdit ? 'Editar trato' : 'Nuevo trato'}</h2>
-          <button type="button" onClick={onClose} className="text-sp-admin-muted hover:text-sp-admin-text text-xl leading-none">×</button>
+          <button type="button" onClick={onClose} className="text-sp-admin-muted hover:text-sp-admin-text text-xl leading-none transition-colors">×</button>
         </div>
 
         <form action={handleSubmit} className="p-6 space-y-4">
@@ -164,23 +192,43 @@ function CampaignForm({ campaign, brands, talents, users, onClose }: CampaignFor
             </div>
           </div>
 
-          {/* Importes */}
-          <div className={COL2}>
-            <div>
-              <label className={LABEL}>Pago marca (€)</label>
-              <input type="number" step="0.01" name="amountBrand" defaultValue={campaign?.amountBrand ?? ''} placeholder="0.00" className={INPUT} />
+          {/* Importes con cálculo automático */}
+          <div className="rounded-xl border border-sp-admin-border bg-sp-admin-bg/50 p-4 space-y-3">
+            <p className="text-[10px] font-bold uppercase tracking-wide text-sp-admin-muted">Importes económicos</p>
+            <div className={COL2}>
+              <div>
+                <label className={LABEL}>Pago de la marca (€)</label>
+                <input type="number" step="0.01" value={amountBrand}
+                  onChange={(e) => setAmountBrand(e.target.value)}
+                  placeholder="0.00" className={INPUT} />
+              </div>
+              <div>
+                <label className={LABEL}>Pago al influencer (€)</label>
+                <input type="number" step="0.01" value={amountTalent}
+                  onChange={(e) => setAmountTalent(e.target.value)}
+                  placeholder="0.00" className={INPUT} />
+              </div>
             </div>
-            <div>
-              <label className={LABEL}>Pago influencer (€)</label>
-              <input type="number" step="0.01" name="amountTalent" defaultValue={campaign?.amountTalent ?? ''} placeholder="0.00" className={INPUT} />
-            </div>
-            <div>
-              <label className={LABEL}>Fee agencia (€)</label>
-              <input type="number" step="0.01" name="agencyFee" defaultValue={campaign?.agencyFee ?? ''} placeholder="0.00" className={INPUT} />
-            </div>
-            <div>
-              <label className={LABEL}>% comisión</label>
-              <input type="number" step="0.01" name="agencyFeePercent" defaultValue={campaign?.agencyFeePercent ?? ''} placeholder="0.00" className={INPUT} />
+            {/* Calculados automáticamente */}
+            <div className="grid grid-cols-3 gap-3">
+              <div className="rounded-lg bg-sp-admin-card border border-sp-admin-border px-3 py-2">
+                <p className="text-[9px] font-bold text-sp-admin-muted uppercase tracking-wide">Fee agencia</p>
+                <p className="text-[15px] font-bold mt-0.5" style={{ color: '#8b3aad' }}>
+                  {bNum > 0 && tNum > 0 ? `${(bNum - tNum).toLocaleString('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 })}` : '—'}
+                </p>
+              </div>
+              <div className="rounded-lg bg-sp-admin-card border border-sp-admin-border px-3 py-2">
+                <p className="text-[9px] font-bold text-sp-admin-muted uppercase tracking-wide">% comisión</p>
+                <p className="text-[15px] font-bold mt-0.5" style={{ color: '#f5632a' }}>
+                  {bNum > 0 ? `${marginPct}%` : '—'}
+                </p>
+              </div>
+              <div className="rounded-lg bg-sp-admin-card border border-sp-admin-border px-3 py-2">
+                <p className="text-[9px] font-bold text-sp-admin-muted uppercase tracking-wide">Margen neto</p>
+                <p className="text-[15px] font-bold mt-0.5" style={{ color: margin >= 0 ? '#16a34a' : '#ef4444' }}>
+                  {bNum > 0 ? `${margin.toLocaleString('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 })}` : '—'}
+                </p>
+              </div>
             </div>
           </div>
 
@@ -198,24 +246,27 @@ function CampaignForm({ campaign, brands, talents, users, onClose }: CampaignFor
           {/* Descripción + Deliverables */}
           <div>
             <label className={LABEL}>Descripción</label>
-            <textarea name="description" rows={2} defaultValue={campaign?.description ?? ''} placeholder="Descripción del trato…" className={`${INPUT} resize-none`} />
+            <textarea name="description" rows={2} defaultValue={campaign?.description ?? ''}
+              placeholder="Descripción del trato…" className={`${INPUT} resize-none`} />
           </div>
           <div>
             <label className={LABEL}>Deliverables</label>
-            <textarea name="deliverables" rows={2} defaultValue={campaign?.deliverables ?? ''} placeholder="Ej: 4 streams + 2 posts YouTube…" className={`${INPUT} resize-none`} />
+            <textarea name="deliverables" rows={2} defaultValue={campaign?.deliverables ?? ''}
+              placeholder="Ej: 4 streams + 2 posts YouTube…" className={`${INPUT} resize-none`} />
           </div>
           <div>
             <label className={LABEL}>Notas internas</label>
             <textarea name="notes" rows={2} defaultValue={campaign?.notes ?? ''} className={`${INPUT} resize-none`} />
           </div>
 
-          {/* Acciones */}
           <div className="flex justify-end gap-3 pt-2 border-t border-sp-admin-border">
-            <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg border border-sp-admin-border text-[13px] font-medium text-sp-admin-muted hover:text-sp-admin-text hover:bg-sp-admin-hover transition-colors">
+            <button type="button" onClick={onClose}
+              className="px-4 py-2 rounded-lg border border-sp-admin-border text-[13px] font-medium text-sp-admin-muted hover:text-sp-admin-text hover:bg-sp-admin-hover transition-colors">
               Cancelar
             </button>
-            <button type="submit" className="px-4 py-2 rounded-lg bg-sp-admin-accent text-white text-[13px] font-semibold hover:bg-sp-admin-accent/90 transition-colors">
-              {isEdit ? 'Guardar cambios' : 'Crear trato'}
+            <button type="submit" disabled={isPending}
+              className="px-4 py-2 rounded-lg bg-sp-admin-accent text-white text-[13px] font-semibold hover:bg-sp-admin-accent/90 disabled:opacity-50 transition-colors">
+              {isPending ? 'Guardando…' : isEdit ? 'Guardar cambios' : 'Crear trato'}
             </button>
           </div>
         </form>
@@ -228,22 +279,31 @@ function CampaignForm({ campaign, brands, talents, users, onClose }: CampaignFor
 
 type CampaignsManagerProps = {
   readonly campaigns: readonly CampaignWithRelations[];
-  readonly brands: readonly BrandOption[];
+  readonly brands:  readonly BrandOption[];
   readonly talents: readonly TalentOption[];
-  readonly users: readonly UserOption[];
+  readonly users:   readonly UserOption[];
 };
 
 export function CampaignsManager({ campaigns: initialCampaigns, brands, talents, users }: CampaignsManagerProps): React.ReactElement {
-  const [showCreate, setShowCreate] = useState(false);
-  const [editing, setEditing] = useState<CampaignWithRelations | null>(null);
-  const [filterStatus, setFilterStatus] = useState<string>('');
-  const [filterBrand, setFilterBrand] = useState<string>('');
-  const [search, setSearch] = useState('');
+  const [showCreate,   setShowCreate]   = useState(false);
+  const [editing,      setEditing]      = useState<CampaignWithRelations | null>(null);
+  const [filterStatus, setFilterStatus] = useState('');
+  const [filterBrand,  setFilterBrand]  = useState('');
+  const [filterTalent, setFilterTalent] = useState('');
+  const [filterSector, setFilterSector] = useState('');
+  const [filterPaid,   setFilterPaid]   = useState<'all' | 'brand_paid' | 'brand_unpaid' | 'talent_unpaid'>('all');
+  const [search,       setSearch]       = useState('');
+  const [, startTransition] = useTransition();
 
   const filtered = useMemo(() => {
     return initialCampaigns.filter((c) => {
       if (filterStatus && c.status !== filterStatus) return false;
-      if (filterBrand && String(c.brandId) !== filterBrand) return false;
+      if (filterBrand  && String(c.brandId)  !== filterBrand)  return false;
+      if (filterTalent && String(c.talentId) !== filterTalent) return false;
+      if (filterSector && c.sector !== filterSector) return false;
+      if (filterPaid === 'brand_paid'    && !c.brandPaid)  return false;
+      if (filterPaid === 'brand_unpaid'  && c.brandPaid)   return false;
+      if (filterPaid === 'talent_unpaid' && c.talentPaid)  return false;
       if (search) {
         const q = search.toLowerCase();
         return (
@@ -254,51 +314,81 @@ export function CampaignsManager({ campaigns: initialCampaigns, brands, talents,
       }
       return true;
     });
-  }, [initialCampaigns, filterStatus, filterBrand, search]);
+  }, [initialCampaigns, filterStatus, filterBrand, filterTalent, filterSector, filterPaid, search]);
 
-  const totalRevenue = filtered.reduce((s, c) => s + Number(c.amountBrand ?? 0), 0);
-  const totalPending = filtered.filter((c) => !c.brandPaid).reduce((s, c) => s + Number(c.amountBrand ?? 0), 0);
-  const activeCount = filtered.filter((c) => c.status === 'activa').length;
+  const totalRevenue      = filtered.reduce((s, c) => s + Number(c.amountBrand ?? 0), 0);
+  const pendingBrand      = filtered.filter((c) => !c.brandPaid).reduce((s, c) => s + Number(c.amountBrand ?? 0), 0);
+  const pendingTalent     = filtered.filter((c) => !c.talentPaid).reduce((s, c) => s + Number(c.amountTalent ?? 0), 0);
+  const totalMargin       = filtered.reduce((s, c) => s + calcNetMargin(c), 0);
+  const activeCount       = filtered.filter((c) => c.status === 'activa').length;
+  const finishedCount     = filtered.filter((c) => c.status === 'finalizada').length;
 
-  const INPUT = 'rounded-lg border border-sp-admin-border bg-sp-admin-bg px-3 py-1.5 text-[12px] text-sp-admin-text placeholder:text-sp-admin-muted/60 focus:outline-none focus:border-sp-admin-accent/50';
+  const eur = (n: number) =>
+    new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(n);
+
+  const INPUT = 'h-8 rounded-lg border border-sp-admin-border bg-white px-3 text-[12px] text-sp-admin-text placeholder:text-sp-admin-muted/60 focus:outline-none focus:border-sp-admin-accent/50 shadow-[0_1px_2px_rgba(0,0,0,0.04)]';
+
+  const handleDelete = (id: number, name: string): void => {
+    if (!confirm(`¿Eliminar el trato "${name}"?`)) return;
+    startTransition(async () => {
+      const fd = new FormData();
+      fd.set('id', String(id));
+      await deleteCampaignAction(fd);
+    });
+  };
 
   return (
     <div className="space-y-4">
-      {/* Stats rápidas */}
-      <div className="grid grid-cols-3 gap-3">
+      {/* 6 KPIs */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
         {[
-          { label: 'Tratos totales', value: filtered.length, color: '#f5632a' },
-          { label: 'Activos', value: activeCount, color: '#16a34a' },
-          { label: 'Revenue total', value: new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(totalRevenue), color: '#8b3aad' },
+          { label: 'Tratos',      value: String(filtered.length), color: '#f5632a' },
+          { label: 'Activos',     value: String(activeCount),     color: '#16a34a' },
+          { label: 'Finalizados', value: String(finishedCount),   color: '#5b9bd5' },
+          { label: 'Revenue',     value: eur(totalRevenue),       color: '#8b3aad' },
+          { label: 'Pdte. cobro', value: eur(pendingBrand),       color: '#f59e0b' },
+          { label: 'Pdte. talent',value: eur(pendingTalent),      color: '#ef4444' },
         ].map((s) => (
           <div key={s.label} className="rounded-lg bg-sp-admin-card shadow-[0_1px_3px_rgba(0,0,0,0.06)] overflow-hidden">
             <div className="h-[2px]" style={{ background: s.color }} />
-            <div className="px-4 py-3">
-              <p className="text-[9px] font-bold uppercase tracking-wide text-sp-admin-muted">{s.label}</p>
-              <p className="text-lg font-bold mt-0.5" style={{ color: s.color }}>{s.value}</p>
+            <div className="px-3 py-2.5">
+              <p className="text-[8px] font-bold uppercase tracking-wide text-sp-admin-muted truncate">{s.label}</p>
+              <p className="text-[15px] font-bold mt-0.5 tabular-nums" style={{ color: s.color }}>{s.value}</p>
             </div>
           </div>
         ))}
       </div>
 
-      {/* Filtros + CTA */}
+      {/* Filtros */}
       <div className="flex flex-wrap items-center gap-2">
         <input
           type="search"
           placeholder="Buscar trato, marca, influencer…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className={`${INPUT} flex-1 min-w-[200px]`}
+          className={`${INPUT} flex-1 min-w-[180px]`}
         />
         <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className={INPUT}>
           <option value="">Todos los estados</option>
-          {Object.entries(STATUS_CONFIG).map(([k, v]) => (
-            <option key={k} value={k}>{v.label}</option>
-          ))}
+          {Object.entries(STATUS_CONFIG).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
         </select>
         <select value={filterBrand} onChange={(e) => setFilterBrand(e.target.value)} className={INPUT}>
           <option value="">Todas las marcas</option>
           {brands.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
+        </select>
+        <select value={filterTalent} onChange={(e) => setFilterTalent(e.target.value)} className={INPUT}>
+          <option value="">Todos los influencers</option>
+          {talents.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
+        </select>
+        <select value={filterSector} onChange={(e) => setFilterSector(e.target.value)} className={INPUT}>
+          <option value="">Todos los sectores</option>
+          {SECTORS.map((s) => <option key={s} value={s}>{s}</option>)}
+        </select>
+        <select value={filterPaid} onChange={(e) => setFilterPaid(e.target.value as typeof filterPaid)} className={INPUT}>
+          <option value="all">Todos los pagos</option>
+          <option value="brand_paid">Marca cobrada</option>
+          <option value="brand_unpaid">Marca pendiente</option>
+          <option value="talent_unpaid">Talent pendiente</option>
         </select>
         <button
           type="button"
@@ -313,54 +403,127 @@ export function CampaignsManager({ campaigns: initialCampaigns, brands, talents,
       <div className="rounded-xl bg-sp-admin-card shadow-[0_1px_3px_rgba(0,0,0,0.06)] overflow-hidden">
         {filtered.length === 0 ? (
           <div className="py-16 text-center">
-            <p className="text-sm font-medium text-sp-admin-muted">No hay tratos{search || filterStatus || filterBrand ? ' con esos filtros' : ' todavía'}</p>
+            <p className="text-sm font-medium text-sp-admin-muted">
+              No hay tratos{search || filterStatus || filterBrand ? ' con esos filtros' : ' todavía'}
+            </p>
             {!search && !filterStatus && !filterBrand && (
-              <button type="button" onClick={() => setShowCreate(true)} className="mt-3 text-[12px] font-semibold text-sp-admin-accent hover:opacity-70 transition-opacity">
+              <button type="button" onClick={() => setShowCreate(true)}
+                className="mt-3 text-[12px] font-semibold text-sp-admin-accent hover:opacity-70 transition-opacity">
                 Crear el primer trato →
               </button>
             )}
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[900px]">
+            <table className="w-full min-w-[1000px]">
               <thead>
                 <tr className="border-b border-sp-admin-border bg-sp-admin-hover/40">
-                  {['Trato', 'Marca', 'Influencer', 'Estado', 'Pago marca', 'Margen', 'Cobrado', 'Pagado', ''].map((h) => (
-                    <th key={h} className="px-4 py-2.5 text-left text-[9px] font-bold uppercase tracking-[0.18em] text-sp-admin-muted">{h}</th>
+                  {[
+                    'Trato', 'Marca · Influencer', 'Estado',
+                    'Pago marca', 'Pago talent', 'Comisión', '% Margen',
+                    'Cobro', 'Pago talent', '',
+                  ].map((h, i) => (
+                    <th key={i} className={`px-4 py-2.5 text-[9px] font-bold uppercase tracking-[0.18em] text-sp-admin-muted ${
+                      i >= 3 && i <= 6 ? 'text-right' : i >= 7 && i <= 8 ? 'text-center' : 'text-left'
+                    }`}>{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {filtered.map((c) => {
-                  const margin = calcNetMargin(c);
+                  const margin    = calcNetMargin(c);
+                  const marginPct = Number(c.amountBrand ?? 0) > 0
+                    ? Math.round((margin / Number(c.amountBrand)) * 100)
+                    : 0;
+                  const commission = Number(c.amountBrand ?? 0) - Number(c.amountTalent ?? 0);
                   return (
-                    <tr key={c.id} className="border-b border-sp-admin-border/40 last:border-0 hover:bg-sp-admin-hover transition-colors">
-                      <td className="px-4 py-3">
-                        <p className="text-[13px] font-semibold text-sp-admin-text truncate max-w-[160px]">{c.name}</p>
-                        {c.sector && <p className="text-[9px] text-sp-admin-muted">{c.sector}</p>}
+                    <tr key={c.id} className="border-b border-sp-admin-border/40 last:border-0 hover:bg-sp-admin-hover transition-colors group/row">
+                      {/* Trato — link al detalle */}
+                      <td className="px-4 py-3 max-w-[180px]">
+                        <Link href={`/admin/campanas/${c.id}`}
+                          className="text-[13px] font-semibold text-sp-admin-text hover:text-sp-admin-accent transition-colors truncate block">
+                          {c.name}
+                        </Link>
+                        {(c.sector || c.geo) && (
+                          <p className="text-[9px] text-sp-admin-muted mt-0.5">
+                            {[c.sector, c.geo].filter(Boolean).join(' · ')}
+                          </p>
+                        )}
                       </td>
-                      <td className="px-4 py-3 text-[12px] text-sp-admin-text">{c.brandName ?? '—'}</td>
-                      <td className="px-4 py-3 text-[12px] text-sp-admin-text">{c.talentName ?? '—'}</td>
+                      {/* Marca + Influencer */}
+                      <td className="px-4 py-3">
+                        <div className="flex flex-col gap-0.5">
+                          {c.brandName  && <p className="text-[12px] font-semibold text-sp-admin-text">{c.brandName}</p>}
+                          {c.talentName && <p className="text-[11px] text-sp-admin-muted">{c.talentName}</p>}
+                          {!c.brandName && !c.talentName && <span className="text-sp-admin-muted">—</span>}
+                        </div>
+                      </td>
+                      {/* Estado */}
                       <td className="px-4 py-3"><StatusBadge status={c.status} /></td>
-                      <td className="px-4 py-3 text-[12px] font-semibold text-sp-admin-text tabular-nums">{formatMoney(c.amountBrand)}</td>
-                      <td className="px-4 py-3 text-[12px] font-semibold tabular-nums" style={{ color: margin >= 0 ? '#16a34a' : '#ef4444' }}>
-                        {formatMoney(String(margin))}
+                      {/* Pago marca */}
+                      <td className="px-4 py-3 text-right text-[13px] font-bold text-sp-admin-text tabular-nums">
+                        {formatMoney(c.amountBrand)}
                       </td>
-                      <td className="px-4 py-3"><PaidBadge paid={c.brandPaid} label="Marca" /></td>
-                      <td className="px-4 py-3"><PaidBadge paid={c.talentPaid} label="Talent" /></td>
-                      <td className="px-4 py-3">
-                        <button
-                          type="button"
-                          onClick={() => setEditing(c)}
-                          className="text-[11px] font-semibold text-sp-admin-muted hover:text-sp-admin-accent transition-colors"
-                        >
-                          Editar
-                        </button>
+                      {/* Pago talent */}
+                      <td className="px-4 py-3 text-right text-[13px] tabular-nums text-sp-admin-muted">
+                        {formatMoney(c.amountTalent)}
+                      </td>
+                      {/* Comisión agencia */}
+                      <td className="px-4 py-3 text-right text-[12px] tabular-nums" style={{ color: '#8b3aad' }}>
+                        {Number(c.amountBrand ?? 0) > 0 && Number(c.amountTalent ?? 0) > 0
+                          ? formatMoney(String(commission)) : '—'}
+                      </td>
+                      {/* % Margen */}
+                      <td className="px-4 py-3 text-right">
+                        <p className="text-[13px] font-bold tabular-nums" style={{ color: margin >= 0 ? '#16a34a' : '#ef4444' }}>
+                          {Number(c.amountBrand ?? 0) > 0 ? `${marginPct}%` : '—'}
+                        </p>
+                      </td>
+                      {/* Cobro marca */}
+                      <td className="px-4 py-3 text-center"><PaidBadge paid={c.brandPaid} /></td>
+                      {/* Pago talent */}
+                      <td className="px-4 py-3 text-center"><PaidBadge paid={c.talentPaid} /></td>
+                      {/* Acciones */}
+                      <td className="px-4 py-3 text-right whitespace-nowrap">
+                        <div className="flex items-center justify-end gap-1 opacity-0 group-hover/row:opacity-100 transition-opacity">
+                          <Link href={`/admin/campanas/${c.id}`}
+                            className="px-2 py-1 rounded text-[11px] font-semibold text-sp-admin-muted hover:text-sp-admin-accent hover:bg-sp-admin-hover transition-colors">
+                            Ver
+                          </Link>
+                          <button type="button" onClick={() => setEditing(c)}
+                            className="px-2 py-1 rounded text-[11px] font-semibold text-sp-admin-muted hover:text-sp-admin-accent hover:bg-sp-admin-hover transition-colors">
+                            Editar
+                          </button>
+                          <button type="button" onClick={() => handleDelete(c.id, c.name)}
+                            className="px-2 py-1 rounded text-[11px] font-semibold text-red-400 hover:bg-red-50 transition-colors">
+                            ×
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
                 })}
               </tbody>
+              {filtered.length > 1 && (
+                <tfoot>
+                  <tr className="border-t-2 border-sp-admin-border bg-sp-admin-hover/30">
+                    <td colSpan={3} className="px-4 py-2.5 text-[10px] font-bold text-sp-admin-muted uppercase tracking-wide">
+                      Total {filtered.length} tratos
+                    </td>
+                    <td className="px-4 py-2.5 text-right text-[13px] font-bold text-sp-admin-text tabular-nums">
+                      {eur(totalRevenue)}
+                    </td>
+                    <td className="px-4 py-2.5 text-right text-[12px] text-sp-admin-muted tabular-nums">
+                      {eur(filtered.reduce((s, c) => s + Number(c.amountTalent ?? 0), 0))}
+                    </td>
+                    <td colSpan={2} className="px-4 py-2.5 text-right text-[13px] font-bold tabular-nums"
+                      style={{ color: totalMargin >= 0 ? '#16a34a' : '#ef4444' }}>
+                      {eur(totalMargin)}
+                    </td>
+                    <td colSpan={3} />
+                  </tr>
+                </tfoot>
+              )}
             </table>
           </div>
         )}

@@ -22,3 +22,4 @@ export * from './invoiceImports';
 export * from './invoiceImportTemplates';
 export * from './invoiceParserTemplates';
 export * from './campaigns';
+export * from './alerts';

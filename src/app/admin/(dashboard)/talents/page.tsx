@@ -1,12 +1,12 @@
-import Link from 'next/link';
 import { AdminPageHeader } from '@/components/admin/AdminPageHeader';
 import { getAdminRosterWithGrowth } from '@/lib/queries/talents';
 import { listAllVerticals } from '@/lib/queries/talentBusiness';
 import { RosterSpreadsheet } from '@/components/admin/talents/RosterSpreadsheet';
 import { InfluencerCardsView } from '@/components/admin/talents/InfluencerCardsView';
-import { InfluencerImport } from '@/components/admin/talents/InfluencerImport';
+import { TalentDataTools } from '@/components/admin/talents/TalentDataTools';
 import { BrandsTabs } from '@/components/admin/brands/BrandsTabs';
 import type { TalentVertical } from '@/types';
+import type { CurrentTalent } from '@/lib/statsImport';
 
 export default async function AdminTalentsPage(): Promise<React.ReactElement> {
   const [creators, verticals] = await Promise.all([
@@ -27,19 +27,36 @@ export default async function AdminTalentsPage(): Promise<React.ReactElement> {
 
   const missingPhotoCount = creators.reduce((acc, c) => (c.photoUrl ? acc : acc + 1), 0);
 
+  // Derivar CurrentTalent[] para StatsImportPanel (actualizar estadísticas)
+  const roster: CurrentTalent[] = creators.map((c) => ({
+    id:      c.id,
+    name:    c.name,
+    socials: c.socials.map((s) => ({
+      id:               s.id,
+      talentId:         c.id,
+      platform:         s.platform,
+      handle:           s.handle           ?? '',
+      followersDisplay: s.followersDisplay  ?? '-',
+      profileUrl:       s.profileUrl        ?? null,
+      avgViewers:       s.avgViewers        ?? null,
+    })),
+  }));
+
   return (
     <div>
       <AdminPageHeader
         title="Influencers"
         stats={[
-          { label: 'creadores', value: creators.length, accent: '#f5632a' },
+          { label: 'creadores',   value: creators.length, accent: '#f5632a' },
           { label: 'plataformas', value: platformSet.size },
-          ...(missingPhotoCount > 0 ? [{ label: 'sin foto', value: missingPhotoCount, accent: '#f59e0b' }] : []),
+          ...(missingPhotoCount > 0
+            ? [{ label: 'sin foto', value: missingPhotoCount, accent: '#f59e0b' }]
+            : []),
         ]}
         actions={[
           {
             label: missingPhotoCount > 0 ? `Fotos (${missingPhotoCount})` : 'Gestionar fotos',
-            href: '/admin/talents/fotos',
+            href:  '/admin/talents/fotos',
           },
         ]}
       />
@@ -48,8 +65,8 @@ export default async function AdminTalentsPage(): Promise<React.ReactElement> {
         defaultKey="cards"
         tabs={[
           {
-            key: 'cards',
-            label: 'Tarjetas',
+            key:     'cards',
+            label:   'Tarjetas',
             content: (
               <InfluencerCardsView
                 creators={creators}
@@ -58,16 +75,22 @@ export default async function AdminTalentsPage(): Promise<React.ReactElement> {
             ),
           },
           {
-            key: 'table',
-            label: 'Tabla',
+            key:     'table',
+            label:   'Tabla',
             content: (
               <RosterSpreadsheet creators={creators} verticalsByTalent={verticalsByTalent} />
             ),
           },
           {
-            key: 'import',
-            label: 'Importar CSV',
-            content: <InfluencerImport />,
+            key:     'import',
+            label:   'Importar / Exportar',
+            content: (
+              <TalentDataTools
+                roster={roster}
+                creators={creators}
+                verticalsByTalent={verticalsByTalent}
+              />
+            ),
           },
         ]}
       />

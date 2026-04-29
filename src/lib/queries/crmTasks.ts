@@ -1,7 +1,8 @@
 import { and, asc, desc, eq, inArray, sql } from 'drizzle-orm';
 import { db } from '@/lib/db';
-import { crmTasks, crmBrands, talents, invoices, user } from '@/db/schema';
-import type { CrmTask, NewCrmTask, CrmTaskStatus, TeamTasksSummary } from '@/types';
+import { crmTasks, crmTaskTemplates, crmBrands, talents, invoices, user } from '@/db/schema';
+import type { CrmTask, CrmTaskTemplate, NewCrmTask, CrmTaskStatus, TeamTasksSummary } from '@/types';
+import { WEEKLY_TEMPLATES } from '@/lib/taskTemplates';
 
 type UpdatableFields = Pick<CrmTask, 'title' | 'description' | 'dueDate' | 'priority' | 'status' | 'category' | 'ownerId' | 'relatedType' | 'relatedId'>;
 
@@ -117,6 +118,11 @@ export async function deleteTask(id: number): Promise<void> {
   await db.delete(crmTasks).where(eq(crmTasks.id, id));
 }
 
+export async function deleteTasks(ids: readonly number[]): Promise<void> {
+  if (ids.length === 0) return;
+  await db.delete(crmTasks).where(inArray(crmTasks.id, [...ids]));
+}
+
 /**
  * Moves every pending/in_progress task from `fromWeek` into `toWeek`, stamping
  * `rolled_over=true` and `rolled_from_week=fromWeek`. Idempotent across the
@@ -209,6 +215,16 @@ export async function resolveRelatedLabels(
   return map;
 }
 
+/** Comprueba si ya existe una tarea con ese título exacto en la semana dada. */
+export async function taskExistsForWeek(title: string, weekLabel: string): Promise<boolean> {
+  const [row] = await db
+    .select({ id: crmTasks.id })
+    .from(crmTasks)
+    .where(and(eq(crmTasks.weekLabel, weekLabel), eq(crmTasks.title, title)))
+    .limit(1);
+  return row !== undefined;
+}
+
 export async function getRolledOverCount(ownerId: string, weekLabel: string): Promise<number> {
   const [row] = await db
     .select({ count: sql<number>`count(*)::int` })
@@ -221,4 +237,49 @@ export async function getRolledOverCount(ownerId: string, weekLabel: string): Pr
       ),
     );
   return row?.count ?? 0;
+}
+
+// ── Plantillas semanales (CRUD) ───────────────────────────────────────
+
+export async function getTaskTemplates(): Promise<readonly CrmTaskTemplate[]> {
+  const rows = await db
+    .select()
+    .from(crmTaskTemplates)
+    .orderBy(asc(crmTaskTemplates.id));
+
+  // Seed con plantillas predeterminadas si la tabla está vacía
+  if (rows.length === 0) {
+    const seeded = await db
+      .insert(crmTaskTemplates)
+      .values(WEEKLY_TEMPLATES.map((t) => ({ title: t.title, category: t.category, priority: t.priority as 'alta' | 'media' | 'baja', isActive: true })))
+      .returning();
+    return seeded;
+  }
+  return rows;
+}
+
+export async function createTaskTemplate(values: {
+  title:    string;
+  category: string;
+  priority: 'alta' | 'media' | 'baja';
+}): Promise<CrmTaskTemplate> {
+  const [row] = await db.insert(crmTaskTemplates).values(values).returning();
+  if (!row) throw new Error('Failed to insert template');
+  return row;
+}
+
+export async function updateTaskTemplate(
+  id: number,
+  patch: Partial<{ title: string; category: string; priority: 'alta' | 'media' | 'baja'; isActive: boolean }>,
+): Promise<CrmTaskTemplate | null> {
+  const [row] = await db
+    .update(crmTaskTemplates)
+    .set({ ...patch, updatedAt: new Date() })
+    .where(eq(crmTaskTemplates.id, id))
+    .returning();
+  return row ?? null;
+}
+
+export async function deleteTaskTemplate(id: number): Promise<void> {
+  await db.delete(crmTaskTemplates).where(eq(crmTaskTemplates.id, id));
 }
