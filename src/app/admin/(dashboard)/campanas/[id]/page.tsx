@@ -2,9 +2,16 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { requireAnyRole } from '@/lib/auth-guard';
 import { getCampaign } from '@/lib/queries/campaigns';
-import { StatusBadge, PaidBadge, formatMoney, PAYMENT_METHODS, STATUS_CONFIG } from '@/components/admin/campaigns/CampaignsManager';
+import { getContractByCampaign } from '@/lib/queries/contracts';
+import { listContractTemplates } from '@/lib/queries/contractTemplates';
+import { buildContractVars } from '@/lib/contractVariables';
+import { StatusBadge, PaidBadge, formatMoney, PAYMENT_METHODS, STATUS_CONFIG } from '@/lib/campaignHelpers';
 import { markBrandPaidAction, markTalentPaidAction } from '../campaign-actions';
 import { AdminPageHeader } from '@/components/admin/AdminPageHeader';
+import { ContractTab } from '@/components/admin/campaigns/ContractTab';
+import { BrandsTabs } from '@/components/admin/brands/BrandsTabs';
+import { DealInvoicePanel } from '@/components/admin/campaigns/DealInvoicePanel';
+import { listIssuedInvoicesByDeal, getIssuerCompanies } from '@/lib/queries/issuedInvoices';
 
 // ── Page ─────────────────────────────────────────────────────────────
 
@@ -17,10 +24,19 @@ export default async function CampaignDetailPage({
   const campaignId = Number(id);
   if (isNaN(campaignId)) notFound();
 
-  await requireAnyRole(['admin', 'staff'], '/admin/login');
+  const session = await requireAnyRole(['admin', 'staff'], '/admin/login');
+  const isAdmin = session.user.role === 'admin';
 
-  const c = await getCampaign(campaignId);
+  const [c, contract, templates, dealInvoices, issuers] = await Promise.all([
+    getCampaign(campaignId),
+    getContractByCampaign(campaignId),
+    listContractTemplates(),
+    listIssuedInvoicesByDeal(campaignId),
+    getIssuerCompanies(),
+  ]);
   if (!c) notFound();
+
+  const contractVars = buildContractVars(c);
 
   const amountBrand  = Number(c.amountBrand  ?? 0);
   const amountTalent = Number(c.amountTalent ?? 0);
@@ -33,15 +49,9 @@ export default async function CampaignDetailPage({
     n === 0 ? '0 €' :
     new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(n);
 
-  return (
-    <div className="space-y-5 max-w-[1100px]">
-
-      {/* Breadcrumb */}
-      <div className="flex items-center gap-2 text-[11px] text-sp-admin-muted">
-        <Link href="/admin/campanas" className="hover:text-sp-admin-accent transition-colors">Tratos</Link>
-        <span>›</span>
-        <span className="text-sp-admin-text font-medium truncate max-w-[300px]">{c.name}</span>
-      </div>
+  const detallesContent = (
+    <div className="space-y-5">
+      {/* Breadcrumb inline */}
 
       {/* ── Header ────────────────────────────────────────────────── */}
       <div className="rounded-xl bg-sp-admin-card shadow-[0_1px_3px_rgba(0,0,0,0.06)] overflow-hidden">
@@ -240,7 +250,47 @@ export default async function CampaignDetailPage({
           </div>
 
         </section>
+
+        {/* Panel de facturación del trato */}
+        <DealInvoicePanel
+          campaignId={campaignId}
+          existingInvoices={dealInvoices}
+          issuers={issuers}
+        />
+
       </div>
+    </div>
+  );
+
+  return (
+    <div className="space-y-4 max-w-[1100px]">
+      {/* Breadcrumb fuera de los tabs */}
+      <div className="flex items-center gap-2 text-[11px] text-sp-admin-muted">
+        <Link href="/admin/campanas" className="hover:text-sp-admin-accent transition-colors">Tratos</Link>
+        <span>›</span>
+        <span className="text-sp-admin-text font-medium truncate max-w-[300px]">{c.name}</span>
+      </div>
+
+      <BrandsTabs
+        defaultKey="detalles"
+        tabs={[
+          { key: 'detalles', label: 'Detalles', content: detallesContent },
+          {
+            key:   'contrato',
+            label: `Contrato${contract?.status === 'signed' ? ' ✓' : contract ? '' : ''}`,
+            content: (
+              <ContractTab
+                campaignId={campaignId}
+                contract={contract}
+                isAdmin={isAdmin}
+                templates={templates}
+                campaign={c}
+                contractVars={contractVars}
+              />
+            ),
+          },
+        ]}
+      />
     </div>
   );
 }

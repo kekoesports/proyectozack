@@ -2,10 +2,9 @@ import { redirect } from 'next/navigation';
 import { headers } from 'next/headers';
 import { auth } from '@/lib/auth';
 
-type Role = 'admin' | 'brand' | 'staff';
+type Role = 'admin' | 'staff';
 
-/** Only these paths are valid redirect targets — prevents open redirect. */
-const ALLOWED_LOGIN_PATHS = new Set(['/admin/login', '/marcas/login']);
+const ALLOWED_LOGIN_PATHS = new Set(['/admin/login']);
 
 type SessionWithRole = {
   user: {
@@ -18,17 +17,14 @@ type SessionWithRole = {
 
 function homeForRole(role: string | null | undefined): string | null {
   if (role === 'admin') return '/admin';
-  if (role === 'brand') return '/marcas';
   if (role === 'staff') return '/admin/mi-semana';
   return null;
 }
 
 async function loadSession(loginPath: string): Promise<SessionWithRole> {
-  const safePath = ALLOWED_LOGIN_PATHS.has(loginPath) ? loginPath : '/';
+  const safePath = ALLOWED_LOGIN_PATHS.has(loginPath) ? loginPath : '/admin/login';
 
   if (process.env.NODE_ENV === 'development') {
-    // Dev bypass: the caller decides which role to mock via requireRole/requireAnyRole.
-    // When multiple roles are allowed we prefer 'admin' as the highest-privilege default.
     return { user: { id: 'dev', email: 'dev@localhost', name: 'Dev', role: 'admin' } };
   }
 
@@ -39,10 +35,10 @@ async function loadSession(loginPath: string): Promise<SessionWithRole> {
 
   return {
     user: {
-      id: session.user.id,
+      id:    session.user.id,
       email: session.user.email,
-      name: session.user.name,
-      role: userRole,
+      name:  session.user.name,
+      role:  userRole,
     },
   };
 }
@@ -52,8 +48,8 @@ export async function requireRole(role: Role, loginPath: string): Promise<Sessio
     return { user: { id: 'dev', email: 'dev@localhost', name: 'Dev', role } };
   }
 
-  const safePath = ALLOWED_LOGIN_PATHS.has(loginPath) ? loginPath : '/';
-  const session = await loadSession(loginPath);
+  const safePath = ALLOWED_LOGIN_PATHS.has(loginPath) ? loginPath : '/admin/login';
+  const session  = await loadSession(loginPath);
   const userRole = session.user.role;
 
   if (userRole !== role) {
@@ -69,7 +65,7 @@ export async function requireAnyRole(
   roles: readonly Role[],
   loginPath: string,
 ): Promise<SessionWithRole> {
-  const safePath = ALLOWED_LOGIN_PATHS.has(loginPath) ? loginPath : '/';
+  const safePath = ALLOWED_LOGIN_PATHS.has(loginPath) ? loginPath : '/admin/login';
 
   if (process.env.NODE_ENV === 'development') {
     const override = process.env.DEV_ROLE_OVERRIDE as Role | undefined;
@@ -77,7 +73,7 @@ export async function requireAnyRole(
     return { user: { id: 'dev', email: 'dev@localhost', name: 'Dev', role: mockRole } };
   }
 
-  const session = await loadSession(safePath);
+  const session  = await loadSession(safePath);
   const userRole = session.user.role;
 
   if (!userRole || !(roles as readonly string[]).includes(userRole)) {

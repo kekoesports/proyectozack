@@ -166,22 +166,6 @@ export async function updateInvoice(id: number, patch: Partial<NewInvoice>): Pro
   return row ?? null;
 }
 
-export async function getInvoicesForBrandUser(portalUserId: string): Promise<readonly InvoiceWithRelations[]> {
-  const rows = await db
-    .select({
-      ...INVOICE_SELECT,
-      brandName: crmBrands.name,
-      talentName: talents.name,
-      campaignName: sql<null>`NULL`,
-    })
-    .from(invoices)
-    .innerJoin(crmBrands, eq(crmBrands.id, invoices.brandId))
-    .leftJoin(talents, eq(talents.id, invoices.talentId))
-    .where(and(eq(crmBrands.portalUserId, portalUserId), eq(invoices.kind, 'income')))
-    .orderBy(desc(invoices.issueDate), desc(invoices.id));
-
-  return rows as InvoiceWithRelations[];
-}
 
 export async function deleteInvoice(id: number): Promise<void> {
   await db.delete(invoices).where(eq(invoices.id, id));

@@ -1,9 +1,10 @@
 'use client';
 
-import { useMemo, useState, useTransition } from 'react';
+import { useEffect, useMemo, useRef, useState, useTransition } from 'react';
 import {
   deleteInvoiceAction,
   markInvoicePaidAction,
+  bulkDeleteInvoicesAction,
 } from '@/app/admin/(dashboard)/facturacion/invoices-actions';
 import { BillingStatusBadge } from './BillingStatusBadge';
 import { BillingMovementModal } from './BillingMovementModal';
@@ -51,6 +52,11 @@ export function InvoicesManager({ invoices, brands, talents, campaigns }: Props)
   const [editingId, setEditingId]     = useState<number | null>(null);
   const [showMoreFilters, setShowMoreFilters] = useState(false);
 
+  // Selección masiva
+  const [selected,       setSelected]       = useState<ReadonlySet<number>>(new Set());
+  const [isPending,      startTransition]   = useTransition();
+  const selectAllRef = useRef<HTMLInputElement>(null);
+
   // Filtros
   const [search, setSearch]                 = useState('');
   const [filterKind, setFilterKind]         = useState<'all' | InvoiceKind>('all');
@@ -91,6 +97,31 @@ export function InvoicesManager({ invoices, brands, talents, campaigns }: Props)
   }, [invoices, filterKind, filterStatus, filterEntity, filterBrand, filterTalent, filterCampaign, filterMethod, filterCategory, filterFrom, filterTo, search]);
 
   const activeFilterCount = [filterEntity, filterBrand, filterTalent, filterCampaign, filterMethod, filterCategory, filterFrom, filterTo].filter(Boolean).length;
+
+  // Lógica de selección masiva
+  const filteredIds    = useMemo(() => filtered.map((i) => i.id), [filtered]);
+  const allSelected    = filteredIds.length > 0 && filteredIds.every((id) => selected.has(id));
+  const someSelected   = !allSelected && filteredIds.some((id) => selected.has(id));
+  const selectedInView = filteredIds.filter((id) => selected.has(id));
+
+  useEffect(() => {
+    if (selectAllRef.current) selectAllRef.current.indeterminate = someSelected;
+  }, [someSelected]);
+
+  function toggleSelectAll(): void {
+    setSelected(allSelected ? new Set() : new Set(filteredIds));
+  }
+  function toggleOne(id: number): void {
+    setSelected((prev) => { const s = new Set(prev); s.has(id) ? s.delete(id) : s.add(id); return s; });
+  }
+  function handleBulkDelete(): void {
+    const ids = [...selectedInView];
+    if (!confirm(`¿Eliminar ${ids.length} movimiento${ids.length !== 1 ? 's' : ''}? Esta acción no se puede deshacer.`)) return;
+    startTransition(async () => {
+      await bulkDeleteInvoicesAction(ids);
+      setSelected(new Set());
+    });
+  }
 
   return (
     <div className="space-y-3">
@@ -214,6 +245,23 @@ export function InvoicesManager({ invoices, brands, talents, campaigns }: Props)
         />
       )}
 
+      {/* Barra de acciones masivas */}
+      {selectedInView.length > 0 && (
+        <div className="flex items-center gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-2.5">
+          <span className="text-[12px] font-semibold text-red-800">
+            {selectedInView.length} {selectedInView.length === 1 ? 'movimiento seleccionado' : 'movimientos seleccionados'}
+          </span>
+          <button type="button" onClick={handleBulkDelete} disabled={isPending}
+            className="flex items-center gap-1.5 h-7 px-3 rounded-lg bg-red-500 text-white text-[11px] font-bold hover:bg-red-600 disabled:opacity-50 transition-colors">
+            {isPending ? 'Eliminando…' : 'Eliminar seleccionados'}
+          </button>
+          <button type="button" onClick={() => setSelected(new Set())}
+            className="h-7 px-3 rounded-lg text-[11px] font-semibold text-red-600 hover:bg-red-100 border border-red-200 transition-colors">
+            Cancelar
+          </button>
+        </div>
+      )}
+
       {/* Tabla */}
       {filtered.length === 0 ? (
         <div className="rounded-xl border border-dashed border-sp-admin-border bg-sp-admin-card p-12 text-center">
@@ -228,6 +276,10 @@ export function InvoicesManager({ invoices, brands, talents, campaigns }: Props)
           <table className="w-full min-w-[900px]">
             <thead>
               <tr className="border-b border-sp-admin-border bg-sp-admin-hover/40">
+                <th className="px-3 py-2.5 w-8">
+                  <input ref={selectAllRef} type="checkbox" checked={allSelected} onChange={toggleSelectAll}
+                    className="rounded accent-sp-admin-accent cursor-pointer" aria-label="Seleccionar todos" />
+                </th>
                 <th className="text-left px-3 py-2.5 text-[9px] font-bold text-sp-admin-muted uppercase tracking-[0.18em]">Fecha</th>
                 <th className="text-left px-3 py-2.5 text-[9px] font-bold text-sp-admin-muted uppercase tracking-[0.18em]">Tipo</th>
                 <th className="text-left px-3 py-2.5 text-[9px] font-bold text-sp-admin-muted uppercase tracking-[0.18em]">Concepto</th>
@@ -254,6 +306,8 @@ export function InvoicesManager({ invoices, brands, talents, campaigns }: Props)
                   isEditing={editingId === inv.id}
                   onEdit={() => setEditingId(editingId === inv.id ? null : inv.id)}
                   onCloseEdit={() => setEditingId(null)}
+                  isSelected={selected.has(inv.id)}
+                  onToggleSelect={() => toggleOne(inv.id)}
                 />
               ))}
             </tbody>
@@ -279,9 +333,11 @@ type RowProps = {
   readonly isEditing: boolean;
   readonly onEdit: () => void;
   readonly onCloseEdit: () => void;
+  readonly isSelected: boolean;
+  readonly onToggleSelect: () => void;
 };
 
-function BillingRow({ invoice, brands, talents, campaigns, isEditing, onEdit, onCloseEdit }: RowProps): React.ReactElement {
+function BillingRow({ invoice, brands, talents, campaigns, isEditing, onEdit, onCloseEdit, isSelected, onToggleSelect }: RowProps): React.ReactElement {
   const [isPending, startTransition] = useTransition();
   const isIncome = invoice.kind === 'income';
 
@@ -302,7 +358,11 @@ function BillingRow({ invoice, brands, talents, campaigns, isEditing, onEdit, on
 
   return (
     <>
-      <tr className={`border-b border-sp-admin-border/40 last:border-0 hover:bg-sp-admin-hover/50 transition-colors group/row ${isEditing ? 'bg-sp-admin-hover/60' : ''}`}>
+      <tr className={`border-b border-sp-admin-border/40 last:border-0 hover:bg-sp-admin-hover/50 transition-colors group/row ${isEditing ? 'bg-sp-admin-hover/60' : isSelected ? 'bg-sp-admin-accent/[0.05]' : ''}`}>
+        <td className="px-3 py-2.5">
+          <input type="checkbox" checked={isSelected} onChange={onToggleSelect}
+            className="rounded accent-sp-admin-accent cursor-pointer" />
+        </td>
         <td className="px-3 py-2.5 text-[11px] text-sp-admin-muted tabular-nums whitespace-nowrap">
           {formatDate(invoice.issueDate)}
         </td>

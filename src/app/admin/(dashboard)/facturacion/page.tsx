@@ -2,20 +2,24 @@ import { db } from '@/lib/db';
 import { crmBrands, talents, campaigns } from '@/db/schema';
 import { asc } from 'drizzle-orm';
 import { listInvoices, getBillingKPIs } from '@/lib/queries/invoices';
+import { getIssuerCompanies, getBillingClients, listIssuedInvoices } from '@/lib/queries/issuedInvoices';
 import { InvoicesManager } from '@/components/admin/invoices/InvoicesManager';
+import { IssuedInvoicesTab } from '@/components/admin/invoices/IssuedInvoicesTab';
+import { AccountingImporter } from '@/components/admin/invoices/AccountingImporter';
+import { BrandsTabs } from '@/components/admin/brands/BrandsTabs';
 import { requireRole } from '@/lib/auth-guard';
 
 export const metadata = { title: 'Facturación | Admin' };
 
-function formatMoney(n: number, currency = 'EUR'): string {
+function fmt(n: number, currency = 'EUR'): string {
   return new Intl.NumberFormat('es-ES', { style: 'currency', currency, maximumFractionDigits: 0 }).format(n);
 }
 
 type KpiCardProps = {
-  readonly label: string;
-  readonly value: string;
-  readonly accent: string;
-  readonly sub?: string | undefined;
+  readonly label:     string;
+  readonly value:     string;
+  readonly accent:    string;
+  readonly sub?:      string | undefined;
   readonly subAccent?: string | undefined;
 };
 
@@ -26,9 +30,7 @@ function KpiCard({ label, value, accent, sub, subAccent }: KpiCardProps): React.
       <div className="px-4 py-3">
         <p className="text-[9px] font-black uppercase tracking-[0.18em] text-sp-admin-muted leading-none">{label}</p>
         <p className="text-[17px] font-bold tabular-nums mt-1.5 leading-none" style={{ color: accent }}>{value}</p>
-        {sub && (
-          <p className="text-[9px] font-semibold mt-1 leading-none" style={{ color: subAccent ?? '#6b7280' }}>{sub}</p>
-        )}
+        {sub && <p className="text-[9px] font-semibold mt-1 leading-none" style={{ color: subAccent ?? '#6b7280' }}>{sub}</p>}
       </div>
     </div>
   );
@@ -39,21 +41,23 @@ export default async function AdminInvoicesPage(): Promise<React.ReactElement> {
 
   const yearStart = `${new Date().getFullYear()}-01-01`;
 
-  const [invoices, kpis, brandsList, talentsList, campaignsList] = await Promise.all([
+  const [
+    movements, kpis, brandsList, talentsList, campaignsList,
+    issuers, billingClients, issuedInvList,
+  ] = await Promise.all([
     listInvoices(),
     getBillingKPIs(yearStart),
     db.select({ id: crmBrands.id, name: crmBrands.name }).from(crmBrands).orderBy(asc(crmBrands.name)),
     db.select({ id: talents.id, name: talents.name }).from(talents).orderBy(asc(talents.name)),
-    db.select({
-      id: campaigns.id,
-      name: campaigns.name,
-      brandId: campaigns.brandId,
-      talentId: campaigns.talentId,
-    }).from(campaigns).orderBy(asc(campaigns.name)),
+    db.select({ id: campaigns.id, name: campaigns.name, brandId: campaigns.brandId, talentId: campaigns.talentId })
+      .from(campaigns).orderBy(asc(campaigns.name)),
+    getIssuerCompanies(),
+    getBillingClients(),
+    listIssuedInvoices(),
   ]);
 
-  const incomeCount  = invoices.filter((i) => i.kind === 'income').length;
-  const expenseCount = invoices.filter((i) => i.kind === 'expense').length;
+  const incomeCount  = movements.filter((i) => i.kind === 'income').length;
+  const expenseCount = movements.filter((i) => i.kind === 'expense').length;
   const year = new Date().getFullYear();
 
   return (
@@ -62,9 +66,9 @@ export default async function AdminInvoicesPage(): Promise<React.ReactElement> {
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
           <h1 className="text-xl font-bold text-sp-admin-text leading-none">Facturación</h1>
-          <p className="text-[11px] text-sp-admin-muted mt-1">Control de ingresos, gastos, cobros y pagos</p>
+          <p className="text-[11px] text-sp-admin-muted mt-1">Movimientos financieros y facturas emitidas</p>
         </div>
-        <div className="flex items-center gap-2 text-[10px] text-sp-admin-muted">
+        <div className="flex items-center gap-3 text-[10px] text-sp-admin-muted">
           <span className="inline-flex items-center gap-1">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />
             <strong className="text-sp-admin-text">{incomeCount}</strong> ingresos
@@ -78,70 +82,59 @@ export default async function AdminInvoicesPage(): Promise<React.ReactElement> {
         </div>
       </div>
 
-      {/* KPIs principales */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2">
-        <KpiCard
-          label="Ingresos totales"
-          value={formatMoney(kpis.incomeTotal)}
-          accent="#16a34a"
-        />
-        <KpiCard
-          label="Gastos totales"
-          value={formatMoney(kpis.expenseTotal)}
-          accent="#f59e0b"
-        />
-        <KpiCard
-          label="Margen neto"
-          value={formatMoney(kpis.netTotal)}
-          accent={kpis.netTotal >= 0 ? '#16a34a' : '#ef4444'}
-          sub={kpis.netTotal < 0 ? 'Gastos superiores a ingresos' : undefined}
-          subAccent="#ef4444"
-        />
-        <KpiCard
-          label="Pendiente cobro"
-          value={formatMoney(kpis.pendingCobro)}
-          accent="#5b9bd5"
-          sub={kpis.pendingCobro > 0 ? 'Ingresos sin cobrar' : undefined}
-          subAccent="#f59e0b"
-        />
-        <KpiCard
-          label="Pendiente pago"
-          value={formatMoney(kpis.pendingPago)}
-          accent="#e03070"
-          sub={kpis.pendingPago > 0 ? 'Gastos sin pagar' : undefined}
-          subAccent="#f59e0b"
-        />
-      </div>
-
-      {/* KPIs desglose */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-        <KpiCard
-          label="Ingresos en banco"
-          value={formatMoney(kpis.ingresosBanco)}
-          accent="#059669"
-        />
-        <KpiCard
-          label="Ingresos en crypto"
-          value={formatMoney(kpis.ingresosCrypto)}
-          accent="#7c3aed"
-        />
-        <KpiCard
-          label="Gastos empresa"
-          value={formatMoney(kpis.gastoEmpresa)}
-          accent="#d97706"
-        />
-        <KpiCard
-          label="Gastos creadores"
-          value={formatMoney(kpis.gastoCreador)}
-          accent="#dc2626"
-        />
-      </div>
-
-      <InvoicesManager
-        invoices={invoices}
-        brands={brandsList}
-        talents={talentsList}
-        campaigns={campaignsList}
+      <BrandsTabs
+        defaultKey="movimientos"
+        tabs={[
+          {
+            key:   'movimientos',
+            label: 'Movimientos',
+            content: (
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2">
+                  <KpiCard label="Ingresos totales"  value={fmt(kpis.incomeTotal)}  accent="#16a34a" />
+                  <KpiCard label="Gastos totales"    value={fmt(kpis.expenseTotal)} accent="#f59e0b" />
+                  <KpiCard label="Margen neto"       value={fmt(kpis.netTotal)}     accent={kpis.netTotal >= 0 ? '#16a34a' : '#ef4444'}
+                    sub={kpis.netTotal < 0 ? 'Gastos superiores a ingresos' : undefined} subAccent="#ef4444" />
+                  <KpiCard label="Pendiente cobro"   value={fmt(kpis.pendingCobro)} accent="#5b9bd5"
+                    sub={kpis.pendingCobro > 0 ? 'Ingresos sin cobrar' : undefined} subAccent="#f59e0b" />
+                  <KpiCard label="Pendiente pago"    value={fmt(kpis.pendingPago)}  accent="#e03070"
+                    sub={kpis.pendingPago > 0 ? 'Gastos sin pagar' : undefined} subAccent="#f59e0b" />
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                  <KpiCard label="Ingresos en banco"  value={fmt(kpis.ingresosBanco)}  accent="#059669" />
+                  <KpiCard label="Ingresos en crypto" value={fmt(kpis.ingresosCrypto)} accent="#7c3aed" />
+                  <KpiCard label="Gastos empresa"     value={fmt(kpis.gastoEmpresa)}   accent="#d97706" />
+                  <KpiCard label="Gastos creadores"   value={fmt(kpis.gastoCreador)}   accent="#dc2626" />
+                </div>
+                <InvoicesManager
+                  invoices={movements}
+                  brands={brandsList}
+                  talents={talentsList}
+                  campaigns={campaignsList}
+                />
+              </div>
+            ),
+          },
+          {
+            key:   'importar',
+            label: 'Importar datos',
+            content: <AccountingImporter />,
+          },
+          {
+            key:   'facturas',
+            label: 'Facturas emitidas',
+            content: (
+              <IssuedInvoicesTab
+                invoices={issuedInvList}
+                issuers={issuers}
+                clients={billingClients}
+                brands={brandsList}
+                talents={talentsList}
+                campaigns={campaignsList}
+              />
+            ),
+          },
+        ]}
       />
     </div>
   );

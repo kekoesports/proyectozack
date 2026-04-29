@@ -45,7 +45,7 @@ export default async function CampanasPage(): Promise<React.ReactElement> {
           { label: 'pdte. talent',   value: eur(pendingTalent),accent: '#ef4444' },
           { label: 'margen total',   value: eur(totalMargin),  accent: totalMargin >= 0 ? '#16a34a' : '#ef4444' },
         ]}
-        actions={[{ label: '+ Nuevo trato', href: '#', primary: true }]}
+        actions={[]}
       />
 
       <CampaignsManager
