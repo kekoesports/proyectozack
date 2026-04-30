@@ -418,31 +418,176 @@ export async function getPendingBrandPaymentsTotal(): Promise<number> {
   return parseFloat(row?.total ?? '0');
 }
 
+// ── Dashboard widgets (rediseño CRM v2) ───────────────────────────────────────
+
+export type CrmBrandCounts = {
+  readonly activa: number;
+  readonly lead: number;
+  readonly total: number;
+};
+
 /**
- * Total pendiente de pago a talents en facturas vinculadas a campañas.
- * Suma facturas `kind='expense'` con `status` IN `PENDING_EXPENSE_STATUSES`
- * (emitida / no_pagada / parcial / vencida) y `campaignId IS NOT NULL`.
- *
- * Excluye drafts, liquidadas (`cobrada`/`pagada`) y anuladas.
- * Misma semántica que `pnl.ts:pendientePago`.
+ * Cuenta brands del CRM agrupadas por status `activa` y `lead`.
  *
  * @cache none
  * @visibility admin
- * @returns suma de `totalAmount` en EUR.
+ * @returns `{ activa, lead, total }`.
  */
-export async function getPendingTalentPaymentsTotal(): Promise<number> {
-  const [row] = await db
+export async function getCrmBrandCounts(): Promise<CrmBrandCounts> {
+  const rows = await db
     .select({
+      status: crmBrands.status,
+      count: sql<number>`count(*)::int`,
+    })
+    .from(crmBrands)
+    .where(inArray(crmBrands.status, ['activa', 'lead']))
+    .groupBy(crmBrands.status);
+
+  const activa = rows.find((r) => r.status === 'activa')?.count ?? 0;
+  const lead = rows.find((r) => r.status === 'lead')?.count ?? 0;
+  return { activa, lead, total: activa + lead };
+}
+
+/**
+ * Tareas pendientes de la semana (`weekLabel`) en estado `pendiente|en_progreso`,
+ * ordenadas por prioridad (alta→baja) y `dueDate ASC`.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns array `<= limit`.
+ */
+export async function getDashboardPendingTasks(
+  weekLabel: string,
+  limit = 6,
+): Promise<readonly DashboardPendingTask[]> {
+  const rows = await db
+    .select({
+      id: crmTasks.id,
+      title: crmTasks.title,
+      priority: crmTasks.priority,
+      dueDate: crmTasks.dueDate,
+      category: crmTasks.category,
+    })
+    .from(crmTasks)
+    .where(
+      and(
+        eq(crmTasks.weekLabel, weekLabel),
+        inArray(crmTasks.status, ['pendiente', 'en_progreso']),
+      ),
+    )
+    .orderBy(
+      sql`CASE ${crmTasks.priority} WHEN 'alta' THEN 0 WHEN 'media' THEN 1 ELSE 2 END`,
+      crmTasks.dueDate,
+    )
+    .limit(limit);
+
+  return rows;
+}
+
+/**
+ * Próximos follow-ups pendientes (no completados), ordenados por `scheduledAt ASC`.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns array `<= limit`.
+ */
+export async function getDashboardUpcomingFollowups(
+  limit = 5,
+): Promise<readonly DashboardFollowup[]> {
+  const rows = await db
+    .select({
+      id: crmBrandFollowups.id,
+      note: crmBrandFollowups.note,
+      scheduledAt: crmBrandFollowups.scheduledAt,
+      brandName: crmBrands.name,
+    })
+    .from(crmBrandFollowups)
+    .leftJoin(crmBrands, eq(crmBrands.id, crmBrandFollowups.brandId))
+    .where(isNull(crmBrandFollowups.completedAt))
+    .orderBy(asc(crmBrandFollowups.scheduledAt))
+    .limit(limit);
+
+  return rows.map((r) => ({
+    id: r.id,
+    note: r.note,
+    scheduledAt: r.scheduledAt,
+    brandName: r.brandName ?? '—',
+  }));
+}
+
+export type MonthlyRevenue = { readonly income: number; readonly expense: number };
+
+/**
+ * Ingresos y gastos del mes en curso desde facturas `cobrada` o `emitida`.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns `{ income, expense }` en EUR.
+ */
+export async function getMonthlyRevenue(): Promise<MonthlyRevenue> {
+  const now = new Date();
+  const firstDay = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
+
+  const rows = await db
+    .select({
+      kind: invoices.kind,
       total: sql<string>`COALESCE(SUM(${invoices.totalAmount}), 0)`,
     })
     .from(invoices)
     .where(
       and(
-        eq(invoices.kind, 'expense'),
-        inArray(invoices.status, PENDING_EXPENSE_FILTER),
-        isNotNull(invoices.campaignId),
+        inArray(invoices.status, ['cobrada', 'emitida']),
+        gte(invoices.issueDate, firstDay),
       ),
-    );
+    )
+    .groupBy(invoices.kind);
 
-  return parseFloat(row?.total ?? '0');
+  return {
+    income: Number(rows.find((r) => r.kind === 'income')?.total ?? 0),
+    expense: Number(rows.find((r) => r.kind === 'expense')?.total ?? 0),
+  };
 }
+
+export type DealStats = {
+  readonly yearlyDeals: number;
+  readonly activeDeals: number;
+};
+
+/**
+ * Tratos del año (income cobradas) y tratos activos (income emitidas).
+ *
+ * @cache none
+ * @visibility admin
+ * @returns `{ yearlyDeals, activeDeals }`.
+ */
+export async function getDealStats(): Promise<DealStats> {
+  const yearStart = `${new Date().getFullYear()}-01-01`;
+
+  const [yearly, active] = await Promise.all([
+    db
+      .select({ count: sql<number>`COUNT(*)::int` })
+      .from(invoices)
+      .where(
+        and(
+          eq(invoices.kind, 'income'),
+          eq(invoices.status, 'cobrada'),
+          gte(invoices.issueDate, yearStart),
+        ),
+      ),
+    db
+      .select({ count: sql<number>`COUNT(*)::int` })
+      .from(invoices)
+      .where(
+        and(
+          eq(invoices.kind, 'income'),
+          eq(invoices.status, 'emitida'),
+        ),
+      ),
+  ]);
+
+  return {
+    yearlyDeals: yearly[0]?.count ?? 0,
+    activeDeals: active[0]?.count ?? 0,
+  };
+}
+

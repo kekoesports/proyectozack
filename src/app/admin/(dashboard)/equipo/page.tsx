@@ -2,9 +2,10 @@ import type { ReactElement } from 'react';
 import Link from 'next/link';
 import { requireAnyRole } from '@/lib/auth-guard';
 import { getTeamTasksSummary } from '@/lib/queries/crmTasks';
-import { getIsoWeekLabel } from '@/lib/utils/week';
+import { getIsoWeekLabel, getWeekStart } from '@/lib/utils/week';
 import { Avatar } from '@/features/admin/_shared/components/Avatar';
 import { InviteStaffForm } from '@/features/admin/equipo/components/InviteStaffForm';
+import { AdminPageHeader } from '@/features/admin/_shared/components/AdminPageHeader';
 
 export const metadata = { title: 'Equipo | Admin' };
 
@@ -19,8 +20,10 @@ const ROLE_LABELS: Record<string, string> = {
 };
 
 export default async function EquipoAdminPage(): Promise<ReactElement> {
-  const session = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
+  const session = await requireAnyRole(['admin', 'staff'], '/admin/login');
   const weekLabel = getIsoWeekLabel(new Date());
+  const weekStart = getWeekStart(weekLabel);
+  const weekStr = weekStart.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' });
 
   const summary = await getTeamTasksSummary(weekLabel);
 
@@ -30,18 +33,18 @@ export default async function EquipoAdminPage(): Promise<ReactElement> {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-start justify-between gap-4 flex-wrap">
-        <div>
-          <h1 className="text-xl font-bold text-sp-admin-text leading-none">Equipo</h1>
-          <p className="text-[11px] text-sp-admin-muted mt-1">Semana {weekLabel}</p>
-        </div>
-        <div className="flex items-center gap-4 text-[10px] text-sp-admin-muted">
-          <span><strong className="text-sp-admin-text">{summary.length}</strong> miembros</span>
-          <span style={{ color: '#16a34a' }}><strong>{totalDone}</strong> completadas</span>
-          <span style={{ color: '#f5632a' }}><strong>{totalPending}</strong> pendientes</span>
-          {totalOverdue > 0 && <span style={{ color: '#ef4444' }}><strong>{totalOverdue}</strong> vencidas</span>}
-        </div>
-      </div>
+      <AdminPageHeader
+        title="Equipo"
+        subtitle={`Semana ${weekLabel} · desde ${weekStr}`}
+        stats={[
+          { label: 'miembros',    value: summary.length },
+          { label: 'completadas', value: totalDone,    accent: '#16a34a' },
+          { label: 'pendientes',  value: totalPending, accent: '#f5632a' },
+          ...(totalOverdue > 0
+            ? [{ label: 'vencidas', value: totalOverdue, accent: '#ef4444' }]
+            : []),
+        ]}
+      />
 
       {summary.length === 0 ? (
         <div className="rounded-xl border border-dashed border-sp-admin-border bg-sp-admin-card p-12 text-center">

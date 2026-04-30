@@ -5,7 +5,7 @@ import { gotoAdmin } from './helpers';
 test.describe('Admin smoke tests', () => {
   test('/admin renders', async ({ page }) => {
     await gotoAdmin(page);
-    await expect(page.getByRole('heading', { level: 1, name: /dashboard/i })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: /panel general/i })).toBeVisible();
   });
 
   test('/admin/brands renders', async ({ page }) => {
