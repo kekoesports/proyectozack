@@ -329,6 +329,44 @@ async function getVideoViewCounts(videoIds: string[]): Promise<Map<string, numbe
   return counts;
 }
 
+export type YouTubeChannelPhoto = {
+  readonly channelId: string;
+  readonly thumbnailUrl: string;
+};
+
+/**
+ * Fetch channel thumbnail (profile picture) for multiple YouTube channel IDs.
+ * Uses snippet part. Cost: ~1 unit per 50 channels.
+ */
+export async function fetchYouTubeChannelPhotos(
+  channelIds: string[],
+): Promise<YouTubeChannelPhoto[]> {
+  if (channelIds.length === 0) return [];
+  const apiKey = process.env.YOUTUBE_API_KEY;
+  if (!apiKey) throw new Error('YOUTUBE_API_KEY is not set');
+
+  const results: YouTubeChannelPhoto[] = [];
+  const batchSize = 50;
+
+  for (let i = 0; i < channelIds.length; i += batchSize) {
+    const batch = channelIds.slice(i, i + batchSize);
+    const ids = batch.join(',');
+    const url = `https://www.googleapis.com/youtube/v3/channels?part=snippet&id=${ids}&key=${apiKey}`;
+    const res = await fetch(url);
+    if (!res.ok) continue;
+    const data: YouTubeChannelsAPIResponse = await res.json();
+    for (const item of data.items ?? []) {
+      const thumb =
+        item.snippet.thumbnails?.medium?.url ??
+        item.snippet.thumbnails?.default?.url;
+      if (thumb) {
+        results.push({ channelId: item.id, thumbnailUrl: thumb });
+      }
+    }
+  }
+  return results;
+}
+
 /**
  * Compute average view count across the most recent N videos for a channel.
  * Total quota cost: ~3 units (contentDetails + playlistItems + videos).

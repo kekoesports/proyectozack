@@ -233,3 +233,11 @@ export function CampaignIcon() {
     </svg>
   );
 }
+
+export function DealsIcon() {
+  return (
+    <svg {...s}>
+      <path d="M12 3l1.5 4.5h4.5l-3.5 2.5 1.5 4.5L12 12l-4 2.5 1.5-4.5L6 7.5h4.5z" />
+    </svg>
+  );
+}

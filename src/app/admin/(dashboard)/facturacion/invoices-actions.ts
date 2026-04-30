@@ -128,6 +128,7 @@ export async function createInvoiceAction(_prev: ActionState, formData: FormData
 
   // Insert invoice first so we have an id to attach files to.
   let createdId: number;
+
   try {
     const baseValues = nullify({
       ...parsed.data,
@@ -137,9 +138,8 @@ export async function createInvoiceAction(_prev: ActionState, formData: FormData
     const row = await createInvoice(baseValues);
     createdId = row.id;
   } catch (err) {
-    const msg = err instanceof Error ? err.message : 'unknown';
-    console.error('[admin] createInvoice error:', msg);
-    return { error: 'Error al crear la factura' };
+    console.error('[admin] createInvoice error:', err instanceof Error ? err.message : 'unknown');
+    return { error: 'Error al crear el movimiento' };
   }
 
   // Upload optional invoice file + statement file.
@@ -202,9 +202,9 @@ export async function updateInvoiceAction(_prev: ActionState, formData: FormData
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? 'Datos inválidos' };
 
   const { id, ...rest } = parsed.data;
+  const existing = await getInvoice(id);
 
   try {
-    const existing = await getInvoice(id);
     if (!existing) return { error: 'Factura no encontrada' };
 
     const patch = compact({ ...rest, currency: 'EUR' });
@@ -237,9 +237,8 @@ export async function updateInvoiceAction(_prev: ActionState, formData: FormData
       await updateInvoice(id, filePatch as Partial<NewInvoice>);
     }
   } catch (err) {
-    const msg = err instanceof Error ? err.message : 'unknown';
-    console.error('[admin] updateInvoice error:', msg);
-    return { error: 'Error al actualizar la factura' };
+    console.error('[admin] updateInvoice error:', err instanceof Error ? err.message : 'unknown');
+    return { error: 'Error al actualizar el movimiento' };
   }
 
   revalidatePath('/admin/facturacion');
@@ -259,13 +258,15 @@ export async function deleteInvoiceAction(id: number): Promise<ActionState> {
     if (existing?.filePath) {
       try { await del(existing.filePath); } catch { /* ignore */ }
     }
+    if (existing?.receiptFilePath) {
+      try { await del(existing.receiptFilePath); } catch { /* ignore */ }
+    }
     await deleteInvoice(id);
     revalidatePath('/admin/facturacion');
     return { success: true };
   } catch (err) {
-    const msg = err instanceof Error ? err.message : 'unknown';
-    console.error('[admin] deleteInvoice error:', msg);
-    return { error: 'Error al eliminar la factura' };
+    console.error('[admin] deleteInvoice error:', err instanceof Error ? err.message : 'unknown');
+    return { error: 'Error al eliminar el movimiento' };
   }
 }
 
@@ -282,6 +283,24 @@ export async function annulInvoiceAction(id: number): Promise<ActionState> {
   }
 }
 
+export async function bulkDeleteInvoicesAction(ids: number[]): Promise<ActionState> {
+  await requireAnyRole(['admin'], '/admin/login');
+  if (ids.length === 0) return {};
+  try {
+    for (const id of ids) {
+      const existing = await getInvoice(id);
+      if (existing?.filePath)        try { await del(existing.filePath);        } catch { /* ignore */ }
+      if (existing?.receiptFilePath) try { await del(existing.receiptFilePath); } catch { /* ignore */ }
+      await deleteInvoice(id);
+    }
+    revalidatePath('/admin/facturacion');
+    return { success: true };
+  } catch (err) {
+    console.error('[admin] bulkDeleteInvoices error:', err instanceof Error ? err.message : 'unknown');
+    return { error: 'Error al eliminar movimientos' };
+  }
+}
+
 export async function markInvoicePaidAction(id: number): Promise<ActionState> {
   await requireAnyRole(['admin', 'manager'], '/admin/login');
   const today = new Intl.DateTimeFormat('en-CA', {
@@ -291,12 +310,13 @@ export async function markInvoicePaidAction(id: number): Promise<ActionState> {
     day: '2-digit',
   }).format(new Date());
   try {
-    await updateInvoice(id, { status: 'cobrada', paidDate: today });
+    const existing = await getInvoice(id);
+    const newStatus = existing?.kind === 'expense' ? 'cobrada' : 'cobrada';
+    await updateInvoice(id, { status: newStatus, paidDate: today });
     revalidatePath('/admin/facturacion');
     return { success: true };
   } catch (err) {
-    const msg = err instanceof Error ? err.message : 'unknown';
-    console.error('[admin] markPaid error:', msg);
-    return { error: 'Error al marcar como cobrada' };
+    console.error('[admin] markPaid error:', err instanceof Error ? err.message : 'unknown');
+    return { error: 'Error al marcar como cobrado/pagado' };
   }
 }

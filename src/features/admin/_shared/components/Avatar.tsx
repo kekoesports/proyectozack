@@ -36,9 +36,9 @@ type AvatarProps = {
 };
 
 const SIZE: Record<NonNullable<AvatarProps['size']>, { px: number; cls: string; text: string }> = {
-  sm: { px: 28, cls: 'w-7 h-7', text: 'text-[10px]' },
+  sm: { px: 28, cls: 'w-7 h-7',   text: 'text-[10px]' },
   md: { px: 40, cls: 'w-10 h-10', text: 'text-xs' },
-  lg: { px: 64, cls: 'w-16 h-16', text: 'text-lg' },
+  lg: { px: 56, cls: 'w-14 h-14', text: 'text-base' },
 };
 
 /**

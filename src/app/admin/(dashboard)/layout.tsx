@@ -114,7 +114,7 @@ export default async function AdminLayout({ children }: AdminLayoutProps): Promi
 
       <div className="flex-1 flex flex-col min-w-0 pt-14 md:pt-0">
         <AdminHeader />
-        <main className="flex-1 p-4 md:p-8 overflow-auto">{children}</main>
+        <main className="flex-1 p-4 md:p-5 overflow-auto">{children}</main>
       </div>
     </div>
   );

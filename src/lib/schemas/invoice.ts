@@ -11,6 +11,9 @@ export const INVOICE_STATUSES = [
   'parcial',
   'no_cobrada',
   'no_pagada',
+  'no_cobrado',
+  'no_pagado',
+  'pendiente',
 ] as const;
 export const INVOICE_COMPANIES = [
   'spain',
@@ -36,6 +39,48 @@ export const INVOICE_AI_TOOLS = [
   'otro',
 ] as const;
 
+export const INCOME_STATUSES = ['cobrada', 'no_cobrado', 'pendiente', 'anulada'] as const;
+export const EXPENSE_STATUSES = ['cobrada', 'no_pagado', 'pendiente', 'anulada'] as const;
+
+export const BILLING_ENTITIES = [
+  'SocialPro España',
+  'SocialPro Andorra',
+  'SocialPro Argentina',
+] as const;
+
+export const BILLING_PAYMENT_METHODS = [
+  'SocialPro España',
+  'SocialPro LLC',
+  'SocialPro Stark',
+  'SocialPro Andorra',
+  'SocialPro Crypto',
+  'SocialPro Argentina',
+] as const;
+
+export const BILLING_CATEGORIES = [
+  'Gastos empresa',
+  'Gastos creador',
+  'Ingresos en banco',
+  'Ingresos en crypto',
+  'Herramientas IA',
+  'Software',
+  'Diseño',
+  'Edición',
+  'Nóminas',
+  'Gestoría',
+  'Impuestos',
+  'Otros',
+] as const;
+
+export const AI_TOOLS = [
+  'ChatGPT',
+  'Claude',
+  'Midjourney',
+  'ElevenLabs',
+  'Runway',
+  'Otro',
+] as const;
+
 export const INVOICE_STATUS_LABELS: Record<(typeof INVOICE_STATUSES)[number], string> = {
   borrador: 'Borrador',
   emitida: 'Emitida',
@@ -46,6 +91,9 @@ export const INVOICE_STATUS_LABELS: Record<(typeof INVOICE_STATUSES)[number], st
   parcial: 'Parcial',
   no_cobrada: 'No cobrada',
   no_pagada: 'No pagada',
+  no_cobrado: 'No cobrado',
+  no_pagado: 'No pagado',
+  pendiente: 'Pendiente',
 };
 
 export const INVOICE_COMPANY_LABELS: Record<(typeof INVOICE_COMPANIES)[number], string> = {
@@ -109,9 +157,12 @@ const invoiceFields = z.object({
   paidDate: optDate,
   brandId: optInt,
   talentId: optInt,
+  campaignId: optInt,
   counterpartyName: optStr(200),
   concept: z.string().min(1).max(2000),
+  description: z.string().optional(),
   category: optStr(80),
+  aiToolName: optStr(100),
   netAmount: moneyStr,
   vatPct: moneyStr.default('21.00'),
   withholdingPct: moneyStr.default('0.00'),
@@ -123,7 +174,6 @@ const invoiceFields = z.object({
   company: optEnum(INVOICE_COMPANIES),
   paymentMethod: optEnum(INVOICE_PAYMENT_METHODS),
   aiTool: optEnum(INVOICE_AI_TOOLS),
-  campaignId: optInt,
   invoiceFileId: optInt,
   statementFileId: optInt,
   notes: z.string().max(5000).optional(),

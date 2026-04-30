@@ -12,6 +12,9 @@ const STATUS_LABELS: Record<InvoiceStatus, string> = {
   parcial: 'Parcial',
   no_cobrada: 'No cobrada',
   no_pagada: 'No pagada',
+  no_cobrado: 'Pendiente',
+  no_pagado: 'Pendiente',
+  pendiente: 'Pendiente',
 };
 
 const STATUS_STYLES: Record<InvoiceStatus, string> = {
@@ -24,6 +27,9 @@ const STATUS_STYLES: Record<InvoiceStatus, string> = {
   parcial: 'bg-amber-100 text-amber-700',
   no_cobrada: 'bg-amber-100 text-amber-700',
   no_pagada: 'bg-amber-100 text-amber-700',
+  no_cobrado: 'bg-amber-100 text-amber-700',
+  no_pagado: 'bg-amber-100 text-amber-700',
+  pendiente: 'bg-amber-100 text-amber-700',
 };
 
 function formatMoney(amount: string, currency: string): string {

@@ -239,6 +239,92 @@ export async function getTwitchChannelInfo(
   }));
 }
 
+type TwitchUsersResponse = {
+  data: Array<{
+    id: string;
+    login: string;
+    display_name: string;
+    profile_image_url: string;
+  }>;
+};
+
+export type TwitchUserPhoto = {
+  readonly userId: string;
+  readonly login: string;
+  readonly profileImageUrl: string;
+};
+
+/**
+ * Fetch profile picture URLs for multiple Twitch user IDs.
+ * Uses /helix/users (max 100 IDs per call).
+ */
+export async function fetchTwitchUserPhotos(
+  userIds: string[],
+): Promise<TwitchUserPhoto[]> {
+  if (userIds.length === 0) return [];
+  const token = await getAppAccessToken();
+  const clientId = process.env.TWITCH_CLIENT_ID ?? '';
+
+  const results: TwitchUserPhoto[] = [];
+  const batchSize = 100;
+
+  for (let i = 0; i < userIds.length; i += batchSize) {
+    const batch = userIds.slice(i, i + batchSize);
+    const params = batch.map((id) => `id=${encodeURIComponent(id)}`).join('&');
+    const url = `https://api.twitch.tv/helix/users?${params}`;
+    const res = await fetch(url, {
+      headers: { 'Client-Id': clientId, Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) continue;
+    const data: TwitchUsersResponse = await res.json();
+    for (const u of data.data ?? []) {
+      if (u.profile_image_url) {
+        results.push({
+          userId: u.id,
+          login: u.login,
+          profileImageUrl: u.profile_image_url,
+        });
+      }
+    }
+  }
+  return results;
+}
+
+/**
+ * Fetch profile picture for a Twitch user by login name (handle).
+ */
+export async function fetchTwitchUserPhotoByLogin(
+  logins: string[],
+): Promise<TwitchUserPhoto[]> {
+  if (logins.length === 0) return [];
+  const token = await getAppAccessToken();
+  const clientId = process.env.TWITCH_CLIENT_ID ?? '';
+
+  const results: TwitchUserPhoto[] = [];
+  const batchSize = 100;
+
+  for (let i = 0; i < logins.length; i += batchSize) {
+    const batch = logins.slice(i, i + batchSize);
+    const params = batch.map((l) => `login=${encodeURIComponent(l.toLowerCase())}`).join('&');
+    const url = `https://api.twitch.tv/helix/users?${params}`;
+    const res = await fetch(url, {
+      headers: { 'Client-Id': clientId, Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) continue;
+    const data: TwitchUsersResponse = await res.json();
+    for (const u of data.data ?? []) {
+      if (u.profile_image_url) {
+        results.push({
+          userId: u.id,
+          login: u.login,
+          profileImageUrl: u.profile_image_url,
+        });
+      }
+    }
+  }
+  return results;
+}
+
 // Parallel fetch follower counts into a Map<broadcasterId, count>
 async function _buildFollowerMap(
   ids: string[],

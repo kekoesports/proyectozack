@@ -33,7 +33,14 @@ import {
 
 import type { ReactElement } from 'react';
 
-// ── Page ─────────────────────────────────────────────────────────────
+void platformMatchesKey;
+
+function getGreeting(): string {
+  const h = new Date().getHours();
+  if (h < 13) return 'Buenos días';
+  if (h < 20) return 'Buenas tardes';
+  return 'Buenas noches';
+}
 
 export default async function AdminDashboardPage(): Promise<ReactElement> {
   const session = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
@@ -69,6 +76,8 @@ export default async function AdminDashboardPage(): Promise<ReactElement> {
     getRevenueTrend(12),
   ]);
 
+  void getGreeting;
+
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -83,49 +92,37 @@ export default async function AdminDashboardPage(): Promise<ReactElement> {
           Resumen operativo
         </h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {/* Marcas activas — dato real */}
           <KpiCard
             title="Marcas activas"
             value={activeBrandsCount}
             tone={activeBrandsCount > 0 ? 'success' : 'neutral'}
             href="/admin/brands"
           />
-
-          {/* Follow-ups vencidos — dato real */}
           <KpiCard
             title="Follow-ups vencidos"
             value={overdueFollowups}
             tone={overdueFollowups > 0 ? 'danger' : 'success'}
             href="/admin/brands"
           />
-
-          {/* Tareas urgentes — dato real */}
           <KpiCard
             title="Tareas urgentes"
             value={overdueTasks}
             tone={overdueTasks > 0 ? 'danger' : 'success'}
             href="/admin/tareas"
           />
-
-          {/* Creadores — dato real */}
           <KpiCard
             title="Creadores"
             value={formatCompact(stats.talentCount)}
             tone="neutral"
             href="/admin/talents"
           />
-
-          {/* Campañas activas — dato real */}
           <ActiveCampaignsWidget count={activeCampaignsCount} />
-
-          {/* Cobros y pagos pendientes — datos reales (span 2 cols en sm+) */}
           <div className="col-span-2">
             <PendingPaymentsWidget
               pendingBrandTotal={pendingBrandTotal}
               pendingTalentTotal={pendingTalentTotal}
             />
           </div>
-
           <RevenueMonthWidget amount={monthRevenue} previousAmount={prevMonthRevenue} />
         </div>
       </section>
@@ -147,16 +144,10 @@ export default async function AdminDashboardPage(): Promise<ReactElement> {
           Operativo
         </h2>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {/* Col izq: Tareas urgentes */}
           <UrgentTasksWidget tasks={urgentTasks} />
-
-          {/* Col der: Próximos follow-ups */}
           <UpcomingFollowupsWidget followups={upcomingFollowups} />
-
-          {/* Col izq: Stats desactualizadas */}
           <StaleStatsWidget count={staleCreators.length} staleCreators={staleCreators} />
 
-          {/* Col der: Top 5 creadores */}
           <section className="rounded-xl bg-sp-admin-card border border-sp-admin-border overflow-hidden">
             <div className="px-5 py-3 border-b border-sp-admin-border flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -192,7 +183,6 @@ export default async function AdminDashboardPage(): Promise<ReactElement> {
             )}
           </section>
 
-          {/* Col der: Contactos recientes */}
           <section id="contactos" className="rounded-xl bg-sp-admin-card border border-sp-admin-border overflow-hidden">
             <div className="px-5 py-3 border-b border-sp-admin-border flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -247,7 +237,7 @@ export default async function AdminDashboardPage(): Promise<ReactElement> {
         <RevenueTrendChart trend={revenueTrend} />
       </section>
 
-      {/* ── Followers por plataforma — full width ───────────────────── */}
+      {/* ── Followers por plataforma ─────────────────────────────────── */}
       <section className="rounded-xl bg-sp-admin-card border border-sp-admin-border">
         <div className="px-5 py-3 border-b border-sp-admin-border flex items-center gap-2">
           <span className="w-4 h-4 shrink-0 text-sp-admin-muted"><ChartIcon /></span>
@@ -275,7 +265,7 @@ export default async function AdminDashboardPage(): Promise<ReactElement> {
         </div>
       </section>
 
-      {/* ── Full-width breakdown table ──────────────────────────────── */}
+      {/* ── Top 5 creadores desglose ─────────────────────────────────── */}
       <section className="rounded-xl bg-sp-admin-card border border-sp-admin-border overflow-hidden">
         <div className="px-5 py-3 border-b border-sp-admin-border flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -291,45 +281,6 @@ export default async function AdminDashboardPage(): Promise<ReactElement> {
           >
             Ver roster completo
           </Link>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm min-w-[700px]">
-            <thead>
-              <tr className="border-b border-sp-admin-border bg-sp-admin-bg/50">
-                <th className="px-5 py-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-sp-admin-muted w-8">#</th>
-                <th className="px-5 py-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-sp-admin-muted">Creador</th>
-                {SOCIAL_PLATFORMS.map((p) => (
-                  <th
-                    key={p.key}
-                    className="px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-center w-16"
-                    style={{ color: p.color }}
-                  >
-                    {p.label}
-                  </th>
-                ))}
-                <th className="px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-sp-admin-muted text-right">Total</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-sp-admin-border/60">
-              {topCreators.map((creator, i) => (
-                <tr key={creator.slug} className="hover:bg-sp-admin-hover transition-colors">
-                  <td className="px-5 py-2.5 text-xs text-sp-admin-muted tabular-nums">{i + 1}</td>
-                  <td className="px-5 py-2.5 font-semibold text-sp-admin-text text-[13px]">{creator.name}</td>
-                  {SOCIAL_PLATFORMS.map((p) => {
-                    const social = creator.socials.find((s) => platformMatchesKey(s.platform, p.key));
-                    return (
-                      <td key={p.key} className="px-3 py-2.5 text-center text-xs tabular-nums text-sp-admin-text">
-                        {social ? social.followersDisplay : <span className="text-sp-admin-muted/30">--</span>}
-                      </td>
-                    );
-                  })}
-                  <td className="px-4 py-2.5 text-right text-xs font-bold text-sp-admin-text tabular-nums">
-                    {creator.totalFormatted}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
         </div>
       </section>
     </div>

@@ -27,7 +27,7 @@ export async function getTalentSlugs(): Promise<{ slug: string; updatedAt: Date 
 }
 
 /**
- * Lista talents públicos con tags/stats/socials, filtrables por platform, tags, status, etc., ordenados por sortOrder ASC, para el listado/cards público.
+ * Lista talents públicos con tags/stats/socials, filtrables por platform, tags, status, etc., ordenados por sortOrder ASC.
  *
  * @cache none
  * @visibility public
@@ -43,7 +43,6 @@ export async function getTalents(filters?: TalentFilters): Promise<TalentWithRel
     conditions.push(eq(talents.status, filters.status));
   }
 
-  // Pre-filter by tags at DB level via subquery
   if (filters?.tags && filters.tags.length > 0) {
     const lowerTags = filters.tags.map((t) => t.toLowerCase());
     const matchingIds = db
@@ -67,7 +66,7 @@ export async function getTalents(filters?: TalentFilters): Promise<TalentWithRel
 }
 
 /**
- * Devuelve un talent público por slug con tags/stats/socials, para la ficha `/talentos/[slug]`.
+ * Devuelve un talent público por slug con tags/stats/socials.
  *
  * @cache wrapped in React cache() for request dedupe
  * @visibility public
@@ -86,7 +85,7 @@ export const getTalentBySlug = cache(async (slug: string): Promise<TalentWithRel
 });
 
 /**
- * Devuelve talents (sin filtro de visibility) por sus ids con tags/stats/socials, usado en relaciones internas como brand-portal o casos.
+ * Devuelve talents (sin filtro de visibility) por sus ids con tags/stats/socials.
  *
  * @cache none
  * @visibility admin
@@ -107,7 +106,7 @@ export async function getTalentsByIds(ids: number[]): Promise<TalentWithRelation
 // ── Admin queries (no visibility filter) ────────────────────────────
 
 /**
- * Lista todos los talents (sin filtro de visibility) con tags/stats/socials ordenados por sortOrder ASC, para el panel admin.
+ * Lista todos los talents (sin filtro de visibility) con tags/stats/socials ordenados por sortOrder ASC.
  *
  * @cache none
  * @visibility admin
@@ -125,7 +124,7 @@ export async function getAllTalents(): Promise<TalentWithRelations[]> {
 }
 
 /**
- * Devuelve los slugs de todos los talents (incluidos internos), para flujos admin de generación/listado.
+ * Devuelve los slugs de todos los talents (incluidos internos).
  *
  * @cache none
  * @visibility admin
@@ -133,6 +132,19 @@ export async function getAllTalents(): Promise<TalentWithRelations[]> {
  */
 export async function getAllTalentSlugs(): Promise<{ slug: string }[]> {
   return db.select({ slug: talents.slug }).from(talents);
+}
+
+/** Carga un talento por ID con todas sus relaciones para el perfil admin. */
+export async function getTalentById(id: number): Promise<TalentWithRelations | null> {
+  const row = await db.query.talents.findFirst({
+    where: eq(talents.id, id),
+    with: {
+      tags: true,
+      stats: { orderBy: (s, { asc }) => [asc(s.sortOrder)] },
+      socials: { orderBy: (s, { asc }) => [asc(s.sortOrder)] },
+    },
+  });
+  return row ?? null;
 }
 
 /**
@@ -169,11 +181,11 @@ export type AdminRosterRow = TalentWithRelations & {
 };
 
 /**
- * Lista de admin roster: todos los talents con sus relaciones más datos de crecimiento a 30 días desde `talentMetricSnapshots`.
+ * Lista de admin roster: todos los talents con sus relaciones más datos de crecimiento a 30 días.
  *
  * @cache none
  * @visibility admin
- * @returns array de AdminRosterRow `TalentWithRelations & { growth: GrowthData[] }` (puede ser vacío). Nunca null.
+ * @returns array de AdminRosterRow (puede ser vacío). Nunca null.
  */
 export async function getAdminRosterWithGrowth(): Promise<AdminRosterRow[]> {
   const { getLatestSnapshots, getEarliestSnapshots } = await import('./analytics');
@@ -188,7 +200,6 @@ export async function getAdminRosterWithGrowth(): Promise<AdminRosterRow[]> {
     getEarliestSnapshots(fromDate),
   ]);
 
-  // Build maps: talentId-platform → snapshot value
   const latestMap = new Map<string, number>();
   for (const s of latestSnaps) {
     latestMap.set(`${s.talentId}-${s.platform}`, s.value);
@@ -232,7 +243,7 @@ export type TalentFullProfile = Talent & {
 };
 
 /**
- * Perfil completo de un talent por id: incluye tags, socials, business y verticals, para vistas admin de detalle.
+ * Perfil completo de un talent por id: incluye tags, socials, business y verticals.
  *
  * @cache none
  * @visibility admin
@@ -283,7 +294,7 @@ export type UpsertTalentFromImportResult = {
 };
 
 /**
- * Upsert de un talent desde datos de import: dedup primero por slug, luego por (platform, handle) en `talentSocials`; si no hay match, INSERTA un talent nuevo (status `inactive`, visibility `internal`).
+ * Upsert de un talent desde datos de import.
  *
  * @cache none
  * @visibility admin
@@ -297,7 +308,6 @@ export async function upsertTalentFromImport(
   const platform = (mapped['platform'] ?? '').trim().toLowerCase();
   const validPlatform = platform === 'twitch' || platform === 'youtube' ? platform : 'twitch';
 
-  // ── 1. Try to find by slug ──────────────────────────────────────────
   const bySlug = await db
     .select({ id: talents.id })
     .from(talents)
@@ -310,7 +320,6 @@ export async function upsertTalentFromImport(
     return { action: 'updated', id };
   }
 
-  // ── 2. Try to find by (platform, handle) in talentSocials ──────────
   const primaryHandle = getPrimaryHandle(mapped, validPlatform);
   if (primaryHandle) {
     const bySocial = await db
@@ -326,7 +335,6 @@ export async function upsertTalentFromImport(
     }
   }
 
-  // ── 3. INSERT new talent ────────────────────────────────────────────
   const [maxRow] = await db
     .select({ max: sql<number>`COALESCE(MAX(${talents.sortOrder}), 0)` })
     .from(talents);
@@ -358,16 +366,12 @@ export async function upsertTalentFromImport(
 
   const newId = inserted.id;
 
-  // Insert socials for all mapped handles
   await insertSocialsFromMapped(newId, mapped, validPlatform);
-
-  // Insert business data if present
   await insertBusinessFromMapped(newId, mapped);
 
   return { action: 'created', id: newId };
 }
 
-/** Get the primary handle for a platform from mapped fields */
 function getPrimaryHandle(mapped: Record<string, string>, platform: string): string | null {
   const fieldMap: Record<string, string> = {
     twitch: 'twitchHandle',
@@ -382,7 +386,6 @@ function getPrimaryHandle(mapped: Record<string, string>, platform: string): str
   return handle || null;
 }
 
-/** Update mutable fields on an existing talent */
 async function updateTalentFields(
   id: number,
   name: string,
@@ -400,10 +403,7 @@ async function updateTalentFields(
     })
     .where(eq(talents.id, id));
 
-  // Update socials if handles are provided
   await upsertSocialsFromMapped(id, mapped);
-
-  // Update business data if present
   await insertBusinessFromMapped(id, mapped);
 }
 
@@ -557,6 +557,8 @@ export async function updateTalentCompliance(
 
   await db.update(talents).set(set).where(eq(talents.id, talentId));
 }
+
+void slugify;
 
 // Re-export for convenience
 export { talents, talentTags, talentStats, talentSocials };

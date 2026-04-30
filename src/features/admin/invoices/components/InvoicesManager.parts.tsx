@@ -35,6 +35,9 @@ export const STATUS_TONES: Record<InvoiceStatus, Tone> = {
   parcial: 'info',
   no_cobrada: 'warning',
   no_pagada: 'warning',
+  no_cobrado: 'warning',
+  no_pagado: 'warning',
+  pendiente: 'info',
 };
 
 export const INPUT =

@@ -5,12 +5,14 @@ import {
   varchar,
   text,
   boolean,
+  date,
   timestamp,
   pgEnum,
   index,
   numeric,
   jsonb,
 } from 'drizzle-orm/pg-core';
+// crmBrandStatusEnum uses pgEnum; followup priority uses varchar(10)
 import { relations } from 'drizzle-orm';
 import { user } from './auth';
 
@@ -19,6 +21,8 @@ export const crmBrandStatusEnum = pgEnum('crm_brand_status', [
   'contactada',
   'en_negociacion',
   'activa',
+  'inactiva',
+  'perdida',
   'pausada',
   'cerrada',
   'no_interesa',
@@ -51,19 +55,31 @@ export const crmBrands = pgTable(
     website: text('website'),
     tipo: varchar('tipo', { length: 20 }),
     sector: varchar('sector', { length: 80 }),
-    geo: varchar('geo', { length: 30 }),
-    country: varchar('country', { length: 2 }),
+    geo: varchar('geo', { length: 80 }),
+    country: varchar('country', { length: 50 }),
 
     status: crmBrandStatusEnum('status').notNull().default('lead'),
     ownerUserId: text('owner_user_id').references(() => user.id, { onDelete: 'set null' }),
-
     portalUserId: text('portal_user_id').references(() => user.id, { onDelete: 'set null' }),
 
     createdByUserId: text('created_by_user_id').references(() => user.id, { onDelete: 'set null' }),
     assignedToUserId: text('assigned_to_user_id').references(() => user.id, { onDelete: 'set null' }),
 
-    lastContactAt: timestamp('last_contact_at', { withTimezone: true }),
-    nextFollowupAt: timestamp('next_followup_at', { withTimezone: true }),
+    // GEO objetivo multi-select (comma-separated: 'latam,spain')
+    geoTargets: text('geo_targets'),
+
+    // Info de negocio
+    lookingFor: text('looking_for'),   // comma-separated
+    dealTypes:  text('deal_types'),    // comma-separated
+
+    // Info legal
+    taxId:   varchar('tax_id',  { length: 30 }),
+    address: text('address'),
+
+    // Seguimiento
+    lastContactAt:  timestamp('last_contact_at',   { withTimezone: true }),
+    nextFollowupAt: timestamp('next_followup_at',  { withTimezone: true }),
+    nextFollowUpAt: date('next_follow_up_at'),
 
     notes: text('notes'),
 
@@ -131,6 +147,7 @@ export const crmBrandFollowups = pgTable(
     createdByUserId: text('created_by_user_id').references(() => user.id, { onDelete: 'set null' }),
     scheduledAt: timestamp('scheduled_at', { withTimezone: true }).notNull(),
     note: text('note').notNull(),
+    priority: varchar('priority', { length: 10 }).notNull().default('media'),
     completedAt: timestamp('completed_at', { withTimezone: true }),
 
     channel: crmFollowupChannelEnum('channel'),
@@ -150,6 +167,7 @@ export const crmBrandFollowups = pgTable(
     index('crm_brand_followups_completed_idx').on(t.completedAt),
     index('crm_brand_followups_status_idx').on(t.status),
     index('crm_brand_followups_assigned_to_idx').on(t.assignedToUserId),
+    index('crm_brand_followups_priority_idx').on(t.priority),
   ],
 );
 

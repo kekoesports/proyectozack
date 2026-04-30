@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import { AdminPageHeader } from '@/features/admin/_shared/components/AdminPageHeader';
 import { getAdminRosterWithGrowth } from '@/lib/queries/talents';
 import { listAllVerticals } from '@/lib/queries/talentBusiness';
 import { RosterSpreadsheet } from '@/features/admin/talents/components/RosterSpreadsheet';
@@ -6,6 +6,20 @@ import { InfluencerCardsView } from '@/features/admin/talents/components/Influen
 import { InfluencerImport } from '@/features/admin/talents/components/InfluencerImport';
 import { BrandsTabs } from '@/features/admin/brands/components/BrandsTabs';
 import type { TalentVertical } from '@/types';
+
+type CurrentTalent = {
+  id: number;
+  name: string;
+  socials: {
+    id: number;
+    talentId: number;
+    platform: string;
+    handle: string;
+    followersDisplay: string;
+    profileUrl: string | null;
+    avgViewers: number | null;
+  }[];
+};
 
 export default async function AdminTalentsPage(): Promise<React.ReactElement> {
   const [creators, verticals] = await Promise.all([
@@ -26,38 +40,46 @@ export default async function AdminTalentsPage(): Promise<React.ReactElement> {
 
   const missingPhotoCount = creators.reduce((acc, c) => (c.photoUrl ? acc : acc + 1), 0);
 
+  // Derivar CurrentTalent[] para StatsImportPanel (actualizar estadísticas)
+  const roster: CurrentTalent[] = creators.map((c) => ({
+    id:      c.id,
+    name:    c.name,
+    socials: c.socials.map((s) => ({
+      id:               s.id,
+      talentId:         c.id,
+      platform:         s.platform,
+      handle:           s.handle           ?? '',
+      followersDisplay: s.followersDisplay  ?? '-',
+      profileUrl:       s.profileUrl        ?? null,
+      avgViewers:       s.avgViewers        ?? null,
+    })),
+  }));
+
   return (
     <div>
-      <div className="flex items-baseline justify-between gap-4 mb-6 flex-wrap">
-        <div className="flex items-baseline gap-4">
-          <h1 className="font-display text-3xl font-black uppercase text-sp-admin-text">Roster</h1>
-          <span className="text-xs text-sp-admin-muted tabular-nums">
-            {creators.length} creadores · {platformSet.size} plataformas
-          </span>
-        </div>
-        <Link
-          href="/admin/talents/fotos"
-          className={`inline-flex items-center gap-2 text-xs font-semibold rounded-xl px-3 py-2 border transition-colors ${
-            missingPhotoCount > 0
-              ? 'border-amber-500/40 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20'
-              : 'border-sp-admin-border text-sp-admin-text hover:bg-sp-admin-hover'
-          }`}
-        >
-          Gestionar fotos
-          {missingPhotoCount > 0 && (
-            <span className="rounded-full bg-amber-500/30 text-amber-100 px-1.5 py-0.5 text-[10px] tabular-nums font-bold">
-              {missingPhotoCount} sin foto
-            </span>
-          )}
-        </Link>
-      </div>
+      <AdminPageHeader
+        title="Influencers"
+        stats={[
+          { label: 'creadores',   value: creators.length, accent: '#f5632a' },
+          { label: 'plataformas', value: platformSet.size },
+          ...(missingPhotoCount > 0
+            ? [{ label: 'sin foto', value: missingPhotoCount, accent: '#f59e0b' }]
+            : []),
+        ]}
+        actions={[
+          {
+            label: missingPhotoCount > 0 ? `Fotos (${missingPhotoCount})` : 'Gestionar fotos',
+            href:  '/admin/talents/fotos',
+          },
+        ]}
+      />
 
       <BrandsTabs
         defaultKey="cards"
         tabs={[
           {
-            key: 'cards',
-            label: 'Tarjetas',
+            key:     'cards',
+            label:   'Tarjetas',
             content: (
               <InfluencerCardsView
                 creators={creators}
@@ -66,16 +88,18 @@ export default async function AdminTalentsPage(): Promise<React.ReactElement> {
             ),
           },
           {
-            key: 'table',
-            label: 'Tabla',
+            key:     'table',
+            label:   'Tabla',
             content: (
               <RosterSpreadsheet creators={creators} verticalsByTalent={verticalsByTalent} />
             ),
           },
           {
-            key: 'import',
-            label: 'Importar CSV',
-            content: <InfluencerImport />,
+            key:     'import',
+            label:   'Importar / Exportar',
+            content: (
+              <InfluencerImport />
+            ),
           },
         ]}
       />

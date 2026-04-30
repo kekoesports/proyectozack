@@ -1,4 +1,4 @@
-import { sql, eq, gt, lt, lte, ne, and, or, inArray, isNull, isNotNull, asc } from 'drizzle-orm';
+import { sql, eq, gt, lt, lte, ne, and, or, inArray, isNull, isNotNull, asc, gte } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import {
   talents,
@@ -36,6 +36,21 @@ function taskVisibilityCondition(session?: TaskSession) {
     eq(crmTasks.ownerId, session.userId),
   );
 }
+
+export type DashboardFollowup = {
+  readonly id: number;
+  readonly scheduledAt: Date;
+  readonly brandName: string;
+  readonly note: string;
+};
+
+export type DashboardPendingTask = {
+  readonly id: number;
+  readonly title: string;
+  readonly priority: string;
+  readonly category: string | null;
+  readonly dueDate: string | null;
+};
 
 export type DashboardStats = {
   talentCount: number;

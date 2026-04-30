@@ -1,11 +1,14 @@
 import { Suspense, type ReactElement } from 'react';
+import { AdminPageHeader } from '@/features/admin/_shared/components/AdminPageHeader';
 import type { Metadata } from 'next';
 import { requireAnyRole } from '@/lib/auth-guard';
 import {
   getTasksForWeek,
+  getTaskTemplates,
   getUsedCategories,
   getTaskRelatedOptions,
   resolveRelatedLabels,
+  rollOverPendingTasks,
 } from '@/lib/queries/crmTasks';
 import { getAllStaffUsers } from '@/lib/queries/staffUsers';
 import { getIsoWeekLabel } from '@/lib/utils/week';
@@ -16,8 +19,13 @@ export const metadata: Metadata = { title: 'Tareas | Admin' };
 export default async function TareasPage(): Promise<ReactElement> {
   const session = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
   const weekLabel = getIsoWeekLabel(new Date());
+  const prevDate   = new Date(); prevDate.setDate(prevDate.getDate() - 7);
+  const prevWeek   = getIsoWeekLabel(prevDate);
 
-  const [tasks, users, suggestedCategories, relatedOptions] = await Promise.all([
+  // Auto-rollover silencioso — idempotente: no hace nada si ya se arrastró
+  await rollOverPendingTasks(prevWeek, weekLabel);
+
+  const [tasks, users, suggestedCategories, relatedOptions, templates] = await Promise.all([
     getTasksForWeek(weekLabel, {
       session: {
         userId: session.user.id,
@@ -27,6 +35,7 @@ export default async function TareasPage(): Promise<ReactElement> {
     getAllStaffUsers(),
     getUsedCategories(),
     getTaskRelatedOptions(),
+    getTaskTemplates(),
   ]);
 
   const relatedLabels = await resolveRelatedLabels(tasks);
@@ -36,14 +45,22 @@ export default async function TareasPage(): Promise<ReactElement> {
     name: u.name,
   }));
 
-  return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="font-display text-4xl font-black uppercase text-sp-admin-text">Tareas</h1>
-        <p className="text-sm text-sp-admin-muted mt-1">Semana actual del equipo</p>
-      </div>
+  const pendingCount = tasks.filter((t) => t.status !== 'completada').length;
+  const doneCount = tasks.filter((t) => t.status === 'completada').length;
 
-      <Suspense fallback={<div className="text-sm text-sp-admin-muted">Cargando tareas…</div>}>
+  return (
+    <div className="space-y-4">
+      <AdminPageHeader
+        title="Tareas"
+        subtitle={weekLabel}
+        stats={[
+          { label: 'pendientes', value: pendingCount, accent: '#f5632a' },
+          { label: 'completadas', value: doneCount, accent: '#16a34a' },
+          { label: 'total', value: tasks.length },
+        ]}
+      />
+
+      <Suspense fallback={<p className="text-sm text-sp-admin-muted">Cargando tareas…</p>}>
         <TaskWorkspace
           tasks={tasks}
           users={userOptions}
@@ -52,6 +69,7 @@ export default async function TareasPage(): Promise<ReactElement> {
           weekLabel={weekLabel}
           relatedOptions={relatedOptions}
           relatedLabels={relatedLabels}
+          templates={templates}
         />
       </Suspense>
     </div>

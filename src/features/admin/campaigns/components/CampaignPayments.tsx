@@ -29,6 +29,9 @@ const STATUS_TONE: Record<Invoice['status'], Tone> = {
   parcial: 'info',
   no_cobrada: 'warning',
   no_pagada: 'warning',
+  no_cobrado: 'warning',
+  no_pagado: 'warning',
+  pendiente: 'info',
 };
 
 const STATUS_LABEL: Record<Invoice['status'], string> = {
@@ -41,6 +44,9 @@ const STATUS_LABEL: Record<Invoice['status'], string> = {
   parcial: 'Parcial',
   no_cobrada: 'No cobrada',
   no_pagada: 'No pagada',
+  no_cobrado: 'No cobrado',
+  no_pagado: 'No pagado',
+  pendiente: 'Pendiente',
 };
 
 const KIND_LABEL: Record<Invoice['kind'], string> = {

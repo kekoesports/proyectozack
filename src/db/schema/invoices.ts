@@ -15,6 +15,7 @@ import { user } from './auth';
 import { crmBrands } from './crmBrands';
 import { talents } from './talents';
 import { files } from './files';
+import { campaigns } from './campaigns';
 
 export const invoiceKindEnum = pgEnum('invoice_kind', ['income', 'expense']);
 export const invoiceStatusEnum = pgEnum('invoice_status', [
@@ -27,6 +28,9 @@ export const invoiceStatusEnum = pgEnum('invoice_status', [
   'parcial',
   'no_cobrada',
   'no_pagada',
+  'no_cobrado',
+  'no_pagado',
+  'pendiente',
 ]);
 
 export const invoiceCompanyEnum = pgEnum('invoice_company', [
@@ -69,10 +73,13 @@ export const invoices = pgTable(
 
     brandId: integer('brand_id').references(() => crmBrands.id, { onDelete: 'set null' }),
     talentId: integer('talent_id').references(() => talents.id, { onDelete: 'set null' }),
+    campaignId: integer('campaign_id').references(() => campaigns.id, { onDelete: 'set null' }),
     counterpartyName: varchar('counterparty_name', { length: 200 }),
 
     concept: text('concept').notNull(),
+    description: text('description'),
     category: varchar('category', { length: 80 }),
+    aiToolName: varchar('ai_tool_name', { length: 100 }),
 
     netAmount: numeric('net_amount', { precision: 12, scale: 2 }).notNull(),
     vatPct: numeric('vat_pct', { precision: 5, scale: 2 }).notNull().default('21.00'),
@@ -91,6 +98,8 @@ export const invoices = pgTable(
     // Legacy attachment fields — kept for compat. Source of truth is files via invoiceFileId.
     fileUrl: text('file_url'),
     filePath: text('file_path'),
+    receiptFileUrl: text('receipt_file_url'),
+    receiptFilePath: text('receipt_file_path'),
 
     invoiceFileId: integer('invoice_file_id').references(() => files.id, { onDelete: 'set null' }),
     statementFileId: integer('statement_file_id').references(() => files.id, { onDelete: 'set null' }),
@@ -98,9 +107,6 @@ export const invoices = pgTable(
     notes: text('notes'),
 
     createdByUserId: text('created_by_user_id').references(() => user.id, { onDelete: 'set null' }),
-
-    // FK to campaigns — no .references() here to avoid potential circular imports; FK enforced in migration SQL
-    campaignId: integer('campaign_id'),
 
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
@@ -118,12 +124,14 @@ export const invoices = pgTable(
     index('invoices_payment_method_idx').on(t.paymentMethod),
     index('invoices_invoice_file_idx').on(t.invoiceFileId),
     index('invoices_statement_file_idx').on(t.statementFileId),
+    index('invoices_campaign_idx').on(t.campaignId),
   ],
 );
 
 export const invoicesRelations = relations(invoices, ({ one }) => ({
   brand: one(crmBrands, { fields: [invoices.brandId], references: [crmBrands.id] }),
   talent: one(talents, { fields: [invoices.talentId], references: [talents.id] }),
+  campaign: one(campaigns, { fields: [invoices.campaignId], references: [campaigns.id] }),
   createdBy: one(user, { fields: [invoices.createdByUserId], references: [user.id] }),
   invoiceFile: one(files, { fields: [invoices.invoiceFileId], references: [files.id], relationName: 'invoiceFile' }),
   statementFile: one(files, { fields: [invoices.statementFileId], references: [files.id], relationName: 'statementFile' }),
