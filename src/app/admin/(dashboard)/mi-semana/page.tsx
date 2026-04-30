@@ -6,7 +6,6 @@ import {
   getRolledOverCount,
   getUsedCategories,
   getTaskRelatedOptions,
-  resolveRelatedLabels,
   rollOverPendingTasks,
 } from '@/lib/queries/crmTasks';
 import { getAllStaffUsers } from '@/lib/queries/staffUsers';
@@ -35,7 +34,7 @@ function KpiCard({ label, value, accent }: KpiCardProps): ReactElement {
 }
 
 export default async function MiSemanaPage(): Promise<ReactElement> {
-  const session = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
+  const session  = await requireAnyRole(['admin', 'staff'], '/admin/login');
   const weekLabel = getIsoWeekLabel(new Date());
   const prevDate  = new Date(); prevDate.setDate(prevDate.getDate() - 7);
   const prevWeek  = getIsoWeekLabel(prevDate);
@@ -51,8 +50,6 @@ export default async function MiSemanaPage(): Promise<ReactElement> {
     getRolledOverCount(session.user.id, weekLabel),
     getTaskRelatedOptions(),
   ]);
-
-  const relatedLabels = await resolveRelatedLabels(tasks);
 
   // KPIs calculados server-side
   const kpis = {
@@ -92,7 +89,7 @@ export default async function MiSemanaPage(): Promise<ReactElement> {
         currentUserId={session.user.id}
         suggestedCategories={suggestedCategories}
         weekLabel={weekLabel}
-        relatedOptions={relatedOptions as never}
+        relatedOptions={relatedOptions}
       />
     </div>
   );

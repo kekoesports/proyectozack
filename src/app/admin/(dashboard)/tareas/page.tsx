@@ -17,8 +17,8 @@ import { TaskWorkspace } from '@/features/admin/tasks/components/TaskWorkspace';
 export const metadata: Metadata = { title: 'Tareas | Admin' };
 
 export default async function TareasPage(): Promise<ReactElement> {
-  const session = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
-  const weekLabel = getIsoWeekLabel(new Date());
+  const session = await requireAnyRole(['admin', 'staff'], '/admin/login');
+  const weekLabel  = getIsoWeekLabel(new Date());
   const prevDate   = new Date(); prevDate.setDate(prevDate.getDate() - 7);
   const prevWeek   = getIsoWeekLabel(prevDate);
 
@@ -26,12 +26,7 @@ export default async function TareasPage(): Promise<ReactElement> {
   await rollOverPendingTasks(prevWeek, weekLabel);
 
   const [tasks, users, suggestedCategories, relatedOptions, templates] = await Promise.all([
-    getTasksForWeek(weekLabel, {
-      session: {
-        userId: session.user.id,
-        role: session.user.role as 'admin' | 'manager' | 'staff',
-      },
-    }),
+    getTasksForWeek(weekLabel),
     getAllStaffUsers(),
     getUsedCategories(),
     getTaskRelatedOptions(),

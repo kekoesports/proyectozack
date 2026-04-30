@@ -6,9 +6,7 @@ import { TalentExportView } from './TalentExportView';
 import type { AdminRosterRow } from '@/lib/queries/talents';
 import type { TalentVertical } from '@/types';
 
-// StatsImportPanel and CurrentTalent type are defined locally
-// TODO: restore StatsImportPanel when @/components/admin/stats/ is recreated
-type CurrentTalent = {
+export type CurrentTalent = {
   id: number;
   name: string;
   socials: {

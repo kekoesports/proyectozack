@@ -1,12 +1,18 @@
 import { db } from '@/lib/db';
-import { campaigns, crmBrands, talents } from '@/db/schema';
-import { asc, eq, isNull } from 'drizzle-orm';
+import { crmBrands, talents, campaigns } from '@/db/schema';
+import { asc } from 'drizzle-orm';
+import { listInvoices, getBillingKPIs, getUsedInvoiceCategories } from '@/lib/queries/invoices';
+import { getIssuerCompanies, getBillingClients, listIssuedInvoices } from '@/lib/queries/issuedInvoices';
+import { InvoicesManager } from '@/features/admin/invoices/components/InvoicesManager';
+import { IssuedInvoicesTab } from '@/features/admin/invoices/components/IssuedInvoicesTab';
+import { AccountingImporter } from '@/features/admin/invoices/components/AccountingImporter';
+import { BrandsTabs } from '@/features/admin/brands/components/BrandsTabs';
 import { requireAnyRole } from '@/lib/auth-guard';
 import { canDelete } from '@/lib/permissions';
-import { listInvoices, getBillingKPIs, getUsedInvoiceCategories } from '@/lib/queries/invoices';
-import { InvoicesManager } from '@/features/admin/invoices/components/InvoicesManager';
 
 import type { Role } from '@/lib/auth-guard';
+
+export const metadata = { title: 'Facturación | Admin' };
 
 function fmt(n: number, currency = 'EUR'): string {
   return new Intl.NumberFormat('es-ES', { style: 'currency', currency, maximumFractionDigits: 0 }).format(n);
@@ -39,32 +45,24 @@ export default async function AdminInvoicesPage(): Promise<React.ReactElement> {
 
   const yearStart = `${new Date().getFullYear()}-01-01`;
 
-  const [invoices, kpis, brandsList, talentsList, campaignsRows, categories] = await Promise.all([
+  const [
+    movements, kpis, brandsList, talentsList, campaignsList,
+    issuers, billingClients, issuedInvList, categories,
+  ] = await Promise.all([
     listInvoices(),
     getBillingKPIs(yearStart),
     db.select({ id: crmBrands.id, name: crmBrands.name }).from(crmBrands).orderBy(asc(crmBrands.name)),
     db.select({ id: talents.id, name: talents.name }).from(talents).orderBy(asc(talents.name)),
-    db
-      .select({
-        id: campaigns.id,
-        name: campaigns.name,
-        brandName: crmBrands.name,
-        talentName: talents.name,
-      })
-      .from(campaigns)
-      .innerJoin(crmBrands, eq(crmBrands.id, campaigns.brandId))
-      .innerJoin(talents, eq(talents.id, campaigns.talentId))
-      .where(isNull(campaigns.archivedAt))
-      .orderBy(asc(campaigns.name)),
+    db.select({ id: campaigns.id, name: campaigns.name, brandId: campaigns.brandId, talentId: campaigns.talentId })
+      .from(campaigns).orderBy(asc(campaigns.name)),
+    getIssuerCompanies(),
+    getBillingClients(),
+    listIssuedInvoices(),
     getUsedInvoiceCategories(),
   ]);
 
-  const campaignOptions = campaignsRows.map((c) => ({
-    id: c.id,
-    label: `${c.brandName} × ${c.talentName} — ${c.name}`,
-  }));
-  const incomeCount = invoices.filter((i) => i.kind === 'income').length;
-  const expenseCount = invoices.filter((i) => i.kind === 'expense').length;
+  const incomeCount  = movements.filter((i) => i.kind === 'income').length;
+  const expenseCount = movements.filter((i) => i.kind === 'expense').length;
   const year = new Date().getFullYear();
 
   return (
@@ -89,72 +87,61 @@ export default async function AdminInvoicesPage(): Promise<React.ReactElement> {
         </div>
       </div>
 
-      {/* KPIs principales */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2">
-        <KpiCard
-          label="Ingresos totales"
-          value={fmt(kpis.incomeTotal)}
-          accent="#16a34a"
-        />
-        <KpiCard
-          label="Gastos totales"
-          value={fmt(kpis.expenseTotal)}
-          accent="#f59e0b"
-        />
-        <KpiCard
-          label="Margen neto"
-          value={fmt(kpis.netTotal)}
-          accent={kpis.netTotal >= 0 ? '#16a34a' : '#ef4444'}
-          sub={kpis.netTotal < 0 ? 'Gastos superiores a ingresos' : undefined}
-          subAccent="#ef4444"
-        />
-        <KpiCard
-          label="Pendiente cobro"
-          value={fmt(kpis.pendingCobro)}
-          accent="#5b9bd5"
-          sub={kpis.pendingCobro > 0 ? 'Ingresos sin cobrar' : undefined}
-          subAccent="#f59e0b"
-        />
-        <KpiCard
-          label="Pendiente pago"
-          value={fmt(kpis.pendingPago)}
-          accent="#e03070"
-          sub={kpis.pendingPago > 0 ? 'Gastos sin pagar' : undefined}
-          subAccent="#f59e0b"
-        />
-      </div>
-
-      {/* KPIs desglose */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-        <KpiCard
-          label="Ingresos en banco"
-          value={fmt(kpis.ingresosBanco)}
-          accent="#059669"
-        />
-        <KpiCard
-          label="Ingresos en crypto"
-          value={fmt(kpis.ingresosCrypto)}
-          accent="#7c3aed"
-        />
-        <KpiCard
-          label="Gastos empresa"
-          value={fmt(kpis.gastoEmpresa)}
-          accent="#d97706"
-        />
-        <KpiCard
-          label="Gastos creadores"
-          value={fmt(kpis.gastoCreador)}
-          accent="#dc2626"
-        />
-      </div>
-
-      <InvoicesManager
-        invoices={invoices}
-        brands={brandsList}
-        talents={talentsList}
-        campaigns={campaignOptions}
-        categories={categories}
-        canDelete={canDelete(role)}
+      <BrandsTabs
+        defaultKey="movimientos"
+        tabs={[
+          {
+            key:   'movimientos',
+            label: 'Movimientos',
+            content: (
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2">
+                  <KpiCard label="Ingresos totales"  value={fmt(kpis.incomeTotal)}  accent="#16a34a" />
+                  <KpiCard label="Gastos totales"    value={fmt(kpis.expenseTotal)} accent="#f59e0b" />
+                  <KpiCard label="Margen neto"       value={fmt(kpis.netTotal)}     accent={kpis.netTotal >= 0 ? '#16a34a' : '#ef4444'}
+                    sub={kpis.netTotal < 0 ? 'Gastos superiores a ingresos' : undefined} subAccent="#ef4444" />
+                  <KpiCard label="Pendiente cobro"   value={fmt(kpis.pendingCobro)} accent="#5b9bd5"
+                    sub={kpis.pendingCobro > 0 ? 'Ingresos sin cobrar' : undefined} subAccent="#f59e0b" />
+                  <KpiCard label="Pendiente pago"    value={fmt(kpis.pendingPago)}  accent="#e03070"
+                    sub={kpis.pendingPago > 0 ? 'Gastos sin pagar' : undefined} subAccent="#f59e0b" />
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                  <KpiCard label="Ingresos en banco"  value={fmt(kpis.ingresosBanco)}  accent="#059669" />
+                  <KpiCard label="Ingresos en crypto" value={fmt(kpis.ingresosCrypto)} accent="#7c3aed" />
+                  <KpiCard label="Gastos empresa"     value={fmt(kpis.gastoEmpresa)}   accent="#d97706" />
+                  <KpiCard label="Gastos creadores"   value={fmt(kpis.gastoCreador)}   accent="#dc2626" />
+                </div>
+                <InvoicesManager
+                  invoices={movements}
+                  brands={brandsList}
+                  talents={talentsList}
+                  campaigns={campaignsList.map((c) => ({ id: c.id, label: c.name }))}
+                  categories={categories}
+                  canDelete={canDelete(role)}
+                />
+              </div>
+            ),
+          },
+          {
+            key:   'importar',
+            label: 'Importar datos',
+            content: <AccountingImporter />,
+          },
+          {
+            key:   'facturas',
+            label: 'Facturas emitidas',
+            content: (
+              <IssuedInvoicesTab
+                invoices={issuedInvList}
+                issuers={issuers}
+                clients={billingClients}
+                brands={brandsList}
+                talents={talentsList}
+                campaigns={campaignsList}
+              />
+            ),
+          },
+        ]}
       />
     </div>
   );
