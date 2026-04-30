@@ -75,7 +75,7 @@ test.describe('Responsive — admin routes', () => {
 
       test('/admin/talents — no overflow, h1 visible', async ({ page }) => {
         await gotoAdmin(page, 'talents');
-        await expect(page.getByRole('heading', { level: 1, name: /roster/i })).toBeVisible();
+        await expect(page.getByRole('heading', { level: 1, name: /influencers/i })).toBeVisible();
         await expectNoHorizontalOverflow(page);
       });
 

@@ -15,7 +15,7 @@ test.describe('Admin smoke tests', () => {
 
   test('/admin/talents renders', async ({ page }) => {
     await gotoAdmin(page, 'talents');
-    await expect(page.getByRole('heading', { level: 1, name: /roster/i })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: /influencers/i })).toBeVisible();
   });
 
   test('/admin/cases renders', async ({ page }) => {

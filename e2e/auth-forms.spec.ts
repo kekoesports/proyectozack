@@ -85,54 +85,8 @@ test.describe('Auth forms', () => {
     await expect(link).toHaveAttribute('href', '/admin/forgot-password');
   });
 
-  test.describe('/marcas/login', () => {
-    test('page renders with email and password inputs visible', async ({ page }) => {
-      await page.goto('/marcas/login', { waitUntil: 'domcontentloaded' });
-
-      await expect(page.locator('input[type="email"]')).toBeVisible();
-      await expect(page.locator('input[type="password"]')).toBeVisible();
-    });
-
-    test('submit button "Acceder" is visible and enabled initially', async ({ page }) => {
-      await page.goto('/marcas/login', { waitUntil: 'domcontentloaded' });
-
-      const btn = page.getByRole('button', { name: 'Acceder' });
-      await expect(btn).toBeVisible();
-      await expect(btn).toBeEnabled();
-    });
-
-    test('submitting invalid credentials shows "Credenciales incorrectas"', async ({ page }) => {
-      await page.goto('/marcas/login', { waitUntil: 'domcontentloaded' });
-
-      await fillLoginForm(page, 'test@invalid.com', 'wrongpassword12');
-      await page.getByRole('button', { name: 'Acceder' }).click();
-
-      await expect(page.getByText('Credenciales incorrectas')).toBeVisible({
-        timeout: 10_000,
-      });
-    });
-
-    test('button shows loading state "Accediendo..." while request is in flight', async ({ page }) => {
-      await page.goto('/marcas/login', { waitUntil: 'domcontentloaded' });
-
-      await fillLoginForm(page, 'test@invalid.com', 'wrongpassword12');
-
-      await page.route('**/api/auth/sign-in/email', async (route) => {
-        await new Promise((resolve) => setTimeout(resolve, 2_000));
-        await route.continue();
-      });
-
-      const clickPromise = page.getByRole('button', { name: 'Acceder' }).click();
-      await expect(page.getByRole('button', { name: 'Accediendo...' })).toBeVisible({
-        timeout: 3_000,
-      });
-
-      await clickPromise;
-      await expect(page.getByText('Credenciales incorrectas')).toBeVisible({
-        timeout: 10_000,
-      });
-    });
-  });
+  // Note: /marcas/login was removed in PR #7 (brand portal cleanup);
+  // brand authentication now goes through /admin/login.
 
   test.describe('/admin/forgot-password', () => {
     test('page renders with email input and submit button', async ({ page }) => {
@@ -204,9 +158,12 @@ test.describe('Auth forms', () => {
     test('mismatched passwords shows validation error', async ({ page }) => {
       await page.goto('/admin/reset-password?token=abc123', { waitUntil: 'domcontentloaded' });
 
+      // Wait for both password inputs to be present (token-gated form)
       const inputs = page.locator('input[type="password"]');
-      await inputs.nth(0).fill('password-one-1234');
-      await inputs.nth(1).fill('password-two-5678');
+      await expect(inputs).toHaveCount(2);
+
+      await inputs.first().pressSequentially('password-one-1234');
+      await inputs.last().pressSequentially('password-two-5678');
       await page.getByRole('button', { name: 'Guardar contraseña' }).click();
 
       await expect(page.getByText('Las contraseñas no coinciden.')).toBeVisible();
