@@ -16,10 +16,10 @@ type Props = {
   readonly onOpenAction: (task: CrmTask) => void;
 };
 
-const COLUMNS: ReadonlyArray<{ readonly status: CrmTaskStatus; readonly label: string; readonly accent: string }> = [
-  { status: 'pendiente', label: 'Pendiente', accent: 'border-l-blue-500/60' },
-  { status: 'en_progreso', label: 'En progreso', accent: 'border-l-amber-500/60' },
-  { status: 'completada', label: 'Completada', accent: 'border-l-emerald-500/60' },
+const COLUMNS: ReadonlyArray<{ readonly status: CrmTaskStatus; readonly label: string; readonly color: string }> = [
+  { status: 'pendiente',  label: 'Pendiente',  color: '#5b9bd5' },
+  { status: 'en_progreso', label: 'En progreso', color: '#f59e0b' },
+  { status: 'completada', label: 'Completada',  color: '#16a34a' },
 ];
 
 const PRIORITY_DOT: Record<CrmTaskPriority, string> = {
@@ -76,15 +76,28 @@ export function TaskKanban({ tasks, users, relatedLabels, onOpenAction }: Props)
             onDragOver={(e) => { e.preventDefault(); setHoverCol(col.status); }}
             onDragLeave={() => setHoverCol((prev) => (prev === col.status ? null : prev))}
             onDrop={() => handleDrop(col.status)}
-            className={`rounded-2xl border bg-sp-admin-card p-4 min-h-[400px] transition-colors ${isHover ? 'border-sp-admin-accent bg-sp-admin-accent/5' : 'border-sp-admin-border'}`}
+            className={`rounded-xl overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.06)] transition-all ${
+              isHover ? 'ring-1 ring-sp-admin-accent shadow-[0_4px_16px_rgba(245,99,42,0.12)]' : ''
+            }`}
           >
-            <div className={`flex items-center justify-between mb-3 pb-2 border-b border-sp-admin-border/60 border-l-4 pl-3 -mx-1 ${col.accent}`}>
-              <h3 className="text-xs font-bold uppercase tracking-wider text-sp-admin-text">{col.label}</h3>
-              <span className="text-xs tabular-nums text-sp-admin-muted">{items.length}</span>
+            {/* Column header con color */}
+            <div className="bg-sp-admin-card border-b border-sp-admin-border px-4 py-3 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full" style={{ background: col.color }} />
+                <h3 className="text-[11px] font-bold uppercase tracking-[0.18em] text-sp-admin-muted">{col.label}</h3>
+              </div>
+              <span className="text-[11px] font-bold tabular-nums px-2 py-0.5 rounded-full"
+                style={{ color: col.color, background: `${col.color}14` }}>
+                {items.length}
+              </span>
             </div>
-            <div className="space-y-2">
+
+            {/* Task cards */}
+            <div className="bg-sp-admin-bg/60 p-3 min-h-[400px] space-y-2">
               {items.length === 0 ? (
-                <p className="text-xs italic text-sp-admin-muted text-center py-6">Suelta tareas aquí.</p>
+                <div className="flex items-center justify-center h-20 border-2 border-dashed border-sp-admin-border rounded-lg">
+                  <p className="text-[10px] text-sp-admin-muted/60">Suelta tareas aquí</p>
+                </div>
               ) : (
                 items.map((t) => {
                   const owner = usersById.get(t.ownerId);
@@ -100,32 +113,44 @@ export function TaskKanban({ tasks, users, relatedLabels, onOpenAction }: Props)
                       onDragStart={() => setDraggingId(t.id)}
                       onDragEnd={() => { setDraggingId(null); setHoverCol(null); }}
                       onClick={() => onOpenAction(t)}
-                      className={`group rounded-xl bg-sp-admin-bg border border-sp-admin-border p-3 cursor-grab active:cursor-grabbing hover:border-sp-admin-accent/50 transition-colors ${draggingId === t.id ? 'opacity-50' : ''}`}
+                      className={`rounded-lg bg-sp-admin-card border border-sp-admin-border p-3 cursor-grab active:cursor-grabbing hover:border-sp-admin-accent/40 hover:shadow-sm transition-all ${
+                        draggingId === t.id ? 'opacity-40 scale-95' : ''
+                      }`}
                     >
-                      <div className="flex items-start gap-2 mb-2">
+                      {/* Título + prioridad */}
+                      <div className="flex items-start gap-2">
                         <span className={`shrink-0 w-2 h-2 rounded-full mt-1.5 ${PRIORITY_DOT[t.priority]}`} />
-                        <p className={`text-sm font-medium flex-1 ${t.status === 'completada' ? 'text-sp-admin-muted line-through' : 'text-sp-admin-text'}`}>
-                          {t.title}
-                        </p>
+                        <p className={`text-[12px] font-medium flex-1 leading-snug ${
+                          t.status === 'completada' ? 'text-sp-admin-muted line-through' : 'text-sp-admin-text'
+                        }`}>{t.title}</p>
                       </div>
-                      <div className="flex items-center justify-between flex-wrap gap-1">
-                        <span className="text-[10px] uppercase tracking-wider text-sp-admin-muted">{t.category}</span>
+                      {/* Categoría + fecha + recurrencia */}
+                      <div className="flex items-center justify-between flex-wrap gap-1 mt-2">
+                        {t.category && (
+                          <span className="text-[9px] font-bold uppercase tracking-wide text-sp-admin-muted bg-sp-admin-hover border border-sp-admin-border px-1.5 py-0.5 rounded-full">
+                            {t.category}
+                          </span>
+                        )}
                         {t.recurrenceTemplateId !== null && t.recurrence && <RecurrenceBadge frequency={t.recurrence} />}
                         {t.dueDate && (
-                          <span className={`text-[10px] tabular-nums px-1.5 py-0.5 rounded ${overdue ? 'bg-red-500/15 text-red-400' : 'text-sp-admin-muted'}`}>
-                            {t.dueDate.slice(5)}
+                          <span className={`text-[10px] tabular-nums font-semibold px-1.5 py-0.5 rounded-full ml-auto ${
+                            overdue ? 'bg-red-50 text-red-600 border border-red-200' : 'text-sp-admin-muted'
+                          }`}>
+                            {overdue ? '⚠ ' : ''}{t.dueDate.slice(5)}
                           </span>
                         )}
                       </div>
+                      {/* Entidad relacionada */}
                       {related && (
                         <div className="mt-2">
-                          <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold border ${RELATED_BG[related.type] ?? ''} truncate max-w-full`} title={related.label}>
+                          <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-semibold border ${RELATED_BG[related.type] ?? ''} truncate max-w-full`}>
                             {related.label}
                           </span>
                         </div>
                       )}
+                      {/* Owner */}
                       {owner && (
-                        <div className="mt-2 flex items-center gap-1.5">
+                        <div className="mt-2 flex items-center gap-1.5 pt-2 border-t border-sp-admin-border/40">
                           <Avatar userId={owner.id} name={owner.name} size="sm" />
                           <span className="text-[10px] text-sp-admin-muted">{owner.name}</span>
                         </div>
