@@ -27,7 +27,7 @@ test.describe('Responsive — iPhone SE (375×667)', () => {
 
   test('dashboard renders without horizontal overflow', async ({ page }) => {
     await gotoAdmin(page, '/admin');
-    await expect(page.getByRole('heading', { level: 1, name: 'Dashboard' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: 'Panel general' })).toBeVisible();
     expect(await hasHorizontalOverflow(page)).toBe(false);
   });
 
@@ -74,7 +74,7 @@ test.describe('Responsive — iPad (768×1024)', () => {
 
   test('dashboard renders without horizontal overflow', async ({ page }) => {
     await gotoAdmin(page, '/admin');
-    await expect(page.getByRole('heading', { level: 1, name: 'Dashboard' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: 'Panel general' })).toBeVisible();
     expect(await hasHorizontalOverflow(page)).toBe(false);
   });
 
