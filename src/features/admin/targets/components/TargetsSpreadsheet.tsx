@@ -21,6 +21,7 @@ import {
   ImportResultBanner,
   BulkActionsBar,
   TableHeader,
+  ConfirmDeleteAllModal,
 } from './TargetsSpreadsheet.parts';
 import { TargetRow } from './TargetsSpreadsheet.row';
 
@@ -52,6 +53,7 @@ export function TargetsSpreadsheet({
   const [brandUserId, setBrandUserId] = useState('');
   const [isPending, startTransition] = useTransition();
   const [importResult, setImportResult] = useState<{ inserted: number; updated: number; errors: number } | null>(null);
+  const [showDeleteAllModal, setShowDeleteAllModal] = useState(false);
   const csvInputRef = useRef<HTMLInputElement>(null);
 
   const statusCounts = useMemo(() => {
@@ -240,7 +242,11 @@ export function TargetsSpreadsheet({
   };
 
   const handleDeleteAll = (): void => {
-    if (!confirm('\u00bfEliminar TODOS los targets? Esta acci\u00f3n no se puede deshacer.')) return;
+    setShowDeleteAllModal(true);
+  };
+
+  const confirmDeleteAll = (): void => {
+    setShowDeleteAllModal(false);
     startTransition(async () => {
       await deleteAllTargetsAction();
       setSelected(new Set());
@@ -252,6 +258,14 @@ export function TargetsSpreadsheet({
   }
 
   return (
+    <>
+    {showDeleteAllModal && (
+      <ConfirmDeleteAllModal
+        totalCount={targets.length}
+        onConfirm={confirmDeleteAll}
+        onCancel={() => setShowDeleteAllModal(false)}
+      />
+    )}
     <div className="space-y-4">
       <StatusTabs
         statusFilter={statusFilter}
@@ -346,5 +360,6 @@ export function TargetsSpreadsheet({
         </table>
       </div>
     </div>
+    </>
   );
 }

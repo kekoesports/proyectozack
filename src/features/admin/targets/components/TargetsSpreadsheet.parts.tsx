@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import type { BrandUserRow } from '@/lib/queries/brandUsers';
 import {
   PLATFORM_COLORS,
@@ -287,6 +288,87 @@ export function BulkActionsBar({
           <path d="M18 6 6 18M6 6l12 12" strokeLinecap="round" />
         </svg>
       </button>
+    </div>
+  );
+}
+
+type ConfirmDeleteAllModalProps = Readonly<{
+  totalCount: number;
+  onConfirm: () => void;
+  onCancel: () => void;
+}>;
+
+const CONFIRM_WORD = 'ELIMINAR';
+
+/**
+ * Modal de doble confirmación para borrar TODOS los targets.
+ * El usuario debe escribir "ELIMINAR" exactamente para habilitar el botón.
+ *
+ * @kind client
+ * @feature admin/targets
+ */
+export function ConfirmDeleteAllModal({ totalCount, onConfirm, onCancel }: ConfirmDeleteAllModalProps): React.ReactElement {
+  const [typed, setTyped] = useState('');
+  const isValid = typed === CONFIRM_WORD;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="delete-all-title"
+        className="w-full max-w-md mx-4 bg-sp-admin-card border border-red-500/40 rounded-xl shadow-2xl p-6 space-y-5"
+      >
+        <div className="flex items-start gap-3">
+          <div className="shrink-0 w-9 h-9 rounded-full bg-red-900/30 border border-red-500/30 flex items-center justify-center text-red-400">
+            <svg aria-hidden="true" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+            </svg>
+          </div>
+          <div>
+            <h2 id="delete-all-title" className="text-sm font-semibold text-red-400">
+              Eliminar todos los targets
+            </h2>
+            <p className="mt-1 text-xs text-sp-admin-muted">
+              Esta acción borrará <span className="font-semibold text-sp-admin-text">{totalCount} target{totalCount !== 1 ? 's' : ''}</span> de forma permanente. No se puede deshacer.
+            </p>
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <label htmlFor="confirm-input" className="block text-xs text-sp-admin-muted">
+            Escribe <span className="font-mono font-semibold text-sp-admin-text">{CONFIRM_WORD}</span> para confirmar:
+          </label>
+          <input
+            id="confirm-input"
+            type="text"
+            value={typed}
+            onChange={(e) => setTyped(e.target.value)}
+            autoComplete="off"
+            spellCheck={false}
+            className="w-full bg-sp-admin-bg rounded-lg px-3 py-2 text-sm font-mono text-sp-admin-text border border-sp-admin-border focus:outline-none focus:ring-1 focus:ring-red-500/50 transition-all"
+            placeholder={CONFIRM_WORD}
+          />
+        </div>
+
+        <div className="flex items-center justify-end gap-2 pt-1">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="px-4 py-2 rounded-lg text-xs font-semibold text-sp-admin-muted hover:text-sp-admin-text hover:bg-sp-admin-hover transition-colors"
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            onClick={onConfirm}
+            disabled={!isValid}
+            className="px-4 py-2 rounded-lg text-xs font-semibold bg-red-600 text-white hover:bg-red-700 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+          >
+            Eliminar todo
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
