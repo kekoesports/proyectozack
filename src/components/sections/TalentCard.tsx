@@ -15,9 +15,13 @@ export function TalentCard({ talent, onOpen }: TalentCardProps) {
   const grad = gradientStyle(talent.gradientC1, talent.gradientC2);
 
   return (
-    <button
+    <div
+      role="button"
+      tabIndex={0}
       onClick={onOpen}
-      className="group text-left w-full rounded-2xl overflow-hidden border border-sp-border bg-white hover:shadow-xl transition-all hover:-translate-y-0.5 focus:outline-none"
+      onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onOpen()}
+      aria-label={`Ver perfil de ${talent.name}`}
+      className="group text-left w-full rounded-2xl overflow-hidden border border-sp-border bg-white hover:shadow-xl transition-all hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sp-orange focus-visible:ring-offset-2 cursor-pointer"
     >
       {/* Photo / Gradient fallback */}
       <div className="relative h-52 overflow-hidden" style={{ background: grad }}>
@@ -74,6 +78,6 @@ export function TalentCard({ talent, onOpen }: TalentCardProps) {
           ))}
         </nav>
       </div>
-    </button>
+    </div>
   );
 }

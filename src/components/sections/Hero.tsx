@@ -41,24 +41,24 @@ export function Hero() {
       {/* Aura layer — paint-contained so blurs never trigger outside repaints */}
       <div className="absolute inset-0 pointer-events-none [contain:paint]">
         <m.div
-          className="absolute top-1/2 left-1/2 -ml-[500px] -mt-[500px] will-change-transform"
+          className="absolute top-1/2 left-1/2 -ml-[350px] -mt-[350px] will-change-transform"
           style={{ x: pinkX, y: pinkY }}
         >
-          <div className="hero-aura-pink hero-aura-pink-bg w-[1000px] h-[1000px] rounded-full blur-[40px] sm:blur-[80px]" />
+          <div className="hero-aura-pink hero-aura-pink-bg w-[700px] h-[700px] rounded-full blur-[30px] sm:blur-[60px]" />
         </m.div>
         <m.div
           className="absolute top-[-10%] right-[-10%] will-change-transform"
           style={{ x: orangeX, y: orangeY }}
         >
-          <div className="hero-aura-orange hero-aura-orange-bg w-[800px] h-[800px] rounded-full blur-[50px] sm:blur-[100px]" />
+          <div className="hero-aura-orange hero-aura-orange-bg w-[600px] h-[600px] rounded-full blur-[35px] sm:blur-[70px]" />
         </m.div>
       </div>
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full flex-1 flex flex-col items-center justify-center text-center pb-20">
 
         <m.div
-          initial={{ opacity: 0, scale: 0.8, y: 20 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
+          initial={{ scale: 0.8, y: 20 }}
+          animate={{ scale: 1, y: 0 }}
           transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
           className="relative mb-8"
         >
@@ -85,26 +85,27 @@ export function Hero() {
           Gaming &amp; Esports · Europa · LatAm · Turquía
         </m.span>
 
+        {/* h1 visible desde SSR (opacity: 1) — el slide-in preserva la animación sin bloquear LCP */}
         <h1 className="font-display text-[2.75rem] xs:text-[3.5rem] sm:text-[5rem] md:text-[7rem] lg:text-[10rem] font-black uppercase leading-[0.85] tracking-tight mb-10">
           <m.span
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ y: 40 }}
+            animate={{ y: 0 }}
             transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: 0.3 }}
             className="block text-white"
           >
             CONECTAMOS
           </m.span>
           <m.span
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ y: 40 }}
+            animate={{ y: 0 }}
             transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: 0.45 }}
             className="block hero-headline-gradient"
           >
             CREADORES
           </m.span>
           <m.span
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ y: 40 }}
+            animate={{ y: 0 }}
             transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: 0.6 }}
             className="block text-white"
           >
@@ -114,8 +115,8 @@ export function Hero() {
 
         <div className="flex flex-col items-center max-w-2xl mx-auto">
           <m.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ y: 20 }}
+            animate={{ y: 0 }}
             transition={{ duration: 0.8, delay: 0.8 }}
             className="text-base sm:text-lg text-sp-muted2 mb-8 leading-relaxed font-medium"
           >

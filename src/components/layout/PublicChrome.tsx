@@ -2,7 +2,6 @@
 
 import { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
-import Lenis from 'lenis';
 import { WhatsAppWidget } from './WhatsAppWidget';
 import type { ReactNode } from 'react';
 
@@ -31,20 +30,25 @@ export function PublicChrome({ nav, footer, children }: PublicChromeProps) {
 
   useEffect(() => {
     if (isPortal) return;
-    const lenis = new Lenis({
-      duration: 1.2,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-      smoothWheel: true,
-    });
     let rafId: number;
-    function raf(time: number) {
-      lenis.raf(time);
+    let lenisInstance: { raf: (t: number) => void; destroy: () => void } | null = null;
+
+    import('lenis').then(({ default: Lenis }) => {
+      lenisInstance = new Lenis({
+        duration: 1.2,
+        easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+        smoothWheel: true,
+      });
+      function raf(time: number) {
+        lenisInstance!.raf(time);
+        rafId = requestAnimationFrame(raf);
+      }
       rafId = requestAnimationFrame(raf);
-    }
-    rafId = requestAnimationFrame(raf);
+    });
+
     return () => {
       cancelAnimationFrame(rafId);
-      lenis.destroy();
+      lenisInstance?.destroy();
     };
   }, [isPortal]);
 
