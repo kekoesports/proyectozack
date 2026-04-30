@@ -2,11 +2,13 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { requireAnyRole } from '@/lib/auth-guard';
 import { getCrmBrand, getBrandContacts, listBrandFollowups } from '@/lib/queries/crmBrands';
-import { listCampaigns, getBrandCampaignSummary } from '@/lib/queries/campaigns';
+import { listCampaigns } from '@/lib/queries/campaigns';
 import { listInvoices } from '@/lib/queries/invoices';
 import { listBriefs } from '@/lib/queries/brandBriefs';
-import { BrandBriefsTab } from '@/components/admin/brands/BrandBriefsTab';
-import { BrandsTabs } from '@/components/admin/brands/BrandsTabs';
+import { BrandBriefsTab } from '@/features/admin/brands/components/BrandBriefsTab';
+import { BrandsTabs } from '@/features/admin/brands/components/BrandsTabs';
+
+import type { CampaignRow } from '@/types';
 
 // ── Helpers ──────────────────────────────────────────────────────────
 
@@ -58,15 +60,24 @@ export default async function BrandDetailPage({
 
   const session = await requireAnyRole(['admin', 'staff'], '/admin/login');
 
-  const [brand, contacts, followups, campaigns, invoices, campaignSummary, briefs] = await Promise.all([
+  const [brand, contacts, followups, campaigns, invoices, briefs] = await Promise.all([
     getCrmBrand(brandId),
     getBrandContacts(brandId),
     listBrandFollowups(brandId),
-    listCampaigns({ brandId }),
+    listCampaigns({ filters: { brandId } }),
     listInvoices({ brandId }),
-    getBrandCampaignSummary(brandId),
     listBriefs(brandId),
   ]);
+
+  // Derived campaign summary from the list
+  const campaignSummary = {
+    total:          campaigns.length,
+    active:         campaigns.filter((c: CampaignRow) => c.status === 'activa').length,
+    totalRevenue:   campaigns.reduce((s: number, c: CampaignRow) => s + Number(c.amountBrand ?? 0), 0),
+    pendingRevenue: campaigns
+      .filter((c: CampaignRow) => !['cancelada', 'pagada'].includes(c.status))
+      .reduce((s: number, c: CampaignRow) => s + Number(c.amountBrand ?? 0), 0),
+  };
 
   if (!brand) notFound();
 
@@ -270,28 +281,26 @@ export default async function BrandDetailPage({
                 </tr>
               </thead>
               <tbody>
-                {campaigns.map((c) => {
-                  const margin = Number(c.amountBrand ?? 0) - Number(c.amountTalent ?? 0) - Number(c.agencyFee ?? 0);
-                  const scfg = CAMPAIGN_STATUS[c.status] ?? { label: c.status, color: '#72728a' };
-                  return (
-                    <tr key={c.id} className="border-b border-sp-admin-border/40 last:border-0 hover:bg-sp-admin-hover transition-colors">
-                      <td className="px-4 py-2.5 text-[12px] font-medium text-sp-admin-text">{c.name}</td>
-                      <td className="px-4 py-2.5 text-[12px] text-sp-admin-muted">{c.talentName ?? '—'}</td>
-                      <td className="px-4 py-2.5">
-                        <span className="text-[10px] font-bold uppercase" style={{ color: scfg.color }}>{scfg.label}</span>
-                      </td>
-                      <td className="px-4 py-2.5 text-[12px] font-semibold tabular-nums text-sp-admin-text">{formatMoney(c.amountBrand)}</td>
-                      <td className="px-4 py-2.5 text-[12px] font-semibold tabular-nums" style={{ color: margin >= 0 ? '#16a34a' : '#ef4444' }}>
-                        {formatMoney(String(margin))}
-                      </td>
-                      <td className="px-4 py-2.5">
-                        <span className={`text-[10px] font-bold ${c.brandPaid ? 'text-emerald-600' : 'text-sp-admin-muted'}`}>
-                          {c.brandPaid ? '✓ Sí' : 'No'}
-                        </span>
-                      </td>
-                    </tr>
-                  );
-                })}
+                {campaigns.map((c: CampaignRow) => {
+                   const margin = Number(c.amountBrand ?? 0) - Number(c.amountTalent ?? 0);
+                   const scfg = CAMPAIGN_STATUS[c.status] ?? { label: c.status, color: '#72728a' };
+                   return (
+                     <tr key={c.id} className="border-b border-sp-admin-border/40 last:border-0 hover:bg-sp-admin-hover transition-colors">
+                       <td className="px-4 py-2.5 text-[12px] font-medium text-sp-admin-text">{c.name}</td>
+                       <td className="px-4 py-2.5 text-[12px] text-sp-admin-muted">—</td>
+                       <td className="px-4 py-2.5">
+                         <span className="text-[10px] font-bold uppercase" style={{ color: scfg.color }}>{scfg.label}</span>
+                       </td>
+                       <td className="px-4 py-2.5 text-[12px] font-semibold tabular-nums text-sp-admin-text">{formatMoney(c.amountBrand)}</td>
+                       <td className="px-4 py-2.5 text-[12px] font-semibold tabular-nums" style={{ color: margin >= 0 ? '#16a34a' : '#ef4444' }}>
+                         {formatMoney(String(margin))}
+                       </td>
+                       <td className="px-4 py-2.5">
+                         <span className="text-[10px] font-bold text-sp-admin-muted">—</span>
+                       </td>
+                     </tr>
+                   );
+                 })}
               </tbody>
             </table>
           </div>

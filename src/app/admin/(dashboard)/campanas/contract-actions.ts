@@ -7,7 +7,10 @@ import {
   getContractByCampaign, createContract, updateContract,
   addSigner, removeSigner,
 } from '@/lib/queries/contracts';
-import { resend } from '@/lib/email';
+import { Resend } from 'resend';
+import { env } from '@/lib/env';
+
+const resend = new Resend(env.RESEND_API_KEY);
 import { absoluteUrl } from '@/lib/site-url';
 
 type ActionState = { readonly error?: string; readonly success?: boolean; readonly id?: number };

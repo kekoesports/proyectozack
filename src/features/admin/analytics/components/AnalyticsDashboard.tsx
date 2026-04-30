@@ -91,11 +91,14 @@ const INPUT_SM = 'h-8 rounded-lg border border-sp-admin-border bg-white px-3 tex
 
 const STATUSES: { value: CampaignStatus | ''; label: string }[] = [
   { value: '',            label: 'Todos los estados' },
+  { value: 'propuesta',   label: 'Propuesta' },
   { value: 'negociacion', label: 'Negociación' },
+  { value: 'aprobada',    label: 'Aprobada' },
   { value: 'activa',      label: 'Activa' },
-  { value: 'pausada',     label: 'Pausada' },
-  { value: 'finalizada',  label: 'Finalizada' },
+  { value: 'completada',  label: 'Completada' },
   { value: 'cancelada',   label: 'Cancelada' },
+  { value: 'pendiente_pago', label: 'Pendiente pago' },
+  { value: 'pagada',      label: 'Pagada' },
 ];
 
 // ── Dashboard ─────────────────────────────────────────────────────────
@@ -160,18 +163,18 @@ export function AnalyticsDashboard({ campaigns, invoices }: Props): React.ReactE
     // Fallback: campañas
     const notCancelled = filteredCampaigns.filter((c) => c.status !== 'cancelada');
     const revTotal   = notCancelled.reduce((s, c) => s + Number(c.amountBrand  ?? 0), 0);
-    const revCobrado = notCancelled.filter((c) => c.brandPaid).reduce((s, c) => s + Number(c.amountBrand ?? 0), 0);
-    const revPdte    = notCancelled.filter((c) => !c.brandPaid).reduce((s, c) => s + Number(c.amountBrand ?? 0), 0);
+    const revCobrado = notCancelled.filter((c) => c.brandPaid !== 'no').reduce((s, c) => s + Number(c.amountBrand ?? 0), 0);
+    const revPdte    = notCancelled.filter((c) => c.brandPaid === 'no').reduce((s, c) => s + Number(c.amountBrand ?? 0), 0);
     const expTotal   = notCancelled.reduce((s, c) => s + Number(c.amountTalent ?? 0), 0);
-    const expPagado  = notCancelled.filter((c) => c.talentPaid).reduce((s, c) => s + Number(c.amountTalent ?? 0), 0);
-    const expPdte    = notCancelled.filter((c) => !c.talentPaid).reduce((s, c) => s + Number(c.amountTalent ?? 0), 0);
+    const expPagado  = notCancelled.filter((c) => c.talentPaid !== 'no').reduce((s, c) => s + Number(c.amountTalent ?? 0), 0);
+    const expPdte    = notCancelled.filter((c) => c.talentPaid === 'no').reduce((s, c) => s + Number(c.amountTalent ?? 0), 0);
     const margin     = revTotal - expTotal;
     return { revTotal, revCobrado, revPdte, expTotal, expPagado, expPdte, margin };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasInvoices, filteredInvoices, filteredCampaigns]); // PENDING_INV/EXP son constantes de módulo
 
   const tratosActivos     = filteredCampaigns.filter((c) => c.status === 'activa').length;
-  const tratosFinalizados = filteredCampaigns.filter((c) => c.status === 'finalizada').length;
+  const tratosFinalizados = filteredCampaigns.filter((c) => c.status === 'completada').length;
   const margenPct         = pct(kpis.margin, kpis.revTotal);
   const activeFilters     = [status, sector, search].filter(Boolean).length;
 

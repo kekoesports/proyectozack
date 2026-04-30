@@ -29,6 +29,29 @@ type AdminSidebarProps = {
   readonly logoutHref: string;
 };
 
+// ── SidebarHero ──────────────────────────────────────────────────────
+
+type SidebarHeroProps = { readonly onClick: () => void };
+
+function SidebarHero({ onClick }: SidebarHeroProps): React.ReactElement {
+  return (
+    <Link
+      href="/admin"
+      onClick={onClick}
+      className="flex items-center gap-2.5 px-4 py-4 shrink-0"
+      aria-label="SocialPro CRM"
+    >
+      <Image
+        src="/images/logos/logo-full.png"
+        alt="SocialPro"
+        width={100}
+        height={56}
+        className="h-7 w-auto object-contain brightness-0 invert opacity-85"
+      />
+    </Link>
+  );
+}
+
 /**
  * Sidebar de navegación del admin con grupos (CRM/Operaciones/Finanzas/Más), menú móvil y bloque de usuario con logout.
  *

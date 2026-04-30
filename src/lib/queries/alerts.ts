@@ -1,4 +1,4 @@
-import { and, asc, eq, inArray, isNull, isNotNull, lt, not, sql } from 'drizzle-orm';
+import { and, asc, eq, isNull, isNotNull, lt, not, sql } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { crmTasks, crmBrandFollowups, crmBrands, campaigns, talents } from '@/db/schema';
 
@@ -102,23 +102,24 @@ export async function getDashboardAlerts(): Promise<{
       .orderBy(asc(crmBrandFollowups.scheduledAt))
       .limit(3),
 
-    // 3. Cobros de marca pendientes (max 3)
+    // 3. Cobros de marca pendientes (max 3) — campaigns where amountBrand > 0 and not cancelled/paid
+    // brandPaid is derived from invoices, not a column. Use status as proxy.
     db.select({
       id: campaigns.id, name: campaigns.name, status: campaigns.status,
-      amountBrand: campaigns.amountBrand, brandPaidDate: campaigns.brandPaidDate,
+      amountBrand: campaigns.amountBrand,
       brandName: crmBrands.name, talentName: talents.name,
     }).from(campaigns)
       .leftJoin(crmBrands, eq(crmBrands.id, campaigns.brandId))
       .leftJoin(talents, eq(talents.id, campaigns.talentId))
       .where(and(
-        eq(campaigns.brandPaid, false),
         sql`${campaigns.amountBrand} > 0`,
         not(eq(campaigns.status, 'cancelada')),
+        not(eq(campaigns.status, 'pagada')),
       ))
       .orderBy(asc(campaigns.endDate))
       .limit(3),
 
-    // 4. Pagos pendientes a talento (max 3, solo finalizadas)
+    // 4. Pagos pendientes a talento (max 3)
     db.select({
       id: campaigns.id, name: campaigns.name,
       amountTalent: campaigns.amountTalent,
@@ -127,8 +128,8 @@ export async function getDashboardAlerts(): Promise<{
       .leftJoin(crmBrands, eq(crmBrands.id, campaigns.brandId))
       .leftJoin(talents, eq(talents.id, campaigns.talentId))
       .where(and(
-        eq(campaigns.talentPaid, false),
         not(eq(campaigns.status, 'cancelada')),
+        not(eq(campaigns.status, 'pagada')),
         sql`${campaigns.amountTalent} > 0`,
       ))
       .limit(3),
@@ -203,12 +204,12 @@ export async function getDashboardAlerts(): Promise<{
     items.push({
       id:          `unpaid_brand_${c.id}`,
       type:        'unpaid_brand',
-      severity:    c.status === 'finalizada' ? 'high' : 'medium',
+      severity:    c.status === 'completada' ? 'high' : 'medium',
       title:       `Cobro pendiente${parts ? ` — ${parts}` : ''}`,
       description: `${fmt(amount)} sin cobrar`,
       href:        '/admin/campanas',
       amount,
-      daysInfo:    c.status === 'finalizada' ? 'Trato finalizado' : 'Trato activo',
+      daysInfo:    c.status === 'completada' ? 'Trato completado' : 'Trato activo',
     });
   }
 

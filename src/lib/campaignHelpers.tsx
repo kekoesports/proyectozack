@@ -36,11 +36,20 @@ export function StatusBadge({ status }: { readonly status: string }): React.Reac
   );
 }
 
-export function PaidBadge({ paid }: { readonly paid: boolean }): React.ReactElement {
-  if (paid) {
+export function PaidBadge({ paid }: { readonly paid: 'si' | 'no' | 'parcial' | boolean }): React.ReactElement {
+  const isPaid = paid === true || paid === 'si';
+  const isPartial = paid === 'parcial';
+  if (isPaid) {
     return (
       <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
         ✓ Cobrado
+      </span>
+    );
+  }
+  if (isPartial) {
+    return (
+      <span className="inline-flex items-center gap-1 text-[10px] font-bold text-blue-600 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-full">
+        ~ Parcial
       </span>
     );
   }

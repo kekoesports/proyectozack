@@ -34,7 +34,7 @@ function TemplateForm({
 }): React.ReactElement {
   const [title,    setTitle]    = useState(template?.title    ?? '');
   const [category, setCategory] = useState(template?.category ?? 'Operativo');
-  const [priority, setPriority] = useState<'alta' | 'media' | 'baja'>(template?.priority ?? 'media');
+  const [priority, setPriority] = useState<'alta' | 'media' | 'baja'>(template?.defaultPriority ?? 'media');
 
   return (
     <div className="flex flex-wrap items-center gap-2 px-4 py-2.5 bg-sp-admin-hover/30 border-b border-sp-admin-border/60">
@@ -74,7 +74,7 @@ export function TaskTemplatesPanel({ templates, tasks, weekLabel }: Props): Reac
   const [,              startSave]   = useTransition();
 
   const existingTitles = new Set(tasks.map((t) => t.title));
-  const active   = templates.filter((t) => t.isActive);
+  const active   = templates.filter((t) => t.active);
   const created  = active.filter((t) => existingTitles.has(t.title)).length;
   const missing  = active.filter((t) => !existingTitles.has(t.title));
 
@@ -171,11 +171,11 @@ export function TaskTemplatesPanel({ templates, tasks, weekLabel }: Props): Reac
               }
               return (
                 <div key={tpl.id}
-                  className={`flex items-center gap-2.5 px-4 py-2.5 transition-colors group/trow ${!tpl.isActive ? 'opacity-40' : ''} hover:bg-sp-admin-hover/30`}>
+                  className={`flex items-center gap-2.5 px-4 py-2.5 transition-colors group/trow ${!tpl.active ? 'opacity-40' : ''} hover:bg-sp-admin-hover/30`}>
                   {/* Toggle activa */}
-                  <input type="checkbox" checked={tpl.isActive} onChange={() => handleToggle(tpl.id, tpl.isActive)}
+                  <input type="checkbox" checked={tpl.active} onChange={() => handleToggle(tpl.id, tpl.active)}
                     className="rounded accent-sp-admin-accent cursor-pointer shrink-0"
-                    title={tpl.isActive ? 'Desactivar plantilla' : 'Activar plantilla'} />
+                    title={tpl.active ? 'Desactivar plantilla' : 'Activar plantilla'} />
                   {/* Estado creada/no-creada */}
                   <span className={`w-3.5 h-3.5 rounded-full flex items-center justify-center text-[8px] font-bold shrink-0 ${
                     isCreated ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' : 'bg-sp-admin-border text-sp-admin-muted'
@@ -189,7 +189,7 @@ export function TaskTemplatesPanel({ templates, tasks, weekLabel }: Props): Reac
                   {/* Categoría */}
                   <span className="text-[10px] text-sp-admin-muted hidden sm:inline shrink-0">{tpl.category}</span>
                   {/* Prioridad */}
-                  <div className="hidden md:block shrink-0"><PriorityBadge priority={tpl.priority} /></div>
+                  <div className="hidden md:block shrink-0"><PriorityBadge priority={tpl.defaultPriority} /></div>
                   {/* Acciones (aparecen al hover) */}
                   <div className="flex items-center gap-1 opacity-0 group-hover/trow:opacity-100 transition-opacity shrink-0">
                     {!isCreated && (

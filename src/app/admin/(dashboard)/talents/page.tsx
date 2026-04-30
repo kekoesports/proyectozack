@@ -1,4 +1,4 @@
-import { AdminPageHeader } from '@/components/admin/AdminPageHeader';
+import { AdminPageHeader } from '@/features/admin/_shared/components/AdminPageHeader';
 import { getAdminRosterWithGrowth } from '@/lib/queries/talents';
 import { listAllVerticals } from '@/lib/queries/talentBusiness';
 import { RosterSpreadsheet } from '@/features/admin/talents/components/RosterSpreadsheet';
@@ -6,7 +6,20 @@ import { InfluencerCardsView } from '@/features/admin/talents/components/Influen
 import { InfluencerImport } from '@/features/admin/talents/components/InfluencerImport';
 import { BrandsTabs } from '@/features/admin/brands/components/BrandsTabs';
 import type { TalentVertical } from '@/types';
-import type { CurrentTalent } from '@/lib/statsImport';
+
+type CurrentTalent = {
+  id: number;
+  name: string;
+  socials: {
+    id: number;
+    talentId: number;
+    platform: string;
+    handle: string;
+    followersDisplay: string;
+    profileUrl: string | null;
+    avgViewers: number | null;
+  }[];
+};
 
 export default async function AdminTalentsPage(): Promise<React.ReactElement> {
   const [creators, verticals] = await Promise.all([
@@ -85,11 +98,7 @@ export default async function AdminTalentsPage(): Promise<React.ReactElement> {
             key:     'import',
             label:   'Importar / Exportar',
             content: (
-              <InfluencerImport
-                roster={roster}
-                creators={creators}
-                verticalsByTalent={verticalsByTalent}
-              />
+              <InfluencerImport />
             ),
           },
         ]}

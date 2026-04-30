@@ -1,7 +1,7 @@
 import { getCaseStudies } from '@/lib/queries/cases';
 import { deleteCaseAction } from './actions';
 import { DeleteButton } from '@/components/ui/DeleteButton';
-import { AdminPageHeader } from '@/components/admin/AdminPageHeader';
+import { AdminPageHeader } from '@/features/admin/_shared/components/AdminPageHeader';
 
 export default async function AdminCasesPage(): Promise<React.ReactElement> {
   const cases = await getCaseStudies();

@@ -16,8 +16,7 @@ export { STATUS_CONFIG, PAYMENT_METHODS, SECTORS, GEOS, formatMoney, StatusBadge
 export function calcNetMargin(c: CampaignWithRelations): number {
   const brand  = Number(c.amountBrand ?? 0);
   const talent = Number(c.amountTalent ?? 0);
-  const fee    = Number(c.agencyFee ?? 0);
-  return brand - talent - fee;
+  return brand - talent;
 }
 
 // ── Form con cálculo automático ───────────────────────────────────────
@@ -41,7 +40,7 @@ function CampaignForm({ campaign, brands, talents, users, onClose }: CampaignFor
   // Campos económicos controlados para cálculo en tiempo real
   const [amountBrand,  setAmountBrand]  = useState(String(campaign?.amountBrand  ?? ''));
   const [amountTalent, setAmountTalent] = useState(String(campaign?.amountTalent ?? ''));
-  const [agencyFee,    setAgencyFee]    = useState(String(campaign?.agencyFee    ?? ''));
+  const [agencyFee,    setAgencyFee]    = useState('');
 
   // Cálculos automáticos
   const bNum = parseFloat(amountBrand)  || 0;
@@ -192,13 +191,13 @@ function CampaignForm({ campaign, brands, talents, users, onClose }: CampaignFor
 
           {/* Descripción + Deliverables */}
           <div>
-            <label className={LABEL}>Descripción</label>
-            <textarea name="description" rows={2} defaultValue={campaign?.description ?? ''}
+            <label className={LABEL}>Notas (entregas / descripción)</label>
+            <textarea name="description" rows={2}
               placeholder="Descripción del trato…" className={`${INPUT} resize-none`} />
           </div>
           <div>
             <label className={LABEL}>Deliverables</label>
-            <textarea name="deliverables" rows={2} defaultValue={campaign?.deliverables ?? ''}
+            <textarea name="deliverables" rows={2}
               placeholder="Ej: 4 streams + 2 posts YouTube…" className={`${INPUT} resize-none`} />
           </div>
           <div>
@@ -248,9 +247,9 @@ export function CampaignsManager({ campaigns: initialCampaigns, brands, talents,
       if (filterBrand  && String(c.brandId)  !== filterBrand)  return false;
       if (filterTalent && String(c.talentId) !== filterTalent) return false;
       if (filterSector && c.sector !== filterSector) return false;
-      if (filterPaid === 'brand_paid'    && !c.brandPaid)  return false;
-      if (filterPaid === 'brand_unpaid'  && c.brandPaid)   return false;
-      if (filterPaid === 'talent_unpaid' && c.talentPaid)  return false;
+      if (filterPaid === 'brand_paid'    && c.brandPaid === 'no')  return false;
+      if (filterPaid === 'brand_unpaid'  && c.brandPaid !== 'no')  return false;
+      if (filterPaid === 'talent_unpaid' && c.talentPaid !== 'no') return false;
       if (search) {
         const q = search.toLowerCase();
         return (
@@ -264,11 +263,11 @@ export function CampaignsManager({ campaigns: initialCampaigns, brands, talents,
   }, [initialCampaigns, filterStatus, filterBrand, filterTalent, filterSector, filterPaid, search]);
 
   const totalRevenue      = filtered.reduce((s, c) => s + Number(c.amountBrand ?? 0), 0);
-  const pendingBrand      = filtered.filter((c) => !c.brandPaid).reduce((s, c) => s + Number(c.amountBrand ?? 0), 0);
-  const pendingTalent     = filtered.filter((c) => !c.talentPaid).reduce((s, c) => s + Number(c.amountTalent ?? 0), 0);
+  const pendingBrand      = filtered.filter((c) => c.brandPaid === 'no').reduce((s, c) => s + Number(c.amountBrand ?? 0), 0);
+  const pendingTalent     = filtered.filter((c) => c.talentPaid === 'no').reduce((s, c) => s + Number(c.amountTalent ?? 0), 0);
   const totalMargin       = filtered.reduce((s, c) => s + calcNetMargin(c), 0);
   const activeCount       = filtered.filter((c) => c.status === 'activa').length;
-  const finishedCount     = filtered.filter((c) => c.status === 'finalizada').length;
+  const finishedCount     = filtered.filter((c) => c.status === 'completada').length;
 
   const eur = (n: number) =>
     new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(n);

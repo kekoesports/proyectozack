@@ -5,6 +5,8 @@ export const STATUS_LABELS: Record<CrmBrandStatus, string> = {
   contactada: 'Contactada',
   en_negociacion: 'En negociación',
   activa: 'Activa',
+  inactiva: 'Inactiva',
+  perdida: 'Perdida',
   pausada: 'Pausada',
   cerrada: 'Cerrada',
   no_interesa: 'No interesa',

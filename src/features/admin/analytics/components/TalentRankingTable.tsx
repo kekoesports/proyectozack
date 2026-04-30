@@ -54,7 +54,7 @@ export function TalentRankingTable({ campaigns }: Props): React.ReactElement {
         existing.revenue  += r;
         existing.paid     += co;
         existing.margin   += r - co;
-        if (!c.talentPaid) existing.pendingPago += co;
+        if (c.talentPaid === 'no') existing.pendingPago += co;
       }
       const d = String(c.createdAt);
       if (d > existing.lastDeal) existing.lastDeal = d;

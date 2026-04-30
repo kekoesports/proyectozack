@@ -53,7 +53,7 @@ export function BrandRankingTable({ campaigns }: Props): React.ReactElement {
       if (c.status !== 'cancelada') {
         existing.revenue  += r;
         existing.margin   += r - co;
-        if (!c.brandPaid) existing.pendingCobro += r;
+        if (c.brandPaid === 'no') existing.pendingCobro += r;
       }
       if (c.status === 'activa') existing.activeDeals++;
       const d = String(c.createdAt);

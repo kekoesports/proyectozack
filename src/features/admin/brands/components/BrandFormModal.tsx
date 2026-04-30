@@ -19,15 +19,16 @@ import {
 import type { CrmBrandRow } from '@/types';
 
 const STATUS_LABELS: Record<CrmBrandStatus, string> = {
-  lead:              'Lead',
-  contactado:        'Contactado',
-  en_negociacion:    'En negociación',
-  propuesta_enviada: 'Propuesta enviada',
-  activa:            'Activa',
-  inactiva:          'Inactiva',
-  perdida:           'Perdida',
-  pausada:           'Pausada',
-  archivada:         'Archivada',
+  lead:           'Lead',
+  contactada:     'Contactada',
+  en_negociacion: 'En negociación',
+  activa:         'Activa',
+  inactiva:       'Inactiva',
+  perdida:        'Perdida',
+  pausada:        'Pausada',
+  cerrada:        'Cerrada',
+  no_interesa:    'No interesa',
+  archivada:      'Archivada',
 };
 
 type Props =

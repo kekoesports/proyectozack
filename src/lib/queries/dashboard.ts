@@ -37,6 +37,21 @@ function taskVisibilityCondition(session?: TaskSession) {
   );
 }
 
+export type DashboardFollowup = {
+  readonly id: number;
+  readonly scheduledAt: Date;
+  readonly brandName: string;
+  readonly note: string;
+};
+
+export type DashboardPendingTask = {
+  readonly id: number;
+  readonly title: string;
+  readonly priority: string;
+  readonly category: string | null;
+  readonly dueDate: string | null;
+};
+
 export type DashboardStats = {
   talentCount: number;
   publicCount: number;

@@ -24,24 +24,6 @@ export const crmTaskRelatedTypeEnum = pgEnum('crm_task_related_type', [
   'general',
 ]);
 
-/** Plantillas semanales editables desde la UI */
-export const crmTaskTemplates = pgTable(
-  'crm_task_templates',
-  {
-    id:          serial('id').primaryKey(),
-    title:       varchar('title',       { length: 200 }).notNull(),
-    category:    varchar('category',    { length: 40  }).notNull(),
-    priority:    crmTaskPriorityEnum('default_priority').notNull().default('media'),
-    isActive:    boolean('active').notNull().default(true),
-    description: text('description'),
-    createdAt:   timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-    updatedAt:   timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
-  },
-  (t) => [
-    index('crm_task_templates_active_idx').on(t.isActive),
-  ],
-);
-
 export const crmTasks = pgTable(
   'crm_tasks',
   {

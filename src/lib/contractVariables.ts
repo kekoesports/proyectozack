@@ -17,12 +17,12 @@ export function buildContractVars(c: CampaignWithRelations): Record<string, stri
     geo:               c.geo          ?? '—',
     start_date:        fmtDate(c.startDate),
     end_date:          fmtDate(c.endDate),
-    deliverables:      c.deliverables ?? '—',
+    deliverables:      c.notes        ?? '—',
     campaign_notes:    c.notes        ?? '—',
 
     // Financiero
     total_amount:      fmt(c.amountBrand),
-    commission:        fmt(c.agencyFee),
+    commission:        fmt(Number(c.amountBrand ?? 0) - Number(c.amountTalent ?? 0)),
     talent_amount:     fmt(c.amountTalent),
     currency:          'EUR',
 

@@ -3,10 +3,24 @@
 import { useState } from 'react';
 import { TalentImporter } from './TalentImporter';
 import { TalentExportView } from './TalentExportView';
-import { StatsImportPanel } from '@/components/admin/stats/StatsImportPanel';
-import type { CurrentTalent } from '@/lib/statsImport';
 import type { AdminRosterRow } from '@/lib/queries/talents';
 import type { TalentVertical } from '@/types';
+
+// StatsImportPanel and CurrentTalent type are defined locally
+// TODO: restore StatsImportPanel when @/components/admin/stats/ is recreated
+type CurrentTalent = {
+  id: number;
+  name: string;
+  socials: {
+    id: number;
+    talentId: number;
+    platform: string;
+    handle: string;
+    followersDisplay: string;
+    profileUrl: string | null;
+    avgViewers: number | null;
+  }[];
+};
 
 type Tab = 'import' | 'stats' | 'export';
 
@@ -63,7 +77,15 @@ export function TalentDataTools({ roster, creators, verticalsByTalent }: Props):
       <p className="text-[12px] text-sp-admin-muted -mt-2">{active.desc}</p>
 
       {tab === 'import' && <TalentImporter />}
-      {tab === 'stats'  && <StatsImportPanel roster={roster} />}
+      {tab === 'stats'  && (
+        <div className="rounded-xl border border-sp-admin-border bg-sp-admin-card p-8 text-center">
+          <p className="text-sm text-sp-admin-muted">
+            {/* TODO: StatsImportPanel — pendiente de migración */}
+            Panel de estadísticas pendiente de migración. Usa la importación CSV para actualizar datos.
+          </p>
+          <p className="text-[10px] text-sp-admin-muted/60 mt-1">{roster.length} talentos disponibles</p>
+        </div>
+      )}
       {tab === 'export' && <TalentExportView creators={creators} verticalsByTalent={verticalsByTalent} />}
     </div>
   );

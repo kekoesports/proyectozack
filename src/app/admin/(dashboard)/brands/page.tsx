@@ -1,4 +1,4 @@
-import { AdminPageHeader } from '@/components/admin/AdminPageHeader';
+import { AdminPageHeader } from '@/features/admin/_shared/components/AdminPageHeader';
 import { db } from '@/lib/db';
 import { user as userTable } from '@/db/schema';
 import { eq, desc, inArray } from 'drizzle-orm';

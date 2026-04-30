@@ -33,11 +33,14 @@ function sortCampaigns(list: readonly CampaignWithRelations[], key: SortKey, asc
 }
 
 const STATUS_CFG: Record<string, { label: string; cls: string }> = {
-  negociacion: { label: 'Negociación', cls: 'bg-blue-50 text-blue-700 border-blue-200' },
-  activa:      { label: 'Activa',      cls: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
-  pausada:     { label: 'Pausada',     cls: 'bg-amber-50 text-amber-700 border-amber-200' },
-  finalizada:  { label: 'Finalizada',  cls: 'bg-slate-100 text-slate-600 border-slate-200' },
-  cancelada:   { label: 'Cancelada',   cls: 'bg-red-50 text-red-400 border-red-100' },
+  propuesta:      { label: 'Propuesta',      cls: 'bg-gray-50 text-gray-600 border-gray-200' },
+  negociacion:    { label: 'Negociación',    cls: 'bg-blue-50 text-blue-700 border-blue-200' },
+  aprobada:       { label: 'Aprobada',       cls: 'bg-indigo-50 text-indigo-700 border-indigo-200' },
+  activa:         { label: 'Activa',         cls: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+  completada:     { label: 'Completada',     cls: 'bg-slate-100 text-slate-600 border-slate-200' },
+  cancelada:      { label: 'Cancelada',      cls: 'bg-red-50 text-red-400 border-red-100' },
+  pendiente_pago: { label: 'Pdte. pago',     cls: 'bg-amber-50 text-amber-700 border-amber-200' },
+  pagada:         { label: 'Pagada',         cls: 'bg-teal-50 text-teal-700 border-teal-200' },
 };
 const STATUS_FALLBACK = { label: 'Desconocido', cls: 'bg-zinc-100 text-zinc-500 border-zinc-200' };
 
@@ -219,10 +222,10 @@ export function CampaignsRevenueTable({ campaigns }: Props): React.ReactElement 
 
                   {/* Cobrado */}
                   <td className="px-3 py-2.5 hidden xl:table-cell">
-                    {c.brandPaid ? (
+                    {c.brandPaid !== 'no' ? (
                       <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-700">
                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />
-                        Sí
+                        {c.brandPaid === 'parcial' ? 'Parcial' : 'Sí'}
                       </span>
                     ) : (
                       <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-red-500">
@@ -234,10 +237,10 @@ export function CampaignsRevenueTable({ campaigns }: Props): React.ReactElement 
 
                   {/* Pagado al talent */}
                   <td className="px-3 py-2.5 hidden xl:table-cell">
-                    {c.talentPaid ? (
+                    {c.talentPaid !== 'no' ? (
                       <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-700">
                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />
-                        Sí
+                        {c.talentPaid === 'parcial' ? 'Parcial' : 'Sí'}
                       </span>
                     ) : (
                       <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-amber-600">

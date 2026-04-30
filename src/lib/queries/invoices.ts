@@ -205,15 +205,36 @@ export async function getBillingKPIs(from?: string, to?: string): Promise<Billin
   };
 }
 
-/** @deprecated Usar getBillingKPIs */
 export async function getInvoiceSummary(from?: string, to?: string): Promise<InvoiceSummary> {
-  const kpis = await getBillingKPIs(from, to);
+  const conds = [];
+  if (from) conds.push(gte(invoices.issueDate, from));
+  if (to) conds.push(lte(invoices.issueDate, to));
+
+  const todayMadrid = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Europe/Madrid',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(new Date());
+
+  const [row] = await db
+    .select({
+      incomeTotal: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind} = 'income' AND ${invoices.status} != 'anulada' THEN ${invoices.totalAmount} ELSE 0 END), 0)::text`,
+      expenseTotal: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind} = 'expense' AND ${invoices.status} != 'anulada' THEN ${invoices.totalAmount} ELSE 0 END), 0)::text`,
+      pendingIncome: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind} = 'income' AND ${invoices.status} IN ('emitida','no_cobrada','parcial','vencida') THEN ${invoices.totalAmount} ELSE 0 END), 0)::text`,
+      overdueIncome: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind} = 'income' AND ${invoices.status} IN ('emitida','no_cobrada','vencida') AND ${invoices.dueDate} IS NOT NULL AND ${invoices.dueDate} < ${todayMadrid}::date THEN ${invoices.totalAmount} ELSE 0 END), 0)::text`,
+    })
+    .from(invoices)
+    .where(conds.length > 0 ? and(...conds) : undefined);
+
+  const incomeTotal = Number(row?.incomeTotal ?? 0);
+  const expenseTotal = Number(row?.expenseTotal ?? 0);
   return {
-    incomeTotal: kpis.incomeTotal,
-    expenseTotal: kpis.expenseTotal,
-    netTotal: kpis.netTotal,
-    pendingIncome: kpis.pendingCobro,
-    overdueIncome: 0,
+    incomeTotal,
+    expenseTotal,
+    netTotal: incomeTotal - expenseTotal,
+    pendingIncome: Number(row?.pendingIncome ?? 0),
+    overdueIncome: Number(row?.overdueIncome ?? 0),
   };
 }
 

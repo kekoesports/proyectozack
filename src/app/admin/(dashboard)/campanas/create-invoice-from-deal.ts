@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { requireRole } from '@/lib/auth-guard';
-import { getCampaign } from '@/lib/queries/campaigns';
+import { getCampaignWithRelations } from '@/lib/queries/campaigns';
 import {
   getIssuerCompanies,
   getBillingClientByBrand,
@@ -27,9 +27,8 @@ export async function createInvoiceFromDealAction(
 ): Promise<Result> {
   const session = await requireRole('admin', '/admin/login');
 
-  const campaign = await getCampaign(campaignId);
+  const campaign = await getCampaignWithRelations(campaignId);
   if (!campaign) return { error: 'Trato no encontrado' };
-  if (!campaign.brandId) return { error: 'El trato no tiene marca asignada' };
 
   // Verificar facturas existentes para este trato
   const existing = await listIssuedInvoicesByDeal(campaignId);
@@ -51,7 +50,7 @@ export async function createInvoiceFromDealAction(
   let client = await getBillingClientByBrand(campaign.brandId);
   if (!client) {
     client = await createBillingClient({
-      name:              campaign.brandName ?? `Marca ${campaign.brandId}`,
+      name:              campaign.brand.name ?? `Marca ${campaign.brandId}`,
       legalName:         null,
       taxId:             null,
       vatNumber:         null,
@@ -106,7 +105,7 @@ export async function createInvoiceFromDealAction(
     },
     lines: amountBrand > 0 ? [{
       concept:     `Campaña de marketing digital — ${campaign.name}`,
-      description: campaign.deliverables ?? null,
+      description: campaign.notes ?? null,
       quantity:    '1',
       unitPrice:   String(amountBrand.toFixed(2)),
       discount:    '0',
