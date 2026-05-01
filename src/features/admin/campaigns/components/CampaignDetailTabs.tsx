@@ -10,6 +10,8 @@ import { CampaignFiles } from '@/features/admin/campaigns/components/CampaignFil
 import { CampaignDrawer } from '@/features/admin/campaigns/components/CampaignDrawer';
 import { CampaignCnmcChecklist } from '@/features/admin/campaigns/components/CampaignCnmcChecklist';
 import { CampaignDeliverables } from '@/features/admin/campaigns/components/CampaignDeliverables';
+import { ContractTab } from '@/features/admin/_shared/components/campaigns/ContractTab';
+import { DealInvoicePanel } from '@/features/admin/_shared/components/campaigns/DealInvoicePanel';
 import { CAMPAIGN_STATUS_LABELS } from '@/lib/schemas/campaign';
 import { archiveCampaignAction } from '@/app/admin/(dashboard)/campanas/actions';
 
@@ -17,16 +19,25 @@ import type { Tone } from '@/features/admin/_shared/components/StateBadge';
 import type { CampaignWithRelations } from '@/lib/queries/campaigns';
 import type { DeliverableWithComments } from '@/lib/queries/deliverables';
 import type { CampaignStatus } from '@/lib/schemas/campaign';
-import type { FileRecord, Invoice, CrmBrandContact } from '@/types';
+import type { ContractTemplate } from '@/lib/queries/contractTemplates';
+import type {
+  ContractWithSigners,
+  FileRecord,
+  Invoice,
+  CrmBrandContact,
+  IssuedInvoiceWithRelations,
+  IssuerCompany,
+} from '@/types';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-type Tab = 'resumen' | 'pagos' | 'archivos' | 'notas' | 'deliverables';
+type Tab = 'resumen' | 'pagos' | 'archivos' | 'notas' | 'deliverables' | 'contratos';
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'resumen', label: 'Resumen' },
   { id: 'pagos', label: 'Pagos' },
   { id: 'deliverables', label: 'Deliverables' },
+  { id: 'contratos', label: 'Contratos' },
   { id: 'archivos', label: 'Archivos' },
   { id: 'notas', label: 'Notas' },
 ];
@@ -52,10 +63,16 @@ type Props = {
   readonly campaignInvoices: readonly Invoice[];
   readonly campaignDeliverables: readonly DeliverableWithComments[];
   readonly isManager: boolean;
+  readonly isAdmin: boolean;
   readonly brands: readonly BrandOption[];
   readonly talents: readonly TalentOption[];
   readonly staffUsers: readonly StaffOption[];
   readonly contactsByBrand: Readonly<Record<number, readonly CrmBrandContact[]>>;
+  readonly contract: ContractWithSigners | null;
+  readonly contractTemplates: readonly ContractTemplate[];
+  readonly contractVars: Readonly<Record<string, string>>;
+  readonly issuedInvoices: readonly IssuedInvoiceWithRelations[];
+  readonly issuerCompanies: readonly IssuerCompany[];
 };
 
 // ── Main component ─────────────────────────────────────────────────────────────
@@ -73,10 +90,16 @@ export function CampaignDetailTabs({
   campaignInvoices,
   campaignDeliverables,
   isManager,
+  isAdmin,
   brands,
   talents,
   staffUsers,
   contactsByBrand,
+  contract,
+  contractTemplates,
+  contractVars,
+  issuedInvoices,
+  issuerCompanies,
 }: Props): React.ReactElement {
   const router = useRouter();
   const [, startTransition] = useTransition();
@@ -194,6 +217,26 @@ export function CampaignDetailTabs({
             deliverables={campaignDeliverables}
             isManager={isManager}
           />
+        )}
+
+        {activeTab === 'contratos' && (
+          <div className="space-y-6">
+            <ContractTab
+              campaignId={campaign.id}
+              contract={contract}
+              isAdmin={isAdmin}
+              templates={contractTemplates}
+              campaign={campaign}
+              contractVars={contractVars}
+            />
+            {isAdmin && (
+              <DealInvoicePanel
+                campaignId={campaign.id}
+                existingInvoices={issuedInvoices}
+                issuers={issuerCompanies}
+              />
+            )}
+          </div>
         )}
       </div>
 

@@ -10,7 +10,7 @@ import {
 import type { ContractWithSigners, SignerRole } from '@/types';
 import type { ContractTemplate } from '@/lib/queries/contractTemplates';
 import { ContractGenerator } from './ContractGenerator';
-import type { CampaignWithRelations } from '@/types';
+import type { CampaignWithRelations } from '@/lib/queries/campaigns';
 
 type Props = {
   readonly campaignId: number;

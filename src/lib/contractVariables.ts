@@ -1,4 +1,4 @@
-import type { CampaignWithRelations } from '@/types';
+import type { CampaignWithRelations } from '@/lib/queries/campaigns';
 
 /** Extrae las variables del trato para rellenar la plantilla */
 export function buildContractVars(c: CampaignWithRelations): Record<string, string> {
@@ -27,12 +27,12 @@ export function buildContractVars(c: CampaignWithRelations): Record<string, stri
     currency:          'EUR',
 
     // Marca
-    brand_name:        c.brandName    ?? '—',
-    brand_country:     '—',
+    brand_name:        c.brand.name,
+    brand_country:     c.brand.geo ?? '—',
 
     // Influencer
-    influencer_name:   c.talentName   ?? '—',
-    influencer_alias:  c.talentName   ?? '—',
+    influencer_name:   c.talent.name,
+    influencer_alias:  c.talent.name,
 
     // Agencia
     agency_name:       'SocialPro Agency',
