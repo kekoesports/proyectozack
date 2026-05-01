@@ -1,6 +1,10 @@
+import { asc } from 'drizzle-orm';
+import { db } from '@/lib/db';
+import { crmBrands, talents } from '@/db/schema';
 import { requireAnyRole } from '@/lib/auth-guard';
 import { listCampaigns } from '@/lib/queries/campaigns';
 import { listInvoices } from '@/lib/queries/invoices';
+import { getDashboardAlerts } from '@/lib/queries/alerts';
 import { AnalyticsDashboard } from '@/features/admin/analytics/components/AnalyticsDashboard';
 import type { CampaignWithRelations } from '@/types';
 
@@ -10,27 +14,50 @@ export default async function AdminAnalyticsPage(): Promise<React.ReactElement> 
   const session = await requireAnyRole(['admin', 'staff'], '/admin/login');
   const isStaff = session.user.role === 'staff';
 
-  const [rawCampaigns, invoices] = await Promise.all([
+  const [rawCampaigns, invoices, brandsList, talentsList, alertsData] = await Promise.all([
     listCampaigns(isStaff ? { filters: { responsibleUserId: session.user.id } } : undefined),
-    listInvoices(),
+    listInvoices(isStaff ? { staffUserId: session.user.id } : {}),
+    db.select({ id: crmBrands.id, name: crmBrands.name }).from(crmBrands).orderBy(asc(crmBrands.name)),
+    db.select({ id: talents.id,   name: talents.name   }).from(talents).orderBy(asc(talents.name)),
+    getDashboardAlerts(),
   ]);
 
-  // listCampaigns returns CampaignRow[]; add derived defaults for the analytics dashboard.
-  // Real payment status is derived from invoices in the dashboard when available.
-  const campaigns: CampaignWithRelations[] = rawCampaigns.map((c) => ({
-    ...c,
-    brandName: null,
-    talentName: null,
-    ownerName: null,
-    brandPaid: 'no' as const,
-    talentPaid: 'no' as const,
-    totalInvoicedBrand: 0,
-    totalPaidTalent: 0,
-    commissionAmount: Number(c.amountBrand ?? 0) - Number(c.amountTalent ?? 0),
-    commissionPct: Number(c.amountBrand ?? 0) > 0
-      ? ((Number(c.amountBrand ?? 0) - Number(c.amountTalent ?? 0)) / Number(c.amountBrand ?? 0)) * 100
-      : 0,
-  }));
+  const brandMap  = new Map(brandsList.map((b)  => [b.id, b.name]));
+  const talentMap = new Map(talentsList.map((t) => [t.id, t.name]));
 
-  return <AnalyticsDashboard campaigns={campaigns} invoices={invoices} />;
+  const campaigns: CampaignWithRelations[] = rawCampaigns.map((c) => {
+    const brand  = Number(c.amountBrand  ?? 0);
+    const talent = Number(c.amountTalent ?? 0);
+    const comm   = brand - talent;
+
+    const campInvoices  = invoices.filter((i) => i.campaignId === c.id);
+    const paidIncome    = campInvoices.filter((i) => i.kind === 'income'  && (i.status === 'cobrada' || i.status === 'pagada'));
+    const paidExpense   = campInvoices.filter((i) => i.kind === 'expense' && (i.status === 'cobrada' || i.status === 'pagada'));
+    const totalInvoicedBrand = paidIncome.reduce((s, i)  => s + Number(i.totalAmount), 0);
+    const totalPaidTalent    = paidExpense.reduce((s, i) => s + Number(i.totalAmount), 0);
+
+    return {
+      ...c,
+      brandName:  brandMap.get(c.brandId)   ?? null,
+      talentName: talentMap.get(c.talentId) ?? null,
+      ownerName:  null,
+      brandPaid:  totalInvoicedBrand === 0 ? 'no' : totalInvoicedBrand >= brand  ? 'si' : 'parcial',
+      talentPaid: totalPaidTalent    === 0 ? 'no' : totalPaidTalent    >= talent ? 'si' : 'parcial',
+      totalInvoicedBrand,
+      totalPaidTalent,
+      commissionAmount: comm,
+      commissionPct:    brand > 0 ? (comm / brand) * 100 : 0,
+    } as CampaignWithRelations;
+  });
+
+  return (
+    <AnalyticsDashboard
+      campaigns={campaigns}
+      invoices={invoices}
+      brands={brandsList}
+      talents={talentsList}
+      alerts={alertsData.alerts}
+      alertSummary={alertsData.summary}
+    />
+  );
 }
