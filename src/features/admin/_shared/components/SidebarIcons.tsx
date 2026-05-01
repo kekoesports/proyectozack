@@ -241,3 +241,12 @@ export function DealsIcon() {
     </svg>
   );
 }
+
+export function BackupIcon() {
+  return (
+    <svg {...s}>
+      <path d="M4 16s1-1 4-1 5 2 8 2 4-1 4-1V4s-1 1-4 1-5-2-8-2-4 1-4 1z" />
+      <line x1="4" y1="12" x2="20" y2="12" />
+    </svg>
+  );
+}
