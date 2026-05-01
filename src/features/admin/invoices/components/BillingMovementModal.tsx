@@ -9,8 +9,10 @@ import { extractInvoiceAction } from '@/app/admin/(dashboard)/facturacion/extrac
 import {
   INCOME_STATUSES,
   EXPENSE_STATUSES,
-  BILLING_ENTITIES,
-  BILLING_PAYMENT_METHODS,
+  INVOICE_COMPANIES,
+  INVOICE_COMPANY_LABELS,
+  INVOICE_PAYMENT_METHODS,
+  INVOICE_PAYMENT_METHOD_LABELS,
   BILLING_CATEGORIES,
   AI_TOOLS,
 } from '@/lib/schemas/invoice';
@@ -243,9 +245,9 @@ export function BillingMovementModal({ invoice, brands, talents, campaigns, onCl
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div>
                 <label className={LABEL}>Entidad</label>
-                <select name="entity" defaultValue="" className={INPUT}>
+                <select name="company" defaultValue={invoice?.company ?? ''} className={INPUT}>
                   <option value="">— ninguna —</option>
-                  {BILLING_ENTITIES.map((e) => <option key={e} value={e}>{e}</option>)}
+                  {INVOICE_COMPANIES.map((c) => <option key={c} value={c}>{INVOICE_COMPANY_LABELS[c]}</option>)}
                 </select>
               </div>
               <div>
@@ -259,7 +261,7 @@ export function BillingMovementModal({ invoice, brands, talents, campaigns, onCl
                 <label className={LABEL}>Método / Cuenta</label>
                 <select name="paymentMethod" defaultValue={invoice?.paymentMethod ?? ''} className={INPUT}>
                   <option value="">— ninguno —</option>
-                  {BILLING_PAYMENT_METHODS.map((m) => <option key={m} value={m}>{m}</option>)}
+                  {INVOICE_PAYMENT_METHODS.map((m) => <option key={m} value={m}>{INVOICE_PAYMENT_METHOD_LABELS[m]}</option>)}
                 </select>
               </div>
               <div>
