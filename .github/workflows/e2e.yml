@@ -3,6 +3,16 @@ name: E2E Tests
 on:
   pull_request:
     branches: [master]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'audit/**'
+      - '.claude/**'
+      - '.agents/**'
+      - '.github/ISSUE_TEMPLATE/**'
+      - '.gitignore'
+      - '.editorconfig'
+      - 'LICENSE'
 
 concurrency:
   group: e2e-${{ github.ref }}
