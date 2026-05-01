@@ -243,7 +243,7 @@ export function BillingMovementModal({ invoice, brands, talents, campaigns, onCl
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div>
                 <label className={LABEL}>Entidad</label>
-                <select name="entity" defaultValue="" className={INPUT}>
+                <select name="entity" defaultValue={invoice?.entity ?? ''} className={INPUT}>
                   <option value="">— ninguna —</option>
                   {BILLING_ENTITIES.map((e) => <option key={e} value={e}>{e}</option>)}
                 </select>

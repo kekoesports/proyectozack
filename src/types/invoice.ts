@@ -15,6 +15,7 @@ export type InvoiceWithRelations = Invoice & {
   readonly brandName: string | null;
   readonly talentName: string | null;
   readonly campaignName: string | null;
+  readonly entity?: string | null;
   readonly invoiceFile?: FileRecord | null;
   readonly statementFile?: FileRecord | null;
 };
