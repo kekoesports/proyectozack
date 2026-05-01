@@ -11,7 +11,8 @@ import {
   EXPENSE_STATUSES,
   INVOICE_COMPANIES,
   INVOICE_COMPANY_LABELS,
-  BILLING_PAYMENT_METHODS,
+  INVOICE_PAYMENT_METHODS,
+  INVOICE_PAYMENT_METHOD_LABELS,
   BILLING_CATEGORIES,
   AI_TOOLS,
 } from '@/lib/schemas/invoice';
@@ -260,7 +261,7 @@ export function BillingMovementModal({ invoice, brands, talents, campaigns, onCl
                 <label className={LABEL}>Método / Cuenta</label>
                 <select name="paymentMethod" defaultValue={invoice?.paymentMethod ?? ''} className={INPUT}>
                   <option value="">— ninguno —</option>
-                  {BILLING_PAYMENT_METHODS.map((m) => <option key={m} value={m}>{m}</option>)}
+                  {INVOICE_PAYMENT_METHODS.map((m) => <option key={m} value={m}>{INVOICE_PAYMENT_METHOD_LABELS[m]}</option>)}
                 </select>
               </div>
               <div>
