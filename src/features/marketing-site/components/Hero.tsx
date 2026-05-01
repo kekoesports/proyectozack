@@ -57,13 +57,13 @@ export function Hero() {
           className="absolute top-1/2 left-1/2 -ml-[500px] -mt-[500px] will-change-transform"
           style={{ x: pinkX, y: pinkY }}
         >
-          <div className="hero-aura-pink hero-aura-pink-bg w-[1000px] h-[1000px] rounded-full blur-[40px] sm:blur-[80px]" />
+          <div className="hero-aura-pink hero-aura-pink-bg w-[700px] h-[700px] rounded-full blur-[30px] sm:blur-[60px]" />
         </m.div>
         <m.div
           className="absolute top-[-10%] right-[-10%] will-change-transform"
           style={{ x: orangeX, y: orangeY }}
         >
-          <div className="hero-aura-orange hero-aura-orange-bg w-[800px] h-[800px] rounded-full blur-[50px] sm:blur-[100px]" />
+          <div className="hero-aura-orange hero-aura-orange-bg w-[600px] h-[600px] rounded-full blur-[35px] sm:blur-[70px]" />
         </m.div>
       </div>
 
