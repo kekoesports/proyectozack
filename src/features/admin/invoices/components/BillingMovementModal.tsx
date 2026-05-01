@@ -9,7 +9,8 @@ import { extractInvoiceAction } from '@/app/admin/(dashboard)/facturacion/extrac
 import {
   INCOME_STATUSES,
   EXPENSE_STATUSES,
-  BILLING_ENTITIES,
+  INVOICE_COMPANIES,
+  INVOICE_COMPANY_LABELS,
   BILLING_PAYMENT_METHODS,
   BILLING_CATEGORIES,
   AI_TOOLS,
@@ -243,9 +244,9 @@ export function BillingMovementModal({ invoice, brands, talents, campaigns, onCl
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div>
                 <label className={LABEL}>Entidad</label>
-                <select name="entity" defaultValue="" className={INPUT}>
+                <select name="company" defaultValue={invoice?.company ?? ''} className={INPUT}>
                   <option value="">— ninguna —</option>
-                  {BILLING_ENTITIES.map((e) => <option key={e} value={e}>{e}</option>)}
+                  {INVOICE_COMPANIES.map((c) => <option key={c} value={c}>{INVOICE_COMPANY_LABELS[c]}</option>)}
                 </select>
               </div>
               <div>
