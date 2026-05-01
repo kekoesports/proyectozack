@@ -1,14 +1,22 @@
 'use client';
 
 import { useMemo, useState, useTransition } from 'react';
-import { IssuedInvoiceForm } from './IssuedInvoiceForm';
+import { IssuedInvoiceForm }  from './IssuedInvoiceForm';
+import { InvoicePdfButton }   from './InvoicePdfButton';
 import { updateInvoiceStatusAction } from '@/app/admin/(dashboard)/facturacion/issued-invoices-actions';
 import { ISSUED_INVOICE_STATUS_LABELS } from '@/lib/schemas/issuedInvoice';
 import type { IssuerCompany, BillingClient, IssuedInvoiceWithRelations } from '@/types';
 
 type BrandOpt    = { readonly id: number; readonly name: string };
 type TalentOpt   = { readonly id: number; readonly name: string };
-type CampaignOpt = { readonly id: number; readonly name: string; readonly brandId: number | null; readonly talentId: number | null };
+type CampaignOpt = {
+  readonly id:          number;
+  readonly name:        string;
+  readonly brandId:     number | null;
+  readonly talentId:    number | null;
+  readonly amountBrand?:  string | number | null;
+  readonly amountTalent?: string | number | null;
+};
 
 type Props = {
   readonly invoices:  readonly IssuedInvoiceWithRelations[];
@@ -17,6 +25,8 @@ type Props = {
   readonly brands:    readonly BrandOpt[];
   readonly talents:   readonly TalentOpt[];
   readonly campaigns: readonly CampaignOpt[];
+  readonly isAdmin?:  boolean;
+  readonly isStaff?:  boolean;
 };
 
 const STATUS_STYLE: Record<string, string> = {
@@ -39,7 +49,10 @@ function fmtDate(d: string | null | undefined): string {
   return new Date(d).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: '2-digit' });
 }
 
-export function IssuedInvoicesTab({ invoices, issuers, clients, brands, talents, campaigns }: Props): React.ReactElement {
+export function IssuedInvoicesTab({
+  invoices, issuers, clients, brands, talents, campaigns,
+  isAdmin = false, isStaff = false,
+}: Props): React.ReactElement {
   const [showForm,   setShowForm]   = useState(false);
   const [editInv,    setEditInv]    = useState<IssuedInvoiceWithRelations | null>(null);
   const [filterStatus, setStatus]   = useState('');
@@ -112,11 +125,18 @@ export function IssuedInvoicesTab({ invoices, issuers, clients, brands, talents,
           <input type="checkbox" checked={showAnuladas} onChange={(e) => setShowAnuladas(e.target.checked)} className="rounded" />
           Mostrar anuladas
         </label>
-        <div className="ml-auto">
-          <button type="button" onClick={() => setShowForm(true)}
-            className="px-3 py-1.5 rounded-lg text-[12px] font-bold text-white bg-sp-admin-accent hover:bg-sp-admin-accent/90 transition-colors">
-            + Nueva factura
-          </button>
+        <div className="ml-auto flex items-center gap-2">
+          {isStaff && (
+            <span className="text-[10px] text-amber-600 font-medium">
+              Vista filtrada — solo tus facturas
+            </span>
+          )}
+          {!isStaff && (
+            <button type="button" onClick={() => setShowForm(true)}
+              className="px-3 py-1.5 rounded-lg text-[12px] font-bold text-white bg-sp-admin-accent hover:bg-sp-admin-accent/90 transition-colors">
+              + Nueva factura
+            </button>
+          )}
         </div>
       </div>
 
@@ -134,7 +154,7 @@ export function IssuedInvoicesTab({ invoices, issuers, clients, brands, talents,
           <table className="w-full min-w-[800px]">
             <thead>
               <tr className="border-b border-sp-admin-border bg-sp-admin-hover/40">
-                {['Nº Factura', 'Cliente', 'Emisora', 'Fecha', 'Vence', 'Total', 'Estado', 'Trato', 'Acciones'].map((h) => (
+                {['Nº Factura', 'Cliente', 'Emisora', 'Fecha', 'Vence', 'Total', 'Estado', 'Trato', 'PDF', 'Acciones'].map((h) => (
                   <th key={h} className="px-3 py-2.5 text-[9px] font-bold text-sp-admin-muted uppercase tracking-[0.18em] text-left">{h}</th>
                 ))}
               </tr>
@@ -166,12 +186,31 @@ export function IssuedInvoicesTab({ invoices, issuers, clients, brands, talents,
                     <td className="px-3 py-2.5 text-[11px] text-sp-admin-muted max-w-[120px] truncate">
                       {inv.dealName ?? inv.brandName ?? '—'}
                     </td>
+                    {/* Columna PDF */}
+                    <td className="px-3 py-2.5">
+                      <InvoicePdfButton
+                        invoice={inv}
+                        issuer={issuers.find((i) => i.id === inv.issuerCompanyId)}
+                        client={clients.find((c) => c.id === inv.billingClientId)}
+                        compact
+                      />
+                    </td>
                     <td className="px-3 py-2.5">
                       <div className="flex items-center gap-1 opacity-0 group-hover/row:opacity-100 transition-opacity">
-                        <button type="button" onClick={() => setEditInv(inv)}
-                          className="px-2 py-1 rounded text-[10px] font-semibold text-sp-admin-muted hover:text-sp-admin-accent hover:bg-sp-admin-hover transition-colors">
-                          Editar
-                        </button>
+                        {/* Editar — no para facturas anuladas ni si es staff y la factura no es suya */}
+                        {inv.status !== 'anulada' && (
+                          <button type="button" onClick={() => setEditInv(inv)}
+                            className="px-2 py-1 rounded text-[10px] font-semibold text-sp-admin-muted hover:text-sp-admin-accent hover:bg-sp-admin-hover transition-colors">
+                            Editar
+                          </button>
+                        )}
+                        {/* Flujo de estado */}
+                        {inv.status === 'borrador' && (
+                          <button type="button" disabled={isPending} onClick={() => changeStatus(inv.id, 'emitida')}
+                            className="px-2 py-1 rounded text-[10px] font-semibold text-blue-700 hover:bg-blue-50 disabled:opacity-40 transition-colors">
+                            Emitir
+                          </button>
+                        )}
                         {inv.status === 'emitida' && (
                           <button type="button" disabled={isPending} onClick={() => changeStatus(inv.id, 'enviada')}
                             className="px-2 py-1 rounded text-[10px] font-semibold text-sky-600 hover:bg-sky-50 disabled:opacity-40 transition-colors">
@@ -184,10 +223,15 @@ export function IssuedInvoicesTab({ invoices, issuers, clients, brands, talents,
                             Cobrada
                           </button>
                         )}
-                        {inv.status === 'borrador' && (
-                          <button type="button" disabled={isPending} onClick={() => changeStatus(inv.id, 'emitida')}
-                            className="px-2 py-1 rounded text-[10px] font-semibold text-blue-700 hover:bg-blue-50 disabled:opacity-40 transition-colors">
-                            Emitir
+                        {/* Anular — solo admin, si no está ya anulada */}
+                        {isAdmin && inv.status !== 'anulada' && (
+                          <button type="button" disabled={isPending}
+                            onClick={() => {
+                              if (!confirm(`¿Anular la factura ${inv.invoiceNumber}? Esta acción no se puede deshacer.`)) return;
+                              changeStatus(inv.id, 'anulada');
+                            }}
+                            className="px-2 py-1 rounded text-[10px] font-semibold text-red-500 hover:bg-red-50 disabled:opacity-40 transition-colors">
+                            Anular
                           </button>
                         )}
                       </div>
