@@ -2,9 +2,10 @@
 
 import { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
-import Lenis from 'lenis';
 import { WhatsAppWidget } from './WhatsAppWidget';
 import type { ReactNode } from 'react';
+
+type LenisInstance = { raf: (time: number) => void; destroy: () => void };
 
 const PORTAL_PREFIXES = ['/admin', '/marcas', '/creadores', '/giveaways', '/c/'];
 const LOGIN_SUFFIXES = ['/login'];
@@ -44,20 +45,28 @@ export function PublicChrome({ nav, footer, children }: PublicChromeProps) {
 
   useEffect(() => {
     if (isPortal) return;
-    const lenis = new Lenis({
-      duration: 1.2,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-      smoothWheel: true,
-    });
-    let rafId: number;
-    function raf(time: number) {
-      lenis.raf(time);
+    let cancelled = false;
+    let rafId = 0;
+    let lenis: LenisInstance | null = null;
+
+    import('lenis').then(({ default: Lenis }) => {
+      if (cancelled) return;
+      lenis = new Lenis({
+        duration: 1.2,
+        easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+        smoothWheel: true,
+      });
+      const raf = (time: number) => {
+        lenis?.raf(time);
+        rafId = requestAnimationFrame(raf);
+      };
       rafId = requestAnimationFrame(raf);
-    }
-    rafId = requestAnimationFrame(raf);
+    });
+
     return () => {
-      cancelAnimationFrame(rafId);
-      lenis.destroy();
+      cancelled = true;
+      if (rafId) cancelAnimationFrame(rafId);
+      lenis?.destroy();
     };
   }, [isPortal]);
 
