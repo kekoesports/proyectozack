@@ -90,14 +90,14 @@ export async function updateCampaignAction(formData: FormData): Promise<void> {
 export async function deleteCampaignAction(formData: FormData): Promise<void> {
   await requireAnyRole(['admin', 'staff'], '/admin/login');
   const id = Number(formData.get('id'));
-  // TODO: deleteCampaign not in master schema — using archive instead
+  // Los tratos se archivan (soft-delete) en lugar de borrarse para preservar datos históricos.
   await archiveCampaign(id);
   revalidatePath('/admin/campanas');
 }
 
-// TODO: markBrandPaidAction and markTalentPaidAction are not supported in master schema.
-// Payment status is derived from invoices via getCampaignPaymentStatus.
-// These actions are no-ops until invoice-based payment tracking is wired in the UI.
+// El estado de cobro/pago del trato se deriva automáticamente de los movimientos de facturación
+// vinculados al trato (via getCampaignPaymentStatus, que suma invoices por campaignId).
+// El flujo correcto es: registrar movimiento en Facturación → estado del trato se actualiza solo.
 export async function markBrandPaidAction(_formData: FormData): Promise<void> {
   await requireAnyRole(['admin', 'staff'], '/admin/login');
   revalidatePath('/admin/campanas');

@@ -89,10 +89,15 @@ const baseCampaign = z.object({
   cnmcChecklistOk: z.coerce.boolean().optional().default(false),
 });
 
-export const createCampaignSchema = baseCampaign.refine(
-  (v) => v.amountBrand === 0 || v.amountTalent <= v.amountBrand,
-  { message: 'amountTalent no puede superar amountBrand', path: ['amountTalent'] },
-);
+export const createCampaignSchema = baseCampaign
+  .refine(
+    (v) => v.amountBrand === 0 || v.amountTalent <= v.amountBrand,
+    { message: 'El pago al talento no puede superar el pago de la marca', path: ['amountTalent'] },
+  )
+  .refine(
+    (v) => !v.startDate || !v.endDate || v.startDate <= v.endDate,
+    { message: 'La fecha de fin no puede ser anterior a la fecha de inicio', path: ['endDate'] },
+  );
 
 export const updateCampaignSchema = baseCampaign.partial().extend({
   id: z.coerce.number().int().positive(),

@@ -1,3 +1,6 @@
+'use client';
+
+import { useMemo } from 'react';
 import Link from 'next/link';
 
 import { StateBadge } from '@/features/admin/_shared/components/StateBadge';
@@ -92,8 +95,55 @@ export function CampaignSummaryCard({ campaign }: Props): React.ReactElement {
   const amountBrandNum = Number(amountBrand);
   const amountTalentNum = Number(amountTalent);
 
+  // ── Alertas contextuales derivadas del estado del trato ──────────────
+  type CampaignAlert = { readonly type: 'danger' | 'warning' | 'info'; readonly msg: string };
+  const contextAlerts: CampaignAlert[] = [];
+
+  const todayStr = useMemo(() => new Intl.DateTimeFormat('en-CA').format(new Date()), []);
+  const daysLeft = campaign.endDate
+    ? Math.ceil((new Date(campaign.endDate).getTime() - new Date(todayStr).getTime()) / 86_400_000)
+    : null;
+
+  if (daysLeft !== null && daysLeft <= 0 && ['activa', 'aprobada'].includes(campaign.status)) {
+    contextAlerts.push({ type: 'danger', msg: `Trato vencido hace ${Math.abs(daysLeft)} días y sigue activo` });
+  } else if (daysLeft !== null && daysLeft <= 7 && daysLeft > 0 && ['activa', 'aprobada'].includes(campaign.status)) {
+    contextAlerts.push({ type: 'warning', msg: `Trato próximo a vencer — quedan ${daysLeft} días` });
+  }
+
+  if (brandPaid === 'no' && amountBrandNum > 0 && !['cancelada', 'propuesta'].includes(campaign.status)) {
+    contextAlerts.push({ type: 'warning', msg: `Pendiente de cobro a la marca — ${EUR.format(amountBrandNum)}` });
+  }
+  if (talentPaid === 'no' && amountTalentNum > 0 && ['completada', 'pagada', 'pendiente_pago'].includes(campaign.status)) {
+    contextAlerts.push({ type: 'danger', msg: `Pendiente de pago al talento — ${EUR.format(amountTalentNum)}` });
+  }
+  if (['activa', 'completada'].includes(campaign.status) && totalInvoicedBrand === 0 && amountBrandNum > 0) {
+    contextAlerts.push({ type: 'info', msg: 'Trato activo sin movimientos de facturación registrados' });
+  }
+
+  const ALERT_STYLE: Record<CampaignAlert['type'], string> = {
+    danger:  'bg-red-50  border-red-200  text-red-700',
+    warning: 'bg-amber-50 border-amber-200 text-amber-700',
+    info:    'bg-blue-50 border-blue-200 text-blue-700',
+  };
+  const ALERT_ICON: Record<CampaignAlert['type'], string> = {
+    danger: '⚠', warning: '⚡', info: 'ℹ',
+  };
+
   return (
     <div className="space-y-4">
+
+      {/* Alertas contextuales */}
+      {contextAlerts.length > 0 && (
+        <div className="space-y-2">
+          {contextAlerts.map((a, i) => (
+            <div key={i} className={`flex items-center gap-2.5 rounded-lg border px-4 py-2.5 text-[12px] font-medium ${ALERT_STYLE[a.type]}`}>
+              <span className="shrink-0 text-base leading-none">{ALERT_ICON[a.type]}</span>
+              {a.msg}
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* KPI grid */}
       <section className="rounded-2xl border border-sp-admin-border bg-sp-admin-card p-5">
         <h2 className="font-bold text-sp-admin-text text-sm mb-4">Resumen financiero</h2>
