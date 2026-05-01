@@ -138,6 +138,16 @@ const moneyStr = z
   .transform((v) => (typeof v === 'number' ? v.toFixed(2) : v.replace(',', '.')))
   .pipe(z.string().regex(/^\d+(\.\d{1,2})?$/, 'Importe inválido'));
 
+// Validador de importe obligatorio positivo (para netAmount y totalAmount)
+const positiveMoneyStr = z
+  .union([z.string(), z.number()])
+  .transform((v) => (typeof v === 'number' ? v.toFixed(2) : v.replace(',', '.')))
+  .pipe(
+    z.string()
+      .regex(/^\d+(\.\d{1,2})?$/, 'Importe inválido')
+      .refine((v) => parseFloat(v) > 0, 'El importe debe ser mayor que 0'),
+  );
+
 const optEnum = <T extends readonly [string, ...string[]]>(values: T) =>
   z.preprocess(
     (v) => (typeof v === 'string' && v.trim() === '' ? undefined : v),
@@ -163,10 +173,10 @@ const invoiceFields = z.object({
   description: z.string().optional(),
   category: optStr(80),
   aiToolName: optStr(100),
-  netAmount: moneyStr,
+  netAmount: positiveMoneyStr,
   vatPct: moneyStr.default('21.00'),
   withholdingPct: moneyStr.default('0.00'),
-  totalAmount: moneyStr,
+  totalAmount: positiveMoneyStr,
   paidAmount: moneyStr.optional(),
   currency: z.string().length(3).default('EUR'),
   series: z.string().min(1).max(20).default('A'),

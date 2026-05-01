@@ -15,9 +15,17 @@ import {
   INVOICE_COMPANY_LABELS,
   INVOICE_PAYMENT_METHODS,
   INVOICE_PAYMENT_METHOD_LABELS,
-  INVOICE_STATUSES,
   INVOICE_STATUS_LABELS,
 } from '@/lib/schemas/invoice';
+
+// Estados por tipo de movimiento
+const INCOME_STATUS_OPTIONS = [
+  'pendiente', 'cobrada', 'no_cobrado', 'no_cobrada', 'vencida', 'anulada', 'borrador', 'emitida',
+] as const;
+
+const EXPENSE_STATUS_OPTIONS = [
+  'pendiente', 'pagada', 'no_pagado', 'no_pagada', 'vencida', 'anulada', 'borrador', 'emitida',
+] as const;
 
 import type { InvoiceWithRelations } from '@/types';
 
@@ -32,7 +40,12 @@ const BTN_GHOST =
 
 type BrandOption = { readonly id: number; readonly name: string };
 type TalentOption = { readonly id: number; readonly name: string };
-type CampaignOption = { readonly id: number; readonly label: string };
+type CampaignOption = {
+  readonly id:       number;
+  readonly label:    string;
+  readonly brandId:  number | null;
+  readonly talentId: number | null;
+};
 
 type Props =
   | {
@@ -76,9 +89,38 @@ function InvoiceDrawerForm(props: Props): ReactElement {
   const action = mode === 'create' ? createInvoiceAction : updateInvoiceAction;
   const [state, formAction, isPending] = useActionState(action, {});
 
+  // Campos controlados para autocompletar
+  const [kind,       setKind]       = useState<'income' | 'expense'>(invoice?.kind ?? 'income');
+  const [campaignId, setCampaignId] = useState<string>(invoice?.campaignId ? String(invoice.campaignId) : '');
+  const [brandId,    setBrandId]    = useState<string>(invoice?.brandId    ? String(invoice.brandId)    : '');
+  const [talentId,   setTalentId]   = useState<string>(invoice?.talentId   ? String(invoice.talentId)   : '');
+  const [status,     setStatus]     = useState<string>(invoice?.status ?? 'pendiente');
+  // Tracks si el usuario tocó brand/talent manualmente
+  const [touchedBrand,  setTouchedBrand]  = useState(false);
+  const [touchedTalent, setTouchedTalent] = useState(false);
+
   const [net, setNet] = useState<string>(invoice?.netAmount ?? '0.00');
   const [vat, setVat] = useState<string>(invoice?.vatPct ?? '21.00');
   const [withholding, setWithholding] = useState<string>(invoice?.withholdingPct ?? '0.00');
+
+  // Autocompletar marca/influencer al seleccionar trato
+  function handleCampaignChange(id: string): void {
+    setCampaignId(id);
+    if (!id) return;
+    const camp = campaigns.find((c) => String(c.id) === id);
+    if (!camp) return;
+    if (camp.brandId  && !touchedBrand)  setBrandId(String(camp.brandId));
+    if (camp.talentId && !touchedTalent) setTalentId(String(camp.talentId));
+  }
+
+  // Al cambiar tipo, sugerir estado coherente
+  function handleKindChange(k: 'income' | 'expense'): void {
+    setKind(k);
+    if (k === 'income'  && !INCOME_STATUS_OPTIONS.includes(status  as (typeof INCOME_STATUS_OPTIONS)[number]))  setStatus('pendiente');
+    if (k === 'expense' && !EXPENSE_STATUS_OPTIONS.includes(status as (typeof EXPENSE_STATUS_OPTIONS)[number])) setStatus('pendiente');
+  }
+
+  const statusOptions = kind === 'income' ? INCOME_STATUS_OPTIONS : EXPENSE_STATUS_OPTIONS;
 
   const total = useMemo(() => {
     const n = Number(net);
@@ -106,9 +148,9 @@ function InvoiceDrawerForm(props: Props): ReactElement {
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className={LABEL} htmlFor="invoice-kind">Tipo *</label>
-            <select id="invoice-kind" name="kind" defaultValue={invoice?.kind ?? 'income'} required className={INPUT}>
-              <option value="income">Ingreso</option>
-              <option value="expense">Gasto</option>
+            <select id="invoice-kind" name="kind" value={kind} onChange={(e) => handleKindChange(e.target.value as 'income' | 'expense')} required className={INPUT}>
+              <option value="income">↑ Ingreso</option>
+              <option value="expense">↓ Gasto</option>
             </select>
           </div>
           <div>
@@ -129,29 +171,41 @@ function InvoiceDrawerForm(props: Props): ReactElement {
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className={LABEL} htmlFor="invoice-brand">Marca</label>
-            <select id="invoice-brand" name="brandId" defaultValue={invoice?.brandId ?? ''} className={INPUT}>
+            <select
+              id="invoice-brand" name="brandId"
+              value={brandId}
+              onChange={(e) => { setBrandId(e.target.value); setTouchedBrand(true); }}
+              className={INPUT}
+            >
               <option value="">— ninguna —</option>
-              {brands.map((b) => (
-                <option key={b.id} value={b.id}>{b.name}</option>
-              ))}
+              {brands.map((b) => <option key={b.id} value={String(b.id)}>{b.name}</option>)}
             </select>
           </div>
           <div>
-            <label className={LABEL} htmlFor="invoice-talent">Talent</label>
-            <select id="invoice-talent" name="talentId" defaultValue={invoice?.talentId ?? ''} className={INPUT}>
+            <label className={LABEL} htmlFor="invoice-talent">Influencer</label>
+            <select
+              id="invoice-talent" name="talentId"
+              value={talentId}
+              onChange={(e) => { setTalentId(e.target.value); setTouchedTalent(true); }}
+              className={INPUT}
+            >
               <option value="">— ninguno —</option>
-              {talents.map((t) => (
-                <option key={t.id} value={t.id}>{t.name}</option>
-              ))}
+              {talents.map((t) => <option key={t.id} value={String(t.id)}>{t.name}</option>)}
             </select>
           </div>
           <div>
-            <label className={LABEL} htmlFor="invoice-campaign">Campaña</label>
-            <select id="invoice-campaign" name="campaignId" defaultValue={invoice?.campaignId ?? ''} className={INPUT}>
+            <label className={LABEL} htmlFor="invoice-campaign">
+              Trato / Campaña
+              {campaignId && <span className="ml-1 text-emerald-500">●</span>}
+            </label>
+            <select
+              id="invoice-campaign" name="campaignId"
+              value={campaignId}
+              onChange={(e) => handleCampaignChange(e.target.value)}
+              className={INPUT}
+            >
               <option value="">— sin vincular —</option>
-              {campaigns.map((c) => (
-                <option key={c.id} value={c.id}>{c.label}</option>
-              ))}
+              {campaigns.map((c) => <option key={c.id} value={String(c.id)}>{c.label}</option>)}
             </select>
           </div>
           <div>
@@ -173,9 +227,16 @@ function InvoiceDrawerForm(props: Props): ReactElement {
           />
           <div>
             <label className={LABEL} htmlFor="invoice-status">Estado</label>
-            <select id="invoice-status" name="status" defaultValue={invoice?.status ?? 'borrador'} className={INPUT}>
-              {INVOICE_STATUSES.map((s) => (
-                <option key={s} value={s}>{INVOICE_STATUS_LABELS[s]}</option>
+            <select
+              id="invoice-status" name="status"
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+              className={INPUT}
+            >
+              {statusOptions.map((s) => (
+                <option key={s} value={s}>
+                  {INVOICE_STATUS_LABELS[s as keyof typeof INVOICE_STATUS_LABELS] ?? s}
+                </option>
               ))}
             </select>
           </div>

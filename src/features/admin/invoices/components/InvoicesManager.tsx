@@ -27,6 +27,7 @@ type Props = {
   readonly campaigns: readonly CampaignOption[];
   readonly categories: readonly string[];
   readonly canDelete: boolean;
+  readonly isStaff?: boolean;
 };
 
 /**
@@ -43,32 +44,38 @@ export function InvoicesManager({
   campaigns,
   categories,
   canDelete,
+  isStaff = false,
 }: Props): React.ReactElement {
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const [editing, setEditing] = useState<InvoiceWithRelations | null>(null);
-  const [filterKind, setFilterKind] = useState<'all' | InvoiceKind>('all');
+  const [drawerOpen, setDrawerOpen]   = useState(false);
+  const [editing, setEditing]         = useState<InvoiceWithRelations | null>(null);
+  const [filterKind, setFilterKind]   = useState<'all' | InvoiceKind>('all');
   const [filterStatus, setFilterStatus] = useState<'all' | InvoiceStatus>('all');
+  const [filterBrand, setFilterBrand]   = useState<string>('all');
+  const [filterCampaign, setFilterCampaign] = useState<string>('all');
   const [showAnulled, setShowAnulled] = useState(false);
-  const [search, setSearch] = useState('');
+  const [search, setSearch]           = useState('');
 
   const filtered = useMemo(() => {
     let result = invoices;
-    if (!showAnulled) result = result.filter((i) => i.status !== 'anulada');
-    if (filterKind !== 'all') result = result.filter((i) => i.kind === filterKind);
+    if (!showAnulled)      result = result.filter((i) => i.status !== 'anulada');
+    if (filterKind !== 'all')   result = result.filter((i) => i.kind === filterKind);
     if (filterStatus !== 'all') result = result.filter((i) => i.status === filterStatus);
+    if (filterBrand !== 'all')  result = result.filter((i) => String(i.brandId ?? '') === filterBrand);
+    if (filterCampaign !== 'all') result = result.filter((i) => String(i.campaignId ?? '') === filterCampaign);
     const q = search.toLowerCase().trim();
     if (q) {
       result = result.filter(
         (i) =>
           i.concept.toLowerCase().includes(q) ||
-          (i.number ?? '').toLowerCase().includes(q) ||
-          (i.brandName ?? '').toLowerCase().includes(q) ||
-          (i.talentName ?? '').toLowerCase().includes(q) ||
+          (i.number        ?? '').toLowerCase().includes(q) ||
+          (i.brandName     ?? '').toLowerCase().includes(q) ||
+          (i.talentName    ?? '').toLowerCase().includes(q) ||
+          (i.campaignName  ?? '').toLowerCase().includes(q) ||
           (i.counterpartyName ?? '').toLowerCase().includes(q),
       );
     }
     return result;
-  }, [invoices, filterKind, filterStatus, search, showAnulled]);
+  }, [invoices, filterKind, filterStatus, filterBrand, filterCampaign, search, showAnulled]);
 
   const closeDrawer = (): void => {
     setDrawerOpen(false);
@@ -76,7 +83,15 @@ export function InvoicesManager({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
+      {isStaff && (
+        <div className="flex items-center gap-2.5 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-[12px] text-blue-700">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden>
+            <circle cx="7" cy="7" r="5"/><path d="M7 5v4" strokeLinecap="round"/><circle cx="7" cy="3.5" r="0.5" fill="currentColor"/>
+          </svg>
+          <span>Ves solo los movimientos financieros de tratos asignados a ti. Para crear movimientos, accede al detalle del trato correspondiente.</span>
+        </div>
+      )}
       {/* Toolbar */}
       <div className="flex flex-wrap items-center gap-3 justify-between">
         <div className="flex flex-wrap items-center gap-2">
@@ -98,7 +113,15 @@ export function InvoicesManager({
               <option key={s} value={s}>{INVOICE_STATUS_LABELS[s]}</option>
             ))}
           </select>
-          <label className="flex items-center gap-2 text-xs text-sp-admin-muted">
+          <select value={filterBrand} onChange={(e) => setFilterBrand(e.target.value)} className={INPUT}>
+            <option value="all">Todas las marcas</option>
+            {brands.map((b) => <option key={b.id} value={String(b.id)}>{b.name}</option>)}
+          </select>
+          <select value={filterCampaign} onChange={(e) => setFilterCampaign(e.target.value)} className={INPUT}>
+            <option value="all">Todos los tratos</option>
+            {campaigns.map((c) => <option key={c.id} value={String(c.id)}>{c.label}</option>)}
+          </select>
+          <label className="flex items-center gap-2 text-xs text-sp-admin-muted cursor-pointer">
             <input
               type="checkbox"
               checked={showAnulled}
@@ -126,16 +149,15 @@ export function InvoicesManager({
           >
             Importar archivo
           </Link>
-          <button
-            type="button"
-            onClick={() => {
-              setEditing(null);
-              setDrawerOpen(true);
-            }}
-            className={BTN_PRIMARY}
-          >
-            + Nueva factura
-          </button>
+          {!isStaff && (
+            <button
+              type="button"
+              onClick={() => { setEditing(null); setDrawerOpen(true); }}
+              className={BTN_PRIMARY}
+            >
+              + Nueva factura
+            </button>
+          )}
         </div>
       </div>
 
@@ -153,15 +175,17 @@ export function InvoicesManager({
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-sp-admin-border bg-sp-admin-bg/50">
-                <th className="text-left px-4 py-3 font-semibold text-sp-admin-muted text-[11px] uppercase tracking-wider">Tipo</th>
-                <th className="text-left px-4 py-3 font-semibold text-sp-admin-muted text-[11px] uppercase tracking-wider">Nº</th>
-                <th className="text-left px-4 py-3 font-semibold text-sp-admin-muted text-[11px] uppercase tracking-wider">Fecha</th>
-                <th className="text-left px-4 py-3 font-semibold text-sp-admin-muted text-[11px] uppercase tracking-wider">Concepto</th>
-                <th className="text-left px-4 py-3 font-semibold text-sp-admin-muted text-[11px] uppercase tracking-wider">Empresa</th>
-                <th className="text-left px-4 py-3 font-semibold text-sp-admin-muted text-[11px] uppercase tracking-wider">Pago</th>
-                <th className="text-right px-4 py-3 font-semibold text-sp-admin-muted text-[11px] uppercase tracking-wider">Total</th>
-                <th className="text-left px-4 py-3 font-semibold text-sp-admin-muted text-[11px] uppercase tracking-wider">Estado</th>
-                <th className="text-left px-4 py-3 font-semibold text-sp-admin-muted text-[11px] uppercase tracking-wider">Adj.</th>
+                <th className="text-left px-4 py-3 font-semibold text-sp-admin-muted text-[10px] uppercase tracking-wider whitespace-nowrap">Tipo</th>
+                <th className="text-left px-4 py-3 font-semibold text-sp-admin-muted text-[10px] uppercase tracking-wider whitespace-nowrap">Nº</th>
+                <th className="text-left px-4 py-3 font-semibold text-sp-admin-muted text-[10px] uppercase tracking-wider whitespace-nowrap">Fecha</th>
+                <th className="text-left px-4 py-3 font-semibold text-sp-admin-muted text-[10px] uppercase tracking-wider">Concepto</th>
+                <th className="text-left px-4 py-3 font-semibold text-sp-admin-muted text-[10px] uppercase tracking-wider whitespace-nowrap">Trato</th>
+                <th className="text-left px-4 py-3 font-semibold text-sp-admin-muted text-[10px] uppercase tracking-wider whitespace-nowrap">Marca / Influencer</th>
+                <th className="text-left px-4 py-3 font-semibold text-sp-admin-muted text-[10px] uppercase tracking-wider whitespace-nowrap">Entidad</th>
+                <th className="text-left px-4 py-3 font-semibold text-sp-admin-muted text-[10px] uppercase tracking-wider whitespace-nowrap">Cuenta</th>
+                <th className="text-right px-4 py-3 font-semibold text-sp-admin-muted text-[10px] uppercase tracking-wider whitespace-nowrap">Total</th>
+                <th className="text-left px-4 py-3 font-semibold text-sp-admin-muted text-[10px] uppercase tracking-wider whitespace-nowrap">Estado</th>
+                <th className="text-left px-4 py-3 font-semibold text-sp-admin-muted text-[10px] uppercase tracking-wider whitespace-nowrap">Adj.</th>
                 <th className="px-4 py-3"></th>
               </tr>
             </thead>
@@ -171,6 +195,8 @@ export function InvoicesManager({
                   key={inv.id}
                   invoice={inv}
                   canDelete={canDelete}
+                  canEdit={!isStaff}
+                  canAnnul={!isStaff}
                   onEdit={() => {
                     setEditing(inv);
                     setDrawerOpen(true);

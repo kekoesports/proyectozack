@@ -3,10 +3,12 @@ import { crmBrands, talents, campaigns } from '@/db/schema';
 import { asc } from 'drizzle-orm';
 import { listInvoices, getBillingKPIs, getUsedInvoiceCategories } from '@/lib/queries/invoices';
 import { getIssuerCompanies, getBillingClients, listIssuedInvoices } from '@/lib/queries/issuedInvoices';
-import { InvoicesManager } from '@/features/admin/invoices/components/InvoicesManager';
-import { IssuedInvoicesTab } from '@/features/admin/invoices/components/IssuedInvoicesTab';
-import { AccountingImporter } from '@/features/admin/invoices/components/AccountingImporter';
-import { BrandsTabs } from '@/features/admin/brands/components/BrandsTabs';
+import { InvoicesManager }          from '@/features/admin/invoices/components/InvoicesManager';
+import { IssuedInvoicesTab }         from '@/features/admin/invoices/components/IssuedInvoicesTab';
+import { AccountingImporter }        from '@/features/admin/invoices/components/AccountingImporter';
+import { BillingClientsManager }     from '@/features/admin/invoices/components/BillingClientsManager';
+import { IssuersManagerTab }         from '@/features/admin/invoices/components/IssuersManagerTab';
+import { BrandsTabs }                from '@/features/admin/brands/components/BrandsTabs';
 import { requireAnyRole } from '@/lib/auth-guard';
 import { canDelete } from '@/lib/permissions';
 
@@ -40,8 +42,9 @@ function KpiCard({ label, value, accent, sub, subAccent }: KpiCardProps): React.
 }
 
 export default async function AdminInvoicesPage(): Promise<React.ReactElement> {
-  const session = await requireAnyRole(['admin', 'manager'], '/admin/login');
-  const role = (session.user.role ?? 'staff') as Role;
+  const session = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
+  const role    = (session.user.role ?? 'staff') as Role;
+  const isStaff = role === 'staff';
 
   const yearStart = `${new Date().getFullYear()}-01-01`;
 
@@ -49,15 +52,18 @@ export default async function AdminInvoicesPage(): Promise<React.ReactElement> {
     movements, kpis, brandsList, talentsList, campaignsList,
     issuers, billingClients, issuedInvList, categories,
   ] = await Promise.all([
-    listInvoices(),
+    listInvoices(isStaff ? { staffUserId: session.user.id } : {}),
     getBillingKPIs(yearStart),
     db.select({ id: crmBrands.id, name: crmBrands.name }).from(crmBrands).orderBy(asc(crmBrands.name)),
     db.select({ id: talents.id, name: talents.name }).from(talents).orderBy(asc(talents.name)),
-    db.select({ id: campaigns.id, name: campaigns.name, brandId: campaigns.brandId, talentId: campaigns.talentId })
-      .from(campaigns).orderBy(asc(campaigns.name)),
+    db.select({
+      id: campaigns.id, name: campaigns.name,
+      brandId: campaigns.brandId, talentId: campaigns.talentId,
+      amountBrand: campaigns.amountBrand, amountTalent: campaigns.amountTalent,
+    }).from(campaigns).orderBy(asc(campaigns.name)),
     getIssuerCompanies(),
     getBillingClients(),
-    listIssuedInvoices(),
+    listIssuedInvoices(isStaff ? { staffUserId: session.user.id } : {}),
     getUsedInvoiceCategories(),
   ]);
 
@@ -115,9 +121,10 @@ export default async function AdminInvoicesPage(): Promise<React.ReactElement> {
                   invoices={movements}
                   brands={brandsList}
                   talents={talentsList}
-                  campaigns={campaignsList.map((c) => ({ id: c.id, label: c.name }))}
+                  campaigns={campaignsList.map((c) => ({ id: c.id, label: c.name, brandId: c.brandId, talentId: c.talentId }))}
                   categories={categories}
                   canDelete={canDelete(role)}
+                  isStaff={isStaff}
                 />
               </div>
             ),
@@ -138,6 +145,29 @@ export default async function AdminInvoicesPage(): Promise<React.ReactElement> {
                 brands={brandsList}
                 talents={talentsList}
                 campaigns={campaignsList}
+                isAdmin={role === 'admin'}
+                isStaff={isStaff}
+              />
+            ),
+          },
+          {
+            key:   'clientes',
+            label: 'Clientes',
+            content: (
+              <BillingClientsManager
+                clients={billingClients}
+                invoices={issuedInvList}
+                brands={brandsList}
+              />
+            ),
+          },
+          {
+            key:   'emisoras',
+            label: 'Empresas emisoras',
+            content: (
+              <IssuersManagerTab
+                issuers={issuers}
+                isAdmin={role === 'admin'}
               />
             ),
           },

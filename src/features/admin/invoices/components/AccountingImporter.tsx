@@ -94,18 +94,163 @@ type ParsedFile = {
   readonly totalRows: number;
 };
 
-type Step = 'upload' | 'preview' | 'mapping';
+type Step = 'upload' | 'preview' | 'mapping' | 'validation';
+
+// ── Normalización ─────────────────────────────────────────────────────
+
+const VALID_DEAL_STATUSES = ['propuesta', 'negociacion', 'aprobada', 'activa', 'completada', 'cancelada', 'pendiente_pago', 'pagada'] as const;
+
+const STATUS_ALIAS: Record<string, string> = {
+  pendiente:    'propuesta',
+  'en negociacion': 'negociacion',
+  'en_negociacion': 'negociacion',
+  activo:       'activa',
+  active:       'activa',
+  completed:    'completada',
+  completado:   'completada',
+  finalizado:   'completada',
+  cancelled:    'cancelada',
+  cancelado:    'cancelada',
+  pagado:       'pagada',
+  paid:         'pagada',
+  'pendiente de cobro': 'pendiente_pago',
+  en_agencia:   'activa',
+};
+
+function cleanAmount(raw: string | undefined): { value: number | null; error?: string } {
+  if (!raw || raw.trim() === '' || raw === '-' || raw === '—') return { value: null };
+  const s = raw.trim();
+  if (s.includes('#DIV') || s.includes('#REF') || s.includes('#N/A') || s.includes('#VALUE')) {
+    return { value: null, error: `Error Excel: ${s}` };
+  }
+  // Quitar símbolos de moneda, espacios, separadores de miles
+  const cleaned = s.replace(/[€$£%\s]/g, '')
+                    .replace(/\.(?=\d{3}(?:[,.]|$))/g, '') // separador miles punto
+                    .replace(',', '.');                      // coma decimal → punto
+  const n = parseFloat(cleaned);
+  if (isNaN(n)) return { value: null, error: `Importe no válido: "${raw}"` };
+  return { value: Math.round(n * 100) / 100 };
+}
+
+function cleanDate(raw: string | undefined): { value: string | null; error?: string } {
+  if (!raw || raw.trim() === '' || raw === '-' || raw === '—') return { value: null };
+  const s = raw.trim();
+  // DD/MM/YYYY o DD-MM-YYYY
+  const ddmmyyyy = s.match(/^(\d{1,2})[/\-.](\d{1,2})[/\-.](\d{4})$/);
+  if (ddmmyyyy) {
+    const [, d, m, y] = ddmmyyyy;
+    const date = new Date(Number(y), Number(m) - 1, Number(d));
+    if (!isNaN(date.getTime())) return { value: `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}` };
+  }
+  // YYYY-MM-DD
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return { value: s };
+  // Número de serie Excel (días desde 1900-01-01)
+  const serial = Number(s);
+  if (!isNaN(serial) && serial > 1 && serial < 100000) {
+    const d = new Date((serial - 25569) * 86400 * 1000);
+    if (!isNaN(d.getTime())) return { value: d.toISOString().slice(0, 10) };
+  }
+  const parsed = new Date(s);
+  if (!isNaN(parsed.getTime())) return { value: parsed.toISOString().slice(0, 10) };
+  return { value: null, error: `Fecha no reconocida: "${raw}"` };
+}
+
+function normalizeStatus(raw: string | undefined): string | null {
+  if (!raw || raw.trim() === '') return null;
+  const s = raw.trim().toLowerCase();
+  if (VALID_DEAL_STATUSES.includes(s as typeof VALID_DEAL_STATUSES[number])) return s;
+  return STATUS_ALIAS[s] ?? null;
+}
+
+function normalizeBoolean(raw: string | undefined): boolean | null {
+  if (!raw) return null;
+  const s = raw.trim().toLowerCase();
+  if (['sí', 'si', 'yes', 'true', '1', 'x', '✓', 'pagado', 'cobrado'].includes(s)) return true;
+  if (['no', 'false', '0', '-', ''].includes(s)) return false;
+  return null;
+}
+
+// ── Fila normalizada ──────────────────────────────────────────────────
+
+type NormalizedRow = {
+  readonly rowIndex:   number;
+  readonly raw:        Record<string, string>;
+  readonly data:       Record<string, unknown>;
+  readonly errors:     string[];
+  readonly warnings:   string[];
+  readonly isValid:    boolean;
+};
+
+function normalizeRows(parsed: ParsedFile, mapping: Record<string, string>): NormalizedRow[] {
+  return parsed.rows.map((row, idx) => {
+    const data: Record<string, unknown> = {};
+    const errors: string[] = [];
+    const warnings: string[] = [];
+
+    for (const [col, field] of Object.entries(mapping)) {
+      if (field === '_ignore') continue;
+      const raw = row[col] ?? '';
+
+      if (['amount_brand', 'amount_talent', 'agency_fee', 'mov_amount'].includes(field)) {
+        const { value, error } = cleanAmount(raw);
+        if (error) errors.push(error);
+        data[field] = value;
+      } else if (['start_date', 'end_date', 'payment_date'].includes(field)) {
+        const { value, error } = cleanDate(raw);
+        if (error) warnings.push(error);
+        data[field] = value;
+      } else if (field === 'deal_status') {
+        const status = normalizeStatus(raw);
+        if (raw && !status) warnings.push(`Estado desconocido: "${raw}" — se omitirá`);
+        data[field] = status;
+      } else if (['brand_paid', 'talent_paid'].includes(field)) {
+        data[field] = normalizeBoolean(raw);
+      } else if (field === 'currency') {
+        const cur = raw.trim().toUpperCase();
+        data[field] = ['EUR', 'USD', 'GBP', 'CHF'].includes(cur) ? cur : (cur || 'EUR');
+      } else {
+        data[field] = raw.trim() || null;
+      }
+    }
+
+    // Validaciones de negocio
+    const dealName  = data['deal_name']   as string | null;
+    const brandName = data['brand_name']  as string | null;
+    const amountBrand = data['amount_brand'] as number | null;
+
+    if (!dealName && !brandName) {
+      warnings.push('Sin nombre de trato ni marca — fila puede ser difícil de identificar');
+    }
+    if (amountBrand !== null && amountBrand < 0) {
+      warnings.push('El pago de marca es negativo');
+    }
+    const amountTalent = data['amount_talent'] as number | null;
+    if (amountBrand !== null && amountTalent !== null && amountTalent > amountBrand) {
+      warnings.push('El pago al talento supera el pago de la marca');
+    }
+
+    return {
+      rowIndex: idx + 1,
+      raw:      row,
+      data,
+      errors,
+      warnings,
+      isValid:  errors.length === 0,
+    };
+  });
+}
 
 const INPUT_SM = 'h-8 rounded-lg border border-sp-admin-border bg-white px-3 text-[12px] text-sp-admin-text outline-none focus:border-sp-admin-accent/50 shadow-[0_1px_2px_rgba(0,0,0,0.04)]';
 
 // ── Componente principal ──────────────────────────────────────────────
 
 export function AccountingImporter(): React.ReactElement {
-  const [step,       setStep]       = useState<Step>('upload');
-  const [parsed,     setParsed]     = useState<ParsedFile | null>(null);
-  const [mapping,    setMapping]    = useState<Record<string, string>>({});
-  const [dragging,   setDragging]   = useState(false);
-  const [parseError, setParseError] = useState<string | null>(null);
+  const [step,           setStep]       = useState<Step>('upload');
+  const [parsed,         setParsed]     = useState<ParsedFile | null>(null);
+  const [mapping,        setMapping]    = useState<Record<string, string>>({});
+  const [dragging,       setDragging]   = useState(false);
+  const [parseError,     setParseError] = useState<string | null>(null);
+  const [normalizedRows, setNormalizedRows] = useState<NormalizedRow[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
 
   async function parseFile(file: File): Promise<void> {
@@ -139,7 +284,7 @@ export function AccountingImporter(): React.ReactElement {
   }
 
   function reset(): void {
-    setStep('upload'); setParsed(null); setMapping({}); setParseError(null);
+    setStep('upload'); setParsed(null); setMapping({}); setParseError(null); setNormalizedRows([]);
     if (inputRef.current) inputRef.current.value = '';
   }
 
@@ -247,6 +392,21 @@ export function AccountingImporter(): React.ReactElement {
           onMappingChange={setMapping}
           onBack={() => setStep('preview')}
           onReset={reset}
+          onValidate={() => {
+            const rows = normalizeRows(parsed, mapping);
+            setNormalizedRows(rows);
+            setStep('validation');
+          }}
+        />
+      )}
+
+      {/* PASO 4: Validación y normalización */}
+      {step === 'validation' && parsed && normalizedRows.length > 0 && (
+        <ValidationStep
+          rows={normalizedRows}
+          mapping={mapping}
+          onBack={() => setStep('mapping')}
+          onReset={reset}
         />
       )}
     </div>
@@ -261,9 +421,10 @@ type MappingProps = {
   readonly onMappingChange: (m: Record<string, string>) => void;
   readonly onBack:          () => void;
   readonly onReset:         () => void;
+  readonly onValidate:      () => void;
 };
 
-function ColumnMappingStep({ parsed, mapping, onMappingChange, onBack, onReset }: MappingProps): React.ReactElement {
+function ColumnMappingStep({ parsed, mapping, onMappingChange, onBack, onReset, onValidate }: MappingProps): React.ReactElement {
   const mappedCount  = Object.values(mapping).filter((v) => v !== '_ignore').length;
   const ignoredCount = Object.values(mapping).filter((v) => v === '_ignore').length;
 
@@ -409,7 +570,7 @@ function ColumnMappingStep({ parsed, mapping, onMappingChange, onBack, onReset }
         </p>
       </div>
 
-      {/* CTA — preparado para Fase 3 */}
+      {/* CTA — habilitado: validar datos */}
       <div className="flex items-center justify-between">
         <button type="button" onClick={onReset}
           className="text-[11px] text-sp-admin-muted hover:text-sp-admin-text underline transition-colors">
@@ -418,11 +579,200 @@ function ColumnMappingStep({ parsed, mapping, onMappingChange, onBack, onReset }
         <button
           type="button"
           disabled={!summary.hasDeal && !summary.hasMovement}
-          title="La validación e importación real se habilitará en la siguiente fase"
-          className="h-9 px-5 rounded-lg bg-sp-admin-accent/30 text-sp-admin-accent text-[12px] font-bold border border-sp-admin-accent/40 cursor-not-allowed"
+          onClick={onValidate}
+          className={`h-9 px-5 rounded-lg text-[12px] font-bold transition-colors ${
+            summary.hasDeal || summary.hasMovement
+              ? 'bg-sp-admin-accent text-white hover:bg-sp-admin-accent/90 active:scale-95'
+              : 'bg-sp-admin-accent/30 text-sp-admin-accent border border-sp-admin-accent/40 cursor-not-allowed'
+          }`}
         >
-          Validar y normalizar datos → (Fase 3)
+          Validar y normalizar datos →
         </button>
+      </div>
+    </div>
+  );
+}
+
+// ── Paso 4: Validación ────────────────────────────────────────────────
+
+type ValidationProps = {
+  readonly rows:     readonly NormalizedRow[];
+  readonly mapping:  Record<string, string>;
+  readonly onBack:   () => void;
+  readonly onReset:  () => void;
+};
+
+function ValidationStep({ rows, mapping, onBack, onReset }: ValidationProps): React.ReactElement {
+  const valid   = rows.filter((r) => r.isValid);
+  const invalid = rows.filter((r) => !r.isValid);
+  const withWarnings = rows.filter((r) => r.isValid && r.warnings.length > 0);
+
+  // Columnas mapeadas (no ignoradas)
+  const mappedFields = [...new Set(Object.values(mapping).filter((v) => v !== '_ignore'))];
+  const fieldLabels: Record<string, string> = {};
+  for (const f of CRM_FIELDS) fieldLabels[f.key] = f.label;
+
+  const EUR = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 2 });
+  function fmtValue(field: string, val: unknown): string {
+    if (val === null || val === undefined || val === '') return '—';
+    if (['amount_brand', 'amount_talent', 'agency_fee', 'mov_amount'].includes(field)) {
+      return typeof val === 'number' ? EUR.format(val) : String(val);
+    }
+    if (typeof val === 'boolean') return val ? 'Sí' : 'No';
+    return String(val);
+  }
+
+  return (
+    <div className="space-y-5">
+      {/* Header */}
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div>
+          <p className="font-semibold text-sp-admin-text text-sm">Validación y normalización</p>
+          <p className="text-[11px] text-sp-admin-muted mt-0.5">
+            Revisa los datos antes de importar. Solo se importarán las filas válidas.
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <button type="button" onClick={onBack}
+            className="h-8 px-3 rounded-lg border border-sp-admin-border text-[11px] font-semibold text-sp-admin-muted hover:text-sp-admin-text hover:bg-sp-admin-hover transition-colors">
+            ← Cambiar mapeo
+          </button>
+        </div>
+      </div>
+
+      {/* Resumen */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        {[
+          { label: 'Total filas',        value: rows.length,          color: '#72728a' },
+          { label: 'Válidas',            value: valid.length,         color: '#16a34a' },
+          { label: 'Con avisos',         value: withWarnings.length,  color: '#f59e0b' },
+          { label: 'Con errores',        value: invalid.length,       color: invalid.length > 0 ? '#ef4444' : '#72728a' },
+        ].map((s) => (
+          <div key={s.label} className="rounded-lg bg-sp-admin-card border border-sp-admin-border overflow-hidden">
+            <div className="h-[2px]" style={{ background: s.color }} />
+            <div className="px-4 py-3">
+              <p className="text-[9px] font-bold uppercase tracking-wide text-sp-admin-muted">{s.label}</p>
+              <p className="text-[20px] font-black mt-0.5" style={{ color: s.color }}>{s.value}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Errores críticos */}
+      {invalid.length > 0 && (
+        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 space-y-1">
+          <p className="text-[11px] font-bold text-red-800">
+            {invalid.length} {invalid.length === 1 ? 'fila' : 'filas'} con errores — se omitirán en la importación:
+          </p>
+          {invalid.slice(0, 5).map((r) => (
+            <div key={r.rowIndex} className="text-[10px] text-red-700">
+              <span className="font-mono font-bold">Fila {r.rowIndex}:</span> {r.errors.join(' · ')}
+            </div>
+          ))}
+          {invalid.length > 5 && (
+            <p className="text-[10px] text-red-600">… y {invalid.length - 5} más</p>
+          )}
+        </div>
+      )}
+
+      {/* Avisos */}
+      {withWarnings.length > 0 && (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 space-y-1">
+          <p className="text-[11px] font-bold text-amber-800">
+            {withWarnings.length} {withWarnings.length === 1 ? 'fila' : 'filas'} con avisos (se importarán de todas formas):
+          </p>
+          {withWarnings.slice(0, 3).map((r) => (
+            <div key={r.rowIndex} className="text-[10px] text-amber-700">
+              <span className="font-mono font-bold">Fila {r.rowIndex}:</span> {r.warnings.join(' · ')}
+            </div>
+          ))}
+          {withWarnings.length > 3 && (
+            <p className="text-[10px] text-amber-600">… y {withWarnings.length - 3} más</p>
+          )}
+        </div>
+      )}
+
+      {/* Tabla de datos normalizados */}
+      <div className="rounded-xl bg-sp-admin-card border border-sp-admin-border overflow-hidden overflow-x-auto">
+        <div className="px-4 py-2.5 border-b border-sp-admin-border bg-sp-admin-hover/30 flex items-center gap-2">
+          <p className="text-[9px] font-black uppercase tracking-[0.18em] text-sp-admin-muted">
+            Datos normalizados — {valid.length} filas válidas
+          </p>
+        </div>
+        <table className="w-full text-[11px] min-w-[600px]">
+          <thead>
+            <tr className="border-b border-sp-admin-border/50">
+              <th className="px-3 py-2 text-[8px] font-bold text-sp-admin-muted uppercase tracking-wide text-left w-10">#</th>
+              <th className="px-3 py-2 text-[8px] font-bold text-sp-admin-muted uppercase tracking-wide text-left w-16">Estado</th>
+              {mappedFields.slice(0, 6).map((f) => (
+                <th key={f} className="px-3 py-2 text-[8px] font-bold text-sp-admin-muted uppercase tracking-wide text-left whitespace-nowrap">
+                  {fieldLabels[f] ?? f}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {rows.slice(0, 20).map((row) => (
+              <tr key={row.rowIndex}
+                className={`border-b border-sp-admin-border/30 last:border-0 transition-colors ${
+                  !row.isValid ? 'bg-red-50/50' : row.warnings.length > 0 ? 'bg-amber-50/30' : 'hover:bg-sp-admin-hover/20'
+                }`}>
+                <td className="px-3 py-2 text-sp-admin-muted/50 tabular-nums">{row.rowIndex}</td>
+                <td className="px-3 py-2">
+                  {!row.isValid ? (
+                    <span className="inline-flex items-center gap-1 text-[9px] font-bold text-red-600">
+                      <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0"/>Error
+                    </span>
+                  ) : row.warnings.length > 0 ? (
+                    <span className="inline-flex items-center gap-1 text-[9px] font-bold text-amber-600">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0"/>Aviso
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 text-[9px] font-bold text-emerald-600">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"/>OK
+                    </span>
+                  )}
+                </td>
+                {mappedFields.slice(0, 6).map((f) => (
+                  <td key={f} className="px-3 py-2 text-sp-admin-text max-w-[140px] truncate">
+                    {fmtValue(f, row.data[f])}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {rows.length > 20 && (
+          <p className="px-4 py-2 text-[10px] text-sp-admin-muted/60 border-t border-sp-admin-border/40">
+            Mostrando 20 de {rows.length} filas
+          </p>
+        )}
+      </div>
+
+      {/* CTA */}
+      <div className="flex items-center justify-between pt-2 border-t border-sp-admin-border/60">
+        <button type="button" onClick={onReset}
+          className="text-[11px] text-sp-admin-muted hover:text-sp-admin-text underline transition-colors">
+          Cancelar e importar otro archivo
+        </button>
+        <div className="flex items-center gap-3">
+          <p className="text-[11px] text-sp-admin-muted">
+            {valid.length} filas listas para importar
+            {invalid.length > 0 && ` · ${invalid.length} serán omitidas`}
+          </p>
+          {valid.length > 0 ? (
+            <div className="flex items-center gap-1.5 h-9 px-4 rounded-lg border border-amber-300 bg-amber-50 text-amber-800 text-[12px] font-semibold">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.4" aria-hidden>
+                <path d="M7 2L12 11H2L7 2Z"/><path d="M7 6v2" strokeLinecap="round"/><circle cx="7" cy="10" r="0.5" fill="currentColor"/>
+              </svg>
+              Importación real — próxima fase
+            </div>
+          ) : (
+            <p className="text-[11px] text-red-500 font-medium">
+              Sin filas válidas para importar. Revisa los errores.
+            </p>
+          )}
+        </div>
       </div>
     </div>
   );

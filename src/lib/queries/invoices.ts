@@ -30,6 +30,8 @@ type InvoiceFilters = {
   readonly includeAnuladas?: boolean;
   readonly entity?: string;
   readonly currency?: string;
+  /** Si se proporciona, filtra solo facturas de campañas asignadas o creadas por este userId */
+  readonly staffUserId?: string;
 };
 
 const INVOICE_LIST_COLUMNS = {
@@ -133,6 +135,20 @@ export async function listInvoices(filters: InvoiceFilters = {}): Promise<readon
       ilike(invoices.category, q),
     );
     if (searchClause !== undefined) conds.push(searchClause);
+  }
+
+  // Filtro de visibilidad para staff: solo facturas de campañas asignadas o creadas por ellos
+  if (filters.staffUserId) {
+    conds.push(
+      or(
+        eq(invoices.createdByUserId, filters.staffUserId),
+        sql`${invoices.campaignId} IN (
+          SELECT id FROM campaigns
+          WHERE assigned_to_user_id = ${filters.staffUserId}
+             OR created_by_user_id  = ${filters.staffUserId}
+        )`,
+      )!,
+    );
   }
 
   const rows = await db

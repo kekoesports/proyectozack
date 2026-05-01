@@ -273,8 +273,12 @@ export async function deleteInvoiceAction(id: number): Promise<ActionState> {
 export async function annulInvoiceAction(id: number): Promise<ActionState> {
   await requireAnyRole(['admin', 'manager'], '/admin/login');
   try {
+    const existing = await getInvoice(id);
     await updateInvoice(id, { status: 'anulada' });
     revalidatePath('/admin/facturacion');
+    if (existing?.campaignId) {
+      revalidatePath(`/admin/campanas/${existing.campaignId}`);
+    }
     return { success: true };
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'unknown';
@@ -305,15 +309,18 @@ export async function markInvoicePaidAction(id: number): Promise<ActionState> {
   await requireAnyRole(['admin', 'manager'], '/admin/login');
   const today = new Intl.DateTimeFormat('en-CA', {
     timeZone: 'Europe/Madrid',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
+    year: 'numeric', month: '2-digit', day: '2-digit',
   }).format(new Date());
   try {
     const existing = await getInvoice(id);
-    const newStatus = existing?.kind === 'expense' ? 'cobrada' : 'cobrada';
+    // income → cobrada; expense → pagada
+    const newStatus = existing?.kind === 'expense' ? 'pagada' : 'cobrada';
     await updateInvoice(id, { status: newStatus, paidDate: today });
     revalidatePath('/admin/facturacion');
+    // Si la factura está vinculada a un trato, revalidar también su página
+    if (existing?.campaignId) {
+      revalidatePath(`/admin/campanas/${existing.campaignId}`);
+    }
     return { success: true };
   } catch (err) {
     console.error('[admin] markPaid error:', err instanceof Error ? err.message : 'unknown');
