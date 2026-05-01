@@ -1,12 +1,13 @@
 'use client';
 
 import Image from 'next/image';
-import { useMemo } from 'react';
+import { useMemo, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import * as m from 'motion/react-client';
 import { StateBadge } from '@/features/admin/_shared/components/StateBadge';
 import { parseFollowers, formatCompact } from '@/lib/utils/format';
 import { TALENT_VERTICAL_LABELS } from '@/lib/schemas/talentBusiness';
+import { setTalentStatusAction } from '@/app/admin/(dashboard)/talents/actions';
 import type { AdminRosterRow } from '@/lib/queries/talents';
 import type { TalentVertical } from '@/types';
 import type { Tone } from '@/features/admin/_shared/components/StateBadge';
@@ -48,6 +49,13 @@ export const PLATFORM_LABELS: Record<string, string> = {
 
 // ── Card ─────────────────────────────────────────────────────────────
 
+const STATUS_CYCLE: readonly TalentStatus[] = ['active', 'available', 'inactive'];
+
+function nextStatus(current: TalentStatus): TalentStatus {
+  const idx = STATUS_CYCLE.indexOf(current);
+  return STATUS_CYCLE[(idx + 1) % STATUS_CYCLE.length] ?? 'active';
+}
+
 type CardProps = {
   readonly creator: AdminRosterRow;
   readonly verticals: readonly TalentVertical[];
@@ -55,11 +63,35 @@ type CardProps = {
 
 export function TalentCard({ creator, verticals }: CardProps): React.ReactElement {
   const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+  const [optimisticStatus, setOptimisticStatus] = useState<TalentStatus>(creator.status as TalentStatus);
 
-  // Resolve status: prefer audienceStatus if set, fall back to status
-  const displayStatus: string = creator.audienceStatus ?? creator.status;
+  // Resolve status: prefer audienceStatus if set, fall back to optimistic status
+  const displayStatus: string = creator.audienceStatus ?? optimisticStatus;
   const tone: Tone = STATUS_TONE[displayStatus] ?? 'neutral';
   const statusLabel: string = STATUS_LABELS[displayStatus] ?? displayStatus;
+  const isPillClickable = !creator.audienceStatus;
+
+  const handleStatusClick = (e: React.MouseEvent | React.KeyboardEvent): void => {
+    e.stopPropagation();
+    e.preventDefault();
+    const next = nextStatus(optimisticStatus);
+    setOptimisticStatus(next);
+    startTransition(async () => {
+      const res = await setTalentStatusAction(creator.id, next);
+      if (!res.success) {
+        setOptimisticStatus(creator.status as TalentStatus);
+      } else {
+        router.refresh();
+      }
+    });
+  };
+
+  const handleStatusKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>): void => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      handleStatusClick(e);
+    }
+  };
 
   // Platform chips: from socials (up to 3)
   const platformChips = useMemo(() => {
@@ -119,9 +151,22 @@ export function TalentCard({ creator, verticals }: CardProps): React.ReactElemen
       >
         <Avatar creator={creator} />
 
-        {/* Status badge */}
+        {/* Status badge — clickable cycles status when no audienceStatus override */}
         <div className="absolute top-2 right-2 z-10">
-          <StateBadge tone={tone} variant="soft">{statusLabel}</StateBadge>
+          {isPillClickable ? (
+            <button
+              type="button"
+              onClick={handleStatusClick}
+              onKeyDown={handleStatusKeyDown}
+              disabled={isPending}
+              aria-label={`Cambiar estado: ${statusLabel}`}
+              className="cursor-pointer rounded-full focus-visible:outline-2 focus-visible:outline-sp-admin-accent focus-visible:outline-offset-2 disabled:opacity-60"
+            >
+              <StateBadge tone={tone} variant="soft">{statusLabel}</StateBadge>
+            </button>
+          ) : (
+            <StateBadge tone={tone} variant="soft">{statusLabel}</StateBadge>
+          )}
         </div>
 
         {/* País */}
