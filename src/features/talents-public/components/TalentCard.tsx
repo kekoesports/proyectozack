@@ -29,7 +29,8 @@ export function TalentCard({ talent, onOpen, priority = false }: TalentCardProps
   return (
     <button
       onClick={onOpen}
-      className="group text-left w-full rounded-2xl overflow-hidden border border-sp-border bg-white hover:shadow-xl transition-all hover:-translate-y-0.5 focus:outline-none"
+      aria-label={`Ver perfil de ${talent.name}`}
+      className="group text-left w-full rounded-2xl overflow-hidden border border-sp-border bg-white hover:shadow-xl transition-all hover:-translate-y-0.5 focus-visible:ring-2 focus-visible:ring-sp-orange focus-visible:ring-offset-2"
     >
       {/* Photo / Gradient fallback */}
       <div className="relative h-52 overflow-hidden" style={{ background: grad }}>
