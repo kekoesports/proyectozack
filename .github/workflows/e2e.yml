@@ -1,8 +1,7 @@
 name: E2E Tests
 
 on:
-  pull_request:
-    branches: [master]
+  workflow_dispatch:
 
 concurrency:
   group: e2e-${{ github.ref }}
