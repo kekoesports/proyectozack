@@ -4,7 +4,7 @@ import { useActionState, useMemo, useState } from 'react';
 import { saveGeneratedContractAction } from '@/app/admin/(dashboard)/campanas/generate-contract-action';
 import { fillTemplate, AVAILABLE_VARIABLES } from '@/lib/contractVariables';
 import type { ContractTemplate } from '@/lib/queries/contractTemplates';
-import type { CampaignWithRelations } from '@/types';
+import type { CampaignWithRelations } from '@/lib/queries/campaigns';
 
 type Props = {
   readonly campaign:  CampaignWithRelations;

@@ -6,6 +6,10 @@ import { requireAnyRole } from '@/lib/auth-guard';
 import { getCampaignWithRelations } from '@/lib/queries/campaigns';
 import { listFilesByEntity } from '@/lib/queries/files';
 import { listDeliverablesByCampaign } from '@/lib/queries/deliverables';
+import { getContractByCampaign } from '@/lib/queries/contracts';
+import { listContractTemplates } from '@/lib/queries/contractTemplates';
+import { getIssuerCompanies, listIssuedInvoicesByDeal } from '@/lib/queries/issuedInvoices';
+import { buildContractVars } from '@/lib/contractVariables';
 import { db } from '@/lib/db';
 import { invoices, user as userTable } from '@/db/schema';
 import { listCrmBrands, getBrandContacts } from '@/lib/queries/crmBrands';
@@ -27,27 +31,45 @@ export default async function CampaignDetailPage({
   const session = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
   const role = session.user.role as Role;
   const isManager = role === 'manager';
+  const isAdmin = role === 'admin';
 
-  const [campaign, campaignFiles, campaignInvoices, campaignDeliverables, crmBrandsList, allTalents, staffUsers] =
-    await Promise.all([
-      getCampaignWithRelations(campaignId),
-      listFilesByEntity('campaign', campaignId),
-      db
-        .select()
-        .from(invoices)
-        .where(eq(invoices.campaignId, campaignId))
-        .orderBy(invoices.issueDate),
-      listDeliverablesByCampaign(campaignId),
-      listCrmBrands(),
-      getAllTalents(),
-      db
-        .select({ id: userTable.id, name: userTable.name })
-        .from(userTable)
-        .where(inArray(userTable.role, ['admin', 'manager', 'staff']))
-        .orderBy(userTable.name),
-    ]);
+  const [
+    campaign,
+    campaignFiles,
+    campaignInvoices,
+    campaignDeliverables,
+    crmBrandsList,
+    allTalents,
+    staffUsers,
+    contract,
+    contractTemplates,
+    issuedInvoices,
+    issuerCompanies,
+  ] = await Promise.all([
+    getCampaignWithRelations(campaignId),
+    listFilesByEntity('campaign', campaignId),
+    db
+      .select()
+      .from(invoices)
+      .where(eq(invoices.campaignId, campaignId))
+      .orderBy(invoices.issueDate),
+    listDeliverablesByCampaign(campaignId),
+    listCrmBrands(),
+    getAllTalents(),
+    db
+      .select({ id: userTable.id, name: userTable.name })
+      .from(userTable)
+      .where(inArray(userTable.role, ['admin', 'manager', 'staff']))
+      .orderBy(userTable.name),
+    getContractByCampaign(campaignId),
+    listContractTemplates(),
+    listIssuedInvoicesByDeal(campaignId),
+    getIssuerCompanies(),
+  ]);
 
   if (!campaign) notFound();
+
+  const contractVars = buildContractVars(campaign);
 
   // Load contacts for each brand (for the drawer's contact select)
   const contactsByBrand: Record<number, readonly CrmBrandContact[]> = {};
@@ -76,10 +98,16 @@ export default async function CampaignDetailPage({
         campaignInvoices={campaignInvoices}
         campaignDeliverables={campaignDeliverables}
         isManager={isManager}
+        isAdmin={isAdmin}
         brands={brands}
         talents={talents}
         staffUsers={staffUsers}
         contactsByBrand={contactsByBrand}
+        contract={contract}
+        contractTemplates={contractTemplates}
+        contractVars={contractVars}
+        issuedInvoices={issuedInvoices}
+        issuerCompanies={issuerCompanies}
       />
     </div>
   );
