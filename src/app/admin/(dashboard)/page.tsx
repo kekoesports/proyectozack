@@ -7,6 +7,7 @@ import {
   getDealStats,
 } from '@/lib/queries/dashboard';
 import { getDashboardAlerts } from '@/lib/queries/alerts';
+import { requireAnyRole } from '@/lib/auth-guard';
 import { DashboardAlerts } from '@/features/admin/_shared/components/dashboard/DashboardAlerts';
 import { getIsoWeekLabel, getWeekStart } from '@/lib/utils/week';
 import {
@@ -45,6 +46,8 @@ function getGreeting(): string {
 }
 
 export default async function AdminDashboardPage(): Promise<ReactElement> {
+  const session  = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
+  const isStaff  = session.user.role === 'staff';
   const weekLabel = getIsoWeekLabel(new Date());
   const weekStart = getWeekStart(weekLabel);
   const weekStr = weekStart.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' });
@@ -56,7 +59,7 @@ export default async function AdminDashboardPage(): Promise<ReactElement> {
     getDashboardUpcomingFollowups(8),
     getMonthlyRevenue(),
     getDealStats(),
-    getDashboardAlerts(),
+    getDashboardAlerts(isStaff ? { staffUserId: session.user.id, skipFinancial: true } : undefined),
   ]);
 
   return (
