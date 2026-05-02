@@ -147,7 +147,7 @@ export function BrandTargetsSpreadsheet({
                           />
                         ) : (
                           <div className="w-9 h-9 rounded-full bg-sp-dark text-white text-[10px] font-bold flex items-center justify-center shrink-0">
-                            {target.platform === 'instagram' ? 'IG' : 'YT'}
+                            {target.platform === 'instagram' ? 'In' : 'Yt'}
                           </div>
                         )}
                         <div className="min-w-0">

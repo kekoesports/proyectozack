@@ -22,10 +22,10 @@ export const PLATFORM_COLORS: Record<string, string> = {
 };
 
 export const PLATFORM_LABELS: Record<string, string> = {
-  instagram: 'IG',
-  youtube: 'YT',
-  twitch: 'TW',
-  kick: 'KK',
+  instagram: 'Instagram',
+  youtube:   'YouTube',
+  twitch:    'Twitch',
+  kick:      'Kick',
 };
 
 export const STATUS_COLORS: Record<StatusValue, string> = {
