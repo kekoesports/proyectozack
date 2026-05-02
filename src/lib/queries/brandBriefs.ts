@@ -18,6 +18,7 @@ export async function listBriefs(brandId: number): Promise<readonly BrandBriefWi
       sourceFileMime:    brandBriefs.sourceFileMime,
       extractedData:     brandBriefs.extractedData,
       rawText:           brandBriefs.rawText,
+      briefContent:      brandBriefs.briefContent,
       notes:             brandBriefs.notes,
       createdByUserId:   brandBriefs.createdByUserId,
       reviewedByUserId:  brandBriefs.reviewedByUserId,
@@ -50,7 +51,7 @@ export async function createBrief(
 
 export async function updateBrief(
   id: number,
-  patch: Partial<Pick<BrandBrief, 'name' | 'version' | 'geo' | 'status' | 'notes' | 'reviewedByUserId' | 'reviewedAt'>>,
+  patch: Partial<Pick<BrandBrief, 'name' | 'version' | 'geo' | 'status' | 'notes' | 'briefContent' | 'reviewedByUserId' | 'reviewedAt'>>,
 ): Promise<BrandBrief | null> {
   const [row] = await db
     .update(brandBriefs)
