@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, or, sql } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import {
   issuerCompanies, billingClients, issuedInvoices, issuedInvoiceLines,
@@ -115,12 +115,26 @@ export async function listIssuedInvoices(filters: {
   issuerId?: number;
   clientId?: number;
   dealId?: number;
+  /** Si se pasa, solo devuelve facturas creadas por este usuario o de campañas asignadas a él */
+  staffUserId?: string;
 } = {}): Promise<readonly IssuedInvoiceWithRelations[]> {
   const conds = [];
   if (filters.status)   conds.push(eq(issuedInvoices.status, filters.status));
   if (filters.issuerId) conds.push(eq(issuedInvoices.issuerCompanyId, filters.issuerId));
   if (filters.clientId) conds.push(eq(issuedInvoices.billingClientId, filters.clientId));
   if (filters.dealId)   conds.push(eq(issuedInvoices.relatedDealId, filters.dealId));
+  if (filters.staffUserId) {
+    conds.push(
+      or(
+        eq(issuedInvoices.createdByUserId, filters.staffUserId),
+        sql`${issuedInvoices.relatedDealId} IN (
+          SELECT id FROM campaigns
+          WHERE assigned_to_user_id = ${filters.staffUserId}
+             OR created_by_user_id  = ${filters.staffUserId}
+        )`,
+      )!,
+    );
+  }
 
   const rows = await db.select({
     // issuedInvoices fields

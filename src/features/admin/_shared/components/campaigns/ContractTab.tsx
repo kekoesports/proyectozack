@@ -81,12 +81,17 @@ export function ContractTab({ campaignId, contract, isAdmin, templates, campaign
           onDone={() => setShowGenerator(false)}
         />
       ) : (
-        <div className="flex items-center gap-3">
-          {templates.length > 0 && (
+        <div className="flex items-center gap-3 flex-wrap">
+          {templates.length > 0 ? (
             <button type="button" onClick={() => setShowGenerator(true)}
               className={`${BP} flex items-center gap-2`}>
               ✨ Generar contrato desde plantilla
             </button>
+          ) : (
+            <a href="/admin/campanas/plantillas" target="_blank" rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg border border-sp-admin-border text-[11px] font-semibold text-sp-admin-muted hover:text-sp-admin-accent hover:bg-sp-admin-hover transition-colors">
+              📋 Crear plantillas de contrato →
+            </a>
           )}
           <span className="text-[11px] text-sp-admin-muted">o súbelo manualmente abajo</span>
         </div>

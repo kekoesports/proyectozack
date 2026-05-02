@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, getTableColumns, inArray, isNull, lte, ne, or, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, getTableColumns, inArray, isNull, lte, ne, notLike, or, sql } from 'drizzle-orm';
 
 import { campaigns, crmBrands, crmTasks, invoices, talents, user } from '@/db/schema';
 import { crmTaskTemplates } from '@/db/schema/crmTaskTemplates';
@@ -91,7 +91,12 @@ export async function getTasksForWeek(
   weekLabel: string,
   options?: { readonly session?: TaskSession },
 ): Promise<readonly CrmTask[]> {
-  const filters = [eq(crmTasks.weekLabel, weekLabel)];
+  const filters = [
+    eq(crmTasks.weekLabel, weekLabel),
+    notLike(crmTasks.title, 'E2E %'),
+    notLike(crmTasks.title, 'E2E%'),
+    notLike(crmTasks.title, 'Test Task%'),
+  ];
   const visible = visibilityCondition(options?.session);
   if (visible !== undefined) filters.push(visible);
 
@@ -126,6 +131,9 @@ export async function getMyTasks(ownerId: string, weekLabel: string): Promise<re
       and(
         eq(crmTasks.weekLabel, weekLabel),
         or(eq(crmTasks.assignedToUserId, ownerId), eq(crmTasks.ownerId, ownerId)),
+        notLike(crmTasks.title, 'E2E %'),
+        notLike(crmTasks.title, 'E2E%'),
+        notLike(crmTasks.title, 'Test Task%'),
       ),
     )
     .orderBy(asc(PRIORITY_ORDER), asc(crmTasks.dueDate), desc(crmTasks.createdAt));
