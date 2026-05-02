@@ -67,6 +67,9 @@ crm-*-smoke.png
 # Local agent/IDE settings (never commit)
 .claude/settings.local.json
 
+# Local issue tracker / PRD scratch — ephemeral planning, decisions live in code + ADRs
+.scratch/
+
 # Skill audit logs — contain PII (creator bios, contacts, follower counts)
 .claude/skills/socialpro-creator-targets/runs/*.md
 !.claude/skills/socialpro-creator-targets/runs/.gitkeep
