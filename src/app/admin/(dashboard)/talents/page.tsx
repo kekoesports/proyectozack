@@ -1,3 +1,4 @@
+import { requireAnyRole } from '@/lib/auth-guard';
 import { AdminPageHeader } from '@/features/admin/_shared/components/AdminPageHeader';
 import { getAdminRosterWithGrowth } from '@/lib/queries/talents';
 import { listAllVerticals } from '@/lib/queries/talentBusiness';
@@ -8,6 +9,7 @@ import { BrandsTabs } from '@/features/admin/brands/components/BrandsTabs';
 import type { TalentVertical } from '@/types';
 
 export default async function AdminTalentsPage(): Promise<React.ReactElement> {
+  await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
   const [creators, verticals] = await Promise.all([
     getAdminRosterWithGrowth(),
     listAllVerticals(),
@@ -82,7 +84,7 @@ export default async function AdminTalentsPage(): Promise<React.ReactElement> {
           },
           {
             key:     'import',
-            label:   'Importar / Exportar',
+            label:   'Importar Excel/CSV',
             content: (
               <TalentDataTools
                 roster={roster}

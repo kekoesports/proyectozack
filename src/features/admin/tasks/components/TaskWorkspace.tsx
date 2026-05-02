@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
+import { RolledOverBanner } from './RolledOverBanner';
 import type { CrmTask, CrmTaskTemplate } from '@/types';
 import type { RelatedLabel } from '@/lib/queries/crmTasks';
 import { TaskTemplatesPanel } from './TaskTemplatesPanel';
@@ -68,20 +69,25 @@ export function TaskWorkspace(props: Props): React.ReactElement {
 
   const activeIdParam = searchParams.get('t');
 
+  const todayStr   = new Date().toISOString().slice(0, 10);
   const pending    = props.tasks.filter((t) => t.status === 'pendiente').length;
   const inProgress = props.tasks.filter((t) => t.status === 'en_progreso').length;
   const done       = props.tasks.filter((t) => t.status === 'completada').length;
-  const overdue    = props.tasks.filter((t) => t.status !== 'completada' && t.dueDate !== null && new Date(t.dueDate) < new Date()).length;
+  const overdue    = props.tasks.filter((t) => t.status !== 'completada' && t.dueDate !== null && t.dueDate < todayStr).length;
+  const dueToday   = props.tasks.filter((t) => t.status !== 'completada' && t.dueDate === todayStr).length;
+  const rolledOver = props.tasks.filter((t) => t.rolledOver).length;
 
   return (
     <div className="space-y-4">
-      {/* KPIs de la semana */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+      {/* KPIs de la semana — 6 tarjetas */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
         {[
-          { label: 'Pendientes',  value: pending,    color: '#72728a' },
-          { label: 'En curso',    value: inProgress, color: '#f59e0b' },
+          { label: 'Pendientes',  value: pending,    color: pending    > 0 ? '#f5632a' : '#72728a' },
+          { label: 'En curso',    value: inProgress, color: inProgress > 0 ? '#f59e0b' : '#72728a' },
           { label: 'Completadas', value: done,       color: '#16a34a' },
-          { label: 'Vencidas',    value: overdue,    color: overdue > 0 ? '#ef4444' : '#72728a' },
+          { label: 'Vencidas',    value: overdue,    color: overdue    > 0 ? '#ef4444' : '#72728a' },
+          { label: 'Vencen hoy',  value: dueToday,   color: dueToday   > 0 ? '#f59e0b' : '#72728a' },
+          { label: 'Arrastradas', value: rolledOver, color: rolledOver > 0 ? '#8b3aad' : '#72728a' },
         ].map((s) => (
           <div key={s.label} className="rounded-lg bg-sp-admin-card shadow-[0_1px_3px_rgba(0,0,0,0.06)] overflow-hidden">
             <div className="h-[2px]" style={{ background: s.color }} />
@@ -123,6 +129,11 @@ export function TaskWorkspace(props: Props): React.ReactElement {
         </div>
       </div>
 
+      {/* Banner de tareas arrastradas */}
+      {rolledOver > 0 && (
+        <RolledOverBanner count={rolledOver} tasks={props.tasks} />
+      )}
+
       {/* Panel de plantillas semanales */}
       <TaskTemplatesPanel tasks={props.tasks} weekLabel={props.weekLabel} templates={props.templates ?? []} />
 
@@ -135,6 +146,7 @@ export function TaskWorkspace(props: Props): React.ReactElement {
           suggestedCategories={props.suggestedCategories ?? []}
           weekLabel={props.weekLabel}
           relatedOptions={props.relatedOptions as never}
+          {...(props.relatedLabels !== undefined ? { relatedLabels: props.relatedLabels } : {})}
         />
       )}
 
