@@ -41,4 +41,7 @@ export const env = createEnv({
     NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
     NEXT_PUBLIC_GTM_ID: process.env.NEXT_PUBLIC_GTM_ID,
   },
+  // Treat `VAR=` (empty string) the same as a missing var so optional fields
+  // don't fail validation when declared but unset in .env.
+  emptyStringAsUndefined: true,
 });
