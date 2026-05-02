@@ -106,14 +106,13 @@ describe('invoice schemas', () => {
       if (result.success) expect(result.data.netAmount).toBe('100.50');
     });
 
-    it('accepts string "0" (zero is valid)', () => {
+    it('rejects string "0" (netAmount and totalAmount must be positive)', () => {
       const result = parse({ ...validCreate, netAmount: '0', totalAmount: '0' });
-      expect(result.success).toBe(true);
-      if (result.success) expect(result.data.netAmount).toBe('0');
+      expect(result.success).toBe(false);
     });
 
     it('rejects string "-100" (negative not allowed by regex)', () => {
-      const result = parse({ ...validCreate, netAmount: '-100', totalAmount: '0' });
+      const result = parse({ ...validCreate, netAmount: '-100', totalAmount: '100' });
       expect(result.success).toBe(false);
     });
 
