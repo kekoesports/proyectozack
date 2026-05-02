@@ -199,6 +199,8 @@ type RowProps = {
   readonly onEdit: (task: CrmTask) => void;
   readonly onRemove: (task: CrmTask) => void;
   readonly onFieldChange: (taskId: number, patch: FieldPatch) => void;
+  readonly selected?: boolean;
+  readonly onToggleSelect?: (id: number) => void;
 };
 
 export function TaskRow({
@@ -212,20 +214,33 @@ export function TaskRow({
   onEdit,
   onRemove,
   onFieldChange,
+  selected = false,
+  onToggleSelect,
 }: RowProps): React.ReactElement {
   const owner = usersById.get(t.ownerId);
   const mine = t.ownerId === currentUserId;
   const isDone = t.status === 'completada';
   return (
-    <tr className={`${mine ? 'bg-sp-admin-accent/5' : ''} hover:bg-sp-admin-hover`}>
-      <td className="px-3 py-2.5">
-        <input
-          type="checkbox"
-          checked={isDone}
-          onChange={() => onToggleComplete(t)}
-          disabled={isDone}
-          aria-label={`Completar ${t.title}`}
-        />
+    <tr className={`${mine ? 'bg-sp-admin-accent/5' : ''} ${selected ? 'bg-red-50/40' : ''} hover:bg-sp-admin-hover`}>
+      {/* Selección bulk */}
+      <td className="pl-3 pr-1 py-2.5 w-8">
+        {onToggleSelect ? (
+          <input
+            type="checkbox"
+            checked={selected}
+            onChange={() => onToggleSelect(t.id)}
+            aria-label={`Seleccionar ${t.title}`}
+            className="rounded border-sp-admin-border cursor-pointer accent-red-500"
+          />
+        ) : (
+          <input
+            type="checkbox"
+            checked={isDone}
+            onChange={() => onToggleComplete(t)}
+            disabled={isDone}
+            aria-label={`Completar ${t.title}`}
+          />
+        )}
       </td>
       <td className="px-3 py-2.5 max-w-[260px]">
         <button type="button" onClick={() => onEdit(t)} className="text-left w-full">
