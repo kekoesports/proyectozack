@@ -5,7 +5,7 @@ import { AdminHeader } from '@/features/admin/_shared/components/AdminHeader';
 import {
   DashboardIcon, TalentIcon, BrandIcon, GiveawayIcon, TeamIcon,
   TargetsIcon, TasksIcon, MyWeekIcon, InvoiceIcon, AnalyticsIcon,
-  CaseIcon, CampaignIcon, BackupIcon,
+  CaseIcon, CampaignIcon, BackupIcon, ContactIcon,
 } from '@/features/admin/_shared/components/SidebarIcons';
 import type { ReactNode } from 'react';
 
@@ -25,8 +25,9 @@ const ADMIN_PRIMARY_NAV = [
 
 const ADMIN_MORE_NAV = [
   { href: '/admin/mi-semana', label: 'Mi semana',   icon: <MyWeekIcon /> },
-  { href: '/admin/targets',   label: 'Prospección', icon: <TargetsIcon />, prefetch: false },
-  { href: '/admin/giveaways', label: 'Sorteos',     icon: <GiveawayIcon />, prefetch: false },
+  { href: '/admin/targets',         label: 'Creadores Target', icon: <TargetsIcon />, prefetch: false },
+  { href: '/admin/prensa-targets',  label: 'Prensa Targets',   icon: <ContactIcon />, prefetch: false },
+  { href: '/admin/giveaways',       label: 'Sorteos',          icon: <GiveawayIcon />, prefetch: false },
   { href: '/admin/analytics', label: 'Analítica',   icon: <AnalyticsIcon />, prefetch: false },
   { href: '/admin/cases',     label: 'Casos',       icon: <CaseIcon />,   prefetch: false },
   { href: '/admin/backups',   label: 'Backups',     icon: <BackupIcon />, prefetch: false },
@@ -43,7 +44,8 @@ const STAFF_PRIMARY_NAV = [
 ] as const;
 
 const STAFF_MORE_NAV = [
-  { href: '/admin/targets', label: 'Prospección', icon: <TargetsIcon />, prefetch: false },
+  { href: '/admin/targets',         label: 'Creadores Target', icon: <TargetsIcon />, prefetch: false },
+  { href: '/admin/prensa-targets',  label: 'Prensa Targets',   icon: <ContactIcon />, prefetch: false },
 ] as const;
 
 // ──────────────────────────────────────────────────────────────────────
