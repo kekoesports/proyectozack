@@ -248,8 +248,8 @@ export function TalentCard({ creator, verticals, selectMode, selected, onToggleS
         )}
       </div>
 
-      {/* ── Footer: solo estado ─────────────────────────────────── */}
-      <div className="border-t border-sp-admin-border/50 px-3 py-2 flex items-center mt-auto">
+      {/* ── Footer: estado + tratos activos ────────────────────── */}
+      <div className="border-t border-sp-admin-border/50 px-3 py-2 flex items-center justify-between gap-2 mt-auto">
         {isPillClickable ? (
           <button
             type="button"
@@ -267,6 +267,13 @@ export function TalentCard({ creator, verticals, selectMode, selected, onToggleS
           <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-bold ${statusCfg.bg} ${statusCfg.text}`}>
             <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: statusCfg.dot }} />
             {STATUS_LABELS[displayStatus] ?? displayStatus}
+          </span>
+        )}
+
+        {/* Badge de tratos activos */}
+        {(creator.activeDealsCount ?? 0) > 0 && (
+          <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-bold bg-sp-admin-accent/10 text-sp-admin-accent">
+            {creator.activeDealsCount} {creator.activeDealsCount === 1 ? 'trato' : 'tratos'}
           </span>
         )}
       </div>
