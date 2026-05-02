@@ -1,6 +1,7 @@
 'use client';
 
 import { useActionState, useMemo, useState } from 'react';
+import { InvoicePdfButton } from './InvoicePdfButton';
 import {
   createIssuedInvoiceAction,
   updateIssuedInvoiceAction,
@@ -11,7 +12,14 @@ import type { IssuerCompany, BillingClient, IssuedInvoiceWithRelations } from '@
 
 type BrandOpt    = { readonly id: number; readonly name: string };
 type TalentOpt   = { readonly id: number; readonly name: string };
-type CampaignOpt = { readonly id: number; readonly name: string; readonly brandId: number | null; readonly talentId: number | null };
+type CampaignOpt = {
+  readonly id:           number;
+  readonly name:         string;
+  readonly brandId:      number | null;
+  readonly talentId:     number | null;
+  readonly amountBrand?:  string | number | null;
+  readonly amountTalent?: string | number | null;
+};
 
 type Props = {
   readonly invoice?:   IssuedInvoiceWithRelations | undefined;
@@ -91,10 +99,34 @@ export function IssuedInvoiceForm({ invoice, issuers, clients, brands, talents, 
   function onDealChange(id: string): void {
     setDealId(id);
     if (!id) return;
-    const c = campaigns.find((c) => String(c.id) === id);
-    if (!c) return;
-    if (c.brandId) setBrandId(String(c.brandId));
-    if (c.talentId) setTalentId(String(c.talentId));
+    const camp = campaigns.find((c) => String(c.id) === id);
+    if (!camp) return;
+
+    // Autocompletar marca y talento
+    if (camp.brandId)  setBrandId(String(camp.brandId));
+    if (camp.talentId) setTalentId(String(camp.talentId));
+
+    // Autocompletar cliente de facturación vinculado a la marca
+    if (camp.brandId) {
+      const linkedClient = clients.find((cl) => cl.relatedBrandId === camp.brandId);
+      if (linkedClient && !clientId) setClientId(String(linkedClient.id));
+    }
+
+    // Autocompletar concepto e importe si el primer campo está vacío
+    const amount = Number(camp.amountBrand ?? 0);
+    setLines((prev) => {
+      const firstEmpty = prev.length === 1 && prev[0]?.concept === '' && prev[0]?.unitPrice === '0';
+      if (firstEmpty && amount > 0) {
+        return [{
+          concept:     `Campaña de marketing digital — ${camp.name}`,
+          description: '',
+          quantity:    '1',
+          unitPrice:   amount.toFixed(2),
+          discount:    '0',
+        }];
+      }
+      return prev;
+    });
   }
 
   function updateLine(idx: number, field: keyof Line, val: string): void {
@@ -187,11 +219,30 @@ export function IssuedInvoiceForm({ invoice, issuers, clients, brands, talents, 
             <p className={S}>C · Relación CRM (opcional)</p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label className={LB}>Trato / Campaña</label>
+                <label className={LB}>
+                  Trato / Campaña
+                  {dealId && <span className="ml-1 text-emerald-500 font-normal normal-case text-[9px]">● autocompleta datos</span>}
+                </label>
                 <select name="relatedDealId" value={dealId} onChange={(e) => onDealChange(e.target.value)} className={I}>
                   <option value="">— ninguno —</option>
-                  {campaigns.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                  {campaigns.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}{Number(c.amountBrand ?? 0) > 0 ? ` · ${Number(c.amountBrand).toLocaleString('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 })}` : ''}
+                    </option>
+                  ))}
                 </select>
+                {dealId && (() => {
+                  const camp = campaigns.find((c) => String(c.id) === dealId);
+                  if (!camp?.brandId) return null;
+                  const hasClient = clients.some((cl) => cl.relatedBrandId === camp.brandId);
+                  if (hasClient) return null;
+                  return (
+                    <p className="text-[9px] text-amber-600 mt-1">
+                      ⚠ Esta marca no tiene cliente de facturación vinculado.
+                      Selecciona uno manualmente o créalo en la pestaña Clientes.
+                    </p>
+                  );
+                })()}
               </div>
               <div>
                 <label className={LB}>Marca</label>
@@ -334,11 +385,21 @@ export function IssuedInvoiceForm({ invoice, issuers, clients, brands, talents, 
 
           {state.error && <p className="text-xs text-red-400 font-medium">{state.error}</p>}
 
-          <div className="flex items-center justify-end gap-2 pt-2 border-t border-sp-admin-border/60">
-            <button type="button" onClick={onClose} className={BG}>Cancelar</button>
-            <button type="submit" disabled={isPending} className={BP}>
-              {isPending ? 'Guardando…' : mode === 'create' ? 'Crear factura' : 'Guardar cambios'}
-            </button>
+          <div className="flex items-center justify-between gap-2 pt-2 border-t border-sp-admin-border/60">
+            {/* PDF — solo en modo edición */}
+            {mode === 'edit' && invoice && (
+              <InvoicePdfButton
+                invoice={invoice}
+                issuer={issuers.find((i) => i.id === invoice.issuerCompanyId)}
+                client={clients.find((c) => c.id === invoice.billingClientId)}
+              />
+            )}
+            <div className="flex items-center gap-2 ml-auto">
+              <button type="button" onClick={onClose} className={BG}>Cancelar</button>
+              <button type="submit" disabled={isPending} className={BP}>
+                {isPending ? 'Guardando…' : mode === 'create' ? 'Crear factura' : 'Guardar cambios'}
+              </button>
+            </div>
           </div>
         </form>
       </div>

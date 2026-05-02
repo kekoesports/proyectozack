@@ -1,9 +1,11 @@
+import { requireAnyRole } from '@/lib/auth-guard';
 import { getCaseStudies } from '@/lib/queries/cases';
 import { deleteCaseAction } from './actions';
 import { DeleteButton } from '@/components/ui/DeleteButton';
 import { AdminPageHeader } from '@/features/admin/_shared/components/AdminPageHeader';
 
 export default async function AdminCasesPage(): Promise<React.ReactElement> {
+  await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
   const cases = await getCaseStudies();
 
   return (

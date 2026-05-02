@@ -6,6 +6,7 @@ import {
   getRolledOverCount,
   getUsedCategories,
   getTaskRelatedOptions,
+  resolveRelatedLabels,
   rollOverPendingTasks,
 } from '@/lib/queries/crmTasks';
 import { getAllStaffUsers } from '@/lib/queries/staffUsers';
@@ -51,6 +52,8 @@ export default async function MiSemanaPage(): Promise<ReactElement> {
     getTaskRelatedOptions(),
   ]);
 
+  const relatedLabels = await resolveRelatedLabels(tasks);
+
   // KPIs calculados server-side
   const kpis = {
     pendientes:   tasks.filter((t) => t.status === 'pendiente').length,
@@ -81,7 +84,7 @@ export default async function MiSemanaPage(): Promise<ReactElement> {
         <KpiCard label="Arrastradas" value={kpis.arrastradas} accent={kpis.arrastradas > 0 ? '#8b3aad' : '#72728a'} />
       </div>
 
-      <RolledOverBanner count={rolledCount} />
+      <RolledOverBanner count={rolledCount} tasks={tasks} />
 
       <TaskList
         tasks={tasks}
@@ -90,6 +93,7 @@ export default async function MiSemanaPage(): Promise<ReactElement> {
         suggestedCategories={suggestedCategories}
         weekLabel={weekLabel}
         relatedOptions={relatedOptions}
+        relatedLabels={relatedLabels}
       />
     </div>
   );

@@ -1,12 +1,37 @@
 'use client';
 
+import Link from 'next/link';
 import * as Popover from '@radix-ui/react-popover';
 import type { CrmTask, CrmTaskPriority, CrmTaskStatus } from '@/types';
+import type { RelatedLabel } from '@/lib/queries/crmTasks';
 import { Avatar } from '@/features/admin/_shared/components/Avatar';
 import { PriorityBadge } from './PriorityBadge';
 import { RecurrenceBadge } from './RecurrenceBadge';
 import { TaskStatusBadge } from './TaskStatusBadge';
 import { CRM_TASK_PRIORITIES, CRM_TASK_STATUSES } from '@/lib/schemas/task';
+
+// ── Related entity helpers ────────────────────────────────────────────────────
+
+const RELATED_HREF: Record<RelatedLabel['type'], (id: number) => string> = {
+  brand:    (id) => `/admin/brands/${id}`,
+  talent:   (id) => `/admin/talents/${id}`,
+  campaign: (id) => `/admin/campanas/${id}`,
+  invoice:  ()   => `/admin/facturacion`,
+};
+
+const RELATED_TYPE_LABEL: Record<RelatedLabel['type'], string> = {
+  brand:    'Marca',
+  talent:   'Influencer',
+  campaign: 'Trato',
+  invoice:  'Factura',
+};
+
+const RELATED_COLOR: Record<RelatedLabel['type'], string> = {
+  brand:    '#8b3aad',
+  talent:   '#5b9bd5',
+  campaign: '#f5632a',
+  invoice:  '#16a34a',
+};
 
 // Shared types used across TaskList.tsx + parts
 export type UserOption = {
@@ -24,14 +49,15 @@ export type FieldPatch =
   | { readonly status: CrmTaskStatus }
   | { readonly ownerId: string };
 
-export type StatusFilter = 'todos' | CrmTaskStatus;
+export type StatusFilter = 'todos' | CrmTaskStatus | 'vencida';
 
 // Shared constants and helpers
 export const STATUS_TABS: readonly { readonly key: StatusFilter; readonly label: string }[] = [
-  { key: 'todos', label: 'Todas' },
-  { key: 'pendiente', label: 'Pendientes' },
-  { key: 'en_progreso', label: 'En progreso' },
-  { key: 'completada', label: 'Completadas' },
+  { key: 'todos',       label: 'Todas'        },
+  { key: 'pendiente',   label: 'Pendientes'   },
+  { key: 'en_progreso', label: 'En progreso'  },
+  { key: 'completada',  label: 'Completadas'  },
+  { key: 'vencida',     label: 'Vencidas'     },
 ];
 
 export const PRIORITY_LABELS: Record<CrmTaskPriority, string> = {
@@ -70,70 +96,88 @@ const OPTION_CLS =
 // ─────────────────────────────────────────────────────────
 
 type FiltersProps = {
-  readonly statusFilter: StatusFilter;
-  readonly counts: Record<StatusFilter, number>;
-  readonly search: string;
-  readonly ownerFilter: string;
-  readonly users: readonly UserOption[];
-  readonly onStatusFilterChange: (value: StatusFilter) => void;
-  readonly onSearchChange: (value: string) => void;
-  readonly onOwnerFilterChange: (value: string) => void;
+  readonly statusFilter:   StatusFilter;
+  readonly counts:         Record<StatusFilter, number>;
+  readonly search:         string;
+  readonly ownerFilter:    string;
+  readonly priorityFilter: CrmTaskPriority | 'todos';
+  readonly categoryFilter: string;
+  readonly categories:     readonly string[];
+  readonly users:          readonly UserOption[];
+  readonly onStatusFilterChange:   (value: StatusFilter) => void;
+  readonly onSearchChange:         (value: string) => void;
+  readonly onOwnerFilterChange:    (value: string) => void;
+  readonly onPriorityFilterChange: (value: CrmTaskPriority | 'todos') => void;
+  readonly onCategoryFilterChange: (value: string) => void;
   readonly onCreate: () => void;
 };
 
+const SEL_CLS = 'h-8 rounded-lg border border-sp-admin-border bg-sp-admin-card px-3 text-[12px] text-sp-admin-text focus:border-sp-admin-accent focus:outline-none';
+
 export function TaskListFilters({
-  statusFilter,
-  counts,
-  search,
-  ownerFilter,
-  users,
-  onStatusFilterChange,
-  onSearchChange,
-  onOwnerFilterChange,
-  onCreate,
+  statusFilter, counts, search, ownerFilter, priorityFilter, categoryFilter,
+  categories, users,
+  onStatusFilterChange, onSearchChange, onOwnerFilterChange,
+  onPriorityFilterChange, onCategoryFilterChange, onCreate,
 }: FiltersProps): React.ReactElement {
   return (
-    <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-      <div className="flex flex-wrap items-center gap-2">
+    <div className="mb-4 space-y-2">
+      {/* Fila 1: tabs de estado */}
+      <div className="flex flex-wrap items-center gap-1.5">
         {STATUS_TABS.map((tab) => {
           const active = statusFilter === tab.key;
+          const cnt = counts[tab.key] ?? 0;
           return (
             <button
               key={tab.key}
               type="button"
               onClick={() => onStatusFilterChange(tab.key)}
-              className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${
+              className={`flex items-center gap-1 rounded-full border px-3 py-1 text-[11px] font-semibold transition-colors ${
                 active
                   ? 'border-sp-admin-accent bg-sp-admin-accent/10 text-sp-admin-accent'
                   : 'border-sp-admin-border text-sp-admin-muted hover:text-sp-admin-text'
               }`}
             >
-              {tab.label} <span className="ml-1 opacity-60">{counts[tab.key]}</span>
+              {tab.label}
+              <span className={`rounded-full px-1 text-[10px] tabular-nums ${active ? 'bg-sp-admin-accent/20' : 'opacity-50'}`}>
+                {cnt}
+              </span>
             </button>
           );
         })}
       </div>
-      <div className="flex items-center gap-2">
+
+      {/* Fila 2: búsqueda + filtros + botón */}
+      <div className="flex flex-wrap items-center gap-2">
         <input
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
-          placeholder="Buscar…"
-          className="rounded-lg border border-sp-admin-border bg-sp-admin-card px-3 py-1.5 text-sm text-sp-admin-text placeholder:text-sp-admin-muted focus:border-sp-admin-accent focus:outline-none"
+          placeholder="Buscar tarea…"
+          className={`${SEL_CLS} flex-1 min-w-[160px]`}
         />
-        <select
-          value={ownerFilter}
-          onChange={(e) => onOwnerFilterChange(e.target.value)}
-          className="rounded-lg border border-sp-admin-border bg-sp-admin-card px-3 py-1.5 text-sm text-sp-admin-text"
-        >
-          <option value="todos">Todos</option>
+        <select value={priorityFilter} onChange={(e) => onPriorityFilterChange(e.target.value as CrmTaskPriority | 'todos')} className={SEL_CLS}>
+          <option value="todos">Todas las prioridades</option>
+          <option value="alta">Alta</option>
+          <option value="media">Media</option>
+          <option value="baja">Baja</option>
+        </select>
+        <select value={categoryFilter} onChange={(e) => onCategoryFilterChange(e.target.value)} className={SEL_CLS}>
+          <option value="">Todas las categorías</option>
+          {categories.map((c) => <option key={c} value={c}>{c}</option>)}
+        </select>
+        <select value={ownerFilter} onChange={(e) => onOwnerFilterChange(e.target.value)} className={SEL_CLS}>
+          <option value="todos">Todos los miembros</option>
           {users.map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
         </select>
         <button
           type="button"
           onClick={onCreate}
-          className="rounded-lg bg-sp-admin-accent px-3 py-1.5 text-xs font-bold text-sp-admin-bg"
+          className="flex items-center gap-1.5 h-8 px-3 rounded-lg bg-sp-admin-accent text-white text-[12px] font-semibold hover:bg-sp-admin-accent/90 transition-colors shrink-0"
         >
-          + Añadir
+          <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden>
+            <path d="M5 1v8M1 5h8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
+          </svg>
+          Nueva tarea
         </button>
       </div>
     </div>
@@ -150,6 +194,7 @@ type RowProps = {
   readonly usersById: Map<string, UserOption>;
   readonly currentUserId: string;
   readonly isPending: boolean;
+  readonly relatedLabel?: RelatedLabel | null;
   readonly onToggleComplete: (task: CrmTask) => void;
   readonly onEdit: (task: CrmTask) => void;
   readonly onRemove: (task: CrmTask) => void;
@@ -162,6 +207,7 @@ export function TaskRow({
   usersById,
   currentUserId,
   isPending,
+  relatedLabel,
   onToggleComplete,
   onEdit,
   onRemove,
@@ -181,19 +227,40 @@ export function TaskRow({
           aria-label={`Completar ${t.title}`}
         />
       </td>
-      <td className="px-3 py-2.5">
-        <button type="button" onClick={() => onEdit(t)} className="text-left">
-          <span className={`font-medium ${isDone ? 'text-sp-admin-muted line-through' : 'text-sp-admin-text'}`}>
+      <td className="px-3 py-2.5 max-w-[260px]">
+        <button type="button" onClick={() => onEdit(t)} className="text-left w-full">
+          <span className={`font-medium text-[13px] ${isDone ? 'text-sp-admin-muted line-through' : 'text-sp-admin-text'}`}>
             {t.title}
           </span>
-          {t.recurrenceTemplateId !== null && t.recurrence && (
-            <span className="ml-2 inline-flex align-middle">
+          <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
+            {t.recurrenceTemplateId !== null && t.recurrence && (
               <RecurrenceBadge frequency={t.recurrence} />
-            </span>
-          )}
-          {t.rolledOver && (
-            <span className="ml-2 text-[10px] text-amber-400" title={`Arrastrada de ${t.rolledFromWeek}`}>↻</span>
-          )}
+            )}
+            {t.rolledOver && (
+              <span
+                className="inline-flex items-center gap-0.5 rounded-full bg-amber-50 border border-amber-200 px-1.5 py-0.5 text-[9px] font-bold text-amber-700"
+                title={`Arrastrada de ${t.rolledFromWeek ?? 'semana anterior'}`}
+              >
+                ↻ Arrastrada
+              </span>
+            )}
+            {relatedLabel && (
+              <Link
+                href={RELATED_HREF[relatedLabel.type](relatedLabel.id)}
+                onClick={(e) => e.stopPropagation()}
+                className="inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[9px] font-bold border hover:opacity-80 transition-opacity"
+                style={{
+                  color:            RELATED_COLOR[relatedLabel.type],
+                  borderColor:      `${RELATED_COLOR[relatedLabel.type]}40`,
+                  backgroundColor:  `${RELATED_COLOR[relatedLabel.type]}10`,
+                }}
+                title={`${RELATED_TYPE_LABEL[relatedLabel.type]}: ${relatedLabel.label}`}
+              >
+                <span className="opacity-70">{RELATED_TYPE_LABEL[relatedLabel.type]}:</span>
+                {' '}{relatedLabel.label}
+              </Link>
+            )}
+          </div>
         </button>
       </td>
       <td className="px-3 py-2.5">
@@ -282,8 +349,27 @@ export function TaskRow({
           </Popover.Portal>
         </Popover.Root>
       </td>
-      <td className="px-3 py-2.5 text-sp-admin-muted">{t.category}</td>
-      <td className="px-3 py-2.5 text-sp-admin-muted">{t.dueDate ?? '—'}</td>
+      <td className="px-3 py-2.5">
+        <span className="inline-flex rounded-full bg-sp-admin-hover border border-sp-admin-border/60 px-2 py-0.5 text-[10px] font-semibold text-sp-admin-muted capitalize">
+          {t.category}
+        </span>
+      </td>
+      <td className="px-3 py-2.5 whitespace-nowrap">
+        {t.dueDate ? (() => {
+          const today = new Date().toISOString().slice(0, 10);
+          const isOverdue = t.status !== 'completada' && t.dueDate < today;
+          const isToday   = t.dueDate === today;
+          const formatted = new Date(t.dueDate + 'T12:00:00').toLocaleDateString('es-ES', { day: '2-digit', month: 'short' });
+          return (
+            <span className={`text-[12px] font-semibold ${isOverdue ? 'text-red-500' : isToday ? 'text-amber-600' : 'text-sp-admin-muted'}`}>
+              {isOverdue && <span className="mr-1">⚠</span>}
+              {isToday ? 'Hoy' : formatted}
+            </span>
+          );
+        })() : (
+          <span className="text-[11px] text-sp-admin-muted/50 italic">Sin límite</span>
+        )}
+      </td>
       <td className="px-3 py-2.5">
         <Popover.Root>
           <Popover.Trigger asChild>
