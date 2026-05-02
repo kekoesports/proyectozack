@@ -34,9 +34,8 @@ function loadEnv(): void {
 loadEnv();
 
 // ── Imports ───────────────────────────────────────────────────────────
+// Static imports for modules that DO NOT touch lib/env.ts
 import { neon } from '@neondatabase/serverless';
-import { fetchTwitchUserPhotos, fetchTwitchUserPhotoByLogin } from '../src/lib/services/twitch';
-import { fetchYouTubeChannelPhotos } from '../src/lib/services/youtube';
 
 type TalentRow   = { id: number; name: string; photoUrl: string | null };
 type SocialRow   = { talentId: number; platform: string; handle: string; platformId: string | null };
@@ -49,6 +48,11 @@ async function main(): Promise<void> {
 
   const dbUrl = process.env.DATABASE_URL;
   if (!dbUrl) { console.error('❌ DATABASE_URL no definida'); process.exit(1); }
+
+  // Dynamic imports AFTER loadEnv() ran, so lib/env.ts can validate against
+  // the populated process.env without crashing on this script.
+  const { fetchTwitchUserPhotos, fetchTwitchUserPhotoByLogin } = await import('../src/lib/services/twitch');
+  const { fetchYouTubeChannelPhotos } = await import('../src/lib/services/youtube');
 
   const sql = neon(dbUrl);
   console.log(`\n🎯 Fetch Talent Photos${dryRun ? ' [DRY-RUN]' : ''}${fetchAll ? ' [TODOS]' : ' [SIN FOTO]'}\n`);
@@ -86,16 +90,27 @@ async function main(): Promise<void> {
   const twitchByLogin: { talentId: number; handle: string }[] = [];
   const youtubeById:   { talentId: number; channelId: string }[] = [];
 
+  // Twitch user IDs are numeric; YouTube channel IDs start with "UC" (24 chars).
+  // Some rows in talent_socials.platform_id were populated with the handle by
+  // mistake — treat anything that doesn't match the expected shape as a handle.
+  const isTwitchId = (v: string): boolean => /^\d+$/.test(v);
+  const isYouTubeChannelId = (v: string): boolean => /^UC[A-Za-z0-9_-]{22}$/.test(v);
+
   for (const talent of targets) {
     const socials = socialsByTalent.get(talent.id) ?? [];
     const tw = socials.find((s) => s.platform === 'twitch');
     if (tw) {
-      if (tw.platformId) twitchById.push({ talentId: talent.id, platformId: tw.platformId });
-      else if (tw.handle) twitchByLogin.push({ talentId: talent.id, handle: tw.handle });
+      if (tw.platformId && isTwitchId(tw.platformId)) {
+        twitchById.push({ talentId: talent.id, platformId: tw.platformId });
+      } else if (tw.handle) {
+        twitchByLogin.push({ talentId: talent.id, handle: tw.handle });
+      }
       continue;
     }
-    const yt = socials.find((s) => s.platform === 'youtube' && s.platformId);
-    if (yt?.platformId) youtubeById.push({ talentId: talent.id, channelId: yt.platformId });
+    const yt = socials.find((s) => s.platform === 'youtube');
+    if (yt?.platformId && isYouTubeChannelId(yt.platformId)) {
+      youtubeById.push({ talentId: talent.id, channelId: yt.platformId });
+    }
   }
 
   console.log(`🟣 Twitch por ID:    ${twitchById.length}`);
@@ -103,6 +118,11 @@ async function main(): Promise<void> {
   console.log(`🔴 YouTube por ID:   ${youtubeById.length}`);
 
   const photoMap = new Map<number, string>();
+
+  // Twitch returns generic placeholder URLs (purple wordmark) for accounts
+  // that haven't uploaded an avatar — those are useless, skip them.
+  const isTwitchDefaultUrl = (url: string): boolean =>
+    url.includes('/user-default-pictures-uv/') || url.includes('/jtv_user_pictures/xarth/');
 
   // 1. Twitch por ID
   if (twitchById.length > 0) {
@@ -113,7 +133,7 @@ async function main(): Promise<void> {
       let found = 0;
       for (const { talentId, platformId } of twitchById) {
         const img = byId.get(platformId);
-        if (img) { photoMap.set(talentId, img); found++; }
+        if (img && !isTwitchDefaultUrl(img)) { photoMap.set(talentId, img); found++; }
       }
       console.log(`   ✓ ${found}/${twitchById.length} encontradas`);
     } catch (e) { console.error('   ❌', (e as Error).message); }
@@ -129,7 +149,7 @@ async function main(): Promise<void> {
       let found = 0;
       for (const { talentId, handle } of loginPending) {
         const img = byLogin.get(handle.replace('@', '').toLowerCase());
-        if (img) { photoMap.set(talentId, img); found++; }
+        if (img && !isTwitchDefaultUrl(img)) { photoMap.set(talentId, img); found++; }
       }
       console.log(`   ✓ ${found}/${loginPending.length} encontradas`);
     } catch (e) { console.error('   ❌', (e as Error).message); }
