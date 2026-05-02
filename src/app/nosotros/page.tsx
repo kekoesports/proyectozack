@@ -9,14 +9,14 @@ export const revalidate = 3600;
 export const metadata: Metadata = {
   title: 'Agencia Gaming España desde 2012',
   description:
-    'SocialPro — agencia gaming fundada en Madrid en 2012 por ex-profesionales de esports. Especialistas en iGaming, CS2 y el ecosistema hispano.',
+    'Agencia gaming fundada en 2012 por ex-profesionales de esports. 13+ años especializados en iGaming, CS2 y Valorant en España y LatAm. Conoce al equipo →',
   alternates: {
     canonical: '/nosotros',
   },
   openGraph: {
     title: 'Agencia Gaming España desde 2012 | SocialPro',
     description:
-      'SocialPro — agencia gaming fundada en Madrid en 2012 por ex-profesionales de esports. Especialistas en iGaming, CS2 y el ecosistema hispano.',
+      'Agencia gaming fundada en 2012 por ex-profesionales de esports. 13+ años en iGaming, CS2 y Valorant en España y LatAm.',
     url: absoluteUrl('/nosotros'),
     images: [{ url: absoluteUrl('/og-default.jpg'), width: 1200, height: 630 }],
   },
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Agencia Gaming España desde 2012 | SocialPro',
     description:
-      'Agencia gaming fundada en Madrid en 2012. Especialistas en iGaming, CS2 y el ecosistema hispano.',
+      'Agencia gaming fundada en 2012 por ex-profesionales de esports. 13+ años en iGaming, CS2 y Valorant.',
     images: [absoluteUrl('/og-default.jpg')],
   },
 };

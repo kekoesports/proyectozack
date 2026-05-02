@@ -5,14 +5,14 @@ import { absoluteUrl } from '@/lib/site-url';
 export const metadata: Metadata = {
   title: 'Contacta con Nuestra Agencia Gaming',
   description:
-    'Contacta con SocialPro. ¿Eres una marca o un creador? Cuéntanos tu proyecto y te respondemos en menos de 24h.',
+    '¿Buscas streamers para tu campaña gaming o iGaming? Cuéntanos tu proyecto. Respondemos en menos de 24h. Sin compromiso.',
   alternates: {
     canonical: '/contacto',
   },
   openGraph: {
     title: 'Contacta con Nuestra Agencia Gaming | SocialPro',
     description:
-      'Contacta con SocialPro. ¿Eres una marca o un creador? Cuéntanos tu proyecto y te respondemos en menos de 24h.',
+      '¿Buscas streamers para tu campaña gaming o iGaming? Cuéntanos tu proyecto. Respondemos en menos de 24h.',
     url: absoluteUrl('/contacto'),
     images: [{ url: absoluteUrl('/og-default.jpg'), width: 1200, height: 630 }],
   },
@@ -20,7 +20,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Contacta con Nuestra Agencia Gaming | SocialPro',
     description:
-      '¿Eres una marca o un creador? Cuéntanos tu proyecto y te respondemos en menos de 24h.',
+      '¿Buscas streamers para tu campaña gaming o iGaming? Respondemos en menos de 24h. Sin compromiso.',
     images: [absoluteUrl('/og-default.jpg')],
   },
 };

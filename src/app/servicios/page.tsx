@@ -5,14 +5,14 @@ import { absoluteUrl, SITE_URL } from '@/lib/site-url';
 export const metadata: Metadata = {
   title: 'Agencia Marketing Gaming e iGaming',
   description:
-    'Campañas de influencer marketing gaming, gestión de talentos streamers y canales YouTube. Especialistas en iGaming y esports para el mercado hispano.',
+    'Contrata streamers de CS2, Valorant e iGaming verificados en España y LatAm. +15 creadores, activación en <72h, FTD tracking incluido. Solicita propuesta.',
   alternates: {
     canonical: '/servicios',
   },
   openGraph: {
     title: 'Agencia Marketing Gaming e iGaming | SocialPro',
     description:
-      'Campañas de influencer marketing gaming, gestión de talentos streamers y canales YouTube. Especialistas en iGaming y esports.',
+      'Contrata streamers de CS2, Valorant e iGaming en España y LatAm. +15 creadores verificados, activación en <72h, FTD tracking incluido.',
     url: absoluteUrl('/servicios'),
     images: [{ url: absoluteUrl('/og-default.jpg'), width: 1200, height: 630 }],
   },
@@ -20,7 +20,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Agencia Marketing Gaming e iGaming | SocialPro',
     description:
-      'Campañas de influencer marketing gaming, gestión de talentos y canales YouTube. Especialistas en iGaming.',
+      'Streamers de CS2, Valorant e iGaming en España y LatAm. Activación en <72h, compliance incluido.',
     images: [absoluteUrl('/og-default.jpg')],
   },
 };
@@ -73,12 +73,63 @@ const serviceJsonLd = {
   ],
 };
 
+const faqJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: [
+    {
+      '@type': 'Question',
+      name: '¿Qué servicios ofrece SocialPro como agencia de marketing gaming?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'SocialPro ofrece tres servicios principales: campañas de influencer marketing gaming e iGaming con FTD tracking, representación y gestión de talentos streamers en España y LatAm, y gestión editorial y crecimiento de canales YouTube gaming.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: '¿En qué plataformas trabajáis para campañas gaming?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Trabajamos principalmente en Twitch y YouTube para streaming de CS2, Valorant, iGaming y esports. También gestionamos campañas en Instagram, TikTok y X para ampliar el alcance en el mercado hispano.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: '¿Cuánto tiempo tarda en activarse una campaña gaming?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Nuestro proceso de activación es de menos de 72 horas desde el briefing hasta el inicio de la campaña. Esto incluye selección de talentos, firma de contratos y coordinación de publicación.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: '¿Trabajáis con marcas de iGaming, apuestas y casinos?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Sí, somos especialistas en campañas iGaming con compliance integrado para España, LatAm y Turquía. Incluimos verificación de edad, disclaimers de juego responsable y adaptación normativa por mercado.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: '¿En qué mercados geográficos operáis?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Operamos principalmente en España y Latinoamérica, con presencia también en Turquía. Nuestros talentos tienen audiencias en toda la comunidad gaming hispana, con más de 15 millones de vistas mensuales.',
+      },
+    },
+  ],
+};
+
 export default function ServiciosPage() {
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
       />
       <div>
         <h1 className="sr-only">Agencia Marketing Gaming e iGaming</h1>

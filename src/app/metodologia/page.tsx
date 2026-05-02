@@ -8,14 +8,14 @@ import { absoluteUrl, SITE_URL } from '@/lib/site-url';
 export const metadata: Metadata = {
   title: 'Metodología de Campañas Gaming',
   description:
-    'Nuestro proceso de trabajo: discovery, matching, ejecución y reporting. Campañas medibles con ROI demostrable.',
+    'Discovery, matching, ejecución y reporting. Proceso en 4 fases con KPIs claros, compliance iGaming y ROI demostrable en cada campaña gaming.',
   alternates: {
     canonical: '/metodologia',
   },
   openGraph: {
     title: 'Metodología de Campañas Gaming | SocialPro',
     description:
-      'Proceso probado en 4 fases: discovery, matching, ejecución y reporting. Campañas medibles con ROI demostrable.',
+      'Discovery, matching, ejecución y reporting. 4 fases con KPIs claros, compliance iGaming y ROI demostrable.',
     url: absoluteUrl('/metodologia'),
     images: [{ url: absoluteUrl('/og-default.jpg'), width: 1200, height: 630 }],
   },
@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Metodología de Campañas Gaming | SocialPro',
     description:
-      'Proceso en 4 fases: discovery, matching, ejecución y reporting. ROI demostrable en cada campaña.',
+      'Discovery, matching, ejecución y reporting. 4 fases con compliance iGaming y ROI demostrable.',
     images: [absoluteUrl('/og-default.jpg')],
   },
 };
@@ -84,6 +84,45 @@ const KPIS = [
   { label: 'Retention', desc: 'Valor a largo plazo de los usuarios captados' },
 ];
 
+const faqJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: [
+    {
+      '@type': 'Question',
+      name: '¿Cuál es el proceso de trabajo de SocialPro para campañas gaming?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Trabajamos en 4 fases: Discovery (análisis de marca y objetivos), Matching (selección de creadores verificados), Ejecución (coordinación completa con compliance iGaming) y Reporting (métricas reales con ROI demostrable). La activación es en menos de 72 horas.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: '¿Qué métricas medís en las campañas de influencer marketing gaming?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Medimos alcance real, engagement rate (sin vanity metrics), conversiones trackeadas por código (FTDs, registros, clicks), ROI con datos verificables, brand sentiment y retención a largo plazo.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: '¿Cómo seleccionáis a los streamers para cada campaña?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'En la fase Matching verificamos audiencia real, engagement rate y fit de marca de cada creador. Contamos con una base de datos propia de más de 100 creadores gaming en España y LatAm. Seleccionamos únicamente perfiles que encajan con la audiencia objetivo del cliente.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: '¿Incluís compliance legal para campañas iGaming?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Sí, el compliance iGaming está integrado en nuestra fase de Ejecución. Adaptamos cada campaña a la normativa de España, LatAm y Turquía, incluyendo disclaimers de juego responsable, verificación de edad y cumplimiento de regulaciones publicitarias locales.',
+      },
+    },
+  ],
+};
+
 const howToJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'HowTo',
@@ -107,6 +146,10 @@ const howToJsonLd = {
 export default function MetodologiaPage() {
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+      />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(howToJsonLd) }}

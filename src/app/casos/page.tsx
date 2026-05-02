@@ -8,14 +8,14 @@ export const revalidate = 3600;
 export const metadata: Metadata = {
   title: 'Campañas Gaming — Resultados Reales',
   description:
-    'Resultados reales: campañas con RAZER (2.5M reach), 1WIN (8M+ reach), SkinsMonkey (200K€ conversiones). Así trabaja SocialPro con las marcas.',
+    'Campañas reales con marcas top: RAZER (2.5M reach), 1WIN (8M+ reach), SkinsMonkey (200K€ conversiones). Ver resultados y metodología de SocialPro →',
   alternates: {
     canonical: '/casos',
   },
   openGraph: {
     title: 'Campañas Gaming — Resultados Reales | SocialPro',
     description:
-      'Resultados reales: campañas con RAZER (2.5M reach), 1WIN (8M+ reach), SkinsMonkey (200K€ conversiones).',
+      'RAZER (2.5M reach), 1WIN (8M+ reach), SkinsMonkey (200K€ conversiones). Campañas gaming con ROI demostrable.',
     url: absoluteUrl('/casos'),
     images: [{ url: absoluteUrl('/og-default.jpg'), width: 1200, height: 630 }],
   },
@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Campañas Gaming — Resultados Reales | SocialPro',
     description:
-      'Resultados reales: campañas con RAZER (2.5M reach), 1WIN (8M+ reach), SkinsMonkey (200K€ conversiones).',
+      'RAZER (2.5M reach), 1WIN (8M+ reach), SkinsMonkey (200K€). Campañas gaming con ROI demostrable.',
     images: [absoluteUrl('/og-default.jpg')],
   },
 };

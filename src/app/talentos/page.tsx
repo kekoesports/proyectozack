@@ -8,14 +8,14 @@ export const revalidate = 3600;
 export const metadata: Metadata = {
   title: 'Streamers y Creadores Gaming de Élite',
   description:
-    'Roster exclusivo de streamers y creadores de contenido gaming en España y LatAm. CS2, Valorant, Twitch, YouTube. Más de 15M vistas mensuales.',
+    'Explora el roster de SocialPro: streamers de CS2, Valorant e iGaming en España y LatAm. +15M views/mes, audiencias verificadas y engagement real. Ver perfiles →',
   alternates: {
     canonical: '/talentos',
   },
   openGraph: {
     title: 'Streamers y Creadores Gaming de Élite | SocialPro',
     description:
-      'Roster exclusivo de streamers y creadores de contenido gaming en España y LatAm. CS2, Valorant, Twitch, YouTube. Más de 15M vistas mensuales.',
+      'Explora el roster de SocialPro: streamers de CS2, Valorant e iGaming en España y LatAm. +15M views/mes, audiencias verificadas.',
     url: absoluteUrl('/talentos'),
     images: [{ url: absoluteUrl('/og-default.jpg'), width: 1200, height: 630 }],
   },
@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Streamers y Creadores Gaming de Élite | SocialPro',
     description:
-      'Roster exclusivo de streamers y creadores de contenido gaming en España y LatAm. CS2, Valorant, Twitch, YouTube.',
+      'Roster de SocialPro: streamers de CS2, Valorant e iGaming en España y LatAm. +15M views/mes, audiencias verificadas.',
     images: [absoluteUrl('/og-default.jpg')],
   },
 };

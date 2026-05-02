@@ -10,12 +10,12 @@ export const revalidate = 3600;
 export const metadata: Metadata = {
   title: 'Marketing Gaming — Insights y Tendencias',
   description:
-    'Artículos sobre marketing gaming, esports, estrategias para creadores y tendencias del sector iGaming en España y Latinoamérica.',
+    'Estrategias de marketing gaming, análisis iGaming y guías para marcas que buscan streamers en España y LatAm. Publicado por la agencia SocialPro.',
   alternates: { canonical: '/blog' },
   openGraph: {
     title: 'Marketing Gaming — Insights y Tendencias | SocialPro',
     description:
-      'Artículos sobre marketing gaming, esports, estrategias para creadores y tendencias del sector iGaming en España y Latinoamérica.',
+      'Estrategias de marketing gaming, análisis iGaming y guías para marcas que buscan streamers en España y LatAm.',
     url: absoluteUrl('/blog'),
     images: [{ url: absoluteUrl('/og-default.jpg'), width: 1200, height: 630 }],
   },
@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Marketing Gaming — Insights y Tendencias | SocialPro',
     description:
-      'Artículos sobre marketing gaming, esports y tendencias del sector iGaming en español.',
+      'Estrategias de marketing gaming y análisis iGaming para marcas que buscan streamers en España y LatAm.',
     images: [absoluteUrl('/og-default.jpg')],
   },
 };
