@@ -45,16 +45,16 @@
   --color-sp-admin-sidebar-active: #2e3350;
 
   /* Semantic state tokens */
-  --color-sp-success: #22c55e;
-  --color-sp-success-bg: rgba(34, 197, 94, 0.12);
-  --color-sp-warning: #eab308;
-  --color-sp-warning-bg: rgba(234, 179, 8, 0.12);
-  --color-sp-danger: #ef4444;
-  --color-sp-danger-bg: rgba(239, 68, 68, 0.12);
-  --color-sp-neutral: #71717a;
-  --color-sp-neutral-bg: rgba(113, 113, 122, 0.12);
-  --color-sp-info: #3b82f6;
-  --color-sp-info-bg: rgba(59, 130, 246, 0.12);
+  --color-sp-success: #16a34a;
+  --color-sp-success-bg: rgba(22, 163, 74, 0.14);
+  --color-sp-warning: #d97706;
+  --color-sp-warning-bg: rgba(217, 119, 6, 0.14);
+  --color-sp-danger: #dc2626;
+  --color-sp-danger-bg: rgba(220, 38, 38, 0.14);
+  --color-sp-neutral: #52525b;
+  --color-sp-neutral-bg: rgba(82, 82, 91, 0.10);
+  --color-sp-info: #2563eb;
+  --color-sp-info-bg: rgba(37, 99, 235, 0.12);
 
   /* Brand fonts */
   --font-display: "Barlow Condensed", sans-serif;

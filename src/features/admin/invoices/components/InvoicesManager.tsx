@@ -163,11 +163,22 @@ export function InvoicesManager({
 
       {filtered.length === 0 ? (
         <EmptyState
-          title={invoices.length === 0 ? 'Aún no hay facturas registradas' : 'Sin resultados'}
+          title={invoices.length === 0 ? 'Aún no hay facturas' : 'Sin resultados'}
           description={
             invoices.length === 0
-              ? 'Crea la primera factura para empezar a controlar tu contabilidad.'
+              ? 'Registra la primera factura para empezar a controlar tu contabilidad.'
               : 'Ninguna factura coincide con los filtros activos.'
+          }
+          action={
+            invoices.length === 0 ? (
+              <button
+                type="button"
+                onClick={() => { setEditing(null); setDrawerOpen(true); }}
+                className="inline-flex items-center gap-2 rounded-xl bg-sp-admin-accent px-4 py-2 text-sm font-semibold text-white hover:opacity-90 transition-opacity"
+              >
+                + Nueva factura
+              </button>
+            ) : undefined
           }
         />
       ) : (

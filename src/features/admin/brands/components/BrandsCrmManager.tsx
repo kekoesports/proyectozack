@@ -201,17 +201,33 @@ export function BrandsCrmManager({
       </FilterBar>
 
       {brands.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-sp-admin-border p-12 text-center">
-          <p className="text-sm text-sp-admin-muted">
-            No hay marcas registradas todavía. Crea la primera para empezar tu CRM.
-          </p>
+        <div className="rounded-2xl bg-sp-admin-card border border-sp-admin-border overflow-hidden">
+          <EmptyState
+            variant="no-data"
+            title="Sin marcas todavía"
+            description="Crea la primera marca para empezar tu CRM."
+            action={
+              <button
+                type="button"
+                onClick={openDrawerCreate}
+                className="inline-flex items-center gap-2 rounded-xl bg-sp-admin-accent px-4 py-2 text-sm font-semibold text-white hover:opacity-90 transition-opacity"
+              >
+                + Nueva marca
+              </button>
+            }
+          />
         </div>
       ) : filteredBrands.length === 0 ? (
         <div className="rounded-2xl bg-sp-admin-card border border-sp-admin-border overflow-hidden">
           <EmptyState
             variant="no-results"
             title="Sin resultados"
-            description="Prueba con otros filtros o limpia la búsqueda actual."
+            description="Prueba con otros filtros o limpia la búsqueda."
+            action={
+              <button type="button" onClick={resetFilters} className="text-xs font-semibold text-sp-admin-accent hover:underline">
+                Limpiar filtros
+              </button>
+            }
           />
         </div>
       ) : (

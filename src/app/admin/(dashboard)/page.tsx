@@ -78,9 +78,10 @@ export default async function AdminDashboardPage(): Promise<ReactElement> {
         </p>
       </div>
 
-      {/* ── KPIs — fila 1: negocio ──────────────────────────── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+      {/* ── KPIs primarios — Revenue + Pipeline ─────────────── */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
         <StatCard
+          size="primary"
           label="Revenue este mes"
           value={formatEur(revenue.income)}
           description="Facturas cobradas y emitidas"
@@ -89,6 +90,7 @@ export default async function AdminDashboardPage(): Promise<ReactElement> {
           href="/admin/facturacion"
         />
         <StatCard
+          size="primary"
           label="Pipeline total"
           value={formatEur(MOCK_PIPELINE_TOTAL)}
           description="Valor estimado en negociación"
@@ -98,10 +100,14 @@ export default async function AdminDashboardPage(): Promise<ReactElement> {
           href="/admin/brands"
           isMock
         />
+      </div>
+
+      {/* ── KPIs secundarios — 6 métricas de cartera ─────────── */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
         <StatCard
           label="Tratos cerrados"
           value={deals.yearlyDeals}
-          description={`Acuerdos cobrados en ${new Date().getFullYear()}`}
+          description={`Cobrados ${new Date().getFullYear()}`}
           icon={<GiveawayIcon />}
           accent="#16a34a"
           href="/admin/facturacion"
@@ -109,19 +115,15 @@ export default async function AdminDashboardPage(): Promise<ReactElement> {
         <StatCard
           label="Tratos activos"
           value={deals.activeDeals}
-          description="Facturas emitidas pendientes de cobro"
+          description="Pendientes de cobro"
           icon={<TasksIcon />}
           accent="#e8a800"
           href="/admin/facturacion"
         />
-      </div>
-
-      {/* ── KPIs — fila 2: cartera ───────────────────────────── */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
         <StatCard
           label="Influencers"
           value={stats.talentCount}
-          description={`${stats.publicCount} públicos · ${stats.internalCount} internos`}
+          description={`${stats.publicCount} pub · ${stats.internalCount} int`}
           icon={<TalentIcon />}
           accent="#f5632a"
           href="/admin/talents"
@@ -129,7 +131,7 @@ export default async function AdminDashboardPage(): Promise<ReactElement> {
         <StatCard
           label="Marcas activas"
           value={brandCounts.activa}
-          description="Clientes con campaña en curso"
+          description="Con campaña en curso"
           icon={<BrandIcon />}
           accent="#5b9bd5"
           href="/admin/brands"
@@ -137,15 +139,15 @@ export default async function AdminDashboardPage(): Promise<ReactElement> {
         <StatCard
           label="Leads CRM"
           value={brandCounts.lead}
-          description="Oportunidades en negociación"
+          description="En negociación"
           icon={<BrandIcon />}
           accent="#c42880"
           href="/admin/brands"
         />
         <StatCard
-          label="Sorteos activos"
+          label="Sorteos"
           value={stats.activeGiveawayCount}
-          description="Giveaways en curso"
+          description="Giveaways activos"
           icon={<GiveawayIcon />}
           accent="#5b9bd5"
           href="/admin/giveaways"
