@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useTransition } from 'react';
 
 import {
@@ -18,7 +19,12 @@ import type { InvoiceWithRelations, InvoiceKind, InvoiceStatus } from '@/types';
 
 export type BrandOption = { readonly id: number; readonly name: string };
 export type TalentOption = { readonly id: number; readonly name: string };
-export type CampaignOption = { readonly id: number; readonly label: string };
+export type CampaignOption = {
+  readonly id:       number;
+  readonly label:    string;
+  readonly brandId:  number | null;
+  readonly talentId: number | null;
+};
 
 export const KIND_LABELS: Record<InvoiceKind, string> = {
   income: 'Ingreso',
@@ -58,14 +64,21 @@ export function formatDate(d: string | null): string {
 }
 
 type InvoiceRowProps = {
-  readonly invoice: InvoiceWithRelations;
+  readonly invoice:   InvoiceWithRelations;
   readonly canDelete: boolean;
-  readonly onEdit: () => void;
+  readonly canEdit?:  boolean;
+  readonly canAnnul?: boolean;
+  readonly onEdit:    () => void;
 };
 
-export function InvoiceRow({ invoice, canDelete, onEdit }: InvoiceRowProps): React.ReactElement {
+export function InvoiceRow({ invoice, canDelete, canEdit = true, canAnnul = true, onEdit }: InvoiceRowProps): React.ReactElement {
   const [isPending, startTransition] = useTransition();
-  const counterparty = invoice.brandName ?? invoice.talentName ?? invoice.counterpartyName ?? '—';
+
+  // Entidades relacionadas
+  const hasBrand    = !!invoice.brandName;
+  const hasTalent   = !!invoice.talentName;
+  const hasCampaign = !!invoice.campaignId;
+  const campaignLabel = invoice.campaignName ?? (invoice.campaignId ? `Trato #${invoice.campaignId}` : null);
 
   const onDelete = (): void => {
     if (!confirm(`¿Eliminar factura "${invoice.concept}"?`)) return;
@@ -98,13 +111,45 @@ export function InvoiceRow({ invoice, canDelete, onEdit }: InvoiceRowProps): Rea
       </td>
       <td className="px-4 py-3 font-mono text-xs text-sp-admin-muted">{invoice.number ?? '—'}</td>
       <td className="px-4 py-3 text-sp-admin-muted text-xs">{formatDate(invoice.issueDate)}</td>
-      <td className="px-4 py-3 text-sp-admin-text">
-        <p className="line-clamp-1 max-w-xs">{invoice.concept}</p>
-        <p className="text-[10px] uppercase tracking-wider text-sp-admin-muted mt-0.5">
-          {invoice.category ?? '—'}
-          {invoice.campaignId ? ` · campaña #${invoice.campaignId}` : ''}
-        </p>
-        <p className="text-[10px] text-sp-admin-muted/80">{counterparty}</p>
+      {/* Concepto */}
+      <td className="px-4 py-3 text-sp-admin-text max-w-[220px]">
+        <p className="line-clamp-1 text-[13px] font-medium">{invoice.concept}</p>
+        {invoice.category && (
+          <p className="text-[9px] uppercase tracking-wider text-sp-admin-muted mt-0.5">{invoice.category}</p>
+        )}
+      </td>
+
+      {/* Trato */}
+      <td className="px-4 py-3 whitespace-nowrap">
+        {hasCampaign && campaignLabel ? (
+          <Link
+            href={`/admin/campanas/${invoice.campaignId}`}
+            className="text-[11px] font-semibold text-sp-admin-accent hover:underline truncate block max-w-[150px]"
+            title={campaignLabel}
+          >
+            {campaignLabel}
+          </Link>
+        ) : (
+          <span className="text-[11px] text-sp-admin-muted/40 italic">—</span>
+        )}
+      </td>
+
+      {/* Marca / Influencer */}
+      <td className="px-4 py-3 whitespace-nowrap">
+        <div className="text-[11px] leading-tight space-y-0.5">
+          {hasBrand && (
+            <p className="font-medium text-sp-admin-text">{invoice.brandName}</p>
+          )}
+          {hasTalent && (
+            <p className="text-sp-admin-muted">{invoice.talentName}</p>
+          )}
+          {!hasBrand && !hasTalent && invoice.counterpartyName && (
+            <p className="text-sp-admin-muted">{invoice.counterpartyName}</p>
+          )}
+          {!hasBrand && !hasTalent && !invoice.counterpartyName && (
+            <span className="text-sp-admin-muted/40 italic">—</span>
+          )}
+        </div>
       </td>
       <td className="px-4 py-3 text-sp-admin-muted text-xs">
         {invoice.company ? INVOICE_COMPANY_LABELS[invoice.company] : '—'}
@@ -128,19 +173,31 @@ export function InvoiceRow({ invoice, canDelete, onEdit }: InvoiceRowProps): Rea
         )}
       </td>
       <td className="px-4 py-3 text-right whitespace-nowrap">
-        {invoice.kind === 'income' && invoice.status !== 'cobrada' && invoice.status !== 'pagada' && invoice.status !== 'anulada' && (
-          <button type="button" onClick={onMarkPaid} disabled={isPending} className="px-2 py-1 rounded text-[10px] font-bold text-emerald-400 hover:bg-emerald-500/10 disabled:opacity-50 cursor-pointer">
-            Cobrada
+        {/* Marcar cobrada/pagada — admin y manager */}
+        {invoice.kind === 'income' && invoice.status !== 'cobrada' && invoice.status !== 'pagada' && invoice.status !== 'anulada' && canEdit && (
+          <button type="button" onClick={onMarkPaid} disabled={isPending}
+            className="px-2 py-1 rounded text-[10px] font-bold text-emerald-400 hover:bg-emerald-500/10 disabled:opacity-50 cursor-pointer">
+            ✓ Cobrada
           </button>
         )}
-        <button type="button" onClick={onEdit} className={BTN_GHOST}>Editar</button>
-        {invoice.status !== 'anulada' && (
-          <button type="button" onClick={onAnnul} disabled={isPending} className="px-2 py-1 rounded text-[10px] font-bold text-amber-400 hover:bg-amber-500/10 disabled:opacity-50 cursor-pointer">
+        {invoice.kind === 'expense' && invoice.status !== 'cobrada' && invoice.status !== 'pagada' && invoice.status !== 'anulada' && canEdit && (
+          <button type="button" onClick={onMarkPaid} disabled={isPending}
+            className="px-2 py-1 rounded text-[10px] font-bold text-emerald-400 hover:bg-emerald-500/10 disabled:opacity-50 cursor-pointer">
+            ✓ Pagada
+          </button>
+        )}
+        {canEdit && (
+          <button type="button" onClick={onEdit} className={BTN_GHOST}>Editar</button>
+        )}
+        {canAnnul && invoice.status !== 'anulada' && (
+          <button type="button" onClick={onAnnul} disabled={isPending}
+            className="px-2 py-1 rounded text-[10px] font-bold text-amber-400 hover:bg-amber-500/10 disabled:opacity-50 cursor-pointer">
             Anular
           </button>
         )}
         {canDelete && (
-          <button type="button" onClick={onDelete} disabled={isPending} className="px-3 py-1.5 rounded-full text-xs font-semibold text-red-400 hover:bg-red-500/10 disabled:opacity-50 cursor-pointer">
+          <button type="button" onClick={onDelete} disabled={isPending}
+            className="px-3 py-1.5 rounded-full text-xs font-semibold text-red-400 hover:bg-red-500/10 disabled:opacity-50 cursor-pointer">
             Borrar
           </button>
         )}
