@@ -322,10 +322,7 @@ export function CampaignDetailTabs({
         )}
 
         {activeTab === 'pagos' && (
-          <CampaignPayments
-            invoices={campaignInvoices}
-            campaign={campaign}
-          />
+          <CampaignPayments invoices={campaignInvoices} />
         )}
 
         {activeTab === 'deliverables' && (
