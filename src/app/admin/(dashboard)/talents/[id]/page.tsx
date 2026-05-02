@@ -8,6 +8,7 @@ import { listCampaigns } from '@/lib/queries/campaigns';
 import { listInvoices } from '@/lib/queries/invoices';
 import { getFlagImageUrl, countryFlagEmoji } from '@/lib/flag-images';
 import { TALENT_VERTICAL_LABELS } from '@/lib/schemas/talentBusiness';
+import { TalentPhotoUpload } from '@/features/admin/talents/components/TalentPhotoUpload';
 import type { TalentVertical } from '@/types';
 
 const PLATFORM_COLOR: Record<string, string> = {
@@ -67,19 +68,14 @@ export default async function TalentProfilePage({
           style={{ background: `linear-gradient(135deg, ${talent.gradientC1}88, ${talent.gradientC2}88)` }} />
         <div className="px-6 pb-6">
           <div className="flex items-end justify-between -mt-12 mb-4 flex-wrap gap-3">
-            <div className="relative">
-              <div className="w-24 h-24 rounded-2xl overflow-hidden ring-4 ring-sp-admin-card shadow-lg"
-                style={{ background: `linear-gradient(135deg, ${talent.gradientC1}, ${talent.gradientC2})` }}>
-                {talent.photoUrl ? (
-                  <Image src={talent.photoUrl} alt={talent.name} fill className="object-cover object-top" sizes="96px" />
-                ) : (
-                  <div className="absolute inset-0 flex items-center justify-center text-2xl font-black text-white/90">
-                    {talent.initials}
-                  </div>
-                )}
-              </div>
-              <span className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full ring-2 ring-sp-admin-card ${isActive ? 'bg-emerald-500' : 'bg-slate-400'}`} />
-            </div>
+            <TalentPhotoUpload
+              talentId={talent.id}
+              talentName={talent.name}
+              initials={talent.initials}
+              gradientC1={talent.gradientC1}
+              gradientC2={talent.gradientC2}
+              photoUrl={talent.photoUrl ?? null}
+            />
             <div className="flex items-center gap-2">
               <Link href={`/admin/talents/${talent.id}/negocio`}
                 className="flex items-center gap-1.5 h-8 px-3 rounded-lg border border-sp-admin-border text-[12px] font-semibold text-sp-admin-muted hover:text-sp-admin-text hover:bg-sp-admin-hover transition-colors">
