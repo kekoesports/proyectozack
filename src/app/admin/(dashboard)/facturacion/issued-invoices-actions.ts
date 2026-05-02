@@ -1,7 +1,13 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { z } from 'zod';
+
 import { requireRole, requireAnyRole } from '@/lib/auth-guard';
+import { parseFormData } from '@/lib/forms/parseFormData';
+import { firstError } from '@/lib/forms/firstError';
+import { logRedacted } from '@/lib/log';
+import { IdSchema } from '@/lib/schemas/common';
 import {
   allocateInvoiceNumber,
   createIssuedInvoice,
@@ -19,16 +25,16 @@ import {
   updateIssuedInvoiceSchema,
   billingClientSchema,
   issuerCompanySchema,
+  ISSUED_INVOICE_STATUSES,
   type InvoiceLineInput,
 } from '@/lib/schemas/issuedInvoice';
 
 type ActionState = { readonly error?: string; readonly success?: boolean; readonly id?: number };
 
-function formToObj(fd: FormData): Record<string, unknown> {
-  const obj: Record<string, unknown> = {};
-  for (const [k, v] of fd.entries()) if (!(v instanceof File)) obj[k] = v;
-  return obj;
-}
+const StatusSchema = z.enum(ISSUED_INVOICE_STATUSES);
+
+const issuerCompanyWithIdSchema = issuerCompanySchema.extend({ id: IdSchema });
+const billingClientWithIdSchema = billingClientSchema.extend({ id: IdSchema });
 
 function round2(n: number): string {
   return (Math.round(n * 100) / 100).toFixed(2);
@@ -50,28 +56,37 @@ function computeAmounts(lines: InvoiceLineInput[], vatRate: number, withholdingR
   };
 }
 
+const InvoiceLinesPayload = z.array(z.unknown()).min(1, 'La factura debe tener al menos una línea');
+
+function parseLines(raw: string): InvoiceLineInput[] | null {
+  try {
+    const data = JSON.parse(raw) as unknown;
+    const arr = InvoiceLinesPayload.safeParse(data);
+    if (!arr.success) return null;
+    return arr.data as InvoiceLineInput[];
+  } catch {
+    return null;
+  }
+}
+
 export async function createIssuedInvoiceAction(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
   const session = await requireAnyRole(['admin', 'staff'], '/admin/login');
 
-  const parsed = createIssuedInvoiceSchema.safeParse(formToObj(formData));
-  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? 'Datos inválidos' };
+  const parsed = parseFormData(formData, createIssuedInvoiceSchema);
+  if (!parsed.ok) {
+    logRedacted('warn', '[issued-invoices] createIssuedInvoice validation failed:', firstError(parsed.fieldErrors));
+    return { error: firstError(parsed.fieldErrors) };
+  }
 
   const { linesJson, vatRate, withholdingRate, issuerCompanyId, ...invoiceData } = parsed.data;
 
-  let lines: InvoiceLineInput[];
-  try {
-    lines = JSON.parse(linesJson) as InvoiceLineInput[];
-    if (!Array.isArray(lines) || lines.length === 0) return { error: 'La factura debe tener al menos una línea' };
-  } catch {
-    return { error: 'Error en líneas de factura' };
-  }
+  const lines = parseLines(linesJson);
+  if (!lines || lines.length === 0) return { error: 'La factura debe tener al menos una línea' };
 
-  const vatRateNum         = Number(vatRate);
-  const withholdingRateNum = Number(withholdingRate);
-  const amounts = computeAmounts(lines, vatRateNum, withholdingRateNum);
+  const amounts = computeAmounts(lines, Number(vatRate), Number(withholdingRate));
 
   try {
     const invoiceNumber = await allocateInvoiceNumber(issuerCompanyId);
@@ -110,7 +125,7 @@ export async function createIssuedInvoiceAction(
     return { success: true, id: row.id };
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'unknown';
-    console.error('[admin] createIssuedInvoice error:', msg);
+    logRedacted('error', '[issued-invoices] createIssuedInvoice error:', msg);
     if (msg.includes('duplicate') || msg.includes('unique')) return { error: 'El número de factura ya existe para esta empresa' };
     return { error: 'Error al crear la factura' };
   }
@@ -122,22 +137,25 @@ export async function updateIssuedInvoiceAction(
 ): Promise<ActionState> {
   await requireAnyRole(['admin', 'staff'], '/admin/login');
 
-  const parsed = updateIssuedInvoiceSchema.safeParse(formToObj(formData));
-  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? 'Datos inválidos' };
+  const parsed = parseFormData(formData, updateIssuedInvoiceSchema);
+  if (!parsed.ok) {
+    logRedacted('warn', '[issued-invoices] updateIssuedInvoice validation failed:', firstError(parsed.fieldErrors));
+    return { error: firstError(parsed.fieldErrors) };
+  }
 
   const { id, linesJson, vatRate, withholdingRate, issuerCompanyId, ...invoiceData } = parsed.data;
   if (!id) return { error: 'ID requerido' };
 
   let lines: InvoiceLineInput[] | undefined;
   if (linesJson) {
-    try {
-      lines = JSON.parse(linesJson) as InvoiceLineInput[];
-    } catch { return { error: 'Error en líneas de factura' }; }
+    const parsedLines = parseLines(linesJson);
+    if (!parsedLines) return { error: 'Error en líneas de factura' };
+    lines = parsedLines;
   }
 
-  const vatRateNum         = Number(vatRate ?? 0);
-  const withholdingRateNum = Number(withholdingRate ?? 0);
-  const amounts = lines ? computeAmounts(lines, vatRateNum, withholdingRateNum) : {};
+  const amounts = lines
+    ? computeAmounts(lines, Number(vatRate ?? 0), Number(withholdingRate ?? 0))
+    : {};
 
   try {
     await updateIssuedInvoice(
@@ -170,27 +188,30 @@ export async function updateIssuedInvoiceAction(
     revalidatePath('/admin/facturacion');
     return { success: true, id };
   } catch (err) {
-    console.error('[admin] updateIssuedInvoice error:', err instanceof Error ? err.message : 'unknown');
+    logRedacted('error', '[issued-invoices] updateIssuedInvoice error:', err instanceof Error ? err.message : 'unknown');
     return { error: 'Error al actualizar la factura' };
   }
 }
 
 export async function updateInvoiceStatusAction(id: number, status: string): Promise<ActionState> {
+  const idCheck = IdSchema.safeParse(id);
+  if (!idCheck.success) return { error: 'ID inválido' };
+  const statusCheck = StatusSchema.safeParse(status);
+  if (!statusCheck.success) return { error: 'Estado inválido' };
+
   // Anular requiere admin; el resto pueden hacerlo admin y staff
-  const session = status === 'anulada'
+  const session = statusCheck.data === 'anulada'
     ? await requireRole('admin', '/admin/login')
     : await requireAnyRole(['admin', 'staff'], '/admin/login');
 
   try {
-    await updateIssuedInvoice(id, { status });
+    await updateIssuedInvoice(idCheck.data, { status: statusCheck.data });
 
-    const inv = await getIssuedInvoice(id);
+    const inv = await getIssuedInvoice(idCheck.data);
 
-    // ── FASE 2: al emitir factura → crear tarea "Cobrar factura" ──────
-    if (status === 'emitida' && inv) {
+    if (statusCheck.data === 'emitida' && inv) {
       const weekLabel = getIsoWeekLabel(new Date());
 
-      // Vencimiento: usar dueDate de la factura o +30 días
       const dueDate = inv.dueDate
         ? new Date(inv.dueDate + 'T12:00:00').toISOString().slice(0, 10)
         : new Date(Date.now() + 30 * 86_400_000).toISOString().slice(0, 10);
@@ -198,10 +219,8 @@ export async function updateInvoiceStatusAction(id: number, status: string): Pro
       const amount = Number(inv.totalAmount ?? 0);
       const priority = amount >= 1000 ? 'alta' : 'media';
 
-      const clientLabel = inv.relatedBrandId ? `Factura ${inv.invoiceNumber}` : `Factura ${inv.invoiceNumber}`;
-
       await createTask({
-        title:        `Cobrar factura — ${clientLabel}`,
+        title:        `Cobrar factura — Factura ${inv.invoiceNumber}`,
         description:  `Factura emitida por ${new Intl.NumberFormat('es-ES', { style: 'currency', currency: inv.currency ?? 'EUR' }).format(amount)}. Vence: ${dueDate}.`,
         ownerId:      session.user.id,
         assignedToUserId: session.user.id,
@@ -217,8 +236,7 @@ export async function updateInvoiceStatusAction(id: number, status: string): Pro
       });
     }
 
-    // ── FASE 3: al cobrar → crear movimiento financiero ───────────────
-    if (status === 'cobrada' && inv && Number(inv.totalAmount) > 0) {
+    if (statusCheck.data === 'cobrada' && inv && Number(inv.totalAmount) > 0) {
       const today     = new Date().toISOString().slice(0, 10);
       const conceptId = `Factura emitida — ${inv.invoiceNumber}`;
 
@@ -257,15 +275,18 @@ export async function updateInvoiceStatusAction(id: number, status: string): Pro
     }
     return { success: true };
   } catch (err) {
-    console.error('[admin] updateInvoiceStatus error:', err instanceof Error ? err.message : 'unknown');
+    logRedacted('error', '[issued-invoices] updateInvoiceStatus error:', err instanceof Error ? err.message : 'unknown');
     return { error: 'Error al actualizar estado' };
   }
 }
 
 export async function createBillingClientAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
   await requireAnyRole(['admin', 'staff'], '/admin/login');
-  const parsed = billingClientSchema.safeParse(formToObj(formData));
-  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? 'Datos inválidos' };
+  const parsed = parseFormData(formData, billingClientSchema);
+  if (!parsed.ok) {
+    logRedacted('warn', '[issued-invoices] createBillingClient validation failed:', firstError(parsed.fieldErrors));
+    return { error: firstError(parsed.fieldErrors) };
+  }
   try {
     const row = await createBillingClient({
       ...parsed.data,
@@ -283,66 +304,68 @@ export async function createBillingClientAction(_prev: ActionState, formData: Fo
     revalidatePath('/admin/facturacion');
     return { success: true, id: row.id };
   } catch (err) {
-    console.error('[admin] createBillingClient error:', err instanceof Error ? err.message : 'unknown');
+    logRedacted('error', '[issued-invoices] createBillingClient error:', err instanceof Error ? err.message : 'unknown');
     return { error: 'Error al crear el cliente' };
   }
 }
 
 export async function updateIssuerCompanyAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
   await requireRole('admin', '/admin/login');
-  const idRaw = formData.get('id');
-  const id = idRaw ? Number(idRaw) : NaN;
-  if (Number.isNaN(id)) return { error: 'ID inválido' };
-  const parsed = issuerCompanySchema.safeParse(formToObj(formData));
-  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? 'Datos inválidos' };
+  const parsed = parseFormData(formData, issuerCompanyWithIdSchema);
+  if (!parsed.ok) {
+    logRedacted('warn', '[issued-invoices] updateIssuerCompany validation failed:', firstError(parsed.fieldErrors));
+    return { error: firstError(parsed.fieldErrors) };
+  }
+  const { id, ...data } = parsed.data;
   try {
     await updateIssuerCompany(id, {
-      ...parsed.data,
-      legalName:           parsed.data.legalName           ?? null,
-      taxId:               parsed.data.taxId               ?? null,
-      country:             parsed.data.country             ?? null,
-      address:             parsed.data.address             ?? null,
-      city:                parsed.data.city                ?? null,
-      postalCode:          parsed.data.postalCode          ?? null,
-      email:               parsed.data.email               ?? null,
-      defaultPaymentTerms: parsed.data.defaultPaymentTerms ?? null,
-      bankDetails:         parsed.data.bankDetails         ?? null,
-      cryptoDetails:       parsed.data.cryptoDetails       ?? null,
-      notes:               parsed.data.notes               ?? null,
+      ...data,
+      legalName:           data.legalName           ?? null,
+      taxId:               data.taxId               ?? null,
+      country:             data.country             ?? null,
+      address:             data.address             ?? null,
+      city:                data.city                ?? null,
+      postalCode:          data.postalCode          ?? null,
+      email:               data.email               ?? null,
+      defaultPaymentTerms: data.defaultPaymentTerms ?? null,
+      bankDetails:         data.bankDetails         ?? null,
+      cryptoDetails:       data.cryptoDetails       ?? null,
+      notes:               data.notes               ?? null,
     });
     revalidatePath('/admin/facturacion');
     return { success: true };
   } catch (err) {
-    console.error('[admin] updateIssuerCompany error:', err instanceof Error ? err.message : 'unknown');
+    logRedacted('error', '[issued-invoices] updateIssuerCompany error:', err instanceof Error ? err.message : 'unknown');
     return { error: 'Error al actualizar empresa emisora' };
   }
 }
 
 export async function updateBillingClientAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
   await requireAnyRole(['admin', 'staff'], '/admin/login');
-  const idRaw = formData.get('id');
-  const id = idRaw ? Number(idRaw) : NaN;
-  if (Number.isNaN(id)) return { error: 'ID inválido' };
-  const parsed = billingClientSchema.safeParse(formToObj(formData));
-  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? 'Datos inválidos' };
+  const parsed = parseFormData(formData, billingClientWithIdSchema);
+  if (!parsed.ok) {
+    logRedacted('warn', '[issued-invoices] updateBillingClient validation failed:', firstError(parsed.fieldErrors));
+    return { error: firstError(parsed.fieldErrors) };
+  }
+  const { id, ...data } = parsed.data;
   try {
     await updateBillingClient(id, {
-      ...parsed.data,
-      relatedBrandId:        parsed.data.relatedBrandId        ?? null,
-      legalName:             parsed.data.legalName             ?? null,
-      taxId:                 parsed.data.taxId                 ?? null,
-      vatNumber:             parsed.data.vatNumber             ?? null,
-      country:               parsed.data.country               ?? null,
-      address:               parsed.data.address               ?? null,
-      city:                  parsed.data.city                  ?? null,
-      postalCode:            parsed.data.postalCode            ?? null,
-      email:                 parsed.data.email                 ?? null,
-      notes:                 parsed.data.notes                 ?? null,
+      ...data,
+      relatedBrandId:        data.relatedBrandId        ?? null,
+      legalName:             data.legalName             ?? null,
+      taxId:                 data.taxId                 ?? null,
+      vatNumber:             data.vatNumber             ?? null,
+      country:               data.country               ?? null,
+      address:               data.address               ?? null,
+      city:                  data.city                  ?? null,
+      postalCode:            data.postalCode            ?? null,
+      email:                 data.email                 ?? null,
+      notes:                 data.notes                 ?? null,
     });
     revalidatePath('/admin/facturacion');
     return { success: true };
   } catch (err) {
-    console.error('[admin] updateBillingClient error:', err instanceof Error ? err.message : 'unknown');
+    logRedacted('error', '[issued-invoices] updateBillingClient error:', err instanceof Error ? err.message : 'unknown');
     return { error: 'Error al actualizar el cliente' };
   }
 }

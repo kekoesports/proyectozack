@@ -3,8 +3,15 @@
 import { randomBytes } from 'crypto';
 import { revalidatePath } from 'next/cache';
 import { put, del } from '@vercel/blob';
-import { requireAnyRole, type Role } from '@/lib/auth-guard';
+
+import { requireAnyRole } from '@/lib/auth-guard';
 import { assertCanDelete } from '@/lib/permissions';
+import { parseFormData } from '@/lib/forms/parseFormData';
+import { firstError } from '@/lib/forms/firstError';
+import { logRedacted } from '@/lib/log';
+import { validateUploadedFile } from '@/lib/files/validateUploadedFile';
+import { INVOICE_DOC_TYPES } from '@/lib/files/allowed-types';
+import { uploadReasonMessage } from '@/lib/files/reason-messages';
 import { createInvoiceSchema, updateInvoiceSchema } from '@/lib/schemas/invoice';
 import { createInvoice, updateInvoice, deleteInvoice, getInvoice } from '@/lib/queries/invoices';
 import { createFile } from '@/lib/queries/files';
@@ -18,47 +25,17 @@ type ActionState = {
   readonly id?: number;
 };
 
-const MAX_FILE_BYTES = 10 * 1024 * 1024;
-const ALLOWED_MIME = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'] as const;
+type AllowedMime = (typeof INVOICE_DOC_TYPES.mimes)[number];
 
-type AllowedMime = (typeof ALLOWED_MIME)[number];
-
-/**
- * Magic-byte sniff to verify a file matches its declared MIME.
- * Defends against attackers swapping `Content-Type` header with malicious content
- * (e.g., uploading HTML labelled as `image/png`). Server-derived MIME wins over
- * client-provided `file.type` for the actual `put()` call.
- */
-function detectMime(head: Uint8Array): AllowedMime | null {
-  if (head.length < 12) return null;
-  // %PDF-
-  if (head[0] === 0x25 && head[1] === 0x50 && head[2] === 0x44 && head[3] === 0x46) return 'application/pdf';
-  // PNG signature
-  if (head[0] === 0x89 && head[1] === 0x50 && head[2] === 0x4e && head[3] === 0x47) return 'image/png';
-  // JPEG SOI
-  if (head[0] === 0xff && head[1] === 0xd8 && head[2] === 0xff) return 'image/jpeg';
-  // WEBP — RIFF....WEBP
-  if (
-    head[0] === 0x52 && head[1] === 0x49 && head[2] === 0x46 && head[3] === 0x46 &&
-    head[8] === 0x57 && head[9] === 0x45 && head[10] === 0x42 && head[11] === 0x50
-  ) return 'image/webp';
-  return null;
-}
-
-function formToObject(formData: FormData): Record<string, unknown> {
-  const obj: Record<string, unknown> = {};
-  for (const [key, value] of formData.entries()) {
-    if (value instanceof File) continue;
-    obj[key] = value;
-  }
-  return obj;
-}
+const MADRID_DATE_FMT = new Intl.DateTimeFormat('en-CA', {
+  timeZone: 'Europe/Madrid',
+  year: 'numeric', month: '2-digit', day: '2-digit',
+});
 
 async function uploadAttachment(
   file: File,
   kind: 'income' | 'expense',
   slot: 'invoice' | 'statement',
-  verifiedMime: AllowedMime,
 ): Promise<{ readonly url: string; readonly path: string }> {
   const year = new Date().getFullYear();
   // Strip leading dots (defense vs `.htaccess` style names) + restrict charset.
@@ -68,25 +45,9 @@ async function uploadAttachment(
   // unguessability of the path is the primary access control here.
   const random = randomBytes(16).toString('hex');
   const path = `invoices/${kind}/${slot}/${year}/${random}-${safeName}`;
-  // Use server-verified MIME, NOT the attacker-controlled `file.type`.
-  const blob = await put(path, file, { access: 'public', contentType: verifiedMime });
+  // `validateUploadedFile` already verified `file.type` against magic bytes.
+  const blob = await put(path, file, { access: 'public', contentType: file.type });
   return { url: blob.url, path };
-}
-
-async function validateUpload(file: File): Promise<{ ok: true; mime: AllowedMime } | { ok: false; error: string }> {
-  if (file.size === 0) return { ok: false, error: 'Archivo vacío' };
-  if (file.size > MAX_FILE_BYTES) return { ok: false, error: 'El archivo no puede superar 10 MB' };
-  if (!(ALLOWED_MIME as readonly string[]).includes(file.type)) {
-    return { ok: false, error: 'Tipo de archivo no permitido (PDF, JPG, PNG, WebP)' };
-  }
-  // Sniff first 12 bytes — the actual content must match the declared type.
-  const head = new Uint8Array(await file.slice(0, 12).arrayBuffer());
-  const detected = detectMime(head);
-  if (!detected) return { ok: false, error: 'Contenido no reconocido como PDF/JPG/PNG/WebP' };
-  if (detected !== file.type) {
-    return { ok: false, error: 'El contenido no coincide con el tipo declarado' };
-  }
-  return { ok: true, mime: detected };
 }
 
 async function processFileSlot(
@@ -100,16 +61,20 @@ async function processFileSlot(
   const candidate = formData.get(field);
   if (!(candidate instanceof File) || candidate.size === 0) return null;
 
-  const validation = await validateUpload(candidate);
-  if (!validation.ok) return { error: validation.error };
+  const validation = await validateUploadedFile(candidate, {
+    maxBytes: INVOICE_DOC_TYPES.maxBytes,
+    allowedMimes: INVOICE_DOC_TYPES.mimes,
+    allowedExts: INVOICE_DOC_TYPES.exts,
+  });
+  if (!validation.ok) return { error: uploadReasonMessage(validation.reason) };
 
-  const attachment = await uploadAttachment(candidate, kind, slot, validation.mime);
+  const attachment = await uploadAttachment(candidate, kind, slot);
   const fileType = slot === 'invoice' ? 'invoice' : 'statement';
 
   const fileRow: FileRecord = await createFile({
     name: candidate.name.slice(0, 250),
     type: fileType,
-    mime: validation.mime,
+    mime: candidate.type as AllowedMime,
     sizeBytes: candidate.size,
     url: attachment.url,
     path: attachment.path,
@@ -123,12 +88,13 @@ async function processFileSlot(
 export async function createInvoiceAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
   const session = await requireAnyRole(['admin', 'manager'], '/admin/login');
 
-  const parsed = createInvoiceSchema.safeParse(formToObject(formData));
-  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? 'Datos inválidos' };
+  const parsed = parseFormData(formData, createInvoiceSchema);
+  if (!parsed.ok) {
+    logRedacted('warn', '[invoices] createInvoiceAction validation failed:', firstError(parsed.fieldErrors));
+    return { error: firstError(parsed.fieldErrors) };
+  }
 
-  // Insert invoice first so we have an id to attach files to.
   let createdId: number;
-
   try {
     const baseValues = nullify({
       ...parsed.data,
@@ -138,55 +104,44 @@ export async function createInvoiceAction(_prev: ActionState, formData: FormData
     const row = await createInvoice(baseValues);
     createdId = row.id;
   } catch (err) {
-    console.error('[admin] createInvoice error:', err instanceof Error ? err.message : 'unknown');
+    logRedacted('error', '[invoices] createInvoice error:', err instanceof Error ? err.message : 'unknown');
     return { error: 'Error al crear el movimiento' };
   }
 
-  // Upload optional invoice file + statement file.
-  // On any upload failure, roll back by deleting the invoice row so we never
-  // leave a dangling invoice without its required file attachment.
+  // Sequential uploads: short-circuit on first failure to avoid an orphan
+  // blob/file row when the second slot would also fail. Failure rolls back
+  // the just-created invoice row.
   try {
     const invoiceFileResult = await processFileSlot(
-      formData,
-      'invoiceFile',
-      'invoice',
-      parsed.data.kind,
-      createdId,
-      session.user.id,
+      formData, 'invoiceFile', 'invoice', parsed.data.kind, createdId, session.user.id,
     );
     if (invoiceFileResult && 'error' in invoiceFileResult) {
       await deleteInvoice(createdId).catch((e: unknown) => {
-        console.error('[admin] invoice rollback failed:', e instanceof Error ? e.message : 'unknown');
+        logRedacted('error', '[invoices] rollback failed:', e instanceof Error ? e.message : 'unknown');
       });
       return { error: invoiceFileResult.error };
     }
 
     const statementFileResult = await processFileSlot(
-      formData,
-      'statementFile',
-      'statement',
-      parsed.data.kind,
-      createdId,
-      session.user.id,
+      formData, 'statementFile', 'statement', parsed.data.kind, createdId, session.user.id,
     );
     if (statementFileResult && 'error' in statementFileResult) {
       await deleteInvoice(createdId).catch((e: unknown) => {
-        console.error('[admin] invoice rollback failed:', e instanceof Error ? e.message : 'unknown');
+        logRedacted('error', '[invoices] rollback failed:', e instanceof Error ? e.message : 'unknown');
       });
       return { error: statementFileResult.error };
     }
 
-    const patch: Record<string, unknown> = {};
+    const patch: Partial<NewInvoice> = {};
     if (invoiceFileResult && 'fileId' in invoiceFileResult) patch.invoiceFileId = invoiceFileResult.fileId;
     if (statementFileResult && 'fileId' in statementFileResult) patch.statementFileId = statementFileResult.fileId;
     if (Object.keys(patch).length > 0) {
-      await updateInvoice(createdId, patch as Partial<NewInvoice>);
+      await updateInvoice(createdId, patch);
     }
   } catch (err) {
-    const msg = err instanceof Error ? err.message : 'unknown';
-    console.error('[admin] invoice upload error:', msg);
+    logRedacted('error', '[invoices] upload error:', err instanceof Error ? err.message : 'unknown');
     await deleteInvoice(createdId).catch((e: unknown) => {
-      console.error('[admin] invoice rollback failed:', e instanceof Error ? e.message : 'unknown');
+      logRedacted('error', '[invoices] rollback failed:', e instanceof Error ? e.message : 'unknown');
     });
     return { error: 'Error al subir el archivo' };
   }
@@ -198,8 +153,11 @@ export async function createInvoiceAction(_prev: ActionState, formData: FormData
 export async function updateInvoiceAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
   const session = await requireAnyRole(['admin', 'manager'], '/admin/login');
 
-  const parsed = updateInvoiceSchema.safeParse(formToObject(formData));
-  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? 'Datos inválidos' };
+  const parsed = parseFormData(formData, updateInvoiceSchema);
+  if (!parsed.ok) {
+    logRedacted('warn', '[invoices] updateInvoiceAction validation failed:', firstError(parsed.fieldErrors));
+    return { error: firstError(parsed.fieldErrors) };
+  }
 
   const { id, ...rest } = parsed.data;
   const existing = await getInvoice(id);
@@ -207,37 +165,29 @@ export async function updateInvoiceAction(_prev: ActionState, formData: FormData
   try {
     if (!existing) return { error: 'Factura no encontrada' };
 
-    const patch = compact({ ...rest, currency: 'EUR' });
-    await updateInvoice(id, patch as Partial<NewInvoice>);
+    const patch = compact({ ...rest, currency: 'EUR' }) as Partial<NewInvoice>;
+    await updateInvoice(id, patch);
+
+    const kind: 'income' | 'expense' = rest.kind ?? existing.kind;
 
     const invoiceFileResult = await processFileSlot(
-      formData,
-      'invoiceFile',
-      'invoice',
-      (rest.kind ?? existing.kind) as 'income' | 'expense',
-      id,
-      session.user.id,
+      formData, 'invoiceFile', 'invoice', kind, id, session.user.id,
     );
     if (invoiceFileResult && 'error' in invoiceFileResult) return { error: invoiceFileResult.error };
 
     const statementFileResult = await processFileSlot(
-      formData,
-      'statementFile',
-      'statement',
-      (rest.kind ?? existing.kind) as 'income' | 'expense',
-      id,
-      session.user.id,
+      formData, 'statementFile', 'statement', kind, id, session.user.id,
     );
     if (statementFileResult && 'error' in statementFileResult) return { error: statementFileResult.error };
 
-    const filePatch: Record<string, unknown> = {};
+    const filePatch: Partial<NewInvoice> = {};
     if (invoiceFileResult && 'fileId' in invoiceFileResult) filePatch.invoiceFileId = invoiceFileResult.fileId;
     if (statementFileResult && 'fileId' in statementFileResult) filePatch.statementFileId = statementFileResult.fileId;
     if (Object.keys(filePatch).length > 0) {
-      await updateInvoice(id, filePatch as Partial<NewInvoice>);
+      await updateInvoice(id, filePatch);
     }
   } catch (err) {
-    console.error('[admin] updateInvoice error:', err instanceof Error ? err.message : 'unknown');
+    logRedacted('error', '[invoices] updateInvoice error:', err instanceof Error ? err.message : 'unknown');
     return { error: 'Error al actualizar el movimiento' };
   }
 
@@ -247,9 +197,8 @@ export async function updateInvoiceAction(_prev: ActionState, formData: FormData
 
 export async function deleteInvoiceAction(id: number): Promise<ActionState> {
   const session = await requireAnyRole(['admin', 'manager'], '/admin/login');
-  const role = (session.user.role ?? 'staff') as Role;
   try {
-    assertCanDelete(role);
+    assertCanDelete(session.user.role);
   } catch {
     return { error: 'Sin permiso para eliminar' };
   }
@@ -265,7 +214,7 @@ export async function deleteInvoiceAction(id: number): Promise<ActionState> {
     revalidatePath('/admin/facturacion');
     return { success: true };
   } catch (err) {
-    console.error('[admin] deleteInvoice error:', err instanceof Error ? err.message : 'unknown');
+    logRedacted('error', '[invoices] deleteInvoice error:', err instanceof Error ? err.message : 'unknown');
     return { error: 'Error al eliminar el movimiento' };
   }
 }
@@ -281,8 +230,7 @@ export async function annulInvoiceAction(id: number): Promise<ActionState> {
     }
     return { success: true };
   } catch (err) {
-    const msg = err instanceof Error ? err.message : 'unknown';
-    console.error('[admin] annulInvoice error:', msg);
+    logRedacted('error', '[invoices] annulInvoice error:', err instanceof Error ? err.message : 'unknown');
     return { error: 'Error al anular la factura' };
   }
 }
@@ -300,30 +248,27 @@ export async function bulkDeleteInvoicesAction(ids: number[]): Promise<ActionSta
     revalidatePath('/admin/facturacion');
     return { success: true };
   } catch (err) {
-    console.error('[admin] bulkDeleteInvoices error:', err instanceof Error ? err.message : 'unknown');
+    logRedacted('error', '[invoices] bulkDeleteInvoices error:', err instanceof Error ? err.message : 'unknown');
     return { error: 'Error al eliminar movimientos' };
   }
 }
 
 export async function markInvoicePaidAction(id: number): Promise<ActionState> {
   await requireAnyRole(['admin', 'manager'], '/admin/login');
-  const today = new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'Europe/Madrid',
-    year: 'numeric', month: '2-digit', day: '2-digit',
-  }).format(new Date());
+  const today = MADRID_DATE_FMT.format(new Date());
   try {
     const existing = await getInvoice(id);
-    // income → cobrada; expense → pagada
+    // income → cobrada; expense → pagada — ambos estados conviven en el set
+    // de `INVOICE_STATUSES` por diseño (settled income vs settled expense).
     const newStatus = existing?.kind === 'expense' ? 'pagada' : 'cobrada';
     await updateInvoice(id, { status: newStatus, paidDate: today });
     revalidatePath('/admin/facturacion');
-    // Si la factura está vinculada a un trato, revalidar también su página
     if (existing?.campaignId) {
       revalidatePath(`/admin/campanas/${existing.campaignId}`);
     }
     return { success: true };
   } catch (err) {
-    console.error('[admin] markPaid error:', err instanceof Error ? err.message : 'unknown');
+    logRedacted('error', '[invoices] markPaid error:', err instanceof Error ? err.message : 'unknown');
     return { error: 'Error al marcar como cobrado/pagado' };
   }
 }

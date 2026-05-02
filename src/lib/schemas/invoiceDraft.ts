@@ -76,6 +76,21 @@ export const approveImportSchema = invoiceDraftSchema.extend({
 
 export type ApproveImportInput = z.infer<typeof approveImportSchema>;
 
+// ─── Mapped commit (XLSX/CSV upload con mapping JSON) ──────────────────
+
+export const commitMappedImportSchema = z.object({
+  kind: z.enum(INVOICE_KINDS),
+  mapping: z.string().min(2),
+  saveAsTemplate: z.preprocess(
+    (v) => v === 'on' || v === 'true' || v === true,
+    z.boolean().default(false),
+  ),
+  templateName: z.preprocess(
+    (v) => (typeof v === 'string' ? v.trim() : v),
+    z.string().max(80).optional(),
+  ),
+});
+
 export function draftToInvoiceInsert(
   input: ApproveImportInput,
   createdByUserId: string | null,

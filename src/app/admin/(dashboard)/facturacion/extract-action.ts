@@ -1,9 +1,10 @@
 'use server';
 
-import type { ExtractedInvoiceData, ExtractionResult } from '@/types';
+import { validateUploadedFile } from '@/lib/files/validateUploadedFile';
+import { INVOICE_DOC_TYPES } from '@/lib/files/allowed-types';
+import { uploadReasonMessage } from '@/lib/files/reason-messages';
 
-const SUPPORTED_MIME = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
-const MAX_FILE_BYTES = 10 * 1024 * 1024;
+import type { ExtractedInvoiceData, ExtractionResult } from '@/types';
 
 export async function extractInvoiceAction(formData: FormData): Promise<ExtractionResult> {
   const file = formData.get('file');
@@ -11,14 +12,13 @@ export async function extractInvoiceAction(formData: FormData): Promise<Extracti
   if (!(file instanceof File) || file.size === 0) {
     return { error: 'No se ha proporcionado ningún archivo' };
   }
-  if (!SUPPORTED_MIME.includes(file.type)) {
-    return { error: 'Formato no soportado para extracción automática. Usa PDF, JPG o PNG.' };
-  }
-  if (file.size > MAX_FILE_BYTES) {
-    return { error: 'El archivo supera el límite de 10 MB' };
-  }
+  const validation = await validateUploadedFile(file, {
+    maxBytes: INVOICE_DOC_TYPES.maxBytes,
+    allowedMimes: INVOICE_DOC_TYPES.mimes,
+    allowedExts: INVOICE_DOC_TYPES.exts,
+  });
+  if (!validation.ok) return { error: uploadReasonMessage(validation.reason) };
 
-  // ── Phase 1: mock ────────────────────────────────────────────────
   // Phase 2: sustituir por llamada a OpenAI Vision / Google Document AI / AWS Textract
   return mockExtract(file.name, file.size);
 }
@@ -47,7 +47,7 @@ async function mockExtract(filename: string, _size: number): Promise<ExtractionR
   const seq   = String(Math.floor(Math.random() * 899) + 100);
 
   const net   = parseFloat((Math.random() * 4500 + 300).toFixed(2));
-  const vat   = looksLikeExpense ? 21 : 21;
+  const vat   = 21;
   const total = parseFloat((net * (1 + vat / 100)).toFixed(2));
 
   const data: ExtractedInvoiceData = {

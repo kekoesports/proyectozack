@@ -45,6 +45,27 @@ export const CONTRACT_PDF_TYPES = {
   maxBytes: 20 * 1024 * 1024,
 };
 
+/** Documentos de factura/justificante: PDF + imágenes (cap 10 MB). */
+export const INVOICE_DOC_TYPES = {
+  mimes: ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'] as const,
+  exts: ['.pdf', '.jpg', '.jpeg', '.png', '.webp'] as const,
+  maxBytes: 10 * 1024 * 1024,
+};
+
+/** Imports de facturas (PDF/XLSX/CSV/XML). */
+export const INVOICE_IMPORT_TYPES = {
+  mimes: [
+    'application/pdf',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'application/vnd.ms-excel',
+    'text/csv',
+    'application/xml',
+    'text/xml',
+  ] as const,
+  exts: ['.pdf', '.xlsx', '.xls', '.csv', '.xml'] as const,
+  maxBytes: 10 * 1024 * 1024,
+};
+
 /** Imports de talents (CSV/XLSX). */
 export const TALENT_IMPORT_TYPES = {
   mimes: [

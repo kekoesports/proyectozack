@@ -1,7 +1,12 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { randomUUID } from 'crypto';
+
 import { requireRole } from '@/lib/auth-guard';
+import { parseFormData } from '@/lib/forms/parseFormData';
+import { firstError } from '@/lib/forms/firstError';
+import { logRedacted } from '@/lib/log';
 import {
   upsertTargetsFromCSV,
   updateTargetStatus,
@@ -14,8 +19,10 @@ import {
   csvTargetRowSchema,
   updateTargetStatusSchema,
   updateTargetNotesSchema,
+  importTargetsCsvSchema,
+  deleteTargetsSchema,
+  assignTargetsSchema,
 } from '@/lib/schemas/target';
-import { randomUUID } from 'crypto';
 
 const REVALIDATE = '/admin/targets';
 
@@ -64,18 +71,32 @@ function detectPlatformFromUrl(url: string): string | undefined {
 
 // ─── CSV import ───────────────────────────────────────────────────────────────
 
-export async function importCSVAction(
-  formData: FormData,
-): Promise<{ total: number; inserted: number; updated: number; errors: number; assigned: number }> {
+export type ImportCsvResult = {
+  total: number;
+  inserted: number;
+  updated: number;
+  errors: number;
+  assigned: number;
+};
+
+const EMPTY_IMPORT: ImportCsvResult = { total: 0, inserted: 0, updated: 0, errors: 0, assigned: 0 };
+
+export async function importCSVAction(formData: FormData): Promise<ImportCsvResult> {
   await requireRole('admin', '/admin/login');
 
-  const file = formData.get('file') as File | null;
-  const brandUserId = (formData.get('brandUserId') as string | null)?.trim() ?? '';
-  if (!file) return { total: 0, inserted: 0, updated: 0, errors: 0, assigned: 0 };
+  const file = formData.get('file');
+  if (!(file instanceof File) || file.size === 0) return EMPTY_IMPORT;
+
+  const parsed = parseFormData(formData, importTargetsCsvSchema);
+  if (!parsed.ok) {
+    logRedacted('warn', '[targets] importCSVAction validation failed:', firstError(parsed.fieldErrors));
+    return EMPTY_IMPORT;
+  }
+  const brandUserId = parsed.data.brandUserId?.trim() ?? '';
 
   const text = await file.text();
   const lines = text.split('\n').filter((l) => l.trim());
-  if (lines.length < 2) return { total: 0, inserted: 0, updated: 0, errors: 0, assigned: 0 };
+  if (lines.length < 2) return EMPTY_IMPORT;
 
   const rawHeaders = parseCsvLine(lines[0]!).map((h) => h.trim());
   const headers = rawHeaders.map(normalizeHeader);
@@ -91,15 +112,14 @@ export async function importCSVAction(
       raw[h] = cols[idx] ?? '';
     });
 
-    // Detect platform from URL if not explicitly provided
     if (!raw.platform && raw.profile_url) {
       const detected = detectPlatformFromUrl(raw.profile_url);
       if (detected) raw.platform = detected;
     }
 
-    const parsed = csvTargetRowSchema.safeParse(raw);
-    if (parsed.success) {
-      validRows.push(parsed.data);
+    const rowParsed = csvTargetRowSchema.safeParse(raw);
+    if (rowParsed.success) {
+      validRows.push(rowParsed.data);
     } else {
       errors++;
     }
@@ -124,11 +144,11 @@ export async function importCSVAction(
 export async function updateStatusAction(formData: FormData): Promise<void> {
   await requireRole('admin', '/admin/login');
 
-  const parsed = updateTargetStatusSchema.safeParse({
-    id: formData.get('id'),
-    status: formData.get('status'),
-  });
-  if (!parsed.success) return;
+  const parsed = parseFormData(formData, updateTargetStatusSchema);
+  if (!parsed.ok) {
+    logRedacted('warn', '[targets] updateStatusAction validation failed:', firstError(parsed.fieldErrors));
+    return;
+  }
 
   await updateTargetStatus(parsed.data.id, parsed.data.status);
   revalidatePath(REVALIDATE);
@@ -139,11 +159,11 @@ export async function updateStatusAction(formData: FormData): Promise<void> {
 export async function updateNotesAction(formData: FormData): Promise<void> {
   await requireRole('admin', '/admin/login');
 
-  const parsed = updateTargetNotesSchema.safeParse({
-    id: formData.get('id'),
-    notes: formData.get('notes') ?? '',
-  });
-  if (!parsed.success) return;
+  const parsed = parseFormData(formData, updateTargetNotesSchema);
+  if (!parsed.ok) {
+    logRedacted('warn', '[targets] updateNotesAction validation failed:', firstError(parsed.fieldErrors));
+    return;
+  }
 
   await updateTargetNotes(parsed.data.id, parsed.data.notes);
   revalidatePath(REVALIDATE);
@@ -154,15 +174,13 @@ export async function updateNotesAction(formData: FormData): Promise<void> {
 export async function deleteTargetsAction(formData: FormData): Promise<void> {
   await requireRole('admin', '/admin/login');
 
-  const raw = formData.get('ids') as string | null;
-  if (!raw) return;
+  const parsed = parseFormData(formData, deleteTargetsSchema);
+  if (!parsed.ok) {
+    logRedacted('warn', '[targets] deleteTargetsAction validation failed:', firstError(parsed.fieldErrors));
+    return;
+  }
 
-  const ids = raw
-    .split(',')
-    .map(Number)
-    .filter((n) => n > 0);
-
-  await deleteTargets(ids);
+  await deleteTargets(parsed.data.ids);
   revalidatePath(REVALIDATE);
 }
 
@@ -172,16 +190,13 @@ export async function assignTargetsToBrandAction(
 ): Promise<{ assigned: number; updated: number }> {
   await requireRole('admin', '/admin/login');
 
-  const rawIds = formData.get('ids') as string | null;
-  const brandUserId = formData.get('brandUserId') as string | null;
-  if (!rawIds || !brandUserId) return { assigned: 0, updated: 0 };
+  const parsed = parseFormData(formData, assignTargetsSchema);
+  if (!parsed.ok) {
+    logRedacted('warn', '[targets] assignTargetsToBrandAction validation failed:', firstError(parsed.fieldErrors));
+    return { assigned: 0, updated: 0 };
+  }
 
-  const ids = rawIds
-    .split(',')
-    .map(Number)
-    .filter((n) => n > 0);
-
-  const result = await assignTargetsToBrand(brandUserId, ids);
+  const result = await assignTargetsToBrand(parsed.data.brandUserId, parsed.data.ids);
   revalidatePath(REVALIDATE);
   revalidatePath('/marcas');
   return { assigned: result.assigned, updated: 0 };

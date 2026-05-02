@@ -1,30 +1,39 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+
 import { requireRole } from '@/lib/auth-guard';
+import { parseFormData } from '@/lib/forms/parseFormData';
+import { firstError } from '@/lib/forms/firstError';
+import { logRedacted } from '@/lib/log';
 import { updateBrandTargetStatus, updateBrandTargetNotes } from '@/lib/queries/targets';
-import type { Target } from '@/types';
+import {
+  updateBrandTargetStatusSchema,
+  updateBrandTargetNotesSchema,
+} from '@/lib/schemas/target';
 
 export async function updateBrandTargetStatusAction(formData: FormData): Promise<void> {
   const session = await requireRole('brand', '/marcas/login');
 
-  const targetId = Number(formData.get('targetId'));
-  const status   = formData.get('status') as Target['status'];
+  const parsed = parseFormData(formData, updateBrandTargetStatusSchema);
+  if (!parsed.ok) {
+    logRedacted('warn', '[marcas/targets] updateBrandTargetStatusAction validation failed:', firstError(parsed.fieldErrors));
+    return;
+  }
 
-  if (!targetId || !status) return;
-
-  await updateBrandTargetStatus(session.user.id, targetId, status);
+  await updateBrandTargetStatus(session.user.id, parsed.data.targetId, parsed.data.status);
   revalidatePath('/marcas/targets');
 }
 
 export async function updateBrandTargetNotesAction(formData: FormData): Promise<void> {
   const session = await requireRole('brand', '/marcas/login');
 
-  const targetId = Number(formData.get('targetId'));
-  const notes    = (formData.get('notes') as string | null) ?? '';
+  const parsed = parseFormData(formData, updateBrandTargetNotesSchema);
+  if (!parsed.ok) {
+    logRedacted('warn', '[marcas/targets] updateBrandTargetNotesAction validation failed:', firstError(parsed.fieldErrors));
+    return;
+  }
 
-  if (!targetId) return;
-
-  await updateBrandTargetNotes(session.user.id, targetId, notes);
+  await updateBrandTargetNotes(session.user.id, parsed.data.targetId, parsed.data.notes);
   revalidatePath('/marcas/targets');
 }

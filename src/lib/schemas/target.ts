@@ -1,5 +1,26 @@
 import { z } from 'zod';
 
+import { IdSchema } from './common';
+
+const optStr = (max: number) =>
+  z.preprocess(
+    (v) => (typeof v === 'string' && v.trim() === '' ? undefined : v),
+    z.string().max(max).optional(),
+  );
+
+const idCsvSchema = z
+  .string()
+  .min(1)
+  .transform((raw) =>
+    raw
+      .split(',')
+      .map((part) => part.trim())
+      .filter((part) => part.length > 0)
+      .map((part) => Number(part))
+      .filter((n) => Number.isInteger(n) && n > 0),
+  )
+  .refine((arr) => arr.length > 0, { message: 'Selecciona al menos una fila' });
+
 // CSV booleans arrive as the string "true"/"false"
 const csvBool = z
   .union([z.boolean(), z.string()])
@@ -62,18 +83,43 @@ export const updateTargetSchema = targetFields.partial();
 const TARGET_STATUSES = ['pendiente', 'contactado', 'finalizado', 'descartado'] as const;
 
 export const updateTargetStatusSchema = z.object({
-  id: z.coerce.number().int().positive(),
+  id: IdSchema,
   status: z.enum(TARGET_STATUSES),
 });
 
 export const updateTargetNotesSchema = z.object({
-  id: z.coerce.number().int().positive(),
-  notes: z.string(),
+  id: IdSchema,
+  notes: z.string().max(5000).default(''),
 });
 
 export const bulkStatusSchema = z.object({
-  ids: z.array(z.number().int().positive()).min(1),
+  ids: z.array(IdSchema).min(1),
   status: z.enum(TARGET_STATUSES),
+});
+
+// ─── FormData wrappers ────────────────────────────────────────────────────────
+
+export const importTargetsCsvSchema = z.object({
+  brandUserId: optStr(200),
+});
+
+export const deleteTargetsSchema = z.object({
+  ids: idCsvSchema,
+});
+
+export const assignTargetsSchema = z.object({
+  ids: idCsvSchema,
+  brandUserId: z.string().min(1).max(200),
+});
+
+export const updateBrandTargetStatusSchema = z.object({
+  targetId: IdSchema,
+  status: z.enum(TARGET_STATUSES),
+});
+
+export const updateBrandTargetNotesSchema = z.object({
+  targetId: IdSchema,
+  notes: z.string().max(5000).default(''),
 });
 
 export type CreateTargetInput = z.infer<typeof createTargetSchema>;

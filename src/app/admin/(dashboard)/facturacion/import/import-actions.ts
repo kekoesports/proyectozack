@@ -2,10 +2,18 @@
 
 import { revalidatePath } from 'next/cache';
 import { put } from '@vercel/blob';
+
 import { requireRole } from '@/lib/auth-guard';
+import { parseFormData } from '@/lib/forms/parseFormData';
+import { firstError } from '@/lib/forms/firstError';
+import { logRedacted } from '@/lib/log';
+import { validateUploadedFile } from '@/lib/files/validateUploadedFile';
+import { INVOICE_IMPORT_TYPES } from '@/lib/files/allowed-types';
+import { uploadReasonMessage } from '@/lib/files/reason-messages';
 import { hashFile } from '@/lib/utils/hash';
 import {
   approveImportSchema,
+  commitMappedImportSchema,
   INVOICE_DRAFT_SOURCES,
   type InvoiceDraftSource,
 } from '@/lib/schemas/invoiceDraft';
@@ -36,16 +44,6 @@ type ActionState = {
   readonly invoiceId?: number;
 };
 
-const MAX_FILE_BYTES = 10 * 1024 * 1024;
-const ALLOWED_MIME = new Set([
-  'application/pdf',
-  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-  'application/vnd.ms-excel',
-  'text/csv',
-  'application/xml',
-  'text/xml',
-]);
-
 const EXT_TO_SOURCE: Record<string, InvoiceDraftSource> = {
   pdf: 'pdf-text',
   xlsx: 'xlsx',
@@ -63,13 +61,18 @@ function inferSourceType(filename: string, mime: string): InvoiceDraftSource | n
   return null;
 }
 
-function formToObject(formData: FormData): Record<string, unknown> {
-  const obj: Record<string, unknown> = {};
-  for (const [key, value] of formData.entries()) {
-    if (value instanceof File) continue;
-    obj[key] = value;
+async function uploadInvoiceImport(
+  file: File,
+): Promise<{ ok: true; fileUrl: string; filePath: string } | { ok: false; error: string }> {
+  const safeName = file.name.replace(/[^\w.\-]/g, '_');
+  const blobPath = `invoice-imports/${new Date().getFullYear()}/${Date.now()}-${safeName}`;
+  try {
+    const blob = await put(blobPath, file, { access: 'public', contentType: file.type });
+    return { ok: true, fileUrl: blob.url, filePath: blobPath };
+  } catch (err) {
+    logRedacted('error', '[invoice-import] upload error:', err instanceof Error ? err.message : 'unknown');
+    return { ok: false, error: 'Error al subir el archivo' };
   }
-  return obj;
 }
 
 export async function uploadImportAction(
@@ -79,13 +82,14 @@ export async function uploadImportAction(
   await requireRole('admin', '/admin/login');
 
   const file = formData.get('file');
-  if (!(file instanceof File) || file.size === 0) {
-    return { error: 'Selecciona un archivo' };
-  }
-  if (file.size > MAX_FILE_BYTES) return { error: 'El archivo no puede superar 10 MB' };
-  if (file.type && !ALLOWED_MIME.has(file.type)) {
-    return { error: 'Tipo de archivo no permitido (PDF, XLSX, CSV, XML)' };
-  }
+  if (!(file instanceof File) || file.size === 0) return { error: 'Selecciona un archivo' };
+
+  const validation = await validateUploadedFile(file, {
+    maxBytes: INVOICE_IMPORT_TYPES.maxBytes,
+    allowedMimes: INVOICE_IMPORT_TYPES.mimes,
+    allowedExts: INVOICE_IMPORT_TYPES.exts,
+  });
+  if (!validation.ok) return { error: uploadReasonMessage(validation.reason) };
 
   const sourceType = inferSourceType(file.name, file.type);
   if (!sourceType || !(INVOICE_DRAFT_SOURCES as readonly string[]).includes(sourceType)) {
@@ -96,26 +100,13 @@ export async function uploadImportAction(
   try {
     fileHash = await hashFile(file);
   } catch (err) {
-    console.error('[admin] import hash error:', err instanceof Error ? err.message : 'unknown');
+    logRedacted('error', '[invoice-import] hash error:', err instanceof Error ? err.message : 'unknown');
     return { error: 'Error al calcular el hash del archivo' };
   }
 
-  const safeName = file.name.replace(/[^\w.\-]/g, '_');
-  const year = new Date().getFullYear();
-  const blobPath = `invoice-imports/${year}/${Date.now()}-${safeName}`;
+  const upload = await uploadInvoiceImport(file);
+  if (!upload.ok) return { error: upload.error };
 
-  let fileUrl: string | null = null;
-  let filePath: string | null = null;
-  try {
-    const blob = await put(blobPath, file, { access: 'public', contentType: file.type });
-    fileUrl = blob.url;
-    filePath = blobPath;
-  } catch (err) {
-    console.error('[admin] import upload error:', err instanceof Error ? err.message : 'unknown');
-    return { error: 'Error al subir el archivo' };
-  }
-
-  // PDF: parse server-side to pre-fill draft and (optionally) apply learned template.
   let parsedDraft: Record<string, unknown> | null = null;
   let warningsOut: readonly string[] = [];
   if (sourceType === 'pdf-text') {
@@ -139,7 +130,7 @@ export async function uploadImportAction(
       parsedDraft = { ...finalResult.draft, [REGIONS_KEY]: finalResult.regions };
       warningsOut = finalResult.warnings;
     } catch (err) {
-      console.error('[admin] pdf parse error:', err instanceof Error ? err.message : 'unknown');
+      logRedacted('error', '[invoice-import] pdf parse error:', err instanceof Error ? err.message : 'unknown');
       warningsOut = ['No se pudo parsear el PDF automáticamente. Completa los campos manualmente.'];
     }
   }
@@ -149,8 +140,8 @@ export async function uploadImportAction(
       sourceType,
       sourceFilename: file.name,
       fileHash,
-      fileUrl,
-      filePath,
+      fileUrl: upload.fileUrl,
+      filePath: upload.filePath,
       parsedDraft,
       warnings: warningsOut,
       createdByUserId: null,
@@ -161,7 +152,7 @@ export async function uploadImportAction(
     if (err instanceof DuplicateImportError) {
       return { error: `Este archivo ya fue subido (#${err.existingId})` };
     }
-    console.error('[admin] createImport error:', err instanceof Error ? err.message : 'unknown');
+    logRedacted('error', '[invoice-import] createImport error:', err instanceof Error ? err.message : 'unknown');
     return { error: 'Error al registrar el import' };
   }
 }
@@ -172,9 +163,10 @@ export async function approveImportAction(
 ): Promise<ActionState> {
   await requireRole('admin', '/admin/login');
 
-  const parsed = approveImportSchema.safeParse(formToObject(formData));
-  if (!parsed.success) {
-    return { error: parsed.error.issues[0]?.message ?? 'Datos inválidos' };
+  const parsed = parseFormData(formData, approveImportSchema);
+  if (!parsed.ok) {
+    logRedacted('warn', '[invoice-import] approveImport validation failed:', firstError(parsed.fieldErrors));
+    return { error: firstError(parsed.fieldErrors) };
   }
 
   try {
@@ -199,7 +191,7 @@ export async function approveImportAction(
             regions: regions as ParsedRegions,
           });
         } catch (err) {
-          console.error('[admin] parser template upsert failed:', err instanceof Error ? err.message : 'unknown');
+          logRedacted('error', '[invoice-import] parser template upsert failed:', err instanceof Error ? err.message : 'unknown');
         }
       }
     }
@@ -209,7 +201,7 @@ export async function approveImportAction(
     return { success: true, importId: result.importId, invoiceId: result.invoiceId };
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'unknown';
-    console.error('[admin] approveImport error:', msg);
+    logRedacted('error', '[invoice-import] approveImport error:', msg);
     return { error: msg };
   }
 }
@@ -221,7 +213,7 @@ export async function rejectImportAction(id: number): Promise<ActionState> {
     revalidatePath('/admin/facturacion/import');
     return { success: true, importId: id };
   } catch (err) {
-    console.error('[admin] rejectImport error:', err instanceof Error ? err.message : 'unknown');
+    logRedacted('error', '[invoice-import] rejectImport error:', err instanceof Error ? err.message : 'unknown');
     return { error: 'Error al rechazar el import' };
   }
 }
@@ -261,29 +253,30 @@ export async function commitMappedImportAction(
 
   const file = formData.get('file');
   if (!(file instanceof File) || file.size === 0) return { error: 'Selecciona un archivo' };
-  if (file.size > MAX_FILE_BYTES) return { error: 'El archivo no puede superar 10 MB' };
+
+  const validation = await validateUploadedFile(file, {
+    maxBytes: INVOICE_IMPORT_TYPES.maxBytes,
+    allowedMimes: INVOICE_IMPORT_TYPES.mimes,
+    allowedExts: INVOICE_IMPORT_TYPES.exts,
+  });
+  if (!validation.ok) return { error: uploadReasonMessage(validation.reason) };
 
   const sourceType = inferSourceType(file.name, file.type);
   if (sourceType !== 'xlsx' && sourceType !== 'csv') {
     return { error: 'Este flujo solo admite XLSX o CSV' };
   }
 
-  const kindRaw = formData.get('kind');
-  const kind = kindRaw === 'income' || kindRaw === 'expense' ? kindRaw : null;
-  if (!kind) return { error: 'Marca si son ingresos o gastos' };
+  const parsed = parseFormData(formData, commitMappedImportSchema);
+  if (!parsed.ok) {
+    logRedacted('warn', '[invoice-import] commitMappedImport validation failed:', firstError(parsed.fieldErrors));
+    return { error: firstError(parsed.fieldErrors) };
+  }
 
-  const mappingRaw = formData.get('mapping');
-  if (typeof mappingRaw !== 'string') return { error: 'Falta el mapping de columnas' };
-  const mapping = parseMappingJson(mappingRaw);
+  const mapping = parseMappingJson(parsed.data.mapping);
   if (!mapping || Object.keys(mapping).length === 0) {
     return { error: 'Mapping inválido: asigna al menos una columna' };
   }
-
-  const saveAsTemplate = formData.get('saveAsTemplate') === 'on';
-  const templateNameRaw = formData.get('templateName');
-  const templateName =
-    typeof templateNameRaw === 'string' ? templateNameRaw.trim() : '';
-  if (saveAsTemplate && !templateName) {
+  if (parsed.data.saveAsTemplate && !parsed.data.templateName) {
     return { error: 'Indica un nombre para la plantilla' };
   }
 
@@ -291,7 +284,7 @@ export async function commitMappedImportAction(
   try {
     fileHash = await hashFile(file);
   } catch (err) {
-    console.error('[admin] import hash error:', err instanceof Error ? err.message : 'unknown');
+    logRedacted('error', '[invoice-import] hash error:', err instanceof Error ? err.message : 'unknown');
     return { error: 'Error al calcular el hash del archivo' };
   }
 
@@ -305,7 +298,7 @@ export async function commitMappedImportAction(
       extract = extractCsvSheet(text);
     }
   } catch (err) {
-    console.error('[admin] parse error:', err instanceof Error ? err.message : 'unknown');
+    logRedacted('error', '[invoice-import] parse error:', err instanceof Error ? err.message : 'unknown');
     return { error: 'No se pudo leer el archivo' };
   }
 
@@ -315,31 +308,20 @@ export async function commitMappedImportAction(
     headers: extract.headers,
     rows: extract.rows,
     mapping,
-    kind,
+    kind: parsed.data.kind,
     source: sourceType,
   });
 
-  const safeName = file.name.replace(/[^\w.\-]/g, '_');
-  const year = new Date().getFullYear();
-  const blobPath = `invoice-imports/${year}/${Date.now()}-${safeName}`;
-  let fileUrl: string | null = null;
-  let filePath: string | null = null;
-  try {
-    const blob = await put(blobPath, file, { access: 'public', contentType: file.type });
-    fileUrl = blob.url;
-    filePath = blobPath;
-  } catch (err) {
-    console.error('[admin] import upload error:', err instanceof Error ? err.message : 'unknown');
-    return { error: 'Error al subir el archivo' };
-  }
+  const upload = await uploadInvoiceImport(file);
+  if (!upload.ok) return { error: upload.error };
 
   try {
     const created = await createManyImports({
       sourceType,
       sourceFilename: file.name,
       fileHash,
-      fileUrl,
-      filePath,
+      fileUrl: upload.fileUrl,
+      filePath: upload.filePath,
       createdByUserId: null,
       rows: drafts.map((d, i) => ({
         sourceRowIndex: i,
@@ -348,9 +330,9 @@ export async function commitMappedImportAction(
       })),
     });
 
-    if (saveAsTemplate && templateName) {
+    if (parsed.data.saveAsTemplate && parsed.data.templateName) {
       await upsertTemplate({
-        name: templateName,
+        name: parsed.data.templateName,
         sourceType,
         columnMapping: mapping,
         sampleHeaders: extract.headers,
@@ -364,7 +346,7 @@ export async function commitMappedImportAction(
       skippedCount: drafts.length - created.length,
     };
   } catch (err) {
-    console.error('[admin] commitMappedImport error:', err instanceof Error ? err.message : 'unknown');
+    logRedacted('error', '[invoice-import] commitMappedImport error:', err instanceof Error ? err.message : 'unknown');
     return { error: 'Error al registrar los imports' };
   }
 }
