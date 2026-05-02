@@ -273,7 +273,7 @@ export function ContractGenerator({ campaign, templates, vars, onDone }: Props):
       {/* Acciones */}
       <div className="flex items-center justify-between pt-2 border-t border-sp-admin-border/60">
         <button type="button" onClick={onDone} className={BG}>Cancelar</button>
-        <button type="button" onClick={handleGenerate} disabled={generating || !selectedTemplate}
+        <button type="button" onClick={() => { void handleGenerate(); }} disabled={generating || !selectedTemplate}
           className={BP}>
           {generating ? (
             <span className="flex items-center gap-2">

@@ -99,7 +99,7 @@ export function ProposalModal({ talentId, talentName, onClose }: ProposalModalPr
             <p className="text-sm text-sp-muted">Te contactaremos pronto.</p>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={(e) => { void handleSubmit(e); }} className="space-y-4">
             <div>
               <label className="block text-xs font-semibold text-sp-dark mb-1.5">Tipo de campana</label>
               <select value={form.campaignType} onChange={(e) => setForm({ ...form, campaignType: e.target.value as ProposalInput['campaignType'] | '' })} required className={selectClass}>

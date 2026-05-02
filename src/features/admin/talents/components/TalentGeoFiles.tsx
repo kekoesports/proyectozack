@@ -78,7 +78,7 @@ export function TalentGeoFiles({ talentId, geoFiles, socials, isManager }: Props
       {/* Upload form */}
       {showForm && (
         <form
-          onSubmit={handleSubmit}
+          onSubmit={(e) => { void handleSubmit(e); }}
           className="rounded-2xl border border-sp-admin-border bg-sp-admin-card p-5 space-y-4"
         >
           <h4 className="font-semibold text-sp-admin-text text-sm">Subir archivo GEO</h4>

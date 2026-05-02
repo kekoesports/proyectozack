@@ -62,7 +62,7 @@ function ResetPasswordForm(): React.ReactElement {
           Contraseña actualizada. Redirigiendo al login…
         </p>
       ) : (
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={(e) => { void handleSubmit(e); }} className="space-y-4">
           <div>
             <label className="block text-xs font-semibold text-sp-admin-muted mb-1.5">Nueva contraseña</label>
             <input

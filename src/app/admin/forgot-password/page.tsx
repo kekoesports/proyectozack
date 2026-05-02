@@ -36,7 +36,7 @@ export default function ForgotPasswordPage(): React.ReactElement {
           Si el email está registrado, recibirás un enlace en breve. Revisa tu bandeja de entrada.
         </p>
       ) : (
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={(e) => { void handleSubmit(e); }} className="space-y-4">
           <div>
             <label className="block text-xs font-semibold text-sp-admin-muted mb-1.5">Email</label>
             <input

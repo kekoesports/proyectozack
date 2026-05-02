@@ -85,7 +85,7 @@ export function FilesList({ files, talentId, isManager, deleteAction }: Props): 
               <button
                 type="button"
                 disabled={deletingId === file.id}
-                onClick={() => handleDelete(file)}
+                onClick={() => { void handleDelete(file); }}
                 className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold border border-red-500/30 text-red-400 hover:bg-red-500/10 disabled:opacity-50 transition-colors cursor-pointer"
                 aria-label={`Eliminar ${file.name}`}
               >

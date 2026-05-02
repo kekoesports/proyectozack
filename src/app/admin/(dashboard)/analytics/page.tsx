@@ -36,7 +36,7 @@ export default async function AdminAnalyticsPage(): Promise<React.ReactElement> 
     const totalInvoicedBrand = paidIncome.reduce((s, i)  => s + Number(i.totalAmount), 0);
     const totalPaidTalent    = paidExpense.reduce((s, i) => s + Number(i.totalAmount), 0);
 
-    return {
+    const enriched: CampaignWithRelations = {
       ...c,
       brandName:  brandMap.get(c.brandId)   ?? null,
       talentName: talentMap.get(c.talentId) ?? null,
@@ -47,7 +47,8 @@ export default async function AdminAnalyticsPage(): Promise<React.ReactElement> 
       totalPaidTalent,
       commissionAmount: comm,
       commissionPct:    brand > 0 ? (comm / brand) * 100 : 0,
-    } as CampaignWithRelations;
+    };
+    return enriched;
   });
 
   return (

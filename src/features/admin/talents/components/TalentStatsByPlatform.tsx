@@ -162,7 +162,7 @@ export function TalentStatsByPlatform({ talentId, snapshotsByPlatform }: Props):
         onClose={closeDrawer}
         title={`Actualizar stats — ${PLATFORM_LABELS[drawer.platform] ?? drawer.platform}`}
       >
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={(e) => { void handleSubmit(e); }} className="space-y-4">
           <input type="hidden" name="talentId" value={talentId} />
           <input type="hidden" name="platform" value={drawer.platform} />
 

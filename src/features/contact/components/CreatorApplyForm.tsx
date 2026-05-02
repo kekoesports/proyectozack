@@ -71,7 +71,7 @@ export function CreatorApplyForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+    <form onSubmit={(e) => { void handleSubmit(onSubmit)(e); }} className="space-y-5">
       {/* Name */}
       <div>
         <label className="block text-xs font-semibold uppercase tracking-widest text-sp-muted mb-1.5">

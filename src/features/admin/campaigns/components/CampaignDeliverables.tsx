@@ -50,17 +50,18 @@ export function CampaignDeliverables({
   } | null>(null);
   const [, startTransition] = useTransition();
 
-  const [createState, createFormAction, isCreating] = useActionState(createDeliverableAction, {
+  const initialCreateState: { readonly success: false; readonly error: string } = {
     success: false,
     error: 'Sin errores',
-  } as { readonly success: false; readonly error: string });
+  };
+  const [createState, createFormAction, isCreating] = useActionState(createDeliverableAction, initialCreateState);
 
-  async function handleTransition(
+  function handleTransition(
     deliverableId: number,
     nextStatus: string,
     comment?: string,
     contentUrl?: string,
-  ): Promise<void> {
+  ): void {
     setTransitionState({ deliverableId, pending: true });
     startTransition(async () => {
       const payload: Parameters<typeof transitionDeliverableAction>[0] = {

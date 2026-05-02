@@ -103,7 +103,7 @@ export function ContactSection(): React.JSX.Element {
                   exit={{ opacity: 0 }}
                   transition={{ duration: DURATION.base, ease: EASE.out }}
                 >
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+                <form onSubmit={(e) => { void handleSubmit(onSubmit)(e); }} className="space-y-5">
                   <div className="grid sm:grid-cols-2 gap-4">
                     <div>
                       <label className={labelClasses}>Nombre *</label>
