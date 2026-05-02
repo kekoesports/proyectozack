@@ -1,6 +1,11 @@
+'use client';
+
+import { useState } from 'react';
 import Link from 'next/link';
 import type { DashboardAlert, AlertSeverity, AlertSummary } from '@/lib/queries/alerts';
 import { AlertResolveButton } from './AlertResolveButton';
+
+const STORAGE_KEY = 'sp-dismissed-alerts';
 
 type Props = {
   readonly alerts:  readonly DashboardAlert[];
@@ -45,7 +50,13 @@ function SeverityBadge({ severity }: { severity: AlertSeverity }): React.ReactEl
   );
 }
 
-function AlertItem({ alert }: { readonly alert: DashboardAlert }): React.ReactElement {
+function AlertItem({
+  alert,
+  onDismiss,
+}: {
+  readonly alert: DashboardAlert;
+  readonly onDismiss: (id: string) => void;
+}): React.ReactElement {
   const cfg  = SEVERITY_CFG[alert.severity];
   const icon = TYPE_ICON[alert.type] ?? '•';
 
@@ -101,6 +112,15 @@ function AlertItem({ alert }: { readonly alert: DashboardAlert }): React.ReactEl
         >
           Ver →
         </Link>
+        <button
+          type="button"
+          onClick={() => onDismiss(alert.id)}
+          className="text-sp-admin-muted/50 hover:text-sp-admin-muted transition-colors leading-none text-base"
+          aria-label="Descartar alerta"
+          title="Descartar"
+        >
+          ×
+        </button>
       </div>
     </div>
   );
@@ -181,16 +201,46 @@ function EmptyState(): React.ReactElement {
 // ── Componente principal ──────────────────────────────────────────────
 
 export function DashboardAlerts({ alerts, summary }: Props): React.ReactElement {
-  if (summary.total === 0) return <EmptyState />;
+  // Dismiss persistido en localStorage (por sesión de navegador)
+  const [dismissedIds, setDismissedIds] = useState<Set<string>>(() => {
+    if (typeof window === 'undefined') return new Set();
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      return new Set<string>(raw ? (JSON.parse(raw) as string[]) : []);
+    } catch { return new Set(); }
+  });
 
-  const critical = alerts.filter((a) => a.severity === 'critical').length;
-  const high     = alerts.filter((a) => a.severity === 'high').length;
+  function dismiss(id: string): void {
+    setDismissedIds((prev) => {
+      const next = new Set(prev);
+      next.add(id);
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify([...next])); } catch { /* ignore */ }
+      return next;
+    });
+  }
+
+  const visible = alerts.filter((a) => !dismissedIds.has(a.id));
+
+  // Recomputar summary excluyendo dismissed para mantener coherencia con la lista
+  const effectiveSummary: AlertSummary = {
+    overdueTasksCount:     visible.filter((a) => a.type === 'overdue_task').length,
+    overdueFollowupsCount: visible.filter((a) => a.type === 'overdue_followup').length,
+    unpaidBrandCount:      visible.filter((a) => a.type === 'unpaid_brand').length,
+    pendingTalentCount:    visible.filter((a) => a.type === 'pending_talent').length,
+    expiringDealsCount:    visible.filter((a) => a.type === 'expiring_deal' || a.type === 'expired_active').length,
+    total:                 visible.length,
+  };
+
+  if (effectiveSummary.total === 0) return <EmptyState />;
+
+  const critical = visible.filter((a) => a.severity === 'critical').length;
+  const high     = visible.filter((a) => a.severity === 'high').length;
 
   return (
     <div className="space-y-2">
 
       {/* Card "Hoy requiere atención" */}
-      <AttentionSummary summary={summary} />
+      <AttentionSummary summary={effectiveSummary} />
 
       {/* Lista de alertas */}
       <div className="rounded-xl bg-sp-admin-card shadow-[0_1px_3px_rgba(0,0,0,0.06)] overflow-hidden border border-sp-admin-border">
@@ -215,8 +265,20 @@ export function DashboardAlerts({ alerts, summary }: Props): React.ReactElement 
           </div>
           <div className="flex items-center gap-3">
             <span className="text-[9px] text-sp-admin-muted/60">
-              {summary.total} en total · mostrando {alerts.length}
+              {visible.length} alerta{visible.length !== 1 ? 's' : ''}{dismissedIds.size > 0 && ` · ${dismissedIds.size} descartada${dismissedIds.size !== 1 ? 's' : ''}`}
             </span>
+            {dismissedIds.size > 0 && (
+              <button
+                type="button"
+                onClick={() => {
+                  setDismissedIds(new Set());
+                  try { localStorage.removeItem(STORAGE_KEY); } catch { /* ignore */ }
+                }}
+                className="text-[9px] text-sp-admin-muted hover:text-sp-admin-accent transition-colors"
+              >
+                Restaurar
+              </button>
+            )}
             <Link href="/admin/analytics#analitica-alertas"
               className="text-[9px] font-bold text-sp-admin-accent hover:underline">
               Ver todas →
@@ -226,8 +288,8 @@ export function DashboardAlerts({ alerts, summary }: Props): React.ReactElement 
 
         {/* Items */}
         <div>
-          {alerts.map((alert) => (
-            <AlertItem key={alert.id} alert={alert} />
+          {visible.map((alert) => (
+            <AlertItem key={alert.id} alert={alert} onDismiss={dismiss} />
           ))}
         </div>
       </div>

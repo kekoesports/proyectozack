@@ -396,7 +396,7 @@ export async function getDashboardAlerts(opts?: {
       severity:    c.status === 'completada' ? 'high' : 'medium',
       title:       `Cobro pendiente${parts ? ` — ${parts}` : ''}`,
       description: `${fmt(amount)} sin cobrar`,
-      href:        '/admin/campanas',
+      href:        `/admin/campanas/${c.id}`,
       amount,
       daysInfo:    c.status === 'completada' ? 'Trato completado' : 'Trato activo',
     });
@@ -411,7 +411,7 @@ export async function getDashboardAlerts(opts?: {
       severity:    'medium',
       title:       `Pago pendiente — ${c.talentName ?? 'Talento'}`,
       description: `${fmt(amount)} sin pagar · ${c.brandName ?? ''}`,
-      href:        '/admin/campanas',
+      href:        `/admin/campanas/${c.id}`,
       amount,
       daysInfo:    'Sin pagar',
     });
@@ -429,7 +429,7 @@ export async function getDashboardAlerts(opts?: {
       severity:    daysLeft <= 2 ? 'high' : 'medium',
       title:       `Trato vence pronto — ${parts || c.name}`,
       description: c.name,
-      href:        '/admin/campanas',
+      href:        `/admin/campanas/${c.id}`,
       daysInfo:    label,
     });
   }
@@ -445,7 +445,7 @@ export async function getDashboardAlerts(opts?: {
       severity:    'high',
       title:       `Trato sin cerrar — ${parts || c.name}`,
       description: `Fecha de fin superada · ${c.name}`,
-      href:        '/admin/campanas',
+      href:        `/admin/campanas/${c.id}`,
       daysInfo:    label,
     });
   }
