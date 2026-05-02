@@ -16,7 +16,7 @@ export default async function AdminAnalyticsPage(): Promise<React.ReactElement> 
 
   const [rawCampaigns, invoices, brandsList, talentsList, alertsData] = await Promise.all([
     listCampaigns(isStaff ? { filters: { responsibleUserId: session.user.id } } : undefined),
-    listInvoices(isStaff ? { staffUserId: session.user.id } : {}),
+    listInvoices(),
     db.select({ id: crmBrands.id, name: crmBrands.name }).from(crmBrands).orderBy(asc(crmBrands.name)),
     db.select({ id: talents.id,   name: talents.name   }).from(talents).orderBy(asc(talents.name)),
     getDashboardAlerts(),
