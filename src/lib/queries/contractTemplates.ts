@@ -1,18 +1,61 @@
 import { asc, eq } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { contractTemplates } from '@/db/schema';
-import type { InferSelectModel } from 'drizzle-orm';
+import type { InferSelectModel, InferInsertModel } from 'drizzle-orm';
 
-export type ContractTemplate = InferSelectModel<typeof contractTemplates>;
+export type ContractTemplate    = InferSelectModel<typeof contractTemplates>;
+export type NewContractTemplate = InferInsertModel<typeof contractTemplates>;
 
-export async function listContractTemplates(): Promise<readonly ContractTemplate[]> {
-  return db.select().from(contractTemplates)
-    .where(eq(contractTemplates.isActive, true))
-    .orderBy(asc(contractTemplates.id));
+export const TEMPLATE_TYPES = [
+  { value: 'general',      label: 'General'             },
+  { value: 'casino',       label: 'Casino / iGaming'    },
+  { value: 'cs2_cases',    label: 'CS2 Cases / Skins'   },
+  { value: 'marketplace',  label: 'Marketplace / CS2'   },
+  { value: 'youtube',      label: 'YouTube'              },
+  { value: 'twitch',       label: 'Twitch / Streaming'  },
+  { value: 'instagram',    label: 'Instagram / Reels'   },
+  { value: 'sports_bet',   label: 'Apuestas deportivas' },
+] as const;
+
+export type TemplateType = (typeof TEMPLATE_TYPES)[number]['value'];
+
+// ── Queries ───────────────────────────────────────────────────────────
+
+export async function listContractTemplates(includeInactive = false): Promise<readonly ContractTemplate[]> {
+  const query = db.select().from(contractTemplates).orderBy(asc(contractTemplates.type), asc(contractTemplates.name));
+  if (!includeInactive) {
+    return query.where(eq(contractTemplates.isActive, true));
+  }
+  return query;
 }
 
 export async function getContractTemplate(id: number): Promise<ContractTemplate | null> {
   const [row] = await db.select().from(contractTemplates)
     .where(eq(contractTemplates.id, id)).limit(1);
   return row ?? null;
+}
+
+export async function createContractTemplate(
+  values: Pick<NewContractTemplate, 'name' | 'type' | 'content'>,
+): Promise<ContractTemplate> {
+  const [row] = await db.insert(contractTemplates)
+    .values({ ...values, isActive: true })
+    .returning();
+  if (!row) throw new Error('Failed to insert contract template');
+  return row;
+}
+
+export async function updateContractTemplate(
+  id: number,
+  patch: Partial<Pick<ContractTemplate, 'name' | 'type' | 'content' | 'isActive'>>,
+): Promise<ContractTemplate | null> {
+  const [row] = await db.update(contractTemplates)
+    .set({ ...patch, updatedAt: new Date() })
+    .where(eq(contractTemplates.id, id))
+    .returning();
+  return row ?? null;
+}
+
+export async function deleteContractTemplate(id: number): Promise<void> {
+  await db.delete(contractTemplates).where(eq(contractTemplates.id, id));
 }

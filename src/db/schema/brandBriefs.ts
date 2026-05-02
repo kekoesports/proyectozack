@@ -1,3 +1,22 @@
+// ── Tipo del contenido estructurado ──────────────────────────────────
+
+export type BriefContent = {
+  description?:           string | null;
+  productType?:           string | null;
+  targetGeo?:             string | null;
+  targetAudience?:        string | null;
+  mainMessage?:           string | null;
+  callToAction?:          string | null;
+  mainLink?:              string | null;
+  affiliateCode?:         string | null;
+  influencerGuidelines?:  string | null;
+  restrictions?:          string | null;
+  legalNotes?:            string | null;
+  contentNotes?:          string | null;
+};
+
+// ── Schema ────────────────────────────────────────────────────────────
+
 import {
   pgTable,
   serial,
@@ -31,6 +50,9 @@ export const brandBriefs = pgTable(
 
     extractedData:     jsonb('extracted_data').$type<Record<string, unknown>>(),
     rawText:           text('raw_text'),
+
+    // Contenido estructurado del brief (formulario editable)
+    briefContent:      jsonb('brief_content').$type<BriefContent>(),
 
     notes:             text('notes'),
 
