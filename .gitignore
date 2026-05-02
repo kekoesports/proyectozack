@@ -66,6 +66,7 @@ crm-*-smoke.png
 
 # Local agent/IDE settings (never commit)
 .claude/settings.local.json
+.claude/scheduled_tasks.lock
 
 # Local issue tracker / PRD scratch — ephemeral planning, decisions live in code + ADRs
 .scratch/
