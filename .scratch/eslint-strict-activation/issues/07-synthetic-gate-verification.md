@@ -1,10 +1,31 @@
-Status: ready-for-human — slice 04 mergeado en 005d255
+Status: done — verified end-to-end in CI (2026-05-02, PR #48)
 
-## Desbloqueo (2026-05-02)
+## Resultado de verificación (2026-05-02)
 
-Slice 04 mergeado en commit 005d255 — las 10 reglas estrictas están activas en `eslint.config.mjs` y `npm run lint` pasa verde. Saneamiento PRD 2 completado en master.
+PR sintético abierto: https://github.com/rechedev9/proyectozack/pull/48 (cerrado sin merge, branch borrado).
 
-**Próximo paso (HITL):** humano abre PR sintético con `let x: any = 1` en `src/`, verifica que CI rompe el job, captura log, cierra el PR sin merge. Segundo PR (o el mismo) con violación dentro de `*.test.ts` confirma que el override del slice 02 funciona.
+**Branch:** `chore/eslint-gate-sanity-check` (commit `d56e7c8`).
+
+**Violaciones plantadas:**
+
+- `src/_gate-check.ts:6:10` → `const x: any = 1` (production file).
+- `src/__tests__/server/_gate-check.test.ts:11:9` → mismo patrón dentro de `**/__tests__/**`.
+
+**Resultado en CI (run [25261637904](https://github.com/rechedev9/proyectozack/actions/runs/25261637904)):**
+
+| Job | Status | Tiempo | Comportamiento |
+|---|---|---|---|
+| `Lint & Type-check` | ❌ FAIL | 1m46s | Reportó `6:10  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any` en `src/_gate-check.ts`. Exit code 1. |
+| `Unit & Fuzz Tests` | ✅ PASS | 2m11s | Tests pasaron sin error en el archivo de test (override del slice 02 funcionando). |
+| `Build` | ⏭️ skip | — | Saltado por dependencia en `lint-typecheck` fallido. |
+
+**Conclusión:**
+
+- Gate estricto **funciona end-to-end**. Una violación de `no-explicit-any` (o cualquiera de las 10 reglas activas) en código de producción rompe CI con exit code distinto de cero, bloqueando merge.
+- Override de tests (slice 02) **funciona**. La misma violación dentro de `**/__tests__/**` no es flagged.
+- Los archivos sintéticos no quedaron en master (PR cerrado sin merge).
+
+PRD 3 cerrado.
 
 # 07 — Verificación sintética del gate
 
