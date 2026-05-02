@@ -9,11 +9,15 @@
  */
 
 import { revalidatePath } from 'next/cache';
+import { sql } from 'drizzle-orm';
+import { z } from 'zod';
+
 import { requireRole } from '@/lib/auth-guard';
 import { db } from '@/lib/db';
 import { talents, talentSocials } from '@/db/schema';
-import { sql } from 'drizzle-orm';
 import { initialsOf, slugify } from '@/lib/utils/import-utils';
+import { parseFormData } from '@/lib/forms/parseFormData';
+import { logRedacted } from '@/lib/log';
 
 // ── Types consumed by TalentImporter / TalentImportPreview ───────────
 
@@ -78,17 +82,42 @@ export async function previewTalentImportAction(
 
 // ── Stub confirm action ───────────────────────────────────────────────
 
+const ConfirmInput = z.object({
+  rows: z.string().min(1, 'Sin datos'),
+});
+
+const ParsedTalentRowSchema: z.ZodType<ParsedTalentRow> = z.object({
+  rowNumber: z.number(),
+  name: z.string(),
+  country: z.string().optional(),
+  action: z.enum(['create', 'update', 'review']),
+  errors: z.array(z.string()),
+  warnings: z.array(z.string()),
+  twitch: z.object({ followersDisplay: z.string() }).optional(),
+  youtube: z.object({ followersDisplay: z.string() }).optional(),
+  instagram: z.object({ followersDisplay: z.string() }).optional(),
+  tiktok: z.object({ followersDisplay: z.string() }).optional(),
+  kick: z.object({ followersDisplay: z.string() }).optional(),
+  contactTelegram: z.string().optional(),
+  contactDiscord: z.string().optional(),
+  contactEmail: z.string().optional(),
+  existingName: z.string().optional(),
+});
+
 export async function confirmTalentImportAction(
   _prev: TalentImportResult,
   formData: FormData,
 ): Promise<TalentImportResult> {
   await requireRole('admin', '/admin/login');
-  const rowsRaw = formData.get('rows') as string | null;
-  if (!rowsRaw) return { error: 'Sin datos' };
+  const parsedForm = parseFormData(formData, ConfirmInput);
+  if (!parsedForm.ok) return { error: 'Sin datos' };
 
   let rows: ParsedTalentRow[];
   try {
-    rows = JSON.parse(rowsRaw) as ParsedTalentRow[];
+    const raw: unknown = JSON.parse(parsedForm.data.rows);
+    const result = z.array(ParsedTalentRowSchema).safeParse(raw);
+    if (!result.success) return { error: 'Datos inválidos' };
+    rows = result.data;
   } catch {
     return { error: 'Datos inválidos' };
   }
@@ -121,8 +150,8 @@ export async function confirmTalentImportAction(
       }
       created++;
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'unknown';
-      errors.push(`${row.name}: ${msg}`);
+      logRedacted('error', '[admin] confirmTalentImport row error:', err);
+      errors.push(`${row.name}: import_failed`);
       skipped++;
     }
   }

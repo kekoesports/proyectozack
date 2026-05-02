@@ -1,8 +1,28 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { z } from 'zod';
+
 import { requireAnyRole } from '@/lib/auth-guard';
 import { insertSnapshot } from '@/lib/queries/analytics';
+import { parseFormData } from '@/lib/forms/parseFormData';
+import { logRedacted } from '@/lib/log';
+
+const SnapshotInput = z.object({
+  talentId: z.coerce.number().int().positive(),
+  platform: z.string().min(1).max(40),
+  metricType: z.string().min(1).max(40),
+  value: z.coerce.number().nonnegative(),
+  snapshotDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Fecha inválida (YYYY-MM-DD)'),
+});
+
+function firstError(fieldErrors: Record<string, string[]>): string {
+  for (const errs of Object.values(fieldErrors)) {
+    const first = errs[0];
+    if (first) return first;
+  }
+  return 'Datos inválidos';
+}
 
 export async function insertSnapshotAction(
   formData: FormData,
@@ -10,25 +30,16 @@ export async function insertSnapshotAction(
   try {
     await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
 
-    const talentId = Number(formData.get('talentId'));
-    const platform = formData.get('platform') as string | null;
-    const metricType = formData.get('metricType') as string | null;
-    const value = Number(formData.get('value'));
-    const snapshotDate = formData.get('snapshotDate') as string | null;
-
-    if (!talentId || !platform || !metricType || !snapshotDate) {
-      return { success: false, error: 'Faltan campos requeridos' };
-    }
-    if (isNaN(value) || value < 0) {
-      return { success: false, error: 'Valor inválido' };
-    }
+    const parsed = parseFormData(formData, SnapshotInput);
+    if (!parsed.ok) return { success: false, error: firstError(parsed.fieldErrors) };
+    const { talentId, platform, metricType, value, snapshotDate } = parsed.data;
 
     await insertSnapshot({ talentId, platform, metricType, value, snapshotDate });
 
     revalidatePath(`/admin/talents/${talentId}`);
     return { success: true };
   } catch (err) {
-    console.error('[insertSnapshotAction] error:', err instanceof Error ? err.message : 'unknown');
+    logRedacted('error', '[insertSnapshotAction] error:', err);
     return { success: false, error: err instanceof Error ? err.message : 'Error al guardar snapshot' };
   }
 }

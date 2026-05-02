@@ -3,31 +3,51 @@
 import { eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { put } from '@vercel/blob';
+import { z } from 'zod';
+
 import { db } from '@/lib/db';
 import { talents } from '@/db/schema';
 import { requireRole } from '@/lib/auth-guard';
+import { parseFormData } from '@/lib/forms/parseFormData';
+import { validateUploadedFile } from '@/lib/files/validateUploadedFile';
+import { PHOTO_TYPES } from '@/lib/files/allowed-types';
+import { logRedacted } from '@/lib/log';
 
-const ACCEPTED_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
-const MAX_BYTES = 5 * 1024 * 1024;
+const PhotoMeta = z.object({
+  id: z.coerce.number().int().positive(),
+});
 
 export async function uploadTalentPhotoAction(
   formData: FormData,
 ): Promise<{ success: boolean; photoUrl?: string; error?: string }> {
   await requireRole('admin', '/admin/login');
 
-  const id = Number(formData.get('id'));
-  const file = formData.get('photo') as File | null;
+  const meta = parseFormData(formData, PhotoMeta);
+  if (!meta.ok) return { success: false, error: 'ID inválido' };
+  const { id } = meta.data;
 
-  if (!id) return { success: false, error: 'ID inválido' };
-  if (!file || file.size === 0) return { success: false, error: 'Archivo vacío' };
-  if (!ACCEPTED_TYPES.has(file.type)) return { success: false, error: 'Formato no permitido (jpg/png/webp/gif)' };
-  if (file.size > MAX_BYTES) return { success: false, error: 'La imagen no puede superar 5 MB' };
+  const fileEntry = formData.get('photo');
+  if (!(fileEntry instanceof File)) return { success: false, error: 'Archivo requerido' };
+
+  const validation = await validateUploadedFile(fileEntry, {
+    maxBytes: PHOTO_TYPES.maxBytes,
+    allowedMimes: PHOTO_TYPES.mimes,
+    allowedExts: PHOTO_TYPES.exts,
+  });
+  if (!validation.ok) {
+    if (validation.reason === 'too_large') {
+      return { success: false, error: 'La imagen no puede superar 5 MB' };
+    }
+    if (validation.reason === 'empty_file') return { success: false, error: 'Archivo vacío' };
+    return { success: false, error: 'Formato no permitido (jpg/png/webp/gif)' };
+  }
 
   try {
-    const ext = (file.name.split('.').pop() ?? 'jpg').toLowerCase();
-    const blob = await put(`talents/${id}-${Date.now()}.${ext}`, file, {
+    const lastDot = fileEntry.name.lastIndexOf('.');
+    const ext = lastDot >= 0 ? fileEntry.name.slice(lastDot + 1).toLowerCase() : 'jpg';
+    const blob = await put(`talents/${id}-${Date.now()}.${ext}`, fileEntry, {
       access: 'public',
-      contentType: file.type,
+      contentType: fileEntry.type,
     });
 
     await db.update(talents).set({ photoUrl: blob.url }).where(eq(talents.id, id));
@@ -40,8 +60,7 @@ export async function uploadTalentPhotoAction(
 
     return { success: true, photoUrl: blob.url };
   } catch (err) {
-    const msg = err instanceof Error ? err.message : 'unknown';
-    console.error('[admin] uploadTalentPhoto error:', msg);
+    logRedacted('error', '[admin] uploadTalentPhoto error:', err);
     return { success: false, error: 'Error al subir la foto' };
   }
 }
@@ -51,8 +70,9 @@ export async function clearTalentPhotoAction(
 ): Promise<{ success: boolean; error?: string }> {
   await requireRole('admin', '/admin/login');
 
-  const id = Number(formData.get('id'));
-  if (!id) return { success: false, error: 'ID inválido' };
+  const meta = parseFormData(formData, PhotoMeta);
+  if (!meta.ok) return { success: false, error: 'ID inválido' };
+  const { id } = meta.data;
 
   try {
     await db.update(talents).set({ photoUrl: null }).where(eq(talents.id, id));
@@ -63,8 +83,7 @@ export async function clearTalentPhotoAction(
     revalidatePath('/');
     return { success: true };
   } catch (err) {
-    const msg = err instanceof Error ? err.message : 'unknown';
-    console.error('[admin] clearTalentPhoto error:', msg);
+    logRedacted('error', '[admin] clearTalentPhoto error:', err);
     return { success: false, error: 'Error al borrar la foto' };
   }
 }

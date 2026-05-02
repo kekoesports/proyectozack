@@ -5,6 +5,7 @@ import { requireRole } from '@/lib/auth-guard';
 import { updateTalentBusinessSchema } from '@/lib/schemas/talentBusiness';
 import { upsertTalentBusiness, setTalentVerticals } from '@/lib/queries/talentBusiness';
 import { compact } from '@/lib/utils/objects';
+import { logRedacted } from '@/lib/log';
 
 type ActionState = {
   readonly error?: string;
@@ -13,16 +14,13 @@ type ActionState = {
 
 function formToObject(formData: FormData): Record<string, unknown> {
   const obj: Record<string, unknown> = {};
+  const verticals: string[] = [];
   for (const [key, value] of formData.entries()) {
     if (value instanceof File) continue;
-    if (key === 'verticals') {
-      const arr = (obj.verticals as string[] | undefined) ?? [];
-      arr.push(String(value));
-      obj.verticals = arr;
-    } else {
-      obj[key] = value;
-    }
+    if (key === 'verticals') verticals.push(String(value));
+    else obj[key] = value;
   }
+  if (verticals.length > 0) obj.verticals = verticals;
   return obj;
 }
 
@@ -42,8 +40,7 @@ export async function updateTalentBusinessAction(_prev: ActionState, formData: F
     revalidatePath('/admin/talents');
     return { success: true };
   } catch (err) {
-    const msg = err instanceof Error ? err.message : 'unknown';
-    console.error('[admin] updateTalentBusiness error:', msg);
+    logRedacted('error', '[admin] updateTalentBusiness error:', err);
     return { error: 'Error al guardar' };
   }
 }

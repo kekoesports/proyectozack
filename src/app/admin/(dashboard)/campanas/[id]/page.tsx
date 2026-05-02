@@ -16,7 +16,6 @@ import { listCrmBrands, getBrandContacts } from '@/lib/queries/crmBrands';
 import { getAllTalents } from '@/lib/queries/talents';
 import { CampaignDetailTabs } from '@/features/admin/campaigns/components/CampaignDetailTabs';
 
-import type { Role } from '@/lib/auth-guard';
 import type { CrmBrandContact } from '@/types';
 
 export default async function CampaignDetailPage({
@@ -29,7 +28,7 @@ export default async function CampaignDetailPage({
   if (!Number.isInteger(campaignId) || campaignId <= 0) notFound();
 
   const session = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
-  const role = session.user.role as Role;
+  const role = session.user.role;
   const isManager = role === 'manager';
   const isAdmin = role === 'admin';
 

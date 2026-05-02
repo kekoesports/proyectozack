@@ -17,6 +17,11 @@ const MAGIC_BYTES: Record<string, readonly (readonly number[])[]> = {
   'image/jpeg': [[0xff, 0xd8, 0xff]],
   // WebP: 'RIFF' .... 'WEBP' (relevant for image uploads in some flows)
   'image/webp': [[0x52, 0x49, 0x46, 0x46]],
+  // GIF: 'GIF87a' o 'GIF89a'
+  'image/gif': [
+    [0x47, 0x49, 0x46, 0x38, 0x37, 0x61],
+    [0x47, 0x49, 0x46, 0x38, 0x39, 0x61],
+  ],
 };
 
 function getExtension(name: string): string {

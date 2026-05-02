@@ -2,18 +2,37 @@
 
 import { revalidatePath } from 'next/cache';
 import { put, del } from '@vercel/blob';
-import { requireAnyRole, requireRole } from '@/lib/auth-guard';
+import { z } from 'zod';
+import { Resend } from 'resend';
+
+import { requireAnyRole } from '@/lib/auth-guard';
 import {
   getContractByCampaign, createContract, updateContract,
   addSigner, removeSigner,
 } from '@/lib/queries/contracts';
-import { Resend } from 'resend';
 import { env } from '@/lib/env';
+import { absoluteUrl } from '@/lib/site-url';
+import { parseFormData } from '@/lib/forms/parseFormData';
+import { validateUploadedFile } from '@/lib/files/validateUploadedFile';
+import { CONTRACT_PDF_TYPES } from '@/lib/files/allowed-types';
+import { logRedacted } from '@/lib/log';
 
 const resend = new Resend(env.RESEND_API_KEY);
-import { absoluteUrl } from '@/lib/site-url';
 
 type ActionState = { readonly error?: string; readonly success?: boolean; readonly id?: number };
+
+const UploadContractMeta = z.object({
+  campaignId: z.coerce.number().int().positive(),
+  notes: z.string().max(2000).optional(),
+});
+
+const AddSignerInput = z.object({
+  contractId: z.coerce.number().int().positive(),
+  campaignId: z.coerce.number().int().positive(),
+  name: z.string().trim().min(1).max(200),
+  email: z.email().max(200),
+  role: z.enum(['brand', 'influencer', 'agency']).default('brand'),
+});
 
 function revalidate(campaignId: number): void {
   revalidatePath(`/admin/campanas/${campaignId}`);
@@ -23,31 +42,40 @@ function revalidate(campaignId: number): void {
 
 export async function uploadContractAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
   const session = await requireAnyRole(['admin', 'staff'], '/admin/login');
-  const campaignId = Number(formData.get('campaignId'));
-  if (isNaN(campaignId)) return { error: 'ID de trato inválido' };
 
-  const file = formData.get('file');
-  if (!(file instanceof File) || file.size === 0) return { error: 'Selecciona un archivo PDF' };
-  if (file.type !== 'application/pdf') return { error: 'Solo se admiten archivos PDF' };
-  if (file.size > 20 * 1024 * 1024) return { error: 'El archivo supera el límite de 20 MB' };
+  const meta = parseFormData(formData, UploadContractMeta);
+  if (!meta.ok) return { error: 'ID de trato inválido' };
+  const { campaignId, notes: notesRaw } = meta.data;
+  const notes = notesRaw?.trim() || null;
 
-  const notes = (formData.get('notes') as string | null)?.trim() || null;
+  const fileEntry = formData.get('file');
+  if (!(fileEntry instanceof File)) return { error: 'Selecciona un archivo PDF' };
+
+  const validation = await validateUploadedFile(fileEntry, {
+    maxBytes: 20 * 1024 * 1024,
+    allowedMimes: CONTRACT_PDF_TYPES.mimes,
+    allowedExts: CONTRACT_PDF_TYPES.exts,
+  });
+  if (!validation.ok) {
+    if (validation.reason === 'too_large') return { error: 'El archivo supera el límite de 20 MB' };
+    if (validation.reason === 'empty_file') return { error: 'Selecciona un archivo PDF' };
+    return { error: 'Solo se admiten archivos PDF válidos' };
+  }
 
   try {
     const existing = await getContractByCampaign(campaignId);
 
-    // Reemplazar archivo anterior si existe
     if (existing?.filePath) {
       try { await del(existing.filePath); } catch { /* ignore */ }
     }
 
-    const safeName = file.name.replace(/[^\w.\-]/g, '_');
+    const safeName = fileEntry.name.replace(/[^\w.\-]/g, '_');
     const path     = `contracts/${campaignId}/${Date.now()}-${safeName}`;
-    const blob     = await put(path, file, { access: 'public', contentType: 'application/pdf' });
+    const blob     = await put(path, fileEntry, { access: 'public', contentType: 'application/pdf' });
 
     if (existing) {
       await updateContract(existing.id, {
-        fileUrl: blob.url, filePath: path, fileName: file.name,
+        fileUrl: blob.url, filePath: path, fileName: fileEntry.name,
         status: 'draft', notes,
       });
       revalidate(campaignId);
@@ -56,7 +84,7 @@ export async function uploadContractAction(_prev: ActionState, formData: FormDat
 
     const row = await createContract({
       campaignId,
-      fileUrl: blob.url, filePath: path, fileName: file.name,
+      fileUrl: blob.url, filePath: path, fileName: fileEntry.name,
       signedFileUrl: null, status: 'draft',
       sentAt: null, signedAt: null, notes,
       createdByUserId: session.user.id,
@@ -64,7 +92,7 @@ export async function uploadContractAction(_prev: ActionState, formData: FormDat
     revalidate(campaignId);
     return { success: true, id: row.id };
   } catch (err) {
-    console.error('[admin] uploadContract error:', err instanceof Error ? err.message : 'unknown');
+    logRedacted('error', '[admin] uploadContract error:', err);
     return { error: 'Error al subir el contrato' };
   }
 }
@@ -73,20 +101,18 @@ export async function uploadContractAction(_prev: ActionState, formData: FormDat
 
 export async function addSignerAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
   await requireAnyRole(['admin', 'staff'], '/admin/login');
-  const contractId = Number(formData.get('contractId'));
-  const campaignId = Number(formData.get('campaignId'));
-  const name  = (formData.get('name')  as string | null)?.trim();
-  const email = (formData.get('email') as string | null)?.trim();
-  const role  = (formData.get('role')  as string | null)?.trim() || 'brand';
-
-  if (!name || !email) return { error: 'Nombre y email son obligatorios' };
-  if (isNaN(contractId)) return { error: 'ID de contrato inválido' };
+  const parsed = parseFormData(formData, AddSignerInput);
+  if (!parsed.ok) {
+    const first = Object.values(parsed.fieldErrors)[0]?.[0];
+    return { error: first ?? 'Datos inválidos' };
+  }
+  const { contractId, campaignId, name, email, role } = parsed.data;
 
   try {
     const token = crypto.randomUUID().replace(/-/g, '');
     const row = await addSigner({
       contractId, name, email,
-      role: role as 'brand' | 'influencer' | 'agency',
+      role,
       status: 'pending',
       token,
       signedAt: null, ipAddress: null, signedName: null,
@@ -94,7 +120,7 @@ export async function addSignerAction(_prev: ActionState, formData: FormData): P
     revalidate(campaignId);
     return { success: true, id: row.id };
   } catch (err) {
-    console.error('[admin] addSigner error:', err instanceof Error ? err.message : 'unknown');
+    logRedacted('error', '[admin] addSigner error:', err);
     return { error: 'Error al añadir firmante' };
   }
 }
@@ -108,7 +134,7 @@ export async function removeSignerAction(signerId: number, campaignId: number): 
     revalidate(campaignId);
     return { success: true };
   } catch (err) {
-    console.error('[admin] removeSigner error:', err instanceof Error ? err.message : 'unknown');
+    logRedacted('error', '[admin] removeSigner error:', err);
     return { error: 'Error al eliminar firmante' };
   }
 }
@@ -126,7 +152,6 @@ export async function requestSignaturesAction(contractId: number, campaignId: nu
     const pendingSigners = contract.signers.filter((s) => s.status === 'pending');
     if (pendingSigners.length === 0) return { error: 'Todos los firmantes ya han firmado' };
 
-    // Enviar email a cada firmante pendiente
     for (const signer of pendingSigners) {
       const signingUrl = absoluteUrl(`/firmar/${signer.token}`);
       await resend.emails.send({
@@ -159,7 +184,7 @@ export async function requestSignaturesAction(contractId: number, campaignId: nu
     revalidate(campaignId);
     return { success: true };
   } catch (err) {
-    console.error('[admin] requestSignatures error:', err instanceof Error ? err.message : 'unknown');
+    logRedacted('error', '[admin] requestSignatures error:', err);
     return { error: 'Error al enviar las solicitudes de firma' };
   }
 }

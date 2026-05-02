@@ -1,45 +1,74 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { z } from 'zod';
+
 import {
   createCampaign,
   updateCampaign,
   archiveCampaign,
 } from '@/lib/queries/campaigns';
 import { requireAnyRole } from '@/lib/auth-guard';
-import type { CampaignStatus, CampaignActionType } from '@/lib/schemas/campaign';
+import { parseFormData } from '@/lib/forms/parseFormData';
+import { logRedacted } from '@/lib/log';
+import { CAMPAIGN_STATUSES, CAMPAIGN_ACTION_TYPES } from '@/lib/schemas/campaign';
+
+const optionalString = z.preprocess(
+  (v) => (typeof v === 'string' && v.trim() === '' ? undefined : v),
+  z.string().optional(),
+);
+
+const CreateLegacy = z.object({
+  brandId: z.coerce.number().int().positive(),
+  talentId: z.coerce.number().int().positive(),
+  name: z.string().trim().min(1).max(200),
+  actionType: z.enum(CAMPAIGN_ACTION_TYPES).default('otro'),
+  status: z.enum(CAMPAIGN_STATUSES).default('propuesta'),
+  amountBrand: z.coerce.number().nonnegative().default(0),
+  amountTalent: z.coerce.number().nonnegative().default(0),
+  sector: optionalString,
+  geo: optionalString,
+  startDate: optionalString,
+  endDate: optionalString,
+  notes: optionalString,
+  responsibleUserId: optionalString,
+});
+
+const UpdateLegacy = z.object({
+  id: z.coerce.number().int().positive(),
+  name: z.string().trim().min(1).max(200),
+  brandId: z.preprocess((v) => (typeof v === 'string' && v.trim() === '' ? undefined : v), z.coerce.number().int().positive().optional()),
+  talentId: z.preprocess((v) => (typeof v === 'string' && v.trim() === '' ? undefined : v), z.coerce.number().int().positive().optional()),
+  amountBrand: z.preprocess((v) => (typeof v === 'string' && v.trim() === '' ? undefined : v), z.coerce.number().nonnegative().optional()),
+  amountTalent: z.preprocess((v) => (typeof v === 'string' && v.trim() === '' ? undefined : v), z.coerce.number().nonnegative().optional()),
+  sector: optionalString,
+  geo: optionalString,
+  status: z.preprocess((v) => (typeof v === 'string' && v.trim() === '' ? undefined : v), z.enum(CAMPAIGN_STATUSES).optional()),
+  startDate: optionalString,
+  endDate: optionalString,
+  notes: optionalString,
+  responsibleUserId: optionalString,
+});
+
+const IdOnly = z.object({ id: z.coerce.number().int().positive() });
 
 export async function createCampaignAction(formData: FormData): Promise<void> {
   await requireAnyRole(['admin', 'staff'], '/admin/login');
-
-  const amountBrand = formData.get('amountBrand') as string | null;
-  const amountTalent = formData.get('amountTalent') as string | null;
-  const brandIdRaw = formData.get('brandId') as string | null;
-  const talentIdRaw = formData.get('talentId') as string | null;
-
-  const brandId = brandIdRaw ? Number(brandIdRaw) : 0;
-  const talentId = talentIdRaw ? Number(talentIdRaw) : 0;
-
-  if (!brandId || !talentId) return;
-
-  const createInput = {
-    brandId,
-    talentId,
-    name: (formData.get('name') as string).trim(),
-    actionType: ((formData.get('actionType') as string | null) ?? 'otro') as CampaignActionType,
-    status: ((formData.get('status') as string | null) ?? 'propuesta') as CampaignStatus,
-    amountBrand: amountBrand ? Number(amountBrand) : 0,
-    amountTalent: amountTalent ? Number(amountTalent) : 0,
-  };
-  const sector = (formData.get('sector') as string | null);
-  const geo = (formData.get('geo') as string | null);
-  const startDate = (formData.get('startDate') as string | null);
-  const endDate = (formData.get('endDate') as string | null);
-  const notes = (formData.get('notes') as string | null);
-  const responsibleUserId = (formData.get('responsibleUserId') as string | null);
+  const parsed = parseFormData(formData, CreateLegacy);
+  if (!parsed.ok) {
+    logRedacted('warn', '[campaign-actions] createCampaign invalid input', parsed.fieldErrors);
+    return;
+  }
+  const { brandId, talentId, name, actionType, status, amountBrand, amountTalent, sector, geo, startDate, endDate, notes, responsibleUserId } = parsed.data;
 
   await createCampaign({
-    ...createInput,
+    brandId,
+    talentId,
+    name,
+    actionType,
+    status,
+    amountBrand,
+    amountTalent,
     ...(sector ? { sector } : {}),
     ...(geo ? { geo } : {}),
     ...(startDate ? { startDate } : {}),
@@ -53,34 +82,25 @@ export async function createCampaignAction(formData: FormData): Promise<void> {
 
 export async function updateCampaignAction(formData: FormData): Promise<void> {
   await requireAnyRole(['admin', 'staff'], '/admin/login');
-  const id = Number(formData.get('id'));
+  const parsed = parseFormData(formData, UpdateLegacy);
+  if (!parsed.ok) {
+    logRedacted('warn', '[campaign-actions] updateCampaign invalid input', parsed.fieldErrors);
+    return;
+  }
+  const { id, ...rest } = parsed.data;
 
-  const brandIdRaw = formData.get('brandId') as string | null;
-  const talentIdRaw = formData.get('talentId') as string | null;
-  const amountBrand = formData.get('amountBrand') as string | null;
-  const amountTalent = formData.get('amountTalent') as string | null;
-
-  const patch: Parameters<typeof updateCampaign>[1] = {
-    name: (formData.get('name') as string).trim(),
-  };
-  if (brandIdRaw) patch.brandId = Number(brandIdRaw);
-  if (talentIdRaw) patch.talentId = Number(talentIdRaw);
-  const updateSector = formData.get('sector') as string | null;
-  const updateGeo = formData.get('geo') as string | null;
-  const updateStatus = formData.get('status') as string | null;
-  const updateStartDate = formData.get('startDate') as string | null;
-  const updateEndDate = formData.get('endDate') as string | null;
-  const updateNotes = formData.get('notes') as string | null;
-  const updateResponsible = formData.get('responsibleUserId') as string | null;
-  if (updateSector) patch.sector = updateSector;
-  if (updateGeo) patch.geo = updateGeo;
-  if (updateStatus) patch.status = updateStatus as CampaignStatus;
-  if (updateStartDate) patch.startDate = updateStartDate;
-  if (updateEndDate) patch.endDate = updateEndDate;
-  if (updateNotes) patch.notes = updateNotes;
-  if (updateResponsible) patch.responsibleUserId = updateResponsible;
-  if (amountBrand) patch.amountBrand = Number(amountBrand);
-  if (amountTalent) patch.amountTalent = Number(amountTalent);
+  const patch: Parameters<typeof updateCampaign>[1] = { name: rest.name };
+  if (rest.brandId !== undefined) patch.brandId = rest.brandId;
+  if (rest.talentId !== undefined) patch.talentId = rest.talentId;
+  if (rest.amountBrand !== undefined) patch.amountBrand = rest.amountBrand;
+  if (rest.amountTalent !== undefined) patch.amountTalent = rest.amountTalent;
+  if (rest.sector) patch.sector = rest.sector;
+  if (rest.geo) patch.geo = rest.geo;
+  if (rest.status) patch.status = rest.status;
+  if (rest.startDate) patch.startDate = rest.startDate;
+  if (rest.endDate) patch.endDate = rest.endDate;
+  if (rest.notes) patch.notes = rest.notes;
+  if (rest.responsibleUserId) patch.responsibleUserId = rest.responsibleUserId;
 
   await updateCampaign(id, patch);
 
@@ -89,9 +109,10 @@ export async function updateCampaignAction(formData: FormData): Promise<void> {
 
 export async function deleteCampaignAction(formData: FormData): Promise<void> {
   await requireAnyRole(['admin', 'staff'], '/admin/login');
-  const id = Number(formData.get('id'));
+  const parsed = parseFormData(formData, IdOnly);
+  if (!parsed.ok) return;
   // Los tratos se archivan (soft-delete) en lugar de borrarse para preservar datos históricos.
-  await archiveCampaign(id);
+  await archiveCampaign(parsed.data.id);
   revalidatePath('/admin/campanas');
 }
 

@@ -1,36 +1,75 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { requireAnyRole, type Role } from '@/lib/auth-guard';
+import { eq, sql } from 'drizzle-orm';
+import { z } from 'zod';
+
+import { requireAnyRole } from '@/lib/auth-guard';
 import { assertCanDelete } from '@/lib/permissions';
 import { db } from '@/lib/db';
 import { talents, talentSocials } from '@/db/schema';
-import { eq, sql } from 'drizzle-orm';
 import { initialsOf, slugify } from '@/lib/utils/import-utils';
+import { parseFormData } from '@/lib/forms/parseFormData';
+import { logRedacted } from '@/lib/log';
 
 type ActionState = { readonly success: boolean; readonly error?: string };
 
-/**
- * Crea un nuevo talent con plataforma principal y opcionalmente plataformas secundarias y contactos.
- */
+const TalentCreate = z.object({
+  name: z.string().trim().min(1, 'Nombre obligatorio').max(120),
+  platform: z.string().trim().min(1).max(40).default('twitch'),
+  handle: z.string().trim().min(1, 'Handle obligatorio').max(120),
+  country: z
+    .string()
+    .trim()
+    .max(2)
+    .transform((s) => s.toUpperCase())
+    .optional(),
+  status: z.enum(['active', 'available', 'inactive']).default('inactive'),
+  visibility: z.enum(['internal', 'public']).default('internal'),
+  game: z.string().trim().max(120).optional(),
+});
+
+const TalentSecondary = z.object({
+  platform: z.string().trim().min(1).max(40),
+  handle: z.string().trim().min(1).max(120),
+});
+
+const IdOnly = z.object({ id: z.coerce.number().int().positive() });
+const BioUpdate = z.object({
+  id: z.coerce.number().int().positive(),
+  bio: z.string().min(1).max(5000),
+});
+
+function firstError(fieldErrors: Record<string, string[]>): string {
+  for (const errs of Object.values(fieldErrors)) {
+    const first = errs[0];
+    if (first) return first;
+  }
+  return 'Datos inválidos';
+}
+
+const PLATFORM_COLORS: Record<string, string> = {
+  twitch: '#9147ff',
+  youtube: '#ff0000',
+  instagram: '#e1306c',
+  tiktok: '#010101',
+  kick: '#53fc18',
+  x: '#1da1f2',
+  twitter: '#1da1f2',
+};
+
 export async function createTalentAction(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
   await requireAnyRole(['admin', 'manager'], '/admin/login');
 
-  const name    = (formData.get('name')     as string | null)?.trim() ?? '';
-  const platform = (formData.get('platform') as string | null)?.trim() ?? 'twitch';
-  const handle  = (formData.get('handle')   as string | null)?.trim() ?? '';
-  const country = (formData.get('country')  as string | null)?.toUpperCase().slice(0, 2) ?? undefined;
-  const status  = (formData.get('status')   as 'active' | 'inactive' | null) ?? 'inactive';
-  const visibility = (formData.get('visibility') as 'internal' | 'public' | null) ?? 'internal';
-
-  if (!name || !handle) {
-    return { success: false, error: 'Nombre y handle son obligatorios' };
-  }
+  const parsed = parseFormData(formData, TalentCreate);
+  if (!parsed.ok) return { success: false, error: firstError(parsed.fieldErrors) };
+  const { name, platform, handle, country, status, visibility, game } = parsed.data;
 
   const slug = slugify(name);
+  const primaryPlatform = platform === 'twitch' || platform === 'youtube' ? platform : 'twitch';
 
   try {
     const [maxRow] = await db
@@ -44,8 +83,8 @@ export async function createTalentAction(
         slug,
         name,
         role: 'Creator',
-        game: (formData.get('game') as string | null)?.trim() || 'General',
-        platform: platform === 'twitch' || platform === 'youtube' ? platform : 'twitch',
+        game: game ?? 'General',
+        platform: primaryPlatform,
         status,
         bio: '',
         gradientC1: '#f5632a',
@@ -53,16 +92,12 @@ export async function createTalentAction(
         initials: initialsOf(name),
         sortOrder: nextSort,
         visibility,
-        creatorCountry: country || undefined,
+        creatorCountry: country ?? undefined,
       })
       .returning({ id: talents.id });
 
     if (!inserted) throw new Error('Insert failed');
 
-    const PLATFORM_COLORS: Record<string, string> = {
-      twitch: '#9147ff', youtube: '#ff0000', instagram: '#e1306c',
-      tiktok: '#010101', kick: '#53fc18', x: '#1da1f2', twitter: '#1da1f2',
-    };
     const hexColor = PLATFORM_COLORS[platform] ?? '#888888';
 
     await db.insert(talentSocials).values({
@@ -74,46 +109,46 @@ export async function createTalentAction(
       sortOrder: 1,
     });
 
-    // Secondary platforms
     for (let i = 2; i <= 4; i++) {
-      const p = (formData.get(`platform_${i}`) as string | null)?.trim();
-      const h = (formData.get(`handle_${i}`)   as string | null)?.trim();
-      if (p && h) {
-        await db.insert(talentSocials).values({
-          talentId: inserted.id,
-          platform: p,
-          handle: h,
-          followersDisplay: '-',
-          hexColor: PLATFORM_COLORS[p] ?? '#888888',
-          sortOrder: i,
-        });
-      }
+      const candidate = TalentSecondary.safeParse({
+        platform: formData.get(`platform_${i}`) ?? '',
+        handle: formData.get(`handle_${i}`) ?? '',
+      });
+      if (!candidate.success) continue;
+      const { platform: p, handle: h } = candidate.data;
+      await db.insert(talentSocials).values({
+        talentId: inserted.id,
+        platform: p,
+        handle: h,
+        followersDisplay: '-',
+        hexColor: PLATFORM_COLORS[p] ?? '#888888',
+        sortOrder: i,
+      });
     }
 
     revalidatePath('/admin/talents');
     return { success: true };
   } catch (err) {
-    const msg = err instanceof Error ? err.message : 'unknown';
-    return { success: false, error: `Error al crear talent: ${msg}` };
+    logRedacted('error', '[admin] createTalent error:', err);
+    return { success: false, error: 'Error al crear talent' };
   }
 }
 
 export async function deleteTalentAction(formData: FormData): Promise<void> {
   const session = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
-  assertCanDelete(session.user.role as Role);
-  const id = Number(formData.get('id'));
-  if (!id) return;
-  await db.delete(talents).where(eq(talents.id, id));
+  assertCanDelete(session.user.role);
+  const parsed = parseFormData(formData, IdOnly);
+  if (!parsed.ok) return;
+  await db.delete(talents).where(eq(talents.id, parsed.data.id));
   revalidatePath('/admin/talents');
   revalidatePath('/');
 }
 
 export async function updateTalentBioAction(formData: FormData): Promise<void> {
   await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
-  const id = Number(formData.get('id'));
-  const bio = String(formData.get('bio') ?? '');
-  if (!id || !bio) return;
-  await db.update(talents).set({ bio }).where(eq(talents.id, id));
+  const parsed = parseFormData(formData, BioUpdate);
+  if (!parsed.ok) return;
+  await db.update(talents).set({ bio: parsed.data.bio }).where(eq(talents.id, parsed.data.id));
   revalidatePath('/admin/talents');
   revalidatePath('/');
 }
@@ -134,7 +169,7 @@ export async function setTalentStatusAction(
     revalidatePath('/');
     return { success: true };
   } catch (err) {
-    console.error('[admin] setTalentStatus error:', err);
+    logRedacted('error', '[admin] setTalentStatus error:', err);
     return { success: false, error: 'Error al actualizar estado' };
   }
 }
@@ -165,7 +200,7 @@ export async function updateSocialGeoAction(
     revalidatePath('/admin/talents');
     return { success: true };
   } catch (err) {
-    console.error('[admin] updateSocialGeo error:', err);
+    logRedacted('error', '[admin] updateSocialGeo error:', err);
     return { success: false, error: 'Error al guardar geo' };
   }
 }

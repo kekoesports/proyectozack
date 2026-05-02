@@ -2,25 +2,48 @@
 
 import { revalidatePath } from 'next/cache';
 import { put } from '@vercel/blob';
+import { z } from 'zod';
+
 import { requireAnyRole } from '@/lib/auth-guard';
 import {
   getContractByCampaign, createContract, updateContract,
 } from '@/lib/queries/contracts';
+import { parseFormData } from '@/lib/forms/parseFormData';
+import { validateUploadedFile } from '@/lib/files/validateUploadedFile';
+import { CONTRACT_PDF_TYPES } from '@/lib/files/allowed-types';
+import { logRedacted } from '@/lib/log';
 
 type ActionState = { readonly error?: string; readonly success?: boolean; readonly contractId?: number };
+
+const GenerateContractMeta = z.object({
+  campaignId: z.coerce.number().int().positive(),
+  templateId: z.coerce.number().int().positive(),
+  fileName: z.string().trim().min(1).max(200).default('contrato.pdf'),
+});
 
 export async function saveGeneratedContractAction(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  const session    = await requireAnyRole(['admin', 'staff'], '/admin/login');
-  const campaignId = Number(formData.get('campaignId'));
-  const templateId = Number(formData.get('templateId'));
-  const pdfFile    = formData.get('pdf');
-  const fileName   = (formData.get('fileName') as string | null) ?? 'contrato.pdf';
+  const session = await requireAnyRole(['admin', 'staff'], '/admin/login');
 
-  if (isNaN(campaignId) || isNaN(templateId)) return { error: 'Parámetros inválidos' };
-  if (!(pdfFile instanceof File) || pdfFile.size === 0) return { error: 'PDF no recibido' };
+  const meta = parseFormData(formData, GenerateContractMeta);
+  if (!meta.ok) return { error: 'Parámetros inválidos' };
+  const { campaignId, templateId, fileName } = meta.data;
+
+  const pdfFile = formData.get('pdf');
+  if (!(pdfFile instanceof File)) return { error: 'PDF no recibido' };
+
+  const validation = await validateUploadedFile(pdfFile, {
+    maxBytes: CONTRACT_PDF_TYPES.maxBytes,
+    allowedMimes: CONTRACT_PDF_TYPES.mimes,
+    allowedExts: CONTRACT_PDF_TYPES.exts,
+  });
+  if (!validation.ok) {
+    if (validation.reason === 'too_large') return { error: 'PDF demasiado grande' };
+    if (validation.reason === 'empty_file') return { error: 'PDF no recibido' };
+    return { error: 'PDF inválido' };
+  }
 
   try {
     const path = `contracts/generated/${campaignId}/${Date.now()}-${fileName.replace(/[^\w.\-]/g, '_')}`;
@@ -47,7 +70,7 @@ export async function saveGeneratedContractAction(
     revalidatePath(`/admin/campanas/${campaignId}`);
     return { success: true, contractId: row.id };
   } catch (err) {
-    console.error('[admin] saveGeneratedContract error:', err instanceof Error ? err.message : 'unknown');
+    logRedacted('error', '[admin] saveGeneratedContract error:', err);
     return { error: 'Error al guardar el contrato generado' };
   }
 }

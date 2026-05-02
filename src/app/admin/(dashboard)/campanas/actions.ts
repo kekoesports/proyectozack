@@ -15,7 +15,9 @@ import {
 
 import { compact } from '@/lib/utils/objects';
 
-import type { Role } from '@/lib/auth-guard';
+import { logRedacted } from '@/lib/log';
+import { parseFormData } from '@/lib/forms/parseFormData';
+
 import type { CreateCampaignInput } from '@/lib/queries/campaigns';
 
 // ── createCampaignAction ──────────────────────────────────────────────────────
@@ -26,10 +28,10 @@ export async function createCampaignAction(
   try {
     const session = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
 
-    const raw = Object.fromEntries(formData);
-    const parsed = createCampaignSchema.safeParse(raw);
-    if (!parsed.success) {
-      return { success: false, error: parsed.error.issues[0]?.message ?? 'Datos inválidos' };
+    const parsed = parseFormData(formData, createCampaignSchema);
+    if (!parsed.ok) {
+      const first = Object.values(parsed.fieldErrors)[0]?.[0];
+      return { success: false, error: first ?? 'Datos inválidos' };
     }
 
     const input = compact({
@@ -42,8 +44,8 @@ export async function createCampaignAction(
     revalidatePath('/admin/campanas');
     return { success: true, id: campaign.id };
   } catch (err) {
+    logRedacted('error', '[createCampaignAction] error:', err);
     const msg = err instanceof Error ? err.message : 'unknown';
-    console.error('[createCampaignAction] error:', msg);
     return { success: false, error: msg !== 'unknown' ? msg : 'Error al crear campaña' };
   }
 }
@@ -56,23 +58,23 @@ export async function updateCampaignAction(
   try {
     const session = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
 
-    const raw = Object.fromEntries(formData);
-    const parsed = updateCampaignSchema.safeParse(raw);
-    if (!parsed.success) {
-      return { success: false, error: parsed.error.issues[0]?.message ?? 'Datos inválidos' };
+    const parsed = parseFormData(formData, updateCampaignSchema);
+    if (!parsed.ok) {
+      const first = Object.values(parsed.fieldErrors)[0]?.[0];
+      return { success: false, error: first ?? 'Datos inválidos' };
     }
 
     const { id, ...rest } = parsed.data;
 
-    await assertCanEditCampaign(id, { userId: session.user.id, role: session.user.role as Role });
+    await assertCanEditCampaign(id, { userId: session.user.id, role: session.user.role });
 
     await updateCampaign(id, compact(rest) as Partial<CreateCampaignInput>);
 
     revalidatePath('/admin/campanas');
     return { success: true };
   } catch (err) {
+    logRedacted('error', '[updateCampaignAction] error:', err);
     const msg = err instanceof Error ? err.message : 'unknown';
-    console.error('[updateCampaignAction] error:', msg);
     return { success: false, error: msg !== 'unknown' ? msg : 'Error al actualizar campaña' };
   }
 }
@@ -86,17 +88,17 @@ export async function archiveCampaignAction(
     const session = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
 
     // decisión #1: manager NO puede archivar
-    assertCanDelete(session.user.role as Role);
+    assertCanDelete(session.user.role);
 
-    await assertCanEditCampaign(id, { userId: session.user.id, role: session.user.role as Role });
+    await assertCanEditCampaign(id, { userId: session.user.id, role: session.user.role });
 
     await archiveCampaign(id);
 
     revalidatePath('/admin/campanas');
     return { success: true };
   } catch (err) {
+    logRedacted('error', '[archiveCampaignAction] error:', err);
     const msg = err instanceof Error ? err.message : 'unknown';
-    console.error('[archiveCampaignAction] error:', msg);
     return { success: false, error: msg !== 'unknown' ? msg : 'Error al archivar campaña' };
   }
 }
@@ -110,15 +112,15 @@ export async function unarchiveCampaignAction(
     const session = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
 
     // solo admin puede desarchivar
-    assertCanDelete(session.user.role as Role);
+    assertCanDelete(session.user.role);
 
     await unarchiveCampaign(id);
 
     revalidatePath('/admin/campanas');
     return { success: true };
   } catch (err) {
+    logRedacted('error', '[unarchiveCampaignAction] error:', err);
     const msg = err instanceof Error ? err.message : 'unknown';
-    console.error('[unarchiveCampaignAction] error:', msg);
     return { success: false, error: msg !== 'unknown' ? msg : 'Error al desarchivar campaña' };
   }
 }

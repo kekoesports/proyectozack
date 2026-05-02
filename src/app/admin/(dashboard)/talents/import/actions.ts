@@ -1,12 +1,15 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { eq, and } from 'drizzle-orm';
+
 import { requireRole } from '@/lib/auth-guard';
 import { upsertTalentFromImport } from '@/lib/queries/talents';
 import { parseCsv, slugify } from '@/lib/utils/import-utils';
 import { db } from '@/lib/db';
-import { talents, talentSocials, talentBusiness } from '@/db/schema';
+import { talentBusiness } from '@/db/schema';
+import { validateUploadedFile } from '@/lib/files/validateUploadedFile';
+import { TALENT_IMPORT_TYPES } from '@/lib/files/allowed-types';
+import { logRedacted } from '@/lib/log';
 
 // ── Types ────────────────────────────────────────────────────────────
 
@@ -138,11 +141,23 @@ export async function parseImportFileAction(formData: FormData): Promise<ParseIm
   await requireRole('admin', '/admin/login');
 
   const file = formData.get('file');
-  if (!(file instanceof File) || file.size === 0) {
+  if (!(file instanceof File)) {
     return { success: false, error: 'No se ha subido ningún archivo' };
   }
-  if (file.size > 5 * 1024 * 1024) {
-    return { success: false, error: 'Archivo demasiado grande (máx 5MB)' };
+
+  const validation = await validateUploadedFile(file, {
+    maxBytes: 5 * 1024 * 1024,
+    allowedMimes: TALENT_IMPORT_TYPES.mimes,
+    allowedExts: TALENT_IMPORT_TYPES.exts,
+  });
+  if (!validation.ok) {
+    if (validation.reason === 'too_large') {
+      return { success: false, error: 'Archivo demasiado grande (máx 5MB)' };
+    }
+    if (validation.reason === 'empty_file') {
+      return { success: false, error: 'No se ha subido ningún archivo' };
+    }
+    return { success: false, error: 'Formato no permitido (CSV/XLSX)' };
   }
 
   const name = file.name.toLowerCase();
@@ -156,15 +171,14 @@ export async function parseImportFileAction(formData: FormData): Promise<ParseIm
       headers = parsed.headers;
       rows = parsed.rows;
     } else {
-      // CSV (default)
       const text = await file.text();
       const parsed = parseCsv(text);
       headers = parsed.headers;
       rows = parsed.rows;
     }
   } catch (err) {
-    const msg = err instanceof Error ? err.message : 'unknown';
-    return { success: false, error: `Error al parsear el archivo: ${msg}` };
+    logRedacted('error', '[admin] parseImportFile error:', err);
+    return { success: false, error: 'Error al parsear el archivo' };
   }
 
   if (headers.length === 0) {
@@ -233,8 +247,8 @@ export async function applyImportAction(input: ApplyImportInput): Promise<ApplyI
       else if (result.action === 'updated') updated++;
       else skipped++;
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'unknown';
-      errors.push(`Fila ${i + 2} ("${name}"): ${msg}`);
+      logRedacted('error', '[admin] applyImport row error:', err);
+      errors.push(`Fila ${i + 2} ("${name}"): import_failed`);
       skipped++;
     }
   }

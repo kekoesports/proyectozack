@@ -1,6 +1,8 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { z } from 'zod';
+
 import { requireRole } from '@/lib/auth-guard';
 import {
   createContractTemplate,
@@ -8,8 +10,31 @@ import {
   deleteContractTemplate,
 } from '@/lib/queries/contractTemplates';
 import { CONTRACT_TEMPLATE_SEEDS } from '@/lib/contractTemplateSeeds';
+import { parseFormData } from '@/lib/forms/parseFormData';
+import { logRedacted } from '@/lib/log';
 
 type ActionState = { readonly error?: string; readonly success?: boolean; readonly id?: number };
+
+const TemplateCreate = z.object({
+  name: z.string().trim().min(1, 'El nombre es obligatorio').max(200),
+  type: z.string().trim().min(1).max(60).default('general'),
+  content: z.string().trim().min(1, 'El contenido no puede estar vacío').max(200_000),
+});
+
+const TemplateUpdate = z.object({
+  id: z.coerce.number().int().positive(),
+  name: z.string().trim().min(1, 'El nombre es obligatorio').max(200),
+  type: z.string().trim().min(1).max(60).default('general'),
+  content: z.string().trim().min(1, 'El contenido no puede estar vacío').max(200_000),
+});
+
+function firstError(fieldErrors: Record<string, string[]>): string {
+  for (const errs of Object.values(fieldErrors)) {
+    const first = errs[0];
+    if (first) return first;
+  }
+  return 'Datos inválidos';
+}
 
 // ── Crear plantilla ───────────────────────────────────────────────────
 
@@ -19,19 +44,15 @@ export async function createTemplateAction(
 ): Promise<ActionState> {
   await requireRole('admin', '/admin/login');
 
-  const name    = (formData.get('name')    as string | null)?.trim();
-  const type    = (formData.get('type')    as string | null)?.trim() ?? 'general';
-  const content = (formData.get('content') as string | null)?.trim();
-
-  if (!name)    return { error: 'El nombre es obligatorio' };
-  if (!content) return { error: 'El contenido no puede estar vacío' };
+  const parsed = parseFormData(formData, TemplateCreate);
+  if (!parsed.ok) return { error: firstError(parsed.fieldErrors) };
 
   try {
-    const tpl = await createContractTemplate({ name, type, content });
+    const tpl = await createContractTemplate(parsed.data);
     revalidatePath('/admin/campanas/plantillas');
     return { success: true, id: tpl.id };
   } catch (err) {
-    console.error('[admin] createTemplate error:', err instanceof Error ? err.message : 'unknown');
+    logRedacted('error', '[admin] createTemplate error:', err);
     return { error: 'Error al crear la plantilla' };
   }
 }
@@ -44,21 +65,16 @@ export async function updateTemplateAction(
 ): Promise<ActionState> {
   await requireRole('admin', '/admin/login');
 
-  const id      = Number(formData.get('id'));
-  const name    = (formData.get('name')    as string | null)?.trim();
-  const type    = (formData.get('type')    as string | null)?.trim();
-  const content = (formData.get('content') as string | null)?.trim();
-
-  if (isNaN(id)) return { error: 'ID inválido' };
-  if (!name)     return { error: 'El nombre es obligatorio' };
-  if (!content)  return { error: 'El contenido no puede estar vacío' };
+  const parsed = parseFormData(formData, TemplateUpdate);
+  if (!parsed.ok) return { error: firstError(parsed.fieldErrors) };
+  const { id, ...rest } = parsed.data;
 
   try {
-    await updateContractTemplate(id, { name, type: type ?? 'general', content });
+    await updateContractTemplate(id, rest);
     revalidatePath('/admin/campanas/plantillas');
     return { success: true };
   } catch (err) {
-    console.error('[admin] updateTemplate error:', err instanceof Error ? err.message : 'unknown');
+    logRedacted('error', '[admin] updateTemplate error:', err);
     return { error: 'Error al guardar la plantilla' };
   }
 }
@@ -72,7 +88,8 @@ export async function toggleTemplateActiveAction(id: number, isActive: boolean):
     revalidatePath('/admin/campanas/plantillas');
     return { success: true };
   } catch (err) {
-    return { error: err instanceof Error ? err.message : 'Error' };
+    logRedacted('error', '[admin] toggleTemplate error:', err);
+    return { error: 'Error al guardar la plantilla' };
   }
 }
 
@@ -85,7 +102,7 @@ export async function deleteTemplateAction(id: number): Promise<ActionState> {
     revalidatePath('/admin/campanas/plantillas');
     return { success: true };
   } catch (err) {
-    console.error('[admin] deleteTemplate error:', err instanceof Error ? err.message : 'unknown');
+    logRedacted('error', '[admin] deleteTemplate error:', err);
     return { error: 'Error al eliminar la plantilla' };
   }
 }
@@ -103,7 +120,7 @@ export async function seedDefaultTemplatesAction(): Promise<ActionState> {
     revalidatePath('/admin/campanas/plantillas');
     return { success: true, id: created };
   } catch (err) {
-    console.error('[admin] seedTemplates error:', err instanceof Error ? err.message : 'unknown');
+    logRedacted('error', '[admin] seedTemplates error:', err);
     return { error: 'Error al importar plantillas' };
   }
 }

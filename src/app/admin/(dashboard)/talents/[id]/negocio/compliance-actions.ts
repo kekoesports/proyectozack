@@ -5,6 +5,7 @@ import { requireRole } from '@/lib/auth-guard';
 import { updateTalentComplianceSchema } from '@/lib/schemas/talentCompliance';
 import { updateTalentCompliance } from '@/lib/queries/talents';
 import { compact } from '@/lib/utils/objects';
+import { logRedacted } from '@/lib/log';
 
 type ActionState = {
   readonly error?: string;
@@ -47,8 +48,7 @@ export async function updateTalentComplianceAction(
     revalidatePath('/admin/talents');
     return { success: true };
   } catch (err) {
-    const msg = err instanceof Error ? err.message : 'unknown';
-    console.error('[admin] updateTalentCompliance error:', msg);
+    logRedacted('error', '[admin] updateTalentCompliance error:', err);
     return { error: 'Error al guardar' };
   }
 }

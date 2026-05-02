@@ -4,6 +4,8 @@
 // Manager NO puede borrar archivos (assertCanDelete)
 
 import { revalidatePath } from 'next/cache';
+import { z } from 'zod';
+import { eq, and } from 'drizzle-orm';
 
 import { requireAnyRole } from '@/lib/auth-guard';
 import { assertCanDelete } from '@/lib/permissions';
@@ -11,39 +13,74 @@ import { uploadFile, deleteFile } from '@/lib/storage';
 import { createFile, deleteFileById } from '@/lib/queries/files';
 import { db } from '@/lib/db';
 import { talentMetricSnapshots, talentSocials } from '@/db/schema';
-import { eq, and } from 'drizzle-orm';
+import { parseFormData } from '@/lib/forms/parseFormData';
+import { validateUploadedFile } from '@/lib/files/validateUploadedFile';
+import { POLY_FILE_TYPES, GEO_STATS_TYPES } from '@/lib/files/allowed-types';
+import { logRedacted } from '@/lib/log';
 
-import type { FileType } from '@/lib/schemas/file';
+import { FILE_TYPES } from '@/lib/schemas/file';
 
 type GeoEntry = { country: string; pct: number };
 
-// Upload: recibe FormData con 'file' (File), 'talentId' (number), 'platform' (string), 'type' (FileType), 'notes' (string)
+const FileTypeEnum = z.enum(FILE_TYPES);
+
+const UploadFileMeta = z.object({
+  talentId: z.coerce.number().int().positive(),
+  platform: z.string().min(1).max(40).optional(),
+  type: FileTypeEnum.default('geo_stats'),
+  notes: z.string().max(2000).optional(),
+});
+
+const UploadGeoMeta = z.object({
+  talentId: z.coerce.number().int().positive(),
+  platform: z.string().min(1).max(40).optional(),
+  notes: z.string().max(2000).optional(),
+  topGeos: z.string().optional(),
+});
+
+const DeleteFileMeta = z.object({
+  fileId: z.coerce.number().int().positive(),
+  fileUrl: z.string().min(1).max(2048),
+  talentId: z.coerce.number().int().positive(),
+});
+
 export async function uploadTalentFileAction(
   formData: FormData,
 ): Promise<{ success: boolean; error?: string }> {
   try {
     const session = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
 
-    const file = formData.get('file') as File | null;
-    const talentId = Number(formData.get('talentId'));
-    const platform = formData.get('platform') as string | null;
-    const type = (formData.get('type') as FileType | null) ?? 'geo_stats';
-    const notes = formData.get('notes') as string | null;
+    const meta = parseFormData(formData, UploadFileMeta);
+    if (!meta.ok) return { success: false, error: 'talentId requerido' };
+    const { talentId, platform, type, notes } = meta.data;
 
-    if (!file || !talentId) return { success: false, error: 'Archivo y talentId requeridos' };
+    const fileEntry = formData.get('file');
+    if (!(fileEntry instanceof File)) return { success: false, error: 'Archivo requerido' };
 
-    const buffer = Buffer.from(await file.arrayBuffer());
+    const validation = await validateUploadedFile(fileEntry, {
+      maxBytes: POLY_FILE_TYPES.maxBytes,
+      allowedMimes: POLY_FILE_TYPES.mimes,
+      allowedExts: POLY_FILE_TYPES.exts,
+    });
+    if (!validation.ok) {
+      const reason = validation.reason;
+      if (reason === 'too_large') return { success: false, error: 'Archivo demasiado grande (máx 25 MB)' };
+      if (reason === 'empty_file') return { success: false, error: 'Archivo vacío' };
+      return { success: false, error: 'Formato de archivo no permitido' };
+    }
+
+    const buffer = Buffer.from(await fileEntry.arrayBuffer());
     const result = await uploadFile({
-      name: `talents/${talentId}/${Date.now()}-${file.name}`,
+      name: `talents/${talentId}/${Date.now()}-${fileEntry.name}`,
       data: buffer,
-      contentType: file.type || 'application/octet-stream',
+      contentType: fileEntry.type || 'application/octet-stream',
     });
 
     await createFile({
-      name: file.name,
+      name: fileEntry.name,
       type,
-      ...(file.type ? { mime: file.type } : {}),
-      sizeBytes: file.size,
+      ...(fileEntry.type ? { mime: fileEntry.type } : {}),
+      sizeBytes: fileEntry.size,
       url: result.url,
       path: result.pathname,
       relatedType: 'talent',
@@ -56,39 +93,48 @@ export async function uploadTalentFileAction(
     revalidatePath(`/admin/talents/${talentId}`);
     return { success: true };
   } catch (err) {
-    console.error('[uploadTalentFileAction] error:', err instanceof Error ? err.message : 'unknown');
+    logRedacted('error', '[uploadTalentFileAction] error:', err);
     return { success: false, error: err instanceof Error ? err.message : 'Error al subir archivo' };
   }
 }
 
-// GEO upload: sube archivo + opcionalmente crea snapshot + actualiza talentSocials.topGeos
-// FormData: 'file', 'talentId', 'platform', 'notes', 'topGeos' (JSON string opcional)
 export async function uploadGeoStatsAction(
   formData: FormData,
 ): Promise<{ success: boolean; error?: string }> {
   try {
     const session = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
 
-    const file = formData.get('file') as File | null;
-    const talentId = Number(formData.get('talentId'));
-    const platform = formData.get('platform') as string | null;
-    const notes = formData.get('notes') as string | null;
-    const topGeosRaw = formData.get('topGeos') as string | null;
+    const meta = parseFormData(formData, UploadGeoMeta);
+    if (!meta.ok) return { success: false, error: 'talentId requerido' };
+    const { talentId, platform, notes, topGeos: topGeosRaw } = meta.data;
 
-    if (!file || !talentId) return { success: false, error: 'Archivo y talentId requeridos' };
+    const fileEntry = formData.get('file');
+    if (!(fileEntry instanceof File)) return { success: false, error: 'Archivo requerido' };
 
-    const buffer = Buffer.from(await file.arrayBuffer());
+    const validation = await validateUploadedFile(fileEntry, {
+      maxBytes: GEO_STATS_TYPES.maxBytes,
+      allowedMimes: GEO_STATS_TYPES.mimes,
+      allowedExts: GEO_STATS_TYPES.exts,
+    });
+    if (!validation.ok) {
+      const reason = validation.reason;
+      if (reason === 'too_large') return { success: false, error: 'Archivo demasiado grande (máx 25 MB)' };
+      if (reason === 'empty_file') return { success: false, error: 'Archivo vacío' };
+      return { success: false, error: 'Formato no permitido (PDF/PNG/JPEG/CSV/XLSX)' };
+    }
+
+    const buffer = Buffer.from(await fileEntry.arrayBuffer());
     const result = await uploadFile({
-      name: `talents/${talentId}/geo/${Date.now()}-${file.name}`,
+      name: `talents/${talentId}/geo/${Date.now()}-${fileEntry.name}`,
       data: buffer,
-      contentType: file.type || 'application/octet-stream',
+      contentType: fileEntry.type || 'application/octet-stream',
     });
 
     await createFile({
-      name: file.name,
+      name: fileEntry.name,
       type: 'geo_stats',
-      ...(file.type ? { mime: file.type } : {}),
-      sizeBytes: file.size,
+      ...(fileEntry.type ? { mime: fileEntry.type } : {}),
+      sizeBytes: fileEntry.size,
       url: result.url,
       path: result.pathname,
       relatedType: 'talent',
@@ -98,7 +144,6 @@ export async function uploadGeoStatsAction(
       uploadedByUserId: session.user.id,
     });
 
-    // Doble actualización GEO: si se pasan topGeos + platform
     if (topGeosRaw && platform) {
       let topGeos: GeoEntry[];
       try {
@@ -110,7 +155,6 @@ export async function uploadGeoStatsAction(
       const today = new Date().toISOString().split('T')[0]!;
 
       await db.transaction(async (tx) => {
-        // a) Insertar snapshot histórico
         await tx
           .insert(talentMetricSnapshots)
           .values({
@@ -132,7 +176,6 @@ export async function uploadGeoStatsAction(
             ],
           });
 
-        // b) Actualizar talentSocials.topGeos para la plataforma
         await tx
           .update(talentSocials)
           .set({ topGeos })
@@ -148,34 +191,29 @@ export async function uploadGeoStatsAction(
     revalidatePath(`/admin/talents/${talentId}`);
     return { success: true };
   } catch (err) {
-    console.error('[uploadGeoStatsAction] error:', err instanceof Error ? err.message : 'unknown');
+    logRedacted('error', '[uploadGeoStatsAction] error:', err);
     return { success: false, error: err instanceof Error ? err.message : 'Error al subir GEO stats' };
   }
 }
 
-// Delete: recibe FormData con 'fileId' (number), 'fileUrl' (string), 'talentId' (number)
 export async function deleteTalentFileAction(
   formData: FormData,
 ): Promise<{ success: boolean; error?: string }> {
   try {
     const session = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
-    assertCanDelete(session.user.role as 'admin' | 'manager' | 'staff');
+    assertCanDelete(session.user.role);
 
-    const fileId = Number(formData.get('fileId'));
-    const fileUrl = formData.get('fileUrl') as string;
-    const talentId = Number(formData.get('talentId'));
+    const meta = parseFormData(formData, DeleteFileMeta);
+    if (!meta.ok) return { success: false, error: 'fileId y fileUrl requeridos' };
+    const { fileId, fileUrl, talentId } = meta.data;
 
-    if (!fileId || !fileUrl) return { success: false, error: 'fileId y fileUrl requeridos' };
-
-    // Borrar de Vercel Blob
     await deleteFile(fileUrl);
-    // Borrar de DB
     await deleteFileById(fileId);
 
     revalidatePath(`/admin/talents/${talentId}`);
     return { success: true };
   } catch (err) {
-    console.error('[deleteTalentFileAction] error:', err instanceof Error ? err.message : 'unknown');
+    logRedacted('error', '[deleteTalentFileAction] error:', err);
     return { success: false, error: err instanceof Error ? err.message : 'Error al eliminar archivo' };
   }
 }
