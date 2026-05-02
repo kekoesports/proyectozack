@@ -36,11 +36,14 @@ const NAV_COLS = [
   {
     title: 'Especialidades',
     links: [
-      { href: '/cs2-influencer-marketing',  label: 'CS2 Influencer Marketing' },
-      { href: '/valorant-influencers-agency', label: 'Valorant Influencers' },
-      { href: '/betting-influencers',        label: 'Betting Influencers' },
-      { href: '/esports-marketing-agency',   label: 'Esports Marketing' },
-      { href: '/twitch-streamers-agency',    label: 'Twitch Streamers' },
+      { href: '/cs2-influencer-marketing',    label: 'CS2 Influencer Marketing' },
+      { href: '/valorant-influencers-agency',  label: 'Valorant Influencers' },
+      { href: '/betting-influencers',          label: 'Betting Influencers' },
+      { href: '/esports-marketing-agency',     label: 'Esports Marketing' },
+      { href: '/twitch-streamers-agency',      label: 'Twitch Streamers Agency' },
+      { href: '/influencers-cs2',              label: 'Influencers CS2 (ES)' },
+      { href: '/servicios/igaming',             label: 'iGaming Influencer Marketing' },
+      { href: '/agencia-marketing-esports',    label: 'Agencia Esports (ES)' },
     ],
   },
 ];
