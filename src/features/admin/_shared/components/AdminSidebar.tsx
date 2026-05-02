@@ -38,7 +38,7 @@ function SidebarHero({ onClick }: SidebarHeroProps): React.ReactElement {
     <Link
       href="/admin"
       onClick={onClick}
-      className="flex flex-col gap-0.5 px-4 py-3 shrink-0"
+      className="flex flex-col gap-4 px-4 py-3 shrink-0"
       aria-label="SocialPro CRM"
     >
       <Image
