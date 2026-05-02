@@ -1,7 +1,7 @@
 import { cache } from 'react';
-import { eq, and, inArray, sql, type SQL } from 'drizzle-orm';
+import { eq, and, inArray, sql, count, type SQL } from 'drizzle-orm';
 import { db } from '@/lib/db';
-import { talents, talentTags, talentStats, talentSocials, talentBusiness, talentVerticals } from '@/db/schema';
+import { talents, talentTags, talentStats, talentSocials, talentBusiness, talentVerticals, campaigns } from '@/db/schema';
 import { parseFollowers, formatFollowers, slugify, initialsOf } from '@/lib/utils/import-utils';
 import type { TalentWithRelations, TalentBusiness, TalentVertical, TalentSocial, TalentTag } from '@/types';
 import type { Talent } from '@/types';
@@ -178,6 +178,7 @@ export type GrowthData = {
 
 export type AdminRosterRow = TalentWithRelations & {
   growth: GrowthData[];
+  activeDealsCount: number;
 };
 
 /**
@@ -194,11 +195,21 @@ export async function getAdminRosterWithGrowth(): Promise<AdminRosterRow[]> {
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
   const fromDate = thirtyDaysAgo.toISOString().split('T')[0]!;
 
-  const [allTalents, latestSnaps, earliestSnaps] = await Promise.all([
+  const [allTalents, latestSnaps, earliestSnaps, activeDealRows] = await Promise.all([
     getAllTalents(),
     getLatestSnapshots(),
     getEarliestSnapshots(fromDate),
+    db
+      .select({ talentId: campaigns.talentId, cnt: count(campaigns.id) })
+      .from(campaigns)
+      .where(inArray(campaigns.status, ['propuesta', 'negociacion', 'aprobada', 'activa']))
+      .groupBy(campaigns.talentId),
   ]);
+
+  const dealsMap = new Map<number, number>();
+  for (const row of activeDealRows) {
+    if (row.talentId !== null) dealsMap.set(row.talentId, Number(row.cnt));
+  }
 
   const latestMap = new Map<string, number>();
   for (const s of latestSnaps) {
@@ -229,7 +240,7 @@ export async function getAdminRosterWithGrowth(): Promise<AdminRosterRow[]> {
       }
     }
 
-    return { ...t, growth };
+    return { ...t, growth, activeDealsCount: dealsMap.get(t.id) ?? 0 };
   });
 }
 

@@ -29,6 +29,7 @@ export function InfluencerCardsView({ creators, verticalsByTalent }: Props): Rea
   const [platformFilter, setPlatformFilter] = useState<string>('');
   const [countryFilter, setCountryFilter] = useState<string>('');
   const [showMoreFilters, setShowMoreFilters] = useState(false);
+  const [sortBy, setSortBy]               = useState<'default' | 'deals'>('default');
   const [showAdd, setShowAdd]             = useState(false);
   const [selectMode, setSelectMode]       = useState(false);
   const [selectedIds, setSelectedIds]     = useState<Set<number>>(new Set());
@@ -60,7 +61,7 @@ export function InfluencerCardsView({ creators, verticalsByTalent }: Props): Rea
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return creators.filter((c) => {
+    const list = creators.filter((c) => {
       if (q && !c.name.toLowerCase().includes(q) && !c.slug.toLowerCase().includes(q)) return false;
       if (statusFilter !== 'all' && c.status !== statusFilter) return false;
       if (verticalFilter) {
@@ -71,7 +72,11 @@ export function InfluencerCardsView({ creators, verticalsByTalent }: Props): Rea
       if (countryFilter && (c.creatorCountry ?? '').toUpperCase() !== countryFilter) return false;
       return true;
     });
-  }, [creators, search, statusFilter, verticalFilter, platformFilter, countryFilter, verticalsByTalent]);
+    if (sortBy === 'deals') {
+      return [...list].sort((a, b) => (b.activeDealsCount ?? 0) - (a.activeDealsCount ?? 0));
+    }
+    return list;
+  }, [creators, search, statusFilter, verticalFilter, platformFilter, countryFilter, verticalsByTalent, sortBy]);
 
   const counts = useMemo(() => {
     let active = 0, available = 0, inactive = 0;
@@ -164,6 +169,23 @@ export function InfluencerCardsView({ creators, verticalsByTalent }: Props): Rea
         </button>
 
         <span className="text-[11px] text-sp-admin-muted tabular-nums">{filtered.length} de {creators.length}</span>
+
+        {/* Sort por tratos */}
+        <button
+          type="button"
+          onClick={() => setSortBy((v) => v === 'deals' ? 'default' : 'deals')}
+          className={`h-8 px-3 rounded-lg border text-[12px] font-medium transition-colors flex items-center gap-1.5 ${
+            sortBy === 'deals'
+              ? 'border-sp-admin-accent/50 bg-sp-admin-accent/8 text-sp-admin-accent font-semibold'
+              : 'border-sp-admin-border text-sp-admin-muted hover:bg-sp-admin-hover'
+          }`}
+          title={sortBy === 'deals' ? 'Quitar orden por tratos' : 'Ordenar por más tratos activos'}
+        >
+          <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" aria-hidden>
+            <path d="M2 10V6M5 10V2M8 10V5M11 10V8"/>
+          </svg>
+          Más tratos
+        </button>
 
         {/* Acciones */}
         <div className="flex items-center gap-1.5 ml-auto">
