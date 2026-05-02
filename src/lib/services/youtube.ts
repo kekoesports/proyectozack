@@ -1,5 +1,11 @@
 import { env } from '@/lib/env';
 
+function requireYoutubeKey(): string {
+  const apiKey = env.YOUTUBE_API_KEY;
+  if (!apiKey) throw new Error('YOUTUBE_API_KEY is not set');
+  return apiKey;
+}
+
 type YouTubeChannelStats = {
   channelId: string;
   subscriberCount: number;
@@ -110,10 +116,7 @@ export type YouTubeChannelPreview = {
 export async function fetchYouTubeSubscriberCounts(
   channelIds: string[],
 ): Promise<YouTubeChannelStats[]> {
-  const apiKey = env.YOUTUBE_API_KEY;
-  if (!apiKey) {
-    throw new Error('YOUTUBE_API_KEY is not set');
-  }
+  const apiKey = requireYoutubeKey();
 
   const results: YouTubeChannelStats[] = [];
   const batchSize = 50;
@@ -150,8 +153,7 @@ export async function fetchYouTubeSubscriberCounts(
 export async function fetchYouTubeChannelSnippets(
   channelIds: string[],
 ): Promise<YouTubeChannelSnippet[]> {
-  const apiKey = env.YOUTUBE_API_KEY;
-  if (!apiKey) throw new Error('YOUTUBE_API_KEY is not set');
+  const apiKey = requireYoutubeKey();
 
   const results: YouTubeChannelSnippet[] = [];
   const batchSize = 50;
@@ -190,8 +192,7 @@ export async function searchYouTubeChannels(
   regionCode?: string,
   relevanceLanguage?: string,
 ): Promise<YouTubeChannelPreview[]> {
-  const apiKey = env.YOUTUBE_API_KEY;
-  if (!apiKey) throw new Error('YOUTUBE_API_KEY is not set');
+  const apiKey = requireYoutubeKey();
 
   let searchUrl =
     `https://www.googleapis.com/youtube/v3/search?part=snippet&type=channel` +
@@ -221,8 +222,7 @@ export async function searchYouTubeChannels(
 export async function getChannelDetails(
   channelIds: string[],
 ): Promise<YouTubeChannelPreview[]> {
-  const apiKey = env.YOUTUBE_API_KEY;
-  if (!apiKey) throw new Error('YOUTUBE_API_KEY is not set');
+  const apiKey = requireYoutubeKey();
 
   const results: YouTubeChannelPreview[] = [];
   const batchSize = 50;
@@ -269,8 +269,7 @@ export async function getChannelDetails(
  * Costs 1 quota unit.
  */
 async function getUploadsPlaylistId(channelId: string): Promise<string | null> {
-  const apiKey = env.YOUTUBE_API_KEY;
-  if (!apiKey) throw new Error('YOUTUBE_API_KEY is not set');
+  const apiKey = requireYoutubeKey();
 
   const url = `https://www.googleapis.com/youtube/v3/channels?part=contentDetails&id=${encodeURIComponent(channelId)}&key=${apiKey}`;
   const res = await fetch(url);
@@ -288,8 +287,7 @@ async function getUploadsPlaylistId(channelId: string): Promise<string | null> {
  * Costs 1 quota unit per request.
  */
 async function getRecentVideoIds(playlistId: string, count = 10): Promise<string[]> {
-  const apiKey = env.YOUTUBE_API_KEY;
-  if (!apiKey) throw new Error('YOUTUBE_API_KEY is not set');
+  const apiKey = requireYoutubeKey();
 
   const url =
     `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet` +
@@ -309,8 +307,7 @@ async function getRecentVideoIds(playlistId: string, count = 10): Promise<string
  * Costs 1 quota unit per 50 videos.
  */
 async function getVideoViewCounts(videoIds: string[]): Promise<Map<string, number>> {
-  const apiKey = env.YOUTUBE_API_KEY;
-  if (!apiKey) throw new Error('YOUTUBE_API_KEY is not set');
+  const apiKey = requireYoutubeKey();
 
   const counts = new Map<string, number>();
   if (videoIds.length === 0) return counts;
@@ -344,8 +341,7 @@ export async function fetchYouTubeChannelPhotos(
   channelIds: string[],
 ): Promise<YouTubeChannelPhoto[]> {
   if (channelIds.length === 0) return [];
-  const apiKey = env.YOUTUBE_API_KEY;
-  if (!apiKey) throw new Error('YOUTUBE_API_KEY is not set');
+  const apiKey = requireYoutubeKey();
 
   const results: YouTubeChannelPhoto[] = [];
   const batchSize = 50;

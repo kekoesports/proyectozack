@@ -63,16 +63,19 @@ export type TwitchChannelPreview = {
   readonly thumbnailUrl: string | null;
 }
 
-let cachedToken: string | null = null;
+type TwitchAuth = { readonly token: string; readonly clientId: string };
+
+let cachedAuth: TwitchAuth | null = null;
 let tokenExpiresAt = 0;
 
 /**
- * Get an app access token via client credentials grant.
- * Caches the token until expiry.
+ * Get an app access token + clientId via client credentials grant.
+ * Caches the token until expiry. Returns both because every Helix call needs
+ * the `Client-Id` header alongside the bearer.
  */
-async function getAppAccessToken(): Promise<string> {
-  if (cachedToken && Date.now() < tokenExpiresAt) {
-    return cachedToken;
+async function getAppAccessToken(): Promise<TwitchAuth> {
+  if (cachedAuth && Date.now() < tokenExpiresAt) {
+    return cachedAuth;
   }
 
   const clientId = env.TWITCH_CLIENT_ID;
@@ -97,10 +100,10 @@ async function getAppAccessToken(): Promise<string> {
   }
 
   const data: TwitchTokenResponse = await res.json();
-  cachedToken = data.access_token;
+  cachedAuth = { token: data.access_token, clientId };
   // Expire 5 minutes early to avoid edge cases
   tokenExpiresAt = Date.now() + (data.expires_in - 300) * 1000;
-  return cachedToken;
+  return cachedAuth;
 }
 
 /**
@@ -110,8 +113,7 @@ export async function fetchTwitchFollowerCounts(
   broadcasterIds: string[],
 ): Promise<TwitchFollowerResult[]> {
   if (broadcasterIds.length === 0) return [];
-  const token = await getAppAccessToken();
-  const clientId = env.TWITCH_CLIENT_ID ?? '';
+  const { token, clientId } = await getAppAccessToken();
 
   const map = await _buildFollowerMap(broadcasterIds, clientId, token);
   return Array.from(map.entries()).map(([broadcasterId, followerCount]) => ({
@@ -128,8 +130,7 @@ export async function searchTwitchChannels(
   query: string,
   liveOnly = false,
 ): Promise<TwitchChannelPreview[]> {
-  const token = await getAppAccessToken();
-  const clientId = env.TWITCH_CLIENT_ID ?? '';
+  const { token, clientId } = await getAppAccessToken();
 
   const url =
     `https://api.twitch.tv/helix/search/channels?query=${encodeURIComponent(query)}` +
@@ -165,8 +166,7 @@ export async function searchTwitchChannels(
  * Get currently live CS2 streams (game_id = 32399).
  */
 export async function getCS2LiveStreams(first = 100, language?: string): Promise<TwitchChannelPreview[]> {
-  const token = await getAppAccessToken();
-  const clientId = env.TWITCH_CLIENT_ID ?? '';
+  const { token, clientId } = await getAppAccessToken();
 
   let url = `https://api.twitch.tv/helix/streams?game_id=32399&first=${first}`;
   if (language) url += `&language=${encodeURIComponent(language)}`;
@@ -204,8 +204,7 @@ export async function getTwitchChannelInfo(
 ): Promise<TwitchChannelPreview[]> {
   if (broadcasterIds.length === 0) return [];
 
-  const token = await getAppAccessToken();
-  const clientId = env.TWITCH_CLIENT_ID ?? '';
+  const { token, clientId } = await getAppAccessToken();
 
   const params = broadcasterIds.map((id) => `broadcaster_id=${encodeURIComponent(id)}`).join('&');
   const url = `https://api.twitch.tv/helix/channels?${params}`;
@@ -264,8 +263,7 @@ export async function fetchTwitchUserPhotos(
   userIds: string[],
 ): Promise<TwitchUserPhoto[]> {
   if (userIds.length === 0) return [];
-  const token = await getAppAccessToken();
-  const clientId = env.TWITCH_CLIENT_ID ?? '';
+  const { token, clientId } = await getAppAccessToken();
 
   const results: TwitchUserPhoto[] = [];
   const batchSize = 100;
@@ -299,8 +297,7 @@ export async function fetchTwitchUserPhotoByLogin(
   logins: string[],
 ): Promise<TwitchUserPhoto[]> {
   if (logins.length === 0) return [];
-  const token = await getAppAccessToken();
-  const clientId = env.TWITCH_CLIENT_ID ?? '';
+  const { token, clientId } = await getAppAccessToken();
 
   const results: TwitchUserPhoto[] = [];
   const batchSize = 100;
