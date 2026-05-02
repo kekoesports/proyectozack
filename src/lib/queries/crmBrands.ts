@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, isNull, lte, ne, or, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, inArray, isNull, lte, ne, or, sql } from 'drizzle-orm';
 
 import { db } from '@/lib/db';
 import { crmBrands, crmBrandContacts, crmBrandFollowups, user } from '@/db/schema';
@@ -172,6 +172,32 @@ export async function getBrandContacts(brandId: number): Promise<readonly CrmBra
 }
 
 /**
+ * Versión batch: contactos para varias marcas en una sola query, agrupados por `brandId`.
+ * Cada grupo conserva el orden (primarios primero, luego nombre ASC).
+ *
+ * @cache none
+ * @visibility admin
+ * @returns Map vacío si `brandIds` está vacío. Marcas sin contactos no aparecen en el Map.
+ */
+export async function getContactsByBrandIds(
+  brandIds: readonly number[],
+): Promise<Map<number, readonly CrmBrandContact[]>> {
+  const out = new Map<number, CrmBrandContact[]>();
+  if (brandIds.length === 0) return out;
+  const rows = await db
+    .select()
+    .from(crmBrandContacts)
+    .where(inArray(crmBrandContacts.brandId, [...brandIds]))
+    .orderBy(desc(crmBrandContacts.isPrimary), asc(crmBrandContacts.name));
+  for (const c of rows) {
+    const list = out.get(c.brandId);
+    if (list) list.push(c);
+    else out.set(c.brandId, [c]);
+  }
+  return out;
+}
+
+/**
  * Inserta una marca nueva en el CRM.
  *
  * @cache none
@@ -308,6 +334,32 @@ export async function listBrandFollowups(brandId: number): Promise<readonly CrmB
     .from(crmBrandFollowups)
     .where(eq(crmBrandFollowups.brandId, brandId))
     .orderBy(asc(crmBrandFollowups.scheduledAt));
+}
+
+/**
+ * Versión batch: follow-ups para varias marcas en una sola query, agrupados por `brandId`.
+ * Cada grupo conserva el orden por `scheduledAt` ASC.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns Map vacío si `brandIds` está vacío. Marcas sin follow-ups no aparecen en el Map.
+ */
+export async function getFollowupsByBrandIds(
+  brandIds: readonly number[],
+): Promise<Map<number, readonly CrmBrandFollowup[]>> {
+  const out = new Map<number, CrmBrandFollowup[]>();
+  if (brandIds.length === 0) return out;
+  const rows = await db
+    .select()
+    .from(crmBrandFollowups)
+    .where(inArray(crmBrandFollowups.brandId, [...brandIds]))
+    .orderBy(asc(crmBrandFollowups.scheduledAt));
+  for (const f of rows) {
+    const list = out.get(f.brandId);
+    if (list) list.push(f);
+    else out.set(f.brandId, [f]);
+  }
+  return out;
 }
 
 /**

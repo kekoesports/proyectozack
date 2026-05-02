@@ -7,7 +7,12 @@ import { requireAnyRole } from '@/lib/auth-guard';
 import { InviteBrandForm } from '@/features/admin/brands/components/invite-form';
 import { BrandsCrmManager } from '@/features/admin/brands/components/BrandsCrmManager';
 import { BrandsTabs } from '@/features/admin/brands/components/BrandsTabs';
-import { listCrmBrands, getBrandContacts, listBrandFollowups, listUpcomingFollowups } from '@/lib/queries/crmBrands';
+import {
+  listCrmBrands,
+  getContactsByBrandIds,
+  getFollowupsByBrandIds,
+  listUpcomingFollowups,
+} from '@/lib/queries/crmBrands';
 import { listAllCampaigns } from '@/lib/queries/campaigns';
 
 import type { Role } from '@/lib/auth-guard';
@@ -42,19 +47,20 @@ export default async function AdminBrandsPage(): Promise<React.ReactElement> {
     listAllCampaigns(),
   ]);
 
-  const contactsByBrand: Record<number, Awaited<ReturnType<typeof getBrandContacts>>> = {};
-  const followupsByBrand: Record<number, Awaited<ReturnType<typeof listBrandFollowups>>> = {};
+  const brandIds = crmBrandsList.map((b) => b.id);
+  const [contactsMap, followupsMap] = await Promise.all([
+    getContactsByBrandIds(brandIds),
+    getFollowupsByBrandIds(brandIds),
+  ]);
 
-  await Promise.all(
-    crmBrandsList.map(async (b) => {
-      const [contacts, followups] = await Promise.all([
-        getBrandContacts(b.id),
-        listBrandFollowups(b.id),
-      ]);
-      contactsByBrand[b.id] = contacts;
-      followupsByBrand[b.id] = followups;
-    }),
-  );
+  type ContactsList = Awaited<ReturnType<typeof getContactsByBrandIds>> extends Map<number, infer V> ? V : never;
+  type FollowupsList = Awaited<ReturnType<typeof getFollowupsByBrandIds>> extends Map<number, infer V> ? V : never;
+  const contactsByBrand: Record<number, ContactsList> = {};
+  const followupsByBrand: Record<number, FollowupsList> = {};
+  for (const b of crmBrandsList) {
+    contactsByBrand[b.id] = contactsMap.get(b.id) ?? [];
+    followupsByBrand[b.id] = followupsMap.get(b.id) ?? [];
+  }
 
   // Group campaigns by brandId (client-side filtering avoids N+1 queries)
   const campaignsByBrand: Record<number, CampaignRow[]> = {};
