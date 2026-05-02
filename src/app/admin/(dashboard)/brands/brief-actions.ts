@@ -143,3 +143,59 @@ export async function deleteBriefAction(
     return { error: 'Error al eliminar el brief' };
   }
 }
+
+import type { BriefContent } from '@/db/schema/brandBriefs';
+
+export async function updateBriefContentAction(
+  briefId:  number,
+  brandId:  number,
+  content:  BriefContent,
+  meta:     { name?: string; version?: string; geo?: string },
+): Promise<ActionState> {
+  const session = await requireAnyRole(['admin', 'staff'], '/admin/login');
+  try {
+    await updateBrief(briefId, {
+      briefContent: content,
+      ...(meta.name    ? { name:    meta.name    } : {}),
+      ...(meta.version ? { version: meta.version } : {}),
+      ...(meta.geo     ? { geo:     meta.geo     } : {}),
+    });
+    revalidatePath(`/admin/brands/${brandId}`);
+    return { success: true };
+  } catch (err) {
+    console.error('[admin] updateBriefContent error:', err instanceof Error ? err.message : 'unknown');
+    return { error: 'Error al guardar el brief' };
+  }
+}
+
+export async function createEmptyBriefAction(
+  brandId: number,
+  name:    string,
+): Promise<ActionState> {
+  const session = await requireAnyRole(['admin', 'staff'], '/admin/login');
+  try {
+    const brief = await createBrief({
+      brandId,
+      name,
+      version:         'v1',
+      status:          'pending_review',
+      briefContent:    {},
+      geo:             null,
+      notes:           null,
+      sourceFileUrl:   null,
+      sourceFilePath:  null,
+      sourceFileName:  null,
+      sourceFileMime:  null,
+      extractedData:   null,
+      rawText:         null,
+      createdByUserId: session.user.id,
+      reviewedByUserId: null,
+      reviewedAt:      null,
+    });
+    revalidatePath(`/admin/brands/${brandId}`);
+    return { success: true, id: brief.id };
+  } catch (err) {
+    console.error('[admin] createEmptyBrief error:', err instanceof Error ? err.message : 'unknown');
+    return { error: 'Error al crear el brief' };
+  }
+}
