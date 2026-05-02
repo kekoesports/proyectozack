@@ -12,7 +12,6 @@ import { BrandsTabs }                from '@/features/admin/brands/components/Br
 import { requireAnyRole } from '@/lib/auth-guard';
 import { canDelete } from '@/lib/permissions';
 
-import type { Role } from '@/lib/auth-guard';
 
 export const metadata = { title: 'Facturación | Admin' };
 
@@ -43,7 +42,7 @@ function KpiCard({ label, value, accent, sub, subAccent }: KpiCardProps): React.
 
 export default async function AdminInvoicesPage(): Promise<React.ReactElement> {
   const session = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
-  const role    = (session.user.role ?? 'staff') as Role;
+  const role    = session.user.role;
   const isStaff = role === 'staff';
 
   const yearStart = `${new Date().getFullYear()}-01-01`;

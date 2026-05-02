@@ -3,7 +3,7 @@ import { headers } from 'next/headers';
 import { cache } from 'react';
 import superjson from 'superjson';
 import { auth } from '@/lib/auth';
-import type { Role } from '@/lib/auth-guard';
+import { isRole, rolesIncludes, type Role } from '@/lib/auth-guard';
 import { env } from '@/lib/env';
 
 export type TRPCContext = {
@@ -31,12 +31,13 @@ const createInnerContext = cache(async (): Promise<TRPCContext> => {
   const session = await auth.api.getSession({ headers: h });
   if (!session) return { session: null };
 
+  const rawRole = (session.user as { role?: string | null }).role;
   return {
     session: {
       userId: session.user.id,
       email: session.user.email,
       name: session.user.name,
-      role: ((session.user as { role?: string | null }).role as Role | null) ?? null,
+      role: isRole(rawRole) ? rawRole : null,
     },
   };
 });
@@ -72,7 +73,7 @@ export const brandProcedure = t.procedure.use(({ ctx, next }) => {
 });
 
 type AdminRole = 'admin' | 'manager' | 'staff';
-const ADMIN_ROLES: readonly AdminRole[] = ['admin', 'manager', 'staff'];
+const ADMIN_ROLES = ['admin', 'manager', 'staff'] as const satisfies readonly AdminRole[];
 
 /**
  * Procedure that requires `admin`, `manager`, or `staff` role.
@@ -80,7 +81,7 @@ const ADMIN_ROLES: readonly AdminRole[] = ['admin', 'manager', 'staff'];
  */
 export const adminProcedure = t.procedure.use(({ ctx, next }) => {
   const role = ctx.session?.role;
-  if (!ctx.session || !role || !(ADMIN_ROLES as readonly string[]).includes(role)) {
+  if (!ctx.session || !role || !rolesIncludes(ADMIN_ROLES, role)) {
     throw new TRPCError({ code: 'FORBIDDEN' });
   }
   return next({
@@ -89,7 +90,7 @@ export const adminProcedure = t.procedure.use(({ ctx, next }) => {
         userId: ctx.session.userId,
         email: ctx.session.email,
         name: ctx.session.name,
-        role: role as AdminRole,
+        role,
       },
     },
   });

@@ -5,6 +5,17 @@ import { env } from '@/lib/env';
 
 export type Role = 'admin' | 'brand' | 'staff' | 'manager';
 
+export const ROLES = ['admin', 'brand', 'staff', 'manager'] as const satisfies readonly Role[];
+
+export function isRole(x: unknown): x is Role {
+  return typeof x === 'string' && (ROLES as readonly string[]).includes(x);
+}
+
+/** Type-guard variant of `roles.includes(x)` that narrows `x` to the array element type. */
+export function rolesIncludes<R extends Role>(roles: readonly R[], x: Role): x is R {
+  return (roles as readonly Role[]).includes(x);
+}
+
 const ALLOWED_LOGIN_PATHS = new Set(['/admin/login']);
 
 type SessionWithRole = {
@@ -12,7 +23,7 @@ type SessionWithRole = {
     id: string;
     email: string;
     name: string;
-    role: string | null;
+    role: Role | null;
   };
 };
 
@@ -25,7 +36,7 @@ type SessionWithNarrowedRole<R extends Role> = {
   };
 };
 
-function homeForRole(role: string | null | undefined): string | null {
+function homeForRole(role: Role | null | undefined): string | null {
   if (role === 'admin') return '/admin';
   if (role === 'manager') return '/admin';
   if (role === 'brand') return '/marcas';
@@ -43,7 +54,8 @@ async function loadSession(loginPath: string): Promise<SessionWithRole> {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session) redirect(safePath);
 
-  const userRole = (session.user as { role?: string | null }).role ?? null;
+  const rawRole = (session.user as { role?: string | null }).role;
+  const userRole: Role | null = isRole(rawRole) ? rawRole : null;
 
   return {
     user: {
@@ -70,7 +82,7 @@ export async function requireRole<R extends Role>(role: R, loginPath: string): P
     redirect(safePath);
   }
 
-  return { user: { ...session.user, role: userRole as R } };
+  return { user: { ...session.user, role } };
 }
 
 export async function requireAnyRole<R extends Role>(
@@ -80,22 +92,21 @@ export async function requireAnyRole<R extends Role>(
   const safePath = ALLOWED_LOGIN_PATHS.has(loginPath) ? loginPath : '/';
 
   if (process.env.NODE_ENV === 'development') {
+    if (roles.length === 0) throw new Error('requireAnyRole: roles must be non-empty');
     const override = env.DEV_ROLE_OVERRIDE;
     const mockRole: R =
-      override && (roles as readonly string[]).includes(override)
-        ? (override as R) // safe: validated by includes() above
-        : (roles[0] ?? ('admin' as R));
+      override && rolesIncludes(roles, override) ? override : roles[0]!;
     return { user: { id: 'dev', email: 'dev@localhost', name: 'Dev', role: mockRole } };
   }
 
   const session  = await loadSession(safePath);
   const userRole = session.user.role;
 
-  if (!userRole || !(roles as readonly string[]).includes(userRole as R)) {
+  if (!userRole || !rolesIncludes(roles, userRole)) {
     const home = homeForRole(userRole);
     if (home) redirect(home);
     redirect(safePath);
   }
 
-  return { user: { ...session.user, role: userRole as R } };
+  return { user: { ...session.user, role: userRole } };
 }

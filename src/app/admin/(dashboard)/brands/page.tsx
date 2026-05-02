@@ -15,12 +15,11 @@ import {
 } from '@/lib/queries/crmBrands';
 import { listAllCampaigns } from '@/lib/queries/campaigns';
 
-import type { Role } from '@/lib/auth-guard';
 import type { CampaignRow } from '@/types';
 
 export default async function AdminBrandsPage(): Promise<React.ReactElement> {
   const session = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
-  const role = session.user.role as Role;
+  const role = session.user.role;
   const isStaff = role === 'staff';
   const isManager = role === 'manager';
 

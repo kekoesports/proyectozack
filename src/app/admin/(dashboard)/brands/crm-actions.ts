@@ -155,7 +155,7 @@ export async function updateBrandAction(
   };
 
   try {
-    await assertCanEditBrand(id, { userId: session.user.id, role: session.user.role as Role });
+    await assertCanEditBrand(id, { userId: session.user.id, role: session.user.role });
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'unknown';
     if (msg.startsWith('forbidden:')) return { error: 'Sin permiso para modificar esta marca' };
@@ -182,7 +182,7 @@ export async function deleteBrandAction(id: number): Promise<ActionState> {
   const session = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
 
   try {
-    assertCanDelete(session.user.role as Role);
+    assertCanDelete(session.user.role);
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'unknown';
     if (msg.startsWith('forbidden:delete:')) return { error: msg };
@@ -191,7 +191,7 @@ export async function deleteBrandAction(id: number): Promise<ActionState> {
   }
 
   try {
-    await assertCanEditBrand(id, { userId: session.user.id, role: session.user.role as Role });
+    await assertCanEditBrand(id, { userId: session.user.id, role: session.user.role });
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'unknown';
     if (msg.startsWith('forbidden:')) return { error: 'Sin permiso para eliminar esta marca' };
@@ -222,7 +222,7 @@ export async function createContactAction(
   try {
     await assertCanEditBrand(parsed.data.brandId, {
       userId: session.user.id,
-      role: session.user.role as Role,
+      role: session.user.role,
     });
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'unknown';
@@ -260,7 +260,7 @@ export async function updateContactAction(
     try {
       await assertCanEditBrand(rest.brandId, {
         userId: session.user.id,
-        role: session.user.role as Role,
+        role: session.user.role,
       });
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'unknown';
@@ -291,7 +291,7 @@ export async function deleteContactAction(id: number, brandId: number): Promise<
   try {
     await assertCanEditBrand(brandId, {
       userId: session.user.id,
-      role: session.user.role as Role,
+      role: session.user.role,
     });
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'unknown';
@@ -326,7 +326,7 @@ export async function createFollowupAction(
   try {
     await assertCanEditBrand(parsed.data.brandId, {
       userId: session.user.id,
-      role: session.user.role as Role,
+      role: session.user.role,
     });
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'unknown';
@@ -378,7 +378,7 @@ export async function updateFollowupAction(
     try {
       await assertCanEditBrand(brandId, {
         userId: session.user.id,
-        role: session.user.role as Role,
+        role: session.user.role,
       });
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'unknown';
@@ -412,7 +412,7 @@ export async function completeFollowupAction(
   try {
     await assertCanEditBrand(parsed.data.brandId, {
       userId: session.user.id,
-      role: session.user.role as Role,
+      role: session.user.role,
     });
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'unknown';
@@ -442,7 +442,7 @@ export async function deleteFollowupAction(
   if (!parsed.success) return { error: 'Datos inválidos' };
 
   try {
-    assertCanDelete(session.user.role as Role);
+    assertCanDelete(session.user.role);
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'unknown';
     if (msg.startsWith('forbidden:delete:')) return { error: msg };
@@ -453,7 +453,7 @@ export async function deleteFollowupAction(
   try {
     await assertCanEditBrand(parsed.data.brandId, {
       userId: session.user.id,
-      role: session.user.role as Role,
+      role: session.user.role,
     });
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'unknown';
