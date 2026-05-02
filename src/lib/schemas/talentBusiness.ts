@@ -47,8 +47,8 @@ export const updateTalentBusinessSchema = z.object({
   managerEmail: optEmail,
   rateNotes: z.string().optional(),
   internalNotes: z.string().optional(),
-  verticals: z.preprocess((v) => {
-    if (Array.isArray(v)) return v;
+  verticals: z.preprocess((v): unknown[] => {
+    if (Array.isArray(v)) return v as unknown[];
     if (typeof v === 'string') return v.length > 0 ? v.split(',') : [];
     return [];
   }, z.array(z.enum(TALENT_VERTICALS)).default([])),

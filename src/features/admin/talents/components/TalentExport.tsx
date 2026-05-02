@@ -92,11 +92,11 @@ export function exportTalentsToExcel(
     for (let c = 0; c < numCols; c++) {
       const addr = XLSX.utils.encode_cell({ r, c });
       if (!ws[addr]) ws[addr] = { t: 's', v: '' };
-      if (r === 0) {
-        ws[addr].s = cellStyle(true, ORANGE, WHITE, 11);
-      } else {
-        ws[addr].s = cellStyle(false, r % 2 === 0 ? GRAY_BG : WHITE, DARK, 10);
-      }
+      const style = r === 0
+        ? cellStyle(true, ORANGE, WHITE, 11)
+        : cellStyle(false, r % 2 === 0 ? GRAY_BG : WHITE, DARK, 10);
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access -- xlsx WorkSheet uses an `any` index signature for cell access
+      ws[addr].s = style;
     }
   }
 
@@ -122,7 +122,9 @@ export function exportTalentsToExcel(
   wsSummary['!cols'] = [{ wch: 28 }, { wch: 20 }];
 
   // Estilo cabecera del resumen
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- xlsx WorkSheet uses an `any` index signature for cell access
   const rS = wsSummary['A1'];
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access -- ditto
   if (rS) rS.s = cellStyle(true, ORANGE, WHITE, 13);
 
   XLSX.utils.book_append_sheet(wb, wsSummary, 'Resumen');

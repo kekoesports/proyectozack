@@ -77,6 +77,11 @@ export async function generateInvoicePdf(
     doc.rect(x, yPos, w, h, 'F');
   }
 
+  function splitText(text: string, maxWidth: number): string[] {
+    const result: unknown = doc.splitTextToSize(text, maxWidth);
+    return Array.isArray(result) ? result.map((s) => String(s)) : [String(result)];
+  }
+
   // ── 1. HEADER ────────────────────────────────────────────────────────
 
   // Banda naranja superior
@@ -191,7 +196,7 @@ export async function generateInvoicePdf(
       if (idx % 2 === 1) rect(MARGIN - 2, y - 1, PAGE_W - MARGIN * 2 + 4, 8, '#f5f5f7');
 
       setFont(9, 'bold', BLACK);
-      const conceptLines = doc.splitTextToSize(line.concept, 82);
+      const conceptLines = splitText(line.concept, 82);
       doc.text(conceptLines[0] ?? line.concept, colsX.concept, y + 3.5);
       if (line.description) {
         setFont(7.5, 'normal', GRAY);
@@ -257,21 +262,21 @@ export async function generateInvoicePdf(
 
     if (invoice.paymentTerms) {
       setFont(8.5, 'normal', GRAY);
-      const terms = doc.splitTextToSize(invoice.paymentTerms, PAGE_W - MARGIN * 2);
+      const terms = splitText(invoice.paymentTerms, PAGE_W - MARGIN * 2);
       doc.text(terms, MARGIN, y);
       y += terms.length * 4;
     }
 
     if (issuer.bankDetails) {
       setFont(8.5, 'normal', BLACK);
-      const bankLines = doc.splitTextToSize(issuer.bankDetails, PAGE_W - MARGIN * 2);
+      const bankLines = splitText(issuer.bankDetails, PAGE_W - MARGIN * 2);
       doc.text(bankLines, MARGIN, y);
       y += bankLines.length * 4 + 1;
     }
 
     if (issuer.cryptoDetails) {
       setFont(8.5, 'normal', GRAY);
-      const cryptoLines = doc.splitTextToSize(`Crypto: ${issuer.cryptoDetails}`, PAGE_W - MARGIN * 2);
+      const cryptoLines = splitText(`Crypto: ${issuer.cryptoDetails}`, PAGE_W - MARGIN * 2);
       doc.text(cryptoLines, MARGIN, y);
       y += cryptoLines.length * 4 + 1;
     }
@@ -286,7 +291,7 @@ export async function generateInvoicePdf(
     hRule(y, '#e2e2ec');
     y += 4;
     setFont(7.5, 'normal', GRAY);
-    const legal = doc.splitTextToSize(legalText, PAGE_W - MARGIN * 2);
+    const legal = splitText(legalText, PAGE_W - MARGIN * 2);
     doc.text(legal, MARGIN, y);
     y += legal.length * 3.5 + 2;
   }

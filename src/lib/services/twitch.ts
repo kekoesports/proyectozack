@@ -1,55 +1,62 @@
+import { z } from 'zod';
 import { env } from '@/lib/env';
 
-type TwitchTokenResponse = {
-  access_token: string;
-  expires_in: number;
-  token_type: string;
-}
+const TwitchTokenSchema = z.object({
+  access_token: z.string(),
+  expires_in: z.number(),
+  token_type: z.string(),
+});
 
-type TwitchFollowerResponse = {
-  total: number;
-}
+const TwitchFollowerSchema = z.object({
+  total: z.number(),
+});
 
 type TwitchFollowerResult = {
   broadcasterId: string;
   followerCount: number;
-}
+};
 
-type TwitchSearchChannelsResponse = {
-  data: Array<{
-    broadcaster_login: string;
-    display_name: string;
-    id: string;
-    is_live: boolean;
-    game_name: string;
-    broadcaster_language: string;
-    thumbnail_url: string;
-  }>;
-}
+const TwitchSearchChannelsSchema = z.object({
+  data: z.array(
+    z.object({
+      broadcaster_login: z.string(),
+      display_name: z.string(),
+      id: z.string(),
+      is_live: z.boolean(),
+      game_name: z.string(),
+      broadcaster_language: z.string(),
+      thumbnail_url: z.string(),
+    }),
+  ),
+});
 
-type TwitchStreamsResponse = {
-  data: Array<{
-    user_id: string;
-    user_login: string;
-    user_name: string;
-    game_id: string;
-    game_name: string;
-    language: string;
-    viewer_count: number;
-    thumbnail_url: string;
-  }>;
-}
+const TwitchStreamsSchema = z.object({
+  data: z.array(
+    z.object({
+      user_id: z.string(),
+      user_login: z.string(),
+      user_name: z.string(),
+      game_id: z.string(),
+      game_name: z.string(),
+      language: z.string(),
+      viewer_count: z.number(),
+      thumbnail_url: z.string(),
+    }),
+  ),
+});
 
-type TwitchChannelsResponse = {
-  data: Array<{
-    broadcaster_id: string;
-    broadcaster_login: string;
-    broadcaster_name: string;
-    broadcaster_language: string;
-    game_name: string;
-    title: string;
-  }>;
-}
+const TwitchChannelsSchema = z.object({
+  data: z.array(
+    z.object({
+      broadcaster_id: z.string(),
+      broadcaster_login: z.string(),
+      broadcaster_name: z.string(),
+      broadcaster_language: z.string(),
+      game_name: z.string(),
+      title: z.string(),
+    }),
+  ),
+});
 
 export type TwitchChannelPreview = {
   readonly broadcasterId: string;
@@ -99,7 +106,7 @@ async function getAppAccessToken(): Promise<TwitchAuth> {
     throw new Error(`Twitch token error (${res.status}): ${text}`);
   }
 
-  const data: TwitchTokenResponse = await res.json();
+  const data = TwitchTokenSchema.parse(await res.json());
   cachedAuth = { token: data.access_token, clientId };
   // Expire 5 minutes early to avoid edge cases
   tokenExpiresAt = Date.now() + (data.expires_in - 300) * 1000;
@@ -145,8 +152,8 @@ export async function searchTwitchChannels(
     throw new Error(`Twitch search API error (${res.status}): ${text}`);
   }
 
-  const data: TwitchSearchChannelsResponse = await res.json();
-  const channels = data.data ?? [];
+  const data = TwitchSearchChannelsSchema.parse(await res.json());
+  const channels = data.data;
   if (channels.length === 0) return [];
 
   return channels.map((c) => ({
@@ -179,8 +186,8 @@ export async function getCS2LiveStreams(first = 100, language?: string): Promise
     throw new Error(`Twitch streams API error (${res.status}): ${text}`);
   }
 
-  const data: TwitchStreamsResponse = await res.json();
-  const streams = data.data ?? [];
+  const data = TwitchStreamsSchema.parse(await res.json());
+  const streams = data.data;
   if (streams.length === 0) return [];
 
   return streams.map((s) => ({
@@ -217,8 +224,8 @@ export async function getTwitchChannelInfo(
     throw new Error(`Twitch channels API error (${res.status}): ${text}`);
   }
 
-  const data: TwitchChannelsResponse = await res.json();
-  const channels = data.data ?? [];
+  const data = TwitchChannelsSchema.parse(await res.json());
+  const channels = data.data;
   if (channels.length === 0) return [];
 
   const followerMap = await _buildFollowerMap(
@@ -240,14 +247,16 @@ export async function getTwitchChannelInfo(
   }));
 }
 
-type TwitchUsersResponse = {
-  data: Array<{
-    id: string;
-    login: string;
-    display_name: string;
-    profile_image_url: string;
-  }>;
-};
+const TwitchUsersSchema = z.object({
+  data: z.array(
+    z.object({
+      id: z.string(),
+      login: z.string(),
+      display_name: z.string(),
+      profile_image_url: z.string(),
+    }),
+  ),
+});
 
 export type TwitchUserPhoto = {
   readonly userId: string;
@@ -276,8 +285,8 @@ export async function fetchTwitchUserPhotos(
       headers: { 'Client-Id': clientId, Authorization: `Bearer ${token}` },
     });
     if (!res.ok) continue;
-    const data: TwitchUsersResponse = await res.json();
-    for (const u of data.data ?? []) {
+    const data = TwitchUsersSchema.parse(await res.json());
+    for (const u of data.data) {
       if (u.profile_image_url) {
         results.push({
           userId: u.id,
@@ -310,8 +319,8 @@ export async function fetchTwitchUserPhotoByLogin(
       headers: { 'Client-Id': clientId, Authorization: `Bearer ${token}` },
     });
     if (!res.ok) continue;
-    const data: TwitchUsersResponse = await res.json();
-    for (const u of data.data ?? []) {
+    const data = TwitchUsersSchema.parse(await res.json());
+    for (const u of data.data) {
       if (u.profile_image_url) {
         results.push({
           userId: u.id,
@@ -340,7 +349,7 @@ async function _buildFollowerMap(
         headers: { 'Client-Id': clientId, Authorization: `Bearer ${token}` },
       });
       if (!res.ok) return null;
-      const d: TwitchFollowerResponse = await res.json();
+      const d = TwitchFollowerSchema.parse(await res.json());
       return { broadcasterId, total: d.total };
     }),
   );

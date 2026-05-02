@@ -159,7 +159,8 @@ export function ContractGenerator({ campaign, templates, vars, onDone }: Props):
           doc.text(trimmed, MARGIN + 3, y);
           y += 9;
         } else {
-          const wrapped = doc.splitTextToSize(rawLine, COL_R - MARGIN - 2);
+          const wrappedRaw: unknown = doc.splitTextToSize(rawLine, COL_R - MARGIN - 2);
+          const wrapped = Array.isArray(wrappedRaw) ? wrappedRaw.map((s) => String(s)) : [String(wrappedRaw)];
           for (const wline of wrapped) {
             checkPage(6);
             sf(9.5, 'normal', BLACK);

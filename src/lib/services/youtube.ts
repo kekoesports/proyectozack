@@ -1,3 +1,4 @@
+import { z } from 'zod';
 import { env } from '@/lib/env';
 
 function requireYoutubeKey(): string {
@@ -9,90 +10,98 @@ function requireYoutubeKey(): string {
 type YouTubeChannelStats = {
   channelId: string;
   subscriberCount: number;
-}
+};
 
-type YouTubeContentDetailsResponse = {
-  items?: Array<{
-    id: string;
-    contentDetails: {
-      relatedPlaylists: {
-        uploads: string;
-      };
-    };
-  }>;
-}
+const YouTubeContentDetailsSchema = z.object({
+  items: z
+    .array(
+      z.object({
+        id: z.string(),
+        contentDetails: z.object({
+          relatedPlaylists: z.object({ uploads: z.string() }),
+        }),
+      }),
+    )
+    .optional(),
+});
 
-type YouTubePlaylistItemsResponse = {
-  items?: Array<{
-    snippet: {
-      resourceId: {
-        videoId: string;
-      };
-    };
-  }>;
-}
+const YouTubePlaylistItemsSchema = z.object({
+  items: z
+    .array(z.object({ snippet: z.object({ resourceId: z.object({ videoId: z.string() }) }) }))
+    .optional(),
+});
 
-type YouTubeVideosStatsResponse = {
-  items?: Array<{
-    id: string;
-    statistics: {
-      viewCount?: string;
-    };
-  }>;
-}
+const YouTubeVideosStatsSchema = z.object({
+  items: z
+    .array(
+      z.object({
+        id: z.string(),
+        statistics: z.object({ viewCount: z.string().optional() }),
+      }),
+    )
+    .optional(),
+});
 
 export type YouTubeAvgViewsResult = {
   readonly channelId: string;
   readonly avgViews: number;
   readonly videoCount: number;
-}
+};
 
-type YouTubeAPIResponse = {
-  items?: Array<{
-    id: string;
-    statistics: {
-      subscriberCount: string;
-      viewCount: string;
-      videoCount: string;
-    };
-  }>;
-}
+const YouTubeChannelsStatsSchema = z.object({
+  items: z
+    .array(
+      z.object({
+        id: z.string(),
+        statistics: z.object({
+          subscriberCount: z.string().optional(),
+          viewCount: z.string().optional(),
+          videoCount: z.string().optional(),
+        }),
+      }),
+    )
+    .optional(),
+});
 
-type YouTubeSearchAPIResponse = {
-  items?: Array<{
-    id: {
-      channelId: string;
-    };
-  }>;
-}
+const YouTubeSearchSchema = z.object({
+  items: z.array(z.object({ id: z.object({ channelId: z.string() }) })).optional(),
+});
 
-type YouTubeChannelsAPIResponse = {
-  items?: Array<{
-    id: string;
-    snippet: {
-      title: string;
-      description: string;
-      customUrl?: string;
-      thumbnails?: {
-        medium?: { url: string };
-        default?: { url: string };
-      };
-    };
-    statistics: {
-      subscriberCount?: string;
-    };
-  }>;
-}
+const YouTubeChannelsSchema = z.object({
+  items: z
+    .array(
+      z.object({
+        id: z.string(),
+        snippet: z.object({
+          title: z.string(),
+          description: z.string(),
+          customUrl: z.string().optional(),
+          thumbnails: z
+            .object({
+              medium: z.object({ url: z.string() }).optional(),
+              default: z.object({ url: z.string() }).optional(),
+            })
+            .optional(),
+        }),
+        statistics: z.object({ subscriberCount: z.string().optional() }).optional(),
+      }),
+    )
+    .optional(),
+});
 
-type YouTubeSnippetOnlyResponse = {
-  items?: Array<{
-    id: string;
-    snippet: {
-      defaultLanguage?: string;
-      country?: string;
-    };
-  }>;
-}
+const YouTubeSnippetSchema = z.object({
+  items: z
+    .array(
+      z.object({
+        id: z.string(),
+        snippet: z.object({
+          defaultLanguage: z.string().optional(),
+          country: z.string().optional(),
+        }),
+      }),
+    )
+    .optional(),
+});
 
 export type YouTubeChannelSnippet = {
   readonly channelId: string;
@@ -132,14 +141,12 @@ export async function fetchYouTubeSubscriberCounts(
       throw new Error(`YouTube API error (${res.status}): ${text}`);
     }
 
-    const data: YouTubeAPIResponse = await res.json();
-    if (data.items) {
-      for (const item of data.items) {
-        results.push({
-          channelId: item.id,
-          subscriberCount: parseInt(item.statistics.subscriberCount, 10) || 0,
-        });
-      }
+    const data = YouTubeChannelsStatsSchema.parse(await res.json());
+    for (const item of data.items ?? []) {
+      results.push({
+        channelId: item.id,
+        subscriberCount: parseInt(item.statistics.subscriberCount ?? '0', 10) || 0,
+      });
     }
   }
 
@@ -169,7 +176,7 @@ export async function fetchYouTubeChannelSnippets(
       throw new Error(`YouTube snippets API error (${res.status}): ${text}`);
     }
 
-    const data: YouTubeSnippetOnlyResponse = await res.json();
+    const data = YouTubeSnippetSchema.parse(await res.json());
     for (const item of data.items ?? []) {
       results.push({
         channelId: item.id,
@@ -206,7 +213,7 @@ export async function searchYouTubeChannels(
     throw new Error(`YouTube search API error (${searchRes.status}): ${text}`);
   }
 
-  const searchData: YouTubeSearchAPIResponse = await searchRes.json();
+  const searchData = YouTubeSearchSchema.parse(await searchRes.json());
   const channelIds = (searchData.items ?? [])
     .map((item) => item.id.channelId)
     .filter(Boolean);
@@ -240,7 +247,7 @@ export async function getChannelDetails(
       throw new Error(`YouTube channels API error (${res.status}): ${text}`);
     }
 
-    const data: YouTubeChannelsAPIResponse = await res.json();
+    const data = YouTubeChannelsSchema.parse(await res.json());
     for (const item of data.items ?? []) {
       // customUrl arrives as "@handle" — strip the leading @
       const handle = item.snippet.customUrl
@@ -256,7 +263,7 @@ export async function getChannelDetails(
           item.snippet.thumbnails?.medium?.url ??
           item.snippet.thumbnails?.default?.url ??
           null,
-        subscriberCount: parseInt(item.statistics.subscriberCount ?? '0', 10) || 0,
+        subscriberCount: parseInt(item.statistics?.subscriberCount ?? '0', 10) || 0,
       });
     }
   }
@@ -278,7 +285,7 @@ async function getUploadsPlaylistId(channelId: string): Promise<string | null> {
     throw new Error(`YouTube channels API error (${res.status}): ${text}`);
   }
 
-  const data: YouTubeContentDetailsResponse = await res.json();
+  const data = YouTubeContentDetailsSchema.parse(await res.json());
   return data.items?.[0]?.contentDetails.relatedPlaylists.uploads ?? null;
 }
 
@@ -298,7 +305,7 @@ async function getRecentVideoIds(playlistId: string, count = 10): Promise<string
     throw new Error(`YouTube playlistItems API error (${res.status}): ${text}`);
   }
 
-  const data: YouTubePlaylistItemsResponse = await res.json();
+  const data = YouTubePlaylistItemsSchema.parse(await res.json());
   return (data.items ?? []).map((item) => item.snippet.resourceId.videoId).filter(Boolean);
 }
 
@@ -320,7 +327,7 @@ async function getVideoViewCounts(videoIds: string[]): Promise<Map<string, numbe
     throw new Error(`YouTube videos API error (${res.status}): ${text}`);
   }
 
-  const data: YouTubeVideosStatsResponse = await res.json();
+  const data = YouTubeVideosStatsSchema.parse(await res.json());
   for (const item of data.items ?? []) {
     counts.set(item.id, parseInt(item.statistics.viewCount ?? '0', 10) || 0);
   }
@@ -352,7 +359,7 @@ export async function fetchYouTubeChannelPhotos(
     const url = `https://www.googleapis.com/youtube/v3/channels?part=snippet&id=${ids}&key=${apiKey}`;
     const res = await fetch(url);
     if (!res.ok) continue;
-    const data: YouTubeChannelsAPIResponse = await res.json();
+    const data = YouTubeChannelsSchema.parse(await res.json());
     for (const item of data.items ?? []) {
       const thumb =
         item.snippet.thumbnails?.medium?.url ??
