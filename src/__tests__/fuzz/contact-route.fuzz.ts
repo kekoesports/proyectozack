@@ -22,14 +22,6 @@ jest.mock('next/headers', () => ({
     ['x-forwarded-for', '127.0.0.1'],
   ])),
 }));
-jest.mock('@/lib/env', () => ({
-  env: {
-    DATABASE_URL: 'postgresql://test:test@localhost:5432/test',
-    RESEND_API_KEY: 're_test_000',
-    BETTER_AUTH_SECRET: 'test-secret-32-chars-minimum-padding-xx',
-    NEXT_PUBLIC_SITE_URL: 'http://localhost:3000',
-  },
-}));
 
 import { appRouter } from '@/server/routers/_app';
 

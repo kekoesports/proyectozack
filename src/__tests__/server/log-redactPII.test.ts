@@ -2,6 +2,10 @@
  * Tests para `redactPII`. El env mock debe estar antes del import de `lib/log`
  * — el módulo construye el Map invertido al cargar, así que los valores mock
  * son los que se buscarán para redacción.
+ *
+ * Excepción al cleanup global de mocks: el Proxy de `jest.setup.ts` no implementa
+ * `ownKeys`, por lo que `Object.entries(env)` retorna `[]` y el redactor no puede
+ * enumerar valores. Mantenemos el mock literal aquí.
  */
 jest.mock('@/lib/env', () => ({
   env: {

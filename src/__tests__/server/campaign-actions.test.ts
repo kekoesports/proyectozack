@@ -4,15 +4,6 @@
  * Mocks: next/cache, @/lib/auth-guard, @/lib/queries/campaigns, @/lib/env, @/lib/auth
  */
 
-// ── Mock env / auth before any imports ───────────────────────────────────────
-jest.mock('@/lib/env', () => ({
-  env: {
-    DATABASE_URL: 'postgresql://test:test@localhost:5432/test',
-    RESEND_API_KEY: 're_test_000',
-    BETTER_AUTH_SECRET: 'test-secret-32-chars-minimum-padding-xx',
-    NEXT_PUBLIC_SITE_URL: 'http://localhost:3000',
-  },
-}));
 jest.mock('@/lib/auth', () => ({ auth: {} }));
 jest.mock('next/cache', () => ({ revalidatePath: jest.fn() }));
 jest.mock('next/navigation', () => ({ redirect: jest.fn() }));
