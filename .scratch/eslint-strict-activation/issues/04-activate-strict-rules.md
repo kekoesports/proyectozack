@@ -1,4 +1,4 @@
-Status: needs-triage
+Status: done — merged in 005d255
 
 # 04 — Activar reglas estrictas (any, non-null, type-assertions, no-unsafe-*, async safety)
 

@@ -1,16 +1,10 @@
-Status: blocked — slice 04 no mergeable hasta saneamiento PRD 2
+Status: ready-for-human — slice 04 mergeado en 005d255
 
-## Bloqueo (2026-05-02)
+## Desbloqueo (2026-05-02)
 
-Slice 04 quedó bloqueado: activar las 10 reglas estrictas produce 125 errores en 58 archivos (ver `04-remnant-saneamiento.md`). Sin reglas activas en `eslint.config.mjs`, una violación deliberada como `let x: any = 1` no rompe `npm run lint` y por tanto no rompe CI. La verificación sintética end-to-end pierde sentido hasta que slice 04 se mergee.
+Slice 04 mergeado en commit 005d255 — las 10 reglas estrictas están activas en `eslint.config.mjs` y `npm run lint` pasa verde. Saneamiento PRD 2 completado en master.
 
-Re-iniciar este slice **solo cuando**:
-
-1. PRD 2 (saneamiento) cierre los 125 errores remanentes.
-2. Slice 04 reactive las reglas estrictas y `npm run lint` pase verde.
-3. El cambio aterrice en `master` (CI verde tras merge).
-
-Tipo HITL — requiere humano para abrir/cerrar PR sintético en GitHub.
+**Próximo paso (HITL):** humano abre PR sintético con `let x: any = 1` en `src/`, verifica que CI rompe el job, captura log, cierra el PR sin merge. Segundo PR (o el mismo) con violación dentro de `*.test.ts` confirma que el override del slice 02 funciona.
 
 # 07 — Verificación sintética del gate
 

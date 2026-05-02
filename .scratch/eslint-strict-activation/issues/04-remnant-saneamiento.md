@@ -1,4 +1,4 @@
-Status: blocking-prd-3-merge
+Status: done — all 125 errors closed across 4 commits (516faea, a225ce4, 1ba6b7a, 005d255)
 
 # 04 — Remanente de saneamiento (bloquea slice 04)
 
