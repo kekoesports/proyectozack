@@ -97,7 +97,7 @@ describe('task actions', () => {
 
     const result = await deleteTaskAction(9);
 
-    expect(result).toEqual({ error: 'forbidden:delete:manager' });
+    expect(result).toEqual({ error: 'Sin permiso para eliminar' });
     expect(mockDeleteTask).not.toHaveBeenCalled();
   });
 });

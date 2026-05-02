@@ -1,10 +1,10 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { z } from 'zod';
 
 import { requireAnyRole } from '@/lib/auth-guard';
 import { assertCanDelete } from '@/lib/permissions';
+import { logRedacted } from '@/lib/log';
 import {
   completeTask,
   createTask,
@@ -19,10 +19,11 @@ import {
   updateTask,
   updateTaskTemplate,
 } from '@/lib/queries/crmTasks';
+import { IdSchema } from '@/lib/schemas/common';
 import { taskFormSchema, taskPatchSchema } from '@/lib/schemas/task';
+import { compact } from '@/lib/utils/objects';
 import { getIsoWeekLabel } from '@/lib/utils/week';
 
-import type { Role } from '@/lib/auth-guard';
 import type { CrmTaskTemplate } from '@/types';
 
 export type { TaskFormInput } from '@/lib/schemas/task';
@@ -49,16 +50,6 @@ function weekLabelForDueDate(dueDate: string | null): string {
 async function assertStaffOwner(ownerId: string): Promise<string | null> {
   const ok = await isAssignableTaskUser(ownerId);
   return ok ? null : 'El usuario asignado debe ser admin, manager o staff';
-}
-
-function compactPatch<T extends Record<string, unknown>>(
-  patch: T,
-): { [K in keyof T]?: Exclude<T[K], undefined> } {
-  const result: Record<string, unknown> = {};
-  for (const [key, value] of Object.entries(patch)) {
-    if (value !== undefined) result[key] = value;
-  }
-  return result as { [K in keyof T]?: Exclude<T[K], undefined> };
 }
 
 export async function createTaskAction(input: unknown): Promise<ActionResult> {
@@ -123,7 +114,7 @@ export async function updateTaskPartialAction(
 ): Promise<ActionResult> {
   await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
 
-  const parsedId = z.number().int().positive().safeParse(id);
+  const parsedId = IdSchema.safeParse(id);
   if (!parsedId.success) return { error: 'ID inválido' };
 
   const parsed = taskPatchSchema.safeParse(input);
@@ -136,7 +127,7 @@ export async function updateTaskPartialAction(
 
   const updated = await updateTask(
     parsedId.data,
-    compactPatch({
+    compact({
       ...parsed.data,
       assignedToUserId: parsed.data.ownerId ?? parsed.data.assignedToUserId,
     }),
@@ -155,15 +146,19 @@ export async function completeTaskAction(id: number): Promise<ActionResult> {
 }
 
 export async function deleteTaskAction(id: number): Promise<ActionResult> {
+  const session = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
   try {
-    const session = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
-    assertCanDelete(session.user.role as Role);
+    assertCanDelete(session.user.role);
+  } catch {
+    return { error: 'Sin permiso para eliminar' };
+  }
+  try {
     await deleteTask(id);
     revalidateAll();
     return {};
   } catch (err) {
-    const msg = err instanceof Error ? err.message : 'unknown';
-    return { error: msg !== 'unknown' ? msg : 'Error al eliminar tarea' };
+    logRedacted('error', '[admin] deleteTask error:', err);
+    return { error: 'Error al eliminar tarea' };
   }
 }
 
@@ -229,8 +224,7 @@ export async function createSingleTemplateAction(templateId: number): Promise<Ac
     revalidateAll();
     return {};
   } catch (err) {
-    const msg = err instanceof Error ? err.message : 'unknown';
-    console.error('[admin] createSingleTemplate error:', msg);
+    logRedacted('error', '[admin] createSingleTemplate error:', err);
     return { error: 'Error al crear la tarea' };
   }
 }
@@ -256,8 +250,7 @@ export async function saveTemplateDefinitionAction(
       return { template: created };
     }
   } catch (err) {
-    const msg = err instanceof Error ? err.message : 'unknown';
-    console.error('[admin] saveTemplateDefinition error:', msg);
+    logRedacted('error', '[admin] saveTemplateDefinition error:', err);
     return { error: 'Error al guardar la plantilla' };
   }
 }
