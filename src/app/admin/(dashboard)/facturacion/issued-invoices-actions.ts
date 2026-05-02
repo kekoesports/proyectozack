@@ -9,7 +9,11 @@ import {
   createBillingClient,
   updateBillingClient,
   updateIssuerCompany,
+  getIssuedInvoice,
 } from '@/lib/queries/issuedInvoices';
+import { createInvoice, listInvoices } from '@/lib/queries/invoices';
+import { createTask } from '@/lib/queries/crmTasks';
+import { getIsoWeekLabel } from '@/lib/utils/week';
 import {
   createIssuedInvoiceSchema,
   updateIssuedInvoiceSchema,
@@ -172,10 +176,85 @@ export async function updateIssuedInvoiceAction(
 }
 
 export async function updateInvoiceStatusAction(id: number, status: string): Promise<ActionState> {
-  await requireAnyRole(['admin', 'staff'], '/admin/login');
+  // Anular requiere admin; el resto pueden hacerlo admin y staff
+  const session = status === 'anulada'
+    ? await requireRole('admin', '/admin/login')
+    : await requireAnyRole(['admin', 'staff'], '/admin/login');
+
   try {
     await updateIssuedInvoice(id, { status });
+
+    const inv = await getIssuedInvoice(id);
+
+    // ── FASE 2: al emitir factura → crear tarea "Cobrar factura" ──────
+    if (status === 'emitida' && inv) {
+      const weekLabel = getIsoWeekLabel(new Date());
+
+      // Vencimiento: usar dueDate de la factura o +30 días
+      const dueDate = inv.dueDate
+        ? new Date(inv.dueDate + 'T12:00:00').toISOString().slice(0, 10)
+        : new Date(Date.now() + 30 * 86_400_000).toISOString().slice(0, 10);
+
+      const amount = Number(inv.totalAmount ?? 0);
+      const priority = amount >= 1000 ? 'alta' : 'media';
+
+      const clientLabel = inv.relatedBrandId ? `Factura ${inv.invoiceNumber}` : `Factura ${inv.invoiceNumber}`;
+
+      await createTask({
+        title:        `Cobrar factura — ${clientLabel}`,
+        description:  `Factura emitida por ${new Intl.NumberFormat('es-ES', { style: 'currency', currency: inv.currency ?? 'EUR' }).format(amount)}. Vence: ${dueDate}.`,
+        ownerId:      session.user.id,
+        assignedToUserId: session.user.id,
+        createdByUserId:  session.user.id,
+        priority,
+        status:       'pendiente',
+        category:     'Facturación',
+        weekLabel,
+        dueDate,
+        relatedType:  inv.relatedDealId ? 'campaign' : null,
+        relatedId:    inv.relatedDealId ?? null,
+        recurrenceTemplateId: null,
+      });
+    }
+
+    // ── FASE 3: al cobrar → crear movimiento financiero ───────────────
+    if (status === 'cobrada' && inv && Number(inv.totalAmount) > 0) {
+      const today     = new Date().toISOString().slice(0, 10);
+      const conceptId = `Factura emitida — ${inv.invoiceNumber}`;
+
+      const existingMov = await listInvoices({ search: inv.invoiceNumber });
+      const duplicate   = existingMov.find(
+        (m) => m.kind === 'income' && m.concept.includes(inv.invoiceNumber),
+      );
+
+      if (!duplicate) {
+        await createInvoice({
+          kind:            'income',
+          concept:         conceptId,
+          issueDate:       inv.issueDate ?? today,
+          dueDate:         inv.dueDate  ?? undefined,
+          paidDate:        today,
+          status:          'cobrada',
+          netAmount:       String(inv.netAmount       ?? inv.totalAmount),
+          vatPct:          String(inv.vatRate          ?? '0'),
+          withholdingPct:  String(inv.withholdingRate  ?? '0'),
+          totalAmount:     String(inv.totalAmount),
+          paidAmount:      String(inv.totalAmount),
+          currency:        inv.currency  ?? 'EUR',
+          series:          inv.series    ?? 'I',
+          brandId:         inv.relatedBrandId  ?? undefined,
+          talentId:        inv.relatedTalentId ?? undefined,
+          campaignId:      inv.relatedDealId   ?? undefined,
+          notes:           `Creado automáticamente al marcar cobrada la factura ${inv.invoiceNumber}`,
+          createdByUserId: session.user.id,
+        });
+      }
+    }
+
     revalidatePath('/admin/facturacion');
+    if (inv?.relatedDealId) {
+      revalidatePath(`/admin/campanas/${inv.relatedDealId}`);
+    }
     return { success: true };
   } catch (err) {
     console.error('[admin] updateInvoiceStatus error:', err instanceof Error ? err.message : 'unknown');
@@ -236,5 +315,34 @@ export async function updateIssuerCompanyAction(_prev: ActionState, formData: Fo
   } catch (err) {
     console.error('[admin] updateIssuerCompany error:', err instanceof Error ? err.message : 'unknown');
     return { error: 'Error al actualizar empresa emisora' };
+  }
+}
+
+export async function updateBillingClientAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  await requireAnyRole(['admin', 'staff'], '/admin/login');
+  const idRaw = formData.get('id');
+  const id = idRaw ? Number(idRaw) : NaN;
+  if (Number.isNaN(id)) return { error: 'ID inválido' };
+  const parsed = billingClientSchema.safeParse(formToObj(formData));
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? 'Datos inválidos' };
+  try {
+    await updateBillingClient(id, {
+      ...parsed.data,
+      relatedBrandId:        parsed.data.relatedBrandId        ?? null,
+      legalName:             parsed.data.legalName             ?? null,
+      taxId:                 parsed.data.taxId                 ?? null,
+      vatNumber:             parsed.data.vatNumber             ?? null,
+      country:               parsed.data.country               ?? null,
+      address:               parsed.data.address               ?? null,
+      city:                  parsed.data.city                  ?? null,
+      postalCode:            parsed.data.postalCode            ?? null,
+      email:                 parsed.data.email                 ?? null,
+      notes:                 parsed.data.notes                 ?? null,
+    });
+    revalidatePath('/admin/facturacion');
+    return { success: true };
+  } catch (err) {
+    console.error('[admin] updateBillingClient error:', err instanceof Error ? err.message : 'unknown');
+    return { error: 'Error al actualizar el cliente' };
   }
 }
