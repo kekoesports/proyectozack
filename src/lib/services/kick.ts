@@ -1,21 +1,23 @@
-type KickChannelResponse = {
-  id: number;
-  user_id: number;
-  slug: string;
-  is_banned: boolean;
-  followers_count: number;
-  banner_image: { url: string } | null;
-  recent_categories: Array<{ id: number; name: string }> | null;
-  user: {
-    id: number;
-    username: string;
-    bio: string | null;
-    country: string | null;
-    profile_pic: string | null;
-  };
-  livestream: { is_live: boolean; session_title: string } | null;
-  previous_livestreams: Array<{ created_at: string }> | null;
-}
+import { z } from 'zod';
+
+const KickChannelSchema = z.object({
+  id: z.number(),
+  user_id: z.number(),
+  slug: z.string(),
+  is_banned: z.boolean(),
+  followers_count: z.number(),
+  banner_image: z.object({ url: z.string() }).nullable(),
+  recent_categories: z.array(z.object({ id: z.number(), name: z.string() })).nullable(),
+  user: z.object({
+    id: z.number(),
+    username: z.string(),
+    bio: z.string().nullable(),
+    country: z.string().nullable(),
+    profile_pic: z.string().nullable(),
+  }),
+  livestream: z.object({ is_live: z.boolean(), session_title: z.string() }).nullable(),
+  previous_livestreams: z.array(z.object({ created_at: z.string() })).nullable(),
+});
 
 export type KickChannelPreview = {
   readonly slug: string;
@@ -48,7 +50,7 @@ export async function getKickChannel(slug: string): Promise<KickChannelPreview |
     throw new Error(`Kick API error (${res.status}): ${text.slice(0, 200)}`);
   }
 
-  const data: KickChannelResponse = await res.json();
+  const data = KickChannelSchema.parse(await res.json());
   if (data.is_banned) return null;
 
   const previous = data.previous_livestreams ?? [];
