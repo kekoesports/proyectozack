@@ -70,7 +70,8 @@ export async function createCode(data: {
   sortOrder?: number;
 }): Promise<CreatorCode> {
   const [row] = await db.insert(creatorCodes).values(data).returning();
-  return row!;
+  if (!row) throw new Error('createCode: insert returned no row');
+  return row;
 }
 
 /**

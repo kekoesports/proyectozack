@@ -79,7 +79,8 @@ export async function createGiveaway(data: {
   sortOrder?: number;
 }): Promise<Giveaway> {
   const [row] = await db.insert(giveaways).values(data).returning();
-  return row!;
+  if (!row) throw new Error('createGiveaway: insert returned no row');
+  return row;
 }
 
 /**

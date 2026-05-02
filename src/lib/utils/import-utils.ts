@@ -31,16 +31,19 @@ export function parseCsvLine(line: string): string[] {
 
 export function parseCsv(text: string): { headers: string[]; rows: Record<string, string>[] } {
   const lines = text.split(/\r?\n/).filter((l) => l.trim().length > 0);
-  if (lines.length === 0) return { headers: [], rows: [] };
+  const [headerLine, ...dataLines] = lines;
+  if (!headerLine) return { headers: [], rows: [] };
 
-  const headers = parseCsvLine(lines[0]!);
+  const headers = parseCsvLine(headerLine);
   const rows: Record<string, string>[] = [];
 
-  for (let i = 1; i < lines.length; i++) {
-    const cells = parseCsvLine(lines[i]!);
+  for (const line of dataLines) {
+    const cells = parseCsvLine(line);
     const row: Record<string, string> = {};
     for (let j = 0; j < headers.length; j++) {
-      row[headers[j]!] = cells[j] ?? '';
+      const header = headers[j];
+      if (header === undefined) continue;
+      row[header] = cells[j] ?? '';
     }
     rows.push(row);
   }

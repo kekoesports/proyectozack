@@ -6,6 +6,12 @@
 
 const WEEK_LABEL_RE = /^(\d{4})-W(\d{2})$/;
 
+function partValue(parts: Intl.DateTimeFormatPart[], type: Intl.DateTimeFormatPartTypes): string {
+  const part = parts.find((p) => p.type === type);
+  if (!part) throw new Error(`Missing Intl.DateTimeFormat part: ${type}`);
+  return part.value;
+}
+
 function madridCivilDate(instant: Date): { year: number; month: number; day: number } {
   const parts = new Intl.DateTimeFormat('en-CA', {
     timeZone: 'Europe/Madrid',
@@ -13,10 +19,11 @@ function madridCivilDate(instant: Date): { year: number; month: number; day: num
     month: '2-digit',
     day: '2-digit',
   }).formatToParts(instant);
-  const year = Number(parts.find((p) => p.type === 'year')!.value);
-  const month = Number(parts.find((p) => p.type === 'month')!.value);
-  const day = Number(parts.find((p) => p.type === 'day')!.value);
-  return { year, month, day };
+  return {
+    year: Number(partValue(parts, 'year')),
+    month: Number(partValue(parts, 'month')),
+    day: Number(partValue(parts, 'day')),
+  };
 }
 
 function isoWeekOfUtcDate(utcDate: Date): { isoYear: number; week: number } {
@@ -70,7 +77,7 @@ export function getWeekStart(label: string): Date {
     hour: '2-digit',
     hour12: false,
   }).formatToParts(noonUtc);
-  const madridHour = Number(madridParts.find((p) => p.type === 'hour')!.value);
+  const madridHour = Number(partValue(madridParts, 'hour'));
   const offsetHours = madridHour - 12; // +1 winter, +2 summer
   // Monday 00:00 Madrid = Monday (-offsetHours) UTC
   const result = new Date(monday);

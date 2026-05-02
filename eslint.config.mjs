@@ -39,6 +39,7 @@ const eslintConfig = defineConfig([
     "scripts/**",
     "coverage/**",
     "load-tests/**",
+    ".claude/**",
     "*.config.{js,cjs,mjs}",
   ]),
 ]);

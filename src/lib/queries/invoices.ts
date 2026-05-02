@@ -139,16 +139,15 @@ export async function listInvoices(filters: InvoiceFilters = {}): Promise<readon
 
   // Filtro de visibilidad para staff: solo facturas de campañas asignadas o creadas por ellos
   if (filters.staffUserId) {
-    conds.push(
-      or(
-        eq(invoices.createdByUserId, filters.staffUserId),
-        sql`${invoices.campaignId} IN (
-          SELECT id FROM campaigns
-          WHERE assigned_to_user_id = ${filters.staffUserId}
-             OR created_by_user_id  = ${filters.staffUserId}
-        )`,
-      )!,
+    const visibility = or(
+      eq(invoices.createdByUserId, filters.staffUserId),
+      sql`${invoices.campaignId} IN (
+        SELECT id FROM campaigns
+        WHERE assigned_to_user_id = ${filters.staffUserId}
+           OR created_by_user_id  = ${filters.staffUserId}
+      )`,
     );
+    if (visibility) conds.push(visibility);
   }
 
   const rows = await db

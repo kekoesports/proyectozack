@@ -225,7 +225,8 @@ export async function createTarget(data: CreateTargetInput): Promise<Target> {
       discoveredVia: data.discoveredVia ?? null,
     })
     .returning();
-  return row!;
+  if (!row) throw new Error('createTarget: insert returned no row');
+  return row;
 }
 
 /**

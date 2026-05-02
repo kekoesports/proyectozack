@@ -29,15 +29,11 @@ export async function getTrackableSocials() {
 
   return rows.flatMap((r) => {
     const platform = normalizeTrackablePlatform(r.platform);
-
-    if (!platform) {
-      return [];
-    }
-
+    if (!platform || !r.platformId) return [];
     return [{
       talentId: r.talentId,
       platform,
-      platformId: r.platformId!,
+      platformId: r.platformId,
     }];
   });
 }
@@ -222,9 +218,7 @@ export async function getLatestSnapshotsByPlatform(
 
   const grouped: Record<string, TalentMetricSnapshot[]> = {};
   for (const row of rows) {
-    const platform = row.platform;
-    if (!grouped[platform]) grouped[platform] = [];
-    grouped[platform]!.push(row);
+    (grouped[row.platform] ??= []).push(row);
   }
   return grouped;
 }

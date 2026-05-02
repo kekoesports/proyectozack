@@ -124,16 +124,15 @@ export async function listIssuedInvoices(filters: {
   if (filters.clientId) conds.push(eq(issuedInvoices.billingClientId, filters.clientId));
   if (filters.dealId)   conds.push(eq(issuedInvoices.relatedDealId, filters.dealId));
   if (filters.staffUserId) {
-    conds.push(
-      or(
-        eq(issuedInvoices.createdByUserId, filters.staffUserId),
-        sql`${issuedInvoices.relatedDealId} IN (
-          SELECT id FROM campaigns
-          WHERE assigned_to_user_id = ${filters.staffUserId}
-             OR created_by_user_id  = ${filters.staffUserId}
-        )`,
-      )!,
+    const visibility = or(
+      eq(issuedInvoices.createdByUserId, filters.staffUserId),
+      sql`${issuedInvoices.relatedDealId} IN (
+        SELECT id FROM campaigns
+        WHERE assigned_to_user_id = ${filters.staffUserId}
+           OR created_by_user_id  = ${filters.staffUserId}
+      )`,
     );
+    if (visibility) conds.push(visibility);
   }
 
   const rows = await db.select({

@@ -193,7 +193,7 @@ export async function getAdminRosterWithGrowth(): Promise<AdminRosterRow[]> {
 
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-  const fromDate = thirtyDaysAgo.toISOString().split('T')[0]!;
+  const fromDate = thirtyDaysAgo.toISOString().slice(0, 10);
 
   const [allTalents, latestSnaps, earliestSnaps, activeDealRows] = await Promise.all([
     getAllTalents(),

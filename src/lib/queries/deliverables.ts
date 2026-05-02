@@ -91,7 +91,8 @@ export async function createDeliverable(data: {
       status: 'pending_submission',
     })
     .returning();
-  return row!;
+  if (!row) throw new Error('createDeliverable: insert returned no row');
+  return row;
 }
 
 /**

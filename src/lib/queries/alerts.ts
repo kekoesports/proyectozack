@@ -1,6 +1,7 @@
 import { and, asc, eq, inArray, isNull, isNotNull, lt, not, or, sql } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { crmTasks, crmBrandFollowups, crmBrands, campaigns, talents, invoices, issuedInvoices, billingClients } from '@/db/schema';
+import { getIsoWeekLabel, previousWeek } from '@/lib/utils/week';
 
 export type AlertSeverity = 'critical' | 'high' | 'medium' | 'low';
 export type AlertType =
@@ -94,19 +95,7 @@ export async function getDashboardAlerts(opts?: {
       timeZone: 'Europe/Madrid', year: 'numeric', month: '2-digit', day: '2-digit',
     }).format(d).replace(/-/g, '') as string;
   })();
-  const prevWeekLabel = (() => {
-    const d = new Date();
-    d.setDate(d.getDate() - 7);
-    const civil = new Intl.DateTimeFormat('en-CA', {
-      timeZone: 'Europe/Madrid', year: 'numeric', month: '2-digit', day: '2-digit',
-    }).format(d);
-    const [y, m, dd] = civil.split('-').map(Number);
-    const dayOfWeek = (new Date(y!, m! - 1, dd!).getDay() + 6) % 7;
-    const jan4 = new Date(y!, 0, 4);
-    const jan4DayOfWeek = (jan4.getDay() + 6) % 7;
-    const weekNum = Math.floor((new Date(y!, m! - 1, dd!).getTime() - jan4.getTime() + jan4DayOfWeek * 86_400_000) / (7 * 86_400_000)) + 1;
-    return `${y}-W${String(weekNum).padStart(2, '0')}`;
-  })();
+  const prevWeekLabel = previousWeek(getIsoWeekLabel(new Date()));
 
   const [
     overdueTasks,

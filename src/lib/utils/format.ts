@@ -17,8 +17,9 @@ export function parseFollowers(display: string): number {
   const noCommas = s.replace(/,/g, '');
   const match = noCommas.match(/^([\d]+(?:\.\d+)?)\s*([KkMm]?)$/);
   if (!match) return 0;
-  const num = parseFloat(match[1]!);
-  const suffix = match[2]!.toUpperCase();
+  const [, numText = '', suffixText = ''] = match;
+  const num = parseFloat(numText);
+  const suffix = suffixText.toUpperCase();
   if (suffix === 'M') return num * 1_000_000;
   if (suffix === 'K') return num * 1_000;
   return num;
