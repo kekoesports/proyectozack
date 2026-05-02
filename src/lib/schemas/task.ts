@@ -30,7 +30,7 @@ export const taskFormSchema = z
       .transform((v) => (v === '' ? null : v)),
     priority: z.enum(CRM_TASK_PRIORITIES),
     status: z.enum(CRM_TASK_STATUSES),
-    category: z.string().trim().min(1).max(40),
+    category: z.string().trim().max(40).transform((v) => v || 'General'),
     relatedType: relatedTypeSchema,
     relatedId: relatedIdSchema,
   })

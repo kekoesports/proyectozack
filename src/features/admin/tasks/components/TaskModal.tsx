@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useId, useRef, useState, useTransition } from 'react';
+import { useEffect, useId, useMemo, useRef, useState, useTransition } from 'react';
 import type { CrmTask, CrmTaskPriority, CrmTaskStatus } from '@/types';
 import { createTaskAction, updateTaskAction, type TaskFormInput } from '@/app/admin/(dashboard)/tareas/actions';
 import type { RelatedOptions } from './RelatedSelector';
@@ -20,17 +20,33 @@ type Props = {
   readonly suggestedCategories?: readonly string[];
   readonly defaultOwnerId: string;
   readonly relatedOptions?: RelatedOptions;
+  readonly defaultCategory?: string;
+};
+
+const RELATED_SEARCH_TYPES = ['brand', 'talent', 'campaign'] as const;
+const RELATED_SEARCH_LABELS: Record<typeof RELATED_SEARCH_TYPES[number], string> = {
+  brand: 'Marcas', talent: 'Talentos', campaign: 'Campañas',
 };
 
 /**
- * Modal CRUD de una tarea. Crea (task=null) o edita una tarea existente vía createTaskAction/updateTaskAction.
- * Incluye selección de owner, dueDate, prioridad, estado, categoría y entidad relacionada.
+ * Modal CRUD de una tarea. Muestra campos primarios (título, asignado, fecha, prioridad)
+ * y sección secundaria colapsable (descripción, categoría, estado, relacionado con).
+ * La categoría es opcional y por defecto "General".
+ * El campo "relacionado con" usa un buscador unificado sobre marcas, talentos y campañas.
  *
  * @kind client
  * @feature admin/tasks
  */
-export function TaskModal({ onCloseAction, task, users, suggestedCategories = [], defaultOwnerId, relatedOptions }: Props): React.ReactElement {
-  const titleId = useId();
+export function TaskModal({
+  onCloseAction,
+  task,
+  users,
+  suggestedCategories = [],
+  defaultOwnerId,
+  relatedOptions,
+  defaultCategory,
+}: Props): React.ReactElement {
+  const titleId   = useId();
   const dialogRef = useRef<HTMLDivElement>(null);
 
   const [title,       setTitle]       = useState(task?.title ?? '');
@@ -39,12 +55,20 @@ export function TaskModal({ onCloseAction, task, users, suggestedCategories = []
   const [dueDate,     setDueDate]     = useState(task?.dueDate ?? '');
   const [priority,    setPriority]    = useState<CrmTaskPriority>(task?.priority ?? 'media');
   const [status,      setStatus]      = useState<CrmTaskStatus>(task?.status ?? 'pendiente');
-  const [category,    setCategory]    = useState(task?.category ?? '');
+  const [category,    setCategory]    = useState(task?.category ?? defaultCategory ?? 'General');
   const [relatedType, setRelatedType] = useState<string>((task?.relatedType ?? '') as string);
-  const [relatedId,   setRelatedId]   = useState<string>(task?.relatedId !== null && task?.relatedId !== undefined ? String(task.relatedId) : '');
+  const [relatedId,   setRelatedId]   = useState<string>(
+    task?.relatedId !== null && task?.relatedId !== undefined ? String(task.relatedId) : '',
+  );
   const [relatedSearch, setRelatedSearch] = useState('');
   const [error,       setError]       = useState<string | null>(null);
   const [isPending,   startTransition] = useTransition();
+
+  // Auto-abrir sección avanzada si la tarea tiene campos secundarios
+  const [showAdvanced, setShowAdvanced] = useState(() => {
+    if (!task) return false;
+    return !!(task.description?.trim() || (task.category && task.category !== 'General') || task.relatedType);
+  });
 
   // Restaurar foco al desmontar
   useEffect(() => {
@@ -63,27 +87,47 @@ export function TaskModal({ onCloseAction, task, users, suggestedCategories = []
       );
       if (focusables.length === 0) return;
       const first = focusables[0]!;
-      const last = focusables[focusables.length - 1]!;
+      const last  = focusables[focusables.length - 1]!;
       const active = document.activeElement;
-      if (e.shiftKey && active === first) { e.preventDefault(); last.focus(); }
+      if (e.shiftKey && active === first)  { e.preventDefault(); last.focus();  }
       else if (!e.shiftKey && active === last) { e.preventDefault(); first.focus(); }
     };
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
   }, [onCloseAction]);
 
-  // Lista filtrada por búsqueda
-  const relatedList = (() => {
-    if (!relatedType || relatedType === 'general' || !relatedOptions) return [];
-    const opts = relatedOptions[relatedType as keyof typeof relatedOptions] ?? [];
-    if (!relatedSearch) return opts;
-    const q = relatedSearch.toLowerCase();
-    return opts.filter((o: { id: number | string; label: string }) => o.label.toLowerCase().includes(q));
-  })();
+  // Buscador unificado: filtra marca, talento y campaña a la vez
+  const relatedSearchResults = useMemo(() => {
+    const q = relatedSearch.trim().toLowerCase();
+    if (q.length < 1 || !relatedOptions) return [];
+    const results: Array<{ rtype: typeof RELATED_SEARCH_TYPES[number]; id: number; label: string }> = [];
+    for (const rtype of RELATED_SEARCH_TYPES) {
+      for (const o of relatedOptions[rtype]) {
+        if (o.label.toLowerCase().includes(q)) results.push({ rtype, id: Number(o.id), label: o.label });
+      }
+    }
+    return results.slice(0, 12);
+  }, [relatedOptions, relatedSearch]);
+
+  // Label de la entidad relacionada seleccionada
+  const selectedRelatedLabel = useMemo(() => {
+    if (!relatedType || !relatedId) return null;
+    if (relatedType === 'general') return 'General';
+    if (!relatedOptions) return null;
+    const opts = relatedOptions[relatedType as keyof RelatedOptions] ?? [];
+    const opt  = opts.find((o) => String(o.id) === relatedId);
+    if (!opt) return null;
+    const typeLabel = RELATED_TYPE_LABELS[relatedType as keyof typeof RELATED_TYPE_LABELS] ?? relatedType;
+    return `${typeLabel} · ${opt.label}`;
+  }, [relatedType, relatedId, relatedOptions]);
+
+  // ¿Hay algún campo secundario relleno?
+  const hasSecondaryData = !!(description || category !== 'General' || relatedType);
+
+  const clearRelated = (): void => { setRelatedType(''); setRelatedId(''); setRelatedSearch(''); };
 
   const submit = (): void => {
     if (!title.trim()) { setError('El título es obligatorio'); return; }
-    if (!category.trim()) { setError('La categoría es obligatoria'); return; }
 
     const input: TaskFormInput = {
       title:       title.trim(),
@@ -92,7 +136,7 @@ export function TaskModal({ onCloseAction, task, users, suggestedCategories = []
       dueDate:     dueDate || null,
       priority,
       status,
-      category:    category.trim(),
+      category:    category.trim() || 'General',
       relatedType: (relatedType || undefined) as TaskFormInput['relatedType'],
       relatedId:   relatedId ? Number(relatedId) : undefined,
     };
@@ -114,19 +158,26 @@ export function TaskModal({ onCloseAction, task, users, suggestedCategories = []
       aria-labelledby={titleId}
     >
       <div ref={dialogRef} className="w-full max-w-lg rounded-xl border border-sp-admin-border bg-sp-admin-card shadow-2xl overflow-hidden">
+
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-sp-admin-border">
           <h2 id={titleId} className="text-base font-bold text-sp-admin-text">
             {task ? 'Editar tarea' : 'Nueva tarea'}
           </h2>
-          <button type="button" onClick={onCloseAction} className="text-sp-admin-muted hover:text-sp-admin-text text-xl leading-none transition-colors" aria-label="Cerrar">
+          <button
+            type="button"
+            onClick={onCloseAction}
+            className="text-sp-admin-muted hover:text-sp-admin-text text-xl leading-none transition-colors"
+            aria-label="Cerrar"
+          >
             ×
           </button>
         </div>
 
         <form onSubmit={(e) => { e.preventDefault(); submit(); }} className="p-6 space-y-4">
 
-          {/* Título */}
+          {/* ── Campos primarios ──────────────────────────────── */}
+
           <Field label="Título *">
             <input
               value={title}
@@ -139,25 +190,12 @@ export function TaskModal({ onCloseAction, task, users, suggestedCategories = []
             />
           </Field>
 
-          {/* Descripción */}
-          <Field label="Descripción (opcional)">
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              rows={2}
-              className={`${inputCls} resize-none`}
-              placeholder="Notas adicionales…"
-            />
-          </Field>
-
-          {/* Asignado + Fecha */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <Field label="Asignado">
               <select value={ownerId} onChange={(e) => setOwnerId(e.target.value)} className={inputCls}>
                 {users.map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
               </select>
             </Field>
-
             <Field label="Fecha límite">
               <input
                 type="date"
@@ -166,91 +204,147 @@ export function TaskModal({ onCloseAction, task, users, suggestedCategories = []
                 className={inputCls}
               />
             </Field>
-
             <Field label="Prioridad">
-              <select value={priority} onChange={(e) => setPriority(e.target.value as CrmTaskPriority)} className={inputCls}>
-                {PRIORITIES.map((p) => <option key={p} value={p}>{p}</option>)}
+              <select
+                value={priority}
+                onChange={(e) => setPriority(e.target.value as CrmTaskPriority)}
+                className={inputCls}
+              >
+                {PRIORITIES.map((p) => (
+                  <option key={p} value={p}>{p.charAt(0).toUpperCase() + p.slice(1)}</option>
+                ))}
               </select>
             </Field>
+          </div>
 
-            <Field label="Estado">
-              <select value={status} onChange={(e) => setStatus(e.target.value as CrmTaskStatus)} className={inputCls}>
-                {STATUSES.map((s) => <option key={s} value={s}>{s.replace('_', ' ')}</option>)}
-              </select>
-            </Field>
+          {/* ── Toggle sección avanzada ───────────────────────── */}
+          <button
+            type="button"
+            onClick={() => setShowAdvanced((v) => !v)}
+            className="flex items-center gap-1.5 text-[11px] font-semibold text-sp-admin-muted hover:text-sp-admin-text transition-colors"
+          >
+            <svg
+              width="10" height="10" viewBox="0 0 10 10"
+              className={`transition-transform duration-150 ${showAdvanced ? 'rotate-180' : ''}`}
+              fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"
+              aria-hidden
+            >
+              <path d="M2 3.5L5 6.5L8 3.5" />
+            </svg>
+            {showAdvanced ? 'Menos opciones' : 'Más opciones'}
+            {hasSecondaryData && !showAdvanced && (
+              <span className="w-1.5 h-1.5 rounded-full bg-sp-admin-accent" aria-hidden />
+            )}
+          </button>
 
-            <div className="col-span-2">
-              <Field label="Categoría">
-                <select
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  className={inputCls}
-                  required
-                >
-                  <option value="">— Seleccionar categoría —</option>
-                  {suggestedCategories.map((c) => (
-                    <option key={c} value={c}>{c}</option>
-                  ))}
-                </select>
+          {/* ── Sección avanzada (colapsable) ────────────────── */}
+          {showAdvanced && (
+            <div className="space-y-4 pt-1 border-t border-sp-admin-border/60">
+
+              <Field label="Descripción">
+                <textarea
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  rows={2}
+                  className={`${inputCls} resize-none`}
+                  placeholder="Notas adicionales…"
+                />
               </Field>
-            </div>
 
-            <div className="col-span-2">
-              <Field label="Relacionado con">
-                <div className="space-y-2">
-                  <div className="grid grid-cols-4 gap-1">
-                    <button
-                      type="button"
-                      onClick={() => { setRelatedType(''); setRelatedId(''); setRelatedSearch(''); }}
-                      className={`px-2 py-1.5 rounded-lg border text-[11px] font-semibold transition-colors cursor-pointer ${relatedType === '' ? 'bg-sp-admin-accent/10 border-sp-admin-accent text-sp-admin-accent' : 'border-sp-admin-border text-sp-admin-muted hover:text-sp-admin-text'}`}
-                    >
-                      Ninguna
-                    </button>
-                    {(['brand', 'talent', 'campaign', 'invoice', 'general'] as const).map((k) => (
-                      <button
-                        key={k}
-                        type="button"
-                        onClick={() => { setRelatedType(k); setRelatedId(''); setRelatedSearch(''); }}
-                        className={`px-2 py-1.5 rounded-lg border text-[11px] font-semibold transition-colors cursor-pointer ${relatedType === k ? 'bg-sp-admin-accent/10 border-sp-admin-accent text-sp-admin-accent' : 'border-sp-admin-border text-sp-admin-muted hover:text-sp-admin-text'}`}
-                      >
-                        {RELATED_TYPE_LABELS[k]}
-                      </button>
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="Categoría">
+                  <input
+                    list="task-category-suggestions"
+                    value={category}
+                    onChange={(e) => setCategory(e.target.value)}
+                    className={inputCls}
+                    placeholder="General"
+                    maxLength={40}
+                  />
+                  <datalist id="task-category-suggestions">
+                    <option value="General" />
+                    {suggestedCategories
+                      .filter((c) => c !== 'General')
+                      .map((c) => <option key={c} value={c} />)}
+                  </datalist>
+                </Field>
+
+                <Field label="Estado">
+                  <select
+                    value={status}
+                    onChange={(e) => setStatus(e.target.value as CrmTaskStatus)}
+                    className={inputCls}
+                  >
+                    {STATUSES.map((s) => (
+                      <option key={s} value={s}>{s.replace('_', ' ')}</option>
                     ))}
-                  </div>
-                  {relatedType && relatedType !== 'general' && (
-                    <>
+                  </select>
+                </Field>
+              </div>
+
+              {/* Relacionado con — buscador unificado */}
+              {relatedOptions && (
+                <Field label="Relacionado con">
+                  {selectedRelatedLabel ? (
+                    <div className="flex items-center gap-2">
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-sp-admin-hover border border-sp-admin-border px-3 py-1 text-xs font-semibold text-sp-admin-text">
+                        {selectedRelatedLabel}
+                        <button
+                          type="button"
+                          onClick={clearRelated}
+                          className="text-sp-admin-muted hover:text-red-500 transition-colors leading-none"
+                          aria-label="Quitar relación"
+                        >
+                          ×
+                        </button>
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="relative">
                       <input
                         type="search"
                         value={relatedSearch}
                         onChange={(e) => setRelatedSearch(e.target.value)}
-                        placeholder={`Buscar ${RELATED_TYPE_LABELS[relatedType as keyof typeof RELATED_TYPE_LABELS] ?? relatedType}...`}
+                        placeholder="Buscar marca, talento o campaña…"
                         className={inputCls}
+                        autoComplete="off"
                       />
-                      <div className="max-h-32 overflow-y-auto rounded-lg border border-sp-admin-border bg-sp-admin-bg">
-                        {relatedList.length === 0 ? (
-                          <p className="px-3 py-2 text-xs italic text-sp-admin-muted">Sin resultados.</p>
-                        ) : (
-                          relatedList.map((o: { id: number | string; label: string }) => {
-                            const isSel = relatedId === String(o.id);
+                      {relatedSearchResults.length > 0 && (
+                        <div className="absolute top-full left-0 right-0 z-10 mt-1 max-h-48 overflow-y-auto rounded-lg border border-sp-admin-border bg-sp-admin-card shadow-lg">
+                          {RELATED_SEARCH_TYPES.map((rtype) => {
+                            const items = relatedSearchResults.filter((r) => r.rtype === rtype);
+                            if (items.length === 0) return null;
                             return (
-                              <button
-                                key={o.id}
-                                type="button"
-                                onClick={() => setRelatedId(String(o.id))}
-                                className={`w-full text-left px-3 py-1.5 text-xs cursor-pointer ${isSel ? 'bg-sp-admin-accent/15 text-sp-admin-accent font-semibold' : 'text-sp-admin-text hover:bg-sp-admin-hover'}`}
-                              >
-                                {o.label}
-                              </button>
+                              <div key={rtype}>
+                                <div className="sticky top-0 px-3 py-1 text-[9px] font-bold uppercase tracking-wider text-sp-admin-muted bg-sp-admin-bg/90 border-b border-sp-admin-border/40">
+                                  {RELATED_SEARCH_LABELS[rtype]}
+                                </div>
+                                {items.map((r) => (
+                                  <button
+                                    key={`${r.rtype}:${r.id}`}
+                                    type="button"
+                                    onClick={() => {
+                                      setRelatedType(r.rtype);
+                                      setRelatedId(String(r.id));
+                                      setRelatedSearch('');
+                                    }}
+                                    className="w-full text-left px-3 py-1.5 text-xs text-sp-admin-text hover:bg-sp-admin-hover transition-colors"
+                                  >
+                                    {r.label}
+                                  </button>
+                                ))}
+                              </div>
                             );
-                          })
-                        )}
-                      </div>
-                    </>
+                          })}
+                        </div>
+                      )}
+                    </div>
                   )}
-                </div>
-              </Field>
+                </Field>
+              )}
+
             </div>
-          </div>
+          )}
 
           {error && (
             <p className="text-[12px] text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
@@ -275,6 +369,7 @@ export function TaskModal({ onCloseAction, task, users, suggestedCategories = []
               {isPending ? 'Guardando…' : task ? 'Guardar cambios' : 'Crear tarea'}
             </button>
           </div>
+
         </form>
       </div>
     </div>
