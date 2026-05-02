@@ -8,15 +8,20 @@ Doc oficial: https://docs.firecrawl.dev/api-reference/v2-introduction.
 
 El agente lee el `.env` de la carpeta de la skill con la herramienta Read y pasa el valor inline en cada curl. **No** sourcear el archivo en el shell (Windows/PowerShell no lo soporta limpio).
 
-Ruta: `~/.claude/skills/socialpro-press-targets/.env`. Formato: `FIRECRAWL_API_KEY=fc-...`.
+Ruta: `<repo>/.claude/skills/socialpro-press-targets/.env`. Formato: `FIRECRAWL_API_KEY=fc-...`.
 
 Si la variable no aparece o el archivo no existe, abortar:
 
-> Falta `FIRECRAWL_API_KEY`. Crea `~/.claude/skills/socialpro-press-targets/.env` con `FIRECRAWL_API_KEY=fc-...`.
+> Falta `FIRECRAWL_API_KEY`. Crea `.claude/skills/socialpro-press-targets/.env` con `FIRECRAWL_API_KEY=fc-...`.
 
 ## Llamada principal — `/v2/search` con `scrapeOptions`
 
 **Una sola request** devuelve URLs candidatas YA scrapeadas con markdown + extracción estructurada JSON. Reemplaza el patrón antiguo "search → loop de scrape por URL".
+
+### Reglas de la API (validadas en run-01, 2026-05-02)
+
+- **`includeDomains` requiere hostnames completos** (ej. `vandal.elespanol.com`). Sufijos TLD como `.es`, `.mx` → HTTP 400 `Domain must be a valid hostname without protocol or path`.
+- **`includeDomains` + `excludeDomains` son mutuamente excluyentes** → HTTP 400 `includeDomains and excludeDomains cannot both be specified`. **Esta skill solo usa `excludeDomains`** (filtro negativo). El sesgo geográfico se logra con `country` + `location`, no con `includeDomains`.
 
 ```bash
 curl -sS -X POST https://api.firecrawl.dev/v2/search \
@@ -27,7 +32,15 @@ curl -sS -X POST https://api.firecrawl.dev/v2/search \
     "limit": 5,
     "country": "ES",
     "location": "Spain",
-    "includeDomains": [".es", ".mx", ".ar", ".cl", ".co", ".pe", ".uy", ".ec", ".ve", ".com.mx", ".com.ar", ".com.co", ".com.pe"],
+    "excludeDomains": [
+      "prnewswire.com", "openpr.com", "prlog.org", "pressrelease.com",
+      "facebook.com", "instagram.com", "tiktok.com", "wikipedia.org",
+      "discord.com", "discadia.com", "disboard.org",
+      "steamcommunity.com", "counter-strike.net",
+      "reddit.com", "bitdefender.com",
+      "deadspin.com", "gamblinginsider.com", "igamingexpert.com",
+      "hltv.org", "dexerto.com", "egr.global", "sbcnews.co.uk"
+    ],
     "sources": [{ "type": "web" }],
     "scrapeOptions": {
       "formats": [
@@ -37,10 +50,10 @@ curl -sS -X POST https://api.firecrawl.dev/v2/search \
           "schema": {
             "type": "object",
             "properties": {
-              "name":             { "type": "string", "description": "Nombre/marca del medio (sin sufijos como '| Sección')" },
-              "language":         { "type": "string", "description": "Código ISO del idioma del sitio (es, en, pt, ...)" },
-              "country_hint":     { "type": "string", "description": "País inferido del contenido (ES, MX, AR, CL, CO, PE, ES/LATAM)" },
-              "category":         { "type": "string", "enum": ["gaming-generalista", "cs2-fps", "igaming-skins", "prensa-local", "foro", "periodista", "otro"] },
+              "name":             { "type": "string", "description": "Nombre/marca del medio (sin sufijos como ''| Sección'')" },
+              "language":         { "type": "string", "description": "Idioma principal del sitio. Aceptamos código ISO 639-1 (''es'', ''en'') o nombre en inglés (''Spanish'', ''English''). Filtramos ambos formatos en post-proceso." },
+              "country_hint":     { "type": "string", "description": "País del contenido. Aceptamos código ISO 3166-1 alfa-2 (''ES'', ''MX'', ''AR'') o nombre en inglés (''Spain'', ''Mexico'', ''Argentina''). Mapeamos en post-proceso." },
+              "category":         { "type": "string", "enum": ["gaming-generalista", "cs2-fps", "igaming-skins", "prensa-local", "foro", "periodista", "otro"], "description": "Si el sitio es plataforma oficial (Discord, Steam, web del juego), holding empresarial, asociación o cluster, devolver ''otro''. Solo medios/periodistas/foros con contenido editorial entran en las otras 6 categorías." },
               "press_email":      { "type": ["string","null"], "description": "Email priorizando prensa@/redaccion@/editor@/noticias@; null si no hay" },
               "general_email":    { "type": ["string","null"], "description": "Otro email visible (info@, contact@) si no hay press_email" },
               "contact_form_url": { "type": ["string","null"], "description": "URL absoluta del form de contacto/prensa si existe" },
@@ -120,6 +133,32 @@ curl -sS -X POST https://api.firecrawl.dev/v2/scrape \
 
 Response: `{ success, data: { markdown, json, metadata } }` (sin envoltorio `web`).
 
+## Llamada terciaria — `/v2/map` + `/v2/scrape` para emails huérfanos
+
+**Validado en run-01:** la homepage casi nunca expone email. 0 de 20 items tenían `press_email` y solo 1 tenía `general_email`. Para items útiles sin contacto, hacer un follow-up de 2 pasos:
+
+### Paso 1: `/v2/map` para encontrar la página de contacto
+
+```bash
+curl -sS -X POST https://api.firecrawl.dev/v2/map \
+  -H "Authorization: Bearer fc-XXX" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://vandal.elespanol.com",
+    "search": "contacto"
+  }'
+```
+
+Response: `{ success, links: ["https://vandal.elespanol.com/contacto", ...] }`. Tomar el primer link que matchee `/contacto` o `/prensa` o `/about` o `/staff` (en ese orden de prioridad).
+
+### Paso 2: `/v2/scrape` sobre el subpath con schema de extracción de email
+
+Mismo schema que la principal pero apuntando al subpath. Si `press_email` o `general_email` aparece, actualizar la fila. Si tampoco aparece, dejar `Submission: ?` con nota `[verificar contacto manualmente]`.
+
+### Coste
+
+`/v2/map`: 1 crédito por request. `/v2/scrape` con extract: ~5 créditos. Total por item huérfano: **~6 créditos**. Activar solo cuando `press_email===null && general_email===null && contact_form_url===null` Y el item NO está categorizado como `otro`.
+
 ## Pricing (en créditos)
 
 Source: https://firecrawl.dev/pricing.
@@ -132,15 +171,20 @@ Source: https://firecrawl.dev/pricing.
 | Format `json`/extract | basado en tokens (1 crédito = 15 tokens) |
 | Modo enhanced proxy / lockdown | hasta 5 créditos por request |
 
-**Estimación por modo** (para esta skill):
+**Estimación por modo** (validada en run-01, 2026-05-02 — los estimados anteriores subestimaban en 2x):
 
-| Modo | Llamadas | Créditos aprox |
+| Modo | Llamadas | Créditos reales |
 |---|---|---|
-| Default (4 search × 5 results, con scrape+JSON) | 4 | 4 × (2 + 5 + ~5 tokens) ≈ **~50 créditos** |
-| `--deep` (10 × 10) | 10 | ~250 créditos |
+| Default (4 search × 5 results, con scrape+JSON) | 4 | **~100 créditos** (22-27 por query observado) |
+| `--deep` (10 × 10 results) | 10 | **~500 créditos** (agotaría free tier en 1 invocación, **pedir confirmación**) |
 | `--refresh` (N curados) | N | N × ~5 créditos |
+| Email-followup (`/v2/map` + `/v2/scrape` por item huérfano) | 2 × M | M × ~6 créditos |
 
-Free tier = 500 créditos one-time. Hobby = 3.000/mes ($16). Standard = 100.000/mes ($83). Con default ligero entran ~10 invocaciones gratis o ~60 al mes con Hobby.
+Free tier = 500 créditos one-time. Hobby = 3.000/mes ($16). Standard = 100.000/mes ($83).
+
+**Presupuesto real por invocación:**
+- Default + email-followup para ~5 items útiles: 100 + 30 = **~130 créditos**.
+- Free tier soporta ~3-4 invocaciones default. Hobby ~20/mes.
 
 ## Rate limits
 
@@ -178,14 +222,11 @@ Códigos granulares en body: `SCRAPE_TIMEOUT`, `SCRAPE_SSL_ERROR`, `SCRAPE_NO_CA
 
 `/v2/search` acepta:
 
-- `country` — código ISO. Default `"US"`. Para esta skill **siempre `"ES"`** (sesga el ranking de resultados a sitios españoles).
+- `country` — código ISO. Default `"US"`. Para esta skill **siempre uno de** `"ES"`, `"MX"`, `"AR"`, `"CL"`, `"CO"`, `"PE"` según la query (sesga el ranking de resultados al país objetivo).
 - `location` — string libre. Útil para LATAM: `"Mexico"`, `"Argentina"`, `"Chile"` cuando se rota país en queries.
-- `includeDomains` — lista de TLD/dominios. Filtra por sufijo. Para hispanohablante: `[".es", ".mx", ".ar", ".cl", ".co", ".pe", ".uy", ".ec", ".ve", ".com.mx", ".com.ar", ".com.co", ".com.pe"]`.
-- `excludeDomains` — útil para excluir granjas SEO conocidas: `["prnewswire.com", "openpr.com", "prlog.org", "pressrelease.com"]`.
+- `excludeDomains` — útil para excluir granjas SEO conocidas + plataformas + sitios anglo. Ver lista canónica en el bloque del request principal arriba.
 - `tbs` — recencia: `qdr:y` (últ. año), `qdr:m` (últ. mes). Útil si quieres descubrir solo sitios activos.
 
+**No usar `includeDomains`** — ya documentado arriba que es incompatible con `excludeDomains` y rechaza TLD sufijos.
+
 `/v2/scrape` acepta `location: { country: "ES", languages: ["es"] }` para que el sitio responda con su versión española si tiene multi-idioma.
-
-## Mapping endpoint (futuro / opcional)
-
-`/v2/map` — dado un dominio, devuelve URLs internas filtradas por keyword. Útil como **fallback v2** si un candidato bueno no expone email obvio: `POST /v2/map` con `{ "url": "https://medio.com", "search": "contacto" }` para encontrar `/contacto`, `/prensa`, `/about`. No usado en v1 de la skill.
