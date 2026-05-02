@@ -6,25 +6,25 @@ import { GradientText } from '@/components/ui/GradientText';
 import { SITE_URL, absoluteUrl } from '@/lib/site-url';
 
 export const metadata: Metadata = {
-  title: 'Agencia de Campañas iGaming España',
+  title: 'Streamers iGaming, Betting y Casino España y LatAm',
   description:
-    'Campañas iGaming con streamers verificados en España y LatAm. Compliance, FTD tracking y ROI demostrable. Especialistas en iGaming para operadores.',
+    'Campañas iGaming, betting y casino con streamers verificados en España y LatAm. Compliance DGOJ, FTD tracking y ROI demostrable en cada activación.',
   alternates: {
     canonical: '/servicios/igaming',
   },
   openGraph: {
-    title: 'Agencia de Campañas iGaming España | SocialPro',
+    title: 'Streamers iGaming, Betting y Casino España y LatAm | SocialPro',
     description:
-      'Campañas iGaming con streamers verificados en España y LatAm. Compliance, FTD tracking y ROI demostrable.',
+      'Campañas iGaming, betting y casino con streamers verificados. Compliance DGOJ, FTD tracking y ROI demostrable en España, LatAm y Turquía.',
     url: absoluteUrl('/servicios/igaming'),
     type: 'website',
     images: [{ url: absoluteUrl('/og-default.jpg'), width: 1200, height: 630 }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Agencia de Campañas iGaming España | SocialPro',
+    title: 'Streamers iGaming, Betting y Casino España y LatAm | SocialPro',
     description:
-      'Campañas iGaming con streamers verificados. Compliance DGOJ, FTD tracking y ROI demostrable.',
+      'Streamers iGaming, betting y casino verificados. Compliance DGOJ, FTD tracking y ROI demostrable.',
     images: [absoluteUrl('/og-default.jpg')],
   },
 };
@@ -32,7 +32,7 @@ export const metadata: Metadata = {
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Service',
-  name: 'Campañas iGaming con Streamers',
+  name: 'Campañas iGaming, Betting y Casino con Streamers',
   serviceType: 'iGaming Influencer Marketing',
   provider: {
     '@type': 'Organization',
@@ -45,9 +45,72 @@ const jsonLd = {
     { '@type': 'Country', name: 'Argentina' },
     { '@type': 'Country', name: 'Colombia' },
     { '@type': 'Country', name: 'Chile' },
+    { '@type': 'Country', name: 'Turquía' },
   ],
   description:
-    'Diseño y ejecución de campañas de influencer marketing iGaming para operadores con licencia en España y LatAm. Compliance regulatorio integrado, selección de talentos verificados y reporting con FTDs rastreados.',
+    'Diseño y ejecución de campañas de influencer marketing iGaming, betting y casino para operadores con licencia en España, LatAm y Turquía. Compliance regulatorio integrado, selección de talentos verificados y FTD tracking en cada activación.',
+  offers: {
+    '@type': 'Offer',
+    description: 'Activación de campañas iGaming con streamers en menos de 72 horas',
+    areaServed: 'ES, MX, AR, CO, CL, TR',
+  },
+};
+
+const faqJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: [
+    {
+      '@type': 'Question',
+      name: '¿Qué es el FTD tracking en campañas iGaming con streamers?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'El FTD tracking (First Time Deposit) es el sistema que atribuye cada primer depósito de un usuario a un creador concreto mediante códigos únicos. En SocialPro, cada streamer recibe un código de seguimiento propio para que el operador iGaming pueda medir exactamente cuántas conversiones generó cada activación.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: '¿Qué normativa regula la publicidad de iGaming con streamers en España?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'En España, la publicidad de operadores iGaming está regulada por la DGOJ (Dirección General de Ordenación del Juego). Las campañas con streamers deben incluir disclaimers de juego responsable, restricción de audiencias menores de edad y revisión previa de contenido. SocialPro integra este compliance en cada campaña.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: '¿En qué mercados ejecutáis campañas de betting y casino con streamers?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Ejecutamos campañas de iGaming, betting y casino con streamers en España, México, Argentina, Colombia, Chile y Turquía. Cada mercado tiene su propia normativa y SocialPro adapta el compliance y el talento a la regulación local.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: '¿Cuánto tarda en activarse una campaña de streamers para iGaming?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Nuestro proceso de activación es de menos de 72 horas desde el briefing: verificación del creador, firma de contrato, briefing legal y coordinación de publicación. Para campañas multistreamer de mayor escala, el proceso puede extenderse a 5-7 días hábiles.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: '¿Qué diferencia a SocialPro de otras agencias de marketing iGaming?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'SocialPro es una agencia de performance marketing gaming, no de branding. Cada campaña incluye FTD tracking verificado, compliance regulatorio integrado y reporting con ROI demostrable. No gestionamos campañas de awareness genérico — cada activación tiene KPIs de conversión claros.',
+      },
+    },
+  ],
+};
+
+const breadcrumbJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Inicio', item: SITE_URL },
+    { '@type': 'ListItem', position: 2, name: 'Servicios', item: `${SITE_URL}/servicios` },
+    { '@type': 'ListItem', position: 3, name: 'iGaming', item: `${SITE_URL}/servicios/igaming` },
+  ],
 };
 
 const PROCESS_STEPS = [
@@ -110,8 +173,9 @@ const gradientTextStyle = {
 export default function IgamingPage() {
   return (
     <>
-      {/* JSON-LD: Service schema */}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
 
       {/* ── Hero ── */}
       <section className="bg-sp-black pt-32 pb-20">

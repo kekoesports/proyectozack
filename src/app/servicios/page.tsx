@@ -120,17 +120,60 @@ const faqJsonLd = {
   ],
 };
 
+const professionalServiceJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'ProfessionalService',
+  '@id': `${SITE_URL}/servicios`,
+  name: 'SocialPro — Agencia de Performance Marketing Gaming',
+  description:
+    'Agencia especializada en performance influencer marketing gaming, esports e iGaming. Streamers de CS2, Valorant, Twitch y YouTube en España, LatAm y Turquía.',
+  url: `${SITE_URL}/servicios`,
+  telephone: '+34-604-868-426',
+  email: 'marketing@socialpro.es',
+  priceRange: '$$',
+  areaServed: [
+    { '@type': 'Country', name: 'España' },
+    { '@type': 'Country', name: 'México' },
+    { '@type': 'Country', name: 'Argentina' },
+    { '@type': 'Country', name: 'Turquía' },
+  ],
+  knowsAbout: [
+    'Influencer Marketing Gaming',
+    'iGaming Influencer Marketing',
+    'CS2 Streamers Marketing',
+    'Valorant Influencer Marketing',
+    'Twitch Marketing España',
+    'YouTube Gaming Marketing',
+    'Esports Sponsorship',
+    'FTD Tracking',
+    'Performance Marketing Gaming',
+  ],
+  hasOfferCatalog: {
+    '@type': 'OfferCatalog',
+    name: 'Servicios de Marketing Gaming',
+    itemListElement: [
+      {
+        '@type': 'Offer',
+        itemOffered: { '@type': 'Service', name: 'Campañas iGaming con Streamers', url: `${SITE_URL}/servicios/igaming` },
+      },
+      {
+        '@type': 'Offer',
+        itemOffered: { '@type': 'Service', name: 'Gestión de Talentos Gaming', url: `${SITE_URL}/talentos` },
+      },
+      {
+        '@type': 'Offer',
+        itemOffered: { '@type': 'Service', name: 'Gestión YouTube Gaming', url: `${SITE_URL}/servicios` },
+      },
+    ],
+  },
+};
+
 export default function ServiciosPage() {
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceJsonLd) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
-      />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(professionalServiceJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
       <div>
         <h1 className="sr-only">Agencia Marketing Gaming e iGaming</h1>
         <ServicesSection />

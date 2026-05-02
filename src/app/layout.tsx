@@ -25,11 +25,11 @@ const barlowCondensed = Barlow_Condensed({
 
 export const metadata: Metadata = {
   title: {
-    default: 'SocialPro | Agencia de Marketing Gaming y Esports',
+    default: 'SocialPro | Agencia de Performance Marketing Gaming y Esports',
     template: '%s | SocialPro',
   },
   description:
-    'Agencia de marketing gaming y esports. Conectamos streamers y creadores con las mejores marcas de iGaming, periféricos y entretenimiento.',
+    'Agencia de performance marketing gaming y esports. Streamers verificados de CS2, Valorant e iGaming en España y LatAm. FTD tracking, compliance y ROI demostrable.',
   metadataBase: new URL(SITE_URL),
   alternates: {
     canonical: '/',
@@ -39,9 +39,9 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    title: 'SocialPro | Agencia de Marketing Gaming y Esports',
+    title: 'SocialPro | Agencia de Performance Marketing Gaming y Esports',
     description:
-      'Conectamos streamers y creadores con las mejores marcas de iGaming. +13 años, +15M views/mes, +340 FTDs.',
+      'Performance marketing gaming: streamers de CS2, Valorant e iGaming en España y LatAm. FTD tracking, compliance DGOJ y ROI demostrable. +13 años, +15M views/mes.',
     url: SITE_URL,
     siteName: 'SocialPro',
     locale: 'es_ES',
@@ -50,9 +50,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'SocialPro | Agencia de Marketing Gaming y Esports',
+    title: 'SocialPro | Agencia de Performance Marketing Gaming y Esports',
     description:
-      'Conectamos streamers y creadores con las mejores marcas de iGaming. +13 años, +15M views/mes.',
+      'Performance gaming marketing: streamers CS2, Valorant e iGaming en España y LatAm. FTD tracking y ROI demostrable.',
     images: [absoluteUrl('/og-default.jpg')],
   },
   manifest: '/manifest.json',
