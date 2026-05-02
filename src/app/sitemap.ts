@@ -12,6 +12,8 @@ const STATIC_DATES = {
   talentos:      new Date('2025-04-27'),
   servicios:     new Date('2025-01-15'),
   igaming:       new Date('2025-01-15'),
+  gamingCs2:     new Date('2026-05-03'),
+  gamingBetting: new Date('2026-05-03'),
   casos:         new Date('2025-04-27'),
   nosotros:      new Date('2025-01-15'),
   contacto:      new Date('2025-01-15'),
@@ -86,6 +88,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     {
       url: absoluteUrl('/servicios/igaming'),
       lastModified: STATIC_DATES.igaming,
+      changeFrequency: 'monthly',
+      priority: 0.8,
+    },
+    {
+      url: absoluteUrl('/gaming/cs2'),
+      lastModified: STATIC_DATES.gamingCs2,
+      changeFrequency: 'monthly',
+      priority: 0.8,
+    },
+    {
+      url: absoluteUrl('/gaming/betting'),
+      lastModified: STATIC_DATES.gamingBetting,
       changeFrequency: 'monthly',
       priority: 0.8,
     },
