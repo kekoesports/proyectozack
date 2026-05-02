@@ -79,22 +79,43 @@ export function DealInvoicePanel({ campaignId, existingInvoices, issuers }: Prop
             {activeInvoices.map((inv) => {
               const cfg = STATUS_CFG[inv.status] ?? { label: inv.status, cls: 'bg-slate-100 text-slate-500 border-slate-200' };
               return (
-                <div key={inv.id} className="flex items-center gap-3 rounded-lg border border-sp-admin-border px-3 py-2.5 bg-sp-admin-hover/20">
-                  <span className="text-base">🧾</span>
+                <div key={inv.id}
+                  className={`flex items-center gap-3 rounded-lg border px-3 py-2.5 ${
+                    inv.status === 'cobrada'
+                      ? 'border-emerald-200 bg-emerald-50/40'
+                      : inv.status === 'vencida'
+                      ? 'border-red-200 bg-red-50/30'
+                      : 'border-sp-admin-border bg-sp-admin-hover/20'
+                  }`}>
+                  <span className="text-base" aria-hidden>
+                    {inv.status === 'cobrada' ? '✅' : inv.status === 'vencida' ? '⚠️' : '🧾'}
+                  </span>
                   <div className="flex-1 min-w-0">
                     <p className="text-[12px] font-semibold text-sp-admin-text truncate">
                       {inv.invoiceNumber}
                     </p>
                     <p className="text-[10px] text-sp-admin-muted">
                       {inv.issuerName} · {inv.clientName}
+                      {inv.dueDate && inv.status !== 'cobrada' && (
+                        <span className={`ml-1.5 ${
+                          new Date(inv.dueDate) < new Date() ? 'text-red-500 font-semibold' : ''
+                        }`}>
+                          · Vence {new Date(inv.dueDate + 'T12:00:00').toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })}
+                        </span>
+                      )}
                     </p>
                   </div>
-                  <span className="text-[12px] font-bold tabular-nums text-emerald-700">
+                  <span className="text-[12px] font-bold tabular-nums text-sp-admin-text">
                     {new Intl.NumberFormat('es-ES', { style: 'currency', currency: inv.currency }).format(Number(inv.totalAmount))}
                   </span>
                   <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold border ${cfg.cls}`}>
                     {cfg.label}
                   </span>
+                  <Link href="/admin/facturacion?tab=facturas"
+                    className="text-[10px] text-sp-admin-accent hover:underline shrink-0"
+                    title="Ver en Facturación">
+                    Ver →
+                  </Link>
                 </div>
               );
             })}
