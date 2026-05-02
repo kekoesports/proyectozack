@@ -17,6 +17,7 @@ import { compact } from '@/lib/utils/objects';
 
 import { logRedacted } from '@/lib/log';
 import { parseFormData } from '@/lib/forms/parseFormData';
+import { firstError } from '@/lib/forms/firstError';
 
 import type { CreateCampaignInput } from '@/lib/queries/campaigns';
 
@@ -29,10 +30,7 @@ export async function createCampaignAction(
     const session = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
 
     const parsed = parseFormData(formData, createCampaignSchema);
-    if (!parsed.ok) {
-      const first = Object.values(parsed.fieldErrors)[0]?.[0];
-      return { success: false, error: first ?? 'Datos inválidos' };
-    }
+    if (!parsed.ok) return { success: false, error: firstError(parsed.fieldErrors) };
 
     const input = compact({
       ...parsed.data,
@@ -59,10 +57,7 @@ export async function updateCampaignAction(
     const session = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
 
     const parsed = parseFormData(formData, updateCampaignSchema);
-    if (!parsed.ok) {
-      const first = Object.values(parsed.fieldErrors)[0]?.[0];
-      return { success: false, error: first ?? 'Datos inválidos' };
-    }
+    if (!parsed.ok) return { success: false, error: firstError(parsed.fieldErrors) };
 
     const { id, ...rest } = parsed.data;
 

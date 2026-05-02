@@ -11,7 +11,9 @@ import {
 } from '@/lib/queries/contractTemplates';
 import { CONTRACT_TEMPLATE_SEEDS } from '@/lib/contractTemplateSeeds';
 import { parseFormData } from '@/lib/forms/parseFormData';
+import { firstError } from '@/lib/forms/firstError';
 import { logRedacted } from '@/lib/log';
+import { IdSchema } from '@/lib/schemas/common';
 
 type ActionState = { readonly error?: string; readonly success?: boolean; readonly id?: number };
 
@@ -22,19 +24,11 @@ const TemplateCreate = z.object({
 });
 
 const TemplateUpdate = z.object({
-  id: z.coerce.number().int().positive(),
+  id: IdSchema,
   name: z.string().trim().min(1, 'El nombre es obligatorio').max(200),
   type: z.string().trim().min(1).max(60).default('general'),
   content: z.string().trim().min(1, 'El contenido no puede estar vacío').max(200_000),
 });
-
-function firstError(fieldErrors: Record<string, string[]>): string {
-  for (const errs of Object.values(fieldErrors)) {
-    const first = errs[0];
-    if (first) return first;
-  }
-  return 'Datos inválidos';
-}
 
 // ── Crear plantilla ───────────────────────────────────────────────────
 

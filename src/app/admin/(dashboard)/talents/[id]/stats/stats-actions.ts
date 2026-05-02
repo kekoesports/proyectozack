@@ -6,23 +6,17 @@ import { z } from 'zod';
 import { requireAnyRole } from '@/lib/auth-guard';
 import { insertSnapshot } from '@/lib/queries/analytics';
 import { parseFormData } from '@/lib/forms/parseFormData';
+import { firstError } from '@/lib/forms/firstError';
 import { logRedacted } from '@/lib/log';
+import { IdSchema } from '@/lib/schemas/common';
 
 const SnapshotInput = z.object({
-  talentId: z.coerce.number().int().positive(),
+  talentId: IdSchema,
   platform: z.string().min(1).max(40),
   metricType: z.string().min(1).max(40),
   value: z.coerce.number().nonnegative(),
   snapshotDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Fecha inválida (YYYY-MM-DD)'),
 });
-
-function firstError(fieldErrors: Record<string, string[]>): string {
-  for (const errs of Object.values(fieldErrors)) {
-    const first = errs[0];
-    if (first) return first;
-  }
-  return 'Datos inválidos';
-}
 
 export async function insertSnapshotAction(
   formData: FormData,

@@ -12,12 +12,13 @@ import { parseFormData } from '@/lib/forms/parseFormData';
 import { validateUploadedFile } from '@/lib/files/validateUploadedFile';
 import { CONTRACT_PDF_TYPES } from '@/lib/files/allowed-types';
 import { logRedacted } from '@/lib/log';
+import { IdSchema } from '@/lib/schemas/common';
 
 type ActionState = { readonly error?: string; readonly success?: boolean; readonly contractId?: number };
 
 const GenerateContractMeta = z.object({
-  campaignId: z.coerce.number().int().positive(),
-  templateId: z.coerce.number().int().positive(),
+  campaignId: IdSchema,
+  templateId: IdSchema,
   fileName: z.string().trim().min(1).max(200).default('contrato.pdf'),
 });
 

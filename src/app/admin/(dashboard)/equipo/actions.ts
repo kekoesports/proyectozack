@@ -10,6 +10,7 @@ import { absoluteUrl } from '@/lib/site-url';
 import { auth } from '@/lib/auth';
 import { requireRole } from '@/lib/auth-guard';
 import { parseFormData } from '@/lib/forms/parseFormData';
+import { firstError } from '@/lib/forms/firstError';
 import { logRedacted } from '@/lib/log';
 import { StaffInvite } from '@/lib/schemas/staffInvite';
 
@@ -17,14 +18,6 @@ type InviteState = {
   error?: string;
   success?: boolean;
 };
-
-function firstError(fieldErrors: Record<string, string[]>): string {
-  for (const errs of Object.values(fieldErrors)) {
-    const first = errs[0];
-    if (first) return first;
-  }
-  return 'Datos inválidos';
-}
 
 export async function inviteStaffAction(
   _prev: InviteState,

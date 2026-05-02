@@ -12,6 +12,7 @@ import { requireAnyRole } from '@/lib/auth-guard';
 import { parseFormData } from '@/lib/forms/parseFormData';
 import { logRedacted } from '@/lib/log';
 import { CAMPAIGN_STATUSES, CAMPAIGN_ACTION_TYPES } from '@/lib/schemas/campaign';
+import { IdSchema } from '@/lib/schemas/common';
 
 const optionalString = z.preprocess(
   (v) => (typeof v === 'string' && v.trim() === '' ? undefined : v),
@@ -19,8 +20,8 @@ const optionalString = z.preprocess(
 );
 
 const CreateLegacy = z.object({
-  brandId: z.coerce.number().int().positive(),
-  talentId: z.coerce.number().int().positive(),
+  brandId: IdSchema,
+  talentId: IdSchema,
   name: z.string().trim().min(1).max(200),
   actionType: z.enum(CAMPAIGN_ACTION_TYPES).default('otro'),
   status: z.enum(CAMPAIGN_STATUSES).default('propuesta'),
@@ -35,10 +36,10 @@ const CreateLegacy = z.object({
 });
 
 const UpdateLegacy = z.object({
-  id: z.coerce.number().int().positive(),
+  id: IdSchema,
   name: z.string().trim().min(1).max(200),
-  brandId: z.preprocess((v) => (typeof v === 'string' && v.trim() === '' ? undefined : v), z.coerce.number().int().positive().optional()),
-  talentId: z.preprocess((v) => (typeof v === 'string' && v.trim() === '' ? undefined : v), z.coerce.number().int().positive().optional()),
+  brandId: z.preprocess((v) => (typeof v === 'string' && v.trim() === '' ? undefined : v), IdSchema.optional()),
+  talentId: z.preprocess((v) => (typeof v === 'string' && v.trim() === '' ? undefined : v), IdSchema.optional()),
   amountBrand: z.preprocess((v) => (typeof v === 'string' && v.trim() === '' ? undefined : v), z.coerce.number().nonnegative().optional()),
   amountTalent: z.preprocess((v) => (typeof v === 'string' && v.trim() === '' ? undefined : v), z.coerce.number().nonnegative().optional()),
   sector: optionalString,
@@ -50,7 +51,7 @@ const UpdateLegacy = z.object({
   responsibleUserId: optionalString,
 });
 
-const IdOnly = z.object({ id: z.coerce.number().int().positive() });
+const IdOnly = z.object({ id: IdSchema });
 
 export async function createCampaignAction(formData: FormData): Promise<void> {
   await requireAnyRole(['admin', 'staff'], '/admin/login');

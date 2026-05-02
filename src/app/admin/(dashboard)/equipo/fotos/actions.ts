@@ -10,15 +10,11 @@ import { teamMembers } from '@/db/schema';
 import { requireRole } from '@/lib/auth-guard';
 import { parseFormData } from '@/lib/forms/parseFormData';
 import { validateUploadedFile } from '@/lib/files/validateUploadedFile';
+import { PHOTO_TYPES } from '@/lib/files/allowed-types';
 import { logRedacted } from '@/lib/log';
+import { IdSchema } from '@/lib/schemas/common';
 
-const PhotoMeta = z.object({
-  id: z.coerce.number().int().positive(),
-});
-
-const PHOTO_MIMES = ['image/png', 'image/jpeg', 'image/webp'] as const;
-const PHOTO_EXTS = ['.png', '.jpg', '.jpeg', '.webp'] as const;
-const PHOTO_MAX_BYTES = 5 * 1024 * 1024;
+const PhotoMeta = z.object({ id: IdSchema });
 
 export async function uploadTeamPhotoAction(
   formData: FormData,
@@ -33,14 +29,14 @@ export async function uploadTeamPhotoAction(
   if (!(fileEntry instanceof File)) return { error: 'Datos incompletos' };
 
   const validation = await validateUploadedFile(fileEntry, {
-    maxBytes: PHOTO_MAX_BYTES,
-    allowedMimes: PHOTO_MIMES,
-    allowedExts: PHOTO_EXTS,
+    maxBytes: PHOTO_TYPES.maxBytes,
+    allowedMimes: PHOTO_TYPES.mimes,
+    allowedExts: PHOTO_TYPES.exts,
   });
   if (!validation.ok) {
     if (validation.reason === 'too_large') return { error: 'La imagen no puede superar 5 MB' };
     if (validation.reason === 'empty_file') return { error: 'Datos incompletos' };
-    return { error: 'Solo se permiten imágenes válidas (PNG, JPEG, WebP)' };
+    return { error: 'Solo se permiten imágenes válidas (PNG, JPEG, WebP, GIF)' };
   }
 
   const lastDot = fileEntry.name.lastIndexOf('.');

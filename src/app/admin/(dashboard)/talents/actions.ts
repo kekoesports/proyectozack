@@ -10,7 +10,9 @@ import { db } from '@/lib/db';
 import { talents, talentSocials } from '@/db/schema';
 import { initialsOf, slugify } from '@/lib/utils/import-utils';
 import { parseFormData } from '@/lib/forms/parseFormData';
+import { firstError } from '@/lib/forms/firstError';
 import { logRedacted } from '@/lib/log';
+import { IdSchema } from '@/lib/schemas/common';
 
 type ActionState = { readonly success: boolean; readonly error?: string };
 
@@ -34,19 +36,11 @@ const TalentSecondary = z.object({
   handle: z.string().trim().min(1).max(120),
 });
 
-const IdOnly = z.object({ id: z.coerce.number().int().positive() });
+const IdOnly = z.object({ id: IdSchema });
 const BioUpdate = z.object({
-  id: z.coerce.number().int().positive(),
+  id: IdSchema,
   bio: z.string().min(1).max(5000),
 });
-
-function firstError(fieldErrors: Record<string, string[]>): string {
-  for (const errs of Object.values(fieldErrors)) {
-    const first = errs[0];
-    if (first) return first;
-  }
-  return 'Datos inválidos';
-}
 
 const PLATFORM_COLORS: Record<string, string> = {
   twitch: '#9147ff',

@@ -12,10 +12,9 @@ import { parseFormData } from '@/lib/forms/parseFormData';
 import { validateUploadedFile } from '@/lib/files/validateUploadedFile';
 import { PHOTO_TYPES } from '@/lib/files/allowed-types';
 import { logRedacted } from '@/lib/log';
+import { IdSchema } from '@/lib/schemas/common';
 
-const PhotoMeta = z.object({
-  id: z.coerce.number().int().positive(),
-});
+const PhotoMeta = z.object({ id: IdSchema });
 
 export async function uploadTalentPhotoAction(
   formData: FormData,

@@ -1,7 +1,5 @@
 'use server';
-// Server actions para upload/delete de archivos de campañas
-// Requiere autenticación admin|manager|staff
-// Manager NO puede borrar archivos (assertCanDelete)
+// Manager NO puede borrar archivos (assertCanDelete).
 
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
@@ -14,21 +12,22 @@ import { parseFormData } from '@/lib/forms/parseFormData';
 import { validateUploadedFile } from '@/lib/files/validateUploadedFile';
 import { POLY_FILE_TYPES } from '@/lib/files/allowed-types';
 import { logRedacted } from '@/lib/log';
+import { IdSchema } from '@/lib/schemas/common';
 
 import { FILE_TYPES } from '@/lib/schemas/file';
 
 const FileTypeEnum = z.enum(FILE_TYPES);
 
 const UploadCampaignFileMeta = z.object({
-  campaignId: z.coerce.number().int().positive(),
+  campaignId: IdSchema,
   type: FileTypeEnum.default('contract'),
   notes: z.string().max(2000).optional(),
 });
 
 const DeleteCampaignFileMeta = z.object({
-  fileId: z.coerce.number().int().positive(),
+  fileId: IdSchema,
   fileUrl: z.string().min(1).max(2048),
-  campaignId: z.coerce.number().int().positive(),
+  campaignId: IdSchema,
 });
 
 export async function uploadCampaignFileAction(

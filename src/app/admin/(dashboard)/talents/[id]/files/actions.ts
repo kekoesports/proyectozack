@@ -1,7 +1,5 @@
 'use server';
-// Server actions para upload/delete de archivos de talentos
-// Requiere autenticación admin|manager|staff
-// Manager NO puede borrar archivos (assertCanDelete)
+// Manager NO puede borrar archivos (assertCanDelete).
 
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
@@ -17,6 +15,7 @@ import { parseFormData } from '@/lib/forms/parseFormData';
 import { validateUploadedFile } from '@/lib/files/validateUploadedFile';
 import { POLY_FILE_TYPES, GEO_STATS_TYPES } from '@/lib/files/allowed-types';
 import { logRedacted } from '@/lib/log';
+import { IdSchema } from '@/lib/schemas/common';
 
 import { FILE_TYPES } from '@/lib/schemas/file';
 
@@ -25,23 +24,23 @@ type GeoEntry = { country: string; pct: number };
 const FileTypeEnum = z.enum(FILE_TYPES);
 
 const UploadFileMeta = z.object({
-  talentId: z.coerce.number().int().positive(),
+  talentId: IdSchema,
   platform: z.string().min(1).max(40).optional(),
   type: FileTypeEnum.default('geo_stats'),
   notes: z.string().max(2000).optional(),
 });
 
 const UploadGeoMeta = z.object({
-  talentId: z.coerce.number().int().positive(),
+  talentId: IdSchema,
   platform: z.string().min(1).max(40).optional(),
   notes: z.string().max(2000).optional(),
   topGeos: z.string().optional(),
 });
 
 const DeleteFileMeta = z.object({
-  fileId: z.coerce.number().int().positive(),
+  fileId: IdSchema,
   fileUrl: z.string().min(1).max(2048),
-  talentId: z.coerce.number().int().positive(),
+  talentId: IdSchema,
 });
 
 export async function uploadTalentFileAction(

@@ -4,9 +4,17 @@ export interface ValidateUploadedFileOptions {
   readonly allowedExts: readonly string[];
 }
 
+export type ValidateUploadedFileReason =
+  | 'invalid_file'
+  | 'empty_file'
+  | 'too_large'
+  | 'mime_not_allowed'
+  | 'extension_not_allowed'
+  | 'magic_bytes_mismatch';
+
 export type ValidateUploadedFileResult =
   | { ok: true }
-  | { ok: false; reason: string };
+  | { ok: false; reason: ValidateUploadedFileReason };
 
 const MAGIC_BYTES: Record<string, readonly (readonly number[])[]> = {
   // PDF: %PDF-

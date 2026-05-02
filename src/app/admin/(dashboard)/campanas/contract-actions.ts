@@ -13,22 +13,24 @@ import {
 import { env } from '@/lib/env';
 import { absoluteUrl } from '@/lib/site-url';
 import { parseFormData } from '@/lib/forms/parseFormData';
+import { firstError } from '@/lib/forms/firstError';
 import { validateUploadedFile } from '@/lib/files/validateUploadedFile';
 import { CONTRACT_PDF_TYPES } from '@/lib/files/allowed-types';
 import { logRedacted } from '@/lib/log';
+import { IdSchema } from '@/lib/schemas/common';
 
 const resend = new Resend(env.RESEND_API_KEY);
 
 type ActionState = { readonly error?: string; readonly success?: boolean; readonly id?: number };
 
 const UploadContractMeta = z.object({
-  campaignId: z.coerce.number().int().positive(),
+  campaignId: IdSchema,
   notes: z.string().max(2000).optional(),
 });
 
 const AddSignerInput = z.object({
-  contractId: z.coerce.number().int().positive(),
-  campaignId: z.coerce.number().int().positive(),
+  contractId: IdSchema,
+  campaignId: IdSchema,
   name: z.string().trim().min(1).max(200),
   email: z.email().max(200),
   role: z.enum(['brand', 'influencer', 'agency']).default('brand'),
@@ -52,7 +54,7 @@ export async function uploadContractAction(_prev: ActionState, formData: FormDat
   if (!(fileEntry instanceof File)) return { error: 'Selecciona un archivo PDF' };
 
   const validation = await validateUploadedFile(fileEntry, {
-    maxBytes: 20 * 1024 * 1024,
+    maxBytes: CONTRACT_PDF_TYPES.maxBytes,
     allowedMimes: CONTRACT_PDF_TYPES.mimes,
     allowedExts: CONTRACT_PDF_TYPES.exts,
   });
@@ -102,10 +104,7 @@ export async function uploadContractAction(_prev: ActionState, formData: FormDat
 export async function addSignerAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
   await requireAnyRole(['admin', 'staff'], '/admin/login');
   const parsed = parseFormData(formData, AddSignerInput);
-  if (!parsed.ok) {
-    const first = Object.values(parsed.fieldErrors)[0]?.[0];
-    return { error: first ?? 'Datos inválidos' };
-  }
+  if (!parsed.ok) return { error: firstError(parsed.fieldErrors) };
   const { contractId, campaignId, name, email, role } = parsed.data;
 
   try {

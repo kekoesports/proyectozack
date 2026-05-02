@@ -42,7 +42,7 @@ export const POLY_FILE_TYPES = {
 export const CONTRACT_PDF_TYPES = {
   mimes: ['application/pdf'] as const,
   exts: ['.pdf'] as const,
-  maxBytes: 15 * 1024 * 1024,
+  maxBytes: 20 * 1024 * 1024,
 };
 
 /** Imports de talents (CSV/XLSX). */
