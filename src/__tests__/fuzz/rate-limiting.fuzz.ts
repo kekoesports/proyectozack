@@ -2,11 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 
 /* -------------------------------------------------------------------------- */
 /*  Rate limiting fuzz tests                                                  */
-/*  Tests the middleware rate limiter against burst attacks and IP spoofing    */
+/*  Tests the proxy rate limiter against burst attacks and IP spoofing         */
 /* -------------------------------------------------------------------------- */
 
-// We need to import the middleware directly and test its behavior
-// The middleware is at src/middleware.ts — we import the function
+// We need to import the proxy directly and test its behavior
+// The proxy is at src/proxy.ts — we import the function
 jest.mock('@/lib/auth', () => ({ auth: {} }));
 jest.mock('@/lib/env', () => ({
   env: {
@@ -17,8 +17,8 @@ jest.mock('@/lib/env', () => ({
   },
 }));
 
-// Import middleware — it exports { middleware, config }
-import { middleware } from '@/middleware';
+// Import proxy — it exports { proxy, config }
+import { proxy } from '@/proxy';
 
 function makeMiddlewareRequest(
   pathname: string,
@@ -48,7 +48,7 @@ describe('rate limiting — burst protection', () => {
 
     for (let i = 0; i < 8; i++) {
       const req = makeMiddlewareRequest('/api/contact', ip);
-      const res = middleware(req);
+      const res = proxy(req);
       results.push(res);
     }
 
@@ -72,7 +72,7 @@ describe('rate limiting — burst protection', () => {
 
     for (let i = 0; i < 6; i++) {
       const req = makeMiddlewareRequest('/api/creator-apply', ip);
-      const res = middleware(req);
+      const res = proxy(req);
       results.push(res);
     }
 
@@ -90,7 +90,7 @@ describe('rate limiting — burst protection', () => {
 
     for (let i = 0; i < 13; i++) {
       const req = makeMiddlewareRequest('/api/auth/sign-in', ip);
-      const res = middleware(req);
+      const res = proxy(req);
       results.push(res);
     }
 
@@ -108,7 +108,7 @@ describe('rate limiting — burst protection', () => {
 
     for (let i = 0; i < 8; i++) {
       const req = makeMiddlewareRequest('/api/auth/sign-up', ip);
-      const res = middleware(req);
+      const res = proxy(req);
       results.push(res);
     }
 
@@ -126,11 +126,11 @@ describe('rate limiting — burst protection', () => {
 
     // Exhaust ip1's limit
     for (let i = 0; i < 6; i++) {
-      middleware(makeMiddlewareRequest('/api/contact', ip1));
+      proxy(makeMiddlewareRequest('/api/contact', ip1));
     }
 
     // ip2 should still be allowed
-    const res = middleware(makeMiddlewareRequest('/api/contact', ip2));
+    const res = proxy(makeMiddlewareRequest('/api/contact', ip2));
     expect(res?.status).not.toBe(429);
   });
 
@@ -139,10 +139,10 @@ describe('rate limiting — burst protection', () => {
 
     // Exhaust limit
     for (let i = 0; i < 6; i++) {
-      middleware(makeMiddlewareRequest('/api/contact', ip));
+      proxy(makeMiddlewareRequest('/api/contact', ip));
     }
 
-    const res = middleware(makeMiddlewareRequest('/api/contact', ip));
+    const res = proxy(makeMiddlewareRequest('/api/contact', ip));
     expect(res?.status).toBe(429);
 
     const body = await res!.json();
@@ -155,7 +155,7 @@ describe('rate limiting — burst protection', () => {
     // Hit a non-API route many times
     for (let i = 0; i < 100; i++) {
       const req = makeMiddlewareRequest('/api/some-other-route', ip);
-      const res = middleware(req);
+      const res = proxy(req);
       expect(res?.status).not.toBe(429);
     }
   });
@@ -182,7 +182,7 @@ describe('rate limiting — IP spoofing resistance', () => {
           'Content-Type': 'application/json',
         },
       });
-      const res = middleware(req);
+      const res = proxy(req);
       results.push(res);
     }
 
@@ -203,7 +203,7 @@ describe('rate limiting — IP spoofing resistance', () => {
           'Content-Type': 'application/json',
         },
       });
-      const res = middleware(req);
+      const res = proxy(req);
       results.push(res);
     }
 
