@@ -3,7 +3,7 @@
  * No requiere googleapis npm — usa Node.js crypto nativo.
  */
 import { createSign } from 'crypto';
-import { env } from '@/lib/env';
+import { getDriveConfig } from '@/lib/backup/getDriveConfig';
 
 const SCOPE = 'https://www.googleapis.com/auth/drive.file';
 const TOKEN_URL = 'https://oauth2.googleapis.com/token';
@@ -37,17 +37,10 @@ export async function getDriveAccessToken(): Promise<string> {
     return cachedToken.token;
   }
 
-  const email = env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
-  const key   = env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY;
+  const cfg = getDriveConfig();
+  if (!cfg.ok) throw new Error(cfg.error);
 
-  if (!email || !key) {
-    throw new Error(
-      'Faltan variables de entorno para Google Drive: ' +
-      'GOOGLE_SERVICE_ACCOUNT_EMAIL y GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY',
-    );
-  }
-
-  const jwt = buildJwt(email, key);
+  const jwt = buildJwt(cfg.config.serviceAccountEmail, cfg.config.serviceAccountPrivateKey);
 
   const res = await fetch(TOKEN_URL, {
     method:  'POST',

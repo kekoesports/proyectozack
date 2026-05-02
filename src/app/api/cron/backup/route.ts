@@ -7,7 +7,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { exportCrmData, serializeBackup, buildBackupFileName } from '@/lib/backup/export-data';
 import { uploadToDrive } from '@/lib/backup/drive-upload';
 import { assertCronAuth } from '@/lib/security/assertCronAuth';
-import { env } from '@/lib/env';
+import { getDriveConfig } from '@/lib/backup/getDriveConfig';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60; // Vercel function max 60s
@@ -16,10 +16,8 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   const authError = assertCronAuth(req);
   if (authError) return authError;
 
-  const folderId = env.GOOGLE_DRIVE_BACKUP_FOLDER_ID;
-  if (!folderId) {
-    return NextResponse.json({ error: 'GOOGLE_DRIVE_BACKUP_FOLDER_ID no configurado' }, { status: 503 });
-  }
+  const cfg = getDriveConfig();
+  if (!cfg.ok) return NextResponse.json({ error: cfg.error }, { status: 503 });
 
   try {
     // Determinar tipo según día de la semana (lunes = semanal)
@@ -30,7 +28,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     const json     = serializeBackup(data);
     const fileName = buildBackupFileName(type);
 
-    const file = await uploadToDrive(fileName, json, 'application/json', folderId);
+    const file = await uploadToDrive(fileName, json, 'application/json', cfg.config.folderId);
 
     console.log(`[backup] ✓ ${type} — ${file.name} (${data.meta.totalRows} registros)`);
 

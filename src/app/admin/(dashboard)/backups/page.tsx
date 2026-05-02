@@ -1,7 +1,7 @@
 import { requireRole } from '@/lib/auth-guard';
 import { listBackupsAction } from './backup-actions';
 import { BackupsManager } from '@/features/admin/backups/BackupsManager';
-import { env } from '@/lib/env';
+import { getDriveConfig } from '@/lib/backup/getDriveConfig';
 
 export const metadata = { title: 'Backups | Admin' };
 
@@ -12,11 +12,7 @@ export default async function BackupsPage(): Promise<React.ReactElement> {
   const files  = result.success ? result.files : [];
   const error  = result.success ? null : result.error;
 
-  const isConfigured = !!(
-    env.GOOGLE_DRIVE_BACKUP_FOLDER_ID &&
-    env.GOOGLE_SERVICE_ACCOUNT_EMAIL &&
-    env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY
-  );
+  const isConfigured = getDriveConfig().ok;
 
   return (
     <BackupsManager
