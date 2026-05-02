@@ -39,7 +39,7 @@ const jsonLd = {
   inLanguage: 'es',
   provider: { '@type': 'Organization', name: 'SocialPro', url: SITE_URL },
   foundingDate: '2012',
-  areaServed: ['España', 'México', 'Argentina', 'Colombia', 'Chile', 'Turquía'],
+  areaServed: ['España', 'México', 'Argentina', 'Colombia', 'Chile'],
   description: 'Agencia de marketing esports en España y LatAm desde 2012. Campañas con influencers, gestión de talentos y activaciones en torneos con métricas verificadas.',
 };
 
@@ -84,7 +84,7 @@ export default function AgenciaMarketingEsportsPage() {
         <div className="max-w-4xl mx-auto px-6 text-center">
           <p className="text-sp-orange text-xs font-bold uppercase tracking-[0.2em] mb-4">Agencia de Marketing Esports</p>
           <h1 className="font-display text-4xl md:text-6xl font-black uppercase tracking-tight text-white leading-tight mb-6">
-            Marketing Esports<br /><span style={g}>con 13 Años de Resultados</span>
+            Agencia de Marketing Esports<br /><span style={g}>con 13 Años de Resultados</span>
           </h1>
           <p className="text-lg text-white/60 leading-relaxed max-w-2xl mx-auto mb-10">
             Agencia de marketing esports en España y LatAm desde 2012. Campañas con influencers,

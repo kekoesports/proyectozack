@@ -75,7 +75,7 @@ export default function ValorantInfluencersAgencyPage() {
         <div className="max-w-4xl mx-auto px-6 text-center">
           <p className="text-sp-orange text-xs font-bold uppercase tracking-[0.2em] mb-4">Valorant Influencers Agency</p>
           <h1 className="font-display text-4xl md:text-6xl font-black uppercase tracking-tight text-white leading-tight mb-6">
-            Valorant Influencers<br /><span style={g}>That Move Brands</span>
+            Valorant Influencers Agency<br /><span style={g}>That Moves Your Brand</span>
           </h1>
           <p className="text-lg text-white/60 leading-relaxed max-w-2xl mx-auto mb-10">
             Brand-safe Valorant influencer campaigns with verified streamers across Spain and LatAm.
