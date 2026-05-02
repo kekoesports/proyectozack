@@ -1,4 +1,4 @@
-Status: needs-triage
+Status: done
 
 # 07 — `firmar/[token]` sign-action: aplicar `timingSafeEqual`
 
@@ -33,3 +33,16 @@ Cambios:
 ## Blocked by
 
 - Issue 01 (deep modules + tests).
+
+## Audit findings (otras comparaciones `===` con secrets/tokens)
+
+Auditoría rápida en `src/**` — solo se cambia el flujo de firma, el resto se documenta para futuro work:
+
+- **Aplicado** — `src/app/firmar/[token]/sign-action.ts:36` — `s.token === token` → `timingSafeEqual(s.token, token)`.
+- **Pendiente (futuro PRD)** — `src/app/api/cron/rollover-tasks/route.ts:24` y `src/app/api/cron/backup/route.ts:22` — `authHeader === \`Bearer ${cronSecret}\``. Mismo patrón vulnerable a timing. Fuera de scope (no es flujo de firma/signed-link).
+- **No-op** — `src/features/admin/stats/components/ShareLinkPanel.tsx:80` — `copiedToken === share.token`. UI-only (badge "copiado"); el token ya está en el cliente, no hay secret a filtrar.
+- **No-op** — `src/lib/queries/stats.ts:138` (`getStatsRollupByToken`) — comparación vía Drizzle `eq()` en SQL. La comparación ocurre en el motor de DB (índice btree), no en JS. Fuera del alcance del wrapper `timingSafeEqual` por construcción.
+
+## Logs
+
+El token no se loggea explícitamente. El único `console.error` del action (línea 45) imprime `err.message`, que en errores de Drizzle no contiene el valor del token. No se aplica `logRedacted` porque no hay PII identificable que redactar.

@@ -3,6 +3,7 @@
 import { headers } from 'next/headers';
 import { recordSignature, getSignerByToken, updateContract, getContractById } from '@/lib/queries/contracts';
 import { revalidatePath } from 'next/cache';
+import { timingSafeEqual } from '@/lib/security/timingSafeEqual';
 
 type SignState = { readonly error?: string; readonly success?: boolean };
 
@@ -33,7 +34,7 @@ export async function signContractAction(_prev: SignState, formData: FormData): 
     // Comprobar si todos los firmantes han firmado → marcar contrato como firmado
     const contract = await getContractById(signerData.contractId);
     if (contract) {
-      const allSigned = contract.signers.every((s) => s.token === token || s.status === 'signed');
+      const allSigned = contract.signers.every((s) => s.status === 'signed' || timingSafeEqual(s.token, token));
       if (allSigned) {
         await updateContract(contract.id, { status: 'signed', signedAt: new Date() });
       }
