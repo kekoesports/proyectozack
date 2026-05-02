@@ -25,11 +25,11 @@ const barlowCondensed = Barlow_Condensed({
 
 export const metadata: Metadata = {
   title: {
-    default: 'SocialPro — Agencia Gaming & Esports',
+    default: 'SocialPro | Agencia de Marketing Gaming y Esports',
     template: '%s | SocialPro',
   },
   description:
-    'Agencia de talentos gaming y esports. Conectamos streamers y creadores con las mejores marcas de iGaming, periféricos y entretenimiento.',
+    'Agencia de marketing gaming y esports. Conectamos streamers y creadores con las mejores marcas de iGaming, periféricos y entretenimiento.',
   metadataBase: new URL(SITE_URL),
   alternates: {
     canonical: '/',
@@ -39,18 +39,18 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    title: 'SocialPro — Agencia Gaming & Esports',
+    title: 'SocialPro | Agencia de Marketing Gaming y Esports',
     description:
       'Conectamos streamers y creadores con las mejores marcas de iGaming. +13 años, +15M views/mes, +340 FTDs.',
     url: SITE_URL,
     siteName: 'SocialPro',
     locale: 'es_ES',
     type: 'website',
-    images: [{ url: absoluteUrl('/og-default.jpg'), width: 1200, height: 630, alt: 'SocialPro — Agencia Gaming & Esports' }],
+    images: [{ url: absoluteUrl('/og-default.jpg'), width: 1200, height: 630, alt: 'SocialPro | Agencia de Marketing Gaming y Esports' }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'SocialPro — Agencia Gaming & Esports',
+    title: 'SocialPro | Agencia de Marketing Gaming y Esports',
     description:
       'Conectamos streamers y creadores con las mejores marcas de iGaming. +13 años, +15M views/mes.',
     images: [absoluteUrl('/og-default.jpg')],
