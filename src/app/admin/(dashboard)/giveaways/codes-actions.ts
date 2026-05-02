@@ -3,33 +3,56 @@
 import { revalidatePath } from 'next/cache';
 import { requireRole } from '@/lib/auth-guard';
 import { createCode, deleteCode } from '@/lib/queries/creatorCodes';
+import { parseFormData } from '@/lib/forms/parseFormData';
+import { firstError } from '@/lib/forms/firstError';
+import { logRedacted } from '@/lib/log';
+import { validateRedirectField } from '@/lib/security/validateRedirectField';
+import { ALLOWED_REDIRECT_HOSTS } from '@/lib/security/allowed-redirect-hosts';
+import {
+  CreateCodeFormSchema,
+  DeleteByIdSchema,
+} from '@/lib/schemas/giveaway';
 
-export async function createCodeAction(formData: FormData): Promise<void> {
+export type CodeActionState =
+  | { ok: true }
+  | { ok: false; fieldErrors: Record<string, string[]> };
+
+export async function createCodeAction(formData: FormData): Promise<CodeActionState> {
   await requireRole('admin', '/admin/login');
 
-  const talentId = Number(formData.get('talentId'));
-  const code = formData.get('code') as string;
-  const brandName = formData.get('brandName') as string;
-  const brandLogo = (formData.get('brandLogo') as string) || null;
-  const redirectUrl = formData.get('redirectUrl') as string;
-  const description = (formData.get('description') as string) || null;
-  const badge = (formData.get('badge') as string) || null;
-  const isFeatured = formData.get('isFeatured') === 'on';
-  const category = (formData.get('category') as string) || null;
-  const ctaText = (formData.get('ctaText') as string) || null;
+  const parsed = parseFormData(formData, CreateCodeFormSchema);
+  if (!parsed.ok) {
+    logRedacted('warn', '[createCodeAction] validation failed:', firstError(parsed.fieldErrors));
+    return { ok: false, fieldErrors: parsed.fieldErrors };
+  }
 
-  if (!talentId || !code || !brandName || !redirectUrl) return;
+  const safe = validateRedirectField(parsed.data.redirectUrl, ALLOWED_REDIRECT_HOSTS, '[createCodeAction]');
+  if (!safe.ok) return safe;
 
-  await createCode({ talentId, code, brandName, brandLogo, redirectUrl, description, badge, isFeatured, category, ctaText });
+  const { talentId, code, brandName, brandLogo, redirectUrl, description, badge, isFeatured, category, ctaText } = parsed.data;
+
+  await createCode({
+    talentId,
+    code,
+    brandName,
+    brandLogo: brandLogo ?? null,
+    redirectUrl,
+    description: description ?? null,
+    badge: badge ?? null,
+    isFeatured,
+    category: category ?? null,
+    ctaText: ctaText ?? null,
+  });
   revalidatePath('/admin/giveaways');
   revalidatePath('/giveaways');
+  return { ok: true };
 }
 
 export async function deleteCodeAction(formData: FormData): Promise<void> {
   await requireRole('admin', '/admin/login');
-  const id = Number(formData.get('id'));
-  if (!id) return;
-  await deleteCode(id);
+  const parsed = parseFormData(formData, DeleteByIdSchema);
+  if (!parsed.ok) return;
+  await deleteCode(parsed.data.id);
   revalidatePath('/admin/giveaways');
   revalidatePath('/giveaways');
 }

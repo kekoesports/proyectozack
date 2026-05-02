@@ -3,53 +3,56 @@
 import { revalidatePath } from 'next/cache';
 import { requireRole } from '@/lib/auth-guard';
 import { createGiveaway, deleteGiveaway } from '@/lib/queries/giveaways';
-import { createGiveawaySchema } from '@/lib/schemas/giveaway';
-import { db } from '@/lib/db';
-import { talents } from '@/db/schema';
-import { eq } from 'drizzle-orm';
+import { parseFormData } from '@/lib/forms/parseFormData';
+import { firstError } from '@/lib/forms/firstError';
+import { logRedacted } from '@/lib/log';
+import { validateRedirectField } from '@/lib/security/validateRedirectField';
+import { ALLOWED_REDIRECT_HOSTS } from '@/lib/security/allowed-redirect-hosts';
+import {
+  CreateGiveawayFormSchema,
+  DeleteGiveawaySchema,
+} from '@/lib/schemas/giveaway';
 
-export async function createGiveawayAction(formData: FormData): Promise<void> {
+export type GiveawayActionState =
+  | { ok: true }
+  | { ok: false; fieldErrors: Record<string, string[]> };
+
+export async function createGiveawayAction(formData: FormData): Promise<GiveawayActionState> {
   await requireRole('admin', '/admin/login');
 
-  const raw = {
-    talentId: Number(formData.get('talentId')),
-    title: formData.get('title') as string,
-    description: (formData.get('description') as string) || undefined,
-    imageUrl: (formData.get('imageUrl') as string) || undefined,
-    brandName: formData.get('brandName') as string,
-    brandLogo: (formData.get('brandLogo') as string) || undefined,
-    value: (formData.get('value') as string) || undefined,
-    redirectUrl: formData.get('redirectUrl') as string,
-    startsAt: formData.get('startsAt') as string,
-    endsAt: formData.get('endsAt') as string,
-    sortOrder: Number(formData.get('sortOrder') || 0),
-  };
-
-  const parsed = createGiveawaySchema.safeParse(raw);
-  if (!parsed.success) {
-    console.error('[createGiveawayAction] validation failed:', parsed.error.issues[0]?.message ?? 'Datos inválidos');
-    return;
+  const parsed = parseFormData(formData, CreateGiveawayFormSchema);
+  if (!parsed.ok) {
+    logRedacted('warn', '[createGiveawayAction] validation failed:', firstError(parsed.fieldErrors));
+    return { ok: false, fieldErrors: parsed.fieldErrors };
   }
 
+  const safe = validateRedirectField(parsed.data.redirectUrl, ALLOWED_REDIRECT_HOSTS, '[createGiveawayAction]');
+  if (!safe.ok) return safe;
+
   await createGiveaway({
-    ...parsed.data,
+    talentId: parsed.data.talentId,
+    title: parsed.data.title,
     description: parsed.data.description ?? null,
     imageUrl: parsed.data.imageUrl ?? null,
+    brandName: parsed.data.brandName,
     brandLogo: parsed.data.brandLogo ?? null,
     value: parsed.data.value ?? null,
+    redirectUrl: parsed.data.redirectUrl,
+    startsAt: parsed.data.startsAt,
+    endsAt: parsed.data.endsAt,
+    sortOrder: parsed.data.sortOrder,
   });
 
-  const talent = await db.select({ slug: talents.slug }).from(talents).where(eq(talents.id, parsed.data.talentId)).then((r) => r[0]);
-  if (talent) revalidatePath(`/creadores/${talent.slug}`);
+  if (parsed.data.talentSlug) revalidatePath(`/creadores/${parsed.data.talentSlug}`);
   revalidatePath('/admin/giveaways');
+  return { ok: true };
 }
 
 export async function deleteGiveawayAction(formData: FormData): Promise<void> {
   await requireRole('admin', '/admin/login');
-  const id = Number(formData.get('id'));
-  const talentSlug = formData.get('talentSlug') as string;
-  if (!id) return;
-  await deleteGiveaway(id);
-  if (talentSlug) revalidatePath(`/creadores/${talentSlug}`);
+  const parsed = parseFormData(formData, DeleteGiveawaySchema);
+  if (!parsed.ok) return;
+  await deleteGiveaway(parsed.data.id);
+  if (parsed.data.talentSlug) revalidatePath(`/creadores/${parsed.data.talentSlug}`);
   revalidatePath('/admin/giveaways');
 }

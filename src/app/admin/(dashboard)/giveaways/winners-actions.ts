@@ -3,26 +3,42 @@
 import { revalidatePath } from 'next/cache';
 import { requireRole } from '@/lib/auth-guard';
 import { createWinner, deleteWinner } from '@/lib/queries/giveawayWinners';
+import { parseFormData } from '@/lib/forms/parseFormData';
+import { firstError } from '@/lib/forms/firstError';
+import { logRedacted } from '@/lib/log';
+import {
+  CreateWinnerFormSchema,
+  DeleteByIdSchema,
+} from '@/lib/schemas/giveaway';
 
-export async function createWinnerAction(formData: FormData): Promise<void> {
+export type WinnerActionState =
+  | { ok: true }
+  | { ok: false; fieldErrors: Record<string, string[]> };
+
+export async function createWinnerAction(formData: FormData): Promise<WinnerActionState> {
   await requireRole('admin', '/admin/login');
 
-  const giveawayId = Number(formData.get('giveawayId'));
-  const winnerName = formData.get('winnerName') as string;
-  const winnerAvatar = (formData.get('winnerAvatar') as string) || undefined;
+  const parsed = parseFormData(formData, CreateWinnerFormSchema);
+  if (!parsed.ok) {
+    logRedacted('warn', '[createWinnerAction] validation failed:', firstError(parsed.fieldErrors));
+    return { ok: false, fieldErrors: parsed.fieldErrors };
+  }
 
-  if (!giveawayId || !winnerName) return;
-
-  await createWinner({ giveawayId, winnerName, winnerAvatar });
+  await createWinner({
+    giveawayId: parsed.data.giveawayId,
+    winnerName: parsed.data.winnerName,
+    winnerAvatar: parsed.data.winnerAvatar,
+  });
   revalidatePath('/admin/giveaways');
   revalidatePath('/giveaways');
+  return { ok: true };
 }
 
 export async function deleteWinnerAction(formData: FormData): Promise<void> {
   await requireRole('admin', '/admin/login');
-  const id = Number(formData.get('id'));
-  if (!id) return;
-  await deleteWinner(id);
+  const parsed = parseFormData(formData, DeleteByIdSchema);
+  if (!parsed.ok) return;
+  await deleteWinner(parsed.data.id);
   revalidatePath('/admin/giveaways');
   revalidatePath('/giveaways');
 }

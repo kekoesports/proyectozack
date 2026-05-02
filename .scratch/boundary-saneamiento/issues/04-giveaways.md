@@ -1,4 +1,4 @@
-Status: needs-triage
+Status: done
 
 # 04 — Saneamiento `giveaways` (público facing, open-redirect en `codes-actions`)
 
