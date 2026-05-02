@@ -39,7 +39,7 @@ const jsonLd = {
   inLanguage: 'en',
   provider: { '@type': 'Organization', name: 'SocialPro', url: SITE_URL },
   foundingDate: '2012',
-  areaServed: ['España', 'México', 'Argentina', 'Colombia', 'Chile', 'Turquía'],
+  areaServed: ['España', 'México', 'Argentina', 'Colombia', 'Chile'],
   description: 'Esports marketing agency operating in Spain and LatAm since 2012. Influencer campaigns, tournament activations and creator management with performance tracking.',
 };
 
@@ -78,7 +78,7 @@ export default function EsportsMarketingAgencyPage() {
         <div className="max-w-4xl mx-auto px-6 text-center">
           <p className="text-sp-orange text-xs font-bold uppercase tracking-[0.2em] mb-4">Esports Marketing Agency</p>
           <h1 className="font-display text-4xl md:text-6xl font-black uppercase tracking-tight text-white leading-tight mb-6">
-            Esports Marketing<br /><span style={g}>Built on 13 Years of Results</span>
+            Esports Marketing Agency<br /><span style={g}>Built on 13 Years of Results</span>
           </h1>
           <p className="text-lg text-white/60 leading-relaxed max-w-2xl mx-auto mb-10">
             Esports marketing agency in Spain and LatAm since 2012.

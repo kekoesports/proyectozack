@@ -125,8 +125,8 @@ const jsonLd = {
         { '@type': 'Country', name: 'Argentina' },
         { '@type': 'Country', name: 'Colombia' },
         { '@type': 'Country', name: 'Chile' },
-        { '@type': 'Country', name: 'Turquía' },
         { '@type': 'Continent', name: 'Europa' },
+        { '@type': 'Country', name: 'Turquía' },
       ],
       makesOffer: [
         { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Gestión de Talentos Gaming' } },
