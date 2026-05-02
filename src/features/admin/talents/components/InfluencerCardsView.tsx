@@ -28,6 +28,7 @@ export function InfluencerCardsView({ creators, verticalsByTalent }: Props): Rea
   const [verticalFilter, setVerticalFilter] = useState<TalentVertical | ''>('');
   const [platformFilter, setPlatformFilter] = useState<string>('');
   const [countryFilter, setCountryFilter] = useState<string>('');
+  const [showMoreFilters, setShowMoreFilters] = useState(false);
   const [showAdd, setShowAdd]             = useState(false);
   const [selectMode, setSelectMode]       = useState(false);
   const [selectedIds, setSelectedIds]     = useState<Set<number>>(new Set());
@@ -117,6 +118,7 @@ export function InfluencerCardsView({ creators, verticalsByTalent }: Props): Rea
 
       {/* Filtros + acciones */}
       <div className="flex flex-wrap items-center gap-2">
+        {/* Filtros principales — siempre visibles */}
         <input
           type="search"
           value={search}
@@ -128,16 +130,39 @@ export function InfluencerCardsView({ creators, verticalsByTalent }: Props): Rea
           <option value="">Todos los sectores</option>
           {TALENT_VERTICALS.map((v) => <option key={v} value={v}>{TALENT_VERTICAL_LABELS[v]}</option>)}
         </select>
-        <select value={platformFilter} onChange={(e) => setPlatformFilter(e.target.value)} className={INPUT_CLS}>
-          <option value="">Todas las plataformas</option>
-          {platforms.map((p) => <option key={p} value={p}>{PLATFORM_LABELS[p] ?? p}</option>)}
-        </select>
-        {countries.length > 0 && (
-          <select value={countryFilter} onChange={(e) => setCountryFilter(e.target.value)} className={INPUT_CLS}>
-            <option value="">Todos los países</option>
-            {countries.map((c) => <option key={c} value={c}>{c}</option>)}
-          </select>
+
+        {/* Filtros secundarios — se expanden con el botón */}
+        {showMoreFilters && (
+          <>
+            <select value={platformFilter} onChange={(e) => setPlatformFilter(e.target.value)} className={INPUT_CLS}>
+              <option value="">Todas las plataformas</option>
+              {platforms.map((p) => <option key={p} value={p}>{PLATFORM_LABELS[p] ?? p}</option>)}
+            </select>
+            {countries.length > 0 && (
+              <select value={countryFilter} onChange={(e) => setCountryFilter(e.target.value)} className={INPUT_CLS}>
+                <option value="">Todos los países</option>
+                {countries.map((c) => <option key={c} value={c}>{c}</option>)}
+              </select>
+            )}
+          </>
         )}
+
+        {/* Botón más filtros */}
+        <button
+          type="button"
+          onClick={() => setShowMoreFilters((v) => !v)}
+          className={`h-8 px-3 rounded-lg border text-[12px] transition-colors flex items-center gap-1 ${
+            showMoreFilters || platformFilter || countryFilter
+              ? 'border-sp-admin-accent/40 bg-sp-admin-accent/8 text-sp-admin-accent font-semibold'
+              : 'border-sp-admin-border text-sp-admin-muted hover:bg-sp-admin-hover'
+          }`}
+        >
+          {showMoreFilters ? '− Menos' : '+ Más filtros'}
+          {(platformFilter || countryFilter) && !showMoreFilters && (
+            <span className="ml-1 w-1.5 h-1.5 rounded-full bg-sp-admin-accent" />
+          )}
+        </button>
+
         <span className="text-[11px] text-sp-admin-muted tabular-nums">{filtered.length} de {creators.length}</span>
 
         {/* Acciones */}

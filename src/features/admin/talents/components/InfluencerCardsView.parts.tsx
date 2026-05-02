@@ -103,17 +103,6 @@ export function TalentCard({ creator, verticals, selectMode, selected, onToggleS
     return list;
   }, [creator.socials]);
 
-  // Métrica principal: plataforma con más seguidores
-  const mainMetric = useMemo(() => {
-    if (creator.socials.length === 0) return null;
-    const best = creator.socials.reduce((a, b) =>
-      parseFollowers(a.followersDisplay) >= parseFollowers(b.followersDisplay) ? a : b,
-    );
-    const count = parseFollowers(best.followersDisplay);
-    if (count === 0) return null;
-    const label = PLATFORM_LABELS[best.platform.toLowerCase()] ?? best.platform;
-    return `${label} · ${formatCompact(count)}`;
-  }, [creator.socials]);
 
   // Sectores como badges (máx 2)
   const sectorBadges = useMemo(() =>
@@ -211,36 +200,14 @@ export function TalentCard({ creator, verticals, selectMode, selected, onToggleS
         )}
       </div>
 
-      {/* ── Cuerpo: nombre, categoría, plataformas, sectores ───── */}
-      <div className="px-3 pt-2.5 pb-2 flex-1">
+      {/* ── Cuerpo: nombre, sector, redes + números ────────────── */}
+      <div className="px-3 pt-2.5 pb-2 flex-1 flex flex-col">
         {/* Nombre */}
         <p className="font-bold text-[13px] text-sp-admin-text truncate leading-tight">{creator.name}</p>
 
-        {/* Categoría / juego */}
-        {creator.game && (
-          <p className="text-[10px] text-sp-admin-muted truncate mt-0.5">{creator.game}</p>
-        )}
-
-        {/* Plataformas — solo dots con nombre, sin números */}
-        {platforms.length > 0 && (
-          <div className="flex items-center gap-2 mt-2 flex-wrap">
-            {platforms.map((p) => (
-              <span key={p} className="inline-flex items-center gap-1">
-                <span
-                  className="w-1.5 h-1.5 rounded-full shrink-0"
-                  style={{ background: PLATFORM_DOT[p] ?? '#888' }}
-                />
-                <span className="text-[10px] text-sp-admin-muted font-medium">
-                  {PLATFORM_LABELS[p] ?? p}
-                </span>
-              </span>
-            ))}
-          </div>
-        )}
-
-        {/* Sectores como badges */}
+        {/* Sector como badge compacto */}
         {sectorBadges.length > 0 && (
-          <div className="flex flex-wrap gap-1 mt-2">
+          <div className="flex flex-wrap gap-1 mt-1.5">
             {sectorBadges.map((s) => (
               <span
                 key={s}
@@ -251,12 +218,38 @@ export function TalentCard({ creator, verticals, selectMode, selected, onToggleS
             ))}
           </div>
         )}
+
+        {/* Redes con seguidores — una fila por plataforma */}
+        {creator.socials.length > 0 && (
+          <div className="flex flex-col gap-0.5 mt-2">
+            {creator.socials.slice(0, 3).map((s) => {
+              const count = parseFollowers(s.followersDisplay);
+              const pKey  = s.platform.toLowerCase();
+              return (
+                <div key={s.platform} className="flex items-center justify-between gap-1">
+                  <span className="inline-flex items-center gap-1">
+                    <span
+                      className="w-1.5 h-1.5 rounded-full shrink-0"
+                      style={{ background: PLATFORM_DOT[pKey] ?? '#888' }}
+                    />
+                    <span className="text-[10px] text-sp-admin-muted font-medium">
+                      {PLATFORM_LABELS[pKey] ?? s.platform}
+                    </span>
+                  </span>
+                  {count > 0 && (
+                    <span className="text-[10px] font-bold text-sp-admin-text tabular-nums">
+                      {formatCompact(count)}
+                    </span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
-      {/* ── Footer: estado + métrica principal ─────────────────── */}
-      <div className="border-t border-sp-admin-border/50 px-3 py-2 flex items-center justify-between gap-2 mt-auto">
-
-        {/* Badge de estado — clickable */}
+      {/* ── Footer: solo estado ─────────────────────────────────── */}
+      <div className="border-t border-sp-admin-border/50 px-3 py-2 flex items-center mt-auto">
         {isPillClickable ? (
           <button
             type="button"
@@ -274,13 +267,6 @@ export function TalentCard({ creator, verticals, selectMode, selected, onToggleS
           <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-bold ${statusCfg.bg} ${statusCfg.text}`}>
             <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: statusCfg.dot }} />
             {STATUS_LABELS[displayStatus] ?? displayStatus}
-          </span>
-        )}
-
-        {/* Métrica principal: una sola plataforma + seguidores */}
-        {mainMetric && (
-          <span className="text-[9px] text-sp-admin-muted tabular-nums truncate">
-            {mainMetric}
           </span>
         )}
       </div>

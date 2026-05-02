@@ -109,38 +109,39 @@ function AlertItem({ alert }: { readonly alert: DashboardAlert }): React.ReactEl
 // ── Card "Hoy requiere atención" ──────────────────────────────────────
 
 function AttentionSummary({ summary }: { readonly summary: AlertSummary }): React.ReactElement {
-  const items: { count: number; label: string; href: string; accent: string }[] = [
-    { count: summary.overdueTasksCount,     label: 'tareas vencidas',       href: '/admin/tareas',   accent: '#dc2626' },
-    { count: summary.overdueFollowupsCount, label: 'follow-ups vencidos',   href: '/admin/brands',   accent: '#ea580c' },
-    { count: summary.unpaidBrandCount,      label: 'cobros pendientes',     href: '/admin/campanas', accent: '#d97706' },
-    { count: summary.pendingTalentCount,    label: 'pagos a talentos',      href: '/admin/campanas', accent: '#f59e0b' },
-    { count: summary.expiringDealsCount,    label: 'tratos vencen pronto',  href: '/admin/campanas', accent: '#2563eb' },
+  const items: { count: number; label: string; href: string; accent: string; bg: string }[] = [
+    { count: summary.overdueTasksCount,     label: 'tareas vencidas',      href: '/admin/tareas',   accent: '#dc2626', bg: 'rgba(220,38,38,0.08)'   },
+    { count: summary.overdueFollowupsCount, label: 'follow-ups vencidos',  href: '/admin/brands',   accent: '#ea580c', bg: 'rgba(234,88,12,0.08)'   },
+    { count: summary.unpaidBrandCount,      label: 'cobros pendientes',    href: '/admin/campanas', accent: '#d97706', bg: 'rgba(217,119,6,0.08)'   },
+    { count: summary.pendingTalentCount,    label: 'pagos a talentos',     href: '/admin/campanas', accent: '#ca8a04', bg: 'rgba(202,138,4,0.08)'   },
+    { count: summary.expiringDealsCount,    label: 'tratos por vencer',    href: '/admin/campanas', accent: '#2563eb', bg: 'rgba(37,99,235,0.08)'   },
   ].filter((i) => i.count > 0);
 
   if (items.length === 0) return <></>;
 
-  const totalUrgent = items.reduce((s, i) => s + i.count, 0);
+  const hasCritical = summary.overdueTasksCount > 0 || summary.overdueFollowupsCount > 0;
 
   return (
-    <div className="rounded-xl bg-sp-admin-card border border-amber-200 shadow-[0_1px_3px_rgba(0,0,0,0.06)] px-4 py-3">
-      <div className="flex items-center gap-2 mb-2.5">
-        <span className="text-amber-500 text-[14px]" aria-hidden>⚡</span>
-        <p className="text-[10px] font-black uppercase tracking-[0.18em] text-sp-admin-muted">
-          Hoy requiere atención
+    <div className={`rounded-xl bg-sp-admin-card shadow-[0_1px_3px_rgba(0,0,0,0.06)] px-4 py-3 border ${hasCritical ? 'border-red-200' : 'border-amber-200'}`}>
+      <div className="flex items-center gap-2 mb-3">
+        <span className={`w-2 h-2 rounded-full shrink-0 ${hasCritical ? 'bg-red-500' : 'bg-amber-400'}`} aria-hidden />
+        <p className="text-[10px] font-black uppercase tracking-[0.18em] text-sp-admin-text">
+          Requiere atención
         </p>
-        <span className="ml-auto text-[9px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded-full">
-          {totalUrgent} {totalUrgent === 1 ? 'item' : 'items'}
+        <span className={`ml-auto text-[9px] font-bold px-1.5 py-0.5 rounded-full border ${hasCritical ? 'text-red-700 bg-red-50 border-red-200' : 'text-amber-700 bg-amber-50 border-amber-200'}`}>
+          {items.reduce((s, i) => s + i.count, 0)} pendientes
         </span>
       </div>
-      <div className="flex flex-wrap gap-2">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
         {items.map((item) => (
           <Link
             key={item.label}
             href={item.href}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-sp-admin-border bg-sp-admin-hover/30 hover:bg-sp-admin-hover text-[11px] font-semibold text-sp-admin-text transition-colors"
+            style={{ background: item.bg, borderColor: `${item.accent}30` }}
+            className="flex flex-col items-start gap-0.5 px-3 py-2 rounded-lg border hover:opacity-80 transition-opacity"
           >
-            <span className="font-black tabular-nums" style={{ color: item.accent }}>{item.count}</span>
-            <span className="text-sp-admin-muted">{item.label}</span>
+            <span className="text-[22px] font-black tabular-nums leading-none" style={{ color: item.accent }}>{item.count}</span>
+            <span className="text-[10px] text-sp-admin-muted font-medium leading-tight">{item.label}</span>
           </Link>
         ))}
       </div>
