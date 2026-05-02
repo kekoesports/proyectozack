@@ -186,7 +186,7 @@ export function CampaignDetailTabs({
         )}
 
         {activeTab === 'pagos' && (
-          <CampaignPayments invoices={campaignInvoices} />
+          <CampaignPayments invoices={campaignInvoices} campaign={campaign} />
         )}
 
         {activeTab === 'archivos' && (
