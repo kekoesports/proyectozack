@@ -1,5 +1,5 @@
 /**
- * Sync de press targets desde la skill personal `~/.claude/skills/socialpro-press-targets/targets.md`
+ * Sync de press targets desde la skill del proyecto `.claude/skills/socialpro-press-targets/targets.md`
  * a la tabla `press_targets` en Neon.
  *
  * Triggered por el hook pre-push de Husky. Soft-fail por diseño: si la skill no existe,
@@ -14,7 +14,6 @@
 
 import { config } from 'dotenv';
 import { mkdirSync, readFileSync, statSync, writeFileSync } from 'fs';
-import { homedir } from 'os';
 import { join } from 'path';
 import { neon } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-http';
@@ -24,7 +23,7 @@ import { pressTargets } from '../src/db/schema';
 config({ path: join(process.cwd(), '.env.local') });
 
 const SKILL_TARGETS_PATH = join(
-  homedir(),
+  process.cwd(),
   '.claude',
   'skills',
   'socialpro-press-targets',
