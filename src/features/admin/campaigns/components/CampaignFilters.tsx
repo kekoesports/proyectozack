@@ -15,94 +15,88 @@ import {
 import type { ChangeEventHandler } from 'react';
 import type { CampaignStatus } from '@/lib/schemas/campaign';
 
-// ── Types ─────────────────────────────────────────────────────────────────────
+// ── Types ──────────────────────────────────────────────────────────────────────
 
 export type CampaignFilterState = {
-  readonly search: string;
-  readonly status: CampaignStatus | '';
-  readonly brandId: string;
-  readonly talentId: string;
+  readonly search:           string;
+  readonly status:           CampaignStatus | '';
+  readonly brandId:          string;
+  readonly talentId:         string;
   readonly responsibleUserId: string;
-  readonly sector: string;
-  readonly geo: string;
-  readonly showArchived: boolean;
+  readonly sector:           string;
+  readonly geo:              string;
+  readonly cobroMarca:       'cobrado' | 'pendiente' | '';
+  readonly pagoTalento:      'pagado'  | 'pendiente' | '';
+  readonly showArchived:     boolean;
 };
 
 export const EMPTY_FILTERS: CampaignFilterState = {
-  search: '',
-  status: '',
-  brandId: '',
-  talentId: '',
+  search:            '',
+  status:            '',
+  brandId:           '',
+  talentId:          '',
   responsibleUserId: '',
-  sector: '',
-  geo: '',
-  showArchived: false,
+  sector:            '',
+  geo:               '',
+  cobroMarca:        '',
+  pagoTalento:       '',
+  showArchived:      false,
 };
 
-type BrandOption = { readonly id: number; readonly name: string };
+type BrandOption  = { readonly id: number; readonly name: string };
 type TalentOption = { readonly id: number; readonly name: string };
-type StaffOption = { readonly id: string; readonly name: string };
+type StaffOption  = { readonly id: string; readonly name: string };
 
 type Props = {
-  readonly filters: CampaignFilterState;
-  readonly onChange: (next: CampaignFilterState) => void;
-  readonly brands: readonly BrandOption[];
-  readonly talents: readonly TalentOption[];
+  readonly filters:    CampaignFilterState;
+  readonly onChange:   (next: CampaignFilterState) => void;
+  readonly brands:     readonly BrandOption[];
+  readonly talents:    readonly TalentOption[];
   readonly staffUsers: readonly StaffOption[];
 };
 
-// ── Status options ─────────────────────────────────────────────────────────────
+// ── Options ────────────────────────────────────────────────────────────────────
 
 const STATUS_OPTIONS = [
-  { value: '', label: 'Todos los estados' },
+  { value: '',    label: 'Todos los estados' },
   ...CAMPAIGN_STATUSES.map((s) => ({ value: s, label: CAMPAIGN_STATUS_LABELS[s] })),
 ];
-
-// ── Sector options ─────────────────────────────────────────────────────────────
 
 const SECTOR_OPTIONS = [
   { value: '', label: 'Todos los sectores' },
   ...CRM_BRAND_SECTORES.map((s) => ({ value: s, label: SECTOR_LABELS[s] })),
 ];
 
-// ── Geo options ────────────────────────────────────────────────────────────────
-
 const GEO_OPTIONS = [
-  { value: '', label: 'Todos los geos' },
+  { value: '', label: 'Todos los GEO' },
   ...CRM_BRAND_GEOS.map((g) => ({ value: g, label: GEO_LABELS[g] })),
 ];
 
-// ── Helpers ────────────────────────────────────────────────────────────────────
+const COBRO_OPTIONS = [
+  { value: '',          label: 'Cobro: todos'    },
+  { value: 'cobrado',   label: 'Cobrado'          },
+  { value: 'pendiente', label: 'Pdte. cobro'      },
+];
+
+const PAGO_OPTIONS = [
+  { value: '',          label: 'Pago talent: todos' },
+  { value: 'pagado',    label: 'Pagado'              },
+  { value: 'pendiente', label: 'Pdte. pago'          },
+];
+
+// ── Helper ─────────────────────────────────────────────────────────────────────
 
 function isActive(f: CampaignFilterState): boolean {
   return (
-    f.search !== '' ||
-    f.status !== '' ||
-    f.brandId !== '' ||
-    f.talentId !== '' ||
-    f.responsibleUserId !== '' ||
-    f.sector !== '' ||
-    f.geo !== '' ||
-    f.showArchived
+    f.search !== '' || f.status !== '' || f.brandId !== '' || f.talentId !== '' ||
+    f.responsibleUserId !== '' || f.sector !== '' || f.geo !== '' ||
+    f.cobroMarca !== '' || f.pagoTalento !== '' || f.showArchived
   );
 }
 
 // ── Component ──────────────────────────────────────────────────────────────────
 
-/**
- * Barra de filtros del listado de campañas (estado, marca, talent, rango de fechas, búsqueda).
- *
- * @kind client
- * @feature admin/campaigns
- * @route /admin/campanas
- */
-export function CampaignFilters({
-  filters,
-  onChange,
-  brands,
-  talents,
-  staffUsers,
-}: Props): React.ReactElement {
+export function CampaignFilters({ filters, onChange, brands, talents, staffUsers }: Props): React.ReactElement {
   const set =
     <K extends keyof CampaignFilterState>(key: K) =>
     (value: CampaignFilterState[K]): void =>
@@ -110,86 +104,32 @@ export function CampaignFilters({
 
   const handleSelect =
     <K extends keyof CampaignFilterState>(key: K): ChangeEventHandler<HTMLSelectElement> =>
-    (e) =>
-      set(key)(e.target.value as CampaignFilterState[K]);
+    (e) => set(key)(e.target.value as CampaignFilterState[K]);
 
-  const brandOptions = [
-    { value: '', label: 'Todas las marcas' },
-    ...brands.map((b) => ({ value: String(b.id), label: b.name })),
-  ];
-
-  const talentOptions = [
-    { value: '', label: 'Todos los influencers' },
-    ...talents.map((t) => ({ value: String(t.id), label: t.name })),
-  ];
-
-  const staffOptions = [
-    { value: '', label: 'Todos los responsables' },
-    ...staffUsers.map((u) => ({ value: u.id, label: u.name })),
-  ];
+  const brandOptions   = [{ value: '', label: 'Todas las marcas' },     ...brands.map((b)   => ({ value: String(b.id), label: b.name }))];
+  const talentOptions  = [{ value: '', label: 'Todos los influencers' }, ...talents.map((t)  => ({ value: String(t.id), label: t.name }))];
+  const staffOptions   = [{ value: '', label: 'Todos los responsables'}, ...staffUsers.map((u) => ({ value: u.id, label: u.name }))];
 
   return (
     <FilterBar>
       <FilterBar.Search
-        id="campaign-search"
+        id="deal-search"
         value={filters.search}
         onChange={(e) => set('search')(e.target.value)}
-        placeholder="Buscar campaña…"
+        placeholder="Buscar trato, marca, influencer…"
       />
-
-      <FilterBar.Select
-        id="campaign-status"
-        label="Estado"
-        value={filters.status}
-        onChange={handleSelect('status')}
-        options={STATUS_OPTIONS}
-      />
-
-      <FilterBar.Select
-        id="campaign-brand"
-        label="Marca"
-        value={filters.brandId}
-        onChange={handleSelect('brandId')}
-        options={brandOptions}
-      />
-
-      <FilterBar.Select
-        id="campaign-talent"
-        label="Influencer"
-        value={filters.talentId}
-        onChange={handleSelect('talentId')}
-        options={talentOptions}
-      />
-
-      <FilterBar.Select
-        id="campaign-responsible"
-        label="Responsable"
-        value={filters.responsibleUserId}
-        onChange={handleSelect('responsibleUserId')}
-        options={staffOptions}
-      />
-
-      <FilterBar.Select
-        id="campaign-sector"
-        label="Sector"
-        value={filters.sector}
-        onChange={handleSelect('sector')}
-        options={SECTOR_OPTIONS}
-      />
-
-      <FilterBar.Select
-        id="campaign-geo"
-        label="Geo"
-        value={filters.geo}
-        onChange={handleSelect('geo')}
-        options={GEO_OPTIONS}
-      />
+      <FilterBar.Select id="deal-status"      label="Estado"      value={filters.status}            onChange={handleSelect('status')}            options={STATUS_OPTIONS} />
+      <FilterBar.Select id="deal-brand"       label="Marca"       value={filters.brandId}           onChange={handleSelect('brandId')}           options={brandOptions}   />
+      <FilterBar.Select id="deal-talent"      label="Influencer"  value={filters.talentId}          onChange={handleSelect('talentId')}          options={talentOptions}  />
+      <FilterBar.Select id="deal-sector"      label="Sector"      value={filters.sector}            onChange={handleSelect('sector')}            options={SECTOR_OPTIONS} />
+      <FilterBar.Select id="deal-geo"         label="GEO"         value={filters.geo}               onChange={handleSelect('geo')}               options={GEO_OPTIONS}    />
+      <FilterBar.Select id="deal-cobro"       label="Cobro"       value={filters.cobroMarca}        onChange={handleSelect('cobroMarca')}        options={COBRO_OPTIONS}  />
+      <FilterBar.Select id="deal-pago"        label="Pago talent" value={filters.pagoTalento}       onChange={handleSelect('pagoTalento')}       options={PAGO_OPTIONS}   />
+      <FilterBar.Select id="deal-responsible" label="Responsable" value={filters.responsibleUserId} onChange={handleSelect('responsibleUserId')} options={staffOptions}   />
 
       {/* Toggle archivadas */}
       <label className="flex flex-col gap-1 min-w-0 self-end pb-1.5">
-        <span className="text-[10px] font-medium uppercase tracking-wider text-sp-admin-muted">
-          Archivadas
-        </span>
+        <span className="text-[10px] font-medium uppercase tracking-wider text-sp-admin-muted">Archivadas</span>
         <button
           type="button"
           role="switch"
