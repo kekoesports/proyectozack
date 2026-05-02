@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { getPosts } from '@/lib/queries/posts';
 import { SectionTag } from '@/components/ui/SectionTag';
 import { SectionHeading } from '@/components/ui/SectionHeading';
@@ -51,6 +52,25 @@ export default async function BlogPage() {
           </div>
         )}
       </div>
+      {/* Internal linking to niche SEO landings */}
+      <nav aria-label="Servicios relacionados" className="border-t border-sp-border mt-12 py-8">
+        <div className="mx-auto max-w-5xl px-4 sm:px-6">
+          <p className="text-[9px] font-bold uppercase tracking-[0.22em] text-sp-muted mb-4">Servicios especializados</p>
+          <div className="flex flex-wrap gap-2">
+            {[
+              { href: '/cs2-influencer-marketing', label: 'CS2 Influencer Marketing' },
+              { href: '/esports-marketing-agency', label: 'Esports Marketing Agency' },
+              { href: '/betting-influencers', label: 'Betting Influencers' },
+              { href: '/agencia-marketing-esports', label: 'Agencia Marketing Esports' },
+              { href: '/servicios/igaming', label: 'Campañas iGaming' },
+            ].map(({ href, label }) => (
+              <Link key={href} href={href} className="text-xs font-semibold text-sp-muted hover:text-sp-orange border border-sp-border hover:border-sp-orange rounded-full px-3 py-1.5 transition-colors">
+                {label}
+              </Link>
+            ))}
+          </div>
+        </div>
+      </nav>
     </section>
   );
 }

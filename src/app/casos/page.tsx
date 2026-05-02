@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { getCaseStudies } from '@/lib/queries/cases';
 import { CasesSection } from '@/features/marketing-site/components/CasesSection';
 import { absoluteUrl } from '@/lib/site-url';
@@ -35,6 +36,25 @@ export default async function CasosPage() {
     <div>
       <h1 className="sr-only">Campañas Gaming — Resultados Reales</h1>
       <CasesSection cases={cases} />
+      {/* Internal linking to niche SEO landings */}
+      <nav aria-label="Servicios relacionados" className="bg-sp-off border-t border-sp-border py-8">
+        <div className="max-w-5xl mx-auto px-6">
+          <p className="text-[9px] font-bold uppercase tracking-[0.22em] text-sp-muted mb-4">Tipos de campaña</p>
+          <div className="flex flex-wrap gap-2">
+            {[
+              { href: '/cs2-influencer-marketing', label: 'CS2 Influencer Marketing' },
+              { href: '/betting-influencers', label: 'Betting Influencers' },
+              { href: '/valorant-influencers-agency', label: 'Valorant Influencers' },
+              { href: '/esports-marketing-agency', label: 'Esports Marketing Agency' },
+              { href: '/servicios/igaming', label: 'Campañas iGaming' },
+            ].map(({ href, label }) => (
+              <Link key={href} href={href} className="text-xs font-semibold text-sp-muted hover:text-sp-orange border border-sp-border hover:border-sp-orange rounded-full px-3 py-1.5 transition-colors">
+                {label}
+              </Link>
+            ))}
+          </div>
+        </div>
+      </nav>
     </div>
   );
 }
