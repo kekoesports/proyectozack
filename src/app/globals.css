@@ -346,11 +346,13 @@ html.dark {
   background: linear-gradient(135deg, #1a1a2e 0%, #2d1b4e 100%);
 }
 
-/* ── Reduced motion — disable landing animations ─────────────────────────── */
+/* ── Reduced motion — suavizar animaciones de landing ───────────────────── */
 @media (prefers-reduced-motion: reduce) {
-  .marquee-track,
+  .marquee-track {
+    animation-duration: 80s;   /* muy lento en vez de parado */
+  }
   .marquee-track--slow {
-    animation: none;
+    animation-duration: 120s;
   }
   .hero-aura-pink,
   .hero-aura-orange {
