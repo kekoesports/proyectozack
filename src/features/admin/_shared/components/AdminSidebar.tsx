@@ -38,7 +38,7 @@ function SidebarHero({ onClick }: SidebarHeroProps): React.ReactElement {
     <Link
       href="/admin"
       onClick={onClick}
-      className="flex items-center gap-2.5 px-4 py-4 shrink-0"
+      className="flex flex-col gap-0.5 px-4 py-3 shrink-0"
       aria-label="SocialPro CRM"
     >
       <Image
@@ -48,6 +48,9 @@ function SidebarHero({ onClick }: SidebarHeroProps): React.ReactElement {
         height={56}
         className="h-7 w-auto object-contain brightness-0 invert opacity-85"
       />
+      <span className="text-[9px] font-semibold tracking-[0.2em] uppercase text-sp-admin-sidebar-muted leading-none pl-0.5">
+        Panel de gestión
+      </span>
     </Link>
   );
 }
