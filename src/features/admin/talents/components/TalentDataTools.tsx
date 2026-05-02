@@ -28,22 +28,22 @@ type Props = {
   readonly verticalsByTalent: Readonly<Record<number, readonly TalentVertical[]>>;
 };
 
-const TABS: { key: Tab; label: string; desc: string }[] = [
+const TABS = [
   {
-    key:   'import',
+    key:   'import' as Tab,
     label: 'Importar archivo',
     desc:  'Sube tu archivo exportado desde Google Sheets o Excel para crear o actualizar talentos con todas sus redes sociales.',
   },
   {
-    key:   'export',
+    key:   'export' as Tab,
     label: 'Exportar talentos',
     desc:  'Selecciona los talentos, plataformas y campos que quieres incluir. Descarga el roster en Excel o CSV.',
   },
-];
+] as const;
 
 export function TalentDataTools({ roster: _roster, creators, verticalsByTalent }: Props): React.ReactElement {
   const [tab, setTab] = useState<Tab>('import');
-  const active = TABS.find((t) => t.key === tab)!;
+  const active = TABS.find((t) => t.key === tab) ?? TABS[0];
 
   return (
     <div className="space-y-5">

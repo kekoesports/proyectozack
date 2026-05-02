@@ -18,6 +18,7 @@ const eslintConfig = defineConfig([
       "**/__tests__/**/*.{ts,tsx}",
       "**/*.test.{ts,tsx}",
       "**/*.fuzz.{ts,tsx}",
+      "e2e/**/*.{ts,tsx}",
     ],
     rules: {
       "@typescript-eslint/no-explicit-any": "off",

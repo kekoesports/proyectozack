@@ -25,7 +25,7 @@ function Avatar({ creator }: { readonly creator: AdminRosterRow }): React.ReactE
   if (creator.photoUrl) {
     return <img src={creator.photoUrl} alt={creator.name} className="w-10 h-10 rounded-lg object-cover shrink-0" />;
   }
-  const color = AVATAR_COLORS[creator.name.charCodeAt(0) % AVATAR_COLORS.length]!;
+  const color = AVATAR_COLORS[creator.name.charCodeAt(0) % AVATAR_COLORS.length] ?? AVATAR_COLORS[0] ?? '#000';
   const initials = creator.name.trim().split(/\s+/).slice(0, 2).map((p) => p[0]?.toUpperCase() ?? '').join('').slice(0, 2);
   return (
     <div className="w-10 h-10 rounded-lg flex items-center justify-center text-[11px] font-bold text-white shrink-0"

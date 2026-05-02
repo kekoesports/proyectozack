@@ -57,12 +57,12 @@ export default async function SignPage({
             </div>
           )}
 
-          {alreadySigned ? (
+          {alreadySigned && data.signedAt ? (
             <div className="rounded-xl bg-emerald-50 border border-emerald-200 px-5 py-5 text-center">
               <p className="text-2xl mb-2">✓</p>
               <p className="font-bold text-emerald-800">Contrato firmado</p>
               <p className="text-sm text-emerald-600 mt-1">
-                Firmado el {new Date(data.signedAt!).toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' })}
+                Firmado el {new Date(data.signedAt).toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' })}
               </p>
             </div>
           ) : (

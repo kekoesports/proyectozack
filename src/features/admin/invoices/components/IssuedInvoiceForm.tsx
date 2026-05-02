@@ -148,7 +148,7 @@ export function IssuedInvoiceForm({ invoice, issuers, clients, brands, talents, 
         </div>
 
         <form action={formAction} className="p-6 space-y-6">
-          {mode === 'edit' && <input type="hidden" name="id" value={invoice!.id} />}
+          {invoice && <input type="hidden" name="id" value={invoice.id} />}
           <input type="hidden" name="linesJson" value={linesJson} />
 
           {/* A — Empresa emisora */}

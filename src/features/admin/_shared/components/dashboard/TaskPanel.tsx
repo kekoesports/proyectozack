@@ -66,9 +66,10 @@ export function TaskPanel({ tasks, weekLabel }: TaskPanelProps): React.ReactElem
       ) : (
         <div>
           {tasks.map((task) => {
-            const isOverdue = task.dueDate !== null && new Date(task.dueDate) < now;
-            const isToday = task.dueDate !== null && (() => {
-              const d = new Date(task.dueDate!);
+            const dueDate = task.dueDate;
+            const isOverdue = dueDate !== null && new Date(dueDate) < now;
+            const isToday = dueDate !== null && (() => {
+              const d = new Date(dueDate);
               return d.getDate() === now.getDate() && d.getMonth() === now.getMonth();
             })();
             const dueDateStr = task.dueDate

@@ -232,7 +232,11 @@ export function AddTalentModal({ onClose }: Props): React.ReactElement {
               {secondaries.length < 3 && availableSecondaryPlatforms.length > 0 && (
                 <button
                   type="button"
-                  onClick={() => setSecondaries((prev) => [...prev, { platform: availableSecondaryPlatforms[0]!.id, handle: '' }])}
+                  onClick={() => {
+                    const next = availableSecondaryPlatforms[0];
+                    if (!next) return;
+                    setSecondaries((prev) => [...prev, { platform: next.id, handle: '' }]);
+                  }}
                   className="text-[11px] font-semibold text-sp-admin-accent hover:opacity-70 transition-opacity"
                 >
                   + Añadir plataforma secundaria

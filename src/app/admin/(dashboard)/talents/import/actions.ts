@@ -120,9 +120,10 @@ function parseXlsx(buffer: ArrayBuffer): { headers: string[]; rows: Record<strin
   if (!sheet) return { headers: [], rows: [] };
 
   const jsonRows = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, { defval: '' });
-  if (jsonRows.length === 0) return { headers: [], rows: [] };
+  const firstRow = jsonRows[0];
+  if (!firstRow) return { headers: [], rows: [] };
 
-  const headers = Object.keys(jsonRows[0]!);
+  const headers = Object.keys(firstRow);
   const rows = jsonRows.map((r) => {
     const row: Record<string, string> = {};
     for (const h of headers) {
@@ -211,8 +212,7 @@ export async function applyImportAction(input: ApplyImportInput): Promise<ApplyI
   let skipped = 0;
   const errors: string[] = [];
 
-  for (let i = 0; i < rows.length; i++) {
-    const raw = rows[i]!;
+  for (const [i, raw] of rows.entries()) {
     // Apply mapping: build a mapped object with talent field names as keys
     const mapped: Record<string, string> = {};
     for (const [csvHeader, talentField] of Object.entries(mapping)) {
@@ -381,8 +381,7 @@ export async function matchDocumentAction(
   const invalidRows: UnmatchedDocRow[] = [];
   const matchedTalentIds = new Set<number>();
 
-  for (let i = 0; i < rows.length; i++) {
-    const raw = rows[i]!;
+  for (const [i, raw] of rows.entries()) {
     const mapped: Record<string, string> = {};
     for (const [csvHeader, talentField] of Object.entries(mapping)) {
       if (talentField && talentField !== '(ignorar)') {

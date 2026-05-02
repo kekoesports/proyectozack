@@ -96,17 +96,18 @@ export async function importCSVAction(formData: FormData): Promise<ImportCsvResu
 
   const text = await file.text();
   const lines = text.split('\n').filter((l) => l.trim());
-  if (lines.length < 2) return EMPTY_IMPORT;
+  const [headerLine, ...dataLines] = lines;
+  if (!headerLine || dataLines.length === 0) return EMPTY_IMPORT;
 
-  const rawHeaders = parseCsvLine(lines[0]!).map((h) => h.trim());
+  const rawHeaders = parseCsvLine(headerLine).map((h) => h.trim());
   const headers = rawHeaders.map(normalizeHeader);
   const batchId = randomUUID().slice(0, 8);
 
   const validRows = [];
   let errors = 0;
 
-  for (let i = 1; i < lines.length; i++) {
-    const cols = parseCsvLine(lines[i]!);
+  for (const line of dataLines) {
+    const cols = parseCsvLine(line);
     const raw: Record<string, string> = {};
     headers.forEach((h, idx) => {
       raw[h] = cols[idx] ?? '';
@@ -219,7 +220,8 @@ function parseCsvLine(line: string): string[] {
   let inQuotes = false;
 
   for (let i = 0; i < line.length; i++) {
-    const ch = line[i]!;
+    const ch = line[i];
+    if (ch === undefined) break;
     if (ch === '"') {
       if (inQuotes && line[i + 1] === '"') {
         current += '"';

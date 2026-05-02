@@ -260,11 +260,13 @@ export function AccountingImporter(): React.ReactElement {
       const wb  = XLSX.read(buf, { type: 'array', cellDates: true });
       const sheetName = wb.SheetNames[0];
       if (!sheetName) { setParseError('El archivo no tiene hojas de datos.'); return; }
-      const ws = wb.Sheets[sheetName]!;
+      const ws = wb.Sheets[sheetName];
+      if (!ws) { setParseError('La hoja referida no existe en el archivo.'); return; }
       const rawRows = XLSX.utils.sheet_to_json<Record<string, unknown>>(ws, { defval: '' });
-      if (rawRows.length === 0) { setParseError('El archivo está vacío o no tiene datos.'); return; }
+      const firstRow = rawRows[0];
+      if (!firstRow) { setParseError('El archivo está vacío o no tiene datos.'); return; }
 
-      const headers = Object.keys(rawRows[0]!);
+      const headers = Object.keys(firstRow);
       const rows    = rawRows.map((r) =>
         Object.fromEntries(Object.entries(r).map(([k, v]) => [k, String(v ?? '').trim()])),
       );
@@ -445,8 +447,7 @@ function ColumnMappingStep({ parsed, mapping, onMappingChange, onBack, onReset, 
   const grouped = useMemo(() => {
     const g: Record<string, CrmField[]> = {};
     for (const f of CRM_FIELDS) {
-      if (!g[f.group]) g[f.group] = [];
-      g[f.group]!.push(f);
+      (g[f.group] ??= []).push(f);
     }
     return g;
   }, []);

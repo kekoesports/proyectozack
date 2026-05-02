@@ -6,11 +6,11 @@ import { MOCK_PIPELINE_7D, MOCK_PIPELINE_30D, MOCK_PIPELINE_90D } from '@/lib/mo
 
 type Range = '7d' | '30d' | '90d';
 
-const RANGES: { key: Range; label: string; data: PipelinePoint[] }[] = [
-  { key: '7d',  label: '7d',  data: MOCK_PIPELINE_7D },
-  { key: '30d', label: '30d', data: MOCK_PIPELINE_30D },
-  { key: '90d', label: '90d', data: MOCK_PIPELINE_90D },
-];
+const RANGES = [
+  { key: '7d'  as Range, label: '7d',  data: MOCK_PIPELINE_7D  },
+  { key: '30d' as Range, label: '30d', data: MOCK_PIPELINE_30D },
+  { key: '90d' as Range, label: '90d', data: MOCK_PIPELINE_90D },
+] as const;
 
 function buildPaths(data: PipelinePoint[], w: number, h: number): { line: string; area: string } {
   const values = data.map((d) => d.value);
@@ -31,8 +31,9 @@ function buildPaths(data: PipelinePoint[], w: number, h: number): { line: string
 
   let line = `M ${first.x.toFixed(1)} ${first.y.toFixed(1)}`;
   for (let i = 1; i < pts.length; i++) {
-    const prev = pts[i - 1]!;
-    const curr = pts[i]!;
+    const prev = pts[i - 1];
+    const curr = pts[i];
+    if (!prev || !curr) continue;
     const cpx = (prev.x + curr.x) / 2;
     line += ` C ${cpx.toFixed(1)} ${prev.y.toFixed(1)},${cpx.toFixed(1)} ${curr.y.toFixed(1)},${curr.x.toFixed(1)} ${curr.y.toFixed(1)}`;
   }
@@ -52,7 +53,7 @@ type PipelineChartCardProps = {
 
 export function PipelineChartCard({ total, trend }: PipelineChartCardProps): React.ReactElement {
   const [range, setRange] = useState<Range>('30d');
-  const active = RANGES.find((r) => r.key === range) ?? RANGES[1]!;
+  const active = RANGES.find((r) => r.key === range) ?? RANGES[0];
   const { line, area } = buildPaths(active.data, 300, 80);
 
   const lastLabel = active.data[active.data.length - 1]?.date ?? '';

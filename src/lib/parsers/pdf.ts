@@ -104,11 +104,12 @@ export function groupIntoLines(items: readonly PdfTextItem[]): readonly TextLine
   let bucket: PdfTextItem[] = [];
 
   const flush = (): void => {
-    if (bucket.length === 0) return;
+    const head = bucket[0];
+    if (!head) return;
     const sortedByX = [...bucket].sort((a, b) => a.x - b.x);
     lines.push({
-      page: bucket[0]!.page,
-      y: bucket[0]!.y,
+      page: head.page,
+      y: head.y,
       items: sortedByX,
       text: sortedByX.map((i) => i.str).join(' ').replace(/\s+/g, ' ').trim(),
     });

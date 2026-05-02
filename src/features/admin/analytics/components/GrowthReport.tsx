@@ -25,15 +25,17 @@ export function GrowthReport({ talentName, talentPhoto, from, to, snapshots }: G
   // Group by platform
   const byPlatform = new Map<string, TalentMetricSnapshot[]>();
   for (const s of snapshots) {
-    if (!byPlatform.has(s.platform)) byPlatform.set(s.platform, []);
-    byPlatform.get(s.platform)!.push(s);
+    const arr = byPlatform.get(s.platform) ?? [];
+    arr.push(s);
+    byPlatform.set(s.platform, arr);
   }
 
   // Build chart data per platform
-  const platforms = Array.from(byPlatform.entries()).map(([platform, snaps]) => {
+  const platforms = Array.from(byPlatform.entries()).flatMap(([platform, snaps]) => {
     const sorted = [...snaps].sort((a, b) => a.snapshotDate.localeCompare(b.snapshotDate));
-    const first = sorted[0]!;
-    const last = sorted[sorted.length - 1]!;
+    const first = sorted[0];
+    const last = sorted[sorted.length - 1];
+    if (!first || !last) return [];
     const days = Math.max(
       Math.ceil((new Date(last.snapshotDate).getTime() - new Date(first.snapshotDate).getTime()) / (1000 * 60 * 60 * 24)),
       1,
@@ -46,7 +48,7 @@ export function GrowthReport({ talentName, talentPhoto, from, to, snapshots }: G
       [label]: s.value,
     }));
 
-    return { platform, label, first, last, days, pct, chartData };
+    return [{ platform, label, first, last, days, pct, chartData }];
   });
 
   const fromFormatted = new Date(from).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });

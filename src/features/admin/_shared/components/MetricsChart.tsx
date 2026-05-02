@@ -54,7 +54,8 @@ function EmptyState() {
 
 /** Horizontal bar chart for single-date snapshots */
 function SinglePointBarChart({ data, lines, height }: MetricsChartProps & { height: number }) {
-  const point = data[0]!;
+  const point = data[0];
+  if (!point) return <EmptyState />;
   const barData = lines
     .map((l) => ({
       name: l.name,

@@ -102,10 +102,10 @@ export async function requireAnyRole<R extends Role>(
   const safePath = ALLOWED_LOGIN_PATHS.has(loginPath) ? loginPath : '/';
 
   if (IS_DEV) {
-    if (roles.length === 0) throw new Error('requireAnyRole: roles must be non-empty');
+    const fallback = roles[0];
+    if (!fallback) throw new Error('requireAnyRole: roles must be non-empty');
     const override = env.DEV_ROLE_OVERRIDE;
-    const mockRole: R =
-      override && rolesIncludes(roles, override) ? override : roles[0]!;
+    const mockRole: R = override && rolesIncludes(roles, override) ? override : fallback;
     return { user: { ...DEV_USER, role: mockRole } };
   }
 

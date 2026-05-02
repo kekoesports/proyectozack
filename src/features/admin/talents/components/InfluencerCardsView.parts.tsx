@@ -59,11 +59,12 @@ const PLATFORM_DOT: Record<string, string> = {
 };
 
 // Status config para el badge de footer
-const STATUS_CFG: Record<string, { dot: string; label: string; bg: string; text: string }> = {
+type StatusCfg = { dot: string; label: string; bg: string; text: string };
+const STATUS_CFG = {
   active:    { dot: '#16a34a', label: 'Activo',     bg: 'bg-emerald-50', text: 'text-emerald-700' },
   available: { dot: '#5b9bd5', label: 'Disponible', bg: 'bg-blue-50',    text: 'text-blue-700'    },
   inactive:  { dot: '#9ca3af', label: 'Inactivo',   bg: 'bg-slate-100',  text: 'text-slate-500'   },
-};
+} as const satisfies Record<string, StatusCfg>;
 
 // ── Card ─────────────────────────────────────────────────────────────
 
@@ -88,7 +89,7 @@ export function TalentCard({ creator, verticals, selectMode, selected, onToggleS
   const [optimisticStatus, setOptimisticStatus] = useState<TalentStatus>(creator.status as TalentStatus);
 
   const displayStatus: string = creator.audienceStatus ?? optimisticStatus;
-  const statusCfg = STATUS_CFG[optimisticStatus] ?? STATUS_CFG.inactive!;
+  const statusCfg = STATUS_CFG[optimisticStatus] ?? STATUS_CFG.inactive;
   const isPillClickable = !creator.audienceStatus;
 
   // Plataformas únicas (máx 4 para los dots)

@@ -1,13 +1,13 @@
 import Image from 'next/image';
 
-const GRADIENTS: readonly [string, string][] = [
+const GRADIENTS = [
   ['#f5632a', '#e03070'], // orange → pink
   ['#e03070', '#8b3aad'], // pink → purple
   ['#8b3aad', '#5b9bd5'], // purple → blue
   ['#5b9bd5', '#53fc18'], // blue → lime
   ['#c42880', '#5b9bd5'], // dpink → blue
   ['#f5632a', '#8b3aad'], // orange → purple
-];
+] as const satisfies ReadonlyArray<readonly [string, string]>;
 
 function hashString(input: string): number {
   let hash = 0;
@@ -24,7 +24,7 @@ function initialsOf(name: string): string {
 }
 
 export function gradientForUser(userId: string): readonly [string, string] {
-  return GRADIENTS[hashString(userId) % GRADIENTS.length]!;
+  return GRADIENTS[hashString(userId) % GRADIENTS.length] ?? GRADIENTS[0];
 }
 
 type AvatarProps = {

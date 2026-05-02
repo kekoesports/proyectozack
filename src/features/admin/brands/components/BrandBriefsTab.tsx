@@ -589,13 +589,13 @@ export function BrandBriefsTab({ brandId, briefs, isAdmin }: Props): React.React
             </button>
           )}
         </div>
-      ) : briefs.length === 1 ? (
+      ) : briefs.length === 1 && briefs[0] ? (
         // Vista detalle si solo hay uno
         <BriefReadView
-          brief={briefs[0]!}
+          brief={briefs[0]}
           brandId={brandId}
           isAdmin={isAdmin}
-          onEdit={() => setEditingId(briefs[0]!.id)}
+          onEdit={() => { const b = briefs[0]; if (b) setEditingId(b.id); }}
         />
       ) : (
         // Lista cuando hay varios

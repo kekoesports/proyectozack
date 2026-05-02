@@ -146,7 +146,7 @@ export function BillingMovementModal({ invoice, brands, talents, campaigns, onCl
         </div>
 
         <form action={formAction} className="p-6 space-y-6">
-          {mode === 'edit' && <input type="hidden" name="id" value={invoice!.id} />}
+          {invoice && <input type="hidden" name="id" value={invoice.id} />}
 
           {/* ── 1 · Datos principales ── */}
           <div>

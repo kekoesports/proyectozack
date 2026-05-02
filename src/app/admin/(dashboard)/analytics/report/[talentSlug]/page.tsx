@@ -15,11 +15,11 @@ export default async function GrowthReportPage({ params, searchParams }: ReportP
   const talent = await getTalentBySlugAdmin(talentSlug);
   if (!talent) return notFound();
 
-  const toDate = to ?? new Date().toISOString().split('T')[0]!;
+  const toDate = to ?? new Date().toISOString().slice(0, 10);
   const fromDate = from ?? (() => {
     const d = new Date();
     d.setDate(d.getDate() - 30);
-    return d.toISOString().split('T')[0]!;
+    return d.toISOString().slice(0, 10);
   })();
 
   const snapshots = await getTalentSnapshots(talent.id, fromDate, toDate);

@@ -83,19 +83,18 @@ function MultiChips({ options, selected, onChange }: ChipsProps): React.ReactEle
 // ── Modal wrapper ─────────────────────────────────────────────────────
 
 export function BrandFormModal({ brand, onClose }: Props): React.ReactElement {
-  const mode = brand ? 'edit' : 'create';
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" onClick={onClose}>
       <div className="bg-sp-admin-card rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between px-6 py-4 border-b border-sp-admin-border sticky top-0 bg-sp-admin-card z-10">
           <h2 className="text-base font-bold text-sp-admin-text">
-            {mode === 'create' ? '+ Nueva marca' : `Editar — ${brand!.name}`}
+            {brand ? `Editar — ${brand.name}` : '+ Nueva marca'}
           </h2>
           <button type="button" onClick={onClose} className="text-sp-admin-muted hover:text-sp-admin-text text-xl leading-none transition-colors">×</button>
         </div>
-        {mode === 'create'
-          ? <BrandForm mode="create" onDone={onClose} />
-          : <BrandForm mode="edit" brand={brand!} onDone={onClose} />}
+        {brand
+          ? <BrandForm mode="edit" brand={brand} onDone={onClose} />
+          : <BrandForm mode="create" onDone={onClose} />}
       </div>
     </div>
   );
@@ -107,7 +106,8 @@ type FormProps =
   | { readonly mode: 'create'; readonly brand?: undefined; readonly onDone: () => void }
   | { readonly mode: 'edit';   readonly brand: CrmBrandRow;  readonly onDone: () => void };
 
-function BrandForm({ mode, brand, onDone }: FormProps): React.ReactElement {
+function BrandForm(props: FormProps): React.ReactElement {
+  const { mode, brand, onDone } = props;
   const action = mode === 'create' ? createBrandAction : updateBrandAction;
   const [state, formAction, isPending] = useActionState(action, {});
 
@@ -125,7 +125,7 @@ function BrandForm({ mode, brand, onDone }: FormProps): React.ReactElement {
 
   return (
     <form action={formAction} className="p-6 space-y-6">
-      {mode === 'edit' && <input type="hidden" name="id" value={brand!.id} />}
+      {props.mode === 'edit' && <input type="hidden" name="id" value={props.brand.id} />}
 
       {/* Hidden inputs para multi-select */}
       <input type="hidden" name="geoTargets" value={geoTargets.join(',')} />

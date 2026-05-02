@@ -27,7 +27,6 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const description =
     truncateMetaDescription(caseStudy.excerpt || caseStudy.body[0]?.paragraph) ?? caseStudy.title;
   const title = `${caseStudy.brandName} × SocialPro — Caso de Éxito`;
-  const hasImage = !!caseStudy.heroImageUrl;
 
   return {
     title: { absolute: title },
@@ -39,15 +38,15 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       title,
       description,
       url: absoluteUrl(`/casos/${slug}`),
-      images: hasImage
-        ? [{ url: caseStudy.heroImageUrl!, width: 1200, height: 630 }]
+      images: caseStudy.heroImageUrl
+        ? [{ url: caseStudy.heroImageUrl, width: 1200, height: 630 }]
         : [{ url: absoluteUrl('/og-default.jpg'), width: 1200, height: 630 }],
     },
     twitter: {
       card: 'summary_large_image',
       title,
       description,
-      images: hasImage ? [caseStudy.heroImageUrl!] : [absoluteUrl('/og-default.jpg')],
+      images: caseStudy.heroImageUrl ? [caseStudy.heroImageUrl] : [absoluteUrl('/og-default.jpg')],
     },
   };
 }

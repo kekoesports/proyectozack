@@ -151,7 +151,7 @@ export async function uploadGeoStatsAction(
         return { success: false, error: 'topGeos JSON inválido' };
       }
 
-      const today = new Date().toISOString().split('T')[0]!;
+      const today = new Date().toISOString().slice(0, 10);
 
       await db.transaction(async (tx) => {
         await tx
