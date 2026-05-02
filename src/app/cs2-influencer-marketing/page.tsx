@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'CS2 Influencer Marketing Agency — Spain & LatAm | SocialPro',
     description:
-      'Counter-Strike 2 influencer marketing with verified streamers. FTD tracking and ROI-focused campaigns in Spain, LatAm and Turkey.',
+      'Counter-Strike 2 influencer marketing with verified streamers. FTD tracking and ROI-focused campaigns in Spain and LatAm.',
     url: absoluteUrl('/cs2-influencer-marketing'),
     type: 'website',
     images: [{ url: absoluteUrl('/og-default.jpg'), width: 1200, height: 630 }],

@@ -127,7 +127,7 @@ const professionalServiceJsonLd = {
   '@id': `${SITE_URL}/servicios`,
   name: 'SocialPro — Agencia de Performance Marketing Gaming',
   description:
-    'Agencia especializada en performance influencer marketing gaming, esports e iGaming. Streamers de CS2, Valorant, Twitch y YouTube en España, LatAm y Turquía.',
+    'Agencia especializada en performance influencer marketing gaming, esports e iGaming. Streamers de CS2, Valorant, Twitch y YouTube en España y LatAm.',
   url: `${SITE_URL}/servicios`,
   telephone: '+34-604-868-426',
   email: 'marketing@socialpro.es',
@@ -136,7 +136,9 @@ const professionalServiceJsonLd = {
     { '@type': 'Country', name: 'España' },
     { '@type': 'Country', name: 'México' },
     { '@type': 'Country', name: 'Argentina' },
-    { '@type': 'Country', name: 'Turquía' },
+    { '@type': 'Country', name: 'Colombia' },
+    { '@type': 'Country', name: 'Chile' },
+    { '@type': 'Continent', name: 'Europa' },
   ],
   knowsAbout: [
     'Influencer Marketing Gaming',
