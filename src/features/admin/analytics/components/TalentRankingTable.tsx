@@ -2,9 +2,12 @@
 
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
-import type { CampaignWithRelations } from '@/types';
+import type { CampaignWithRelations, InvoiceWithRelations } from '@/types';
 
-type Props = { readonly campaigns: readonly CampaignWithRelations[] };
+type Props = {
+  readonly campaigns: readonly CampaignWithRelations[];
+  readonly invoices?:  readonly InvoiceWithRelations[];
+};
 
 type TalentRow = {
   id:          number;
@@ -35,9 +38,24 @@ function SortTh({ label, k, right, sortKey, asc, onSort }: ThProps): React.React
   );
 }
 
-export function TalentRankingTable({ campaigns }: Props): React.ReactElement {
+export function TalentRankingTable({ campaigns, invoices = [] }: Props): React.ReactElement {
   const [sortKey, setSortKey] = useState<SortKey>('revenue');
   const [asc, setAsc]         = useState(false);
+
+  const hasInvoices = invoices.length > 0;
+
+  // Pendiente pago talento real desde invoices
+  const pendingByTalent = useMemo(() => {
+    const map = new Map<number, number>();
+    if (!hasInvoices) return map;
+    for (const inv of invoices) {
+      if (inv.kind !== 'expense' || !inv.talentId) continue;
+      if (['pendiente', 'emitida', 'no_pagada', 'no_pagado', 'parcial', 'vencida'].includes(inv.status)) {
+        map.set(inv.talentId, (map.get(inv.talentId) ?? 0) + Number(inv.totalAmount));
+      }
+    }
+    return map;
+  }, [invoices, hasInvoices]);
 
   const rows = useMemo((): TalentRow[] => {
     const map = new Map<number, TalentRow>();
@@ -51,20 +69,26 @@ export function TalentRankingTable({ campaigns }: Props): React.ReactElement {
       };
       existing.deals++;
       if (c.status !== 'cancelada') {
-        existing.revenue  += r;
-        existing.paid     += co;
-        existing.margin   += r - co;
-        if (c.talentPaid === 'no') existing.pendingPago += co;
+        existing.revenue += r;
+        existing.paid    += co;
+        existing.margin  += r - co;
+        if (!hasInvoices && c.talentPaid === 'no') existing.pendingPago += co;
       }
       const d = String(c.createdAt);
       if (d > existing.lastDeal) existing.lastDeal = d;
       map.set(c.talentId, existing);
     }
+    // Sobreescribir pendingPago con datos reales de invoices si disponibles
+    if (hasInvoices) {
+      for (const [id, row] of map.entries()) {
+        row.pendingPago = pendingByTalent.get(id) ?? 0;
+      }
+    }
     return [...map.values()].sort((a, b) => {
       const diff = a[sortKey] - b[sortKey];
       return asc ? diff : -diff;
     });
-  }, [campaigns, sortKey, asc]);
+  }, [campaigns, sortKey, asc, hasInvoices, pendingByTalent]);
 
   function handleSort(k: SortKey): void {
     if (sortKey === k) setAsc((v) => !v);

@@ -2,9 +2,12 @@
 
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
-import type { CampaignWithRelations } from '@/types';
+import type { CampaignWithRelations, InvoiceWithRelations } from '@/types';
 
-type Props = { readonly campaigns: readonly CampaignWithRelations[] };
+type Props = {
+  readonly campaigns: readonly CampaignWithRelations[];
+  readonly invoices?:  readonly InvoiceWithRelations[];
+};
 
 type BrandRow = {
   id:           number;
@@ -35,15 +38,29 @@ function SortTh({ label, k, right, sortKey, asc, onSort }: ThProps): React.React
   );
 }
 
-export function BrandRankingTable({ campaigns }: Props): React.ReactElement {
+export function BrandRankingTable({ campaigns, invoices = [] }: Props): React.ReactElement {
   const [sortKey, setSortKey] = useState<SortKey>('revenue');
   const [asc, setAsc]         = useState(false);
+
+  // Pendiente cobro real desde invoices (más preciso que brandPaid derivado)
+  const hasInvoices = invoices.length > 0;
+  const pendingByBrand = useMemo(() => {
+    const map = new Map<number, number>();
+    if (!hasInvoices) return map;
+    for (const inv of invoices) {
+      if (inv.kind !== 'income' || !inv.brandId) continue;
+      if (['pendiente', 'emitida', 'no_cobrada', 'no_cobrado', 'parcial', 'vencida'].includes(inv.status)) {
+        map.set(inv.brandId, (map.get(inv.brandId) ?? 0) + Number(inv.totalAmount));
+      }
+    }
+    return map;
+  }, [invoices, hasInvoices]);
 
   const rows = useMemo((): BrandRow[] => {
     const map = new Map<number, BrandRow>();
     for (const c of campaigns) {
       if (!c.brandId || !c.brandName) continue;
-      const r = Number(c.amountBrand  ?? 0);
+      const r  = Number(c.amountBrand  ?? 0);
       const co = Number(c.amountTalent ?? 0);
       const existing = map.get(c.brandId) ?? {
         id: c.brandId, name: c.brandName, deals: 0, revenue: 0,
@@ -51,21 +68,27 @@ export function BrandRankingTable({ campaigns }: Props): React.ReactElement {
       };
       existing.deals++;
       if (c.status !== 'cancelada') {
-        existing.revenue  += r;
-        existing.margin   += r - co;
-        if (c.brandPaid === 'no') existing.pendingCobro += r;
+        existing.revenue += r;
+        existing.margin  += r - co;
+        // pendingCobro: usa invoices si están disponibles, si no fallback a campaign
+        if (!hasInvoices && c.brandPaid === 'no') existing.pendingCobro += r;
       }
       if (c.status === 'activa') existing.activeDeals++;
       const d = String(c.createdAt);
       if (d > existing.lastDeal) existing.lastDeal = d;
       map.set(c.brandId, existing);
     }
-    const all = [...map.values()].sort((a, b) => {
+    // Sobreescribir pendingCobro con datos reales de invoices si disponibles
+    if (hasInvoices) {
+      for (const [id, row] of map.entries()) {
+        row.pendingCobro = pendingByBrand.get(id) ?? 0;
+      }
+    }
+    return [...map.values()].sort((a, b) => {
       const diff = a[sortKey] - b[sortKey];
       return asc ? diff : -diff;
     });
-    return all;
-  }, [campaigns, sortKey, asc]);
+  }, [campaigns, sortKey, asc, hasInvoices, pendingByBrand]);
 
   function handleSort(k: SortKey): void {
     if (sortKey === k) setAsc((v) => !v);
