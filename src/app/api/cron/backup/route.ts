@@ -1,29 +1,20 @@
 /**
  * Cron endpoint: backup diario automático a Google Drive.
  * Invocado por Vercel Cron (configurado en vercel.json).
- *
- * Auth: Bearer ${CRON_SECRET} o x-vercel-cron: 1
+ * Auth via {@link assertCronAuth} (fail-closed).
  */
 import { NextRequest, NextResponse } from 'next/server';
 import { exportCrmData, serializeBackup, buildBackupFileName } from '@/lib/backup/export-data';
 import { uploadToDrive } from '@/lib/backup/drive-upload';
+import { assertCronAuth } from '@/lib/security/assertCronAuth';
 import { env } from '@/lib/env';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60; // Vercel function max 60s
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
-  // Autenticación del cron
-  const authHeader       = req.headers.get('authorization');
-  const vercelCronHeader = req.headers.get('x-vercel-cron');
-  const cronSecret       = env.CRON_SECRET;
-
-  const isVercelCron   = vercelCronHeader === '1';
-  const hasValidSecret = cronSecret && authHeader === `Bearer ${cronSecret}`;
-
-  if (!isVercelCron && !hasValidSecret) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const authError = assertCronAuth(req);
+  if (authError) return authError;
 
   const folderId = env.GOOGLE_DRIVE_BACKUP_FOLDER_ID;
   if (!folderId) {
