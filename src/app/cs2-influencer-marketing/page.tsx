@@ -1,0 +1,153 @@
+import type { Metadata } from 'next';
+import Link from 'next/link';
+import { SITE_URL, absoluteUrl } from '@/lib/site-url';
+
+export const metadata: Metadata = {
+  title: 'CS2 Influencer Marketing Agency — Spain & LatAm',
+  description:
+    'CS2 influencer marketing agency specializing in Counter-Strike 2 streamers across Spain and LatAm. FTD tracking, verified audiences, activation in <72h.',
+  alternates: {
+    canonical: '/cs2-influencer-marketing',
+    languages: {
+      en: absoluteUrl('/cs2-influencer-marketing'),
+      es: absoluteUrl('/influencers-cs2'),
+    },
+  },
+  openGraph: {
+    title: 'CS2 Influencer Marketing Agency — Spain & LatAm | SocialPro',
+    description:
+      'Counter-Strike 2 influencer marketing with verified streamers. FTD tracking and ROI-focused campaigns in Spain, LatAm and Turkey.',
+    url: absoluteUrl('/cs2-influencer-marketing'),
+    type: 'website',
+    images: [{ url: absoluteUrl('/og-default.jpg'), width: 1200, height: 630 }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'CS2 Influencer Marketing Agency | SocialPro',
+    description: 'CS2 influencer marketing with FTD tracking. Spain & LatAm. Activation in <72h.',
+    images: [absoluteUrl('/og-default.jpg')],
+  },
+};
+
+const g = { background: 'linear-gradient(135deg,#f5632a 0%,#e03070 35%,#c42880 62%,#8b3aad 100%)', WebkitBackgroundClip: 'text' as const, WebkitTextFillColor: 'transparent' as const, backgroundClip: 'text' as const };
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Service',
+  name: 'CS2 Influencer Marketing',
+  serviceType: 'Esports Influencer Marketing',
+  inLanguage: 'en',
+  provider: { '@type': 'Organization', name: 'SocialPro', url: SITE_URL },
+  areaServed: ['España', 'México', 'Argentina', 'Colombia', 'Chile', 'Turquía'],
+  description: 'CS2 influencer marketing campaigns with verified streamers across Spain and LatAm. FTD tracking, compliance and activation in under 72 hours.',
+};
+
+const faqJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: [
+    { '@type': 'Question', name: 'What makes CS2 audiences valuable for brands?', acceptedAnswer: { '@type': 'Answer', text: 'CS2 players are the most transaction-ready audience in gaming. They actively trade skins, make in-game purchases, and engage with iGaming and peripheral brands at exceptionally high rates. Average conversion rates for CS2 campaigns are 3-5x higher than general gaming audiences.' } },
+    { '@type': 'Question', name: 'How do you track conversions in CS2 influencer campaigns?', acceptedAnswer: { '@type': 'Answer', text: 'Each streamer receives a unique tracking code or affiliate link. We monitor clicks, registrations and FTDs (First Time Deposits) attributed per creator. Reports are verified with raw data, not screenshots.' } },
+    { '@type': 'Question', name: 'Which CS2 streamers does SocialPro work with?', acceptedAnswer: { '@type': 'Answer', text: 'We work with a verified roster of CS2 content creators ranging from pro players and semi-pros to tactical content creators. All are Spanish-speaking, verified audiences and have proven track records with brand campaigns.' } },
+    { '@type': 'Question', name: 'How fast can a CS2 influencer campaign be activated?', acceptedAnswer: { '@type': 'Answer', text: 'From brief to live campaign in under 72 hours. This includes creator selection, contract signing, compliance briefing and publishing coordination.' } },
+  ],
+};
+
+const STATS = [
+  { stat: '8M+', label: 'Reach on 1WIN CS2 campaign' },
+  { stat: '+340', label: 'FTDs in a single activation' },
+  { stat: '100+', label: 'Streamers in one campaign' },
+  { stat: '<72h', label: 'Brief to live campaign' },
+];
+
+const WHY = [
+  { title: 'Highest purchase intent in gaming', desc: 'CS2 players live in a transaction economy. Skin trading, case openings, betting — they convert at rates 3-5x above general gaming audiences. Peripheral brands, iGaming and skins platforms see this firsthand.' },
+  { title: 'Live content that builds trust', desc: 'CS2 streams run for hours, not minutes. Viewers watch their favourite player genuinely using your product. That\'s brand exposure you can\'t buy in a pre-roll ad.' },
+  { title: 'Precision attribution per creator', desc: 'Every streamer gets a unique code. We track every click, register and deposit back to the exact creator who generated it. Verified reports, not estimates.' },
+];
+
+export default function Cs2InfluencerMarketingPage() {
+  return (
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
+
+      {/* Hero */}
+      <section className="bg-sp-black pt-32 pb-20">
+        <div className="max-w-4xl mx-auto px-6 text-center">
+          <p className="text-sp-orange text-xs font-bold uppercase tracking-[0.2em] mb-4">CS2 Influencer Marketing Agency</p>
+          <h1 className="font-display text-4xl md:text-6xl font-black uppercase tracking-tight text-white leading-tight mb-6">
+            The <span style={g}>CS2 Audience</span> Converts.<br />We Prove It.
+          </h1>
+          <p className="text-lg text-white/60 leading-relaxed max-w-2xl mx-auto mb-10">
+            CS2 influencer marketing with verified streamers across Spain, LatAm and Turkey.
+            FTD tracking, compliance and activation in under 72 hours.
+          </p>
+          <div className="flex flex-wrap justify-center gap-8 mb-10">
+            {STATS.map(({ stat, label }) => (
+              <div key={label} className="text-center">
+                <div className="font-display text-3xl font-black" style={g}>{stat}</div>
+                <div className="text-xs text-white/40 mt-1 max-w-[130px]">{label}</div>
+              </div>
+            ))}
+          </div>
+          <Link href="/contacto" className="inline-block bg-sp-grad text-white font-display font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-full hover:opacity-90 transition-opacity">
+            Launch your CS2 campaign
+          </Link>
+        </div>
+      </section>
+
+      {/* Why CS2 */}
+      <section className="bg-white py-16 md:py-20">
+        <div className="max-w-5xl mx-auto px-6">
+          <p className="text-sp-orange text-xs font-bold uppercase tracking-[0.2em] mb-2">Why CS2</p>
+          <h2 className="font-display text-3xl md:text-4xl font-black uppercase text-sp-dark mb-10">
+            Not all gaming audiences are equal
+          </h2>
+          <div className="grid md:grid-cols-3 gap-6">
+            {WHY.map((w) => (
+              <div key={w.title} className="rounded-2xl border border-sp-border bg-sp-off p-6">
+                <h3 className="font-display text-base font-black uppercase text-sp-dark mb-3">{w.title}</h3>
+                <p className="text-sm text-sp-muted leading-relaxed">{w.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Results */}
+      <section className="bg-sp-off py-16 md:py-20">
+        <div className="max-w-4xl mx-auto px-6">
+          <p className="text-sp-orange text-xs font-bold uppercase tracking-[0.2em] mb-2">Proven results</p>
+          <h2 className="font-display text-3xl font-black uppercase text-sp-dark mb-8">CS2 campaigns that delivered</h2>
+          <div className="grid md:grid-cols-2 gap-6">
+            <div className="bg-white rounded-2xl border border-sp-border p-8">
+              <div className="font-display text-4xl font-black text-sp-dark mb-1">8M+</div>
+              <div className="text-sp-orange text-xs font-bold uppercase tracking-wider mb-3">1WIN · CS2 Tournament</div>
+              <p className="text-sm text-sp-muted leading-relaxed">Multi-territory campaign activating 100+ streamers simultaneously across Spain, Mexico, Argentina and Colombia. Integrated into a live CS2 tournament with peak audiences exceeding 500K concurrent viewers.</p>
+            </div>
+            <div className="bg-white rounded-2xl border border-sp-border p-8">
+              <div className="font-display text-4xl font-black text-sp-dark mb-1">200K€</div>
+              <div className="text-sp-orange text-xs font-bold uppercase tracking-wider mb-3">SkinsMonkey · Tracked conversions</div>
+              <p className="text-sm text-sp-muted leading-relaxed">6-week campaign with unique referral codes per streamer. €200,000 in transactions directly attributed to SocialPro creators. Every conversion tracked end-to-end with verifiable data.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="bg-sp-black py-16 text-center">
+        <div className="max-w-2xl mx-auto px-6">
+          <h2 className="font-display text-3xl font-black uppercase text-white mb-4">
+            Ready to activate your <span style={g}>CS2 campaign?</span>
+          </h2>
+          <p className="text-white/50 mb-8">Tell us your product, conversion goal and target market. We deliver a proposal with selected CS2 streamers in 48 hours.</p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link href="/contacto" className="inline-block bg-sp-grad text-white font-display font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-full hover:opacity-90 transition-opacity">Request proposal</Link>
+            <Link href="/influencers-cs2" className="inline-block border border-white/20 text-white/60 font-display font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-full hover:border-white/40 hover:text-white transition-colors">Ver en español →</Link>
+          </div>
+        </div>
+      </section>
+    </>
+  );
+}

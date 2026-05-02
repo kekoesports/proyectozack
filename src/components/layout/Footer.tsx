@@ -33,6 +33,16 @@ const NAV_COLS = [
       { href: '/contacto', label: 'Solicitar propuesta' },
     ],
   },
+  {
+    title: 'Especialidades',
+    links: [
+      { href: '/cs2-influencer-marketing',  label: 'CS2 Influencer Marketing' },
+      { href: '/valorant-influencers-agency', label: 'Valorant Influencers' },
+      { href: '/betting-influencers',        label: 'Betting Influencers' },
+      { href: '/esports-marketing-agency',   label: 'Esports Marketing' },
+      { href: '/twitch-streamers-agency',    label: 'Twitch Streamers' },
+    ],
+  },
 ];
 
 const SOCIALS = [
@@ -116,7 +126,7 @@ export function Footer() {
 
       {/* Main footer */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-[1.6fr_1fr_1fr_1fr] gap-10 md:gap-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-[1.4fr_1fr_1fr_1fr_1fr] gap-8 md:gap-10">
 
           {/* Brand column */}
           <div className="flex flex-col gap-6">
