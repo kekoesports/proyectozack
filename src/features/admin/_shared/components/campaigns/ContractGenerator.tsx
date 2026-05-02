@@ -42,47 +42,137 @@ export function ContractGenerator({ campaign, templates, vars, onDone }: Props):
     setGenError(null);
     try {
       const { jsPDF } = await import('jspdf');
+
+      // ── Constantes de diseño (mismas que generateInvoicePdf) ──────────
+      const PAGE_W  = 210;
+      const PAGE_H  = 297;
+      const MARGIN  = 20;
+      const COL_R   = PAGE_W - MARGIN;
+      const CONTENT_BOTTOM = PAGE_H - 16; // espacio para footer
+      const ACCENT  = '#f5632a';
+      const GRAY    = '#72728a';
+      const BLACK   = '#16161f';
+      const LIGHT   = '#f5f5fa';
+      const BORDER  = '#e2e2ec';
+
       const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+      let y = 0;
+      let pageNum = 1;
 
-      const margin   = 20;
-      const pageW    = 210;
-      const pageH    = 297;
-      const maxWidth = pageW - margin * 2;
-      let y = margin;
+      // ── Helpers ──────────────────────────────────────────────────────
+      function sf(size: number, style: 'normal' | 'bold' = 'normal', color = BLACK): void {
+        doc.setFontSize(size); doc.setFont('helvetica', style); doc.setTextColor(color);
+      }
+      function fillRect(x: number, yy: number, w: number, h: number, fill: string): void {
+        doc.setFillColor(fill); doc.setDrawColor(fill); doc.rect(x, yy, w, h, 'F');
+      }
+      function hLine(yy: number, color = BORDER): void {
+        doc.setDrawColor(color); doc.setLineWidth(0.25); doc.line(MARGIN, yy, COL_R, yy);
+      }
 
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(10);
+      function addHeader(): void {
+        // Banda naranja superior
+        fillRect(0, 0, PAGE_W, 2.5, ACCENT);
 
-      const lines = previewContent.split('\n');
-      for (const rawLine of lines) {
-        const isSeparator = /^[=\-]{3,}/.test(rawLine);
-        const isTitle     = /^[A-ZÁÉÍÓÚ ]{4,}$/.test(rawLine.trim()) && rawLine.trim().length < 60;
+        // Logo de texto "SocialPro"
+        sf(15, 'bold', ACCENT);
+        doc.text('SocialPro', MARGIN, 11);
 
-        if (isSeparator) {
-          // Draw a thin line
-          if (y > pageH - margin) { doc.addPage(); y = margin; }
-          doc.setDrawColor(180);
-          doc.line(margin, y, pageW - margin, y);
-          y += 4;
-          continue;
-        }
+        // Etiqueta "CONTRATO" a la derecha
+        sf(11, 'bold', BLACK);
+        doc.text('CONTRATO', COL_R, 9, { align: 'right' });
+        sf(8, 'normal', GRAY);
+        doc.text(selectedTemplate?.name ?? 'Contrato de servicios', COL_R, 14, { align: 'right' });
 
-        if (isTitle) {
-          doc.setFont('helvetica', 'bold');
-          doc.setFontSize(11);
-        } else {
-          doc.setFont('helvetica', 'normal');
-          doc.setFontSize(10);
-        }
+        y = 20;
+        hLine(y, BORDER);
+        y += 6;
+      }
 
-        const wrapped = doc.splitTextToSize(rawLine || ' ', maxWidth);
-        for (const wline of wrapped) {
-          if (y > pageH - margin) { doc.addPage(); y = margin; }
-          doc.text(wline, margin, y);
-          y += isTitle ? 7 : 5.5;
+      function addFooter(): void {
+        hLine(PAGE_H - 13, BORDER);
+        sf(7, 'normal', GRAY);
+        doc.text('SocialPro · Contrato de servicios', MARGIN, PAGE_H - 9);
+        doc.text(`Pág. ${pageNum}`, COL_R, PAGE_H - 9, { align: 'right' });
+        const today = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        doc.text(today, PAGE_W / 2, PAGE_H - 9, { align: 'center' });
+      }
+
+      function checkPage(needed = 6): void {
+        if (y + needed > CONTENT_BOTTOM) {
+          addFooter();
+          doc.addPage();
+          pageNum++;
+          addHeader();
         }
       }
 
+      // ── Página 1: cabecera ────────────────────────────────────────────
+      addHeader();
+
+      // Bloque de datos del trato (mini tabla 2 columnas)
+      const metaRows: [string, string][] = [
+        ['Trato', campaign.name],
+        ['Marca',  vars['brand_name']    ?? '—'],
+        ['Talento', vars['influencer_name'] ?? '—'],
+        ['Importe',  vars['total_amount']   ?? '—'],
+        ['Fecha inicio', vars['start_date'] ?? '—'],
+        ['Fecha fin',    vars['end_date']   ?? '—'],
+      ].filter(([, v]) => v !== '—') as [string, string][];
+
+      const colMid = PAGE_W / 2 + 2;
+      const half   = metaRows.slice(0, Math.ceil(metaRows.length / 2));
+      const second = metaRows.slice(Math.ceil(metaRows.length / 2));
+      const startY = y;
+
+      for (let i = 0; i < Math.max(half.length, second.length); i++) {
+        const l = half[i];
+        const r = second[i];
+        if (l) {
+          sf(7, 'bold', GRAY); doc.text(l[0].toUpperCase(), MARGIN, y);
+          sf(9, 'normal', BLACK); doc.text(l[1], MARGIN + 28, y);
+        }
+        if (r) {
+          sf(7, 'bold', GRAY); doc.text(r[0].toUpperCase(), colMid, y);
+          sf(9, 'normal', BLACK); doc.text(r[1], colMid + 28, y);
+        }
+        y += 5;
+      }
+
+      if (y > startY) { y += 3; hLine(y, '#ebebf5'); y += 7; }
+
+      // ── Contenido del contrato ────────────────────────────────────────
+      const lines = previewContent.split('\n');
+      for (const rawLine of lines) {
+        const trimmed    = rawLine.trim();
+        const isSep      = /^[=\-]{3,}/.test(trimmed);
+        const isTitle    = /^[A-ZÁÉÍÓÚ\d\s\.]{3,}$/.test(trimmed) && trimmed.length > 2 && trimmed.length < 70;
+        const isEmpty    = trimmed === '';
+
+        if (isEmpty)   { y += 2.5; continue; }
+        if (isSep)     { checkPage(5); hLine(y, '#d8d8e8'); y += 5; continue; }
+
+        if (isTitle) {
+          checkPage(12);
+          fillRect(MARGIN, y - 3.5, COL_R - MARGIN, 7, LIGHT);
+          sf(10, 'bold', ACCENT);
+          doc.text(trimmed, MARGIN + 3, y);
+          y += 9;
+        } else {
+          const wrapped = doc.splitTextToSize(rawLine, COL_R - MARGIN - 2);
+          for (const wline of wrapped) {
+            checkPage(6);
+            sf(9.5, 'normal', BLACK);
+            doc.text(wline, MARGIN, y);
+            y += 5.5;
+          }
+        }
+      }
+
+      // Footer de última página
+      addFooter();
+
+      // ── Guardar ───────────────────────────────────────────────────────
       const pdfBytes = doc.output('arraybuffer');
       const pdfBlob  = new Blob([pdfBytes], { type: 'application/pdf' });
       const fileName = `contrato-${campaign.name.replace(/[^\w]/g, '-').toLowerCase()}-${new Date().toISOString().slice(0, 10)}.pdf`;
@@ -93,7 +183,6 @@ export function ContractGenerator({ campaign, templates, vars, onDone }: Props):
       fd.append('templateId', String(selectedTemplateId));
       fd.append('fileName',   fileName);
 
-      // Trigger the server action via formAction
       formAction(fd);
     } catch (err) {
       setGenError(err instanceof Error ? err.message : 'Error al generar el PDF');

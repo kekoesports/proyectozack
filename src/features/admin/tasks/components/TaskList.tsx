@@ -6,6 +6,7 @@ import type { CrmTask, CrmTaskPriority } from '@/types';
 import type { RelatedLabel } from '@/lib/queries/crmTasks';
 import { TaskModal } from './TaskModal';
 import {
+  bulkDeleteTasksAction,
   completeTaskAction,
   deleteTaskAction,
   updateTaskPartialAction,
@@ -61,6 +62,8 @@ export function TaskList({
   const [creating, setCreating] = useState(false);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [deleteMode, setDeleteMode] = useState(false);
 
   const activeId = searchParams.get('t');
   const editingTask = useMemo<CrmTask | null>(() => {
@@ -122,6 +125,43 @@ export function TaskList({
     return c;
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tasks, todayStr]);
+
+  const toggleSelect = (id: number): void => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+
+  const selectAll = (): void => {
+    if (selectedIds.size === filtered.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filtered.map((t) => t.id)));
+    }
+  };
+
+  const cancelDeleteMode = (): void => {
+    setDeleteMode(false);
+    setSelectedIds(new Set());
+  };
+
+  const handleBulkDelete = (): void => {
+    if (selectedIds.size === 0) return;
+    const ids = [...selectedIds];
+    const msg = `¿Eliminar ${ids.length} tarea${ids.length !== 1 ? 's' : ''}? Esta acción no se puede deshacer.`;
+    if (!confirm(msg)) return;
+    startTransition(async () => {
+      const result = await bulkDeleteTasksAction(ids);
+      if (result?.error) {
+        setFeedback({ kind: 'error', message: result.error });
+      } else {
+        setFeedback({ kind: 'ok', message: `${ids.length} tarea${ids.length !== 1 ? 's' : ''} eliminada${ids.length !== 1 ? 's' : ''}` });
+        cancelDeleteMode();
+      }
+    });
+  };
 
   const openCreate = (): void => {
     setCreating(true);
@@ -196,11 +236,61 @@ export function TaskList({
         onCreate={openCreate}
       />
 
+      {/* Toolbar modo borrar */}
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-[11px] text-sp-admin-muted tabular-nums">
+          {filtered.length} tarea{filtered.length !== 1 ? 's' : ''} · semana <span className="font-semibold text-sp-admin-text">{weekLabel}</span>
+        </p>
+        {!deleteMode ? (
+          <button
+            type="button"
+            onClick={() => setDeleteMode(true)}
+            className="flex items-center gap-1.5 h-7 px-3 rounded-lg border border-sp-admin-border text-[11px] text-sp-admin-muted hover:text-red-500 hover:border-red-300 transition-colors"
+          >
+            <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" aria-hidden>
+              <path d="M2 3h8M5 3V2h2v1M4.5 3v6M7.5 3v6M3 3l.5 7h5l.5-7" />
+            </svg>
+            Borrar tareas
+          </button>
+        ) : (
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] text-sp-admin-muted">
+              {selectedIds.size > 0 ? `${selectedIds.size} seleccionada${selectedIds.size !== 1 ? 's' : ''}` : 'Selecciona tareas'}
+            </span>
+            <button
+              type="button"
+              onClick={handleBulkDelete}
+              disabled={selectedIds.size === 0 || isPending}
+              className="h-7 px-3 rounded-lg bg-red-500 text-white text-[11px] font-bold hover:bg-red-600 disabled:opacity-40 transition-colors"
+            >
+              Eliminar {selectedIds.size > 0 ? selectedIds.size : ''}
+            </button>
+            <button
+              type="button"
+              onClick={cancelDeleteMode}
+              className="h-7 px-3 rounded-lg border border-sp-admin-border text-[11px] text-sp-admin-muted hover:bg-sp-admin-hover transition-colors"
+            >
+              Cancelar
+            </button>
+          </div>
+        )}
+      </div>
+
       <div className="overflow-hidden rounded-xl border border-sp-admin-border bg-sp-admin-card">
         <table className="w-full text-left text-sm">
           <thead>
             <tr className="border-b border-sp-admin-border/60 text-[10px] font-semibold uppercase tracking-[0.2em] text-sp-admin-muted">
-              <th className="px-3 py-3 w-10"></th>
+              <th className="pl-3 pr-1 py-3 w-8">
+                {deleteMode && filtered.length > 0 ? (
+                  <input
+                    type="checkbox"
+                    checked={selectedIds.size === filtered.length}
+                    onChange={selectAll}
+                    aria-label="Seleccionar todas"
+                    className="rounded border-sp-admin-border cursor-pointer accent-red-500"
+                  />
+                ) : null}
+              </th>
               <th className="px-3 py-3">Título</th>
               <th className="px-3 py-3">Prioridad</th>
               <th className="px-3 py-3">Estado</th>
@@ -213,7 +303,7 @@ export function TaskList({
           <tbody className="divide-y divide-sp-admin-border/60">
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={8} className="px-4 py-10 text-center text-sp-admin-muted">
+                <td colSpan={9} className="px-4 py-10 text-center text-sp-admin-muted">
                   No hay tareas que cumplan los filtros.
                 </td>
               </tr>
@@ -235,16 +325,14 @@ export function TaskList({
                   onEdit={openEdit}
                   onRemove={remove}
                   onFieldChange={handleFieldChange}
+                  selected={selectedIds.has(t.id)}
+                  {...(deleteMode ? { onToggleSelect: toggleSelect } : {})}
                 />
               ))
             )}
           </tbody>
         </table>
       </div>
-
-      <p className="mt-3 text-[11px] text-sp-admin-muted">
-        Semana actual: <span className="font-semibold text-sp-admin-text">{weekLabel}</span>
-      </p>
 
       <FeedbackToast feedback={feedback} />
 
