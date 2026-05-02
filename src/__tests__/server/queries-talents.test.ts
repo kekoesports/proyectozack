@@ -310,6 +310,8 @@ describe('talent queries', () => {
     beforeEach(() => {
       mockGetLatestSnapshots.mockResolvedValue([]);
       mockGetEarliestSnapshots.mockResolvedValue([]);
+      // db.select(...).from(campaigns).where(...).groupBy(...) → counts active deals per talent
+      mockSelect.mockReturnValue(makeSelectBuilder([]));
     });
 
     it('growth % calculated correctly: ((latest - earliest) / earliest) * 100', async () => {
