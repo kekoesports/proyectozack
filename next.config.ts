@@ -33,6 +33,25 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  async redirects() {
+    return [
+      // /gaming/cs2 → /influencers-cs2 (301 permanent)
+      // Both pages are in Spanish. /influencers-cs2 has better schema, hreflang and structure.
+      // Created 2026-05-03 — no external backlinks, safe to redirect.
+      {
+        source: '/gaming/cs2',
+        destination: '/influencers-cs2',
+        permanent: true,
+      },
+      // /gaming/betting → /influencers-betting (301 permanent)
+      // Same rationale. Eliminates cannibalisation with /influencers-betting and /servicios/igaming.
+      {
+        source: '/gaming/betting',
+        destination: '/influencers-betting',
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     return [
       { source: '/(.*)', headers: securityHeaders },

@@ -342,6 +342,25 @@ export default function IgamingPage() {
           </div>
         </div>
       </section>
+
+      {/* Internal linking to related niche landings */}
+      <nav aria-label="Related services" className="bg-sp-off border-t border-sp-border py-6">
+        <div className="max-w-4xl mx-auto px-6">
+          <p className="text-[9px] font-bold uppercase tracking-[0.22em] text-sp-muted mb-3">Related</p>
+          <div className="flex flex-wrap gap-2">
+            {[
+              { href: '/betting-influencers', label: 'Betting Influencers' },
+              { href: '/cs2-influencer-marketing', label: 'CS2 Influencer Marketing' },
+              { href: '/influencers-betting', label: 'Influencers Betting (ES)' },
+              { href: '/influencers-cs2', label: 'Influencers CS2 (ES)' },
+            ].map(({ href, label }) => (
+              <Link key={href} href={href} className="text-xs font-semibold text-sp-muted hover:text-sp-orange border border-sp-border hover:border-sp-orange rounded-full px-3 py-1.5 transition-colors">
+                {label}
+              </Link>
+            ))}
+          </div>
+        </div>
+      </nav>
     </>
   );
 }

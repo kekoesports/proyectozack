@@ -11,6 +11,7 @@ export const metadata: Metadata = {
     languages: {
       es: absoluteUrl('/influencers-betting'),
       en: absoluteUrl('/betting-influencers'),
+          'x-default': absoluteUrl('/betting-influencers'),
     },
   },
   openGraph: {

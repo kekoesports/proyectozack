@@ -11,6 +11,7 @@ export const metadata: Metadata = {
     languages: {
       es: absoluteUrl('/agencia-influencers-valorant'),
       en: absoluteUrl('/valorant-influencers-agency'),
+          'x-default': absoluteUrl('/valorant-influencers-agency'),
     },
   },
   openGraph: {

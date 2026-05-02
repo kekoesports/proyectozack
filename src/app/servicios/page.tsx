@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { ServicesSection } from '@/features/marketing-site/components/ServicesSection';
 import { absoluteUrl, SITE_URL } from '@/lib/site-url';
 
@@ -177,6 +178,25 @@ export default function ServiciosPage() {
       <div>
         <h1 className="sr-only">Agencia Marketing Gaming e iGaming</h1>
         <ServicesSection />
+        {/* Internal linking to niche SEO landings */}
+        <nav aria-label="Especialidades" className="bg-sp-off border-t border-sp-border py-8">
+          <div className="max-w-5xl mx-auto px-6">
+            <p className="text-[9px] font-bold uppercase tracking-[0.22em] text-sp-muted mb-4">Especialidades</p>
+            <div className="flex flex-wrap gap-2">
+              {[
+                { href: '/cs2-influencer-marketing', label: 'CS2 Influencer Marketing' },
+                { href: '/valorant-influencers-agency', label: 'Valorant Influencers Agency' },
+                { href: '/esports-marketing-agency', label: 'Esports Marketing Agency' },
+                { href: '/twitch-streamers-agency', label: 'Twitch Streamers Agency' },
+                { href: '/betting-influencers', label: 'Betting Influencers' },
+              ].map(({ href, label }) => (
+                <Link key={href} href={href} className="text-xs font-semibold text-sp-muted hover:text-sp-orange border border-sp-border hover:border-sp-orange rounded-full px-3 py-1.5 transition-colors">
+                  {label}
+                </Link>
+              ))}
+            </div>
+          </div>
+        </nav>
       </div>
     </>
   );

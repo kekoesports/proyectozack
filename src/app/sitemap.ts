@@ -5,23 +5,22 @@ import { getTalentSlugs } from '@/lib/queries/talents';
 import { getPostSlugs } from '@/lib/queries/posts';
 import { SITE_URL, absoluteUrl } from '@/lib/site-url';
 
-// ── Static page last-modified dates ──────────────────────────────────────────
-// Update these manually when you make significant content changes to each page.
-const STATIC_DATES = {
-  home:          new Date('2025-04-27'),
-  talentos:      new Date('2025-04-27'),
-  servicios:     new Date('2025-01-15'),
-  igaming:       new Date('2025-01-15'),
-  gamingCs2:     new Date('2026-05-03'),
-  gamingBetting: new Date('2026-05-03'),
-  casos:         new Date('2025-04-27'),
+// Update lastModified manually when making significant content changes.
+const NOW = new Date('2026-05-03');
+
+const D = {
+  home:          NOW,
+  talentos:      NOW,
+  servicios:     NOW,
+  igaming:       NOW,
+  casos:         NOW,
   nosotros:      new Date('2025-01-15'),
   contacto:      new Date('2025-01-15'),
   metodologia:   new Date('2025-01-15'),
-  paraCreadores: new Date('2025-04-27'),
-  blog:          new Date('2025-04-27'),
-  giveaways:     new Date('2025-04-27'),
-  sorteos:       new Date('2025-04-27'),
+  paraCreadores: NOW,
+  blog:          NOW,
+  giveaways:     NOW,
+  sorteos:       NOW,
 } as const;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -66,91 +65,82 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.6,
   }));
 
+  // ── Multilingual landing pairs ────────────────────────────────────────────
+  // EN (primary, priority 0.85) + ES (support, priority 0.80).
+  // alternates.languages → Google outputs hreflang in sitemap.xml.
+  // x-default always points to the EN version (international fallback).
+  const bilingualLandings: MetadataRoute.Sitemap = [
+    // CS2
+    {
+      url: absoluteUrl('/cs2-influencer-marketing'),
+      lastModified: NOW, changeFrequency: 'monthly', priority: 0.85,
+      alternates: { languages: { en: absoluteUrl('/cs2-influencer-marketing'), es: absoluteUrl('/influencers-cs2'), 'x-default': absoluteUrl('/cs2-influencer-marketing') } },
+    },
+    {
+      url: absoluteUrl('/influencers-cs2'),
+      lastModified: NOW, changeFrequency: 'monthly', priority: 0.80,
+      alternates: { languages: { es: absoluteUrl('/influencers-cs2'), en: absoluteUrl('/cs2-influencer-marketing'), 'x-default': absoluteUrl('/cs2-influencer-marketing') } },
+    },
+    // Valorant
+    {
+      url: absoluteUrl('/valorant-influencers-agency'),
+      lastModified: NOW, changeFrequency: 'monthly', priority: 0.85,
+      alternates: { languages: { en: absoluteUrl('/valorant-influencers-agency'), es: absoluteUrl('/agencia-influencers-valorant'), 'x-default': absoluteUrl('/valorant-influencers-agency') } },
+    },
+    {
+      url: absoluteUrl('/agencia-influencers-valorant'),
+      lastModified: NOW, changeFrequency: 'monthly', priority: 0.80,
+      alternates: { languages: { es: absoluteUrl('/agencia-influencers-valorant'), en: absoluteUrl('/valorant-influencers-agency'), 'x-default': absoluteUrl('/valorant-influencers-agency') } },
+    },
+    // Betting
+    {
+      url: absoluteUrl('/betting-influencers'),
+      lastModified: NOW, changeFrequency: 'monthly', priority: 0.85,
+      alternates: { languages: { en: absoluteUrl('/betting-influencers'), es: absoluteUrl('/influencers-betting'), 'x-default': absoluteUrl('/betting-influencers') } },
+    },
+    {
+      url: absoluteUrl('/influencers-betting'),
+      lastModified: NOW, changeFrequency: 'monthly', priority: 0.80,
+      alternates: { languages: { es: absoluteUrl('/influencers-betting'), en: absoluteUrl('/betting-influencers'), 'x-default': absoluteUrl('/betting-influencers') } },
+    },
+    // Esports
+    {
+      url: absoluteUrl('/esports-marketing-agency'),
+      lastModified: NOW, changeFrequency: 'monthly', priority: 0.85,
+      alternates: { languages: { en: absoluteUrl('/esports-marketing-agency'), es: absoluteUrl('/agencia-marketing-esports'), 'x-default': absoluteUrl('/esports-marketing-agency') } },
+    },
+    {
+      url: absoluteUrl('/agencia-marketing-esports'),
+      lastModified: NOW, changeFrequency: 'monthly', priority: 0.80,
+      alternates: { languages: { es: absoluteUrl('/agencia-marketing-esports'), en: absoluteUrl('/esports-marketing-agency'), 'x-default': absoluteUrl('/esports-marketing-agency') } },
+    },
+    // Twitch — EN only, no ES pair yet; x-default = itself
+    {
+      url: absoluteUrl('/twitch-streamers-agency'),
+      lastModified: NOW, changeFrequency: 'monthly', priority: 0.80,
+      alternates: { languages: { en: absoluteUrl('/twitch-streamers-agency'), 'x-default': absoluteUrl('/twitch-streamers-agency') } },
+    },
+    // /gaming/* redirect to ES landings — omitted from sitemap to avoid
+    // signalling duplicate URLs. Vercel will serve 301s from next.config.ts.
+  ];
+
   return [
-    {
-      url: SITE_URL,
-      lastModified: STATIC_DATES.home,
-      changeFrequency: 'weekly',
-      priority: 1,
-    },
-    {
-      url: absoluteUrl('/talentos'),
-      lastModified: STATIC_DATES.talentos,
-      changeFrequency: 'weekly',
-      priority: 0.9,
-    },
-    {
-      url: absoluteUrl('/servicios'),
-      lastModified: STATIC_DATES.servicios,
-      changeFrequency: 'monthly',
-      priority: 0.8,
-    },
-    {
-      url: absoluteUrl('/servicios/igaming'),
-      lastModified: STATIC_DATES.igaming,
-      changeFrequency: 'monthly',
-      priority: 0.8,
-    },
-    {
-      url: absoluteUrl('/gaming/cs2'),
-      lastModified: STATIC_DATES.gamingCs2,
-      changeFrequency: 'monthly',
-      priority: 0.8,
-    },
-    {
-      url: absoluteUrl('/gaming/betting'),
-      lastModified: STATIC_DATES.gamingBetting,
-      changeFrequency: 'monthly',
-      priority: 0.8,
-    },
-    {
-      url: absoluteUrl('/casos'),
-      lastModified: STATIC_DATES.casos,
-      changeFrequency: 'weekly',
-      priority: 0.8,
-    },
-    {
-      url: absoluteUrl('/nosotros'),
-      lastModified: STATIC_DATES.nosotros,
-      changeFrequency: 'monthly',
-      priority: 0.7,
-    },
-    {
-      url: absoluteUrl('/contacto'),
-      lastModified: STATIC_DATES.contacto,
-      changeFrequency: 'monthly',
-      priority: 0.8,
-    },
-    {
-      url: absoluteUrl('/metodologia'),
-      lastModified: STATIC_DATES.metodologia,
-      changeFrequency: 'monthly',
-      priority: 0.7,
-    },
-    {
-      url: absoluteUrl('/para-creadores'),
-      lastModified: STATIC_DATES.paraCreadores,
-      changeFrequency: 'monthly',
-      priority: 0.8,
-    },
-    {
-      url: absoluteUrl('/blog'),
-      lastModified: STATIC_DATES.blog,
-      changeFrequency: 'weekly',
-      priority: 0.7,
-    },
-    {
-      url: absoluteUrl('/giveaways'),
-      lastModified: STATIC_DATES.giveaways,
-      changeFrequency: 'daily',
-      priority: 0.9,
-    },
-    {
-      url: absoluteUrl('/sorteos'),
-      lastModified: STATIC_DATES.sorteos,
-      changeFrequency: 'daily',
-      priority: 0.8,
-    },
+    // ── Core pages ────────────────────────────────────────────────────────
+    { url: SITE_URL,                         lastModified: D.home,          changeFrequency: 'weekly',  priority: 1    },
+    { url: absoluteUrl('/talentos'),          lastModified: D.talentos,      changeFrequency: 'weekly',  priority: 0.9  },
+    { url: absoluteUrl('/servicios'),         lastModified: D.servicios,     changeFrequency: 'monthly', priority: 0.8  },
+    { url: absoluteUrl('/servicios/igaming'), lastModified: D.igaming,       changeFrequency: 'monthly', priority: 0.85 },
+    { url: absoluteUrl('/casos'),             lastModified: D.casos,         changeFrequency: 'weekly',  priority: 0.8  },
+    { url: absoluteUrl('/nosotros'),          lastModified: D.nosotros,      changeFrequency: 'monthly', priority: 0.7  },
+    { url: absoluteUrl('/contacto'),          lastModified: D.contacto,      changeFrequency: 'monthly', priority: 0.8  },
+    { url: absoluteUrl('/metodologia'),       lastModified: D.metodologia,   changeFrequency: 'monthly', priority: 0.7  },
+    { url: absoluteUrl('/para-creadores'),    lastModified: D.paraCreadores, changeFrequency: 'monthly', priority: 0.8  },
+    { url: absoluteUrl('/blog'),              lastModified: D.blog,          changeFrequency: 'weekly',  priority: 0.7  },
+    { url: absoluteUrl('/giveaways'),         lastModified: D.giveaways,     changeFrequency: 'daily',   priority: 0.8  },
+    { url: absoluteUrl('/sorteos'),           lastModified: D.sorteos,       changeFrequency: 'daily',   priority: 0.75 },
+    // ── Multilingual SEO landings ─────────────────────────────────────────
+    ...bilingualLandings,
+    // ── Dynamic entries ───────────────────────────────────────────────────
     ...caseEntries,
     ...talentEntries,
     ...creatorHubEntries,

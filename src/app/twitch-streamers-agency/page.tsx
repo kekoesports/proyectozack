@@ -8,6 +8,10 @@ export const metadata: Metadata = {
     'Twitch streamers agency for brand campaigns in Spain and LatAm. Live gaming influencer marketing with verified audiences, real-time engagement and performance tracking.',
   alternates: {
     canonical: '/twitch-streamers-agency',
+    languages: {
+      en: absoluteUrl('/twitch-streamers-agency'),
+      'x-default': absoluteUrl('/twitch-streamers-agency'),
+    },
   },
   openGraph: {
     title: 'Twitch Streamers Agency — Live Gaming Influencer Marketing | SocialPro',

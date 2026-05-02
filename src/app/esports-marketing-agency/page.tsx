@@ -10,6 +10,7 @@ export const metadata: Metadata = {
     canonical: '/esports-marketing-agency',
     languages: {
       en: absoluteUrl('/esports-marketing-agency'),
+          'x-default': absoluteUrl('/esports-marketing-agency'),
       es: absoluteUrl('/agencia-marketing-esports'),
     },
   },

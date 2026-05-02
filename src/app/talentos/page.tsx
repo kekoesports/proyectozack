@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { getTalents } from '@/lib/queries/talents';
 import { TalentSection } from '@/features/marketing-site/components/TalentSection';
 import { absoluteUrl, SITE_URL } from '@/lib/site-url';
@@ -63,6 +64,25 @@ export default async function TalentosPage() {
       <div>
         <h1 className="sr-only">Streamers y Creadores Gaming de Élite</h1>
         <TalentSection talents={talents} />
+        {/* Internal linking: creator-focused landings */}
+        <nav aria-label="Campañas por nicho" className="bg-sp-off border-t border-sp-border py-8">
+          <div className="max-w-5xl mx-auto px-6">
+            <p className="text-[9px] font-bold uppercase tracking-[0.22em] text-sp-muted mb-4">Campañas por nicho</p>
+            <div className="flex flex-wrap gap-2">
+              {[
+                { href: '/influencers-cs2', label: 'Influencers CS2' },
+                { href: '/agencia-influencers-valorant', label: 'Influencers Valorant' },
+                { href: '/cs2-influencer-marketing', label: 'CS2 Influencer Marketing (EN)' },
+                { href: '/valorant-influencers-agency', label: 'Valorant Influencers Agency (EN)' },
+                { href: '/esports-marketing-agency', label: 'Esports Marketing Agency (EN)' },
+              ].map(({ href, label }) => (
+                <Link key={href} href={href} className="text-xs font-semibold text-sp-muted hover:text-sp-orange border border-sp-border hover:border-sp-orange rounded-full px-3 py-1.5 transition-colors">
+                  {label}
+                </Link>
+              ))}
+            </div>
+          </div>
+        </nav>
       </div>
     </>
   );

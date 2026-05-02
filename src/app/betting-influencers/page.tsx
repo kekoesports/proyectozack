@@ -10,6 +10,7 @@ export const metadata: Metadata = {
     canonical: '/betting-influencers',
     languages: {
       en: absoluteUrl('/betting-influencers'),
+          'x-default': absoluteUrl('/betting-influencers'),
       es: absoluteUrl('/influencers-betting'),
     },
   },
@@ -98,7 +99,7 @@ export default function BettingInfluencersPage() {
       <section className="bg-white py-16 md:py-20">
         <div className="max-w-5xl mx-auto px-6">
           <p className="text-sp-orange text-xs font-bold uppercase tracking-[0.2em] mb-2">Why SocialPro</p>
-          <h2 className="font-display text-3xl font-black uppercase text-sp-dark mb-10">We don't just connect. We protect.</h2>
+          <h2 className="font-display text-3xl font-black uppercase text-sp-dark mb-10">We don&apos;t just connect. We protect.</h2>
           <div className="grid md:grid-cols-3 gap-6">
             {DIFFERENTIATORS.map((d) => (
               <div key={d.title} className="rounded-2xl border border-sp-border bg-sp-off p-6">

@@ -10,6 +10,7 @@ export const metadata: Metadata = {
     canonical: '/cs2-influencer-marketing',
     languages: {
       en: absoluteUrl('/cs2-influencer-marketing'),
+          'x-default': absoluteUrl('/cs2-influencer-marketing'),
       es: absoluteUrl('/influencers-cs2'),
     },
   },
