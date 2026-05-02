@@ -20,7 +20,7 @@ export type CurrentTalent = {
   }[];
 };
 
-type Tab = 'import' | 'stats' | 'export';
+type Tab = 'import' | 'export';
 
 type Props = {
   readonly roster:            readonly CurrentTalent[];
@@ -31,27 +31,42 @@ type Props = {
 const TABS: { key: Tab; label: string; desc: string }[] = [
   {
     key:   'import',
-    label: 'Importar talentos',
-    desc:  'Sube tu Excel o CSV de Google Sheets para crear o actualizar talentos con todas sus redes sociales.',
-  },
-  {
-    key:   'stats',
-    label: 'Actualizar estadísticas',
-    desc:  'Importa followers, CCV y URLs para talentos ya existentes en el CRM.',
+    label: 'Importar archivo',
+    desc:  'Sube tu archivo exportado desde Google Sheets o Excel para crear o actualizar talentos con todas sus redes sociales.',
   },
   {
     key:   'export',
-    label: 'Exportar Excel',
-    desc:  'Selecciona los influencers y descarga el roster en Excel con branding SocialPro.',
+    label: 'Exportar talentos',
+    desc:  'Selecciona los talentos, plataformas y campos que quieres incluir. Descarga el roster en Excel o CSV.',
   },
 ];
 
-export function TalentDataTools({ roster, creators, verticalsByTalent }: Props): React.ReactElement {
+export function TalentDataTools({ roster: _roster, creators, verticalsByTalent }: Props): React.ReactElement {
   const [tab, setTab] = useState<Tab>('import');
   const active = TABS.find((t) => t.key === tab)!;
 
   return (
     <div className="space-y-5">
+
+      {/* Descripción del módulo */}
+      <div className="rounded-xl bg-sp-admin-card border border-sp-admin-border px-5 py-4">
+        <div className="flex items-start gap-3">
+          <div className="w-8 h-8 rounded-lg bg-sp-admin-accent/10 flex items-center justify-center shrink-0 mt-0.5">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+              <path d="M9 1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V6L9 1Z" stroke="#f5632a" strokeWidth="1.2" strokeLinejoin="round"/>
+              <path d="M9 1v5h5" stroke="#f5632a" strokeWidth="1.2" strokeLinejoin="round"/>
+              <path d="M5 9h6M5 12h4" stroke="#f5632a" strokeWidth="1.2" strokeLinecap="round"/>
+            </svg>
+          </div>
+          <div>
+            <p className="text-[13px] font-semibold text-sp-admin-text">Importar y exportar talentos</p>
+            <p className="text-[12px] text-sp-admin-muted mt-0.5">
+              Gestiona el roster desde Excel o CSV. Importa nuevos talentos o actualiza los existentes, y exporta los datos en el formato que necesites.
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* Sub-tabs */}
       <div className="flex items-end gap-0 border-b border-sp-admin-border">
         {TABS.map((t) => (
@@ -75,16 +90,9 @@ export function TalentDataTools({ roster, creators, verticalsByTalent }: Props):
       <p className="text-[12px] text-sp-admin-muted -mt-2">{active.desc}</p>
 
       {tab === 'import' && <TalentImporter />}
-      {tab === 'stats'  && (
-        <div className="rounded-xl border border-sp-admin-border bg-sp-admin-card p-8 text-center">
-          <p className="text-sm text-sp-admin-muted">
-            {/* TODO: StatsImportPanel — pendiente de migración */}
-            Panel de estadísticas pendiente de migración. Usa la importación CSV para actualizar datos.
-          </p>
-          <p className="text-[10px] text-sp-admin-muted/60 mt-1">{roster.length} talentos disponibles</p>
-        </div>
+      {tab === 'export' && (
+        <TalentExportView creators={creators} verticalsByTalent={verticalsByTalent} />
       )}
-      {tab === 'export' && <TalentExportView creators={creators} verticalsByTalent={verticalsByTalent} />}
     </div>
   );
 }

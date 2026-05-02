@@ -1,13 +1,14 @@
 'use client';
 
+import Link from 'next/link';
 import Image from 'next/image';
 import { useMemo, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import * as m from 'motion/react-client';
-import { StateBadge } from '@/features/admin/_shared/components/StateBadge';
 import { parseFollowers, formatCompact } from '@/lib/utils/format';
 import { TALENT_VERTICAL_LABELS } from '@/lib/schemas/talentBusiness';
 import { setTalentStatusAction } from '@/app/admin/(dashboard)/talents/actions';
+import { getFlagImageUrl, countryFlagEmoji } from '@/lib/flag-images';
 import type { AdminRosterRow } from '@/lib/queries/talents';
 import type { TalentVertical } from '@/types';
 import type { Tone } from '@/features/admin/_shared/components/StateBadge';
@@ -17,34 +18,51 @@ import type { Tone } from '@/features/admin/_shared/components/StateBadge';
 export type TalentStatus = 'active' | 'available' | 'inactive';
 
 export const STATUS_TONE: Record<string, Tone> = {
-  active: 'success',
+  active:    'success',
   available: 'info',
-  inactive: 'neutral',
-  // audienceStatus values
-  activo: 'success',
-  inactivo: 'neutral',
+  inactive:  'neutral',
+  activo:    'success',
+  inactivo:  'neutral',
   pendiente: 'warning',
   potencial: 'info',
 };
 
 export const STATUS_LABELS: Record<string, string> = {
-  active: 'Activo',
+  active:    'Activo',
   available: 'Disponible',
-  inactive: 'Inactivo',
-  activo: 'Activo',
-  inactivo: 'Inactivo',
+  inactive:  'Inactivo',
+  activo:    'Activo',
+  inactivo:  'Inactivo',
   pendiente: 'Pendiente',
   potencial: 'Potencial',
 };
 
 export const PLATFORM_LABELS: Record<string, string> = {
-  twitch: 'Twitch',
-  youtube: 'YouTube',
+  twitch:    'Twitch',
+  youtube:   'YouTube',
   instagram: 'Instagram',
-  tiktok: 'TikTok',
-  x: 'X',
-  twitter: 'X',
-  kick: 'Kick',
+  tiktok:    'TikTok',
+  x:         'X',
+  twitter:   'X',
+  kick:      'Kick',
+};
+
+// Colores de plataforma para el dot indicator
+const PLATFORM_DOT: Record<string, string> = {
+  twitch:    '#9147ff',
+  youtube:   '#ff0000',
+  instagram: '#e1306c',
+  tiktok:    '#010101',
+  x:         '#1da1f2',
+  twitter:   '#1da1f2',
+  kick:      '#53fc18',
+};
+
+// Status config para el badge de footer
+const STATUS_CFG: Record<string, { dot: string; label: string; bg: string; text: string }> = {
+  active:    { dot: '#16a34a', label: 'Activo',     bg: 'bg-emerald-50', text: 'text-emerald-700' },
+  available: { dot: '#5b9bd5', label: 'Disponible', bg: 'bg-blue-50',    text: 'text-blue-700'    },
+  inactive:  { dot: '#9ca3af', label: 'Inactivo',   bg: 'bg-slate-100',  text: 'text-slate-500'   },
 };
 
 // ── Card ─────────────────────────────────────────────────────────────
@@ -57,154 +75,214 @@ function nextStatus(current: TalentStatus): TalentStatus {
 }
 
 type CardProps = {
-  readonly creator: AdminRosterRow;
-  readonly verticals: readonly TalentVertical[];
+  readonly creator:        AdminRosterRow;
+  readonly verticals:      readonly TalentVertical[];
+  readonly selectMode?:    boolean;
+  readonly selected?:      boolean;
+  readonly onToggleSelect?: (id: number) => void;
 };
 
-export function TalentCard({ creator, verticals }: CardProps): React.ReactElement {
+export function TalentCard({ creator, verticals, selectMode, selected, onToggleSelect }: CardProps): React.ReactElement {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [optimisticStatus, setOptimisticStatus] = useState<TalentStatus>(creator.status as TalentStatus);
 
-  // Resolve status: prefer audienceStatus if set, fall back to optimistic status
   const displayStatus: string = creator.audienceStatus ?? optimisticStatus;
-  const tone: Tone = STATUS_TONE[displayStatus] ?? 'neutral';
-  const statusLabel: string = STATUS_LABELS[displayStatus] ?? displayStatus;
+  const statusCfg = STATUS_CFG[optimisticStatus] ?? STATUS_CFG.inactive!;
   const isPillClickable = !creator.audienceStatus;
 
-  const handleStatusClick = (e: React.MouseEvent | React.KeyboardEvent): void => {
+  // Plataformas únicas (máx 4 para los dots)
+  const platforms = useMemo(() => {
+    const seen = new Set<string>();
+    const list: string[] = [];
+    for (const s of creator.socials) {
+      const k = s.platform.toLowerCase();
+      if (!seen.has(k)) { seen.add(k); list.push(k); }
+      if (list.length >= 4) break;
+    }
+    return list;
+  }, [creator.socials]);
+
+  // Métrica principal: plataforma con más seguidores
+  const mainMetric = useMemo(() => {
+    if (creator.socials.length === 0) return null;
+    const best = creator.socials.reduce((a, b) =>
+      parseFollowers(a.followersDisplay) >= parseFollowers(b.followersDisplay) ? a : b,
+    );
+    const count = parseFollowers(best.followersDisplay);
+    if (count === 0) return null;
+    const label = PLATFORM_LABELS[best.platform.toLowerCase()] ?? best.platform;
+    return `${label} · ${formatCompact(count)}`;
+  }, [creator.socials]);
+
+  // Sectores como badges (máx 2)
+  const sectorBadges = useMemo(() =>
+    verticals.slice(0, 2).map((v) => TALENT_VERTICAL_LABELS[v] ?? v),
+  [verticals]);
+
+  function handleStatusCycle(e: React.MouseEvent | React.KeyboardEvent): void {
     e.stopPropagation();
-    e.preventDefault();
+    if (!isPillClickable) return;
     const next = nextStatus(optimisticStatus);
     setOptimisticStatus(next);
     startTransition(async () => {
       const res = await setTalentStatusAction(creator.id, next);
-      if (!res.success) {
-        setOptimisticStatus(creator.status as TalentStatus);
-      } else {
-        router.refresh();
-      }
+      if (!res.success) setOptimisticStatus(creator.status as TalentStatus);
+      else router.refresh();
     });
-  };
+  }
 
-  const handleStatusKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>): void => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      handleStatusClick(e);
-    }
-  };
-
-  // Platform chips: from socials (up to 3)
-  const platformChips = useMemo(() => {
-    const seen = new Set<string>();
-    const chips: string[] = [];
-    for (const s of creator.socials) {
-      const key = s.platform.toLowerCase();
-      if (!seen.has(key)) {
-        seen.add(key);
-        chips.push(key);
-      }
-      if (chips.length >= 3) break;
-    }
-    // Fallback to verticals if no socials
-    if (chips.length === 0) {
-      return verticals.slice(0, 3).map((v) => TALENT_VERTICAL_LABELS[v] ?? v);
-    }
-    return chips.map((p) => PLATFORM_LABELS[p] ?? p);
-  }, [creator.socials, verticals]);
-
-  // Total followers
-  const totalFollowers = useMemo(() => {
-    if (creator.socials.length === 0) return null;
-    const total = creator.socials.reduce(
-      (sum, s) => sum + parseFollowers(s.followersDisplay),
-      0,
-    );
-    return total > 0 ? formatCompact(total) : null;
-  }, [creator.socials]);
-
-  const handleClick = (): void => {
+  function handleCardClick(): void {
+    if (selectMode) { onToggleSelect?.(creator.id); return; }
     router.push(`/admin/talents/${creator.id}`);
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent): void => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      handleClick();
-    }
-  };
+  }
 
   return (
     <m.div
-      whileHover={{ y: -3, boxShadow: '0 8px 24px rgba(0,0,0,0.12)' }}
-      transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-      onClick={handleClick}
-      onKeyDown={handleKeyDown}
+      whileHover={{ y: -2, boxShadow: '0 12px 32px rgba(0,0,0,0.10)' }}
+      transition={{ type: 'spring', stiffness: 400, damping: 28 }}
+      data-selected={selected || undefined}
+      className={`group relative rounded-xl bg-sp-admin-card shadow-[0_1px_4px_rgba(0,0,0,0.07)] overflow-hidden flex flex-col cursor-pointer focus-visible:outline-2 focus-visible:outline-sp-admin-accent focus-visible:outline-offset-2 transition-shadow ${selected ? 'ring-2 ring-sp-admin-accent' : ''}`}
+      onClick={handleCardClick}
       role="button"
       tabIndex={0}
-      aria-label={`Ver perfil de ${creator.name}`}
-      className="relative rounded-xl bg-sp-admin-card shadow-[0_1px_3px_rgba(0,0,0,0.06)] overflow-hidden flex flex-col cursor-pointer focus-visible:outline-2 focus-visible:outline-sp-admin-accent focus-visible:outline-offset-2"
+      onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && handleCardClick()}
+      aria-label={selectMode ? `Seleccionar ${creator.name}` : `Ver perfil de ${creator.name}`}
     >
-      {/* Foto cuadrada centrada en cara */}
+
+      {/* ── Checkbox de selección ──────────────────────────────── */}
+      {selectMode && (
+        <div className="absolute top-2 left-2 z-20">
+          <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-colors ${selected ? 'bg-sp-admin-accent border-sp-admin-accent' : 'bg-white/80 border-white/60'}`}>
+            {selected && (
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                <path d="M2 5l2.5 2.5L8 3" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ── Imagen — limpia, solo bandera discreta ─────────────── */}
       <div
         className="relative aspect-square w-full overflow-hidden"
         style={{ background: `linear-gradient(135deg, ${creator.gradientC1}, ${creator.gradientC2})` }}
       >
         <Avatar creator={creator} />
 
-        {/* Status badge — clickable cycles status when no audienceStatus override */}
-        <div className="absolute top-2 right-2 z-10">
-          {isPillClickable ? (
-            <button
-              type="button"
-              onClick={handleStatusClick}
-              onKeyDown={handleStatusKeyDown}
-              disabled={isPending}
-              aria-label={`Cambiar estado: ${statusLabel}`}
-              className="cursor-pointer rounded-full focus-visible:outline-2 focus-visible:outline-sp-admin-accent focus-visible:outline-offset-2 disabled:opacity-60"
+        {/* Bandera — solo emoji/img, sin texto, esquina superior derecha */}
+        {creator.creatorCountry && (() => {
+          const flagUrl   = getFlagImageUrl(creator.creatorCountry);
+          const flagEmoji = countryFlagEmoji(creator.creatorCountry);
+          return (
+            <div className="absolute top-2 right-2 z-10">
+              {flagUrl ? (
+                <img
+                  src={flagUrl}
+                  alt={creator.creatorCountry}
+                  title={creator.creatorCountry}
+                  className="w-5 h-5 rounded-sm object-cover shadow-sm opacity-90"
+                />
+              ) : (
+                <span className="text-base leading-none" title={creator.creatorCountry}>{flagEmoji}</span>
+              )}
+            </div>
+          );
+        })()}
+
+        {/* Overlay de acciones — aparece en hover */}
+        {!selectMode && (
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
+            <Link
+              href={`/admin/talents/${creator.id}`}
+              onClick={(e) => e.stopPropagation()}
+              className="h-7 px-3 rounded-full bg-white/90 text-[11px] font-bold text-sp-admin-text hover:bg-white transition-colors shadow-sm"
             >
-              <StateBadge tone={tone} variant="soft">{statusLabel}</StateBadge>
-            </button>
-          ) : (
-            <StateBadge tone={tone} variant="soft">{statusLabel}</StateBadge>
-          )}
-        </div>
-
-        {/* País */}
-        {creator.creatorCountry && (
-          <div className="absolute top-2 left-2 z-10">
-            <span className="text-[9px] font-bold uppercase tracking-wider text-white bg-black/30 backdrop-blur-sm rounded px-1.5 py-0.5">
-              {creator.creatorCountry}
-            </span>
-          </div>
-        )}
-
-        {/* Total followers — overlay inferior */}
-        {totalFollowers !== null && (
-          <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/60 to-transparent px-3 py-2">
-            <p className="text-base font-black text-white tabular-nums leading-none">{totalFollowers}</p>
-            <p className="text-[8px] text-white/70 uppercase tracking-wide">seguidores</p>
+              Ver perfil
+            </Link>
+            <Link
+              href={`/admin/talents/${creator.id}`}
+              onClick={(e) => e.stopPropagation()}
+              className="h-7 px-3 rounded-full bg-sp-admin-accent/90 text-[11px] font-bold text-white hover:bg-sp-admin-accent transition-colors shadow-sm"
+            >
+              Editar
+            </Link>
           </div>
         )}
       </div>
 
-      {/* Info compacta */}
-      <div className="px-3 pt-2 pb-1">
-        <p className="font-bold text-[12px] text-sp-admin-text truncate leading-tight">{creator.name}</p>
-        {creator.game && <p className="text-[10px] text-sp-admin-muted truncate">{creator.game}</p>}
+      {/* ── Cuerpo: nombre, categoría, plataformas, sectores ───── */}
+      <div className="px-3 pt-2.5 pb-2 flex-1">
+        {/* Nombre */}
+        <p className="font-bold text-[13px] text-sp-admin-text truncate leading-tight">{creator.name}</p>
 
-        {/* Platform chips — max 2 */}
-        {platformChips.length > 0 && (
-          <div className="flex flex-wrap gap-1 mt-1.5">
-            {platformChips.slice(0, 2).map((chip) => (
-              <StateBadge key={chip} tone="info" variant="dot">{chip}</StateBadge>
+        {/* Categoría / juego */}
+        {creator.game && (
+          <p className="text-[10px] text-sp-admin-muted truncate mt-0.5">{creator.game}</p>
+        )}
+
+        {/* Plataformas — solo dots con nombre, sin números */}
+        {platforms.length > 0 && (
+          <div className="flex items-center gap-2 mt-2 flex-wrap">
+            {platforms.map((p) => (
+              <span key={p} className="inline-flex items-center gap-1">
+                <span
+                  className="w-1.5 h-1.5 rounded-full shrink-0"
+                  style={{ background: PLATFORM_DOT[p] ?? '#888' }}
+                />
+                <span className="text-[10px] text-sp-admin-muted font-medium">
+                  {PLATFORM_LABELS[p] ?? p}
+                </span>
+              </span>
+            ))}
+          </div>
+        )}
+
+        {/* Sectores como badges */}
+        {sectorBadges.length > 0 && (
+          <div className="flex flex-wrap gap-1 mt-2">
+            {sectorBadges.map((s) => (
+              <span
+                key={s}
+                className="inline-flex px-1.5 py-0.5 rounded text-[9px] font-semibold bg-sp-admin-hover border border-sp-admin-border/60 text-sp-admin-muted"
+              >
+                {s}
+              </span>
             ))}
           </div>
         )}
       </div>
 
-      {/* Footer */}
-      <div className="border-t border-sp-admin-border/60 px-3 py-1.5 mt-auto">
-        <span className="text-[9px] text-sp-admin-muted truncate block">{creator.role}</span>
+      {/* ── Footer: estado + métrica principal ─────────────────── */}
+      <div className="border-t border-sp-admin-border/50 px-3 py-2 flex items-center justify-between gap-2 mt-auto">
+
+        {/* Badge de estado — clickable */}
+        {isPillClickable ? (
+          <button
+            type="button"
+            onClick={handleStatusCycle}
+            onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && handleStatusCycle(e)}
+            disabled={isPending}
+            title="Clic para cambiar estado"
+            aria-label={`Estado: ${statusCfg.label}. Clic para cambiar.`}
+            className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-bold cursor-pointer hover:opacity-80 disabled:opacity-50 transition-opacity ${statusCfg.bg} ${statusCfg.text}`}
+          >
+            <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: statusCfg.dot }} />
+            {statusCfg.label}
+          </button>
+        ) : (
+          <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-bold ${statusCfg.bg} ${statusCfg.text}`}>
+            <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: statusCfg.dot }} />
+            {STATUS_LABELS[displayStatus] ?? displayStatus}
+          </span>
+        )}
+
+        {/* Métrica principal: una sola plataforma + seguidores */}
+        {mainMetric && (
+          <span className="text-[9px] text-sp-admin-muted tabular-nums truncate">
+            {mainMetric}
+          </span>
+        )}
       </div>
     </m.div>
   );
@@ -212,9 +290,7 @@ export function TalentCard({ creator, verticals }: CardProps): React.ReactElemen
 
 // ── Avatar ───────────────────────────────────────────────────────────
 
-type AvatarProps = {
-  readonly creator: AdminRosterRow;
-};
+type AvatarProps = { readonly creator: AdminRosterRow };
 
 function Avatar({ creator }: AvatarProps): React.ReactElement {
   if (creator.photoUrl) {
@@ -228,7 +304,6 @@ function Avatar({ creator }: AvatarProps): React.ReactElement {
       />
     );
   }
-
   return (
     <div className="absolute inset-0 flex items-center justify-center">
       <span className="font-display text-4xl font-black text-white/90 select-none">
