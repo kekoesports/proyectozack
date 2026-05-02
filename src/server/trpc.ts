@@ -3,7 +3,7 @@ import { headers } from 'next/headers';
 import { cache } from 'react';
 import superjson from 'superjson';
 import { auth } from '@/lib/auth';
-import { isRole, rolesIncludes, type Role } from '@/lib/auth-guard';
+import { isRole, rolesIncludes, IS_DEV, DEV_USER, type Role } from '@/lib/auth-guard';
 import { env } from '@/lib/env';
 
 export type TRPCContext = {
@@ -20,10 +20,10 @@ export type TRPCContext = {
  * Reads the Better Auth session from the incoming request headers.
  */
 const createInnerContext = cache(async (): Promise<TRPCContext> => {
-  if (process.env.NODE_ENV === 'development') {
+  if (IS_DEV) {
     const devRole: Role = env.DEV_ROLE_OVERRIDE ?? 'admin';
     return {
-      session: { userId: 'dev', email: 'dev@localhost', name: 'Dev', role: devRole },
+      session: { userId: DEV_USER.id, email: DEV_USER.email, name: DEV_USER.name, role: devRole },
     };
   }
 
@@ -62,8 +62,13 @@ export const publicProcedure = t.procedure;
  * passes — brand routes should be testable without extra env config).
  */
 export const brandProcedure = t.procedure.use(({ ctx, next }) => {
-  if (process.env.NODE_ENV === 'development') {
-    const session = ctx.session ?? { userId: 'dev', email: 'dev@localhost', name: 'Dev', role: 'brand' as const };
+  if (IS_DEV) {
+    const session = ctx.session ?? {
+      userId: DEV_USER.id,
+      email: DEV_USER.email,
+      name: DEV_USER.name,
+      role: 'brand' as const,
+    };
     return next({ ctx: { session: { ...session, role: 'brand' as const } } });
   }
   if (!ctx.session || ctx.session.role !== 'brand') {

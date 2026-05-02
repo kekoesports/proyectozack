@@ -7,6 +7,16 @@ export type Role = 'admin' | 'brand' | 'staff' | 'manager';
 
 export const ROLES = ['admin', 'brand', 'staff', 'manager'] as const satisfies readonly Role[];
 
+/** Single source of truth for the dev-mode auth bypass. NODE_ENV is exempt from `lib/env`. */
+export const IS_DEV = process.env.NODE_ENV === 'development';
+
+/** Mock user profile used in IS_DEV short-circuits. tRPC consumers remap `id → userId`. */
+export const DEV_USER = {
+  id: 'dev',
+  email: 'dev@localhost',
+  name: 'Dev',
+} as const;
+
 export function isRole(x: unknown): x is Role {
   return typeof x === 'string' && (ROLES as readonly string[]).includes(x);
 }
@@ -47,8 +57,8 @@ function homeForRole(role: Role | null | undefined): string | null {
 async function loadSession(loginPath: string): Promise<SessionWithRole> {
   const safePath = ALLOWED_LOGIN_PATHS.has(loginPath) ? loginPath : '/admin/login';
 
-  if (process.env.NODE_ENV === 'development') {
-    return { user: { id: 'dev', email: 'dev@localhost', name: 'Dev', role: 'admin' } };
+  if (IS_DEV) {
+    return { user: { ...DEV_USER, role: 'admin' } };
   }
 
   const session = await auth.api.getSession({ headers: await headers() });
@@ -68,8 +78,8 @@ async function loadSession(loginPath: string): Promise<SessionWithRole> {
 }
 
 export async function requireRole<R extends Role>(role: R, loginPath: string): Promise<SessionWithNarrowedRole<R>> {
-  if (process.env.NODE_ENV === 'development') {
-    return { user: { id: 'dev', email: 'dev@localhost', name: 'Dev', role } };
+  if (IS_DEV) {
+    return { user: { ...DEV_USER, role } };
   }
 
   const safePath = ALLOWED_LOGIN_PATHS.has(loginPath) ? loginPath : '/admin/login';
@@ -91,12 +101,12 @@ export async function requireAnyRole<R extends Role>(
 ): Promise<SessionWithNarrowedRole<R>> {
   const safePath = ALLOWED_LOGIN_PATHS.has(loginPath) ? loginPath : '/';
 
-  if (process.env.NODE_ENV === 'development') {
+  if (IS_DEV) {
     if (roles.length === 0) throw new Error('requireAnyRole: roles must be non-empty');
     const override = env.DEV_ROLE_OVERRIDE;
     const mockRole: R =
       override && rolesIncludes(roles, override) ? override : roles[0]!;
-    return { user: { id: 'dev', email: 'dev@localhost', name: 'Dev', role: mockRole } };
+    return { user: { ...DEV_USER, role: mockRole } };
   }
 
   const session  = await loadSession(safePath);
