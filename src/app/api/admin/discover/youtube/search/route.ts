@@ -21,7 +21,7 @@ export async function POST(req: Request): Promise<NextResponse> {
     );
   }
 
-  const body = await req.json().catch(() => null);
+  const body: unknown = await req.json().catch(() => null);
   const parsed = discoverYoutubeSearchBody.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(

@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 
 import { verifyTargetsImportToken } from '@/lib/auth-targets-import';
-import { discoverKickChannelBody } from '@/lib/schemas/creatorTargetsApi';
-import { getKickChannel } from '@/lib/services/kick';
+import { upsertCreatorTargets } from '@/lib/queries/creatorTargetsApi';
+import { creatorTargetsImportBody } from '@/lib/schemas/creatorTargetsApi';
 
 export async function POST(req: Request): Promise<NextResponse> {
   const auth = verifyTargetsImportToken(req);
@@ -14,7 +14,7 @@ export async function POST(req: Request): Promise<NextResponse> {
   }
 
   const body: unknown = await req.json().catch(() => null);
-  const parsed = discoverKickChannelBody.safeParse(body);
+  const parsed = creatorTargetsImportBody.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(
       { ok: false, error: 'invalid-body', issues: parsed.error.flatten() },
@@ -22,13 +22,15 @@ export async function POST(req: Request): Promise<NextResponse> {
     );
   }
 
-  const channel = await getKickChannel(parsed.data.slug);
-  if (!channel) {
-    return NextResponse.json(
-      { ok: false, error: 'channel-not-found' },
-      { status: 404 },
-    );
-  }
+  const { batchId, items } = parsed.data;
+  const result = await upsertCreatorTargets(items, batchId);
 
-  return NextResponse.json({ ok: true, channel });
+  return NextResponse.json({
+    ok: true,
+    batchId,
+    received: items.length,
+    inserted: result.inserted,
+    updated: result.updated,
+    ids: result.ids,
+  });
 }
