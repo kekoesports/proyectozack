@@ -153,10 +153,10 @@ export function GlobalSearch(): React.ReactElement {
           setActiveIndex(0);
           setOpen(true);
         }}
-        onFocus={() => setOpen(true)}
+        onFocus={() => { if (query.length > 0) setOpen(true); }}
         onKeyDown={onKeyDown}
-        placeholder="Buscar marcas, talentos, campañas… (⌘K)"
-        className="w-full h-10 pl-9 pr-12 rounded-lg bg-sp-admin-card border border-sp-admin-border text-[13px] text-sp-admin-text placeholder:text-sp-admin-muted focus:outline-none focus:border-sp-admin-accent/60 transition-colors"
+        placeholder="Buscar…"
+        className="w-full h-9 pl-9 pr-12 rounded-lg bg-sp-admin-card border border-sp-admin-border text-[13px] text-sp-admin-text placeholder:text-sp-admin-muted focus:outline-none focus:border-sp-admin-accent/60 transition-colors"
         aria-label="Buscar"
         role="combobox"
         aria-haspopup="listbox"

@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { BellIcon, SettingsIcon } from './SidebarIcons';
+import { BellIcon, SunIcon, MoonIcon } from './SidebarIcons';
 import { GlobalSearch } from './GlobalSearch';
 import { AlertResolveButton } from './dashboard/AlertResolveButton';
 import type { DashboardAlert, AlertSeverity } from '@/lib/queries/alerts';
@@ -107,9 +107,39 @@ function AlertDropdownItem({ alert, onClose }: { alert: DashboardAlert; onClose:
 
 // ── AdminHeader ───────────────────────────────────────────────────────
 
+// ── Theme toggle ──────────────────────────────────────────────────────
+
+function useThemeToggle(): { isDark: boolean; toggle: () => void } {
+  // Lazy init — lee localStorage en cliente, retorna false en SSR
+  const [isDark, setIsDark] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    const stored = localStorage.getItem('sp-theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    return stored === 'dark' || (!stored && prefersDark);
+  });
+
+  // Aplica clase al DOM cada vez que cambia isDark (sin setState dentro)
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', isDark);
+  }, [isDark]);
+
+  const toggle = (): void => {
+    setIsDark((prev) => {
+      const next = !prev;
+      localStorage.setItem('sp-theme', next ? 'dark' : 'light');
+      return next;
+    });
+  };
+
+  return { isDark, toggle };
+}
+
+// ── AdminHeader ───────────────────────────────────────────────────────
+
 export function AdminHeader({ alertCount = 0, recentAlerts = [] }: Props): React.ReactElement {
   const [showActions, setShowActions] = useState(false);
   const [showAlerts,  setShowAlerts]  = useState(false);
+  const { isDark, toggle: toggleTheme } = useThemeToggle();
 
   const today = new Date().toLocaleDateString('es-ES', {
     weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
@@ -244,13 +274,17 @@ export function AdminHeader({ alertCount = 0, recentAlerts = [] }: Props): React
           )}
         </div>
 
-        {/* Settings */}
+        {/* Dark / Light mode toggle */}
         <button
           type="button"
+          onClick={toggleTheme}
           className="relative w-8 h-8 rounded-lg flex items-center justify-center text-sp-admin-muted hover:text-sp-admin-text hover:bg-sp-admin-hover transition-colors"
-          aria-label="Configuración"
+          aria-label={isDark ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
+          title={isDark ? 'Modo claro' : 'Modo oscuro'}
         >
-          <span className="w-4 h-4 block"><SettingsIcon /></span>
+          <span className="w-4 h-4 block">
+            {isDark ? <SunIcon /> : <MoonIcon />}
+          </span>
         </button>
       </div>
 
