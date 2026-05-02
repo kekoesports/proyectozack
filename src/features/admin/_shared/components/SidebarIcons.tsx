@@ -213,6 +213,30 @@ export function MoreIcon() {
   );
 }
 
+export function SunIcon() {
+  return (
+    <svg {...s}>
+      <circle cx="10" cy="10" r="3.5" />
+      <line x1="10" y1="2" x2="10" y2="4.5" />
+      <line x1="10" y1="15.5" x2="10" y2="18" />
+      <line x1="2" y1="10" x2="4.5" y2="10" />
+      <line x1="15.5" y1="10" x2="18" y2="10" />
+      <line x1="4.2" y1="4.2" x2="5.9" y2="5.9" />
+      <line x1="14.1" y1="14.1" x2="15.8" y2="15.8" />
+      <line x1="4.2" y1="15.8" x2="5.9" y2="14.1" />
+      <line x1="14.1" y1="5.9" x2="15.8" y2="4.2" />
+    </svg>
+  );
+}
+
+export function MoonIcon() {
+  return (
+    <svg {...s}>
+      <path d="M15.5 10A6.5 6.5 0 1 1 10 4.5a5 5 0 0 0 5.5 5.5z" />
+    </svg>
+  );
+}
+
 export function LogoutIcon() {
   return (
     <svg {...s}>

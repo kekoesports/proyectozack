@@ -173,6 +173,16 @@
   --sidebar-ring: oklch(0.556 0 0);
 }
 
+/* ── Admin dark mode token overrides ─────────────────────────────── */
+html.dark {
+  --color-sp-admin-bg:     #111524;
+  --color-sp-admin-card:   #1a1e32;
+  --color-sp-admin-border: #272b42;
+  --color-sp-admin-text:   #ddddf0;
+  --color-sp-admin-muted:  #8888a0;
+  --color-sp-admin-hover:  #252940;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
