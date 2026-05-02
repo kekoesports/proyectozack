@@ -5,10 +5,6 @@ import { assertCronAuth } from '@/lib/security/assertCronAuth';
 
 export const dynamic = 'force-dynamic';
 
-/**
- * Cron endpoint — invoked weekly by Vercel Cron (configured in vercel.json).
- * Auth via {@link assertCronAuth} (fail-closed).
- */
 export async function GET(req: NextRequest): Promise<NextResponse> {
   const authError = assertCronAuth(req);
   if (authError) return authError;

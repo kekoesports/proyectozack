@@ -1,8 +1,3 @@
-/**
- * Cron endpoint: backup diario automático a Google Drive.
- * Invocado por Vercel Cron (configurado en vercel.json).
- * Auth via {@link assertCronAuth} (fail-closed).
- */
 import { NextRequest, NextResponse } from 'next/server';
 import { exportCrmData, serializeBackup, buildBackupFileName } from '@/lib/backup/export-data';
 import { uploadToDrive } from '@/lib/backup/drive-upload';

@@ -7,10 +7,9 @@ export type Role = 'admin' | 'brand' | 'staff' | 'manager';
 
 export const ROLES = ['admin', 'brand', 'staff', 'manager'] as const satisfies readonly Role[];
 
-/** Single source of truth for the dev-mode auth bypass. NODE_ENV is exempt from `lib/env`. */
+// NODE_ENV is exempt from `lib/env` (not managed by @t3-oss/env-nextjs).
 export const IS_DEV = process.env.NODE_ENV === 'development';
 
-/** Mock user profile used in IS_DEV short-circuits. tRPC consumers remap `id → userId`. */
 export const DEV_USER = {
   id: 'dev',
   email: 'dev@localhost',
@@ -18,11 +17,12 @@ export const DEV_USER = {
 } as const;
 
 export function isRole(x: unknown): x is Role {
+  // safe: typeof guard above narrows x to string; ROLES widened so .includes() accepts string
   return typeof x === 'string' && (ROLES as readonly string[]).includes(x);
 }
 
-/** Type-guard variant of `roles.includes(x)` that narrows `x` to the array element type. */
 export function rolesIncludes<R extends Role>(roles: readonly R[], x: Role): x is R {
+  // safe: roles widened to Role[] so .includes() accepts the wider Role-typed x; type guard returns true only when x is a member, narrowing to R
   return (roles as readonly Role[]).includes(x);
 }
 

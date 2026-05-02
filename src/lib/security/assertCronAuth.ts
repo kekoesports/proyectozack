@@ -6,17 +6,11 @@ import { timingSafeEqual } from '@/lib/security/timingSafeEqual';
 /**
  * Política unificada de auth para route handlers de cron.
  *
- * Acepta cualquiera de:
- *   - Header `x-vercel-cron: 1` (Vercel lo añade en sus crons internos y lo
- *     filtra en requests entrantes externos).
- *   - Header `Authorization: Bearer ${CRON_SECRET}` con comparación en tiempo
- *     constante.
+ * Acepta `x-vercel-cron: 1` (Vercel lo filtra en requests externas) o
+ * `Authorization: Bearer ${CRON_SECRET}` (comparado en tiempo constante).
  *
  * Fail-closed: si `CRON_SECRET` no está configurado y la request no viene de
  * Vercel cron, devuelve 503 — evita un vector de mutación masiva sin auth.
- *
- * @returns `null` si la auth pasa; un `NextResponse` con el error en caso
- *          contrario. El caller debe early-return el resultado no-null.
  */
 export function assertCronAuth(req: NextRequest): NextResponse | null {
   if (req.headers.get('x-vercel-cron') === '1') return null;

@@ -4,7 +4,7 @@ import { randomBytes } from 'crypto';
 import { revalidatePath } from 'next/cache';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
-import { requireRole } from '@/lib/auth-guard';
+import { requireRole, IS_DEV } from '@/lib/auth-guard';
 import { db } from '@/lib/db';
 import { talents, statsShares, user } from '@/db/schema';
 
@@ -58,7 +58,7 @@ export async function createStatsShareLink(): Promise<{ id: number; token: strin
 
   const token = randomBytes(16).toString('base64url');
 
-  if (process.env.NODE_ENV === 'development' && session.user.id === 'dev') {
+  if (IS_DEV && session.user.id === 'dev') {
     const now = new Date();
     await db
       .insert(user)
