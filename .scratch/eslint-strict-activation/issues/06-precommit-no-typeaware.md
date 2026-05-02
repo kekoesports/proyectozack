@@ -1,4 +1,12 @@
-Status: needs-triage
+Status: done — no-op (no pre-commit, no lint-staged)
+
+## Resultado de auditoría (2026-05-02)
+
+- `.husky/` contiene únicamente `pre-push` con contenido `npm run sync:press`.
+- No hay `.husky/pre-commit`.
+- `package.json` no tiene configuración `lint-staged`.
+
+Conclusión: ESLint no se ejecuta en hooks de Git en este repo. La activación del parser type-aware no introduce latencia perceptible en el flujo de commits. No se requiere ningún ajuste. El gate type-aware corre solo en CI (`.github/workflows/ci.yml`), exactamente lo que el PRD aprobó.
 
 # 06 — pre-commit hook sin type-aware
 

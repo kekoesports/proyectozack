@@ -1,4 +1,16 @@
-Status: needs-triage
+Status: blocked — slice 04 no mergeable hasta saneamiento PRD 2
+
+## Bloqueo (2026-05-02)
+
+Slice 04 quedó bloqueado: activar las 10 reglas estrictas produce 125 errores en 58 archivos (ver `04-remnant-saneamiento.md`). Sin reglas activas en `eslint.config.mjs`, una violación deliberada como `let x: any = 1` no rompe `npm run lint` y por tanto no rompe CI. La verificación sintética end-to-end pierde sentido hasta que slice 04 se mergee.
+
+Re-iniciar este slice **solo cuando**:
+
+1. PRD 2 (saneamiento) cierre los 125 errores remanentes.
+2. Slice 04 reactive las reglas estrictas y `npm run lint` pase verde.
+3. El cambio aterrice en `master` (CI verde tras merge).
+
+Tipo HITL — requiere humano para abrir/cerrar PR sintético en GitHub.
 
 # 07 — Verificación sintética del gate
 

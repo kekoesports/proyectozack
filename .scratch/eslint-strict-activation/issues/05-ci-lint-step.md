@@ -1,4 +1,17 @@
-Status: needs-triage
+Status: done — no-op (CI ya corre lint)
+
+## Resultado de auditoría (2026-05-02)
+
+`.github/workflows/ci.yml` job `lint-typecheck` ya ejecuta:
+
+```yaml
+- name: Lint
+  run: npm run lint
+- name: Type-check
+  run: npx tsc --noEmit
+```
+
+Triggers: `push` y `pull_request` sobre `master`. `npm run lint` retorna exit code distinto de 0 ante cualquier error de ESLint, lo que falla el job. Conclusión: gate ya cubierto, no se modifica el workflow. La verificación end-to-end se realiza en slice 07.
 
 # 05 — CI lint step verificado/añadido
 
