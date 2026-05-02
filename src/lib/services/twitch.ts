@@ -1,3 +1,5 @@
+import { env } from '@/lib/env';
+
 type TwitchTokenResponse = {
   access_token: string;
   expires_in: number;
@@ -73,8 +75,8 @@ async function getAppAccessToken(): Promise<string> {
     return cachedToken;
   }
 
-  const clientId = process.env.TWITCH_CLIENT_ID;
-  const clientSecret = process.env.TWITCH_CLIENT_SECRET;
+  const clientId = env.TWITCH_CLIENT_ID;
+  const clientSecret = env.TWITCH_CLIENT_SECRET;
   if (!clientId || !clientSecret) {
     throw new Error('TWITCH_CLIENT_ID or TWITCH_CLIENT_SECRET is not set');
   }
@@ -109,7 +111,7 @@ export async function fetchTwitchFollowerCounts(
 ): Promise<TwitchFollowerResult[]> {
   if (broadcasterIds.length === 0) return [];
   const token = await getAppAccessToken();
-  const clientId = process.env.TWITCH_CLIENT_ID ?? '';
+  const clientId = env.TWITCH_CLIENT_ID ?? '';
 
   const map = await _buildFollowerMap(broadcasterIds, clientId, token);
   return Array.from(map.entries()).map(([broadcasterId, followerCount]) => ({
@@ -127,7 +129,7 @@ export async function searchTwitchChannels(
   liveOnly = false,
 ): Promise<TwitchChannelPreview[]> {
   const token = await getAppAccessToken();
-  const clientId = process.env.TWITCH_CLIENT_ID ?? '';
+  const clientId = env.TWITCH_CLIENT_ID ?? '';
 
   const url =
     `https://api.twitch.tv/helix/search/channels?query=${encodeURIComponent(query)}` +
@@ -164,7 +166,7 @@ export async function searchTwitchChannels(
  */
 export async function getCS2LiveStreams(first = 100, language?: string): Promise<TwitchChannelPreview[]> {
   const token = await getAppAccessToken();
-  const clientId = process.env.TWITCH_CLIENT_ID ?? '';
+  const clientId = env.TWITCH_CLIENT_ID ?? '';
 
   let url = `https://api.twitch.tv/helix/streams?game_id=32399&first=${first}`;
   if (language) url += `&language=${encodeURIComponent(language)}`;
@@ -203,7 +205,7 @@ export async function getTwitchChannelInfo(
   if (broadcasterIds.length === 0) return [];
 
   const token = await getAppAccessToken();
-  const clientId = process.env.TWITCH_CLIENT_ID ?? '';
+  const clientId = env.TWITCH_CLIENT_ID ?? '';
 
   const params = broadcasterIds.map((id) => `broadcaster_id=${encodeURIComponent(id)}`).join('&');
   const url = `https://api.twitch.tv/helix/channels?${params}`;
@@ -263,7 +265,7 @@ export async function fetchTwitchUserPhotos(
 ): Promise<TwitchUserPhoto[]> {
   if (userIds.length === 0) return [];
   const token = await getAppAccessToken();
-  const clientId = process.env.TWITCH_CLIENT_ID ?? '';
+  const clientId = env.TWITCH_CLIENT_ID ?? '';
 
   const results: TwitchUserPhoto[] = [];
   const batchSize = 100;
@@ -298,7 +300,7 @@ export async function fetchTwitchUserPhotoByLogin(
 ): Promise<TwitchUserPhoto[]> {
   if (logins.length === 0) return [];
   const token = await getAppAccessToken();
-  const clientId = process.env.TWITCH_CLIENT_ID ?? '';
+  const clientId = env.TWITCH_CLIENT_ID ?? '';
 
   const results: TwitchUserPhoto[] = [];
   const batchSize = 100;

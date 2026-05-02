@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { headers } from 'next/headers';
 import { auth } from '@/lib/auth';
+import { env } from '@/lib/env';
 
 export type Role = 'admin' | 'brand' | 'staff' | 'manager';
 
@@ -79,8 +80,11 @@ export async function requireAnyRole<R extends Role>(
   const safePath = ALLOWED_LOGIN_PATHS.has(loginPath) ? loginPath : '/';
 
   if (process.env.NODE_ENV === 'development') {
-    const override = process.env.DEV_ROLE_OVERRIDE as R | undefined;
-    const mockRole = (override && (roles as readonly string[]).includes(override) ? override : roles[0]) ?? ('admin' as R);
+    const override = env.DEV_ROLE_OVERRIDE;
+    const mockRole: R =
+      override && (roles as readonly string[]).includes(override)
+        ? (override as R) // safe: validated by includes() above
+        : (roles[0] ?? ('admin' as R));
     return { user: { id: 'dev', email: 'dev@localhost', name: 'Dev', role: mockRole } };
   }
 

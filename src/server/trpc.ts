@@ -4,6 +4,7 @@ import { cache } from 'react';
 import superjson from 'superjson';
 import { auth } from '@/lib/auth';
 import type { Role } from '@/lib/auth-guard';
+import { env } from '@/lib/env';
 
 export type TRPCContext = {
   session: {
@@ -20,7 +21,7 @@ export type TRPCContext = {
  */
 const createInnerContext = cache(async (): Promise<TRPCContext> => {
   if (process.env.NODE_ENV === 'development') {
-    const devRole = (process.env.DEV_ROLE_OVERRIDE as Role | undefined) ?? 'admin';
+    const devRole: Role = env.DEV_ROLE_OVERRIDE ?? 'admin';
     return {
       session: { userId: 'dev', email: 'dev@localhost', name: 'Dev', role: devRole },
     };

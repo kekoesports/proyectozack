@@ -4,6 +4,7 @@ import { requireRole } from '@/lib/auth-guard';
 import { exportCrmData, serializeBackup, buildBackupFileName } from '@/lib/backup/export-data';
 import { uploadToDrive, listDriveBackups } from '@/lib/backup/drive-upload';
 import type { DriveFile } from '@/lib/backup/drive-upload';
+import { env } from '@/lib/env';
 
 type BackupResult =
   | { success: true;  file: DriveFile; totalRows: number; tables: number }
@@ -14,12 +15,12 @@ type BackupResult =
 export async function createManualBackupAction(): Promise<BackupResult> {
   await requireRole('admin', '/admin/login');
 
-  const folderId = process.env.GOOGLE_DRIVE_BACKUP_FOLDER_ID;
+  const folderId = env.GOOGLE_DRIVE_BACKUP_FOLDER_ID;
   if (!folderId) {
     return { success: false, error: 'GOOGLE_DRIVE_BACKUP_FOLDER_ID no está configurado en las variables de entorno.' };
   }
 
-  if (!process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL || !process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY) {
+  if (!env.GOOGLE_SERVICE_ACCOUNT_EMAIL || !env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY) {
     return { success: false, error: 'Credenciales de Google Drive no configuradas (GOOGLE_SERVICE_ACCOUNT_EMAIL / GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY).' };
   }
 
@@ -50,12 +51,12 @@ export async function listBackupsAction(): Promise<
 > {
   await requireRole('admin', '/admin/login');
 
-  const folderId = process.env.GOOGLE_DRIVE_BACKUP_FOLDER_ID;
+  const folderId = env.GOOGLE_DRIVE_BACKUP_FOLDER_ID;
   if (!folderId) {
     return { success: false, error: 'GOOGLE_DRIVE_BACKUP_FOLDER_ID no configurado.' };
   }
 
-  if (!process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL || !process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY) {
+  if (!env.GOOGLE_SERVICE_ACCOUNT_EMAIL || !env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY) {
     return { success: false, error: 'Credenciales de Google Drive no configuradas.' };
   }
 

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { regenerateRecurringTasks, rollOverPendingTasks } from '@/lib/queries/crmTasks';
 import { getIsoWeekLabel, previousWeek } from '@/lib/utils/week';
+import { env } from '@/lib/env';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,7 +18,7 @@ export const dynamic = 'force-dynamic';
 export async function GET(req: NextRequest): Promise<NextResponse> {
   const authHeader = req.headers.get('authorization');
   const vercelCronHeader = req.headers.get('x-vercel-cron');
-  const cronSecret = process.env.CRON_SECRET;
+  const cronSecret = env.CRON_SECRET;
 
   const isVercelCron = vercelCronHeader === '1';
   const hasValidSecret = Boolean(cronSecret) && authHeader === `Bearer ${cronSecret}`;

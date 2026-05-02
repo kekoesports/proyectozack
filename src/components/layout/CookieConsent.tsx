@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useSyncExternalStore, useCallback } from 'react';
 import { Analytics } from './Analytics';
+import { env } from '@/lib/env';
 
 const CONSENT_KEY = 'sp-cookie-consent';
 
@@ -58,8 +59,8 @@ export function CookieConsent() {
   return (
     <>
       {/* Load analytics only after consent */}
-      {storedConsent === 'accepted' && process.env.NEXT_PUBLIC_GTM_ID && (
-        <Analytics gtmId={process.env.NEXT_PUBLIC_GTM_ID} />
+      {storedConsent === 'accepted' && env.NEXT_PUBLIC_GTM_ID && (
+        <Analytics gtmId={env.NEXT_PUBLIC_GTM_ID} />
       )}
 
       {/* Banner */}

@@ -1,12 +1,9 @@
 /**
  * Autenticación con Google Drive API usando Service Account (JWT).
  * No requiere googleapis npm — usa Node.js crypto nativo.
- *
- * Variables de entorno requeridas:
- *   GOOGLE_SERVICE_ACCOUNT_EMAIL  — email del service account
- *   GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY — clave privada PEM (con \n reales)
  */
 import { createSign } from 'crypto';
+import { env } from '@/lib/env';
 
 const SCOPE = 'https://www.googleapis.com/auth/drive.file';
 const TOKEN_URL = 'https://oauth2.googleapis.com/token';
@@ -40,8 +37,8 @@ export async function getDriveAccessToken(): Promise<string> {
     return cachedToken.token;
   }
 
-  const email = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
-  const key   = process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY;
+  const email = env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
+  const key   = env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY;
 
   if (!email || !key) {
     throw new Error(

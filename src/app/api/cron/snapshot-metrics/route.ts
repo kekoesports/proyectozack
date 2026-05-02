@@ -2,20 +2,21 @@ import { NextRequest, NextResponse } from 'next/server';
 import { fetchYouTubeSubscriberCounts } from '@/lib/services/youtube';
 import { fetchTwitchFollowerCounts } from '@/lib/services/twitch';
 import { getTrackableSocials, insertSnapshot } from '@/lib/queries/analytics';
+import { env } from '@/lib/env';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
   // Verify cron secret (Vercel sends this automatically)
   const authHeader = req.headers.get('authorization');
-  const cronSecret = process.env.CRON_SECRET;
+  const cronSecret = env.CRON_SECRET;
   if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   // Check required env vars
-  const hasYouTube = !!process.env.YOUTUBE_API_KEY;
-  const hasTwitch = !!process.env.TWITCH_CLIENT_ID && !!process.env.TWITCH_CLIENT_SECRET;
+  const hasYouTube = !!env.YOUTUBE_API_KEY;
+  const hasTwitch = !!env.TWITCH_CLIENT_ID && !!env.TWITCH_CLIENT_SECRET;
 
   if (!hasYouTube && !hasTwitch) {
     return NextResponse.json(

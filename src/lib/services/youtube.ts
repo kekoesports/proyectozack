@@ -1,3 +1,5 @@
+import { env } from '@/lib/env';
+
 type YouTubeChannelStats = {
   channelId: string;
   subscriberCount: number;
@@ -108,7 +110,7 @@ export type YouTubeChannelPreview = {
 export async function fetchYouTubeSubscriberCounts(
   channelIds: string[],
 ): Promise<YouTubeChannelStats[]> {
-  const apiKey = process.env.YOUTUBE_API_KEY;
+  const apiKey = env.YOUTUBE_API_KEY;
   if (!apiKey) {
     throw new Error('YOUTUBE_API_KEY is not set');
   }
@@ -148,7 +150,7 @@ export async function fetchYouTubeSubscriberCounts(
 export async function fetchYouTubeChannelSnippets(
   channelIds: string[],
 ): Promise<YouTubeChannelSnippet[]> {
-  const apiKey = process.env.YOUTUBE_API_KEY;
+  const apiKey = env.YOUTUBE_API_KEY;
   if (!apiKey) throw new Error('YOUTUBE_API_KEY is not set');
 
   const results: YouTubeChannelSnippet[] = [];
@@ -188,7 +190,7 @@ export async function searchYouTubeChannels(
   regionCode?: string,
   relevanceLanguage?: string,
 ): Promise<YouTubeChannelPreview[]> {
-  const apiKey = process.env.YOUTUBE_API_KEY;
+  const apiKey = env.YOUTUBE_API_KEY;
   if (!apiKey) throw new Error('YOUTUBE_API_KEY is not set');
 
   let searchUrl =
@@ -219,7 +221,7 @@ export async function searchYouTubeChannels(
 export async function getChannelDetails(
   channelIds: string[],
 ): Promise<YouTubeChannelPreview[]> {
-  const apiKey = process.env.YOUTUBE_API_KEY;
+  const apiKey = env.YOUTUBE_API_KEY;
   if (!apiKey) throw new Error('YOUTUBE_API_KEY is not set');
 
   const results: YouTubeChannelPreview[] = [];
@@ -267,7 +269,7 @@ export async function getChannelDetails(
  * Costs 1 quota unit.
  */
 async function getUploadsPlaylistId(channelId: string): Promise<string | null> {
-  const apiKey = process.env.YOUTUBE_API_KEY;
+  const apiKey = env.YOUTUBE_API_KEY;
   if (!apiKey) throw new Error('YOUTUBE_API_KEY is not set');
 
   const url = `https://www.googleapis.com/youtube/v3/channels?part=contentDetails&id=${encodeURIComponent(channelId)}&key=${apiKey}`;
@@ -286,7 +288,7 @@ async function getUploadsPlaylistId(channelId: string): Promise<string | null> {
  * Costs 1 quota unit per request.
  */
 async function getRecentVideoIds(playlistId: string, count = 10): Promise<string[]> {
-  const apiKey = process.env.YOUTUBE_API_KEY;
+  const apiKey = env.YOUTUBE_API_KEY;
   if (!apiKey) throw new Error('YOUTUBE_API_KEY is not set');
 
   const url =
@@ -307,7 +309,7 @@ async function getRecentVideoIds(playlistId: string, count = 10): Promise<string
  * Costs 1 quota unit per 50 videos.
  */
 async function getVideoViewCounts(videoIds: string[]): Promise<Map<string, number>> {
-  const apiKey = process.env.YOUTUBE_API_KEY;
+  const apiKey = env.YOUTUBE_API_KEY;
   if (!apiKey) throw new Error('YOUTUBE_API_KEY is not set');
 
   const counts = new Map<string, number>();
@@ -342,7 +344,7 @@ export async function fetchYouTubeChannelPhotos(
   channelIds: string[],
 ): Promise<YouTubeChannelPhoto[]> {
   if (channelIds.length === 0) return [];
-  const apiKey = process.env.YOUTUBE_API_KEY;
+  const apiKey = env.YOUTUBE_API_KEY;
   if (!apiKey) throw new Error('YOUTUBE_API_KEY is not set');
 
   const results: YouTubeChannelPhoto[] = [];

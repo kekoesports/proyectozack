@@ -1,11 +1,24 @@
 import '@testing-library/jest-dom';
 
-// @t3-oss/env-nextjs validates process.env at module load time.
-// These stubs must be set before any src module is imported.
+// @t3-oss/env-nextjs is ESM-only and validates process.env at module load.
+// Bypass it in tests with a Proxy that reads through to process.env at access
+// time — this preserves the existing pattern of `process.env.X = 'mock'` in
+// per-test setup, while keeping prod code on `import { env } from '@/lib/env'`.
 process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test';
 process.env.RESEND_API_KEY = 're_test_000000000000000000000000000000';
 process.env.BETTER_AUTH_SECRET = 'test-secret-32-chars-minimum-padding-xx';
 process.env.NEXT_PUBLIC_SITE_URL = 'http://localhost:3000';
+
+jest.mock('@/lib/env', () => ({
+  env: new Proxy(
+    {},
+    {
+      get(_target, key: string) {
+        return process.env[key];
+      },
+    },
+  ),
+}));
 
 jest.mock('next/navigation', () => ({
   useRouter: jest.fn(() => ({

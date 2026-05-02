@@ -7,6 +7,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { exportCrmData, serializeBackup, buildBackupFileName } from '@/lib/backup/export-data';
 import { uploadToDrive } from '@/lib/backup/drive-upload';
+import { env } from '@/lib/env';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60; // Vercel function max 60s
@@ -15,7 +16,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   // Autenticación del cron
   const authHeader       = req.headers.get('authorization');
   const vercelCronHeader = req.headers.get('x-vercel-cron');
-  const cronSecret       = process.env.CRON_SECRET;
+  const cronSecret       = env.CRON_SECRET;
 
   const isVercelCron   = vercelCronHeader === '1';
   const hasValidSecret = cronSecret && authHeader === `Bearer ${cronSecret}`;
@@ -24,7 +25,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const folderId = process.env.GOOGLE_DRIVE_BACKUP_FOLDER_ID;
+  const folderId = env.GOOGLE_DRIVE_BACKUP_FOLDER_ID;
   if (!folderId) {
     return NextResponse.json({ error: 'GOOGLE_DRIVE_BACKUP_FOLDER_ID no configurado' }, { status: 503 });
   }
