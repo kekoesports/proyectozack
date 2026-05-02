@@ -1,10 +1,10 @@
 export const SOCIAL_PLATFORMS = [
-  { key: 'yt', label: 'YT', color: '#FF0000', canonical: 'youtube' },
-  { key: 'twitch', label: 'TW', color: '#9146FF', canonical: 'twitch' },
-  { key: 'x', label: 'X', color: '#1DA1F2', canonical: 'x' },
-  { key: 'ig', label: 'IG', color: '#E1306C', canonical: 'instagram' },
-  { key: 'tt', label: 'TT', color: '#e8e8f0', canonical: 'tiktok' },
-  { key: 'kick', label: 'Kick', color: '#53FC18', canonical: 'kick' },
+  { key: 'yt',     label: 'YouTube',   color: '#FF0000', canonical: 'youtube'   },
+  { key: 'twitch', label: 'Twitch',    color: '#9146FF', canonical: 'twitch'    },
+  { key: 'x',      label: 'X',         color: '#1DA1F2', canonical: 'x'         },
+  { key: 'ig',     label: 'Instagram', color: '#E1306C', canonical: 'instagram' },
+  { key: 'tt',     label: 'TikTok',    color: '#e8e8f0', canonical: 'tiktok'    },
+  { key: 'kick',   label: 'Kick',      color: '#53FC18', canonical: 'kick'      },
 ] as const;
 
 export const TRACKABLE_SOCIAL_PLATFORM_KEYS = ['yt', 'youtube', 'twitch'] as const;

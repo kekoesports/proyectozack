@@ -10,12 +10,12 @@ type Props = {
 };
 
 const PLATFORM_LABELS: Record<string, string> = {
-  youtube: 'YT',
-  twitch: 'TW',
-  instagram: 'IG',
-  tiktok: 'TK',
-  twitter: 'X',
-  x: 'X',
+  youtube:   'YouTube',
+  twitch:    'Twitch',
+  instagram: 'Instagram',
+  tiktok:    'TikTok',
+  twitter:   'X',
+  x:         'X',
 };
 
 const PLATFORM_COLORS: Record<string, string> = {
