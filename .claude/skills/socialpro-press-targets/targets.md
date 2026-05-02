@@ -31,12 +31,20 @@ Lista mantenida por la skill `socialpro-press-targets`. Editable a mano para pro
 
 | Nombre | URL | Región | Submission | Notas | Validado |
 |---|---|---|---|---|---|
+| InfoPlay | https://www.infoplay.info | CL | dm: @_infoplay | Medio iGaming en español con cobertura LATAM y Chile (regulación) | 2026-05-02 |
+| G&M News (Gaming And Media) | https://g-mnews.com | ES/LATAM | ? | [verificar contacto manualmente] Medio iGaming/gambling LATAM en español | 2026-05-02 |
+| Gaming Intelligence (ES) | https://www.gamingintelligence.com/es | ES/LATAM | ? | [verificar contacto manualmente] Versión ES del medio iGaming global Gaming Intelligence | 2026-05-02 |
 
 ## Curados — Prensa Digital Local
 
 | Nombre | URL | Región | Submission | Notas | Validado |
 |---|---|---|---|---|---|
 | El Norte (AR) | https://www.diarioelnorte.com.ar | AR | redaccion@diarioelnorte.com.ar | Periódico digital de Corrientes (AR), cubre noticias generales | 2026-05-02 |
+| La Tercera | https://www.latercera.com | CL | ? | [verificar contacto manualmente] Diario CL; cubre regulación iGaming y tecnología | 2026-05-02 |
+| iProUP | https://www.iproup.com | AR | ? | [verificar contacto manualmente] Medio AR economía digital, cripto, finanzas, iGaming | 2026-05-02 |
+| Diario El Independiente (BCS) | https://www.diarioelindependiente.mx | MX | ? | [verificar contacto manualmente] Periódico La Paz, BCS; tiene sección deportes/tec con cobertura esports | 2026-05-02 |
+| Olé | https://www.ole.com.ar | AR | ? | [verificar contacto manualmente] Diario deportivo AR con sección esports activa (Mundial Arabia) | 2026-05-02 |
+| El Independiente MX | https://elindependiente.mx | MX | redaccion@elindependiente.mx | Medio digital MX con cobertura esports/tecnología (también contacto@elindependiente.mx) | 2026-05-02 |
 
 ## Curados — Foros y Comunidades
 
@@ -58,14 +66,6 @@ Cola de candidatos descubiertos por la skill. Promueve moviendo la fila a la sec
 
 | Nombre | URL | Región | Submission | Notas | Categoría | Descubierto |
 |---|---|---|---|---|---|---|
-| InfoPlay | https://www.infoplay.info | CL | dm: @_infoplay | Medio iGaming en español con cobertura LATAM y Chile (regulación) | iGaming / Skins / Gambling | 2026-05-02 [iGaming Chile] |
-| La Tercera | https://www.latercera.com | CL | ? | [verificar contacto manualmente] Diario CL; cubre regulación iGaming y tecnología | Prensa Digital Local | 2026-05-02 [iGaming Chile] |
-| iProUP | https://www.iproup.com | AR | ? | [verificar contacto manualmente] Medio AR economía digital, cripto, finanzas, iGaming | Prensa Digital Local | 2026-05-02 [iGaming Chile] |
-| G&M News (Gaming And Media) | https://g-mnews.com | ES/LATAM | ? | [verificar contacto manualmente] Medio iGaming/gambling LATAM en español | iGaming / Skins / Gambling | 2026-05-02 [iGaming Chile] |
-| Gaming Intelligence (ES) | https://www.gamingintelligence.com/es | ES/LATAM | ? | [verificar contacto manualmente] Versión ES del medio iGaming global Gaming Intelligence | iGaming / Skins / Gambling | 2026-05-02 [iGaming Chile] |
-| Diario El Independiente (BCS) | https://www.diarioelindependiente.mx | MX | ? | [verificar contacto manualmente] Periódico La Paz, BCS; tiene sección deportes/tec con cobertura esports | Prensa Digital Local | 2026-05-02 [esports AR] |
-| Olé | https://www.ole.com.ar | AR | ? | [verificar contacto manualmente] Diario deportivo AR con sección esports activa (Mundial Arabia) | Prensa Digital Local | 2026-05-02 [esports AR] |
-| El Independiente MX | https://elindependiente.mx | MX | redaccion@elindependiente.mx | Medio digital MX con cobertura esports/tecnología (también contacto@elindependiente.mx) | Prensa Digital Local | 2026-05-02 [esports AR] |
 
 ---
 
