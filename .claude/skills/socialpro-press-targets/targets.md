@@ -16,11 +16,16 @@ Lista mantenida por la skill `socialpro-press-targets`. Editable a mano para pro
 
 | Nombre | URL | Región | Submission | Notas | Validado |
 |---|---|---|---|---|---|
+| 3DJuegos | https://www.3djuegos.com | ES | prensa@3djuegos.com | Medio especializado en videojuegos: noticias, análisis, contenido | 2026-05-02 |
+| Vandal | https://vandal.elespanol.com | ES | noticias@vandal.net | 2ª web videojuegos más antigua en español, foco consolas y PC | 2026-05-02 |
+| MERISTATION | https://as.com/meristation | ES | atencionclientes@diarioas.es | Fundada 1997, info entretenimiento; email genérico Diario AS | 2026-05-02 |
+| 3DJuegos PC | https://www.3djuegospc.com | ES | prensa@3djuegospc.com | Spin-off de 3DJuegos centrado en PC gaming | 2026-05-02 |
 
 ## Curados — CS2 / FPS Hispano
 
 | Nombre | URL | Región | Submission | Notas | Validado |
 |---|---|---|---|---|---|
+| Movistar eSports | https://www.movistaresports.com | ES | ? | [verificar contacto manualmente] Vertical esports de Movistar+ | 2026-05-02 |
 
 ## Curados — iGaming / Skins / Gambling
 
@@ -31,11 +36,14 @@ Lista mantenida por la skill `socialpro-press-targets`. Editable a mano para pro
 
 | Nombre | URL | Región | Submission | Notas | Validado |
 |---|---|---|---|---|---|
+| El Norte (AR) | https://www.diarioelnorte.com.ar | AR | redaccion@diarioelnorte.com.ar | Periódico digital de Corrientes (AR), cubre noticias generales | 2026-05-02 |
 
 ## Curados — Foros y Comunidades
 
 | Nombre | URL | Región | Submission | Notas | Validado |
 |---|---|---|---|---|---|
+| Mediavida | https://www.mediavida.com | ES | publicidad@mediavida.com | Foro español de videojuegos, comunidad activa | 2026-05-02 |
+| Forocoches | https://www.forocoches.com | ES | ? | [verificar contacto manualmente] Foro generalista ES con subforo gaming | 2026-05-02 |
 
 ## Curados — Periodistas Individuales
 
@@ -50,14 +58,6 @@ Cola de candidatos descubiertos por la skill. Promueve moviendo la fila a la sec
 
 | Nombre | URL | Región | Submission | Notas | Categoría | Descubierto |
 |---|---|---|---|---|---|---|
-| 3DJuegos | https://www.3djuegos.com | ES | prensa@3djuegos.com | Medio especializado en videojuegos: noticias, análisis, contenido | gaming-generalista | 2026-05-02 [vandal/meristation/3djuegos] |
-| Vandal | https://vandal.elespanol.com | ES | noticias@vandal.net | 2ª web videojuegos más antigua en español, foco consolas y PC | gaming-generalista | 2026-05-02 [vandal/meristation/3djuegos] |
-| MERISTATION | https://as.com/meristation | ES | atencionclientes@diarioas.es | Fundada 1997, info entretenimiento: videojuegos, cine, anime | gaming-generalista | 2026-05-02 [vandal/meristation/3djuegos] |
-| 3DJuegos PC | https://www.3djuegospc.com | ES | prensa@3djuegospc.com | Spin-off de 3DJuegos centrado en PC gaming | gaming-generalista | 2026-05-02 [vandal/meristation/3djuegos] |
-| Movistar eSports | https://www.movistaresports.com | ES | ? | [verificar contacto manualmente] Vertical esports de Movistar+ | gaming-generalista | 2026-05-02 [movistar/as/marca esports CS2] |
-| El Norte (AR) | https://www.diarioelnorte.com.ar | AR | redaccion@diarioelnorte.com.ar | Periódico digital de Corrientes (AR), cubre noticias generales | prensa-local | 2026-05-02 [casino online México OR Argentina] |
-| Mediavida | https://www.mediavida.com | ES | publicidad@mediavida.com | Foro español de videojuegos, comunidad activa | foro | 2026-05-02 [mediavida/forocoches subforo] |
-| Forocoches | https://www.forocoches.com | ES | ? | [verificar contacto manualmente] Foro generalista ES con subforo gaming | foro | 2026-05-02 [mediavida/forocoches subforo] |
 
 ---
 
