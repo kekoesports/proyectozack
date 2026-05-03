@@ -188,7 +188,7 @@ export default function ServiciosPage() {
                 { href: '/valorant-influencers-agency', label: 'Valorant Influencers Agency' },
                 { href: '/esports-marketing-agency', label: 'Esports Marketing Agency' },
                 { href: '/twitch-streamers-agency', label: 'Twitch Streamers Agency' },
-                { href: '/betting-influencers', label: 'Betting Influencers' },
+                { href: '/servicios/igaming', label: 'iGaming & Betting' },
               ].map(({ href, label }) => (
                 <Link key={href} href={href} className="text-xs font-semibold text-sp-muted hover:text-sp-orange border border-sp-border hover:border-sp-orange rounded-full px-3 py-1.5 transition-colors">
                   {label}

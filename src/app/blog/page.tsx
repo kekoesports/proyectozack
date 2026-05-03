@@ -60,9 +60,9 @@ export default async function BlogPage() {
             {[
               { href: '/cs2-influencer-marketing', label: 'CS2 Influencer Marketing' },
               { href: '/esports-marketing-agency', label: 'Esports Marketing Agency' },
-              { href: '/betting-influencers', label: 'Betting Influencers' },
-              { href: '/agencia-marketing-esports', label: 'Agencia Marketing Esports' },
-              { href: '/servicios/igaming', label: 'Campañas iGaming' },
+              { href: '/servicios/igaming', label: 'iGaming & Betting' },
+              { href: '/agencia-marketing-esports', label: 'Agencia Esports (ES)' },
+              { href: '/influencers-cs2', label: 'Influencers CS2 (ES)' },
             ].map(({ href, label }) => (
               <Link key={href} href={href} className="text-xs font-semibold text-sp-muted hover:text-sp-orange border border-sp-border hover:border-sp-orange rounded-full px-3 py-1.5 transition-colors">
                 {label}

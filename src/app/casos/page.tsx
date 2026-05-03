@@ -43,10 +43,10 @@ export default async function CasosPage() {
           <div className="flex flex-wrap gap-2">
             {[
               { href: '/cs2-influencer-marketing', label: 'CS2 Influencer Marketing' },
-              { href: '/betting-influencers', label: 'Betting Influencers' },
-              { href: '/valorant-influencers-agency', label: 'Valorant Influencers' },
-              { href: '/esports-marketing-agency', label: 'Esports Marketing Agency' },
-              { href: '/servicios/igaming', label: 'Campañas iGaming' },
+              { href: '/servicios/igaming', label: 'iGaming & Betting' },
+              { href: '/valorant-influencers-agency', label: 'Valorant Influencers (EN)' },
+              { href: '/esports-marketing-agency', label: 'Esports Marketing Agency (EN)' },
+              { href: '/influencers-cs2', label: 'Influencers CS2 (ES)' },
             ].map(({ href, label }) => (
               <Link key={href} href={href} className="text-xs font-semibold text-sp-muted hover:text-sp-orange border border-sp-border hover:border-sp-orange rounded-full px-3 py-1.5 transition-colors">
                 {label}
