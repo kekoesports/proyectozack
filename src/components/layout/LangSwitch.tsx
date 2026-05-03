@@ -9,6 +9,18 @@ type Pair = { alt: string; targetLang: 'EN' | 'ES' };
 // Para betting el ES único es /servicios/igaming (decisión PR #51 del dev),
 // /influencers-betting redirige 301 y queda fuera del map.
 const PAIRS: Record<string, Pair> = {
+  // Marketing core (5 pares)
+  '/':          { alt: '/en',        targetLang: 'EN' },
+  '/en':        { alt: '/',          targetLang: 'ES' },
+  '/talentos':  { alt: '/talents',   targetLang: 'EN' },
+  '/talents':   { alt: '/talentos',  targetLang: 'ES' },
+  '/servicios': { alt: '/services',  targetLang: 'EN' },
+  '/services':  { alt: '/servicios', targetLang: 'ES' },
+  '/casos':     { alt: '/cases',     targetLang: 'EN' },
+  '/cases':     { alt: '/casos',     targetLang: 'ES' },
+  '/contacto':  { alt: '/contact',   targetLang: 'EN' },
+  '/contact':   { alt: '/contacto',  targetLang: 'ES' },
+  // Landings SEO existentes
   '/influencers-cs2':              { alt: '/cs2-influencer-marketing',     targetLang: 'EN' },
   '/agencia-influencers-valorant': { alt: '/valorant-influencers-agency',  targetLang: 'EN' },
   '/servicios/igaming':            { alt: '/betting-influencers',          targetLang: 'EN' },
