@@ -5,6 +5,7 @@ import { SectionHeading } from '@/components/ui/SectionHeading';
 import { GradientText } from '@/components/ui/GradientText';
 import { SITE_URL, absoluteUrl } from '@/lib/site-url';
 import { TrackedCtaLink } from '@/components/ui/TrackedCtaLink';
+import { StickyCtaMobile } from '@/components/ui/StickyCtaMobile';
 
 export const metadata: Metadata = {
   title: 'Streamers iGaming, Betting y Casino España y LatAm',
@@ -191,7 +192,7 @@ export default function IgamingPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
 
       {/* ── Hero ── */}
-      <section className="bg-sp-black pt-32 pb-20">
+      <section className="bg-sp-black pt-24 pb-12 md:pt-32 md:pb-20">
         <div className="max-w-4xl mx-auto px-6 text-center">
           <SectionTag>iGaming Influencer Marketing</SectionTag>
           <h1 className="font-display text-4xl md:text-6xl font-black uppercase tracking-tight text-white leading-tight mb-6">
@@ -377,6 +378,8 @@ export default function IgamingPage() {
           </div>
         </div>
       </nav>
+
+      <StickyCtaMobile href="/#contacto" label="Solicitar propuesta (48h)" ctaId="sticky_igaming_es_mobile" />
     </>
   );
 }
