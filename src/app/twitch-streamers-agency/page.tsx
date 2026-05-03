@@ -90,7 +90,7 @@ export default function TwitchStreamersAgencyPage() {
               </div>
             ))}
           </div>
-          <Link href="/contacto" className="inline-block bg-sp-grad text-white font-display font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-full hover:opacity-90 transition-opacity">
+          <Link href="/contact" className="inline-block bg-sp-grad text-white font-display font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-full hover:opacity-90 transition-opacity">
             Activate Twitch campaign
           </Link>
         </div>
@@ -135,8 +135,8 @@ export default function TwitchStreamersAgencyPage() {
           <h2 className="font-display text-3xl font-black uppercase text-white mb-4">Your brand. <span style={g}>Live on Twitch.</span></h2>
           <p className="text-white/50 mb-8">Tell us your brand, target audience and campaign goal. We match you with the right Twitch streamers and deliver a proposal in 48 hours.</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/contacto" className="inline-block bg-sp-grad text-white font-display font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-full hover:opacity-90 transition-opacity">Get a proposal</Link>
-            <Link href="/talentos" className="inline-block border border-white/20 text-white/60 font-display font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-full hover:border-white/40 hover:text-white transition-colors">View our streamers →</Link>
+            <Link href="/contact" className="inline-block bg-sp-grad text-white font-display font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-full hover:opacity-90 transition-opacity">Get a proposal</Link>
+            <Link href="/talents" className="inline-block border border-white/20 text-white/60 font-display font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-full hover:border-white/40 hover:text-white transition-colors">View our streamers →</Link>
           </div>
         </div>
       </section>
