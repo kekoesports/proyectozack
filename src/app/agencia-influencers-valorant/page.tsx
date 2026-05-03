@@ -75,7 +75,7 @@ export default function AgenciaInfluencersValorantPage() {
         <div className="max-w-4xl mx-auto px-6 text-center">
           <p className="text-sp-orange text-xs font-bold uppercase tracking-[0.2em] mb-4">Agencia de Influencers Valorant</p>
           <h1 className="font-display text-4xl md:text-6xl font-black uppercase tracking-tight text-white leading-tight mb-6">
-            Influencers Valorant<br /><span style={g}>en España y LatAm</span>
+            Agencia de Influencers Valorant<br /><span style={g}>en España y LatAm</span>
           </h1>
           <p className="text-lg text-white/60 leading-relaxed max-w-2xl mx-auto mb-10">
             Streamers de Valorant verificados con audiencias reales en el mercado hispano.

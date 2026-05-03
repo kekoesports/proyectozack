@@ -76,7 +76,7 @@ export default function TwitchStreamersAgencyPage() {
         <div className="max-w-4xl mx-auto px-6 text-center">
           <p className="text-sp-orange text-xs font-bold uppercase tracking-[0.2em] mb-4">Twitch Streamers Agency</p>
           <h1 className="font-display text-4xl md:text-6xl font-black uppercase tracking-tight text-white leading-tight mb-6">
-            Twitch Streamers<br /><span style={g}>Live. Trusted. Measured.</span>
+            Twitch Streamers Agency<br /><span style={g}>Live. Trusted. Measured.</span>
           </h1>
           <p className="text-lg text-white/60 leading-relaxed max-w-2xl mx-auto mb-10">
             Live gaming influencer marketing with Twitch streamers across Spain and LatAm.
