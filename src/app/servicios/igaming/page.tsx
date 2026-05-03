@@ -11,6 +11,10 @@ export const metadata: Metadata = {
     'Campañas iGaming, betting y casino con streamers verificados en España y LatAm. Compliance DGOJ, FTD tracking y ROI demostrable en cada activación.',
   alternates: {
     canonical: '/servicios/igaming',
+    languages: {
+      es: absoluteUrl('/servicios/igaming'),
+      en: absoluteUrl('/betting-influencers'),
+    },
   },
   openGraph: {
     title: 'Streamers iGaming, Betting y Casino España y LatAm | SocialPro',
