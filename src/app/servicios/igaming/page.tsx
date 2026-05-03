@@ -4,6 +4,7 @@ import { SectionTag } from '@/components/ui/SectionTag';
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { GradientText } from '@/components/ui/GradientText';
 import { SITE_URL, absoluteUrl } from '@/lib/site-url';
+import { TrackedCtaLink } from '@/components/ui/TrackedCtaLink';
 
 export const metadata: Metadata = {
   title: 'Streamers iGaming, Betting y Casino España y LatAm',
@@ -194,11 +195,11 @@ export default function IgamingPage() {
         <div className="max-w-4xl mx-auto px-6 text-center">
           <SectionTag>iGaming Influencer Marketing</SectionTag>
           <h1 className="font-display text-4xl md:text-6xl font-black uppercase tracking-tight text-white leading-tight mb-6">
-            Campañas iGaming con <GradientText>Streamers que Convierten</GradientText>
+            Campañas iGaming, Betting y Casino —<br /><GradientText>Resultados que el Operador Puede Auditar</GradientText>
           </h1>
           <p className="text-lg text-white/60 leading-relaxed max-w-2xl mx-auto mb-10">
-            Diseño y ejecución de campañas para operadores iGaming con licencia en España y LatAm.
-            Compliance integrado, talentos verificados y FTDs rastreados en cada activación.
+            Compliance DGOJ integrado y FTD tracking verificable con datos del operador.
+            Reporting auditable por tu equipo de affiliate y compliance. España y LatAm.
           </p>
           <div className="flex flex-wrap justify-center gap-8 text-center mb-10">
             {[
@@ -215,12 +216,13 @@ export default function IgamingPage() {
               </div>
             ))}
           </div>
-          <Link
+          <TrackedCtaLink
             href="/#contacto"
+            ctaId="landing_igaming_es_hero"
             className="inline-block bg-sp-grad text-white font-display font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-full hover:opacity-90 transition-opacity"
           >
-            Lanza tu campaña iGaming
-          </Link>
+            Solicitar propuesta iGaming (48h)
+          </TrackedCtaLink>
         </div>
       </section>
 
