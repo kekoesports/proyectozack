@@ -72,15 +72,15 @@ const ADVANTAGES = [
   },
   {
     title: 'Normativa iGaming',
-    desc: 'Conocimiento regulatorio en España, LatAm y Turquía. Campañas que cumplen desde el día uno.',
+    desc: 'Conocimiento regulatorio en España, LatAm y Europa. Campañas que cumplen desde el día uno.',
   },
   {
     title: 'Red exclusiva',
     desc: '+15 talentos cualificados con audiencias verificadas y engagement real.',
   },
   {
-    title: '3 mercados',
-    desc: 'Presencia activa en España, Latinoamérica y Turquía con equipos locales.',
+    title: 'España, LatAm y Europa',
+    desc: 'Presencia activa en España, Latinoamérica y mercados europeos con equipos locales.',
   },
 ];
 

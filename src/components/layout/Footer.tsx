@@ -93,7 +93,7 @@ const SOCIALS = [
 const STATS = [
   { value: '13+', label: 'Años de experiencia' },
   { value: '15M', label: 'Views al mes' },
-  { value: '3', label: 'Mercados activos' },
+  { value: 'ES + LatAm', label: 'Mercados activos' },
 ];
 
 /**
@@ -222,7 +222,7 @@ export function Footer() {
             <Link href="/legal" className="hover:text-white/60 transition-colors">Aviso Legal</Link>
           </div>
           <p className="text-xs text-white/20">
-            Gaming &amp; Esports · España · LatAm · Turquía
+            Gaming &amp; Esports · España · LatAm · Europa
           </p>
         </div>
       </div>
