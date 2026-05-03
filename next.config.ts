@@ -43,11 +43,21 @@ const nextConfig: NextConfig = {
         destination: '/influencers-cs2',
         permanent: true,
       },
-      // /gaming/betting → /influencers-betting (301 permanent)
-      // Same rationale. Eliminates cannibalisation with /influencers-betting and /servicios/igaming.
+      // /gaming/betting → /servicios/igaming (301 permanent — direct, no chain)
+      // Originally pointed to /influencers-betting, which itself now redirects to /servicios/igaming.
+      // Shortcutting to the final destination avoids a 301→301 chain and passes authority directly.
       {
         source: '/gaming/betting',
-        destination: '/influencers-betting',
+        destination: '/servicios/igaming',
+        permanent: true,
+      },
+      // /influencers-betting → /servicios/igaming (301 permanent)
+      // Opción A: consolidate ES betting/iGaming authority in /servicios/igaming (the hub page).
+      // /influencers-betting was cannibalising /servicios/igaming for Spanish-language searches.
+      // /betting-influencers (EN) is kept as an independent EN landing.
+      {
+        source: '/influencers-betting',
+        destination: '/servicios/igaming',
         permanent: true,
       },
     ];

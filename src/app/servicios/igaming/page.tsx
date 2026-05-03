@@ -11,6 +11,10 @@ export const metadata: Metadata = {
     'Campañas iGaming, betting y casino con streamers verificados en España y LatAm. Compliance DGOJ, FTD tracking y ROI demostrable en cada activación.',
   alternates: {
     canonical: '/servicios/igaming',
+    languages: {
+      es: absoluteUrl('/servicios/igaming'),
+      en: absoluteUrl('/betting-influencers'),
+    },
   },
   openGraph: {
     title: 'Streamers iGaming, Betting y Casino España y LatAm | SocialPro',
@@ -90,6 +94,14 @@ const faqJsonLd = {
       acceptedAnswer: {
         '@type': 'Answer',
         text: 'Nuestro proceso de activación es de menos de 72 horas desde el briefing: verificación del creador, firma de contrato, briefing legal y coordinación de publicación. Para campañas multistreamer de mayor escala, el proceso puede extenderse a 5-7 días hábiles.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: '¿Qué tipos de betting influencers y streamers de casino gestionáis?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Trabajamos con tres perfiles de betting influencers: streamers de apuestas deportivas (fútbol, esports betting, eventos en vivo), casino streamers especializados en slots, ruleta y juegos en directo, y creadores del ecosistema CS2 familiarizados con skin trading y plataformas iGaming. Todos tienen audiencias verificadas y track record en campañas de conversión.',
       },
     },
     {
@@ -227,14 +239,16 @@ export default function IgamingPage() {
               mensaje puede acarrear sanciones al operador y daño reputacional al creador.
             </p>
             <p>
-              En SocialPro llevamos más de cuatro años ejecutando campañas iGaming en España, LatAm
-              y Turquía. Conocemos la regulación DGOJ, las diferencias entre mercados, qué puede
-              decir un streamer y qué no, y cómo construir un flujo de revisión de contenido que
-              proteja a todas las partes sin ralentizar la activación.
+              Nuestros <strong className="text-sp-dark font-semibold">betting influencers</strong> son streamers verificados especializados en apuestas deportivas,
+              casino online y skin trading. No son generalistas que ocasionalmente mencionan una casa de apuestas:
+              son creadores cuya audiencia ya está familiarizada con el producto y cuya credibilidad en el sector
+              es su principal activo.
             </p>
             <p>
-              El resultado: campañas que cumplen desde el día uno, con creadores que entienden el
-              producto y audiencias que convierten de verdad.
+              En SocialPro llevamos más de cuatro años ejecutando campañas iGaming en España y LatAm.
+              Conocemos la regulación DGOJ, las diferencias entre mercados, qué puede
+              decir un streamer y qué no, y cómo construir un flujo de revisión de contenido que
+              proteja a todas las partes sin ralentizar la activación.
             </p>
           </div>
         </div>
@@ -349,10 +363,10 @@ export default function IgamingPage() {
           <p className="text-[9px] font-bold uppercase tracking-[0.22em] text-sp-muted mb-3">Related</p>
           <div className="flex flex-wrap gap-2">
             {[
-              { href: '/betting-influencers', label: 'Betting Influencers' },
+              { href: '/betting-influencers', label: 'Betting Influencers (EN)' },
               { href: '/cs2-influencer-marketing', label: 'CS2 Influencer Marketing' },
-              { href: '/influencers-betting', label: 'Influencers Betting (ES)' },
               { href: '/influencers-cs2', label: 'Influencers CS2 (ES)' },
+              { href: '/servicios', label: 'Todos los servicios' },
             ].map(({ href, label }) => (
               <Link key={href} href={href} className="text-xs font-semibold text-sp-muted hover:text-sp-orange border border-sp-border hover:border-sp-orange rounded-full px-3 py-1.5 transition-colors">
                 {label}

@@ -10,8 +10,8 @@ export const metadata: Metadata = {
     canonical: '/betting-influencers',
     languages: {
       en: absoluteUrl('/betting-influencers'),
-          'x-default': absoluteUrl('/betting-influencers'),
-      es: absoluteUrl('/influencers-betting'),
+      'x-default': absoluteUrl('/betting-influencers'),
+      es: absoluteUrl('/servicios/igaming'),
     },
   },
   openGraph: {
@@ -137,7 +137,7 @@ export default function BettingInfluencersPage() {
           <p className="text-white/50 mb-8">Tell us your operator, target market and conversion goal. We deliver a proposal with compliance included in 48 hours.</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/contacto" className="inline-block bg-sp-grad text-white font-display font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-full hover:opacity-90 transition-opacity">Request proposal</Link>
-            <Link href="/influencers-betting" className="inline-block border border-white/20 text-white/60 font-display font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-full hover:border-white/40 hover:text-white transition-colors">Ver en español →</Link>
+            <Link href="/servicios/igaming" className="inline-block border border-white/20 text-white/60 font-display font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-full hover:border-white/40 hover:text-white transition-colors">Ver en español →</Link>
           </div>
         </div>
       </section>

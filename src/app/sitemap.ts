@@ -92,17 +92,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: NOW, changeFrequency: 'monthly', priority: 0.80,
       alternates: { languages: { es: absoluteUrl('/agencia-influencers-valorant'), en: absoluteUrl('/valorant-influencers-agency'), 'x-default': absoluteUrl('/valorant-influencers-agency') } },
     },
-    // Betting
+    // Betting — /influencers-betting redirects 301 to /servicios/igaming (Opción A)
+    // ES equivalent for /betting-influencers is now /servicios/igaming
     {
       url: absoluteUrl('/betting-influencers'),
       lastModified: NOW, changeFrequency: 'monthly', priority: 0.85,
-      alternates: { languages: { en: absoluteUrl('/betting-influencers'), es: absoluteUrl('/influencers-betting'), 'x-default': absoluteUrl('/betting-influencers') } },
+      alternates: { languages: { en: absoluteUrl('/betting-influencers'), es: absoluteUrl('/servicios/igaming'), 'x-default': absoluteUrl('/betting-influencers') } },
     },
-    {
-      url: absoluteUrl('/influencers-betting'),
-      lastModified: NOW, changeFrequency: 'monthly', priority: 0.80,
-      alternates: { languages: { es: absoluteUrl('/influencers-betting'), en: absoluteUrl('/betting-influencers'), 'x-default': absoluteUrl('/betting-influencers') } },
-    },
+    // /influencers-betting omitted — 301 → /servicios/igaming
     // Esports
     {
       url: absoluteUrl('/esports-marketing-agency'),
