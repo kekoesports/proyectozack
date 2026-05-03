@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { SITE_URL, absoluteUrl } from '@/lib/site-url';
+import { TrackedCtaLink } from '@/components/ui/TrackedCtaLink';
 
 export const metadata: Metadata = {
   title: 'Influencers CS2 España y LatAm — Marketing con Streamers CS2',
@@ -76,11 +77,11 @@ export default function InfluencersCs2Page() {
         <div className="max-w-4xl mx-auto px-6 text-center">
           <p className="text-sp-orange text-xs font-bold uppercase tracking-[0.2em] mb-4">Influencers CS2 · España y LatAm</p>
           <h1 className="font-display text-4xl md:text-6xl font-black uppercase tracking-tight text-white leading-tight mb-6">
-            Influencers CS2 para tu Marca<br /><span style={g}>Audiencia que Convierte</span>
+            Influencers CS2 —<br /><span style={g}>300+ FTDs Verificados por Activación</span>
           </h1>
           <p className="text-lg text-white/60 leading-relaxed max-w-2xl mx-auto mb-10">
-            Influencers CS2 verificados en España y LatAm. La audiencia con mayor propensión al gasto en gaming,
-            con FTD tracking y activación en menos de 72 horas.
+            Sin estimaciones. Sin capturas de pantalla. Cada FTD atribuido al streamer que lo generó,
+            con datos del operador. Activación en menos de 72 horas en España y LatAm.
           </p>
           <div className="flex flex-wrap justify-center gap-8 mb-10">
             {STATS.map(({ stat, label }) => (
@@ -90,9 +91,9 @@ export default function InfluencersCs2Page() {
               </div>
             ))}
           </div>
-          <Link href="/contacto" className="inline-block bg-sp-grad text-white font-display font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-full hover:opacity-90 transition-opacity">
-            Lanza tu campaña CS2
-          </Link>
+          <TrackedCtaLink href="/contacto" ctaId="landing_cs2_es_hero" className="inline-block bg-sp-grad text-white font-display font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-full hover:opacity-90 transition-opacity">
+            Encuentra streamers de CS2 para tu campaña
+          </TrackedCtaLink>
         </div>
       </section>
 
