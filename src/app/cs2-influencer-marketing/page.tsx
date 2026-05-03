@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'CS2 Influencer Marketing Agency — Spain & LatAm | SocialPro',
     description:
-      'Counter-Strike 2 influencer marketing with verified streamers. FTD tracking and ROI-focused campaigns in Spain, LatAm and Turkey.',
+      'Counter-Strike 2 influencer marketing with verified streamers. FTD tracking and ROI-focused campaigns in Spain and LatAm.',
     url: absoluteUrl('/cs2-influencer-marketing'),
     type: 'website',
     images: [{ url: absoluteUrl('/og-default.jpg'), width: 1200, height: 630 }],
@@ -39,7 +39,7 @@ const jsonLd = {
   serviceType: 'Esports Influencer Marketing',
   inLanguage: 'en',
   provider: { '@type': 'Organization', name: 'SocialPro', url: SITE_URL },
-  areaServed: ['España', 'México', 'Argentina', 'Colombia', 'Chile', 'Turquía'],
+  areaServed: ['España', 'México', 'Argentina', 'Colombia', 'Chile'],
   description: 'CS2 influencer marketing campaigns with verified streamers across Spain and LatAm. FTD tracking, compliance and activation in under 72 hours.',
 };
 
@@ -78,10 +78,10 @@ export default function Cs2InfluencerMarketingPage() {
         <div className="max-w-4xl mx-auto px-6 text-center">
           <p className="text-sp-orange text-xs font-bold uppercase tracking-[0.2em] mb-4">CS2 Influencer Marketing Agency</p>
           <h1 className="font-display text-4xl md:text-6xl font-black uppercase tracking-tight text-white leading-tight mb-6">
-            The <span style={g}>CS2 Audience</span> Converts.<br />We Prove It.
+            CS2 Influencer Marketing —<br /><span style={g}>The Audience That Converts</span>
           </h1>
           <p className="text-lg text-white/60 leading-relaxed max-w-2xl mx-auto mb-10">
-            CS2 influencer marketing with verified streamers across Spain, LatAm and Turkey.
+            CS2 influencer marketing with verified streamers across Spain and LatAm.
             FTD tracking, compliance and activation in under 72 hours.
           </p>
           <div className="flex flex-wrap justify-center gap-8 mb-10">
