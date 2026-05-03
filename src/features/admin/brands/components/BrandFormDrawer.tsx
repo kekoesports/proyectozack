@@ -114,10 +114,10 @@ export function BrandFormDrawer({
       <form id="brand-form-drawer" action={formAction} className="space-y-5">
         {isEdit && <input type="hidden" name="id" value={brand.id} />}
 
-        {/* Nombre + Razón social */}
+        {/* Marca + Manager */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
-            <label className={LABEL} htmlFor="bfd-name">Nombre *</label>
+            <label className={LABEL} htmlFor="bfd-name">Marca *</label>
             <input
               id="bfd-name"
               name="name"
@@ -125,18 +125,18 @@ export function BrandFormDrawer({
               maxLength={200}
               defaultValue={brand?.name ?? ''}
               className={INPUT}
-              placeholder="Nombre de la marca"
+              placeholder="Nombre comercial de la marca"
             />
           </div>
           <div>
-            <label className={LABEL} htmlFor="bfd-legalName">Razón social</label>
+            <label className={LABEL} htmlFor="bfd-manager">Manager</label>
             <input
-              id="bfd-legalName"
-              name="legalName"
+              id="bfd-manager"
+              name="manager"
               maxLength={250}
-              defaultValue={brand?.legalName ?? ''}
+              defaultValue={brand?.manager ?? ''}
               className={INPUT}
-              placeholder="Nombre legal"
+              placeholder="Nombre del contacto principal"
             />
           </div>
         </div>
@@ -271,6 +271,48 @@ export function BrandFormDrawer({
             </select>
           </div>
         )}
+
+        {/* Contactos rápidos del manager */}
+        <div className="border-t border-sp-admin-border/50 pt-4">
+          <p className="text-[11px] uppercase tracking-wider font-semibold text-sp-admin-muted mb-3">
+            Contacto del manager
+          </p>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <div>
+              <label className={LABEL} htmlFor="bfd-discord">Discord</label>
+              <input
+                id="bfd-discord"
+                name="discord"
+                maxLength={80}
+                defaultValue={brand?.discord ?? ''}
+                className={INPUT}
+                placeholder="usuario#0000"
+              />
+            </div>
+            <div>
+              <label className={LABEL} htmlFor="bfd-telegram">Telegram</label>
+              <input
+                id="bfd-telegram"
+                name="telegram"
+                maxLength={80}
+                defaultValue={brand?.telegram ?? ''}
+                className={INPUT}
+                placeholder="@usuario"
+              />
+            </div>
+            <div>
+              <label className={LABEL} htmlFor="bfd-whatsapp">WhatsApp</label>
+              <input
+                id="bfd-whatsapp"
+                name="whatsapp"
+                maxLength={40}
+                defaultValue={brand?.whatsapp ?? ''}
+                className={INPUT}
+                placeholder="+34 …"
+              />
+            </div>
+          </div>
+        </div>
 
         {/* Notas */}
         <div>

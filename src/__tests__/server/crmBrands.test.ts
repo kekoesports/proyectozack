@@ -105,7 +105,7 @@ describe('listCrmBrands', () => {
     const matchingBrand = {
       id: 1,
       name: 'Brand A',
-      legalName: null,
+      manager: null,
       website: null,
       sector: null,
       tipo: null,
@@ -149,14 +149,14 @@ describe('listCrmBrands', () => {
   it('admin: returns all brands (no visibility filter)', async () => {
     const brands = [
       {
-        id: 1, name: 'Brand A', legalName: null, website: null, sector: null, tipo: null,
+        id: 1, name: 'Brand A', manager: null, website: null, sector: null, tipo: null,
         geo: null, country: null, status: 'lead' as const, ownerUserId: null, portalUserId: null,
         createdByUserId: 'user-1', assignedToUserId: null, lastContactAt: null,
         nextFollowupAt: null, notes: null, createdAt: new Date(), updatedAt: new Date(),
         contactCount: 0, ownerName: null,
       },
       {
-        id: 2, name: 'Brand B', legalName: null, website: null, sector: null, tipo: null,
+        id: 2, name: 'Brand B', manager: null, website: null, sector: null, tipo: null,
         geo: null, country: null, status: 'activa' as const, ownerUserId: null, portalUserId: null,
         createdByUserId: 'user-2', assignedToUserId: 'user-3', lastContactAt: null,
         nextFollowupAt: null, notes: null, createdAt: new Date(), updatedAt: new Date(),
@@ -178,7 +178,7 @@ describe('listCrmBrands', () => {
   it('manager: returns all brands (no visibility filter)', async () => {
     const brands = [
       {
-        id: 10, name: 'Brand X', legalName: null, website: null, sector: null, tipo: null,
+        id: 10, name: 'Brand X', manager: null, website: null, sector: null, tipo: null,
         geo: null, country: null, status: 'lead' as const, ownerUserId: null, portalUserId: null,
         createdByUserId: 'someone', assignedToUserId: 'other', lastContactAt: null,
         nextFollowupAt: null, notes: null, createdAt: new Date(), updatedAt: new Date(),
@@ -202,7 +202,7 @@ describe('listCrmBrands', () => {
     yesterday.setDate(yesterday.getDate() - 1);
 
     const brand = {
-      id: 5, name: 'Overdue Brand', legalName: null, website: null, sector: null, tipo: null,
+      id: 5, name: 'Overdue Brand', manager: null, website: null, sector: null, tipo: null,
       geo: null, country: null, status: 'lead' as const, ownerUserId: null, portalUserId: null,
       createdByUserId: 'user-1', assignedToUserId: null, lastContactAt: null,
       nextFollowupAt: yesterday, notes: null, createdAt: new Date(), updatedAt: new Date(),
