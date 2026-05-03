@@ -6,6 +6,7 @@ import { useReducedMotion } from 'motion/react';
 import { GradientText } from '@/components/ui/GradientText';
 import { useVisibilityFailSafe } from '@/lib/utils/use-visibility-failsafe';
 import { DURATION, EASE, fadeUp, staggerContainer } from '@/lib/utils/animation';
+import { trackEvent } from '@/lib/analytics';
 
 /**
  * Final CTA. Animations are wired through controlled `animate=` (not
@@ -53,6 +54,7 @@ export function CtaSection(): React.JSX.Element {
         </m.p>
         <m.a
           href="/contacto"
+          onClick={() => trackEvent('cta_click', { cta_id: 'home_cta_section', cta_destination: '/contacto' })}
           variants={fadeUp}
           transition={{ duration: DURATION.slow, ease: EASE.out }}
           whileHover={{ scale: 1.05 }}
