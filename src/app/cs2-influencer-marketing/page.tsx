@@ -93,7 +93,8 @@ export default function Cs2InfluencerMarketingPage() {
               </div>
             ))}
           </div>
-          <TrackedCtaLink href="/contacto" ctaId="landing_cs2_en_hero" className="inline-block bg-sp-grad text-white font-display font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-full hover:opacity-90 transition-opacity">
+          <TrackedCtaLink href="/contact" ctaId="landing_cs2_en_hero" className="inline-block bg-sp-grad text-white font-display font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-full hover:opacity-90 transition-opacity">
+
             Launch your CS2 campaign
           </TrackedCtaLink>
         </div>
@@ -145,7 +146,7 @@ export default function Cs2InfluencerMarketingPage() {
           </h2>
           <p className="text-white/50 mb-8">Tell us your product, conversion goal and target market. We deliver a proposal with selected CS2 streamers in 48 hours.</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/contacto" className="inline-block bg-sp-grad text-white font-display font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-full hover:opacity-90 transition-opacity">Request proposal</Link>
+            <Link href="/contact" className="inline-block bg-sp-grad text-white font-display font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-full hover:opacity-90 transition-opacity">Request proposal</Link>
             <Link href="/influencers-cs2" className="inline-block border border-white/20 text-white/60 font-display font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-full hover:border-white/40 hover:text-white transition-colors">Ver en español →</Link>
           </div>
         </div>

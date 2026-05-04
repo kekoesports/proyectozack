@@ -9,15 +9,36 @@ import { AnimatePresence, useMotionValue } from 'motion/react';
 
 import { trackEvent } from '@/lib/analytics';
 import { LangSwitch, hasLangAlternate } from '@/components/layout/LangSwitch';
+import { localeFromPathname, type Locale } from '@/lib/locale';
 
-const NAV_LINKS = [
-  { href: '/talentos', label: 'Talentos' },
-  { href: '/servicios', label: 'Servicios' },
-  { href: '/casos', label: 'Casos de Éxito' },
-  { href: '/blog', label: 'Blog' },
-  { href: '/nosotros', label: 'Nosotros' },
-  { href: '/contacto', label: 'Contacto' },
-];
+const NAV_LINKS_BY_LOCALE: Record<Locale, readonly { href: string; label: string }[]> = {
+  es: [
+    { href: '/talentos', label: 'Talentos' },
+    { href: '/servicios', label: 'Servicios' },
+    { href: '/casos', label: 'Casos de Éxito' },
+    { href: '/blog', label: 'Blog' },
+    { href: '/nosotros', label: 'Nosotros' },
+    { href: '/contacto', label: 'Contacto' },
+  ],
+  en: [
+    { href: '/talents', label: 'Talent' },
+    { href: '/services', label: 'Services' },
+    { href: '/cases', label: 'Case Studies' },
+    { href: '/blog', label: 'Blog' },
+    { href: '/nosotros', label: 'About' },
+    { href: '/contact', label: 'Contact' },
+  ],
+};
+
+const CTA_BY_LOCALE: Record<Locale, string> = {
+  es: 'Trabajemos juntos',
+  en: 'Let’s work together',
+};
+
+const MENU_ARIA_BY_LOCALE: Record<Locale, string> = {
+  es: 'Abrir menú',
+  en: 'Open menu',
+};
 
 /**
  * Barra de navegación pública sticky con barra de progreso de scroll,
@@ -29,6 +50,12 @@ const NAV_LINKS = [
  */
 export function Nav() {
   const pathname = usePathname() ?? '/';
+  const locale = localeFromPathname(pathname);
+  const navLinks = NAV_LINKS_BY_LOCALE[locale];
+  const ctaLabel = CTA_BY_LOCALE[locale];
+  const menuAria = MENU_ARIA_BY_LOCALE[locale];
+  const homeHref = locale === 'en' ? '/en' : '/';
+  const contactHref = locale === 'en' ? '/contact' : '/contacto';
   const showLangToggle = hasLangAlternate(pathname);
 
   const [open, setOpen] = useState(false);
@@ -88,7 +115,7 @@ export function Nav() {
 
       <div className="max-w-7xl mx-auto px-6 lg:px-8 flex items-center justify-between h-16">
         {/* Logo: ícono + wordmark en JSX */}
-        <Link href="/" className="flex items-center gap-2.5 group">
+        <Link href={homeHref} className="flex items-center gap-2.5 group">
           <m.div
             whileHover={{ scale: 1.05 }}
             transition={{ type: 'spring', stiffness: 400, damping: 15 }}
@@ -114,23 +141,14 @@ export function Nav() {
 
         {/* Desktop links */}
         <ul className="hidden md:flex items-center gap-7">
-          {NAV_LINKS.map((l) => (
+          {navLinks.map((l) => (
             <li key={l.href}>
-              {l.href.startsWith('/') ? (
-                <Link
-                  href={l.href}
-                  className="text-xs font-semibold uppercase tracking-widest text-white/50 hover:text-white transition-colors duration-200"
-                >
-                  {l.label}
-                </Link>
-              ) : (
-                <a
-                  href={l.href}
-                  className="text-xs font-semibold uppercase tracking-widest text-white/50 hover:text-white transition-colors duration-200"
-                >
-                  {l.label}
-                </a>
-              )}
+              <Link
+                href={l.href}
+                className="text-xs font-semibold uppercase tracking-widest text-white/50 hover:text-white transition-colors duration-200"
+              >
+                {l.label}
+              </Link>
             </li>
           ))}
         </ul>
@@ -139,20 +157,20 @@ export function Nav() {
         <div className="hidden md:flex items-center gap-3">
           {showLangToggle && <LangSwitch />}
           <m.a
-            href="/contacto"
-            onClick={() => trackEvent('cta_click', { cta_id: 'nav_header', cta_destination: '/contacto' })}
+            href={contactHref}
+            onClick={() => trackEvent('cta_click', { cta_id: 'nav_header', cta_destination: contactHref })}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             className="inline-flex items-center gap-2 px-5 py-2 text-xs font-bold uppercase tracking-widest text-white bg-sp-grad"
           >
-            Trabajemos juntos
+            {ctaLabel}
           </m.a>
         </div>
 
         {/* Mobile burger */}
         <button
           className="md:hidden text-white/70 hover:text-white transition-colors p-2"
-          aria-label="Abrir menú"
+          aria-label={menuAria}
           onClick={() => setOpen((v) => !v)}
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -175,58 +193,44 @@ export function Nav() {
             transition={{ duration: 0.18, ease: 'easeOut' }}
             className="md:hidden bg-sp-black border-t border-white/10 px-6 py-5 flex flex-col gap-5"
           >
-            {NAV_LINKS.map((l, i) =>
-              l.href.startsWith('/') ? (
-                <m.div
-                  key={l.href}
-                  initial={{ opacity: 0, x: -8 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.15, ease: 'easeOut', delay: i * 0.04 }}
-                >
-                  <Link
-                    href={l.href}
-                    className="text-xs font-semibold uppercase tracking-widest text-white/50 hover:text-white transition-colors block"
-                    onClick={() => setOpen(false)}
-                  >
-                    {l.label}
-                  </Link>
-                </m.div>
-              ) : (
-                <m.a
-                  key={l.href}
+            {navLinks.map((l, i) => (
+              <m.div
+                key={l.href}
+                initial={{ opacity: 0, x: -8 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.15, ease: 'easeOut', delay: i * 0.04 }}
+              >
+                <Link
                   href={l.href}
-                  initial={{ opacity: 0, x: -8 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.15, ease: 'easeOut', delay: i * 0.04 }}
-                  className="text-xs font-semibold uppercase tracking-widest text-white/50 hover:text-white transition-colors"
+                  className="text-xs font-semibold uppercase tracking-widest text-white/50 hover:text-white transition-colors block"
                   onClick={() => setOpen(false)}
                 >
                   {l.label}
-                </m.a>
-              )
-            )}
+                </Link>
+              </m.div>
+            ))}
             {showLangToggle && (
               <m.div
                 initial={{ opacity: 0, x: -8 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.15, ease: 'easeOut', delay: NAV_LINKS.length * 0.04 }}
+                transition={{ duration: 0.15, ease: 'easeOut', delay: navLinks.length * 0.04 }}
                 className="self-start"
               >
                 <LangSwitch onNavigate={() => setOpen(false)} />
               </m.div>
             )}
             <m.a
-              href="/contacto"
+              href={contactHref}
               initial={{ opacity: 0, x: -8 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.15, ease: 'easeOut', delay: (NAV_LINKS.length + (showLangToggle ? 1 : 0)) * 0.04 }}
+              transition={{ duration: 0.15, ease: 'easeOut', delay: (navLinks.length + (showLangToggle ? 1 : 0)) * 0.04 }}
               className="text-xs font-bold uppercase tracking-widest text-white text-center py-3 bg-sp-grad"
               onClick={() => {
-                trackEvent('cta_click', { cta_id: 'nav_mobile', cta_destination: '/contacto' });
+                trackEvent('cta_click', { cta_id: 'nav_mobile', cta_destination: contactHref });
                 setOpen(false);
               }}
             >
-              Trabajemos juntos
+              {ctaLabel}
             </m.a>
           </m.div>
         )}
