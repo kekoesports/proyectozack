@@ -45,7 +45,7 @@ const SERVICES = [
   {
     title: 'iGaming campaigns',
     desc: 'Specialised campaigns for betting, casino and skins operators. DGOJ compliance built into every step. FTD tracking and attribution per creator.',
-    bullets: ['DGOJ compliance integration', 'Age-gating & responsible-gambling disclaimers', 'Verified FTD reporting'],
+    bullets: ['DGOJ compliance (Spain\'s gambling regulator) — built in, not optional', 'Age-gating & responsible-gambling disclaimers', 'Verified FTD reporting'],
   },
   {
     title: 'Talent management',
@@ -61,7 +61,7 @@ const SERVICES = [
 
 const PROCESS = [
   { num: '01', t: 'Discovery', d: 'We analyse your brand, target audience, competition and business goals. Clear KPIs before we start.' },
-  { num: '02', t: 'Matching',  d: 'We select creators whose audience and style match your brand. No spam — only verified profiles.' },
+  { num: '02', t: 'Matching',  d: 'We select creators whose audience and style match your brand. No generic outreach — every creator selected and vetted.' },
   { num: '03', t: 'Execution', d: 'Full campaign coordination: briefings, content review, scheduling, compliance and publishing.' },
   { num: '04', t: 'Reporting', d: 'Reports with real metrics: reach, engagement, conversions and ROI. Verified data, not screenshots.' },
 ];
@@ -119,11 +119,12 @@ export default function ServicesEnPage() {
         <div className="max-w-4xl mx-auto px-6">
           <p className="text-sp-orange text-xs font-bold uppercase tracking-[0.2em] mb-4">Services</p>
           <h1 className="font-display text-4xl md:text-6xl font-black uppercase tracking-tight text-white leading-tight mb-6">
-            Gaming marketing<br /><span style={g}>that delivers</span>
+            iGaming & gaming influencer marketing —<br /><span style={g}>verified FTDs, not estimated reach</span>
           </h1>
           <p className="text-lg text-white/60 leading-relaxed max-w-2xl mx-auto">
-            Performance-driven services for gaming, esports and iGaming brands across Spain and LatAm.
-            Every campaign tracked. Every metric verified.
+            You&apos;ve run influencer campaigns where results were screenshots. We work differently:
+            every FTD, click and registration attributed to the exact streamer who generated it —
+            verified with operator data, not our estimates.
           </p>
         </div>
       </section>
@@ -216,7 +217,7 @@ export default function ServicesEnPage() {
           </h2>
           <p className="text-white/60 mb-8">Send us your product, target market and goal. We deliver a tailored proposal in 48 hours.</p>
           <Link href="/contact" className="inline-block bg-sp-grad text-white font-display font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-full hover:opacity-90 transition-opacity">
-            Request a proposal
+            Tell us about your campaign
           </Link>
         </div>
       </section>
