@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { SITE_URL, absoluteUrl } from '@/lib/site-url';
 import { TrackedCtaLink } from '@/components/ui/TrackedCtaLink';
+import { StickyCtaMobile } from '@/components/ui/StickyCtaMobile';
 
 export const metadata: Metadata = {
   title: 'Agencia de Marketing Esports — España y LatAm',
@@ -81,7 +82,7 @@ export default function AgenciaMarketingEsportsPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
 
-      <section className="bg-sp-black pt-32 pb-20">
+      <section className="bg-sp-black pt-24 pb-12 md:pt-32 md:pb-20">
         <div className="max-w-4xl mx-auto px-6 text-center">
           <p className="text-sp-orange text-xs font-bold uppercase tracking-[0.2em] mb-4">Agencia de Marketing Esports</p>
           <h1 className="font-display text-4xl md:text-6xl font-black uppercase tracking-tight text-white leading-tight mb-6">
@@ -146,6 +147,8 @@ export default function AgenciaMarketingEsportsPage() {
           </div>
         </div>
       </section>
+
+      <StickyCtaMobile href="/contacto" label="Solicitar propuesta" ctaId="sticky_esports_es_mobile" />
     </>
   );
 }
