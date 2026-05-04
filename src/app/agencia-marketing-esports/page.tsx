@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { SITE_URL, absoluteUrl } from '@/lib/site-url';
+import { TrackedCtaLink } from '@/components/ui/TrackedCtaLink';
 
 export const metadata: Metadata = {
   title: 'Agencia de Marketing Esports — España y LatAm',
@@ -84,11 +85,12 @@ export default function AgenciaMarketingEsportsPage() {
         <div className="max-w-4xl mx-auto px-6 text-center">
           <p className="text-sp-orange text-xs font-bold uppercase tracking-[0.2em] mb-4">Agencia de Marketing Esports</p>
           <h1 className="font-display text-4xl md:text-6xl font-black uppercase tracking-tight text-white leading-tight mb-6">
-            Agencia de Marketing Esports<br /><span style={g}>con 13 Años de Resultados</span>
+            Agencia de Marketing Esports —<br /><span style={g}>Nativos del Gaming. Enfocados en Performance.</span>
           </h1>
           <p className="text-lg text-white/60 leading-relaxed max-w-2xl mx-auto mb-10">
-            Agencia de marketing esports en España y LatAm desde 2012. Campañas con influencers,
-            activaciones en torneos y gestión de talentos. Todo orientado a performance.
+            No somos una agencia generalista que añadió «esports» al portfolio. Construida exclusivamente
+            en gaming, esports e iGaming. Conocemos los creadores, las audiencias y los matices regulatorios.
+            Cada activación medible, cada métrica auditable.
           </p>
           <div className="flex flex-wrap justify-center gap-8 mb-10">
             {STATS.map(({ stat, label }) => (
@@ -98,9 +100,9 @@ export default function AgenciaMarketingEsportsPage() {
               </div>
             ))}
           </div>
-          <Link href="/contacto" className="inline-block bg-sp-grad text-white font-display font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-full hover:opacity-90 transition-opacity">
-            Trabajar con nosotros
-          </Link>
+          <TrackedCtaLink href="/contacto" ctaId="landing_esports_es_hero" className="inline-block bg-sp-grad text-white font-display font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-full hover:opacity-90 transition-opacity">
+            Diseñamos tu campaña en esports
+          </TrackedCtaLink>
         </div>
       </section>
 
