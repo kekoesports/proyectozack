@@ -236,16 +236,15 @@ describe('archiveCampaignAction', () => {
     expect(mockArchiveCampaign).toHaveBeenCalledWith(1);
   });
 
-  it('returns { success: false, error: "forbidden:delete:manager" } for manager', async () => {
-    mockRequireAnyRole.mockResolvedValue(makeSession('manager'));
+  it('archives campaign and returns { success: true } for manager', async () => {
+    mockRequireAnyRole.mockResolvedValue(makeSession('manager', 'mgr-1'));
+    mockAssertCanEditCampaign.mockResolvedValue(undefined);
+    mockArchiveCampaign.mockResolvedValue({ id: 1, archivedAt: new Date() });
 
     const result = await archiveCampaignAction(1);
 
-    expect(result.success).toBe(false);
-    if (!result.success) {
-      expect(result.error).toBe('forbidden:delete:manager');
-    }
-    expect(mockArchiveCampaign).not.toHaveBeenCalled();
+    expect(result).toEqual({ success: true });
+    expect(mockArchiveCampaign).toHaveBeenCalledWith(1);
   });
 
   it('returns { success: false, error: "forbidden:delete:staff" } for staff', async () => {
@@ -305,16 +304,14 @@ describe('unarchiveCampaignAction', () => {
     expect(mockUnarchiveCampaign).toHaveBeenCalledWith(1);
   });
 
-  it('returns { success: false, error: "forbidden:delete:manager" } for manager', async () => {
+  it('unarchives campaign and returns { success: true } for manager', async () => {
     mockRequireAnyRole.mockResolvedValue(makeSession('manager'));
+    mockUnarchiveCampaign.mockResolvedValue({ id: 1, archivedAt: null });
 
     const result = await unarchiveCampaignAction(1);
 
-    expect(result.success).toBe(false);
-    if (!result.success) {
-      expect(result.error).toBe('forbidden:delete:manager');
-    }
-    expect(mockUnarchiveCampaign).not.toHaveBeenCalled();
+    expect(result).toEqual({ success: true });
+    expect(mockUnarchiveCampaign).toHaveBeenCalledWith(1);
   });
 
   it('returns { success: false, error: "forbidden:delete:staff" } for staff', async () => {

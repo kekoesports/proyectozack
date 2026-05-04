@@ -5,7 +5,7 @@ export function canSeeAll(role: Role): boolean {
 }
 
 export function canDelete(role: Role): boolean {
-  return role === 'admin';
+  return role === 'admin' || role === 'manager';
 }
 
 export function assertCanDelete(role: Role): void {

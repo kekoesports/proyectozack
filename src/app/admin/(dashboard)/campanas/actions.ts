@@ -82,6 +82,8 @@ export async function archiveCampaignAction(
   try {
     const session = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
 
+    assertCanDelete(session.user.role);
+
     await assertCanEditCampaign(id, { userId: session.user.id, role: session.user.role });
 
     await archiveCampaign(id);
@@ -103,7 +105,6 @@ export async function unarchiveCampaignAction(
   try {
     const session = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
 
-    // solo admin puede desarchivar
     assertCanDelete(session.user.role);
 
     await unarchiveCampaign(id);
