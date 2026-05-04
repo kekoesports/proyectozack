@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { SITE_URL, absoluteUrl } from '@/lib/site-url';
+import { TrackedCtaLink } from '@/components/ui/TrackedCtaLink';
+import { StickyCtaMobile } from '@/components/ui/StickyCtaMobile';
 
 export const metadata: Metadata = {
   title: 'Agencia de Influencers Valorant — España y LatAm',
@@ -71,15 +73,16 @@ export default function AgenciaInfluencersValorantPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
 
-      <section className="bg-sp-black pt-32 pb-20">
+      <section className="bg-sp-black pt-24 pb-12 md:pt-32 md:pb-20">
         <div className="max-w-4xl mx-auto px-6 text-center">
           <p className="text-sp-orange text-xs font-bold uppercase tracking-[0.2em] mb-4">Agencia de Influencers Valorant</p>
           <h1 className="font-display text-4xl md:text-6xl font-black uppercase tracking-tight text-white leading-tight mb-6">
-            Agencia de Influencers Valorant<br /><span style={g}>en España y LatAm</span>
+            Agencia de Influencers Valorant —<br /><span style={g}>Brand-Safe por Diseño</span>
           </h1>
           <p className="text-lg text-white/60 leading-relaxed max-w-2xl mx-auto mb-10">
-            Streamers de Valorant verificados con audiencias reales en el mercado hispano.
-            Brand-safe, orientado a resultados y activación en menos de 72 horas.
+            Riot impone estándares de contenido en su ecosistema. Nosotros añadimos vetting de creadores,
+            revisión de contenido y verificación de audiencia. Llega a audiencias gaming 18-30 sin
+            riesgos de brand safety.
           </p>
           <div className="flex flex-wrap justify-center gap-8 mb-10">
             {STATS.map(({ stat, label }) => (
@@ -89,9 +92,9 @@ export default function AgenciaInfluencersValorantPage() {
               </div>
             ))}
           </div>
-          <Link href="/contacto" className="inline-block bg-sp-grad text-white font-display font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-full hover:opacity-90 transition-opacity">
-            Activar campaña Valorant
-          </Link>
+          <TrackedCtaLink href="/contacto" ctaId="landing_valorant_es_hero" className="inline-block bg-sp-grad text-white font-display font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-full hover:opacity-90 transition-opacity">
+            Valida tu campaña con influencers de Valorant
+          </TrackedCtaLink>
         </div>
       </section>
 
@@ -140,6 +143,8 @@ export default function AgenciaInfluencersValorantPage() {
           </div>
         </div>
       </section>
+
+      <StickyCtaMobile href="/contacto" label="Solicitar propuesta" ctaId="sticky_valorant_es_mobile" />
     </>
   );
 }

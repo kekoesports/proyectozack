@@ -65,6 +65,66 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.6,
   }));
 
+  // ── Marketing core bilingual pairs ────────────────────────────────────────
+  // ES + EN core marketing pages with mutual hreflang and x-default → EN.
+  const corePairs: MetadataRoute.Sitemap = [
+    // Home
+    {
+      url: SITE_URL,
+      lastModified: D.home, changeFrequency: 'weekly', priority: 1,
+      alternates: { languages: { es: SITE_URL, en: absoluteUrl('/en'), 'x-default': absoluteUrl('/en') } },
+    },
+    {
+      url: absoluteUrl('/en'),
+      lastModified: D.home, changeFrequency: 'weekly', priority: 0.95,
+      alternates: { languages: { en: absoluteUrl('/en'), es: SITE_URL, 'x-default': absoluteUrl('/en') } },
+    },
+    // Talents
+    {
+      url: absoluteUrl('/talentos'),
+      lastModified: D.talentos, changeFrequency: 'weekly', priority: 0.9,
+      alternates: { languages: { es: absoluteUrl('/talentos'), en: absoluteUrl('/talents'), 'x-default': absoluteUrl('/talents') } },
+    },
+    {
+      url: absoluteUrl('/talents'),
+      lastModified: D.talentos, changeFrequency: 'weekly', priority: 0.85,
+      alternates: { languages: { en: absoluteUrl('/talents'), es: absoluteUrl('/talentos'), 'x-default': absoluteUrl('/talents') } },
+    },
+    // Services
+    {
+      url: absoluteUrl('/servicios'),
+      lastModified: D.servicios, changeFrequency: 'monthly', priority: 0.8,
+      alternates: { languages: { es: absoluteUrl('/servicios'), en: absoluteUrl('/services'), 'x-default': absoluteUrl('/services') } },
+    },
+    {
+      url: absoluteUrl('/services'),
+      lastModified: D.servicios, changeFrequency: 'monthly', priority: 0.85,
+      alternates: { languages: { en: absoluteUrl('/services'), es: absoluteUrl('/servicios'), 'x-default': absoluteUrl('/services') } },
+    },
+    // Cases
+    {
+      url: absoluteUrl('/casos'),
+      lastModified: D.casos, changeFrequency: 'weekly', priority: 0.8,
+      alternates: { languages: { es: absoluteUrl('/casos'), en: absoluteUrl('/cases'), 'x-default': absoluteUrl('/cases') } },
+    },
+    {
+      url: absoluteUrl('/cases'),
+      lastModified: D.casos, changeFrequency: 'weekly', priority: 0.85,
+      alternates: { languages: { en: absoluteUrl('/cases'), es: absoluteUrl('/casos'), 'x-default': absoluteUrl('/cases') } },
+    },
+    // Contact
+    {
+      url: absoluteUrl('/contacto'),
+      lastModified: D.contacto, changeFrequency: 'monthly', priority: 0.8,
+      alternates: { languages: { es: absoluteUrl('/contacto'), en: absoluteUrl('/contact'), 'x-default': absoluteUrl('/contact') } },
+    },
+    {
+      url: absoluteUrl('/contact'),
+      lastModified: D.contacto, changeFrequency: 'monthly', priority: 0.85,
+      alternates: { languages: { en: absoluteUrl('/contact'), es: absoluteUrl('/contacto'), 'x-default': absoluteUrl('/contact') } },
+    },
+  ];
+
   // ── Multilingual landing pairs ────────────────────────────────────────────
   // EN (primary, priority 0.85) + ES (support, priority 0.80).
   // alternates.languages → Google outputs hreflang in sitemap.xml.
@@ -122,14 +182,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   return [
-    // ── Core pages ────────────────────────────────────────────────────────
-    { url: SITE_URL,                         lastModified: D.home,          changeFrequency: 'weekly',  priority: 1    },
-    { url: absoluteUrl('/talentos'),          lastModified: D.talentos,      changeFrequency: 'weekly',  priority: 0.9  },
-    { url: absoluteUrl('/servicios'),         lastModified: D.servicios,     changeFrequency: 'monthly', priority: 0.8  },
+    // ── Marketing core (bilingual pairs: home, talents, services, cases, contact) ──
+    ...corePairs,
+    // ── Other ES-only core pages ──────────────────────────────────────────
     { url: absoluteUrl('/servicios/igaming'), lastModified: D.igaming,       changeFrequency: 'monthly', priority: 0.85 },
-    { url: absoluteUrl('/casos'),             lastModified: D.casos,         changeFrequency: 'weekly',  priority: 0.8  },
     { url: absoluteUrl('/nosotros'),          lastModified: D.nosotros,      changeFrequency: 'monthly', priority: 0.7  },
-    { url: absoluteUrl('/contacto'),          lastModified: D.contacto,      changeFrequency: 'monthly', priority: 0.8  },
     { url: absoluteUrl('/metodologia'),       lastModified: D.metodologia,   changeFrequency: 'monthly', priority: 0.7  },
     { url: absoluteUrl('/para-creadores'),    lastModified: D.paraCreadores, changeFrequency: 'monthly', priority: 0.8  },
     { url: absoluteUrl('/blog'),              lastModified: D.blog,          changeFrequency: 'weekly',  priority: 0.7  },

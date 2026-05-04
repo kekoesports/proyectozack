@@ -1,51 +1,153 @@
+'use client';
+
 import Link from 'next/link';
 import Image from 'next/image';
+import { usePathname } from 'next/navigation';
 import { WA_HREF, CONTACT_EMAIL } from '@/lib/utils/constants';
+import { localeFromPathname, type Locale } from '@/lib/locale';
 
-const NAV_COLS = [
-  {
-    title: 'Agencia',
-    links: [
-      { href: '/talentos', label: 'Talentos' },
-      { href: '/servicios', label: 'Servicios' },
-      { href: '/casos', label: 'Casos de Éxito' },
-      { href: '/nosotros', label: 'Nosotros' },
-      { href: '/metodologia', label: 'Metodología' },
-      { href: '/blog', label: 'Blog' },
-    ],
+type NavCol = {
+  readonly title: string;
+  readonly links: readonly { readonly href: string; readonly label: string }[];
+};
+
+// IMPORTANTE: la columna "Especialidades" preserva la decisión del PR #51
+// (iGaming & Betting → /servicios/igaming como hub ES único).
+const NAV_COLS_BY_LOCALE: Record<Locale, readonly NavCol[]> = {
+  es: [
+    {
+      title: 'Agencia',
+      links: [
+        { href: '/talentos', label: 'Talentos' },
+        { href: '/servicios', label: 'Servicios' },
+        { href: '/casos', label: 'Casos de Éxito' },
+        { href: '/nosotros', label: 'Nosotros' },
+        { href: '/metodologia', label: 'Metodología' },
+        { href: '/blog', label: 'Blog' },
+      ],
+    },
+    {
+      title: 'Creadores',
+      links: [
+        { href: '/para-creadores', label: 'Para Creadores' },
+        { href: '/talentos', label: 'Ver Roster' },
+        { href: '/giveaways', label: 'Giveaways' },
+        { href: '/sorteos', label: 'Sorteos de Skins' },
+        { href: '/contacto', label: 'Trabaja con nosotros' },
+      ],
+    },
+    {
+      title: 'Marcas',
+      links: [
+        { href: '/servicios/igaming', label: 'Campañas iGaming' },
+        { href: '/servicios', label: 'Talent Management' },
+        { href: '/marcas/login', label: 'Portal de Marcas' },
+        { href: '/contacto', label: 'Solicitar propuesta' },
+      ],
+    },
+    {
+      title: 'Especialidades',
+      links: [
+        { href: '/cs2-influencer-marketing',   label: 'CS2 Influencer Marketing' },
+        { href: '/valorant-influencers-agency', label: 'Valorant Influencers' },
+        { href: '/servicios/igaming',           label: 'iGaming & Betting' },
+        { href: '/esports-marketing-agency',    label: 'Esports Marketing' },
+        { href: '/twitch-streamers-agency',     label: 'Twitch Streamers Agency' },
+        { href: '/influencers-cs2',             label: 'Influencers CS2 (ES)' },
+        { href: '/agencia-marketing-esports',   label: 'Agencia Esports (ES)' },
+      ],
+    },
+  ],
+  en: [
+    {
+      title: 'Agency',
+      links: [
+        { href: '/talents', label: 'Talent' },
+        { href: '/services', label: 'Services' },
+        { href: '/cases', label: 'Case Studies' },
+        { href: '/nosotros', label: 'About (ES)' },
+        { href: '/metodologia', label: 'Methodology (ES)' },
+        { href: '/blog', label: 'Blog (ES)' },
+      ],
+    },
+    {
+      title: 'Creators',
+      links: [
+        { href: '/para-creadores', label: 'For Creators (ES)' },
+        { href: '/talents', label: 'View Roster' },
+        { href: '/giveaways', label: 'Giveaways' },
+        { href: '/sorteos', label: 'Skin Giveaways (ES)' },
+        { href: '/contact', label: 'Work with us' },
+      ],
+    },
+    {
+      title: 'Brands',
+      links: [
+        { href: '/servicios/igaming', label: 'iGaming Campaigns (ES)' },
+        { href: '/services', label: 'Talent Management' },
+        { href: '/marcas/login', label: 'Brand Portal (ES)' },
+        { href: '/contact', label: 'Request a proposal' },
+      ],
+    },
+    {
+      title: 'Specialties',
+      links: [
+        { href: '/cs2-influencer-marketing',   label: 'CS2 Influencer Marketing' },
+        { href: '/valorant-influencers-agency', label: 'Valorant Influencers' },
+        { href: '/servicios/igaming',           label: 'iGaming & Betting (ES)' },
+        { href: '/esports-marketing-agency',    label: 'Esports Marketing' },
+        { href: '/twitch-streamers-agency',     label: 'Twitch Streamers Agency' },
+        { href: '/influencers-cs2',             label: 'Influencers CS2 (ES)' },
+        { href: '/agencia-marketing-esports',   label: 'Agencia Esports (ES)' },
+      ],
+    },
+  ],
+};
+
+const STATS_BY_LOCALE: Record<Locale, readonly { value: string; label: string }[]> = {
+  es: [
+    { value: '13+', label: 'Años de experiencia' },
+    { value: '15M', label: 'Views al mes' },
+    { value: 'ES + LatAm', label: 'Mercados activos' },
+  ],
+  en: [
+    { value: '13+', label: 'Years of experience' },
+    { value: '15M', label: 'Monthly views' },
+    { value: 'ES + LatAm', label: 'Active markets' },
+  ],
+};
+
+const COPY_BY_LOCALE: Record<Locale, {
+  readonly metricsLabel: string;
+  readonly brandIntro: string;
+  readonly socialsLabel: string;
+  readonly rights: string;
+  readonly privacy: string;
+  readonly cookies: string;
+  readonly legal: string;
+  readonly tagline: string;
+}> = {
+  es: {
+    metricsLabel: 'Métricas de la agencia',
+    brandIntro: 'Agencia de talentos gaming & esports. Conectamos creadores con marcas líderes en iGaming, periféricos y entretenimiento digital.',
+    socialsLabel: 'Redes sociales',
+    rights: 'Todos los derechos reservados.',
+    privacy: 'Privacidad',
+    cookies: 'Cookies',
+    legal: 'Aviso Legal',
+    tagline: 'Gaming & Esports · España · LatAm · Europa',
   },
-  {
-    title: 'Creadores',
-    links: [
-      { href: '/para-creadores', label: 'Para Creadores' },
-      { href: '/talentos', label: 'Ver Roster' },
-      { href: '/giveaways', label: 'Giveaways' },
-      { href: '/sorteos', label: 'Sorteos de Skins' },
-      { href: '/contacto', label: 'Trabaja con nosotros' },
-    ],
+  en: {
+    metricsLabel: 'Agency metrics',
+    brandIntro: 'Gaming & esports talent agency. We connect creators with leading iGaming, peripherals and digital entertainment brands.',
+    socialsLabel: 'Social media',
+    rights: 'All rights reserved.',
+    privacy: 'Privacy',
+    cookies: 'Cookies',
+    legal: 'Legal',
+    tagline: 'Gaming & Esports · Spain · LatAm · Europe',
   },
-  {
-    title: 'Marcas',
-    links: [
-      { href: '/servicios/igaming', label: 'Campañas iGaming' },
-      { href: '/servicios', label: 'Talent Management' },
-      { href: '/marcas/login', label: 'Portal de Marcas' },
-      { href: '/contacto', label: 'Solicitar propuesta' },
-    ],
-  },
-  {
-    title: 'Especialidades',
-    links: [
-      { href: '/cs2-influencer-marketing',   label: 'CS2 Influencer Marketing' },
-      { href: '/valorant-influencers-agency', label: 'Valorant Influencers' },
-      { href: '/servicios/igaming',           label: 'iGaming & Betting' },
-      { href: '/esports-marketing-agency',    label: 'Esports Marketing' },
-      { href: '/twitch-streamers-agency',     label: 'Twitch Streamers Agency' },
-      { href: '/influencers-cs2',             label: 'Influencers CS2 (ES)' },
-      { href: '/agencia-marketing-esports',   label: 'Agencia Esports (ES)' },
-    ],
-  },
-];
+};
 
 const SOCIALS = [
   {
@@ -90,27 +192,27 @@ const SOCIALS = [
   },
 ];
 
-const STATS = [
-  { value: '13+', label: 'Años de experiencia' },
-  { value: '15M', label: 'Views al mes' },
-  { value: 'ES + LatAm', label: 'Mercados activos' },
-];
-
 /**
- * Footer global de la web pública: stats strip, columnas de navegación,
- * datos de contacto, redes sociales y bottom bar con enlaces legales.
+ * Footer global de la web pública. Detecta locale por pathname y traduce
+ * columnas de navegación, stats y bottom bar al inglés cuando aplica.
  *
- * @kind server
+ * @kind client
  * @feature layout
  */
-export function Footer() {
+export function Footer(): React.ReactElement {
+  const pathname = usePathname() ?? '/';
+  const locale = localeFromPathname(pathname);
+  const navCols = NAV_COLS_BY_LOCALE[locale];
+  const stats   = STATS_BY_LOCALE[locale];
+  const copy    = COPY_BY_LOCALE[locale];
+
   return (
     <footer className="bg-sp-black text-white">
 
       {/* Stats strip */}
-      <section aria-label="Métricas de la agencia" className="border-t border-b border-white/5" style={{ background: 'linear-gradient(90deg,rgba(245,99,42,0.04) 0%,rgba(139,58,173,0.04) 100%)' }}>
+      <section aria-label={copy.metricsLabel} className="border-t border-b border-white/5" style={{ background: 'linear-gradient(90deg,rgba(245,99,42,0.04) 0%,rgba(139,58,173,0.04) 100%)' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-wrap justify-center gap-12 sm:gap-24">
-          {STATS.map(({ value, label }) => (
+          {stats.map(({ value, label }) => (
             <div key={label} className="text-center">
               <p className="font-display text-3xl font-black" style={{
                 background: 'linear-gradient(90deg,#f5632a,#e03070,#8b3aad)',
@@ -132,7 +234,7 @@ export function Footer() {
 
           {/* Brand column */}
           <div className="flex flex-col gap-6">
-            <Link href="/" className="inline-block">
+            <Link href={locale === 'en' ? '/en' : '/'} className="inline-block">
               <Image
                 src="/images/logos/4.png"
                 alt="SocialPro"
@@ -143,7 +245,7 @@ export function Footer() {
             </Link>
 
             <p className="text-sm text-white/40 leading-relaxed max-w-xs">
-              Agencia de talentos gaming &amp; esports. Conectamos creadores con marcas líderes en iGaming, periféricos y entretenimiento digital.
+              {copy.brandIntro}
             </p>
 
             {/* Contact */}
@@ -171,7 +273,7 @@ export function Footer() {
             </address>
 
             {/* Socials */}
-            <nav aria-label="Redes sociales" className="flex gap-3">
+            <nav aria-label={copy.socialsLabel} className="flex gap-3">
               {SOCIALS.map(({ label, href, icon }) => (
                 <a
                   key={label}
@@ -188,7 +290,7 @@ export function Footer() {
           </div>
 
           {/* Nav columns */}
-          {NAV_COLS.map((col) => (
+          {navCols.map((col) => (
             <div key={col.title}>
               <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/30 mb-5">
                 {col.title}
@@ -214,15 +316,15 @@ export function Footer() {
       <div className="border-t border-white/5">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex flex-col sm:flex-row items-center justify-between gap-3">
           <p className="text-xs text-white/25">
-            © {new Date().getFullYear()} SocialPro. Todos los derechos reservados.
+            © {new Date().getFullYear()} SocialPro. {copy.rights}
           </p>
           <div className="flex gap-5 text-xs text-white/25">
-            <Link href="/privacidad" className="hover:text-white/60 transition-colors">Privacidad</Link>
-            <Link href="/cookies" className="hover:text-white/60 transition-colors">Cookies</Link>
-            <Link href="/legal" className="hover:text-white/60 transition-colors">Aviso Legal</Link>
+            <Link href="/privacidad" className="hover:text-white/60 transition-colors">{copy.privacy}</Link>
+            <Link href="/cookies" className="hover:text-white/60 transition-colors">{copy.cookies}</Link>
+            <Link href="/legal" className="hover:text-white/60 transition-colors">{copy.legal}</Link>
           </div>
           <p className="text-xs text-white/20">
-            Gaming &amp; Esports · España · LatAm · Europa
+            {copy.tagline}
           </p>
         </div>
       </div>

@@ -5,6 +5,8 @@ import * as m from 'motion/react-client';
 import { useMotionValue, useSpring, useTransform, useReducedMotion } from 'motion/react';
 import Image from 'next/image';
 
+import { trackEvent } from '@/lib/analytics';
+
 const HERO_STATS = [
   { value: '13+', label: 'AÑOS' },
   { value: '15M', label: 'VIEWS/MES' },
@@ -40,6 +42,9 @@ export function Hero() {
 
   useEffect(() => {
     if (reduced) return;
+    // Skip mousemove listener on touch devices (no cursor → no parallax payoff,
+    // saves listener overhead on mobile and the corresponding paint work).
+    if (typeof window === 'undefined' || !window.matchMedia('(hover: hover)').matches) return;
     const onMouseMove = (e: MouseEvent) => {
       mouseX.set(e.clientX / window.innerWidth);
       mouseY.set(e.clientY / window.innerHeight);
@@ -57,21 +62,21 @@ export function Hero() {
           className="absolute top-1/2 left-1/2 -ml-[500px] -mt-[500px] will-change-transform"
           style={{ x: pinkX, y: pinkY }}
         >
-          <div className="hero-aura-pink hero-aura-pink-bg w-[700px] h-[700px] rounded-full blur-[30px] sm:blur-[60px]" />
+          <div className="hero-aura-pink hero-aura-pink-bg w-[700px] h-[700px] rounded-full blur-[16px] sm:blur-[60px]" />
         </m.div>
         <m.div
           className="absolute top-[-10%] right-[-10%] will-change-transform"
           style={{ x: orangeX, y: orangeY }}
         >
-          <div className="hero-aura-orange hero-aura-orange-bg w-[600px] h-[600px] rounded-full blur-[35px] sm:blur-[70px]" />
+          <div className="hero-aura-orange hero-aura-orange-bg w-[600px] h-[600px] rounded-full blur-[20px] sm:blur-[70px]" />
         </m.div>
       </div>
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full flex-1 flex flex-col items-center justify-center text-center pb-20">
 
         <m.div
-          initial={{ opacity: 0, scale: 0.8, y: 20 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
+          initial={{ scale: 0.8, y: 20 }}
+          animate={{ scale: 1, y: 0 }}
           transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
           className="relative mb-8"
         >
@@ -80,8 +85,8 @@ export function Hero() {
             <Image
               src="/images/logos/2.png"
               alt="SocialPro Mark"
-              width={100}
-              height={100}
+              width={80}
+              height={80}
               priority
               className="w-16 h-16 sm:w-20 sm:h-20 object-contain drop-shadow-[0_0_25px_rgba(224,48,112,0.4)]"
             />
@@ -89,35 +94,33 @@ export function Hero() {
           <div className="absolute inset-0 bg-sp-pink/20 blur-2xl rounded-full" />
         </m.div>
 
-        <m.span
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 1, delay: 0.2 }}
-          className="inline-block text-[10px] font-bold uppercase tracking-[0.4em] text-sp-muted2 mb-6"
-        >
+        <span className="inline-block text-[10px] font-bold uppercase tracking-[0.4em] text-sp-muted2 mb-6">
           Gaming &amp; Esports · España · LatAm · Europa
-        </m.span>
+        </span>
 
+        {/* Hero H1 = LCP element. Mantenemos el slide-in (y: 40 → 0) pero
+            quitamos opacity:0 inicial: si el elemento empieza invisible, el
+            navegador no contabiliza el LCP hasta que la animación termina. */}
         <h1 className="font-display text-[2.75rem] xs:text-[3.5rem] sm:text-[5rem] md:text-[7rem] lg:text-[10rem] font-black uppercase leading-[0.85] tracking-tight mb-10">
           <m.span
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ y: 40 }}
+            animate={{ y: 0 }}
             transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: 0.3 }}
             className="block text-white"
           >
             CONECTAMOS
           </m.span>
           <m.span
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ y: 40 }}
+            animate={{ y: 0 }}
             transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: 0.45 }}
             className="block hero-headline-gradient"
           >
             CREADORES
           </m.span>
           <m.span
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ y: 40 }}
+            animate={{ y: 0 }}
             transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: 0.6 }}
             className="block text-white"
           >
@@ -145,6 +148,7 @@ export function Hero() {
           >
             <m.a
               href="/contacto"
+              onClick={() => trackEvent('cta_click', { cta_id: 'hero_home_primary', cta_destination: '/contacto' })}
               whileHover={{ scale: 1.05, boxShadow: '0 0 30px rgba(224,48,112,0.3)' }}
               whileTap={{ scale: 0.95 }}
               className="px-10 py-4 rounded-full font-bold text-white text-sm tracking-widest uppercase transition-shadow bg-sp-grad"

@@ -11,6 +11,7 @@ import { SectionHeading } from '@/components/ui/SectionHeading';
 import { GradientText } from '@/components/ui/GradientText';
 import { FadeInOnScroll } from '@/components/ui/FadeInOnScroll';
 import { trpc } from '@/lib/trpc/client';
+import { trackEvent } from '@/lib/analytics';
 import {
   contactSchema,
   TYPES,
@@ -55,6 +56,7 @@ export function ContactSection(): React.JSX.Element {
     setStatus('sending');
     try {
       await submitMutation.mutateAsync(data);
+      trackEvent('form_submit', { form_id: 'contact', visitor_type: data.type });
       setStatus('ok');
       reset();
     } catch {

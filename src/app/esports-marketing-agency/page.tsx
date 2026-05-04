@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { SITE_URL, absoluteUrl } from '@/lib/site-url';
+import { TrackedCtaLink } from '@/components/ui/TrackedCtaLink';
 
 export const metadata: Metadata = {
   title: 'Esports Marketing Agency — Spain & LatAm Performance Marketing',
@@ -92,9 +93,10 @@ export default function EsportsMarketingAgencyPage() {
               </div>
             ))}
           </div>
-          <Link href="/contacto" className="inline-block bg-sp-grad text-white font-display font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-full hover:opacity-90 transition-opacity">
+          <TrackedCtaLink href="/contact" ctaId="landing_esports_en_hero" className="inline-block bg-sp-grad text-white font-display font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-full hover:opacity-90 transition-opacity">
+
             Work with us
-          </Link>
+          </TrackedCtaLink>
         </div>
       </section>
 
@@ -137,7 +139,7 @@ export default function EsportsMarketingAgencyPage() {
           <h2 className="font-display text-3xl font-black uppercase text-sp-dark mb-4">Ready to enter <span style={g}>esports?</span></h2>
           <p className="text-sp-muted mb-8">Whether you are an endemic brand or entering esports for the first time, we build the right activation for your goals and audience.</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/contacto" className="inline-block bg-sp-grad text-white font-display font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-full hover:opacity-90 transition-opacity">Get a proposal</Link>
+            <Link href="/contact" className="inline-block bg-sp-grad text-white font-display font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-full hover:opacity-90 transition-opacity">Get a proposal</Link>
             <Link href="/agencia-marketing-esports" className="inline-block border border-sp-border text-sp-dark font-display font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-full hover:border-sp-orange hover:text-sp-orange transition-colors">Ver en español →</Link>
           </div>
         </div>
