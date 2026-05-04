@@ -69,7 +69,9 @@ function endOfMonthIso(date: Date): string {
 }
 
 function visibilityCondition(session?: TaskSession) {
-  if (!session || session.role === 'admin' || session.role === 'manager') return undefined;
+  // Solo admin ve todas las tareas del equipo.
+  // Manager y staff ven únicamente sus propias tareas.
+  if (!session || session.role === 'admin') return undefined;
   return or(
     eq(crmTasks.assignedToUserId, session.userId),
     eq(crmTasks.createdByUserId, session.userId),

@@ -5,6 +5,8 @@ import * as m from 'motion/react-client';
 import { useMotionValue, useSpring, useTransform, useReducedMotion } from 'motion/react';
 import Image from 'next/image';
 
+import { trackEvent } from '@/lib/analytics';
+
 const HERO_STATS = [
   { value: '13+', label: 'AÑOS' },
   { value: '15M', label: 'VIEWS/MES' },
@@ -93,7 +95,7 @@ export function Hero() {
         </m.div>
 
         <span className="inline-block text-[10px] font-bold uppercase tracking-[0.4em] text-sp-muted2 mb-6">
-          Gaming &amp; Esports · Europa · LatAm · Turquía
+          Gaming &amp; Esports · España · LatAm · Europa
         </span>
 
         {/* Hero H1 = LCP element. Mantenemos el slide-in (y: 40 → 0) pero
@@ -135,7 +137,7 @@ export function Hero() {
           >
             Campañas gaming y iGaming con talentos verificados, compliance
             integrado y FTDs rastreados. 13+ años ejecutando en España, LatAm
-            y Turquía.
+            y Europa.
           </m.p>
 
           <m.div
@@ -146,6 +148,7 @@ export function Hero() {
           >
             <m.a
               href="/contacto"
+              onClick={() => trackEvent('cta_click', { cta_id: 'hero_home_primary', cta_destination: '/contacto' })}
               whileHover={{ scale: 1.05, boxShadow: '0 0 30px rgba(224,48,112,0.3)' }}
               whileTap={{ scale: 0.95 }}
               className="px-10 py-4 rounded-full font-bold text-white text-sm tracking-widest uppercase transition-shadow bg-sp-grad"

@@ -171,7 +171,7 @@ export default async function BrandDetailPage({
           </div>
           <div className="p-4 space-y-2.5">
             {[
-              { label: 'Razón social', value: brand.legalName },
+              { label: 'Manager', value: brand.manager },
               { label: 'Tipo', value: brand.tipo },
               { label: 'Sector', value: brand.sector },
               { label: 'GEO', value: brand.geo },

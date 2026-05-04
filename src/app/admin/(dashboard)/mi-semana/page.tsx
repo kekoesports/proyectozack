@@ -35,7 +35,7 @@ function KpiCard({ label, value, accent }: KpiCardProps): ReactElement {
 }
 
 export default async function MiSemanaPage(): Promise<ReactElement> {
-  const session  = await requireAnyRole(['admin', 'staff'], '/admin/login');
+  const session  = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
   const weekLabel = getIsoWeekLabel(new Date());
   const prevDate  = new Date(); prevDate.setDate(prevDate.getDate() - 7);
   const prevWeek  = getIsoWeekLabel(prevDate);

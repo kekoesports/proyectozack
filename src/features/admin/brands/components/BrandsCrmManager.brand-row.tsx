@@ -219,7 +219,7 @@ function ExpandedBrandRow({
 function BrandDetails({ brand }: { readonly brand: CrmBrandWithDerived }): React.ReactElement {
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-      <Field label="Razón social" value={brand.legalName} />
+      <Field label="Manager" value={brand.manager} />
       <Field label="Web" value={brand.website} link />
       <Field label="Geo" value={brand.geo ? (GEO_LABELS[brand.geo as CrmBrandGeo] ?? brand.geo) : null} />
       <Field label="País" value={brand.country} />

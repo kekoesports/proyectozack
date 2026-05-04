@@ -17,7 +17,7 @@ import { TaskWorkspace } from '@/features/admin/tasks/components/TaskWorkspace';
 export const metadata: Metadata = { title: 'Tareas | Admin' };
 
 export default async function TareasPage(): Promise<ReactElement> {
-  const session = await requireAnyRole(['admin', 'staff'], '/admin/login');
+  const session = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
   const weekLabel  = getIsoWeekLabel(new Date());
   const prevDate   = new Date(); prevDate.setDate(prevDate.getDate() - 7);
   const prevWeek   = getIsoWeekLabel(prevDate);
