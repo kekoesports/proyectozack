@@ -14,8 +14,8 @@ import {
 } from './ContactSection.parts';
 
 const TYPES_EN = [
-  { value: 'brand',  label: 'I’m a brand / advertiser' },
-  { value: 'talent', label: 'I’m a content creator' },
+  { value: 'brand',  label: "I'm a brand" },
+  { value: 'talent', label: "I'm a content creator" },
   { value: 'other',  label: 'Other / general enquiry' },
 ] as const;
 
@@ -29,8 +29,8 @@ const INFO_CARDS = [
     desc: 'Tell us your goals and budget. We send a tailored proposal — no minimums, no hidden fees, no pressure.',
   },
   {
-    title: 'Performance-tracked',
-    desc: 'Every campaign ships with FTD tracking, raw-data reporting and verified reach. ROI you can audit.',
+    title: 'Our process is transparent',
+    desc: 'After you submit, we assign a point of contact, confirm receipt within a few hours, and come back within 24h with clear next steps — never a generic pitch deck.',
   },
 ];
 
@@ -91,7 +91,7 @@ export function ContactFormEn(): React.JSX.Element {
               <div className="rounded-2xl border border-white/10 p-8 text-center">
                 <h3 className="font-display text-2xl font-black uppercase mb-3">Thanks — message received</h3>
                 <p className="text-white/60 leading-relaxed">
-                  We’ll get back to you within 24 hours with next steps. In the meantime, you can email us directly at{' '}
+                  We&apos;ll get back to you within 24 hours with next steps. In the meantime, you can email us directly at{' '}
                   <a href="mailto:marketing@socialpro.es" className="text-sp-orange hover:underline">marketing@socialpro.es</a>.
                 </p>
               </div>

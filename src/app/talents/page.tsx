@@ -74,11 +74,11 @@ export default async function TalentsEnPage() {
         <div className="max-w-4xl mx-auto px-6">
           <p className="text-sp-orange text-xs font-bold uppercase tracking-[0.2em] mb-4">Our roster</p>
           <h1 className="font-display text-4xl md:text-6xl font-black uppercase tracking-tight text-white leading-tight mb-6">
-            Gaming creators<br /><span style={g}>that move audiences</span>
+            Verified gaming creators<br /><span style={g}>with proven track records</span>
           </h1>
           <p className="text-lg text-white/60 leading-relaxed max-w-2xl mx-auto">
-            Verified streamers and content creators across Spain and LatAm. 15M+ monthly views,
-            real engagement and audiences that convert.
+            Before any activation, we share audience verification data, past campaign performance
+            and engagement authenticity reports. No assumptions — just evidence.
           </p>
         </div>
       </section>
@@ -145,7 +145,7 @@ export default async function TalentsEnPage() {
           </h2>
           <p className="text-white/60 mb-8">Tell us your brand, target audience and KPIs. We deliver a custom proposal in 48 hours.</p>
           <Link href="/contact" className="inline-block bg-sp-grad text-white font-display font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-full hover:opacity-90 transition-opacity">
-            Request a proposal
+            Request creator profiles
           </Link>
         </div>
       </section>
