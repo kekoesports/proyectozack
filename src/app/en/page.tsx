@@ -91,7 +91,7 @@ export default async function HomeEnPage() {
             Gaming &amp; Esports · Spain · Europe · LatAm
           </p>
           <h1 className="font-display text-4xl sm:text-6xl md:text-7xl font-black uppercase tracking-tight leading-[0.9] mb-8">
-            We connect <span style={g}>creators</span><br />with brands
+            The gaming influencer agency<br /><span style={g}>for Spain & LatAm</span>
           </h1>
           <p className="text-base sm:text-lg text-white/60 max-w-2xl mx-auto mb-10 leading-relaxed">
             Gaming and iGaming campaigns with verified talent, integrated compliance and tracked FTDs.

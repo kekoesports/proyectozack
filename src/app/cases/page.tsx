@@ -10,7 +10,7 @@ export const revalidate = 3600;
 export const metadata: Metadata = {
   title: 'Gaming Campaign Case Studies — Verified Results',
   description:
-    'Real campaigns with top brands: 1WIN (8M+ reach), SkinsMonkey (€200K conversions), RAZER (2.5M reach). See SocialPro’s gaming marketing results and methodology.',
+    'Real campaigns with verified results: 1WIN (8M+ reach), SkinsMonkey (200K+ in tracked conversions). Verified gaming marketing results and ROI.',
   alternates: {
     canonical: '/cases',
     languages: {
@@ -21,14 +21,14 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: 'Gaming Campaign Case Studies | SocialPro',
-    description: '1WIN (8M+ reach), SkinsMonkey (€200K conversions), RAZER (2.5M reach). Verified gaming marketing results.',
+    description: '1WIN (8M+ reach), SkinsMonkey (200K+ in tracked conversions). Verified gaming marketing results.',
     url: absoluteUrl('/cases'),
     images: [{ url: absoluteUrl('/og-default.jpg'), width: 1200, height: 630 }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Gaming Campaign Case Studies | SocialPro',
-    description: '1WIN (8M+ reach), SkinsMonkey (€200K), RAZER (2.5M). Verified gaming marketing results.',
+    description: '1WIN (8M+ reach), SkinsMonkey (200K+ in tracked conversions). Verified gaming marketing results.',
     images: [absoluteUrl('/og-default.jpg')],
   },
 };
