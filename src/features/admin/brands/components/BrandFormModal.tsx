@@ -1,6 +1,7 @@
 'use client';
 
 import { useActionState, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   createBrandAction,
   updateBrandAction,
@@ -83,6 +84,9 @@ function MultiChips({ options, selected, onChange }: ChipsProps): React.ReactEle
 // ── Modal wrapper ─────────────────────────────────────────────────────
 
 export function BrandFormModal({ brand, onClose }: Props): React.ReactElement {
+  const router = useRouter();
+  const handleDone = () => { router.refresh(); onClose(); };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" onClick={onClose}>
       <div className="bg-sp-admin-card rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
@@ -93,8 +97,8 @@ export function BrandFormModal({ brand, onClose }: Props): React.ReactElement {
           <button type="button" onClick={onClose} className="text-sp-admin-muted hover:text-sp-admin-text text-xl leading-none transition-colors">×</button>
         </div>
         {brand
-          ? <BrandForm mode="edit" brand={brand} onDone={onClose} />
-          : <BrandForm mode="create" onDone={onClose} />}
+          ? <BrandForm mode="edit" brand={brand} onDone={handleDone} />
+          : <BrandForm mode="create" onDone={handleDone} />}
       </div>
     </div>
   );
