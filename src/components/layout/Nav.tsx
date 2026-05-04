@@ -7,6 +7,7 @@ import { usePathname } from 'next/navigation';
 import * as m from 'motion/react-client';
 import { AnimatePresence, useMotionValue } from 'motion/react';
 
+import { trackEvent } from '@/lib/analytics';
 import { LangSwitch, hasLangAlternate } from '@/components/layout/LangSwitch';
 
 const NAV_LINKS = [
@@ -139,6 +140,7 @@ export function Nav() {
           {showLangToggle && <LangSwitch />}
           <m.a
             href="/contacto"
+            onClick={() => trackEvent('cta_click', { cta_id: 'nav_header', cta_destination: '/contacto' })}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             className="inline-flex items-center gap-2 px-5 py-2 text-xs font-bold uppercase tracking-widest text-white bg-sp-grad"
@@ -219,7 +221,10 @@ export function Nav() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.15, ease: 'easeOut', delay: (NAV_LINKS.length + (showLangToggle ? 1 : 0)) * 0.04 }}
               className="text-xs font-bold uppercase tracking-widest text-white text-center py-3 bg-sp-grad"
-              onClick={() => setOpen(false)}
+              onClick={() => {
+                trackEvent('cta_click', { cta_id: 'nav_mobile', cta_destination: '/contacto' });
+                setOpen(false);
+              }}
             >
               Trabajemos juntos
             </m.a>
