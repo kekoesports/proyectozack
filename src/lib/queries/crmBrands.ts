@@ -80,7 +80,7 @@ export async function listCrmBrands(opts?: {
     .select({
       id: crmBrands.id,
       name: crmBrands.name,
-      legalName: crmBrands.legalName,
+      manager: crmBrands.manager,
       website: crmBrands.website,
       sector: crmBrands.sector,
       tipo: crmBrands.tipo,
@@ -96,6 +96,9 @@ export async function listCrmBrands(opts?: {
       dealTypes: crmBrands.dealTypes,
       taxId: crmBrands.taxId,
       address: crmBrands.address,
+      discord: crmBrands.discord,
+      telegram: crmBrands.telegram,
+      whatsapp: crmBrands.whatsapp,
       lastContactAt: crmBrands.lastContactAt,
       nextFollowupAt: crmBrands.nextFollowupAt,
       nextFollowUpAt: crmBrands.nextFollowUpAt,

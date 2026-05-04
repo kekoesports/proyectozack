@@ -118,7 +118,7 @@ function BrandForm(props: FormProps): React.ReactElement {
   const [lookingFor, setLookingFor] = useState<string[]>(parseList(brand?.lookingFor));
   const [dealTypes,  setDealTypes]  = useState<string[]>(parseList(brand?.dealTypes));
   const [legalOpen,  setLegalOpen]  = useState(
-    !!(brand?.legalName || brand?.taxId || brand?.address || brand?.country),
+    !!(brand?.taxId || brand?.address || brand?.country),
   );
 
   if (state.success && !isPending) setTimeout(onDone, 0);
@@ -136,9 +136,13 @@ function BrandForm(props: FormProps): React.ReactElement {
       <div>
         <p className={SECTION}>1 · Información principal</p>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-          <div className="md:col-span-3">
-            <label className={LABEL}>Nombre *</label>
+          <div className="md:col-span-2">
+            <label className={LABEL}>Marca *</label>
             <input name="name" required defaultValue={brand?.name} placeholder="Nombre comercial de la marca" className={INPUT} />
+          </div>
+          <div>
+            <label className={LABEL}>Manager</label>
+            <input name="manager" defaultValue={brand?.manager ?? ''} placeholder="Contacto principal" className={INPUT} />
           </div>
           <div>
             <label className={LABEL}>Tipo</label>
@@ -252,23 +256,38 @@ function BrandForm(props: FormProps): React.ReactElement {
         {legalOpen && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
             <div>
-              <label className={LABEL}>Razón social</label>
-              <input name="legalName" defaultValue={brand?.legalName ?? ''} className={INPUT} />
-            </div>
-            <div>
               <label className={LABEL}>CIF / VAT</label>
               <input name="taxId" placeholder="B12345678 / ES-…" defaultValue={brand?.taxId ?? ''} className={INPUT} />
-            </div>
-            <div className="md:col-span-2">
-              <label className={LABEL}>Dirección</label>
-              <input name="address" defaultValue={brand?.address ?? ''} className={INPUT} />
             </div>
             <div>
               <label className={LABEL}>País (ISO 2)</label>
               <input name="country" maxLength={2} placeholder="ES" defaultValue={brand?.country ?? ''} className={INPUT} />
             </div>
+            <div className="md:col-span-2">
+              <label className={LABEL}>Dirección</label>
+              <input name="address" defaultValue={brand?.address ?? ''} className={INPUT} />
+            </div>
           </div>
         )}
+      </div>
+
+      {/* ── Contactos rápidos del manager ── */}
+      <div>
+        <p className={SECTION}>{mode === 'create' ? '5' : '4'} · Contacto del manager</p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label className={LABEL}>Discord</label>
+            <input name="discord" defaultValue={brand?.discord ?? ''} placeholder="usuario#0000" className={INPUT} />
+          </div>
+          <div>
+            <label className={LABEL}>Telegram</label>
+            <input name="telegram" defaultValue={brand?.telegram ?? ''} placeholder="@usuario" className={INPUT} />
+          </div>
+          <div>
+            <label className={LABEL}>WhatsApp</label>
+            <input name="whatsapp" defaultValue={brand?.whatsapp ?? ''} placeholder="+34 …" className={INPUT} />
+          </div>
+        </div>
       </div>
 
       {state.error && <p className="text-xs text-red-400 font-medium">{state.error}</p>}

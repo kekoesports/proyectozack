@@ -31,27 +31,18 @@ export type CrmBrandStatus = (typeof CRM_BRAND_STATUSES)[number];
 export const CRM_BRAND_TIPOS = ['agencia', 'marca'] as const;
 
 export const CRM_BRAND_SECTORES = [
-  'cs2_cases',
-  'cs2_marketplace',
+  'gambling',
+  'trading',
   'casino',
-  'apuestas',
+  'sports_betting',
   'perifericos',
-  'crypto',
-  'fmcg',
-  'tech',
-  'gaming_brands',
   'otros',
 ] as const;
 
 export const CRM_BRAND_GEOS = [
-  'spain',
-  'latam',
-  'europa',
-  'turquia',
-  'india',
-  'japon',
-  'global',
-  'otros',
+  'tier_1',
+  'tier_2',
+  'tier_3',
 ] as const;
 
 export type CrmBrandTipo = (typeof CRM_BRAND_TIPOS)[number];
@@ -59,27 +50,18 @@ export type CrmBrandSector = (typeof CRM_BRAND_SECTORES)[number];
 export type CrmBrandGeo = (typeof CRM_BRAND_GEOS)[number];
 
 export const SECTOR_LABELS: Record<CrmBrandSector, string> = {
-  cs2_cases: 'CS2 Cases',
-  cs2_marketplace: 'Marketplace CS2',
+  gambling: 'Gambling',
+  trading: 'Trading',
   casino: 'Casino',
-  apuestas: 'Casas de apuesta',
+  sports_betting: 'Sports Betting',
   perifericos: 'Periféricos',
-  crypto: 'Crypto',
-  fmcg: 'FMCG',
-  tech: 'Tech',
-  gaming_brands: 'Gaming brands',
   otros: 'Otros',
 };
 
 export const GEO_LABELS: Record<CrmBrandGeo, string> = {
-  spain: 'Spain',
-  latam: 'LATAM',
-  europa: 'Europa',
-  turquia: 'Turquía',
-  india: 'India',
-  japon: 'Japón',
-  global: 'Global',
-  otros: 'Otros',
+  tier_1: 'Tier 1',
+  tier_2: 'Tier 2',
+  tier_3: 'Tier 3',
 };
 
 export const CRM_FOLLOWUP_CHANNELS = [
@@ -129,7 +111,7 @@ export type BrandTalentTier = (typeof BRAND_TALENT_TIERS)[number];
 
 const brandFields = z.object({
   name:         z.string().min(1).max(200),
-  legalName:    optStr(250),
+  manager:      optStr(250),
   website:      optUrl,
   tipo:         optEnum(CRM_BRAND_TIPOS),
   sector:       optEnum(CRM_BRAND_SECTORES),
@@ -149,6 +131,11 @@ const brandFields = z.object({
   dealTypes:   optStr(200),
   taxId:       optStr(30),
   address:     z.string().optional(),
+
+  // Contactos rápidos del manager
+  discord:  optStr(80),
+  telegram: optStr(80),
+  whatsapp: optStr(40),
 
   notes: z.string().optional(),
   // Rate cards & workspace defaults
