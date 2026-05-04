@@ -119,7 +119,7 @@ export default function ServicesEnPage() {
         <div className="max-w-4xl mx-auto px-6">
           <p className="text-sp-orange text-xs font-bold uppercase tracking-[0.2em] mb-4">Services</p>
           <h1 className="font-display text-4xl md:text-6xl font-black uppercase tracking-tight text-white leading-tight mb-6">
-            iGaming & gaming influencer marketing —<br /><span style={g}>every metric auditable</span>
+            iGaming & gaming influencer marketing —<br /><span style={g}>verified FTDs, not estimated reach</span>
           </h1>
           <p className="text-lg text-white/60 leading-relaxed max-w-2xl mx-auto">
             You&apos;ve run influencer campaigns where results were screenshots. We work differently:
