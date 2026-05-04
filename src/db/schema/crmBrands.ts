@@ -51,7 +51,7 @@ export const crmBrands = pgTable(
     id: serial('id').primaryKey(),
 
     name: varchar('name', { length: 200 }).notNull(),
-    legalName: varchar('legal_name', { length: 250 }),
+    manager: varchar('manager', { length: 250 }),
     website: text('website'),
     tipo: varchar('tipo', { length: 20 }),
     sector: varchar('sector', { length: 80 }),
@@ -75,6 +75,11 @@ export const crmBrands = pgTable(
     // Info legal
     taxId:   varchar('tax_id',  { length: 30 }),
     address: text('address'),
+
+    // Canales de contacto rápido del manager
+    discord:  varchar('discord',  { length: 80 }),
+    telegram: varchar('telegram', { length: 80 }),
+    whatsapp: varchar('whatsapp', { length: 40 }),
 
     // Seguimiento
     lastContactAt:  timestamp('last_contact_at',   { withTimezone: true }),
