@@ -41,7 +41,7 @@ export function CtaSection(): React.JSX.Element {
           className="text-sp-muted2 text-lg mb-4"
         >
           +340 FTDs en una activación · 15M views/mes · 13 años ejecutando en
-          España, LatAm y Turquía.
+          España, LatAm y Europa.
         </m.p>
         <m.p
           variants={fadeUp}

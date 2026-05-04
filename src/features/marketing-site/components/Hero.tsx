@@ -95,7 +95,7 @@ export function Hero() {
           transition={{ duration: 1, delay: 0.2 }}
           className="inline-block text-[10px] font-bold uppercase tracking-[0.4em] text-sp-muted2 mb-6"
         >
-          Gaming &amp; Esports · Europa · LatAm · Turquía
+          Gaming &amp; Esports · España · LatAm · Europa
         </m.span>
 
         <h1 className="font-display text-[2.75rem] xs:text-[3.5rem] sm:text-[5rem] md:text-[7rem] lg:text-[10rem] font-black uppercase leading-[0.85] tracking-tight mb-10">
@@ -134,7 +134,7 @@ export function Hero() {
           >
             Campañas gaming y iGaming con talentos verificados, compliance
             integrado y FTDs rastreados. 13+ años ejecutando en España, LatAm
-            y Turquía.
+            y Europa.
           </m.p>
 
           <m.div
