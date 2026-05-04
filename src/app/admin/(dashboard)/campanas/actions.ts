@@ -82,9 +82,6 @@ export async function archiveCampaignAction(
   try {
     const session = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
 
-    // decisión #1: manager NO puede archivar
-    assertCanDelete(session.user.role);
-
     await assertCanEditCampaign(id, { userId: session.user.id, role: session.user.role });
 
     await archiveCampaign(id);

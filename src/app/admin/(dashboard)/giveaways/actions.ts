@@ -1,7 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { requireRole } from '@/lib/auth-guard';
+import { requireAnyRole } from '@/lib/auth-guard';
 import { createGiveaway, deleteGiveaway } from '@/lib/queries/giveaways';
 import { parseFormData } from '@/lib/forms/parseFormData';
 import { firstError } from '@/lib/forms/firstError';
@@ -18,7 +18,7 @@ export type GiveawayActionState =
   | { ok: false; fieldErrors: Record<string, string[]> };
 
 export async function createGiveawayAction(formData: FormData): Promise<GiveawayActionState> {
-  await requireRole('admin', '/admin/login');
+  await requireAnyRole(['admin', 'manager'], '/admin/login');
 
   const parsed = parseFormData(formData, CreateGiveawayFormSchema);
   if (!parsed.ok) {
@@ -49,7 +49,7 @@ export async function createGiveawayAction(formData: FormData): Promise<Giveaway
 }
 
 export async function deleteGiveawayAction(formData: FormData): Promise<void> {
-  await requireRole('admin', '/admin/login');
+  await requireAnyRole(['admin', 'manager'], '/admin/login');
   const parsed = parseFormData(formData, DeleteGiveawaySchema);
   if (!parsed.ok) return;
   await deleteGiveaway(parsed.data.id);

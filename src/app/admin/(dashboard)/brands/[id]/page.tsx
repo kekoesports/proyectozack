@@ -58,7 +58,7 @@ export default async function BrandDetailPage({
   const brandId = Number(id);
   if (isNaN(brandId)) notFound();
 
-  const session = await requireAnyRole(['admin', 'staff'], '/admin/login');
+  const session = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
 
   const [brand, contacts, followups, campaigns, invoices, briefs] = await Promise.all([
     getCrmBrand(brandId),

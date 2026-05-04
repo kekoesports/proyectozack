@@ -10,17 +10,19 @@ import { AdminPageHeader } from '@/features/admin/_shared/components/AdminPageHe
 export const metadata = { title: 'Equipo | Admin' };
 
 const ROLE_STYLES: Record<string, string> = {
-  admin: 'bg-purple-50 text-purple-700 border border-purple-200',
-  staff: 'bg-sky-50 text-sky-700 border border-sky-200',
+  admin:   'bg-purple-50 text-purple-700 border border-purple-200',
+  manager: 'bg-amber-50 text-amber-700 border border-amber-200',
+  staff:   'bg-sky-50 text-sky-700 border border-sky-200',
 };
 
 const ROLE_LABELS: Record<string, string> = {
-  admin: 'Admin',
-  staff: 'Staff',
+  admin:   'Admin',
+  manager: 'Manager',
+  staff:   'Staff',
 };
 
 export default async function EquipoAdminPage(): Promise<ReactElement> {
-  const session = await requireAnyRole(['admin', 'staff'], '/admin/login');
+  const session = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
   const weekLabel = getIsoWeekLabel(new Date());
   const weekStart = getWeekStart(weekLabel);
   const weekStr = weekStart.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' });

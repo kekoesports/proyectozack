@@ -6,8 +6,10 @@ import { listImports } from '@/lib/queries/invoiceImports';
 import { listTemplates } from '@/lib/queries/invoiceImportTemplates';
 import { getUsedInvoiceCategories } from '@/lib/queries/invoices';
 import { ImportInbox } from '@/features/admin/invoices/components/ImportInbox';
+import { requireAnyRole } from '@/lib/auth-guard';
 
 export default async function AdminInvoiceImportPage(): Promise<React.ReactElement> {
+  await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
   const [pending, reviewed, brandsList, talentsList, categories, templates] = await Promise.all([
     listImports('pending'),
     (async () => {
