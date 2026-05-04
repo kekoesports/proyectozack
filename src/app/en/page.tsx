@@ -91,18 +91,18 @@ export default async function HomeEnPage() {
             Gaming &amp; Esports · Spain · Europe · LatAm
           </p>
           <h1 className="font-display text-4xl sm:text-6xl md:text-7xl font-black uppercase tracking-tight leading-[0.9] mb-8">
-            The gaming influencer agency<br /><span style={g}>for Spain & LatAm</span>
+            The gaming & iGaming<br /><span style={g}>influencer agency</span><br />where every FTD is verified
           </h1>
           <p className="text-base sm:text-lg text-white/60 max-w-2xl mx-auto mb-10 leading-relaxed">
-            Gaming and iGaming campaigns with verified talent, integrated compliance and tracked FTDs.
-            13+ years executing in Spain and LatAm.
+            Every FTD attributed. Every streamer verified. Every campaign compliance-ready.
+            13 years exclusively in gaming — no generalist detours.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-            <Link href="/contact" className="px-10 py-4 rounded-full font-bold text-white text-sm tracking-widest uppercase bg-sp-grad hover:opacity-90 transition-opacity">
-              Start a proposal
+            <Link href="/cases" className="px-10 py-4 rounded-full font-bold text-white text-sm tracking-widest uppercase bg-sp-grad hover:opacity-90 transition-opacity">
+              See what we&apos;ve delivered
             </Link>
-            <Link href="/cases" className="px-10 py-4 rounded-full font-bold text-white text-sm tracking-widest uppercase border border-white/15 hover:bg-white/5 transition-colors">
-              View case studies
+            <Link href="/contact" className="px-10 py-4 rounded-full font-bold text-white text-sm tracking-widest uppercase border border-white/15 hover:bg-white/5 transition-colors">
+              Start a proposal
             </Link>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 max-w-3xl mx-auto">
@@ -128,7 +128,7 @@ export default async function HomeEnPage() {
               <span style={g}>Streamers and creators</span> with verified audiences
             </h2>
             <p className="text-sp-muted max-w-xl mx-auto text-sm leading-relaxed">
-              Real audiences with high engagement. Filter and explore the full roster.
+              Verified audiences, real engagement. Browse creators by game or platform.
             </p>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mb-8">
@@ -244,7 +244,7 @@ export default async function HomeEnPage() {
             Let’s build your <span style={g}>next campaign</span>
           </h2>
           <p className="text-white/60 mb-8 leading-relaxed">
-            +340 FTDs in one activation · 15M views/month · 13 years executing in Spain and LatAm.
+            +340 FTDs in one activation · 15M views/month · 13 years exclusively in gaming.
           </p>
           <Link href="/contact" className="inline-block px-10 py-4 rounded-full font-bold text-white text-sm tracking-widest uppercase bg-sp-grad hover:opacity-90 transition-opacity">
             Start a proposal →
