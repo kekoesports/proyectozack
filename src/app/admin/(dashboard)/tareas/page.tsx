@@ -25,8 +25,12 @@ export default async function TareasPage(): Promise<ReactElement> {
   // Auto-rollover silencioso — idempotente: no hace nada si ya se arrastró
   await rollOverPendingTasks(prevWeek, weekLabel);
 
+  const taskOptions = session.user.role !== 'admin'
+    ? { session: { userId: session.user.id, role: session.user.role } }
+    : {};
+
   const [tasks, users, suggestedCategories, relatedOptions, templates] = await Promise.all([
-    getTasksForWeek(weekLabel),
+    getTasksForWeek(weekLabel, taskOptions),
     getAllStaffUsers(),
     getUsedCategories(),
     getTaskRelatedOptions(),
