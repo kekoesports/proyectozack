@@ -145,7 +145,7 @@ export default async function TalentsEnPage() {
           </h2>
           <p className="text-white/60 mb-8">Tell us your brand, target audience and KPIs. We deliver a custom proposal in 48 hours.</p>
           <Link href="/contact" className="inline-block bg-sp-grad text-white font-display font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-full hover:opacity-90 transition-opacity">
-            Request creator profiles
+            Find creators that fit your campaign
           </Link>
         </div>
       </section>

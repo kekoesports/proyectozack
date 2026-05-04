@@ -91,7 +91,7 @@ export default async function HomeEnPage() {
             Gaming &amp; Esports · Spain · Europe · LatAm
           </p>
           <h1 className="font-display text-4xl sm:text-6xl md:text-7xl font-black uppercase tracking-tight leading-[0.9] mb-8">
-            The gaming & iGaming<br /><span style={g}>influencer agency</span><br />where every FTD is verified
+            The gaming & iGaming<br /><span style={g}>influencer agency</span><br />where operators verify every FTD
           </h1>
           <p className="text-base sm:text-lg text-white/60 max-w-2xl mx-auto mb-10 leading-relaxed">
             Every FTD attributed. Every streamer verified. Every campaign compliance-ready.
