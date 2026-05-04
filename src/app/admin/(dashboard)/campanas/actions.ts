@@ -82,7 +82,7 @@ export async function archiveCampaignAction(
   try {
     const session = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
 
-    assertCanDelete(session.user.role);
+    if (session.user.role === 'staff') throw new Error(`forbidden:delete:${session.user.role}`);
 
     await assertCanEditCampaign(id, { userId: session.user.id, role: session.user.role });
 
@@ -105,7 +105,7 @@ export async function unarchiveCampaignAction(
   try {
     const session = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
 
-    assertCanDelete(session.user.role);
+    if (session.user.role === 'staff') throw new Error(`forbidden:delete:${session.user.role}`);
 
     await unarchiveCampaign(id);
 
