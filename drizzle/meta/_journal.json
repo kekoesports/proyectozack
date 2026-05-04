@@ -330,6 +330,13 @@
       "when": 1777800000000,
       "tag": "0046_brand_crm_redaction",
       "breakpoints": true
+    },
+    {
+      "idx": 47,
+      "version": "7",
+      "when": 1777903294788,
+      "tag": "0047_complex_oracle",
+      "breakpoints": true
     }
   ]
 }
