@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { SITE_URL, absoluteUrl } from '@/lib/site-url';
+import { TrackedCtaLink } from '@/components/ui/TrackedCtaLink';
 
 export const metadata: Metadata = {
   title: 'Valorant Influencers Agency — Spain & LatAm',
@@ -89,9 +90,10 @@ export default function ValorantInfluencersAgencyPage() {
               </div>
             ))}
           </div>
-          <Link href="/contact" className="inline-block bg-sp-grad text-white font-display font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-full hover:opacity-90 transition-opacity">
+          <TrackedCtaLink href="/contact" ctaId="landing_valorant_en_hero" className="inline-block bg-sp-grad text-white font-display font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-full hover:opacity-90 transition-opacity">
+
             Work with Valorant streamers
-          </Link>
+          </TrackedCtaLink>
         </div>
       </section>
 

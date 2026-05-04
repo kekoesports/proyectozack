@@ -163,7 +163,7 @@ export async function deleteTaskAction(id: number): Promise<ActionResult> {
 }
 
 export async function bulkDeleteTasksAction(ids: number[]): Promise<ActionResult> {
-  await requireAnyRole(['admin', 'staff'], '/admin/login');
+  await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
   if (ids.length === 0) return {};
   await deleteTasks(ids);
   revalidateAll();
@@ -180,7 +180,7 @@ export type CreateTemplatesResult = {
 
 /** Crea solo las plantillas activas que NO existen todavía en la semana actual. */
 export async function createWeeklyTemplatesAction(): Promise<CreateTemplatesResult> {
-  const session  = await requireAnyRole(['admin', 'staff'], '/admin/login');
+  const session  = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
   const weekLabel = getIsoWeekLabel(new Date());
   const templates = await getTaskTemplates();
   const active    = templates.filter((t) => t.active);
@@ -206,7 +206,7 @@ export async function createWeeklyTemplatesAction(): Promise<CreateTemplatesResu
 
 /** Crea la tarea de una plantilla específica por ID (si no existe ya esta semana). */
 export async function createSingleTemplateAction(templateId: number): Promise<ActionResult> {
-  const session   = await requireAnyRole(['admin', 'staff'], '/admin/login');
+  const session   = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
   const weekLabel = getIsoWeekLabel(new Date());
   const templates = await getTaskTemplates();
   const tpl       = templates.find((t) => t.id === templateId);
@@ -235,7 +235,7 @@ export async function saveTemplateDefinitionAction(
   id: number | null,
   data: { title: string; category: string; priority: 'alta' | 'media' | 'baja' },
 ): Promise<{ error?: string; template?: CrmTaskTemplate | undefined }> {
-  await requireAnyRole(['admin', 'staff'], '/admin/login');
+  await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
   const title = data.title.trim();
   if (!title) return { error: 'El título no puede estar vacío' };
 
@@ -256,14 +256,14 @@ export async function saveTemplateDefinitionAction(
 }
 
 export async function toggleTemplateActiveAction(id: number, isActive: boolean): Promise<ActionResult> {
-  await requireAnyRole(['admin', 'staff'], '/admin/login');
+  await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
   await updateTaskTemplate(id, { isActive });
   revalidatePath('/admin/tareas');
   return {};
 }
 
 export async function deleteTemplateDefinitionAction(id: number): Promise<ActionResult> {
-  await requireAnyRole(['admin', 'staff'], '/admin/login');
+  await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
   await deleteTaskTemplate(id);
   revalidatePath('/admin/tareas');
   return {};
@@ -277,7 +277,7 @@ export type RollOverResult = {
 
 /** Arrastra tareas pendientes/en_progreso de la semana anterior a la actual. */
 export async function rollOverTasksAction(): Promise<RollOverResult> {
-  await requireAnyRole(['admin', 'staff'], '/admin/login');
+  await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
   const currentWeek = getIsoWeekLabel(new Date());
   const prevWeek    = getIsoWeekLabel(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000));
   const result = await rollOverPendingTasks(prevWeek, currentWeek);
