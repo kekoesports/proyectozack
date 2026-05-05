@@ -1,3 +1,4 @@
+import 'server-only';
 import type { PdfTextItem, PdfExtract } from './pdf';
 import { groupIntoLines } from './pdf';
 import { parseAnyDate, parseEsNumber } from './common';

@@ -1,6 +1,7 @@
 // Gemini-powered PDF invoice extractor (free tier: 1500 req/day).
 // Falls back gracefully when GEMINI_API_KEY is not set.
 // Dynamic import keeps @google/generative-ai out of the module init phase.
+import 'server-only';
 
 import { z } from 'zod';
 import { logRedacted } from '@/lib/log';

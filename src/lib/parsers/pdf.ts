@@ -1,5 +1,6 @@
 // Runs server-side only. Uses pdfjs-dist to extract positioned text items
 // from a PDF buffer. No rendering, no canvas — text layer only.
+import 'server-only';
 
 import { getDocument, GlobalWorkerOptions } from 'pdfjs-dist';
 import type { TextItem, TextMarkedContent } from 'pdfjs-dist/types/src/display/api';
