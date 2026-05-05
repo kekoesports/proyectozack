@@ -32,11 +32,13 @@ Extrae los datos de esta factura y devuelve SOLO el JSON con estos campos:
   "counterpartyName": "nombre del cliente o proveedor (la otra parte, no SocialPro)",
   "issuerNif": "NIF, CIF o EIN del emisor",
   "issuerName": "razón social del emisor",
-  "netAmount": "importe sin IVA (ej: 9245.00)",
-  "vatPct": "porcentaje IVA (ej: 0 o 21)",
-  "withholdingPct": "porcentaje retención (ej: 0 o 15)",
-  "totalAmount": "importe total",
-  "currency": "EUR"
+  "netAmount": "importe sin IVA como número decimal (ej: 9245.00)",
+  "vatPct": "porcentaje IVA como número (ej: 0 o 21)",
+  "withholdingPct": "porcentaje retención como número (ej: 0 o 15)",
+  "totalAmount": "importe total como número decimal",
+  "currency": "EUR",
+  "iban": "IBAN si aparece en la factura",
+  "swift": "SWIFT/BIC si aparece en la factura"
 }
 
 Responde ÚNICAMENTE con el objeto JSON, sin texto adicional ni markdown.`;
@@ -56,7 +58,9 @@ const geminiRawSchema = z.object({
   withholdingPct:   z.unknown().optional(),
   totalAmount:      z.unknown().optional(),
   currency:         z.unknown().optional(),
-}).passthrough();  // keep extra keys so nothing is silently dropped
+  iban:             z.unknown().optional(),
+  swift:            z.unknown().optional(),
+}).passthrough();
 
 type GeminiRaw = z.infer<typeof geminiRawSchema>;
 
@@ -243,7 +247,7 @@ export async function extractInvoiceWithClaude(
   logRedacted('info', '[pdf-ai] DIAG-2 pdf buffer bytes:', String(pdfBuffer.byteLength));
 
   const { GoogleGenerativeAI } = await import('@google/generative-ai');
-  const modelName = process.env.GEMINI_MODEL ?? 'gemini-2.5-flash';
+  const modelName = process.env.GEMINI_MODEL ?? 'gemini-2.0-flash';
   logRedacted('info', '[pdf-ai] DIAG-3 model:', modelName);
   const genAI = new GoogleGenerativeAI(apiKey);
   const model = genAI.getGenerativeModel({ model: modelName });
@@ -314,6 +318,16 @@ export async function extractInvoiceWithClaude(
   logRedacted('info', '[pdf-ai] DIAG-6 normalized keys:', Object.keys(draft).join(','));
   if (Object.keys(fieldErrors).length > 0) {
     logRedacted('info', '[pdf-ai] DIAG-6 field errors:', JSON.stringify(fieldErrors));
+  }
+
+  // IBAN / SWIFT → notes
+  const iban  = str((rawParsed.data as Record<string, unknown>).iban,  50);
+  const swift = str((rawParsed.data as Record<string, unknown>).swift, 20);
+  if (iban || swift) {
+    const lines: string[] = [];
+    if (iban)  lines.push(`IBAN: ${iban}`);
+    if (swift) lines.push(`SWIFT/BIC: ${swift}`);
+    (draft as Record<string, unknown>).notes = lines.join('\n');
   }
 
   // SocialPro signal fallback for kind
