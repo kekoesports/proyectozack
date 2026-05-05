@@ -3,6 +3,7 @@
 // Dynamic import keeps @google/generative-ai out of the module init phase.
 
 import { z } from 'zod';
+import { logRedacted } from '@/lib/log';
 import type { InvoiceDraft } from '@/lib/schemas/invoiceDraft';
 
 // SocialPro issuer identifiers — if any of these appear as the invoice issuer → income.
@@ -126,6 +127,7 @@ export async function extractInvoiceWithClaude(
     rawText = result.response.text();
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
+    logRedacted('error', '[pdf-ai] gemini call failed:', msg);
     return {
       draft: {},
       warnings: [`Error al llamar a la IA: ${msg}. Rellena los campos manualmente.`],

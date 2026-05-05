@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 
 import { requireAnyRole } from '@/lib/auth-guard';
 import { assertCanDelete, needsVisibilityFilter } from '@/lib/permissions';
+import { logRedacted } from '@/lib/log';
 import {
   createCrmBrandSchema,
   updateCrmBrandSchema,
@@ -132,7 +133,7 @@ export async function createBrandAction(
     return { success: true, id: row.id };
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'unknown';
-    console.error('[admin] createBrand error:', msg);
+    logRedacted('error', '[admin] createBrand error:', msg);
     return { error: 'Error al crear la marca' };
   }
 }
@@ -159,7 +160,7 @@ export async function updateBrandAction(
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'unknown';
     if (msg.startsWith('forbidden:')) return { error: 'Sin permiso para modificar esta marca' };
-    console.error('[admin] updateBrand permission error:', msg);
+    logRedacted('error', '[admin] updateBrand permission error:', msg);
     return { error: 'Error al verificar permisos' };
   }
 
@@ -173,7 +174,7 @@ export async function updateBrandAction(
     return { success: true, id };
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'unknown';
-    console.error('[admin] updateBrand error:', msg);
+    logRedacted('error', '[admin] updateBrand error:', msg);
     return { error: 'Error al actualizar la marca' };
   }
 }
@@ -186,7 +187,7 @@ export async function deleteBrandAction(id: number): Promise<ActionState> {
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'unknown';
     if (msg.startsWith('forbidden:delete:')) return { error: msg };
-    console.error('[admin] deleteBrand permission error:', msg);
+    logRedacted('error', '[admin] deleteBrand permission error:', msg);
     return { error: 'Sin permiso para eliminar marcas' };
   }
 
@@ -195,7 +196,7 @@ export async function deleteBrandAction(id: number): Promise<ActionState> {
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'unknown';
     if (msg.startsWith('forbidden:')) return { error: 'Sin permiso para eliminar esta marca' };
-    console.error('[admin] deleteBrand ownership error:', msg);
+    logRedacted('error', '[admin] deleteBrand ownership error:', msg);
     return { error: 'Error al verificar permisos' };
   }
 
@@ -205,8 +206,14 @@ export async function deleteBrandAction(id: number): Promise<ActionState> {
     return { success: true };
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'unknown';
-    console.error('[admin] deleteBrand error:', msg);
-    return { error: 'Error al eliminar la marca' };
+    // PG FK violation code: 23503
+    const isFkViolation = msg.includes('23503') || msg.toLowerCase().includes('foreign key');
+    logRedacted('error', '[admin] deleteBrand error:', msg);
+    return {
+      error: isFkViolation
+        ? 'No se puede eliminar esta marca porque tiene campañas vinculadas. Archiva o elimina primero las campañas.'
+        : 'Error al eliminar la marca',
+    };
   }
 }
 
@@ -227,7 +234,7 @@ export async function createContactAction(
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'unknown';
     if (msg.startsWith('forbidden:')) return { error: 'Sin permiso para modificar esta marca' };
-    console.error('[admin] createContact permission error:', msg);
+    logRedacted('error', '[admin] createContact permission error:', msg);
     return { error: 'Error al verificar permisos' };
   }
 
@@ -240,7 +247,7 @@ export async function createContactAction(
     return { success: true, id: row.id };
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'unknown';
-    console.error('[admin] createContact error:', msg);
+    logRedacted('error', '[admin] createContact error:', msg);
     return { error: 'Error al crear el contacto' };
   }
 }
@@ -265,7 +272,7 @@ export async function updateContactAction(
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'unknown';
       if (msg.startsWith('forbidden:')) return { error: 'Sin permiso para modificar esta marca' };
-      console.error('[admin] updateContact permission error:', msg);
+      logRedacted('error', '[admin] updateContact permission error:', msg);
       return { error: 'Error al verificar permisos' };
     }
   }
@@ -280,7 +287,7 @@ export async function updateContactAction(
     return { success: true, id };
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'unknown';
-    console.error('[admin] updateContact error:', msg);
+    logRedacted('error', '[admin] updateContact error:', msg);
     return { error: 'Error al actualizar el contacto' };
   }
 }
@@ -296,7 +303,7 @@ export async function deleteContactAction(id: number, brandId: number): Promise<
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'unknown';
     if (msg.startsWith('forbidden:')) return { error: 'Sin permiso para modificar esta marca' };
-    console.error('[admin] deleteContact permission error:', msg);
+    logRedacted('error', '[admin] deleteContact permission error:', msg);
     return { error: 'Error al verificar permisos' };
   }
 
@@ -307,7 +314,7 @@ export async function deleteContactAction(id: number, brandId: number): Promise<
     return { success: true };
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'unknown';
-    console.error('[admin] deleteContact error:', msg);
+    logRedacted('error', '[admin] deleteContact error:', msg);
     return { error: 'Error al eliminar el contacto' };
   }
 }
@@ -331,7 +338,7 @@ export async function createFollowupAction(
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'unknown';
     if (msg.startsWith('forbidden:')) return { error: 'Sin permiso para modificar esta marca' };
-    console.error('[admin] createFollowup permission error:', msg);
+    logRedacted('error', '[admin] createFollowup permission error:', msg);
     return { error: 'Error al verificar permisos' };
   }
 
@@ -353,7 +360,7 @@ export async function createFollowupAction(
     return { success: true, id: row.id };
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'unknown';
-    console.error('[admin] createFollowup error:', msg);
+    logRedacted('error', '[admin] createFollowup error:', msg);
     return { error: 'Error al crear el seguimiento' };
   }
 }
@@ -383,7 +390,7 @@ export async function updateFollowupAction(
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'unknown';
       if (msg.startsWith('forbidden:')) return { error: 'Sin permiso para modificar esta marca' };
-      console.error('[admin] updateFollowup permission error:', msg);
+      logRedacted('error', '[admin] updateFollowup permission error:', msg);
       return { error: 'Error al verificar permisos' };
     }
   }
@@ -395,7 +402,7 @@ export async function updateFollowupAction(
     return { success: true, id };
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'unknown';
-    console.error('[admin] updateFollowup error:', msg);
+    logRedacted('error', '[admin] updateFollowup error:', msg);
     return { error: 'Error al actualizar el seguimiento' };
   }
 }
@@ -417,7 +424,7 @@ export async function completeFollowupAction(
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'unknown';
     if (msg.startsWith('forbidden:')) return { error: 'Sin permiso para modificar esta marca' };
-    console.error('[admin] completeFollowup permission error:', msg);
+    logRedacted('error', '[admin] completeFollowup permission error:', msg);
     return { error: 'Error al verificar permisos' };
   }
 
@@ -427,7 +434,7 @@ export async function completeFollowupAction(
     return { success: true };
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'unknown';
-    console.error('[admin] completeFollowup error:', msg);
+    logRedacted('error', '[admin] completeFollowup error:', msg);
     return { error: 'Error al completar el seguimiento' };
   }
 }
@@ -446,7 +453,7 @@ export async function deleteFollowupAction(
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'unknown';
     if (msg.startsWith('forbidden:delete:')) return { error: msg };
-    console.error('[admin] deleteFollowup permission error:', msg);
+    logRedacted('error', '[admin] deleteFollowup permission error:', msg);
     return { error: 'Sin permiso para eliminar seguimientos' };
   }
 
@@ -458,7 +465,7 @@ export async function deleteFollowupAction(
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'unknown';
     if (msg.startsWith('forbidden:')) return { error: 'Sin permiso para modificar esta marca' };
-    console.error('[admin] deleteFollowup ownership error:', msg);
+    logRedacted('error', '[admin] deleteFollowup ownership error:', msg);
     return { error: 'Error al verificar permisos' };
   }
 
@@ -468,7 +475,7 @@ export async function deleteFollowupAction(
     return { success: true };
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'unknown';
-    console.error('[admin] deleteFollowup error:', msg);
+    logRedacted('error', '[admin] deleteFollowup error:', msg);
     return { error: 'Error al eliminar el seguimiento' };
   }
 }

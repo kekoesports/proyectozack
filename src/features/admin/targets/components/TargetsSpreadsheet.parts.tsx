@@ -143,7 +143,7 @@ export function Toolbar({
         <div className="flex items-center gap-1.5">
           {activeBatches.filter((b) => b in BATCH_LABELS).map((b) => {
             const isActive = batchFilter.has(b);
-            const label = BATCH_LABELS[b]!;
+            const label = BATCH_LABELS[b] ?? b;
             return (
               <button
                 key={b}

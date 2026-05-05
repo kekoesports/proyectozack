@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { put } from '@vercel/blob';
 
-import { requireRole, requireAnyRole } from '@/lib/auth-guard';
+import { requireAnyRole } from '@/lib/auth-guard';
 import { parseFormData } from '@/lib/forms/parseFormData';
 import { firstError } from '@/lib/forms/firstError';
 import { logRedacted } from '@/lib/log';
