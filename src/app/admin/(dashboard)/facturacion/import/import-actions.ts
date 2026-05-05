@@ -114,6 +114,7 @@ export async function uploadImportAction(
   let warningsOut: readonly string[] = [];
   if (sourceType === 'pdf-text') {
     const buf = await file.arrayBuffer();
+    logRedacted('info', '[invoice-import] DIAG-0 pdf sourceType=pdf-text mime:', file.type, 'size:', String(file.size));
 
     // ── Step 1: Gemini AI extraction (no pdfjs dependency) ─────────────────
     // Isolated so pdfjs failures can't prevent AI from running.
@@ -121,10 +122,13 @@ export async function uploadImportAction(
       draft: {}, warnings: [], usedAi: false,
     };
     try {
+      logRedacted('info', '[invoice-import] DIAG-0 loading pdfAi module...');
       const { extractInvoiceWithClaude } = await import('@/lib/parsers/pdfAi');
+      logRedacted('info', '[invoice-import] DIAG-0 pdfAi module loaded, calling extractInvoiceWithClaude...');
       aiResult = await extractInvoiceWithClaude(buf);
+      logRedacted('info', '[invoice-import] DIAG-0 aiResult usedAi:', String(aiResult.usedAi), 'draftKeys:', Object.keys(aiResult.draft).join(','));
     } catch (err) {
-      logRedacted('error', '[invoice-import] ai extraction error:', err instanceof Error ? err.message : 'unknown');
+      logRedacted('error', '[invoice-import] DIAG-0 ai extraction THREW:', err instanceof Error ? err.message : 'unknown');
     }
 
     if (aiResult.usedAi && Object.keys(aiResult.draft).length > 0) {

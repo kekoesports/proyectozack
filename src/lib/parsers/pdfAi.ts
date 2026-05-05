@@ -134,6 +134,10 @@ export async function extractInvoiceWithClaude(
   pdfBuffer: ArrayBuffer,
 ): Promise<PdfAiResult> {
   const apiKey = process.env.GEMINI_API_KEY;
+
+  // DIAG-1: API key presence
+  logRedacted('info', '[pdf-ai] DIAG-1 api key present:', apiKey ? 'YES' : 'NO');
+
   if (!apiKey) {
     return {
       draft: {},
@@ -142,6 +146,9 @@ export async function extractInvoiceWithClaude(
     };
   }
 
+  // DIAG-2: PDF buffer size
+  logRedacted('info', '[pdf-ai] DIAG-2 pdf buffer bytes:', String(pdfBuffer.byteLength));
+
   const { GoogleGenerativeAI } = await import('@google/generative-ai');
   const genAI = new GoogleGenerativeAI(apiKey);
   const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
@@ -149,6 +156,7 @@ export async function extractInvoiceWithClaude(
 
   let rawText: string;
   try {
+    logRedacted('info', '[pdf-ai] DIAG-3 calling gemini...');
     const result = await model.generateContent([
       {
         inlineData: {
@@ -159,9 +167,11 @@ export async function extractInvoiceWithClaude(
       SYSTEM_PROMPT,
     ]);
     rawText = result.response.text();
+    // DIAG-4: raw response (first 300 chars only, no PII risk)
+    logRedacted('info', '[pdf-ai] DIAG-4 gemini raw response (first 300):', rawText.slice(0, 300));
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
-    logRedacted('error', '[pdf-ai] gemini call failed:', msg);
+    logRedacted('error', '[pdf-ai] DIAG-4 gemini call FAILED:', msg);
     return {
       draft: {},
       warnings: [`Error al llamar a la IA: ${msg}. Rellena los campos manualmente.`],
@@ -172,6 +182,7 @@ export async function extractInvoiceWithClaude(
   // Extract JSON block — model sometimes wraps output in ```json ... ```
   const jsonMatch = rawText.match(/\{[\s\S]*\}/);
   if (!jsonMatch) {
+    logRedacted('error', '[pdf-ai] DIAG-5 no JSON block found in response');
     return {
       draft: {},
       warnings: ['La IA no devolvió datos estructurados. Rellena los campos manualmente.'],
@@ -182,7 +193,9 @@ export async function extractInvoiceWithClaude(
   let parsed: unknown;
   try {
     parsed = JSON.parse(jsonMatch[0]);
+    logRedacted('info', '[pdf-ai] DIAG-5 json parsed ok, keys:', Object.keys(parsed as object).join(','));
   } catch {
+    logRedacted('error', '[pdf-ai] DIAG-5 json parse FAILED');
     return {
       draft: {},
       warnings: ['La IA devolvió JSON inválido. Rellena los campos manualmente.'],
@@ -192,12 +205,14 @@ export async function extractInvoiceWithClaude(
 
   const validated = aiOutputSchema.safeParse(parsed);
   if (!validated.success) {
+    logRedacted('error', '[pdf-ai] DIAG-6 zod validation FAILED:', validated.error.issues[0]?.message ?? 'unknown');
     return {
       draft: {},
       warnings: ['Datos extraídos por la IA no superaron validación. Rellena los campos manualmente.'],
       usedAi: true,
     };
   }
+  logRedacted('info', '[pdf-ai] DIAG-6 zod ok, draft keys:', Object.keys(validated.data).join(','));
 
   const draft = buildDraftFromAi(validated.data);
   const warnings: string[] = [];
