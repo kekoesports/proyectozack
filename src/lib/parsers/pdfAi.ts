@@ -61,9 +61,43 @@ type AiOutput = z.infer<typeof aiOutputSchema>;
 
 function normalizeMoneyString(raw: string | undefined): string | undefined {
   if (!raw) return undefined;
-  // Accept ES format "1.234,56" → "1234.56"
-  const normalized = raw.replace(/\./g, '').replace(',', '.');
-  return /^\d+(\.\d{1,2})?$/.test(normalized) ? normalized : undefined;
+  // Strip currency symbols, whitespace, and anything that isn't a digit, dot or comma.
+  const cleaned = raw.replace(/[^\d.,]/g, '').trim();
+  if (!cleaned) return undefined;
+
+  const hasDot   = cleaned.includes('.');
+  const hasComma = cleaned.includes(',');
+
+  let v: string;
+
+  if (hasDot && hasComma) {
+    // Both present — the one that appears last is the decimal separator.
+    // "9.245,00" → comma last → dot=thousands, comma=decimal → "9245.00"
+    // "9,245.00" → dot last  → comma=thousands, dot=decimal → "9245.00"
+    if (cleaned.lastIndexOf(',') > cleaned.lastIndexOf('.')) {
+      v = cleaned.replace(/\./g, '').replace(',', '.');
+    } else {
+      v = cleaned.replace(/,/g, '');
+    }
+  } else if (hasComma) {
+    // Only comma.  If ≤2 digits follow it → decimal ("9245,00").
+    // Otherwise → thousands separator ("9,245") with no decimal part.
+    const afterComma = cleaned.slice(cleaned.lastIndexOf(',') + 1);
+    v = afterComma.length <= 2
+      ? cleaned.replace(',', '.')
+      : cleaned.replace(/,/g, '');
+  } else if (hasDot) {
+    // Only dot.  If ≤2 digits follow it → decimal ("9245.00").
+    // Otherwise → thousands separator ("9.245") with no decimal part.
+    const afterDot = cleaned.slice(cleaned.lastIndexOf('.') + 1);
+    v = afterDot.length <= 2
+      ? cleaned                        // already correct decimal format
+      : cleaned.replace(/\./g, '');   // strip thousands dots → integer
+  } else {
+    v = cleaned; // plain integer like "9245"
+  }
+
+  return /^\d+(\.\d{1,2})?$/.test(v) ? v : undefined;
 }
 
 function buildDraftFromAi(data: AiOutput): Partial<InvoiceDraft> {
