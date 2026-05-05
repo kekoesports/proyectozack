@@ -1,6 +1,5 @@
 // Runs server-side only. Uses pdfjs-dist to extract positioned text items
 // from a PDF buffer. No rendering, no canvas — text layer only.
-import 'server-only';
 
 // pdfjs-dist v5 main build uses DOMMatrix (browser-only). Use legacy build for Node.js.
 import { getDocument, GlobalWorkerOptions } from 'pdfjs-dist/legacy/build/pdf.mjs';
