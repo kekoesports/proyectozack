@@ -105,29 +105,69 @@ function normalizePct(raw: unknown): string | undefined {
   return normalizeMoneyString(str);
 }
 
+const DATE_YEAR_MIN = 2015;
+const DATE_YEAR_MAX = 2035;
+
+function isCalendarDate(y: number, m: number, d: number): boolean {
+  if (y < DATE_YEAR_MIN || y > DATE_YEAR_MAX) return false;
+  if (m < 1 || m > 12) return false;
+  if (d < 1 || d > 31) return false;
+  const dt = new Date(y, m - 1, d);
+  return dt.getFullYear() === y && dt.getMonth() === m - 1 && dt.getDate() === d;
+}
+
+function toISO(y: number, m: number, d: number): string {
+  return `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+}
+
 /**
- * Converts many date formats to YYYY-MM-DD.
- *  "19/2/26"    → "2026-02-19"
- *  "19-02-2026" → "2026-02-19"
- *  "19/02/2026" → "2026-02-19"
- *  "2026-02-19" → "2026-02-19" (already ISO)
+ * Robust date parser that avoids day/month inversion.
+ *
+ * Strategy: European convention = DD/MM/YY(YY).
+ * If the first component > 12 it MUST be the day (removes ambiguity).
+ * Year range 2015–2035 validates plausibility; anything outside → null.
+ * Ambiguous inputs (both components ≤ 12 and year is 2-digit) → null.
  */
 function normalizeDate(raw: unknown): string | undefined {
   if (raw === null || raw === undefined) return undefined;
   const str = String(raw).trim();
 
-  // Already ISO
-  if (/^\d{4}-\d{2}-\d{2}$/.test(str)) return str;
-
-  // DD/MM/YY or DD/MM/YYYY or DD-MM-YY etc.
-  const match = str.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2,4})$/);
-  if (match) {
-    const [, rawD, rawM, rawY] = match;
-    const year = rawY!.length === 2 ? `20${rawY}` : rawY!;
-    return `${year}-${rawM!.padStart(2, '0')}-${rawD!.padStart(2, '0')}`;
+  // 1. Already ISO YYYY-MM-DD
+  const iso = str.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (iso) {
+    const [y, m, d] = [Number(iso[1]), Number(iso[2]), Number(iso[3])];
+    return isCalendarDate(y, m, d) ? str : undefined;
   }
 
-  return undefined;
+  // 2. Separated format: up to 4 digits / 1-2 digits / 2-4 digits
+  const sep = str.match(/^(\d{1,4})[\/\-\.](\d{1,2})[\/\-\.](\d{2,4})$/);
+  if (!sep) return undefined;
+
+  const [aStr, bStr, cStr] = [sep[1]!, sep[2]!, sep[3]!];
+  const [a, b, c] = [Number(aStr), Number(bStr), Number(cStr)];
+
+  // Case: YYYY/MM/DD (first component is 4-digit year)
+  if (aStr.length === 4) {
+    return isCalendarDate(a, b, c) ? toISO(a, b, c) : undefined;
+  }
+
+  // Resolve year from c
+  const year = cStr.length === 2 ? 2000 + c : c;
+  if (year < DATE_YEAR_MIN || year > DATE_YEAR_MAX) return undefined;
+
+  // Resolve day/month from a and b (European: a=day, b=month)
+  // If a > 12 → unambiguously the day
+  if (a > 12) {
+    return isCalendarDate(year, b, a) ? toISO(year, b, a) : undefined;
+  }
+  // If b > 12 → unambiguously the month (unusual, but handle it)
+  if (b > 12) {
+    return isCalendarDate(year, b, a) ? toISO(year, b, a) : undefined;
+  }
+  // Both ≤ 12 AND year is 2-digit → genuinely ambiguous → null
+  if (cStr.length === 2) return undefined;
+  // Both ≤ 12 AND year is 4-digit → apply European convention (a=day, b=month)
+  return isCalendarDate(year, b, a) ? toISO(year, b, a) : undefined;
 }
 
 /** Maps Gemini's kind output to our enum. */
@@ -151,6 +191,7 @@ function str(raw: unknown, maxLen: number): string | undefined {
 type NormalizeResult = {
   readonly data: Partial<InvoiceDraft>;
   readonly fieldErrors: Record<string, string>;
+  readonly confidence: Record<string, number>;
 };
 
 /**
@@ -160,48 +201,55 @@ type NormalizeResult = {
 function normalizeInvoiceData(raw: GeminiRaw): NormalizeResult {
   const data: Record<string, unknown> = {};
   const fieldErrors: Record<string, string> = {};
+  const confidence: Record<string, number> = {};
 
   // kind
   const kind = normalizeKind(raw.kind);
   if (kind) {
     data.kind = kind;
+    confidence.kind = kind === raw.kind ? 1.0 : 0.85; // high if Gemini used exact value
   } else if (raw.kind !== undefined && raw.kind !== '') {
     fieldErrors.kind = `Valor no reconocido: ${String(raw.kind)}`;
   }
 
-  // number — accept numbers or strings
+  // number
   const num = str(raw.number, 60);
-  if (num) data.number = num;
+  if (num) { data.number = num; confidence.number = 0.95; }
 
-  // issueDate
+  // issueDate — extra care to avoid inversion
+  const rawDateStr = raw.issueDate !== undefined ? String(raw.issueDate).trim() : '';
   const date = normalizeDate(raw.issueDate);
   if (date) {
     data.issueDate = date;
-  } else if (raw.issueDate !== undefined && raw.issueDate !== '') {
-    fieldErrors.issueDate = `Formato de fecha no reconocido: ${String(raw.issueDate)}`;
+    // Lower confidence if we had to convert (original wasn't already ISO)
+    confidence.issueDate = /^\d{4}-\d{2}-\d{2}$/.test(rawDateStr) ? 0.95 : 0.7;
+  } else if (rawDateStr) {
+    fieldErrors.issueDate = `Fecha no reconocida o ambigua: "${rawDateStr}"`;
   }
 
   // concept
   const concept = str(raw.concept, 2000);
-  if (concept) data.concept = concept;
+  if (concept) { data.concept = concept; confidence.concept = 0.9; }
 
   // counterpartyName / issuerNif / issuerName
   const cp = str(raw.counterpartyName, 200);
-  if (cp) data.counterpartyName = cp;
+  if (cp) { data.counterpartyName = cp; confidence.counterpartyName = 0.85; }
   const nif = str(raw.issuerNif, 20);
-  if (nif) data.issuerNif = nif;
+  if (nif) { data.issuerNif = nif; confidence.issuerNif = 0.9; }
   const iss = str(raw.issuerName, 200);
-  if (iss) data.issuerName = iss;
+  if (iss) { data.issuerName = iss; confidence.issuerName = 0.9; }
 
-  // currency — strip symbols, take first 3 alpha chars, default EUR
+  // currency
   const rawCurr = str(raw.currency, 10);
   const currMatch = rawCurr?.replace(/[^A-Za-z]/g, '').toUpperCase().slice(0, 3);
   data.currency = currMatch?.length === 3 ? currMatch : 'EUR';
+  confidence.currency = currMatch?.length === 3 ? 0.95 : 0.5;
 
   // amounts
   const net = normalizeMoneyString(raw.netAmount);
   if (net !== undefined) {
     data.netAmount = net;
+    confidence.netAmount = String(raw.netAmount) === net ? 1.0 : 0.85;
   } else if (raw.netAmount !== undefined && raw.netAmount !== '') {
     fieldErrors.netAmount = `Importe neto no reconocido: ${String(raw.netAmount)}`;
   }
@@ -209,23 +257,30 @@ function normalizeInvoiceData(raw: GeminiRaw): NormalizeResult {
   const total = normalizeMoneyString(raw.totalAmount);
   if (total !== undefined) {
     data.totalAmount = total;
+    confidence.totalAmount = String(raw.totalAmount) === total ? 1.0 : 0.85;
   } else if (raw.totalAmount !== undefined && raw.totalAmount !== '') {
     fieldErrors.totalAmount = `Importe total no reconocido: ${String(raw.totalAmount)}`;
   }
 
   const vat = normalizePct(raw.vatPct);
-  if (vat !== undefined) data.vatPct = vat;
+  if (vat !== undefined) { data.vatPct = vat; confidence.vatPct = 0.9; }
 
   const ret = normalizePct(raw.withholdingPct);
-  if (ret !== undefined) data.withholdingPct = ret;
+  if (ret !== undefined) { data.withholdingPct = ret; confidence.withholdingPct = 0.9; }
 
-  return { data: data as Partial<InvoiceDraft>, fieldErrors };
+  return { data: data as Partial<InvoiceDraft>, fieldErrors, confidence };
 }
 
 // ── Public types / function ───────────────────────────────────────────────────
 
+export type FieldConfidence = {
+  readonly value: unknown;
+  readonly confidence: number; // 0–1
+};
+
 export type PdfAiResult = {
   readonly draft: Partial<InvoiceDraft>;
+  readonly confidence: Readonly<Record<string, number>>; // field → 0–1
   readonly warnings: readonly string[];
   readonly usedAi: boolean;
 };
@@ -238,7 +293,7 @@ export async function extractInvoiceWithClaude(
 
   if (!apiKey) {
     return {
-      draft: {},
+      draft: {}, confidence: {},
       warnings: ['Extracción IA no disponible (falta GEMINI_API_KEY). Rellena los campos manualmente.'],
       usedAi: false,
     };
@@ -267,7 +322,7 @@ export async function extractInvoiceWithClaude(
     logRedacted('error', '[pdf-ai] DIAG-4 gemini FAILED:', msg);
     const isQuota = msg.includes('429') || msg.toLowerCase().includes('quota') || msg.toLowerCase().includes('too many');
     return {
-      draft: {},
+      draft: {}, confidence: {},
       warnings: [isQuota
         ? 'Límite de peticiones de Gemini alcanzado. Espera un minuto e inténtalo de nuevo.'
         : `Error Gemini: ${msg}.`,
@@ -281,7 +336,7 @@ export async function extractInvoiceWithClaude(
   if (!jsonMatch) {
     logRedacted('error', '[pdf-ai] DIAG-5 no JSON block in response');
     return {
-      draft: {},
+      draft: {}, confidence: {},
       warnings: ['La IA no devolvió datos estructurados. Rellena los campos manualmente.'],
       usedAi: true,
     };
@@ -293,7 +348,7 @@ export async function extractInvoiceWithClaude(
   } catch {
     logRedacted('error', '[pdf-ai] DIAG-5 JSON.parse FAILED');
     return {
-      draft: {},
+      draft: {}, confidence: {},
       warnings: ['La IA devolvió JSON inválido. Rellena los campos manualmente.'],
       usedAi: true,
     };
@@ -304,7 +359,7 @@ export async function extractInvoiceWithClaude(
   if (!rawParsed.success) {
     logRedacted('error', '[pdf-ai] DIAG-5 schema failed (not an object?)');
     return {
-      draft: {},
+      draft: {}, confidence: {},
       warnings: ['La IA devolvió un formato inesperado. Rellena los campos manualmente.'],
       usedAi: true,
     };
@@ -313,7 +368,7 @@ export async function extractInvoiceWithClaude(
   logRedacted('info', '[pdf-ai] DIAG-5 raw keys:', Object.keys(rawParsed.data).join(','));
 
   // Normalize field by field — partial data is fine
-  const { data: draft, fieldErrors } = normalizeInvoiceData(rawParsed.data);
+  const { data: draft, fieldErrors, confidence } = normalizeInvoiceData(rawParsed.data);
 
   logRedacted('info', '[pdf-ai] DIAG-6 normalized keys:', Object.keys(draft).join(','));
   if (Object.keys(fieldErrors).length > 0) {
@@ -348,5 +403,5 @@ export async function extractInvoiceWithClaude(
   if (!draft.issueDate)   warnings.push('No se detectó fecha de emisión — revísala.');
   if (!draft.kind)        warnings.push('No se determinó tipo (ingreso/gasto) — selecciónalo.');
 
-  return { draft, warnings, usedAi: true };
+  return { draft, confidence, warnings, usedAi: true };
 }

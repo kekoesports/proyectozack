@@ -197,14 +197,20 @@ export function PendingRow({
               </div>
             </div>
           )}
-          <div className={imp.sourceType === 'pdf-text' && imp.fileUrl ? 'grid grid-cols-1 xl:grid-cols-[1fr_1.1fr] gap-0' : ''}>
+          <div>
             {imp.sourceType === 'pdf-text' && imp.fileUrl && (
-              <div className="p-5 xl:border-r border-sp-admin-border">
-                <iframe
-                  src={imp.fileUrl}
-                  title={`Vista previa ${imp.sourceFilename}`}
-                  className="w-full h-[600px] rounded-xl border border-sp-admin-border bg-white"
-                />
+              <div className="px-5 pt-4 pb-0">
+                <a
+                  href={imp.fileUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-sp-admin-border text-[11px] font-semibold text-sp-admin-muted hover:text-sp-admin-accent hover:border-sp-admin-accent/50 transition-colors"
+                >
+                  <svg aria-hidden="true" className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14 21 3" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  Abrir PDF en nueva pestaña
+                </a>
               </div>
             )}
             <div className="px-5 py-5">
@@ -235,6 +241,13 @@ function ImportReviewForm({ imp, brands, talents, categories, onDone }: ReviewFo
   const [state, formAction, isPending] = useActionState(approveImportAction, {});
 
   const draft = imp.parsedDraft ?? {};
+  const conf = (draft.__confidence__ ?? {}) as Record<string, number>;
+  // Returns Tailwind ring class based on confidence: green ≥ 0.8, yellow < 0.8
+  const ring = (field: string): string => {
+    const c = conf[field];
+    if (c === undefined) return '';
+    return c >= 0.8 ? 'ring-1 ring-emerald-500/50' : 'ring-1 ring-amber-500/50';
+  };
   const [net, setNet] = useState<string>(draft.netAmount ?? '');
   const [vat, setVat] = useState<string>(draft.vatPct ?? '21.00');
   const [withholding, setWithholding] = useState<string>(draft.withholdingPct ?? '0.00');
@@ -272,14 +285,14 @@ function ImportReviewForm({ imp, brands, talents, categories, onDone }: ReviewFo
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div>
           <label className={LABEL}>Tipo *</label>
-          <select name="kind" defaultValue={draft.kind ?? 'income'} required className={INPUT}>
+          <select name="kind" defaultValue={draft.kind ?? 'income'} required className={`${INPUT} ${ring('kind')}`}>
             <option value="income">Ingreso</option>
             <option value="expense">Gasto</option>
           </select>
         </div>
         <div>
           <label className={LABEL}>Nº factura</label>
-          <input name="number" defaultValue={draft.number ?? ''} className={INPUT} />
+          <input name="number" defaultValue={draft.number ?? ''} className={`${INPUT} ${ring('number')}`} />
         </div>
         <div>
           <label className={LABEL}>Fecha emisión *</label>
@@ -288,7 +301,7 @@ function ImportReviewForm({ imp, brands, talents, categories, onDone }: ReviewFo
             type="date"
             required
             defaultValue={draft.issueDate ?? today}
-            className={INPUT}
+            className={`${INPUT} ${ring('issueDate')}`}
           />
         </div>
         <div>
@@ -303,7 +316,7 @@ function ImportReviewForm({ imp, brands, talents, categories, onDone }: ReviewFo
             required
             defaultValue={draft.concept ?? ''}
             placeholder="Campaña abril, comisión casino X..."
-            className={INPUT}
+            className={`${INPUT} ${ring('concept')}`}
           />
         </div>
         <div>
@@ -365,11 +378,11 @@ function ImportReviewForm({ imp, brands, talents, categories, onDone }: ReviewFo
 
         <div>
           <label className={LABEL}>NIF emisor</label>
-          <input name="issuerNif" defaultValue={draft.issuerNif ?? ''} className={INPUT} />
+          <input name="issuerNif" defaultValue={draft.issuerNif ?? ''} className={`${INPUT} ${ring('issuerNif')}`} />
         </div>
         <div>
           <label className={LABEL}>Nombre emisor</label>
-          <input name="issuerName" defaultValue={draft.issuerName ?? ''} className={INPUT} />
+          <input name="issuerName" defaultValue={draft.issuerName ?? ''} className={`${INPUT} ${ring('issuerName')}`} />
         </div>
 
         <div>
@@ -382,7 +395,7 @@ function ImportReviewForm({ imp, brands, talents, categories, onDone }: ReviewFo
             required
             value={net}
             onChange={(e) => setNet(e.target.value)}
-            className={INPUT}
+            className={`${INPUT} ${ring('netAmount')}`}
           />
         </div>
         <div>

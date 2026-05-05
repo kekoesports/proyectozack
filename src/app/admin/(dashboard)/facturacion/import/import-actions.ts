@@ -119,7 +119,7 @@ export async function uploadImportAction(
     // ── Step 1: Gemini AI extraction (no pdfjs dependency) ─────────────────
     // Isolated so pdfjs failures can't prevent AI from running.
     let aiResult: import('@/lib/parsers/pdfAi').PdfAiResult = {
-      draft: {}, warnings: [], usedAi: false,
+      draft: {}, confidence: {}, warnings: [], usedAi: false,
     };
     try {
       logRedacted('info', '[invoice-import] DIAG-0 loading pdfAi module...');
@@ -143,7 +143,7 @@ export async function uploadImportAction(
       } catch {
         // regions optional — template learning skipped, AI draft still saved
       }
-      parsedDraft = { ...aiResult.draft, [REGIONS_KEY]: regions };
+      parsedDraft = { ...aiResult.draft, [REGIONS_KEY]: regions, __confidence__: aiResult.confidence };
       warningsOut = aiResult.warnings;
     } else if (!process.env.GEMINI_API_KEY) {
       // ── Step 2: Heuristic fallback (pdfjs-based) — only when no AI key ────
