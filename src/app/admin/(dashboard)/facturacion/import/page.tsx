@@ -35,10 +35,10 @@ export default async function AdminInvoiceImportPage(): Promise<React.ReactEleme
             <Link href="/admin/facturacion" className="hover:text-sp-admin-text transition-colors">← Facturación</Link>
           </p>
           <h1 className="font-display text-4xl font-black uppercase text-sp-admin-text">
-            Importar facturas
+            Importar Factura
           </h1>
           <p className="text-xs text-sp-admin-muted mt-1">
-            Sube archivos (PDF, XLSX, CSV, XML). Cada archivo pasa por revisión antes de crear la factura.
+            Sube una factura en PDF. La IA extrae los datos automáticamente; revisa y confirma antes de guardar.
           </p>
         </div>
       </div>

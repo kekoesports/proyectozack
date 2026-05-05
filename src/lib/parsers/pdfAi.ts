@@ -1,0 +1,198 @@
+// Claude-powered PDF invoice extractor.
+// Falls back gracefully when ANTHROPIC_API_KEY is not set.
+
+import Anthropic from '@anthropic-ai/sdk';
+import type { DocumentBlockParam, TextBlockParam } from '@anthropic-ai/sdk/resources/messages';
+import { z } from 'zod';
+import type { InvoiceDraft } from '@/lib/schemas/invoiceDraft';
+
+// SocialPro issuer identifiers — invoice with one of these as issuer = income.
+const SOCIALPRO_SIGNALS = [
+  'PLAYMAKER MEDIA LLC',
+  'THE AGENT',
+  'ElevateX Agency',
+  'ElevateX Agencia',
+  'B21821046',
+  '98-1925044',
+];
+
+const SYSTEM_PROMPT = `Eres un extractor de datos de facturas para SocialPro, agencia de talentos.
+
+Las entidades de SocialPro son (cuando SocialPro es el EMISOR de la factura → kind "income"; cuando SocialPro es el RECEPTOR que la paga → kind "expense"):
+- ElevateX Agency PA SL · NIF B21821046 (España)
+- PLAYMAKER MEDIA LLC / THE AGENT · EIN 98-1925044 (USA)
+
+Responde ÚNICAMENTE con un objeto JSON válido, sin texto adicional ni markdown.`;
+
+const USER_PROMPT = `Extrae los datos de esta factura y devuelve SOLO el JSON con estos campos (todos opcionales salvo los que puedas leer):
+
+{
+  "kind": "income" o "expense",
+  "number": "número de factura como string",
+  "issueDate": "YYYY-MM-DD",
+  "concept": "descripción del servicio o producto",
+  "counterpartyName": "nombre del cliente o proveedor (la otra parte, no SocialPro)",
+  "issuerNif": "NIF, CIF o EIN del emisor",
+  "issuerName": "razón social del emisor",
+  "netAmount": "importe sin IVA como decimal con punto (ej: 9245.00)",
+  "vatPct": "% de IVA como decimal (ej: 0.00 o 21.00)",
+  "withholdingPct": "% de retención como decimal (ej: 0.00 o 15.00)",
+  "totalAmount": "importe total como decimal con punto",
+  "currency": "código ISO 3 letras (EUR, USD...)"
+}`;
+
+// Loose schema to validate Claude's JSON output before trusting it.
+const claudeOutputSchema = z.object({
+  kind: z.enum(['income', 'expense']).optional(),
+  number: z.string().max(60).optional(),
+  issueDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  concept: z.string().max(2000).optional(),
+  counterpartyName: z.string().max(200).optional(),
+  issuerNif: z.string().max(20).optional(),
+  issuerName: z.string().max(200).optional(),
+  netAmount: z.string().optional(),
+  vatPct: z.string().optional(),
+  withholdingPct: z.string().optional(),
+  totalAmount: z.string().optional(),
+  currency: z.string().length(3).optional(),
+});
+
+type ClaudeOutput = z.infer<typeof claudeOutputSchema>;
+
+function normalizeMoneyString(raw: string | undefined): string | undefined {
+  if (!raw) return undefined;
+  // Accept ES format "1.234,56" → "1234.56"
+  const normalized = raw.replace(/\./g, '').replace(',', '.');
+  return /^\d+(\.\d{1,2})?$/.test(normalized) ? normalized : undefined;
+}
+
+function buildDraftFromClaude(data: ClaudeOutput): Partial<InvoiceDraft> {
+  const draft: Record<string, unknown> = {};
+  if (data.kind)            draft.kind            = data.kind;
+  if (data.number)          draft.number          = data.number;
+  if (data.issueDate)       draft.issueDate       = data.issueDate;
+  if (data.concept)         draft.concept         = data.concept;
+  if (data.counterpartyName) draft.counterpartyName = data.counterpartyName;
+  if (data.issuerNif)       draft.issuerNif       = data.issuerNif;
+  if (data.issuerName)      draft.issuerName      = data.issuerName;
+  if (data.currency)        draft.currency        = data.currency;
+
+  const net   = normalizeMoneyString(data.netAmount);
+  const total = normalizeMoneyString(data.totalAmount);
+  const vat   = normalizeMoneyString(data.vatPct);
+  const ret   = normalizeMoneyString(data.withholdingPct);
+
+  if (net)   draft.netAmount      = net;
+  if (total) draft.totalAmount    = total;
+  if (vat)   draft.vatPct         = vat;
+  if (ret)   draft.withholdingPct = ret;
+
+  return draft as Partial<InvoiceDraft>;
+}
+
+export type PdfAiResult = {
+  readonly draft: Partial<InvoiceDraft>;
+  readonly warnings: readonly string[];
+  readonly usedAi: boolean;
+};
+
+export async function extractInvoiceWithClaude(
+  pdfBuffer: ArrayBuffer,
+): Promise<PdfAiResult> {
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) {
+    return {
+      draft: {},
+      warnings: ['Extracción IA no disponible (falta ANTHROPIC_API_KEY). Rellena los campos manualmente.'],
+      usedAi: false,
+    };
+  }
+
+  const client = new Anthropic({ apiKey });
+  const base64Pdf = Buffer.from(pdfBuffer).toString('base64');
+
+  const docBlock: DocumentBlockParam = {
+    type: 'document',
+    source: {
+      type: 'base64',
+      media_type: 'application/pdf',
+      data: base64Pdf,
+    },
+  };
+
+  const textBlock: TextBlockParam = {
+    type: 'text',
+    text: USER_PROMPT,
+  };
+
+  let rawText: string;
+  try {
+    const response = await client.messages.create({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 1024,
+      system: SYSTEM_PROMPT,
+      messages: [{ role: 'user', content: [docBlock, textBlock] }],
+    });
+
+    const textContent = response.content.find((c) => c.type === 'text');
+    rawText = textContent && textContent.type === 'text' ? textContent.text : '';
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return {
+      draft: {},
+      warnings: [`Error al llamar a la IA: ${msg}. Rellena los campos manualmente.`],
+      usedAi: false,
+    };
+  }
+
+  // Extract JSON block — Claude sometimes wraps output in ```json ... ```
+  const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) {
+    return {
+      draft: {},
+      warnings: ['La IA no devolvió datos estructurados. Rellena los campos manualmente.'],
+      usedAi: true,
+    };
+  }
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(jsonMatch[0]);
+  } catch {
+    return {
+      draft: {},
+      warnings: ['La IA devolvió JSON inválido. Rellena los campos manualmente.'],
+      usedAi: true,
+    };
+  }
+
+  const validated = claudeOutputSchema.safeParse(parsed);
+  if (!validated.success) {
+    return {
+      draft: {},
+      warnings: ['Datos extraídos por la IA no superaron validación. Rellena los campos manualmente.'],
+      usedAi: true,
+    };
+  }
+
+  const draft = buildDraftFromClaude(validated.data);
+  const warnings: string[] = [];
+
+  if (!draft.concept)     warnings.push('No se detectó concepto/descripción — revísalo.');
+  if (!draft.netAmount)   warnings.push('No se detectó importe neto — revísalo.');
+  if (!draft.totalAmount) warnings.push('No se detectó importe total — revísalo.');
+  if (!draft.issueDate)   warnings.push('No se detectó fecha de emisión — revísala.');
+
+  // Fallback kind detection using known SocialPro signals
+  if (!draft.kind) {
+    const issuerText = `${draft.issuerName ?? ''} ${draft.issuerNif ?? ''}`.toUpperCase();
+    const isSocialPro = SOCIALPRO_SIGNALS.some((s) => issuerText.includes(s.toUpperCase()));
+    if (isSocialPro) {
+      (draft as Record<string, unknown>).kind = 'income';
+    } else {
+      warnings.push('No se pudo determinar si es ingreso o gasto — selecciónalo manualmente.');
+    }
+  }
+
+  return { draft, warnings, usedAi: true };
+}

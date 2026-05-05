@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { put } from '@vercel/blob';
 
-import { requireRole } from '@/lib/auth-guard';
+import { requireRole, requireAnyRole } from '@/lib/auth-guard';
 import { parseFormData } from '@/lib/forms/parseFormData';
 import { firstError } from '@/lib/forms/firstError';
 import { logRedacted } from '@/lib/log';
@@ -31,6 +31,7 @@ import { applyMapping, MAPPABLE_FIELDS, type ColumnMapping } from '@/lib/parsers
 import { upsertTemplate } from '@/lib/queries/invoiceImportTemplates';
 import { extractPdfText } from '@/lib/parsers/pdf';
 import { parseInvoicePdf, type ParsedRegions } from '@/lib/parsers/pdfHeuristics';
+import { extractInvoiceWithClaude } from '@/lib/parsers/pdfAi';
 import { getParserTemplateByNif, upsertParserTemplate } from '@/lib/queries/invoiceParserTemplates';
 
 // Internal key used to piggy-back bbox regions on the parsedDraft jsonb column
@@ -79,7 +80,7 @@ export async function uploadImportAction(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  await requireRole('admin', '/admin/login');
+  await requireAnyRole(['admin', 'manager'], '/admin/login');
 
   const file = formData.get('file');
   if (!(file instanceof File) || file.size === 0) return { error: 'Selecciona un archivo' };
@@ -112,23 +113,42 @@ export async function uploadImportAction(
   if (sourceType === 'pdf-text') {
     try {
       const buf = await file.arrayBuffer();
-      const extract = await extractPdfText(buf);
-      const initial = parseInvoicePdf(extract);
-      let finalResult = initial;
-      if (initial.draft.issuerNif) {
-        const tpl = await getParserTemplateByNif(initial.draft.issuerNif);
-        if (tpl) {
-          finalResult = parseInvoicePdf(extract, {
-            template: {
-              regions: tpl.regions,
-              issuerNif: tpl.issuerNif,
-              issuerName: tpl.issuerName,
-            },
-          });
+
+      // 1. Try Claude AI extraction first
+      const aiResult = await extractInvoiceWithClaude(buf);
+
+      if (aiResult.usedAi && Object.keys(aiResult.draft).length > 0) {
+        // AI succeeded — also run heuristic parser for bbox regions (template learning)
+        let regions: ParsedRegions = {};
+        try {
+          const extract = await extractPdfText(buf);
+          const heuristic = parseInvoicePdf(extract);
+          regions = heuristic.regions;
+        } catch {
+          // regions are optional; template learning will just be skipped
         }
+        parsedDraft = { ...aiResult.draft, [REGIONS_KEY]: regions };
+        warningsOut = aiResult.warnings;
+      } else {
+        // AI unavailable or empty — fall back to heuristic parser
+        const extract = await extractPdfText(buf);
+        const initial = parseInvoicePdf(extract);
+        let finalResult = initial;
+        if (initial.draft.issuerNif) {
+          const tpl = await getParserTemplateByNif(initial.draft.issuerNif);
+          if (tpl) {
+            finalResult = parseInvoicePdf(extract, {
+              template: {
+                regions: tpl.regions,
+                issuerNif: tpl.issuerNif,
+                issuerName: tpl.issuerName,
+              },
+            });
+          }
+        }
+        parsedDraft = { ...finalResult.draft, [REGIONS_KEY]: finalResult.regions };
+        warningsOut = [...aiResult.warnings, ...finalResult.warnings];
       }
-      parsedDraft = { ...finalResult.draft, [REGIONS_KEY]: finalResult.regions };
-      warningsOut = finalResult.warnings;
     } catch (err) {
       logRedacted('error', '[invoice-import] pdf parse error:', err instanceof Error ? err.message : 'unknown');
       warningsOut = ['No se pudo parsear el PDF automáticamente. Completa los campos manualmente.'];
@@ -161,7 +181,7 @@ export async function approveImportAction(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  await requireRole('admin', '/admin/login');
+  await requireAnyRole(['admin', 'manager'], '/admin/login');
 
   const parsed = parseFormData(formData, approveImportSchema);
   if (!parsed.ok) {
@@ -207,7 +227,7 @@ export async function approveImportAction(
 }
 
 export async function rejectImportAction(id: number): Promise<ActionState> {
-  await requireRole('admin', '/admin/login');
+  await requireAnyRole(['admin', 'manager'], '/admin/login');
   try {
     await rejectImport(id);
     revalidatePath('/admin/facturacion/import');
@@ -249,7 +269,7 @@ export async function commitMappedImportAction(
   _prev: CommitState,
   formData: FormData,
 ): Promise<CommitState> {
-  await requireRole('admin', '/admin/login');
+  await requireAnyRole(['admin', 'manager'], '/admin/login');
 
   const file = formData.get('file');
   if (!(file instanceof File) || file.size === 0) return { error: 'Selecciona un archivo' };
