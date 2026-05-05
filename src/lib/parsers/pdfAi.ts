@@ -6,7 +6,7 @@ import { z } from 'zod';
 import { logRedacted } from '@/lib/log';
 import type { InvoiceDraft } from '@/lib/schemas/invoiceDraft';
 
-// SocialPro issuer identifiers — if any of these appear as the invoice issuer → income.
+// SocialPro issuer identifiers — if any match → kind = "income".
 const SOCIALPRO_SIGNALS = [
   'PLAYMAKER MEDIA LLC',
   'THE AGENT',
@@ -18,111 +18,207 @@ const SOCIALPRO_SIGNALS = [
 
 const SYSTEM_PROMPT = `Eres un extractor de datos de facturas para SocialPro, agencia de talentos.
 
-Las entidades de SocialPro son (cuando SocialPro es el EMISOR de la factura → kind "income"; cuando SocialPro es el RECEPTOR que la paga → kind "expense"):
+Las entidades de SocialPro son (cuando SocialPro es el EMISOR → kind "income"; cuando es el RECEPTOR que paga → kind "expense"):
 - ElevateX Agency PA SL · NIF B21821046 (España)
 - PLAYMAKER MEDIA LLC / THE AGENT · EIN 98-1925044 (USA)
 
-Extrae los datos de esta factura y devuelve SOLO el JSON con estos campos (todos los que puedas leer):
+Extrae los datos de esta factura y devuelve SOLO el JSON con estos campos:
 
 {
   "kind": "income" o "expense",
-  "number": "número de factura como string",
+  "number": "número de factura",
   "issueDate": "YYYY-MM-DD",
   "concept": "descripción del servicio o producto",
   "counterpartyName": "nombre del cliente o proveedor (la otra parte, no SocialPro)",
   "issuerNif": "NIF, CIF o EIN del emisor",
   "issuerName": "razón social del emisor",
-  "netAmount": "importe sin IVA como decimal con punto (ej: 9245.00)",
-  "vatPct": "% de IVA como decimal (ej: 0.00 o 21.00)",
-  "withholdingPct": "% de retención como decimal (ej: 0.00 o 15.00)",
-  "totalAmount": "importe total como decimal con punto",
-  "currency": "código ISO 3 letras (EUR, USD...)"
+  "netAmount": "importe sin IVA (ej: 9245.00)",
+  "vatPct": "porcentaje IVA (ej: 0 o 21)",
+  "withholdingPct": "porcentaje retención (ej: 0 o 15)",
+  "totalAmount": "importe total",
+  "currency": "EUR"
 }
 
 Responde ÚNICAMENTE con el objeto JSON, sin texto adicional ni markdown.`;
 
-// Loose schema to validate Gemini's JSON output before trusting it.
-const aiOutputSchema = z.object({
-  kind: z.enum(['income', 'expense']).optional(),
-  number: z.string().max(60).optional(),
-  issueDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
-  concept: z.string().max(2000).optional(),
-  counterpartyName: z.string().max(200).optional(),
-  issuerNif: z.string().max(20).optional(),
-  issuerName: z.string().max(200).optional(),
-  netAmount: z.string().optional(),
-  vatPct: z.string().optional(),
-  withholdingPct: z.string().optional(),
-  totalAmount: z.string().optional(),
-  currency: z.string().length(3).optional(),
-});
+// ── Lenient raw schema: accept whatever Gemini returns ────────────────────────
+// Validation/normalization happens in normalizeInvoiceData(), not here.
+const geminiRawSchema = z.object({
+  kind:             z.unknown().optional(),
+  number:           z.unknown().optional(),
+  issueDate:        z.unknown().optional(),
+  concept:          z.unknown().optional(),
+  counterpartyName: z.unknown().optional(),
+  issuerNif:        z.unknown().optional(),
+  issuerName:       z.unknown().optional(),
+  netAmount:        z.unknown().optional(),
+  vatPct:           z.unknown().optional(),
+  withholdingPct:   z.unknown().optional(),
+  totalAmount:      z.unknown().optional(),
+  currency:         z.unknown().optional(),
+}).passthrough();  // keep extra keys so nothing is silently dropped
 
-type AiOutput = z.infer<typeof aiOutputSchema>;
+type GeminiRaw = z.infer<typeof geminiRawSchema>;
 
-function normalizeMoneyString(raw: string | undefined): string | undefined {
-  if (!raw) return undefined;
-  // Strip currency symbols, whitespace, and anything that isn't a digit, dot or comma.
-  const cleaned = raw.replace(/[^\d.,]/g, '').trim();
+// ── Normalizers ───────────────────────────────────────────────────────────────
+
+/** Converts any money representation to "1234.56" (dot-decimal, no symbols). */
+function normalizeMoneyString(raw: unknown): string | undefined {
+  if (raw === null || raw === undefined) return undefined;
+  const str = typeof raw === 'number' ? raw.toString() : String(raw);
+  const cleaned = str.replace(/[^\d.,]/g, '').trim();
   if (!cleaned) return undefined;
 
   const hasDot   = cleaned.includes('.');
   const hasComma = cleaned.includes(',');
-
   let v: string;
 
   if (hasDot && hasComma) {
-    // Both present — the one that appears last is the decimal separator.
-    // "9.245,00" → comma last → dot=thousands, comma=decimal → "9245.00"
-    // "9,245.00" → dot last  → comma=thousands, dot=decimal → "9245.00"
-    if (cleaned.lastIndexOf(',') > cleaned.lastIndexOf('.')) {
-      v = cleaned.replace(/\./g, '').replace(',', '.');
-    } else {
-      v = cleaned.replace(/,/g, '');
-    }
+    v = cleaned.lastIndexOf(',') > cleaned.lastIndexOf('.')
+      ? cleaned.replace(/\./g, '').replace(',', '.')  // "9.245,00" → "9245.00"
+      : cleaned.replace(/,/g, '');                    // "9,245.00" → "9245.00"
   } else if (hasComma) {
-    // Only comma.  If ≤2 digits follow it → decimal ("9245,00").
-    // Otherwise → thousands separator ("9,245") with no decimal part.
     const afterComma = cleaned.slice(cleaned.lastIndexOf(',') + 1);
     v = afterComma.length <= 2
-      ? cleaned.replace(',', '.')
-      : cleaned.replace(/,/g, '');
+      ? cleaned.replace(',', '.')    // "9245,00" → "9245.00"
+      : cleaned.replace(/,/g, '');  // "9,245"   → "9245"
   } else if (hasDot) {
-    // Only dot.  If ≤2 digits follow it → decimal ("9245.00").
-    // Otherwise → thousands separator ("9.245") with no decimal part.
     const afterDot = cleaned.slice(cleaned.lastIndexOf('.') + 1);
     v = afterDot.length <= 2
-      ? cleaned                        // already correct decimal format
-      : cleaned.replace(/\./g, '');   // strip thousands dots → integer
+      ? cleaned                      // "9245.00" → keep
+      : cleaned.replace(/\./g, ''); // "9.245"   → "9245"
   } else {
-    v = cleaned; // plain integer like "9245"
+    v = cleaned; // "9245"
   }
 
   return /^\d+(\.\d{1,2})?$/.test(v) ? v : undefined;
 }
 
-function buildDraftFromAi(data: AiOutput): Partial<InvoiceDraft> {
-  const draft: Record<string, unknown> = {};
-  if (data.kind)             draft.kind             = data.kind;
-  if (data.number)           draft.number           = data.number;
-  if (data.issueDate)        draft.issueDate        = data.issueDate;
-  if (data.concept)          draft.concept          = data.concept;
-  if (data.counterpartyName) draft.counterpartyName = data.counterpartyName;
-  if (data.issuerNif)        draft.issuerNif        = data.issuerNif;
-  if (data.issuerName)       draft.issuerName       = data.issuerName;
-  if (data.currency)         draft.currency         = data.currency;
-
-  const net   = normalizeMoneyString(data.netAmount);
-  const total = normalizeMoneyString(data.totalAmount);
-  const vat   = normalizeMoneyString(data.vatPct);
-  const ret   = normalizeMoneyString(data.withholdingPct);
-
-  if (net)   draft.netAmount      = net;
-  if (total) draft.totalAmount    = total;
-  if (vat)   draft.vatPct         = vat;
-  if (ret)   draft.withholdingPct = ret;
-
-  return draft as Partial<InvoiceDraft>;
+/** Strips "%" and normalises as money string. "0%" → "0", "21%" → "21". */
+function normalizePct(raw: unknown): string | undefined {
+  if (raw === null || raw === undefined) return undefined;
+  const str = String(raw).replace('%', '').trim();
+  return normalizeMoneyString(str);
 }
+
+/**
+ * Converts many date formats to YYYY-MM-DD.
+ *  "19/2/26"    → "2026-02-19"
+ *  "19-02-2026" → "2026-02-19"
+ *  "19/02/2026" → "2026-02-19"
+ *  "2026-02-19" → "2026-02-19" (already ISO)
+ */
+function normalizeDate(raw: unknown): string | undefined {
+  if (raw === null || raw === undefined) return undefined;
+  const str = String(raw).trim();
+
+  // Already ISO
+  if (/^\d{4}-\d{2}-\d{2}$/.test(str)) return str;
+
+  // DD/MM/YY or DD/MM/YYYY or DD-MM-YY etc.
+  const match = str.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2,4})$/);
+  if (match) {
+    const [, rawD, rawM, rawY] = match;
+    const year = rawY!.length === 2 ? `20${rawY}` : rawY!;
+    return `${year}-${rawM!.padStart(2, '0')}-${rawD!.padStart(2, '0')}`;
+  }
+
+  return undefined;
+}
+
+/** Maps Gemini's kind output to our enum. */
+function normalizeKind(raw: unknown): 'income' | 'expense' | undefined {
+  if (raw === null || raw === undefined) return undefined;
+  const lower = String(raw).toLowerCase().trim();
+  if (['income', 'ingreso', 'ingresos', 'cobro', 'venta'].includes(lower)) return 'income';
+  if (['expense', 'gasto', 'gastos', 'pago', 'compra', 'coste'].includes(lower)) return 'expense';
+  return undefined;
+}
+
+/** Cleans and truncates a string field. */
+function str(raw: unknown, maxLen: number): string | undefined {
+  if (raw === null || raw === undefined) return undefined;
+  const s = String(raw).trim();
+  return s.length > 0 ? s.slice(0, maxLen) : undefined;
+}
+
+// ── Main normalizer ───────────────────────────────────────────────────────────
+
+type NormalizeResult = {
+  readonly data: Partial<InvoiceDraft>;
+  readonly fieldErrors: Record<string, string>;
+};
+
+/**
+ * Converts raw Gemini output (any format) to a typed InvoiceDraft.
+ * Returns partial data + per-field errors so callers can fill what's valid.
+ */
+function normalizeInvoiceData(raw: GeminiRaw): NormalizeResult {
+  const data: Record<string, unknown> = {};
+  const fieldErrors: Record<string, string> = {};
+
+  // kind
+  const kind = normalizeKind(raw.kind);
+  if (kind) {
+    data.kind = kind;
+  } else if (raw.kind !== undefined && raw.kind !== '') {
+    fieldErrors.kind = `Valor no reconocido: ${String(raw.kind)}`;
+  }
+
+  // number — accept numbers or strings
+  const num = str(raw.number, 60);
+  if (num) data.number = num;
+
+  // issueDate
+  const date = normalizeDate(raw.issueDate);
+  if (date) {
+    data.issueDate = date;
+  } else if (raw.issueDate !== undefined && raw.issueDate !== '') {
+    fieldErrors.issueDate = `Formato de fecha no reconocido: ${String(raw.issueDate)}`;
+  }
+
+  // concept
+  const concept = str(raw.concept, 2000);
+  if (concept) data.concept = concept;
+
+  // counterpartyName / issuerNif / issuerName
+  const cp = str(raw.counterpartyName, 200);
+  if (cp) data.counterpartyName = cp;
+  const nif = str(raw.issuerNif, 20);
+  if (nif) data.issuerNif = nif;
+  const iss = str(raw.issuerName, 200);
+  if (iss) data.issuerName = iss;
+
+  // currency — strip symbols, take first 3 alpha chars, default EUR
+  const rawCurr = str(raw.currency, 10);
+  const currMatch = rawCurr?.replace(/[^A-Za-z]/g, '').toUpperCase().slice(0, 3);
+  data.currency = currMatch?.length === 3 ? currMatch : 'EUR';
+
+  // amounts
+  const net = normalizeMoneyString(raw.netAmount);
+  if (net !== undefined) {
+    data.netAmount = net;
+  } else if (raw.netAmount !== undefined && raw.netAmount !== '') {
+    fieldErrors.netAmount = `Importe neto no reconocido: ${String(raw.netAmount)}`;
+  }
+
+  const total = normalizeMoneyString(raw.totalAmount);
+  if (total !== undefined) {
+    data.totalAmount = total;
+  } else if (raw.totalAmount !== undefined && raw.totalAmount !== '') {
+    fieldErrors.totalAmount = `Importe total no reconocido: ${String(raw.totalAmount)}`;
+  }
+
+  const vat = normalizePct(raw.vatPct);
+  if (vat !== undefined) data.vatPct = vat;
+
+  const ret = normalizePct(raw.withholdingPct);
+  if (ret !== undefined) data.withholdingPct = ret;
+
+  return { data: data as Partial<InvoiceDraft>, fieldErrors };
+}
+
+// ── Public types / function ───────────────────────────────────────────────────
 
 export type PdfAiResult = {
   readonly draft: Partial<InvoiceDraft>;
@@ -134,8 +230,6 @@ export async function extractInvoiceWithClaude(
   pdfBuffer: ArrayBuffer,
 ): Promise<PdfAiResult> {
   const apiKey = process.env.GEMINI_API_KEY;
-
-  // DIAG-1: API key presence
   logRedacted('info', '[pdf-ai] DIAG-1 api key present:', apiKey ? 'YES' : 'NO');
 
   if (!apiKey) {
@@ -146,7 +240,6 @@ export async function extractInvoiceWithClaude(
     };
   }
 
-  // DIAG-2: PDF buffer size
   logRedacted('info', '[pdf-ai] DIAG-2 pdf buffer bytes:', String(pdfBuffer.byteLength));
 
   const { GoogleGenerativeAI } = await import('@google/generative-ai');
@@ -160,36 +253,29 @@ export async function extractInvoiceWithClaude(
   try {
     logRedacted('info', '[pdf-ai] DIAG-3 calling gemini...');
     const result = await model.generateContent([
-      {
-        inlineData: {
-          mimeType: 'application/pdf',
-          data: base64Pdf,
-        },
-      },
+      { inlineData: { mimeType: 'application/pdf', data: base64Pdf } },
       SYSTEM_PROMPT,
     ]);
     rawText = result.response.text();
-    // DIAG-4: raw response (first 300 chars only, no PII risk)
-    logRedacted('info', '[pdf-ai] DIAG-4 gemini raw response (first 300):', rawText.slice(0, 300));
+    logRedacted('info', '[pdf-ai] DIAG-4 raw (first 400):', rawText.slice(0, 400));
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
-    logRedacted('error', '[pdf-ai] DIAG-4 gemini call FAILED:', msg);
-    const isQuota = msg.includes('429') || msg.toLowerCase().includes('quota') || msg.toLowerCase().includes('too many requests');
+    logRedacted('error', '[pdf-ai] DIAG-4 gemini FAILED:', msg);
+    const isQuota = msg.includes('429') || msg.toLowerCase().includes('quota') || msg.toLowerCase().includes('too many');
     return {
       draft: {},
-      warnings: [
-        isQuota
-          ? 'Límite de peticiones de Gemini alcanzado. Espera un minuto y vuelve a intentarlo, o rellena los campos manualmente.'
-          : `Error al llamar a la IA: ${msg}. Rellena los campos manualmente.`,
+      warnings: [isQuota
+        ? 'Límite de peticiones de Gemini alcanzado. Espera un minuto e inténtalo de nuevo.'
+        : `Error Gemini: ${msg}.`,
       ],
       usedAi: false,
     };
   }
 
-  // Extract JSON block — model sometimes wraps output in ```json ... ```
+  // Extract JSON block (Gemini sometimes wraps in ```json ... ```)
   const jsonMatch = rawText.match(/\{[\s\S]*\}/);
   if (!jsonMatch) {
-    logRedacted('error', '[pdf-ai] DIAG-5 no JSON block found in response');
+    logRedacted('error', '[pdf-ai] DIAG-5 no JSON block in response');
     return {
       draft: {},
       warnings: ['La IA no devolvió datos estructurados. Rellena los campos manualmente.'],
@@ -200,9 +286,8 @@ export async function extractInvoiceWithClaude(
   let parsed: unknown;
   try {
     parsed = JSON.parse(jsonMatch[0]);
-    logRedacted('info', '[pdf-ai] DIAG-5 json parsed ok, keys:', Object.keys(parsed as object).join(','));
   } catch {
-    logRedacted('error', '[pdf-ai] DIAG-5 json parse FAILED');
+    logRedacted('error', '[pdf-ai] DIAG-5 JSON.parse FAILED');
     return {
       draft: {},
       warnings: ['La IA devolvió JSON inválido. Rellena los campos manualmente.'],
@@ -210,35 +295,44 @@ export async function extractInvoiceWithClaude(
     };
   }
 
-  const validated = aiOutputSchema.safeParse(parsed);
-  if (!validated.success) {
-    logRedacted('error', '[pdf-ai] DIAG-6 zod validation FAILED:', validated.error.issues[0]?.message ?? 'unknown');
+  // Lenient structural parse — just ensure it's an object
+  const rawParsed = geminiRawSchema.safeParse(parsed);
+  if (!rawParsed.success) {
+    logRedacted('error', '[pdf-ai] DIAG-5 schema failed (not an object?)');
     return {
       draft: {},
-      warnings: ['Datos extraídos por la IA no superaron validación. Rellena los campos manualmente.'],
+      warnings: ['La IA devolvió un formato inesperado. Rellena los campos manualmente.'],
       usedAi: true,
     };
   }
-  logRedacted('info', '[pdf-ai] DIAG-6 zod ok, draft keys:', Object.keys(validated.data).join(','));
 
-  const draft = buildDraftFromAi(validated.data);
-  const warnings: string[] = [];
+  logRedacted('info', '[pdf-ai] DIAG-5 raw keys:', Object.keys(rawParsed.data).join(','));
 
-  if (!draft.concept)     warnings.push('No se detectó concepto/descripción — revísalo.');
-  if (!draft.netAmount)   warnings.push('No se detectó importe neto — revísalo.');
-  if (!draft.totalAmount) warnings.push('No se detectó importe total — revísalo.');
-  if (!draft.issueDate)   warnings.push('No se detectó fecha de emisión — revísala.');
+  // Normalize field by field — partial data is fine
+  const { data: draft, fieldErrors } = normalizeInvoiceData(rawParsed.data);
 
-  // Fallback kind detection using known SocialPro signals
+  logRedacted('info', '[pdf-ai] DIAG-6 normalized keys:', Object.keys(draft).join(','));
+  if (Object.keys(fieldErrors).length > 0) {
+    logRedacted('info', '[pdf-ai] DIAG-6 field errors:', JSON.stringify(fieldErrors));
+  }
+
+  // SocialPro signal fallback for kind
   if (!draft.kind) {
     const issuerText = `${draft.issuerName ?? ''} ${draft.issuerNif ?? ''}`.toUpperCase();
     const isSocialPro = SOCIALPRO_SIGNALS.some((s) => issuerText.includes(s.toUpperCase()));
-    if (isSocialPro) {
-      (draft as Record<string, unknown>).kind = 'income';
-    } else {
-      warnings.push('No se pudo determinar si es ingreso o gasto — selecciónalo manualmente.');
-    }
+    if (isSocialPro) (draft as Record<string, unknown>).kind = 'income';
   }
+
+  // Build user-facing warnings from field errors + missing required fields
+  const warnings: string[] = [];
+  for (const [field, msg] of Object.entries(fieldErrors)) {
+    warnings.push(`Campo "${field}": ${msg} — revísalo.`);
+  }
+  if (!draft.concept)     warnings.push('No se detectó concepto — revísalo.');
+  if (!draft.netAmount)   warnings.push('No se detectó importe neto — revísalo.');
+  if (!draft.totalAmount) warnings.push('No se detectó importe total — revísalo.');
+  if (!draft.issueDate)   warnings.push('No se detectó fecha de emisión — revísala.');
+  if (!draft.kind)        warnings.push('No se determinó tipo (ingreso/gasto) — selecciónalo.');
 
   return { draft, warnings, usedAi: true };
 }
