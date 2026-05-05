@@ -71,8 +71,9 @@ async function uploadInvoiceImport(
     const blob = await put(blobPath, file, { access: 'public', contentType: file.type });
     return { ok: true, fileUrl: blob.url, filePath: blobPath };
   } catch (err) {
-    logRedacted('error', '[invoice-import] upload error:', err instanceof Error ? err.message : 'unknown');
-    return { ok: false, error: 'Error al subir el archivo' };
+    const msg = err instanceof Error ? err.message : String(err);
+    logRedacted('error', '[invoice-import] upload error:', msg);
+    return { ok: false, error: `Error al subir: ${msg.slice(0, 120)}` };
   }
 }
 
