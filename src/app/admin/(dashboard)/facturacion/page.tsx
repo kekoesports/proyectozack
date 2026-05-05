@@ -2,6 +2,7 @@ import { db } from '@/lib/db';
 import { crmBrands, talents, campaigns } from '@/db/schema';
 import { asc } from 'drizzle-orm';
 import { listInvoices, getBillingKPIs, getUsedInvoiceCategories } from '@/lib/queries/invoices';
+import { countPendingImports } from '@/lib/queries/invoiceImports';
 import { getIssuerCompanies, getBillingClients, listIssuedInvoices } from '@/lib/queries/issuedInvoices';
 import { InvoicesManager }          from '@/features/admin/invoices/components/InvoicesManager';
 import { IssuedInvoicesTab }         from '@/features/admin/invoices/components/IssuedInvoicesTab';
@@ -49,7 +50,7 @@ export default async function AdminInvoicesPage(): Promise<React.ReactElement> {
 
   const [
     movements, kpis, brandsList, talentsList, campaignsList,
-    issuers, billingClients, issuedInvList, categories,
+    issuers, billingClients, issuedInvList, categories, pendingImports,
   ] = await Promise.all([
     listInvoices(isStaff ? { staffUserId: session.user.id } : {}),
     getBillingKPIs(yearStart),
@@ -64,6 +65,7 @@ export default async function AdminInvoicesPage(): Promise<React.ReactElement> {
     getBillingClients(),
     listIssuedInvoices(isStaff ? { staffUserId: session.user.id } : {}),
     getUsedInvoiceCategories(),
+    countPendingImports(),
   ]);
 
   const incomeCount  = movements.filter((i) => i.kind === 'income').length;
@@ -131,7 +133,47 @@ export default async function AdminInvoicesPage(): Promise<React.ReactElement> {
           {
             key:   'importar',
             label: 'Importar datos',
-            content: <AccountingImporter />,
+            content: (
+              <div className="space-y-6">
+                {/* PDF invoice import card */}
+                <a
+                  href="/admin/facturacion/import"
+                  className="flex items-center justify-between gap-4 rounded-2xl bg-sp-admin-card border border-sp-admin-border p-5 hover:border-sp-admin-accent/40 transition-colors group"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-xl bg-sp-admin-accent/10 flex items-center justify-center shrink-0">
+                      <svg className="w-5 h-5 text-sp-admin-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-sp-admin-text group-hover:text-sp-admin-accent transition-colors">
+                        Importar factura PDF
+                      </p>
+                      <p className="text-xs text-sp-admin-muted mt-0.5">
+                        Sube una factura en PDF — la IA extrae los datos automáticamente
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 shrink-0">
+                    {pendingImports > 0 && (
+                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-amber-500/15 text-amber-400 text-[11px] font-semibold">
+                        {pendingImports} pendiente{pendingImports !== 1 ? 's' : ''}
+                      </span>
+                    )}
+                    <svg className="w-4 h-4 text-sp-admin-muted group-hover:text-sp-admin-accent transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                    </svg>
+                  </div>
+                </a>
+
+                {/* Excel / CSV importer (unchanged) */}
+                <div>
+                  <p className="text-[11px] uppercase tracking-wider font-semibold text-sp-admin-muted mb-3">Importar desde Excel / CSV</p>
+                  <AccountingImporter />
+                </div>
+              </div>
+            ),
           },
           {
             key:   'facturas',

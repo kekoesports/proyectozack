@@ -138,6 +138,40 @@ type PendingRowProps = {
   readonly onToggle: () => void;
 };
 
+const RETRY_COOLDOWN_MS = 60_000;
+const retryCooldownKey = (id: number) => `invoice-import-retry-${id}`;
+
+function useRetryCooldown(importId: number): {
+  cooldownSecs: number;
+  startCooldown: () => void;
+} {
+  const [cooldownSecs, setCooldownSecs] = useState<number>(() => {
+    if (typeof window === 'undefined') return 0;
+    const ts = localStorage.getItem(retryCooldownKey(importId));
+    if (!ts) return 0;
+    const remaining = Math.ceil((Number(ts) + RETRY_COOLDOWN_MS - Date.now()) / 1000);
+    return remaining > 0 ? remaining : 0;
+  });
+
+  useEffect(() => {
+    if (cooldownSecs <= 0) return;
+    const id = setInterval(() => {
+      setCooldownSecs((s) => {
+        if (s <= 1) { clearInterval(id); return 0; }
+        return s - 1;
+      });
+    }, 1000);
+    return () => clearInterval(id);
+  }, [cooldownSecs]);
+
+  const startCooldown = (): void => {
+    localStorage.setItem(retryCooldownKey(importId), String(Date.now()));
+    setCooldownSecs(Math.ceil(RETRY_COOLDOWN_MS / 1000));
+  };
+
+  return { cooldownSecs, startCooldown };
+}
+
 export function PendingRow({
   imp,
   brands,
@@ -149,6 +183,7 @@ export function PendingRow({
   const [isRejecting, startReject] = useTransition();
   const [isRetrying, startRetry] = useTransition();
   const [retryError, setRetryError] = useState<string | null>(null);
+  const { cooldownSecs, startCooldown } = useRetryCooldown(imp.id);
 
   const draft = (imp.parsedDraft ?? {}) as Record<string, unknown>;
   const isRateLimited = draft.__extraction_status__ === 'rate_limited';
@@ -159,7 +194,9 @@ export function PendingRow({
   };
 
   const onRetry = (): void => {
+    if (cooldownSecs > 0) return;
     setRetryError(null);
+    startCooldown();
     startRetry(async () => {
       const result = await retryExtractionAction(imp.id);
       if (result.error) setRetryError(result.error);
@@ -218,10 +255,14 @@ export function PendingRow({
               <button
                 type="button"
                 onClick={onRetry}
-                disabled={isRetrying}
-                className="px-4 py-2 rounded-lg bg-sp-admin-accent text-white text-[13px] font-semibold hover:bg-sp-admin-accent/90 disabled:opacity-50 transition-colors"
+                disabled={isRetrying || cooldownSecs > 0}
+                className="px-4 py-2 rounded-lg bg-sp-admin-accent text-white text-[13px] font-semibold hover:bg-sp-admin-accent/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
-                {isRetrying ? 'Reintentando… (puede tardar ~15s)' : 'Reintentar IA'}
+                {isRetrying
+                  ? 'Reintentando… (puede tardar ~15s)'
+                  : cooldownSecs > 0
+                    ? `Disponible en ${cooldownSecs}s`
+                    : 'Reintentar IA'}
               </button>
             </div>
           )}
