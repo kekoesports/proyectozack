@@ -4,6 +4,7 @@ import type { Metadata } from 'next';
 import { requireAnyRole } from '@/lib/auth-guard';
 import {
   getTasksForWeek,
+  getTasksForCalendarView,
   getTaskTemplates,
   getUsedCategories,
   getTaskRelatedOptions,
@@ -29,8 +30,13 @@ export default async function TareasPage(): Promise<ReactElement> {
     ? { session: { userId: session.user.id, role: session.user.role } }
     : {};
 
-  const [tasks, users, suggestedCategories, relatedOptions, templates] = await Promise.all([
+  const calendarOptions = session.user.role !== 'admin'
+    ? { session: { userId: session.user.id, role: session.user.role } }
+    : undefined;
+
+  const [tasks, calendarTasks, users, suggestedCategories, relatedOptions, templates] = await Promise.all([
     getTasksForWeek(weekLabel, taskOptions),
+    getTasksForCalendarView(weekLabel, calendarOptions),
     getAllStaffUsers(),
     getUsedCategories(),
     getTaskRelatedOptions(),
@@ -62,6 +68,7 @@ export default async function TareasPage(): Promise<ReactElement> {
       <Suspense fallback={<p className="text-sm text-sp-admin-muted">Cargando tareas…</p>}>
         <TaskWorkspace
           tasks={tasks}
+          calendarTasks={calendarTasks}
           users={userOptions}
           currentUserId={session.user.id}
           suggestedCategories={suggestedCategories}

@@ -14,6 +14,7 @@ type UserOption = { readonly id: string; readonly name: string };
 
 type Props = {
   readonly tasks: readonly CrmTask[];
+  readonly calendarTasks?: readonly CrmTask[];
   readonly users: readonly UserOption[];
   readonly currentUserId: string;
   readonly suggestedCategories?: readonly string[];
@@ -160,7 +161,7 @@ export function TaskWorkspace(props: Props): React.ReactElement {
       )}
 
       {view === 'calendar' && (
-        <TaskCalendar tasks={props.tasks} onOpenAction={openTask} />
+        <TaskCalendar tasks={props.calendarTasks ?? props.tasks} onOpenAction={openTask} />
       )}
 
       {/* Modal específico para vistas Kanban/Calendario (Lista usa su propio router-driven modal) */}

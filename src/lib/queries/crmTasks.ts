@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, getTableColumns, inArray, isNull, lte, ne, notLike, or, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, getTableColumns, inArray, isNotNull, isNull, lte, ne, notLike, or, sql } from 'drizzle-orm';
 
 import { campaigns, crmBrands, crmTasks, invoices, talents, user } from '@/db/schema';
 import { crmTaskTemplates } from '@/db/schema/crmTaskTemplates';
@@ -684,4 +684,43 @@ export async function taskExistsForWeek(title: string, weekLabel: string): Promi
     .where(and(eq(crmTasks.weekLabel, weekLabel), eq(crmTasks.title, title)))
     .limit(1);
   return row !== undefined;
+}
+
+/**
+ * Tareas para la vista calendario: tareas con fecha (cualquier semana) + tareas sin fecha de la
+ * semana actual. Aplica filtro de visibilidad igual que `getTasksForWeek`.
+ *
+ * @cache none
+ * @visibility admin
+ * @scope staff
+ */
+export async function getTasksForCalendarView(
+  weekLabel: string,
+  options?: { readonly session?: TaskSession },
+): Promise<readonly CrmTask[]> {
+  const noTestFilter = and(
+    notLike(crmTasks.title, 'E2E %'),
+    notLike(crmTasks.title, 'E2E%'),
+    notLike(crmTasks.title, 'Test Task%'),
+  );
+
+  // Dated tasks from any week  OR  undated tasks from the current week
+  const scopeFilter = or(
+    isNotNull(crmTasks.dueDate),
+    eq(crmTasks.weekLabel, weekLabel),
+  );
+
+  const filters = [noTestFilter, scopeFilter];
+  const visible = visibilityCondition(options?.session);
+  if (visible !== undefined) filters.push(visible);
+
+  return db
+    .select({
+      ...getTableColumns(crmTasks),
+      recurrence: crmTaskTemplates.recurrence,
+    })
+    .from(crmTasks)
+    .leftJoin(crmTaskTemplates, eq(crmTaskTemplates.id, crmTasks.recurrenceTemplateId))
+    .where(and(...filters))
+    .orderBy(asc(crmTasks.dueDate), desc(crmTasks.createdAt));
 }
