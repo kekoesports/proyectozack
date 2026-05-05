@@ -107,10 +107,25 @@ type CreateImportArgs = {
  * @visibility admin
  * @returns la fila `InvoiceImport` creada.
  */
+export async function deleteImport(id: number): Promise<void> {
+  await db.delete(invoiceImports).where(eq(invoiceImports.id, id));
+}
+
+export async function deleteAllRejectedImports(): Promise<void> {
+  await db.delete(invoiceImports).where(eq(invoiceImports.status, 'rejected'));
+}
+
 export async function createImport(args: CreateImportArgs): Promise<InvoiceImport> {
   const rowIndex = args.sourceRowIndex ?? -1;
   const existing = await getImportByHash(args.fileHash, rowIndex);
-  if (existing) throw new DuplicateImportError(existing.id);
+  if (existing) {
+    // Allow re-upload of rejected imports — delete the old record and proceed
+    if (existing.status === 'rejected') {
+      await db.delete(invoiceImports).where(eq(invoiceImports.id, existing.id));
+    } else {
+      throw new DuplicateImportError(existing.id);
+    }
+  }
 
   const [row] = await db
     .insert(invoiceImports)

@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
 import type { InvoiceImportWithDraft } from '@/types';
 import type { ImportTemplate } from '@/lib/queries/invoiceImportTemplates';
+import { deleteImportAction, clearHistoryAction } from '@/app/admin/(dashboard)/facturacion/import/import-actions';
 import {
   type BrandOption,
   type TalentOption,
@@ -39,6 +40,16 @@ export function ImportInbox({
   templates,
 }: ImportInboxProps): React.ReactElement {
   const [expandedId, setExpandedId] = useState<number | null>(null);
+  const [isPending, startTransition] = useTransition();
+
+  const handleDelete = (id: number): void => {
+    startTransition(async () => { await deleteImportAction(id); });
+  };
+
+  const handleClearAll = (): void => {
+    if (!confirm('¿Eliminar todo el historial de imports rechazados?')) return;
+    startTransition(async () => { await clearHistoryAction(); });
+  };
 
   return (
     <div className="space-y-8">
@@ -71,9 +82,21 @@ export function ImportInbox({
       </section>
 
       <section>
-        <h2 className="font-display text-xl font-black uppercase text-sp-admin-text mb-3">
-          Histórico reciente
-        </h2>
+        <div className="flex items-baseline justify-between mb-3">
+          <h2 className="font-display text-xl font-black uppercase text-sp-admin-text">
+            Histórico reciente
+          </h2>
+          {reviewed.length > 0 && (
+            <button
+              type="button"
+              onClick={handleClearAll}
+              disabled={isPending}
+              className="text-xs text-red-400 hover:text-red-300 transition-colors disabled:opacity-40"
+            >
+              Limpiar historial
+            </button>
+          )}
+        </div>
         {reviewed.length === 0 ? (
           <EmptyState message="Todavía no se ha revisado ningún import." />
         ) : (
@@ -86,20 +109,13 @@ export function ImportInbox({
                   <th className="text-left px-4 py-3 font-semibold text-sp-admin-muted text-[11px] uppercase tracking-wider">Estado</th>
                   <th className="text-left px-4 py-3 font-semibold text-sp-admin-muted text-[11px] uppercase tracking-wider">Revisado</th>
                   <th className="text-left px-4 py-3 font-semibold text-sp-admin-muted text-[11px] uppercase tracking-wider">Factura</th>
+                  <th className="px-4 py-3 w-8" />
                 </tr>
               </thead>
               <tbody>
                 {reviewed.map((imp) => (
-                  <tr key={imp.id} className="border-b border-sp-admin-border/50 last:border-0">
-                    <td className="px-4 py-3 text-sp-admin-text">
-                      {imp.fileUrl ? (
-                        <a href={imp.fileUrl} target="_blank" rel="noreferrer" className="hover:underline">
-                          {imp.sourceFilename}
-                        </a>
-                      ) : (
-                        imp.sourceFilename
-                      )}
-                    </td>
+                  <tr key={imp.id} className="border-b border-sp-admin-border/50 last:border-0 group">
+                    <td className="px-4 py-3 text-sp-admin-text">{imp.sourceFilename}</td>
                     <td className="px-4 py-3 text-sp-admin-muted font-mono text-xs">{imp.sourceType}</td>
                     <td className="px-4 py-3">
                       <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border ${STATUS_STYLE[imp.status]}`}>
@@ -113,6 +129,19 @@ export function ImportInbox({
                       ) : (
                         <span className="text-sp-admin-muted">—</span>
                       )}
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(imp.id)}
+                        disabled={isPending}
+                        aria-label="Eliminar"
+                        className="opacity-0 group-hover:opacity-100 transition-opacity text-red-400 hover:text-red-300 disabled:opacity-30"
+                      >
+                        <svg aria-hidden="true" className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      </button>
                     </td>
                   </tr>
                 ))}

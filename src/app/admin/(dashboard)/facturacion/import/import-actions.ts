@@ -23,6 +23,8 @@ import {
   createManyImports,
   getImport,
   rejectImport,
+  deleteImport,
+  deleteAllRejectedImports,
   DuplicateImportError,
 } from '@/lib/queries/invoiceImports';
 import { extractXlsxSheet } from '@/lib/parsers/xlsx';
@@ -244,6 +246,30 @@ export async function rejectImportAction(id: number): Promise<ActionState> {
   } catch (err) {
     logRedacted('error', '[invoice-import] rejectImport error:', err instanceof Error ? err.message : 'unknown');
     return { error: 'Error al rechazar el import' };
+  }
+}
+
+export async function deleteImportAction(id: number): Promise<ActionState> {
+  await requireAnyRole(['admin', 'manager'], '/admin/login');
+  try {
+    await deleteImport(id);
+    revalidatePath('/admin/facturacion/import');
+    return { success: true };
+  } catch (err) {
+    logRedacted('error', '[invoice-import] deleteImport error:', err instanceof Error ? err.message : 'unknown');
+    return { error: 'Error al eliminar' };
+  }
+}
+
+export async function clearHistoryAction(): Promise<ActionState> {
+  await requireAnyRole(['admin', 'manager'], '/admin/login');
+  try {
+    await deleteAllRejectedImports();
+    revalidatePath('/admin/facturacion/import');
+    return { success: true };
+  } catch (err) {
+    logRedacted('error', '[invoice-import] clearHistory error:', err instanceof Error ? err.message : 'unknown');
+    return { error: 'Error al limpiar historial' };
   }
 }
 
