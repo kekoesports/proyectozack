@@ -113,35 +113,39 @@ export async function uploadImportAction(
   let parsedDraft: Record<string, unknown> | null = null;
   let warningsOut: readonly string[] = [];
   if (sourceType === 'pdf-text') {
+    const buf = await file.arrayBuffer();
+
+    // ── Step 1: Gemini AI extraction (no pdfjs dependency) ─────────────────
+    // Isolated so pdfjs failures can't prevent AI from running.
+    let aiResult: import('@/lib/parsers/pdfAi').PdfAiResult = {
+      draft: {}, warnings: [], usedAi: false,
+    };
     try {
-      const buf = await file.arrayBuffer();
+      const { extractInvoiceWithClaude } = await import('@/lib/parsers/pdfAi');
+      aiResult = await extractInvoiceWithClaude(buf);
+    } catch (err) {
+      logRedacted('error', '[invoice-import] ai extraction error:', err instanceof Error ? err.message : 'unknown');
+    }
 
-      // Dynamic imports keep pdfjs-dist out of the module init phase (it uses browser
-      // globals like DOMMatrix that crash Node.js at module evaluation time).
-      const [{ extractPdfText }, { parseInvoicePdf }, { extractInvoiceWithClaude }] =
-        await Promise.all([
-          import('@/lib/parsers/pdf'),
-          import('@/lib/parsers/pdfHeuristics'),
-          import('@/lib/parsers/pdfAi'),
-        ]);
-
-      // 1. Try AI extraction first
-      const aiResult = await extractInvoiceWithClaude(buf);
-
-      if (aiResult.usedAi && Object.keys(aiResult.draft).length > 0) {
-        // AI succeeded — also run heuristic parser for bbox regions (template learning)
-        let regions: ParsedRegions = {};
-        try {
-          const extract = await extractPdfText(buf);
-          const heuristic = parseInvoicePdf(extract);
-          regions = heuristic.regions;
-        } catch {
-          // regions are optional; template learning will just be skipped
-        }
-        parsedDraft = { ...aiResult.draft, [REGIONS_KEY]: regions };
-        warningsOut = aiResult.warnings;
-      } else {
-        // AI unavailable or empty — fall back to heuristic parser
+    if (aiResult.usedAi && Object.keys(aiResult.draft).length > 0) {
+      // AI succeeded — optionally run pdfjs for bbox regions (template learning).
+      // Failure here is non-blocking; the AI draft is saved regardless.
+      let regions: ParsedRegions = {};
+      try {
+        const { extractPdfText }  = await import('@/lib/parsers/pdf');
+        const { parseInvoicePdf } = await import('@/lib/parsers/pdfHeuristics');
+        const extract = await extractPdfText(buf);
+        regions = parseInvoicePdf(extract).regions;
+      } catch {
+        // regions optional — template learning skipped, AI draft still saved
+      }
+      parsedDraft = { ...aiResult.draft, [REGIONS_KEY]: regions };
+      warningsOut = aiResult.warnings;
+    } else {
+      // ── Step 2: Heuristic fallback (pdfjs-based) ─────────────────────────
+      try {
+        const { extractPdfText }  = await import('@/lib/parsers/pdf');
+        const { parseInvoicePdf } = await import('@/lib/parsers/pdfHeuristics');
         const extract = await extractPdfText(buf);
         const initial = parseInvoicePdf(extract);
         let finalResult = initial;
@@ -149,20 +153,16 @@ export async function uploadImportAction(
           const tpl = await getParserTemplateByNif(initial.draft.issuerNif);
           if (tpl) {
             finalResult = parseInvoicePdf(extract, {
-              template: {
-                regions: tpl.regions,
-                issuerNif: tpl.issuerNif,
-                issuerName: tpl.issuerName,
-              },
+              template: { regions: tpl.regions, issuerNif: tpl.issuerNif, issuerName: tpl.issuerName },
             });
           }
         }
         parsedDraft = { ...finalResult.draft, [REGIONS_KEY]: finalResult.regions };
         warningsOut = [...aiResult.warnings, ...finalResult.warnings];
+      } catch (err) {
+        logRedacted('error', '[invoice-import] heuristic parse error:', err instanceof Error ? err.message : 'unknown');
+        warningsOut = [...aiResult.warnings, 'No se pudo parsear el PDF automáticamente. Completa los campos manualmente.'];
       }
-    } catch (err) {
-      logRedacted('error', '[invoice-import] pdf parse error:', err instanceof Error ? err.message : 'unknown');
-      warningsOut = ['No se pudo parsear el PDF automáticamente. Completa los campos manualmente.'];
     }
   }
 
