@@ -90,17 +90,6 @@ export function BrandRow({ brand, contacts, followups, campaigns, isExpanded, ca
         <td className="px-6 py-4 text-sp-admin-muted text-xs">
           {brand.sector ? (SECTOR_LABELS[brand.sector as CrmBrandSector] ?? brand.sector) : '—'}
         </td>
-        <td className="px-6 py-4 text-sp-admin-muted">{brand.ownerName ?? '—'}</td>
-        <td className="px-6 py-4 text-sp-admin-muted">
-          {primary ? (
-            <div className="flex flex-col">
-              <span className="text-sp-admin-text font-medium">{primary.name}</span>
-              {primary.email && <span className="text-xs">{primary.email}</span>}
-            </div>
-          ) : (
-            <span className="text-xs italic">Sin contacto principal</span>
-          )}
-        </td>
         <td className="px-6 py-4 text-right whitespace-nowrap">
           <button
             type="button"

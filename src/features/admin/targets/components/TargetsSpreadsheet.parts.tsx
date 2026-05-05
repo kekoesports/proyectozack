@@ -139,11 +139,11 @@ export function Toolbar({
         </div>
       )}
 
-      {activeBatches.length > 1 && (
+      {activeBatches.filter((b) => b in BATCH_LABELS).length > 0 && (
         <div className="flex items-center gap-1.5">
-          {activeBatches.map((b) => {
+          {activeBatches.filter((b) => b in BATCH_LABELS).map((b) => {
             const isActive = batchFilter.has(b);
-            const label = BATCH_LABELS[b] ?? b;
+            const label = BATCH_LABELS[b]!;
             return (
               <button
                 key={b}
@@ -227,8 +227,15 @@ type BulkActionsBarProps = Readonly<{
   isPending: boolean;
   selectedIds: number[];
   handleDelete: (ids: number[]) => void;
+  handleBulkStatus: (status: string) => void;
   clearSelection: () => void;
 }>;
+
+const BULK_STATUS_OPTIONS = [
+  { value: 'pendiente',  label: 'Pendiente',  cls: 'text-amber-400 hover:bg-amber-900/20' },
+  { value: 'contactado', label: 'Contactado', cls: 'text-blue-400 hover:bg-blue-900/20' },
+  { value: 'descartado', label: 'Descartado', cls: 'text-sp-admin-muted hover:bg-sp-admin-hover' },
+] as const;
 
 export function BulkActionsBar({
   selectedSize,
@@ -239,19 +246,36 @@ export function BulkActionsBar({
   isPending,
   selectedIds,
   handleDelete,
+  handleBulkStatus,
   clearSelection,
 }: BulkActionsBarProps): React.ReactElement {
   return (
-    <div className="flex items-center gap-3 px-4 py-2.5 bg-sp-admin-card border border-sp-admin-accent/30 rounded-lg">
-      <span className="text-xs font-semibold text-sp-admin-accent tabular-nums">
+    <div className="flex items-center gap-3 px-4 py-2.5 bg-sp-admin-card border border-sp-admin-accent/30 rounded-lg flex-wrap">
+      <span className="text-xs font-semibold text-sp-admin-accent tabular-nums shrink-0">
         {selectedSize} seleccionado{selectedSize > 1 ? 's' : ''}
       </span>
+
+      <div className="flex items-center gap-1 border-l border-sp-admin-border/60 pl-3">
+        <span className="text-[10px] text-sp-admin-muted mr-1">Estado:</span>
+        {BULK_STATUS_OPTIONS.map((opt) => (
+          <button
+            key={opt.value}
+            type="button"
+            onClick={() => handleBulkStatus(opt.value)}
+            disabled={isPending}
+            className={`px-2.5 py-1 rounded text-[11px] font-semibold transition-colors disabled:opacity-40 ${opt.cls}`}
+          >
+            {opt.label}
+          </button>
+        ))}
+      </div>
+
       {brands.length > 0 && (
-        <>
+        <div className="flex items-center gap-1.5 border-l border-sp-admin-border/60 pl-3">
           <select
             value={brandUserId}
             onChange={(e) => setBrandUserId(e.target.value)}
-            className="min-w-[200px] bg-sp-admin-bg rounded px-3 py-1.5 text-[11px] text-sp-admin-text border border-sp-admin-border focus:outline-none focus:ring-1 focus:ring-sp-admin-accent/40"
+            className="min-w-[180px] bg-sp-admin-bg rounded px-3 py-1.5 text-[11px] text-sp-admin-text border border-sp-admin-border focus:outline-none focus:ring-1 focus:ring-sp-admin-accent/40"
           >
             <option value="">Asignar a marca...</option>
             {brands.map((brand) => (
@@ -268,8 +292,9 @@ export function BulkActionsBar({
           >
             Asignar
           </button>
-        </>
+        </div>
       )}
+
       <button
         type="button"
         onClick={() => handleDelete(selectedIds)}

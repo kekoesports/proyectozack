@@ -129,14 +129,15 @@ export function BrandFormDrawer({
             />
           </div>
           <div>
-            <label className={LABEL} htmlFor="bfd-manager">Manager</label>
-            <input
+            <label className={LABEL} htmlFor="bfd-manager">Manager(s)</label>
+            <textarea
               id="bfd-manager"
               name="manager"
+              rows={2}
               maxLength={250}
               defaultValue={brand?.manager ?? ''}
-              className={INPUT}
-              placeholder="Nombre del contacto principal"
+              className={`${INPUT} resize-none`}
+              placeholder={"Manager 1\nManager 2"}
             />
           </div>
         </div>

@@ -9,6 +9,7 @@ import {
   deleteAllTargetsAction,
   assignTargetsToBrandAction,
   importCSVAction,
+  bulkUpdateStatusAction,
 } from '@/app/admin/(dashboard)/targets/actions';
 import type { BrandUserRow } from '@/lib/queries/brandUsers';
 import { TargetsEmptyState } from './TargetsEmptyState';
@@ -225,6 +226,14 @@ export function TargetsSpreadsheet({
     });
   };
 
+  const handleBulkStatus = (status: string): void => {
+    if (selectedIds.length === 0) return;
+    startTransition(async () => {
+      await bulkUpdateStatusAction(selectedIds, status);
+      setSelected(new Set());
+    });
+  };
+
   const handleAssignToBrand = (): void => {
     if (!brandUserId || selectedIds.length === 0) return;
     const fd = new FormData();
@@ -309,6 +318,7 @@ export function TargetsSpreadsheet({
           isPending={isPending}
           selectedIds={selectedIds}
           handleDelete={handleDelete}
+          handleBulkStatus={handleBulkStatus}
           clearSelection={() => setSelected(new Set())}
         />
       )}
