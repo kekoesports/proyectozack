@@ -29,10 +29,10 @@ import { extractXlsxSheet } from '@/lib/parsers/xlsx';
 import { extractCsvSheet } from '@/lib/parsers/csv';
 import { applyMapping, MAPPABLE_FIELDS, type ColumnMapping } from '@/lib/parsers/common';
 import { upsertTemplate } from '@/lib/queries/invoiceImportTemplates';
-import { extractPdfText } from '@/lib/parsers/pdf';
-import { parseInvoicePdf, type ParsedRegions } from '@/lib/parsers/pdfHeuristics';
-import { extractInvoiceWithClaude } from '@/lib/parsers/pdfAi';
 import { getParserTemplateByNif, upsertParserTemplate } from '@/lib/queries/invoiceParserTemplates';
+// pdf.ts / pdfHeuristics.ts / pdfAi.ts use pdfjs-dist which has browser globals at
+// module init. Keep them as dynamic imports so they only load when a PDF is uploaded.
+type ParsedRegions = import('@/lib/parsers/pdfHeuristics').ParsedRegions;
 
 // Internal key used to piggy-back bbox regions on the parsedDraft jsonb column
 // so we don't need a dedicated column for template learning.
@@ -114,7 +114,16 @@ export async function uploadImportAction(
     try {
       const buf = await file.arrayBuffer();
 
-      // 1. Try Claude AI extraction first
+      // Dynamic imports keep pdfjs-dist out of the module init phase (it uses browser
+      // globals like DOMMatrix that crash Node.js at module evaluation time).
+      const [{ extractPdfText }, { parseInvoicePdf }, { extractInvoiceWithClaude }] =
+        await Promise.all([
+          import('@/lib/parsers/pdf'),
+          import('@/lib/parsers/pdfHeuristics'),
+          import('@/lib/parsers/pdfAi'),
+        ]);
+
+      // 1. Try AI extraction first
       const aiResult = await extractInvoiceWithClaude(buf);
 
       if (aiResult.usedAi && Object.keys(aiResult.draft).length > 0) {
