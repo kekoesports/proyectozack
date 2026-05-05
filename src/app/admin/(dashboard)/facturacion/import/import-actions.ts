@@ -145,8 +145,11 @@ export async function uploadImportAction(
       }
       parsedDraft = { ...aiResult.draft, [REGIONS_KEY]: regions };
       warningsOut = aiResult.warnings;
-    } else {
-      // ── Step 2: Heuristic fallback (pdfjs-based) ─────────────────────────
+    } else if (!process.env.GEMINI_API_KEY) {
+      // ── Step 2: Heuristic fallback (pdfjs-based) — only when no AI key ────
+      // pdfjs-dist crashes on Vercel (DOMMatrix not available in Node 18).
+      // When Gemini is configured but returned empty (quota/error), show the
+      // AI warning directly and skip pdfjs to avoid a secondary crash.
       try {
         const { extractPdfText }  = await import('@/lib/parsers/pdf');
         const { parseInvoicePdf } = await import('@/lib/parsers/pdfHeuristics');
@@ -167,6 +170,11 @@ export async function uploadImportAction(
         logRedacted('error', '[invoice-import] heuristic parse error:', err instanceof Error ? err.message : 'unknown');
         warningsOut = [...aiResult.warnings, 'No se pudo parsear el PDF automáticamente. Completa los campos manualmente.'];
       }
+    } else {
+      // Gemini configured but returned no data (quota/network error) — surface AI warnings
+      warningsOut = aiResult.warnings.length > 0
+        ? aiResult.warnings
+        : ['La IA no devolvió datos. Rellena los campos manualmente.'];
     }
   }
 

@@ -151,7 +151,7 @@ export async function extractInvoiceWithClaude(
 
   const { GoogleGenerativeAI } = await import('@google/generative-ai');
   const genAI = new GoogleGenerativeAI(apiKey);
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
   const base64Pdf = Buffer.from(pdfBuffer).toString('base64');
 
   let rawText: string;
@@ -172,9 +172,14 @@ export async function extractInvoiceWithClaude(
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     logRedacted('error', '[pdf-ai] DIAG-4 gemini call FAILED:', msg);
+    const isQuota = msg.includes('429') || msg.toLowerCase().includes('quota') || msg.toLowerCase().includes('too many requests');
     return {
       draft: {},
-      warnings: [`Error al llamar a la IA: ${msg}. Rellena los campos manualmente.`],
+      warnings: [
+        isQuota
+          ? 'Límite de peticiones de Gemini alcanzado. Espera un minuto y vuelve a intentarlo, o rellena los campos manualmente.'
+          : `Error al llamar a la IA: ${msg}. Rellena los campos manualmente.`,
+      ],
       usedAi: false,
     };
   }
