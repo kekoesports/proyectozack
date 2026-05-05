@@ -1,12 +1,11 @@
-// Claude-powered PDF invoice extractor.
-// Falls back gracefully when ANTHROPIC_API_KEY is not set.
+// Gemini-powered PDF invoice extractor (free tier: 1500 req/day).
+// Falls back gracefully when GEMINI_API_KEY is not set.
 
-import Anthropic from '@anthropic-ai/sdk';
-import type { DocumentBlockParam, TextBlockParam } from '@anthropic-ai/sdk/resources/messages';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import { z } from 'zod';
 import type { InvoiceDraft } from '@/lib/schemas/invoiceDraft';
 
-// SocialPro issuer identifiers — invoice with one of these as issuer = income.
+// SocialPro issuer identifiers — if any of these appear as the invoice issuer → income.
 const SOCIALPRO_SIGNALS = [
   'PLAYMAKER MEDIA LLC',
   'THE AGENT',
@@ -22,9 +21,7 @@ Las entidades de SocialPro son (cuando SocialPro es el EMISOR de la factura → 
 - ElevateX Agency PA SL · NIF B21821046 (España)
 - PLAYMAKER MEDIA LLC / THE AGENT · EIN 98-1925044 (USA)
 
-Responde ÚNICAMENTE con un objeto JSON válido, sin texto adicional ni markdown.`;
-
-const USER_PROMPT = `Extrae los datos de esta factura y devuelve SOLO el JSON con estos campos (todos opcionales salvo los que puedas leer):
+Extrae los datos de esta factura y devuelve SOLO el JSON con estos campos (todos los que puedas leer):
 
 {
   "kind": "income" o "expense",
@@ -39,10 +36,12 @@ const USER_PROMPT = `Extrae los datos de esta factura y devuelve SOLO el JSON co
   "withholdingPct": "% de retención como decimal (ej: 0.00 o 15.00)",
   "totalAmount": "importe total como decimal con punto",
   "currency": "código ISO 3 letras (EUR, USD...)"
-}`;
+}
 
-// Loose schema to validate Claude's JSON output before trusting it.
-const claudeOutputSchema = z.object({
+Responde ÚNICAMENTE con el objeto JSON, sin texto adicional ni markdown.`;
+
+// Loose schema to validate Gemini's JSON output before trusting it.
+const aiOutputSchema = z.object({
   kind: z.enum(['income', 'expense']).optional(),
   number: z.string().max(60).optional(),
   issueDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
@@ -57,7 +56,7 @@ const claudeOutputSchema = z.object({
   currency: z.string().length(3).optional(),
 });
 
-type ClaudeOutput = z.infer<typeof claudeOutputSchema>;
+type AiOutput = z.infer<typeof aiOutputSchema>;
 
 function normalizeMoneyString(raw: string | undefined): string | undefined {
   if (!raw) return undefined;
@@ -66,16 +65,16 @@ function normalizeMoneyString(raw: string | undefined): string | undefined {
   return /^\d+(\.\d{1,2})?$/.test(normalized) ? normalized : undefined;
 }
 
-function buildDraftFromClaude(data: ClaudeOutput): Partial<InvoiceDraft> {
+function buildDraftFromAi(data: AiOutput): Partial<InvoiceDraft> {
   const draft: Record<string, unknown> = {};
-  if (data.kind)            draft.kind            = data.kind;
-  if (data.number)          draft.number          = data.number;
-  if (data.issueDate)       draft.issueDate       = data.issueDate;
-  if (data.concept)         draft.concept         = data.concept;
+  if (data.kind)             draft.kind             = data.kind;
+  if (data.number)           draft.number           = data.number;
+  if (data.issueDate)        draft.issueDate        = data.issueDate;
+  if (data.concept)          draft.concept          = data.concept;
   if (data.counterpartyName) draft.counterpartyName = data.counterpartyName;
-  if (data.issuerNif)       draft.issuerNif       = data.issuerNif;
-  if (data.issuerName)      draft.issuerName      = data.issuerName;
-  if (data.currency)        draft.currency        = data.currency;
+  if (data.issuerNif)        draft.issuerNif        = data.issuerNif;
+  if (data.issuerName)       draft.issuerName       = data.issuerName;
+  if (data.currency)         draft.currency         = data.currency;
 
   const net   = normalizeMoneyString(data.netAmount);
   const total = normalizeMoneyString(data.totalAmount);
@@ -99,43 +98,31 @@ export type PdfAiResult = {
 export async function extractInvoiceWithClaude(
   pdfBuffer: ArrayBuffer,
 ): Promise<PdfAiResult> {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     return {
       draft: {},
-      warnings: ['Extracción IA no disponible (falta ANTHROPIC_API_KEY). Rellena los campos manualmente.'],
+      warnings: ['Extracción IA no disponible (falta GEMINI_API_KEY). Rellena los campos manualmente.'],
       usedAi: false,
     };
   }
 
-  const client = new Anthropic({ apiKey });
+  const genAI = new GoogleGenerativeAI(apiKey);
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
   const base64Pdf = Buffer.from(pdfBuffer).toString('base64');
-
-  const docBlock: DocumentBlockParam = {
-    type: 'document',
-    source: {
-      type: 'base64',
-      media_type: 'application/pdf',
-      data: base64Pdf,
-    },
-  };
-
-  const textBlock: TextBlockParam = {
-    type: 'text',
-    text: USER_PROMPT,
-  };
 
   let rawText: string;
   try {
-    const response = await client.messages.create({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 1024,
-      system: SYSTEM_PROMPT,
-      messages: [{ role: 'user', content: [docBlock, textBlock] }],
-    });
-
-    const textContent = response.content.find((c) => c.type === 'text');
-    rawText = textContent && textContent.type === 'text' ? textContent.text : '';
+    const result = await model.generateContent([
+      {
+        inlineData: {
+          mimeType: 'application/pdf',
+          data: base64Pdf,
+        },
+      },
+      SYSTEM_PROMPT,
+    ]);
+    rawText = result.response.text();
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     return {
@@ -145,7 +132,7 @@ export async function extractInvoiceWithClaude(
     };
   }
 
-  // Extract JSON block — Claude sometimes wraps output in ```json ... ```
+  // Extract JSON block — model sometimes wraps output in ```json ... ```
   const jsonMatch = rawText.match(/\{[\s\S]*\}/);
   if (!jsonMatch) {
     return {
@@ -166,7 +153,7 @@ export async function extractInvoiceWithClaude(
     };
   }
 
-  const validated = claudeOutputSchema.safeParse(parsed);
+  const validated = aiOutputSchema.safeParse(parsed);
   if (!validated.success) {
     return {
       draft: {},
@@ -175,7 +162,7 @@ export async function extractInvoiceWithClaude(
     };
   }
 
-  const draft = buildDraftFromClaude(validated.data);
+  const draft = buildDraftFromAi(validated.data);
   const warnings: string[] = [];
 
   if (!draft.concept)     warnings.push('No se detectó concepto/descripción — revísalo.');

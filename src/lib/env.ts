@@ -19,7 +19,7 @@ export const env = createEnv({
     // Optional in dev so the app boots without it; endpoints fail-closed with 503 when absent.
     // Generate with `crypto.randomBytes(32).toString('hex')`.
     TARGETS_IMPORT_TOKEN: z.string().min(32).optional(),
-    ANTHROPIC_API_KEY: z.string().min(1).optional(),
+    GEMINI_API_KEY: z.string().min(1).optional(),
   },
   client: {
     NEXT_PUBLIC_SITE_URL: z.string().url(),
@@ -38,7 +38,7 @@ export const env = createEnv({
     GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY: process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY,
     GOOGLE_DRIVE_BACKUP_FOLDER_ID: process.env.GOOGLE_DRIVE_BACKUP_FOLDER_ID,
     TARGETS_IMPORT_TOKEN: process.env.TARGETS_IMPORT_TOKEN,
-    ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
+    GEMINI_API_KEY: process.env.GEMINI_API_KEY,
 
     NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
     NEXT_PUBLIC_GTM_ID: process.env.NEXT_PUBLIC_GTM_ID,
