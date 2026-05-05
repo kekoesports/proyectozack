@@ -150,8 +150,10 @@ export async function extractInvoiceWithClaude(
   logRedacted('info', '[pdf-ai] DIAG-2 pdf buffer bytes:', String(pdfBuffer.byteLength));
 
   const { GoogleGenerativeAI } = await import('@google/generative-ai');
+  const modelName = process.env.GEMINI_MODEL ?? 'gemini-2.5-flash';
+  logRedacted('info', '[pdf-ai] DIAG-3 model:', modelName);
   const genAI = new GoogleGenerativeAI(apiKey);
-  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+  const model = genAI.getGenerativeModel({ model: modelName });
   const base64Pdf = Buffer.from(pdfBuffer).toString('base64');
 
   let rawText: string;
