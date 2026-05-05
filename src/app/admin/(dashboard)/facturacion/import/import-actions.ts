@@ -68,12 +68,11 @@ async function uploadInvoiceImport(
   const safeName = file.name.replace(/[^\w.\-]/g, '_');
   const blobPath = `invoice-imports/${new Date().getFullYear()}/${Date.now()}-${safeName}`;
   try {
-    const blob = await put(blobPath, file, { access: 'public', contentType: file.type });
+    const blob = await put(blobPath, file, { access: 'private', contentType: file.type });
     return { ok: true, fileUrl: blob.url, filePath: blobPath };
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
-    logRedacted('error', '[invoice-import] upload error:', msg);
-    return { ok: false, error: `Error al subir: ${msg.slice(0, 120)}` };
+    logRedacted('error', '[invoice-import] upload error:', err instanceof Error ? err.message : 'unknown');
+    return { ok: false, error: 'Error al subir el archivo' };
   }
 }
 
