@@ -1,7 +1,7 @@
 // Gemini-powered PDF invoice extractor (free tier: 1500 req/day).
 // Falls back gracefully when GEMINI_API_KEY is not set.
+// Dynamic import keeps @google/generative-ai out of the module init phase.
 
-import { GoogleGenerativeAI } from '@google/generative-ai';
 import { z } from 'zod';
 import type { InvoiceDraft } from '@/lib/schemas/invoiceDraft';
 
@@ -107,6 +107,7 @@ export async function extractInvoiceWithClaude(
     };
   }
 
+  const { GoogleGenerativeAI } = await import('@google/generative-ai');
   const genAI = new GoogleGenerativeAI(apiKey);
   const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
   const base64Pdf = Buffer.from(pdfBuffer).toString('base64');
