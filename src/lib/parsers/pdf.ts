@@ -2,7 +2,8 @@
 // from a PDF buffer. No rendering, no canvas — text layer only.
 import 'server-only';
 
-import { getDocument, GlobalWorkerOptions } from 'pdfjs-dist';
+// pdfjs-dist v5 main build uses DOMMatrix (browser-only). Use legacy build for Node.js.
+import { getDocument, GlobalWorkerOptions } from 'pdfjs-dist/legacy/build/pdf.mjs';
 import type { TextItem, TextMarkedContent } from 'pdfjs-dist/types/src/display/api';
 
 export type PdfTextItem = {
