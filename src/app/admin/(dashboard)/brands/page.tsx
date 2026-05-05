@@ -84,6 +84,7 @@ export default async function AdminBrandsPage(): Promise<React.ReactElement> {
           upcomingFollowups={upcomingFollowups}
           campaignsByBrand={campaignsByBrand}
           isManager={isManager}
+          isAdmin={role === 'admin'}
           staffUsers={staffUsers}
         />
       ),

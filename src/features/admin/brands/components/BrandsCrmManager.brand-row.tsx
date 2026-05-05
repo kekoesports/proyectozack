@@ -46,12 +46,15 @@ type BrandRowProps = {
 export function BrandRow({ brand, contacts, followups, campaigns, isExpanded, canDelete, isManager, staffUsers, onToggleExpand, onOpenDrawer }: BrandRowProps): React.ReactElement {
   const [isPending, startTransition] = useTransition();
   const [showAddContact, setShowAddContact] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const primary = brand.primaryContact;
 
   const onDelete = (): void => {
     if (!confirm(`¿Eliminar la marca "${brand.name}" y todos sus contactos?`)) return;
+    setDeleteError(null);
     startTransition(async () => {
-      await deleteBrandAction(brand.id);
+      const result = await deleteBrandAction(brand.id);
+      if (result.error) setDeleteError(result.error);
     });
   };
 
@@ -110,6 +113,13 @@ export function BrandRow({ brand, contacts, followups, campaigns, isExpanded, ca
           )}
         </td>
       </tr>
+      {deleteError && (
+        <tr>
+          <td colSpan={6} className="px-6 pb-2">
+            <p className="text-xs text-red-400 bg-red-500/10 rounded-lg px-3 py-1.5">{deleteError}</p>
+          </td>
+        </tr>
+      )}
       {isExpanded && (
         <ExpandedBrandRow
           brand={brand}
@@ -152,7 +162,7 @@ function ExpandedBrandRow({
 
   return (
     <tr className="bg-sp-admin-bg/40">
-      <td colSpan={8} className="px-6 py-5">
+      <td colSpan={6} className="px-6 py-5">
         {/* Sub-tab bar */}
         <div className="flex gap-1 border-b border-sp-admin-border mb-4">
           {([
@@ -206,6 +216,7 @@ function ExpandedBrandRow({
 }
 
 function BrandDetails({ brand }: { readonly brand: CrmBrandWithDerived }): React.ReactElement {
+  const hasSocial = brand.telegram ?? brand.discord ?? brand.whatsapp;
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
       <Field label="Manager" value={brand.manager} />
@@ -213,6 +224,13 @@ function BrandDetails({ brand }: { readonly brand: CrmBrandWithDerived }): React
       <Field label="Geo" value={brand.geo ? (GEO_LABELS[brand.geo as CrmBrandGeo] ?? brand.geo) : null} />
       <Field label="País" value={brand.country} />
       <Field label="Creado" value={new Date(brand.createdAt).toLocaleDateString('es-ES')} />
+      {hasSocial && (
+        <div className="flex gap-4 col-span-1 md:col-span-3">
+          {brand.telegram  && <Field label="Telegram"  value={brand.telegram} />}
+          {brand.discord   && <Field label="Discord"   value={brand.discord} />}
+          {brand.whatsapp  && <Field label="WhatsApp"  value={brand.whatsapp} />}
+        </div>
+      )}
       {brand.notes && (
         <div className="col-span-2 md:col-span-4">
           <p className={LABEL}>Notas</p>

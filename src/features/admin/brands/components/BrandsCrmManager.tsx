@@ -30,6 +30,7 @@ type BrandsCrmManagerProps = {
   readonly upcomingFollowups: readonly CrmBrandFollowupWithBrand[];
   readonly campaignsByBrand: Readonly<Record<number, readonly CampaignRow[]>>;
   readonly isManager?: boolean;
+  readonly isAdmin?: boolean;
   readonly staffUsers?: readonly { id: string; name: string }[];
 };
 
@@ -56,10 +57,11 @@ export function BrandsCrmManager({
   upcomingFollowups,
   campaignsByBrand,
   isManager = false,
+  isAdmin = false,
   staffUsers = [],
 }: BrandsCrmManagerProps): React.ReactElement {
   const router = useRouter();
-  const canDeleteBrand = !isManager;
+  const canDeleteBrand = isAdmin;
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [filters, setFilters] = useState<FilterState>(INITIAL_FILTERS);
   const [showArchived, setShowArchived] = useState(false);
