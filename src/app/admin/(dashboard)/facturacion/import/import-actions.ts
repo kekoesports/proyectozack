@@ -25,6 +25,7 @@ import {
   rejectImport,
   deleteImport,
   deleteAllRejectedImports,
+  updateImportDraft,
   DuplicateImportError,
 } from '@/lib/queries/invoiceImports';
 import { extractXlsxSheet } from '@/lib/parsers/xlsx';
@@ -36,9 +37,17 @@ import { getParserTemplateByNif, upsertParserTemplate } from '@/lib/queries/invo
 // module init. Keep them as dynamic imports so they only load when a PDF is uploaded.
 type ParsedRegions = import('@/lib/parsers/pdfHeuristics').ParsedRegions;
 
-// Internal key used to piggy-back bbox regions on the parsedDraft jsonb column
-// so we don't need a dedicated column for template learning.
 const REGIONS_KEY = '__regions__';
+const EXTRACTION_STATUS_KEY = '__extraction_status__';
+
+function isRateLimitWarning(warnings: readonly string[]): boolean {
+  return warnings.some((w) =>
+    w.toLowerCase().includes('límite') ||
+    w.toLowerCase().includes('quota') ||
+    w.toLowerCase().includes('too many') ||
+    w.includes('429'),
+  );
+}
 
 type ActionState = {
   readonly error?: string;
@@ -133,7 +142,6 @@ export async function uploadImportAction(
 
     if (aiResult.usedAi && Object.keys(aiResult.draft).length > 0) {
       // AI succeeded — optionally run pdfjs for bbox regions (template learning).
-      // Failure here is non-blocking; the AI draft is saved regardless.
       let regions: ParsedRegions = {};
       try {
         const { extractPdfText }  = await import('@/lib/parsers/pdf');
@@ -141,9 +149,14 @@ export async function uploadImportAction(
         const extract = await extractPdfText(buf);
         regions = parseInvoicePdf(extract).regions;
       } catch {
-        // regions optional — template learning skipped, AI draft still saved
+        // regions optional — template learning skipped
       }
       parsedDraft = { ...aiResult.draft, [REGIONS_KEY]: regions, __confidence__: aiResult.confidence };
+      warningsOut = aiResult.warnings;
+    } else if (isRateLimitWarning(aiResult.warnings)) {
+      // Rate limited: save with flag so user can retry without re-uploading.
+      // Do NOT fill any draft fields — avoids wrong defaults in the form.
+      parsedDraft = { [EXTRACTION_STATUS_KEY]: 'rate_limited' };
       warningsOut = aiResult.warnings;
     } else if (!process.env.GEMINI_API_KEY) {
       // ── Step 2: Heuristic fallback (pdfjs-based) — only when no AI key ────
@@ -417,3 +430,68 @@ export async function commitMappedImportAction(
     return { error: 'Error al registrar los imports' };
   }
 }
+
+// ─── Retry AI extraction (no re-upload) ──────────────────────────────────────
+
+export async function retryExtractionAction(importId: number): Promise<ActionState> {
+  await requireAnyRole(['admin', 'manager'], '/admin/login');
+
+  const existing = await getImport(importId);
+  if (!existing || existing.status !== 'pending') {
+    return { error: 'Import no encontrado o ya procesado' };
+  }
+  if (!existing.fileUrl) {
+    return { error: 'No hay archivo almacenado para reintentar' };
+  }
+
+  logRedacted('info', '[invoice-import] retryExtraction import:', String(importId));
+
+  let buf: ArrayBuffer;
+  try {
+    const res = await fetch(existing.fileUrl);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    buf = await res.arrayBuffer();
+  } catch (err) {
+    logRedacted('error', '[invoice-import] retryExtraction fetch failed:', err instanceof Error ? err.message : 'unknown');
+    return { error: 'No se pudo obtener el PDF almacenado.' };
+  }
+
+  const { extractInvoiceWithClaude } = await import('@/lib/parsers/pdfAi');
+
+  let aiResult = await extractInvoiceWithClaude(buf);
+
+  // Rate limited on first attempt → wait 15s and try once more (max 2 attempts)
+  if ((!aiResult.usedAi || Object.keys(aiResult.draft).length === 0) && isRateLimitWarning(aiResult.warnings)) {
+    logRedacted('info', '[invoice-import] retryExtraction rate limited — waiting 15s...');
+    await new Promise((r) => setTimeout(r, 15_000));
+    aiResult = await extractInvoiceWithClaude(buf);
+  }
+
+  const prevDraft = (existing.parsedDraft ?? {}) as Record<string, unknown>;
+
+  if (aiResult.usedAi && Object.keys(aiResult.draft).length > 0) {
+    // Success — merge with any existing good data, clear the rate-limit flag
+    const newDraft: Record<string, unknown> = {
+      ...prevDraft,
+      ...aiResult.draft,
+      __confidence__: aiResult.confidence,
+    };
+    delete newDraft[EXTRACTION_STATUS_KEY];
+    await updateImportDraft(importId, { parsedDraft: newDraft, warnings: aiResult.warnings });
+    revalidatePath('/admin/facturacion/import');
+    return { success: true, importId };
+  }
+
+  // Still failing — keep previous data, refresh the flag
+  await updateImportDraft(importId, {
+    parsedDraft: { ...prevDraft, [EXTRACTION_STATUS_KEY]: 'rate_limited' },
+    warnings: aiResult.warnings,
+  });
+  revalidatePath('/admin/facturacion/import');
+  return {
+    error: isRateLimitWarning(aiResult.warnings)
+      ? 'Límite de Gemini alcanzado de nuevo. Espera unos minutos e inténtalo otra vez.'
+      : (aiResult.warnings[0] ?? 'Extracción fallida'),
+  };
+}
+

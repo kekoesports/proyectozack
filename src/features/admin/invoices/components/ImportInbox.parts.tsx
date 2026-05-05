@@ -5,6 +5,7 @@ import {
   uploadImportAction,
   approveImportAction,
   rejectImportAction,
+  retryExtractionAction,
 } from '@/app/admin/(dashboard)/facturacion/import/import-actions';
 import type { InvoiceImportWithDraft, InvoiceImportStatus } from '@/types';
 import { INVOICE_STATUSES } from '@/lib/schemas/invoice';
@@ -146,11 +147,22 @@ export function PendingRow({
   onToggle,
 }: PendingRowProps): React.ReactElement {
   const [isRejecting, startReject] = useTransition();
+  const [isRetrying, startRetry] = useTransition();
+  const [retryError, setRetryError] = useState<string | null>(null);
+
+  const draft = (imp.parsedDraft ?? {}) as Record<string, unknown>;
+  const isRateLimited = draft.__extraction_status__ === 'rate_limited';
 
   const onReject = (): void => {
     if (!confirm('¿Rechazar este import? No se creará factura.')) return;
-    startReject(async () => {
-      await rejectImportAction(imp.id);
+    startReject(async () => { await rejectImportAction(imp.id); });
+  };
+
+  const onRetry = (): void => {
+    setRetryError(null);
+    startRetry(async () => {
+      const result = await retryExtractionAction(imp.id);
+      if (result.error) setRetryError(result.error);
     });
   };
 
@@ -187,7 +199,34 @@ export function PendingRow({
       </div>
       {isOpen && (
         <div className="border-t border-sp-admin-border bg-sp-admin-bg/40">
-          {imp.warnings && imp.warnings.length > 0 && (
+          {/* Rate limit banner — shown instead of the form when extraction failed */}
+          {isRateLimited && (
+            <div className="px-5 pt-5 pb-4 space-y-3">
+              <div className="rounded-xl border border-amber-500/40 bg-amber-500/5 p-4 flex items-start gap-3">
+                <svg aria-hidden="true" className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+                </svg>
+                <div className="space-y-1">
+                  <p className="text-sm font-semibold text-amber-300">Extracción pendiente — límite de API alcanzado</p>
+                  <p className="text-xs text-amber-200/70">El PDF está guardado. Gemini estaba saturado al subir. Espera un minuto y pulsa "Reintentar IA" — no se vuelve a subir el archivo.</p>
+                  {imp.warnings?.[0] && <p className="text-[11px] text-amber-300/60 font-mono">{imp.warnings[0]}</p>}
+                </div>
+              </div>
+              {retryError && (
+                <p className="text-xs text-red-400 bg-red-500/10 rounded-lg px-3 py-2">{retryError}</p>
+              )}
+              <button
+                type="button"
+                onClick={onRetry}
+                disabled={isRetrying}
+                className="px-4 py-2 rounded-lg bg-sp-admin-accent text-white text-[13px] font-semibold hover:bg-sp-admin-accent/90 disabled:opacity-50 transition-colors"
+              >
+                {isRetrying ? 'Reintentando… (puede tardar ~15s)' : 'Reintentar IA'}
+              </button>
+            </div>
+          )}
+
+          {!isRateLimited && imp.warnings && imp.warnings.length > 0 && (
             <div className="px-5 pt-4">
               <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-3">
                 <p className="text-[11px] uppercase tracking-wider font-semibold text-amber-400 mb-1">Avisos del parser</p>
@@ -197,7 +236,7 @@ export function PendingRow({
               </div>
             </div>
           )}
-          <div>
+          {!isRateLimited && <div>
             {imp.sourceType === 'pdf-text' && imp.fileUrl && (
               <div className="px-5 pt-4 pb-0">
                 <a
@@ -222,7 +261,7 @@ export function PendingRow({
                 onDone={onToggle}
               />
             </div>
-          </div>
+          </div>}
         </div>
       )}
     </div>

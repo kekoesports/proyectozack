@@ -107,6 +107,16 @@ type CreateImportArgs = {
  * @visibility admin
  * @returns la fila `InvoiceImport` creada.
  */
+export async function updateImportDraft(
+  id: number,
+  patch: { parsedDraft: Record<string, unknown>; warnings: readonly string[] },
+): Promise<void> {
+  await db
+    .update(invoiceImports)
+    .set({ parsedDraft: patch.parsedDraft, warnings: [...patch.warnings] })
+    .where(and(eq(invoiceImports.id, id), eq(invoiceImports.status, 'pending')));
+}
+
 export async function deleteImport(id: number): Promise<void> {
   await db.delete(invoiceImports).where(eq(invoiceImports.id, id));
 }
