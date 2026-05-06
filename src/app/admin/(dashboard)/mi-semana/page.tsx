@@ -3,7 +3,6 @@ import { AdminPageHeader } from '@/features/admin/_shared/components/AdminPageHe
 import { requireAnyRole } from '@/lib/auth-guard';
 import {
   getMyTasks,
-  getRolledOverCount,
   getUsedCategories,
   getTaskRelatedOptions,
   resolveRelatedLabels,
@@ -44,15 +43,16 @@ export default async function MiSemanaPage(): Promise<ReactElement> {
   // Auto-rollover silencioso
   await rollOverPendingTasks(prevWeek, weekLabel);
 
-  const [tasks, users, suggestedCategories, rolledCount, relatedOptions] = await Promise.all([
+  const [tasks, users, suggestedCategories, relatedOptions] = await Promise.all([
     getMyTasks(session.user.id, weekLabel),
     getAllStaffUsers(),
     getUsedCategories(),
-    getRolledOverCount(session.user.id, weekLabel),
     getTaskRelatedOptions(),
   ]);
 
   const relatedLabels = await resolveRelatedLabels(tasks);
+
+  const rolledTasks = tasks.filter((t) => t.rolledOver && t.status !== 'completada');
 
   // KPIs calculados server-side
   const kpis = {
@@ -60,7 +60,7 @@ export default async function MiSemanaPage(): Promise<ReactElement> {
     enProgreso:   tasks.filter((t) => t.status === 'en_progreso').length,
     completadas:  tasks.filter((t) => t.status === 'completada').length,
     vencidas:     tasks.filter((t) => t.status !== 'completada' && !!t.dueDate && t.dueDate < todayStr).length,
-    arrastradas:  rolledCount,
+    arrastradas:  rolledTasks.length,
   };
 
   return (
@@ -84,7 +84,7 @@ export default async function MiSemanaPage(): Promise<ReactElement> {
         <KpiCard label="Arrastradas" value={kpis.arrastradas} accent={kpis.arrastradas > 0 ? '#8b3aad' : '#72728a'} />
       </div>
 
-      <RolledOverBanner count={rolledCount} tasks={tasks} />
+      {rolledTasks.length > 0 && <RolledOverBanner tasks={rolledTasks} />}
 
       <TaskList
         tasks={tasks}

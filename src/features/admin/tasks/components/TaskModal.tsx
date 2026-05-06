@@ -52,6 +52,7 @@ export function TaskModal({
   const [title,       setTitle]       = useState(task?.title ?? '');
   const [description, setDescription] = useState(task?.description ?? '');
   const [ownerId,     setOwnerId]     = useState(task?.ownerId ?? defaultOwnerId);
+  const [coOwnerId,   setCoOwnerId]   = useState<string>(task?.assignedToUserId && task.assignedToUserId !== task.ownerId ? task.assignedToUserId : '');
   const [dueDate,     setDueDate]     = useState(task?.dueDate ?? '');
   const [priority,    setPriority]    = useState<CrmTaskPriority>(task?.priority ?? 'media');
   const [status,      setStatus]      = useState<CrmTaskStatus>(task?.status ?? 'pendiente');
@@ -97,6 +98,11 @@ export function TaskModal({
   }, [onCloseAction]);
 
   // Buscador unificado: filtra marca, talento y campaña a la vez
+  const availableCoOwners = useMemo(
+    () => users.filter((u) => u.id !== ownerId),
+    [users, ownerId],
+  );
+
   const relatedSearchResults = useMemo(() => {
     const q = relatedSearch.trim().toLowerCase();
     if (q.length < 1 || !relatedOptions) return [];
@@ -130,15 +136,16 @@ export function TaskModal({
     if (!title.trim()) { setError('El título es obligatorio'); return; }
 
     const input: TaskFormInput = {
-      title:       title.trim(),
-      description: description.trim() || null,
+      title:            title.trim(),
+      description:      description.trim() || null,
       ownerId,
-      dueDate:     dueDate || null,
+      assignedToUserId: coOwnerId || undefined,
+      dueDate:          dueDate || null,
       priority,
       status,
-      category:    category.trim() || 'General',
-      relatedType: (relatedType || undefined) as TaskFormInput['relatedType'],
-      relatedId:   relatedId ? Number(relatedId) : undefined,
+      category:         category.trim() || 'General',
+      relatedType:      (relatedType || undefined) as TaskFormInput['relatedType'],
+      relatedId:        relatedId ? Number(relatedId) : undefined,
     };
 
     startTransition(async () => {
@@ -190,10 +197,16 @@ export function TaskModal({
             />
           </Field>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <Field label="Asignado">
-              <select value={ownerId} onChange={(e) => setOwnerId(e.target.value)} className={inputCls}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <Field label="Responsable">
+              <select value={ownerId} onChange={(e) => { setOwnerId(e.target.value); if (e.target.value === coOwnerId) setCoOwnerId(''); }} className={inputCls}>
                 {users.map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
+              </select>
+            </Field>
+            <Field label="Co-responsable">
+              <select value={coOwnerId} onChange={(e) => setCoOwnerId(e.target.value)} className={inputCls}>
+                <option value="">— Ninguno —</option>
+                {availableCoOwners.map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
               </select>
             </Field>
             <Field label="Fecha límite">

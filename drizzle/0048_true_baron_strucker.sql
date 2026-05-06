@@ -1,0 +1,2 @@
+ALTER TABLE "crm_brands" ADD COLUMN "co_assigned_to_user_id" text;--> statement-breakpoint
+ALTER TABLE "crm_brands" ADD CONSTRAINT "crm_brands_co_assigned_to_user_id_user_id_fk" FOREIGN KEY ("co_assigned_to_user_id") REFERENCES "public"."user"("id") ON DELETE set null ON UPDATE no action;

@@ -11,8 +11,8 @@ import { CreateGiveawayForm } from './CreateGiveawayForm';
 import { CreateCodeForm } from './CreateCodeForm';
 import { CreateWinnerForm } from './CreateWinnerForm';
 
-function isActive(endsAt: Date): boolean {
-  return new Date(endsAt) > new Date();
+function isActive(endsAt: Date | null): boolean {
+  return endsAt === null || new Date(endsAt) > new Date();
 }
 
 type PageProps = {
@@ -109,7 +109,7 @@ export default async function AdminGiveawaysPage({ searchParams }: PageProps): P
                     </span>
                   </td>
                   <td className="px-6 py-4 text-sp-admin-muted">
-                    {new Date(g.endsAt).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                    {g.endsAt ? new Date(g.endsAt).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'}
                   </td>
                   <td className="px-6 py-4">
                     <form action={deleteGiveawayAction}>

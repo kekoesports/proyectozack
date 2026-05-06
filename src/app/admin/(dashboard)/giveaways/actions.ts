@@ -6,8 +6,6 @@ import { createGiveaway, deleteGiveaway } from '@/lib/queries/giveaways';
 import { parseFormData } from '@/lib/forms/parseFormData';
 import { firstError } from '@/lib/forms/firstError';
 import { logRedacted } from '@/lib/log';
-import { validateRedirectField } from '@/lib/security/validateRedirectField';
-import { ALLOWED_REDIRECT_HOSTS } from '@/lib/security/allowed-redirect-hosts';
 import {
   CreateGiveawayFormSchema,
   DeleteGiveawaySchema,
@@ -26,9 +24,6 @@ export async function createGiveawayAction(formData: FormData): Promise<Giveaway
     return { ok: false, fieldErrors: parsed.fieldErrors };
   }
 
-  const safe = validateRedirectField(parsed.data.redirectUrl, ALLOWED_REDIRECT_HOSTS, '[createGiveawayAction]');
-  if (!safe.ok) return safe;
-
   await createGiveaway({
     talentId: parsed.data.talentId,
     title: parsed.data.title,
@@ -39,7 +34,7 @@ export async function createGiveawayAction(formData: FormData): Promise<Giveaway
     value: parsed.data.value ?? null,
     redirectUrl: parsed.data.redirectUrl,
     startsAt: parsed.data.startsAt,
-    endsAt: parsed.data.endsAt,
+    endsAt: parsed.data.endsAt ?? null,
     sortOrder: parsed.data.sortOrder,
   });
 

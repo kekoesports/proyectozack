@@ -286,6 +286,46 @@ export async function deleteTasks(ids: readonly number[]): Promise<void> {
   await db.delete(crmTasks).where(inArray(crmTasks.id, [...ids]));
 }
 
+/** Obtiene una tarea por ID. Devuelve null si no existe. */
+export async function getTaskById(id: number): Promise<CrmTask | null> {
+  const [row] = await db
+    .select({ ...getTableColumns(crmTasks), recurrence: crmTaskTemplates.recurrence })
+    .from(crmTasks)
+    .leftJoin(crmTaskTemplates, eq(crmTaskTemplates.id, crmTasks.recurrenceTemplateId))
+    .where(eq(crmTasks.id, id))
+    .limit(1);
+  return row ?? null;
+}
+
+/**
+ * Quita el flag de arrastrada de una tarea sin cambiar su status ni borrarla.
+ * Si se pasa callerId, solo afecta tareas donde el caller es owner o asignado.
+ */
+export async function resetRolledOver(id: number, callerId?: string): Promise<void> {
+  const ownershipClause = callerId
+    ? or(eq(crmTasks.ownerId, callerId), eq(crmTasks.assignedToUserId, callerId))
+    : undefined;
+  await db
+    .update(crmTasks)
+    .set({ rolledOver: false, rolledFromWeek: null, updatedAt: new Date() })
+    .where(and(eq(crmTasks.id, id), ownershipClause));
+}
+
+/**
+ * Quita el flag de arrastrada de múltiples tareas a la vez.
+ * Si se pasa callerId, solo afecta tareas donde el caller es owner o asignado.
+ */
+export async function resetRolledOverBulk(ids: readonly number[], callerId?: string): Promise<void> {
+  if (ids.length === 0) return;
+  const ownershipClause = callerId
+    ? or(eq(crmTasks.ownerId, callerId), eq(crmTasks.assignedToUserId, callerId))
+    : undefined;
+  await db
+    .update(crmTasks)
+    .set({ rolledOver: false, rolledFromWeek: null, updatedAt: new Date() })
+    .where(and(inArray(crmTasks.id, [...ids]), ownershipClause));
+}
+
 /**
  * Moves every pending/in_progress task from `fromWeek` into `toWeek`, stamping
  * `rolled_over=true` and `rolled_from_week=fromWeek`. Idempotent across the

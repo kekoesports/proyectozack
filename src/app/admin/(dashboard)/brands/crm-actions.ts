@@ -80,8 +80,9 @@ async function assertCanEditBrand(
   if (!brand) throw new Error('forbidden:edit:brand');
 
   const isOwner =
-    brand.assignedToUserId === session.userId ||
-    brand.createdByUserId === session.userId;
+    brand.assignedToUserId   === session.userId ||
+    brand.coAssignedToUserId === session.userId ||
+    brand.createdByUserId    === session.userId;
 
   if (!isOwner) throw new Error('forbidden:edit:brand');
 }

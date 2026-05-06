@@ -66,6 +66,7 @@ export async function listCrmBrands(opts?: {
     userId && role && needsVisibilityFilter(role)
       ? or(
           eq(crmBrands.assignedToUserId, userId),
+          eq(crmBrands.coAssignedToUserId, userId),
           eq(crmBrands.createdByUserId, userId),
         )
       : undefined;
@@ -89,8 +90,9 @@ export async function listCrmBrands(opts?: {
       status: crmBrands.status,
       ownerUserId: crmBrands.ownerUserId,
       portalUserId: crmBrands.portalUserId,
-      createdByUserId: crmBrands.createdByUserId,
-      assignedToUserId: crmBrands.assignedToUserId,
+      createdByUserId:    crmBrands.createdByUserId,
+      assignedToUserId:   crmBrands.assignedToUserId,
+      coAssignedToUserId: crmBrands.coAssignedToUserId,
       geoTargets: crmBrands.geoTargets,
       lookingFor: crmBrands.lookingFor,
       dealTypes: crmBrands.dealTypes,
@@ -489,11 +491,12 @@ export async function deleteBrandFollowup(id: number): Promise<void> {
  */
 export async function getCrmBrandForPermission(
   brandId: number,
-): Promise<{ assignedToUserId: string | null; createdByUserId: string | null } | undefined> {
+): Promise<{ assignedToUserId: string | null; coAssignedToUserId: string | null; createdByUserId: string | null } | undefined> {
   const [row] = await db
     .select({
-      assignedToUserId: crmBrands.assignedToUserId,
-      createdByUserId: crmBrands.createdByUserId,
+      assignedToUserId:   crmBrands.assignedToUserId,
+      coAssignedToUserId: crmBrands.coAssignedToUserId,
+      createdByUserId:    crmBrands.createdByUserId,
     })
     .from(crmBrands)
     .where(eq(crmBrands.id, brandId))

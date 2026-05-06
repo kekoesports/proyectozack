@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useEffect, useTransition } from 'react';
+import { useActionState, useEffect, useTransition, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { createBrandAction, updateBrandAction, deleteBrandAction } from '@/app/admin/(dashboard)/brands/crm-actions';
@@ -43,6 +43,54 @@ type BrandFormDrawerProps = {
  * @feature admin/brands
  * @route /admin/brands
  */
+type StaffUser = { readonly id: string; readonly name: string };
+
+function BrandResponsablesField({
+  staffUsers, defaultAssigned, defaultCoAssigned, labelCls, inputCls,
+}: {
+  readonly staffUsers:       readonly StaffUser[];
+  readonly defaultAssigned:  string;
+  readonly defaultCoAssigned: string;
+  readonly labelCls:         string;
+  readonly inputCls:         string;
+}): React.ReactElement {
+  const [assignedId, setAssignedId] = useState(defaultAssigned);
+
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div>
+        <label className={labelCls} htmlFor="bfd-assignedToUserId">Responsable</label>
+        <select
+          id="bfd-assignedToUserId"
+          name="assignedToUserId"
+          value={assignedId}
+          onChange={(e) => setAssignedId(e.target.value)}
+          className={inputCls}
+        >
+          <option value="">— Sin asignar —</option>
+          {staffUsers.map((u) => (
+            <option key={u.id} value={u.id}>{u.name}</option>
+          ))}
+        </select>
+      </div>
+      <div>
+        <label className={labelCls} htmlFor="bfd-coAssignedToUserId">Co-responsable</label>
+        <select
+          id="bfd-coAssignedToUserId"
+          name="coAssignedToUserId"
+          defaultValue={defaultCoAssigned}
+          className={inputCls}
+        >
+          <option value="">— Ninguno —</option>
+          {staffUsers.filter((u) => u.id !== assignedId).map((u) => (
+            <option key={u.id} value={u.id}>{u.name}</option>
+          ))}
+        </select>
+      </div>
+    </div>
+  );
+}
+
 export function BrandFormDrawer({
   brand,
   isOpen,
@@ -255,22 +303,15 @@ export function BrandFormDrawer({
           </div>
         </div>
 
-        {/* Responsable */}
+        {/* Responsable + Co-responsable */}
         {staffUsers.length > 0 && (
-          <div>
-            <label className={LABEL} htmlFor="bfd-assignedToUserId">Responsable</label>
-            <select
-              id="bfd-assignedToUserId"
-              name="assignedToUserId"
-              defaultValue={brand?.assignedToUserId ?? ''}
-              className={INPUT}
-            >
-              <option value="">— Sin asignar —</option>
-              {staffUsers.map((u) => (
-                <option key={u.id} value={u.id}>{u.name}</option>
-              ))}
-            </select>
-          </div>
+          <BrandResponsablesField
+            staffUsers={staffUsers}
+            defaultAssigned={brand?.assignedToUserId ?? ''}
+            defaultCoAssigned={brand?.coAssignedToUserId ?? ''}
+            labelCls={LABEL}
+            inputCls={INPUT}
+          />
         )}
 
         {/* Contactos rápidos del manager */}

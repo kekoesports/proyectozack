@@ -3,22 +3,26 @@
 import { revalidatePath } from 'next/cache';
 
 import { requireAnyRole } from '@/lib/auth-guard';
-import { assertCanDelete } from '@/lib/permissions';
+import { assertCanDelete, needsVisibilityFilter } from '@/lib/permissions';
 import { logRedacted } from '@/lib/log';
 import {
   completeTask,
   createTask,
   createTaskTemplate,
   deleteTask,
+  getTaskById,
   isAssignableTaskUser,
   deleteTasks,
   deleteTaskTemplate,
   getTaskTemplates,
+  resetRolledOver,
+  resetRolledOverBulk,
   rollOverPendingTasks,
   taskExistsForWeek,
   updateTask,
   updateTaskTemplate,
 } from '@/lib/queries/crmTasks';
+import { createAlert } from '@/lib/queries/alerts';
 import { IdSchema } from '@/lib/schemas/common';
 import { taskFormSchema, taskPatchSchema } from '@/lib/schemas/task';
 import { compact } from '@/lib/utils/objects';
@@ -62,11 +66,15 @@ export async function createTaskAction(input: unknown): Promise<ActionResult> {
   const ownerErr = await assertStaffOwner(data.ownerId);
   if (ownerErr) return { error: ownerErr };
 
+  const coResponsable = data.assignedToUserId && data.assignedToUserId !== data.ownerId
+    ? data.assignedToUserId
+    : null;
+
   await createTask({
     title: data.title,
     description: data.description,
     ownerId: data.ownerId,
-    assignedToUserId: data.assignedToUserId ?? data.ownerId,
+    assignedToUserId: coResponsable ?? data.ownerId,
     createdByUserId: data.createdByUserId ?? session.user.id,
     recurrenceTemplateId: data.recurrenceTemplateId ?? null,
     dueDate: data.dueDate,
@@ -78,12 +86,24 @@ export async function createTaskAction(input: unknown): Promise<ActionResult> {
     relatedId: data.relatedId ?? null,
   });
 
+  if (coResponsable) {
+    const assigner = session.user.name ?? session.user.email;
+    await createAlert({
+      type:              'task_assigned',
+      title:             `Te han asignado una tarea: ${data.title}`,
+      description:       `Asignado por ${assigner}`,
+      severity:          'low',
+      assignedToUserId:  coResponsable,
+      relatedEntityType: 'task',
+    });
+  }
+
   revalidateAll();
   return {};
 }
 
 export async function updateTaskAction(id: number, input: unknown): Promise<ActionResult> {
-  await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
+  const session = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
 
   const parsed = taskFormSchema.safeParse(input);
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? 'Datos inválidos' };
@@ -91,11 +111,20 @@ export async function updateTaskAction(id: number, input: unknown): Promise<Acti
   const ownerErr = await assertStaffOwner(parsed.data.ownerId);
   if (ownerErr) return { error: ownerErr };
 
+  const prevTask = await getTaskById(id);
+
+  const newCoResponsable = parsed.data.assignedToUserId && parsed.data.assignedToUserId !== parsed.data.ownerId
+    ? parsed.data.assignedToUserId
+    : null;
+  const prevCoResponsable = prevTask?.assignedToUserId && prevTask.assignedToUserId !== prevTask.ownerId
+    ? prevTask.assignedToUserId
+    : null;
+
   await updateTask(id, {
     title: parsed.data.title,
     description: parsed.data.description,
     ownerId: parsed.data.ownerId,
-    assignedToUserId: parsed.data.assignedToUserId ?? parsed.data.ownerId,
+    assignedToUserId: newCoResponsable ?? parsed.data.ownerId,
     recurrenceTemplateId: parsed.data.recurrenceTemplateId ?? null,
     dueDate: parsed.data.dueDate,
     priority: parsed.data.priority,
@@ -104,6 +133,20 @@ export async function updateTaskAction(id: number, input: unknown): Promise<Acti
     relatedType: parsed.data.relatedType ?? null,
     relatedId: parsed.data.relatedId ?? null,
   });
+
+  if (newCoResponsable && newCoResponsable !== prevCoResponsable) {
+    const assigner = session.user.name ?? session.user.email;
+    await createAlert({
+      type:              'task_assigned',
+      title:             `Te han asignado una tarea: ${parsed.data.title}`,
+      description:       `Asignado por ${assigner}`,
+      severity:          'low',
+      assignedToUserId:  newCoResponsable,
+      relatedEntityType: 'task',
+      relatedEntityId:   id,
+    });
+  }
+
   revalidateAll();
   return {};
 }
@@ -266,6 +309,30 @@ export async function deleteTemplateDefinitionAction(id: number): Promise<Action
   await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
   await deleteTaskTemplate(id);
   revalidatePath('/admin/tareas');
+  return {};
+}
+
+// ── Revisión de tareas arrastradas ───────────────────────────────────
+
+/** Quita el flag "arrastrada" de una tarea. No cambia su status. */
+export async function resetRolledOverAction(id: unknown): Promise<ActionResult> {
+  const session = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
+  const parsed = IdSchema.safeParse(id);
+  if (!parsed.success) return { error: 'ID inválido' };
+  const callerId = needsVisibilityFilter(session.user.role) ? session.user.id : undefined;
+  await resetRolledOver(parsed.data, callerId);
+  revalidateAll();
+  return {};
+}
+
+/** Quita el flag "arrastrada" de un conjunto de tareas de una vez. */
+export async function resetRolledOverBulkAction(ids: unknown): Promise<ActionResult> {
+  const session = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
+  const parsed = IdSchema.array().safeParse(ids);
+  if (!parsed.success) return { error: 'IDs inválidos' };
+  const callerId = needsVisibilityFilter(session.user.role) ? session.user.id : undefined;
+  await resetRolledOverBulk(parsed.data, callerId);
+  revalidateAll();
   return {};
 }
 

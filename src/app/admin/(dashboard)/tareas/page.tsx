@@ -11,6 +11,7 @@ import {
   resolveRelatedLabels,
   rollOverPendingTasks,
 } from '@/lib/queries/crmTasks';
+import { getEventsForMonth } from '@/lib/queries/crmEvents';
 import { getAllStaffUsers } from '@/lib/queries/staffUsers';
 import { getIsoWeekLabel } from '@/lib/utils/week';
 import { TaskWorkspace } from '@/features/admin/tasks/components/TaskWorkspace';
@@ -34,13 +35,15 @@ export default async function TareasPage(): Promise<ReactElement> {
     ? { session: { userId: session.user.id, role: session.user.role } }
     : undefined;
 
-  const [tasks, calendarTasks, users, suggestedCategories, relatedOptions, templates] = await Promise.all([
+  const now = new Date();
+  const [tasks, calendarTasks, users, suggestedCategories, relatedOptions, templates, events] = await Promise.all([
     getTasksForWeek(weekLabel, taskOptions),
     getTasksForCalendarView(weekLabel, calendarOptions),
     getAllStaffUsers(),
     getUsedCategories(),
     getTaskRelatedOptions(),
     getTaskTemplates(),
+    getEventsForMonth(now.getFullYear(), now.getMonth() + 1, { userId: session.user.id, role: session.user.role }),
   ]);
 
   const relatedLabels = await resolveRelatedLabels(tasks);
@@ -69,6 +72,7 @@ export default async function TareasPage(): Promise<ReactElement> {
         <TaskWorkspace
           tasks={tasks}
           calendarTasks={calendarTasks}
+          events={events}
           users={userOptions}
           currentUserId={session.user.id}
           suggestedCategories={suggestedCategories}

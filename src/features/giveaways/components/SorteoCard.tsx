@@ -31,7 +31,7 @@ type SorteoCardProps = {
  */
 export function SorteoCard({ giveaway }: SorteoCardProps): React.JSX.Element {
   const [expired, setExpired] = useState(false);
-  const isActive = !expired && new Date(giveaway.endsAt) > new Date();
+  const isActive = !expired && (giveaway.endsAt === null || new Date(giveaway.endsAt) > new Date());
   const handleExpired = useCallback(() => setExpired(true), []);
 
   const numericValue = giveaway.value
@@ -115,7 +115,7 @@ export function SorteoCard({ giveaway }: SorteoCardProps): React.JSX.Element {
       {/* Countdown */}
       <div className="px-5 pb-4 flex justify-center">
         {isActive ? (
-          <CountdownTimer endsAt={giveaway.endsAt.toISOString()} onExpiredAction={handleExpired} />
+          giveaway.endsAt ? <CountdownTimer endsAt={giveaway.endsAt.toISOString()} onExpiredAction={handleExpired} /> : null
         ) : (
           <div className="px-4 py-2 rounded-lg bg-white/[0.03] border border-white/[0.05]">
             <span className="text-[11px] font-bold uppercase tracking-[0.15em] text-white/25">Sorteo finalizado</span>

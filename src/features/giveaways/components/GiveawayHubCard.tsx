@@ -23,7 +23,7 @@ type GiveawayHubCardProps = {
  */
 export function GiveawayHubCard({ giveaway }: GiveawayHubCardProps): React.JSX.Element {
   const [expired, setExpired] = useState(false);
-  const isFinished = expired || new Date(giveaway.endsAt) <= new Date();
+  const isFinished = expired || (giveaway.endsAt !== null && new Date(giveaway.endsAt) <= new Date());
   const handleExpired = useCallback(() => setExpired(true), []);
 
   const numericValue = giveaway.value
@@ -110,7 +110,7 @@ export function GiveawayHubCard({ giveaway }: GiveawayHubCardProps): React.JSX.E
               <span className="text-[11px] font-bold uppercase tracking-[0.15em] text-white/30">Finalizado</span>
             </div>
           ) : (
-            <CountdownTimer endsAt={giveaway.endsAt.toISOString()} onExpiredAction={handleExpired} />
+            giveaway.endsAt ? <CountdownTimer endsAt={giveaway.endsAt.toISOString()} onExpiredAction={handleExpired} /> : null
           )}
         </div>
 

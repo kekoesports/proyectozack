@@ -36,6 +36,8 @@ export const CRM_BRAND_SECTORES = [
   'casino',
   'sports_betting',
   'perifericos',
+  'influencers',
+  'crypto',
   'otros',
 ] as const;
 
@@ -55,7 +57,9 @@ export const SECTOR_LABELS: Record<CrmBrandSector, string> = {
   casino: 'Casino',
   sports_betting: 'Sports Betting',
   perifericos: 'Periféricos',
-  otros: 'Otros',
+  influencers: 'Influencers',
+  crypto:      'Crypto',
+  otros:       'Otros',
 };
 
 export const GEO_LABELS: Record<CrmBrandGeo, string> = {
@@ -120,8 +124,9 @@ const brandFields = z.object({
   status:       z.enum(CRM_BRAND_STATUSES).default('lead'),
   ownerUserId:  optStr(100),
   portalUserId: optStr(100),
-  createdByUserId: optStr(100),
-  assignedToUserId: optStr(100),
+  createdByUserId:    optStr(100),
+  assignedToUserId:   optStr(100),
+  coAssignedToUserId: optStr(100),
   lastContactAt: z.string().optional(),
   nextFollowupAt: z.string().optional(),
 

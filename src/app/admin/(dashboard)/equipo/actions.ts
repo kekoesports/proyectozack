@@ -12,12 +12,18 @@ import { requireRole } from '@/lib/auth-guard';
 import { parseFormData } from '@/lib/forms/parseFormData';
 import { firstError } from '@/lib/forms/firstError';
 import { logRedacted } from '@/lib/log';
-import { StaffInvite } from '@/lib/schemas/staffInvite';
+import { StaffInvite, STAFF_ROLES } from '@/lib/schemas/staffInvite';
+
+type ActionResult = { readonly error?: string };
 
 type InviteState = {
   error?: string;
   success?: boolean;
 };
+
+function revalidateEquipo(): void {
+  revalidatePath('/admin/equipo');
+}
 
 export async function inviteStaffAction(
   _prev: InviteState,
@@ -27,7 +33,7 @@ export async function inviteStaffAction(
 
   const parsed = parseFormData(formData, StaffInvite);
   if (!parsed.ok) return { error: firstError(parsed.fieldErrors) };
-  const { name, email } = parsed.data;
+  const { name, email, role } = parsed.data;
 
   const existing = await db
     .select({ id: userTable.id })
@@ -42,7 +48,7 @@ export async function inviteStaffAction(
       body: { name, email, password: tempPassword },
     });
 
-    await db.update(userTable).set({ role: 'staff' }).where(eq(userTable.email, email));
+    await db.update(userTable).set({ role }).where(eq(userTable.email, email));
 
     const loginUrl = absoluteUrl('/admin/login');
     try {
@@ -55,6 +61,43 @@ export async function inviteStaffAction(
     return { error: 'Error al crear la cuenta' };
   }
 
-  revalidatePath('/admin/equipo');
+  revalidateEquipo();
   return { success: true };
+}
+
+export async function updateUserRoleAction(
+  userId: unknown,
+  role: unknown,
+): Promise<ActionResult> {
+  const session = await requireRole('admin', '/admin/login');
+
+  if (typeof userId !== 'string' || !userId) return { error: 'ID inválido' };
+
+  const validRole = typeof role === 'string' && (STAFF_ROLES as readonly string[]).includes(role)
+    ? (role as typeof STAFF_ROLES[number])
+    : null;
+  if (!validRole) return { error: 'Rol inválido' };
+
+  if (userId === session.user.id && validRole !== 'admin') {
+    return { error: 'No puedes quitarte el rol admin a ti mismo' };
+  }
+
+  await db.update(userTable).set({ role: validRole }).where(eq(userTable.id, userId));
+  revalidateEquipo();
+  return {};
+}
+
+export async function removeUserAction(userId: unknown): Promise<ActionResult> {
+  const session = await requireRole('admin', '/admin/login');
+
+  if (typeof userId !== 'string' || !userId) return { error: 'ID inválido' };
+
+  if (userId === session.user.id) {
+    return { error: 'No puedes eliminarte a ti mismo' };
+  }
+
+  await db.delete(userTable).where(eq(userTable.id, userId));
+
+  revalidateEquipo();
+  return {};
 }

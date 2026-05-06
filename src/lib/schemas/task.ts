@@ -25,6 +25,10 @@ export const taskFormSchema = z
       (v) => (v === '' || v === null ? undefined : v),
       z.coerce.number().int().positive().optional(),
     ),
+    startDate: z
+      .union([z.string().regex(/^\d{4}-\d{2}-\d{2}$/), z.null()])
+      .transform((v) => (v === '' ? null : v))
+      .optional(),
     dueDate: z
       .union([z.string().regex(/^\d{4}-\d{2}-\d{2}$/), z.null()])
       .transform((v) => (v === '' ? null : v)),

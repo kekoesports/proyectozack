@@ -1,83 +1,141 @@
 'use client';
 
-import { useActionState, useState } from 'react';
-import { createGiveawayAction, type GiveawayActionState } from './actions';
+import { useState, useTransition } from 'react';
+import { createGiveawayAction } from './actions';
 
 type Talent = { readonly id: number; readonly slug: string; readonly name: string };
 
+const inputCls = 'w-full rounded-lg border border-sp-admin-border bg-sp-admin-bg px-3 py-2 text-sm text-sp-admin-text outline-none focus:border-sp-admin-accent transition-colors';
+
 export function CreateGiveawayForm({ talents }: { talents: readonly Talent[] }): React.ReactElement {
-  const [state, formAction] = useActionState<GiveawayActionState | null, FormData>(
-    async (_prev, fd) => createGiveawayAction(fd),
-    null,
-  );
-  const fieldErrors = state && !state.ok ? state.fieldErrors : undefined;
-  const [talentId, setTalentId] = useState<string>('');
+  const [isPending, startTransition] = useTransition();
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
+  const [globalError,  setGlobalError]  = useState<string | null>(null);
+  const [success,      setSuccess]      = useState(false);
+
+  // Campos controlados — persisten cuando hay errores de validación
+  const [talentId,    setTalentId]    = useState('');
+  const [title,       setTitle]       = useState('');
+  const [brandName,   setBrandName]   = useState('');
+  const [value,       setValue]       = useState('');
+  const [redirectUrl, setRedirectUrl] = useState('');
+  const [imageUrl,    setImageUrl]    = useState('');
+  const [brandLogo,   setBrandLogo]   = useState('');
+  const [description, setDescription] = useState('');
+  const [startsAt,    setStartsAt]    = useState('');
+  const [endsAt,      setEndsAt]      = useState('');
+
   const slug = talents.find((t) => String(t.id) === talentId)?.slug ?? '';
 
+  const err = (field: string): string | undefined => fieldErrors[field]?.[0];
+
+  const handleSubmit = (e: React.FormEvent): void => {
+    e.preventDefault();
+    setFieldErrors({});
+    setGlobalError(null);
+    setSuccess(false);
+
+    const fd = new FormData();
+    fd.set('talentId',    talentId);
+    fd.set('talentSlug',  slug);
+    fd.set('title',       title);
+    fd.set('brandName',   brandName);
+    fd.set('value',       value);
+    fd.set('redirectUrl', redirectUrl);
+    fd.set('imageUrl',    imageUrl);
+    fd.set('brandLogo',   brandLogo);
+    fd.set('description', description);
+    fd.set('startsAt',    startsAt);
+    fd.set('endsAt',      endsAt);
+
+    startTransition(async () => {
+      const res = await createGiveawayAction(fd);
+      if (res.ok) {
+        setSuccess(true);
+        // Limpiar solo en éxito
+        setTalentId(''); setTitle(''); setBrandName(''); setValue('');
+        setRedirectUrl(''); setImageUrl(''); setBrandLogo('');
+        setDescription(''); setStartsAt(''); setEndsAt('');
+      } else {
+        setFieldErrors(res.fieldErrors);
+      }
+    });
+  };
+
   return (
-    <form action={formAction} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <input type="hidden" name="talentSlug" value={slug} />
+    <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div>
         <label className="block text-sm font-semibold text-sp-admin-muted mb-1">Creador</label>
-        <select
-          name="talentId"
-          required
-          value={talentId}
-          onChange={(e) => setTalentId(e.target.value)}
-          className="w-full rounded-lg border border-sp-admin-border bg-sp-admin-bg px-3 py-2 text-sm text-sp-admin-text"
-        >
+        <select value={talentId} onChange={(e) => setTalentId(e.target.value)} required className={inputCls}>
           <option value="">Seleccionar...</option>
-          {talents.map((t) => (
-            <option key={t.id} value={t.id}>{t.name}</option>
-          ))}
+          {talents.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
         </select>
-        {fieldErrors?.talentId && <p className="text-xs text-red-400 mt-1">{fieldErrors.talentId[0]}</p>}
+        {err('talentId') && <p className="text-xs text-red-400 mt-1">{err('talentId')}</p>}
       </div>
+
       <div>
         <label className="block text-sm font-semibold text-sp-admin-muted mb-1">Título del premio</label>
-        <input name="title" required maxLength={200} className="w-full rounded-lg border border-sp-admin-border bg-sp-admin-bg px-3 py-2 text-sm text-sp-admin-text" />
-        {fieldErrors?.title && <p className="text-xs text-red-400 mt-1">{fieldErrors.title[0]}</p>}
+        <input value={title} onChange={(e) => setTitle(e.target.value)} required maxLength={200} className={inputCls} />
+        {err('title') && <p className="text-xs text-red-400 mt-1">{err('title')}</p>}
       </div>
+
       <div>
         <label className="block text-sm font-semibold text-sp-admin-muted mb-1">Marca</label>
-        <input name="brandName" required maxLength={150} className="w-full rounded-lg border border-sp-admin-border bg-sp-admin-bg px-3 py-2 text-sm text-sp-admin-text" />
-        {fieldErrors?.brandName && <p className="text-xs text-red-400 mt-1">{fieldErrors.brandName[0]}</p>}
+        <input value={brandName} onChange={(e) => setBrandName(e.target.value)} required maxLength={150} className={inputCls} />
+        {err('brandName') && <p className="text-xs text-red-400 mt-1">{err('brandName')}</p>}
       </div>
+
       <div>
         <label className="block text-sm font-semibold text-sp-admin-muted mb-1">Valor</label>
-        <input name="value" maxLength={50} placeholder="1.250" className="w-full rounded-lg border border-sp-admin-border bg-sp-admin-bg px-3 py-2 text-sm text-sp-admin-text placeholder:text-sp-admin-muted/40" />
+        <input value={value} onChange={(e) => setValue(e.target.value)} maxLength={50} placeholder="1.250€" className={inputCls} />
       </div>
+
       <div>
         <label className="block text-sm font-semibold text-sp-admin-muted mb-1">URL del sorteo</label>
-        <input name="redirectUrl" type="url" required className="w-full rounded-lg border border-sp-admin-border bg-sp-admin-bg px-3 py-2 text-sm text-sp-admin-text" />
-        {fieldErrors?.redirectUrl && <p className="text-xs text-red-400 mt-1">{fieldErrors.redirectUrl[0]}</p>}
+        <input value={redirectUrl} onChange={(e) => setRedirectUrl(e.target.value)} type="url" required className={inputCls} />
+        {err('redirectUrl') && <p className="text-xs text-red-400 mt-1">{err('redirectUrl')}</p>}
       </div>
+
       <div>
         <label className="block text-sm font-semibold text-sp-admin-muted mb-1">Imagen del premio (URL)</label>
-        <input name="imageUrl" type="url" className="w-full rounded-lg border border-sp-admin-border bg-sp-admin-bg px-3 py-2 text-sm text-sp-admin-text" />
-        {fieldErrors?.imageUrl && <p className="text-xs text-red-400 mt-1">{fieldErrors.imageUrl[0]}</p>}
+        <input value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} type="url" className={inputCls} />
+        {err('imageUrl') && <p className="text-xs text-red-400 mt-1">{err('imageUrl')}</p>}
       </div>
+
       <div>
         <label className="block text-sm font-semibold text-sp-admin-muted mb-1">Logo de marca (URL)</label>
-        <input name="brandLogo" type="url" className="w-full rounded-lg border border-sp-admin-border bg-sp-admin-bg px-3 py-2 text-sm text-sp-admin-text" />
+        <input value={brandLogo} onChange={(e) => setBrandLogo(e.target.value)} type="url" className={inputCls} />
       </div>
+
       <div>
         <label className="block text-sm font-semibold text-sp-admin-muted mb-1">Descripción</label>
-        <input name="description" className="w-full rounded-lg border border-sp-admin-border bg-sp-admin-bg px-3 py-2 text-sm text-sp-admin-text" />
+        <input value={description} onChange={(e) => setDescription(e.target.value)} className={inputCls} />
       </div>
+
       <div>
         <label className="block text-sm font-semibold text-sp-admin-muted mb-1">Inicio</label>
-        <input name="startsAt" type="datetime-local" required className="w-full rounded-lg border border-sp-admin-border bg-sp-admin-bg px-3 py-2 text-sm text-sp-admin-text" />
+        <input value={startsAt} onChange={(e) => setStartsAt(e.target.value)} type="datetime-local" required className={inputCls} />
+        {err('startsAt') && <p className="text-xs text-red-400 mt-1">{err('startsAt')}</p>}
       </div>
+
       <div>
-        <label className="block text-sm font-semibold text-sp-admin-muted mb-1">Fin</label>
-        <input name="endsAt" type="datetime-local" required className="w-full rounded-lg border border-sp-admin-border bg-sp-admin-bg px-3 py-2 text-sm text-sp-admin-text" />
-        {fieldErrors?.endsAt && <p className="text-xs text-red-400 mt-1">{fieldErrors.endsAt[0]}</p>}
+        <label className="block text-sm font-semibold text-sp-admin-muted mb-1">
+          Fin <span className="font-normal text-sp-admin-muted/60">(opcional)</span>
+        </label>
+        <input value={endsAt} onChange={(e) => setEndsAt(e.target.value)} type="datetime-local" className={inputCls} />
+        {err('endsAt') && <p className="text-xs text-red-400 mt-1">{err('endsAt')}</p>}
       </div>
-      <div className="md:col-span-2">
-        <button type="submit" className="px-6 py-2 rounded-lg bg-sp-admin-accent text-sp-admin-bg text-sm font-bold hover:opacity-90 transition-opacity">
-          Crear Giveaway
+
+      <div className="md:col-span-2 flex items-center gap-4">
+        <button
+          type="submit"
+          disabled={isPending}
+          className="px-6 py-2 rounded-lg bg-sp-admin-accent text-sp-admin-bg text-sm font-bold hover:opacity-90 transition-opacity disabled:opacity-60 cursor-pointer"
+        >
+          {isPending ? 'Creando...' : 'Crear Giveaway'}
         </button>
+        {globalError && <p className="text-xs text-red-400">{globalError}</p>}
+        {success && <p className="text-xs text-emerald-400">Giveaway creado correctamente.</p>}
       </div>
     </form>
   );

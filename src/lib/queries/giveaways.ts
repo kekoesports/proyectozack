@@ -1,4 +1,4 @@
-import { eq, gt, lte, desc, asc, and } from 'drizzle-orm';
+import { eq, gt, isNull, lte, or, desc, asc, and, isNotNull } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { giveaways } from '@/db/schema';
 import type { Giveaway, GiveawayWithTalent } from '@/types';
@@ -17,7 +17,8 @@ export async function getActiveGiveaways(talentId: number): Promise<Giveaway[]> 
     .where(
       and(
         eq(giveaways.talentId, talentId),
-        gt(giveaways.endsAt, new Date()),
+        // Sin fecha fin = siempre activo; con fecha = activo si aún no ha pasado
+        or(isNull(giveaways.endsAt), gt(giveaways.endsAt, new Date())),
       ),
     )
     .orderBy(asc(giveaways.endsAt));
@@ -37,6 +38,7 @@ export async function getFinishedGiveaways(talentId: number): Promise<Giveaway[]
     .where(
       and(
         eq(giveaways.talentId, talentId),
+        isNotNull(giveaways.endsAt),
         lte(giveaways.endsAt, new Date()),
       ),
     )
@@ -75,7 +77,7 @@ export async function createGiveaway(data: {
   value?: string | null | undefined;
   redirectUrl: string;
   startsAt: Date;
-  endsAt: Date;
+  endsAt?: Date | null;
   sortOrder?: number;
 }): Promise<Giveaway> {
   const [row] = await db.insert(giveaways).values(data).returning();

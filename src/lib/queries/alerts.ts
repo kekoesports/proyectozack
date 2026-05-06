@@ -1,6 +1,6 @@
-import { and, asc, eq, inArray, isNull, isNotNull, lt, not, or, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, inArray, isNull, isNotNull, lt, not, or, sql } from 'drizzle-orm';
 import { db } from '@/lib/db';
-import { crmTasks, crmBrandFollowups, crmBrands, campaigns, talents, invoices, issuedInvoices, billingClients } from '@/db/schema';
+import { alerts, crmTasks, crmBrandFollowups, crmBrands, campaigns, talents, invoices, issuedInvoices, billingClients } from '@/db/schema';
 import { getIsoWeekLabel, previousWeek } from '@/lib/utils/week';
 
 export type AlertSeverity = 'critical' | 'high' | 'medium' | 'low';
@@ -16,7 +16,10 @@ export type AlertType =
   | 'invoice_overdue'
   | 'deal_brand_paid_talent_pending'
   | 'issued_invoice_overdue'
-  | 'issued_invoice_due_soon';
+  | 'issued_invoice_due_soon'
+  | 'task_assigned'
+  | 'task_completed'
+  | 'meeting_invited';
 
 export type AlertResolveHint = {
   readonly type:   'complete_task';
@@ -34,6 +37,8 @@ export type DashboardAlert = {
   readonly daysInfo?:    string | undefined;
   /** Datos para resolver la alerta en un clic (solo tareas). */
   readonly resolveHint?: AlertResolveHint | undefined;
+  /** ID de la fila en crm_alerts para notificaciones persistentes dismissibles. */
+  readonly dbId?:        number | undefined;
 };
 
 export type AlertSummary = {
@@ -71,6 +76,52 @@ function fmt(n: number): string {
 
 const SEVERITY_ORDER: Record<AlertSeverity, number> = { critical: 0, high: 1, medium: 2, low: 3 };
 
+// ── Mutations ────────────────────────────────────────────────────────
+
+/** Inserta una notificación persistente en crm_alerts. */
+export async function createAlert(data: {
+  readonly type:              AlertType;
+  readonly title:             string;
+  readonly description?:      string;
+  readonly severity?:         AlertSeverity;
+  readonly assignedToUserId?: string;
+  readonly relatedEntityType?: string;
+  readonly relatedEntityId?:  number;
+}): Promise<void> {
+  await db.insert(alerts).values({
+    type:              data.type,
+    title:             data.title,
+    description:       data.description ?? null,
+    severity:          data.severity ?? 'low',
+    status:            'active',
+    assignedToUserId:  data.assignedToUserId ?? null,
+    relatedEntityType: data.relatedEntityType ?? null,
+    relatedEntityId:   data.relatedEntityId ?? null,
+  });
+}
+
+/** Marca una alerta persistente como dismissed. Solo afecta alertas asignadas al usuario. */
+export async function dismissAlert(id: number, userId: string): Promise<void> {
+  await db
+    .update(alerts)
+    .set({ status: 'dismissed', dismissedAt: new Date(), updatedAt: new Date() })
+    .where(and(eq(alerts.id, id), eq(alerts.assignedToUserId, userId)));
+}
+
+/** Dismiss de todas las notificaciones personales no leídas de un usuario. */
+export async function dismissAllPersonalAlerts(userId: string): Promise<void> {
+  await db
+    .update(alerts)
+    .set({ status: 'dismissed', dismissedAt: new Date(), updatedAt: new Date() })
+    .where(
+      and(
+        eq(alerts.assignedToUserId, userId),
+        eq(alerts.status, 'active'),
+        inArray(alerts.type, ['task_assigned', 'task_completed'] as const),
+      ),
+    );
+}
+
 // ── Main query ────────────────────────────────────────────────────────
 
 export async function getDashboardAlerts(opts?: {
@@ -78,12 +129,15 @@ export async function getDashboardAlerts(opts?: {
   readonly staffUserId?: string;
   /** Si true, omite alertas financieras globales (para staff sin acceso financiero) */
   readonly skipFinancial?: boolean;
+  /** Usuario actual — para cargar notificaciones personales persistentes */
+  readonly currentUserId?: string;
 }): Promise<{
   alerts:  readonly DashboardAlert[];
   summary: AlertSummary;
 }> {
   const staffUserId    = opts?.staffUserId;
   const skipFinancial  = opts?.skipFinancial ?? false;
+  const currentUserId  = opts?.currentUserId;
   const today    = todayMadrid();
   const in7days  = new Date(Date.now() + 7  * 86_400_000).toISOString().slice(0, 10);
   const in3days  = new Date(Date.now() + 3  * 86_400_000).toISOString().slice(0, 10);
@@ -110,6 +164,7 @@ export async function getDashboardAlerts(opts?: {
     brandPaidTalentPending,
     overdueIssuedInvoices,
     dueSoonIssuedInvoices,
+    persistentNotifs,
   ] = await Promise.all([
     // 1. Tareas vencidas (max 3) — filtradas por staffUserId si aplica
     db.select({
@@ -341,6 +396,25 @@ export async function getDashboardAlerts(opts?: {
     ))
     .orderBy(asc(issuedInvoices.dueDate))
     .limit(3),
+
+    // 13. Notificaciones persistentes personales (task_assigned, task_completed)
+    currentUserId
+      ? db.select({
+          id:          alerts.id,
+          type:        alerts.type,
+          title:       alerts.title,
+          description: alerts.description,
+          relatedEntityId: alerts.relatedEntityId,
+          triggeredAt: alerts.triggeredAt,
+        }).from(alerts)
+          .where(and(
+            eq(alerts.assignedToUserId, currentUserId),
+            eq(alerts.status, 'active'),
+            inArray(alerts.type, ['task_assigned', 'task_completed']),
+          ))
+          .orderBy(desc(alerts.triggeredAt))
+          .limit(10)
+      : Promise.resolve([]),
   ]);
 
   const items: DashboardAlert[] = [];
@@ -532,7 +606,27 @@ export async function getDashboardAlerts(opts?: {
     });
   }
 
-  const sorted = items.sort((a, b) => SEVERITY_ORDER[a.severity] - SEVERITY_ORDER[b.severity]).slice(0, 8);
+  // 13 → notificaciones personales persistentes (task_assigned, task_completed)
+  for (const n of persistentNotifs) {
+    const href = n.relatedEntityId
+      ? `/admin/tareas?t=${n.relatedEntityId}`
+      : '/admin/tareas';
+    items.push({
+      id:          `notif_${n.id}`,
+      dbId:        n.id,
+      type:        n.type as AlertType,
+      severity:    'low',
+      title:       n.title,
+      description: n.description ?? '',
+      href,
+    });
+  }
+
+  // Notificaciones personales van primero (antes del sort por severidad)
+  const personal  = items.filter((a) => a.dbId !== undefined);
+  const system    = items.filter((a) => a.dbId === undefined)
+                         .sort((a, b) => SEVERITY_ORDER[a.severity] - SEVERITY_ORDER[b.severity]);
+  const sorted    = [...personal, ...system].slice(0, 10);
 
   const summary: AlertSummary = {
     overdueTasksCount:     overdueTasks.length,
@@ -540,7 +634,7 @@ export async function getDashboardAlerts(opts?: {
     unpaidBrandCount:      unpaidBrand.length,
     pendingTalentCount:    pendingTalent.length,
     expiringDealsCount:    expiringDeals.length,
-    total:                 overdueTasks.length + overdueFollowups.length + unpaidBrand.length + pendingTalent.length + expiringDeals.length + expiredActive.length,
+    total:                 overdueTasks.length + overdueFollowups.length + unpaidBrand.length + pendingTalent.length + expiringDeals.length + expiredActive.length + persistentNotifs.length,
   };
 
   return { alerts: sorted, summary };

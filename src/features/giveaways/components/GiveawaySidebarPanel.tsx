@@ -4,8 +4,9 @@ import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import type { GiveawayWithTalent } from '@/types';
 
-function useCountdown(endsAt: Date) {
+function useCountdown(endsAt: Date | null) {
   const calc = useCallback(() => {
+    if (!endsAt) return null;
     const diff = endsAt.getTime() - Date.now();
     if (diff <= 0) return null;
     return {
@@ -142,7 +143,7 @@ type GiveawaySidebarPanelProps = {
  * ```
  */
 export function GiveawaySidebarPanel({ giveaways }: GiveawaySidebarPanelProps): React.JSX.Element | null {
-  const active = giveaways.filter((g) => new Date(g.endsAt) > new Date());
+  const active = giveaways.filter((g) => g.endsAt === null || new Date(g.endsAt) > new Date());
   if (active.length === 0) return null;
 
   return (

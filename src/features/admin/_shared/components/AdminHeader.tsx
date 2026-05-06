@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useTransition } from 'react';
 import Link from 'next/link';
 import { BellIcon, SunIcon, MoonIcon } from './SidebarIcons';
 import { GlobalSearch } from './GlobalSearch';
@@ -43,6 +43,9 @@ const TYPE_ICON: Record<string, string> = {
   task_rolled_over:               '↻',
   invoice_overdue:                '📄',
   deal_brand_paid_talent_pending: '⚡',
+  task_assigned:                  '📋',
+  task_completed:                 '✅',
+  meeting_invited:                '📅',
 };
 
 const EUR = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 });
@@ -50,17 +53,28 @@ const EUR = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR',
 // ── Props ─────────────────────────────────────────────────────────────
 
 type Props = {
-  readonly alertCount?:   number;
-  readonly recentAlerts?: readonly DashboardAlert[];
+  readonly alertCount?:        number;
+  readonly recentAlerts?:      readonly DashboardAlert[];
+  readonly onDismissAlert?:    (id: unknown) => Promise<{ error?: string }>;
+  readonly onDismissAllAlerts?: () => Promise<{ error?: string }>;
 };
 
 // ── Alert dropdown item ───────────────────────────────────────────────
 
-function AlertDropdownItem({ alert, onClose }: { alert: DashboardAlert; onClose: () => void }): React.ReactElement {
+function AlertDropdownItem({
+  alert,
+  onClose,
+  onDismiss,
+}: {
+  alert: DashboardAlert;
+  onClose: () => void;
+  onDismiss?: (id: number) => void;
+}): React.ReactElement {
   const icon = TYPE_ICON[alert.type] ?? '•';
+  const isPersonal = alert.dbId !== undefined;
 
   return (
-    <div className="flex items-start gap-2.5 px-3 py-2.5 hover:bg-sp-admin-hover transition-colors border-b border-sp-admin-border/40 last:border-0">
+    <div className={`flex items-start gap-2.5 px-3 py-2.5 hover:bg-sp-admin-hover transition-colors border-b border-sp-admin-border/40 last:border-0 ${isPersonal ? 'bg-blue-50/40 dark:bg-blue-950/20' : ''}`}>
       {/* Dot de severidad */}
       <span className={`w-1.5 h-1.5 rounded-full mt-1.5 shrink-0 ${SEVERITY_DOT[alert.severity]}`} aria-hidden />
 
@@ -97,6 +111,16 @@ function AlertDropdownItem({ alert, onClose }: { alert: DashboardAlert; onClose:
             </Link>
             {alert.resolveHint && (
               <AlertResolveButton hint={alert.resolveHint} compact />
+            )}
+            {isPersonal && onDismiss && (
+              <button
+                type="button"
+                onClick={() => { onDismiss(alert.dbId!); }}
+                className="text-[9px] text-sp-admin-muted hover:text-sp-admin-text cursor-pointer"
+                title="Marcar como leída"
+              >
+                ✓ Leída
+              </button>
             )}
           </div>
         </div>
@@ -136,10 +160,21 @@ function useThemeToggle(): { isDark: boolean; toggle: () => void } {
 
 // ── AdminHeader ───────────────────────────────────────────────────────
 
-export function AdminHeader({ alertCount = 0, recentAlerts = [] }: Props): React.ReactElement {
+export function AdminHeader({ alertCount = 0, recentAlerts = [], onDismissAlert, onDismissAllAlerts }: Props): React.ReactElement {
   const [showActions, setShowActions] = useState(false);
   const [showAlerts,  setShowAlerts]  = useState(false);
+  const [isPending,   startTransition] = useTransition();
   const { isDark, toggle: toggleTheme } = useThemeToggle();
+
+  const hasPersonalNotifs = recentAlerts.some((a) => a.dbId !== undefined);
+
+  const handleDismiss = (id: number): void => {
+    startTransition(async () => { await onDismissAlert?.(id); });
+  };
+
+  const handleDismissAll = (): void => {
+    startTransition(async () => { await onDismissAllAlerts?.(); });
+  };
 
   const today = new Date().toLocaleDateString('es-ES', {
     weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
@@ -253,6 +288,7 @@ export function AdminHeader({ alertCount = 0, recentAlerts = [] }: Props): React
                       key={alert.id}
                       alert={alert}
                       onClose={() => setShowAlerts(false)}
+                      onDismiss={handleDismiss}
                     />
                   ))}
                 </div>
@@ -260,13 +296,23 @@ export function AdminHeader({ alertCount = 0, recentAlerts = [] }: Props): React
 
               {/* Footer */}
               {recentAlerts.length > 0 && (
-                <div className="px-3 py-2 border-t border-sp-admin-border/60 bg-sp-admin-hover/20">
+                <div className="px-3 py-2 border-t border-sp-admin-border/60 bg-sp-admin-hover/20 flex items-center justify-between gap-2">
+                  {hasPersonalNotifs && (
+                    <button
+                      type="button"
+                      disabled={isPending}
+                      onClick={handleDismissAll}
+                      className="text-[9px] font-semibold text-sp-admin-muted hover:text-sp-admin-text disabled:opacity-40 cursor-pointer"
+                    >
+                      {isPending ? '…' : 'Marcar todas como leídas'}
+                    </button>
+                  )}
                   <Link
                     href="/admin#analitica-alertas"
                     onClick={() => setShowAlerts(false)}
-                    className="block text-center text-[10px] font-semibold text-sp-admin-accent hover:underline"
+                    className="ml-auto text-[10px] font-semibold text-sp-admin-accent hover:underline"
                   >
-                    Ver todas las alertas ({alertCount}) →
+                    Ver todas ({alertCount}) →
                   </Link>
                 </div>
               )}

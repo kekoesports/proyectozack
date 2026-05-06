@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { RolledOverBanner } from './RolledOverBanner';
-import type { CrmTask, CrmTaskTemplate } from '@/types';
+import type { CrmEvent, CrmTask, CrmTaskTemplate } from '@/types';
 import type { RelatedLabel } from '@/lib/queries/crmTasks';
 import { TaskTemplatesPanel } from './TaskTemplatesPanel';
 import { TaskList } from './TaskList';
@@ -15,6 +15,7 @@ type UserOption = { readonly id: string; readonly name: string };
 type Props = {
   readonly tasks: readonly CrmTask[];
   readonly calendarTasks?: readonly CrmTask[];
+  readonly events?: readonly CrmEvent[] | undefined;
   readonly users: readonly UserOption[];
   readonly currentUserId: string;
   readonly suggestedCategories?: readonly string[];
@@ -71,12 +72,20 @@ export function TaskWorkspace(props: Props): React.ReactElement {
   const activeIdParam = searchParams.get('t');
 
   const todayStr   = new Date().toISOString().slice(0, 10);
-  const pending    = props.tasks.filter((t) => t.status === 'pendiente').length;
-  const inProgress = props.tasks.filter((t) => t.status === 'en_progreso').length;
-  const done       = props.tasks.filter((t) => t.status === 'completada').length;
-  const overdue    = props.tasks.filter((t) => t.status !== 'completada' && t.dueDate !== null && t.dueDate < todayStr).length;
-  const dueToday   = props.tasks.filter((t) => t.status !== 'completada' && t.dueDate === todayStr).length;
-  const rolledOver = props.tasks.filter((t) => t.rolledOver).length;
+  const { pending, inProgress, done, overdue, dueToday, rolledTasks } = useMemo(() => {
+    let p = 0, ip = 0, d = 0, ov = 0, dt = 0;
+    const rolled: typeof props.tasks[number][] = [];
+    for (const t of props.tasks) {
+      if (t.status === 'pendiente')   p++;
+      if (t.status === 'en_progreso') ip++;
+      if (t.status === 'completada')  d++;
+      if (t.status !== 'completada' && t.dueDate !== null && t.dueDate < todayStr) ov++;
+      if (t.status !== 'completada' && t.dueDate === todayStr) dt++;
+      if (t.rolledOver && t.status !== 'completada') rolled.push(t);
+    }
+    return { pending: p, inProgress: ip, done: d, overdue: ov, dueToday: dt, rolledTasks: rolled };
+  }, [props.tasks, todayStr]);
+  const rolledOver = rolledTasks.length;
 
   return (
     <div className="space-y-4">
@@ -130,9 +139,9 @@ export function TaskWorkspace(props: Props): React.ReactElement {
         </div>
       </div>
 
-      {/* Banner de tareas arrastradas */}
+      {/* Banner de tareas arrastradas — solo visibles si hay pendientes */}
       {rolledOver > 0 && (
-        <RolledOverBanner count={rolledOver} tasks={props.tasks} />
+        <RolledOverBanner tasks={rolledTasks} />
       )}
 
       {/* Panel de plantillas semanales */}
@@ -161,7 +170,13 @@ export function TaskWorkspace(props: Props): React.ReactElement {
       )}
 
       {view === 'calendar' && (
-        <TaskCalendar tasks={props.calendarTasks ?? props.tasks} onOpenAction={openTask} />
+        <TaskCalendar
+          tasks={props.calendarTasks ?? props.tasks}
+          events={props.events ?? []}
+          users={props.users}
+          currentUserId={props.currentUserId}
+          onOpenAction={openTask}
+        />
       )}
 
       {/* Modal específico para vistas Kanban/Calendario (Lista usa su propio router-driven modal) */}

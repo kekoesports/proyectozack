@@ -76,11 +76,14 @@ export const CreateGiveawayFormSchema = z
     redirectUrl: z.url('redirectUrl inválido').max(2048),
     talentSlug: emptyStringToUndef(z.string().max(150)),
     startsAt: z.coerce.date(),
-    endsAt: z.coerce.date(),
+    endsAt: z.preprocess(
+      (v) => (typeof v === 'string' && v.trim() === '' ? undefined : v),
+      z.coerce.date().optional(),
+    ),
     sortOrder: z.coerce.number().int().default(0),
   })
-  .refine((d) => d.startsAt < d.endsAt, {
-    message: 'starts_at must be before ends_at',
+  .refine((d) => !d.endsAt || d.startsAt < d.endsAt, {
+    message: 'La fecha de fin debe ser posterior al inicio',
     path: ['endsAt'],
   });
 export type CreateGiveawayFormInput = z.infer<typeof CreateGiveawayFormSchema>;

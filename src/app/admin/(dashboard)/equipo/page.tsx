@@ -5,6 +5,7 @@ import { getTeamTasksSummary } from '@/lib/queries/crmTasks';
 import { getIsoWeekLabel, getWeekStart } from '@/lib/utils/week';
 import { Avatar } from '@/features/admin/_shared/components/Avatar';
 import { InviteStaffForm } from '@/features/admin/equipo/components/InviteStaffForm';
+import { UserManageMenu } from '@/features/admin/equipo/components/UserManageMenu';
 import { AdminPageHeader } from '@/features/admin/_shared/components/AdminPageHeader';
 
 export const metadata = { title: 'Equipo | Admin' };
@@ -21,8 +22,15 @@ const ROLE_LABELS: Record<string, string> = {
   staff:   'Staff',
 };
 
+const ROLE_ACCESS = [
+  { role: 'Admin',   desc: 'Panel completo, eliminar registros, gestionar equipo' },
+  { role: 'Manager', desc: 'Panel completo, sin poder eliminar ni gestionar equipo' },
+  { role: 'Staff',   desc: 'Mi Semana, Tareas asignadas, Marcas y Tratos asignados' },
+] as const;
+
 export default async function EquipoAdminPage(): Promise<ReactElement> {
   const session = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
+  const isAdmin = session.user.role === 'admin';
   const weekLabel = getIsoWeekLabel(new Date());
   const weekStart = getWeekStart(weekLabel);
   const weekStr = weekStart.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' });
@@ -70,6 +78,13 @@ export default async function EquipoAdminPage(): Promise<ReactElement> {
                   isMe ? 'ring-2 ring-sp-admin-accent/30' : ''
                 }`}
               >
+                {/* Menú gestión — solo admin, no sobre sí mismo */}
+                {isAdmin && !isMe && (
+                  <div className="absolute top-3 right-3">
+                    <UserManageMenu userId={m.userId} currentRole={roleKey} />
+                  </div>
+                )}
+
                 {/* Header con avatar grande */}
                 <div className={`px-5 pt-5 pb-4 flex flex-col items-center text-center gap-3 ${
                   isMe ? 'bg-gradient-to-b from-sp-admin-accent/5 to-transparent' : ''
@@ -152,8 +167,23 @@ export default async function EquipoAdminPage(): Promise<ReactElement> {
         </div>
       )}
 
-      {/* Invitar staff — solo admin */}
-      {session.user.role === 'admin' && (
+      {/* Leyenda de roles — siempre visible */}
+      <div className="rounded-xl border border-sp-admin-border bg-sp-admin-card px-5 py-4">
+        <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-sp-admin-muted mb-3">Acceso por rol</p>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          {ROLE_ACCESS.map((r) => (
+            <div key={r.role} className="flex items-start gap-2">
+              <span className={`mt-0.5 shrink-0 inline-flex px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wide ${ROLE_STYLES[r.role.toLowerCase()] ?? ''}`}>
+                {r.role}
+              </span>
+              <p className="text-[11px] text-sp-admin-muted leading-snug">{r.desc}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Invitar — solo admin */}
+      {isAdmin && (
         <div className="mt-2">
           <InviteStaffForm />
         </div>

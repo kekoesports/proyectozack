@@ -43,6 +43,7 @@ export const crmTasks = pgTable(
       onDelete: 'set null',
     }),
 
+    startDate: date('start_date'),
     dueDate: date('due_date'),
     priority: crmTaskPriorityEnum('priority').notNull().default('media'),
     status: crmTaskStatusEnum('status').notNull().default('pendiente'),

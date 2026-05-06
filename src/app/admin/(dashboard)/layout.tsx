@@ -2,6 +2,7 @@ import { requireAnyRole } from '@/lib/auth-guard';
 import { getDashboardAlerts } from '@/lib/queries/alerts';
 import { AdminSidebar } from '@/features/admin/_shared/components/AdminSidebar';
 import { AdminHeader } from '@/features/admin/_shared/components/AdminHeader';
+import { dismissAlertAction, dismissAllAlertsAction } from './actions';
 import {
   DashboardIcon, TalentIcon, BrandIcon, GiveawayIcon, TeamIcon,
   TargetsIcon, TasksIcon, MyWeekIcon, InvoiceIcon, AnalyticsIcon,
@@ -59,12 +60,12 @@ export default async function AdminLayout({ children }: AdminLayoutProps): Promi
   // Cargar alertas para el badge de la campana — staff ve solo las suyas
   const { alerts, summary } = await getDashboardAlerts(
     isStaff
-      ? { staffUserId: session.user.id, skipFinancial: true }
-      : undefined,
+      ? { staffUserId: session.user.id, skipFinancial: true, currentUserId: session.user.id }
+      : { currentUserId: session.user.id },
   );
 
-  // Las 5 más urgentes para el dropdown
-  const recentAlerts = alerts.slice(0, 5);
+  // Las 10 más relevantes para el dropdown (personales primero)
+  const recentAlerts = alerts.slice(0, 10);
   const alertCount   = summary.total;
 
   return (
@@ -79,7 +80,12 @@ export default async function AdminLayout({ children }: AdminLayoutProps): Promi
         logoutHref="/api/auth/sign-out"
       />
       <div className="flex-1 flex flex-col min-w-0 pt-14 md:pt-0">
-        <AdminHeader alertCount={alertCount} recentAlerts={recentAlerts} />
+        <AdminHeader
+          alertCount={alertCount}
+          recentAlerts={recentAlerts}
+          onDismissAlert={dismissAlertAction}
+          onDismissAllAlerts={dismissAllAlertsAction}
+        />
         <main className="flex-1 p-4 md:p-5 overflow-auto">{children}</main>
       </div>
     </div>

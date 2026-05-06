@@ -62,8 +62,9 @@ export const crmBrands = pgTable(
     ownerUserId: text('owner_user_id').references(() => user.id, { onDelete: 'set null' }),
     portalUserId: text('portal_user_id').references(() => user.id, { onDelete: 'set null' }),
 
-    createdByUserId: text('created_by_user_id').references(() => user.id, { onDelete: 'set null' }),
-    assignedToUserId: text('assigned_to_user_id').references(() => user.id, { onDelete: 'set null' }),
+    createdByUserId:   text('created_by_user_id').references(() => user.id, { onDelete: 'set null' }),
+    assignedToUserId:  text('assigned_to_user_id').references(() => user.id, { onDelete: 'set null' }),
+    coAssignedToUserId: text('co_assigned_to_user_id').references(() => user.id, { onDelete: 'set null' }),
 
     // GEO objetivo multi-select (comma-separated: 'latam,spain')
     geoTargets: text('geo_targets'),
