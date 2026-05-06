@@ -209,58 +209,94 @@ export default async function SlugCreatorPage({ params }: PageProps): Promise<Re
         </div>
       </section>
 
-      <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-10">
+      {/* Layout: contenido principal + sidebar lateral en desktop */}
+      <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 py-8">
+        <div className="flex gap-8 items-start">
 
-        {/* Sección códigos */}
-        {codesWithTalent.length > 0 && (
-          <section className="space-y-4">
-            {heroCode && <HeroSponsorCard code={heroCode} />}
-            {secondaryCodes.length > 0 && (
-              <CodesExpandable
-                codes={secondaryCodes}
-                label={heroCode ? `Más códigos` : `Códigos de ${talent.name}`}
-              />
+          {/* Contenido principal */}
+          <div className="flex-1 min-w-0 space-y-10">
+
+            {codesWithTalent.length > 0 && (
+              <section className="space-y-4">
+                {heroCode && <HeroSponsorCard code={heroCode} />}
+                {secondaryCodes.length > 0 && (
+                  <CodesExpandable
+                    codes={secondaryCodes}
+                    label={heroCode ? `Más códigos` : `Códigos de ${talent.name}`}
+                  />
+                )}
+              </section>
             )}
-          </section>
-        )}
 
-        {/* Sección sorteos activos */}
-        {activeWithTalent.length > 0 && (
-          <section className="space-y-3">
-            <div className="flex items-center gap-2 mb-1">
-              <h2 className="text-[10px] font-black uppercase tracking-[0.25em] text-white/30">Sorteos activos</h2>
-              <span className="flex items-center gap-1 text-[9px] font-black text-[#C3FC00]">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#C3FC00] animate-pulse" aria-hidden />
-                {activeWithTalent.length} live
-              </span>
-            </div>
+            {activeWithTalent.length > 0 && (
+              <section className="space-y-3">
+                <div className="flex items-center gap-2 mb-1">
+                  <h2 className="text-[10px] font-black uppercase tracking-[0.25em] text-white/30">Sorteos activos</h2>
+                  <span className="flex items-center gap-1 text-[9px] font-black text-[#C3FC00]">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#C3FC00] animate-pulse" aria-hidden />
+                    {activeWithTalent.length} live
+                  </span>
+                </div>
+                {featuredGiveaway && <GiveawayFeatured giveaway={featuredGiveaway} />}
+                {restGiveaways.length > 0 && (
+                  <div className="space-y-2">
+                    {restGiveaways.map((g) => <GiveawayRow key={g.id} giveaway={g} />)}
+                  </div>
+                )}
+              </section>
+            )}
 
-            {/* Featured giveaway — formato expandido */}
-            {featuredGiveaway && <GiveawayFeatured giveaway={featuredGiveaway} />}
+            {/* Finalizados en mobile — colapsable */}
+            {finishedWithTalent.length > 0 && (
+              <details className="lg:hidden group border-t border-white/[0.06] pt-6">
+                <summary className="cursor-pointer list-none flex items-center justify-between mb-4">
+                  <h2 className="text-[10px] font-black uppercase tracking-[0.25em] text-white/30">
+                    Finalizados · {finishedWithTalent.length}
+                  </h2>
+                  <span className="text-[10px] font-bold text-white/20 group-open:hidden">▸ Ver</span>
+                  <span className="text-[10px] font-bold text-white/20 hidden group-open:inline">▾ Ocultar</span>
+                </summary>
+                <div className="space-y-1.5">
+                  {finishedWithTalent.map((g) => <GiveawayRow key={g.id} giveaway={g} finished />)}
+                </div>
+              </details>
+            )}
+          </div>
 
-            {/* Resto en filas compactas */}
-            {restGiveaways.length > 0 && (
-              <div className="space-y-2">
-                {restGiveaways.map((g) => <GiveawayRow key={g.id} giveaway={g} />)}
+          {/* Sidebar — sorteos finalizados en desktop */}
+          {finishedWithTalent.length > 0 && (
+            <aside className="hidden lg:flex flex-col gap-3 w-[220px] xl:w-[240px] shrink-0">
+              <div className="sticky top-20">
+                <h2 className="text-[9px] font-black uppercase tracking-[0.25em] text-white/25 mb-3">
+                  Historial · {finishedWithTalent.length}
+                </h2>
+                <div className="space-y-1.5">
+                  {finishedWithTalent.slice(0, 8).map((g) => (
+                    <a key={g.id} href={g.redirectUrl} target="_blank" rel="noopener noreferrer"
+                      className="group/item flex items-center gap-2.5 p-2 rounded-lg border border-white/[0.04] bg-white/[0.02] hover:border-white/10 hover:bg-white/[0.04] transition-all">
+                      <div className="relative w-8 h-8 shrink-0 rounded bg-white/[0.03]">
+                        {g.imageUrl ? (
+                          <img src={g.imageUrl} alt={g.title} className="w-full h-full object-contain p-0.5 opacity-50 group-hover/item:opacity-80 transition-opacity" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-white/15 text-[8px] font-black">?</div>
+                        )}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[9px] font-black uppercase tracking-wider text-white/20 truncate">{g.brandName}</p>
+                        <p className="text-[10px] font-semibold text-white/40 truncate leading-tight">{g.title}</p>
+                      </div>
+                    </a>
+                  ))}
+                  {finishedWithTalent.length > 8 && (
+                    <p className="text-[9px] text-white/15 text-center pt-1 font-bold uppercase tracking-wider">
+                      +{finishedWithTalent.length - 8} más
+                    </p>
+                  )}
+                </div>
               </div>
-            )}
-          </section>
-        )}
-
-        {finishedWithTalent.length > 0 && (
-          <details className="group border-t border-white/[0.06] pt-6">
-            <summary className="cursor-pointer list-none flex items-center justify-between mb-4">
-              <h2 className="text-[13px] font-black uppercase tracking-[0.2em] text-white/30">
-                Sorteos finalizados · {finishedWithTalent.length}
-              </h2>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-white/25 group-open:hidden">Mostrar</span>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-white/25 hidden group-open:inline">Ocultar</span>
-            </summary>
-            <div className="space-y-2">
-              {finishedWithTalent.map((g) => <GiveawayRow key={g.id} giveaway={g} finished />)}
-            </div>
-          </details>
-        )}
+            </aside>
+          )}
+        </div>
       </div>
 
       <div className="border-t border-white/[0.04] py-6 text-center">

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import Image from 'next/image';
 import { trpc } from '@/lib/trpc/client';
 import type { CreatorCodeWithTalent } from '@/types';
@@ -79,10 +79,20 @@ const TIER_STYLES: Record<CodeTier, {
 type Props = { readonly code: CreatorCodeWithTalent };
 
 export function CodeRowMini({ code }: Props): React.JSX.Element {
-  const [copied, setCopied] = useState(false);
+  const [copied,   setCopied]   = useState(false);
+  const [hovered,  setHovered]  = useState(false);
+  const hoverTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const trackClick = trpc.giveaways.trackClick.useMutation();
   const tier = getTier(code);
   const st   = TIER_STYLES[tier];
+
+  const onMouseEnter = (): void => {
+    if (hoverTimeout.current) clearTimeout(hoverTimeout.current);
+    setHovered(true);
+  };
+  const onMouseLeave = (): void => {
+    hoverTimeout.current = setTimeout(() => setHovered(false), 80);
+  };
 
   const handleCopy = useCallback((e: React.MouseEvent) => {
     e.preventDefault(); e.stopPropagation();
@@ -99,7 +109,12 @@ export function CodeRowMini({ code }: Props): React.JSX.Element {
   const benefit = code.description?.trim() || null;
 
   return (
-    <div className={`group flex items-center h-[56px] rounded-xl border transition-all overflow-hidden ${st.wrapper}`}>
+    <div
+      className={`group flex flex-col rounded-xl border transition-all overflow-hidden ${st.wrapper}`}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+    >
+    <div className="flex items-center h-[56px]">
 
       {/* Indicador de tier — franja izquierda de 3px */}
       {st.indicator && (
@@ -158,5 +173,14 @@ export function CodeRowMini({ code }: Props): React.JSX.Element {
         →
       </a>
     </div>
+
+    {/* EXPANSIÓN en hover — CTA grande */}
+    <div className={`overflow-hidden transition-all duration-250 ease-out ${hovered ? 'max-h-[52px] opacity-100' : 'max-h-0 opacity-0'}`}>
+      <a href={code.redirectUrl} target="_blank" rel="noopener noreferrer" onClick={handleCta}
+        className="flex items-center justify-center gap-2 mx-2 mb-2 py-2 rounded-lg bg-sp-grad text-white text-[11px] font-black uppercase tracking-[0.15em] shadow-[0_2px_12px_rgba(245,99,42,0.2)] hover:shadow-[0_4px_20px_rgba(245,99,42,0.35)] transition-all">
+        {code.ctaText?.trim() || 'Usar código'} →
+      </a>
+    </div>
+  </div>
   );
 }

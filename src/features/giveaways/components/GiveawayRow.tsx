@@ -121,11 +121,21 @@ export function GiveawayRow({ giveaway, finished = false }: Props): React.JSX.El
           )}
         </div>
 
-        {/* CTA compacto — solo flecha cuando no está expandido */}
+        {/* CTA — siempre visible, más prominente en hover */}
         {!finished ? (
-          <div className={`shrink-0 h-full flex items-center border-l border-white/[0.05] transition-all duration-300 ${expanded ? 'w-0 overflow-hidden opacity-0' : 'w-10 opacity-100'}`}>
-            <span className="w-full text-center text-white/25 text-sm font-bold">→</span>
-          </div>
+          <a
+            href={giveaway.redirectUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className={`shrink-0 h-full flex items-center justify-center border-l transition-all duration-300 font-black text-[10px] uppercase tracking-wider ${
+              expanded
+                ? 'px-5 bg-sp-grad border-transparent text-white shadow-[0_0_20px_rgba(245,99,42,0.3)]'
+                : 'px-3 border-white/[0.06] text-white/35 hover:text-white hover:bg-white/[0.04]'
+            }`}
+          >
+            {expanded ? 'Participar →' : '→'}
+          </a>
         ) : (
           <div className="shrink-0 w-10 h-full flex items-center border-l border-white/[0.04]">
             <span className="w-full text-center text-[9px] text-white/15 font-bold uppercase tracking-wider">End</span>
@@ -133,34 +143,15 @@ export function GiveawayRow({ giveaway, finished = false }: Props): React.JSX.El
         )}
       </div>
 
-      {/* EXPANSIÓN — solo visible en hover/active */}
-      <div className={`overflow-hidden transition-all duration-300 ease-out ${expanded ? 'max-h-[120px] opacity-100' : 'max-h-0 opacity-0'}`}>
-        <div className="px-4 pb-4 pt-1 flex items-center gap-4">
-          {/* Imagen grande en expand */}
-          <div className="relative w-20 h-16 shrink-0 rounded-lg overflow-hidden bg-white/[0.03] border border-white/[0.06]">
-            {giveaway.imageUrl && !imgError ? (
-              <Image src={giveaway.imageUrl} alt={giveaway.title} fill sizes="80px"
-                className="object-contain p-1.5 scale-110 transition-transform duration-700" />
-            ) : (
-              <GiveawayPrizePlaceholder size="sm" />
-            )}
-          </div>
-
-          {/* Info expandida */}
-          <div className="flex-1 min-w-0 space-y-2">
-            <div className="flex items-center gap-2 flex-wrap">
-              {giveaway.value && (
-                <span className="text-[11px] font-black text-white/60">Valor <span className="text-white">{giveaway.value}</span></span>
-              )}
-              {diffMs !== null && diffMs > 0 && endsAt && (
-                <span className="text-[10px] text-white/35 tabular-nums">· Quedan <CountdownSmall endsAt={endsAt} nowMs={nowMs} /></span>
-              )}
-            </div>
-            <a href={giveaway.redirectUrl} target="_blank" rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 w-full py-2.5 rounded-lg bg-sp-grad text-white text-[11px] font-black uppercase tracking-[0.15em] shadow-[0_2px_16px_rgba(245,99,42,0.2)] hover:shadow-[0_4px_24px_rgba(245,99,42,0.35)] transition-all">
-              PARTICIPAR →
-            </a>
-          </div>
+      {/* EXPANSIÓN — info extra sin imagen duplicada */}
+      <div className={`overflow-hidden transition-all duration-300 ease-out ${expanded ? 'max-h-[52px] opacity-100' : 'max-h-0 opacity-0'}`}>
+        <div className="px-4 pb-3 flex items-center gap-3">
+          {giveaway.value && (
+            <span className="text-[11px] text-white/40">Valor <span className="font-black text-white/70">{giveaway.value}</span></span>
+          )}
+          {diffMs !== null && diffMs > 0 && endsAt && (
+            <span className="text-[10px] text-white/25 tabular-nums">· <CountdownSmall endsAt={endsAt} nowMs={nowMs} /> restantes</span>
+          )}
         </div>
       </div>
     </div>

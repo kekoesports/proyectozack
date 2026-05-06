@@ -90,12 +90,7 @@ export function GiveawayFeatured({ giveaway }: Props): React.JSX.Element {
         ) : (
           <GiveawayPrizePlaceholder size="lg" />
         )}
-        {/* Rareza badge sobre imagen */}
-        {cfg.label && (
-          <span className={`absolute top-3 left-3 px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider ${cfg.badge}`}>
-            {cfg.label}
-          </span>
-        )}
+        {/* Sin badge de rareza — el glow del borde ya comunica el valor */}
       </div>
 
       {/* Info */}
