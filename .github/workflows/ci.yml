@@ -17,6 +17,8 @@ jobs:
   lint-typecheck:
     name: Lint & Type-check
     runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
     steps:
       - uses: actions/checkout@v4
 
@@ -32,6 +34,11 @@ jobs:
 
       - name: Type-check
         run: npx tsc --noEmit
+
+      - name: Schema drift check
+        run: npx drizzle-kit check
+        # Falla si hay cambios en src/db/schema/ sin migration SQL generada.
+        # Previene el incidente crm_alerts (schema editado via push sin migration file).
 
   test:
     name: Unit & Fuzz Tests

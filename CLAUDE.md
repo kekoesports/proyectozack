@@ -91,9 +91,14 @@ El panel `/admin/*` es un CRM operativo completo con roles, campañas, tareas re
 - `npm run migrate` usa `neon-http` (correcto). NO usar `npx drizzle-kit migrate` (usa websockets y cuelga).
 
 ## Database Migrations
-- **Drizzle is the single source of truth.** Never create tables or alter columns via raw SQL, seed scripts, or the Neon console. All schema changes go through `npx drizzle-kit generate` → `npx drizzle-kit migrate`.
+- **Drizzle is the single source of truth.** Never create tables or alter columns via raw SQL, seed scripts, or the Neon console. All schema changes go through `npx drizzle-kit generate` → `npm run migrate`.
+- **`drizzle-kit push` está prohibido** salvo entornos temporales/desechables. Siempre generar migration SQL versionado.
+- **Flujo obligatorio:** editar `src/db/schema/` → `npx drizzle-kit generate` → `npm run migrate` → commit del SQL generado.
+- **Pre-push check:** correr `npx drizzle-kit check` antes de hacer push. Si falla, hay cambios en el schema sin migration — generarla antes de continuar.
+- **El build de Vercel incluye `npm run migrate`** (ver `package.json`) — las migraciones se aplican automáticamente en producción en cada deploy.
 - **Verify `__drizzle_migrations` exists** before assuming migrations are current. If it's missing, the DB was provisioned outside Drizzle and must be reconciled before any new migration work.
 - **After applying migrations manually** (to fix drift), always backfill the `__drizzle_migrations` table with the correct hashes so future `drizzle-kit migrate` runs are idempotent.
+- **Incidente 2026-05-06:** `crm_alerts` fue creada via `drizzle-kit push` sin migration file → producción no tenía la tabla → error 500. Evitar esta situación con `drizzle-kit check` en CI.
 
 ## CSS / Design System
 
