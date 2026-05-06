@@ -55,6 +55,7 @@ const NAV_COLS_BY_LOCALE: Record<Locale, readonly NavCol[]> = {
         { href: '/twitch-streamers-agency',     label: 'Twitch Streamers Agency' },
         { href: '/influencers-cs2',             label: 'Influencers CS2 (ES)' },
         { href: '/agencia-marketing-esports',   label: 'Agencia Esports (ES)' },
+        { href: '/agencia-gaming-latam',         label: 'Gaming LATAM' },
       ],
     },
   ],
