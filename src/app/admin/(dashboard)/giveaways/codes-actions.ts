@@ -1,7 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { requireRole } from '@/lib/auth-guard';
+import { requireAnyRole } from '@/lib/auth-guard';
 import { createCode, deleteCode, updateCode } from '@/lib/queries/creatorCodes';
 import { parseFormData } from '@/lib/forms/parseFormData';
 import { firstError } from '@/lib/forms/firstError';
@@ -17,7 +17,7 @@ export type CodeActionState =
   | { ok: false; fieldErrors: Record<string, string[]> };
 
 export async function createCodeAction(formData: FormData): Promise<CodeActionState> {
-  await requireRole('admin', '/admin/login');
+  await requireAnyRole(['admin', 'manager'], '/admin/login');
 
   const parsed = parseFormData(formData, CreateCodeFormSchema);
   if (!parsed.ok) {
@@ -45,7 +45,7 @@ export async function createCodeAction(formData: FormData): Promise<CodeActionSt
 }
 
 export async function updateCodeAction(formData: FormData): Promise<CodeActionState> {
-  await requireRole('admin', '/admin/login');
+  await requireAnyRole(['admin', 'manager'], '/admin/login');
 
   const parsed = parseFormData(formData, UpdateCodeFormSchema);
   if (!parsed.ok) {
@@ -62,7 +62,7 @@ export async function updateCodeAction(formData: FormData): Promise<CodeActionSt
 }
 
 export async function deleteCodeAction(formData: FormData): Promise<void> {
-  await requireRole('admin', '/admin/login');
+  await requireAnyRole(['admin', 'manager'], '/admin/login');
   const parsed = parseFormData(formData, DeleteByIdSchema);
   if (!parsed.ok) return;
   await deleteCode(parsed.data.id);
