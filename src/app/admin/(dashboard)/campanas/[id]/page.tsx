@@ -33,6 +33,14 @@ export default async function CampaignDetailPage({
   const isManager = role === 'manager';
   const isAdmin = role === 'admin';
 
+  // IDOR guard: staff solo puede ver campañas donde participa.
+  // Ejecutarlo antes de las cargas pesadas evita trabajo inútil en requests no autorizadas.
+  try {
+    await assertCanEditCampaign(campaignId, { userId: session.user.id, role });
+  } catch {
+    notFound();
+  }
+
   const [
     campaign,
     campaignFiles,
@@ -68,14 +76,6 @@ export default async function CampaignDetailPage({
   ]);
 
   if (!campaign) notFound();
-
-  // IDOR guard: staff solo puede ver campañas donde participa
-  // assertCanEditCampaign comprueba assignedToUserId OR createdByUserId — misma regla para leer
-  try {
-    await assertCanEditCampaign(campaignId, { userId: session.user.id, role });
-  } catch {
-    notFound();
-  }
 
   const contractVars = buildContractVars(campaign);
 
