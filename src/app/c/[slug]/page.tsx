@@ -5,7 +5,9 @@ import Link from 'next/link';
 import { getTalentSlugs, getTalentBySlug } from '@/lib/queries/talents';
 import { getActiveGiveaways, getFinishedGiveaways } from '@/lib/queries/giveaways';
 import { getCodesByTalent } from '@/lib/queries/creatorCodes';
-import { CodeCardCompact } from '@/features/giveaways/components/CodeCardCompact';
+import { HeroSponsorCard } from '@/features/giveaways/components/HeroSponsorCard';
+import { CodesExpandable } from '@/features/giveaways/components/CodesExpandable';
+import { GiveawayFeatured } from '@/features/giveaways/components/GiveawayFeatured';
 import { GiveawayRow } from '@/features/giveaways/components/GiveawayRow';
 import { absoluteUrl } from '@/lib/site-url';
 import type { CreatorCodeWithTalent, GiveawayWithTalent, Talent } from '@/types';
@@ -80,14 +82,42 @@ export default async function SlugCreatorPage({ params }: PageProps): Promise<Re
   const activeWithTalent: GiveawayWithTalent[]     = active.map((g) => ({ ...g, talent: base }));
   const finishedWithTalent: GiveawayWithTalent[]   = finished.map((g) => ({ ...g, talent: base }));
 
-  const mainSocial = talent.socials.find((s) => s.platform === talent.platform) ?? talent.socials[0];
-  const bioSnippet = talent.bio?.trim()
+  const mainSocial    = talent.socials.find((s) => s.platform === talent.platform) ?? talent.socials[0];
+  const bioSnippet    = talent.bio?.trim()
     ? talent.bio.trim().slice(0, 120) + (talent.bio.trim().length > 120 ? '…' : '')
     : null;
-  const tags = talent.tags.slice(0, 4);
+  const tags          = talent.tags.slice(0, 4);
+
+  // Jerarquía de códigos: el primero isFeatured va como hero sponsor,
+  // el resto en lista compacta (la query ya ordena desc(isFeatured), asc(sortOrder))
+  const heroCode         = codesWithTalent.find((c) => c.isFeatured) ?? null;
+  const secondaryCodes   = heroCode
+    ? codesWithTalent.filter((c) => c.id !== heroCode.id)
+    : codesWithTalent;
+
+  const featuredGiveaway = activeWithTalent[0] ?? null;
+  const restGiveaways    = activeWithTalent.slice(1);
 
   return (
-    <>
+    <div className="min-h-screen relative overflow-x-hidden"
+      style={{ background: `radial-gradient(ellipse 80% 35% at 50% 0%, ${talent.gradientC1}0d 0%, transparent 45%)` }}>
+
+      {/* Laterales ambientales — glows decorativos que dan profundidad */}
+      <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden" aria-hidden>
+        {/* Lateral izquierdo */}
+        <div className="absolute -left-32 top-1/4 w-72 h-72 rounded-full blur-[80px] opacity-[0.07]"
+          style={{ background: talent.gradientC1 }} />
+        <div className="absolute -left-20 bottom-1/3 w-48 h-48 rounded-full blur-[60px] opacity-[0.04]"
+          style={{ background: talent.gradientC2 }} />
+        {/* Lateral derecho */}
+        <div className="absolute -right-32 top-1/3 w-72 h-72 rounded-full blur-[80px] opacity-[0.07]"
+          style={{ background: talent.gradientC2 }} />
+        <div className="absolute -right-20 top-2/3 w-56 h-56 rounded-full blur-[70px] opacity-[0.04]"
+          style={{ background: talent.gradientC1 }} />
+        {/* Centro inferior */}
+        <div className="absolute left-1/2 -translate-x-1/2 bottom-0 w-96 h-40 blur-[60px] opacity-[0.04]"
+          style={{ background: `radial-gradient(ellipse, ${talent.gradientC1}, ${talent.gradientC2})` }} />
+      </div>
       <header className="sticky top-0 z-50 bg-sp-black/90 backdrop-blur-xl border-b border-white/[0.04]">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
           <Link href="/giveaways" className="flex items-center gap-2 group">
@@ -97,15 +127,25 @@ export default async function SlugCreatorPage({ params }: PageProps): Promise<Re
         </div>
       </header>
 
-      <section className="relative overflow-hidden border-b border-white/[0.04]">
-        <div className="absolute inset-0 opacity-50" style={{ background: `radial-gradient(70% 60% at 30% 0%, ${talent.gradientC1}28 0%, transparent 65%)` }} aria-hidden />
+      <section className="relative overflow-hidden border-b border-white/[0.05]">
+        {/* Fondo ambiental del creador — doble glow */}
+        <div className="absolute inset-0 pointer-events-none"
+          style={{ background: `radial-gradient(65% 55% at 20% 0%, ${talent.gradientC1}22 0%, transparent 60%), radial-gradient(45% 40% at 80% 100%, ${talent.gradientC2}12 0%, transparent 55%)` }}
+          aria-hidden />
         <div className="relative max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-10 flex items-start gap-5 sm:gap-6">
-          <div className="relative w-[72px] h-[72px] sm:w-20 sm:h-20 rounded-xl overflow-hidden shrink-0 shadow-[0_6px_24px_rgba(0,0,0,0.5)]"
-            style={{ background: `linear-gradient(135deg, ${talent.gradientC1}, ${talent.gradientC2})` }}>
-            {talent.photoUrl
-              ? <Image src={talent.photoUrl} alt={talent.name} fill sizes="80px" className="object-cover" priority />
-              : <div className="w-full h-full flex items-center justify-center text-xl font-black text-white/90">{talent.initials}</div>
-            }
+
+          {/* Avatar con ring de color del creador */}
+          <div className="relative shrink-0">
+            <div className="absolute -inset-[2px] rounded-xl opacity-60"
+              style={{ background: `linear-gradient(135deg, ${talent.gradientC1}, ${talent.gradientC2})` }}
+              aria-hidden />
+            <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-xl overflow-hidden shadow-[0_8px_30px_rgba(0,0,0,0.6)]"
+              style={{ background: `linear-gradient(135deg, ${talent.gradientC1}, ${talent.gradientC2})` }}>
+              {talent.photoUrl
+                ? <Image src={talent.photoUrl} alt={talent.name} fill sizes="96px" className="object-cover" priority />
+                : <div className="w-full h-full flex items-center justify-center text-2xl font-black text-white/90">{talent.initials}</div>
+              }
+            </div>
           </div>
 
           <div className="flex-1 min-w-0">
@@ -169,40 +209,41 @@ export default async function SlugCreatorPage({ params }: PageProps): Promise<Re
         </div>
       </section>
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-10">
+      <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-10">
 
+        {/* Sección códigos */}
         {codesWithTalent.length > 0 && (
-          <section>
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h2 className="text-[13px] font-black uppercase tracking-[0.2em] text-white/60">Códigos de {talent.name}</h2>
-                <p className="text-[10px] text-white/25 mt-0.5">Usa sus códigos para apoyarle y obtener beneficios exclusivos</p>
-              </div>
-              <span className="text-[11px] font-bold tabular-nums text-white/30">{codesWithTalent.length} activos</span>
-            </div>
-            <div className="space-y-2">
-              {codesWithTalent.map((c) => <CodeCardCompact key={c.id} code={c} />)}
-            </div>
+          <section className="space-y-4">
+            {heroCode && <HeroSponsorCard code={heroCode} />}
+            {secondaryCodes.length > 0 && (
+              <CodesExpandable
+                codes={secondaryCodes}
+                label={heroCode ? `Más códigos` : `Códigos de ${talent.name}`}
+              />
+            )}
           </section>
         )}
 
+        {/* Sección sorteos activos */}
         {activeWithTalent.length > 0 && (
-          <section>
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h2 className="text-[13px] font-black uppercase tracking-[0.2em] text-white/60 flex items-center gap-2">
-                  Sorteos activos
-                  <span className="flex items-center gap-1 text-[10px] font-black text-[#C3FC00]">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#C3FC00] animate-pulse" aria-hidden />
-                    {activeWithTalent.length} en directo
-                  </span>
-                </h2>
-                <p className="text-[10px] text-white/25 mt-0.5">Participa antes de que termine el tiempo</p>
+          <section className="space-y-3">
+            <div className="flex items-center gap-2 mb-1">
+              <h2 className="text-[10px] font-black uppercase tracking-[0.25em] text-white/30">Sorteos activos</h2>
+              <span className="flex items-center gap-1 text-[9px] font-black text-[#C3FC00]">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#C3FC00] animate-pulse" aria-hidden />
+                {activeWithTalent.length} live
+              </span>
+            </div>
+
+            {/* Featured giveaway — formato expandido */}
+            {featuredGiveaway && <GiveawayFeatured giveaway={featuredGiveaway} />}
+
+            {/* Resto en filas compactas */}
+            {restGiveaways.length > 0 && (
+              <div className="space-y-2">
+                {restGiveaways.map((g) => <GiveawayRow key={g.id} giveaway={g} />)}
               </div>
-            </div>
-            <div className="space-y-2">
-              {activeWithTalent.map((g) => <GiveawayRow key={g.id} giveaway={g} />)}
-            </div>
+            )}
           </section>
         )}
 
@@ -228,6 +269,6 @@ export default async function SlugCreatorPage({ params }: PageProps): Promise<Re
           ← Ver todos los creadores en SocialPro
         </Link>
       </div>
-    </>
+    </div>
   );
 }

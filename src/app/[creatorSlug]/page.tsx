@@ -5,7 +5,8 @@ import Link from 'next/link';
 import { getTalentSlugs, getTalentBySlug } from '@/lib/queries/talents';
 import { getActiveGiveaways, getFinishedGiveaways } from '@/lib/queries/giveaways';
 import { getCodesByTalent } from '@/lib/queries/creatorCodes';
-import { CodeCardCompact } from '@/features/giveaways/components/CodeCardCompact';
+import { HeroSponsorCard } from '@/features/giveaways/components/HeroSponsorCard';
+import { CodeRowMini } from '@/features/giveaways/components/CodeRowMini';
 import { GiveawayRow } from '@/features/giveaways/components/GiveawayRow';
 import { absoluteUrl } from '@/lib/site-url';
 import type { CreatorCodeWithTalent, GiveawayWithTalent, Talent } from '@/types';
@@ -96,11 +97,15 @@ export default async function RootCreatorPage({ params }: PageProps): Promise<Re
   const activeWithTalent: GiveawayWithTalent[]     = active.map((g) => ({ ...g, talent: base }));
   const finishedWithTalent: GiveawayWithTalent[]   = finished.map((g) => ({ ...g, talent: base }));
 
-  const mainSocial = talent.socials.find((s) => s.platform === talent.platform) ?? talent.socials[0];
-  const bioSnippet = talent.bio?.trim()
+  const mainSocial     = talent.socials.find((s) => s.platform === talent.platform) ?? talent.socials[0];
+  const bioSnippet     = talent.bio?.trim()
     ? talent.bio.trim().slice(0, 120) + (talent.bio.trim().length > 120 ? '…' : '')
     : null;
-  const tags = talent.tags.slice(0, 4);
+  const tags           = talent.tags.slice(0, 4);
+  const heroCode       = codesWithTalent.find((c) => c.isFeatured) ?? null;
+  const secondaryCodes = heroCode
+    ? codesWithTalent.filter((c) => c.id !== heroCode.id)
+    : codesWithTalent;
 
   return (
     <>
@@ -238,25 +243,20 @@ export default async function RootCreatorPage({ params }: PageProps): Promise<Re
 
         {/* Códigos */}
         {codesWithTalent.length > 0 && (
-          <section>
-            <div className="flex items-center justify-between mb-4">
+          <section className="space-y-4">
+            {heroCode && <HeroSponsorCard code={heroCode} />}
+            {secondaryCodes.length > 0 && (
               <div>
-                <h2 className="text-[13px] font-black uppercase tracking-[0.2em] text-white/60">
-                  Códigos de {talent.name}
-                </h2>
-                <p className="text-[10px] text-white/25 mt-0.5">
-                  Usa sus códigos para apoyarle y obtener beneficios exclusivos
-                </p>
+                <div className="flex items-center justify-between mb-3">
+                  <h2 className="text-[11px] font-black uppercase tracking-[0.2em] text-white/35">
+                    {heroCode ? `Más códigos · ${secondaryCodes.length}` : `Códigos de ${talent.name} · ${codesWithTalent.length} activos`}
+                  </h2>
+                </div>
+                <div className="space-y-1.5">
+                  {secondaryCodes.map((c) => <CodeRowMini key={c.id} code={c} />)}
+                </div>
               </div>
-              <span className="text-[11px] font-bold tabular-nums text-white/30">
-                {codesWithTalent.length} activos
-              </span>
-            </div>
-            <div className="space-y-2">
-              {codesWithTalent.map((c) => (
-                <CodeCardCompact key={c.id} code={c} />
-              ))}
-            </div>
+            )}
           </section>
         )}
 
