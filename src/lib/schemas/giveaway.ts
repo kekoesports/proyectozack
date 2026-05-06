@@ -1,6 +1,15 @@
 import { z } from 'zod';
 import { IdSchema } from '@/lib/schemas/common';
 
+// Zod v4 acepta javascript: y data: como URLs válidas por spec.
+// Este refinement garantiza que solo se acepten http/https para redirect URLs
+// que se almacenan en DB y sirven a usuarios finales.
+const safeRedirectUrl = (label = 'redirectUrl inválido') =>
+  z.url(label).max(2048).refine(
+    (u) => u.startsWith('https://') || u.startsWith('http://'),
+    { message: 'Solo se permiten URLs http/https' },
+  );
+
 const giveawayFields = z.object({
   talentId: z.number().int().positive(),
   title: z.string().min(1).max(200),
@@ -41,7 +50,7 @@ export const CreateCodeFormSchema = z.object({
   code: z.string().trim().min(1, 'Código obligatorio').max(100),
   brandName: z.string().trim().min(1, 'Marca obligatoria').max(150),
   brandLogo: emptyStringToUndef(z.url().max(500)),
-  redirectUrl: z.url('redirectUrl inválido').max(2048),
+  redirectUrl: safeRedirectUrl(),
   description: emptyStringToUndef(z.string().max(300)),
   badge: emptyStringToUndef(z.string().max(50)),
   isFeatured: checkboxOn,
@@ -56,7 +65,7 @@ export const UpdateCodeFormSchema = z.object({
   code:        z.string().trim().min(1, 'Código obligatorio').max(100),
   brandName:   z.string().trim().min(1, 'Marca obligatoria').max(150),
   brandLogo:   emptyStringToUndef(z.url().max(500)),
-  redirectUrl: z.url('redirectUrl inválido').max(2048),
+  redirectUrl: safeRedirectUrl(),
   description: emptyStringToUndef(z.string().max(300)),
   badge:       emptyStringToUndef(z.string().max(50)),
   isFeatured:  checkboxOn,
@@ -88,7 +97,7 @@ export const CreateGiveawayFormSchema = z
     brandName: z.string().trim().min(1, 'Marca obligatoria').max(150),
     brandLogo: emptyStringToUndef(z.url().max(500)),
     value: emptyStringToUndef(z.string().max(50)),
-    redirectUrl: z.url('redirectUrl inválido').max(2048),
+    redirectUrl: safeRedirectUrl(),
     talentSlug: emptyStringToUndef(z.string().max(150)),
     startsAt: z.coerce.date(),
     endsAt: z.preprocess(

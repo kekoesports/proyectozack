@@ -240,7 +240,7 @@ export async function createWeeklyTemplatesAction(): Promise<CreateTemplatesResu
         category: tpl.category, weekLabel, relatedType: null, relatedId: null,
       });
       created++;
-    } catch { skipped++; }
+    } catch (err) { logRedacted('warn', '[createWeeklyTemplates] row error:', err); skipped++; }
   }
 
   revalidateAll();
