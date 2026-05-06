@@ -66,119 +66,113 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }));
 
   // ── Marketing core bilingual pairs ────────────────────────────────────────
-  // ES + EN core marketing pages with mutual hreflang and x-default → EN.
+  // ES = mercado principal → x-default apunta siempre a la versión española.
   const corePairs: MetadataRoute.Sitemap = [
     // Home
     {
       url: SITE_URL,
       lastModified: D.home, changeFrequency: 'weekly', priority: 1,
-      alternates: { languages: { es: SITE_URL, en: absoluteUrl('/en'), 'x-default': absoluteUrl('/en') } },
+      alternates: { languages: { es: SITE_URL, en: absoluteUrl('/en'), 'x-default': SITE_URL } },
     },
     {
       url: absoluteUrl('/en'),
       lastModified: D.home, changeFrequency: 'weekly', priority: 0.95,
-      alternates: { languages: { en: absoluteUrl('/en'), es: SITE_URL, 'x-default': absoluteUrl('/en') } },
+      alternates: { languages: { en: absoluteUrl('/en'), es: SITE_URL, 'x-default': SITE_URL } },
     },
     // Talents
     {
       url: absoluteUrl('/talentos'),
       lastModified: D.talentos, changeFrequency: 'weekly', priority: 0.9,
-      alternates: { languages: { es: absoluteUrl('/talentos'), en: absoluteUrl('/talents'), 'x-default': absoluteUrl('/talents') } },
+      alternates: { languages: { es: absoluteUrl('/talentos'), en: absoluteUrl('/talents'), 'x-default': absoluteUrl('/talentos') } },
     },
     {
       url: absoluteUrl('/talents'),
       lastModified: D.talentos, changeFrequency: 'weekly', priority: 0.85,
-      alternates: { languages: { en: absoluteUrl('/talents'), es: absoluteUrl('/talentos'), 'x-default': absoluteUrl('/talents') } },
+      alternates: { languages: { en: absoluteUrl('/talents'), es: absoluteUrl('/talentos'), 'x-default': absoluteUrl('/talentos') } },
     },
     // Services
     {
       url: absoluteUrl('/servicios'),
       lastModified: D.servicios, changeFrequency: 'monthly', priority: 0.8,
-      alternates: { languages: { es: absoluteUrl('/servicios'), en: absoluteUrl('/services'), 'x-default': absoluteUrl('/services') } },
+      alternates: { languages: { es: absoluteUrl('/servicios'), en: absoluteUrl('/services'), 'x-default': absoluteUrl('/servicios') } },
     },
     {
       url: absoluteUrl('/services'),
       lastModified: D.servicios, changeFrequency: 'monthly', priority: 0.85,
-      alternates: { languages: { en: absoluteUrl('/services'), es: absoluteUrl('/servicios'), 'x-default': absoluteUrl('/services') } },
+      alternates: { languages: { en: absoluteUrl('/services'), es: absoluteUrl('/servicios'), 'x-default': absoluteUrl('/servicios') } },
     },
     // Cases
     {
       url: absoluteUrl('/casos'),
       lastModified: D.casos, changeFrequency: 'weekly', priority: 0.8,
-      alternates: { languages: { es: absoluteUrl('/casos'), en: absoluteUrl('/cases'), 'x-default': absoluteUrl('/cases') } },
+      alternates: { languages: { es: absoluteUrl('/casos'), en: absoluteUrl('/cases'), 'x-default': absoluteUrl('/casos') } },
     },
     {
       url: absoluteUrl('/cases'),
       lastModified: D.casos, changeFrequency: 'weekly', priority: 0.85,
-      alternates: { languages: { en: absoluteUrl('/cases'), es: absoluteUrl('/casos'), 'x-default': absoluteUrl('/cases') } },
+      alternates: { languages: { en: absoluteUrl('/cases'), es: absoluteUrl('/casos'), 'x-default': absoluteUrl('/casos') } },
     },
     // Contact
     {
       url: absoluteUrl('/contacto'),
       lastModified: D.contacto, changeFrequency: 'monthly', priority: 0.8,
-      alternates: { languages: { es: absoluteUrl('/contacto'), en: absoluteUrl('/contact'), 'x-default': absoluteUrl('/contact') } },
+      alternates: { languages: { es: absoluteUrl('/contacto'), en: absoluteUrl('/contact'), 'x-default': absoluteUrl('/contacto') } },
     },
     {
       url: absoluteUrl('/contact'),
       lastModified: D.contacto, changeFrequency: 'monthly', priority: 0.85,
-      alternates: { languages: { en: absoluteUrl('/contact'), es: absoluteUrl('/contacto'), 'x-default': absoluteUrl('/contact') } },
+      alternates: { languages: { en: absoluteUrl('/contact'), es: absoluteUrl('/contacto'), 'x-default': absoluteUrl('/contacto') } },
     },
   ];
 
   // ── Multilingual landing pairs ────────────────────────────────────────────
-  // EN (primary, priority 0.85) + ES (support, priority 0.80).
-  // alternates.languages → Google outputs hreflang in sitemap.xml.
-  // x-default always points to the EN version (international fallback).
+  // x-default → versión española (mercado principal ES/LATAM).
   const bilingualLandings: MetadataRoute.Sitemap = [
     // CS2
     {
       url: absoluteUrl('/cs2-influencer-marketing'),
       lastModified: NOW, changeFrequency: 'monthly', priority: 0.85,
-      alternates: { languages: { en: absoluteUrl('/cs2-influencer-marketing'), es: absoluteUrl('/influencers-cs2'), 'x-default': absoluteUrl('/cs2-influencer-marketing') } },
+      alternates: { languages: { en: absoluteUrl('/cs2-influencer-marketing'), es: absoluteUrl('/influencers-cs2'), 'x-default': absoluteUrl('/influencers-cs2') } },
     },
     {
       url: absoluteUrl('/influencers-cs2'),
       lastModified: NOW, changeFrequency: 'monthly', priority: 0.80,
-      alternates: { languages: { es: absoluteUrl('/influencers-cs2'), en: absoluteUrl('/cs2-influencer-marketing'), 'x-default': absoluteUrl('/cs2-influencer-marketing') } },
+      alternates: { languages: { es: absoluteUrl('/influencers-cs2'), en: absoluteUrl('/cs2-influencer-marketing'), 'x-default': absoluteUrl('/influencers-cs2') } },
     },
     // Valorant
     {
       url: absoluteUrl('/valorant-influencers-agency'),
       lastModified: NOW, changeFrequency: 'monthly', priority: 0.85,
-      alternates: { languages: { en: absoluteUrl('/valorant-influencers-agency'), es: absoluteUrl('/agencia-influencers-valorant'), 'x-default': absoluteUrl('/valorant-influencers-agency') } },
+      alternates: { languages: { en: absoluteUrl('/valorant-influencers-agency'), es: absoluteUrl('/agencia-influencers-valorant'), 'x-default': absoluteUrl('/agencia-influencers-valorant') } },
     },
     {
       url: absoluteUrl('/agencia-influencers-valorant'),
       lastModified: NOW, changeFrequency: 'monthly', priority: 0.80,
-      alternates: { languages: { es: absoluteUrl('/agencia-influencers-valorant'), en: absoluteUrl('/valorant-influencers-agency'), 'x-default': absoluteUrl('/valorant-influencers-agency') } },
+      alternates: { languages: { es: absoluteUrl('/agencia-influencers-valorant'), en: absoluteUrl('/valorant-influencers-agency'), 'x-default': absoluteUrl('/agencia-influencers-valorant') } },
     },
-    // Betting — /influencers-betting redirects 301 to /servicios/igaming (Opción A)
-    // ES equivalent for /betting-influencers is now /servicios/igaming
+    // Betting
     {
       url: absoluteUrl('/betting-influencers'),
       lastModified: NOW, changeFrequency: 'monthly', priority: 0.85,
-      alternates: { languages: { en: absoluteUrl('/betting-influencers'), es: absoluteUrl('/servicios/igaming'), 'x-default': absoluteUrl('/betting-influencers') } },
+      alternates: { languages: { en: absoluteUrl('/betting-influencers'), es: absoluteUrl('/servicios/igaming'), 'x-default': absoluteUrl('/servicios/igaming') } },
     },
-    // /influencers-betting omitted — 301 → /servicios/igaming
     // Esports
     {
       url: absoluteUrl('/esports-marketing-agency'),
       lastModified: NOW, changeFrequency: 'monthly', priority: 0.85,
-      alternates: { languages: { en: absoluteUrl('/esports-marketing-agency'), es: absoluteUrl('/agencia-marketing-esports'), 'x-default': absoluteUrl('/esports-marketing-agency') } },
+      alternates: { languages: { en: absoluteUrl('/esports-marketing-agency'), es: absoluteUrl('/agencia-marketing-esports'), 'x-default': absoluteUrl('/agencia-marketing-esports') } },
     },
     {
       url: absoluteUrl('/agencia-marketing-esports'),
       lastModified: NOW, changeFrequency: 'monthly', priority: 0.80,
-      alternates: { languages: { es: absoluteUrl('/agencia-marketing-esports'), en: absoluteUrl('/esports-marketing-agency'), 'x-default': absoluteUrl('/esports-marketing-agency') } },
+      alternates: { languages: { es: absoluteUrl('/agencia-marketing-esports'), en: absoluteUrl('/esports-marketing-agency'), 'x-default': absoluteUrl('/agencia-marketing-esports') } },
     },
-    // Twitch — EN only, no ES pair yet; x-default = itself
+    // Twitch — solo EN, sin par ES todavía
     {
       url: absoluteUrl('/twitch-streamers-agency'),
       lastModified: NOW, changeFrequency: 'monthly', priority: 0.80,
       alternates: { languages: { en: absoluteUrl('/twitch-streamers-agency'), 'x-default': absoluteUrl('/twitch-streamers-agency') } },
     },
-    // /gaming/* redirect to ES landings — omitted from sitemap to avoid
-    // signalling duplicate URLs. Vercel will serve 301s from next.config.ts.
   ];
 
   return [
