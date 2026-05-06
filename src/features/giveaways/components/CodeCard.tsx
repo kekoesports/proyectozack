@@ -165,7 +165,7 @@ export function CodeCard({ code, featured = false }: CodeCardProps): React.JSX.E
 
       {/* Creator footer — links to creator page */}
       <Link
-        href={`/c/${code.talent.slug}`}
+        href={`/talentos/${code.talent.slug}`}
         className="flex items-center gap-2.5 px-5 py-3 bg-white/[0.02] border-t border-white/[0.04] hover:bg-white/[0.05] transition-colors group/creator"
       >
         {code.talent.photoUrl ? (
