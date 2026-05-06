@@ -89,8 +89,8 @@ function computeSpans(
   events:   readonly CrmEvent[],
   weekDays: readonly string[],
 ): SpanItem[] {
-  const weekStart = weekDays[0]!;
-  const weekEnd   = weekDays[6]!;
+  const weekStart = weekDays[0] ?? '';
+  const weekEnd   = weekDays[6] ?? '';
 
   type RawSpan = {
     key: string; title: string; start: string; end: string;

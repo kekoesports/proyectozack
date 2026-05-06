@@ -115,7 +115,7 @@ function AlertDropdownItem({
             {isPersonal && onDismiss && (
               <button
                 type="button"
-                onClick={() => { onDismiss(alert.dbId!); }}
+                onClick={() => { if (alert.dbId !== undefined) onDismiss(alert.dbId); }}
                 className="text-[9px] text-sp-admin-muted hover:text-sp-admin-text cursor-pointer"
                 title="Marcar como leída"
               >
