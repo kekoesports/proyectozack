@@ -9,8 +9,12 @@
 | CI (lint + tsc + tests + build) | ✅ Verde |
 | Schema drift check | ✅ Activo en CI |
 | Migrations auto en deploy | ✅ `npm run migrate` en build |
-| Tests | ✅ 927/927 pasan |
+| Tests | ✅ 939/939 pasan |
 | Producción | ✅ Sin errores runtime |
+| IDOR brands/[id] | ✅ Guard aplicado (2026-05-06) |
+| IDOR campanas/[id] | ✅ Guard aplicado (2026-05-06) |
+| Staff visibility equipo | ✅ Solo ve su card (2026-05-06) |
+| Analytics staff filter | ✅ Corregido a session-based (2026-05-06) |
 
 ---
 

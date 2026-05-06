@@ -35,7 +35,11 @@ export default async function EquipoAdminPage(): Promise<ReactElement> {
   const weekStart = getWeekStart(weekLabel);
   const weekStr = weekStart.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' });
 
-  const summary = await getTeamTasksSummary(weekLabel);
+  const rawSummary = await getTeamTasksSummary(weekLabel);
+  // Staff solo ve su propio card — no expone métricas ni datos de otros empleados
+  const summary = session.user.role === 'staff'
+    ? rawSummary.filter((m) => m.userId === session.user.id)
+    : rawSummary;
 
   const totalDone    = summary.reduce((s, m) => s + m.completed, 0);
   const totalPending = summary.reduce((s, m) => s + m.pending, 0);

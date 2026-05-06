@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { eq, inArray } from 'drizzle-orm';
 
 import { requireAnyRole } from '@/lib/auth-guard';
+import { assertCanEditCampaign } from '@/lib/queries/campaigns';
 import { getCampaignWithRelations } from '@/lib/queries/campaigns';
 import { listFilesByEntity } from '@/lib/queries/files';
 import { listDeliverablesByCampaign } from '@/lib/queries/deliverables';
@@ -67,6 +68,14 @@ export default async function CampaignDetailPage({
   ]);
 
   if (!campaign) notFound();
+
+  // IDOR guard: staff solo puede ver campañas donde participa
+  // assertCanEditCampaign comprueba assignedToUserId OR createdByUserId — misma regla para leer
+  try {
+    await assertCanEditCampaign(campaignId, { userId: session.user.id, role });
+  } catch {
+    notFound();
+  }
 
   const contractVars = buildContractVars(campaign);
 

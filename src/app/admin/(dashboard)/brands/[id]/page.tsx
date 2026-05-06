@@ -1,7 +1,8 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { requireAnyRole } from '@/lib/auth-guard';
-import { getCrmBrand, getBrandContacts, listBrandFollowups } from '@/lib/queries/crmBrands';
+import { getCrmBrand, getBrandContacts, getCrmBrandForPermission, listBrandFollowups } from '@/lib/queries/crmBrands';
+import { needsVisibilityFilter } from '@/lib/permissions';
 import { listCampaigns } from '@/lib/queries/campaigns';
 import { listInvoices } from '@/lib/queries/invoices';
 import { listBriefs } from '@/lib/queries/brandBriefs';
@@ -60,12 +61,17 @@ export default async function BrandDetailPage({
 
   const session = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
 
+  const isStaffRole = session.user.role === 'staff';
+  const staffOpts   = isStaffRole
+    ? { session: { userId: session.user.id, role: session.user.role as 'staff' } }
+    : undefined;
+
   const [brand, contacts, followups, campaigns, invoices, briefs] = await Promise.all([
     getCrmBrand(brandId),
     getBrandContacts(brandId),
     listBrandFollowups(brandId),
-    listCampaigns({ filters: { brandId } }),
-    listInvoices({ brandId }),
+    listCampaigns({ filters: { brandId }, ...staffOpts }),
+    listInvoices({ brandId, ...(isStaffRole ? { staffUserId: session.user.id } : {}) }),
     listBriefs(brandId),
   ]);
 
@@ -80,6 +86,18 @@ export default async function BrandDetailPage({
   };
 
   if (!brand) notFound();
+
+  // IDOR guard: staff solo puede ver marcas donde participa
+  if (needsVisibilityFilter(session.user.role)) {
+    const perm = await getCrmBrandForPermission(brandId);
+    const canRead =
+      perm !== undefined && (
+        perm.assignedToUserId   === session.user.id ||
+        perm.coAssignedToUserId === session.user.id ||
+        perm.createdByUserId    === session.user.id
+      );
+    if (!canRead) notFound();
+  }
 
   const statusCfg = STATUS_LABELS[brand.status] ?? { label: brand.status, color: '#72728a', bg: '#72728a1a' };
 
