@@ -6,7 +6,7 @@ import type { Role } from '@/lib/auth-guard';
 import { needsVisibilityFilter } from '@/lib/permissions';
 
 /**
- * Devuelve los eventos del mes indicado visibles para el usuario.
+ * Devuelve los eventos de un rango de fechas visibles para el usuario.
  * Staff ve solo eventos donde es creador o asistente.
  * Admin/manager ven todos.
  */
@@ -14,9 +14,10 @@ export async function getEventsForMonth(
   year: number,
   month: number,
   opts: { readonly userId: string; readonly role: Role },
+  monthsAhead = 3,
 ): Promise<readonly CrmEvent[]> {
   const monthStart = new Date(Date.UTC(year, month - 1, 1));
-  const monthEnd   = new Date(Date.UTC(year, month, 1));
+  const monthEnd   = new Date(Date.UTC(year, month - 1 + monthsAhead + 1, 1));
 
   const visibilityClause = needsVisibilityFilter(opts.role)
     ? or(

@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, getTableColumns, inArray, isNotNull, isNull, lte, ne, notLike, or, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, getTableColumns, gte, inArray, isNotNull, isNull, lte, ne, notLike, or, sql } from 'drizzle-orm';
 
 import { campaigns, crmBrands, crmTasks, invoices, talents, user } from '@/db/schema';
 import { crmTaskTemplates } from '@/db/schema/crmTaskTemplates';
@@ -744,10 +744,18 @@ export async function getTasksForCalendarView(
     notLike(crmTasks.title, 'Test Task%'),
   );
 
-  // Dated tasks from any week  OR  undated tasks from the current week
+  // Tareas con fecha (cualquier semana) + tareas sin fecha de un rango de ±4 meses
+  // para que el calendario muestre tareas de meses futuros aunque no tengan dueDate exacta.
+  const now = new Date();
+  const pastLabel   = getIsoWeekLabel(new Date(now.getFullYear(), now.getMonth() - 1, now.getDate()));
+  const futureLabel = getIsoWeekLabel(new Date(now.getFullYear(), now.getMonth() + 4, now.getDate()));
+
   const scopeFilter = or(
     isNotNull(crmTasks.dueDate),
-    eq(crmTasks.weekLabel, weekLabel),
+    and(
+      gte(crmTasks.weekLabel, pastLabel),
+      lte(crmTasks.weekLabel, futureLabel),
+    ),
   );
 
   const filters = [noTestFilter, scopeFilter];

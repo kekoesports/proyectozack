@@ -101,3 +101,10 @@ export function nextWeek(label: string): string {
   const next = new Date(start.getTime() + 8 * 86_400_000); // jump past Sunday
   return getIsoWeekLabel(next);
 }
+
+/** Devuelve la fecha ISO (YYYY-MM-DD) del lunes de la semana indicada. */
+export function getWeekMondayIso(label: string): string {
+  const monday = getWeekStart(label);
+  const { year, month, day } = madridCivilDate(monday);
+  return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+}

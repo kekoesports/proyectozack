@@ -2,6 +2,7 @@
 
 import { useMemo, useState, useTransition } from 'react';
 import type { CrmEvent, CrmTask, CrmTaskPriority } from '@/types';
+import { getWeekMondayIso } from '@/lib/utils/week';
 import { EventModal } from './EventModal';
 import { deleteEventAction } from '@/app/admin/(dashboard)/tareas/event-actions';
 
@@ -205,16 +206,19 @@ export function TaskCalendar({ tasks, events = [], users, currentUserId, onOpenA
   const todayIso = isoDate(new Date());
   const monthStr = `${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, '0')}`;
 
-  // Single-day items per day (tasks with only dueDate, or same start=due)
+  // Single-day items per day.
+  // Tasks with dueDate → on their due date.
+  // Tasks without dueDate but with a weekLabel → on the Monday of their week (lighter style).
   const singleByDay = useMemo(() => {
     const map = new Map<string, CrmTask[]>();
     for (const t of tasks) {
-      if (!t.dueDate) continue;
-      // If it's a multi-day span, don't show again as single
-      if (t.startDate && t.startDate !== t.dueDate) continue;
-      const arr = map.get(t.dueDate) ?? [];
+      // Multi-day spans are handled by computeSpans, skip here
+      if (t.startDate && t.dueDate && t.startDate !== t.dueDate) continue;
+      const dayKey = t.dueDate ?? getWeekMondayIso(t.weekLabel);
+      if (!dayKey) continue;
+      const arr = map.get(dayKey) ?? [];
       arr.push(t);
-      map.set(t.dueDate, arr);
+      map.set(dayKey, arr);
     }
     return map;
   }, [tasks]);
@@ -234,7 +238,18 @@ export function TaskCalendar({ tasks, events = [], users, currentUserId, onOpenA
     return map;
   }, [events]);
 
-  const unscheduled = useMemo(() => tasks.filter((t) => !t.dueDate && !t.startDate), [tasks]);
+  // Solo van a "Sin fecha" las tareas que pertenecen a una semana PASADA o actual sin fecha concreta.
+  // Las de semanas futuras ya aparecen en el calendario en el lunes de su semana.
+  const todayIso2 = isoDate(new Date());
+  const unscheduled = useMemo(
+    () => tasks.filter((t) => {
+      if (t.dueDate || t.startDate) return false;
+      const monday = getWeekMondayIso(t.weekLabel);
+      return monday <= todayIso2;
+    }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [tasks, todayIso2],
+  );
 
   const goPrev  = (): void => setCursor((c) => new Date(c.getFullYear(), c.getMonth() - 1, 1));
   const goNext  = (): void => setCursor((c) => new Date(c.getFullYear(), c.getMonth() + 1, 1));
@@ -344,8 +359,14 @@ export function TaskCalendar({ tasks, events = [], users, currentUserId, onOpenA
                               key={t.id}
                               type="button"
                               onClick={() => onOpenAction(t)}
-                              className={`w-full text-left text-[9px] px-1.5 py-0.5 rounded truncate border cursor-pointer ${t.status === 'completada' ? 'line-through text-sp-admin-muted bg-sp-admin-bg border-sp-admin-border/40' : `${PRIORITY_COLOR[t.priority]} hover:opacity-80`}`}
-                              title={t.title}
+                              className={`w-full text-left text-[9px] px-1.5 py-0.5 rounded truncate cursor-pointer ${
+                                t.status === 'completada'
+                                  ? 'line-through text-sp-admin-muted bg-sp-admin-bg border border-sp-admin-border/40'
+                                  : t.dueDate
+                                    ? `${PRIORITY_COLOR[t.priority]} border hover:opacity-80`
+                                    : 'border border-dashed opacity-70 ' + PRIORITY_COLOR[t.priority]
+                              }`}
+                              title={t.dueDate ? t.title : `${t.title} — sin fecha exacta`}
                             >
                               {t.title}
                             </button>
