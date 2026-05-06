@@ -127,90 +127,175 @@ export default async function SlugCreatorPage({ params }: PageProps): Promise<Re
         </div>
       </header>
 
-      <section className="relative overflow-hidden border-b border-white/[0.05]">
-        {/* Fondo ambiental del creador — doble glow */}
-        <div className="absolute inset-0 pointer-events-none"
-          style={{ background: `radial-gradient(65% 55% at 20% 0%, ${talent.gradientC1}22 0%, transparent 60%), radial-gradient(45% 40% at 80% 100%, ${talent.gradientC2}12 0%, transparent 55%)` }}
-          aria-hidden />
-        <div className="relative max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-10 flex items-start gap-5 sm:gap-6">
+      {/* ── HERO PREMIUM ── */}
+      <section className="relative overflow-hidden">
+        {/* Fondo: gradiente fuerte + grid gaming sutil */}
+        <div className="absolute inset-0 pointer-events-none" aria-hidden>
+          <div className="absolute inset-0"
+            style={{ background: `radial-gradient(70% 100% at 25% 0%, ${talent.gradientC1}38 0%, transparent 55%), radial-gradient(50% 80% at 75% 100%, ${talent.gradientC2}20 0%, transparent 55%)` }} />
+          {/* Dot grid gaming */}
+          <div className="absolute inset-0 opacity-[0.035]"
+            style={{ backgroundImage: `radial-gradient(circle, rgba(255,255,255,0.8) 1px, transparent 1px)`, backgroundSize: '28px 28px' }} />
+          {/* Scan line — muy sutil */}
+          <div className="absolute inset-x-0 top-0 h-px"
+            style={{ background: `linear-gradient(90deg, transparent, ${talent.gradientC1}80, ${talent.gradientC2}60, transparent)` }} />
+        </div>
 
-          {/* Avatar con ring de color del creador */}
-          <div className="relative shrink-0">
-            <div className="absolute -inset-[2px] rounded-xl opacity-60"
-              style={{ background: `linear-gradient(135deg, ${talent.gradientC1}, ${talent.gradientC2})` }}
-              aria-hidden />
-            <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-xl overflow-hidden shadow-[0_8px_30px_rgba(0,0,0,0.6)]"
-              style={{ background: `linear-gradient(135deg, ${talent.gradientC1}, ${talent.gradientC2})` }}>
-              {talent.photoUrl
-                ? <Image src={talent.photoUrl} alt={talent.name} fill sizes="96px" className="object-cover" priority />
-                : <div className="w-full h-full flex items-center justify-center text-2xl font-black text-white/90">{talent.initials}</div>
-              }
-            </div>
-          </div>
+        <div className="relative max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+          <div className="flex flex-col lg:flex-row gap-6 lg:gap-10 items-start">
 
-          <div className="flex-1 min-w-0">
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-1">
-              <h1 className="font-display text-2xl sm:text-3xl font-black uppercase tracking-[0.02em] text-white leading-none">{talent.name}</h1>
-              {codesWithTalent.length > 0 && (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/[0.06] border border-white/10 text-[10px] font-bold text-white/50 tabular-nums">
-                  {codesWithTalent.length} {codesWithTalent.length === 1 ? 'código' : 'códigos'}
-                </span>
-              )}
-              {activeWithTalent.length > 0 && (
-                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#C3FC00]/10 border border-[#C3FC00]/20 text-[10px] font-bold text-[#C3FC00] tabular-nums">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#C3FC00] animate-pulse" aria-hidden />
-                  {activeWithTalent.length} live
-                </span>
-              )}
-            </div>
+            {/* Columna izquierda: identidad del creador */}
+            <div className="flex items-start gap-5 sm:gap-6 flex-1 min-w-0">
+              {/* Avatar premium */}
+              <div className="relative shrink-0">
+                {/* Glow externo animado */}
+                <div className="absolute -inset-3 rounded-2xl opacity-30 blur-xl"
+                  style={{ background: `linear-gradient(135deg, ${talent.gradientC1}, ${talent.gradientC2})` }}
+                  aria-hidden />
+                {/* Ring gradient */}
+                <div className="absolute -inset-[2.5px] rounded-2xl"
+                  style={{ background: `linear-gradient(135deg, ${talent.gradientC1}, ${talent.gradientC2}, ${talent.gradientC1})` }}
+                  aria-hidden />
+                <div className="relative w-[88px] h-[88px] sm:w-[108px] sm:h-[108px] rounded-2xl overflow-hidden shadow-[0_12px_40px_rgba(0,0,0,0.7)]"
+                  style={{ background: `linear-gradient(135deg, ${talent.gradientC1}, ${talent.gradientC2})` }}>
+                  {talent.photoUrl
+                    ? <Image src={talent.photoUrl} alt={talent.name} fill sizes="108px" className="object-cover" priority />
+                    : <div className="w-full h-full flex items-center justify-center font-display text-3xl font-black text-white/90">{talent.initials}</div>
+                  }
+                  {/* Inner glow overlay */}
+                  <div className="absolute inset-0 shadow-[inset_0_0_20px_rgba(0,0,0,0.4)]" aria-hidden />
+                </div>
+              </div>
 
-            <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-sp-orange/80 mb-2">
-              {[talent.role, talent.game].filter(Boolean).join(' · ')}
-            </p>
+              {/* Info del creador */}
+              <div className="flex-1 min-w-0 pt-1">
+                {/* Nombre + badges */}
+                <div className="flex flex-wrap items-center gap-2 mb-1.5">
+                  <h1 className="font-display text-2xl sm:text-[2rem] font-black uppercase tracking-tight text-white leading-none">
+                    {talent.name}
+                  </h1>
+                  {activeWithTalent.length > 0 && (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider"
+                      style={{ background: `rgba(195,252,0,0.12)`, border: '1px solid rgba(195,252,0,0.25)', color: '#C3FC00' }}>
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#C3FC00] animate-pulse" aria-hidden />
+                      {activeWithTalent.length} live
+                    </span>
+                  )}
+                </div>
 
-            {bioSnippet && (
-              <p className="text-[12px] text-white/45 leading-snug mb-3 max-w-xl hidden sm:block">{bioSnippet}</p>
-            )}
+                {/* Role / game */}
+                <p className="text-[11px] font-bold uppercase tracking-[0.25em] mb-2.5"
+                  style={{ color: `${talent.gradientC1}cc` }}>
+                  {[talent.role, talent.game].filter(Boolean).join(' · ')}
+                </p>
 
-            <div className="flex flex-wrap gap-2 mb-3">
-              {talent.socials.map((s) => (
-                s.profileUrl ? (
-                  <a key={s.id} href={s.profileUrl} target="_blank" rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-white/10 bg-white/[0.04] hover:border-white/20 hover:bg-white/[0.07] transition-all text-white/70 hover:text-white">
-                    <span style={{ color: s.hexColor ?? 'white' }} className="opacity-90"><PlatformIcon platform={s.platform} /></span>
-                    <span className="text-[11px] font-bold tabular-nums">{s.followersDisplay}</span>
-                    <span className="text-[9px] uppercase tracking-wider opacity-50">{s.platform}</span>
-                  </a>
-                ) : (
-                  <div key={s.id} className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-white/[0.06] bg-white/[0.02] text-white/40">
-                    <span style={{ color: s.hexColor ?? 'currentColor' }} className="opacity-70"><PlatformIcon platform={s.platform} /></span>
-                    <span className="text-[11px] font-bold tabular-nums">{s.followersDisplay}</span>
+                {/* Bio */}
+                {bioSnippet && (
+                  <p className="text-[12px] text-white/40 leading-snug mb-3 max-w-sm hidden sm:block">{bioSnippet}</p>
+                )}
+
+                {/* Redes sociales */}
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {talent.socials.map((s) => (
+                    s.profileUrl ? (
+                      <a key={s.id} href={s.profileUrl} target="_blank" rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-white/10 bg-white/[0.05] hover:border-white/25 hover:bg-white/[0.09] transition-all">
+                        <span style={{ color: s.hexColor ?? 'white' }}><PlatformIcon platform={s.platform} /></span>
+                        <span className="text-[11px] font-bold tabular-nums text-white/80">{s.followersDisplay}</span>
+                        <span className="text-[9px] uppercase tracking-wider text-white/35">{s.platform}</span>
+                      </a>
+                    ) : (
+                      <div key={s.id} className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-white/[0.06] bg-white/[0.02]">
+                        <span style={{ color: s.hexColor ?? 'currentColor' }}><PlatformIcon platform={s.platform} /></span>
+                        <span className="text-[11px] font-bold tabular-nums text-white/35">{s.followersDisplay}</span>
+                      </div>
+                    )
+                  ))}
+                  {mainSocial?.profileUrl && (
+                    <a href={mainSocial.profileUrl} target="_blank" rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-white text-[11px] font-black uppercase tracking-wider gw-sp-btn-glow"
+                      style={{ background: `linear-gradient(135deg, ${talent.gradientC1}, ${talent.gradientC2})` }}>
+                      Seguir en {mainSocial.platform} →
+                    </a>
+                  )}
+                </div>
+
+                {/* Tags */}
+                {tags.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mb-4">
+                    {tags.map((t) => (
+                      <span key={t.tag} className="px-2 py-0.5 rounded-md bg-white/[0.04] border border-white/[0.07] text-[10px] font-bold uppercase tracking-wider text-white/30">
+                        #{t.tag}
+                      </span>
+                    ))}
                   </div>
-                )
-              ))}
-              {mainSocial?.profileUrl && (
-                <a href={mainSocial.profileUrl} target="_blank" rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-sp-grad text-white text-[11px] font-black uppercase tracking-wider gw-sp-btn-glow">
-                  Seguir en {mainSocial.platform} →
-                </a>
-              )}
+                )}
+
+                {/* CTA principal → rewards */}
+                {(codesWithTalent.length > 0 || activeWithTalent.length > 0) && (
+                  <a href="#recompensas"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-[12px] font-black uppercase tracking-[0.15em] text-white shadow-[0_4px_20px_rgba(0,0,0,0.4)] hover:shadow-[0_4px_28px_rgba(0,0,0,0.5)] hover:scale-[1.02] transition-all duration-200"
+                    style={{ background: `linear-gradient(135deg, ${talent.gradientC1}, ${talent.gradientC2})` }}>
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
+                      <circle cx="7" cy="5" r="3"/><path d="M4 5l-2 7h10L10 5"/><path d="M5.5 12v1M8.5 12v1"/>
+                    </svg>
+                    {codesWithTalent.length > 0 && activeWithTalent.length > 0
+                      ? `Ver códigos y sorteos`
+                      : codesWithTalent.length > 0 ? `Ver ${codesWithTalent.length} código${codesWithTalent.length > 1 ? 's' : ''}` : `Ver ${activeWithTalent.length} sorteo${activeWithTalent.length > 1 ? 's' : ''} live`}
+                    <span aria-hidden>↓</span>
+                  </a>
+                )}
+              </div>
             </div>
 
-            {tags.length > 0 && (
-              <div className="flex flex-wrap gap-1.5">
-                {tags.map((t) => (
-                  <span key={t.tag} className="px-2 py-0.5 rounded-md bg-white/[0.05] border border-white/[0.08] text-[10px] font-bold uppercase tracking-wider text-white/35">
-                    #{t.tag}
-                  </span>
+            {/* Columna derecha: rewards preview (solo desktop) */}
+            {(codesWithTalent.length > 0 || activeWithTalent.length > 0) && (
+              <div className="hidden lg:flex flex-col gap-2 w-[200px] shrink-0">
+                <p className="text-[9px] font-black uppercase tracking-[0.25em] text-white/25 mb-1">Recompensas activas</p>
+
+                {/* Pills de sorteos live */}
+                {activeWithTalent.length > 0 && (
+                  <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-[#C3FC00]/15 bg-[#C3FC00]/[0.06]">
+                    <span className="w-2 h-2 rounded-full bg-[#C3FC00] animate-pulse shrink-0" aria-hidden />
+                    <span className="text-[11px] font-black text-[#C3FC00]">{activeWithTalent.length} sorteo{activeWithTalent.length > 1 ? 's' : ''} live</span>
+                  </div>
+                )}
+
+                {/* Logos de sponsors */}
+                {codesWithTalent.slice(0, 4).map((c) => (
+                  <div key={c.id}
+                    className={`flex items-center gap-2.5 px-3 py-2 rounded-xl border transition-colors ${c.isFeatured ? 'border-white/15 bg-white/[0.06]' : 'border-white/[0.06] bg-white/[0.02]'}`}>
+                    {c.brandLogo ? (
+                      <Image src={c.brandLogo} alt={c.brandName} width={24} height={16} className="object-contain max-h-4 max-w-[24px]" />
+                    ) : (
+                      <div className="w-6 h-4 rounded flex items-center justify-center text-[7px] font-black text-white/40 bg-white/[0.04]">
+                        {c.brandName.slice(0, 3).toUpperCase()}
+                      </div>
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[10px] font-black text-white/60 truncate">{c.brandName}</p>
+                      {c.description && <p className="text-[9px] text-white/30 truncate leading-tight">{c.description.slice(0, 22)}</p>}
+                    </div>
+                    {c.isFeatured && <span className="text-[8px] text-sp-orange/70 shrink-0">★</span>}
+                  </div>
                 ))}
+
+                {codesWithTalent.length > 4 && (
+                  <p className="text-[9px] text-white/20 font-bold uppercase tracking-wider text-center">+{codesWithTalent.length - 4} más</p>
+                )}
               </div>
             )}
           </div>
         </div>
+
+        {/* Bottom separator con glow */}
+        <div className="absolute bottom-0 inset-x-0 h-px"
+          style={{ background: `linear-gradient(90deg, transparent, ${talent.gradientC1}40, ${talent.gradientC2}30, transparent)` }}
+          aria-hidden />
       </section>
 
       {/* Layout: contenido principal + sidebar lateral en desktop */}
-      <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 py-8">
+      <div id="recompensas" className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 py-8">
         <div className="flex gap-8 items-start">
 
           {/* Contenido principal */}
