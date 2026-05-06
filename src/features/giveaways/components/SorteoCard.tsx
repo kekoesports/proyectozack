@@ -4,6 +4,7 @@ import { useState, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { CountdownTimer } from '@/features/creator-codes/components/CountdownTimer';
+import { GiveawayPrizePlaceholder } from './GiveawayPrizePlaceholder';
 import type { GiveawayWithTalent } from '@/types';
 
 function getCtaLabel(url: string): string {
@@ -30,7 +31,8 @@ type SorteoCardProps = {
  * ```
  */
 export function SorteoCard({ giveaway }: SorteoCardProps): React.JSX.Element {
-  const [expired, setExpired] = useState(false);
+  const [expired,  setExpired]  = useState(false);
+  const [imgError, setImgError] = useState(false);
   const isActive = !expired && (giveaway.endsAt === null || new Date(giveaway.endsAt) > new Date());
   const handleExpired = useCallback(() => setExpired(true), []);
 
@@ -89,16 +91,17 @@ export function SorteoCard({ giveaway }: SorteoCardProps): React.JSX.Element {
           style={{ background: 'radial-gradient(ellipse at 50% 40%, rgba(245,99,42,0.18) 0%, rgba(139,58,173,0.1) 50%, transparent 80%)' }}
           aria-hidden
         />
-        {giveaway.imageUrl ? (
+        {giveaway.imageUrl && !imgError ? (
           <Image
             src={giveaway.imageUrl}
             alt={giveaway.title}
             fill
             sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw"
             className={`object-contain p-8 drop-shadow-[0_0_24px_rgba(245,99,42,0.2)] transition-transform duration-500 group-hover:scale-105 ${isActive ? 'gw-sp-float' : ''}`}
+            onError={() => setImgError(true)}
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-white/10 text-6xl font-black">?</div>
+          <GiveawayPrizePlaceholder size="lg" />
         )}
       </div>
 

@@ -3,6 +3,7 @@
 import { useState, useMemo, useCallback, useRef } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'motion/react';
+import { GiveawayPrizePlaceholder } from '@/features/giveaways/components/GiveawayPrizePlaceholder';
 
 type UnboxRevealProps = {
   imageUrl: string;
@@ -38,6 +39,7 @@ function makeParticles(seed: string) {
  */
 export function UnboxReveal({ imageUrl, alt, isFinished }: UnboxRevealProps) {
   const [playing, setPlaying] = useState(false);
+  const [imgError, setImgError] = useState(false);
   const timeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const particles = useMemo(() => makeParticles(alt), [alt]);
 
@@ -54,13 +56,18 @@ export function UnboxReveal({ imageUrl, alt, isFinished }: UnboxRevealProps) {
       onMouseEnter={triggerUnbox}
     >
       {/* Base skin image — always visible */}
-      <Image
-        src={imageUrl}
-        alt={alt}
-        fill
-        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-        className={`object-contain p-6 transition-all duration-500 ${isFinished ? '' : 'gw-float'}`}
-      />
+      {imgError ? (
+        <GiveawayPrizePlaceholder size="lg" />
+      ) : (
+        <Image
+          src={imageUrl}
+          alt={alt}
+          fill
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          className={`object-contain p-6 transition-all duration-500 ${isFinished ? '' : 'gw-float'}`}
+          onError={() => setImgError(true)}
+        />
+      )}
 
       {/* Unbox overlay — plays on hover */}
       <AnimatePresence>
@@ -117,13 +124,16 @@ export function UnboxReveal({ imageUrl, alt, isFinished }: UnboxRevealProps) {
               animate={{ scale: [0.7, 1.15, 1], opacity: [0, 1, 1] }}
               transition={{ duration: 0.6, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
             >
-              <Image
-                src={imageUrl}
-                alt={alt}
-                fill
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                className="object-contain p-6"
-              />
+              {!imgError && (
+                <Image
+                  src={imageUrl}
+                  alt={alt}
+                  fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  className="object-contain p-6"
+                  onError={() => setImgError(true)}
+                />
+              )}
             </motion.div>
 
             {/* Ring shockwave */}

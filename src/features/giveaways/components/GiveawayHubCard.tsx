@@ -4,6 +4,7 @@ import { useState, useCallback } from 'react';
 import Image from 'next/image';
 import { motion } from 'motion/react';
 import { CountdownTimer } from '@/features/creator-codes/components/CountdownTimer';
+import { GiveawayPrizePlaceholder } from './GiveawayPrizePlaceholder';
 import type { GiveawayWithTalent } from '@/types';
 
 type GiveawayHubCardProps = {
@@ -22,7 +23,8 @@ type GiveawayHubCardProps = {
  * ```
  */
 export function GiveawayHubCard({ giveaway }: GiveawayHubCardProps): React.JSX.Element {
-  const [expired, setExpired] = useState(false);
+  const [expired,  setExpired]  = useState(false);
+  const [imgError, setImgError] = useState(false);
   const isFinished = expired || (giveaway.endsAt !== null && new Date(giveaway.endsAt) <= new Date());
   const handleExpired = useCallback(() => setExpired(true), []);
 
@@ -80,16 +82,17 @@ export function GiveawayHubCard({ giveaway }: GiveawayHubCardProps): React.JSX.E
 
       {/* Prize image */}
       <div className="relative aspect-[4/3] bg-gradient-to-b from-transparent to-black/20 overflow-hidden">
-        {giveaway.imageUrl ? (
+        {giveaway.imageUrl && !imgError ? (
           <Image
             src={giveaway.imageUrl}
             alt={giveaway.title}
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
             className={`object-contain p-6 drop-shadow-[0_0_20px_rgba(245,99,42,0.15)] transition-transform duration-500 group-hover:scale-110 ${isFinished ? '' : 'gw-sp-float'}`}
+            onError={() => setImgError(true)}
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-white/10 text-5xl font-black">?</div>
+          <GiveawayPrizePlaceholder size="md" />
         )}
       </div>
 

@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import type { GiveawayWithTalent } from '@/types';
+import { GiveawayPrizePlaceholder } from './GiveawayPrizePlaceholder';
 
 function useCountdown(endsAt: Date | null) {
   const calc = useCallback(() => {
@@ -82,7 +83,7 @@ function SorteoSidebarCard({ giveaway }: { giveaway: GiveawayWithTalent }): Reac
             className="object-contain p-4 drop-shadow-[0_0_16px_rgba(245,99,42,0.2)] transition-transform duration-500 group-hover:scale-105 gw-sp-float"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-white/10 text-3xl font-black">?</div>
+          <GiveawayPrizePlaceholder size="sm" />
         )}
       </div>
 

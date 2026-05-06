@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { motion } from 'motion/react';
 import { CountdownTimer } from './CountdownTimer';
 import { UnboxReveal } from './UnboxReveal';
+import { GiveawayPrizePlaceholder } from '@/features/giveaways/components/GiveawayPrizePlaceholder';
 import type { Giveaway } from '@/types';
 
 type GiveawayCardProps = {
@@ -81,8 +82,8 @@ export function GiveawayCard({ giveaway }: GiveawayCardProps) {
       {giveaway.imageUrl ? (
         <UnboxReveal imageUrl={giveaway.imageUrl} alt={giveaway.title} isFinished={isFinished} />
       ) : (
-        <div className="relative aspect-[4/3] bg-gradient-to-b from-transparent to-black/20 flex items-center justify-center">
-          <span className="text-white/10 text-5xl font-black">?</span>
+        <div className="relative aspect-[4/3] bg-gradient-to-b from-transparent to-black/20">
+          <GiveawayPrizePlaceholder size="lg" />
         </div>
       )}
 
