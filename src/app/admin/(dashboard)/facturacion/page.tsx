@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { db } from '@/lib/db';
 import { crmBrands, talents, campaigns } from '@/db/schema';
 import { asc } from 'drizzle-orm';
@@ -136,7 +137,7 @@ export default async function AdminInvoicesPage(): Promise<React.ReactElement> {
             content: (
               <div className="space-y-6">
                 {/* PDF invoice import card */}
-                <a
+                <Link
                   href="/admin/facturacion/import"
                   className="flex items-center justify-between gap-4 rounded-2xl bg-sp-admin-card border border-sp-admin-border p-5 hover:border-sp-admin-accent/40 transition-colors group"
                 >
@@ -165,7 +166,7 @@ export default async function AdminInvoicesPage(): Promise<React.ReactElement> {
                       <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
                     </svg>
                   </div>
-                </a>
+                </Link>
 
                 {/* Excel / CSV importer (unchanged) */}
                 <div>

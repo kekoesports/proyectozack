@@ -245,7 +245,7 @@ export function PendingRow({
                 </svg>
                 <div className="space-y-1">
                   <p className="text-sm font-semibold text-amber-300">Extracción pendiente — límite de API alcanzado</p>
-                  <p className="text-xs text-amber-200/70">El PDF está guardado. Gemini estaba saturado al subir. Espera un minuto y pulsa "Reintentar IA" — no se vuelve a subir el archivo.</p>
+                  <p className="text-xs text-amber-200/70">El PDF está guardado. Gemini estaba saturado al subir. Espera un minuto y pulsa &quot;Reintentar IA&quot; — no se vuelve a subir el archivo.</p>
                   {imp.warnings?.[0] && <p className="text-[11px] text-amber-300/60 font-mono">{imp.warnings[0]}</p>}
                 </div>
               </div>

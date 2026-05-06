@@ -11,6 +11,7 @@ const mockUpdateTask = jest.fn();
 const mockDeleteTask = jest.fn();
 const mockCompleteTask = jest.fn();
 const mockIsAssignableTaskUser = jest.fn();
+const mockGetTaskById = jest.fn();
 
 jest.mock('@/lib/queries/crmTasks', () => ({
   createTask: (...args: unknown[]) => mockCreateTask(...args),
@@ -18,6 +19,11 @@ jest.mock('@/lib/queries/crmTasks', () => ({
   deleteTask: (...args: unknown[]) => mockDeleteTask(...args),
   completeTask: (...args: unknown[]) => mockCompleteTask(...args),
   isAssignableTaskUser: (...args: unknown[]) => mockIsAssignableTaskUser(...args),
+  getTaskById: (...args: unknown[]) => mockGetTaskById(...args),
+}));
+
+jest.mock('@/lib/queries/alerts', () => ({
+  createAlert: jest.fn(),
 }));
 
 import {
@@ -35,6 +41,7 @@ describe('task actions', () => {
     jest.clearAllMocks();
     mockIsAssignableTaskUser.mockResolvedValue(true);
     mockUpdateTask.mockResolvedValue({ id: 1 });
+    mockGetTaskById.mockResolvedValue(null);
   });
 
   it('createTaskAction writes createdByUserId and syncs owner with assignedTo', async () => {
