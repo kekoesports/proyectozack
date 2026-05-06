@@ -143,7 +143,10 @@ function normalizeDate(raw: unknown): string | undefined {
   const sep = str.match(/^(\d{1,4})[\/\-\.](\d{1,2})[\/\-\.](\d{2,4})$/);
   if (!sep) return undefined;
 
-  const [aStr, bStr, cStr] = [sep[1]!, sep[2]!, sep[3]!];
+  const aStr = sep[1];
+  const bStr = sep[2];
+  const cStr = sep[3];
+  if (!aStr || !bStr || !cStr) return undefined;
   const [a, b, c] = [Number(aStr), Number(bStr), Number(cStr)];
 
   // Case: YYYY/MM/DD (first component is 4-digit year)
