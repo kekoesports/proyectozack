@@ -6,8 +6,6 @@ import { createCode, deleteCode, updateCode } from '@/lib/queries/creatorCodes';
 import { parseFormData } from '@/lib/forms/parseFormData';
 import { firstError } from '@/lib/forms/firstError';
 import { logRedacted } from '@/lib/log';
-import { validateRedirectField } from '@/lib/security/validateRedirectField';
-import { ALLOWED_REDIRECT_HOSTS } from '@/lib/security/allowed-redirect-hosts';
 import {
   CreateCodeFormSchema,
   DeleteByIdSchema,
@@ -26,9 +24,6 @@ export async function createCodeAction(formData: FormData): Promise<CodeActionSt
     logRedacted('warn', '[createCodeAction] validation failed:', firstError(parsed.fieldErrors));
     return { ok: false, fieldErrors: parsed.fieldErrors };
   }
-
-  const safe = validateRedirectField(parsed.data.redirectUrl, ALLOWED_REDIRECT_HOSTS, '[createCodeAction]');
-  if (!safe.ok) return safe;
 
   const { talentId, code, brandName, brandLogo, redirectUrl, description, badge, isFeatured, category, ctaText } = parsed.data;
 
