@@ -44,19 +44,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }));
 
-  const creatorHubEntries: MetadataRoute.Sitemap = talentSlugs.map((t) => ({
-    url: absoluteUrl(`/c/${t.slug}`),
-    lastModified: t.updatedAt,
-    changeFrequency: 'weekly',
-    priority: 0.7,
-  }));
-
-  const creadorEntries: MetadataRoute.Sitemap = talentSlugs.map((t) => ({
-    url: absoluteUrl(`/creadores/${t.slug}`),
-    lastModified: t.updatedAt,
-    changeFrequency: 'weekly',
-    priority: 0.7,
-  }));
+  // /c/[slug] y /creadores/[slug] son noindex — no incluir en sitemap
 
   const postEntries: MetadataRoute.Sitemap = postSlugs.map((p) => ({
     url: absoluteUrl(`/blog/${p.slug}`),
@@ -128,16 +116,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // ── Multilingual landing pairs ────────────────────────────────────────────
   // x-default → versión española (mercado principal ES/LATAM).
   const bilingualLandings: MetadataRoute.Sitemap = [
-    // CS2
-    {
-      url: absoluteUrl('/cs2-influencer-marketing'),
-      lastModified: NOW, changeFrequency: 'monthly', priority: 0.85,
-      alternates: { languages: { en: absoluteUrl('/cs2-influencer-marketing'), es: absoluteUrl('/influencers-cs2'), 'x-default': absoluteUrl('/influencers-cs2') } },
-    },
+    // CS2 — /influencers-cs2 es la canónica principal (tiene la keyword ES)
     {
       url: absoluteUrl('/influencers-cs2'),
-      lastModified: NOW, changeFrequency: 'monthly', priority: 0.80,
+      lastModified: NOW, changeFrequency: 'monthly', priority: 0.85,
       alternates: { languages: { es: absoluteUrl('/influencers-cs2'), en: absoluteUrl('/cs2-influencer-marketing'), 'x-default': absoluteUrl('/influencers-cs2') } },
+    },
+    {
+      url: absoluteUrl('/cs2-influencer-marketing'),
+      lastModified: NOW, changeFrequency: 'monthly', priority: 0.80,
+      alternates: { languages: { en: absoluteUrl('/cs2-influencer-marketing'), es: absoluteUrl('/influencers-cs2'), 'x-default': absoluteUrl('/influencers-cs2') } },
     },
     // Valorant
     {
@@ -150,11 +138,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: NOW, changeFrequency: 'monthly', priority: 0.80,
       alternates: { languages: { es: absoluteUrl('/agencia-influencers-valorant'), en: absoluteUrl('/valorant-influencers-agency'), 'x-default': absoluteUrl('/agencia-influencers-valorant') } },
     },
-    // Betting
+    // Betting — /betting-influencers es la canónica principal (tiene la keyword)
+    // /servicios/igaming es el par ES; hreflang recíproco en ambas entradas
     {
       url: absoluteUrl('/betting-influencers'),
       lastModified: NOW, changeFrequency: 'monthly', priority: 0.85,
-      alternates: { languages: { en: absoluteUrl('/betting-influencers'), es: absoluteUrl('/servicios/igaming'), 'x-default': absoluteUrl('/servicios/igaming') } },
+      alternates: { languages: { en: absoluteUrl('/betting-influencers'), es: absoluteUrl('/servicios/igaming'), 'x-default': absoluteUrl('/betting-influencers') } },
     },
     // Esports
     {
@@ -179,7 +168,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // ── Marketing core (bilingual pairs: home, talents, services, cases, contact) ──
     ...corePairs,
     // ── Other ES-only core pages ──────────────────────────────────────────
-    { url: absoluteUrl('/servicios/igaming'), lastModified: D.igaming,       changeFrequency: 'monthly', priority: 0.85 },
+    { url: absoluteUrl('/servicios/igaming'), lastModified: D.igaming, changeFrequency: 'monthly', priority: 0.85,
+      alternates: { languages: { es: absoluteUrl('/servicios/igaming'), en: absoluteUrl('/betting-influencers'), 'x-default': absoluteUrl('/betting-influencers') } } },
     { url: absoluteUrl('/nosotros'),          lastModified: D.nosotros,      changeFrequency: 'monthly', priority: 0.7  },
     { url: absoluteUrl('/metodologia'),       lastModified: D.metodologia,   changeFrequency: 'monthly', priority: 0.7  },
     { url: absoluteUrl('/para-creadores'),    lastModified: D.paraCreadores, changeFrequency: 'monthly', priority: 0.8  },
@@ -191,8 +181,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // ── Dynamic entries ───────────────────────────────────────────────────
     ...caseEntries,
     ...talentEntries,
-    ...creatorHubEntries,
-    ...creadorEntries,
     ...postEntries,
   ];
 }
