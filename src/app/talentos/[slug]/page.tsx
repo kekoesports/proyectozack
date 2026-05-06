@@ -66,12 +66,19 @@ export default async function TalentPage({ params }: PageProps) {
     { name: talent.name, url: absoluteUrl(`/talentos/${slug}`) },
   ]);
 
+  const parseFollowers = (display: string): number => {
+    const clean = display.trim();
+    if (/[Mm]$/i.test(clean)) return Math.round(parseFloat(clean) * 1_000_000);
+    if (/[Kk]$/i.test(clean)) return Math.round(parseFloat(clean) * 1_000);
+    return parseInt(clean.replace(/[.,\s]/g, ''), 10) || 0;
+  };
+
   const interactionStats = talent.socials
     .filter((s) => s.followersDisplay && s.followersDisplay !== '-')
     .map((s) => ({
       '@type': 'InteractionCounter',
       interactionType: 'https://schema.org/FollowAction',
-      userInteractionCount: s.followersDisplay,
+      userInteractionCount: parseFollowers(s.followersDisplay),
       name: s.platform,
     }));
 

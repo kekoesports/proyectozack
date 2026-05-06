@@ -174,8 +174,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: absoluteUrl('/metodologia'),       lastModified: D.metodologia,   changeFrequency: 'monthly', priority: 0.7  },
     { url: absoluteUrl('/para-creadores'),    lastModified: D.paraCreadores, changeFrequency: 'monthly', priority: 0.8  },
     { url: absoluteUrl('/blog'),              lastModified: D.blog,          changeFrequency: 'weekly',  priority: 0.7  },
-    { url: absoluteUrl('/giveaways'),         lastModified: D.giveaways,     changeFrequency: 'daily',   priority: 0.8  },
-    { url: absoluteUrl('/sorteos'),           lastModified: D.sorteos,       changeFrequency: 'daily',   priority: 0.75 },
+    { url: absoluteUrl('/giveaways'), lastModified: D.giveaways, changeFrequency: 'daily', priority: 0.8,
+      alternates: { languages: { en: absoluteUrl('/giveaways'), es: absoluteUrl('/sorteos'), 'x-default': absoluteUrl('/sorteos') } } },
+    { url: absoluteUrl('/sorteos'), lastModified: D.sorteos, changeFrequency: 'daily', priority: 0.75,
+      alternates: { languages: { es: absoluteUrl('/sorteos'), en: absoluteUrl('/giveaways'), 'x-default': absoluteUrl('/sorteos') } } },
     // ── Multilingual SEO landings ─────────────────────────────────────────
     ...bilingualLandings,
     // ── Dynamic entries ───────────────────────────────────────────────────
