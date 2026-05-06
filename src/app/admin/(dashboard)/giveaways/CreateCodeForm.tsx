@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react';
 import { createCodeAction } from './codes-actions';
 
-type Talent = { readonly id: number; readonly name: string };
+type Talent = { readonly id: number; readonly name: string; readonly slug?: string };
 
 const inputCls = 'w-full rounded-lg border border-sp-admin-border bg-sp-admin-bg px-3 py-2 text-sm text-sp-admin-text outline-none focus:border-sp-admin-accent transition-colors';
 
@@ -43,6 +43,8 @@ export function CreateCodeForm({ talents }: { talents: readonly Talent[] }): Rea
 
   const err = (field: string): string | undefined => fieldErrors[field]?.[0];
 
+  const talentSlug = talents.find((t) => String(t.id) === talentId)?.slug ?? '';
+
   const handleSubmit = (e: React.FormEvent): void => {
     e.preventDefault();
     setFieldErrors({});
@@ -50,6 +52,7 @@ export function CreateCodeForm({ talents }: { talents: readonly Talent[] }): Rea
 
     const fd = new FormData();
     fd.set('talentId',    talentId);
+    fd.set('talentSlug',  talentSlug);
     fd.set('code',        code);
     fd.set('brandName',   brandName);
     fd.set('redirectUrl', redirectUrl);

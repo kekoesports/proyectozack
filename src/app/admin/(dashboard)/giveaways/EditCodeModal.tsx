@@ -53,6 +53,7 @@ export function EditCodeModal({ code, talents, onClose }: Props): React.ReactEle
     const fd = new FormData();
     fd.set('id',          String(code.id));
     fd.set('talentId',    talentId);
+    fd.set('talentSlug',  code.talent.slug ?? '');
     fd.set('code',        codeStr);
     fd.set('brandName',   brandName);
     fd.set('brandLogo',   brandLogo);

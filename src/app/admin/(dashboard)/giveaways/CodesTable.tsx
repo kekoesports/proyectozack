@@ -58,6 +58,7 @@ export function CodesTable({ codes, talents }: Props): React.ReactElement {
                     </button>
                     <form action={deleteCodeAction}>
                       <input type="hidden" name="id" value={c.id} />
+                      <input type="hidden" name="talentSlug" value={c.talent.slug} />
                       <button type="submit" className="text-red-400 hover:text-red-300 text-xs font-bold cursor-pointer">
                         Eliminar
                       </button>

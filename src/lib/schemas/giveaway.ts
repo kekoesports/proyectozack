@@ -46,7 +46,8 @@ const checkboxOn = z.preprocess(
 );
 
 export const CreateCodeFormSchema = z.object({
-  talentId: IdSchema,
+  talentId:   IdSchema,
+  talentSlug: emptyStringToUndef(z.string().max(150)),
   code: z.string().trim().min(1, 'Código obligatorio').max(100),
   brandName: z.string().trim().min(1, 'Marca obligatoria').max(150),
   brandLogo: emptyStringToUndef(z.url().max(500)),
@@ -62,6 +63,7 @@ export type CreateCodeFormInput = z.infer<typeof CreateCodeFormSchema>;
 export const UpdateCodeFormSchema = z.object({
   id:          IdSchema,
   talentId:    IdSchema,
+  talentSlug:  emptyStringToUndef(z.string().max(150)),
   code:        z.string().trim().min(1, 'Código obligatorio').max(100),
   brandName:   z.string().trim().min(1, 'Marca obligatoria').max(150),
   brandLogo:   emptyStringToUndef(z.url().max(500)),
@@ -81,7 +83,10 @@ export const CreateWinnerFormSchema = z.object({
 });
 export type CreateWinnerFormInput = z.infer<typeof CreateWinnerFormSchema>;
 
-export const DeleteByIdSchema = z.object({ id: IdSchema });
+export const DeleteByIdSchema = z.object({
+  id:         IdSchema,
+  talentSlug: emptyStringToUndef(z.string().max(150)),
+});
 
 export const DeleteGiveawaySchema = z.object({
   id: IdSchema,

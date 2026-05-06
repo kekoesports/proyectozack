@@ -16,6 +16,15 @@ export type CodeActionState =
   | { ok: true }
   | { ok: false; fieldErrors: Record<string, string[]> };
 
+function revalidateAll(talentSlug?: string): void {
+  revalidatePath('/admin/giveaways');
+  revalidatePath('/giveaways');
+  if (talentSlug) {
+    revalidatePath(`/creadores/${talentSlug}`);
+    revalidatePath(`/${talentSlug}`);
+  }
+}
+
 export async function createCodeAction(formData: FormData): Promise<CodeActionState> {
   await requireAnyRole(['admin', 'manager'], '/admin/login');
 
@@ -25,22 +34,22 @@ export async function createCodeAction(formData: FormData): Promise<CodeActionSt
     return { ok: false, fieldErrors: parsed.fieldErrors };
   }
 
-  const { talentId, code, brandName, brandLogo, redirectUrl, description, badge, isFeatured, category, ctaText } = parsed.data;
+  const { talentId, talentSlug, code, brandName, brandLogo, redirectUrl, description, badge, isFeatured, category, ctaText } = parsed.data;
 
   await createCode({
     talentId,
     code,
     brandName,
-    brandLogo: brandLogo ?? null,
+    brandLogo:   brandLogo   ?? null,
     redirectUrl,
     description: description ?? null,
-    badge: badge ?? null,
+    badge:       badge       ?? null,
     isFeatured,
-    category: category ?? null,
-    ctaText: ctaText ?? null,
+    category:    category    ?? null,
+    ctaText:     ctaText     ?? null,
   });
-  revalidatePath('/admin/giveaways');
-  revalidatePath('/giveaways');
+
+  revalidateAll(talentSlug);
   return { ok: true };
 }
 
@@ -53,11 +62,22 @@ export async function updateCodeAction(formData: FormData): Promise<CodeActionSt
     return { ok: false, fieldErrors: parsed.fieldErrors };
   }
 
-  const { id, talentId, code, brandName, brandLogo, redirectUrl, description, badge, isFeatured, category, ctaText } = parsed.data;
+  const { id, talentId, talentSlug, code, brandName, brandLogo, redirectUrl, description, badge, isFeatured, category, ctaText } = parsed.data;
 
-  await updateCode(id, { talentId, code, brandName, brandLogo: brandLogo ?? null, redirectUrl, description: description ?? null, badge: badge ?? null, isFeatured, category: category ?? null, ctaText: ctaText ?? null });
-  revalidatePath('/admin/giveaways');
-  revalidatePath('/giveaways');
+  await updateCode(id, {
+    talentId,
+    code,
+    brandName,
+    brandLogo:   brandLogo   ?? null,
+    redirectUrl,
+    description: description ?? null,
+    badge:       badge       ?? null,
+    isFeatured,
+    category:    category    ?? null,
+    ctaText:     ctaText     ?? null,
+  });
+
+  revalidateAll(talentSlug);
   return { ok: true };
 }
 
@@ -66,6 +86,5 @@ export async function deleteCodeAction(formData: FormData): Promise<void> {
   const parsed = parseFormData(formData, DeleteByIdSchema);
   if (!parsed.ok) return;
   await deleteCode(parsed.data.id);
-  revalidatePath('/admin/giveaways');
-  revalidatePath('/giveaways');
+  revalidateAll(parsed.data.talentSlug);
 }
