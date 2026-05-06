@@ -243,7 +243,7 @@ export function TalentPhotoCard({ talent }: Props): React.ReactElement {
         </form>
 
         <Link
-          href={`/talentos/${talent.slug}`}
+          href={`/c/${talent.slug}`}
           target="_blank"
           rel="noreferrer"
           className="block text-[10px] text-sp-admin-muted hover:text-sp-admin-text underline-offset-2 hover:underline"

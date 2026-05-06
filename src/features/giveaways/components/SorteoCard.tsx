@@ -149,7 +149,7 @@ export function SorteoCard({ giveaway }: SorteoCardProps): React.JSX.Element {
           <p className="text-[12px] font-bold text-white/70 truncate leading-tight mt-0.5">{giveaway.talent.name}</p>
         </div>
         <Link
-          href={`/talentos/${giveaway.talent.slug}`}
+          href={`/c/${giveaway.talent.slug}`}
           title={`Ver perfil de ${giveaway.talent.name}`}
           className="text-white/20 hover:text-sp-orange/60 text-xs transition-colors"
         >

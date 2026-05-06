@@ -157,7 +157,7 @@ export function CreatorsSidebar({ creators, selected, onSelectAction }: Creators
 
                 {/* Ver perfil — visible on hover */}
                 <Link
-                  href={`/talentos/${c.slug}`}
+                  href={`/c/${c.slug}`}
                   title={`Ver perfil de ${c.name}`}
                   className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover/row:opacity-100 transition-opacity"
                 >

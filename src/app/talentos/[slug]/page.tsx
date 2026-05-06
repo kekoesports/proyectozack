@@ -3,20 +3,13 @@ import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { getTalentSlugs, getTalentBySlug } from '@/lib/queries/talents';
-import { getCodesByTalent } from '@/lib/queries/creatorCodes';
-import { getActiveGiveaways, getFinishedGiveaways } from '@/lib/queries/giveaways';
 import { SectionTag } from '@/components/ui/SectionTag';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { SocialIcon } from '@/components/ui/SocialIcon';
-import { HeroSponsorCard } from '@/features/giveaways/components/HeroSponsorCard';
-import { CodesExpandable } from '@/features/giveaways/components/CodesExpandable';
-import { GiveawayFeatured } from '@/features/giveaways/components/GiveawayFeatured';
-import { GiveawayRow } from '@/features/giveaways/components/GiveawayRow';
 import { gradientStyle } from '@/lib/utils/gradient';
 import { buildBreadcrumbJsonLd } from '@/lib/utils/breadcrumbs';
 import { absoluteUrl } from '@/lib/site-url';
 import { truncateMetaDescription } from '@/lib/utils/text';
-import type { CreatorCodeWithTalent, GiveawayWithTalent, Talent } from '@/types';
 
 export const revalidate = 3600;
 
@@ -61,41 +54,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
-function toTalentBase(t: Talent & Record<string, unknown>): Talent {
-  return {
-    id: t.id, slug: t.slug, name: t.name, role: t.role, game: t.game,
-    platform: t.platform, status: t.status, bio: t.bio,
-    gradientC1: t.gradientC1, gradientC2: t.gradientC2,
-    initials: t.initials, photoUrl: t.photoUrl, sortOrder: t.sortOrder,
-    visibility: t.visibility, topGeos: t.topGeos,
-    audienceLanguage: t.audienceLanguage, creatorCountry: t.creatorCountry,
-    audienceStatus: t.audienceStatus, lastStatsUpdateAt: t.lastStatsUpdateAt,
-    updatedAt: t.updatedAt, cnmcStatus: t.cnmcStatus,
-    cnmcRegisteredAt: t.cnmcRegisteredAt, cnmcNotes: t.cnmcNotes,
-    hasRcInsurance: t.hasRcInsurance, taxType: t.taxType,
-    nif: t.nif, fiscalName: t.fiscalName, fiscalAddress: t.fiscalAddress,
-  };
-}
-
 export default async function TalentPage({ params }: PageProps) {
   const { slug } = await params;
   const talent = await getTalentBySlug(slug);
   if (!talent) notFound();
-
-  const [codes, active, finished] = await Promise.all([
-    getCodesByTalent(talent.id),
-    getActiveGiveaways(talent.id),
-    getFinishedGiveaways(talent.id),
-  ]);
-
-  const base             = toTalentBase(talent);
-  const codesWithTalent: CreatorCodeWithTalent[] = codes.map((c) => ({ ...c, talent: base }));
-  const activeWithTalent: GiveawayWithTalent[]    = active.map((g) => ({ ...g, talent: base }));
-  const finishedWithTalent: GiveawayWithTalent[]  = finished.map((g) => ({ ...g, talent: base }));
-  const heroCode       = codesWithTalent.find((c) => c.isFeatured) ?? null;
-  const secondaryCodes = heroCode ? codesWithTalent.filter((c) => c.id !== heroCode.id) : codesWithTalent;
-  const featuredGiveaway = activeWithTalent[0] ?? null;
-  const restGiveaways    = activeWithTalent.slice(1);
 
   const grad = gradientStyle(talent.gradientC1, talent.gradientC2);
 
@@ -296,62 +258,6 @@ export default async function TalentPage({ params }: PageProps) {
           </div>
         </div>
       </section>
-
-      {/* ── Códigos y Sorteos ── */}
-      {(codesWithTalent.length > 0 || activeWithTalent.length > 0 || finishedWithTalent.length > 0) && (
-        <section className="bg-sp-black py-16 md:py-20">
-          <div className="max-w-4xl mx-auto px-6 space-y-10">
-
-            {codesWithTalent.length > 0 && (
-              <div className="space-y-4">
-                <p className="text-[10px] font-black uppercase tracking-[0.25em] text-white/30">
-                  Códigos de {talent.name} · {codesWithTalent.length} activos
-                </p>
-                {heroCode && <HeroSponsorCard code={heroCode} />}
-                {secondaryCodes.length > 0 && (
-                  <CodesExpandable
-                    codes={secondaryCodes}
-                    label={heroCode ? 'Más códigos' : `Códigos de ${talent.name}`}
-                  />
-                )}
-              </div>
-            )}
-
-            {activeWithTalent.length > 0 && (
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <p className="text-[10px] font-black uppercase tracking-[0.25em] text-white/30">Sorteos activos</p>
-                  <span className="flex items-center gap-1 text-[9px] font-black text-[#C3FC00]">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#C3FC00] animate-pulse" aria-hidden />
-                    {activeWithTalent.length} live
-                  </span>
-                </div>
-                {featuredGiveaway && <GiveawayFeatured giveaway={featuredGiveaway} />}
-                {restGiveaways.length > 0 && (
-                  <div className="space-y-2">
-                    {restGiveaways.map((g) => <GiveawayRow key={g.id} giveaway={g} />)}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {finishedWithTalent.length > 0 && (
-              <details className="group border-t border-white/[0.06] pt-6">
-                <summary className="cursor-pointer list-none flex items-center justify-between mb-4">
-                  <p className="text-[10px] font-black uppercase tracking-[0.25em] text-white/25">
-                    Sorteos finalizados · {finishedWithTalent.length}
-                  </p>
-                  <span className="text-[10px] font-bold text-white/20 group-open:hidden">Mostrar ▸</span>
-                  <span className="text-[10px] font-bold text-white/20 hidden group-open:inline">Ocultar ▴</span>
-                </summary>
-                <div className="space-y-2">
-                  {finishedWithTalent.map((g) => <GiveawayRow key={g.id} giveaway={g} finished />)}
-                </div>
-              </details>
-            )}
-          </div>
-        </section>
-      )}
     </>
   );
 }
