@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { requireRole } from '@/lib/auth-guard';
-import { createCode, deleteCode } from '@/lib/queries/creatorCodes';
+import { createCode, deleteCode, updateCode } from '@/lib/queries/creatorCodes';
 import { parseFormData } from '@/lib/forms/parseFormData';
 import { firstError } from '@/lib/forms/firstError';
 import { logRedacted } from '@/lib/log';
@@ -11,6 +11,7 @@ import { ALLOWED_REDIRECT_HOSTS } from '@/lib/security/allowed-redirect-hosts';
 import {
   CreateCodeFormSchema,
   DeleteByIdSchema,
+  UpdateCodeFormSchema,
 } from '@/lib/schemas/giveaway';
 
 export type CodeActionState =
@@ -43,6 +44,23 @@ export async function createCodeAction(formData: FormData): Promise<CodeActionSt
     category: category ?? null,
     ctaText: ctaText ?? null,
   });
+  revalidatePath('/admin/giveaways');
+  revalidatePath('/giveaways');
+  return { ok: true };
+}
+
+export async function updateCodeAction(formData: FormData): Promise<CodeActionState> {
+  await requireRole('admin', '/admin/login');
+
+  const parsed = parseFormData(formData, UpdateCodeFormSchema);
+  if (!parsed.ok) {
+    logRedacted('warn', '[updateCodeAction] validation failed:', firstError(parsed.fieldErrors));
+    return { ok: false, fieldErrors: parsed.fieldErrors };
+  }
+
+  const { id, talentId, code, brandName, brandLogo, redirectUrl, description, badge, isFeatured, category, ctaText } = parsed.data;
+
+  await updateCode(id, { talentId, code, brandName, brandLogo: brandLogo ?? null, redirectUrl, description: description ?? null, badge: badge ?? null, isFeatured, category: category ?? null, ctaText: ctaText ?? null });
   revalidatePath('/admin/giveaways');
   revalidatePath('/giveaways');
   return { ok: true };

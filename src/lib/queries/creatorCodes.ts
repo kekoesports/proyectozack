@@ -75,6 +75,32 @@ export async function createCode(data: {
 }
 
 /**
+ * Actualiza los campos editables de un código promocional.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns void.
+ */
+export async function updateCode(
+  id: number,
+  data: Partial<{
+    talentId: number;
+    code: string;
+    brandName: string;
+    brandLogo: string | null;
+    redirectUrl: string;
+    description: string | null;
+    badge: string | null;
+    isFeatured: boolean;
+    category: string | null;
+    ctaText: string | null;
+    sortOrder: number;
+  }>,
+): Promise<void> {
+  await db.update(creatorCodes).set(data).where(eq(creatorCodes.id, id));
+}
+
+/**
  * Elimina un código promocional por id, invocado desde el panel admin.
  *
  * @cache none

@@ -5,11 +5,11 @@ import { getAllTalents } from '@/lib/queries/talents';
 import { getAllCodes } from '@/lib/queries/creatorCodes';
 import { getAllWinners } from '@/lib/queries/giveawayWinners';
 import { deleteGiveawayAction } from './actions';
-import { deleteCodeAction } from './codes-actions';
 import { deleteWinnerAction } from './winners-actions';
 import { CreateGiveawayForm } from './CreateGiveawayForm';
 import { CreateCodeForm } from './CreateCodeForm';
 import { CreateWinnerForm } from './CreateWinnerForm';
+import { CodesTable } from './CodesTable';
 
 function isActive(endsAt: Date | null): boolean {
   return endsAt === null || new Date(endsAt) > new Date();
@@ -137,47 +137,10 @@ export default async function AdminGiveawaysPage({ searchParams }: PageProps): P
       </div>
 
       {/* Codes list */}
-      {allCodes.length === 0 ? (
-        <p className="text-sm text-sp-admin-muted">No hay códigos. Crea el primero.</p>
-      ) : (
-        <div className="rounded-2xl bg-sp-admin-card border border-sp-admin-border overflow-hidden">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-sp-admin-border bg-sp-admin-bg/50">
-                <th className="text-left px-6 py-3 font-semibold text-sp-admin-muted text-[11px] uppercase tracking-wider">Código</th>
-                <th className="text-left px-6 py-3 font-semibold text-sp-admin-muted text-[11px] uppercase tracking-wider">Creador</th>
-                <th className="text-left px-6 py-3 font-semibold text-sp-admin-muted text-[11px] uppercase tracking-wider">Marca</th>
-                <th className="text-left px-6 py-3 font-semibold text-sp-admin-muted text-[11px] uppercase tracking-wider">Badge</th>
-                <th className="text-left px-6 py-3 font-semibold text-sp-admin-muted text-[11px] uppercase tracking-wider">Categ.</th>
-                <th className="text-left px-6 py-3 font-semibold text-sp-admin-muted text-[11px] uppercase tracking-wider">Dest.</th>
-                <th className="text-left px-6 py-3 font-semibold text-sp-admin-muted text-[11px] uppercase tracking-wider">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {allCodes.map((c) => (
-                <tr key={c.id} className="border-b border-sp-admin-border/50 last:border-0 hover:bg-sp-admin-hover transition-colors">
-                  <td className="px-6 py-4 font-mono font-bold text-sp-admin-text">{c.code}</td>
-                  <td className="px-6 py-4 text-sp-admin-muted">{c.talent.name}</td>
-                  <td className="px-6 py-4 text-sp-admin-muted">{c.brandName}</td>
-                  <td className="px-6 py-4 text-sp-admin-muted text-xs">{c.badge ?? '—'}</td>
-                  <td className="px-6 py-4 text-sp-admin-muted text-xs">{c.category ?? '—'}</td>
-                  <td className="px-6 py-4">
-                    {c.isFeatured && (
-                      <span className="inline-flex px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-900/30 text-amber-400">★</span>
-                    )}
-                  </td>
-                  <td className="px-6 py-4">
-                    <form action={deleteCodeAction}>
-                      <input type="hidden" name="id" value={c.id} />
-                      <button type="submit" className="text-red-400 hover:text-red-300 text-xs font-bold">Eliminar</button>
-                    </form>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+      <CodesTable
+        codes={allCodes}
+        talents={allTalents.map((t) => ({ id: t.id, name: t.name }))}
+      />
 
       {/* Winners section */}
       <h1 className="font-display text-4xl font-black uppercase text-sp-admin-text mb-8 mt-16">Ganadores</h1>

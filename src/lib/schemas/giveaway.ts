@@ -50,6 +50,21 @@ export const CreateCodeFormSchema = z.object({
 });
 export type CreateCodeFormInput = z.infer<typeof CreateCodeFormSchema>;
 
+export const UpdateCodeFormSchema = z.object({
+  id:          IdSchema,
+  talentId:    IdSchema,
+  code:        z.string().trim().min(1, 'Código obligatorio').max(100),
+  brandName:   z.string().trim().min(1, 'Marca obligatoria').max(150),
+  brandLogo:   emptyStringToUndef(z.url().max(500)),
+  redirectUrl: z.url('redirectUrl inválido').max(2048),
+  description: emptyStringToUndef(z.string().max(300)),
+  badge:       emptyStringToUndef(z.string().max(50)),
+  isFeatured:  checkboxOn,
+  category:    emptyStringToUndef(z.string().max(50)),
+  ctaText:     emptyStringToUndef(z.string().max(100)),
+});
+export type UpdateCodeFormInput = z.infer<typeof UpdateCodeFormSchema>;
+
 export const CreateWinnerFormSchema = z.object({
   giveawayId: IdSchema,
   winnerName: z.string().trim().min(1, 'Nombre obligatorio').max(100),
