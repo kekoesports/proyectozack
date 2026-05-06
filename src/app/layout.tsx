@@ -82,6 +82,10 @@ const jsonLd = {
         contactType: 'sales',
         availableLanguage: ['Spanish', 'English'],
       },
+      founder: [
+        { '@type': 'Person', name: 'Pablo Camacho', alternateName: 'Kekō', jobTitle: 'CEO' },
+        { '@type': 'Person', name: 'Alfonso Arias', alternateName: 'Zack', jobTitle: 'COO' },
+      ],
       sameAs: [
         'https://www.instagram.com/socialproes/',
         'https://x.com/SocialProES',

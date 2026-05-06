@@ -75,10 +75,13 @@ export default async function CaseStudyPage({ params }: PageProps) {
     headline: caseStudy.title,
     url: absoluteUrl(`/casos/${slug}`),
     inLanguage: 'es',
-    author: { '@type': 'Organization', name: 'SocialPro', url: absoluteUrl('/') },
-    publisher: { '@type': 'Organization', name: 'SocialPro', url: absoluteUrl('/') },
+    image: caseStudy.heroImageUrl ?? absoluteUrl('/og-default.jpg'),
     description: caseStudy.excerpt || caseStudy.body[0]?.paragraph || '',
+    datePublished: caseStudy.updatedAt.toISOString(),
     dateModified: caseStudy.updatedAt.toISOString(),
+    author: { '@type': 'Organization', '@id': absoluteUrl('/#organization') },
+    publisher: { '@type': 'Organization', '@id': absoluteUrl('/#organization') },
+    mainEntityOfPage: { '@type': 'WebPage', '@id': absoluteUrl(`/casos/${slug}`) },
   };
 
   return (

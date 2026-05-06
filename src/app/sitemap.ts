@@ -173,6 +173,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: absoluteUrl('/nosotros'),          lastModified: D.nosotros,      changeFrequency: 'monthly', priority: 0.7  },
     { url: absoluteUrl('/metodologia'),       lastModified: D.metodologia,   changeFrequency: 'monthly', priority: 0.7  },
     { url: absoluteUrl('/para-creadores'),    lastModified: D.paraCreadores, changeFrequency: 'monthly', priority: 0.8  },
+    { url: absoluteUrl('/agencia-gaming-latam'), lastModified: NOW, changeFrequency: 'monthly', priority: 0.85 },
     { url: absoluteUrl('/blog'),              lastModified: D.blog,          changeFrequency: 'weekly',  priority: 0.7  },
     { url: absoluteUrl('/giveaways'), lastModified: D.giveaways, changeFrequency: 'daily', priority: 0.8,
       alternates: { languages: { en: absoluteUrl('/giveaways'), es: absoluteUrl('/sorteos'), 'x-default': absoluteUrl('/sorteos') } } },

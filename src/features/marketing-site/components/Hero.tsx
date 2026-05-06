@@ -146,6 +146,7 @@ export function Hero() {
             transition={{ duration: 0.8, delay: 1 }}
             className="flex flex-col sm:flex-row gap-4"
           >
+            {/* CTA para marcas — primario */}
             <m.a
               href="/contacto"
               onClick={() => trackEvent('cta_click', { cta_id: 'hero_home_primary', cta_destination: '/contacto' })}
@@ -153,15 +154,17 @@ export function Hero() {
               whileTap={{ scale: 0.95 }}
               className="px-10 py-4 rounded-full font-bold text-white text-sm tracking-widest uppercase transition-shadow bg-sp-grad"
             >
-              Iniciar Propuesta
+              Tengo una marca →
             </m.a>
+            {/* CTA para creadores — secundario */}
             <m.a
-              href="/casos"
+              href="/para-creadores"
+              onClick={() => trackEvent('cta_click', { cta_id: 'hero_home_creators', cta_destination: '/para-creadores' })}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               className="px-10 py-4 rounded-full font-bold text-white text-sm tracking-widest uppercase border border-white/10 backdrop-blur-sm transition-colors hover:bg-white/10"
             >
-              Ver Casos de Éxito
+              Soy creador →
             </m.a>
           </m.div>
 
