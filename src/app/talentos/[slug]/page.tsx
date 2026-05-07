@@ -13,6 +13,7 @@ import { buildBreadcrumbJsonLd } from '@/lib/utils/breadcrumbs';
 import { absoluteUrl } from '@/lib/site-url';
 import { truncateMetaDescription } from '@/lib/utils/text';
 import { CONTACT_EMAIL } from '@/lib/utils/constants';
+import { TalentLiveWidget } from '@/features/giveaways/components/TalentLiveWidget';
 import type { CreatorCodeWithTalent, GiveawayWithTalent, Talent } from '@/types';
 
 export const revalidate = 3600;
@@ -301,6 +302,19 @@ export default async function TalentPage({ params }: PageProps) {
 
       {/* Layout principal */}
       <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 py-8">
+
+        {/* Strip LIVE — mobile only, solo si está en directo */}
+        <div className="lg:hidden">
+          <TalentLiveWidget
+            slug={slug}
+            talentName={talent.name}
+            talentPhotoUrl={talent.photoUrl}
+            gradientC1={talent.gradientC1}
+            gradientC2={talent.gradientC2}
+            variant="strip"
+          />
+        </div>
+
         <div className="flex gap-8 items-start">
 
           {/* Contenido principal */}
@@ -370,10 +384,23 @@ export default async function TalentPage({ params }: PageProps) {
             )}
           </div>
 
-          {/* Sidebar desktop: historial */}
-          {finishedWithTalent.length > 0 && (
-            <aside className="hidden lg:flex flex-col gap-3 w-[220px] xl:w-[240px] shrink-0">
-              <div className="sticky top-20">
+          {/* Sidebar desktop */}
+          <aside className="hidden lg:flex flex-col gap-4 w-[220px] xl:w-[240px] shrink-0">
+            <div className="sticky top-20 flex flex-col gap-4">
+
+              {/* Widget LIVE */}
+              <TalentLiveWidget
+                slug={slug}
+                talentName={talent.name}
+                talentPhotoUrl={talent.photoUrl}
+                gradientC1={talent.gradientC1}
+                gradientC2={talent.gradientC2}
+                variant="sidebar"
+              />
+
+              {/* Historial */}
+              {finishedWithTalent.length > 0 && (
+              <div>
                 <h2 className="text-[9px] font-black uppercase tracking-[0.25em] text-white/25 mb-3">
                   Historial · {finishedWithTalent.length}
                 </h2>
@@ -398,8 +425,9 @@ export default async function TalentPage({ params }: PageProps) {
                   )}
                 </div>
               </div>
-            </aside>
-          )}
+              )}
+            </div>
+          </aside>
         </div>
       </div>
 
