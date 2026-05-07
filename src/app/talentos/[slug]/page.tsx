@@ -12,6 +12,7 @@ import { GiveawayRow } from '@/features/giveaways/components/GiveawayRow';
 import { buildBreadcrumbJsonLd } from '@/lib/utils/breadcrumbs';
 import { absoluteUrl } from '@/lib/site-url';
 import { truncateMetaDescription } from '@/lib/utils/text';
+import { CONTACT_EMAIL } from '@/lib/utils/constants';
 import type { CreatorCodeWithTalent, GiveawayWithTalent, Talent } from '@/types';
 
 export const revalidate = 3600;
@@ -225,7 +226,7 @@ export default async function TalentPage({ params }: PageProps) {
                 </div>
 
                 {tags.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5">
+                  <div className="flex flex-wrap gap-1.5 mb-4">
                     {tags.map((t) => (
                       <span key={t.tag} className="px-2 py-0.5 rounded-md bg-white/[0.04] border border-white/[0.07] text-[10px] font-bold uppercase tracking-wider text-white/30">
                         #{t.tag}
@@ -233,6 +234,17 @@ export default async function TalentPage({ params }: PageProps) {
                     ))}
                   </div>
                 )}
+
+                {/* CTA colaboración — abre Gmail con asunto prefilled */}
+                <a
+                  href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(`Quiero trabajar con ${talent.name}`)}`}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-white/15 bg-white/[0.04] hover:bg-white/[0.08] hover:border-white/25 transition-all text-[11px] font-bold text-white/60 hover:text-white"
+                >
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden>
+                    <rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+                  </svg>
+                  Quiero trabajar con {talent.name}
+                </a>
               </div>
             </div>
 
