@@ -372,6 +372,13 @@
       "when": 1778142279932,
       "tag": "0052_panoramic_thanos",
       "breakpoints": true
+    },
+    {
+      "idx": 53,
+      "version": "7",
+      "when": 1778147578734,
+      "tag": "0053_woozy_stephen_strange",
+      "breakpoints": true
     }
   ]
 }

@@ -22,6 +22,7 @@ const ServicesSection = dynamic(() => import('@/features/marketing-site/componen
 const CtaSection      = dynamic(() => import('@/features/marketing-site/components/CtaSection').then(m => ({ default: m.CtaSection })));
 const FaqSection      = dynamic(() => import('@/features/marketing-site/components/FaqSection').then(m => ({ default: m.FaqSection })));
 const ContactSection  = dynamic(() => import('@/features/contact/components/ContactSection').then(m => ({ default: m.ContactSection })));
+const LiveSection     = dynamic(() => import('@/features/live/components/LiveSection').then(m => ({ default: m.LiveSection })), { ssr: false });
 
 // ── Async wrapper components for streaming below-fold data ────────────────────
 
@@ -107,6 +108,7 @@ export default async function HomePage() {
       <Marquee />
       <BrandsCarousel brands={brands} />
       <TalentSection talents={talents} />
+      <LiveSection />
       <MetricsSection />
       <Suspense>
         <CollabsSectionAsync />

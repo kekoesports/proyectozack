@@ -64,6 +64,7 @@ function toTalentBase(t: Talent & Record<string, unknown>): Talent {
     cnmcRegisteredAt: t.cnmcRegisteredAt, cnmcNotes: t.cnmcNotes,
     hasRcInsurance: t.hasRcInsurance, taxType: t.taxType,
     nif: t.nif, fiscalName: t.fiscalName, fiscalAddress: t.fiscalAddress,
+    featuredLive: t.featuredLive, excludeFromLive: t.excludeFromLive,
   };
 }
 

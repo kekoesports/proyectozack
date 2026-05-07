@@ -9,6 +9,8 @@ type Props = {
   readonly ctaId: string;
   readonly className?: string;
   readonly children: ReactNode;
+  readonly target?: string;
+  readonly rel?: string;
 };
 
 /**
@@ -18,12 +20,14 @@ type Props = {
  * @kind client
  * @feature ui
  */
-export function TrackedCtaLink({ href, ctaId, className, children }: Props): React.JSX.Element {
+export function TrackedCtaLink({ href, ctaId, className, children, target, rel }: Props): React.JSX.Element {
   return (
     <Link
       href={href}
       onClick={() => trackEvent('cta_click', { cta_id: ctaId, cta_destination: href })}
       {...(className ? { className } : {})}
+      {...(target ? { target } : {})}
+      {...(rel ? { rel } : {})}
     >
       {children}
     </Link>

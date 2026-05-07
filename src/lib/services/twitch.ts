@@ -333,6 +333,71 @@ export async function fetchTwitchUserPhotoByLogin(
   return results;
 }
 
+const TwitchLiveStreamSchema = z.object({
+  data: z.array(
+    z.object({
+      user_id:      z.string(),
+      user_login:   z.string(),
+      game_name:    z.string(),
+      title:        z.string(),
+      viewer_count: z.number(),
+      started_at:   z.string(),
+      thumbnail_url: z.string(),
+    }),
+  ),
+});
+
+export type TwitchLiveStream = {
+  userId:       string;
+  userLogin:    string;
+  gameName:     string;
+  title:        string;
+  viewerCount:  number;
+  startedAt:    Date;
+  thumbnailUrl: string;
+};
+
+/**
+ * Fetch live stream data for a list of Twitch handles (user_login).
+ * Returns only streamers who are currently live.
+ * Batches in chunks of 100 per Twitch API limits.
+ *
+ * IMPORTANT: if the API call fails, the caller must NOT update the DB
+ * to avoid false "offline" marks due to transient errors.
+ */
+export async function fetchTwitchLiveByLogins(logins: string[]): Promise<TwitchLiveStream[]> {
+  if (logins.length === 0) return [];
+  const { token, clientId } = await getAppAccessToken();
+
+  const results: TwitchLiveStream[] = [];
+  for (let i = 0; i < logins.length; i += 100) {
+    const chunk = logins.slice(i, i + 100);
+    const params = chunk
+      .map((l) => `user_login=${encodeURIComponent(l.toLowerCase())}`)
+      .join('&');
+    const res = await fetch(`https://api.twitch.tv/helix/streams?${params}`, {
+      headers: { 'Client-Id': clientId, Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`Twitch streams API error (${res.status}): ${text}`);
+    }
+    const data = TwitchLiveStreamSchema.parse(await res.json());
+    for (const s of data.data) {
+      results.push({
+        userId:      s.user_id,
+        userLogin:   s.user_login,
+        gameName:    s.game_name,
+        title:       s.title,
+        viewerCount: s.viewer_count,
+        startedAt:   new Date(s.started_at),
+        thumbnailUrl: s.thumbnail_url,
+      });
+    }
+  }
+  return results;
+}
+
 // Parallel fetch follower counts into a Map<broadcasterId, count>
 async function _buildFollowerMap(
   ids: string[],

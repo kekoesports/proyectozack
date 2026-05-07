@@ -61,6 +61,10 @@ export const talents = pgTable('talents', {
   fiscalName: varchar('fiscal_name', { length: 250 }), // Nombre fiscal (puede diferir del nombre artístico)
   fiscalAddress: text('fiscal_address'),          // Dirección fiscal completa
 
+  // ── Live section controls ──
+  featuredLive:    boolean('featured_live').notNull().default(false),  // manual override para destacado
+  excludeFromLive: boolean('exclude_from_live').notNull().default(false), // ocultar de sección live
+
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
 }, (t) => [
   index('talents_slug_idx').on(t.slug),
