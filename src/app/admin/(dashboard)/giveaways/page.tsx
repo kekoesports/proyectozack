@@ -6,6 +6,7 @@ import { getAllCodes } from '@/lib/queries/creatorCodes';
 import { getAllWinners } from '@/lib/queries/giveawayWinners';
 import { deleteGiveawayAction } from './actions';
 import { deleteWinnerAction } from './winners-actions';
+import { DeleteConfirmButton } from './DeleteConfirmButton';
 import { EditGiveawayModal } from './EditGiveawayModal';
 import { CreateGiveawayForm } from './CreateGiveawayForm';
 import { CreateCodeForm } from './CreateCodeForm';
@@ -115,13 +116,11 @@ export default async function AdminGiveawaysPage({ searchParams }: PageProps): P
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       <EditGiveawayModal giveaway={g} />
-                      <form action={deleteGiveawayAction}>
-                        <input type="hidden" name="id" value={g.id} />
-                        <input type="hidden" name="talentSlug" value={g.talent.slug} />
-                        <button type="submit" className="text-red-400 hover:text-red-300 text-xs font-bold">
-                          Eliminar
-                        </button>
-                      </form>
+                      <DeleteConfirmButton
+                        action={deleteGiveawayAction}
+                        fields={{ id: g.id, talentSlug: g.talent.slug }}
+                        label={g.title.slice(0, 30)}
+                      />
                     </div>
                   </td>
                 </tr>
@@ -174,10 +173,11 @@ export default async function AdminGiveawaysPage({ searchParams }: PageProps): P
                   <td className="px-6 py-4 text-sp-admin-muted">{w.giveaway.title}</td>
                   <td className="px-6 py-4 text-sp-admin-muted">{new Date(w.wonAt).toLocaleDateString('es-ES')}</td>
                   <td className="px-6 py-4">
-                    <form action={deleteWinnerAction}>
-                      <input type="hidden" name="id" value={w.id} />
-                      <button type="submit" className="text-red-400 hover:text-red-300 text-xs font-bold">Eliminar</button>
-                    </form>
+                    <DeleteConfirmButton
+                      action={deleteWinnerAction}
+                      fields={{ id: w.id }}
+                      label={w.winnerName}
+                    />
                   </td>
                 </tr>
               ))}

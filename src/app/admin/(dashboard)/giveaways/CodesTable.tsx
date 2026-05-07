@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { EditCodeModal } from './EditCodeModal';
 import { deleteCodeAction } from './codes-actions';
+import { DeleteConfirmButton } from './DeleteConfirmButton';
 import type { CreatorCodeWithTalent } from '@/types';
 
 type Talent = { readonly id: number; readonly name: string };
@@ -56,13 +57,11 @@ export function CodesTable({ codes, talents }: Props): React.ReactElement {
                     >
                       Editar
                     </button>
-                    <form action={deleteCodeAction}>
-                      <input type="hidden" name="id" value={c.id} />
-                      <input type="hidden" name="talentSlug" value={c.talent.slug} />
-                      <button type="submit" className="text-red-400 hover:text-red-300 text-xs font-bold cursor-pointer">
-                        Eliminar
-                      </button>
-                    </form>
+                    <DeleteConfirmButton
+                      action={deleteCodeAction}
+                      fields={{ id: c.id, talentSlug: c.talent.slug }}
+                      label={c.code}
+                    />
                   </div>
                 </td>
               </tr>
