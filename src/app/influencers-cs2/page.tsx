@@ -101,7 +101,18 @@ export default function InfluencersCs2Page() {
       <section className="bg-white py-16 md:py-20">
         <div className="max-w-5xl mx-auto px-6">
           <p className="text-sp-orange text-xs font-bold uppercase tracking-[0.2em] mb-2">Por qué SocialPro</p>
-          <h2 className="font-display text-3xl font-black uppercase text-sp-dark mb-10">La agencia que conoce la escena CS2 hispana</h2>
+          <h2 className="font-display text-3xl font-black uppercase text-sp-dark mb-6">¿Por qué SocialPro es la agencia especializada en influencers CS2 para el mercado hispano?</h2>
+          <p className="text-base text-sp-muted leading-relaxed mb-10 max-w-3xl">
+            SocialPro lleva más de cuatro años ejecutando campañas con streamers de CS2 en España y
+            LatAm. Esto significa que cuando un operador de iGaming, una marca de hardware o una
+            plataforma de skins quiere activar en el ecosistema hispanohablante de CS2, SocialPro
+            no necesita construir el roster desde cero: ya tiene relaciones directas con los
+            creadores, conoce sus tasas de conversión históricas, sabe cuál funciona mejor para
+            cada tipo de producto y entiende las diferencias de audiencia entre un streamer de
+            Madrid, uno de Buenos Aires y uno de Ciudad de México. La escena CS2 en español no es
+            un segmento genérico de gaming — es una comunidad con sus propios códigos, plataformas
+            preferidas y ciclos de gasto que SocialPro conoce desde dentro.
+          </p>
           <div className="grid md:grid-cols-3 gap-6">
             {PORQUES.map((p) => (
               <div key={p.title} className="rounded-2xl border border-sp-border bg-sp-off p-6">
@@ -116,7 +127,18 @@ export default function InfluencersCs2Page() {
       <section className="bg-sp-off py-16 md:py-20">
         <div className="max-w-4xl mx-auto px-6">
           <p className="text-sp-orange text-xs font-bold uppercase tracking-[0.2em] mb-2">Resultados verificados</p>
-          <h2 className="font-display text-3xl font-black uppercase text-sp-dark mb-8">Campañas CS2 con datos reales</h2>
+          <h2 className="font-display text-3xl font-black uppercase text-sp-dark mb-6">¿Qué resultados verificados han generado los influencers CS2 de SocialPro?</h2>
+          <p className="text-base text-sp-muted leading-relaxed mb-8 max-w-3xl">
+            Los datos de las campañas CS2 de SocialPro proceden directamente de los paneles de
+            los operadores y plataformas, no de analytics de terceros ni estimaciones de alcance.
+            En la campaña 1WIN (Q1-Q2 2025), 100+ streamers de CS2 hispanohablantes fueron
+            activados en simultáneo durante un torneo internacional, generando 340+ FTDs
+            verificados desde el dashboard de afiliados del operador y un alcance de 8 millones
+            de usuarios en Instagram. En la campaña SkinsMonkey, el código de referido único por
+            creador permitió atribuir 200.000€ en volumen de trading directamente a los streamers
+            de SocialPro, con datos validados desde la plataforma del marketplace. El ROI fue
+            positivo desde la primera semana de activación.
+          </p>
           <div className="grid md:grid-cols-2 gap-6">
             <div className="bg-white rounded-2xl border border-sp-border p-8">
               <div className="font-display text-4xl font-black text-sp-dark mb-1">8M+</div>
@@ -134,7 +156,7 @@ export default function InfluencersCs2Page() {
 
       <section className="bg-sp-black py-16 text-center">
         <div className="max-w-2xl mx-auto px-6">
-          <h2 className="font-display text-3xl font-black uppercase text-white mb-4">Activa tu campaña <span style={g}>CS2 en 72h</span></h2>
+          <h2 className="font-display text-3xl font-black uppercase text-white mb-4">¿Listo para activar tu campaña con <span style={g}>influencers CS2 hispanohablantes?</span></h2>
           <p className="text-white/50 mb-8">Cuéntanos tu producto, objetivo de conversión y mercado. Diseñamos una propuesta con influencers CS2 seleccionados en 48 horas.</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/contacto" className="inline-block bg-sp-grad text-white font-display font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-full hover:opacity-90 transition-opacity">Solicitar propuesta</Link>

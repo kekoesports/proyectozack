@@ -147,9 +147,17 @@ export default function AgenciaGamingLatamPage() {
         {/* Mercados */}
         <section className="py-20 px-4 sm:px-6 border-t border-white/[0.06]">
           <div className="max-w-4xl mx-auto">
-            <h2 className="font-display text-3xl sm:text-4xl font-black uppercase mb-4">Mercados activos en LATAM</h2>
-            <p className="text-sp-muted2 mb-12 max-w-2xl">
-              SocialPro tiene presencia operativa en los cinco principales mercados de gaming e iGaming en Latinoamérica. Nuestro manager LATAM coordina activaciones locales con conocimiento real del mercado.
+            <h2 className="font-display text-3xl sm:text-4xl font-black uppercase mb-4">¿En qué mercados de LATAM opera SocialPro con creadores gaming?</h2>
+            <p className="text-sp-muted2 mb-12 max-w-2xl leading-relaxed">
+              SocialPro tiene presencia operativa en los cinco principales mercados de gaming e iGaming en
+              Latinoamérica: México, Argentina, Colombia, Chile y Perú. El equipo cuenta con un manager
+              LATAM dedicado que coordina activaciones locales con conocimiento directo de cada mercado —
+              no intermediarios, no agencias locales subcontratadas. México es el mayor mercado gaming de
+              la región en volumen de audiencia; Argentina lidera en escena CS2 competitiva; Colombia y
+              Chile tienen comunidades gaming premium con alta penetración digital. SocialPro ha ejecutado
+              campañas verificadas en los cinco mercados con datos de conversión auditables, ajustando
+              el roster de creadores, el compliance local y el idioma de integración a las particularidades
+              de cada territorio.
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {MARKETS.map(({ country, flag, desc }) => (
@@ -166,10 +174,16 @@ export default function AgenciaGamingLatamPage() {
         {/* Servicios */}
         <section className="py-20 px-4 sm:px-6 border-t border-white/[0.06] bg-white/[0.02]">
           <div className="max-w-4xl mx-auto">
-            <h2 className="font-display text-3xl sm:text-4xl font-black uppercase mb-4">Qué hacemos en LATAM</h2>
-            <p className="text-sp-muted2 mb-12 max-w-2xl">
-              Desde la gestión de creadores hasta el tracking de conversiones. Activamos campañas gaming e iGaming
-              en LATAM con los mismos estándares de performance que en España.
+            <h2 className="font-display text-3xl sm:text-4xl font-black uppercase mb-4">¿Qué servicios gaming e iGaming ofrece SocialPro en LATAM?</h2>
+            <p className="text-sp-muted2 mb-12 max-w-2xl leading-relaxed">
+              SocialPro opera en LATAM con el mismo stack de servicios que en España: acceso a
+              creadores verificados, gestión de compliance local, FTD tracking vinculado al panel del
+              operador y reporting auditable por el equipo de affiliate y finanzas del cliente. La
+              activación en LATAM no requiere plazos adicionales: el flujo estándar va de brief a
+              creador en directo en menos de 72 horas también para campañas en México, Argentina o
+              Colombia. La representación de creadores LATAM incluye negociación de deals en euros y
+              dólares con marcas internacionales, lo que elimina la barrera de conversión de divisa para
+              operadores europeos que quieren entrar en el mercado hispanohablante sin fricción operativa.
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {SERVICES.map(({ title, desc }) => (
@@ -185,10 +199,17 @@ export default function AgenciaGamingLatamPage() {
         {/* Cases callout */}
         <section className="py-20 px-4 sm:px-6 border-t border-white/[0.06]">
           <div className="max-w-4xl mx-auto">
-            <h2 className="font-display text-3xl sm:text-4xl font-black uppercase mb-4">Resultados verificados</h2>
-            <p className="text-sp-muted2 mb-8 max-w-2xl">
-              SocialPro ha ejecutado activaciones en México, Argentina y Colombia con marcas como 1WIN, SkinsMonkey y RAZER.
-              Cada campaña incluye reporting de alcance, engagement y conversiones con datos auditables.
+            <h2 className="font-display text-3xl sm:text-4xl font-black uppercase mb-4">¿Qué resultados ha generado SocialPro en campañas de LATAM?</h2>
+            <p className="text-sp-muted2 mb-8 max-w-2xl leading-relaxed">
+              SocialPro ha ejecutado activaciones verificadas en México, Argentina y Colombia para
+              marcas como 1WIN, SkinsMonkey y RAZER. La campaña 1WIN generó 340+ FTDs verificados
+              desde el panel de afiliados del operador, con 8 millones de usuarios alcanzados en
+              Instagram a través de 100+ streamers activados en simultáneo en España, México, Argentina
+              y Colombia (datos operador, Q1-Q2 2025). SkinsMonkey generó 200.000€ en volumen de
+              trading atribuido, verificado directamente en la plataforma del marketplace. RAZER
+              alcanzó 2,5 millones de usuarios con creadores gaming en España y LatAm. Cada campaña
+              incluye reporting de alcance, engagement y conversiones con datos auditables por el
+              equipo de affiliate y finanzas del cliente — no capturas de pantalla ni estimaciones.
             </p>
             <div className="flex flex-col sm:flex-row gap-6 mb-12">
               {[
