@@ -39,24 +39,30 @@ export function LivePlayer({ featured }: Props) {
     return () => { clearTimeout(timer); window.removeEventListener('message', onMessage); };
   }, [inView]);
 
+  const isYouTube = featured.platform === 'youtube';
   const parentParams = TWITCH_PARENTS.map((p) => `parent=${p}`).join('&');
-  const embedSrc = `https://player.twitch.tv/?channel=${featured.handle}&${parentParams}&autoplay=true&muted=true`;
+  const embedSrc = isYouTube
+    ? `https://www.youtube.com/embed/${featured.liveVideoId}?autoplay=1&mute=1&enablejsapi=1`
+    : `https://player.twitch.tv/?channel=${featured.handle}&${parentParams}&autoplay=true&muted=true`;
+  const fallbackUrl = featured.streamUrl
+    ?? (isYouTube ? `https://www.youtube.com/@${featured.handle}` : `https://www.twitch.tv/${featured.handle}`);
+  const platformLabel = isYouTube ? 'YouTube' : 'Twitch';
+  const platformColor = isYouTube ? 'bg-red-600 hover:bg-red-700' : 'bg-[#9146FF] hover:bg-[#7d2fe0]';
 
   return (
     <div ref={wrapperRef} className="relative w-full aspect-video bg-black rounded-xl overflow-hidden">
-      {/* Thumbnail de fondo siempre visible como fallback visual */}
+      {/* Thumbnail de fondo */}
       {featured.thumbnailUrl && (
         <Image
           src={featured.thumbnailUrl}
           alt={`${featured.name} en directo`}
           fill
           className="object-cover"
-          unoptimized // URL de Twitch cambia en cada request
+          unoptimized
           priority
         />
       )}
 
-      {/* Overlay oscuro sobre thumbnail */}
       {!inView && (
         <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
           <div className="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center">
@@ -65,28 +71,26 @@ export function LivePlayer({ featured }: Props) {
         </div>
       )}
 
-      {/* Iframe — solo cuando está en viewport Y autoplay no falló */}
       {inView && !playbackFailed && (
         <iframe
           src={embedSrc}
           allowFullScreen
           className="absolute inset-0 w-full h-full"
           allow="autoplay; fullscreen"
-          title={`${featured.name} en directo en Twitch`}
+          title={`${featured.name} en directo en ${platformLabel}`}
         />
       )}
 
-      {/* Fallback cuando autoplay bloqueado */}
       {inView && playbackFailed && (
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-black/70">
           <p className="text-white/70 text-sm">Reproducción automática no disponible</p>
           <a
-            href={featured.streamUrl ?? `https://www.twitch.tv/${featured.handle}`}
+            href={fallbackUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="px-6 py-2.5 rounded-full bg-[#9146FF] text-white text-sm font-bold uppercase tracking-wider hover:bg-[#7d2fe0] transition-colors"
+            className={`px-6 py-2.5 rounded-full text-white text-sm font-bold uppercase tracking-wider transition-colors ${platformColor}`}
           >
-            ▶ Ver en Twitch
+            ▶ Ver en {platformLabel}
           </a>
         </div>
       )}

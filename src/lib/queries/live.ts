@@ -13,6 +13,7 @@ export type LiveTalent = {
   viewerCount: number | null;
   thumbnailUrl: string | null;
   streamUrl: string | null;
+  liveVideoId: string | null;
   handle: string;
   featuredLive: boolean;
   startedAt: Date | null;
@@ -39,6 +40,7 @@ export async function getLiveTalents(): Promise<LiveTalent[]> {
       viewerCount:  talentLiveStatus.viewerCount,
       thumbnailUrl: talentLiveStatus.thumbnailUrl,
       streamUrl:    talentLiveStatus.streamUrl,
+      liveVideoId:  talentLiveStatus.liveVideoId,
       handle:       talentSocials.handle,
       startedAt:    talentLiveStatus.startedAt,
     })
@@ -48,7 +50,11 @@ export async function getLiveTalents(): Promise<LiveTalent[]> {
       talentSocials,
       and(
         eq(talentSocials.talentId, talents.id),
-        eq(talentSocials.platform, 'tw'),
+        // Joinear con el social de la misma plataforma que está live
+        sql`${talentSocials.platform} = CASE ${talentLiveStatus.platform}
+          WHEN 'youtube' THEN 'yt'
+          ELSE 'tw'
+        END`,
       )
     )
     .where(
@@ -75,27 +81,63 @@ export function pickFeatured(lives: LiveTalent[]): LiveTalent | null {
   return manual[0] ?? lives[0] ?? null;
 }
 
-/** Para el cron: talentos públicos activos con social de Twitch */
+/** Para el poll: talentos públicos activos con social de Twitch */
 export async function getTalentsWithTwitch() {
   return db
+    .select({ talentId: talents.id, handle: talentSocials.handle })
+    .from(talents)
+    .innerJoin(talentSocials, and(
+      eq(talentSocials.talentId, talents.id),
+      eq(talentSocials.platform, 'tw'),
+    ))
+    .where(and(
+      eq(talents.visibility, 'public'),
+      eq(talents.status, 'active'),
+      eq(talents.excludeFromLive, false),
+      isNotNull(talentSocials.handle),
+    ));
+}
+
+/** Para el poll: talentos públicos activos con social de YouTube */
+export async function getTalentsWithYouTube() {
+  return db
     .select({
-      talentId: talents.id,
-      handle:   talentSocials.handle,
+      talentId:  talents.id,
+      handle:    talentSocials.handle,
+      channelId: talentSocials.platformId, // YouTube channel ID (UCxxxxx)
     })
     .from(talents)
-    .innerJoin(
-      talentSocials,
-      and(
-        eq(talentSocials.talentId, talents.id),
-        eq(talentSocials.platform, 'tw'),
-      )
-    )
-    .where(
-      and(
-        eq(talents.visibility, 'public'),
-        eq(talents.status, 'active'),
-        eq(talents.excludeFromLive, false),
-        isNotNull(talentSocials.handle),
-      )
-    );
+    .innerJoin(talentSocials, and(
+      eq(talentSocials.talentId, talents.id),
+      eq(talentSocials.platform, 'yt'),
+    ))
+    .where(and(
+      eq(talents.visibility, 'public'),
+      eq(talents.status, 'active'),
+      eq(talents.excludeFromLive, false),
+      isNotNull(talentSocials.platformId),
+    ));
+}
+
+/** Para la página CRM /admin/live — todos los talentos con estado live */
+export async function getAllTalentsLiveStatus() {
+  return db
+    .select({
+      id:              talents.id,
+      name:            talents.name,
+      slug:            talents.slug,
+      photoUrl:        talents.photoUrl,
+      featuredLive:    talents.featuredLive,
+      excludeFromLive: talents.excludeFromLive,
+      isLive:          talentLiveStatus.isLive,
+      platform:        talentLiveStatus.platform,
+      gameName:        talentLiveStatus.gameName,
+      viewerCount:     talentLiveStatus.viewerCount,
+      streamTitle:     talentLiveStatus.streamTitle,
+      lastCheckedAt:   talentLiveStatus.lastCheckedAt,
+    })
+    .from(talents)
+    .leftJoin(talentLiveStatus, eq(talentLiveStatus.talentId, talents.id))
+    .where(eq(talents.visibility, 'public'))
+    .orderBy(desc(talentLiveStatus.isLive), desc(talentLiveStatus.viewerCount), talents.name);
 }

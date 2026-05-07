@@ -1,7 +1,9 @@
 import { NextResponse, after } from 'next/server';
 import { desc } from 'drizzle-orm';
-import { getLiveTalents, pickFeatured, getTalentsWithTwitch } from '@/lib/queries/live';
+import { getLiveTalents, pickFeatured, getTalentsWithTwitch, getTalentsWithYouTube } from '@/lib/queries/live';
 import { fetchTwitchLiveByLogins } from '@/lib/services/twitch';
+import { fetchYouTubeLive } from '@/lib/services/youtube';
+import { env } from '@/lib/env';
 import { db } from '@/lib/db';
 import { talentLiveStatus } from '@/db/schema';
 
@@ -22,7 +24,7 @@ async function pollTwitch(): Promise<void> {
     liveStreams = await fetchTwitchLiveByLogins(talentsWithTwitch.map((t) => t.handle));
   } catch (err) {
     console.error('[api/live] Twitch poll failed — keeping existing data:', err);
-    return; // NO tocar DB si falla la API
+    return;
   }
 
   const liveMap = new Map(liveStreams.map((s) => [s.userLogin.toLowerCase(), s]));
@@ -32,43 +34,93 @@ async function pollTwitch(): Promise<void> {
     talentsWithTwitch.map((talent) => {
       const stream = liveMap.get(talent.handle.toLowerCase());
       return stream
-        ? db
-            .insert(talentLiveStatus)
-            .values({
-              talentId: talent.talentId, isLive: true, platform: 'twitch',
+        ? db.insert(talentLiveStatus).values({
+            talentId: talent.talentId, isLive: true, platform: 'twitch',
+            streamTitle: stream.title, gameName: stream.gameName,
+            viewerCount: stream.viewerCount,
+            thumbnailUrl: resolveThumbnail(stream.thumbnailUrl),
+            streamUrl: `https://www.twitch.tv/${stream.userLogin}`,
+            startedAt: stream.startedAt, lastCheckedAt: now,
+          }).onConflictDoUpdate({
+            target: talentLiveStatus.talentId,
+            set: {
+              isLive: true, platform: 'twitch',
               streamTitle: stream.title, gameName: stream.gameName,
               viewerCount: stream.viewerCount,
               thumbnailUrl: resolveThumbnail(stream.thumbnailUrl),
               streamUrl: `https://www.twitch.tv/${stream.userLogin}`,
               startedAt: stream.startedAt, lastCheckedAt: now,
-            })
-            .onConflictDoUpdate({
-              target: talentLiveStatus.talentId,
-              set: {
-                isLive: true, platform: 'twitch',
-                streamTitle: stream.title, gameName: stream.gameName,
-                viewerCount: stream.viewerCount,
-                thumbnailUrl: resolveThumbnail(stream.thumbnailUrl),
-                streamUrl: `https://www.twitch.tv/${stream.userLogin}`,
-                startedAt: stream.startedAt, lastCheckedAt: now,
-              },
-            })
-        : db
-            .insert(talentLiveStatus)
-            .values({
-              talentId: talent.talentId, isLive: false, platform: null,
-              streamTitle: null, gameName: null, viewerCount: null,
-              thumbnailUrl: null, streamUrl: null, startedAt: null,
-              lastCheckedAt: now,
-            })
-            .onConflictDoUpdate({
-              target: talentLiveStatus.talentId,
-              set: {
-                isLive: false, streamTitle: null, gameName: null,
-                viewerCount: null, thumbnailUrl: null, streamUrl: null,
-                startedAt: null, lastCheckedAt: now,
-              },
-            });
+            },
+          })
+        : db.insert(talentLiveStatus).values({
+            talentId: talent.talentId, isLive: false, platform: null,
+            streamTitle: null, gameName: null, viewerCount: null,
+            thumbnailUrl: null, streamUrl: null, startedAt: null,
+            lastCheckedAt: now,
+          }).onConflictDoUpdate({
+            target: talentLiveStatus.talentId,
+            set: { isLive: false, streamTitle: null, gameName: null,
+              viewerCount: null, thumbnailUrl: null, streamUrl: null,
+              startedAt: null, lastCheckedAt: now },
+          });
+    })
+  );
+}
+
+async function pollYouTube(): Promise<void> {
+  if (!env.YOUTUBE_API_KEY) return;
+  const talentsWithYT = await getTalentsWithYouTube();
+  if (talentsWithYT.length === 0) return;
+
+  const validTalents = talentsWithYT.filter((t): t is typeof t & { channelId: string } =>
+    t.channelId !== null
+  );
+  if (validTalents.length === 0) return;
+
+  let liveResults;
+  try {
+    liveResults = await fetchYouTubeLive(validTalents.map((t) => t.channelId));
+  } catch (err) {
+    console.error('[api/live] YouTube poll failed — keeping existing data:', err);
+    return;
+  }
+
+  const liveMap = new Map(liveResults.map((r) => [r.channelId, r]));
+  const now = new Date();
+
+  await Promise.all(
+    validTalents.map((talent) => {
+      const live = liveMap.get(talent.channelId);
+      return live
+        ? db.insert(talentLiveStatus).values({
+            talentId: talent.talentId, isLive: true, platform: 'youtube',
+            streamTitle: live.title, gameName: null, viewerCount: null,
+            thumbnailUrl: live.thumbnailUrl,
+            streamUrl: `https://www.youtube.com/watch?v=${live.videoId}`,
+            liveVideoId: live.videoId,
+            startedAt: now, lastCheckedAt: now,
+          }).onConflictDoUpdate({
+            target: talentLiveStatus.talentId,
+            set: {
+              isLive: true, platform: 'youtube',
+              streamTitle: live.title, gameName: null, viewerCount: null,
+              thumbnailUrl: live.thumbnailUrl,
+              streamUrl: `https://www.youtube.com/watch?v=${live.videoId}`,
+              liveVideoId: live.videoId,
+              startedAt: now, lastCheckedAt: now,
+            },
+          })
+        : db.insert(talentLiveStatus).values({
+            talentId: talent.talentId, isLive: false, platform: null,
+            streamTitle: null, gameName: null, viewerCount: null,
+            thumbnailUrl: null, streamUrl: null, liveVideoId: null,
+            startedAt: null, lastCheckedAt: now,
+          }).onConflictDoUpdate({
+            target: talentLiveStatus.talentId,
+            set: { isLive: false, streamTitle: null, gameName: null,
+              viewerCount: null, thumbnailUrl: null, streamUrl: null,
+              liveVideoId: null, startedAt: null, lastCheckedAt: now },
+          });
     })
   );
 }
@@ -88,7 +140,10 @@ export async function GET(): Promise<NextResponse> {
   // Si los datos son viejos, lanzar el poll DESPUÉS de enviar la respuesta
   // (next/server `after` ejecuta el callback tras finalizar el streaming)
   if (isStale) {
-    after(pollTwitch);
+    after(async () => {
+      await pollTwitch();
+      await pollYouTube();
+    });
   }
 
   const lives = await getLiveTalents();
