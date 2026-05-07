@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { STAGGER } from '@/lib/utils/animation';
 import { SectionTag } from '@/components/ui/SectionTag';
 import { SectionHeading } from '@/components/ui/SectionHeading';
@@ -28,9 +29,12 @@ export function AboutSection() {
           </SectionHeading>
           <div className="space-y-4 text-sm text-sp-muted leading-relaxed">
             <p>
-              SocialPro es una agencia de talentos gaming e iGaming fundada en 2012 en Madrid por
-              Pablo "Kekō" Camacho —ex-profesional de CS:GO con 14 años en esports— y Alfonso
-              "Zack" Arias, con 7 años de especialización en iGaming y esports marketing.
+              SocialPro es una agencia de talentos gaming e iGaming fundada en 2012 en Madrid por{' '}
+              <a href="https://kekoesports.es" target="_blank" rel="noopener noreferrer" className="text-sp-orange hover:underline font-medium">
+                Pablo &ldquo;Kekō&rdquo; Camacho
+              </a>{' '}
+              —ex-profesional de CS:GO con 14 años en esports— y Alfonso
+              &ldquo;Zack&rdquo; Arias, con 7 años de especialización en iGaming y esports marketing.
               La agencia nació para resolver el problema real del mercado hispano: conectar talentos
               gaming con marcas que exigen audiencias comprometidas, compliance regulatorio integrado
               y resultados medibles con datos del operador, no capturas de pantalla. Desde su
