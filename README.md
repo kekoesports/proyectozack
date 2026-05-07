@@ -114,6 +114,88 @@ npm run dev                     # dev server en :3000
 La URL es `http://localhost:3000`. Si tienes otro proyecto ocupando el puerto 3000, levanta el dev con `PORT=3010 npm run dev` (Playwright soporta `PLAYWRIGHT_BASE_URL=http://localhost:3010`).
 
 ---
+## Higgsfield: setup y workflow de generación
+
+Esta sección documenta el flujo mínimo para inicializar Higgsfield en este repo y verificar generación de imagen y video desde CLI.
+
+### 1) Instalar CLI global
+
+```bash
+npm install -g @higgsfield/cli
+```
+
+Verificar versión instalada:
+
+```bash
+npm list -g @higgsfield/cli
+```
+
+### 2) Inicializar skills de Higgsfield en el proyecto
+
+```bash
+npx skills add higgsfield-ai/skills
+```
+
+Esto instala las skills oficiales (`higgsfield-generate`, `higgsfield-soul-id`, `higgsfield-product-photoshoot`, `higgsfield-marketplace-cards`) y actualiza la config local del repo.
+
+### 3) Autenticar CLI
+
+```bash
+higgsfield auth login
+```
+
+La CLI abre login por navegador con device flow y guarda el token local.
+
+### 4) Verificar autenticación y config del proyecto
+
+Comprobar sesión activa:
+
+```bash
+higgsfield account status
+```
+
+Comprobar artefactos de configuración en el repo:
+
+- Carpeta `.agents/skills/` con las skills de Higgsfield.
+- Entradas correspondientes en `skills-lock.json`.
+
+### 5) Generar asset de imagen de prueba (workflow `higgsfield-generate`)
+
+```bash
+higgsfield generate create nano_banana_2 --prompt "Minimalist product shot of a matte black gaming mouse on a clean white studio background, soft shadows, high detail" --aspect_ratio 1:1 --resolution 1k --wait
+```
+
+Salida esperada: URL pública `.png` (job en estado `completed`).
+
+### 6) Generar asset de video de prueba (Seedance 2.0)
+
+```bash
+higgsfield generate create seedance_2_0 --prompt "Cinematic slow dolly shot through a neon-lit esports arena with atmospheric haze and dramatic lighting" --aspect_ratio 16:9 --duration 5 --resolution 720p --mode std --wait
+```
+
+Salida esperada: URL pública `.mp4` (job en estado `completed`).
+
+Nota: si una ejecución devuelve `ip_detected`, reintenta el mismo comando; el flujo puede completarse correctamente en el segundo intento.
+
+### Troubleshooting
+
+- **`Session expired` / `Not authenticated`**
+  - Ejecuta: `higgsfield auth login`
+  - Verifica sesión: `higgsfield account status`
+
+- **Modelo no reconocido (`unknown model`)**
+  - Lista catálogo actualizado: `higgsfield model list`
+  - Reintenta con un `job_set_type` válido (por ejemplo, `nano_banana_2` o `seedance_2_0`).
+
+- **Job termina en `ip_detected`**
+  - Reintenta exactamente el mismo comando.
+  - Si persiste, espera unos minutos y vuelve a ejecutar.
+
+- **No aparecen skills en el proyecto**
+  - Reinstala: `npx skills add higgsfield-ai/skills`
+  - Confirma que existen `.agents/skills/` y entradas en `skills-lock.json`.
+
+---
 
 ## Scripts de `package.json`
 
