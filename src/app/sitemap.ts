@@ -4,6 +4,7 @@ import { getCaseSlugs } from '@/lib/queries/cases';
 import { getTalentSlugs } from '@/lib/queries/talents';
 import { getPostSlugs } from '@/lib/queries/posts';
 import { SITE_URL, absoluteUrl } from '@/lib/site-url';
+import { getBrandSlugs } from '@/lib/brands';
 
 // Update lastModified manually when making significant content changes.
 // priority and changeFrequency omitted — Google ignores both fields (2023+).
@@ -162,6 +163,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       alternates: { languages: { es: absoluteUrl('/servicios/igaming'), en: absoluteUrl('/betting-influencers'), 'x-default': absoluteUrl('/betting-influencers') } },
     },
     { url: absoluteUrl('/ganadores'),        lastModified: NOW             },
+    ...getBrandSlugs().map((slug) => ({ url: absoluteUrl(`/marcas/${slug}`), lastModified: NOW })),
     { url: absoluteUrl('/faq'),              lastModified: NOW             },
     { url: absoluteUrl('/terminos-sorteos'), lastModified: NOW             },
     { url: absoluteUrl('/nosotros'),         lastModified: D.nosotros      },
