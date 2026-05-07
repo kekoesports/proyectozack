@@ -28,17 +28,30 @@ export function AboutSection() {
           </SectionHeading>
           <div className="space-y-4 text-sm text-sp-muted leading-relaxed">
             <p>
-              Fundada por ex-profesionales de esports con más de una década de experiencia,
-              SocialPro nació para resolver el problema real del mercado: conectar talentos
-              gaming con marcas que buscan audiencias comprometidas y resultados medibles.
+              SocialPro es una agencia de talentos gaming e iGaming fundada en 2012 en Madrid por
+              Pablo "Kekō" Camacho —ex-profesional de CS:GO con 14 años en esports— y Alfonso
+              "Zack" Arias, con 7 años de especialización en iGaming y esports marketing.
+              La agencia nació para resolver el problema real del mercado hispano: conectar talentos
+              gaming con marcas que exigen audiencias comprometidas, compliance regulatorio integrado
+              y resultados medibles con datos del operador, no capturas de pantalla. Desde su
+              fundación, SocialPro ha gestionado campañas para marcas como RAZER, 1WIN y
+              SkinsMonkey en España, México, Argentina, Colombia y Chile.
             </p>
             <p>
-              Nuestra especialización en iGaming, CS2 y el ecosistema gaming hispano nos
-              permite ofrecer campañas con tasas de conversión muy superiores a la media del sector.
+              La especialización en iGaming, CS2 y el ecosistema gaming hispano distingue a
+              SocialPro de agencias generalistas. El roster incluye streamers verificados con
+              audiencias de entre 10.000 y 500.000 seguidores activos, seleccionados por tasa de
+              conversión histórica y compatibilidad con las regulaciones DGOJ en España y los marcos
+              normativos locales en LATAM. Las campañas de iGaming de SocialPro han generado más
+              de 340 FTDs verificados en una sola activación (1WIN, 2025), con datos auditados
+              directamente desde el panel de afiliados del operador.
             </p>
             <p>
-              Operamos en España y LatAm, con talentos que suman más de 10 millones de
-              usuarios únicos mensuales y un engagement rate promedio del 8.9%.
+              SocialPro opera en España y seis mercados de LATAM, con un roster activo que suma
+              más de 15 millones de views mensuales y un engagement rate promedio del 8,9%
+              medido sobre las últimas 12 campañas ejecutadas en Twitch, YouTube e Instagram
+              (datos internos, Q1 2026). La activación media va de brief a campaña en directo
+              en menos de 72 horas.
             </p>
           </div>
         </FadeInOnScroll>
