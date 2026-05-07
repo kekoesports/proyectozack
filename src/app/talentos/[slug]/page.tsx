@@ -62,7 +62,7 @@ function toTalentBase(t: Talent & Record<string, unknown>): Talent {
     cnmcRegisteredAt: t.cnmcRegisteredAt, cnmcNotes: t.cnmcNotes,
     hasRcInsurance: t.hasRcInsurance, taxType: t.taxType,
     nif: t.nif, fiscalName: t.fiscalName, fiscalAddress: t.fiscalAddress,
-    featuredLive: t.featuredLive, excludeFromLive: t.excludeFromLive,
+    featuredLive: t.featuredLive, excludeFromLive: t.excludeFromLive, featuredFallback: t.featuredFallback,
   };
 }
 
@@ -87,7 +87,7 @@ export default async function TalentPage({ params }: PageProps) {
     getFinishedGiveaways(talent.id),
   ]);
 
-  if (codes.length === 0 && active.length === 0 && finished.length === 0) notFound();
+  // No hacer notFound aunque no haya contenido — mostramos el perfil igualmente
 
   const base                                        = toTalentBase(talent);
   const codesWithTalent: CreatorCodeWithTalent[]    = codes.map((c) => ({ ...c, talent: base }));
@@ -336,7 +336,26 @@ export default async function TalentPage({ params }: PageProps) {
               </section>
             )}
 
-            {/* Finalizados en mobile */}
+            {/* Estado vacío si no hay códigos ni sorteos */}
+            {codesWithTalent.length === 0 && activeWithTalent.length === 0 && finishedWithTalent.length === 0 && (
+              <div className="flex flex-col items-center justify-center py-20 text-center">
+                <div className="w-14 h-14 rounded-2xl border border-white/[0.08] bg-white/[0.03] flex items-center justify-center mb-4">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-white/20">
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                  </svg>
+                </div>
+                <p className="text-sm font-bold text-white/30 uppercase tracking-wider">Próximamente</p>
+                <p className="text-xs text-white/20 mt-1">No hay códigos ni sorteos activos de momento</p>
+                <a
+                  href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(`Colaboración con ${talent.name}`)}`}
+                  className="mt-6 inline-flex items-center gap-2 px-5 py-2 rounded-full text-xs font-bold uppercase tracking-wider text-white/60 border border-white/10 hover:border-white/25 hover:text-white transition-all"
+                >
+                  Contactar para colaborar →
+                </a>
+              </div>
+            )}
+
+          {/* Finalizados en mobile */}
             {finishedWithTalent.length > 0 && (
               <details className="lg:hidden group border-t border-white/[0.06] pt-6">
                 <summary className="cursor-pointer list-none flex items-center justify-between mb-4">

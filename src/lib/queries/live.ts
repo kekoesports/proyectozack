@@ -125,11 +125,13 @@ export type TwitchRosterEntry = {
   name: string;
   photoUrl: string | null;
   handle: string;
+  game: string;
+  featuredFallback: boolean;
   isLive: boolean;
   viewerCount: number | null;
   gameName: string | null;
   streamUrl: string | null;
-  startedAt: Date | null; // última vez en directo
+  startedAt: Date | null;
 };
 
 /**
@@ -140,16 +142,18 @@ export type TwitchRosterEntry = {
 export async function getTwitchRoster(): Promise<TwitchRosterEntry[]> {
   const rows = await db
     .select({
-      talentId:   talents.id,
-      slug:       talents.slug,
-      name:       talents.name,
-      photoUrl:   talents.photoUrl,
-      handle:     talentSocials.handle,
-      isLive:     talentLiveStatus.isLive,
-      viewerCount: talentLiveStatus.viewerCount,
-      gameName:   talentLiveStatus.gameName,
-      streamUrl:  talentLiveStatus.streamUrl,
-      startedAt:  talentLiveStatus.startedAt,
+      talentId:         talents.id,
+      slug:             talents.slug,
+      name:             talents.name,
+      photoUrl:         talents.photoUrl,
+      game:             talents.game,
+      featuredFallback: talents.featuredFallback,
+      handle:           talentSocials.handle,
+      isLive:           talentLiveStatus.isLive,
+      viewerCount:      talentLiveStatus.viewerCount,
+      gameName:         talentLiveStatus.gameName,
+      streamUrl:        talentLiveStatus.streamUrl,
+      startedAt:        talentLiveStatus.startedAt,
     })
     .from(talents)
     .innerJoin(talentSocials, and(
@@ -169,20 +173,21 @@ export async function getTwitchRoster(): Promise<TwitchRosterEntry[]> {
       talents.name,
     );
 
-  return rows.map((r) => ({ ...r, isLive: r.isLive ?? false }));
+  return rows.map((r) => ({ ...r, isLive: r.isLive ?? false, featuredFallback: r.featuredFallback ?? false }));
 }
 
 /** Para la página CRM /admin/live — todos los talentos con estado live */
 export async function getAllTalentsLiveStatus() {
   return db
     .select({
-      id:              talents.id,
-      name:            talents.name,
-      slug:            talents.slug,
-      photoUrl:        talents.photoUrl,
-      featuredLive:    talents.featuredLive,
-      excludeFromLive: talents.excludeFromLive,
-      isLive:          talentLiveStatus.isLive,
+      id:               talents.id,
+      name:             talents.name,
+      slug:             talents.slug,
+      photoUrl:         talents.photoUrl,
+      featuredLive:     talents.featuredLive,
+      excludeFromLive:  talents.excludeFromLive,
+      featuredFallback: talents.featuredFallback,
+      isLive:           talentLiveStatus.isLive,
       platform:        talentLiveStatus.platform,
       gameName:        talentLiveStatus.gameName,
       viewerCount:     talentLiveStatus.viewerCount,

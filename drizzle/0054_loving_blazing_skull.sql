@@ -1,0 +1,1 @@
+ALTER TABLE "talents" ADD COLUMN "featured_fallback" boolean DEFAULT false NOT NULL;

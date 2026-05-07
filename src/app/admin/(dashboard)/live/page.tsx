@@ -2,22 +2,35 @@ import Image from 'next/image';
 import { requireAnyRole } from '@/lib/auth-guard';
 import { AdminPageHeader } from '@/features/admin/_shared/components/AdminPageHeader';
 import { getAllTalentsLiveStatus } from '@/lib/queries/live';
-import { setFeaturedLiveAction, setExcludeFromLiveAction } from './actions';
+import { setFeaturedLiveAction, setExcludeFromLiveAction, setFeaturedFallbackAction } from './actions';
 
 export const dynamic = 'force-dynamic';
 
-function TimeAgo({ date }: { date: Date | null }) {
-  if (!date) return <span className="text-sp-admin-muted text-xs">—</span>;
-  const diff = Math.round((Date.now() - date.getTime()) / 1000);
-  const label = diff < 60 ? `hace ${diff}s` : diff < 3600 ? `hace ${Math.round(diff / 60)}m` : `hace ${Math.round(diff / 3600)}h`;
-  return <span className="text-sp-admin-muted text-xs">{label}</span>;
+const MAX_FALLBACK = 10;
+
+function formatTimeAgo(date: Date | null, now: number): string {
+  if (!date) return '—';
+  const diff = Math.round((now - date.getTime()) / 1000);
+  if (diff < 60) return `hace ${diff}s`;
+  if (diff < 3600) return `hace ${Math.round(diff / 60)}m`;
+  return `hace ${Math.round(diff / 3600)}h`;
+}
+
+function Toggle({ active, onClass = 'bg-sp-orange', offClass = 'bg-sp-admin-border' }: { active: boolean; onClass?: string; offClass?: string }) {
+  return (
+    <div className={`w-8 h-4 rounded-full relative transition-colors ${active ? onClass : offClass}`}>
+      <span className={`absolute top-0.5 w-3 h-3 rounded-full bg-white shadow transition-all ${active ? 'left-4' : 'left-0.5'}`} />
+    </div>
+  );
 }
 
 export default async function AdminLivePage() {
   await requireAnyRole(['admin', 'manager'], '/admin/login');
   const talents = await getAllTalentsLiveStatus();
+  const now = new Date().getTime();
 
   const liveCount = talents.filter((t) => t.isLive).length;
+  const fallbackCount = talents.filter((t) => t.featuredFallback).length;
   const lastCheck = talents.find((t) => t.lastCheckedAt)?.lastCheckedAt ?? null;
 
   return (
@@ -26,29 +39,40 @@ export default async function AdminLivePage() {
         title="En directo"
         stats={[
           { label: 'Live ahora', value: String(liveCount) },
-          { label: 'Talentos monitorizados', value: String(talents.length) },
+          { label: 'En fallback', value: `${fallbackCount}/${MAX_FALLBACK}` },
+          { label: 'Monitorizados', value: String(talents.length) },
         ]}
       />
 
       <div className="p-6 max-w-5xl mx-auto space-y-4">
-        {/* Info bar */}
         <div className="flex items-center gap-3 text-xs text-sp-admin-muted">
           <span>Último check:</span>
-          <TimeAgo date={lastCheck} />
+          {formatTimeAgo(lastCheck, now)}
           <span className="text-sp-admin-muted/40">·</span>
-          <span>Los datos se actualizan automáticamente cada 3 min cuando alguien visita la web.</span>
+          <span>Se actualiza automáticamente cada 3 min.</span>
         </div>
 
-        {/* Tabla */}
+        {fallbackCount >= MAX_FALLBACK && (
+          <div className="rounded-lg bg-amber-50 border border-amber-200 px-4 py-2 text-xs text-amber-700 font-medium">
+            Has alcanzado el máximo de {MAX_FALLBACK} streamers en el fallback. Desactiva alguno para añadir otro.
+          </div>
+        )}
+
         <div className="rounded-xl border border-sp-admin-border bg-sp-admin-card overflow-hidden">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-sp-admin-border">
                 <th className="text-left px-4 py-3 text-xs font-semibold text-sp-admin-muted uppercase tracking-wider">Talento</th>
                 <th className="text-left px-4 py-3 text-xs font-semibold text-sp-admin-muted uppercase tracking-wider">Estado</th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-sp-admin-muted uppercase tracking-wider">Juego / Título</th>
-                <th className="text-center px-4 py-3 text-xs font-semibold text-sp-admin-muted uppercase tracking-wider">Destacado</th>
-                <th className="text-center px-4 py-3 text-xs font-semibold text-sp-admin-muted uppercase tracking-wider">Excluir</th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-sp-admin-muted uppercase tracking-wider">Stream</th>
+                <th className="text-center px-3 py-3 text-xs font-semibold text-sp-admin-muted uppercase tracking-wider">Destacado</th>
+                <th className="text-center px-3 py-3 text-xs font-semibold text-sp-admin-muted uppercase tracking-wider">
+                  Fallback
+                  <span className={`ml-1 text-[10px] font-bold ${fallbackCount >= MAX_FALLBACK ? 'text-amber-500' : 'text-sp-admin-muted/60'}`}>
+                    {fallbackCount}/{MAX_FALLBACK}
+                  </span>
+                </th>
+                <th className="text-center px-3 py-3 text-xs font-semibold text-sp-admin-muted uppercase tracking-wider">Excluir</th>
                 <th className="text-right px-4 py-3 text-xs font-semibold text-sp-admin-muted uppercase tracking-wider">Check</th>
               </tr>
             </thead>
@@ -67,7 +91,7 @@ export default async function AdminLivePage() {
                           </div>
                         )}
                       </div>
-                      <span className="font-medium text-sp-admin-text">{talent.name}</span>
+                      <span className="font-medium text-sp-admin-text text-sm">{talent.name}</span>
                     </div>
                   </td>
 
@@ -83,43 +107,50 @@ export default async function AdminLivePage() {
                     )}
                   </td>
 
-                  {/* Juego / Título */}
-                  <td className="px-4 py-3 max-w-[200px]">
+                  {/* Stream info */}
+                  <td className="px-4 py-3 max-w-[160px]">
                     <p className="text-xs text-sp-admin-text truncate">{talent.gameName ?? talent.streamTitle ?? '—'}</p>
                     {talent.viewerCount != null && (
-                      <p className="text-xs text-sp-admin-muted">{talent.viewerCount.toLocaleString()} espectadores</p>
+                      <p className="text-xs text-sp-admin-muted">{talent.viewerCount.toLocaleString()} viewers</p>
                     )}
                   </td>
 
-                  {/* Toggle: Featured */}
-                  <td className="px-4 py-3 text-center">
+                  {/* Toggle: Destacado live */}
+                  <td className="px-3 py-3 text-center">
                     <form action={setFeaturedLiveAction.bind(null, talent.id, !talent.featuredLive)}>
-                      <button
-                        type="submit"
-                        className={`w-8 h-4 rounded-full transition-colors relative ${talent.featuredLive ? 'bg-sp-orange' : 'bg-sp-admin-border'}`}
-                        title={talent.featuredLive ? 'Quitar destacado' : 'Poner como destacado'}
-                      >
-                        <span className={`absolute top-0.5 w-3 h-3 rounded-full bg-white shadow transition-all ${talent.featuredLive ? 'left-4' : 'left-0.5'}`} />
+                      <button type="submit" title={talent.featuredLive ? 'Quitar destacado' : 'Poner como destacado'}>
+                        <Toggle active={talent.featuredLive} />
                       </button>
                     </form>
                   </td>
 
+                  {/* Toggle: Fallback grid */}
+                  <td className="px-3 py-3 text-center">
+                    {!talent.featuredFallback && fallbackCount >= MAX_FALLBACK ? (
+                      <span title={`Máximo ${MAX_FALLBACK} streamers`} className="opacity-30 cursor-not-allowed">
+                        <Toggle active={false} onClass="bg-[#8b3aad]" />
+                      </span>
+                    ) : (
+                      <form action={setFeaturedFallbackAction.bind(null, talent.id, !talent.featuredFallback, fallbackCount)}>
+                        <button type="submit" title={talent.featuredFallback ? 'Quitar del fallback' : 'Añadir al fallback'}>
+                          <Toggle active={talent.featuredFallback ?? false} onClass="bg-[#8b3aad]" />
+                        </button>
+                      </form>
+                    )}
+                  </td>
+
                   {/* Toggle: Excluir */}
-                  <td className="px-4 py-3 text-center">
+                  <td className="px-3 py-3 text-center">
                     <form action={setExcludeFromLiveAction.bind(null, talent.id, !talent.excludeFromLive)}>
-                      <button
-                        type="submit"
-                        className={`w-8 h-4 rounded-full transition-colors relative ${talent.excludeFromLive ? 'bg-red-400' : 'bg-sp-admin-border'}`}
-                        title={talent.excludeFromLive ? 'Incluir en live' : 'Excluir de live'}
-                      >
-                        <span className={`absolute top-0.5 w-3 h-3 rounded-full bg-white shadow transition-all ${talent.excludeFromLive ? 'left-4' : 'left-0.5'}`} />
+                      <button type="submit" title={talent.excludeFromLive ? 'Incluir' : 'Excluir de live'}>
+                        <Toggle active={talent.excludeFromLive} onClass="bg-red-400" />
                       </button>
                     </form>
                   </td>
 
                   {/* Check */}
                   <td className="px-4 py-3 text-right">
-                    <TimeAgo date={talent.lastCheckedAt ?? null} />
+                    {formatTimeAgo(talent.lastCheckedAt ?? null, now)}
                   </td>
                 </tr>
               ))}
@@ -127,11 +158,11 @@ export default async function AdminLivePage() {
           </table>
         </div>
 
-        <p className="text-xs text-sp-admin-muted">
-          <strong>Destacado:</strong> el talento con este toggle activo aparece como streamer principal en la web, independientemente de viewers. Si hay varios activados, prevalece el de más viewers. Si ninguno está activo, se usa el de más viewers automáticamente.
-          <br />
-          <strong>Excluir:</strong> el talento no aparecerá en la sección live aunque esté en directo.
-        </p>
+        <div className="text-xs text-sp-admin-muted space-y-1">
+          <p><strong>Destacado:</strong> aparece como streamer principal cuando hay un directo activo.</p>
+          <p><strong>Fallback ({MAX_FALLBACK} máx):</strong> aparece en la grid de &ldquo;Nuestros streamers&rdquo; cuando nadie está en directo. Si no hay ninguno seleccionado, se muestran los primeros del roster.</p>
+          <p><strong>Excluir:</strong> el talento no aparece en la sección live aunque esté en directo.</p>
+        </div>
       </div>
     </div>
   );

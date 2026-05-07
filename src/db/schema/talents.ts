@@ -62,8 +62,9 @@ export const talents = pgTable('talents', {
   fiscalAddress: text('fiscal_address'),          // Dirección fiscal completa
 
   // ── Live section controls ──
-  featuredLive:    boolean('featured_live').notNull().default(false),  // manual override para destacado
-  excludeFromLive: boolean('exclude_from_live').notNull().default(false), // ocultar de sección live
+  featuredLive:     boolean('featured_live').notNull().default(false),     // manual override para destacado en directo
+  excludeFromLive:  boolean('exclude_from_live').notNull().default(false),  // ocultar de sección live
+  featuredFallback: boolean('featured_fallback').notNull().default(false),  // aparece en grid cuando nadie está live (máx 10)
 
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
 }, (t) => [
