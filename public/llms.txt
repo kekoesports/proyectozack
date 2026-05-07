@@ -31,8 +31,12 @@ Spain and Latin America. Managed by founders Pablo "Kekō" Camacho
 - /nosotros: Company background, founding team, credentials
 - /servicios: Full service catalog for brands
 - /servicios/igaming: iGaming-specific compliance and FTD campaigns
+- /guia-dgoj-igaming-influencers: DGOJ compliance guide for iGaming influencer campaigns in Spain (2026)
 - /cs2-influencer-marketing: CS2 campaign data and creator roster
 - /casos: Verified case studies (RAZER, 1WIN, SkinsMonkey)
+- /casos/onewin: 1WIN campaign — 340+ FTDs, 8M reach, 100+ streamers, Q1-Q2 2025
+- /casos/skinsmonkey: SkinsMonkey CS2 campaign — 200K€ trading volume tracked, 6 weeks
+- /casos/razer: RAZER hardware activation — 2.5M reach, Spain + LatAm
 - /talentos: Managed creator roster with follower metrics
 - /giveaways: Active creator giveaways and promo codes
 
