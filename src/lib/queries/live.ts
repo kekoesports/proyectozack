@@ -1,4 +1,4 @@
-import { and, eq, gt, desc, isNotNull, sql } from 'drizzle-orm';
+import { and, eq, gt, desc, isNotNull, sql, count } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { talents, talentSocials, talentLiveStatus } from '@/db/schema';
 
@@ -198,4 +198,21 @@ export async function getAllTalentsLiveStatus() {
     .leftJoin(talentLiveStatus, eq(talentLiveStatus.talentId, talents.id))
     .where(eq(talents.visibility, 'public'))
     .orderBy(desc(talentLiveStatus.isLive), desc(talentLiveStatus.viewerCount), talents.name);
+}
+
+export async function getTalentLiveStatus(talentId: number) {
+  const rows = await db
+    .select()
+    .from(talentLiveStatus)
+    .where(eq(talentLiveStatus.talentId, talentId))
+    .limit(1);
+  return rows[0] ?? null;
+}
+
+export async function getFeaturedFallbackCount(): Promise<number> {
+  const [row] = await db
+    .select({ total: count() })
+    .from(talents)
+    .where(eq(talents.featuredFallback, true));
+  return row?.total ?? 0;
 }

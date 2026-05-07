@@ -10,18 +10,20 @@ export async function setFeaturedLiveAction(talentId: number, value: boolean): P
   await requireAnyRole(['admin', 'manager'], '/admin/login');
   await db.update(talents).set({ featuredLive: value }).where(eq(talents.id, talentId));
   revalidatePath('/admin/live');
+  revalidatePath(`/admin/talents/${talentId}`);
 }
 
 export async function setExcludeFromLiveAction(talentId: number, value: boolean): Promise<void> {
   await requireAnyRole(['admin', 'manager'], '/admin/login');
   await db.update(talents).set({ excludeFromLive: value }).where(eq(talents.id, talentId));
   revalidatePath('/admin/live');
+  revalidatePath(`/admin/talents/${talentId}`);
 }
 
 export async function setFeaturedFallbackAction(talentId: number, value: boolean, currentCount: number): Promise<void> {
   await requireAnyRole(['admin', 'manager'], '/admin/login');
-  // Double-check server-side: no superar el máximo
   if (value && currentCount >= 10) return;
   await db.update(talents).set({ featuredFallback: value }).where(eq(talents.id, talentId));
   revalidatePath('/admin/live');
+  revalidatePath(`/admin/talents/${talentId}`);
 }

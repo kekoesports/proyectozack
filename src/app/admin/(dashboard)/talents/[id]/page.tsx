@@ -9,6 +9,8 @@ import { listInvoices } from '@/lib/queries/invoices';
 import { getFlagImageUrl, countryFlagEmoji } from '@/lib/flag-images';
 import { TALENT_VERTICAL_LABELS } from '@/lib/schemas/talentBusiness';
 import { TalentPhotoUpload } from '@/features/admin/talents/components/TalentPhotoUpload';
+import { getTalentLiveStatus, getFeaturedFallbackCount } from '@/lib/queries/live';
+import { setFeaturedLiveAction, setFeaturedFallbackAction, setExcludeFromLiveAction } from '@/app/admin/(dashboard)/live/actions';
 import type { TalentVertical } from '@/types';
 
 const PLATFORM_COLOR: Record<string, string> = {
@@ -36,12 +38,14 @@ export default async function TalentProfilePage({
 
   await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
 
-  const [talent, business, verticals, campaigns, invoices] = await Promise.all([
+  const [talent, business, verticals, campaigns, invoices, liveStatus, fallbackCount] = await Promise.all([
     getTalentById(talentId),
     getTalentBusiness(talentId),
     getTalentVerticals(talentId),
     listCampaigns({ filters: { talentId } }),
     listInvoices({ talentId }),
+    getTalentLiveStatus(talentId),
+    getFeaturedFallbackCount(),
   ]);
 
   if (!talent) notFound();
@@ -253,6 +257,50 @@ export default async function TalentProfilePage({
               </Link>
             </div>
           </section>
+
+          {/* Live settings */}
+          <section className="rounded-xl bg-sp-admin-card shadow-[0_1px_3px_rgba(0,0,0,0.06)] overflow-hidden">
+            <div className="px-4 py-2.5 border-b border-sp-admin-border/60 bg-sp-admin-hover/40 flex items-center justify-between">
+              <h2 className="text-[10px] font-bold uppercase tracking-[0.18em] text-sp-admin-muted">Live</h2>
+              {liveStatus?.isLive ? (
+                <span className="inline-flex items-center gap-1 text-[9px] font-bold text-green-600">
+                  <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                  {liveStatus.platform?.toUpperCase()} · {liveStatus.viewerCount?.toLocaleString('es-ES') ?? '—'} viewers
+                </span>
+              ) : (
+                <span className="text-[9px] text-sp-admin-muted/50">Offline</span>
+              )}
+            </div>
+            <div className="px-4 py-3 space-y-3">
+              <LiveToggleRow
+                label="Destacado principal"
+                description="Aparece como streamer principal cuando está en directo"
+                action={setFeaturedLiveAction.bind(null, talent.id, !talent.featuredLive)}
+                active={talent.featuredLive}
+                activeClass="bg-sp-orange"
+              />
+              <LiveToggleRow
+                label="Grid offline"
+                description={`Aparece cuando nadie está live · ${fallbackCount}/10 seleccionados`}
+                action={setFeaturedFallbackAction.bind(null, talent.id, !talent.featuredFallback, fallbackCount)}
+                active={talent.featuredFallback ?? false}
+                activeClass="bg-[#8b3aad]"
+                disabled={!talent.featuredFallback && fallbackCount >= 10}
+              />
+              <LiveToggleRow
+                label="Excluir de live"
+                description="No aparece en la sección live aunque esté en directo"
+                action={setExcludeFromLiveAction.bind(null, talent.id, !talent.excludeFromLive)}
+                active={talent.excludeFromLive}
+                activeClass="bg-red-400"
+              />
+            </div>
+            <div className="px-4 py-2.5 border-t border-sp-admin-border/60 bg-sp-admin-hover/20">
+              <Link href="/admin/live" className="text-[11px] font-semibold text-sp-admin-accent hover:opacity-70 transition-opacity">
+                Gestionar roster live →
+              </Link>
+            </div>
+          </section>
         </div>
 
         {/* Columna der */}
@@ -351,6 +399,38 @@ export default async function TalentProfilePage({
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+function LiveToggleRow({ label, description, action, active, activeClass, disabled = false }: {
+  readonly label: string;
+  readonly description: string;
+  readonly action: () => Promise<void>;
+  readonly active: boolean;
+  readonly activeClass: string;
+  readonly disabled?: boolean;
+}): React.ReactElement {
+  const toggle = (
+    <div className={`w-8 h-4 rounded-full relative transition-colors ${active ? activeClass : 'bg-sp-admin-border'}`}>
+      <span className={`absolute top-0.5 w-3 h-3 rounded-full bg-white shadow transition-all ${active ? 'left-4' : 'left-0.5'}`} />
+    </div>
+  );
+  return (
+    <div className="flex items-center justify-between gap-3">
+      <div className="min-w-0">
+        <p className="text-[12px] font-semibold text-sp-admin-text">{label}</p>
+        <p className="text-[10px] text-sp-admin-muted leading-tight">{description}</p>
+      </div>
+      {disabled ? (
+        <span className="opacity-30 cursor-not-allowed shrink-0">{toggle}</span>
+      ) : (
+        <form action={action} className="shrink-0">
+          <button type="submit" title={active ? `Desactivar ${label}` : `Activar ${label}`}>
+            {toggle}
+          </button>
+        </form>
+      )}
     </div>
   );
 }
