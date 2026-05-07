@@ -1,6 +1,6 @@
 import { NextResponse, after } from 'next/server';
 import { desc } from 'drizzle-orm';
-import { getLiveTalents, pickFeatured, getTalentsWithTwitch, getTalentsWithYouTube } from '@/lib/queries/live';
+import { getLiveTalents, pickFeatured, getTalentsWithTwitch, getTalentsWithYouTube, getTwitchRoster } from '@/lib/queries/live';
 import { fetchTwitchLiveByLogins } from '@/lib/services/twitch';
 import { fetchYouTubeLive } from '@/lib/services/youtube';
 import { env } from '@/lib/env';
@@ -55,13 +55,15 @@ async function pollTwitch(): Promise<void> {
         : db.insert(talentLiveStatus).values({
             talentId: talent.talentId, isLive: false, platform: null,
             streamTitle: null, gameName: null, viewerCount: null,
-            thumbnailUrl: null, streamUrl: null, startedAt: null,
+            thumbnailUrl: null, streamUrl: null,
             lastCheckedAt: now,
+            // startedAt NO se borra — guarda cuándo fue su último directo
           }).onConflictDoUpdate({
             target: talentLiveStatus.talentId,
             set: { isLive: false, streamTitle: null, gameName: null,
               viewerCount: null, thumbnailUrl: null, streamUrl: null,
-              startedAt: null, lastCheckedAt: now },
+              lastCheckedAt: now },
+            // startedAt se conserva (no está en el set)
           });
     })
   );
@@ -114,12 +116,12 @@ async function pollYouTube(): Promise<void> {
             talentId: talent.talentId, isLive: false, platform: null,
             streamTitle: null, gameName: null, viewerCount: null,
             thumbnailUrl: null, streamUrl: null, liveVideoId: null,
-            startedAt: null, lastCheckedAt: now,
+            lastCheckedAt: now,
           }).onConflictDoUpdate({
             target: talentLiveStatus.talentId,
             set: { isLive: false, streamTitle: null, gameName: null,
               viewerCount: null, thumbnailUrl: null, streamUrl: null,
-              liveVideoId: null, startedAt: null, lastCheckedAt: now },
+              liveVideoId: null, lastCheckedAt: now },
           });
     })
   );
@@ -146,12 +148,15 @@ export async function GET(): Promise<NextResponse> {
     });
   }
 
-  const lives = await getLiveTalents();
+  const [lives, roster] = await Promise.all([
+    getLiveTalents(),
+    getTwitchRoster(),
+  ]);
   const featured = pickFeatured(lives);
   const others = featured ? lives.filter((l) => l.talentId !== featured.talentId) : lives;
 
   return NextResponse.json(
-    { featured, others, total: lives.length, stale: isStale },
+    { featured, others, roster, total: lives.length, stale: isStale },
     { headers: { 'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120' } }
   );
 }
