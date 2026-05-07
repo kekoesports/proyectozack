@@ -61,6 +61,10 @@ export const talents = pgTable('talents', {
   fiscalName: varchar('fiscal_name', { length: 250 }), // Nombre fiscal (puede diferir del nombre artístico)
   fiscalAddress: text('fiscal_address'),          // Dirección fiscal completa
 
+  // ── Bio extendida (F5) ──
+  bioLong:    text('bio_long'),                                        // texto largo markdown ~200-300 palabras
+  highlights: jsonb('highlights').$type<string[]>(),                   // ej: ["Top 1% CS2 ES", "Partner Twitch"]
+
   // ── Live section controls ──
   featuredLive:     boolean('featured_live').notNull().default(false),     // manual override para destacado en directo
   excludeFromLive:  boolean('exclude_from_live').notNull().default(false),  // ocultar de sección live

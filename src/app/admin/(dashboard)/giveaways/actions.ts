@@ -3,6 +3,9 @@
 import { revalidatePath } from 'next/cache';
 import { requireAnyRole } from '@/lib/auth-guard';
 import { createGiveaway, updateGiveaway, deleteGiveaway } from '@/lib/queries/giveaways';
+import { like } from 'drizzle-orm';
+import { giveaways } from '@/db/schema';
+import { db } from '@/lib/db';
 import { parseFormData } from '@/lib/forms/parseFormData';
 import { firstError } from '@/lib/forms/firstError';
 import { logRedacted } from '@/lib/log';
@@ -60,6 +63,12 @@ export async function updateGiveawayAction(formData: FormData): Promise<Giveaway
   if (talentSlug) revalidatePath(`/talentos/${talentSlug}`);
   revalidatePath('/admin/giveaways');
   return { ok: true };
+}
+
+export async function deleteAllDemosAction(): Promise<void> {
+  await requireAnyRole(['admin', 'manager'], '/admin/login');
+  await db.delete(giveaways).where(like(giveaways.title, '[DEMO]%'));
+  revalidatePath('/admin/giveaways');
 }
 
 export async function deleteGiveawayAction(formData: FormData): Promise<void> {

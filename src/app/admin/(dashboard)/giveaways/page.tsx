@@ -4,7 +4,7 @@ import { getAllGiveaways } from '@/lib/queries/giveaways';
 import { getAllTalents } from '@/lib/queries/talents';
 import { getAllCodes } from '@/lib/queries/creatorCodes';
 import { getAllWinners } from '@/lib/queries/giveawayWinners';
-import { deleteGiveawayAction } from './actions';
+import { deleteGiveawayAction, deleteAllDemosAction } from './actions';
 import { deleteWinnerAction } from './winners-actions';
 import { DeleteConfirmButton } from './DeleteConfirmButton';
 import { EditGiveawayModal } from './EditGiveawayModal';
@@ -71,6 +71,20 @@ export default async function AdminGiveawaysPage({ searchParams }: PageProps): P
         <CreateGiveawayForm talents={allTalents} />
       </div>
 
+      {/* Bulk delete demos */}
+      {allGiveaways.some((g) => g.title.startsWith('[DEMO]')) && (
+        <div className="flex items-center gap-3 rounded-lg bg-amber-500/10 border border-amber-500/20 px-4 py-2.5 mb-4">
+          <span className="text-xs font-bold text-amber-400">
+            Hay sorteos [DEMO] visibles en el admin. No aparecen en la web pública.
+          </span>
+          <form action={deleteAllDemosAction} className="ml-auto">
+            <button type="submit" className="px-3 py-1 rounded bg-amber-500/20 text-amber-300 text-xs font-black hover:bg-amber-500/30 transition-colors">
+              Eliminar todos los demos
+            </button>
+          </form>
+        </div>
+      )}
+
       {/* List */}
       {giveaways.length === 0 ? (
         <p className="text-sm text-sp-admin-muted">No hay giveaways. Crea el primero.</p>
@@ -91,7 +105,7 @@ export default async function AdminGiveawaysPage({ searchParams }: PageProps): P
             </thead>
             <tbody>
               {giveaways.map((g) => (
-                <tr key={g.id} className="border-b border-sp-admin-border/50 last:border-0 hover:bg-sp-admin-hover transition-colors">
+                <tr key={g.id} className={`border-b border-sp-admin-border/50 last:border-0 hover:bg-sp-admin-hover transition-colors ${g.title.startsWith('[DEMO]') ? 'bg-amber-500/5' : ''}`}>
                   <td className="px-6 py-4">
                     {g.imageUrl ? (
                       <Image src={g.imageUrl} alt={g.title} width={48} height={36} className="rounded object-contain bg-sp-admin-bg" />

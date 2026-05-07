@@ -64,6 +64,7 @@ function toTalentBase(t: Talent & Record<string, unknown>): Talent {
     hasRcInsurance: t.hasRcInsurance, taxType: t.taxType,
     nif: t.nif, fiscalName: t.fiscalName, fiscalAddress: t.fiscalAddress,
     featuredLive: t.featuredLive, excludeFromLive: t.excludeFromLive, featuredFallback: t.featuredFallback,
+    bioLong: t.bioLong, highlights: t.highlights,
   };
 }
 
@@ -320,7 +321,28 @@ export default async function TalentPage({ params }: PageProps) {
           {/* Contenido principal */}
           <div className="flex-1 min-w-0 space-y-10">
 
-            {codesWithTalent.length > 0 && (
+            {/* Bio extendida — visible solo si existe */}
+            {talent.bioLong && (
+              <section className="space-y-4 border-b border-white/[0.06] pb-8">
+                <p className="text-[10px] font-black uppercase tracking-[0.25em] text-white/30">
+                  Sobre {talent.name}
+                </p>
+                <p className="text-sm text-white/55 leading-relaxed whitespace-pre-line">
+                  {talent.bioLong}
+                </p>
+                {talent.highlights && talent.highlights.length > 0 && (
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    {talent.highlights.map((h) => (
+                      <span key={h} className="px-2.5 py-1 rounded-full bg-white/[0.05] border border-white/[0.08] text-[11px] font-bold text-white/50">
+                        {h}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </section>
+            )}
+
+          {codesWithTalent.length > 0 && (
               <section className="space-y-4">
                 <p className="text-[10px] font-black uppercase tracking-[0.25em] text-white/30">
                   Códigos de {talent.name} · {codesWithTalent.length} activos

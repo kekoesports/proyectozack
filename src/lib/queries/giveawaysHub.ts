@@ -1,4 +1,4 @@
-import { gt, lte } from 'drizzle-orm';
+import { gt, lte, and, not, like } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { giveaways } from '@/db/schema';
 import type { CreatorCodeWithTalent, GiveawayWithTalent } from '@/types';
@@ -16,9 +16,11 @@ export type BrandOption = {
  * @visibility public
  * @returns array de GiveawayWithTalent (puede ser vacío). Nunca null.
  */
+const NO_DEMO = not(like(giveaways.title, '[DEMO]%'));
+
 export async function getAllActiveGiveaways(): Promise<GiveawayWithTalent[]> {
   const rows = await db.query.giveaways.findMany({
-    where: gt(giveaways.endsAt, new Date()),
+    where: and(gt(giveaways.endsAt, new Date()), NO_DEMO),
     with: { talent: true },
     orderBy: (g, { asc }) => [asc(g.endsAt)],
   });
@@ -34,7 +36,7 @@ export async function getAllActiveGiveaways(): Promise<GiveawayWithTalent[]> {
  */
 export async function getAllFinishedGiveaways(): Promise<GiveawayWithTalent[]> {
   const rows = await db.query.giveaways.findMany({
-    where: lte(giveaways.endsAt, new Date()),
+    where: and(lte(giveaways.endsAt, new Date()), NO_DEMO),
     with: { talent: true },
     orderBy: (g, { desc }) => [desc(g.endsAt)],
   });
