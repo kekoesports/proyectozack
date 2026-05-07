@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { getTalentSlugs, getTalentBySlug } from '@/lib/queries/talents';
 import { getCodesByTalent } from '@/lib/queries/creatorCodes';
 import { getActiveGiveaways, getFinishedGiveaways } from '@/lib/queries/giveaways';
+import { getWinnersByTalent } from '@/lib/queries/giveawayWinners';
+import { WinnersList } from '@/features/giveaways/components/WinnersList';
 import { HeroSponsorCard } from '@/features/giveaways/components/HeroSponsorCard';
 import { CodesExpandable } from '@/features/giveaways/components/CodesExpandable';
 import { GiveawayFeatured } from '@/features/giveaways/components/GiveawayFeatured';
@@ -84,10 +86,11 @@ export default async function TalentPage({ params }: PageProps) {
   const talent = await getTalentBySlug(slug);
   if (!talent) notFound();
 
-  const [codes, active, finished] = await Promise.all([
+  const [codes, active, finished, winners] = await Promise.all([
     getCodesByTalent(talent.id),
     getActiveGiveaways(talent.id),
     getFinishedGiveaways(talent.id),
+    getWinnersByTalent(talent.id, 5),
   ]);
 
   // No hacer notFound aunque no haya contenido — mostramos el perfil igualmente
@@ -378,7 +381,22 @@ export default async function TalentPage({ params }: PageProps) {
               </section>
             )}
 
-            {/* Estado vacío si no hay códigos ni sorteos */}
+            {/* Últimos ganadores */}
+            {winners.length > 0 && (
+              <section className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <p className="text-[10px] font-black uppercase tracking-[0.25em] text-white/30">
+                    Últimos ganadores con {talent.name}
+                  </p>
+                  <Link href="/ganadores" className="text-[9px] font-bold text-white/25 hover:text-white/50 uppercase tracking-wider transition-colors">
+                    Ver todos →
+                  </Link>
+                </div>
+                <WinnersList winners={winners} variant="compact" />
+              </section>
+            )}
+
+          {/* Estado vacío si no hay códigos ni sorteos */}
             {codesWithTalent.length === 0 && activeWithTalent.length === 0 && finishedWithTalent.length === 0 && (
               <div className="flex flex-col items-center justify-center py-20 text-center">
                 <div className="w-14 h-14 rounded-2xl border border-white/[0.08] bg-white/[0.03] flex items-center justify-center mb-4">

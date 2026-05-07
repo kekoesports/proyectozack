@@ -7,6 +7,7 @@ export const giveawayWinners = pgTable('giveaway_winners', {
   giveawayId: integer('giveaway_id').notNull().references(() => giveaways.id, { onDelete: 'cascade' }),
   winnerName: varchar('winner_name', { length: 100 }).notNull(),
   winnerAvatar: varchar('winner_avatar', { length: 500 }),
+  proofUrl: varchar('proof_url', { length: 500 }),   // clip/stream donde se anunció el ganador
   wonAt: timestamp('won_at', { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [
   index('giveaway_winners_giveaway_id_idx').on(t.giveawayId),

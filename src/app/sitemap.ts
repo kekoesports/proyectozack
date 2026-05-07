@@ -161,6 +161,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: D.igaming,
       alternates: { languages: { es: absoluteUrl('/servicios/igaming'), en: absoluteUrl('/betting-influencers'), 'x-default': absoluteUrl('/betting-influencers') } },
     },
+    { url: absoluteUrl('/ganadores'),        lastModified: NOW             },
     { url: absoluteUrl('/faq'),              lastModified: NOW             },
     { url: absoluteUrl('/terminos-sorteos'), lastModified: NOW             },
     { url: absoluteUrl('/nosotros'),         lastModified: D.nosotros      },

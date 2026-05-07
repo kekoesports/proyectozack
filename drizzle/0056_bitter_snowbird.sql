@@ -1,0 +1,1 @@
+ALTER TABLE "giveaway_winners" ADD COLUMN "proof_url" varchar(500);

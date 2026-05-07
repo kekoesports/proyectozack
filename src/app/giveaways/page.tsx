@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { getAllActiveGiveaways, getAllFinishedGiveaways, extractUniqueBrands } from '@/lib/queries/giveawaysHub';
 import { getAllCodes, getFeaturedCodes } from '@/lib/queries/creatorCodes';
 import { getAllTalents } from '@/lib/queries/talents';
+import { getRecentWinners } from '@/lib/queries/giveawayWinners';
+import { WinnersList } from '@/features/giveaways/components/WinnersList';
 import { GiveawaysHub } from '@/features/giveaways/components/GiveawaysHub';
 import { generateGiveawayListSchema, generateCodeListSchema } from '@/lib/schema';
 import { SITE_URL } from '@/lib/site-url';
@@ -19,12 +21,13 @@ export const metadata: Metadata = {
 export const revalidate = 3600;
 
 export default async function GiveawaysPage(): Promise<React.JSX.Element> {
-  const [active, finished, codes, featuredCodes, talents] = await Promise.all([
+  const [active, finished, codes, featuredCodes, talents, recentWinners] = await Promise.all([
     getAllActiveGiveaways(),
     getAllFinishedGiveaways(),
     getAllCodes(),
     getFeaturedCodes(),
     getAllTalents(),
+    getRecentWinners(6),
   ]);
 
   const allGiveaways = [...active, ...finished];
@@ -157,6 +160,21 @@ export default async function GiveawaysPage(): Promise<React.JSX.Element> {
         creators={creators}
         brands={brands}
       />
+
+      {/* Widget últimos ganadores */}
+      {recentWinners.length > 0 && (
+        <section className="max-w-4xl mx-auto px-6 py-12 border-t border-white/[0.04]">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="font-display text-xl font-black uppercase text-white tracking-tight">
+              Últimos ganadores
+            </h2>
+            <Link href="/ganadores" className="text-[10px] font-bold text-white/30 hover:text-white/60 uppercase tracking-widest transition-colors">
+              Ver todos →
+            </Link>
+          </div>
+          <WinnersList winners={recentWinners} variant="compact" />
+        </section>
+      )}
 
       {/* Footer */}
       <div className="border-t border-white/[0.04] py-4 text-center">
