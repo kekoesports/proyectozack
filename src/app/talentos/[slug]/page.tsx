@@ -44,11 +44,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       title, description,
       url: absoluteUrl(`/talentos/${slug}`),
       type: 'profile',
-      images: [{ url: absoluteUrl(`/api/og-image/talent/${slug}`), width: 1200, height: 630, alt: `${talent.name} — SocialPro` }],
+      images: [{ url: absoluteUrl(`/api/og-image/talent-img?slug=${slug}`), width: 1200, height: 630, alt: `${talent.name} — SocialPro` }],
     },
     twitter: {
       card: 'summary_large_image', title, description,
-      images: [absoluteUrl(`/api/og-image/talent/${slug}`)],
+      images: [absoluteUrl(`/api/og-image/talent-img?slug=${slug}`)],
     },
   };
 }
