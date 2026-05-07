@@ -61,7 +61,8 @@ export async function GET(
   if (giveawayCount > 0) metaParts.push(`${giveawayCount} sorteo${giveawayCount !== 1 ? 's' : ''} live`);
   const metaLine = metaParts.join(' · ');
 
-  const image = new ImageResponse(
+  // ImageResponse ya es una Response — devolverla directamente
+  return new ImageResponse(
     (
       <div style={{ width: '100%', height: '100%', background: '#050507', display: 'flex', flexDirection: 'column', fontFamily: 'sans-serif' }}>
         <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 6, background: `linear-gradient(90deg,${c1},${c2})` }} />
@@ -104,11 +105,4 @@ export async function GET(
     ),
     { ...SIZE },
   );
-
-  return new Response(image.body, {
-    headers: {
-      'Content-Type': 'image/png',
-      'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400',
-    },
-  });
 }
