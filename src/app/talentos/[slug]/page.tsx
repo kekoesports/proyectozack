@@ -44,11 +44,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       title, description,
       url: absoluteUrl(`/talentos/${slug}`),
       type: 'profile',
-      images: talent.photoUrl ? [{ url: talent.photoUrl }] : [{ url: absoluteUrl('/og-default.jpg') }],
+      // opengraph-image.tsx genera la OG dinámica — no sobreescribir aquí
     },
     twitter: {
       card: 'summary_large_image', title, description,
-      images: talent.photoUrl ? [talent.photoUrl] : undefined,
     },
   };
 }
