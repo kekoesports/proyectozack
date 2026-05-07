@@ -365,6 +365,13 @@
       "when": 1778100000000,
       "tag": "0051_create_crm_alerts",
       "breakpoints": true
+    },
+    {
+      "idx": 52,
+      "version": "7",
+      "when": 1778142279932,
+      "tag": "0052_panoramic_thanos",
+      "breakpoints": true
     }
   ]
 }
