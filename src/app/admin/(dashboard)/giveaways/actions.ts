@@ -2,13 +2,14 @@
 
 import { revalidatePath } from 'next/cache';
 import { requireAnyRole } from '@/lib/auth-guard';
-import { createGiveaway, deleteGiveaway } from '@/lib/queries/giveaways';
+import { createGiveaway, updateGiveaway, deleteGiveaway } from '@/lib/queries/giveaways';
 import { parseFormData } from '@/lib/forms/parseFormData';
 import { firstError } from '@/lib/forms/firstError';
 import { logRedacted } from '@/lib/log';
 import {
   CreateGiveawayFormSchema,
   DeleteGiveawaySchema,
+  UpdateGiveawayFormSchema,
 } from '@/lib/schemas/giveaway';
 
 export type GiveawayActionState =
@@ -39,6 +40,24 @@ export async function createGiveawayAction(formData: FormData): Promise<Giveaway
   });
 
   if (parsed.data.talentSlug) revalidatePath(`/creadores/${parsed.data.talentSlug}`);
+  revalidatePath('/admin/giveaways');
+  return { ok: true };
+}
+
+export async function updateGiveawayAction(formData: FormData): Promise<GiveawayActionState> {
+  await requireAnyRole(['admin', 'manager'], '/admin/login');
+
+  const parsed = parseFormData(formData, UpdateGiveawayFormSchema);
+  if (!parsed.ok) {
+    logRedacted('warn', '[updateGiveawayAction] validation failed:', firstError(parsed.fieldErrors));
+    return { ok: false, fieldErrors: parsed.fieldErrors };
+  }
+
+  const { id, talentSlug, ...data } = parsed.data;
+  await updateGiveaway(id, data);
+
+  if (talentSlug) revalidatePath(`/creadores/${talentSlug}`);
+  if (talentSlug) revalidatePath(`/talentos/${talentSlug}`);
   revalidatePath('/admin/giveaways');
   return { ok: true };
 }

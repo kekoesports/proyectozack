@@ -6,6 +6,7 @@ import { getAllCodes } from '@/lib/queries/creatorCodes';
 import { getAllWinners } from '@/lib/queries/giveawayWinners';
 import { deleteGiveawayAction } from './actions';
 import { deleteWinnerAction } from './winners-actions';
+import { EditGiveawayModal } from './EditGiveawayModal';
 import { CreateGiveawayForm } from './CreateGiveawayForm';
 import { CreateCodeForm } from './CreateCodeForm';
 import { CreateWinnerForm } from './CreateWinnerForm';
@@ -112,13 +113,16 @@ export default async function AdminGiveawaysPage({ searchParams }: PageProps): P
                     {g.endsAt ? new Date(g.endsAt).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'}
                   </td>
                   <td className="px-6 py-4">
-                    <form action={deleteGiveawayAction}>
-                      <input type="hidden" name="id" value={g.id} />
-                      <input type="hidden" name="talentSlug" value={g.talent.slug} />
-                      <button type="submit" className="text-red-400 hover:text-red-300 text-xs font-bold">
-                        Eliminar
-                      </button>
-                    </form>
+                    <div className="flex items-center gap-3">
+                      <EditGiveawayModal giveaway={g} />
+                      <form action={deleteGiveawayAction}>
+                        <input type="hidden" name="id" value={g.id} />
+                        <input type="hidden" name="talentSlug" value={g.talent.slug} />
+                        <button type="submit" className="text-red-400 hover:text-red-300 text-xs font-bold">
+                          Eliminar
+                        </button>
+                      </form>
+                    </div>
                   </td>
                 </tr>
               ))}
