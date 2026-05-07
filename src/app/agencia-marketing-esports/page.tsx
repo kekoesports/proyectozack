@@ -39,7 +39,7 @@ const jsonLd = {
   name: 'SocialPro — Agencia de Marketing Esports',
   serviceType: 'Esports Marketing Agency',
   inLanguage: 'es',
-  provider: { '@type': 'Organization', name: 'SocialPro', url: SITE_URL },
+  provider: { '@type': 'Organization', '@id': absoluteUrl('/#organization'), name: 'SocialPro', url: SITE_URL },
   foundingDate: '2012',
   areaServed: ['España', 'México', 'Argentina', 'Colombia', 'Chile'],
   description: 'Agencia de marketing esports en España y LatAm desde 2012. Campañas con influencers, gestión de talentos y activaciones en torneos con métricas verificadas.',

@@ -40,7 +40,7 @@ const serviceJsonLd = {
         name: 'Gestión de Talentos Gaming',
         description:
           'Representación y gestión integral de streamers y creadores de contenido gaming en España y LatAm.',
-        provider: { '@type': 'Organization', name: 'SocialPro', url: SITE_URL },
+        provider: { '@type': 'Organization', '@id': absoluteUrl('/#organization'), name: 'SocialPro', url: SITE_URL },
         url: absoluteUrl('/servicios'),
         inLanguage: 'es',
       },
@@ -53,7 +53,7 @@ const serviceJsonLd = {
         name: 'Campañas para Marcas iGaming',
         description:
           'Diseño y ejecución de campañas de influencer marketing iGaming con compliance integrado y FTD tracking.',
-        provider: { '@type': 'Organization', name: 'SocialPro', url: SITE_URL },
+        provider: { '@type': 'Organization', '@id': absoluteUrl('/#organization'), name: 'SocialPro', url: SITE_URL },
         url: absoluteUrl('/servicios/igaming'),
         inLanguage: 'es',
       },
@@ -66,7 +66,7 @@ const serviceJsonLd = {
         name: 'Gestión de Canales YouTube',
         description:
           'Gestión editorial, producción y crecimiento de canales YouTube para creadores gaming.',
-        provider: { '@type': 'Organization', name: 'SocialPro', url: SITE_URL },
+        provider: { '@type': 'Organization', '@id': absoluteUrl('/#organization'), name: 'SocialPro', url: SITE_URL },
         url: absoluteUrl('/servicios'),
         inLanguage: 'es',
       },

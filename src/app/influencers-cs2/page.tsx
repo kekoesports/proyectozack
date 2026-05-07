@@ -39,7 +39,7 @@ const jsonLd = {
   name: 'Influencers CS2 España y LatAm',
   serviceType: 'CS2 Influencer Marketing',
   inLanguage: 'es',
-  provider: { '@type': 'Organization', name: 'SocialPro', url: SITE_URL },
+  provider: { '@type': 'Organization', '@id': absoluteUrl('/#organization'), name: 'SocialPro', url: SITE_URL },
   areaServed: ['España', 'México', 'Argentina', 'Colombia', 'Chile'],
   description: 'Campañas con influencers CS2 verificados en España y LatAm. FTD tracking, audiencias reales y activación en menos de 72 horas.',
 };

@@ -38,7 +38,7 @@ const jsonLd = {
   name: 'Valorant Influencers Agency',
   serviceType: 'Esports Influencer Marketing',
   inLanguage: 'en',
-  provider: { '@type': 'Organization', name: 'SocialPro', url: SITE_URL },
+  provider: { '@type': 'Organization', '@id': absoluteUrl('/#organization'), name: 'SocialPro', url: SITE_URL },
   areaServed: ['España', 'México', 'Argentina', 'Colombia', 'Chile'],
   description: 'Valorant influencer marketing campaigns with verified streamers in Spain and LatAm. Brand-safe content with real audience data and performance tracking.',
 };

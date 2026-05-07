@@ -6,6 +6,7 @@ import { GradientText } from '@/components/ui/GradientText';
 import { SITE_URL, absoluteUrl } from '@/lib/site-url';
 import { TrackedCtaLink } from '@/components/ui/TrackedCtaLink';
 import { StickyCtaMobile } from '@/components/ui/StickyCtaMobile';
+import { AuthorByline } from '@/components/ui/AuthorByline';
 
 export const metadata: Metadata = {
   title: 'Streamers iGaming, Betting y Casino España y LatAm',
@@ -37,11 +38,14 @@ export const metadata: Metadata = {
 
 const jsonLd = {
   '@context': 'https://schema.org',
+  '@graph': [
+  {
   '@type': 'Service',
   name: 'Campañas iGaming, Betting y Casino con Streamers',
   serviceType: 'iGaming Influencer Marketing',
   provider: {
     '@type': 'Organization',
+    '@id': absoluteUrl('/#organization'),
     name: 'SocialPro',
     url: SITE_URL,
   },
@@ -60,6 +64,17 @@ const jsonLd = {
     description: 'Activación de campañas iGaming con streamers en menos de 72 horas',
     areaServed: 'ES, MX, AR, CO, CL, TR',
   },
+  },
+  {
+    '@type': 'WebPage',
+    '@id': absoluteUrl('/servicios/igaming'),
+    url: absoluteUrl('/servicios/igaming'),
+    name: 'Streamers iGaming, Betting y Casino España y LatAm',
+    author: { '@type': 'Person', '@id': absoluteUrl('/#founder-pablo') },
+    publisher: { '@id': absoluteUrl('/#organization') },
+    inLanguage: 'es',
+  },
+  ],
 };
 
 const faqJsonLd = {
@@ -224,6 +239,14 @@ export default function IgamingPage() {
           >
             Solicitar propuesta iGaming (48h)
           </TrackedCtaLink>
+          <AuthorByline
+            name='Pablo "Kekō" Camacho'
+            initials="PC"
+            role="CEO · SocialPro · 14 años en iGaming y esports"
+            reviewedDate="mayo 2026"
+            variant="dark"
+            className="mt-8 max-w-xs"
+          />
         </div>
       </section>
 

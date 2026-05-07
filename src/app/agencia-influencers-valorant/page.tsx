@@ -39,7 +39,7 @@ const jsonLd = {
   name: 'Agencia de Influencers Valorant España y LatAm',
   serviceType: 'Valorant Influencer Marketing',
   inLanguage: 'es',
-  provider: { '@type': 'Organization', name: 'SocialPro', url: SITE_URL },
+  provider: { '@type': 'Organization', '@id': absoluteUrl('/#organization'), name: 'SocialPro', url: SITE_URL },
   areaServed: ['España', 'México', 'Argentina', 'Colombia', 'Chile'],
   description: 'Campañas con influencers Valorant verificados en España y LatAm. Audiencias reales, contenido brand-safe y métricas de rendimiento verificadas.',
 };

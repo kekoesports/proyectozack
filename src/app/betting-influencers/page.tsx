@@ -38,7 +38,7 @@ const jsonLd = {
   name: 'Betting Influencers Agency',
   serviceType: 'iGaming Influencer Marketing',
   inLanguage: 'en',
-  provider: { '@type': 'Organization', name: 'SocialPro', url: SITE_URL },
+  provider: { '@type': 'Organization', '@id': absoluteUrl('/#organization'), name: 'SocialPro', url: SITE_URL },
   areaServed: ['España', 'México', 'Argentina', 'Colombia', 'Chile', 'Turquía'],
   description: 'Betting influencer marketing agency with verified sports betting and casino streamers. DGOJ compliance, FTD tracking and ROI-verified campaigns.',
 };

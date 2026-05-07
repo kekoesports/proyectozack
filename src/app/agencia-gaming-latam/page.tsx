@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { SITE_URL, absoluteUrl } from '@/lib/site-url';
 import { TrackedCtaLink } from '@/components/ui/TrackedCtaLink';
 import { StickyCtaMobile } from '@/components/ui/StickyCtaMobile';
+import { AuthorByline } from '@/components/ui/AuthorByline';
 
 export const metadata: Metadata = {
   title: 'Agencia Gaming LATAM — Influencers México, Argentina, Colombia, Chile',
@@ -33,6 +34,7 @@ const jsonLd = {
   serviceType: 'Gaming & iGaming Influencer Marketing Agency',
   inLanguage: 'es',
   provider: { '@type': 'Organization', '@id': absoluteUrl('/#organization'), name: 'SocialPro', url: SITE_URL },
+  author: { '@type': 'Person', '@id': absoluteUrl('/#founder-pablo') },
   foundingDate: '2012',
   areaServed: ['México', 'Argentina', 'Colombia', 'Chile', 'Perú', 'España'],
   description: 'Agencia gaming e iGaming para LATAM desde 2012. Campañas con streamers y creadores en México, Argentina, Colombia y Chile con resultados verificados y FTD tracking.',
@@ -117,6 +119,15 @@ export default function AgenciaGamingLatamPage() {
               <Link href="/casos" className="px-10 py-4 rounded-full font-bold text-white text-sm tracking-widest uppercase border border-white/15 hover:bg-white/10 transition-colors">
                 Ver casos de éxito
               </Link>
+            </div>
+            <div className="flex justify-center mt-8">
+              <AuthorByline
+                name='Alfonso "Zack" Arias'
+                initials="ZA"
+                role="COO · SocialPro · Manager LATAM"
+                reviewedDate="mayo 2026"
+                variant="dark"
+              />
             </div>
           </div>
         </section>

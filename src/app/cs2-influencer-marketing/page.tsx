@@ -39,7 +39,7 @@ const jsonLd = {
   name: 'CS2 Influencer Marketing',
   serviceType: 'Esports Influencer Marketing',
   inLanguage: 'en',
-  provider: { '@type': 'Organization', name: 'SocialPro', url: SITE_URL },
+  provider: { '@type': 'Organization', '@id': absoluteUrl('/#organization'), name: 'SocialPro', url: SITE_URL },
   areaServed: ['España', 'México', 'Argentina', 'Colombia', 'Chile'],
   description: 'CS2 influencer marketing campaigns with verified streamers across Spain and LatAm. FTD tracking, compliance and activation in under 72 hours.',
 };
