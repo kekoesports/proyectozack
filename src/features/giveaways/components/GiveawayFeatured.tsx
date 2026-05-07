@@ -19,25 +19,25 @@ function inferRarity(value: string | null): Rarity {
 
 const RARITY_CONFIG: Record<Rarity, { glow: string; badge: string; border: string; label: string | null }> = {
   legendary: {
-    glow:   'rgba(251,191,36,0.18)',
+    glow:   'rgba(251,191,36,0.22)',
     badge:  'bg-gradient-to-r from-amber-400 to-orange-400 text-black',
-    border: 'border-amber-400/30',
+    border: 'border-amber-400/35',
     label:  '★★★ Legendario',
   },
   epic: {
-    glow:   'rgba(139,58,173,0.2)',
+    glow:   'rgba(139,58,173,0.25)',
     badge:  'bg-gradient-to-r from-sp-purple to-sp-dpink text-white',
-    border: 'border-sp-purple/30',
+    border: 'border-sp-purple/35',
     label:  '★★ Épico',
   },
   rare: {
-    glow:   'rgba(91,155,213,0.15)',
+    glow:   'rgba(91,155,213,0.2)',
     badge:  'bg-gradient-to-r from-blue-500 to-cyan-500 text-white',
-    border: 'border-blue-400/25',
+    border: 'border-blue-400/30',
     label:  '★ Raro',
   },
   common: {
-    glow:   'rgba(255,255,255,0.04)',
+    glow:   'rgba(255,255,255,0.05)',
     badge:  '',
     border: 'border-white/[0.08]',
     label:  null,
@@ -56,10 +56,6 @@ function CountdownCompact({ endsAt, nowMs }: { endsAt: Date; nowMs: number }): R
 
 type Props = { readonly giveaway: GiveawayWithTalent };
 
-/**
- * Giveaway destacado — imagen grande lateral, glow de rareza, CTA fuerte.
- * Usado para el primer sorteo activo del creador.
- */
 export function GiveawayFeatured({ giveaway }: Props): React.JSX.Element {
   const [imgError, setImgError] = useState(false);
   const [nowMs]                 = useState(Date.now);
@@ -68,32 +64,79 @@ export function GiveawayFeatured({ giveaway }: Props): React.JSX.Element {
   const isLive   = giveaway.endsAt === null || giveaway.endsAt.getTime() > nowMs;
   const isUrgent = giveaway.endsAt !== null && giveaway.endsAt.getTime() - nowMs < 86400000;
 
+  // Detectar multi-item en el título (separados por " + ")
+  const itemCount = (giveaway.title.match(/ \+ /g)?.length ?? 0) + 1;
+  const hasImage  = !!giveaway.imageUrl && !imgError;
+
   return (
-    <div className={`relative overflow-hidden rounded-2xl border ${cfg.border} bg-[#080808] flex flex-col sm:flex-row`}
-      style={{ boxShadow: `0 0 40px ${cfg.glow}, 0 0 0 0 transparent` }}>
-      {/* Ambient glow */}
-      <div className="absolute inset-0 pointer-events-none"
-        style={{ background: `radial-gradient(60% 80% at 20% 50%, ${cfg.glow} 0%, transparent 70%)` }}
-        aria-hidden />
-      {/* Top line */}
-      <div className="absolute top-0 inset-x-0 h-px"
-        style={{ background: `linear-gradient(90deg, transparent, ${cfg.glow.replace('0.', '0.8').replace(',0.', ',1.')}, transparent)` }}
+    <div
+      className={`group relative overflow-hidden rounded-2xl border ${cfg.border} bg-[#060606] flex flex-col sm:flex-row`}
+      style={{ boxShadow: `0 0 60px ${cfg.glow}, 0 2px 0 0 transparent` }}
+    >
+      {/* Top accent line */}
+      <div className="absolute top-0 inset-x-0 h-px pointer-events-none"
+        style={{ background: `linear-gradient(90deg, transparent 10%, ${cfg.glow.replace(/[\d.]+\)$/, '0.9)')}, transparent 90%)` }}
         aria-hidden />
 
-      {/* Imagen del premio — 40% ancho desktop */}
-      <div className="relative sm:w-[40%] h-44 sm:h-auto shrink-0 bg-gradient-to-br from-white/[0.03] to-transparent border-b sm:border-b-0 sm:border-r border-white/[0.06]">
-        {giveaway.imageUrl && !imgError ? (
-          <Image src={giveaway.imageUrl} alt={giveaway.title} fill
+      {/* ── Visual Impact Area — 45% ancho en desktop ── */}
+      <div className="relative sm:w-[45%] h-56 sm:h-auto shrink-0 overflow-hidden">
+
+        {/* Ambient blur — misma imagen desenfocada como fondo */}
+        {hasImage && giveaway.imageUrl && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={giveaway.imageUrl}
+            alt=""
+            aria-hidden
+            className="absolute inset-0 w-full h-full object-cover scale-125 blur-2xl opacity-35 group-hover:opacity-50 transition-opacity duration-700 pointer-events-none"
+          />
+        )}
+
+        {/* Glow ambiental derivado de la rareza */}
+        <div className="absolute inset-0 pointer-events-none"
+          style={{ background: `radial-gradient(70% 70% at 50% 50%, ${cfg.glow} 0%, transparent 70%)` }}
+          aria-hidden />
+
+        {/* Fade hacia la info en desktop */}
+        <div className="absolute inset-y-0 right-0 w-12 hidden sm:block pointer-events-none"
+          style={{ background: 'linear-gradient(90deg, transparent, #060606)' }}
+          aria-hidden />
+        {/* Fade inferior en mobile */}
+        <div className="absolute inset-x-0 bottom-0 h-10 sm:hidden pointer-events-none"
+          style={{ background: 'linear-gradient(0deg, #060606, transparent)' }}
+          aria-hidden />
+
+        {/* Imagen principal — sin padding, object-contain */}
+        {hasImage && giveaway.imageUrl ? (
+          <Image
+            src={giveaway.imageUrl}
+            alt={giveaway.title}
+            fill
             sizes="(max-width: 640px) 100vw, 45vw"
-            className="object-contain p-4 sm:p-5 transition-transform duration-700 hover:scale-105"
-            onError={() => setImgError(true)} />
+            className="object-contain p-1 sm:p-2 transition-transform duration-700 ease-out group-hover:scale-[1.06]"
+            onError={() => setImgError(true)}
+            priority
+          />
         ) : (
           <GiveawayPrizePlaceholder size="lg" />
         )}
-        {/* Sin badge de rareza — el glow del borde ya comunica el valor */}
+
+        {/* Badge multi-item */}
+        {itemCount > 1 && (
+          <div className="absolute top-2.5 left-2.5 z-10 flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/70 border border-white/10 backdrop-blur-sm">
+            <span className="text-[9px] font-black text-white/50 uppercase tracking-wider">{itemCount} items</span>
+          </div>
+        )}
+
+        {/* Rareza badge */}
+        {cfg.label && (
+          <div className={`absolute bottom-2.5 left-2.5 z-10 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${cfg.badge}`}>
+            {cfg.label}
+          </div>
+        )}
       </div>
 
-      {/* Info */}
+      {/* ── Info lateral ── */}
       <div className="relative flex-1 min-w-0 flex flex-col p-5 sm:p-6">
         {/* Marca + LIVE */}
         <div className="flex items-center justify-between mb-3">
@@ -112,7 +155,7 @@ export function GiveawayFeatured({ giveaway }: Props): React.JSX.Element {
           )}
         </div>
 
-        {/* Premio — elemento principal */}
+        {/* Premio */}
         <h3 className="font-display text-xl sm:text-2xl font-black uppercase leading-tight text-white mb-1">
           {giveaway.title}
         </h3>
@@ -124,7 +167,6 @@ export function GiveawayFeatured({ giveaway }: Props): React.JSX.Element {
           </p>
         )}
 
-        {/* Spacer */}
         <div className="flex-1" />
 
         {/* Countdown + CTA */}
@@ -136,8 +178,12 @@ export function GiveawayFeatured({ giveaway }: Props): React.JSX.Element {
               <span className="text-[9px] text-white/20 uppercase tracking-wider">restantes</span>
             </div>
           )}
-          <a href={giveaway.redirectUrl} target="_blank" rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl bg-sp-grad text-white text-[12px] font-black uppercase tracking-[0.15em] shadow-[0_2px_20px_rgba(245,99,42,0.2)] hover:shadow-[0_4px_30px_rgba(245,99,42,0.35)] hover:tracking-[0.2em] transition-all duration-300">
+          <a
+            href={giveaway.redirectUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl bg-sp-grad text-white text-[12px] font-black uppercase tracking-[0.15em] shadow-[0_2px_20px_rgba(245,99,42,0.2)] hover:shadow-[0_4px_30px_rgba(245,99,42,0.4)] hover:tracking-[0.2em] transition-all duration-300"
+          >
             PARTICIPAR EN EL SORTEO →
           </a>
         </div>
