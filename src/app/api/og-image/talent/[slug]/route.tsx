@@ -3,25 +3,22 @@ import { eq } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { talents, creatorCodes, giveaways } from '@/db/schema';
 
-// Node.js runtime con Drizzle — mismo patrón que /api/og/talent/[slug]
-export const runtime     = 'nodejs';
-export const size        = { width: 1200, height: 630 };
-export const contentType = 'image/png';
+// Node.js API route — Drizzle funciona aquí sin problemas
+export const runtime = 'nodejs';
 
-type Props = { params: Promise<{ slug: string }> };
+const SIZE = { width: 1200, height: 630 };
 
-export default async function OgImage({ params }: Props) {
+export async function GET(
+  _req: Request,
+  { params }: { params: Promise<{ slug: string }> },
+) {
   const { slug } = await params;
 
   let name = slug.toUpperCase().replace(/-/g, ' ');
-  let role = '';
-  let game = '';
-  let initials = name.slice(0, 2);
+  let role = '', game = '', initials = name.slice(0, 2);
   let photoSrc: string | null = null;
-  let c1 = '#f5632a';
-  let c2 = '#8b3aad';
-  let codeCount = 0;
-  let giveawayCount = 0;
+  let c1 = '#f5632a', c2 = '#8b3aad';
+  let codeCount = 0, giveawayCount = 0;
 
   try {
     const [talentRows, codeRows, giveawayRows] = await Promise.all([
@@ -42,13 +39,13 @@ export default async function OgImage({ params }: Props) {
 
     const t = talentRows[0];
     if (t) {
-      name       = t.name;
-      role       = t.role;
-      game       = t.game;
-      initials   = t.initials;
-      c1         = t.gradientC1;
-      c2         = t.gradientC2;
-      codeCount  = codeRows.length;
+      name     = t.name;
+      role     = t.role;
+      game     = t.game;
+      initials = t.initials;
+      c1       = t.gradientC1;
+      c2       = t.gradientC2;
+      codeCount     = codeRows.length;
       giveawayCount = giveawayRows.length;
       if (t.photoUrl) {
         photoSrc = t.photoUrl.startsWith('http')
@@ -56,7 +53,7 @@ export default async function OgImage({ params }: Props) {
           : `https://socialpro.es${t.photoUrl}`;
       }
     }
-  } catch { /* render con datos del slug */ }
+  } catch { /* fallback al slug */ }
 
   const nameSize = name.length > 14 ? 64 : name.length > 10 ? 76 : 90;
   const metaParts: string[] = [];
@@ -64,17 +61,13 @@ export default async function OgImage({ params }: Props) {
   if (giveawayCount > 0) metaParts.push(`${giveawayCount} sorteo${giveawayCount !== 1 ? 's' : ''} live`);
   const metaLine = metaParts.join(' · ');
 
-  return new ImageResponse(
+  const image = new ImageResponse(
     (
       <div style={{ width: '100%', height: '100%', background: '#050507', display: 'flex', flexDirection: 'column', fontFamily: 'sans-serif' }}>
-        {/* Top bar */}
         <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 6, background: `linear-gradient(90deg,${c1},${c2})` }} />
-        {/* Left accent */}
         <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 4, background: `linear-gradient(180deg,${c1},${c2})` }} />
 
-        {/* Content row */}
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 56, padding: '56px 72px 56px 80px' }}>
-          {/* Avatar */}
           {photoSrc ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={photoSrc} width={200} height={200} style={{ borderRadius: 16, objectFit: 'cover', flexShrink: 0 }} alt={name} />
@@ -84,7 +77,6 @@ export default async function OgImage({ params }: Props) {
             </div>
           )}
 
-          {/* Text */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16, flex: 1 }}>
             <div style={{ fontSize: 14, color: c1, letterSpacing: 4, textTransform: 'uppercase', fontWeight: 700 }}>SocialPro · Creador</div>
             <div style={{ fontSize: nameSize, fontWeight: 900, color: '#ffffff', lineHeight: 1, letterSpacing: -1, textTransform: 'uppercase' }}>{name}</div>
@@ -102,16 +94,21 @@ export default async function OgImage({ params }: Props) {
           </div>
         </div>
 
-        {/* Footer */}
         <div style={{ padding: '0 72px 28px 80px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.2)', letterSpacing: 2 }}>socialpro.es/talentos/{slug}</div>
           <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.15)', letterSpacing: 3, fontWeight: 700, textTransform: 'uppercase' }}>SocialPro</div>
         </div>
 
-        {/* Bottom bar */}
         <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 3, background: `linear-gradient(90deg,${c1},${c2})` }} />
       </div>
     ),
-    { ...size },
+    { ...SIZE },
   );
+
+  return new Response(image.body, {
+    headers: {
+      'Content-Type': 'image/png',
+      'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400',
+    },
+  });
 }
