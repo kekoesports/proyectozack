@@ -5,6 +5,7 @@ import { requireAnyRole } from '@/lib/auth-guard';
 import { listCampaigns } from '@/lib/queries/campaigns';
 import { listInvoices } from '@/lib/queries/invoices';
 import { getDashboardAlerts } from '@/lib/queries/alerts';
+import { getCodeClicksByDay } from '@/lib/queries/codeAnalytics';
 import { AnalyticsDashboard } from '@/features/admin/analytics/components/AnalyticsDashboard';
 import type { CampaignWithRelations } from '@/types';
 
@@ -18,12 +19,13 @@ export default async function AdminAnalyticsPage(): Promise<React.ReactElement> 
     ? { userId: session.user.id, role: session.user.role as 'staff' }
     : undefined;
 
-  const [rawCampaigns, invoices, brandsList, talentsList, alertsData] = await Promise.all([
+  const [rawCampaigns, invoices, brandsList, talentsList, alertsData, codeClicks] = await Promise.all([
     listCampaigns(staffSession ? { session: staffSession } : undefined),
     listInvoices(isStaff ? { staffUserId: session.user.id } : {}),
     db.select({ id: crmBrands.id, name: crmBrands.name }).from(crmBrands).orderBy(asc(crmBrands.name)),
     db.select({ id: talents.id,   name: talents.name   }).from(talents).orderBy(asc(talents.name)),
     getDashboardAlerts(),
+    getCodeClicksByDay(),
   ]);
 
   const brandMap  = new Map(brandsList.map((b)  => [b.id, b.name]));
@@ -63,6 +65,7 @@ export default async function AdminAnalyticsPage(): Promise<React.ReactElement> 
       talents={talentsList}
       alerts={alertsData.alerts}
       alertSummary={alertsData.summary}
+      codeClicks={codeClicks}
     />
   );
 }

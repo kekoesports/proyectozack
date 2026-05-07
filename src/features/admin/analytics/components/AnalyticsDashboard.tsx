@@ -8,9 +8,11 @@ import { CampaignsRevenueTable }      from './CampaignsRevenueTable';
 import { AnalyticsRevenueChart }      from './AnalyticsRevenueChart';
 import { AnalyticsPipelineSection }   from './AnalyticsPipelineSection';
 import { AnalyticsPendingSection }    from './AnalyticsPendingSection';
+import { CodeClicksSection }          from './CodeClicksSection';
 import { DashboardAlerts }            from '@/features/admin/_shared/components/dashboard/DashboardAlerts';
 import type { CampaignStatus, CampaignWithRelations, InvoiceWithRelations } from '@/types';
 import type { DashboardAlert, AlertSummary } from '@/lib/queries/alerts';
+import type { CodeClickRow } from '@/lib/queries/codeAnalytics';
 
 // ── Tipos ─────────────────────────────────────────────────────────────
 
@@ -24,6 +26,7 @@ type Props = {
   readonly talents?:      readonly TalentOption[];
   readonly alerts?:       readonly DashboardAlert[];
   readonly alertSummary?: AlertSummary;
+  readonly codeClicks?:   readonly CodeClickRow[];
 };
 
 // ── Formateadores ─────────────────────────────────────────────────────
@@ -123,7 +126,7 @@ const CAMPAIGN_STATUSES: { value: CampaignStatus | ''; label: string }[] = [
 
 export function AnalyticsDashboard({
   campaigns, invoices, brands = [], talents = [],
-  alerts = [], alertSummary,
+  alerts = [], alertSummary, codeClicks = [],
 }: Props): React.ReactElement {
   const [datePreset, setDatePreset] = useState<DatePreset>('year');
   const [status,     setStatus]     = useState<CampaignStatus | ''>('');
@@ -260,6 +263,7 @@ export function AnalyticsDashboard({
           { href: '#analitica-pendientes', label: 'Pendientes'           },
           { href: '#analitica-marcas',     label: 'Ranking marcas'       },
           { href: '#analitica-talentos',   label: 'Ranking talentos'     },
+          { href: '#analitica-codigos',    label: 'Clicks en códigos'    },
           { href: '#analitica-alertas',    label: 'Alertas críticas'     },
         ].map((item) => (
           <a
@@ -423,7 +427,10 @@ export function AnalyticsDashboard({
         <TalentRankingTable campaigns={filteredCampaigns} invoices={filteredInvoices} />
       </div>
 
-      {/* ── 7. DETALLE TRATOS ────────────────────────────────────── */}
+      {/* ── 7. CLICKS EN CÓDIGOS ─────────────────────────────────── */}
+      <CodeClicksSection rows={codeClicks} />
+
+      {/* ── 8. DETALLE TRATOS ────────────────────────────────────── */}
       <details className="group">
         <summary className="cursor-pointer select-none flex items-center gap-2 text-[12px] font-semibold text-sp-admin-muted hover:text-sp-admin-text mb-3">
           <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"
@@ -435,7 +442,7 @@ export function AnalyticsDashboard({
         <CampaignsRevenueTable campaigns={filteredCampaigns} />
       </details>
 
-      {/* ── 8. ALERTAS CRÍTICAS ──────────────────────────────────── */}
+      {/* ── 9. ALERTAS CRÍTICAS ──────────────────────────────────── */}
       <div id="analitica-alertas">
         <SectionHeader
           title="Alertas críticas"
