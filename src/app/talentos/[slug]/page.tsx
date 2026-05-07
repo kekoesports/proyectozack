@@ -235,16 +235,6 @@ export default async function TalentPage({ params }: PageProps) {
                   </div>
                 )}
 
-                {/* CTA colaboración — abre Gmail con asunto prefilled */}
-                <a
-                  href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(`Quiero trabajar con ${talent.name}`)}`}
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-white/15 bg-white/[0.04] hover:bg-white/[0.08] hover:border-white/25 transition-all text-[11px] font-bold text-white/60 hover:text-white"
-                >
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden>
-                    <rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
-                  </svg>
-                  Quiero trabajar con {talent.name}
-                </a>
               </div>
             </div>
 
@@ -284,6 +274,29 @@ export default async function TalentPage({ params }: PageProps) {
 
         <div className="absolute bottom-0 inset-x-0 h-px" style={{ background: `linear-gradient(90deg, transparent, ${talent.gradientC1}40, ${talent.gradientC2}30, transparent)` }} aria-hidden />
       </section>
+
+      {/* ── Franja CTA colaboración ── */}
+      <div className="relative z-10 border-y border-white/[0.06]"
+        style={{ background: `linear-gradient(90deg, ${talent.gradientC1}18 0%, transparent 40%, ${talent.gradientC2}12 100%)` }}>
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div>
+            <p className="font-black text-white text-[14px] sm:text-[15px]">
+              ¿Quieres hacer una campaña con <span style={{ color: talent.gradientC1 }}>{talent.name}</span>?
+            </p>
+            <p className="text-[11px] text-white/40 mt-0.5">SocialPro gestiona la colaboración de principio a fin.</p>
+          </div>
+          <a
+            href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(`Quiero trabajar con ${talent.name}`)}`}
+            className="shrink-0 inline-flex items-center gap-2 px-5 py-2.5 rounded-full font-black text-[12px] uppercase tracking-[0.12em] text-white shadow-[0_4px_20px_rgba(0,0,0,0.3)] hover:scale-[1.03] hover:shadow-[0_4px_28px_rgba(0,0,0,0.4)] transition-all duration-200"
+            style={{ background: `linear-gradient(135deg, ${talent.gradientC1}, ${talent.gradientC2})` }}
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
+              <rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+            </svg>
+            Trabajar con {talent.name} →
+          </a>
+        </div>
+      </div>
 
       {/* Layout principal */}
       <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 py-8">
