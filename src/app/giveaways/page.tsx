@@ -7,6 +7,7 @@ import { getAllTalents } from '@/lib/queries/talents';
 import { GiveawaysHub } from '@/features/giveaways/components/GiveawaysHub';
 import { generateGiveawayListSchema, generateCodeListSchema } from '@/lib/schema';
 import { SITE_URL } from '@/lib/site-url';
+import { ResponsibleGamingFooter } from '@/components/ui/ResponsibleGamingFooter';
 
 export const metadata: Metadata = {
   title: 'Códigos y Recompensas Gaming — SocialPro',
@@ -158,11 +159,12 @@ export default async function GiveawaysPage(): Promise<React.JSX.Element> {
       />
 
       {/* Footer */}
-      <div className="border-t border-white/[0.04] py-6 text-center">
+      <div className="border-t border-white/[0.04] py-4 text-center">
         <p className="text-[10px] uppercase tracking-[0.3em] text-white/15 font-bold">
           Powered by SocialPro
         </p>
       </div>
+      <ResponsibleGamingFooter />
     </>
   );
 }

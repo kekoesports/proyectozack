@@ -5,6 +5,7 @@ import { getAllActiveGiveaways, getAllFinishedGiveaways } from '@/lib/queries/gi
 import { SorteoCard } from '@/features/giveaways/components/SorteoCard';
 import { absoluteUrl, SITE_URL } from '@/lib/site-url';
 import { generateGiveawayListSchema } from '@/lib/schema';
+import { ResponsibleGamingFooter } from '@/components/ui/ResponsibleGamingFooter';
 
 export const metadata: Metadata = {
   title: 'Sorteos de Skins — SocialPro',
@@ -246,7 +247,7 @@ export default async function SorteosPage(): Promise<React.JSX.Element> {
       </div>
 
       {/* Footer */}
-      <div className="border-t border-white/[0.04] py-6 text-center">
+      <div className="border-t border-white/[0.04] py-4 text-center">
         <Link
           href="/giveaways"
           className="inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] text-white/20 hover:text-white/50 font-bold transition-colors"
@@ -254,6 +255,7 @@ export default async function SorteosPage(): Promise<React.JSX.Element> {
           ← Ver códigos de descuento en SocialPro
         </Link>
       </div>
+      <ResponsibleGamingFooter />
     </>
   );
 }

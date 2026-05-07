@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { GiveawayPrizePlaceholder } from './GiveawayPrizePlaceholder';
+import { isIGamingBrand } from '@/lib/igaming';
 import type { GiveawayWithTalent } from '@/types';
 
 type Rarity = 'legendary' | 'epic' | 'rare' | 'common';
@@ -59,7 +60,8 @@ type Props = { readonly giveaway: GiveawayWithTalent };
 export function GiveawayFeatured({ giveaway }: Props): React.JSX.Element {
   const [imgError, setImgError] = useState(false);
   const [nowMs]                 = useState(Date.now);
-  const rarity   = inferRarity(giveaway.value);
+  const rarity      = inferRarity(giveaway.value);
+  const needsAge18  = isIGamingBrand(giveaway.brandName);
   const cfg      = RARITY_CONFIG[rarity];
   const isLive   = giveaway.endsAt === null || giveaway.endsAt.getTime() > nowMs;
   const isUrgent = giveaway.endsAt !== null && giveaway.endsAt.getTime() - nowMs < 86400000;
@@ -132,6 +134,12 @@ export function GiveawayFeatured({ giveaway }: Props): React.JSX.Element {
         {cfg.label && (
           <div className={`absolute bottom-2.5 left-2.5 z-10 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${cfg.badge}`}>
             {cfg.label}
+          </div>
+        )}
+        {/* +18 badge */}
+        {needsAge18 && (
+          <div className="absolute top-2.5 right-2.5 z-10 px-1.5 py-0.5 rounded bg-black/70 border border-white/20 text-[9px] font-black text-white/60 tracking-wider">
+            +18
           </div>
         )}
       </div>

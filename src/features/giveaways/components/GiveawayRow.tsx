@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { GiveawayPrizePlaceholder } from './GiveawayPrizePlaceholder';
+import { isIGamingBrand } from '@/lib/igaming';
 import type { GiveawayWithTalent } from '@/types';
 
 type Props = {
@@ -44,7 +45,8 @@ export function GiveawayRow({ giveaway, finished = false }: Props): React.JSX.El
   const isActive  = !finished && (endsAt === null || endsAt.getTime() > nowMs);
   const diffMs    = endsAt ? endsAt.getTime() - nowMs : null;
   const isUrgent  = diffMs !== null && diffMs > 0 && diffMs < 86400000;
-  const glowColor = isActive ? inferRarityGlow(giveaway.value) : 'transparent';
+  const glowColor  = isActive ? inferRarityGlow(giveaway.value) : 'transparent';
+  const needsAge18 = isIGamingBrand(giveaway.brandName);
 
   const expanded = hovered && isActive && !finished;
 
@@ -93,6 +95,9 @@ export function GiveawayRow({ giveaway, finished = false }: Props): React.JSX.El
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 mb-0.5">
               <span className="text-[9px] font-black uppercase tracking-[0.2em] text-white/25 truncate">{giveaway.brandName}</span>
+                {needsAge18 && (
+                  <span className="shrink-0 px-1 py-px rounded bg-white/[0.06] text-[7px] font-black text-white/30 border border-white/10">+18</span>
+                )}
               {isActive && (
                 <span className={`shrink-0 flex items-center gap-1 text-[8px] font-black text-[#C3FC00] transition-opacity duration-300 ${expanded ? 'opacity-100' : 'opacity-60'}`}>
                   <span className="w-1 h-1 rounded-full bg-[#C3FC00] animate-pulse" aria-hidden />

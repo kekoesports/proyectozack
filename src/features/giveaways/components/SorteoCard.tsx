@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { CountdownTimer } from '@/features/creator-codes/components/CountdownTimer';
 import { GiveawayPrizePlaceholder } from './GiveawayPrizePlaceholder';
+import { isIGamingBrand } from '@/lib/igaming';
 import type { GiveawayWithTalent } from '@/types';
 
 function getCtaLabel(url: string): string {
@@ -39,7 +40,8 @@ export function SorteoCard({ giveaway }: SorteoCardProps): React.JSX.Element {
   const numericValue = giveaway.value
     ? parseFloat(giveaway.value.replace(/[^\d.,]/g, '').replace(',', '.'))
     : 0;
-  const isHot = isActive && numericValue >= 200;
+  const isHot      = isActive && numericValue >= 200;
+  const needsAge18 = isIGamingBrand(giveaway.brandName);
 
   return (
     <div
@@ -79,6 +81,11 @@ export function SorteoCard({ giveaway }: SorteoCardProps): React.JSX.Element {
 
       {/* Prize image */}
       <div className="relative h-52 overflow-hidden bg-gradient-to-b from-white/[0.02] to-black/30">
+        {needsAge18 && (
+          <div className="absolute top-3 left-3 z-10">
+            <span className="px-1.5 py-0.5 rounded bg-black/70 border border-white/20 text-[9px] font-black text-white/60">+18</span>
+          </div>
+        )}
         {isHot && (
           <div className="absolute top-3 right-3 z-10 gw-hot-badge">
             <div className="px-2.5 py-1 rounded-md bg-gradient-to-r from-orange-500 to-red-500 text-white text-[10px] font-black uppercase tracking-wider shadow-[0_0_14px_rgba(239,68,68,0.4)]">
