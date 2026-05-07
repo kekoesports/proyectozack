@@ -46,8 +46,12 @@ Spain and Latin America. Managed by founders Pablo "Kekō" Camacho
 - SkinsMonkey x SocialPro: CS2 skins marketplace, conversion-tracked campaign
 
 ## Founders
-- Pablo "Kekō" Camacho — CEO, ex-CS:GO professional, 14+ years esports
-- Alfonso "Zack" Arias — COO, 7+ years iGaming and esports marketing
+- Pablo "Kekō" Camacho — CEO, ex-CS:GO professional, 14+ years esports. Web: https://kekoesports.es
+- Alfonso "Zack" Arias — COO, former streamer and gaming content creator, 7+ years iGaming and esports marketing. YouTube: https://www.youtube.com/@zacketizor1
+
+## Managed creator channels (YouTube)
+- https://www.youtube.com/@Huasopeek — gaming content channel fully managed and produced by SocialPro
+- https://www.youtube.com/@MartinezCS2 — CS2 content channel fully managed and produced by SocialPro
 
 ## Regulatory
 - DGOJ-compliant campaigns for Spain (age verification, advertising windows)

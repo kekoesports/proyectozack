@@ -105,6 +105,8 @@ export default async function NosotrosPage() {
             jobTitle: 'CEO',
             description:
               'Ex-profesional de CS:GO con 14+ años en esports. Co-fundó SocialPro en 2012 para conectar creadores gaming con marcas en España y LatAm.',
+            url: 'https://kekoesports.es',
+            sameAs: ['https://kekoesports.es'],
             worksFor: { '@id': absoluteUrl('/#organization') },
           },
           {
@@ -114,7 +116,8 @@ export default async function NosotrosPage() {
             alternateName: 'Zack',
             jobTitle: 'COO',
             description:
-              '7+ años en iGaming y esports marketing. Especialista en FTD tracking, compliance DGOJ y gestión de campañas de performance en España y LatAm.',
+              'Ex-streamer y creador de contenido gaming. 7+ años en iGaming y esports marketing. Especialista en FTD tracking, compliance DGOJ y gestión de campañas de performance en España y LatAm.',
+            sameAs: ['https://www.youtube.com/@zacketizor1'],
             worksFor: { '@id': absoluteUrl('/#organization') },
           },
         ],

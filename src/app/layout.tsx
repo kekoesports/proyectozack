@@ -109,6 +109,8 @@ const jsonLd = {
           alternateName: 'Kekō',
           jobTitle: 'CEO',
           description: 'Ex-profesional de CS:GO con 14+ años en esports y gaming. Co-fundador de SocialPro en 2012.',
+          url: 'https://kekoesports.es',
+          sameAs: ['https://kekoesports.es'],
           worksFor: { '@id': absoluteUrl('/#organization') },
         },
         {
@@ -117,7 +119,8 @@ const jsonLd = {
           name: 'Alfonso Arias',
           alternateName: 'Zack',
           jobTitle: 'COO',
-          description: '7+ años en iGaming y esports marketing en España y LatAm. Co-fundador de SocialPro.',
+          description: 'Ex-streamer y creador de contenido gaming. 7+ años en iGaming y esports marketing en España y LatAm. Co-fundador de SocialPro.',
+          sameAs: ['https://www.youtube.com/@zacketizor1'],
           worksFor: { '@id': absoluteUrl('/#organization') },
         },
       ],
