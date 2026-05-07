@@ -15,13 +15,13 @@ export const metadata: Metadata = {
     description: 'Campañas gaming e iGaming con creadores en México, Argentina, Colombia y Chile. 13+ años, resultados medibles.',
     url: absoluteUrl('/agencia-gaming-latam'),
     type: 'website',
-    images: [{ url: absoluteUrl('/og-default.jpg'), width: 1200, height: 630 }],
+    images: [{ url: absoluteUrl('/og-socialpro.png'), width: 1200, height: 630 }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Agencia Gaming LATAM | SocialPro',
     description: 'Campañas gaming e iGaming con creadores en LATAM. Resultados verificados.',
-    images: [absoluteUrl('/og-default.jpg')],
+    images: [absoluteUrl('/og-socialpro.png')],
   },
 };
 

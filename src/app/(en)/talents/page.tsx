@@ -23,13 +23,13 @@ export const metadata: Metadata = {
     title: 'Gaming Talent Roster — Verified Streamers in Spain & LatAm | SocialPro',
     description: 'CS2, Valorant, Twitch and YouTube creators with verified audiences. 15M+ monthly views across Spain and LatAm.',
     url: absoluteUrl('/talents'),
-    images: [{ url: absoluteUrl('/og-default.jpg'), width: 1200, height: 630 }],
+    images: [{ url: absoluteUrl('/og-socialpro.png'), width: 1200, height: 630 }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Gaming Talent Roster | SocialPro',
     description: 'Verified gaming streamers in Spain and LatAm. 15M+ monthly views.',
-    images: [absoluteUrl('/og-default.jpg')],
+    images: [absoluteUrl('/og-socialpro.png')],
   },
 };
 

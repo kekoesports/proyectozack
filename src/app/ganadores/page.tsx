@@ -24,7 +24,7 @@ export async function generateMetadata(): Promise<Metadata> {
       title: 'Ganadores de Sorteos Gaming | SocialPro',
       description: `${winners.length} premios · ${Math.round(totalValue).toLocaleString('es-ES')}€ en valor total entregado.`,
       url: absoluteUrl('/ganadores'),
-      images: [{ url: absoluteUrl('/og-default.jpg'), width: 1200, height: 630 }],
+      images: [{ url: absoluteUrl('/og-socialpro.png'), width: 1200, height: 630 }],
     },
   };
 }

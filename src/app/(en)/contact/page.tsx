@@ -19,13 +19,13 @@ export const metadata: Metadata = {
     title: 'Contact Our Gaming Marketing Agency | SocialPro',
     description: 'Looking for streamers for your gaming or iGaming campaign? We reply within 24 hours.',
     url: absoluteUrl('/contact'),
-    images: [{ url: absoluteUrl('/og-default.jpg'), width: 1200, height: 630 }],
+    images: [{ url: absoluteUrl('/og-socialpro.png'), width: 1200, height: 630 }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Contact Our Gaming Marketing Agency | SocialPro',
     description: 'Looking for streamers for your gaming or iGaming campaign? Reply within 24h.',
-    images: [absoluteUrl('/og-default.jpg')],
+    images: [absoluteUrl('/og-socialpro.png')],
   },
 };
 

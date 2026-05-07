@@ -19,13 +19,13 @@ export const metadata: Metadata = {
     title: 'Gaming, Esports & iGaming Marketing Services | SocialPro',
     description: 'Hire CS2, Valorant and iGaming streamers in Spain and LatAm. 15+ verified creators, <72h activation, FTD tracking included.',
     url: absoluteUrl('/services'),
-    images: [{ url: absoluteUrl('/og-default.jpg'), width: 1200, height: 630 }],
+    images: [{ url: absoluteUrl('/og-socialpro.png'), width: 1200, height: 630 }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Gaming, Esports & iGaming Services | SocialPro',
     description: 'CS2, Valorant and iGaming streamers in Spain and LatAm. <72h activation, FTD tracking included.',
-    images: [absoluteUrl('/og-default.jpg')],
+    images: [absoluteUrl('/og-socialpro.png')],
   },
 };
 

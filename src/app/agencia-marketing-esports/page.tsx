@@ -21,13 +21,13 @@ export const metadata: Metadata = {
     description: 'Marketing esports en España y LatAm. 13+ años, 15M+ views/mes, campañas medibles para marcas endémicas y no endémicas.',
     url: absoluteUrl('/agencia-marketing-esports'),
     type: 'website',
-    images: [{ url: absoluteUrl('/og-default.jpg'), width: 1200, height: 630 }],
+    images: [{ url: absoluteUrl('/og-socialpro.png'), width: 1200, height: 630 }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Agencia Marketing Esports | SocialPro',
     description: 'Agencia de marketing esports en España y LatAm. 13+ años, performance-focused.',
-    images: [absoluteUrl('/og-default.jpg')],
+    images: [absoluteUrl('/og-socialpro.png')],
   },
 };
 

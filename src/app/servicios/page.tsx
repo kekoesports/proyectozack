@@ -15,14 +15,14 @@ export const metadata: Metadata = {
     description:
       'Contrata streamers de CS2, Valorant e iGaming en España y LatAm. +15 creadores verificados, activación en <72h, FTD tracking incluido.',
     url: absoluteUrl('/servicios'),
-    images: [{ url: absoluteUrl('/og-default.jpg'), width: 1200, height: 630 }],
+    images: [{ url: absoluteUrl('/og-socialpro.png'), width: 1200, height: 630 }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Agencia Marketing Gaming e iGaming | SocialPro',
     description:
       'Streamers de CS2, Valorant e iGaming en España y LatAm. Activación en <72h, compliance incluido.',
-    images: [absoluteUrl('/og-default.jpg')],
+    images: [absoluteUrl('/og-socialpro.png')],
   },
 };
 

@@ -46,14 +46,14 @@ export const metadata: Metadata = {
     siteName: 'SocialPro',
     locale: 'es_ES',
     type: 'website',
-    images: [{ url: absoluteUrl('/og-default.jpg'), width: 1200, height: 630, alt: 'SocialPro | Agencia de Marketing Gaming y Esports' }],
+    images: [{ url: absoluteUrl('/og-socialpro.png'), width: 1200, height: 630, alt: 'SocialPro | Agencia de Marketing Gaming y Esports' }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'SocialPro | Agencia de Performance Marketing Gaming y Esports',
     description:
       'Performance gaming marketing: streamers CS2, Valorant e iGaming en España y LatAm. FTD tracking y ROI demostrable.',
-    images: [absoluteUrl('/og-default.jpg')],
+    images: [absoluteUrl('/og-socialpro.png')],
   },
   manifest: '/manifest.json',
 };

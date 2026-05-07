@@ -38,13 +38,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       url: absoluteUrl(`/casos/${slug}`),
       images: cs.heroImageUrl
         ? [{ url: cs.heroImageUrl, width: 1200, height: 630 }]
-        : [{ url: absoluteUrl('/og-default.jpg'), width: 1200, height: 630 }],
+        : [{ url: absoluteUrl('/og-socialpro.png'), width: 1200, height: 630 }],
     },
     twitter: {
       card: 'summary_large_image',
       title,
       description,
-      images: cs.heroImageUrl ? [cs.heroImageUrl] : [absoluteUrl('/og-default.jpg')],
+      images: cs.heroImageUrl ? [cs.heroImageUrl] : [absoluteUrl('/og-socialpro.png')],
     },
   };
 }
@@ -77,7 +77,7 @@ export default async function CaseStudyPage({ params }: PageProps) {
     headline: cs.title,
     url: absoluteUrl(`/casos/${slug}`),
     inLanguage: 'es',
-    image: cs.heroImageUrl ?? absoluteUrl('/og-default.jpg'),
+    image: cs.heroImageUrl ?? absoluteUrl('/og-socialpro.png'),
     description: cs.excerpt || cs.body[0]?.paragraph || '',
     datePublished: cs.updatedAt.toISOString(),
     dateModified: cs.updatedAt.toISOString(),

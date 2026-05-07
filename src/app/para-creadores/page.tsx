@@ -17,14 +17,14 @@ export const metadata: Metadata = {
     description:
       '¿Eres streamer gaming? Únete al roster de SocialPro y consigue patrocinios reales de iGaming, hardware y esports en España y LatAm.',
     url: absoluteUrl('/para-creadores'),
-    images: [{ url: absoluteUrl('/og-default.jpg'), width: 1200, height: 630 }],
+    images: [{ url: absoluteUrl('/og-socialpro.png'), width: 1200, height: 630 }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Gestión y Patrocinios para Streamers | SocialPro',
     description:
       '¿Eres streamer gaming? Únete al roster de SocialPro y consigue patrocinios reales de iGaming y hardware.',
-    images: [absoluteUrl('/og-default.jpg')],
+    images: [absoluteUrl('/og-socialpro.png')],
   },
 };
 

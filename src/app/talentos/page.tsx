@@ -18,14 +18,14 @@ export const metadata: Metadata = {
     description:
       'Explora el roster de SocialPro: streamers de CS2, Valorant e iGaming en España y LatAm. +15M views/mes, audiencias verificadas.',
     url: absoluteUrl('/talentos'),
-    images: [{ url: absoluteUrl('/og-default.jpg'), width: 1200, height: 630 }],
+    images: [{ url: absoluteUrl('/og-socialpro.png'), width: 1200, height: 630 }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Streamers y Creadores Gaming de Élite | SocialPro',
     description:
       'Roster de SocialPro: streamers de CS2, Valorant e iGaming en España y LatAm. +15M views/mes, audiencias verificadas.',
-    images: [absoluteUrl('/og-default.jpg')],
+    images: [absoluteUrl('/og-socialpro.png')],
   },
 };
 

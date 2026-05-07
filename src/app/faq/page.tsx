@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     title: 'FAQ — Preguntas Frecuentes | SocialPro',
     description: 'Todo lo que necesitas saber sobre códigos, sorteos y cómo funciona SocialPro.',
     url: absoluteUrl('/faq'),
-    images: [{ url: absoluteUrl('/og-default.jpg'), width: 1200, height: 630 }],
+    images: [{ url: absoluteUrl('/og-socialpro.png'), width: 1200, height: 630 }],
   },
 };
 
