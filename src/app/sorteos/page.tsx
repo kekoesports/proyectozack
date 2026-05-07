@@ -3,7 +3,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { getAllActiveGiveaways, getAllFinishedGiveaways } from '@/lib/queries/giveawaysHub';
 import { SorteoCard } from '@/features/giveaways/components/SorteoCard';
-import { absoluteUrl } from '@/lib/site-url';
+import { absoluteUrl, SITE_URL } from '@/lib/site-url';
+import { generateGiveawayListSchema } from '@/lib/schema';
 
 export const metadata: Metadata = {
   title: 'Sorteos de Skins — SocialPro',
@@ -46,9 +47,15 @@ export default async function SorteosPage(): Promise<React.JSX.Element> {
   ]);
 
   const totalValue = computeTotalValue([...active, ...finished]);
+  const eventListSchema = active.length > 0
+    ? generateGiveawayListSchema(active, SITE_URL, 'Sorteos de skins CS2 en SocialPro')
+    : null;
 
   return (
     <>
+      {eventListSchema && (
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(eventListSchema) }} />
+      )}
       <h1 className="sr-only">Sorteos de Skins — SocialPro</h1>
 
       {/* Live ticker */}

@@ -5,6 +5,8 @@ import { getAllActiveGiveaways, getAllFinishedGiveaways, extractUniqueBrands } f
 import { getAllCodes, getFeaturedCodes } from '@/lib/queries/creatorCodes';
 import { getAllTalents } from '@/lib/queries/talents';
 import { GiveawaysHub } from '@/features/giveaways/components/GiveawaysHub';
+import { generateGiveawayListSchema, generateCodeListSchema } from '@/lib/schema';
+import { SITE_URL } from '@/lib/site-url';
 
 export const metadata: Metadata = {
   title: 'Códigos y Recompensas Gaming — SocialPro',
@@ -44,8 +46,21 @@ export default async function GiveawaysPage(): Promise<React.JSX.Element> {
       giveawayCount: giveawayCountMap.get(t.id) ?? 0,
     }));
 
+  const eventListSchema = active.length > 0
+    ? generateGiveawayListSchema(active, SITE_URL, 'Sorteos activos en SocialPro')
+    : null;
+  const offerListSchema = codes.length > 0
+    ? generateCodeListSchema(codes, SITE_URL, 'Códigos activos en SocialPro')
+    : null;
+
   return (
     <>
+      {eventListSchema && (
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(eventListSchema) }} />
+      )}
+      {offerListSchema && (
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(offerListSchema) }} />
+      )}
       <h1 className="sr-only">Códigos y Recompensas Gaming — SocialPro</h1>
 
       {/* Live ticker */}

@@ -14,6 +14,7 @@ import { absoluteUrl } from '@/lib/site-url';
 import { truncateMetaDescription } from '@/lib/utils/text';
 import { CONTACT_EMAIL } from '@/lib/utils/constants';
 import { TalentLiveWidget } from '@/features/giveaways/components/TalentLiveWidget';
+import { generateEventSchema } from '@/lib/schema';
 import type { CreatorCodeWithTalent, GiveawayWithTalent, Talent } from '@/types';
 
 export const revalidate = 3600;
@@ -135,6 +136,11 @@ export default async function TalentPage({ params }: PageProps) {
       style={{ background: `radial-gradient(ellipse 80% 35% at 50% 0%, ${talent.gradientC1}0d 0%, transparent 45%)` }}>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
+      {activeWithTalent.map((g) => (
+        <script key={g.id} type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(generateEventSchema(g, absoluteUrl(''))) }}
+        />
+      ))}
 
       {/* Laterales ambientales */}
       <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden" aria-hidden>
