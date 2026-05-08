@@ -43,6 +43,7 @@ export const campaigns = pgTable('campaigns', {
   contentUrl: text('content_url'),
   notes: text('notes'),
 
+  currency: varchar('currency', { length: 3 }).notNull().default('EUR'),
   amountBrand: numeric('amount_brand', { precision: 12, scale: 2 }).notNull().default('0'),
   amountTalent: numeric('amount_talent', { precision: 12, scale: 2 }).notNull().default('0'),
 

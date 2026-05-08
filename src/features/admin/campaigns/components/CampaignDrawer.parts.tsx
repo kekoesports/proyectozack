@@ -29,7 +29,10 @@ type FormStatus = 'idle' | 'saving' | 'archiving' | 'ok' | 'error';
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
-const EUR = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' });
+const formatters = {
+  EUR: new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }),
+  USD: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }),
+} as const;
 
 const PAYMENT_METHOD_LABELS: Record<(typeof CAMPAIGN_PAYMENT_METHODS)[number], string> = {
   banco: 'Banco',
@@ -105,6 +108,9 @@ export function CampaignForm({
   );
   const [amountTalent, setAmountTalent] = useState(
     campaign ? String(campaign.amountTalent ?? '0') : '0',
+  );
+  const [currency, setCurrency] = useState<'EUR' | 'USD'>(
+    (campaign?.currency as 'EUR' | 'USD' | null | undefined) ?? 'EUR',
   );
   const [selectedBrandId, setSelectedBrandId] = useState(
     campaign ? String(campaign.brandId) : '',
@@ -323,9 +329,31 @@ export function CampaignForm({
         />
       </Field>
 
-      {/* Importes — EUR only (decisión #2) */}
+      {/* Moneda + importes */}
+      <input type="hidden" name="currency" value={currency} />
+      <div className="flex items-center gap-2.5">
+        <span className="text-xs font-medium text-sp-admin-muted uppercase tracking-wider shrink-0">
+          Moneda
+        </span>
+        <div className="flex rounded-md overflow-hidden border border-sp-admin-border">
+          {(['EUR', 'USD'] as const).map((c) => (
+            <button
+              key={c}
+              type="button"
+              onClick={() => setCurrency(c)}
+              className={`px-3 py-1.5 text-xs font-bold transition-colors ${
+                currency === c
+                  ? 'bg-sp-admin-accent text-white'
+                  : 'bg-sp-admin-bg text-sp-admin-muted hover:text-sp-admin-text'
+              }`}
+            >
+              {c === 'EUR' ? '€ EUR' : '$ USD'}
+            </button>
+          ))}
+        </div>
+      </div>
       <div className="grid grid-cols-2 gap-3">
-        <Field label="Presupuesto marca (€)">
+        <Field label={`Presupuesto marca (${currency === 'EUR' ? '€' : '$'})`}>
           <input
             type="number"
             name="amountBrand"
@@ -336,7 +364,7 @@ export function CampaignForm({
             className={inputCls}
           />
         </Field>
-        <Field label="Presupuesto talento (€)">
+        <Field label={`Presupuesto talento (${currency === 'EUR' ? '€' : '$'})`}>
           <input
             type="number"
             name="amountTalent"
@@ -354,7 +382,7 @@ export function CampaignForm({
         <span className="text-xs text-sp-admin-muted">Comisión calculada</span>
         <div className="text-right">
           <span className="text-sm font-semibold text-sp-admin-text">
-            {EUR.format(derived.commissionAmount)}
+            {formatters[currency].format(derived.commissionAmount)}
           </span>
           <span className="ml-2 text-xs text-sp-admin-muted">
             ({derived.commissionPct.toFixed(1)}%)
