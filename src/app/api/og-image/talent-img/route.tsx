@@ -1,7 +1,6 @@
 import { ImageResponse } from 'next/og';
-import { eq } from 'drizzle-orm';
-import { db } from '@/lib/db';
-import { talents } from '@/db/schema/talents';
+import { neon } from '@neondatabase/serverless';
+import { env } from '@/lib/env';
 
 const SIZE = { width: 1200, height: 630 };
 
@@ -17,24 +16,25 @@ export async function GET(req: Request) {
 
     if (slug) {
       try {
-        const talentRows = await db.select({
-          name: talents.name, role: talents.role, game: talents.game,
-          initials: talents.initials, photoUrl: talents.photoUrl,
-          gradientC1: talents.gradientC1, gradientC2: talents.gradientC2,
-        }).from(talents).where(eq(talents.slug, slug)).limit(1);
+        const sql = neon(env.DATABASE_URL);
+        const talentRows = await sql`
+          SELECT name, role, game, initials, photo_url, gradient_c1, gradient_c2
+          FROM talents WHERE slug = ${slug} LIMIT 1
+        `;
 
         const t = talentRows[0];
         if (t) {
-          name     = t.name;
-          role     = t.role;
-          game     = t.game;
-          initials = t.initials;
-          c1       = t.gradientC1;
-          c2       = t.gradientC2;
-          if (t.photoUrl) {
-            const rawUrl = t.photoUrl.startsWith('http')
-              ? t.photoUrl
-              : `https://socialpro.es${t.photoUrl}`;
+          name     = String(t.name ?? name);
+          role     = String(t.role ?? '');
+          game     = String(t.game ?? '');
+          initials = String(t.initials ?? name.slice(0, 2));
+          c1       = String(t.gradient_c1 ?? c1);
+          c2       = String(t.gradient_c2 ?? c2);
+          const photoUrl = t.photo_url ? String(t.photo_url) : null;
+          if (photoUrl) {
+            const rawUrl = photoUrl.startsWith('http')
+              ? photoUrl
+              : `https://socialpro.es${photoUrl}`;
             try {
               const imgRes = await fetch(rawUrl);
               if (imgRes.ok) {

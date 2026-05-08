@@ -1,8 +1,6 @@
 import { ImageResponse } from 'next/og';
-import { eq } from 'drizzle-orm';
-import { db } from '@/lib/db';
-import { giveaways } from '@/db/schema/giveaways';
-import { talents } from '@/db/schema/talents';
+import { neon } from '@neondatabase/serverless';
+import { env } from '@/lib/env';
 
 const SIZE = { width: 1200, height: 630 };
 
@@ -33,33 +31,28 @@ export async function GET(req: Request) {
 
     if (!isNaN(id)) {
       try {
-        const rows = await db
-          .select({
-            title:      giveaways.title,
-            value:      giveaways.value,
-            brandName:  giveaways.brandName,
-            imageUrl:   giveaways.imageUrl,
-            talentName: talents.name,
-            talentSlug: talents.slug,
-            c1:         talents.gradientC1,
-            c2:         talents.gradientC2,
-          })
-          .from(giveaways)
-          .innerJoin(talents, eq(talents.id, giveaways.talentId))
-          .where(eq(giveaways.id, id))
-          .limit(1);
+        const sql = neon(env.DATABASE_URL);
+        const rows = await sql`
+          SELECT g.title, g.value, g.brand_name, g.image_url,
+                 t.name AS talent_name, t.slug AS talent_slug,
+                 t.gradient_c1, t.gradient_c2
+          FROM giveaways g
+          INNER JOIN talents t ON t.id = g.talent_id
+          WHERE g.id = ${id}
+          LIMIT 1
+        `;
 
         const g = rows[0];
         if (g) {
-          title      = g.title;
-          value      = g.value;
-          brandName  = g.brandName;
-          talentName = g.talentName;
-          talentSlug = g.talentSlug;
-          c1         = g.c1;
-          c2         = g.c2;
-          if (g.imageUrl) {
-            const raw = g.imageUrl.startsWith('http') ? g.imageUrl : `https://socialpro.es${g.imageUrl}`;
+          title      = String(g.title ?? title);
+          value      = g.value ? String(g.value) : null;
+          brandName  = String(g.brand_name ?? brandName);
+          talentName = String(g.talent_name ?? '');
+          talentSlug = String(g.talent_slug ?? '');
+          c1         = String(g.gradient_c1 ?? c1);
+          c2         = String(g.gradient_c2 ?? c2);
+          if (g.image_url) {
+            const raw = String(g.image_url).startsWith('http') ? String(g.image_url) : `https://socialpro.es${g.image_url}`;
             prizeSrc = await fetchBase64(raw);
           }
         }
