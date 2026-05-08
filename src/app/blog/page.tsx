@@ -79,12 +79,12 @@ export default async function BlogPage() {
       </section>
 
       {/* ── CONTENIDO ──────────────────────────────────────────────── */}
-      <section className="bg-sp-black py-10 border-t border-white/[0.04]">
+      <section className="bg-white py-12">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 space-y-8">
 
           {posts.length === 0 ? (
             <div className="py-24 text-center">
-              <p className="font-display text-2xl font-black uppercase text-white/30">
+              <p className="font-display text-2xl font-black uppercase text-sp-muted">
                 Próximamente nuevos artículos.
               </p>
             </div>
@@ -93,7 +93,7 @@ export default async function BlogPage() {
               {/* Featured article */}
               {featured != null && (
                 <div>
-                  <p className="text-[9px] font-black uppercase tracking-[0.35em] text-white/25 mb-3">
+                  <p className="text-[9px] font-black uppercase tracking-[0.35em] text-sp-muted mb-3">
                     Artículo destacado
                   </p>
                   <FeaturedBlogCard post={featured} />
@@ -103,23 +103,23 @@ export default async function BlogPage() {
               {/* Grid editorial — secondary card 2-col + resto */}
               {rest.length > 0 && (
                 <div>
-                  <p className="text-[9px] font-black uppercase tracking-[0.35em] text-white/25 mb-4">
+                  <p className="text-[9px] font-black uppercase tracking-[0.35em] text-sp-muted mb-4">
                     Últimas publicaciones
                   </p>
 
                   {/* Fila 1: secondary (2-col) + tercero (1-col) */}
-                  {rest.length >= 2 ? (
+                  {rest.length >= 2 && rest[0] && rest[1] ? (
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
                       <div className="lg:col-span-2">
-                        <BlogCard post={rest[0]!} secondary />
+                        <BlogCard post={rest[0]} secondary />
                       </div>
-                      <BlogCard post={rest[1]!} />
+                      <BlogCard post={rest[1]} />
                     </div>
-                  ) : (
+                  ) : rest[0] ? (
                     <div className="mb-4">
-                      <BlogCard post={rest[0]!} secondary />
+                      <BlogCard post={rest[0]} secondary />
                     </div>
-                  )}
+                  ) : null}
 
                   {/* Fila 2+: grid 3 columnas */}
                   {rest.length > 2 && (

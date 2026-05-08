@@ -2,6 +2,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import type { PostWithTalents } from '@/lib/queries/posts';
 import { readTime, deriveCategory, formatBlogDate } from '@/lib/utils/blog';
+import { CategoryThumbnail } from './CategoryThumbnail';
 
 type Props = {
   readonly post: PostWithTalents;
@@ -29,7 +30,7 @@ export function FeaturedBlogCard({ post }: Props) {
             className="object-cover transition-transform duration-700 group-hover:scale-[1.03]"
           />
         ) : (
-          <div className="absolute inset-0 bg-gradient-to-br from-sp-dark via-sp-black to-sp-black" />
+          <CategoryThumbnail category={category} title={post.title} />
         )}
 
         {/* Overlay fuerte — texto siempre legible */}
