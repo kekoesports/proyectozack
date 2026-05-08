@@ -1,6 +1,8 @@
 import { ImageResponse } from 'next/og';
 import { db } from '@/lib/db';
 
+export const dynamic = 'force-dynamic';
+
 const W = 1200;
 const H = 630;
 

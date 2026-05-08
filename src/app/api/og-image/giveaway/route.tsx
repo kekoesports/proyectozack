@@ -1,6 +1,8 @@
 import { ImageResponse } from 'next/og';
 import { db } from '@/lib/db';
 
+export const dynamic = 'force-dynamic';
+
 const SIZE = { width: 1200, height: 630 };
 
 async function fetchBase64(url: string): Promise<string | null> {
