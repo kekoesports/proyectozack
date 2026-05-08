@@ -1,37 +1,28 @@
-import { STAGGER } from '@/lib/utils/animation';
+import Link from 'next/link';
 import { SectionTag } from '@/components/ui/SectionTag';
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { GradientText } from '@/components/ui/GradientText';
 import { FadeInOnScroll } from '@/components/ui/FadeInOnScroll';
-import { AboutCard } from '@/features/marketing-site/components/AboutCard';
 
-const BULLETS = [
-  'DGOJ compliance integrado desde el brief',
-  'Brief a campaña activa en menos de 72 horas',
-  '+340 FTDs verificados en una sola activación (1WIN, 2025)',
-  'España + 6 mercados LATAM — un solo punto de contacto',
-] as const;
-
-const CARDS = [
-  { label: 'DGOJ Compliant', sub: 'Regulación integrada, no afterthought' },
-  { label: '< 72h', sub: 'De brief a campaña activa' },
-  { label: 'Datos del operador', sub: 'FTDs auditados, no métricas sociales' },
-  { label: 'iGaming · CS2 · Esports', sub: 'Tres verticales, un equipo' },
+const PILLS = [
+  'DGOJ Compliant',
+  '< 72h brief → campaña',
+  '+340 FTDs verificados',
+  'España + 6 mercados LATAM',
 ] as const;
 
 export function AboutSection() {
   return (
-    <section id="nosotros" className="py-24 bg-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 items-center">
+    <section id="nosotros" className="py-14 bg-white border-t border-sp-border/40">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <FadeInOnScroll>
           <SectionTag>Sobre SocialPro</SectionTag>
-          <SectionHeading className="mb-6">
+          <SectionHeading className="mb-4">
             Somos la agencia <GradientText>gaming</GradientText> del mercado hispano
           </SectionHeading>
 
-          {/* Párrafo corto — entity cross-reference kekoesports.es + E-E-A-T visible */}
-          <p className="text-sm text-sp-muted leading-relaxed mb-5">
-            SocialPro es una agencia de talentos gaming e iGaming fundada en 2012 en Madrid por{' '}
+          <p className="text-sm text-sp-muted leading-relaxed mb-5 max-w-2xl">
+            Fundada en 2012 en Madrid por{' '}
             <a
               href="https://kekoesports.es"
               target="_blank"
@@ -40,25 +31,35 @@ export function AboutSection() {
             >
               Pablo &ldquo;Kekō&rdquo; Camacho
             </a>{' '}
-            y Alfonso &ldquo;Zack&rdquo; Arias — conectando talentos gaming con marcas en España y
-            LATAM con resultados medibles desde el panel del operador, no capturas de pantalla.
+            y Alfonso &ldquo;Zack&rdquo; Arias — resultados medibles desde el panel del operador,
+            no capturas de pantalla.
           </p>
 
-          <ul className="space-y-2 mb-6">
-            {BULLETS.map((item) => (
-              <li key={item} className="flex items-start gap-2 text-sm text-sp-muted">
-                <span className="mt-0.5 text-sp-orange shrink-0" aria-hidden="true">✓</span>
-                {item}
-              </li>
+          <div className="flex flex-wrap gap-2 mb-6">
+            {PILLS.map((pill) => (
+              <span
+                key={pill}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-sp-border bg-sp-off text-xs font-semibold text-sp-muted"
+              >
+                <span className="text-sp-orange" aria-hidden="true">✓</span>
+                {pill}
+              </span>
             ))}
-          </ul>
+          </div>
 
-          {/* Contenido largo — crawlable para SEO, colapsado para usuarios */}
-          <details className="group">
-            <summary className="cursor-pointer text-xs font-semibold text-sp-orange hover:text-sp-pink transition-colors select-none [&::-webkit-details-marker]:hidden marker:hidden">
+          <Link
+            href="/nosotros"
+            className="text-sm font-semibold text-sp-orange hover:text-sp-pink transition-colors"
+          >
+            Conoce al equipo →
+          </Link>
+
+          {/* Texto SEO — crawlable, colapsado visualmente */}
+          <details className="mt-5">
+            <summary className="cursor-pointer text-xs font-semibold text-sp-muted/50 hover:text-sp-orange transition-colors select-none [&::-webkit-details-marker]:hidden marker:hidden">
               Leer más
             </summary>
-            <div className="mt-3 space-y-3 text-sm text-sp-muted leading-relaxed">
+            <div className="mt-3 space-y-3 text-sm text-sp-muted leading-relaxed max-w-2xl">
               <p>
                 La especialización en iGaming, CS2 y el ecosistema gaming hispano distingue a
                 SocialPro de agencias generalistas. El roster incluye streamers verificados con
@@ -72,21 +73,12 @@ export function AboutSection() {
                 SocialPro opera en España y seis mercados de LATAM, con un roster activo que suma
                 más de 15 millones de views mensuales y un engagement rate promedio del 8,9%
                 medido sobre las últimas 12 campañas ejecutadas en Twitch, YouTube e Instagram
-                (datos internos, Q1 2026). La activación media va de brief a campaña en directo
-                en menos de 72 horas. Marcas como RAZER, 1WIN y SkinsMonkey han confiado en
+                (datos internos, Q1 2026). Marcas como RAZER, 1WIN y SkinsMonkey han confiado en
                 SocialPro para sus activaciones en el mercado hispano.
               </p>
             </div>
           </details>
         </FadeInOnScroll>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {CARDS.map(({ label, sub }, i) => (
-            <FadeInOnScroll key={sub} delay={i * STAGGER.base}>
-              <AboutCard item={{ label, sub }} dark />
-            </FadeInOnScroll>
-          ))}
-        </div>
       </div>
     </section>
   );
