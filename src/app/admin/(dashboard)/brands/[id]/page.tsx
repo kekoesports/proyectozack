@@ -66,6 +66,17 @@ export default async function BrandDetailPage({
     ? { session: { userId: session.user.id, role: session.user.role as 'staff' } }
     : undefined;
 
+  if (needsVisibilityFilter(session.user.role)) {
+    const perm = await getCrmBrandForPermission(brandId);
+    const canRead =
+      perm !== undefined && (
+        perm.assignedToUserId   === session.user.id ||
+        perm.coAssignedToUserId === session.user.id ||
+        perm.createdByUserId    === session.user.id
+      );
+    if (!canRead) notFound();
+  }
+
   const [brand, contacts, followups, campaigns, invoices, briefs] = await Promise.all([
     getCrmBrand(brandId),
     getBrandContacts(brandId),
@@ -86,18 +97,6 @@ export default async function BrandDetailPage({
   };
 
   if (!brand) notFound();
-
-  // IDOR guard: staff solo puede ver marcas donde participa
-  if (needsVisibilityFilter(session.user.role)) {
-    const perm = await getCrmBrandForPermission(brandId);
-    const canRead =
-      perm !== undefined && (
-        perm.assignedToUserId   === session.user.id ||
-        perm.coAssignedToUserId === session.user.id ||
-        perm.createdByUserId    === session.user.id
-      );
-    if (!canRead) notFound();
-  }
 
   const statusCfg = STATUS_LABELS[brand.status] ?? { label: brand.status, color: '#72728a', bg: '#72728a1a' };
 

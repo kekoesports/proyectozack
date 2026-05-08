@@ -19,12 +19,20 @@ export default async function AdminAnalyticsPage(): Promise<React.ReactElement> 
     ? { userId: session.user.id, role: session.user.role as 'staff' }
     : undefined;
 
+  const alertsOpts = isStaff
+    ? { staffUserId: session.user.id, skipFinancial: true, currentUserId: session.user.id }
+    : { currentUserId: session.user.id };
+
   const [rawCampaigns, invoices, brandsList, talentsList, alertsData, codeClicks] = await Promise.all([
     listCampaigns(staffSession ? { session: staffSession } : undefined),
     listInvoices(isStaff ? { staffUserId: session.user.id } : {}),
-    db.select({ id: crmBrands.id, name: crmBrands.name }).from(crmBrands).orderBy(asc(crmBrands.name)),
-    db.select({ id: talents.id,   name: talents.name   }).from(talents).orderBy(asc(talents.name)),
-    getDashboardAlerts(),
+    isStaff
+      ? Promise.resolve([])
+      : db.select({ id: crmBrands.id, name: crmBrands.name }).from(crmBrands).orderBy(asc(crmBrands.name)),
+    isStaff
+      ? Promise.resolve([])
+      : db.select({ id: talents.id, name: talents.name }).from(talents).orderBy(asc(talents.name)),
+    getDashboardAlerts(alertsOpts),
     getCodeClicksByDay(),
   ]);
 
