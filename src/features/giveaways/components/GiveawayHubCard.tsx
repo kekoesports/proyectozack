@@ -71,11 +71,11 @@ export function GiveawayHubCard({ giveaway }: GiveawayHubCardProps): React.JSX.E
         )}
       </div>
 
-      {/* HOT badge */}
-      {isHot && (
+      {/* Badge — manual desde admin tiene prioridad sobre auto-HOT */}
+      {!isFinished && (giveaway.badge ?? (isHot ? 'HOT' : null)) && (
         <div className="absolute top-14 right-3 z-20 gw-hot-badge">
           <div className="px-2 py-1 rounded-md bg-gradient-to-r from-orange-500 to-red-500 text-white text-[10px] font-black uppercase tracking-wider shadow-[0_0_12px_rgba(239,68,68,0.4)]">
-            HOT
+            {giveaway.badge ?? 'HOT'}
           </div>
         </div>
       )}

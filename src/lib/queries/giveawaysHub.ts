@@ -22,7 +22,7 @@ export async function getAllActiveGiveaways(): Promise<GiveawayWithTalent[]> {
   const rows = await db.query.giveaways.findMany({
     where: and(gt(giveaways.endsAt, new Date()), NO_DEMO),
     with: { talent: true },
-    orderBy: (g, { asc }) => [asc(g.endsAt)],
+    orderBy: (g, { asc, desc }) => [desc(g.isFeatured), asc(g.sortOrder), asc(g.endsAt)],
   });
   return rows as GiveawayWithTalent[];
 }

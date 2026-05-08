@@ -4,7 +4,7 @@ import { getAllGiveaways } from '@/lib/queries/giveaways';
 import { getAllTalents } from '@/lib/queries/talents';
 import { getAllCodes } from '@/lib/queries/creatorCodes';
 import { getAllWinners } from '@/lib/queries/giveawayWinners';
-import { deleteGiveawayAction, deleteAllDemosAction } from './actions';
+import { deleteGiveawayAction, deleteAllDemosAction, setGiveawayFeaturedAction, setGiveawayBadgeAction, setGiveawayBadgeFromFormAction } from './actions';
 import { deleteWinnerAction } from './winners-actions';
 import { DeleteConfirmButton } from './DeleteConfirmButton';
 import { EditGiveawayModal } from './EditGiveawayModal';
@@ -99,6 +99,8 @@ export default async function AdminGiveawaysPage({ searchParams }: PageProps): P
                 <th className="text-left px-6 py-3 font-semibold text-sp-admin-muted text-[11px] uppercase tracking-wider">Marca</th>
                 <th className="text-left px-6 py-3 font-semibold text-sp-admin-muted text-[11px] uppercase tracking-wider">Valor</th>
                 <th className="text-left px-6 py-3 font-semibold text-sp-admin-muted text-[11px] uppercase tracking-wider">Estado</th>
+                <th className="text-center px-4 py-3 font-semibold text-sp-admin-muted text-[11px] uppercase tracking-wider">Destacado</th>
+                <th className="text-left px-4 py-3 font-semibold text-sp-admin-muted text-[11px] uppercase tracking-wider">Badge</th>
                 <th className="text-left px-6 py-3 font-semibold text-sp-admin-muted text-[11px] uppercase tracking-wider">Fin</th>
                 <th className="text-left px-6 py-3 font-semibold text-sp-admin-muted text-[11px] uppercase tracking-wider">Acciones</th>
               </tr>
@@ -123,6 +125,40 @@ export default async function AdminGiveawaysPage({ searchParams }: PageProps): P
                     }`}>
                       {isActive(g.endsAt) ? 'Activo' : 'Finalizado'}
                     </span>
+                  </td>
+                  {/* Toggle destacado */}
+                  <td className="px-4 py-4 text-center">
+                    <form action={setGiveawayFeaturedAction.bind(null, g.id, !g.isFeatured)}>
+                      <button type="submit" title={g.isFeatured ? 'Quitar destacado' : 'Marcar como destacado'}>
+                        <div className={`w-8 h-4 rounded-full relative transition-colors mx-auto ${g.isFeatured ? 'bg-sp-orange' : 'bg-sp-admin-border'}`}>
+                          <span className={`absolute top-0.5 w-3 h-3 rounded-full bg-white shadow transition-all ${g.isFeatured ? 'left-4' : 'left-0.5'}`} />
+                        </div>
+                      </button>
+                    </form>
+                  </td>
+                  {/* Badge */}
+                  <td className="px-4 py-4">
+                    {g.badge ? (
+                      <form action={setGiveawayBadgeAction.bind(null, g.id, null)} className="flex items-center gap-1.5">
+                        <span className="inline-flex px-2 py-0.5 rounded-full text-[10px] font-black bg-sp-orange/15 text-sp-orange border border-sp-orange/30">
+                          {g.badge}
+                        </span>
+                        <button type="submit" className="text-[10px] text-sp-admin-muted hover:text-red-400 transition-colors" title="Quitar badge">✕</button>
+                      </form>
+                    ) : (
+                      <form action={setGiveawayBadgeFromFormAction} className="flex items-center gap-1">
+                        <input type="hidden" name="giveawayId" value={g.id} />
+                        <select name="badge" defaultValue="" className="h-7 rounded-md border border-sp-admin-border bg-sp-admin-card px-2 text-[11px] text-sp-admin-muted outline-none">
+                          <option value="" disabled>+ badge</option>
+                          <option value="HOT">HOT</option>
+                          <option value="NUEVO">NUEVO</option>
+                          <option value="EXCLUSIVO">EXCLUSIVO</option>
+                          <option value="TOP">TOP</option>
+                          <option value="LIMITED">LIMITED</option>
+                        </select>
+                        <button type="submit" className="text-[10px] font-bold text-sp-admin-accent hover:underline">✓</button>
+                      </form>
+                    )}
                   </td>
                   <td className="px-6 py-4 text-sp-admin-muted">
                     {g.endsAt ? new Date(g.endsAt).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'}

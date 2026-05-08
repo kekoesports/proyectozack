@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { requireAnyRole } from '@/lib/auth-guard';
 import { createGiveaway, updateGiveaway, deleteGiveaway } from '@/lib/queries/giveaways';
-import { like } from 'drizzle-orm';
+import { like, eq } from 'drizzle-orm';
 import { giveaways } from '@/db/schema';
 import { db } from '@/lib/db';
 import { parseFormData } from '@/lib/forms/parseFormData';
@@ -63,6 +63,30 @@ export async function updateGiveawayAction(formData: FormData): Promise<Giveaway
   if (talentSlug) revalidatePath(`/talentos/${talentSlug}`);
   revalidatePath('/admin/giveaways');
   return { ok: true };
+}
+
+export async function setGiveawayFeaturedAction(id: number, value: boolean): Promise<void> {
+  await requireAnyRole(['admin', 'manager'], '/admin/login');
+  await db.update(giveaways).set({ isFeatured: value }).where(eq(giveaways.id, id));
+  revalidatePath('/admin/giveaways');
+  revalidatePath('/giveaways');
+}
+
+export async function setGiveawayBadgeAction(id: number, badge: string | null): Promise<void> {
+  await requireAnyRole(['admin', 'manager'], '/admin/login');
+  await db.update(giveaways).set({ badge: badge ?? null }).where(eq(giveaways.id, id));
+  revalidatePath('/admin/giveaways');
+  revalidatePath('/giveaways');
+}
+
+export async function setGiveawayBadgeFromFormAction(formData: FormData): Promise<void> {
+  await requireAnyRole(['admin', 'manager'], '/admin/login');
+  const id = Number(formData.get('giveawayId'));
+  const badge = (formData.get('badge') as string) || null;
+  if (!id) return;
+  await db.update(giveaways).set({ badge }).where(eq(giveaways.id, id));
+  revalidatePath('/admin/giveaways');
+  revalidatePath('/giveaways');
 }
 
 export async function deleteAllDemosAction(): Promise<void> {
