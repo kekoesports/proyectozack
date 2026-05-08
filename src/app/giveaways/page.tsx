@@ -8,7 +8,7 @@ import { getRecentWinners } from '@/lib/queries/giveawayWinners';
 import { WinnersList } from '@/features/giveaways/components/WinnersList';
 import { GiveawaysHub } from '@/features/giveaways/components/GiveawaysHub';
 import { generateGiveawayListSchema, generateCodeListSchema } from '@/lib/schema';
-import { SITE_URL } from '@/lib/site-url';
+import { SITE_URL, absoluteUrl } from '@/lib/site-url';
 import { ResponsibleGamingFooter } from '@/components/ui/ResponsibleGamingFooter';
 
 export const metadata: Metadata = {
@@ -16,6 +16,21 @@ export const metadata: Metadata = {
   description:
     'Todos los códigos activos de tus creadores favoritos de casino, apuestas y CS2. Sorteos y recompensas exclusivas.',
   alternates: { canonical: '/giveaways' },
+  openGraph: {
+    title: 'Códigos y Sorteos Gaming — SocialPro',
+    description: 'Códigos activos, sorteos en vivo y recompensas exclusivas de los mejores creadores de CS2, casino e iGaming.',
+    url: absoluteUrl('/giveaways'),
+    siteName: 'SocialPro',
+    locale: 'es_ES',
+    type: 'website',
+    images: [{ url: absoluteUrl('/og-socialpro.png'), width: 1200, height: 630, alt: 'SocialPro — Códigos y Sorteos Gaming' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Códigos y Sorteos Gaming — SocialPro',
+    description: 'Códigos activos, sorteos en vivo y recompensas exclusivas de los mejores creadores de CS2, casino e iGaming.',
+    images: [absoluteUrl('/og-socialpro.png')],
+  },
 };
 
 export const revalidate = 3600;
