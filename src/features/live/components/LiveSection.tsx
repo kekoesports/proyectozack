@@ -161,7 +161,11 @@ export function LiveSection() {
     return () => clearInterval(interval);
   }, [fetchLive]);
 
-  if (loading) return null;
+  if (loading) return (
+    <section className="bg-sp-black py-16 px-4 sm:px-6 border-t border-white/[0.06]" aria-hidden>
+      <div className="max-w-5xl mx-auto h-48 rounded-xl bg-white/[0.02] animate-pulse" />
+    </section>
+  );
   if (!data || data.roster.length === 0) return null;
 
   const { featured, others, roster, total } = data;
