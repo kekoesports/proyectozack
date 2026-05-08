@@ -29,7 +29,7 @@ export function generateEventSchema(g: GiveawayWithTalent, siteUrl: string): obj
       : 'https://schema.org/EventPostponed',
     eventAttendanceMode: 'https://schema.org/OnlineEventAttendanceMode',
     url: g.redirectUrl,
-    ...(g.imageUrl ? { image: g.imageUrl } : {}),
+    image: g.imageUrl ?? `${siteUrl}/api/og-image/giveaway?id=${g.id}`,
     organizer: {
       '@type': 'Organization',
       name: g.brandName,
