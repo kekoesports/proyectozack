@@ -44,16 +44,6 @@ const jsonLd = {
   description: 'Esports marketing agency operating in Spain and LatAm since 2012. Influencer campaigns, tournament activations and creator management with performance tracking.',
 };
 
-const faqJsonLd = {
-  '@context': 'https://schema.org',
-  '@type': 'FAQPage',
-  mainEntity: [
-    { '@type': 'Question', name: 'What does an esports marketing agency actually do?', acceptedAnswer: { '@type': 'Answer', text: 'An esports marketing agency connects brands with the esports ecosystem — streamers, content creators, tournament organizers and esports teams. SocialPro focuses specifically on performance marketing: every activation is tracked with real metrics and verifiable ROI.' } },
-    { '@type': 'Question', name: 'Do non-endemic brands work well with esports marketing?', acceptedAnswer: { '@type': 'Answer', text: 'Yes. Non-endemic brands (food, finance, automotive, lifestyle) often achieve better results in esports than in traditional media because the audience is highly engaged, brand-loyal and digitally native. SocialPro has run successful campaigns for brands across multiple non-endemic categories.' } },
-    { '@type': 'Question', name: 'What makes SocialPro different from a general influencer agency?', acceptedAnswer: { '@type': 'Answer', text: 'SocialPro is not a general influencer agency that happens to have gaming creators. We have been exclusively focused on gaming, esports and iGaming since 2012. We know the culture, the platforms, the audiences and the compliance requirements — no learning curve at your expense.' } },
-    { '@type': 'Question', name: 'Which esports titles does SocialPro cover?', acceptedAnswer: { '@type': 'Answer', text: 'We cover the full spectrum of competitive gaming: CS2, Valorant, esports betting, FIFA/EA Sports FC and general gaming content. Our creator roster spans all major titles popular in Spain and LatAm.' } },
-  ],
-};
 
 const STATS = [
   { stat: '13+', label: 'Years in esports marketing' },
@@ -73,7 +63,6 @@ export default function EsportsMarketingAgencyPage() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
 
       <section className="bg-sp-black pt-32 pb-20">
         <div className="max-w-4xl mx-auto px-6 text-center">

@@ -65,15 +65,6 @@ const FAQ = [
   { q: 'What makes SocialPro different?', a: 'We have been exclusively in gaming, esports and iGaming since 2012. We are not a generic agency that added "gaming" to its portfolio — we know the culture, platforms, audiences and compliance.' },
 ];
 
-const faqJsonLd = {
-  '@context': 'https://schema.org',
-  '@type': 'FAQPage',
-  mainEntity: FAQ.map(({ q, a }) => ({
-    '@type': 'Question',
-    name: q,
-    acceptedAnswer: { '@type': 'Answer', text: a },
-  })),
-};
 
 export default async function HomeEnPage() {
   const [talents, cases] = await Promise.all([getTalents(), getCaseStudies()]);
@@ -82,7 +73,6 @@ export default async function HomeEnPage() {
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
 
       {/* Hero */}
       <section className="relative bg-sp-black text-white pt-32 pb-24 overflow-hidden">

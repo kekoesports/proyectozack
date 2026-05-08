@@ -43,16 +43,6 @@ const jsonLd = {
   description: 'Betting influencer marketing agency with verified sports betting and casino streamers. DGOJ compliance, FTD tracking and ROI-verified campaigns.',
 };
 
-const faqJsonLd = {
-  '@context': 'https://schema.org',
-  '@type': 'FAQPage',
-  mainEntity: [
-    { '@type': 'Question', name: 'What is a betting influencer?', acceptedAnswer: { '@type': 'Answer', text: 'A betting influencer is a streamer or content creator who promotes sports betting, online casino or iGaming brands to their audience. The most effective betting influencers come from the gaming community — their audience is already comfortable with digital transactions and high-stakes decisions.' } },
-    { '@type': 'Question', name: 'How do you ensure compliance for betting influencer campaigns?', acceptedAnswer: { '@type': 'Answer', text: 'SocialPro integrates DGOJ compliance (Spain\'s gambling regulator) in every campaign: responsible gambling disclaimers in the first 30 seconds, age verification, prohibition of debt-solution messaging, and mandatory pre-publication content review. We adapt to each market\'s specific regulations.' } },
-    { '@type': 'Question', name: 'What results can betting brands expect from influencer campaigns?', acceptedAnswer: { '@type': 'Answer', text: 'SocialPro has delivered €200,000 in tracked conversions for SkinsMonkey and 8M+ reach for 1WIN. FTD tracking ensures every deposit is attributed to the exact streamer who drove it. ROI is measurable from day one.' } },
-    { '@type': 'Question', name: 'Do you work with international betting operators?', acceptedAnswer: { '@type': 'Answer', text: 'Yes. We work with betting and casino operators licensed across Spain, LatAm (Mexico, Argentina, Colombia, Chile) and Turkey. Each market has its own regulatory framework — SocialPro handles compliance for all of them.' } },
-  ],
-};
 
 const STATS = [
   { stat: '+340', label: 'FTDs in a single activation' },
@@ -71,7 +61,6 @@ export default function BettingInfluencersPage() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
 
       <section className="bg-sp-black pt-32 pb-20">
         <div className="max-w-4xl mx-auto px-6 text-center">

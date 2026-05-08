@@ -44,15 +44,6 @@ const jsonLd = {
   description: 'Campañas con influencers Valorant verificados en España y LatAm. Audiencias reales, contenido brand-safe y métricas de rendimiento verificadas.',
 };
 
-const faqJsonLd = {
-  '@context': 'https://schema.org',
-  '@type': 'FAQPage',
-  mainEntity: [
-    { '@type': 'Question', name: '¿Por qué Valorant es un buen canal para campañas de marca?', acceptedAnswer: { '@type': 'Answer', text: 'Valorant atrae a una audiencia más joven y diversa que CS2, con mayor presencia femenina y un perfil más mainstream. El ecosistema de Riot Games impone estándares de contenido que hacen a los streamers de Valorant inherentemente más brand-safe. Es el FPS de mayor crecimiento en LatAm.' } },
-    { '@type': 'Question', name: '¿Qué tipo de marcas encajan con influencers Valorant?', acceptedAnswer: { '@type': 'Answer', text: 'Valorant es ideal para marcas de consumo masivo orientadas a jóvenes: energéticas, ropa, tecnología, apps, periféricos gaming y marcas de lifestyle digital. La audiencia es digitalmente nativa y altamente receptiva a marcas alineadas con la cultura gamer.' } },
-    { '@type': 'Question', name: '¿La escena de Valorant en español es grande?', acceptedAnswer: { '@type': 'Answer', text: 'Sí. Valorant es el FPS dominante en la mayoría de los mercados latinoamericanos y tiene una comunidad muy activa en España. La escena competitiva en español —torneos, pro players, creators— está en su momento de mayor crecimiento.' } },
-  ],
-};
 
 const STATS = [
   { stat: '15M+', label: 'Views mensuales en el roster' },
@@ -71,7 +62,6 @@ export default function AgenciaInfluencersValorantPage() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
 
       <section className="bg-sp-black pt-24 pb-12 md:pt-32 md:pb-20">
         <div className="max-w-4xl mx-auto px-6 text-center">

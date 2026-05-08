@@ -44,16 +44,6 @@ const jsonLd = {
   description: 'Campañas con influencers CS2 verificados en España y LatAm. FTD tracking, audiencias reales y activación en menos de 72 horas.',
 };
 
-const faqJsonLd = {
-  '@context': 'https://schema.org',
-  '@type': 'FAQPage',
-  mainEntity: [
-    { '@type': 'Question', name: '¿Por qué la audiencia de CS2 convierte mejor que otras audiencias gaming?', acceptedAnswer: { '@type': 'Answer', text: 'Los jugadores de CS2 viven en una economía de transacciones: compran skins, abren cajas, apuestan en skins y participan en plataformas iGaming desde edades tempranas. Tienen alta familiaridad con pagos digitales y propensión al gasto muy superior a audiencias gaming generalistas.' } },
-    { '@type': 'Question', name: '¿Qué marcas encajan mejor con influencers CS2 en España?', acceptedAnswer: { '@type': 'Answer', text: 'Las campañas con influencers CS2 funcionan especialmente bien para marcas de iGaming (casas de apuestas, casinos online, skins), periféricos gaming, hardware, energéticas y cualquier marca orientada al segmento masculino 18-35 años.' } },
-    { '@type': 'Question', name: '¿Cómo medís las conversiones en campañas con streamers CS2?', acceptedAnswer: { '@type': 'Answer', text: 'Cada influencer CS2 recibe un código único de seguimiento. Rastreamos clics, registros y FTDs atribuidos a cada creador. SocialPro entrega reportes con datos verificados directamente del operador.' } },
-    { '@type': 'Question', name: '¿Cuánto tarda en activarse una campaña con influencers CS2?', acceptedAnswer: { '@type': 'Answer', text: 'De briefing a campaña activa en menos de 72 horas. Esto incluye selección de creadores, firma de contrato, briefing de compliance y coordinación de publicación.' } },
-  ],
-};
 
 const STATS = [
   { stat: '8M+', label: 'Reach en campaña 1WIN CS2' },
@@ -72,7 +62,6 @@ export default function InfluencersCs2Page() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
 
       <section className="bg-sp-black pt-24 pb-12 md:pt-32 md:pb-20">
         <div className="max-w-4xl mx-auto px-6 text-center">

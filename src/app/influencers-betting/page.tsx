@@ -42,16 +42,6 @@ const jsonLd = {
   description: 'Campañas con influencers de apuestas deportivas y casino online. Compliance DGOJ, FTD tracking y reporting verificado en España, LatAm y Turquía.',
 };
 
-const faqJsonLd = {
-  '@context': 'https://schema.org',
-  '@type': 'FAQPage',
-  mainEntity: [
-    { '@type': 'Question', name: '¿Qué es la normativa DGOJ para publicidad con influencers de apuestas?', acceptedAnswer: { '@type': 'Answer', text: 'La DGOJ (Dirección General de Ordenación del Juego) es el organismo que regula la publicidad de operadores de apuestas y casinos online en España. Para campañas con influencers, exige: disclaimers de juego responsable en los primeros 30 segundos, restricción a audiencias mayores de 18 años, prohibición de asociar apuestas con resolución de problemas económicos y revisión previa del contenido. SocialPro integra todos estos requisitos en cada campaña.' } },
-    { '@type': 'Question', name: '¿Cómo sabéis que los influencers de apuestas tienen audiencia real?', acceptedAnswer: { '@type': 'Answer', text: 'Verificamos métricas de audiencia directamente con las plataformas, analizamos patrones de engagement y comportamiento de seguidores, y revisamos el historial de campañas anteriores. Solo trabajamos con creadores con track record verificado.' } },
-    { '@type': 'Question', name: '¿Qué diferencia hay entre un influencer de apuestas deportivas y uno de casino?', acceptedAnswer: { '@type': 'Answer', text: 'Los influencers de apuestas deportivas tienen audiencias interesadas en fútbol, esports betting y eventos en vivo. Los de casino online se especializan en slots, ruleta y juegos de mesa. SocialPro gestiona ambos perfiles y puede recomendar el mix óptimo según el producto del operador.' } },
-    { '@type': 'Question', name: '¿Trabajáis con operadores de apuestas en LatAm?', acceptedAnswer: { '@type': 'Answer', text: 'Sí, ejecutamos campañas en México, Argentina, Colombia y Chile además de España y Turquía. Cada mercado tiene su propia regulación y SocialPro adapta el compliance y el talento a las normas locales.' } },
-  ],
-};
 
 const STATS = [
   { stat: '+340', label: 'FTDs en una sola activación' },
@@ -71,7 +61,6 @@ export default function InfluencersBettingPage() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
 
       <section className="bg-sp-black pt-32 pb-20">
         <div className="max-w-4xl mx-auto px-6 text-center">

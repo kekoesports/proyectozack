@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { getTalents } from '@/lib/queries/talents';
 import { TalentSection } from '@/features/marketing-site/components/TalentSection';
 import { absoluteUrl, SITE_URL } from '@/lib/site-url';
+import { buildBreadcrumbJsonLd } from '@/lib/utils/breadcrumbs';
 
 export const revalidate = 3600;
 
@@ -46,20 +47,29 @@ export default async function TalentosPage() {
       position: i + 1,
       item: {
         '@type': 'Person',
+        '@id': absoluteUrl(`/talentos/${t.slug}`),
         name: t.name,
         jobTitle: t.role,
         url: absoluteUrl(`/talentos/${t.slug}`),
         ...(t.photoUrl ? { image: t.photoUrl } : {}),
-        worksFor: { '@type': 'Organization', name: 'SocialPro', url: SITE_URL },
+        worksFor: { '@type': 'Organization', '@id': absoluteUrl('/#organization'), name: 'SocialPro', url: SITE_URL },
       },
     })),
   };
+
+  const breadcrumbJsonLd = buildBreadcrumbJsonLd([
+    { name: 'Talentos', url: absoluteUrl('/talentos') },
+  ]);
 
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
       <div>
         <h1 className="sr-only">Streamers y Creadores Gaming de Élite</h1>

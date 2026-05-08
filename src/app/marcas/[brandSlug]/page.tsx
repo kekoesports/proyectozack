@@ -11,7 +11,7 @@ import { GiveawayRow } from '@/features/giveaways/components/GiveawayRow';
 import { CodesExpandable } from '@/features/giveaways/components/CodesExpandable';
 import { HeroSponsorCard } from '@/features/giveaways/components/HeroSponsorCard';
 import { absoluteUrl, SITE_URL } from '@/lib/site-url';
-import { generateCodeListSchema, generateGiveawayListSchema, generateFAQSchema } from '@/lib/schema';
+import { generateCodeListSchema, generateGiveawayListSchema } from '@/lib/schema';
 import type { GiveawayWinnerFull, CreatorCodeWithTalent, GiveawayWithTalent } from '@/types';
 
 export const revalidate = 3600;
@@ -78,15 +78,31 @@ export default async function BrandPage({ params }: PageProps) {
   const codesWithTalent = codes; // ya tiene el tipo correcto
 
   // Schemas JSON-LD
+  const categoryTopics: Record<string, string[]> = {
+    cs2:      ['CS2', 'Counter-Strike 2', 'CS2 skins', 'skin gambling', 'gaming'],
+    casino:   ['online casino', 'iGaming', 'casino gaming', 'slots'],
+    apuestas: ['sports betting', 'esports betting', 'iGaming', 'online betting'],
+    otros:    ['gaming', 'esports'],
+  };
   const orgSchema = {
     '@context': 'https://schema.org',
     '@type': 'Organization',
+    '@id': brand.officialUrl,
     name: brand.name,
     url: brand.officialUrl,
+    description: (brand.description.split('\n\n')[0] ?? '').slice(0, 300),
+    ...(brand.logoUrl ? { logo: { '@type': 'ImageObject', url: brand.logoUrl } } : {}),
+    knowsAbout: categoryTopics[brand.category] ?? categoryTopics.otros,
+    subjectOf: {
+      '@type': 'WebPage',
+      '@id': absoluteUrl(`/marcas/${brandSlug}`),
+      url: absoluteUrl(`/marcas/${brandSlug}`),
+      name: `Códigos ${brand.name} — SocialPro`,
+      publisher: { '@id': absoluteUrl('/#organization') },
+    },
   };
   const codeListSchema  = codes.length > 0 ? generateCodeListSchema(codes, SITE_URL, `Códigos ${brand.name} activos en SocialPro`) : null;
   const eventListSchema = giveaways.length > 0 ? generateGiveawayListSchema(giveaways, SITE_URL, `Sorteos ${brand.name} activos en SocialPro`) : null;
-  const faqSchema       = generateFAQSchema(brand.faqs);
   const breadcrumbSchema = {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
@@ -102,7 +118,6 @@ export default async function BrandPage({ params }: PageProps) {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(orgSchema) }} />
       {codeListSchema && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(codeListSchema) }} />}
       {eventListSchema && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(eventListSchema) }} />}
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
 
       <main className="bg-sp-black text-white min-h-screen">

@@ -4,6 +4,7 @@ import { SITE_URL, absoluteUrl } from '@/lib/site-url';
 import { TrackedCtaLink } from '@/components/ui/TrackedCtaLink';
 import { StickyCtaMobile } from '@/components/ui/StickyCtaMobile';
 import { AuthorByline } from '@/components/ui/AuthorByline';
+import { buildBreadcrumbJsonLd } from '@/lib/utils/breadcrumbs';
 
 export const metadata: Metadata = {
   title: 'Agencia Gaming LATAM — Influencers México, Argentina, Colombia, Chile',
@@ -40,32 +41,24 @@ const jsonLd = {
   description: 'Agencia gaming e iGaming para LATAM desde 2012. Campañas con streamers y creadores en México, Argentina, Colombia y Chile con resultados verificados y FTD tracking.',
 };
 
-const faqJsonLd = {
-  '@context': 'https://schema.org',
-  '@type': 'FAQPage',
-  mainEntity: [
-    {
-      '@type': 'Question',
-      name: '¿Qué mercados de LATAM cubre SocialPro?',
-      acceptedAnswer: { '@type': 'Answer', text: 'SocialPro opera activamente en México, Argentina, Colombia, Chile y Perú. Contamos con un manager dedicado al mercado latinoamericano con experiencia en gaming e iGaming local. Hemos ejecutado activaciones en los cinco mercados con tracking de resultados verificado.' },
-    },
-    {
-      '@type': 'Question',
-      name: '¿Cuántos creadores gaming tiene SocialPro en LATAM?',
-      acceptedAnswer: { '@type': 'Answer', text: 'El roster de SocialPro incluye más de 100 creadores activos, con presencia significativa en LATAM especialmente en CS2, iGaming y gaming general. Los creadores gestionados por SocialPro suman más de 15 millones de views mensuales entre España y LatAm.' },
-    },
-    {
-      '@type': 'Question',
-      name: '¿Las campañas iGaming son legales en LATAM?',
-      acceptedAnswer: { '@type': 'Answer', text: 'Cada país latinoamericano tiene su propio marco regulatorio para el iGaming. A diferencia de España, donde aplica el DGOJ, en LATAM la regulación varía por país y está en proceso de maduración. SocialPro asesora a los operadores en la compliance local antes de activar cualquier campaña.' },
-    },
-    {
-      '@type': 'Question',
-      name: '¿Por qué LATAM es un mercado estratégico para iGaming?',
-      acceptedAnswer: { '@type': 'Answer', text: 'LATAM concentra más de 300 millones de hispanohablantes con alta penetración de smartphones y creciente acceso a pagos digitales. Los mercados de México, Argentina y Colombia están experimentando una regulación progresiva del iGaming que abre oportunidades únicas para operadores que entran ahora con partners locales.' },
-    },
-  ],
-};
+const FAQ_ITEMS = [
+  {
+    name: '¿Qué mercados de LATAM cubre SocialPro?',
+    acceptedAnswer: { text: 'SocialPro opera activamente en México, Argentina, Colombia, Chile y Perú. Contamos con un manager dedicado al mercado latinoamericano con experiencia en gaming e iGaming local. Hemos ejecutado activaciones en los cinco mercados con tracking de resultados verificado.' },
+  },
+  {
+    name: '¿Cuántos creadores gaming tiene SocialPro en LATAM?',
+    acceptedAnswer: { text: 'El roster de SocialPro incluye más de 100 creadores activos, con presencia significativa en LATAM especialmente en CS2, iGaming y gaming general. Los creadores gestionados por SocialPro suman más de 15 millones de views mensuales entre España y LatAm.' },
+  },
+  {
+    name: '¿Las campañas iGaming son legales en LATAM?',
+    acceptedAnswer: { text: 'Cada país latinoamericano tiene su propio marco regulatorio para el iGaming. A diferencia de España, donde aplica el DGOJ, en LATAM la regulación varía por país y está en proceso de maduración. SocialPro asesora a los operadores en la compliance local antes de activar cualquier campaña.' },
+  },
+  {
+    name: '¿Por qué LATAM es un mercado estratégico para iGaming?',
+    acceptedAnswer: { text: 'LATAM concentra más de 300 millones de hispanohablantes con alta penetración de smartphones y creciente acceso a pagos digitales. Los mercados de México, Argentina y Colombia están experimentando una regulación progresiva del iGaming que abre oportunidades únicas para operadores que entran ahora con partners locales.' },
+  },
+];
 
 const STATS = [
   { stat: '300M+', label: 'Hispanohablantes en LATAM' },
@@ -91,11 +84,15 @@ const SERVICES = [
   { title: 'Reporting verificado', desc: 'Métricas de alcance, engagement, conversiones y ROI reportadas con datos auditables.' },
 ];
 
+const breadcrumbJsonLd = buildBreadcrumbJsonLd([
+  { name: 'Agencia Gaming LATAM', url: absoluteUrl('/agencia-gaming-latam') },
+]);
+
 export default function AgenciaGamingLatamPage() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
       <StickyCtaMobile href="/contacto" label="Activar campaña LATAM →" ctaId="latam_sticky_cta" />
 
       <main className="bg-sp-black text-white">
@@ -234,7 +231,7 @@ export default function AgenciaGamingLatamPage() {
           <div className="max-w-3xl mx-auto">
             <h2 className="font-display text-3xl sm:text-4xl font-black uppercase mb-12">Preguntas frecuentes</h2>
             <div className="space-y-8">
-              {faqJsonLd.mainEntity.map((q) => (
+              {FAQ_ITEMS.map((q) => (
                 <div key={q.name} className="border-b border-white/[0.06] pb-8">
                   <h3 className="font-bold text-white mb-3">{q.name}</h3>
                   <p className="text-sp-muted2 leading-relaxed">{q.acceptedAnswer.text}</p>

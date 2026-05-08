@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { SITE_URL, absoluteUrl } from '@/lib/site-url';
 import { TrackedCtaLink } from '@/components/ui/TrackedCtaLink';
 import { StickyCtaMobile } from '@/components/ui/StickyCtaMobile';
+import { buildBreadcrumbJsonLd } from '@/lib/utils/breadcrumbs';
 
 export const metadata: Metadata = {
   title: 'Agencia de Marketing Esports — España y LatAm',
@@ -45,16 +46,6 @@ const jsonLd = {
   description: 'Agencia de marketing esports en España y LatAm desde 2012. Campañas con influencers, gestión de talentos y activaciones en torneos con métricas verificadas.',
 };
 
-const faqJsonLd = {
-  '@context': 'https://schema.org',
-  '@type': 'FAQPage',
-  mainEntity: [
-    { '@type': 'Question', name: '¿Qué hace exactamente una agencia de marketing esports?', acceptedAnswer: { '@type': 'Answer', text: 'Una agencia de marketing esports conecta marcas con el ecosistema de los videojuegos competitivos: streamers, creadores de contenido, torneos y comunidades gaming. SocialPro se diferencia por su enfoque en performance marketing: cada activación tiene KPIs claros y resultados medibles.' } },
-    { '@type': 'Question', name: '¿Las marcas no endémicas pueden hacer marketing esports?', acceptedAnswer: { '@type': 'Answer', text: 'Sí. Las marcas no endémicas (alimentación, finanzas, automoción, moda) obtienen resultados muy sólidos en esports porque alcanzan a un segmento joven, digitalmente nativo y altamente comprometido que cada vez es más difícil de impactar en medios tradicionales.' } },
-    { '@type': 'Question', name: '¿Qué diferencia a SocialPro de una agencia de marketing generalista?', acceptedAnswer: { '@type': 'Answer', text: 'SocialPro lleva desde 2012 exclusivamente en gaming y esports. No somos una agencia generalista que ha añadido "gaming" a su portfolio. Conocemos la cultura, los creadores, las plataformas y las regulaciones del sector sin curva de aprendizaje a cargo del cliente.' } },
-    { '@type': 'Question', name: '¿La escena esports hispanohablante es relevante para las marcas?', acceptedAnswer: { '@type': 'Answer', text: 'La escena gaming en español es la mayor del mundo fuera del ámbito anglosajón. España y LatAm juntos suman más de 300 millones de potenciales espectadores de esports, con tasas de crecimiento muy superiores a los mercados maduros de EE.UU. y Europa occidental.' } },
-  ],
-};
 
 const STATS = [
   { stat: '13+', label: 'Años en marketing esports' },
@@ -76,11 +67,15 @@ const DIFERENCIAS = [
   { t: 'El mercado hispano', d: 'España y LatAm representan una de las comunidades gaming más grandes del mundo. Nuestros creadores dan acceso directo y auténtico.' },
 ];
 
+const breadcrumbJsonLd = buildBreadcrumbJsonLd([
+  { name: 'Agencia Marketing Esports', url: absoluteUrl('/agencia-marketing-esports') },
+]);
+
 export default function AgenciaMarketingEsportsPage() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
 
       <section className="bg-sp-black pt-24 pb-12 md:pt-32 md:pb-20">
         <div className="max-w-4xl mx-auto px-6 text-center">

@@ -122,10 +122,11 @@ export default async function BlogPostPage({ params }: PageProps) {
     author: {
       '@type': 'Person',
       name: post.author,
-      worksFor: { '@type': 'Organization', name: 'SocialPro' },
+      worksFor: { '@type': 'Organization', '@id': absoluteUrl('/#organization'), name: 'SocialPro' },
     },
     publisher: {
       '@type': 'Organization',
+      '@id': absoluteUrl('/#organization'),
       name: 'SocialPro',
       url: absoluteUrl('/'),
     },

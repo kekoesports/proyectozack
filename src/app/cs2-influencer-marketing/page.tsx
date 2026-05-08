@@ -44,16 +44,6 @@ const jsonLd = {
   description: 'CS2 influencer marketing campaigns with verified streamers across Spain and LatAm. FTD tracking, compliance and activation in under 72 hours.',
 };
 
-const faqJsonLd = {
-  '@context': 'https://schema.org',
-  '@type': 'FAQPage',
-  mainEntity: [
-    { '@type': 'Question', name: 'What makes CS2 audiences valuable for brands?', acceptedAnswer: { '@type': 'Answer', text: 'CS2 players are the most transaction-ready audience in gaming. They actively trade skins, make in-game purchases, and engage with iGaming and peripheral brands at exceptionally high rates. Average conversion rates for CS2 campaigns are 3-5x higher than general gaming audiences.' } },
-    { '@type': 'Question', name: 'How do you track conversions in CS2 influencer campaigns?', acceptedAnswer: { '@type': 'Answer', text: 'Each streamer receives a unique tracking code or affiliate link. We monitor clicks, registrations and FTDs (First Time Deposits) attributed per creator. Reports are verified with raw data, not screenshots.' } },
-    { '@type': 'Question', name: 'Which CS2 streamers does SocialPro work with?', acceptedAnswer: { '@type': 'Answer', text: 'We work with a verified roster of CS2 content creators ranging from pro players and semi-pros to tactical content creators. All are Spanish-speaking, verified audiences and have proven track records with brand campaigns.' } },
-    { '@type': 'Question', name: 'How fast can a CS2 influencer campaign be activated?', acceptedAnswer: { '@type': 'Answer', text: 'From brief to live campaign in under 72 hours. This includes creator selection, contract signing, compliance briefing and publishing coordination.' } },
-  ],
-};
 
 const STATS = [
   { stat: '8M+', label: 'Reach on 1WIN CS2 campaign' },
@@ -72,7 +62,6 @@ export default function Cs2InfluencerMarketingPage() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
 
       {/* Hero */}
       <section className="bg-sp-black pt-32 pb-20">

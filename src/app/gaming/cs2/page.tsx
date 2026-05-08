@@ -46,44 +46,6 @@ const serviceJsonLd = {
     'Campañas de CS2 influencer marketing con streamers y creadores de contenido verificados en España y LatAm. Activación en menos de 72 horas con tracking de resultados.',
 };
 
-const faqJsonLd = {
-  '@context': 'https://schema.org',
-  '@type': 'FAQPage',
-  mainEntity: [
-    {
-      '@type': 'Question',
-      name: '¿Por qué elegir streamers de CS2 para campañas de marketing?',
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: 'La audiencia de CS2 es una de las más compradoras del ecosistema gaming. Son jugadores activos con alta propensión al gasto en periféricos, skins, iGaming y hardware. Los streamers de CS2 generan tasas de conversión muy superiores a influencers generalistas.',
-      },
-    },
-    {
-      '@type': 'Question',
-      name: '¿Qué marcas pueden hacer campañas de CS2 influencer marketing?',
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: 'Las campañas de CS2 con streamers son ideales para marcas de iGaming (casinos, apuestas deportivas, skins), periféricos gaming (ratones, auriculares, teclados), hardware (tarjetas gráficas, monitores), y cualquier producto orientado a gamers masculinos de 18-35 años.',
-      },
-    },
-    {
-      '@type': 'Question',
-      name: '¿Cuánto cuesta una campaña de CS2 influencer marketing?',
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: 'El coste varía según el número de streamers activados, la duración y el mercado geográfico. SocialPro ofrece campañas desde activaciones individuales hasta campañas multiterritorio con más de 100 streamers. Contáctanos para recibir una propuesta personalizada.',
-      },
-    },
-    {
-      '@type': 'Question',
-      name: '¿En qué mercados ejecutáis campañas de CS2 con streamers?',
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: 'Ejecutamos campañas de CS2 influencer marketing en España, México, Argentina, Colombia y Chile. También tenemos presencia en el mercado de habla portuguesa (Brasil/Portugal) y Turquía.',
-      },
-    },
-  ],
-};
 
 const breadcrumbJsonLd = {
   '@context': 'https://schema.org',
@@ -145,7 +107,6 @@ export default function Cs2Page() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceJsonLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
 
       {/* ── Hero ── */}

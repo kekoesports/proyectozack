@@ -43,15 +43,6 @@ const jsonLd = {
   description: 'Valorant influencer marketing campaigns with verified streamers in Spain and LatAm. Brand-safe content with real audience data and performance tracking.',
 };
 
-const faqJsonLd = {
-  '@context': 'https://schema.org',
-  '@type': 'FAQPage',
-  mainEntity: [
-    { '@type': 'Question', name: 'Why is Valorant valuable for brand campaigns?', acceptedAnswer: { '@type': 'Answer', text: 'Valorant attracts a younger, more diverse audience compared to CS2, including a significantly higher percentage of female gamers. The Riot Games ecosystem enforces content standards, making Valorant streamers inherently brand-safe. It\'s the fastest-growing FPS in LatAm.' } },
-    { '@type': 'Question', name: 'What brands work well with Valorant influencers?', acceptedAnswer: { '@type': 'Answer', text: 'Valorant\'s demographic is ideal for lifestyle brands, energy drinks, gaming peripherals, sportswear, technology and consumer apps. The audience indexes high on youth culture, fashion and digital-first brands — different from the more transactional CS2 audience.' } },
-    { '@type': 'Question', name: 'Is Valorant influencer marketing available in LatAm?', acceptedAnswer: { '@type': 'Answer', text: 'Yes. SocialPro operates across Spain, Mexico, Argentina, Colombia and Chile. Valorant is particularly strong in LatAm — it is the dominant FPS title in most Spanish-speaking markets.' } },
-  ],
-};
 
 const STATS = [
   { stat: '15M+', label: 'Monthly views across roster' },
@@ -70,7 +61,6 @@ export default function ValorantInfluencersAgencyPage() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
 
       <section className="bg-sp-black pt-32 pb-20">
         <div className="max-w-4xl mx-auto px-6 text-center">

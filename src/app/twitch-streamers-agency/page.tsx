@@ -41,16 +41,6 @@ const jsonLd = {
   description: 'Twitch streamers agency for live gaming influencer campaigns in Spain and LatAm. Verified audiences, real-time engagement and performance-tracked campaigns.',
 };
 
-const faqJsonLd = {
-  '@context': 'https://schema.org',
-  '@type': 'FAQPage',
-  mainEntity: [
-    { '@type': 'Question', name: 'Why is Twitch influencer marketing different from YouTube?', acceptedAnswer: { '@type': 'Answer', text: 'Twitch is a live platform — viewers spend 4+ hours per session watching their favourite streamer in real time. That sustained exposure creates deeper brand recall than pre-roll ads or short-form content. Twitch viewers trust their streamers more than any other media channel.' } },
-    { '@type': 'Question', name: 'What brands work well with Twitch streamers?', acceptedAnswer: { '@type': 'Answer', text: 'iGaming (betting, casino, skins), gaming hardware, energy drinks, technology and consumer apps all perform exceptionally well on Twitch. The live format also works for product launches, limited releases and time-sensitive promotions where real-time audience engagement is key.' } },
-    { '@type': 'Question', name: 'How does SocialPro select Twitch streamers for campaigns?', acceptedAnswer: { '@type': 'Answer', text: 'We verify audience authenticity, average concurrent viewers, engagement rate and demographic fit before any campaign. We do not use raw follower counts — we use live viewer data and engagement metrics that accurately reflect true audience size and behaviour.' } },
-    { '@type': 'Question', name: 'Can Twitch campaigns be measured for ROI?', acceptedAnswer: { '@type': 'Answer', text: 'Yes. We use unique tracking codes per streamer for conversion attribution. For iGaming campaigns, we track FTDs directly. For brand awareness campaigns, we report on verified reach, concurrent viewers and engagement — with raw data, not estimates.' } },
-  ],
-};
 
 const STATS = [
   { stat: '15M+', label: 'Monthly views across roster' },
@@ -70,7 +60,6 @@ export default function TwitchStreamersAgencyPage() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
 
       <section className="bg-sp-black pt-32 pb-20">
         <div className="max-w-4xl mx-auto px-6 text-center">

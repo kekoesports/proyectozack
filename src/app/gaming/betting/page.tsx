@@ -47,52 +47,6 @@ const serviceJsonLd = {
     'Campañas de influencer marketing para casas de apuestas y casinos online con streamers verificados en España, LatAm y Turquía. Compliance DGOJ, FTD tracking y reporting verificado.',
 };
 
-const faqJsonLd = {
-  '@context': 'https://schema.org',
-  '@type': 'FAQPage',
-  mainEntity: [
-    {
-      '@type': 'Question',
-      name: '¿Qué son los betting influencers y cómo funcionan para casas de apuestas?',
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: 'Los betting influencers son streamers y creadores de contenido gaming que integran marcas de apuestas deportivas y casinos online en sus directos o vídeos. Su audiencia, principalmente hombres de 18-35 años apasionados por el gaming y los deportes, tiene una alta propensión a registrarse y depositar en plataformas de apuestas.',
-      },
-    },
-    {
-      '@type': 'Question',
-      name: '¿Cómo se miden las conversiones en campañas con casino streamers?',
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: 'Cada streamer recibe un código de afiliado o enlace único. Rastreamos clics, registros y FTDs (First Time Deposits) atribuidos a cada creador. SocialPro entrega reportes con datos verificados, no capturas de pantalla. El operador puede auditar cada conversión.',
-      },
-    },
-    {
-      '@type': 'Question',
-      name: '¿El contenido de betting influencers cumple con la normativa española?',
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: 'Sí. SocialPro integra compliance DGOJ en cada campaña de betting: disclaimers de juego responsable en los primeros 30 segundos, restricción a audiencias mayores de 18 años, prohibición de asociar apuestas con solución de deudas y revisión de contenido pre-publicación. Ver detalles en /servicios/igaming.',
-      },
-    },
-    {
-      '@type': 'Question',
-      name: '¿Qué diferencia hay entre un betting influencer y un casino streamer?',
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: 'Los betting influencers se especializan en apuestas deportivas (fútbol, esports, combates) y suelen tener audiencias deportivas. Los casino streamers se enfocan en slots, ruleta y juegos de casino, con audiencias gaming más amplias. SocialPro gestiona ambos perfiles con experiencia en más de 4 años en el sector.',
-      },
-    },
-    {
-      '@type': 'Question',
-      name: '¿En qué mercados ejecutáis campañas de betting influencers?',
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: 'Ejecutamos campañas de betting influencers en España, México, Argentina, Colombia, Chile y Turquía. Cada mercado tiene su normativa específica y SocialPro adapta el compliance y el talento a la regulación local.',
-      },
-    },
-  ],
-};
 
 const breadcrumbJsonLd = {
   '@context': 'https://schema.org',
@@ -155,7 +109,6 @@ export default function BettingPage() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceJsonLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
 
       {/* ── Hero ── */}

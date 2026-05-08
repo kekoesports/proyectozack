@@ -77,60 +77,6 @@ const jsonLd = {
   ],
 };
 
-const faqJsonLd = {
-  '@context': 'https://schema.org',
-  '@type': 'FAQPage',
-  mainEntity: [
-    {
-      '@type': 'Question',
-      name: '¿Qué es el FTD tracking en campañas iGaming con streamers?',
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: 'El FTD tracking (First Time Deposit) es el sistema que atribuye cada primer depósito de un usuario a un creador concreto mediante códigos únicos. En SocialPro, cada streamer recibe un código de seguimiento propio para que el operador iGaming pueda medir exactamente cuántas conversiones generó cada activación.',
-      },
-    },
-    {
-      '@type': 'Question',
-      name: '¿Qué normativa regula la publicidad de iGaming con streamers en España?',
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: 'En España, la publicidad de operadores iGaming está regulada por la DGOJ (Dirección General de Ordenación del Juego). Las campañas con streamers deben incluir disclaimers de juego responsable, restricción de audiencias menores de edad y revisión previa de contenido. SocialPro integra este compliance en cada campaña.',
-      },
-    },
-    {
-      '@type': 'Question',
-      name: '¿En qué mercados ejecutáis campañas de betting y casino con streamers?',
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: 'Ejecutamos campañas de iGaming, betting y casino con streamers en España, México, Argentina, Colombia, Chile y Turquía. Cada mercado tiene su propia normativa y SocialPro adapta el compliance y el talento a la regulación local.',
-      },
-    },
-    {
-      '@type': 'Question',
-      name: '¿Cuánto tarda en activarse una campaña de streamers para iGaming?',
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: 'Nuestro proceso de activación es de menos de 72 horas desde el briefing: verificación del creador, firma de contrato, briefing legal y coordinación de publicación. Para campañas multistreamer de mayor escala, el proceso puede extenderse a 5-7 días hábiles.',
-      },
-    },
-    {
-      '@type': 'Question',
-      name: '¿Qué tipos de betting influencers y streamers de casino gestionáis?',
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: 'Trabajamos con tres perfiles de betting influencers: streamers de apuestas deportivas (fútbol, esports betting, eventos en vivo), casino streamers especializados en slots, ruleta y juegos en directo, y creadores del ecosistema CS2 familiarizados con skin trading y plataformas iGaming. Todos tienen audiencias verificadas y track record en campañas de conversión.',
-      },
-    },
-    {
-      '@type': 'Question',
-      name: '¿Qué diferencia a SocialPro de otras agencias de marketing iGaming?',
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: 'SocialPro es una agencia de performance marketing gaming, no de branding. Cada campaña incluye FTD tracking verificado, compliance regulatorio integrado y reporting con ROI demostrable. No gestionamos campañas de awareness genérico — cada activación tiene KPIs de conversión claros.',
-      },
-    },
-  ],
-};
 
 const breadcrumbJsonLd = {
   '@context': 'https://schema.org',
@@ -203,7 +149,6 @@ export default function IgamingPage() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
 
       {/* ── Hero ── */}

@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ServicesSection } from '@/features/marketing-site/components/ServicesSection';
 import { absoluteUrl, SITE_URL } from '@/lib/site-url';
+import { buildBreadcrumbJsonLd } from '@/lib/utils/breadcrumbs';
 
 export const metadata: Metadata = {
   title: 'Agencia Marketing Gaming e iGaming',
@@ -74,52 +75,6 @@ const serviceJsonLd = {
   ],
 };
 
-const faqJsonLd = {
-  '@context': 'https://schema.org',
-  '@type': 'FAQPage',
-  mainEntity: [
-    {
-      '@type': 'Question',
-      name: '¿Qué servicios ofrece SocialPro como agencia de marketing gaming?',
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: 'SocialPro ofrece tres servicios principales: campañas de influencer marketing gaming e iGaming con FTD tracking, representación y gestión de talentos streamers en España y LatAm, y gestión editorial y crecimiento de canales YouTube gaming.',
-      },
-    },
-    {
-      '@type': 'Question',
-      name: '¿En qué plataformas trabajáis para campañas gaming?',
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: 'Trabajamos principalmente en Twitch y YouTube para streaming de CS2, Valorant, iGaming y esports. También gestionamos campañas en Instagram, TikTok y X para ampliar el alcance en el mercado hispano.',
-      },
-    },
-    {
-      '@type': 'Question',
-      name: '¿Cuánto tiempo tarda en activarse una campaña gaming?',
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: 'Nuestro proceso de activación es de menos de 72 horas desde el briefing hasta el inicio de la campaña. Esto incluye selección de talentos, firma de contratos y coordinación de publicación.',
-      },
-    },
-    {
-      '@type': 'Question',
-      name: '¿Trabajáis con marcas de iGaming, apuestas y casinos?',
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: 'Sí, somos especialistas en campañas iGaming con compliance integrado para España, LatAm y Turquía. Incluimos verificación de edad, disclaimers de juego responsable y adaptación normativa por mercado.',
-      },
-    },
-    {
-      '@type': 'Question',
-      name: '¿En qué mercados geográficos operáis?',
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: 'Operamos principalmente en España y Latinoamérica, con presencia también en Turquía. Nuestros talentos tienen audiencias en toda la comunidad gaming hispana, con más de 15 millones de vistas mensuales.',
-      },
-    },
-  ],
-};
 
 const professionalServiceJsonLd = {
   '@context': 'https://schema.org',
@@ -171,12 +126,16 @@ const professionalServiceJsonLd = {
   },
 };
 
+const breadcrumbJsonLd = buildBreadcrumbJsonLd([
+  { name: 'Servicios', url: absoluteUrl('/servicios') },
+]);
+
 export default function ServiciosPage() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(professionalServiceJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceJsonLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
       <div>
         <h1 className="sr-only">Agencia Marketing Gaming e iGaming</h1>
         <ServicesSection />
