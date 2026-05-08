@@ -351,7 +351,8 @@ export async function GET(req: Request) {
     headers: { 'Content-Type': 'image/png', 'Cache-Control': 'public, max-age=0, s-maxage=3600, stale-while-revalidate=86400' },
   });
   } catch (err) {
-    console.error('[og/blog] Unhandled error — returning generic fallback', err);
-    return genericFallbackResponse(fontData);
+    const msg = err instanceof Error ? `${err.name}: ${err.message}` : String(err);
+    console.error('[og/blog] error', msg);
+    return new Response(`BLOG_OG_ERROR: ${msg}`, { status: 500, headers: { 'content-type': 'text/plain; charset=utf-8' } });
   }
 }
