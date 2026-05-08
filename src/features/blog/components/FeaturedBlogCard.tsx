@@ -1,83 +1,100 @@
 import Link from 'next/link';
-import Image from 'next/image';
 import type { PostWithTalents } from '@/lib/queries/posts';
 import { readTime, deriveCategory, formatBlogDate } from '@/lib/utils/blog';
-import { CategoryThumbnail } from './CategoryThumbnail';
+import { BlogCover } from './BlogCover';
 
 type Props = {
   readonly post: PostWithTalents;
 };
 
+/**
+ * Card destacada del blog — split horizontal con imagen cinematográfica
+ * a la izquierda y bloque editorial a la derecha.
+ *
+ * @kind server
+ */
 export function FeaturedBlogCard({ post }: Props) {
   const category  = deriveCategory(post.slug, post.title);
   const mins      = readTime(post.bodyMd);
   const dateLabel = formatBlogDate(post.publishedAt);
 
+  // Color hex aproximado por categoría — para la línea acento del lado derecho
+  const accentHex = category.text.includes('orange') ? '#f5632a'
+    : category.text.includes('purple') || category.text.includes('400') && category.bg.includes('purple') ? '#a855f7'
+    : category.text.includes('blue') ? '#5b9bd5'
+    : category.text.includes('emerald') ? '#10b981'
+    : category.text.includes('red') ? '#ef4444'
+    : '#e03070';
+
   return (
     <Link
       href={`/blog/${post.slug}`}
-      className="group block rounded-2xl overflow-hidden border border-sp-border hover:border-sp-orange/40 hover:shadow-[0_4px_60px_-8px_rgba(245,99,42,0.22)] transition-all duration-400"
+      className="group block rounded-2xl overflow-hidden border border-sp-border hover:border-sp-orange/40 hover:shadow-[0_8px_60px_-12px_rgba(245,99,42,0.25)] transition-all duration-400"
       aria-label={post.title}
     >
-      <div className="grid grid-cols-1 md:grid-cols-[2fr_3fr]">
+      <div className="grid grid-cols-1 md:grid-cols-[3fr_4fr]">
 
-        {/* ── Imagen izquierda — cinematográfica ─────────────────────── */}
-        <div className="relative overflow-hidden bg-sp-dark min-h-[220px] md:min-h-[280px]">
-          {post.coverUrl ? (
-            <Image
-              src={post.coverUrl}
-              alt={post.title}
-              fill
-              priority
-              sizes="(max-width: 768px) 100vw, 40vw"
-              className="object-cover transition-transform duration-700 group-hover:scale-[1.03]"
-            />
-          ) : (
-            <CategoryThumbnail category={category} title={post.title} />
-          )}
-          {/* Overlay multicapa cinematográfico */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-black/30" />
+        {/* ── Imagen — cinematográfica ─────────────────────────────── */}
+        <div className="relative overflow-hidden bg-sp-dark min-h-[200px] md:min-h-[260px]">
+          <BlogCover
+            coverUrl={post.coverUrl}
+            category={category}
+            title={post.title}
+            variant="featured"
+            priority
+          />
 
           {/* Category pill */}
-          <div className="absolute top-4 left-4">
-            <span className={`inline-flex px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-[0.12em] border backdrop-blur-sm ${category.bg} ${category.text} ${category.border}`}>
-              {category.label}
+          <div className="absolute top-4 left-4 z-10">
+            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-[0.14em] border backdrop-blur-md ${category.bg} ${category.text} ${category.border}`}>
+              <span className={`w-1 h-1 rounded-full ${category.text.replace('text-', 'bg-')}`} aria-hidden />
+              Destacado
             </span>
           </div>
         </div>
 
-        {/* ── Texto derecha — editorial oscuro ───────────────────────── */}
+        {/* ── Texto — editorial oscuro ─────────────────────────────── */}
         <div className="relative flex flex-col justify-center gap-4 p-6 sm:p-8 bg-sp-dark overflow-hidden">
-          {/* Línea acento superior — identidad de categoría */}
+          {/* Línea acento superior */}
           <div
             className="absolute top-0 left-0 right-0 h-[2px]"
-            style={{
-              background: `linear-gradient(90deg, transparent 0%, ${category.text.includes('orange') ? '#f5632a' : category.text.includes('purple') ? '#8b3aad' : category.text.includes('blue') ? '#5b9bd5' : category.text.includes('emerald') ? '#10b981' : category.text.includes('red') ? '#ef4444' : '#e03070'} 40%, transparent 100%)`,
-            }}
+            style={{ background: `linear-gradient(90deg, transparent 0%, ${accentHex} 35%, ${accentHex} 65%, transparent 100%)` }}
           />
 
-          {/* Glow ambiental suave */}
-          <div className="absolute -right-20 -top-20 w-64 h-64 rounded-full blur-[80px] opacity-[0.06] bg-sp-orange pointer-events-none" />
+          {/* Glow ambiental */}
+          <div
+            className="absolute -right-24 -top-24 w-72 h-72 rounded-full blur-[80px] opacity-[0.07] pointer-events-none"
+            style={{ background: accentHex }}
+          />
 
-          {/* Meta */}
-          <div className="flex items-center gap-2 text-[10px] text-white/30">
-            <time dateTime={post.publishedAt?.toISOString()}>{dateLabel}</time>
-            {mins > 0 && <><span>·</span><span>{mins} min lectura</span></>}
+          {/* Categoría + meta */}
+          <div className="flex items-center gap-2 text-[10px]">
+            <span className={`inline-flex items-center gap-1 ${category.text} font-black uppercase tracking-[0.2em]`}>
+              <span className={`w-1 h-1 rounded-full ${category.text.replace('text-', 'bg-')}`} aria-hidden />
+              {category.label}
+            </span>
+            <span className="text-white/15" aria-hidden>·</span>
+            <time dateTime={post.publishedAt?.toISOString()} className="text-white/30">{dateLabel}</time>
+            {mins > 0 && (
+              <>
+                <span className="text-white/15" aria-hidden>·</span>
+                <span className="text-white/30">{mins} min</span>
+              </>
+            )}
           </div>
 
           {/* Título */}
-          <h2 className="font-display text-2xl sm:text-3xl font-black uppercase text-white leading-[0.95] tracking-tight line-clamp-3 group-hover:text-sp-orange/90 transition-colors duration-300">
+          <h2 className="font-display text-2xl sm:text-3xl font-black uppercase text-white leading-[0.96] tracking-tight line-clamp-3 group-hover:text-sp-orange/90 transition-colors duration-300">
             {post.title}
           </h2>
 
           {/* Extracto */}
-          <p className="text-sm text-white/60 line-clamp-3 leading-relaxed">
+          <p className="text-sm text-white/55 line-clamp-2 leading-relaxed">
             {post.excerpt}
           </p>
 
           {/* CTA */}
-          <span className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-[0.15em] text-sp-orange group-hover:text-white transition-colors duration-200">
+          <span className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-[0.2em] text-sp-orange group-hover:gap-2.5 transition-all duration-200">
             Leer artículo
             <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
               <path d="M2 5h6M5 2l3 3-3 3"/>
