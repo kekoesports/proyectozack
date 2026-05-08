@@ -25,7 +25,7 @@ export function BrandsCarousel({ brands }: BrandsCarouselProps) {
   const items = brands.concat(brands);
 
   return (
-    <section className="py-20 bg-sp-off">
+    <section className="py-14 bg-sp-off">
       <FadeInOnScroll>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center mb-12">
           <SectionTag>Marcas que confían en nosotros</SectionTag>

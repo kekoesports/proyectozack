@@ -88,7 +88,7 @@ export function MetricsSection() {
   const [gridRef, started] = useVisibilityFailSafe<HTMLDivElement>({ amount: 0.2 });
 
   return (
-    <section className="py-20 bg-sp-off">
+    <section className="py-14 bg-sp-off">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <FadeInOnScroll>
           <div className="text-center mb-12">

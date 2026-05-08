@@ -20,7 +20,7 @@ export function CtaSection(): React.JSX.Element {
   const animateState = reduced || visible ? 'visible' : 'hidden';
 
   return (
-    <section className="py-24 bg-sp-black text-white text-center">
+    <section className="py-16 bg-sp-black text-white text-center">
       <m.div
         ref={ref}
         data-motion-fallback=""

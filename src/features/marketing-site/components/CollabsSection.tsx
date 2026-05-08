@@ -31,7 +31,7 @@ type CollabsSectionProps = {
  */
 export function CollabsSection({ collaborators }: CollabsSectionProps): React.JSX.Element {
   return (
-    <section className="py-24 bg-white">
+    <section className="py-12 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <FadeInOnScroll>
           <div className="text-center mb-12">
