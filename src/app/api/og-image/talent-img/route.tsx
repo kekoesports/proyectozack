@@ -1,6 +1,5 @@
 import { ImageResponse } from 'next/og';
-import { neon } from '@neondatabase/serverless';
-import { env } from '@/lib/env';
+import { db } from '@/lib/db';
 
 const SIZE = { width: 1200, height: 630 };
 
@@ -16,8 +15,7 @@ export async function GET(req: Request) {
 
     if (slug) {
       try {
-        const sql = neon(env.DATABASE_URL);
-        const talentRows = await sql`
+        const talentRows = await db.$client`
           SELECT name, role, game, initials, photo_url, gradient_c1, gradient_c2
           FROM talents WHERE slug = ${slug} LIMIT 1
         `;

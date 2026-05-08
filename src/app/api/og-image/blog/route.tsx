@@ -1,7 +1,5 @@
 import { ImageResponse } from 'next/og';
-import { eq } from 'drizzle-orm';
 import { db } from '@/lib/db';
-import { posts } from '@/db/schema/posts';
 
 const W = 1200;
 const H = 630;
@@ -140,13 +138,7 @@ export async function GET(req: Request) {
     const [loadedFont, postRows] = await Promise.all([
       loadBarlowFont(),
       slug
-        ? db.select({
-            title:    posts.title,
-            excerpt:  posts.excerpt,
-            author:   posts.author,
-            coverUrl: posts.coverUrl,
-            bodyMd:   posts.bodyMd,
-          }).from(posts).where(eq(posts.slug, slug)).limit(1)
+        ? db.$client`SELECT title, excerpt, author, cover_url, body_md FROM posts WHERE slug = ${slug} LIMIT 1`
         : Promise.resolve([]),
     ]);
 
@@ -156,11 +148,17 @@ export async function GET(req: Request) {
     // Slug not found — return generic branded fallback (not 500)
     if (!post) return genericFallbackResponse(fontData);
 
-  const catSlug   = deriveSlugCategory(slug, post.title);
+  const postTitle   = String(post.title   ?? '');
+  const postExcerpt = post.excerpt  ? String(post.excerpt)    : null;
+  const postAuthor  = post.author   ? String(post.author)     : 'SocialPro';
+  const postCoverUrl= post.cover_url ? String(post.cover_url) : null;
+  const postBodyMd  = post.body_md  ? String(post.body_md)    : '';
+
+  const catSlug   = deriveSlugCategory(slug, postTitle);
   const accent    = CAT_COLORS[catSlug]  ?? '#e03070';
   const catLabel  = CAT_LABELS[catSlug]  ?? 'Blog';
-  const mins      = readTimeFromBodyMd(post.bodyMd ?? '');
-  const titleText = truncateTitle(post.title.toUpperCase(), 72);
+  const mins      = readTimeFromBodyMd(postBodyMd);
+  const titleText = truncateTitle(postTitle.toUpperCase(), 72);
   const fontSize  = titleFontSize(titleText);
   const fontConfig = fontData
     ? [{ name: 'Barlow', data: fontData, weight: 900 as const, style: 'normal' as const }]
@@ -168,7 +166,7 @@ export async function GET(req: Request) {
   const fontFamily = fontData ? 'Barlow' : 'sans-serif';
 
   // Cover image as background (optional — graceful null on failure)
-  const coverBase64 = post.coverUrl ? await fetchCoverBase64(post.coverUrl) : null;
+  const coverBase64 = postCoverUrl ? await fetchCoverBase64(postCoverUrl) : null;
 
   return new ImageResponse(
     (
@@ -278,7 +276,7 @@ export async function GET(req: Request) {
           </div>
 
           {/* Excerpt — 1 line, muted */}
-          {post.excerpt && (
+          {postExcerpt && (
             <div
               style={{
                 fontSize: 19,
@@ -290,7 +288,7 @@ export async function GET(req: Request) {
                 display: 'flex',
               }}
             >
-              {post.excerpt.length > 90 ? `${post.excerpt.slice(0, 88)}…` : post.excerpt}
+              {postExcerpt.length > 90 ? `${postExcerpt.slice(0, 88)}…` : postExcerpt}
             </div>
           )}
         </div>
@@ -306,7 +304,7 @@ export async function GET(req: Request) {
           }}
         >
           <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.28)', letterSpacing: 2 }}>
-            {post.author}  ·  {mins} min lectura
+            {postAuthor}  ·  {mins} min lectura
           </div>
           <div
             style={{

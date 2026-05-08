@@ -1,6 +1,5 @@
 import { ImageResponse } from 'next/og';
-import { neon } from '@neondatabase/serverless';
-import { env } from '@/lib/env';
+import { db } from '@/lib/db';
 
 const SIZE = { width: 1200, height: 630 };
 
@@ -31,8 +30,7 @@ export async function GET(req: Request) {
 
     if (!isNaN(id)) {
       try {
-        const sql = neon(env.DATABASE_URL);
-        const rows = await sql`
+        const rows = await db.$client`
           SELECT g.title, g.value, g.brand_name, g.image_url,
                  t.name AS talent_name, t.slug AS talent_slug,
                  t.gradient_c1, t.gradient_c2
