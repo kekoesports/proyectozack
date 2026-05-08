@@ -1,7 +1,7 @@
 import { gt, lte, and, not, like, or, isNull } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { giveaways } from '@/db/schema';
-import type { CreatorCodeWithTalent, GiveawayWithTalent } from '@/types';
+import type { CreatorCodeWithTalent, GiveawayWithTalent, Talent } from '@/types';
 
 export type BrandOption = {
   readonly name: string;
@@ -70,4 +70,27 @@ export function extractUniqueBrands(
   return Array.from(map, ([name, { logo, count }]) => ({ name, logo, count })).sort(
     (a, b) => b.count - a.count,
   );
+}
+
+/**
+ * Extrae creadores únicos de un array de giveaways, con su conteo de sorteos, ordenados por count DESC.
+ *
+ * @cache none
+ * @visibility public
+ */
+export function extractCreators(
+  giveaways: readonly GiveawayWithTalent[],
+): (Talent & { giveawayCount: number })[] {
+  const map = new Map<number, { talent: Talent; count: number }>();
+  for (const g of giveaways) {
+    const existing = map.get(g.talent.id);
+    if (existing) {
+      existing.count += 1;
+    } else {
+      map.set(g.talent.id, { talent: g.talent, count: 1 });
+    }
+  }
+  return Array.from(map.values())
+    .sort((a, b) => b.count - a.count)
+    .map(({ talent, count }) => ({ ...talent, giveawayCount: count }));
 }
