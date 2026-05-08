@@ -20,13 +20,13 @@ export const metadata: Metadata = {
     description: 'Valorant influencer marketing with verified streamers. Brand-safe, performance-focused campaigns across the Spanish-speaking gaming market.',
     url: absoluteUrl('/valorant-influencers-agency'),
     type: 'website',
-    images: [{ url: absoluteUrl('/og-default.jpg'), width: 1200, height: 630 }],
+    images: [{ url: absoluteUrl('/og-socialpro.png'), width: 1200, height: 630 }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Valorant Influencers Agency | SocialPro',
     description: 'Valorant influencer marketing. Verified streamers across Spain & LatAm. Brand-safe, ROI-driven.',
-    images: [absoluteUrl('/og-default.jpg')],
+    images: [absoluteUrl('/og-socialpro.png')],
   },
 };
 
@@ -38,7 +38,7 @@ const jsonLd = {
   name: 'Valorant Influencers Agency',
   serviceType: 'Esports Influencer Marketing',
   inLanguage: 'en',
-  provider: { '@type': 'Organization', name: 'SocialPro', url: SITE_URL },
+  provider: { '@type': 'Organization', '@id': absoluteUrl('/#organization'), name: 'SocialPro', url: SITE_URL },
   areaServed: ['España', 'México', 'Argentina', 'Colombia', 'Chile'],
   description: 'Valorant influencer marketing campaigns with verified streamers in Spain and LatAm. Brand-safe content with real audience data and performance tracking.',
 };

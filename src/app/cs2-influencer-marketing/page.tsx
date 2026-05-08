@@ -21,13 +21,13 @@ export const metadata: Metadata = {
       'Counter-Strike 2 influencer marketing with verified streamers. FTD tracking and ROI-focused campaigns in Spain and LatAm.',
     url: absoluteUrl('/cs2-influencer-marketing'),
     type: 'website',
-    images: [{ url: absoluteUrl('/og-default.jpg'), width: 1200, height: 630 }],
+    images: [{ url: absoluteUrl('/og-socialpro.png'), width: 1200, height: 630 }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'CS2 Influencer Marketing Agency | SocialPro',
     description: 'CS2 influencer marketing with FTD tracking. Spain & LatAm. Activation in <72h.',
-    images: [absoluteUrl('/og-default.jpg')],
+    images: [absoluteUrl('/og-socialpro.png')],
   },
 };
 
@@ -39,7 +39,7 @@ const jsonLd = {
   name: 'CS2 Influencer Marketing',
   serviceType: 'Esports Influencer Marketing',
   inLanguage: 'en',
-  provider: { '@type': 'Organization', name: 'SocialPro', url: SITE_URL },
+  provider: { '@type': 'Organization', '@id': absoluteUrl('/#organization'), name: 'SocialPro', url: SITE_URL },
   areaServed: ['España', 'México', 'Argentina', 'Colombia', 'Chile'],
   description: 'CS2 influencer marketing campaigns with verified streamers across Spain and LatAm. FTD tracking, compliance and activation in under 72 hours.',
 };

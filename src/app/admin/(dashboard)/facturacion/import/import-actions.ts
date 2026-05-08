@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { put } from '@vercel/blob';
 
 import { requireAnyRole } from '@/lib/auth-guard';
+import { env } from '@/lib/env';
 import { parseFormData } from '@/lib/forms/parseFormData';
 import { firstError } from '@/lib/forms/firstError';
 import { logRedacted } from '@/lib/log';
@@ -158,7 +159,7 @@ export async function uploadImportAction(
       // Do NOT fill any draft fields — avoids wrong defaults in the form.
       parsedDraft = { [EXTRACTION_STATUS_KEY]: 'rate_limited' };
       warningsOut = aiResult.warnings;
-    } else if (!process.env.GEMINI_API_KEY) {
+    } else if (!env.GEMINI_API_KEY) {
       // ── Step 2: Heuristic fallback (pdfjs-based) — only when no AI key ────
       // pdfjs-dist crashes on Vercel (DOMMatrix not available in Node 18).
       // When Gemini is configured but returned empty (quota/error), show the

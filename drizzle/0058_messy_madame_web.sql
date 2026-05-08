@@ -1,0 +1,1 @@
+ALTER TABLE "campaigns" ADD COLUMN "currency" varchar(3) DEFAULT 'EUR' NOT NULL;

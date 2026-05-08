@@ -6,6 +6,7 @@ import { GradientText } from '@/components/ui/GradientText';
 import { SITE_URL, absoluteUrl } from '@/lib/site-url';
 import { TrackedCtaLink } from '@/components/ui/TrackedCtaLink';
 import { StickyCtaMobile } from '@/components/ui/StickyCtaMobile';
+import { AuthorByline } from '@/components/ui/AuthorByline';
 
 export const metadata: Metadata = {
   title: 'Streamers iGaming, Betting y Casino España y LatAm',
@@ -24,24 +25,27 @@ export const metadata: Metadata = {
       'Campañas iGaming, betting y casino con streamers verificados. Compliance DGOJ, FTD tracking y ROI demostrable en España, LatAm y Turquía.',
     url: absoluteUrl('/servicios/igaming'),
     type: 'website',
-    images: [{ url: absoluteUrl('/og-default.jpg'), width: 1200, height: 630 }],
+    images: [{ url: absoluteUrl('/og-socialpro.png'), width: 1200, height: 630 }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Streamers iGaming, Betting y Casino España y LatAm | SocialPro',
     description:
       'Streamers iGaming, betting y casino verificados. Compliance DGOJ, FTD tracking y ROI demostrable.',
-    images: [absoluteUrl('/og-default.jpg')],
+    images: [absoluteUrl('/og-socialpro.png')],
   },
 };
 
 const jsonLd = {
   '@context': 'https://schema.org',
+  '@graph': [
+  {
   '@type': 'Service',
   name: 'Campañas iGaming, Betting y Casino con Streamers',
   serviceType: 'iGaming Influencer Marketing',
   provider: {
     '@type': 'Organization',
+    '@id': absoluteUrl('/#organization'),
     name: 'SocialPro',
     url: SITE_URL,
   },
@@ -60,6 +64,17 @@ const jsonLd = {
     description: 'Activación de campañas iGaming con streamers en menos de 72 horas',
     areaServed: 'ES, MX, AR, CO, CL, TR',
   },
+  },
+  {
+    '@type': 'WebPage',
+    '@id': absoluteUrl('/servicios/igaming'),
+    url: absoluteUrl('/servicios/igaming'),
+    name: 'Streamers iGaming, Betting y Casino España y LatAm',
+    author: { '@type': 'Person', '@id': absoluteUrl('/#founder-pablo') },
+    publisher: { '@id': absoluteUrl('/#organization') },
+    inLanguage: 'es',
+  },
+  ],
 };
 
 const faqJsonLd = {
@@ -224,6 +239,14 @@ export default function IgamingPage() {
           >
             Solicitar propuesta iGaming (48h)
           </TrackedCtaLink>
+          <AuthorByline
+            name='Pablo "Kekō" Camacho'
+            initials="PC"
+            role="CEO · SocialPro · 14 años en iGaming y esports"
+            reviewedDate="mayo 2026"
+            variant="dark"
+            className="mt-8 max-w-xs"
+          />
         </div>
       </section>
 
@@ -232,7 +255,7 @@ export default function IgamingPage() {
         <div className="max-w-4xl mx-auto px-6">
           <SectionTag>Por qué el iGaming es diferente</SectionTag>
           <SectionHeading className="mb-6">
-            No es un vertical más. <GradientText>Es el más complejo.</GradientText>
+            ¿Por qué el iGaming requiere una <GradientText>agencia especializada?</GradientText>
           </SectionHeading>
           <div className="space-y-4 text-base text-sp-muted leading-relaxed max-w-2xl">
             <p>
@@ -253,6 +276,16 @@ export default function IgamingPage() {
               decir un streamer y qué no, y cómo construir un flujo de revisión de contenido que
               proteja a todas las partes sin ralentizar la activación.
             </p>
+            <p>
+              La diferencia práctica es sencilla: una agencia generalista entrega el briefing al
+              creador y confía en que lo lea bien. SocialPro entrega el briefing, lo revisa con el
+              creador antes del directo, valida el guion de integración, y tiene un equipo de
+              compliance que da el visto bueno final antes de que el contenido se publique. Cada
+              campaña iGaming activa en nuestro roster lleva al menos tres puntos de revisión entre
+              el brief del operador y el momento en que el streamer abre el enlace de afiliado. Este
+              proceso ha mantenido a cero el número de reclamaciones regulatorias recibidas por
+              nuestros clientes operadores desde que introducimos el flujo en 2022.
+            </p>
           </div>
         </div>
       </section>
@@ -262,7 +295,7 @@ export default function IgamingPage() {
         <div className="max-w-4xl mx-auto px-6">
           <SectionTag>Nuestro proceso</SectionTag>
           <SectionHeading className="mb-10">
-            Cómo ejecutamos campañas <GradientText>iGaming</GradientText>
+            ¿Cómo ejecuta SocialPro una campaña <GradientText>iGaming de inicio a fin?</GradientText>
           </SectionHeading>
           <div className="space-y-8">
             {PROCESS_STEPS.map((step) => (
@@ -287,7 +320,7 @@ export default function IgamingPage() {
         <div className="max-w-4xl mx-auto px-6">
           <SectionTag>Track Record iGaming</SectionTag>
           <SectionHeading className="mb-10">
-            Resultados que <GradientText>hablan por sí solos</GradientText>
+            ¿Qué resultados reales ha entregado SocialPro en <GradientText>campañas iGaming?</GradientText>
           </SectionHeading>
           <div className="grid md:grid-cols-2 gap-6">
             {CASE_STUDIES.map((c) => (
@@ -315,11 +348,12 @@ export default function IgamingPage() {
         <div className="max-w-4xl mx-auto px-6">
           <SectionTag>Compliance España 2025</SectionTag>
           <h2 className="font-display text-3xl md:text-4xl font-black uppercase tracking-tight text-white leading-tight mb-4">
-            Lo que exige la <span style={gradientTextStyle}>regulación española</span>
+            ¿Qué exige la DGOJ a las campañas iGaming <span style={gradientTextStyle}>con streamers en España?</span>
           </h2>
           <p className="text-white/60 mb-8 max-w-2xl">
-            La DGOJ regula estrictamente la publicidad de operadores iGaming en España. Estas son
-            las obligaciones que SocialPro garantiza en cada campaña:
+            La Dirección General de Ordenación del Juego (DGOJ) regula la publicidad de
+            operadores iGaming con licencia española. Estas son las obligaciones que SocialPro
+            garantiza en cada campaña y que el operador es corresponsable de verificar:
           </p>
           <ul className="space-y-3">
             {COMPLIANCE_ITEMS.map((item) => (

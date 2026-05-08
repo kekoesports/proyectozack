@@ -20,13 +20,13 @@ export const metadata: Metadata = {
     description: 'Esports marketing in Spain and LatAm. 13+ years, 15M+ views/month, performance-focused campaigns for endemic and non-endemic brands.',
     url: absoluteUrl('/esports-marketing-agency'),
     type: 'website',
-    images: [{ url: absoluteUrl('/og-default.jpg'), width: 1200, height: 630 }],
+    images: [{ url: absoluteUrl('/og-socialpro.png'), width: 1200, height: 630 }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Esports Marketing Agency | SocialPro',
     description: 'Esports marketing agency Spain & LatAm. 13+ years, performance-focused, verified results.',
-    images: [absoluteUrl('/og-default.jpg')],
+    images: [absoluteUrl('/og-socialpro.png')],
   },
 };
 
@@ -38,7 +38,7 @@ const jsonLd = {
   name: 'SocialPro — Esports Marketing Agency',
   serviceType: 'Esports Marketing Agency',
   inLanguage: 'en',
-  provider: { '@type': 'Organization', name: 'SocialPro', url: SITE_URL },
+  provider: { '@type': 'Organization', '@id': absoluteUrl('/#organization'), name: 'SocialPro', url: SITE_URL },
   foundingDate: '2012',
   areaServed: ['España', 'México', 'Argentina', 'Colombia', 'Chile'],
   description: 'Esports marketing agency operating in Spain and LatAm since 2012. Influencer campaigns, tournament activations and creator management with performance tracking.',

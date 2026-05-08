@@ -1,7 +1,7 @@
-import { gt, lte } from 'drizzle-orm';
+import { gt, lte, and, not, like, or, isNull } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { giveaways } from '@/db/schema';
-import type { CreatorCodeWithTalent, GiveawayWithTalent } from '@/types';
+import type { CreatorCodeWithTalent, GiveawayWithTalent, Talent } from '@/types';
 
 export type BrandOption = {
   readonly name: string;
@@ -16,11 +16,14 @@ export type BrandOption = {
  * @visibility public
  * @returns array de GiveawayWithTalent (puede ser vacío). Nunca null.
  */
+const NO_DEMO = not(like(giveaways.title, '[DEMO]%'));
+
 export async function getAllActiveGiveaways(): Promise<GiveawayWithTalent[]> {
   const rows = await db.query.giveaways.findMany({
-    where: gt(giveaways.endsAt, new Date()),
+    // endsAt null = sin fecha de fin = activo indefinidamente (igual que en perfil de talento)
+    where: and(or(isNull(giveaways.endsAt), gt(giveaways.endsAt, new Date())), NO_DEMO),
     with: { talent: true },
-    orderBy: (g, { asc }) => [asc(g.endsAt)],
+    orderBy: (g, { asc, desc }) => [desc(g.isFeatured), asc(g.sortOrder), asc(g.endsAt)],
   });
   return rows as GiveawayWithTalent[];
 }
@@ -34,7 +37,7 @@ export async function getAllActiveGiveaways(): Promise<GiveawayWithTalent[]> {
  */
 export async function getAllFinishedGiveaways(): Promise<GiveawayWithTalent[]> {
   const rows = await db.query.giveaways.findMany({
-    where: lte(giveaways.endsAt, new Date()),
+    where: and(lte(giveaways.endsAt, new Date()), NO_DEMO),
     with: { talent: true },
     orderBy: (g, { desc }) => [desc(g.endsAt)],
   });
@@ -67,4 +70,27 @@ export function extractUniqueBrands(
   return Array.from(map, ([name, { logo, count }]) => ({ name, logo, count })).sort(
     (a, b) => b.count - a.count,
   );
+}
+
+/**
+ * Extrae creadores únicos de un array de giveaways, con su conteo de sorteos, ordenados por count DESC.
+ *
+ * @cache none
+ * @visibility public
+ */
+export function extractCreators(
+  giveaways: readonly GiveawayWithTalent[],
+): (Talent & { giveawayCount: number })[] {
+  const map = new Map<number, { talent: Talent; count: number }>();
+  for (const g of giveaways) {
+    const existing = map.get(g.talent.id);
+    if (existing) {
+      existing.count += 1;
+    } else {
+      map.set(g.talent.id, { talent: g.talent, count: 1 });
+    }
+  }
+  return Array.from(map.values())
+    .sort((a, b) => b.count - a.count)
+    .map(({ talent, count }) => ({ ...talent, giveawayCount: count }));
 }

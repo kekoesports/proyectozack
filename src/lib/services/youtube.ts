@@ -118,6 +118,89 @@ export type YouTubeChannelPreview = {
   readonly subscriberCount: number;
 }
 
+// ── Live detection ──────────────────────────────────────────────────────
+
+const YouTubeLiveBroadcastSchema = z.object({
+  items: z.array(z.object({
+    id: z.string(),
+    snippet: z.object({ liveBroadcastContent: z.enum(['live', 'upcoming', 'none']) }),
+  })).optional(),
+});
+
+const YouTubeLiveSearchSchema = z.object({
+  items: z.array(z.object({
+    id: z.object({ videoId: z.string() }),
+    snippet: z.object({
+      title: z.string(),
+      thumbnails: z.object({
+        medium: z.object({ url: z.string() }).optional(),
+        high:   z.object({ url: z.string() }).optional(),
+      }).optional(),
+    }),
+  })).optional(),
+});
+
+export type YouTubeLiveResult = {
+  channelId:    string;
+  videoId:      string;
+  title:        string;
+  thumbnailUrl: string;
+};
+
+/**
+ * Detect which YouTube channels are currently live, and return their video IDs for embedding.
+ *
+ * Step 1: channels.list?part=snippet&id=BATCH → 1 quota unit total
+ * Step 2: search.list per live channel → 100 units each (rare — only when live)
+ *
+ * IMPORTANT: if ANY API call fails the caller must NOT update the DB to avoid
+ * false "offline" marks. Throw on error; caller catches and skips.
+ */
+export async function fetchYouTubeLive(channelIds: string[]): Promise<YouTubeLiveResult[]> {
+  if (channelIds.length === 0) return [];
+  const apiKey = requireYoutubeKey();
+
+  // Step 1: batch check which channels are live (1 quota unit)
+  const ids = channelIds.join(',');
+  const checkRes = await fetch(
+    `https://www.googleapis.com/youtube/v3/channels?part=snippet&id=${ids}&key=${apiKey}`
+  );
+  if (!checkRes.ok) {
+    const text = await checkRes.text();
+    throw new Error(`YouTube channels live check error (${checkRes.status}): ${text}`);
+  }
+  const checkData = YouTubeLiveBroadcastSchema.parse(await checkRes.json());
+  const liveChannelIds = (checkData.items ?? [])
+    .filter((i) => i.snippet.liveBroadcastContent === 'live')
+    .map((i) => i.id);
+
+  if (liveChannelIds.length === 0) return [];
+
+  // Step 2: for each live channel, get the video ID via search (100 units each)
+  const results: YouTubeLiveResult[] = [];
+  await Promise.all(
+    liveChannelIds.map(async (channelId) => {
+      const searchRes = await fetch(
+        `https://www.googleapis.com/youtube/v3/search?part=id,snippet&channelId=${channelId}` +
+        `&eventType=live&type=video&maxResults=1&key=${apiKey}`
+      );
+      if (!searchRes.ok) return; // skip this channel if search fails
+      const searchData = YouTubeLiveSearchSchema.parse(await searchRes.json());
+      const item = searchData.items?.[0];
+      if (!item) return;
+      results.push({
+        channelId,
+        videoId:      item.id.videoId,
+        title:        item.snippet.title,
+        thumbnailUrl: item.snippet.thumbnails?.high?.url
+          ?? item.snippet.thumbnails?.medium?.url
+          ?? `https://img.youtube.com/vi/${item.id.videoId}/hqdefault.jpg`,
+      });
+    })
+  );
+  return results;
+}
+
 /**
  * Fetch subscriber counts for multiple YouTube channel IDs.
  * Batches up to 50 IDs per request (YouTube API limit).

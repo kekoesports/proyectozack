@@ -1,4 +1,4 @@
-import { eq, asc } from 'drizzle-orm';
+import { eq, asc, desc } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { creatorCodes } from '@/db/schema';
 import type { CreatorCode, CreatorCodeWithTalent } from '@/types';
@@ -13,7 +13,7 @@ import type { CreatorCode, CreatorCodeWithTalent } from '@/types';
 export async function getAllCodes(): Promise<CreatorCodeWithTalent[]> {
   const rows = await db.query.creatorCodes.findMany({
     with: { talent: true },
-    orderBy: (c, { asc }) => [asc(c.sortOrder)],
+    orderBy: (c, { asc, desc }) => [desc(c.isFeatured), asc(c.sortOrder)],
   });
   return rows as CreatorCodeWithTalent[];
 }
@@ -46,7 +46,7 @@ export async function getCodesByTalent(talentId: number): Promise<CreatorCode[]>
     .select()
     .from(creatorCodes)
     .where(eq(creatorCodes.talentId, talentId))
-    .orderBy(asc(creatorCodes.sortOrder));
+    .orderBy(desc(creatorCodes.isFeatured), asc(creatorCodes.sortOrder));
 }
 
 /**

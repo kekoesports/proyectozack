@@ -1,91 +1,66 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import type { PostWithTalents } from '@/lib/queries/posts';
-import { gradientStyle } from '@/lib/utils/gradient';
+import { readTime, deriveCategory, formatBlogDate } from '@/lib/utils/blog';
+import { CategoryThumbnail } from './CategoryThumbnail';
 
 type BlogCardProps = {
   post: PostWithTalents;
-}
+};
 
 /**
- * Card de un post del blog con thumbnail, título, excerpt y metadatos.
- *
- * @kind server
- * @feature blog
- * @example
- * ```tsx
- * <BlogCard post={post} />
- * ```
+ * Card editorial gaming — texto siempre sobre imagen (overlay).
+ * Funciona con coverUrl real O con CategoryThumbnail (dark, no placeholder blanco).
+ * Una única variante: consistencia visual en todo el grid.
  */
 export function BlogCard({ post }: BlogCardProps) {
-  const avatars = post.talentAvatars.slice(0, 4);
-  const extra   = (post.talentAvatars.length ?? 0) - avatars.length;
+  const category  = deriveCategory(post.slug, post.title);
+  const mins      = readTime(post.bodyMd);
+  const dateLabel = formatBlogDate(post.publishedAt);
 
   return (
-    <Link href={`/blog/${post.slug}`} className="group block">
-
-      {/* Imagen — sin borde exterior, con overflow para el zoom */}
-      <div className="relative aspect-[16/9] rounded-xl overflow-hidden bg-sp-black mb-4">
+    <Link
+      href={`/blog/${post.slug}`}
+      className="group relative block rounded-xl overflow-hidden border border-white/[0.08] hover:border-sp-orange/35 hover:shadow-[0_4px_32px_rgba(245,99,42,0.12)] transition-all duration-300"
+      aria-label={post.title}
+    >
+      <div className="relative aspect-[4/3] overflow-hidden bg-sp-dark">
+        {/* Imagen o fallback editorial (nunca fondo blanco vacío) */}
         {post.coverUrl ? (
           <Image
             src={post.coverUrl}
             alt={post.title}
             fill
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-            className="object-cover transition-transform duration-500 group-hover:scale-105"
+            className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
           />
         ) : (
-          <div className="absolute inset-0 bg-gradient-to-br from-sp-dark to-sp-black" />
+          <CategoryThumbnail category={category} title={post.title} />
         )}
 
-        {/* Gradient overlay bottom para legibilidad de avatares */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+        {/* Overlay cinemático: texto siempre legible */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/[0.93] via-black/45 to-black/10" />
 
-        {/* Avatares de talentos */}
-        {avatars.length > 0 && (
-          <div className="absolute bottom-3 left-3 flex items-center">
-            {avatars.map((t, i) => (
-              <div
-                key={t.slug}
-                className="relative w-7 h-7 rounded-full border-2 border-white/70 overflow-hidden flex-shrink-0"
-                style={{ marginLeft: i === 0 ? 0 : -8, zIndex: avatars.length - i, background: gradientStyle(t.gradientC1, t.gradientC2) }}
-              >
-                {t.photoUrl ? (
-                  <Image src={t.photoUrl} alt={t.name} fill sizes="28px" className="object-cover object-top" />
-                ) : (
-                  <span className="absolute inset-0 flex items-center justify-center text-[8px] font-black text-white">
-                    {t.initials}
-                  </span>
-                )}
-              </div>
-            ))}
-            {extra > 0 && (
-              <div
-                className="relative w-7 h-7 rounded-full border-2 border-white/70 bg-sp-dark flex items-center justify-center flex-shrink-0 text-[8px] font-black text-white"
-                style={{ marginLeft: -8, zIndex: 0 }}
-              >
-                +{extra}
-              </div>
-            )}
+        {/* Category pill */}
+        <div className="absolute top-3 left-3">
+          <span className={`inline-flex px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-[0.12em] border backdrop-blur-sm ${category.bg} ${category.text} ${category.border}`}>
+            {category.label}
+          </span>
+        </div>
+
+        {/* Contenido superpuesto */}
+        <div className="absolute bottom-0 left-0 right-0 p-4">
+          <h2 className="font-display text-sm sm:text-base font-black uppercase text-white leading-tight mb-2 line-clamp-2 group-hover:text-sp-orange/90 transition-colors duration-200">
+            {post.title}
+          </h2>
+          <div className="flex items-center gap-1.5 text-[9px] text-white/35">
+            {dateLabel && <time dateTime={post.publishedAt?.toISOString()}>{dateLabel}</time>}
+            {mins > 0 && <><span>·</span><span>{mins} min</span></>}
+            <span className="ml-auto text-[9px] font-bold text-sp-orange/70 group-hover:text-sp-orange transition-colors">
+              Leer →
+            </span>
           </div>
-        )}
-      </div>
-
-      {/* Texto */}
-      <div className="px-1">
-        {post.publishedAt && (
-          <time dateTime={post.publishedAt.toISOString()} className="text-xs text-sp-muted tracking-wide">
-            {new Date(post.publishedAt).toLocaleDateString('es-ES', {
-              year: 'numeric', month: 'long', day: 'numeric',
-            })}
-          </time>
-        )}
-        <h2 className="font-display text-xl font-black uppercase text-sp-dark leading-tight mt-1 mb-3 line-clamp-2 group-hover:text-sp-orange transition-colors duration-200">
-          {post.title}
-        </h2>
-        <span className="text-xs font-semibold text-sp-orange tracking-wide">
-          Leer artículo →
-        </span>
+        </div>
       </div>
     </Link>
   );

@@ -1,7 +1,7 @@
 import { desc, sql, eq } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { giveawayWinners } from '@/db/schema';
-import type { GiveawayWinnerWithGiveaway } from '@/types';
+import type { GiveawayWinnerWithGiveaway, GiveawayWinnerFull } from '@/types';
 
 /**
  * Últimos ganadores con su sorteo asociado, ordenados por wonAt DESC, para el hub público de sorteos.
@@ -10,13 +10,27 @@ import type { GiveawayWinnerWithGiveaway } from '@/types';
  * @visibility public
  * @returns array de GiveawayWinnerWithGiveaway (puede ser vacío). Nunca null.
  */
-export async function getRecentWinners(limit = 10): Promise<GiveawayWinnerWithGiveaway[]> {
+export async function getRecentWinners(limit = 10): Promise<GiveawayWinnerFull[]> {
   const rows = await db.query.giveawayWinners.findMany({
-    with: { giveaway: true },
+    with: { giveaway: { with: { talent: true } } },
     orderBy: (w, { desc }) => [desc(w.wonAt)],
     limit,
   });
-  return rows as GiveawayWinnerWithGiveaway[];
+  return rows as unknown as GiveawayWinnerFull[];
+}
+
+/**
+ * Ganadores de un creador concreto, por talentId, para el perfil público.
+ */
+export async function getWinnersByTalent(talentId: number, limit = 5): Promise<GiveawayWinnerFull[]> {
+  const rows = await db.query.giveawayWinners.findMany({
+    with: { giveaway: { with: { talent: true } } },
+    where: (_w, { sql }) =>
+      sql`${giveawayWinners.giveawayId} IN (SELECT id FROM giveaways WHERE talent_id = ${talentId})`,
+    orderBy: (w, { desc }) => [desc(w.wonAt)],
+    limit,
+  });
+  return rows as unknown as GiveawayWinnerFull[];
 }
 
 /**

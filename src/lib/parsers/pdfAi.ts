@@ -4,6 +4,7 @@
 
 import { z } from 'zod';
 import { logRedacted } from '@/lib/log';
+import { env } from '@/lib/env';
 import type { InvoiceDraft } from '@/lib/schemas/invoiceDraft';
 
 // SocialPro issuer identifiers — if any match → kind = "income".
@@ -291,7 +292,7 @@ export type PdfAiResult = {
 export async function extractInvoiceWithClaude(
   pdfBuffer: ArrayBuffer,
 ): Promise<PdfAiResult> {
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = env.GEMINI_API_KEY;
   logRedacted('info', '[pdf-ai] DIAG-1 api key present:', apiKey ? 'YES' : 'NO');
 
   if (!apiKey) {
@@ -305,7 +306,7 @@ export async function extractInvoiceWithClaude(
   logRedacted('info', '[pdf-ai] DIAG-2 pdf buffer bytes:', String(pdfBuffer.byteLength));
 
   const { GoogleGenerativeAI } = await import('@google/generative-ai');
-  const modelName = process.env.GEMINI_MODEL ?? 'gemini-2.0-flash';
+  const modelName = env.GEMINI_MODEL ?? 'gemini-2.0-flash';
   logRedacted('info', '[pdf-ai] DIAG-3 model:', modelName);
   const genAI = new GoogleGenerativeAI(apiKey);
   const model = genAI.getGenerativeModel({ model: modelName });

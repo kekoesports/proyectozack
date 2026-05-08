@@ -141,9 +141,7 @@ export function AddTalentModal({ onClose }: Props): React.ReactElement {
     });
   };
 
-  const availableSecondaryPlatforms = PLATFORMS.filter((p) =>
-    p.id !== mainPlatform && !secondaries.some((s) => s.platform === p.id)
-  );
+  const availableSecondaryPlatforms = PLATFORMS.filter((p) => p.id !== mainPlatform);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" onClick={onClose}>

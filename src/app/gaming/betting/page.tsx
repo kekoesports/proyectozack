@@ -18,14 +18,14 @@ export const metadata: Metadata = {
       'Streamers verificados para casas de apuestas y casinos online. FTD tracking, compliance DGOJ y activación en <72h en España y LatAm.',
     url: absoluteUrl('/gaming/betting'),
     type: 'website',
-    images: [{ url: absoluteUrl('/og-default.jpg'), width: 1200, height: 630 }],
+    images: [{ url: absoluteUrl('/og-socialpro.png'), width: 1200, height: 630 }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Betting Influencers & Casino Streamers | SocialPro',
     description:
       'Betting influencers y casino streamers verificados. FTD tracking y compliance DGOJ en España y LatAm.',
-    images: [absoluteUrl('/og-default.jpg')],
+    images: [absoluteUrl('/og-socialpro.png')],
   },
 };
 

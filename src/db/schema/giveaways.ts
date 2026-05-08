@@ -1,4 +1,4 @@
-import { pgTable, serial, integer, varchar, text, timestamp, index } from 'drizzle-orm/pg-core';
+import { pgTable, serial, integer, varchar, text, timestamp, index, boolean } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 import { talents } from './talents';
 
@@ -14,6 +14,8 @@ export const giveaways = pgTable('giveaways', {
   redirectUrl: text('redirect_url').notNull(),
   startsAt: timestamp('starts_at', { withTimezone: true }).notNull(),
   endsAt: timestamp('ends_at', { withTimezone: true }),
+  isFeatured: boolean('is_featured').notNull().default(false),
+  badge: varchar('badge', { length: 50 }),
   sortOrder: integer('sort_order').notNull().default(0),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),

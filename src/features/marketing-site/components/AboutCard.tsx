@@ -13,28 +13,25 @@ type AboutCardItem = {
 
 type AboutCardProps = {
   readonly item: AboutCardItem;
+  readonly dark?: boolean;
 };
 
-/**
- * Tarjeta individual del bloque "Sobre SocialPro" con label en gradient y
- * subtítulo. Hover sutil con motion (translate Y).
- *
- * @kind client
- * @feature marketing-site
- * @example
- * ```tsx
- * <AboutCard item={{ label: '13+', sub: 'Años en gaming' }} />
- * ```
- */
-export function AboutCard({ item }: AboutCardProps): React.ReactElement {
+export function AboutCard({ item, dark = false }: AboutCardProps): React.ReactElement {
   return (
     <m.div
       whileHover={{ y: -4 }}
       transition={{ duration: DURATION.fast, ease: EASE.out }}
-      className="rounded-2xl bg-sp-off border border-sp-border p-5"
+      className={
+        dark
+          ? 'rounded-2xl bg-sp-dark border border-white/10 p-5 relative overflow-hidden'
+          : 'rounded-2xl bg-sp-off border border-sp-border p-5'
+      }
     >
+      {dark && (
+        <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-sp-orange to-sp-purple" />
+      )}
       <div className="font-display text-2xl font-black gradient-text">{item.label}</div>
-      <div className="text-xs text-sp-muted mt-1">{item.sub}</div>
+      <div className={`text-xs mt-1 ${dark ? 'text-white/40' : 'text-sp-muted'}`}>{item.sub}</div>
     </m.div>
   );
 }

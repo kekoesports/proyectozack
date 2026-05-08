@@ -17,14 +17,14 @@ export const metadata: Metadata = {
     description:
       '¿Eres streamer gaming? Únete al roster de SocialPro y consigue patrocinios reales de iGaming, hardware y esports en España y LatAm.',
     url: absoluteUrl('/para-creadores'),
-    images: [{ url: absoluteUrl('/og-default.jpg'), width: 1200, height: 630 }],
+    images: [{ url: absoluteUrl('/og-socialpro.png'), width: 1200, height: 630 }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Gestión y Patrocinios para Streamers | SocialPro',
     description:
       '¿Eres streamer gaming? Únete al roster de SocialPro y consigue patrocinios reales de iGaming y hardware.',
-    images: [absoluteUrl('/og-default.jpg')],
+    images: [absoluteUrl('/og-socialpro.png')],
   },
 };
 
@@ -55,8 +55,16 @@ const BENEFITS = [
   'Acceso a marcas premium de iGaming, periféricos y lifestyle',
   'Negociación profesional — nosotros cerramos los acuerdos',
   'Soporte en YouTube management y producción de contenido',
-  'Red de +13 creadores para collabs y networking',
+  'Red de +100 creadores para collabs y networking en España y LATAM',
   'Compliance y protección legal en campañas iGaming',
+];
+
+const LATAM_MARKETS = [
+  { flag: '🇲🇽', country: 'México',    desc: 'Mayor mercado gaming LATAM' },
+  { flag: '🇦🇷', country: 'Argentina', desc: 'Escena CS2 muy activa' },
+  { flag: '🇨🇴', country: 'Colombia',  desc: 'iGaming en expansión' },
+  { flag: '🇨🇱', country: 'Chile',     desc: 'Alta penetración digital' },
+  { flag: '🇵🇪', country: 'Perú',      desc: 'Mercado emergente gaming' },
 ];
 
 export default function ParaCreadoresPage() {
@@ -109,13 +117,47 @@ export default function ParaCreadoresPage() {
         </div>
       </section>
 
+      {/* ── LATAM ── */}
+      <section className="bg-sp-black py-16 md:py-20">
+        <div className="max-w-4xl mx-auto px-6">
+          <SectionTag>¿Eres de LATAM?</SectionTag>
+          <SectionHeading className="text-white">
+            Gestionamos creadores en <GradientText>México, Argentina, Colombia y más</GradientText>
+          </SectionHeading>
+          <p className="text-white/60 mt-4 mb-10 max-w-2xl leading-relaxed">
+            SocialPro tiene presencia activa en LATAM. Nuestro manager dedicado
+            gestiona deals en euros y dólares para creadores de CS2, iGaming y gaming general.
+            Si estás en España o LATAM, el proceso de aplicación es el mismo.
+          </p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 mb-10">
+            {LATAM_MARKETS.map(({ flag, country, desc }) => (
+              <div key={country} className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-4 text-center">
+                <div className="text-3xl mb-2">{flag}</div>
+                <div className="font-bold text-white text-sm mb-1">{country}</div>
+                <div className="text-[11px] text-white/40 leading-snug">{desc}</div>
+              </div>
+            ))}
+          </div>
+          <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+            <div className="flex-1">
+              <p className="font-bold text-white mb-1">Deals internacionales en euros y dólares</p>
+              <p className="text-sm text-white/50">Hemos cerrado campañas con 1WIN, SkinsMonkey y RAZER para creadores en México, Argentina y Colombia.</p>
+            </div>
+            <a href="#aplica" className="shrink-0 px-6 py-3 rounded-full text-sm font-bold text-white uppercase tracking-wider bg-sp-grad hover:opacity-90 transition-opacity">
+              Aplica desde LATAM →
+            </a>
+          </div>
+        </div>
+      </section>
+
       {/* ── Apply Form ── */}
-      <section className="bg-white py-16 md:py-20">
+      <section id="aplica" className="bg-white py-16 md:py-20">
         <div className="max-w-2xl mx-auto px-6">
           <SectionTag>Aplica ahora</SectionTag>
           <SectionHeading>Únete al roster</SectionHeading>
           <p className="text-sp-muted mt-3 mb-8">
             Completa el formulario y nuestro equipo se pondrá en contacto contigo en 48 horas.
+            Abierto a creadores de España y toda LATAM.
           </p>
           <CreatorApplyForm />
         </div>

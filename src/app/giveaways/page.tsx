@@ -4,24 +4,45 @@ import Link from 'next/link';
 import { getAllActiveGiveaways, getAllFinishedGiveaways, extractUniqueBrands } from '@/lib/queries/giveawaysHub';
 import { getAllCodes, getFeaturedCodes } from '@/lib/queries/creatorCodes';
 import { getAllTalents } from '@/lib/queries/talents';
+import { getRecentWinners } from '@/lib/queries/giveawayWinners';
+import { WinnersList } from '@/features/giveaways/components/WinnersList';
 import { GiveawaysHub } from '@/features/giveaways/components/GiveawaysHub';
+import { generateGiveawayListSchema, generateCodeListSchema } from '@/lib/schema';
+import { SITE_URL, absoluteUrl } from '@/lib/site-url';
+import { ResponsibleGamingFooter } from '@/components/ui/ResponsibleGamingFooter';
 
 export const metadata: Metadata = {
   title: 'Códigos y Recompensas Gaming — SocialPro',
   description:
     'Todos los códigos activos de tus creadores favoritos de casino, apuestas y CS2. Sorteos y recompensas exclusivas.',
   alternates: { canonical: '/giveaways' },
+  openGraph: {
+    title: 'Códigos y Sorteos Gaming — SocialPro',
+    description: 'Códigos activos, sorteos en vivo y recompensas exclusivas de los mejores creadores de CS2, casino e iGaming.',
+    url: absoluteUrl('/giveaways'),
+    siteName: 'SocialPro',
+    locale: 'es_ES',
+    type: 'website',
+    images: [{ url: absoluteUrl('/og-socialpro.png'), width: 1200, height: 630, alt: 'SocialPro — Códigos y Sorteos Gaming' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Códigos y Sorteos Gaming — SocialPro',
+    description: 'Códigos activos, sorteos en vivo y recompensas exclusivas de los mejores creadores de CS2, casino e iGaming.',
+    images: [absoluteUrl('/og-socialpro.png')],
+  },
 };
 
 export const revalidate = 3600;
 
 export default async function GiveawaysPage(): Promise<React.JSX.Element> {
-  const [active, finished, codes, featuredCodes, talents] = await Promise.all([
+  const [active, finished, codes, featuredCodes, talents, recentWinners] = await Promise.all([
     getAllActiveGiveaways(),
     getAllFinishedGiveaways(),
     getAllCodes(),
     getFeaturedCodes(),
     getAllTalents(),
+    getRecentWinners(6),
   ]);
 
   const allGiveaways = [...active, ...finished];
@@ -44,8 +65,21 @@ export default async function GiveawaysPage(): Promise<React.JSX.Element> {
       giveawayCount: giveawayCountMap.get(t.id) ?? 0,
     }));
 
+  const eventListSchema = active.length > 0
+    ? generateGiveawayListSchema(active, SITE_URL, 'Sorteos activos en SocialPro')
+    : null;
+  const offerListSchema = codes.length > 0
+    ? generateCodeListSchema(codes, SITE_URL, 'Códigos activos en SocialPro')
+    : null;
+
   return (
     <>
+      {eventListSchema && (
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(eventListSchema) }} />
+      )}
+      {offerListSchema && (
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(offerListSchema) }} />
+      )}
       <h1 className="sr-only">Códigos y Recompensas Gaming — SocialPro</h1>
 
       {/* Live ticker */}
@@ -142,12 +176,28 @@ export default async function GiveawaysPage(): Promise<React.JSX.Element> {
         brands={brands}
       />
 
+      {/* Widget últimos ganadores */}
+      {recentWinners.length > 0 && (
+        <section className="max-w-4xl mx-auto px-6 py-12 border-t border-white/[0.04]">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="font-display text-xl font-black uppercase text-white tracking-tight">
+              Últimos ganadores
+            </h2>
+            <Link href="/ganadores" className="text-[10px] font-bold text-white/30 hover:text-white/60 uppercase tracking-widest transition-colors">
+              Ver todos →
+            </Link>
+          </div>
+          <WinnersList winners={recentWinners} variant="compact" />
+        </section>
+      )}
+
       {/* Footer */}
-      <div className="border-t border-white/[0.04] py-6 text-center">
+      <div className="border-t border-white/[0.04] py-4 text-center">
         <p className="text-[10px] uppercase tracking-[0.3em] text-white/15 font-bold">
           Powered by SocialPro
         </p>
       </div>
+      <ResponsibleGamingFooter />
     </>
   );
 }

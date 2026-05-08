@@ -45,6 +45,9 @@ type Props = {
  * Toggle EN/ES. Solo se renderiza si la ruta actual tiene un equivalente
  * declarado en PAIRS. Si no hay equivalente, retorna null (no mostramos
  * un fallback genérico que mande al visitante a una landing aleatoria).
+ *
+ * Muestra "ES · EN" con el idioma actual resaltado y el destino tenue.
+ * Clickar navega al equivalente en el otro idioma.
  */
 export function LangSwitch({ className, onNavigate }: Props): React.JSX.Element | null {
   const pathname = usePathname() ?? '/';
@@ -52,6 +55,7 @@ export function LangSwitch({ className, onNavigate }: Props): React.JSX.Element 
 
   if (!pair) return null;
 
+  const currentLang = pair.targetLang === 'EN' ? 'ES' : 'EN';
   const ariaLabel = pair.targetLang === 'EN' ? 'Switch to English' : 'Cambiar a español';
 
   return (
@@ -62,15 +66,17 @@ export function LangSwitch({ className, onNavigate }: Props): React.JSX.Element 
       {...(onNavigate ? { onClick: onNavigate } : {})}
       className={
         className ??
-        'inline-flex items-center gap-1 px-3 py-1.5 text-[11px] font-bold uppercase tracking-widest text-white/60 hover:text-white border border-white/15 hover:border-white/40 rounded-full transition-colors'
+        'inline-flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold uppercase tracking-widest border border-white/15 hover:border-white/40 rounded-full transition-colors group'
       }
     >
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" className="text-white/40 group-hover:text-white/60 transition-colors">
         <circle cx="12" cy="12" r="10" />
         <path d="M2 12h20" />
         <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
       </svg>
-      {pair.targetLang}
+      <span className="text-white">{currentLang}</span>
+      <span className="text-white/25">·</span>
+      <span className="text-white/40 group-hover:text-white/70 transition-colors">{pair.targetLang}</span>
     </Link>
   );
 }

@@ -116,3 +116,28 @@ export const CreateGiveawayFormSchema = z
     path: ['endsAt'],
   });
 export type CreateGiveawayFormInput = z.infer<typeof CreateGiveawayFormSchema>;
+
+export const UpdateGiveawayFormSchema = z
+  .object({
+    id: IdSchema,
+    talentId: IdSchema,
+    talentSlug: emptyStringToUndef(z.string().max(150)),
+    title: z.string().trim().min(1, 'Título obligatorio').max(200),
+    description: emptyStringToUndef(z.string().max(500)),
+    imageUrl: emptyStringToUndef(z.url().max(500)),
+    brandName: z.string().trim().min(1, 'Marca obligatoria').max(150),
+    brandLogo: emptyStringToUndef(z.url().max(500)),
+    value: emptyStringToUndef(z.string().max(50)),
+    redirectUrl: safeRedirectUrl(),
+    startsAt: z.coerce.date(),
+    endsAt: z.preprocess(
+      (v) => (typeof v === 'string' && v.trim() === '' ? undefined : v),
+      z.coerce.date().optional(),
+    ),
+    sortOrder: z.coerce.number().int().default(0),
+  })
+  .refine((d) => !d.endsAt || d.startsAt < d.endsAt, {
+    message: 'La fecha de fin debe ser posterior al inicio',
+    path: ['endsAt'],
+  });
+export type UpdateGiveawayFormInput = z.infer<typeof UpdateGiveawayFormSchema>;

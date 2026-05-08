@@ -62,6 +62,18 @@ export default function robots(): MetadataRoute.Robots {
         allow: '/',
       },
 
+      // ─── Bing y Microsoft ─────────────────────────────────────────────
+      {
+        userAgent: 'Bingbot',
+        allow: '/',
+        disallow: ['/api/', '/admin/', '/auth/'],
+      },
+      {
+        userAgent: 'MSNBot',
+        allow: '/',
+        disallow: ['/api/', '/admin/', '/auth/'],
+      },
+
       // ─── Scrapers agresivos — bloquear completamente ──────────────────
       {
         userAgent: 'CCBot',

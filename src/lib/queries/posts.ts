@@ -1,5 +1,5 @@
 import { cache } from 'react';
-import { eq, desc, inArray } from 'drizzle-orm';
+import { eq, desc, inArray, and, ne } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { posts, talents } from '@/db/schema';
 import type { Post } from '@/types';
@@ -69,3 +69,12 @@ export const getPostBySlug = cache(async (slug: string): Promise<PostWithTalents
   const [enriched] = await attachTalents([row]);
   return enriched;
 });
+
+export async function getRelatedPosts(currentSlug: string, limit = 3): Promise<PostWithTalents[]> {
+  const rows = await db.query.posts.findMany({
+    where: and(eq(posts.status, 'published'), ne(posts.slug, currentSlug)),
+    orderBy: [desc(posts.sortOrder), desc(posts.publishedAt)],
+    limit,
+  });
+  return attachTalents(rows);
+}

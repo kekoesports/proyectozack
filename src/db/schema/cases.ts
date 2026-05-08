@@ -15,6 +15,12 @@ export const caseStudies = pgTable('case_studies', {
   roiMultiplier: varchar('roi_multiplier', { length: 20 }),
   heroImageUrl: varchar('hero_image_url', { length: 500 }),
   excerpt: text('excerpt'),
+  // GEO REC-05: campos para caso de estudio en profundidad
+  spokespersonQuote: text('spokesperson_quote'),
+  spokespersonName: varchar('spokesperson_name', { length: 200 }),
+  spokespersonRole: varchar('spokesperson_role', { length: 200 }),
+  campaignPeriod: varchar('campaign_period', { length: 100 }),
+  keyTakeaways: text('key_takeaways'), // almacenado como líneas separadas por \n
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
 }, (t) => [
   index('case_studies_slug_idx').on(t.slug),

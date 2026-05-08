@@ -4,8 +4,10 @@ import { getAllGiveaways } from '@/lib/queries/giveaways';
 import { getAllTalents } from '@/lib/queries/talents';
 import { getAllCodes } from '@/lib/queries/creatorCodes';
 import { getAllWinners } from '@/lib/queries/giveawayWinners';
-import { deleteGiveawayAction } from './actions';
+import { deleteGiveawayAction, deleteAllDemosAction, setGiveawayFeaturedAction, setGiveawayBadgeAction, setGiveawayBadgeFromFormAction } from './actions';
 import { deleteWinnerAction } from './winners-actions';
+import { DeleteConfirmButton } from './DeleteConfirmButton';
+import { EditGiveawayModal } from './EditGiveawayModal';
 import { CreateGiveawayForm } from './CreateGiveawayForm';
 import { CreateCodeForm } from './CreateCodeForm';
 import { CreateWinnerForm } from './CreateWinnerForm';
@@ -69,6 +71,20 @@ export default async function AdminGiveawaysPage({ searchParams }: PageProps): P
         <CreateGiveawayForm talents={allTalents} />
       </div>
 
+      {/* Bulk delete demos */}
+      {allGiveaways.some((g) => g.title.startsWith('[DEMO]')) && (
+        <div className="flex items-center gap-3 rounded-lg bg-amber-500/10 border border-amber-500/20 px-4 py-2.5 mb-4">
+          <span className="text-xs font-bold text-amber-400">
+            Hay sorteos [DEMO] visibles en el admin. No aparecen en la web pública.
+          </span>
+          <form action={deleteAllDemosAction} className="ml-auto">
+            <button type="submit" className="px-3 py-1 rounded bg-amber-500/20 text-amber-300 text-xs font-black hover:bg-amber-500/30 transition-colors">
+              Eliminar todos los demos
+            </button>
+          </form>
+        </div>
+      )}
+
       {/* List */}
       {giveaways.length === 0 ? (
         <p className="text-sm text-sp-admin-muted">No hay giveaways. Crea el primero.</p>
@@ -83,13 +99,15 @@ export default async function AdminGiveawaysPage({ searchParams }: PageProps): P
                 <th className="text-left px-6 py-3 font-semibold text-sp-admin-muted text-[11px] uppercase tracking-wider">Marca</th>
                 <th className="text-left px-6 py-3 font-semibold text-sp-admin-muted text-[11px] uppercase tracking-wider">Valor</th>
                 <th className="text-left px-6 py-3 font-semibold text-sp-admin-muted text-[11px] uppercase tracking-wider">Estado</th>
+                <th className="text-center px-4 py-3 font-semibold text-sp-admin-muted text-[11px] uppercase tracking-wider">Destacado</th>
+                <th className="text-left px-4 py-3 font-semibold text-sp-admin-muted text-[11px] uppercase tracking-wider">Badge</th>
                 <th className="text-left px-6 py-3 font-semibold text-sp-admin-muted text-[11px] uppercase tracking-wider">Fin</th>
                 <th className="text-left px-6 py-3 font-semibold text-sp-admin-muted text-[11px] uppercase tracking-wider">Acciones</th>
               </tr>
             </thead>
             <tbody>
               {giveaways.map((g) => (
-                <tr key={g.id} className="border-b border-sp-admin-border/50 last:border-0 hover:bg-sp-admin-hover transition-colors">
+                <tr key={g.id} className={`border-b border-sp-admin-border/50 last:border-0 hover:bg-sp-admin-hover transition-colors ${g.title.startsWith('[DEMO]') ? 'bg-amber-500/5' : ''}`}>
                   <td className="px-6 py-4">
                     {g.imageUrl ? (
                       <Image src={g.imageUrl} alt={g.title} width={48} height={36} className="rounded object-contain bg-sp-admin-bg" />
@@ -108,17 +126,52 @@ export default async function AdminGiveawaysPage({ searchParams }: PageProps): P
                       {isActive(g.endsAt) ? 'Activo' : 'Finalizado'}
                     </span>
                   </td>
+                  {/* Toggle destacado */}
+                  <td className="px-4 py-4 text-center">
+                    <form action={setGiveawayFeaturedAction.bind(null, g.id, !g.isFeatured)}>
+                      <button type="submit" title={g.isFeatured ? 'Quitar destacado' : 'Marcar como destacado'}>
+                        <div className={`w-8 h-4 rounded-full relative transition-colors mx-auto ${g.isFeatured ? 'bg-sp-orange' : 'bg-sp-admin-border'}`}>
+                          <span className={`absolute top-0.5 w-3 h-3 rounded-full bg-white shadow transition-all ${g.isFeatured ? 'left-4' : 'left-0.5'}`} />
+                        </div>
+                      </button>
+                    </form>
+                  </td>
+                  {/* Badge */}
+                  <td className="px-4 py-4">
+                    {g.badge ? (
+                      <form action={setGiveawayBadgeAction.bind(null, g.id, null)} className="flex items-center gap-1.5">
+                        <span className="inline-flex px-2 py-0.5 rounded-full text-[10px] font-black bg-sp-orange/15 text-sp-orange border border-sp-orange/30">
+                          {g.badge}
+                        </span>
+                        <button type="submit" className="text-[10px] text-sp-admin-muted hover:text-red-400 transition-colors" title="Quitar badge">✕</button>
+                      </form>
+                    ) : (
+                      <form action={setGiveawayBadgeFromFormAction} className="flex items-center gap-1">
+                        <input type="hidden" name="giveawayId" value={g.id} />
+                        <select name="badge" defaultValue="" className="h-7 rounded-md border border-sp-admin-border bg-sp-admin-card px-2 text-[11px] text-sp-admin-muted outline-none">
+                          <option value="" disabled>+ badge</option>
+                          <option value="HOT">HOT</option>
+                          <option value="NUEVO">NUEVO</option>
+                          <option value="EXCLUSIVO">EXCLUSIVO</option>
+                          <option value="TOP">TOP</option>
+                          <option value="LIMITED">LIMITED</option>
+                        </select>
+                        <button type="submit" className="text-[10px] font-bold text-sp-admin-accent hover:underline">✓</button>
+                      </form>
+                    )}
+                  </td>
                   <td className="px-6 py-4 text-sp-admin-muted">
                     {g.endsAt ? new Date(g.endsAt).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'}
                   </td>
                   <td className="px-6 py-4">
-                    <form action={deleteGiveawayAction}>
-                      <input type="hidden" name="id" value={g.id} />
-                      <input type="hidden" name="talentSlug" value={g.talent.slug} />
-                      <button type="submit" className="text-red-400 hover:text-red-300 text-xs font-bold">
-                        Eliminar
-                      </button>
-                    </form>
+                    <div className="flex items-center gap-3">
+                      <EditGiveawayModal giveaway={g} />
+                      <DeleteConfirmButton
+                        action={deleteGiveawayAction}
+                        fields={{ id: g.id, talentSlug: g.talent.slug }}
+                        label={g.title.slice(0, 30)}
+                      />
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -170,10 +223,11 @@ export default async function AdminGiveawaysPage({ searchParams }: PageProps): P
                   <td className="px-6 py-4 text-sp-admin-muted">{w.giveaway.title}</td>
                   <td className="px-6 py-4 text-sp-admin-muted">{new Date(w.wonAt).toLocaleDateString('es-ES')}</td>
                   <td className="px-6 py-4">
-                    <form action={deleteWinnerAction}>
-                      <input type="hidden" name="id" value={w.id} />
-                      <button type="submit" className="text-red-400 hover:text-red-300 text-xs font-bold">Eliminar</button>
-                    </form>
+                    <DeleteConfirmButton
+                      action={deleteWinnerAction}
+                      fields={{ id: w.id }}
+                      label={w.winnerName}
+                    />
                   </td>
                 </tr>
               ))}

@@ -1,4 +1,4 @@
-import { eq, gt, isNull, lte, or, desc, asc, and, isNotNull } from 'drizzle-orm';
+import { eq, gt, isNull, lte, or, desc, asc, and, isNotNull, not, like, sql } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { giveaways } from '@/db/schema';
 import type { Giveaway, GiveawayWithTalent } from '@/types';
@@ -17,8 +17,8 @@ export async function getActiveGiveaways(talentId: number): Promise<Giveaway[]> 
     .where(
       and(
         eq(giveaways.talentId, talentId),
-        // Sin fecha fin = siempre activo; con fecha = activo si aún no ha pasado
         or(isNull(giveaways.endsAt), gt(giveaways.endsAt, new Date())),
+        not(like(giveaways.title, '[DEMO]%')), // ocultar demos en público
       ),
     )
     .orderBy(asc(giveaways.endsAt));
@@ -40,6 +40,7 @@ export async function getFinishedGiveaways(talentId: number): Promise<Giveaway[]
         eq(giveaways.talentId, talentId),
         isNotNull(giveaways.endsAt),
         lte(giveaways.endsAt, new Date()),
+        not(like(giveaways.title, '[DEMO]%')), // ocultar demos en público
       ),
     )
     .orderBy(desc(giveaways.endsAt));

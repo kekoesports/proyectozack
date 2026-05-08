@@ -21,13 +21,13 @@ export const metadata: Metadata = {
     description: 'Streamers Valorant verificados en España y LatAm. Campañas orientadas a resultados con audiencias reales y métricas verificadas.',
     url: absoluteUrl('/agencia-influencers-valorant'),
     type: 'website',
-    images: [{ url: absoluteUrl('/og-default.jpg'), width: 1200, height: 630 }],
+    images: [{ url: absoluteUrl('/og-socialpro.png'), width: 1200, height: 630 }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Agencia Influencers Valorant | SocialPro',
     description: 'Streamers Valorant en España y LatAm. Audiencias verificadas, resultados medibles.',
-    images: [absoluteUrl('/og-default.jpg')],
+    images: [absoluteUrl('/og-socialpro.png')],
   },
 };
 
@@ -39,7 +39,7 @@ const jsonLd = {
   name: 'Agencia de Influencers Valorant España y LatAm',
   serviceType: 'Valorant Influencer Marketing',
   inLanguage: 'es',
-  provider: { '@type': 'Organization', name: 'SocialPro', url: SITE_URL },
+  provider: { '@type': 'Organization', '@id': absoluteUrl('/#organization'), name: 'SocialPro', url: SITE_URL },
   areaServed: ['España', 'México', 'Argentina', 'Colombia', 'Chile'],
   description: 'Campañas con influencers Valorant verificados en España y LatAm. Audiencias reales, contenido brand-safe y métricas de rendimiento verificadas.',
 };

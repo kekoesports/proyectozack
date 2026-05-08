@@ -58,31 +58,14 @@ const PROCESS_STEPS = [
 ];
 
 const ADVANTAGES = [
-  {
-    title: 'Gaming nativo',
-    desc: 'Especialización exclusiva en gaming, esports e iGaming. No somos generalistas.',
-  },
-  {
-    title: 'Activación < 72h',
-    desc: 'De briefing a campaña en marcha en menos de tres días.',
-  },
-  {
-    title: 'Conversiones reales',
-    desc: 'Tracking end-to-end de cada click, signup y depósito. Sin métricas vanidosas.',
-  },
-  {
-    title: 'Normativa iGaming',
-    desc: 'Conocimiento regulatorio en España, LatAm y Europa. Campañas que cumplen desde el día uno.',
-  },
-  {
-    title: 'Red exclusiva',
-    desc: '+15 talentos cualificados con audiencias verificadas y engagement real.',
-  },
-  {
-    title: 'España, LatAm y Europa',
-    desc: 'Presencia activa en España, Latinoamérica y mercados europeos con equipos locales.',
-  },
+  { title: 'Gaming nativo',       desc: 'Especialización exclusiva en gaming, esports e iGaming. No somos generalistas.' },
+  { title: 'Activación < 72h',    desc: 'De briefing a campaña en marcha en menos de tres días.' },
+  { title: 'Conversiones reales', desc: 'Tracking end-to-end de cada click, signup y depósito. Sin métricas vanidosas.' },
+  { title: 'Normativa iGaming',   desc: 'Conocimiento regulatorio en España, LatAm y Europa. Campañas que cumplen desde el día uno.' },
+  { title: 'Red exclusiva',       desc: '+15 talentos cualificados con audiencias verificadas y engagement real.' },
+  { title: 'España, LatAm y Europa', desc: 'Presencia activa en España, Latinoamérica y mercados europeos con equipos locales.' },
 ];
+
 
 /**
  * Sección con tabs (Marca / Creador) que alterna entre dos flujos de servicio.
@@ -102,7 +85,7 @@ export function ServicesSection() {
   if (!current) return null;
 
   return (
-    <section id="servicios" className="py-24 bg-white">
+    <section id="servicios" className="py-16 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <FadeInOnScroll>
           <div className="text-center mb-12">
@@ -173,9 +156,9 @@ export function ServicesSection() {
           </div>
         </FadeInOnScroll>
 
-        {/* Advantages — replaces comparison table */}
+        {/* ¿Por qué SocialPro? */}
         <FadeInOnScroll>
-          <h3 className="font-display text-xl font-black uppercase text-sp-dark text-center mb-8">
+          <h3 className="font-display text-xl font-black uppercase text-sp-dark text-center mb-8 mt-12">
             ¿Por qué <GradientText>SocialPro</GradientText>?
           </h3>
         </FadeInOnScroll>
@@ -183,18 +166,14 @@ export function ServicesSection() {
           {ADVANTAGES.map(({ title, desc }, i) => (
             <FadeInOnScroll key={title} delay={i * 0.08}>
               <div className="group relative rounded-2xl border border-sp-border bg-sp-off p-6 overflow-hidden transition-all duration-300 hover:-translate-y-1.5 hover:bg-white hover:border-sp-orange/40 hover:shadow-[0_8px_32px_rgba(245,99,42,0.12)]">
-                {/* Gradient left accent bar */}
-                <div
-                  className="absolute left-0 top-0 bottom-0 w-[3px] rounded-l-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-[linear-gradient(180deg,#f5632a_0%,#e03070_50%,#8b3aad_100%)]"
-                />
-                <h4 className="font-display text-base font-black uppercase mb-2 text-sp-dark group-hover:text-sp-orange transition-colors duration-300">
-                  {title}
-                </h4>
+                <div className="absolute left-0 top-0 bottom-0 w-[3px] rounded-l-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-[linear-gradient(180deg,#f5632a_0%,#e03070_50%,#8b3aad_100%)]" />
+                <h4 className="font-display text-base font-black uppercase mb-2 text-sp-dark group-hover:text-sp-orange transition-colors duration-300">{title}</h4>
                 <p className="text-sm text-sp-muted leading-relaxed">{desc}</p>
               </div>
             </FadeInOnScroll>
           ))}
         </div>
+
       </div>
     </section>
   );

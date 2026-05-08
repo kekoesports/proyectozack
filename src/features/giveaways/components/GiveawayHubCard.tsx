@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import Image from 'next/image';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { CountdownTimer } from '@/features/creator-codes/components/CountdownTimer';
 import { GiveawayPrizePlaceholder } from './GiveawayPrizePlaceholder';
 import type { GiveawayWithTalent } from '@/types';
@@ -11,20 +11,11 @@ type GiveawayHubCardProps = {
   readonly giveaway: GiveawayWithTalent;
 };
 
-/**
- * Card de un giveaway dentro del hub.
- *
- * @kind client
- * @feature giveaways
- * @route /giveaways
- * @example
- * ```tsx
- * <GiveawayHubCard giveaway={giveaway} />
- * ```
- */
 export function GiveawayHubCard({ giveaway }: GiveawayHubCardProps): React.JSX.Element {
   const [expired,  setExpired]  = useState(false);
   const [imgError, setImgError] = useState(false);
+  const [hovered,  setHovered]  = useState(false);
+
   const isFinished = expired || (giveaway.endsAt !== null && new Date(giveaway.endsAt) <= new Date());
   const handleExpired = useCallback(() => setExpired(true), []);
 
@@ -32,6 +23,8 @@ export function GiveawayHubCard({ giveaway }: GiveawayHubCardProps): React.JSX.E
     ? parseFloat(giveaway.value.replace(/[^\d.,]/g, '').replace(',', '.'))
     : 0;
   const isHot = !isFinished && numericValue >= 3000;
+
+  const expandContent = !isFinished && (giveaway.description ?? `Sorteo exclusivo de ${giveaway.brandName} con ${giveaway.talent.name}.`);
 
   return (
     <motion.a
@@ -44,8 +37,10 @@ export function GiveawayHubCard({ giveaway }: GiveawayHubCardProps): React.JSX.E
           : 'border-white/[0.06] bg-[#0e0e0e]/95 hover:border-sp-orange/30 hover:shadow-[0_0_30px_rgba(245,99,42,0.08)]'
       }`}
       whileHover={{ y: isFinished ? 0 : -6, transition: { type: 'spring', stiffness: 400, damping: 25 } }}
+      onHoverStart={() => { if (!isFinished) setHovered(true); }}
+      onHoverEnd={() => setHovered(false)}
     >
-      {/* Brand bar — logo protagonista */}
+      {/* Brand bar */}
       <div className="flex items-center gap-2.5 px-4 py-3 bg-white/[0.03] border-b border-white/[0.04]">
         {giveaway.brandLogo ? (
           <Image
@@ -71,16 +66,16 @@ export function GiveawayHubCard({ giveaway }: GiveawayHubCardProps): React.JSX.E
         )}
       </div>
 
-      {/* HOT badge */}
-      {isHot && (
+      {/* Badge */}
+      {!isFinished && (giveaway.badge ?? (isHot ? 'HOT' : null)) && (
         <div className="absolute top-14 right-3 z-20 gw-hot-badge">
           <div className="px-2 py-1 rounded-md bg-gradient-to-r from-orange-500 to-red-500 text-white text-[10px] font-black uppercase tracking-wider shadow-[0_0_12px_rgba(239,68,68,0.4)]">
-            HOT
+            {giveaway.badge ?? 'HOT'}
           </div>
         </div>
       )}
 
-      {/* Prize image */}
+      {/* Prize image + expand overlay */}
       <div className="relative aspect-[4/3] bg-gradient-to-b from-transparent to-black/20 overflow-hidden">
         {giveaway.imageUrl && !imgError ? (
           <Image
@@ -88,12 +83,48 @@ export function GiveawayHubCard({ giveaway }: GiveawayHubCardProps): React.JSX.E
             alt={giveaway.title}
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-            className={`object-contain p-6 drop-shadow-[0_0_20px_rgba(245,99,42,0.15)] transition-transform duration-500 group-hover:scale-110 ${isFinished ? '' : 'gw-sp-float'}`}
+            className={`object-contain p-6 drop-shadow-[0_0_20px_rgba(245,99,42,0.15)] transition-transform duration-500 group-hover:scale-105 ${isFinished ? '' : 'gw-sp-float'}`}
             onError={() => setImgError(true)}
           />
         ) : (
           <GiveawayPrizePlaceholder size="md" />
         )}
+
+        {/* Expand panel — desliza desde el fondo de la imagen */}
+        <AnimatePresence>
+          {hovered && expandContent && (
+            <motion.div
+              initial={{ y: '100%', opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: '100%', opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 320, damping: 32 }}
+              className="absolute bottom-0 left-0 right-0 px-4 pt-8 pb-3 bg-gradient-to-t from-black/95 via-black/85 to-transparent"
+            >
+              <p className="text-[11px] text-white/70 leading-relaxed line-clamp-3">
+                {expandContent}
+              </p>
+              <div className="flex items-center gap-2 mt-2.5">
+                {giveaway.talent.photoUrl ? (
+                  <Image
+                    src={giveaway.talent.photoUrl}
+                    alt={giveaway.talent.name}
+                    width={18}
+                    height={18}
+                    className="rounded-full object-cover border border-white/20 shrink-0"
+                  />
+                ) : (
+                  <div
+                    className="w-[18px] h-[18px] rounded-full flex items-center justify-center text-[7px] font-black text-white shrink-0"
+                    style={{ background: `linear-gradient(135deg, ${giveaway.talent.gradientC1}, ${giveaway.talent.gradientC2})` }}
+                  >
+                    {giveaway.talent.initials}
+                  </div>
+                )}
+                <span className="text-[10px] text-white/45 truncate">con {giveaway.talent.name}</span>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Info */}
@@ -119,9 +150,13 @@ export function GiveawayHubCard({ giveaway }: GiveawayHubCardProps): React.JSX.E
 
         {!isFinished && (
           <div className="pt-1">
-            <div className="w-full py-3 rounded-lg bg-sp-grad text-white text-center text-[13px] font-black uppercase tracking-[0.1em] transition-all gw-sp-btn-glow group-hover:tracking-[0.15em]">
+            <motion.div
+              animate={hovered ? { scale: 1.03, letterSpacing: '0.15em' } : { scale: 1, letterSpacing: '0.1em' }}
+              transition={{ duration: 0.2 }}
+              className="w-full py-3 rounded-lg bg-sp-grad text-white text-center text-[13px] font-black uppercase gw-sp-btn-glow"
+            >
               Participar
-            </div>
+            </motion.div>
           </div>
         )}
       </div>
@@ -139,20 +174,14 @@ export function GiveawayHubCard({ giveaway }: GiveawayHubCardProps): React.JSX.E
         ) : (
           <div
             className="w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-black text-white/80 shrink-0"
-            style={{
-              background: `linear-gradient(135deg, ${giveaway.talent.gradientC1}, ${giveaway.talent.gradientC2})`,
-            }}
+            style={{ background: `linear-gradient(135deg, ${giveaway.talent.gradientC1}, ${giveaway.talent.gradientC2})` }}
           >
             {giveaway.talent.initials}
           </div>
         )}
         <div className="min-w-0 flex-1">
-          <p className="text-[9px] font-black uppercase tracking-[0.15em] text-white/35 leading-none">
-            Sorteo de
-          </p>
-          <p className="text-[11px] font-bold text-white/80 truncate leading-tight mt-0.5">
-            {giveaway.talent.name}
-          </p>
+          <p className="text-[9px] font-black uppercase tracking-[0.15em] text-white/35 leading-none">Sorteo de</p>
+          <p className="text-[11px] font-bold text-white/80 truncate leading-tight mt-0.5">{giveaway.talent.name}</p>
         </div>
       </div>
     </motion.a>
