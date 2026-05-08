@@ -134,25 +134,24 @@ export default async function SorteosPage(): Promise<React.JSX.Element> {
           style={{ background: 'radial-gradient(ellipse 70% 200% at 0% 50%, rgba(245,99,42,0.07) 0%, rgba(139,58,173,0.04) 45%, transparent 70%)' }}
           aria-hidden
         />
-        <div className="relative max-w-7xl mx-auto px-4 lg:px-6 py-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="relative max-w-7xl mx-auto px-4 lg:px-6 py-4 sm:py-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
 
-          {/* Title */}
-          <div>
-            <p className="text-[10px] font-black uppercase tracking-[0.35em] text-sp-orange/60 mb-1">
-              SocialPro · Gaming
-            </p>
-            <h2 className="font-display text-3xl sm:text-4xl font-black uppercase text-white leading-none">
-              Sorteos{' '}
-              <span
-                className="bg-clip-text text-transparent"
-                style={{ backgroundImage: 'linear-gradient(135deg, #f5632a 0%, #e03070 50%, #8b3aad 100%)' }}
-              >
-                de Skins
-              </span>
-            </h2>
-            <p className="text-[12px] text-white/35 mt-1.5 max-w-xs">
-              Gratis y sin trucos — sigue a tus creadores favoritos y participa.
-            </p>
+          {/* Title — compacto, dashboard-style */}
+          <div className="flex items-center gap-3 sm:gap-4">
+            <div>
+              <p className="text-[9px] font-black uppercase tracking-[0.32em] text-sp-orange/60 mb-0.5">
+                SocialPro · Gaming
+              </p>
+              <h2 className="font-display text-2xl sm:text-3xl font-black uppercase text-white leading-none">
+                Sorteos{' '}
+                <span
+                  className="bg-clip-text text-transparent"
+                  style={{ backgroundImage: 'linear-gradient(135deg, #f5632a 0%, #e03070 50%, #8b3aad 100%)' }}
+                >
+                  de Skins
+                </span>
+              </h2>
+            </div>
           </div>
 
           {/* Stat pills */}
@@ -194,7 +193,13 @@ export default async function SorteosPage(): Promise<React.JSX.Element> {
       </section>
 
       {/* Hub: sidebar + grid */}
-      <SorteosHub active={active} finished={finished} brands={brands} creators={creators} />
+      <SorteosHub
+        active={active}
+        finished={finished}
+        brands={brands}
+        creators={creators}
+        {...(totalValue ? { totalValue } : {})}
+      />
 
       {/* Footer */}
       <div className="border-t border-white/[0.04] py-4 text-center">

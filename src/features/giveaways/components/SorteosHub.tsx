@@ -15,6 +15,7 @@ type SorteosHubProps = {
   readonly finished: readonly GiveawayWithTalent[];
   readonly brands: readonly BrandOption[];
   readonly creators: readonly Creator[];
+  readonly totalValue?: string;
 };
 
 const STATUS_LABELS: Record<StatusFilter, string> = {
@@ -23,7 +24,7 @@ const STATUS_LABELS: Record<StatusFilter, string> = {
   finished: 'Finalizados',
 };
 
-export function SorteosHub({ active, finished, brands, creators }: SorteosHubProps): React.JSX.Element {
+export function SorteosHub({ active, finished, brands, creators, totalValue }: SorteosHubProps): React.JSX.Element {
   const [selectedBrand, setSelectedBrand]     = useState<string | null>(null);
   const [selectedCreator, setSelectedCreator] = useState<number | null>(null);
   const [status, setStatus]                   = useState<StatusFilter>('active');
@@ -90,6 +91,31 @@ export function SorteosHub({ active, finished, brands, creators }: SorteosHubPro
 
         {/* ── LEFT: Sticky sidebar ─────────────────────────────────── */}
         <aside className="hidden lg:flex flex-col w-48 xl:w-52 shrink-0 gap-5 sticky top-20 self-start max-h-[calc(100vh-6rem)] overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden pb-4">
+
+          {/* Mini dashboard — stats at-a-glance */}
+          <div className="rounded-xl border border-white/[0.06] bg-white/[0.015] p-3 space-y-2.5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="text-[9px] font-black uppercase tracking-[0.2em] text-emerald-400/80">En vivo</span>
+              </div>
+              <span className="text-[13px] font-black tabular-nums text-white/85">{active.length}</span>
+            </div>
+            {totalValue && (
+              <div className="flex items-center justify-between border-t border-white/[0.04] pt-2">
+                <span className="text-[9px] font-black uppercase tracking-[0.18em] text-white/35">Premios</span>
+                <span className="text-[13px] font-black tabular-nums text-sp-orange">{totalValue}</span>
+              </div>
+            )}
+            <div className="flex items-center justify-between border-t border-white/[0.04] pt-2">
+              <span className="text-[9px] font-black uppercase tracking-[0.18em] text-white/35">Marcas</span>
+              <span className="text-[13px] font-black tabular-nums text-white/70">{brands.length}</span>
+            </div>
+            <div className="flex items-center justify-between border-t border-white/[0.04] pt-2">
+              <span className="text-[9px] font-black uppercase tracking-[0.18em] text-white/35">Creadores</span>
+              <span className="text-[13px] font-black tabular-nums text-white/70">{creators.length}</span>
+            </div>
+          </div>
 
           {/* Estado */}
           <div>
@@ -293,9 +319,9 @@ export function SorteosHub({ active, finished, brands, creators }: SorteosHubPro
             )}
           </div>
 
-          {/* Grid */}
+          {/* Grid — más densidad en xl para sensación marketplace */}
           {filtered.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3.5">
               {filtered.map((g) => (
                 <CompactSorteoCard key={g.id} giveaway={g} />
               ))}
