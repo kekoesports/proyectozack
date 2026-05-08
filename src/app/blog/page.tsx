@@ -38,26 +38,47 @@ export default async function BlogPage() {
 
   const sorted   = [...posts].sort((a, b) => (b.sortOrder ?? 0) - (a.sortOrder ?? 0));
   const featured = sorted[0] ?? null;
+  // rest: artículos que NO son el featured — para hero derecho y grid
   const rest     = sorted.slice(1);
 
   return (
     <>
-      {/* ── HERO compacto — split desktop ──────────────────────────── */}
-      <section className="bg-sp-black pt-20 pb-6 border-b border-white/[0.05]">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6">
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr_264px] gap-8 items-start">
+      {/* ── HERO compacto — split ───────────────────────────────────── */}
+      <section className="relative bg-sp-black pt-8 pb-0 border-b border-white/[0.05] overflow-hidden">
+
+        {/* Microdetalles visuales premium — no tocar sin motivo */}
+
+        {/* Glow naranja/rosa detrás del contenido izquierdo */}
+        <div
+          className="absolute left-0 top-1/2 -translate-y-1/2 w-[520px] h-[320px] rounded-full pointer-events-none"
+          style={{ background: 'radial-gradient(ellipse, rgba(245,99,42,0.07) 0%, rgba(196,40,128,0.04) 50%, transparent 70%)', filter: 'blur(60px)' }}
+        />
+
+        {/* Dot grid muy suave — textura editorial */}
+        <svg className="absolute inset-0 w-full h-full opacity-[0.035] pointer-events-none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+          <defs>
+            <pattern id="hero-dots" x="0" y="0" width="22" height="22" patternUnits="userSpaceOnUse">
+              <circle cx="1" cy="1" r="0.7" fill="white" />
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#hero-dots)" />
+        </svg>
+
+        <div className="relative max-w-6xl mx-auto px-4 sm:px-6">
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-0 items-center">
 
             {/* Izquierda: cabecera editorial */}
-            <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.35em] text-sp-orange mb-3">
+            <div className="py-4 lg:pr-10 lg:border-r lg:border-white/[0.06]">
+              <p className="text-[10px] font-black uppercase tracking-[0.35em] text-sp-orange mb-2">
                 SocialPro · Blog
               </p>
-              <h1 className="font-display text-[2.6rem] sm:text-5xl font-black uppercase text-white leading-[0.9] tracking-tight mb-3">
-                Insights &<br />
+              <h1 className="font-display text-[2.2rem] sm:text-[2.6rem] font-black uppercase text-white leading-[0.88] tracking-tight mb-2">
+                Insights &amp;<br />
                 <span className="gradient-text">Tendencias</span>
               </h1>
-              <p className="text-sm text-white/40 mb-5 leading-relaxed max-w-sm">
-                Marketing gaming, iGaming y ecosistema creator en el mercado hispano.
+              <p className="text-[13px] sm:text-sm text-white/55 mb-4 leading-relaxed max-w-sm">
+                Marketing gaming, iGaming y ecosistema creator en España y LatAm.
+                Casos reales, guías y análisis de la agencia SocialPro.
               </p>
               <div className="flex flex-wrap gap-1.5">
                 {CATEGORY_LABELS.map((cat, i) => (
@@ -75,47 +96,48 @@ export default async function BlogPage() {
               </div>
             </div>
 
-            {/* Derecha: stack compacto de últimos artículos (desktop) */}
-            {posts.length > 0 && (
-              <div className="hidden lg:block border-l border-white/[0.06] pl-8">
+            {/* Derecha: últimas publicaciones — distintas al featured */}
+            {rest.length > 0 && (
+              <div className="hidden lg:flex flex-col pl-8 py-2 gap-0">
                 <p className="text-[9px] font-black uppercase tracking-[0.3em] text-white/25 mb-3">
                   Últimas publicaciones
                 </p>
-                <div>
-                  {posts.slice(0, 4).map((post) => {
-                    const cat = deriveCategory(post.slug, post.title);
-                    return (
-                      <Link
-                        key={post.id}
-                        href={`/blog/${post.slug}`}
-                        className="group flex items-start gap-2.5 py-2.5 border-b border-white/[0.05] last:border-0 hover:bg-white/[0.03] transition-colors -mx-2 px-2 rounded"
+                {rest.slice(0, 5).map((post) => {
+                  const cat = deriveCategory(post.slug, post.title);
+                  return (
+                    <Link
+                      key={post.id}
+                      href={`/blog/${post.slug}`}
+                      className="group flex items-start gap-2.5 py-2.5 border-b border-white/[0.05] last:border-0 hover:bg-white/[0.03] transition-colors -mx-2 px-2 rounded"
+                    >
+                      <span
+                        className={`shrink-0 mt-0.5 inline-flex px-1.5 py-0.5 rounded text-[7px] font-black uppercase tracking-[0.08em] border ${cat.bg} ${cat.text} ${cat.border}`}
+                        style={{ whiteSpace: 'nowrap' }}
                       >
-                        <span className={`shrink-0 mt-0.5 inline-flex px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-[0.08em] border ${cat.bg} ${cat.text} ${cat.border}`}>
-                          {cat.label.split(' ')[0]}
-                        </span>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-[12px] font-bold text-white/85 leading-tight line-clamp-2 group-hover:text-sp-orange transition-colors duration-150">
-                            {post.title}
-                          </p>
-                          {post.publishedAt && (
-                            <time className="text-[10px] text-white/25 mt-0.5 block">
-                              {formatBlogDate(post.publishedAt)}
-                            </time>
-                          )}
-                        </div>
-                      </Link>
-                    );
-                  })}
-                </div>
+                        {cat.label.split(' ')[0]}
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[11px] font-bold text-white/80 leading-tight line-clamp-2 group-hover:text-sp-orange transition-colors duration-150">
+                          {post.title}
+                        </p>
+                        {post.publishedAt && (
+                          <time className="text-[9px] text-white/25 mt-0.5 block">
+                            {formatBlogDate(post.publishedAt)}
+                          </time>
+                        )}
+                      </div>
+                    </Link>
+                  );
+                })}
               </div>
             )}
           </div>
         </div>
       </section>
 
-      {/* ── CONTENIDO — fondo claro ─────────────────────────────────── */}
-      <section className="bg-white py-10">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 space-y-6">
+      {/* ── CONTENIDO ───────────────────────────────────────────────── */}
+      <section className="bg-white py-4">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 space-y-5">
 
           {posts.length === 0 ? (
             <div className="py-24 text-center">
@@ -125,31 +147,16 @@ export default async function BlogPage() {
             </div>
           ) : (
             <>
-              {/* Featured horizontal — imagen izquierda, texto derecha */}
+              {/* Featured horizontal */}
               {featured != null && <FeaturedBlogCard post={featured} />}
 
-              {/* Grid editorial */}
+              {/* Grid 3-col uniforme — mismo peso, sin secondary gigante */}
               {rest.length > 0 && (
-                <>
-                  {/* Fila 1: secondary (2-col) + standard (1-col) */}
-                  {rest[0] && (
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                      <div className="lg:col-span-2">
-                        <BlogCard post={rest[0]} secondary />
-                      </div>
-                      {rest[1] && <BlogCard post={rest[1]} />}
-                    </div>
-                  )}
-
-                  {/* Fila 2+: grid 3 columnas */}
-                  {rest.length > 2 && (
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                      {rest.slice(2).map((post) => (
-                        <BlogCard key={post.id} post={post} />
-                      ))}
-                    </div>
-                  )}
-                </>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  {rest.map((post) => (
+                    <BlogCard key={post.id} post={post} />
+                  ))}
+                </div>
               )}
             </>
           )}
