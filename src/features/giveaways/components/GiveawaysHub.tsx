@@ -94,16 +94,6 @@ export function GiveawaysHub({
 
         {/* CENTER */}
         <div className="flex-1 min-w-0">
-          {/* Mobile brand chips */}
-          <div className="lg:hidden mb-4">
-            <BrandsSidebar
-              brands={brands}
-              selected={selectedBrand}
-              onSelectAction={setSelectedBrand}
-              variant="chips"
-            />
-          </div>
-
           {/* Featured codes carousel */}
           {noFilters && <FeaturedCodesSection codes={featuredCodes} />}
 
