@@ -34,9 +34,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       url: absoluteUrl(`/blog/${slug}`),
       type: 'article',
       publishedTime: post.publishedAt?.toISOString(),
-      images: post.coverUrl ? [{ url: post.coverUrl, width: 1200, height: 630 }] : [{ url: absoluteUrl('/og-socialpro.png'), width: 1200, height: 630 }],
+      images: [{ url: absoluteUrl(`/api/og-image/blog?slug=${slug}`), width: 1200, height: 630, alt: title }],
     },
-    twitter: { card: 'summary_large_image', title, description, images: post.coverUrl ? [post.coverUrl] : [absoluteUrl('/og-socialpro.png')] },
+    twitter: { card: 'summary_large_image', title, description, images: [absoluteUrl(`/api/og-image/blog?slug=${slug}`)] },
   };
 }
 
