@@ -96,7 +96,18 @@ async function loadBarlowFont(): Promise<ArrayBuffer | null> {
       return null;
     }
 
-    _font = await fetch(url, { signal: AbortSignal.timeout(2000) }).then((r) => r.arrayBuffer());
+    const fontBuf = await fetch(url, { signal: AbortSignal.timeout(2000) }).then((r) => r.arrayBuffer());
+    // Validate: Satori requires TTF or OTF. Check magic bytes.
+    // TTF: 0x00 0x01 0x00 0x00 | TrueType: 'true' | OTF: 'OTTO'
+    const sig = new Uint8Array(fontBuf.slice(0, 4));
+    const isTTF = (sig[0] === 0x00 && sig[1] === 0x01) ||   // TTF
+                  (sig[0] === 0x74 && sig[1] === 0x72) ||   // TrueType ('true')
+                  (sig[0] === 0x4F && sig[1] === 0x54);     // OTF ('OTTO')
+    if (!isTTF) {
+      console.warn('[og/blog] Font bytes are not TTF/OTF (got WOFF2?) — falling back to system font');
+      return null;
+    }
+    _font = fontBuf;
     return _font;
   } catch (err) {
     console.warn('[og/blog] Barlow font load failed — falling back to system font', err);
@@ -351,8 +362,7 @@ export async function GET(req: Request) {
     headers: { 'Content-Type': 'image/png', 'Cache-Control': 'public, max-age=0, s-maxage=3600, stale-while-revalidate=86400' },
   });
   } catch (err) {
-    const msg = err instanceof Error ? `${err.name}: ${err.message}` : String(err);
-    console.error('[og/blog] error', msg);
-    return new Response(`BLOG_OG_ERROR: ${msg}`, { status: 500, headers: { 'content-type': 'text/plain; charset=utf-8' } });
+    console.error('[og/blog] error', err instanceof Error ? err.message : String(err));
+    return genericFallbackResponse(fontData);
   }
 }
