@@ -1,4 +1,4 @@
-import { gt, lte, and, not, like } from 'drizzle-orm';
+import { gt, lte, and, not, like, or, isNull } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { giveaways } from '@/db/schema';
 import type { CreatorCodeWithTalent, GiveawayWithTalent } from '@/types';
@@ -20,7 +20,8 @@ const NO_DEMO = not(like(giveaways.title, '[DEMO]%'));
 
 export async function getAllActiveGiveaways(): Promise<GiveawayWithTalent[]> {
   const rows = await db.query.giveaways.findMany({
-    where: and(gt(giveaways.endsAt, new Date()), NO_DEMO),
+    // endsAt null = sin fecha de fin = activo indefinidamente (igual que en perfil de talento)
+    where: and(or(isNull(giveaways.endsAt), gt(giveaways.endsAt, new Date())), NO_DEMO),
     with: { talent: true },
     orderBy: (g, { asc, desc }) => [desc(g.isFeatured), asc(g.sortOrder), asc(g.endsAt)],
   });
