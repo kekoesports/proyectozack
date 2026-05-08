@@ -4,8 +4,6 @@ import { db } from '@/lib/db';
 import { giveaways } from '@/db/schema/giveaways';
 import { talents } from '@/db/schema/talents';
 
-export const runtime = 'nodejs';
-
 const SIZE = { width: 1200, height: 630 };
 
 async function fetchBase64(url: string): Promise<string | null> {

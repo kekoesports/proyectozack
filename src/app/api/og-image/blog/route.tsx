@@ -3,8 +3,6 @@ import { eq } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { posts } from '@/db/schema/posts';
 
-export const runtime = 'nodejs';
-
 const W = 1200;
 const H = 630;
 

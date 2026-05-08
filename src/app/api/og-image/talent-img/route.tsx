@@ -3,8 +3,6 @@ import { eq } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { talents } from '@/db/schema/talents';
 
-export const runtime = 'nodejs';
-
 const SIZE = { width: 1200, height: 630 };
 
 export async function GET(req: Request) {
