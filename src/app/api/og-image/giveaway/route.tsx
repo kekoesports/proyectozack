@@ -5,6 +5,14 @@ export const dynamic = 'force-dynamic';
 
 const SIZE = { width: 1200, height: 630 };
 
+// Satori does not support 8-digit hex colors (#rrggbbaa). Convert to rgba().
+function ha(hex: string, alpha: number): string {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
 async function fetchBase64(url: string): Promise<string | null> {
   try {
     const res = await fetch(url);
@@ -84,8 +92,8 @@ export async function GET(req: Request) {
             ) : (
               <div style={{
                 width: 220, height: 220, borderRadius: 20, flexShrink: 0,
-                background: `linear-gradient(135deg,${c1}22,${c2}22)`,
-                border: `1px solid ${c1}44`,
+                background: `linear-gradient(135deg,${ha(c1,0.13)},${ha(c2,0.13)})`,
+                border: `1px solid ${ha(c1,0.27)}`,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}>
                 <span style={{ fontSize: 72, fontWeight: 900, color: c1, letterSpacing: -2 }}>
