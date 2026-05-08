@@ -1,7 +1,7 @@
 import { ImageResponse } from 'next/og';
 import { eq } from 'drizzle-orm';
 import { db } from '@/lib/db';
-import { posts } from '@/db/schema';
+import { posts } from '@/db/schema/posts';
 
 export const runtime = 'nodejs';
 
@@ -132,27 +132,31 @@ function genericFallbackResponse(fontData: ArrayBuffer | null) {
 }
 
 export async function GET(req: Request) {
-  const { searchParams } = new URL(req.url);
-  const slug = searchParams.get('slug') ?? '';
+  let fontData: ArrayBuffer | null = null;
 
-  // Parallel: font + post data
-  const [fontData, postRows] = await Promise.all([
-    loadBarlowFont(),
-    slug
-      ? db.select({
-          title:   posts.title,
-          excerpt: posts.excerpt,
-          author:  posts.author,
-          coverUrl: posts.coverUrl,
-          bodyMd:  posts.bodyMd,
-        }).from(posts).where(eq(posts.slug, slug)).limit(1)
-      : Promise.resolve([]),
-  ]);
+  try {
+    const { searchParams } = new URL(req.url);
+    const slug = searchParams.get('slug') ?? '';
 
-  const post = postRows[0];
+    // Parallel: font + post data
+    const [loadedFont, postRows] = await Promise.all([
+      loadBarlowFont(),
+      slug
+        ? db.select({
+            title:    posts.title,
+            excerpt:  posts.excerpt,
+            author:   posts.author,
+            coverUrl: posts.coverUrl,
+            bodyMd:   posts.bodyMd,
+          }).from(posts).where(eq(posts.slug, slug)).limit(1)
+        : Promise.resolve([]),
+    ]);
 
-  // Slug not found — return generic branded fallback (not 500)
-  if (!post) return genericFallbackResponse(fontData);
+    fontData = loadedFont;
+    const post = postRows[0];
+
+    // Slug not found — return generic branded fallback (not 500)
+    if (!post) return genericFallbackResponse(fontData);
 
   const catSlug   = deriveSlugCategory(slug, post.title);
   const accent    = CAT_COLORS[catSlug]  ?? '#e03070';
@@ -168,7 +172,7 @@ export async function GET(req: Request) {
   // Cover image as background (optional — graceful null on failure)
   const coverBase64 = post.coverUrl ? await fetchCoverBase64(post.coverUrl) : null;
 
-  const response = new ImageResponse(
+  return new ImageResponse(
     (
       <div
         style={{
@@ -331,11 +335,12 @@ export async function GET(req: Request) {
     {
       width: W,
       height: H,
+      headers: { 'Cache-Control': 'public, max-age=0, s-maxage=3600, stale-while-revalidate=86400' },
       ...(fontConfig.length > 0 ? { fonts: fontConfig } : {}),
     },
   );
-
-  // Cache aggressively — OG images change only when post content changes (revalidated by ISR)
-  response.headers.set('Cache-Control', 'public, max-age=0, s-maxage=3600, stale-while-revalidate=86400');
-  return response;
+  } catch (err) {
+    console.error('[og/blog] Unhandled error — returning generic fallback', err);
+    return genericFallbackResponse(fontData);
+  }
 }
