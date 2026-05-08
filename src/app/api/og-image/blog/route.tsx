@@ -316,7 +316,7 @@ export async function GET(req: Request) {
           }}
         >
           <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.28)', letterSpacing: 2 }}>
-            {postAuthor}  ·  {mins} min lectura
+            {`${postAuthor}  ·  ${mins} min lectura`}
           </div>
           <div
             style={{
