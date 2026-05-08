@@ -51,7 +51,7 @@ export async function GET(req: Request) {
 
     const nameSize = name.length > 14 ? 64 : name.length > 10 ? 76 : 90;
 
-    return new ImageResponse(
+    const imgResp = new ImageResponse(
       (
         <div style={{ width: '100%', height: '100%', background: '#050507', display: 'flex', flexDirection: 'column', fontFamily: 'sans-serif', position: 'relative' }}>
           <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 6, background: `linear-gradient(90deg,${c1},${c2})` }} />
@@ -88,6 +88,10 @@ export async function GET(req: Request) {
       ),
       { ...SIZE },
     );
+    const bytes = await imgResp.arrayBuffer();
+    return new Response(bytes, {
+      headers: { 'Content-Type': 'image/png', 'Cache-Control': 'public, max-age=0, s-maxage=3600, stale-while-revalidate=86400' },
+    });
   } catch (err) {
     const msg = err instanceof Error ? `${err.name}: ${err.message}\n\n${err.stack ?? ''}` : String(err);
     return new Response(`OG_ERROR\n\n${msg}`, {

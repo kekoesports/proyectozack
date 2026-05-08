@@ -69,7 +69,7 @@ export async function GET(req: Request) {
 
     const titleSize = title.length > 40 ? 40 : title.length > 25 ? 50 : 60;
 
-    return new ImageResponse(
+    const imgResp = new ImageResponse(
       (
         <div style={{ width: '100%', height: '100%', background: '#050507', display: 'flex', flexDirection: 'column', fontFamily: 'sans-serif', position: 'relative' }}>
           {/* Gradient top bar */}
@@ -166,6 +166,10 @@ export async function GET(req: Request) {
       ),
       { ...SIZE },
     );
+    const bytes = await imgResp.arrayBuffer();
+    return new Response(bytes, {
+      headers: { 'Content-Type': 'image/png', 'Cache-Control': 'public, max-age=0, s-maxage=3600, stale-while-revalidate=86400' },
+    });
   } catch (err) {
     const msg = err instanceof Error ? `${err.name}: ${err.message}` : String(err);
     return new Response(`GIVEAWAY_OG_ERROR\n\n${msg}`, {

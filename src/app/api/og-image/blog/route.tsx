@@ -119,15 +119,15 @@ async function fetchCoverBase64(coverUrl: string): Promise<string | null> {
 }
 
 // Generic SocialPro-branded OG — used when slug not found or on critical error
-function genericFallbackResponse(fontData: ArrayBuffer | null) {
+async function genericFallbackResponse(fontData: ArrayBuffer | null): Promise<Response> {
   const accent = '#f5632a';
-  return new ImageResponse(
+  const imgResp = new ImageResponse(
     (
       <div style={{ width: '100%', height: '100%', background: '#050507', display: 'flex', flexDirection: 'column', fontFamily: fontData ? 'Barlow' : 'sans-serif' }}>
         <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 6, background: accent }} />
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 16 }}>
           <div style={{ fontSize: 20, color: accent, letterSpacing: 6, fontWeight: 700, textTransform: 'uppercase' }}>SocialPro</div>
-          <div style={{ fontSize: 52, fontWeight: 900, color: '#ffffff', textTransform: 'uppercase', letterSpacing: -1 }}>Gaming & Esports</div>
+          <div style={{ fontSize: 52, fontWeight: 900, color: '#ffffff', textTransform: 'uppercase', letterSpacing: -1 }}>Gaming &amp; Esports</div>
           <div style={{ fontSize: 18, color: 'rgba(255,255,255,0.35)', letterSpacing: 2 }}>socialpro.es</div>
         </div>
         <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 3, background: accent }} />
@@ -135,6 +135,8 @@ function genericFallbackResponse(fontData: ArrayBuffer | null) {
     ),
     { width: W, height: H, ...(fontData ? { fonts: [{ name: 'Barlow', data: fontData, weight: 900, style: 'normal' }] } : {}) },
   );
+  const bytes = await imgResp.arrayBuffer();
+  return new Response(bytes, { headers: { 'Content-Type': 'image/png' } });
 }
 
 export async function GET(req: Request) {
@@ -178,7 +180,7 @@ export async function GET(req: Request) {
   // Cover image as background (optional — graceful null on failure)
   const coverBase64 = postCoverUrl ? await fetchCoverBase64(postCoverUrl) : null;
 
-  return new ImageResponse(
+  const imgResp = new ImageResponse(
     (
       <div
         style={{
@@ -341,10 +343,13 @@ export async function GET(req: Request) {
     {
       width: W,
       height: H,
-      headers: { 'Cache-Control': 'public, max-age=0, s-maxage=3600, stale-while-revalidate=86400' },
       ...(fontConfig.length > 0 ? { fonts: fontConfig } : {}),
     },
   );
+  const imgBytes = await imgResp.arrayBuffer();
+  return new Response(imgBytes, {
+    headers: { 'Content-Type': 'image/png', 'Cache-Control': 'public, max-age=0, s-maxage=3600, stale-while-revalidate=86400' },
+  });
   } catch (err) {
     console.error('[og/blog] Unhandled error — returning generic fallback', err);
     return genericFallbackResponse(fontData);
