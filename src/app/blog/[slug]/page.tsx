@@ -2,7 +2,9 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { getPostSlugs, getPostBySlug } from '@/lib/queries/posts';
+import { getPostSlugs, getPostBySlug, getRelatedPosts } from '@/lib/queries/posts';
+import { BlogCard } from '@/features/blog/components/BlogCard';
+import { deriveCategory, readTime } from '@/lib/utils/blog';
 import { SectionTag } from '@/components/ui/SectionTag';
 import { TalentMiniCard } from '@/features/blog/components/TalentMiniCard';
 import { buildBreadcrumbJsonLd } from '@/lib/utils/breadcrumbs';
@@ -93,11 +95,16 @@ function renderInline(text: string): string {
 
 export default async function BlogPostPage({ params }: PageProps) {
   const { slug } = await params;
-  const post = await getPostBySlug(slug);
+  const [post, related] = await Promise.all([
+    getPostBySlug(slug),
+    getRelatedPosts(slug, 3),
+  ]);
   if (!post || post.status !== 'published') notFound();
 
   const paragraphs = post.bodyMd.split('\n\n').filter(Boolean);
   const hasTalents = post.talentAvatars.length > 0;
+  const category   = deriveCategory(post.slug, post.title);
+  const mins       = readTime(post.bodyMd);
 
   const breadcrumbJsonLd = buildBreadcrumbJsonLd([
     { name: 'Blog', url: absoluteUrl('/blog') },
@@ -147,15 +154,25 @@ export default async function BlogPostPage({ params }: PageProps) {
           <Link href="/blog" className="inline-flex items-center gap-1.5 text-sm text-white/40 hover:text-white transition-colors mb-8">
             <span aria-hidden="true">←</span> Volver al blog
           </Link>
-          <SectionTag>{post.author}</SectionTag>
+          {/* Category + meta */}
+          <div className="flex flex-wrap items-center gap-3 mb-4">
+            <span className={`inline-flex px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-[0.12em] border ${category.bg} ${category.text} ${category.border}`}>
+              {category.label}
+            </span>
+            <SectionTag>{post.author}</SectionTag>
+          </div>
           <h1 className="font-display text-3xl md:text-5xl font-black uppercase tracking-tight text-white leading-tight mt-3 mb-4">
             {post.title}
           </h1>
-          {post.publishedAt && (
-            <time dateTime={post.publishedAt.toISOString()} className="text-sm text-white/35">
-              {new Date(post.publishedAt).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })}
-            </time>
-          )}
+          <div className="flex items-center gap-3 text-sm text-white/35">
+            {post.publishedAt && (
+              <time dateTime={post.publishedAt.toISOString()}>
+                {new Date(post.publishedAt).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })}
+              </time>
+            )}
+            <span aria-hidden>·</span>
+            <span>{mins} min lectura</span>
+          </div>
         </div>
 
         {/* Cover image */}
@@ -195,8 +212,22 @@ export default async function BlogPostPage({ params }: PageProps) {
             {paragraphs.map((p, i) => renderParagraph(p, i))}
           </div>
 
+          {/* ── RELATED POSTS ── */}
+          {related.length > 0 && (
+            <div className="mt-16 pt-12 border-t border-sp-border">
+              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-sp-muted mb-6">
+                Sigue leyendo
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                {related.map((p) => (
+                  <BlogCard key={p.id} post={p} />
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* ── CTA ── */}
-          <div className="mt-16 rounded-2xl bg-sp-black p-8 text-center">
+          <div className="mt-12 rounded-2xl bg-sp-black p-8 text-center">
             <p className="font-display text-xl font-black uppercase text-white mb-2">
               ¿Tu marca quiere resultados así?
             </p>
