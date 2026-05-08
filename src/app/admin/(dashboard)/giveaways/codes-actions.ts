@@ -3,6 +3,9 @@
 import { revalidatePath } from 'next/cache';
 import { requireAnyRole } from '@/lib/auth-guard';
 import { createCode, deleteCode, updateCode } from '@/lib/queries/creatorCodes';
+import { eq } from 'drizzle-orm';
+import { db } from '@/lib/db';
+import { creatorCodes } from '@/db/schema';
 import { parseFormData } from '@/lib/forms/parseFormData';
 import { firstError } from '@/lib/forms/firstError';
 import { logRedacted } from '@/lib/log';
@@ -79,6 +82,13 @@ export async function updateCodeAction(formData: FormData): Promise<CodeActionSt
 
   revalidateAll(talentSlug);
   return { ok: true };
+}
+
+export async function setCodeFeaturedAction(id: number, value: boolean): Promise<void> {
+  await requireAnyRole(['admin', 'manager'], '/admin/login');
+  await db.update(creatorCodes).set({ isFeatured: value }).where(eq(creatorCodes.id, id));
+  revalidatePath('/admin/giveaways');
+  revalidatePath('/giveaways');
 }
 
 export async function deleteCodeAction(formData: FormData): Promise<void> {

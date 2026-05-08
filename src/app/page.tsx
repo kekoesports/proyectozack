@@ -1,5 +1,7 @@
+import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import dynamic from 'next/dynamic';
+import { absoluteUrl, SITE_URL } from '@/lib/site-url';
 import { getTalents } from '@/lib/queries/talents';
 import { getBrands, getCollaborators, getTeam } from '@/lib/queries/content';
 import { getCaseStudies } from '@/lib/queries/cases';
@@ -43,6 +45,37 @@ async function TeamGridAsync() {
   const team = await getTeam();
   return <TeamGrid team={team} />;
 }
+
+export const metadata: Metadata = {
+  title: 'SocialPro — Agencia Gaming & iGaming | España y LatAm',
+  description:
+    'Agencia de talentos gaming e iGaming fundada en 2012. Streamers verificados de CS2, Valorant e iGaming en España y LatAm. FTD tracking, compliance DGOJ y ROI medible desde el panel del operador.',
+  alternates: {
+    canonical: SITE_URL,
+  },
+  openGraph: {
+    title: 'SocialPro — Agencia Gaming & iGaming | España y LatAm',
+    description:
+      '+13 años conectando creadores gaming con marcas. CS2, Valorant, iGaming. +340 FTDs verificados. España + 6 mercados LATAM.',
+    url: SITE_URL,
+    siteName: 'SocialPro',
+    locale: 'es_ES',
+    type: 'website',
+    images: [{
+      url: absoluteUrl('/og-socialpro.png'),
+      width: 1200,
+      height: 630,
+      alt: 'SocialPro — Agencia de Performance Marketing Gaming y Esports',
+    }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'SocialPro — Agencia Gaming & iGaming | España y LatAm',
+    description:
+      '+13 años conectando creadores gaming con marcas. CS2, Valorant, iGaming. +340 FTDs verificados.',
+    images: [absoluteUrl('/og-socialpro.png')],
+  },
+};
 
 // Revalidate every hour (ISR)
 export const revalidate = 3600;

@@ -13,7 +13,7 @@ import type { CreatorCode, CreatorCodeWithTalent } from '@/types';
 export async function getAllCodes(): Promise<CreatorCodeWithTalent[]> {
   const rows = await db.query.creatorCodes.findMany({
     with: { talent: true },
-    orderBy: (c, { asc }) => [asc(c.sortOrder)],
+    orderBy: (c, { asc, desc }) => [desc(c.isFeatured), asc(c.sortOrder)],
   });
   return rows as CreatorCodeWithTalent[];
 }

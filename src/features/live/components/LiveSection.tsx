@@ -238,14 +238,17 @@ export function LiveSection() {
           <div>
             {/* Header */}
             <div className="mb-6">
-              <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-white/30 mb-2">
-                Nuestros streamers
-              </p>
+              <div className="flex items-center gap-2 mb-2">
+                <span className="w-2 h-2 rounded-full bg-white/20" />
+                <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-white/30">
+                  Offline ahora
+                </p>
+              </div>
               <h2 className="font-display text-xl sm:text-2xl font-black uppercase text-white leading-tight">
-                Ahora no hay directos activos
+                Nuestros creadores
               </h2>
               <p className="text-sm text-white/35 mt-1">
-                Vuelve más tarde · Mientras tanto, descubre nuestros creadores
+                Sin directos activos — sigue a nuestros creadores para no perderte nada
               </p>
             </div>
 

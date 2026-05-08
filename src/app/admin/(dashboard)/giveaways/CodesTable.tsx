@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { EditCodeModal } from './EditCodeModal';
-import { deleteCodeAction } from './codes-actions';
+import { deleteCodeAction, setCodeFeaturedAction } from './codes-actions';
 import { DeleteConfirmButton } from './DeleteConfirmButton';
 import type { CreatorCodeWithTalent } from '@/types';
 
@@ -43,10 +43,14 @@ export function CodesTable({ codes, talents }: Props): React.ReactElement {
                 <td className="px-6 py-4 text-sp-admin-muted">{c.brandName}</td>
                 <td className="px-6 py-4 text-sp-admin-muted text-xs">{c.badge ?? '—'}</td>
                 <td className="px-6 py-4 text-sp-admin-muted text-xs">{c.category ?? '—'}</td>
-                <td className="px-6 py-4">
-                  {c.isFeatured && (
-                    <span className="inline-flex px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-900/30 text-amber-400">★</span>
-                  )}
+                <td className="px-4 py-4 text-center">
+                  <form action={setCodeFeaturedAction.bind(null, c.id, !c.isFeatured)}>
+                    <button type="submit" title={c.isFeatured ? 'Quitar destacado' : 'Marcar como destacado'}>
+                      <div className={`w-8 h-4 rounded-full relative transition-colors mx-auto ${c.isFeatured ? 'bg-sp-orange' : 'bg-sp-admin-border'}`}>
+                        <span className={`absolute top-0.5 w-3 h-3 rounded-full bg-white shadow transition-all ${c.isFeatured ? 'left-4' : 'left-0.5'}`} />
+                      </div>
+                    </button>
+                  </form>
                 </td>
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-3">
