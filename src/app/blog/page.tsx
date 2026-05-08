@@ -1,8 +1,10 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { getPosts } from '@/lib/queries/posts';
 import { BlogCard } from '@/features/blog/components/BlogCard';
 import { FeaturedBlogCard } from '@/features/blog/components/FeaturedBlogCard';
 import { absoluteUrl } from '@/lib/site-url';
+import { deriveCategory, formatBlogDate } from '@/lib/utils/blog';
 
 export const revalidate = 3600;
 
@@ -28,59 +30,92 @@ export const metadata: Metadata = {
 };
 
 const CATEGORY_LABELS = [
-  'Todos', 'Casos de éxito', 'Guías', 'iGaming', 'Tendencias', 'YouTube', 'Esports',
+  'Todos', 'Casos de éxito', 'Guías', 'iGaming', 'Tendencias', 'YouTube',
 ] as const;
 
 export default async function BlogPage() {
   const posts = await getPosts();
 
-  // Featured = post with highest sortOrder (admin can pin) or most recent
-  const sorted  = [...posts].sort((a, b) => (b.sortOrder ?? 0) - (a.sortOrder ?? 0));
+  const sorted   = [...posts].sort((a, b) => (b.sortOrder ?? 0) - (a.sortOrder ?? 0));
   const featured = sorted[0] ?? null;
   const rest     = sorted.slice(1);
 
   return (
     <>
-      {/* ── HERO oscuro ────────────────────────────────────────────── */}
-      <section className="bg-sp-black pt-28 pb-12 border-b border-white/[0.06]">
+      {/* ── HERO compacto — split desktop ──────────────────────────── */}
+      <section className="bg-sp-black pt-20 pb-6 border-b border-white/[0.05]">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_264px] gap-8 items-start">
 
-          {/* Label */}
-          <p className="text-[11px] font-black uppercase tracking-[0.35em] text-sp-orange mb-4">
-            SocialPro · Blog
-          </p>
+            {/* Izquierda: cabecera editorial */}
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-[0.35em] text-sp-orange mb-3">
+                SocialPro · Blog
+              </p>
+              <h1 className="font-display text-[2.6rem] sm:text-5xl font-black uppercase text-white leading-[0.9] tracking-tight mb-3">
+                Insights &<br />
+                <span className="gradient-text">Tendencias</span>
+              </h1>
+              <p className="text-sm text-white/40 mb-5 leading-relaxed max-w-sm">
+                Marketing gaming, iGaming y ecosistema creator en el mercado hispano.
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {CATEGORY_LABELS.map((cat, i) => (
+                  <span
+                    key={cat}
+                    className={`inline-flex px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-[0.1em] border cursor-default transition-colors ${
+                      i === 0
+                        ? 'bg-sp-orange/15 border-sp-orange/40 text-sp-orange'
+                        : 'bg-white/[0.03] border-white/[0.07] text-white/30 hover:border-white/15 hover:text-white/50'
+                    }`}
+                  >
+                    {cat}
+                  </span>
+                ))}
+              </div>
+            </div>
 
-          {/* H1 */}
-          <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-black uppercase text-white leading-[0.9] tracking-tight mb-4">
-            Insights &<br />
-            <span className="gradient-text">Tendencias</span>
-          </h1>
-
-          <p className="text-sm sm:text-base text-white/45 max-w-xl mb-8 leading-relaxed">
-            Estrategias, casos reales y análisis sobre marketing gaming, esports e iGaming en el mercado hispano.
-          </p>
-
-          {/* Category pills — decorativas, sin filtro aún */}
-          <div className="flex flex-wrap gap-2">
-            {CATEGORY_LABELS.map((cat, i) => (
-              <span
-                key={cat}
-                className={`inline-flex px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-[0.1em] border transition-colors ${
-                  i === 0
-                    ? 'bg-sp-orange/15 border-sp-orange/40 text-sp-orange'
-                    : 'bg-white/[0.04] border-white/[0.08] text-white/35 hover:border-white/20 hover:text-white/55 cursor-default'
-                }`}
-              >
-                {cat}
-              </span>
-            ))}
+            {/* Derecha: stack compacto de últimos artículos (desktop) */}
+            {posts.length > 0 && (
+              <div className="hidden lg:block border-l border-white/[0.06] pl-8">
+                <p className="text-[9px] font-black uppercase tracking-[0.3em] text-white/25 mb-3">
+                  Últimas publicaciones
+                </p>
+                <div>
+                  {posts.slice(0, 4).map((post) => {
+                    const cat = deriveCategory(post.slug, post.title);
+                    return (
+                      <Link
+                        key={post.id}
+                        href={`/blog/${post.slug}`}
+                        className="group flex items-start gap-2.5 py-2.5 border-b border-white/[0.05] last:border-0 hover:bg-white/[0.03] transition-colors -mx-2 px-2 rounded"
+                      >
+                        <span className={`shrink-0 mt-0.5 inline-flex px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-[0.08em] border ${cat.bg} ${cat.text} ${cat.border}`}>
+                          {cat.label.split(' ')[0]}
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[12px] font-bold text-white/85 leading-tight line-clamp-2 group-hover:text-sp-orange transition-colors duration-150">
+                            {post.title}
+                          </p>
+                          {post.publishedAt && (
+                            <time className="text-[10px] text-white/25 mt-0.5 block">
+                              {formatBlogDate(post.publishedAt)}
+                            </time>
+                          )}
+                        </div>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </section>
 
-      {/* ── CONTENIDO ──────────────────────────────────────────────── */}
-      <section className="bg-white py-12">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 space-y-8">
+      {/* ── CONTENIDO — fondo claro ─────────────────────────────────── */}
+      <section className="bg-white py-10">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 space-y-6">
 
           {posts.length === 0 ? (
             <div className="py-24 text-center">
@@ -90,36 +125,21 @@ export default async function BlogPage() {
             </div>
           ) : (
             <>
-              {/* Featured article */}
-              {featured != null && (
-                <div>
-                  <p className="text-[9px] font-black uppercase tracking-[0.35em] text-sp-muted mb-3">
-                    Artículo destacado
-                  </p>
-                  <FeaturedBlogCard post={featured} />
-                </div>
-              )}
+              {/* Featured horizontal — imagen izquierda, texto derecha */}
+              {featured != null && <FeaturedBlogCard post={featured} />}
 
-              {/* Grid editorial — secondary card 2-col + resto */}
+              {/* Grid editorial */}
               {rest.length > 0 && (
-                <div>
-                  <p className="text-[9px] font-black uppercase tracking-[0.35em] text-sp-muted mb-4">
-                    Últimas publicaciones
-                  </p>
-
-                  {/* Fila 1: secondary (2-col) + tercero (1-col) */}
-                  {rest.length >= 2 && rest[0] && rest[1] ? (
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+                <>
+                  {/* Fila 1: secondary (2-col) + standard (1-col) */}
+                  {rest[0] && (
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                       <div className="lg:col-span-2">
                         <BlogCard post={rest[0]} secondary />
                       </div>
-                      <BlogCard post={rest[1]} />
+                      {rest[1] && <BlogCard post={rest[1]} />}
                     </div>
-                  ) : rest[0] ? (
-                    <div className="mb-4">
-                      <BlogCard post={rest[0]} secondary />
-                    </div>
-                  ) : null}
+                  )}
 
                   {/* Fila 2+: grid 3 columnas */}
                   {rest.length > 2 && (
@@ -129,7 +149,7 @@ export default async function BlogPage() {
                       ))}
                     </div>
                   )}
-                </div>
+                </>
               )}
             </>
           )}
