@@ -108,9 +108,9 @@ export function SorteosHub({ active, finished, brands, creators, totalValue }: S
                   alt={b.name}
                   tone="on-dark"
                   size="xs"
-                  width={16}
+                  width={56}
                   height={16}
-                  className="max-w-[16px] shrink-0"
+                  className="shrink-0"
                 />
               )}
               {b.name}
@@ -209,15 +209,14 @@ export function SorteosHub({ active, finished, brands, creators, totalValue }: S
                       }`}
                     >
                       {b.logo ? (
-                        <span className="w-6 h-6 rounded bg-white/[0.04] flex items-center justify-center shrink-0 transition-colors group-hover:bg-white/[0.08]">
+                        <span className="h-6 px-1.5 rounded bg-white/[0.04] flex items-center justify-center shrink-0 transition-colors group-hover:bg-white/[0.08]">
                           <BrandLogo
                             src={b.logo}
                             alt={b.name}
                             tone="on-dark"
                             size="xs"
-                            width={20}
-                            height={20}
-                            className="max-w-[18px]"
+                            width={48}
+                            height={16}
                           />
                         </span>
                       ) : (

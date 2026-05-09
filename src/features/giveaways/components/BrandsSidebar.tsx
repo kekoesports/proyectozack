@@ -77,15 +77,14 @@ export function BrandsSidebar({
                 }`}
               >
                 {b.logo ? (
-                  <span className="h-6 w-6 rounded-full bg-white/[0.04] flex items-center justify-center shrink-0 transition-colors group-hover:bg-white/[0.08]">
+                  <span className="h-6 px-1.5 rounded-full bg-white/[0.04] flex items-center justify-center shrink-0 transition-colors group-hover:bg-white/[0.08]">
                     <BrandLogo
                       src={b.logo}
                       alt={b.name}
                       tone="on-dark"
                       size="xs"
-                      width={20}
-                      height={20}
-                      className="max-w-[16px]"
+                      width={56}
+                      height={16}
                     />
                   </span>
                 ) : (
@@ -142,15 +141,14 @@ export function BrandsSidebar({
               }`}
             >
               {b.logo ? (
-                <span className="h-8 w-8 rounded-md bg-white/[0.04] flex items-center justify-center shrink-0 transition-colors group-hover:bg-white/[0.08]">
+                <span className="h-8 px-2 rounded-md bg-white/[0.04] flex items-center justify-center shrink-0 transition-colors group-hover:bg-white/[0.08]">
                   <BrandLogo
                     src={b.logo}
                     alt={b.name}
                     tone="on-dark"
                     size="sm"
-                    width={28}
-                    height={28}
-                    className="max-w-[22px]"
+                    width={72}
+                    height={20}
                   />
                 </span>
               ) : (

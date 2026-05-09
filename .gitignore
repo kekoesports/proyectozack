@@ -63,6 +63,7 @@ scraper/*.pyc
 # ad-hoc visual testing screenshots (Playwright MCP)
 visual-*.png
 crm-*-smoke.png
+screenshots/
 
 # Local agent/IDE settings (never commit)
 .claude/settings.local.json
