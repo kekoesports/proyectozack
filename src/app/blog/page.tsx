@@ -136,8 +136,8 @@ export default async function BlogPage() {
       </section>
 
       {/* ── CONTENIDO ───────────────────────────────────────────────── */}
-      <section className="bg-white py-4">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 space-y-5">
+      <section className="bg-white py-6 md:py-8">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 space-y-6 md:space-y-8">
 
           {posts.length === 0 ? (
             <div className="py-24 text-center">
@@ -152,7 +152,7 @@ export default async function BlogPage() {
 
               {/* Grid 3-col uniforme — mismo peso, sin secondary gigante */}
               {rest.length > 0 && (
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   {rest.map((post) => (
                     <BlogCard key={post.id} post={post} />
                   ))}

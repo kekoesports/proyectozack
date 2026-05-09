@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
-import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getPostSlugs, getPostBySlug, getRelatedPosts } from '@/lib/queries/posts';
 import { BlogCard } from '@/features/blog/components/BlogCard';
+import { BlogCover } from '@/features/blog/components/BlogCover';
 import { deriveCategory, readTime } from '@/lib/utils/blog';
 import { SectionTag } from '@/components/ui/SectionTag';
 import { TalentMiniCard } from '@/features/blog/components/TalentMiniCard';
@@ -150,19 +150,20 @@ export default async function BlogPostPage({ params }: PageProps) {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
 
       {/* ── HERO ── */}
-      <section className="bg-sp-black pt-28 pb-0">
-        <div className="max-w-4xl mx-auto px-6 pt-6 pb-10">
-          <Link href="/blog" className="inline-flex items-center gap-1.5 text-sm text-white/40 hover:text-white transition-colors mb-8">
+      <section className="bg-sp-black pt-20 pb-0">
+        <div className="max-w-4xl mx-auto px-6 pt-4 pb-8">
+          <Link href="/blog" className="inline-flex items-center gap-1.5 text-sm text-white/40 hover:text-white transition-colors mb-5">
             <span aria-hidden="true">←</span> Volver al blog
           </Link>
           {/* Category + meta */}
           <div className="flex flex-wrap items-center gap-3 mb-4">
-            <span className={`inline-flex px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-[0.12em] border ${category.bg} ${category.text} ${category.border}`}>
+            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-[0.12em] border ${category.bg} ${category.text} ${category.border}`}>
+              <span className={`w-1 h-1 rounded-full ${category.text.replace('text-', 'bg-')}`} aria-hidden />
               {category.label}
             </span>
             <SectionTag>{post.author}</SectionTag>
           </div>
-          <h1 className="font-display text-3xl md:text-5xl font-black uppercase tracking-tight text-white leading-tight mt-3 mb-4">
+          <h1 className="font-display text-3xl md:text-5xl font-black uppercase tracking-tight text-white leading-[0.95] mt-2 mb-4">
             {post.title}
           </h1>
           <div className="flex items-center gap-3 text-sm text-white/35">
@@ -176,13 +177,16 @@ export default async function BlogPostPage({ params }: PageProps) {
           </div>
         </div>
 
-        {/* Cover image */}
-        {post.coverUrl && (
-          <div className="relative w-full h-64 md:h-80 overflow-hidden">
-            <Image src={post.coverUrl} alt={post.title} fill sizes="100vw" className="object-cover object-center" priority />
-            <div className="absolute inset-0 bg-gradient-to-t from-sp-black via-sp-black/20 to-transparent" />
-          </div>
-        )}
+        {/* Cover image — con fallback editorial cuando no hay coverUrl */}
+        <div className="relative w-full h-72 md:h-96 overflow-hidden">
+          <BlogCover
+            coverUrl={post.coverUrl}
+            category={category}
+            title={post.title}
+            variant="hero"
+            priority
+          />
+        </div>
       </section>
 
       {/* ── BODY ── */}
