@@ -342,27 +342,16 @@ function buildBackgroundSvg(post) {
             font-weight="900" letter-spacing="5" fill="white" opacity="0.45">SOCIALPRO BLOG</text>
     </g>
 
-    <!-- 11) Editorial: título wrapped grande debajo del logo SP -->
-    ${post.mode === 'editorial' && post.title ? (() => {
-      const lines = wrapTitle(post.title, 22);
-      const lineH = 78;
-      const totalH = lines.length * lineH;
-      const startY = H * 0.62 - totalH / 2 + lineH * 0.65;
-      return `
-        <g>
-          <text x="${W / 2}" y="${startY}" text-anchor="middle"
-                font-family="Arial Black, Helvetica, sans-serif"
-                font-size="68" font-weight="900" letter-spacing="-1"
-                fill="white" opacity="0.96">
-            ${lines.map((l, i) => `<tspan x="${W/2}" dy="${i === 0 ? 0 : lineH}">${escapeXml(l)}</tspan>`).join('')}
-          </text>
-          <line x1="${W/2 - 90}" y1="${startY + totalH + 28}" x2="${W/2 + 90}" y2="${startY + totalH + 28}"
-                stroke="${accent}" stroke-width="2" opacity="0.85"/>
-        </g>`;
-    })() : ''}
-
-    <!-- 12) "× SocialPro" — solo en branded (en editorial el título reemplaza ese espacio) -->
-    ${post.mode !== 'editorial' ? `
+    <!-- 11) Divisor accent debajo del logo SP en editoriales — el título lo
+            renderiza el card React overlay (BlogCard h2), no se hornea aquí
+            para evitar duplicación visible en mobile. -->
+    ${post.mode === 'editorial' ? `
+      <g transform="translate(${W / 2}, ${H * 0.66})">
+        <line x1="-110" y1="0" x2="-30" y2="0" stroke="${accent}" stroke-width="1.5" opacity="0.85"/>
+        <circle cx="0" cy="0" r="3" fill="${accent}" opacity="0.95"/>
+        <line x1="30" y1="0" x2="110" y2="0" stroke="${accent}" stroke-width="1.5" opacity="0.85"/>
+      </g>
+    ` : `
       <g transform="translate(${W / 2}, ${H * 0.78})">
         <line x1="-90" y1="0" x2="-22" y2="0" stroke="${accent}" stroke-width="1" opacity="0.55"/>
         <text x="0" y="4" text-anchor="middle"
@@ -370,7 +359,7 @@ function buildBackgroundSvg(post) {
               font-weight="900" letter-spacing="6" fill="${accent}" opacity="0.85">× SOCIALPRO</text>
         <line x1="22" y1="0" x2="90" y2="0" stroke="${accent}" stroke-width="1" opacity="0.55"/>
       </g>
-    ` : ''}
+    `}
 
     <!-- 13) Tagline bottom-left (etiqueta varía según modo) -->
     <g transform="translate(60, ${H - 70})">
@@ -443,17 +432,19 @@ async function buildCover(post) {
   const composites = [{ input: haloBuf, top: 0, left: 0, blend: 'screen' }];
 
   if (post.mode === 'editorial') {
-    // Logo SocialPro grande centrado en la mitad superior, el título irá debajo.
+    // Logo SocialPro centrado verticalmente — el título lo renderiza el
+    // BlogCard h2 overlay, así que el cover queda como canvas SP-branded.
     try {
       const spBuf = await sharp('public/images/logos/socialpro-full.png')
-        .resize({ width: 380, height: 200, fit: 'inside' })
+        .resize({ width: 460, height: 240, fit: 'inside' })
         .png()
         .toBuffer();
       const meta = await sharp(spBuf).metadata();
-      const lw = meta.width ?? 380;
-      const lh = meta.height ?? 200;
+      const lw = meta.width ?? 460;
+      const lh = meta.height ?? 240;
       const left = Math.round((W - lw) / 2);
-      const top = Math.round(H * 0.20);
+      // Ligeramente arriba del centro para dejar respirar el divisor accent abajo.
+      const top = Math.round((H - lh) / 2 - H * 0.06);
       composites.push({ input: spBuf, top, left });
     } catch (e) {
       console.warn(`  · SP logo error: ${e instanceof Error ? e.message : String(e)}`);
