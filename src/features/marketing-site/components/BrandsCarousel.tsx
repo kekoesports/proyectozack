@@ -10,6 +10,17 @@ type BrandsCarouselProps = {
 }
 
 /**
+ * Marcas cuyo artwork es cuadrado o de aspect ratio bajo y, dentro del
+ * plate height-bound, rinden visualmente más pequeñas que logos anchos
+ * (EVOPLAY, RAZER). El boost les sube el `max-h` interno un tier para
+ * recuperar presencia sin romper la altura uniforme del plate.
+ */
+const BOOSTED_BRANDS: ReadonlySet<string> = new Set([
+  '1WIN',
+  'SKIN.CLUB',
+]);
+
+/**
  * Carrusel marquee de logos de marcas que confían en SocialPro.
  *
  * Sección con fondo blanco para mostrar los logos en su color original. La
@@ -69,6 +80,7 @@ export function BrandsCarousel({ brands }: BrandsCarouselProps) {
                   alt={brand.displayName}
                   plate={getBrandBg(brand.displayName)}
                   size="lg"
+                  boost={BOOSTED_BRANDS.has(brand.displayName)}
                   width={240}
                   height={56}
                 />
