@@ -20,7 +20,6 @@ const BRAND_BG_OVERRIDES: Readonly<Record<string, BrandBg>> = {
   // White-on-transparent o color sin contraste sobre blanco
   KEYDROP: 'dark',     // texto "drop" en blanco
   SKINSMONKEY: 'dark', // texto "skinsmonkey" en blanco
-  MELBET: 'dark',      // texto "MEL" blanco con outline gris (lavado en blanco)
   KICK: 'dark',        // verde lima brillante luce mejor sobre fondo oscuro
 };
 

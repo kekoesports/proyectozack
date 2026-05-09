@@ -29,9 +29,11 @@ const LOGO_MAX_HEIGHT: Record<Size, string> = {
 
 const PLATE_BG: Record<Plate, string> = {
   light: 'bg-white',
-  // Frosted-card sobre superficies oscuras: visible contra `sp-dark` sin
-  // saturar, y convivencia con plates blancos vecinos en el mismo carrusel.
-  dark: 'bg-white/[0.06]',
+  // Solid dark card. Sobre secciones light (carrusel home) actúa como
+  // "card oscura" que destaca para logos con artwork blanco/claro
+  // (KEYDROP, SKINSMONKEY). Sobre secciones dark (CaseCard header) se
+  // funde con el fondo sin romper la composición — el logo se ve igual.
+  dark: 'bg-sp-dark',
   none: '',
 };
 

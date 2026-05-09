@@ -47,21 +47,27 @@ const db = drizzle(sql, { schema });
 
 // ─── DATA ────────────────────────────────────────────────────────────────────
 
+// Fuente de verdad: archivos en `/public/images/brands/`. Slug = filename
+// sin extensión. Si añades/eliminas un asset, actualiza esta lista o usa
+// `npx tsx scripts/seeds/sync-brands-to-assets.ts` para reflejar el folder.
 const BRANDS_DATA = [
   { slug: '1win', displayName: '1WIN', logoUrl: '/images/brands/1win.png', sortOrder: 0 },
   { slug: 'hellcase', displayName: 'HELLCASE', logoUrl: '/images/brands/hellcase.png', sortOrder: 1 },
   { slug: 'pinup', displayName: 'PIN-UP', logoUrl: '/images/brands/pinup.png', sortOrder: 2 },
-  { slug: 'jugabet', displayName: 'JUGABET', logoUrl: '/images/brands/jugabet.png', sortOrder: 3 },
-  { slug: 'clashgg', displayName: 'CLASH.GG', logoUrl: '/images/brands/clashgg.jpg', sortOrder: 4 },
+  { slug: 'jugabet', displayName: 'JUGABET', logoUrl: '/images/brands/jugabet.svg', sortOrder: 3 },
+  { slug: 'clashgg', displayName: 'CLASH.GG', logoUrl: '/images/brands/clashgg.webp', sortOrder: 4 },
   { slug: 'ggdrop', displayName: 'GGDROP', logoUrl: '/images/brands/ggdrop.png', sortOrder: 5 },
   { slug: 'skinclub', displayName: 'SKIN.CLUB', logoUrl: '/images/brands/skinclub.png', sortOrder: 6 },
-  { slug: 'keydrop', displayName: 'KEYDROP', logoUrl: '/images/brands/keydrop.png', sortOrder: 7 },
-  { slug: 'melbet', displayName: 'MELBET', logoUrl: '/images/brands/melbet.png', sortOrder: 8 },
-  { slug: 'grandwin', displayName: 'GRANDWIN', logoUrl: '/images/brands/grandwin.png', sortOrder: 9 },
-  { slug: 'kick', displayName: 'KICK', logoUrl: '/images/brands/kick.png', sortOrder: 10 },
-  { slug: 'razer', displayName: 'RAZER', logoUrl: '/images/brands/razer.png', sortOrder: 11 },
-  { slug: 'emma', displayName: 'EMMA', logoUrl: '/images/brands/emma.png', sortOrder: 12 },
-  { slug: 'zerotwo', displayName: 'ZEROTWO', logoUrl: '/images/brands/zerotwo.png', sortOrder: 13 },
+  { slug: 'skinplace', displayName: 'SKIN.PLACE', logoUrl: '/images/brands/skinplace.png', sortOrder: 7 },
+  { slug: 'skinsmonkey', displayName: 'SKINSMONKEY', logoUrl: '/images/brands/skinsmonkey.png', sortOrder: 8 },
+  { slug: 'keydrop', displayName: 'KEYDROP', logoUrl: '/images/brands/keydrop.png', sortOrder: 9 },
+  { slug: '1xbet', displayName: '1XBET', logoUrl: '/images/brands/1xbet.png', sortOrder: 10 },
+  { slug: 'empiredrop', displayName: 'EMPIREDROP', logoUrl: '/images/brands/empiredrop.svg', sortOrder: 11 },
+  { slug: 'evoplay', displayName: 'EVOPLAY', logoUrl: '/images/brands/evoplay.png', sortOrder: 12 },
+  { slug: 'kick', displayName: 'KICK', logoUrl: '/images/brands/kick.png', sortOrder: 13 },
+  { slug: 'razer', displayName: 'RAZER', logoUrl: '/images/brands/razer.png', sortOrder: 14 },
+  { slug: 'pccomponentes', displayName: 'PCCOMPONENTES', logoUrl: '/images/brands/pccomponentes.png', sortOrder: 15 },
+  { slug: 'emma', displayName: 'EMMA', logoUrl: '/images/brands/emma.png', sortOrder: 16 },
 ];
 
 type TalentPlatform = 'twitch' | 'youtube';
