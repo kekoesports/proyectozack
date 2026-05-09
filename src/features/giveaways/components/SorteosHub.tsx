@@ -55,7 +55,7 @@ export function SorteosHub({ active, finished, brands, creators, totalValue }: S
     <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-5 lg:py-6">
 
       {/* ── Mobile: dashboard-style stat bar ───────────────────────── */}
-      <div className="lg:hidden mb-3 grid grid-cols-4 gap-2">
+      <div className={`lg:hidden mb-3 grid gap-2 ${totalValue ? 'grid-cols-4' : 'grid-cols-3'}`}>
         <div className="rounded-lg border border-emerald-400/20 bg-emerald-400/[0.03] px-2 py-1.5 flex flex-col items-center text-center">
           <span className="text-[8px] font-black uppercase tracking-wider text-emerald-400/70">En vivo</span>
           <span className="text-[12px] font-black tabular-nums text-white/85">{active.length}</span>
