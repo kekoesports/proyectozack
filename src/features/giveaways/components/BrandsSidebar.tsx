@@ -1,6 +1,7 @@
 'use client';
 
 import type { BrandOption } from '@/lib/queries/giveawaysHub';
+import { BrandLogo } from '@/components/ui/BrandLogo';
 
 type BrandsSidebarProps = {
   readonly brands: readonly BrandOption[];
@@ -69,22 +70,26 @@ export function BrandsSidebar({
                 type="button"
                 onClick={() => onSelectAction(isActive ? null : b.name)}
                 aria-pressed={isActive}
-                className={`shrink-0 flex items-center gap-2 pl-1.5 pr-3 py-1.5 rounded-full border transition-colors ${
+                className={`group shrink-0 flex items-center gap-2 pl-1.5 pr-3 py-1.5 rounded-full border transition-colors ${
                   isActive
                     ? 'bg-sp-orange/10 border-sp-orange/40'
-                    : 'bg-white/[0.02] border-white/[0.06]'
+                    : 'bg-white/[0.02] border-white/[0.06] hover:border-white/15'
                 }`}
               >
                 {b.logo ? (
-                  <img
-                    src={b.logo}
-                    alt={b.name}
-                    width={24}
-                    height={24}
-                    className="h-6 w-6 rounded-full object-contain bg-white/5 p-0.5"
-                  />
+                  <span className="h-6 w-6 rounded-full bg-white/[0.04] flex items-center justify-center shrink-0 transition-colors group-hover:bg-white/[0.08]">
+                    <BrandLogo
+                      src={b.logo}
+                      alt={b.name}
+                      tone="on-dark"
+                      size="xs"
+                      width={20}
+                      height={20}
+                      className="max-w-[16px]"
+                    />
+                  </span>
                 ) : (
-                  <div className="h-6 w-6 rounded-full bg-sp-orange/20 flex items-center justify-center text-[9px] font-black text-sp-orange">
+                  <div className="h-6 w-6 rounded-full bg-sp-orange/20 flex items-center justify-center text-[9px] font-black text-sp-orange shrink-0">
                     {b.name.charAt(0)}
                   </div>
                 )}
@@ -130,20 +135,24 @@ export function BrandsSidebar({
               type="button"
               onClick={() => onSelectAction(isActive ? null : b.name)}
               aria-pressed={isActive}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg border transition-all ${
+              className={`group w-full flex items-center gap-3 px-3 py-2.5 rounded-lg border transition-all ${
                 isActive
                   ? 'bg-sp-orange/10 border-sp-orange/40 shadow-[0_0_18px_rgba(245,99,42,0.08)]'
-                  : 'bg-white/[0.02] border-white/[0.04] hover:border-white/10 hover:bg-white/[0.04]'
+                  : 'bg-white/[0.02] border-white/[0.04] hover:border-white/15 hover:bg-white/[0.04]'
               }`}
             >
               {b.logo ? (
-                <img
-                  src={b.logo}
-                  alt={b.name}
-                  width={32}
-                  height={32}
-                  className="h-8 w-8 rounded-md object-contain bg-white/5 p-1"
-                />
+                <span className="h-8 w-8 rounded-md bg-white/[0.04] flex items-center justify-center shrink-0 transition-colors group-hover:bg-white/[0.08]">
+                  <BrandLogo
+                    src={b.logo}
+                    alt={b.name}
+                    tone="on-dark"
+                    size="sm"
+                    width={28}
+                    height={28}
+                    className="max-w-[22px]"
+                  />
+                </span>
               ) : (
                 <div className="h-8 w-8 rounded-md bg-sp-orange/20 flex items-center justify-center text-[11px] font-black text-sp-orange shrink-0">
                   {b.name.charAt(0)}

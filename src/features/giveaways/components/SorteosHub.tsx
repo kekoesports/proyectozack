@@ -4,6 +4,7 @@ import { useState, useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { CompactSorteoCard } from './CompactSorteoCard';
+import { BrandLogo } from '@/components/ui/BrandLogo';
 import type { BrandOption } from '@/lib/queries/giveawaysHub';
 import type { GiveawayWithTalent, Talent } from '@/types';
 
@@ -95,13 +96,23 @@ export function SorteosHub({ active, finished, brands, creators, totalValue }: S
               key={b.name}
               type="button"
               onClick={() => setSelectedBrand(selectedBrand === b.name ? null : b.name)}
-              className={`shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border text-[10px] font-black uppercase tracking-wider transition-colors ${
+              className={`group shrink-0 flex items-center gap-2 px-2.5 py-1.5 rounded-full border text-[10px] font-black uppercase tracking-wider transition-colors ${
                 selectedBrand === b.name
                   ? 'bg-sp-orange/10 border-sp-orange/40 text-white'
-                  : 'bg-white/[0.03] border-white/[0.06] text-white/50'
+                  : 'bg-white/[0.03] border-white/[0.06] text-white/50 hover:border-white/15'
               }`}
             >
-              {b.logo && <img src={b.logo} alt={b.name} className="w-4 h-4 object-contain rounded shrink-0" />}
+              {b.logo && (
+                <BrandLogo
+                  src={b.logo}
+                  alt={b.name}
+                  tone="on-dark"
+                  size="xs"
+                  width={16}
+                  height={16}
+                  className="max-w-[16px] shrink-0"
+                />
+              )}
               {b.name}
               <span className="text-white/30 font-bold">{b.count}</span>
             </button>
@@ -191,18 +202,24 @@ export function SorteosHub({ active, finished, brands, creators, totalValue }: S
                       type="button"
                       onClick={() => setSelectedBrand(isActive ? null : b.name)}
                       aria-pressed={isActive}
-                      className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg border transition-all ${
+                      className={`group w-full flex items-center gap-2.5 px-3 py-2 rounded-lg border transition-all ${
                         isActive
                           ? 'bg-sp-orange/10 border-sp-orange/40 shadow-[0_0_14px_rgba(245,99,42,0.07)]'
-                          : 'bg-white/[0.02] border-white/[0.04] hover:border-white/10 hover:bg-white/[0.04]'
+                          : 'bg-white/[0.02] border-white/[0.04] hover:border-white/15 hover:bg-white/[0.04]'
                       }`}
                     >
                       {b.logo ? (
-                        <img
-                          src={b.logo}
-                          alt={b.name}
-                          className="w-6 h-6 rounded object-contain bg-white/5 p-0.5 shrink-0"
-                        />
+                        <span className="w-6 h-6 rounded bg-white/[0.04] flex items-center justify-center shrink-0 transition-colors group-hover:bg-white/[0.08]">
+                          <BrandLogo
+                            src={b.logo}
+                            alt={b.name}
+                            tone="on-dark"
+                            size="xs"
+                            width={20}
+                            height={20}
+                            className="max-w-[18px]"
+                          />
+                        </span>
                       ) : (
                         <div className="w-6 h-6 rounded bg-sp-orange/20 flex items-center justify-center text-[9px] font-black text-sp-orange shrink-0">
                           {b.name.charAt(0)}

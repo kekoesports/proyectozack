@@ -346,6 +346,36 @@ html.dark {
   background: linear-gradient(135deg, #1a1a2e 0%, #2d1b4e 100%);
 }
 
+/* ── Brand logo monochrome treatment ─────────────────────────────────────── */
+/* Usado por <BrandLogo /> para presentar logos en silueta editorial por
+   defecto y revelar el color original al hover. Aplica también con
+   `.group:hover` para que el efecto sintonice con la card contenedora. */
+.brand-logo {
+  transition: filter 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: filter, opacity;
+}
+/* on-dark: grayscale + boost de luminancia → silueta blanco-marfil que
+   preserva detalle de tipografías y formas. brightness(0) destruía la
+   estructura interna de logos text-heavy (keydrop, ggdrop, melbet…). */
+.brand-logo--on-dark {
+  filter: grayscale(1) brightness(1.6) contrast(1.05);
+  opacity: 0.78;
+}
+.brand-logo--on-light {
+  filter: grayscale(1) brightness(0.55) contrast(1.1);
+  opacity: 0.7;
+}
+.brand-logo--on-dark:hover,
+.brand-logo--on-light:hover,
+.group:hover > .brand-logo--on-dark,
+.group:hover > .brand-logo--on-light,
+.group:hover .brand-logo--on-dark,
+.group:hover .brand-logo--on-light {
+  filter: none;
+  opacity: 1;
+}
+
 /* ── Reduced motion — suavizar animaciones de landing ───────────────────── */
 @media (prefers-reduced-motion: reduce) {
   .marquee-track {
@@ -363,5 +393,8 @@ html.dark {
   .sp-admin-hero-blob-a,
   .sp-admin-hero-blob-b {
     animation: none;
+  }
+  .brand-logo {
+    transition: none;
   }
 }

@@ -1,18 +1,38 @@
 'use client';
 
-import Image from 'next/image';
 import Link from 'next/link';
 import * as m from 'motion/react-client';
 import type { CaseStudyWithRelations } from '@/types';
+import { BrandLogo } from '@/components/ui/BrandLogo';
 
 type CaseCardProps = {
   caseStudy: CaseStudyWithRelations;
 }
 
+/**
+ * Map de marcas a logo PNG transparente. Se prioriza sobre `caseStudy.logoUrl`
+ * (que apunta a JPG con fondo negro) para que el tratamiento monocromo
+ * del componente <BrandLogo /> funcione limpio.
+ */
 const BRAND_LOGO_MAP: Record<string, string> = {
-  'RAZER':       '/images/brands/razer.png',
-  '1WIN':        '/images/brands/1win.png',
-  'SKINSMONKEY': '/images/brands/skinsmonkey.png',
+  'RAZER':         '/images/brands/razer.png',
+  '1WIN':          '/images/brands/1win.png',
+  'SKINSMONKEY':   '/images/brands/skinsmonkey.png',
+  'KEYDROP':       '/images/brands/keydrop.png',
+  'HELLCASE':      '/images/brands/hellcase.png',
+  'SKINPLACE':     '/images/brands/skinplace.png',
+  'SKINCLUB':      '/images/brands/skinclub.png',
+  'GGDROP':        '/images/brands/ggdrop.png',
+  'CLASHGG':       '/images/brands/clashgg.jpg',
+  'MELBET':        '/images/brands/melbet.png',
+  'JUGABET':       '/images/brands/jugabet.png',
+  'PINUP':         '/images/brands/pinup.png',
+  'PIN-UP':        '/images/brands/pinup.png',
+  'GRANDWIN':      '/images/brands/grandwin.png',
+  'KICK':          '/images/brands/kick.png',
+  'PCCOMPONENTES': '/images/brands/pccomponentes.png',
+  'EMMA':          '/images/brands/emma.png',
+  'ZEROTWO':       '/images/brands/zerotwo.png',
 };
 
 /**
@@ -27,7 +47,10 @@ const BRAND_LOGO_MAP: Record<string, string> = {
  * ```
  */
 export function CaseCard({ caseStudy }: CaseCardProps) {
-  const logoSrc = caseStudy.logoUrl ?? BRAND_LOGO_MAP[caseStudy.brandName];
+  // Preferir PNG transparente del brand registry sobre JPG del caso —
+  // los JPG en `public/images/cases/*` tienen fondo negro opaco que rompe
+  // el tratamiento monocromo del logo. Si no hay match, fallback al field BD.
+  const logoSrc = BRAND_LOGO_MAP[caseStudy.brandName] ?? caseStudy.logoUrl;
 
   const metrics = [
     caseStudy.reach          ? { value: caseStudy.reach,          label: 'Alcance'      } : null,
@@ -43,16 +66,17 @@ export function CaseCard({ caseStudy }: CaseCardProps) {
         transition={{ duration: 0.25, ease: 'easeOut' }}
         className="group rounded-2xl overflow-hidden border border-sp-border bg-white flex flex-col h-full"
       >
-        {/* Dark header with brand logo */}
+        {/* Dark header with brand logo — silueta blanca → color real al hover de la card */}
         <header className="h-20 bg-sp-dark flex items-center justify-between px-5 flex-shrink-0">
           <div className="flex items-center">
             {logoSrc ? (
-              <Image
+              <BrandLogo
                 src={logoSrc}
                 alt={caseStudy.brandName}
-                width={160}
-                height={48}
-                className="object-contain max-h-12 mix-blend-screen"
+                tone="on-dark"
+                size="xl"
+                width={180}
+                height={56}
               />
             ) : (
               <span className="font-display text-xl font-black text-white tracking-tight">
