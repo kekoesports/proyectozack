@@ -4,53 +4,48 @@ import Link from 'next/link';
 import * as m from 'motion/react-client';
 import type { CaseStudyWithRelations } from '@/types';
 import { BrandLogo } from '@/components/ui/BrandLogo';
+import { getBrandBg } from '@/components/ui/brand-bg-map';
 
 type CaseCardProps = {
   caseStudy: CaseStudyWithRelations;
 }
 
 /**
- * Map de marcas a logo PNG transparente. Se prioriza sobre `caseStudy.logoUrl`
- * (que apunta a JPG con fondo negro) para que el tratamiento monocromo
- * del componente <BrandLogo /> funcione limpio.
+ * Map de marcas a logo PNG/SVG transparente del registry local.
+ * Se prioriza sobre `caseStudy.logoUrl` (que apunta a JPG con fondo).
  */
 const BRAND_LOGO_MAP: Record<string, string> = {
   'RAZER':         '/images/brands/razer.png',
   '1WIN':          '/images/brands/1win.png',
+  '1XBET':         '/images/brands/1xbet.png',
   'SKINSMONKEY':   '/images/brands/skinsmonkey.png',
   'KEYDROP':       '/images/brands/keydrop.png',
   'HELLCASE':      '/images/brands/hellcase.png',
   'SKINPLACE':     '/images/brands/skinplace.png',
   'SKINCLUB':      '/images/brands/skinclub.png',
   'GGDROP':        '/images/brands/ggdrop.png',
-  'CLASHGG':       '/images/brands/clashgg.jpg',
+  'CLASHGG':       '/images/brands/clashgg.webp',
   'MELBET':        '/images/brands/melbet.png',
-  'JUGABET':       '/images/brands/jugabet.png',
+  'JUGABET':       '/images/brands/jugabet.svg',
   'PINUP':         '/images/brands/pinup.png',
   'PIN-UP':        '/images/brands/pinup.png',
-  'GRANDWIN':      '/images/brands/grandwin.png',
   'KICK':          '/images/brands/kick.png',
   'PCCOMPONENTES': '/images/brands/pccomponentes.png',
-  'EMMA':          '/images/brands/emma.png',
-  'ZEROTWO':       '/images/brands/zerotwo.png',
+  'EMMA':          '/images/brands/enma.png',
+  'ENMA':          '/images/brands/enma.png',
+  'EMPIREDROP':    '/images/brands/empiredrop.svg',
+  'EVOPLAY':       '/images/brands/evoplay.png',
 };
 
 /**
- * Card de case study: logo de marca, título y métricas clave (alcance,
- * engagement, conversiones, ROI). Linkea a `/casos/[slug]`.
+ * Card de case study: logo de marca, título y métricas clave.
  *
  * @kind client
  * @feature cases
- * @example
- * ```tsx
- * <CaseCard caseStudy={caseStudy} />
- * ```
  */
 export function CaseCard({ caseStudy }: CaseCardProps) {
-  // Preferir PNG transparente del brand registry sobre JPG del caso —
-  // los JPG en `public/images/cases/*` tienen fondo negro opaco que rompe
-  // el tratamiento monocromo del logo. Si no hay match, fallback al field BD.
   const logoSrc = BRAND_LOGO_MAP[caseStudy.brandName] ?? caseStudy.logoUrl;
+  const plate = getBrandBg(caseStudy.brandName);
 
   const metrics = [
     caseStudy.reach          ? { value: caseStudy.reach,          label: 'Alcance'      } : null,
@@ -66,16 +61,18 @@ export function CaseCard({ caseStudy }: CaseCardProps) {
         transition={{ duration: 0.25, ease: 'easeOut' }}
         className="group rounded-2xl overflow-hidden border border-sp-border bg-white flex flex-col h-full"
       >
-        {/* Dark header with brand logo — silueta blanca → color real al hover de la card */}
-        <header className="h-20 bg-sp-dark flex items-center justify-between px-5 flex-shrink-0">
+        {/* Dark header con plate uniforme: el plate (light o dark) es la
+            superficie real del logo, garantizando legibilidad sobre el
+            fondo `sp-dark` del header. */}
+        <header className="h-24 bg-sp-dark flex items-center justify-between px-5 flex-shrink-0">
           <div className="flex items-center">
             {logoSrc ? (
               <BrandLogo
                 src={logoSrc}
                 alt={caseStudy.brandName}
-                tone="on-dark"
-                size="xl"
-                width={180}
+                plate={plate}
+                size="lg"
+                width={240}
                 height={56}
               />
             ) : (
@@ -90,7 +87,6 @@ export function CaseCard({ caseStudy }: CaseCardProps) {
           </div>
         </header>
 
-        {/* White body */}
         <article className="p-5 flex flex-col flex-1">
           <p className="text-[10px] font-bold uppercase tracking-widest text-sp-orange mb-2">
             {caseStudy.brandName} × SocialPro
@@ -106,7 +102,6 @@ export function CaseCard({ caseStudy }: CaseCardProps) {
             </p>
           )}
 
-          {/* Metrics — inline row */}
           {metrics.length > 0 && (
             <div className="flex gap-4 border-t border-sp-border pt-4 mb-4">
               {metrics.slice(0, 3).map((met) => (
@@ -122,7 +117,6 @@ export function CaseCard({ caseStudy }: CaseCardProps) {
             </div>
           )}
 
-          {/* Tags */}
           {caseStudy.tags.length > 0 && (
             <div className="flex gap-2 flex-wrap mb-4">
               {caseStudy.tags.slice(0, 3).map((t) => (

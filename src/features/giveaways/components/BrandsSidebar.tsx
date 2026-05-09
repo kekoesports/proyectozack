@@ -2,6 +2,7 @@
 
 import type { BrandOption } from '@/lib/queries/giveawaysHub';
 import { BrandLogo } from '@/components/ui/BrandLogo';
+import { getBrandBg } from '@/components/ui/brand-bg-map';
 
 type BrandsSidebarProps = {
   readonly brands: readonly BrandOption[];
@@ -77,16 +78,14 @@ export function BrandsSidebar({
                 }`}
               >
                 {b.logo ? (
-                  <span className="h-6 px-1.5 rounded-full bg-white/[0.04] flex items-center justify-center shrink-0 transition-colors group-hover:bg-white/[0.08]">
-                    <BrandLogo
-                      src={b.logo}
-                      alt={b.name}
-                      tone="on-dark"
-                      size="xs"
-                      width={56}
-                      height={16}
-                    />
-                  </span>
+                  <BrandLogo
+                    src={b.logo}
+                    alt={b.name}
+                    plate={getBrandBg(b.name)}
+                    size="xs"
+                    width={64}
+                    height={20}
+                  />
                 ) : (
                   <div className="h-6 w-6 rounded-full bg-sp-orange/20 flex items-center justify-center text-[9px] font-black text-sp-orange shrink-0">
                     {b.name.charAt(0)}
@@ -141,16 +140,14 @@ export function BrandsSidebar({
               }`}
             >
               {b.logo ? (
-                <span className="h-8 px-2 rounded-md bg-white/[0.04] flex items-center justify-center shrink-0 transition-colors group-hover:bg-white/[0.08]">
-                  <BrandLogo
-                    src={b.logo}
-                    alt={b.name}
-                    tone="on-dark"
-                    size="sm"
-                    width={72}
-                    height={20}
-                  />
-                </span>
+                <BrandLogo
+                  src={b.logo}
+                  alt={b.name}
+                  plate={getBrandBg(b.name)}
+                  size="sm"
+                  width={96}
+                  height={24}
+                />
               ) : (
                 <div className="h-8 w-8 rounded-md bg-sp-orange/20 flex items-center justify-center text-[11px] font-black text-sp-orange shrink-0">
                   {b.name.charAt(0)}

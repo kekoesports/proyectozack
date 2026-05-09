@@ -1,25 +1,60 @@
 import Image from 'next/image';
+import type { BrandBg } from './brand-bg-map';
 
-type Tone = 'on-dark' | 'on-light';
+type Plate = BrandBg | 'none';
 type Size = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
 
-const SIZE_CLASS: Record<Size, string> = {
-  xs: 'max-h-4',   // 16px — chips diminutos
-  sm: 'max-h-5',   // 20px — sidebar pequeño
-  md: 'max-h-7',   // 28px — sidebar lista, card mini
-  lg: 'max-h-9',   // 36px — carrusel landing
-  xl: 'max-h-12',  // 48px — case header
+/**
+ * Dimensiones del plate: altura fija + padding horizontal adaptativo. El ancho
+ * se ajusta al aspect ratio natural del logo, lo que evita recortes en logos
+ * anchos (KEYDROP, SKINSMONKEY) y squashing en logos cuadrados (JUGABET,
+ * SKINCLUB). La altura uniforme garantiza ritmo vertical consistente en
+ * carruseles y headers.
+ */
+const PLATE_DIM: Record<Size, string> = {
+  xs: 'h-6 px-2',
+  sm: 'h-8 px-2.5',
+  md: 'h-10 px-3',
+  lg: 'h-14 px-4',
+  xl: 'h-16 px-5',
+};
+
+const LOGO_MAX_HEIGHT: Record<Size, string> = {
+  xs: 'max-h-3.5',
+  sm: 'max-h-5',
+  md: 'max-h-7',
+  lg: 'max-h-10',
+  xl: 'max-h-12',
+};
+
+const PLATE_BG: Record<Plate, string> = {
+  light: 'bg-white',
+  // Frosted-card sobre superficies oscuras: visible contra `sp-dark` sin
+  // saturar, y convivencia con plates blancos vecinos en el mismo carrusel.
+  dark: 'bg-white/[0.06]',
+  none: '',
+};
+
+const PLATE_RADIUS: Record<Size, string> = {
+  xs: 'rounded',
+  sm: 'rounded-md',
+  md: 'rounded-md',
+  lg: 'rounded-lg',
+  xl: 'rounded-lg',
 };
 
 type Props = {
   readonly src: string;
   readonly alt: string;
-  /** Aplica filtro silueta sobre fondo oscuro (default) o claro. */
-  readonly tone?: Tone;
-  /** Altura máxima visual normalizada — los anchos se mantienen proporcionalmente. */
+  /**
+   * Fondo del plate sobre el que se renderiza el logo.
+   *  - `light`: plate blanco — default, sirve para logos en color/oscuros.
+   *  - `dark`:  plate oscuro — para logos con artwork blanco que serían invisibles en blanco.
+   *  - `none`:  sin plate — el logo se renderiza directamente sobre el contenedor padre.
+   */
+  readonly plate?: Plate;
+  /** Tamaño del plate y altura máxima del logo dentro. */
   readonly size?: Size;
-  /** Si false, renderiza con color original (sin filtro monocromo). */
-  readonly mono?: boolean;
   readonly width?: number;
   readonly height?: number;
   readonly className?: string;
@@ -27,38 +62,65 @@ type Props = {
 };
 
 /**
- * Logo de marca con tratamiento editorial unificado.
+ * Logo de marca presentado sobre un plate de fondo claro u oscuro.
  *
- * - Default `mono=true`: silueta blanca (on-dark) o gris (on-light) al ~50-65% opacity
- * - Hover sobre el logo o sobre `.group` ancestral: revela color original a 100%
- * - Tamaños normalizados (xs..xl) → consistencia visual entre carrusel, sidebars y cards
+ * Diseñado para integrar logos de calidad heterogénea (color, texto en blanco,
+ * con/sin transparencia) en una presentación visual uniforme:
+ *
+ *  - El plate provee fondo legible para el artwork del logo.
+ *  - La altura del plate y el `max-h` interno garantizan altura visual uniforme.
+ *  - El logo mantiene su aspect ratio natural (`object-contain`, `w-auto`).
+ *  - SVG se sirve sin optimización (next/image bloquea SVG por defecto).
  *
  * @kind server
  */
 export function BrandLogo({
   src,
   alt,
-  tone = 'on-dark',
+  plate = 'light',
   size = 'md',
-  mono = true,
-  width = 160,
-  height = 48,
+  width = 240,
+  height = 60,
   className,
   priority = false,
-}: Props) {
-  const monoClass = mono ? `brand-logo brand-logo--${tone}` : '';
-  const cls = ['object-contain w-auto', SIZE_CLASS[size], monoClass, className]
-    .filter(Boolean)
-    .join(' ');
-
-  return (
+}: Props): React.JSX.Element {
+  // unoptimized para TODOS los logos: next/image resize destruye aspect ratio
+  // de logos no-4:1 (KEYDROP 16:9 quedaba estirado, JUGABET 1:1 quedaba squished
+  // al canvas del archivo). Usar el asset nativo + object-contain garantiza
+  // que el aspect ratio del archivo se respete.
+  const img = (
     <Image
       src={src}
       alt={alt}
       width={width}
       height={height}
       priority={priority}
-      className={cls}
+      unoptimized
+      className={`object-contain w-auto max-w-full ${LOGO_MAX_HEIGHT[size]}`}
     />
+  );
+
+  if (plate === 'none') {
+    return (
+      <span className={`inline-flex items-center ${className ?? ''}`}>
+        {img}
+      </span>
+    );
+  }
+
+  return (
+    <span
+      className={[
+        'inline-flex items-center justify-center shrink-0',
+        PLATE_DIM[size],
+        PLATE_RADIUS[size],
+        PLATE_BG[plate],
+        className,
+      ]
+        .filter(Boolean)
+        .join(' ')}
+    >
+      {img}
+    </span>
   );
 }

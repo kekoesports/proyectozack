@@ -1,69 +1,89 @@
 # Brand assets — wishlist de reemplazo
 
-Inventario auditado el 2026-05-09. El sistema visual (`<BrandLogo>` con tratamiento monochrome premium) funciona con los assets actuales, pero subir mejores versiones eleva la calidad visual sin parches.
+Auditoría re-actualizada 2026-05-09. El sistema visual ahora renderiza logos con sus colores nativos sobre plates (claro/oscuro/none) — sin filtros monochrome. Hay assets que funcionan perfectos y assets con problemas concretos que documentamos abajo para reemplazar.
+
+## Cómo funciona el sistema actual (resumen técnico)
+
+- `<BrandLogo>` (`src/components/ui/BrandLogo.tsx`): plate altura-fija + padding adaptativo. El logo se sirve `unoptimized` (next/image) para preservar el aspect ratio nativo del archivo.
+- `getBrandBg(name)` (`src/components/ui/brand-bg-map.ts`): decide plate `light` / `dark` por marca. Default: `light`. Override `dark` para artwork blanco/claro (KEYDROP, SKINSMONKEY, MELBET, KICK).
+- SVG soportado nativamente. Sin filtros CSS sobre logos.
 
 ## Formato ideal estándar
 
-- **Formato preferente:** SVG (vectorial, escala perfecta). Alternativa: PNG con canal alpha.
-- **Resolución mínima PNG (si SVG no disponible):** 1200×300 px (4:1 landscape) o 1024×1024 (1:1 squarish). Cubrir retina @3x para chips de hasta 400px.
-- **Fondo:** transparente. Sin fondos blancos/negros incrustados ni rectángulos sólidos.
-- **Variantes ideales por marca:**
-  - `<slug>.svg` o `<slug>.png` — versión color principal
-  - `<slug>-mono.svg` o `<slug>-light.png` — versión clara/blanca para fondos oscuros (opcional, el filtro actual lo simula)
-- **Origen:** brand kit oficial / press kit de la marca. **NO** capturas de pantalla, **NO** favicons (16-32px), **NO** logos extraídos de la home.
+- **Formato preferente:** SVG vectorial con `viewBox` ajustado al **bounding box** del logo (sin whitespace alrededor). Alternativa: PNG con canal alpha y crop tight.
+- **Aspect ratio horizontal:** 3:1 a 6:1 ideal (logos tipo wordmark). Square (1:1) acepta solo si el logo en sí es cuadrado (ej: SkinClub icon-only).
+- **Resolución mínima PNG:** 1200×300 (4:1) o 1024×1024 (1:1). Cubrir retina @3x.
+- **Fondo:** **transparente**. Sin rectángulos sólidos, sin marcas de agua, sin padding incrustado.
+- **Origen:** brand kit oficial / press kit de la marca. **NO** capturas, **NO** favicons (16-32px).
 
-## Estado actual y reemplazos recomendados
+## Assets actuales — estado individual
 
-Auditoría: dimensiones, formato, peso real (`/public/images/brands/`).
+Auditoría visual contra QA en `/casos`, `/sorteos`, home carousel + mobile.
 
-| Marca         | Archivo actual            | Dimensiones  | Formato | Problema visual                                                                 | Recomendado                          | Tamaño mín.   | Transparente | Prioridad |
-|---------------|---------------------------|--------------|---------|---------------------------------------------------------------------------------|--------------------------------------|---------------|--------------|-----------|
-| Clash.gg      | `clashgg.jpg`             | 240×60       | JPG     | **JPG con fondo incrustado** — no se integra con tratamiento monochrome         | SVG o PNG transparente               | 1200×300      | sí           | **ALTA**  |
-| Skin.place    | `skinplace.png`           | 256×256      | PNG α   | Aspect 1:1 mientras el resto es 4:1 — rompe consistencia en sidebar/carrusel    | SVG o PNG horizontal alta-res        | 1200×300      | sí           | **ALTA**  |
-| 1Win          | `1win.png`                | 1920×1031    | PNG α   | Sobredimensionado (74KB) — desperdicio de banda y aspect raro 1.86:1            | SVG o PNG 1200×300 horizontal        | 1200×300      | sí           | media     |
-| SkinClub      | `skinclub.png`            | 240×60       | PNG α   | Solo 3.6KB → compresión agresiva, se ve sucio al filtrar monochrome             | SVG o PNG ≥1200×300                  | 1200×300      | sí           | media     |
-| SkinsMonkey   | `skinsmonkey.png`         | 240×60       | PNG α   | Solo 3.6KB → mismo problema, ligero pixelado                                    | SVG o PNG ≥1200×300                  | 1200×300      | sí           | media     |
-| Keydrop       | `keydrop.png`             | 240×60       | PNG α   | Resolución baja (5.2KB) — funciona pero nota pixelado en zoom retina            | SVG o PNG ≥1200×300                  | 1200×300      | sí           | media     |
-| Pin-Up        | `pinup.png`               | 240×60       | PNG α   | Resolución baja                                                                 | SVG o PNG ≥1200×300                  | 1200×300      | sí           | media     |
-| Hellcase      | `hellcase.png`            | 240×60       | PNG α   | Resolución baja                                                                 | SVG o PNG ≥1200×300                  | 1200×300      | sí           | baja      |
-| GGDrop        | `ggdrop.png`              | 240×60       | PNG α   | Resolución baja                                                                 | SVG o PNG ≥1200×300                  | 1200×300      | sí           | baja      |
-| Jugabet       | `jugabet.png`             | 240×60       | PNG α   | Resolución baja                                                                 | SVG o PNG ≥1200×300                  | 1200×300      | sí           | baja      |
-| Melbet        | `melbet.png`              | 240×60       | PNG α   | Resolución baja                                                                 | SVG o PNG ≥1200×300                  | 1200×300      | sí           | baja      |
-| GrandWin      | `grandwin.png`            | 240×60       | PNG α   | Resolución baja (decente a 19KB pero limitado a 60px alto)                      | SVG o PNG ≥1200×300                  | 1200×300      | sí           | baja      |
-| Kick          | `kick.png`                | 240×60       | PNG α   | Resolución baja                                                                 | SVG (Kick tiene SVG público oficial) | 1200×300      | sí           | baja      |
-| PcComponentes | `pccomponentes.png`       | 240×60       | PNG α   | Resolución baja                                                                 | SVG (tienen brandkit oficial)        | 1200×300      | sí           | baja      |
-| Emma          | `emma.png`                | 240×60       | PNG α   | Resolución baja                                                                 | SVG o PNG ≥1200×300                  | 1200×300      | sí           | baja      |
-| ZeroTwo       | `zerotwo.png`             | 240×60       | PNG α   | Resolución baja                                                                 | SVG o PNG ≥1200×300                  | 1200×300      | sí           | baja      |
-| Razer         | `razer.png`               | 600×140      | PNG α   | OK — única con resolución decente (4.3:1, 14KB)                                 | Ideal: SVG (Razer tiene press kit)   | (ya OK)       | sí           | opcional  |
+### ✅ OK — no requieren reemplazo
 
-### Logos de creator codes (tabla `creator_codes`, no en `/public/images/brands/`)
+| Marca         | Archivo                | Estado                                                         |
+|---------------|------------------------|----------------------------------------------------------------|
+| Razer         | `razer.png` (600×140)  | Verde sobre plate blanco — premium                             |
+| 1Win          | `1win.png` (256×137)   | Logo circular, plate blanco — limpio                           |
+| Hellcase      | `hellcase.png`         | Naranja sobre plate blanco                                     |
+| Pin-Up        | `pinup.png`            | Rojo sobre plate blanco                                        |
+| GGDrop        | `ggdrop.png`           | Naranja icon + wordmark                                        |
+| SkinClub      | `skinclub.png`         | Icon morado-cyan sobre plate blanco                            |
+| Skin.place    | `skinplace.png`        | Renderiza correctamente                                        |
+| Clash.gg      | `clashgg.webp`         | Logo limpio sobre plate blanco                                 |
+| 1xbet         | `1xbet.png`            | Plate blanco — color azul institucional                        |
+| Empiredrop    | `empiredrop.svg`       | SVG vectorial                                                  |
+| Evoplay       | `evoplay.png`          | OK                                                             |
+| EnMa          | `enma.png`             | OK                                                             |
+| PcComponentes | `pccomponentes.png`    | Naranja institucional sobre plate blanco                       |
+| Kick          | `kick.png`             | Verde lima sobre plate **dark** — vibrante                     |
 
-Estos viven en URLs externas y son frágiles. Conviene migrarlos al registry local cuando se reemplacen los assets de marca:
+### ⚠️ Problemas concretos — REEMPLAZAR
 
-| Marca       | Origen actual                         | Problema                                    | Acción                                               | Prioridad |
-|-------------|---------------------------------------|---------------------------------------------|------------------------------------------------------|-----------|
-| Hellcase    | `gstatic faviconV2` (~32px)           | Favicon, no logo. Calidad pésima            | Reusar `/public/images/brands/hellcase.png` mejorado | media     |
-| SkinsMonkey | `gstatic faviconV2` (~32px)           | Favicon                                     | Reusar `/public/images/brands/skinsmonkey.png`       | media     |
-| Keydrop     | `imgur.com/<id>`                      | URL externa frágil, puede caerse            | Reusar `/public/images/brands/keydrop.png`           | media     |
-| Skinplace   | `imgur.com/<id>`                      | URL externa frágil                          | Reusar `/public/images/brands/skinplace.png`         | media     |
+| Marca       | Archivo            | Problema                                                                                                     | Recomendado                                                              | Prioridad |
+|-------------|--------------------|--------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------|-----------|
+| **Melbet**  | `melbet.png` 1200×900 | **Asset corrupto/recortado**: solo contiene "ELBE" — la "M" inicial y la "T" final están **cortadas** del archivo. No es un problema de render, es el archivo en sí. | PNG transparente con logo MELBET completo (1200×300, fondo transparente) | **CRÍTICA** |
+| **KeyDrop** | `keydrop.png` 3840×2160 | El asset tiene **fondo negro sólido incrustado** en vez de transparente. En el plate `dark` se nota un rectángulo negro más oscuro dentro del plate frosted. Rompe el premium. | PNG transparente o SVG con bg transparente (mismo logo, sin rectángulo)  | **ALTA**    |
+| **Jugabet** | `jugabet.svg` (450×82 viewBox tras fix) | Asset SVG entregado con canvas 500×500 pero logo en strip horizontal — fix manual de viewBox aplicado en commit. Si se reemplaza, asegurar viewBox correcto al bounding box. | SVG con viewBox tight, o PNG ≥1200×300 horizontal                        | media     |
+| **SkinsMonkey** | `skinsmonkey.png` | Texto "skinsmonkey" en blanco se ve pero plate dark frosted lo deja sutil. Render aceptable pero no destaca como Razer/PinUp. | Variante con outline o version más bold; o aceptar como está              | baja      |
 
-Tras subir los assets mejorados, ejecutar:
+### 🚫 Sin asset — NULL en DB
+
+Los siguientes brands existían en seed pero NO tienen asset y **se han NULL-eado** en `brands.logoUrl` (carousel renderiza fallback de texto):
+
+| Marca     | Estado                                                       |
+|-----------|--------------------------------------------------------------|
+| GrandWin  | NULL en DB. Si se quiere logo, subir `grandwin.png/.svg`     |
+| ZeroTwo   | NULL en DB. Si se quiere logo, subir `zerotwo.png/.svg`      |
+
+Si se suben los assets, re-ejecutar:
+
 ```bash
 npx tsx scripts/seeds/backfill-giveaway-brand-logos.ts
+# Y para revertir el NULL en brands:
+# UPDATE brands SET logo_url='/images/brands/grandwin.png' WHERE slug='grandwin';
 ```
-para hidratar `giveaways.brand_logo` con los paths locales.
 
-## Cómo entregar los assets nuevos
+## Logos de creator codes (URLs externas, frágiles)
 
-1. **Por marca, una carpeta** con los archivos disponibles del press kit oficial:
-   - `<marca>/<slug>.svg` (preferente)
-   - `<marca>/<slug>.png` (fallback transparente, ≥1200×300)
-   - `<marca>/<slug>-light.png` (opcional, versión blanca/clara)
-2. **Subirlos a `/public/images/brands/`** sobreescribiendo los existentes (mantener nombre slug en lower-case sin espacios).
-3. **Si el formato cambia** (PNG → SVG), actualizar `BRAND_LOGO_MAP` en `scripts/seeds/backfill-giveaway-brand-logos.ts` y `BRAND_REGISTRY` (si aplica).
-4. Validar localmente con `npm run dev` → revisar `/`, `/casos`, `/sorteos` y mobile.
+Tabla `creator_codes` — siguen apuntando a URLs externas. Migrar al registry local cuando haya asset bueno:
 
-## Notas sobre SVG en el stack actual
+| Marca       | Origen actual                         | Acción                                               | Prioridad |
+|-------------|---------------------------------------|------------------------------------------------------|-----------|
+| Hellcase    | `gstatic faviconV2` (~32px)           | Reusar `/public/images/brands/hellcase.png` mejorado | media     |
+| SkinsMonkey | `gstatic faviconV2` (~32px)           | Reusar `/public/images/brands/skinsmonkey.png`       | media     |
+| Keydrop     | `imgur.com/<id>`                      | Reusar `/public/images/brands/keydrop.png` (cuando se reemplace por transparente) | media     |
+| Skinplace   | `imgur.com/<id>`                      | Reusar `/public/images/brands/skinplace.png`         | media     |
 
-- `<BrandLogo>` usa `next/image`. SVG funciona con `unoptimized` o vía direct `<img>` con `loader` custom — actualmente render como raster. Si se decide migrar a SVG, hay un mini-refactor de ~30 LOC en `src/components/ui/BrandLogo.tsx`.
-- **Workaround sin refactor:** subir SVG y también un PNG @2x (`<slug>.png` 1200×300) — el componente sirve el PNG y el SVG queda disponible para casos futuros (favicon, OG images, etc.).
+## Cómo entregar assets nuevos
+
+1. Asset por marca en `/public/images/brands/<slug>.{svg,png,webp}` (lowercase, sin espacios). **Una sola variante por marca.** El sistema decide plate light/dark vía `brand-bg-map.ts`.
+2. Si el logo es blanco/claro y necesita plate oscuro: añadir entrada en `BRAND_BG_OVERRIDES` (`brand-bg-map.ts`).
+3. Si cambia el filename/extensión: actualizar `BRAND_LOGO_MAP` en `scripts/seeds/backfill-giveaway-brand-logos.ts` y `BRAND_REGISTRY` si aplica.
+4. Validar local con `npm run dev` → home, `/casos`, `/sorteos`, mobile.
+5. Si se sube logo para GRANDWIN/ZEROTWO: revertir el NULL con UPDATE manual o re-ejecutar seeder.
+
+## Vercel/Linux — case sensitivity
+
+Filenames **siempre en lowercase**. El filesystem de Windows en dev no distingue mayúsculas, pero Linux (Vercel) sí — un asset llamado `ClashGG.webp` rompe en producción.

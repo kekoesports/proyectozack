@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { CompactSorteoCard } from './CompactSorteoCard';
 import { BrandLogo } from '@/components/ui/BrandLogo';
+import { getBrandBg } from '@/components/ui/brand-bg-map';
 import type { BrandOption } from '@/lib/queries/giveawaysHub';
 import type { GiveawayWithTalent, Talent } from '@/types';
 
@@ -106,11 +107,10 @@ export function SorteosHub({ active, finished, brands, creators, totalValue }: S
                 <BrandLogo
                   src={b.logo}
                   alt={b.name}
-                  tone="on-dark"
+                  plate={getBrandBg(b.name)}
                   size="xs"
-                  width={56}
-                  height={16}
-                  className="shrink-0"
+                  width={64}
+                  height={20}
                 />
               )}
               {b.name}
@@ -209,16 +209,14 @@ export function SorteosHub({ active, finished, brands, creators, totalValue }: S
                       }`}
                     >
                       {b.logo ? (
-                        <span className="h-6 px-1.5 rounded bg-white/[0.04] flex items-center justify-center shrink-0 transition-colors group-hover:bg-white/[0.08]">
-                          <BrandLogo
-                            src={b.logo}
-                            alt={b.name}
-                            tone="on-dark"
-                            size="xs"
-                            width={48}
-                            height={16}
-                          />
-                        </span>
+                        <BrandLogo
+                          src={b.logo}
+                          alt={b.name}
+                          plate={getBrandBg(b.name)}
+                          size="xs"
+                          width={64}
+                          height={20}
+                        />
                       ) : (
                         <div className="w-6 h-6 rounded bg-sp-orange/20 flex items-center justify-center text-[9px] font-black text-sp-orange shrink-0">
                           {b.name.charAt(0)}
