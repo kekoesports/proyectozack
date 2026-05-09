@@ -55,6 +55,30 @@ export function deriveCategory(slug: string, title: string): BlogCategory {
   return cat('noticias');
 }
 
+/**
+ * Detecta la marca asociada a un post desde el slug — para covers fallback con logo.
+ * Devuelve un objeto con ruta del logo y nombre, o null si no se reconoce.
+ */
+export type DetectedBrand = {
+  readonly slug:    string;
+  readonly name:    string;
+  readonly logoUrl: string;
+};
+
+const BRAND_REGISTRY: readonly DetectedBrand[] = [
+  { slug: 'razer',       name: 'RAZER',       logoUrl: '/images/brands/razer.png' },
+  { slug: '1win',        name: '1WIN',        logoUrl: '/images/brands/1win.png' },
+  { slug: 'skinsmonkey', name: 'SKINSMONKEY', logoUrl: '/images/brands/skinsmonkey.png' },
+  { slug: 'keydrop',     name: 'KEYDROP',     logoUrl: '/images/brands/keydrop.png' },
+  { slug: 'hellcase',    name: 'HELLCASE',    logoUrl: '/images/brands/hellcase.png' },
+  { slug: 'skinplace',   name: 'SKINPLACE',   logoUrl: '/images/brands/skinplace.png' },
+];
+
+export function detectBrand(slug: string, title: string): DetectedBrand | null {
+  const haystack = `${slug.toLowerCase()} ${title.toLowerCase()}`;
+  return BRAND_REGISTRY.find((b) => haystack.includes(b.slug)) ?? null;
+}
+
 export function formatBlogDate(date: Date | null | undefined): string {
   if (!date) return '';
   return new Date(date).toLocaleDateString('es-ES', {
