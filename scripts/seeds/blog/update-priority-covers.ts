@@ -1,6 +1,7 @@
 /**
- * Seed idempotente — actualiza `posts.cover_url` para los 3 posts prioritarios
- * (Razer / 1WIN / SkinsMonkey) sin tocar nada más.
+ * Seed idempotente — sincroniza `posts.cover_url` con los JPGs renderizados
+ * por `scripts/regen-blog-covers-premium.mjs`. Cubre tanto los 3 covers
+ * branded (Razer / 1WIN / SkinsMonkey) como los 7 editoriales.
  *
  * Diseño:
  *  - Busca por patrón ILIKE en `slug` (no asumimos el slug exacto)
@@ -58,21 +59,18 @@ type Target = {
 };
 
 const TARGETS: readonly Target[] = [
-  {
-    label:    'RAZER',
-    slugLike: '%razer%',
-    cover:    '/images/blog/razer-socialpro-creadores-gaming.jpg',
-  },
-  {
-    label:    '1WIN',
-    slugLike: '%1win%',
-    cover:    '/images/blog/1win-socialpro-influencers-instagram.jpg',
-  },
-  {
-    label:    'SKINSMONKEY',
-    slugLike: '%skinsmonkey%',
-    cover:    '/images/blog/skinsmonkey-socialpro-cs2-marketplace.jpg',
-  },
+  // Branded — case studies con logo de marca
+  { label: 'RAZER',          slugLike: '%razer%',                          cover: '/images/blog/razer-socialpro-creadores-gaming.jpg' },
+  { label: '1WIN',           slugLike: '%1win-socialpro%',                 cover: '/images/blog/1win-socialpro-influencers-instagram.jpg' },
+  { label: 'SKINSMONKEY',    slugLike: '%skinsmonkey-socialpro%',          cover: '/images/blog/skinsmonkey-socialpro-cs2-marketplace.jpg' },
+  // Editorial — covers SP logo + título
+  { label: 'MONETIZAR YT',   slugLike: 'monetizar-canal-youtube%',         cover: '/images/blog/monetizar-canal-youtube-gaming-2026.jpg' },
+  { label: 'GUÍA MARKETING', slugLike: 'guia-marketing-gaming%',           cover: '/images/blog/guia-marketing-gaming-espana-2026.jpg' },
+  { label: 'TENDENCIAS LATAM', slugLike: 'tendencias-gaming-latam%',       cover: '/images/blog/tendencias-gaming-latam-2026.jpg' },
+  { label: 'CASO HARDWARE',  slugLike: 'caso-exito-campana-gaming%',       cover: '/images/blog/caso-exito-campana-gaming-hardware.jpg' },
+  { label: 'GUÍA SPONSOR',   slugLike: 'guia-creadores-conseguir%',        cover: '/images/blog/guia-creadores-conseguir-sponsor.jpg' },
+  { label: 'TENDENCIAS ESP', slugLike: 'tendencias-gaming-espana%',        cover: '/images/blog/tendencias-gaming-espana-2025.jpg' },
+  { label: 'REGULACIONES',   slugLike: 'regulaciones-igaming-espana%',     cover: '/images/blog/regulaciones-igaming-espana-streamers.jpg' },
 ];
 
 // ── Run ─────────────────────────────────────────────────────────────

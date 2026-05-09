@@ -29,7 +29,9 @@ const H = 900;
 // Posts a generar — paleta y composición específica por marca
 
 const POSTS = [
+  // ── Branded covers (case studies) — protagonista: logo de marca ─────
   {
+    mode:       'branded',
     out:        'public/images/blog/razer-socialpro-creadores-gaming.jpg',
     brand:      'RAZER',
     brandLogo:  'public/images/brands/razer.png',
@@ -45,6 +47,7 @@ const POSTS = [
     pattern:    'lines',             // líneas diagonales tipo circuit
   },
   {
+    mode:       'branded',
     out:        'public/images/blog/1win-socialpro-influencers-instagram.jpg',
     brand:      '1WIN',
     brandLogo:  'public/images/brands/1win.png',
@@ -60,10 +63,14 @@ const POSTS = [
     pattern:    'hex',
   },
   {
+    mode:       'branded',
     out:        'public/images/blog/skinsmonkey-socialpro-cs2-marketplace.jpg',
     brand:      'SKINSMONKEY',
-    brandLogo:  null,                // logo PNG insuficiente — usar tipografía
-    brandText:  'SKINSMONKEY',
+    // El logo es texto blanco "skinsmonkey" + mono amarillo. Sobre el bg
+    // dark del cover el texto blanco contrasta limpiamente.
+    brandLogo:  'public/images/brands/skinsmonkey.png',
+    logoMaxW:   720,
+    logoMaxH:   200,
     accent:     '#ffcc00',           // amarillo SkinsMonkey
     accentSoft: 'rgba(255,204,0,0.38)',
     secondary:  '#ff5722',           // rust orange CS2
@@ -72,6 +79,106 @@ const POSTS = [
     bgNear:     '#3a2a08',
     kicker:     'CASO DE ÉXITO · CS2 MARKETPLACE',
     pattern:    'dots',
+  },
+
+  // ── Editorial covers — protagonista: logo SocialPro + título ────────
+  {
+    mode:       'editorial',
+    out:        'public/images/blog/monetizar-canal-youtube-gaming-2026.jpg',
+    brand:      'SOCIALPRO',
+    title:      'Cómo monetizar tu canal de YouTube gaming en 2026',
+    accent:     '#f87171',           // rojo YouTube
+    accentSoft: 'rgba(248,113,113,0.36)',
+    secondary:  '#f5632a',
+    bgFar:      '#0d0205',
+    bgMid:      '#1a040a',
+    bgNear:     '#2e0710',
+    kicker:     'GUÍA · YOUTUBE',
+    pattern:    'lines',
+  },
+  {
+    mode:       'editorial',
+    out:        'public/images/blog/guia-marketing-gaming-espana-2026.jpg',
+    brand:      'SOCIALPRO',
+    title:      'Guía de marketing gaming en España 2026',
+    accent:     '#60a5fa',           // azul guía
+    accentSoft: 'rgba(96,165,250,0.36)',
+    secondary:  '#e03070',
+    bgFar:      '#020611',
+    bgMid:      '#06122a',
+    bgNear:     '#0a2046',
+    kicker:     'GUÍA · MARKETING GAMING',
+    pattern:    'hex',
+  },
+  {
+    mode:       'editorial',
+    out:        'public/images/blog/tendencias-gaming-latam-2026.jpg',
+    brand:      'SOCIALPRO',
+    title:      'Tendencias Gaming LATAM 2026',
+    accent:     '#34d399',           // verde tendencias
+    accentSoft: 'rgba(52,211,153,0.36)',
+    secondary:  '#8b3aad',
+    bgFar:      '#020a07',
+    bgMid:      '#04221a',
+    bgNear:     '#073a2b',
+    kicker:     'TENDENCIAS · LATAM',
+    pattern:    'dots',
+  },
+  {
+    mode:       'editorial',
+    out:        'public/images/blog/caso-exito-campana-gaming-hardware.jpg',
+    brand:      'SOCIALPRO',
+    title:      'Anatomía de una campaña gaming hardware',
+    accent:     '#f5632a',           // sp-orange caso éxito
+    accentSoft: 'rgba(245,99,42,0.40)',
+    secondary:  '#e03070',
+    bgFar:      '#0c0303',
+    bgMid:      '#22070a',
+    bgNear:     '#3d100b',
+    kicker:     'CASO DE ÉXITO · GAMING HARDWARE',
+    pattern:    'lines',
+  },
+  {
+    mode:       'editorial',
+    out:        'public/images/blog/guia-creadores-conseguir-sponsor.jpg',
+    brand:      'SOCIALPRO',
+    title:      'Cómo conseguir tu primer sponsor',
+    accent:     '#c42880',           // sp-dpink guía creadores
+    accentSoft: 'rgba(196,40,128,0.38)',
+    secondary:  '#5b9bd5',
+    bgFar:      '#0a0307',
+    bgMid:      '#1f0612',
+    bgNear:     '#360a23',
+    kicker:     'GUÍA · CREADORES',
+    pattern:    'hex',
+  },
+  {
+    mode:       'editorial',
+    out:        'public/images/blog/tendencias-gaming-espana-2025.jpg',
+    brand:      'SOCIALPRO',
+    title:      'Tendencias del marketing gaming en España',
+    accent:     '#5b9bd5',           // sp-blue tendencias ES
+    accentSoft: 'rgba(91,155,213,0.36)',
+    secondary:  '#34d399',
+    bgFar:      '#02050d',
+    bgMid:      '#051428',
+    bgNear:     '#082347',
+    kicker:     'TENDENCIAS · ESPAÑA',
+    pattern:    'dots',
+  },
+  {
+    mode:       'editorial',
+    out:        'public/images/blog/regulaciones-igaming-espana-streamers.jpg',
+    brand:      'SOCIALPRO',
+    title:      'Regulaciones iGaming España para streamers',
+    accent:     '#a855f7',           // púrpura iGaming
+    accentSoft: 'rgba(168,85,247,0.38)',
+    secondary:  '#f5632a',
+    bgFar:      '#070210',
+    bgMid:      '#15052e',
+    bgNear:     '#280a52',
+    kicker:     'IGAMING · REGULACIÓN',
+    pattern:    'hex',
   },
 ];
 
@@ -101,6 +208,32 @@ function patternDef(kind, accent) {
     default:
       return '<pattern id="pat" width="1" height="1"/>';
   }
+}
+
+// ───────────────────────────────────────────────────────────────────
+// Wrapping de título — splitea por palabras en líneas de ≤ maxChars.
+// SVG <text> no hace auto-wrap; usamos <tspan dy=…>.
+
+function wrapTitle(title, maxChars = 24) {
+  const words = title.split(/\s+/);
+  const lines = [];
+  let line = '';
+  for (const w of words) {
+    if (!line) {
+      line = w;
+    } else if ((line + ' ' + w).length <= maxChars) {
+      line += ' ' + w;
+    } else {
+      lines.push(line);
+      line = w;
+    }
+  }
+  if (line) lines.push(line);
+  return lines;
+}
+
+function escapeXml(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
 // ───────────────────────────────────────────────────────────────────
@@ -209,21 +342,46 @@ function buildBackgroundSvg(post) {
             font-weight="900" letter-spacing="5" fill="white" opacity="0.45">SOCIALPRO BLOG</text>
     </g>
 
-    <!-- 11) Texto "× SocialPro" debajo del centro (espacio reservado para logo) -->
-    <g transform="translate(${W / 2}, ${H * 0.78})">
-      <line x1="-90" y1="0" x2="-22" y2="0" stroke="${accent}" stroke-width="1" opacity="0.55"/>
-      <text x="0" y="4" text-anchor="middle"
-            font-family="Arial Black, Helvetica, sans-serif" font-size="14"
-            font-weight="900" letter-spacing="6" fill="${accent}" opacity="0.85">× SOCIALPRO</text>
-      <line x1="22" y1="0" x2="90" y2="0" stroke="${accent}" stroke-width="1" opacity="0.55"/>
-    </g>
+    <!-- 11) Editorial: título wrapped grande debajo del logo SP -->
+    ${post.mode === 'editorial' && post.title ? (() => {
+      const lines = wrapTitle(post.title, 22);
+      const lineH = 78;
+      const totalH = lines.length * lineH;
+      const startY = H * 0.62 - totalH / 2 + lineH * 0.65;
+      return `
+        <g>
+          <text x="${W / 2}" y="${startY}" text-anchor="middle"
+                font-family="Arial Black, Helvetica, sans-serif"
+                font-size="68" font-weight="900" letter-spacing="-1"
+                fill="white" opacity="0.96">
+            ${lines.map((l, i) => `<tspan x="${W/2}" dy="${i === 0 ? 0 : lineH}">${escapeXml(l)}</tspan>`).join('')}
+          </text>
+          <line x1="${W/2 - 90}" y1="${startY + totalH + 28}" x2="${W/2 + 90}" y2="${startY + totalH + 28}"
+                stroke="${accent}" stroke-width="2" opacity="0.85"/>
+        </g>`;
+    })() : ''}
 
-    <!-- 12) Tagline bottom-left -->
+    <!-- 12) "× SocialPro" — solo en branded (en editorial el título reemplaza ese espacio) -->
+    ${post.mode !== 'editorial' ? `
+      <g transform="translate(${W / 2}, ${H * 0.78})">
+        <line x1="-90" y1="0" x2="-22" y2="0" stroke="${accent}" stroke-width="1" opacity="0.55"/>
+        <text x="0" y="4" text-anchor="middle"
+              font-family="Arial Black, Helvetica, sans-serif" font-size="14"
+              font-weight="900" letter-spacing="6" fill="${accent}" opacity="0.85">× SOCIALPRO</text>
+        <line x1="22" y1="0" x2="90" y2="0" stroke="${accent}" stroke-width="1" opacity="0.55"/>
+      </g>
+    ` : ''}
+
+    <!-- 13) Tagline bottom-left (etiqueta varía según modo) -->
     <g transform="translate(60, ${H - 70})">
       <text x="0" y="0" font-family="Arial, Helvetica, sans-serif" font-size="11"
-            font-weight="700" letter-spacing="3" fill="white" opacity="0.30">CAMPAÑA · ${brand}</text>
+            font-weight="700" letter-spacing="3" fill="white" opacity="0.30">${
+              post.mode === 'editorial' ? 'BLOG · INSIGHTS' : `CAMPAÑA · ${brand}`
+            }</text>
       <text x="0" y="22" font-family="Arial, Helvetica, sans-serif" font-size="11"
-            font-weight="400" letter-spacing="3" fill="white" opacity="0.18">SOCIALPRO.ES/CASOS</text>
+            font-weight="400" letter-spacing="3" fill="white" opacity="0.18">${
+              post.mode === 'editorial' ? 'SOCIALPRO.ES/BLOG' : 'SOCIALPRO.ES/CASOS'
+            }</text>
     </g>
 
     <!-- 13) Stripe acento bottom -->
@@ -284,8 +442,24 @@ async function buildCover(post) {
 
   const composites = [{ input: haloBuf, top: 0, left: 0, blend: 'screen' }];
 
-  // 3) Logo de marca (si aplica) — centrado, con drop-shadow
-  if (post.brandLogo) {
+  if (post.mode === 'editorial') {
+    // Logo SocialPro grande centrado en la mitad superior, el título irá debajo.
+    try {
+      const spBuf = await sharp('public/images/logos/socialpro-full.png')
+        .resize({ width: 380, height: 200, fit: 'inside' })
+        .png()
+        .toBuffer();
+      const meta = await sharp(spBuf).metadata();
+      const lw = meta.width ?? 380;
+      const lh = meta.height ?? 200;
+      const left = Math.round((W - lw) / 2);
+      const top = Math.round(H * 0.20);
+      composites.push({ input: spBuf, top, left });
+    } catch (e) {
+      console.warn(`  · SP logo error: ${e instanceof Error ? e.message : String(e)}`);
+    }
+  } else if (post.brandLogo) {
+    // Branded: logo de marca centrado.
     try {
       const logoMaxW = post.logoMaxW ?? 560;
       const logoMaxH = post.logoMaxH ?? 200;
@@ -312,7 +486,7 @@ async function buildCover(post) {
     .toFile(post.out + '.tmp');
   await rename(post.out + '.tmp', post.out);
 
-  console.log(`  ✓  ${post.out.split('/').pop()}  (${post.brand})`);
+  console.log(`  ✓  ${post.out.split('/').pop()}  (${post.brand}${post.mode === 'editorial' ? ' / editorial' : ''})`);
 }
 
 async function main() {
