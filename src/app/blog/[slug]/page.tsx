@@ -87,11 +87,35 @@ function escapeHtml(text: string): string {
     .replace(/'/g, '&#039;');
 }
 
+const INLINE_LINK_CLASS =
+  'text-sp-orange font-medium underline decoration-sp-orange/35 underline-offset-[3px] hover:decoration-sp-orange transition-colors';
+
+/**
+ * Auto-linkify URLs propias en el cuerpo del post.
+ *
+ * Detecta menciones tipo `socialpro.es/casos`, `socialpro.es/contacto/X` etc.
+ * y las convierte en enlaces internos hacia rutas relativas. No depende del
+ * dominio configurado: cualquier mención literal `socialpro.es/...` queda
+ * canonizada como href interno.
+ *
+ * Input ya viene HTML-escaped, así que sólo opera sobre texto plano seguro.
+ */
+function linkifyInternal(html: string): string {
+  // Opcionalmente con `https://` o `www.` delante. Capturamos el path tras `/`.
+  const pattern = /(?:https?:\/\/)?(?:www\.)?socialpro\.es(\/[a-z0-9/_-]+)/gi;
+  return html.replace(pattern, (_match, path: string) => {
+    const cleanPath = path.replace(/[.,;:)]+$/, '');
+    return `<a href="${cleanPath}" class="${INLINE_LINK_CLASS}">socialpro.es${cleanPath}</a>`;
+  });
+}
+
 /** Convert **bold** and *italic* inline markdown to HTML (input is pre-escaped) */
 function renderInline(text: string): string {
-  return escapeHtml(text)
-    .replace(/\*\*(.+?)\*\*/g, '<strong class="font-semibold text-sp-dark">$1</strong>')
-    .replace(/\*(.+?)\*/g, '<em>$1</em>');
+  return linkifyInternal(
+    escapeHtml(text)
+      .replace(/\*\*(.+?)\*\*/g, '<strong class="font-semibold text-sp-dark">$1</strong>')
+      .replace(/\*(.+?)\*/g, '<em>$1</em>'),
+  );
 }
 
 export default async function BlogPostPage({ params }: PageProps) {
@@ -151,8 +175,8 @@ export default async function BlogPostPage({ params }: PageProps) {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
 
       {/* ── HERO ── */}
-      <section className="bg-sp-black pt-20 pb-0">
-        <div className="max-w-4xl mx-auto px-6 pt-4 pb-8">
+      <section className="bg-sp-black pt-14 md:pt-20 pb-0">
+        <div className="max-w-4xl mx-auto px-5 sm:px-6 pt-4 pb-7 md:pb-8">
           <Link href="/blog" className="inline-flex items-center gap-1.5 text-sm text-white/40 hover:text-white transition-colors mb-5">
             <span aria-hidden="true">←</span> Volver al blog
           </Link>
