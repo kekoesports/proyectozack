@@ -24,14 +24,14 @@ const BRAND_LOGO_MAP: Record<string, string> = {
   'SKINPLACE':     '/images/brands/skinplace.png',
   'SKINCLUB':      '/images/brands/skinclub.png',
   'GGDROP':        '/images/brands/ggdrop.png',
-  'CLASHGG':       '/images/brands/clashgg.webp',
+  'CLASHGG':       '/images/brands/clashgg.png',
   'JUGABET':       '/images/brands/jugabet.svg',
   'PINUP':         '/images/brands/pinup.png',
   'PIN-UP':        '/images/brands/pinup.png',
   'KICK':          '/images/brands/kick.png',
   'PCCOMPONENTES': '/images/brands/pccomponentes.png',
   'EMMA':          '/images/brands/emma.png',
-  'EMPIREDROP':    '/images/brands/empiredrop.svg',
+  'EMPIREDROP':    '/images/brands/empiredrop.png',
   'EVOPLAY':       '/images/brands/evoplay.png',
 };
 

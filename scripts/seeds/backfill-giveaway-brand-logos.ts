@@ -26,7 +26,7 @@ const BRAND_LOGO_MAP: Record<string, string> = {
   SKINPLACE:     '/images/brands/skinplace.png',
   SKINCLUB:      '/images/brands/skinclub.png',
   GGDROP:        '/images/brands/ggdrop.png',
-  CLASHGG:       '/images/brands/clashgg.webp',
+  CLASHGG:       '/images/brands/clashgg.png',
   '1WIN':        '/images/brands/1win.png',
   '1XBET':       '/images/brands/1xbet.png',
   RAZER:         '/images/brands/razer.png',
@@ -36,7 +36,7 @@ const BRAND_LOGO_MAP: Record<string, string> = {
   KICK:          '/images/brands/kick.png',
   PCCOMPONENTES: '/images/brands/pccomponentes.png',
   EMMA:          '/images/brands/emma.png',
-  EMPIREDROP:    '/images/brands/empiredrop.svg',
+  EMPIREDROP:    '/images/brands/empiredrop.png',
   EVOPLAY:       '/images/brands/evoplay.png',
 };
 

@@ -18,9 +18,10 @@ export type BrandBg = 'light' | 'dark';
 
 const BRAND_BG_OVERRIDES: Readonly<Record<string, BrandBg>> = {
   // White-on-transparent o color sin contraste sobre blanco
-  KEYDROP: 'dark',     // texto "drop" en blanco
-  SKINSMONKEY: 'dark', // texto "skinsmonkey" en blanco
-  KICK: 'dark',        // verde lima brillante luce mejor sobre fondo oscuro
+  KEYDROP:    'dark', // texto "drop" en blanco
+  SKINSMONKEY:'dark', // texto "skinsmonkey" en blanco
+  KICK:       'dark', // verde lima brillante luce mejor sobre fondo oscuro
+  SKINPLACE:  'dark', // texto "SKINPLACE" en blanco/gris claro
 };
 
 const DEFAULT_BRAND_BG: BrandBg = 'light';
