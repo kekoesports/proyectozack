@@ -10,15 +10,19 @@ type BrandsCarouselProps = {
 }
 
 /**
- * Marcas cuyo artwork es cuadrado o de aspect ratio bajo y, dentro del
- * plate height-bound, rinden visualmente más pequeñas que logos anchos
- * (EVOPLAY, RAZER). El boost les sube el `max-h` interno un tier para
- * recuperar presencia sin romper la altura uniforme del plate.
+ * Presencia visual por marca. Default = 'normal'.
+ *  - `boost`: artwork cuadrado/bajo-aspect que rinde proporcionalmente
+ *             más pequeño en plate height-bound (1WIN, SKIN.CLUB).
+ *  - `shrink`: artwork muy ancho que ocupa demasiado espacio horizontal
+ *              y desbalancea el carrusel (JUGABET, SKIN.PLACE, 1XBET).
  */
-const BOOSTED_BRANDS: ReadonlySet<string> = new Set([
-  '1WIN',
-  'SKIN.CLUB',
-]);
+const BRAND_PRESENCE: Readonly<Record<string, 'shrink' | 'boost'>> = {
+  '1WIN':       'boost',
+  'SKIN.CLUB':  'boost',
+  'JUGABET':    'shrink',
+  'SKIN.PLACE': 'shrink',
+  '1XBET':      'shrink',
+};
 
 /**
  * Carrusel marquee de logos de marcas que confían en SocialPro.
@@ -80,7 +84,7 @@ export function BrandsCarousel({ brands }: BrandsCarouselProps) {
                   alt={brand.displayName}
                   plate={getBrandBg(brand.displayName)}
                   size="lg"
-                  boost={BOOSTED_BRANDS.has(brand.displayName)}
+                  presence={BRAND_PRESENCE[brand.displayName] ?? 'normal'}
                   width={240}
                   height={56}
                 />

@@ -3,6 +3,16 @@ import type { BrandBg } from './brand-bg-map';
 
 type Plate = BrandBg | 'none';
 type Size = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+/**
+ * Presencia visual interna del logo en el plate. Solo afecta `max-h` —
+ * el plate mantiene su altura uniforme.
+ *  - `shrink`: artwork muy ancho (JUGABET, SKIN.PLACE, 1XBET) que ocupa
+ *              demasiado espacio horizontal → bajamos un peldaño.
+ *  - `normal`: default.
+ *  - `boost`:  artwork cuadrado/bajo-aspect (1WIN, SKIN.CLUB) que rinde
+ *              proporcionalmente más pequeño → subimos un peldaño.
+ */
+type Presence = 'shrink' | 'normal' | 'boost';
 
 /**
  * Dimensiones del plate: altura fija + padding horizontal adaptativo. El ancho
@@ -19,27 +29,33 @@ const PLATE_DIM: Record<Size, string> = {
   xl: 'h-16 px-5',
 };
 
-const LOGO_MAX_HEIGHT: Record<Size, string> = {
-  xs: 'max-h-3.5',
-  sm: 'max-h-5',
-  md: 'max-h-7',
-  lg: 'max-h-10',
-  xl: 'max-h-12',
-};
-
 /**
- * Altura máxima boosteada — 20% más alto que el tier base. Usado para
- * marcas con artwork cuadrado o de aspect ratio bajo (1WIN, SKIN.CLUB)
- * cuya presencia visual queda muy por debajo de logos rectangulares
- * (EVOPLAY, RAZER) en la misma altura de plate. El boost solo crece
- * `max-h` interno; el plate mantiene su altura uniforme.
+ * Tabla de `max-h` por tamaño y presencia. La columna `normal` es el
+ * default; `shrink` baja un peldaño modesto y `boost` sube uno
+ * generoso. Solo afecta el logo — el plate mantiene altura uniforme.
  */
-const LOGO_MAX_HEIGHT_BOOSTED: Record<Size, string> = {
-  xs: 'max-h-4',
-  sm: 'max-h-6',
-  md: 'max-h-8',
-  lg: 'max-h-12',
-  xl: 'max-h-14',
+const LOGO_MAX_HEIGHT: Record<Presence, Record<Size, string>> = {
+  shrink: {
+    xs: 'max-h-3',
+    sm: 'max-h-4',
+    md: 'max-h-6',
+    lg: 'max-h-9',
+    xl: 'max-h-10',
+  },
+  normal: {
+    xs: 'max-h-3.5',
+    sm: 'max-h-5',
+    md: 'max-h-7',
+    lg: 'max-h-10',
+    xl: 'max-h-12',
+  },
+  boost: {
+    xs: 'max-h-4',
+    sm: 'max-h-6',
+    md: 'max-h-8',
+    lg: 'max-h-12',
+    xl: 'max-h-14',
+  },
 };
 
 const PLATE_BG: Record<Plate, string> = {
@@ -73,11 +89,10 @@ type Props = {
   /** Tamaño del plate y altura máxima del logo dentro. */
   readonly size?: Size;
   /**
-   * Boost de altura interna del logo — sube `max-h` un tier sin cambiar
-   * el plate. Para artwork cuadrado/bajo-aspect que rinde proporcionalmente
-   * más pequeño que logos anchos en la misma altura de plate.
+   * Presencia visual del logo dentro del plate. Solo modula `max-h` interno;
+   * el plate mantiene altura uniforme.
    */
-  readonly boost?: boolean;
+  readonly presence?: Presence;
   readonly width?: number;
   readonly height?: number;
   readonly className?: string;
@@ -102,13 +117,13 @@ export function BrandLogo({
   alt,
   plate = 'light',
   size = 'md',
-  boost = false,
+  presence = 'normal',
   width = 240,
   height = 60,
   className,
   priority = false,
 }: Props): React.JSX.Element {
-  const maxH = boost ? LOGO_MAX_HEIGHT_BOOSTED[size] : LOGO_MAX_HEIGHT[size];
+  const maxH = LOGO_MAX_HEIGHT[presence][size];
   // unoptimized para TODOS los logos: next/image resize destruye aspect ratio
   // de logos no-4:1 (KEYDROP 16:9 quedaba estirado, JUGABET 1:1 quedaba squished
   // al canvas del archivo). Usar el asset nativo + object-contain garantiza
