@@ -4,7 +4,8 @@ import { notFound } from 'next/navigation';
 import { getPostSlugs, getPostBySlug, getRelatedPosts } from '@/lib/queries/posts';
 import { BlogCard } from '@/features/blog/components/BlogCard';
 import { BlogCover } from '@/features/blog/components/BlogCover';
-import { deriveCategory, readTime } from '@/lib/utils/blog';
+import { ExploraMas } from '@/features/blog/components/ExploraMas';
+import { deriveCategory, readTime, detectBrand } from '@/lib/utils/blog';
 import { SectionTag } from '@/components/ui/SectionTag';
 import { TalentMiniCard } from '@/features/blog/components/TalentMiniCard';
 import { buildBreadcrumbJsonLd } from '@/lib/utils/breadcrumbs';
@@ -231,8 +232,15 @@ export default async function BlogPostPage({ params }: PageProps) {
             </div>
           )}
 
+          {/* ── EXPLORA MÁS — interlinking editorial ── */}
+          <ExploraMas
+            brand={detectBrand(post.slug, post.title)}
+            categorySlug={category.slug}
+            talents={post.talentAvatars}
+          />
+
           {/* ── CTA ── */}
-          <div className="mt-12 rounded-2xl bg-sp-black p-8 text-center">
+          <div className="mt-10 rounded-2xl bg-sp-black p-8 text-center">
             <p className="font-display text-xl font-black uppercase text-white mb-2">
               ¿Tu marca quiere resultados así?
             </p>
@@ -240,7 +248,7 @@ export default async function BlogPostPage({ params }: PageProps) {
               Gestionamos campañas con creadores gaming e iGaming en España y Latinoamérica.
             </p>
             <Link
-              href="/#contacto"
+              href="/contacto"
               className="inline-block bg-sp-grad text-white font-display font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-full hover:opacity-90 transition-opacity"
             >
               Hablemos de tu campaña →
