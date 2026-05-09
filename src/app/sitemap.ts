@@ -171,6 +171,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: absoluteUrl('/para-creadores'),   lastModified: D.paraCreadores },
     { url: absoluteUrl('/agencia-gaming-latam'), lastModified: NOW         },
     { url: absoluteUrl('/guia-dgoj-igaming-influencers'), lastModified: NOW },
+    { url: absoluteUrl('/apuesta-segura-cs2'), lastModified: NOW           },
     { url: absoluteUrl('/blog'),             lastModified: D.blog          },
     {
       url: absoluteUrl('/giveaways'),

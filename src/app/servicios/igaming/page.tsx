@@ -311,6 +311,113 @@ export default function IgamingPage() {
         </div>
       </section>
 
+      {/* ── Apuesta Segura CS2 — proyecto editorial del ecosistema ── */}
+      <section className="bg-sp-off py-16 md:py-20">
+        <div className="max-w-5xl mx-auto px-6">
+          <div className="relative overflow-hidden rounded-3xl border border-sp-border bg-gradient-to-br from-sp-black via-sp-dark to-sp-black shadow-[0_30px_70px_-30px_rgba(0,0,0,0.35)]">
+            <div
+              aria-hidden
+              className="absolute -top-20 -right-20 w-[420px] h-[420px] rounded-full pointer-events-none"
+              style={{
+                background:
+                  'radial-gradient(circle at center, rgba(245,99,42,0.32), rgba(224,48,112,0.16) 40%, transparent 70%)',
+                filter: 'blur(50px)',
+              }}
+            />
+            <div className="relative grid lg:grid-cols-[1.2fr_1fr] gap-8 lg:gap-12 p-8 md:p-12 items-center">
+              <div className="text-white">
+                <span className="inline-block text-[10px] font-bold uppercase tracking-[0.3em] text-sp-orange mb-4">
+                  Proyecto editorial · Ecosistema SocialPro
+                </span>
+                <h2 className="font-display text-3xl md:text-5xl font-black uppercase leading-[0.95] mb-5">
+                  Apuesta Segura CS2 —<br />
+                  <span style={gradientTextStyle}>análisis competitivo</span> verificado
+                </h2>
+                <p className="text-white/65 leading-relaxed mb-6 max-w-xl">
+                  División interna de análisis competitivo de Counter-Strike 2.
+                  Tipster <strong className="text-white font-semibold">ArkeroZ</strong>,
+                  picks publicadas en abierto en Blogabet, comunidad gratuita
+                  en Telegram. Especialización en ESEA Main, Advanced y tier
+                  europeo.
+                </p>
+                <ul className="flex flex-wrap gap-2 mb-8">
+                  {['ESEA Main', 'ESEA Advanced', 'CCT Europe', 'Tier 2-3 EU'].map((t) => (
+                    <li
+                      key={t}
+                      className="px-3 py-1.5 rounded-full border border-white/15 bg-white/[0.04] text-xs text-white/75"
+                    >
+                      {t}
+                    </li>
+                  ))}
+                </ul>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <TrackedCtaLink
+                    href="/apuesta-segura-cs2"
+                    ctaId="igaming_es_apuesta_segura_cs2"
+                    className="inline-flex items-center justify-center gap-2 bg-sp-grad text-white font-display font-bold uppercase tracking-wider text-sm px-7 py-3 rounded-full hover:opacity-90 transition-opacity"
+                  >
+                    Ver Apuesta Segura CS2 →
+                  </TrackedCtaLink>
+                  <a
+                    href="https://arkeroz.blogabet.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center gap-2 border border-white/20 text-white/85 font-display font-bold uppercase tracking-wider text-sm px-7 py-3 rounded-full hover:border-white/40 hover:bg-white/[0.04] transition-colors"
+                  >
+                    Estadísticas Blogabet
+                  </a>
+                </div>
+              </div>
+              <div className="relative">
+                <div className="bg-white/[0.04] border border-white/10 rounded-2xl p-6 backdrop-blur">
+                  <div className="flex items-center justify-between mb-5">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-xl bg-sp-grad p-[2px]">
+                        <div className="w-full h-full rounded-[10px] bg-sp-black flex items-center justify-center">
+                          <span className="font-display font-black text-base bg-sp-grad bg-clip-text text-transparent">
+                            AZ
+                          </span>
+                        </div>
+                      </div>
+                      <div>
+                        <div className="font-display font-black text-white text-base leading-none">
+                          ArkeroZ
+                        </div>
+                        <div className="text-[11px] text-white/50 mt-1">
+                          5+ años · CS2 competitivo
+                        </div>
+                      </div>
+                    </div>
+                    <span className="text-[10px] uppercase tracking-wider text-white/70 bg-white/[0.06] border border-white/15 rounded-full px-2 py-0.5">
+                      Histórico abierto
+                    </span>
+                  </div>
+                  <dl className="grid grid-cols-3 gap-px bg-white/[0.06] rounded-lg overflow-hidden border border-white/[0.06]">
+                    {[
+                      { l: 'Picks', v: '109' },
+                      { l: 'Yield', v: '+27%' },
+                      { l: 'Profit', v: '+223u' },
+                    ].map(({ l, v }) => (
+                      <div key={l} className="bg-sp-black px-3 py-3 text-center">
+                        <dt className="text-[10px] uppercase tracking-wider text-white/40">
+                          {l}
+                        </dt>
+                        <dd className="font-display font-black tabular-nums text-base mt-1 bg-sp-grad bg-clip-text text-transparent">
+                          {v}
+                        </dd>
+                      </div>
+                    ))}
+                  </dl>
+                  <p className="mt-4 text-[11px] text-white/40 text-center">
+                    Datos sincronizados con perfil público en Blogabet
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ── CTA ── */}
       <section className="bg-white py-16 text-center">
         <div className="max-w-2xl mx-auto px-6">
@@ -348,6 +455,7 @@ export default function IgamingPage() {
               { href: '/betting-influencers', label: 'Betting Influencers (EN)' },
               { href: '/cs2-influencer-marketing', label: 'CS2 Influencer Marketing' },
               { href: '/influencers-cs2', label: 'Influencers CS2 (ES)' },
+              { href: '/apuesta-segura-cs2', label: 'Apuesta Segura CS2' },
               { href: '/servicios', label: 'Todos los servicios' },
             ].map(({ href, label }) => (
               <Link key={href} href={href} className="text-xs font-semibold text-sp-muted hover:text-sp-orange border border-sp-border hover:border-sp-orange rounded-full px-3 py-1.5 transition-colors">
