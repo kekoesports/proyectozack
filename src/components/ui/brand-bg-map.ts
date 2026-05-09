@@ -21,8 +21,6 @@ const BRAND_BG_OVERRIDES: Readonly<Record<string, BrandBg>> = {
   KEYDROP:    'dark', // texto "drop" en blanco
   SKINSMONKEY:'dark', // texto "skinsmonkey" en blanco
   SKINPLACE:  'dark', // texto "SKINPLACE" en blanco/gris claro
-  RAZER:      'dark', // outlines verdes — sobre dark se funde con header sp-dark
-                      // del CaseCard sin "isla blanca" visible
 };
 
 const DEFAULT_BRAND_BG: BrandBg = 'light';

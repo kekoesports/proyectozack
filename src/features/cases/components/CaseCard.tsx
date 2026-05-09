@@ -11,6 +11,17 @@ type CaseCardProps = {
 }
 
 /**
+ * Override de plate específico del CaseCard: el header tiene fondo
+ * `sp-dark`, así que ciertas marcas se renderizan distinto que en el
+ * carrusel home (sección blanca). Cae al default de `getBrandBg` si no
+ * está mapeada.
+ */
+const CASE_PLATE_OVERRIDES: Record<string, 'light' | 'dark' | 'none'> = {
+  RAZER: 'dark', // outlines verdes — plate dark se funde con header sin "isla blanca"
+  '1WIN': 'none', // PNG con blob blanco integrado en el artwork — no necesita plate
+};
+
+/**
  * Map de marcas a logo PNG/SVG transparente del registry local.
  * Se prioriza sobre `caseStudy.logoUrl` (que apunta a JPG con fondo).
  */
@@ -43,7 +54,7 @@ const BRAND_LOGO_MAP: Record<string, string> = {
  */
 export function CaseCard({ caseStudy }: CaseCardProps) {
   const logoSrc = BRAND_LOGO_MAP[caseStudy.brandName] ?? caseStudy.logoUrl;
-  const plate = getBrandBg(caseStudy.brandName);
+  const plate = CASE_PLATE_OVERRIDES[caseStudy.brandName] ?? getBrandBg(caseStudy.brandName);
 
   const metrics = [
     caseStudy.reach          ? { value: caseStudy.reach,          label: 'Alcance'      } : null,
