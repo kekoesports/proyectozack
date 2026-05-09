@@ -52,11 +52,33 @@ export function SorteosHub({ active, finished, brands, creators, totalValue }: S
     s === 'active' ? active.length : s === 'finished' ? finished.length : all.length;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 lg:px-6 py-6">
+    <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-5 lg:py-6">
+
+      {/* ── Mobile: dashboard-style stat bar ───────────────────────── */}
+      <div className="lg:hidden mb-3 grid grid-cols-4 gap-2">
+        <div className="rounded-lg border border-emerald-400/20 bg-emerald-400/[0.03] px-2 py-1.5 flex flex-col items-center text-center">
+          <span className="text-[8px] font-black uppercase tracking-wider text-emerald-400/70">En vivo</span>
+          <span className="text-[12px] font-black tabular-nums text-white/85">{active.length}</span>
+        </div>
+        {totalValue && (
+          <div className="rounded-lg border border-sp-orange/20 bg-sp-orange/[0.03] px-2 py-1.5 flex flex-col items-center text-center">
+            <span className="text-[8px] font-black uppercase tracking-wider text-sp-orange/70">Premios</span>
+            <span className="text-[12px] font-black tabular-nums text-sp-orange truncate w-full">{totalValue}</span>
+          </div>
+        )}
+        <div className="rounded-lg border border-white/[0.06] bg-white/[0.015] px-2 py-1.5 flex flex-col items-center text-center">
+          <span className="text-[8px] font-black uppercase tracking-wider text-white/35">Marcas</span>
+          <span className="text-[12px] font-black tabular-nums text-white/70">{brands.length}</span>
+        </div>
+        <div className="rounded-lg border border-white/[0.06] bg-white/[0.015] px-2 py-1.5 flex flex-col items-center text-center">
+          <span className="text-[8px] font-black uppercase tracking-wider text-white/35">Creators</span>
+          <span className="text-[12px] font-black tabular-nums text-white/70">{creators.length}</span>
+        </div>
+      </div>
 
       {/* ── Mobile: brand chips ────────────────────────────────────── */}
       {brands.length > 0 && (
-        <div className="lg:hidden mb-3 flex gap-2 overflow-x-auto -mx-4 px-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="lg:hidden mb-3 flex gap-2 overflow-x-auto -mx-3 sm:-mx-4 px-3 sm:px-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <button
             type="button"
             onClick={() => setSelectedBrand(null)}
@@ -319,9 +341,9 @@ export function SorteosHub({ active, finished, brands, creators, totalValue }: S
             )}
           </div>
 
-          {/* Grid — más densidad en xl para sensación marketplace */}
+          {/* Grid — densidad marketplace (2 cols mobile, 4 cols desktop) */}
           {filtered.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3.5">
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-2.5 sm:gap-3.5">
               {filtered.map((g) => (
                 <CompactSorteoCard key={g.id} giveaway={g} />
               ))}

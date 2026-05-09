@@ -29,7 +29,7 @@ export function FeaturedBlogCard({ post }: Props) {
   return (
     <Link
       href={`/blog/${post.slug}`}
-      className="group block rounded-2xl overflow-hidden border border-sp-border hover:border-sp-orange/40 hover:shadow-[0_8px_60px_-12px_rgba(245,99,42,0.25)] transition-all duration-400"
+      className="group block rounded-2xl overflow-hidden border border-sp-border hover:border-sp-orange/35 hover:shadow-[0_16px_70px_-16px_rgba(245,99,42,0.28)] hover:-translate-y-0.5 transition-all duration-400 will-change-transform"
       aria-label={post.title}
     >
       <div className="grid grid-cols-1 md:grid-cols-[3fr_4fr]">

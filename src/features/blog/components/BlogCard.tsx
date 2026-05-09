@@ -23,7 +23,7 @@ export function BlogCard({ post }: BlogCardProps) {
   return (
     <Link
       href={`/blog/${post.slug}`}
-      className="group relative block rounded-xl overflow-hidden border border-white/[0.07] hover:border-sp-orange/40 hover:shadow-[0_8px_36px_-8px_rgba(245,99,42,0.18)] transition-all duration-300"
+      className="group relative block rounded-xl overflow-hidden border border-white/[0.07] hover:border-sp-orange/35 hover:shadow-[0_12px_44px_-12px_rgba(245,99,42,0.22)] hover:-translate-y-0.5 transition-all duration-300 will-change-transform"
       aria-label={post.title}
     >
       <div className="relative aspect-[3/2] overflow-hidden bg-sp-dark">
