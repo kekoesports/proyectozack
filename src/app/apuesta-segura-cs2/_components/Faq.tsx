@@ -31,32 +31,37 @@ const FAQS = [
 
 export function Faq() {
   return (
-    <section id="faq" className="relative bg-white py-24 md:py-32">
-      <div className="max-w-3xl mx-auto px-5 md:px-8">
-        <div className="text-center mb-14">
-          <span className="inline-block text-[10px] font-bold uppercase tracking-[0.32em] text-sp-orange mb-4">
-            FAQ
-          </span>
-          <h2 className="font-display text-4xl md:text-5xl font-black uppercase text-sp-dark leading-[0.95]">
-            Preguntas frecuentes
-          </h2>
+    <section id="faq" className="relative bg-white py-14 md:py-20">
+      <div className="max-w-5xl mx-auto px-5 md:px-8">
+        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-3 mb-8 md:mb-10">
+          <div>
+            <span className="inline-block text-[10px] font-bold uppercase tracking-[0.32em] text-sp-orange mb-2">
+              FAQ
+            </span>
+            <h2 className="font-display text-3xl md:text-4xl font-black uppercase text-sp-dark leading-[0.95]">
+              Preguntas frecuentes
+            </h2>
+          </div>
+          <p className="text-sm text-sp-muted max-w-sm">
+            Lo que más nos preguntan sobre el canal, Blogabet y la metodología.
+          </p>
         </div>
 
-        <div className="space-y-3">
+        <div className="grid md:grid-cols-2 gap-2 md:gap-3">
           {FAQS.map((f) => (
             <details
               key={f.q}
-              className="group bg-sp-off border border-sp-border rounded-2xl px-5 md:px-6 py-4 md:py-5 open:border-sp-pink/30 open:bg-white transition-colors"
+              className="group bg-sp-off border border-sp-border rounded-xl px-4 md:px-5 py-3 md:py-3.5 open:border-sp-pink/30 open:bg-white transition-colors"
             >
-              <summary className="flex items-center justify-between gap-4 cursor-pointer list-none">
-                <span className="font-display font-black uppercase text-sp-dark text-base md:text-lg leading-snug tracking-tight">
+              <summary className="flex items-center justify-between gap-3 cursor-pointer list-none">
+                <span className="font-display font-black uppercase text-sp-dark text-sm md:text-[15px] leading-snug tracking-tight">
                   {f.q}
                 </span>
                 <span
                   aria-hidden
-                  className="flex-none w-8 h-8 rounded-full border border-sp-border bg-white flex items-center justify-center text-sp-muted group-open:border-sp-pink/40 group-open:text-sp-pink group-open:rotate-45 transition-all"
+                  className="flex-none w-6 h-6 rounded-full border border-sp-border bg-white flex items-center justify-center text-sp-muted group-open:border-sp-pink/40 group-open:text-sp-pink group-open:rotate-45 transition-all"
                 >
-                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                  <svg width="11" height="11" viewBox="0 0 14 14" fill="none">
                     <path
                       d="M7 2V12M2 7H12"
                       stroke="currentColor"
@@ -66,7 +71,7 @@ export function Faq() {
                   </svg>
                 </span>
               </summary>
-              <p className="mt-4 text-sm md:text-[15px] text-sp-muted leading-relaxed">
+              <p className="mt-3 text-[13px] md:text-sm text-sp-muted leading-relaxed">
                 {f.a}
               </p>
             </details>

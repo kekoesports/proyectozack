@@ -4,67 +4,75 @@ import { TELEGRAM_URL, BLOGABET_URL } from './tokens';
 
 export function FinalCta() {
   return (
-    <section className="relative isolate overflow-hidden bg-sp-black text-white py-24 md:py-32">
-      <div className="absolute inset-0 bg-sp-grad opacity-[0.92]" />
+    <section className="relative isolate overflow-hidden bg-sp-black text-white py-14 md:py-20">
       <div
         aria-hidden
-        className="absolute inset-0 opacity-[0.08]"
+        className="absolute -left-32 top-1/2 -translate-y-1/2 w-[480px] h-[480px] rounded-full pointer-events-none"
         style={{
-          backgroundImage:
-            'linear-gradient(rgba(255,255,255,0.6) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.6) 1px, transparent 1px)',
-          backgroundSize: '64px 64px',
+          background:
+            'radial-gradient(circle at center, rgba(245,99,42,0.20), rgba(224,48,112,0.10) 40%, transparent 70%)',
+          filter: 'blur(50px)',
+        }}
+      />
+      <div
+        aria-hidden
+        className="absolute -right-32 top-1/2 -translate-y-1/2 w-[420px] h-[420px] rounded-full pointer-events-none"
+        style={{
+          background:
+            'radial-gradient(circle at center, rgba(139,58,173,0.20), transparent 70%)',
+          filter: 'blur(50px)',
         }}
       />
 
-      <div className="relative max-w-4xl mx-auto px-5 md:px-8 text-center">
-        <Image
-          src="/images/logos/2.png"
-          alt="SocialPro"
-          width={56}
-          height={56}
-          className="mx-auto w-12 h-12 md:w-14 md:h-14 object-contain mb-6 drop-shadow-[0_0_28px_rgba(255,255,255,0.55)]"
-        />
+      <div className="relative max-w-6xl mx-auto px-5 md:px-8">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 md:gap-10">
+          <div className="flex items-center gap-4 md:gap-5">
+            <Image
+              src="/images/logos/2.png"
+              alt="SocialPro"
+              width={48}
+              height={48}
+              className="flex-none w-10 h-10 md:w-11 md:h-11 object-contain drop-shadow-[0_0_18px_rgba(224,48,112,0.45)]"
+            />
+            <div>
+              <span className="block text-[10px] font-bold uppercase tracking-[0.28em] text-sp-orange mb-1.5">
+                Apuesta Segura CS2 · SocialPro
+              </span>
+              <h2 className="font-display text-2xl md:text-3xl font-black uppercase leading-[1.05] tracking-tight">
+                Únete gratis a la comunidad{' '}
+                <span className="bg-sp-grad bg-clip-text text-transparent">
+                  CS2
+                </span>
+              </h2>
+            </div>
+          </div>
 
-        <h2 className="font-display text-4xl md:text-6xl font-black uppercase leading-[0.95] mb-6">
-          Análisis competitivo de CS2,<br />
-          <span className="text-white/85">contado por quien la vive</span>
-        </h2>
-        <p className="text-base md:text-lg text-white/75 leading-relaxed max-w-2xl mx-auto mb-10">
-          Únete gratis a la comunidad. Picks publicados a diario, análisis
-          previos en directo y seguimiento verificable en Blogabet.
-        </p>
-
-        <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <CtaButton
-            href={TELEGRAM_URL}
-            ctaId="apuesta_cs2_finalcta_telegram"
-            variant="dark"
-            external
-            className="!px-9 !py-4 !text-base"
-          >
-            Entrar al Telegram
-          </CtaButton>
-          <CtaButton
-            href={BLOGABET_URL}
-            ctaId="apuesta_cs2_finalcta_blogabet"
-            variant="outline"
-            external
-            className="!px-9 !py-4 !text-base !border-white/30 hover:!border-white"
-          >
-            Ver estadísticas
-          </CtaButton>
+          <div className="flex flex-col sm:flex-row gap-3 md:flex-none">
+            <CtaButton
+              href={TELEGRAM_URL}
+              ctaId="apuesta_cs2_finalcta_telegram"
+              external
+            >
+              Entrar al Telegram
+            </CtaButton>
+            <CtaButton
+              href={BLOGABET_URL}
+              ctaId="apuesta_cs2_finalcta_blogabet"
+              variant="outline"
+              external
+            >
+              Ver estadísticas
+            </CtaButton>
+          </div>
         </div>
 
-        <p className="mt-10 text-xs text-white/65 max-w-md mx-auto">
-          Apuesta Segura CS2 es un proyecto del ecosistema{' '}
-          <span className="font-display font-black uppercase tracking-wider">
+        <p className="mt-6 md:mt-8 pt-5 border-t border-white/[0.06] text-[11px] text-white/45 leading-relaxed">
+          Proyecto del ecosistema{' '}
+          <span className="font-display font-black uppercase tracking-wider text-white/65">
             SocialPro
           </span>
-          {' '}· Agencia gaming y esports · Madrid · 2012
-        </p>
-        <p className="mt-3 text-xs text-white/55 max-w-md mx-auto">
-          +18 · Juega con responsabilidad. Las apuestas conllevan riesgo de
-          pérdida.
+          {' '}· Agencia gaming y esports · Madrid · 2012 · +18 · Juega con
+          responsabilidad — las apuestas conllevan riesgo de pérdida.
         </p>
       </div>
     </section>

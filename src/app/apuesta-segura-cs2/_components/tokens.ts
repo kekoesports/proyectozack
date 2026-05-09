@@ -1,4 +1,4 @@
-export const TELEGRAM_URL = 'https://t.me/apuestaseguracs2';
+export const TELEGRAM_URL = 'https://t.me/+B65oaDw_4jhmNDFk';
 export const BLOGABET_URL = 'https://arkeroz.blogabet.com';
 
 export const HERO_STATS = [
