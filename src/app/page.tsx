@@ -18,6 +18,8 @@ import { PortfolioSection } from '@/features/marketing-site/components/Portfolio
 import { AboutSection } from '@/features/marketing-site/components/AboutSection';
 import { TeamGrid } from '@/features/marketing-site/components/TeamGrid';
 import { Cs2LabCard } from '@/components/cs2-lab/Cs2LabCard';
+import { NewsLatestModule } from '@/features/news/components/NewsLatestModule';
+import { getNewsPosts } from '@/lib/queries/posts';
 
 // Client components below-fold: lazy-load JS, SSR preserved
 const MetricsSection  = dynamic(() => import('@/features/marketing-site/components/MetricsSection').then(m => ({ default: m.MetricsSection })));
@@ -83,10 +85,14 @@ export const revalidate = 3600;
 
 
 export default async function HomePage() {
-  const [talents, brands] = await Promise.all([
+  const [talents, brands, newsPosts] = await Promise.all([
     getTalents(),
     getBrands(),
+    getNewsPosts(),
   ]);
+  const latestNews = [...newsPosts]
+    .sort((a, b) => (b.sortOrder ?? 0) - (a.sortOrder ?? 0))
+    .slice(0, 3);
 
   return (
     <>
@@ -96,6 +102,7 @@ export default async function HomePage() {
       <TalentSection talents={talents} />
       <LiveSection />
       <MetricsSection />
+      <NewsLatestModule posts={latestNews} />
       <Cs2LabCard variant="full" ctaId="home_cs2_lab_full" />
       <Suspense>
         <CollabsSectionAsync />
