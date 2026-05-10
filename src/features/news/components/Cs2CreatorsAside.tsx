@@ -25,9 +25,23 @@ type Props = {
   readonly creators: readonly Cs2SidebarEntry[];
 };
 
+const STALE_WINDOW_MS = 15 * 60 * 1000;
+
+function computeLiveDataState(creators: readonly Cs2SidebarEntry[]): 'fresh' | 'stale' | 'unmonitored' {
+  if (creators.length === 0) return 'unmonitored';
+  const checked = creators.filter((c) => c.lastCheckedAt != null);
+  if (checked.length === 0) return 'unmonitored';
+  const now = Date.now();
+  const allStale = checked.every(
+    (c) => c.lastCheckedAt && now - c.lastCheckedAt.getTime() > STALE_WINDOW_MS,
+  );
+  return allStale ? 'stale' : 'fresh';
+}
+
 export function Cs2CreatorsAside({ creators }: Props) {
   const visible = creators.slice(0, MAX_VISIBLE);
   const liveCount = creators.filter((c) => c.isLive).length;
+  const dataState = computeLiveDataState(creators);
 
   if (visible.length === 0) return null;
 
@@ -39,7 +53,11 @@ export function Cs2CreatorsAside({ creators }: Props) {
             Roster CS2 SocialPro
           </p>
           <p className="text-[11px] text-white/40 mt-1.5 leading-none">
-            {liveCount > 0 ? (
+            {dataState === 'stale' ? (
+              <span className="text-amber-300/85">Estado live actualizándose</span>
+            ) : dataState === 'unmonitored' ? (
+              <span className="text-white/45">Estado live no disponible</span>
+            ) : liveCount > 0 ? (
               <>
                 <span className="text-emerald-400 font-bold">{liveCount} en directo</span>
                 {' · '}

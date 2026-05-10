@@ -188,6 +188,8 @@ export type Cs2SidebarEntry = {
   streamTitle: string | null;
   streamUrl: string | null;
   startedAt: Date | null;
+  /** null si el cron nunca actualizó este talent. Para detectar stale en UI. */
+  lastCheckedAt: Date | null;
 };
 
 /**
@@ -239,21 +241,24 @@ export async function getCs2RosterForSidebar(): Promise<Cs2SidebarEntry[]> {
       talents.name,
     );
 
-  // Aplica safety window: si lastChecked es viejo, descarta el flag isLive.
+  // Safety window: si lastChecked es viejo, descarta el flag isLive y
+  // datos derivados. lastCheckedAt se preserva tal cual para que la UI
+  // pueda detectar staleness y mostrar mensaje contextual.
   return rows.map((r) => {
     const stale = !r.lastChecked || r.lastChecked < tenMinutesAgo;
     return {
-      talentId:    r.talentId,
-      slug:        r.slug,
-      name:        r.name,
-      photoUrl:    r.photoUrl,
-      handle:      r.handle,
-      game:        r.game,
-      isLive:      stale ? false : Boolean(r.isLive),
-      viewerCount: stale ? null : r.viewerCount,
-      streamTitle: stale ? null : r.streamTitle,
-      streamUrl:   stale ? null : r.streamUrl,
-      startedAt:   stale ? null : r.startedAt,
+      talentId:      r.talentId,
+      slug:          r.slug,
+      name:          r.name,
+      photoUrl:      r.photoUrl,
+      handle:        r.handle,
+      game:          r.game,
+      isLive:        stale ? false : Boolean(r.isLive),
+      viewerCount:   stale ? null : r.viewerCount,
+      streamTitle:   stale ? null : r.streamTitle,
+      streamUrl:     stale ? null : r.streamUrl,
+      startedAt:     stale ? null : r.startedAt,
+      lastCheckedAt: r.lastChecked,
     };
   });
 }
