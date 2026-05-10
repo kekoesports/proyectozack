@@ -34,8 +34,8 @@ export function NewsHero({ featured, trending }: Props) {
         }}
       />
 
-      <div className="relative max-w-7xl mx-auto px-5 md:px-8 pt-12 pb-14 md:pt-16 md:pb-20">
-        <div className="flex items-end justify-between gap-4 mb-8 md:mb-10">
+      <div className="relative max-w-7xl mx-auto px-5 md:px-8 pt-7 pb-10 md:pt-9 md:pb-14">
+        <div className="flex items-end justify-between gap-4 mb-6 md:mb-7">
           <div>
             <p className="text-[10px] font-bold uppercase tracking-[0.32em] text-sp-orange mb-2">
               SocialPro News
