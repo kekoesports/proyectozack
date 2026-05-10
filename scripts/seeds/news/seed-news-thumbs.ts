@@ -56,6 +56,7 @@ type SeedPost = {
   author: string;
   publishedAt: Date;
   sortOrder: number;
+  tags: string[];
 };
 
 const NOW = new Date();
@@ -108,6 +109,7 @@ Para audiencia que sigue la escena de cerca, este torneo dejó datos útiles par
     author: 'SocialPro Editorial',
     publishedAt: day(0),
     sortOrder: 200,
+    tags: ['cs2', 'esports', 'blast-premier', 'analisis'],
   },
   // 2 — Top 5 Picks de la Semana (recurring editorial)
   {
@@ -154,6 +156,7 @@ Si la lectura competitiva te interesa, el canal de Telegram es donde aterrizan l
     author: 'ArkeroZ',
     publishedAt: day(1),
     sortOrder: 190,
+    tags: ['cs2', 'picks', 'apuesta-segura-cs2', 'telegram', 'arkeroz', 'blogabet'],
   },
   // 3 — Meta actual de CS2 (analysis)
   {
@@ -209,6 +212,7 @@ Para audiencia que sigue la escena: si quieres entender por qué un equipo gana 
     author: 'ArkeroZ',
     publishedAt: day(2),
     sortOrder: 180,
+    tags: ['cs2', 'meta', 'mapas', 'armas', 'utility', 'analisis'],
   },
   // 4 — Equipos Tier 2 a seguir (competitivo)
   {
@@ -269,6 +273,7 @@ En SocialPro News mantenemos cobertura editorial de la escena tier 2 europea. Ma
     author: 'SocialPro Editorial',
     publishedAt: day(3),
     sortOrder: 170,
+    tags: ['cs2', 'tier-2-eu', 'esea-advanced', 'cct-europe', 'roster-moves', 'esports'],
   },
 ];
 
@@ -294,6 +299,7 @@ async function main() {
           vertical: 'news',
           publishedAt: p.publishedAt,
           sortOrder: p.sortOrder,
+          tags: p.tags,
         })
         .where(eq(posts.slug, p.slug));
       console.log(`  ↻  ${p.slug}`);
@@ -309,6 +315,7 @@ async function main() {
         vertical: 'news',
         publishedAt: p.publishedAt,
         sortOrder: p.sortOrder,
+        tags: p.tags,
       });
       console.log(`  +  ${p.slug}`);
     }

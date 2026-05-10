@@ -69,7 +69,7 @@ const jsonLd = {
 } satisfies Record<string, unknown>;
 
 type PageProps = {
-  searchParams: Promise<{ cat?: string }>;
+  searchParams: Promise<{ cat?: string; tag?: string }>;
 };
 
 export default async function NewsPage({ searchParams }: PageProps) {
@@ -78,13 +78,21 @@ export default async function NewsPage({ searchParams }: PageProps) {
   const activeCategory: NewsCategorySlug | null = isNewsCategorySlug(requestedCat)
     ? requestedCat
     : null;
+  const requestedTag = (sp.tag ?? '').toLowerCase().trim();
+  const activeTag: string | null =
+    requestedTag.length > 0 && requestedTag.length <= 64 && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(requestedTag)
+      ? requestedTag
+      : null;
 
   const [allPosts, talents] = await Promise.all([
     getNewsPosts(),
     getTalents(),
   ]);
 
-  const sorted = [...allPosts].sort((a, b) => (b.sortOrder ?? 0) - (a.sortOrder ?? 0));
+  const tagFiltered = activeTag
+    ? allPosts.filter((p) => (p.tags ?? []).includes(activeTag))
+    : allPosts;
+  const sorted = [...tagFiltered].sort((a, b) => (b.sortOrder ?? 0) - (a.sortOrder ?? 0));
   const featured = sorted[0] ?? null;
   const trending = sorted.slice(1, 4);
   const grid = sorted.slice(4);

@@ -41,6 +41,7 @@ type SeedPost = {
   author: string;
   publishedAt: Date;
   sortOrder: number;
+  tags: string[];
 };
 
 const NOW = new Date();
@@ -74,6 +75,7 @@ Si vas en serio con la escena CS2, este es el sitio donde estamos publicando.`,
     author: 'ArkeroZ',
     publishedAt: day(0),
     sortOrder: 100,
+    tags: ['apuesta-segura-cs2', 'telegram', 'cs2', 'arkeroz', 'socialpro', 'blogabet'],
   },
   // 2 — Análisis
   {
@@ -104,6 +106,7 @@ Cobertura completa partido a partido en el canal de Telegram.`,
     author: 'ArkeroZ',
     publishedAt: day(1),
     sortOrder: 90,
+    tags: ['cs2', 'analisis', 'esea-advanced', 'tier-2-eu', 'mapas'],
   },
   // 3 — Creators
   {
@@ -130,6 +133,7 @@ Estamos abriendo el roster a perfiles emergentes en mercados latinoamericanos. S
     author: 'SocialPro Editorial',
     publishedAt: day(2),
     sortOrder: 80,
+    tags: ['creators', 'cs2', 'spain', 'latam', 'twitch', 'youtube', 'socialpro'],
   },
   // 4 — Comunidad
   {
@@ -162,6 +166,7 @@ Si vas a evaluar a un tipster —el nuestro o cualquier otro— estos son los cr
     author: 'ArkeroZ',
     publishedAt: day(3),
     sortOrder: 70,
+    tags: ['blogabet', 'analisis', 'apuesta-segura-cs2', 'arkeroz'],
   },
   // 5 — Competitivo
   {
@@ -188,6 +193,7 @@ Hay tres enfrentamientos en las próximas dos semanas que van a poner a prueba d
     author: 'ArkeroZ',
     publishedAt: day(4),
     sortOrder: 60,
+    tags: ['cs2', 'roster-moves', 'tier-2-eu', 'esports'],
   },
   // 6 — Actualidad
   {
@@ -212,6 +218,7 @@ Los partidos del fin de semana tienen máxima audiencia esperada en mercados de 
     author: 'SocialPro Editorial',
     publishedAt: day(5),
     sortOrder: 50,
+    tags: ['cs2', 'major-spring-2026', 'esports', 'spain', 'latam'],
   },
   // 7 — Análisis (largo)
   {
@@ -240,6 +247,7 @@ CYBERSHOKE llega favorito por forma. PARTIZAN tiene plan claro si consigue evita
     author: 'ArkeroZ',
     publishedAt: day(6),
     sortOrder: 45,
+    tags: ['cs2', 'analisis', 'esea-advanced', 'tier-2-eu', 'mapas'],
   },
   // 8 — Análisis preview 2
   {
@@ -264,6 +272,7 @@ Probablemente sea decider. NEMIGA llega ahí mejor que en Mirage; ITB tiene un v
     author: 'ArkeroZ',
     publishedAt: day(6),
     sortOrder: 40,
+    tags: ['cs2', 'analisis', 'cct-europe', 'tier-2-eu'],
   },
   // 9 — Análisis preview 3
   {
@@ -288,6 +297,7 @@ Si llegan a Inferno, opciones para GENONE. AURA va a intentar forzar Nuke o Mira
     author: 'ArkeroZ',
     publishedAt: day(6),
     sortOrder: 35,
+    tags: ['cs2', 'analisis', 'cct-europe', 'tier-2-eu'],
   },
   // 10 — Actualidad (calendar)
   {
@@ -320,6 +330,7 @@ Cobertura previa por evento, análisis de cada split y contexto narrativo de los
     author: 'SocialPro Editorial',
     publishedAt: day(7),
     sortOrder: 30,
+    tags: ['cs2', 'calendario', 'esports', 'major-spring-2026'],
   },
   // 11 — Actualidad (audiences)
   {
@@ -352,6 +363,7 @@ El momento es bueno para activar campañas en CS2. La audiencia está en pico y 
     author: 'SocialPro Editorial',
     publishedAt: day(8),
     sortOrder: 25,
+    tags: ['cs2', 'twitch', 'spain', 'latam', 'esports'],
   },
 ];
 
@@ -378,6 +390,7 @@ async function main() {
           vertical: 'news',
           publishedAt: n.publishedAt,
           sortOrder: n.sortOrder,
+          tags: n.tags,
         })
         .where(eq(posts.slug, n.slug));
       console.log(`  ↻  ${n.slug}`);
@@ -393,6 +406,7 @@ async function main() {
         vertical: 'news',
         publishedAt: n.publishedAt,
         sortOrder: n.sortOrder,
+        tags: n.tags,
       });
       console.log(`  +  ${n.slug}`);
     }

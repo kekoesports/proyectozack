@@ -421,6 +421,13 @@
       "when": 1778376036642,
       "tag": "0059_mature_forge",
       "breakpoints": true
+    },
+    {
+      "idx": 60,
+      "version": "7",
+      "when": 1778379107719,
+      "tag": "0060_daffy_black_bolt",
+      "breakpoints": true
     }
   ]
 }

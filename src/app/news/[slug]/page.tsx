@@ -9,6 +9,8 @@ import { buildBreadcrumbJsonLd } from '@/lib/utils/breadcrumbs';
 import { truncateMetaDescription, truncateMetaTitle } from '@/lib/utils/text';
 import { NewsArticleBody } from '@/features/news/components/NewsArticleBody';
 import { NewsCard } from '@/features/news/components/NewsCard';
+import { EcosystemPanel } from '@/features/news/components/EcosystemPanel';
+import { getPostEcosystem } from '@/lib/news/ecosystem';
 import { Cs2LabCard } from '@/components/cs2-lab/Cs2LabCard';
 
 export const revalidate = 1800;
@@ -57,7 +59,10 @@ export default async function NewsArticlePage({ params }: PageProps) {
   const category = deriveNewsCategory(post.slug, post.title);
   const date = formatNewsDate(post.publishedAt);
   const reading = readingMinutes(post.bodyMd);
-  const related = await getRelatedNewsPosts(slug, 3);
+  const [related, ecosystem] = await Promise.all([
+    getRelatedNewsPosts(slug, 3),
+    getPostEcosystem(post),
+  ]);
 
   const articleJsonLd = {
     '@context': 'https://schema.org',
@@ -163,38 +168,15 @@ export default async function NewsArticlePage({ params }: PageProps) {
             <NewsArticleBody bodyMd={post.bodyMd} />
           </section>
 
-          {post.talentAvatars.length > 0 ? (
-            <section className="max-w-3xl mx-auto px-5 md:px-8 pb-10">
-              <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-sp-orange mb-3">
-                Creators mencionados
-              </p>
-              <ul className="flex flex-wrap gap-3">
-                {post.talentAvatars.map((t) => (
-                  <li key={t.slug}>
-                    <Link
-                      href={`/talentos/${t.slug}`}
-                      className="group inline-flex items-center gap-2.5 bg-[#0c1016] border border-white/[0.07] rounded-full pl-1 pr-4 py-1 hover:border-white/20 transition-colors"
-                    >
-                      <span
-                        className="flex-none w-7 h-7 rounded-full flex items-center justify-center font-display font-black text-[11px] text-white"
-                        style={{ background: `linear-gradient(135deg, ${t.gradientC1}, ${t.gradientC2})` }}
-                      >
-                        {t.initials}
-                      </span>
-                      <span className="text-sm text-white/85 group-hover:text-white transition-colors">
-                        {t.name}
-                      </span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          ) : null}
+        </article>
 
-          <section className="max-w-3xl mx-auto px-5 md:px-8 pb-10">
+        <EcosystemPanel slug={slug} ecosystem={ecosystem} />
+
+        {ecosystem.channelTelegram === null ? (
+          <section className="max-w-5xl mx-auto px-5 md:px-8 pb-12 md:pb-16">
             <Cs2LabCard variant="compact" ctaId={`news_article_${slug}_apuesta_segura`} />
           </section>
-        </article>
+        ) : null}
 
         {related.length > 0 ? (
           <section className="bg-sp-black border-t border-white/[0.06] py-12 md:py-16">
