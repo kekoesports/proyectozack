@@ -10,6 +10,8 @@
  * y mapearlos a tags GA4 con los nombres definidos abajo.
  */
 
+import { getStoredAttribution } from './attribution';
+
 type DataLayerEvent = { event: string } & Record<string, unknown>;
 
 declare global {
@@ -21,6 +23,10 @@ declare global {
 /**
  * Empuja un evento al dataLayer de GTM. Seguro de llamar en cualquier
  * contexto: si GTM no está cargado retorna sin hacer nada.
+ *
+ * Enriquece automáticamente el payload con los params de attribution
+ * persistidos en sessionStorage (utm_*, creator). El payload del caller
+ * tiene prioridad si hay colisión.
  */
 export function trackEvent(
   name: string,
@@ -28,5 +34,6 @@ export function trackEvent(
 ): void {
   if (typeof window === 'undefined') return;
   if (!Array.isArray(window.dataLayer)) return;
-  window.dataLayer.push({ event: name, ...payload });
+  const attribution = getStoredAttribution();
+  window.dataLayer.push({ event: name, ...attribution, ...payload });
 }

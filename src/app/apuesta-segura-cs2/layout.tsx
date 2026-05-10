@@ -1,7 +1,10 @@
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import { absoluteUrl } from '@/lib/site-url';
-import { BLOGABET_URL } from './_components/tokens';
+import { StickyCtaMobile } from '@/components/ui/StickyCtaMobile';
+import { AttributionCapture } from './_components/AttributionCapture';
+import { FloatingTelegramCta } from './_components/FloatingTelegramCta';
+import { BLOGABET_URL, TELEGRAM_URL } from './_components/tokens';
 
 export const metadata: Metadata = {
   title:
@@ -136,7 +139,15 @@ export default function ApuestaSeguraCs2Layout({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
+      <AttributionCapture />
       {children}
+      <FloatingTelegramCta />
+      <StickyCtaMobile
+        href={TELEGRAM_URL}
+        label="Entrar al Telegram CS2"
+        ctaId="apuesta_cs2_sticky_telegram"
+        external
+      />
     </>
   );
 }

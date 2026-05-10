@@ -1,6 +1,12 @@
 export const TELEGRAM_URL = 'https://t.me/+B65oaDw_4jhmNDFk';
 export const BLOGABET_URL = 'https://arkeroz.blogabet.com';
 
+// Datos sincronizados manualmente con el perfil público de Blogabet.
+// Blogabet no expone RSS ni API pública (probado: /feed /rss /rss.xml todos
+// devuelven HTML del homepage). Para automatizar requeriría Playwright
+// scraping, opción aplazada — actualizar a mano cuando cambien los KPIs.
+// Última sincronización: 2026-05-09 (capturas Blogabet + Excel beneficios).
+
 export const HERO_STATS = [
   { label: 'Picks', value: '109' },
   { label: 'Yield', value: '+27%' },

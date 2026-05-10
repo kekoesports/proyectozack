@@ -7,6 +7,7 @@ type Props = {
   readonly href: string;
   readonly label: string;
   readonly ctaId: string;
+  readonly external?: boolean;
 };
 
 /**
@@ -20,7 +21,7 @@ type Props = {
  * @kind client
  * @feature ui
  */
-export function StickyCtaMobile({ href, label, ctaId }: Props): React.JSX.Element {
+export function StickyCtaMobile({ href, label, ctaId, external = false }: Props): React.JSX.Element {
   const [show, setShow] = useState(false);
 
   useEffect(() => {
@@ -48,6 +49,7 @@ export function StickyCtaMobile({ href, label, ctaId }: Props): React.JSX.Elemen
         href={href}
         ctaId={ctaId}
         className="block w-full py-3 text-center font-display font-bold text-white text-sm uppercase tracking-wider bg-sp-grad rounded-full shadow-lg"
+        {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
       >
         {label}
       </TrackedCtaLink>
