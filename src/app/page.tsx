@@ -17,6 +17,7 @@ import { CasesSection } from '@/features/marketing-site/components/CasesSection'
 import { PortfolioSection } from '@/features/marketing-site/components/PortfolioSection';
 import { AboutSection } from '@/features/marketing-site/components/AboutSection';
 import { TeamGrid } from '@/features/marketing-site/components/TeamGrid';
+import { Cs2LabCard } from '@/components/cs2-lab/Cs2LabCard';
 
 // Client components below-fold: lazy-load JS, SSR preserved
 const MetricsSection  = dynamic(() => import('@/features/marketing-site/components/MetricsSection').then(m => ({ default: m.MetricsSection })));
@@ -95,6 +96,7 @@ export default async function HomePage() {
       <TalentSection talents={talents} />
       <LiveSection />
       <MetricsSection />
+      <Cs2LabCard variant="full" ctaId="home_cs2_lab_full" />
       <Suspense>
         <CollabsSectionAsync />
       </Suspense>

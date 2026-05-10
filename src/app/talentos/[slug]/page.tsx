@@ -17,6 +17,7 @@ import { truncateMetaDescription } from '@/lib/utils/text';
 import { CONTACT_EMAIL } from '@/lib/utils/constants';
 import { TalentLiveWidget } from '@/features/giveaways/components/TalentLiveWidget';
 import { generateEventSchema } from '@/lib/schema';
+import { Cs2LabCard } from '@/components/cs2-lab/Cs2LabCard';
 import type { CreatorCodeWithTalent, GiveawayWithTalent, Talent } from '@/types';
 
 export const revalidate = 3600;
@@ -108,6 +109,9 @@ export default async function TalentPage({ params }: PageProps) {
     ? talent.bio.trim().slice(0, 120) + (talent.bio.trim().length > 120 ? '…' : '')
     : null;
   const tags = talent.tags.slice(0, 4);
+  const isCs2Talent =
+    /cs[: ]?2|counter[- ]?strike/i.test(talent.game) ||
+    talent.tags.some((t) => /cs[: ]?2|counter[- ]?strike/i.test(t.tag));
 
   // Person schema para SEO
   const parseFollowers = (d: string): number => {
@@ -476,6 +480,12 @@ export default async function TalentPage({ params }: PageProps) {
           </aside>
         </div>
       </div>
+
+      {isCs2Talent ? (
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
+          <Cs2LabCard variant="compact" ctaId="talent_profile_cs2_lab" />
+        </div>
+      ) : null}
 
       <div className="border-t border-white/[0.04] py-6 text-center">
         <Link href="/giveaways" className="inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] text-white/20 hover:text-white/50 font-bold transition-colors">

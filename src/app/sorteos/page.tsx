@@ -6,6 +6,7 @@ import { SorteosHub } from '@/features/giveaways/components/SorteosHub';
 import { absoluteUrl, SITE_URL } from '@/lib/site-url';
 import { generateGiveawayListSchema } from '@/lib/schema';
 import { ResponsibleGamingFooter } from '@/components/ui/ResponsibleGamingFooter';
+import { Cs2LabCard } from '@/components/cs2-lab/Cs2LabCard';
 
 export const metadata: Metadata = {
   title: 'Sorteos de Skins — SocialPro',
@@ -202,6 +203,10 @@ export default async function SorteosPage(): Promise<React.JSX.Element> {
       />
 
       {/* Footer */}
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-10 pt-2">
+        <Cs2LabCard variant="compact" ctaId="sorteos_cs2_lab" />
+      </div>
+
       <div className="border-t border-white/[0.04] py-4 text-center">
         <Link
           href="/giveaways"
