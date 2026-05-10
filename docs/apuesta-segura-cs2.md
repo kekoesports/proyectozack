@@ -92,6 +92,26 @@ Lo siguiente requiere decisión de producto antes de tocar código:
 - **Attribution → DB.** Ya existe sistema `creator_codes` + `code_clicks` en `src/db/schema/`. La capa actual va al dataLayer; fase 2 sería persistir clicks Telegram en DB resolviendo `creator` → `talent_id`. Requiere alinear naming y relación con el sistema existente para no fragmentar.
 - **Discord / VIP / afiliados / Twitter.** No abrir hasta priorizar — usuario explícitamente pidió no sobrecargar landing actual.
 
+## Assets visuales (`public/images/apuesta-segura-cs2/`)
+
+| Archivo | Uso actual | Origen |
+|---|---|---|
+| `og-square.png` (1080×1080) | OpenGraph + Twitter image en `layout.tsx`. Composición: soldier + lockup + 4 pillars + CTA Telegram. | Creatividad premium 2026-05-10. |
+| `badge.png` (1024×1024 aprox) | Avatar header del `TelegramMockup`, sello del `OfficialChannelStamp` y icono del `StickyCtaMobile`. Servido vía `next/image` (auto-optimize). | Creatividad premium 2026-05-10. |
+| `og-portrait.png` (~9:16) | **Archivado**, no usado en producción. Reserva para futuro mobile hero portrait o stories sociales. | Creatividad premium 2026-05-10. |
+| `badge-lab.png` | **Archivado**, no usado en producción. Variante "CS2 Competitive Lab" — sólo si en el futuro se separa concepto editorial vs brand principal. | Creatividad premium 2026-05-10. |
+
+### Assets limpios pendientes de generar
+
+Lo siguiente desbloquea mejoras visuales y reduce peso de página:
+
+1. **`og-1200x630.png`** — versión horizontal del OG. Las plataformas (FB/LinkedIn/Twitter) recortan automáticamente el square al ratio 1.91:1. Una versión horizontal nativa preservaría composición perfecta. *(Nice-to-have, baja prioridad — el square actual sobrevive bien al crop.)*
+2. **`soldier-cutout.png` / `soldier-cutout.webp`** — render del soldier sin texto baked-in (sin "APUESTA SEGURA CS2", sin pillars, sin CTA), idealmente con fondo transparente. Necesario para el experimento P4 (filigrana hero) que se descartó por queda invisible al usar la imagen square al 12% opacity tras el mockup. Con asset limpio se puede reposicionar tras el texto del hero (no tras el mockup) y subir opacity sin caer en "tactical/militar".
+3. **`badge-256.png` y `badge-128.png`** — versiones reducidas del badge circular (256×256 y 128×128) para `apple-touch-icon`, `favicon` específico de la ruta y `Apple Universal Link preview`. Hoy `badge.png` pesa 1.4MB y aunque `next/image` optimiza on-demand el primer render el asset original es pesado.
+4. **Lockup tipográfico SVG** — "APUESTA SEGURA CS2" como SVG/PNG transparente sin fondo, para componer banners custom o cabeceras editoriales sin recortar de las creatividades existentes.
+
+Hasta entonces, todo el uso premium se basa en `og-square.png` + `badge.png`.
+
 ## Cross-links al ecosistema
 
 Componente compartido: `src/components/cs2-lab/Cs2LabCard.tsx` (variantes `full` | `compact`). Slots actuales:
