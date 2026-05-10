@@ -14,7 +14,7 @@
     },
     {
       "path": "/api/cron/poll-live-status",
-      "schedule": "*/5 * * * *"
+      "schedule": "0 */6 * * *"
     }
   ]
 }

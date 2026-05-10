@@ -25,15 +25,22 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ ok: true, live: 0, checked: 0, message: 'No talents with Twitch configured' });
   }
 
-  // 2. Llamar Twitch API — si falla, NO tocar la DB (evita falsos offline)
+  // 2. Llamar Twitch API — si falla, NO tocar la DB (evita falsos offline).
+  //    Reason específico para diagnóstico en Vercel logs:
+  //      twitch_creds_missing → falta TWITCH_CLIENT_ID o _SECRET en env
+  //      twitch_api_error     → token o Helix call falló (rate limit, network, etc.)
   let liveStreams;
   try {
     const handles = talentsWithTwitch.map((t) => t.handle);
     liveStreams = await fetchTwitchLiveByLogins(handles);
   } catch (err) {
-    console.error('[poll-live] Twitch API error — skipping DB update:', err);
+    const message = err instanceof Error ? err.message : String(err);
+    const reason = /CLIENT_ID|CLIENT_SECRET|is not set/i.test(message)
+      ? 'twitch_creds_missing'
+      : 'twitch_api_error';
+    console.error(`[poll-live] reason=${reason} — skipping DB update:`, message);
     return NextResponse.json(
-      { ok: false, skipped: true, reason: 'Twitch API unavailable' },
+      { ok: false, skipped: true, reason, checked: 0 },
       { status: 200 }, // 200 para que Vercel no marque el cron como fallido
     );
   }
