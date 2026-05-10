@@ -4,7 +4,7 @@ import { TrackedCtaLink } from '@/components/ui/TrackedCtaLink';
 import type { Cs2SidebarEntry } from '@/lib/queries/live';
 
 const TELEGRAM_URL = 'https://t.me/+B65oaDw_4jhmNDFk';
-const MAX_VISIBLE = 6;
+const MAX_VISIBLE = 5;
 
 function formatViewers(n: number | null): string {
   if (n == null) return '';
@@ -21,8 +21,11 @@ function profileHref(entry: Cs2SidebarEntry): string {
   return `/talentos/${entry.slug}`;
 }
 
+type Tone = 'dark' | 'paper';
+
 type Props = {
   readonly creators: readonly Cs2SidebarEntry[];
+  readonly tone?: Tone;
 };
 
 const STALE_WINDOW_MS = 15 * 60 * 1000;
@@ -38,16 +41,21 @@ function computeLiveDataState(creators: readonly Cs2SidebarEntry[]): 'fresh' | '
   return allStale ? 'stale' : 'fresh';
 }
 
-export function Cs2CreatorsAside({ creators }: Props) {
+export function Cs2CreatorsAside({ creators, tone = 'dark' }: Props) {
   const visible = creators.slice(0, MAX_VISIBLE);
   const liveCount = creators.filter((c) => c.isLive).length;
   const dataState = computeLiveDataState(creators);
 
   if (visible.length === 0) return null;
 
+  const shellClass =
+    tone === 'paper'
+      ? 'bg-sp-black border border-black/[0.06] shadow-[0_2px_8px_rgba(0,0,0,0.05)] rounded-2xl overflow-hidden'
+      : 'bg-[#0c1016] border border-white/[0.06] rounded-2xl overflow-hidden';
+
   return (
-    <section className="bg-[#0c1016] border border-white/[0.06] rounded-2xl overflow-hidden">
-      <header className="flex items-center justify-between px-5 pt-5 pb-3">
+    <section className={shellClass}>
+      <header className="flex items-center justify-between px-5 pt-4 pb-3">
         <div>
           <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-sp-orange leading-none">
             Roster CS2 SocialPro
@@ -82,17 +90,17 @@ export function Cs2CreatorsAside({ creators }: Props) {
                 href={href}
                 target={target}
                 rel={rel}
-                className={`group flex items-center gap-3 px-5 py-3 hover:bg-white/[0.025] transition-colors ${
+                className={`group flex items-center gap-3 px-5 py-2.5 hover:bg-white/[0.025] transition-colors ${
                   isLive ? '' : 'opacity-80 hover:opacity-100'
                 }`}
               >
-                <div className="relative flex-none w-10 h-10 rounded-full overflow-hidden bg-sp-black ring-1 ring-white/10">
+                <div className="relative flex-none w-9 h-9 rounded-full overflow-hidden bg-sp-black ring-1 ring-white/10">
                   {c.photoUrl ? (
                     <Image
                       src={c.photoUrl}
                       alt=""
                       fill
-                      sizes="40px"
+                      sizes="36px"
                       className="object-cover"
                     />
                   ) : (

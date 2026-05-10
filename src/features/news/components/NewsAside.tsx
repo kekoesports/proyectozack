@@ -4,9 +4,12 @@ import type { Cs2SidebarEntry } from '@/lib/queries/live';
 import { deriveNewsCategory } from '@/lib/utils/news';
 import { Cs2CreatorsAside } from './Cs2CreatorsAside';
 
+type Tone = 'dark' | 'paper';
+
 type Props = {
   readonly posts: readonly PostWithTalents[];
   readonly cs2Creators: readonly Cs2SidebarEntry[];
+  readonly tone?: Tone;
 };
 
 const TRENDING_TAGS = [
@@ -21,15 +24,19 @@ const TRENDING_TAGS = [
   'YouTube',
 ];
 
-export function NewsAside({ posts, cs2Creators }: Props) {
+export function NewsAside({ posts, cs2Creators, tone = 'dark' }: Props) {
   const editor = posts.slice(0, 3);
+  const cardClass =
+    tone === 'paper'
+      ? 'bg-sp-black border border-black/[0.06] shadow-[0_2px_8px_rgba(0,0,0,0.05)] rounded-2xl p-5'
+      : 'bg-[#0c1016] border border-white/[0.06] rounded-2xl p-5';
 
   return (
     <aside className="space-y-6 lg:space-y-7">
-      <Cs2CreatorsAside creators={cs2Creators} />
+      <Cs2CreatorsAside creators={cs2Creators} tone={tone} />
 
       {editor.length > 0 ? (
-        <section className="bg-[#0c1016] border border-white/[0.06] rounded-2xl p-5">
+        <section className={cardClass}>
           <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-sp-orange mb-4">
             From the editor
           </p>
@@ -61,7 +68,7 @@ export function NewsAside({ posts, cs2Creators }: Props) {
         </section>
       ) : null}
 
-      <section className="bg-[#0c1016] border border-white/[0.06] rounded-2xl p-5">
+      <section className={cardClass}>
         <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-sp-orange mb-4">
           Trending tags
         </p>

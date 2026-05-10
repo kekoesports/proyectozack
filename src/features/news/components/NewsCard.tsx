@@ -4,21 +4,27 @@ import type { PostWithTalents } from '@/lib/queries/posts';
 import { deriveNewsCategory, formatNewsDate, readingMinutes } from '@/lib/utils/news';
 
 type Density = 'normal' | 'compact';
+type Tone = 'dark' | 'paper';
 
 type Props = {
   readonly post: PostWithTalents;
   readonly density?: Density;
+  readonly tone?: Tone;
 };
 
-export function NewsCard({ post, density = 'normal' }: Props) {
+export function NewsCard({ post, density = 'normal', tone = 'dark' }: Props) {
   const category = deriveNewsCategory(post.slug, post.title);
   const date = formatNewsDate(post.publishedAt);
   const reading = readingMinutes(post.bodyMd);
   const compact = density === 'compact';
+  const surface =
+    tone === 'paper'
+      ? 'bg-sp-black border border-black/[0.06] shadow-[0_2px_8px_rgba(0,0,0,0.05)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.10)] hover:-translate-y-0.5'
+      : 'bg-[#0c1016] border border-white/[0.06] hover:border-white/15 hover:bg-[#10151d]';
 
   return (
     <article
-      className={`group relative bg-[#0c1016] border border-white/[0.06] rounded-2xl overflow-hidden hover:border-white/15 hover:bg-[#10151d] transition-colors ${compact ? '' : 'flex flex-col'}`}
+      className={`group relative ${surface} rounded-2xl overflow-hidden transition-all duration-300 ${compact ? '' : 'flex flex-col'}`}
     >
       <Link
         href={`/news/${post.slug}`}

@@ -159,9 +159,9 @@ export default async function NewsPage({ searchParams }: PageProps) {
         <LiveBar items={liveBarItems} />
         <NewsHero featured={featured} trending={trending} />
 
-        <section className="bg-[#F5F3F0] text-sp-black py-12 md:py-16 border-b border-black/[0.05]">
+        <section className="bg-[#F5F3F0] text-sp-black py-20 md:py-28 border-b border-black/[0.05]">
           <div className="max-w-7xl mx-auto px-5 md:px-8">
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-8 md:mb-10">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-10 md:mb-14">
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-[0.32em] text-sp-orange mb-2">
                   Cobertura editorial
@@ -173,9 +173,9 @@ export default async function NewsPage({ searchParams }: PageProps) {
               <NewsFilters tone="paper" />
             </div>
 
-            <div className="grid lg:grid-cols-[1fr_320px] gap-8 lg:gap-10">
-              <NewsGrid posts={grid} activeCategory={activeCategory} />
-              <NewsAside posts={editor} cs2Creators={cs2Creators} />
+            <div className="grid lg:grid-cols-[1fr_280px] gap-10 lg:gap-12">
+              <NewsGrid posts={grid} activeCategory={activeCategory} tone="paper" />
+              <NewsAside posts={editor} cs2Creators={cs2Creators} tone="paper" />
             </div>
           </div>
         </section>
