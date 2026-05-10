@@ -10,10 +10,10 @@ type LenisInstance = { raf: (time: number) => void; destroy: () => void };
 const PORTAL_PREFIXES = ['/admin', '/marcas', '/creadores', '/giveaways', '/c/'];
 const LOGIN_SUFFIXES = ['/login'];
 
-// Rutas con CTA flotante propio donde el widget WhatsApp colisionaría
-// visualmente y dispersaría el funnel principal. Mantienen el resto del
-// chrome (Nav + Footer + Lenis).
-const HIDE_WHATSAPP_PREFIXES = ['/apuesta-segura-cs2'];
+// Rutas donde el widget WhatsApp dispersa el tono editorial/media o
+// colisiona con un CTA flotante propio. Mantienen el resto del chrome
+// (Nav + Footer + Lenis).
+const HIDE_WHATSAPP_PREFIXES = ['/apuesta-segura-cs2', '/news'];
 
 function isPortalRoute(pathname: string): boolean {
   for (const prefix of PORTAL_PREFIXES) {

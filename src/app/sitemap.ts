@@ -2,7 +2,7 @@ import type { MetadataRoute } from 'next';
 
 import { getCaseSlugs } from '@/lib/queries/cases';
 import { getTalentSlugs } from '@/lib/queries/talents';
-import { getPostSlugs } from '@/lib/queries/posts';
+import { getPostSlugs, getNewsSlugs } from '@/lib/queries/posts';
 import { SITE_URL, absoluteUrl } from '@/lib/site-url';
 import { getBrandSlugs } from '@/lib/brands';
 
@@ -26,10 +26,11 @@ const D = {
 } as const;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [cases, talentSlugs, postSlugs] = await Promise.all([
+  const [cases, talentSlugs, postSlugs, newsSlugs] = await Promise.all([
     getCaseSlugs(),
     getTalentSlugs(),
     getPostSlugs(),
+    getNewsSlugs(),
   ]);
 
   const caseEntries: MetadataRoute.Sitemap = cases.map((c) => ({
@@ -46,6 +47,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const postEntries: MetadataRoute.Sitemap = postSlugs.map((p) => ({
     url: absoluteUrl(`/blog/${p.slug}`),
+    lastModified: p.updatedAt,
+  }));
+
+  const newsEntries: MetadataRoute.Sitemap = newsSlugs.map((p) => ({
+    url: absoluteUrl(`/news/${p.slug}`),
     lastModified: p.updatedAt,
   }));
 
@@ -173,6 +179,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: absoluteUrl('/guia-dgoj-igaming-influencers'), lastModified: NOW },
     { url: absoluteUrl('/apuesta-segura-cs2'), lastModified: NOW           },
     { url: absoluteUrl('/blog'),             lastModified: D.blog          },
+    { url: absoluteUrl('/news'),             lastModified: NOW             },
     {
       url: absoluteUrl('/giveaways'),
       lastModified: D.giveaways,
@@ -187,5 +194,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...caseEntries,
     ...talentEntries,
     ...postEntries,
+    ...newsEntries,
   ];
 }

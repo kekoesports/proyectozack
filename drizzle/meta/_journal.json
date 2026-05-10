@@ -414,6 +414,13 @@
       "when": 1778255978311,
       "tag": "0058_messy_madame_web",
       "breakpoints": true
+    },
+    {
+      "idx": 59,
+      "version": "7",
+      "when": 1778376036642,
+      "tag": "0059_mature_forge",
+      "breakpoints": true
     }
   ]
 }

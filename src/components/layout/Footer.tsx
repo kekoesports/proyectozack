@@ -24,6 +24,7 @@ const NAV_COLS_BY_LOCALE: Record<Locale, readonly NavCol[]> = {
         { href: '/nosotros', label: 'Nosotros' },
         { href: '/metodologia', label: 'Metodología' },
         { href: '/blog', label: 'Blog' },
+        { href: '/news', label: 'News' },
       ],
     },
     {
@@ -70,6 +71,7 @@ const NAV_COLS_BY_LOCALE: Record<Locale, readonly NavCol[]> = {
         { href: '/nosotros', label: 'About (ES)' },
         { href: '/metodologia', label: 'Methodology (ES)' },
         { href: '/blog', label: 'Blog (ES)' },
+        { href: '/news', label: 'News (ES)' },
       ],
     },
     {
