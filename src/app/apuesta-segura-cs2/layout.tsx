@@ -7,8 +7,10 @@ import { FloatingTelegramCta } from './_components/FloatingTelegramCta';
 import { BLOGABET_URL, TELEGRAM_URL } from './_components/tokens';
 
 export const metadata: Metadata = {
-  title:
-    'Apuesta Segura CS2 | Análisis competitivo y picks verificadas | SocialPro',
+  title: {
+    absolute:
+      'Apuesta Segura CS2 | Análisis competitivo · SocialPro',
+  },
   description:
     'Análisis competitivo de Counter-Strike 2 por ArkeroZ — ESEA Main, Advanced y tier europeo. Canal de Telegram gratuito, picks verificadas en Blogabet. Un proyecto del ecosistema SocialPro.',
   alternates: {
