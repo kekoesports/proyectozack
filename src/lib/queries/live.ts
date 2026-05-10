@@ -183,6 +183,9 @@ export type Cs2SidebarEntry = {
   photoUrl: string | null;
   handle: string;
   game: string;
+  role: string;
+  /** ISO-3166-1 alpha-2 (ES, AR, MX, CL, CO, PE) o null si no asignado. */
+  country: string | null;
   isLive: boolean;
   viewerCount: number | null;
   streamTitle: string | null;
@@ -213,6 +216,8 @@ export async function getCs2RosterForSidebar(): Promise<Cs2SidebarEntry[]> {
       photoUrl:    talents.photoUrl,
       handle:      talentSocials.handle,
       game:        talents.game,
+      role:        talents.role,
+      country:     talents.creatorCountry,
       isLive:      talentLiveStatus.isLive,
       viewerCount: talentLiveStatus.viewerCount,
       streamTitle: talentLiveStatus.streamTitle,
@@ -253,6 +258,8 @@ export async function getCs2RosterForSidebar(): Promise<Cs2SidebarEntry[]> {
       photoUrl:      r.photoUrl,
       handle:        r.handle,
       game:          r.game,
+      role:          r.role,
+      country:       r.country,
       isLive:        stale ? false : Boolean(r.isLive),
       viewerCount:   stale ? null : r.viewerCount,
       streamTitle:   stale ? null : r.streamTitle,
