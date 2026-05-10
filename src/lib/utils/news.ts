@@ -77,7 +77,9 @@ export function deriveNewsCategory(slug: string, title: string): NewsCategory {
 
   // 1. Comunidad — términos más específicos del producto Apuesta Segura
   if (
-    /apuesta[- ]?segura|blogabet|tipster|telegram|canal[- ]?oficial|comunidad/.test(haystack)
+    /apuesta[- ]?segura|blogabet|tipster|telegram|canal[- ]?oficial|comunidad|picks?[- ]?(de[- ]?la[- ]?)?semana|top[- ]?\d+[- ]?picks?/.test(
+      haystack,
+    )
   ) {
     return getNewsCategory('comunidad');
   }
@@ -87,9 +89,12 @@ export function deriveNewsCategory(slug: string, title: string): NewsCategory {
   ) {
     return getNewsCategory('creators');
   }
-  // 3. Análisis — formatos editoriales (preview, breakdown, análisis explícito)
+  // 3. Análisis — formatos editoriales (preview, breakdown, análisis explícito,
+  //    repaso, claves del torneo, retrospectiva, reading editorial)
   if (
-    /\banalisis|análisis|preview|breakdown|deep[- ]?dive|review\b/.test(haystack)
+    /\banalisis|análisis|preview|breakdown|deep[- ]?dive|review|repaso|retrospectiv|claves[- ]?del|reading[- ]?(editorial|competitivo)\b/.test(
+      haystack,
+    )
   ) {
     return getNewsCategory('analisis');
   }
