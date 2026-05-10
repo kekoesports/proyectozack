@@ -4,7 +4,9 @@ import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { useTransition } from 'react';
 import { NEWS_CATEGORY_SLUGS, getNewsCategory } from '@/lib/utils/news';
 
-export function NewsFilters() {
+type Tone = 'dark' | 'paper';
+
+export function NewsFilters({ tone = 'dark' }: { tone?: Tone } = {}) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -43,9 +45,13 @@ export function NewsFilters() {
             aria-selected={active}
             onClick={() => setCat(slug)}
             className={`group inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-wider transition-colors ${
-              active
-                ? 'bg-white text-sp-black border border-white'
-                : 'border border-white/10 text-white/65 hover:text-white hover:border-white/25 bg-white/[0.02]'
+              tone === 'paper'
+                ? active
+                  ? 'bg-sp-black text-white border border-sp-black'
+                  : 'border border-black/10 text-black/65 hover:text-black hover:border-black/25 bg-black/[0.02]'
+                : active
+                  ? 'bg-white text-sp-black border border-white'
+                  : 'border border-white/10 text-white/65 hover:text-white hover:border-white/25 bg-white/[0.02]'
             }`}
           >
             {accent ? (
