@@ -2,6 +2,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import type { PostWithTalents } from '@/lib/queries/posts';
 import { deriveNewsCategory, formatNewsDate } from '@/lib/utils/news';
+import { derivePostRegionBadge } from '@/lib/utils/news-roles';
 
 type Props = {
   readonly posts: readonly PostWithTalents[];
@@ -59,6 +60,7 @@ export function NewsLatestModule({ posts }: Props) {
           {items.map((p) => {
             const cat = deriveNewsCategory(p.slug, p.title);
             const date = formatNewsDate(p.publishedAt);
+            const region = derivePostRegionBadge(p.talentAvatars.map((t) => t.country));
             return (
               <article
                 key={p.slug}
@@ -106,6 +108,14 @@ export function NewsLatestModule({ posts }: Props) {
                     >
                       {date}
                     </time>
+                    {region ? (
+                      <>
+                        <span aria-hidden className="w-0.5 h-0.5 rounded-full bg-white/20" />
+                        <span className="uppercase tracking-[0.18em] text-white/55 tabular-nums whitespace-nowrap">
+                          {region}
+                        </span>
+                      </>
+                    ) : null}
                   </div>
                 </div>
               </article>

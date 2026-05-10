@@ -4,7 +4,7 @@ import { db } from '@/lib/db';
 import { posts, talents } from '@/db/schema';
 import type { Post } from '@/types';
 
-export type TalentAvatar = { slug: string; name: string; role: string; platform: string; photoUrl: string | null; initials: string; gradientC1: string; gradientC2: string };
+export type TalentAvatar = { slug: string; name: string; role: string; platform: string; photoUrl: string | null; initials: string; gradientC1: string; gradientC2: string; country: string | null };
 export type PostWithTalents = Post & { talentAvatars: TalentAvatar[] };
 
 type Vertical = 'blog' | 'news';
@@ -15,7 +15,7 @@ async function attachTalents(rows: Post[]): Promise<PostWithTalents[]> {
 
   if (allSlugs.length > 0) {
     const talentRows = await db
-      .select({ slug: talents.slug, name: talents.name, role: talents.role, platform: talents.platform, photoUrl: talents.photoUrl, initials: talents.initials, gradientC1: talents.gradientC1, gradientC2: talents.gradientC2 })
+      .select({ slug: talents.slug, name: talents.name, role: talents.role, platform: talents.platform, photoUrl: talents.photoUrl, initials: talents.initials, gradientC1: talents.gradientC1, gradientC2: talents.gradientC2, country: talents.creatorCountry })
       .from(talents)
       .where(inArray(talents.slug, allSlugs));
     for (const t of talentRows) avatarMap.set(t.slug, t);

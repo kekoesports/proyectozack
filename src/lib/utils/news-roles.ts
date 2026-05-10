@@ -90,3 +90,32 @@ export function regionGroup(code: string | null | undefined): 'esp' | 'latam' | 
 
 export const COUNTRY_FILTER_OPTIONS = ['ES', 'AR', 'MX', 'CL'] as const;
 export const SCENE_ROLE_FILTER_OPTIONS: SceneRole[] = ['pro', 'tier2', 'analista', 'creator'];
+
+/**
+ * Deriva un badge regional discreto desde la lista de países de los talents
+ * mencionados en un post. Reglas:
+ *   - 0 países válidos → null (no badge)
+ *   - 1 país → "ES" / "AR" / etc.
+ *   - 2 países distintos → "ES · AR"
+ *   - 3+ países, todos LATAM → "LATAM"
+ *   - 3+ países, mezcla ES + LATAM → "ES · LATAM"
+ *   - 3+ países con `other` (EU/RU/etc.) → mezcla deduplicada, max 2 + "+N"
+ */
+export function derivePostRegionBadge(countries: ReadonlyArray<string | null | undefined>): string | null {
+  const valid = countries
+    .map((c) => (c ? c.toUpperCase() : null))
+    .filter((c): c is string => c !== null && c.length === 2);
+  if (valid.length === 0) return null;
+  const unique = [...new Set(valid)];
+  const [first, second] = unique;
+  if (unique.length === 1 && first) return first;
+  if (unique.length === 2 && first && second) return `${first} · ${second}`;
+  const hasEsp = unique.includes('ES');
+  const latams = unique.filter((c) => c !== 'ES' && regionGroup(c) === 'latam');
+  const others = unique.filter((c) => regionGroup(c) === 'other');
+  if (others.length === 0) {
+    if (hasEsp && latams.length >= 2) return 'ES · LATAM';
+    if (!hasEsp && latams.length >= 3) return 'LATAM';
+  }
+  return `${unique[0]} · ${unique[1]} +${unique.length - 2}`;
+}
