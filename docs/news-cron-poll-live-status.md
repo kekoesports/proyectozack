@@ -108,3 +108,7 @@ que el cron está caído o no se ha disparado por falta de tráfico.
 - 10 mayo 2026 (sesión actual): yo introduje accidentalmente un cron
   `0 */6 * * *` que también bloqueaba deploys (4×/día > Hobby limit).
   Eliminado tras diagnóstico. Esta documentación corregida.
+- 10 mayo 2026 — validación E2E del workflow GitHub Actions fallback
+  (commit safe → workflow run → Deploy Hook → Vercel build → producción
+  recibe nuevo build ID). Confirmado que el fallback dispara deploys
+  automáticos sin depender exclusivamente de la GitHub App de Vercel.
