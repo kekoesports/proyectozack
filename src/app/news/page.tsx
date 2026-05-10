@@ -44,29 +44,47 @@ export const metadata: Metadata = {
   },
 };
 
-const jsonLd = {
-  '@context': 'https://schema.org',
-  '@graph': [
-    {
-      '@type': 'CollectionPage',
-      '@id': absoluteUrl('/news#collection'),
-      url: absoluteUrl('/news'),
-      name: 'SocialPro News',
-      description:
-        'Sección editorial de SocialPro: actualidad esports, análisis competitivo CS2, creators, comunidad y tier europeo.',
-      isPartOf: { '@id': absoluteUrl('/#website') },
-      publisher: { '@id': absoluteUrl('/#organization') },
-      inLanguage: 'es',
-    },
-    {
-      '@type': 'BreadcrumbList',
-      itemListElement: [
-        { '@type': 'ListItem', position: 1, name: 'SocialPro', item: SITE_URL },
-        { '@type': 'ListItem', position: 2, name: 'News', item: absoluteUrl('/news') },
-      ],
-    },
-  ],
-} satisfies Record<string, unknown>;
+type ItemListPost = { slug: string; title: string };
+
+function buildJsonLd(items: readonly ItemListPost[]) {
+  return {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'CollectionPage',
+        '@id': absoluteUrl('/news#collection'),
+        url: absoluteUrl('/news'),
+        name: 'SocialPro News',
+        description:
+          'Sección editorial de SocialPro: actualidad esports, análisis competitivo CS2, creators, comunidad y tier europeo.',
+        isPartOf: { '@id': absoluteUrl('/#website') },
+        publisher: { '@id': absoluteUrl('/#organization') },
+        inLanguage: 'es',
+        mainEntity: { '@id': absoluteUrl('/news#itemlist') },
+      },
+      {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'SocialPro', item: SITE_URL },
+          { '@type': 'ListItem', position: 2, name: 'News', item: absoluteUrl('/news') },
+        ],
+      },
+      {
+        '@type': 'ItemList',
+        '@id': absoluteUrl('/news#itemlist'),
+        name: 'Últimas news SocialPro',
+        numberOfItems: items.length,
+        itemListOrder: 'https://schema.org/ItemListOrderDescending',
+        itemListElement: items.map((p, i) => ({
+          '@type': 'ListItem',
+          position: i + 1,
+          url: absoluteUrl(`/news/${p.slug}`),
+          name: p.title,
+        })),
+      },
+    ],
+  } satisfies Record<string, unknown>;
+}
 
 type PageProps = {
   searchParams: Promise<{ cat?: string; tag?: string }>;
@@ -97,6 +115,14 @@ export default async function NewsPage({ searchParams }: PageProps) {
   const trending = sorted.slice(1, 4);
   const grid = sorted.slice(4);
   const editor = sorted.slice(0, 5);
+  // ItemList schema: top 10 posts más recientes (sin filtro), para que
+  // Google entienda /news como hub editorial estructurado.
+  const allSorted = [...allPosts].sort(
+    (a, b) => (b.publishedAt?.getTime() ?? 0) - (a.publishedAt?.getTime() ?? 0),
+  );
+  const jsonLd = buildJsonLd(
+    allSorted.slice(0, 10).map((p) => ({ slug: p.slug, title: p.title })),
+  );
 
   if (!featured) {
     return (
