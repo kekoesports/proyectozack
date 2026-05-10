@@ -4,13 +4,18 @@ import { getCs2RosterForSidebar } from '@/lib/queries/live';
 import { isNewsCategorySlug, type NewsCategorySlug } from '@/lib/utils/news';
 import { absoluteUrl, SITE_URL } from '@/lib/site-url';
 import { NewsHero } from '@/features/news/components/NewsHero';
+import { LiveBar } from '@/features/news/live-bar/LiveBar';
+import { buildLiveBarItems } from '@/features/news/live-bar/buildLiveBarItems';
 import { NewsFilters } from '@/features/news/components/NewsFilters';
 import { NewsGrid } from '@/features/news/components/NewsGrid';
 import { NewsAside } from '@/features/news/components/NewsAside';
 import { EditorialPickRail } from '@/features/news/components/EditorialPickRail';
 import { NewsCrossBlogLink } from '@/features/news/components/NewsCrossBlogLink';
 
-export const revalidate = 1800;
+// LiveBar consume estado de live-status + posts recientes — bajamos
+// revalidate de 1800 a 120 (2 min) para que la sensación de actividad
+// sea fresca. Aún así dentro del cap de Function executions Hobby.
+export const revalidate = 120;
 
 export const metadata: Metadata = {
   title: {
@@ -102,9 +107,10 @@ export default async function NewsPage({ searchParams }: PageProps) {
       ? requestedTag
       : null;
 
-  const [allPosts, cs2Creators] = await Promise.all([
+  const [allPosts, cs2Creators, liveBarItems] = await Promise.all([
     getNewsPosts(),
     getCs2RosterForSidebar(),
+    buildLiveBarItems(),
   ]);
 
   const tagFiltered = activeTag
@@ -150,6 +156,7 @@ export default async function NewsPage({ searchParams }: PageProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <main className="bg-sp-black text-white">
+        <LiveBar items={liveBarItems} />
         <NewsHero featured={featured} trending={trending} />
 
         <section className="bg-sp-black py-12 md:py-16 border-b border-white/[0.04]">
