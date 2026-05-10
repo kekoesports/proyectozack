@@ -24,11 +24,20 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'es_ES',
     images: [
+      // 1.91:1 estándar OG/Twitter — preview correcto en Facebook, LinkedIn,
+      // X summary_large_image, Slack, Telegram link preview.
+      {
+        url: absoluteUrl('/images/apuesta-segura-cs2/og-1200x630.jpg'),
+        width: 1200,
+        height: 630,
+        alt: 'Apuesta Segura CS2 — Canal oficial de análisis competitivo · SocialPro',
+      },
+      // Square fallback para plataformas que prefieren 1:1 (Discord, WhatsApp).
       {
         url: absoluteUrl('/images/apuesta-segura-cs2/og-square.png'),
         width: 1080,
         height: 1080,
-        alt: 'Apuesta Segura CS2 — Canal oficial de análisis competitivo · SocialPro',
+        alt: 'Apuesta Segura CS2 · SocialPro',
       },
     ],
   },
@@ -37,7 +46,7 @@ export const metadata: Metadata = {
     title: 'Apuesta Segura CS2 | SocialPro',
     description:
       'Picks CS2 verificadas en Blogabet por ArkeroZ. Telegram gratuito · ESEA Main, Advanced y tier europeo.',
-    images: [absoluteUrl('/images/apuesta-segura-cs2/og-square.png')],
+    images: [absoluteUrl('/images/apuesta-segura-cs2/og-1200x630.jpg')],
   },
 };
 
