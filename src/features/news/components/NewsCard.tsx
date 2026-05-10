@@ -2,6 +2,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import type { PostWithTalents } from '@/lib/queries/posts';
 import { deriveNewsCategory, formatNewsDate, readingMinutes } from '@/lib/utils/news';
+import { derivePostRegionBadge } from '@/lib/utils/news-roles';
 
 type Density = 'normal' | 'compact';
 type Tone = 'dark' | 'paper';
@@ -16,6 +17,7 @@ export function NewsCard({ post, density = 'normal', tone = 'dark' }: Props) {
   const category = deriveNewsCategory(post.slug, post.title);
   const date = formatNewsDate(post.publishedAt);
   const reading = readingMinutes(post.bodyMd);
+  const region = derivePostRegionBadge(post.talentAvatars.map((t) => t.country));
   const compact = density === 'compact';
   const surface =
     tone === 'paper'
@@ -53,6 +55,11 @@ export function NewsCard({ post, density = 'normal', tone = 'dark' }: Props) {
         <span className={`absolute top-3 left-3 inline-flex items-center text-[10px] font-bold uppercase tracking-wider rounded-full px-2.5 py-1 border ${category.bg} ${category.text} ${category.border} backdrop-blur`}>
           {category.label}
         </span>
+        {region ? (
+          <span className="absolute top-3 right-3 inline-flex items-center text-[10px] font-bold uppercase tracking-[0.18em] rounded-full px-2.5 py-1 border border-white/15 bg-black/40 text-white/75 backdrop-blur">
+            {region}
+          </span>
+        ) : null}
       </div>
 
       <div className={`relative ${compact ? 'p-4' : 'p-5 md:p-6 flex-1 flex flex-col'}`}>

@@ -2,6 +2,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import type { PostWithTalents } from '@/lib/queries/posts';
 import { deriveNewsCategory, formatNewsDate, readingMinutes } from '@/lib/utils/news';
+import { derivePostRegionBadge } from '@/lib/utils/news-roles';
 
 type Props = {
   readonly featured: PostWithTalents;
@@ -133,6 +134,7 @@ export function NewsHero({ featured, trending }: Props) {
             {trending.map((p, i) => {
               const cat = deriveNewsCategory(p.slug, p.title);
               const date = formatNewsDate(p.publishedAt);
+              const region = derivePostRegionBadge(p.talentAvatars.map((t) => t.country));
               return (
                 <article
                   key={p.slug}
@@ -172,6 +174,14 @@ export function NewsHero({ featured, trending }: Props) {
                         <span className="text-[10px] tabular-nums text-white/35">
                           0{i + 1}
                         </span>
+                        {region ? (
+                          <>
+                            <span aria-hidden className="text-white/15">·</span>
+                            <span className="text-[9px] font-bold uppercase tracking-[0.18em] text-white/55">
+                              {region}
+                            </span>
+                          </>
+                        ) : null}
                       </div>
                       <h3 className="font-display font-black uppercase text-white text-sm leading-[1.15] tracking-tight line-clamp-2 group-hover:text-white/95">
                         {p.title}
