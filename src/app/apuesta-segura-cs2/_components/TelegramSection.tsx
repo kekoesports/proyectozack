@@ -35,7 +35,7 @@ export function TelegramSection() {
           <div>
             <div className="inline-flex items-center gap-2 mb-5 px-3 py-1.5 rounded-full bg-white/[0.04] border border-white/10">
               <span className="relative flex w-1.5 h-1.5">
-                <span className="absolute inset-0 rounded-full bg-emerald-400 animate-ping opacity-50" />
+                <span className="absolute inset-0 rounded-full bg-emerald-400 motion-safe:animate-ping opacity-50" />
                 <span className="relative w-1.5 h-1.5 rounded-full bg-emerald-400" />
               </span>
               <span className="text-[10px] font-bold uppercase tracking-[0.22em] text-white/85">

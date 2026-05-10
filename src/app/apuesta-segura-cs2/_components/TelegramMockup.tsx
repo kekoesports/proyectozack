@@ -45,7 +45,7 @@ export function TelegramMockup({ density = 'full' }: { density?: Density }) {
             </div>
             <div className="text-[11px] text-white/40 mt-1 flex items-center gap-1.5">
               <span className="relative flex w-1.5 h-1.5">
-                <span className="absolute inset-0 rounded-full bg-emerald-400 animate-ping opacity-50" />
+                <span className="absolute inset-0 rounded-full bg-emerald-400 motion-safe:animate-ping opacity-50" />
                 <span className="relative w-1.5 h-1.5 rounded-full bg-emerald-400" />
               </span>
               Comunidad activa · Canal gratuito

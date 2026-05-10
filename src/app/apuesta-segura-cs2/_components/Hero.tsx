@@ -93,12 +93,12 @@ export function Hero() {
               {HERO_STATS.map(({ label, value }) => (
                 <div
                   key={label}
-                  className="bg-sp-black px-4 py-5 flex flex-col items-center text-center"
+                  className="bg-sp-black px-2 py-4 md:px-4 md:py-5 flex flex-col items-center text-center"
                 >
-                  <span className="font-display text-2xl md:text-3xl font-black tabular-nums bg-sp-grad bg-clip-text text-transparent">
+                  <span className="font-display text-lg sm:text-2xl md:text-3xl font-black tabular-nums bg-sp-grad bg-clip-text text-transparent">
                     {value}
                   </span>
-                  <span className="mt-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-sp-muted2">
+                  <span className="mt-1.5 text-[9px] md:text-[10px] font-bold uppercase tracking-[0.18em] md:tracking-[0.2em] text-sp-muted2">
                     {label}
                   </span>
                 </div>
@@ -124,7 +124,7 @@ export function Hero() {
             <div className="relative">
               <span className="absolute -top-6 left-6 z-10 inline-flex items-center gap-2 bg-sp-black/80 backdrop-blur border border-white/10 rounded-full px-3 py-1.5 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.6)]">
                 <span className="relative flex w-2 h-2">
-                  <span className="absolute inset-0 rounded-full bg-sp-pink animate-ping opacity-60" />
+                  <span className="absolute inset-0 rounded-full bg-sp-pink motion-safe:animate-ping opacity-60" />
                   <span className="relative w-2 h-2 rounded-full bg-sp-pink" />
                 </span>
                 <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white">

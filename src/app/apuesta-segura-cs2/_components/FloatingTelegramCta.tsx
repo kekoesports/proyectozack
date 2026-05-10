@@ -59,7 +59,7 @@ export function FloatingTelegramCta() {
         {!collapsed ? (
           <span className="relative flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-white/55 border-l border-white/10 pl-3">
             <span className="relative flex w-1.5 h-1.5">
-              <span className="absolute inset-0 rounded-full bg-emerald-400 animate-ping opacity-50" />
+              <span className="absolute inset-0 rounded-full bg-emerald-400 motion-safe:animate-ping opacity-50" />
               <span className="relative w-1.5 h-1.5 rounded-full bg-emerald-400" />
             </span>
             Live

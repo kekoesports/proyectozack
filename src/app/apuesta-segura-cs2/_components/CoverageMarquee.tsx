@@ -18,7 +18,7 @@ export function CoverageMarquee() {
         className="absolute inset-y-0 right-0 w-32 z-10 bg-gradient-to-l from-sp-black to-transparent pointer-events-none"
       />
 
-      <div className="flex gap-10 whitespace-nowrap will-change-transform animate-[apuesta-marquee_40s_linear_infinite]">
+      <div className="apuesta-marquee-track flex gap-10 whitespace-nowrap will-change-transform">
         {loop.map((label, i) => (
           <span
             key={`${label}-${i}`}
@@ -34,6 +34,15 @@ export function CoverageMarquee() {
         @keyframes apuesta-marquee {
           from { transform: translateX(0); }
           to   { transform: translateX(-50%); }
+        }
+        .apuesta-marquee-track {
+          animation: apuesta-marquee 40s linear infinite;
+        }
+        .apuesta-marquee-track:hover {
+          animation-play-state: paused;
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .apuesta-marquee-track { animation: none; }
         }
       `}</style>
     </section>

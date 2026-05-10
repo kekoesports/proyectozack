@@ -10,6 +10,11 @@ type LenisInstance = { raf: (time: number) => void; destroy: () => void };
 const PORTAL_PREFIXES = ['/admin', '/marcas', '/creadores', '/giveaways', '/c/'];
 const LOGIN_SUFFIXES = ['/login'];
 
+// Rutas con CTA flotante propio donde el widget WhatsApp colisionaría
+// visualmente y dispersaría el funnel principal. Mantienen el resto del
+// chrome (Nav + Footer + Lenis).
+const HIDE_WHATSAPP_PREFIXES = ['/apuesta-segura-cs2'];
+
 function isPortalRoute(pathname: string): boolean {
   for (const prefix of PORTAL_PREFIXES) {
     if (!pathname.startsWith(prefix)) continue;
@@ -18,6 +23,10 @@ function isPortalRoute(pathname: string): boolean {
     return true;
   }
   return false;
+}
+
+function shouldHideWhatsApp(pathname: string): boolean {
+  return HIDE_WHATSAPP_PREFIXES.some((p) => pathname.startsWith(p));
 }
 
 type PublicChromeProps = {
@@ -42,6 +51,7 @@ type PublicChromeProps = {
 export function PublicChrome({ nav, footer, children }: PublicChromeProps) {
   const pathname = usePathname();
   const isPortal = isPortalRoute(pathname);
+  const hideWhatsApp = shouldHideWhatsApp(pathname);
 
   useEffect(() => {
     if (isPortal) return;
@@ -79,7 +89,7 @@ export function PublicChrome({ nav, footer, children }: PublicChromeProps) {
       {nav}
       <main className="pt-16">{children}</main>
       {footer}
-      <WhatsAppWidget />
+      {hideWhatsApp ? null : <WhatsAppWidget />}
     </>
   );
 }
