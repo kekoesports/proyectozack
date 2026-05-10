@@ -1,0 +1,49 @@
+name: Vercel Production Deploy (fallback)
+
+# Vercel's GitHub App normalmente dispara los deploys automáticamente. Este
+# workflow es un FALLBACK que llama a un Deploy Hook URL guardado en el
+# secret VERCEL_DEPLOY_HOOK_URL. Útil cuando la app de Vercel se
+# desincroniza (Hobby plan limits, webhook drift) y deja de disparar
+# deploys nuevos.
+#
+# Setup:
+#   1. Vercel dashboard → Settings → Git → Deploy Hooks → Create Hook
+#      name=master-auto branch=master. Copia la URL.
+#   2. GitHub repo → Settings → Secrets and variables → Actions → New
+#      Name: VERCEL_DEPLOY_HOOK_URL  Value: <hook URL>
+#
+# Si el secret NO está configurado, este workflow no hace nada (warn-only).
+# La app de Vercel sigue siendo el path principal; este es seguro como
+# safety net.
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:  # permite trigger manual desde GitHub Actions UI
+
+concurrency:
+  group: vercel-deploy-hook
+  cancel-in-progress: false
+
+jobs:
+  trigger-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Trigger Vercel deploy hook
+        env:
+          HOOK_URL: ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}
+        run: |
+          if [ -z "$HOOK_URL" ]; then
+            echo "::warning::VERCEL_DEPLOY_HOOK_URL secret not configured. Vercel GitHub App should handle the deploy. Add the secret to enable this fallback."
+            exit 0
+          fi
+          response=$(curl -sf -X POST -w "\n---HTTP:%{http_code}" "$HOOK_URL" || true)
+          code=$(echo "$response" | grep "^---HTTP:" | sed 's/---HTTP://')
+          body=$(echo "$response" | sed '/^---HTTP:/d')
+          echo "Vercel response code: $code"
+          echo "Body: $body"
+          case "$code" in
+            200|201) echo "✓ Deploy hook triggered"; exit 0 ;;
+            *) echo "::error::Deploy hook failed with HTTP $code"; exit 1 ;;
+          esac
