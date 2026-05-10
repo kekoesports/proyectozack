@@ -20,11 +20,14 @@ type Props = {
 };
 
 /**
- * Módulo de cross-link al CS2 Competitive Lab (proyecto editorial de
- * análisis competitivo dentro del ecosistema SocialPro). Pensado para
- * insertarse en home, perfiles de creadores CS2 y secciones gaming —
+ * Módulo de cross-link al canal Apuesta Segura CS2 (by SocialPro). Pensado
+ * para insertarse en home, perfiles de creadores CS2 y secciones gaming —
  * NUNCA con lenguaje betting/casino. El gancho es siempre análisis
  * competitivo, escena CS2 y comunidad.
+ *
+ * Naming: "Apuesta Segura CS2" es el brand principal del proyecto desde
+ * 2022. "CS2 Competitive Lab" puede usarse en futuro como concepto
+ * editorial secundario, pero NO sustituye al brand actual.
  */
 export function Cs2LabCard({ variant = 'compact', ctaId, className = '' }: Props) {
   if (variant === 'full') {
@@ -61,7 +64,7 @@ export function Cs2LabCard({ variant = 'compact', ctaId, className = '' }: Props
                   className="w-6 h-6 object-contain drop-shadow-[0_0_10px_rgba(224,48,112,0.4)]"
                 />
                 <span className="text-[10px] font-bold uppercase tracking-[0.32em] text-sp-orange">
-                  CS2 Competitive Lab
+                  Apuesta Segura CS2 · by SocialPro
                 </span>
               </div>
               <h2 className="font-display text-3xl md:text-5xl font-black uppercase leading-[0.95] mb-5">
@@ -93,7 +96,7 @@ export function Cs2LabCard({ variant = 'compact', ctaId, className = '' }: Props
                   ctaId={ctaId}
                   className="inline-flex items-center justify-center gap-2 bg-sp-grad text-white font-display font-bold uppercase tracking-wider text-sm px-7 py-3.5 rounded-full shadow-[0_10px_30px_-10px_rgba(224,48,112,0.5)] hover:shadow-[0_18px_42px_-10px_rgba(224,48,112,0.7)] hover:-translate-y-0.5 transition-all"
                 >
-                  Entrar al Lab CS2
+                  Entrar al canal
                 </TrackedCtaLink>
                 <Link
                   href="/influencers-cs2"
@@ -120,7 +123,7 @@ export function Cs2LabCard({ variant = 'compact', ctaId, className = '' }: Props
                         ArkeroZ
                       </div>
                       <div className="text-[11px] text-white/45 mt-1">
-                        CS2 Analyst · Lab principal
+                        CS2 Analyst · Apuesta Segura CS2
                       </div>
                     </div>
                   </div>
@@ -186,18 +189,18 @@ export function Cs2LabCard({ variant = 'compact', ctaId, className = '' }: Props
         </div>
         <div className="flex-1 min-w-0">
           <div className="text-[10px] font-bold uppercase tracking-[0.28em] text-sp-orange mb-1.5">
-            CS2 Competitive Lab · SocialPro
+            Apuesta Segura CS2 · by SocialPro
           </div>
           <h3 className="font-display text-xl md:text-2xl font-black uppercase tracking-tight leading-tight mb-1.5">
             Análisis competitivo CS2 por ArkeroZ
           </h3>
           <p className="text-sm text-white/55 leading-snug">
-            Picks publicados en abierto · ESEA Main, Advanced y tier europeo ·
-            Telegram gratuito.
+            Canal oficial · Picks publicados en abierto · ESEA Main, Advanced
+            y tier europeo · Telegram gratuito.
           </p>
         </div>
         <span className="flex-none inline-flex items-center gap-2 font-display font-bold uppercase tracking-wider text-xs text-white/85 group-hover:text-white transition-colors">
-          Entrar al Lab
+          Entrar al canal
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="transition-transform group-hover:translate-x-0.5">
             <path d="M2 7H12M12 7L8 3M12 7L8 11" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
           </svg>

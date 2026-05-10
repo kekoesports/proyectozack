@@ -1,4 +1,4 @@
-import { Send } from 'lucide-react';
+import Image from 'next/image';
 import { PICK_PREVIEWS } from './tokens';
 import { PickCard } from './PickCard';
 
@@ -20,8 +20,14 @@ export function TelegramMockup({ density = 'full' }: { density?: Density }) {
 
       <header className="relative flex items-center justify-between border-b border-white/[0.06] pb-4 mb-4">
         <div className="flex items-center gap-3">
-          <div className="relative w-11 h-11 rounded-full bg-sp-grad flex items-center justify-center font-display font-black text-white shadow-[0_8px_24px_-8px_rgba(224,48,112,0.6)]">
-            <Send className="w-4 h-4" strokeWidth={2.4} />
+          <div className="relative w-11 h-11 rounded-full overflow-hidden ring-1 ring-white/10 bg-sp-black shadow-[0_8px_24px_-8px_rgba(224,48,112,0.45)]">
+            <Image
+              src="/images/apuesta-segura-cs2/badge.png"
+              alt="Apuesta Segura CS2"
+              width={44}
+              height={44}
+              className="w-full h-full object-cover"
+            />
           </div>
           <div>
             <div className="font-display font-black text-white text-sm leading-none flex items-center gap-1.5">

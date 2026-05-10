@@ -52,7 +52,7 @@ export function Hero() {
                 className="w-7 h-7 object-contain drop-shadow-[0_0_12px_rgba(224,48,112,0.45)]"
               />
               <span className="text-[10px] font-bold uppercase tracking-[0.32em] text-sp-muted2">
-                SocialPro · CS2 Competitive Lab
+                Apuesta Segura CS2 · by SocialPro
               </span>
             </div>
 

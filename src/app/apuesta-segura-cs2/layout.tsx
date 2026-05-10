@@ -25,10 +25,10 @@ export const metadata: Metadata = {
     locale: 'es_ES',
     images: [
       {
-        url: absoluteUrl('/og-socialpro.png'),
-        width: 1200,
-        height: 630,
-        alt: 'Apuesta Segura CS2 — Análisis competitivo · SocialPro',
+        url: absoluteUrl('/images/apuesta-segura-cs2/og-square.png'),
+        width: 1080,
+        height: 1080,
+        alt: 'Apuesta Segura CS2 — Canal oficial de análisis competitivo · SocialPro',
       },
     ],
   },
@@ -37,7 +37,7 @@ export const metadata: Metadata = {
     title: 'Apuesta Segura CS2 | SocialPro',
     description:
       'Picks CS2 verificadas en Blogabet por ArkeroZ. Telegram gratuito · ESEA Main, Advanced y tier europeo.',
-    images: [absoluteUrl('/og-socialpro.png')],
+    images: [absoluteUrl('/images/apuesta-segura-cs2/og-square.png')],
   },
 };
 
@@ -146,9 +146,11 @@ export default function ApuestaSeguraCs2Layout({
       <FloatingTelegramCta />
       <StickyCtaMobile
         href={TELEGRAM_URL}
-        label="Entrar al Telegram CS2"
+        label="Entrar al Telegram"
         ctaId="apuesta_cs2_sticky_telegram"
         external
+        iconSrc="/images/apuesta-segura-cs2/badge.png"
+        iconAlt="Apuesta Segura CS2"
       />
     </>
   );
