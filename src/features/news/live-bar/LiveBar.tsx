@@ -7,6 +7,7 @@ import type { LiveBarItem, LiveBarAccent } from './types';
 const ROTATE_MS = 4500;
 
 const ACCENT_DOT: Record<LiveBarAccent, string> = {
+  red: 'bg-red-500',
   emerald: 'bg-emerald-400',
   orange: 'bg-sp-orange',
   pink: 'bg-sp-pink',
@@ -15,6 +16,7 @@ const ACCENT_DOT: Record<LiveBarAccent, string> = {
 };
 
 const ACCENT_LABEL: Record<LiveBarAccent, string> = {
+  red: 'text-red-300',
   emerald: 'text-emerald-300',
   orange: 'text-sp-orange',
   pink: 'text-sp-pink',
@@ -64,7 +66,7 @@ export function LiveBar({ items }: Props) {
             const active = i === idx;
             const dotClass = ACCENT_DOT[item.accent];
             const labelClass = ACCENT_LABEL[item.accent];
-            const isLive = item.kind === 'streams_live';
+            const isLive = item.kind === 'streams_live' || item.kind === 'matches_preview';
             return (
               <LiveBarRow
                 key={`${item.kind}-${i}`}
@@ -107,24 +109,31 @@ type RowProps = {
 };
 
 function LiveBarRow({ item, active, dotClass, labelClass, isLive }: RowProps) {
+  const isBroadcast = item.kind === 'streams_live';
   const inner = (
     <div className="flex items-center gap-3 h-full w-full min-w-0">
-      <span
-        aria-hidden
-        className={`relative flex-none w-2 h-2 rounded-full ${dotClass}`}
-      >
-        {isLive ? (
-          <span
-            aria-hidden
-            className={`absolute inset-0 rounded-full ${dotClass} motion-safe:animate-ping opacity-60`}
-          />
-        ) : null}
-      </span>
-      <span
-        className={`flex-none text-[10px] font-bold uppercase tracking-[0.22em] ${labelClass}`}
-      >
-        {item.label}
-      </span>
+      {isBroadcast ? (
+        <span className="flex-none inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.22em] text-red-300 bg-red-500/12 border border-red-500/40 rounded px-1.5 py-0.5 leading-none">
+          <span aria-hidden className="relative flex-none w-1.5 h-1.5 rounded-full bg-red-500">
+            <span aria-hidden className="absolute inset-0 rounded-full bg-red-500 motion-safe:animate-ping opacity-70" />
+          </span>
+          {item.label}
+        </span>
+      ) : (
+        <>
+          <span aria-hidden className={`relative flex-none w-2 h-2 rounded-full ${dotClass}`}>
+            {isLive ? (
+              <span
+                aria-hidden
+                className={`absolute inset-0 rounded-full ${dotClass} motion-safe:animate-ping opacity-60`}
+              />
+            ) : null}
+          </span>
+          <span className={`flex-none text-[10px] font-bold uppercase tracking-[0.22em] ${labelClass}`}>
+            {item.label}
+          </span>
+        </>
+      )}
       <span aria-hidden className="hidden sm:inline text-white/15">·</span>
       <span className="flex-1 min-w-0 truncate text-[13px] md:text-sm font-medium text-white/85">
         {item.text}

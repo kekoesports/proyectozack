@@ -15,7 +15,8 @@ export type LiveBarItemKind =
   | 'last_post';        // post más reciente si no hay nada en 24h
 
 export type LiveBarAccent =
-  | 'emerald'  // live action
+  | 'red'      // streams en directo (broadcast TV)
+  | 'emerald'  // live action no-broadcast
   | 'orange'   // editorial / actualidad
   | 'pink'     // matches en curso
   | 'purple'   // picks confirmados

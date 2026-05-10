@@ -24,6 +24,12 @@ function pluralize(n: number, sing: string, plur: string): string {
   return `${n} ${n === 1 ? sing : plur}`;
 }
 
+function formatViewers(n: number | null | undefined): string | null {
+  if (n == null) return null;
+  if (n >= 1000) return `${(n / 1000).toFixed(n >= 10000 ? 0 : 1)}K viewers`;
+  return `${n} viewers`;
+}
+
 /**
  * Construye los items del LiveBar a partir de datos ya existentes en el
  * sistema. NO hace queries nuevas a APIs externas — solo lee DB local
@@ -59,13 +65,19 @@ export async function buildLiveBarItems(): Promise<LiveBarItem[]> {
   if (liveCreators.length > 0) {
     const top = liveCreators[0];
     if (top) {
+      const viewers = formatViewers(top.viewerCount);
+      const others = liveCreators.length - 1;
+      const text =
+        others > 0
+          ? `${top.name} en directo · +${others} más`
+          : `${top.name} en directo`;
       items.push({
         kind: 'streams_live',
         label: 'Live',
-        text: pluralize(liveCreators.length, 'stream ahora', 'streams ahora'),
-        meta: liveCreators.length === 1 ? top.name : `${top.name} y otros`,
+        text,
+        meta: viewers,
         href: '/news',
-        accent: 'emerald',
+        accent: 'red',
       });
     }
   }
@@ -86,10 +98,14 @@ export async function buildLiveBarItems(): Promise<LiveBarItem[]> {
   // 3. Pick editorial reciente con resultado
   const winningPick = PICK_PREVIEWS.find((p) => p.status === 'win');
   if (winningPick) {
+    const score = winningPick.score ?? '';
+    const text = score
+      ? `${winningPick.teamA} ${score} ${winningPick.teamB}`
+      : `${winningPick.teamA} vs ${winningPick.teamB}`;
     items.push({
       kind: 'editorial_pick',
-      label: 'Pick',
-      text: `${winningPick.teamA} ${winningPick.score ?? ''}`.trim(),
+      label: 'Pick win',
+      text,
       meta: `${winningPick.market} @${winningPick.odds}`,
       href: '/apuesta-segura-cs2',
       accent: 'purple',
@@ -104,11 +120,14 @@ export async function buildLiveBarItems(): Promise<LiveBarItem[]> {
   if (recent.length > 0) {
     const latest = recent[0];
     if (latest) {
+      const rel = relativeTime(latest.publishedAt ?? null);
+      const titleTrim = latest.title.length > 70 ? latest.title.slice(0, 67) + '…' : latest.title;
+      const countLabel = pluralize(recent.length, 'nueva', 'nuevas');
       items.push({
         kind: 'posts_recent',
         label: '24h',
-        text: pluralize(recent.length, 'noticia nueva', 'noticias nuevas'),
-        meta: latest.title.length > 70 ? latest.title.slice(0, 67) + '…' : latest.title,
+        text: `${titleTrim}`,
+        meta: rel ? `${countLabel} · ${rel}` : countLabel,
         href: `/news/${latest.slug}`,
         accent: 'orange',
       });
