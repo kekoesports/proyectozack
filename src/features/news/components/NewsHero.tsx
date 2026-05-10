@@ -138,7 +138,7 @@ export function NewsHero({ featured, trending }: Props) {
               return (
                 <article
                   key={p.slug}
-                  className="relative group flex gap-3 bg-[#0c1016] border border-white/[0.06] rounded-xl overflow-hidden p-3 hover:border-white/15 hover:bg-[#10151d] transition-colors"
+                  className="relative group flex gap-3 bg-[#0c1016] border border-white/[0.06] rounded-xl overflow-hidden p-2.5 hover:border-white/20 hover:bg-[#10151d] hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(0,0,0,0.35)] transition-all duration-300"
                 >
                   <Link
                     href={`/news/${p.slug}`}
@@ -147,32 +147,34 @@ export function NewsHero({ featured, trending }: Props) {
                   >
                     <span className="sr-only">{p.title}</span>
                   </Link>
-                  <div className="relative flex-none w-24 h-20 sm:w-28 sm:h-20 rounded-lg overflow-hidden bg-sp-black">
+                  <div className="relative flex-none w-28 h-24 sm:w-32 sm:h-24 rounded-lg overflow-hidden bg-sp-black ring-1 ring-white/5">
                     {p.coverUrl ? (
                       <Image
                         src={p.coverUrl}
                         alt=""
                         fill
-                        sizes="120px"
-                        className="object-cover"
+                        sizes="128px"
+                        className="object-cover transition-transform duration-500 group-hover:scale-[1.08]"
                       />
                     ) : (
                       <div className="absolute inset-0 bg-gradient-to-br from-sp-black to-sp-dark" />
                     )}
+                    <span
+                      aria-hidden
+                      className="absolute top-1.5 left-1.5 inline-flex items-center justify-center w-5 h-5 rounded-full bg-sp-black/80 backdrop-blur text-[9px] font-display font-black tabular-nums text-white/85"
+                    >
+                      {i + 1}
+                    </span>
                   </div>
                   <div className="flex-1 min-w-0 flex flex-col justify-between">
                     <div>
-                      <div className="flex items-center gap-2 mb-1">
+                      <div className="flex items-center gap-2 mb-1.5">
                         <span
                           className={`inline-block w-1.5 h-1.5 rounded-full ${cat.accent}`}
                           aria-hidden
                         />
-                        <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-white/45">
+                        <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-white/55 group-hover:text-white/80 transition-colors">
                           {cat.label}
-                        </span>
-                        <span aria-hidden className="text-white/15">·</span>
-                        <span className="text-[10px] tabular-nums text-white/35">
-                          0{i + 1}
                         </span>
                         {region ? (
                           <>
@@ -183,13 +185,13 @@ export function NewsHero({ featured, trending }: Props) {
                           </>
                         ) : null}
                       </div>
-                      <h3 className="font-display font-black uppercase text-white text-sm leading-[1.15] tracking-tight line-clamp-2 group-hover:text-white/95">
+                      <h3 className="font-display font-black uppercase text-white text-[15px] leading-[1.15] tracking-tight line-clamp-2 group-hover:text-white">
                         {p.title}
                       </h3>
                     </div>
                     <time
                       dateTime={p.publishedAt?.toISOString() ?? ''}
-                      className="text-[10px] text-white/35 tabular-nums uppercase tracking-wider mt-1.5"
+                      className="text-[10px] text-white/40 tabular-nums uppercase tracking-wider mt-1.5"
                     >
                       {date}
                     </time>
