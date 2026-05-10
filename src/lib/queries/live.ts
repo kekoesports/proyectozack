@@ -176,6 +176,88 @@ export async function getTwitchRoster(): Promise<TwitchRosterEntry[]> {
   return rows.map((r) => ({ ...r, isLive: r.isLive ?? false, featuredFallback: r.featuredFallback ?? false }));
 }
 
+export type Cs2SidebarEntry = {
+  talentId: number;
+  slug: string;
+  name: string;
+  photoUrl: string | null;
+  handle: string;
+  game: string;
+  isLive: boolean;
+  viewerCount: number | null;
+  streamTitle: string | null;
+  streamUrl: string | null;
+  startedAt: Date | null;
+};
+
+/**
+ * Roster CS2 enriquecido con estado live para sidebar editorial.
+ * Filtra a talents cuyo `game` contiene CS2 / Counter-Strike y tienen
+ * Twitch handle. Aplica la misma safety window de 10 min que
+ * `getLiveTalents()` para evitar mostrar "live" si el cron lleva
+ * inactivo. Ordena: live primero (mayor viewers), después offline por
+ * nombre.
+ *
+ * No usa LIMIT en SQL — lo aplica el caller para mantener flexibilidad.
+ */
+export async function getCs2RosterForSidebar(): Promise<Cs2SidebarEntry[]> {
+  const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
+
+  const rows = await db
+    .select({
+      talentId:    talents.id,
+      slug:        talents.slug,
+      name:        talents.name,
+      photoUrl:    talents.photoUrl,
+      handle:      talentSocials.handle,
+      game:        talents.game,
+      isLive:      talentLiveStatus.isLive,
+      viewerCount: talentLiveStatus.viewerCount,
+      streamTitle: talentLiveStatus.streamTitle,
+      streamUrl:   talentLiveStatus.streamUrl,
+      startedAt:   talentLiveStatus.startedAt,
+      lastChecked: talentLiveStatus.lastCheckedAt,
+    })
+    .from(talents)
+    .innerJoin(
+      talentSocials,
+      and(eq(talentSocials.talentId, talents.id), eq(talentSocials.platform, 'twitch')),
+    )
+    .leftJoin(talentLiveStatus, eq(talentLiveStatus.talentId, talents.id))
+    .where(
+      and(
+        eq(talents.visibility, 'public'),
+        eq(talents.status, 'active'),
+        eq(talents.excludeFromLive, false),
+        isNotNull(talentSocials.handle),
+        sql`(${talents.game} ILIKE '%cs2%' OR ${talents.game} ILIKE '%counter%')`,
+      ),
+    )
+    .orderBy(
+      desc(talentLiveStatus.isLive),
+      desc(talentLiveStatus.viewerCount),
+      talents.name,
+    );
+
+  // Aplica safety window: si lastChecked es viejo, descarta el flag isLive.
+  return rows.map((r) => {
+    const stale = !r.lastChecked || r.lastChecked < tenMinutesAgo;
+    return {
+      talentId:    r.talentId,
+      slug:        r.slug,
+      name:        r.name,
+      photoUrl:    r.photoUrl,
+      handle:      r.handle,
+      game:        r.game,
+      isLive:      stale ? false : Boolean(r.isLive),
+      viewerCount: stale ? null : r.viewerCount,
+      streamTitle: stale ? null : r.streamTitle,
+      streamUrl:   stale ? null : r.streamUrl,
+      startedAt:   stale ? null : r.startedAt,
+    };
+  });
+}
+
 /** Para la página CRM /admin/live — todos los talentos con estado live */
 export async function getAllTalentsLiveStatus() {
   return db

@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { getNewsPosts } from '@/lib/queries/posts';
-import { getTalents } from '@/lib/queries/talents';
+import { getCs2RosterForSidebar } from '@/lib/queries/live';
 import { isNewsCategorySlug, type NewsCategorySlug } from '@/lib/utils/news';
 import { absoluteUrl, SITE_URL } from '@/lib/site-url';
 import { NewsHero } from '@/features/news/components/NewsHero';
@@ -84,9 +84,9 @@ export default async function NewsPage({ searchParams }: PageProps) {
       ? requestedTag
       : null;
 
-  const [allPosts, talents] = await Promise.all([
+  const [allPosts, cs2Creators] = await Promise.all([
     getNewsPosts(),
-    getTalents(),
+    getCs2RosterForSidebar(),
   ]);
 
   const tagFiltered = activeTag
@@ -97,24 +97,6 @@ export default async function NewsPage({ searchParams }: PageProps) {
   const trending = sorted.slice(1, 4);
   const grid = sorted.slice(4);
   const editor = sorted.slice(0, 5);
-
-  // Pick a CS2 talent as spotlight if any exists
-  const cs2Talent = talents.find((t) =>
-    /cs[: ]?2|counter[- ]?strike/i.test(t.game ?? '') ||
-    t.tags.some((tag) => /cs[: ]?2|counter[- ]?strike/i.test(tag.tag)),
-  );
-  const spotlight = cs2Talent
-    ? {
-        slug: cs2Talent.slug,
-        name: cs2Talent.name,
-        role: cs2Talent.role,
-        platform: cs2Talent.platform,
-        photoUrl: cs2Talent.photoUrl,
-        initials: cs2Talent.initials,
-        gradientC1: cs2Talent.gradientC1,
-        gradientC2: cs2Talent.gradientC2,
-      }
-    : null;
 
   if (!featured) {
     return (
@@ -160,7 +142,7 @@ export default async function NewsPage({ searchParams }: PageProps) {
 
             <div className="grid lg:grid-cols-[1fr_320px] gap-8 lg:gap-10">
               <NewsGrid posts={grid} activeCategory={activeCategory} />
-              <NewsAside posts={editor} creatorSpotlight={spotlight} />
+              <NewsAside posts={editor} cs2Creators={cs2Creators} />
             </div>
           </div>
         </section>
