@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { safeJsonLd } from '@/lib/safeJsonLd';
 import { getNewsPosts } from '@/lib/queries/posts';
-import { getCs2RosterForSidebar } from '@/lib/queries/live';
+import { getEditorialSlots } from '@/lib/queries/editorialSlots';
 import { isNewsCategorySlug, type NewsCategorySlug } from '@/lib/utils/news';
 import { absoluteUrl, SITE_URL } from '@/lib/site-url';
 import { NewsHero } from '@/features/news/components/NewsHero';
@@ -9,13 +9,10 @@ import { LiveBar } from '@/features/news/live-bar/LiveBar';
 import { buildLiveBarItems } from '@/features/news/live-bar/buildLiveBarItems';
 import { NewsFilters } from '@/features/news/components/NewsFilters';
 import { NewsGrid } from '@/features/news/components/NewsGrid';
-import { NewsAside } from '@/features/news/components/NewsAside';
-import { EditorialPickRail } from '@/features/news/components/EditorialPickRail';
+import { NewsHubSidebar } from '@/features/news/components/NewsHubSidebar';
+import { NewsHubBottomBlocks } from '@/features/news/components/NewsHubBottomBlocks';
 import { NewsCrossBlogLink } from '@/features/news/components/NewsCrossBlogLink';
 
-// LiveBar consume estado de live-status + posts recientes — bajamos
-// revalidate de 1800 a 120 (2 min) para que la sensación de actividad
-// sea fresca. Aún así dentro del cap de Function executions Hobby.
 export const revalidate = 120;
 
 export const metadata: Metadata = {
@@ -108,33 +105,41 @@ export default async function NewsPage({ searchParams }: PageProps) {
       ? requestedTag
       : null;
 
-  const [allPosts, cs2Creators, liveBarItems] = await Promise.all([
+  const [allPosts, slots, liveBarItems] = await Promise.all([
     getNewsPosts(),
-    getCs2RosterForSidebar(),
+    getEditorialSlots(),
     buildLiveBarItems(),
   ]);
 
+  // Resolver slots con fallback a posts más recientes
+  const slotMap = Object.fromEntries(slots.map((s) => [s.slot, s.post]));
+  const sortedPosts = [...allPosts].sort(
+    (a, b) => (b.publishedAt?.getTime() ?? 0) - (a.publishedAt?.getTime() ?? 0),
+  );
+
+  const hero = slotMap['hero'] ?? sortedPosts[0] ?? null;
+  const secondary1 = slotMap['secondary_1'] ?? sortedPosts.find((p) => p.slug !== hero?.slug) ?? null;
+  const secondary2 =
+    slotMap['secondary_2'] ??
+    sortedPosts.find((p) => p.slug !== hero?.slug && p.slug !== secondary1?.slug) ??
+    null;
+  const featuredInterview = slotMap['featured_interview'] ?? null;
+  const featuredClip = slotMap['featured_clip'] ?? null;
+
+  const trending = [secondary1, secondary2].filter(Boolean) as typeof allPosts;
+
+  // Grid: todos los posts con filtros aplicados
   const tagFiltered = activeTag
     ? allPosts.filter((p) => (p.tags ?? []).includes(activeTag))
     : allPosts;
-  const sorted = [...tagFiltered].sort((a, b) => (b.sortOrder ?? 0) - (a.sortOrder ?? 0));
-  const featured = sorted[0] ?? null;
-  const trending = sorted.slice(1, 4);
-  // Grid muestra TODAS las noticias publicadas (incluido el featured/trending
-  // del Hero) — el Hero es framing editorial, el grid es la listing completa.
-  // Antes era sorted.slice(4) que dejaba el grid vacío cuando hay <5 posts.
-  const grid = sorted;
-  const editor = sorted.slice(0, 5);
-  // ItemList schema: top 10 posts más recientes (sin filtro), para que
-  // Google entienda /news como hub editorial estructurado.
-  const allSorted = [...allPosts].sort(
-    (a, b) => (b.publishedAt?.getTime() ?? 0) - (a.publishedAt?.getTime() ?? 0),
-  );
+  const grid = [...tagFiltered].sort((a, b) => (b.sortOrder ?? 0) - (a.sortOrder ?? 0));
+
+  // JSON-LD: top 10 más recientes
   const jsonLd = buildJsonLd(
-    allSorted.slice(0, 10).map((p) => ({ slug: p.slug, title: p.title })),
+    sortedPosts.slice(0, 10).map((p) => ({ slug: p.slug, title: p.title })),
   );
 
-  if (!featured) {
+  if (!hero) {
     return (
       <main className="min-h-[60vh] bg-sp-black text-white flex items-center justify-center px-6 py-24">
         <div className="text-center max-w-md">
@@ -160,9 +165,25 @@ export default async function NewsPage({ searchParams }: PageProps) {
         dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }}
       />
       <main className="bg-sp-black text-white">
+        {/* LiveBar */}
         <LiveBar items={liveBarItems} />
-        <NewsHero featured={featured} trending={trending} />
 
+        {/* Hero + sidebar oscuro */}
+        <section className="border-b border-white/[0.06]">
+          <div className="max-w-7xl mx-auto px-5 md:px-8 py-8 md:py-12">
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] xl:grid-cols-[1fr_300px] gap-8">
+              {/* Hero + secondary */}
+              <div className="grid grid-cols-1 md:grid-cols-[1fr_280px] gap-5">
+                <NewsHero featured={hero} trending={trending} />
+              </div>
+
+              {/* Sidebar */}
+              <NewsHubSidebar latestPosts={sortedPosts} />
+            </div>
+          </div>
+        </section>
+
+        {/* Últimas noticias — warm paper */}
         <section className="bg-[#F5F3F0] text-sp-black py-20 md:py-28 border-b border-black/[0.05]">
           <div className="max-w-7xl mx-auto px-5 md:px-8">
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-10 md:mb-14">
@@ -176,15 +197,12 @@ export default async function NewsPage({ searchParams }: PageProps) {
               </div>
               <NewsFilters tone="paper" />
             </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-10 lg:gap-12">
-              <NewsGrid posts={grid} activeCategory={activeCategory} tone="paper" />
-              <NewsAside posts={editor} cs2Creators={cs2Creators} tone="paper" />
-            </div>
+            <NewsGrid posts={grid} activeCategory={activeCategory} tone="paper" />
           </div>
         </section>
 
-        <EditorialPickRail />
+        {/* Entrevista + Clip + Agenda */}
+        <NewsHubBottomBlocks interview={featuredInterview} clip={featuredClip} />
 
         <NewsCrossBlogLink />
       </main>
