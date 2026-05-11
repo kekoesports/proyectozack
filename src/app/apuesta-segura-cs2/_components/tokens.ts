@@ -76,41 +76,59 @@ export const MAPS_POOL = [
   'Train',
 ];
 
-export const PICK_PREVIEWS = [
+/**
+ * Picks editoriales más recientes del canal Telegram "Apuesta Segura CS2".
+ * Combinada 11-05-2026 @2.30 stake 10/10. Status 'pending' = match no
+ * jugado, pick ofrecido (UI: "Próxima"). Si terminó ganando, cambia a
+ * 'win' + añade `score`. Si una está en vivo, cambia su status a 'live'.
+ */
+export type PickStatus = 'live' | 'win' | 'pending';
+export type PickPreview = {
+  league: string;
+  teamA: string;
+  teamB: string;
+  map: string;
+  market: string;
+  odds: string;
+  stake: string;
+  when: string;
+  status: PickStatus;
+  score?: string;
+};
+
+export const PICK_PREVIEWS: PickPreview[] = [
   {
     league: 'ESEA Advanced',
-    teamA: 'CYBERSHOKE',
-    teamB: 'PARTIZAN',
-    map: 'Mirage',
-    market: 'Over 22.5 rondas mapa 1',
-    odds: '1.85',
-    stake: '2/10',
-    when: 'Hoy · 14:32',
-    status: 'live' as const,
+    teamA: 'CC.FE',
+    teamB: 'PROJECT 91',
+    map: 'Mapa 1',
+    market: 'Over 18.5 rondas mapa 1',
+    odds: '1.80',
+    stake: 'Combinada',
+    when: 'Hoy · 13:36',
+    status: 'pending',
   },
   {
-    league: 'CCT Europe',
-    teamA: 'GENONE',
-    teamB: 'AURA',
+    league: 'ESEA Advanced',
+    teamA: 'COW',
+    teamB: 'BJNG',
     map: 'Match',
-    market: 'GenOne ML',
-    odds: '2.10',
-    stake: '3/10',
-    when: 'Ayer · 22:15',
-    status: 'win' as const,
-    score: '2 – 1',
+    market: 'BJNG ML',
+    odds: '1.23',
+    stake: 'Combinada',
+    when: 'Hoy · 13:36',
+    status: 'pending',
   },
   {
-    league: 'ESEA Main',
-    teamA: 'NEMIGA',
-    teamB: 'INTO THE BREACH',
-    map: 'Anubis',
-    market: 'Hándicap +1.5',
-    odds: '1.72',
-    stake: '2/10',
-    when: 'Ayer · 18:40',
-    status: 'win' as const,
-    score: '13 – 11',
+    league: 'ESEA Advanced',
+    teamA: 'DIAMANT ESPORTS',
+    teamB: 'SE7ENS',
+    map: 'Match',
+    market: 'Diamant ML',
+    odds: '1.04',
+    stake: 'Combinada',
+    when: 'Hoy · 13:36',
+    status: 'pending',
   },
 ];
 
