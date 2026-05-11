@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { requireAnyRole } from '@/lib/auth-guard';
 import { getAllNewsPostsForAdmin } from '@/lib/queries/editorialSlots';
 import { deletePostVoidAction } from './actions';
+import { DeleteConfirmButton } from '../giveaways/DeleteConfirmButton';
 
 function statusLabel(status: string, publishedAt: Date | null) {
   if (status === 'draft') return { label: 'Borrador', cls: 'bg-sp-admin-border text-sp-admin-muted' };
@@ -96,16 +97,11 @@ export default async function AdminNoticiasPage() {
                         >
                           Ver →
                         </a>
-                        <form action={deletePostVoidAction}>
-                          <input type="hidden" name="id" value={p.id} />
-                          <button
-                            type="submit"
-                            className="text-xs text-red-400 hover:text-red-300 transition-colors"
-                            onClick={(e) => { if (!confirm(`¿Eliminar "${p.title}"?`)) e.preventDefault(); }}
-                          >
-                            Eliminar
-                          </button>
-                        </form>
+                        <DeleteConfirmButton
+                          action={deletePostVoidAction}
+                          fields={{ id: p.id }}
+                          label={p.title.slice(0, 40)}
+                        />
                       </div>
                     </td>
                   </tr>
