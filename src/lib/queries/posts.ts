@@ -1,5 +1,5 @@
 import { cache } from 'react';
-import { eq, desc, inArray, and, ne } from 'drizzle-orm';
+import { eq, desc, inArray, and, ne, lte } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { posts, talents } from '@/db/schema';
 import type { Post } from '@/types';
@@ -31,7 +31,7 @@ async function loadTalentAvatars(rows: { talentSlugs: string[] | null }[]): Prom
   return avatarMap;
 }
 
-async function attachTalents(rows: Post[]): Promise<PostWithTalents[]> {
+export async function attachTalents(rows: Post[]): Promise<PostWithTalents[]> {
   const avatarMap = await loadTalentAvatars(rows);
   return rows.map((p) => ({
     ...p,
@@ -95,8 +95,13 @@ export async function getPosts(): Promise<PostListItem[]> {
  * cards editoriales lo usan para preview/lectura.
  */
 export async function getNewsPosts(): Promise<PostWithTalents[]> {
+  const now = new Date();
   const rows = await db.query.posts.findMany({
-    where: and(eq(posts.status, 'published'), eq(posts.vertical, 'news')),
+    where: and(
+      eq(posts.status, 'published'),
+      eq(posts.vertical, 'news'),
+      lte(posts.publishedAt, now),
+    ),
     orderBy: [desc(posts.publishedAt)],
   });
   return attachTalents(rows);
