@@ -119,7 +119,10 @@ export default async function NewsPage({ searchParams }: PageProps) {
   const sorted = [...tagFiltered].sort((a, b) => (b.sortOrder ?? 0) - (a.sortOrder ?? 0));
   const featured = sorted[0] ?? null;
   const trending = sorted.slice(1, 4);
-  const grid = sorted.slice(4);
+  // Grid muestra TODAS las noticias publicadas (incluido el featured/trending
+  // del Hero) — el Hero es framing editorial, el grid es la listing completa.
+  // Antes era sorted.slice(4) que dejaba el grid vacío cuando hay <5 posts.
+  const grid = sorted;
   const editor = sorted.slice(0, 5);
   // ItemList schema: top 10 posts más recientes (sin filtro), para que
   // Google entienda /news como hub editorial estructurado.
