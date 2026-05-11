@@ -16,6 +16,7 @@ import { NewsHubBottomBlocks } from '@/features/news/components/NewsHubBottomBlo
 import { SorteosCtaCard } from '@/features/news/components/SorteosCtaCard';
 import { CodigosCtaCard } from '@/features/news/components/CodigosCtaCard';
 import { NewsCrossBlogLink } from '@/features/news/components/NewsCrossBlogLink';
+import { Cs2LabCard } from '@/components/cs2-lab/Cs2LabCard';
 
 export const revalidate = 120;
 
@@ -185,13 +186,13 @@ export default async function NewsPage({ searchParams }: PageProps) {
 
           <div className="relative max-w-7xl mx-auto px-5 md:px-8 pt-4 pb-4">
             {/* Portada editorial — items-stretch: col secundaria = altura exacta del hero */}
-            <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.75fr)_minmax(0,1fr)_256px] gap-3 lg:items-stretch">
+            <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.75fr)_minmax(0,1fr)_256px] gap-3 lg:items-start">
 
               {/* Col 1 — Hero 440px desktop */}
               <NewsHeroCard post={hero} />
 
-              {/* Col 2 — Flex-grow: 3 piezas llenan exactamente la altura del hero */}
-              <div className="flex flex-col gap-3 lg:h-full">
+              {/* Col 2 — Misma altura fija que el hero: flex-grow proporcional */}
+              <div className="flex flex-col gap-3 lg:h-[440px]">
                 {/* Grande — flex-5 */}
                 <div className="flex-[5] min-h-0 min-h-[140px]">
                   {trending[0]
@@ -220,6 +221,10 @@ export default async function NewsPage({ searchParams }: PageProps) {
               <div className="hidden lg:block">
                 <NewsHubSidebar latestPosts={sortedPosts} featuredMatch={featuredMatch} ranking={ranking} />
               </div>
+            </div>
+            {/* CTA Apuesta Segura CS2 — entre portada y feed */}
+            <div className="mt-3">
+              <Cs2LabCard variant="compact" ctaId="news_hub_portada_apuesta_segura" />
             </div>
           </div>
         </section>
