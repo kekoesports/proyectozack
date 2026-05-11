@@ -198,8 +198,8 @@ export default async function NewsLivePage({ searchParams }: PageProps) {
           </div>
         </section>
 
-        {/* Roster moves + Calendar */}
-        <section className="bg-sp-black py-10 md:py-14 border-b border-white/[0.04]">
+        {/* Roster moves + Calendar — warm paper section para ritmo magazine */}
+        <section className="bg-[#F5F3F0] text-sp-black py-14 md:py-20 border-b border-black/[0.05]">
           <div className="max-w-7xl mx-auto px-5 md:px-8">
             <div className="grid lg:grid-cols-2 gap-8 lg:gap-10">
               <div>
@@ -207,22 +207,22 @@ export default async function NewsLivePage({ searchParams }: PageProps) {
                   <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-sp-orange mb-1.5">
                     Movimientos
                   </p>
-                  <h2 className="font-display text-2xl md:text-3xl font-black uppercase tracking-tight leading-[0.95]">
+                  <h2 className="font-display text-2xl md:text-3xl font-black uppercase tracking-tight leading-[0.95] text-sp-black">
                     Roster moves recientes
                   </h2>
                 </header>
-                <LatestRosterMoves moves={rosterMoves} />
+                <LatestRosterMoves moves={rosterMoves} tone="paper" />
               </div>
               <div>
                 <header className="mb-5">
                   <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-sp-orange mb-1.5">
                     Agenda
                   </p>
-                  <h2 className="font-display text-2xl md:text-3xl font-black uppercase tracking-tight leading-[0.95]">
+                  <h2 className="font-display text-2xl md:text-3xl font-black uppercase tracking-tight leading-[0.95] text-sp-black">
                     Próximos 7 días
                   </h2>
                 </header>
-                <Calendar7Days days={calendarDays} />
+                <Calendar7Days days={calendarDays} tone="paper" />
               </div>
             </div>
           </div>

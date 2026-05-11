@@ -1,10 +1,36 @@
 import type { SeedRosterMove } from '../data/seedRosterMoves';
 
-const TYPE_INFO: Record<SeedRosterMove['type'], { label: string; icon: string; accent: string }> = {
-  in:           { label: 'Fichaje',  icon: '↗', accent: 'text-emerald-300 bg-emerald-500/10 border-emerald-500/25' },
-  out:          { label: 'Salida',   icon: '↘', accent: 'text-sp-pink   bg-sp-pink/10   border-sp-pink/25' },
-  bench:        { label: 'Banco',    icon: '⊘', accent: 'text-white/55  bg-white/[0.04] border-white/15' },
-  'role-change':{ label: 'Cambio',   icon: '↻', accent: 'text-sp-blue   bg-sp-blue/10   border-sp-blue/25' },
+type Tone = 'dark' | 'paper';
+
+const TYPE_INFO: Record<SeedRosterMove['type'], { label: string; icon: string; accent: string; teamChip: string; rail: string }> = {
+  in: {
+    label: 'Fichaje',
+    icon: '↗',
+    accent: 'text-emerald-300 bg-emerald-500/10 border-emerald-500/25',
+    teamChip: 'text-white bg-emerald-500/12 border-emerald-500/30',
+    rail: 'bg-emerald-500/60',
+  },
+  out: {
+    label: 'Salida',
+    icon: '↘',
+    accent: 'text-sp-pink bg-sp-pink/10 border-sp-pink/25',
+    teamChip: 'text-white bg-sp-pink/12 border-sp-pink/30',
+    rail: 'bg-sp-pink/60',
+  },
+  bench: {
+    label: 'Banco',
+    icon: '⊘',
+    accent: 'text-white/55 bg-white/[0.04] border-white/15',
+    teamChip: 'text-white bg-white/[0.06] border-white/15',
+    rail: 'bg-white/20',
+  },
+  'role-change': {
+    label: 'Cambio',
+    icon: '↻',
+    accent: 'text-sp-blue bg-sp-blue/10 border-sp-blue/25',
+    teamChip: 'text-white bg-sp-blue/12 border-sp-blue/30',
+    rail: 'bg-sp-blue/60',
+  },
 };
 
 function relative(date: Date): string {
@@ -19,11 +45,16 @@ function relative(date: Date): string {
 
 type Props = {
   readonly moves: readonly SeedRosterMove[];
+  readonly tone?: Tone;
 };
 
-export function LatestRosterMoves({ moves }: Props) {
+export function LatestRosterMoves({ moves, tone = 'dark' }: Props) {
+  const shellClass =
+    tone === 'paper'
+      ? 'bg-sp-black border border-black/[0.06] shadow-[0_2px_8px_rgba(0,0,0,0.05)] rounded-2xl overflow-hidden'
+      : 'bg-[#0c1016] border border-white/[0.06] rounded-2xl overflow-hidden';
   return (
-    <section className="bg-[#0c1016] border border-white/[0.06] rounded-2xl overflow-hidden">
+    <section className={shellClass}>
       <header className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-white/[0.04]">
         <div>
           <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-sp-orange leading-none">
@@ -42,19 +73,29 @@ export function LatestRosterMoves({ moves }: Props) {
           {moves.map((m) => {
             const info = TYPE_INFO[m.type];
             return (
-              <li key={m.id} className="px-5 py-4 hover:bg-white/[0.02] transition-colors">
-                <div className="flex items-center gap-3 mb-2">
+              <li
+                key={m.id}
+                className="relative px-5 py-4 pl-6 hover:bg-white/[0.02] transition-colors"
+              >
+                <span
+                  aria-hidden
+                  className={`absolute left-0 top-3 bottom-3 w-[3px] rounded-r-full ${info.rail}`}
+                />
+                <div className="flex flex-wrap items-center gap-2 mb-2">
                   <span
-                    className={`inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider rounded-full px-2 py-0.5 border ${info.accent}`}
+                    className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-[0.18em] rounded px-1.5 py-0.5 border ${info.accent} leading-none`}
                   >
-                    <span aria-hidden className="text-base leading-none">{info.icon}</span>
+                    <span aria-hidden className="text-sm leading-none">{info.icon}</span>
                     {info.label}
                   </span>
-                  <span className="font-display font-black uppercase text-sm tracking-tight text-white truncate">
+                  <span
+                    className={`inline-flex items-center font-display font-black uppercase text-[13px] tracking-tight rounded px-2 py-0.5 border ${info.teamChip} leading-snug`}
+                  >
                     {m.team}
                   </span>
-                  <span aria-hidden className="text-white/15">·</span>
-                  <span className="text-sm text-white/65 truncate">{m.playerName}</span>
+                  <span className="font-display font-black uppercase text-[13px] tracking-tight text-white/85 truncate">
+                    {m.playerName}
+                  </span>
                   <span className="ml-auto text-[10px] uppercase tracking-wider text-white/35 tabular-nums whitespace-nowrap">
                     {relative(m.date)}
                   </span>

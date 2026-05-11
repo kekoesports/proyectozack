@@ -1,12 +1,19 @@
 import type { CalendarDay } from '../data/seedCalendar';
 
+type Tone = 'dark' | 'paper';
+
 type Props = {
   readonly days: readonly CalendarDay[];
+  readonly tone?: Tone;
 };
 
-export function Calendar7Days({ days }: Props) {
+export function Calendar7Days({ days, tone = 'dark' }: Props) {
+  const shellClass =
+    tone === 'paper'
+      ? 'bg-sp-black border border-black/[0.06] shadow-[0_2px_8px_rgba(0,0,0,0.05)] rounded-2xl overflow-hidden'
+      : 'bg-[#0c1016] border border-white/[0.06] rounded-2xl overflow-hidden';
   return (
-    <section className="bg-[#0c1016] border border-white/[0.06] rounded-2xl overflow-hidden">
+    <section className={shellClass}>
       <header className="flex items-center justify-between px-5 md:px-6 pt-5 pb-3 border-b border-white/[0.04]">
         <div>
           <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-sp-orange leading-none">
