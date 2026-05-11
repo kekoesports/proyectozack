@@ -13,6 +13,8 @@ import { NewsFilters } from '@/features/news/components/NewsFilters';
 import { NewsGrid } from '@/features/news/components/NewsGrid';
 import { NewsHubSidebar } from '@/features/news/components/NewsHubSidebar';
 import { NewsHubBottomBlocks } from '@/features/news/components/NewsHubBottomBlocks';
+import { SorteosCtaCard } from '@/features/news/components/SorteosCtaCard';
+import { CodigosCtaCard } from '@/features/news/components/CodigosCtaCard';
 import { NewsCrossBlogLink } from '@/features/news/components/NewsCrossBlogLink';
 
 export const revalidate = 120;
@@ -194,13 +196,13 @@ export default async function NewsPage({ searchParams }: PageProps) {
               </Link>
             </div>
 
-            {/* Grid 3 columnas: hero | secundarias | sidebar */}
-            <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.85fr)_minmax(0,1fr)_260px] gap-5">
+            {/* Grid 3 columnas: hero | secundarias | sidebar (sidebar hidden on mobile) */}
+            <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.85fr)_minmax(0,1fr)_260px] gap-5 lg:items-stretch">
               {/* Col 1 — Hero principal */}
               <NewsHeroCard post={hero} />
 
-              {/* Col 2 — Secundarias apiladas */}
-              <div className="flex flex-col gap-4">
+              {/* Col 2 — Secundarias apiladas, llenan la altura del hero */}
+              <div className="flex flex-col gap-4 h-full">
                 {trending[0] && <NewsSecondaryCard post={trending[0]} />}
                 {trending[1] && <NewsSecondaryCard post={trending[1]} />}
                 {!trending[0] && (
@@ -210,8 +212,10 @@ export default async function NewsPage({ searchParams }: PageProps) {
                 )}
               </div>
 
-              {/* Col 3 — Sidebar */}
-              <NewsHubSidebar latestPosts={sortedPosts} featuredMatch={featuredMatch} />
+              {/* Col 3 — Sidebar: solo desktop */}
+              <div className="hidden lg:block">
+                <NewsHubSidebar latestPosts={sortedPosts} featuredMatch={featuredMatch} />
+              </div>
             </div>
           </div>
         </section>
@@ -233,6 +237,12 @@ export default async function NewsPage({ searchParams }: PageProps) {
             <NewsGrid posts={grid} activeCategory={activeCategory} tone="paper" />
           </div>
         </section>
+
+        {/* CTAs mobile — Sorteos y Códigos, solo visible en mobile después del grid */}
+        <div className="lg:hidden bg-sp-black border-t border-white/[0.06] px-5 py-8 grid grid-cols-1 gap-4">
+          <SorteosCtaCard tone="dark" />
+          <CodigosCtaCard />
+        </div>
 
         {/* Entrevista + Clip + Agenda */}
         <NewsHubBottomBlocks interview={featuredInterview} clip={featuredClip} agenda={agenda} />

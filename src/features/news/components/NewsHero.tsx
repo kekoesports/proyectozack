@@ -80,7 +80,7 @@ export function NewsSecondaryCard({ post }: { readonly post: PostWithTalents }) 
   const region = derivePostRegionBadge(post.talentAvatars.map((t) => t.country));
 
   return (
-    <article className="relative group bg-[#0c1016] border border-white/[0.07] rounded-2xl overflow-hidden hover:border-white/15 transition-colors flex-1 min-h-[160px]">
+    <article className="relative group bg-[#0c1016] border border-white/[0.07] rounded-2xl overflow-hidden hover:border-white/15 transition-colors flex-1 min-h-[180px]">
       <Link href={`/news/${post.slug}`} className="absolute inset-0 z-10" aria-label={post.title}>
         <span className="sr-only">{post.title}</span>
       </Link>
