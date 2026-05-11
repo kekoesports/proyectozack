@@ -151,7 +151,7 @@ export default async function NewsArticlePage({ params }: PageProps) {
 
           {post.coverUrl ? (
             <div className="relative max-w-5xl mx-auto px-5 md:px-8 -mt-2">
-              <div className="relative aspect-[16/9] rounded-2xl overflow-hidden border border-white/[0.06] bg-sp-black">
+              <div className="relative aspect-[3/2] rounded-2xl overflow-hidden border border-white/[0.06] bg-sp-black">
                 <Image
                   src={post.coverUrl}
                   alt=""
