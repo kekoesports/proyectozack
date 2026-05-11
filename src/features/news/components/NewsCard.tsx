@@ -62,18 +62,18 @@ export function NewsCard({ post, density = 'normal', tone = 'dark' }: Props) {
         ) : null}
       </div>
 
-      <div className={`relative ${compact ? 'p-4' : 'p-5 md:p-6 flex-1 flex flex-col'}`}>
+      <div className={`relative ${compact ? 'p-4' : 'p-5 md:p-6'}`}>
         <h3
           className={`font-display font-black uppercase text-white tracking-tight leading-[1.05] mb-2 group-hover:text-white/95 ${compact ? 'text-base' : 'text-lg md:text-xl'}`}
         >
           {post.title}
         </h3>
         {!compact ? (
-          <p className="text-sm text-white/55 leading-relaxed mb-4 line-clamp-2 flex-1">
+          <p className="text-sm text-white/55 leading-relaxed mb-4 line-clamp-2">
             {post.excerpt}
           </p>
         ) : null}
-        <div className={`flex items-center gap-2 text-[11px] text-white/40 ${compact ? '' : 'mt-auto'}`}>
+        <div className="flex items-center gap-2 text-[11px] text-white/40">
           <span className="uppercase tracking-wider truncate">{post.author}</span>
           <span aria-hidden className="w-0.5 h-0.5 rounded-full bg-white/20" />
           <time dateTime={post.publishedAt?.toISOString() ?? ''} className="tabular-nums">

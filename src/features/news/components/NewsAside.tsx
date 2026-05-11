@@ -14,18 +14,6 @@ type Props = {
   readonly tone?: Tone;
 };
 
-const TRENDING_TAGS = [
-  'CS2',
-  'ESEA Advanced',
-  'Tier 2 EU',
-  'Roster moves',
-  'Mapas',
-  'Spain',
-  'LATAM',
-  'Twitch',
-  'YouTube',
-];
-
 export function NewsAside({ posts, cs2Creators, tone = 'dark' }: Props) {
   const editor = posts.slice(0, 3);
   const cardClass =
@@ -70,21 +58,6 @@ export function NewsAside({ posts, cs2Creators, tone = 'dark' }: Props) {
           </ul>
         </section>
       ) : null}
-
-      <section className={cardClass}>
-        <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-sp-orange mb-4">
-          Trending tags
-        </p>
-        <ul className="flex flex-wrap gap-2">
-          {TRENDING_TAGS.map((t) => (
-            <li key={t}>
-              <span className="inline-block px-2.5 py-1 rounded-full border border-white/10 bg-white/[0.03] text-[11px] text-white/65 hover:bg-white/[0.06] hover:text-white/90 transition-colors">
-                #{t}
-              </span>
-            </li>
-          ))}
-        </ul>
-      </section>
 
       <CodigosCtaCard />
     </aside>
