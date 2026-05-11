@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import Image from 'next/image';
 import { requireAnyRole } from '@/lib/auth-guard';
+import { needsVisibilityFilter } from '@/lib/permissions';
 import { getTalentById } from '@/lib/queries/talents';
 import { getTalentBusiness, getTalentVerticals } from '@/lib/queries/talentBusiness';
 import { listCampaigns } from '@/lib/queries/campaigns';
@@ -36,14 +36,25 @@ export default async function TalentProfilePage({
   const talentId = Number(id);
   if (isNaN(talentId)) notFound();
 
-  await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
+  const session = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
+
+  const isStaffRole = session.user.role === 'staff';
+  const staffOpts   = isStaffRole
+    ? { session: { userId: session.user.id, role: session.user.role as 'staff' } }
+    : undefined;
+
+  // Filtro IDOR: staff solo puede ver talentos con los que tiene campañas asignadas.
+  if (needsVisibilityFilter(session.user.role)) {
+    const visible = await listCampaigns({ filters: { talentId }, ...staffOpts });
+    if (visible.length === 0) notFound();
+  }
 
   const [talent, business, verticals, campaigns, invoices, liveStatus, fallbackCount] = await Promise.all([
     getTalentById(talentId),
     getTalentBusiness(talentId),
     getTalentVerticals(talentId),
-    listCampaigns({ filters: { talentId } }),
-    listInvoices({ talentId }),
+    listCampaigns({ filters: { talentId }, ...staffOpts }),
+    listInvoices({ talentId, ...(isStaffRole ? { staffUserId: session.user.id } : {}) }),
     getTalentLiveStatus(talentId),
     getFeaturedFallbackCount(),
   ]);

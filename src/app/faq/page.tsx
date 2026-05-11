@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { safeJsonLd } from '@/lib/safeJsonLd';
 import { absoluteUrl, SITE_URL } from '@/lib/site-url';
 import { FaqClient } from './FaqClient';
 
@@ -130,8 +131,8 @@ const breadcrumbJsonLd = {
 export default function FaqPage() {
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbJsonLd) }} />
       <main className="bg-sp-black text-white min-h-screen">
         <section className="max-w-3xl mx-auto px-4 sm:px-6 pt-28 pb-8">
           <p className="text-[11px] font-bold uppercase tracking-[0.3em] text-sp-orange mb-4">Ayuda</p>

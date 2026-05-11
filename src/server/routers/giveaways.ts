@@ -1,9 +1,20 @@
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
 import { eq } from 'drizzle-orm';
+import { headers } from 'next/headers';
 import { router, publicProcedure } from '@/server/trpc';
 import { db } from '@/lib/db';
 import { codeClicks, creatorCodes } from '@/db/schema';
+import { checkRateLimit } from '@/lib/security/rateLimit';
+
+async function clientIp(): Promise<string> {
+  const h = await headers();
+  return (
+    h.get('x-forwarded-for')?.split(',')[0]?.trim() ??
+    h.get('x-real-ip') ??
+    'unknown'
+  );
+}
 
 export const giveawaysRouter = router({
   trackClick: publicProcedure
@@ -14,6 +25,16 @@ export const giveawaysRouter = router({
       }),
     )
     .mutation(async ({ input }) => {
+      const ip = await clientIp();
+      const limit = checkRateLimit({
+        key: `trackClick:${ip}`,
+        limit: 30,
+        windowMs: 60_000,
+      });
+      if (!limit.ok) {
+        throw new TRPCError({ code: 'TOO_MANY_REQUESTS', message: 'Demasiados clicks, esperá un momento.' });
+      }
+
       const [code] = await db
         .select({ talentId: creatorCodes.talentId, brandName: creatorCodes.brandName })
         .from(creatorCodes)

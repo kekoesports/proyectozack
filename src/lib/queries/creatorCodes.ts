@@ -15,7 +15,7 @@ export async function getAllCodes(): Promise<CreatorCodeWithTalent[]> {
     with: { talent: true },
     orderBy: (c, { asc, desc }) => [desc(c.isFeatured), asc(c.sortOrder)],
   });
-  return rows as CreatorCodeWithTalent[];
+  return rows;
 }
 
 /**
@@ -31,7 +31,7 @@ export async function getFeaturedCodes(): Promise<CreatorCodeWithTalent[]> {
     with: { talent: true },
     orderBy: (c, { asc }) => [asc(c.sortOrder)],
   });
-  return rows as CreatorCodeWithTalent[];
+  return rows;
 }
 
 /**

@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { safeJsonLd } from '@/lib/safeJsonLd';
 import { Inter, Barlow_Condensed } from 'next/font/google';
 import './globals.css';
 import { Nav } from '@/components/layout/Nav';
@@ -207,7 +208,7 @@ export default function RootLayout({
       <head>
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }}
         />
       </head>
       <body className={`${inter.variable} ${barlowCondensed.variable} antialiased`}>

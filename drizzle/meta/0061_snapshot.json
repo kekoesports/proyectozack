@@ -1,6 +1,6 @@
 {
-  "id": "4861f35f-a23a-4b10-ac11-2b1e255bc670",
-  "prevId": "5f6290df-eefe-49d4-a37a-8217171c49c5",
+  "id": "737798b3-6089-425d-9cdd-84f63ad2f0eb",
+  "prevId": "c8c1d151-f4f0-46af-86f9-a36deec39e29",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -1413,6 +1413,13 @@
           "primaryKey": false,
           "notNull": false
         },
+        "tags": {
+          "name": "tags",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'[]'::jsonb"
+        },
         "updated_at": {
           "name": "updated_at",
           "type": "timestamp with time zone",
@@ -2669,6 +2676,33 @@
           "concurrently": false,
           "method": "btree",
           "with": {}
+        },
+        "giveaways_featured_sort_ends_idx": {
+          "name": "giveaways_featured_sort_ends_idx",
+          "columns": [
+            {
+              "expression": "is_featured",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "sort_order",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "ends_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
         }
       },
       "foreignKeys": {
@@ -2784,6 +2818,27 @@
           "columns": [
             {
               "expression": "talent_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "creator_codes_featured_sort_idx": {
+          "name": "creator_codes_featured_sort_idx",
+          "columns": [
+            {
+              "expression": "is_featured",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "sort_order",
               "isExpression": false,
               "asc": true,
               "nulls": "last"

@@ -58,7 +58,7 @@ export async function getAllGiveaways(): Promise<GiveawayWithTalent[]> {
     with: { talent: true },
     orderBy: (g, { desc }) => [desc(g.createdAt)],
   });
-  return rows as GiveawayWithTalent[];
+  return rows;
 }
 
 /**

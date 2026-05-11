@@ -17,6 +17,7 @@ import { CasesSection } from '@/features/marketing-site/components/CasesSection'
 import { PortfolioSection } from '@/features/marketing-site/components/PortfolioSection';
 import { AboutSection } from '@/features/marketing-site/components/AboutSection';
 import { TeamGrid } from '@/features/marketing-site/components/TeamGrid';
+import { LiveSection } from '@/features/live/components/LiveSection';
 import { Cs2LabCard } from '@/components/cs2-lab/Cs2LabCard';
 import { NewsLatestModule } from '@/features/news/components/NewsLatestModule';
 import { getNewsPosts } from '@/lib/queries/posts';
@@ -27,7 +28,6 @@ const ServicesSection = dynamic(() => import('@/features/marketing-site/componen
 const CtaSection      = dynamic(() => import('@/features/marketing-site/components/CtaSection').then(m => ({ default: m.CtaSection })));
 const FaqSection      = dynamic(() => import('@/features/marketing-site/components/FaqSection').then(m => ({ default: m.FaqSection })));
 const ContactSection  = dynamic(() => import('@/features/contact/components/ContactSection').then(m => ({ default: m.ContactSection })));
-const LiveSection     = dynamic(() => import('@/features/live/components/LiveSection').then(m => ({ default: m.LiveSection })));
 
 async function CollabsSectionAsync() {
   const collaborators = await getCollaborators();
@@ -100,7 +100,9 @@ export default async function HomePage() {
       <Marquee />
       <BrandsCarousel brands={brands} />
       <TalentSection talents={talents} />
-      <LiveSection />
+      <Suspense>
+        <LiveSection />
+      </Suspense>
       <MetricsSection />
       <NewsLatestModule posts={latestNews} />
       <Cs2LabCard variant="full" ctaId="home_cs2_lab_full" />

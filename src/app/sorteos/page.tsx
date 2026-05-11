@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { safeJsonLd } from '@/lib/safeJsonLd';
 import Image from 'next/image';
 import Link from 'next/link';
 import { getAllActiveGiveaways, getAllFinishedGiveaways, extractUniqueBrands, extractCreators } from '@/lib/queries/giveawaysHub';
@@ -7,6 +8,8 @@ import { absoluteUrl, SITE_URL } from '@/lib/site-url';
 import { generateGiveawayListSchema } from '@/lib/schema';
 import { ResponsibleGamingFooter } from '@/components/ui/ResponsibleGamingFooter';
 import { Cs2LabCard } from '@/components/cs2-lab/Cs2LabCard';
+import { NowProvider } from '@/lib/now-context';
+import { Suspense } from 'react';
 
 export const metadata: Metadata = {
   title: 'Sorteos de Skins — SocialPro',
@@ -69,7 +72,7 @@ export default async function SorteosPage({ searchParams }: PageProps): Promise<
       {eventListSchema && (
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(eventListSchema) }}
+          dangerouslySetInnerHTML={{ __html: safeJsonLd(eventListSchema) }}
         />
       )}
       <h1 className="sr-only">Sorteos de Skins — SocialPro</h1>
@@ -201,14 +204,18 @@ export default async function SorteosPage({ searchParams }: PageProps): Promise<
       </section>
 
       {/* Hub: sidebar + grid */}
-      <SorteosHub
-        active={active}
-        finished={finished}
-        brands={brands}
-        creators={creators}
-        {...(totalValue ? { totalValue } : {})}
-        {...(initialCreatorSlug ? { initialCreatorSlug } : {})}
-      />
+      <NowProvider>
+        <Suspense>
+          <SorteosHub
+            active={active}
+            finished={finished}
+            brands={brands}
+            creators={creators}
+            {...(totalValue ? { totalValue } : {})}
+            {...(initialCreatorSlug ? { initialCreatorSlug } : {})}
+          />
+        </Suspense>
+      </NowProvider>
 
       {/* Footer */}
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-10 pt-2">

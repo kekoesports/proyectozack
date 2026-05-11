@@ -1,20 +1,14 @@
-'use client';
-
-import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { LivePlayer } from './LivePlayer';
 import { LiveCard } from './LiveCard';
-import type { LiveTalent, TwitchRosterEntry } from '@/lib/queries/live';
-
-type LiveData = {
-  featured: LiveTalent | null;
-  others: LiveTalent[];
-  roster: TwitchRosterEntry[];
-  total: number;
-};
-
-const REFRESH_MS = 120_000;
+import {
+  getLiveTalents,
+  pickFeatured,
+  getTwitchRoster,
+  type LiveTalent,
+  type TwitchRosterEntry,
+} from '@/lib/queries/live';
 
 function formatViewers(n: number | null): string {
   if (!n) return '';
@@ -46,13 +40,13 @@ function RosterSidebar({ roster, featuredId }: { roster: TwitchRosterEntry[]; fe
       <div className="space-y-0.5">
         {visible.map((entry) => {
           const href = entry.streamUrl ?? `https://www.twitch.tv/${entry.handle}`;
-          const isExternal = true;
           const isFeatured = entry.talentId === featuredId;
           return (
             <Link
               key={entry.talentId}
               href={href}
-              {...(isExternal ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+              target="_blank"
+              rel="noopener noreferrer"
               className={`group flex items-center gap-2.5 p-2 rounded-lg transition-colors ${
                 isFeatured ? 'bg-white/[0.08]' : 'hover:bg-white/[0.05]'
               }`}
@@ -137,38 +131,16 @@ function StreamerCard({ entry }: { entry: TwitchRosterEntry }) {
   );
 }
 
-// ── LiveSection principal ────────────────────────────────────────────────
+// ── LiveSection — Server Component ───────────────────────────────────────
 
-export function LiveSection() {
-  const [data, setData] = useState<LiveData | null>(null);
-  const [loading, setLoading] = useState(true);
+export async function LiveSection() {
+  const [lives, roster] = await Promise.all([getLiveTalents(), getTwitchRoster()]);
 
-  const fetchLive = useCallback(async () => {
-    try {
-      const res = await fetch('/api/live');
-      if (!res.ok) return;
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const json = await res.json() as LiveData;
-      setData(json);
-    } catch { /* silently fail */ } finally {
-      setLoading(false);
-    }
-  }, []);
+  if (roster.length === 0) return null;
 
-  useEffect(() => {
-    fetchLive();
-    const interval = setInterval(() => { void fetchLive(); }, REFRESH_MS);
-    return () => clearInterval(interval);
-  }, [fetchLive]);
-
-  if (loading) return (
-    <section className="bg-sp-black py-16 px-4 sm:px-6 border-t border-white/[0.06]" aria-hidden>
-      <div className="max-w-5xl mx-auto h-48 rounded-xl bg-white/[0.02] animate-pulse" />
-    </section>
-  );
-  if (!data || data.roster.length === 0) return null;
-
-  const { featured, others, roster, total } = data;
+  const featured = pickFeatured(lives);
+  const others: LiveTalent[] = featured ? lives.filter((l) => l.talentId !== featured.talentId) : lives;
+  const total = lives.length;
   const isLiveNow = total > 0;
 
   // ── Estado 1: Hay live ───────────────────────────────────────────────

@@ -428,6 +428,13 @@
       "when": 1778379107719,
       "tag": "0060_daffy_black_bolt",
       "breakpoints": true
+    },
+    {
+      "idx": 61,
+      "version": "7",
+      "when": 1778514617550,
+      "tag": "0061_rare_flatman",
+      "breakpoints": true
     }
   ]
 }

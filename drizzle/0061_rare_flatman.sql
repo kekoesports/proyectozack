@@ -1,0 +1,2 @@
+CREATE INDEX "giveaways_featured_sort_ends_idx" ON "giveaways" USING btree ("is_featured","sort_order","ends_at");--> statement-breakpoint
+CREATE INDEX "creator_codes_featured_sort_idx" ON "creator_codes" USING btree ("is_featured","sort_order");

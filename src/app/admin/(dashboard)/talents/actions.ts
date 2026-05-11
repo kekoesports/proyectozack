@@ -13,12 +13,13 @@ import { parseFormData } from '@/lib/forms/parseFormData';
 import { firstError } from '@/lib/forms/firstError';
 import { logRedacted } from '@/lib/log';
 import { IdSchema } from '@/lib/schemas/common';
+import { SocialPlatformSchema } from '@/lib/schemas/talentSocials';
 
 type ActionState = { readonly success: boolean; readonly error?: string };
 
 const TalentCreate = z.object({
   name: z.string().trim().min(1, 'Nombre obligatorio').max(120),
-  platform: z.string().trim().min(1).max(40).default('twitch'),
+  platform: SocialPlatformSchema.default('twitch'),
   handle: z.string().trim().min(1, 'Handle obligatorio').max(120),
   country: z
     .string()
@@ -32,7 +33,7 @@ const TalentCreate = z.object({
 });
 
 const TalentSecondary = z.object({
-  platform: z.string().trim().min(1).max(40),
+  platform: SocialPlatformSchema,
   handle: z.string().trim().min(1).max(120),
 });
 

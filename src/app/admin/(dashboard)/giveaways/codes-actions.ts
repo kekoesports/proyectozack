@@ -1,7 +1,9 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { z } from 'zod';
 import { requireAnyRole } from '@/lib/auth-guard';
+import { assertCanDelete } from '@/lib/permissions';
 import { createCode, deleteCode, updateCode } from '@/lib/queries/creatorCodes';
 import { eq } from 'drizzle-orm';
 import { db } from '@/lib/db';
@@ -9,11 +11,14 @@ import { creatorCodes } from '@/db/schema';
 import { parseFormData } from '@/lib/forms/parseFormData';
 import { firstError } from '@/lib/forms/firstError';
 import { logRedacted } from '@/lib/log';
+import { StrictIdSchema, StrictBooleanSchema } from '@/lib/schemas/common';
 import {
   CreateCodeFormSchema,
   DeleteByIdSchema,
   UpdateCodeFormSchema,
 } from '@/lib/schemas/giveaway';
+
+const ToggleArgsSchema = z.tuple([StrictIdSchema, StrictBooleanSchema]);
 
 export type CodeActionState =
   | { ok: true }
@@ -86,13 +91,18 @@ export async function updateCodeAction(formData: FormData): Promise<CodeActionSt
 
 export async function setCodeFeaturedAction(id: number, value: boolean): Promise<void> {
   await requireAnyRole(['admin', 'manager'], '/admin/login');
-  await db.update(creatorCodes).set({ isFeatured: value }).where(eq(creatorCodes.id, id));
+  const parsed = ToggleArgsSchema.safeParse([id, value]);
+  if (!parsed.success) return;
+  const [pid, pval] = parsed.data;
+  await db.update(creatorCodes).set({ isFeatured: pval }).where(eq(creatorCodes.id, pid));
   revalidatePath('/admin/giveaways');
   revalidatePath('/giveaways');
+  revalidatePath('/');
 }
 
 export async function deleteCodeAction(formData: FormData): Promise<void> {
-  await requireAnyRole(['admin', 'manager'], '/admin/login');
+  const { user } = await requireAnyRole(['admin', 'manager'], '/admin/login');
+  assertCanDelete(user.role);
   const parsed = parseFormData(formData, DeleteByIdSchema);
   if (!parsed.ok) return;
   await deleteCode(parsed.data.id);

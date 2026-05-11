@@ -1,5 +1,6 @@
 import { ImageResponse } from 'next/og';
 import { db } from '@/lib/db';
+import { safeFetchImageAsBase64 } from '@/lib/security/safeImageFetch';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,18 +12,6 @@ function ha(hex: string, alpha: number): string {
   const g = parseInt(hex.slice(3, 5), 16);
   const b = parseInt(hex.slice(5, 7), 16);
   return `rgba(${r},${g},${b},${alpha})`;
-}
-
-async function fetchBase64(url: string): Promise<string | null> {
-  try {
-    const res = await fetch(url);
-    if (!res.ok) return null;
-    const buf = await res.arrayBuffer();
-    const mime = res.headers.get('content-type') ?? 'image/jpeg';
-    return `data:${mime};base64,${Buffer.from(buf).toString('base64')}`;
-  } catch {
-    return null;
-  }
 }
 
 export async function GET(req: Request) {
@@ -61,7 +50,7 @@ export async function GET(req: Request) {
           c2         = String(g.gradient_c2 ?? c2);
           if (g.image_url) {
             const raw = String(g.image_url).startsWith('http') ? String(g.image_url) : `https://socialpro.es${g.image_url}`;
-            prizeSrc = await fetchBase64(raw);
+            prizeSrc = await safeFetchImageAsBase64(raw);
           }
         }
       } catch { /* fallback a defaults */ }

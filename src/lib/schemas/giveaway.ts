@@ -1,6 +1,11 @@
 import { z } from 'zod';
 import { IdSchema } from '@/lib/schemas/common';
 
+export const BADGE_VALUES = ['HOT', 'NUEVO', 'EXCLUSIVO', 'TOP', 'LIMITED'] as const;
+export type BadgeValue = (typeof BADGE_VALUES)[number];
+export const BadgeSchema = z.enum(BADGE_VALUES);
+export const BadgeNullableSchema = BadgeSchema.nullable();
+
 // Zod v4 acepta javascript: y data: como URLs válidas por spec.
 // Este refinement garantiza que solo se acepten http/https para redirect URLs
 // que se almacenan en DB y sirven a usuarios finales.
@@ -53,7 +58,7 @@ export const CreateCodeFormSchema = z.object({
   brandLogo: emptyStringToUndef(z.url().max(500)),
   redirectUrl: safeRedirectUrl(),
   description: emptyStringToUndef(z.string().max(300)),
-  badge: emptyStringToUndef(z.string().max(50)),
+  badge: emptyStringToUndef(BadgeSchema),
   isFeatured: checkboxOn,
   category: emptyStringToUndef(z.string().max(50)),
   ctaText: emptyStringToUndef(z.string().max(100)),
@@ -69,7 +74,7 @@ export const UpdateCodeFormSchema = z.object({
   brandLogo:   emptyStringToUndef(z.url().max(500)),
   redirectUrl: safeRedirectUrl(),
   description: emptyStringToUndef(z.string().max(300)),
-  badge:       emptyStringToUndef(z.string().max(50)),
+  badge:       emptyStringToUndef(BadgeSchema),
   isFeatured:  checkboxOn,
   category:    emptyStringToUndef(z.string().max(50)),
   ctaText:     emptyStringToUndef(z.string().max(100)),

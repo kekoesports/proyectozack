@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import path from "node:path";
 
 const securityHeaders = [
   { key: 'X-Frame-Options', value: 'DENY' },
@@ -81,6 +82,9 @@ const nextConfig: NextConfig = {
   },
   experimental: {
     optimizePackageImports: ['motion', 'recharts'],
+  },
+  turbopack: {
+    root: path.resolve(__dirname),
   },
 };
 
