@@ -1,6 +1,7 @@
 import type { PostBlocks } from '@/features/news/components/article-blocks/types';
 import { blocks as gentleMatesAstana } from './gentle-mates-alex-astana';
 import { blocks as gentleMatesCambioTonoAstana } from './gentle-mates-cambio-tono-astana';
+import { blocks as nineZPlayoffsAstana } from './9z-playoffs-astana-mouz';
 
 /**
  * Registro slug → PostBlocks. Cada noticia editorial con bloques visuales
@@ -11,6 +12,7 @@ import { blocks as gentleMatesCambioTonoAstana } from './gentle-mates-cambio-ton
 export const POST_BLOCKS: Readonly<Record<string, PostBlocks>> = {
   'gentle-mates-alex-romper-barreras-mentales-astana': gentleMatesAstana,
   'gentle-mates-cambio-tono-astana-2026': gentleMatesCambioTonoAstana,
+  '9z-playoffs-astana-mouz': nineZPlayoffsAstana,
 };
 
 export function getPostBlocks(slug: string): PostBlocks | null {
