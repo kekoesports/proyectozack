@@ -6,7 +6,7 @@ import { getUpcomingAgendaItems } from '@/lib/queries/agendaItems';
 import { getTopRanking } from '@/lib/queries/rankingEntries';
 import { isNewsCategorySlug, type NewsCategorySlug } from '@/lib/utils/news';
 import { absoluteUrl, SITE_URL } from '@/lib/site-url';
-import { NewsHeroCard, NewsSecondaryCard } from '@/features/news/components/NewsHero';
+import { NewsHeroCard, NewsMiniCard } from '@/features/news/components/NewsHero';
 import { LiveBar } from '@/features/news/live-bar/LiveBar';
 import { buildLiveBarItems } from '@/features/news/live-bar/buildLiveBarItems';
 import { NewsFilters } from '@/features/news/components/NewsFilters';
@@ -184,23 +184,23 @@ export default async function NewsPage({ searchParams }: PageProps) {
           <div aria-hidden className="absolute bottom-0 right-1/3 w-[400px] h-[400px] rounded-full pointer-events-none opacity-40" style={{ background: 'radial-gradient(circle, rgba(139,58,173,0.12), transparent 70%)', filter: 'blur(80px)' }} />
 
           <div className="relative max-w-7xl mx-auto px-5 md:px-8 pt-4 pb-5 md:pb-6">
-            {/* Grid 3 columnas: hero | secundarias | sidebar (sidebar hidden on mobile) */}
-            <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.9fr)_minmax(0,1fr)_248px] gap-4 lg:items-start">
-              {/* Col 1 — Hero principal */}
-              <NewsHeroCard post={hero} />
+            {/* Grid 2 columnas: contenido principal | sidebar */}
+            <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_256px] gap-4 lg:items-start">
 
-              {/* Col 2 — Secundarias apiladas */}
-              <div className="flex flex-col gap-3 h-full">
-                {trending[0] && <NewsSecondaryCard post={trending[0]} index={0} />}
-                {trending[1] && <NewsSecondaryCard post={trending[1]} index={1} />}
-                {!trending[0] && (
-                  <div className="flex-1 rounded-xl bg-white/[0.03] border border-white/[0.05] flex items-center justify-center min-h-[160px]">
-                    <p className="text-xs text-white/20 text-center px-4">Asigna noticias secundarias en Slots editoriales</p>
-                  </div>
-                )}
+              {/* Col 1 — Hero + mini-grid */}
+              <div className="flex flex-col gap-4">
+                {/* Hero split horizontal */}
+                <NewsHeroCard post={hero} />
+
+                {/* Mini-grid 4 columnas con las últimas noticias */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {sortedPosts.slice(0, 4).map((p) => (
+                    <NewsMiniCard key={p.slug} post={p} />
+                  ))}
+                </div>
               </div>
 
-              {/* Col 3 — Sidebar: solo desktop */}
+              {/* Col 2 — Sidebar: solo desktop */}
               <div className="hidden lg:block">
                 <NewsHubSidebar latestPosts={sortedPosts} featuredMatch={featuredMatch} ranking={ranking} />
               </div>
