@@ -36,3 +36,4 @@ export * from './pressTargets';
 export * from './live';
 export * from './editorialSlots';
 export * from './agendaItems';
+export * from './rankingEntries';
