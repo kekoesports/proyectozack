@@ -12,12 +12,15 @@ type AgendaItem = InferSelectModel<typeof agendaItems>;
 type RankingEntry = InferSelectModel<typeof rankingEntries>;
 type MatchMeta = { team1?: string; team2?: string; tournament?: string; matchDate?: string; matchTime?: string };
 
+type YoutubePost = { id: number; slug: string; title: string; excerpt: string; coverUrl: string | null; publishedAt: Date | null; youtubeUrl: string };
+
 type Props = {
   readonly interview: PostWithTalents | null;
   readonly clip: PostWithTalents | null;
   readonly featuredMatch: MatchMeta | null;
   readonly agenda: readonly AgendaItem[];
   readonly ranking: readonly RankingEntry[];
+  readonly youtubePosts: readonly YoutubePost[];
   readonly topPosts: readonly PostWithTalents[];
 };
 
@@ -158,7 +161,47 @@ function TopPostsList({ posts }: { posts: readonly PostWithTalents[] }) {
   );
 }
 
-export function NewsHubEditorialZone({ interview, clip, featuredMatch, agenda, ranking, topPosts }: Props) {
+function YouTubeCard({ post }: { post: YoutubePost }) {
+  const videoId = post.youtubeUrl.match(/(?:v=|youtu\.be\/)([^&?/]+)/)?.[1] ?? '';
+  const thumb = videoId
+    ? `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`
+    : post.coverUrl ?? '';
+  const date = post.publishedAt
+    ? new Date(post.publishedAt).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })
+    : '';
+
+  return (
+    <article className="group rounded-xl overflow-hidden bg-[#0c1016] border border-white/[0.07] hover:border-white/[0.15] transition-all">
+      <a href={`/news/${post.slug}`} className="block">
+        <div className="relative aspect-video overflow-hidden">
+          {thumb && (
+            <Image src={thumb} alt={post.title} fill sizes="(min-width:1024px) 30vw, 100vw"
+              className="object-cover transition-transform duration-500 group-hover:scale-[1.04]" />
+          )}
+          <div className="absolute inset-0 bg-black/30 group-hover:bg-black/10 transition-colors" />
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="w-12 h-12 rounded-full bg-red-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+              <svg viewBox="0 0 24 24" fill="white" className="w-5 h-5 ml-0.5">
+                <path d="M8 5v14l11-7z" />
+              </svg>
+            </div>
+          </div>
+          <div className="absolute top-2 left-2">
+            <span className="text-[8px] font-black uppercase tracking-wider bg-red-600 text-white px-2 py-0.5 rounded">YouTube</span>
+          </div>
+        </div>
+        <div className="p-4">
+          <h3 className="font-display font-black uppercase text-white text-[14px] tracking-tight leading-[1.1] line-clamp-2 group-hover:text-sp-orange transition-colors">
+            {post.title}
+          </h3>
+          {date && <time className="text-[9px] text-white/30 uppercase tracking-wider mt-2 block">{date}</time>}
+        </div>
+      </a>
+    </article>
+  );
+}
+
+export function NewsHubEditorialZone({ interview, clip, featuredMatch, agenda, ranking, topPosts, youtubePosts }: Props) {
   const hasMatch = !!(featuredMatch?.team1 && featuredMatch?.team2);
   const hasAgenda = agenda.length > 0;
   const hasRanking = ranking.length > 0;
@@ -198,6 +241,18 @@ export function NewsHubEditorialZone({ interview, clip, featuredMatch, agenda, r
               {clip && <FeaturedPostCard post={clip} label="Clip destacado" />}
               {hasRanking && <RankingWidget entries={ranking} />}
               {topPosts.length > 0 && <TopPostsList posts={topPosts} />}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ── Zona YouTube: Clips de creadores ───────────────────────────── */}
+      {youtubePosts.length > 0 && (
+        <section className="bg-[#06080c] border-t border-white/[0.06] py-10 md:py-14">
+          <div className="max-w-7xl mx-auto px-5 md:px-8">
+            <SectionHeader label="Clips de creadores" title="YouTube SocialPro" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              {youtubePosts.map((p) => <YouTubeCard key={p.slug} post={p} />)}
             </div>
           </div>
         </section>

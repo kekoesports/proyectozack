@@ -4,6 +4,9 @@ import { getNewsPosts } from '@/lib/queries/posts';
 import { getEditorialSlots } from '@/lib/queries/editorialSlots';
 import { getUpcomingAgendaItems } from '@/lib/queries/agendaItems';
 import { getTopRanking } from '@/lib/queries/rankingEntries';
+import { db } from '@/lib/db';
+import { posts } from '@/db/schema';
+import { eq, and, isNotNull, desc, lte } from 'drizzle-orm';
 import { isNewsCategorySlug, type NewsCategorySlug } from '@/lib/utils/news';
 import { absoluteUrl, SITE_URL } from '@/lib/site-url';
 import { NewsHeroCard, NewsSecondaryLarge, NewsSecondaryMedium, NewsCompactStrip } from '@/features/news/components/NewsHero';
@@ -108,13 +111,27 @@ export default async function NewsPage({ searchParams }: PageProps) {
       ? requestedTag
       : null;
 
-  const [allPosts, slots, liveBarItems, agenda, ranking] = await Promise.all([
+  const now = new Date();
+  const [allPosts, slots, liveBarItems, agenda, ranking, rawYoutubePosts] = await Promise.all([
     getNewsPosts(),
     getEditorialSlots(),
     buildLiveBarItems(),
     getUpcomingAgendaItems(5),
     getTopRanking(5),
+    db.select({
+      id: posts.id, slug: posts.slug, title: posts.title, excerpt: posts.excerpt,
+      coverUrl: posts.coverUrl, publishedAt: posts.publishedAt, blocksJson: posts.blocksJson,
+    }).from(posts).where(and(eq(posts.status, 'published'), eq(posts.vertical, 'news'), isNotNull(posts.blocksJson), lte(posts.publishedAt, now))).orderBy(desc(posts.publishedAt)).limit(6),
   ]);
+
+  // Filtrar solo los que tienen embed YouTube
+  type YoutubePost = { id: number; slug: string; title: string; excerpt: string; coverUrl: string | null; publishedAt: Date | null; youtubeUrl: string };
+  const youtubePosts: YoutubePost[] = rawYoutubePosts.flatMap((p) => {
+    const blocks = p.blocksJson as { embeds?: { platform: string; url: string }[] } | null;
+    const ytEmbed = blocks?.embeds?.find((e) => e.platform === 'youtube');
+    if (!ytEmbed) return [];
+    return [{ id: p.id, slug: p.slug, title: p.title, excerpt: p.excerpt, coverUrl: p.coverUrl ?? null, publishedAt: p.publishedAt ?? null, youtubeUrl: ytEmbed.url }];
+  });
 
   // Resolver slots con fallback a posts más recientes
   const slotMap = Object.fromEntries(slots.map((s) => [s.slot, s.post]));
@@ -251,7 +268,7 @@ export default async function NewsPage({ searchParams }: PageProps) {
           </div>
         </section>
 
-        {/* Zona editorial — destacados, análisis, comunidad */}
+        {/* Zona editorial — destacados, análisis, YouTube, comunidad */}
         <NewsHubEditorialZone
           interview={featuredInterview}
           clip={featuredClip}
@@ -259,6 +276,7 @@ export default async function NewsPage({ searchParams }: PageProps) {
           agenda={agenda}
           ranking={ranking}
           topPosts={sortedPosts}
+          youtubePosts={youtubePosts}
         />
 
         <NewsCrossBlogLink />
