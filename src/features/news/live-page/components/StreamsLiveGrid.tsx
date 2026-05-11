@@ -68,7 +68,7 @@ function StreamCard({ creator }: { creator: Cs2SidebarEntry }) {
     <article
       className={`group relative bg-[#0c1016] border rounded-2xl overflow-hidden transition-colors ${
         isLive
-          ? 'border-emerald-500/30 hover:border-emerald-500/55'
+          ? 'border-red-500/35 hover:border-red-500/60 shadow-[0_0_24px_rgba(239,68,68,0.10)]'
           : 'border-white/[0.07] hover:border-white/15 opacity-90 hover:opacity-100'
       }`}
     >
@@ -108,10 +108,10 @@ function StreamCard({ creator }: { creator: Cs2SidebarEntry }) {
 
           <div className="absolute top-3 left-3 flex items-center gap-2">
             {isLive ? (
-              <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider rounded-full px-2.5 py-1 border bg-emerald-500/15 text-emerald-300 border-emerald-500/40 backdrop-blur">
+              <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.22em] rounded-full px-2.5 py-1 border bg-red-500/15 text-red-300 border-red-500/45 backdrop-blur">
                 <span className="relative flex w-1.5 h-1.5">
-                  <span className="absolute inset-0 rounded-full bg-emerald-400 motion-safe:animate-ping opacity-60" />
-                  <span className="relative w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                  <span className="absolute inset-0 rounded-full bg-red-500 motion-safe:animate-ping opacity-70" />
+                  <span className="relative w-1.5 h-1.5 rounded-full bg-red-500" />
                 </span>
                 Live
               </span>
