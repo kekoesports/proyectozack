@@ -18,7 +18,10 @@ export const blocks: PostBlocks = {
     format: 'BO3',
     teamA: { name: 'Gentle Mates', score: 2 },
     teamB: { name: 'HEROIC', score: 0 },
-    maps: [],
+    maps: [
+      { name: 'Ancient', scoreA: 13, scoreB: 8 },
+      { name: 'Dust2', scoreA: 13, scoreB: 11 },
+    ],
     status: 'won',
   },
   roster: {
