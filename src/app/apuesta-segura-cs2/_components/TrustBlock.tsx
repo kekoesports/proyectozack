@@ -2,9 +2,9 @@ import { CtaButton } from './CtaButton';
 import { BLOGABET_URL } from './tokens';
 
 const EXPERTISE = [
-  'ESEA Main',
   'ESEA Advanced',
-  'CCT Europe',
+  'CCT',
+  'Exort Series',
   'Tier 2 EU',
   'Tier 3 EU',
   'Mapas y vetos',
@@ -122,10 +122,12 @@ export function TrustBlock() {
               <span className="bg-sp-grad bg-clip-text text-transparent">competitivo de CS2</span>
             </h2>
             <p className="text-base md:text-lg text-sp-muted leading-relaxed mb-5">
-              ArkeroZ no es un tipster genérico. Es un analista que sigue a
-              diario las ligas que importan: <strong className="text-sp-dark">ESEA Main</strong>,{' '}
-              <strong className="text-sp-dark">ESEA Advanced</strong>, CCT Europe y el resto del tier 2-3
-              europeo. Conoce a los equipos antes de que los conozca el resto.
+              ArkeroZ no es un tipster genérico. Es un pronosticador
+              especializado en las ligas tier 2-3 europeas que importan:{' '}
+              <strong className="text-sp-dark">ESEA Advanced</strong>,{' '}
+              <strong className="text-sp-dark">CCT</strong> y{' '}
+              <strong className="text-sp-dark">Exort Series</strong>. Apuestas con
+              grandes informaciones — conoce a los equipos antes de que los conozca el resto.
             </p>
             <p className="text-sm text-sp-muted leading-relaxed mb-8">
               No prometemos certezas. Operamos donde hay valor real frente a la

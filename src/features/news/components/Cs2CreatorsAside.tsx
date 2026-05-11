@@ -181,7 +181,7 @@ export function Cs2CreatorsAside({ creators, tone = 'dark' }: Props) {
             Apuesta Segura CS2
           </div>
           <div className="text-[10px] text-white/45 mt-1 leading-none">
-            Análisis competitivo · Telegram gratuito
+            Pronosticador CS2 tier 2-3 · Telegram gratuito
           </div>
         </div>
         <TrackedCtaLink

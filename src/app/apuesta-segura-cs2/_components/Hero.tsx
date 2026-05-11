@@ -65,9 +65,10 @@ export function Hero() {
             </h1>
 
             <p className="mt-7 text-base md:text-lg text-sp-muted2 leading-relaxed max-w-xl">
-              Predicciones verificadas por <strong className="text-white font-semibold">ArkeroZ</strong>,
-              especialista en ESEA Main, Advanced y tier europeo. Picks
-              publicados a diario en abierto, comunidad gratuita en Telegram.
+              <strong className="text-white font-semibold">ArkeroZ</strong>, pronosticador
+              de CS2 especializado en ligas de tier 2-3 (ESEA Advanced, CCT, Exort Series).
+              Apuestas con grandes informaciones, picks publicados a diario en abierto y
+              comunidad gratuita en Telegram.
             </p>
 
             <div className="mt-9 flex flex-col sm:flex-row gap-3">

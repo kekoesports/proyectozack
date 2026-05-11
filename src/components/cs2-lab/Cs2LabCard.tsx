@@ -5,10 +5,10 @@ import { TrackedCtaLink } from '@/components/ui/TrackedCtaLink';
 type Variant = 'full' | 'compact';
 
 const PILLARS = [
-  '5+ años en escena CS2 competitiva',
-  'ESEA Main · Advanced · Tier europeo',
-  'Histórico público en Blogabet',
-  'Comunidad gratuita en Telegram',
+  'Pronosticador CS2 · 5+ años en escena',
+  'Tier 2-3 · ESEA Advanced · CCT · Exort Series',
+  'Apuestas con grandes informaciones',
+  'Histórico público en Blogabet · Telegram gratuito',
 ];
 
 const HREF = '/apuesta-segura-cs2';
@@ -73,9 +73,10 @@ export function Cs2LabCard({ variant = 'compact', ctaId, className = '' }: Props
                 {' '}por quien la vive
               </h2>
               <p className="text-base md:text-lg text-white/65 leading-relaxed max-w-xl mb-7">
-                División editorial dentro del ecosistema SocialPro. Tipster
-                ArkeroZ, picks publicados en abierto, comunidad gratuita y
-                seguimiento del tier europeo en directo.
+                División editorial dentro del ecosistema SocialPro. ArkeroZ,
+                pronosticador CS2 especializado en ligas tier 2-3 (ESEA Advanced,
+                CCT, Exort Series). Apuestas con grandes informaciones, picks
+                publicados a diario en abierto.
               </p>
 
               <ul className="grid sm:grid-cols-2 gap-2.5 max-w-xl mb-9">
@@ -195,8 +196,8 @@ export function Cs2LabCard({ variant = 'compact', ctaId, className = '' }: Props
             Análisis competitivo CS2 por ArkeroZ
           </h3>
           <p className="text-sm text-white/55 leading-snug">
-            Canal oficial · Picks publicados en abierto · ESEA Main, Advanced
-            y tier europeo · Telegram gratuito.
+            Pronosticador CS2 · tier 2-3 (ESEA Advanced, CCT, Exort Series) ·
+            Apuestas con grandes informaciones · Telegram gratuito.
           </p>
         </div>
         <span className="flex-none inline-flex items-center gap-2 font-display font-bold uppercase tracking-wider text-xs text-white/85 group-hover:text-white transition-colors">

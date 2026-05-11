@@ -12,14 +12,14 @@ export const metadata: Metadata = {
       'Apuesta Segura CS2 | Análisis competitivo · SocialPro',
   },
   description:
-    'Análisis competitivo de Counter-Strike 2 por ArkeroZ — ESEA Main, Advanced y tier europeo. Canal de Telegram gratuito, picks verificadas en Blogabet. Un proyecto del ecosistema SocialPro.',
+    'ArkeroZ, pronosticador de CS2 especializado en ligas tier 2-3 (ESEA Advanced, CCT, Exort Series). Apuestas con grandes informaciones, picks verificadas en Blogabet y comunidad gratuita en Telegram. Proyecto del ecosistema SocialPro.',
   alternates: {
     canonical: '/apuesta-segura-cs2',
   },
   openGraph: {
     title: 'Apuesta Segura CS2 | Análisis competitivo · SocialPro',
     description:
-      'Picks de CS2 verificadas en Blogabet por ArkeroZ. Telegram gratuito · ESEA Main, Advanced y tier europeo. Un proyecto SocialPro.',
+      'ArkeroZ · pronosticador CS2 tier 2-3 (ESEA Advanced, CCT, Exort Series). Apuestas con grandes informaciones, picks verificadas en Blogabet. Telegram gratuito · SocialPro.',
     url: absoluteUrl('/apuesta-segura-cs2'),
     type: 'website',
     locale: 'es_ES',
@@ -45,7 +45,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Apuesta Segura CS2 | SocialPro',
     description:
-      'Picks CS2 verificadas en Blogabet por ArkeroZ. Telegram gratuito · ESEA Main, Advanced y tier europeo.',
+      'ArkeroZ · pronosticador CS2 tier 2-3 (ESEA Advanced, CCT, Exort Series). Apuestas con grandes informaciones · Telegram gratuito.',
     images: [absoluteUrl('/images/apuesta-segura-cs2/og-1200x630.jpg')],
   },
 };
@@ -70,7 +70,7 @@ const jsonLd = {
       name: 'ArkeroZ',
       jobTitle: 'CS2 Analyst · Esports tipster',
       description:
-        'Más de 5 años analizando el ecosistema competitivo de Counter-Strike 2 — ESEA Main, ESEA Advanced y tier 2-3 europeo.',
+        'Pronosticador de CS2 especializado en ligas tier 2-3 europeas — ESEA Advanced, CCT y Exort Series. Apuestas con grandes informaciones.',
       url: BLOGABET_URL,
       sameAs: [BLOGABET_URL],
       worksFor: { '@id': absoluteUrl('/#organization') },
@@ -83,7 +83,7 @@ const jsonLd = {
           name: '¿Qué tipo de competiciones analizamos?',
           acceptedAnswer: {
             '@type': 'Answer',
-            text: 'Especialización en el ecosistema europeo de CS2 — ESEA Main, ESEA Advanced, CCT Europe y otras competiciones tier 2 y tier 3, además de tier 1 cuando hay valor real frente a la cuota.',
+            text: 'Especialización en ligas tier 2-3 europeas — ESEA Advanced, CCT y Exort Series principalmente. También tier 1 cuando hay valor real frente a la cuota.',
           },
         },
         {

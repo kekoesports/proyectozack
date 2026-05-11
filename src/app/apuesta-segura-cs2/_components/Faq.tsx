@@ -1,7 +1,7 @@
 const FAQS = [
   {
     q: '¿Qué tipo de competiciones analizamos?',
-    a: 'Nos especializamos en el ecosistema europeo de CS2 — ESEA Main, ESEA Advanced, CCT Europe y otras competiciones tier 2 y tier 3. También cubrimos torneos tier 1 cuando hay valor real frente a la cuota. La premisa es siempre la misma: solo donde tenemos contexto suficiente.',
+    a: 'Nos especializamos en ligas tier 2-3 europeas — ESEA Advanced, CCT y Exort Series principalmente. También cubrimos torneos tier 1 cuando hay valor real frente a la cuota. La premisa es siempre la misma: apuestas con grandes informaciones, solo donde tenemos contexto suficiente.',
   },
   {
     q: '¿Cómo se publican los resultados?',
