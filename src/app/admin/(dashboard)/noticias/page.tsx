@@ -20,6 +20,12 @@ export default async function AdminNoticiasPage() {
         <h1 className="font-display text-4xl font-black uppercase text-sp-admin-text">Noticias</h1>
         <div className="flex items-center gap-3">
           <Link
+            href="/admin/noticias/agenda"
+            className="px-4 py-2 rounded-lg border border-sp-admin-border text-sp-admin-muted text-sm font-semibold hover:bg-sp-admin-hover transition-colors"
+          >
+            Agenda
+          </Link>
+          <Link
             href="/admin/noticias/slots"
             className="px-4 py-2 rounded-lg border border-sp-admin-border text-sp-admin-muted text-sm font-semibold hover:bg-sp-admin-hover transition-colors"
           >

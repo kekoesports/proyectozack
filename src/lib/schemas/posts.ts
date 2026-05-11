@@ -71,3 +71,28 @@ export const EditorialSlotSchema = z.object({
 });
 
 export type EditorialSlotInput = z.infer<typeof EditorialSlotSchema>;
+
+export const AgendaItemSchema = z.object({
+  title: z.string().min(2, 'Mínimo 2 caracteres').max(200),
+  team1: z.string().max(100).optional().transform((v) => v || null),
+  team2: z.string().max(100).optional().transform((v) => v || null),
+  tournament: z.string().max(200).optional().transform((v) => v || null),
+  matchDate: z.string().min(1, 'Fecha requerida'),
+  matchTime: z.string().optional().transform((v) => v || null),
+  isLive: z.string().optional().transform((v) => v === 'on' || v === 'true'),
+  sortOrder: z.string().optional().transform((v) => (v ? parseInt(v, 10) : 0)).pipe(z.number().int().min(0)),
+});
+
+export const AgendaItemUpdateSchema = AgendaItemSchema.extend({
+  id: z.string().transform(Number).pipe(z.number().int().positive()),
+});
+
+export type AgendaItemInput = z.infer<typeof AgendaItemSchema>;
+
+export const FeaturedMatchSchema = z.object({
+  team1: z.string().max(100).optional().transform((v) => v || null),
+  team2: z.string().max(100).optional().transform((v) => v || null),
+  tournament: z.string().max(200).optional().transform((v) => v || null),
+  matchDate: z.string().optional().transform((v) => v || null),
+  matchTime: z.string().optional().transform((v) => v || null),
+});
