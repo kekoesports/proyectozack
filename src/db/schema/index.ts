@@ -35,3 +35,4 @@ export * from './contractTemplates';
 export * from './pressTargets';
 export * from './live';
 export * from './editorialSlots';
+export * from './agendaItems';
