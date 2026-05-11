@@ -14,16 +14,18 @@ type Props = {
 };
 
 /**
- * NewsCard editorial compacta — densidad magazine premium (Dexerto/HLTV).
+ * NewsCard editorial compacta — grid editorial premium (HLTV/Dexerto/Steam).
  *
- * Sin stretching ni mt-auto. Cards de altura natural pero uniforme:
- *   - Cover aspect-[16/9] fijo (~57% del card en 3-col)
- *   - Body p-4 con min-h fijo en title/excerpt → 2 líneas siempre,
- *     content-driven height idéntico entre cards
- *   - Footer single-line pegado al excerpt (sin mt-auto)
+ * Card `h-full flex flex-col` → llena la celda de grid (items-stretch default
+ * en CSS Grid). Body `flex-1` + footer `mt-auto` → footer alineado al bottom
+ * cuando el row necesita estirarse. Min-h en title/excerpt asegura que cuando
+ * el content es corto, el body no se quede excesivamente compacto y el footer
+ * queda pegado al excerpt sin gap visible.
  *
- * Grid usa `items-start` + wrappers sin flex → cards sit at natural height,
- * sin empty space al fondo.
+ *   - Cover aspect-[16/9] (~57% del card en 3-col desktop)
+ *   - Body p-4 con title min-h-[40px] + excerpt min-h-[32px] (2 líneas exactas)
+ *   - Footer single-line pinned bottom via mt-auto
+ *   - Hover lift + shadow drop + cover scale-[1.04]
  */
 export function NewsCard({ post, density = 'normal', tone = 'dark' }: Props) {
   const category = deriveNewsCategory(post.slug, post.title);
@@ -38,7 +40,7 @@ export function NewsCard({ post, density = 'normal', tone = 'dark' }: Props) {
 
   return (
     <article
-      className={`group relative w-full flex flex-col border rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-0.5 ${surface}`}
+      className={`group relative w-full h-full flex flex-col border rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-0.5 ${surface}`}
     >
       <Link
         href={`/news/${post.slug}`}
@@ -76,7 +78,7 @@ export function NewsCard({ post, density = 'normal', tone = 'dark' }: Props) {
         ) : null}
       </div>
 
-      <div className={`relative ${compact ? 'p-3.5' : 'p-4'}`}>
+      <div className={`relative flex flex-col flex-1 ${compact ? 'p-3.5' : 'p-4'}`}>
         <h3
           className={`font-display font-black uppercase text-white tracking-tight leading-tight line-clamp-2 group-hover:text-white/95 mb-2 ${
             compact ? 'text-sm min-h-[36px]' : 'text-base min-h-[40px]'
@@ -89,7 +91,7 @@ export function NewsCard({ post, density = 'normal', tone = 'dark' }: Props) {
             {post.excerpt}
           </p>
         ) : null}
-        <div className="flex items-center gap-1.5 text-[10px] text-white/45 min-w-0">
+        <div className="mt-auto flex items-center gap-1.5 text-[10px] text-white/45 min-w-0">
           <span className="uppercase tracking-wider truncate">{post.author}</span>
           <span aria-hidden className="w-0.5 h-0.5 rounded-full bg-white/20 shrink-0" />
           <time

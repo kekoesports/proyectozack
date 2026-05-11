@@ -31,14 +31,9 @@ export function NewsGrid({ posts, activeCategory, tone = 'dark' }: Props) {
   }
 
   return (
-    <div className="flex flex-wrap justify-center gap-5 md:gap-6 items-start">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
       {filtered.map((p) => (
-        <div
-          key={p.slug}
-          className="w-full sm:w-[calc(50%-0.625rem)] md:w-[calc(50%-0.75rem)] lg:w-[calc(33.333%-1rem)]"
-        >
-          <NewsCard post={p} tone={tone} />
-        </div>
+        <NewsCard key={p.slug} post={p} tone={tone} />
       ))}
     </div>
   );
