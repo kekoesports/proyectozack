@@ -4,6 +4,7 @@ import type { Cs2SidebarEntry } from '@/lib/queries/live';
 import { deriveNewsCategory } from '@/lib/utils/news';
 import { Cs2CreatorsAside } from './Cs2CreatorsAside';
 import { SorteosCtaCard } from './SorteosCtaCard';
+import { CodigosCtaCard } from './CodigosCtaCard';
 
 type Tone = 'dark' | 'paper';
 
@@ -84,6 +85,8 @@ export function NewsAside({ posts, cs2Creators, tone = 'dark' }: Props) {
           ))}
         </ul>
       </section>
+
+      <CodigosCtaCard />
     </aside>
   );
 }
