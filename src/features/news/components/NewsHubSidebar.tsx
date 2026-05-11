@@ -4,12 +4,28 @@ import { formatNewsDate } from '@/lib/utils/news';
 import { SorteosCtaCard } from './SorteosCtaCard';
 import { CodigosCtaCard } from './CodigosCtaCard';
 
-type Props = {
-  readonly latestPosts: readonly PostWithTalents[];
+type MatchMeta = {
+  team1?: string;
+  team2?: string;
+  tournament?: string;
+  matchDate?: string;
+  matchTime?: string;
 };
 
-export function NewsHubSidebar({ latestPosts }: Props) {
+type Props = {
+  readonly latestPosts: readonly PostWithTalents[];
+  readonly featuredMatch: MatchMeta | null;
+};
+
+function formatMatchDate(dateStr?: string, timeStr?: string) {
+  if (!dateStr) return null;
+  const d = new Date(`${dateStr}T${timeStr ?? '00:00'}`);
+  return d.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }) + (timeStr ? ` · ${timeStr}` : '');
+}
+
+export function NewsHubSidebar({ latestPosts, featuredMatch }: Props) {
   const ultimaHora = latestPosts.slice(0, 5);
+  const hasMatch = !!(featuredMatch?.team1 && featuredMatch?.team2);
 
   return (
     <aside className="flex flex-col gap-5">
@@ -47,16 +63,34 @@ export function NewsHubSidebar({ latestPosts }: Props) {
         </ul>
       </div>
 
-      {/* Partido destacado — placeholder */}
+      {/* Partido destacado */}
       <div className="rounded-2xl bg-white/[0.04] border border-white/[0.07] px-4 py-4">
-        <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-white/40 mb-3">Partido destacado</p>
-        <p className="text-xs text-white/30 italic">Próximamente</p>
+        <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-sp-orange mb-3">Partido destacado</p>
+        {hasMatch ? (
+          <div>
+            {featuredMatch.tournament && (
+              <p className="text-[10px] text-white/40 uppercase tracking-wider mb-2">{featuredMatch.tournament}</p>
+            )}
+            <div className="flex items-center justify-between gap-2">
+              <p className="font-display font-black uppercase text-white text-sm tracking-tight">{featuredMatch.team1}</p>
+              <span className="text-[10px] font-bold text-white/30 px-2">vs</span>
+              <p className="font-display font-black uppercase text-white text-sm tracking-tight">{featuredMatch.team2}</p>
+            </div>
+            {(featuredMatch.matchDate) && (
+              <p className="text-[10px] text-white/40 mt-2 text-center">
+                {formatMatchDate(featuredMatch.matchDate, featuredMatch.matchTime)}
+              </p>
+            )}
+          </div>
+        ) : (
+          <p className="text-xs text-white/25 italic">Próximamente</p>
+        )}
       </div>
 
-      {/* Ranking hispano — placeholder por decisión editorial */}
+      {/* Ranking hispano — placeholder Fase 3 */}
       <div className="rounded-2xl bg-white/[0.04] border border-white/[0.07] px-4 py-4">
         <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-white/40 mb-3">Ranking hispano</p>
-        <p className="text-xs text-white/30 italic">Próximamente</p>
+        <p className="text-xs text-white/25 italic">Próximamente</p>
       </div>
 
       {/* Sorteos activos */}

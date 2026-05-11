@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { safeJsonLd } from '@/lib/safeJsonLd';
 import { getNewsPosts } from '@/lib/queries/posts';
 import { getEditorialSlots } from '@/lib/queries/editorialSlots';
+import { getUpcomingAgendaItems } from '@/lib/queries/agendaItems';
 import { isNewsCategorySlug, type NewsCategorySlug } from '@/lib/utils/news';
 import { absoluteUrl, SITE_URL } from '@/lib/site-url';
 import { NewsHero } from '@/features/news/components/NewsHero';
@@ -105,14 +106,17 @@ export default async function NewsPage({ searchParams }: PageProps) {
       ? requestedTag
       : null;
 
-  const [allPosts, slots, liveBarItems] = await Promise.all([
+  const [allPosts, slots, liveBarItems, agenda] = await Promise.all([
     getNewsPosts(),
     getEditorialSlots(),
     buildLiveBarItems(),
+    getUpcomingAgendaItems(5),
   ]);
 
   // Resolver slots con fallback a posts más recientes
   const slotMap = Object.fromEntries(slots.map((s) => [s.slot, s.post]));
+  const matchSlot = slots.find((s) => s.slot === 'featured_match');
+  const featuredMatch = (matchSlot?.meta ?? null) as { team1?: string; team2?: string; tournament?: string; matchDate?: string; matchTime?: string } | null;
   const sortedPosts = [...allPosts].sort(
     (a, b) => (b.publishedAt?.getTime() ?? 0) - (a.publishedAt?.getTime() ?? 0),
   );
@@ -178,7 +182,7 @@ export default async function NewsPage({ searchParams }: PageProps) {
               </div>
 
               {/* Sidebar */}
-              <NewsHubSidebar latestPosts={sortedPosts} />
+              <NewsHubSidebar latestPosts={sortedPosts} featuredMatch={featuredMatch} />
             </div>
           </div>
         </section>
@@ -202,7 +206,7 @@ export default async function NewsPage({ searchParams }: PageProps) {
         </section>
 
         {/* Entrevista + Clip + Agenda */}
-        <NewsHubBottomBlocks interview={featuredInterview} clip={featuredClip} />
+        <NewsHubBottomBlocks interview={featuredInterview} clip={featuredClip} agenda={agenda} />
 
         <NewsCrossBlogLink />
       </main>

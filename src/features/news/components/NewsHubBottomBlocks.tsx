@@ -1,20 +1,31 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import type { PostWithTalents } from '@/lib/queries/posts';
+import type { InferSelectModel } from 'drizzle-orm';
+import type { agendaItems } from '@/db/schema';
 import { formatNewsDate } from '@/lib/utils/news';
+
+type AgendaItem = InferSelectModel<typeof agendaItems>;
 
 type Props = {
   readonly interview: PostWithTalents | null;
   readonly clip: PostWithTalents | null;
+  readonly agenda: readonly AgendaItem[];
 };
 
-export function NewsHubBottomBlocks({ interview, clip }: Props) {
-  if (!interview && !clip) return null;
+function formatAgendaTime(dateStr: string, timeStr: string | null) {
+  const d = new Date(`${dateStr}T${timeStr ?? '00:00'}`);
+  return d.toLocaleDateString('es-ES', { weekday: 'short', day: '2-digit', month: 'short' }) + (timeStr ? ` ${timeStr}` : '');
+}
+
+export function NewsHubBottomBlocks({ interview, clip, agenda }: Props) {
+  if (!interview && !clip && agenda.length === 0) return null;
 
   return (
     <section className="bg-sp-black border-t border-white/[0.06] py-14 md:py-20">
       <div className="max-w-7xl mx-auto px-5 md:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
           {/* Entrevista destacada */}
           {interview ? (
             <Link
@@ -44,7 +55,7 @@ export function NewsHubBottomBlocks({ interview, clip }: Props) {
               </div>
             </Link>
           ) : (
-            <div className="rounded-2xl bg-white/[0.02] border border-white/[0.05] p-5 flex items-center justify-center">
+            <div className="rounded-2xl bg-white/[0.02] border border-white/[0.05] p-5 hidden md:flex items-center justify-center">
               <p className="text-xs text-white/20">Sin entrevista destacada</p>
             </div>
           )}
@@ -83,16 +94,52 @@ export function NewsHubBottomBlocks({ interview, clip }: Props) {
               </div>
             </Link>
           ) : (
-            <div className="rounded-2xl bg-white/[0.02] border border-white/[0.05] p-5 flex items-center justify-center">
+            <div className="rounded-2xl bg-white/[0.02] border border-white/[0.05] p-5 hidden md:flex items-center justify-center">
               <p className="text-xs text-white/20">Sin clip destacado</p>
             </div>
           )}
 
-          {/* Agenda del día — placeholder Fase 2 */}
-          <div className="rounded-2xl bg-white/[0.04] border border-white/[0.07] p-5">
-            <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-white/40 mb-4">Agenda del día</p>
-            <p className="text-xs text-white/25 italic">Próximamente — agenda de partidos y eventos</p>
+          {/* Agenda del día */}
+          <div className="rounded-2xl bg-white/[0.04] border border-white/[0.07] overflow-hidden">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.06]">
+              <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-white">Agenda del día</p>
+            </div>
+            {agenda.length === 0 ? (
+              <div className="px-5 py-6">
+                <p className="text-xs text-white/25 italic">Sin eventos próximos</p>
+              </div>
+            ) : (
+              <ul className="divide-y divide-white/[0.05]">
+                {agenda.map((item) => (
+                  <li key={item.id} className="px-5 py-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        {item.team1 && item.team2 ? (
+                          <p className="text-xs font-bold text-white">
+                            {item.team1} <span className="text-white/30 font-normal">vs</span> {item.team2}
+                          </p>
+                        ) : (
+                          <p className="text-xs font-bold text-white">{item.title}</p>
+                        )}
+                        {item.tournament && (
+                          <p className="text-[10px] text-white/40 mt-0.5">{item.tournament}</p>
+                        )}
+                      </div>
+                      <div className="text-right shrink-0">
+                        <p className="text-[10px] text-white/50 font-mono">
+                          {formatAgendaTime(item.matchDate, item.matchTime)}
+                        </p>
+                        {item.isLive && (
+                          <span className="text-[9px] font-black text-red-400 bg-red-900/30 px-1.5 py-0.5 rounded-full">LIVE</span>
+                        )}
+                      </div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
+
         </div>
       </div>
     </section>

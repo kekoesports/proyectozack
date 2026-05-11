@@ -111,6 +111,20 @@ export async function deletePostVoidAction(formData: FormData): Promise<void> {
   await deletePostAction(formData);
 }
 
+export async function updateFeaturedMatchAction(formData: FormData): Promise<void> {
+  await requireAnyRole(['admin', 'manager'], '/admin/login');
+  const { FeaturedMatchSchema } = await import('@/lib/schemas/posts');
+  const parsed = FeaturedMatchSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) return;
+  const meta = Object.fromEntries(Object.entries(parsed.data).filter(([, v]) => v !== null));
+  await db
+    .update(editorialSlots)
+    .set({ meta: Object.keys(meta).length > 0 ? meta : null })
+    .where(eq(editorialSlots.slot, 'featured_match'));
+  revalidatePath('/news');
+  revalidatePath('/admin/noticias/slots');
+}
+
 export async function updateEditorialSlotAction(formData: FormData): Promise<void> {
   await requireAnyRole(['admin', 'manager'], '/admin/login');
 
