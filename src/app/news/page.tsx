@@ -171,6 +171,7 @@ export default async function NewsPage({ searchParams }: PageProps) {
         dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }}
       />
       <main className="bg-sp-black text-white">
+        <h1 className="sr-only">SocialPro News — Esports, CS2 y comunidad gaming</h1>
         {/* LiveBar */}
         <LiveBar items={liveBarItems} />
 
