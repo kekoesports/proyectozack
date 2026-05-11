@@ -253,13 +253,42 @@ export function NewsHubEditorialZone({ interview, clip, featuredMatch, agenda, r
         </div>
       </section>
 
-      {/* ── Ecosistema SocialPro — compacto ────────────────────────────── */}
-      <section className="bg-sp-black border-t border-white/[0.06] py-6 md:py-8">
+      {/* ── Ecosistema SocialPro — strips compactos ────────────────────── */}
+      <section className="bg-sp-black border-t border-white/[0.06] py-5">
         <div className="max-w-7xl mx-auto px-5 md:px-8">
           <div className="flex flex-col sm:flex-row gap-3">
-            <div className="flex-1"><SorteosCtaCard tone="dark" /></div>
-            <div className="flex-1"><CodigosCtaCard /></div>
-            <div className="flex-1"><Cs2LabCard variant="compact" ctaId="news_hub_zona_comunidad" /></div>
+            {/* Sorteos */}
+            <a href="/sorteos"
+              className="flex-1 flex items-center gap-3 bg-sp-grad rounded-xl px-4 py-3 hover:opacity-90 transition-opacity group">
+              <div className="shrink-0 w-8 h-8 rounded-lg bg-white/15 flex items-center justify-center text-sm">🎁</div>
+              <div className="min-w-0">
+                <p className="text-[9px] font-bold uppercase tracking-wider text-white/70">Sorteos activos</p>
+                <p className="font-display font-black uppercase text-white text-sm leading-tight">Gana skins CS2</p>
+              </div>
+              <span className="ml-auto text-white/60 group-hover:translate-x-0.5 transition-transform text-sm">→</span>
+            </a>
+            {/* Códigos */}
+            <a href="/giveaways"
+              className="flex-1 flex items-center gap-3 bg-white/[0.05] border border-white/[0.08] rounded-xl px-4 py-3 hover:border-white/20 transition-colors group">
+              <div className="shrink-0 w-8 h-8 rounded-lg bg-sp-orange/15 border border-sp-orange/20 flex items-center justify-center text-sm">%</div>
+              <div className="min-w-0">
+                <p className="text-[9px] font-bold uppercase tracking-wider text-sp-orange">Códigos descuento</p>
+                <p className="font-display font-black uppercase text-white text-sm leading-tight">Usa el código de tu creator</p>
+              </div>
+              <span className="ml-auto text-white/40 group-hover:translate-x-0.5 transition-transform text-sm">→</span>
+            </a>
+            {/* Apuesta Segura */}
+            <a href="/apuesta-segura-cs2"
+              className="flex-1 flex items-center gap-3 bg-white/[0.05] border border-white/[0.08] rounded-xl px-4 py-3 hover:border-sp-pink/30 transition-colors group">
+              <div className="shrink-0 w-8 h-8 rounded-lg bg-sp-grad flex items-center justify-center">
+                <Image src="/images/logos/2.png" alt="SocialPro" width={16} height={16} className="object-contain" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-[9px] font-bold uppercase tracking-wider text-sp-orange">Apuesta Segura CS2</p>
+                <p className="font-display font-black uppercase text-white text-sm leading-tight">Análisis competitivo · ArkeroZ</p>
+              </div>
+              <span className="ml-auto text-white/40 group-hover:translate-x-0.5 transition-transform text-sm">→</span>
+            </a>
           </div>
         </div>
       </section>
