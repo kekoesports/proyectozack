@@ -54,7 +54,9 @@ Si Gentle Mates encadena dos victorias más en Astana, esta nota dejará de ser 
 
 ## Foco hispano
 
-La escena francesa sigue siendo referencia para el competitivo hispano. El roster CS2 de SocialPro — Martinez entre ellos — cubre el tier 1 y tier 2 europeo desde sus canales, y Gentle Mates es de los equipos que más se discute por volumen de contenido y perfil regional. Que vuelvan a su mejor versión amplía el menú competitivo del que se nutre la conversación CS2 en ESP y LATAM.
+Más allá del partido, Gentle Mates encaja en una conversación que importa fuera de Francia. El club francés ha apostado fuerte por talento español: el roster actual incluye seis jugadores de España. Eso convierte al equipo en uno de los pocos en tier 1 europeo que representa a la vez a Francia y a España, una escena tradicionalmente cerrada para proyectos con núcleo hispano.
+
+Martinez, jugador de la agencia SocialPro, viene siguiendo el recorrido de cerca. Que el equipo vuelva a su mejor versión amplía el menú competitivo que se sigue desde ESP y LATAM.
 
 Astana sigue. La siguiente serie llega esta misma semana.
 `;
@@ -65,8 +67,22 @@ async function main() {
     where: eq(posts.slug, SLUG),
     columns: { id: true, slug: true },
   });
+
   if (existing) {
-    console.log(`[skip] post ya existe (id=${existing.id}). Nada que hacer.`);
+    console.log(`[update] post existe (id=${existing.id}) — sincronizo title/excerpt/body/cover/tags`);
+    const [updated] = await db
+      .update(posts)
+      .set({
+        title: TITLE,
+        excerpt: EXCERPT,
+        bodyMd: BODY_MD,
+        coverUrl: COVER_URL,
+        author: AUTHOR,
+        tags: TAGS,
+      })
+      .where(eq(posts.slug, SLUG))
+      .returning({ id: posts.id, slug: posts.slug });
+    console.log(`[ok] post actualizado:`, updated);
     process.exit(0);
   }
 
