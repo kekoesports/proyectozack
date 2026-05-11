@@ -56,7 +56,7 @@ export function NewsLatestModule({ posts }: Props) {
           </Link>
         </div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
           {items.map((p) => {
             const cat = deriveNewsCategory(p.slug, p.title);
             const date = formatNewsDate(p.publishedAt);
@@ -122,6 +122,34 @@ export function NewsLatestModule({ posts }: Props) {
             );
           })}
         </div>
+
+        <Link
+          href="/sorteos"
+          className="group mt-10 md:mt-12 relative block rounded-2xl overflow-hidden bg-sp-grad p-6 md:p-8 shadow-[0_12px_40px_rgba(245,99,42,0.18)]"
+        >
+          <div
+            aria-hidden
+            className="absolute -top-16 -right-16 w-56 h-56 rounded-full pointer-events-none opacity-30"
+            style={{ background: 'radial-gradient(circle, rgba(255,255,255,0.6), transparent 60%)' }}
+          />
+          <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-4 md:gap-6">
+            <div className="min-w-0">
+              <p className="text-[10px] font-bold uppercase tracking-[0.32em] text-white/85 mb-2">
+                Sorteos activos · SocialPro Gaming
+              </p>
+              <h3 className="font-display font-black uppercase text-white text-2xl md:text-4xl tracking-tight leading-[0.95]">
+                Gana skins CS2 esta semana
+              </h3>
+              <p className="text-[13px] md:text-sm text-white/85 mt-2 max-w-xl leading-snug">
+                Skins, knives y recompensas gaming de los creadores SocialPro. Gratis, sin trampas.
+              </p>
+            </div>
+            <span className="flex-none inline-flex items-center gap-2 bg-sp-black/40 hover:bg-sp-black/65 backdrop-blur text-white text-[11px] md:text-xs font-bold uppercase tracking-wider rounded-full px-5 py-3 transition-colors whitespace-nowrap">
+              Ver sorteos
+              <span aria-hidden className="group-hover:translate-x-0.5 transition-transform">→</span>
+            </span>
+          </div>
+        </Link>
       </div>
     </section>
   );

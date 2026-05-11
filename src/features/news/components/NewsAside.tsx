@@ -3,6 +3,7 @@ import type { PostWithTalents } from '@/lib/queries/posts';
 import type { Cs2SidebarEntry } from '@/lib/queries/live';
 import { deriveNewsCategory } from '@/lib/utils/news';
 import { Cs2CreatorsAside } from './Cs2CreatorsAside';
+import { SorteosCtaCard } from './SorteosCtaCard';
 
 type Tone = 'dark' | 'paper';
 
@@ -33,6 +34,7 @@ export function NewsAside({ posts, cs2Creators, tone = 'dark' }: Props) {
 
   return (
     <aside className="space-y-6 lg:space-y-7">
+      <SorteosCtaCard tone={tone} />
       <Cs2CreatorsAside creators={cs2Creators} tone={tone} />
 
       {editor.length > 0 ? (
