@@ -6,7 +6,7 @@ import { getUpcomingAgendaItems } from '@/lib/queries/agendaItems';
 import { getTopRanking } from '@/lib/queries/rankingEntries';
 import { isNewsCategorySlug, type NewsCategorySlug } from '@/lib/utils/news';
 import { absoluteUrl, SITE_URL } from '@/lib/site-url';
-import { NewsHeroCard, NewsSecondaryCard, NewsMiniCard } from '@/features/news/components/NewsHero';
+import { NewsHeroCard, NewsSecondaryLarge, NewsSecondaryMedium, NewsCompactStrip } from '@/features/news/components/NewsHero';
 import { LiveBar } from '@/features/news/live-bar/LiveBar';
 import { buildLiveBarItems } from '@/features/news/live-bar/buildLiveBarItems';
 import { NewsFilters } from '@/features/news/components/NewsFilters';
@@ -184,33 +184,38 @@ export default async function NewsPage({ searchParams }: PageProps) {
           <div aria-hidden className="absolute bottom-0 right-1/3 w-[400px] h-[400px] rounded-full pointer-events-none opacity-40" style={{ background: 'radial-gradient(circle, rgba(139,58,173,0.12), transparent 70%)', filter: 'blur(80px)' }} />
 
           <div className="relative max-w-7xl mx-auto px-5 md:px-8 pt-4 pb-5 md:pb-6">
-            {/* Grid 3 columnas: hero | 2 secundarias | sidebar */}
-            <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.85fr)_minmax(0,1fr)_256px] gap-4">
+            {/* Portada editorial — hero | 3 piezas jerarquizadas | sidebar */}
+            <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.75fr)_minmax(0,1fr)_256px] gap-4">
 
-              {/* Col 1 — Hero principal */}
+              {/* Col 1 — Hero principal 560px */}
               <NewsHeroCard post={hero} />
 
-              {/* Col 2 — Dos secundarias apiladas (altura total = hero) */}
+              {/* Col 2 — Tres piezas con jerarquía: grande + media + compacta */}
               <div className="flex flex-col gap-4">
+                {/* Pieza grande ~265px */}
                 {trending[0]
-                  ? <NewsSecondaryCard post={trending[0]} />
-                  : <div className="flex-1 rounded-xl bg-white/[0.03] border border-white/[0.05] h-[272px]" />}
+                  ? <NewsSecondaryLarge post={trending[0]} />
+                  : <div className="rounded-xl bg-white/[0.03] border border-white/[0.05] h-[265px]" />}
+
+                {/* Pieza media ~175px */}
                 {trending[1]
-                  ? <NewsSecondaryCard post={trending[1]} />
-                  : <div className="flex-1 rounded-xl bg-white/[0.03] border border-white/[0.05] h-[272px]" />}
+                  ? <NewsSecondaryMedium post={trending[1]} />
+                  : <div className="rounded-xl bg-white/[0.03] border border-white/[0.05] h-[175px]" />}
+
+                {/* Pieza compacta ~100px: entrevista > clip > tercer post */}
+                {(() => {
+                  const compact = featuredInterview ?? featuredClip ?? sortedPosts[2] ?? null;
+                  const label = featuredInterview ? 'Entrevista' : featuredClip ? 'Clip' : undefined;
+                  return compact
+                    ? <NewsCompactStrip post={compact} label={label} />
+                    : null;
+                })()}
               </div>
 
-              {/* Col 3 — Sidebar: solo desktop */}
+              {/* Col 3 — Sidebar solo desktop */}
               <div className="hidden lg:block">
                 <NewsHubSidebar latestPosts={sortedPosts} featuredMatch={featuredMatch} ranking={ranking} />
               </div>
-            </div>
-
-            {/* Mini-grid 4 cards debajo */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
-              {sortedPosts.slice(0, 4).map((p) => (
-                <NewsMiniCard key={p.slug} post={p} />
-              ))}
             </div>
           </div>
         </section>
