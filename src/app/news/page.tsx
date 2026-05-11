@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import { safeJsonLd } from '@/lib/safeJsonLd';
 import { getNewsPosts } from '@/lib/queries/posts';
 import { getEditorialSlots } from '@/lib/queries/editorialSlots';
@@ -181,33 +180,19 @@ export default async function NewsPage({ searchParams }: PageProps) {
           <div aria-hidden className="absolute -top-24 -left-24 w-[520px] h-[520px] rounded-full pointer-events-none opacity-60" style={{ background: 'radial-gradient(circle, rgba(245,99,42,0.10), rgba(196,40,128,0.05) 50%, transparent 70%)', filter: 'blur(80px)' }} />
           <div aria-hidden className="absolute bottom-0 right-1/3 w-[400px] h-[400px] rounded-full pointer-events-none opacity-40" style={{ background: 'radial-gradient(circle, rgba(139,58,173,0.12), transparent 70%)', filter: 'blur(80px)' }} />
 
-          <div className="relative max-w-7xl mx-auto px-5 md:px-8 pt-7 pb-8 md:pb-10">
-            {/* Header de sección */}
-            <div className="flex items-end justify-between gap-4 mb-6 md:mb-8">
-              <div>
-                <p className="text-[10px] font-bold uppercase tracking-[0.32em] text-sp-orange mb-2">SocialPro News</p>
-                <h1 className="font-display text-3xl md:text-5xl font-black uppercase text-white tracking-tight leading-[0.95]">
-                  Esports y CS2,<br className="hidden md:block" />
-                  <span className="bg-sp-grad bg-clip-text text-transparent">contado por dentro</span>
-                </h1>
-              </div>
-              <Link href="/blog" className="hidden md:inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-white/40 hover:text-white/75 transition-colors whitespace-nowrap">
-                ¿Caso de éxito? Ver Blog →
-              </Link>
-            </div>
-
+          <div className="relative max-w-7xl mx-auto px-5 md:px-8 pt-4 pb-5 md:pb-6">
             {/* Grid 3 columnas: hero | secundarias | sidebar (sidebar hidden on mobile) */}
-            <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.85fr)_minmax(0,1fr)_260px] gap-5 lg:items-stretch">
+            <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.9fr)_minmax(0,1fr)_248px] gap-4 lg:items-stretch">
               {/* Col 1 — Hero principal */}
               <NewsHeroCard post={hero} />
 
-              {/* Col 2 — Secundarias apiladas, llenan la altura del hero */}
-              <div className="flex flex-col gap-4 h-full">
-                {trending[0] && <NewsSecondaryCard post={trending[0]} />}
-                {trending[1] && <NewsSecondaryCard post={trending[1]} />}
+              {/* Col 2 — Secundarias apiladas */}
+              <div className="flex flex-col gap-3 h-full">
+                {trending[0] && <NewsSecondaryCard post={trending[0]} index={0} />}
+                {trending[1] && <NewsSecondaryCard post={trending[1]} index={1} />}
                 {!trending[0] && (
-                  <div className="flex-1 rounded-2xl bg-white/[0.03] border border-white/[0.05] flex items-center justify-center min-h-[160px]">
-                    <p className="text-xs text-white/20">Asigna noticias secundarias en Slots editoriales</p>
+                  <div className="flex-1 rounded-xl bg-white/[0.03] border border-white/[0.05] flex items-center justify-center min-h-[160px]">
+                    <p className="text-xs text-white/20 text-center px-4">Asigna noticias secundarias en Slots editoriales</p>
                   </div>
                 )}
               </div>
