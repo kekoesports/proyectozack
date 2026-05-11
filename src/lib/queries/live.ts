@@ -237,7 +237,7 @@ export async function getCs2RosterForSidebar(): Promise<Cs2SidebarEntry[]> {
         eq(talents.status, 'active'),
         eq(talents.excludeFromLive, false),
         isNotNull(talentSocials.handle),
-        sql`(${talents.game} ILIKE '%cs2%' OR ${talents.game} ILIKE '%counter%')`,
+        sql`(${talents.game} ILIKE '%cs2%' OR ${talents.game} ILIKE '%counter%' OR ${talents.featuredLive} = true)`,
       ),
     )
     .orderBy(
