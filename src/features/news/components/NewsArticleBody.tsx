@@ -47,6 +47,14 @@ export function NewsArticleBody({ bodyMd }: { bodyMd: string }) {
             </h3>
           );
         }
+        if (block === '---' || block === '***' || block === '___') {
+          return (
+            <hr
+              key={key}
+              className="my-8 md:my-10 border-0 h-px bg-gradient-to-r from-transparent via-white/15 to-transparent"
+            />
+          );
+        }
         if (block.startsWith('> ')) {
           const quote = block.slice(2);
           return (
