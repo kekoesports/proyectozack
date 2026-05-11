@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { isIGamingBrand } from '@/lib/igaming';
 import { GiveawayPrizePlaceholder } from './GiveawayPrizePlaceholder';
 import type { GiveawayWithTalent } from '@/types';
@@ -157,26 +158,55 @@ export function CompactSorteoCard({ giveaway }: Props): React.JSX.Element {
 
       {/* Footer: creator + CTA */}
       <div className="flex items-center gap-2.5 px-3 py-2.5 bg-white/[0.02] border-t border-white/[0.04]">
-        {/* Creator avatar + name */}
-        <div className="flex items-center gap-2 flex-1 min-w-0">
-          {giveaway.talent.photoUrl ? (
-            <Image
-              src={giveaway.talent.photoUrl}
-              alt={giveaway.talent.name}
-              width={20}
-              height={20}
-              className="rounded-full object-cover border border-white/10 shrink-0"
-            />
-          ) : (
-            <div
-              className="w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-black text-white/80 shrink-0"
-              style={{ background: `linear-gradient(135deg, ${giveaway.talent.gradientC1}, ${giveaway.talent.gradientC2})` }}
-            >
-              {giveaway.talent.initials}
-            </div>
-          )}
-          <span className="text-[10px] font-bold text-white/45 truncate">{giveaway.talent.name}</span>
-        </div>
+        {/* Creator avatar + name → link al perfil del talento (solo si visibility public) */}
+        {giveaway.talent.visibility === 'public' ? (
+          <Link
+            href={`/talentos/${giveaway.talent.slug}`}
+            onClick={(e) => e.stopPropagation()}
+            className="group/creator flex items-center gap-2 flex-1 min-w-0 hover:text-white/85 transition-colors"
+            aria-label={`Ver perfil de ${giveaway.talent.name}`}
+          >
+            {giveaway.talent.photoUrl ? (
+              <Image
+                src={giveaway.talent.photoUrl}
+                alt={giveaway.talent.name}
+                width={20}
+                height={20}
+                className="rounded-full object-cover border border-white/10 shrink-0 group-hover/creator:border-white/30 transition-colors"
+              />
+            ) : (
+              <div
+                className="w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-black text-white/80 shrink-0"
+                style={{ background: `linear-gradient(135deg, ${giveaway.talent.gradientC1}, ${giveaway.talent.gradientC2})` }}
+              >
+                {giveaway.talent.initials}
+              </div>
+            )}
+            <span className="text-[10px] font-bold text-white/45 truncate group-hover/creator:text-white/80 transition-colors">
+              {giveaway.talent.name}
+            </span>
+          </Link>
+        ) : (
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            {giveaway.talent.photoUrl ? (
+              <Image
+                src={giveaway.talent.photoUrl}
+                alt={giveaway.talent.name}
+                width={20}
+                height={20}
+                className="rounded-full object-cover border border-white/10 shrink-0"
+              />
+            ) : (
+              <div
+                className="w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-black text-white/80 shrink-0"
+                style={{ background: `linear-gradient(135deg, ${giveaway.talent.gradientC1}, ${giveaway.talent.gradientC2})` }}
+              >
+                {giveaway.talent.initials}
+              </div>
+            )}
+            <span className="text-[10px] font-bold text-white/45 truncate">{giveaway.talent.name}</span>
+          </div>
+        )}
 
         {/* CTA */}
         {isActive && (

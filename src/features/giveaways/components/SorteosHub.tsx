@@ -18,6 +18,8 @@ type SorteosHubProps = {
   readonly brands: readonly BrandOption[];
   readonly creators: readonly Creator[];
   readonly totalValue?: string;
+  /** Slug del creator pre-seleccionado vía URL `?creator=<slug>`. Case-insensitive. */
+  readonly initialCreatorSlug?: string;
 };
 
 const STATUS_LABELS: Record<StatusFilter, string> = {
@@ -26,9 +28,13 @@ const STATUS_LABELS: Record<StatusFilter, string> = {
   finished: 'Finalizados',
 };
 
-export function SorteosHub({ active, finished, brands, creators, totalValue }: SorteosHubProps): React.JSX.Element {
+export function SorteosHub({ active, finished, brands, creators, totalValue, initialCreatorSlug }: SorteosHubProps): React.JSX.Element {
   const [selectedBrand, setSelectedBrand]     = useState<string | null>(null);
-  const [selectedCreator, setSelectedCreator] = useState<number | null>(null);
+  const [selectedCreator, setSelectedCreator] = useState<number | null>(() => {
+    if (!initialCreatorSlug) return null;
+    const target = initialCreatorSlug.toLowerCase();
+    return creators.find((c) => c.slug.toLowerCase() === target)?.id ?? null;
+  });
   const [status, setStatus]                   = useState<StatusFilter>('active');
 
   const all = useMemo(() => [...active, ...finished], [active, finished]);

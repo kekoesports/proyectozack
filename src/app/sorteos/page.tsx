@@ -42,7 +42,14 @@ function computeTotalValue(giveaways: { value: string | null }[]): string {
   return total.toLocaleString('es-ES', { maximumFractionDigits: 0 }) + '€';
 }
 
-export default async function SorteosPage(): Promise<React.JSX.Element> {
+type PageProps = {
+  searchParams: Promise<{ creator?: string }>;
+};
+
+export default async function SorteosPage({ searchParams }: PageProps): Promise<React.JSX.Element> {
+  const sp = await searchParams;
+  const initialCreatorSlug = sp.creator?.toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 64) || undefined;
+
   const [active, finished] = await Promise.all([
     getAllActiveGiveaways(),
     getAllFinishedGiveaways(),
@@ -200,6 +207,7 @@ export default async function SorteosPage(): Promise<React.JSX.Element> {
         brands={brands}
         creators={creators}
         {...(totalValue ? { totalValue } : {})}
+        {...(initialCreatorSlug ? { initialCreatorSlug } : {})}
       />
 
       {/* Footer */}

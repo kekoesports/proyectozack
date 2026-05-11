@@ -369,12 +369,22 @@ export default async function TalentPage({ params }: PageProps) {
 
             {activeWithTalent.length > 0 && (
               <section className="space-y-3">
-                <div className="flex items-center gap-2 mb-1">
-                  <p className="text-[10px] font-black uppercase tracking-[0.25em] text-white/30">Sorteos activos</p>
-                  <span className="flex items-center gap-1 text-[9px] font-black text-[#C3FC00]">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#C3FC00] animate-pulse" aria-hidden />
-                    {activeWithTalent.length} live
-                  </span>
+                <div className="flex items-center justify-between gap-2 mb-1">
+                  <div className="flex items-center gap-2">
+                    <p className="text-[10px] font-black uppercase tracking-[0.25em] text-white/30">Sorteos activos</p>
+                    <span className="flex items-center gap-1 text-[9px] font-black text-[#C3FC00]">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#C3FC00] animate-pulse" aria-hidden />
+                      {activeWithTalent.length} live
+                    </span>
+                  </div>
+                  <Link
+                    href={`/sorteos?creator=${talent.slug}`}
+                    className="inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider text-white/35 hover:text-sp-orange transition-colors"
+                    aria-label={`Ver todos los sorteos de ${talent.name}`}
+                  >
+                    Ver todos en sorteos
+                    <span aria-hidden>→</span>
+                  </Link>
                 </div>
                 {featuredGiveaway && <GiveawayFeatured giveaway={featuredGiveaway} />}
                 {restGiveaways.length > 0 && (
