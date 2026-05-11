@@ -133,19 +133,27 @@ export default async function NewsPage({ searchParams }: PageProps) {
     return [{ id: p.id, slug: p.slug, title: p.title, excerpt: p.excerpt, coverUrl: p.coverUrl ?? null, publishedAt: p.publishedAt ?? null, youtubeUrl: ytEmbed.url }];
   });
 
+  // IDs de posts con embed YouTube — excluirlos de la portada editorial
+  const youtubePostIds = new Set(youtubePosts.map((p) => p.id));
+
   // Resolver slots con fallback a posts más recientes
   const slotMap = Object.fromEntries(slots.map((s) => [s.slot, s.post]));
   const matchSlot = slots.find((s) => s.slot === 'featured_match');
   const featuredMatch = (matchSlot?.meta ?? null) as { team1?: string; team2?: string; tournament?: string; matchDate?: string; matchTime?: string } | null;
+
   const sortedPosts = [...allPosts].sort(
     (a, b) => (b.publishedAt?.getTime() ?? 0) - (a.publishedAt?.getTime() ?? 0),
   );
 
-  const hero = slotMap['hero'] ?? sortedPosts[0] ?? null;
-  const secondary1 = slotMap['secondary_1'] ?? sortedPosts.find((p) => p.slug !== hero?.slug) ?? null;
+  // Posts editoriales: excluir vídeos YouTube del hero/secondary/sidebar
+  const editorialPosts = sortedPosts.filter((p) => !youtubePostIds.has(p.id));
+
+  // Portada: usa editorialPosts (sin YouTube) para fallback
+  const hero = slotMap['hero'] ?? editorialPosts[0] ?? null;
+  const secondary1 = slotMap['secondary_1'] ?? editorialPosts.find((p) => p.slug !== hero?.slug) ?? null;
   const secondary2 =
     slotMap['secondary_2'] ??
-    sortedPosts.find((p) => p.slug !== hero?.slug && p.slug !== secondary1?.slug) ??
+    editorialPosts.find((p) => p.slug !== hero?.slug && p.slug !== secondary1?.slug) ??
     null;
   const featuredInterview = slotMap['featured_interview'] ?? null;
   const featuredClip = slotMap['featured_clip'] ?? null;
@@ -227,7 +235,7 @@ export default async function NewsPage({ searchParams }: PageProps) {
                         : <div className="h-full rounded-xl bg-white/[0.03] border border-white/[0.05]" />}
                     </div>
                     {(() => {
-                      const compact = featuredInterview ?? featuredClip ?? sortedPosts[2] ?? null;
+                      const compact = featuredInterview ?? featuredClip ?? editorialPosts[2] ?? null;
                       const label = featuredInterview ? 'Entrevista' : featuredClip ? 'Clip' : undefined;
                       return compact ? (
                         <div className="flex-[2] min-h-0 min-h-[76px]">
@@ -244,7 +252,7 @@ export default async function NewsPage({ searchParams }: PageProps) {
 
               {/* Sidebar — columna independiente, no afecta altura del editorial */}
               <div className="hidden lg:block w-[256px] shrink-0">
-                <NewsHubSidebar latestPosts={sortedPosts} featuredMatch={featuredMatch} ranking={ranking} />
+                <NewsHubSidebar latestPosts={editorialPosts} featuredMatch={featuredMatch} ranking={ranking} />
               </div>
             </div>
           </div>
@@ -275,7 +283,7 @@ export default async function NewsPage({ searchParams }: PageProps) {
           featuredMatch={featuredMatch}
           agenda={agenda}
           ranking={ranking}
-          topPosts={sortedPosts}
+          topPosts={editorialPosts}
           youtubePosts={youtubePosts}
         />
 
