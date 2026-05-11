@@ -4,9 +4,6 @@ import type { PostWithTalents } from '@/lib/queries/posts';
 import type { InferSelectModel } from 'drizzle-orm';
 import type { agendaItems, rankingEntries } from '@/db/schema';
 import { formatNewsDate } from '@/lib/utils/news';
-import { SorteosCtaCard } from './SorteosCtaCard';
-import { CodigosCtaCard } from './CodigosCtaCard';
-import { Cs2LabCard } from '@/components/cs2-lab/Cs2LabCard';
 
 type AgendaItem = InferSelectModel<typeof agendaItems>;
 type RankingEntry = InferSelectModel<typeof rankingEntries>;
@@ -234,7 +231,7 @@ export function NewsHubEditorialZone({ interview, clip, featuredMatch, agenda, r
 
               {/* Derecha: partido + agenda apilados */}
               <div className="flex flex-col gap-4">
-                {hasMatch && <MatchWidget meta={featuredMatch!} />}
+                {hasMatch && featuredMatch && <MatchWidget meta={featuredMatch} />}
                 {hasAgenda && <AgendaWidget items={agenda} />}
                 {!hasMatch && !hasAgenda && null}
               </div>
@@ -258,7 +255,7 @@ export function NewsHubEditorialZone({ interview, clip, featuredMatch, agenda, r
         <div className="max-w-7xl mx-auto px-5 md:px-8">
           <div className="flex flex-col sm:flex-row gap-3">
             {/* Sorteos */}
-            <a href="/sorteos"
+            <Link href="/sorteos"
               className="flex-1 flex items-center gap-3 bg-sp-grad rounded-xl px-4 py-3 hover:opacity-90 transition-opacity group">
               <div className="shrink-0 w-8 h-8 rounded-lg bg-white/15 flex items-center justify-center text-sm">🎁</div>
               <div className="min-w-0">
@@ -266,9 +263,9 @@ export function NewsHubEditorialZone({ interview, clip, featuredMatch, agenda, r
                 <p className="font-display font-black uppercase text-white text-sm leading-tight">Gana skins CS2</p>
               </div>
               <span className="ml-auto text-white/60 group-hover:translate-x-0.5 transition-transform text-sm">→</span>
-            </a>
+            </Link>
             {/* Códigos */}
-            <a href="/giveaways"
+            <Link href="/giveaways"
               className="flex-1 flex items-center gap-3 bg-white/[0.05] border border-white/[0.08] rounded-xl px-4 py-3 hover:border-white/20 transition-colors group">
               <div className="shrink-0 w-8 h-8 rounded-lg bg-sp-orange/15 border border-sp-orange/20 flex items-center justify-center text-sm">%</div>
               <div className="min-w-0">
@@ -276,9 +273,9 @@ export function NewsHubEditorialZone({ interview, clip, featuredMatch, agenda, r
                 <p className="font-display font-black uppercase text-white text-sm leading-tight">Usa el código de tu creator</p>
               </div>
               <span className="ml-auto text-white/40 group-hover:translate-x-0.5 transition-transform text-sm">→</span>
-            </a>
+            </Link>
             {/* Apuesta Segura */}
-            <a href="/apuesta-segura-cs2"
+            <Link href="/apuesta-segura-cs2"
               className="flex-1 flex items-center gap-3 bg-white/[0.05] border border-white/[0.08] rounded-xl px-4 py-3 hover:border-sp-pink/30 transition-colors group">
               <div className="shrink-0 w-8 h-8 rounded-lg bg-sp-grad flex items-center justify-center">
                 <Image src="/images/logos/2.png" alt="SocialPro" width={16} height={16} className="object-contain" />
@@ -288,7 +285,7 @@ export function NewsHubEditorialZone({ interview, clip, featuredMatch, agenda, r
                 <p className="font-display font-black uppercase text-white text-sm leading-tight">Análisis competitivo · ArkeroZ</p>
               </div>
               <span className="ml-auto text-white/40 group-hover:translate-x-0.5 transition-transform text-sm">→</span>
-            </a>
+            </Link>
           </div>
         </div>
       </section>

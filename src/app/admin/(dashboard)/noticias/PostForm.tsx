@@ -165,7 +165,6 @@ export function PostForm({ post, action, submitLabel }: Props) {
             required
           />
         )}
-        {!preview && <input type="hidden" name="bodyMd" value={body} />}
         {fieldError('bodyMd')}
       </div>
 
