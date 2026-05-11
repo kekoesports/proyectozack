@@ -25,28 +25,34 @@ export function Calendar7Days({ days, tone = 'dark' }: Props) {
         </div>
       </header>
 
-      <ul className="grid grid-cols-7">
+      <ul className="flex md:grid md:grid-cols-7 overflow-x-auto snap-x snap-mandatory scroll-px-2 md:overflow-visible">
         {days.map((day, i) => {
           const isToday = i === 0;
           const hasContent = day.matchCount > 0 || day.highlights.length > 0;
           return (
             <li
               key={day.date.toISOString()}
-              className={`relative px-3 py-4 border-r border-white/[0.04] last:border-r-0 ${
+              className={`relative flex-none snap-start min-w-[88px] md:min-w-0 px-3 md:px-4 py-5 md:py-6 border-r border-white/[0.04] last:border-r-0 ${
                 hasContent ? '' : 'opacity-40'
-              } ${isToday ? 'bg-white/[0.025]' : ''}`}
+              } ${isToday ? 'bg-white/[0.04]' : ''}`}
             >
+              {isToday ? (
+                <span
+                  aria-hidden
+                  className="absolute top-0 inset-x-0 h-[2px] bg-sp-orange"
+                />
+              ) : null}
               <div className="flex flex-col items-center text-center mb-3">
                 <span
-                  className={`text-[9px] font-bold uppercase tracking-[0.18em] ${
-                    isToday ? 'text-sp-orange' : 'text-white/45'
+                  className={`text-[10px] font-bold uppercase tracking-[0.22em] ${
+                    isToday ? 'text-sp-orange' : 'text-white/50'
                   }`}
                 >
                   {isToday ? 'Hoy' : day.weekday}
                 </span>
                 <span
-                  className={`font-display font-black tabular-nums leading-none mt-0.5 ${
-                    isToday ? 'text-white text-2xl' : 'text-white/85 text-xl'
+                  className={`font-display font-black tabular-nums leading-none mt-1 ${
+                    isToday ? 'text-white text-3xl md:text-4xl' : 'text-white/90 text-2xl md:text-[28px]'
                   }`}
                 >
                   {day.dayLabel}
@@ -55,17 +61,20 @@ export function Calendar7Days({ days, tone = 'dark' }: Props) {
 
               <div className="space-y-1.5">
                 {day.matchCount > 0 ? (
-                  <div className="text-[10px] text-white/55 text-center font-medium">
-                    {day.matchCount} {day.matchCount === 1 ? 'partido' : 'partidos'}
+                  <div className="text-[10px] text-white/65 text-center font-medium leading-none">
+                    <span className="font-display font-black tabular-nums text-white text-base mr-1">
+                      {day.matchCount}
+                    </span>
+                    {day.matchCount === 1 ? 'partido' : 'partidos'}
                   </div>
                 ) : null}
                 {day.highlights.map((h, hi) => {
                   const cls =
                     h.accent === 'primary'
-                      ? 'bg-sp-orange/10 border-sp-orange/25 text-sp-orange'
+                      ? 'bg-sp-orange/15 border-sp-orange/35 text-sp-orange'
                       : h.accent === 'secondary'
-                        ? 'bg-sp-pink/10 border-sp-pink/25 text-sp-pink'
-                        : 'bg-white/[0.03] border-white/10 text-white/45';
+                        ? 'bg-sp-pink/15 border-sp-pink/35 text-sp-pink'
+                        : 'bg-white/[0.05] border-white/15 text-white/55';
                   return (
                     <div
                       key={hi}

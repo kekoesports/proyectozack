@@ -141,15 +141,17 @@ export default async function NewsLivePage({ searchParams }: PageProps) {
             </nav>
             <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-[0.32em] text-sp-orange mb-2">
-                  SocialPro Live
+                <p className="text-[10px] font-bold uppercase tracking-[0.32em] text-sp-orange mb-3">
+                  SocialPro Live · CS2 ESP+LATAM
                 </p>
-                <h1 className="font-display text-3xl md:text-5xl font-black uppercase tracking-tight leading-[0.95]">
-                  CS2 hispano <span className="bg-sp-grad bg-clip-text text-transparent">en directo</span>
+                <h1 className="font-display text-4xl md:text-6xl font-black uppercase tracking-tight leading-[0.9] flex items-center gap-3">
+                  <span aria-hidden className="relative inline-flex flex-none w-3.5 h-3.5 md:w-5 md:h-5 rounded-full bg-red-500 align-middle">
+                    <span aria-hidden className="absolute inset-0 rounded-full bg-red-500 motion-safe:animate-ping opacity-70" />
+                  </span>
+                  <span className="bg-sp-grad bg-clip-text text-transparent">En directo</span>
                 </h1>
-                <p className="mt-3 text-sm md:text-base text-white/55 max-w-xl">
-                  Streams del roster, partidos del día, roster moves y calendario tier europeo.
-                  Actualizándose en tiempo real con la actividad de la escena.
+                <p className="mt-3 text-sm text-white/55 max-w-xl">
+                  Streams, partidos, roster moves y calendario competitivo. En tiempo real.
                 </p>
               </div>
               <Link
