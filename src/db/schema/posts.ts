@@ -10,6 +10,7 @@ export const posts = pgTable('posts', {
   excerpt: text('excerpt').notNull(),
   bodyMd: text('body_md').notNull(),
   coverUrl: varchar('cover_url', { length: 500 }),
+  ogImageUrl: varchar('og_image_url', { length: 500 }),
   author: varchar('author', { length: 100 }).notNull().default('SocialPro'),
   status: postStatusEnum('status').notNull().default('draft'),
   vertical: postVerticalEnum('vertical').notNull().default('blog'),
