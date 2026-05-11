@@ -185,7 +185,7 @@ export default async function NewsPage({ searchParams }: PageProps) {
 
           <div className="relative max-w-7xl mx-auto px-5 md:px-8 pt-4 pb-5 md:pb-6">
             {/* Grid 3 columnas: hero | secundarias | sidebar (sidebar hidden on mobile) */}
-            <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.9fr)_minmax(0,1fr)_248px] gap-4 lg:items-stretch">
+            <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.9fr)_minmax(0,1fr)_248px] gap-4 lg:items-start">
               {/* Col 1 — Hero principal */}
               <NewsHeroCard post={hero} />
 
