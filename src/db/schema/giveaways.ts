@@ -22,6 +22,7 @@ export const giveaways = pgTable('giveaways', {
 }, (t) => [
   index('giveaways_talent_id_idx').on(t.talentId),
   index('giveaways_ends_at_idx').on(t.endsAt),
+  index('giveaways_featured_sort_ends_idx').on(t.isFeatured, t.sortOrder, t.endsAt),
 ]);
 
 export const giveawaysRelations = relations(giveaways, ({ one }) => ({

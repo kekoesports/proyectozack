@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { safeJsonLd } from '@/lib/safeJsonLd';
 import { getTeam } from '@/lib/queries/content';
 import { AboutSection } from '@/features/marketing-site/components/AboutSection';
 import { TeamGrid } from '@/features/marketing-site/components/TeamGrid';
@@ -149,7 +150,7 @@ export default async function NosotrosPage() {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }}
       />
       <div>
         <h1 className="sr-only">Agencia Gaming España desde 2012</h1>

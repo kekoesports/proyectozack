@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { safeJsonLd } from '@/lib/safeJsonLd';
 import Link from 'next/link';
 import Image from 'next/image';
 
@@ -67,7 +68,7 @@ export default async function TalentsEnPage() {
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(itemListJsonLd) }} />
 
       {/* Hero */}
       <section className="bg-sp-black pt-32 pb-16 text-center">

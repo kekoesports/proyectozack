@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { safeJsonLd } from '@/lib/safeJsonLd';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { getBrandBySlug, getBrandSlugs } from '@/lib/brands';
@@ -115,10 +116,10 @@ export default async function BrandPage({ params }: PageProps) {
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(orgSchema) }} />
-      {codeListSchema && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(codeListSchema) }} />}
-      {eventListSchema && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(eventListSchema) }} />}
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(orgSchema) }} />
+      {codeListSchema && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(codeListSchema) }} />}
+      {eventListSchema && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(eventListSchema) }} />}
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbSchema) }} />
 
       <main className="bg-sp-black text-white min-h-screen">
 

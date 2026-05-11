@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { safeJsonLd } from '@/lib/safeJsonLd';
 import Link from 'next/link';
 import { ServicesSection } from '@/features/marketing-site/components/ServicesSection';
 import { absoluteUrl, SITE_URL } from '@/lib/site-url';
@@ -133,9 +134,9 @@ const breadcrumbJsonLd = buildBreadcrumbJsonLd([
 export default function ServiciosPage() {
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(professionalServiceJsonLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceJsonLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(professionalServiceJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(serviceJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbJsonLd) }} />
       <div>
         <h1 className="sr-only">Agencia Marketing Gaming e iGaming</h1>
         <ServicesSection />

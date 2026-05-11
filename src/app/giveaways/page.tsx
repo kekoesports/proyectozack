@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { safeJsonLd } from '@/lib/safeJsonLd';
 import Image from 'next/image';
 import Link from 'next/link';
 import { getAllActiveGiveaways, getAllFinishedGiveaways, extractUniqueBrands } from '@/lib/queries/giveawaysHub';
@@ -75,10 +76,10 @@ export default async function GiveawaysPage(): Promise<React.JSX.Element> {
   return (
     <>
       {eventListSchema && (
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(eventListSchema) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(eventListSchema) }} />
       )}
       {offerListSchema && (
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(offerListSchema) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(offerListSchema) }} />
       )}
       <h1 className="sr-only">Códigos y Recompensas Gaming — SocialPro</h1>
 

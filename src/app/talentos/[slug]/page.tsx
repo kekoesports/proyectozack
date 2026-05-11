@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { safeJsonLd } from '@/lib/safeJsonLd';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -141,11 +142,11 @@ export default async function TalentPage({ params }: PageProps) {
   return (
     <div className="min-h-screen relative overflow-x-hidden"
       style={{ background: `radial-gradient(ellipse 80% 35% at 50% 0%, ${talent.gradientC1}0d 0%, transparent 45%)` }}>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbJsonLd) }} />
       {activeWithTalent.map((g) => (
         <script key={g.id} type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(generateEventSchema(g, absoluteUrl(''))) }}
+          dangerouslySetInnerHTML={{ __html: safeJsonLd(generateEventSchema(g, absoluteUrl(''))) }}
         />
       ))}
 

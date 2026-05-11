@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { memo, useState, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { isIGamingBrand } from '@/lib/igaming';
+import { useNow } from '@/lib/now-context';
 import { GiveawayPrizePlaceholder } from './GiveawayPrizePlaceholder';
 import type { GiveawayWithTalent } from '@/types';
 
@@ -15,9 +16,9 @@ function getCtaLabel(url: string): string {
   return 'Participar';
 }
 
-function formatTimeLeft(endsAt: Date | null): string | null {
+function formatTimeLeft(endsAt: Date | null, now: number): string | null {
   if (!endsAt) return null;
-  const diff = endsAt.getTime() - Date.now();
+  const diff = endsAt.getTime() - now;
   if (diff <= 0) return null;
   const days = Math.floor(diff / (1000 * 60 * 60 * 24));
   const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
@@ -29,6 +30,7 @@ function formatTimeLeft(endsAt: Date | null): string | null {
 function deriveBadge(
   g: GiveawayWithTalent,
   isActive: boolean,
+  now: number,
 ): { label: string; className: string } | null {
   if (!isActive) return null;
   if (g.isFeatured) return {
@@ -45,7 +47,7 @@ function deriveBadge(
     className: 'bg-orange-500/15 border-orange-400/35 text-orange-300',
   };
   if (g.endsAt) {
-    const hoursLeft = (new Date(g.endsAt).getTime() - Date.now()) / (1000 * 60 * 60);
+    const hoursLeft = (new Date(g.endsAt).getTime() - now) / (1000 * 60 * 60);
     if (hoursLeft > 0 && hoursLeft < 48) return {
       label: '⚡ Acaba pronto',
       className: 'bg-red-500/15 border-red-400/30 text-red-300',
@@ -58,14 +60,15 @@ type Props = {
   readonly giveaway: GiveawayWithTalent;
 };
 
-export function CompactSorteoCard({ giveaway }: Props): React.JSX.Element {
+function CompactSorteoCardImpl({ giveaway }: Props): React.JSX.Element {
   const [imgError, setImgError] = useState(false);
   const handleImgError = useCallback(() => setImgError(true), []);
+  const now = useNow();
 
-  const isActive = giveaway.endsAt === null || new Date(giveaway.endsAt) > new Date();
+  const isActive = giveaway.endsAt === null || new Date(giveaway.endsAt).getTime() > now;
   const needsAge18 = isIGamingBrand(giveaway.brandName);
-  const badge = deriveBadge(giveaway, isActive);
-  const timeLeft = isActive ? formatTimeLeft(giveaway.endsAt) : null;
+  const badge = deriveBadge(giveaway, isActive, now);
+  const timeLeft = isActive ? formatTimeLeft(giveaway.endsAt, now) : null;
   const ctaLabel = getCtaLabel(giveaway.redirectUrl);
 
   return (
@@ -224,3 +227,5 @@ export function CompactSorteoCard({ giveaway }: Props): React.JSX.Element {
     </div>
   );
 }
+
+export const CompactSorteoCard = memo(CompactSorteoCardImpl);

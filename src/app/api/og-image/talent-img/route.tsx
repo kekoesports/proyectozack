@@ -1,5 +1,6 @@
 import { ImageResponse } from 'next/og';
 import { db } from '@/lib/db';
+import { safeFetchImageAsBase64 } from '@/lib/security/safeImageFetch';
 
 export const dynamic = 'force-dynamic';
 
@@ -35,15 +36,7 @@ export async function GET(req: Request) {
             const rawUrl = photoUrl.startsWith('http')
               ? photoUrl
               : `https://socialpro.es${photoUrl}`;
-            try {
-              const imgRes = await fetch(rawUrl);
-              if (imgRes.ok) {
-                const buf = await imgRes.arrayBuffer();
-                const b64 = Buffer.from(buf).toString('base64');
-                const mime = imgRes.headers.get('content-type') ?? 'image/jpeg';
-                photoSrc = `data:${mime};base64,${b64}`;
-              }
-            } catch { /* sin foto */ }
+            photoSrc = await safeFetchImageAsBase64(rawUrl);
           }
         }
       } catch { /* fallback al slug */ }

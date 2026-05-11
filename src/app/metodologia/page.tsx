@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { safeJsonLd } from '@/lib/safeJsonLd';
 import Link from 'next/link';
 import { SectionTag } from '@/components/ui/SectionTag';
 import { SectionHeading } from '@/components/ui/SectionHeading';
@@ -110,7 +111,7 @@ export default function MetodologiaPage() {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(howToJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(howToJsonLd) }}
       />
       {/* ── Hero ── */}
       <section className="bg-sp-black pt-32 pb-20">

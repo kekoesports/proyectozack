@@ -18,6 +18,7 @@ export const creatorCodes = pgTable('creator_codes', {
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [
   index('creator_codes_talent_id_idx').on(t.talentId),
+  index('creator_codes_featured_sort_idx').on(t.isFeatured, t.sortOrder),
 ]);
 
 export const creatorCodesRelations = relations(creatorCodes, ({ one }) => ({

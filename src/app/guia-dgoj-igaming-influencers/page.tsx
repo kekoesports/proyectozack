@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { safeJsonLd } from '@/lib/safeJsonLd';
 import Link from 'next/link';
 import { absoluteUrl, SITE_URL } from '@/lib/site-url';
 import { TrackedCtaLink } from '@/components/ui/TrackedCtaLink';
@@ -117,7 +118,7 @@ const g = {
 export default function GuiaDgojPage() {
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }} />
 
       {/* ── Hero ── */}
       <section className="bg-sp-black pt-32 pb-16">

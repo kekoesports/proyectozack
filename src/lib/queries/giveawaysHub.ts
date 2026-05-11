@@ -10,14 +10,22 @@ export type BrandOption = {
 };
 
 /**
- * Todos los sorteos activos (endsAt > now) con talent asociado, ordenados por endsAt ASC, para el hub público de sorteos.
+ * Tope de sorteos finalizados servidos al hub público. Limitar evita un payload
+ * que crece sin techo según se acumulan sorteos antiguos. Si necesitamos "ver
+ * más", añadir una segunda página explícita (searchParam) — no ampliar este cap.
+ */
+const FINISHED_LIMIT = 50;
+
+const NO_DEMO = not(like(giveaways.title, '[DEMO]%'));
+
+/**
+ * Sorteos activos (endsAt > now o sin endsAt) con talent asociado, ordenados por
+ * destacados primero / sortOrder ASC / endsAt ASC. Para el hub público `/sorteos`.
  *
  * @cache none
  * @visibility public
  * @returns array de GiveawayWithTalent (puede ser vacío). Nunca null.
  */
-const NO_DEMO = not(like(giveaways.title, '[DEMO]%'));
-
 export async function getAllActiveGiveaways(): Promise<GiveawayWithTalent[]> {
   const rows = await db.query.giveaways.findMany({
     // endsAt null = sin fecha de fin = activo indefinidamente (igual que en perfil de talento)
@@ -25,23 +33,26 @@ export async function getAllActiveGiveaways(): Promise<GiveawayWithTalent[]> {
     with: { talent: true },
     orderBy: (g, { asc, desc }) => [desc(g.isFeatured), asc(g.sortOrder), asc(g.endsAt)],
   });
-  return rows as GiveawayWithTalent[];
+  return rows;
 }
 
 /**
- * Todos los sorteos finalizados (endsAt <= now) con talent, ordenados por endsAt DESC, para el archivo público del hub.
+ * Sorteos finalizados (endsAt <= now) con talent. Limitado a `FINISHED_LIMIT`
+ * para acotar el payload del hub público. Si el usuario quiere navegar más
+ * antiguos, paginamos en el futuro vía searchParam — NO levantar este límite.
  *
  * @cache none
  * @visibility public
- * @returns array de GiveawayWithTalent (puede ser vacío). Nunca null.
+ * @returns array de GiveawayWithTalent (puede ser vacío, top N). Nunca null.
  */
 export async function getAllFinishedGiveaways(): Promise<GiveawayWithTalent[]> {
   const rows = await db.query.giveaways.findMany({
     where: and(lte(giveaways.endsAt, new Date()), NO_DEMO),
     with: { talent: true },
     orderBy: (g, { desc }) => [desc(g.endsAt)],
+    limit: FINISHED_LIMIT,
   });
-  return rows as GiveawayWithTalent[];
+  return rows;
 }
 
 /**

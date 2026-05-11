@@ -110,7 +110,7 @@ export function CampaignForm({
     campaign ? String(campaign.amountTalent ?? '0') : '0',
   );
   const [currency, setCurrency] = useState<'EUR' | 'USD'>(
-    (campaign?.currency as 'EUR' | 'USD' | null | undefined) ?? 'EUR',
+    campaign?.currency === 'USD' ? 'USD' : 'EUR',
   );
   const [selectedBrandId, setSelectedBrandId] = useState(
     campaign ? String(campaign.brandId) : '',

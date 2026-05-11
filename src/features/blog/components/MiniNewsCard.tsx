@@ -1,14 +1,14 @@
 import Link from 'next/link';
-import type { PostWithTalents } from '@/lib/queries/posts';
-import { readTime, deriveCategory, formatBlogDate } from '@/lib/utils/blog';
+import type { PostListItem } from '@/lib/queries/posts';
+import { deriveCategory, formatBlogDate } from '@/lib/utils/blog';
 
 type Props = {
-  readonly post: PostWithTalents;
+  readonly post: PostListItem;
 };
 
 export function MiniNewsCard({ post }: Props) {
   const category  = deriveCategory(post.slug, post.title);
-  const mins      = readTime(post.bodyMd);
+  const mins      = post.readMinutes;
   const dateLabel = formatBlogDate(post.publishedAt);
 
   return (

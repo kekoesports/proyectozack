@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { safeJsonLd } from '@/lib/safeJsonLd';
 import { ContactSection } from '@/features/contact/components/ContactSection';
 import { absoluteUrl } from '@/lib/site-url';
 
@@ -48,7 +49,7 @@ export default function ContactoPage() {
     <div>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }}
       />
       <h1 className="sr-only">Contacta con Nuestra Agencia Gaming</h1>
       <ContactSection />

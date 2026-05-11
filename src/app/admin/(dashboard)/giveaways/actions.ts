@@ -1,7 +1,9 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { z } from 'zod';
 import { requireAnyRole } from '@/lib/auth-guard';
+import { assertCanDelete } from '@/lib/permissions';
 import { createGiveaway, updateGiveaway, deleteGiveaway } from '@/lib/queries/giveaways';
 import { like, eq } from 'drizzle-orm';
 import { giveaways } from '@/db/schema';
@@ -9,11 +11,17 @@ import { db } from '@/lib/db';
 import { parseFormData } from '@/lib/forms/parseFormData';
 import { firstError } from '@/lib/forms/firstError';
 import { logRedacted } from '@/lib/log';
+import { StrictIdSchema, StrictBooleanSchema } from '@/lib/schemas/common';
 import {
+  BadgeSchema,
   CreateGiveawayFormSchema,
   DeleteGiveawaySchema,
   UpdateGiveawayFormSchema,
+  type BadgeValue,
 } from '@/lib/schemas/giveaway';
+
+const ToggleArgsSchema      = z.tuple([StrictIdSchema, StrictBooleanSchema]);
+const BadgeBoundArgsSchema  = z.tuple([StrictIdSchema, BadgeSchema.nullable()]);
 
 export type GiveawayActionState =
   | { ok: true }
@@ -86,33 +94,45 @@ export async function updateGiveawayAction(formData: FormData): Promise<Giveaway
 
 export async function setGiveawayFeaturedAction(id: number, value: boolean): Promise<void> {
   await requireAnyRole(['admin', 'manager'], '/admin/login');
-  await db.update(giveaways).set({ isFeatured: value }).where(eq(giveaways.id, id));
+  const parsed = ToggleArgsSchema.safeParse([id, value]);
+  if (!parsed.success) return;
+  const [pid, pval] = parsed.data;
+  await db.update(giveaways).set({ isFeatured: pval }).where(eq(giveaways.id, pid));
   revalidateGiveawayPaths();
 }
 
-export async function setGiveawayBadgeAction(id: number, badge: string | null): Promise<void> {
+export async function setGiveawayBadgeAction(id: number, badge: BadgeValue | null): Promise<void> {
   await requireAnyRole(['admin', 'manager'], '/admin/login');
-  await db.update(giveaways).set({ badge: badge ?? null }).where(eq(giveaways.id, id));
+  const parsed = BadgeBoundArgsSchema.safeParse([id, badge]);
+  if (!parsed.success) return;
+  const [pid, pbadge] = parsed.data;
+  await db.update(giveaways).set({ badge: pbadge }).where(eq(giveaways.id, pid));
   revalidateGiveawayPaths();
 }
 
 export async function setGiveawayBadgeFromFormAction(formData: FormData): Promise<void> {
   await requireAnyRole(['admin', 'manager'], '/admin/login');
-  const id = Number(formData.get('giveawayId'));
-  const badge = (formData.get('badge') as string) || null;
-  if (!id) return;
-  await db.update(giveaways).set({ badge }).where(eq(giveaways.id, id));
+  const rawId = formData.get('giveawayId');
+  const id = typeof rawId === 'string' ? Number(rawId) : NaN;
+  if (!id || isNaN(id)) return;
+  const rawBadge = formData.get('badge');
+  if (typeof rawBadge !== 'string' || rawBadge === '') return;
+  const parsed = BadgeSchema.safeParse(rawBadge);
+  if (!parsed.success) return;
+  await db.update(giveaways).set({ badge: parsed.data }).where(eq(giveaways.id, id));
   revalidateGiveawayPaths();
 }
 
 export async function deleteAllDemosAction(): Promise<void> {
-  await requireAnyRole(['admin', 'manager'], '/admin/login');
+  const { user } = await requireAnyRole(['admin', 'manager'], '/admin/login');
+  assertCanDelete(user.role);
   await db.delete(giveaways).where(like(giveaways.title, '[DEMO]%'));
   revalidateGiveawayPaths();
 }
 
 export async function deleteGiveawayAction(formData: FormData): Promise<void> {
-  await requireAnyRole(['admin', 'manager'], '/admin/login');
+  const { user } = await requireAnyRole(['admin', 'manager'], '/admin/login');
+  assertCanDelete(user.role);
   const parsed = parseFormData(formData, DeleteGiveawaySchema);
   if (!parsed.ok) return;
   await deleteGiveaway(parsed.data.id);

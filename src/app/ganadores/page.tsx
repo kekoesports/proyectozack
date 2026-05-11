@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { safeJsonLd } from '@/lib/safeJsonLd';
 import Link from 'next/link';
 import { getAllWinners } from '@/lib/queries/giveawayWinners';
 import type { GiveawayWinnerFull } from '@/types';
@@ -89,7 +90,7 @@ export default async function GanadoresPage({ searchParams }: PageProps) {
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }} />
 
       <main className="bg-sp-black text-white min-h-screen">
         <section className="max-w-4xl mx-auto px-4 sm:px-6 pt-28 pb-6">
