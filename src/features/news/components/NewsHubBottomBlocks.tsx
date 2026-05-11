@@ -54,11 +54,7 @@ export function NewsHubBottomBlocks({ interview, clip, agenda }: Props) {
                 <p className="text-xs text-white/50 mt-2">{formatNewsDate(interview.publishedAt)} · {interview.author}</p>
               </div>
             </Link>
-          ) : (
-            <div className="rounded-2xl bg-white/[0.02] border border-white/[0.05] p-5 hidden md:flex items-center justify-center">
-              <p className="text-xs text-white/20">Sin entrevista destacada</p>
-            </div>
-          )}
+          ) : null}
 
           {/* Clip destacado */}
           {clip ? (
@@ -93,11 +89,7 @@ export function NewsHubBottomBlocks({ interview, clip, agenda }: Props) {
                 <p className="text-xs text-white/50 mt-2">{formatNewsDate(clip.publishedAt)} · {clip.author}</p>
               </div>
             </Link>
-          ) : (
-            <div className="rounded-2xl bg-white/[0.02] border border-white/[0.05] p-5 hidden md:flex items-center justify-center">
-              <p className="text-xs text-white/20">Sin clip destacado</p>
-            </div>
-          )}
+          ) : null}
 
           {/* Agenda del día */}
           <div className="rounded-2xl bg-white/[0.04] border border-white/[0.07] overflow-hidden">
