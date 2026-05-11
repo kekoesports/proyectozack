@@ -45,8 +45,8 @@ export default function AvisoLegalPage() {
               <ul className="mt-3 space-y-1 list-none pl-0">
                 <li><strong>Denominación social:</strong> ELEVATEX AGENCY PA SL</li>
                 <li><strong>Nombre comercial:</strong> SocialPro</li>
-                <li><strong>CIF/NIF:</strong> B21821046</li>
-                <li><strong>NIF intracomunitario:</strong> ESB21821046</li>
+                <li><strong>CIF:</strong> B21821046</li>
+                <li><strong>VAT/ROI:</strong> ESB21821046</li>
                 <li><strong>Domicilio social:</strong> Calle Teruel 19, 3º3, 14011 Córdoba, España</li>
                 <li><strong>Email de contacto:</strong>{' '}
                   <a href="mailto:marketing@socialpro.es" className="text-sp-orange hover:underline">
