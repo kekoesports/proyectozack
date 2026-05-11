@@ -253,14 +253,33 @@ export default async function NewsPage({ searchParams }: PageProps) {
           </div>
         </section>
 
-        {/* CTAs mobile — Sorteos y Códigos, solo visible en mobile después del grid */}
-        <div className="lg:hidden bg-sp-black border-t border-white/[0.06] px-5 py-8 grid grid-cols-1 gap-4">
-          <SorteosCtaCard tone="dark" />
-          <CodigosCtaCard />
-        </div>
+        {/* Comunidad SocialPro — sorteos + códigos + entrevista/clip/agenda */}
+        <section className="bg-sp-black border-t border-white/[0.06] py-10 md:py-14">
+          <div className="max-w-7xl mx-auto px-5 md:px-8">
+            <p className="text-[10px] font-bold uppercase tracking-[0.32em] text-sp-orange mb-6">Comunidad SocialPro</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <SorteosCtaCard tone="dark" />
+              <CodigosCtaCard />
+              {/* Entrevista destacada compacta si existe */}
+              {featuredInterview && (
+                <div className="relative group rounded-2xl overflow-hidden h-[160px] hover:ring-1 hover:ring-white/15 transition-all">
+                  <a href={`/news/${featuredInterview.slug}`} className="absolute inset-0 z-10" aria-label={featuredInterview.title} />
+                  {featuredInterview.coverUrl && (
+                    <img src={featuredInterview.coverUrl} alt="" className="absolute inset-0 w-full h-full object-cover brightness-[0.6] group-hover:scale-[1.03] transition-transform duration-500" />
+                  )}
+                  <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg,rgba(0,0,0,0) 0%,rgba(0,0,0,0.92) 100%)' }} />
+                  <div className="absolute bottom-0 left-0 right-0 p-4 z-10">
+                    <span className="text-[8px] font-black uppercase tracking-wider text-sp-orange bg-sp-orange/10 border border-sp-orange/20 px-1.5 py-0.5 rounded-full mb-2 inline-block">Entrevista</span>
+                    <p className="font-display font-black uppercase text-white text-sm tracking-tight leading-tight line-clamp-2">{featuredInterview.title}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
 
-        {/* Entrevista + Clip + Agenda */}
-        <NewsHubBottomBlocks interview={featuredInterview} clip={featuredClip} agenda={agenda} />
+        {/* Bottom blocks: agenda */}
+        <NewsHubBottomBlocks interview={null} clip={featuredClip} agenda={agenda} />
 
         <NewsCrossBlogLink />
       </main>

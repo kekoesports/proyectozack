@@ -4,7 +4,6 @@ import type { InferSelectModel } from 'drizzle-orm';
 import type { rankingEntries } from '@/db/schema';
 import { deriveNewsCategory, formatNewsDate } from '@/lib/utils/news';
 import { SorteosCtaCard } from './SorteosCtaCard';
-import { CodigosCtaCard } from './CodigosCtaCard';
 
 type RankingEntry = InferSelectModel<typeof rankingEntries>;
 
@@ -134,9 +133,6 @@ export function NewsHubSidebar({ latestPosts, featuredMatch, ranking }: Props) {
 
       {/* Sorteos activos */}
       <SorteosCtaCard tone="dark" />
-
-      {/* Códigos exclusivos */}
-      <CodigosCtaCard />
 
     </aside>
   );
