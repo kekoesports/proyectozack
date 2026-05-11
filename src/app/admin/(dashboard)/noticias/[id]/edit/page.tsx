@@ -34,6 +34,7 @@ export default async function EditNoticiaPage({ params }: Props) {
             ...post,
             tags: post.tags as string[],
             talentSlugs: post.talentSlugs as string[] | null,
+            blocksJson: post.blocksJson,
           }}
           action={updatePostAction}
           submitLabel="Guardar cambios"

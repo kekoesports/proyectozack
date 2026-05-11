@@ -48,6 +48,10 @@ export const PostCreateSchema = z.object({
             .filter(Boolean)
         : null,
     ),
+  blocksJson: z.string().optional().transform((v) => {
+    if (!v || v.trim() === '') return null;
+    try { return JSON.parse(v) as Record<string, unknown>; } catch { return null; }
+  }),
 });
 
 export const PostUpdateSchema = PostCreateSchema.partial().extend({

@@ -2,6 +2,8 @@
 
 import Link from 'next/link';
 import { useState, useTransition } from 'react';
+import { BlocksForm } from './BlocksForm';
+import type { PostBlocks } from '@/features/news/components/article-blocks/types';
 
 type Post = {
   id?: number;
@@ -18,6 +20,7 @@ type Post = {
   sortOrder?: number;
   tags?: string[];
   talentSlugs?: string[] | null;
+  blocksJson?: unknown;
 };
 
 type Props = {
@@ -277,6 +280,15 @@ export function PostForm({ post, action, submitLabel }: Props) {
           />
           {fieldError('talentSlugs')}
         </div>
+      </div>
+
+      {/* Bloques visuales */}
+      <div className="space-y-2">
+        <div className="flex items-center gap-2 mb-1">
+          <p className="text-xs font-semibold text-sp-admin-muted uppercase tracking-wider">Bloques visuales</p>
+          <span className="text-[10px] text-sp-admin-muted/50">(Match, Quote, Embed, Roster — opcionales)</span>
+        </div>
+        <BlocksForm initial={post?.blocksJson as PostBlocks | null | undefined} />
       </div>
 
       <div className="flex items-center gap-4 pt-2">

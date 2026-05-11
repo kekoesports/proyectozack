@@ -49,6 +49,7 @@ export async function createPostAction(formData: FormData): Promise<ActionResult
     sortOrder: data.sortOrder,
     tags: data.tags,
     talentSlugs: data.talentSlugs ?? null,
+    blocksJson: data.blocksJson ?? null,
   });
 
   revalidateNews(data.slug);
@@ -82,6 +83,7 @@ export async function updatePostAction(formData: FormData): Promise<ActionResult
       ogImageUrl: data.ogImageUrl ?? null,
       publishedAt: data.publishedAt ?? null,
       talentSlugs: data.talentSlugs ?? null,
+      blocksJson: data.blocksJson ?? null,
     })
     .where(eq(posts.id, id));
 
