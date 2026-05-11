@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import { absoluteUrl } from '@/lib/site-url';
+import { safeJsonLd } from '@/lib/safeJsonLd';
 import { StickyCtaMobile } from '@/components/ui/StickyCtaMobile';
 import { AttributionCapture } from './_components/AttributionCapture';
 import { FloatingTelegramCta } from './_components/FloatingTelegramCta';
@@ -148,7 +149,7 @@ export default function ApuestaSeguraCs2Layout({
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }}
       />
       <AttributionCapture />
       {children}

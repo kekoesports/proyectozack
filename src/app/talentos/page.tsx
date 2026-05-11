@@ -70,7 +70,7 @@ export default async function TalentosPage() {
       />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbJsonLd) }}
       />
       <div>
         <h1 className="sr-only">Streamers y Creadores Gaming de Élite</h1>

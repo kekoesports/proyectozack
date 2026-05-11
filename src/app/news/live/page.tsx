@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { safeJsonLd } from '@/lib/safeJsonLd';
 import Link from 'next/link';
 import { getCs2RosterForSidebar } from '@/lib/queries/live';
 import { absoluteUrl } from '@/lib/site-url';
@@ -117,7 +118,7 @@ export default async function NewsLivePage({ searchParams }: PageProps) {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }}
       />
       <main className="bg-sp-black text-white">
         <LiveBar items={liveBarItems} />
