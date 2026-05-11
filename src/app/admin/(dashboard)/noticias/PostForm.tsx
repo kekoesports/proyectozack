@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useState, useTransition } from 'react';
 
 type Post = {
@@ -286,9 +287,9 @@ export function PostForm({ post, action, submitLabel }: Props) {
         >
           {isPending ? 'Guardando...' : submitLabel}
         </button>
-        <a href="/admin/noticias" className="text-sm text-sp-admin-muted hover:text-sp-admin-text transition-colors">
+        <Link href="/admin/noticias" className="text-sm text-sp-admin-muted hover:text-sp-admin-text transition-colors">
           Cancelar
-        </a>
+        </Link>
       </div>
     </form>
   );

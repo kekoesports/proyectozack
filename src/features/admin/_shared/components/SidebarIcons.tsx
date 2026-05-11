@@ -275,6 +275,17 @@ export function BackupIcon() {
   );
 }
 
+export function NewsIcon() {
+  return (
+    <svg {...s}>
+      <rect x="3" y="3" width="14" height="14" rx="2" />
+      <line x1="7" y1="7" x2="13" y2="7" />
+      <line x1="7" y1="10" x2="13" y2="10" />
+      <line x1="7" y1="13" x2="10" y2="13" />
+    </svg>
+  );
+}
+
 export function LiveIcon() {
   return (
     <svg {...s}>

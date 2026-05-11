@@ -44,25 +44,40 @@ export async function getEditorialSlots(): Promise<SlotWithPost[]> {
     )
     .orderBy(editorialSlots.id);
 
-  const postRows = rows
-    .filter((r) => r.postId !== null && r.postSlug !== null)
-    .map((r) => ({
-      id: r.postId!,
-      slug: r.postSlug!,
-      title: r.postTitle!,
-      excerpt: r.postExcerpt!,
-      bodyMd: r.postBodyMd!,
-      coverUrl: r.postCoverUrl ?? null,
-      ogImageUrl: r.postOgImageUrl ?? null,
-      author: r.postAuthor!,
-      status: r.postStatus! as 'draft' | 'published',
-      vertical: r.postVertical! as 'blog' | 'news',
-      publishedAt: r.postPublishedAt ?? null,
-      sortOrder: r.postSortOrder!,
-      talentSlugs: r.postTalentSlugs as string[] | null,
-      tags: r.postTags as string[],
-      updatedAt: r.postUpdatedAt!,
-    }));
+  type FullRow = typeof rows[number] & {
+    postId: number;
+    postSlug: string;
+    postTitle: string;
+    postExcerpt: string;
+    postBodyMd: string;
+    postAuthor: string;
+    postStatus: string;
+    postVertical: string;
+    postSortOrder: number;
+    postUpdatedAt: Date;
+  };
+
+  function hasPost(r: typeof rows[number]): r is FullRow {
+    return r.postId !== null && r.postSlug !== null;
+  }
+
+  const postRows = rows.filter(hasPost).map((r) => ({
+    id: r.postId,
+    slug: r.postSlug,
+    title: r.postTitle,
+    excerpt: r.postExcerpt,
+    bodyMd: r.postBodyMd,
+    coverUrl: r.postCoverUrl ?? null,
+    ogImageUrl: r.postOgImageUrl ?? null,
+    author: r.postAuthor,
+    status: r.postStatus as 'draft' | 'published',
+    vertical: r.postVertical as 'blog' | 'news',
+    publishedAt: r.postPublishedAt ?? null,
+    sortOrder: r.postSortOrder,
+    talentSlugs: r.postTalentSlugs as string[] | null,
+    tags: r.postTags as string[],
+    updatedAt: r.postUpdatedAt,
+  }));
 
   const enriched = await attachTalents(postRows);
   const enrichedMap = new Map(enriched.map((p) => [p.id, p]));
@@ -70,7 +85,7 @@ export async function getEditorialSlots(): Promise<SlotWithPost[]> {
   return rows.map((r) => ({
     slot: r.slot as EditorialSlotKey,
     meta: r.meta as Record<string, unknown> | null,
-    post: r.postId !== null ? (enrichedMap.get(r.postId!) ?? null) : null,
+    post: r.postId !== null ? (enrichedMap.get(r.postId) ?? null) : null,
   }));
 }
 

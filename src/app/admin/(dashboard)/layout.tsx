@@ -6,7 +6,7 @@ import { dismissAlertAction, dismissAllAlertsAction } from './actions';
 import {
   DashboardIcon, TalentIcon, BrandIcon, GiveawayIcon, TeamIcon,
   TargetsIcon, TasksIcon, MyWeekIcon, InvoiceIcon, AnalyticsIcon,
-  CaseIcon, CampaignIcon, BackupIcon, ContactIcon, LiveIcon,
+  CaseIcon, CampaignIcon, BackupIcon, ContactIcon, LiveIcon, NewsIcon,
 } from '@/features/admin/_shared/components/SidebarIcons';
 import type { ReactNode } from 'react';
 
@@ -30,7 +30,7 @@ const ADMIN_MORE_NAV = [
   { href: '/admin/prensa-targets',  label: 'Prensa Targets',   icon: <ContactIcon />, prefetch: false },
   { href: '/admin/live',            label: 'En directo',       icon: <LiveIcon />,     prefetch: false },
   { href: '/admin/giveaways',       label: 'Sorteos',          icon: <GiveawayIcon />, prefetch: false },
-  { href: '/admin/noticias/imagenes', label: 'Imágenes noticias', icon: <CaseIcon />, prefetch: false },
+  { href: '/admin/noticias',          label: 'Noticias',         icon: <NewsIcon />, prefetch: false },
   { href: '/admin/analytics', label: 'Analítica',   icon: <AnalyticsIcon />, prefetch: false },
   { href: '/admin/cases',     label: 'Casos',       icon: <CaseIcon />,   prefetch: false },
   { href: '/admin/backups',   label: 'Backups',     icon: <BackupIcon />, prefetch: false },
