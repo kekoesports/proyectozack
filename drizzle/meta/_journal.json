@@ -435,6 +435,27 @@
       "when": 1778514617550,
       "tag": "0061_rare_flatman",
       "breakpoints": true
+    },
+    {
+      "idx": 62,
+      "version": "7",
+      "when": 1778532405265,
+      "tag": "0062_nosy_shatterstar",
+      "breakpoints": true
+    },
+    {
+      "idx": 63,
+      "version": "7",
+      "when": 1778534938730,
+      "tag": "0063_abandoned_puff_adder",
+      "breakpoints": true
+    },
+    {
+      "idx": 64,
+      "version": "7",
+      "when": 1778538249465,
+      "tag": "0064_watery_maximus",
+      "breakpoints": true
     }
   ]
 }
