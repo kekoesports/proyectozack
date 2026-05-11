@@ -14,16 +14,16 @@ type Props = {
 };
 
 /**
- * NewsCard editorial unificada — altura uniforme garantizada para grid.
+ * NewsCard editorial compacta — densidad magazine premium (Dexerto/HLTV).
  *
- * Estructura fija:
- *   - Cover aspect-[16/9] (todos iguales, object-cover crop consistente)
- *   - Title line-clamp-2 + min-h fija (reserva siempre 2 líneas)
- *   - Excerpt line-clamp-2 + min-h fija (idem)
- *   - Meta footer single-line con `mt-auto` → bottom alineado
+ * Sin stretching ni mt-auto. Cards de altura natural pero uniforme:
+ *   - Cover aspect-[16/9] fijo (~57% del card en 3-col)
+ *   - Body p-4 con min-h fijo en title/excerpt → 2 líneas siempre,
+ *     content-driven height idéntico entre cards
+ *   - Footer single-line pegado al excerpt (sin mt-auto)
  *
- * Article es `h-full w-full flex flex-col` para que llene el wrapper de
- * NewsGrid (flex-wrap row stretch) → todas las cards de una row alineadas.
+ * Grid usa `items-start` + wrappers sin flex → cards sit at natural height,
+ * sin empty space al fondo.
  */
 export function NewsCard({ post, density = 'normal', tone = 'dark' }: Props) {
   const category = deriveNewsCategory(post.slug, post.title);
@@ -38,7 +38,7 @@ export function NewsCard({ post, density = 'normal', tone = 'dark' }: Props) {
 
   return (
     <article
-      className={`group relative h-full w-full flex flex-col border rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-0.5 ${surface}`}
+      className={`group relative w-full flex flex-col border rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-0.5 ${surface}`}
     >
       <Link
         href={`/news/${post.slug}`}
@@ -76,20 +76,20 @@ export function NewsCard({ post, density = 'normal', tone = 'dark' }: Props) {
         ) : null}
       </div>
 
-      <div className={`relative ${compact ? 'p-4' : 'p-5'} flex flex-col flex-1`}>
+      <div className={`relative ${compact ? 'p-3.5' : 'p-4'}`}>
         <h3
-          className={`font-display font-black uppercase text-white tracking-tight leading-[1.15] line-clamp-2 group-hover:text-white/95 mb-2 ${
-            compact ? 'text-base min-h-[2.3em]' : 'text-base md:text-lg min-h-[2.3em]'
+          className={`font-display font-black uppercase text-white tracking-tight leading-tight line-clamp-2 group-hover:text-white/95 mb-2 ${
+            compact ? 'text-sm min-h-[36px]' : 'text-base min-h-[40px]'
           }`}
         >
           {post.title}
         </h3>
         {!compact ? (
-          <p className="text-[13px] text-white/55 leading-snug line-clamp-2 min-h-[2.6em] mb-4">
+          <p className="text-[12px] text-white/55 leading-snug line-clamp-2 min-h-[32px] mb-3">
             {post.excerpt}
           </p>
         ) : null}
-        <div className="mt-auto flex items-center gap-2 text-[11px] text-white/40 min-w-0">
+        <div className="flex items-center gap-1.5 text-[10px] text-white/45 min-w-0">
           <span className="uppercase tracking-wider truncate">{post.author}</span>
           <span aria-hidden className="w-0.5 h-0.5 rounded-full bg-white/20 shrink-0" />
           <time
