@@ -113,7 +113,6 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
   await Promise.all(upserts);
 
-  console.log(`[poll-live] checked=${talentsWithTwitch.length} live=${liveStreams.length}`);
   return NextResponse.json({
     ok: true,
     checked: talentsWithTwitch.length,

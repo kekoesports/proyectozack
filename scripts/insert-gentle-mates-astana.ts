@@ -14,13 +14,13 @@ import { db } from '../src/lib/db';
 import { posts } from '../src/db/schema';
 
 const SLUG = 'gentle-mates-alex-romper-barreras-mentales-astana';
-const COVER_URL = '/images/news/gentle-mates-alex-astana.png';
+const COVER_URL = '/images/news/gentle-mates-alex-astana.webp';
 
 const TITLE = 'Romper barreras mentales';
 const EXCERPT =
   'alex tras la victoria 2-1 frente a K27: «esta era la victoria que necesitábamos». La primera Best-of-3 que Gentle Mates gana desde febrero abre una grieta en una temporada marcada por la presión competitiva.';
 const TAGS = ['cs2', 'gentle-mates', 'tier-1', 'pgl-astana-2026'];
-const AUTHOR = 'Editorial SocialPro';
+const AUTHOR = 'SocialPro Editorial';
 
 const BODY_MD = `Gentle Mates volvió a ganar un Best-of-3.
 

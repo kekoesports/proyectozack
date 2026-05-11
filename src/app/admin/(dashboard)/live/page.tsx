@@ -84,7 +84,7 @@ export default async function AdminLivePage() {
                     <div className="flex items-center gap-3">
                       <div className="relative w-8 h-8 rounded-full overflow-hidden bg-sp-admin-border shrink-0">
                         {talent.photoUrl ? (
-                          <Image src={talent.photoUrl} alt={talent.name} fill className="object-cover" />
+                          <Image src={talent.photoUrl} alt={talent.name} fill sizes="32px" className="object-cover" />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center text-xs font-bold text-sp-admin-muted">
                             {talent.name.slice(0, 2).toUpperCase()}

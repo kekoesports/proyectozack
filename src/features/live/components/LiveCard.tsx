@@ -23,7 +23,7 @@ export function LiveCard({ talent }: Props) {
       {/* Avatar */}
       <div className="relative w-10 h-10 rounded-full overflow-hidden shrink-0 bg-white/10">
         {talent.photoUrl ? (
-          <Image src={talent.photoUrl} alt={talent.name} fill className="object-cover" />
+          <Image src={talent.photoUrl} alt={talent.name} fill sizes="40px" className="object-cover" />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-xs font-black text-white/40">
             {talent.name.slice(0, 2).toUpperCase()}

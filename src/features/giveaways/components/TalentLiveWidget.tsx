@@ -136,7 +136,7 @@ export function TalentLiveWidget({
       <div className="flex items-center gap-3 rounded-xl border border-white/[0.08] bg-white/[0.03] p-3 mb-6">
         {data.thumbnailUrl && (
           <div className="relative w-20 h-12 rounded-lg overflow-hidden shrink-0 bg-black/40">
-            <Image src={data.thumbnailUrl} alt="" fill className="object-cover" unoptimized />
+            <Image src={data.thumbnailUrl} alt="" fill sizes="80px" className="object-cover" unoptimized />
           </div>
         )}
         <div className="flex-1 min-w-0">
