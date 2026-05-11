@@ -1,4 +1,7 @@
+import { cache } from 'react';
 import type { SeedMatch } from '../data/seedMatches';
+
+const getNow = cache(() => Date.now());
 
 const STATUS_BADGE: Record<SeedMatch['status'], { label: string; cls: string }> = {
   upcoming: { label: 'Próximo', cls: 'text-white/55 bg-white/[0.04] border-white/10' },
@@ -29,7 +32,7 @@ type Props = {
 };
 
 export function MatchesToday({ matches }: Props) {
-  const now = Date.now();
+  const now = getNow();
   return (
     <section className="bg-[#0c1016] border border-white/[0.06] rounded-2xl overflow-hidden">
       <header className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-white/[0.04]">

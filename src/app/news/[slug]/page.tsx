@@ -12,6 +12,11 @@ import { NewsCard } from '@/features/news/components/NewsCard';
 import { EcosystemPanel } from '@/features/news/components/EcosystemPanel';
 import { getPostEcosystem } from '@/lib/news/ecosystem';
 import { Cs2LabCard } from '@/components/cs2-lab/Cs2LabCard';
+import { getPostBlocks } from '@/features/news/posts';
+import { MatchContextBlock } from '@/features/news/components/article-blocks/MatchContextBlock';
+import { RosterBlock } from '@/features/news/components/article-blocks/RosterBlock';
+import { EditorialQuoteBlock } from '@/features/news/components/article-blocks/EditorialQuoteBlock';
+import { ArticleEmbedBlock } from '@/features/news/components/article-blocks/ArticleEmbedBlock';
 
 export const revalidate = 1800;
 
@@ -59,8 +64,9 @@ export default async function NewsArticlePage({ params }: PageProps) {
   const category = deriveNewsCategory(post.slug, post.title);
   const date = formatNewsDate(post.publishedAt);
   const reading = readingMinutes(post.bodyMd);
+  const blocks = getPostBlocks(slug);
   const [related, ecosystem] = await Promise.all([
-    getRelatedNewsPosts(slug, 3),
+    getRelatedNewsPosts(slug, 4),
     getPostEcosystem(post),
   ]);
 
@@ -164,9 +170,15 @@ export default async function NewsArticlePage({ params }: PageProps) {
             </div>
           ) : null}
 
+          {blocks?.matchContext ? <MatchContextBlock match={blocks.matchContext} /> : null}
+
           <section className="max-w-3xl mx-auto px-5 md:px-8 py-10 md:py-14">
             <NewsArticleBody bodyMd={post.bodyMd} />
           </section>
+
+          {blocks?.quotes?.[0] ? <EditorialQuoteBlock quote={blocks.quotes[0]} /> : null}
+          {blocks?.embeds?.[0] ? <ArticleEmbedBlock embed={blocks.embeds[0]} /> : null}
+          {blocks?.roster ? <RosterBlock roster={blocks.roster} /> : null}
 
         </article>
 
@@ -187,7 +199,7 @@ export default async function NewsArticlePage({ params }: PageProps) {
               <h2 className="font-display text-2xl md:text-3xl font-black uppercase tracking-tight mb-8">
                 Más en SocialPro News
               </h2>
-              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
                 {related.map((p) => (
                   <NewsCard key={p.slug} post={p} />
                 ))}
