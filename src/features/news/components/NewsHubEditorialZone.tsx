@@ -161,21 +161,32 @@ function TopPostsList({ posts }: { posts: readonly PostWithTalents[] }) {
   );
 }
 
-function YouTubeCard({ post }: { post: YoutubePost }) {
-  const videoId = post.youtubeUrl.match(/(?:v=|youtu\.be\/)([^&?/]+)/)?.[1] ?? '';
-  const thumb = videoId
-    ? `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`
-    : post.coverUrl ?? '';
-  const date = post.publishedAt
-    ? new Date(post.publishedAt).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })
-    : '';
+type StaticYoutubeClip = { title: string; creator: string; youtubeUrl: string };
+
+// Clips fijos de creadores — no requieren artículo, apuntan directo a YouTube
+const STATIC_YOUTUBE_CLIPS: StaticYoutubeClip[] = [
+  {
+    title: '9z Huasopeek: los mejores momentos en PGL Astana 2026',
+    creator: '9z Team',
+    youtubeUrl: 'https://www.youtube.com/watch?v=YWKbt0vKgwE',
+  },
+  {
+    title: 'Huasopeek al límite: el clip que resume su nivel en CS2',
+    creator: '9z Team',
+    youtubeUrl: 'https://www.youtube.com/watch?v=uZMALHPMpo8',
+  },
+];
+
+function YouTubeCard({ clip }: { clip: StaticYoutubeClip }) {
+  const videoId = clip.youtubeUrl.match(/(?:v=|youtu\.be\/)([^&?/]+)/)?.[1] ?? '';
+  const thumb = videoId ? `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg` : '';
 
   return (
     <article className="group rounded-xl overflow-hidden bg-[#0c1016] border border-white/[0.07] hover:border-white/[0.15] transition-all">
-      <a href={`/news/${post.slug}`} className="block">
+      <a href={clip.youtubeUrl} target="_blank" rel="noopener noreferrer" className="block">
         <div className="relative aspect-video overflow-hidden">
           {thumb && (
-            <Image src={thumb} alt={post.title} fill sizes="(min-width:1024px) 30vw, 100vw"
+            <Image src={thumb} alt={clip.title} fill sizes="(min-width:1024px) 30vw, 100vw"
               className="object-cover transition-transform duration-500 group-hover:scale-[1.04]" />
           )}
           <div className="absolute inset-0 bg-black/30 group-hover:bg-black/10 transition-colors" />
@@ -191,10 +202,10 @@ function YouTubeCard({ post }: { post: YoutubePost }) {
           </div>
         </div>
         <div className="p-4">
+          <p className="text-[9px] text-white/35 uppercase tracking-wider mb-1">{clip.creator}</p>
           <h3 className="font-display font-black uppercase text-white text-[14px] tracking-tight leading-[1.1] line-clamp-2 group-hover:text-sp-orange transition-colors">
-            {post.title}
+            {clip.title}
           </h3>
-          {date && <time className="text-[9px] text-white/30 uppercase tracking-wider mt-2 block">{date}</time>}
         </div>
       </a>
     </article>
@@ -233,16 +244,14 @@ export function NewsHubEditorialZone({ interview, clip, featuredMatch, agenda, r
       )}
 
       {/* ── Zona YouTube: Clips de creadores ───────────────────────────── */}
-      {youtubePosts.length > 0 && (
-        <section className="bg-[#06080c] border-t border-white/[0.06] py-10 md:py-14">
-          <div className="max-w-7xl mx-auto px-5 md:px-8">
-            <SectionHeader label="Clips de creadores" title="YouTube SocialPro" />
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-              {youtubePosts.map((p) => <YouTubeCard key={p.slug} post={p} />)}
-            </div>
+      <section className="bg-[#06080c] border-t border-white/[0.06] py-10 md:py-14">
+        <div className="max-w-7xl mx-auto px-5 md:px-8">
+          <SectionHeader label="Clips de creadores" title="YouTube SocialPro" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {STATIC_YOUTUBE_CLIPS.map((clip) => <YouTubeCard key={clip.youtubeUrl} clip={clip} />)}
           </div>
-        </section>
-      )}
+        </div>
+      </section>
 
       {/* ── Ecosistema SocialPro — compacto ────────────────────────────── */}
       <section className="bg-sp-black border-t border-white/[0.06] py-6 md:py-8">
