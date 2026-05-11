@@ -31,6 +31,7 @@ export async function getEditorialSlots(): Promise<SlotWithPost[]> {
       postSortOrder: posts.sortOrder,
       postTalentSlugs: posts.talentSlugs,
       postTags: posts.tags,
+      postBlocksJson: posts.blocksJson,
       postUpdatedAt: posts.updatedAt,
     })
     .from(editorialSlots)
@@ -76,6 +77,7 @@ export async function getEditorialSlots(): Promise<SlotWithPost[]> {
     sortOrder: r.postSortOrder,
     talentSlugs: r.postTalentSlugs as string[] | null,
     tags: r.postTags as string[],
+    blocksJson: r.postBlocksJson ?? null,
     updatedAt: r.postUpdatedAt,
   }));
 

@@ -66,11 +66,11 @@ export default async function NewsArticlePage({ params }: PageProps) {
   const category = deriveNewsCategory(post.slug, post.title);
   const date = formatNewsDate(post.publishedAt);
   const reading = readingMinutes(post.bodyMd);
-  const blocks = getPostBlocks(slug);
-  const [related, ecosystem] = await Promise.all([
+  const [blocks, related, ecosystem] = await Promise.all([
+    getPostBlocks(slug),
     getRelatedNewsPosts(slug, 4),
     getPostEcosystem(post),
-  ]);
+  ] as const);
 
   const articleJsonLd = {
     '@context': 'https://schema.org',
