@@ -232,20 +232,6 @@ export function NewsHubEditorialZone({ interview, clip, featuredMatch, agenda, r
         </section>
       )}
 
-      {/* ── Zona 2: Clip + Ranking + Lo más leído ──────────────────────── */}
-      {(clip || hasRanking || topPosts.length > 0) && (
-        <section className="bg-[#06080c] border-t border-white/[0.06] py-10 md:py-14">
-          <div className="max-w-7xl mx-auto px-5 md:px-8">
-            <SectionHeader label="Análisis y comunidad" title="CS2 Hispano" />
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {clip && <FeaturedPostCard post={clip} label="Clip destacado" />}
-              {hasRanking && <RankingWidget entries={ranking} />}
-              {topPosts.length > 0 && <TopPostsList posts={topPosts} />}
-            </div>
-          </div>
-        </section>
-      )}
-
       {/* ── Zona YouTube: Clips de creadores ───────────────────────────── */}
       {youtubePosts.length > 0 && (
         <section className="bg-[#06080c] border-t border-white/[0.06] py-10 md:py-14">
@@ -258,14 +244,13 @@ export function NewsHubEditorialZone({ interview, clip, featuredMatch, agenda, r
         </section>
       )}
 
-      {/* ── Zona 3: Comunidad — Sorteos + Códigos + CTA Telegram ───────── */}
-      <section className="bg-sp-black border-t border-white/[0.06] py-10 md:py-14">
+      {/* ── Ecosistema SocialPro — compacto ────────────────────────────── */}
+      <section className="bg-sp-black border-t border-white/[0.06] py-6 md:py-8">
         <div className="max-w-7xl mx-auto px-5 md:px-8">
-          <SectionHeader label="Ecosistema SocialPro" title="Sorteos, códigos y análisis" />
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            <SorteosCtaCard tone="dark" />
-            <CodigosCtaCard />
-            <Cs2LabCard variant="compact" ctaId="news_hub_zona_comunidad" />
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="flex-1"><SorteosCtaCard tone="dark" /></div>
+            <div className="flex-1"><CodigosCtaCard /></div>
+            <div className="flex-1"><Cs2LabCard variant="compact" ctaId="news_hub_zona_comunidad" /></div>
           </div>
         </div>
       </section>
