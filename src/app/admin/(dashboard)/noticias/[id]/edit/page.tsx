@@ -20,12 +20,24 @@ export default async function EditNoticiaPage({ params }: Props) {
 
   return (
     <div>
-      <div className="flex items-center gap-3 mb-8">
-        <Link href="/admin/noticias" className="text-sp-admin-muted hover:text-sp-admin-text transition-colors text-sm">
-          ← Noticias
-        </Link>
-        <span className="text-sp-admin-border">/</span>
-        <h1 className="font-display text-3xl font-black uppercase text-sp-admin-text line-clamp-1">{post.title}</h1>
+      <div className="flex items-center justify-between gap-3 mb-8">
+        <div className="flex items-center gap-3 min-w-0">
+          <Link href="/admin/noticias" className="text-sp-admin-muted hover:text-sp-admin-text transition-colors text-sm shrink-0">
+            ← Noticias
+          </Link>
+          <span className="text-sp-admin-border">/</span>
+          <h1 className="font-display text-3xl font-black uppercase text-sp-admin-text line-clamp-1">{post.title}</h1>
+        </div>
+        {post.status === 'published' && (
+          <a
+            href={`/news/${post.slug}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="shrink-0 px-3 py-1.5 rounded-lg border border-sp-admin-border text-xs font-semibold text-sp-admin-muted hover:text-sp-admin-text hover:border-sp-admin-accent transition-colors"
+          >
+            Ver en web →
+          </a>
+        )}
       </div>
 
       <div className="rounded-2xl bg-sp-admin-card border border-sp-admin-border p-6">
