@@ -227,7 +227,7 @@ export function AddTalentModal({ onClose }: Props): React.ReactElement {
                   >×</button>
                 </div>
               ))}
-              {secondaries.length < 3 && availableSecondaryPlatforms.length > 0 && (
+              {secondaries.length < 4 && availableSecondaryPlatforms.length > 0 && (
                 <button
                   type="button"
                   onClick={() => {

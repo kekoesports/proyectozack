@@ -193,6 +193,15 @@ export function TaskTemplatesPanel({ templates, tasks, weekLabel }: Props): Reac
               {allPending ? 'Creando…' : `+ Crear las ${missing.length} que faltan`}
             </button>
           )}
+          <Link
+            href="/admin/tareas/plantillas"
+            onClick={(e) => e.stopPropagation()}
+            className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded border border-sp-admin-border text-sp-admin-muted hover:text-sp-admin-text hover:border-sp-admin-accent/40 transition-colors"
+            aria-label="Editar plantillas — añadir o quitar tareas"
+            title="Editar plantillas — añadir o quitar tareas"
+          >
+            Editar plantillas
+          </Link>
           <button
             type="button"
             onClick={() => setOpen((v) => !v)}
