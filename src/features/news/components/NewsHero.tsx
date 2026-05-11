@@ -21,7 +21,7 @@ export function NewsHeroCard({ post }: { readonly post: PostWithTalents }) {
   const reading = readingMinutes(post.bodyMd);
 
   return (
-    <article className="relative group rounded-2xl overflow-hidden h-[300px] md:h-[420px] lg:h-[560px] hover:ring-1 hover:ring-white/15 transition-all">
+    <article className="relative group rounded-2xl overflow-hidden h-[300px] md:h-[380px] lg:h-[440px] hover:ring-1 hover:ring-white/15 transition-all">
       <Link href={`/news/${post.slug}`} className="absolute inset-0 z-10" aria-label={post.title}>
         <span className="sr-only">{post.title}</span>
       </Link>
@@ -70,7 +70,7 @@ export function NewsSecondaryLarge({ post }: { readonly post: PostWithTalents })
   const date = formatNewsDate(post.publishedAt);
 
   return (
-    <article className="relative group rounded-xl overflow-hidden h-[180px] md:h-[220px] lg:h-[265px] hover:ring-1 hover:ring-white/15 transition-all">
+    <article className="relative group rounded-xl overflow-hidden h-full hover:ring-1 hover:ring-white/15 transition-all">
       <Link href={`/news/${post.slug}`} className="absolute inset-0 z-10" aria-label={post.title}>
         <span className="sr-only">{post.title}</span>
       </Link>
@@ -105,7 +105,7 @@ export function NewsSecondaryMedium({ post }: { readonly post: PostWithTalents }
   const date = formatNewsDate(post.publishedAt);
 
   return (
-    <article className="relative group rounded-xl overflow-hidden h-[130px] md:h-[155px] lg:h-[175px] hover:ring-1 hover:ring-white/15 transition-all">
+    <article className="relative group rounded-xl overflow-hidden h-full hover:ring-1 hover:ring-white/15 transition-all">
       <Link href={`/news/${post.slug}`} className="absolute inset-0 z-10" aria-label={post.title}>
         <span className="sr-only">{post.title}</span>
       </Link>
@@ -141,7 +141,7 @@ export function NewsCompactStrip({ post, label }: { readonly post: PostWithTalen
   const date = formatNewsDate(post.publishedAt);
 
   return (
-    <article className="relative group rounded-xl overflow-hidden bg-[#0c1016] border border-white/[0.07] hover:border-white/[0.15] transition-all h-[90px] lg:h-[100px] flex">
+    <article className="relative group rounded-xl overflow-hidden bg-[#0c1016] border border-white/[0.07] hover:border-white/[0.15] transition-all h-full flex">
       <Link href={`/news/${post.slug}`} className="absolute inset-0 z-10" aria-label={post.title}>
         <span className="sr-only">{post.title}</span>
       </Link>

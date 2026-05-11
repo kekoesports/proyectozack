@@ -183,32 +183,36 @@ export default async function NewsPage({ searchParams }: PageProps) {
           <div aria-hidden className="absolute -top-24 -left-24 w-[520px] h-[520px] rounded-full pointer-events-none opacity-60" style={{ background: 'radial-gradient(circle, rgba(245,99,42,0.10), rgba(196,40,128,0.05) 50%, transparent 70%)', filter: 'blur(80px)' }} />
           <div aria-hidden className="absolute bottom-0 right-1/3 w-[400px] h-[400px] rounded-full pointer-events-none opacity-40" style={{ background: 'radial-gradient(circle, rgba(139,58,173,0.12), transparent 70%)', filter: 'blur(80px)' }} />
 
-          <div className="relative max-w-7xl mx-auto px-5 md:px-8 pt-4 pb-5 md:pb-6">
-            {/* Portada editorial — hero | 3 piezas jerarquizadas | sidebar */}
-            <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.75fr)_minmax(0,1fr)_256px] gap-4">
+          <div className="relative max-w-7xl mx-auto px-5 md:px-8 pt-4 pb-4">
+            {/* Portada editorial — items-stretch: col secundaria = altura exacta del hero */}
+            <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.75fr)_minmax(0,1fr)_256px] gap-3 lg:items-stretch">
 
-              {/* Col 1 — Hero principal 560px */}
+              {/* Col 1 — Hero 440px desktop */}
               <NewsHeroCard post={hero} />
 
-              {/* Col 2 — Tres piezas con jerarquía: grande + media + compacta */}
-              <div className="flex flex-col gap-4">
-                {/* Pieza grande ~265px */}
-                {trending[0]
-                  ? <NewsSecondaryLarge post={trending[0]} />
-                  : <div className="rounded-xl bg-white/[0.03] border border-white/[0.05] h-[265px]" />}
-
-                {/* Pieza media ~175px */}
-                {trending[1]
-                  ? <NewsSecondaryMedium post={trending[1]} />
-                  : <div className="rounded-xl bg-white/[0.03] border border-white/[0.05] h-[175px]" />}
-
-                {/* Pieza compacta ~100px: entrevista > clip > tercer post */}
+              {/* Col 2 — Flex-grow: 3 piezas llenan exactamente la altura del hero */}
+              <div className="flex flex-col gap-3 lg:h-full">
+                {/* Grande — flex-5 */}
+                <div className="flex-[5] min-h-0 min-h-[140px]">
+                  {trending[0]
+                    ? <NewsSecondaryLarge post={trending[0]} />
+                    : <div className="h-full rounded-xl bg-white/[0.03] border border-white/[0.05]" />}
+                </div>
+                {/* Media — flex-3 */}
+                <div className="flex-[3] min-h-0 min-h-[100px]">
+                  {trending[1]
+                    ? <NewsSecondaryMedium post={trending[1]} />
+                    : <div className="h-full rounded-xl bg-white/[0.03] border border-white/[0.05]" />}
+                </div>
+                {/* Compacta — flex-2: entrevista > clip > 3er post */}
                 {(() => {
                   const compact = featuredInterview ?? featuredClip ?? sortedPosts[2] ?? null;
                   const label = featuredInterview ? 'Entrevista' : featuredClip ? 'Clip' : undefined;
-                  return compact
-                    ? <NewsCompactStrip post={compact} label={label} />
-                    : null;
+                  return compact ? (
+                    <div className="flex-[2] min-h-0 min-h-[76px]">
+                      <NewsCompactStrip post={compact} label={label} />
+                    </div>
+                  ) : null;
                 })()}
               </div>
 
@@ -221,7 +225,7 @@ export default async function NewsPage({ searchParams }: PageProps) {
         </section>
 
         {/* Últimas noticias — warm paper */}
-        <section className="bg-[#F5F3F0] text-sp-black py-12 md:py-16 border-b border-black/[0.05]">
+        <section className="bg-[#F5F3F0] text-sp-black py-8 md:py-12 border-b border-black/[0.05]">
           <div className="max-w-7xl mx-auto px-5 md:px-8">
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-8 md:mb-10">
               <div>
