@@ -3,6 +3,7 @@ import { safeJsonLd } from '@/lib/safeJsonLd';
 import { getNewsPosts } from '@/lib/queries/posts';
 import { getEditorialSlots } from '@/lib/queries/editorialSlots';
 import { getUpcomingAgendaItems } from '@/lib/queries/agendaItems';
+import { getTopRanking } from '@/lib/queries/rankingEntries';
 import { isNewsCategorySlug, type NewsCategorySlug } from '@/lib/utils/news';
 import { absoluteUrl, SITE_URL } from '@/lib/site-url';
 import { NewsHeroCard, NewsSecondaryCard } from '@/features/news/components/NewsHero';
@@ -108,11 +109,12 @@ export default async function NewsPage({ searchParams }: PageProps) {
       ? requestedTag
       : null;
 
-  const [allPosts, slots, liveBarItems, agenda] = await Promise.all([
+  const [allPosts, slots, liveBarItems, agenda, ranking] = await Promise.all([
     getNewsPosts(),
     getEditorialSlots(),
     buildLiveBarItems(),
     getUpcomingAgendaItems(5),
+    getTopRanking(5),
   ]);
 
   // Resolver slots con fallback a posts más recientes
@@ -200,7 +202,7 @@ export default async function NewsPage({ searchParams }: PageProps) {
 
               {/* Col 3 — Sidebar: solo desktop */}
               <div className="hidden lg:block">
-                <NewsHubSidebar latestPosts={sortedPosts} featuredMatch={featuredMatch} />
+                <NewsHubSidebar latestPosts={sortedPosts} featuredMatch={featuredMatch} ranking={ranking} />
               </div>
             </div>
           </div>
