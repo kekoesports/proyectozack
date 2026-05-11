@@ -19,6 +19,28 @@ export type GiveawayActionState =
   | { ok: true }
   | { ok: false; fieldErrors: Record<string, string[]> };
 
+/**
+ * Invalida TODAS las rutas que muestran sorteos. Llamar después de cada
+ * mutation (create/update/delete/setFeatured/setBadge) para que /sorteos,
+ * /giveaways y los perfiles de creator/talent reflejen el cambio sin
+ * esperar el revalidate=3600 ISR.
+ *
+ * Bug recurrente histórico: actions individuales invalidaban paths sueltas
+ * inconsistentemente (algunos `/giveaways`, otros `/creadores/${slug}` que
+ * ni existía como ruta, ninguno `/sorteos`). Resultado: DEQIUV/JOLU/...
+ * no aparecían hasta 1h después de creación. Este helper es la única vía
+ * autorizada.
+ */
+function revalidateGiveawayPaths(talentSlug?: string | null): void {
+  revalidatePath('/sorteos');
+  revalidatePath('/giveaways');
+  revalidatePath('/admin/giveaways');
+  if (talentSlug) {
+    revalidatePath(`/talentos/${talentSlug}`);
+    revalidatePath(`/creadores/${talentSlug}`);
+  }
+}
+
 export async function createGiveawayAction(formData: FormData): Promise<GiveawayActionState> {
   await requireAnyRole(['admin', 'manager'], '/admin/login');
 
@@ -42,8 +64,7 @@ export async function createGiveawayAction(formData: FormData): Promise<Giveaway
     sortOrder: parsed.data.sortOrder,
   });
 
-  if (parsed.data.talentSlug) revalidatePath(`/creadores/${parsed.data.talentSlug}`);
-  revalidatePath('/admin/giveaways');
+  revalidateGiveawayPaths(parsed.data.talentSlug);
   return { ok: true };
 }
 
@@ -59,24 +80,20 @@ export async function updateGiveawayAction(formData: FormData): Promise<Giveaway
   const { id, talentSlug, ...data } = parsed.data;
   await updateGiveaway(id, data);
 
-  if (talentSlug) revalidatePath(`/creadores/${talentSlug}`);
-  if (talentSlug) revalidatePath(`/talentos/${talentSlug}`);
-  revalidatePath('/admin/giveaways');
+  revalidateGiveawayPaths(talentSlug);
   return { ok: true };
 }
 
 export async function setGiveawayFeaturedAction(id: number, value: boolean): Promise<void> {
   await requireAnyRole(['admin', 'manager'], '/admin/login');
   await db.update(giveaways).set({ isFeatured: value }).where(eq(giveaways.id, id));
-  revalidatePath('/admin/giveaways');
-  revalidatePath('/giveaways');
+  revalidateGiveawayPaths();
 }
 
 export async function setGiveawayBadgeAction(id: number, badge: string | null): Promise<void> {
   await requireAnyRole(['admin', 'manager'], '/admin/login');
   await db.update(giveaways).set({ badge: badge ?? null }).where(eq(giveaways.id, id));
-  revalidatePath('/admin/giveaways');
-  revalidatePath('/giveaways');
+  revalidateGiveawayPaths();
 }
 
 export async function setGiveawayBadgeFromFormAction(formData: FormData): Promise<void> {
@@ -85,14 +102,13 @@ export async function setGiveawayBadgeFromFormAction(formData: FormData): Promis
   const badge = (formData.get('badge') as string) || null;
   if (!id) return;
   await db.update(giveaways).set({ badge }).where(eq(giveaways.id, id));
-  revalidatePath('/admin/giveaways');
-  revalidatePath('/giveaways');
+  revalidateGiveawayPaths();
 }
 
 export async function deleteAllDemosAction(): Promise<void> {
   await requireAnyRole(['admin', 'manager'], '/admin/login');
   await db.delete(giveaways).where(like(giveaways.title, '[DEMO]%'));
-  revalidatePath('/admin/giveaways');
+  revalidateGiveawayPaths();
 }
 
 export async function deleteGiveawayAction(formData: FormData): Promise<void> {
@@ -100,6 +116,5 @@ export async function deleteGiveawayAction(formData: FormData): Promise<void> {
   const parsed = parseFormData(formData, DeleteGiveawaySchema);
   if (!parsed.ok) return;
   await deleteGiveaway(parsed.data.id);
-  if (parsed.data.talentSlug) revalidatePath(`/creadores/${parsed.data.talentSlug}`);
-  revalidatePath('/admin/giveaways');
+  revalidateGiveawayPaths(parsed.data.talentSlug);
 }
