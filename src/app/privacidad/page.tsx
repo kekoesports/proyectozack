@@ -38,9 +38,10 @@ export default function PrivacidadPage() {
             <section>
               <h2 className="font-display text-lg font-black uppercase text-sp-dark mb-3">1. Responsable del tratamiento</h2>
               <ul className="space-y-1 list-none pl-0">
-                <li><strong>Denominación:</strong> SocialPro — Esports &amp; Gaming Talent Agency</li>
-                <li><strong>CIF/NIF:</strong> <em>[COMPLETAR antes de publicar]</em></li>
-                <li><strong>Domicilio:</strong> Madrid, España</li>
+                <li><strong>Denominación social:</strong> ELEVATEX AGENCY PA SL</li>
+                <li><strong>Nombre comercial:</strong> SocialPro</li>
+                <li><strong>CIF/NIF:</strong> B21821046</li>
+                <li><strong>Domicilio:</strong> Calle Teruel 19, 3º3, 14011 Córdoba, España</li>
                 <li><strong>Email:</strong>{' '}
                   <a href="mailto:marketing@socialpro.es" className="text-sp-orange hover:underline">
                     marketing@socialpro.es

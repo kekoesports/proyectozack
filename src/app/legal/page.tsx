@@ -43,16 +43,18 @@ export default function AvisoLegalPage() {
                 es titularidad de:
               </p>
               <ul className="mt-3 space-y-1 list-none pl-0">
-                <li><strong>Razón social:</strong> SocialPro — Esports &amp; Gaming Talent Agency</li>
-                <li><strong>CIF/NIF:</strong> <em>[COMPLETAR antes de publicar]</em></li>
-                <li><strong>Domicilio social:</strong> Madrid, España</li>
+                <li><strong>Denominación social:</strong> ELEVATEX AGENCY PA SL</li>
+                <li><strong>Nombre comercial:</strong> SocialPro</li>
+                <li><strong>CIF/NIF:</strong> B21821046</li>
+                <li><strong>NIF intracomunitario:</strong> ESB21821046</li>
+                <li><strong>Domicilio social:</strong> Calle Teruel 19, 3º3, 14011 Córdoba, España</li>
                 <li><strong>Email de contacto:</strong>{' '}
                   <a href="mailto:marketing@socialpro.es" className="text-sp-orange hover:underline">
                     marketing@socialpro.es
                   </a>
                 </li>
                 <li><strong>Teléfono:</strong> +34 604 868 426</li>
-                <li><strong>Actividad:</strong> Agencia de talento esports, marketing de influencers, gestión de campañas gaming</li>
+                <li><strong>Actividad:</strong> Agencia de representación de talentos y creadores de contenido en los sectores gaming y esports. Gestión de campañas con marcas, sorteos y contenido editorial.</li>
               </ul>
             </section>
 
@@ -113,7 +115,8 @@ export default function AvisoLegalPage() {
               <p>
                 Las presentes condiciones se rigen por la legislación española vigente. Para cualquier controversia
                 derivada del uso de este sitio, las partes se someten a la jurisdicción de los Juzgados y Tribunales
-                de Madrid, con renuncia expresa a cualquier otro fuero que pudiera corresponderles.
+                de Córdoba, con renuncia expresa a cualquier otro fuero que pudiera corresponderles, salvo que la
+                normativa imperativa aplicable establezca otro fuero.
               </p>
             </section>
 

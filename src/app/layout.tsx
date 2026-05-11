@@ -73,9 +73,9 @@ const jsonLd = {
         height: 512,
       },
       description:
-        'Agencia de talentos gaming y esports fundada en 2012 en Madrid. Especialistas en iGaming, CS2 y Valorant en España y LatAm. FTD tracking verificado, compliance DGOJ integrado.',
+        'Agencia de talentos gaming y esports fundada en 2012 en Córdoba. Especialistas en iGaming, CS2 y Valorant en España y LatAm. FTD tracking verificado, compliance DGOJ integrado.',
       foundingDate: '2012',
-      foundingLocation: { '@type': 'Place', name: 'Madrid, España' },
+      foundingLocation: { '@type': 'Place', name: 'Córdoba, España' },
       areaServed: [
         { '@type': 'Country', name: 'España' },
         { '@type': 'Country', name: 'México' },
@@ -158,8 +158,11 @@ const jsonLd = {
       priceRange: '$$',
       address: {
         '@type': 'PostalAddress',
+        streetAddress: 'Calle Teruel 19, 3º3',
+        postalCode: '14011',
+        addressLocality: 'Córdoba',
+        addressRegion: 'Córdoba',
         addressCountry: 'ES',
-        addressLocality: 'Madrid',
       },
       areaServed: [
         { '@type': 'Country', name: 'España' },
