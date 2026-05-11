@@ -17,6 +17,7 @@ import { MatchContextBlock } from '@/features/news/components/article-blocks/Mat
 import { RosterBlock } from '@/features/news/components/article-blocks/RosterBlock';
 import { EditorialQuoteBlock } from '@/features/news/components/article-blocks/EditorialQuoteBlock';
 import { ArticleEmbedBlock } from '@/features/news/components/article-blocks/ArticleEmbedBlock';
+import { InterleavedArticleBody } from '@/features/news/components/article-blocks/InterleavedArticleBody';
 
 export const revalidate = 1800;
 
@@ -170,15 +171,19 @@ export default async function NewsArticlePage({ params }: PageProps) {
             </div>
           ) : null}
 
-          {blocks?.matchContext ? <MatchContextBlock match={blocks.matchContext} /> : null}
-
-          <section className="max-w-3xl mx-auto px-5 md:px-8 py-10 md:py-14">
-            <NewsArticleBody bodyMd={post.bodyMd} />
-          </section>
-
-          {blocks?.quotes?.[0] ? <EditorialQuoteBlock quote={blocks.quotes[0]} /> : null}
-          {blocks?.embeds?.[0] ? <ArticleEmbedBlock embed={blocks.embeds[0]} /> : null}
-          {blocks?.roster ? <RosterBlock roster={blocks.roster} /> : null}
+          {blocks?.layout && blocks.layout.length > 0 ? (
+            <InterleavedArticleBody bodyMd={post.bodyMd} blocks={blocks} />
+          ) : (
+            <>
+              {blocks?.matchContext ? <MatchContextBlock match={blocks.matchContext} /> : null}
+              <section className="max-w-3xl mx-auto px-5 md:px-8 py-10 md:py-14">
+                <NewsArticleBody bodyMd={post.bodyMd} />
+              </section>
+              {blocks?.quotes?.[0] ? <EditorialQuoteBlock quote={blocks.quotes[0]} /> : null}
+              {blocks?.embeds?.[0] ? <ArticleEmbedBlock embed={blocks.embeds[0]} /> : null}
+              {blocks?.roster ? <RosterBlock roster={blocks.roster} /> : null}
+            </>
+          )}
 
         </article>
 

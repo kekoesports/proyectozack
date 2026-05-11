@@ -1,16 +1,12 @@
 import type { PostBlocks } from '@/features/news/components/article-blocks/types';
 
 /**
- * Bloques editoriales para la noticia
+ * Bloques editoriales para
  * `gentle-mates-alex-romper-barreras-mentales-astana`.
  *
- * Datos:
- *   - Match: PGL Astana 2026 · Swiss Round 2 · Gentle Mates 2-1 K27
- *           (Nuke 13-9 / Overpass 9-13 / Ancient 13-10)
- *   - Roster: 5 starters ES + 1 banco ES + coach ES. Martinez es starter
- *     y tiene talentSlug=`martinez` → renderiza pill SocialPro + link a /talentos.
- *   - Quote: alex post-victoria. Una sola, intencionalmente.
- *   - Embed: card link al post de HLTV en X (sin twitter widgets.js).
+ * Layout interleaved: el body se parte por `## H2` y se entremezcla con
+ * los bloques visuales en el orden definido en `layout`. Los títulos en
+ * `layout` deben coincidir EXACTAMENTE con los H2 del body.
  */
 export const blocks: PostBlocks = {
   matchContext: {
@@ -51,6 +47,20 @@ export const blocks: PostBlocks = {
       url: 'https://x.com/HLTVorg/status/2053385840244527162',
       title: 'alex tras la victoria — entrevista HLTV',
       author: 'HLTVorg',
+      excerpt: '"Necesitábamos romper barreras mentales para volver a nuestra mejor versión. Esta era la victoria que necesitábamos para reconducir la temporada."',
+      publishedAt: '11 May 2026',
     },
+  ],
+  layout: [
+    { kind: 'section', title: null },
+    { kind: 'matchContext' },
+    { kind: 'section', title: 'El bloqueo' },
+    { kind: 'quote', index: 0 },
+    { kind: 'section', title: 'La grieta' },
+    { kind: 'embed', index: 0 },
+    { kind: 'section', title: 'Reconstrucción en marcha' },
+    { kind: 'section', title: 'Lo que pesa fuera del servidor' },
+    { kind: 'section', title: 'Foco hispano' },
+    { kind: 'roster' },
   ],
 };
