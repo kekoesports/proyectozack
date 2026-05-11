@@ -173,7 +173,7 @@ export default async function NewsPage({ searchParams }: PageProps) {
               <NewsFilters tone="paper" />
             </div>
 
-            <div className="grid lg:grid-cols-[1fr_280px] gap-10 lg:gap-12">
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-10 lg:gap-12">
               <NewsGrid posts={grid} activeCategory={activeCategory} tone="paper" />
               <NewsAside posts={editor} cs2Creators={cs2Creators} tone="paper" />
             </div>

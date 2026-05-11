@@ -174,7 +174,7 @@ export default async function NewsLivePage({ searchParams }: PageProps) {
         {/* Streams + Matches today */}
         <section className="bg-sp-black py-10 md:py-14 border-b border-white/[0.04]">
           <div className="max-w-7xl mx-auto px-5 md:px-8">
-            <div className="grid lg:grid-cols-[1.5fr_1fr] gap-8 lg:gap-10">
+            <div className="grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] gap-8 lg:gap-10">
               <div>
                 <header className="mb-5">
                   <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-sp-orange mb-1.5">
