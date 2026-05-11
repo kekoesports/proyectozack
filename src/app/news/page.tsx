@@ -185,46 +185,52 @@ export default async function NewsPage({ searchParams }: PageProps) {
           <div aria-hidden className="absolute bottom-0 right-1/3 w-[400px] h-[400px] rounded-full pointer-events-none opacity-40" style={{ background: 'radial-gradient(circle, rgba(139,58,173,0.12), transparent 70%)', filter: 'blur(80px)' }} />
 
           <div className="relative max-w-7xl mx-auto px-5 md:px-8 pt-4 pb-4">
-            {/* Portada editorial — items-stretch: col secundaria = altura exacta del hero */}
-            <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.75fr)_minmax(0,1fr)_256px] gap-3 lg:items-start">
+            {/*
+              Layout: flex row — editorial col izquierda (content-driven) + sidebar derecha.
+              La sidebar NO está en el mismo grid que el hero para no imponer su altura al resto.
+            */}
+            <div className="flex flex-col lg:flex-row gap-3">
 
-              {/* Col 1 — Hero 440px desktop */}
-              <NewsHeroCard post={hero} />
+              {/* Columna editorial — altura determinada por su propio contenido */}
+              <div className="flex-1 min-w-0 flex flex-col gap-3">
 
-              {/* Col 2 — Misma altura fija que el hero: flex-grow proporcional */}
-              <div className="flex flex-col gap-3 lg:h-[440px]">
-                {/* Grande — flex-5 */}
-                <div className="flex-[5] min-h-0 min-h-[140px]">
-                  {trending[0]
-                    ? <NewsSecondaryLarge post={trending[0]} />
-                    : <div className="h-full rounded-xl bg-white/[0.03] border border-white/[0.05]" />}
-                </div>
-                {/* Media — flex-3 */}
-                <div className="flex-[3] min-h-0 min-h-[100px]">
-                  {trending[1]
-                    ? <NewsSecondaryMedium post={trending[1]} />
-                    : <div className="h-full rounded-xl bg-white/[0.03] border border-white/[0.05]" />}
-                </div>
-                {/* Compacta — flex-2: entrevista > clip > 3er post */}
-                {(() => {
-                  const compact = featuredInterview ?? featuredClip ?? sortedPosts[2] ?? null;
-                  const label = featuredInterview ? 'Entrevista' : featuredClip ? 'Clip' : undefined;
-                  return compact ? (
-                    <div className="flex-[2] min-h-0 min-h-[76px]">
-                      <NewsCompactStrip post={compact} label={label} />
+                {/* Hero + secondary en grid 2 cols */}
+                <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1.75fr)_minmax(0,1fr)] gap-3">
+                  {/* Hero 440px */}
+                  <NewsHeroCard post={hero} />
+
+                  {/* Secondary col — misma altura que el hero */}
+                  <div className="flex flex-col gap-3 md:h-[440px]">
+                    <div className="flex-[5] min-h-0">
+                      {trending[0]
+                        ? <NewsSecondaryLarge post={trending[0]} />
+                        : <div className="h-full rounded-xl bg-white/[0.03] border border-white/[0.05]" />}
                     </div>
-                  ) : null;
-                })()}
+                    <div className="flex-[3] min-h-0">
+                      {trending[1]
+                        ? <NewsSecondaryMedium post={trending[1]} />
+                        : <div className="h-full rounded-xl bg-white/[0.03] border border-white/[0.05]" />}
+                    </div>
+                    {(() => {
+                      const compact = featuredInterview ?? featuredClip ?? sortedPosts[2] ?? null;
+                      const label = featuredInterview ? 'Entrevista' : featuredClip ? 'Clip' : undefined;
+                      return compact ? (
+                        <div className="flex-[2] min-h-0 min-h-[76px]">
+                          <NewsCompactStrip post={compact} label={label} />
+                        </div>
+                      ) : null;
+                    })()}
+                  </div>
+                </div>
+
+                {/* CTA — sube inmediatamente después del grid, sin espacio extra */}
+                <Cs2LabCard variant="compact" ctaId="news_hub_portada_apuesta_segura" />
               </div>
 
-              {/* Col 3 — Sidebar solo desktop */}
-              <div className="hidden lg:block">
+              {/* Sidebar — columna independiente, no afecta altura del editorial */}
+              <div className="hidden lg:block w-[256px] shrink-0">
                 <NewsHubSidebar latestPosts={sortedPosts} featuredMatch={featuredMatch} ranking={ranking} />
               </div>
-            </div>
-            {/* CTA Apuesta Segura CS2 — entre portada y feed */}
-            <div className="mt-3">
-              <Cs2LabCard variant="compact" ctaId="news_hub_portada_apuesta_segura" />
             </div>
           </div>
         </section>
