@@ -4,6 +4,7 @@ import { getNewsPosts } from '@/lib/queries/posts';
 import { getEditorialSlots } from '@/lib/queries/editorialSlots';
 import { getUpcomingAgendaItems } from '@/lib/queries/agendaItems';
 import { getTopRanking } from '@/lib/queries/rankingEntries';
+import { getFeaturedMatch } from '@/lib/queries/matches';
 import { db } from '@/lib/db';
 import { posts } from '@/db/schema';
 import { eq, and, isNotNull, desc, lte } from 'drizzle-orm';
@@ -112,12 +113,13 @@ export default async function NewsPage({ searchParams }: PageProps) {
       : null;
 
   const now = new Date();
-  const [allPosts, slots, liveBarItems, agenda, ranking, rawYoutubePosts] = await Promise.all([
+  const [allPosts, slots, liveBarItems, agenda, ranking, featuredMatchRow, rawYoutubePosts] = await Promise.all([
     getNewsPosts(),
     getEditorialSlots(),
     buildLiveBarItems(),
     getUpcomingAgendaItems(5),
     getTopRanking(5),
+    getFeaturedMatch(),
     db.select({
       id: posts.id, slug: posts.slug, title: posts.title, excerpt: posts.excerpt,
       coverUrl: posts.coverUrl, publishedAt: posts.publishedAt, blocksJson: posts.blocksJson,
@@ -138,8 +140,20 @@ export default async function NewsPage({ searchParams }: PageProps) {
 
   // Resolver slots con fallback a posts más recientes
   const slotMap = Object.fromEntries(slots.map((s) => [s.slot, s.post]));
-  const matchSlot = slots.find((s) => s.slot === 'featured_match');
-  const featuredMatch = (matchSlot?.meta ?? null) as import('@/features/news/components/FeaturedMatchCard').FeaturedMatchMeta | null;
+  // featuredMatch now comes from the matches table (getFeaturedMatch above)
+  const featuredMatch = featuredMatchRow
+    ? {
+        team1:       featuredMatchRow.team1,
+        team2:       featuredMatchRow.team2,
+        team1Logo:   featuredMatchRow.team1Logo,
+        team2Logo:   featuredMatchRow.team2Logo,
+        tournament:  featuredMatchRow.tournament,
+        matchDate:   featuredMatchRow.matchDate,
+        matchTime:   featuredMatchRow.matchTime,
+        matchStatus: (featuredMatchRow.matchStatus as import('@/features/news/components/FeaturedMatchCard').FeaturedMatchMeta['matchStatus']) ?? null,
+        isActive:    featuredMatchRow.isActive,
+      }
+    : null;
 
   const sortedPosts = [...allPosts].sort(
     (a, b) => (b.publishedAt?.getTime() ?? 0) - (a.publishedAt?.getTime() ?? 0),

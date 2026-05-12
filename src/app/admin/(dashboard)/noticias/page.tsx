@@ -32,6 +32,12 @@ export default async function AdminNoticiasPage() {
             Agenda
           </Link>
           <Link
+            href="/admin/noticias/partidos"
+            className="px-4 py-2 rounded-lg border border-sp-admin-border text-sp-admin-muted text-sm font-semibold hover:bg-sp-admin-hover transition-colors"
+          >
+            Partidos
+          </Link>
+          <Link
             href="/admin/noticias/slots"
             className="px-4 py-2 rounded-lg border border-sp-admin-border text-sp-admin-muted text-sm font-semibold hover:bg-sp-admin-hover transition-colors"
           >
