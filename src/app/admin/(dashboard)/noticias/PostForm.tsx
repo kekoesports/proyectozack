@@ -73,12 +73,12 @@ function PublishAtField({ post, inputCls, fieldError }: {
   // If already published in the past: preserve exact ISO timestamp as hidden field,
   // show it read-only. This avoids the timezone round-trip bug entirely.
   if (isAlreadyPublished && existing) {
+    // Don't send publishedAt at all — server preserves the existing date automatically
     return (
       <div>
-        <input type="hidden" name="publishedAt" value={existing.toISOString()} />
-        <div className="flex items-center justify-between mb-1">
-          <label className="text-xs font-semibold text-sp-admin-muted uppercase tracking-wider">Fecha publicación</label>
-        </div>
+        <label className="block text-xs font-semibold text-sp-admin-muted uppercase tracking-wider mb-1">
+          Fecha publicación
+        </label>
         <p className="text-sm text-sp-admin-muted px-3 py-2 rounded-lg border border-sp-admin-border bg-sp-admin-bg/50">
           ✅ Publicada el {new Date(existing).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
         </p>

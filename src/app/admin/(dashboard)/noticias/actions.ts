@@ -78,10 +78,26 @@ export async function updatePostAction(formData: FormData): Promise<ActionResult
     }
   }
 
-  // Auto-set publishedAt when publishing without explicit date.
-  // Never preserve a future publishedAt — if no explicit date, use NOW() so the post
-  // is immediately visible. User can schedule by explicitly setting a future date.
-  const publishedAt = data.publishedAt ?? (data.status === 'published' ? new Date() : null);
+  // publishedAt logic — server-side source of truth, never relies on form value alone:
+  // 1. If post is already published in the past → preserve that date (editing never unpublishes)
+  // 2. If publishing for the first time (no existing date) → set NOW()
+  // 3. If explicit future date sent from form → use it (intentional scheduling)
+  // 4. If changing to draft → clear the date
+  const currentRow = await db.select({ publishedAt: posts.publishedAt, status: posts.status })
+    .from(posts).where(eq(posts.id, id)).limit(1);
+  const existingPublishedAt = currentRow[0]?.publishedAt ?? null;
+  const alreadyPublished    = !!(existingPublishedAt && existingPublishedAt <= new Date());
+
+  let publishedAt: Date | null;
+  if (data.status !== 'published') {
+    publishedAt = null;                                          // draft → no date
+  } else if (alreadyPublished) {
+    publishedAt = existingPublishedAt;                          // already live → keep original date
+  } else if (data.publishedAt && data.publishedAt > new Date()) {
+    publishedAt = data.publishedAt;                             // explicit future → schedule
+  } else {
+    publishedAt = new Date();                                    // publish now
+  }
 
   await db
     .update(posts)
