@@ -178,7 +178,13 @@ export default async function NewsPage({ searchParams }: PageProps) {
   const tagFiltered = activeTag
     ? allPosts.filter((p) => (p.tags ?? []).includes(activeTag))
     : allPosts;
-  const grid = [...tagFiltered].sort((a, b) => (b.sortOrder ?? 0) - (a.sortOrder ?? 0));
+  // Orden del grid: publishedAt DESC (la más reciente primero)
+  // sortOrder > 0 reservado para pinear editorialmente artículos específicos
+  const grid = [...tagFiltered].sort((a, b) => {
+    const soDiff = (b.sortOrder ?? 0) - (a.sortOrder ?? 0);
+    if (soDiff !== 0) return soDiff;
+    return (b.publishedAt?.getTime() ?? 0) - (a.publishedAt?.getTime() ?? 0);
+  });
 
   // JSON-LD: top 10 más recientes
   const jsonLd = buildJsonLd(
