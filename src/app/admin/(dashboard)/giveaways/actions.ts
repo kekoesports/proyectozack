@@ -1,8 +1,8 @@
-'use server';
+﻿'use server';
 
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
-import { requireAnyRole } from '@/lib/auth-guard';
+import { requirePermission } from '@/lib/permissions';
 import { assertCanDelete } from '@/lib/permissions';
 import { createGiveaway, updateGiveaway, deleteGiveaway } from '@/lib/queries/giveaways';
 import { like, eq } from 'drizzle-orm';
@@ -50,7 +50,7 @@ function revalidateGiveawayPaths(talentSlug?: string | null): void {
 }
 
 export async function createGiveawayAction(formData: FormData): Promise<GiveawayActionState> {
-  await requireAnyRole(['admin', 'manager'], '/admin/login');
+  await requirePermission('sorteos', 'write');
 
   const parsed = parseFormData(formData, CreateGiveawayFormSchema);
   if (!parsed.ok) {
@@ -77,7 +77,7 @@ export async function createGiveawayAction(formData: FormData): Promise<Giveaway
 }
 
 export async function updateGiveawayAction(formData: FormData): Promise<GiveawayActionState> {
-  await requireAnyRole(['admin', 'manager'], '/admin/login');
+  await requirePermission('sorteos', 'write');
 
   const parsed = parseFormData(formData, UpdateGiveawayFormSchema);
   if (!parsed.ok) {
@@ -93,7 +93,7 @@ export async function updateGiveawayAction(formData: FormData): Promise<Giveaway
 }
 
 export async function setGiveawayFeaturedAction(id: number, value: boolean): Promise<void> {
-  await requireAnyRole(['admin', 'manager'], '/admin/login');
+  await requirePermission('sorteos', 'write');
   const parsed = ToggleArgsSchema.safeParse([id, value]);
   if (!parsed.success) return;
   const [pid, pval] = parsed.data;
@@ -102,7 +102,7 @@ export async function setGiveawayFeaturedAction(id: number, value: boolean): Pro
 }
 
 export async function setGiveawayBadgeAction(id: number, badge: BadgeValue | null): Promise<void> {
-  await requireAnyRole(['admin', 'manager'], '/admin/login');
+  await requirePermission('sorteos', 'write');
   const parsed = BadgeBoundArgsSchema.safeParse([id, badge]);
   if (!parsed.success) return;
   const [pid, pbadge] = parsed.data;
@@ -111,7 +111,7 @@ export async function setGiveawayBadgeAction(id: number, badge: BadgeValue | nul
 }
 
 export async function setGiveawayBadgeFromFormAction(formData: FormData): Promise<void> {
-  await requireAnyRole(['admin', 'manager'], '/admin/login');
+  await requirePermission('sorteos', 'write');
   const rawId = formData.get('giveawayId');
   const id = typeof rawId === 'string' ? Number(rawId) : NaN;
   if (!id || isNaN(id)) return;
@@ -124,14 +124,14 @@ export async function setGiveawayBadgeFromFormAction(formData: FormData): Promis
 }
 
 export async function deleteAllDemosAction(): Promise<void> {
-  const { user } = await requireAnyRole(['admin', 'manager'], '/admin/login');
+  const { user } = await requirePermission('sorteos', 'write');
   assertCanDelete(user.role);
   await db.delete(giveaways).where(like(giveaways.title, '[DEMO]%'));
   revalidateGiveawayPaths();
 }
 
 export async function deleteGiveawayAction(formData: FormData): Promise<void> {
-  const { user } = await requireAnyRole(['admin', 'manager'], '/admin/login');
+  const { user } = await requirePermission('sorteos', 'write');
   assertCanDelete(user.role);
   const parsed = parseFormData(formData, DeleteGiveawaySchema);
   if (!parsed.ok) return;

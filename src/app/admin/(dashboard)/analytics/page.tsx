@@ -1,7 +1,7 @@
-import { asc } from 'drizzle-orm';
+﻿import { asc } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { crmBrands, talents } from '@/db/schema';
-import { requireAnyRole } from '@/lib/auth-guard';
+import { requirePermission } from '@/lib/permissions';
 import { listCampaigns } from '@/lib/queries/campaigns';
 import { listInvoices } from '@/lib/queries/invoices';
 import { getDashboardAlerts } from '@/lib/queries/alerts';
@@ -12,7 +12,7 @@ import type { CampaignWithRelations } from '@/types';
 export const metadata = { title: 'Analítica | Admin' };
 
 export default async function AdminAnalyticsPage(): Promise<React.ReactElement> {
-  const session = await requireAnyRole(['admin', 'staff'], '/admin/login');
+  const session = await requirePermission('analytics', 'read');
   const isStaff = session.user.role === 'staff';
 
   const staffSession = isStaff

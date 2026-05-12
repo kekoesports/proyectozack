@@ -1,7 +1,7 @@
-'use server';
+﻿'use server';
 
 import { revalidatePath } from 'next/cache';
-import { requireAnyRole } from '@/lib/auth-guard';
+import { requirePermission } from '@/lib/permissions';
 import { createCrmEvent, deleteCrmEvent } from '@/lib/queries/crmEvents';
 import { createAlert } from '@/lib/queries/alerts';
 import { crmEventSchema } from '@/lib/schemas/crmEvent';
@@ -14,7 +14,7 @@ function revalidateCalendar(): void {
 }
 
 export async function createEventAction(input: unknown): Promise<ActionResult> {
-  const session = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
+  const session = await requirePermission('tareas', 'read');
 
   const parsed = crmEventSchema.safeParse(input);
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? 'Datos inválidos' };
@@ -60,7 +60,7 @@ export async function createEventAction(input: unknown): Promise<ActionResult> {
 }
 
 export async function deleteEventAction(id: unknown): Promise<ActionResult> {
-  const session = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
+  const session = await requirePermission('tareas', 'read');
   const parsed  = IdSchema.safeParse(id);
   if (!parsed.success) return { error: 'ID inválido' };
   await deleteCrmEvent(parsed.data, session.user.id);

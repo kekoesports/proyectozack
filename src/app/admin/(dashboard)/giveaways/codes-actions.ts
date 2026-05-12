@@ -1,8 +1,8 @@
-'use server';
+﻿'use server';
 
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
-import { requireAnyRole } from '@/lib/auth-guard';
+import { requirePermission } from '@/lib/permissions';
 import { assertCanDelete } from '@/lib/permissions';
 import { createCode, deleteCode, updateCode } from '@/lib/queries/creatorCodes';
 import { eq } from 'drizzle-orm';
@@ -34,7 +34,7 @@ function revalidateAll(talentSlug?: string): void {
 }
 
 export async function createCodeAction(formData: FormData): Promise<CodeActionState> {
-  await requireAnyRole(['admin', 'manager'], '/admin/login');
+  await requirePermission('sorteos', 'write');
 
   const parsed = parseFormData(formData, CreateCodeFormSchema);
   if (!parsed.ok) {
@@ -62,7 +62,7 @@ export async function createCodeAction(formData: FormData): Promise<CodeActionSt
 }
 
 export async function updateCodeAction(formData: FormData): Promise<CodeActionState> {
-  await requireAnyRole(['admin', 'manager'], '/admin/login');
+  await requirePermission('sorteos', 'write');
 
   const parsed = parseFormData(formData, UpdateCodeFormSchema);
   if (!parsed.ok) {
@@ -90,7 +90,7 @@ export async function updateCodeAction(formData: FormData): Promise<CodeActionSt
 }
 
 export async function setCodeFeaturedAction(id: number, value: boolean): Promise<void> {
-  await requireAnyRole(['admin', 'manager'], '/admin/login');
+  await requirePermission('sorteos', 'write');
   const parsed = ToggleArgsSchema.safeParse([id, value]);
   if (!parsed.success) return;
   const [pid, pval] = parsed.data;
@@ -101,7 +101,7 @@ export async function setCodeFeaturedAction(id: number, value: boolean): Promise
 }
 
 export async function deleteCodeAction(formData: FormData): Promise<void> {
-  const { user } = await requireAnyRole(['admin', 'manager'], '/admin/login');
+  const { user } = await requirePermission('sorteos', 'write');
   assertCanDelete(user.role);
   const parsed = parseFormData(formData, DeleteByIdSchema);
   if (!parsed.ok) return;

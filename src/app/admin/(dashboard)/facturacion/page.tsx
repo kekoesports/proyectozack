@@ -1,4 +1,4 @@
-import Link from 'next/link';
+﻿import Link from 'next/link';
 import { db } from '@/lib/db';
 import { crmBrands, talents, campaigns } from '@/db/schema';
 import { asc } from 'drizzle-orm';
@@ -11,7 +11,7 @@ import { AccountingImporter }        from '@/features/admin/invoices/components/
 import { BillingClientsManager }     from '@/features/admin/invoices/components/BillingClientsManager';
 import { IssuersManagerTab }         from '@/features/admin/invoices/components/IssuersManagerTab';
 import { BrandsTabs }                from '@/features/admin/brands/components/BrandsTabs';
-import { requireAnyRole } from '@/lib/auth-guard';
+import { requirePermission } from '@/lib/permissions';
 import { canDelete } from '@/lib/permissions';
 
 
@@ -43,7 +43,7 @@ function KpiCard({ label, value, accent, sub, subAccent }: KpiCardProps): React.
 }
 
 export default async function AdminInvoicesPage(): Promise<React.ReactElement> {
-  const session = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
+  const session = await requirePermission('facturacion', 'read');
   const role    = session.user.role;
   const isStaff = role === 'staff';
 

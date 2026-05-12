@@ -1,4 +1,4 @@
-'use server';
+﻿'use server';
 
 /**
  * Stub re-export. The actual import logic lives in ./import/actions.ts.
@@ -12,7 +12,7 @@ import { revalidatePath } from 'next/cache';
 import { sql } from 'drizzle-orm';
 import { z } from 'zod';
 
-import { requireRole } from '@/lib/auth-guard';
+import { requirePermission } from '@/lib/permissions';
 import { db } from '@/lib/db';
 import { talents, talentSocials } from '@/db/schema';
 import { initialsOf, slugify } from '@/lib/utils/import-utils';
@@ -62,7 +62,7 @@ export async function previewTalentImportAction(
   _prev: TalentImportPreview,
   formData: FormData,
 ): Promise<TalentImportPreview> {
-  await requireRole('admin', '/admin/login');
+  await requirePermission('talentos', 'delete');
 
   const file = formData.get('file');
   if (!(file instanceof File) || file.size === 0) {
@@ -108,7 +108,7 @@ export async function confirmTalentImportAction(
   _prev: TalentImportResult,
   formData: FormData,
 ): Promise<TalentImportResult> {
-  await requireRole('admin', '/admin/login');
+  await requirePermission('talentos', 'delete');
   const parsedForm = parseFormData(formData, ConfirmInput);
   if (!parsedForm.ok) return { error: 'Sin datos' };
 

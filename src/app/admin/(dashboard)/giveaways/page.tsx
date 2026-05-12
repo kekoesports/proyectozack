@@ -1,5 +1,5 @@
-import Image from 'next/image';
-import { requireAnyRole } from '@/lib/auth-guard';
+﻿import Image from 'next/image';
+import { requirePermission } from '@/lib/permissions';
 import { getAllGiveaways } from '@/lib/queries/giveaways';
 import { getAllTalents } from '@/lib/queries/talents';
 import { getAllCodes } from '@/lib/queries/creatorCodes';
@@ -22,7 +22,7 @@ type PageProps = {
 }
 
 export default async function AdminGiveawaysPage({ searchParams }: PageProps): Promise<React.ReactElement> {
-  await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
+  await requirePermission('sorteos', 'read');
   const { creator, status } = await searchParams;
   const [allGiveaways, allTalents, allCodes, allWinners] = await Promise.all([
     getAllGiveaways(),

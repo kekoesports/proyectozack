@@ -1,7 +1,7 @@
-'use server';
+﻿'use server';
 
 import { revalidatePath } from 'next/cache';
-import { requireRole } from '@/lib/auth-guard';
+import { requirePermission } from '@/lib/permissions';
 import { getCampaignWithRelations } from '@/lib/queries/campaigns';
 import {
   getIssuerCompanies,
@@ -25,7 +25,7 @@ export async function createInvoiceFromDealAction(
   issuerId: number,
   forceCreate = false,
 ): Promise<Result> {
-  const session = await requireRole('admin', '/admin/login');
+  const session = await requirePermission('campanas', 'delete');
 
   const campaign = await getCampaignWithRelations(campaignId);
   if (!campaign) return { error: 'Trato no encontrado' };

@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 
-import { requireAnyRole } from '@/lib/auth-guard';
+import { requirePermission } from '@/lib/permissions';
 import { insertSnapshot } from '@/lib/queries/analytics';
 import { parseFormData } from '@/lib/forms/parseFormData';
 import { firstError } from '@/lib/forms/firstError';
@@ -22,7 +22,7 @@ export async function insertSnapshotAction(
   formData: FormData,
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
+    await requirePermission('talentos', 'read');
 
     const parsed = parseFormData(formData, SnapshotInput);
     if (!parsed.ok) return { success: false, error: firstError(parsed.fieldErrors) };

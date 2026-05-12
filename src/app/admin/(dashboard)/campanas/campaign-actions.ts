@@ -1,4 +1,4 @@
-'use server';
+﻿'use server';
 
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
@@ -8,7 +8,7 @@ import {
   updateCampaign,
   archiveCampaign,
 } from '@/lib/queries/campaigns';
-import { requireAnyRole } from '@/lib/auth-guard';
+import { requirePermission } from '@/lib/permissions';
 import { parseFormData } from '@/lib/forms/parseFormData';
 import { logRedacted } from '@/lib/log';
 import { CAMPAIGN_STATUSES, CAMPAIGN_ACTION_TYPES } from '@/lib/schemas/campaign';
@@ -54,7 +54,7 @@ const UpdateLegacy = z.object({
 const IdOnly = z.object({ id: IdSchema });
 
 export async function createCampaignAction(formData: FormData): Promise<void> {
-  await requireAnyRole(['admin', 'staff'], '/admin/login');
+  await requirePermission('campanas', 'read');
   const parsed = parseFormData(formData, CreateLegacy);
   if (!parsed.ok) {
     logRedacted('warn', '[campaign-actions] createCampaign invalid input', parsed.fieldErrors);
@@ -82,7 +82,7 @@ export async function createCampaignAction(formData: FormData): Promise<void> {
 }
 
 export async function updateCampaignAction(formData: FormData): Promise<void> {
-  await requireAnyRole(['admin', 'staff'], '/admin/login');
+  await requirePermission('campanas', 'read');
   const parsed = parseFormData(formData, UpdateLegacy);
   if (!parsed.ok) {
     logRedacted('warn', '[campaign-actions] updateCampaign invalid input', parsed.fieldErrors);
@@ -109,7 +109,7 @@ export async function updateCampaignAction(formData: FormData): Promise<void> {
 }
 
 export async function deleteCampaignAction(formData: FormData): Promise<void> {
-  await requireAnyRole(['admin', 'staff'], '/admin/login');
+  await requirePermission('campanas', 'read');
   const parsed = parseFormData(formData, IdOnly);
   if (!parsed.ok) return;
   // Los tratos se archivan (soft-delete) en lugar de borrarse para preservar datos históricos.
@@ -121,11 +121,11 @@ export async function deleteCampaignAction(formData: FormData): Promise<void> {
 // vinculados al trato (via getCampaignPaymentStatus, que suma invoices por campaignId).
 // El flujo correcto es: registrar movimiento en Facturación → estado del trato se actualiza solo.
 export async function markBrandPaidAction(_formData: FormData): Promise<void> {
-  await requireAnyRole(['admin', 'staff'], '/admin/login');
+  await requirePermission('campanas', 'read');
   revalidatePath('/admin/campanas');
 }
 
 export async function markTalentPaidAction(_formData: FormData): Promise<void> {
-  await requireAnyRole(['admin', 'staff'], '/admin/login');
+  await requirePermission('campanas', 'read');
   revalidatePath('/admin/campanas');
 }

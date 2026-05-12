@@ -1,7 +1,7 @@
-'use server';
+﻿'use server';
 
 import { revalidatePath } from 'next/cache';
-import { requireAnyRole } from '@/lib/auth-guard';
+import { requirePermission } from '@/lib/permissions';
 import { createWinner, deleteWinner } from '@/lib/queries/giveawayWinners';
 import { parseFormData } from '@/lib/forms/parseFormData';
 import { firstError } from '@/lib/forms/firstError';
@@ -16,7 +16,7 @@ export type WinnerActionState =
   | { ok: false; fieldErrors: Record<string, string[]> };
 
 export async function createWinnerAction(formData: FormData): Promise<WinnerActionState> {
-  await requireAnyRole(['admin', 'manager'], '/admin/login');
+  await requirePermission('sorteos', 'write');
 
   const parsed = parseFormData(formData, CreateWinnerFormSchema);
   if (!parsed.ok) {
@@ -35,7 +35,7 @@ export async function createWinnerAction(formData: FormData): Promise<WinnerActi
 }
 
 export async function deleteWinnerAction(formData: FormData): Promise<void> {
-  await requireAnyRole(['admin', 'manager'], '/admin/login');
+  await requirePermission('sorteos', 'write');
   const parsed = parseFormData(formData, DeleteByIdSchema);
   if (!parsed.ok) return;
   await deleteWinner(parsed.data.id);

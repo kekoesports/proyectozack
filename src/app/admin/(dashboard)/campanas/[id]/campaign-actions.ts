@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { eq } from 'drizzle-orm';
-import { requireRole } from '@/lib/auth-guard';
+import { requirePermission } from '@/lib/permissions';
 import { db } from '@/lib/db';
 import { campaigns } from '@/db/schema';
 
@@ -16,7 +16,7 @@ export async function toggleCampaignCnmcChecklistAction(
   campaignId: number,
   ok: boolean,
 ): Promise<ActionResult> {
-  await requireRole('admin', '/admin/login');
+  await requirePermission('campanas', 'delete');
 
   try {
     await db

@@ -1,4 +1,4 @@
-'use server';
+﻿'use server';
 
 import { revalidatePath } from 'next/cache';
 import { eq } from 'drizzle-orm';
@@ -8,7 +8,7 @@ import { user as userTable } from '@/db/schema';
 import { sendStaffInviteEmail } from '@/lib/email';
 import { absoluteUrl } from '@/lib/site-url';
 import { auth } from '@/lib/auth';
-import { requireRole } from '@/lib/auth-guard';
+import { requirePermission } from '@/lib/permissions';
 import { parseFormData } from '@/lib/forms/parseFormData';
 import { firstError } from '@/lib/forms/firstError';
 import { logRedacted } from '@/lib/log';
@@ -29,7 +29,7 @@ export async function inviteStaffAction(
   _prev: InviteState,
   formData: FormData,
 ): Promise<InviteState> {
-  await requireRole('admin', '/admin/login');
+  await requirePermission('equipo', 'delete');
 
   const parsed = parseFormData(formData, StaffInvite);
   if (!parsed.ok) return { error: firstError(parsed.fieldErrors) };
@@ -69,7 +69,7 @@ export async function updateUserRoleAction(
   userId: unknown,
   role: unknown,
 ): Promise<ActionResult> {
-  const session = await requireRole('admin', '/admin/login');
+  const session = await requirePermission('equipo', 'delete');
 
   if (typeof userId !== 'string' || !userId) return { error: 'ID inválido' };
 
@@ -88,7 +88,7 @@ export async function updateUserRoleAction(
 }
 
 export async function removeUserAction(userId: unknown): Promise<ActionResult> {
-  const session = await requireRole('admin', '/admin/login');
+  const session = await requirePermission('equipo', 'delete');
 
   if (typeof userId !== 'string' || !userId) return { error: 'ID inválido' };
 

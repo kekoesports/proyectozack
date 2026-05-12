@@ -5,7 +5,7 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { eq, and } from 'drizzle-orm';
 
-import { requireAnyRole } from '@/lib/auth-guard';
+import { requirePermission } from '@/lib/permissions';
 import { assertCanDelete } from '@/lib/permissions';
 import { uploadFile, deleteFile } from '@/lib/storage';
 import { createFile, deleteFileById } from '@/lib/queries/files';
@@ -47,7 +47,7 @@ export async function uploadTalentFileAction(
   formData: FormData,
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const session = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
+    const session = await requirePermission('talentos', 'read');
 
     const meta = parseFormData(formData, UploadFileMeta);
     if (!meta.ok) return { success: false, error: 'talentId requerido' };
@@ -101,7 +101,7 @@ export async function uploadGeoStatsAction(
   formData: FormData,
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const session = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
+    const session = await requirePermission('talentos', 'read');
 
     const meta = parseFormData(formData, UploadGeoMeta);
     if (!meta.ok) return { success: false, error: 'talentId requerido' };
@@ -199,7 +199,7 @@ export async function deleteTalentFileAction(
   formData: FormData,
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const session = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
+    const session = await requirePermission('talentos', 'read');
     assertCanDelete(session.user.role);
 
     const meta = parseFormData(formData, DeleteFileMeta);

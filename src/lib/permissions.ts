@@ -41,6 +41,7 @@ export type Module =
   | 'agenda'
   | 'rankings'
   | 'equipo'
+  | 'tareas'
   | 'ajustes'
   | 'usuarios';
 
@@ -103,6 +104,11 @@ export const PERMISSIONS = {
     read:    ['admin', 'manager'],
     write:   ['admin'],
     delete:  ['admin'],
+  },
+  tareas: {
+    read:    ['admin', 'manager', 'staff', 'editor', 'ops', 'talent_manager'],
+    write:   ['admin', 'manager', 'ops'],
+    delete:  ['admin', 'manager'],
   },
   usuarios: {
     read:         ['admin'],

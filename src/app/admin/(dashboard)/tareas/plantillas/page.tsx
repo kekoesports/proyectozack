@@ -1,13 +1,13 @@
-import { redirect } from 'next/navigation';
+﻿import { redirect } from 'next/navigation';
 
-import { requireAnyRole } from '@/lib/auth-guard';
+import { requirePermission } from '@/lib/permissions';
 import { canDelete } from '@/lib/permissions';
 import { getAllStaffUsers } from '@/lib/queries/staffUsers';
 import { listTaskTemplates } from '@/lib/queries/taskTemplates';
 import { TaskTemplatesManager } from '@/features/admin/tasks/components/TaskTemplatesManager';
 
 export default async function TaskTemplatesPage(): Promise<React.ReactElement> {
-  const session = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
+  const session = await requirePermission('tareas', 'read');
   if (session.user.role === 'staff') {
     redirect('/admin/tareas');
   }

@@ -1,9 +1,9 @@
-'use server';
+﻿'use server';
 
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 
-import { requireRole, requireAnyRole } from '@/lib/auth-guard';
+import { requirePermission } from '@/lib/permissions';
 import { parseFormData } from '@/lib/forms/parseFormData';
 import { firstError } from '@/lib/forms/firstError';
 import { logRedacted } from '@/lib/log';
@@ -73,7 +73,7 @@ export async function createIssuedInvoiceAction(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  const session = await requireAnyRole(['admin', 'staff'], '/admin/login');
+  const session = await requirePermission('facturacion', 'read');
 
   const parsed = parseFormData(formData, createIssuedInvoiceSchema);
   if (!parsed.ok) {
@@ -135,7 +135,7 @@ export async function updateIssuedInvoiceAction(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  await requireAnyRole(['admin', 'staff'], '/admin/login');
+  await requirePermission('facturacion', 'read');
 
   const parsed = parseFormData(formData, updateIssuedInvoiceSchema);
   if (!parsed.ok) {
@@ -201,8 +201,8 @@ export async function updateInvoiceStatusAction(id: number, status: string): Pro
 
   // Anular requiere admin; el resto pueden hacerlo admin y staff
   const session = statusCheck.data === 'anulada'
-    ? await requireRole('admin', '/admin/login')
-    : await requireAnyRole(['admin', 'staff'], '/admin/login');
+    ? await requirePermission('facturacion', 'delete')
+    : await requirePermission('facturacion', 'read');
 
   try {
     await updateIssuedInvoice(idCheck.data, { status: statusCheck.data });
@@ -281,7 +281,7 @@ export async function updateInvoiceStatusAction(id: number, status: string): Pro
 }
 
 export async function createBillingClientAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
-  await requireAnyRole(['admin', 'staff'], '/admin/login');
+  await requirePermission('facturacion', 'read');
   const parsed = parseFormData(formData, billingClientSchema);
   if (!parsed.ok) {
     logRedacted('warn', '[issued-invoices] createBillingClient validation failed:', firstError(parsed.fieldErrors));
@@ -310,7 +310,7 @@ export async function createBillingClientAction(_prev: ActionState, formData: Fo
 }
 
 export async function updateIssuerCompanyAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
-  await requireRole('admin', '/admin/login');
+  await requirePermission('facturacion', 'delete');
   const parsed = parseFormData(formData, issuerCompanyWithIdSchema);
   if (!parsed.ok) {
     logRedacted('warn', '[issued-invoices] updateIssuerCompany validation failed:', firstError(parsed.fieldErrors));
@@ -341,7 +341,7 @@ export async function updateIssuerCompanyAction(_prev: ActionState, formData: Fo
 }
 
 export async function updateBillingClientAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
-  await requireAnyRole(['admin', 'staff'], '/admin/login');
+  await requirePermission('facturacion', 'read');
   const parsed = parseFormData(formData, billingClientWithIdSchema);
   if (!parsed.ok) {
     logRedacted('warn', '[issued-invoices] updateBillingClient validation failed:', firstError(parsed.fieldErrors));

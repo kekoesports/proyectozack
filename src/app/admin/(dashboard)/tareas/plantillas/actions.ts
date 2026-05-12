@@ -1,8 +1,8 @@
-'use server';
+﻿'use server';
 
 import { revalidatePath } from 'next/cache';
 
-import { requireAnyRole } from '@/lib/auth-guard';
+import { requirePermission } from '@/lib/permissions';
 import { assertCanDelete } from '@/lib/permissions';
 import { parseFormData } from '@/lib/forms/parseFormData';
 import { firstError } from '@/lib/forms/firstError';
@@ -17,7 +17,7 @@ type ActionResult = { readonly error?: string };
 const REVALIDATE = '/admin/tareas/plantillas';
 
 export async function createTaskTemplateAction(formData: FormData): Promise<ActionResult> {
-  await requireAnyRole(['admin', 'manager'], '/admin/login');
+  await requirePermission('tareas', 'write');
 
   const parsed = parseFormData(formData, createTaskTemplateSchema);
   if (!parsed.ok) return { error: firstError(parsed.fieldErrors) };
@@ -37,7 +37,7 @@ export async function createTaskTemplateAction(formData: FormData): Promise<Acti
 }
 
 export async function updateTaskTemplateAction(formData: FormData): Promise<ActionResult> {
-  await requireAnyRole(['admin', 'manager'], '/admin/login');
+  await requirePermission('tareas', 'write');
 
   const parsed = parseFormData(formData, updateTaskTemplateSchema);
   if (!parsed.ok) return { error: firstError(parsed.fieldErrors) };
@@ -58,7 +58,7 @@ export async function updateTaskTemplateAction(formData: FormData): Promise<Acti
 }
 
 export async function deleteTaskTemplateAction(id: number): Promise<ActionResult> {
-  const session = await requireAnyRole(['admin', 'manager'], '/admin/login');
+  const session = await requirePermission('tareas', 'write');
   try {
     assertCanDelete(session.user.role);
   } catch {

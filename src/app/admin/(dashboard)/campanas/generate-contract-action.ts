@@ -1,10 +1,10 @@
-'use server';
+﻿'use server';
 
 import { revalidatePath } from 'next/cache';
 import { put } from '@vercel/blob';
 import { z } from 'zod';
 
-import { requireAnyRole } from '@/lib/auth-guard';
+import { requirePermission } from '@/lib/permissions';
 import {
   getContractByCampaign, createContract, updateContract,
 } from '@/lib/queries/contracts';
@@ -26,7 +26,7 @@ export async function saveGeneratedContractAction(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  const session = await requireAnyRole(['admin', 'staff'], '/admin/login');
+  const session = await requirePermission('campanas', 'read');
 
   const meta = parseFormData(formData, GenerateContractMeta);
   if (!meta.ok) return { error: 'Parámetros inválidos' };

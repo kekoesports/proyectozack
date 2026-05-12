@@ -1,4 +1,4 @@
-import Link from 'next/link';
+﻿import Link from 'next/link';
 import { asc } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { crmBrands, talents } from '@/db/schema';
@@ -6,10 +6,10 @@ import { listImports } from '@/lib/queries/invoiceImports';
 import { listTemplates } from '@/lib/queries/invoiceImportTemplates';
 import { getUsedInvoiceCategories } from '@/lib/queries/invoices';
 import { ImportInbox } from '@/features/admin/invoices/components/ImportInbox';
-import { requireAnyRole } from '@/lib/auth-guard';
+import { requirePermission } from '@/lib/permissions';
 
 export default async function AdminInvoiceImportPage(): Promise<React.ReactElement> {
-  await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
+  await requirePermission('facturacion', 'read');
   const [pending, reviewed, brandsList, talentsList, categories, templates] = await Promise.all([
     listImports('pending'),
     (async () => {

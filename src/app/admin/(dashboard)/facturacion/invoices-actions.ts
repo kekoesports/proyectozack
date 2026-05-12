@@ -1,10 +1,10 @@
-'use server';
+﻿'use server';
 
 import { randomBytes } from 'crypto';
 import { revalidatePath } from 'next/cache';
 import { put, del } from '@vercel/blob';
 
-import { requireAnyRole } from '@/lib/auth-guard';
+import { requirePermission } from '@/lib/permissions';
 import { assertCanDelete } from '@/lib/permissions';
 import { parseFormData } from '@/lib/forms/parseFormData';
 import { firstError } from '@/lib/forms/firstError';
@@ -86,7 +86,7 @@ async function processFileSlot(
 }
 
 export async function createInvoiceAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
-  const session = await requireAnyRole(['admin', 'manager'], '/admin/login');
+  const session = await requirePermission('facturacion', 'write');
 
   const parsed = parseFormData(formData, createInvoiceSchema);
   if (!parsed.ok) {
@@ -151,7 +151,7 @@ export async function createInvoiceAction(_prev: ActionState, formData: FormData
 }
 
 export async function updateInvoiceAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
-  const session = await requireAnyRole(['admin', 'manager'], '/admin/login');
+  const session = await requirePermission('facturacion', 'write');
 
   const parsed = parseFormData(formData, updateInvoiceSchema);
   if (!parsed.ok) {
@@ -196,7 +196,7 @@ export async function updateInvoiceAction(_prev: ActionState, formData: FormData
 }
 
 export async function deleteInvoiceAction(id: number): Promise<ActionState> {
-  const session = await requireAnyRole(['admin', 'manager'], '/admin/login');
+  const session = await requirePermission('facturacion', 'write');
   try {
     assertCanDelete(session.user.role);
   } catch {
@@ -220,7 +220,7 @@ export async function deleteInvoiceAction(id: number): Promise<ActionState> {
 }
 
 export async function annulInvoiceAction(id: number): Promise<ActionState> {
-  await requireAnyRole(['admin', 'manager'], '/admin/login');
+  await requirePermission('facturacion', 'write');
   try {
     const existing = await getInvoice(id);
     await updateInvoice(id, { status: 'anulada' });
@@ -236,7 +236,7 @@ export async function annulInvoiceAction(id: number): Promise<ActionState> {
 }
 
 export async function bulkDeleteInvoicesAction(ids: number[]): Promise<ActionState> {
-  await requireAnyRole(['admin'], '/admin/login');
+  await requirePermission('facturacion', 'delete');
   if (ids.length === 0) return {};
   try {
     for (const id of ids) {
@@ -254,7 +254,7 @@ export async function bulkDeleteInvoicesAction(ids: number[]): Promise<ActionSta
 }
 
 export async function markInvoicePaidAction(id: number): Promise<ActionState> {
-  await requireAnyRole(['admin', 'manager'], '/admin/login');
+  await requirePermission('facturacion', 'write');
   const today = MADRID_DATE_FMT.format(new Date());
   try {
     const existing = await getInvoice(id);

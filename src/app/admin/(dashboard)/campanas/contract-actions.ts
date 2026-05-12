@@ -1,11 +1,11 @@
-'use server';
+﻿'use server';
 
 import { revalidatePath } from 'next/cache';
 import { put, del } from '@vercel/blob';
 import { z } from 'zod';
 import { Resend } from 'resend';
 
-import { requireAnyRole } from '@/lib/auth-guard';
+import { requirePermission } from '@/lib/permissions';
 import {
   getContractByCampaign, createContract, updateContract,
   addSigner, removeSigner,
@@ -43,7 +43,7 @@ function revalidate(campaignId: number): void {
 // ── Subir contrato ────────────────────────────────────────────────────
 
 export async function uploadContractAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
-  const session = await requireAnyRole(['admin', 'staff'], '/admin/login');
+  const session = await requirePermission('campanas', 'read');
 
   const meta = parseFormData(formData, UploadContractMeta);
   if (!meta.ok) return { error: 'ID de trato inválido' };
@@ -102,7 +102,7 @@ export async function uploadContractAction(_prev: ActionState, formData: FormDat
 // ── Añadir firmante ───────────────────────────────────────────────────
 
 export async function addSignerAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
-  await requireAnyRole(['admin', 'staff'], '/admin/login');
+  await requirePermission('campanas', 'read');
   const parsed = parseFormData(formData, AddSignerInput);
   if (!parsed.ok) return { error: firstError(parsed.fieldErrors) };
   const { contractId, campaignId, name, email, role } = parsed.data;
@@ -127,7 +127,7 @@ export async function addSignerAction(_prev: ActionState, formData: FormData): P
 // ── Eliminar firmante ─────────────────────────────────────────────────
 
 export async function removeSignerAction(signerId: number, campaignId: number): Promise<ActionState> {
-  await requireAnyRole(['admin', 'staff'], '/admin/login');
+  await requirePermission('campanas', 'read');
   try {
     await removeSigner(signerId);
     revalidate(campaignId);
@@ -141,7 +141,7 @@ export async function removeSignerAction(signerId: number, campaignId: number): 
 // ── Solicitar firmas ──────────────────────────────────────────────────
 
 export async function requestSignaturesAction(contractId: number, campaignId: number): Promise<ActionState> {
-  await requireAnyRole(['admin', 'staff'], '/admin/login');
+  await requirePermission('campanas', 'read');
   try {
     const contract = await (await import('@/lib/queries/contracts')).getContractById(contractId);
     if (!contract) return { error: 'Contrato no encontrado' };

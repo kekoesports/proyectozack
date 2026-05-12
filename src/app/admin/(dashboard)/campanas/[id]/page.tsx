@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { eq, inArray } from 'drizzle-orm';
 
-import { requireAnyRole } from '@/lib/auth-guard';
+import { requirePermission } from '@/lib/permissions';
 import { assertCanEditCampaign } from '@/lib/queries/campaigns';
 import { getCampaignWithRelations } from '@/lib/queries/campaigns';
 import { listFilesByEntity } from '@/lib/queries/files';
@@ -28,7 +28,7 @@ export default async function CampaignDetailPage({
   const campaignId = Number(id);
   if (!Number.isInteger(campaignId) || campaignId <= 0) notFound();
 
-  const session = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
+  const session = await requirePermission('campanas', 'read');
   const role = session.user.role;
   const isManager = role === 'manager';
   const isAdmin = role === 'admin';

@@ -1,9 +1,9 @@
-'use server';
+﻿'use server';
 
 import { revalidatePath } from 'next/cache';
 import { put } from '@vercel/blob';
 
-import { requireAnyRole } from '@/lib/auth-guard';
+import { requirePermission } from '@/lib/permissions';
 import { env } from '@/lib/env';
 import { parseFormData } from '@/lib/forms/parseFormData';
 import { firstError } from '@/lib/forms/firstError';
@@ -92,7 +92,7 @@ export async function uploadImportAction(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  await requireAnyRole(['admin', 'manager'], '/admin/login');
+  await requirePermission('facturacion', 'write');
 
   const file = formData.get('file');
   if (!(file instanceof File) || file.size === 0) return { error: 'Selecciona un archivo' };
@@ -218,7 +218,7 @@ export async function approveImportAction(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  await requireAnyRole(['admin', 'manager'], '/admin/login');
+  await requirePermission('facturacion', 'write');
 
   const parsed = parseFormData(formData, approveImportSchema);
   if (!parsed.ok) {
@@ -264,7 +264,7 @@ export async function approveImportAction(
 }
 
 export async function rejectImportAction(id: number): Promise<ActionState> {
-  await requireAnyRole(['admin', 'manager'], '/admin/login');
+  await requirePermission('facturacion', 'write');
   try {
     await rejectImport(id);
     revalidatePath('/admin/facturacion/import');
@@ -276,7 +276,7 @@ export async function rejectImportAction(id: number): Promise<ActionState> {
 }
 
 export async function deleteImportAction(id: number): Promise<ActionState> {
-  await requireAnyRole(['admin', 'manager'], '/admin/login');
+  await requirePermission('facturacion', 'write');
   try {
     await deleteImport(id);
     revalidatePath('/admin/facturacion/import');
@@ -288,7 +288,7 @@ export async function deleteImportAction(id: number): Promise<ActionState> {
 }
 
 export async function clearHistoryAction(): Promise<ActionState> {
-  await requireAnyRole(['admin', 'manager'], '/admin/login');
+  await requirePermission('facturacion', 'write');
   try {
     await deleteAllRejectedImports();
     revalidatePath('/admin/facturacion/import');
@@ -330,7 +330,7 @@ export async function commitMappedImportAction(
   _prev: CommitState,
   formData: FormData,
 ): Promise<CommitState> {
-  await requireAnyRole(['admin', 'manager'], '/admin/login');
+  await requirePermission('facturacion', 'write');
 
   const file = formData.get('file');
   if (!(file instanceof File) || file.size === 0) return { error: 'Selecciona un archivo' };
@@ -435,7 +435,7 @@ export async function commitMappedImportAction(
 // ─── Retry AI extraction (no re-upload) ──────────────────────────────────────
 
 export async function retryExtractionAction(importId: number): Promise<ActionState> {
-  await requireAnyRole(['admin', 'manager'], '/admin/login');
+  await requirePermission('facturacion', 'write');
 
   const existing = await getImport(importId);
   if (!existing || existing.status !== 'pending') {

@@ -1,7 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { requireRole } from '@/lib/auth-guard';
+import { requirePermission } from '@/lib/permissions';
 import { updateTalentComplianceSchema } from '@/lib/schemas/talentCompliance';
 import { updateTalentCompliance } from '@/lib/queries/talents';
 import { compact } from '@/lib/utils/objects';
@@ -28,7 +28,7 @@ export async function updateTalentComplianceAction(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  await requireRole('admin', '/admin/login');
+  await requirePermission('talentos', 'delete');
 
   // hasRcInsurance is a checkbox — only present in FormData when checked
   const raw = formToObject(formData);

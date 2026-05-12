@@ -1,7 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { requireAnyRole } from '@/lib/auth-guard';
+import { requirePermission } from '@/lib/permissions';
 import {
   createDeliverableSchema,
   updateDeliverableStatusSchema,
@@ -27,7 +27,7 @@ export async function createDeliverableAction(
   _prev: ActionResult,
   formData: FormData,
 ): Promise<ActionResult> {
-  const session = await requireAnyRole(['admin', 'manager'], '/admin/login');
+  const session = await requirePermission('campanas', 'write');
   void session;
 
   const parsed = createDeliverableSchema.safeParse(formToObject(formData));
@@ -61,7 +61,7 @@ export async function transitionDeliverableAction(data: {
   contentUrl?: string;
   revisionNotes?: string;
 }): Promise<ActionResult> {
-  const session = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
+  const session = await requirePermission('campanas', 'read');
 
   const parsed = updateDeliverableStatusSchema.safeParse(data);
   if (!parsed.success) {
@@ -99,7 +99,7 @@ export async function deleteDeliverableAction(
   deliverableId: number,
   campaignId: number,
 ): Promise<ActionResult> {
-  await requireAnyRole(['admin', 'manager'], '/admin/login');
+  await requirePermission('campanas', 'write');
 
   try {
     const deleted = await deleteDeliverable(deliverableId);

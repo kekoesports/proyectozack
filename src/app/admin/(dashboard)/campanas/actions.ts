@@ -1,8 +1,8 @@
-'use server';
+﻿'use server';
 
 import { revalidatePath } from 'next/cache';
 
-import { requireAnyRole } from '@/lib/auth-guard';
+import { requirePermission } from '@/lib/permissions';
 import { assertCanDelete } from '@/lib/permissions';
 import { createCampaignSchema, updateCampaignSchema } from '@/lib/schemas/campaign';
 import {
@@ -27,7 +27,7 @@ export async function createCampaignAction(
   formData: FormData,
 ): Promise<{ success: true; id: number } | { success: false; error: string }> {
   try {
-    const session = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
+    const session = await requirePermission('campanas', 'read');
 
     const parsed = parseFormData(formData, createCampaignSchema);
     if (!parsed.ok) return { success: false, error: firstError(parsed.fieldErrors) };
@@ -54,7 +54,7 @@ export async function updateCampaignAction(
   formData: FormData,
 ): Promise<{ success: true } | { success: false; error: string }> {
   try {
-    const session = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
+    const session = await requirePermission('campanas', 'read');
 
     const parsed = parseFormData(formData, updateCampaignSchema);
     if (!parsed.ok) return { success: false, error: firstError(parsed.fieldErrors) };
@@ -80,7 +80,7 @@ export async function archiveCampaignAction(
   id: number,
 ): Promise<{ success: true } | { success: false; error: string }> {
   try {
-    const session = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
+    const session = await requirePermission('campanas', 'read');
 
     if (session.user.role === 'staff') throw new Error(`forbidden:delete:${session.user.role}`);
 
@@ -103,7 +103,7 @@ export async function unarchiveCampaignAction(
   id: number,
 ): Promise<{ success: true } | { success: false; error: string }> {
   try {
-    const session = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
+    const session = await requirePermission('campanas', 'read');
 
     if (session.user.role === 'staff') throw new Error(`forbidden:delete:${session.user.role}`);
 

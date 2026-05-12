@@ -1,10 +1,10 @@
-'use server';
+﻿'use server';
 
 import { revalidatePath } from 'next/cache';
 import { eq, sql } from 'drizzle-orm';
 import { z } from 'zod';
 
-import { requireAnyRole } from '@/lib/auth-guard';
+import { requirePermission } from '@/lib/permissions';
 import { assertCanDelete } from '@/lib/permissions';
 import { db } from '@/lib/db';
 import { talents, talentSocials } from '@/db/schema';
@@ -57,7 +57,7 @@ export async function createTalentAction(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  await requireAnyRole(['admin', 'manager'], '/admin/login');
+  await requirePermission('talentos', 'write');
 
   const parsed = parseFormData(formData, TalentCreate);
   if (!parsed.ok) return { success: false, error: firstError(parsed.fieldErrors) };
@@ -130,7 +130,7 @@ export async function createTalentAction(
 }
 
 export async function deleteTalentAction(formData: FormData): Promise<void> {
-  const session = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
+  const session = await requirePermission('talentos', 'read');
   assertCanDelete(session.user.role);
   const parsed = parseFormData(formData, IdOnly);
   if (!parsed.ok) return;
@@ -140,7 +140,7 @@ export async function deleteTalentAction(formData: FormData): Promise<void> {
 }
 
 export async function updateTalentBioAction(formData: FormData): Promise<void> {
-  await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
+  await requirePermission('talentos', 'read');
   const parsed = parseFormData(formData, BioUpdate);
   if (!parsed.ok) return;
   await db.update(talents).set({ bio: parsed.data.bio }).where(eq(talents.id, parsed.data.id));
@@ -155,7 +155,7 @@ export async function setTalentStatusAction(
   talentId: number,
   status: TalentStatus,
 ): Promise<ActionState> {
-  await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
+  await requirePermission('talentos', 'read');
   if (!STATUS_VALUES.includes(status)) return { success: false, error: 'Estado inválido' };
   if (!talentId) return { success: false, error: 'ID inválido' };
   try {
@@ -175,7 +175,7 @@ export async function updateSocialGeoAction(
   socialId: number,
   topGeos: readonly GeoEntry[],
 ): Promise<ActionState> {
-  await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
+  await requirePermission('talentos', 'read');
   if (!socialId) return { success: false, error: 'ID inválido' };
 
   const cleaned: GeoEntry[] = [];

@@ -1,8 +1,8 @@
-'use server';
+﻿'use server';
 
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod/v4';
-import { requireAnyRole } from '@/lib/auth-guard';
+import { requirePermission } from '@/lib/permissions';
 import { createInvoice } from '@/lib/queries/invoices';
 import {
   INVOICE_KINDS,
@@ -38,7 +38,7 @@ export type MovimientoResult =
 export async function addDealMovimientoAction(
   input: MovimientoInput,
 ): Promise<MovimientoResult> {
-  await requireAnyRole(['admin', 'manager'], '/admin/login');
+  await requirePermission('campanas', 'write');
 
   const parsed = movimientoSchema.safeParse(input);
   if (!parsed.success) {

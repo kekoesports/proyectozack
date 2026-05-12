@@ -1,8 +1,8 @@
-'use server';
+﻿'use server';
 
 import { revalidatePath } from 'next/cache';
 
-import { requireRole } from '@/lib/auth-guard';
+import { requirePermission } from '@/lib/permissions';
 import { upsertTalentFromImport } from '@/lib/queries/talents';
 import { parseCsv, slugify } from '@/lib/utils/import-utils';
 import { db } from '@/lib/db';
@@ -139,7 +139,7 @@ function parseXlsx(buffer: ArrayBuffer): { headers: string[]; rows: Record<strin
 // ── parseImportFileAction ─────────────────────────────────────────────
 
 export async function parseImportFileAction(formData: FormData): Promise<ParseImportFileResult> {
-  await requireRole('admin', '/admin/login');
+  await requirePermission('talentos', 'delete');
 
   const file = formData.get('file');
   if (!(file instanceof File)) {
@@ -196,7 +196,7 @@ export async function parseImportFileAction(formData: FormData): Promise<ParseIm
 // ── applyImportAction ─────────────────────────────────────────────────
 
 export async function applyImportAction(input: ApplyImportInput): Promise<ApplyImportResult> {
-  await requireRole('admin', '/admin/login');
+  await requirePermission('talentos', 'delete');
 
   const { rows, mapping, dryRun = false } = input;
 
@@ -343,7 +343,7 @@ function computeDiffs(
 export async function matchDocumentAction(
   input: { rows: readonly Record<string, string>[]; mapping: Record<string, string> },
 ): Promise<MatchDocumentResult> {
-  await requireRole('admin', '/admin/login');
+  await requirePermission('talentos', 'delete');
 
   const { rows, mapping } = input;
   if (!rows || rows.length === 0) {

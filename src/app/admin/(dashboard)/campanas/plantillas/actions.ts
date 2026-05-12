@@ -1,9 +1,9 @@
-'use server';
+﻿'use server';
 
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 
-import { requireRole } from '@/lib/auth-guard';
+import { requirePermission } from '@/lib/permissions';
 import {
   createContractTemplate,
   updateContractTemplate,
@@ -36,7 +36,7 @@ export async function createTemplateAction(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  await requireRole('admin', '/admin/login');
+  await requirePermission('campanas', 'delete');
 
   const parsed = parseFormData(formData, TemplateCreate);
   if (!parsed.ok) return { error: firstError(parsed.fieldErrors) };
@@ -57,7 +57,7 @@ export async function updateTemplateAction(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  await requireRole('admin', '/admin/login');
+  await requirePermission('campanas', 'delete');
 
   const parsed = parseFormData(formData, TemplateUpdate);
   if (!parsed.ok) return { error: firstError(parsed.fieldErrors) };
@@ -76,7 +76,7 @@ export async function updateTemplateAction(
 // ── Activar / desactivar ──────────────────────────────────────────────
 
 export async function toggleTemplateActiveAction(id: number, isActive: boolean): Promise<ActionState> {
-  await requireRole('admin', '/admin/login');
+  await requirePermission('campanas', 'delete');
   try {
     await updateContractTemplate(id, { isActive });
     revalidatePath('/admin/campanas/plantillas');
@@ -90,7 +90,7 @@ export async function toggleTemplateActiveAction(id: number, isActive: boolean):
 // ── Eliminar ──────────────────────────────────────────────────────────
 
 export async function deleteTemplateAction(id: number): Promise<ActionState> {
-  await requireRole('admin', '/admin/login');
+  await requirePermission('campanas', 'delete');
   try {
     await deleteContractTemplate(id);
     revalidatePath('/admin/campanas/plantillas');
@@ -104,7 +104,7 @@ export async function deleteTemplateAction(id: number): Promise<ActionState> {
 // ── Importar plantillas semilla ───────────────────────────────────────
 
 export async function seedDefaultTemplatesAction(): Promise<ActionState> {
-  await requireRole('admin', '/admin/login');
+  await requirePermission('campanas', 'delete');
   try {
     let created = 0;
     for (const seed of CONTRACT_TEMPLATE_SEEDS) {

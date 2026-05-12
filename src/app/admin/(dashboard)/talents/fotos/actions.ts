@@ -1,4 +1,4 @@
-'use server';
+﻿'use server';
 
 import { eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
@@ -7,7 +7,7 @@ import { z } from 'zod';
 
 import { db } from '@/lib/db';
 import { talents } from '@/db/schema';
-import { requireRole } from '@/lib/auth-guard';
+import { requirePermission } from '@/lib/permissions';
 import { parseFormData } from '@/lib/forms/parseFormData';
 import { validateUploadedFile } from '@/lib/files/validateUploadedFile';
 import { PHOTO_TYPES } from '@/lib/files/allowed-types';
@@ -19,7 +19,7 @@ const PhotoMeta = z.object({ id: IdSchema });
 export async function uploadTalentPhotoAction(
   formData: FormData,
 ): Promise<{ success: boolean; photoUrl?: string; error?: string }> {
-  await requireRole('admin', '/admin/login');
+  await requirePermission('talentos', 'delete');
 
   const meta = parseFormData(formData, PhotoMeta);
   if (!meta.ok) return { success: false, error: 'ID inválido' };
@@ -67,7 +67,7 @@ export async function uploadTalentPhotoAction(
 export async function clearTalentPhotoAction(
   formData: FormData,
 ): Promise<{ success: boolean; error?: string }> {
-  await requireRole('admin', '/admin/login');
+  await requirePermission('talentos', 'delete');
 
   const meta = parseFormData(formData, PhotoMeta);
   if (!meta.ok) return { success: false, error: 'ID inválido' };

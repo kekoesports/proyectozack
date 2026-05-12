@@ -1,7 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { requireRole } from '@/lib/auth-guard';
+import { requirePermission } from '@/lib/permissions';
 import { updateTalentBusinessSchema } from '@/lib/schemas/talentBusiness';
 import { upsertTalentBusiness, setTalentVerticals } from '@/lib/queries/talentBusiness';
 import { compact } from '@/lib/utils/objects';
@@ -26,7 +26,7 @@ function formToObject(formData: FormData): Record<string, unknown> {
 
 
 export async function updateTalentBusinessAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
-  await requireRole('admin', '/admin/login');
+  await requirePermission('talentos', 'delete');
 
   const parsed = updateTalentBusinessSchema.safeParse(formToObject(formData));
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? 'Datos inválidos' };

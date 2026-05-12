@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { requireAnyRole } from '@/lib/auth-guard';
+import { requirePermission } from '@/lib/permissions';
 import { needsVisibilityFilter } from '@/lib/permissions';
 import { getTalentById } from '@/lib/queries/talents';
 import { getTalentBusiness, getTalentVerticals } from '@/lib/queries/talentBusiness';
@@ -36,7 +36,7 @@ export default async function TalentProfilePage({
   const talentId = Number(id);
   if (isNaN(talentId)) notFound();
 
-  const session = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
+  const session = await requirePermission('talentos', 'read');
 
   const isStaffRole = session.user.role === 'staff';
   const staffOpts   = isStaffRole

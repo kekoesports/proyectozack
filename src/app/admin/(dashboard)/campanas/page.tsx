@@ -1,8 +1,8 @@
-import { db } from '@/lib/db';
+﻿import { db } from '@/lib/db';
 import { user as userTable } from '@/db/schema';
 import { inArray } from 'drizzle-orm';
 
-import { requireAnyRole } from '@/lib/auth-guard';
+import { requirePermission } from '@/lib/permissions';
 import { listCampaigns } from '@/lib/queries/campaigns';
 import { listCrmBrands, getBrandContacts } from '@/lib/queries/crmBrands';
 import { getAllTalents } from '@/lib/queries/talents';
@@ -11,7 +11,7 @@ import { CampaignsList } from '@/features/admin/campaigns/components/CampaignsLi
 import type { CrmBrandContact } from '@/types';
 
 export default async function AdminCampanasPage(): Promise<React.ReactElement> {
-  const session = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
+  const session = await requirePermission('campanas', 'read');
   const role = session.user.role;
   const isManager = role === 'manager';
 

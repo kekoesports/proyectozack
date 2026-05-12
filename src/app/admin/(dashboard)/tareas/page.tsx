@@ -1,7 +1,7 @@
-import { Suspense, type ReactElement } from 'react';
+﻿import { Suspense, type ReactElement } from 'react';
 import { AdminPageHeader } from '@/features/admin/_shared/components/AdminPageHeader';
 import type { Metadata } from 'next';
-import { requireAnyRole } from '@/lib/auth-guard';
+import { requirePermission } from '@/lib/permissions';
 import {
   getTasksForWeek,
   getTasksForCalendarView,
@@ -19,7 +19,7 @@ import { TaskWorkspace } from '@/features/admin/tasks/components/TaskWorkspace';
 export const metadata: Metadata = { title: 'Tareas | Admin' };
 
 export default async function TareasPage(): Promise<ReactElement> {
-  const session = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
+  const session = await requirePermission('tareas', 'read');
   const weekLabel  = getIsoWeekLabel(new Date());
   const prevDate   = new Date(); prevDate.setDate(prevDate.getDate() - 7);
   const prevWeek   = getIsoWeekLabel(prevDate);

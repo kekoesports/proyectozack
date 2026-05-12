@@ -1,6 +1,6 @@
-import type { ReactElement } from 'react';
+﻿import type { ReactElement } from 'react';
 import Link from 'next/link';
-import { requireAnyRole } from '@/lib/auth-guard';
+import { requirePermission } from '@/lib/permissions';
 import { getTeamTasksSummary } from '@/lib/queries/crmTasks';
 import { getIsoWeekLabel, getWeekStart } from '@/lib/utils/week';
 import { Avatar } from '@/features/admin/_shared/components/Avatar';
@@ -29,7 +29,7 @@ const ROLE_ACCESS = [
 ] as const;
 
 export default async function EquipoAdminPage(): Promise<ReactElement> {
-  const session = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
+  const session = await requirePermission('equipo', 'read');
   const isAdmin = session.user.role === 'admin';
   const weekLabel = getIsoWeekLabel(new Date());
   const weekStart = getWeekStart(weekLabel);
