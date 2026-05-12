@@ -91,10 +91,14 @@ export default async function TalentProfilePage({
               gradientC2={talent.gradientC2}
               photoUrl={talent.photoUrl ?? null}
             />
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
+              <Link href={`/admin/talents/${talent.id}/edit`}
+                className="flex items-center gap-1.5 h-8 px-3 rounded-lg bg-sp-admin-accent/10 border border-sp-admin-accent/30 text-[12px] font-semibold text-sp-admin-accent hover:bg-sp-admin-accent/20 transition-colors">
+                ✎ Editar perfil
+              </Link>
               <Link href={`/admin/talents/${talent.id}/negocio`}
                 className="flex items-center gap-1.5 h-8 px-3 rounded-lg border border-sp-admin-border text-[12px] font-semibold text-sp-admin-muted hover:text-sp-admin-text hover:bg-sp-admin-hover transition-colors">
-                ✎ Editar datos
+                ✎ Datos negocio
               </Link>
               <Link href="/admin/campanas"
                 className="flex items-center gap-1.5 h-8 px-3 rounded-lg bg-sp-admin-accent text-white text-[12px] font-semibold hover:bg-sp-admin-accent/90 transition-colors">
@@ -118,11 +122,20 @@ export default async function TalentProfilePage({
                   </span>
                 )}
                 <span className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                  isActive
+                  talent.status === 'active'
                     ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                    : talent.status === 'available'
+                    ? 'bg-blue-50 text-blue-700 border border-blue-200'
                     : 'bg-slate-100 text-slate-600 border border-slate-200'
                 }`}>
-                  {isActive ? 'Activo' : 'Inactivo'}
+                  {talent.status === 'active' ? 'Activo' : talent.status === 'available' ? 'Disponible' : 'Inactivo'}
+                </span>
+                <span className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                  talent.visibility === 'public'
+                    ? 'bg-violet-50 text-violet-700 border border-violet-200'
+                    : 'bg-amber-50 text-amber-700 border border-amber-200'
+                }`}>
+                  {talent.visibility === 'public' ? 'Público' : 'Interno'}
                 </span>
                 {!talent.photoUrl && (
                   <span className="inline-flex px-2 py-0.5 rounded-full text-[9px] font-bold bg-amber-50 text-amber-700 border border-amber-200">

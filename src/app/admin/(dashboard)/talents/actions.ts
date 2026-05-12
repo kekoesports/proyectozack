@@ -1,6 +1,7 @@
 ﻿'use server';
 
 import { revalidatePath } from 'next/cache';
+import { redirect } from 'next/navigation';
 import { eq, sql } from 'drizzle-orm';
 import { z } from 'zod';
 
@@ -198,4 +199,64 @@ export async function updateSocialGeoAction(
     logRedacted('error', '[admin] updateSocialGeo error:', err);
     return { success: false, error: 'Error al guardar geo' };
   }
+}
+
+// ── Profile edit ─────────────────────────────────────────────────────────────
+
+const TalentProfileUpdate = z.object({
+  id: IdSchema,
+  name:          z.string().trim().min(1, 'Nombre obligatorio').max(120),
+  role:          z.string().trim().min(1, 'Rol obligatorio').max(150),
+  game:          z.string().trim().max(100).default('General'),
+  platform:      z.enum(['twitch', 'youtube']),
+  creatorCountry: z.string().trim().toUpperCase()
+    .refine((s) => s === '' || /^[A-Z]{2}$/.test(s), 'Código de país inválido (ISO-2)')
+    .transform((s) => s === '' ? null : s),
+  status:     z.enum(['active', 'available', 'inactive']),
+  visibility: z.enum(['public', 'internal']),
+  initials:   z.string().trim().min(1).max(4),
+  gradientC1: z.string().regex(/^#[0-9a-fA-F]{6}$/, 'Color hex inválido'),
+  gradientC2: z.string().regex(/^#[0-9a-fA-F]{6}$/, 'Color hex inválido'),
+  sortOrder:  z.coerce.number().int().min(0).max(9999).default(0),
+  bio:        z.string().max(5000).default(''),
+  bioLong:    z.string().max(10000).optional(),
+});
+
+export async function updateTalentProfileAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  await requirePermission('talentos', 'write');
+
+  const parsed = parseFormData(formData, TalentProfileUpdate);
+  if (!parsed.ok) return { success: false, error: firstError(parsed.fieldErrors) };
+
+  const { id, ...data } = parsed.data;
+
+  try {
+    await db.update(talents).set({
+      name:          data.name,
+      role:          data.role,
+      game:          data.game,
+      platform:      data.platform,
+      creatorCountry: data.creatorCountry,
+      status:        data.status,
+      visibility:    data.visibility,
+      initials:      data.initials,
+      gradientC1:    data.gradientC1,
+      gradientC2:    data.gradientC2,
+      sortOrder:     data.sortOrder,
+      bio:           data.bio,
+      bioLong:       data.bioLong ?? null,
+    }).where(eq(talents.id, id));
+
+    revalidatePath('/admin/talents');
+    revalidatePath(`/admin/talents/${id}`);
+    revalidatePath('/talentos');
+  } catch (err) {
+    logRedacted('error', '[admin] updateTalentProfile error:', err);
+    return { success: false, error: 'Error al guardar perfil' };
+  }
+
+  redirect(`/admin/talents/${id}`);
 }
