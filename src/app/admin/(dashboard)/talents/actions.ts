@@ -201,6 +201,15 @@ export async function updateSocialGeoAction(
   }
 }
 
+/** Void form-action wrapper para cambio de status desde roster (sin useActionState). */
+export async function setTalentStatusVoidAction(formData: FormData): Promise<void> {
+  const idRaw     = formData.get('talentId');
+  const statusRaw = formData.get('status');
+  const id        = typeof idRaw === 'string' ? parseInt(idRaw, 10) : NaN;
+  if (isNaN(id) || !STATUS_VALUES.includes(statusRaw as TalentStatus)) return;
+  await setTalentStatusAction(id, statusRaw as TalentStatus);
+}
+
 // ── Profile edit ─────────────────────────────────────────────────────────────
 
 const TalentProfileUpdate = z.object({

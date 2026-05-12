@@ -7,6 +7,7 @@ import type { TalentVertical } from '@/types';
 import { TALENT_VERTICAL_LABELS } from '@/lib/schemas/talentBusiness';
 import { formatCompact, totalFollowersForCreator } from '@/lib/utils/format';
 import { platformMatchesKey, SOCIAL_PLATFORMS } from '@/lib/utils/platform';
+import { setTalentStatusVoidAction } from '@/app/admin/(dashboard)/talents/actions';
 import {
   GrowthCell,
   Th,
@@ -38,6 +39,7 @@ export function RosterSpreadsheet({ creators, verticalsByTalent = {} }: RosterSp
   const [activePlatforms, setActivePlatforms] = useState<Set<string>>(new Set());
   const [verticalFilter, setVerticalFilter] = useState<TalentVertical | ''>('');
   const [visibilityFilter, setVisibilityFilter] = useState<'all' | 'public' | 'internal'>('all');
+  const [statusFilter, setStatusFilter]       = useState<'all' | 'active' | 'available' | 'inactive'>('all');
   const [gameFilter, setGameFilter] = useState<string>('');
   const [sort, setSort] = useState<SortState>({ field: 'total', dir: 'desc' });
   const [showGrowth, setShowGrowth] = useState(false);
@@ -59,12 +61,24 @@ export function RosterSpreadsheet({ creators, verticalsByTalent = {} }: RosterSp
     return { public: pub, internal: int };
   }, [creators]);
 
-  const hasFilters = search || activePlatforms.size > 0 || visibilityFilter !== 'all' || gameFilter || verticalFilter;
+  // Derived: status counts
+  const statusCounts = useMemo(() => {
+    let active = 0, available = 0, inactive = 0;
+    for (const c of creators) {
+      if (c.status === 'active') active++;
+      else if (c.status === 'available') available++;
+      else inactive++;
+    }
+    return { active, available, inactive };
+  }, [creators]);
+
+  const hasFilters = search || activePlatforms.size > 0 || visibilityFilter !== 'all' || statusFilter !== 'all' || gameFilter || verticalFilter;
 
   const clearAll = (): void => {
     setSearch('');
     setActivePlatforms(new Set());
     setVisibilityFilter('all');
+    setStatusFilter('all');
     setGameFilter('');
     setVerticalFilter('');
   };
@@ -90,6 +104,9 @@ export function RosterSpreadsheet({ creators, verticalsByTalent = {} }: RosterSp
     // Visibility
     if (visibilityFilter !== 'all')
       result = result.filter((c) => c.visibility === visibilityFilter);
+
+    if (statusFilter !== 'all')
+      result = result.filter((c) => c.status === statusFilter);
 
     // Game
     if (gameFilter) result = result.filter((c) => c.game === gameFilter);
@@ -149,7 +166,7 @@ export function RosterSpreadsheet({ creators, verticalsByTalent = {} }: RosterSp
     });
 
     return result;
-  }, [creators, search, activePlatforms, visibilityFilter, gameFilter, verticalFilter, verticalsByTalent, sort]);
+  }, [creators, search, activePlatforms, visibilityFilter, statusFilter, gameFilter, verticalFilter, verticalsByTalent, sort]);
 
   // ── Sort toggle handler ────────────────────────────────────────────
 
@@ -244,6 +261,36 @@ export function RosterSpreadsheet({ creators, verticalsByTalent = {} }: RosterSp
             })}
           </div>
 
+          {/* Status pills */}
+          <div className="flex items-center gap-1 border-l border-sp-admin-border pl-3">
+            {(
+              [
+                { value: 'all',       label: 'Todos',       color: undefined },
+                { value: 'active',    label: 'Activos',     color: '#16a34a' },
+                { value: 'available', label: 'Disponibles', color: '#3b82f6' },
+                { value: 'inactive',  label: 'Inactivos',   color: '#94a3b8' },
+              ] as const
+            ).map(({ value, label, color }) => {
+              const active = statusFilter === value;
+              const count  = value === 'all' ? creators.length : statusCounts[value];
+              return (
+                <button
+                  key={value}
+                  onClick={() => setStatusFilter(value)}
+                  className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[11px] font-semibold transition-all ${
+                    active ? 'bg-sp-admin-accent text-sp-admin-bg' : 'text-sp-admin-muted hover:text-sp-admin-text'
+                  }`}
+                >
+                  {color && !active && <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: color }} />}
+                  {label}
+                  <span className={`text-[10px] tabular-nums ${active ? 'text-sp-admin-bg/50' : 'text-sp-admin-muted/40'}`}>
+                    {count}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
           {/* Growth toggle */}
           <button
             onClick={() => setShowGrowth((p) => !p)}
@@ -329,6 +376,7 @@ export function RosterSpreadsheet({ creators, verticalsByTalent = {} }: RosterSp
                 Juego
               </Th>
               <Th className="w-14 text-center">Vis.</Th>
+              <Th className="w-20 text-center">Status</Th>
               {SOCIAL_PLATFORMS.map((p) => (
                 <Th
                   key={p.key}
@@ -356,7 +404,7 @@ export function RosterSpreadsheet({ creators, verticalsByTalent = {} }: RosterSp
                   </Th>
                 </>
               )}
-              <Th className="w-40">Negocio</Th>
+              <Th className="w-44">Acciones</Th>
             </tr>
           </thead>
           <tbody className="divide-y divide-sp-admin-border/60">
@@ -403,6 +451,21 @@ export function RosterSpreadsheet({ creators, verticalsByTalent = {} }: RosterSp
                         </span>
                       )}
                     </td>
+                    <td className="px-3 py-2.5 text-center">
+                      {creator.status === 'active' ? (
+                        <span className="inline-block px-1.5 py-0.5 rounded text-[9px] font-semibold bg-emerald-900/30 text-emerald-400">
+                          Activo
+                        </span>
+                      ) : creator.status === 'available' ? (
+                        <span className="inline-block px-1.5 py-0.5 rounded text-[9px] font-semibold bg-blue-900/30 text-blue-400">
+                          Dispon.
+                        </span>
+                      ) : (
+                        <span className="inline-block px-1.5 py-0.5 rounded text-[9px] font-semibold bg-sp-admin-border text-sp-admin-muted">
+                          Inactivo
+                        </span>
+                      )}
+                    </td>
                     {SOCIAL_PLATFORMS.map((p) => {
                       const social = creator.socials.find((s) => platformMatchesKey(s.platform, p.key));
                       if (!social) {
@@ -440,24 +503,33 @@ export function RosterSpreadsheet({ creators, verticalsByTalent = {} }: RosterSp
                       </>
                     )}
                     <td className="px-3 py-2.5">
-                      <div className="flex items-center gap-2">
-                        <div className="flex flex-wrap gap-1 min-w-0">
-                          {(verticalsByTalent[creator.id] ?? []).slice(0, 3).map((v) => (
-                            <span
-                              key={v}
-                              className="inline-block px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-sp-admin-bg text-sp-admin-muted border border-sp-admin-border"
-                              title={TALENT_VERTICAL_LABELS[v]}
-                            >
-                              {TALENT_VERTICAL_LABELS[v]}
-                            </span>
-                          ))}
-                          {(verticalsByTalent[creator.id]?.length ?? 0) > 3 && (
-                            <span className="text-[9px] text-sp-admin-muted">+{(verticalsByTalent[creator.id]?.length ?? 0) - 3}</span>
-                          )}
-                        </div>
+                      <div className="flex items-center gap-1.5 justify-end">
+                        {/* Toggle activo/inactivo */}
+                        <form action={setTalentStatusVoidAction}>
+                          <input type="hidden" name="talentId" value={creator.id} />
+                          <input type="hidden" name="status"
+                            value={creator.status === 'inactive' ? 'active' : 'inactive'} />
+                          <button
+                            type="submit"
+                            title={creator.status === 'inactive' ? 'Activar talento' : 'Desactivar talento'}
+                            className={`px-2 py-0.5 rounded text-[10px] font-semibold transition-colors ${
+                              creator.status === 'inactive'
+                                ? 'text-emerald-600 hover:bg-emerald-50 border border-emerald-200'
+                                : 'text-sp-admin-muted hover:bg-sp-admin-hover border border-sp-admin-border'
+                            }`}
+                          >
+                            {creator.status === 'inactive' ? '▶ Activar' : '⏸ Pausar'}
+                          </button>
+                        </form>
                         <Link
-                          href={`/admin/talents/${creator.id}/negocio`}
-                          className="ml-auto shrink-0 px-2 py-0.5 rounded text-[10px] font-semibold text-sp-admin-accent hover:bg-sp-admin-accent/10 transition-colors"
+                          href={`/admin/talents/${creator.id}`}
+                          className="px-2 py-0.5 rounded text-[10px] font-semibold text-sp-admin-accent hover:bg-sp-admin-accent/10 transition-colors border border-sp-admin-accent/20"
+                        >
+                          Ver →
+                        </Link>
+                        <Link
+                          href={`/admin/talents/${creator.id}/edit`}
+                          className="px-2 py-0.5 rounded text-[10px] font-semibold text-sp-admin-muted hover:text-sp-admin-text hover:bg-sp-admin-hover transition-colors border border-sp-admin-border"
                         >
                           Editar
                         </Link>
