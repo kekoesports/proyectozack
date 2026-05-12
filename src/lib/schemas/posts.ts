@@ -90,9 +90,13 @@ export const AgendaItemUpdateSchema = AgendaItemSchema.extend({
 export type AgendaItemInput = z.infer<typeof AgendaItemSchema>;
 
 export const FeaturedMatchSchema = z.object({
-  team1: z.string().max(100).optional().transform((v) => v || null),
-  team2: z.string().max(100).optional().transform((v) => v || null),
-  tournament: z.string().max(200).optional().transform((v) => v || null),
-  matchDate: z.string().optional().transform((v) => v || null),
-  matchTime: z.string().optional().transform((v) => v || null),
+  team1:       z.string().max(100).optional().transform((v) => v || null),
+  team2:       z.string().max(100).optional().transform((v) => v || null),
+  team1Logo:   z.string().url().max(500).optional().or(z.literal('')).transform((v) => v || null),
+  team2Logo:   z.string().url().max(500).optional().or(z.literal('')).transform((v) => v || null),
+  tournament:  z.string().max(200).optional().transform((v) => v || null),
+  matchDate:   z.string().optional().transform((v) => v || null),
+  matchTime:   z.string().optional().transform((v) => v || null),
+  matchStatus: z.enum(['upcoming', 'live', 'finished']).optional().transform((v) => v || null),
+  isActive:    z.string().optional().transform((v) => v === 'on' || v === 'true'),
 });

@@ -139,7 +139,7 @@ export default async function NewsPage({ searchParams }: PageProps) {
   // Resolver slots con fallback a posts más recientes
   const slotMap = Object.fromEntries(slots.map((s) => [s.slot, s.post]));
   const matchSlot = slots.find((s) => s.slot === 'featured_match');
-  const featuredMatch = (matchSlot?.meta ?? null) as { team1?: string; team2?: string; tournament?: string; matchDate?: string; matchTime?: string } | null;
+  const featuredMatch = (matchSlot?.meta ?? null) as import('@/features/news/components/FeaturedMatchCard').FeaturedMatchMeta | null;
 
   const sortedPosts = [...allPosts].sort(
     (a, b) => (b.publishedAt?.getTime() ?? 0) - (a.publishedAt?.getTime() ?? 0),
@@ -252,7 +252,7 @@ export default async function NewsPage({ searchParams }: PageProps) {
 
               {/* Sidebar — columna independiente, no afecta altura del editorial */}
               <div className="hidden lg:block w-[256px] shrink-0">
-                <NewsHubSidebar latestPosts={editorialPosts} featuredMatch={featuredMatch} ranking={ranking} />
+                <NewsHubSidebar featuredMatch={featuredMatch} ranking={ranking} />
               </div>
             </div>
           </div>

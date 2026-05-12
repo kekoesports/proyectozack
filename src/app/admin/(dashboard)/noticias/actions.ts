@@ -116,10 +116,11 @@ export async function updateFeaturedMatchAction(formData: FormData): Promise<voi
   const { FeaturedMatchSchema } = await import('@/lib/schemas/posts');
   const parsed = FeaturedMatchSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return;
-  const meta = Object.fromEntries(Object.entries(parsed.data).filter(([, v]) => v !== null));
+  // Always persist full shape including isActive (even when false)
+  const meta = { ...parsed.data };
   await db
     .update(editorialSlots)
-    .set({ meta: Object.keys(meta).length > 0 ? meta : null })
+    .set({ meta })
     .where(eq(editorialSlots.slot, 'featured_match'));
   revalidatePath('/news');
   revalidatePath('/admin/noticias/slots');

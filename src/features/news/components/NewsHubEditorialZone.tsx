@@ -4,17 +4,17 @@ import type { PostWithTalents } from '@/lib/queries/posts';
 import type { InferSelectModel } from 'drizzle-orm';
 import type { agendaItems, rankingEntries } from '@/db/schema';
 import { formatNewsDate } from '@/lib/utils/news';
+import type { FeaturedMatchMeta } from './FeaturedMatchCard';
 
 type AgendaItem = InferSelectModel<typeof agendaItems>;
 type RankingEntry = InferSelectModel<typeof rankingEntries>;
-type MatchMeta = { team1?: string; team2?: string; tournament?: string; matchDate?: string; matchTime?: string };
 
 type YoutubePost = { id: number; slug: string; title: string; excerpt: string; coverUrl: string | null; publishedAt: Date | null; youtubeUrl: string };
 
 type Props = {
   readonly interview: PostWithTalents | null;
   readonly clip: PostWithTalents | null;
-  readonly featuredMatch: MatchMeta | null;
+  readonly featuredMatch: FeaturedMatchMeta | null;
   readonly agenda: readonly AgendaItem[];
   readonly ranking: readonly RankingEntry[];
   readonly youtubePosts: readonly YoutubePost[];
@@ -71,7 +71,7 @@ function AgendaWidget({ items }: { items: readonly AgendaItem[] }) {
   );
 }
 
-function MatchWidget({ meta }: { meta: MatchMeta }) {
+function MatchWidget({ meta }: { meta: FeaturedMatchMeta }) {
   return (
     <div className="rounded-2xl bg-white/[0.04] border border-white/[0.07] overflow-hidden">
       <div className="px-5 py-4 border-b border-white/[0.06]">
