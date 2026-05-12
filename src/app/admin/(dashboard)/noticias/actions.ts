@@ -78,11 +78,10 @@ export async function updatePostAction(formData: FormData): Promise<ActionResult
     }
   }
 
-  // Auto-set publishedAt when publishing without explicit date
-  // Read current post to preserve existing publishedAt if already set
-  const current = await db.select({ publishedAt: posts.publishedAt }).from(posts).where(eq(posts.id, id)).limit(1);
-  const existingPublishedAt = current[0]?.publishedAt ?? null;
-  const publishedAt = data.publishedAt ?? (data.status === 'published' ? (existingPublishedAt ?? new Date()) : null);
+  // Auto-set publishedAt when publishing without explicit date.
+  // Never preserve a future publishedAt — if no explicit date, use NOW() so the post
+  // is immediately visible. User can schedule by explicitly setting a future date.
+  const publishedAt = data.publishedAt ?? (data.status === 'published' ? new Date() : null);
 
   await db
     .update(posts)

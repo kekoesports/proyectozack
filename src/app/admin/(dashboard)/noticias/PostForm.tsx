@@ -56,6 +56,31 @@ function CoverUrlInput({ name, defaultValue, inputCls }: { name: string; default
   );
 }
 
+function PublishAtInput({ name, defaultValue, inputCls }: { name: string; defaultValue: string; inputCls: string }) {
+  const [val, setVal] = useState(defaultValue);
+  const isScheduled = val && new Date(val) > new Date();
+  return (
+    <div>
+      <input
+        name={name}
+        type="datetime-local"
+        value={val}
+        onChange={e => setVal(e.target.value)}
+        className={inputCls}
+      />
+      {isScheduled && (
+        <div className="flex items-center justify-between mt-1.5">
+          <p className="text-[10px] text-amber-500">⏱ Programada — aún no visible en la web</p>
+          <button type="button" onClick={() => setVal('')}
+            className="text-[10px] text-sp-admin-accent hover:underline font-semibold">
+            Publicar ahora (borrar fecha)
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function slugify(str: string) {
   return str
     .toLowerCase()
@@ -232,15 +257,16 @@ export function PostForm({ post, action, submitLabel }: Props) {
           {fieldError('status')}
         </div>
         <div>
-          <label className="block text-xs font-semibold text-sp-admin-muted uppercase tracking-wider mb-1.5">
-            Fecha publicación
-            <span className="ml-1 font-normal text-sp-admin-muted/60">(futura = programada)</span>
-          </label>
-          <input
+          <div className="flex items-center justify-between mb-1.5">
+            <label className="text-xs font-semibold text-sp-admin-muted uppercase tracking-wider">
+              Fecha publicación
+            </label>
+            <span className="text-[10px] text-sp-admin-muted/60">vacío = ahora</span>
+          </div>
+          <PublishAtInput
             name="publishedAt"
-            type="datetime-local"
             defaultValue={formatDatetimeLocal(post?.publishedAt)}
-            className={inputCls('publishedAt')}
+            inputCls={inputCls('publishedAt')}
           />
           {fieldError('publishedAt')}
         </div>
