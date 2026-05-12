@@ -56,6 +56,49 @@ function CoverUrlInput({ name, defaultValue, inputCls }: { name: string; default
   );
 }
 
+/**
+ * Campo de publicación con tres estados:
+ * 1. Ya publicada en el pasado → campo oculto con ISO, muestra fecha como solo lectura
+ * 2. Programada en el futuro  → campo visible con aviso + botón "publicar ahora"
+ * 3. Sin fecha                → campo vacío, al guardar = NOW()
+ */
+function PublishAtField({ post, inputCls, fieldError }: {
+  readonly post: { publishedAt?: Date | null; status?: string } | undefined;
+  readonly inputCls: string;
+  readonly fieldError: React.ReactNode;
+}) {
+  const existing = post?.publishedAt ?? null;
+  const isAlreadyPublished = !!(existing && new Date(existing) <= new Date());
+
+  // If already published in the past: preserve exact ISO timestamp as hidden field,
+  // show it read-only. This avoids the timezone round-trip bug entirely.
+  if (isAlreadyPublished && existing) {
+    return (
+      <div>
+        <input type="hidden" name="publishedAt" value={existing.toISOString()} />
+        <div className="flex items-center justify-between mb-1">
+          <label className="text-xs font-semibold text-sp-admin-muted uppercase tracking-wider">Fecha publicación</label>
+        </div>
+        <p className="text-sm text-sp-admin-muted px-3 py-2 rounded-lg border border-sp-admin-border bg-sp-admin-bg/50">
+          ✅ Publicada el {new Date(existing).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+        </p>
+      </div>
+    );
+  }
+
+  // Otherwise: show editable field (for scheduling or first-time publish)
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-1.5">
+        <label className="text-xs font-semibold text-sp-admin-muted uppercase tracking-wider">Fecha publicación</label>
+        <span className="text-[10px] text-sp-admin-muted/60">vacío = publicar ahora</span>
+      </div>
+      <PublishAtInput name="publishedAt" defaultValue={formatDatetimeLocal(existing)} inputCls={inputCls} />
+      {fieldError}
+    </div>
+  );
+}
+
 function PublishAtInput({ name, defaultValue, inputCls }: { name: string; defaultValue: string; inputCls: string }) {
   const [val, setVal] = useState(defaultValue);
   const isScheduled = val && new Date(val) > new Date();
@@ -256,20 +299,7 @@ export function PostForm({ post, action, submitLabel }: Props) {
           </select>
           {fieldError('status')}
         </div>
-        <div>
-          <div className="flex items-center justify-between mb-1.5">
-            <label className="text-xs font-semibold text-sp-admin-muted uppercase tracking-wider">
-              Fecha publicación
-            </label>
-            <span className="text-[10px] text-sp-admin-muted/60">vacío = ahora</span>
-          </div>
-          <PublishAtInput
-            name="publishedAt"
-            defaultValue={formatDatetimeLocal(post?.publishedAt)}
-            inputCls={inputCls('publishedAt')}
-          />
-          {fieldError('publishedAt')}
-        </div>
+        <PublishAtField post={post ?? undefined} inputCls={inputCls('publishedAt')} fieldError={fieldError('publishedAt')} />
         <div>
           <label className="block text-xs font-semibold text-sp-admin-muted uppercase tracking-wider mb-1.5">Orden (sortOrder)</label>
           <input

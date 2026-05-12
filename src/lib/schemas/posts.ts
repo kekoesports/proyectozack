@@ -20,7 +20,11 @@ export const PostCreateSchema = z.object({
     .string()
     .nullable()
     .optional()
-    .transform((v) => (v && v.trim() !== '' ? new Date(v) : null)),
+    .transform((v) => {
+      if (!v || v.trim() === '') return null;
+      const d = new Date(v);
+      return isNaN(d.getTime()) ? null : d;
+    }),
   sortOrder: z
     .string()
     .optional()
