@@ -471,6 +471,7 @@ export default async function TalentPage({ params }: PageProps) {
                       className="group/item flex items-center gap-2.5 p-2 rounded-lg border border-white/[0.04] bg-white/[0.02] hover:border-white/10 hover:bg-white/[0.04] transition-all">
                       <div className="relative w-8 h-8 shrink-0 rounded bg-white/[0.03]">
                         {g.imageUrl
+                          // eslint-disable-next-line @next/next/no-img-element -- 32px thumbnail de logo externo; Image requeriría allowlist dinámica de dominios
                           ? <img src={g.imageUrl} alt={g.title} className="w-full h-full object-contain p-0.5 opacity-50 group-hover/item:opacity-80 transition-opacity" />
                           : <div className="w-full h-full flex items-center justify-center text-white/15 text-[8px] font-black">?</div>
                         }

@@ -109,7 +109,6 @@ export function TalentLiveWidget({
     try {
       const res = await fetch(`/api/live/${slug}`);
       if (!res.ok) return;
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const json = await res.json() as TalentLiveData;
       setData(json);
     } catch { /* silently fail */ } finally {

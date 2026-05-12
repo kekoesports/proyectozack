@@ -124,6 +124,7 @@ function CompactSorteoCardImpl({ giveaway }: Props): React.JSX.Element {
         <div className="absolute top-2.5 right-2.5 z-10">
           {giveaway.brandLogo ? (
             <div className="w-8 h-8 rounded-lg bg-black/65 backdrop-blur-sm border border-white/10 flex items-center justify-center p-1.5">
+              {/* eslint-disable-next-line @next/next/no-img-element -- 32px logo externo; Image requeriría allowlist de dominios dinámicos */}
               <img
                 src={giveaway.brandLogo}
                 alt={giveaway.brandName}

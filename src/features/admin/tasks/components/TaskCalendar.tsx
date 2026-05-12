@@ -247,7 +247,6 @@ export function TaskCalendar({ tasks, events = [], users, currentUserId, onOpenA
       const monday = getWeekMondayIso(t.weekLabel);
       return monday <= todayIso2;
     }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [tasks, todayIso2],
   );
 
