@@ -3,9 +3,21 @@ import { headers } from 'next/headers';
 import { auth } from '@/lib/auth';
 import { env } from '@/lib/env';
 
-export type Role = 'admin' | 'brand' | 'staff' | 'manager';
+export type Role =
+  | 'admin'
+  | 'manager'
+  | 'staff'
+  | 'brand'
+  | 'editor'
+  | 'finance'
+  | 'analyst'
+  | 'ops'
+  | 'talent_manager';
 
-export const ROLES = ['admin', 'brand', 'staff', 'manager'] as const satisfies readonly Role[];
+export const ROLES = [
+  'admin', 'manager', 'staff', 'brand',
+  'editor', 'finance', 'analyst', 'ops', 'talent_manager',
+] as const satisfies readonly Role[];
 
 // NODE_ENV is exempt from `lib/env` (not managed by @t3-oss/env-nextjs).
 export const IS_DEV = process.env.NODE_ENV === 'development';
@@ -26,7 +38,11 @@ export function rolesIncludes<R extends Role>(roles: readonly R[], x: Role): x i
   return (roles as readonly Role[]).includes(x);
 }
 
-const ALLOWED_LOGIN_PATHS = new Set(['/admin/login']);
+const ALLOWED_LOGIN_PATHS = new Set([
+  '/admin/login',
+  '/admin/forgot-password',
+  '/admin/reset-password',
+]);
 
 type SessionWithRole = {
   user: {
@@ -47,10 +63,15 @@ type SessionWithNarrowedRole<R extends Role> = {
 };
 
 function homeForRole(role: Role | null | undefined): string | null {
-  if (role === 'admin') return '/admin';
-  if (role === 'manager') return '/admin';
-  if (role === 'brand') return '/marcas';
-  if (role === 'staff') return '/admin/mi-semana';
+  if (role === 'admin')          return '/admin';
+  if (role === 'manager')        return '/admin';
+  if (role === 'staff')          return '/admin/mi-semana';
+  if (role === 'brand')          return '/marcas';
+  if (role === 'editor')         return '/admin/noticias';
+  if (role === 'finance')        return '/admin/facturas';
+  if (role === 'analyst')        return '/admin/analytics';
+  if (role === 'ops')            return '/admin/agenda';
+  if (role === 'talent_manager') return '/admin/talentos';
   return null;
 }
 

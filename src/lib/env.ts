@@ -8,7 +8,7 @@ export const env = createEnv({
     BETTER_AUTH_SECRET: z.string().min(32),
     // Optional in dev; required in production for cron endpoints to be reachable.
     CRON_SECRET: z.string().min(16).optional(),
-    DEV_ROLE_OVERRIDE: z.enum(['admin', 'manager', 'staff', 'brand']).optional(),
+    DEV_ROLE_OVERRIDE: z.enum(['admin', 'manager', 'staff', 'brand', 'editor', 'finance', 'analyst', 'ops', 'talent_manager']).optional(),
     YOUTUBE_API_KEY: z.string().min(1).optional(),
     TWITCH_CLIENT_ID: z.string().min(1).optional(),
     TWITCH_CLIENT_SECRET: z.string().min(1).optional(),
