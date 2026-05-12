@@ -216,24 +216,23 @@ export function NewsHubEditorialZone({ interview, clip, featuredMatch, agenda, r
 
   return (
     <>
-      {/* ── Zona 1: Entrevista + Partido + Agenda ──────────────────────── */}
-      {(interview || hasMatch || hasAgenda) && (
+      {/* ── Zona 1: Entrevista + Agenda ────────────────────────────────── */}
+      {/* Partido destacado ya no se renderiza aquí — vive en la sidebar */}
+      {(interview || clip || hasAgenda) && (
         <section className="bg-sp-black border-t border-white/[0.06] py-10 md:py-14">
           <div className="max-w-7xl mx-auto px-5 md:px-8">
             <SectionHeader label="Cobertura en directo" title="Destacados" />
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-5">
-              {/* Izquierda: entrevista destacada */}
+              {/* Izquierda: entrevista o clip destacado */}
               {interview
                 ? <FeaturedPostCard post={interview} label="Entrevista" />
                 : clip
                   ? <FeaturedPostCard post={clip} label="Clip" />
                   : <div className="hidden lg:block" />}
 
-              {/* Derecha: partido + agenda apilados */}
+              {/* Derecha: agenda del día */}
               <div className="flex flex-col gap-4">
-                {hasMatch && featuredMatch && <MatchWidget meta={featuredMatch} />}
                 {hasAgenda && <AgendaWidget items={agenda} />}
-                {!hasMatch && !hasAgenda && null}
               </div>
             </div>
           </div>
