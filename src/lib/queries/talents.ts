@@ -3,6 +3,7 @@ import { eq, and, inArray, sql, count, type SQL } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { talents, talentTags, talentStats, talentSocials, talentBusiness, talentVerticals, campaigns } from '@/db/schema';
 import { parseFollowers, formatFollowers, slugify, initialsOf } from '@/lib/utils/import-utils';
+import { normalizePlatform } from '@/lib/utils/platform';
 import type { TalentWithRelations, TalentBusiness, TalentVertical, TalentSocial, TalentTag } from '@/types';
 import type { Talent } from '@/types';
 
@@ -316,8 +317,8 @@ export async function upsertTalentFromImport(
 ): Promise<UpsertTalentFromImportResult> {
   const { name, slug, mapped } = input;
 
-  const platform = (mapped['platform'] ?? '').trim().toLowerCase();
-  const validPlatform = platform === 'twitch' || platform === 'youtube' ? platform : 'twitch';
+  const rawPlatform = normalizePlatform((mapped['platform'] ?? '').trim().toLowerCase());
+  const validPlatform = rawPlatform === 'twitch' || rawPlatform === 'youtube' ? rawPlatform : 'twitch';
 
   const bySlug = await db
     .select({ id: talents.id })

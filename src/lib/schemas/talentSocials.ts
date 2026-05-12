@@ -1,22 +1,17 @@
 import { z } from 'zod';
 
-/**
- * Plataformas válidas para `talent_socials.platform`.
- *
- * Mezcla claves cortas (`yt`, `tw`) y nombres completos (`twitch`, `youtube`)
- * porque el dato histórico convive con ambos. `talent_metric_snapshots.platform`
- * en cambio usa exclusivamente nombres completos — ver CLAUDE.md gotcha.
- */
+// Canonical platform names for talent_socials.platform.
+// Legacy short keys (yt, tw, ig, tt, twitter) normalized to canonical via
+// migration 0065_normalize_platform_names.sql — never write them again.
+// normalizePlatform() in lib/utils/platform.ts handles any legacy input from
+// external sources defensively before it reaches the DB.
 export const SOCIAL_PLATFORM_VALUES = [
   'twitch',
   'youtube',
-  'yt',
-  'tw',
   'kick',
   'instagram',
   'tiktok',
   'x',
-  'twitter',
 ] as const;
 
 export type SocialPlatform = (typeof SOCIAL_PLATFORM_VALUES)[number];

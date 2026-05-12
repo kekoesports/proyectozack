@@ -52,7 +52,7 @@ export async function getLiveTalents(): Promise<LiveTalent[]> {
         eq(talentSocials.talentId, talents.id),
         // Joinear con el social de la misma plataforma que está live
         sql`${talentSocials.platform} = CASE ${talentLiveStatus.platform}
-          WHEN 'youtube' THEN 'yt'
+          WHEN 'youtube' THEN 'youtube'
           ELSE 'twitch'
         END`,
       )
@@ -109,7 +109,7 @@ export async function getTalentsWithYouTube() {
     .from(talents)
     .innerJoin(talentSocials, and(
       eq(talentSocials.talentId, talents.id),
-      eq(talentSocials.platform, 'yt'),
+      eq(talentSocials.platform, 'youtube'),
     ))
     .where(and(
       eq(talents.visibility, 'public'),
