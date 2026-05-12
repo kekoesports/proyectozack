@@ -59,7 +59,45 @@ function getClientIp(req: NextRequest): string {
   );
 }
 
+/* ---------- Admin session guard -------------------------------------------- */
+// Cookie-presence check only — full role validation happens inside page components.
+// Covers both HTTP (better-auth.session_token) and HTTPS (__Secure-better-auth.session_token).
+
+const IS_DEV = process.env.NODE_ENV === 'development';
+
+const PUBLIC_ADMIN_PATHS = new Set([
+  '/admin/login',
+  '/admin/forgot-password',
+  '/admin/reset-password',
+]);
+
+function checkAdminSession(req: NextRequest): NextResponse | null {
+  if (IS_DEV) return null;
+
+  const { pathname } = req.nextUrl;
+  if (!pathname.startsWith('/admin')) return null;
+  if (PUBLIC_ADMIN_PATHS.has(pathname)) return null;
+
+  const hasSession = req.cookies
+    .getAll()
+    .some((c) => c.name.includes('better-auth.session_token'));
+
+  if (!hasSession) {
+    const loginUrl = req.nextUrl.clone();
+    loginUrl.pathname = '/admin/login';
+    loginUrl.search = '';
+    return NextResponse.redirect(loginUrl);
+  }
+
+  return null;
+}
+
+/* ---------- Main proxy ------------------------------------------------------ */
+
 export function proxy(req: NextRequest) {
+  const adminRedirect = checkAdminSession(req);
+  if (adminRedirect) return adminRedirect;
+
   const { pathname } = req.nextUrl;
 
   for (const rule of RATE_LIMITS) {
@@ -81,5 +119,5 @@ export function proxy(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/api/:path*'],
+  matcher: ['/api/:path*', '/admin/:path*'],
 };
