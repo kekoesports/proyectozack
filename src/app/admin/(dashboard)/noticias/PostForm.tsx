@@ -29,6 +29,33 @@ type Props = {
   submitLabel: string;
 };
 
+function isImageUrl(url: string): boolean {
+  if (!url) return true;
+  try {
+    const u = new URL(url);
+    return /\.(jpg|jpeg|png|webp|gif|avif|svg)(\?.*)?$/i.test(u.pathname);
+  } catch { return false; }
+}
+
+function CoverUrlInput({ name, defaultValue, inputCls }: { name: string; defaultValue: string; inputCls: string }) {
+  const [val, setVal] = useState(defaultValue);
+  const warn = val.length > 10 && !isImageUrl(val);
+  return (
+    <div>
+      <input name={name} type="url" value={val} onChange={e => setVal(e.target.value)} className={inputCls} placeholder="https://...imagen.webp" />
+      {warn && (
+        <p className="text-[10px] text-amber-500 mt-1">
+          ⚠ La URL no parece una imagen (.jpg / .webp / .png). Usa la página &ldquo;Subir imagen&rdquo; para obtener una URL correcta.
+        </p>
+      )}
+      {val && isImageUrl(val) && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={val} alt="preview" className="mt-2 h-16 w-auto rounded object-cover border border-sp-admin-border" onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+      )}
+    </div>
+  );
+}
+
 function slugify(str: string) {
   return str
     .toLowerCase()
@@ -171,14 +198,14 @@ export function PostForm({ post, action, submitLabel }: Props) {
       {/* Cover + OG image */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-xs font-semibold text-sp-admin-muted uppercase tracking-wider mb-1.5">Cover URL</label>
-          <input
-            name="coverUrl"
-            type="url"
-            defaultValue={post?.coverUrl ?? ''}
-            className={inputCls('coverUrl')}
-            placeholder="https://..."
-          />
+          <div className="flex items-center justify-between mb-1.5">
+            <label className="text-xs font-semibold text-sp-admin-muted uppercase tracking-wider">Cover URL</label>
+            <a href="/admin/noticias/imagenes" target="_blank" rel="noopener noreferrer"
+              className="text-[10px] text-sp-admin-accent hover:opacity-70 transition-opacity">
+              Subir imagen ↗
+            </a>
+          </div>
+          <CoverUrlInput name="coverUrl" defaultValue={post?.coverUrl ?? ''} inputCls={inputCls('coverUrl')} />
           {fieldError('coverUrl')}
         </div>
         <div>

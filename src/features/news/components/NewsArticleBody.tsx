@@ -20,8 +20,24 @@ function renderInline(text: string): string {
   return html;
 }
 
+/**
+ * Normalise markdown so headings/dividers always start a new block,
+ * even when the author didn't add a blank line before them.
+ */
+function normalizeBodyMd(md: string): string {
+  return md
+    // blank line before headings (## / ###)
+    .replace(/([^\n])\n(#{1,6} )/g, '$1\n\n$2')
+    // blank line before horizontal rules
+    .replace(/([^\n])\n(---|\*\*\*|___)/g, '$1\n\n$2')
+    // blank line before blockquotes
+    .replace(/([^\n])\n(> )/g, '$1\n\n$2')
+    // blank line before list items that follow a non-list line
+    .replace(/([^-\n][^\n]*)\n([-*] )/g, '$1\n\n$2');
+}
+
 export function NewsArticleBody({ bodyMd }: { bodyMd: string }) {
-  const blocks = bodyMd.split(/\n\n+/).filter((b) => b.trim().length > 0);
+  const blocks = normalizeBodyMd(bodyMd).split(/\n\n+/).filter((b) => b.trim().length > 0);
 
   return (
     <div className="news-prose space-y-5 text-white/70 text-[16px] md:text-[17px] leading-[1.75]">

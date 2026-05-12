@@ -35,6 +35,9 @@ export async function createPostAction(formData: FormData): Promise<ActionResult
     return { ok: false, error: 'El slug ya existe', fieldErrors: { slug: ['Este slug ya está en uso'] } };
   }
 
+  // Auto-set publishedAt to now when publishing without explicit date
+  const publishedAt = data.publishedAt ?? (data.status === 'published' ? new Date() : null);
+
   await db.insert(posts).values({
     slug: data.slug,
     title: data.title,
@@ -45,7 +48,7 @@ export async function createPostAction(formData: FormData): Promise<ActionResult
     vertical: data.vertical,
     coverUrl: data.coverUrl ?? null,
     ogImageUrl: data.ogImageUrl ?? null,
-    publishedAt: data.publishedAt ?? null,
+    publishedAt,
     sortOrder: data.sortOrder,
     tags: data.tags,
     talentSlugs: data.talentSlugs ?? null,
@@ -75,13 +78,19 @@ export async function updatePostAction(formData: FormData): Promise<ActionResult
     }
   }
 
+  // Auto-set publishedAt when publishing without explicit date
+  // Read current post to preserve existing publishedAt if already set
+  const current = await db.select({ publishedAt: posts.publishedAt }).from(posts).where(eq(posts.id, id)).limit(1);
+  const existingPublishedAt = current[0]?.publishedAt ?? null;
+  const publishedAt = data.publishedAt ?? (data.status === 'published' ? (existingPublishedAt ?? new Date()) : null);
+
   await db
     .update(posts)
     .set({
       ...data,
       coverUrl: data.coverUrl ?? null,
       ogImageUrl: data.ogImageUrl ?? null,
-      publishedAt: data.publishedAt ?? null,
+      publishedAt,
       talentSlugs: data.talentSlugs ?? null,
       blocksJson: data.blocksJson ?? null,
     })
