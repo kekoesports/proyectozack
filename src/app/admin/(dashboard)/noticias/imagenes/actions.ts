@@ -1,7 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { requireAnyRole } from '@/lib/auth-guard';
+import { requirePermission } from '@/lib/permissions';
 import { uploadNewsImage, deleteNewsImage } from '@/lib/news/images';
 
 export type UploadActionState =
@@ -9,7 +9,7 @@ export type UploadActionState =
   | { readonly ok: false; readonly error: string };
 
 export async function uploadNewsImageAction(formData: FormData): Promise<UploadActionState> {
-  await requireAnyRole(['admin', 'manager'], '/admin/login');
+  await requirePermission('noticias', 'write');
 
   const file = formData.get('file');
   const slugRaw = formData.get('slug');
@@ -29,7 +29,7 @@ export async function uploadNewsImageAction(formData: FormData): Promise<UploadA
 export type DeleteActionState = { readonly ok: true } | { readonly ok: false; readonly error: string };
 
 export async function deleteNewsImageAction(formData: FormData): Promise<DeleteActionState> {
-  await requireAnyRole(['admin', 'manager'], '/admin/login');
+  await requirePermission('noticias', 'delete');
 
   const url = formData.get('url');
   if (typeof url !== 'string' || !url.startsWith('https://')) {

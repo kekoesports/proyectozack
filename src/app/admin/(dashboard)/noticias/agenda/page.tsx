@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { requireAnyRole } from '@/lib/auth-guard';
+import { requirePermission } from '@/lib/permissions';
 import { getAllAgendaItems } from '@/lib/queries/agendaItems';
 import { createAgendaItemAction, deleteAgendaItemAction } from './actions';
 import { DeleteConfirmButton } from '../../giveaways/DeleteConfirmButton';
@@ -7,7 +7,7 @@ import { DeleteConfirmButton } from '../../giveaways/DeleteConfirmButton';
 const inputCls = 'rounded-lg border border-sp-admin-border bg-sp-admin-bg px-3 py-2 text-sm text-sp-admin-text outline-none focus:border-sp-orange/60 transition-colors';
 
 export default async function AgendaAdminPage() {
-  await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
+  await requirePermission('agenda', 'read');
   const items = await getAllAgendaItems();
 
   return (

@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { eq } from 'drizzle-orm';
-import { requireAnyRole } from '@/lib/auth-guard';
+import { requirePermission } from '@/lib/permissions';
 import { db } from '@/lib/db';
 import { posts } from '@/db/schema';
 import { updatePostAction } from '../../actions';
@@ -10,7 +10,7 @@ import { PostForm } from '../../PostForm';
 type Props = { params: Promise<{ id: string }> };
 
 export default async function EditNoticiaPage({ params }: Props) {
-  await requireAnyRole(['admin', 'manager'], '/admin/login');
+  await requirePermission('noticias', 'write');
   const { id } = await params;
   const postId = parseInt(id, 10);
   if (isNaN(postId)) notFound();

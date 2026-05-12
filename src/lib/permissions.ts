@@ -53,7 +53,7 @@ export const PERMISSIONS = {
     read:    ['admin', 'manager', 'staff', 'editor', 'ops', 'talent_manager', 'analyst'],
     write:   ['admin', 'manager', 'editor'],
     publish: ['admin', 'manager', 'editor'],
-    delete:  ['admin'],
+    delete:  ['admin', 'manager'],
   },
   sorteos: {
     read:    ['admin', 'manager', 'staff', 'ops'],
@@ -92,7 +92,7 @@ export const PERMISSIONS = {
   rankings: {
     read:    ['admin', 'manager', 'staff', 'editor', 'analyst'],
     write:   ['admin', 'manager', 'editor'],
-    delete:  ['admin'],
+    delete:  ['admin', 'manager'],
   },
   equipo: {
     read:    ['admin', 'manager', 'staff'],

@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
-import { requireAnyRole } from '@/lib/auth-guard';
+import { requirePermission } from '@/lib/permissions';
 import { db } from '@/lib/db';
 import { rankingEntries } from '@/db/schema';
 
@@ -26,7 +26,7 @@ const RankingUpdateSchema = RankingSchema.extend({
 });
 
 export async function createRankingEntryAction(formData: FormData): Promise<void> {
-  await requireAnyRole(['admin', 'manager'], '/admin/login');
+  await requirePermission('rankings', 'write');
   const parsed = RankingSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return;
   const d = parsed.data;
@@ -42,7 +42,7 @@ export async function createRankingEntryAction(formData: FormData): Promise<void
 }
 
 export async function updateRankingEntryAction(formData: FormData): Promise<void> {
-  await requireAnyRole(['admin', 'manager'], '/admin/login');
+  await requirePermission('rankings', 'write');
   const parsed = RankingUpdateSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return;
   const { id, ...d } = parsed.data;
@@ -58,7 +58,7 @@ export async function updateRankingEntryAction(formData: FormData): Promise<void
 }
 
 export async function deleteRankingEntryAction(formData: FormData): Promise<void> {
-  await requireAnyRole(['admin', 'manager'], '/admin/login');
+  await requirePermission('rankings', 'delete');
   const id = parseInt(String(formData.get('id')), 10);
   if (isNaN(id)) return;
   await db.delete(rankingEntries).where(eq(rankingEntries.id, id));

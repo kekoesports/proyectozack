@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { requireAnyRole } from '@/lib/auth-guard';
+import { requirePermission } from '@/lib/permissions';
 import { getAllNewsPostsForAdmin } from '@/lib/queries/editorialSlots';
 import { deletePostVoidAction } from './actions';
 import { DeleteConfirmButton } from '../giveaways/DeleteConfirmButton';
@@ -11,7 +11,7 @@ function statusLabel(status: string, publishedAt: Date | null) {
 }
 
 export default async function AdminNoticiasPage() {
-  await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
+  await requirePermission('noticias', 'read');
   const allPosts = await getAllNewsPostsForAdmin();
 
   return (

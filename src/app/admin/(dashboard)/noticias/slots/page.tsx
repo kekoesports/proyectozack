@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { requireAnyRole } from '@/lib/auth-guard';
+import { requirePermission } from '@/lib/permissions';
 import { getEditorialSlotsForAdmin, getPublishedNewsPostsForAdmin } from '@/lib/queries/editorialSlots';
 import { updateEditorialSlotAction, updateFeaturedMatchAction } from '../actions';
 
@@ -26,7 +26,7 @@ const inputCls = 'w-full rounded-lg border border-sp-admin-border bg-sp-admin-bg
 type MatchMeta = { team1?: string; team2?: string; tournament?: string; matchDate?: string; matchTime?: string };
 
 export default async function EditorialSlotsPage() {
-  await requireAnyRole(['admin', 'manager'], '/admin/login');
+  await requirePermission('noticias', 'publish');
   const [slots, publishedPosts] = await Promise.all([
     getEditorialSlotsForAdmin(),
     getPublishedNewsPostsForAdmin(),

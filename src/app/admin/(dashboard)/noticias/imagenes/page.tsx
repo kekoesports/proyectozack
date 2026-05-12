@@ -1,4 +1,4 @@
-import { requireAnyRole } from '@/lib/auth-guard';
+import { requirePermission } from '@/lib/permissions';
 import { listNewsImages, type NewsImage } from '@/lib/news/images';
 import { UploadForm } from './UploadForm';
 import { ImageCard } from './ImageCard';
@@ -6,7 +6,7 @@ import { ImageCard } from './ImageCard';
 export const dynamic = 'force-dynamic';
 
 export default async function NewsImagesPage(): Promise<React.ReactElement> {
-  await requireAnyRole(['admin', 'manager'], '/admin/login');
+  await requirePermission('noticias', 'write');
 
   let images: NewsImage[] = [];
   let listError: string | null = null;

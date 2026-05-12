@@ -1,10 +1,10 @@
 import Link from 'next/link';
-import { requireAnyRole } from '@/lib/auth-guard';
+import { requirePermission } from '@/lib/permissions';
 import { createPostAction } from '../actions';
 import { PostForm } from '../PostForm';
 
 export default async function NewNoticiaPage() {
-  await requireAnyRole(['admin', 'manager'], '/admin/login');
+  await requirePermission('noticias', 'write');
 
   return (
     <div>

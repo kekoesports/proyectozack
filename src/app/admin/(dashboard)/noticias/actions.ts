@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { eq } from 'drizzle-orm';
-import { requireAnyRole } from '@/lib/auth-guard';
+import { requirePermission } from '@/lib/permissions';
 import { db } from '@/lib/db';
 import { posts, editorialSlots } from '@/db/schema';
 import { PostCreateSchema, PostUpdateSchema, EditorialSlotSchema } from '@/lib/schemas/posts';
@@ -19,7 +19,7 @@ function revalidateNews(slug?: string) {
 }
 
 export async function createPostAction(formData: FormData): Promise<ActionResult> {
-  await requireAnyRole(['admin', 'manager'], '/admin/login');
+  await requirePermission('noticias', 'write');
 
   const raw = Object.fromEntries(formData);
   const parsed = PostCreateSchema.safeParse(raw);
@@ -57,7 +57,7 @@ export async function createPostAction(formData: FormData): Promise<ActionResult
 }
 
 export async function updatePostAction(formData: FormData): Promise<ActionResult> {
-  await requireAnyRole(['admin', 'manager'], '/admin/login');
+  await requirePermission('noticias', 'write');
 
   const raw = Object.fromEntries(formData);
   const parsed = PostUpdateSchema.safeParse(raw);
@@ -92,7 +92,7 @@ export async function updatePostAction(formData: FormData): Promise<ActionResult
 }
 
 export async function deletePostAction(formData: FormData): Promise<ActionResult> {
-  await requireAnyRole(['admin', 'manager'], '/admin/login');
+  await requirePermission('noticias', 'delete');
 
   const idRaw = formData.get('id');
   const id = typeof idRaw === 'string' ? parseInt(idRaw, 10) : NaN;
@@ -112,7 +112,7 @@ export async function deletePostVoidAction(formData: FormData): Promise<void> {
 }
 
 export async function updateFeaturedMatchAction(formData: FormData): Promise<void> {
-  await requireAnyRole(['admin', 'manager'], '/admin/login');
+  await requirePermission('noticias', 'publish');
   const { FeaturedMatchSchema } = await import('@/lib/schemas/posts');
   const parsed = FeaturedMatchSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return;
@@ -126,7 +126,7 @@ export async function updateFeaturedMatchAction(formData: FormData): Promise<voi
 }
 
 export async function updateEditorialSlotAction(formData: FormData): Promise<void> {
-  await requireAnyRole(['admin', 'manager'], '/admin/login');
+  await requirePermission('noticias', 'publish');
 
   const raw = Object.fromEntries(formData);
   const parsed = EditorialSlotSchema.safeParse(raw);

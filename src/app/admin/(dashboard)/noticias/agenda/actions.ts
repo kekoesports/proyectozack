@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { eq } from 'drizzle-orm';
-import { requireAnyRole } from '@/lib/auth-guard';
+import { requirePermission } from '@/lib/permissions';
 import { db } from '@/lib/db';
 import { agendaItems } from '@/db/schema';
 import { AgendaItemSchema, AgendaItemUpdateSchema } from '@/lib/schemas/posts';
@@ -13,7 +13,7 @@ function revalidate() {
 }
 
 export async function createAgendaItemAction(formData: FormData): Promise<void> {
-  await requireAnyRole(['admin', 'manager'], '/admin/login');
+  await requirePermission('agenda', 'write');
   const parsed = AgendaItemSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return;
   const d = parsed.data;
@@ -31,7 +31,7 @@ export async function createAgendaItemAction(formData: FormData): Promise<void> 
 }
 
 export async function updateAgendaItemAction(formData: FormData): Promise<void> {
-  await requireAnyRole(['admin', 'manager'], '/admin/login');
+  await requirePermission('agenda', 'write');
   const parsed = AgendaItemUpdateSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return;
   const { id, ...d } = parsed.data;
@@ -49,7 +49,7 @@ export async function updateAgendaItemAction(formData: FormData): Promise<void> 
 }
 
 export async function deleteAgendaItemAction(formData: FormData): Promise<void> {
-  await requireAnyRole(['admin', 'manager'], '/admin/login');
+  await requirePermission('agenda', 'delete');
   const id = parseInt(String(formData.get('id')), 10);
   if (isNaN(id)) return;
   await db.delete(agendaItems).where(eq(agendaItems.id, id));
