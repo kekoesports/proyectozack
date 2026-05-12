@@ -1,5 +1,5 @@
 import { cache } from 'react';
-import { eq, and, inArray, sql, count, type SQL } from 'drizzle-orm';
+import { eq, ne, and, inArray, sql, count, type SQL } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { talents, talentTags, talentStats, talentSocials, talentBusiness, talentVerticals, campaigns } from '@/db/schema';
 import { parseFollowers, formatFollowers, slugify, initialsOf } from '@/lib/utils/import-utils';
@@ -24,7 +24,9 @@ export type TalentFilters = {
  * @returns array de `{ slug, updatedAt }` (puede ser vacío). Nunca null.
  */
 export async function getTalentSlugs(): Promise<{ slug: string; updatedAt: Date }[]> {
-  return db.select({ slug: talents.slug, updatedAt: talents.updatedAt }).from(talents).where(eq(talents.visibility, 'public'));
+  return db.select({ slug: talents.slug, updatedAt: talents.updatedAt })
+    .from(talents)
+    .where(and(eq(talents.visibility, 'public'), ne(talents.status, 'inactive')));
 }
 
 /**
@@ -35,7 +37,9 @@ export async function getTalentSlugs(): Promise<{ slug: string; updatedAt: Date 
  * @returns array de TalentWithRelations (puede ser vacío). Nunca null.
  */
 export async function getTalents(filters?: TalentFilters): Promise<TalentWithRelations[]> {
-  const conditions: SQL[] = [eq(talents.visibility, 'public')];
+  // Exclude inactive talents from all public queries by default.
+  // visibility='internal' already hides from public; status='inactive' is the soft-pause.
+  const conditions: SQL[] = [eq(talents.visibility, 'public'), ne(talents.status, 'inactive')];
 
   if (filters?.platform) {
     conditions.push(eq(talents.platform, filters.platform));
@@ -75,7 +79,7 @@ export async function getTalents(filters?: TalentFilters): Promise<TalentWithRel
  */
 export const getTalentBySlug = cache(async (slug: string): Promise<TalentWithRelations | undefined> => {
   const row = await db.query.talents.findFirst({
-    where: and(eq(talents.slug, slug), eq(talents.visibility, 'public')),
+    where: and(eq(talents.slug, slug), eq(talents.visibility, 'public'), ne(talents.status, 'inactive')),
     with: {
       tags: true,
       stats: { orderBy: (s, { asc }) => [asc(s.sortOrder)] },
