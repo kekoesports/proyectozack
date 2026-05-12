@@ -34,16 +34,28 @@ export function NewsHubSidebar({ featuredMatch, ranking }: Props) {
           <ul>
             {ranking.map((e, i) => (
               <li key={e.id} className={i > 0 ? 'border-t border-white/[0.04]' : ''}>
-                <div className="flex items-center gap-2.5 px-3 py-2.5">
+                <div className="flex items-center gap-2 px-3 py-2">
+                  {/* Posición */}
                   <span
                     className="font-display font-black text-sm tabular-nums w-4 shrink-0"
                     style={{ color: i === 0 ? '#f5632a' : i === 1 ? '#c0c0c0' : i === 2 ? '#cd7f32' : 'rgba(255,255,255,0.35)' }}
                   >
                     {e.position}
                   </span>
+
+                  {/* Logo */}
+                  {e.teamLogo ? (
+                    /* eslint-disable-next-line @next/next/no-img-element -- logos externos; Image requeriría allowlist dinámica */
+                    <img src={e.teamLogo} alt={e.teamName} className="w-5 h-5 object-contain rounded shrink-0" />
+                  ) : (
+                    <div className="w-5 h-5 rounded bg-white/[0.08] flex items-center justify-center text-[7px] font-black text-white/40 shrink-0">
+                      {e.teamName.slice(0, 2).toUpperCase()}
+                    </div>
+                  )}
+
                   <p className="flex-1 text-[11px] font-bold text-white/80 truncate uppercase tracking-wide">{e.teamName}</p>
                   {e.country && (
-                    <span className="text-[9px] text-white/30 uppercase tracking-wider shrink-0">{e.country}</span>
+                    <span className="text-[9px] text-white/25 uppercase tracking-wider shrink-0">{e.country}</span>
                   )}
                   <span className="text-[10px] text-white/40 tabular-nums shrink-0 font-mono">
                     {e.points.toLocaleString('es-ES')}

@@ -1,8 +1,8 @@
 import Link from 'next/link';
 import { requirePermission } from '@/lib/permissions';
 import { getAllRankingEntries } from '@/lib/queries/rankingEntries';
-import { createRankingEntryAction, deleteRankingEntryAction } from './actions';
-import { DeleteConfirmButton } from '../../giveaways/DeleteConfirmButton';
+import { createRankingEntryAction } from './actions';
+import { RankingTable } from './RankingTable';
 
 const inputCls = 'rounded-lg border border-sp-admin-border bg-sp-admin-bg px-3 py-2 text-sm text-sp-admin-text outline-none focus:border-sp-orange/60 transition-colors';
 
@@ -54,37 +54,8 @@ export default async function RankingAdminPage() {
         </form>
       </div>
 
-      {/* Listado */}
-      {entries.length === 0 ? (
-        <p className="text-sm text-sp-admin-muted">No hay equipos. Añade el primero.</p>
-      ) : (
-        <div className="rounded-2xl bg-sp-admin-card border border-sp-admin-border overflow-hidden">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-sp-admin-border bg-sp-admin-bg/50">
-                <th className="text-left px-4 py-3 font-semibold text-sp-admin-muted text-[11px] uppercase tracking-wider">Pos</th>
-                <th className="text-left px-4 py-3 font-semibold text-sp-admin-muted text-[11px] uppercase tracking-wider">Equipo</th>
-                <th className="text-left px-4 py-3 font-semibold text-sp-admin-muted text-[11px] uppercase tracking-wider">País</th>
-                <th className="text-right px-4 py-3 font-semibold text-sp-admin-muted text-[11px] uppercase tracking-wider">Puntos</th>
-                <th className="text-left px-4 py-3 font-semibold text-sp-admin-muted text-[11px] uppercase tracking-wider">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {entries.map((e) => (
-                <tr key={e.id} className="border-b border-sp-admin-border/50 last:border-0 hover:bg-sp-admin-hover transition-colors">
-                  <td className="px-4 py-3 font-display font-black text-sp-orange text-lg">{e.position}</td>
-                  <td className="px-4 py-3 font-semibold text-sp-admin-text">{e.teamName}</td>
-                  <td className="px-4 py-3 text-sp-admin-muted text-xs uppercase">{e.country ?? '—'}</td>
-                  <td className="px-4 py-3 text-sp-admin-muted text-right tabular-nums">{e.points.toLocaleString('es-ES')}</td>
-                  <td className="px-4 py-3">
-                    <DeleteConfirmButton action={deleteRankingEntryAction} fields={{ id: e.id }} label={e.teamName} />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+      {/* Listado con edición inline */}
+      <RankingTable entries={entries} />
     </div>
   );
 }

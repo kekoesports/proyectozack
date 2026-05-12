@@ -301,6 +301,17 @@ export function PostForm({ post, action, submitLabel }: Props) {
         <Link href="/admin/noticias" className="text-sm text-sp-admin-muted hover:text-sp-admin-text transition-colors">
           Cancelar
         </Link>
+        {/* Ver artículo en web — solo si tiene slug */}
+        {slug && (
+          <a
+            href={`/news/${slug}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="ml-auto text-sm text-sp-admin-accent hover:opacity-70 transition-opacity flex items-center gap-1"
+          >
+            Ver en /news ↗
+          </a>
+        )}
       </div>
     </form>
   );
