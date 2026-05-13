@@ -64,14 +64,28 @@ export function TalentProfileForm({ talent }: Props): React.JSX.Element {
               required maxLength={4} className={INPUT} />
           </div>
           <div>
-            <label htmlFor="pf-role" className={LABEL}>Rol / Título *</label>
-            <input id="pf-role" name="role" defaultValue={talent.role}
-              required maxLength={150} className={INPUT} />
+            <label htmlFor="pf-role" className={LABEL}>Etiqueta pública *</label>
+            <select id="pf-role" name="role" defaultValue={talent.role} required className={SELECT}>
+              <option value="">— Seleccionar —</option>
+              <option value="Jugador Profesional CS2">Jugador Profesional CS2</option>
+              <option value="Jugador Profesional VALORANT">Jugador Profesional VALORANT</option>
+              <option value="STREAMER CS2">STREAMER CS2</option>
+              <option value="STREAMER VALORANT">STREAMER VALORANT</option>
+              <option value="STREAMER GTA">STREAMER GTA</option>
+              <option value="STREAMER LIFESTYLE">STREAMER LIFESTYLE</option>
+              <option value="STREAMER FIFA">STREAMER FIFA</option>
+              <option value="STREAMER CASINO">STREAMER CASINO</option>
+              <option value="OTROS">OTROS</option>
+              {/* Preservar valores existentes no estándar */}
+              {!['Jugador Profesional CS2','Jugador Profesional VALORANT','STREAMER CS2','STREAMER VALORANT','STREAMER GTA','STREAMER LIFESTYLE','STREAMER FIFA','STREAMER CASINO','OTROS',''].includes(talent.role) && (
+                <option value={talent.role}>{talent.role} (personalizado)</option>
+              )}
+            </select>
           </div>
           <div>
             <label htmlFor="pf-game" className={LABEL}>Juego / Categoría</label>
             <input id="pf-game" name="game" defaultValue={talent.game}
-              maxLength={100} className={INPUT} />
+              maxLength={100} className={INPUT} placeholder="CS2, VALORANT, GTA…" />
           </div>
         </div>
       </section>
