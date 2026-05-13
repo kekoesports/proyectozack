@@ -47,7 +47,7 @@ export function BrandRow({ brand, contacts, followups, campaigns, isExpanded, ca
   const [isPending, startTransition] = useTransition();
   const [showAddContact, setShowAddContact] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
-  const primary = brand.primaryContact;
+  const _primary = brand.primaryContact;
 
   const onDelete = (): void => {
     if (!confirm(`¿Eliminar la marca "${brand.name}" y todos sus contactos?`)) return;

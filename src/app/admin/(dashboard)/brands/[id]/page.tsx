@@ -38,15 +38,6 @@ function formatMoney(n: string | number | null | undefined): string {
   return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(Number(n));
 }
 
-function timeAgo(date: Date): string {
-  const diff = Date.now() - date.getTime();
-  const hours = diff / 3600000;
-  if (hours < 1) return 'Hace menos de 1h';
-  if (hours < 24) return `Hace ${Math.floor(hours)}h`;
-  const days = Math.floor(hours / 24);
-  if (days === 1) return 'Ayer';
-  return `Hace ${days} días`;
-}
 
 // ── Page ─────────────────────────────────────────────────────────────
 

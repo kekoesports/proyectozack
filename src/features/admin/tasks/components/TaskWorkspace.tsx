@@ -72,10 +72,9 @@ export function TaskWorkspace(props: Props): React.ReactElement {
   const activeIdParam = searchParams.get('t');
 
   const todayStr   = new Date().toISOString().slice(0, 10);
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- `typeof props.tasks` es uso de tipo, no valor runtime
   const { pending, inProgress, done, overdue, dueToday, rolledTasks } = useMemo(() => {
     let p = 0, ip = 0, d = 0, ov = 0, dt = 0;
-    const rolled: typeof props.tasks[number][] = [];
+    const rolled: CrmTask[] = [];
     for (const t of props.tasks) {
       if (t.status === 'pendiente')   p++;
       if (t.status === 'en_progreso') ip++;

@@ -10,8 +10,8 @@ import {
 } from '@/app/admin/(dashboard)/campanas/campaign-actions';
 
 // Re-exportar desde módulo compartido (importable en server y client)
-import { STATUS_CONFIG, PAYMENT_METHODS, SECTORS, GEOS, formatMoney, StatusBadge, PaidBadge } from '@/lib/campaignHelpers';
 export { STATUS_CONFIG, PAYMENT_METHODS, SECTORS, GEOS, formatMoney, StatusBadge, PaidBadge } from '@/lib/campaignHelpers';
+import { STATUS_CONFIG, SECTORS, GEOS, formatMoney, StatusBadge, PaidBadge } from '@/lib/campaignHelpers';
 
 export function calcNetMargin(c: CampaignWithRelations): number {
   const brand  = Number(c.amountBrand ?? 0);
@@ -40,7 +40,7 @@ function CampaignForm({ campaign, brands, talents, users, onClose }: CampaignFor
   // Campos económicos controlados para cálculo en tiempo real
   const [amountBrand,  setAmountBrand]  = useState(String(campaign?.amountBrand  ?? ''));
   const [amountTalent, setAmountTalent] = useState(String(campaign?.amountTalent ?? ''));
-  const [agencyFee,    setAgencyFee]    = useState('');
+  const [agencyFee,    _setAgencyFee]   = useState('');
 
   // Cálculos automáticos
   const bNum = parseFloat(amountBrand)  || 0;

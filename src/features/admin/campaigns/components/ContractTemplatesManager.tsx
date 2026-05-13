@@ -318,7 +318,7 @@ export function ContractTemplatesManager({ templates }: Props): React.ReactEleme
         </div>
       ) : (
         <div className="space-y-5">
-          {TEMPLATE_TYPES.map(({ value: typeKey, label: typeLabel }) => {
+          {TEMPLATE_TYPES.map(({ value: typeKey }) => {
             const list = grouped.get(typeKey);
             if (!list?.length) return null;
             return (

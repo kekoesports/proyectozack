@@ -45,7 +45,7 @@ const gridItem: Variants = {
  */
 export function GiveawaysHub({
   active,
-  finished,
+  finished: _finished,
   codes,
   featuredCodes,
   creators,

@@ -3,7 +3,6 @@
 import { revalidatePath } from 'next/cache';
 
 import { requirePermission } from '@/lib/permissions';
-import { assertCanDelete } from '@/lib/permissions';
 import { createCampaignSchema, updateCampaignSchema } from '@/lib/schemas/campaign';
 import {
   createCampaign,

@@ -99,7 +99,7 @@ export function TalentLiveWidget({
   talentName,
   talentPhotoUrl,
   gradientC1,
-  gradientC2,
+  gradientC2: _gradientC2,
   variant = 'sidebar',
 }: Props) {
   const [data, setData] = useState<TalentLiveData | null>(null);

@@ -23,6 +23,7 @@ const AVATAR_COLORS = ['#f5632a', '#8b3aad', '#5b9bd5', '#c42880', '#16a34a', '#
 
 function Avatar({ creator }: { readonly creator: AdminRosterRow }): React.ReactElement {
   if (creator.photoUrl) {
+    // eslint-disable-next-line @next/next/no-img-element
     return <img src={creator.photoUrl} alt={creator.name} className="w-10 h-10 rounded-lg object-cover shrink-0" />;
   }
   const color = AVATAR_COLORS[creator.name.charCodeAt(0) % AVATAR_COLORS.length] ?? AVATAR_COLORS[0] ?? '#000';

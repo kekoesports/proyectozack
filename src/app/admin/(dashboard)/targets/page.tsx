@@ -10,11 +10,6 @@ export default async function AdminTargetsPage(): Promise<React.ReactElement> {
     getAllBrandUsers(),
   ]);
 
-  const byStatus = targets.reduce<Record<string, number>>((acc, t) => {
-    acc[t.status] = (acc[t.status] ?? 0) + 1;
-    return acc;
-  }, {});
-
   return (
     <div className="space-y-6">
       <div className="flex items-baseline gap-4 mb-6">

@@ -63,7 +63,6 @@ export default async function TalentProfilePage({
 
   const flagImg   = talent.creatorCountry ? getFlagImageUrl(talent.creatorCountry) : null;
   const flagEmoji = talent.creatorCountry ? countryFlagEmoji(talent.creatorCountry) : null;
-  const isActive  = talent.status !== 'inactive';
   const incomeTotal     = invoices.filter((i) => i.kind === 'income').reduce((s, i) => s + Number(i.totalAmount), 0);
   const activeCampaigns = campaigns.filter((c) => c.status === 'activa').length;
 
@@ -114,6 +113,7 @@ export default async function TalentProfilePage({
                 {talent.creatorCountry && (
                   <span className="flex items-center gap-1.5">
                     {flagImg ? (
+                      // eslint-disable-next-line @next/next/no-img-element
                       <img src={flagImg} alt={talent.creatorCountry} className="w-5 h-5 rounded-full object-cover" />
                     ) : (
                       <span className="text-lg">{flagEmoji}</span>

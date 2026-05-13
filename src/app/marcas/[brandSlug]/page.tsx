@@ -76,8 +76,6 @@ export default async function BrandPage({ params }: PageProps) {
 
   const featuredCode  = codes.find((c) => c.isFeatured) ?? codes[0] ?? null;
   const otherCodes    = featuredCode ? codes.filter((c) => c.id !== featuredCode.id) : codes;
-  const codesWithTalent = codes; // ya tiene el tipo correcto
-
   // Schemas JSON-LD
   const categoryTopics: Record<string, string[]> = {
     cs2:      ['CS2', 'Counter-Strike 2', 'CS2 skins', 'skin gambling', 'gaming'],

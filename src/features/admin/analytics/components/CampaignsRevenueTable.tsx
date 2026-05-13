@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import type { CampaignWithRelations, CampaignStatus } from '@/types';
+import type { CampaignWithRelations } from '@/types';
 
 type Props = { readonly campaigns: readonly CampaignWithRelations[] };
 

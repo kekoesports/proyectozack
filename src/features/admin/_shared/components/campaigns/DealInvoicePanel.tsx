@@ -29,7 +29,7 @@ export function DealInvoicePanel({ campaignId, existingInvoices, issuers }: Prop
   const [warning,       setWarning]       = useState<string | null>(null);
   const [error,         setError]         = useState<string | null>(null);
   const [success,       setSuccess]       = useState<{ id: number; number: string } | null>(null);
-  const [confirmCreate, setConfirmCreate] = useState(false);
+  const [_confirmCreate, setConfirmCreate] = useState(false);
   const [isPending,     startTransition]  = useTransition();
 
   const activeInvoices = existingInvoices.filter((i) => i.status !== 'anulada');

@@ -16,10 +16,7 @@ import { getSocialPlatformKey } from '@/lib/utils/platform';
 import { countAgencyCreators } from './agencyCreators';
 import { getAllTalents } from './talents';
 import { parseFollowers, formatCompact, totalFollowersForCreator } from '@/lib/utils/format';
-import {
-  PENDING_INCOME_FILTER,
-  PENDING_EXPENSE_FILTER,
-} from '@/lib/utils/invoice-status';
+import { PENDING_INCOME_FILTER } from '@/lib/utils/invoice-status';
 
 import type { Role } from '@/lib/auth-guard';
 

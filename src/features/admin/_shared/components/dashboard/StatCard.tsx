@@ -19,7 +19,7 @@ export function StatCard({
   value,
   description,
   trend,
-  trendLabel = 'vs sem. anterior',
+  trendLabel: _trendLabel = 'vs sem. anterior',
   icon,
   accent,
   href = '#',

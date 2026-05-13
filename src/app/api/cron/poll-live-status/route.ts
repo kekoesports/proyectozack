@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { sql } from 'drizzle-orm';
 import { assertCronAuth } from '@/lib/security/assertCronAuth';
 import { fetchTwitchLiveByLogins } from '@/lib/services/twitch';
 import { getTalentsWithTwitch } from '@/lib/queries/live';

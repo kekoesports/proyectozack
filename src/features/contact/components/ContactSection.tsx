@@ -50,6 +50,7 @@ export function ContactSection(): React.JSX.Element {
     formState: { errors },
   } = useForm<ContactForm>({ resolver: zodResolver(contactSchema) });
 
+  // eslint-disable-next-line react-hooks/incompatible-library -- React Hook Form watch() no es memoizable, es el comportamiento esperado
   const selectedType = watch('type');
 
   const onSubmit = async (data: ContactForm) => {

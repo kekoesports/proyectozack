@@ -50,7 +50,6 @@ export function FiltersBar({
   brands,
   totalCount,
   hasFilters,
-  activeGiveawaysCount,
   onCategoryAction,
   onSortAction,
   onBrandAction,

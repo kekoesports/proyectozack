@@ -8,7 +8,7 @@ import {
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
-function mockOk(body: unknown): jest.Mock {
+function _mockOk(body: unknown): jest.Mock {
   return jest.fn().mockResolvedValue({
     ok: true,
     status: 200,
@@ -17,7 +17,7 @@ function mockOk(body: unknown): jest.Mock {
   });
 }
 
-function mockFail(status: number, text = 'API Error'): jest.Mock {
+function _mockFail(status: number, text = 'API Error'): jest.Mock {
   return jest.fn().mockResolvedValue({
     ok: false,
     status,

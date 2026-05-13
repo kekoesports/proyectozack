@@ -1,4 +1,4 @@
-import { asc, desc, eq } from 'drizzle-orm';
+import { desc, eq } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { brandBriefs, user } from '@/db/schema';
 import type { BrandBrief, BrandBriefWithUser, NewBrandBrief } from '@/types';

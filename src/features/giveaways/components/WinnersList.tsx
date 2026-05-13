@@ -14,7 +14,7 @@ function formatDate(d: Date): string {
 // ── Compact — fila pequeña ────────────────────────────────────────────────
 
 function WinnerCompact({ w }: { w: GiveawayWinnerFull }) {
-  const talent = w.giveaway.talent;
+  const _talent = w.giveaway.talent;
 
   return (
     <div className="flex items-center gap-3 py-2 border-b border-white/[0.05] last:border-0">

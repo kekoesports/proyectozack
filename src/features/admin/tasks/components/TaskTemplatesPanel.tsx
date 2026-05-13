@@ -115,7 +115,7 @@ export function TaskTemplatesPanel({ templates, tasks, weekLabel }: Props): Reac
     });
   };
 
-  const handleSave = (id: number | null, title: string, category: string, priority: 'alta' | 'media' | 'baja', recurrence: CrmTaskRecurrence): void => {
+  const handleSave = (id: number | null, title: string, category: string, priority: 'alta' | 'media' | 'baja', _recurrence: CrmTaskRecurrence): void => {
     startSave(async () => {
       const r = await saveTemplateDefinitionAction(id, { title, category, priority });
       if (r.error) flash(`✕ ${r.error}`);

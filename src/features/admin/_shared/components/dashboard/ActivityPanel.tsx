@@ -35,7 +35,7 @@ export function ActivityPanel({ items }: ActivityPanelProps): React.ReactElement
       </div>
 
       <div>
-        {items.map((item, i) => {
+        {items.map((item) => {
           const cfg = ICON_CONFIG[item.icon];
           return (
             <div

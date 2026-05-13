@@ -200,7 +200,7 @@ function EmptyState(): React.ReactElement {
 
 // ── Componente principal ──────────────────────────────────────────────
 
-export function DashboardAlerts({ alerts, summary }: Props): React.ReactElement {
+export function DashboardAlerts({ alerts }: Props): React.ReactElement {
   // Dismiss persistido en localStorage (por sesión de navegador)
   const [dismissedIds, setDismissedIds] = useState<Set<string>>(() => {
     if (typeof window === 'undefined') return new Set();

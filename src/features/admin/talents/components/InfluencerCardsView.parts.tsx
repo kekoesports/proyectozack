@@ -93,7 +93,7 @@ export function TalentCard({ creator, verticals, selectMode, selected, onToggleS
   const isPillClickable = !creator.audienceStatus;
 
   // Plataformas únicas (máx 4 para los dots)
-  const platforms = useMemo(() => {
+  const _platforms = useMemo(() => {
     const seen = new Set<string>();
     const list: string[] = [];
     for (const s of creator.socials) {
@@ -167,6 +167,7 @@ export function TalentCard({ creator, verticals, selectMode, selected, onToggleS
           return (
             <div className="absolute top-2 right-2 z-10">
               {flagUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={flagUrl}
                   alt={creator.creatorCountry}

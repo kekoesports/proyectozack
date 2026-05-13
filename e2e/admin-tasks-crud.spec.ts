@@ -132,7 +132,7 @@ test.describe('Admin tasks CRUD', () => {
     await expect(dialog).toBeVisible();
 
     // Check if the category select has real options (populated from DB)
-    const firstCategoryValue = await getFirstSelectOption(
+    const _firstCategoryValue = await getFirstSelectOption(
       page,
       '[role="dialog"][aria-label="Nueva tarea"] select',
     );

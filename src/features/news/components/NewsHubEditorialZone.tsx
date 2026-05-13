@@ -71,47 +71,7 @@ function AgendaWidget({ items }: { items: readonly AgendaItem[] }) {
   );
 }
 
-function MatchWidget({ meta }: { meta: FeaturedMatchMeta }) {
-  return (
-    <div className="rounded-2xl bg-white/[0.04] border border-white/[0.07] overflow-hidden">
-      <div className="px-5 py-4 border-b border-white/[0.06]">
-        <p className="text-[9px] font-black uppercase tracking-[0.3em] text-sp-orange">Partido destacado</p>
-        {meta.tournament && <p className="text-[10px] text-white/35 mt-0.5 uppercase tracking-wider">{meta.tournament}</p>}
-      </div>
-      <div className="px-5 py-6 flex items-center justify-between gap-4">
-        <p className="font-display font-black uppercase text-white text-lg tracking-tight text-center flex-1">{meta.team1}</p>
-        <div className="shrink-0 flex flex-col items-center gap-1">
-          <span className="text-[10px] font-black text-white/25 uppercase tracking-widest">VS</span>
-          {meta.matchTime && <span className="font-mono text-white text-base font-bold">{meta.matchTime}</span>}
-          {meta.matchDate && <span className="text-[9px] text-white/30 font-mono">{new Date(`${meta.matchDate}T00:00`).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })}</span>}
-        </div>
-        <p className="font-display font-black uppercase text-white text-lg tracking-tight text-center flex-1">{meta.team2}</p>
-      </div>
-    </div>
-  );
-}
 
-function RankingWidget({ entries }: { entries: readonly RankingEntry[] }) {
-  if (entries.length === 0) return null;
-  const posColor = (i: number) => i === 0 ? '#f5632a' : i === 1 ? '#c0c0c0' : i === 2 ? '#cd7f32' : 'rgba(255,255,255,0.3)';
-  return (
-    <div className="rounded-2xl bg-white/[0.04] border border-white/[0.07] overflow-hidden">
-      <div className="px-5 py-4 border-b border-white/[0.06]">
-        <p className="text-[9px] font-black uppercase tracking-[0.3em] text-white">Ranking Hispano</p>
-      </div>
-      <ul className="divide-y divide-white/[0.04]">
-        {entries.map((e, i) => (
-          <li key={e.id} className="flex items-center gap-3 px-5 py-3">
-            <span className="font-display font-black text-xl w-6 shrink-0 tabular-nums" style={{ color: posColor(i) }}>{e.position}</span>
-            <span className="flex-1 font-bold text-white/85 text-sm uppercase tracking-wide">{e.teamName}</span>
-            {e.country && <span className="text-[9px] text-white/30 uppercase tracking-wider">{e.country}</span>}
-            <span className="font-mono text-white/45 text-xs tabular-nums">{e.points.toLocaleString('es-ES')}</span>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
 
 function FeaturedPostCard({ post, label }: { post: PostWithTalents; label?: string }) {
   const date = formatNewsDate(post.publishedAt);
@@ -137,26 +97,6 @@ function FeaturedPostCard({ post, label }: { post: PostWithTalents; label?: stri
   );
 }
 
-function TopPostsList({ posts }: { posts: readonly PostWithTalents[] }) {
-  return (
-    <div className="rounded-2xl bg-white/[0.04] border border-white/[0.07] overflow-hidden">
-      <div className="px-5 py-4 border-b border-white/[0.06]">
-        <p className="text-[9px] font-black uppercase tracking-[0.3em] text-white">Lo más leído</p>
-      </div>
-      <ul className="divide-y divide-white/[0.04]">
-        {posts.slice(0, 5).map((p, i) => (
-          <li key={p.slug}>
-            <Link href={`/news/${p.slug}`} className="flex items-start gap-3 px-5 py-3.5 hover:bg-white/[0.03] transition-colors group">
-              <span className="font-display font-black text-2xl tabular-nums w-7 shrink-0 leading-none mt-0.5"
-                style={{ color: i < 3 ? '#f5632a' : 'rgba(255,255,255,0.2)' }}>{i + 1}</span>
-              <p className="text-[12px] text-white/75 group-hover:text-white transition-colors leading-snug line-clamp-2">{p.title}</p>
-            </Link>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
 
 type StaticYoutubeClip = { title: string; creator: string; youtubeUrl: string };
 
@@ -209,10 +149,9 @@ function YouTubeCard({ clip }: { clip: StaticYoutubeClip }) {
   );
 }
 
-export function NewsHubEditorialZone({ interview, clip, featuredMatch, agenda, ranking, topPosts, youtubePosts }: Props) {
-  const hasMatch = !!(featuredMatch?.team1 && featuredMatch?.team2);
+export function NewsHubEditorialZone({ interview, clip, featuredMatch, agenda, ranking: _ranking }: Props) {
+  const _hasMatch = !!(featuredMatch?.team1 && featuredMatch?.team2);
   const hasAgenda = agenda.length > 0;
-  const hasRanking = ranking.length > 0;
 
   return (
     <>

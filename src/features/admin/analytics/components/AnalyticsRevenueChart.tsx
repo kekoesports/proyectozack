@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import {
-  Area, AreaChart, Bar, BarChart, CartesianGrid,
+  Area, AreaChart, CartesianGrid,
   ResponsiveContainer, Tooltip, XAxis, YAxis, Legend,
 } from 'recharts';
 import type { InvoiceWithRelations } from '@/types';

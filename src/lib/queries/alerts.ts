@@ -140,9 +140,9 @@ export async function getDashboardAlerts(opts?: {
   const currentUserId  = opts?.currentUserId;
   const today    = todayMadrid();
   const in7days  = new Date(Date.now() + 7  * 86_400_000).toISOString().slice(0, 10);
-  const in3days  = new Date(Date.now() + 3  * 86_400_000).toISOString().slice(0, 10);
+  const _in3days  = new Date(Date.now() + 3  * 86_400_000).toISOString().slice(0, 10);
 
-  const twoWeeksAgoLabel = (() => {
+  const _twoWeeksAgoLabel = (() => {
     const d = new Date();
     d.setDate(d.getDate() - 14);
     return new Intl.DateTimeFormat('en-CA', {
@@ -422,7 +422,7 @@ export async function getDashboardAlerts(opts?: {
   // 1 → alertas de tareas vencidas
   for (const t of overdueTasks) {
     if (!t.dueDate) continue;
-    const { days, label } = daysOverdueStr(t.dueDate);
+    const { days: _days, label } = daysOverdueStr(t.dueDate);
     items.push({
       id:           `overdue_task_${t.id}`,
       type:         'overdue_task',

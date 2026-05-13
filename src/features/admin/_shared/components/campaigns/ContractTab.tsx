@@ -46,7 +46,7 @@ const ROLE_LABELS: Record<SignerRole, string> = {
   agency:     'Agencia',
 };
 
-export function ContractTab({ campaignId, contract, isAdmin, templates, campaign, contractVars }: Props): React.ReactElement {
+export function ContractTab({ campaignId, contract, templates, campaign, contractVars }: Props): React.ReactElement {
   const [showGenerator, setShowGenerator] = useState(false);
   const [uploadState, uploadAction, uploadPending]   = useActionState(uploadContractAction, {});
   const [signerState, signerAction, signerPending]   = useActionState(addSignerAction, {});

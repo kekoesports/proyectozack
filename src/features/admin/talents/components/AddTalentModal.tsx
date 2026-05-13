@@ -89,7 +89,7 @@ export function AddTalentModal({ onClose }: Props): React.ReactElement {
   // Sectores (multi-selección)
   const [sectors, setSectors] = useState<Set<string>>(new Set());
   const toggleSector = (id: string): void =>
-    setSectors((prev) => { const next = new Set(prev); next.has(id) ? next.delete(id) : next.add(id); return next; });
+    setSectors((prev) => { const next = new Set(prev); if (next.has(id)) { next.delete(id); } else { next.add(id); } return next; });
 
   // Contactos (hasta 2)
   const [contacts, setContacts] = useState<{ type: ContactType; value: string }[]>([

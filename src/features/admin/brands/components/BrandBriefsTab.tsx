@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import {
   uploadBriefAction,
   approveBriefAction,
-  archiveBriefAction,
   deleteBriefAction,
   updateBriefContentAction,
   createEmptyBriefAction,
@@ -477,7 +476,7 @@ export function BrandBriefsTab({ brandId, briefs, isAdmin }: Props): React.React
   const [creating,     setCreating]     = useState(false);
   const [createError,  setCreateError]  = useState('');
 
-  const activeBrief = useMemo(
+  const _activeBrief = useMemo(
     () => briefs.find((b) => b.status === 'approved') ?? briefs[0] ?? null,
     [briefs],
   );

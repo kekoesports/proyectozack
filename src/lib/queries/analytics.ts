@@ -1,4 +1,4 @@
-import { eq, and, gte, lte, inArray, asc, desc, sql, max, lt } from 'drizzle-orm';
+import { eq, and, gte, lte, inArray, asc, desc, sql, max } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { talentMetricSnapshots, talentSocials, talents } from '@/db/schema';
 import { toLocalIsoDate } from '@/lib/utils/date';

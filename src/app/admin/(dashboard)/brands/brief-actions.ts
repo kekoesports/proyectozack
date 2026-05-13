@@ -152,7 +152,7 @@ export async function updateBriefContentAction(
   content:  BriefContent,
   meta:     { name?: string; version?: string; geo?: string },
 ): Promise<ActionState> {
-  const session = await requireAnyRole(['admin', 'staff'], '/admin/login');
+  await requireAnyRole(['admin', 'staff'], '/admin/login');
   try {
     await updateBrief(briefId, {
       briefContent: content,

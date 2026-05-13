@@ -1,4 +1,4 @@
-import { eq, gt, isNull, lte, or, desc, asc, and, isNotNull, not, like, sql } from 'drizzle-orm';
+import { eq, gt, isNull, lte, or, desc, asc, and, isNotNull, not, like } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { giveaways } from '@/db/schema';
 import type { Giveaway, GiveawayWithTalent } from '@/types';

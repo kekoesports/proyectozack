@@ -430,7 +430,7 @@ function CreateMovimientoModal({
 
 function InvoiceActionRow({
   inv,
-  campaignId,
+  campaignId: _campaignId,
 }: {
   readonly inv: Invoice;
   readonly campaignId: number;

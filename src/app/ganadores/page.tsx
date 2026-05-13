@@ -5,7 +5,7 @@ import { getAllWinners } from '@/lib/queries/giveawayWinners';
 import type { GiveawayWinnerFull } from '@/types';
 import { getAllTalents } from '@/lib/queries/talents';
 import { WinnersList } from '@/features/giveaways/components/WinnersList';
-import { absoluteUrl, SITE_URL } from '@/lib/site-url';
+import { absoluteUrl } from '@/lib/site-url';
 
 export const revalidate = 3600;
 
