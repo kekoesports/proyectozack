@@ -4,6 +4,7 @@ import type { CampaignRow } from '@/types';
 import type { CampaignFilterState } from '@/features/admin/campaigns/components/CampaignFilters';
 import type { CampaignStatus } from '@/lib/schemas/campaign';
 import type { Tone } from '@/features/admin/_shared/components/StateBadge';
+import { toEUR } from '@/lib/currency';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -57,8 +58,9 @@ export function computeKpis(campaigns: readonly CampaignRow[]): CampaignKpis {
   for (const c of campaigns) {
     if (c.archivedAt !== null) continue;
 
-    const brand  = Number(c.amountBrand  ?? 0);
-    const talent = Number(c.amountTalent ?? 0);
+    const cur    = c.currency ?? 'EUR';
+    const brand  = toEUR(c.amountBrand  ?? 0, cur);
+    const talent = toEUR(c.amountTalent ?? 0, cur);
 
     if (ACTIVE_STATUSES.has(c.status))   activos++;
     if (c.status === 'negociacion')       negociacion++;

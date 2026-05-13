@@ -27,6 +27,7 @@ import {
   type StaffOption,
   type TalentOption,
 } from './CampaignsList.parts';
+import { fmtCurrency } from '@/lib/currency';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -304,18 +305,18 @@ export function CampaignsList({
 
                     {/* Pago marca */}
                     <td className="px-4 py-3 whitespace-nowrap tabular-nums text-[13px] font-semibold text-sp-admin-text">
-                      {EUR.format(Number(c.amountBrand ?? 0))}
+                      {fmtCurrency(c.amountBrand ?? 0, c.currency ?? 'EUR')}
                     </td>
 
                     {/* Pago talent */}
                     <td className="px-4 py-3 whitespace-nowrap tabular-nums text-[13px] text-sp-admin-text">
-                      {EUR.format(Number(c.amountTalent ?? 0))}
+                      {fmtCurrency(c.amountTalent ?? 0, c.currency ?? 'EUR')}
                     </td>
 
                     {/* Comisión */}
                     <td className="px-4 py-3 whitespace-nowrap tabular-nums text-[13px] font-semibold"
                       style={{ color: marginNeg ? '#ef4444' : '#16a34a' }}>
-                      {EUR.format(derived.commissionAmount)}
+                      {fmtCurrency(derived.commissionAmount, c.currency ?? 'EUR')}
                     </td>
 
                     {/* % Margen */}

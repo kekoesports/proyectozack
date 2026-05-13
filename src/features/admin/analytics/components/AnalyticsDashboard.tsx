@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { toEUR, fmtCurrency, USD_EUR_RATE } from '@/lib/currency';
 import { useMemo, useState } from 'react';
 import { BrandRankingTable }         from './BrandRankingTable';
 import { TalentRankingTable }         from './TalentRankingTable';
@@ -38,8 +39,18 @@ function pct(part: number, total: number): string | null {
   if (total === 0) return null;
   return `${Math.round((part / total) * 100)}%`;
 }
-function sumField(arr: readonly { totalAmount: string | number }[]): number {
-  return arr.reduce((s, i) => s + Number(i.totalAmount ?? 0), 0);
+function sumField(arr: readonly { totalAmount: string | number; currency?: string }[]): number {
+  return arr.reduce((s, i) => s + toEUR(i.totalAmount ?? 0, i.currency ?? 'EUR'), 0);
+}
+function currencyBreakdown(arr: readonly { totalAmount: string | number; currency?: string }[]): string | undefined {
+  let eur = 0, usd = 0;
+  for (const i of arr) {
+    if ((i.currency ?? 'EUR') === 'USD') usd += Number(i.totalAmount ?? 0);
+    else eur += Number(i.totalAmount ?? 0);
+  }
+  if (usd === 0) return undefined;
+  if (eur === 0) return `${fmtCurrency(usd, 'USD')} ≈ ${fmt(usd * USD_EUR_RATE)}`;
+  return `${fmt(eur)} + ${fmtCurrency(usd, 'USD')} (≈${fmt(usd * USD_EUR_RATE)})`;
 }
 
 // ── Constantes canónicas de estados pendientes ────────────────────────
@@ -199,19 +210,26 @@ export function AnalyticsDashboard({
       const expPagado  = sumField(exp.filter((i) => i.status === 'cobrada' || i.status === 'pagada'));
       const expPdte    = sumField(exp.filter((i) => PENDING_EXP.includes(i.status)));
       const margin     = revTotal - expTotal;
-      return { revTotal, revCobrado, revPdte, expTotal, expPagado, expPdte, margin };
+      const revBreakdown = currencyBreakdown(inc);
+      const expBreakdown = currencyBreakdown(exp);
+      return { revTotal, revCobrado, revPdte, expTotal, expPagado, expPdte, margin, revBreakdown, expBreakdown };
     }
 
-    // Fallback a campañas
+    // Fallback a campañas — convierte USD a EUR
     const valid = filteredCampaigns.filter((c) => c.status !== 'cancelada');
-    const revTotal   = valid.reduce((s, c) => s + Number(c.amountBrand  ?? 0), 0);
-    const revCobrado = valid.filter((c) => c.brandPaid  !== 'no').reduce((s, c) => s + Number(c.amountBrand  ?? 0), 0);
-    const revPdte    = valid.filter((c) => c.brandPaid  === 'no').reduce((s, c) => s + Number(c.amountBrand  ?? 0), 0);
-    const expTotal   = valid.reduce((s, c) => s + Number(c.amountTalent ?? 0), 0);
-    const expPagado  = valid.filter((c) => c.talentPaid !== 'no').reduce((s, c) => s + Number(c.amountTalent ?? 0), 0);
-    const expPdte    = valid.filter((c) => c.talentPaid === 'no').reduce((s, c) => s + Number(c.amountTalent ?? 0), 0);
+    const asInvoice = (c: typeof valid[number], field: 'amountBrand' | 'amountTalent') =>
+      ({ totalAmount: c[field] ?? 0, currency: c.currency ?? 'EUR' });
+
+    const revTotal   = valid.reduce((s, c) => s + toEUR(c.amountBrand  ?? 0, c.currency ?? 'EUR'), 0);
+    const revCobrado = valid.filter((c) => c.brandPaid  !== 'no').reduce((s, c) => s + toEUR(c.amountBrand  ?? 0, c.currency ?? 'EUR'), 0);
+    const revPdte    = valid.filter((c) => c.brandPaid  === 'no').reduce((s, c) => s + toEUR(c.amountBrand  ?? 0, c.currency ?? 'EUR'), 0);
+    const expTotal   = valid.reduce((s, c) => s + toEUR(c.amountTalent ?? 0, c.currency ?? 'EUR'), 0);
+    const expPagado  = valid.filter((c) => c.talentPaid !== 'no').reduce((s, c) => s + toEUR(c.amountTalent ?? 0, c.currency ?? 'EUR'), 0);
+    const expPdte    = valid.filter((c) => c.talentPaid === 'no').reduce((s, c) => s + toEUR(c.amountTalent ?? 0, c.currency ?? 'EUR'), 0);
     const margin     = revTotal - expTotal;
-    return { revTotal, revCobrado, revPdte, expTotal, expPagado, expPdte, margin };
+    const revBreakdown = currencyBreakdown(valid.map((c) => asInvoice(c, 'amountBrand')));
+    const expBreakdown = currencyBreakdown(valid.map((c) => asInvoice(c, 'amountTalent')));
+    return { revTotal, revCobrado, revPdte, expTotal, expPagado, expPdte, margin, revBreakdown, expBreakdown };
   }, [hasInvoices, filteredInvoices, filteredCampaigns]);
 
   const tratosActivos     = filteredCampaigns.filter((c) => c.status === 'activa').length;
@@ -373,7 +391,7 @@ export function AnalyticsDashboard({
         {/* Fila 1 — Revenue */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 mb-2">
           <KpiCard label="Revenue total"     value={fmt(kpis.revTotal)}   accent="#16a34a"
-            sub={`${filteredCampaigns.filter((c) => c.status !== 'cancelada').length} tratos`} />
+            sub={kpis.revBreakdown ?? `${filteredCampaigns.filter((c) => c.status !== 'cancelada').length} tratos`} />
           <KpiCard label="Revenue cobrado"   value={fmt(kpis.revCobrado)} accent="#059669"
             sub={pct(kpis.revCobrado, kpis.revTotal) ?? undefined} dimmed={kpis.revCobrado === 0} />
           <KpiCard label="Revenue pendiente" value={fmt(kpis.revPdte)}    accent="#f59e0b"
@@ -385,7 +403,8 @@ export function AnalyticsDashboard({
         </div>
         {/* Fila 2 — Gastos + Tratos */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
-          <KpiCard label="Gastos totales"     value={fmt(kpis.expTotal)}   accent="#f59e0b" />
+          <KpiCard label="Gastos totales"     value={fmt(kpis.expTotal)}   accent="#f59e0b"
+            sub={kpis.expBreakdown} />
           <KpiCard label="Gastos pagados"     value={fmt(kpis.expPagado)}  accent="#d97706"
             sub={pct(kpis.expPagado, kpis.expTotal) ?? undefined} dimmed={kpis.expPagado === 0} />
           <KpiCard label="Gastos pendientes"  value={fmt(kpis.expPdte)}    accent="#e03070"
