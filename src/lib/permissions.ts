@@ -69,7 +69,7 @@ export const PERMISSIONS = {
   },
   talentos: {
     read:    ['admin', 'manager', 'staff', 'talent_manager'],
-    write:   ['admin', 'manager', 'talent_manager'],
+    write:   ['admin', 'manager', 'staff', 'talent_manager'],
     delete:  ['admin'],
   },
   campanas: {
