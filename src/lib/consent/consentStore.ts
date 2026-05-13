@@ -66,7 +66,11 @@ export function getServerSnapshot(): ConsentState {
 export function saveConsent(data: { analytics: boolean; marketing: boolean }): void {
   const full: ConsentData = { v: CONSENT_VERSION, ts: Date.now(), ...data };
   localStorage.setItem(STORAGE_KEY, JSON.stringify(full));
-  window.dispatchEvent(new Event('sp:consent-change'));
+  // Diferido: evitar React error #185 (maximum update depth exceeded).
+  // El dispatch síncrono dentro de un event handler de React provoca que
+  // useSyncExternalStore fuerce un re-render mientras React ya procesa
+  // el batch del mismo click → bucle de actualizaciones.
+  setTimeout(() => window.dispatchEvent(new Event('sp:consent-change')), 0);
 }
 
 /** Abre el banner de cookies desde cualquier parte (ej. Footer) */
