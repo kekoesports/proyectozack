@@ -463,6 +463,13 @@
       "when": 1778600730655,
       "tag": "0065_glamorous_shocker",
       "breakpoints": true
+    },
+    {
+      "idx": 66,
+      "version": "7",
+      "when": 1778669145906,
+      "tag": "0066_lush_wilson_fisk",
+      "breakpoints": true
     }
   ]
 }
