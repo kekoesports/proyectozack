@@ -127,7 +127,7 @@ export function TalentModal({ talent, onClose }: TalentModalProps): React.JSX.El
               <h2 id="talent-modal-name" className="font-display text-3xl font-black uppercase text-white leading-none">
                 {talent.name}
               </h2>
-              <p className="text-white/80 text-sm">{talent.role}</p>
+              <p className="text-white/80 text-sm">{[talent.role, talent.role2].filter(Boolean).join(' · ')}</p>
             </div>
             <StatusBadge status={talent.status} className="mb-0.5" />
           </div>

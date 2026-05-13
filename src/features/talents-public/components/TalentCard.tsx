@@ -58,7 +58,9 @@ export function TalentCard({ talent, onOpen, priority = false }: TalentCardProps
         <h3 className="font-display text-xl font-black uppercase tracking-tight text-sp-dark leading-none">
           {talent.name}
         </h3>
-        <p className="text-xs text-sp-muted mt-1 mb-3">{talent.role}</p>
+        <p className="text-xs text-sp-muted mt-1 mb-3">
+          {[talent.role, talent.role2].filter(Boolean).join(' · ')}
+        </p>
 
         {/* Stats */}
         <div className="grid grid-cols-3 gap-1 mb-3">

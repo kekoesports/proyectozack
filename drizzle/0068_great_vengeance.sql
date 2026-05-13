@@ -1,0 +1,1 @@
+ALTER TABLE "talents" ADD COLUMN "role2" varchar(150);

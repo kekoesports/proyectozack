@@ -216,6 +216,7 @@ const TalentProfileUpdate = z.object({
   id: IdSchema,
   name:          z.string().trim().min(1, 'Nombre obligatorio').max(120),
   role:          z.string().trim().min(1, 'Rol obligatorio').max(150),
+  role2:         z.string().trim().max(150).optional().transform((v) => v === '' ? null : v ?? null),
   game:          z.string().trim().max(100).default('General'),
   platform:      z.enum(['twitch', 'youtube']),
   creatorCountry: z.string().trim().toUpperCase()
@@ -246,6 +247,7 @@ export async function updateTalentProfileAction(
     await db.update(talents).set({
       name:          data.name,
       role:          data.role,
+      role2:         data.role2,
       game:          data.game,
       platform:      data.platform,
       creatorCountry: data.creatorCountry,

@@ -32,6 +32,7 @@ export const talents = pgTable('talents', {
   slug: varchar('slug', { length: 100 }).notNull().unique(),
   name: varchar('name', { length: 100 }).notNull(),
   role: varchar('role', { length: 150 }).notNull(),
+  role2: varchar('role2', { length: 150 }),
   game: varchar('game', { length: 100 }).notNull(),
   platform: platformEnum('platform').notNull(),
   status: statusEnum('status').notNull().default('active'),

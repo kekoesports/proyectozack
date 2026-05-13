@@ -9,10 +9,34 @@ const INPUT  = 'w-full rounded-lg border border-sp-admin-border bg-sp-admin-bg p
 const SELECT = 'w-full rounded-lg border border-sp-admin-border bg-sp-admin-bg px-3 py-2 text-sm text-sp-admin-text outline-none focus:border-sp-admin-accent transition-colors cursor-pointer';
 const LABEL  = 'block text-[11px] uppercase tracking-wider font-semibold text-sp-admin-muted mb-1';
 
+const ROLE_OPTIONS = [
+  'Jugador Profesional CS2',
+  'Jugador Profesional VALORANT',
+  'STREAMER CS2',
+  'STREAMER VALORANT',
+  'STREAMER GTA',
+  'STREAMER LIFESTYLE',
+  'STREAMER FIFA',
+  'STREAMER CASINO',
+  'OTROS',
+] as const;
+
+function RoleSelect({ id, name, value, required }: { id: string; name: string; value: string | null; required?: boolean }) {
+  const custom = value && !ROLE_OPTIONS.includes(value as typeof ROLE_OPTIONS[number]);
+  return (
+    <select id={id} name={name} defaultValue={value ?? ''} required={required} className={SELECT}>
+      <option value="">— Sin etiqueta —</option>
+      {ROLE_OPTIONS.map((o) => <option key={o} value={o}>{o}</option>)}
+      {custom && <option value={value!}>{value} (personalizado)</option>}
+    </select>
+  );
+}
+
 type TalentProfileData = {
   id:             number;
   name:           string;
   role:           string;
+  role2:          string | null;
   game:           string;
   platform:       string;
   creatorCountry: string | null;
@@ -64,23 +88,12 @@ export function TalentProfileForm({ talent }: Props): React.JSX.Element {
               required maxLength={4} className={INPUT} />
           </div>
           <div>
-            <label htmlFor="pf-role" className={LABEL}>Etiqueta pública *</label>
-            <select id="pf-role" name="role" defaultValue={talent.role} required className={SELECT}>
-              <option value="">— Seleccionar —</option>
-              <option value="Jugador Profesional CS2">Jugador Profesional CS2</option>
-              <option value="Jugador Profesional VALORANT">Jugador Profesional VALORANT</option>
-              <option value="STREAMER CS2">STREAMER CS2</option>
-              <option value="STREAMER VALORANT">STREAMER VALORANT</option>
-              <option value="STREAMER GTA">STREAMER GTA</option>
-              <option value="STREAMER LIFESTYLE">STREAMER LIFESTYLE</option>
-              <option value="STREAMER FIFA">STREAMER FIFA</option>
-              <option value="STREAMER CASINO">STREAMER CASINO</option>
-              <option value="OTROS">OTROS</option>
-              {/* Preservar valores existentes no estándar */}
-              {!['Jugador Profesional CS2','Jugador Profesional VALORANT','STREAMER CS2','STREAMER VALORANT','STREAMER GTA','STREAMER LIFESTYLE','STREAMER FIFA','STREAMER CASINO','OTROS',''].includes(talent.role) && (
-                <option value={talent.role}>{talent.role} (personalizado)</option>
-              )}
-            </select>
+            <label htmlFor="pf-role" className={LABEL}>Etiqueta 1 *</label>
+            <RoleSelect id="pf-role" name="role" value={talent.role} required />
+          </div>
+          <div>
+            <label htmlFor="pf-role2" className={LABEL}>Etiqueta 2 <span className="font-normal normal-case">(opcional)</span></label>
+            <RoleSelect id="pf-role2" name="role2" value={talent.role2 ?? ''} />
           </div>
           <div>
             <label htmlFor="pf-game" className={LABEL}>Juego / Categoría</label>

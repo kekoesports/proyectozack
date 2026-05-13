@@ -57,7 +57,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 function toTalentBase(t: Talent & Record<string, unknown>): Talent {
   return {
-    id: t.id, slug: t.slug, name: t.name, role: t.role, game: t.game,
+    id: t.id, slug: t.slug, name: t.name, role: t.role, role2: t.role2 ?? null, game: t.game,
     platform: t.platform, status: t.status, bio: t.bio,
     gradientC1: t.gradientC1, gradientC2: t.gradientC2,
     initials: t.initials, photoUrl: t.photoUrl, sortOrder: t.sortOrder,
@@ -212,7 +212,7 @@ export default async function TalentPage({ params }: PageProps) {
                 </div>
 
                 <p className="text-[11px] font-bold uppercase tracking-[0.25em] mb-2.5" style={{ color: `${talent.gradientC1}cc` }}>
-                  {[talent.role, talent.game].filter(Boolean).join(' · ')}
+                  {[talent.role, talent.role2, talent.game].filter(Boolean).join(' · ')}
                 </p>
 
                 {bioSnippet && <p className="text-[12px] text-white/40 leading-snug mb-3 max-w-sm hidden sm:block">{bioSnippet}</p>}
