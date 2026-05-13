@@ -9,6 +9,7 @@ import { CookieConsent } from '@/components/layout/CookieConsent';
 import { MotionRoot } from '@/components/layout/MotionRoot';
 import { TRPCProvider } from '@/components/layout/TRPCProvider';
 import { SITE_URL, absoluteUrl } from '@/lib/site-url';
+import { Analytics } from '@vercel/analytics/next';
 
 const inter = Inter({
   variable: '--font-body',
@@ -220,6 +221,7 @@ export default function RootLayout({
             <CookieConsent />
           </MotionRoot>
         </TRPCProvider>
+        <Analytics />
       </body>
     </html>
   );
