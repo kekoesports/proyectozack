@@ -1,6 +1,6 @@
 'use client';
 
-import type { CampaignRow } from '@/types';
+import type { CampaignRow, CampaignWithRelations } from '@/types';
 import type { CampaignFilterState } from '@/features/admin/campaigns/components/CampaignFilters';
 import type { CampaignStatus } from '@/lib/schemas/campaign';
 import type { Tone } from '@/features/admin/_shared/components/StateBadge';
@@ -51,7 +51,7 @@ const ACTIVE_STATUSES   = new Set<CampaignStatus>(['activa', 'aprobada']);
 const FINISHED_STATUSES = new Set<CampaignStatus>(['completada', 'pagada']);
 const PAID_STATUSES     = new Set<CampaignStatus>(['pagada', 'cancelada']);
 
-export function computeKpis(campaigns: readonly CampaignRow[]): CampaignKpis {
+export function computeKpis(campaigns: readonly CampaignWithRelations[]): CampaignKpis {
   let activos = 0, negociacion = 0, finalizados = 0;
   let revenueBruto = 0, pendienteCobro = 0, pendienteTalent = 0, margenTotal = 0;
 
@@ -102,11 +102,11 @@ export function talentPayBadge(c: CampaignRow): PayBadge {
 // ── Filter logic ──────────────────────────────────────────────────────────────
 
 export function applyFilters(
-  campaigns: readonly CampaignRow[],
+  campaigns: readonly CampaignWithRelations[],
   f: CampaignFilterState,
   brandMap: Map<number, string>,
   talentMap: Map<number, string>,
-): readonly CampaignRow[] {
+): readonly CampaignWithRelations[] {
   return campaigns.filter((c) => {
     if (!f.showArchived && c.archivedAt !== null) return false;
     if (f.showArchived  && c.archivedAt === null)  return false;
@@ -127,12 +127,12 @@ export function applyFilters(
     if (f.geo         !== '' && c.geo                !== f.geo)                      return false;
 
     // Cobro marca
-    if (f.cobroMarca === 'cobrado'  && c.status !== 'pagada')        return false;
-    if (f.cobroMarca === 'pendiente' && c.status === 'pagada')       return false;
+    if (f.cobroMarca === 'cobrado'   && c.brandPaid  === 'no') return false;
+    if (f.cobroMarca === 'pendiente' && c.brandPaid  !== 'no') return false;
 
     // Pago talento
-    if (f.pagoTalento === 'pagado'   && c.status !== 'pagada')       return false;
-    if (f.pagoTalento === 'pendiente' && c.status === 'pagada')      return false;
+    if (f.pagoTalento === 'pagado'   && c.talentPaid === 'no') return false;
+    if (f.pagoTalento === 'pendiente' && c.talentPaid !== 'no') return false;
 
     return true;
   });

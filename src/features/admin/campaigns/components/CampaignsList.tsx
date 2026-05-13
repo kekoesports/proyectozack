@@ -12,7 +12,7 @@ import {
   computeCampaignDerived,
 } from '@/lib/schemas/campaign';
 
-import type { CampaignRow }         from '@/types';
+import type { CampaignWithRelations } from '@/types';
 import type { CampaignFilterState } from '@/features/admin/campaigns/components/CampaignFilters';
 import type { CrmBrandContact }     from '@/types';
 
@@ -32,7 +32,7 @@ import { fmtCurrency } from '@/lib/currency';
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 type Props = {
-  readonly campaigns:       readonly CampaignRow[];
+  readonly campaigns:       readonly CampaignWithRelations[];
   readonly isManager:       boolean;
   readonly brands:          readonly BrandOption[];
   readonly talents:         readonly TalentOption[];
@@ -101,7 +101,7 @@ export function CampaignsList({
 }: Props): React.ReactElement {
   const [filters, setFilters]       = useState<CampaignFilterState>(EMPTY_FILTERS);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [selected, setSelected]     = useState<CampaignRow | null>(null);
+  const [selected, setSelected]     = useState<CampaignWithRelations | null>(null);
 
   const brandMap  = new Map(brands.map((b)  => [b.id,  b.name]));
   const talentMap = new Map(talents.map((t) => [t.id,  t.name]));
@@ -112,7 +112,7 @@ export function CampaignsList({
   const visible  = campaigns.filter((c) => c.archivedAt === null).length;
 
   function openCreate(): void          { setSelected(null); setDrawerOpen(true); }
-  function openEdit(c: CampaignRow): void { setSelected(c); setDrawerOpen(true); }
+  function openEdit(c: CampaignWithRelations): void { setSelected(c); setDrawerOpen(true); }
   function closeDrawer(): void         { setDrawerOpen(false); setSelected(null); }
 
   return (

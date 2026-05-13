@@ -6,17 +6,19 @@ import { requirePermission } from '@/lib/permissions';
 import { listCampaigns } from '@/lib/queries/campaigns';
 import { listCrmBrands, getBrandContacts } from '@/lib/queries/crmBrands';
 import { getAllTalents } from '@/lib/queries/talents';
+import { listInvoices } from '@/lib/queries/invoices';
 import { CampaignsList } from '@/features/admin/campaigns/components/CampaignsList';
 
-import type { CrmBrandContact } from '@/types';
+import type { CrmBrandContact, CampaignWithRelations } from '@/types';
 
 export default async function AdminCampanasPage(): Promise<React.ReactElement> {
   const session = await requirePermission('campanas', 'read');
   const role = session.user.role;
   const isManager = role === 'manager';
 
-  const [campaigns, crmBrandsList, allTalents, staffUsers] = await Promise.all([
+  const [rawCampaigns, invoices, crmBrandsList, allTalents, staffUsers] = await Promise.all([
     listCampaigns({ session: { userId: session.user.id, role } }),
+    listInvoices({}),
     listCrmBrands(),
     getAllTalents(),
     db
@@ -36,6 +38,29 @@ export default async function AdminCampanasPage(): Promise<React.ReactElement> {
 
   const brands = crmBrandsList.map((b) => ({ id: b.id, name: b.name }));
   const talents = allTalents.map((t) => ({ id: t.id, name: t.name }));
+
+  const campaigns: CampaignWithRelations[] = rawCampaigns.map((c) => {
+    const brand  = Number(c.amountBrand  ?? 0);
+    const talent = Number(c.amountTalent ?? 0);
+    const comm   = brand - talent;
+    const campInvoices = invoices.filter((i) => i.campaignId === c.id);
+    const paidIncome   = campInvoices.filter((i) => i.kind === 'income'  && (i.status === 'cobrada' || i.status === 'pagada'));
+    const paidExpense  = campInvoices.filter((i) => i.kind === 'expense' && (i.status === 'cobrada' || i.status === 'pagada'));
+    const totalInvoicedBrand = paidIncome.reduce((s, i)  => s + Number(i.totalAmount), 0);
+    const totalPaidTalent    = paidExpense.reduce((s, i) => s + Number(i.totalAmount), 0);
+    return {
+      ...c,
+      brandName:  brands.find((b) => b.id === c.brandId)?.name  ?? null,
+      talentName: talents.find((t) => t.id === c.talentId)?.name ?? null,
+      ownerName:  null,
+      brandPaid:  totalInvoicedBrand === 0 ? 'no' : totalInvoicedBrand >= brand  ? 'si' : 'parcial',
+      talentPaid: totalPaidTalent    === 0 ? 'no' : totalPaidTalent    >= talent ? 'si' : 'parcial',
+      totalInvoicedBrand,
+      totalPaidTalent,
+      commissionAmount: comm,
+      commissionPct:    brand > 0 ? (comm / brand) * 100 : 0,
+    };
+  });
 
   return (
     <CampaignsList
