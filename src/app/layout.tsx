@@ -5,10 +5,10 @@ import './globals.css';
 import { Nav } from '@/components/layout/Nav';
 import { Footer } from '@/components/layout/Footer';
 import { PublicChrome } from '@/components/layout/PublicChrome';
-import { CookieConsent } from '@/components/layout/CookieConsent';
+import { CookieBanner } from '@/components/layout/CookieConsent';
 import { MotionRoot } from '@/components/layout/MotionRoot';
 import { TRPCProvider } from '@/components/layout/TRPCProvider';
-import { Analytics } from '@vercel/analytics/next';
+import { ConsentedScripts } from '@/components/layout/ConsentedScripts';
 import { SITE_URL, absoluteUrl } from '@/lib/site-url';
 
 const inter = Inter({
@@ -218,10 +218,10 @@ export default function RootLayout({
             <PublicChrome nav={<Nav />} footer={<Footer />}>
               {children}
             </PublicChrome>
-            <CookieConsent />
+            <CookieBanner />
+            <ConsentedScripts />
           </MotionRoot>
         </TRPCProvider>
-        <Analytics />
       </body>
     </html>
   );

@@ -2,10 +2,11 @@ import type { Metadata } from 'next';
 import { safeJsonLd } from '@/lib/safeJsonLd';
 import Link from 'next/link';
 import { absoluteUrl, SITE_URL } from '@/lib/site-url';
+import { ManageCookiesButton } from './ManageCookiesButton';
 
 export const metadata: Metadata = {
   title: 'Política de Cookies — SocialPro',
-  description: 'Qué cookies usa socialpro.es, para qué y cómo gestionarlas. Información sobre cookies propias y de Google Analytics.',
+  description: 'Qué cookies usa socialpro.es, para qué y cómo gestionarlas. Necesarias, analíticas y marketing.',
   alternates: { canonical: '/cookies' },
   robots: { index: true, follow: true },
 };
@@ -51,50 +52,57 @@ export default function CookiesPage() {
 
             <section>
               <h2 className="font-display text-lg font-black uppercase text-sp-dark mb-3">Tipos de cookies que usamos</h2>
+              <p className="mb-5">Agrupamos las cookies en tres categorías:</p>
 
-              <div className="mt-4 space-y-6">
+              <div className="mt-4 space-y-5">
+
+                {/* Necesarias */}
                 <div className="border border-sp-border rounded-xl p-5 bg-sp-bg2/30">
                   <div className="flex items-center gap-2 mb-2">
                     <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-700">
                       Siempre activas
                     </span>
-                    <h3 className="font-bold text-sp-dark">Cookies técnicas y de sesión</h3>
+                    <h3 className="font-bold text-sp-dark">Necesarias</h3>
                   </div>
-                  <p>Son estrictamente necesarias para el funcionamiento del sitio. No requieren tu consentimiento.</p>
+                  <p>
+                    Son estrictamente necesarias para el funcionamiento del sitio. No requieren consentimiento
+                    y no pueden desactivarse.
+                  </p>
                   <table className="mt-3 w-full text-[12px] border-collapse">
                     <thead>
                       <tr className="border-b border-sp-border">
-                        <th className="text-left py-1.5 font-bold text-sp-dark">Cookie</th>
+                        <th className="text-left py-1.5 font-bold text-sp-dark">Cookie / clave</th>
                         <th className="text-left py-1.5 font-bold text-sp-dark">Finalidad</th>
                         <th className="text-left py-1.5 font-bold text-sp-dark">Duración</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-sp-border/50">
                       <tr>
-                        <td className="py-1.5 font-mono">sp-cookie-consent</td>
-                        <td className="py-1.5">Guarda tu decisión sobre cookies (aceptar/rechazar)</td>
-                        <td className="py-1.5">1 año (localStorage)</td>
+                        <td className="py-1.5 font-mono">sp-consent-v1</td>
+                        <td className="py-1.5">Guarda tus preferencias de cookies (localStorage)</td>
+                        <td className="py-1.5">Hasta borrar datos</td>
                       </tr>
                       <tr>
                         <td className="py-1.5 font-mono">better-auth.session_token</td>
-                        <td className="py-1.5">Sesión de usuario en panel admin (solo usuarios registrados)</td>
+                        <td className="py-1.5">Sesión de usuario en el panel de administración</td>
                         <td className="py-1.5">Sesión / 7 días</td>
                       </tr>
                     </tbody>
                   </table>
                 </div>
 
+                {/* Analíticas */}
                 <div className="border border-sp-border rounded-xl p-5 bg-sp-bg2/30">
                   <div className="flex items-center gap-2 mb-2">
                     <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-amber-100 text-amber-700">
                       Requieren consentimiento
                     </span>
-                    <h3 className="font-bold text-sp-dark">Cookies analíticas (Google Tag Manager)</h3>
+                    <h3 className="font-bold text-sp-dark">Analíticas</h3>
                   </div>
                   <p>
-                    Si aceptas cookies analíticas, cargamos <strong>Google Tag Manager</strong> (Google LLC),
-                    que puede inyectar cookies de seguimiento para medir el tráfico y uso del sitio.
-                    Estas cookies se activan únicamente tras tu consentimiento expreso.
+                    Nos permiten entender cómo se usa el sitio. Solo se activan si aceptas esta categoría.
+                    Incluyen <strong>Google Analytics</strong> (vía Google Tag Manager) y{' '}
+                    <strong>Vercel Analytics</strong>.
                   </p>
                   <table className="mt-3 w-full text-[12px] border-collapse">
                     <thead>
@@ -124,6 +132,12 @@ export default function CookiesPage() {
                         <td className="py-1.5">Distingue usuarios (24h)</td>
                         <td className="py-1.5">24 horas</td>
                       </tr>
+                      <tr>
+                        <td className="py-1.5 font-mono">va_*</td>
+                        <td className="py-1.5">Vercel Analytics</td>
+                        <td className="py-1.5">Métricas de rendimiento y visitas</td>
+                        <td className="py-1.5">Sesión</td>
+                      </tr>
                     </tbody>
                   </table>
                   <p className="mt-3 text-[12px]">
@@ -135,6 +149,22 @@ export default function CookiesPage() {
                     </a>.
                   </p>
                 </div>
+
+                {/* Marketing */}
+                <div className="border border-sp-border rounded-xl p-5 bg-sp-bg2/30">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-blue-100 text-blue-700">
+                      Requieren consentimiento
+                    </span>
+                    <h3 className="font-bold text-sp-dark">Marketing</h3>
+                  </div>
+                  <p>
+                    Permiten mostrarte publicidad personalizada y realizar remarketing. Actualmente{' '}
+                    <strong>no utilizamos activamente</strong> cookies de marketing, pero la categoría
+                    existe para cuando se activen campañas en el futuro. Solo se cargarán con tu consentimiento.
+                  </p>
+                </div>
+
               </div>
             </section>
 
@@ -143,14 +173,14 @@ export default function CookiesPage() {
 
               <div className="space-y-4">
                 <div>
-                  <h3 className="font-bold text-sp-dark mb-1">Desde nuestro banner</h3>
+                  <h3 className="font-bold text-sp-dark mb-1">Desde nuestro panel de preferencias</h3>
                   <p>
-                    Al entrar por primera vez en el sitio aparece un banner en la parte inferior.
-                    Puedes hacer clic en <strong>Aceptar</strong> o <strong>Rechazar</strong>. Tu decisión
-                    se guarda en tu navegador y no se vuelve a mostrar. Puedes cambiarla borrando
-                    la entrada <code className="font-mono text-[11px] bg-sp-bg2 px-1 py-0.5 rounded">sp-cookie-consent</code>{' '}
-                    de <em>localStorage</em> (Herramientas de desarrollador → Application → Local Storage).
+                    Puedes revisar o cambiar tu decisión en cualquier momento haciendo clic en
+                    {' '}&ldquo;Gestionar cookies&rdquo; en el pie de página, o usando el botón de abajo:
                   </p>
+                  <div className="mt-3">
+                    <ManageCookiesButton />
+                  </div>
                 </div>
 
                 <div>

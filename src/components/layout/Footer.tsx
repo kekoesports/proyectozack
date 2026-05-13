@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { WA_HREF, CONTACT_EMAIL } from '@/lib/utils/constants';
 import { localeFromPathname, type Locale } from '@/lib/locale';
+import { openConsentBanner } from '@/lib/consent/consentStore';
 
 type NavCol = {
   readonly title: string;
@@ -130,6 +131,7 @@ const COPY_BY_LOCALE: Record<Locale, {
   readonly privacy: string;
   readonly cookies: string;
   readonly legal: string;
+  readonly manageCookies: string;
   readonly tagline: string;
 }> = {
   es: {
@@ -140,6 +142,7 @@ const COPY_BY_LOCALE: Record<Locale, {
     privacy: 'Privacidad',
     cookies: 'Cookies',
     legal: 'Aviso Legal',
+    manageCookies: 'Gestionar cookies',
     tagline: 'Gaming & Esports · España · LatAm · Europa',
   },
   en: {
@@ -150,6 +153,7 @@ const COPY_BY_LOCALE: Record<Locale, {
     privacy: 'Privacy',
     cookies: 'Cookies',
     legal: 'Legal',
+    manageCookies: 'Manage cookies',
     tagline: 'Gaming & Esports · Spain · LatAm · Europe',
   },
 };
@@ -327,6 +331,13 @@ export function Footer(): React.ReactElement {
             <Link href="/privacidad" className="hover:text-white/60 transition-colors">{copy.privacy}</Link>
             <Link href="/cookies" className="hover:text-white/60 transition-colors">{copy.cookies}</Link>
             <Link href="/legal" className="hover:text-white/60 transition-colors">{copy.legal}</Link>
+            <button
+              type="button"
+              onClick={openConsentBanner}
+              className="hover:text-white/60 transition-colors"
+            >
+              {copy.manageCookies}
+            </button>
           </div>
           <p className="text-xs text-white/20">
             {copy.tagline}
