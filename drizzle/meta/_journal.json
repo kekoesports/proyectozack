@@ -470,6 +470,13 @@
       "when": 1778669145906,
       "tag": "0066_lush_wilson_fisk",
       "breakpoints": true
+    },
+    {
+      "idx": 67,
+      "version": "7",
+      "when": 1778675150894,
+      "tag": "0067_serious_steel_serpent",
+      "breakpoints": true
     }
   ]
 }

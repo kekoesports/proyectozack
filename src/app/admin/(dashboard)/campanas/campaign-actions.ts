@@ -129,3 +129,43 @@ export async function markTalentPaidAction(_formData: FormData): Promise<void> {
   await requirePermission('campanas', 'read');
   revalidatePath('/admin/campanas');
 }
+
+// ── Split de reparto ───────────────────────────────────────────────────────────
+
+const splitSchema = z.object({
+  pablo:    z.coerce.number().min(0).max(100),
+  alfonso:  z.coerce.number().min(0).max(100),
+  giuliano: z.coerce.number().min(0).max(100),
+  stark:    z.coerce.number().min(0).max(100),
+});
+
+export async function upsertSplitsAction(
+  campaignId: number,
+  formData: FormData,
+): Promise<{ error?: string; success?: boolean }> {
+  const { requirePermission } = await import('@/lib/permissions');
+  await requirePermission('campanas', 'write');
+
+  const parsed = splitSchema.safeParse({
+    pablo:    formData.get('pablo'),
+    alfonso:  formData.get('alfonso'),
+    giuliano: formData.get('giuliano'),
+    stark:    formData.get('stark'),
+  });
+  if (!parsed.success) return { error: 'Porcentajes inválidos' };
+
+  const { pablo, alfonso, giuliano, stark } = parsed.data;
+  const total = pablo + alfonso + giuliano + stark;
+  if (total !== 0 && total !== 100) return { error: `La suma debe ser 100% (ahora es ${total}%)` };
+
+  const { upsertCampaignSplits } = await import('@/lib/queries/campaignSplits');
+  await upsertCampaignSplits(campaignId, [
+    { party: 'pablo',    percentage: pablo    },
+    { party: 'alfonso',  percentage: alfonso  },
+    { party: 'giuliano', percentage: giuliano },
+    { party: 'stark',    percentage: stark    },
+  ]);
+
+  revalidatePath(`/admin/campanas/${campaignId}`);
+  return { success: true };
+}

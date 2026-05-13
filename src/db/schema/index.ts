@@ -38,3 +38,4 @@ export * from './editorialSlots';
 export * from './agendaItems';
 export * from './rankingEntries';
 export * from './matches';
+export * from './campaignSplits';

@@ -12,6 +12,7 @@ import { CampaignDrawer }        from '@/features/admin/campaigns/components/Cam
 import { CampaignCnmcChecklist } from '@/features/admin/campaigns/components/CampaignCnmcChecklist';
 import { CampaignDeliverables }  from '@/features/admin/campaigns/components/CampaignDeliverables';
 import { CampaignActivity }      from '@/features/admin/campaigns/components/CampaignActivity';
+import { CampaignSplitPanel }    from '@/features/admin/campaigns/components/CampaignSplitPanel';
 import { ContractTab }           from '@/features/admin/_shared/components/campaigns/ContractTab';
 import { DealInvoicePanel }      from '@/features/admin/_shared/components/campaigns/DealInvoicePanel';
 import { CAMPAIGN_STATUS_LABELS } from '@/lib/schemas/campaign';
@@ -60,6 +61,7 @@ type Props = {
   readonly campaignFiles:       readonly FileRecord[];
   readonly campaignInvoices:    readonly Invoice[];
   readonly campaignDeliverables: readonly DeliverableWithComments[];
+  readonly splits:              readonly { party: string; percentage: number }[]; // safe: CampaignSplit compatible
   readonly isManager:           boolean;
   readonly isAdmin:             boolean;
   readonly brands:              readonly BrandOption[];
@@ -112,6 +114,7 @@ export function CampaignDetailTabs({
   campaign, campaignFiles, campaignInvoices, campaignDeliverables,
   isManager, isAdmin, brands, talents, staffUsers, contactsByBrand,
   contract, contractTemplates, contractVars, issuedInvoices, issuerCompanies,
+  splits,
 }: Props): React.ReactElement {
   const router = useRouter();
   const [, startTransition] = useTransition();
@@ -322,7 +325,16 @@ export function CampaignDetailTabs({
         )}
 
         {activeTab === 'pagos' && (
-          <CampaignPayments invoices={campaignInvoices} campaign={campaign} />
+          <div className="space-y-6">
+            <CampaignPayments invoices={campaignInvoices} campaign={campaign} />
+            <CampaignSplitPanel
+              campaignId={campaign.id}
+              splits={splits as import('@/lib/queries/campaignSplits').CampaignSplit[]}
+              amountBrand={Number(campaign.amountBrand ?? 0)}
+              amountTalent={Number(campaign.amountTalent ?? 0)}
+              currency={campaign.currency ?? 'EUR'}
+            />
+          </div>
         )}
 
         {activeTab === 'deliverables' && (
