@@ -46,7 +46,7 @@ async function uploadAttachment(
   const random = randomBytes(16).toString('hex');
   const path = `invoices/${kind}/${slot}/${year}/${random}-${safeName}`;
   // `validateUploadedFile` already verified `file.type` against magic bytes.
-  const blob = await put(path, file, { access: 'public', contentType: file.type });
+  const blob = await put(path, file, { access: 'private', contentType: file.type });
   return { url: blob.url, path };
 }
 

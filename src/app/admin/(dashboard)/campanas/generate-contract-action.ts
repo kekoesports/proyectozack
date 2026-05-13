@@ -48,7 +48,7 @@ export async function saveGeneratedContractAction(
 
   try {
     const path = `contracts/generated/${campaignId}/${Date.now()}-${fileName.replace(/[^\w.\-]/g, '_')}`;
-    const blob = await put(path, pdfFile, { access: 'public', contentType: 'application/pdf' });
+    const blob = await put(path, pdfFile, { access: 'private', contentType: 'application/pdf' });
 
     const existing = await getContractByCampaign(campaignId);
 

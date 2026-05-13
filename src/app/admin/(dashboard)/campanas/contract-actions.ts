@@ -73,7 +73,7 @@ export async function uploadContractAction(_prev: ActionState, formData: FormDat
 
     const safeName = fileEntry.name.replace(/[^\w.\-]/g, '_');
     const path     = `contracts/${campaignId}/${Date.now()}-${safeName}`;
-    const blob     = await put(path, fileEntry, { access: 'public', contentType: 'application/pdf' });
+    const blob     = await put(path, fileEntry, { access: 'private', contentType: 'application/pdf' });
 
     if (existing) {
       await updateContract(existing.id, {

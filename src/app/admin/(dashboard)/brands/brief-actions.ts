@@ -47,7 +47,7 @@ export async function uploadBriefAction(
   try {
     const safeName = file.name.replace(/[^\w.\-]/g, '_');
     const path     = `briefs/${brandId}/${Date.now()}-${safeName}`;
-    const blob     = await put(path, file, { access: 'public', contentType: file.type });
+    const blob     = await put(path, file, { access: 'private', contentType: file.type });
 
     const row = await createBrief({
       brandId,
