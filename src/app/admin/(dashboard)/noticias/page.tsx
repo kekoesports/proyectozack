@@ -44,6 +44,12 @@ export default async function AdminNoticiasPage() {
             Slots editoriales
           </Link>
           <Link
+            href="/admin/noticias/suscriptores"
+            className="px-4 py-2 rounded-lg border border-sp-admin-border text-sp-admin-muted text-sm font-semibold hover:bg-sp-admin-hover transition-colors"
+          >
+            Suscriptores
+          </Link>
+          <Link
             href="/admin/noticias/new"
             className="px-4 py-2 rounded-lg bg-sp-orange text-white text-sm font-bold hover:bg-sp-orange/90 transition-colors"
           >

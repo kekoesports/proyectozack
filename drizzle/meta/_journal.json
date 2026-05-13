@@ -484,6 +484,13 @@
       "when": 1778684773095,
       "tag": "0068_great_vengeance",
       "breakpoints": true
+    },
+    {
+      "idx": 69,
+      "version": "7",
+      "when": 1778711918578,
+      "tag": "0069_glamorous_valkyrie",
+      "breakpoints": true
     }
   ]
 }

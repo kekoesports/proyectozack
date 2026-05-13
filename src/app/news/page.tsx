@@ -1,3 +1,4 @@
+import { NewsletterPopup } from '@/features/news/components/NewsletterPopup';
 import type { Metadata } from 'next';
 import { safeJsonLd } from '@/lib/safeJsonLd';
 import { getNewsPosts } from '@/lib/queries/posts';
@@ -306,6 +307,8 @@ export default async function NewsPage({ searchParams }: PageProps) {
 
         <NewsCrossBlogLink />
       </main>
+
+      <NewsletterPopup />
     </>
   );
 }
