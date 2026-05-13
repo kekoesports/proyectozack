@@ -3,6 +3,21 @@
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 
+function Tick({ checked }: { checked: boolean }) {
+  return (
+    <div className={[
+      'mt-0.5 shrink-0 w-4 h-4 rounded border transition-all',
+      checked ? 'bg-sp-orange border-sp-orange' : 'bg-transparent border-white/20',
+    ].join(' ')}>
+      {checked && (
+        <svg viewBox="0 0 12 12" fill="none" className="w-full h-full p-0.5">
+          <path d="M2 6l3 3 5-5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      )}
+    </div>
+  );
+}
+
 const STORAGE_KEY_DISMISSED   = 'sp_nl_dismissed';
 const STORAGE_KEY_SUBSCRIBED   = 'sp_nl_subscribed';
 const DISMISS_DAYS   = 14;
@@ -157,63 +172,33 @@ export function NewsletterPopup() {
               />
 
               {/* Newsletter (obligatorio) */}
-              <label className="flex items-start gap-2.5 cursor-pointer group">
-                <div className="mt-0.5 shrink-0 relative">
-                  <input
-                    id="nl-newsletter"
-                    type="checkbox"
-                    checked={nlCheck}
-                    onChange={(e) => setNlCheck(e.target.checked)}
-                    required
-                    className="absolute inset-0 w-4 h-4 opacity-0 cursor-pointer"
-                  />
-                  <div className={[
-                    'w-4 h-4 rounded border transition-all pointer-events-none',
-                    nlCheck
-                      ? 'bg-sp-orange border-sp-orange'
-                      : 'bg-transparent border-white/20 group-hover:border-white/40',
-                  ].join(' ')}>
-                    {nlCheck && (
-                      <svg viewBox="0 0 12 12" fill="none" className="w-full h-full p-0.5">
-                        <path d="M2 6l3 3 5-5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                    )}
-                  </div>
-                </div>
+              <button
+                type="button"
+                onClick={() => setNlCheck(v => !v)}
+                className="flex items-start gap-2.5 cursor-pointer text-left w-full"
+              >
+                <Tick checked={nlCheck} />
                 <span className="text-[11px] text-white/50 leading-relaxed">
                   Acepto recibir el newsletter de SocialPro News con noticias de CS2, esports y gaming.{' '}
                   <span className="text-white/30">(Obligatorio)</span>
                 </span>
-              </label>
+              </button>
 
               {/* Marketing (opcional) */}
-              <label className="flex items-start gap-2.5 cursor-pointer group">
-                <div className="mt-0.5 shrink-0 relative">
-                  <input
-                    id="nl-marketing"
-                    type="checkbox"
-                    checked={mktCheck}
-                    onChange={(e) => setMktCheck(e.target.checked)}
-                    className="absolute inset-0 w-4 h-4 opacity-0 cursor-pointer"
-                  />
-                  <div className={[
-                    'w-4 h-4 rounded border transition-all pointer-events-none',
-                    mktCheck
-                      ? 'bg-sp-orange border-sp-orange'
-                      : 'bg-transparent border-white/20 group-hover:border-white/40',
-                  ].join(' ')}>
-                    {mktCheck && (
-                      <svg viewBox="0 0 12 12" fill="none" className="w-full h-full p-0.5">
-                        <path d="M2 6l3 3 5-5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                    )}
-                  </div>
-                </div>
+              <button
+                type="button"
+                onClick={() => setMktCheck(v => !v)}
+                className="flex items-start gap-2.5 cursor-pointer text-left w-full"
+              >
+                <Tick checked={mktCheck} />
                 <span className="text-[11px] text-white/50 leading-relaxed">
                   Acepto recibir comunicaciones comerciales de SocialPro sobre campañas y servicios.{' '}
                   <span className="text-white/30">(Opcional)</span>
                 </span>
-              </label>
+              </button>
+
+              {/* Inputs ocultos para validación del form */}
+              {nlCheck && <input type="hidden" name="nl" value="1" />}
 
               {error && (
                 <p className="text-[11px] text-red-400">{error}</p>
