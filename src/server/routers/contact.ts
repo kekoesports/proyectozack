@@ -5,6 +5,7 @@ import { db } from '@/lib/db';
 import { contactSubmissions } from '@/db/schema';
 import { sendContactEmail } from '@/lib/email';
 import { contactBodySchema } from '@/lib/schemas/contact';
+import { checkRateLimit } from '@/lib/security/rateLimit';
 
 async function hashIp(ip: string): Promise<string> {
   const data = new TextEncoder().encode(ip);
@@ -23,6 +24,15 @@ export const contactRouter = router({
         h.get('x-forwarded-for')?.split(',')[0]?.trim() ??
         h.get('x-real-ip') ??
         '127.0.0.1';
+
+      const rl = checkRateLimit({ key: `contact:${rawIp}`, limit: 3, windowMs: 60_000 });
+      if (!rl.ok) {
+        throw new TRPCError({
+          code: 'TOO_MANY_REQUESTS',
+          message: 'Demasiados intentos. Espera un momento antes de enviar otro mensaje.',
+        });
+      }
+
       const ipHash = await hashIp(rawIp);
 
       try {
