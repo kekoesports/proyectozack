@@ -8,6 +8,7 @@ import { PublicChrome } from '@/components/layout/PublicChrome';
 import { CookieConsent } from '@/components/layout/CookieConsent';
 import { MotionRoot } from '@/components/layout/MotionRoot';
 import { TRPCProvider } from '@/components/layout/TRPCProvider';
+import { Analytics } from '@vercel/analytics/next';
 import { SITE_URL, absoluteUrl } from '@/lib/site-url';
 
 const inter = Inter({
@@ -220,6 +221,7 @@ export default function RootLayout({
             <CookieConsent />
           </MotionRoot>
         </TRPCProvider>
+        <Analytics />
       </body>
     </html>
   );
