@@ -27,7 +27,7 @@ function RoleSelect({ id, name, value, required }: { id: string; name: string; v
     <select id={id} name={name} defaultValue={value ?? ''} required={required} className={SELECT}>
       <option value="">— Sin etiqueta —</option>
       {ROLE_OPTIONS.map((o) => <option key={o} value={o}>{o}</option>)}
-      {custom && <option value={value!}>{value} (personalizado)</option>}
+      {custom && value && <option value={value}>{value} (personalizado)</option>}
     </select>
   );
 }

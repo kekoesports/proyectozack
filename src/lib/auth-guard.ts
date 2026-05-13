@@ -19,8 +19,33 @@ export const ROLES = [
   'editor', 'finance', 'analyst', 'ops', 'talent_manager',
 ] as const satisfies readonly Role[];
 
-// NODE_ENV is exempt from `lib/env` (not managed by @t3-oss/env-nextjs).
-export const IS_DEV = process.env.NODE_ENV === 'development';
+// NODE_ENV and ENABLE_DEV_AUTH_BYPASS are exempt from lib/env — they control
+// the environment itself and must be readable before env validation runs.
+//
+// Bypass requires BOTH conditions simultaneously:
+//   1. NODE_ENV === 'development'   (Vercel always sets 'production' in prod/preview)
+//   2. ENABLE_DEV_AUTH_BYPASS=true  (explicit opt-in, never present in Vercel envs)
+//
+// Fail-closed: if ENABLE_DEV_AUTH_BYPASS=true outside development, we panic at
+// module load time — this surfaces immediately in build logs and Vercel startup.
+if (
+  process.env.ENABLE_DEV_AUTH_BYPASS === 'true' &&
+  process.env.NODE_ENV !== 'development'
+) {
+  throw new Error(
+    '[auth-guard] ENABLE_DEV_AUTH_BYPASS=true detected outside NODE_ENV=development. ' +
+    'This is a critical misconfiguration — remove this env var from Vercel immediately.',
+  );
+}
+
+export const IS_DEV =
+  process.env.NODE_ENV === 'development' &&
+  process.env.ENABLE_DEV_AUTH_BYPASS === 'true';
+
+if (IS_DEV) {
+  // Visible in local server logs — confirms bypass is active intentionally.
+  console.warn('[auth-guard] ⚠️  DEV AUTH BYPASS ACTIVE — never enable in production');
+}
 
 export const DEV_USER = {
   id: 'dev',
