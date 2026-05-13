@@ -1,6 +1,7 @@
 import { Resend } from 'resend';
 import { env } from './env';
-import { SITE_URL } from './site-url';
+import { SITE_URL, absoluteUrl } from './site-url';
+import { buildWelcomeEmail, buildNewsletterEmail } from './email/newsletterTemplates';
 
 const resend = new Resend(env.RESEND_API_KEY);
 const SITE_HOSTNAME = new URL(SITE_URL).hostname;
@@ -114,6 +115,53 @@ export async function sendPasswordResetEmail(payload: {
         <p style="color: #6b6864; font-size: 13px;">Si no solicitaste este cambio, ignora este email.</p>
       </div>
     `,
+  });
+}
+
+export async function sendNewsletterWelcomeEmail(payload: {
+  email: string;
+  unsubscribeToken: string;
+}): Promise<void> {
+  const unsubUrl = absoluteUrl(`/unsubscribe?token=${encodeURIComponent(payload.unsubscribeToken)}`);
+  await resend.emails.send({
+    from:    'SocialPro News <noreply@socialpro.es>',
+    to:      payload.email,
+    subject: 'Bienvenido al newsletter de SocialPro News',
+    html:    buildWelcomeEmail(payload.unsubscribeToken),
+    headers: {
+      'List-Unsubscribe':      `<${unsubUrl}>, <mailto:noreply@socialpro.es?subject=unsubscribe>`,
+      'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+    },
+  });
+}
+
+export async function sendNewsletterPostEmail(payload: {
+  email:        string;
+  unsubToken:   string;
+  postTitle:    string;
+  postExcerpt:  string;
+  postSlug:     string;
+  coverUrl?:    string | null | undefined;
+  author:       string;
+}): Promise<void> {
+  const postUrl  = absoluteUrl(`/news/${payload.postSlug}`);
+  const unsubUrl = absoluteUrl(`/unsubscribe?token=${encodeURIComponent(payload.unsubToken)}`);
+  await resend.emails.send({
+    from:    'SocialPro News <noreply@socialpro.es>',
+    to:      payload.email,
+    subject: payload.postTitle,
+    html:    buildNewsletterEmail({
+      postTitle:   payload.postTitle,
+      postExcerpt: payload.postExcerpt,
+      postUrl,
+      coverUrl:    payload.coverUrl,
+      author:      payload.author,
+      unsubToken:  payload.unsubToken,
+    }),
+    headers: {
+      'List-Unsubscribe':      `<${unsubUrl}>, <mailto:noreply@socialpro.es?subject=unsubscribe>`,
+      'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+    },
   });
 }
 

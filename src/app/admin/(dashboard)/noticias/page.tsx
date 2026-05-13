@@ -1,8 +1,12 @@
 import Link from 'next/link';
 import { requirePermission } from '@/lib/permissions';
 import { getAllNewsPostsForAdmin } from '@/lib/queries/editorialSlots';
+import { getNewsletterStats } from '@/lib/queries/newsletterSubscribers';
+import { db } from '@/lib/db';
+import { newsletterSends } from '@/db/schema';
 import { deletePostVoidAction } from './actions';
 import { DeleteConfirmButton } from '../giveaways/DeleteConfirmButton';
+import { SendNewsletterButton } from './SendNewsletterButton';
 
 function statusLabel(status: string, publishedAt: Date | null) {
   if (status === 'draft') return { label: 'Borrador', cls: 'bg-sp-admin-border text-sp-admin-muted' };
@@ -12,7 +16,12 @@ function statusLabel(status: string, publishedAt: Date | null) {
 
 export default async function AdminNoticiasPage() {
   await requirePermission('noticias', 'read');
-  const allPosts = await getAllNewsPostsForAdmin();
+  const [allPosts, nlStats, existingSends] = await Promise.all([
+    getAllNewsPostsForAdmin(),
+    getNewsletterStats(),
+    db.select({ postId: newsletterSends.postId, status: newsletterSends.status }).from(newsletterSends),
+  ]);
+  const sentPostIds = new Set(existingSends.map((s) => s.postId));
 
   return (
     <div>
@@ -75,6 +84,7 @@ export default async function AdminNoticiasPage() {
                 <th className="text-left px-4 py-3 font-semibold text-sp-admin-muted text-[11px] uppercase tracking-wider">Publicación</th>
                 <th className="text-left px-4 py-3 font-semibold text-sp-admin-muted text-[11px] uppercase tracking-wider">Autor</th>
                 <th className="text-left px-4 py-3 font-semibold text-sp-admin-muted text-[11px] uppercase tracking-wider">Tags</th>
+                <th className="text-left px-4 py-3 font-semibold text-sp-admin-muted text-[11px] uppercase tracking-wider">Newsletter</th>
                 <th className="text-left px-6 py-3 font-semibold text-sp-admin-muted text-[11px] uppercase tracking-wider">Acciones</th>
               </tr>
             </thead>
@@ -104,6 +114,18 @@ export default async function AdminNoticiasPage() {
                           </span>
                         ))}
                       </div>
+                    </td>
+                    <td className="px-4 py-4">
+                      {p.status === 'published' ? (
+                        <SendNewsletterButton
+                          postId={p.id}
+                          postTitle={p.title}
+                          totalSubscribers={nlStats.total}
+                          alreadySent={sentPostIds.has(p.id)}
+                        />
+                      ) : (
+                        <span className="text-[11px] text-sp-admin-muted">—</span>
+                      )}
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">

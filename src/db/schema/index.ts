@@ -40,3 +40,4 @@ export * from './rankingEntries';
 export * from './matches';
 export * from './campaignSplits';
 export * from './newsletterSubscribers';
+export * from './newsletterSends';

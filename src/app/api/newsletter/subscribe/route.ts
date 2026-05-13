@@ -7,6 +7,7 @@ import { db } from '@/lib/db';
 import { newsletterSubscribers } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { checkRateLimit } from '@/lib/security/rateLimit';
+import { sendNewsletterWelcomeEmail } from '@/lib/email';
 
 const CONSENT_VERSION = 'sp-news-v1-2026-05';
 const CONSENT_TEXT =
@@ -75,6 +76,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   }
 
   const userAgent = req.headers.get('user-agent')?.slice(0, 500) ?? null;
+  const unsubscribeToken = randomBytes(32).toString('hex');
 
   await db.insert(newsletterSubscribers).values({
     email,
@@ -84,9 +86,16 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     consentText:       CONSENT_TEXT,
     ipHash:            hashIp(ip),
     userAgent,
-    unsubscribeToken:  randomBytes(32).toString('hex'),
+    unsubscribeToken,
     source:            'news_popup',
   });
+
+  // Welcome email — failure must not block the subscribe response
+  try {
+    await sendNewsletterWelcomeEmail({ email, unsubscribeToken });
+  } catch {
+    // No-op — subscriber is saved; email delivery is best-effort
+  }
 
   return NextResponse.json({ ok: true });
 }
