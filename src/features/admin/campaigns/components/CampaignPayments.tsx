@@ -484,6 +484,28 @@ function InvoiceActionRow({
           ? (PAY_METHOD_LABELS[inv.paymentMethod as (typeof INVOICE_PAYMENT_METHODS)[number]] ?? inv.paymentMethod)
           : '—'}
       </td>
+      {/* Comprobante / TXID */}
+      <td className="px-5 py-3">
+        {(inv.txId || inv.receiptFileUrl) ? (
+          <div className="flex flex-col gap-0.5">
+            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full px-2 py-0.5 w-fit">
+              ✓ Verificado
+            </span>
+            {inv.txId && (
+              <span className="text-[10px] text-sp-admin-muted font-mono truncate max-w-[120px]" title={inv.txId}>
+                {inv.txId}
+              </span>
+            )}
+            {inv.receiptFileUrl && (
+              <a href={inv.receiptFileUrl} target="_blank" rel="noreferrer" className="text-[10px] text-sp-admin-accent hover:underline">
+                Ver comprobante ↗
+              </a>
+            )}
+          </div>
+        ) : (
+          <span className="text-[10px] text-sp-admin-muted/50">Sin comprobante</span>
+        )}
+      </td>
       {/* Acciones */}
       <td className="px-5 py-3 whitespace-nowrap">
         {!isPaid && !isAnulled && (
@@ -652,7 +674,7 @@ export function CampaignPayments({ invoices, campaign }: Props): React.ReactElem
             <table className="w-full">
               <thead>
                 <tr className="border-b border-sp-admin-border bg-sp-admin-hover/30">
-                  {['Tipo', 'Concepto', 'Importe', 'Estado', 'Fecha', 'Método', ''].map((h) => (
+                  {['Tipo', 'Concepto', 'Importe', 'Estado', 'Fecha', 'Método', 'Comprobante', ''].map((h) => (
                     <th key={h}
                       className="text-left px-5 py-2.5 text-[10px] font-semibold uppercase tracking-wider text-sp-admin-muted whitespace-nowrap">
                       {h}

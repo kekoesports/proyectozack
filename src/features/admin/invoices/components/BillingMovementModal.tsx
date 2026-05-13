@@ -204,6 +204,10 @@ export function BillingMovementModal({ invoice, brands, talents, campaigns, onCl
                 <label className={LABEL}>Nº factura</label>
                 <input name="number" value={invoiceNumber} onChange={(e) => { setInvoiceNumber(e.target.value); touch('number'); }} className={INPUT} />
               </div>
+              <div className="md:col-span-2">
+                <label className={LABEL}>Referencia / TXID <span className="text-sp-admin-muted font-normal normal-case">(hash crypto, nº operación banco…)</span></label>
+                <input name="txId" type="text" defaultValue={invoice?.txId ?? ''} maxLength={200} placeholder="0x1a2b3c… o ES0021001234567890" className={INPUT} />
+              </div>
             </div>
           </div>
 

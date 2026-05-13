@@ -186,6 +186,7 @@ const invoiceFields = z.object({
   aiTool: optEnum(INVOICE_AI_TOOLS),
   invoiceFileId: optInt,
   statementFileId: optInt,
+  txId: z.string().max(200).optional(),
   notes: z.string().max(5000).optional(),
 });
 

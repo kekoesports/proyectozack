@@ -95,6 +95,9 @@ export const invoices = pgTable(
     paymentMethod: invoicePaymentMethodEnum('payment_method'),
     aiTool: invoiceAiToolEnum('ai_tool'),
 
+    // Referencia de transacción (hash crypto, nº operación banco, etc.)
+    txId: varchar('tx_id', { length: 200 }),
+
     // Legacy attachment fields — kept for compat. Source of truth is files via invoiceFileId.
     fileUrl: text('file_url'),
     filePath: text('file_path'),

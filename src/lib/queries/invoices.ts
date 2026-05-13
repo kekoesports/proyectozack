@@ -66,6 +66,7 @@ const INVOICE_LIST_COLUMNS = {
   receiptFilePath: invoices.receiptFilePath,
   invoiceFileId: invoices.invoiceFileId,
   statementFileId: invoices.statementFileId,
+  txId: invoices.txId,
   notes: invoices.notes,
   createdByUserId: invoices.createdByUserId,
   createdAt: invoices.createdAt,

@@ -1,0 +1,1 @@
+ALTER TABLE "invoices" ADD COLUMN "tx_id" varchar(200);
