@@ -158,23 +158,21 @@ export function NewsletterPopup() {
 
               {/* Newsletter (obligatorio) */}
               <label className="flex items-start gap-2.5 cursor-pointer group">
-                <div className="mt-0.5 shrink-0">
+                <div className="mt-0.5 shrink-0 relative">
                   <input
+                    id="nl-newsletter"
                     type="checkbox"
                     checked={nlCheck}
                     onChange={(e) => setNlCheck(e.target.checked)}
                     required
-                    className="sr-only"
+                    className="absolute inset-0 w-4 h-4 opacity-0 cursor-pointer"
                   />
-                  <div
-                    onClick={() => setNlCheck(v => !v)}
-                    className={[
-                      'w-4 h-4 rounded border transition-all cursor-pointer',
-                      nlCheck
-                        ? 'bg-sp-orange border-sp-orange'
-                        : 'bg-transparent border-white/20 group-hover:border-white/40',
-                    ].join(' ')}
-                  >
+                  <div className={[
+                    'w-4 h-4 rounded border transition-all pointer-events-none',
+                    nlCheck
+                      ? 'bg-sp-orange border-sp-orange'
+                      : 'bg-transparent border-white/20 group-hover:border-white/40',
+                  ].join(' ')}>
                     {nlCheck && (
                       <svg viewBox="0 0 12 12" fill="none" className="w-full h-full p-0.5">
                         <path d="M2 6l3 3 5-5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
@@ -190,22 +188,20 @@ export function NewsletterPopup() {
 
               {/* Marketing (opcional) */}
               <label className="flex items-start gap-2.5 cursor-pointer group">
-                <div className="mt-0.5 shrink-0">
+                <div className="mt-0.5 shrink-0 relative">
                   <input
+                    id="nl-marketing"
                     type="checkbox"
                     checked={mktCheck}
                     onChange={(e) => setMktCheck(e.target.checked)}
-                    className="sr-only"
+                    className="absolute inset-0 w-4 h-4 opacity-0 cursor-pointer"
                   />
-                  <div
-                    onClick={() => setMktCheck(v => !v)}
-                    className={[
-                      'w-4 h-4 rounded border transition-all cursor-pointer',
-                      mktCheck
-                        ? 'bg-sp-orange border-sp-orange'
-                        : 'bg-transparent border-white/20 group-hover:border-white/40',
-                    ].join(' ')}
-                  >
+                  <div className={[
+                    'w-4 h-4 rounded border transition-all pointer-events-none',
+                    mktCheck
+                      ? 'bg-sp-orange border-sp-orange'
+                      : 'bg-transparent border-white/20 group-hover:border-white/40',
+                  ].join(' ')}>
                     {mktCheck && (
                       <svg viewBox="0 0 12 12" fill="none" className="w-full h-full p-0.5">
                         <path d="M2 6l3 3 5-5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
