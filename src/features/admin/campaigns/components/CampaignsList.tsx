@@ -15,6 +15,7 @@ import {
 import type { CampaignWithRelations } from '@/types';
 import type { CampaignFilterState } from '@/features/admin/campaigns/components/CampaignFilters';
 import type { CrmBrandContact }     from '@/types';
+import type { CampaignSplit, PartnerOwed } from '@/lib/queries/campaignSplits';
 
 import {
   EUR,
@@ -38,6 +39,8 @@ type Props = {
   readonly talents:         readonly TalentOption[];
   readonly staffUsers:      readonly StaffOption[];
   readonly contactsByBrand: Readonly<Record<number, readonly CrmBrandContact[]>>;
+  readonly splitsMap:       Readonly<Record<number, CampaignSplit[]>>;
+  readonly partnersOwed:    readonly PartnerOwed[];
 };
 
 // ── KPI Card ─────────────────────────────────────────────────────────────────
@@ -87,6 +90,52 @@ function isActive(f: CampaignFilterState): boolean {
   );
 }
 
+// ── PartnerOwedBlock ──────────────────────────────────────────────────────────
+
+const PARTY_LABELS: Record<string, string> = {
+  pablo:    'Pablo',
+  alfonso:  'Alfonso',
+  giuliano: 'Giuliano',
+  stark:    'Stark',
+};
+const PARTY_ACCENTS: Record<string, string> = {
+  pablo:    '#8b3aad',
+  alfonso:  '#f5632a',
+  giuliano: '#e03070',
+  stark:    '#5b9bd5',
+};
+
+function PartnerOwedBlock({ partnersOwed }: { readonly partnersOwed: readonly PartnerOwed[] }): React.ReactElement | null {
+  if (partnersOwed.length === 0) return null;
+  return (
+    <div className="rounded-xl bg-sp-admin-card border border-sp-admin-border overflow-hidden">
+      <div className="px-4 py-2.5 border-b border-sp-admin-border bg-sp-admin-hover/30">
+        <p className="text-[10px] font-bold uppercase tracking-wider text-sp-admin-muted">
+          Reparto socios — lo que debe cobrar cada uno
+        </p>
+      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-4 divide-x divide-sp-admin-border">
+        {partnersOwed.map((p) => (
+          <div key={p.party} className="px-4 py-3">
+            <p className="text-[10px] font-bold uppercase tracking-wide text-sp-admin-muted">
+              {PARTY_LABELS[p.party] ?? p.party}
+            </p>
+            <p
+              className="text-lg font-bold mt-0.5 tabular-nums"
+              style={{ color: PARTY_ACCENTS[p.party] ?? '#8b3aad' }}
+            >
+              {EUR.format(p.totalOwed)}
+            </p>
+            <p className="text-[10px] text-sp-admin-muted mt-0.5">
+              de {EUR.format(p.totalMargin)} margen
+            </p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ── Component ─────────────────────────────────────────────────────────────────
 
 /**
@@ -97,7 +146,7 @@ function isActive(f: CampaignFilterState): boolean {
  * @route /admin/campanas
  */
 export function CampaignsList({
-  campaigns, isManager, brands, talents, staffUsers, contactsByBrand,
+  campaigns, isManager, brands, talents, staffUsers, contactsByBrand, splitsMap, partnersOwed,
 }: Props): React.ReactElement {
   const [filters, setFilters]       = useState<CampaignFilterState>(EMPTY_FILTERS);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -184,6 +233,9 @@ export function CampaignsList({
           sub="Importe a transferir a los creadores"
         />
       </div>
+
+      {/* ── Reparto socios ────────────────────────────────────────── */}
+      <PartnerOwedBlock partnersOwed={partnersOwed} />
 
       {/* ── Filtros ───────────────────────────────────────────────── */}
       <CampaignFilters
@@ -377,6 +429,7 @@ export function CampaignsList({
         staffUsers={staffUsers}
         contactsByBrand={contactsByBrand}
         isManager={isManager}
+        splits={selected !== null ? (splitsMap[selected.id] ?? []) : []}
       />
     </div>
   );

@@ -395,6 +395,7 @@ export function CampaignDetailTabs({
         staffUsers={staffUsers}
         contactsByBrand={contactsByBrand}
         isManager={isManager}
+        splits={splits as import('@/lib/queries/campaignSplits').CampaignSplit[]}
       />
     </div>
   );
