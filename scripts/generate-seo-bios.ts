@@ -49,19 +49,11 @@ if (!DATABASE_URL) {
   console.error('❌ DATABASE_URL no configurado en .env.local');
   process.exit(1);
 }
-if (!GEMINI_API_KEY) {
-  console.error(`
-❌ GEMINI_API_KEY no encontrada en .env.local
 
-Para obtenerla:
-  1. Ve a Vercel Dashboard → tu proyecto → Settings → Environment Variables
-  2. Copia el valor de GEMINI_API_KEY
-  3. Añade al .env.local:
-       GEMINI_API_KEY=AIza...
-
-La key nunca sale de tu máquina. Solo se usa en este script local.
-`);
-  process.exit(1);
+const HAS_GEMINI = GEMINI_API_KEY.length > 0;
+if (!HAS_GEMINI) {
+  console.log('⚠️  GEMINI_API_KEY no encontrada → modo fallback determinista activado.');
+  console.log('   Las bios se generarán con plantillas dinámicas basadas en datos reales.\n');
 }
 
 // CLI args
@@ -69,6 +61,7 @@ const args           = process.argv.slice(2);
 const SAVE_TO_DB     = args.includes('--save');
 const BATCH_MODE     = args.includes('--batch');
 const FORCE          = args.includes('--force');
+const ALLOW_SIMILAR  = args.includes('--allow-similar');
 const SLUG_FILTER    = args.find(a => a.startsWith('--slug='))?.split('=')[1];
 const LIMIT          = parseInt(args.find(a => a.startsWith('--limit='))?.split('=')[1] ?? '20', 10);
 
@@ -191,15 +184,18 @@ async function fetchBatchInputs(
 
 async function main() {
   const sql   = neon(DATABASE_URL);
-  const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+  const model = HAS_GEMINI
+    ? new GoogleGenerativeAI(GEMINI_API_KEY).getGenerativeModel({ model: 'gemini-2.0-flash' })
+    : null;
 
   const opts = { ...DEFAULT_OPTIONS, force: FORCE };
 
+  const genMode  = HAS_GEMINI ? '🤖 Gemini (fallback determinista)' : '🔄 Determinista (sin Gemini)';
   const modeLabel = SAVE_TO_DB ? '✏️  GUARDAR (status=generated)' : '🔍 VISTA PREVIA (sin DB)';
   const typeLabel = SLUG_FILTER ? `slug:${SLUG_FILTER}` : BATCH_MODE ? `batch (limit:${LIMIT})` : `curated (${CURATED_SLUGS.length} perfiles)`;
   console.log(`\n${'═'.repeat(72)}`);
   console.log(`SEO Bios V2 | ${typeLabel} | ${modeLabel}${FORCE ? ' | FORCE' : ''}`);
+  console.log(`Generación: ${genMode}`);
   console.log(`${'═'.repeat(72)}\n`);
 
   // Fetch
@@ -223,7 +219,7 @@ async function main() {
     process.stdout.write(`   Generando... `);
     const t0 = Date.now();
 
-    const result = await generateOneBio(input, model, opts, (msg) => console.log(`\n   ${msg}`));
+    const result = await generateOneBio(input, model, opts, (msg) => process.stdout.write(`\n   ${msg} `));
     const elapsed = Date.now() - t0;
 
     if (result.skipped) {
@@ -232,7 +228,8 @@ async function main() {
       continue;
     }
 
-    console.log(`✅ ${elapsed}ms | ${result.bio.trim().split(/\s+/).length}w | ${qualityLabel(result.qualityScore)} (${result.qualityScore}/100)`);
+    const modeTag = result.generationMode === 'ai' ? '[AI]' : '[DET]';
+    console.log(`✅ ${modeTag} ${elapsed}ms | ${result.bio.trim().split(/\s+/).length}w | ${qualityLabel(result.qualityScore)} (${result.qualityScore}/100)`);
 
     // Display output
     console.log(`\n   TITLE (${result.seoTitle.length}c): ${result.seoTitle}`);
@@ -241,23 +238,34 @@ async function main() {
     result.bio.split('\n\n').forEach(p => console.log(`   ${p}`));
     console.log(`\n   KEYWORDS: ${cleanKeywords(result.keywords).join(', ')}`);
 
+    if (result.faqSuggestions && result.faqSuggestions.length > 0) {
+      console.log(`\n   FAQ SUGERIDAS:`);
+      result.faqSuggestions.forEach(q => console.log(`   • ${q}`));
+    }
+
     if (result.issues.length > 0) {
       console.log(`\n   GUARDRAILS:`);
       result.issues.forEach(i => console.log(`   ${i}`));
     }
 
     results.push(result);
-    await new Promise(r => setTimeout(r, 1000));
+    if (HAS_GEMINI) await new Promise(r => setTimeout(r, 800));
   }
 
   // Similarity check
+  // Deterministic mode: profiles with same game/platform/region will share vocabulary.
+  // AI block threshold: 0.50 | Deterministic block threshold: 0.72
   const generated = results.filter(r => !r.skipped && r.bio);
+  const allDeterministic = generated.every(r => r.generationMode === 'deterministic');
+  const warnThresh  = allDeterministic ? 0.45 : opts.similarityWarn;
+  const blockThresh = allDeterministic ? 0.72 : opts.similarityBlock;
+
   if (generated.length > 1) {
     console.log(`\n${'═'.repeat(72)}`);
-    console.log('ANÁLISIS DE SIMILITUD');
+    console.log(`ANÁLISIS DE SIMILITUD${allDeterministic ? ' (modo determinista — umbral bloqueo: 72%)' : ''}`);
     const pairs = checkSimilarity(
       generated.map(r => ({ slug: r.slug, bio: r.bio })),
-      opts.similarityWarn, opts.similarityBlock,
+      warnThresh, blockThresh,
     );
     if (pairs.length === 0) {
       console.log('✅ Todas las bios son suficientemente distintas.');
@@ -266,13 +274,25 @@ async function main() {
         const tag = p.block ? '🚨 BLOQUEO' : '⚠  AVISO';
         console.log(`${tag} ${p.a} ↔ ${p.b}: ${(p.score * 100).toFixed(1)}%`);
       }
+      if (allDeterministic && pairs.some(p => !p.block)) {
+        console.log('   ℹ️  Similitud esperada para perfiles con mismo juego/plataforma/región.');
+        console.log('   Las bios se guardan como status=generated para revisión humana.');
+      }
     }
     const hasBlock = pairs.some(p => p.block);
 
-    if (SAVE_TO_DB && hasBlock) {
+    if (SAVE_TO_DB && hasBlock && !ALLOW_SIMILAR) {
       console.log(`\n🚨 GUARDADO CANCELADO — similitud demasiado alta entre bios.`);
-      console.log(`   Regenera con --force o revisa manualmente.`);
+      if (allDeterministic) {
+        console.log(`   Para bios deterministas: añade --allow-similar para guardar igualmente.`);
+        console.log(`   Las bios tendrán status=generated y requerirán edición humana.`);
+      } else {
+        console.log(`   Regenera con --force o revisa manualmente.`);
+      }
       process.exit(1);
+    }
+    if (SAVE_TO_DB && hasBlock && ALLOW_SIMILAR) {
+      console.log(`   ⚠  --allow-similar activo: guardando bios similares (status=generated, revisión pendiente).`);
     }
   }
 

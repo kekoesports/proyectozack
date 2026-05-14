@@ -13,6 +13,7 @@
  */
 
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { generateDeterministicBio } from './deterministicBioGenerator';
 
 // ── Types públicos ─────────────────────────────────────────────────────────────
 
@@ -48,17 +49,19 @@ export type BioBatchInput = {
 };
 
 export type BioBatchResult = {
-  slug:         string;
-  name:         string;
-  bio:          string;
-  seoTitle:     string;
-  seoDesc:      string;
-  keywords:     string[];
-  qualityScore: number;             // 0-100
-  issues:       string[];
-  skipped:      boolean;
-  skipReason?:  string;
-  fingerprint:  string;
+  slug:             string;
+  name:             string;
+  bio:              string;
+  seoTitle:         string;
+  seoDesc:          string;
+  keywords:         string[];
+  qualityScore:     number;             // 0-100
+  issues:           string[];
+  skipped:          boolean;
+  skipReason?:      string;
+  fingerprint:      string;
+  generationMode:   'ai' | 'deterministic';
+  faqSuggestions?:  string[];
 };
 
 export type BatchRunOptions = {
@@ -289,11 +292,30 @@ Responde ÚNICAMENTE JSON sin markdown:
 
 // ── Generador principal ────────────────────────────────────────────────────────
 
+// ── Deterministic fallback helper ─────────────────────────────────────────────
+
+function applyDeterministicFallback(input: BioBatchInput, fingerprint: string): BioBatchResult {
+  const det    = generateDeterministicBio(input);
+  const issues = detectGuardrails(det.bio, input.activeBrands);
+  const qualityScore = computeQualityScore(det.bio, input, issues);
+  return {
+    slug: input.slug, name: input.name,
+    bio: det.bio, seoTitle: det.seoTitle, seoDesc: det.seoDesc,
+    keywords:       injectFingerprint(det.keywords, fingerprint),
+    faqSuggestions: det.faqSuggestions,
+    qualityScore, issues,
+    skipped: false, fingerprint,
+    generationMode: 'deterministic',
+  };
+}
+
+// ── Main generator ─────────────────────────────────────────────────────────────
+
 export async function generateOneBio(
-  input:      BioBatchInput,
-  model:      ReturnType<InstanceType<typeof GoogleGenerativeAI>['getGenerativeModel']>,
-  options:    Pick<BatchRunOptions, 'force' | 'maxRetries'>,
-  onLog?:     (msg: string) => void,
+  input:    BioBatchInput,
+  model:    ReturnType<InstanceType<typeof GoogleGenerativeAI>['getGenerativeModel']> | null,
+  options:  Pick<BatchRunOptions, 'force' | 'maxRetries'>,
+  onLog?:   (msg: string) => void,
 ): Promise<BioBatchResult> {
   const log = onLog ?? console.log;
 
@@ -306,11 +328,17 @@ export async function generateOneBio(
       bio: '', seoTitle: '', seoDesc: '', keywords: [],
       qualityScore: 0, issues: [],
       skipped: true, skipReason: `Sin cambios desde última generación (fp:${fingerprint.slice(0, 6)})`,
-      fingerprint,
+      fingerprint, generationMode: 'deterministic',
     };
   }
 
-  // Retry loop
+  // No Gemini model available → deterministic immediately
+  if (!model) {
+    log(`  🔄 Modo determinista (sin clave Gemini)`);
+    return applyDeterministicFallback(input, fingerprint);
+  }
+
+  // Retry loop with per-profile Gemini fallback
   let lastError = '';
   for (let attempt = 1; attempt <= options.maxRetries; attempt++) {
     if (attempt > 1) {
@@ -324,10 +352,10 @@ export async function generateOneBio(
       rawText = res.response.text();
     } catch (err) {
       lastError = (err as Error).message;
-      const isQuota = lastError.includes('429') || lastError.toLowerCase().includes('quota');
+      const isQuota = lastError.includes('429') || lastError.toLowerCase().includes('quota') || lastError.includes('limit');
       if (isQuota) {
-        log(`  ⏳ Límite de quota. Esperando 30s...`);
-        await new Promise(r => setTimeout(r, 30000));
+        log(`  ⏳ Quota Gemini. Usando fallback determinista para este perfil.`);
+        return applyDeterministicFallback(input, fingerprint);
       }
       continue;
     }
@@ -343,6 +371,9 @@ export async function generateOneBio(
     const seoTitle = (parsed.seoTitle ?? '').trim();
     const seoDesc  = (parsed.seoDescription ?? '').trim();
     const rawKws   = parsed.keywords ?? [];
+
+    if (!bio) { lastError = 'Bio vacía en respuesta AI'; continue; }
+
     const issues   = detectGuardrails(bio, input.activeBrands);
     const qualityScore = computeQualityScore(bio, input, issues);
 
@@ -352,14 +383,11 @@ export async function generateOneBio(
       keywords: injectFingerprint(rawKws, fingerprint),
       qualityScore, issues,
       skipped: false, fingerprint,
+      generationMode: 'ai',
     };
   }
 
-  // All retries failed
-  return {
-    slug: input.slug, name: input.name,
-    bio: '', seoTitle: '', seoDesc: '', keywords: [],
-    qualityScore: 0, issues: [`❌ Fallido tras ${options.maxRetries} intentos: ${lastError}`],
-    skipped: true, skipReason: lastError, fingerprint,
-  };
+  // All AI retries failed → deterministic fallback
+  log(`  🔄 Todos los intentos Gemini fallaron. Fallback determinista.`);
+  return applyDeterministicFallback(input, fingerprint);
 }
