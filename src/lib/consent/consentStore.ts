@@ -12,6 +12,15 @@ export type ConsentData = {
 /** null = el usuario aún no ha tomado una decisión (o la versión ha cambiado) */
 export type ConsentState = ConsentData | null;
 
+// ── Caché de snapshot ─────────────────────────────────────────────────────────
+// useSyncExternalStore exige que getSnapshot() devuelva la MISMA referencia
+// de objeto entre llamadas consecutivas cuando el store no ha cambiado.
+// JSON.parse() siempre crea un objeto nuevo → Object.is() falla → bucle #185.
+// Cacheamos por el raw string de localStorage para estabilizar la referencia.
+
+let _cachedRaw: string | null | undefined = undefined; // undefined = aún no leído
+let _cachedParsed: ConsentState = null;
+
 // ── Singleton de listeners ────────────────────────────────────────────────────
 // Los event listeners globales se adjuntan una sola vez para todos los suscriptores.
 
@@ -35,12 +44,18 @@ export function subscribe(cb: () => void): () => void {
   return () => _listeners.delete(cb);
 }
 
-/** Snapshot del cliente — lee localStorage */
+/** Snapshot del cliente — lee localStorage con caché de referencia estable */
 export function getConsentSnapshot(): ConsentState {
   if (typeof window === 'undefined') return null;
+  const raw = localStorage.getItem(STORAGE_KEY);
+  // Mismo raw → misma referencia → Object.is() = true → useSyncExternalStore no re-renderiza
+  if (raw === _cachedRaw) return _cachedParsed;
+  _cachedRaw = raw;
+  if (!raw) {
+    _cachedParsed = null;
+    return null;
+  }
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return null;
     const parsed = JSON.parse(raw) as ConsentData;
     if (
       typeof parsed === 'object' &&
@@ -49,11 +64,13 @@ export function getConsentSnapshot(): ConsentState {
       typeof parsed.analytics === 'boolean' &&
       typeof parsed.marketing === 'boolean'
     ) {
+      _cachedParsed = parsed;
       return parsed;
     }
   } catch {
-    // JSON malformado — tratar como sin decisión
+    // JSON malformado
   }
+  _cachedParsed = null;
   return null;
 }
 
