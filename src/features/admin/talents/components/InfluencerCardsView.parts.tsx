@@ -272,6 +272,21 @@ export function TalentCard({ creator, verticals, selectMode, selected, onToggleS
           </span>
         )}
 
+        {/* Badge de visibilidad */}
+        {!creator.isPublished ? (
+          <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-bold bg-sp-admin-border/60 text-sp-admin-muted">
+            Borrador
+          </span>
+        ) : creator.showInRoster ? (
+          <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-bold bg-emerald-50 text-emerald-700">
+            En roster
+          </span>
+        ) : (
+          <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-bold bg-blue-50 text-blue-700">
+            No listado
+          </span>
+        )}
+
         {/* Badge de tratos activos */}
         {(creator.activeDealsCount ?? 0) > 0 && (
           <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-bold bg-sp-admin-accent/10 text-sp-admin-accent">

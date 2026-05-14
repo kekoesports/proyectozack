@@ -222,9 +222,10 @@ const TalentProfileUpdate = z.object({
   creatorCountry: z.string().trim().toUpperCase()
     .refine((s) => s === '' || /^[A-Z]{2}$/.test(s), 'Código de país inválido (ISO-2)')
     .transform((s) => s === '' ? null : s),
-  status:     z.enum(['active', 'available', 'inactive']),
-  visibility: z.enum(['public', 'internal']),
-  initials:   z.string().trim().min(1).max(4),
+  status:       z.enum(['active', 'available', 'inactive']),
+  isPublished:  z.string().optional().transform((v) => v === 'on'),
+  showInRoster: z.string().optional().transform((v) => v === 'on'),
+  initials:     z.string().trim().min(1).max(4),
   gradientC1: z.string().regex(/^#[0-9a-fA-F]{6}$/, 'Color hex inválido'),
   gradientC2: z.string().regex(/^#[0-9a-fA-F]{6}$/, 'Color hex inválido'),
   sortOrder:  z.coerce.number().int().min(0).max(9999).default(0),
@@ -243,7 +244,18 @@ export async function updateTalentProfileAction(
 
   const { id, ...data } = parsed.data;
 
+  // Regla: no se puede estar en roster sin estar publicado
+  const isPublished  = data.isPublished;
+  const showInRoster = isPublished ? data.showInRoster : false;
+  if (data.showInRoster && !isPublished) {
+    return { success: false, error: 'Para aparecer en el roster, el perfil debe estar publicado.' };
+  }
+
   try {
+    // Obtener slug actual para revalidar la ruta pública individual
+    const current = await db.select({ slug: talents.slug }).from(talents).where(eq(talents.id, id)).limit(1);
+    const slug = current[0]?.slug;
+
     await db.update(talents).set({
       name:          data.name,
       role:          data.role,
@@ -252,7 +264,10 @@ export async function updateTalentProfileAction(
       platform:      data.platform,
       creatorCountry: data.creatorCountry,
       status:        data.status,
-      visibility:    data.visibility,
+      // Sync legacy visibility field from isPublished (backwards compat)
+      visibility:    isPublished ? 'public' : 'internal',
+      isPublished,
+      showInRoster,
       initials:      data.initials,
       gradientC1:    data.gradientC1,
       gradientC2:    data.gradientC2,
@@ -264,6 +279,10 @@ export async function updateTalentProfileAction(
     revalidatePath('/admin/talents');
     revalidatePath(`/admin/talents/${id}`);
     revalidatePath('/talentos');
+    if (slug) {
+      revalidatePath(`/talentos/${slug}`);
+      revalidatePath('/sitemap.xml');
+    }
   } catch (err) {
     logRedacted('error', '[admin] updateTalentProfile error:', err);
     return { success: false, error: 'Error al guardar perfil' };

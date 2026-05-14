@@ -79,6 +79,7 @@ function toTalentBase(t: Talent & Record<string, unknown>): Talent {
     seoBioGenerated: t.seoBioGenerated, seoBioManual: t.seoBioManual,
     seoBioStatus: t.seoBioStatus, seoTitle: t.seoTitle,
     seoDescription: t.seoDescription, seoKeywords: t.seoKeywords,
+    isPublished: t.isPublished, showInRoster: t.showInRoster,
   };
 }
 
