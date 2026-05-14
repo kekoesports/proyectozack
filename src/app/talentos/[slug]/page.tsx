@@ -19,6 +19,7 @@ import { CONTACT_EMAIL } from '@/lib/utils/constants';
 import { TalentLiveWidget } from '@/features/giveaways/components/TalentLiveWidget';
 import { generateEventSchema } from '@/lib/schema';
 import { Cs2LabCard } from '@/components/cs2-lab/Cs2LabCard';
+import { TalentSeoSection, generateTalentFaqs } from '@/features/giveaways/components/TalentSeoSection';
 import type { CreatorCodeWithTalent, GiveawayWithTalent, Talent } from '@/types';
 
 export const revalidate = 3600;
@@ -36,8 +37,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const talent = await getTalentBySlug(slug);
   if (!talent) return {};
   const description = truncateMetaDescription(talent.bio || undefined)
-    || `Todos los códigos de descuento y sorteos activos de ${talent.name}. Entra y participa.`;
-  const title = `${talent.name} — Códigos y sorteos | SocialPro`;
+    || `${talent.name} — ${talent.role.toLowerCase()} de ${talent.game} gestionado por SocialPro. Códigos activos, sorteos y campañas.`;
+  const roleLabel = talent.role.charAt(0).toUpperCase() + talent.role.slice(1).toLowerCase();
+  const title = `${talent.name} — ${roleLabel} de ${talent.game} | SocialPro`;
   return {
     title,
     description,
@@ -137,6 +139,23 @@ export default async function TalentPage({ params }: PageProps) {
     sameAs: talent.socials.filter((s) => s.profileUrl).map((s) => s.profileUrl),
   };
 
+  // FAQPage schema — generado dinámicamente desde datos del talento
+  const talentFaqs = generateTalentFaqs({
+    name: talent.name, role: talent.role, game: talent.game, platform: talent.platform,
+    bioLong: talent.bioLong, tags: talent.tags, socials: talent.socials,
+    topGeos: talent.topGeos as { country: string; pct: number }[] | null,
+    audienceLanguage: talent.audienceLanguage, creatorCountry: talent.creatorCountry,
+  });
+  const faqPageJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: talentFaqs.map((f) => ({
+      '@type': 'Question',
+      name: f.q,
+      acceptedAnswer: { '@type': 'Answer', text: f.a },
+    })),
+  };
+
   // ProfilePage wrapper — provides better entity understanding for Googlebot
   const profilePageJsonLd = {
     '@context': 'https://schema.org',
@@ -159,6 +178,7 @@ export default async function TalentPage({ params }: PageProps) {
     <div className="min-h-screen relative overflow-x-hidden"
       style={{ background: `radial-gradient(ellipse 80% 35% at 50% 0%, ${talent.gradientC1}0d 0%, transparent 45%)` }}>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(profilePageJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(faqPageJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbJsonLd) }} />
       {activeWithTalent.map((g) => (
         <script key={g.id} type="application/ld+json"
@@ -507,6 +527,22 @@ export default async function TalentPage({ params }: PageProps) {
             </div>
           </aside>
         </div>
+      </div>
+
+      {/* ── Sección SEO — audiencia, bio extendida, FAQ, enlazado interno ── */}
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 pb-10">
+        <TalentSeoSection talent={{
+          name: talent.name,
+          role: talent.role,
+          game: talent.game,
+          platform: talent.platform,
+          bioLong: talent.bioLong,
+          tags: talent.tags,
+          socials: talent.socials,
+          topGeos: talent.topGeos as { country: string; pct: number }[] | null,
+          audienceLanguage: talent.audienceLanguage,
+          creatorCountry: talent.creatorCountry,
+        }} />
       </div>
 
       {isCs2Talent ? (
