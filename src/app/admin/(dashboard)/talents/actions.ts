@@ -65,7 +65,15 @@ export async function createTalentAction(
   const { name, platform, handle, country, status, visibility, game } = parsed.data;
 
   const slug = slugify(name);
+  if (!slug) return { success: false, error: 'El nombre no genera un slug válido. Usa letras y números.' };
+
   const primaryPlatform = platform === 'twitch' || platform === 'youtube' ? platform : 'twitch';
+
+  // Comprobar slug duplicado antes de intentar el insert
+  const existing = await db.select({ id: talents.id, name: talents.name }).from(talents).where(eq(talents.slug, slug)).limit(1);
+  if (existing.length > 0) {
+    return { success: false, error: `Ya existe un talento con ese nombre (slug "${slug}" en uso por "${existing[0]?.name ?? slug}"). Usa un nombre distinto.` };
+  }
 
   try {
     const [maxRow] = await db
@@ -126,7 +134,12 @@ export async function createTalentAction(
     return { success: true };
   } catch (err) {
     logRedacted('error', '[admin] createTalent error:', err);
-    return { success: false, error: 'Error al crear talent' };
+    const msg = err instanceof Error ? err.message : '';
+    // Duplicate key from DB (safety net in case of race condition)
+    if (msg.includes('unique') || msg.includes('duplicate')) {
+      return { success: false, error: `Ya existe un talento con el nombre "${name}". Usa un nombre distinto.` };
+    }
+    return { success: false, error: 'Error al crear talento. Revisa los datos e inténtalo de nuevo.' };
   }
 }
 
