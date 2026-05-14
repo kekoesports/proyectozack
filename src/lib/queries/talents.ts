@@ -24,6 +24,10 @@ export type TalentFilters = {
  * @returns array de `{ slug, updatedAt }` (puede ser vacío). Nunca null.
  */
 export async function getTalentSlugs(): Promise<{ slug: string; updatedAt: Date }[]> {
+  // Incluye isPublished=true independientemente de showInRoster.
+  // "Publicado · No listado" (isPublished=true, showInRoster=false) SÍ entra en sitemap
+  // y SÍ es indexable por Google — el perfil es accesible por link directo y puede posicionar.
+  // Si se quiere noindex en el futuro, añadir campo isIndexable (no implementado aún).
   return db.select({ slug: talents.slug, updatedAt: talents.updatedAt })
     .from(talents)
     .where(eq(talents.isPublished, true));

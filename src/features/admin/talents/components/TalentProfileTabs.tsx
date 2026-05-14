@@ -111,7 +111,16 @@ export function TalentProfileTabs({ talent, snapshotsByPlatform, geoFiles, isMan
                   </span>
                 }
               />
-              <InfoRow label="Visibilidad" value={talent.visibility === 'public' ? 'Pública' : 'Interna'} />
+              <InfoRow
+                label="Visibilidad"
+                value={
+                  !talent.isPublished
+                    ? 'Borrador (no publicado)'
+                    : talent.showInRoster
+                    ? 'Publicado · En roster'
+                    : 'Publicado · No listado'
+                }
+              />
               {talent.creatorCountry && (
                 <InfoRow label="País del creador" value={talent.creatorCountry.toUpperCase()} />
               )}

@@ -34,6 +34,7 @@ function RoleSelect({ id, name, value, required }: { id: string; name: string; v
 
 type TalentProfileData = {
   id:             number;
+  slug:           string;
   name:           string;
   role:           string;
   role2:          string | null;
@@ -189,7 +190,7 @@ export function TalentProfileForm({ talent }: Props): React.JSX.Element {
               <div className="flex-1">
                 <span className="text-sm font-semibold text-sp-admin-text">Publicar perfil público</span>
                 <p className="text-[11px] text-sp-admin-muted mt-0.5">
-                  Permite acceder al perfil desde /talentos/{talent.id}
+                  Permite acceder al perfil desde /talentos/{talent.slug}
                 </p>
               </div>
               <input type="checkbox" name="isPublished" value="on"
