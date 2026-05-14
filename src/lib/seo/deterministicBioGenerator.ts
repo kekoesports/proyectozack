@@ -111,7 +111,7 @@ function sIntro(input: BioBatchInput, v: number): string {
     `${input.name} forma parte de la comunidad de ${input.game} en español como ${role} con canal principal en ${pd}.${excerpt}`,
     `Como ${role} de ${input.game}, ${input.name} construye su audiencia en ${pd} con un enfoque genuino hacia su comunidad hispanohablante.${excerpt}`,
   ];
-  return lines[v % lines.length]!;
+  return lines[v % lines.length] ?? '';
 }
 
 function sPlatform(input: BioBatchInput, v: number): string | null {
@@ -125,7 +125,7 @@ function sPlatform(input: BioBatchInput, v: number): string | null {
     `Con ${primary.followersDisplay} seguidores en ${pd}, ${input.name} mantiene una presencia activa y constante.`,
     `Su comunidad de ${primary.followersDisplay} en ${pd} crece alrededor del contenido de ${input.game} que ${input.name} produce cada semana.`,
   ];
-  return lines[v % lines.length]!;
+  return lines[v % lines.length] ?? '';
 }
 
 function sCommunity(input: BioBatchInput, v: number): string {
@@ -145,7 +145,7 @@ function sCommunity(input: BioBatchInput, v: number): string {
     `Quienes siguen a ${input.name}${geo} valoran su constancia y su enfoque genuino hacia el mundo de ${input.game}.${extra}${lang}`,
     `La comunidad de ${input.name}${geo} se organiza alrededor de su contenido de ${input.game}, formando un espacio activo para jugadores hispanohablantes.${extra}`,
   ];
-  return lines[v % lines.length]!;
+  return lines[v % lines.length] ?? '';
 }
 
 function sAnchor(input: BioBatchInput, type: CreatorType, v: number): string {
@@ -189,7 +189,7 @@ function sAnchor(input: BioBatchInput, type: CreatorType, v: number): string {
   };
 
   const options = anchorsByType[type];
-  return options[v % options.length]!;
+  return options[v % options.length] ?? '';
 }
 
 function sContent(input: BioBatchInput, type: CreatorType, v: number): string | null {
@@ -236,7 +236,7 @@ function sContent(input: BioBatchInput, type: CreatorType, v: number): string | 
   };
 
   const options = lines[type];
-  return options[v % options.length]!;
+  return options[v % options.length] ?? '';
 }
 
 function sCommercial(input: BioBatchInput, v: number): string | null {
@@ -266,7 +266,7 @@ function sCommercial(input: BioBatchInput, v: number): string | null {
       ? `Su relación activa con ${brandList} se traduce en ${gvNote ? `sorteos y ` : ''}contenido adicional de valor para quienes le siguen.`
       : `Periódicamente organiza sorteos y actividades especiales para premiar a su comunidad.`,
   ];
-  return lines[v % lines.length]!;
+  return lines[v % lines.length] ?? '';
 }
 
 function sAgency(input: BioBatchInput, v: number): string {
@@ -276,7 +276,7 @@ function sAgency(input: BioBatchInput, v: number): string {
     `Forma parte del catálogo de creadores de SocialPro, agencia especializada en gaming y esports en español.`,
     `SocialPro representa a ${input.name} en sus proyectos comerciales, aportando estructura y oportunidades dentro del ecosistema gaming hispano.`,
   ];
-  return lines[v % lines.length]!;
+  return lines[v % lines.length] ?? '';
 }
 
 function sClosing(input: BioBatchInput, type: CreatorType, v: number): string {
@@ -291,7 +291,7 @@ function sClosing(input: BioBatchInput, type: CreatorType, v: number): string {
     `Entra en su canal de ${pd} para conocer su contenido y unirte a una comunidad activa de ${input.game}.${codeHint}`,
     `Su canal en ${pd} es el punto de encuentro de su comunidad: síguele para no perder nada de su actividad.${codeHint}`,
   ];
-  return lines[v % lines.length]!;
+  return lines[v % lines.length] ?? '';
 }
 
 // ── Structural variants ────────────────────────────────────────────────────────
@@ -412,7 +412,7 @@ function buildFaqSuggestions(input: BioBatchInput): string[] {
 
 // ── SEO title & description ────────────────────────────────────────────────────
 
-function buildSeoTitle(input: BioBatchInput, type: CreatorType): string {
+function buildSeoTitle(input: BioBatchInput, _type: CreatorType): string {
   const pd = pDisplay(input.platform);
   const cv = variantOf(buildVariantSeed(input) + 't', 4);
   const candidates = [
@@ -421,7 +421,7 @@ function buildSeoTitle(input: BioBatchInput, type: CreatorType): string {
     `${input.name}: ${input.role} de ${input.game}`,
     `${input.name} · ${input.game} en ${pd} · SocialPro`,
   ];
-  const raw = candidates[cv % candidates.length]!;
+  const raw = candidates[cv % candidates.length] ?? '';
   return raw.length <= 65 ? raw : raw.slice(0, 62) + '...';
 }
 
@@ -438,7 +438,7 @@ function buildSeoDesc(input: BioBatchInput): string {
     `${input.name} — ${input.game} en ${pd}.${flw}${brand} Agencia SocialPro.`,
     `Descubre a ${input.name}, ${input.role} de ${input.game} en ${pd}.${flw}${brand} SocialPro.`,
   ];
-  const raw = candidates[cv % candidates.length]!;
+  const raw = candidates[cv % candidates.length] ?? '';
   return raw.length <= 155 ? raw : raw.slice(0, 152) + '...';
 }
 
@@ -448,7 +448,7 @@ export function generateDeterministicBio(input: BioBatchInput): DeterministicRes
   const type    = classifyCreator(input);
   const nv      = numVariants(type);
   const v       = variantOf(buildVariantSeed(input), nv);
-  const struct  = STRUCTURES[type][v]!;
+  const struct  = STRUCTURES[type][v] ?? [];
 
   const sectionMap: Record<SectionKey, () => string | null> = {
     intro:      () => sIntro(input, v),
