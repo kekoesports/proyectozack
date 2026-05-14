@@ -66,6 +66,9 @@ function toTalentBase(t: Talent & Record<string, unknown>): Talent {
     nif: t.nif, fiscalName: t.fiscalName, fiscalAddress: t.fiscalAddress,
     featuredLive: t.featuredLive, excludeFromLive: t.excludeFromLive, featuredFallback: t.featuredFallback,
     bioLong: t.bioLong, highlights: t.highlights,
+    seoBioGenerated: t.seoBioGenerated, seoBioManual: t.seoBioManual,
+    seoBioStatus: t.seoBioStatus, seoTitle: t.seoTitle,
+    seoDescription: t.seoDescription, seoKeywords: t.seoKeywords,
   };
 }
 

@@ -8,6 +8,9 @@ type SeoTalent = {
   readonly role: string;
   readonly game: string;
   readonly platform: string;
+  // SEO bio priority: seoBioManual > seoBioGenerated > bioLong
+  readonly seoBioManual?: string | null;
+  readonly seoBioGenerated?: string | null;
   readonly bioLong: string | null;
   readonly tags: readonly { tag: string }[];
   readonly socials: readonly { platform: string; followersDisplay: string; profileUrl: string | null }[];
@@ -98,19 +101,23 @@ export function TalentSeoSection({ talent }: Props): React.ReactElement {
       className="border-t border-white/[0.06] pt-8 mt-2 space-y-10"
     >
 
-      {/* Bio extendida — solo si existe */}
-      {talent.bioLong && talent.bioLong.trim() && (
-        <div className="space-y-3">
-          <h2 className="text-[10px] font-black uppercase tracking-[0.25em] text-white/30">
-            Sobre {talent.name}
-          </h2>
+      {/* Bio extendida — prioridad: seoBioManual > seoBioGenerated > bioLong */}
+      {(() => {
+        const bio = talent.seoBioManual?.trim() || talent.seoBioGenerated?.trim() || talent.bioLong?.trim() || null;
+        if (!bio) return null;
+        return (
           <div className="space-y-3">
-            {talent.bioLong.trim().split('\n\n').map((p, i) => (
-              <p key={i} className="text-sm text-white/55 leading-relaxed">{p}</p>
-            ))}
+            <h2 className="text-[10px] font-black uppercase tracking-[0.25em] text-white/30">
+              Sobre {talent.name}
+            </h2>
+            <div className="space-y-3">
+              {bio.split('\n\n').map((p, i) => (
+                <p key={i} className="text-sm text-white/55 leading-relaxed">{p}</p>
+              ))}
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* Audiencia y contenido */}
       <div className="space-y-3">

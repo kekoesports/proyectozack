@@ -36,10 +36,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { slug } = await params;
   const talent = await getTalentBySlug(slug);
   if (!talent) return {};
-  const description = truncateMetaDescription(talent.bio || undefined)
-    || `${talent.name} — ${talent.role.toLowerCase()} de ${talent.game} gestionado por SocialPro. Códigos activos, sorteos y campañas.`;
   const roleLabel = talent.role.charAt(0).toUpperCase() + talent.role.slice(1).toLowerCase();
-  const title = `${talent.name} — ${roleLabel} de ${talent.game} | SocialPro`;
+  const title = talent.seoTitle?.trim()
+    || `${talent.name} — ${roleLabel} de ${talent.game} | SocialPro`;
+  const description = talent.seoDescription?.trim()
+    || truncateMetaDescription(talent.bio || undefined)
+    || `${talent.name} — ${talent.role.toLowerCase()} de ${talent.game} gestionado por SocialPro. Códigos activos, sorteos y campañas.`;
   return {
     title,
     description,
@@ -72,6 +74,9 @@ function toTalentBase(t: Talent & Record<string, unknown>): Talent {
     nif: t.nif, fiscalName: t.fiscalName, fiscalAddress: t.fiscalAddress,
     featuredLive: t.featuredLive, excludeFromLive: t.excludeFromLive, featuredFallback: t.featuredFallback,
     bioLong: t.bioLong, highlights: t.highlights,
+    seoBioGenerated: t.seoBioGenerated, seoBioManual: t.seoBioManual,
+    seoBioStatus: t.seoBioStatus, seoTitle: t.seoTitle,
+    seoDescription: t.seoDescription, seoKeywords: t.seoKeywords,
   };
 }
 
@@ -532,16 +537,18 @@ export default async function TalentPage({ params }: PageProps) {
       {/* ── Sección SEO — audiencia, bio extendida, FAQ, enlazado interno ── */}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 pb-10">
         <TalentSeoSection talent={{
-          name: talent.name,
-          role: talent.role,
-          game: talent.game,
-          platform: talent.platform,
-          bioLong: talent.bioLong,
-          tags: talent.tags,
-          socials: talent.socials,
-          topGeos: talent.topGeos as { country: string; pct: number }[] | null,
+          name:             talent.name,
+          role:             talent.role,
+          game:             talent.game,
+          platform:         talent.platform,
+          seoBioManual:     talent.seoBioManual,
+          seoBioGenerated:  talent.seoBioGenerated,
+          bioLong:          talent.bioLong,
+          tags:             talent.tags,
+          socials:          talent.socials,
+          topGeos:          talent.topGeos as { country: string; pct: number }[] | null,
           audienceLanguage: talent.audienceLanguage,
-          creatorCountry: talent.creatorCountry,
+          creatorCountry:   talent.creatorCountry,
         }} />
       </div>
 

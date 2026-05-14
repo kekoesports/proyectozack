@@ -498,6 +498,13 @@
       "when": 1778714494916,
       "tag": "0070_tough_ultimatum",
       "breakpoints": true
+    },
+    {
+      "idx": 71,
+      "version": "7",
+      "when": 1778762900705,
+      "tag": "0071_lush_the_stranger",
+      "breakpoints": true
     }
   ]
 }

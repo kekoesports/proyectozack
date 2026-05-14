@@ -8,6 +8,13 @@ export const statusEnum = pgEnum('status', ['active', 'available', 'inactive']);
 // visibility: controls whether talent appears on public site
 export const visibilityEnum = pgEnum('visibility', ['public', 'internal']);
 
+// seoBioStatus: lifecycle of the AI-generated / human-edited SEO bio
+// empty     = no bio generated yet
+// generated = AI draft exists, pending human review
+// edited    = human has edited the manual field
+// approved  = content approved for production
+export const seoBioStatusEnum = pgEnum('seo_bio_status', ['empty', 'generated', 'edited', 'approved']);
+
 // cnmcStatus: compliance with Spanish LGCA (Ley General de Comunicación Audiovisual)
 // registrado   = registered in CNMC Registro Estatal de Prestadores Audiovisuales
 // pendiente    = needs registration (>10k followers with commercial activity)
@@ -70,6 +77,14 @@ export const talents = pgTable('talents', {
   featuredLive:     boolean('featured_live').notNull().default(false),     // manual override para destacado en directo
   excludeFromLive:  boolean('exclude_from_live').notNull().default(false),  // ocultar de sección live
   featuredFallback: boolean('featured_fallback').notNull().default(false),  // aparece en grid cuando nadie está live (máx 10)
+
+  // ── SEO Bio Generator (Fase 2) ──
+  seoBioGenerated:  text('seo_bio_generated'),                                               // AI draft; never shown without human review
+  seoBioManual:     text('seo_bio_manual'),                                                   // human-edited version; has priority over generated
+  seoBioStatus:     seoBioStatusEnum('seo_bio_status').notNull().default('empty'),
+  seoTitle:         varchar('seo_title', { length: 200 }),                                   // overrides default generated title tag
+  seoDescription:   varchar('seo_description', { length: 300 }),                             // overrides default meta description
+  seoKeywords:      text('seo_keywords').array(),                                             // internal CRM use only — NOT emitted as <meta keywords>
 
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
 }, (t) => [
