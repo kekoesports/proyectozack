@@ -6,6 +6,26 @@ read_when:
   - Drizzle ORM API questions
 ---
 
+## ⚠️ Regla crítica: Migration Tracker
+
+> Las migraciones de Drizzle se consideran aplicadas **por timestamp** en `drizzle.__drizzle_migrations`.  
+> **No basta con que la columna exista en la DB.**
+
+El migrador `neon-http` usa exclusivamente el campo `created_at` de `drizzle.__drizzle_migrations` para determinar qué migraciones ejecutar. Si una columna fue añadida a mano (sin `npm run migrate`), el migrador no lo sabe y volverá a intentar `ALTER TABLE ADD COLUMN` → error en el siguiente deploy.
+
+**Tabla correcta:** `drizzle.__drizzle_migrations` (schema `drizzle`)  
+**Tabla incorrecta:** `public.__drizzle_migrations` (existe pero el migrador no la lee)
+
+Si alguna vez aplicas DDL manualmente en Neon, registra inmediatamente la migración:
+
+```bash
+# Verificación obligatoria después de cualquier cambio manual en DB:
+npm run migrate
+# Debe mostrar: "Done." sin ejecutar SQL
+```
+
+Ver incidente completo: `docs/incidents/2026-05-14-drizzle-migration-tracker.md`
+
 <!--
 Downloaded via https://llm.codes by @steipete on March 17, 2026 at 01:44 PM
 Source URL: https://orm.drizzle.team/docs/
