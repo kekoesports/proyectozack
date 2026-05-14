@@ -357,22 +357,22 @@ const COLLABORATORS_DATA = [
 
 const TEAM_DATA = [
   {
-    slug: 'alfonso', name: 'Alfonso "Zack" Arias', role: 'Co-Founder & Marketing Influencer',
-    bio: 'Ex-pro player CS, streamer. +7 años en gambling. Especializado en talentos y YouTube management.',
+    slug: 'alfonso', name: 'Alfonso Arias', role: 'Co-Founder & Talent Strategy',
+    bio: 'Conocido como "Zack" en la comunidad. Ex-pro player CS, streamer. +7 años en gambling. Especializado en talentos y YouTube management.',
     photoUrl: null, gradientC1: '#f5632a', gradientC2: '#e03070', initials: 'AF', sortOrder: 0,
   },
   {
-    slug: 'keko', name: 'Pablo "Kekō" Camacho', role: 'Founder & Marketing Influencer',
-    bio: '+14 años en esports/gaming. Ex pro player CS:GO. Especialista en iGaming y desarrollo de negocio.',
+    slug: 'keko', name: 'Pablo Camacho', role: 'Founder & CEO',
+    bio: 'Conocido como "Kekō" en la comunidad. +14 años en esports/gaming. Ex pro player CS:GO. Especialista en iGaming y desarrollo de negocio.',
     photoUrl: null, gradientC1: '#8b3aad', gradientC2: '#5b9bd5', initials: 'KK', sortOrder: 1,
   },
   {
-    slug: 'giuliano', name: 'Giuliano', role: 'Talent Manager LATAM',
+    slug: 'giuliano', name: 'Giuliano', role: 'LATAM Partnerships Manager',
     bio: 'Experto en casino y casas de apuestas. Centrado en acuerdos iGaming para el mercado LATAM. +5 años de experiencia.',
     photoUrl: null, gradientC1: '#e03070', gradientC2: '#c42880', initials: 'GI', sortOrder: 2,
   },
   {
-    slug: 'cm', name: 'Community Manager', role: 'Community & Social Media',
+    slug: 'cm', name: 'Community Manager', role: 'Community & Growth Manager',
     bio: 'Gestión de comunidades, contenido social y crecimiento orgánico.',
     photoUrl: null, gradientC1: '#5b9bd5', gradientC2: '#8b3aad', initials: 'CM', sortOrder: 3,
   },
