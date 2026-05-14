@@ -18,6 +18,7 @@ type SeoTalent = {
   readonly seoBioGenerated?: string | null;
   readonly seoBioStatus?: SeoBioStatus | null;
   readonly bioLong: string | null;
+  readonly highlights?: readonly string[] | null;
   readonly tags: readonly { tag: string }[];
   readonly socials: readonly { platform: string; followersDisplay: string; profileUrl: string | null }[];
   readonly topGeos: readonly { country: string; pct: number }[] | null;
@@ -80,17 +81,21 @@ type Props = {
 };
 
 /**
- * Sección SEO de una talent page: bio extendida (si existe), métricas de audiencia
- * y FAQ generado por plantilla. Dark theme, coherente con el diseño del perfil.
- * El H1 visual queda en el hero; aquí sólo H2/H3 para no romper la jerarquía.
+ * Sección SEO de una talent page: bio extendida, métricas de audiencia y FAQ.
+ * Implementada como <details> nativo para ser SSR y accesible sin JS.
+ * El contenido está siempre en el DOM (indexable por Googlebot) aunque esté cerrado.
  *
  * @kind server
  * @feature giveaways
  */
 export function TalentSeoSection({ talent }: Props): React.ReactElement {
-  const faqs    = generateTalentFaqs(talent);
-  const gameHub = getGameHubUrl(talent.game);
+  const faqs       = generateTalentFaqs(talent);
+  const gameHub    = getGameHubUrl(talent.game);
   const mainPlatform = talent.socials.find((s) => s.platform === talent.platform) ?? talent.socials[0];
+
+  const approvedGenerated = talent.seoBioStatus === 'approved' ? talent.seoBioGenerated?.trim() : null;
+  const bio = talent.seoBioManual?.trim() || approvedGenerated || talent.bioLong?.trim() || null;
+  const hasHighlights = (talent.highlights?.length ?? 0) > 0;
 
   const stats: Array<{ label: string; value: string }> = [
     { label: 'Plataforma principal', value: platformLabel(talent.platform) },
@@ -102,93 +107,113 @@ export function TalentSeoSection({ talent }: Props): React.ReactElement {
   ];
 
   return (
-    <section
-      aria-label={`Información sobre ${talent.name}`}
-      className="border-t border-white/[0.06] pt-8 mt-2 space-y-10"
+    <details
+      className="group border-t border-white/[0.06] mt-2"
+      aria-label={`Más información sobre ${talent.name}`}
     >
+      {/* Summary: siempre visible, controla el open/close */}
+      <summary className="cursor-pointer list-none flex items-center justify-between py-4 px-1 select-none hover:opacity-80 transition-opacity">
+        <span className="text-[10px] font-black uppercase tracking-[0.25em] text-white/35">
+          Sobre {talent.name} · Audiencia · FAQ
+        </span>
+        <span className="text-[10px] font-bold text-white/25 shrink-0 ml-4" aria-hidden>
+          <span className="group-open:hidden">▾ Mostrar</span>
+          <span className="hidden group-open:inline">▴ Ocultar</span>
+        </span>
+      </summary>
 
-      {/* Bio extendida: seoBioManual (siempre) > seoBioGenerated (solo si approved) > bioLong */}
-      {(() => {
-        const approvedGenerated = talent.seoBioStatus === 'approved' ? talent.seoBioGenerated?.trim() : null;
-        const bio = talent.seoBioManual?.trim() || approvedGenerated || talent.bioLong?.trim() || null;
-        if (!bio) return null;
-        return (
+      {/* Contenido — siempre en el DOM para Googlebot aunque esté cerrado */}
+      <div className="space-y-10 pb-6 pt-2">
+
+        {/* Bio extendida + highlights */}
+        {(bio || hasHighlights) && (
           <div className="space-y-3">
             <h2 className="text-[10px] font-black uppercase tracking-[0.25em] text-white/30">
               Sobre {talent.name}
             </h2>
-            <div className="space-y-3">
-              {bio.split('\n\n').map((p, i) => (
-                <p key={i} className="text-sm text-white/55 leading-relaxed">{p}</p>
-              ))}
-            </div>
+            {bio && (
+              <div className="space-y-3">
+                {bio.split('\n\n').map((p, i) => (
+                  <p key={i} className="text-sm text-white/55 leading-relaxed">{p}</p>
+                ))}
+              </div>
+            )}
+            {hasHighlights && (
+              <div className="flex flex-wrap gap-2 pt-1">
+                {(talent.highlights ?? []).map((h) => (
+                  <span key={h} className="px-2.5 py-1 rounded-full bg-white/[0.05] border border-white/[0.08] text-[11px] font-bold text-white/50">
+                    {h}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
-        );
-      })()}
+        )}
 
-      {/* Audiencia y contenido */}
-      <div className="space-y-3">
-        <h2 className="text-[10px] font-black uppercase tracking-[0.25em] text-white/30">
-          Audiencia y contenido
-        </h2>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-          {stats.map((s) => (
-            <div key={s.label} className="rounded-xl border border-white/[0.06] bg-white/[0.02] px-3 py-2.5">
-              <p className="text-[9px] font-bold uppercase tracking-wider text-white/25 mb-0.5">{s.label}</p>
-              <p className="text-[12px] font-semibold text-white/60 leading-tight">{s.value}</p>
-            </div>
-          ))}
+        {/* Audiencia y contenido */}
+        <div className="space-y-3">
+          <h2 className="text-[10px] font-black uppercase tracking-[0.25em] text-white/30">
+            Audiencia y contenido
+          </h2>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            {stats.map((s) => (
+              <div key={s.label} className="rounded-xl border border-white/[0.06] bg-white/[0.02] px-3 py-2.5">
+                <p className="text-[9px] font-bold uppercase tracking-wider text-white/25 mb-0.5">{s.label}</p>
+                <p className="text-[12px] font-semibold text-white/60 leading-tight">{s.value}</p>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
 
-      {/* FAQ */}
-      <div className="space-y-3">
-        <h2 className="text-[10px] font-black uppercase tracking-[0.25em] text-white/30">
-          Preguntas frecuentes sobre {talent.name}
-        </h2>
-        <div className="space-y-1.5">
-          {faqs.map((faq) => (
-            <details
-              key={faq.q}
-              className="group rounded-xl border border-white/[0.06] bg-white/[0.02] overflow-hidden"
+        {/* FAQ */}
+        <div className="space-y-3">
+          <h2 className="text-[10px] font-black uppercase tracking-[0.25em] text-white/30">
+            Preguntas frecuentes sobre {talent.name}
+          </h2>
+          <div className="space-y-1.5">
+            {faqs.map((faq) => (
+              <details
+                key={faq.q}
+                className="group/faq rounded-xl border border-white/[0.06] bg-white/[0.02] overflow-hidden"
+              >
+                <summary className="flex items-center justify-between px-4 py-3 cursor-pointer list-none select-none">
+                  <span className="text-[13px] font-semibold text-white/70 leading-snug pr-4">{faq.q}</span>
+                  <span className="text-white/25 shrink-0 group-open/faq:rotate-180 transition-transform duration-200 text-[10px]" aria-hidden>▾</span>
+                </summary>
+                <p className="px-4 pb-4 text-sm text-white/45 leading-relaxed">{faq.a}</p>
+              </details>
+            ))}
+          </div>
+        </div>
+
+        {/* Enlazado interno */}
+        <div className="border-t border-white/[0.04] pt-4 flex flex-wrap gap-2">
+          <span className="text-[9px] font-black uppercase tracking-[0.2em] text-white/20 self-center mr-1">
+            Más en SocialPro
+          </span>
+          {gameHub && (
+            <Link
+              href={gameHub}
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full border border-white/[0.08] bg-white/[0.03] text-[11px] font-semibold text-white/50 hover:border-white/20 hover:text-white/80 transition-all"
             >
-              <summary className="flex items-center justify-between px-4 py-3 cursor-pointer list-none select-none">
-                <span className="text-[13px] font-semibold text-white/70 leading-snug pr-4">{faq.q}</span>
-                <span className="text-white/25 shrink-0 group-open:rotate-180 transition-transform duration-200 text-[10px]">▾</span>
-              </summary>
-              <p className="px-4 pb-4 text-sm text-white/45 leading-relaxed">{faq.a}</p>
-            </details>
-          ))}
-        </div>
-      </div>
-
-      {/* Enlazado interno */}
-      <div className="border-t border-white/[0.04] pt-6 flex flex-wrap gap-2">
-        <span className="text-[9px] font-black uppercase tracking-[0.2em] text-white/20 self-center mr-1">
-          Más en SocialPro
-        </span>
-        {gameHub && (
+              {talent.game} →
+            </Link>
+          )}
           <Link
-            href={gameHub}
+            href="/talentos"
             className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full border border-white/[0.08] bg-white/[0.03] text-[11px] font-semibold text-white/50 hover:border-white/20 hover:text-white/80 transition-all"
           >
-            {talent.game} →
+            Ver todos los talentos →
           </Link>
-        )}
-        <Link
-          href="/talentos"
-          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full border border-white/[0.08] bg-white/[0.03] text-[11px] font-semibold text-white/50 hover:border-white/20 hover:text-white/80 transition-all"
-        >
-          Ver todos los talentos →
-        </Link>
-        <Link
-          href="/contacto"
-          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full border border-white/[0.08] bg-white/[0.03] text-[11px] font-semibold text-white/50 hover:border-white/20 hover:text-white/80 transition-all"
-        >
-          Contactar con SocialPro →
-        </Link>
-      </div>
+          <Link
+            href="/contacto"
+            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full border border-white/[0.08] bg-white/[0.03] text-[11px] font-semibold text-white/50 hover:border-white/20 hover:text-white/80 transition-all"
+          >
+            Contactar con SocialPro →
+          </Link>
+        </div>
 
-    </section>
+      </div>
+    </details>
   );
 }
