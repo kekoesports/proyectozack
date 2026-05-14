@@ -512,6 +512,13 @@
       "when": 1778765353477,
       "tag": "0072_graceful_blizzard",
       "breakpoints": true
+    },
+    {
+      "idx": 73,
+      "version": "7",
+      "when": 1778784487162,
+      "tag": "0073_greedy_king_bedlam",
+      "breakpoints": true
     }
   ]
 }

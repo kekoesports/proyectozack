@@ -2,6 +2,8 @@
 
 import { useState, useTransition } from 'react';
 import { createCodeAction } from './codes-actions';
+import { BrandPicker } from './BrandPicker';
+import type { BrandCatalogEntry } from './brand-actions';
 
 type Talent = { readonly id: number; readonly name: string; readonly slug?: string };
 
@@ -33,7 +35,7 @@ const MAX_VARIANTS = 3;
 
 type SubmitResult = { variantIdx: number; ok: boolean; error?: string };
 
-export function CreateCodeForm({ talents }: { talents: readonly Talent[] }): React.ReactElement {
+export function CreateCodeForm({ talents, brandCatalog = [] }: { talents: readonly Talent[]; brandCatalog?: readonly BrandCatalogEntry[] }): React.ReactElement {
   const [isPending, startTransition] = useTransition();
 
   // Datos compartidos de la marca
@@ -128,6 +130,25 @@ export function CreateCodeForm({ talents }: { talents: readonly Talent[] }): Rea
       {/* Datos de la marca (compartidos por todos los códigos) */}
       <div className="rounded-xl border border-sp-admin-border bg-sp-admin-card p-4 space-y-3">
         <p className="text-[11px] font-bold uppercase tracking-wider text-sp-admin-muted">Datos de la marca</p>
+
+        {/* Picker del catálogo */}
+        {brandCatalog.length > 0 && (
+          <div>
+            <label className={labelCls}>Seleccionar del catálogo (opcional)</label>
+            <BrandPicker
+              brands={brandCatalog}
+              onSelect={(b) => {
+                setBrandName(b.name);
+                if (b.logoUrl) setBrandLogo(b.logoUrl);
+                if (b.defaultUrl) setRedirectUrl(b.defaultUrl);
+                if (b.category) setCategory(b.category);
+              }}
+              placeholder="Buscar marca guardada…"
+            />
+            <p className="text-[10px] text-sp-admin-muted mt-1">Rellena automáticamente nombre, logo y URL.</p>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div>
             <label className={labelCls}>Marca *</label>

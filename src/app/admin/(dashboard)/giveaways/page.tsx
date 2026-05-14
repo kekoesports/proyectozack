@@ -6,12 +6,14 @@ import { getAllCodes } from '@/lib/queries/creatorCodes';
 import { getAllWinners } from '@/lib/queries/giveawayWinners';
 import { deleteGiveawayAction, deleteAllDemosAction, setGiveawayFeaturedAction, setGiveawayBadgeAction, setGiveawayBadgeFromFormAction } from './actions';
 import { deleteWinnerAction } from './winners-actions';
+import { listBrandCatalog } from './brand-actions';
 import { DeleteConfirmButton } from './DeleteConfirmButton';
 import { EditGiveawayModal } from './EditGiveawayModal';
 import { CreateGiveawayForm } from './CreateGiveawayForm';
 import { CreateCodeForm } from './CreateCodeForm';
 import { CreateWinnerForm } from './CreateWinnerForm';
 import { CodesTable } from './CodesTable';
+import { BrandCatalogManager } from './BrandCatalogManager';
 
 function isActive(endsAt: Date | null): boolean {
   return endsAt === null || new Date(endsAt) > new Date();
@@ -24,11 +26,12 @@ type PageProps = {
 export default async function AdminGiveawaysPage({ searchParams }: PageProps): Promise<React.ReactElement> {
   await requirePermission('sorteos', 'read');
   const { creator, status } = await searchParams;
-  const [allGiveaways, allTalents, allCodes, allWinners] = await Promise.all([
+  const [allGiveaways, allTalents, allCodes, allWinners, brands] = await Promise.all([
     getAllGiveaways(),
     getAllTalents(),
     getAllCodes(),
     getAllWinners(),
+    listBrandCatalog(),
   ]);
 
   let giveaways = allGiveaways;
@@ -186,7 +189,7 @@ export default async function AdminGiveawaysPage({ searchParams }: PageProps): P
       {/* Create code form */}
       <div id="crear-codigo" className="rounded-2xl bg-sp-admin-card border border-sp-admin-border p-6 mb-8 scroll-mt-6">
         <h2 className="font-display text-lg font-bold uppercase text-sp-admin-text mb-4">Crear Código</h2>
-        <CreateCodeForm talents={allTalents} />
+        <CreateCodeForm talents={allTalents} brandCatalog={brands} />
       </div>
 
       {/* Codes list */}
@@ -201,6 +204,15 @@ export default async function AdminGiveawaysPage({ searchParams }: PageProps): P
       <div className="rounded-2xl bg-sp-admin-card border border-sp-admin-border p-6 mb-8">
         <h2 className="font-display text-lg font-bold uppercase text-sp-admin-text mb-4">Registrar Ganador</h2>
         <CreateWinnerForm giveaways={allGiveaways} />
+      </div>
+
+      {/* Brand Catalog */}
+      <h1 id="marcas-catalogo" className="font-display text-4xl font-black uppercase text-sp-admin-text mb-8 mt-16 scroll-mt-6">Catálogo de Marcas</h1>
+      <p className="text-sm text-sp-admin-muted mb-6 -mt-4">
+        Define las marcas con las que trabajas (nombre, logo, URL). Al crear un código o sorteo, selecciona la marca del catálogo y los campos se rellenan solos.
+      </p>
+      <div className="mb-16">
+        <BrandCatalogManager brands={brands} />
       </div>
 
       {allWinners.length === 0 ? (

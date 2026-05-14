@@ -41,3 +41,5 @@ export * from './matches';
 export * from './campaignSplits';
 export * from './newsletterSubscribers';
 export * from './newsletterSends';
+
+export * from './brandCatalog';
