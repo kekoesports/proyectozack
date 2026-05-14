@@ -5,6 +5,7 @@ import { requirePermission } from '@/lib/permissions';
 import { db } from '@/lib/db';
 import { talents } from '@/db/schema';
 import { TalentSeoBioPanel } from '@/features/admin/talents/components/TalentSeoBioPanel';
+import { getSeoGenerationContext } from '@/app/admin/(dashboard)/talents/[id]/seo-actions';
 
 export default async function TalentSeoPage({
   params,
@@ -17,9 +18,10 @@ export default async function TalentSeoPage({
 
   await requirePermission('talentos', 'write');
 
-  const talent = await db.query.talents.findFirst({
-    where: eq(talents.id, talentId),
-  });
+  const [talent, seoContext] = await Promise.all([
+    db.query.talents.findFirst({ where: eq(talents.id, talentId) }),
+    getSeoGenerationContext(talentId),
+  ]);
   if (!talent) notFound();
 
   return (
@@ -60,6 +62,7 @@ export default async function TalentSeoPage({
           seoTitle={talent.seoTitle}
           seoDescription={talent.seoDescription}
           seoKeywords={talent.seoKeywords}
+          seoContext={seoContext}
         />
       </div>
 

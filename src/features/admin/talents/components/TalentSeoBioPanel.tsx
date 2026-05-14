@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { generateSeoBioAction, saveSeoBioManualAction, approveSeoBioAction } from '@/app/admin/(dashboard)/talents/[id]/seo-actions';
+import type { SeoGenerationContext } from '@/app/admin/(dashboard)/talents/[id]/seo-actions';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -16,6 +17,7 @@ type Props = {
   readonly seoTitle: string | null;
   readonly seoDescription: string | null;
   readonly seoKeywords: string[] | null;
+  readonly seoContext: SeoGenerationContext | null;
 };
 
 // ── Status badge ──────────────────────────────────────────────────────────────
@@ -61,7 +63,9 @@ export function TalentSeoBioPanel({
   seoTitle: initialTitle,
   seoDescription: initialDesc,
   seoKeywords: initialKeywords,
+  seoContext: initialContext,
 }: Props): React.ReactElement {
+  const [context, setContext] = useState<SeoGenerationContext | null>(initialContext);
   const [status,     setStatus]     = useState<SeoBioStatus>(initialStatus);
   const [generated,  setGenerated]  = useState(initialGenerated ?? '');
   const [manual,     setManual]     = useState(initialManual ?? '');
@@ -102,6 +106,7 @@ export function TalentSeoBioPanel({
       }
       setStatus('generated');
       if (result.warnings.length > 0) setWarnings(result.warnings);
+      setContext(result.context);
     });
   }
 
@@ -194,6 +199,55 @@ export function TalentSeoBioPanel({
       {/* Error */}
       {error && (
         <p className="text-[12px] text-red-600 font-medium">{error}</p>
+      )}
+
+      {/* Datos usados por la IA */}
+      {context && (
+        <details className="group rounded-lg border border-sp-admin-border bg-sp-admin-bg/50 overflow-hidden">
+          <summary className="cursor-pointer list-none flex items-center justify-between px-3 py-2 select-none">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-sp-admin-muted">Datos usados por la IA</span>
+            <span className="text-[10px] text-sp-admin-muted group-open:rotate-180 transition-transform">▾</span>
+          </summary>
+          <div className="px-3 pb-3 space-y-2 text-[11px]">
+
+            {/* Redes sociales */}
+            <div className="grid grid-cols-2 gap-1.5">
+              {context.socials.filter(s => s.followersDisplay && !['-','—'].includes(s.followersDisplay)).map((s) => (
+                <div key={s.platform} className={`flex items-center gap-1.5 rounded px-2 py-1 ${s.synced ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'}`}>
+                  <span className="font-semibold capitalize">{s.platform}</span>
+                  <span>{s.followersDisplay}</span>
+                  {s.synced
+                    ? <span className="ml-auto text-[9px]">✓ API{s.lastSyncAt ? ` ${s.lastSyncAt}` : ''}</span>
+                    : <span className="ml-auto text-[9px]">⚠ sin sync</span>
+                  }
+                </div>
+              ))}
+            </div>
+
+            {/* Marcas activas */}
+            <div className="flex flex-wrap gap-1">
+              <span className="text-sp-admin-muted">Marcas activas:</span>
+              {context.activeBrands.length > 0
+                ? context.activeBrands.map(b => <span key={b} className="px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 font-medium">{b}</span>)
+                : <span className="text-sp-admin-muted italic">ninguna</span>
+              }
+            </div>
+
+            {/* Sorteos y campañas */}
+            <div className="flex gap-3 text-sp-admin-muted">
+              <span>Sorteos activos: <b className="text-sp-admin-text">{context.activeGiveaways}</b></span>
+              <span>Campañas CRM: <b className="text-sp-admin-text">{context.campaignCount}</b></span>
+            </div>
+
+            {/* Campos faltantes */}
+            {context.missingFields.length > 0 && (
+              <div className="rounded bg-red-50 px-2 py-1.5 space-y-0.5">
+                <p className="font-semibold text-red-700 text-[10px] uppercase tracking-wide">Campos faltantes:</p>
+                {context.missingFields.map((f, i) => <p key={i} className="text-red-600">• {f}</p>)}
+              </div>
+            )}
+          </div>
+        </details>
       )}
 
       {/* Bio generada por IA — solo lectura, para inspección */}
