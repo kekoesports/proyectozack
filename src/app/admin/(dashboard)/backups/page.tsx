@@ -1,4 +1,4 @@
-import { requireRole } from '@/lib/auth-guard';
+import { requirePermission } from '@/lib/permissions';
 import { listBackupsAction } from './backup-actions';
 import { BackupsManager } from '@/features/admin/backups/BackupsManager';
 import { getDriveConfig } from '@/lib/backup/getDriveConfig';
@@ -6,7 +6,7 @@ import { getDriveConfig } from '@/lib/backup/getDriveConfig';
 export const metadata = { title: 'Backups | Admin' };
 
 export default async function BackupsPage(): Promise<React.ReactElement> {
-  await requireRole('admin', '/admin/login');
+  await requirePermission('ajustes', 'read');
 
   const result = await listBackupsAction();
   const files  = result.success ? result.files : [];

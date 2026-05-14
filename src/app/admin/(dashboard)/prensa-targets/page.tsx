@@ -1,9 +1,9 @@
-import { requireAnyRole } from '@/lib/auth-guard';
+import { requirePermission } from '@/lib/permissions';
 import { getAllPressTargets } from '@/lib/queries/pressTargets';
 import { PressTargetsTable } from '@/features/admin/pressTargets/components/PressTargetsTable';
 
 export default async function AdminPressTargetsPage(): Promise<React.ReactElement> {
-  await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
+  await requirePermission('noticias', 'read');
   const items = await getAllPressTargets();
 
   return (

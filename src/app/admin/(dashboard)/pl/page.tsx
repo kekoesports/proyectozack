@@ -4,7 +4,7 @@ import type { ReactElement } from 'react';
 import { asc, sql } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { crmBrands, talents } from '@/db/schema';
-import { requireAnyRole } from '@/lib/auth-guard';
+import { requirePermission } from '@/lib/permissions';
 import { getPnL } from '@/lib/queries/pnl';
 import { startOfLocalYearIso, todayLocalIso } from '@/lib/utils/date';
 import { PnLOverviewCards } from '@/features/admin/pnl/components/PnLOverviewCards';
@@ -41,7 +41,7 @@ type PageProps = {
 };
 
 export default async function PnLPage({ searchParams }: PageProps): Promise<ReactElement> {
-  await requireAnyRole(['admin', 'manager'], '/admin/login');
+  await requirePermission('facturacion', 'read');
 
   const sp = (await searchParams) ?? {};
   const fallback = defaultRange();

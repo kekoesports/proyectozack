@@ -4,7 +4,8 @@ import { randomBytes } from 'crypto';
 import { revalidatePath } from 'next/cache';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
-import { requireRole, IS_DEV } from '@/lib/auth-guard';
+import { IS_DEV } from '@/lib/auth-guard';
+import { requirePermission } from '@/lib/permissions';
 import { db } from '@/lib/db';
 import { talents, statsShares, user } from '@/db/schema';
 
@@ -20,7 +21,7 @@ const updateGeoSchema = z.object({
 });
 
 export async function updateTalentGeoData(formData: FormData): Promise<void> {
-  await requireRole('admin', '/admin/login');
+  await requirePermission('analytics', 'write');
 
   let topGeosParsed: unknown = null;
   try {
@@ -54,7 +55,7 @@ export async function updateTalentGeoData(formData: FormData): Promise<void> {
 }
 
 export async function createStatsShareLink(): Promise<{ id: number; token: string } | null> {
-  const session = await requireRole('admin', '/admin/login');
+  const session = await requirePermission('analytics', 'write');
 
   const token = randomBytes(16).toString('base64url');
 
@@ -84,7 +85,7 @@ export async function createStatsShareLink(): Promise<{ id: number; token: strin
 }
 
 export async function revokeStatsShareLink(id: number): Promise<void> {
-  await requireRole('admin', '/admin/login');
+  await requirePermission('analytics', 'write');
 
   await db
     .update(statsShares)

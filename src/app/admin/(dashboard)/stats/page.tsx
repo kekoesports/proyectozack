@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { requireRole } from '@/lib/auth-guard';
+import { requirePermission } from '@/lib/permissions';
 import { getActiveStatsShares } from '@/lib/queries/stats';
 import { getStaleStatsCreators, getTopCreatorsByFollowers } from '@/lib/queries/analytics';
 import { env } from '@/lib/env';
@@ -15,7 +15,7 @@ function formatLastUpdate(date: Date | null): string {
 }
 
 export default async function AdminStatsPage(): Promise<ReactElement> {
-  await requireRole('admin', '/admin/login');
+  await requirePermission('analytics', 'read');
 
   const [topCreators, staleCreators, shares] = await Promise.all([
     getTopCreatorsByFollowers(20),

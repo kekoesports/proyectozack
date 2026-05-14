@@ -1,6 +1,6 @@
 'use server';
 
-import { requireRole } from '@/lib/auth-guard';
+import { requirePermission } from '@/lib/permissions';
 import { exportCrmData, serializeBackup, buildBackupFileName } from '@/lib/backup/export-data';
 import { uploadToDrive, listDriveBackups } from '@/lib/backup/drive-upload';
 import type { DriveFile } from '@/lib/backup/drive-upload';
@@ -13,7 +13,7 @@ type BackupResult =
 // ── Crear backup manual ───────────────────────────────────────────────
 
 export async function createManualBackupAction(): Promise<BackupResult> {
-  await requireRole('admin', '/admin/login');
+  await requirePermission('ajustes', 'write');
 
   const cfg = getDriveConfig();
   if (!cfg.ok) return { success: false, error: cfg.error };
@@ -43,7 +43,7 @@ export async function listBackupsAction(): Promise<
   | { success: true;  files: readonly DriveFile[] }
   | { success: false; error: string }
 > {
-  await requireRole('admin', '/admin/login');
+  await requirePermission('ajustes', 'write');
 
   const cfg = getDriveConfig();
   if (!cfg.ok) return { success: false, error: cfg.error };

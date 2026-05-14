@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import { requireAnyRole } from '@/lib/auth-guard';
+import { requirePermission } from '@/lib/permissions';
 import { AdminPageHeader } from '@/features/admin/_shared/components/AdminPageHeader';
 import { getAllTalentsLiveStatus } from '@/lib/queries/live';
 import { setFeaturedLiveAction, setExcludeFromLiveAction, setFeaturedFallbackAction } from './actions';
@@ -25,7 +25,7 @@ function Toggle({ active, onClass = 'bg-sp-orange', offClass = 'bg-sp-admin-bord
 }
 
 export default async function AdminLivePage() {
-  await requireAnyRole(['admin', 'manager'], '/admin/login');
+  await requirePermission('talentos', 'write');
   const talents = await getAllTalentsLiveStatus();
   const now = new Date().getTime();
 
