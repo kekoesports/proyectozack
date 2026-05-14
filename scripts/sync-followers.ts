@@ -1,9 +1,11 @@
 /**
  * Sync real follower counts from YouTube and Twitch APIs.
- * Updates followers_display in talent_socials for all yt and twitch rows.
+ * Updates followers_display in talent_socials for all youtube and twitch rows.
  *
- * Run: npx tsx scripts/sync-followers.ts
- * Dry run: npx tsx scripts/sync-followers.ts --dry-run
+ * Run:          npx tsx scripts/sync-followers.ts --dry-run   ← preview only
+ * Real sync:    npx tsx scripts/sync-followers.ts             ← writes to DB
+ *
+ * Skips: instagram, tiktok, x, kick (no reliable API yet)
  */
 import { readFileSync } from 'fs';
 import { join } from 'path';
@@ -19,60 +21,71 @@ try {
     const eqIdx = trimmed.indexOf('=');
     if (eqIdx === -1) continue;
     const key = trimmed.slice(0, eqIdx).trim();
-    const val = trimmed.slice(eqIdx + 1).trim();
+    let val = trimmed.slice(eqIdx + 1).trim();
+    if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
+      val = val.slice(1, -1);
+    }
     if (key && val && !process.env[key]) process.env[key] = val;
   }
 } catch {}
 
 // ── Config ───────────────────────────────────────────────────────────────────
-const DRY_RUN = process.argv.includes('--dry-run');
-const YT_API_KEY = process.env.YOUTUBE_API_KEY!;
-const TWITCH_CLIENT_ID = process.env.TWITCH_CLIENT_ID!;
-const TWITCH_CLIENT_SECRET = process.env.TWITCH_CLIENT_SECRET!;
-const DATABASE_URL = process.env.DATABASE_URL!;
+const DRY_RUN       = process.argv.includes('--dry-run');
+const YT_API_KEY    = process.env.YOUTUBE_API_KEY ?? '';
+const TW_CLIENT_ID  = process.env.TWITCH_CLIENT_ID ?? '';
+const TW_SECRET     = process.env.TWITCH_CLIENT_SECRET ?? '';
+const DATABASE_URL  = process.env.DATABASE_URL ?? '';
 
-if (!DATABASE_URL) { console.error('DATABASE_URL not set'); process.exit(1); }
-if (!YT_API_KEY) { console.error('YOUTUBE_API_KEY not set'); process.exit(1); }
-if (!TWITCH_CLIENT_ID || !TWITCH_CLIENT_SECRET) { console.error('TWITCH_CLIENT_ID / TWITCH_CLIENT_SECRET not set'); process.exit(1); }
+// Thresholds for warnings
+const WARN_CHANGE_PCT  = 30;  // warn if change > 30%
+const WARN_DROP_PCT    = 20;  // warn specifically if drop > 20% (suspicious)
 
-// ── Format helpers ───────────────────────────────────────────────────────────
+if (!DATABASE_URL) { console.error('❌ DATABASE_URL not set'); process.exit(1); }
 
-/** Format a raw subscriber/follower count to display string: "63", "1.2K", "95K", "1.2M" */
+// ── Format helpers ────────────────────────────────────────────────────────────
+
 function formatCount(n: number): string {
   if (n >= 1_000_000) return `${parseFloat((n / 1_000_000).toFixed(1))}M`;
-  if (n >= 1_000) return `${parseFloat((n / 1_000).toFixed(1))}K`;
+  if (n >= 1_000)     return `${parseFloat((n / 1_000).toFixed(1))}K`;
   return String(n);
 }
 
-// ── YouTube ──────────────────────────────────────────────────────────────────
+/** Parse display string to raw number for % comparison. Returns null if not parseable. */
+function parseDisplay(s: string): number | null {
+  if (!s || s === '-' || s === '—') return null;
+  const m = s.match(/^([\d.]+)([KkMm]?)$/);
+  if (!m) return null;
+  const num = parseFloat(m[1]);
+  const mul = m[2].toUpperCase() === 'K' ? 1000 : m[2].toUpperCase() === 'M' ? 1_000_000 : 1;
+  return num * mul;
+}
 
-/**
- * Extract the YouTube channel identifier from a profile_url.
- * Returns { type: 'id' | 'handle' | 'username' | 'custom', value: string }
- */
+function pct(oldVal: number, newVal: number): string {
+  if (oldVal === 0) return '+∞';
+  const diff = ((newVal - oldVal) / oldVal) * 100;
+  return `${diff >= 0 ? '+' : ''}${diff.toFixed(1)}%`;
+}
+
+// ── YouTube ───────────────────────────────────────────────────────────────────
+
 function parseYouTubeUrl(profileUrl: string): { type: string; value: string } | null {
   try {
-    // Strip query params and trailing slashes/paths like /videos
     const url = new URL(profileUrl);
-    const path = url.pathname.replace(/\/$/, '').replace(/\/videos$/, '').replace(/\/featured$/, '');
+    const path = url.pathname.replace(/\/$/, '')
+      .replace(/\/videos$/, '').replace(/\/featured$/, '').replace(/\/about$/, '');
 
-    // /channel/UCxxxxxxx
     const channelMatch = path.match(/^\/channel\/(UC[\w-]+)$/);
     if (channelMatch) return { type: 'id', value: channelMatch[1] };
 
-    // /@handle
     const handleMatch = path.match(/^\/@([\w.-]+)$/);
     if (handleMatch) return { type: 'handle', value: `@${handleMatch[1]}` };
 
-    // /c/customname
     const customMatch = path.match(/^\/c\/([\w.-]+)$/);
     if (customMatch) return { type: 'custom', value: customMatch[1] };
 
-    // /user/username
     const userMatch = path.match(/^\/user\/([\w.-]+)$/);
     if (userMatch) return { type: 'username', value: userMatch[1] };
 
-    // /rawname (e.g. /nikozfps, /German62hz, /p0melow)
     const rawMatch = path.match(/^\/([\w.-]+)$/);
     if (rawMatch) return { type: 'custom', value: rawMatch[1] };
 
@@ -82,69 +95,58 @@ function parseYouTubeUrl(profileUrl: string): { type: string; value: string } | 
   }
 }
 
-/** Fetch subscriber count for a YouTube channel. Returns null on failure. */
-async function fetchYouTubeSubscribers(profileUrl: string, handle: string): Promise<number | null> {
-  const parsed = parseYouTubeUrl(profileUrl);
-  if (!parsed) {
-    console.warn(`  [YT] Cannot parse URL: ${profileUrl}`);
-    return null;
-  }
+async function fetchYouTubeSubscribers(profileUrl: string, handle: string): Promise<{ count: number; channelId: string | null } | null> {
+  if (!YT_API_KEY) return null;
+
+  const parsed = profileUrl ? parseYouTubeUrl(profileUrl) : null;
+
+  // If handle starts with UC, it's already a channel ID
+  const directId = handle.startsWith('UC') ? handle : null;
 
   const base = 'https://www.googleapis.com/youtube/v3/channels';
-  let url: string;
 
-  if (parsed.type === 'id') {
-    url = `${base}?part=statistics&id=${encodeURIComponent(parsed.value)}&key=${YT_API_KEY}`;
-  } else if (parsed.type === 'handle') {
-    // forHandle requires the @ prefix
-    url = `${base}?part=statistics&forHandle=${encodeURIComponent(parsed.value)}&key=${YT_API_KEY}`;
-  } else {
-    // custom / username — use forUsername (legacy but still works for many)
-    url = `${base}?part=statistics&forUsername=${encodeURIComponent(parsed.value)}&key=${YT_API_KEY}`;
+  async function tryFetch(param: string, paramType: string): Promise<{ count: number; channelId: string } | null> {
+    const url = `${base}?part=statistics,id&${paramType}=${encodeURIComponent(param)}&key=${YT_API_KEY}`;
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const data = await res.json() as { items?: { id?: string; statistics?: { subscriberCount?: string; hiddenSubscriberCount?: boolean } }[] };
+    const item = data.items?.[0];
+    if (!item) return null;
+    if (item.statistics?.hiddenSubscriberCount) return null;
+    const count = item.statistics?.subscriberCount;
+    if (!count) return null;
+    return { count: parseInt(count, 10), channelId: item.id ?? '' };
   }
 
-  const res = await fetch(url);
-  if (!res.ok) {
-    console.warn(`  [YT] HTTP ${res.status} for ${handle}`);
-    return null;
-  }
-  const data = await res.json() as { items?: { statistics?: { subscriberCount?: string; hiddenSubscriberCount?: boolean } }[] };
-
-  const item = data.items?.[0];
-  if (!item) {
-    // forUsername failed → retry with forHandle using the handle column
-    if (parsed.type !== 'handle' && handle && !handle.startsWith('UC')) {
-      const fallbackHandle = handle.startsWith('@') ? handle : `@${handle}`;
-      const fallbackUrl = `${base}?part=statistics&forHandle=${encodeURIComponent(fallbackHandle)}&key=${YT_API_KEY}`;
-      const res2 = await fetch(fallbackUrl);
-      if (res2.ok) {
-        const data2 = await res2.json() as { items?: { statistics?: { subscriberCount?: string; hiddenSubscriberCount?: boolean } }[] };
-        const item2 = data2.items?.[0];
-        if (item2?.statistics?.hiddenSubscriberCount) return null; // channel hides subs
-        const count2 = item2?.statistics?.subscriberCount;
-        if (count2) return parseInt(count2, 10);
-      }
-    }
-    console.warn(`  [YT] No channel found for ${handle} (${profileUrl})`);
-    return null;
+  // Try in order: direct ID → profile_url → handle as @handle → handle as forUsername
+  if (directId) {
+    const r = await tryFetch(directId, 'id');
+    if (r) return { count: r.count, channelId: r.channelId };
   }
 
-  if (item.statistics?.hiddenSubscriberCount) {
-    console.warn(`  [YT] Hidden subscriber count for ${handle}`);
-    return null;
+  if (parsed) {
+    const paramType = parsed.type === 'id' ? 'id' : parsed.type === 'handle' ? 'forHandle' : 'forUsername';
+    const r = await tryFetch(parsed.value, paramType);
+    if (r) return { count: r.count, channelId: r.channelId };
   }
 
-  const count = item.statistics?.subscriberCount;
-  if (!count) return null;
-  return parseInt(count, 10);
+  // Fallback: treat handle as @handle
+  const cleanHandle = handle.replace(/^@/, '').trim();
+  if (cleanHandle && !cleanHandle.startsWith('http')) {
+    const r = await tryFetch(`@${cleanHandle}`, 'forHandle');
+    if (r) return { count: r.count, channelId: r.channelId };
+    const r2 = await tryFetch(cleanHandle, 'forUsername');
+    if (r2) return { count: r2.count, channelId: r2.channelId };
+  }
+
+  return null;
 }
 
-// ── Twitch ───────────────────────────────────────────────────────────────────
+// ── Twitch ────────────────────────────────────────────────────────────────────
 
-/** Get Twitch app access token via client credentials. */
 async function getTwitchToken(): Promise<string> {
   const res = await fetch(
-    `https://id.twitch.tv/oauth2/token?client_id=${TWITCH_CLIENT_ID}&client_secret=${TWITCH_CLIENT_SECRET}&grant_type=client_credentials`,
+    `https://id.twitch.tv/oauth2/token?client_id=${TW_CLIENT_ID}&client_secret=${TW_SECRET}&grant_type=client_credentials`,
     { method: 'POST' },
   );
   if (!res.ok) throw new Error(`Twitch token error: ${res.status}`);
@@ -152,139 +154,277 @@ async function getTwitchToken(): Promise<string> {
   return data.access_token;
 }
 
-/** Extract Twitch login from profile_url or handle. */
 function parseTwitchLogin(profileUrl: string | null, handle: string): string | null {
-  if (profileUrl) {
+  // Handle is sometimes "twitch.tv/name" or full URL
+  if (handle && !handle.startsWith('http') && !handle.includes('/') && handle.length > 0 && handle !== 'about') {
+    return handle.replace(/^@/, '').toLowerCase();
+  }
+  const urlToParse = profileUrl || (handle.startsWith('http') ? handle : null) || (handle.includes('/') ? `https://${handle}` : null);
+  if (urlToParse) {
     try {
-      const url = new URL(profileUrl);
-      // Strip trailing /about, /videos, /clips, etc. — keep only the channel segment
-      const path = url.pathname
-        .replace(/\/$/, '')
+      const url = new URL(urlToParse.startsWith('http') ? urlToParse : `https://${urlToParse}`);
+      const path = url.pathname.replace(/\/$/, '')
         .replace(/\/(about|videos|clips|schedule|squad|followers)$/, '');
       const match = path.match(/^\/([\w]+)$/);
       if (match) return match[1].toLowerCase();
     } catch {}
   }
-  // Fall back to handle (strip @ if present)
-  const clean = handle.replace(/^@/, '').trim();
-  if (clean && clean !== 'about') return clean || null;
   return null;
 }
 
-/** Fetch follower count for a Twitch channel. Returns null on failure. */
-async function fetchTwitchFollowers(token: string, profileUrl: string | null, handle: string): Promise<number | null> {
+async function fetchTwitchFollowers(token: string, profileUrl: string | null, handle: string): Promise<{ count: number; userId: string } | null> {
   const login = parseTwitchLogin(profileUrl, handle);
-  if (!login) {
-    console.warn(`  [TW] Cannot parse login from handle="${handle}" url="${profileUrl}"`);
-    return null;
-  }
+  if (!login) return null;
 
-  // First get user ID from login
   const userRes = await fetch(
     `https://api.twitch.tv/helix/users?login=${encodeURIComponent(login)}`,
-    { headers: { 'Client-ID': TWITCH_CLIENT_ID, 'Authorization': `Bearer ${token}` } },
+    { headers: { 'Client-ID': TW_CLIENT_ID, 'Authorization': `Bearer ${token}` } },
   );
-  if (!userRes.ok) {
-    console.warn(`  [TW] HTTP ${userRes.status} getting user for ${login}`);
-    return null;
-  }
+  if (!userRes.ok) return null;
   const userData = await userRes.json() as { data?: { id: string }[] };
   const userId = userData.data?.[0]?.id;
-  if (!userId) {
-    console.warn(`  [TW] User not found: ${login}`);
-    return null;
-  }
+  if (!userId) return null;
 
-  // Then get follower count
   const follRes = await fetch(
     `https://api.twitch.tv/helix/channels/followers?broadcaster_id=${userId}`,
-    { headers: { 'Client-ID': TWITCH_CLIENT_ID, 'Authorization': `Bearer ${token}` } },
+    { headers: { 'Client-ID': TW_CLIENT_ID, 'Authorization': `Bearer ${token}` } },
   );
-  if (!follRes.ok) {
-    console.warn(`  [TW] HTTP ${follRes.status} getting followers for ${login}`);
-    return null;
-  }
+  if (!follRes.ok) return null;
   const follData = await follRes.json() as { total?: number };
   if (follData.total === undefined) return null;
-  return follData.total;
+  return { count: follData.total, userId };
 }
 
-// ── Main ─────────────────────────────────────────────────────────────────────
+// ── Main ──────────────────────────────────────────────────────────────────────
 
 async function main() {
   const sql = neon(DATABASE_URL);
+  const today = new Date().toISOString().slice(0, 10);
 
-  console.log(`\n🔄 Syncing followers${DRY_RUN ? ' (DRY RUN — no DB writes)' : ''}\n`);
+  const mode = DRY_RUN ? '🔍 DRY RUN — no DB writes' : '✏️  LIVE SYNC — will write to DB';
+  console.log(`\n${mode}\n${'─'.repeat(60)}`);
 
-  // Fetch all yt and twitch socials
+  // ── API key checks ───────────────────────────────────────────────────────
+  const hasYT = !!YT_API_KEY;
+  const hasTW = !!(TW_CLIENT_ID && TW_SECRET);
+  console.log(`YouTube API key: ${hasYT ? '✅ set' : '❌ NOT SET — will skip YouTube'}`);
+  console.log(`Twitch credentials: ${hasTW ? '✅ set' : '❌ NOT SET — will skip Twitch'}\n`);
+
+  // ── Fetch rows — platform 'youtube' and 'twitch' (NOT 'yt'/'tw') ─────────
+  type SocialRow = {
+    id: number; talent_id: number; platform: string; handle: string;
+    profile_url: string | null; followers_display: string;
+    platform_id: string | null; name: string; slug: string;
+  };
+
   const rows = await sql`
-    SELECT ts.id, ts.platform, ts.handle, ts.profile_url, ts.followers_display, t.name
+    SELECT ts.id, ts.talent_id, ts.platform, ts.handle,
+           ts.profile_url, ts.followers_display, ts.platform_id,
+           t.name, t.slug
     FROM talent_socials ts
     JOIN talents t ON t.id = ts.talent_id
-    WHERE ts.platform IN ('yt', 'twitch')
+    WHERE ts.platform IN ('youtube', 'twitch')
     ORDER BY ts.platform, t.name
-  ` as { id: number; platform: string; handle: string; profile_url: string | null; followers_display: string; name: string }[];
+  ` as SocialRow[];
 
-  console.log(`Found ${rows.length} rows to sync (${rows.filter(r => r.platform === 'yt').length} YT, ${rows.filter(r => r.platform === 'twitch').length} Twitch)\n`);
+  const ytRows = rows.filter(r => r.platform === 'youtube');
+  const twRows = rows.filter(r => r.platform === 'twitch');
+  console.log(`Rows to process: ${ytRows.length} YouTube + ${twRows.length} Twitch = ${rows.length} total\n`);
 
-  // Get Twitch token once — continue with YouTube-only if Twitch auth fails
-  console.log('Getting Twitch token...');
-  let twitchToken: string | null = null;
-  try {
-    twitchToken = await getTwitchToken();
-    console.log('Twitch token OK\n');
-  } catch (err) {
-    console.warn(`⚠️  Twitch auth failed (${(err as Error).message}) — skipping Twitch rows, continuing YouTube sync\n`);
+  // ── Warn about missing platformId ────────────────────────────────────────
+  const missingPlatformId = rows.filter(r => !r.platform_id);
+  if (missingPlatformId.length > 0) {
+    console.log(`⚠️  ${missingPlatformId.length} rows missing platform_id (will try to resolve from URL/handle):`);
+    missingPlatformId.forEach(r =>
+      console.log(`   [${r.platform}] ${r.name} handle="${r.handle}" url="${r.profile_url ?? 'NULL'}"`)
+    );
+    console.log();
   }
 
-  let updated = 0;
-  let skipped = 0;
-  let failed = 0;
+  // ── Twitch auth ──────────────────────────────────────────────────────────
+  let twitchToken: string | null = null;
+  if (hasTW) {
+    process.stdout.write('Authenticating with Twitch... ');
+    try {
+      twitchToken = await getTwitchToken();
+      console.log('✅\n');
+    } catch (err) {
+      console.log(`❌ ${(err as Error).message} — skipping Twitch\n`);
+    }
+  }
+
+  // ── Process rows ─────────────────────────────────────────────────────────
+  const results: Array<{
+    row: SocialRow;
+    newCount: number | null;
+    newDisplay: string | null;
+    newPlatformId: string | null;
+    status: 'update' | 'unchanged' | 'failed' | 'skipped';
+    warning?: string;
+  }> = [];
 
   for (const row of rows) {
-    const prefix = row.platform === 'yt' ? '[YT]' : '[TW]';
-    process.stdout.write(`${prefix} ${row.name} (${row.handle})... `);
+    const tag = row.platform === 'youtube' ? '[YT]' : '[TW]';
 
-    let count: number | null = null;
+    // Skip if no API credentials
+    if (row.platform === 'youtube' && !hasYT) {
+      results.push({ row, newCount: null, newDisplay: null, newPlatformId: null, status: 'skipped' });
+      continue;
+    }
+    if (row.platform === 'twitch' && !twitchToken) {
+      results.push({ row, newCount: null, newDisplay: null, newPlatformId: null, status: 'skipped' });
+      continue;
+    }
 
-    if (row.platform === 'yt') {
-      count = await fetchYouTubeSubscribers(row.profile_url ?? '', row.handle);
-    } else {
-      if (!twitchToken) {
-        console.log('SKIPPED (no Twitch token)');
-        skipped++;
-        continue;
+    process.stdout.write(`${tag} ${row.name} (${row.handle.slice(0, 30)})... `);
+
+    let result: { count: number; platformId: string | null } | null = null;
+
+    try {
+      if (row.platform === 'youtube') {
+        const r = await fetchYouTubeSubscribers(row.profile_url ?? '', row.handle);
+        if (r) result = { count: r.count, platformId: r.channelId };
+      } else {
+        if (!twitchToken) { console.log('SKIPPED'); results.push({ row, newCount: null, newDisplay: null, newPlatformId: null, status: 'skipped' }); continue; }
+        const r = await fetchTwitchFollowers(twitchToken, row.profile_url, row.handle);
+        if (r) result = { count: r.count, platformId: r.userId };
       }
-      count = await fetchTwitchFollowers(twitchToken, row.profile_url, row.handle);
-    }
-
-    if (count === null) {
-      console.log(`FAILED (keeping "${row.followers_display}")`);
-      failed++;
+    } catch (err) {
+      console.log(`ERROR (${(err as Error).message})`);
+      results.push({ row, newCount: null, newDisplay: null, newPlatformId: null, status: 'failed' });
       continue;
     }
 
-    const display = formatCount(count);
-
-    if (display === row.followers_display) {
-      console.log(`unchanged (${display})`);
-      skipped++;
+    if (!result) {
+      console.log(`FAILED — cannot resolve channel`);
+      results.push({ row, newCount: null, newDisplay: null, newPlatformId: null, status: 'failed' });
       continue;
     }
 
-    console.log(`${row.followers_display} → ${display} (${count.toLocaleString()})`);
+    const newDisplay = formatCount(result.count);
+    const newPlatformId = result.platformId && result.platformId !== row.platform_id ? result.platformId : null;
+    const oldNum = parseDisplay(row.followers_display);
 
-    if (!DRY_RUN) {
-      await sql`UPDATE talent_socials SET followers_display = ${display} WHERE id = ${row.id}`;
+    // Build warning if needed
+    let warning: string | undefined;
+    if (oldNum !== null) {
+      const changePct = Math.abs(((result.count - oldNum) / oldNum) * 100);
+      const drop = result.count < oldNum;
+      if (changePct > WARN_CHANGE_PCT) {
+        warning = `⚠️  Large change ${pct(oldNum, result.count)} (${row.followers_display} → ${newDisplay})`;
+        if (drop && changePct > WARN_DROP_PCT) {
+          warning = `🚨 SUSPICIOUS DROP ${pct(oldNum, result.count)} (${row.followers_display} → ${newDisplay}) — verify manually`;
+        }
+      }
     }
-    updated++;
 
-    // Small delay to avoid rate limits
-    await new Promise(r => setTimeout(r, 100));
+    const displayChanged = newDisplay !== row.followers_display;
+    const platformIdChanged = !!newPlatformId;
+
+    if (!displayChanged && !platformIdChanged) {
+      console.log(`unchanged (${newDisplay})`);
+      results.push({ row, newCount: result.count, newDisplay, newPlatformId: null, status: 'unchanged' });
+    } else {
+      const changes: string[] = [];
+      if (displayChanged) changes.push(`${row.followers_display} → ${newDisplay}`);
+      if (platformIdChanged) changes.push(`platformId: ${row.platform_id ?? 'null'} → ${newPlatformId}`);
+      console.log(changes.join(' | '));
+      if (warning) console.log(`   ${warning}`);
+      results.push({ row, newCount: result.count, newDisplay, newPlatformId, status: 'update', warning });
+    }
+
+    await new Promise(r => setTimeout(r, 150)); // gentle rate limiting
   }
 
-  console.log(`\n✅ Done: ${updated} updated, ${skipped} unchanged, ${failed} failed`);
-  if (DRY_RUN) console.log('(DRY RUN — no changes written to DB)');
+  // ── Summary ───────────────────────────────────────────────────────────────
+  const toUpdate  = results.filter(r => r.status === 'update');
+  const unchanged = results.filter(r => r.status === 'unchanged');
+  const failed    = results.filter(r => r.status === 'failed');
+  const skipped   = results.filter(r => r.status === 'skipped');
+  const warnings  = results.filter(r => r.warning);
+
+  console.log('\n' + '─'.repeat(60));
+  console.log(`📊 Summary:`);
+  console.log(`   ${toUpdate.length} to update`);
+  console.log(`   ${unchanged.length} unchanged`);
+  console.log(`   ${failed.length} failed`);
+  console.log(`   ${skipped.length} skipped (no API key)`);
+
+  if (warnings.length > 0) {
+    console.log(`\n⚠️  Warnings (${warnings.length}):`);
+    warnings.forEach(r => console.log(`   ${r.warning} — ${r.row.name} [${r.row.platform}]`));
+  }
+
+  if (toUpdate.length > 0) {
+    console.log(`\n✏️  Proposed updates:`);
+    toUpdate.forEach(r => {
+      const parts = [];
+      if (r.newDisplay !== r.row.followers_display) parts.push(`followers: ${r.row.followers_display} → ${r.newDisplay}`);
+      if (r.newPlatformId) parts.push(`platformId: ${r.row.platform_id ?? 'null'} → ${r.newPlatformId}`);
+      console.log(`   ${r.row.name} [${r.row.platform}] — ${parts.join(' | ')}${r.warning ? ' ← ' + r.warning : ''}`);
+    });
+  }
+
+  if (DRY_RUN) {
+    console.log('\n🔍 DRY RUN complete — no changes written.');
+    console.log('Remove --dry-run to apply changes.\n');
+    return;
+  }
+
+  // ── Apply updates ─────────────────────────────────────────────────────────
+  if (toUpdate.length === 0) {
+    console.log('\n✅ Nothing to update.\n');
+    return;
+  }
+
+  console.log(`\nApplying ${toUpdate.length} updates...`);
+  let applied = 0;
+
+  for (const r of toUpdate) {
+    if (r.newDisplay === null) continue;
+
+    // 1. Update followers_display (and platformId if newly resolved)
+    if (r.newPlatformId) {
+      await sql`
+        UPDATE talent_socials
+        SET followers_display = ${r.newDisplay}, platform_id = ${r.newPlatformId}
+        WHERE id = ${r.row.id}
+      `;
+    } else {
+      await sql`
+        UPDATE talent_socials
+        SET followers_display = ${r.newDisplay}
+        WHERE id = ${r.row.id}
+      `;
+    }
+
+    // 2. Update lastStatsUpdateAt on the talent
+    await sql`
+      UPDATE talents SET last_stats_update_at = NOW()
+      WHERE id = ${r.row.talent_id}
+    `;
+
+    // 3. Insert snapshot with dataSource
+    const metricType = r.row.platform === 'youtube' ? 'subscribers' : 'followers';
+    const dataSource = r.row.platform === 'youtube' ? 'youtube_api' : 'twitch_api';
+    try {
+      await sql`
+        INSERT INTO talent_metric_snapshots
+          (talent_id, platform, metric_type, value, snapshot_date, data_source)
+        VALUES
+          (${r.row.talent_id}, ${r.row.platform}, ${metricType}, ${r.newCount!}, ${today}, ${dataSource})
+        ON CONFLICT (talent_id, platform, metric_type, snapshot_date)
+        DO UPDATE SET value = EXCLUDED.value, data_source = EXCLUDED.data_source
+      `;
+    } catch {
+      // Snapshot insert failure is non-fatal
+    }
+
+    applied++;
+    console.log(`  ✅ ${r.row.name} [${r.row.platform}] → ${r.newDisplay}`);
+  }
+
+  console.log(`\n✅ Done: ${applied} records updated, ${failed.length} failed, ${unchanged.length} unchanged.\n`);
 }
 
 main().catch(err => { console.error('\nFatal error:', err); process.exit(1); });
