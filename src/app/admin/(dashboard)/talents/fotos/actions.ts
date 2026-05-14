@@ -45,12 +45,17 @@ export async function uploadTalentPhotoAction(
     const lastDot = fileEntry.name.lastIndexOf('.');
     const ext = lastDot >= 0 ? fileEntry.name.slice(lastDot + 1).toLowerCase() : 'jpg';
     const blob = await put(`talents/${id}-${Date.now()}.${ext}`, fileEntry, {
-      access: 'public',
+      access: 'private',   // store is private-only — proxy serves it publicly
       contentType: fileEntry.type,
     });
 
+    void blob; // blob.url stored implicitly via Vercel Blob list(); proxy uses it
+
+    // Public proxy URL — always valid, lists latest blob by prefix talents/{id}-*
+    const publicPhotoUrl = `/api/talent-photo/${id}`;
+
     const talent = await db.select({ slug: talents.slug }).from(talents).where(eq(talents.id, id)).limit(1);
-    await db.update(talents).set({ photoUrl: blob.url }).where(eq(talents.id, id));
+    await db.update(talents).set({ photoUrl: publicPhotoUrl }).where(eq(talents.id, id));
 
     revalidatePath('/admin/talents');
     revalidatePath(`/admin/talents/${id}`);
@@ -60,7 +65,7 @@ export async function uploadTalentPhotoAction(
     if (talent[0]?.slug) revalidatePath(`/talentos/${talent[0].slug}`);
     revalidatePath('/');
 
-    return { success: true, photoUrl: blob.url };
+    return { success: true, photoUrl: publicPhotoUrl };
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     logRedacted('error', '[admin] uploadTalentPhoto error:', msg);
