@@ -28,6 +28,7 @@ function revalidateAll(talentSlug?: string): void {
   revalidatePath('/admin/giveaways');
   revalidatePath('/giveaways');
   if (talentSlug) {
+    revalidatePath(`/talentos/${talentSlug}`);
     revalidatePath(`/creadores/${talentSlug}`);
     revalidatePath(`/${talentSlug}`);
   }
