@@ -3,8 +3,6 @@
 import { useState, useTransition } from 'react';
 import { upsertTalentSocialsAction, type SocialEntryInput } from '@/app/admin/(dashboard)/talents/actions';
 
-// ── Tipos y constantes ────────────────────────────────────────────────────────
-
 type ExistingSocial = {
   readonly id:               number;
   readonly platform:         string;
@@ -23,40 +21,32 @@ type Row = {
 };
 
 const PLATFORMS = [
-  { value: 'twitch',    label: 'Twitch',    color: '#9147ff' },
-  { value: 'youtube',   label: 'YouTube',   color: '#ff0000' },
-  { value: 'kick',      label: 'Kick',      color: '#53fc18' },
-  { value: 'instagram', label: 'Instagram', color: '#e1306c' },
-  { value: 'tiktok',    label: 'TikTok',    color: '#010101' },
-  { value: 'x',         label: 'X / Twitter', color: '#1da1f2' },
-  { value: 'discord',   label: 'Discord',   color: '#5865F2' },
+  { value: 'twitch',    label: 'Twitch' },
+  { value: 'youtube',   label: 'YouTube' },
+  { value: 'kick',      label: 'Kick' },
+  { value: 'instagram', label: 'Instagram' },
+  { value: 'tiktok',    label: 'TikTok' },
+  { value: 'x',         label: 'X / Twitter' },
+  { value: 'discord',   label: 'Discord' },
 ];
 
-const inputCls = 'w-full rounded-md border border-sp-admin-border bg-sp-admin-bg px-2.5 py-1.5 text-sm text-sp-admin-text placeholder:text-sp-admin-muted/60 focus:outline-none focus:border-sp-admin-accent/50';
+const inputCls = 'w-full rounded-md border border-sp-admin-border bg-sp-admin-bg px-3 py-2 text-sm text-sp-admin-text placeholder:text-sp-admin-muted/60 focus:outline-none focus:border-sp-admin-accent/50';
+const labelCls = 'block text-[10px] font-bold uppercase tracking-wider text-sp-admin-muted mb-1';
 
 function toRow(s: ExistingSocial): Row {
   return { id: s.id, platform: s.platform, handle: s.handle, profileUrl: s.profileUrl ?? '', followersDisplay: s.followersDisplay };
 }
-
-// ── Componente ────────────────────────────────────────────────────────────────
 
 type Props = {
   readonly talentId: number;
   readonly socials:  readonly ExistingSocial[];
 };
 
-/**
- * Editor inline de redes sociales de un talento.
- * Permite añadir, editar y eliminar plataformas.
- *
- * @kind client
- * @feature admin/talents
- */
 export function TalentSocialsEditor({ talentId, socials }: Props): React.ReactElement {
-  const [rows, setRows]         = useState<Row[]>(socials.length > 0 ? socials.map(toRow) : [{ platform: 'twitch', handle: '', profileUrl: '', followersDisplay: '-' }]);
-  const [isPending, startTr]    = useTransition();
-  const [saved, setSaved]       = useState(false);
-  const [error, setError]       = useState('');
+  const [rows, setRows]       = useState<Row[]>(socials.length > 0 ? socials.map(toRow) : [{ platform: 'twitch', handle: '', profileUrl: '', followersDisplay: '-' }]);
+  const [isPending, startTr]  = useTransition();
+  const [saved, setSaved]     = useState(false);
+  const [error, setError]     = useState('');
 
   function update(idx: number, field: keyof Row, value: string): void {
     setSaved(false);
@@ -76,7 +66,6 @@ export function TalentSocialsEditor({ talentId, socials }: Props): React.ReactEl
   function handleSave(): void {
     setError('');
     setSaved(false);
-
     const entries: SocialEntryInput[] = rows.map((r, i) => {
       const base = {
         platform:         r.platform,
@@ -87,7 +76,6 @@ export function TalentSocialsEditor({ talentId, socials }: Props): React.ReactEl
       };
       return r.id ? { ...base, id: r.id } : base;
     });
-
     startTr(async () => {
       const res = await upsertTalentSocialsAction(talentId, entries);
       if (res.ok) { setSaved(true); }
@@ -98,67 +86,68 @@ export function TalentSocialsEditor({ talentId, socials }: Props): React.ReactEl
   return (
     <div className="space-y-3">
 
-      {/* Filas de redes */}
+      {/* Una tarjeta por red social */}
       {rows.map((row, idx) => (
-        <div key={idx} className="grid grid-cols-[140px_1fr_1fr_80px_28px] gap-2 items-start">
-          {/* Plataforma */}
-          <select
-            value={row.platform}
-            onChange={(e) => update(idx, 'platform', e.target.value)}
-            className={inputCls}
-          >
-            {PLATFORMS.map((p) => (
-              <option key={p.value} value={p.value}>{p.label}</option>
-            ))}
-          </select>
+        <div key={idx} className="rounded-lg border border-sp-admin-border bg-sp-admin-bg/50 p-3 space-y-2.5">
+          {/* Fila 1: Plataforma + Seguidores + quitar */}
+          <div className="flex items-end gap-2">
+            <div className="flex-1">
+              <label className={labelCls}>Plataforma</label>
+              <select
+                value={row.platform}
+                onChange={(e) => update(idx, 'platform', e.target.value)}
+                className={inputCls}
+              >
+                {PLATFORMS.map((p) => (
+                  <option key={p.value} value={p.value}>{p.label}</option>
+                ))}
+              </select>
+            </div>
+            <div className="w-28">
+              <label className={labelCls}>Seguidores</label>
+              <input
+                value={row.followersDisplay}
+                onChange={(e) => update(idx, 'followersDisplay', e.target.value)}
+                placeholder="17.4K"
+                className={inputCls}
+                maxLength={20}
+              />
+            </div>
+            <button
+              type="button"
+              onClick={() => removeRow(idx)}
+              disabled={rows.length <= 1}
+              className="mb-0.5 h-9 w-9 flex items-center justify-center rounded-lg border border-sp-admin-border text-sp-admin-muted hover:text-red-500 hover:border-red-300 transition-colors disabled:opacity-30 text-sm shrink-0"
+              title="Eliminar red"
+            >
+              ✕
+            </button>
+          </div>
 
-          {/* Handle */}
-          <input
-            value={row.handle}
-            onChange={(e) => update(idx, 'handle', e.target.value)}
-            placeholder="@handle o nombre"
-            className={inputCls}
-          />
+          {/* Fila 2: Handle */}
+          <div>
+            <label className={labelCls}>Handle / Nombre de usuario</label>
+            <input
+              value={row.handle}
+              onChange={(e) => update(idx, 'handle', e.target.value)}
+              placeholder="@todocs2 o nombre del canal"
+              className={inputCls}
+            />
+          </div>
 
-          {/* URL de perfil */}
-          <input
-            value={row.profileUrl}
-            onChange={(e) => update(idx, 'profileUrl', e.target.value)}
-            placeholder="https://twitch.tv/..."
-            type="url"
-            className={inputCls}
-          />
-
-          {/* Seguidores */}
-          <input
-            value={row.followersDisplay}
-            onChange={(e) => update(idx, 'followersDisplay', e.target.value)}
-            placeholder="17.4K"
-            className={inputCls}
-            maxLength={20}
-          />
-
-          {/* Quitar */}
-          <button
-            type="button"
-            onClick={() => removeRow(idx)}
-            disabled={rows.length <= 1}
-            className="h-8 w-7 flex items-center justify-center rounded text-sp-admin-muted hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-30 text-sm"
-            title="Eliminar red"
-          >
-            ✕
-          </button>
+          {/* Fila 3: URL */}
+          <div>
+            <label className={labelCls}>URL del perfil</label>
+            <input
+              value={row.profileUrl}
+              onChange={(e) => update(idx, 'profileUrl', e.target.value)}
+              placeholder="https://twitch.tv/todocs2"
+              type="url"
+              className={inputCls}
+            />
+          </div>
         </div>
       ))}
-
-      {/* Cabeceras de columna (solo visual, arriba del primer row) */}
-      {rows.length > 0 && (
-        <div className="grid grid-cols-[140px_1fr_1fr_80px_28px] gap-2 -mt-2 order-first">
-          {['Plataforma', 'Handle / Nombre', 'URL del perfil', 'Seguidores', ''].map((h) => (
-            <p key={h} className="text-[10px] font-bold uppercase tracking-wider text-sp-admin-muted px-0.5">{h}</p>
-          ))}
-        </div>
-      )}
 
       {/* Acciones */}
       <div className="flex items-center gap-3 pt-1">
@@ -176,7 +165,7 @@ export function TalentSocialsEditor({ talentId, socials }: Props): React.ReactEl
           type="button"
           onClick={handleSave}
           disabled={isPending}
-          className="h-8 px-4 rounded-lg bg-sp-admin-accent text-white text-[12px] font-semibold hover:opacity-90 disabled:opacity-50 transition-opacity"
+          className="h-9 px-5 rounded-lg bg-sp-admin-accent text-white text-[13px] font-semibold hover:opacity-90 disabled:opacity-50 transition-opacity"
         >
           {isPending ? 'Guardando…' : 'Guardar redes'}
         </button>

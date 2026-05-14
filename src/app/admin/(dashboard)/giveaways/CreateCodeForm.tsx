@@ -6,6 +6,7 @@ import { createCodeAction } from './codes-actions';
 type Talent = { readonly id: number; readonly name: string; readonly slug?: string };
 
 const inputCls = 'w-full rounded-lg border border-sp-admin-border bg-sp-admin-bg px-3 py-2 text-sm text-sp-admin-text outline-none focus:border-sp-admin-accent transition-colors';
+const labelCls = 'block text-sm font-semibold text-sp-admin-muted mb-1';
 
 const BADGES = [
   { value: '',            label: 'Sin badge' },
@@ -25,45 +26,44 @@ const CATEGORIES = [
   { value: 'otros',     label: 'Otros' },
 ] as const;
 
-type CodeEntry = {
-  code:        string;
-  brandName:   string;
-  redirectUrl: string;
-  brandLogo:   string;
-  description: string;
-  ctaText:     string;
-  badge:       string;
-  category:    string;
-  isFeatured:  boolean;
-};
+// Un "variant" es un código+descripción dentro de la misma marca
+type CodeVariant = { code: string; description: string };
+const EMPTY_VARIANT = (): CodeVariant => ({ code: '', description: '' });
+const MAX_VARIANTS = 3;
 
-const EMPTY_CODE = (): CodeEntry => ({
-  code: '', brandName: '', redirectUrl: '', brandLogo: '',
-  description: '', ctaText: '', badge: '', category: '', isFeatured: false,
-});
-
-const MAX_CODES = 3;
+type SubmitResult = { variantIdx: number; ok: boolean; error?: string };
 
 export function CreateCodeForm({ talents }: { talents: readonly Talent[] }): React.ReactElement {
   const [isPending, startTransition] = useTransition();
-  const [talentId, setTalentId]     = useState('');
-  const [entries, setEntries]       = useState<CodeEntry[]>([EMPTY_CODE()]);
-  const [results, setResults]       = useState<(string | null)[]>([]);
+
+  // Datos compartidos de la marca
+  const [talentId,    setTalentId]    = useState('');
+  const [brandName,   setBrandName]   = useState('');
+  const [redirectUrl, setRedirectUrl] = useState('');
+  const [brandLogo,   setBrandLogo]   = useState('');
+  const [ctaText,     setCtaText]     = useState('');
+  const [badge,       setBadge]       = useState('');
+  const [category,    setCategory]    = useState('');
+  const [isFeatured,  setIsFeatured]  = useState(false);
+
+  // Variantes de código (mismo brand, distintos codes+descriptions)
+  const [variants, setVariants] = useState<CodeVariant[]>([EMPTY_VARIANT()]);
+  const [results,  setResults]  = useState<SubmitResult[]>([]);
   const [globalError, setGlobalError] = useState('');
 
   const talentSlug = talents.find((t) => String(t.id) === talentId)?.slug ?? '';
 
-  function updateEntry(idx: number, field: keyof CodeEntry, value: string | boolean): void {
-    setEntries((prev) => prev.map((e, i) => i === idx ? { ...e, [field]: value } : e));
+  function updateVariant(idx: number, field: keyof CodeVariant, value: string): void {
+    setVariants((prev) => prev.map((v, i) => i === idx ? { ...v, [field]: value } : v));
     setResults([]);
   }
 
-  function addEntry(): void {
-    if (entries.length < MAX_CODES) setEntries((prev) => [...prev, EMPTY_CODE()]);
+  function addVariant(): void {
+    if (variants.length < MAX_VARIANTS) setVariants((prev) => [...prev, EMPTY_VARIANT()]);
   }
 
-  function removeEntry(idx: number): void {
-    setEntries((prev) => prev.filter((_, i) => i !== idx));
+  function removeVariant(idx: number): void {
+    setVariants((prev) => prev.filter((_, i) => i !== idx));
     setResults([]);
   }
 
@@ -71,53 +71,53 @@ export function CreateCodeForm({ talents }: { talents: readonly Talent[] }): Rea
     e.preventDefault();
     setResults([]);
     setGlobalError('');
-
     if (!talentId) { setGlobalError('Selecciona un creador.'); return; }
+    if (!brandName.trim()) { setGlobalError('El nombre de la marca es obligatorio.'); return; }
 
     startTransition(async () => {
-      const newResults: (string | null)[] = [];
+      const newResults: SubmitResult[] = [];
       let allOk = true;
 
-      for (const entry of entries) {
+      for (const [i, variant] of variants.entries()) {
         const fd = new FormData();
         fd.set('talentId',    talentId);
         fd.set('talentSlug',  talentSlug);
-        fd.set('code',        entry.code);
-        fd.set('brandName',   entry.brandName);
-        fd.set('redirectUrl', entry.redirectUrl);
-        fd.set('brandLogo',   entry.brandLogo);
-        fd.set('description', entry.description);
-        fd.set('ctaText',     entry.ctaText);
-        fd.set('badge',       entry.badge);
-        fd.set('category',    entry.category);
-        if (entry.isFeatured) fd.set('isFeatured', 'on');
+        fd.set('code',        variant.code);
+        fd.set('brandName',   brandName);
+        fd.set('redirectUrl', redirectUrl);
+        fd.set('brandLogo',   brandLogo);
+        fd.set('description', variant.description);
+        fd.set('ctaText',     ctaText);
+        fd.set('badge',       badge);
+        fd.set('category',    category);
+        if (isFeatured) fd.set('isFeatured', 'on');
 
         const res = await createCodeAction(fd);
         if (res.ok) {
-          newResults.push(null);
+          newResults.push({ variantIdx: i, ok: true });
         } else {
           allOk = false;
-          const msgs = Object.values(res.fieldErrors).flat();
-          newResults.push(msgs[0] ?? 'Error desconocido');
+          const msg = Object.values(res.fieldErrors).flat()[0] ?? 'Error';
+          newResults.push({ variantIdx: i, ok: false, error: msg });
         }
       }
 
       setResults(newResults);
       if (allOk) {
-        setEntries([EMPTY_CODE()]);
-        setTalentId('');
+        // Reset solo códigos; mantener brand por si quieren añadir más
+        setVariants([EMPTY_VARIANT()]);
       }
     });
   }
 
-  const allCreated = results.length > 0 && results.every((r) => r === null);
+  const allOk = results.length > 0 && results.every((r) => r.ok);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
 
-      {/* Creador compartido */}
+      {/* Creador */}
       <div>
-        <label className="block text-sm font-semibold text-sp-admin-muted mb-1">Creador</label>
+        <label className={labelCls}>Creador *</label>
         <select value={talentId} onChange={(e) => setTalentId(e.target.value)} required className={inputCls}>
           <option value="">Seleccionar...</option>
           {talents.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
@@ -125,120 +125,108 @@ export function CreateCodeForm({ talents }: { talents: readonly Talent[] }): Rea
         {globalError && <p className="text-xs text-red-400 mt-1">{globalError}</p>}
       </div>
 
-      {/* Entradas de código (máx 3) */}
-      {entries.map((entry, idx) => (
-        <div key={idx} className="rounded-xl border border-sp-admin-border bg-sp-admin-card p-4 space-y-3">
-          {/* Cabecera entrada */}
-          <div className="flex items-center justify-between mb-1">
-            <p className="text-[11px] font-bold uppercase tracking-wider text-sp-admin-muted">
-              Código {entries.length > 1 ? `#${idx + 1}` : ''}
-            </p>
-            {entries.length > 1 && (
-              <button
-                type="button"
-                onClick={() => removeEntry(idx)}
-                className="text-[11px] text-red-400 hover:text-red-300 transition-colors"
-              >
-                ✕ Quitar
-              </button>
+      {/* Datos de la marca (compartidos por todos los códigos) */}
+      <div className="rounded-xl border border-sp-admin-border bg-sp-admin-card p-4 space-y-3">
+        <p className="text-[11px] font-bold uppercase tracking-wider text-sp-admin-muted">Datos de la marca</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div>
+            <label className={labelCls}>Marca *</label>
+            <input value={brandName} onChange={(e) => setBrandName(e.target.value)} required maxLength={150} placeholder="SkinClub" className={inputCls} />
+          </div>
+          <div>
+            <label className={labelCls}>URL de redirección *</label>
+            <input value={redirectUrl} onChange={(e) => setRedirectUrl(e.target.value)} type="url" required placeholder="https://..." className={inputCls} />
+          </div>
+          <div>
+            <label className={labelCls}>Logo marca (URL)</label>
+            <input value={brandLogo} onChange={(e) => setBrandLogo(e.target.value)} type="url" placeholder="https://i.imgur.com/..." className={inputCls} />
+          </div>
+          <div>
+            <label className={labelCls}>CTA personalizado</label>
+            <input value={ctaText} onChange={(e) => setCtaText(e.target.value)} maxLength={100} placeholder="Activar bonus" className={inputCls} />
+          </div>
+          <div>
+            <label className={labelCls}>Badge</label>
+            <select value={badge} onChange={(e) => setBadge(e.target.value)} className={inputCls}>
+              {BADGES.map((b) => <option key={b.value} value={b.value}>{b.label}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className={labelCls}>Categoría</label>
+            <select value={category} onChange={(e) => setCategory(e.target.value)} className={inputCls}>
+              {CATEGORIES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
+            </select>
+          </div>
+          <div className="md:col-span-2 flex items-center gap-3">
+            <input type="checkbox" id="isFeatured" checked={isFeatured} onChange={(e) => setIsFeatured(e.target.checked)} className="rounded cursor-pointer" />
+            <label htmlFor="isFeatured" className="text-sm font-semibold text-sp-admin-muted cursor-pointer">
+              Destacado (aparece en &ldquo;Mejores recompensas&rdquo;)
+            </label>
+          </div>
+        </div>
+      </div>
+
+      {/* Variantes de código (mismo brand, distintos codes) */}
+      <div className="space-y-3">
+        <p className="text-[11px] font-bold uppercase tracking-wider text-sp-admin-muted">
+          Código{variants.length > 1 ? 's' : ''} para esta marca
+          <span className="ml-2 font-normal normal-case text-sp-admin-muted/60">(hasta {MAX_VARIANTS} por marca)</span>
+        </p>
+
+        {variants.map((variant, idx) => (
+          <div key={idx} className="rounded-xl border border-sp-admin-border bg-sp-admin-card p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-sp-admin-muted">
+                {variants.length > 1 ? `Código #${idx + 1}` : 'Código'}
+              </p>
+              {variants.length > 1 && (
+                <button type="button" onClick={() => removeVariant(idx)} className="text-[11px] text-red-400 hover:text-red-300 transition-colors">
+                  ✕ Quitar
+                </button>
+              )}
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div>
+                <label className={labelCls}>Código *</label>
+                <input
+                  value={variant.code}
+                  onChange={(e) => updateVariant(idx, 'code', e.target.value.toUpperCase())}
+                  required maxLength={100}
+                  placeholder="HETTA · HETTA20 · HETTAGOLD"
+                  className={`${inputCls} font-mono uppercase`}
+                />
+              </div>
+              <div>
+                <label className={labelCls}>Descripción del beneficio</label>
+                <input
+                  value={variant.description}
+                  onChange={(e) => updateVariant(idx, 'description', e.target.value)}
+                  maxLength={300}
+                  placeholder="7% EXTRA DEPÓSITO · +20% bono · VIP"
+                  className={inputCls}
+                />
+              </div>
+            </div>
+            {/* Feedback por variante */}
+            {results[idx]?.ok === false && (
+              <p className="text-xs text-red-400 font-medium">✗ {results[idx].error}</p>
+            )}
+            {results[idx]?.ok === true && (
+              <p className="text-xs text-emerald-500 font-semibold">✓ Creado</p>
             )}
           </div>
+        ))}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div>
-              <label className="block text-sm font-semibold text-sp-admin-muted mb-1">Código</label>
-              <input
-                value={entry.code}
-                onChange={(e) => updateEntry(idx, 'code', e.target.value.toUpperCase())}
-                required maxLength={100} placeholder="TODOCS2"
-                className={`${inputCls} font-mono uppercase`}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-sp-admin-muted mb-1">Marca</label>
-              <input
-                value={entry.brandName}
-                onChange={(e) => updateEntry(idx, 'brandName', e.target.value)}
-                required maxLength={150} className={inputCls}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-sp-admin-muted mb-1">URL de redirección</label>
-              <input
-                value={entry.redirectUrl}
-                onChange={(e) => updateEntry(idx, 'redirectUrl', e.target.value)}
-                type="url" required className={inputCls}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-sp-admin-muted mb-1">Logo marca (URL)</label>
-              <input
-                value={entry.brandLogo}
-                onChange={(e) => updateEntry(idx, 'brandLogo', e.target.value)}
-                type="url" className={inputCls}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-sp-admin-muted mb-1">Descripción</label>
-              <input
-                value={entry.description}
-                onChange={(e) => updateEntry(idx, 'description', e.target.value)}
-                maxLength={300} placeholder="100% extra en tu primer depósito" className={inputCls}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-sp-admin-muted mb-1">CTA personalizado</label>
-              <input
-                value={entry.ctaText}
-                onChange={(e) => updateEntry(idx, 'ctaText', e.target.value)}
-                maxLength={100} placeholder="Activar bonus" className={inputCls}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-sp-admin-muted mb-1">Badge</label>
-              <select value={entry.badge} onChange={(e) => updateEntry(idx, 'badge', e.target.value)} className={inputCls}>
-                {BADGES.map((b) => <option key={b.value} value={b.value}>{b.label}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-sp-admin-muted mb-1">Categoría</label>
-              <select value={entry.category} onChange={(e) => updateEntry(idx, 'category', e.target.value)} className={inputCls}>
-                {CATEGORIES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
-              </select>
-            </div>
-            <div className="md:col-span-2 flex items-center gap-3">
-              <input
-                type="checkbox" id={`isFeatured-${idx}`}
-                checked={entry.isFeatured}
-                onChange={(e) => updateEntry(idx, 'isFeatured', e.target.checked)}
-                className="rounded cursor-pointer"
-              />
-              <label htmlFor={`isFeatured-${idx}`} className="text-sm font-semibold text-sp-admin-muted cursor-pointer">
-                Destacado (aparece en &ldquo;Mejores recompensas&rdquo;)
-              </label>
-            </div>
-          </div>
-
-          {/* Error individual de esta entrada */}
-          {results[idx] && (
-            <p className="text-xs text-red-400 font-medium mt-1">✗ {results[idx]}</p>
-          )}
-          {results[idx] === null && (
-            <p className="text-xs text-emerald-500 font-semibold mt-1">✓ Creado</p>
-          )}
-        </div>
-      ))}
-
-      {/* Botón añadir código */}
-      {entries.length < MAX_CODES && (
-        <button
-          type="button"
-          onClick={addEntry}
-          className="w-full py-2 rounded-lg border border-dashed border-sp-admin-border text-sm font-semibold text-sp-admin-muted hover:border-sp-admin-accent hover:text-sp-admin-accent transition-colors"
-        >
-          + Añadir otro código ({entries.length}/{MAX_CODES})
-        </button>
-      )}
+        {variants.length < MAX_VARIANTS && (
+          <button
+            type="button"
+            onClick={addVariant}
+            className="w-full py-2 rounded-lg border border-dashed border-sp-admin-border text-sm font-semibold text-sp-admin-muted hover:border-sp-admin-accent hover:text-sp-admin-accent transition-colors"
+          >
+            + Añadir otro código para esta marca ({variants.length}/{MAX_VARIANTS})
+          </button>
+        )}
+      </div>
 
       {/* Submit */}
       <div className="flex items-center gap-4">
@@ -249,13 +237,13 @@ export function CreateCodeForm({ talents }: { talents: readonly Talent[] }): Rea
         >
           {isPending
             ? 'Creando...'
-            : entries.length > 1
-            ? `Crear ${entries.length} códigos`
+            : variants.length > 1
+            ? `Crear ${variants.length} códigos`
             : 'Crear Código'}
         </button>
-        {allCreated && (
+        {allOk && (
           <p className="text-xs text-emerald-500 font-semibold">
-            ✓ {results.length} {results.length === 1 ? 'código creado' : 'códigos creados'} correctamente.
+            ✓ {results.length} {results.length === 1 ? 'código creado' : 'códigos creados'}.
           </p>
         )}
       </div>

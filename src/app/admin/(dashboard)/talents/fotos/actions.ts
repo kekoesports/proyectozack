@@ -19,7 +19,7 @@ const PhotoMeta = z.object({ id: IdSchema });
 export async function uploadTalentPhotoAction(
   formData: FormData,
 ): Promise<{ success: boolean; photoUrl?: string; error?: string }> {
-  await requirePermission('talentos', 'delete');
+  await requirePermission('talentos', 'write');
 
   const meta = parseFormData(formData, PhotoMeta);
   if (!meta.ok) return { success: false, error: 'ID inválido' };
@@ -67,7 +67,7 @@ export async function uploadTalentPhotoAction(
 export async function clearTalentPhotoAction(
   formData: FormData,
 ): Promise<{ success: boolean; error?: string }> {
-  await requirePermission('talentos', 'delete');
+  await requirePermission('talentos', 'write');
 
   const meta = parseFormData(formData, PhotoMeta);
   if (!meta.ok) return { success: false, error: 'ID inválido' };
