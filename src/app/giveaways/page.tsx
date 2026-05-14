@@ -193,12 +193,50 @@ export default async function GiveawaysPage(): Promise<React.JSX.Element> {
       )}
 
       {/* Footer */}
+      {/* Spacer for mobile sticky CTA */}
+      <div className="h-16 lg:hidden" aria-hidden />
       <div className="border-t border-white/[0.04] py-4 text-center">
         <p className="text-[10px] uppercase tracking-[0.3em] text-white/15 font-bold">
           Powered by SocialPro
         </p>
       </div>
       <ResponsibleGamingFooter />
+
+      {/* ── Sticky CTA — mobile only ──────────────────────────────────────── */}
+      {/* Desktop has the giveaways sidebar; on mobile it's hidden. This bar
+          surfaces the key action at thumb reach. */}
+      <div
+        className="fixed bottom-0 inset-x-0 z-50 lg:hidden"
+        style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+      >
+        <div className="bg-[#09090f]/96 backdrop-blur-xl border-t border-white/[0.06] px-4 py-3 flex items-center gap-3">
+          {active.length > 0 ? (
+            <>
+              <div className="flex items-center gap-1.5 shrink-0">
+                <span className="w-1.5 h-1.5 rounded-full bg-sp-orange animate-pulse" />
+                <span className="text-[10px] font-black uppercase tracking-wider text-sp-orange/80">
+                  {active.length === 1 ? '1 sorteo' : `${active.length} sorteos`}
+                </span>
+              </div>
+              <Link
+                href="/sorteos"
+                className="flex-1 text-center py-2.5 rounded-xl font-black text-sm uppercase tracking-wide text-white"
+                style={{ background: 'linear-gradient(90deg,#f5632a,#8b3aad)' }}
+              >
+                Ver sorteos en vivo →
+              </Link>
+            </>
+          ) : (
+            <a
+              href="#codigos"
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl font-bold text-sm text-white/50 border border-white/[0.07] hover:text-white/70 transition-colors"
+            >
+              <span className="text-sp-orange/60">◆</span>
+              {codes.length} código{codes.length !== 1 ? 's' : ''} disponible{codes.length !== 1 ? 's' : ''}
+            </a>
+          )}
+        </div>
+      </div>
     </>
   );
 }
