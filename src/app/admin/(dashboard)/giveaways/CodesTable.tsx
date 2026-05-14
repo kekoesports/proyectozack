@@ -17,12 +17,28 @@ export function CodesTable({ codes, talents }: Props): React.ReactElement {
   const [editing, setEditing] = useState<CreatorCodeWithTalent | null>(null);
 
   if (codes.length === 0) {
-    return <p className="text-sm text-sp-admin-muted">No hay códigos. Crea el primero.</p>;
+    return (
+      <div className="text-center py-8 space-y-3">
+        <p className="text-sm text-sp-admin-muted">No hay códigos. Crea el primero.</p>
+        <a href="#crear-codigo" className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-sp-admin-accent text-white text-sm font-semibold hover:opacity-90 transition-opacity">
+          + Crear código
+        </a>
+      </div>
+    );
   }
 
   return (
     <>
       <div className="rounded-2xl bg-sp-admin-card border border-sp-admin-border overflow-hidden">
+        <div className="px-6 py-3 border-b border-sp-admin-border bg-sp-admin-bg/50 flex items-center justify-between">
+          <span className="text-[11px] font-semibold text-sp-admin-muted uppercase tracking-wider">{codes.length} código{codes.length !== 1 ? 's' : ''}</span>
+          <a
+            href="#crear-codigo"
+            className="inline-flex items-center gap-1 text-[11px] font-bold text-sp-admin-accent hover:opacity-70 transition-opacity"
+          >
+            + Añadir código
+          </a>
+        </div>
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-sp-admin-border bg-sp-admin-bg/50">
@@ -61,6 +77,13 @@ export function CodesTable({ codes, talents }: Props): React.ReactElement {
                     >
                       Editar
                     </button>
+                    <a
+                      href="#crear-codigo"
+                      className="text-emerald-600 hover:opacity-70 text-xs font-bold transition-opacity"
+                      title={`Añadir otro código para ${c.talent.name}`}
+                    >
+                      + Añadir
+                    </a>
                     <DeleteConfirmButton
                       action={deleteCodeAction}
                       fields={{ id: c.id, talentSlug: c.talent.slug }}

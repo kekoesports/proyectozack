@@ -184,7 +184,7 @@ export default async function AdminGiveawaysPage({ searchParams }: PageProps): P
       <h1 className="font-display text-4xl font-black uppercase text-sp-admin-text mb-8 mt-16">Códigos de Creadores</h1>
 
       {/* Create code form */}
-      <div className="rounded-2xl bg-sp-admin-card border border-sp-admin-border p-6 mb-8">
+      <div id="crear-codigo" className="rounded-2xl bg-sp-admin-card border border-sp-admin-border p-6 mb-8 scroll-mt-6">
         <h2 className="font-display text-lg font-bold uppercase text-sp-admin-text mb-4">Crear Código</h2>
         <CreateCodeForm talents={allTalents} />
       </div>
