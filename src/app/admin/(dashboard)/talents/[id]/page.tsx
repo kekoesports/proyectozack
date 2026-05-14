@@ -9,6 +9,7 @@ import { listInvoices } from '@/lib/queries/invoices';
 import { getFlagImageUrl, countryFlagEmoji } from '@/lib/flag-images';
 import { TALENT_VERTICAL_LABELS } from '@/lib/schemas/talentBusiness';
 import { TalentPhotoUpload } from '@/features/admin/talents/components/TalentPhotoUpload';
+import { TalentSocialsEditor } from '@/features/admin/talents/components/TalentSocialsEditor';
 import { getTalentLiveStatus, getFeaturedFallbackCount } from '@/lib/queries/live';
 import { setFeaturedLiveAction, setFeaturedFallbackAction, setExcludeFromLiveAction } from '@/app/admin/(dashboard)/live/actions';
 import type { TalentVertical } from '@/types';
@@ -201,43 +202,23 @@ export default async function TalentProfilePage({
         {/* Columna izq */}
         <div className="space-y-4">
 
-          {/* Redes */}
+          {/* Redes sociales — editor inline */}
           <section className="rounded-xl bg-sp-admin-card shadow-[0_1px_3px_rgba(0,0,0,0.06)] overflow-hidden">
             <div className="px-4 py-2.5 border-b border-sp-admin-border/60 bg-sp-admin-hover/40">
               <h2 className="text-[10px] font-bold uppercase tracking-[0.18em] text-sp-admin-muted">Redes sociales</h2>
             </div>
-            {talent.socials.length === 0 ? (
-              <p className="px-4 py-6 text-[12px] text-sp-admin-muted text-center">Sin redes registradas</p>
-            ) : (
-              <div className="divide-y divide-sp-admin-border/40">
-                {talent.socials.map((s) => {
-                  const key   = s.platform.toLowerCase();
-                  const color = PLATFORM_COLOR[key] ?? '#888';
-                  const label = PLATFORM_LABEL[key] ?? s.platform;
-                  return (
-                    <div key={s.id} className="px-4 py-3 flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-[10px] font-black shrink-0" style={{ background: color }}>
-                        {label.charAt(0)}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-[12px] font-semibold text-sp-admin-text">{label}</p>
-                        <p className="text-[10px] text-sp-admin-muted truncate">@{s.handle}</p>
-                      </div>
-                      <div className="text-right shrink-0">
-                        <p className="text-[13px] font-bold text-sp-admin-text tabular-nums">{s.followersDisplay || '—'}</p>
-                        {s.avgViewers && (
-                          <p className="text-[9px] text-sp-admin-muted">{s.avgViewers.toLocaleString('es-ES')} viewers</p>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-            <div className="px-4 py-2.5 border-t border-sp-admin-border/60 bg-sp-admin-hover/20">
-              <Link href={`/admin/talents/${talent.id}/negocio`} className="text-[11px] font-semibold text-sp-admin-accent hover:opacity-70 transition-opacity">
-                Editar redes →
-              </Link>
+            <div className="px-4 py-4">
+              <TalentSocialsEditor
+                talentId={talent.id}
+                socials={talent.socials.map((s) => ({
+                  id:               s.id,
+                  platform:         s.platform,
+                  handle:           s.handle,
+                  profileUrl:       s.profileUrl ?? null,
+                  followersDisplay: s.followersDisplay,
+                  sortOrder:        s.sortOrder,
+                }))}
+              />
             </div>
           </section>
 

@@ -258,8 +258,8 @@ export function TaskModal({
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  rows={2}
-                  className={`${inputCls} resize-none`}
+                  rows={4}
+                  className={`${inputCls} resize-y min-h-[96px]`}
                   placeholder="Notas adicionales…"
                 />
               </Field>

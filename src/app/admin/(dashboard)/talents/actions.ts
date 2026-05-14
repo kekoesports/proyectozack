@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
-import { eq, sql } from 'drizzle-orm';
+import { eq, sql, inArray } from 'drizzle-orm';
 import { z } from 'zod';
 
 import { requirePermission } from '@/lib/permissions';
@@ -289,4 +289,69 @@ export async function updateTalentProfileAction(
   }
 
   redirect(`/admin/talents/${id}`);
+}
+
+// ── upsertTalentSocialsAction ─────────────────────────────────────────────────
+
+export type SocialEntryInput = {
+  readonly id?:               number;
+  readonly platform:          string;
+  readonly handle:            string;
+  readonly profileUrl?:       string;
+  readonly followersDisplay?: string;
+  readonly sortOrder?:        number;
+};
+
+export async function upsertTalentSocialsAction(
+  talentId: number,
+  entries: SocialEntryInput[],
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  try {
+    await requirePermission('talentos', 'write');
+
+    const talent = await db.query.talents.findFirst({ where: eq(talents.id, talentId) });
+    if (!talent) return { ok: false, error: 'Talento no encontrado.' };
+
+    if (entries.some((e) => !e.platform?.trim() || !e.handle?.trim())) {
+      return { ok: false, error: 'Plataforma y handle son obligatorios en todas las redes.' };
+    }
+
+    const keptIds: number[] = [];
+
+    for (const [i, entry] of entries.entries()) {
+      const platform = entry.platform.trim().toLowerCase();
+      const handle   = entry.handle.trim();
+      const profileUrl = entry.profileUrl?.trim() || null;
+      const followersDisplay = entry.followersDisplay?.trim() || '-';
+      const hexColor = PLATFORM_COLORS[platform] ?? '#888888';
+      const sortOrder = entry.sortOrder ?? i;
+
+      if (entry.id) {
+        await db.update(talentSocials)
+          .set({ platform, handle, profileUrl, followersDisplay, hexColor, sortOrder })
+          .where(eq(talentSocials.id, entry.id));
+        keptIds.push(entry.id);
+      } else {
+        const [inserted] = await db.insert(talentSocials).values({
+          talentId, platform, handle, profileUrl: profileUrl ?? undefined,
+          followersDisplay, hexColor, sortOrder,
+        }).returning({ id: talentSocials.id });
+        if (inserted) keptIds.push(inserted.id);
+      }
+    }
+
+    // Borrar redes eliminadas
+    const existing = await db.select({ id: talentSocials.id }).from(talentSocials).where(eq(talentSocials.talentId, talentId));
+    const toDelete = existing.map((s) => s.id).filter((sid) => !keptIds.includes(sid));
+    if (toDelete.length > 0) {
+      await db.delete(talentSocials).where(inArray(talentSocials.id, toDelete));
+    }
+
+    revalidatePath(`/admin/talents/${talentId}`);
+    revalidatePath(`/talentos/${talent.slug}`);
+    return { ok: true };
+  } catch (err) {
+    logRedacted('error', '[admin] upsertTalentSocials error:', err);
+    return { ok: false, error: err instanceof Error ? err.message : 'Error al guardar redes.' };
+  }
 }
