@@ -49,12 +49,15 @@ export async function uploadTalentPhotoAction(
       contentType: fileEntry.type,
     });
 
+    const talent = await db.select({ slug: talents.slug }).from(talents).where(eq(talents.id, id)).limit(1);
     await db.update(talents).set({ photoUrl: blob.url }).where(eq(talents.id, id));
 
     revalidatePath('/admin/talents');
+    revalidatePath(`/admin/talents/${id}`);
     revalidatePath('/admin/talents/fotos');
     revalidatePath('/giveaways');
     revalidatePath('/talentos');
+    if (talent[0]?.slug) revalidatePath(`/talentos/${talent[0].slug}`);
     revalidatePath('/');
 
     return { success: true, photoUrl: blob.url };
@@ -74,11 +77,14 @@ export async function clearTalentPhotoAction(
   const { id } = meta.data;
 
   try {
+    const talent2 = await db.select({ slug: talents.slug }).from(talents).where(eq(talents.id, id)).limit(1);
     await db.update(talents).set({ photoUrl: null }).where(eq(talents.id, id));
     revalidatePath('/admin/talents');
+    revalidatePath(`/admin/talents/${id}`);
     revalidatePath('/admin/talents/fotos');
     revalidatePath('/giveaways');
     revalidatePath('/talentos');
+    if (talent2[0]?.slug) revalidatePath(`/talentos/${talent2[0].slug}`);
     revalidatePath('/');
     return { success: true };
   } catch (err) {
