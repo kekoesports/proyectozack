@@ -14,7 +14,7 @@ const securityHeaders = [
       "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://va.vercel-scripts.com",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com",
-      "img-src 'self' data: https://*.vercel-storage.com https://www.googletagmanager.com https://*.twitch.tv https://*.jtvnw.net https://img.youtube.com https://*.ytimg.com https:",
+      "img-src 'self' blob: data: https://*.vercel-storage.com https://www.googletagmanager.com https://*.twitch.tv https://*.jtvnw.net https://img.youtube.com https://*.ytimg.com https://i.imgur.com https:",
       "connect-src 'self' https://www.google-analytics.com https://www.googletagmanager.com https://va.vercel-scripts.com https://vitals.vercel-insights.com wss://*.twitch.tv https://*.twitch.tv",
       "frame-src https://player.twitch.tv https://clips.twitch.tv https://www.youtube.com https://youtube.com",
       "object-src 'none'",
@@ -82,6 +82,11 @@ const nextConfig: NextConfig = {
   },
   experimental: {
     optimizePackageImports: ['motion', 'recharts'],
+    serverActions: {
+      // Default is 1MB — photos can be up to 5MB (PHOTO_TYPES.maxBytes)
+      // Without this, Next.js returns 400 before the action even runs
+      bodySizeLimit: '6mb',
+    },
   },
   turbopack: {
     root: path.resolve(__dirname),
