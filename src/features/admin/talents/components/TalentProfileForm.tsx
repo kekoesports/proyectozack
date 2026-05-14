@@ -243,6 +243,11 @@ export function TalentProfileForm({ talent }: Props): React.JSX.Element {
                 Para aparecer en el roster, el perfil debe estar publicado.
               </p>
             )}
+            {isPublished && !showInRoster && (
+              <p className="text-[11px] text-blue-600 bg-blue-50 rounded-lg px-3 py-2">
+                <span className="font-semibold">Publicado · No listado:</span> accesible por enlace directo e indexable por Google, pero oculto del roster público.
+              </p>
+            )}
           </div>
         </div>
       </section>
