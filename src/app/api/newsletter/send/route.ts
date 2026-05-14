@@ -114,7 +114,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       sent++;
     } catch (err) {
       errors.push(sub.email);
-      console.error(`[newsletter] Error enviando a ${sub.email}:`, err);
+      console.error(`[newsletter] Error en envío (destinatario ${sent + errors.length} de ${subscribers.length}):`, err instanceof Error ? err.message : 'unknown');
     }
     await sleep(SEND_DELAY_MS);
   }
