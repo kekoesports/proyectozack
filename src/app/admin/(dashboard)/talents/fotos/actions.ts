@@ -62,8 +62,16 @@ export async function uploadTalentPhotoAction(
 
     return { success: true, photoUrl: blob.url };
   } catch (err) {
-    logRedacted('error', '[admin] uploadTalentPhoto error:', err);
-    return { success: false, error: 'Error al subir la foto' };
+    const msg = err instanceof Error ? err.message : String(err);
+    logRedacted('error', '[admin] uploadTalentPhoto error:', msg);
+    // Devolver el mensaje real (sin PII) para diagnóstico
+    if (msg.toLowerCase().includes('token') || msg.toLowerCase().includes('unauthorized') || msg.toLowerCase().includes('forbidden')) {
+      return { success: false, error: `Error de autenticación Blob: ${msg.slice(0, 120)}` };
+    }
+    if (msg.toLowerCase().includes('public') || msg.toLowerCase().includes('access')) {
+      return { success: false, error: `Error de acceso Blob: ${msg.slice(0, 120)}` };
+    }
+    return { success: false, error: `Error al subir: ${msg.slice(0, 150)}` };
   }
 }
 
