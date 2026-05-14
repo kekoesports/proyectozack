@@ -78,6 +78,13 @@ export const talents = pgTable('talents', {
   excludeFromLive:  boolean('exclude_from_live').notNull().default(false),  // ocultar de sección live
   featuredFallback: boolean('featured_fallback').notNull().default(false),  // aparece en grid cuando nadie está live (máx 10)
 
+  // ── Visibilidad pública (dos ejes independientes) ──
+  // isPublished: true  → /talentos/[slug] es accesible
+  // showInRoster: true → aparece en el grid de /talentos (requiere isPublished=true)
+  // Constraint DB: NOT (show_in_roster AND NOT is_published)
+  isPublished:  boolean('is_published').notNull().default(false),
+  showInRoster: boolean('show_in_roster').notNull().default(false),
+
   // ── SEO Bio Generator (Fase 2) ──
   seoBioGenerated:  text('seo_bio_generated'),                                               // AI draft; never shown without human review
   seoBioManual:     text('seo_bio_manual'),                                                   // human-edited version; has priority over generated

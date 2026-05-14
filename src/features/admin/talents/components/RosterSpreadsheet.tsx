@@ -440,14 +440,18 @@ export function RosterSpreadsheet({ creators, verticalsByTalent = {} }: RosterSp
                     <td className="px-4 py-2.5 text-xs text-sp-admin-muted">
                       {creator.game ?? '--'}
                     </td>
-                    <td className="px-3 py-2.5 text-center">
-                      {creator.visibility === 'public' ? (
+                    <td className="px-3 py-2.5 text-center whitespace-nowrap">
+                      {!creator.isPublished ? (
+                        <span className="inline-block px-1.5 py-0.5 rounded text-[9px] font-semibold bg-sp-admin-border text-sp-admin-muted">
+                          Borrador
+                        </span>
+                      ) : creator.showInRoster ? (
                         <span className="inline-block px-1.5 py-0.5 rounded text-[9px] font-semibold bg-emerald-900/30 text-emerald-400">
-                          PUB
+                          En roster
                         </span>
                       ) : (
-                        <span className="inline-block px-1.5 py-0.5 rounded text-[9px] font-semibold bg-sp-admin-border text-sp-admin-muted">
-                          INT
+                        <span className="inline-block px-1.5 py-0.5 rounded text-[9px] font-semibold bg-blue-900/30 text-blue-400">
+                          No listado
                         </span>
                       )}
                     </td>

@@ -505,6 +505,13 @@
       "when": 1778762900705,
       "tag": "0071_lush_the_stranger",
       "breakpoints": true
+    },
+    {
+      "idx": 72,
+      "version": "7",
+      "when": 1778765353477,
+      "tag": "0072_graceful_blizzard",
+      "breakpoints": true
     }
   ]
 }

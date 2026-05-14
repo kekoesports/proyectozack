@@ -1,5 +1,5 @@
 import { cache } from 'react';
-import { eq, ne, and, inArray, sql, count, type SQL } from 'drizzle-orm';
+import { eq, and, inArray, sql, count, type SQL } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { talents, talentTags, talentStats, talentSocials, talentBusiness, talentVerticals, campaigns } from '@/db/schema';
 import { parseFollowers, formatFollowers, slugify, initialsOf } from '@/lib/utils/import-utils';
@@ -26,7 +26,7 @@ export type TalentFilters = {
 export async function getTalentSlugs(): Promise<{ slug: string; updatedAt: Date }[]> {
   return db.select({ slug: talents.slug, updatedAt: talents.updatedAt })
     .from(talents)
-    .where(and(eq(talents.visibility, 'public'), ne(talents.status, 'inactive')));
+    .where(eq(talents.isPublished, true));
 }
 
 /**
@@ -37,9 +37,8 @@ export async function getTalentSlugs(): Promise<{ slug: string; updatedAt: Date 
  * @returns array de TalentWithRelations (puede ser vacío). Nunca null.
  */
 export async function getTalents(filters?: TalentFilters): Promise<TalentWithRelations[]> {
-  // Exclude inactive talents from all public queries by default.
-  // visibility='internal' already hides from public; status='inactive' is the soft-pause.
-  const conditions: SQL[] = [eq(talents.visibility, 'public'), ne(talents.status, 'inactive')];
+  // Public listing: only talents explicitly published AND listed in roster.
+  const conditions: SQL[] = [eq(talents.isPublished, true), eq(talents.showInRoster, true)];
 
   if (filters?.platform) {
     conditions.push(eq(talents.platform, filters.platform));
@@ -79,7 +78,7 @@ export async function getTalents(filters?: TalentFilters): Promise<TalentWithRel
  */
 export const getTalentBySlug = cache(async (slug: string): Promise<TalentWithRelations | undefined> => {
   const row = await db.query.talents.findFirst({
-    where: and(eq(talents.slug, slug), eq(talents.visibility, 'public'), ne(talents.status, 'inactive')),
+    where: and(eq(talents.slug, slug), eq(talents.isPublished, true)),
     with: {
       tags: true,
       stats: { orderBy: (s, { asc }) => [asc(s.sortOrder)] },
