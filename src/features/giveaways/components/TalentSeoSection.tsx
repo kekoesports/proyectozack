@@ -3,14 +3,20 @@ import { CONTACT_EMAIL } from '@/lib/utils/constants';
 
 // ── Tipos ────────────────────────────────────────────────────────────────────
 
+type SeoBioStatus = 'empty' | 'generated' | 'edited' | 'approved';
+
 type SeoTalent = {
   readonly name: string;
   readonly role: string;
   readonly game: string;
   readonly platform: string;
-  // SEO bio priority: seoBioManual > seoBioGenerated > bioLong
+  // Bio priority (public page):
+  //   1. seoBioManual (always — human-authored)
+  //   2. seoBioGenerated ONLY if seoBioStatus === 'approved'
+  //   3. bioLong
   readonly seoBioManual?: string | null;
   readonly seoBioGenerated?: string | null;
+  readonly seoBioStatus?: SeoBioStatus | null;
   readonly bioLong: string | null;
   readonly tags: readonly { tag: string }[];
   readonly socials: readonly { platform: string; followersDisplay: string; profileUrl: string | null }[];
@@ -101,9 +107,10 @@ export function TalentSeoSection({ talent }: Props): React.ReactElement {
       className="border-t border-white/[0.06] pt-8 mt-2 space-y-10"
     >
 
-      {/* Bio extendida — prioridad: seoBioManual > seoBioGenerated > bioLong */}
+      {/* Bio extendida: seoBioManual (siempre) > seoBioGenerated (solo si approved) > bioLong */}
       {(() => {
-        const bio = talent.seoBioManual?.trim() || talent.seoBioGenerated?.trim() || talent.bioLong?.trim() || null;
+        const approvedGenerated = talent.seoBioStatus === 'approved' ? talent.seoBioGenerated?.trim() : null;
+        const bio = talent.seoBioManual?.trim() || approvedGenerated || talent.bioLong?.trim() || null;
         if (!bio) return null;
         return (
           <div className="space-y-3">

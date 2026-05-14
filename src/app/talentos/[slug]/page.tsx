@@ -37,9 +37,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const talent = await getTalentBySlug(slug);
   if (!talent) return {};
   const roleLabel = talent.role.charAt(0).toUpperCase() + talent.role.slice(1).toLowerCase();
-  const title = talent.seoTitle?.trim()
+  // seoTitle / seoDescription solo se usan si el contenido está aprobado o viene de edición manual
+  const seoApproved = talent.seoBioStatus === 'approved' || !!talent.seoBioManual?.trim();
+  const title = (seoApproved && talent.seoTitle?.trim())
     || `${talent.name} — ${roleLabel} de ${talent.game} | SocialPro`;
-  const description = talent.seoDescription?.trim()
+  const description = (seoApproved && talent.seoDescription?.trim())
     || truncateMetaDescription(talent.bio || undefined)
     || `${talent.name} — ${talent.role.toLowerCase()} de ${talent.game} gestionado por SocialPro. Códigos activos, sorteos y campañas.`;
   return {
@@ -543,6 +545,7 @@ export default async function TalentPage({ params }: PageProps) {
           platform:         talent.platform,
           seoBioManual:     talent.seoBioManual,
           seoBioGenerated:  talent.seoBioGenerated,
+          seoBioStatus:     talent.seoBioStatus,
           bioLong:          talent.bioLong,
           tags:             talent.tags,
           socials:          talent.socials,

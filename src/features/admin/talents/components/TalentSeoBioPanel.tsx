@@ -20,11 +20,27 @@ type Props = {
 
 // ── Status badge ──────────────────────────────────────────────────────────────
 
-const STATUS_STYLES: Record<SeoBioStatus, { label: string; cls: string }> = {
-  empty:     { label: 'Sin bio',   cls: 'bg-sp-admin-hover text-sp-admin-muted' },
-  generated: { label: 'Borrador',  cls: 'bg-amber-50 text-amber-700 border border-amber-200' },
-  edited:    { label: 'Editado',   cls: 'bg-blue-50 text-blue-700 border border-blue-200' },
-  approved:  { label: '✓ Aprobado', cls: 'bg-emerald-50 text-emerald-700 border border-emerald-200' },
+const STATUS_STYLES: Record<SeoBioStatus, { label: string; cls: string; publicNote: string }> = {
+  empty:     {
+    label: 'Sin bio SEO',
+    cls: 'bg-sp-admin-hover text-sp-admin-muted',
+    publicNote: 'La página pública usa el bio corto del perfil.',
+  },
+  generated: {
+    label: '⚠ Borrador IA — pendiente de aprobación',
+    cls: 'bg-amber-50 text-amber-700 border border-amber-200',
+    publicNote: 'No visible en la web pública hasta que apruebes o añadas una bio manual.',
+  },
+  edited: {
+    label: '✏ Editado manualmente — publicado',
+    cls: 'bg-blue-50 text-blue-700 border border-blue-200',
+    publicNote: 'La bio manual está visible en la página pública. Aprueba para activar también el SEO title y description.',
+  },
+  approved: {
+    label: '✓ Aprobado — publicado',
+    cls: 'bg-emerald-50 text-emerald-700 border border-emerald-200',
+    publicNote: 'Toda la información SEO (bio, title, description) está activa en la página pública.',
+  },
 };
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -139,10 +155,11 @@ export function TalentSeoBioPanel({
     <div className="space-y-6">
 
       {/* Status + acciones principales */}
-      <div className="flex flex-wrap items-center gap-3">
-        <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-bold ${statusStyle.cls}`}>
-          {statusStyle.label}
-        </span>
+      <div className="space-y-2">
+        <div className="flex flex-wrap items-center gap-3">
+          <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-bold ${statusStyle.cls}`}>
+            {statusStyle.label}
+          </span>
         <button
           type="button"
           onClick={handleGenerate}
@@ -151,16 +168,18 @@ export function TalentSeoBioPanel({
         >
           {isPending ? 'Generando…' : hasGenerated ? '↺ Regenerar con IA' : '✨ Generar con IA'}
         </button>
-        {(hasGenerated || hasManual) && status !== 'approved' && (
-          <button
-            type="button"
-            onClick={handleApprove}
-            disabled={isPending}
-            className="h-8 px-4 rounded-lg border border-emerald-300 text-emerald-700 text-[12px] font-semibold hover:bg-emerald-50 disabled:opacity-50 transition-colors"
-          >
-            ✓ Aprobar
-          </button>
-        )}
+          {(hasGenerated || hasManual) && status !== 'approved' && (
+            <button
+              type="button"
+              onClick={handleApprove}
+              disabled={isPending}
+              className="h-8 px-4 rounded-lg border border-emerald-300 text-emerald-700 text-[12px] font-semibold hover:bg-emerald-50 disabled:opacity-50 transition-colors"
+            >
+              ✓ Aprobar
+            </button>
+          )}
+        </div>
+        <p className="text-[11px] text-sp-admin-muted">{statusStyle.publicNote}</p>
       </div>
 
       {/* Warnings de IA */}
