@@ -36,3 +36,14 @@ export function absoluteUrl(path: string): string {
   if (path === '' || path === '/') return SITE_URL;
   return `${SITE_URL}/${path.replace(/^\/+/, '')}`;
 }
+
+/**
+ * Returns an absolute URL for use in JSON-LD schema `image` fields.
+ * Safe for both relative paths ("/images/...") and already-absolute URLs
+ * (Vercel Blob, external CDNs). Returns undefined for null/empty values.
+ */
+export function schemaImageUrl(url: string | null | undefined): string | undefined {
+  if (!url) return undefined;
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  return absoluteUrl(url);
+}

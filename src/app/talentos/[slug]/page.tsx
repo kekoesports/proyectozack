@@ -13,7 +13,7 @@ import { CodesExpandable } from '@/features/giveaways/components/CodesExpandable
 import { GiveawayFeatured } from '@/features/giveaways/components/GiveawayFeatured';
 import { GiveawayRow } from '@/features/giveaways/components/GiveawayRow';
 import { buildBreadcrumbJsonLd } from '@/lib/utils/breadcrumbs';
-import { absoluteUrl } from '@/lib/site-url';
+import { absoluteUrl, schemaImageUrl } from '@/lib/site-url';
 import { truncateMetaDescription } from '@/lib/utils/text';
 import { CONTACT_EMAIL } from '@/lib/utils/constants';
 import { TalentLiveWidget } from '@/features/giveaways/components/TalentLiveWidget';
@@ -114,19 +114,21 @@ export default async function TalentPage({ params }: PageProps) {
     /cs[: ]?2|counter[- ]?strike/i.test(talent.game) ||
     talent.tags.some((t) => /cs[: ]?2|counter[- ]?strike/i.test(t.tag));
 
-  // Person schema para SEO
   const parseFollowers = (d: string): number => {
     const c = d.trim();
     if (/[Mm]$/i.test(c)) return Math.round(parseFloat(c) * 1_000_000);
     if (/[Kk]$/i.test(c)) return Math.round(parseFloat(c) * 1_000);
     return parseInt(c.replace(/[.,\s]/g, ''), 10) || 0;
   };
-  const jsonLd = {
-    '@context': 'https://schema.org', '@type': 'Person',
+
+  const personSchema = {
+    '@type': 'Person',
     '@id': absoluteUrl(`/talentos/${slug}`),
-    name: talent.name, jobTitle: talent.role,
+    name: talent.name,
+    jobTitle: talent.role,
     url: absoluteUrl(`/talentos/${slug}`),
-    ...(talent.photoUrl ? { image: talent.photoUrl } : {}),
+    ...(talent.bio || talent.bioLong ? { description: (talent.bio ?? talent.bioLong ?? '').trim().slice(0, 500) } : {}),
+    ...(schemaImageUrl(talent.photoUrl) ? { image: schemaImageUrl(talent.photoUrl) } : {}),
     ...(talent.tags.length > 0 ? { knowsAbout: talent.tags.map((t) => t.tag) } : {}),
     interactionStatistic: talent.socials
       .filter((s) => s.followersDisplay && s.followersDisplay !== '-')
@@ -134,6 +136,20 @@ export default async function TalentPage({ params }: PageProps) {
     worksFor: { '@type': 'Organization', '@id': absoluteUrl('/#organization') },
     sameAs: talent.socials.filter((s) => s.profileUrl).map((s) => s.profileUrl),
   };
+
+  // ProfilePage wrapper — provides better entity understanding for Googlebot
+  const profilePageJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'ProfilePage',
+    '@id': absoluteUrl(`/talentos/${slug}#profilepage`),
+    url: absoluteUrl(`/talentos/${slug}`),
+    name: `${talent.name} — ${[talent.role, talent.game].filter(Boolean).join(' · ')} | SocialPro`,
+    inLanguage: 'es',
+    dateModified: talent.updatedAt.toISOString(),
+    isPartOf: { '@type': 'WebSite', '@id': absoluteUrl('/#website') },
+    mainEntity: personSchema,
+  };
+
   const breadcrumbJsonLd = buildBreadcrumbJsonLd([
     { name: 'Talentos', url: absoluteUrl('/talentos') },
     { name: talent.name, url: absoluteUrl(`/talentos/${slug}`) },
@@ -142,7 +158,7 @@ export default async function TalentPage({ params }: PageProps) {
   return (
     <div className="min-h-screen relative overflow-x-hidden"
       style={{ background: `radial-gradient(ellipse 80% 35% at 50% 0%, ${talent.gradientC1}0d 0%, transparent 45%)` }}>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(profilePageJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbJsonLd) }} />
       {activeWithTalent.map((g) => (
         <script key={g.id} type="application/ld+json"

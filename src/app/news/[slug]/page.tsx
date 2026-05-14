@@ -80,10 +80,9 @@ export default async function NewsArticlePage({ params }: PageProps) {
     description: post.excerpt,
     datePublished: post.publishedAt?.toISOString(),
     dateModified: post.updatedAt?.toISOString(),
-    author: {
-      '@type': 'Person',
-      name: post.author,
-    },
+    author: post.author && post.author !== 'SocialPro' && post.author !== 'Redacción'
+      ? { '@type': 'Person', name: post.author, worksFor: { '@type': 'Organization', '@id': absoluteUrl('/#organization'), name: 'SocialPro' } }
+      : { '@type': 'Organization', '@id': absoluteUrl('/#organization'), name: 'SocialPro' },
     publisher: { '@id': absoluteUrl('/#organization') },
     mainEntityOfPage: { '@type': 'WebPage', '@id': absoluteUrl(`/news/${slug}`) },
     articleSection: category.label,

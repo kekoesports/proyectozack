@@ -3,7 +3,7 @@ import { safeJsonLd } from '@/lib/safeJsonLd';
 import { getTeam } from '@/lib/queries/content';
 import { AboutSection } from '@/features/marketing-site/components/AboutSection';
 import { TeamGrid } from '@/features/marketing-site/components/TeamGrid';
-import { absoluteUrl, SITE_URL } from '@/lib/site-url';
+import { absoluteUrl, SITE_URL, schemaImageUrl } from '@/lib/site-url';
 
 export const revalidate = 3600;
 
@@ -42,7 +42,7 @@ export default async function NosotrosPage() {
         url: absoluteUrl('/nosotros'),
         name: 'Sobre SocialPro — Agencia Gaming España desde 2012',
         description:
-          'SocialPro es una agencia de talentos gaming y esports fundada en Madrid en 2012. Especialistas en iGaming, CS2 y el ecosistema hispano de creadores.',
+          'SocialPro es una agencia de talentos gaming y esports fundada en Córdoba en 2012. Especialistas en iGaming, CS2 y el ecosistema hispano de creadores.',
         inLanguage: 'es',
         isPartOf: { '@id': absoluteUrl('/#website') },
         about: { '@id': absoluteUrl('/#organization') },
@@ -67,14 +67,14 @@ export default async function NosotrosPage() {
           height: 512,
         },
         description:
-          'SocialPro es una agencia de talentos gaming y esports fundada en 2012 en Madrid por ex-profesionales de esports. Especialistas en iGaming (compliance DGOJ), CS2, Valorant y campañas de performance gaming en España y LatAm. El roster gestiona 15M+ de views mensuales con un engagement medio del 8,9%.',
+          'SocialPro es una agencia de talentos gaming y esports fundada en 2012 en Córdoba por ex-profesionales de esports. Especialistas en iGaming (compliance DGOJ), CS2, Valorant y campañas de performance gaming en España y LatAm. El roster gestiona 15M+ de views mensuales con un engagement medio del 8,9%.',
         foundingDate: '2012',
         foundingLocation: {
           '@type': 'Place',
-          name: 'Madrid, España',
+          name: 'Córdoba, España',
           address: {
             '@type': 'PostalAddress',
-            addressLocality: 'Madrid',
+            addressLocality: 'Córdoba',
             addressCountry: 'ES',
           },
         },
@@ -127,7 +127,7 @@ export default async function NosotrosPage() {
           name: m.name,
           jobTitle: m.role,
           description: m.bio ?? undefined,
-          ...(m.photoUrl ? { image: m.photoUrl } : {}),
+          ...(schemaImageUrl(m.photoUrl) ? { image: schemaImageUrl(m.photoUrl) } : {}),
           worksFor: { '@id': absoluteUrl('/#organization') },
         })),
         contactPoint: {

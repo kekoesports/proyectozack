@@ -10,7 +10,7 @@ import { deriveCategory, readTime, detectBrand } from '@/lib/utils/blog';
 import { SectionTag } from '@/components/ui/SectionTag';
 import { TalentMiniCard } from '@/features/blog/components/TalentMiniCard';
 import { buildBreadcrumbJsonLd } from '@/lib/utils/breadcrumbs';
-import { absoluteUrl } from '@/lib/site-url';
+import { absoluteUrl, schemaImageUrl } from '@/lib/site-url';
 import { truncateMetaDescription, truncateMetaTitle } from '@/lib/utils/text';
 
 export const revalidate = 3600;
@@ -145,11 +145,9 @@ export default async function BlogPostPage({ params }: PageProps) {
     description: post.excerpt,
     url: absoluteUrl(`/blog/${slug}`),
     inLanguage: 'es',
-    author: {
-      '@type': 'Person',
-      name: post.author,
-      worksFor: { '@type': 'Organization', '@id': absoluteUrl('/#organization'), name: 'SocialPro' },
-    },
+    author: post.author && post.author !== 'SocialPro' && post.author !== 'Redacción'
+      ? { '@type': 'Person', name: post.author, worksFor: { '@type': 'Organization', '@id': absoluteUrl('/#organization'), name: 'SocialPro' } }
+      : { '@type': 'Organization', '@id': absoluteUrl('/#organization'), name: 'SocialPro' },
     publisher: {
       '@type': 'Organization',
       '@id': absoluteUrl('/#organization'),
@@ -158,7 +156,7 @@ export default async function BlogPostPage({ params }: PageProps) {
     },
     datePublished: post.publishedAt?.toISOString(),
     dateModified: post.updatedAt.toISOString(),
-    ...(post.coverUrl ? { image: post.coverUrl } : {}),
+    ...(schemaImageUrl(post.coverUrl) ? { image: schemaImageUrl(post.coverUrl) } : {}),
     ...(post.talentAvatars.length > 0
       ? {
           mentions: post.talentAvatars.map((t) => ({

@@ -1,19 +1,12 @@
-'use client';
-
-import { useEffect } from 'react';
 import type { ReactNode } from 'react';
 
 /**
  * Layout para páginas en inglés (/en, /talents, /services, /cases, /contact).
- * Cambia el atributo lang del <html> raíz de "es" a "en" mientras la ruta EN está activa.
- * El root layout tiene lang="es" — este layout lo sobreescribe en el DOM.
+ * Aplica lang="en" a nivel de contenedor server-side, visible para Googlebot.
+ * Nota: el atributo <html lang> requeriría un root layout separado para el
+ * grupo (en); esta solución es la mejor aproximación sin reestructurar el
+ * app directory. El hreflang en sitemap.ts es la señal primaria para Google.
  */
 export default function EnLayout({ children }: { children: ReactNode }): React.JSX.Element {
-  useEffect(() => {
-    const prev = document.documentElement.lang;
-    document.documentElement.lang = 'en';
-    return () => { document.documentElement.lang = prev; };
-  }, []);
-
-  return <>{children}</>;
+  return <div lang="en">{children}</div>;
 }
