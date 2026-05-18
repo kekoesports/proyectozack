@@ -33,7 +33,12 @@ function normalizeBodyMd(md: string): string {
     // blank line before blockquotes
     .replace(/([^\n])\n(> )/g, '$1\n\n$2')
     // blank line before list items that follow a non-list line
-    .replace(/([^-\n][^\n]*)\n([-*] )/g, '$1\n\n$2');
+    .replace(/([^-\n][^\n]*)\n([-*] )/g, '$1\n\n$2')
+    // Single \n between regular text lines → paragraph break (\n\n).
+    // Fires only when the next line doesn't start with a special marker
+    // (heading, list, blockquote, horizontal rule) and isn't already \n\n.
+    // This handles CMS content where paragraphs are separated by one Enter.
+    .replace(/([^\n])\n(?!\n)([^#>*\-\n=])/g, '$1\n\n$2');
 }
 
 export function NewsArticleBody({ bodyMd }: { bodyMd: string }) {
