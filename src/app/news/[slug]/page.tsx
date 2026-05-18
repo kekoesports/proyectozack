@@ -157,15 +157,16 @@ export default async function NewsArticlePage({ params }: PageProps) {
           </header>
 
           {post.coverUrl ? (
-            <div className="relative max-w-5xl mx-auto px-5 md:px-8 -mt-2">
-              <div className="relative aspect-[3/2] rounded-2xl overflow-hidden border border-white/[0.06] bg-sp-black">
+            <div className="relative max-w-5xl mx-auto px-5 md:px-8 mt-6 md:mt-8">
+              {/* aspect-[16/9] + max-h keeps image cinematic without dominating the viewport */}
+              <div className="relative aspect-[16/9] max-h-[360px] rounded-xl overflow-hidden border border-white/[0.06] bg-sp-black">
                 <Image
                   src={post.coverUrl}
                   alt=""
                   fill
                   priority
                   sizes="(min-width:1024px) 960px, 100vw"
-                  className="object-cover"
+                  className="object-cover object-top"
                 />
               </div>
             </div>
@@ -176,7 +177,7 @@ export default async function NewsArticlePage({ params }: PageProps) {
           ) : (
             <>
               {blocks?.matchContext ? <MatchContextBlock match={blocks.matchContext} /> : null}
-              <section className="max-w-3xl mx-auto px-5 md:px-8 py-10 md:py-14">
+              <section className="max-w-3xl mx-auto px-5 md:px-8 py-8 md:py-10">
                 <NewsArticleBody bodyMd={post.bodyMd} />
               </section>
               {blocks?.quotes?.[0] ? <EditorialQuoteBlock quote={blocks.quotes[0]} /> : null}
