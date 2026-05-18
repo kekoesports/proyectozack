@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { safeJsonLd } from '@/lib/safeJsonLd';
 import Link from 'next/link';
 import { SITE_URL, absoluteUrl } from '@/lib/site-url';
+import { buildBreadcrumbJsonLd } from '@/lib/utils/breadcrumbs';
 import { TrackedCtaLink } from '@/components/ui/TrackedCtaLink';
 
 export const metadata: Metadata = {
@@ -44,6 +45,7 @@ const jsonLd = {
   description: 'Betting influencer marketing agency with verified sports betting and casino streamers. DGOJ compliance, FTD tracking and ROI-verified campaigns.',
 };
 
+const breadcrumbJsonLd = buildBreadcrumbJsonLd([{ name: 'Servicios', url: absoluteUrl('/servicios') }, { name: 'Betting Influencers', url: absoluteUrl('/betting-influencers') }]);
 
 const STATS = [
   { stat: '+340', label: 'FTDs in a single activation' },
@@ -62,6 +64,7 @@ export default function BettingInfluencersPage() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbJsonLd) }} />
 
       <section className="bg-sp-black pt-32 pb-20">
         <div className="max-w-4xl mx-auto px-6 text-center">

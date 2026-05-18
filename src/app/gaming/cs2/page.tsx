@@ -11,7 +11,8 @@ export const metadata: Metadata = {
   description:
     'Campañas de CS2 influencer marketing con streamers verificados en España y LatAm. Esports marketing agency especializada en Counter-Strike 2. Activa en <72h.',
   alternates: {
-    canonical: '/gaming/cs2',
+    // Canonical apunta a la página ES canónica del cluster CS2
+    canonical: '/influencers-cs2',
   },
   openGraph: {
     title: 'CS2 Influencer Marketing — Streamers de CS2 para tu Marca | SocialPro',

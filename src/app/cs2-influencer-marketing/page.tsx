@@ -3,6 +3,7 @@ import { safeJsonLd } from '@/lib/safeJsonLd';
 import Link from 'next/link';
 import { SITE_URL, absoluteUrl } from '@/lib/site-url';
 import { TrackedCtaLink } from '@/components/ui/TrackedCtaLink';
+import { buildBreadcrumbJsonLd } from '@/lib/utils/breadcrumbs';
 
 export const metadata: Metadata = {
   title: 'CS2 Influencer Marketing Agency — Spain & LatAm',
@@ -45,6 +46,11 @@ const jsonLd = {
   description: 'CS2 influencer marketing campaigns with verified streamers across Spain and LatAm. FTD tracking, compliance and activation in under 72 hours.',
 };
 
+const breadcrumbJsonLd = buildBreadcrumbJsonLd([
+  { name: 'Servicios', url: absoluteUrl('/servicios') },
+  { name: 'CS2 Influencer Marketing', url: absoluteUrl('/cs2-influencer-marketing') },
+]);
+
 
 const STATS = [
   { stat: '8M+', label: 'Reach on 1WIN CS2 campaign' },
@@ -63,6 +69,7 @@ export default function Cs2InfluencerMarketingPage() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbJsonLd) }} />
 
       {/* Hero */}
       <section className="bg-sp-black pt-32 pb-20">

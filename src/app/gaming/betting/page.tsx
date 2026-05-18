@@ -11,7 +11,8 @@ export const metadata: Metadata = {
   description:
     'Betting influencers y casino streamers verificados en España y LatAm. Campañas para casas de apuestas y casinos online con FTD tracking y ROI demostrable.',
   alternates: {
-    canonical: '/gaming/betting',
+    // Canonical apunta al ganador del cluster betting/iGaming (EN x-default)
+    canonical: '/betting-influencers',
   },
   openGraph: {
     title: 'Betting Influencers & Casino Streamers | SocialPro',

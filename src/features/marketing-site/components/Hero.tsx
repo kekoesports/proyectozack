@@ -103,6 +103,14 @@ export function Hero() {
             navegador no contabiliza el LCP hasta que la animación termina. */}
         <h1 className="font-display text-[2.75rem] xs:text-[3.5rem] sm:text-[5rem] md:text-[7rem] lg:text-[10rem] font-black uppercase leading-[0.85] tracking-tight mb-10">
           <m.span
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1], delay: 0.15 }}
+            className="block text-[0.9rem] xs:text-[1.1rem] sm:text-[1.6rem] md:text-[2.25rem] lg:text-[3rem] font-bold tracking-[0.2em] text-sp-muted2/60 mb-3 sm:mb-4"
+          >
+            AGENCIA GAMING &amp; IGAMING
+          </m.span>
+          <m.span
             initial={{ y: 40 }}
             animate={{ y: 0 }}
             transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: 0.3 }}

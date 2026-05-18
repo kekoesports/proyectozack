@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { safeJsonLd } from '@/lib/safeJsonLd';
 import Link from 'next/link';
 import { SITE_URL, absoluteUrl } from '@/lib/site-url';
+import { buildBreadcrumbJsonLd } from '@/lib/utils/breadcrumbs';
 import { TrackedCtaLink } from '@/components/ui/TrackedCtaLink';
 
 export const metadata: Metadata = {
@@ -44,6 +45,7 @@ const jsonLd = {
   description: 'Valorant influencer marketing campaigns with verified streamers in Spain and LatAm. Brand-safe content with real audience data and performance tracking.',
 };
 
+const breadcrumbJsonLd = buildBreadcrumbJsonLd([{ name: 'Servicios', url: absoluteUrl('/servicios') }, { name: 'Valorant Influencers Agency', url: absoluteUrl('/valorant-influencers-agency') }]);
 
 const STATS = [
   { stat: '15M+', label: 'Monthly views across roster' },
@@ -62,6 +64,7 @@ export default function ValorantInfluencersAgencyPage() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbJsonLd) }} />
 
       <section className="bg-sp-black pt-32 pb-20">
         <div className="max-w-4xl mx-auto px-6 text-center">

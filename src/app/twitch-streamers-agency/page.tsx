@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { safeJsonLd } from '@/lib/safeJsonLd';
 import Link from 'next/link';
 import { SITE_URL, absoluteUrl } from '@/lib/site-url';
+import { buildBreadcrumbJsonLd } from '@/lib/utils/breadcrumbs';
 
 export const metadata: Metadata = {
   title: 'Twitch Streamers Agency — Live Gaming Influencer Marketing',
@@ -42,6 +43,7 @@ const jsonLd = {
   description: 'Twitch streamers agency for live gaming influencer campaigns in Spain and LatAm. Verified audiences, real-time engagement and performance-tracked campaigns.',
 };
 
+const breadcrumbJsonLd = buildBreadcrumbJsonLd([{ name: 'Servicios', url: absoluteUrl('/servicios') }, { name: 'Twitch Streamers Agency', url: absoluteUrl('/twitch-streamers-agency') }]);
 
 const STATS = [
   { stat: '15M+', label: 'Monthly views across roster' },
@@ -61,6 +63,7 @@ export default function TwitchStreamersAgencyPage() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbJsonLd) }} />
 
       <section className="bg-sp-black pt-32 pb-20">
         <div className="max-w-4xl mx-auto px-6 text-center">

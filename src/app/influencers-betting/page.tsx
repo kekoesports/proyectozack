@@ -2,18 +2,16 @@ import type { Metadata } from 'next';
 import { safeJsonLd } from '@/lib/safeJsonLd';
 import Link from 'next/link';
 import { SITE_URL, absoluteUrl } from '@/lib/site-url';
+import { buildBreadcrumbJsonLd } from '@/lib/utils/breadcrumbs';
 
 export const metadata: Metadata = {
   title: 'Influencers Betting y Apuestas Online — España y LatAm',
   description:
     'Influencers betting y apuestas online verificados en España y LatAm. Compliance DGOJ integrado, FTD tracking y ROI demostrable para operadores de apuestas deportivas y casino.',
   alternates: {
-    canonical: '/influencers-betting',
-    languages: {
-      es: absoluteUrl('/influencers-betting'),
-      en: absoluteUrl('/betting-influencers'),
-          'x-default': absoluteUrl('/betting-influencers'),
-    },
+    // Consolidado en el ganador del cluster. /servicios/igaming es el ES canónico
+    // establecido; /betting-influencers es el EN x-default. Esta página es satélite.
+    canonical: '/betting-influencers',
   },
   openGraph: {
     title: 'Influencers Betting y Apuestas Online | SocialPro',
@@ -43,6 +41,7 @@ const jsonLd = {
   description: 'Campañas con influencers de apuestas deportivas y casino online. Compliance DGOJ, FTD tracking y reporting verificado en España, LatAm y Turquía.',
 };
 
+const breadcrumbJsonLd = buildBreadcrumbJsonLd([{ name: 'Servicios', url: absoluteUrl('/servicios') }, { name: 'Influencers Betting', url: absoluteUrl('/influencers-betting') }]);
 
 const STATS = [
   { stat: '+340', label: 'FTDs en una sola activación' },
@@ -62,6 +61,7 @@ export default function InfluencersBettingPage() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbJsonLd) }} />
 
       <section className="bg-sp-black pt-32 pb-20">
         <div className="max-w-4xl mx-auto px-6 text-center">

@@ -27,7 +27,8 @@ import { getNewsPosts } from '@/lib/queries/posts';
 const MetricsSection  = dynamic(() => import('@/features/marketing-site/components/MetricsSection').then(m => ({ default: m.MetricsSection })));
 const ServicesSection = dynamic(() => import('@/features/marketing-site/components/ServicesSection').then(m => ({ default: m.ServicesSection })));
 const CtaSection      = dynamic(() => import('@/features/marketing-site/components/CtaSection').then(m => ({ default: m.CtaSection })));
-const FaqSection      = dynamic(() => import('@/features/marketing-site/components/FaqSection').then(m => ({ default: m.FaqSection })));
+// FaqSection is now a Server Component — regular import, no client JS bundle
+import { FaqSection } from '@/features/marketing-site/components/FaqSection';
 const ContactSection  = dynamic(() => import('@/features/contact/components/ContactSection').then(m => ({ default: m.ContactSection })));
 
 async function CollabsSectionAsync() {

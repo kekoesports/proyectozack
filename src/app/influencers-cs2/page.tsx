@@ -3,6 +3,7 @@ import { safeJsonLd } from '@/lib/safeJsonLd';
 import Link from 'next/link';
 import { SITE_URL, absoluteUrl } from '@/lib/site-url';
 import { TrackedCtaLink } from '@/components/ui/TrackedCtaLink';
+import { buildBreadcrumbJsonLd } from '@/lib/utils/breadcrumbs';
 import { StickyCtaMobile } from '@/components/ui/StickyCtaMobile';
 
 export const metadata: Metadata = {
@@ -45,6 +46,11 @@ const jsonLd = {
   description: 'Campañas con influencers CS2 verificados en España y LatAm. FTD tracking, audiencias reales y activación en menos de 72 horas.',
 };
 
+const breadcrumbJsonLd = buildBreadcrumbJsonLd([
+  { name: 'Servicios', url: absoluteUrl('/servicios') },
+  { name: 'Influencers CS2', url: absoluteUrl('/influencers-cs2') },
+]);
+
 
 const STATS = [
   { stat: '8M+', label: 'Reach en campaña 1WIN CS2' },
@@ -63,6 +69,7 @@ export default function InfluencersCs2Page() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbJsonLd) }} />
 
       <section className="bg-sp-black pt-24 pb-12 md:pt-32 md:pb-20">
         <div className="max-w-4xl mx-auto px-6 text-center">

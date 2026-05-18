@@ -1,12 +1,7 @@
-'use client';
-
-import { useState } from 'react';
-import * as m from 'motion/react-client';
-import { AnimatePresence } from 'motion/react';
+import { safeJsonLd } from '@/lib/safeJsonLd';
 import { SectionTag } from '@/components/ui/SectionTag';
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { GradientText } from '@/components/ui/GradientText';
-import { FadeInOnScroll } from '@/components/ui/FadeInOnScroll';
 
 type FaqItem = {
   question: string;
@@ -51,82 +46,65 @@ const FAQS: FaqItem[] = [
   },
 ];
 
-function FaqAccordionItem({ item, isOpen, onToggle }: { item: FaqItem; isOpen: boolean; onToggle: () => void }) {
-  return (
-    <div className="border-b border-sp-border last:border-b-0">
-      <button
-        onClick={onToggle}
-        className="w-full flex items-center justify-between py-5 text-left group"
-        aria-expanded={isOpen}
-      >
-        <span className="font-semibold text-sp-dark group-hover:text-sp-orange transition-colors pr-4">
-          {item.question}
-        </span>
-        <m.span
-          animate={{ rotate: isOpen ? 45 : 0 }}
-          transition={{ duration: 0.2 }}
-          className={`shrink-0 w-6 h-6 flex items-center justify-center rounded-full border text-sm ${
-            isOpen ? 'border-sp-orange text-sp-orange' : 'border-sp-border text-sp-muted'
-          }`}
-        >
-          +
-        </m.span>
-      </button>
-      <AnimatePresence initial={false}>
-        {isOpen && (
-          <m.div
-            initial={{ scaleY: 0, opacity: 0 }}
-            animate={{ scaleY: 1, opacity: 1 }}
-            exit={{ scaleY: 0, opacity: 0 }}
-            transition={{ duration: 0.25, ease: 'easeInOut' }}
-            className="overflow-hidden [transform-origin:top]"
-          >
-            <p className="text-sm text-sp-muted leading-relaxed pb-5">{item.answer}</p>
-          </m.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-}
+const faqJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: FAQS.map((f) => ({
+    '@type': 'Question',
+    name: f.question,
+    acceptedAnswer: {
+      '@type': 'Answer',
+      text: f.answer,
+    },
+  })),
+};
 
 /**
- * Acordeón de preguntas frecuentes con expand/collapse animado vía
- * AnimatePresence. Una sola pregunta abierta a la vez.
+ * Preguntas frecuentes con accordion nativo <details>/<summary>.
+ * Contenido siempre en DOM (SSR/crawlable). Animación via CSS transition.
+ * FAQPage JSON-LD incluido — valor para citabilidad AI sin rich result Google
+ * en sitios comerciales (restricción ago 2023).
  *
- * @kind client
+ * @kind server
  * @feature marketing-site
  * @route /
- * @example
- * ```tsx
- * <FaqSection />
- * ```
  */
 export function FaqSection() {
-  const [openIndex, setOpenIndex] = useState<number | null>(0);
-
   return (
     <section id="faq" className="py-12 bg-white">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(faqJsonLd) }}
+      />
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-        <FadeInOnScroll>
-          <div className="text-center mb-12">
-            <SectionTag>FAQ</SectionTag>
-            <SectionHeading>
-              Preguntas <GradientText>frecuentes</GradientText>
-            </SectionHeading>
-          </div>
-        </FadeInOnScroll>
-        <FadeInOnScroll delay={0.15}>
-          <div className="rounded-2xl border border-sp-border bg-sp-off p-6 md:p-8">
-            {FAQS.map((faq, i) => (
-              <FaqAccordionItem
-                key={i}
-                item={faq}
-                isOpen={openIndex === i}
-                onToggle={() => setOpenIndex(openIndex === i ? null : i)}
-              />
-            ))}
-          </div>
-        </FadeInOnScroll>
+        <div className="text-center mb-12">
+          <SectionTag>FAQ</SectionTag>
+          <SectionHeading>
+            Preguntas <GradientText>frecuentes</GradientText>
+          </SectionHeading>
+        </div>
+
+        <div className="rounded-2xl border border-sp-border bg-sp-off p-6 md:p-8">
+          {FAQS.map((faq, i) => (
+            <details
+              key={faq.question}
+              className="group border-b border-sp-border last:border-b-0"
+              {...(i === 0 ? { open: true } : {})}
+            >
+              <summary className="flex w-full cursor-pointer list-none items-center justify-between py-5 text-left [&::-webkit-details-marker]:hidden">
+                <span className="pr-4 font-semibold text-sp-dark transition-colors group-hover:text-sp-orange group-open:text-sp-orange">
+                  {faq.question}
+                </span>
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-sp-border text-sm text-sp-muted transition-colors group-open:border-sp-orange group-open:text-sp-orange">
+                  <span className="block transition-transform duration-200 group-open:rotate-45">+</span>
+                </span>
+              </summary>
+              <p className="pb-5 text-sm leading-relaxed text-sp-muted">
+                {faq.answer}
+              </p>
+            </details>
+          ))}
+        </div>
       </div>
     </section>
   );
