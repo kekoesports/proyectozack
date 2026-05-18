@@ -1,7 +1,10 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { safeJsonLd } from '@/lib/safeJsonLd';
-import { getTeam } from '@/lib/queries/content';
-import { AboutSection } from '@/features/marketing-site/components/AboutSection';
+import { getTeam, getBrands } from '@/lib/queries/content';
+import { NosotrosHero } from '@/features/marketing-site/components/NosotrosHero';
+import { NosotrosPorQue } from '@/features/marketing-site/components/NosotrosPorQue';
+import { BrandsCarousel } from '@/features/marketing-site/components/BrandsCarousel';
 import { TeamGrid } from '@/features/marketing-site/components/TeamGrid';
 import { absoluteUrl, SITE_URL, schemaImageUrl } from '@/lib/site-url';
 
@@ -30,8 +33,15 @@ export const metadata: Metadata = {
   },
 };
 
+const STATS = [
+  { value: '13+',   label: 'Años en gaming' },
+  { value: '15M+',  label: 'Views mensuales' },
+  { value: '+340',  label: 'FTDs verificados' },
+  { value: '6',     label: 'Mercados activos' },
+] as const;
+
 export default async function NosotrosPage() {
-  const team = await getTeam();
+  const [team, brands] = await Promise.all([getTeam(), getBrands()]);
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -152,11 +162,77 @@ export default async function NosotrosPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }}
       />
-      <div>
-        <h1 className="sr-only">Agencia Gaming España desde 2012</h1>
-        <AboutSection expanded />
-        <TeamGrid team={team} />
+      {/* sr-only H1 para SEO — el visual está en NosotrosHero */}
+      <h1 className="sr-only">Agencia Gaming España desde 2012</h1>
+
+      {/* ── Hero 2 columnas ──────────────────────────────────────── */}
+      <NosotrosHero brands={brands} />
+
+      {/* ── Stats strip ──────────────────────────────────────────── */}
+      <div className="bg-sp-dark py-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <dl className="grid grid-cols-2 lg:grid-cols-4 gap-8 text-center">
+            {STATS.map(({ value, label }) => (
+              <div key={label}>
+                <dt className="font-display text-4xl font-black gradient-text leading-none">{value}</dt>
+                <dd className="text-[11px] font-semibold uppercase tracking-widest text-white/40 mt-2">{label}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
       </div>
+
+      {/* ── Por qué SocialPro ────────────────────────────────────── */}
+      <NosotrosPorQue />
+
+      {/* ── Texto SEO — siempre visible en DOM para AI crawlers ─── */}
+      <section className="bg-sp-off py-12">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4 text-sm text-sp-muted leading-relaxed">
+          <p>
+            SocialPro es una agencia especializada en marketing gaming e iGaming para marcas y
+            creadores en España y Latinoamérica. Desde 2012, trabaja campañas centradas en Twitch,
+            YouTube, Kick e Instagram dentro del ecosistema esports, CS2, Valorant y apuestas
+            online reguladas.
+          </p>
+          <p>
+            La agencia combina influencer marketing, gestión de talento y campañas orientadas a
+            conversión con un enfoque centrado en compliance y resultados auditables. En el sector
+            iGaming, SocialPro integra procesos adaptados a normativa DGOJ, incluyendo supervisión
+            de campañas, validación de contenido y coordinación con operadores y afiliados.
+          </p>
+          <p>
+            Actualmente, SocialPro trabaja con una red de creadores especializados en gaming y
+            entretenimiento digital, acumulando millones de visualizaciones mensuales en campañas
+            para marcas internacionales. Entre los resultados recientes destacan más de 340 FTDs
+            verificados en una activación de iGaming y más de 200.000&nbsp;€ en volumen atribuido
+            en campañas vinculadas al ecosistema CS2.
+          </p>
+        </div>
+      </section>
+
+      {/* ── Social proof — logos de marcas ───────────────────────── */}
+      <BrandsCarousel brands={brands} />
+
+      {/* ── Equipo ───────────────────────────────────────────────── */}
+      <TeamGrid team={team} />
+
+      {/* ── CTA final ────────────────────────────────────────────── */}
+      <section className="bg-sp-black py-16 text-center">
+        <div className="max-w-2xl mx-auto px-6">
+          <h2 className="font-display text-3xl md:text-4xl font-black uppercase text-white leading-tight mb-4">
+            ¿Tu marca busca creadores gaming?
+          </h2>
+          <p className="text-white/45 text-sm mb-8 leading-relaxed">
+            Cuéntanos el objetivo. Activamos la campaña en menos de 72 horas.
+          </p>
+          <Link
+            href="/contacto"
+            className="inline-block bg-sp-grad text-white font-display font-bold uppercase tracking-wider text-sm px-10 py-4 rounded-full hover:opacity-90 transition-opacity"
+          >
+            Iniciar propuesta →
+          </Link>
+        </div>
+      </section>
     </>
   );
 }
