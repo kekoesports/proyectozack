@@ -22,7 +22,7 @@ export function AboutSection() {
           </SectionHeading>
 
           <p className="text-sm text-sp-muted leading-relaxed mb-5 max-w-2xl">
-            Fundada en 2012 en Madrid por{' '}
+            Fundada en 2012 en Córdoba por{' '}
             <a
               href="https://kekoesports.es"
               target="_blank"

@@ -2,19 +2,31 @@ import type { MetadataRoute } from 'next';
 
 import { absoluteUrl } from '@/lib/site-url';
 
+// Páginas SEO públicas bajo /marcas/ — permitidas explícitamente.
+// El portal privado /marcas/(portal)/ queda bloqueado por el disallow genérico de /marcas/.
+const PUBLIC_BRAND_PAGES = [
+  '/marcas/keydrop',
+  '/marcas/hellcase',
+  '/marcas/skinplace',
+  '/marcas/skinsmonkey',
+] as const;
+
+const PRIVATE_PATHS = ['/api/', '/admin/', '/auth/', '/marcas/'] as const;
+
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: [
       // ─── Crawlers genéricos ───────────────────────────────────────────
       {
         userAgent: '*',
-        allow: '/',
+        // Specificity: paths más largos ganan sobre /marcas/ en robots.txt
+        allow: ['/', ...PUBLIC_BRAND_PAGES],
         disallow: [
           // Endpoints técnicos y autenticación
           '/api/',
           '/admin/',
           '/auth/',
-          // Portales privados
+          // Portal privado de marcas (las páginas SEO públicas están en allow arriba)
           '/marcas/',
           // Assets internos de Next.js (no indexables)
           '/_next/',
@@ -27,8 +39,8 @@ export default function robots(): MetadataRoute.Robots {
       // ─── Bots de IA — permitir para visibilidad en AI Overviews ──────
       {
         userAgent: 'GPTBot',
-        allow: '/',
-        disallow: ['/api/', '/admin/', '/auth/', '/marcas/'],
+        allow: ['/', ...PUBLIC_BRAND_PAGES],
+        disallow: [...PRIVATE_PATHS],
       },
       {
         userAgent: 'Google-Extended',
@@ -40,8 +52,8 @@ export default function robots(): MetadataRoute.Robots {
       },
       {
         userAgent: 'OAI-SearchBot',
-        allow: '/',
-        disallow: ['/api/', '/admin/', '/auth/', '/marcas/'],
+        allow: ['/', ...PUBLIC_BRAND_PAGES],
+        disallow: [...PRIVATE_PATHS],
       },
       {
         userAgent: 'PerplexityBot',
@@ -49,13 +61,13 @@ export default function robots(): MetadataRoute.Robots {
       },
       {
         userAgent: 'anthropic-ai',
-        allow: '/',
-        disallow: ['/api/', '/admin/', '/auth/', '/marcas/'],
+        allow: ['/', ...PUBLIC_BRAND_PAGES],
+        disallow: [...PRIVATE_PATHS],
       },
       {
         userAgent: 'ClaudeBot',
-        allow: '/',
-        disallow: ['/api/', '/admin/', '/auth/', '/marcas/'],
+        allow: ['/', ...PUBLIC_BRAND_PAGES],
+        disallow: [...PRIVATE_PATHS],
       },
       {
         userAgent: 'Amazonbot',

@@ -86,24 +86,26 @@ const KPIS = [
 ];
 
 
-const howToJsonLd = {
+// HowTo fue eliminado de los rich results de Google en septiembre 2023.
+// Sustituido por WebPage con BreadcrumbList para mantener señales de entidad.
+const webPageJsonLd = {
   '@context': 'https://schema.org',
-  '@type': 'HowTo',
+  '@type': 'WebPage',
   '@id': absoluteUrl('/metodologia'),
-  name: 'Cómo ejecutamos campañas de influencer marketing gaming',
+  url: absoluteUrl('/metodologia'),
+  name: 'Metodología de Campañas Gaming | SocialPro',
   description:
     'Proceso probado en 4 fases para campañas de influencer marketing gaming con ROI demostrable. Discovery, matching, ejecución y reporting.',
   inLanguage: 'es',
-  publisher: { '@type': 'Organization', '@id': absoluteUrl('/#organization'), name: 'SocialPro', url: SITE_URL },
-  step: PHASES.map((phase) => ({
-    '@type': 'HowToStep',
-    name: phase.title,
-    text: phase.desc,
-    itemListElement: phase.details.map((d) => ({
-      '@type': 'HowToDirection',
-      text: d,
-    })),
-  })),
+  isPartOf: { '@id': absoluteUrl('/#website') },
+  about: { '@id': absoluteUrl('/#organization') },
+  breadcrumb: {
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Inicio', item: SITE_URL },
+      { '@type': 'ListItem', position: 2, name: 'Metodología', item: absoluteUrl('/metodologia') },
+    ],
+  },
 };
 
 export default function MetodologiaPage() {
@@ -111,7 +113,7 @@ export default function MetodologiaPage() {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: safeJsonLd(howToJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(webPageJsonLd) }}
       />
       {/* ── Hero ── */}
       <section className="bg-sp-black pt-32 pb-20">

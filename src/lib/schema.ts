@@ -24,10 +24,15 @@ export function generateEventSchema(g: GiveawayWithTalent, siteUrl: string): obj
     description: g.description ?? `Sorteo de ${g.brandName} con ${g.talent.name} en SocialPro.`,
     startDate: g.startsAt.toISOString(),
     ...(g.endsAt ? { endDate: g.endsAt.toISOString() } : {}),
-    eventStatus: isActive
-      ? 'https://schema.org/EventScheduled'
-      : 'https://schema.org/EventPostponed',
+    // EventScheduled es correcto tanto para eventos activos como pasados.
+    // EventPostponed implica reprogramación futura y no aplica a sorteos terminados.
+    eventStatus: 'https://schema.org/EventScheduled',
     eventAttendanceMode: 'https://schema.org/OnlineEventAttendanceMode',
+    // location obligatorio para Event rich results con OnlineEventAttendanceMode
+    location: {
+      '@type': 'VirtualLocation',
+      url: g.redirectUrl,
+    },
     url: g.redirectUrl,
     image: g.imageUrl ?? `${siteUrl}/api/og-image/giveaway?id=${g.id}`,
     organizer: {
@@ -44,9 +49,11 @@ export function generateEventSchema(g: GiveawayWithTalent, siteUrl: string): obj
       '@type': 'Offer',
       price: '0',
       priceCurrency: 'EUR',
+      // SoldOut implica agotamiento de stock; Discontinued es correcto para ofertas caducadas.
+      // InStock para activas, Discontinued para expiradas.
       availability: isActive
         ? 'https://schema.org/InStock'
-        : 'https://schema.org/SoldOut',
+        : 'https://schema.org/Discontinued',
       url: g.redirectUrl,
       validFrom: g.startsAt.toISOString(),
       ...(g.endsAt ? { validThrough: g.endsAt.toISOString() } : {}),

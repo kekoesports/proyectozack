@@ -63,7 +63,7 @@ function AnimatedMetric({ metric, index, started }: { metric: Metric; index: num
         ref={countRef as React.RefObject<HTMLSpanElement>}
         className="font-display text-4xl md:text-5xl font-black mb-1 block gradient-text"
       >
-        {metric.prefix}0{metric.suffix}
+        {metric.prefix}{metric.decimals > 0 ? metric.end.toFixed(metric.decimals) : metric.end}{metric.suffix}
       </span>
       <div className="text-xs font-semibold text-sp-muted uppercase tracking-widest">
         {metric.label}

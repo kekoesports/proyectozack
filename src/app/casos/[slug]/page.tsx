@@ -74,7 +74,7 @@ export default async function CaseStudyPage({ params }: PageProps) {
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Article',
-    '@id': absoluteUrl(`/casos/${slug}`),
+    '@id': absoluteUrl(`/casos/${slug}#article`),
     headline: cs.title,
     url: absoluteUrl(`/casos/${slug}`),
     inLanguage: 'es',
