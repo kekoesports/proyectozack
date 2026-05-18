@@ -1,8 +1,7 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { requireAnyRole } from '@/lib/auth-guard';
 import { getCrmBrand, getBrandContacts, getCrmBrandForPermission, listBrandFollowups } from '@/lib/queries/crmBrands';
-import { needsVisibilityFilter } from '@/lib/permissions';
+import { needsVisibilityFilter, requirePermission } from '@/lib/permissions';
 import { listCampaigns } from '@/lib/queries/campaigns';
 import { listInvoices } from '@/lib/queries/invoices';
 import { listBriefs } from '@/lib/queries/brandBriefs';
@@ -50,7 +49,7 @@ export default async function BrandDetailPage({
   const brandId = Number(id);
   if (isNaN(brandId)) notFound();
 
-  const session = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
+  const session = await requirePermission('campanas', 'read');
 
   const isStaffRole = session.user.role === 'staff';
   const staffOpts   = isStaffRole

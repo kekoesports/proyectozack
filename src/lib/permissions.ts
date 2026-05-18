@@ -84,6 +84,7 @@ export const PERMISSIONS = {
   },
   analytics: {
     read:    ['admin', 'manager', 'analyst', 'finance', 'talent_manager'],
+    write:   ['admin', 'manager'],
   },
   agenda: {
     read:    ['admin', 'manager', 'staff', 'ops', 'editor'],

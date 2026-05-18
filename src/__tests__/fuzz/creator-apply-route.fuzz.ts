@@ -14,6 +14,10 @@ jest.mock('@/lib/db', () => ({
   },
 }));
 jest.mock('@/lib/auth', () => ({ auth: {} }));
+// in-memory rate limiter persists across tests; bypass it so tests are isolated
+jest.mock('@/lib/security/rateLimit', () => ({
+  checkRateLimit: jest.fn().mockReturnValue({ ok: true, remaining: 10, resetAt: 0 }),
+}));
 
 import { appRouter } from '@/server/routers/_app';
 
@@ -21,7 +25,11 @@ const caller = appRouter.createCaller({ session: null });
 
 function isAllowedError(err: unknown): boolean {
   if (err instanceof TRPCError) {
-    return err.code === 'BAD_REQUEST' || err.code === 'INTERNAL_SERVER_ERROR';
+    return (
+      err.code === 'BAD_REQUEST' ||
+      err.code === 'INTERNAL_SERVER_ERROR' ||
+      err.code === 'TOO_MANY_REQUESTS'
+    );
   }
   return false;
 }

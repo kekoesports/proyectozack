@@ -118,7 +118,7 @@ async function fetchYouTubeSubscribers(profileUrl: string, handle: string): Prom
     return { count: parseInt(count, 10), channelId: item.id ?? '' };
   }
 
-  // Try in order: direct ID → profile_url → handle as @handle → handle as forUsername
+  // Try in order: direct ID → profile_url → handle-as-URL → handle as @handle → handle as forUsername
   if (directId) {
     const r = await tryFetch(directId, 'id');
     if (r) return { count: r.count, channelId: r.channelId };
@@ -130,9 +130,19 @@ async function fetchYouTubeSubscribers(profileUrl: string, handle: string): Prom
     if (r) return { count: r.count, channelId: r.channelId };
   }
 
+  // If handle looks like a URL (e.g., pasted full URL in handle field), parse it too
+  if (handle.startsWith('http') || handle.includes('/')) {
+    const parsedFromHandle = parseYouTubeUrl(handle.startsWith('http') ? handle : `https://${handle}`);
+    if (parsedFromHandle) {
+      const paramType = parsedFromHandle.type === 'id' ? 'id' : parsedFromHandle.type === 'handle' ? 'forHandle' : 'forUsername';
+      const r = await tryFetch(parsedFromHandle.value, paramType);
+      if (r) return { count: r.count, channelId: r.channelId };
+    }
+  }
+
   // Fallback: treat handle as @handle
   const cleanHandle = handle.replace(/^@/, '').trim();
-  if (cleanHandle && !cleanHandle.startsWith('http')) {
+  if (cleanHandle && !cleanHandle.startsWith('http') && !cleanHandle.includes('/')) {
     const r = await tryFetch(`@${cleanHandle}`, 'forHandle');
     if (r) return { count: r.count, channelId: r.channelId };
     const r2 = await tryFetch(cleanHandle, 'forUsername');

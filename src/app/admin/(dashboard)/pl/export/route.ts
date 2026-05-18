@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 
-import { requireAnyRole } from '@/lib/auth-guard';
+import { requirePermission } from '@/lib/permissions';
 import { getPnL } from '@/lib/queries/pnl';
 import { startOfLocalYearIso, todayLocalIso } from '@/lib/utils/date';
 
@@ -45,7 +45,7 @@ function defaultRange(): { from: string; to: string } {
 }
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
-  await requireAnyRole(['admin', 'manager'], '/admin/login');
+  await requirePermission('facturacion', 'read');
 
   const url = new URL(request.url);
   const fallback = defaultRange();

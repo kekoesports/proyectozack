@@ -13,6 +13,7 @@
     "seo:save": "tsx scripts/generate-seo-bios.ts --save",
     "seo:batch": "tsx scripts/generate-seo-bios.ts --batch",
     "sync:followers": "tsx scripts/sync-followers.ts",
+    "sync:normalize": "tsx scripts/normalize-social-handles.ts",
     "sync:press": "tsx scripts/sync-press-targets.ts",
     "seed:tasks": "tsx scripts/seed-task-templates.ts",
     "migrate:invoice-files": "tsx scripts/migrate-invoice-files.ts",

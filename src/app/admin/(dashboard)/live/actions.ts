@@ -3,7 +3,7 @@
 import { eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
-import { requireAnyRole } from '@/lib/auth-guard';
+import { requirePermission } from '@/lib/permissions';
 import { db } from '@/lib/db';
 import { talents } from '@/db/schema';
 import { getFeaturedFallbackCount } from '@/lib/queries/live';
@@ -15,7 +15,7 @@ const LiveToggleArgsSchema = z.tuple([StrictIdSchema, StrictBooleanSchema]);
 const FallbackArgsSchema   = z.tuple([StrictIdSchema, StrictBooleanSchema, z.number().int().optional()]);
 
 export async function setFeaturedLiveAction(talentId: number, value: boolean): Promise<void> {
-  await requireAnyRole(['admin', 'manager'], '/admin/login');
+  await requirePermission('talentos', 'write');
   const parsed = LiveToggleArgsSchema.safeParse([talentId, value]);
   if (!parsed.success) return;
   const [id, v] = parsed.data;
@@ -25,7 +25,7 @@ export async function setFeaturedLiveAction(talentId: number, value: boolean): P
 }
 
 export async function setExcludeFromLiveAction(talentId: number, value: boolean): Promise<void> {
-  await requireAnyRole(['admin', 'manager'], '/admin/login');
+  await requirePermission('talentos', 'write');
   const parsed = LiveToggleArgsSchema.safeParse([talentId, value]);
   if (!parsed.success) return;
   const [id, v] = parsed.data;
@@ -35,7 +35,7 @@ export async function setExcludeFromLiveAction(talentId: number, value: boolean)
 }
 
 export async function setFeaturedFallbackAction(talentId: number, value: boolean, currentCount?: number): Promise<void> {
-  await requireAnyRole(['admin', 'manager'], '/admin/login');
+  await requirePermission('talentos', 'write');
   // El currentCount del cliente se ignora: re-leemos el contador en el server
   // para evitar bypass del límite manipulando el bound arg.
   const parsed = FallbackArgsSchema.safeParse([talentId, value, currentCount]);

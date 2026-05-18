@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react';
 import { AdminPageHeader } from '@/features/admin/_shared/components/AdminPageHeader';
-import { requireAnyRole } from '@/lib/auth-guard';
+import { requirePermission } from '@/lib/permissions';
 import {
   getMyTasks,
   getUsedCategories,
@@ -34,7 +34,7 @@ function KpiCard({ label, value, accent }: KpiCardProps): ReactElement {
 }
 
 export default async function MiSemanaPage(): Promise<ReactElement> {
-  const session  = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
+  const session  = await requirePermission('tareas', 'read');
   const weekLabel = getIsoWeekLabel(new Date());
   const prevDate  = new Date(); prevDate.setDate(prevDate.getDate() - 7);
   const prevWeek  = getIsoWeekLabel(prevDate);

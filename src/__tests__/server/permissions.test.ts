@@ -1,3 +1,6 @@
+// better-auth ships pure ESM; mock before module graph loads it
+jest.mock('@/lib/auth', () => ({ auth: {} }));
+
 import {
   canSeeAll,
   canDelete,
