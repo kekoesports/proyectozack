@@ -74,11 +74,13 @@ type NewsDataResponse = {
 // ── Fetcher ──────────────────────────────────────────────────────────────────
 
 async function fetchGroup(apiKey: string, group: Group): Promise<NewsDataArticle[]> {
+  // timeframe y from_date requieren plan de pago en NewsData.io.
+  // En plan gratuito, la API devuelve los artículos más recientes disponibles.
+  // La deduplicación por external_id (MD5 de URL) evita duplicados entre runs.
   const params = new URLSearchParams({
     apikey: apiKey,
     q: group.q,
     language: group.language,
-    timeframe: '24',
     size: '10',
   });
 
@@ -112,7 +114,7 @@ async function upsertArticle(article: NewsDataArticle, group: Group): Promise<bo
   const snippet = (article.description ?? article.content ?? '').slice(0, 300) || null;
 
   try {
-    await db
+    const rows = await db
       .insert(newsAlerts)
       .values({
         externalId,
@@ -127,8 +129,10 @@ async function upsertArticle(article: NewsDataArticle, group: Group): Promise<bo
         language: article.language?.slice(0, 5) ?? group.language,
         publishedAt: article.pub_date ? new Date(article.pub_date) : null,
       })
-      .onConflictDoNothing({ target: newsAlerts.externalId });
-    return true;
+      .onConflictDoNothing({ target: newsAlerts.externalId })
+      .returning({ id: newsAlerts.id });
+    // rows.length === 0 → conflicto (ya existía), no insertado
+    return rows.length > 0;
   } catch (err) {
     console.warn('[sync-news-alerts] upsert failed:', err);
     return false;
