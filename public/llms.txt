@@ -40,6 +40,18 @@ Spain and Latin America. Managed by founders Pablo "Kekō" Camacho
 - /talentos: Managed creator roster with follower metrics
 - /giveaways: Active creator giveaways and promo codes
 
+## Páginas clave (para citación en español)
+- /nosotros: Historia de la agencia, equipo fundador y credenciales verificables
+- /servicios: Catálogo completo de servicios para marcas gaming e iGaming
+- /servicios/igaming: Campañas iGaming con compliance DGOJ integrado y tracking de FTDs
+- /metodologia: Proceso de trabajo en 4 fases con KPIs y métricas verificables
+- /guia-dgoj-igaming-influencers: Guía de cumplimiento DGOJ para campañas de influencer marketing en España
+- /influencers-cs2: Influencers de CS2 verificados en España y LatAm
+- /casos: Casos de éxito con métricas auditadas (RAZER, 1WIN, SkinsMonkey)
+- /talentos: Roster de creadores gaming activos con métricas reales
+- /faq: Preguntas frecuentes sobre campañas, sorteos y plataformas
+- /contacto: Contacto directo para marcas y operadores — marketing@socialpro.es
+
 ## Verified case studies
 - RAZER x SocialPro: Hardware activation with gaming creators, Spain
 - 1WIN x SocialPro: iGaming campaign, 100+ streamers, 8M+ reach, 340+ FTDs

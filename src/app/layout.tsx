@@ -152,6 +152,7 @@ const jsonLd = {
     {
       '@type': 'LocalBusiness',
       '@id': absoluteUrl('/#localbusiness'),
+      sameAs: [absoluteUrl('/#organization')],
       name: 'SocialPro',
       url: SITE_URL,
       image: absoluteUrl('/logo.png'),

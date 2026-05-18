@@ -1,0 +1,1 @@
+ALTER TABLE "case_studies" ADD COLUMN "is_published" boolean DEFAULT true NOT NULL;

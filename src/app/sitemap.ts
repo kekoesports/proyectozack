@@ -8,7 +8,7 @@ import { getBrandSlugs } from '@/lib/brands';
 
 // Update lastModified manually when making significant content changes.
 // priority and changeFrequency omitted — Google ignores both fields (2023+).
-const NOW = new Date('2026-05-07');
+const NOW = new Date('2026-05-18');
 
 const D = {
   home:          NOW,

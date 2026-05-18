@@ -1,4 +1,4 @@
-import { pgTable, serial, varchar, text, integer, index, timestamp } from 'drizzle-orm/pg-core';
+import { pgTable, serial, varchar, text, integer, boolean, index, timestamp } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 import { talents } from './talents';
 
@@ -21,6 +21,7 @@ export const caseStudies = pgTable('case_studies', {
   spokespersonRole: varchar('spokesperson_role', { length: 200 }),
   campaignPeriod: varchar('campaign_period', { length: 100 }),
   keyTakeaways: text('key_takeaways'), // almacenado como líneas separadas por \n
+  isPublished: boolean('is_published').notNull().default(true),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
 }, (t) => [
   index('case_studies_slug_idx').on(t.slug),
