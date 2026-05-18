@@ -37,7 +37,14 @@ function normalizeBodyMd(md: string): string {
 }
 
 export function NewsArticleBody({ bodyMd }: { bodyMd: string }) {
-  const blocks = normalizeBodyMd(bodyMd).split(/\n\n+/).filter((b) => b.trim().length > 0);
+  const rawBlocks = normalizeBodyMd(bodyMd).split(/\n\n+/).filter((b) => b.trim().length > 0);
+
+  // El CMS almacena el título como primer bloque `# Title`.
+  // El header de la página ya lo muestra via post.title, por lo que se omite
+  // SOLO si es el primer bloque — nunca se eliminan # headings posteriores.
+  const blocks = rawBlocks[0]?.trim().startsWith('# ')
+    ? rawBlocks.slice(1)
+    : rawBlocks;
 
   return (
     <div className="news-prose space-y-5 text-white/70 text-[16px] md:text-[17px] leading-[1.75]">
