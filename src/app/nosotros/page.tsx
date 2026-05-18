@@ -1,10 +1,10 @@
 import type { Metadata } from 'next';
+import Image from 'next/image';
 import Link from 'next/link';
 import { safeJsonLd } from '@/lib/safeJsonLd';
 import { getTeam, getBrands } from '@/lib/queries/content';
 import { NosotrosHero } from '@/features/marketing-site/components/NosotrosHero';
 import { NosotrosPorQue } from '@/features/marketing-site/components/NosotrosPorQue';
-import { BrandsCarousel } from '@/features/marketing-site/components/BrandsCarousel';
 import { TeamGrid } from '@/features/marketing-site/components/TeamGrid';
 import { absoluteUrl, SITE_URL, schemaImageUrl } from '@/lib/site-url';
 
@@ -185,33 +185,72 @@ export default async function NosotrosPage() {
       {/* ── Por qué SocialPro ────────────────────────────────────── */}
       <NosotrosPorQue />
 
-      {/* ── Texto SEO — siempre visible en DOM para AI crawlers ─── */}
-      <section className="bg-sp-off py-12">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4 text-sm text-sp-muted leading-relaxed">
-          <p>
-            SocialPro es una agencia especializada en marketing gaming e iGaming para marcas y
-            creadores en España y Latinoamérica. Desde 2012, trabaja campañas centradas en Twitch,
-            YouTube, Kick e Instagram dentro del ecosistema esports, CS2, Valorant y apuestas
-            online reguladas.
-          </p>
-          <p>
-            La agencia combina influencer marketing, gestión de talento y campañas orientadas a
-            conversión con un enfoque centrado en compliance y resultados auditables. En el sector
-            iGaming, SocialPro integra procesos adaptados a normativa DGOJ, incluyendo supervisión
-            de campañas, validación de contenido y coordinación con operadores y afiliados.
-          </p>
-          <p>
-            Actualmente, SocialPro trabaja con una red de creadores especializados en gaming y
-            entretenimiento digital, acumulando millones de visualizaciones mensuales en campañas
-            para marcas internacionales. Entre los resultados recientes destacan más de 340 FTDs
-            verificados en una activación de iGaming y más de 200.000&nbsp;€ en volumen atribuido
-            en campañas vinculadas al ecosistema CS2.
-          </p>
+      {/* ── Editorial — layout 2 columnas, pull quote + definición ─ */}
+      <section className="bg-white py-16 md:py-20 border-t border-sp-border">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid lg:grid-cols-[2fr_3fr] gap-12 lg:gap-20 items-start">
+
+            {/* Pull quote / manifiesto */}
+            <div>
+              <p className="font-display text-2xl md:text-[1.7rem] font-black uppercase leading-[1.15] text-sp-dark mb-6">
+                &ldquo;Resultados verificados desde el panel del operador,
+                no capturas de pantalla.&rdquo;
+              </p>
+              <div className="border-t border-sp-border pt-5">
+                <p className="text-xs font-bold uppercase tracking-[0.25em] text-sp-orange">
+                  Pablo Camacho
+                </p>
+                <p className="text-xs text-sp-muted mt-1">CEO · SocialPro · Desde 2012</p>
+              </div>
+            </div>
+
+            {/* Definición — texto SEO siempre en DOM */}
+            <div className="space-y-5 text-sm text-sp-muted leading-relaxed">
+              <p>
+                SocialPro es una agencia especializada en marketing gaming e iGaming para marcas y
+                creadores en España y Latinoamérica. Desde 2012, trabaja campañas centradas en Twitch,
+                YouTube, Kick e Instagram dentro del ecosistema esports, CS2, Valorant y apuestas
+                online reguladas.
+              </p>
+              <p>
+                La agencia combina influencer marketing, gestión de talento y campañas orientadas a
+                conversión con un enfoque centrado en compliance y resultados auditables. En el sector
+                iGaming, SocialPro integra procesos adaptados a normativa DGOJ, incluyendo supervisión
+                de campañas, validación de contenido y coordinación con operadores y afiliados.
+              </p>
+              <p>
+                Actualmente, SocialPro trabaja con una red de creadores especializados en gaming y
+                entretenimiento digital, acumulando millones de visualizaciones mensuales en campañas
+                para marcas internacionales. Entre los resultados recientes destacan más de 340 FTDs
+                verificados en una activación de iGaming y más de 200.000&nbsp;€ en volumen atribuido
+                en campañas vinculadas al ecosistema CS2.
+              </p>
+            </div>
+
+          </div>
         </div>
       </section>
 
-      {/* ── Social proof — logos de marcas ───────────────────────── */}
-      <BrandsCarousel brands={brands} />
+      {/* ── Marcas — monocromo sobre dark, estética premium ─────── */}
+      <section className="bg-sp-dark py-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-white/25 text-center mb-8">
+            Marcas que han confiado en SocialPro
+          </p>
+          <div className="flex items-center justify-center flex-wrap gap-10 md:gap-14">
+            {brands.filter((b): b is typeof b & { logoUrl: string } => b.logoUrl !== null).slice(0, 7).map((brand) => (
+              <Image
+                key={brand.id}
+                src={brand.logoUrl}
+                alt={brand.displayName}
+                width={100}
+                height={36}
+                className="h-7 w-auto object-contain brightness-0 invert opacity-40 hover:opacity-75 transition-opacity duration-300"
+              />
+            ))}
+          </div>
+        </div>
+      </section>
 
       {/* ── Equipo ───────────────────────────────────────────────── */}
       <TeamGrid team={team} />

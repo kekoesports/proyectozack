@@ -1,7 +1,6 @@
+import Image from 'next/image';
 import Link from 'next/link';
 import type { Brand } from '@/types';
-import { BrandLogo } from '@/components/ui/BrandLogo';
-import { getBrandBg } from '@/components/ui/brand-bg-map';
 import { FadeInOnScroll } from '@/components/ui/FadeInOnScroll';
 
 type Props = { brands: Brand[] }
@@ -102,19 +101,21 @@ export function NosotrosHero({ brands }: Props) {
                   </span>
                 </div>
 
-                {/* Brand logos — con aire entre ellos, no un wall */}
-                <div className="px-6 py-6 flex items-center justify-between gap-4">
+                {/* Brand logos — monocromo blanco sobre dark, sin placas */}
+                <div className="px-6 py-6 flex items-center justify-between gap-6">
                   {showBrands.map((brand) => (
                     brand.logoUrl ? (
-                      <BrandLogo
-                        key={brand.id}
-                        src={brand.logoUrl}
-                        alt={brand.displayName}
-                        plate={getBrandBg(brand.displayName)}
-                        size="md"
-                      />
+                      <div key={brand.id} className="flex-1 flex items-center justify-center">
+                        <Image
+                          src={brand.logoUrl}
+                          alt={brand.displayName}
+                          width={80}
+                          height={32}
+                          className="h-7 w-auto max-w-[72px] object-contain brightness-0 invert opacity-55"
+                        />
+                      </div>
                     ) : (
-                      <span key={brand.id} className="text-xs font-bold text-white/60">
+                      <span key={brand.id} className="text-[10px] font-bold text-white/30 uppercase tracking-widest">
                         {brand.displayName}
                       </span>
                     )
