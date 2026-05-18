@@ -154,6 +154,33 @@ export default async function NosotrosPage() {
       />
       <div>
         <h1 className="sr-only">Agencia Gaming España desde 2012</h1>
+
+        {/* Definición standalone — 140-160 palabras siempre visibles en DOM.
+            Pasaje citable para AI systems sin dependencia de JS ni colapso. */}
+        <section className="bg-white pt-16 pb-2">
+          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4 text-base text-sp-muted leading-relaxed">
+            <p>
+              SocialPro es una agencia especializada en marketing gaming e iGaming para marcas y
+              creadores en España y Latinoamérica. Desde 2012, trabaja campañas centradas en Twitch,
+              YouTube, Kick e Instagram dentro del ecosistema esports, CS2, Valorant y apuestas
+              online reguladas.
+            </p>
+            <p>
+              La agencia combina influencer marketing, gestión de talento y campañas orientadas a
+              conversión con un enfoque centrado en compliance y resultados auditables. En el sector
+              iGaming, SocialPro integra procesos adaptados a normativa DGOJ, incluyendo supervisión
+              de campañas, validación de contenido y coordinación con operadores y afiliados.
+            </p>
+            <p>
+              Actualmente, SocialPro trabaja con una red de creadores especializados en gaming y
+              entretenimiento digital, acumulando millones de visualizaciones mensuales en campañas
+              para marcas internacionales. Entre los resultados recientes destacan más de 340 FTDs
+              verificados en una activación de iGaming y más de 200.000&nbsp;€ en volumen atribuido
+              en campañas vinculadas al ecosistema CS2.
+            </p>
+          </div>
+        </section>
+
         <AboutSection />
         <TeamGrid team={team} />
       </div>
