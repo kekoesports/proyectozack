@@ -98,18 +98,22 @@ export function Hero() {
           Gaming &amp; Esports · España · LatAm · Europa
         </span>
 
+        {/* Eyebrow — keyword context visible to AI parsers and screen readers.
+            Outside <h1> so H1 text is "CONECTAMOS CREADORES CON MARCAS" without
+            concatenation artifacts. */}
+        <m.p
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1], delay: 0.15 }}
+          className="font-display text-[0.9rem] xs:text-[1.1rem] sm:text-[1.6rem] md:text-[2.25rem] lg:text-[3rem] font-bold uppercase tracking-[0.2em] text-sp-muted2/60 mb-3 sm:mb-4"
+        >
+          AGENCIA GAMING &amp; IGAMING
+        </m.p>
+
         {/* Hero H1 = LCP element. Mantenemos el slide-in (y: 40 → 0) pero
             quitamos opacity:0 inicial: si el elemento empieza invisible, el
             navegador no contabiliza el LCP hasta que la animación termina. */}
         <h1 className="font-display text-[2.75rem] xs:text-[3.5rem] sm:text-[5rem] md:text-[7rem] lg:text-[10rem] font-black uppercase leading-[0.85] tracking-tight mb-10">
-          <m.span
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1], delay: 0.15 }}
-            className="block text-[0.9rem] xs:text-[1.1rem] sm:text-[1.6rem] md:text-[2.25rem] lg:text-[3rem] font-bold tracking-[0.2em] text-sp-muted2/60 mb-3 sm:mb-4"
-          >
-            AGENCIA GAMING &amp; IGAMING
-          </m.span>
           <m.span
             initial={{ y: 40 }}
             animate={{ y: 0 }}
