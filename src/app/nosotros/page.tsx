@@ -5,6 +5,7 @@ import { safeJsonLd } from '@/lib/safeJsonLd';
 import { getTeam, getBrands } from '@/lib/queries/content';
 import { NosotrosHero } from '@/features/marketing-site/components/NosotrosHero';
 import { NosotrosPorQue } from '@/features/marketing-site/components/NosotrosPorQue';
+import { BrandsCarousel } from '@/features/marketing-site/components/BrandsCarousel';
 import { TeamGrid } from '@/features/marketing-site/components/TeamGrid';
 import { absoluteUrl, SITE_URL, schemaImageUrl } from '@/lib/site-url';
 
@@ -231,28 +232,8 @@ export default async function NosotrosPage() {
         </div>
       </section>
 
-      {/* ── Marcas — brand wall curado, grid fijo, monocromo ────── */}
-      <section className="bg-sp-dark py-14">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-white/25 text-center mb-10">
-            Marcas que han confiado en SocialPro
-          </p>
-          {/* Grid fijo — 3 col mobile, 6 col desktop. Sin flex-wrap que rompe. */}
-          <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-8 items-center">
-            {brands.filter((b): b is typeof b & { logoUrl: string } => b.logoUrl !== null).slice(0, 6).map((brand) => (
-              <div key={brand.id} className="flex items-center justify-center">
-              <Image
-                src={brand.logoUrl}
-                alt={brand.displayName}
-                width={100}
-                height={36}
-                className="h-6 w-auto max-w-[80px] object-contain brightness-0 invert opacity-35 hover:opacity-70 transition-opacity duration-300"
-              />
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* ── Marcas — mismo carrusel que en homepage ──────────────── */}
+      <BrandsCarousel brands={brands} />
 
       {/* ── Equipo ───────────────────────────────────────────────── */}
       <TeamGrid team={team} />

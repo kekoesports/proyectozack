@@ -103,7 +103,7 @@ export function NosotrosHero({ brands }: Props) {
                       alt={brand.displayName}
                       width={80}
                       height={28}
-                      className="h-6 w-auto max-w-[70px] object-contain brightness-0 invert opacity-45"
+                      className="h-6 w-auto max-w-[70px] object-contain opacity-80"
                     />
                   ) : null
                 ))}
