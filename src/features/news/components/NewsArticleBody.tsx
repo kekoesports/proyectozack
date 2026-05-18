@@ -39,12 +39,28 @@ function normalizeBodyMd(md: string): string {
 export function NewsArticleBody({ bodyMd }: { bodyMd: string }) {
   const rawBlocks = normalizeBodyMd(bodyMd).split(/\n\n+/).filter((b) => b.trim().length > 0);
 
-  // El CMS almacena el título como primer bloque `# Title`.
-  // El header de la página ya lo muestra via post.title, por lo que se omite
-  // SOLO si es el primer bloque — nunca se eliminan # headings posteriores.
-  const blocks = rawBlocks[0]?.trim().startsWith('# ')
-    ? rawBlocks.slice(1)
-    : rawBlocks;
+  // El CMS almacena el título como primera línea `# Title` del body.
+  // El header de la página ya lo muestra via post.title.
+  //
+  // Caso A: el bloque es SOLO la línea `# Title` → se descarta entero.
+  // Caso B: el bloque empieza con `# Title\nContenido` (sin blank line entre
+  //   ellos) → solo se descarta la primera línea; el resto del bloque se conserva.
+  // Nunca se tocan bloques posteriores aunque comiencen con `#`.
+  let blocks: string[];
+  const firstBlock = rawBlocks[0]?.trim() ?? '';
+  if (firstBlock.startsWith('# ')) {
+    const newlineIdx = firstBlock.indexOf('\n');
+    if (newlineIdx === -1) {
+      // Solo era el título — descartamos el bloque completo
+      blocks = rawBlocks.slice(1);
+    } else {
+      // Hay contenido tras el título en el mismo bloque — conservar resto
+      const remainder = firstBlock.slice(newlineIdx + 1).trim();
+      blocks = remainder ? [remainder, ...rawBlocks.slice(1)] : rawBlocks.slice(1);
+    }
+  } else {
+    blocks = rawBlocks;
+  }
 
   return (
     <div className="news-prose space-y-5 text-white/70 text-[16px] md:text-[17px] leading-[1.75]">
