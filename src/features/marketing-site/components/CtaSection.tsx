@@ -41,16 +41,17 @@ export function CtaSection(): React.JSX.Element {
           transition={{ duration: DURATION.slow, ease: EASE.out }}
           className="text-sp-muted2 text-lg mb-4"
         >
-          +340 FTDs en una activación · 15M views/mes · 13 años ejecutando en
-          España, LatAm y Europa.
+          +340 FTDs en una activación (1WIN × CS2, 2025, panel del operador) ·
+          15M+ views/mes · 13 años en gaming e iGaming.
         </m.p>
         <m.p
           variants={fadeUp}
           transition={{ duration: DURATION.slow, ease: EASE.out }}
           className="text-sp-muted2/70 text-sm mb-10"
         >
-          Cuéntanos producto, mercado y objetivo. Te respondemos con una
-          propuesta concreta.
+          1. Cuéntanos producto, mercado y objetivo ·
+          2. Propuesta con creadores seleccionados en 48h ·
+          3. Sin compromiso — decides si avanzar.
         </m.p>
         <m.a
           href="/contacto"

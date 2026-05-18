@@ -22,7 +22,7 @@ const METRICS: Metric[] = [
   { end: 15,  prefix: '',  suffix: 'M', decimals: 0, label: 'VIEWS/MES' },
   { end: 15,  prefix: '',  suffix: '',  decimals: 0, label: 'CAMPAÑAS' },
   { end: 340, prefix: '+', suffix: '',  decimals: 0, label: 'FTDS' },
-  { end: 3,   prefix: '',  suffix: '',  decimals: 0, label: 'MERCADOS' },
+  { end: 6,   prefix: '',  suffix: '',  decimals: 0, label: 'MERCADOS' },
   { end: 8.4, prefix: '',  suffix: '%', decimals: 1, label: 'CTR' },
 ];
 

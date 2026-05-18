@@ -115,14 +115,17 @@ export function NosotrosHero({ brands }: Props) {
                 <div className="text-white/40 text-[11px] font-semibold uppercase tracking-wider mt-1">
                   Views mensuales en el roster
                 </div>
+                <div className="text-white/25 text-[10px] mt-0.5">
+                  Twitch + YouTube, datos internos Q1 2026
+                </div>
               </div>
 
-              {/* DGOJ badge — integrado, sin flotar */}
+              {/* DGOJ badge — integrado, con dato de reclamaciones */}
               <div className="inline-flex items-center gap-2.5 bg-white/[0.05] border border-white/10 rounded-xl px-4 py-2.5">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" />
                 <div>
                   <div className="text-xs font-bold text-white leading-tight">DGOJ Compliant</div>
-                  <div className="text-[10px] text-white/40 leading-tight">Real Decreto 958/2020</div>
+                  <div className="text-[10px] text-white/40 leading-tight">Zero reclamaciones regulatorias desde 2022</div>
                 </div>
               </div>
 

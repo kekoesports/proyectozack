@@ -9,7 +9,7 @@ const REASONS = [
     title: 'DGOJ Compliant',
     // micro-contexto para quien no conoce la normativa
     context: 'Regulación española de publicidad de juego online',
-    desc: 'Compliance regulatorio integrado desde el briefing. Verificación de edad, ventanas de publicación autorizadas y supervisión legal antes de cada pieza de contenido iGaming. Sin sorpresas regulatorias.',
+    desc: 'Compliance DGOJ integrado desde el briefing — verificación de edad, ventanas de publicación y supervisión legal antes de cada pieza. Zero reclamaciones regulatorias para clientes operadores desde 2022.',
   },
   {
     icon: '📊',

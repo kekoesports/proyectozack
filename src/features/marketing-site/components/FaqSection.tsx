@@ -17,7 +17,7 @@ const FAQS: FaqItem[] = [
   {
     question: '¿En qué mercados operáis?',
     answer:
-      'Actualmente operamos en España, Latinoamérica y el mercado de habla hispana global. Nuestros creadores cubren Twitch, YouTube y plataformas de CS2, con audiencias en más de 3 mercados activos.',
+      'Actualmente operamos en España, Latinoamérica y el mercado de habla hispana global. Nuestros creadores cubren Twitch, YouTube y plataformas de CS2, con audiencias activas en España, México, Argentina, Chile, Colombia y Perú.',
   },
   {
     question: '¿Cuánto cuesta una campaña?',

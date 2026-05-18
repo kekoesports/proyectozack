@@ -147,9 +147,9 @@ export function Hero() {
             transition={{ duration: 0.8, delay: 0.8 }}
             className="text-base sm:text-lg text-sp-muted2 mb-8 leading-relaxed font-medium"
           >
-            Campañas gaming y iGaming con talentos verificados, compliance
-            integrado y FTDs rastreados. 13+ años ejecutando en España, LatAm
-            y Europa.
+            Campañas gaming e iGaming con talentos verificados, compliance DGOJ
+            integrado y FTDs trazables desde el panel del operador. 13+ años
+            ejecutando en España, LatAm y Europa.
           </m.p>
 
           <m.div

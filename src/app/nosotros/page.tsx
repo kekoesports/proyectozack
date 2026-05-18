@@ -243,8 +243,14 @@ export default async function NosotrosPage() {
           <h2 className="font-display text-3xl md:text-4xl font-black uppercase text-white leading-tight mb-4">
             ¿Tu marca busca creadores gaming?
           </h2>
+          <p className="text-white/45 text-sm mb-2 leading-relaxed">
+            1. Cuéntanos producto, mercado y objetivo
+          </p>
+          <p className="text-white/45 text-sm mb-2 leading-relaxed">
+            2. Propuesta con creadores seleccionados en 48h
+          </p>
           <p className="text-white/45 text-sm mb-8 leading-relaxed">
-            Cuéntanos el objetivo. Activamos la campaña en menos de 72 horas.
+            3. Sin compromiso — decides si avanzar
           </p>
           <Link
             href="/contacto"
@@ -252,6 +258,9 @@ export default async function NosotrosPage() {
           >
             Iniciar propuesta →
           </Link>
+          <p className="text-white/25 text-[11px] font-semibold uppercase tracking-widest mt-4">
+            Respuesta en 24h · Sin compromiso
+          </p>
         </div>
       </section>
     </>

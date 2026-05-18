@@ -56,6 +56,13 @@ export function AboutSection({ expanded = false }: Props) {
             ))}
           </div>
 
+          {/* DGOJ footnote — micro-contexto para quien no conoce la normativa */}
+          <p className="text-[11px] text-sp-muted/60 mb-5 max-w-xl">
+            <span className="font-semibold text-sp-muted/80">DGOJ</span>
+            {': '}regulación española de publicidad de juego online (RD 958/2020).
+            {' '}Zero reclamaciones regulatorias para clientes operadores desde 2022.
+          </p>
+
           {!expanded && (
             <Link
               href="/nosotros"
