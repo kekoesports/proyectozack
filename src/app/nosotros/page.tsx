@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import Image from 'next/image';
 import Link from 'next/link';
 import { safeJsonLd } from '@/lib/safeJsonLd';
 import { getTeam, getBrands } from '@/lib/queries/content';
