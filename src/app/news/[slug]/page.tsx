@@ -108,6 +108,7 @@ export default async function NewsArticlePage({ params }: PageProps) {
 
       <main className="bg-sp-black text-white">
         <article>
+          {/* ── Article header — 2-col on md+: left=text, right=image ── */}
           <header className="relative bg-sp-black border-b border-white/[0.06] pt-10 pb-10 md:pt-14 md:pb-12 overflow-hidden">
             <div
               aria-hidden
@@ -119,65 +120,71 @@ export default async function NewsArticlePage({ params }: PageProps) {
               }}
             />
 
-            <div className="relative max-w-3xl mx-auto px-5 md:px-8">
-              <nav aria-label="Breadcrumb" className="mb-6 text-[11px] uppercase tracking-wider text-white/35 flex items-center gap-2">
-                <Link href="/news" className="hover:text-white/70 transition-colors">
-                  News
-                </Link>
-                <span aria-hidden>/</span>
-                <span className={`font-bold ${category.text}`}>{category.label}</span>
-              </nav>
+            <div className="relative max-w-6xl mx-auto px-5 md:px-8">
+              <div className={`grid gap-8 md:gap-12 items-center ${post.coverUrl ? 'md:grid-cols-[3fr_2fr]' : ''}`}>
 
-              <span
-                className={`inline-flex items-center text-[10px] font-bold uppercase tracking-wider rounded-full px-2.5 py-1 border mb-5 ${category.bg} ${category.text} ${category.border}`}
-              >
-                {category.label}
-              </span>
+                {/* Left — text */}
+                <div>
+                  <nav aria-label="Breadcrumb" className="mb-6 text-[11px] uppercase tracking-wider text-white/35 flex items-center gap-2">
+                    <Link href="/news" className="hover:text-white/70 transition-colors">
+                      News
+                    </Link>
+                    <span aria-hidden>/</span>
+                    <span className={`font-bold ${category.text}`}>{category.label}</span>
+                  </nav>
 
-              <h1 className="font-display text-3xl md:text-5xl font-black uppercase text-white tracking-tight leading-[0.98] mb-5">
-                {post.title}
-              </h1>
+                  <span
+                    className={`inline-flex items-center text-[10px] font-bold uppercase tracking-wider rounded-full px-2.5 py-1 border mb-5 ${category.bg} ${category.text} ${category.border}`}
+                  >
+                    {category.label}
+                  </span>
 
-              <p className="text-base md:text-lg text-white/65 leading-relaxed mb-6 max-w-2xl">
-                {post.excerpt}
-              </p>
+                  <h1 className="font-display text-3xl md:text-4xl lg:text-5xl font-black uppercase text-white tracking-tight leading-[0.98] mb-5">
+                    {post.title}
+                  </h1>
 
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-[11px] text-white/45">
-                <span className="uppercase tracking-wider text-white/65">{post.author}</span>
-                <span aria-hidden className="w-0.5 h-0.5 rounded-full bg-white/20" />
-                {post.publishedAt ? (
-                  <time dateTime={post.publishedAt.toISOString()} className="tabular-nums">
-                    {date}
-                  </time>
+                  <p className="text-base md:text-lg text-white/65 leading-relaxed mb-6">
+                    {post.excerpt}
+                  </p>
+
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-[11px] text-white/45">
+                    <span className="uppercase tracking-wider text-white/65">{post.author}</span>
+                    <span aria-hidden className="w-0.5 h-0.5 rounded-full bg-white/20" />
+                    {post.publishedAt ? (
+                      <time dateTime={post.publishedAt.toISOString()} className="tabular-nums">
+                        {date}
+                      </time>
+                    ) : null}
+                    <span aria-hidden className="w-0.5 h-0.5 rounded-full bg-white/20" />
+                    <span>{reading} min de lectura</span>
+                  </div>
+                </div>
+
+                {/* Right — cover image (only on desktop 2-col) */}
+                {post.coverUrl ? (
+                  <div className="relative aspect-[4/3] rounded-xl overflow-hidden border border-white/[0.06] bg-white/[0.03]">
+                    <Image
+                      src={post.coverUrl}
+                      alt=""
+                      fill
+                      priority
+                      sizes="(min-width:1024px) 40vw, 100vw"
+                      className="object-cover object-top"
+                    />
+                  </div>
                 ) : null}
-                <span aria-hidden className="w-0.5 h-0.5 rounded-full bg-white/20" />
-                <span>{reading} min de lectura</span>
+
               </div>
             </div>
           </header>
 
-          {post.coverUrl ? (
-            <div className="relative max-w-5xl mx-auto px-5 md:px-8 mt-6 md:mt-8">
-              {/* aspect-[16/9] + max-h keeps image cinematic without dominating the viewport */}
-              <div className="relative aspect-[16/9] max-h-[360px] rounded-xl overflow-hidden border border-white/[0.06] bg-sp-black">
-                <Image
-                  src={post.coverUrl}
-                  alt=""
-                  fill
-                  priority
-                  sizes="(min-width:1024px) 960px, 100vw"
-                  className="object-cover object-top"
-                />
-              </div>
-            </div>
-          ) : null}
-
+          {/* ── Article body — starts immediately after header ─────── */}
           {blocks?.layout && blocks.layout.length > 0 ? (
             <InterleavedArticleBody bodyMd={post.bodyMd} blocks={blocks} />
           ) : (
             <>
               {blocks?.matchContext ? <MatchContextBlock match={blocks.matchContext} /> : null}
-              <section className="max-w-3xl mx-auto px-5 md:px-8 py-8 md:py-10">
+              <section className="max-w-3xl mx-auto px-5 md:px-8 py-8 md:py-12">
                 <NewsArticleBody bodyMd={post.bodyMd} />
               </section>
               {blocks?.quotes?.[0] ? <EditorialQuoteBlock quote={blocks.quotes[0]} /> : null}
