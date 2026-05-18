@@ -21,7 +21,11 @@ function parseNameNick(raw: string): { displayName: string; nick: string | null 
   if (!match) return { displayName: raw.trim(), nick: null };
   const first = match[1]?.trim() ?? '';
   const last = match[3]?.trim() ?? '';
-  const nick = match[2] ?? null;
+  const rawNick = match[2] ?? null;
+  // Nicks de gaming: sin diacríticos, sin mayúsculas (kekō → keko)
+  const nick = rawNick
+    ? rawNick.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase()
+    : null;
   const displayName = [first, last].filter(Boolean).join(' ');
   return { displayName, nick };
 }
