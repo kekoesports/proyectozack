@@ -12,6 +12,9 @@ concurrency:
 
 env:
   NODE_VERSION: '24'
+  # Opt into Node.js 24 runtime for all actions immediately (avoids deprecation
+  # warning; GitHub will force this from June 2026 anyway).
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
 
 jobs:
   lint-typecheck:
