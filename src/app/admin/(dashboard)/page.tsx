@@ -23,6 +23,7 @@ import { PipelineChartCard } from '@/features/admin/_shared/components/dashboard
 import { TaskPanel } from '@/features/admin/_shared/components/dashboard/TaskPanel';
 import { ActivityPanel } from '@/features/admin/_shared/components/dashboard/ActivityPanel';
 import { InsightsPanel } from '@/features/admin/_shared/components/dashboard/InsightsPanel';
+import { NewsAlertsWidget } from '@/features/admin/newsAlerts/components/NewsAlertsWidget';
 import {
   BrandIcon, TalentIcon, GiveawayIcon, TasksIcon, InvoiceIcon,
 } from '@/features/admin/_shared/components/SidebarIcons';
@@ -173,6 +174,9 @@ export default async function AdminDashboardPage(): Promise<ReactElement> {
         <ActivityPanel items={MOCK_ACTIVITY} />
         <InsightsPanel insights={MOCK_INSIGHTS} />
       </div>
+
+      {/* ── Alertas editoriales (NewsData) ──────────────────── */}
+      <NewsAlertsWidget />
 
     </div>
   );

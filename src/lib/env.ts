@@ -21,6 +21,8 @@ export const env = createEnv({
     TARGETS_IMPORT_TOKEN: z.string().min(32).optional(),
     GEMINI_API_KEY: z.string().min(1).optional(),
     GEMINI_MODEL: z.string().min(1).optional(),
+    // NewsData.io API key para monitorización de noticias
+    NEWSDATA_API_KEY: z.string().min(1).optional(),
   },
   client: {
     NEXT_PUBLIC_SITE_URL: z.string().url(),
@@ -41,6 +43,7 @@ export const env = createEnv({
     TARGETS_IMPORT_TOKEN: process.env.TARGETS_IMPORT_TOKEN,
     GEMINI_API_KEY: process.env.GEMINI_API_KEY,
     GEMINI_MODEL: process.env.GEMINI_MODEL,
+    NEWSDATA_API_KEY: process.env.NEWSDATA_API_KEY,
 
     NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
     NEXT_PUBLIC_GTM_ID: process.env.NEXT_PUBLIC_GTM_ID,

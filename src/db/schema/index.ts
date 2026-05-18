@@ -43,3 +43,5 @@ export * from './newsletterSubscribers';
 export * from './newsletterSends';
 
 export * from './brandCatalog';
+
+export * from './newsAlerts';
