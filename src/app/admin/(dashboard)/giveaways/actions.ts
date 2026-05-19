@@ -3,7 +3,6 @@
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { requirePermission } from '@/lib/permissions';
-import { assertCanDelete } from '@/lib/permissions';
 import { createGiveaway, updateGiveaway, deleteGiveaway } from '@/lib/queries/giveaways';
 import { like, eq } from 'drizzle-orm';
 import { giveaways } from '@/db/schema';

@@ -65,7 +65,7 @@ export const PERMISSIONS = {
   codigos: {
     read:    ['admin', 'manager', 'staff', 'ops'],
     write:   ['admin', 'manager', 'ops'],
-    delete:  ['admin'],
+    delete:  ['admin', 'manager'],
   },
   talentos: {
     read:    ['admin', 'manager', 'staff', 'talent_manager'],

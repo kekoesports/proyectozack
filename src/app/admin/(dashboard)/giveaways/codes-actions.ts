@@ -3,7 +3,6 @@
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { requirePermission } from '@/lib/permissions';
-import { assertCanDelete } from '@/lib/permissions';
 import { createCode, deleteCode, updateCode } from '@/lib/queries/creatorCodes';
 import { eq } from 'drizzle-orm';
 import { db } from '@/lib/db';
@@ -102,8 +101,7 @@ export async function setCodeFeaturedAction(id: number, value: boolean): Promise
 }
 
 export async function deleteCodeAction(formData: FormData): Promise<void> {
-  const { user } = await requirePermission('sorteos', 'write');
-  assertCanDelete(user.role);
+  await requirePermission('codigos', 'delete');
   const parsed = parseFormData(formData, DeleteByIdSchema);
   if (!parsed.ok) return;
   await deleteCode(parsed.data.id);
