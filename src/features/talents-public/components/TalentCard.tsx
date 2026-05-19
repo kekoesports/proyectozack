@@ -2,7 +2,6 @@
 
 import Image from 'next/image';
 import type { TalentWithRelations } from '@/types';
-import { StatusBadge } from '@/components/ui/StatusBadge';
 import { SocialIcon } from '@/components/ui/SocialIcon';
 import { gradientStyle } from '@/lib/utils/gradient';
 
@@ -50,7 +49,6 @@ export function TalentCard({ talent, onOpen, priority = false }: TalentCardProps
             </span>
           </div>
         )}
-        <StatusBadge status={talent.status} className="absolute top-3 right-3" />
       </div>
 
       {/* Info */}
@@ -63,13 +61,22 @@ export function TalentCard({ talent, onOpen, priority = false }: TalentCardProps
         </p>
 
         {/* Stats */}
-        <div className="grid grid-cols-3 gap-1 mb-3">
-          {talent.stats.slice(0, 3).map((stat) => (
-            <div key={stat.id} className="text-center">
-              <div className="text-xs font-bold text-sp-dark">{stat.value}</div>
-              <div className="text-[10px] text-sp-muted leading-tight">{stat.label.split(' ')[0]}</div>
-            </div>
-          ))}
+        <div className="grid grid-cols-3 gap-3 mb-4">
+          {talent.stats.slice(0, 3).map((stat) => {
+            const lower = stat.label.toLowerCase();
+            const platform = lower.includes('twitch') ? 'twitch'
+              : lower.includes('youtube') ? 'youtube'
+              : null;
+            return (
+              <div key={stat.id} className="text-center">
+                <div className="text-sm font-bold text-sp-dark">{stat.value}</div>
+                <div className="flex items-center justify-center gap-0.5 text-[10px] text-sp-muted leading-tight mt-0.5">
+                  {platform && <SocialIcon type={platform} size={9} />}
+                  <span>{stat.label.split(' ')[0]}</span>
+                </div>
+              </div>
+            );
+          })}
         </div>
 
         {/* Socials */}
