@@ -124,15 +124,13 @@ export async function setGiveawayBadgeFromFormAction(formData: FormData): Promis
 }
 
 export async function deleteAllDemosAction(): Promise<void> {
-  const { user } = await requirePermission('sorteos', 'write');
-  assertCanDelete(user.role);
+  await requirePermission('sorteos', 'delete');
   await db.delete(giveaways).where(like(giveaways.title, '[DEMO]%'));
   revalidateGiveawayPaths();
 }
 
 export async function deleteGiveawayAction(formData: FormData): Promise<void> {
-  const { user } = await requirePermission('sorteos', 'write');
-  assertCanDelete(user.role);
+  await requirePermission('sorteos', 'delete');
   const parsed = parseFormData(formData, DeleteGiveawaySchema);
   if (!parsed.ok) return;
   await deleteGiveaway(parsed.data.id);
