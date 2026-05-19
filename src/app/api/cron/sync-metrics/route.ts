@@ -105,6 +105,17 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
       await sql`UPDATE talents SET last_stats_update_at = NOW() WHERE id = ${row.talent_id}`;
 
+      // Actualiza la métrica de la card pública (talent_stats) con el nuevo conteo
+      await sql`
+        UPDATE talent_stats
+        SET value = ${newDisplay}
+        WHERE talent_id = ${row.talent_id}
+          AND (
+            (${row.platform} = 'twitch'  AND label ILIKE '%twitch%') OR
+            (${row.platform} = 'youtube' AND label ILIKE '%youtube%')
+          )
+      `;
+
       const metricType = row.platform === 'youtube' ? 'subscribers' : 'followers';
       const dataSource = row.platform === 'youtube' ? 'youtube_api' : 'twitch_api';
       try {
