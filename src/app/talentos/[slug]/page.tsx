@@ -304,13 +304,19 @@ export default async function TalentPage({ params }: PageProps) {
               <div className="hidden lg:flex flex-col gap-2 w-[200px] shrink-0">
                 <p className="text-[9px] font-black uppercase tracking-[0.25em] text-white/25 mb-1">Recompensas activas</p>
                 {activeWithTalent.length > 0 && (
-                  <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-[#C3FC00]/15 bg-[#C3FC00]/[0.06]">
+                  <a href="#sorteos" className="flex items-center gap-2 px-3 py-2 rounded-xl border border-[#C3FC00]/15 bg-[#C3FC00]/[0.06] hover:bg-[#C3FC00]/[0.10] transition-colors">
                     <span className="w-2 h-2 rounded-full bg-[#C3FC00] animate-pulse shrink-0" aria-hidden />
                     <span className="text-[11px] font-black text-[#C3FC00]">{activeWithTalent.length} sorteo{activeWithTalent.length > 1 ? 's' : ''} live</span>
-                  </div>
+                  </a>
                 )}
                 {codesWithTalent.slice(0, 4).map((c) => (
-                  <div key={c.id} className={`flex items-center gap-2.5 px-3 py-2 rounded-xl border ${c.isFeatured ? 'border-white/15 bg-white/[0.06]' : 'border-white/[0.06] bg-white/[0.02]'}`}>
+                  <a
+                    key={c.id}
+                    href={c.redirectUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`flex items-center gap-2.5 px-3 py-2 rounded-xl border transition-colors ${c.isFeatured ? 'border-white/15 bg-white/[0.06] hover:bg-white/[0.10]' : 'border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.05]'}`}
+                  >
                     {c.brandLogo ? (
                       <Image src={c.brandLogo} alt={c.brandName} width={24} height={16} className="object-contain max-h-4 max-w-[24px]" />
                     ) : (
@@ -323,7 +329,7 @@ export default async function TalentPage({ params }: PageProps) {
                       {c.description && <p className="text-[9px] text-white/30 truncate leading-tight">{c.description.slice(0, 22)}</p>}
                     </div>
                     {c.isFeatured && <span className="text-[8px] text-sp-orange/70 shrink-0">★</span>}
-                  </div>
+                  </a>
                 ))}
                 {codesWithTalent.length > 4 && (
                   <p className="text-[9px] text-white/20 font-bold uppercase tracking-wider text-center">+{codesWithTalent.length - 4} más</p>
@@ -392,7 +398,7 @@ export default async function TalentPage({ params }: PageProps) {
             )}
 
             {activeWithTalent.length > 0 && (
-              <section className="space-y-3">
+              <section id="sorteos" className="space-y-3">
                 <div className="flex items-center justify-between gap-2 mb-1">
                   <div className="flex items-center gap-2">
                     <p className="text-[10px] font-black uppercase tracking-[0.25em] text-white/30">Sorteos activos</p>
