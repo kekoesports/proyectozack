@@ -238,6 +238,18 @@ export async function updateTalentStatsAction(
   }
 }
 
+export async function bulkUpdateSortOrderAction(
+  updates: Array<{ id: number; sortOrder: number }>,
+): Promise<{ ok: boolean }> {
+  await requirePermission('talentos', 'write');
+  for (const u of updates) {
+    await db.update(talents).set({ sortOrder: u.sortOrder }).where(eq(talents.id, u.id));
+  }
+  revalidatePath('/admin/talents');
+  revalidatePath('/talentos');
+  return { ok: true };
+}
+
 export async function updateSortOrderAction(
   talentId: number,
   sortOrder: number,

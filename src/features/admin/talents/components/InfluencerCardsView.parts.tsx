@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 import * as m from 'motion/react-client';
 import { parseFollowers, formatCompact } from '@/lib/utils/format';
 import { TALENT_VERTICAL_LABELS } from '@/lib/schemas/talentBusiness';
-import { setTalentStatusAction, updateSortOrderAction } from '@/app/admin/(dashboard)/talents/actions';
+import { setTalentStatusAction } from '@/app/admin/(dashboard)/talents/actions';
 import { getFlagImageUrl, countryFlagEmoji } from '@/lib/flag-images';
 import type { AdminRosterRow } from '@/lib/queries/talents';
 import type { TalentVertical } from '@/types';
@@ -87,7 +87,6 @@ export function TalentCard({ creator, verticals, selectMode, selected, onToggleS
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [optimisticStatus, setOptimisticStatus] = useState<TalentStatus>(creator.status as TalentStatus);
-  const [localOrder, setLocalOrder] = useState(creator.sortOrder ?? 0);
 
   const displayStatus: string = creator.audienceStatus ?? optimisticStatus;
   const statusCfg = STATUS_CFG[optimisticStatus] ?? STATUS_CFG.inactive;
@@ -295,34 +294,6 @@ export function TalentCard({ creator, verticals, selectMode, selected, onToggleS
           </span>
         )}
 
-        {/* Orden en grid público — input inline */}
-        <div
-          className="ml-auto flex items-center gap-0.5"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <span className="text-[9px] text-sp-admin-muted select-none">#</span>
-          <input
-            type="number"
-            min={0}
-            max={9999}
-            value={localOrder}
-            onChange={(e) => setLocalOrder(Number(e.target.value))}
-            onBlur={() => {
-              startTransition(async () => {
-                await updateSortOrderAction(creator.id, localOrder);
-                router.refresh();
-              });
-            }}
-            onKeyDown={(e) => {
-              e.stopPropagation();
-              if (e.key === 'Enter') e.currentTarget.blur();
-            }}
-            onClick={(e) => e.stopPropagation()}
-            title="Orden en el grid público (menor = primero)"
-            aria-label="Orden en el grid público"
-            className="w-9 text-[10px] text-center bg-sp-admin-bg border border-sp-admin-border rounded px-0.5 py-0.5 text-sp-admin-text outline-none focus:border-sp-admin-accent tabular-nums"
-          />
-        </div>
       </div>
     </m.div>
   );

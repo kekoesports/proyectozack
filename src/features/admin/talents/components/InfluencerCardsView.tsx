@@ -5,6 +5,7 @@ import { EmptyState } from '@/features/admin/_shared/components/EmptyState';
 import { TALENT_VERTICAL_LABELS, TALENT_VERTICALS } from '@/lib/schemas/talentBusiness';
 import { AddTalentModal } from './AddTalentModal';
 import { exportTalentsToExcel } from './TalentExport';
+import { SortableCardGrid } from './SortableCardGrid';
 import type { AdminRosterRow } from '@/lib/queries/talents';
 import type { TalentVertical } from '@/types';
 import {
@@ -33,6 +34,7 @@ export function InfluencerCardsView({ creators, verticalsByTalent }: Props): Rea
   const [showAdd, setShowAdd]             = useState(false);
   const [selectMode, setSelectMode]       = useState(false);
   const [selectedIds, setSelectedIds]     = useState<Set<number>>(new Set());
+  const [isOrdering, setIsOrdering]       = useState(false);
 
   const toggleSelect = useCallback((id: number) => {
     setSelectedIds((prev) => {
@@ -209,14 +211,27 @@ export function InfluencerCardsView({ creators, verticalsByTalent }: Props): Rea
             </>
           )}
           {!selectMode && (
-            <button
-              type="button"
-              onClick={() => setSelectMode(true)}
-              className="h-8 px-3 rounded-lg border border-sp-admin-border text-[12px] text-sp-admin-muted hover:bg-sp-admin-hover transition-colors"
-              title="Seleccionar para exportar"
-            >
-              Seleccionar
-            </button>
+            <>
+              <button
+                type="button"
+                onClick={() => { setSelectMode(true); setIsOrdering(false); }}
+                className="h-8 px-3 rounded-lg border border-sp-admin-border text-[12px] text-sp-admin-muted hover:bg-sp-admin-hover transition-colors"
+                title="Seleccionar para exportar"
+              >
+                Seleccionar
+              </button>
+              <button
+                type="button"
+                onClick={() => { setIsOrdering(true); setSelectMode(false); }}
+                className="h-8 px-3 rounded-lg border border-sp-admin-border text-[12px] text-sp-admin-muted hover:bg-sp-admin-hover transition-colors flex items-center gap-1.5"
+                title="Reordenar por drag-and-drop"
+              >
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" aria-hidden>
+                  <path d="M1 3h8M1 7h8" />
+                </svg>
+                Ordenar
+              </button>
+            </>
           )}
           <button
             type="button"
@@ -231,8 +246,13 @@ export function InfluencerCardsView({ creators, verticalsByTalent }: Props): Rea
         </div>
       </div>
 
-      {/* Grid */}
-      {filtered.length === 0 ? (
+      {/* Modo ordenar / grid normal */}
+      {isOrdering ? (
+        <SortableCardGrid
+          initialItems={creators}
+          onDone={() => setIsOrdering(false)}
+        />
+      ) : filtered.length === 0 ? (
         creators.length === 0 ? (
           <EmptyState
             variant="no-data"
@@ -266,7 +286,7 @@ export function InfluencerCardsView({ creators, verticalsByTalent }: Props): Rea
         </div>
       )}
 
-      {showAdd && <AddTalentModal onClose={() => setShowAdd(false)} />}
+      {!isOrdering && showAdd && <AddTalentModal onClose={() => setShowAdd(false)} />}
     </div>
   );
 }
