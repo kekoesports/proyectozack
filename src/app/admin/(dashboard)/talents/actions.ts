@@ -8,7 +8,7 @@ import { z } from 'zod';
 import { requirePermission } from '@/lib/permissions';
 import { assertCanDelete } from '@/lib/permissions';
 import { db } from '@/lib/db';
-import { talents, talentSocials } from '@/db/schema';
+import { talents, talentSocials, talentStats } from '@/db/schema';
 import { initialsOf, slugify } from '@/lib/utils/import-utils';
 import { parseFormData } from '@/lib/forms/parseFormData';
 import { firstError } from '@/lib/forms/firstError';
@@ -211,6 +211,30 @@ export async function updateSocialGeoAction(
   } catch (err) {
     logRedacted('error', '[admin] updateSocialGeo error:', err);
     return { success: false, error: 'Error al guardar geo' };
+  }
+}
+
+export async function updateTalentStatsAction(
+  talentId: number,
+  entries: Array<{ id: number; value: string }>,
+): Promise<{ ok: boolean; error?: string }> {
+  await requirePermission('talentos', 'write');
+  if (!talentId) return { ok: false, error: 'ID inválido' };
+  try {
+    const current = await db.select({ slug: talents.slug }).from(talents).where(eq(talents.id, talentId)).limit(1);
+    const slug = current[0]?.slug;
+    for (const entry of entries) {
+      const val = entry.value.trim();
+      if (!val) continue;
+      await db.update(talentStats).set({ value: val }).where(eq(talentStats.id, entry.id));
+    }
+    revalidatePath(`/admin/talents/${talentId}`);
+    revalidatePath('/talentos');
+    if (slug) revalidatePath(`/talentos/${slug}`);
+    return { ok: true };
+  } catch (err) {
+    logRedacted('error', '[admin] updateTalentStats error:', err);
+    return { ok: false, error: 'Error al guardar métricas' };
   }
 }
 
