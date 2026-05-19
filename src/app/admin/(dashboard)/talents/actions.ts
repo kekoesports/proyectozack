@@ -214,6 +214,18 @@ export async function updateSocialGeoAction(
   }
 }
 
+export async function updateSortOrderAction(
+  talentId: number,
+  sortOrder: number,
+): Promise<{ ok: boolean }> {
+  await requirePermission('talentos', 'write');
+  if (!talentId || !Number.isFinite(sortOrder)) return { ok: false };
+  await db.update(talents).set({ sortOrder }).where(eq(talents.id, talentId));
+  revalidatePath('/admin/talents');
+  revalidatePath('/talentos');
+  return { ok: true };
+}
+
 /** Void form-action wrapper para cambio de status desde roster (sin useActionState). */
 export async function setTalentStatusVoidAction(formData: FormData): Promise<void> {
   const idRaw     = formData.get('talentId');
