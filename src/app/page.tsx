@@ -103,7 +103,11 @@ export default async function HomePage() {
       <Marquee />
       <BrandsCarousel brands={brands} />
       <TalentSection talents={talents} />
-      <Suspense>
+      <Suspense fallback={
+        <section className="bg-sp-black py-16 px-4 sm:px-6 border-t border-white/[0.06]">
+          <div className="max-w-5xl mx-auto h-48 rounded-xl bg-white/[0.02] animate-pulse" />
+        </section>
+      }>
         <LiveSection />
       </Suspense>
       <MetricsSection />
