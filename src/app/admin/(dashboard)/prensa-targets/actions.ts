@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
-import { requireAnyRole } from '@/lib/auth-guard';
+import { requirePermission } from '@/lib/permissions';
 import { pressTargetOutreachStatusEnum } from '@/db/schema';
 import {
   updatePressTargetOutreachStatus,
@@ -27,7 +27,7 @@ type ActionResult = { ok: true } | { ok: false; error: string };
 export async function updatePressTargetStatusAction(
   input: { id: number; status: PressTargetOutreachStatus },
 ): Promise<ActionResult> {
-  const session = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
+  const session = await requirePermission('prensa_targets', 'write');
   const parsed = UpdateStatusInput.safeParse(input);
   if (!parsed.success) return { ok: false, error: 'Input inválido' };
 
@@ -39,7 +39,7 @@ export async function updatePressTargetStatusAction(
 export async function updatePressTargetNotesAction(
   input: { id: number; notes: string },
 ): Promise<ActionResult> {
-  await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
+  await requirePermission('prensa_targets', 'write');
   const parsed = UpdateNotesInput.safeParse(input);
   if (!parsed.success) return { ok: false, error: 'Input inválido' };
 

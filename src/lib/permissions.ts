@@ -43,7 +43,10 @@ export type Module =
   | 'equipo'
   | 'tareas'
   | 'ajustes'
-  | 'usuarios';
+  | 'usuarios'
+  | 'targets'
+  | 'prensa_targets'
+  | 'dashboard';
 
 export type Action = 'read' | 'write' | 'publish' | 'delete' | 'manage_users';
 
@@ -74,7 +77,7 @@ export const PERMISSIONS = {
   },
   campanas: {
     read:    ['admin', 'manager', 'staff', 'ops', 'talent_manager', 'finance'],
-    write:   ['admin', 'manager', 'ops'],
+    write:   ['admin', 'manager', 'staff', 'ops'],
     delete:  ['admin'],
   },
   facturacion: {
@@ -116,6 +119,19 @@ export const PERMISSIONS = {
     write:        ['admin'],
     delete:       ['admin'],
     manage_users: ['admin'],
+  },
+  targets: {
+    read:   ['admin', 'manager', 'staff'],
+    write:  ['admin', 'manager', 'staff'],
+    delete: ['admin'],
+  },
+  prensa_targets: {
+    read:   ['admin', 'manager', 'staff'],
+    write:  ['admin', 'manager', 'staff'],
+    delete: ['admin', 'manager'],
+  },
+  dashboard: {
+    read: ['admin', 'manager', 'staff'],
   },
 } as const satisfies PermissionsMap;
 
