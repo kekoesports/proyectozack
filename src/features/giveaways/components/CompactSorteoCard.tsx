@@ -3,6 +3,7 @@
 import { memo, useState, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { motion, AnimatePresence } from 'motion/react';
 import { isIGamingBrand } from '@/lib/igaming';
 import { useNow } from '@/lib/now-context';
 import { GiveawayPrizePlaceholder } from './GiveawayPrizePlaceholder';
@@ -62,6 +63,7 @@ type Props = {
 
 function CompactSorteoCardImpl({ giveaway }: Props): React.JSX.Element {
   const [imgError, setImgError] = useState(false);
+  const [hovered, setHovered]   = useState(false);
   const handleImgError = useCallback(() => setImgError(true), []);
   const now = useNow();
 
@@ -70,14 +72,19 @@ function CompactSorteoCardImpl({ giveaway }: Props): React.JSX.Element {
   const badge = deriveBadge(giveaway, isActive, now);
   const timeLeft = isActive ? formatTimeLeft(giveaway.endsAt, now) : null;
   const ctaLabel = getCtaLabel(giveaway.redirectUrl);
+  const expandText = giveaway.description ?? `Sorteo exclusivo de ${giveaway.brandName} con ${giveaway.talent.name}.`;
 
   return (
-    <div
-      className={`group relative flex flex-col rounded-2xl border overflow-hidden transition-all duration-300 ${
+    <motion.div
+      className={`group relative flex flex-col rounded-2xl border overflow-hidden ${
         isActive
           ? 'border-white/[0.08] bg-[#0c0c0c] hover:border-sp-orange/35 hover:shadow-[0_4px_36px_rgba(245,99,42,0.1)]'
           : 'border-white/[0.04] bg-[#0a0a0a] opacity-55'
       }`}
+      whileHover={isActive ? { y: -5 } : { y: 0 }}
+      transition={{ type: 'spring', stiffness: 400, damping: 28 }}
+      onHoverStart={() => { if (isActive) setHovered(true); }}
+      onHoverEnd={() => setHovered(false)}
     >
       {/* Image area — aspect-[3/2] ≈ 180px on a 270px column */}
       <div className="relative aspect-[3/2] overflow-hidden bg-gradient-to-b from-white/[0.02] to-black/40">
@@ -138,8 +145,8 @@ function CompactSorteoCardImpl({ giveaway }: Props): React.JSX.Element {
           )}
         </div>
 
-        {/* Bottom overlay: title + value + status */}
-        <div className="absolute bottom-0 left-0 right-0 p-3 z-10">
+        {/* Bottom overlay: title + value + status (hidden when expanded) */}
+        <div className={`absolute bottom-0 left-0 right-0 p-3 z-10 transition-opacity duration-200 ${hovered ? 'opacity-0' : 'opacity-100'}`}>
           <h3 className="font-display text-sm font-black uppercase tracking-[0.02em] text-white/92 leading-tight line-clamp-2 mb-1 group-hover:text-sp-orange/90 transition-colors duration-200">
             {giveaway.title}
           </h3>
@@ -158,6 +165,26 @@ function CompactSorteoCardImpl({ giveaway }: Props): React.JSX.Element {
             )}
           </div>
         </div>
+
+        {/* Expand panel — slides up from the bottom of the image on hover */}
+        <AnimatePresence>
+          {hovered && (
+            <motion.div
+              initial={{ y: '100%', opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: '100%', opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 320, damping: 32 }}
+              className="absolute bottom-0 left-0 right-0 px-3 pt-8 pb-3 bg-gradient-to-t from-black/95 via-black/85 to-transparent z-20 pointer-events-none"
+            >
+              <p className="text-[11px] text-white/70 leading-relaxed line-clamp-3">
+                {expandText}
+              </p>
+              <p className="mt-2 text-[10px] font-black uppercase tracking-[0.15em] text-sp-orange/80">
+                {ctaLabel} →
+              </p>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Footer: creator + CTA */}
@@ -225,7 +252,7 @@ function CompactSorteoCardImpl({ giveaway }: Props): React.JSX.Element {
           </a>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 }
 
