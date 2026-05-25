@@ -6,31 +6,40 @@ read_when:
   - Handing off to another agent
 ---
 
-# Handoff — 2026-05-25 (Tag editor + Seed tags + Sorteos destacado)
+# Handoff — 2026-05-25 (CR-1 + HI-1/2/3)
 
 ## 1. Scope / Status
 
 **Tareas completadas hoy:**
 
-### Tag editor en admin
-- `TalentTagsEditor` — componente client con pills + X para eliminar, input para añadir
-- Dos server actions: `addTalentTagAction`, `removeTalentTagAction` en `talents/actions.ts`
-- Editor visible en la ficha de detalle del talento (`/admin/talents/[id]`) — columna izquierda, debajo de métricas
-- También disponible en la página de edición (`/admin/talents/[id]/edit`)
-- Commits: `123c4e1`
+### CR-1 — Ownership staff en campañas
+- `responsibleUserId` añadido al OR clause en `listCampaigns()` visibility filter
+- `responsibleUserId` añadido al select y check en `assertCanEditCampaign`
+- Archivo: `src/lib/queries/campaigns.ts`
+- Commit: `90997b1`
 
-### Seed de etiquetas para todos los talentos
-- Script `scripts/seed-tags.ts` para uso local (requiere DATABASE_URL)
-- Endpoint temporal `/api/admin/seed-tags` (POST) — ya eliminado tras ejecutarse
-- Etiquetas correctas insertadas en producción para los 12 talentos
-- HuasoPeek: Valorant eliminado → `['CS2', 'LatAm', 'Twitch', 'FPS']`
-- Commits: `123c4e1`, `3e29da7`, `463fbe1`
+### HI-1 — Reducir home de 15 a ~9 secciones
+- Eliminadas de `src/app/page.tsx`: MetricsSection, NewsLatestModule, Cs2LabCard, CollabsSection, PortfolioSection, AboutSection, TeamGrid
+- Home pasa de 17 secciones a 10: Hero → Marquee → BrandsCarousel → TalentSection → LiveSection → ServicesSection → CasesSection → CtaSection → FaqSection → ContactSection
+- Commit: `750ea45`
 
-### Sorteo destacado en /sorteos
-- `SorteosHub` ahora muestra `GiveawayFeatured` (tarjeta grande premium) encima del grid cuando hay un sorteo con `isFeatured=true` y no hay filtros activos
-- Label "★ Destacado" encima del card
-- El toggle en admin ahora tiene efecto visual real
-- Commit: `3513717`
+### HI-2 — OG image dinámica para /sorteos
+- `export const metadata` estático → `export async function generateMetadata()`
+- Queries `getAllActiveGiveaways()` en build time, elige sorteo destacado (o primero activo)
+- Usa `/api/og-image/giveaway?id=N` (ruta ya existente) como OG image
+- Fallback a `og-socialpro.png` si no hay activos
+- Commit: `9e6aed2`
+
+### HI-3 — Cards giveaway expand hover/tap
+- `CompactSorteoCard` ahora usa `motion.div` con `whileHover={{ y: -5 }}`
+- `AnimatePresence` panel desliza desde fondo de la imagen en hover
+- Panel muestra descripción del sorteo (o fallback) + hint CTA con plataforma detectada
+- El overlay inferior (título/valor/status) hace fade out al expandir
+- Commit: `dca7484`
+
+### Otros (sesión anterior continuada)
+- Logout fix: botón POST (`fetch`) en vez de `<Link>` GET — `AdminSidebar.tsx`
+- Etiqueta 1/2 en perfil talento: `<datalist>` → `<select>` estricto con opciones "PRO PLAYER"
 
 **Blockers:** Ninguno
 
@@ -40,10 +49,10 @@ read_when:
 - Clean — sin cambios pendientes
 - Commits hoy:
   ```
-  3513717 feat(sorteos): show featured giveaway as hero card in /sorteos hub
-  463fbe1 chore: remove one-time seed-tags endpoint
-  3e29da7 fix(seed-tags): revalidate public talent pages after tag update
-  123c4e1 feat(talents): add inline tag editor + seed-tags endpoint
+  dca7484 feat(sorteos): expand overlay on hover/tap for giveaway cards
+  9e6aed2 feat(sorteos): dynamic OG image using featured/first active giveaway
+  750ea45 feat(home): reduce sections from 17 to 10
+  90997b1 fix(campaigns): include responsibleUserId in staff visibility filter
   ```
 
 ## 3. TypeScript / Lint
@@ -74,12 +83,8 @@ Handles que no resuelven contra API — corregir en `/admin/talents/{id}`:
 
 | # | Tarea | Esfuerzo | Riesgo |
 |---|-------|----------|--------|
-| CR-1 | Ownership staff en campañas (migration) | 2-3h | Medio |
-| CR-2 | Featured + badge en giveaways | 3-4h | Bajo |
-| HI-1 | Reducir home de 15 a ~9 secciones | 3-4h | Medio |
-| HI-2 | OG images dinámicas para giveaways | 2-3h | Bajo |
-| HI-3 | Cards giveaway expand hover/tap | 3-4h | Bajo |
 | HI-4 | Analytics giveaways (vistas + clicks) | 4-5h | Bajo |
+| CR-2 | Featured + badge en giveaways | 3-4h | Bajo |
 
 ### D) No técnico (requiere acción externa)
 
