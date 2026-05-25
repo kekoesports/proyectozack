@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { eq } from 'drizzle-orm';
+import { revalidatePath } from 'next/cache';
 import { requirePermission } from '@/lib/permissions';
 import { db } from '@/lib/db';
 import { talents, talentTags } from '@/db/schema';
@@ -38,8 +39,10 @@ export async function POST() {
 
     await db.delete(talentTags).where(eq(talentTags.talentId, talent.id));
     await db.insert(talentTags).values(tags.map((tag) => ({ talentId: talent.id, tag })));
+    revalidatePath(`/talentos/${slug}`);
     results.push({ slug, name: talent.name, tags, ok: true });
   }
 
+  revalidatePath('/talentos');
   return NextResponse.json({ results });
 }
