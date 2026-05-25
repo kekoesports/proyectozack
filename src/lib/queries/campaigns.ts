@@ -133,6 +133,7 @@ export async function listCampaigns(opts?: {
     const visibilityCondition = or(
       eq(campaigns.assignedToUserId, session.userId),
       eq(campaigns.createdByUserId, session.userId),
+      eq(campaigns.responsibleUserId, session.userId),
     );
     if (visibilityCondition) conditions.push(visibilityCondition);
   }
@@ -555,6 +556,7 @@ export async function assertCanEditCampaign(
     .select({
       assignedToUserId: campaigns.assignedToUserId,
       createdByUserId: campaigns.createdByUserId,
+      responsibleUserId: campaigns.responsibleUserId,
     })
     .from(campaigns)
     .where(eq(campaigns.id, campaignId))
@@ -564,7 +566,8 @@ export async function assertCanEditCampaign(
 
   const isOwner =
     row.assignedToUserId === session.userId ||
-    row.createdByUserId === session.userId;
+    row.createdByUserId === session.userId ||
+    row.responsibleUserId === session.userId;
 
   if (!isOwner) throw new Error('forbidden:edit:campaign');
 }
