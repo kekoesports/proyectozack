@@ -11,6 +11,7 @@ import { TALENT_VERTICAL_LABELS } from '@/lib/schemas/talentBusiness';
 import { TalentPhotoUpload } from '@/features/admin/talents/components/TalentPhotoUpload';
 import { TalentSocialsEditor } from '@/features/admin/talents/components/TalentSocialsEditor';
 import { TalentStatsEditor } from '@/features/admin/talents/components/TalentStatsEditor';
+import { TalentTagsEditor } from '@/features/admin/talents/components/TalentTagsEditor';
 import { getTalentLiveStatus, getFeaturedFallbackCount } from '@/lib/queries/live';
 import { setFeaturedLiveAction, setFeaturedFallbackAction, setExcludeFromLiveAction } from '@/app/admin/(dashboard)/live/actions';
 import type { TalentVertical } from '@/types';
@@ -242,6 +243,16 @@ export default async function TalentProfilePage({
               </div>
             </section>
           )}
+
+          {/* Etiquetas */}
+          <section className="rounded-xl bg-sp-admin-card shadow-[0_1px_3px_rgba(0,0,0,0.06)] overflow-hidden">
+            <div className="px-4 py-2.5 border-b border-sp-admin-border/60 bg-sp-admin-hover/40">
+              <h2 className="text-[10px] font-bold uppercase tracking-[0.18em] text-sp-admin-muted">Etiquetas</h2>
+            </div>
+            <div className="px-4 py-4">
+              <TalentTagsEditor talentId={talent.id} initialTags={talent.tags} />
+            </div>
+          </section>
 
           {/* Contacto */}
           <section className="rounded-xl bg-sp-admin-card shadow-[0_1px_3px_rgba(0,0,0,0.06)] overflow-hidden">

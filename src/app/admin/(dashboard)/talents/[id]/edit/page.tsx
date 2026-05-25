@@ -5,6 +5,7 @@ import { requirePermission } from '@/lib/permissions';
 import { db } from '@/lib/db';
 import { talents } from '@/db/schema';
 import { TalentProfileForm } from '@/features/admin/talents/components/TalentProfileForm';
+import { TalentTagsEditor } from '@/features/admin/talents/components/TalentTagsEditor';
 
 export default async function TalentProfileEditPage({
   params,
@@ -19,6 +20,7 @@ export default async function TalentProfileEditPage({
 
   const talent = await db.query.talents.findFirst({
     where: eq(talents.id, talentId),
+    with: { tags: true },
   });
 
   if (!talent) notFound();
@@ -49,6 +51,10 @@ export default async function TalentProfileEditPage({
       </p>
 
       <TalentProfileForm talent={talent} />
+      <section className="rounded-2xl bg-sp-admin-card border border-sp-admin-border p-5 mt-5">
+        <h2 className="font-bold text-sp-admin-text text-sm mb-3">Etiquetas</h2>
+        <TalentTagsEditor talentId={talent.id} initialTags={talent.tags} />
+      </section>
     </div>
   );
 }

@@ -8,7 +8,7 @@ import { z } from 'zod';
 import { requirePermission } from '@/lib/permissions';
 import { assertCanDelete } from '@/lib/permissions';
 import { db } from '@/lib/db';
-import { talents, talentSocials, talentStats } from '@/db/schema';
+import { talents, talentSocials, talentStats, talentTags } from '@/db/schema';
 import { initialsOf, slugify } from '@/lib/utils/import-utils';
 import { parseFormData } from '@/lib/forms/parseFormData';
 import { firstError } from '@/lib/forms/firstError';
@@ -415,4 +415,54 @@ export async function upsertTalentSocialsAction(
     logRedacted('error', '[admin] upsertTalentSocials error:', err);
     return { ok: false, error: err instanceof Error ? err.message : 'Error al guardar redes.' };
   }
+}
+
+const AddTagSchema = z.object({
+  talentId: IdSchema,
+  tag: z.string().trim().min(1, 'Etiqueta requerida').max(100),
+});
+
+export async function addTalentTagAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  await requirePermission('talentos', 'write');
+  const parsed = AddTagSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) return { success: false, error: firstError(parsed.error.flatten().fieldErrors) };
+
+  const { talentId, tag } = parsed.data;
+  const talent = await db.query.talents.findFirst({ where: eq(talents.id, talentId), columns: { slug: true } });
+  if (!talent) return { success: false, error: 'Talento no encontrado.' };
+
+  await db.insert(talentTags).values({ talentId, tag });
+
+  revalidatePath(`/admin/talents/${talentId}/edit`);
+  revalidatePath(`/admin/talents/${talentId}`);
+  revalidatePath(`/talentos/${talent.slug}`);
+  return { success: true };
+}
+
+const RemoveTagSchema = z.object({
+  tagId: IdSchema,
+  talentId: IdSchema,
+});
+
+export async function removeTalentTagAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  await requirePermission('talentos', 'write');
+  const parsed = RemoveTagSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) return { success: false, error: firstError(parsed.error.flatten().fieldErrors) };
+
+  const { tagId, talentId } = parsed.data;
+  const talent = await db.query.talents.findFirst({ where: eq(talents.id, talentId), columns: { slug: true } });
+  if (!talent) return { success: false, error: 'Talento no encontrado.' };
+
+  await db.delete(talentTags).where(eq(talentTags.id, tagId));
+
+  revalidatePath(`/admin/talents/${talentId}/edit`);
+  revalidatePath(`/admin/talents/${talentId}`);
+  revalidatePath(`/talentos/${talent.slug}`);
+  return { success: true };
 }
