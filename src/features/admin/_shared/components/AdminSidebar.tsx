@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ChevronDownIcon, MoreIcon, LogoutIcon } from './SidebarIcons';
@@ -85,6 +85,7 @@ export function AdminSidebar({
   const [open, setOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
 
   function isActive(href: string): boolean {
     if (href === '/admin') return pathname === href;
@@ -245,14 +246,18 @@ export function AdminSidebar({
                 </div>
               )}
             </div>
-            <Link
-              href={logoutHref}
-              className="p-2 rounded-lg text-sp-admin-sidebar-muted hover:text-sp-admin-sidebar-text hover:bg-sp-admin-sidebar-hover transition-colors shrink-0"
+            <button
+              type="button"
               aria-label="Cerrar sesión"
               title="Cerrar sesión"
+              className="p-2 rounded-lg text-sp-admin-sidebar-muted hover:text-sp-admin-sidebar-text hover:bg-sp-admin-sidebar-hover transition-colors shrink-0"
+              onClick={async () => {
+                await fetch(logoutHref, { method: 'POST' });
+                router.push('/admin/login');
+              }}
             >
               <span className="w-4 h-4 block"><LogoutIcon /></span>
-            </Link>
+            </button>
           </div>
         </div>
       </nav>
