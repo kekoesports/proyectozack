@@ -6,48 +6,31 @@ read_when:
   - Handing off to another agent
 ---
 
-# Handoff — 2026-05-21 (Quick wins + RBAC Phase 3 + Cron YouTube fix)
+# Handoff — 2026-05-25 (Tag editor + Seed tags + Sorteos destacado)
 
 ## 1. Scope / Status
 
 **Tareas completadas hoy:**
 
-### QW-1 · Skeleton LiveSection
-- `src/app/page.tsx`: añadido `fallback` al `<Suspense>` que envuelve `<LiveSection />` — elimina CLS en navegación client-side
-- Commit: `1c4254e`
+### Tag editor en admin
+- `TalentTagsEditor` — componente client con pills + X para eliminar, input para añadir
+- Dos server actions: `addTalentTagAction`, `removeTalentTagAction` en `talents/actions.ts`
+- Editor visible en la ficha de detalle del talento (`/admin/talents/[id]`) — columna izquierda, debajo de métricas
+- También disponible en la página de edición (`/admin/talents/[id]/edit`)
+- Commits: `123c4e1`
 
-### QW-2 a QW-5 · Ya estaban hechos
-Verificados en código — no había nada que cambiar:
-- QW-2: `/giveaways` ya tenía `openGraph.images`
-- QW-3: `page.tsx` ya tenía `export const metadata` propio
-- QW-4: Rutas huérfanas (`/api/og/talent/[slug]`, `/api/og-image/test`) ya borradas
-- QW-5: `pdfAi.ts` e `import-actions.ts` ya usaban `env.GEMINI_API_KEY`
+### Seed de etiquetas para todos los talentos
+- Script `scripts/seed-tags.ts` para uso local (requiere DATABASE_URL)
+- Endpoint temporal `/api/admin/seed-tags` (POST) — ya eliminado tras ejecutarse
+- Etiquetas correctas insertadas en producción para los 12 talentos
+- HuasoPeek: Valorant eliminado → `['CS2', 'LatAm', 'Twitch', 'FPS']`
+- Commits: `123c4e1`, `3e29da7`, `463fbe1`
 
-### RBAC Phase 3 · Completado
-- `src/lib/permissions.ts`: 3 módulos nuevos (`targets`, `prensa_targets`, `dashboard`); `'staff'` añadido a `campanas.write`
-- 6 archivos migrados de `requireAnyRole/requireRole` → `requirePermission`:
-  - `brands/brief-actions.ts` → `campanas:write/delete`
-  - `brands/crm-actions.ts` → `campanas:write/delete`; `assertCanDelete` eliminado donde era redundante
-  - `prensa-targets/actions.ts` → `prensa_targets:write` (módulo separado para no contaminar `noticias`)
-  - `targets/actions.ts` → `targets:write/delete`
-  - `(dashboard)/page.tsx` → `dashboard:read`
-- Layout admin: sin cambios (guard intencionalamente amplio para todos los roles)
-- Commit: `b2f6abb`
-
-### HI-5 · loading.tsx campanas/[id]
-- Creado `src/app/admin/(dashboard)/campanas/[id]/loading.tsx` — skeleton para la página más pesada del admin (carga 12 recursos en paralelo)
-- Los demás (`brands/[id]`, `analytics`, `facturacion`, `tareas`) ya existían
-- Commit: `10e8bb9`
-
-### Cron sync-metrics · YouTube operativo
-- **Problema encontrado:** `YOUTUBE_API_KEY` en Vercel tenía valor `sk_live_...` (clave de Stripe, no YouTube)
-- **Fix:** Usuario actualizó la variable con la clave correcta `AIza...` desde Google Cloud Console
-- **Resultado tras relanzar el cron:**
-  ```
-  121 updated ✅ | 37 unchanged ✅ | 7 failed ⚠️ | 0 skipped ✅
-  ```
-- Twitch también tiene credenciales en Vercel y está activo (0 skipped)
-- El cron semanal (lunes 07:00 UTC) está operativo
+### Sorteo destacado en /sorteos
+- `SorteosHub` ahora muestra `GiveawayFeatured` (tarjeta grande premium) encima del grid cuando hay un sorteo con `isFeatured=true` y no hay filtros activos
+- Label "★ Destacado" encima del card
+- El toggle en admin ahora tiene efecto visual real
+- Commit: `3513717`
 
 **Blockers:** Ninguno
 
@@ -55,22 +38,23 @@ Verificados en código — no había nada que cambiar:
 
 - Branch: `master`, up to date con `origin/master`
 - Clean — sin cambios pendientes
-- 3 commits hoy:
+- Commits hoy:
   ```
-  10e8bb9 feat(admin): add loading skeleton for campanas/[id] detail page
-  b2f6abb feat(rbac): complete Phase 3 — migrate remaining action files to requirePermission
-  1c4254e fix(home): add skeleton fallback to LiveSection Suspense boundary
+  3513717 feat(sorteos): show featured giveaway as hero card in /sorteos hub
+  463fbe1 chore: remove one-time seed-tags endpoint
+  3e29da7 fix(seed-tags): revalidate public talent pages after tag update
+  123c4e1 feat(talents): add inline tag editor + seed-tags endpoint
   ```
 
 ## 3. TypeScript / Lint
 
 - `npx tsc --noEmit`: 0 errores al cierre
-- `npm run lint`: 0 errores
+- `npm run lint`: sin errores nuevos
 
 ## 4. Pendiente próxima sesión
 
 ### A) 7 canales fallidos en sync-metrics
-Los siguientes handles no resuelven contra YouTube/Twitch API — revisar fichas en `/admin/talents/{id}` y corregir URL de perfil o handle:
+Handles que no resuelven contra API — corregir en `/admin/talents/{id}`:
 
 | Canal | Plataforma |
 |-------|-----------|
@@ -83,9 +67,8 @@ Los siguientes handles no resuelven contra YouTube/Twitch API — revisar fichas
 | Marinho | Twitch |
 
 ### B) Bios SEO — pendiente revisión humana
-- Revisar y aprobar bios en `/admin/talents/{id}/seo`
-- Especialmente **HETTA** y **VITYSHOW** (bio corta — necesitan bio_long o highlights)
-- 10 bios en estado `generated` esperando aprobación
+- 10 bios en estado `generated` esperando aprobación en `/admin/talents/{id}/seo`
+- Especial atención: **HETTA** y **VITYSHOW**
 
 ### C) Backlog técnico (priorizado)
 
@@ -100,9 +83,8 @@ Los siguientes handles no resuelven contra YouTube/Twitch API — revisar fichas
 
 ### D) No técnico (requiere acción externa)
 
-- **kekoesports.es cross-reference** — Pablo debe añadir mención + link a `socialpro.es` (GEO sprint)
+- **kekoesports.es cross-reference** — Pablo debe añadir mención + link a `socialpro.es`
 - **REC-10 prensa** — contactar 5 medios gaming/esports para menciones externas
-- **Twitch credentials** — ya están en Vercel (confirmado por `0 skipped`); si hay problemas futuros revisar en dev.twitch.tv/console
 
 ## 5. Pre-flight para retomar
 
