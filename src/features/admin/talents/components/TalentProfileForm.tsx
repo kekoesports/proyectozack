@@ -9,26 +9,36 @@ const INPUT  = 'w-full rounded-lg border border-sp-admin-border bg-sp-admin-bg p
 const SELECT = 'w-full rounded-lg border border-sp-admin-border bg-sp-admin-bg px-3 py-2 text-sm text-sp-admin-text outline-none focus:border-sp-admin-accent transition-colors cursor-pointer';
 const LABEL  = 'block text-[11px] uppercase tracking-wider font-semibold text-sp-admin-muted mb-1';
 
-const ROLE_OPTIONS = [
-  'Jugador Profesional CS2',
-  'Jugador Profesional VALORANT',
+const ROLE_SUGGESTIONS = [
+  'PRO PLAYER CS2',
+  'PRO PLAYER VALORANT',
   'STREAMER CS2',
   'STREAMER VALORANT',
   'STREAMER GTA',
   'STREAMER LIFESTYLE',
   'STREAMER FIFA',
   'STREAMER CASINO',
-  'OTROS',
-] as const;
+  'CONTENT CREATOR',
+  'YOUTUBER',
+];
 
-function RoleSelect({ id, name, value, required }: { id: string; name: string; value: string | null; required?: boolean }) {
-  const custom = value && !ROLE_OPTIONS.includes(value as typeof ROLE_OPTIONS[number]);
+function RoleInput({ id, name, value, required, listId }: { id: string; name: string; value: string | null; required?: boolean; listId: string }) {
   return (
-    <select id={id} name={name} defaultValue={value ?? ''} required={required} className={SELECT}>
-      <option value="">— Sin etiqueta —</option>
-      {ROLE_OPTIONS.map((o) => <option key={o} value={o}>{o}</option>)}
-      {custom && value && <option value={value}>{value} (personalizado)</option>}
-    </select>
+    <>
+      <input
+        id={id}
+        name={name}
+        list={listId}
+        defaultValue={value ?? ''}
+        required={required}
+        maxLength={120}
+        placeholder="Escribe o elige una sugerencia…"
+        className={INPUT}
+      />
+      <datalist id={listId}>
+        {ROLE_SUGGESTIONS.map((o) => <option key={o} value={o} />)}
+      </datalist>
+    </>
   );
 }
 
@@ -93,11 +103,11 @@ export function TalentProfileForm({ talent }: Props): React.JSX.Element {
           </div>
           <div>
             <label htmlFor="pf-role" className={LABEL}>Etiqueta 1 *</label>
-            <RoleSelect id="pf-role" name="role" value={talent.role} required />
+            <RoleInput id="pf-role" name="role" value={talent.role} required listId="pf-role-list" />
           </div>
           <div>
             <label htmlFor="pf-role2" className={LABEL}>Etiqueta 2 <span className="font-normal normal-case">(opcional)</span></label>
-            <RoleSelect id="pf-role2" name="role2" value={talent.role2 ?? ''} />
+            <RoleInput id="pf-role2" name="role2" value={talent.role2 ?? ''} listId="pf-role2-list" />
           </div>
           <div>
             <label htmlFor="pf-game" className={LABEL}>Juego / Categoría</label>
