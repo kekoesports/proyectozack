@@ -124,7 +124,9 @@ export async function getNewsPosts(): Promise<PostWithTalents[]> {
  * @visibility public
  */
 export const getPostBySlug = cache(async (slug: string): Promise<PostWithTalents | undefined> => {
-  const row = await db.query.posts.findFirst({ where: eq(posts.slug, slug) });
+  const row = await db.query.posts.findFirst({
+    where: and(eq(posts.slug, slug), eq(posts.status, 'published')),
+  });
   if (!row) return undefined;
   const [enriched] = await attachTalents([row]);
   return enriched;
