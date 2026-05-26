@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   title: 'Política de Privacidad — SocialPro',
   description: 'Cómo SocialPro recoge, usa y protege tus datos personales. Información sobre tus derechos RGPD y cómo ejercerlos.',
   alternates: { canonical: '/privacidad' },
-  robots: { index: true, follow: true },
+  robots: { index: false, follow: true },
 };
 
 const jsonLd = {
