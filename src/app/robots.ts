@@ -32,6 +32,10 @@ export default function robots(): MetadataRoute.Robots {
           '/marcas/',
           // Assets internos de Next.js (no indexables)
           '/_next/',
+          // Rutas WordPress — no existen, evita que bots las rastreen
+          '/wp-content/',
+          '/wp-admin/',
+          '/wp-login.php',
           // Parámetros de URL (evita duplicados de contenido: búsquedas, sort, etc.)
           '/*?*',
           '/*&*',
