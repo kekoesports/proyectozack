@@ -19,6 +19,7 @@ import { TalentLiveWidget } from '@/features/giveaways/components/TalentLiveWidg
 import { generateEventSchema } from '@/lib/schema';
 import { Cs2LabCard } from '@/components/cs2-lab/Cs2LabCard';
 import { TalentSeoSection, generateTalentFaqs } from '@/features/giveaways/components/TalentSeoSection';
+import { countryFlagEmoji } from '@/lib/flag-images';
 import type { CreatorCodeWithTalent, GiveawayWithTalent, Talent } from '@/types';
 
 export const revalidate = 3600;
@@ -240,6 +241,15 @@ export default async function TalentPage({ params }: PageProps) {
               <div className="flex-1 min-w-0 pt-1">
                 <div className="flex flex-wrap items-center gap-2 mb-1.5">
                   <h1 className="font-display text-2xl sm:text-[2rem] font-black uppercase tracking-tight text-white leading-none">{talent.name}</h1>
+                  {talent.creatorCountry && (
+                    <span
+                      className="text-xl leading-none drop-shadow-[0_1px_3px_rgba(0,0,0,0.5)]"
+                      title={talent.creatorCountry}
+                      aria-label={`País: ${talent.creatorCountry}`}
+                    >
+                      {countryFlagEmoji(talent.creatorCountry)}
+                    </span>
+                  )}
                   {activeWithTalent.length > 0 && (
                     <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider"
                       style={{ background: 'rgba(195,252,0,0.12)', border: '1px solid rgba(195,252,0,0.25)', color: '#C3FC00' }}>
