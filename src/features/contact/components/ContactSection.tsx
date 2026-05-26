@@ -38,7 +38,7 @@ import {
  * <ContactSection />
  * ```
  */
-export function ContactSection(): React.JSX.Element {
+export function ContactSection({ defaultValues }: { readonly defaultValues?: Partial<ContactForm> }): React.JSX.Element {
   const [status, setStatus] = useState<'idle' | 'sending' | 'ok' | 'error'>('idle');
   const submitMutation = trpc.contact.submit.useMutation();
 
@@ -48,7 +48,7 @@ export function ContactSection(): React.JSX.Element {
     watch,
     reset,
     formState: { errors },
-  } = useForm<ContactForm>({ resolver: zodResolver(contactSchema) });
+  } = useForm<ContactForm>({ resolver: zodResolver(contactSchema), ...(defaultValues ? { defaultValues } : {}) });
 
   // eslint-disable-next-line react-hooks/incompatible-library -- React Hook Form watch() no es memoizable, es el comportamiento esperado
   const selectedType = watch('type');

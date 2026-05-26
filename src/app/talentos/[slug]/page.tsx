@@ -15,7 +15,6 @@ import { GiveawayRow } from '@/features/giveaways/components/GiveawayRow';
 import { buildBreadcrumbJsonLd } from '@/lib/utils/breadcrumbs';
 import { absoluteUrl, schemaImageUrl } from '@/lib/site-url';
 import { truncateMetaDescription } from '@/lib/utils/text';
-import { CONTACT_EMAIL } from '@/lib/utils/constants';
 import { TalentLiveWidget } from '@/features/giveaways/components/TalentLiveWidget';
 import { generateEventSchema } from '@/lib/schema';
 import { Cs2LabCard } from '@/components/cs2-lab/Cs2LabCard';
@@ -353,12 +352,12 @@ export default async function TalentPage({ params }: PageProps) {
             <p className="text-[11px] text-white/40 mt-0.5">SocialPro gestiona la colaboración de principio a fin.</p>
           </div>
           <a
-            href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(`Quiero trabajar con ${talent.name}`)}`}
+            href={`/contacto?type=brand&talent=${encodeURIComponent(talent.name)}`}
             className="shrink-0 inline-flex items-center gap-2 px-5 py-2.5 rounded-full font-black text-[12px] uppercase tracking-[0.12em] text-white shadow-[0_4px_20px_rgba(0,0,0,0.3)] hover:scale-[1.03] hover:shadow-[0_4px_28px_rgba(0,0,0,0.4)] transition-all duration-200"
             style={{ background: `linear-gradient(135deg, ${talent.gradientC1}, ${talent.gradientC2})` }}
           >
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
-              <rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
             </svg>
             Trabajar con {talent.name} →
           </a>
@@ -451,7 +450,7 @@ export default async function TalentPage({ params }: PageProps) {
                 <p className="text-sm font-bold text-white/30 uppercase tracking-wider">Próximamente</p>
                 <p className="text-xs text-white/20 mt-1">No hay códigos ni sorteos activos de momento</p>
                 <a
-                  href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(`Colaboración con ${talent.name}`)}`}
+                  href={`/contacto?type=brand&talent=${encodeURIComponent(talent.name)}`}
                   className="mt-6 inline-flex items-center gap-2 px-5 py-2 rounded-full text-xs font-bold uppercase tracking-wider text-white/60 border border-white/10 hover:border-white/25 hover:text-white transition-all"
                 >
                   Contactar para colaborar →
