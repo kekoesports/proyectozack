@@ -62,6 +62,14 @@ const nextConfig: NextConfig = {
         destination: '/servicios/igaming',
         permanent: true,
       },
+      // /marcas/login → /admin/login (308 permanent)
+      // /marcas/login page was removed in the CRM refactor; brand users log in via /admin/login
+      // and are redirected to /marcas after successful auth. Keeps bookmarks and backlinks working.
+      {
+        source: '/marcas/login',
+        destination: '/admin/login',
+        permanent: true,
+      },
     ];
   },
   async headers() {
