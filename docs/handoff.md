@@ -6,7 +6,7 @@ read_when:
   - Handing off to another agent
 ---
 
-# Handoff — 2026-05-26 (GSC + Bug fixes + CTA refactor)
+# Handoff — 2026-05-26 (GSC + Bug fixes + CTA refactor + Banderas)
 
 ## 1. Scope / Status
 
@@ -56,6 +56,13 @@ read_when:
 - Publicado vía ruta temporal de mantenimiento (ya eliminada)
 - Visible en `/news/cs2-patch-analysis-spring-update-2026`
 
+### Banderas de país en cards del roster público (`/talentos`)
+- Emoji de bandera en esquina inferior derecha de la foto de cada card
+- Solo aparece si el talento tiene `creatorCountry` configurado en el CRM
+- Verificado en producción: 🇨🇱 Chile, 🇪🇸 España, 🇦🇷 Argentina mostrando correctamente
+- Archivo: `src/features/talents-public/components/TalentCard.tsx`
+- Commit: `7fb5ae2`
+
 ### CTA botones en fichas de talento → formulario de contacto
 - **Antes:** `mailto:marketing@socialpro.es?subject=...` — fallaba sin cliente de correo
 - **Ahora:** `/contacto?type=brand&talent=Nombre` — abre formulario con `type=brand` y mensaje pre-rellenado
@@ -70,15 +77,14 @@ read_when:
 
 - Branch: `master`, up to date con origin
 - Clean — sin cambios pendientes
-- Último commit: `e5d1754`
+- Último commit: `7fb5ae2`
 
 ```
+7fb5ae2 feat(talentos): mostrar bandera de país en cards del roster público
 e5d1754 feat(talentos): botón CTA lleva al formulario de contacto con campos pre-rellenados
-86bb6d5 chore(maint): remove temp publish-post route
 4c7a847 fix(talents): quick-publish toggle en ficha de talento para staff
 ee4e813 fix(security): filter by status=published in getPostBySlug
-c5631e7 fix(seo): redirects for legacy /talento/ and /en/talents/ URLs
-f170e7f fix(seo): disallow wp-content/wp-admin/wp-login in robots.txt
+c5631e7 fix(seo): redirects for legacy /talento/ y /en/talents/ URLs
 ```
 
 ---
