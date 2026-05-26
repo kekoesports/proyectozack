@@ -271,6 +271,26 @@ export async function setTalentStatusVoidAction(formData: FormData): Promise<voi
   await setTalentStatusAction(id, statusRaw as TalentStatus);
 }
 
+/** Quick-toggle de publicación desde la ficha de talento (sin formulario completo). */
+export async function setTalentPublishedAction(talentId: number, publish: boolean): Promise<void> {
+  await requirePermission('talentos', 'write');
+  if (!talentId || !Number.isFinite(talentId)) return;
+  const current = await db.select({ slug: talents.slug }).from(talents).where(eq(talents.id, talentId)).limit(1);
+  const slug = current[0]?.slug;
+  await db.update(talents).set({
+    isPublished: publish,
+    visibility:  publish ? 'public' : 'internal',
+    ...(publish ? {} : { showInRoster: false }),
+  }).where(eq(talents.id, talentId));
+  revalidatePath('/admin/talents');
+  revalidatePath(`/admin/talents/${talentId}`);
+  revalidatePath('/talentos');
+  if (slug) {
+    revalidatePath(`/talentos/${slug}`);
+    revalidatePath('/sitemap.xml');
+  }
+}
+
 // ── Profile edit ─────────────────────────────────────────────────────────────
 
 const TalentProfileUpdate = z.object({
