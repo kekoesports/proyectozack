@@ -105,7 +105,17 @@ Google iniciará revalidación de los 4 grupos de URLs. Comprobar en ~1-2 semana
 - 404s y 403 → deben resolverse
 - "Rastreadas sin indexar" → evaluar si indexan con el tiempo o necesitan más señales
 
-### B) 7 canales fallidos en sync-metrics
+### B) Datos de métricas pendientes de rellenar en CRM
+
+| Talento | Problema | Acción |
+|---------|---------|--------|
+| JOLU | Sin stats (tabla `talent_stats` vacía) | Añadir Seguidores/Suscriptores/Engagement en `/admin/talents/[id]` → métricas públicas |
+| MIRAI | Engagement = "—" | Actualizar valor real en `/admin/talents/[id]` → métricas públicas |
+| EVELYN FOXYY | Engagement = "—" | Ídem |
+
+**Nota banderas:** En Windows los emojis de bandera se renderizan como letras (ej. "ES") en vez de imagen. En móvil y Mac se ven como emoji completo. El código es correcto.
+
+### C) 7 canales fallidos en sync-metrics
 Handles que no resuelven contra API — corregir en `/admin/talents/{id}`:
 
 | Canal | Plataforma |
@@ -118,18 +128,18 @@ Handles que no resuelven contra API — corregir en `/admin/talents/{id}`:
 | Lewis cs2 | Twitch |
 | Marinho | Twitch |
 
-### C) Bios SEO — pendiente revisión humana
+### D) Bios SEO — pendiente revisión humana
 - 10 bios en estado `generated` esperando aprobación en `/admin/talents/{id}/seo`
 - Especial atención: **HETTA** y **VITYSHOW**
 
-### D) Backlog técnico (priorizado)
+### E) Backlog técnico (priorizado)
 
 | # | Tarea | Esfuerzo | Riesgo |
 |---|-------|----------|--------|
 | HI-4 | Analytics giveaways (vistas + clicks) | 4-5h | Bajo |
 | CR-2 | Featured + badge en giveaways | 3-4h | Bajo |
 
-### E) No técnico (requiere acción externa)
+### F) No técnico (requiere acción externa)
 
 - **kekoesports.es cross-reference** — Pablo debe añadir mención + link a `socialpro.es`
 - **REC-10 prensa** — contactar 5 medios gaming/esports para menciones externas
