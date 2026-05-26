@@ -56,12 +56,13 @@ read_when:
 - Publicado vía ruta temporal de mantenimiento (ya eliminada)
 - Visible en `/news/cs2-patch-analysis-spring-update-2026`
 
-### Banderas de país en cards del roster público (`/talentos`)
-- Emoji de bandera en esquina inferior derecha de la foto de cada card
+### Banderas de país — roster público y ficha individual
+- **Cards del roster** (`/talentos`): emoji en esquina inferior derecha de la foto
+- **Ficha individual** (`/talentos/[slug]`): emoji inline junto al nombre en el hero, entre el nombre y el badge de sorteos activos
 - Solo aparece si el talento tiene `creatorCountry` configurado en el CRM
-- Verificado en producción: 🇨🇱 Chile, 🇪🇸 España, 🇦🇷 Argentina mostrando correctamente
-- Archivo: `src/features/talents-public/components/TalentCard.tsx`
-- Commit: `7fb5ae2`
+- Verificado en producción: 🇨🇱 Chile, 🇪🇸 España, 🇦🇷 Argentina
+- Archivos: `src/features/talents-public/components/TalentCard.tsx`, `src/app/talentos/[slug]/page.tsx`
+- Commits: `7fb5ae2`, `631fd54`
 
 ### CTA botones en fichas de talento → formulario de contacto
 - **Antes:** `mailto:marketing@socialpro.es?subject=...` — fallaba sin cliente de correo
@@ -77,14 +78,14 @@ read_when:
 
 - Branch: `master`, up to date con origin
 - Clean — sin cambios pendientes
-- Último commit: `7fb5ae2`
+- Último commit: `631fd54`
 
 ```
+631fd54 feat(talentos): mostrar bandera de país en ficha individual del talento
 7fb5ae2 feat(talentos): mostrar bandera de país en cards del roster público
 e5d1754 feat(talentos): botón CTA lleva al formulario de contacto con campos pre-rellenados
 4c7a847 fix(talents): quick-publish toggle en ficha de talento para staff
 ee4e813 fix(security): filter by status=published in getPostBySlug
-c5631e7 fix(seo): redirects for legacy /talento/ y /en/talents/ URLs
 ```
 
 ---
