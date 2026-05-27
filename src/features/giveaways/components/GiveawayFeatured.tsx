@@ -92,7 +92,14 @@ export function GiveawayFeatured({ giveaway }: Props): React.JSX.Element {
         aria-hidden />
 
       {/* ── Visual Impact Area — 45% ancho en desktop ── */}
-      <div className="relative sm:w-[45%] h-56 sm:h-auto shrink-0 overflow-hidden">
+      <a
+        href={giveaway.redirectUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label={`Participar en ${giveaway.title}`}
+        className="relative sm:w-[45%] h-56 sm:h-auto shrink-0 overflow-hidden block"
+        tabIndex={-1}
+      >
 
         {/* Ambient blur — misma imagen desenfocada como fondo */}
         {hasImage && giveaway.imageUrl && (
@@ -153,7 +160,7 @@ export function GiveawayFeatured({ giveaway }: Props): React.JSX.Element {
             +18
           </div>
         )}
-      </div>
+      </a>
 
       {/* ── Info lateral ── */}
       <div className="relative flex-1 min-w-0 flex flex-col p-5 sm:p-6">
