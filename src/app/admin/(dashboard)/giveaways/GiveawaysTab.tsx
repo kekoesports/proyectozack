@@ -96,13 +96,6 @@ export function GiveawaysTab({ giveaways, brands, onNewGiveaway }: Props): React
           ))}
         </div>
 
-        <button
-          type="button"
-          onClick={onNewGiveaway}
-          className="ml-auto inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-sp-orange text-white text-sm font-semibold hover:opacity-90 transition-opacity"
-        >
-          + Nuevo sorteo
-        </button>
       </div>
 
       {/* Demo banner */}
