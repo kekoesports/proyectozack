@@ -6,7 +6,7 @@ read_when:
   - Handing off to another agent
 ---
 
-# Handoff — 2026-05-27 (Analytics giveaways + UX mejoras CRM)
+# Handoff — 2026-05-27 (Analytics giveaways + UX mejoras CRM + CR-2 badges)
 
 ## 1. Scope / Status
 
@@ -54,20 +54,31 @@ read_when:
 - Fallback a texto libre si el catálogo está vacío
 - Commits: `082d296`, `52cbcf8`
 
+### CR-2 — Badges con emoji y color en tarjetas públicas `/sorteos`
+
+**Problema:** badges del CRM (HOT, NUEVO, EXCLUSIVO, TOP, LIMITED) se mostraban como texto en crudo sin estilo diferenciado. La tarjeta hero featured ignoraba el campo `badge` del DB por completo.
+
+**Fix:**
+- `CompactSorteoCard.tsx` — nuevo `BADGE_MAP` que mapea cada tipo a emoji + color específico:
+  - HOT → 🔥 naranja · NUEVO → ✨ verde · EXCLUSIVO → 👑 morado · TOP → ⭐ ámbar · LIMITED → ⚡ rojo
+- `GiveawayFeatured.tsx` — nuevo `FEATURED_BADGE_MAP`; el badge del CRM aparece ahora como pill junto al indicador "Live" en el panel lateral de la tarjeta héroe
+- Commit: `9fc8ac5`
+
 ---
 
 ## 2. Working Tree
 
 - Branch: `master`, up to date con origin
 - Clean — sin cambios pendientes
-- Último commit: `52cbcf8`
+- Último commit: `9fc8ac5`
 
 ```
+9fc8ac5 feat(sorteos): CR-2 — badges con emoji y color en tarjetas públicas
+7d71a1a docs(handoff): sesion 27-05-2026
 52cbcf8 fix(crm): picker de marca reemplaza el campo de texto, no lo duplica
 082d296 feat(crm): brand picker en edicion de codigos y sorteos
 5e45fda feat(giveaways): eliminar seccion mejores recompensas del hub de codigos
 b08c809 feat(analytics): vistas del hub de sorteos y clicks en CTAs
-a00e09e refactor(crm): remove handle field from socials editor — derived from URL
 ```
 
 ---
@@ -114,19 +125,13 @@ Handles que no resuelven contra API — corregir en `/admin/talents/{id}`:
 - 10 bios en estado `generated` esperando aprobación en `/admin/talents/{id}/seo`
 - Especial atención: **HETTA** y **VITYSHOW**
 
-### E) Backlog técnico (priorizado)
-
-| # | Tarea | Esfuerzo | Riesgo |
-|---|-------|----------|--------|
-| CR-2 | Featured + badge en giveaways | 3-4h | Bajo |
-
-### F) No técnico (requiere acción externa)
+### E) No técnico (requiere acción externa)
 
 - **kekoesports.es cross-reference** — Pablo debe añadir mención + link a `socialpro.es`
 - **REC-10 prensa** — contactar 5 medios gaming/esports para menciones externas
 - **Catálogo de marcas** — revisar que todas las marcas activas estén en `/admin/giveaways` → Catálogo de marcas con logo correcto, para evitar duplicados en la página pública
 
-### G) Analytics giveaways — datos empezarán a acumularse desde el deploy de hoy
+### F) Analytics giveaways — datos empezarán a acumularse desde el deploy de hoy
 - La tabla `giveaway_events` estará vacía hasta que Vercel aplique la migración
 - Primera semana: verificar que los eventos se registran correctamente en `/admin/analytics`
 
