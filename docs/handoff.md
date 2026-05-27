@@ -6,7 +6,7 @@ read_when:
   - Handing off to another agent
 ---
 
-# Handoff — 2026-05-27 (Analytics + CRM + CR-2 + fix handles)
+# Handoff — 2026-05-27 (Analytics + CRM + CR-2 + fix handles + noticia CS2)
 
 ## 1. Scope / Status
 
@@ -41,6 +41,13 @@ read_when:
 - `CompactSorteoCard`: `BADGE_MAP` por tipo — HOT 🔥 naranja · NUEVO ✨ verde · EXCLUSIVO 👑 morado · TOP ⭐ ámbar · LIMITED ⚡ rojo
 - `GiveawayFeatured`: badge del CRM aparece junto al pill "Live"
 - Commit: `9fc8ac5`
+
+### Noticia — CS ibérico (Sinon Community Series + Falcata Series)
+- Publicada vía Neon SQL Editor · vertical `news` · status `published`
+- Slug: `el-cs-iberico-recupera-el-pulso-sinon-community-series-falcata-series`
+- URL pública: `/news/el-cs-iberico-recupera-el-pulso-sinon-community-series-falcata-series`
+- **Cover URL pendiente** — subir imagen en `/admin/noticias/imagenes` y pegar URL en la edición del post
+- Tags: `cs2, torneos, competitivo, ibérico, esports, sinon, falcata`
 
 ### Fix handles — script creado, pendiente de ejecución
 - Script `scripts/fix-handles.ts` — corrige 7 canales fallidos en `sync-followers.ts`
