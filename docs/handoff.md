@@ -6,7 +6,7 @@ read_when:
   - Handing off to another agent
 ---
 
-# Handoff — 2026-05-27 (Analytics giveaways + UX mejoras CRM + CR-2 badges)
+# Handoff — 2026-05-27 (Analytics + CRM + CR-2 + fix handles)
 
 ## 1. Scope / Status
 
@@ -16,128 +16,124 @@ read_when:
 
 **Nueva tabla `giveaway_events`** — migración `0076_easy_lilandra.sql`
 - Columnas: `id, giveaway_id (nullable FK), action ('view'|'click'), page, created_at`
-- La migración se aplica automáticamente en el próximo deploy de Vercel
 - Commit: `b08c809`
 
 **tRPC `giveaways.trackEvent`** — `src/server/routers/giveaways.ts`
-- Rate-limit 30/min por IP (mismo patrón que `trackClick`)
-- Input: `{ action, giveawayId?, page? }`
+- Rate-limit 30/min por IP · Input: `{ action, giveawayId?, page? }`
 
 **Tracking en frontend:**
-- `SorteosHub.tsx` — dispara `view + page:'sorteos'` al montar (una vez por visita)
-- `CompactSorteoCard.tsx` — dispara `click + giveawayId` al pulsar el CTA
-- `GiveawayFeatured.tsx` — ídem en el sorteo destacado
+- `SorteosHub.tsx` — `view + page:'sorteos'` al montar
+- `CompactSorteoCard.tsx` / `GiveawayFeatured.tsx` — `click + giveawayId` al pulsar CTA
 
 **Queries** — `src/lib/queries/giveawayAnalytics.ts`
-- `getGiveawayClicksByDay()` — clicks por sorteo por día, últimos 90 días
-- `getGiveawayHubViewsByDay()` — vistas del hub por día, últimos 90 días
+- `getGiveawayClicksByDay()` / `getGiveawayHubViewsByDay()` — últimos 90 días
 
-**Dashboard** — nueva `GiveawayEventsSection` en `/admin/analytics`
-- KPIs: vistas del hub + clicks totales
-- Tabla top sorteos por clicks, filtrable por 7d / 30d / 90d
+**Dashboard** — `GiveawayEventsSection` en `/admin/analytics` con KPIs + tabla top sorteos
 
 ### UX — Eliminar sección "Mejores recompensas"
+- Eliminada `FeaturedCodesSection` del hub `/giveaways` · Commit: `5e45fda`
 
-- Eliminada `FeaturedCodesSection` del hub `/giveaways`
-- El hub arranca ahora directamente en filtros + grid de códigos
-- Eliminado también el fetch de `getFeaturedCodes()` en la page
-- Commits: `5e45fda`
-
-### CRM — Brand picker en modales de edición de códigos y sorteos
-
-**Problema:** campos "Marca" y "Logo marca (URL)" eran texto libre → duplicados, inconsistencias en página pública.
-
-**Fix:** el campo "Marca" en `EditCodeModal` y `EditGiveawayModal` es ahora el `BrandPicker` (mismo componente que ya tenía el form de creación). Al seleccionar una marca del catálogo se auto-rellenan nombre + logo (y URL de redirección en códigos).
-
-- `CodesTable` recibe y pasa `brandCatalog` a `EditCodeModal`
-- La page pasa `brands` a `CodesTable` y a `EditGiveawayModal`
-- Fallback a texto libre si el catálogo está vacío
+### CRM — Brand picker en modales de edición
+- `EditCodeModal` y `EditGiveawayModal`: campo Marca reemplazado por `BrandPicker`
 - Commits: `082d296`, `52cbcf8`
 
 ### CR-2 — Badges con emoji y color en tarjetas públicas `/sorteos`
-
-**Problema:** badges del CRM (HOT, NUEVO, EXCLUSIVO, TOP, LIMITED) se mostraban como texto en crudo sin estilo diferenciado. La tarjeta hero featured ignoraba el campo `badge` del DB por completo.
-
-**Fix:**
-- `CompactSorteoCard.tsx` — nuevo `BADGE_MAP` que mapea cada tipo a emoji + color específico:
-  - HOT → 🔥 naranja · NUEVO → ✨ verde · EXCLUSIVO → 👑 morado · TOP → ⭐ ámbar · LIMITED → ⚡ rojo
-- `GiveawayFeatured.tsx` — nuevo `FEATURED_BADGE_MAP`; el badge del CRM aparece ahora como pill junto al indicador "Live" en el panel lateral de la tarjeta héroe
+- `CompactSorteoCard`: `BADGE_MAP` por tipo — HOT 🔥 naranja · NUEVO ✨ verde · EXCLUSIVO 👑 morado · TOP ⭐ ámbar · LIMITED ⚡ rojo
+- `GiveawayFeatured`: badge del CRM aparece junto al pill "Live"
 - Commit: `9fc8ac5`
+
+### Fix handles — script creado, pendiente de ejecución
+- Script `scripts/fix-handles.ts` — corrige 7 canales fallidos en `sync-followers.ts`
+- **No ejecutado aún** — requiere `DATABASE_URL` real en `.env.local`
+- Commit: `4007a56`
 
 ---
 
-## 2. Working Tree
+## 2. Handles fallidos — estado detallado
+
+El `vercel env pull` solo trae el entorno `development`; `DATABASE_URL` solo está en production/preview. Para ejecutar el fix:
+
+```bash
+# 1. Obtener DATABASE_URL de Neon dashboard o Vercel → Settings → Env Vars (production)
+# 2. Pegar en .env.local: DATABASE_URL="postgresql://..."
+# 3. Dry-run primero:
+npx tsx scripts/fix-handles.ts --dry-run
+# 4. Aplicar:
+npx tsx scripts/fix-handles.ts
+# 5. Verificar:
+npx tsx scripts/sync-followers.ts --dry-run
+```
+
+**Correcciones que aplica el script:**
+
+| Canal | Plataforma | Fix |
+|-------|-----------|-----|
+| MARTINEZ | YouTube | `martinezsaa` → `MartiinezSa` + URL correcta |
+| ADAMS | Twitch | `ADAMS` → `adamsen_` + URL correcta |
+| Lewis cs2 | Twitch | `Lewis cs2` (espacio) → `lewiscs2_` |
+| Bosko | Twitch | `Bosko` → `bosco` |
+| Branuel | Twitch | Probable `platform='tw'` → renombrar a `'twitch'` |
+| Marinho | Twitch | Ídem |
+| **julietacs_** | **YouTube** | **Manual** — script muestra estado en DB; verificar si tiene canal YT o eliminar fila |
+
+---
+
+## 3. Working Tree
 
 - Branch: `master`, up to date con origin
 - Clean — sin cambios pendientes
-- Último commit: `9fc8ac5`
+- Último commit: `4007a56`
 
 ```
+4007a56 fix(handles): script fix-handles.ts — corregir 7 canales fallidos en sync
+4032500 docs(handoff): añadir CR-2 badges — sesión 27-05-2026
 9fc8ac5 feat(sorteos): CR-2 — badges con emoji y color en tarjetas públicas
 7d71a1a docs(handoff): sesion 27-05-2026
 52cbcf8 fix(crm): picker de marca reemplaza el campo de texto, no lo duplica
-082d296 feat(crm): brand picker en edicion de codigos y sorteos
-5e45fda feat(giveaways): eliminar seccion mejores recompensas del hub de codigos
-b08c809 feat(analytics): vistas del hub de sorteos y clicks en CTAs
 ```
 
 ---
 
-## 3. TypeScript / Lint
+## 4. TypeScript / Lint
 
 - `npx tsc --noEmit`: 0 errores
-- `npm run lint`: 1 error pre-existente en `AdminSidebar.tsx` (Promise en `onClick`) — no introducido en esta sesión
+- `npm run lint`: 1 error pre-existente en `AdminSidebar.tsx` — no introducido esta sesión
 
 ---
 
-## 4. Pendiente próxima sesión
+## 5. Pendiente próxima sesión
 
-### A) GSC — Esperar validaciones
-Google inició revalidación el 26-05. Comprobar en ~1-2 semanas en GSC:
-- Páginas bloqueadas por robots.txt → deben desaparecer
-- 404s y 403 → deben resolverse
-- "Rastreadas sin indexar" → evaluar si indexan con el tiempo
+### A) Ejecutar fix-handles + sync
+Ver sección 2 arriba. Una vez con DATABASE_URL disponible, son 3 comandos.
 
-### B) Datos de métricas pendientes de rellenar en CRM
+### B) GSC — Esperar validaciones
+Google inició revalidación el 26-05. Comprobar en ~1-2 semanas.
+
+### C) Datos de métricas pendientes en CRM
 
 | Talento | Problema | Acción |
 |---------|---------|--------|
-| JOLU | Sin stats (tabla `talent_stats` vacía) | Añadir Seguidores/Suscriptores/Engagement en `/admin/talents/[id]` → métricas públicas |
-| MIRAI | Engagement = "—" | Actualizar valor real en `/admin/talents/[id]` → métricas públicas |
+| JOLU | Sin stats (`talent_stats` vacía) | Añadir en `/admin/talents/[id]` → métricas públicas |
+| MIRAI | Engagement = "—" | Actualizar en `/admin/talents/[id]` |
 | EVELYN FOXYY | Engagement = "—" | Ídem |
 
-**Nota banderas:** En Windows los emojis de bandera se renderizan como letras (ej. "ES") en vez de imagen. En móvil y Mac se ven como emoji completo. El código es correcto.
-
-### C) 7 canales fallidos en sync-metrics
-Handles que no resuelven contra API — corregir en `/admin/talents/{id}`:
-
-| Canal | Plataforma |
-|-------|-----------|
-| MARTINEZ | YouTube |
-| julietacs_ | YouTube |
-| ADAMS | Twitch |
-| Bosko | Twitch |
-| Branuel | Twitch |
-| Lewis cs2 | Twitch |
-| Marinho | Twitch |
-
 ### D) Bios SEO — pendiente revisión humana
-- 10 bios en estado `generated` esperando aprobación en `/admin/talents/{id}/seo`
+- 10 bios en estado `generated` en `/admin/talents/{id}/seo`
 - Especial atención: **HETTA** y **VITYSHOW**
 
-### E) No técnico (requiere acción externa)
+### E) No técnico
 
 - **kekoesports.es cross-reference** — Pablo debe añadir mención + link a `socialpro.es`
 - **REC-10 prensa** — contactar 5 medios gaming/esports para menciones externas
-- **Catálogo de marcas** — revisar que todas las marcas activas estén en `/admin/giveaways` → Catálogo de marcas con logo correcto, para evitar duplicados en la página pública
+- **Catálogo de marcas** — verificar logos correctos en `/admin/giveaways` → Catálogo de marcas
 
-### F) Analytics giveaways — datos empezarán a acumularse desde el deploy de hoy
-- La tabla `giveaway_events` estará vacía hasta que Vercel aplique la migración
-- Primera semana: verificar que los eventos se registran correctamente en `/admin/analytics`
+### F) Analytics giveaways
+- Tabla `giveaway_events` vacía hasta que Vercel aplique la migración del deploy de hoy
+- Primera semana: verificar eventos en `/admin/analytics`
 
 ---
 
-## 5. Pre-flight para retomar
+## 6. Pre-flight para retomar
 
 ```bash
 git log --oneline -5
