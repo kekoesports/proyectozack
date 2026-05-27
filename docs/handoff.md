@@ -6,71 +6,53 @@ read_when:
   - Handing off to another agent
 ---
 
-# Handoff — 2026-05-26 (GSC + Bug fixes + CTA refactor + Banderas)
+# Handoff — 2026-05-27 (Analytics giveaways + UX mejoras CRM)
 
 ## 1. Scope / Status
 
 **Tareas completadas hoy:**
 
-### SEO / GSC — Correcciones de indexación
+### HI-4 — Analytics giveaways (vistas + clicks)
 
-**Robots.txt** (`src/app/robots.ts`)
-- `/news?tag=` y `/blog?tag=` añadidos a `allow` explícito (Google longest-match)
-- Rutas WordPress bloqueadas: `/wp-content/`, `/wp-admin/`, `/wp-login.php`
-- Commit: `f170e7f`
+**Nueva tabla `giveaway_events`** — migración `0076_easy_lilandra.sql`
+- Columnas: `id, giveaway_id (nullable FK), action ('view'|'click'), page, created_at`
+- La migración se aplica automáticamente en el próximo deploy de Vercel
+- Commit: `b08c809`
 
-**noindex en páginas legales/utilidad** (`cookies`, `legal`, `privacidad`)
-- `robots: { index: false, follow: true }` en los tres archivos
-- Commit: `dfffb76`
+**tRPC `giveaways.trackEvent`** — `src/server/routers/giveaways.ts`
+- Rate-limit 30/min por IP (mismo patrón que `trackClick`)
+- Input: `{ action, giveawayId?, page? }`
 
-**Redirects legacy** (`next.config.ts`)
-- `/marcas/login` → `/admin/login` (308 permanente)
-- `/talento/naow-ivan-gonzalez[/]` → `/talentos/naow`
-- `/talento/:slug[/]` → `/talentos/:slug`
-- `/en/talents[/]` → `/talents`
-- Commit: `c5631e7`
+**Tracking en frontend:**
+- `SorteosHub.tsx` — dispara `view + page:'sorteos'` al montar (una vez por visita)
+- `CompactSorteoCard.tsx` — dispara `click + giveawayId` al pulsar el CTA
+- `GiveawayFeatured.tsx` — ídem en el sorteo destacado
 
-**Footer** (`src/components/layout/Footer.tsx`)
-- Dos links de `/marcas/login` cambiados a `/admin/login`
-- Commit: `60d78ae`
+**Queries** — `src/lib/queries/giveawayAnalytics.ts`
+- `getGiveawayClicksByDay()` — clicks por sorteo por día, últimos 90 días
+- `getGiveawayHubViewsByDay()` — vistas del hub por día, últimos 90 días
 
-**Sitemap** — `getNewsUniqueTags()` añadida para incluir páginas de tags de /news
-- Commit: `403d41e`
+**Dashboard** — nueva `GiveawayEventsSection` en `/admin/analytics`
+- KPIs: vistas del hub + clicks totales
+- Tabla top sorteos por clicks, filtrable por 7d / 30d / 90d
 
-**Normalización de tags** — `pgl astana 2026` y `gentle-mates` normalizados en BD vía ruta temporal
-- Ruta temporal ya eliminada
+### UX — Eliminar sección "Mejores recompensas"
 
-**Estado GSC:** todas las validaciones iniciadas — esperar 1-2 semanas para confirmar
+- Eliminada `FeaturedCodesSection` del hub `/giveaways`
+- El hub arranca ahora directamente en filtros + grid de códigos
+- Eliminado también el fetch de `getFeaturedCodes()` en la page
+- Commits: `5e45fda`
 
-### Security fix — `getPostBySlug` (`src/lib/queries/posts.ts`)
-- Añadido `eq(posts.status, 'published')` al query — los drafts ya no son accesibles públicamente
-- Commit: `ee4e813`
+### CRM — Brand picker en modales de edición de códigos y sorteos
 
-### Bug fix — Arias no podía publicar/despublicar talentos
-- **Root cause:** El toggle `isPublished` solo existía en el form completo `/edit`. El usuario cambiaba el switch visualmente pero esperaba auto-save (igual que los LiveToggleRow). Sin clic en "Guardar cambios" el cambio se perdía.
-- **Fix:** Nueva server action `setTalentPublishedAction` + badge "Público/Interno" en la ficha de talento convertido en botón de formulario. Un clic publica/despublica y revalida rutas públicas.
-- Archivos: `src/app/admin/(dashboard)/talents/actions.ts`, `src/app/admin/(dashboard)/talents/[id]/page.tsx`
-- Commit: `4c7a847`
+**Problema:** campos "Marca" y "Logo marca (URL)" eran texto libre → duplicados, inconsistencias en página pública.
 
-### Artículo publicado — cs2-patch-analysis-spring-update-2026
-- Publicado vía ruta temporal de mantenimiento (ya eliminada)
-- Visible en `/news/cs2-patch-analysis-spring-update-2026`
+**Fix:** el campo "Marca" en `EditCodeModal` y `EditGiveawayModal` es ahora el `BrandPicker` (mismo componente que ya tenía el form de creación). Al seleccionar una marca del catálogo se auto-rellenan nombre + logo (y URL de redirección en códigos).
 
-### Banderas de país — roster público y ficha individual
-- **Cards del roster** (`/talentos`): emoji en esquina inferior derecha de la foto
-- **Ficha individual** (`/talentos/[slug]`): emoji inline junto al nombre en el hero, entre el nombre y el badge de sorteos activos
-- Solo aparece si el talento tiene `creatorCountry` configurado en el CRM
-- Verificado en producción: 🇨🇱 Chile, 🇪🇸 España, 🇦🇷 Argentina
-- Archivos: `src/features/talents-public/components/TalentCard.tsx`, `src/app/talentos/[slug]/page.tsx`
-- Commits: `7fb5ae2`, `631fd54`
-
-### CTA botones en fichas de talento → formulario de contacto
-- **Antes:** `mailto:marketing@socialpro.es?subject=...` — fallaba sin cliente de correo
-- **Ahora:** `/contacto?type=brand&talent=Nombre` — abre formulario con `type=brand` y mensaje pre-rellenado
-- `ContactSection` acepta prop opcional `defaultValues?: Partial<ContactForm>`
-- La página `/contacto` lee `searchParams.talent` y `searchParams.type`
-- Archivos: `src/features/contact/components/ContactSection.tsx`, `src/app/contacto/page.tsx`, `src/app/talentos/[slug]/page.tsx`
-- Commit: `e5d1754`
+- `CodesTable` recibe y pasa `brandCatalog` a `EditCodeModal`
+- La page pasa `brands` a `CodesTable` y a `EditGiveawayModal`
+- Fallback a texto libre si el catálogo está vacío
+- Commits: `082d296`, `52cbcf8`
 
 ---
 
@@ -78,14 +60,14 @@ read_when:
 
 - Branch: `master`, up to date con origin
 - Clean — sin cambios pendientes
-- Último commit: `631fd54`
+- Último commit: `52cbcf8`
 
 ```
-631fd54 feat(talentos): mostrar bandera de país en ficha individual del talento
-7fb5ae2 feat(talentos): mostrar bandera de país en cards del roster público
-e5d1754 feat(talentos): botón CTA lleva al formulario de contacto con campos pre-rellenados
-4c7a847 fix(talents): quick-publish toggle en ficha de talento para staff
-ee4e813 fix(security): filter by status=published in getPostBySlug
+52cbcf8 fix(crm): picker de marca reemplaza el campo de texto, no lo duplica
+082d296 feat(crm): brand picker en edicion de codigos y sorteos
+5e45fda feat(giveaways): eliminar seccion mejores recompensas del hub de codigos
+b08c809 feat(analytics): vistas del hub de sorteos y clicks en CTAs
+a00e09e refactor(crm): remove handle field from socials editor — derived from URL
 ```
 
 ---
@@ -100,10 +82,10 @@ ee4e813 fix(security): filter by status=published in getPostBySlug
 ## 4. Pendiente próxima sesión
 
 ### A) GSC — Esperar validaciones
-Google iniciará revalidación de los 4 grupos de URLs. Comprobar en ~1-2 semanas en GSC:
+Google inició revalidación el 26-05. Comprobar en ~1-2 semanas en GSC:
 - Páginas bloqueadas por robots.txt → deben desaparecer
 - 404s y 403 → deben resolverse
-- "Rastreadas sin indexar" → evaluar si indexan con el tiempo o necesitan más señales
+- "Rastreadas sin indexar" → evaluar si indexan con el tiempo
 
 ### B) Datos de métricas pendientes de rellenar en CRM
 
@@ -136,13 +118,17 @@ Handles que no resuelven contra API — corregir en `/admin/talents/{id}`:
 
 | # | Tarea | Esfuerzo | Riesgo |
 |---|-------|----------|--------|
-| HI-4 | Analytics giveaways (vistas + clicks) | 4-5h | Bajo |
 | CR-2 | Featured + badge en giveaways | 3-4h | Bajo |
 
 ### F) No técnico (requiere acción externa)
 
 - **kekoesports.es cross-reference** — Pablo debe añadir mención + link a `socialpro.es`
 - **REC-10 prensa** — contactar 5 medios gaming/esports para menciones externas
+- **Catálogo de marcas** — revisar que todas las marcas activas estén en `/admin/giveaways` → Catálogo de marcas con logo correcto, para evitar duplicados en la página pública
+
+### G) Analytics giveaways — datos empezarán a acumularse desde el deploy de hoy
+- La tabla `giveaway_events` estará vacía hasta que Vercel aplique la migración
+- Primera semana: verificar que los eventos se registran correctamente en `/admin/analytics`
 
 ---
 
