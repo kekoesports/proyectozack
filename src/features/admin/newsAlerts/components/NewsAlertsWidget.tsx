@@ -29,7 +29,7 @@ export async function NewsAlertsWidget() {
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <h2 className="font-display text-sm font-bold uppercase tracking-wider text-sp-admin-text">
-            Alertas editoriales
+            Industry Monitor
           </h2>
           {unreadCount > 0 && (
             <span className="inline-flex items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 min-w-[1.25rem] leading-none">
