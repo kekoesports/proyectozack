@@ -118,9 +118,9 @@ export function EditGiveawayModal({ giveaway, brandCatalog = [] }: { giveaway: G
                 {err('title') && <p className="text-xs text-red-400 mt-1">{err('title')}</p>}
               </div>
 
-              {brandCatalog.length > 0 && (
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-semibold text-sp-admin-muted mb-1">Marca del catálogo</label>
+              <div>
+                <label className="block text-sm font-semibold text-sp-admin-muted mb-1">Marca</label>
+                {brandCatalog.length > 0 ? (
                   <BrandPicker
                     brands={brandCatalog}
                     onSelect={(b) => {
@@ -129,11 +129,9 @@ export function EditGiveawayModal({ giveaway, brandCatalog = [] }: { giveaway: G
                     }}
                     placeholder={brandName || 'Seleccionar marca…'}
                   />
-                </div>
-              )}
-              <div>
-                <label className="block text-sm font-semibold text-sp-admin-muted mb-1">Marca</label>
-                <input value={brandName} onChange={(e) => setBrandName(e.target.value)} required maxLength={150} className={inputCls} />
+                ) : (
+                  <input value={brandName} onChange={(e) => setBrandName(e.target.value)} required maxLength={150} className={inputCls} />
+                )}
                 {err('brandName') && <p className="text-xs text-red-400 mt-1">{err('brandName')}</p>}
               </div>
 

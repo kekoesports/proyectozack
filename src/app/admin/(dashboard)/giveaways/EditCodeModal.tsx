@@ -93,9 +93,9 @@ export function EditCodeModal({ code, talents, brandCatalog = [], onClose }: Pro
             <label className="block text-sm font-semibold text-sp-admin-muted mb-1">Código</label>
             <input value={codeStr} onChange={(e) => setCodeStr(e.target.value)} required maxLength={100} className={`${inputCls} font-mono uppercase`} />
           </div>
-          {brandCatalog.length > 0 && (
-            <div className="md:col-span-2">
-              <label className="block text-sm font-semibold text-sp-admin-muted mb-1">Marca del catálogo</label>
+          <div>
+            <label className="block text-sm font-semibold text-sp-admin-muted mb-1">Marca</label>
+            {brandCatalog.length > 0 ? (
               <BrandPicker
                 brands={brandCatalog}
                 onSelect={(b) => {
@@ -105,19 +105,13 @@ export function EditCodeModal({ code, talents, brandCatalog = [], onClose }: Pro
                 }}
                 placeholder={brandName || 'Seleccionar marca…'}
               />
-            </div>
-          )}
-          <div>
-            <label className="block text-sm font-semibold text-sp-admin-muted mb-1">Marca</label>
-            <input value={brandName} onChange={(e) => setBrandName(e.target.value)} required maxLength={150} className={inputCls} />
+            ) : (
+              <input value={brandName} onChange={(e) => setBrandName(e.target.value)} required maxLength={150} className={inputCls} />
+            )}
           </div>
           <div>
             <label className="block text-sm font-semibold text-sp-admin-muted mb-1">URL de redirección</label>
             <input value={redirectUrl} onChange={(e) => setRedirectUrl(e.target.value)} type="url" required className={inputCls} />
-          </div>
-          <div>
-            <label className="block text-sm font-semibold text-sp-admin-muted mb-1">Logo marca (URL)</label>
-            <input value={brandLogo} onChange={(e) => setBrandLogo(e.target.value)} type="url" className={inputCls} />
           </div>
           <div>
             <label className="block text-sm font-semibold text-sp-admin-muted mb-1">Descripción</label>
