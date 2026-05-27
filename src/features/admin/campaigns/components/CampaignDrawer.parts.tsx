@@ -394,6 +394,22 @@ export function CampaignForm({
         </div>
       </div>
 
+      {/* Valor en especie — giveaways / skins */}
+      <Field
+        label="Valor giveaways / skins (€)"
+        hint="Importe en especie ofrecido por la marca (no contabiliza como ingreso bancario)"
+      >
+        <input
+          type="number"
+          name="amountInKind"
+          min="0"
+          step="1"
+          defaultValue={campaign?.amountInKind ?? ''}
+          placeholder="0"
+          className={inputCls}
+        />
+      </Field>
+
       {/* Métodos de pago */}
       <div className="grid grid-cols-2 gap-3">
         <Field label="Pago marca">

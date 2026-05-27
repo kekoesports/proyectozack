@@ -87,6 +87,7 @@ export type CreateCampaignInput = {
   currency?: 'EUR' | 'USD';
   amountBrand?: number;
   amountTalent?: number;
+  amountInKind?: number;
   brandPaymentMethod?: CampaignPaymentMethod;
   talentPaymentMethod?: CampaignPaymentMethod;
   visibility?: 'team' | 'private';
@@ -220,6 +221,7 @@ export async function getCampaignWithRelations(
       currency: campaigns.currency,
       amountBrand: campaigns.amountBrand,
       amountTalent: campaigns.amountTalent,
+      amountInKind: campaigns.amountInKind,
       brandPaymentMethod: campaigns.brandPaymentMethod,
       talentPaymentMethod: campaigns.talentPaymentMethod,
       visibility: campaigns.visibility,
@@ -290,6 +292,7 @@ export async function getCampaignWithRelations(
     currency: row.currency,
     amountBrand: row.amountBrand,
     amountTalent: row.amountTalent,
+    amountInKind: row.amountInKind ?? null,
     brandPaymentMethod: row.brandPaymentMethod,
     talentPaymentMethod: row.talentPaymentMethod,
     visibility: row.visibility,
@@ -399,6 +402,7 @@ export async function createCampaign(input: CreateCampaignInput): Promise<Campai
       currency: input.currency ?? 'EUR',
       amountBrand: String(input.amountBrand ?? 0),
       amountTalent: String(input.amountTalent ?? 0),
+      amountInKind: input.amountInKind !== undefined ? String(input.amountInKind) : null,
       brandPaymentMethod: input.brandPaymentMethod ?? null,
       talentPaymentMethod: input.talentPaymentMethod ?? null,
       visibility: input.visibility ?? 'team',
@@ -443,6 +447,7 @@ export async function updateCampaign(
   if (patch.currency !== undefined) setValue['currency'] = patch.currency;
   if (patch.amountBrand !== undefined) setValue['amountBrand'] = String(patch.amountBrand);
   if (patch.amountTalent !== undefined) setValue['amountTalent'] = String(patch.amountTalent);
+  if ('amountInKind' in patch) setValue['amountInKind'] = patch.amountInKind !== undefined ? String(patch.amountInKind) : null;
   if ('brandPaymentMethod' in patch) setValue['brandPaymentMethod'] = patch.brandPaymentMethod ?? null;
   if ('talentPaymentMethod' in patch) setValue['talentPaymentMethod'] = patch.talentPaymentMethod ?? null;
   if (patch.visibility !== undefined) setValue['visibility'] = patch.visibility;

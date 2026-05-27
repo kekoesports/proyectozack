@@ -1,0 +1,1 @@
+ALTER TABLE "campaigns" ADD COLUMN "amount_in_kind" numeric(12, 2);
