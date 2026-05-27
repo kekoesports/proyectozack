@@ -50,13 +50,13 @@ read_when:
 - Tags: `cs2, torneos, competitivo, ibérico, esports, sinon, falcata`
 - Nota: primer intento fue en el proyecto Neon equivocado (proyecto de demo); el INSERT correcto se ejecutó en el proyecto **socialpro**
 
-### Fix caché noticias (bug: artículo editado no se actualizaba en la web)
+### Fix caché noticias (bug: artículo editado no se actualizaba en la web) ✅
 - **`src/app/news/[slug]/page.tsx`**: `revalidate` bajado de 1800 → **60** s (red de seguridad: máximo 1 min de contenido stale)
 - **`src/app/admin/(dashboard)/noticias/actions.ts`** — `updatePostAction`:
   - Se añade `slug` a la query de `currentRow` para obtener el slug actual de DB
   - Se revalida tanto el slug nuevo (del form) como el slug antiguo si cambió
-  - Cubría el caso de cambio de slug (antes solo revalidaba el nuevo slug del form)
-- `npx tsc --noEmit` → 0 errores
+- Commit: `6fc0f6d` · Deploy: completado en Vercel
+- Noticia CS2 corregida manualmente en admin: excerpt limpio + H1 eliminado del body_md
 
 ### Fix handles — script creado, pendiente de ejecución
 - Script `scripts/fix-handles.ts` — corrige 7 canales fallidos en `sync-followers.ts`
@@ -138,8 +138,8 @@ Google inició revalidación el 26-05. Comprobar en ~1-2 semanas.
 - Tabla `giveaway_events` vacía hasta que Vercel aplique la migración del deploy de hoy
 - Primera semana: verificar eventos en `/admin/analytics`
 
-### G) Cover noticia CS2
-- Subir la imagen en `/admin/noticias/imagenes` y pegar la URL en el post de CS ibérico
+### G) Cover noticia CS2 ✅ (imagen ya visible en la web)
+- Artículo publicado y correcto en `/news/el-cs-iberico-recupera-el-pulso-sinon-community-series-y-falcata-series-toman-el-relevo`
 
 ---
 
