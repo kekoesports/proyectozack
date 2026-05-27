@@ -17,6 +17,11 @@ function renderInline(text: string): string {
     /\[([^\]]+)\]\((\/[^)\s]+)\)/g,
     '<a href="$2" class="text-white underline decoration-sp-pink/50 underline-offset-4 hover:decoration-sp-pink transition-colors">$1</a>',
   );
+  // External links: [label](https://...) — new tab, noopener
+  html = html.replace(
+    /\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g,
+    '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-sp-orange font-medium underline decoration-sp-orange/40 underline-offset-4 hover:decoration-sp-orange transition-colors">$1</a>',
+  );
   return html;
 }
 
@@ -39,6 +44,26 @@ function normalizeBodyMd(md: string): string {
     // (heading, list, blockquote, horizontal rule) and isn't already \n\n.
     // This handles CMS content where paragraphs are separated by one Enter.
     .replace(/([^\n])\n(?!\n)([^#>*\-\n=])/g, '$1\n\n$2');
+}
+
+// Icon: external link arrow (↗)
+function ExternalArrow() {
+  return (
+    <svg
+      aria-hidden
+      className="w-3 h-3 flex-none opacity-50 group-hover:opacity-100 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all"
+      viewBox="0 0 12 12"
+      fill="none"
+    >
+      <path
+        d="M2.5 9.5L9.5 2.5M9.5 2.5H4.5M9.5 2.5V7.5"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
 }
 
 export function NewsArticleBody({ bodyMd }: { bodyMd: string }) {
@@ -123,6 +148,29 @@ export function NewsArticleBody({ bodyMd }: { bodyMd: string }) {
             </ul>
           );
         }
+
+        // Standalone external-link CTA: optional prefix (emoji/text) + [label](https://url)
+        // e.g. "👉 [sinoncs.pt/torneio](https://www.sinoncs.pt/torneio/)"
+        const ctaMatch = block.match(/^([^[\]]*)\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)\s*$/);
+        if (ctaMatch) {
+          const [, prefix = '', label = '', url = ''] = ctaMatch;
+          const pfx = prefix.trim();
+          return (
+            <div key={key} className="my-3">
+              <a
+                href={url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2.5 px-4 py-2.5 rounded-xl border border-sp-orange/25 bg-sp-orange/[0.06] text-sm font-bold text-sp-orange hover:bg-sp-orange/10 hover:border-sp-orange/40 transition-all group"
+              >
+                {pfx && <span className="text-white/50">{pfx}</span>}
+                <span>{label}</span>
+                <ExternalArrow />
+              </a>
+            </div>
+          );
+        }
+
         return (
           <p
             key={key}
