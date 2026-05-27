@@ -45,3 +45,4 @@ export * from './newsletterSends';
 export * from './brandCatalog';
 
 export * from './newsAlerts';
+export * from './giveawayEvents';

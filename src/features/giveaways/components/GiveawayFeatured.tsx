@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { trpc } from '@/lib/trpc/client';
 import Image from 'next/image';
 import { GiveawayPrizePlaceholder } from './GiveawayPrizePlaceholder';
 import { isIGamingBrand } from '@/lib/igaming';
@@ -60,6 +61,7 @@ type Props = { readonly giveaway: GiveawayWithTalent };
 export function GiveawayFeatured({ giveaway }: Props): React.JSX.Element {
   const [imgError, setImgError] = useState(false);
   const [nowMs]                 = useState(Date.now);
+  const trackEvent = trpc.giveaways.trackEvent.useMutation();
   const rarity      = inferRarity(giveaway.value);
   const needsAge18  = isIGamingBrand(giveaway.brandName);
   const cfg      = RARITY_CONFIG[rarity];
@@ -191,6 +193,9 @@ export function GiveawayFeatured({ giveaway }: Props): React.JSX.Element {
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl bg-sp-grad text-white text-[12px] font-black uppercase tracking-[0.15em] shadow-[0_2px_20px_rgba(245,99,42,0.2)] hover:shadow-[0_4px_30px_rgba(245,99,42,0.4)] hover:tracking-[0.2em] transition-all duration-300"
+            onClick={() => {
+              void trackEvent.mutateAsync({ action: 'click', giveawayId: giveaway.id }).catch(() => undefined);
+            }}
           >
             PARTICIPAR EN EL SORTEO →
           </a>

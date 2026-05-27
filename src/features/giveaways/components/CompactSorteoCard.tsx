@@ -1,6 +1,7 @@
 'use client';
 
 import { memo, useState, useCallback } from 'react';
+import { trpc } from '@/lib/trpc/client';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'motion/react';
@@ -65,6 +66,7 @@ function CompactSorteoCardImpl({ giveaway }: Props): React.JSX.Element {
   const [imgError, setImgError] = useState(false);
   const [hovered, setHovered]   = useState(false);
   const handleImgError = useCallback(() => setImgError(true), []);
+  const trackEvent = trpc.giveaways.trackEvent.useMutation();
   const now = useNow();
 
   const isActive = giveaway.endsAt === null || new Date(giveaway.endsAt).getTime() > now;
@@ -246,7 +248,10 @@ function CompactSorteoCardImpl({ giveaway }: Props): React.JSX.Element {
             target="_blank"
             rel="noopener noreferrer"
             className="shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-lg bg-sp-grad text-white text-[10px] font-black uppercase tracking-[0.08em] hover:opacity-85 transition-opacity"
-            onClick={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.stopPropagation();
+              void trackEvent.mutateAsync({ action: 'click', giveawayId: giveaway.id }).catch(() => undefined);
+            }}
           >
             {ctaLabel} →
           </a>

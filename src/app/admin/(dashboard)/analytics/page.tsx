@@ -6,6 +6,7 @@ import { listCampaigns } from '@/lib/queries/campaigns';
 import { listInvoices } from '@/lib/queries/invoices';
 import { getDashboardAlerts } from '@/lib/queries/alerts';
 import { getCodeClicksByDay } from '@/lib/queries/codeAnalytics';
+import { getGiveawayClicksByDay, getGiveawayHubViewsByDay } from '@/lib/queries/giveawayAnalytics';
 import { AnalyticsDashboard } from '@/features/admin/analytics/components/AnalyticsDashboard';
 import type { CampaignWithRelations } from '@/types';
 
@@ -23,7 +24,7 @@ export default async function AdminAnalyticsPage(): Promise<React.ReactElement> 
     ? { staffUserId: session.user.id, skipFinancial: true, currentUserId: session.user.id }
     : { currentUserId: session.user.id };
 
-  const [rawCampaigns, invoices, brandsList, talentsList, alertsData, codeClicks] = await Promise.all([
+  const [rawCampaigns, invoices, brandsList, talentsList, alertsData, codeClicks, giveawayClicks, giveawayViews] = await Promise.all([
     listCampaigns(staffSession ? { session: staffSession } : undefined),
     listInvoices(isStaff ? { staffUserId: session.user.id } : {}),
     isStaff
@@ -34,6 +35,8 @@ export default async function AdminAnalyticsPage(): Promise<React.ReactElement> 
       : db.select({ id: talents.id, name: talents.name }).from(talents).orderBy(asc(talents.name)),
     getDashboardAlerts(alertsOpts),
     getCodeClicksByDay(),
+    getGiveawayClicksByDay(),
+    getGiveawayHubViewsByDay(),
   ]);
 
   const brandMap  = new Map(brandsList.map((b)  => [b.id, b.name]));
@@ -74,6 +77,8 @@ export default async function AdminAnalyticsPage(): Promise<React.ReactElement> 
       alerts={alertsData.alerts}
       alertSummary={alertsData.summary}
       codeClicks={codeClicks}
+      giveawayClicks={giveawayClicks}
+      giveawayViews={giveawayViews}
     />
   );
 }
