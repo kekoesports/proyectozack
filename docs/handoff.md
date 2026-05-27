@@ -6,7 +6,7 @@ read_when:
   - Handing off to another agent
 ---
 
-# Handoff — 2026-05-27 (Analytics + CRM + CR-2 + fix handles + noticia CS2)
+# Handoff — 2026-05-27 (Analytics + CRM + CR-2 + fix handles + noticia CS2 + fix caché noticias)
 
 ## 1. Scope / Status
 
@@ -50,6 +50,14 @@ read_when:
 - Tags: `cs2, torneos, competitivo, ibérico, esports, sinon, falcata`
 - Nota: primer intento fue en el proyecto Neon equivocado (proyecto de demo); el INSERT correcto se ejecutó en el proyecto **socialpro**
 
+### Fix caché noticias (bug: artículo editado no se actualizaba en la web)
+- **`src/app/news/[slug]/page.tsx`**: `revalidate` bajado de 1800 → **60** s (red de seguridad: máximo 1 min de contenido stale)
+- **`src/app/admin/(dashboard)/noticias/actions.ts`** — `updatePostAction`:
+  - Se añade `slug` a la query de `currentRow` para obtener el slug actual de DB
+  - Se revalida tanto el slug nuevo (del form) como el slug antiguo si cambió
+  - Cubría el caso de cambio de slug (antes solo revalidaba el nuevo slug del form)
+- `npx tsc --noEmit` → 0 errores
+
 ### Fix handles — script creado, pendiente de ejecución
 - Script `scripts/fix-handles.ts` — corrige 7 canales fallidos en `sync-followers.ts`
 - **No ejecutado aún** — requiere `DATABASE_URL` real en `.env.local`
@@ -88,17 +96,8 @@ npx tsx scripts/sync-followers.ts --dry-run
 
 ## 3. Working Tree
 
-- Branch: `master`, up to date con origin
-- Clean — sin cambios pendientes
-- Último commit: `4007a56`
-
-```
-4007a56 fix(handles): script fix-handles.ts — corregir 7 canales fallidos en sync
-4032500 docs(handoff): añadir CR-2 badges — sesión 27-05-2026
-9fc8ac5 feat(sorteos): CR-2 — badges con emoji y color en tarjetas públicas
-7d71a1a docs(handoff): sesion 27-05-2026
-52cbcf8 fix(crm): picker de marca reemplaza el campo de texto, no lo duplica
-```
+- Branch: `master`
+- Cambios pendientes de commit: `src/app/news/[slug]/page.tsx` + `src/app/admin/(dashboard)/noticias/actions.ts`
 
 ---
 
@@ -138,6 +137,9 @@ Google inició revalidación el 26-05. Comprobar en ~1-2 semanas.
 ### F) Analytics giveaways
 - Tabla `giveaway_events` vacía hasta que Vercel aplique la migración del deploy de hoy
 - Primera semana: verificar eventos en `/admin/analytics`
+
+### G) Cover noticia CS2
+- Subir la imagen en `/admin/noticias/imagenes` y pegar la URL en el post de CS ibérico
 
 ---
 
