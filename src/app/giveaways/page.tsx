@@ -3,7 +3,7 @@ import { safeJsonLd } from '@/lib/safeJsonLd';
 import Image from 'next/image';
 import Link from 'next/link';
 import { getAllActiveGiveaways, getAllFinishedGiveaways, extractUniqueBrands } from '@/lib/queries/giveawaysHub';
-import { getAllCodes, getFeaturedCodes } from '@/lib/queries/creatorCodes';
+import { getAllCodes } from '@/lib/queries/creatorCodes';
 import { getAllTalents } from '@/lib/queries/talents';
 import { getRecentWinners } from '@/lib/queries/giveawayWinners';
 import { WinnersList } from '@/features/giveaways/components/WinnersList';
@@ -37,11 +37,10 @@ export const metadata: Metadata = {
 export const revalidate = 3600;
 
 export default async function GiveawaysPage(): Promise<React.JSX.Element> {
-  const [active, finished, codes, featuredCodes, talents, recentWinners] = await Promise.all([
+  const [active, finished, codes, talents, recentWinners] = await Promise.all([
     getAllActiveGiveaways(),
     getAllFinishedGiveaways(),
     getAllCodes(),
-    getFeaturedCodes(),
     getAllTalents(),
     getRecentWinners(6),
   ]);
@@ -172,7 +171,6 @@ export default async function GiveawaysPage(): Promise<React.JSX.Element> {
         active={active}
         finished={finished}
         codes={codes}
-        featuredCodes={featuredCodes}
         creators={creators}
         brands={brands}
       />
