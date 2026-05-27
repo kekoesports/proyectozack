@@ -43,11 +43,12 @@ read_when:
 - Commit: `9fc8ac5`
 
 ### Noticia — CS ibérico (Sinon Community Series + Falcata Series)
-- Publicada vía Neon SQL Editor · vertical `news` · status `published`
+- Publicada vía Neon SQL Editor (proyecto **socialpro**, rama Primary) · vertical `news` · status `published`
 - Slug: `el-cs-iberico-recupera-el-pulso-sinon-community-series-falcata-series`
 - URL pública: `/news/el-cs-iberico-recupera-el-pulso-sinon-community-series-falcata-series`
-- **Cover URL pendiente** — subir imagen en `/admin/noticias/imagenes` y pegar URL en la edición del post
+- **Cover URL pendiente** — subir imagen en `/admin/noticias/imagenes` y pegar URL editando el post en `/admin/noticias`
 - Tags: `cs2, torneos, competitivo, ibérico, esports, sinon, falcata`
+- Nota: primer intento fue en el proyecto Neon equivocado (proyecto de demo); el INSERT correcto se ejecutó en el proyecto **socialpro**
 
 ### Fix handles — script creado, pendiente de ejecución
 - Script `scripts/fix-handles.ts` — corrige 7 canales fallidos en `sync-followers.ts`
