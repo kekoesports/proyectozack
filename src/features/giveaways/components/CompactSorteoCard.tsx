@@ -29,6 +29,14 @@ function formatTimeLeft(endsAt: Date | null, now: number): string | null {
   return hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
 }
 
+const BADGE_MAP: Record<string, { label: string; className: string }> = {
+  HOT:       { label: '🔥 HOT',        className: 'bg-orange-500/15 border-orange-400/35 text-orange-300' },
+  NUEVO:     { label: '✨ Nuevo',       className: 'bg-emerald-500/15 border-emerald-400/35 text-emerald-300' },
+  EXCLUSIVO: { label: '👑 Exclusivo',  className: 'bg-purple-500/15 border-purple-400/35 text-purple-300' },
+  TOP:       { label: '⭐ TOP',         className: 'bg-amber-500/15 border-amber-400/35 text-amber-300' },
+  LIMITED:   { label: '⚡ Limited',    className: 'bg-red-500/15 border-red-400/35 text-red-300' },
+};
+
 function deriveBadge(
   g: GiveawayWithTalent,
   isActive: boolean,
@@ -39,10 +47,9 @@ function deriveBadge(
     label: '★ Destacado',
     className: 'bg-yellow-400/15 border-yellow-400/40 text-yellow-300',
   };
-  if (g.badge) return {
-    label: g.badge,
-    className: 'bg-sp-orange/15 border-sp-orange/40 text-sp-orange',
-  };
+  if (g.badge) {
+    return BADGE_MAP[g.badge] ?? { label: g.badge, className: 'bg-sp-orange/15 border-sp-orange/40 text-sp-orange' };
+  }
   const num = g.value ? parseFloat(g.value.replace(/[^\d.,]/g, '').replace(',', '.')) : 0;
   if (num >= 200) return {
     label: '🔥 HOT',

@@ -7,6 +7,14 @@ import { GiveawayPrizePlaceholder } from './GiveawayPrizePlaceholder';
 import { isIGamingBrand } from '@/lib/igaming';
 import type { GiveawayWithTalent } from '@/types';
 
+const FEATURED_BADGE_MAP: Record<string, { label: string; cls: string }> = {
+  HOT:       { label: '🔥 HOT',       cls: 'bg-orange-500/15 border-orange-400/30 text-orange-300' },
+  NUEVO:     { label: '✨ Nuevo',      cls: 'bg-emerald-500/15 border-emerald-400/30 text-emerald-300' },
+  EXCLUSIVO: { label: '👑 Exclusivo', cls: 'bg-purple-500/15 border-purple-400/30 text-purple-300' },
+  TOP:       { label: '⭐ TOP',        cls: 'bg-amber-500/15 border-amber-400/30 text-amber-300' },
+  LIMITED:   { label: '⚡ Limited',   cls: 'bg-red-500/15 border-red-400/30 text-red-300' },
+};
+
 type Rarity = 'legendary' | 'epic' | 'rare' | 'common';
 
 function inferRarity(value: string | null): Rarity {
@@ -64,7 +72,8 @@ export function GiveawayFeatured({ giveaway }: Props): React.JSX.Element {
   const trackEvent = trpc.giveaways.trackEvent.useMutation();
   const rarity      = inferRarity(giveaway.value);
   const needsAge18  = isIGamingBrand(giveaway.brandName);
-  const cfg      = RARITY_CONFIG[rarity];
+  const cfg         = RARITY_CONFIG[rarity];
+  const badgeCfg    = giveaway.badge ? (FEATURED_BADGE_MAP[giveaway.badge] ?? { label: giveaway.badge, cls: 'bg-sp-orange/15 border-sp-orange/30 text-sp-orange' }) : null;
   const isLive   = giveaway.endsAt === null || giveaway.endsAt.getTime() > nowMs;
   const isUrgent = giveaway.endsAt !== null && giveaway.endsAt.getTime() - nowMs < 86400000;
 
@@ -157,12 +166,19 @@ export function GiveawayFeatured({ giveaway }: Props): React.JSX.Element {
             ) : null}
             <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/35">{giveaway.brandName}</span>
           </div>
-          {isLive && (
-            <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#C3FC00]/10 border border-[#C3FC00]/20 text-[9px] font-black uppercase tracking-wider text-[#C3FC00]">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#C3FC00] animate-pulse" aria-hidden />
-              Live
-            </span>
-          )}
+          <div className="flex items-center gap-1.5">
+            {badgeCfg && (
+              <span className={`px-2 py-0.5 rounded-full border text-[9px] font-black uppercase tracking-wider ${badgeCfg.cls}`}>
+                {badgeCfg.label}
+              </span>
+            )}
+            {isLive && (
+              <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#C3FC00]/10 border border-[#C3FC00]/20 text-[9px] font-black uppercase tracking-wider text-[#C3FC00]">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#C3FC00] animate-pulse" aria-hidden />
+                Live
+              </span>
+            )}
+          </div>
         </div>
 
         {/* Premio */}
