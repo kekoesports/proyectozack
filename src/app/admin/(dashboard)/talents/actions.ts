@@ -96,6 +96,8 @@ export async function createTalentAction(
         initials: initialsOf(name),
         sortOrder: nextSort,
         visibility,
+        isPublished:   visibility === 'public',
+        showInRoster:  visibility === 'public',
         creatorCountry: country ?? undefined,
       })
       .returning({ id: talents.id });
