@@ -2,6 +2,8 @@
 
 import { useState, useTransition } from 'react';
 import { updateGiveawayAction } from './actions';
+import { BrandPicker } from './BrandPicker';
+import type { BrandCatalogEntry } from './brand-actions';
 
 type Giveaway = {
   id: number;
@@ -27,7 +29,7 @@ function toLocalDatetime(date: Date | null): string {
   return new Date(date.getTime() - offset).toISOString().slice(0, 16);
 }
 
-export function EditGiveawayModal({ giveaway }: { giveaway: Giveaway }) {
+export function EditGiveawayModal({ giveaway, brandCatalog = [] }: { giveaway: Giveaway; brandCatalog?: readonly BrandCatalogEntry[] }) {
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
@@ -116,6 +118,19 @@ export function EditGiveawayModal({ giveaway }: { giveaway: Giveaway }) {
                 {err('title') && <p className="text-xs text-red-400 mt-1">{err('title')}</p>}
               </div>
 
+              {brandCatalog.length > 0 && (
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-semibold text-sp-admin-muted mb-1">Marca del catálogo</label>
+                  <BrandPicker
+                    brands={brandCatalog}
+                    onSelect={(b) => {
+                      setBrandName(b.name);
+                      if (b.logoUrl) setBrandLogo(b.logoUrl);
+                    }}
+                    placeholder={brandName || 'Seleccionar marca…'}
+                  />
+                </div>
+              )}
               <div>
                 <label className="block text-sm font-semibold text-sp-admin-muted mb-1">Marca</label>
                 <input value={brandName} onChange={(e) => setBrandName(e.target.value)} required maxLength={150} className={inputCls} />

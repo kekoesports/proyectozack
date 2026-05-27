@@ -4,16 +4,18 @@ import { useState } from 'react';
 import { EditCodeModal } from './EditCodeModal';
 import { deleteCodeAction, setCodeFeaturedAction } from './codes-actions';
 import { DeleteConfirmButton } from './DeleteConfirmButton';
+import type { BrandCatalogEntry } from './brand-actions';
 import type { CreatorCodeWithTalent } from '@/types';
 
 type Talent = { readonly id: number; readonly name: string };
 
 type Props = {
-  readonly codes:   readonly CreatorCodeWithTalent[];
-  readonly talents: readonly Talent[];
+  readonly codes:        readonly CreatorCodeWithTalent[];
+  readonly talents:      readonly Talent[];
+  readonly brandCatalog?: readonly BrandCatalogEntry[];
 };
 
-export function CodesTable({ codes, talents }: Props): React.ReactElement {
+export function CodesTable({ codes, talents, brandCatalog = [] }: Props): React.ReactElement {
   const [editing, setEditing] = useState<CreatorCodeWithTalent | null>(null);
 
   if (codes.length === 0) {
@@ -101,6 +103,7 @@ export function CodesTable({ codes, talents }: Props): React.ReactElement {
         <EditCodeModal
           code={editing}
           talents={talents}
+          brandCatalog={brandCatalog}
           onClose={() => setEditing(null)}
         />
       )}

@@ -168,7 +168,7 @@ export default async function AdminGiveawaysPage({ searchParams }: PageProps): P
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
-                      <EditGiveawayModal giveaway={g} />
+                      <EditGiveawayModal giveaway={g} brandCatalog={brands} />
                       <DeleteConfirmButton
                         action={deleteGiveawayAction}
                         fields={{ id: g.id, talentSlug: g.talent.slug }}
@@ -196,6 +196,7 @@ export default async function AdminGiveawaysPage({ searchParams }: PageProps): P
       <CodesTable
         codes={allCodes}
         talents={allTalents.map((t) => ({ id: t.id, name: t.name }))}
+        brandCatalog={brands}
       />
 
       {/* Winners section */}
