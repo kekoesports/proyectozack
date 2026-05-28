@@ -240,6 +240,31 @@ export async function updateTalentStatsAction(
   }
 }
 
+export async function createTalentStatAction(
+  talentId: number,
+  entry: { icon: string; label: string; value: string; sortOrder: number },
+): Promise<{ ok: boolean; id?: number; error?: string }> {
+  await requirePermission('talentos', 'write');
+  if (!talentId) return { ok: false, error: 'ID inválido' };
+  const icon  = entry.icon.trim().slice(0, 10);
+  const label = entry.label.trim().slice(0, 100);
+  const value = entry.value.trim().slice(0, 50);
+  if (!label) return { ok: false, error: 'El label es obligatorio' };
+  try {
+    const current = await db.select({ slug: talents.slug }).from(talents).where(eq(talents.id, talentId)).limit(1);
+    const slug = current[0]?.slug;
+    const [row] = await db.insert(talentStats).values({ talentId, icon, label, value, sortOrder: entry.sortOrder }).returning({ id: talentStats.id });
+    if (!row) return { ok: false, error: 'Error al crear métrica' };
+    revalidatePath(`/admin/talents/${talentId}`);
+    revalidatePath('/talentos');
+    if (slug) revalidatePath(`/talentos/${slug}`);
+    return { ok: true, id: row.id };
+  } catch (err) {
+    logRedacted('error', '[admin] createTalentStat error:', err);
+    return { ok: false, error: 'Error al crear métrica' };
+  }
+}
+
 export async function bulkUpdateSortOrderAction(
   updates: Array<{ id: number; sortOrder: number }>,
 ): Promise<{ ok: boolean }> {
