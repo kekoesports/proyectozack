@@ -70,7 +70,7 @@ export function CodesTable({ codes, talents, brandCatalog = [] }: Props): React.
 
         {filtered.length === 0 ? (
           <div className="px-6 py-8 text-center text-sm text-sp-admin-muted">
-            Sin resultados para <strong>"{query}"</strong>
+            Sin resultados para <strong>&ldquo;{query}&rdquo;</strong>
           </div>
         ) : (
         <table className="w-full text-sm">
