@@ -10,7 +10,6 @@ import { getFlagImageUrl, countryFlagEmoji } from '@/lib/flag-images';
 import { TALENT_VERTICAL_LABELS } from '@/lib/schemas/talentBusiness';
 import { TalentPhotoUpload } from '@/features/admin/talents/components/TalentPhotoUpload';
 import { TalentSocialsEditor } from '@/features/admin/talents/components/TalentSocialsEditor';
-import { TalentStatsEditor } from '@/features/admin/talents/components/TalentStatsEditor';
 import { TalentTagsEditor } from '@/features/admin/talents/components/TalentTagsEditor';
 import { getTalentLiveStatus, getFeaturedFallbackCount } from '@/lib/queries/live';
 import { setFeaturedLiveAction, setFeaturedFallbackAction, setExcludeFromLiveAction } from '@/app/admin/(dashboard)/live/actions';
@@ -226,24 +225,6 @@ export default async function TalentProfilePage({
                   profileUrl:       s.profileUrl ?? null,
                   followersDisplay: s.followersDisplay,
                   sortOrder:        s.sortOrder,
-                }))}
-              />
-            </div>
-          </section>
-
-          {/* Métricas públicas */}
-          <section className="rounded-xl bg-sp-admin-card shadow-[0_1px_3px_rgba(0,0,0,0.06)] overflow-hidden">
-            <div className="px-4 py-2.5 border-b border-sp-admin-border/60 bg-sp-admin-hover/40">
-              <h2 className="text-[10px] font-bold uppercase tracking-[0.18em] text-sp-admin-muted">Métricas públicas</h2>
-            </div>
-            <div className="px-4 py-4">
-              <TalentStatsEditor
-                talentId={talent.id}
-                stats={talent.stats.map((s) => ({
-                  id:    s.id,
-                  icon:  s.icon,
-                  label: s.label,
-                  value: s.value,
                 }))}
               />
             </div>
