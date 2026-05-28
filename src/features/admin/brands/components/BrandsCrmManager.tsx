@@ -234,6 +234,7 @@ export function BrandsCrmManager({
         </div>
       ) : (
         <div className="rounded-2xl bg-sp-admin-card border border-sp-admin-border overflow-hidden">
+          <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-sp-admin-border bg-sp-admin-bg/50">
@@ -271,6 +272,7 @@ export function BrandsCrmManager({
               })}
             </tbody>
           </table>
+          </div>
         </div>
       )}
 

@@ -73,6 +73,7 @@ export function CodesTable({ codes, talents, brandCatalog = [] }: Props): React.
             {`Sin resultados para "${query}"`}
           </div>
         ) : (
+        <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-sp-admin-border bg-sp-admin-bg/50">
@@ -129,6 +130,7 @@ export function CodesTable({ codes, talents, brandCatalog = [] }: Props): React.
             ))}
           </tbody>
         </table>
+        </div>
         )}
       </div>
 

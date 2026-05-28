@@ -101,6 +101,7 @@ export default async function AdminBrandsPage(): Promise<React.ReactElement> {
                   <p className="text-sm text-sp-admin-muted">No hay marcas registradas en el portal. Invita tu primera marca.</p>
                 ) : (
                   <div className="rounded-2xl bg-sp-admin-card border border-sp-admin-border overflow-hidden">
+                    <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                       <thead>
                         <tr className="border-b border-sp-admin-border bg-sp-admin-bg/50">
@@ -119,6 +120,7 @@ export default async function AdminBrandsPage(): Promise<React.ReactElement> {
                         ))}
                       </tbody>
                     </table>
+                    </div>
                   </div>
                 )}
               </div>

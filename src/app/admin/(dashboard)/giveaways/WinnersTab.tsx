@@ -44,6 +44,7 @@ export function WinnersTab({ winners, onRegisterWinner }: Props): React.ReactEle
           + Registrar ganador
         </button>
       </div>
+      <div className="overflow-x-auto">
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b border-sp-admin-border bg-sp-admin-bg/50">
@@ -79,6 +80,7 @@ export function WinnersTab({ winners, onRegisterWinner }: Props): React.ReactEle
           ))}
         </tbody>
       </table>
+      </div>
     </div>
   );
 }

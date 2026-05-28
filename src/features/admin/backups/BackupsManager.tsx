@@ -196,6 +196,7 @@ export function BackupsManager({ files: initialFiles, initialError, isConfigured
           </div>
         ) : (
           <div className="rounded-xl border border-sp-admin-border bg-sp-admin-card overflow-hidden">
+            <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="border-b border-sp-admin-border bg-sp-admin-hover/30">
@@ -243,6 +244,7 @@ export function BackupsManager({ files: initialFiles, initialError, isConfigured
                 })}
               </tbody>
             </table>
+            </div>
           </div>
         )}
       </div>

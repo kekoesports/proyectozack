@@ -183,6 +183,7 @@ export function InvoicesManager({
         />
       ) : (
         <div className="rounded-2xl bg-sp-admin-card border border-sp-admin-border overflow-hidden">
+          <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-sp-admin-border bg-sp-admin-bg/50">
@@ -216,6 +217,7 @@ export function InvoicesManager({
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       )}
 

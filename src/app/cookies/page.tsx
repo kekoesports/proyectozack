@@ -68,6 +68,7 @@ export default function CookiesPage() {
                     Son estrictamente necesarias para el funcionamiento del sitio. No requieren consentimiento
                     y no pueden desactivarse.
                   </p>
+                  <div className="overflow-x-auto">
                   <table className="mt-3 w-full text-[12px] border-collapse">
                     <thead>
                       <tr className="border-b border-sp-border">
@@ -89,6 +90,7 @@ export default function CookiesPage() {
                       </tr>
                     </tbody>
                   </table>
+                  </div>
                 </div>
 
                 {/* Analíticas */}
@@ -104,6 +106,7 @@ export default function CookiesPage() {
                     Incluyen <strong>Google Analytics</strong> (vía Google Tag Manager) y{' '}
                     <strong>Vercel Analytics</strong>.
                   </p>
+                  <div className="overflow-x-auto">
                   <table className="mt-3 w-full text-[12px] border-collapse">
                     <thead>
                       <tr className="border-b border-sp-border">
@@ -140,6 +143,7 @@ export default function CookiesPage() {
                       </tr>
                     </tbody>
                   </table>
+                  </div>
                   <p className="mt-3 text-[12px]">
                     Google LLC puede transferir datos a servidores en EE.UU. bajo el acuerdo EU-US Data Privacy Framework.
                     Más información en{' '}

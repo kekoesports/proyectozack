@@ -508,7 +508,8 @@ function DealFlowTimeline({
       </div>
 
       {/* Timeline */}
-      <div className="grid grid-cols-5 divide-x divide-sp-admin-border/40">
+      <div className="overflow-x-auto">
+      <div className="grid grid-cols-5 divide-x divide-sp-admin-border/40 min-w-[480px]">
         {stages.map((stage, i) => (
           <div key={stage.id} className={`px-3 py-3 relative ${stage.warning ? 'bg-amber-50/40' : ''}`}>
             {/* Línea conectora */}
@@ -545,6 +546,7 @@ function DealFlowTimeline({
             )}
           </div>
         ))}
+      </div>
       </div>
     </div>
   );

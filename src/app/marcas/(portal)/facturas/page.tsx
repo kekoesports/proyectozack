@@ -68,6 +68,7 @@ export default async function BrandInvoicesPage(): Promise<React.ReactElement> {
         </div>
       ) : (
         <div className="rounded-2xl bg-white border border-sp-border overflow-hidden">
+          <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-sp-border bg-sp-bg2">
@@ -111,6 +112,7 @@ export default async function BrandInvoicesPage(): Promise<React.ReactElement> {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       )}
     </div>
