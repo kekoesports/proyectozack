@@ -84,21 +84,23 @@ export function GiveawaysDashboard({
       <StatsCards giveaways={giveaways} codes={codes} winners={winners} />
 
       {/* Tab bar */}
-      <div className="flex gap-1 p-1 rounded-xl bg-sp-admin-card border border-sp-admin-border w-fit">
-        {TABS.map((tab) => (
-          <button
-            key={tab.id}
-            type="button"
-            onClick={() => setTab(tab.id)}
-            className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-colors ${
-              activeTab === tab.id
-                ? 'bg-sp-admin-accent text-white'
-                : 'text-sp-admin-muted hover:text-sp-admin-text hover:bg-sp-admin-hover'
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
+      <div className="overflow-x-auto">
+        <div className="flex gap-1 p-1 rounded-xl bg-sp-admin-card border border-sp-admin-border w-fit">
+          {TABS.map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setTab(tab.id)}
+              className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-colors whitespace-nowrap ${
+                activeTab === tab.id
+                  ? 'bg-sp-admin-accent text-white'
+                  : 'text-sp-admin-muted hover:text-sp-admin-text hover:bg-sp-admin-hover'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Tab content */}
