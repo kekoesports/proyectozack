@@ -4,7 +4,6 @@ import { useState, useMemo } from 'react';
 import { motion, type Variants } from 'motion/react';
 import { CreatorsSidebar } from './CreatorsSidebar';
 import { BrandsSidebar } from './BrandsSidebar';
-import { FeaturedCodesSection } from './FeaturedCodesSection';
 import { CodeCard } from './CodeCard';
 import { GiveawaySidebarPanel } from './GiveawaySidebarPanel';
 import { FiltersBar, type CategoryValue, type SortOption } from './FiltersBar';
@@ -17,7 +16,6 @@ type GiveawaysHubProps = {
   readonly active: readonly GiveawayWithTalent[];
   readonly finished: readonly GiveawayWithTalent[];
   readonly codes: readonly CreatorCodeWithTalent[];
-  readonly featuredCodes: readonly CreatorCodeWithTalent[];
   readonly creators: readonly Creator[];
   readonly brands: readonly BrandOption[];
 };
@@ -47,7 +45,6 @@ export function GiveawaysHub({
   active,
   finished: _finished,
   codes,
-  featuredCodes,
   creators,
   brands,
 }: GiveawaysHubProps): React.JSX.Element {
@@ -56,8 +53,7 @@ export function GiveawaysHub({
   const [selectedCategory, setSelectedCategory] = useState<CategoryValue>(null);
   const [sort, setSort] = useState<SortOption>('recommended');
 
-  const noFilters = selectedCreator === null && selectedBrand === null && selectedCategory === null;
-  const hasFilters = !noFilters;
+  const hasFilters = selectedCreator !== null || selectedBrand !== null || selectedCategory !== null;
 
   const clearFilters = () => {
     setSelectedCreator(null);
@@ -94,9 +90,6 @@ export function GiveawaysHub({
 
         {/* CENTER */}
         <div className="flex-1 min-w-0">
-          {/* Featured codes carousel */}
-          {noFilters && <FeaturedCodesSection codes={featuredCodes} />}
-
           {/* Filters */}
           <FiltersBar
             category={selectedCategory}

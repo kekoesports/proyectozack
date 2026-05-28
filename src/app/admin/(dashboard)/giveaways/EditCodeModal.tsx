@@ -2,6 +2,8 @@
 
 import { useState, useTransition } from 'react';
 import { updateCodeAction } from './codes-actions';
+import { BrandPicker } from './BrandPicker';
+import type { BrandCatalogEntry } from './brand-actions';
 import type { CreatorCodeWithTalent } from '@/types';
 
 type Talent = { readonly id: number; readonly name: string };
@@ -9,6 +11,7 @@ type Talent = { readonly id: number; readonly name: string };
 type Props = {
   readonly code: CreatorCodeWithTalent;
   readonly talents: readonly Talent[];
+  readonly brandCatalog?: readonly BrandCatalogEntry[];
   readonly onClose: () => void;
 };
 
@@ -32,7 +35,7 @@ const CATEGORIES = [
 
 const inputCls = 'w-full rounded-lg border border-sp-admin-border bg-sp-admin-bg px-3 py-2 text-sm text-sp-admin-text outline-none focus:border-sp-admin-accent transition-colors';
 
-export function EditCodeModal({ code, talents, onClose }: Props): React.ReactElement {
+export function EditCodeModal({ code, talents, brandCatalog = [], onClose }: Props): React.ReactElement {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
@@ -92,15 +95,23 @@ export function EditCodeModal({ code, talents, onClose }: Props): React.ReactEle
           </div>
           <div>
             <label className="block text-sm font-semibold text-sp-admin-muted mb-1">Marca</label>
-            <input value={brandName} onChange={(e) => setBrandName(e.target.value)} required maxLength={150} className={inputCls} />
+            {brandCatalog.length > 0 ? (
+              <BrandPicker
+                brands={brandCatalog}
+                onSelect={(b) => {
+                  setBrandName(b.name);
+                  if (b.logoUrl) setBrandLogo(b.logoUrl);
+                  if (b.defaultUrl) setRedirectUrl(b.defaultUrl);
+                }}
+                placeholder={brandName || 'Seleccionar marca…'}
+              />
+            ) : (
+              <input value={brandName} onChange={(e) => setBrandName(e.target.value)} required maxLength={150} className={inputCls} />
+            )}
           </div>
           <div>
             <label className="block text-sm font-semibold text-sp-admin-muted mb-1">URL de redirección</label>
             <input value={redirectUrl} onChange={(e) => setRedirectUrl(e.target.value)} type="url" required className={inputCls} />
-          </div>
-          <div>
-            <label className="block text-sm font-semibold text-sp-admin-muted mb-1">Logo marca (URL)</label>
-            <input value={brandLogo} onChange={(e) => setBrandLogo(e.target.value)} type="url" className={inputCls} />
           </div>
           <div>
             <label className="block text-sm font-semibold text-sp-admin-muted mb-1">Descripción</label>

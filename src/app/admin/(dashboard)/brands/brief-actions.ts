@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { put, del } from '@vercel/blob';
-import { requireAnyRole, requireRole } from '@/lib/auth-guard';
+import { requirePermission } from '@/lib/permissions';
 import { createBrief, updateBrief, deleteBrief, getBrief } from '@/lib/queries/brandBriefs';
 
 type ActionState = { readonly error?: string; readonly success?: boolean; readonly id?: number };
@@ -20,7 +20,7 @@ export async function uploadBriefAction(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  const session = await requireAnyRole(['admin', 'staff'], '/admin/login');
+  const session = await requirePermission('campanas', 'write');
 
   const brandIdRaw = formData.get('brandId');
   const brandId    = brandIdRaw ? Number(brandIdRaw) : NaN;
@@ -80,7 +80,7 @@ export async function updateBriefNotesAction(
   brandId: number,
   notes: string,
 ): Promise<ActionState> {
-  await requireAnyRole(['admin', 'staff'], '/admin/login');
+  await requirePermission('campanas', 'write');
   try {
     await updateBrief(briefId, { notes: notes.trim() || null });
     revalidatePath(`/admin/brands/${brandId}`);
@@ -95,7 +95,7 @@ export async function approveBriefAction(
   briefId: number,
   brandId: number,
 ): Promise<ActionState> {
-  const session = await requireRole('admin', '/admin/login');
+  const session = await requirePermission('campanas', 'delete');
   try {
     await updateBrief(briefId, {
       status:          'approved',
@@ -114,7 +114,7 @@ export async function archiveBriefAction(
   briefId: number,
   brandId: number,
 ): Promise<ActionState> {
-  await requireAnyRole(['admin', 'staff'], '/admin/login');
+  await requirePermission('campanas', 'write');
   try {
     await updateBrief(briefId, { status: 'archived' });
     revalidatePath(`/admin/brands/${brandId}`);
@@ -129,7 +129,7 @@ export async function deleteBriefAction(
   briefId: number,
   brandId: number,
 ): Promise<ActionState> {
-  await requireRole('admin', '/admin/login');
+  await requirePermission('campanas', 'delete');
   try {
     const brief = await getBrief(briefId);
     if (brief?.sourceFilePath) {
@@ -152,7 +152,7 @@ export async function updateBriefContentAction(
   content:  BriefContent,
   meta:     { name?: string; version?: string; geo?: string },
 ): Promise<ActionState> {
-  await requireAnyRole(['admin', 'staff'], '/admin/login');
+  await requirePermission('campanas', 'write');
   try {
     await updateBrief(briefId, {
       briefContent: content,
@@ -172,7 +172,7 @@ export async function createEmptyBriefAction(
   brandId: number,
   name:    string,
 ): Promise<ActionState> {
-  const session = await requireAnyRole(['admin', 'staff'], '/admin/login');
+  const session = await requirePermission('campanas', 'write');
   try {
     const brief = await createBrief({
       brandId,

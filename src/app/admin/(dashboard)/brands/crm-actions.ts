@@ -2,8 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 
-import { requireAnyRole } from '@/lib/auth-guard';
-import { assertCanDelete, needsVisibilityFilter } from '@/lib/permissions';
+import { requirePermission, needsVisibilityFilter } from '@/lib/permissions';
 import { logRedacted } from '@/lib/log';
 import {
   createCrmBrandSchema,
@@ -93,7 +92,7 @@ export async function createBrandAction(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  const session = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
+  const session = await requirePermission('campanas', 'write');
 
   const parsed = createCrmBrandSchema.safeParse(formToObject(formData));
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? 'Datos inválidos' };
@@ -143,7 +142,7 @@ export async function updateBrandAction(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  const session = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
+  const session = await requirePermission('campanas', 'write');
 
   const parsed = updateCrmBrandSchema.safeParse(formToObject(formData));
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? 'Datos inválidos' };
@@ -181,16 +180,7 @@ export async function updateBrandAction(
 }
 
 export async function deleteBrandAction(id: number): Promise<ActionState> {
-  const session = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
-
-  try {
-    assertCanDelete(session.user.role);
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : 'unknown';
-    if (msg.startsWith('forbidden:delete:')) return { error: msg };
-    logRedacted('error', '[admin] deleteBrand permission error:', msg);
-    return { error: 'Sin permiso para eliminar marcas' };
-  }
+  const session = await requirePermission('campanas', 'delete');
 
   try {
     await assertCanEditBrand(id, { userId: session.user.id, role: session.user.role });
@@ -222,7 +212,7 @@ export async function createContactAction(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  const session = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
+  const session = await requirePermission('campanas', 'write');
 
   const parsed = createBrandContactSchema.safeParse(formToObject(formData));
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? 'Datos inválidos' };
@@ -257,7 +247,7 @@ export async function updateContactAction(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  const session = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
+  const session = await requirePermission('campanas', 'write');
 
   const parsed = updateBrandContactSchema.safeParse(formToObject(formData));
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? 'Datos inválidos' };
@@ -294,7 +284,7 @@ export async function updateContactAction(
 }
 
 export async function deleteContactAction(id: number, brandId: number): Promise<ActionState> {
-  const session = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
+  const session = await requirePermission('campanas', 'write');
 
   try {
     await assertCanEditBrand(brandId, {
@@ -326,7 +316,7 @@ export async function createFollowupAction(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  const session = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
+  const session = await requirePermission('campanas', 'write');
 
   const parsed = createFollowupSchema.safeParse(formToObject(formData));
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? 'Datos inválidos' };
@@ -370,7 +360,7 @@ export async function updateFollowupAction(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  const session = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
+  const session = await requirePermission('campanas', 'write');
 
   const parsed = updateFollowupSchema.safeParse(formToObject(formData));
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? 'Datos inválidos' };
@@ -412,7 +402,7 @@ export async function completeFollowupAction(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  const session = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
+  const session = await requirePermission('campanas', 'write');
 
   const parsed = completeFollowupSchema.safeParse(formToObject(formData));
   if (!parsed.success) return { error: 'Datos inválidos' };
@@ -444,19 +434,10 @@ export async function deleteFollowupAction(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  const session = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
+  const session = await requirePermission('campanas', 'delete');
 
   const parsed = deleteFollowupSchema.safeParse(formToObject(formData));
   if (!parsed.success) return { error: 'Datos inválidos' };
-
-  try {
-    assertCanDelete(session.user.role);
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : 'unknown';
-    if (msg.startsWith('forbidden:delete:')) return { error: msg };
-    logRedacted('error', '[admin] deleteFollowup permission error:', msg);
-    return { error: 'Sin permiso para eliminar seguimientos' };
-  }
 
   try {
     await assertCanEditBrand(parsed.data.brandId, {

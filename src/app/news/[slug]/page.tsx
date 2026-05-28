@@ -20,7 +20,7 @@ import { EditorialQuoteBlock } from '@/features/news/components/article-blocks/E
 import { ArticleEmbedBlock } from '@/features/news/components/article-blocks/ArticleEmbedBlock';
 import { InterleavedArticleBody } from '@/features/news/components/article-blocks/InterleavedArticleBody';
 
-export const revalidate = 1800;
+export const revalidate = 60;
 
 type PageProps = { params: Promise<{ slug: string }> };
 

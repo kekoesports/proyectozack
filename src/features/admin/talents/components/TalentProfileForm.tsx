@@ -9,25 +9,27 @@ const INPUT  = 'w-full rounded-lg border border-sp-admin-border bg-sp-admin-bg p
 const SELECT = 'w-full rounded-lg border border-sp-admin-border bg-sp-admin-bg px-3 py-2 text-sm text-sp-admin-text outline-none focus:border-sp-admin-accent transition-colors cursor-pointer';
 const LABEL  = 'block text-[11px] uppercase tracking-wider font-semibold text-sp-admin-muted mb-1';
 
-const ROLE_OPTIONS = [
-  'Jugador Profesional CS2',
-  'Jugador Profesional VALORANT',
+const ROLE_SUGGESTIONS = [
+  'PRO PLAYER CS2',
+  'PRO PLAYER VALORANT',
   'STREAMER CS2',
   'STREAMER VALORANT',
   'STREAMER GTA',
   'STREAMER LIFESTYLE',
   'STREAMER FIFA',
   'STREAMER CASINO',
-  'OTROS',
-] as const;
+  'CONTENT CREATOR',
+  'YOUTUBER',
+];
 
 function RoleSelect({ id, name, value, required }: { id: string; name: string; value: string | null; required?: boolean }) {
-  const custom = value && !ROLE_OPTIONS.includes(value as typeof ROLE_OPTIONS[number]);
+  const current = value ?? '';
+  const isCustom = current !== '' && !ROLE_SUGGESTIONS.includes(current);
   return (
-    <select id={id} name={name} defaultValue={value ?? ''} required={required} className={SELECT}>
-      <option value="">— Sin etiqueta —</option>
-      {ROLE_OPTIONS.map((o) => <option key={o} value={o}>{o}</option>)}
-      {custom && value && <option value={value}>{value} (personalizado)</option>}
+    <select id={id} name={name} defaultValue={current} required={required} className={SELECT}>
+      <option value="">— Seleccionar etiqueta —</option>
+      {ROLE_SUGGESTIONS.map((o) => <option key={o} value={o}>{o}</option>)}
+      {isCustom && <option value={current}>{current} (actual)</option>}
     </select>
   );
 }

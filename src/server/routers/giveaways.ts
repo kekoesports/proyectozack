@@ -4,7 +4,7 @@ import { eq } from 'drizzle-orm';
 import { headers } from 'next/headers';
 import { router, publicProcedure } from '@/server/trpc';
 import { db } from '@/lib/db';
-import { codeClicks, creatorCodes } from '@/db/schema';
+import { codeClicks, creatorCodes, giveawayEvents } from '@/db/schema';
 import { checkRateLimit } from '@/lib/security/rateLimit';
 
 async function clientIp(): Promise<string> {
@@ -49,6 +49,34 @@ export const giveawaysRouter = router({
         talentId: code.talentId,
         brandName: code.brandName,
         action: input.action,
+      });
+
+      return { ok: true };
+    }),
+
+  trackEvent: publicProcedure
+    .input(
+      z.object({
+        action:     z.enum(['view', 'click']),
+        giveawayId: z.number().int().positive().optional(),
+        page:       z.string().max(50).optional(),
+      }),
+    )
+    .mutation(async ({ input }) => {
+      const ip = await clientIp();
+      const limit = checkRateLimit({
+        key: `trackGiveawayEvent:${ip}`,
+        limit: 30,
+        windowMs: 60_000,
+      });
+      if (!limit.ok) {
+        throw new TRPCError({ code: 'TOO_MANY_REQUESTS', message: 'Demasiadas peticiones, esperá un momento.' });
+      }
+
+      await db.insert(giveawayEvents).values({
+        giveawayId: input.giveawayId ?? null,
+        action:     input.action,
+        page:       input.page ?? null,
       });
 
       return { ok: true };

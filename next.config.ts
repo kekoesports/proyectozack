@@ -62,6 +62,26 @@ const nextConfig: NextConfig = {
         destination: '/servicios/igaming',
         permanent: true,
       },
+      // /talento/naow-ivan-gonzalez → /talentos/naow (301 permanent — specific before generic)
+      // Old WordPress slug used full name; current slug is short handle.
+      { source: '/talento/naow-ivan-gonzalez',  destination: '/talentos/naow', permanent: true },
+      { source: '/talento/naow-ivan-gonzalez/', destination: '/talentos/naow', permanent: true },
+      // /talento/:slug → /talentos/:slug (301 permanent)
+      // Old URL structure used singular /talento/; current is /talentos/.
+      { source: '/talento/:slug/',              destination: '/talentos/:slug', permanent: true },
+      { source: '/talento/:slug',               destination: '/talentos/:slug', permanent: true },
+      // /en/talents → /talents (301 permanent)
+      // Old EN talent listing URL; current canonical is /talents.
+      { source: '/en/talents/',                 destination: '/talents', permanent: true },
+      { source: '/en/talents',                  destination: '/talents', permanent: true },
+      // /marcas/login → /admin/login (308 permanent)
+      // /marcas/login page was removed in the CRM refactor; brand users log in via /admin/login
+      // and are redirected to /marcas after successful auth. Keeps bookmarks and backlinks working.
+      {
+        source: '/marcas/login',
+        destination: '/admin/login',
+        permanent: true,
+      },
     ];
   },
   async headers() {

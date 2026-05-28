@@ -19,8 +19,10 @@ export default function robots(): MetadataRoute.Robots {
       // ─── Crawlers genéricos ───────────────────────────────────────────
       {
         userAgent: '*',
-        // Specificity: paths más largos ganan sobre /marcas/ en robots.txt
-        allow: ['/', ...PUBLIC_BRAND_PAGES],
+        // Specificity: paths más largos ganan en robots.txt (Google usa longest-match).
+        // /news?tag= y /blog?tag= son páginas de etiquetas con contenido propio → indexar.
+        // /*?* bloquea el resto de query params (búsquedas, paginación) para evitar duplicados.
+        allow: ['/', '/news?tag=', '/blog?tag=', ...PUBLIC_BRAND_PAGES],
         disallow: [
           // Endpoints técnicos y autenticación
           '/api/',
@@ -30,7 +32,11 @@ export default function robots(): MetadataRoute.Robots {
           '/marcas/',
           // Assets internos de Next.js (no indexables)
           '/_next/',
-          // Parámetros de URL (evita duplicados de contenido)
+          // Rutas WordPress — no existen, evita que bots las rastreen
+          '/wp-content/',
+          '/wp-admin/',
+          '/wp-login.php',
+          // Parámetros de URL (evita duplicados de contenido: búsquedas, sort, etc.)
           '/*?*',
           '/*&*',
         ],

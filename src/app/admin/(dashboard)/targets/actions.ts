@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { randomUUID } from 'crypto';
 
-import { requireRole, requireAnyRole } from '@/lib/auth-guard';
+import { requirePermission } from '@/lib/permissions';
 import { parseFormData } from '@/lib/forms/parseFormData';
 import { firstError } from '@/lib/forms/firstError';
 import { logRedacted } from '@/lib/log';
@@ -84,7 +84,7 @@ export type ImportCsvResult = {
 const EMPTY_IMPORT: ImportCsvResult = { total: 0, inserted: 0, updated: 0, errors: 0, assigned: 0 };
 
 export async function importCSVAction(formData: FormData): Promise<ImportCsvResult> {
-  await requireRole('admin', '/admin/login');
+  await requirePermission('targets', 'delete');
 
   const file = formData.get('file');
   if (!(file instanceof File) || file.size === 0) return EMPTY_IMPORT;
@@ -145,7 +145,7 @@ export async function importCSVAction(formData: FormData): Promise<ImportCsvResu
 // ─── Status update ────────────────────────────────────────────────────────────
 
 export async function updateStatusAction(formData: FormData): Promise<void> {
-  await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
+  await requirePermission('targets', 'write');
 
   const parsed = parseFormData(formData, updateTargetStatusSchema);
   if (!parsed.ok) {
@@ -160,7 +160,7 @@ export async function updateStatusAction(formData: FormData): Promise<void> {
 // ─── Notes update ─────────────────────────────────────────────────────────────
 
 export async function updateNotesAction(formData: FormData): Promise<void> {
-  await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
+  await requirePermission('targets', 'write');
 
   const parsed = parseFormData(formData, updateTargetNotesSchema);
   if (!parsed.ok) {
@@ -175,7 +175,7 @@ export async function updateNotesAction(formData: FormData): Promise<void> {
 // ─── Delete ───────────────────────────────────────────────────────────────────
 
 export async function deleteTargetsAction(formData: FormData): Promise<void> {
-  await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
+  await requirePermission('targets', 'write');
 
   const parsed = parseFormData(formData, deleteTargetsSchema);
   if (!parsed.ok) {
@@ -191,7 +191,7 @@ export async function deleteTargetsAction(formData: FormData): Promise<void> {
 export async function assignTargetsToBrandAction(
   formData: FormData,
 ): Promise<{ assigned: number; updated: number }> {
-  await requireRole('admin', '/admin/login');
+  await requirePermission('targets', 'delete');
 
   const parsed = parseFormData(formData, assignTargetsSchema);
   if (!parsed.ok) {
@@ -208,7 +208,7 @@ export async function assignTargetsToBrandAction(
 // ─── Delete all ──────────────────────────────────────────────────────────────
 
 export async function deleteAllTargetsAction(): Promise<void> {
-  await requireRole('admin', '/admin/login');
+  await requirePermission('targets', 'delete');
   await deleteAllTargets();
   revalidatePath(REVALIDATE);
   revalidatePath('/marcas');
@@ -217,7 +217,7 @@ export async function deleteAllTargetsAction(): Promise<void> {
 // ─── Bulk status update ───────────────────────────────────────────────────────
 
 export async function bulkUpdateStatusAction(ids: number[], status: string): Promise<void> {
-  await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
+  await requirePermission('targets', 'write');
 
   const parsed = bulkStatusSchema.safeParse({ ids, status });
   if (!parsed.success) {

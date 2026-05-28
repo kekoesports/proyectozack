@@ -1,9 +1,11 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { trpc } from '@/lib/trpc/client';
 import Image from 'next/image';
 import Link from 'next/link';
 import { CompactSorteoCard } from './CompactSorteoCard';
+import { GiveawayFeatured } from './GiveawayFeatured';
 import { BrandLogo } from '@/components/ui/BrandLogo';
 import { getBrandBg } from '@/components/ui/brand-bg-map';
 import type { BrandOption } from '@/lib/queries/giveawaysHub';
@@ -29,6 +31,14 @@ const STATUS_LABELS: Record<StatusFilter, string> = {
 };
 
 export function SorteosHub({ active, finished, brands, creators, totalValue, initialCreatorSlug }: SorteosHubProps): React.JSX.Element {
+  const trackEvent = trpc.giveaways.trackEvent.useMutation();
+
+  // Registrar visita al hub una vez por montaje
+  useEffect(() => {
+    void trackEvent.mutateAsync({ action: 'view', page: 'sorteos' }).catch(() => undefined);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- solo al montar
+  }, []);
+
   const [selectedBrand, setSelectedBrand]     = useState<string | null>(null);
   const [selectedCreator, setSelectedCreator] = useState<number | null>(() => {
     if (!initialCreatorSlug) return null;
@@ -360,6 +370,14 @@ export function SorteosHub({ active, finished, brands, creators, totalValue, ini
               </button>
             )}
           </div>
+
+          {/* Sorteo destacado — solo visible sin filtros, cuando el primero tiene isFeatured */}
+          {!hasFilters && status === 'active' && active[0]?.isFeatured && (
+            <div className="mb-5">
+              <p className="text-[9px] font-black uppercase tracking-[0.28em] text-sp-orange/60 mb-2.5">★ Destacado</p>
+              <GiveawayFeatured giveaway={active[0]} />
+            </div>
+          )}
 
           {/* Grid — densidad marketplace (2 cols mobile, 4 cols desktop) */}
           {filtered.length > 0 ? (

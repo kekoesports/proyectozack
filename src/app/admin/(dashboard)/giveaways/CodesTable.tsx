@@ -4,17 +4,31 @@ import { useState } from 'react';
 import { EditCodeModal } from './EditCodeModal';
 import { deleteCodeAction, setCodeFeaturedAction } from './codes-actions';
 import { DeleteConfirmButton } from './DeleteConfirmButton';
+import type { BrandCatalogEntry } from './brand-actions';
 import type { CreatorCodeWithTalent } from '@/types';
 
 type Talent = { readonly id: number; readonly name: string };
 
 type Props = {
-  readonly codes:   readonly CreatorCodeWithTalent[];
-  readonly talents: readonly Talent[];
+  readonly codes:        readonly CreatorCodeWithTalent[];
+  readonly talents:      readonly Talent[];
+  readonly brandCatalog?: readonly BrandCatalogEntry[];
 };
 
-export function CodesTable({ codes, talents }: Props): React.ReactElement {
+export function CodesTable({ codes, talents, brandCatalog = [] }: Props): React.ReactElement {
   const [editing, setEditing] = useState<CreatorCodeWithTalent | null>(null);
+  const [query, setQuery] = useState('');
+
+  const filtered = query.trim()
+    ? codes.filter((c) => {
+        const q = query.toLowerCase();
+        return (
+          c.talent.name.toLowerCase().includes(q) ||
+          c.brandName.toLowerCase().includes(q) ||
+          c.code.toLowerCase().includes(q)
+        );
+      })
+    : codes;
 
   if (codes.length === 0) {
     return (
@@ -30,15 +44,35 @@ export function CodesTable({ codes, talents }: Props): React.ReactElement {
   return (
     <>
       <div className="rounded-2xl bg-sp-admin-card border border-sp-admin-border overflow-hidden">
-        <div className="px-6 py-3 border-b border-sp-admin-border bg-sp-admin-bg/50 flex items-center justify-between">
-          <span className="text-[11px] font-semibold text-sp-admin-muted uppercase tracking-wider">{codes.length} código{codes.length !== 1 ? 's' : ''}</span>
+        <div className="px-6 py-3 border-b border-sp-admin-border bg-sp-admin-bg/50 flex items-center gap-3">
+          <span className="text-[11px] font-semibold text-sp-admin-muted uppercase tracking-wider shrink-0">
+            {query.trim() ? `${filtered.length} / ${codes.length}` : `${codes.length} código${codes.length !== 1 ? 's' : ''}`}
+          </span>
+          <div className="relative flex-1 max-w-xs">
+            <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-sp-admin-muted pointer-events-none" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+              <path fillRule="evenodd" d="M9 3.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11ZM2 9a7 7 0 1 1 12.452 4.391l3.328 3.329a.75.75 0 1 1-1.06 1.06l-3.329-3.328A7 7 0 0 1 2 9Z" clipRule="evenodd"/>
+            </svg>
+            <input
+              type="search"
+              placeholder="Buscar creador, marca o código…"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              className="w-full pl-8 pr-3 py-1.5 text-xs rounded-lg border border-sp-admin-border bg-sp-admin-bg text-sp-admin-text placeholder:text-sp-admin-muted focus:outline-none focus:border-sp-admin-accent transition-colors"
+            />
+          </div>
           <a
             href="#crear-codigo"
-            className="inline-flex items-center gap-1 text-[11px] font-bold text-sp-admin-accent hover:opacity-70 transition-opacity"
+            className="ml-auto inline-flex items-center gap-1 text-[11px] font-bold text-sp-admin-accent hover:opacity-70 transition-opacity shrink-0"
           >
             + Añadir código
           </a>
         </div>
+
+        {filtered.length === 0 ? (
+          <div className="px-6 py-8 text-center text-sm text-sp-admin-muted">
+            Sin resultados para <strong>"{query}"</strong>
+          </div>
+        ) : (
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-sp-admin-border bg-sp-admin-bg/50">
@@ -52,7 +86,7 @@ export function CodesTable({ codes, talents }: Props): React.ReactElement {
             </tr>
           </thead>
           <tbody>
-            {codes.map((c) => (
+            {filtered.map((c) => (
               <tr key={c.id} className="border-b border-sp-admin-border/50 last:border-0 hover:bg-sp-admin-hover transition-colors">
                 <td className="px-6 py-4 font-mono font-bold text-sp-admin-text">{c.code}</td>
                 <td className="px-6 py-4 text-sp-admin-muted">{c.talent.name}</td>
@@ -95,12 +129,14 @@ export function CodesTable({ codes, talents }: Props): React.ReactElement {
             ))}
           </tbody>
         </table>
+        )}
       </div>
 
       {editing !== null && (
         <EditCodeModal
           code={editing}
           talents={talents}
+          brandCatalog={brandCatalog}
           onClose={() => setEditing(null)}
         />
       )}

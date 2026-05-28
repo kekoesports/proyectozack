@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   title: 'Aviso Legal — SocialPro',
   description: 'Información legal y condiciones de uso del sitio web socialpro.es. Datos del titular, propiedad intelectual y responsabilidades.',
   alternates: { canonical: '/legal' },
-  robots: { index: true, follow: true },
+  robots: { index: false, follow: true },
 };
 
 const jsonLd = {

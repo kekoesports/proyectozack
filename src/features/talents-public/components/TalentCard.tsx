@@ -4,6 +4,7 @@ import Image from 'next/image';
 import type { TalentWithRelations } from '@/types';
 import { SocialIcon } from '@/components/ui/SocialIcon';
 import { gradientStyle } from '@/lib/utils/gradient';
+import { countryFlagEmoji } from '@/lib/flag-images';
 
 type TalentCardProps = {
   talent: TalentWithRelations;
@@ -48,6 +49,15 @@ export function TalentCard({ talent, onOpen, priority = false }: TalentCardProps
               {talent.initials}
             </span>
           </div>
+        )}
+        {talent.creatorCountry && (
+          <span
+            className="absolute bottom-2 right-2 text-xl leading-none drop-shadow-[0_1px_3px_rgba(0,0,0,0.6)]"
+            title={talent.creatorCountry}
+            aria-label={`País: ${talent.creatorCountry}`}
+          >
+            {countryFlagEmoji(talent.creatorCountry)}
+          </span>
         )}
       </div>
 

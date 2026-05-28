@@ -33,6 +33,16 @@ const PLATFORMS = [
 const inputCls = 'w-full rounded-md border border-sp-admin-border bg-sp-admin-bg px-3 py-2 text-sm text-sp-admin-text placeholder:text-sp-admin-muted/60 focus:outline-none focus:border-sp-admin-accent/50';
 const labelCls = 'block text-[10px] font-bold uppercase tracking-wider text-sp-admin-muted mb-1';
 
+function handleFromUrl(url: string): string {
+  if (!url) return '';
+  try {
+    const parts = new URL(url).pathname.split('/').filter(Boolean);
+    return (parts[parts.length - 1] ?? '').replace(/^@/, '');
+  } catch {
+    return url;
+  }
+}
+
 function toRow(s: ExistingSocial): Row {
   return { id: s.id, platform: s.platform, handle: s.handle, profileUrl: s.profileUrl ?? '', followersDisplay: s.followersDisplay };
 }
@@ -69,7 +79,7 @@ export function TalentSocialsEditor({ talentId, socials }: Props): React.ReactEl
     const entries: SocialEntryInput[] = rows.map((r, i) => {
       const base = {
         platform:         r.platform,
-        handle:           r.handle.trim(),
+        handle:           r.handle.trim() || handleFromUrl(r.profileUrl),
         followersDisplay: r.followersDisplay.trim() || '-',
         sortOrder:        i + 1,
         ...(r.profileUrl.trim() ? { profileUrl: r.profileUrl.trim() } : {}),
@@ -124,18 +134,7 @@ export function TalentSocialsEditor({ talentId, socials }: Props): React.ReactEl
             </button>
           </div>
 
-          {/* Fila 2: Handle */}
-          <div>
-            <label className={labelCls}>Handle / Nombre de usuario</label>
-            <input
-              value={row.handle}
-              onChange={(e) => update(idx, 'handle', e.target.value)}
-              placeholder="@todocs2 o nombre del canal"
-              className={inputCls}
-            />
-          </div>
-
-          {/* Fila 3: URL */}
+          {/* Fila 2: URL */}
           <div>
             <label className={labelCls}>URL del perfil</label>
             <input

@@ -11,8 +11,10 @@ import { TALENT_VERTICAL_LABELS } from '@/lib/schemas/talentBusiness';
 import { TalentPhotoUpload } from '@/features/admin/talents/components/TalentPhotoUpload';
 import { TalentSocialsEditor } from '@/features/admin/talents/components/TalentSocialsEditor';
 import { TalentStatsEditor } from '@/features/admin/talents/components/TalentStatsEditor';
+import { TalentTagsEditor } from '@/features/admin/talents/components/TalentTagsEditor';
 import { getTalentLiveStatus, getFeaturedFallbackCount } from '@/lib/queries/live';
 import { setFeaturedLiveAction, setFeaturedFallbackAction, setExcludeFromLiveAction } from '@/app/admin/(dashboard)/live/actions';
+import { setTalentPublishedAction } from '@/app/admin/(dashboard)/talents/actions';
 import type { TalentVertical } from '@/types';
 
 const PLATFORM_COLOR: Record<string, string> = {
@@ -132,13 +134,19 @@ export default async function TalentProfilePage({
                 }`}>
                   {talent.status === 'active' ? 'Activo' : talent.status === 'available' ? 'Disponible' : 'Inactivo'}
                 </span>
-                <span className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                  talent.visibility === 'public'
-                    ? 'bg-violet-50 text-violet-700 border border-violet-200'
-                    : 'bg-amber-50 text-amber-700 border border-amber-200'
-                }`}>
-                  {talent.visibility === 'public' ? 'Público' : 'Interno'}
-                </span>
+                <form action={setTalentPublishedAction.bind(null, talent.id, !talent.isPublished)}>
+                  <button
+                    type="submit"
+                    title={talent.isPublished ? 'Haz clic para despublicar' : 'Haz clic para publicar en la web'}
+                    className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold transition-opacity hover:opacity-70 ${
+                      talent.isPublished
+                        ? 'bg-violet-50 text-violet-700 border border-violet-200'
+                        : 'bg-amber-50 text-amber-700 border border-amber-200'
+                    }`}
+                  >
+                    {talent.isPublished ? 'Público' : 'Interno'}
+                  </button>
+                </form>
                 {!talent.photoUrl && (
                   <span className="inline-flex px-2 py-0.5 rounded-full text-[9px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
                     Sin foto
@@ -242,6 +250,16 @@ export default async function TalentProfilePage({
               </div>
             </section>
           )}
+
+          {/* Etiquetas */}
+          <section className="rounded-xl bg-sp-admin-card shadow-[0_1px_3px_rgba(0,0,0,0.06)] overflow-hidden">
+            <div className="px-4 py-2.5 border-b border-sp-admin-border/60 bg-sp-admin-hover/40">
+              <h2 className="text-[10px] font-bold uppercase tracking-[0.18em] text-sp-admin-muted">Etiquetas</h2>
+            </div>
+            <div className="px-4 py-4">
+              <TalentTagsEditor talentId={talent.id} initialTags={talent.tags} />
+            </div>
+          </section>
 
           {/* Contacto */}
           <section className="rounded-xl bg-sp-admin-card shadow-[0_1px_3px_rgba(0,0,0,0.06)] overflow-hidden">
