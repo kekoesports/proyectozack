@@ -70,24 +70,23 @@ export function TalentCard({ talent, onOpen, priority = false }: TalentCardProps
           {[talent.role, talent.role2].filter(Boolean).join(' · ')}
         </p>
 
-        {/* Stats */}
-        <div className="grid grid-cols-3 gap-3 mb-4">
-          {talent.stats.slice(0, 3).map((stat) => {
-            const lower = stat.label.toLowerCase();
-            const platform = lower.includes('twitch') ? 'twitch'
-              : lower.includes('youtube') ? 'youtube'
-              : null;
-            return (
-              <div key={stat.id} className="text-center">
-                <div className="text-sm font-bold text-sp-dark">{stat.value}</div>
+        {/* Stats — from social followers */}
+        {talent.socials.length > 0 && (
+          <div
+            className="grid gap-3 mb-4"
+            style={{ gridTemplateColumns: `repeat(${Math.min(talent.socials.length, 3)}, minmax(0, 1fr))` }}
+          >
+            {talent.socials.slice(0, 3).map((social) => (
+              <div key={social.id} className="text-center">
+                <div className="text-sm font-bold text-sp-dark">{social.followersDisplay}</div>
                 <div className="flex items-center justify-center gap-0.5 text-[10px] text-sp-muted leading-tight mt-0.5">
-                  {platform && <SocialIcon type={platform} size={9} />}
-                  <span>{stat.label.split(' ')[0]}</span>
+                  <SocialIcon type={social.platform} size={9} />
+                  <span>{social.platform === 'youtube' ? 'Suscriptores' : 'Seguidores'}</span>
                 </div>
               </div>
-            );
-          })}
-        </div>
+            ))}
+          </div>
+        )}
 
         {/* Socials */}
         <nav aria-label="Redes sociales" className="flex items-center gap-2">
