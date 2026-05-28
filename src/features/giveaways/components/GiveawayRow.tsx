@@ -80,7 +80,15 @@ export function GiveawayRow({ giveaway, finished = false }: Props): React.JSX.El
       {/* ESTADO COMPACTO — siempre visible */}
       <div className={`flex items-center transition-all duration-300 ${expanded ? 'h-[68px]' : 'h-[60px]'}`}>
         {/* Thumbnail compacto */}
-        <div className={`relative shrink-0 h-full border-r border-white/[0.05] bg-white/[0.02] transition-all duration-300 ${expanded ? 'w-[72px]' : 'w-[56px]'}`}>
+        <a
+          href={isActive ? giveaway.redirectUrl : undefined}
+          target={isActive ? '_blank' : undefined}
+          rel={isActive ? 'noopener noreferrer' : undefined}
+          aria-label={isActive ? `Participar en ${giveaway.title}` : undefined}
+          tabIndex={isActive ? -1 : undefined}
+          className={`relative shrink-0 h-full border-r border-white/[0.05] bg-white/[0.02] transition-all duration-300 ${isActive ? 'cursor-pointer' : 'cursor-default'} ${expanded ? 'w-[72px]' : 'w-[56px]'}`}
+          onClick={isActive ? (e) => e.stopPropagation() : undefined}
+        >
           {giveaway.imageUrl && !imgError ? (
             <Image src={giveaway.imageUrl} alt={giveaway.title} fill sizes="72px"
               className={`object-contain p-1.5 transition-transform duration-500 ${expanded ? 'scale-110' : 'scale-100'}`}
@@ -88,7 +96,7 @@ export function GiveawayRow({ giveaway, finished = false }: Props): React.JSX.El
           ) : (
             <GiveawayPrizePlaceholder size="sm" />
           )}
-        </div>
+        </a>
 
         {/* Info compacta */}
         <div className="flex-1 min-w-0 flex items-center gap-3 px-3 sm:px-4">

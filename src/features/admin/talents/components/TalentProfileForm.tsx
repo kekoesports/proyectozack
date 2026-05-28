@@ -22,23 +22,15 @@ const ROLE_SUGGESTIONS = [
   'YOUTUBER',
 ];
 
-function RoleInput({ id, name, value, required, listId }: { id: string; name: string; value: string | null; required?: boolean; listId: string }) {
+function RoleSelect({ id, name, value, required }: { id: string; name: string; value: string | null; required?: boolean }) {
+  const current = value ?? '';
+  const isCustom = current !== '' && !ROLE_SUGGESTIONS.includes(current);
   return (
-    <>
-      <input
-        id={id}
-        name={name}
-        list={listId}
-        defaultValue={value ?? ''}
-        required={required}
-        maxLength={120}
-        placeholder="Escribe o elige una sugerencia…"
-        className={INPUT}
-      />
-      <datalist id={listId}>
-        {ROLE_SUGGESTIONS.map((o) => <option key={o} value={o} />)}
-      </datalist>
-    </>
+    <select id={id} name={name} defaultValue={current} required={required} className={SELECT}>
+      <option value="">— Seleccionar etiqueta —</option>
+      {ROLE_SUGGESTIONS.map((o) => <option key={o} value={o}>{o}</option>)}
+      {isCustom && <option value={current}>{current} (actual)</option>}
+    </select>
   );
 }
 
@@ -103,11 +95,11 @@ export function TalentProfileForm({ talent }: Props): React.JSX.Element {
           </div>
           <div>
             <label htmlFor="pf-role" className={LABEL}>Etiqueta 1 *</label>
-            <RoleInput id="pf-role" name="role" value={talent.role} required listId="pf-role-list" />
+            <RoleSelect id="pf-role" name="role" value={talent.role} required />
           </div>
           <div>
             <label htmlFor="pf-role2" className={LABEL}>Etiqueta 2 <span className="font-normal normal-case">(opcional)</span></label>
-            <RoleInput id="pf-role2" name="role2" value={talent.role2 ?? ''} listId="pf-role2-list" />
+            <RoleSelect id="pf-role2" name="role2" value={talent.role2 ?? ''} />
           </div>
           <div>
             <label htmlFor="pf-game" className={LABEL}>Juego / Categoría</label>

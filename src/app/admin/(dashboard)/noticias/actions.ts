@@ -83,8 +83,9 @@ export async function updatePostAction(formData: FormData): Promise<ActionResult
   // 2. If publishing for the first time (no existing date) → set NOW()
   // 3. If explicit future date sent from form → use it (intentional scheduling)
   // 4. If changing to draft → clear the date
-  const currentRow = await db.select({ publishedAt: posts.publishedAt, status: posts.status })
+  const currentRow = await db.select({ publishedAt: posts.publishedAt, status: posts.status, slug: posts.slug })
     .from(posts).where(eq(posts.id, id)).limit(1);
+  const currentSlug = currentRow[0]?.slug;
   const existingPublishedAt = currentRow[0]?.publishedAt ?? null;
   const alreadyPublished    = !!(existingPublishedAt && existingPublishedAt <= new Date());
 
@@ -111,7 +112,11 @@ export async function updatePostAction(formData: FormData): Promise<ActionResult
     })
     .where(eq(posts.id, id));
 
-  revalidateNews(data.slug);
+  // Revalidate the new slug (from form) AND the old slug in case it changed
+  revalidateNews(data.slug ?? currentSlug);
+  if (currentSlug && currentSlug !== data.slug) {
+    revalidatePath(`/news/${currentSlug}`, 'page');
+  }
   redirect('/admin/noticias');
 }
 

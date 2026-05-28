@@ -10,10 +10,12 @@ import { AnalyticsRevenueChart }      from './AnalyticsRevenueChart';
 import { AnalyticsPipelineSection }   from './AnalyticsPipelineSection';
 import { AnalyticsPendingSection }    from './AnalyticsPendingSection';
 import { CodeClicksSection }          from './CodeClicksSection';
+import { GiveawayEventsSection }      from './GiveawayEventsSection';
 import { DashboardAlerts }            from '@/features/admin/_shared/components/dashboard/DashboardAlerts';
 import type { CampaignStatus, CampaignWithRelations, InvoiceWithRelations } from '@/types';
 import type { DashboardAlert, AlertSummary } from '@/lib/queries/alerts';
 import type { CodeClickRow } from '@/lib/queries/codeAnalytics';
+import type { GiveawayClickRow, GiveawayHubViewRow } from '@/lib/queries/giveawayAnalytics';
 
 // ── Tipos ─────────────────────────────────────────────────────────────
 
@@ -27,7 +29,9 @@ type Props = {
   readonly talents?:      readonly TalentOption[];
   readonly alerts?:       readonly DashboardAlert[];
   readonly alertSummary?: AlertSummary;
-  readonly codeClicks?:   readonly CodeClickRow[];
+  readonly codeClicks?:      readonly CodeClickRow[];
+  readonly giveawayClicks?:  readonly GiveawayClickRow[];
+  readonly giveawayViews?:   readonly GiveawayHubViewRow[];
 };
 
 // ── Formateadores ─────────────────────────────────────────────────────
@@ -137,7 +141,7 @@ const CAMPAIGN_STATUSES: { value: CampaignStatus | ''; label: string }[] = [
 
 export function AnalyticsDashboard({
   campaigns, invoices, brands = [], talents = [],
-  alerts = [], alertSummary, codeClicks = [],
+  alerts = [], alertSummary, codeClicks = [], giveawayClicks = [], giveawayViews = [],
 }: Props): React.ReactElement {
   const [datePreset, setDatePreset] = useState<DatePreset>('year');
   const [status,     setStatus]     = useState<CampaignStatus | ''>('');
@@ -449,7 +453,10 @@ export function AnalyticsDashboard({
       {/* ── 7. CLICKS EN CÓDIGOS ─────────────────────────────────── */}
       <CodeClicksSection rows={codeClicks} />
 
-      {/* ── 8. DETALLE TRATOS ────────────────────────────────────── */}
+      {/* ── 8. SORTEOS — VISTAS Y CLICKS ────────────────────────── */}
+      <GiveawayEventsSection clicks={giveawayClicks} views={giveawayViews} />
+
+      {/* ── 9. DETALLE TRATOS ────────────────────────────────────── */}
       <details className="group">
         <summary className="cursor-pointer select-none flex items-center gap-2 text-[12px] font-semibold text-sp-admin-muted hover:text-sp-admin-text mb-3">
           <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"

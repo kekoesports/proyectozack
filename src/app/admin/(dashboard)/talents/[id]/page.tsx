@@ -14,6 +14,7 @@ import { TalentStatsEditor } from '@/features/admin/talents/components/TalentSta
 import { TalentTagsEditor } from '@/features/admin/talents/components/TalentTagsEditor';
 import { getTalentLiveStatus, getFeaturedFallbackCount } from '@/lib/queries/live';
 import { setFeaturedLiveAction, setFeaturedFallbackAction, setExcludeFromLiveAction } from '@/app/admin/(dashboard)/live/actions';
+import { setTalentPublishedAction } from '@/app/admin/(dashboard)/talents/actions';
 import type { TalentVertical } from '@/types';
 
 const PLATFORM_COLOR: Record<string, string> = {
@@ -133,13 +134,19 @@ export default async function TalentProfilePage({
                 }`}>
                   {talent.status === 'active' ? 'Activo' : talent.status === 'available' ? 'Disponible' : 'Inactivo'}
                 </span>
-                <span className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                  talent.visibility === 'public'
-                    ? 'bg-violet-50 text-violet-700 border border-violet-200'
-                    : 'bg-amber-50 text-amber-700 border border-amber-200'
-                }`}>
-                  {talent.visibility === 'public' ? 'Público' : 'Interno'}
-                </span>
+                <form action={setTalentPublishedAction.bind(null, talent.id, !talent.isPublished)}>
+                  <button
+                    type="submit"
+                    title={talent.isPublished ? 'Haz clic para despublicar' : 'Haz clic para publicar en la web'}
+                    className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold transition-opacity hover:opacity-70 ${
+                      talent.isPublished
+                        ? 'bg-violet-50 text-violet-700 border border-violet-200'
+                        : 'bg-amber-50 text-amber-700 border border-amber-200'
+                    }`}
+                  >
+                    {talent.isPublished ? 'Público' : 'Interno'}
+                  </button>
+                </form>
                 {!talent.photoUrl && (
                   <span className="inline-flex px-2 py-0.5 rounded-full text-[9px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
                     Sin foto

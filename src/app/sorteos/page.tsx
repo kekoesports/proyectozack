@@ -11,26 +11,34 @@ import { Cs2LabCard } from '@/components/cs2-lab/Cs2LabCard';
 import { NowProvider } from '@/lib/now-context';
 import { Suspense } from 'react';
 
-export const metadata: Metadata = {
-  title: 'Sorteos de Skins — SocialPro',
-  description:
-    'Participa en los mejores sorteos de skins CS2 y recompensas gaming de tus creadores favoritos.',
-  alternates: { canonical: '/sorteos' },
-  openGraph: {
-    title: 'Sorteos de Skins Gaming | SocialPro',
+export async function generateMetadata(): Promise<Metadata> {
+  const active = await getAllActiveGiveaways();
+  const hero = active.find((g) => g.isFeatured) ?? active[0];
+  const ogUrl = hero
+    ? absoluteUrl(`/api/og-image/giveaway?id=${hero.id}`)
+    : absoluteUrl('/og-socialpro.png');
+
+  return {
+    title: 'Sorteos de Skins — SocialPro',
     description:
       'Participa en los mejores sorteos de skins CS2 y recompensas gaming de tus creadores favoritos.',
-    url: absoluteUrl('/sorteos'),
-    images: [{ url: absoluteUrl('/og-socialpro.png'), width: 1200, height: 630 }],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Sorteos de Skins Gaming | SocialPro',
-    description:
-      'Skins CS2 y recompensas gaming. Sorteos gratis con tus creadores favoritos.',
-    images: [absoluteUrl('/og-socialpro.png')],
-  },
-};
+    alternates: { canonical: '/sorteos' },
+    openGraph: {
+      title: 'Sorteos de Skins Gaming | SocialPro',
+      description:
+        'Participa en los mejores sorteos de skins CS2 y recompensas gaming de tus creadores favoritos.',
+      url: absoluteUrl('/sorteos'),
+      images: [{ url: ogUrl, width: 1200, height: 630 }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: 'Sorteos de Skins Gaming | SocialPro',
+      description:
+        'Skins CS2 y recompensas gaming. Sorteos gratis con tus creadores favoritos.',
+      images: [ogUrl],
+    },
+  };
+}
 
 export const revalidate = 3600;
 

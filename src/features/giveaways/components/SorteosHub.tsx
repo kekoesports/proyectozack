@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { trpc } from '@/lib/trpc/client';
 import Image from 'next/image';
 import Link from 'next/link';
 import { CompactSorteoCard } from './CompactSorteoCard';
@@ -30,6 +31,14 @@ const STATUS_LABELS: Record<StatusFilter, string> = {
 };
 
 export function SorteosHub({ active, finished, brands, creators, totalValue, initialCreatorSlug }: SorteosHubProps): React.JSX.Element {
+  const trackEvent = trpc.giveaways.trackEvent.useMutation();
+
+  // Registrar visita al hub una vez por montaje
+  useEffect(() => {
+    void trackEvent.mutateAsync({ action: 'view', page: 'sorteos' }).catch(() => undefined);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- solo al montar
+  }, []);
+
   const [selectedBrand, setSelectedBrand]     = useState<string | null>(null);
   const [selectedCreator, setSelectedCreator] = useState<number | null>(() => {
     if (!initialCreatorSlug) return null;

@@ -1,5 +1,12 @@
 import type { ArticleEmbed, EmbedPlatform } from './types';
 
+function extractXHandle(url: string): string | null {
+  const m = url.match(/(?:x|twitter)\.com\/([^/?#\s]+)/);
+  const handle = m?.[1];
+  if (!handle || ['i', 'home', 'explore', 'notifications', 'messages', 'hashtag', 'search'].includes(handle)) return null;
+  return handle;
+}
+
 const PLATFORM_META: Record<EmbedPlatform, {
   label: string;
   cta: string;
@@ -61,6 +68,7 @@ type Props = { readonly embed: ArticleEmbed };
  */
 export function ArticleEmbedBlock({ embed }: Props) {
   const meta = PLATFORM_META[embed.platform];
+  const displayAuthor = embed.author ?? (embed.platform === 'x' ? extractXHandle(embed.url) : null);
 
   return (
     <section className="max-w-2xl mx-auto px-5 md:px-8 my-12 md:my-16">
@@ -79,7 +87,7 @@ export function ArticleEmbedBlock({ embed }: Props) {
           </span>
           <div className="flex-1 min-w-0">
             <p className="font-display font-black text-sm md:text-base text-white leading-none truncate">
-              {embed.author ? `@${embed.author}` : meta.label}
+              {displayAuthor ? `@${displayAuthor}` : meta.label}
             </p>
             <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-white/45 mt-1.5 leading-none">
               {meta.label}

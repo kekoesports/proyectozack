@@ -6,87 +6,144 @@ read_when:
   - Handing off to another agent
 ---
 
-# Handoff — 2026-05-25 (Tag editor + Seed tags + Sorteos destacado)
+# Handoff — 2026-05-27 (Analytics + CRM + CR-2 + fix handles + noticia CS2 + fix caché noticias)
 
 ## 1. Scope / Status
 
 **Tareas completadas hoy:**
 
-### Tag editor en admin
-- `TalentTagsEditor` — componente client con pills + X para eliminar, input para añadir
-- Dos server actions: `addTalentTagAction`, `removeTalentTagAction` en `talents/actions.ts`
-- Editor visible en la ficha de detalle del talento (`/admin/talents/[id]`) — columna izquierda, debajo de métricas
-- También disponible en la página de edición (`/admin/talents/[id]/edit`)
-- Commits: `123c4e1`
+### HI-4 — Analytics giveaways (vistas + clicks)
 
-### Seed de etiquetas para todos los talentos
-- Script `scripts/seed-tags.ts` para uso local (requiere DATABASE_URL)
-- Endpoint temporal `/api/admin/seed-tags` (POST) — ya eliminado tras ejecutarse
-- Etiquetas correctas insertadas en producción para los 12 talentos
-- HuasoPeek: Valorant eliminado → `['CS2', 'LatAm', 'Twitch', 'FPS']`
-- Commits: `123c4e1`, `3e29da7`, `463fbe1`
+**Nueva tabla `giveaway_events`** — migración `0076_easy_lilandra.sql`
+- Columnas: `id, giveaway_id (nullable FK), action ('view'|'click'), page, created_at`
+- Commit: `b08c809`
 
-### Sorteo destacado en /sorteos
-- `SorteosHub` ahora muestra `GiveawayFeatured` (tarjeta grande premium) encima del grid cuando hay un sorteo con `isFeatured=true` y no hay filtros activos
-- Label "★ Destacado" encima del card
-- El toggle en admin ahora tiene efecto visual real
-- Commit: `3513717`
+**tRPC `giveaways.trackEvent`** — `src/server/routers/giveaways.ts`
+- Rate-limit 30/min por IP · Input: `{ action, giveawayId?, page? }`
 
-**Blockers:** Ninguno
+**Tracking en frontend:**
+- `SorteosHub.tsx` — `view + page:'sorteos'` al montar
+- `CompactSorteoCard.tsx` / `GiveawayFeatured.tsx` — `click + giveawayId` al pulsar CTA
 
-## 2. Working Tree
+**Queries** — `src/lib/queries/giveawayAnalytics.ts`
+- `getGiveawayClicksByDay()` / `getGiveawayHubViewsByDay()` — últimos 90 días
 
-- Branch: `master`, up to date con `origin/master`
-- Clean — sin cambios pendientes
-- Commits hoy:
-  ```
-  3513717 feat(sorteos): show featured giveaway as hero card in /sorteos hub
-  463fbe1 chore: remove one-time seed-tags endpoint
-  3e29da7 fix(seed-tags): revalidate public talent pages after tag update
-  123c4e1 feat(talents): add inline tag editor + seed-tags endpoint
-  ```
+**Dashboard** — `GiveawayEventsSection` en `/admin/analytics` con KPIs + tabla top sorteos
 
-## 3. TypeScript / Lint
+### UX — Eliminar sección "Mejores recompensas"
+- Eliminada `FeaturedCodesSection` del hub `/giveaways` · Commit: `5e45fda`
 
-- `npx tsc --noEmit`: 0 errores al cierre
-- `npm run lint`: sin errores nuevos
+### CRM — Brand picker en modales de edición
+- `EditCodeModal` y `EditGiveawayModal`: campo Marca reemplazado por `BrandPicker`
+- Commits: `082d296`, `52cbcf8`
 
-## 4. Pendiente próxima sesión
+### CR-2 — Badges con emoji y color en tarjetas públicas `/sorteos`
+- `CompactSorteoCard`: `BADGE_MAP` por tipo — HOT 🔥 naranja · NUEVO ✨ verde · EXCLUSIVO 👑 morado · TOP ⭐ ámbar · LIMITED ⚡ rojo
+- `GiveawayFeatured`: badge del CRM aparece junto al pill "Live"
+- Commit: `9fc8ac5`
 
-### A) 7 canales fallidos en sync-metrics
-Handles que no resuelven contra API — corregir en `/admin/talents/{id}`:
+### Noticia — CS ibérico (Sinon Community Series + Falcata Series)
+- Publicada vía Neon SQL Editor (proyecto **socialpro**, rama Primary) · vertical `news` · status `published`
+- Slug: `el-cs-iberico-recupera-el-pulso-sinon-community-series-falcata-series`
+- URL pública: `/news/el-cs-iberico-recupera-el-pulso-sinon-community-series-falcata-series`
+- **Cover URL pendiente** — subir imagen en `/admin/noticias/imagenes` y pegar URL editando el post en `/admin/noticias`
+- Tags: `cs2, torneos, competitivo, ibérico, esports, sinon, falcata`
+- Nota: primer intento fue en el proyecto Neon equivocado (proyecto de demo); el INSERT correcto se ejecutó en el proyecto **socialpro**
 
-| Canal | Plataforma |
-|-------|-----------|
-| MARTINEZ | YouTube |
-| julietacs_ | YouTube |
-| ADAMS | Twitch |
-| Bosko | Twitch |
-| Branuel | Twitch |
-| Lewis cs2 | Twitch |
-| Marinho | Twitch |
+### Fix caché noticias (bug: artículo editado no se actualizaba en la web) ✅
+- **`src/app/news/[slug]/page.tsx`**: `revalidate` bajado de 1800 → **60** s (red de seguridad: máximo 1 min de contenido stale)
+- **`src/app/admin/(dashboard)/noticias/actions.ts`** — `updatePostAction`:
+  - Se añade `slug` a la query de `currentRow` para obtener el slug actual de DB
+  - Se revalida tanto el slug nuevo (del form) como el slug antiguo si cambió
+- Commit: `6fc0f6d` · Deploy: completado en Vercel
+- Noticia CS2 corregida manualmente en admin: excerpt limpio + H1 eliminado del body_md
 
-### B) Bios SEO — pendiente revisión humana
-- 10 bios en estado `generated` esperando aprobación en `/admin/talents/{id}/seo`
+### Fix handles — script creado, pendiente de ejecución
+- Script `scripts/fix-handles.ts` — corrige 7 canales fallidos en `sync-followers.ts`
+- **No ejecutado aún** — requiere `DATABASE_URL` real en `.env.local`
+- Commit: `4007a56`
+
+---
+
+## 2. Handles fallidos — estado detallado
+
+El `vercel env pull` solo trae el entorno `development`; `DATABASE_URL` solo está en production/preview. Para ejecutar el fix:
+
+```bash
+# 1. Obtener DATABASE_URL de Neon dashboard o Vercel → Settings → Env Vars (production)
+# 2. Pegar en .env.local: DATABASE_URL="postgresql://..."
+# 3. Dry-run primero:
+npx tsx scripts/fix-handles.ts --dry-run
+# 4. Aplicar:
+npx tsx scripts/fix-handles.ts
+# 5. Verificar:
+npx tsx scripts/sync-followers.ts --dry-run
+```
+
+**Correcciones que aplica el script:**
+
+| Canal | Plataforma | Fix |
+|-------|-----------|-----|
+| MARTINEZ | YouTube | `martinezsaa` → `MartiinezSa` + URL correcta |
+| ADAMS | Twitch | `ADAMS` → `adamsen_` + URL correcta |
+| Lewis cs2 | Twitch | `Lewis cs2` (espacio) → `lewiscs2_` |
+| Bosko | Twitch | `Bosko` → `bosco` |
+| Branuel | Twitch | Probable `platform='tw'` → renombrar a `'twitch'` |
+| Marinho | Twitch | Ídem |
+| **julietacs_** | **YouTube** | **Manual** — script muestra estado en DB; verificar si tiene canal YT o eliminar fila |
+
+---
+
+## 3. Working Tree
+
+- Branch: `master`
+- Cambios pendientes de commit: `src/app/news/[slug]/page.tsx` + `src/app/admin/(dashboard)/noticias/actions.ts`
+
+---
+
+## 4. TypeScript / Lint
+
+- `npx tsc --noEmit`: 0 errores
+- `npm run lint`: 1 error pre-existente en `AdminSidebar.tsx` — no introducido esta sesión
+
+---
+
+## 5. Pendiente próxima sesión
+
+### A) Ejecutar fix-handles + sync
+Ver sección 2 arriba. Una vez con DATABASE_URL disponible, son 3 comandos.
+
+### B) GSC — Esperar validaciones
+Google inició revalidación el 26-05. Comprobar en ~1-2 semanas.
+
+### C) Datos de métricas pendientes en CRM
+
+| Talento | Problema | Acción |
+|---------|---------|--------|
+| JOLU | Sin stats (`talent_stats` vacía) | Añadir en `/admin/talents/[id]` → métricas públicas |
+| MIRAI | Engagement = "—" | Actualizar en `/admin/talents/[id]` |
+| EVELYN FOXYY | Engagement = "—" | Ídem |
+
+### D) Bios SEO — pendiente revisión humana
+- 10 bios en estado `generated` en `/admin/talents/{id}/seo`
 - Especial atención: **HETTA** y **VITYSHOW**
 
-### C) Backlog técnico (priorizado)
-
-| # | Tarea | Esfuerzo | Riesgo |
-|---|-------|----------|--------|
-| CR-1 | Ownership staff en campañas (migration) | 2-3h | Medio |
-| CR-2 | Featured + badge en giveaways | 3-4h | Bajo |
-| HI-1 | Reducir home de 15 a ~9 secciones | 3-4h | Medio |
-| HI-2 | OG images dinámicas para giveaways | 2-3h | Bajo |
-| HI-3 | Cards giveaway expand hover/tap | 3-4h | Bajo |
-| HI-4 | Analytics giveaways (vistas + clicks) | 4-5h | Bajo |
-
-### D) No técnico (requiere acción externa)
+### E) No técnico
 
 - **kekoesports.es cross-reference** — Pablo debe añadir mención + link a `socialpro.es`
 - **REC-10 prensa** — contactar 5 medios gaming/esports para menciones externas
+- **Catálogo de marcas** — verificar logos correctos en `/admin/giveaways` → Catálogo de marcas
 
-## 5. Pre-flight para retomar
+### F) Analytics giveaways
+- Tabla `giveaway_events` vacía hasta que Vercel aplique la migración del deploy de hoy
+- Primera semana: verificar eventos en `/admin/analytics`
+
+### G) Cover noticia CS2 ✅ (imagen ya visible en la web)
+- Artículo publicado y correcto en `/news/el-cs-iberico-recupera-el-pulso-sinon-community-series-y-falcata-series-toman-el-relevo`
+
+---
+
+## 6. Pre-flight para retomar
 
 ```bash
 git log --oneline -5

@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   title: 'Política de Cookies — SocialPro',
   description: 'Qué cookies usa socialpro.es, para qué y cómo gestionarlas. Necesarias, analíticas y marketing.',
   alternates: { canonical: '/cookies' },
-  robots: { index: true, follow: true },
+  robots: { index: false, follow: true },
 };
 
 const jsonLd = {

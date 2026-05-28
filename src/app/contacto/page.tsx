@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { safeJsonLd } from '@/lib/safeJsonLd';
 import { ContactSection } from '@/features/contact/components/ContactSection';
 import { absoluteUrl } from '@/lib/site-url';
+import type { ContactForm } from '@/features/contact/components/ContactSection.parts';
 
 export const metadata: Metadata = {
   title: 'Contacta con Nuestra Agencia Gaming',
@@ -44,7 +45,23 @@ const jsonLd = {
   mainEntity: { '@type': 'Organization', '@id': absoluteUrl('/#organization') },
 };
 
-export default function ContactoPage() {
+export default async function ContactoPage({
+  searchParams,
+}: {
+  readonly searchParams: Promise<Record<string, string | undefined>>;
+}) {
+  const params = await searchParams;
+  const talentName = params.talent;
+  const typeParam  = params.type;
+
+  const resolvedType = typeParam === 'brand' ? ('brand' as const) : typeParam === 'talent' ? ('talent' as const) : null;
+  const defaultValues: Partial<ContactForm> | undefined = (talentName ?? resolvedType)
+    ? {
+        ...(resolvedType ? { type: resolvedType } : {}),
+        ...(talentName ? { message: `Hola, me interesa colaborar con ${talentName}.` } : {}),
+      }
+    : undefined;
+
   return (
     <div>
       <script
@@ -52,7 +69,7 @@ export default function ContactoPage() {
         dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }}
       />
       <h1 className="sr-only">Contacta con Nuestra Agencia Gaming</h1>
-      <ContactSection />
+      {defaultValues ? <ContactSection defaultValues={defaultValues} /> : <ContactSection />}
     </div>
   );
 }
