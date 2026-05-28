@@ -252,9 +252,7 @@ export function AdminSidebar({
               title="Cerrar sesión"
               className="p-2 rounded-lg text-sp-admin-sidebar-muted hover:text-sp-admin-sidebar-text hover:bg-sp-admin-sidebar-hover transition-colors shrink-0"
               onClick={() => {
-                void fetch(logoutHref, { method: 'POST' }).then(() => {
-                  router.push('/admin/login');
-                });
+                void fetch(logoutHref, { method: 'POST' }).then(() => router.push('/admin/login'));
               }}
             >
               <span className="w-4 h-4 block"><LogoutIcon /></span>
