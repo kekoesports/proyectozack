@@ -232,24 +232,22 @@ export default async function TalentProfilePage({
           </section>
 
           {/* Métricas públicas */}
-          {talent.stats.length > 0 && (
-            <section className="rounded-xl bg-sp-admin-card shadow-[0_1px_3px_rgba(0,0,0,0.06)] overflow-hidden">
-              <div className="px-4 py-2.5 border-b border-sp-admin-border/60 bg-sp-admin-hover/40">
-                <h2 className="text-[10px] font-bold uppercase tracking-[0.18em] text-sp-admin-muted">Métricas públicas</h2>
-              </div>
-              <div className="px-4 py-4">
-                <TalentStatsEditor
-                  talentId={talent.id}
-                  stats={talent.stats.map((s) => ({
-                    id:    s.id,
-                    icon:  s.icon,
-                    label: s.label,
-                    value: s.value,
-                  }))}
-                />
-              </div>
-            </section>
-          )}
+          <section className="rounded-xl bg-sp-admin-card shadow-[0_1px_3px_rgba(0,0,0,0.06)] overflow-hidden">
+            <div className="px-4 py-2.5 border-b border-sp-admin-border/60 bg-sp-admin-hover/40">
+              <h2 className="text-[10px] font-bold uppercase tracking-[0.18em] text-sp-admin-muted">Métricas públicas</h2>
+            </div>
+            <div className="px-4 py-4">
+              <TalentStatsEditor
+                talentId={talent.id}
+                stats={talent.stats.map((s) => ({
+                  id:    s.id,
+                  icon:  s.icon,
+                  label: s.label,
+                  value: s.value,
+                }))}
+              />
+            </div>
+          </section>
 
           {/* Etiquetas */}
           <section className="rounded-xl bg-sp-admin-card shadow-[0_1px_3px_rgba(0,0,0,0.06)] overflow-hidden">
