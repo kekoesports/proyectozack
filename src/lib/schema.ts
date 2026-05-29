@@ -73,7 +73,6 @@ export function generateOfferSchema(c: CreatorCodeWithTalent, siteUrl: string): 
     name: c.code,
     description: c.description ?? `Código de ${c.brandName} de ${c.talent.name}`,
     url: c.redirectUrl,
-    category: 'Gaming',
     seller: {
       '@type': 'Organization',
       name: c.brandName,
