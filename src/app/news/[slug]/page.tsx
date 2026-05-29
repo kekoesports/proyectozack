@@ -77,13 +77,13 @@ export default async function NewsArticlePage({ params }: PageProps) {
     '@type': 'NewsArticle',
     '@id': absoluteUrl(`/news/${slug}#article`),
     headline: post.title,
-    description: post.excerpt,
-    datePublished: post.publishedAt?.toISOString(),
-    dateModified: post.updatedAt?.toISOString(),
+    ...(post.excerpt ? { description: post.excerpt } : {}),
+    ...(post.publishedAt ? { datePublished: post.publishedAt.toISOString() } : {}),
+    ...(post.updatedAt ? { dateModified: post.updatedAt.toISOString() } : {}),
     author: post.author && post.author !== 'SocialPro' && post.author !== 'Redacción'
       ? { '@type': 'Person', name: post.author, worksFor: { '@type': 'Organization', '@id': absoluteUrl('/#organization'), name: 'SocialPro' } }
       : { '@type': 'Organization', '@id': absoluteUrl('/#organization'), name: 'SocialPro' },
-    publisher: { '@id': absoluteUrl('/#organization') },
+    publisher: { '@type': 'Organization', '@id': absoluteUrl('/#organization'), name: 'SocialPro', logo: { '@type': 'ImageObject', url: absoluteUrl('/logo.png'), width: 512, height: 512 } },
     mainEntityOfPage: { '@type': 'WebPage', '@id': absoluteUrl(`/news/${slug}`) },
     articleSection: category.label,
     inLanguage: 'es',
