@@ -369,6 +369,83 @@ export function BrandFormDrawer({
           />
         </div>
 
+        {/* Identidad de marca (picker sorteos/códigos) */}
+        <div className="border-t border-sp-admin-border/50 pt-4">
+          <p className="text-[11px] uppercase tracking-wider font-semibold text-sp-admin-muted mb-3">
+            Identidad de marca
+          </p>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div className="sm:col-span-2">
+              <label className={LABEL} htmlFor="bfd-logoUrl">URL del logo</label>
+              <input
+                id="bfd-logoUrl"
+                name="logoUrl"
+                type="url"
+                defaultValue={brand?.logoUrl ?? ''}
+                className={INPUT}
+                placeholder="https://cdn.ejemplo.com/logo.png"
+              />
+              <p className="text-[10px] text-sp-admin-muted mt-1">
+                Alternativamente sube el logo desde la ficha de la marca.
+              </p>
+            </div>
+            <div className="sm:col-span-2">
+              <label className={LABEL} htmlFor="bfd-mainUrl">URL principal de campaña</label>
+              <input
+                id="bfd-mainUrl"
+                name="mainUrl"
+                type="url"
+                defaultValue={brand?.mainUrl ?? ''}
+                className={INPUT}
+                placeholder="https://ejemplo.com/landing"
+              />
+            </div>
+            <div>
+              <label className={LABEL} htmlFor="bfd-category">Categoría picker</label>
+              <select
+                id="bfd-category"
+                name="category"
+                defaultValue={brand?.category ?? ''}
+                className={INPUT}
+              >
+                <option value="">— Sin especificar —</option>
+                <option value="gambling">Gambling</option>
+                <option value="casino">Casino</option>
+                <option value="sports_betting">Sports Betting</option>
+                <option value="trading">Trading</option>
+                <option value="crypto">Crypto</option>
+                <option value="perifericos">Periféricos</option>
+                <option value="otros">Otros</option>
+              </select>
+            </div>
+            <div>
+              <label className={LABEL} htmlFor="bfd-corporateColor">Color corporativo</label>
+              <div className="flex items-center gap-2">
+                <input
+                  id="bfd-corporateColor-picker"
+                  type="color"
+                  defaultValue={brand?.corporateColor ?? '#f5632a'}
+                  onChange={(e) => {
+                    const textInput = document.getElementById('bfd-corporateColor') as HTMLInputElement | null;
+                    if (textInput) textInput.value = e.target.value;
+                  }}
+                  className="w-9 h-9 rounded-lg border border-sp-admin-border cursor-pointer shrink-0 p-0.5 bg-transparent"
+                />
+                <input
+                  id="bfd-corporateColor"
+                  name="corporateColor"
+                  type="text"
+                  maxLength={10}
+                  defaultValue={brand?.corporateColor ?? ''}
+                  className={INPUT}
+                  placeholder="#f5632a"
+                  pattern="^#[0-9a-fA-F]{6}$"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Rate cards & workspace defaults */}
         <div className="border-t border-sp-admin-border/50 pt-4">
           <p className="text-[11px] uppercase tracking-wider font-semibold text-sp-admin-muted mb-3">

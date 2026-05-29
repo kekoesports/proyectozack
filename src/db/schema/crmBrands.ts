@@ -89,6 +89,12 @@ export const crmBrands = pgTable(
 
     notes: text('notes'),
 
+    // ── Brand identity (for sorteos/codes picker) ──────────────────────────────
+    logoUrl:        text('logo_url'),
+    mainUrl:        text('main_url'),
+    category:       varchar('category', { length: 50 }),
+    corporateColor: varchar('corporate_color', { length: 10 }),
+
     // ── Rate cards & workspace defaults (competitive intelligence gap vs Sprout Workspaces) ──
     // Default talent day rates by tier (EUR). JSON: { nano?: number, micro?: number, macro?: number, mega?: number }
     defaultRateCard: jsonb('default_rate_card')

@@ -143,6 +143,13 @@ const brandFields = z.object({
   whatsapp: optStr(40),
 
   notes: z.string().optional(),
+
+  // Brand identity
+  logoUrl:        optUrl,
+  mainUrl:        optUrl,
+  category:       optStr(50),
+  corporateColor: optStr(10),
+
   // Rate cards & workspace defaults
   defaultRateCard: z.object({
     nano: z.coerce.number().nonnegative().optional(),
