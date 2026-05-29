@@ -1,10 +1,12 @@
 import { pgTable, serial, integer, varchar, text, timestamp, index, boolean } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 import { talents } from './talents';
+import { crmBrands } from './crmBrands';
 
 export const giveaways = pgTable('giveaways', {
   id: serial('id').primaryKey(),
   talentId: integer('talent_id').notNull().references(() => talents.id, { onDelete: 'cascade' }),
+  crmBrandId: integer('crm_brand_id').references(() => crmBrands.id, { onDelete: 'set null' }),
   title: varchar('title', { length: 200 }).notNull(),
   description: text('description'),
   imageUrl: varchar('image_url', { length: 500 }),
@@ -27,4 +29,5 @@ export const giveaways = pgTable('giveaways', {
 
 export const giveawaysRelations = relations(giveaways, ({ one }) => ({
   talent: one(talents, { fields: [giveaways.talentId], references: [talents.id] }),
+  crmBrand: one(crmBrands, { fields: [giveaways.crmBrandId], references: [crmBrands.id] }),
 }));

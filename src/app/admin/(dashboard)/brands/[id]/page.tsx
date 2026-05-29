@@ -7,6 +7,7 @@ import { listInvoices } from '@/lib/queries/invoices';
 import { listBriefs } from '@/lib/queries/brandBriefs';
 import { BrandBriefsTab } from '@/features/admin/brands/components/BrandBriefsTab';
 import { BrandsTabs } from '@/features/admin/brands/components/BrandsTabs';
+import { BrandLogoUpload } from '@/features/admin/brands/components/BrandLogoUpload';
 
 import type { CampaignRow } from '@/types';
 
@@ -113,13 +114,12 @@ export default async function BrandDetailPage({
       {/* Header de marca */}
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div className="flex items-center gap-4">
-          {/* Avatar */}
-          <div
-            className="w-14 h-14 rounded-xl flex items-center justify-center text-lg font-bold text-white shrink-0"
-            style={{ background: 'linear-gradient(135deg, #f5632a, #8b3aad)' }}
-          >
-            {brand.name.slice(0, 2).toUpperCase()}
-          </div>
+          {/* Logo / avatar */}
+          <BrandLogoUpload
+            brandId={brandId}
+            brandName={brand.name}
+            logoUrl={brand.logoUrl ?? null}
+          />
           <div>
             <div className="flex items-center gap-3">
               <h1 className="text-xl font-bold text-sp-admin-text">{brand.name}</h1>

@@ -105,6 +105,11 @@ export async function listCrmBrands(opts?: {
       nextFollowupAt: crmBrands.nextFollowupAt,
       nextFollowUpAt: crmBrands.nextFollowUpAt,
       notes: crmBrands.notes,
+      // Brand identity
+      logoUrl:        crmBrands.logoUrl,
+      mainUrl:        crmBrands.mainUrl,
+      category:       crmBrands.category,
+      corporateColor: crmBrands.corporateColor,
       createdAt: crmBrands.createdAt,
       updatedAt: crmBrands.updatedAt,
       // Rate cards & workspace defaults
