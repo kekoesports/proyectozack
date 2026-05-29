@@ -85,19 +85,6 @@ export default async function CaseStudyPage({ params }: PageProps) {
     author: { '@type': 'Organization', '@id': absoluteUrl('/#organization') },
     publisher: { '@type': 'Organization', '@id': absoluteUrl('/#organization') },
     mainEntityOfPage: { '@type': 'WebPage', '@id': absoluteUrl(`/casos/${slug}`) },
-    ...(cs.spokespersonQuote && cs.spokespersonName
-      ? {
-          review: {
-            '@type': 'Review',
-            reviewBody: cs.spokespersonQuote,
-            author: {
-              '@type': 'Person',
-              name: cs.spokespersonName,
-              jobTitle: cs.spokespersonRole ?? undefined,
-            },
-          },
-        }
-      : {}),
   };
 
   return (
