@@ -76,3 +76,6 @@ screenshots/
 .claude/skills/socialpro-creator-targets/runs/*.md
 !.claude/skills/socialpro-creator-targets/runs/.gitkeep
 .env*.local
+
+# Local video teaser scripts + generated clips/outputs (experimental, no van al repo)
+scripts/video-teaser/
