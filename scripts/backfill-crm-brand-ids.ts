@@ -6,10 +6,24 @@
  *   npx tsx scripts/backfill-crm-brand-ids.ts           # dry-run (solo reporta)
  *   npx tsx scripts/backfill-crm-brand-ids.ts --apply   # aplica los cambios
  */
-import { db } from '../src/lib/db';
-import { crmBrands, giveaways, creatorCodes } from '../src/db/schema';
-import { isNull } from 'drizzle-orm';
-import { eq } from 'drizzle-orm';
+
+import { config as dotenvConfig } from 'dotenv';
+import { join } from 'path';
+// Carga .env.local antes de leer process.env (dotenv maneja CRLF, comillas, etc.)
+dotenvConfig({ path: join(process.cwd(), '.env.local') });
+
+import { neon } from '@neondatabase/serverless';
+import { drizzle } from 'drizzle-orm/neon-http';
+import { eq, isNull } from 'drizzle-orm';
+import * as schema from '../src/db/schema/index';
+
+const DATABASE_URL = process.env.DATABASE_URL;
+if (!DATABASE_URL) {
+  console.error('DATABASE_URL no configurado. Añádelo a .env.local primero.');
+  process.exit(1);
+}
+
+const db = drizzle(neon(DATABASE_URL), { schema });
 
 const APPLY = process.argv.includes('--apply');
 
@@ -21,10 +35,10 @@ async function backfill(): Promise<void> {
   console.log(APPLY ? '▶  APPLY mode' : '▶  DRY-RUN mode (pass --apply to write changes)');
   console.log('');
 
-  // 1. Cargar todas las marcas CRM (nombre → id). Si hay duplicados de nombre normalizado, ambiguo.
+  // 1. Cargar todas las marcas CRM. Si hay duplicados de nombre normalizado → ambiguo.
   const allCrmBrands = await db
-    .select({ id: crmBrands.id, name: crmBrands.name })
-    .from(crmBrands);
+    .select({ id: schema.crmBrands.id, name: schema.crmBrands.name })
+    .from(schema.crmBrands);
 
   const nameToId = new Map<string, number>();
   const ambiguous = new Set<string>();
@@ -47,9 +61,9 @@ async function backfill(): Promise<void> {
 
   // 2. Backfill giveaways
   const pendingGiveaways = await db
-    .select({ id: giveaways.id, brandName: giveaways.brandName })
-    .from(giveaways)
-    .where(isNull(giveaways.crmBrandId));
+    .select({ id: schema.giveaways.id, brandName: schema.giveaways.brandName })
+    .from(schema.giveaways)
+    .where(isNull(schema.giveaways.crmBrandId));
 
   let gUpdated = 0;
   const gUnmatched: string[] = [];
@@ -58,7 +72,7 @@ async function backfill(): Promise<void> {
     const crmBrandId = nameToId.get(normalize(row.brandName));
     if (crmBrandId !== undefined) {
       if (APPLY) {
-        await db.update(giveaways).set({ crmBrandId }).where(eq(giveaways.id, row.id));
+        await db.update(schema.giveaways).set({ crmBrandId }).where(eq(schema.giveaways.id, row.id));
       }
       console.log(`  [giveaway #${row.id}] "${row.brandName}" → crm_brand_id=${crmBrandId}${APPLY ? ' ✓' : ' (dry)'}`);
       gUpdated++;
@@ -69,9 +83,9 @@ async function backfill(): Promise<void> {
 
   // 3. Backfill creator_codes
   const pendingCodes = await db
-    .select({ id: creatorCodes.id, brandName: creatorCodes.brandName })
-    .from(creatorCodes)
-    .where(isNull(creatorCodes.crmBrandId));
+    .select({ id: schema.creatorCodes.id, brandName: schema.creatorCodes.brandName })
+    .from(schema.creatorCodes)
+    .where(isNull(schema.creatorCodes.crmBrandId));
 
   let cUpdated = 0;
   const cUnmatched: string[] = [];
@@ -80,7 +94,7 @@ async function backfill(): Promise<void> {
     const crmBrandId = nameToId.get(normalize(row.brandName));
     if (crmBrandId !== undefined) {
       if (APPLY) {
-        await db.update(creatorCodes).set({ crmBrandId }).where(eq(creatorCodes.id, row.id));
+        await db.update(schema.creatorCodes).set({ crmBrandId }).where(eq(schema.creatorCodes.id, row.id));
       }
       console.log(`  [code #${row.id}] "${row.brandName}" → crm_brand_id=${crmBrandId}${APPLY ? ' ✓' : ' (dry)'}`);
       cUpdated++;
