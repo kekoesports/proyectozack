@@ -6,7 +6,7 @@ import { TalentSection } from '@/features/marketing-site/components/TalentSectio
 import { absoluteUrl, SITE_URL, schemaImageUrl } from '@/lib/site-url';
 import { buildBreadcrumbJsonLd } from '@/lib/utils/breadcrumbs';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 3600;
 
 export const metadata: Metadata = {
   title: 'Streamers y Creadores Gaming de Élite',

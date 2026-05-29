@@ -95,7 +95,7 @@ export function NosotrosHero({ brands }: Props) {
 
               {/* 3 logos — espaciados, monocromo, sin contenedor */}
               <div className="flex items-center gap-8">
-                {showBrands.slice(0, 3).map((brand) => (
+                {showBrands.slice(0, 3).map((brand, i) => (
                   brand.logoUrl ? (
                     <Image
                       key={brand.id}
@@ -103,6 +103,7 @@ export function NosotrosHero({ brands }: Props) {
                       alt={brand.displayName}
                       width={80}
                       height={28}
+                      priority={i < 3}
                       className="h-6 w-auto max-w-[70px] object-contain opacity-80"
                     />
                   ) : null
