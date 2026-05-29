@@ -2,7 +2,7 @@ import type { MetadataRoute } from 'next';
 
 import { getCaseSlugs } from '@/lib/queries/cases';
 import { getTalentSlugs } from '@/lib/queries/talents';
-import { getPostSlugs, getNewsSlugs, getNewsUniqueTags } from '@/lib/queries/posts';
+import { getPostSlugs, getNewsSlugs } from '@/lib/queries/posts';
 import { SITE_URL, absoluteUrl } from '@/lib/site-url';
 import { getBrandSlugs } from '@/lib/brands';
 
@@ -26,12 +26,11 @@ const D = {
 } as const;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [cases, talentSlugs, postSlugs, newsSlugs, newsTags] = await Promise.all([
+  const [cases, talentSlugs, postSlugs, newsSlugs] = await Promise.all([
     getCaseSlugs(),
     getTalentSlugs(),
     getPostSlugs(),
     getNewsSlugs(),
-    getNewsUniqueTags(),
   ]);
 
   const caseEntries: MetadataRoute.Sitemap = cases.map((c) => ({
@@ -54,11 +53,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const newsEntries: MetadataRoute.Sitemap = newsSlugs.map((p) => ({
     url: absoluteUrl(`/news/${p.slug}`),
     lastModified: p.updatedAt,
-  }));
-
-  const newsTagEntries: MetadataRoute.Sitemap = newsTags.map((tag) => ({
-    url: absoluteUrl(`/news?tag=${encodeURIComponent(tag)}`),
-    lastModified: NOW,
   }));
 
   // ── Marketing core bilingual pairs ────────────────────────────────────────
@@ -201,6 +195,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...talentEntries,
     ...postEntries,
     ...newsEntries,
-    ...newsTagEntries,
   ];
 }
