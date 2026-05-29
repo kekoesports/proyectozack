@@ -80,6 +80,7 @@ export async function createGiveaway(data: {
   startsAt: Date;
   endsAt?: Date | null;
   sortOrder?: number;
+  crmBrandId?: number | null;
 }): Promise<Giveaway> {
   const [row] = await db.insert(giveaways).values(data).returning();
   if (!row) throw new Error('createGiveaway: insert returned no row');

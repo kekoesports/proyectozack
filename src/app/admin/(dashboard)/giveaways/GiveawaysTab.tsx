@@ -12,13 +12,13 @@ import {
   setGiveawayBadgeFromFormAction,
 } from './actions';
 import type { GiveawayWithTalent } from '@/types';
-import type { BrandCatalogEntry } from './brand-actions';
+import type { CrmBrandPickerEntry } from '@/lib/queries/crmBrands';
 
 type StatusFilter = 'all' | 'active' | 'finished';
 
 type Props = {
   readonly giveaways: readonly GiveawayWithTalent[];
-  readonly brands:    readonly BrandCatalogEntry[];
+  readonly brands:    readonly CrmBrandPickerEntry[];
   readonly onNewGiveaway: () => void;
 };
 
@@ -177,7 +177,7 @@ export function GiveawaysTab({ giveaways, brands, onNewGiveaway }: Props): React
 
 type RowProps = {
   readonly giveaway: GiveawayWithTalent;
-  readonly brands:   readonly BrandCatalogEntry[];
+  readonly brands:   readonly CrmBrandPickerEntry[];
 };
 
 function GiveawayRow({ giveaway: g, brands }: RowProps): React.ReactElement {

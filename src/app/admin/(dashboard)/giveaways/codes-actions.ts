@@ -42,7 +42,7 @@ export async function createCodeAction(formData: FormData): Promise<CodeActionSt
     return { ok: false, fieldErrors: parsed.fieldErrors };
   }
 
-  const { talentId, talentSlug, code, brandName, brandLogo, redirectUrl, description, badge, isFeatured, category, ctaText } = parsed.data;
+  const { talentId, talentSlug, code, brandName, brandLogo, redirectUrl, description, badge, isFeatured, category, ctaText, crmBrandId } = parsed.data;
 
   await createCode({
     talentId,
@@ -55,6 +55,7 @@ export async function createCodeAction(formData: FormData): Promise<CodeActionSt
     isFeatured,
     category:    category    ?? null,
     ctaText:     ctaText     ?? null,
+    crmBrandId:  crmBrandId  ?? null,
   });
 
   revalidateAll(talentSlug);
@@ -70,7 +71,7 @@ export async function updateCodeAction(formData: FormData): Promise<CodeActionSt
     return { ok: false, fieldErrors: parsed.fieldErrors };
   }
 
-  const { id, talentId, talentSlug, code, brandName, brandLogo, redirectUrl, description, badge, isFeatured, category, ctaText } = parsed.data;
+  const { id, talentId, talentSlug, code, brandName, brandLogo, redirectUrl, description, badge, isFeatured, category, ctaText, crmBrandId } = parsed.data;
 
   await updateCode(id, {
     talentId,
@@ -83,6 +84,7 @@ export async function updateCodeAction(formData: FormData): Promise<CodeActionSt
     isFeatured,
     category:    category    ?? null,
     ctaText:     ctaText     ?? null,
+    crmBrandId:  crmBrandId  ?? null,
   });
 
   revalidateAll(talentSlug);

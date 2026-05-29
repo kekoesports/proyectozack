@@ -58,17 +58,18 @@ export async function createGiveawayAction(formData: FormData): Promise<Giveaway
   }
 
   await createGiveaway({
-    talentId: parsed.data.talentId,
-    title: parsed.data.title,
+    talentId:    parsed.data.talentId,
+    title:       parsed.data.title,
     description: parsed.data.description ?? null,
-    imageUrl: parsed.data.imageUrl ?? null,
-    brandName: parsed.data.brandName,
-    brandLogo: parsed.data.brandLogo ?? null,
-    value: parsed.data.value ?? null,
+    imageUrl:    parsed.data.imageUrl    ?? null,
+    brandName:   parsed.data.brandName,
+    brandLogo:   parsed.data.brandLogo  ?? null,
+    value:       parsed.data.value      ?? null,
     redirectUrl: parsed.data.redirectUrl,
-    startsAt: parsed.data.startsAt,
-    endsAt: parsed.data.endsAt ?? null,
-    sortOrder: parsed.data.sortOrder,
+    startsAt:    parsed.data.startsAt,
+    endsAt:      parsed.data.endsAt     ?? null,
+    sortOrder:   parsed.data.sortOrder,
+    crmBrandId:  parsed.data.crmBrandId ?? null,
   });
 
   revalidateGiveawayPaths(parsed.data.talentSlug);

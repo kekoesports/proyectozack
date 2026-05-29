@@ -68,6 +68,7 @@ export async function createCode(data: {
   category?: string | null;
   ctaText?: string | null;
   sortOrder?: number;
+  crmBrandId?: number | null;
 }): Promise<CreatorCode> {
   const [row] = await db.insert(creatorCodes).values(data).returning();
   if (!row) throw new Error('createCode: insert returned no row');
@@ -95,6 +96,7 @@ export async function updateCode(
     category: string | null;
     ctaText: string | null;
     sortOrder: number;
+    crmBrandId: number | null;
   }>,
 ): Promise<void> {
   await db.update(creatorCodes).set(data).where(eq(creatorCodes.id, id));

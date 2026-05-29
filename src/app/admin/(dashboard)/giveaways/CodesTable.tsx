@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { EditCodeModal } from './EditCodeModal';
 import { deleteCodeAction, setCodeFeaturedAction } from './codes-actions';
 import { DeleteConfirmButton } from './DeleteConfirmButton';
-import type { BrandCatalogEntry } from './brand-actions';
+import type { CrmBrandPickerEntry } from '@/lib/queries/crmBrands';
 import type { CreatorCodeWithTalent } from '@/types';
 
 type Talent = { readonly id: number; readonly name: string };
@@ -12,7 +12,7 @@ type Talent = { readonly id: number; readonly name: string };
 type Props = {
   readonly codes:        readonly CreatorCodeWithTalent[];
   readonly talents:      readonly Talent[];
-  readonly brandCatalog?: readonly BrandCatalogEntry[];
+  readonly brandCatalog?: readonly CrmBrandPickerEntry[];
 };
 
 export function CodesTable({ codes, talents, brandCatalog = [] }: Props): React.ReactElement {

@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react';
 import { updateGiveawayAction } from './actions';
 import { BrandPicker } from './BrandPicker';
-import type { BrandCatalogEntry } from './brand-actions';
+import type { CrmBrandPickerEntry } from '@/lib/queries/crmBrands';
 
 type Giveaway = {
   id: number;
@@ -17,6 +17,7 @@ type Giveaway = {
   startsAt: Date;
   endsAt: Date | null;
   sortOrder: number;
+  crmBrandId: number | null;
   talent: { id: number; slug: string; name: string };
 };
 
@@ -29,7 +30,7 @@ function toLocalDatetime(date: Date | null): string {
   return new Date(date.getTime() - offset).toISOString().slice(0, 16);
 }
 
-export function EditGiveawayModal({ giveaway, brandCatalog = [] }: { giveaway: Giveaway; brandCatalog?: readonly BrandCatalogEntry[] }) {
+export function EditGiveawayModal({ giveaway, brandCatalog = [] }: { giveaway: Giveaway; brandCatalog?: readonly CrmBrandPickerEntry[] }) {
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
@@ -45,6 +46,7 @@ export function EditGiveawayModal({ giveaway, brandCatalog = [] }: { giveaway: G
   const [startsAt,    setStartsAt]    = useState(toLocalDatetime(giveaway.startsAt));
   const [endsAt,      setEndsAt]      = useState(toLocalDatetime(giveaway.endsAt));
   const [sortOrder,   setSortOrder]   = useState(String(giveaway.sortOrder));
+  const [crmBrandId,  setCrmBrandId]  = useState<number | null>(giveaway.crmBrandId ?? null);
 
   const err = (field: string) => fieldErrors[field]?.[0];
 
@@ -67,6 +69,7 @@ export function EditGiveawayModal({ giveaway, brandCatalog = [] }: { giveaway: G
     fd.set('startsAt',    startsAt);
     fd.set('endsAt',      endsAt);
     fd.set('sortOrder',   sortOrder);
+    if (crmBrandId !== null) fd.set('crmBrandId', String(crmBrandId));
 
     startTransition(async () => {
       const res = await updateGiveawayAction(fd);
@@ -125,12 +128,13 @@ export function EditGiveawayModal({ giveaway, brandCatalog = [] }: { giveaway: G
                     brands={brandCatalog}
                     onSelect={(b) => {
                       setBrandName(b.name);
+                      setCrmBrandId(b.id);
                       if (b.logoUrl) setBrandLogo(b.logoUrl);
                     }}
                     placeholder={brandName || 'Seleccionar marca…'}
                   />
                 ) : (
-                  <input value={brandName} onChange={(e) => setBrandName(e.target.value)} required maxLength={150} className={inputCls} />
+                  <input value={brandName} onChange={(e) => { setBrandName(e.target.value); setCrmBrandId(null); }} required maxLength={150} className={inputCls} />
                 )}
                 {err('brandName') && <p className="text-xs text-red-400 mt-1">{err('brandName')}</p>}
               </div>

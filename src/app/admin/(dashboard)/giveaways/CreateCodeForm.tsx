@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react';
 import { createCodeAction } from './codes-actions';
 import { BrandPicker } from './BrandPicker';
-import type { BrandCatalogEntry } from './brand-actions';
+import type { CrmBrandPickerEntry } from '@/lib/queries/crmBrands';
 
 type Talent = { readonly id: number; readonly name: string; readonly slug?: string };
 
@@ -35,7 +35,7 @@ const MAX_VARIANTS = 3;
 
 type SubmitResult = { variantIdx: number; ok: boolean; error?: string };
 
-export function CreateCodeForm({ talents, brandCatalog = [] }: { talents: readonly Talent[]; brandCatalog?: readonly BrandCatalogEntry[] }): React.ReactElement {
+export function CreateCodeForm({ talents, brandCatalog = [] }: { talents: readonly Talent[]; brandCatalog?: readonly CrmBrandPickerEntry[] }): React.ReactElement {
   const [isPending, startTransition] = useTransition();
 
   // Datos compartidos de la marca
@@ -47,6 +47,7 @@ export function CreateCodeForm({ talents, brandCatalog = [] }: { talents: readon
   const [badge,       setBadge]       = useState('');
   const [category,    setCategory]    = useState('');
   const [isFeatured,  setIsFeatured]  = useState(false);
+  const [crmBrandId,  setCrmBrandId]  = useState<number | null>(null);
 
   // Variantes de código (mismo brand, distintos codes+descriptions)
   const [variants, setVariants] = useState<CodeVariant[]>([EMPTY_VARIANT()]);
@@ -92,6 +93,7 @@ export function CreateCodeForm({ talents, brandCatalog = [] }: { talents: readon
         fd.set('ctaText',     ctaText);
         fd.set('badge',       badge);
         fd.set('category',    category);
+        if (crmBrandId !== null) fd.set('crmBrandId', String(crmBrandId));
         if (isFeatured) fd.set('isFeatured', 'on');
 
         const res = await createCodeAction(fd);
@@ -108,6 +110,7 @@ export function CreateCodeForm({ talents, brandCatalog = [] }: { talents: readon
       if (allOk) {
         // Reset solo códigos; mantener brand por si quieren añadir más
         setVariants([EMPTY_VARIANT()]);
+        setResults([]);
       }
     });
   }
@@ -139,8 +142,9 @@ export function CreateCodeForm({ talents, brandCatalog = [] }: { talents: readon
               brands={brandCatalog}
               onSelect={(b) => {
                 setBrandName(b.name);
+                setCrmBrandId(b.id);
                 if (b.logoUrl) setBrandLogo(b.logoUrl);
-                if (b.defaultUrl) setRedirectUrl(b.defaultUrl);
+                if (b.mainUrl) setRedirectUrl(b.mainUrl);
                 if (b.category) setCategory(b.category);
               }}
               placeholder="Buscar marca guardada…"
@@ -152,7 +156,7 @@ export function CreateCodeForm({ talents, brandCatalog = [] }: { talents: readon
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div>
             <label className={labelCls}>Marca *</label>
-            <input value={brandName} onChange={(e) => setBrandName(e.target.value)} required maxLength={150} placeholder="SkinClub" className={inputCls} />
+            <input value={brandName} onChange={(e) => { setBrandName(e.target.value); setCrmBrandId(null); }} required maxLength={150} placeholder="SkinClub" className={inputCls} />
           </div>
           <div>
             <label className={labelCls}>URL de redirección *</label>
