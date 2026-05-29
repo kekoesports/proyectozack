@@ -140,9 +140,12 @@ export default async function TalentPage({ params }: PageProps) {
     ...(talent.bio || talent.bioLong ? { description: (talent.bio ?? talent.bioLong ?? '').trim().slice(0, 500) } : {}),
     ...(schemaImageUrl(talent.photoUrl) ? { image: schemaImageUrl(talent.photoUrl) } : {}),
     ...(talent.tags.length > 0 ? { knowsAbout: talent.tags.map((t) => t.tag) } : {}),
-    interactionStatistic: talent.socials
-      .filter((s) => s.followersDisplay && s.followersDisplay !== '-')
-      .map((s) => ({ '@type': 'InteractionCounter', interactionType: 'https://schema.org/FollowAction', userInteractionCount: parseFollowers(s.followersDisplay), name: s.platform })),
+    ...((() => {
+      const stats = talent.socials
+        .filter((s) => s.followersDisplay && s.followersDisplay !== '-')
+        .map((s) => ({ '@type': 'InteractionCounter', interactionType: 'https://schema.org/FollowAction', userInteractionCount: parseFollowers(s.followersDisplay), name: s.platform }));
+      return stats.length > 0 ? { interactionStatistic: stats } : {};
+    })()),
     worksFor: { '@type': 'Organization', '@id': absoluteUrl('/#organization') },
     sameAs: talent.socials.filter((s) => s.profileUrl).map((s) => s.profileUrl),
   };

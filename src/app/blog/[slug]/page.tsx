@@ -142,7 +142,7 @@ export default async function BlogPostPage({ params }: PageProps) {
     '@type': 'BlogPosting',
     '@id': absoluteUrl(`/blog/${slug}`),
     headline: post.title,
-    description: post.excerpt,
+    ...(post.excerpt ? { description: post.excerpt } : {}),
     url: absoluteUrl(`/blog/${slug}`),
     inLanguage: 'es',
     author: post.author && post.author !== 'SocialPro' && post.author !== 'Redacción'
