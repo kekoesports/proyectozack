@@ -82,6 +82,7 @@ const professionalServiceJsonLd = {
   '@type': 'ProfessionalService',
   '@id': `${SITE_URL}/servicios`,
   name: 'SocialPro — Agencia de Performance Marketing Gaming',
+  image: `${SITE_URL}/logo.png`,
   description:
     'Agencia especializada en performance influencer marketing gaming, esports e iGaming. Streamers de CS2, Valorant, Twitch y YouTube en España y LatAm.',
   url: `${SITE_URL}/servicios`,
