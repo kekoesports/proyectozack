@@ -207,6 +207,37 @@ export async function getContactsByBrandIds(
   return out;
 }
 
+// ── Picker (sorteos / creator-codes) ─────────────────────────────────────────
+
+export type CrmBrandPickerEntry = {
+  readonly id:       number;
+  readonly name:     string;
+  readonly logoUrl:  string | null;
+  readonly mainUrl:  string | null;
+  readonly category: string | null;
+};
+
+/**
+ * Lista marcas activas/pausadas para el picker de sorteos y códigos.
+ * Devuelve únicamente los campos necesarios para el dropdown (sin datos CRM).
+ *
+ * @cache none
+ * @visibility admin
+ */
+export async function listCrmBrandsForPicker(): Promise<CrmBrandPickerEntry[]> {
+  return db
+    .select({
+      id:       crmBrands.id,
+      name:     crmBrands.name,
+      logoUrl:  crmBrands.logoUrl,
+      mainUrl:  crmBrands.mainUrl,
+      category: crmBrands.category,
+    })
+    .from(crmBrands)
+    .where(inArray(crmBrands.status, ['activa', 'pausada']))
+    .orderBy(asc(crmBrands.name));
+}
+
 /**
  * Inserta una marca nueva en el CRM.
  *

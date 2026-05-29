@@ -1,24 +1,21 @@
 'use client';
 
 import { useState } from 'react';
-import type { BrandCatalogEntry } from './brand-actions';
+import Link from 'next/link';
+import type { CrmBrandPickerEntry } from '@/lib/queries/crmBrands';
 
 type Props = {
-  readonly brands:       readonly BrandCatalogEntry[];
-  readonly onSelect:     (brand: BrandCatalogEntry) => void;
+  readonly brands:       readonly CrmBrandPickerEntry[];
+  readonly onSelect:     (brand: CrmBrandPickerEntry) => void;
   readonly placeholder?: string;
 };
 
-/**
- * Dropdown con búsqueda para seleccionar una marca del catálogo.
- * Al seleccionar, llama a onSelect con los datos de la marca.
- */
-export function BrandPicker({ brands, onSelect, placeholder = 'Seleccionar marca del catálogo…' }: Props) {
-  const [query, setQuery]   = useState('');
-  const [open, setOpen]     = useState(false);
+export function BrandPicker({ brands, onSelect, placeholder = 'Seleccionar marca…' }: Props) {
+  const [query, setQuery] = useState('');
+  const [open, setOpen]   = useState(false);
 
   const filtered = brands.filter(b =>
-    b.isActive && b.name.toLowerCase().includes(query.toLowerCase())
+    b.name.toLowerCase().includes(query.toLowerCase())
   );
 
   return (
@@ -60,18 +57,17 @@ export function BrandPicker({ brands, onSelect, placeholder = 'Seleccionar marca
                 <p className="text-sm font-semibold text-sp-admin-text truncate">{b.name}</p>
                 {b.category && <p className="text-[10px] text-sp-admin-muted">{b.category}</p>}
               </div>
-              {b.defaultUrl && <span className="text-[10px] text-sp-admin-muted shrink-0">con URL ✓</span>}
+              {b.mainUrl && <span className="text-[10px] text-sp-admin-muted shrink-0">con URL ✓</span>}
             </button>
           ))}
           <div className="px-3 py-2 border-t border-sp-admin-border bg-sp-admin-bg/50">
             <p className="text-[10px] text-sp-admin-muted">
-              {filtered.length} marca{filtered.length !== 1 ? 's' : ''} · Gestionar en <a href="#marcas-catalogo" className="text-sp-admin-accent hover:underline">Catálogo de marcas</a>
+              {filtered.length} marca{filtered.length !== 1 ? 's' : ''} · Gestionar en <Link href="/admin/brands" className="text-sp-admin-accent hover:underline">CRM Marcas</Link>
             </p>
           </div>
         </div>
       )}
 
-      {/* Cerrar al hacer click fuera */}
       {open && <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />}
     </div>
   );

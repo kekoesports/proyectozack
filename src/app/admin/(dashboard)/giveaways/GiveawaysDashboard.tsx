@@ -13,6 +13,7 @@ import { CreateCodeForm } from './CreateCodeForm';
 import { CreateWinnerForm } from './CreateWinnerForm';
 import type { GiveawayWithTalent, CreatorCodeWithTalent, GiveawayWinnerWithGiveaway } from '@/types';
 import type { BrandCatalogEntry } from './brand-actions';
+import type { CrmBrandPickerEntry } from '@/lib/queries/crmBrands';
 
 type Tab = 'sorteos' | 'codigos' | 'ganadores' | 'marcas';
 
@@ -31,11 +32,12 @@ function parseTab(value: string | null): Tab {
 }
 
 type Props = {
-  readonly giveaways: readonly GiveawayWithTalent[];
-  readonly talents:   readonly GiveawayWithTalent['talent'][];
-  readonly codes:     readonly CreatorCodeWithTalent[];
-  readonly winners:   readonly GiveawayWinnerWithGiveaway[];
-  readonly brands:    readonly BrandCatalogEntry[];
+  readonly giveaways:   readonly GiveawayWithTalent[];
+  readonly talents:     readonly GiveawayWithTalent['talent'][];
+  readonly codes:       readonly CreatorCodeWithTalent[];
+  readonly winners:     readonly GiveawayWinnerWithGiveaway[];
+  readonly brands:      readonly CrmBrandPickerEntry[];    // para el picker
+  readonly brandCatalog: readonly BrandCatalogEntry[];     // para BrandsTab (brand_catalog)
 };
 
 export function GiveawaysDashboard({
@@ -44,6 +46,7 @@ export function GiveawaysDashboard({
   codes,
   winners,
   brands,
+  brandCatalog,
 }: Props): React.ReactElement {
   const searchParams  = useSearchParams();
   const router        = useRouter();
@@ -127,7 +130,7 @@ export function GiveawaysDashboard({
           />
         )}
         {activeTab === 'marcas' && (
-          <BrandsTab brands={brands} />
+          <BrandsTab brands={brandCatalog} />
         )}
       </div>
 

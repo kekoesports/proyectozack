@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react';
 import { updateCodeAction } from './codes-actions';
 import { BrandPicker } from './BrandPicker';
-import type { BrandCatalogEntry } from './brand-actions';
+import type { CrmBrandPickerEntry } from '@/lib/queries/crmBrands';
 import type { CreatorCodeWithTalent } from '@/types';
 
 type Talent = { readonly id: number; readonly name: string };
@@ -11,7 +11,7 @@ type Talent = { readonly id: number; readonly name: string };
 type Props = {
   readonly code: CreatorCodeWithTalent;
   readonly talents: readonly Talent[];
-  readonly brandCatalog?: readonly BrandCatalogEntry[];
+  readonly brandCatalog?: readonly CrmBrandPickerEntry[];
   readonly onClose: () => void;
 };
 
@@ -49,6 +49,7 @@ export function EditCodeModal({ code, talents, brandCatalog = [], onClose }: Pro
   const [category,    setCategory]    = useState(code.category ?? '');
   const [ctaText,     setCtaText]     = useState(code.ctaText ?? '');
   const [isFeatured,  setIsFeatured]  = useState(code.isFeatured);
+  const [crmBrandId,  setCrmBrandId]  = useState<number | null>(code.crmBrandId ?? null);
 
   const handleSubmit = (e: React.FormEvent): void => {
     e.preventDefault();
@@ -65,6 +66,7 @@ export function EditCodeModal({ code, talents, brandCatalog = [], onClose }: Pro
     fd.set('badge',       badge);
     fd.set('category',    category);
     fd.set('ctaText',     ctaText);
+    if (crmBrandId !== null) fd.set('crmBrandId', String(crmBrandId));
     if (isFeatured) fd.set('isFeatured', 'on');
 
     startTransition(async () => {
@@ -100,13 +102,14 @@ export function EditCodeModal({ code, talents, brandCatalog = [], onClose }: Pro
                 brands={brandCatalog}
                 onSelect={(b) => {
                   setBrandName(b.name);
+                  setCrmBrandId(b.id);
                   if (b.logoUrl) setBrandLogo(b.logoUrl);
-                  if (b.defaultUrl) setRedirectUrl(b.defaultUrl);
+                  if (b.mainUrl) setRedirectUrl(b.mainUrl);
                 }}
                 placeholder={brandName || 'Seleccionar marca…'}
               />
             ) : (
-              <input value={brandName} onChange={(e) => setBrandName(e.target.value)} required maxLength={150} className={inputCls} />
+              <input value={brandName} onChange={(e) => { setBrandName(e.target.value); setCrmBrandId(null); }} required maxLength={150} className={inputCls} />
             )}
           </div>
           <div>

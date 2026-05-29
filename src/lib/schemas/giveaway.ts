@@ -51,17 +51,18 @@ const checkboxOn = z.preprocess(
 );
 
 export const CreateCodeFormSchema = z.object({
-  talentId:   IdSchema,
-  talentSlug: emptyStringToUndef(z.string().max(150)),
-  code: z.string().trim().min(1, 'Código obligatorio').max(100),
-  brandName: z.string().trim().min(1, 'Marca obligatoria').max(150),
-  brandLogo: emptyStringToUndef(z.url().max(500)),
+  talentId:    IdSchema,
+  talentSlug:  emptyStringToUndef(z.string().max(150)),
+  code:        z.string().trim().min(1, 'Código obligatorio').max(100),
+  brandName:   z.string().trim().min(1, 'Marca obligatoria').max(150),
+  brandLogo:   emptyStringToUndef(z.url().max(500)),
   redirectUrl: safeRedirectUrl(),
   description: emptyStringToUndef(z.string().max(300)),
-  badge: emptyStringToUndef(BadgeSchema),
-  isFeatured: checkboxOn,
-  category: emptyStringToUndef(z.string().max(50)),
-  ctaText: emptyStringToUndef(z.string().max(100)),
+  badge:       emptyStringToUndef(BadgeSchema),
+  isFeatured:  checkboxOn,
+  category:    emptyStringToUndef(z.string().max(50)),
+  ctaText:     emptyStringToUndef(z.string().max(100)),
+  crmBrandId:  emptyStringToUndef(z.coerce.number().int().positive()),
 });
 export type CreateCodeFormInput = z.infer<typeof CreateCodeFormSchema>;
 
@@ -78,6 +79,7 @@ export const UpdateCodeFormSchema = z.object({
   isFeatured:  checkboxOn,
   category:    emptyStringToUndef(z.string().max(50)),
   ctaText:     emptyStringToUndef(z.string().max(100)),
+  crmBrandId:  emptyStringToUndef(z.coerce.number().int().positive()),
 });
 export type UpdateCodeFormInput = z.infer<typeof UpdateCodeFormSchema>;
 
@@ -100,21 +102,22 @@ export const DeleteGiveawaySchema = z.object({
 
 export const CreateGiveawayFormSchema = z
   .object({
-    talentId: IdSchema,
-    title: z.string().trim().min(1, 'Título obligatorio').max(200),
+    talentId:    IdSchema,
+    title:       z.string().trim().min(1, 'Título obligatorio').max(200),
     description: emptyStringToUndef(z.string().max(500)),
-    imageUrl: emptyStringToUndef(z.url().max(500)),
-    brandName: z.string().trim().min(1, 'Marca obligatoria').max(150),
-    brandLogo: emptyStringToUndef(z.url().max(500)),
-    value: emptyStringToUndef(z.string().max(50)),
+    imageUrl:    emptyStringToUndef(z.url().max(500)),
+    brandName:   z.string().trim().min(1, 'Marca obligatoria').max(150),
+    brandLogo:   emptyStringToUndef(z.url().max(500)),
+    value:       emptyStringToUndef(z.string().max(50)),
     redirectUrl: safeRedirectUrl(),
-    talentSlug: emptyStringToUndef(z.string().max(150)),
-    startsAt: z.coerce.date(),
-    endsAt: z.preprocess(
+    talentSlug:  emptyStringToUndef(z.string().max(150)),
+    startsAt:    z.coerce.date(),
+    endsAt:      z.preprocess(
       (v) => (typeof v === 'string' && v.trim() === '' ? undefined : v),
       z.coerce.date().optional(),
     ),
-    sortOrder: z.coerce.number().int().default(0),
+    sortOrder:   z.coerce.number().int().default(0),
+    crmBrandId:  emptyStringToUndef(z.coerce.number().int().positive()),
   })
   .refine((d) => !d.endsAt || d.startsAt < d.endsAt, {
     message: 'La fecha de fin debe ser posterior al inicio',
@@ -124,22 +127,23 @@ export type CreateGiveawayFormInput = z.infer<typeof CreateGiveawayFormSchema>;
 
 export const UpdateGiveawayFormSchema = z
   .object({
-    id: IdSchema,
-    talentId: IdSchema,
-    talentSlug: emptyStringToUndef(z.string().max(150)),
-    title: z.string().trim().min(1, 'Título obligatorio').max(200),
+    id:          IdSchema,
+    talentId:    IdSchema,
+    talentSlug:  emptyStringToUndef(z.string().max(150)),
+    title:       z.string().trim().min(1, 'Título obligatorio').max(200),
     description: emptyStringToUndef(z.string().max(500)),
-    imageUrl: emptyStringToUndef(z.url().max(500)),
-    brandName: z.string().trim().min(1, 'Marca obligatoria').max(150),
-    brandLogo: emptyStringToUndef(z.url().max(500)),
-    value: emptyStringToUndef(z.string().max(50)),
+    imageUrl:    emptyStringToUndef(z.url().max(500)),
+    brandName:   z.string().trim().min(1, 'Marca obligatoria').max(150),
+    brandLogo:   emptyStringToUndef(z.url().max(500)),
+    value:       emptyStringToUndef(z.string().max(50)),
     redirectUrl: safeRedirectUrl(),
-    startsAt: z.coerce.date(),
-    endsAt: z.preprocess(
+    startsAt:    z.coerce.date(),
+    endsAt:      z.preprocess(
       (v) => (typeof v === 'string' && v.trim() === '' ? undefined : v),
       z.coerce.date().optional(),
     ),
-    sortOrder: z.coerce.number().int().default(0),
+    sortOrder:   z.coerce.number().int().default(0),
+    crmBrandId:  emptyStringToUndef(z.coerce.number().int().positive()),
   })
   .refine((d) => !d.endsAt || d.startsAt < d.endsAt, {
     message: 'La fecha de fin debe ser posterior al inicio',

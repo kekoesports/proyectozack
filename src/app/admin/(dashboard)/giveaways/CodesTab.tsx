@@ -2,12 +2,12 @@
 
 import { CodesTable } from './CodesTable';
 import type { CreatorCodeWithTalent, GiveawayWithTalent } from '@/types';
-import type { BrandCatalogEntry } from './brand-actions';
+import type { CrmBrandPickerEntry } from '@/lib/queries/crmBrands';
 
 type Props = {
   readonly codes:    readonly CreatorCodeWithTalent[];
   readonly talents:  readonly Pick<GiveawayWithTalent['talent'], 'id' | 'name' | 'slug'>[];
-  readonly brands:   readonly BrandCatalogEntry[];
+  readonly brands:   readonly CrmBrandPickerEntry[];
   readonly onNewCode: () => void;
 };
 
