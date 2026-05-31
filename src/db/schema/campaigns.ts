@@ -47,7 +47,8 @@ export const campaigns = pgTable('campaigns', {
   amountBrand: numeric('amount_brand', { precision: 12, scale: 2 }).notNull().default('0'),
   amountTalent: numeric('amount_talent', { precision: 12, scale: 2 }).notNull().default('0'),
 
-  amountInKind: numeric('amount_in_kind', { precision: 12, scale: 2 }),
+  amountInKindTalent: numeric('amount_in_kind_talent', { precision: 12, scale: 2 }),
+  amountInKindCommunity: numeric('amount_in_kind_community', { precision: 12, scale: 2 }),
 
   estimatedCostAgency: numeric('estimated_cost_agency', { precision: 12, scale: 2 }),
   estimatedMarginPct: numeric('estimated_margin_pct', { precision: 5, scale: 2 }),

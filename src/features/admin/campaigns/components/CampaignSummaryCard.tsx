@@ -90,6 +90,8 @@ export function CampaignSummaryCard({ campaign }: Props): React.ReactElement {
     talentPaid,
     totalInvoicedBrand,
     totalPaidTalent,
+    amountInKindTalent,
+    amountInKindCommunity,
   } = campaign;
 
   const amountBrandNum = Number(amountBrand);
@@ -193,6 +195,31 @@ export function CampaignSummaryCard({ campaign }: Props): React.ReactElement {
           />
         </div>
       </section>
+
+      {/* Valor en especie — solo si hay algún valor */}
+      {(amountInKindTalent !== null || amountInKindCommunity !== null) && (
+        <section className="rounded-2xl border border-sp-admin-border bg-sp-admin-card p-5">
+          <h2 className="font-bold text-sp-admin-text text-sm mb-4">Valor en especie <span className="font-normal text-sp-admin-muted text-xs">(no contabiliza como ingreso bancario)</span></h2>
+          <div className="grid grid-cols-3 gap-x-6 gap-y-5">
+            <Kpi
+              label="Skins / giveaways talento"
+              value={EUR.format(Number(amountInKindTalent ?? 0))}
+            />
+            <Kpi
+              label="Sorteos comunidad"
+              value={EUR.format(Number(amountInKindCommunity ?? 0))}
+            />
+            <Kpi
+              label="Total en especie"
+              value={
+                <span className="text-sp-admin-accent">
+                  {EUR.format(Number(amountInKindTalent ?? 0) + Number(amountInKindCommunity ?? 0))}
+                </span>
+              }
+            />
+          </div>
+        </section>
+      )}
 
       {/* Campaign details */}
       <section className="rounded-2xl border border-sp-admin-border bg-sp-admin-card p-5">

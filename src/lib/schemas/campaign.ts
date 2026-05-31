@@ -74,7 +74,11 @@ const baseCampaign = z.object({
   currency: z.enum(['EUR', 'USD']).default('EUR'),
   amountBrand: z.coerce.number().nonnegative().default(0),
   amountTalent: z.coerce.number().nonnegative().default(0),
-  amountInKind: z.preprocess(
+  amountInKindTalent: z.preprocess(
+    (v) => (typeof v === 'string' && v.trim() === '' ? undefined : v),
+    z.coerce.number().nonnegative().optional(),
+  ),
+  amountInKindCommunity: z.preprocess(
     (v) => (typeof v === 'string' && v.trim() === '' ? undefined : v),
     z.coerce.number().nonnegative().optional(),
   ),

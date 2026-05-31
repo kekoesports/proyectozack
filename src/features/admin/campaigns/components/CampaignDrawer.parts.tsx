@@ -394,21 +394,37 @@ export function CampaignForm({
         </div>
       </div>
 
-      {/* Valor en especie — giveaways / skins */}
-      <Field
-        label="Valor giveaways / skins (€)"
-        hint="Importe en especie ofrecido por la marca (no contabiliza como ingreso bancario)"
-      >
-        <input
-          type="number"
-          name="amountInKind"
-          min="0"
-          step="1"
-          defaultValue={campaign?.amountInKind ?? ''}
-          placeholder="0"
-          className={inputCls}
-        />
-      </Field>
+      {/* Valor en especie — separado en talento y comunidad */}
+      <div className="grid grid-cols-2 gap-3">
+        <Field
+          label="Skins / giveaways talento (€)"
+          hint="Valor en especie para el creador directamente"
+        >
+          <input
+            type="number"
+            name="amountInKindTalent"
+            min="0"
+            step="1"
+            defaultValue={campaign?.amountInKindTalent ?? ''}
+            placeholder="0"
+            className={inputCls}
+          />
+        </Field>
+        <Field
+          label="Sorteos comunidad (€)"
+          hint="Valor destinado a sorteos para la audiencia"
+        >
+          <input
+            type="number"
+            name="amountInKindCommunity"
+            min="0"
+            step="1"
+            defaultValue={campaign?.amountInKindCommunity ?? ''}
+            placeholder="0"
+            className={inputCls}
+          />
+        </Field>
+      </div>
 
       {/* Métodos de pago */}
       <div className="grid grid-cols-2 gap-3">
