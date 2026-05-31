@@ -23,13 +23,16 @@ export type CodeActionState =
   | { ok: true }
   | { ok: false; fieldErrors: Record<string, string[]> };
 
-function revalidateAll(talentSlug?: string): void {
+function revalidateAll(talentSlug?: string, talentId?: number): void {
   revalidatePath('/admin/giveaways');
   revalidatePath('/giveaways');
   if (talentSlug) {
     revalidatePath(`/talentos/${talentSlug}`);
     revalidatePath(`/creadores/${talentSlug}`);
     revalidatePath(`/${talentSlug}`);
+  }
+  if (talentId) {
+    revalidatePath(`/admin/talents/${talentId}`);
   }
 }
 
@@ -58,7 +61,7 @@ export async function createCodeAction(formData: FormData): Promise<CodeActionSt
     crmBrandId:  crmBrandId  ?? null,
   });
 
-  revalidateAll(talentSlug);
+  revalidateAll(talentSlug, talentId);
   return { ok: true };
 }
 
@@ -87,7 +90,7 @@ export async function updateCodeAction(formData: FormData): Promise<CodeActionSt
     crmBrandId:  crmBrandId  ?? null,
   });
 
-  revalidateAll(talentSlug);
+  revalidateAll(talentSlug, talentId);
   return { ok: true };
 }
 

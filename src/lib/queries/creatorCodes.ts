@@ -61,6 +61,25 @@ export async function getCodesByTalent(talentId: number): Promise<CreatorCodeRes
 }
 
 /**
+ * Lista todos los códigos de un talent con su talent asociado, para el panel admin de detalle.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns array de CreatorCodeWithTalent (puede ser vacío). Nunca null.
+ */
+export async function getAdminCodesByTalent(talentId: number): Promise<CreatorCodeWithTalent[]> {
+  const rows = await db.query.creatorCodes.findMany({
+    where: (c, { eq }) => eq(c.talentId, talentId),
+    with: { talent: true, crmBrand: true },
+    orderBy: (c, { desc, asc }) => [desc(c.isFeatured), asc(c.sortOrder)],
+  });
+  return rows.map(({ crmBrand, ...row }) => ({
+    ...row,
+    ctaUrl: resolveCtaUrl(row.redirectUrl, crmBrand?.mainUrl),
+  }));
+}
+
+/**
  * Inserta un nuevo código promocional en la BD, usado por el panel admin para asociar un brand a un talent.
  *
  * @cache none

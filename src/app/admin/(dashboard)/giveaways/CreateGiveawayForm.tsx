@@ -7,14 +7,14 @@ type Talent = { readonly id: number; readonly slug: string; readonly name: strin
 
 const inputCls = 'w-full rounded-lg border border-sp-admin-border bg-sp-admin-bg px-3 py-2 text-sm text-sp-admin-text outline-none focus:border-sp-admin-accent transition-colors';
 
-export function CreateGiveawayForm({ talents }: { talents: readonly Talent[] }): React.ReactElement {
+export function CreateGiveawayForm({ talents, defaultTalentId }: { talents: readonly Talent[]; defaultTalentId?: number }): React.ReactElement {
   const [isPending, startTransition] = useTransition();
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
   const [globalError,  setGlobalError]  = useState<string | null>(null);
   const [success,      setSuccess]      = useState(false);
 
   // Campos controlados — persisten cuando hay errores de validación
-  const [talentId,    setTalentId]    = useState('');
+  const [talentId,    setTalentId]    = useState(defaultTalentId ? String(defaultTalentId) : '');
   const [title,       setTitle]       = useState('');
   const [brandName,   setBrandName]   = useState('');
   const [value,       setValue]       = useState('');
@@ -53,7 +53,8 @@ export function CreateGiveawayForm({ talents }: { talents: readonly Talent[] }):
       if (res.ok) {
         setSuccess(true);
         // Limpiar solo en éxito
-        setTalentId(''); setTitle(''); setBrandName(''); setValue('');
+        if (!defaultTalentId) setTalentId('');
+        setTitle(''); setBrandName(''); setValue('');
         setRedirectUrl(''); setImageUrl(''); setBrandLogo('');
         setDescription(''); setStartsAt(''); setEndsAt('');
       } else {
@@ -64,14 +65,16 @@ export function CreateGiveawayForm({ talents }: { talents: readonly Talent[] }):
 
   return (
     <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div>
-        <label className="block text-sm font-semibold text-sp-admin-muted mb-1">Creador</label>
-        <select value={talentId} onChange={(e) => setTalentId(e.target.value)} required className={inputCls}>
-          <option value="">Seleccionar...</option>
-          {talents.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
-        </select>
-        {err('talentId') && <p className="text-xs text-red-400 mt-1">{err('talentId')}</p>}
-      </div>
+      {defaultTalentId ? null : (
+        <div>
+          <label className="block text-sm font-semibold text-sp-admin-muted mb-1">Creador</label>
+          <select value={talentId} onChange={(e) => setTalentId(e.target.value)} required className={inputCls}>
+            <option value="">Seleccionar...</option>
+            {talents.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
+          </select>
+          {err('talentId') && <p className="text-xs text-red-400 mt-1">{err('talentId')}</p>}
+        </div>
+      )}
 
       <div>
         <label className="block text-sm font-semibold text-sp-admin-muted mb-1">Título del premio</label>

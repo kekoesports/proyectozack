@@ -35,11 +35,11 @@ const MAX_VARIANTS = 3;
 
 type SubmitResult = { variantIdx: number; ok: boolean; error?: string };
 
-export function CreateCodeForm({ talents, brandCatalog = [] }: { talents: readonly Talent[]; brandCatalog?: readonly CrmBrandPickerEntry[] }): React.ReactElement {
+export function CreateCodeForm({ talents, brandCatalog = [], defaultTalentId }: { talents: readonly Talent[]; brandCatalog?: readonly CrmBrandPickerEntry[]; defaultTalentId?: number }): React.ReactElement {
   const [isPending, startTransition] = useTransition();
 
   // Datos compartidos de la marca
-  const [talentId,    setTalentId]    = useState('');
+  const [talentId,    setTalentId]    = useState(defaultTalentId ? String(defaultTalentId) : '');
   const [brandName,   setBrandName]   = useState('');
   const [redirectUrl, setRedirectUrl] = useState('');
   const [brandLogo,   setBrandLogo]   = useState('');
@@ -121,14 +121,16 @@ export function CreateCodeForm({ talents, brandCatalog = [] }: { talents: readon
     <form onSubmit={handleSubmit} className="space-y-5">
 
       {/* Creador */}
-      <div>
-        <label className={labelCls}>Creador *</label>
-        <select value={talentId} onChange={(e) => setTalentId(e.target.value)} required className={inputCls}>
-          <option value="">Seleccionar...</option>
-          {talents.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
-        </select>
-        {globalError && <p className="text-xs text-red-400 mt-1">{globalError}</p>}
-      </div>
+      {defaultTalentId ? null : (
+        <div>
+          <label className={labelCls}>Creador *</label>
+          <select value={talentId} onChange={(e) => setTalentId(e.target.value)} required className={inputCls}>
+            <option value="">Seleccionar...</option>
+            {talents.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
+          </select>
+        </div>
+      )}
+      {globalError && <p className="text-xs text-red-400">{globalError}</p>}
 
       {/* Datos de la marca (compartidos por todos los códigos) */}
       <div className="rounded-xl border border-sp-admin-border bg-sp-admin-card p-4 space-y-3">

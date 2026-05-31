@@ -38,13 +38,16 @@ export type GiveawayActionState =
  * no aparecían hasta 1h después de creación. Este helper es la única vía
  * autorizada.
  */
-function revalidateGiveawayPaths(talentSlug?: string | null): void {
+function revalidateGiveawayPaths(talentSlug?: string | null, talentId?: number): void {
   revalidatePath('/sorteos');
   revalidatePath('/giveaways');
   revalidatePath('/admin/giveaways');
   if (talentSlug) {
     revalidatePath(`/talentos/${talentSlug}`);
     revalidatePath(`/creadores/${talentSlug}`);
+  }
+  if (talentId) {
+    revalidatePath(`/admin/talents/${talentId}`);
   }
 }
 
@@ -72,7 +75,7 @@ export async function createGiveawayAction(formData: FormData): Promise<Giveaway
     crmBrandId:  parsed.data.crmBrandId ?? null,
   });
 
-  revalidateGiveawayPaths(parsed.data.talentSlug);
+  revalidateGiveawayPaths(parsed.data.talentSlug, parsed.data.talentId);
   return { ok: true };
 }
 
@@ -85,10 +88,10 @@ export async function updateGiveawayAction(formData: FormData): Promise<Giveaway
     return { ok: false, fieldErrors: parsed.fieldErrors };
   }
 
-  const { id, talentSlug, ...data } = parsed.data;
+  const { id, talentSlug, talentId, ...data } = parsed.data;
   await updateGiveaway(id, data);
 
-  revalidateGiveawayPaths(talentSlug);
+  revalidateGiveawayPaths(talentSlug, talentId);
   return { ok: true };
 }
 

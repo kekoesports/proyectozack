@@ -62,6 +62,21 @@ export async function getAllGiveaways(): Promise<GiveawayWithTalent[]> {
 }
 
 /**
+ * Lista todos los sorteos de un talent (sin filtro temporal) con su talent, para el panel admin de detalle.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns array de GiveawayWithTalent (puede ser vacío). Nunca null.
+ */
+export async function getAdminGiveawaysByTalent(talentId: number): Promise<GiveawayWithTalent[]> {
+  return db.query.giveaways.findMany({
+    where: (g, { eq }) => eq(g.talentId, talentId),
+    with: { talent: true },
+    orderBy: (g, { desc }) => [desc(g.createdAt)],
+  });
+}
+
+/**
  * Inserta un nuevo sorteo en la BD, invocado desde el panel admin.
  *
  * @cache none

@@ -14,6 +14,10 @@ import { TalentTagsEditor } from '@/features/admin/talents/components/TalentTags
 import { getTalentLiveStatus, getFeaturedFallbackCount } from '@/lib/queries/live';
 import { setFeaturedLiveAction, setFeaturedFallbackAction, setExcludeFromLiveAction } from '@/app/admin/(dashboard)/live/actions';
 import { setTalentPublishedAction } from '@/app/admin/(dashboard)/talents/actions';
+import { getAdminGiveawaysByTalent } from '@/lib/queries/giveaways';
+import { getAdminCodesByTalent } from '@/lib/queries/creatorCodes';
+import { listCrmBrandsForPicker } from '@/lib/queries/crmBrands';
+import { TalentGiveawaysSection } from '@/features/admin/talents/components/TalentGiveawaysSection';
 import type { TalentVertical } from '@/types';
 
 const PLATFORM_COLOR: Record<string, string> = {
@@ -52,7 +56,7 @@ export default async function TalentProfilePage({
     if (visible.length === 0) notFound();
   }
 
-  const [talent, business, verticals, campaigns, invoices, liveStatus, fallbackCount] = await Promise.all([
+  const [talent, business, verticals, campaigns, invoices, liveStatus, fallbackCount, giveaways, codes, brandCatalog] = await Promise.all([
     getTalentById(talentId),
     getTalentBusiness(talentId),
     getTalentVerticals(talentId),
@@ -60,6 +64,9 @@ export default async function TalentProfilePage({
     listInvoices({ talentId, ...(isStaffRole ? { staffUserId: session.user.id } : {}) }),
     getTalentLiveStatus(talentId),
     getFeaturedFallbackCount(),
+    getAdminGiveawaysByTalent(talentId),
+    getAdminCodesByTalent(talentId),
+    listCrmBrandsForPicker(),
   ]);
 
   if (!talent) notFound();
@@ -422,6 +429,16 @@ export default async function TalentProfilePage({
           )}
         </div>
       </div>
+
+      {/* ── Sorteos & Códigos ────────────────────────────────────────── */}
+      {!isStaffRole && (
+        <TalentGiveawaysSection
+          giveaways={giveaways}
+          codes={codes}
+          talent={{ id: talent.id, name: talent.name, slug: talent.slug }}
+          brandCatalog={brandCatalog}
+        />
+      )}
     </div>
   );
 }
