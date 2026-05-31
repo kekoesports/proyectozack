@@ -561,6 +561,13 @@
       "when": 1748700000000,
       "tag": "0079_split_amount_in_kind",
       "breakpoints": true
+    },
+    {
+      "idx": 80,
+      "version": "7",
+      "when": 1748800000000,
+      "tag": "0080_invoice_scope",
+      "breakpoints": true
     }
   ]
 }

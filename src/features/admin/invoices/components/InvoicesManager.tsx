@@ -10,7 +10,7 @@ import {
   INVOICE_STATUSES,
 } from '@/lib/schemas/invoice';
 
-import type { InvoiceWithRelations, InvoiceKind, InvoiceStatus } from '@/types';
+import type { InvoiceWithRelations, InvoiceKind, InvoiceScope, InvoiceStatus } from '@/types';
 import {
   BTN_PRIMARY,
   INPUT,
@@ -49,6 +49,7 @@ export function InvoicesManager({
   const [drawerOpen, setDrawerOpen]   = useState(false);
   const [editing, setEditing]         = useState<InvoiceWithRelations | null>(null);
   const [filterKind, setFilterKind]   = useState<'all' | InvoiceKind>('all');
+  const [filterScope, setFilterScope] = useState<'all' | InvoiceScope>('all');
   const [filterStatus, setFilterStatus] = useState<'all' | InvoiceStatus>('all');
   const [filterBrand, setFilterBrand]   = useState<string>('all');
   const [filterCampaign, setFilterCampaign] = useState<string>('all');
@@ -58,7 +59,8 @@ export function InvoicesManager({
   const filtered = useMemo(() => {
     let result = invoices;
     if (!showAnulled)      result = result.filter((i) => i.status !== 'anulada');
-    if (filterKind !== 'all')   result = result.filter((i) => i.kind === filterKind);
+    if (filterKind  !== 'all')  result = result.filter((i) => i.kind  === filterKind);
+    if (filterScope !== 'all')  result = result.filter((i) => i.scope === filterScope);
     if (filterStatus !== 'all') result = result.filter((i) => i.status === filterStatus);
     if (filterBrand !== 'all')  result = result.filter((i) => String(i.brandId ?? '') === filterBrand);
     if (filterCampaign !== 'all') result = result.filter((i) => String(i.campaignId ?? '') === filterCampaign);
@@ -75,7 +77,7 @@ export function InvoicesManager({
       );
     }
     return result;
-  }, [invoices, filterKind, filterStatus, filterBrand, filterCampaign, search, showAnulled]);
+  }, [invoices, filterKind, filterScope, filterStatus, filterBrand, filterCampaign, search, showAnulled]);
 
   const closeDrawer = (): void => {
     setDrawerOpen(false);
@@ -106,6 +108,11 @@ export function InvoicesManager({
             <option value="all">Todos los tipos</option>
             <option value="income">Ingresos</option>
             <option value="expense">Gastos</option>
+          </select>
+          <select value={filterScope} onChange={(e) => setFilterScope(e.target.value as 'all' | InvoiceScope)} className={INPUT}>
+            <option value="all">Todo (campaña + empresa)</option>
+            <option value="campaign">Solo campaña</option>
+            <option value="company">Solo empresa</option>
           </select>
           <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value as 'all' | InvoiceStatus)} className={INPUT}>
             <option value="all">Todos los estados</option>

@@ -5,6 +5,7 @@ import type {
   BillingKPIs,
   Invoice,
   InvoiceKind,
+  InvoiceScope,
   InvoiceStatus,
   InvoiceCompany,
   InvoicePaymentMethod,
@@ -16,6 +17,7 @@ import type {
 
 type InvoiceFilters = {
   readonly kind?: InvoiceKind;
+  readonly scope?: InvoiceScope;
   readonly status?: InvoiceStatus;
   readonly statuses?: readonly InvoiceStatus[];
   readonly from?: string;
@@ -37,6 +39,7 @@ type InvoiceFilters = {
 const INVOICE_LIST_COLUMNS = {
   id: invoices.id,
   kind: invoices.kind,
+  scope: invoices.scope,
   number: invoices.number,
   issueDate: invoices.issueDate,
   dueDate: invoices.dueDate,
@@ -113,6 +116,7 @@ async function attachFiles(rows: readonly InvoiceListRow[]): Promise<readonly In
 export async function listInvoices(filters: InvoiceFilters = {}): Promise<readonly InvoiceWithRelations[]> {
   const conds = [];
   if (filters.kind) conds.push(eq(invoices.kind, filters.kind));
+  if (filters.scope) conds.push(eq(invoices.scope, filters.scope));
   if (filters.status) conds.push(eq(invoices.status, filters.status));
   if (filters.statuses && filters.statuses.length > 0) conds.push(inArray(invoices.status, filters.statuses as InvoiceStatus[]));
   if (!filters.includeAnuladas && !filters.status && (!filters.statuses || filters.statuses.length === 0)) {
@@ -196,10 +200,11 @@ export async function getBillingKPIs(from?: string, to?: string): Promise<Billin
       expenseTotal: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind} = 'expense' AND ${invoices.status} != 'anulada' THEN ${invoices.totalAmount} ELSE 0 END), 0)::text`,
       pendingCobro: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind}='income' AND ${invoices.status} IN ('no_cobrado','pendiente','emitida','no_cobrada') THEN ${invoices.totalAmount} ELSE 0 END),0)::text`,
       pendingPago: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind}='expense' AND ${invoices.status} IN ('no_pagado','pendiente','emitida','no_pagada') THEN ${invoices.totalAmount} ELSE 0 END),0)::text`,
-      ingresosBanco: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind}='income' AND ${invoices.category}='Ingresos en banco' AND ${invoices.status}!='anulada' THEN ${invoices.totalAmount} ELSE 0 END),0)::text`,
-      ingresosCrypto: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind}='income' AND ${invoices.category}='Ingresos en crypto' AND ${invoices.status}!='anulada' THEN ${invoices.totalAmount} ELSE 0 END),0)::text`,
-      gastoEmpresa: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind}='expense' AND ${invoices.category}='Gastos empresa' AND ${invoices.status}!='anulada' THEN ${invoices.totalAmount} ELSE 0 END),0)::text`,
-      gastoCreador: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind}='expense' AND ${invoices.category}='Gastos creador' AND ${invoices.status}!='anulada' THEN ${invoices.totalAmount} ELSE 0 END),0)::text`,
+      gastosCampana: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind}='expense' AND ${invoices.scope}='campaign' AND ${invoices.status}!='anulada' THEN ${invoices.totalAmount} ELSE 0 END),0)::text`,
+      gastosEmpresa: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind}='expense' AND ${invoices.scope}='company' AND ${invoices.status}!='anulada' THEN ${invoices.totalAmount} ELSE 0 END),0)::text`,
+      incomeSettled: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind}='income' AND ${invoices.status} IN ('cobrada','pagada') THEN ${invoices.totalAmount} ELSE 0 END),0)::text`,
+      expenseCampanaSettled: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind}='expense' AND ${invoices.scope}='campaign' AND ${invoices.status} IN ('cobrada','pagada') THEN ${invoices.totalAmount} ELSE 0 END),0)::text`,
+      expenseEmpresaSettled: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind}='expense' AND ${invoices.scope}='company' AND ${invoices.status} IN ('cobrada','pagada') THEN ${invoices.totalAmount} ELSE 0 END),0)::text`,
     })
     .from(invoices)
     .where(conds.length > 0 ? and(...conds) : undefined);
@@ -208,16 +213,20 @@ export async function getBillingKPIs(from?: string, to?: string): Promise<Billin
 
   const incomeTotal = Number(row?.incomeTotal ?? 0);
   const expenseTotal = Number(row?.expenseTotal ?? 0);
+  const incomeSettled = Number(row?.incomeSettled ?? 0);
+  const gastosCampana = Number(row?.gastosCampana ?? 0);
+  const gastosEmpresa = Number(row?.gastosEmpresa ?? 0);
+  const expenseCampanaSettled = Number(row?.expenseCampanaSettled ?? 0);
+  const expenseEmpresaSettled = Number(row?.expenseEmpresaSettled ?? 0);
   return {
     incomeTotal,
     expenseTotal,
     netTotal: incomeTotal - expenseTotal,
     pendingCobro: Number(row?.pendingCobro ?? 0),
     pendingPago: Number(row?.pendingPago ?? 0),
-    ingresosBanco: Number(row?.ingresosBanco ?? 0),
-    ingresosCrypto: Number(row?.ingresosCrypto ?? 0),
-    gastoEmpresa: Number(row?.gastoEmpresa ?? 0),
-    gastoCreador: Number(row?.gastoCreador ?? 0),
+    gastosCampana,
+    gastosEmpresa,
+    beneficioNeto: incomeSettled - expenseCampanaSettled - expenseEmpresaSettled,
   };
 }
 

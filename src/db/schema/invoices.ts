@@ -18,6 +18,7 @@ import { files } from './files';
 import { campaigns } from './campaigns';
 
 export const invoiceKindEnum = pgEnum('invoice_kind', ['income', 'expense']);
+export const invoiceScopeEnum = pgEnum('invoice_scope', ['campaign', 'company']);
 export const invoiceStatusEnum = pgEnum('invoice_status', [
   'borrador',
   'emitida',
@@ -65,6 +66,7 @@ export const invoices = pgTable(
     id: serial('id').primaryKey(),
 
     kind: invoiceKindEnum('kind').notNull(),
+    scope: invoiceScopeEnum('scope').notNull(),
     number: varchar('number', { length: 60 }),
 
     issueDate: date('issue_date').notNull(),
@@ -128,6 +130,7 @@ export const invoices = pgTable(
     index('invoices_invoice_file_idx').on(t.invoiceFileId),
     index('invoices_statement_file_idx').on(t.statementFileId),
     index('invoices_campaign_idx').on(t.campaignId),
+    index('invoices_scope_idx').on(t.scope),
   ],
 );
 

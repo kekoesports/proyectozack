@@ -248,6 +248,7 @@ export async function updateInvoiceStatusAction(id: number, status: string): Pro
       if (!duplicate) {
         await createInvoice({
           kind:            'income',
+          scope:           inv.relatedDealId != null ? 'campaign' : 'company',
           concept:         conceptId,
           issueDate:       inv.issueDate ?? today,
           dueDate:         inv.dueDate  ?? undefined,

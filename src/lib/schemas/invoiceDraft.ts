@@ -97,6 +97,7 @@ export function draftToInvoiceInsert(
 ): NewInvoice {
   return {
     kind: input.kind,
+    scope: (input.brandId != null || input.talentId != null) ? 'campaign' : 'company',
     number: input.number ?? null,
     issueDate: input.issueDate,
     dueDate: input.dueDate ?? null,

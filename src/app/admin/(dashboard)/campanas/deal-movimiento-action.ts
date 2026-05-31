@@ -50,6 +50,7 @@ export async function addDealMovimientoAction(
 
   const invoice = await createInvoice({
     kind:              d.kind,
+    scope:             'campaign',
     concept:           d.concept,
     issueDate:         d.issueDate,
     status:            d.status,

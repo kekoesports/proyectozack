@@ -113,11 +113,11 @@ export default async function AdminInvoicesPage(): Promise<React.ReactElement> {
                   <KpiCard label="Pendiente pago"    value={fmt(kpis.pendingPago)}  accent="#e03070"
                     sub={kpis.pendingPago > 0 ? 'Gastos sin pagar' : undefined} subAccent="#f59e0b" />
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                  <KpiCard label="Ingresos en banco"  value={fmt(kpis.ingresosBanco)}  accent="#059669" />
-                  <KpiCard label="Ingresos en crypto" value={fmt(kpis.ingresosCrypto)} accent="#7c3aed" />
-                  <KpiCard label="Gastos empresa"     value={fmt(kpis.gastoEmpresa)}   accent="#d97706" />
-                  <KpiCard label="Gastos creadores"   value={fmt(kpis.gastoCreador)}   accent="#dc2626" />
+                <div className="grid grid-cols-3 gap-2">
+                  <KpiCard label="Gastos campaña"  value={fmt(kpis.gastosCampana)}  accent="#d97706" />
+                  <KpiCard label="Gastos empresa"  value={fmt(kpis.gastosEmpresa)}  accent="#7c3aed" />
+                  <KpiCard label="Beneficio neto"  value={fmt(kpis.beneficioNeto)}  accent={kpis.beneficioNeto >= 0 ? '#059669' : '#ef4444'}
+                    sub={kpis.beneficioNeto < 0 ? 'Gastos superan ingresos cobrados' : undefined} subAccent="#ef4444" />
                 </div>
                 <InvoicesManager
                   invoices={movements}

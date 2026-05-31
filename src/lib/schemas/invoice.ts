@@ -1,6 +1,12 @@
 import { z } from 'zod';
 
 export const INVOICE_KINDS = ['income', 'expense'] as const;
+export const INVOICE_SCOPES = ['campaign', 'company'] as const;
+
+export const INVOICE_SCOPE_LABELS: Record<(typeof INVOICE_SCOPES)[number], string> = {
+  campaign: 'Campaña',
+  company: 'Empresa',
+};
 export const INVOICE_STATUSES = [
   'borrador',
   'emitida',
@@ -57,19 +63,48 @@ export const BILLING_PAYMENT_METHODS = [
   'SocialPro Argentina',
 ] as const;
 
-export const BILLING_CATEGORIES = [
-  'Gastos empresa',
-  'Gastos creador',
-  'Ingresos en banco',
-  'Ingresos en crypto',
-  'Herramientas IA',
+export const COMPANY_EXPENSE_CATEGORIES = [
   'Software',
-  'Diseño',
-  'Edición',
-  'Nóminas',
-  'Gestoría',
+  'Laboral',
+  'Fiscal',
+  'Bancario',
+  'Marketing',
+  'Viajes',
+  'Equipamiento',
+  'Oficina',
+  'Hosting y dominios',
   'Impuestos',
+  'Formación',
+  'Herramientas IA',
+  'Gestoría',
   'Otros',
+] as const;
+
+export const CAMPAIGN_EXPENSE_CATEGORIES = [
+  'Pago talento',
+  'Edición',
+  'Diseño',
+  'Herramientas IA',
+  'Marketing',
+  'Comisión',
+  'Gestoría',
+  'Otros',
+] as const;
+
+export const INCOME_CATEGORIES = [
+  'Campaña',
+  'Retainer',
+  'Consultoría',
+  'Otros',
+] as const;
+
+/** Unión de todas las categorías reales (para edición de facturas legacy). */
+export const BILLING_CATEGORIES = [
+  ...new Set([
+    ...COMPANY_EXPENSE_CATEGORIES,
+    ...CAMPAIGN_EXPENSE_CATEGORIES,
+    ...INCOME_CATEGORIES,
+  ]),
 ] as const;
 
 export const AI_TOOLS = [
@@ -161,6 +196,7 @@ const optInt = z.preprocess(
 
 const invoiceFields = z.object({
   kind: z.enum(INVOICE_KINDS),
+  scope: z.enum(INVOICE_SCOPES),
   number: optStr(60),
   issueDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Fecha de emisión inválida'),
   dueDate: optDate,

@@ -5,20 +5,30 @@ import { useState } from 'react';
 import {
   INVOICE_AI_TOOLS,
   INVOICE_AI_TOOL_LABELS,
+  COMPANY_EXPENSE_CATEGORIES,
+  CAMPAIGN_EXPENSE_CATEGORIES,
+  INCOME_CATEGORIES,
   looksLikeAiCategory,
 } from '@/lib/schemas/invoice';
 
-import type { InvoiceAiTool } from '@/types';
+import type { InvoiceAiTool, InvoiceScope } from '@/types';
 
 const INPUT =
   'w-full rounded-xl border border-sp-admin-border bg-sp-admin-bg px-3 py-2 text-sm text-sp-admin-text outline-none focus:border-sp-admin-accent transition-colors';
 const LABEL =
   'block text-[11px] uppercase tracking-wider font-semibold text-sp-admin-muted mb-1';
 
+function categoriesForScope(scope: InvoiceScope, kind: 'income' | 'expense'): readonly string[] {
+  if (kind === 'income') return INCOME_CATEGORIES;
+  return scope === 'company' ? COMPANY_EXPENSE_CATEGORIES : CAMPAIGN_EXPENSE_CATEGORIES;
+}
+
 type Props = {
   readonly defaultCategory?: string | null | undefined;
   readonly defaultAiTool?: InvoiceAiTool | null | undefined;
   readonly categories: readonly string[];
+  readonly scope?: InvoiceScope;
+  readonly kind?: 'income' | 'expense';
 };
 
 /**
@@ -32,10 +42,13 @@ export function InvoiceCategoryField({
   defaultCategory,
   defaultAiTool,
   categories,
+  scope,
+  kind = 'expense',
 }: Props): React.ReactElement {
   const [category, setCategory] = useState<string>(defaultCategory ?? '');
   const showAi = looksLikeAiCategory(category) || defaultAiTool != null;
   const dataListId = 'invoice-categories';
+  const scopedCategories = scope ? categoriesForScope(scope, kind) : categories;
 
   return (
     <>
@@ -52,7 +65,7 @@ export function InvoiceCategoryField({
           maxLength={80}
         />
         <datalist id={dataListId}>
-          {categories.map((value) => (
+          {scopedCategories.map((value) => (
             <option key={value} value={value} />
           ))}
         </datalist>

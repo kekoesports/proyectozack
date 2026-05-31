@@ -6,6 +6,7 @@ export type Invoice = InferSelectModel<typeof invoices>;
 export type NewInvoice = InferInsertModel<typeof invoices>;
 
 export type InvoiceKind = Invoice['kind'];
+export type InvoiceScope = Invoice['scope'];
 export type InvoiceStatus = Invoice['status'];
 export type InvoiceCompany = NonNullable<Invoice['company']>;
 export type InvoicePaymentMethod = NonNullable<Invoice['paymentMethod']>;
@@ -25,10 +26,9 @@ export type BillingKPIs = {
   readonly netTotal: number;
   readonly pendingCobro: number;
   readonly pendingPago: number;
-  readonly ingresosBanco: number;
-  readonly ingresosCrypto: number;
-  readonly gastoEmpresa: number;
-  readonly gastoCreador: number;
+  readonly gastosCampana: number;
+  readonly gastosEmpresa: number;
+  readonly beneficioNeto: number;
 };
 
 /** @deprecated Use BillingKPIs */

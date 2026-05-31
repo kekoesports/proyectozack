@@ -16,6 +16,8 @@ import {
   INVOICE_PAYMENT_METHODS,
   INVOICE_PAYMENT_METHOD_LABELS,
   INVOICE_STATUS_LABELS,
+  INVOICE_SCOPES,
+  INVOICE_SCOPE_LABELS,
 } from '@/lib/schemas/invoice';
 
 // Estados por tipo de movimiento
@@ -91,6 +93,7 @@ function InvoiceDrawerForm(props: Props): ReactElement {
 
   // Campos controlados para autocompletar
   const [kind,       setKind]       = useState<'income' | 'expense'>(invoice?.kind ?? 'income');
+  const [scope,      setScope]      = useState<'campaign' | 'company'>(invoice?.scope ?? 'campaign');
   const [campaignId, setCampaignId] = useState<string>(invoice?.campaignId ? String(invoice.campaignId) : '');
   const [brandId,    setBrandId]    = useState<string>(invoice?.brandId    ? String(invoice.brandId)    : '');
   const [talentId,   setTalentId]   = useState<string>(invoice?.talentId   ? String(invoice.talentId)   : '');
@@ -144,13 +147,21 @@ function InvoiceDrawerForm(props: Props): ReactElement {
       <form action={formAction} className="flex flex-col gap-4">
         {mode === 'edit' && invoice && <input type="hidden" name="id" value={invoice.id} />}
 
-        {/* Tipo y datos básicos */}
+        {/* Tipo, Scope y datos básicos */}
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className={LABEL} htmlFor="invoice-kind">Tipo *</label>
             <select id="invoice-kind" name="kind" value={kind} onChange={(e) => handleKindChange(e.target.value as 'income' | 'expense')} required className={INPUT}>
               <option value="income">↑ Ingreso</option>
               <option value="expense">↓ Gasto</option>
+            </select>
+          </div>
+          <div>
+            <label className={LABEL} htmlFor="invoice-scope">Ámbito *</label>
+            <select id="invoice-scope" name="scope" value={scope} onChange={(e) => setScope(e.target.value as 'campaign' | 'company')} required className={INPUT}>
+              {INVOICE_SCOPES.map((s) => (
+                <option key={s} value={s}>{INVOICE_SCOPE_LABELS[s]}</option>
+              ))}
             </select>
           </div>
           <div>
@@ -167,52 +178,60 @@ function InvoiceDrawerForm(props: Props): ReactElement {
           </div>
         </div>
 
-        {/* Asociaciones */}
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className={LABEL} htmlFor="invoice-brand">Marca</label>
-            <select
-              id="invoice-brand" name="brandId"
-              value={brandId}
-              onChange={(e) => { setBrandId(e.target.value); setTouchedBrand(true); }}
-              className={INPUT}
-            >
-              <option value="">— ninguna —</option>
-              {brands.map((b) => <option key={b.id} value={String(b.id)}>{b.name}</option>)}
-            </select>
+        {/* Asociaciones — obligatorias para campaña, opcionales para empresa */}
+        {scope === 'campaign' && (
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className={LABEL} htmlFor="invoice-brand">Marca</label>
+              <select
+                id="invoice-brand" name="brandId"
+                value={brandId}
+                onChange={(e) => { setBrandId(e.target.value); setTouchedBrand(true); }}
+                className={INPUT}
+              >
+                <option value="">— ninguna —</option>
+                {brands.map((b) => <option key={b.id} value={String(b.id)}>{b.name}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className={LABEL} htmlFor="invoice-talent">Influencer</label>
+              <select
+                id="invoice-talent" name="talentId"
+                value={talentId}
+                onChange={(e) => { setTalentId(e.target.value); setTouchedTalent(true); }}
+                className={INPUT}
+              >
+                <option value="">— ninguno —</option>
+                {talents.map((t) => <option key={t.id} value={String(t.id)}>{t.name}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className={LABEL} htmlFor="invoice-campaign">
+                Trato / Campaña
+                {campaignId && <span className="ml-1 text-emerald-500">●</span>}
+              </label>
+              <select
+                id="invoice-campaign" name="campaignId"
+                value={campaignId}
+                onChange={(e) => handleCampaignChange(e.target.value)}
+                className={INPUT}
+              >
+                <option value="">— sin vincular —</option>
+                {campaigns.map((c) => <option key={c.id} value={String(c.id)}>{c.label}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className={LABEL} htmlFor="invoice-counterparty">Contraparte libre</label>
+              <input id="invoice-counterparty" name="counterpartyName" defaultValue={invoice?.counterpartyName ?? ''} className={INPUT} maxLength={200} />
+            </div>
           </div>
+        )}
+        {scope === 'company' && (
           <div>
-            <label className={LABEL} htmlFor="invoice-talent">Influencer</label>
-            <select
-              id="invoice-talent" name="talentId"
-              value={talentId}
-              onChange={(e) => { setTalentId(e.target.value); setTouchedTalent(true); }}
-              className={INPUT}
-            >
-              <option value="">— ninguno —</option>
-              {talents.map((t) => <option key={t.id} value={String(t.id)}>{t.name}</option>)}
-            </select>
-          </div>
-          <div>
-            <label className={LABEL} htmlFor="invoice-campaign">
-              Trato / Campaña
-              {campaignId && <span className="ml-1 text-emerald-500">●</span>}
-            </label>
-            <select
-              id="invoice-campaign" name="campaignId"
-              value={campaignId}
-              onChange={(e) => handleCampaignChange(e.target.value)}
-              className={INPUT}
-            >
-              <option value="">— sin vincular —</option>
-              {campaigns.map((c) => <option key={c.id} value={String(c.id)}>{c.label}</option>)}
-            </select>
-          </div>
-          <div>
-            <label className={LABEL} htmlFor="invoice-counterparty">Contraparte libre</label>
+            <label className={LABEL} htmlFor="invoice-counterparty">Proveedor / Contraparte</label>
             <input id="invoice-counterparty" name="counterpartyName" defaultValue={invoice?.counterpartyName ?? ''} className={INPUT} maxLength={200} />
           </div>
-        </div>
+        )}
 
         {/* Concepto + Categoría + Status */}
         <div>
@@ -224,6 +243,8 @@ function InvoiceDrawerForm(props: Props): ReactElement {
             defaultCategory={invoice?.category}
             defaultAiTool={invoice?.aiTool ?? null}
             categories={categories}
+            scope={scope}
+            kind={kind}
           />
           <div>
             <label className={LABEL} htmlFor="invoice-status">Estado</label>
