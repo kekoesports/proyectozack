@@ -6,7 +6,6 @@ import { AnimatePresence } from 'motion/react';
 import type { TalentWithRelations } from '@/types';
 import { FilterTabs } from '@/components/ui/FilterTabs';
 import { TalentCard } from './TalentCard';
-import { TalentModal } from './TalentModal';
 import { DURATION, EASE, STAGGER } from '@/lib/utils/animation';
 
 type TalentGridProps = {
@@ -22,19 +21,13 @@ const FILTERS = [
 type FilterKey = (typeof FILTERS)[number]['key'];
 
 /**
- * Grid filtrable de talents (Todos / Twitch / YouTube). Mantiene el talent
- * seleccionado en estado y monta `TalentModal` cuando hay uno activo.
+ * Grid filtrable de talents (Todos / Twitch / YouTube).
  *
  * @kind client
  * @feature talents-public
- * @example
- * ```tsx
- * <TalentGrid talents={talents} />
- * ```
  */
 export function TalentGrid({ talents }: TalentGridProps): React.JSX.Element {
   const [filter, setFilter] = useState<FilterKey>('all');
-  const [selected, setSelected] = useState<TalentWithRelations | null>(null);
 
   const visible =
     filter === 'all' ? talents : talents.filter((t) => t.platform === filter);
@@ -63,7 +56,6 @@ export function TalentGrid({ talents }: TalentGridProps): React.JSX.Element {
             >
               <TalentCard
                 talent={talent}
-                onOpen={() => setSelected(talent)}
                 priority={index < 4}
               />
             </m.div>
@@ -71,12 +63,6 @@ export function TalentGrid({ talents }: TalentGridProps): React.JSX.Element {
         </AnimatePresence>
       </div>
 
-      {/* Modal */}
-      <AnimatePresence>
-        {selected && (
-          <TalentModal talent={selected} onClose={() => setSelected(null)} />
-        )}
-      </AnimatePresence>
     </>
   );
 }

@@ -99,15 +99,21 @@ export function CodeCardCompact({ code }: Props): React.JSX.Element {
       </div>
 
       {/* CTA */}
-      <a
-        href={code.redirectUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        onClick={handleCta}
-        className="shrink-0 flex items-center justify-center px-5 bg-sp-grad text-white text-[11px] font-black uppercase tracking-wider hover:opacity-90 transition-opacity"
-      >
-        {ctaLabel} →
-      </a>
+      {code.ctaUrl ? (
+        <a
+          href={code.ctaUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={handleCta}
+          className="shrink-0 flex items-center justify-center px-5 bg-sp-grad text-white text-[11px] font-black uppercase tracking-wider hover:opacity-90 transition-opacity"
+        >
+          {ctaLabel} →
+        </a>
+      ) : (
+        <div className="shrink-0 flex items-center justify-center px-5 bg-white/[0.04] border-l border-white/[0.06] text-white/25 text-[11px] font-black uppercase tracking-wider cursor-not-allowed">
+          N/D
+        </div>
+      )}
     </div>
   );
 }

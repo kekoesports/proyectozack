@@ -6,11 +6,14 @@ export type Giveaway = InferSelectModel<typeof giveaways>;
 export type GiveawayWinner = InferSelectModel<typeof giveawayWinners>;
 export type CreatorCode = InferSelectModel<typeof creatorCodes>;
 
+/** CreatorCode with resolved CTA URL (redirectUrl validated; falls back to crmBrand.mainUrl). */
+export type CreatorCodeResolved = CreatorCode & { ctaUrl: string | null };
+
 export type GiveawayWithTalent = Giveaway & {
   talent: Talent;
 };
 
-export type CreatorCodeWithTalent = CreatorCode & {
+export type CreatorCodeWithTalent = CreatorCodeResolved & {
   talent: Talent;
 };
 

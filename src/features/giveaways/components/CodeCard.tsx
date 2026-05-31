@@ -151,16 +151,22 @@ export function CodeCard({ code, featured = false }: CodeCardProps): React.JSX.E
           </button>
         </div>
 
-        <a
-          href={code.redirectUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={handleCta}
-          className="flex items-center justify-center gap-2 w-full py-3 rounded-lg bg-sp-grad text-white text-[12px] font-black uppercase tracking-[0.15em] gw-sp-btn-glow transition-all group-hover:tracking-[0.2em]"
-        >
-          {ctaLabel}
-          <span aria-hidden>→</span>
-        </a>
+        {code.ctaUrl ? (
+          <a
+            href={code.ctaUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={handleCta}
+            className="flex items-center justify-center gap-2 w-full py-3 rounded-lg bg-sp-grad text-white text-[12px] font-black uppercase tracking-[0.15em] gw-sp-btn-glow transition-all group-hover:tracking-[0.2em]"
+          >
+            {ctaLabel}
+            <span aria-hidden>→</span>
+          </a>
+        ) : (
+          <div className="flex items-center justify-center gap-2 w-full py-3 rounded-lg bg-white/[0.04] border border-white/[0.07] text-white/25 text-[12px] font-black uppercase tracking-[0.15em] cursor-not-allowed">
+            No disponible
+          </div>
+        )}
       </div>
 
       {/* Creator footer — links to creator page */}

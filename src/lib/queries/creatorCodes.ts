@@ -1,7 +1,8 @@
-import { eq, asc, desc } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { creatorCodes } from '@/db/schema';
-import type { CreatorCode, CreatorCodeWithTalent } from '@/types';
+import { resolveCtaUrl } from '@/lib/utils/cta-url';
+import type { CreatorCode, CreatorCodeResolved, CreatorCodeWithTalent } from '@/types';
 
 /**
  * Lista todos los códigos promocionales con su talent asociado, ordenados por sortOrder ASC, para el hub de códigos y panel admin.
@@ -12,10 +13,13 @@ import type { CreatorCode, CreatorCodeWithTalent } from '@/types';
  */
 export async function getAllCodes(): Promise<CreatorCodeWithTalent[]> {
   const rows = await db.query.creatorCodes.findMany({
-    with: { talent: true },
+    with: { talent: true, crmBrand: true },
     orderBy: (c, { asc, desc }) => [desc(c.isFeatured), asc(c.sortOrder)],
   });
-  return rows;
+  return rows.map(({ crmBrand, ...row }) => ({
+    ...row,
+    ctaUrl: resolveCtaUrl(row.redirectUrl, crmBrand?.mainUrl),
+  }));
 }
 
 /**
@@ -28,10 +32,13 @@ export async function getAllCodes(): Promise<CreatorCodeWithTalent[]> {
 export async function getFeaturedCodes(): Promise<CreatorCodeWithTalent[]> {
   const rows = await db.query.creatorCodes.findMany({
     where: (c, { eq }) => eq(c.isFeatured, true),
-    with: { talent: true },
+    with: { talent: true, crmBrand: true },
     orderBy: (c, { asc }) => [asc(c.sortOrder)],
   });
-  return rows;
+  return rows.map(({ crmBrand, ...row }) => ({
+    ...row,
+    ctaUrl: resolveCtaUrl(row.redirectUrl, crmBrand?.mainUrl),
+  }));
 }
 
 /**
@@ -39,14 +46,18 @@ export async function getFeaturedCodes(): Promise<CreatorCodeWithTalent[]> {
  *
  * @cache none
  * @visibility public
- * @returns array de CreatorCode (puede ser vacío). Nunca null.
+ * @returns array de CreatorCodeResolved (puede ser vacío). Nunca null.
  */
-export async function getCodesByTalent(talentId: number): Promise<CreatorCode[]> {
-  return db
-    .select()
-    .from(creatorCodes)
-    .where(eq(creatorCodes.talentId, talentId))
-    .orderBy(desc(creatorCodes.isFeatured), asc(creatorCodes.sortOrder));
+export async function getCodesByTalent(talentId: number): Promise<CreatorCodeResolved[]> {
+  const rows = await db.query.creatorCodes.findMany({
+    where: (c, { eq }) => eq(c.talentId, talentId),
+    with: { crmBrand: true },
+    orderBy: (c, { desc, asc }) => [desc(c.isFeatured), asc(c.sortOrder)],
+  });
+  return rows.map(({ crmBrand, ...row }) => ({
+    ...row,
+    ctaUrl: resolveCtaUrl(row.redirectUrl, crmBrand?.mainUrl),
+  }));
 }
 
 /**

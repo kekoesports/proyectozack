@@ -321,28 +321,35 @@ export default async function TalentPage({ params }: PageProps) {
                     <span className="text-[11px] font-black text-[#C3FC00]">{activeWithTalent.length} sorteo{activeWithTalent.length > 1 ? 's' : ''} live</span>
                   </a>
                 )}
-                {codesWithTalent.slice(0, 4).map((c) => (
-                  <a
-                    key={c.id}
-                    href={c.redirectUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={`flex items-center gap-2.5 px-3 py-2 rounded-xl border transition-colors ${c.isFeatured ? 'border-white/15 bg-white/[0.06] hover:bg-white/[0.10]' : 'border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.05]'}`}
-                  >
-                    {c.brandLogo ? (
-                      <Image src={c.brandLogo} alt={c.brandName} width={24} height={16} className="object-contain max-h-4 max-w-[24px]" />
-                    ) : (
-                      <div className="w-6 h-4 rounded flex items-center justify-center text-[7px] font-black text-white/40 bg-white/[0.04]">
-                        {c.brandName.slice(0, 3).toUpperCase()}
+                {codesWithTalent.slice(0, 4).map((c) => {
+                  const inner = (
+                    <>
+                      {c.brandLogo ? (
+                        <Image src={c.brandLogo} alt={c.brandName} width={24} height={16} className="object-contain max-h-4 max-w-[24px]" />
+                      ) : (
+                        <div className="w-6 h-4 rounded flex items-center justify-center text-[7px] font-black text-white/40 bg-white/[0.04]">
+                          {c.brandName.slice(0, 3).toUpperCase()}
+                        </div>
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[10px] font-black text-white/60 truncate">{c.brandName}</p>
+                        {c.description && <p className="text-[9px] text-white/30 truncate leading-tight">{c.description.slice(0, 22)}</p>}
                       </div>
-                    )}
-                    <div className="min-w-0 flex-1">
-                      <p className="text-[10px] font-black text-white/60 truncate">{c.brandName}</p>
-                      {c.description && <p className="text-[9px] text-white/30 truncate leading-tight">{c.description.slice(0, 22)}</p>}
+                      {c.isFeatured && <span className="text-[8px] text-sp-orange/70 shrink-0">★</span>}
+                    </>
+                  );
+                  const baseCls = `flex items-center gap-2.5 px-3 py-2 rounded-xl border transition-colors ${c.isFeatured ? 'border-white/15 bg-white/[0.06]' : 'border-white/[0.06] bg-white/[0.02]'}`;
+                  return c.ctaUrl ? (
+                    <a key={c.id} href={c.ctaUrl} target="_blank" rel="noopener noreferrer"
+                      className={`${baseCls} hover:bg-white/[0.10]`}>
+                      {inner}
+                    </a>
+                  ) : (
+                    <div key={c.id} className={`${baseCls} opacity-40 cursor-not-allowed`} title="URL no disponible">
+                      {inner}
                     </div>
-                    {c.isFeatured && <span className="text-[8px] text-sp-orange/70 shrink-0">★</span>}
-                  </a>
-                ))}
+                  );
+                })}
                 {codesWithTalent.length > 4 && (
                   <p className="text-[9px] text-white/20 font-bold uppercase tracking-wider text-center">+{codesWithTalent.length - 4} más</p>
                 )}

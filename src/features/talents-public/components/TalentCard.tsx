@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import Link from 'next/link';
 import type { TalentWithRelations } from '@/types';
 import { SocialIcon } from '@/components/ui/SocialIcon';
 import { gradientStyle } from '@/lib/utils/gradient';
@@ -8,30 +9,20 @@ import { countryFlagEmoji } from '@/lib/flag-images';
 
 type TalentCardProps = {
   talent: TalentWithRelations;
-  onOpen: () => void;
   priority?: boolean;
 }
 
-/**
- * Card del roster público: foto/gradiente, nombre, badge de status y socials.
- * Renderizada como `<button>` para abrir `TalentModal` desde el grid.
- *
- * @kind client
- * @feature talents-public
- * @example
- * ```tsx
- * <TalentCard talent={talent} onOpen={() => setSelected(talent)} />
- * ```
- */
-export function TalentCard({ talent, onOpen, priority = false }: TalentCardProps) {
+export function TalentCard({ talent, priority = false }: TalentCardProps) {
   const grad = gradientStyle(talent.gradientC1, talent.gradientC2);
 
   return (
-    <button
-      onClick={onOpen}
-      aria-label={`Ver perfil de ${talent.name}`}
-      className="group text-left w-full rounded-2xl overflow-hidden border border-sp-border bg-white hover:shadow-xl transition-all hover:-translate-y-0.5 focus-visible:ring-2 focus-visible:ring-sp-orange focus-visible:ring-offset-2"
-    >
+    <div className="group relative text-left w-full rounded-2xl overflow-hidden border border-sp-border bg-white hover:shadow-xl transition-all hover:-translate-y-0.5">
+      {/* Stretched link — full-card click target; social <a> tags stack above via z-10 */}
+      <Link
+        href={`/talentos/${talent.slug}`}
+        aria-label={`Ver perfil de ${talent.name}`}
+        className="absolute inset-0 z-0 rounded-2xl focus-visible:ring-2 focus-visible:ring-sp-orange focus-visible:ring-offset-2"
+      />
       {/* Photo / Gradient fallback */}
       <div className="relative h-52 overflow-hidden" style={{ background: grad }}>
         {talent.photoUrl ? (
@@ -88,8 +79,8 @@ export function TalentCard({ talent, onOpen, priority = false }: TalentCardProps
           </div>
         )}
 
-        {/* Socials */}
-        <nav aria-label="Redes sociales" className="flex items-center gap-2">
+        {/* Socials — z-10 to stack above the stretched link overlay */}
+        <nav aria-label="Redes sociales" className="relative z-10 flex items-center gap-2">
           {talent.socials.slice(0, 4).map((s) => (
             <a
               key={s.id}
@@ -106,6 +97,6 @@ export function TalentCard({ talent, onOpen, priority = false }: TalentCardProps
           ))}
         </nav>
       </div>
-    </button>
+    </div>
   );
 }

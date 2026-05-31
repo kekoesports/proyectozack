@@ -167,19 +167,32 @@ export function CodeRowMini({ code }: Props): React.JSX.Element {
       </button>
 
       {/* Ir → */}
-      <a href={code.redirectUrl} target="_blank" rel="noopener noreferrer" onClick={handleCta}
-        aria-label={`Usar ${code.code}`}
-        className="shrink-0 w-10 h-full flex items-center justify-center border-l border-white/[0.05] text-white/20 hover:text-white hover:bg-white/[0.04] transition-colors font-bold text-sm">
-        →
-      </a>
+      {code.ctaUrl ? (
+        <a href={code.ctaUrl} target="_blank" rel="noopener noreferrer" onClick={handleCta}
+          aria-label={`Usar ${code.code}`}
+          className="shrink-0 w-10 h-full flex items-center justify-center border-l border-white/[0.05] text-white/20 hover:text-white hover:bg-white/[0.04] transition-colors font-bold text-sm">
+          →
+        </a>
+      ) : (
+        <div aria-label="URL no disponible"
+          className="shrink-0 w-10 h-full flex items-center justify-center border-l border-white/[0.05] text-white/10 cursor-not-allowed font-bold text-sm">
+          —
+        </div>
+      )}
     </div>
 
     {/* EXPANSIÓN en hover — CTA grande */}
     <div className={`overflow-hidden transition-all duration-250 ease-out ${hovered ? 'max-h-[52px] opacity-100' : 'max-h-0 opacity-0'}`}>
-      <a href={code.redirectUrl} target="_blank" rel="noopener noreferrer" onClick={handleCta}
-        className="flex items-center justify-center gap-2 mx-2 mb-2 py-2 rounded-lg bg-sp-grad text-white text-[11px] font-black uppercase tracking-[0.15em] shadow-[0_2px_12px_rgba(245,99,42,0.2)] hover:shadow-[0_4px_20px_rgba(245,99,42,0.35)] transition-all">
-        {code.ctaText?.trim() || 'Usar código'} →
-      </a>
+      {code.ctaUrl ? (
+        <a href={code.ctaUrl} target="_blank" rel="noopener noreferrer" onClick={handleCta}
+          className="flex items-center justify-center gap-2 mx-2 mb-2 py-2 rounded-lg bg-sp-grad text-white text-[11px] font-black uppercase tracking-[0.15em] shadow-[0_2px_12px_rgba(245,99,42,0.2)] hover:shadow-[0_4px_20px_rgba(245,99,42,0.35)] transition-all">
+          {code.ctaText?.trim() || 'Usar código'} →
+        </a>
+      ) : (
+        <div className="flex items-center justify-center gap-2 mx-2 mb-2 py-2 rounded-lg bg-white/[0.04] border border-white/[0.07] text-white/25 text-[11px] font-black uppercase tracking-[0.15em] cursor-not-allowed">
+          No disponible
+        </div>
+      )}
     </div>
   </div>
   );
