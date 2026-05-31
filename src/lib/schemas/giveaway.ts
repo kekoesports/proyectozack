@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { IdSchema } from '@/lib/schemas/common';
+import { isImageUrl } from '@/lib/utils/cta-url';
 
 export const BADGE_VALUES = ['HOT', 'NUEVO', 'EXCLUSIVO', 'TOP', 'LIMITED'] as const;
 export type BadgeValue = (typeof BADGE_VALUES)[number];
@@ -7,13 +8,17 @@ export const BadgeSchema = z.enum(BADGE_VALUES);
 export const BadgeNullableSchema = BadgeSchema.nullable();
 
 // Zod v4 acepta javascript: y data: como URLs válidas por spec.
-// Este refinement garantiza que solo se acepten http/https para redirect URLs
-// que se almacenan en DB y sirven a usuarios finales.
+// Este refinement garantiza que solo se acepten http/https y que no sea URL de imagen.
 const safeRedirectUrl = (label = 'redirectUrl inválido') =>
-  z.url(label).max(2048).refine(
-    (u) => u.startsWith('https://') || u.startsWith('http://'),
-    { message: 'Solo se permiten URLs http/https' },
-  );
+  z.url(label).max(2048)
+    .refine(
+      (u) => u.startsWith('https://') || u.startsWith('http://'),
+      { message: 'Solo se permiten URLs http/https' },
+    )
+    .refine(
+      (u) => !isImageUrl(u),
+      { message: 'La URL de redirección no puede apuntar a una imagen — usa la URL del sitio web' },
+    );
 
 const giveawayFields = z.object({
   talentId: z.number().int().positive(),

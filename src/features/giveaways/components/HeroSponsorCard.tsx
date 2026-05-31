@@ -103,10 +103,16 @@ export function HeroSponsorCard({ code }: Props): React.JSX.Element {
             </button>
           </div>
 
-          <a href={code.redirectUrl} target="_blank" rel="noopener noreferrer" onClick={handleCta}
-            className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl bg-sp-grad text-white text-[13px] font-black uppercase tracking-[0.15em] shadow-[0_2px_20px_rgba(245,99,42,0.2)] hover:shadow-[0_4px_30px_rgba(245,99,42,0.35)] hover:tracking-[0.2em] transition-all duration-300">
-            {ctaLabel} →
-          </a>
+          {code.ctaUrl ? (
+            <a href={code.ctaUrl} target="_blank" rel="noopener noreferrer" onClick={handleCta}
+              className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl bg-sp-grad text-white text-[13px] font-black uppercase tracking-[0.15em] shadow-[0_2px_20px_rgba(245,99,42,0.2)] hover:shadow-[0_4px_30px_rgba(245,99,42,0.35)] hover:tracking-[0.2em] transition-all duration-300">
+              {ctaLabel} →
+            </a>
+          ) : (
+            <div className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl bg-white/[0.05] border border-white/10 text-white/30 text-[13px] font-black uppercase tracking-[0.15em] cursor-not-allowed">
+              No disponible
+            </div>
+          )}
         </div>
       </div>
     </div>
