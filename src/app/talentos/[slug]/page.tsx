@@ -41,9 +41,15 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const seoApproved = talent.seoBioStatus === 'approved' || !!talent.seoBioManual?.trim();
   const title = (seoApproved && talent.seoTitle?.trim())
     || `${talent.name} — ${roleLabel} de ${talent.game} | SocialPro`;
+  const metaSocial = talent.socials.find((s) => s.platform === talent.platform) ?? talent.socials[0];
+  const metaFollowers = metaSocial?.followersDisplay && metaSocial.followersDisplay !== '-'
+    ? metaSocial.followersDisplay : null;
+  const platformLabel = talent.platform === 'twitch' ? 'Twitch' : 'YouTube';
+  const descFallback = `${talent.name} — ${talent.role.toLowerCase()} de ${talent.game}${talent.creatorCountry ? `, ${talent.creatorCountry}` : ''}${metaFollowers ? `, ${metaFollowers} seguidores en ${platformLabel}` : ''}. Gestionado por SocialPro.`;
   const description = (seoApproved && talent.seoDescription?.trim())
     || truncateMetaDescription(talent.bio || undefined)
-    || `${talent.name} — ${talent.role.toLowerCase()} de ${talent.game} gestionado por SocialPro. Códigos activos, sorteos y campañas.`;
+    || descFallback;
+  const ogAlt = `${talent.name} — ${talent.role.toLowerCase()} de ${talent.game} en ${platformLabel}${talent.creatorCountry ? `, ${talent.creatorCountry}` : ''} | SocialPro`;
   return {
     title,
     description,
@@ -52,7 +58,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       title, description,
       url: absoluteUrl(`/talentos/${slug}`),
       type: 'profile',
-      images: [{ url: absoluteUrl(`/api/og-image/talent-img?slug=${slug}`), width: 1200, height: 630, alt: `${talent.name} — SocialPro` }],
+      images: [{ url: absoluteUrl(`/api/og-image/talent-img?slug=${slug}`), width: 1200, height: 630, alt: ogAlt }],
     },
     twitter: {
       card: 'summary_large_image', title, description,
@@ -116,6 +122,11 @@ export default async function TalentPage({ params }: PageProps) {
   const featuredGiveaway = activeWithTalent[0] ?? null;
   const restGiveaways    = activeWithTalent.slice(1);
   const mainSocial       = talent.socials.find((s) => s.platform === talent.platform) ?? talent.socials[0];
+  const heroPlatform     = talent.platform === 'twitch' ? 'Twitch' : 'YouTube';
+  const photoAltParts    = [talent.name, `streamer de ${heroPlatform}`];
+  if (talent.creatorCountry) photoAltParts.push(talent.creatorCountry);
+  if (mainSocial?.followersDisplay && mainSocial.followersDisplay !== '-') photoAltParts.push(`${mainSocial.followersDisplay} seguidores`);
+  const photoAlt         = photoAltParts.join(', ');
   const bioSnippet       = talent.bio?.trim()
     ? talent.bio.trim().slice(0, 120) + (talent.bio.trim().length > 120 ? '…' : '')
     : null;
@@ -234,7 +245,7 @@ export default async function TalentPage({ params }: PageProps) {
                 <div className="relative w-[88px] h-[88px] sm:w-[108px] sm:h-[108px] rounded-2xl overflow-hidden shadow-[0_12px_40px_rgba(0,0,0,0.7)]"
                   style={{ background: `linear-gradient(135deg, ${talent.gradientC1}, ${talent.gradientC2})` }}>
                   {talent.photoUrl
-                    ? <Image src={talent.photoUrl} alt={talent.name} fill sizes="108px" className="object-cover" priority />
+                    ? <Image src={talent.photoUrl} alt={photoAlt} fill sizes="108px" className="object-cover" priority />
                     : <div className="w-full h-full flex items-center justify-center font-display text-3xl font-black text-white/90">{talent.initials}</div>
                   }
                   <div className="absolute inset-0 shadow-[inset_0_0_20px_rgba(0,0,0,0.4)]" aria-hidden />
