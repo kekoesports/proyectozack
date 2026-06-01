@@ -2,11 +2,19 @@ import '../giveaways/giveaways-animations.css';
 
 import type { ReactNode } from 'react';
 import type { Metadata } from 'next';
+import { absoluteUrl } from '@/lib/site-url';
 
 export const metadata: Metadata = {
   title: 'Sorteos de Skins — SocialPro',
   description: 'Participa en los mejores sorteos de skins CS2 y recompensas gaming de tus creadores favoritos.',
   robots: { index: true, follow: true },
+  alternates: {
+    languages: {
+      es: absoluteUrl('/sorteos'),
+      en: absoluteUrl('/giveaways'),
+      'x-default': absoluteUrl('/sorteos'),
+    },
+  },
 };
 
 export default function SorteosLayout({ children }: { children: ReactNode }): React.JSX.Element {

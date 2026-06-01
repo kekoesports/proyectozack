@@ -180,6 +180,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: absoluteUrl('/apuesta-segura-cs2'), lastModified: NOW           },
     { url: absoluteUrl('/blog'),             lastModified: D.blog          },
     { url: absoluteUrl('/news'),             lastModified: NOW             },
+    { url: absoluteUrl('/news/live'),        lastModified: NOW             },
     {
       url: absoluteUrl('/giveaways'),
       lastModified: D.giveaways,

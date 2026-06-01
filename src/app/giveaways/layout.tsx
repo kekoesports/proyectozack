@@ -2,11 +2,19 @@ import './giveaways-animations.css';
 
 import type { ReactNode } from 'react';
 import type { Metadata } from 'next';
+import { absoluteUrl } from '@/lib/site-url';
 
 export const metadata: Metadata = {
   title: 'Giveaways — SocialPro',
   description: 'Sorteos activos de los creadores de SocialPro',
   robots: { index: true, follow: true },
+  alternates: {
+    languages: {
+      en: absoluteUrl('/giveaways'),
+      es: absoluteUrl('/sorteos'),
+      'x-default': absoluteUrl('/sorteos'),
+    },
+  },
 };
 
 export default function GiveawaysLayout({ children }: { children: ReactNode }) {

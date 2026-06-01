@@ -13,7 +13,7 @@ export const metadata: Metadata = {
     languages: {
       en: absoluteUrl('/services'),
       es: absoluteUrl('/servicios'),
-      'x-default': absoluteUrl('/services'),
+      'x-default': absoluteUrl('/servicios'),
     },
   },
   openGraph: {

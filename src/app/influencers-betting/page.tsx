@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   alternates: {
     // Consolidado en el ganador del cluster. /servicios/igaming es el ES canónico
     // establecido; /betting-influencers es el EN x-default. Esta página es satélite.
-    canonical: '/betting-influencers',
+    canonical: '/servicios/igaming',
   },
   openGraph: {
     title: 'Influencers Betting y Apuestas Online | SocialPro',

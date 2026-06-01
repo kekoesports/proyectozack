@@ -54,6 +54,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     title,
     description,
     alternates: { canonical: `/talentos/${slug}` },
+    robots: talent.isPublished === false ? { index: false, follow: true } : undefined,
     openGraph: {
       title, description,
       url: absoluteUrl(`/talentos/${slug}`),

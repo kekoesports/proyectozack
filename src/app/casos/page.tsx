@@ -12,6 +12,11 @@ export const metadata: Metadata = {
     'Campañas reales con marcas top: RAZER (2.5M reach), 1WIN (8M+ reach), SkinsMonkey (200K€ conversiones). Ver resultados y metodología de SocialPro →',
   alternates: {
     canonical: '/casos',
+    languages: {
+      es: absoluteUrl('/casos'),
+      en: absoluteUrl('/cases'),
+      'x-default': absoluteUrl('/casos'),
+    },
   },
   openGraph: {
     title: 'Campañas Gaming — Resultados Reales | SocialPro',

@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     languages: {
       en: absoluteUrl('/talents'),
       es: absoluteUrl('/talentos'),
-      'x-default': absoluteUrl('/talents'),
+      'x-default': absoluteUrl('/talentos'),
     },
   },
   openGraph: {

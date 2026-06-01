@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     languages: {
       en: absoluteUrl('/contact'),
       es: absoluteUrl('/contacto'),
-      'x-default': absoluteUrl('/contact'),
+      'x-default': absoluteUrl('/contacto'),
     },
   },
   openGraph: {

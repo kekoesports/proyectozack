@@ -15,7 +15,7 @@ export const metadata: Metadata = {
     languages: {
       es: absoluteUrl('/influencers-cs2'),
       en: absoluteUrl('/cs2-influencer-marketing'),
-          'x-default': absoluteUrl('/cs2-influencer-marketing'),
+      'x-default': absoluteUrl('/influencers-cs2'),
     },
   },
   openGraph: {

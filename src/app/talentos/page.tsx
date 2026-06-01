@@ -14,6 +14,11 @@ export const metadata: Metadata = {
     'Explora el roster de SocialPro: streamers de CS2, Valorant e iGaming en España y LatAm. +15M views/mes, audiencias verificadas y engagement real. Ver perfiles →',
   alternates: {
     canonical: '/talentos',
+    languages: {
+      es: absoluteUrl('/talentos'),
+      en: absoluteUrl('/talents'),
+      'x-default': absoluteUrl('/talentos'),
+    },
   },
   openGraph: {
     title: 'Streamers y Creadores Gaming de Élite | SocialPro',

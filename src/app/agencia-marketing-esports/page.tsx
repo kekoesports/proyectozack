@@ -15,7 +15,7 @@ export const metadata: Metadata = {
     languages: {
       es: absoluteUrl('/agencia-marketing-esports'),
       en: absoluteUrl('/esports-marketing-agency'),
-          'x-default': absoluteUrl('/esports-marketing-agency'),
+      'x-default': absoluteUrl('/agencia-marketing-esports'),
     },
   },
   openGraph: {

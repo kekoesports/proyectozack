@@ -13,7 +13,7 @@ export const metadata: Metadata = {
     canonical: '/valorant-influencers-agency',
     languages: {
       en: absoluteUrl('/valorant-influencers-agency'),
-          'x-default': absoluteUrl('/valorant-influencers-agency'),
+      'x-default': absoluteUrl('/agencia-influencers-valorant'),
       es: absoluteUrl('/agencia-influencers-valorant'),
     },
   },

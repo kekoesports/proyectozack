@@ -10,6 +10,11 @@ export const metadata: Metadata = {
     '¿Buscas streamers para tu campaña gaming o iGaming? Cuéntanos tu proyecto. Respondemos en menos de 24h. Sin compromiso.',
   alternates: {
     canonical: '/contacto',
+    languages: {
+      es: absoluteUrl('/contacto'),
+      en: absoluteUrl('/contact'),
+      'x-default': absoluteUrl('/contacto'),
+    },
   },
   openGraph: {
     title: 'Contacta con Nuestra Agencia Gaming | SocialPro',
