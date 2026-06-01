@@ -15,6 +15,10 @@ type Props = {
   readonly codes: readonly CreatorCodeWithTalent[];
   readonly talent: TalentRef;
   readonly brandCatalog: readonly CrmBrandPickerEntry[];
+  /** Pre-selecciona la pestaña interna al montar */
+  readonly defaultActiveTab?: 'giveaways' | 'codes';
+  /** Omite el wrapper <section> externo — para embeber dentro de otro card */
+  readonly plain?: boolean;
 };
 
 const BADGE_LABELS: Record<string, string> = {
@@ -64,16 +68,16 @@ function CreateModal({
   );
 }
 
-export function TalentGiveawaysSection({ giveaways, codes, talent, brandCatalog }: Props): React.ReactElement {
-  const [activeTab, setActiveTab]           = useState<'giveaways' | 'codes'>('giveaways');
+export function TalentGiveawaysSection({ giveaways, codes, talent, brandCatalog, defaultActiveTab, plain }: Props): React.ReactElement {
+  const [activeTab, setActiveTab]           = useState<'giveaways' | 'codes'>(defaultActiveTab ?? 'giveaways');
   const [editingCode, setEditingCode]       = useState<CreatorCodeWithTalent | null>(null);
   const [showCreateGiveaway, setShowCreateGiveaway] = useState(false);
   const [showCreateCode, setShowCreateCode] = useState(false);
 
   const talents = [{ id: talent.id, name: talent.name, slug: talent.slug }];
 
-  return (
-    <section className="rounded-xl bg-sp-admin-card shadow-[0_1px_3px_rgba(0,0,0,0.06)] overflow-hidden">
+  const inner = (
+    <>
 
       {/* Header */}
       <div className="px-4 py-2.5 border-b border-sp-admin-border/60 bg-sp-admin-hover/40 flex items-center justify-between flex-wrap gap-2">
@@ -262,6 +266,14 @@ export function TalentGiveawaysSection({ giveaways, codes, talent, brandCatalog 
           <CreateCodeForm talents={talents} brandCatalog={brandCatalog} defaultTalentId={talent.id} />
         </CreateModal>
       )}
+    </>
+  );
+
+  if (plain) return inner;
+
+  return (
+    <section className="rounded-xl bg-sp-admin-card shadow-[0_1px_3px_rgba(0,0,0,0.06)] overflow-hidden">
+      {inner}
     </section>
   );
 }

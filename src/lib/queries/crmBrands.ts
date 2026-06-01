@@ -515,6 +515,22 @@ export async function deleteBrandFollowup(id: number): Promise<void> {
   await db.delete(crmBrandFollowups).where(eq(crmBrandFollowups.id, id));
 }
 
+/**
+ * Resuelve nombres de marca por IDs sin filtrar por status — para backfill de campañas
+ * que pueden tener marcas archivadas/inactivas.
+ *
+ * @cache none
+ * @visibility admin
+ */
+export async function getBrandNamesByIds(ids: number[]): Promise<Record<number, string>> {
+  if (ids.length === 0) return {};
+  const rows = await db
+    .select({ id: crmBrands.id, name: crmBrands.name })
+    .from(crmBrands)
+    .where(inArray(crmBrands.id, ids));
+  return Object.fromEntries(rows.map((r) => [r.id, r.name]));
+}
+
 // ── Admin helpers ─────────────────────────────────────────────────────────────
 
 /**
