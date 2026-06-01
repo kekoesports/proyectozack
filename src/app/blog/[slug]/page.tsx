@@ -110,12 +110,13 @@ function linkifyInternal(html: string): string {
   });
 }
 
-/** Convert **bold** and *italic* inline markdown to HTML (input is pre-escaped) */
+/** Convert **bold**, *italic*, and [label](/path) markdown to HTML (input is pre-escaped) */
 function renderInline(text: string): string {
   return linkifyInternal(
     escapeHtml(text)
       .replace(/\*\*(.+?)\*\*/g, '<strong class="font-semibold text-sp-dark">$1</strong>')
-      .replace(/\*(.+?)\*/g, '<em>$1</em>'),
+      .replace(/\*(.+?)\*/g, '<em>$1</em>')
+      .replace(/\[([^\]]+)\]\((\/[^)\s]+)\)/g, `<a href="$2" class="${INLINE_LINK_CLASS}">$1</a>`),
   );
 }
 
