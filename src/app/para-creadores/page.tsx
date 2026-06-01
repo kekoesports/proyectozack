@@ -4,6 +4,7 @@ import { SectionHeading } from '@/components/ui/SectionHeading';
 import { GradientText } from '@/components/ui/GradientText';
 import { CreatorApplyForm } from '@/features/contact/components/CreatorApplyForm';
 import { absoluteUrl } from '@/lib/site-url';
+import { safeJsonLd } from '@/lib/safeJsonLd';
 
 export const metadata: Metadata = {
   title: 'Gestión y Patrocinios para Streamers',
@@ -68,8 +69,36 @@ const LATAM_MARKETS = [
 ];
 
 export default function ParaCreadoresPage() {
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'WebPage',
+        '@id': absoluteUrl('/para-creadores'),
+        url: absoluteUrl('/para-creadores'),
+        name: 'Gestión y Patrocinios para Streamers | SocialPro',
+        description:
+          '¿Eres streamer o youtuber gaming? Únete al roster de SocialPro y consigue patrocinios reales de iGaming, hardware y esports en España y LatAm.',
+        publisher: { '@type': 'Organization', name: 'SocialPro', url: absoluteUrl('/') },
+      },
+      {
+        '@type': 'HowTo',
+        name: 'Cómo unirte al roster de SocialPro como creador gaming',
+        description:
+          'Proceso de aplicación para streamers y youtubers que quieren conseguir patrocinios profesionales en iGaming y esports.',
+        step: STEPS.map((s, i) => ({
+          '@type': 'HowToStep',
+          position: i + 1,
+          name: s.title,
+          text: s.desc,
+        })),
+      },
+    ],
+  };
+
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }} />
       {/* ── Hero ── */}
       <section className="bg-sp-black pt-32 pb-20">
         <div className="max-w-4xl mx-auto px-6 text-center">

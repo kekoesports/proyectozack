@@ -134,12 +134,17 @@ export const getPostBySlug = cache(async (slug: string): Promise<PostWithTalents
 
 /**
  * Posts relacionados al actual (vertical blog), excluyéndolo.
- * Misma proyección que `getPosts`: sin bodyMd, con readMinutes precomputado.
+ * Prioriza coincidencia de tags; usa fecha como desempate. Misma proyección
+ * que `getPosts`: sin bodyMd, con readMinutes precomputado.
  *
  * @cache wrapped in React cache() for request dedupe
  * @visibility public
  */
 export const getRelatedPosts = cache(async (currentSlug: string, limit = 3): Promise<PostListItem[]> => {
+  const current = await getPostBySlug(currentSlug);
+  const currentTags = current?.tags ?? [];
+  const poolSize = Math.max(limit * 5, 15);
+
   const rows = await db.query.posts.findMany({
     where: and(
       eq(posts.status, 'published'),
@@ -147,19 +152,34 @@ export const getRelatedPosts = cache(async (currentSlug: string, limit = 3): Pro
       ne(posts.slug, currentSlug),
     ),
     orderBy: [desc(posts.sortOrder), desc(posts.publishedAt)],
-    limit,
+    limit: poolSize,
   });
-  return projectListItems(rows);
+
+  if (currentTags.length > 0) {
+    rows.sort((a, b) => {
+      const sa = (a.tags ?? []).filter((t) => currentTags.includes(t)).length;
+      const sb = (b.tags ?? []).filter((t) => currentTags.includes(t)).length;
+      if (sb !== sa) return sb - sa;
+      return (b.publishedAt?.getTime() ?? 0) - (a.publishedAt?.getTime() ?? 0);
+    });
+  }
+
+  return projectListItems(rows.slice(0, limit));
 });
 
 /**
  * Posts /news relacionados al actual, excluyéndolo. Para sidebar en /news/[slug].
+ * Prioriza coincidencia de tags; usa fecha como desempate.
  * Mantiene bodyMd porque las cards editoriales lo necesitan.
  */
 export async function getRelatedNewsPosts(
   currentSlug: string,
   limit = 4,
 ): Promise<PostWithTalents[]> {
+  const current = await getPostBySlug(currentSlug);
+  const currentTags = current?.tags ?? [];
+  const poolSize = Math.max(limit * 5, 20);
+
   const rows = await db.query.posts.findMany({
     where: and(
       eq(posts.status, 'published'),
@@ -167,7 +187,17 @@ export async function getRelatedNewsPosts(
       ne(posts.slug, currentSlug),
     ),
     orderBy: [desc(posts.sortOrder), desc(posts.publishedAt)],
-    limit,
+    limit: poolSize,
   });
-  return attachTalents(rows);
+
+  if (currentTags.length > 0) {
+    rows.sort((a, b) => {
+      const sa = (a.tags ?? []).filter((t) => currentTags.includes(t)).length;
+      const sb = (b.tags ?? []).filter((t) => currentTags.includes(t)).length;
+      if (sb !== sa) return sb - sa;
+      return (b.publishedAt?.getTime() ?? 0) - (a.publishedAt?.getTime() ?? 0);
+    });
+  }
+
+  return attachTalents(rows.slice(0, limit));
 }

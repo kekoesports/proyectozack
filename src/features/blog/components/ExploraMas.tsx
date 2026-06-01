@@ -126,16 +126,25 @@ function mapCategoryToService(slug: string): { href: string; label: string; help
   switch (slug) {
     case 'igaming':
       return { href: '/servicios/igaming', label: 'Servicios iGaming', helper: 'DGOJ + FTD tracking' };
+    case 'betting':
+      return { href: '/betting-influencers', label: 'Betting Influencers', helper: 'Apuestas · CS2 · LATAM' };
     case 'caso-exito':
       return { href: '/servicios', label: 'Cómo trabajamos', helper: 'Servicios SocialPro' };
     case 'guia':
-      return { href: '/metodologia', label: 'Nuestra metodología', helper: 'Discovery → Reporting' };
+      return { href: '/guia-dgoj-igaming-influencers', label: 'Guía DGOJ iGaming', helper: 'Influencers & regulación española' };
     case 'tendencias':
       return { href: '/agencia-gaming-latam', label: 'Agencia LATAM', helper: 'México · Argentina · Colombia' };
     case 'youtube':
       return { href: '/servicios', label: 'Gestión de canales', helper: 'YouTube gaming' };
     case 'esports':
-      return { href: '/influencers-cs2', label: 'Influencers CS2', helper: 'Activaciones competitivas' };
+      return { href: '/agencia-marketing-esports', label: 'Agencia Esports', helper: 'Campañas competitivas' };
+    case 'cs2':
+      return { href: '/cs2-influencer-marketing', label: 'CS2 Influencer Marketing', helper: 'Major · BLAST · ESL' };
+    case 'valorant':
+      return { href: '/valorant-influencers-agency', label: 'Valorant Influencers', helper: 'VCT · torneos regionales' };
+    case 'streaming':
+    case 'twitch':
+      return { href: '/twitch-streamers-agency', label: 'Twitch Streamers Agency', helper: 'Activaciones en directo' };
     default:
       return null;
   }
@@ -145,10 +154,15 @@ function categoryFullLabel(slug: string): string {
   switch (slug) {
     case 'caso-exito': return 'Caso de éxito';
     case 'igaming':    return 'iGaming';
+    case 'betting':    return 'Betting';
     case 'guia':       return 'Guía';
     case 'tendencias': return 'Tendencias';
     case 'youtube':    return 'YouTube';
     case 'esports':    return 'Esports';
+    case 'cs2':        return 'CS2';
+    case 'valorant':   return 'Valorant';
+    case 'streaming':
+    case 'twitch':     return 'Streaming';
     default:           return 'Insights';
   }
 }

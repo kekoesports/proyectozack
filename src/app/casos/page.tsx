@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { getCaseStudies } from '@/lib/queries/cases';
 import { CasesSection } from '@/features/marketing-site/components/CasesSection';
 import { absoluteUrl } from '@/lib/site-url';
+import { safeJsonLd } from '@/lib/safeJsonLd';
 
 export const revalidate = 3600;
 
@@ -31,8 +32,27 @@ export const metadata: Metadata = {
 export default async function CasosPage() {
   const cases = await getCaseStudies();
 
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    '@id': absoluteUrl('/casos'),
+    url: absoluteUrl('/casos'),
+    name: 'Campañas Gaming — Resultados Reales | SocialPro',
+    description:
+      'Campañas reales con marcas top: RAZER (2.5M reach), 1WIN (8M+ reach), SkinsMonkey (200K€ conversiones). Resultados y metodología de SocialPro.',
+    publisher: { '@type': 'Organization', name: 'SocialPro', url: absoluteUrl('/') },
+    hasPart: cases.map((c) => ({
+      '@type': 'WebPage',
+      '@id': absoluteUrl(`/casos/${c.slug}`),
+      url: absoluteUrl(`/casos/${c.slug}`),
+      name: c.title,
+      ...(c.excerpt ? { description: c.excerpt } : {}),
+    })),
+  };
+
   return (
     <div>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }} />
       <h1 className="sr-only">Campañas Gaming — Resultados Reales</h1>
       <CasesSection cases={cases} />
     </div>

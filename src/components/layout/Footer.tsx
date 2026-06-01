@@ -7,9 +7,16 @@ import { WA_HREF, CONTACT_EMAIL } from '@/lib/utils/constants';
 import { localeFromPathname, type Locale } from '@/lib/locale';
 import { openConsentBanner } from '@/lib/consent/consentStore';
 
+type NavLink = {
+  readonly href: string;
+  readonly label: string;
+  /** Si está presente, renderiza un divisor con este texto antes del enlace */
+  readonly subheading?: string;
+};
+
 type NavCol = {
   readonly title: string;
-  readonly links: readonly { readonly href: string; readonly label: string }[];
+  readonly links: readonly NavLink[];
 };
 
 // IMPORTANTE: la columna "Especialidades" preserva la decisión del PR #51
@@ -45,20 +52,25 @@ const NAV_COLS_BY_LOCALE: Record<Locale, readonly NavCol[]> = {
         { href: '/servicios', label: 'Talent Management' },
         { href: '/admin/login', label: 'Portal de Marcas' },
         { href: '/contacto', label: 'Solicitar propuesta' },
+        { href: '/marcas/keydrop',     label: 'Keydrop',     subheading: 'Partners' },
+        { href: '/marcas/hellcase',    label: 'Hellcase' },
+        { href: '/marcas/skinplace',   label: 'Skinplace' },
+        { href: '/marcas/skinsmonkey', label: 'Skinsmonkey' },
       ],
     },
     {
       title: 'Especialidades',
       links: [
-        { href: '/cs2-influencer-marketing',   label: 'CS2 Influencer Marketing' },
-        { href: '/valorant-influencers-agency', label: 'Valorant Influencers' },
-        { href: '/servicios/igaming',           label: 'iGaming & Betting' },
-        { href: '/esports-marketing-agency',    label: 'Esports Marketing' },
-        { href: '/twitch-streamers-agency',     label: 'Twitch Streamers Agency' },
-        { href: '/influencers-cs2',             label: 'Influencers CS2 (ES)' },
-        { href: '/agencia-marketing-esports',   label: 'Agencia Esports (ES)' },
-        { href: '/agencia-gaming-latam',         label: 'Gaming LATAM' },
-        { href: '/apuesta-segura-cs2',          label: 'Apuesta Segura CS2' },
+        { href: '/cs2-influencer-marketing',        label: 'CS2 Influencer Marketing' },
+        { href: '/valorant-influencers-agency',      label: 'Valorant Influencers' },
+        { href: '/servicios/igaming',                label: 'iGaming & Betting' },
+        { href: '/esports-marketing-agency',         label: 'Esports Marketing' },
+        { href: '/twitch-streamers-agency',          label: 'Twitch Streamers Agency' },
+        { href: '/influencers-cs2',                  label: 'Influencers CS2 (ES)' },
+        { href: '/agencia-marketing-esports',        label: 'Agencia Esports (ES)' },
+        { href: '/agencia-gaming-latam',             label: 'Gaming LATAM' },
+        { href: '/apuesta-segura-cs2',               label: 'Apuesta Segura CS2' },
+        { href: '/guia-dgoj-igaming-influencers',    label: 'Guía DGOJ iGaming' },
       ],
     },
   ],
@@ -92,19 +104,25 @@ const NAV_COLS_BY_LOCALE: Record<Locale, readonly NavCol[]> = {
         { href: '/services', label: 'Talent Management' },
         { href: '/admin/login', label: 'Brand Portal (ES)' },
         { href: '/contact', label: 'Request a proposal' },
+        { href: '/marcas/keydrop',     label: 'Keydrop',     subheading: 'Partners' },
+        { href: '/marcas/hellcase',    label: 'Hellcase' },
+        { href: '/marcas/skinplace',   label: 'Skinplace' },
+        { href: '/marcas/skinsmonkey', label: 'Skinsmonkey' },
       ],
     },
     {
       title: 'Specialties',
       links: [
-        { href: '/cs2-influencer-marketing',   label: 'CS2 Influencer Marketing' },
-        { href: '/valorant-influencers-agency', label: 'Valorant Influencers' },
-        { href: '/servicios/igaming',           label: 'iGaming & Betting (ES)' },
-        { href: '/esports-marketing-agency',    label: 'Esports Marketing' },
-        { href: '/twitch-streamers-agency',     label: 'Twitch Streamers Agency' },
-        { href: '/influencers-cs2',             label: 'Influencers CS2 (ES)' },
-        { href: '/agencia-marketing-esports',   label: 'Agencia Esports (ES)' },
-        { href: '/apuesta-segura-cs2',          label: 'Apuesta Segura CS2 (ES)' },
+        { href: '/cs2-influencer-marketing',        label: 'CS2 Influencer Marketing' },
+        { href: '/valorant-influencers-agency',      label: 'Valorant Influencers' },
+        { href: '/servicios/igaming',                label: 'iGaming & Betting (ES)' },
+        { href: '/esports-marketing-agency',         label: 'Esports Marketing' },
+        { href: '/twitch-streamers-agency',          label: 'Twitch Streamers Agency' },
+        { href: '/influencers-cs2',                  label: 'Influencers CS2 (ES)' },
+        { href: '/agencia-marketing-esports',        label: 'Agencia Esports (ES)' },
+        { href: '/agencia-gaming-latam',             label: 'Gaming LATAM' },
+        { href: '/apuesta-segura-cs2',               label: 'Apuesta Segura CS2 (ES)' },
+        { href: '/guia-dgoj-igaming-influencers',    label: 'DGOJ iGaming Guide (ES)' },
       ],
     },
   ],
@@ -305,8 +323,17 @@ export function Footer(): React.ReactElement {
                 {col.title}
               </h4>
               <ul className="space-y-3">
-                {col.links.map(({ href, label }) => (
+                {col.links.map(({ href, label, subheading }) => (
                   <li key={label}>
+                    {subheading && (
+                      <div className="flex items-center gap-2 pt-1 pb-0.5">
+                        <div className="h-px flex-1 bg-white/[0.07]" />
+                        <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-white/20">
+                          {subheading}
+                        </span>
+                        <div className="h-px flex-1 bg-white/[0.07]" />
+                      </div>
+                    )}
                     <Link
                       href={href}
                       className="text-sm text-white/50 hover:text-white transition-colors duration-200"
