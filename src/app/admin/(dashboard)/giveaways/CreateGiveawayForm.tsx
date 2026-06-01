@@ -2,28 +2,39 @@
 
 import { useState, useTransition } from 'react';
 import { createGiveawayAction } from './actions';
+import { BrandPicker } from './BrandPicker';
+import type { CrmBrandPickerEntry } from '@/lib/queries/crmBrands';
 
 type Talent = { readonly id: number; readonly slug: string; readonly name: string };
 
 const inputCls = 'w-full rounded-lg border border-sp-admin-border bg-sp-admin-bg px-3 py-2 text-sm text-sp-admin-text outline-none focus:border-sp-admin-accent transition-colors';
 
-export function CreateGiveawayForm({ talents, defaultTalentId }: { talents: readonly Talent[]; defaultTalentId?: number }): React.ReactElement {
+export function CreateGiveawayForm({
+  talents,
+  brands = [],
+  defaultTalentId,
+}: {
+  talents: readonly Talent[];
+  brands?: readonly CrmBrandPickerEntry[];
+  defaultTalentId?: number;
+}): React.ReactElement {
   const [isPending, startTransition] = useTransition();
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
   const [globalError,  setGlobalError]  = useState<string | null>(null);
   const [success,      setSuccess]      = useState(false);
 
-  // Campos controlados — persisten cuando hay errores de validación
-  const [talentId,    setTalentId]    = useState(defaultTalentId ? String(defaultTalentId) : '');
-  const [title,       setTitle]       = useState('');
-  const [brandName,   setBrandName]   = useState('');
-  const [value,       setValue]       = useState('');
-  const [redirectUrl, setRedirectUrl] = useState('');
-  const [imageUrl,    setImageUrl]    = useState('');
-  const [brandLogo,   setBrandLogo]   = useState('');
-  const [description, setDescription] = useState('');
-  const [startsAt,    setStartsAt]    = useState('');
-  const [endsAt,      setEndsAt]      = useState('');
+  const [talentId,      setTalentId]      = useState(defaultTalentId ? String(defaultTalentId) : '');
+  const [title,         setTitle]         = useState('');
+  const [brandName,     setBrandName]     = useState('');
+  const [brandLogo,     setBrandLogo]     = useState('');
+  const [crmBrandId,    setCrmBrandId]    = useState<number | null>(null);
+  const [selectedBrand, setSelectedBrand] = useState<CrmBrandPickerEntry | null>(null);
+  const [value,         setValue]         = useState('');
+  const [redirectUrl,   setRedirectUrl]   = useState('');
+  const [imageUrl,      setImageUrl]      = useState('');
+  const [description,   setDescription]   = useState('');
+  const [startsAt,      setStartsAt]      = useState('');
+  const [endsAt,        setEndsAt]        = useState('');
 
   const slug = talents.find((t) => String(t.id) === talentId)?.slug ?? '';
 
@@ -47,15 +58,15 @@ export function CreateGiveawayForm({ talents, defaultTalentId }: { talents: read
     fd.set('description', description);
     fd.set('startsAt',    startsAt);
     fd.set('endsAt',      endsAt);
+    if (crmBrandId !== null) fd.set('crmBrandId', String(crmBrandId));
 
     startTransition(async () => {
       const res = await createGiveawayAction(fd);
       if (res.ok) {
         setSuccess(true);
-        // Limpiar solo en éxito
         if (!defaultTalentId) setTalentId('');
-        setTitle(''); setBrandName(''); setValue('');
-        setRedirectUrl(''); setImageUrl(''); setBrandLogo('');
+        setTitle(''); setBrandName(''); setBrandLogo(''); setCrmBrandId(null); setSelectedBrand(null);
+        setValue(''); setRedirectUrl(''); setImageUrl('');
         setDescription(''); setStartsAt(''); setEndsAt('');
       } else {
         setFieldErrors(res.fieldErrors);
@@ -82,10 +93,37 @@ export function CreateGiveawayForm({ talents, defaultTalentId }: { talents: read
         {err('title') && <p className="text-xs text-red-400 mt-1">{err('title')}</p>}
       </div>
 
-      <div>
+      <div className="md:col-span-2">
         <label className="block text-sm font-semibold text-sp-admin-muted mb-1">Marca</label>
-        <input value={brandName} onChange={(e) => setBrandName(e.target.value)} required maxLength={150} className={inputCls} />
+        <BrandPicker
+          brands={brands}
+          onSelect={(b) => {
+            setBrandName(b.name);
+            setCrmBrandId(b.id);
+            setBrandLogo(b.logoUrl ?? '');
+            setSelectedBrand(b);
+          }}
+          placeholder="Seleccionar marca…"
+        />
         {err('brandName') && <p className="text-xs text-red-400 mt-1">{err('brandName')}</p>}
+        {selectedBrand && (
+          <div className="mt-2 flex items-center gap-3 rounded-lg border border-sp-admin-border bg-sp-admin-bg px-3 py-2">
+            {selectedBrand.logoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={selectedBrand.logoUrl} alt={selectedBrand.name} className="w-8 h-8 object-contain rounded" />
+            ) : (
+              <div className="w-8 h-8 rounded bg-sp-admin-border/40 flex items-center justify-center text-[10px] font-bold text-sp-admin-muted">
+                {selectedBrand.name.slice(0, 2).toUpperCase()}
+              </div>
+            )}
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-sp-admin-text truncate">{selectedBrand.name}</p>
+              <p className="text-[10px] text-sp-admin-muted truncate">
+                {[selectedBrand.category, selectedBrand.mainUrl].filter(Boolean).join(' · ')}
+              </p>
+            </div>
+          </div>
+        )}
       </div>
 
       <div>
@@ -103,11 +141,6 @@ export function CreateGiveawayForm({ talents, defaultTalentId }: { talents: read
         <label className="block text-sm font-semibold text-sp-admin-muted mb-1">Imagen del premio (URL)</label>
         <input value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} type="url" className={inputCls} />
         {err('imageUrl') && <p className="text-xs text-red-400 mt-1">{err('imageUrl')}</p>}
-      </div>
-
-      <div>
-        <label className="block text-sm font-semibold text-sp-admin-muted mb-1">Logo de marca (URL)</label>
-        <input value={brandLogo} onChange={(e) => setBrandLogo(e.target.value)} type="url" className={inputCls} />
       </div>
 
       <div>

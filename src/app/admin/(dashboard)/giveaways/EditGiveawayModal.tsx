@@ -36,17 +36,20 @@ export function EditGiveawayModal({ giveaway, brandCatalog = [] }: { giveaway: G
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
   const [success, setSuccess] = useState(false);
 
-  const [title,       setTitle]       = useState(giveaway.title);
-  const [brandName,   setBrandName]   = useState(giveaway.brandName);
-  const [value,       setValue]       = useState(giveaway.value ?? '');
-  const [redirectUrl, setRedirectUrl] = useState(giveaway.redirectUrl);
-  const [imageUrl,    setImageUrl]    = useState(giveaway.imageUrl ?? '');
-  const [brandLogo,   setBrandLogo]   = useState(giveaway.brandLogo ?? '');
-  const [description, setDescription] = useState(giveaway.description ?? '');
-  const [startsAt,    setStartsAt]    = useState(toLocalDatetime(giveaway.startsAt));
-  const [endsAt,      setEndsAt]      = useState(toLocalDatetime(giveaway.endsAt));
-  const [sortOrder,   setSortOrder]   = useState(String(giveaway.sortOrder));
-  const [crmBrandId,  setCrmBrandId]  = useState<number | null>(giveaway.crmBrandId ?? null);
+  const [title,         setTitle]         = useState(giveaway.title);
+  const [brandName,     setBrandName]     = useState(giveaway.brandName);
+  const [value,         setValue]         = useState(giveaway.value ?? '');
+  const [redirectUrl,   setRedirectUrl]   = useState(giveaway.redirectUrl);
+  const [imageUrl,      setImageUrl]      = useState(giveaway.imageUrl ?? '');
+  const [brandLogo,     setBrandLogo]     = useState(giveaway.brandLogo ?? '');
+  const [description,   setDescription]   = useState(giveaway.description ?? '');
+  const [startsAt,      setStartsAt]      = useState(toLocalDatetime(giveaway.startsAt));
+  const [endsAt,        setEndsAt]        = useState(toLocalDatetime(giveaway.endsAt));
+  const [sortOrder,     setSortOrder]     = useState(String(giveaway.sortOrder));
+  const [crmBrandId,    setCrmBrandId]    = useState<number | null>(giveaway.crmBrandId ?? null);
+  const [selectedBrand, setSelectedBrand] = useState<CrmBrandPickerEntry | null>(
+    giveaway.crmBrandId ? (brandCatalog.find((b) => b.id === giveaway.crmBrandId) ?? null) : null,
+  );
 
   const err = (field: string) => fieldErrors[field]?.[0];
 
@@ -123,20 +126,35 @@ export function EditGiveawayModal({ giveaway, brandCatalog = [] }: { giveaway: G
 
               <div>
                 <label className="block text-sm font-semibold text-sp-admin-muted mb-1">Marca</label>
-                {brandCatalog.length > 0 ? (
-                  <BrandPicker
-                    brands={brandCatalog}
-                    onSelect={(b) => {
-                      setBrandName(b.name);
-                      setCrmBrandId(b.id);
-                      if (b.logoUrl) setBrandLogo(b.logoUrl);
-                    }}
-                    placeholder={brandName || 'Seleccionar marca…'}
-                  />
-                ) : (
-                  <input value={brandName} onChange={(e) => { setBrandName(e.target.value); setCrmBrandId(null); }} required maxLength={150} className={inputCls} />
-                )}
+                <BrandPicker
+                  brands={brandCatalog}
+                  onSelect={(b) => {
+                    setBrandName(b.name);
+                    setCrmBrandId(b.id);
+                    setBrandLogo(b.logoUrl ?? '');
+                    setSelectedBrand(b);
+                  }}
+                  placeholder={brandName || 'Seleccionar marca…'}
+                />
                 {err('brandName') && <p className="text-xs text-red-400 mt-1">{err('brandName')}</p>}
+                {selectedBrand && (
+                  <div className="mt-2 flex items-center gap-3 rounded-lg border border-sp-admin-border bg-sp-admin-bg px-3 py-2">
+                    {selectedBrand.logoUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={selectedBrand.logoUrl} alt={selectedBrand.name} className="w-8 h-8 object-contain rounded" />
+                    ) : (
+                      <div className="w-8 h-8 rounded bg-sp-admin-border/40 flex items-center justify-center text-[10px] font-bold text-sp-admin-muted">
+                        {selectedBrand.name.slice(0, 2).toUpperCase()}
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-sp-admin-text truncate">{selectedBrand.name}</p>
+                      <p className="text-[10px] text-sp-admin-muted truncate">
+                        {[selectedBrand.category, selectedBrand.mainUrl].filter(Boolean).join(' · ')}
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div>
@@ -154,11 +172,6 @@ export function EditGiveawayModal({ giveaway, brandCatalog = [] }: { giveaway: G
                 <label className="block text-sm font-semibold text-sp-admin-muted mb-1">Imagen del premio (URL)</label>
                 <input value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} type="url" className={inputCls} />
                 {err('imageUrl') && <p className="text-xs text-red-400 mt-1">{err('imageUrl')}</p>}
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-sp-admin-muted mb-1">Logo de marca (URL)</label>
-                <input value={brandLogo} onChange={(e) => setBrandLogo(e.target.value)} type="url" className={inputCls} />
               </div>
 
               <div className="md:col-span-2">

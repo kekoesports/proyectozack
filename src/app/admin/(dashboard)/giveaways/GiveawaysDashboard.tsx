@@ -140,7 +140,7 @@ export function GiveawaysDashboard({
         onClose={() => setNewGiveawayOpen(false)}
         title="Nuevo sorteo"
       >
-        <CreateGiveawayForm talents={talents} />
+        <CreateGiveawayForm talents={talents} brands={brands} />
       </EditDrawer>
 
       {/* Drawer — Nuevo código */}
