@@ -65,11 +65,42 @@ const WHY = [
   { title: 'Precision attribution per creator', desc: 'Every streamer gets a unique code. We track every click, register and deposit back to the exact creator who generated it. Verified reports, not estimates.' },
 ];
 
+const FAQ_ITEMS = [
+  {
+    q: 'Why does the CS2 audience convert better than general gaming audiences?',
+    a: 'CS2 players live in a transaction economy. Skin trading, case openings, betting — they convert at rates 3-5x above general gaming audiences. Peripheral brands, iGaming and skins platforms see this firsthand.',
+  },
+  {
+    q: 'How quickly can a CS2 influencer campaign go live?',
+    a: 'From brief confirmation to live campaign in under 72 hours. We deliver a proposal with selected CS2 streamers in 48 hours — tell us your product, conversion goal and target market.',
+  },
+  {
+    q: 'How is attribution tracked per CS2 streamer?',
+    a: 'Every streamer gets a unique code. We track every click, register and deposit back to the exact creator who generated it. Verified reports, not estimates.',
+  },
+  {
+    q: 'Which markets does SocialPro cover for CS2 campaigns?',
+    a: 'Spain, Mexico, Argentina and Colombia. Our 1WIN CS2 Tournament campaign activated 100+ streamers simultaneously across all four markets, with peak audiences exceeding 500K concurrent viewers.',
+  },
+];
+
+const faqJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  '@id': absoluteUrl('/cs2-influencer-marketing#faq'),
+  mainEntity: FAQ_ITEMS.map((item) => ({
+    '@type': 'Question',
+    name: item.q,
+    acceptedAnswer: { '@type': 'Answer', text: item.a },
+  })),
+};
+
 export default function Cs2InfluencerMarketingPage() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(faqJsonLd) }} />
 
       {/* Hero */}
       <section className="bg-sp-black pt-32 pb-20">
@@ -131,6 +162,22 @@ export default function Cs2InfluencerMarketingPage() {
               <div className="text-sp-orange text-xs font-bold uppercase tracking-wider mb-3">SkinsMonkey · Tracked conversions</div>
               <p className="text-sm text-sp-muted leading-relaxed">6-week campaign with unique referral codes per streamer. €200,000 in transactions directly attributed to SocialPro creators. Every conversion tracked end-to-end with verifiable data.</p>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section className="bg-white py-16 md:py-20">
+        <div className="max-w-4xl mx-auto px-6">
+          <p className="text-sp-orange text-xs font-bold uppercase tracking-[0.2em] mb-2">FAQ</p>
+          <h2 className="font-display text-3xl font-black uppercase text-sp-dark mb-10">Frequently asked questions</h2>
+          <div className="space-y-8">
+            {FAQ_ITEMS.map((item) => (
+              <div key={item.q} className="border-b border-sp-border pb-8 last:border-b-0">
+                <h3 className="font-bold text-sp-dark mb-3">{item.q}</h3>
+                <p className="text-sm text-sp-muted leading-relaxed">{item.a}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>

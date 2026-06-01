@@ -60,11 +60,42 @@ const DIFFERENTIATORS = [
   { title: '4 years of iGaming execution', desc: 'We have been running betting influencer campaigns in Spain, LatAm and Turkey since 2020. We know which creators deliver, which messages work and where the regulatory lines are.' },
 ];
 
+const FAQ_ITEMS = [
+  {
+    q: 'Which markets do you activate betting influencer campaigns in?',
+    a: 'We run betting influencer campaigns in Spain, LatAm and Turkey. We have been operating in these markets since 2020 and know which creators deliver, which messages work and where the regulatory lines are.',
+  },
+  {
+    q: 'How does DGOJ compliance work in your betting campaigns?',
+    a: 'Most agencies connect streamers with betting brands and hope for the best. We build compliance into every step: creator vetting, content briefing, pre-publication review and regulatory reporting.',
+  },
+  {
+    q: 'How is FTD and conversion tracking verified?',
+    a: 'Every conversion — registration, deposit, FTD — is attributed to the exact streamer who generated it. No estimates, no screenshots. Raw data you can audit.',
+  },
+  {
+    q: 'What results have your betting influencer campaigns delivered?',
+    a: 'In a 6-week SkinsMonkey campaign, SocialPro creators generated €200,000 in transactions attributed via unique referral codes per streamer. In a separate activation, 340+ First Time Deposits were tracked and attributed to specific streamers, verified with operator data — not projected estimates.',
+  },
+];
+
+const faqJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  '@id': absoluteUrl('/betting-influencers#faq'),
+  mainEntity: FAQ_ITEMS.map((item) => ({
+    '@type': 'Question',
+    name: item.q,
+    acceptedAnswer: { '@type': 'Answer', text: item.a },
+  })),
+};
+
 export default function BettingInfluencersPage() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(faqJsonLd) }} />
 
       <section className="bg-sp-black pt-32 pb-20">
         <div className="max-w-4xl mx-auto px-6 text-center">
@@ -123,6 +154,22 @@ export default function BettingInfluencersPage() {
             </div>
           </div>
           <p className="text-sm text-sp-muted mt-6">For compliance details, see <Link href="/servicios/igaming" className="text-sp-orange hover:underline">our iGaming compliance page</Link>.</p>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section className="bg-white py-16 md:py-20">
+        <div className="max-w-4xl mx-auto px-6">
+          <p className="text-sp-orange text-xs font-bold uppercase tracking-[0.2em] mb-2">FAQ</p>
+          <h2 className="font-display text-3xl font-black uppercase text-sp-dark mb-10">Frequently asked questions</h2>
+          <div className="space-y-8">
+            {FAQ_ITEMS.map((item) => (
+              <div key={item.q} className="border-b border-sp-border pb-8 last:border-b-0">
+                <h3 className="font-bold text-sp-dark mb-3">{item.q}</h3>
+                <p className="text-sm text-sp-muted leading-relaxed">{item.a}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
