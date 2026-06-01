@@ -118,7 +118,7 @@ const PROCESS_STEPS = [
   },
 ];
 
-const CASE_STUDIES = [
+const CASE_STUDIES: readonly { brand: string; stat: string; detail: string; href?: string }[] = [
   {
     brand: '1WIN',
     stat: '8M+ reach',
@@ -126,6 +126,7 @@ const CASE_STUDIES = [
   },
   {
     brand: 'SkinsMonkey',
+    href: '/marcas/skinsmonkey',
     stat: '200K€ conversiones',
     detail: 'Campaña de 6 semanas con código de referido trazado end-to-end. 200.000€ en transacciones atribuidas directamente a los streamers de SocialPro.',
   },
@@ -212,7 +213,7 @@ export default function IgamingPage() {
               mensaje puede acarrear sanciones al operador y daño reputacional al creador.
             </p>
             <p>
-              Nuestros <strong className="text-sp-dark font-semibold">betting influencers</strong> son streamers verificados especializados en apuestas deportivas,
+              Nuestros <Link href="/betting-influencers" className="font-semibold text-sp-dark hover:text-sp-orange transition-colors">betting influencers</Link> son streamers verificados especializados en apuestas deportivas,
               casino online y skin trading. No son generalistas que ocasionalmente mencionan una casa de apuestas:
               son creadores cuya audiencia ya está familiarizada con el producto y cuya credibilidad en el sector
               es su principal activo.
@@ -273,9 +274,15 @@ export default function IgamingPage() {
             {CASE_STUDIES.map((c) => (
               <div key={c.brand} className="rounded-2xl border border-sp-border bg-sp-off p-8">
                 <div className="font-display text-4xl font-black text-sp-dark mb-1">{c.stat}</div>
-                <div className="font-display text-sm font-bold uppercase text-sp-orange mb-3">
-                  {c.brand}
-                </div>
+                {c.href ? (
+                  <Link href={c.href} className="font-display text-sm font-bold uppercase text-sp-orange mb-3 block hover:opacity-80 transition-opacity">
+                    {c.brand}
+                  </Link>
+                ) : (
+                  <div className="font-display text-sm font-bold uppercase text-sp-orange mb-3">
+                    {c.brand}
+                  </div>
+                )}
                 <p className="text-sm text-sp-muted leading-relaxed">{c.detail}</p>
               </div>
             ))}
@@ -310,6 +317,13 @@ export default function IgamingPage() {
               </li>
             ))}
           </ul>
+          <p className="text-sm text-white/60 mt-6">
+            Consulta nuestra{' '}
+            <Link href="/guia-dgoj-igaming-influencers" className="text-sp-orange hover:underline">
+              guía completa de compliance DGOJ
+            </Link>
+            {' '}para operadores y streamers.
+          </p>
         </div>
       </section>
 
@@ -458,6 +472,9 @@ export default function IgamingPage() {
               { href: '/cs2-influencer-marketing', label: 'CS2 Influencer Marketing' },
               { href: '/influencers-cs2', label: 'Influencers CS2 (ES)' },
               { href: '/apuesta-segura-cs2', label: 'Apuesta Segura CS2' },
+              { href: '/marcas/keydrop', label: 'Keydrop' },
+              { href: '/marcas/hellcase', label: 'Hellcase' },
+              { href: '/marcas/skinplace', label: 'Skinplace' },
               { href: '/servicios', label: 'Todos los servicios' },
             ].map(({ href, label }) => (
               <Link key={href} href={href} className="text-xs font-semibold text-sp-muted hover:text-sp-orange border border-sp-border hover:border-sp-orange rounded-full px-3 py-1.5 transition-colors">

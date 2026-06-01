@@ -101,7 +101,7 @@ export default function InfluencersBettingPage() {
             ))}
           </div>
           <p className="text-sm text-sp-muted mt-6">
-            Ver detalles completos de compliance en <Link href="/servicios/igaming" className="text-sp-orange hover:underline">nuestra página iGaming</Link>.
+            Ver detalles completos de compliance en <Link href="/guia-dgoj-igaming-influencers" className="text-sp-orange hover:underline">nuestra guía DGOJ</Link>.
           </p>
         </div>
       </section>

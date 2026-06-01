@@ -153,7 +153,7 @@ export default function BettingInfluencersPage() {
               <p className="text-sm text-sp-muted leading-relaxed">340+ First Time Deposits tracked in a single campaign activation. Each attributed to a specific streamer, verified with operator data — not projected estimates.</p>
             </div>
           </div>
-          <p className="text-sm text-sp-muted mt-6">For compliance details, see <Link href="/servicios/igaming" className="text-sp-orange hover:underline">our iGaming compliance page</Link>.</p>
+          <p className="text-sm text-sp-muted mt-6">For compliance details, see <Link href="/guia-dgoj-igaming-influencers" className="text-sp-orange hover:underline">our DGOJ compliance guide</Link>.</p>
         </div>
       </section>
 
