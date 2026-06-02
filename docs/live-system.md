@@ -18,8 +18,8 @@ El sistema muestra en tiempo real si algún talento de SocialPro está emitiendo
 ## Arquitectura
 
 ```
-Vercel Cron (*/5 min)
-  └─► GET /api/cron/poll-live-status
+Cron externo cada 5 min (cron-job.org / GitHub Actions)
+  └─► GET /api/cron/poll-live-status  [Authorization: Bearer CRON_SECRET]
         └─► Twitch Helix API → upsert talent_live_status
 
 Browser (cada 60s)
@@ -38,7 +38,7 @@ Browser (cada 60s)
 | `src/app/api/live/route.ts` | Endpoint público — lee DB + dispara poll si stale |
 | `src/app/api/cron/poll-live-status/route.ts` | Endpoint cron — llama Twitch Helix, upsert DB |
 | `src/lib/queries/live.ts` | Queries Drizzle para `talent_live_status` y roster |
-| `vercel.json` | Cron declarado: `*/5 * * * *` → Vercel lo dispara automáticamente |
+| `vercel.json` | **NO** incluye el cron live (Plan Hobby: sub-diario bloquea builds) |
 
 ---
 
@@ -112,12 +112,12 @@ curl -s -w "%{http_code}\n" https://socialpro.es/api/cron/poll-live-status
 
 | Síntoma | Causa | Fix |
 |---|---|---|
-| Sección live siempre vacía | `lastCheckedAt` > 10 min — cron caído | Verificar cron en Vercel Dashboard → Crons |
+| Sección live siempre vacía | `lastCheckedAt` > 10 min — cron externo caído | Verificar cron externo (cron-job.org / GitHub Actions) |
 | Talento live no aparece aunque está emitiendo | `status = 'inactive'` o `excludeFromLive = true` | Corregir en CRM → /admin/live |
 | Talento available (Vityshow) no aparece en fallback | `featuredFallback = false` | Activar en CRM → /admin/live |
 | Cron endpoint retorna 503 | `CRON_SECRET` no configurado en Vercel env vars | Añadir en Vercel → Settings → Env Vars (Production) |
 | Cron retorna `skipped: twitch_creds_missing` | Faltan `TWITCH_CLIENT_*` | Añadir en Vercel → Settings → Env Vars |
-| Deploy falla con error de crons | Plan excede límite de frecuencia | Revisar Vercel plan — Pro soporta crons de hasta 1/min |
+| Deploy falla con error de crons | Cron sub-diario en `vercel.json` con plan Hobby | Eliminar de `vercel.json` — usar cron externo para poll-live |
 
 ---
 
@@ -125,7 +125,7 @@ curl -s -w "%{http_code}\n" https://socialpro.es/api/cron/poll-live-status
 
 Para confirmar que el sistema funciona de punta a punta:
 
-1. **Cron funcionando:** ir a Vercel Dashboard → proyecto → Crons → verificar `poll-live-status` con último run < 5 min
+1. **Cron externo funcionando:** verificar en cron-job.org o GitHub Actions que `poll-live-status` corrió hace < 5 min
 2. **DB actualizada:**
    ```bash
    # desde check-live-status.ts o admin /admin/live
@@ -143,6 +143,6 @@ Para confirmar que el sistema funciona de punta a punta:
 |---|---|---|
 | 7 mayo 2026 | `after()` pull-on-demand en `/api/live` | Plan Hobby no soportaba crons frecuentes |
 | 7 mayo 2026 | Eliminado cron `*/2` de `vercel.json` | Bloqueaba deploys en plan Hobby |
-| 2 junio 2026 | Cron `*/5` añadido de vuelta a `vercel.json` | Proyecto migrado a Pro; sin límites de frecuencia |
 | 2 junio 2026 | `LiveSection` convertida a Client Component | ISR `revalidate=3600` congelaba el Server Component |
 | 2 junio 2026 | `getTwitchRoster` incluye `status='available'` | Vityshow (featuredFallback) excluido erróneamente |
+| 2 junio 2026 | Cron `*/5` retirado de `vercel.json` | Plan Hobby: sub-diario bloquea builds; usar cron externo |
