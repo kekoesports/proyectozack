@@ -1,7 +1,8 @@
 import { cache } from 'react';
-import { eq, desc, inArray, and, ne, lte } from 'drizzle-orm';
+import { eq, desc, inArray, and, ne, lte, sql } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { posts, talents } from '@/db/schema';
+import { postEvents } from '@/db/schema/postEvents';
 import type { Post } from '@/types';
 import { readTime } from '@/lib/utils/blog';
 
@@ -190,14 +191,32 @@ export async function getRelatedNewsPosts(
     limit: poolSize,
   });
 
-  if (currentTags.length > 0) {
-    rows.sort((a, b) => {
-      const sa = (a.tags ?? []).filter((t) => currentTags.includes(t)).length;
-      const sb = (b.tags ?? []).filter((t) => currentTags.includes(t)).length;
-      if (sb !== sa) return sb - sa;
-      return (b.publishedAt?.getTime() ?? 0) - (a.publishedAt?.getTime() ?? 0);
-    });
+  // Obtener visitas 7d para los candidatos y ponderar score con popularidad
+  const candidateIds = rows.map((r) => r.id);
+  const viewMap = new Map<number, number>();
+  if (candidateIds.length > 0) {
+    const viewRows = await db
+      .select({
+        postId:  postEvents.postId,
+        views7d: sql<number>`cast(count(*) filter (where ${postEvents.createdAt} >= now() - interval '7 days') as int)`,
+      })
+      .from(postEvents)
+      .where(and(eq(postEvents.action, 'view'), inArray(postEvents.postId, candidateIds)))
+      .groupBy(postEvents.postId) as { postId: number; views7d: number }[];
+    for (const r of viewRows) viewMap.set(r.postId, r.views7d);
   }
+
+  rows.sort((a, b) => {
+    const tagsA = a.tags ?? [];
+    const tagsB = b.tags ?? [];
+    const overlapA = currentTags.length > 0 ? tagsA.filter((t) => currentTags.includes(t)).length / Math.max(currentTags.length, 1) : 0;
+    const overlapB = currentTags.length > 0 ? tagsB.filter((t) => currentTags.includes(t)).length / Math.max(currentTags.length, 1) : 0;
+    // score = tag_overlap * 0.6 + log(views7d + 1) * 0.4 — misma fórmula en blog/related y news
+    const scoreA = overlapA * 0.6 + Math.log((viewMap.get(a.id) ?? 0) + 1) * 0.4;
+    const scoreB = overlapB * 0.6 + Math.log((viewMap.get(b.id) ?? 0) + 1) * 0.4;
+    if (scoreB !== scoreA) return scoreB - scoreA;
+    return (b.publishedAt?.getTime() ?? 0) - (a.publishedAt?.getTime() ?? 0);
+  });
 
   return attachTalents(rows.slice(0, limit));
 }

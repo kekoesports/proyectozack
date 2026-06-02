@@ -568,6 +568,20 @@
       "when": 1780238500000,
       "tag": "0080_invoice_scope",
       "breakpoints": true
+    },
+    {
+      "idx": 81,
+      "version": "7",
+      "when": 1780391815027,
+      "tag": "0081_freezing_thunderball",
+      "breakpoints": true
+    },
+    {
+      "idx": 82,
+      "version": "7",
+      "when": 1780394064532,
+      "tag": "0082_loose_the_hood",
+      "breakpoints": true
     }
   ]
 }

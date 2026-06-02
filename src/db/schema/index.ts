@@ -46,3 +46,5 @@ export * from './brandCatalog';
 
 export * from './newsAlerts';
 export * from './giveawayEvents';
+export * from './postEvents';
+export * from './talentProfileEvents';

@@ -19,6 +19,7 @@ import { RosterBlock } from '@/features/news/components/article-blocks/RosterBlo
 import { EditorialQuoteBlock } from '@/features/news/components/article-blocks/EditorialQuoteBlock';
 import { ArticleEmbedBlock } from '@/features/news/components/article-blocks/ArticleEmbedBlock';
 import { InterleavedArticleBody } from '@/features/news/components/article-blocks/InterleavedArticleBody';
+import { PostViewTracker } from '@/components/tracking/PostViewTracker';
 
 export const revalidate = 60;
 
@@ -97,6 +98,7 @@ export default async function NewsArticlePage({ params }: PageProps) {
 
   return (
     <>
+      <PostViewTracker postId={post.id} />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: safeJsonLd(articleJsonLd) }}

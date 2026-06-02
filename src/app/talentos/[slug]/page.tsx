@@ -20,6 +20,7 @@ import { generateEventSchema } from '@/lib/schema';
 import { Cs2LabCard } from '@/components/cs2-lab/Cs2LabCard';
 import { TalentSeoSection, generateTalentFaqs } from '@/features/giveaways/components/TalentSeoSection';
 import { countryFlagEmoji } from '@/lib/flag-images';
+import { TalentViewTracker } from '@/components/tracking/TalentViewTracker';
 import type { CreatorCodeWithTalent, GiveawayWithTalent, Talent } from '@/types';
 
 export const revalidate = 3600;
@@ -200,6 +201,7 @@ export default async function TalentPage({ params }: PageProps) {
   return (
     <div className="min-h-screen relative overflow-x-hidden"
       style={{ background: `radial-gradient(ellipse 80% 35% at 50% 0%, ${talent.gradientC1}0d 0%, transparent 45%)` }}>
+      <TalentViewTracker talentId={talent.id} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(profilePageJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(faqPageJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbJsonLd) }} />

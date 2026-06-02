@@ -11,6 +11,7 @@ import { SectionTag } from '@/components/ui/SectionTag';
 import { TalentMiniCard } from '@/features/blog/components/TalentMiniCard';
 import { buildBreadcrumbJsonLd } from '@/lib/utils/breadcrumbs';
 import { absoluteUrl, schemaImageUrl } from '@/lib/site-url';
+import { PostViewTracker } from '@/components/tracking/PostViewTracker';
 import { truncateMetaDescription, truncateMetaTitle } from '@/lib/utils/text';
 
 export const revalidate = 3600;
@@ -171,6 +172,7 @@ export default async function BlogPostPage({ params }: PageProps) {
 
   return (
     <>
+      <PostViewTracker postId={post.id} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbJsonLd) }} />
 

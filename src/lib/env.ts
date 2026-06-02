@@ -23,6 +23,9 @@ export const env = createEnv({
     GEMINI_MODEL: z.string().min(1).optional(),
     // NewsData.io API key para monitorización de noticias
     NEWSDATA_API_KEY: z.string().min(1).optional(),
+    // Sal para el hash de sesión de analytics de posts. Opcional: si no está definida se
+    // usa un valor fijo de fallback. Genera con: crypto.randomBytes(32).toString('hex')
+    ANALYTICS_SALT: z.string().min(8).optional(),
   },
   client: {
     NEXT_PUBLIC_SITE_URL: z.string().url(),
@@ -44,6 +47,7 @@ export const env = createEnv({
     GEMINI_API_KEY: process.env.GEMINI_API_KEY,
     GEMINI_MODEL: process.env.GEMINI_MODEL,
     NEWSDATA_API_KEY: process.env.NEWSDATA_API_KEY,
+    ANALYTICS_SALT: process.env.ANALYTICS_SALT,
 
     NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
     NEXT_PUBLIC_GTM_ID: process.env.NEXT_PUBLIC_GTM_ID,
