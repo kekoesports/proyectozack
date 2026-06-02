@@ -169,6 +169,25 @@ export const getRelatedPosts = cache(async (currentSlug: string, limit = 3): Pro
 });
 
 /**
+ * Posts publicados de tipo estadísticas. Sin bodyMd, con readMinutes precomputado.
+ * Para la página pública /estadisticas.
+ */
+export async function getStatsPosts(limit = 8): Promise<PostListItem[]> {
+  const now = new Date();
+  const rows = await db.query.posts.findMany({
+    where: and(
+      eq(posts.status, 'published'),
+      eq(posts.vertical, 'news'),
+      eq(posts.contentType, 'estadisticas'),
+      lte(posts.publishedAt, now),
+    ),
+    orderBy: [desc(posts.publishedAt)],
+    limit,
+  });
+  return projectListItems(rows);
+}
+
+/**
  * Posts /news relacionados al actual, excluyéndolo. Para sidebar en /news/[slug].
  * Prioriza coincidencia de tags; usa fecha como desempate.
  * Mantiene bodyMd porque las cards editoriales lo necesitan.
