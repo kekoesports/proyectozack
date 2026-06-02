@@ -138,8 +138,13 @@ export type TwitchRosterEntry = {
  * Todos los talentos con Twitch configurado, live + offline.
  * Ordenados por: live primero, luego última vez en directo (startedAt DESC).
  * Para poblar la columna derecha de la sección live.
+ * Safety window de 10 min: si lastCheckedAt es viejo, isLive se fuerza a false.
+ * Dedup por talentId: talentos con múltiples handles Twitch aparecen una sola vez
+ * (el handle live tiene prioridad por el ORDER BY isLive DESC).
  */
 export async function getTwitchRoster(): Promise<TwitchRosterEntry[]> {
+  const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
+
   const rows = await db
     .select({
       talentId:         talents.id,
@@ -154,6 +159,7 @@ export async function getTwitchRoster(): Promise<TwitchRosterEntry[]> {
       gameName:         talentLiveStatus.gameName,
       streamUrl:        talentLiveStatus.streamUrl,
       startedAt:        talentLiveStatus.startedAt,
+      lastCheckedAt:    talentLiveStatus.lastCheckedAt,
     })
     .from(talents)
     .innerJoin(talentSocials, and(
@@ -173,7 +179,30 @@ export async function getTwitchRoster(): Promise<TwitchRosterEntry[]> {
       talents.name,
     );
 
-  return rows.map((r) => ({ ...r, isLive: r.isLive ?? false, featuredFallback: r.featuredFallback ?? false }));
+  const seen = new Set<number>();
+  return rows
+    .filter((r) => {
+      if (seen.has(r.talentId)) return false;
+      seen.add(r.talentId);
+      return true;
+    })
+    .map((r) => {
+      const stale = !r.lastCheckedAt || r.lastCheckedAt < tenMinutesAgo;
+      return {
+        talentId:         r.talentId,
+        slug:             r.slug,
+        name:             r.name,
+        photoUrl:         r.photoUrl,
+        game:             r.game ?? '',
+        featuredFallback: r.featuredFallback ?? false,
+        handle:           r.handle,
+        isLive:           stale ? false : (r.isLive ?? false),
+        viewerCount:      stale ? null : r.viewerCount,
+        gameName:         stale ? null : r.gameName,
+        streamUrl:        stale ? null : r.streamUrl,
+        startedAt:        r.startedAt,
+      };
+    });
 }
 
 export type Cs2SidebarEntry = {

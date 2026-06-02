@@ -163,7 +163,7 @@ export function LiveSection() {
     }
 
     void fetchLive();
-    const id = setInterval(fetchLive, POLL_MS);
+    const id = setInterval(() => { void fetchLive(); }, POLL_MS);
     return () => {
       mounted = false;
       clearInterval(id);
