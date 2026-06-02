@@ -1,3 +1,10 @@
+# Live status — operativa (OBSOLETO — ver docs/live-system.md)
+
+> **2026-06-02:** Proyecto migrado a Pro. El cron `*/5 * * * *` está ahora en `vercel.json`.
+> Este documento describe la solución Hobby (pull-on-demand). La arquitectura actual está en `docs/live-system.md`.
+
+---
+
 # Live status — operativa (Hobby plan friendly)
 
 `talent_live_status` se mantiene sincronizada con la Twitch API mediante

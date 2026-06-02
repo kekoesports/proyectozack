@@ -1,21 +1,35 @@
+'use client';
+
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { LivePlayer } from './LivePlayer';
 import { LiveCard } from './LiveCard';
-import {
-  getLiveTalents,
-  pickFeatured,
-  getTwitchRoster,
-  type LiveTalent,
-  type TwitchRosterEntry,
-} from '@/lib/queries/live';
+import type { LiveTalent, TwitchRosterEntry } from '@/lib/queries/live';
+
+// JSON serializa Date → string; parsear antes de pasar a sub-componentes
+type ApiLiveTalent    = Omit<LiveTalent, 'startedAt'>      & { startedAt: string | null };
+type ApiRosterEntry   = Omit<TwitchRosterEntry, 'startedAt'> & { startedAt: string | null };
+
+type LiveApiData = {
+  featured: ApiLiveTalent | null;
+  others:   ApiLiveTalent[];
+  roster:   ApiRosterEntry[];
+  total:    number;
+};
+
+function parseTalent(r: ApiLiveTalent): LiveTalent {
+  return { ...r, startedAt: r.startedAt ? new Date(r.startedAt) : null };
+}
+function parseRoster(r: ApiRosterEntry): TwitchRosterEntry {
+  return { ...r, startedAt: r.startedAt ? new Date(r.startedAt) : null };
+}
 
 function formatViewers(n: number | null): string {
   if (!n) return '';
   return n >= 1000 ? `${(n / 1000).toFixed(1)}K` : String(n);
 }
 
-// Derivar badge de juego a partir del campo game
 function gameBadge(game: string): string {
   const g = game.toLowerCase();
   if (g.includes('cs2') || g.includes('counter')) return 'CS2';
@@ -23,10 +37,10 @@ function gameBadge(game: string): string {
   if (g.includes('variety') || g.includes('varios') || g.includes('general')) return 'Variety';
   if (g.includes('fortnite')) return 'Fortnite';
   if (g.includes('lol') || g.includes('league')) return 'LoL';
-  return game.split(' ')[0] ?? game; // primera palabra del juego
+  return game.split(' ')[0] ?? game;
 }
 
-// ── RosterSidebar — columna derecha ─────────────────────────────────────
+// ── RosterSidebar ────────────────────────────────────────────────────────
 
 const SIDEBAR_MAX = 10;
 
@@ -86,7 +100,7 @@ function RosterSidebar({ roster, featuredId }: { roster: TwitchRosterEntry[]; fe
 
 const SP_GRAD = 'linear-gradient(135deg,#f5632a 0%,#e03070 35%,#c42880 62%,#8b3aad 100%)';
 
-// ── StreamerCard — fallback grid cuando nadie está live ─────────────────
+// ── StreamerCard ─────────────────────────────────────────────────────────
 
 function StreamerCard({ entry }: { entry: TwitchRosterEntry }) {
   const badge = gameBadge(entry.game);
@@ -98,7 +112,6 @@ function StreamerCard({ entry }: { entry: TwitchRosterEntry }) {
       rel="noopener noreferrer"
       className="group flex flex-col items-center gap-3 p-4 rounded-xl border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.05] transition-all text-center"
     >
-      {/* Avatar con ring gradiente */}
       <div className="p-[2px] rounded-full shrink-0" style={{ background: SP_GRAD }}>
         <div className="relative w-14 h-14 rounded-full overflow-hidden bg-sp-black">
           {entry.photoUrl ? (
@@ -110,15 +123,9 @@ function StreamerCard({ entry }: { entry: TwitchRosterEntry }) {
           )}
         </div>
       </div>
-
-      {/* Nombre con gradiente en hover */}
-      <p
-        className="text-xs font-black uppercase tracking-wider line-clamp-1 w-full transition-all text-white/70 group-hover:text-white"
-      >
+      <p className="text-xs font-black uppercase tracking-wider line-clamp-1 w-full transition-all text-white/70 group-hover:text-white">
         {entry.name}
       </p>
-
-      {/* Badges */}
       <div className="flex items-center gap-1 flex-wrap justify-center">
         <span className="text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-full bg-white/[0.07] text-white/45">
           {badge}
@@ -131,19 +138,47 @@ function StreamerCard({ entry }: { entry: TwitchRosterEntry }) {
   );
 }
 
-// ── LiveSection — Server Component ───────────────────────────────────────
+// ── LiveSection — Client Component ───────────────────────────────────────
+// Client Component para evitar el congelamiento ISR (revalidate=3600 en page.tsx).
+// Fetches /api/live en cada mount y re-polling cada 60s para reflejo en <~2min.
 
-export async function LiveSection() {
-  const [lives, roster] = await Promise.all([getLiveTalents(), getTwitchRoster()]);
+const POLL_MS = 60_000;
 
-  if (roster.length === 0) return null;
+export function LiveSection() {
+  const [data, setData] = useState<LiveApiData | null>(null);
 
-  const featured = pickFeatured(lives);
-  const others: LiveTalent[] = featured ? lives.filter((l) => l.talentId !== featured.talentId) : lives;
-  const total = lives.length;
+  // Suscripción a updates periódicos — useEffect para timer subscription
+  useEffect(() => {
+    let mounted = true;
+
+    async function fetchLive() {
+      try {
+        const res = await fetch('/api/live');
+        if (!res.ok || !mounted) return;
+        const json = (await res.json()) as LiveApiData;
+        if (mounted) setData(json);
+      } catch {
+        // mantener datos anteriores en caso de error de red
+      }
+    }
+
+    void fetchLive();
+    const id = setInterval(fetchLive, POLL_MS);
+    return () => {
+      mounted = false;
+      clearInterval(id);
+    };
+  }, []);
+
+  if (!data || data.roster.length === 0) return null;
+
+  const roster   = data.roster.map(parseRoster);
+  const featured = data.featured ? parseTalent(data.featured) : null;
+  const others   = data.others.map(parseTalent);
+  const total    = data.total;
   const isLiveNow = total > 0;
 
-  // ── Estado 1: Hay live ───────────────────────────────────────────────
+  // ── Estado 1: Hay live ─────────────────────────────────────────────────
   if (isLiveNow && featured) {
     return (
       <section className="bg-sp-black py-16 px-4 sm:px-6 border-t border-white/[0.06]">
@@ -159,7 +194,6 @@ export async function LiveSection() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_220px] gap-6">
-            {/* Featured */}
             <div className="space-y-3">
               <LivePlayer featured={featured} />
               <div className="flex items-start justify-between gap-4">
@@ -185,8 +219,6 @@ export async function LiveSection() {
                 </div>
               )}
             </div>
-
-            {/* Roster sidebar */}
             <RosterSidebar roster={roster} featuredId={featured.talentId} />
           </div>
         </div>
@@ -194,21 +226,15 @@ export async function LiveSection() {
     );
   }
 
-  // ── Estado 2: Nadie live — fallback compacto ─────────────────────────
-  // Si hay selección manual en CRM (featuredFallback=true), usarla.
-  // Si no, mostrar los primeros 6 del roster.
+  // ── Estado 2: Nadie live — fallback compacto ───────────────────────────
   const manualFallback = roster.filter((e) => e.featuredFallback);
-  const fallbackCards = manualFallback.length > 0 ? manualFallback.slice(0, 10) : roster.slice(0, 6);
+  const fallbackCards  = manualFallback.length > 0 ? manualFallback.slice(0, 10) : roster.slice(0, 6);
 
   return (
     <section className="bg-sp-black py-14 px-4 sm:px-6 border-t border-white/[0.06]">
       <div className="max-w-5xl mx-auto">
-
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_220px] gap-8 items-start">
-
-          {/* Centro — grid de streamers */}
           <div>
-            {/* Header */}
             <div className="mb-6">
               <div className="flex items-center gap-2 mb-2">
                 <span className="w-2 h-2 rounded-full bg-white/20" />
@@ -223,15 +249,11 @@ export async function LiveSection() {
                 Sin directos activos — sigue a nuestros creadores para no perderte nada
               </p>
             </div>
-
-            {/* Grid de cards compactas */}
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
               {fallbackCards.map((entry) => (
                 <StreamerCard key={entry.talentId} entry={entry} />
               ))}
             </div>
-
-            {/* CTAs */}
             <div className="flex flex-wrap gap-3">
               <Link
                 href="/talentos"
@@ -247,11 +269,8 @@ export async function LiveSection() {
               </Link>
             </div>
           </div>
-
-          {/* Sidebar — lista compacta */}
           <RosterSidebar roster={roster} />
         </div>
-
       </div>
     </section>
   );

@@ -1,4 +1,4 @@
-import { and, eq, gt, desc, isNotNull, sql, count } from 'drizzle-orm';
+import { and, eq, gt, or, desc, isNotNull, sql, count } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { talents, talentSocials, talentLiveStatus } from '@/db/schema';
 
@@ -60,7 +60,7 @@ export async function getLiveTalents(): Promise<LiveTalent[]> {
     .where(
       and(
         eq(talents.visibility, 'public'),
-        eq(talents.status, 'active'),
+        or(eq(talents.status, 'active'), eq(talents.status, 'available')),
         eq(talents.excludeFromLive, false),
         eq(talentLiveStatus.isLive, true),
         gt(talentLiveStatus.lastCheckedAt, tenMinutesAgo),
@@ -92,7 +92,7 @@ export async function getTalentsWithTwitch() {
     ))
     .where(and(
       eq(talents.visibility, 'public'),
-      eq(talents.status, 'active'),
+      or(eq(talents.status, 'active'), eq(talents.status, 'available')),
       eq(talents.excludeFromLive, false),
       isNotNull(talentSocials.handle),
     ));
@@ -113,7 +113,7 @@ export async function getTalentsWithYouTube() {
     ))
     .where(and(
       eq(talents.visibility, 'public'),
-      eq(talents.status, 'active'),
+      or(eq(talents.status, 'active'), eq(talents.status, 'available')),
       eq(talents.excludeFromLive, false),
       isNotNull(talentSocials.platformId),
     ));
@@ -163,7 +163,7 @@ export async function getTwitchRoster(): Promise<TwitchRosterEntry[]> {
     .leftJoin(talentLiveStatus, eq(talentLiveStatus.talentId, talents.id))
     .where(and(
       eq(talents.visibility, 'public'),
-      eq(talents.status, 'active'),
+      or(eq(talents.status, 'active'), eq(talents.status, 'available')),
       eq(talents.excludeFromLive, false),
       isNotNull(talentSocials.handle),
     ))
