@@ -46,6 +46,7 @@ export async function createPostAction(formData: FormData): Promise<ActionResult
     author: data.author,
     status: data.status,
     vertical: data.vertical,
+    contentType: data.contentType,
     coverUrl: data.coverUrl ?? null,
     ogImageUrl: data.ogImageUrl ?? null,
     publishedAt,

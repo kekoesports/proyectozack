@@ -31,8 +31,9 @@ const ADMIN_MORE_NAV = [
   { href: '/admin/live',            label: 'En directo',       icon: <LiveIcon />,     prefetch: false },
   { href: '/admin/giveaways',       label: 'Sorteos',          icon: <GiveawayIcon />, prefetch: false },
   { href: '/admin/alertas',   label: 'Alertas',     icon: <NewsIcon />,     prefetch: false },
-  { href: '/admin/noticias',  label: 'Noticias',    icon: <NewsIcon />,     prefetch: false },
-  { href: '/admin/analytics', label: 'Analítica',   icon: <AnalyticsIcon />, prefetch: false },
+  { href: '/admin/noticias',       label: 'Noticias',      icon: <NewsIcon />,      prefetch: false },
+  { href: '/admin/estadisticas',   label: 'Estadísticas',  icon: <AnalyticsIcon />, prefetch: false },
+  { href: '/admin/analytics',      label: 'Analítica',     icon: <AnalyticsIcon />, prefetch: false },
   { href: '/admin/cases',     label: 'Casos',       icon: <CaseIcon />,   prefetch: false },
   { href: '/admin/backups',   label: 'Backups',     icon: <BackupIcon />, prefetch: false },
 ] as const;

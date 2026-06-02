@@ -8,16 +8,33 @@ import { deletePostVoidAction } from './actions';
 import { DeleteConfirmButton } from '../giveaways/DeleteConfirmButton';
 import { SendNewsletterButton } from './SendNewsletterButton';
 
+type ContentType = 'noticias' | 'analisis' | 'estadisticas';
+
+const CONTENT_TYPE_LABELS: Record<ContentType, { label: string; cls: string }> = {
+  noticias:    { label: 'Noticia',     cls: 'bg-sp-admin-bg text-sp-admin-muted border border-sp-admin-border' },
+  analisis:    { label: 'Análisis',    cls: 'bg-blue-900/30 text-blue-400' },
+  estadisticas:{ label: 'Estadística', cls: 'bg-sp-orange/20 text-sp-orange' },
+};
+
 function statusLabel(status: string, publishedAt: Date | null) {
   if (status === 'draft') return { label: 'Borrador', cls: 'bg-sp-admin-border text-sp-admin-muted' };
   if (publishedAt && publishedAt > new Date()) return { label: 'Programada', cls: 'bg-amber-900/30 text-amber-400' };
   return { label: 'Publicada', cls: 'bg-emerald-900/30 text-emerald-400' };
 }
 
-export default async function AdminNoticiasPage() {
+type Props = { searchParams?: Promise<Record<string, string>> };
+
+export default async function AdminNoticiasPage({ searchParams }: Props) {
   await requirePermission('noticias', 'read');
+  const params = await searchParams;
+  const rawType = params?.type;
+  const activeType: ContentType | undefined =
+    rawType === 'noticias' || rawType === 'analisis' || rawType === 'estadisticas'
+      ? rawType
+      : undefined;
+
   const [allPosts, nlStats, existingSends] = await Promise.all([
-    getAllNewsPostsForAdmin(),
+    getAllNewsPostsForAdmin(activeType),
     getNewsletterStats(),
     db.select({ postId: newsletterSends.postId, status: newsletterSends.status }).from(newsletterSends),
   ]);
@@ -25,15 +42,9 @@ export default async function AdminNoticiasPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between mb-6">
         <h1 className="font-display text-4xl font-black uppercase text-sp-admin-text">Noticias</h1>
         <div className="flex items-center gap-3">
-          <Link
-            href="/admin/noticias/ranking"
-            className="px-4 py-2 rounded-lg border border-sp-admin-border text-sp-admin-muted text-sm font-semibold hover:bg-sp-admin-hover transition-colors"
-          >
-            Ranking
-          </Link>
           <Link
             href="/admin/noticias/agenda"
             className="px-4 py-2 rounded-lg border border-sp-admin-border text-sp-admin-muted text-sm font-semibold hover:bg-sp-admin-hover transition-colors"
@@ -67,6 +78,28 @@ export default async function AdminNoticiasPage() {
         </div>
       </div>
 
+      {/* Filtros por tipo */}
+      <div className="flex items-center gap-2 mb-6">
+        {([undefined, 'noticias', 'analisis', 'estadisticas'] as const).map((t) => {
+          const isActive = activeType === t;
+          const href = t ? `/admin/noticias?type=${t}` : '/admin/noticias';
+          const label = t ? CONTENT_TYPE_LABELS[t].label : 'Todos';
+          return (
+            <Link
+              key={t ?? 'all'}
+              href={href}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                isActive
+                  ? 'bg-sp-orange text-white'
+                  : 'border border-sp-admin-border text-sp-admin-muted hover:bg-sp-admin-hover'
+              }`}
+            >
+              {label}
+            </Link>
+          );
+        })}
+      </div>
+
       {allPosts.length === 0 ? (
         <div className="rounded-2xl bg-sp-admin-card border border-sp-admin-border p-12 text-center">
           <p className="text-sp-admin-muted text-sm mb-4">No hay noticias todavía.</p>
@@ -80,6 +113,7 @@ export default async function AdminNoticiasPage() {
             <thead>
               <tr className="border-b border-sp-admin-border bg-sp-admin-bg/50">
                 <th className="text-left px-6 py-3 font-semibold text-sp-admin-muted text-[11px] uppercase tracking-wider">Título</th>
+                <th className="text-left px-4 py-3 font-semibold text-sp-admin-muted text-[11px] uppercase tracking-wider">Tipo</th>
                 <th className="text-left px-4 py-3 font-semibold text-sp-admin-muted text-[11px] uppercase tracking-wider">Estado</th>
                 <th className="text-left px-4 py-3 font-semibold text-sp-admin-muted text-[11px] uppercase tracking-wider">Publicación</th>
                 <th className="text-left px-4 py-3 font-semibold text-sp-admin-muted text-[11px] uppercase tracking-wider">Autor</th>
@@ -91,11 +125,16 @@ export default async function AdminNoticiasPage() {
             <tbody>
               {allPosts.map((p) => {
                 const { label, cls } = statusLabel(p.status, p.publishedAt);
+                const ct = (p.contentType ?? 'noticias') as ContentType;
+                const { label: ctLabel, cls: ctCls } = CONTENT_TYPE_LABELS[ct];
                 return (
                   <tr key={p.id} className="border-b border-sp-admin-border/50 last:border-0 hover:bg-sp-admin-hover transition-colors">
                     <td className="px-6 py-4">
                       <p className="font-medium text-sp-admin-text line-clamp-1">{p.title}</p>
                       <p className="text-[11px] text-sp-admin-muted font-mono mt-0.5">/news/{p.slug}</p>
+                    </td>
+                    <td className="px-4 py-4">
+                      <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-bold ${ctCls}`}>{ctLabel}</span>
                     </td>
                     <td className="px-4 py-4">
                       <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-bold ${cls}`}>{label}</span>

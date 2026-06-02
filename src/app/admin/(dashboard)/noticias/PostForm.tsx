@@ -14,6 +14,7 @@ type Post = {
   author?: string;
   status?: 'draft' | 'published';
   vertical?: 'blog' | 'news';
+  contentType?: 'noticias' | 'analisis' | 'estadisticas';
   coverUrl?: string | null;
   ogImageUrl?: string | null;
   publishedAt?: Date | null;
@@ -314,8 +315,8 @@ export function PostForm({ post, action, submitLabel }: Props) {
         </div>
       </div>
 
-      {/* Autor + vertical */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* Autor + vertical + tipo de contenido */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
           <label className="block text-xs font-semibold text-sp-admin-muted uppercase tracking-wider mb-1.5">Autor</label>
           <input
@@ -333,6 +334,15 @@ export function PostForm({ post, action, submitLabel }: Props) {
             <option value="blog">Blog</option>
           </select>
           {fieldError('vertical')}
+        </div>
+        <div>
+          <label className="block text-xs font-semibold text-sp-admin-muted uppercase tracking-wider mb-1.5">Tipo de contenido</label>
+          <select name="contentType" defaultValue={post?.contentType ?? 'noticias'} className={inputCls('contentType')}>
+            <option value="noticias">Noticia</option>
+            <option value="analisis">Análisis</option>
+            <option value="estadisticas">Estadística</option>
+          </select>
+          {fieldError('contentType')}
         </div>
       </div>
 

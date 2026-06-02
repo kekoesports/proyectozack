@@ -2,6 +2,7 @@ import { pgTable, pgEnum, serial, varchar, text, timestamp, integer, index, json
 
 export const postStatusEnum = pgEnum('post_status', ['draft', 'published']);
 export const postVerticalEnum = pgEnum('post_vertical', ['blog', 'news']);
+export const postContentTypeEnum = pgEnum('post_content_type', ['noticias', 'analisis', 'estadisticas']);
 
 export const posts = pgTable('posts', {
   id: serial('id').primaryKey(),
@@ -14,6 +15,7 @@ export const posts = pgTable('posts', {
   author: varchar('author', { length: 100 }).notNull().default('SocialPro'),
   status: postStatusEnum('status').notNull().default('draft'),
   vertical: postVerticalEnum('vertical').notNull().default('blog'),
+  contentType: postContentTypeEnum('content_type').notNull().default('noticias'),
   publishedAt: timestamp('published_at', { withTimezone: true }),
   sortOrder: integer('sort_order').notNull().default(0),
   talentSlugs: jsonb('talent_slugs').$type<string[]>(),
@@ -25,4 +27,5 @@ export const posts = pgTable('posts', {
   index('posts_status_idx').on(t.status),
   index('posts_status_published_at_idx').on(t.status, t.publishedAt),
   index('posts_vertical_status_pub_idx').on(t.vertical, t.status, t.publishedAt),
+  index('posts_content_type_idx').on(t.vertical, t.contentType, t.status, t.publishedAt),
 ]);

@@ -14,6 +14,7 @@ export const PostCreateSchema = z.object({
   author: z.string().min(2).max(100).default('SocialPro'),
   status: z.enum(['draft', 'published']).default('draft'),
   vertical: z.enum(['blog', 'news']).default('news'),
+  contentType: z.enum(['noticias', 'analisis', 'estadisticas']).default('noticias'),
   coverUrl: z.string().url('URL inválida').max(500).nullable().optional(),
   ogImageUrl: z.string().url('URL inválida').max(500).nullable().optional(),
   publishedAt: z

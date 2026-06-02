@@ -29,6 +29,7 @@ export async function getEditorialSlots(): Promise<SlotWithPost[]> {
       postVertical: posts.vertical,
       postPublishedAt: posts.publishedAt,
       postSortOrder: posts.sortOrder,
+      postContentType: posts.contentType,
       postTalentSlugs: posts.talentSlugs,
       postTags: posts.tags,
       postBlocksJson: posts.blocksJson,
@@ -73,6 +74,7 @@ export async function getEditorialSlots(): Promise<SlotWithPost[]> {
     author: r.postAuthor,
     status: r.postStatus as 'draft' | 'published',
     vertical: r.postVertical as 'blog' | 'news',
+    contentType: (r.postContentType ?? 'noticias') as 'noticias' | 'analisis' | 'estadisticas',
     publishedAt: r.postPublishedAt ?? null,
     sortOrder: r.postSortOrder,
     talentSlugs: r.postTalentSlugs as string[] | null,
@@ -133,7 +135,7 @@ export async function getPublishedNewsPostsForAdmin() {
 }
 
 /** Admin: lista de todos los posts news (draft + publicados + programados). */
-export async function getAllNewsPostsForAdmin() {
+export async function getAllNewsPostsForAdmin(contentType?: 'noticias' | 'analisis' | 'estadisticas') {
   return db
     .select({
       id: posts.id,
@@ -144,10 +146,15 @@ export async function getAllNewsPostsForAdmin() {
       updatedAt: posts.updatedAt,
       author: posts.author,
       vertical: posts.vertical,
+      contentType: posts.contentType,
       tags: posts.tags,
       coverUrl: posts.coverUrl,
     })
     .from(posts)
-    .where(eq(posts.vertical, 'news'))
+    .where(
+      contentType
+        ? and(eq(posts.vertical, 'news'), eq(posts.contentType, contentType))
+        : eq(posts.vertical, 'news'),
+    )
     .orderBy(desc(posts.updatedAt));
 }
