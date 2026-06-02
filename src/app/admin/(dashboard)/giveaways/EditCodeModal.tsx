@@ -95,7 +95,7 @@ export function EditCodeModal({ code, talents, brandCatalog = [], onClose }: Pro
             <label className="block text-sm font-semibold text-sp-admin-muted mb-1">Código</label>
             <input value={codeStr} onChange={(e) => setCodeStr(e.target.value)} required maxLength={100} className={`${inputCls} font-mono uppercase`} />
           </div>
-          <div>
+          <div className="md:col-span-2">
             <label className="block text-sm font-semibold text-sp-admin-muted mb-1">Marca</label>
             {brandCatalog.length > 0 ? (
               <BrandPicker
@@ -103,14 +103,26 @@ export function EditCodeModal({ code, talents, brandCatalog = [], onClose }: Pro
                 onSelect={(b) => {
                   setBrandName(b.name);
                   setCrmBrandId(b.id);
-                  if (b.logoUrl) setBrandLogo(b.logoUrl);
-                  if (b.mainUrl) setRedirectUrl(b.mainUrl);
+                  setBrandLogo(b.logoUrl ?? '');
+                  setRedirectUrl(b.mainUrl ?? '');
+                  setCategory(b.category ?? '');
+                }}
+                onClear={() => {
+                  setBrandName('');
+                  setCrmBrandId(null);
+                  setBrandLogo('');
+                  setRedirectUrl('');
+                  setCategory('');
                 }}
                 placeholder={brandName || 'Seleccionar marca…'}
               />
             ) : (
               <input value={brandName} onChange={(e) => { setBrandName(e.target.value); setCrmBrandId(null); }} required maxLength={150} className={inputCls} />
             )}
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-sp-admin-muted mb-1">Logo marca (URL)</label>
+            <input value={brandLogo} onChange={(e) => setBrandLogo(e.target.value)} type="url" placeholder="https://i.imgur.com/..." className={inputCls} />
           </div>
           <div>
             <label className="block text-sm font-semibold text-sp-admin-muted mb-1">URL de redirección</label>

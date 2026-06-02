@@ -145,9 +145,16 @@ export function CreateCodeForm({ talents, brandCatalog = [], defaultTalentId }: 
               onSelect={(b) => {
                 setBrandName(b.name);
                 setCrmBrandId(b.id);
-                if (b.logoUrl) setBrandLogo(b.logoUrl);
-                if (b.mainUrl) setRedirectUrl(b.mainUrl);
-                if (b.category) setCategory(b.category);
+                setBrandLogo(b.logoUrl ?? '');
+                setRedirectUrl(b.mainUrl ?? '');
+                setCategory(b.category ?? '');
+              }}
+              onClear={() => {
+                setBrandName('');
+                setCrmBrandId(null);
+                setBrandLogo('');
+                setRedirectUrl('');
+                setCategory('');
               }}
               placeholder="Buscar marca guardada…"
             />

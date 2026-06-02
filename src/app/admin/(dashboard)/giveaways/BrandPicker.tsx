@@ -7,10 +7,11 @@ import type { CrmBrandPickerEntry } from '@/lib/queries/crmBrands';
 type Props = {
   readonly brands:       readonly CrmBrandPickerEntry[];
   readonly onSelect:     (brand: CrmBrandPickerEntry) => void;
+  readonly onClear?:     () => void;
   readonly placeholder?: string;
 };
 
-export function BrandPicker({ brands, onSelect, placeholder = 'Seleccionar marca…' }: Props) {
+export function BrandPicker({ brands, onSelect, onClear, placeholder = 'Seleccionar marca…' }: Props) {
   const [query, setQuery] = useState('');
   const [open, setOpen]   = useState(false);
 
@@ -29,7 +30,7 @@ export function BrandPicker({ brands, onSelect, placeholder = 'Seleccionar marca
           className="w-full rounded-lg border border-sp-admin-border bg-sp-admin-bg px-3 py-2 text-sm text-sp-admin-text outline-none focus:border-sp-admin-accent transition-colors"
         />
         {query && (
-          <button type="button" onClick={() => { setQuery(''); setOpen(false); }}
+          <button type="button" onClick={() => { setQuery(''); setOpen(false); onClear?.(); }}
             className="px-2 text-sp-admin-muted hover:text-sp-admin-text text-sm">✕</button>
         )}
       </div>
