@@ -118,7 +118,7 @@ export function Nav() {
 
       <div className="max-w-7xl mx-auto px-6 lg:px-8 flex items-center justify-between h-16">
         {/* Logo: ícono + wordmark en JSX */}
-        <Link href={homeHref} className="flex items-center gap-2.5 group">
+        <Link href={homeHref} className="flex items-center gap-2.5 group flex-none">
           <m.div
             whileHover={{ scale: 1.05 }}
             transition={{ type: 'spring', stiffness: 400, damping: 15 }}
@@ -143,12 +143,12 @@ export function Nav() {
         </Link>
 
         {/* Desktop links */}
-        <ul className="hidden md:flex items-center gap-7">
+        <ul className="hidden md:flex items-center gap-5">
           {navLinks.map((l) => (
             <li key={l.href}>
               <Link
                 href={l.href}
-                className="text-xs font-semibold uppercase tracking-widest text-white/50 hover:text-white transition-colors duration-200"
+                className="whitespace-nowrap text-xs font-semibold uppercase tracking-widest text-white/50 hover:text-white transition-colors duration-200"
               >
                 {l.label}
               </Link>
@@ -157,7 +157,7 @@ export function Nav() {
         </ul>
 
         {/* Right cluster: language toggle (only when alternate exists) + CTA */}
-        <div className="hidden md:flex items-center gap-3">
+        <div className="hidden md:flex items-center gap-3 flex-none">
           {showLangToggle && <LangSwitch />}
           <m.a
             href={contactHref}
