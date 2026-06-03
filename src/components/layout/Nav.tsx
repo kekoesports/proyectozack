@@ -18,7 +18,6 @@ const NAV_LINKS_BY_LOCALE: Record<Locale, readonly { href: string; label: string
     { href: '/casos', label: 'Casos de Éxito' },
     { href: '/blog', label: 'Blog' },
     { href: '/news', label: 'News' },
-    { href: '/estadisticas', label: 'Estadísticas' },
     { href: '/nosotros', label: 'Nosotros' },
     { href: '/contacto', label: 'Contacto' },
   ],
