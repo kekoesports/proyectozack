@@ -144,12 +144,12 @@ export function Nav() {
         </Link>
 
         {/* Desktop links */}
-        <ul className="hidden md:flex items-center gap-5">
+        <ul className="hidden md:flex items-center gap-3">
           {navLinks.map((l) => (
             <li key={l.href}>
               <Link
                 href={l.href}
-                className="whitespace-nowrap text-xs font-semibold uppercase tracking-widest text-white/50 hover:text-white transition-colors duration-200"
+                className="whitespace-nowrap text-xs font-semibold uppercase tracking-wider text-white/50 hover:text-white transition-colors duration-200"
               >
                 {l.label}
               </Link>
