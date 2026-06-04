@@ -226,7 +226,7 @@ export default async function TalentPage({ params }: PageProps) {
 
       <header className="sticky top-0 z-50 bg-sp-black/90 backdrop-blur-xl border-b border-white/[0.04]">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
-          <Link href="/giveaways" className="flex items-center gap-2 group">
+          <Link href="/codigos" className="flex items-center gap-2 group">
             <span className="text-white/40 group-hover:text-white/80 transition-colors text-[11px] font-bold uppercase tracking-[0.15em]">← SocialPro Códigos</span>
           </Link>
           <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/20">Perfil de creador</span>
@@ -598,7 +598,7 @@ export default async function TalentPage({ params }: PageProps) {
       ) : null}
 
       <div className="border-t border-white/[0.04] py-6 text-center">
-        <Link href="/giveaways" className="inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] text-white/20 hover:text-white/50 font-bold transition-colors">
+        <Link href="/codigos" className="inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] text-white/20 hover:text-white/50 font-bold transition-colors">
           ← Ver todos los creadores en SocialPro
         </Link>
       </div>

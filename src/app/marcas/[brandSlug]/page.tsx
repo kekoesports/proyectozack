@@ -107,7 +107,7 @@ export default async function BrandPage({ params }: PageProps) {
     '@type': 'BreadcrumbList',
     itemListElement: [
       { '@type': 'ListItem', position: 1, name: 'Inicio', item: SITE_URL },
-      { '@type': 'ListItem', position: 2, name: 'Marcas', item: absoluteUrl('/giveaways') },
+      { '@type': 'ListItem', position: 2, name: 'Marcas', item: absoluteUrl('/codigos') },
       { '@type': 'ListItem', position: 3, name: brand.name, item: absoluteUrl(`/marcas/${brandSlug}`) },
     ],
   };

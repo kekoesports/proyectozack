@@ -60,7 +60,7 @@ export async function uploadTalentPhotoAction(
     revalidatePath('/admin/talents');
     revalidatePath(`/admin/talents/${id}`);
     revalidatePath('/admin/talents/fotos');
-    revalidatePath('/giveaways');
+    revalidatePath('/codigos');
     revalidatePath('/talentos');
     if (talent[0]?.slug) revalidatePath(`/talentos/${talent[0].slug}`);
     revalidatePath('/');
@@ -95,7 +95,7 @@ export async function clearTalentPhotoAction(
     revalidatePath('/admin/talents');
     revalidatePath(`/admin/talents/${id}`);
     revalidatePath('/admin/talents/fotos');
-    revalidatePath('/giveaways');
+    revalidatePath('/codigos');
     revalidatePath('/talentos');
     if (talent2[0]?.slug) revalidatePath(`/talentos/${talent2[0].slug}`);
     revalidatePath('/');

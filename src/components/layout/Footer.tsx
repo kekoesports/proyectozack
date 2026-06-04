@@ -40,7 +40,7 @@ const NAV_COLS_BY_LOCALE: Record<Locale, readonly NavCol[]> = {
       links: [
         { href: '/para-creadores', label: 'Para Creadores' },
         { href: '/talentos', label: 'Ver Roster' },
-        { href: '/giveaways', label: 'Giveaways' },
+        { href: '/codigos', label: 'Códigos' },
         { href: '/sorteos', label: 'Sorteos de Skins' },
         { href: '/contacto', label: 'Trabaja con nosotros' },
       ],
@@ -92,7 +92,7 @@ const NAV_COLS_BY_LOCALE: Record<Locale, readonly NavCol[]> = {
       links: [
         { href: '/para-creadores', label: 'For Creators (ES)' },
         { href: '/talents', label: 'View Roster' },
-        { href: '/giveaways', label: 'Giveaways' },
+        { href: '/codigos', label: 'Codes' },
         { href: '/sorteos', label: 'Skin Giveaways (ES)' },
         { href: '/contact', label: 'Work with us' },
       ],

@@ -24,7 +24,7 @@ export function CodigosCtaCard(): React.ReactElement {
           Compra con descuento en las marcas SocialPro · ahorra y apoya al creator.
         </p>
         <Link
-          href="/giveaways"
+          href="/codigos"
           className="inline-flex items-center gap-1.5 border border-white/15 hover:border-sp-orange/40 hover:text-sp-orange text-white/85 text-[11px] font-bold uppercase tracking-wider rounded-full px-3.5 py-2 transition-colors group"
         >
           Ver códigos

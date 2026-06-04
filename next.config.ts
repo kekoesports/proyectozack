@@ -82,6 +82,13 @@ const nextConfig: NextConfig = {
         destination: '/admin/login',
         permanent: true,
       },
+      // /giveaways → /codigos (301 permanent — ruta renombrada 2026-06-04)
+      // Preserva SEO authority y backlinks externos que apunten a /giveaways.
+      {
+        source: '/giveaways',
+        destination: '/codigos',
+        permanent: true,
+      },
     ];
   },
   async headers() {

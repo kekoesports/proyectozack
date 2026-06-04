@@ -30,7 +30,7 @@ export async function createWinnerAction(formData: FormData): Promise<WinnerActi
     winnerAvatar: parsed.data.winnerAvatar,
   });
   revalidatePath('/admin/giveaways');
-  revalidatePath('/giveaways');
+  revalidatePath('/codigos');
   return { ok: true };
 }
 
@@ -40,5 +40,5 @@ export async function deleteWinnerAction(formData: FormData): Promise<void> {
   if (!parsed.ok) return;
   await deleteWinner(parsed.data.id);
   revalidatePath('/admin/giveaways');
-  revalidatePath('/giveaways');
+  revalidatePath('/codigos');
 }

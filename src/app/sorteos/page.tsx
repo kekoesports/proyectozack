@@ -137,7 +137,7 @@ export default async function SorteosPage({ searchParams }: PageProps): Promise<
               </div>
             )}
             <Link
-              href="/giveaways"
+              href="/codigos"
               className="text-[10px] font-black uppercase tracking-wider text-white/30 hover:text-white/70 transition-colors"
             >
               ← Códigos
@@ -232,7 +232,7 @@ export default async function SorteosPage({ searchParams }: PageProps): Promise<
 
       <div className="border-t border-white/[0.04] py-4 text-center">
         <Link
-          href="/giveaways"
+          href="/codigos"
           className="inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] text-white/20 hover:text-white/50 font-bold transition-colors"
         >
           ← Ver códigos de descuento en SocialPro

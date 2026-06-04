@@ -203,7 +203,7 @@ export function NewsHubEditorialZone({ interview, clip, featuredMatch, agenda, r
               <span className="ml-auto text-white/60 group-hover:translate-x-0.5 transition-transform text-sm">→</span>
             </Link>
             {/* Códigos */}
-            <Link href="/giveaways"
+            <Link href="/codigos"
               className="flex-1 flex items-center gap-3 bg-white/[0.05] border border-white/[0.08] rounded-xl px-4 py-3 hover:border-white/20 transition-colors group">
               <div className="shrink-0 w-8 h-8 rounded-lg bg-sp-orange/15 border border-sp-orange/20 flex items-center justify-center text-sm">%</div>
               <div className="min-w-0">

@@ -7,7 +7,7 @@ import type { ReactNode } from 'react';
 
 type LenisInstance = { raf: (time: number) => void; destroy: () => void };
 
-const PORTAL_PREFIXES = ['/admin', '/marcas', '/creadores', '/giveaways', '/c/'];
+const PORTAL_PREFIXES = ['/admin', '/marcas', '/creadores', '/giveaways', '/codigos', '/c/'];
 const LOGIN_SUFFIXES = ['/login'];
 
 // Rutas donde el widget WhatsApp dispersa el tono editorial/media o

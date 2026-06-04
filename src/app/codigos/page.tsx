@@ -16,11 +16,11 @@ export const metadata: Metadata = {
   title: 'Códigos y Recompensas Gaming — SocialPro',
   description:
     'Todos los códigos activos de tus creadores favoritos de casino, apuestas y CS2. Sorteos y recompensas exclusivas.',
-  alternates: { canonical: '/giveaways' },
+  alternates: { canonical: '/codigos' },
   openGraph: {
     title: 'Códigos y Sorteos Gaming — SocialPro',
     description: 'Códigos activos, sorteos en vivo y recompensas exclusivas de los mejores creadores de CS2, casino e iGaming.',
-    url: absoluteUrl('/giveaways'),
+    url: absoluteUrl('/codigos'),
     siteName: 'SocialPro',
     locale: 'es_ES',
     type: 'website',

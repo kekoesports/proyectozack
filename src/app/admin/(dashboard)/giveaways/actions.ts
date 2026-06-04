@@ -40,7 +40,7 @@ export type GiveawayActionState =
  */
 function revalidateGiveawayPaths(talentSlug?: string | null, talentId?: number): void {
   revalidatePath('/sorteos');
-  revalidatePath('/giveaways');
+  revalidatePath('/codigos');
   revalidatePath('/admin/giveaways');
   if (talentSlug) {
     revalidatePath(`/talentos/${talentSlug}`);

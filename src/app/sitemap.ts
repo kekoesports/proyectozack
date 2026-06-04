@@ -182,14 +182,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: absoluteUrl('/news'),             lastModified: NOW             },
     { url: absoluteUrl('/news/live'),        lastModified: NOW             },
     {
-      url: absoluteUrl('/giveaways'),
+      url: absoluteUrl('/codigos'),
       lastModified: D.giveaways,
-      alternates: { languages: { en: absoluteUrl('/giveaways'), es: absoluteUrl('/sorteos'), 'x-default': absoluteUrl('/sorteos') } },
+      alternates: { languages: { en: absoluteUrl('/codigos'), es: absoluteUrl('/sorteos'), 'x-default': absoluteUrl('/sorteos') } },
     },
     {
       url: absoluteUrl('/sorteos'),
       lastModified: D.sorteos,
-      alternates: { languages: { es: absoluteUrl('/sorteos'), en: absoluteUrl('/giveaways'), 'x-default': absoluteUrl('/sorteos') } },
+      alternates: { languages: { es: absoluteUrl('/sorteos'), en: absoluteUrl('/codigos'), 'x-default': absoluteUrl('/sorteos') } },
     },
     ...bilingualLandings,
     ...caseEntries,

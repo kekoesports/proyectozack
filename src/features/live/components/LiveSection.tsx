@@ -262,7 +262,7 @@ export function LiveSection() {
                 Ver todos los talentos →
               </Link>
               <Link
-                href="/giveaways"
+                href="/codigos"
                 className="px-5 py-2 rounded-full border border-white/10 hover:border-white/25 text-white/60 hover:text-white text-xs font-bold uppercase tracking-wider transition-colors"
               >
                 Sorteos y códigos

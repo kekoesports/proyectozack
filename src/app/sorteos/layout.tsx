@@ -1,4 +1,4 @@
-import '../giveaways/giveaways-animations.css';
+import '../codigos/giveaways-animations.css';
 
 import type { ReactNode } from 'react';
 import type { Metadata } from 'next';
@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   alternates: {
     languages: {
       es: absoluteUrl('/sorteos'),
-      en: absoluteUrl('/giveaways'),
+      en: absoluteUrl('/codigos'),
       'x-default': absoluteUrl('/sorteos'),
     },
   },

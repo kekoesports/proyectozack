@@ -5,12 +5,12 @@ import type { Metadata } from 'next';
 import { absoluteUrl } from '@/lib/site-url';
 
 export const metadata: Metadata = {
-  title: 'Giveaways — SocialPro',
+  title: 'Códigos y Sorteos Gaming — SocialPro',
   description: 'Sorteos activos de los creadores de SocialPro',
   robots: { index: true, follow: true },
   alternates: {
     languages: {
-      en: absoluteUrl('/giveaways'),
+      en: absoluteUrl('/codigos'),
       es: absoluteUrl('/sorteos'),
       'x-default': absoluteUrl('/sorteos'),
     },

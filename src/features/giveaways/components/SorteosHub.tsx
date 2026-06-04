@@ -396,7 +396,7 @@ export function SorteosHub({ active, finished, brands, creators, totalValue, ini
                     Nuevos sorteos muy pronto. Sigue a nuestros creadores para enterarte el primero.
                   </p>
                   <Link
-                    href="/giveaways"
+                    href="/codigos"
                     className="inline-flex items-center gap-2 text-[11px] font-black uppercase tracking-wider text-sp-orange/60 hover:text-sp-orange transition-colors"
                   >
                     ← Ver códigos de descuento

@@ -92,7 +92,7 @@ export default async function TalentsPhotosPage(): Promise<React.ReactElement> {
           </h1>
           <p className="text-sm text-sp-admin-muted mt-1">
             Sube o reemplaza la foto de cada creador. Se reflejan al instante en{' '}
-            <Link href="/giveaways" className="underline hover:text-sp-admin-text">/giveaways</Link>
+            <Link href="/codigos" className="underline hover:text-sp-admin-text">/codigos</Link>
             {' '}y en su página pública.
           </p>
         </div>

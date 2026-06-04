@@ -25,7 +25,7 @@ export type CodeActionState =
 
 function revalidateAll(talentSlug?: string, talentId?: number): void {
   revalidatePath('/admin/giveaways');
-  revalidatePath('/giveaways');
+  revalidatePath('/codigos');
   if (talentSlug) {
     revalidatePath(`/talentos/${talentSlug}`);
     revalidatePath(`/creadores/${talentSlug}`);
@@ -101,7 +101,7 @@ export async function setCodeFeaturedAction(id: number, value: boolean): Promise
   const [pid, pval] = parsed.data;
   await db.update(creatorCodes).set({ isFeatured: pval }).where(eq(creatorCodes.id, pid));
   revalidatePath('/admin/giveaways');
-  revalidatePath('/giveaways');
+  revalidatePath('/codigos');
   revalidatePath('/');
 }
 
