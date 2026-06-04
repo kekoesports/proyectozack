@@ -11,8 +11,11 @@ import { Hero } from '@/features/marketing-site/components/Hero';
 import { Marquee } from '@/features/marketing-site/components/Marquee';
 import { BrandsCarousel } from '@/features/marketing-site/components/BrandsCarousel';
 import { TalentSection } from '@/features/marketing-site/components/TalentSection';
+import { WorkedWithSection } from '@/features/marketing-site/components/WorkedWithSection';
 import { CasesSection } from '@/features/marketing-site/components/CasesSection';
 import { LiveSection } from '@/features/live/components/LiveSection';
+
+const SHOW_LIVE_SECTION = false;
 
 // Client components below-fold: lazy-load JS, SSR preserved
 const ServicesSection = dynamic(() => import('@/features/marketing-site/components/ServicesSection').then(m => ({ default: m.ServicesSection })));
@@ -75,13 +78,16 @@ export default async function HomePage() {
       <Marquee />
       <BrandsCarousel brands={brands} />
       <TalentSection talents={talents} />
-      <Suspense fallback={
-        <section className="bg-sp-black py-16 px-4 sm:px-6 border-t border-white/[0.06]">
-          <div className="max-w-5xl mx-auto h-48 rounded-xl bg-white/[0.02] animate-pulse" />
-        </section>
-      }>
-        <LiveSection />
-      </Suspense>
+      <WorkedWithSection />
+      {SHOW_LIVE_SECTION && (
+        <Suspense fallback={
+          <section className="bg-sp-black py-16 px-4 sm:px-6 border-t border-white/[0.06]">
+            <div className="max-w-5xl mx-auto h-48 rounded-xl bg-white/[0.02] animate-pulse" />
+          </section>
+        }>
+          <LiveSection />
+        </Suspense>
+      )}
       <ServicesSection />
       <Suspense>
         <CasesSectionAsync />
