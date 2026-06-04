@@ -7,6 +7,7 @@ type Platform = 'twitch' | 'youtube' | 'instagram' | 'tiktok' | 'kick' | 'twitte
 type Creator = {
   handle: string;
   platform: Platform;
+  profileUrl: string;
   /** Ruta local /public/images/worked-with/<archivo> o URL externa */
   photoUrl?: string;
   gradientC1?: string;
@@ -17,6 +18,7 @@ const CREATORS: Creator[] = [
   {
     handle: 'imantado',
     platform: 'twitch',
+    profileUrl: 'https://www.twitch.tv/imantado',
     photoUrl: '/images/worked-with/imantado.png',
     gradientC1: '#6441a5',
     gradientC2: '#2a0e61',
@@ -24,6 +26,7 @@ const CREATORS: Creator[] = [
   {
     handle: 'andreachinii',
     platform: 'twitch',
+    profileUrl: 'https://www.twitch.tv/andreachinii',
     photoUrl: '/images/worked-with/andreachinii.png',
     gradientC1: '#f5632a',
     gradientC2: '#8b3aad',
@@ -31,6 +34,7 @@ const CREATORS: Creator[] = [
   {
     handle: 'therealfer',
     platform: 'youtube',
+    profileUrl: 'https://www.youtube.com/@TheRealFer',
     photoUrl: '/images/worked-with/therealfer.jpg',
     gradientC1: '#e03070',
     gradientC2: '#c42880',
@@ -38,6 +42,7 @@ const CREATORS: Creator[] = [
   {
     handle: 'manolorojitastv',
     platform: 'kick',
+    profileUrl: 'https://kick.com/manolorojitastv',
     photoUrl: 'https://files.kick.com/images/user/35182577/profile_image/conversion/b3c6111c-7a0b-4896-8fa3-5e8e4c03b7d8-fullsize.webp',
     gradientC1: '#53fc18',
     gradientC2: '#1a7a00',
@@ -45,6 +50,7 @@ const CREATORS: Creator[] = [
   {
     handle: 'milica_yb',
     platform: 'kick',
+    profileUrl: 'https://kick.com/milica',
     photoUrl: 'https://files.kick.com/images/user/29483636/profile_image/conversion/ec6043ce-6c19-4654-812b-51c3b22adc2c-fullsize.webp',
     gradientC1: '#53fc18',
     gradientC2: '#1a7a00',
@@ -52,6 +58,7 @@ const CREATORS: Creator[] = [
   {
     handle: 'almejita___',
     platform: 'twitch',
+    profileUrl: 'https://www.twitch.tv/almejita___',
     photoUrl: 'https://static-cdn.jtvnw.net/jtv_user_pictures/4f9adae4-bcea-4f49-98ab-59c879d06a37-profile_image-300x300.png',
     gradientC1: '#6441a5',
     gradientC2: '#2a0e61',
@@ -59,6 +66,7 @@ const CREATORS: Creator[] = [
   {
     handle: 'imicaelax',
     platform: 'twitch',
+    profileUrl: 'https://www.twitch.tv/imicaelax',
     photoUrl: 'https://static-cdn.jtvnw.net/jtv_user_pictures/fd7e7b08-5cc6-445e-a38f-cce41588d4db-profile_image-300x300.png',
     gradientC1: '#6441a5',
     gradientC2: '#2a0e61',
@@ -77,8 +85,11 @@ export function WorkedWithSection() {
             const grad = gradientStyle(c.gradientC1 ?? '#f5632a', c.gradientC2 ?? '#8b3aad');
             const initial = (c.handle[0] ?? '?').toUpperCase();
             return (
-              <div
+              <a
                 key={c.handle}
+                href={c.profileUrl}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="flex flex-col items-center gap-3 bg-white border border-sp-border rounded-2xl px-5 py-4 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all w-[140px]"
               >
                 {/* Avatar circular 80px */}
@@ -113,7 +124,7 @@ export function WorkedWithSection() {
                     <span className="text-[10px] text-sp-muted capitalize">{c.platform}</span>
                   </div>
                 </div>
-              </div>
+              </a>
             );
           })}
         </div>
