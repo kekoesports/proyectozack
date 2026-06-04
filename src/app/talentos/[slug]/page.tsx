@@ -19,7 +19,7 @@ import { TalentLiveWidget } from '@/features/giveaways/components/TalentLiveWidg
 import { generateEventSchema } from '@/lib/schema';
 import { Cs2LabCard } from '@/components/cs2-lab/Cs2LabCard';
 import { TalentSeoSection, generateTalentFaqs } from '@/features/giveaways/components/TalentSeoSection';
-import { countryFlagEmoji } from '@/lib/flag-images';
+import { countryFlagEmoji, getFlagImageUrl } from '@/lib/flag-images';
 import { TalentViewTracker } from '@/components/tracking/TalentViewTracker';
 import type { CreatorCodeWithTalent, GiveawayWithTalent, Talent } from '@/types';
 
@@ -133,6 +133,7 @@ export default async function TalentPage({ params }: PageProps) {
     ? talent.bio.trim().slice(0, 120) + (talent.bio.trim().length > 120 ? '…' : '')
     : null;
   const tags = talent.tags.slice(0, 4);
+  const talentFlagUrl = talent.creatorCountry ? getFlagImageUrl(talent.creatorCountry) : null;
   const isCs2Talent =
     /cs[: ]?2|counter[- ]?strike/i.test(talent.game) ||
     talent.tags.some((t) => /cs[: ]?2|counter[- ]?strike/i.test(t.tag));
@@ -259,12 +260,23 @@ export default async function TalentPage({ params }: PageProps) {
                 <div className="flex flex-wrap items-center gap-2 mb-1.5">
                   <h1 className="font-display text-2xl sm:text-[2rem] font-black uppercase tracking-tight text-white leading-none">{talent.name}</h1>
                   {talent.creatorCountry && (
-                    <span
-                      className="text-xl leading-none drop-shadow-[0_1px_3px_rgba(0,0,0,0.5)]"
-                      title={talent.creatorCountry}
-                      aria-label={`País: ${talent.creatorCountry}`}
-                    >
-                      {countryFlagEmoji(talent.creatorCountry)}
+                    <span aria-label={`País: ${talent.creatorCountry}`}>
+                      {talentFlagUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={talentFlagUrl}
+                          alt={talent.creatorCountry}
+                          title={talent.creatorCountry}
+                          className="w-5 h-5 rounded-sm object-cover drop-shadow-[0_1px_3px_rgba(0,0,0,0.5)] inline-block"
+                        />
+                      ) : (
+                        <span
+                          className="text-xl leading-none drop-shadow-[0_1px_3px_rgba(0,0,0,0.5)]"
+                          title={talent.creatorCountry}
+                        >
+                          {countryFlagEmoji(talent.creatorCountry)}
+                        </span>
+                      )}
                     </span>
                   )}
                   {activeWithTalent.length > 0 && (

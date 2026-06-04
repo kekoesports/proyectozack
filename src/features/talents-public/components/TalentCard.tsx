@@ -5,7 +5,7 @@ import Link from 'next/link';
 import type { TalentWithRelations } from '@/types';
 import { SocialIcon } from '@/components/ui/SocialIcon';
 import { gradientStyle } from '@/lib/utils/gradient';
-import { countryFlagEmoji } from '@/lib/flag-images';
+import { countryFlagEmoji, getFlagImageUrl } from '@/lib/flag-images';
 
 type TalentCardProps = {
   talent: TalentWithRelations;
@@ -14,6 +14,7 @@ type TalentCardProps = {
 
 export function TalentCard({ talent, priority = false }: TalentCardProps) {
   const grad = gradientStyle(talent.gradientC1, talent.gradientC2);
+  const flagUrl = talent.creatorCountry ? getFlagImageUrl(talent.creatorCountry) : null;
 
   return (
     <div className="group relative text-left w-full rounded-2xl overflow-hidden border border-sp-border bg-white hover:shadow-xl transition-all hover:-translate-y-0.5">
@@ -42,13 +43,24 @@ export function TalentCard({ talent, priority = false }: TalentCardProps) {
           </div>
         )}
         {talent.creatorCountry && (
-          <span
-            className="absolute bottom-2 right-2 text-xl leading-none drop-shadow-[0_1px_3px_rgba(0,0,0,0.6)]"
-            title={talent.creatorCountry}
+          <div
+            className="absolute bottom-2 right-2 drop-shadow-[0_1px_3px_rgba(0,0,0,0.6)]"
             aria-label={`País: ${talent.creatorCountry}`}
           >
-            {countryFlagEmoji(talent.creatorCountry)}
-          </span>
+            {flagUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={flagUrl}
+                alt={talent.creatorCountry}
+                title={talent.creatorCountry}
+                className="w-5 h-5 rounded-sm object-cover shadow-sm opacity-90"
+              />
+            ) : (
+              <span className="text-xl leading-none" title={talent.creatorCountry}>
+                {countryFlagEmoji(talent.creatorCountry)}
+              </span>
+            )}
+          </div>
         )}
       </div>
 

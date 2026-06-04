@@ -1,18 +1,13 @@
 /**
- * Mapa de imágenes de banderas redondas por código ISO-2.
- * Para añadir más: añade la entrada aquí con el código en mayúsculas.
- * Si un país no está aquí, el sistema usa el emoji de bandera como fallback.
+ * Devuelve la URL de la bandera PNG desde flagcdn.com para cualquier código ISO-2.
+ * Cubre todos los países sin mapa manual. Funciona en Windows + Chrome donde los
+ * flag emoji Unicode no renderizan.
  */
-export const FLAG_IMAGES: Record<string, string> = {
-  ES: 'https://static.vecteezy.com/system/resources/thumbnails/051/802/716/small/spain-country-round-flag-free-png.png',
-  AR: 'https://images.icon-icons.com/3665/PNG/512/argentina_flag_icon_228621.png',
-  CL: 'https://static.vecteezy.com/system/resources/previews/045/356/697/non_2x/round-flag-of-chile-free-png.png',
-};
-
-/** Devuelve la URL de la bandera redonda o null si no existe. */
 export function getFlagImageUrl(countryCode: string): string | null {
   if (!countryCode) return null;
-  return FLAG_IMAGES[countryCode.toUpperCase()] ?? null;
+  const code = countryCode.trim().toLowerCase();
+  if (!/^[a-z]{2}$/.test(code)) return null;
+  return `https://flagcdn.com/w20/${code}.png`;
 }
 
 /** Fallback: genera emoji desde código ISO-2. */
