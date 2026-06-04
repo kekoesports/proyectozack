@@ -7,15 +7,34 @@ type Platform = 'twitch' | 'youtube' | 'instagram' | 'tiktok' | 'kick' | 'twitte
 type Creator = {
   handle: string;
   platform: Platform;
+  /** Ruta local /public/images/worked-with/<archivo> o URL externa */
   photoUrl?: string;
   gradientC1?: string;
   gradientC2?: string;
 };
 
 const CREATORS: Creator[] = [
-  { handle: 'imantado',    platform: 'twitch',  gradientC1: '#6441a5', gradientC2: '#2a0e61' },
-  { handle: 'andreachini', platform: 'twitch',  gradientC1: '#f5632a', gradientC2: '#8b3aad' },
-  { handle: 'therealfer',  platform: 'youtube', gradientC1: '#e03070', gradientC2: '#c42880' },
+  {
+    handle: 'imantado',
+    platform: 'twitch',
+    photoUrl: '/images/worked-with/imantado.png',
+    gradientC1: '#6441a5',
+    gradientC2: '#2a0e61',
+  },
+  {
+    handle: 'andreachini',
+    platform: 'twitch',
+    // TODO: añadir foto real aquí
+    gradientC1: '#f5632a',
+    gradientC2: '#8b3aad',
+  },
+  {
+    handle: 'therealfer',
+    platform: 'youtube',
+    photoUrl: '/images/worked-with/therealfer.jpg',
+    gradientC1: '#e03070',
+    gradientC2: '#c42880',
+  },
 ];
 
 export function WorkedWithSection() {
@@ -32,34 +51,37 @@ export function WorkedWithSection() {
             return (
               <div
                 key={c.handle}
-                className="flex items-center gap-3 bg-white border border-sp-border rounded-xl px-4 py-3 shadow-sm"
+                className="flex flex-col items-center gap-3 bg-white border border-sp-border rounded-2xl px-5 py-4 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all w-[140px]"
               >
+                {/* Avatar circular 80px */}
                 <div
-                  className="relative w-10 h-10 rounded-full overflow-hidden shrink-0"
+                  className="relative w-20 h-20 rounded-full overflow-hidden shrink-0 ring-2 ring-sp-border"
                   style={{ background: grad }}
                 >
                   {c.photoUrl ? (
                     <Image
                       src={c.photoUrl}
-                      alt={c.handle}
+                      alt={`Foto de perfil de ${c.handle}`}
                       fill
-                      sizes="40px"
+                      sizes="80px"
                       className="object-cover object-top"
                     />
                   ) : (
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="font-display text-base font-black text-white/80">
+                      <span className="font-display text-2xl font-black text-white/80">
                         {initial}
                       </span>
                     </div>
                   )}
                 </div>
-                <div>
+
+                {/* Handle + plataforma */}
+                <div className="text-center">
                   <p className="font-display text-sm font-black uppercase tracking-tight text-sp-dark leading-none">
                     @{c.handle}
                   </p>
-                  <div className="flex items-center gap-1 mt-0.5">
-                    <SocialIcon type={c.platform} size={10} />
+                  <div className="flex items-center justify-center gap-1 mt-1">
+                    <SocialIcon type={c.platform} size={11} />
                     <span className="text-[10px] text-sp-muted capitalize">{c.platform}</span>
                   </div>
                 </div>
