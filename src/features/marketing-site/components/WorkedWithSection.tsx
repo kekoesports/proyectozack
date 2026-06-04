@@ -35,6 +35,34 @@ const CREATORS: Creator[] = [
     gradientC1: '#e03070',
     gradientC2: '#c42880',
   },
+  {
+    handle: 'manolorojitastv',
+    platform: 'kick',
+    photoUrl: 'https://files.kick.com/images/user/35182577/profile_image/conversion/b3c6111c-7a0b-4896-8fa3-5e8e4c03b7d8-fullsize.webp',
+    gradientC1: '#53fc18',
+    gradientC2: '#1a7a00',
+  },
+  {
+    handle: 'milica_yb',
+    platform: 'kick',
+    photoUrl: 'https://files.kick.com/images/user/29483636/profile_image/conversion/ec6043ce-6c19-4654-812b-51c3b22adc2c-fullsize.webp',
+    gradientC1: '#53fc18',
+    gradientC2: '#1a7a00',
+  },
+  {
+    handle: 'almejita___',
+    platform: 'twitch',
+    photoUrl: 'https://static-cdn.jtvnw.net/jtv_user_pictures/4f9adae4-bcea-4f49-98ab-59c879d06a37-profile_image-300x300.png',
+    gradientC1: '#6441a5',
+    gradientC2: '#2a0e61',
+  },
+  {
+    handle: 'imicaelax',
+    platform: 'twitch',
+    photoUrl: 'https://static-cdn.jtvnw.net/jtv_user_pictures/fd7e7b08-5cc6-445e-a38f-cce41588d4db-profile_image-300x300.png',
+    gradientC1: '#6441a5',
+    gradientC2: '#2a0e61',
+  },
 ];
 
 export function WorkedWithSection() {
