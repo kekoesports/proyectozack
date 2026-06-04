@@ -22,9 +22,9 @@ const CREATORS: Creator[] = [
     gradientC2: '#2a0e61',
   },
   {
-    handle: 'andreachini',
+    handle: 'andreachinii',
     platform: 'twitch',
-    // TODO: añadir foto real aquí
+    photoUrl: '/images/worked-with/andreachinii.png',
     gradientC1: '#f5632a',
     gradientC2: '#8b3aad',
   },
