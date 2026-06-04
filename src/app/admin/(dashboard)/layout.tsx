@@ -73,7 +73,7 @@ export default async function AdminLayout({ children }: AdminLayoutProps): Promi
   const alertCount   = summary.total;
 
   return (
-    <div className="min-h-screen bg-sp-admin-bg flex overflow-x-hidden">
+    <div className="h-screen bg-sp-admin-bg flex overflow-hidden">
       <AdminSidebar
         primaryNav={useStaffNav ? STAFF_PRIMARY_NAV : ADMIN_PRIMARY_NAV}
         groups={[]}
@@ -83,7 +83,7 @@ export default async function AdminLayout({ children }: AdminLayoutProps): Promi
         userEmail={session.user.email}
         logoutHref="/api/auth/sign-out"
       />
-      <div className="flex-1 flex flex-col min-w-0 pt-14 md:pt-0">
+      <div className="flex-1 flex flex-col min-w-0 pt-14 md:pt-0 overflow-hidden">
         <AdminHeader
           alertCount={alertCount}
           recentAlerts={recentAlerts}
