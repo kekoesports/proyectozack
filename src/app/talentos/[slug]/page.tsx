@@ -20,6 +20,7 @@ import { generateEventSchema } from '@/lib/schema';
 import { Cs2LabCard } from '@/components/cs2-lab/Cs2LabCard';
 import { TalentSeoSection, generateTalentFaqs } from '@/features/giveaways/components/TalentSeoSection';
 import { countryFlagEmoji, getFlagImageUrl } from '@/lib/flag-images';
+import { getCountryLabel } from '@/lib/countries';
 import { TalentViewTracker } from '@/components/tracking/TalentViewTracker';
 import type { CreatorCodeWithTalent, GiveawayWithTalent, Talent } from '@/types';
 
@@ -133,7 +134,10 @@ export default async function TalentPage({ params }: PageProps) {
     ? talent.bio.trim().slice(0, 120) + (talent.bio.trim().length > 120 ? '…' : '')
     : null;
   const tags = talent.tags.slice(0, 4);
-  const talentFlagUrl = talent.creatorCountry ? getFlagImageUrl(talent.creatorCountry) : null;
+  const talentFlagUrl    = talent.creatorCountry ? getFlagImageUrl(talent.creatorCountry) : null;
+  const talentCountryName = talent.creatorCountry
+    ? (getCountryLabel(talent.creatorCountry) ?? talent.creatorCountry)
+    : null;
   const isCs2Talent =
     /cs[: ]?2|counter[- ]?strike/i.test(talent.game) ||
     talent.tags.some((t) => /cs[: ]?2|counter[- ]?strike/i.test(t.tag));
@@ -259,20 +263,20 @@ export default async function TalentPage({ params }: PageProps) {
               <div className="flex-1 min-w-0 pt-1">
                 <div className="flex flex-wrap items-center gap-2 mb-1.5">
                   <h1 className="font-display text-2xl sm:text-[2rem] font-black uppercase tracking-tight text-white leading-none">{talent.name}</h1>
-                  {talent.creatorCountry && (
-                    <span aria-label={`País: ${talent.creatorCountry}`}>
+                  {talent.creatorCountry && talentCountryName && (
+                    <span aria-label={`Bandera de ${talentCountryName}`}>
                       {talentFlagUrl ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
                           src={talentFlagUrl}
-                          alt={talent.creatorCountry}
-                          title={talent.creatorCountry}
+                          alt={`Bandera de ${talentCountryName}`}
+                          title={talentCountryName}
                           className="w-5 h-5 rounded-sm object-cover drop-shadow-[0_1px_3px_rgba(0,0,0,0.5)] inline-block"
                         />
                       ) : (
                         <span
                           className="text-xl leading-none drop-shadow-[0_1px_3px_rgba(0,0,0,0.5)]"
-                          title={talent.creatorCountry}
+                          title={talentCountryName}
                         >
                           {countryFlagEmoji(talent.creatorCountry)}
                         </span>

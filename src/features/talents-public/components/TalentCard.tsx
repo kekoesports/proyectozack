@@ -6,6 +6,7 @@ import type { TalentWithRelations } from '@/types';
 import { SocialIcon } from '@/components/ui/SocialIcon';
 import { gradientStyle } from '@/lib/utils/gradient';
 import { countryFlagEmoji, getFlagImageUrl } from '@/lib/flag-images';
+import { getCountryLabel } from '@/lib/countries';
 
 type TalentCardProps = {
   talent: TalentWithRelations;
@@ -15,6 +16,9 @@ type TalentCardProps = {
 export function TalentCard({ talent, priority = false }: TalentCardProps) {
   const grad = gradientStyle(talent.gradientC1, talent.gradientC2);
   const flagUrl = talent.creatorCountry ? getFlagImageUrl(talent.creatorCountry) : null;
+  const countryName = talent.creatorCountry
+    ? (getCountryLabel(talent.creatorCountry) ?? talent.creatorCountry)
+    : null;
 
   return (
     <div className="group relative text-left w-full rounded-2xl overflow-hidden border border-sp-border bg-white hover:shadow-xl transition-all hover:-translate-y-0.5">
@@ -42,21 +46,21 @@ export function TalentCard({ talent, priority = false }: TalentCardProps) {
             </span>
           </div>
         )}
-        {talent.creatorCountry && (
+        {talent.creatorCountry && countryName && (
           <div
             className="absolute bottom-2 right-2 drop-shadow-[0_1px_3px_rgba(0,0,0,0.6)]"
-            aria-label={`País: ${talent.creatorCountry}`}
+            aria-label={`Bandera de ${countryName}`}
           >
             {flagUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={flagUrl}
-                alt={talent.creatorCountry}
-                title={talent.creatorCountry}
+                alt={`Bandera de ${countryName}`}
+                title={countryName}
                 className="w-5 h-5 rounded-sm object-cover shadow-sm opacity-90"
               />
             ) : (
-              <span className="text-xl leading-none" title={talent.creatorCountry}>
+              <span className="text-xl leading-none" title={countryName}>
                 {countryFlagEmoji(talent.creatorCountry)}
               </span>
             )}
