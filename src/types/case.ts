@@ -8,6 +8,10 @@ export type CaseCreator = InferSelectModel<typeof caseCreators>;
 
 export type CaseCreatorWithSlug = CaseCreator & {
   talentSlug: string | null;
+  talentPhotoUrl: string | null;
+  talentGradientC1: string | null;
+  talentGradientC2: string | null;
+  talentInitials: string | null;
 };
 
 export type CaseStudyWithRelations = CaseStudy & {

@@ -36,7 +36,14 @@ export async function getCaseStudies(): Promise<CaseStudyWithRelations[]> {
   });
   return rows.map((row) => ({
     ...row,
-    creators: row.creators.map((c) => ({ ...c, talentSlug: null })),
+    creators: row.creators.map((c) => ({
+      ...c,
+      talentSlug: null,
+      talentPhotoUrl: null,
+      talentGradientC1: null,
+      talentGradientC2: null,
+      talentInitials: null,
+    })),
   }));
 }
 
@@ -63,21 +70,35 @@ export const getCaseBySlug = cache(async (slug: string): Promise<CaseStudyWithRe
     .map((c) => c.talentId)
     .filter((id): id is number => id !== null);
 
-  const talentSlugs =
+  const talentRows =
     talentIds.length > 0
       ? await db
-          .select({ id: talents.id, slug: talents.slug })
+          .select({
+            id: talents.id,
+            slug: talents.slug,
+            photoUrl: talents.photoUrl,
+            gradientC1: talents.gradientC1,
+            gradientC2: talents.gradientC2,
+            initials: talents.initials,
+          })
           .from(talents)
           .where(inArray(talents.id, talentIds))
       : [];
 
-  const slugMap = new Map(talentSlugs.map((t) => [t.id, t.slug]));
+  const talentMap = new Map(talentRows.map((t) => [t.id, t]));
 
   return {
     ...row,
-    creators: row.creators.map((c) => ({
-      ...c,
-      talentSlug: c.talentId !== null ? (slugMap.get(c.talentId) ?? null) : null,
-    })),
+    creators: row.creators.map((c) => {
+      const t = c.talentId !== null ? (talentMap.get(c.talentId) ?? null) : null;
+      return {
+        ...c,
+        talentSlug: t?.slug ?? null,
+        talentPhotoUrl: t?.photoUrl ?? null,
+        talentGradientC1: t?.gradientC1 ?? null,
+        talentGradientC2: t?.gradientC2 ?? null,
+        talentInitials: t?.initials ?? null,
+      };
+    }),
   };
 });
