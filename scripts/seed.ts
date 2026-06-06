@@ -68,6 +68,8 @@ const BRANDS_DATA = [
   { slug: 'jugabet', displayName: 'JUGABET', logoUrl: '/images/brands/jugabet.svg', sortOrder: 14 },
   { slug: '1xbet', displayName: '1XBET', logoUrl: '/images/brands/1xbet.png', sortOrder: 15 },
   { slug: 'skinplace', displayName: 'SKIN.PLACE', logoUrl: '/images/brands/skinplace.png', sortOrder: 16 },
+  { slug: 'csgoskins', displayName: 'CSGOSKINS',  logoUrl: '/images/brands/csgoskins.png',  sortOrder: 17 },
+  { slug: 'yosports',  displayName: 'YOSPORTS',   logoUrl: '/images/brands/yosports.png',   sortOrder: 18 },
 ];
 
 type TalentPlatform = 'twitch' | 'youtube';

@@ -21,6 +21,8 @@ const BRAND_BG_OVERRIDES: Readonly<Record<string, BrandBg>> = {
   KEYDROP:    'dark', // texto "drop" en blanco
   SKINSMONKEY:'dark', // texto "skinsmonkey" en blanco
   SKINPLACE:  'dark', // texto "SKINPLACE" en blanco/gris claro
+  CSGOSKINS:  'dark', // icono + texto en blanco
+  YOSPORTS:   'dark', // "Yo" en blanco, "Sports" en lima
 };
 
 const DEFAULT_BRAND_BG: BrandBg = 'light';
