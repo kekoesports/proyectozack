@@ -73,27 +73,21 @@ export function CaseCard({ caseStudy }: CaseCardProps) {
         {/* Dark header con plate uniforme: el plate (light o dark) es la
             superficie real del logo, garantizando legibilidad sobre el
             fondo `sp-dark` del header. */}
-        <header className="h-24 bg-sp-dark flex items-center justify-between px-5 flex-shrink-0">
-          <div className="flex items-center">
-            {logoSrc ? (
-              <BrandLogo
-                src={logoSrc}
-                alt={caseStudy.brandName}
-                plate={plate}
-                size="lg"
-                width={240}
-                height={56}
-              />
-            ) : (
-              <span className="font-display text-xl font-black text-white tracking-tight">
-                {caseStudy.brandName}
-              </span>
-            )}
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-px h-5 bg-white/20" />
-            <span className="font-display text-sm font-black text-white/30">×</span>
-          </div>
+        <header className="h-24 bg-sp-dark flex items-center px-5 flex-shrink-0">
+          {logoSrc ? (
+            <BrandLogo
+              src={logoSrc}
+              alt={caseStudy.brandName}
+              plate={plate}
+              size="lg"
+              width={240}
+              height={56}
+            />
+          ) : (
+            <span className="font-display text-xl font-black text-white tracking-tight">
+              {caseStudy.brandName}
+            </span>
+          )}
         </header>
 
         <article className="p-5 flex flex-col flex-1">
