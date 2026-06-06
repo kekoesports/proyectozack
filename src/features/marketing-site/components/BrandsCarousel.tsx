@@ -28,20 +28,7 @@ const BRAND_PRESENCE: Readonly<Record<string, 'shrink' | 'boost'>> = {
   'HELLCASE':   'shrink',
 };
 
-/**
- * Logos con artwork oscuro/coloreado-bajo que son poco legibles sobre
- * plate dark. brightness-0 invert los convierte a blanco puro, coherente
- * con KEYDROP, CSDROP y SKINSMONKEY.
- *
- * Criterio de inclusión: >35% pixels oscuros (br<80) O artwork coloreado
- * de bajo contraste verificado visualmente sobre sp-dark.
- */
-const LOGO_IMAGE_CLASS: Readonly<Record<string, string>> = {
-  'CLASH.GG':   'brightness-0 invert', // 54% dark
-  'EVOPLAY':    'brightness-0 invert', // 79% dark
-  'EMPIREDROP': 'brightness-0 invert', // 38% dark + 62% colored oscuro
-  'SKIN.CLUB':  'brightness-0 invert', // coloreado de bajo contraste sobre dark
-};
+const LOGO_IMAGE_CLASS: Readonly<Record<string, string>> = {};
 
 /**
  * Carrusel marquee de logos de marcas que confían en SocialPro.
