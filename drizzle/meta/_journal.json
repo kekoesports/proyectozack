@@ -582,6 +582,13 @@
       "when": 1780394064532,
       "tag": "0082_loose_the_hood",
       "breakpoints": true
+    },
+    {
+      "idx": 83,
+      "version": "7",
+      "when": 1780433167301,
+      "tag": "0083_familiar_talisman",
+      "breakpoints": true
     }
   ]
 }
