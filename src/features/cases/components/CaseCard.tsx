@@ -44,6 +44,7 @@ const BRAND_LOGO_MAP: Record<string, string> = {
   'EMMA':          '/images/brands/emma.png',
   'EMPIREDROP':    '/images/brands/empiredrop.png',
   'EVOPLAY':       '/images/brands/evoplay.png',
+  'CSDROP':        '/images/brands/csdrop.png',
 };
 
 /**

@@ -24,6 +24,7 @@ const BRAND_PRESENCE: Readonly<Record<string, 'shrink' | 'boost'>> = {
   '1XBET':      'shrink',
   'CSGOSKINS':  'shrink',
   'YOSPORTS':   'shrink',
+  'CSDROP':     'shrink',
 };
 
 /**

@@ -70,6 +70,7 @@ const BRANDS_DATA = [
   { slug: 'skinplace', displayName: 'SKIN.PLACE', logoUrl: '/images/brands/skinplace.png', sortOrder: 16 },
   { slug: 'csgoskins', displayName: 'CSGOSKINS',  logoUrl: '/images/brands/csgoskins.png',  sortOrder: 17 },
   { slug: 'yosports',  displayName: 'YOSPORTS',   logoUrl: '/images/brands/yosports.png',   sortOrder: 18 },
+  { slug: 'csdrop',    displayName: 'CSDROP',      logoUrl: '/images/brands/csdrop.png',      sortOrder: 19 },
 ];
 
 type TalentPlatform = 'twitch' | 'youtube';
