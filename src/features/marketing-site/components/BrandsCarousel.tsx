@@ -3,7 +3,6 @@ import { SectionTag } from '@/components/ui/SectionTag';
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { FadeInOnScroll } from '@/components/ui/FadeInOnScroll';
 import { BrandLogo } from '@/components/ui/BrandLogo';
-import { getBrandBg } from '@/components/ui/brand-bg-map';
 
 type BrandsCarouselProps = {
   brands: Brand[];
@@ -25,17 +24,25 @@ const BRAND_PRESENCE: Readonly<Record<string, 'shrink' | 'boost'>> = {
   'CSGOSKINS':  'shrink',
   'YOSPORTS':   'shrink',
   'CSDROP':     'shrink',
+  'KICK':       'shrink',
+  'HELLCASE':   'shrink',
+};
+
+/**
+ * CLASH.GG tiene artwork predominantemente oscuro (54 % de píxeles < br.80)
+ * que sería invisible sobre el plate dark. brightness-0 invert lo convierte
+ * a blanco puro, coherente con los demás logos blancos del carrusel.
+ */
+const LOGO_IMAGE_CLASS: Readonly<Record<string, string>> = {
+  'CLASH.GG': 'brightness-0 invert',
 };
 
 /**
  * Carrusel marquee de logos de marcas que confían en SocialPro.
  *
- * Sección con fondo blanco para mostrar los logos en su color original. La
- * mayoría se renderiza sobre plate blanco (que se funde con el fondo, dando
- * solo altura uniforme y padding). Las marcas con artwork blanco/claro que
- * serían invisibles sobre blanco (KEYDROP, SKINSMONKEY, KICK) se sirven
- * sobre un plate oscuro sólido — la excepción puntual mantiene la lectura
- * sin romper la pauta visual.
+ * Todos los logos se sirven sobre un plate oscuro uniforme (bg-sp-dark)
+ * para garantizar coherencia visual independientemente del artwork del logo.
+ * CLASH.GG recibe además brightness-0 invert al tener artwork oscuro.
  *
  * @kind server
  * @feature marketing-site
@@ -85,14 +92,15 @@ export function BrandsCarousel({ brands }: BrandsCarouselProps) {
                 <BrandLogo
                   src={brand.logoUrl}
                   alt={brand.displayName}
-                  plate={getBrandBg(brand.displayName)}
+                  plate="dark"
                   size="lg"
                   presence={BRAND_PRESENCE[brand.displayName] ?? 'normal'}
+                  imageClassName={LOGO_IMAGE_CLASS[brand.displayName]}
                   width={240}
                   height={56}
                 />
               ) : (
-                <span className="inline-flex items-center justify-center h-14 px-4 rounded-lg bg-sp-off text-sp-dark font-display text-base font-black uppercase tracking-wide whitespace-nowrap">
+                <span className="inline-flex items-center justify-center h-14 px-4 rounded-lg bg-sp-dark text-white font-display text-base font-black uppercase tracking-wide whitespace-nowrap">
                   {brand.displayName}
                 </span>
               )}
