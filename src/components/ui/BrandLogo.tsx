@@ -98,6 +98,8 @@ type Props = {
   readonly className?: string;
   /** Clases extra aplicadas solo al elemento <Image> (ej. "brightness-0 invert"). */
   readonly imageClassName?: string | undefined;
+  /** Estilos inline para el elemento <Image>. Permite override seguro de max-h en logos con ratio extremo. */
+  readonly imageStyle?: React.CSSProperties | undefined;
   readonly priority?: boolean;
 };
 
@@ -124,6 +126,7 @@ export function BrandLogo({
   height = 60,
   className,
   imageClassName,
+  imageStyle,
   priority = false,
 }: Props): React.JSX.Element {
   const maxH = LOGO_MAX_HEIGHT[presence][size];
@@ -139,6 +142,7 @@ export function BrandLogo({
       height={height}
       priority={priority}
       unoptimized
+      style={imageStyle}
       className={['object-contain w-auto max-w-full', maxH, imageClassName].filter(Boolean).join(' ')}
     />
   );

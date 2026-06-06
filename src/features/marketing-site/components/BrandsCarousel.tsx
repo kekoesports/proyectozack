@@ -1,3 +1,4 @@
+import type React from 'react';
 import type { Brand } from '@/types';
 import { SectionTag } from '@/components/ui/SectionTag';
 import { SectionHeading } from '@/components/ui/SectionHeading';
@@ -29,6 +30,18 @@ const BRAND_PRESENCE: Readonly<Record<string, 'shrink' | 'boost'>> = {
 };
 
 const LOGO_IMAGE_CLASS: Readonly<Record<string, string>> = {};
+
+/**
+ * Override de maxHeight inline para logos con ratio extremo (>5:1).
+ * Las clases Tailwind max-h no son suficientes porque el ancho resultante
+ * sigue siendo desproporcionado. El estilo inline garantiza el override.
+ *   EVOPLAY:   1584×257 (6.2:1) → 26px → ~160px ancho → plate ~190px
+ *   CSGOSKINS: 800×112  (7.1:1) → 22px → ~157px ancho → plate ~189px
+ */
+const LOGO_IMAGE_STYLE: Readonly<Record<string, React.CSSProperties>> = {
+  'EVOPLAY':   { maxHeight: '26px' },
+  'CSGOSKINS': { maxHeight: '22px' },
+};
 
 /**
  * Carrusel marquee de logos de marcas que confían en SocialPro.
@@ -89,6 +102,7 @@ export function BrandsCarousel({ brands }: BrandsCarouselProps) {
                   size="lg"
                   presence={BRAND_PRESENCE[brand.displayName] ?? 'normal'}
                   imageClassName={LOGO_IMAGE_CLASS[brand.displayName]}
+                  imageStyle={LOGO_IMAGE_STYLE[brand.displayName]}
                   width={240}
                   height={56}
                 />
