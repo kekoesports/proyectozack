@@ -1,0 +1,28 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"const c=[];process.stdin.on('data',d=>c.push(d));process.stdin.on('end',()=>{const d=JSON.parse(Buffer.concat(c).toString());const f=d.tool_input?.file_path??'';if(/\\.env/.test(f)||f.includes('package-lock.json')){console.error('BLOCKED: direct edits to .env* and package-lock.json are not allowed. Edit credentials via Vercel Dashboard; update lock file via npm install.');process.exit(2);}});\"",
+            "statusMessage": "Checking file safety..."
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"const c=[];process.stdin.on('data',d=>c.push(d));process.stdin.on('end',()=>{const d=JSON.parse(Buffer.concat(c).toString());const f=d.tool_input?.file_path??'';if(f.includes('src/db/schema/')){try{require('child_process').execSync('npx drizzle-kit check',{stdio:'inherit'});}catch{process.exit(1);}}});\"",
+            "statusMessage": "Checking schema drift..."
+          }
+        ]
+      }
+    ]
+  }
+}

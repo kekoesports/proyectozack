@@ -1,0 +1,9 @@
+[mcp_servers.neon-db]
+command = "npx"
+args = [
+    "-y",
+    "@neondatabase/mcp-server-neon",
+]
+
+[mcp_servers.neon-db.env]
+NEON_API_KEY = "napi_85scj857vz2xbiffakcqc22szwq45sccimxltuj7xm5jw6at9dw1nde1a2r0b55m"
