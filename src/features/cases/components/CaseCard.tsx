@@ -57,15 +57,15 @@ export function CaseCard({ caseStudy }: CaseCardProps) {
           )}
 
           {stats.length > 0 && (
-            <div className="flex gap-4 border-t border-sp-border pt-4 mb-4">
+            <div className="flex gap-x-4 gap-y-3 flex-wrap border-t border-sp-border pt-4 mb-4">
               {stats.map((s) => (
-                <div key={s.label}>
+                <div key={s.label} className="min-w-0" style={{ flexBasis: 'calc(33.333% - 11px)' }}>
                   <div className={`font-display font-black leading-none gradient-text ${
                     s.value.length > 6 ? 'text-sm' : 'text-xl'
                   }`}>
                     {s.value}
                   </div>
-                  <div className="text-[9px] font-semibold uppercase tracking-wider text-sp-muted mt-0.5">
+                  <div className="text-[9px] font-semibold uppercase tracking-wider text-sp-muted mt-0.5 leading-tight">
                     {s.label}
                   </div>
                 </div>
