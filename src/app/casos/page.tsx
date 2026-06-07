@@ -72,7 +72,7 @@ export default async function CasosPage() {
               Casos de Éxito
             </span>
           </div>
-          <h1 className="font-display mb-6 text-4xl font-black uppercase leading-none text-white md:text-5xl lg:text-6xl">
+          <h1 className="font-display mb-6 text-3xl font-black uppercase leading-none text-white sm:text-4xl md:text-5xl lg:text-6xl">
             Campañas Reales.<br />
             <span className="gradient-text">Resultados Verificados.</span>
           </h1>

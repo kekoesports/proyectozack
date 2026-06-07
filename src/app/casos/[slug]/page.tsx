@@ -174,9 +174,9 @@ export default async function CaseStudyPage({ params }: PageProps) {
 
           {/* Stats en primer plano */}
           {config.stats.length > 0 && (
-            <div className={`grid gap-3 mb-10 ${config.stats.length === 3 ? 'grid-cols-3' : 'grid-cols-2 md:grid-cols-4'}`}>
+            <div className={`grid gap-2 sm:gap-3 mb-10 ${config.stats.length === 3 ? 'grid-cols-3' : 'grid-cols-2 md:grid-cols-4'}`}>
               {config.stats.map((s) => (
-                <div key={s.label} className="rounded-2xl border border-white/10 bg-white/5 px-4 py-5 text-center">
+                <div key={s.label} className="rounded-2xl border border-white/10 bg-white/5 px-2 py-4 sm:px-4 sm:py-5 text-center">
                   <StatValue value={s.value} />
                   <div className="text-[10px] font-semibold uppercase tracking-widest text-white/35 mt-1.5">
                     {s.label}
