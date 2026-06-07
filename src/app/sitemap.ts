@@ -6,23 +6,22 @@ import { getPostSlugs, getNewsSlugs } from '@/lib/queries/posts';
 import { SITE_URL, absoluteUrl } from '@/lib/site-url';
 import { getBrandSlugs } from '@/lib/brands';
 
-// Update lastModified manually when making significant content changes.
 // priority and changeFrequency omitted — Google ignores both fields (2023+).
-const NOW = new Date('2026-05-18');
+const BUILD_DATE = new Date();
 
 const D = {
-  home:          NOW,
-  talentos:      NOW,
-  servicios:     NOW,
-  igaming:       NOW,
-  casos:         NOW,
+  home:          BUILD_DATE,
+  talentos:      BUILD_DATE,
+  servicios:     BUILD_DATE,
+  igaming:       BUILD_DATE,
+  casos:         BUILD_DATE,
   nosotros:      new Date('2025-01-15'),
   contacto:      new Date('2025-01-15'),
   metodologia:   new Date('2025-01-15'),
-  paraCreadores: NOW,
-  blog:          NOW,
-  giveaways:     NOW,
-  sorteos:       NOW,
+  paraCreadores: BUILD_DATE,
+  blog:          BUILD_DATE,
+  giveaways:     BUILD_DATE,
+  sorteos:       BUILD_DATE,
 } as const;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -116,46 +115,46 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // CS2 — /influencers-cs2 es la canónica principal (tiene la keyword ES)
     {
       url: absoluteUrl('/influencers-cs2'),
-      lastModified: NOW,
+      lastModified: BUILD_DATE,
       alternates: { languages: { es: absoluteUrl('/influencers-cs2'), en: absoluteUrl('/cs2-influencer-marketing'), 'x-default': absoluteUrl('/influencers-cs2') } },
     },
     {
       url: absoluteUrl('/cs2-influencer-marketing'),
-      lastModified: NOW,
+      lastModified: BUILD_DATE,
       alternates: { languages: { en: absoluteUrl('/cs2-influencer-marketing'), es: absoluteUrl('/influencers-cs2'), 'x-default': absoluteUrl('/influencers-cs2') } },
     },
     // Valorant
     {
       url: absoluteUrl('/valorant-influencers-agency'),
-      lastModified: NOW,
+      lastModified: BUILD_DATE,
       alternates: { languages: { en: absoluteUrl('/valorant-influencers-agency'), es: absoluteUrl('/agencia-influencers-valorant'), 'x-default': absoluteUrl('/agencia-influencers-valorant') } },
     },
     {
       url: absoluteUrl('/agencia-influencers-valorant'),
-      lastModified: NOW,
+      lastModified: BUILD_DATE,
       alternates: { languages: { es: absoluteUrl('/agencia-influencers-valorant'), en: absoluteUrl('/valorant-influencers-agency'), 'x-default': absoluteUrl('/agencia-influencers-valorant') } },
     },
     // Betting — /betting-influencers es la canónica principal (tiene la keyword)
     {
       url: absoluteUrl('/betting-influencers'),
-      lastModified: NOW,
+      lastModified: BUILD_DATE,
       alternates: { languages: { en: absoluteUrl('/betting-influencers'), es: absoluteUrl('/servicios/igaming'), 'x-default': absoluteUrl('/betting-influencers') } },
     },
     // Esports
     {
       url: absoluteUrl('/esports-marketing-agency'),
-      lastModified: NOW,
+      lastModified: BUILD_DATE,
       alternates: { languages: { en: absoluteUrl('/esports-marketing-agency'), es: absoluteUrl('/agencia-marketing-esports'), 'x-default': absoluteUrl('/agencia-marketing-esports') } },
     },
     {
       url: absoluteUrl('/agencia-marketing-esports'),
-      lastModified: NOW,
+      lastModified: BUILD_DATE,
       alternates: { languages: { es: absoluteUrl('/agencia-marketing-esports'), en: absoluteUrl('/esports-marketing-agency'), 'x-default': absoluteUrl('/agencia-marketing-esports') } },
     },
     // Twitch — solo EN, sin par ES todavía
     {
       url: absoluteUrl('/twitch-streamers-agency'),
-      lastModified: NOW,
+      lastModified: BUILD_DATE,
       alternates: { languages: { en: absoluteUrl('/twitch-streamers-agency'), 'x-default': absoluteUrl('/twitch-streamers-agency') } },
     },
   ];
@@ -168,19 +167,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: D.igaming,
       alternates: { languages: { es: absoluteUrl('/servicios/igaming'), en: absoluteUrl('/betting-influencers'), 'x-default': absoluteUrl('/betting-influencers') } },
     },
-    { url: absoluteUrl('/ganadores'),        lastModified: NOW             },
-    ...getBrandSlugs().map((slug) => ({ url: absoluteUrl(`/marcas/${slug}`), lastModified: NOW })),
-    { url: absoluteUrl('/faq'),              lastModified: NOW             },
-    { url: absoluteUrl('/terminos-sorteos'), lastModified: NOW             },
+    { url: absoluteUrl('/ganadores'),        lastModified: BUILD_DATE             },
+    ...getBrandSlugs().map((slug) => ({ url: absoluteUrl(`/marcas/${slug}`), lastModified: BUILD_DATE })),
+    { url: absoluteUrl('/faq'),              lastModified: BUILD_DATE             },
+    { url: absoluteUrl('/terminos-sorteos'), lastModified: BUILD_DATE             },
     { url: absoluteUrl('/nosotros'),         lastModified: D.nosotros      },
     { url: absoluteUrl('/metodologia'),      lastModified: D.metodologia   },
     { url: absoluteUrl('/para-creadores'),   lastModified: D.paraCreadores },
-    { url: absoluteUrl('/agencia-gaming-latam'), lastModified: NOW         },
-    { url: absoluteUrl('/guia-dgoj-igaming-influencers'), lastModified: NOW },
-    { url: absoluteUrl('/apuesta-segura-cs2'), lastModified: NOW           },
+    { url: absoluteUrl('/agencia-gaming-latam'), lastModified: BUILD_DATE         },
+    { url: absoluteUrl('/guia-dgoj-igaming-influencers'), lastModified: BUILD_DATE },
+    { url: absoluteUrl('/apuesta-segura-cs2'), lastModified: BUILD_DATE           },
     { url: absoluteUrl('/blog'),             lastModified: D.blog          },
-    { url: absoluteUrl('/news'),             lastModified: NOW             },
-    { url: absoluteUrl('/news/live'),        lastModified: NOW             },
+    { url: absoluteUrl('/news'),             lastModified: BUILD_DATE             },
+    { url: absoluteUrl('/news/live'),        lastModified: BUILD_DATE             },
     {
       url: absoluteUrl('/codigos'),
       lastModified: D.giveaways,

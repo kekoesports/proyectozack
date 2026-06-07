@@ -6,24 +6,16 @@ import { absoluteUrl, SITE_URL } from '@/lib/site-url';
 import { getTopRanking } from '@/lib/queries/rankingEntries';
 import { getTwitchRoster } from '@/lib/queries/live';
 import { getStatsPosts } from '@/lib/queries/posts';
+import { ESTADISTICAS_NOINDEX } from '@/lib/feature-flags';
 
 export const revalidate = 300;
-
-/**
- * Quitar TEMPORAL_NOINDEX cuando:
- *  - 3+ artículos de tipo estadísticas publicados
- *  - Twitch operativo (credenciales válidas)
- *  - Ranking visible y con datos
- * Al mismo tiempo añadir /estadisticas a src/app/sitemap.ts.
- */
-const TEMPORAL_NOINDEX = true;
 
 export const metadata: Metadata = {
   title: 'Estadísticas Esports — CS2 y Gaming | SocialPro',
   description:
     'Ranking de equipos CS2, audiencias Twitch y análisis estadístico del ecosistema esports español. Datos en tiempo real del roster de SocialPro.',
   alternates: { canonical: '/estadisticas' },
-  robots: TEMPORAL_NOINDEX ? { index: false, follow: true } : undefined,
+  robots: ESTADISTICAS_NOINDEX ? { index: false, follow: true } : undefined,
   openGraph: {
     title: 'Estadísticas Esports — CS2 y Gaming | SocialPro',
     description:

@@ -103,8 +103,18 @@ const nextConfig: NextConfig = {
   images: {
     formats: ['image/avif', 'image/webp'],
     remotePatterns: [
+      // Vercel Blob Storage
       { protocol: 'https', hostname: '**.vercel-storage.com' },
-      { protocol: 'https', hostname: '**' },
+      // Twitch CDN — profile pictures from Twitch API and hardcoded avatars
+      { protocol: 'https', hostname: '*.jtvnw.net' },
+      { protocol: 'https', hostname: '*.twitch.tv' },
+      // Kick CDN — profile pictures (WorkedWithSection)
+      { protocol: 'https', hostname: 'files.kick.com' },
+      // YouTube — thumbnails stored in DB or referenced from posts
+      { protocol: 'https', hostname: 'img.youtube.com' },
+      { protocol: 'https', hostname: '*.ytimg.com' },
+      // Imgur — brand logos entered via admin panel
+      { protocol: 'https', hostname: 'i.imgur.com' },
     ],
   },
   experimental: {

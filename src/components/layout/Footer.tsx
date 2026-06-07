@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { WA_HREF, CONTACT_EMAIL } from '@/lib/utils/constants';
 import { localeFromPathname, type Locale } from '@/lib/locale';
 import { openConsentBanner } from '@/lib/consent/consentStore';
+import { ESTADISTICAS_NOINDEX } from '@/lib/feature-flags';
 
 type NavLink = {
   readonly href: string;
@@ -48,7 +49,7 @@ const NAV_COLS_BY_LOCALE: Record<Locale, readonly NavCol[]> = {
       links: [
         { href: '/servicios/igaming', label: 'Campañas iGaming' },
         { href: '/servicios',         label: 'Talent Management' },
-        { href: '/admin/login',       label: 'Portal de Marcas' },
+        { href: '/marcas/login',       label: 'Portal de Marcas' },
         { href: '/contacto',          label: 'Solicitar propuesta' },
       ],
     },
@@ -106,7 +107,7 @@ const NAV_COLS_BY_LOCALE: Record<Locale, readonly NavCol[]> = {
       links: [
         { href: '/servicios/igaming', label: 'iGaming Campaigns (ES)' },
         { href: '/services',          label: 'Talent Management' },
-        { href: '/admin/login',       label: 'Brand Portal (ES)' },
+        { href: '/marcas/login',       label: 'Brand Portal (ES)' },
         { href: '/contact',           label: 'Request a proposal' },
       ],
     },
@@ -242,9 +243,15 @@ const SOCIALS = [
 export function Footer() {
   const pathname = usePathname() ?? '/';
   const locale = localeFromPathname(pathname);
-  const navCols = NAV_COLS_BY_LOCALE[locale];
   const stats   = STATS_BY_LOCALE[locale];
   const copy    = COPY_BY_LOCALE[locale];
+
+  const navCols = NAV_COLS_BY_LOCALE[locale].map((col) => ({
+    ...col,
+    links: ESTADISTICAS_NOINDEX
+      ? col.links.filter((l) => l.href !== '/estadisticas')
+      : col.links,
+  }));
 
   const regularCols = navCols.filter((c) => !c.inline);
   const inlineCols  = navCols.filter((c) => c.inline);

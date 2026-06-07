@@ -144,7 +144,7 @@ export function Nav() {
         </Link>
 
         {/* Desktop links */}
-        <ul className="hidden md:flex items-center gap-3">
+        <ul className="hidden lg:flex items-center gap-3">
           {navLinks.map((l) => (
             <li key={l.href}>
               <Link
@@ -158,7 +158,7 @@ export function Nav() {
         </ul>
 
         {/* Right cluster: language toggle (only when alternate exists) + CTA */}
-        <div className="hidden md:flex items-center gap-3 flex-none">
+        <div className="hidden lg:flex items-center gap-3 flex-none">
           {showLangToggle && <LangSwitch />}
           <m.a
             href={contactHref}
@@ -173,7 +173,7 @@ export function Nav() {
 
         {/* Mobile burger */}
         <button
-          className="md:hidden text-white/70 hover:text-white transition-colors p-2"
+          className="lg:hidden text-white/70 hover:text-white transition-colors p-2"
           aria-label={menuAria}
           onClick={() => setOpen((v) => !v)}
         >
@@ -195,7 +195,7 @@ export function Nav() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.18, ease: 'easeOut' }}
-            className="md:hidden bg-sp-black border-t border-white/10 px-6 py-5 flex flex-col gap-5"
+            className="lg:hidden bg-sp-black border-t border-white/10 px-6 py-5 flex flex-col gap-5"
           >
             {navLinks.map((l, i) => (
               <m.div

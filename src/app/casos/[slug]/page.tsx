@@ -3,7 +3,7 @@ import { safeJsonLd } from '@/lib/safeJsonLd';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import { getCaseSlugs, getCaseBySlug } from '@/lib/queries/cases';
+import { getCaseSlugs, getCaseBySlug, getRelatedCases } from '@/lib/queries/cases';
 import { buildBreadcrumbJsonLd } from '@/lib/utils/breadcrumbs';
 import { absoluteUrl } from '@/lib/site-url';
 import { truncateMetaDescription } from '@/lib/utils/text';
@@ -38,15 +38,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       title,
       description,
       url: absoluteUrl(`/casos/${slug}`),
-      images: cs.heroImageUrl
-        ? [{ url: cs.heroImageUrl, width: 1200, height: 630 }]
-        : [{ url: absoluteUrl('/og-socialpro.png'), width: 1200, height: 630 }],
+      images: [{ url: absoluteUrl(`/api/og-image/case?slug=${slug}`), width: 1200, height: 630 }],
     },
     twitter: {
       card: 'summary_large_image',
       title,
       description,
-      images: cs.heroImageUrl ? [cs.heroImageUrl] : [absoluteUrl('/og-socialpro.png')],
+      images: [absoluteUrl(`/api/og-image/case?slug=${slug}`)],
     },
   };
 }
@@ -110,9 +108,23 @@ function CreatorCard({ creator }: { creator: CaseCreatorWithSlug }) {
   return <div>{content}</div>;
 }
 
+function StatValue({ value }: { value: string }) {
+  const isLong = value.length > 6;
+  return (
+    <div className={`font-display font-black gradient-text mb-1 leading-none ${
+      isLong ? 'text-xl md:text-2xl' : 'text-3xl md:text-4xl'
+    }`}>
+      {value}
+    </div>
+  );
+}
+
 export default async function CaseStudyPage({ params }: PageProps) {
   const { slug } = await params;
-  const cs = await getCaseBySlug(slug);
+  const [cs, relatedCases] = await Promise.all([
+    getCaseBySlug(slug),
+    getRelatedCases(slug, 3),
+  ]);
   if (!cs) notFound();
 
   const config = getCaseConfig(slug);
@@ -160,23 +172,45 @@ export default async function CaseStudyPage({ params }: PageProps) {
             <span aria-hidden="true">&larr;</span> Casos de éxito
           </Link>
 
-          <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
+          {/* Stats en primer plano */}
+          {config.stats.length > 0 && (
+            <div className={`grid gap-3 mb-10 ${config.stats.length === 3 ? 'grid-cols-3' : 'grid-cols-2 md:grid-cols-4'}`}>
+              {config.stats.map((s) => (
+                <div key={s.label} className="rounded-2xl border border-white/10 bg-white/5 px-4 py-5 text-center">
+                  <StatValue value={s.value} />
+                  <div className="text-[10px] font-semibold uppercase tracking-widest text-white/35 mt-1.5">
+                    {s.label}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Logo + badges */}
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
             {logoUrl ? (
               <Image
                 src={logoUrl}
                 alt={cs.brandName}
-                width={140}
-                height={52}
-                className="object-contain max-h-12 brightness-0 invert"
+                width={160}
+                height={64}
+                className="object-contain max-h-16 brightness-0 invert"
               />
             ) : (
               <div className="font-display text-4xl font-black gradient-text">{cs.brandName}</div>
             )}
-            {cs.campaignPeriod && (
-              <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-white/30 border border-white/10 rounded-full px-3 py-1">
-                {cs.campaignPeriod}
-              </span>
-            )}
+            <div className="flex flex-wrap items-center gap-2">
+              {config.sector && (
+                <span className="text-[11px] font-bold uppercase tracking-[0.15em] text-sp-orange border border-sp-orange/30 rounded-full px-3 py-1 bg-sp-orange/5">
+                  {config.sector}
+                </span>
+              )}
+              {cs.campaignPeriod && (
+                <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-white/30 border border-white/10 rounded-full px-3 py-1">
+                  {cs.campaignPeriod}
+                </span>
+              )}
+            </div>
           </div>
 
           <h1 className="font-display text-3xl md:text-5xl font-black uppercase tracking-tight text-white leading-tight mb-5">
@@ -184,23 +218,17 @@ export default async function CaseStudyPage({ params }: PageProps) {
           </h1>
 
           {cs.excerpt && (
-            <p className="text-lg text-white/55 leading-relaxed max-w-2xl mb-12">{cs.excerpt}</p>
+            <p className="text-lg text-white/55 leading-relaxed max-w-2xl mb-8">{cs.excerpt}</p>
           )}
 
-          {config.stats.length > 0 && (
-            <div className={`grid gap-4 ${config.stats.length === 3 ? 'grid-cols-3' : 'grid-cols-2 md:grid-cols-4'}`}>
-              {config.stats.map((s) => (
-                <div key={s.label} className="rounded-2xl border border-white/10 bg-white/5 px-5 py-6 text-center">
-                  <div className="font-display text-2xl md:text-3xl font-black gradient-text mb-1 leading-none">
-                    {s.value}
-                  </div>
-                  <div className="text-[11px] font-semibold uppercase tracking-widest text-white/35 mt-1.5">
-                    {s.label}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+          {/* CTA inline en hero */}
+          <Link
+            href="/contacto"
+            className="inline-flex items-center gap-2 bg-sp-grad text-white font-display font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-full hover:opacity-90 transition-opacity"
+          >
+            Hablemos de tu campaña
+            <span aria-hidden="true">→</span>
+          </Link>
         </div>
       </section>
 
@@ -325,12 +353,62 @@ export default async function CaseStudyPage({ params }: PageProps) {
         </section>
       )}
 
+      {/* ── Otros casos de éxito ── */}
+      {relatedCases.length > 0 && (
+        <section className="bg-sp-off py-16 border-b border-sp-border">
+          <div className="max-w-5xl mx-auto px-6">
+            <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-sp-orange mb-2">
+              Más casos
+            </p>
+            <h2 className="font-display text-2xl md:text-3xl font-black uppercase text-sp-dark mb-8">
+              Otros casos de éxito
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+              {relatedCases.map((r) => {
+                const rConfig = getCaseConfig(r.slug);
+                return (
+                  <Link
+                    key={r.slug}
+                    href={`/casos/${r.slug}`}
+                    className="group flex flex-col gap-4 bg-white rounded-2xl border border-sp-border px-6 py-5 hover:border-sp-orange/40 hover:shadow-md transition-all duration-200"
+                  >
+                    <div className="h-10 flex items-center">
+                      {rConfig.logoUrl ? (
+                        <Image
+                          src={rConfig.logoUrl}
+                          alt={r.brandName}
+                          width={120}
+                          height={40}
+                          className="object-contain max-h-8 brightness-0 opacity-60 group-hover:opacity-90 transition-opacity"
+                        />
+                      ) : (
+                        <span className="font-display text-lg font-black uppercase text-sp-dark/60 group-hover:text-sp-dark transition-colors">
+                          {r.brandName}
+                        </span>
+                      )}
+                    </div>
+                    {rConfig.sector && (
+                      <span className="text-[10px] font-semibold uppercase tracking-widest text-sp-muted">
+                        {rConfig.sector}
+                      </span>
+                    )}
+                    <span className="text-xs font-bold uppercase tracking-wider text-sp-orange mt-auto inline-flex items-center gap-1">
+                      Ver caso <span aria-hidden="true">→</span>
+                    </span>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* ── CTA ── */}
       <section className="bg-white py-20">
         <div className="max-w-2xl mx-auto px-6 text-center">
           <p className="text-sp-muted mb-6 text-base leading-relaxed">{ctaText}</p>
           <Link
-            href="/#contacto"
+            href="/contacto"
             className="inline-block bg-sp-grad text-white font-display font-bold uppercase tracking-wider text-sm px-10 py-3.5 rounded-full hover:opacity-90 transition-opacity"
           >
             Hablemos de tu campaña

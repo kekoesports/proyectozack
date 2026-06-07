@@ -1,5 +1,5 @@
 import { cache } from 'react';
-import { eq, inArray } from 'drizzle-orm';
+import { eq, inArray, and, ne, asc } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { caseStudies, talents } from '@/db/schema';
 import type { CaseStudyWithRelations } from '@/types';
@@ -54,6 +54,18 @@ export async function getCaseStudies(): Promise<CaseStudyWithRelations[]> {
  * @visibility public
  * @returns CaseStudyWithRelations | undefined (nunca null) si no existe el slug.
  */
+export async function getRelatedCases(
+  currentSlug: string,
+  limit = 3,
+): Promise<{ slug: string; brandName: string }[]> {
+  return db
+    .select({ slug: caseStudies.slug, brandName: caseStudies.brandName })
+    .from(caseStudies)
+    .where(and(eq(caseStudies.isPublished, true), ne(caseStudies.slug, currentSlug)))
+    .orderBy(asc(caseStudies.sortOrder))
+    .limit(limit);
+}
+
 export const getCaseBySlug = cache(async (slug: string): Promise<CaseStudyWithRelations | undefined> => {
   const row = await db.query.caseStudies.findFirst({
     where: eq(caseStudies.slug, slug),

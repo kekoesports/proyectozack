@@ -3,6 +3,7 @@ interface CaseConfig {
   stats: Array<{ value: string; label: string }>;
   services: string[];
   ctaText?: string;
+  sector?: string;
 }
 
 const DEFAULT: CaseConfig = {
@@ -14,6 +15,7 @@ const DEFAULT: CaseConfig = {
 export const CASE_CONFIG: Record<string, CaseConfig> = {
   keydrop: {
     logoUrl: '/images/brands/keydrop.png',
+    sector: 'Gaming — CS2 Skins',
     stats: [
       { value: '12', label: 'Creadores activados' },
       { value: '4', label: 'Países' },
@@ -32,6 +34,7 @@ export const CASE_CONFIG: Record<string, CaseConfig> = {
   },
   empiredrop: {
     logoUrl: '/images/brands/empiredrop.png',
+    sector: 'Gaming — CS2 Skins',
     stats: [
       { value: '5', label: 'Creadores activados' },
       { value: 'ES + LATAM', label: 'Mercados' },
@@ -48,6 +51,7 @@ export const CASE_CONFIG: Record<string, CaseConfig> = {
   },
   csdrop: {
     logoUrl: null,
+    sector: 'Gaming — CS2',
     stats: [
       { value: '2', label: 'Creadores activados' },
       { value: 'ES + LATAM', label: 'Mercados' },
@@ -63,6 +67,7 @@ export const CASE_CONFIG: Record<string, CaseConfig> = {
   },
   onewin: {
     logoUrl: '/images/brands/1win.png',
+    sector: 'iGaming — Apuestas',
     stats: [
       { value: '100+', label: 'Creadores activados' },
       { value: '340+', label: 'FTDs verificados' },
@@ -80,6 +85,7 @@ export const CASE_CONFIG: Record<string, CaseConfig> = {
   },
   skinsmonkey: {
     logoUrl: '/images/brands/skinsmonkey.png',
+    sector: 'Gaming — CS2 Trading',
     stats: [
       { value: '200K€', label: 'Volumen de trading' },
       { value: '6 sem', label: 'Duración' },
@@ -95,6 +101,7 @@ export const CASE_CONFIG: Record<string, CaseConfig> = {
   },
   razer: {
     logoUrl: '/images/brands/razer.png',
+    sector: 'Hardware Gaming',
     stats: [
       { value: '2.5M', label: 'Usuarios alcanzados' },
       { value: 'Q4 2024', label: 'Período' },
