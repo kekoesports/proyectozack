@@ -58,7 +58,31 @@ export default async function CasosPage() {
   return (
     <div>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }} />
-      <h1 className="sr-only">Campañas Gaming — Resultados Reales</h1>
+
+      {/* Hero — solo en /casos, no en home (CasesSection se reutiliza) */}
+      <section className="bg-sp-dark pt-32 pb-14 relative overflow-hidden">
+        <div className="pointer-events-none absolute inset-0">
+          <div className="absolute left-1/4 top-0 h-96 w-96 rounded-full bg-sp-orange/10 blur-3xl" />
+          <div className="absolute bottom-0 right-1/4 h-80 w-80 rounded-full bg-sp-purple/10 blur-3xl" />
+        </div>
+        <div className="relative z-10 mx-auto max-w-5xl px-6">
+          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-sp-orange/30 px-4 py-1.5">
+            <div className="h-1.5 w-1.5 rounded-full bg-sp-orange" />
+            <span className="text-xs font-bold uppercase tracking-[0.2em] text-sp-orange">
+              Casos de Éxito
+            </span>
+          </div>
+          <h1 className="font-display mb-6 text-4xl font-black uppercase leading-none text-white md:text-5xl lg:text-6xl">
+            Campañas Reales.<br />
+            <span className="gradient-text">Resultados Verificados.</span>
+          </h1>
+          <p className="max-w-2xl text-base leading-relaxed text-white/60 md:text-lg">
+            Cada caso documenta una campaña ejecutada por SocialPro con marcas de gaming, esports
+            e iGaming. Datos reales: alcance, conversiones y ROI medible, sin inflación de métricas.
+          </p>
+        </div>
+      </section>
+
       <CasesSection cases={cases} />
     </div>
   );

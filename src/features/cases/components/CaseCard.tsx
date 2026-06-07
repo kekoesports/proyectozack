@@ -4,65 +4,18 @@ import Link from 'next/link';
 import * as m from 'motion/react-client';
 import type { CaseStudyWithRelations } from '@/types';
 import { BrandLogo } from '@/components/ui/BrandLogo';
-import { getBrandBg } from '@/components/ui/brand-bg-map';
+import { getCaseConfig } from '@/features/cases/case-config';
 
 type CaseCardProps = {
   caseStudy: CaseStudyWithRelations;
 }
 
-/**
- * Override de plate específico del CaseCard: el header tiene fondo
- * `sp-dark`, así que ciertas marcas se renderizan distinto que en el
- * carrusel home (sección blanca). Cae al default de `getBrandBg` si no
- * está mapeada.
- */
-const CASE_PLATE_OVERRIDES: Record<string, 'light' | 'dark' | 'none'> = {
-  RAZER: 'dark', // outlines verdes — plate dark se funde con header sin "isla blanca"
-  '1WIN': 'none', // PNG con blob blanco integrado en el artwork — no necesita plate
-};
-
-/**
- * Map de marcas a logo PNG/SVG transparente del registry local.
- * Se prioriza sobre `caseStudy.logoUrl` (que apunta a JPG con fondo).
- */
-const BRAND_LOGO_MAP: Record<string, string> = {
-  'RAZER':         '/images/brands/razer.png',
-  '1WIN':          '/images/brands/1win.png',
-  '1XBET':         '/images/brands/1xbet.png',
-  'SKINSMONKEY':   '/images/brands/skinsmonkey.png',
-  'KEYDROP':       '/images/brands/keydrop.png',
-  'HELLCASE':      '/images/brands/hellcase.png',
-  'SKINPLACE':     '/images/brands/skinplace.png',
-  'SKINCLUB':      '/images/brands/skinclub.png',
-  'GGDROP':        '/images/brands/ggdrop.png',
-  'CLASHGG':       '/images/brands/clashgg.png',
-  'JUGABET':       '/images/brands/jugabet.svg',
-  'PINUP':         '/images/brands/pinup.png',
-  'PIN-UP':        '/images/brands/pinup.png',
-  'KICK':          '/images/brands/kick.png',
-  'PCCOMPONENTES': '/images/brands/pccomponentes.png',
-  'EMMA':          '/images/brands/emma.png',
-  'EMPIREDROP':    '/images/brands/empiredrop.png',
-  'EVOPLAY':       '/images/brands/evoplay.png',
-  'CSDROP':        '/images/brands/csdrop.png',
-};
-
-/**
- * Card de case study: logo de marca, título y métricas clave.
- *
- * @kind client
- * @feature cases
- */
 export function CaseCard({ caseStudy }: CaseCardProps) {
-  const logoSrc = BRAND_LOGO_MAP[caseStudy.brandName] ?? caseStudy.logoUrl;
-  const plate = CASE_PLATE_OVERRIDES[caseStudy.brandName] ?? getBrandBg(caseStudy.brandName);
-
-  const metrics = [
-    caseStudy.reach          ? { value: caseStudy.reach,          label: 'Alcance'      } : null,
-    caseStudy.engagementRate ? { value: caseStudy.engagementRate, label: 'Engagement'   } : null,
-    caseStudy.conversions    ? { value: caseStudy.conversions,    label: 'Conversiones' } : null,
-    caseStudy.roiMultiplier  ? { value: caseStudy.roiMultiplier,  label: 'ROI'          } : null,
-  ].filter(Boolean) as { value: string; label: string }[];
+  const config  = getCaseConfig(caseStudy.slug);
+  const logoSrc = config.logoUrl ?? caseStudy.logoUrl;
+  // 1WIN tiene artwork con blob blanco integrado — no necesita plate
+  const plate   = caseStudy.brandName === '1WIN' ? 'none' : 'dark';
+  const stats   = config.stats.slice(0, 3);
 
   return (
     <Link href={`/casos/${caseStudy.slug}`} className="block h-full">
@@ -71,9 +24,6 @@ export function CaseCard({ caseStudy }: CaseCardProps) {
         transition={{ duration: 0.25, ease: 'easeOut' }}
         className="group rounded-2xl overflow-hidden border border-sp-border bg-white flex flex-col h-full"
       >
-        {/* Dark header con plate uniforme: el plate (light o dark) es la
-            superficie real del logo, garantizando legibilidad sobre el
-            fondo `sp-dark` del header. */}
         <header className="h-24 bg-sp-dark flex items-center px-5 flex-shrink-0">
           {logoSrc ? (
             <BrandLogo
@@ -93,7 +43,7 @@ export function CaseCard({ caseStudy }: CaseCardProps) {
 
         <article className="p-5 flex flex-col flex-1">
           <p className="text-[10px] font-bold uppercase tracking-widest text-sp-orange mb-2">
-            {caseStudy.brandName} × SocialPro
+            {config.sector ?? `${caseStudy.brandName} × SocialPro`}
           </p>
 
           <h3 className="font-display text-lg font-black uppercase text-sp-dark leading-snug mb-3 line-clamp-2">
@@ -106,15 +56,17 @@ export function CaseCard({ caseStudy }: CaseCardProps) {
             </p>
           )}
 
-          {metrics.length > 0 && (
+          {stats.length > 0 && (
             <div className="flex gap-4 border-t border-sp-border pt-4 mb-4">
-              {metrics.slice(0, 3).map((met) => (
-                <div key={met.label}>
-                  <div className="font-display text-xl font-black leading-none gradient-text">
-                    {met.value}
+              {stats.map((s) => (
+                <div key={s.label}>
+                  <div className={`font-display font-black leading-none gradient-text ${
+                    s.value.length > 6 ? 'text-sm' : 'text-xl'
+                  }`}>
+                    {s.value}
                   </div>
                   <div className="text-[9px] font-semibold uppercase tracking-wider text-sp-muted mt-0.5">
-                    {met.label}
+                    {s.label}
                   </div>
                 </div>
               ))}
@@ -134,12 +86,9 @@ export function CaseCard({ caseStudy }: CaseCardProps) {
             </div>
           )}
 
-          <div className="mt-auto flex items-center gap-1.5">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-sp-orange">
-              <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-            </svg>
+          <div className="mt-auto">
             <span className="text-xs font-semibold text-sp-orange">
-              Leer más
+              Ver resultados →
             </span>
           </div>
         </article>
