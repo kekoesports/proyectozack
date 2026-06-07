@@ -131,9 +131,9 @@ export async function GET(req: Request) {
 
           {/* Main content */}
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '24px 64px 0 60px' }}>
-            {/* eyebrow */}
+            {/* eyebrow — template literal to avoid multi-child Satori error */}
             <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.35)', letterSpacing: 3, textTransform: 'uppercase', marginBottom: 14 }}>
-              {brandName} × SocialPro
+              {`${brandName} × SocialPro`}
             </div>
             {/* Title */}
             <div style={{
