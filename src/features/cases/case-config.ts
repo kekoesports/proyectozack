@@ -50,7 +50,7 @@ export const CASE_CONFIG: Record<string, CaseConfig> = {
     ctaText: '¿Quieres penetrar en la comunidad hispanohablante de CS2? Hablemos.',
   },
   csdrop: {
-    logoUrl: null,
+    logoUrl: '/images/brands/csdrop.png',
     sector: 'Gaming — CS2',
     stats: [
       { value: '2', label: 'Creadores activados' },
