@@ -18,6 +18,7 @@ export async function getAllCodes(): Promise<CreatorCodeWithTalent[]> {
   });
   return rows.map(({ crmBrand, ...row }) => ({
     ...row,
+    brandLogo: row.brandLogo ?? crmBrand?.logoUrl ?? null,
     ctaUrl: resolveCtaUrl(row.redirectUrl, crmBrand?.mainUrl),
   }));
 }
@@ -37,6 +38,7 @@ export async function getFeaturedCodes(): Promise<CreatorCodeWithTalent[]> {
   });
   return rows.map(({ crmBrand, ...row }) => ({
     ...row,
+    brandLogo: row.brandLogo ?? crmBrand?.logoUrl ?? null,
     ctaUrl: resolveCtaUrl(row.redirectUrl, crmBrand?.mainUrl),
   }));
 }
@@ -56,6 +58,7 @@ export async function getCodesByTalent(talentId: number): Promise<CreatorCodeRes
   });
   return rows.map(({ crmBrand, ...row }) => ({
     ...row,
+    brandLogo: row.brandLogo ?? crmBrand?.logoUrl ?? null,
     ctaUrl: resolveCtaUrl(row.redirectUrl, crmBrand?.mainUrl),
   }));
 }
@@ -75,6 +78,7 @@ export async function getAdminCodesByTalent(talentId: number): Promise<CreatorCo
   });
   return rows.map(({ crmBrand, ...row }) => ({
     ...row,
+    brandLogo: row.brandLogo ?? crmBrand?.logoUrl ?? null,
     ctaUrl: resolveCtaUrl(row.redirectUrl, crmBrand?.mainUrl),
   }));
 }
