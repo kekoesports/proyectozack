@@ -41,7 +41,11 @@ export function EditGiveawayModal({ giveaway, brandCatalog = [] }: { giveaway: G
   const [value,         setValue]         = useState(giveaway.value ?? '');
   const [redirectUrl,   setRedirectUrl]   = useState(giveaway.redirectUrl);
   const [imageUrl,      setImageUrl]      = useState(giveaway.imageUrl ?? '');
-  const [brandLogo,     setBrandLogo]     = useState(giveaway.brandLogo ?? '');
+  // Si el sorteo tiene crmBrandId pero brandLogo vacío, tomar el logo del catálogo
+  const catalogLogo = giveaway.crmBrandId
+    ? (brandCatalog.find((b) => b.id === giveaway.crmBrandId)?.logoUrl ?? '')
+    : '';
+  const [brandLogo,     setBrandLogo]     = useState(giveaway.brandLogo ?? catalogLogo);
   const [description,   setDescription]   = useState(giveaway.description ?? '');
   const [startsAt,      setStartsAt]      = useState(toLocalDatetime(giveaway.startsAt));
   const [endsAt,        setEndsAt]        = useState(toLocalDatetime(giveaway.endsAt));
