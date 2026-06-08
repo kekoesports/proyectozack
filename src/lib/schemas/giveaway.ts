@@ -9,10 +9,12 @@ export const BadgeNullableSchema = BadgeSchema.nullable();
 
 // Zod v4 acepta javascript: y data: como URLs válidas por spec.
 // Este refinement garantiza que solo se acepten http/https y que no sea URL de imagen.
+// La comparación usa toLowerCase() porque RFC 3986 define el scheme como case-insensitive
+// (ej. HTTPS://l.skin.club es una URL válida que el navegador acepta).
 const safeRedirectUrl = (label = 'redirectUrl inválido') =>
   z.url(label).max(2048)
     .refine(
-      (u) => u.startsWith('https://') || u.startsWith('http://'),
+      (u) => { const l = u.toLowerCase(); return l.startsWith('https://') || l.startsWith('http://'); },
       { message: 'Solo se permiten URLs http/https' },
     )
     .refine(

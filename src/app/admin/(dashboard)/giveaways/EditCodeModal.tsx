@@ -42,7 +42,6 @@ export function EditCodeModal({ code, talents, brandCatalog = [], onClose }: Pro
   const [talentId,    setTalentId]    = useState(String(code.talentId));
   const [codeStr,     setCodeStr]     = useState(code.code);
   const [brandName,   setBrandName]   = useState(code.brandName);
-  const [brandLogo,   setBrandLogo]   = useState(code.brandLogo ?? '');
   const [redirectUrl, setRedirectUrl] = useState(code.redirectUrl);
   const [description, setDescription] = useState(code.description ?? '');
   const [badge,       setBadge]       = useState(code.badge ?? '');
@@ -50,6 +49,12 @@ export function EditCodeModal({ code, talents, brandCatalog = [], onClose }: Pro
   const [ctaText,     setCtaText]     = useState(code.ctaText ?? '');
   const [isFeatured,  setIsFeatured]  = useState(code.isFeatured);
   const [crmBrandId,  setCrmBrandId]  = useState<number | null>(code.crmBrandId ?? null);
+
+  // Si el código ya tiene una marca CRM enlazada pero brandLogo vacío, tomar el logo del catálogo
+  const catalogLogo = code.crmBrandId
+    ? (brandCatalog.find((b) => b.id === code.crmBrandId)?.logoUrl ?? '')
+    : '';
+  const [brandLogo, setBrandLogo] = useState(code.brandLogo ?? catalogLogo);
 
   const handleSubmit = (e: React.FormEvent): void => {
     e.preventDefault();
