@@ -65,6 +65,9 @@ visual-*.png
 crm-*-smoke.png
 screenshots/
 
+# One-off QA capture scripts with hardcoded local paths
+scripts/capture_*.mjs
+
 # Local agent/IDE settings (never commit)
 .claude/settings.local.json
 .claude/scheduled_tasks.lock
