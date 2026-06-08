@@ -379,7 +379,7 @@ export default async function CaseStudyPage({ params }: PageProps) {
                           alt={r.brandName}
                           width={120}
                           height={40}
-                          className="object-contain max-h-8 brightness-0 opacity-60 group-hover:opacity-90 transition-opacity"
+                          className="object-contain max-h-8 opacity-75 group-hover:opacity-100 transition-opacity"
                         />
                       ) : (
                         <span className="font-display text-lg font-black uppercase text-sp-dark/60 group-hover:text-sp-dark transition-colors">
