@@ -1,4 +1,4 @@
-import { eq, gt, isNull, lte, or, desc, asc, and, isNotNull, not, like } from 'drizzle-orm';
+import { eq, gt, isNull, lte, or, and, isNotNull, not, like } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { giveaways } from '@/db/schema';
 import type { Giveaway, GiveawayWithTalent } from '@/types';
@@ -11,17 +11,19 @@ import type { Giveaway, GiveawayWithTalent } from '@/types';
  * @returns array de Giveaway (puede ser vacío). Nunca null.
  */
 export async function getActiveGiveaways(talentId: number): Promise<Giveaway[]> {
-  return db
-    .select()
-    .from(giveaways)
-    .where(
-      and(
-        eq(giveaways.talentId, talentId),
-        or(isNull(giveaways.endsAt), gt(giveaways.endsAt, new Date())),
-        not(like(giveaways.title, '[DEMO]%')), // ocultar demos en público
-      ),
-    )
-    .orderBy(asc(giveaways.endsAt));
+  const rows = await db.query.giveaways.findMany({
+    where: and(
+      eq(giveaways.talentId, talentId),
+      or(isNull(giveaways.endsAt), gt(giveaways.endsAt, new Date())),
+      not(like(giveaways.title, '[DEMO]%')),
+    ),
+    with: { crmBrand: true },
+    orderBy: (g, { asc }) => [asc(g.endsAt)],
+  });
+  return rows.map(({ crmBrand, ...row }) => ({
+    ...row,
+    brandLogo: row.brandLogo ?? crmBrand?.logoUrl ?? null,
+  }));
 }
 
 /**
@@ -32,18 +34,20 @@ export async function getActiveGiveaways(talentId: number): Promise<Giveaway[]> 
  * @returns array de Giveaway (puede ser vacío). Nunca null.
  */
 export async function getFinishedGiveaways(talentId: number): Promise<Giveaway[]> {
-  return db
-    .select()
-    .from(giveaways)
-    .where(
-      and(
-        eq(giveaways.talentId, talentId),
-        isNotNull(giveaways.endsAt),
-        lte(giveaways.endsAt, new Date()),
-        not(like(giveaways.title, '[DEMO]%')), // ocultar demos en público
-      ),
-    )
-    .orderBy(desc(giveaways.endsAt));
+  const rows = await db.query.giveaways.findMany({
+    where: and(
+      eq(giveaways.talentId, talentId),
+      isNotNull(giveaways.endsAt),
+      lte(giveaways.endsAt, new Date()),
+      not(like(giveaways.title, '[DEMO]%')),
+    ),
+    with: { crmBrand: true },
+    orderBy: (g, { desc }) => [desc(g.endsAt)],
+  });
+  return rows.map(({ crmBrand, ...row }) => ({
+    ...row,
+    brandLogo: row.brandLogo ?? crmBrand?.logoUrl ?? null,
+  }));
 }
 
 /**

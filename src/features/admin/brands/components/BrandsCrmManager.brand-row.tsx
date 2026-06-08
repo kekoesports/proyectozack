@@ -77,6 +77,14 @@ export function BrandRow({ brand, contacts, followups, campaigns, isExpanded, ca
             )}
           </div>
         </td>
+        <td className="px-6 py-4">
+          {brand.logoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={brand.logoUrl} alt={brand.name} className="h-6 w-auto max-w-[60px] object-contain" />
+          ) : (
+            <span className="text-[10px] text-sp-admin-muted/40">—</span>
+          )}
+        </td>
         <td className="px-6 py-4 text-sp-admin-muted text-xs">
           {brand.tipo ? TIPO_LABELS[brand.tipo] ?? brand.tipo : '—'}
         </td>
@@ -115,7 +123,7 @@ export function BrandRow({ brand, contacts, followups, campaigns, isExpanded, ca
       </tr>
       {deleteError && (
         <tr>
-          <td colSpan={6} className="px-6 pb-2">
+          <td colSpan={7} className="px-6 pb-2">
             <p className="text-xs text-red-400 bg-red-500/10 rounded-lg px-3 py-1.5">{deleteError}</p>
           </td>
         </tr>
@@ -162,7 +170,7 @@ function ExpandedBrandRow({
 
   return (
     <tr className="bg-sp-admin-bg/40">
-      <td colSpan={6} className="px-6 py-5">
+      <td colSpan={7} className="px-6 py-5">
         {/* Sub-tab bar */}
         <div className="flex gap-1 border-b border-sp-admin-border mb-4">
           {([
