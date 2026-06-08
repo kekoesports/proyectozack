@@ -142,12 +142,12 @@ export function Nav() {
         </Link>
 
         {/* Desktop links */}
-        <ul className="hidden lg:flex items-center gap-3">
+        <ul className="hidden xl:flex items-center gap-2">
           {navLinks.map((l) => (
             <li key={l.href}>
               <Link
                 href={l.href}
-                className="whitespace-nowrap text-xs font-semibold uppercase tracking-wider text-white/50 hover:text-white transition-colors duration-200"
+                className="whitespace-nowrap text-xs font-semibold uppercase tracking-wide text-white/50 hover:text-white transition-colors duration-200"
               >
                 {l.label}
               </Link>
@@ -156,7 +156,7 @@ export function Nav() {
         </ul>
 
         {/* Right cluster: language toggle (only when alternate exists) + CTA */}
-        <div className="hidden lg:flex items-center gap-3 flex-none">
+        <div className="hidden xl:flex items-center gap-3 flex-none">
           {showLangToggle && <LangSwitch />}
           <m.a
             href={contactHref}
@@ -171,7 +171,7 @@ export function Nav() {
 
         {/* Mobile burger */}
         <button
-          className="lg:hidden text-white/70 hover:text-white transition-colors p-2"
+          className="xl:hidden text-white/70 hover:text-white transition-colors p-2"
           aria-label={menuAria}
           onClick={() => setOpen((v) => !v)}
         >
@@ -193,7 +193,7 @@ export function Nav() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.18, ease: 'easeOut' }}
-            className="lg:hidden bg-sp-black border-t border-white/10 px-6 py-5 flex flex-col gap-5"
+            className="xl:hidden bg-sp-black border-t border-white/10 px-6 py-5 flex flex-col gap-5"
           >
             {navLinks.map((l, i) => (
               <m.div
