@@ -40,9 +40,9 @@ export const auth = betterAuth({
   },
   database: drizzleAdapter(db, { provider: 'pg' }),
   session: {
-    expiresIn: 60 * 60 * 24, // 24 hours
-    updateAge: 60 * 60,      // refresh every hour
-    freshAge: 60 * 60,       // require re-auth after 1h for sensitive ops
+    expiresIn: 60 * 60 * 24 * 30, // 30 days
+    updateAge: 60 * 60 * 24,      // refresh once per day
+    freshAge: 60 * 60,            // require re-auth after 1h for sensitive ops
   },
   advanced: {
     useSecureCookies: SITE_URL.startsWith('https'),
