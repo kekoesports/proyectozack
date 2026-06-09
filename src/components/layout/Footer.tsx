@@ -49,7 +49,7 @@ const NAV_COLS_BY_LOCALE: Record<Locale, readonly NavCol[]> = {
       links: [
         { href: '/servicios/igaming', label: 'Campañas iGaming' },
         { href: '/servicios',         label: 'Talent Management' },
-        { href: '/marcas/login',       label: 'Portal de Marcas' },
+        { href: '/marcas',             label: 'Portal de Marcas' },
         { href: '/contacto',          label: 'Solicitar propuesta' },
       ],
     },
@@ -107,7 +107,7 @@ const NAV_COLS_BY_LOCALE: Record<Locale, readonly NavCol[]> = {
       links: [
         { href: '/servicios/igaming', label: 'iGaming Campaigns (ES)' },
         { href: '/services',          label: 'Talent Management' },
-        { href: '/marcas/login',       label: 'Brand Portal (ES)' },
+        { href: '/marcas',             label: 'Brand Portal (ES)' },
         { href: '/contact',           label: 'Request a proposal' },
       ],
     },
