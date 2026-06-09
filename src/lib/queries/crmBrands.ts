@@ -1,6 +1,7 @@
 import { and, asc, desc, eq, inArray, isNull, lte, ne, or, sql } from 'drizzle-orm';
 
 import { db } from '@/lib/db';
+import { resolveBrandLogo } from '@/lib/brandAssets';
 import { crmBrands, crmBrandContacts, crmBrandFollowups, user } from '@/db/schema';
 import { needsVisibilityFilter } from '@/lib/permissions';
 
@@ -141,6 +142,7 @@ export async function listCrmBrands(opts?: {
 
   return rows.map((r) => ({
     ...r,
+    logoUrl: r.logoUrl ?? resolveBrandLogo(r.name),
     primaryContact: primaryByBrand.get(r.id) ?? null,
     followupStatus: computeFollowupStatus(r.nextFollowupAt),
   }));
@@ -225,7 +227,7 @@ export type CrmBrandPickerEntry = {
  * @visibility admin
  */
 export async function listCrmBrandsForPicker(): Promise<CrmBrandPickerEntry[]> {
-  return db
+  const rows = await db
     .select({
       id:       crmBrands.id,
       name:     crmBrands.name,
@@ -236,6 +238,7 @@ export async function listCrmBrandsForPicker(): Promise<CrmBrandPickerEntry[]> {
     .from(crmBrands)
     .where(inArray(crmBrands.status, ['activa', 'pausada']))
     .orderBy(asc(crmBrands.name));
+  return rows.map((r) => ({ ...r, logoUrl: r.logoUrl ?? resolveBrandLogo(r.name) }));
 }
 
 /**

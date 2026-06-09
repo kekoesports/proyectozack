@@ -1,6 +1,7 @@
 import { eq, gt, isNull, lte, or, and, isNotNull, not, like } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { giveaways } from '@/db/schema';
+import { resolveBrandLogo } from '@/lib/brandAssets';
 import type { Giveaway, GiveawayWithTalent } from '@/types';
 
 /**
@@ -22,7 +23,7 @@ export async function getActiveGiveaways(talentId: number): Promise<Giveaway[]> 
   });
   return rows.map(({ crmBrand, ...row }) => ({
     ...row,
-    brandLogo: row.brandLogo ?? crmBrand?.logoUrl ?? null,
+    brandLogo: crmBrand?.logoUrl ?? resolveBrandLogo(row.brandName) ?? row.brandLogo ?? null,
   }));
 }
 
@@ -46,7 +47,7 @@ export async function getFinishedGiveaways(talentId: number): Promise<Giveaway[]
   });
   return rows.map(({ crmBrand, ...row }) => ({
     ...row,
-    brandLogo: row.brandLogo ?? crmBrand?.logoUrl ?? null,
+    brandLogo: crmBrand?.logoUrl ?? resolveBrandLogo(row.brandName) ?? row.brandLogo ?? null,
   }));
 }
 

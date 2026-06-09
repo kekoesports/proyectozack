@@ -127,7 +127,7 @@ export function EditCodeModal({ code, talents, brandCatalog = [], onClose }: Pro
           </div>
           <div>
             <label className="block text-sm font-semibold text-sp-admin-muted mb-1">Logo marca (URL)</label>
-            <input value={brandLogo} onChange={(e) => setBrandLogo(e.target.value)} type="url" placeholder="https://i.imgur.com/..." className={inputCls} />
+            <input value={brandLogo} onChange={(e) => setBrandLogo(e.target.value)} type="text" placeholder="https://i.imgur.com/..." className={inputCls} />
           </div>
           <div>
             <label className="block text-sm font-semibold text-sp-admin-muted mb-1">URL de redirección</label>

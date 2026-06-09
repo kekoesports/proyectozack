@@ -2,6 +2,7 @@ import { eq } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { creatorCodes } from '@/db/schema';
 import { resolveCtaUrl } from '@/lib/utils/cta-url';
+import { resolveBrandLogo } from '@/lib/brandAssets';
 import type { CreatorCode, CreatorCodeResolved, CreatorCodeWithTalent } from '@/types';
 
 /**
@@ -18,7 +19,7 @@ export async function getAllCodes(): Promise<CreatorCodeWithTalent[]> {
   });
   return rows.map(({ crmBrand, ...row }) => ({
     ...row,
-    brandLogo: row.brandLogo ?? crmBrand?.logoUrl ?? null,
+    brandLogo: crmBrand?.logoUrl ?? resolveBrandLogo(row.brandName) ?? row.brandLogo ?? null,
     ctaUrl: resolveCtaUrl(row.redirectUrl, crmBrand?.mainUrl),
   }));
 }
@@ -38,7 +39,7 @@ export async function getFeaturedCodes(): Promise<CreatorCodeWithTalent[]> {
   });
   return rows.map(({ crmBrand, ...row }) => ({
     ...row,
-    brandLogo: row.brandLogo ?? crmBrand?.logoUrl ?? null,
+    brandLogo: crmBrand?.logoUrl ?? resolveBrandLogo(row.brandName) ?? row.brandLogo ?? null,
     ctaUrl: resolveCtaUrl(row.redirectUrl, crmBrand?.mainUrl),
   }));
 }
@@ -58,7 +59,7 @@ export async function getCodesByTalent(talentId: number): Promise<CreatorCodeRes
   });
   return rows.map(({ crmBrand, ...row }) => ({
     ...row,
-    brandLogo: row.brandLogo ?? crmBrand?.logoUrl ?? null,
+    brandLogo: crmBrand?.logoUrl ?? resolveBrandLogo(row.brandName) ?? row.brandLogo ?? null,
     ctaUrl: resolveCtaUrl(row.redirectUrl, crmBrand?.mainUrl),
   }));
 }
@@ -78,7 +79,7 @@ export async function getAdminCodesByTalent(talentId: number): Promise<CreatorCo
   });
   return rows.map(({ crmBrand, ...row }) => ({
     ...row,
-    brandLogo: row.brandLogo ?? crmBrand?.logoUrl ?? null,
+    brandLogo: crmBrand?.logoUrl ?? resolveBrandLogo(row.brandName) ?? row.brandLogo ?? null,
     ctaUrl: resolveCtaUrl(row.redirectUrl, crmBrand?.mainUrl),
   }));
 }

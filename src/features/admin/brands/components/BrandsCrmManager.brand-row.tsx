@@ -82,7 +82,7 @@ export function BrandRow({ brand, contacts, followups, campaigns, isExpanded, ca
             // eslint-disable-next-line @next/next/no-img-element
             <img src={brand.logoUrl} alt={brand.name} className="h-6 w-auto max-w-[60px] object-contain" />
           ) : (
-            <span className="text-[10px] text-sp-admin-muted/40">—</span>
+            <span className="text-[10px] text-sp-admin-muted/40">Sin logo</span>
           )}
         </td>
         <td className="px-6 py-4 text-sp-admin-muted text-xs">
