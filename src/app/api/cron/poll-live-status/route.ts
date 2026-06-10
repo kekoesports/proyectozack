@@ -39,7 +39,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       : 'twitch_api_error';
     console.error(`[poll-live] reason=${reason} — skipping DB update:`, message);
     return NextResponse.json(
-      { ok: false, skipped: true, reason, checked: 0 },
+      { ok: false, skipped: true, reason, checked: 0, _debug: message },
       { status: 200 }, // 200 para que Vercel no marque el cron como fallido
     );
   }
