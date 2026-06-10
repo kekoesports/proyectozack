@@ -1,5 +1,6 @@
 import { db } from '@/lib/db';
 import { brands, collaborators, teamMembers } from '@/db/schema';
+import { resolveBrandLogo } from '@/lib/brandAssets';
 import type {
   Brand,
   Collaborator,
@@ -14,9 +15,13 @@ import type {
  * @returns array de Brand (puede ser vacío). Nunca null.
  */
 export async function getBrands(): Promise<Brand[]> {
-  return db.query.brands.findMany({
+  const rows = await db.query.brands.findMany({
     orderBy: (b, { asc }) => [asc(b.sortOrder)],
   });
+  return rows.map((b) => ({
+    ...b,
+    logoUrl: b.logoUrl ?? resolveBrandLogo(b.displayName),
+  }));
 }
 
 /**

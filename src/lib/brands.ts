@@ -5,6 +5,8 @@
  * El campo `dbName` debe coincidir EXACTAMENTE con el brandName usado en la BD.
  */
 
+import { resolveBrandLogo } from './brandAssets';
+
 export type BrandCategory = 'cs2' | 'casino' | 'apuestas' | 'otros';
 
 export type BrandFaq = { q: string; a: string };
@@ -28,7 +30,7 @@ export const BRANDS_CONFIG: BrandConfig[] = [
     slug:        'keydrop',
     name:        'Keydrop',
     dbName:      'KEYDROP',
-    logoUrl:     null,
+    logoUrl:     resolveBrandLogo('keydrop'),
     officialUrl: 'https://key-drop.com',
     category:    'cs2',
     tagline:     'Abre cajas de CS2 con bonus exclusivo',
@@ -53,7 +55,7 @@ Los creadores de SocialPro que trabajan con Keydrop son streamers verificados co
     slug:        'hellcase',
     name:        'Hellcase',
     dbName:      'Hellcase',
-    logoUrl:     null,
+    logoUrl:     resolveBrandLogo('hellcase'),
     officialUrl: 'https://hellcase.com',
     category:    'cs2',
     tagline:     'Abre cajas de skins CS2 con bono exclusivo',
@@ -78,7 +80,7 @@ Los streamers de SocialPro que trabajan con Hellcase son creadores especializado
     slug:        'skinplace',
     name:        'Skinplace',
     dbName:      'Skinplace',
-    logoUrl:     null,
+    logoUrl:     resolveBrandLogo('skinplace'),
     officialUrl: 'https://skinplace.gg',
     category:    'cs2',
     tagline:     'Compra y vende skins CS2 con código bonus',
@@ -103,7 +105,7 @@ Skinplace es también una opción popular para vender skins rápidamente sin esp
     slug:        'skinsmonkey',
     name:        'SkinsMonkey',
     dbName:      'SkinsMonkey',
-    logoUrl:     null,
+    logoUrl:     resolveBrandLogo('skinsmonkey'),
     officialUrl: 'https://skinsmonkey.com',
     category:    'cs2',
     tagline:     'Intercambia skins CS2 con el mejor ratio',
