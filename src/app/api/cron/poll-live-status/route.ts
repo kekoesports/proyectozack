@@ -29,8 +29,8 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   //      twitch_creds_missing → falta TWITCH_CLIENT_ID o _SECRET en env
   //      twitch_api_error     → token o Helix call falló (rate limit, network, etc.)
   let liveStreams;
+  const handles = talentsWithTwitch.map((t) => t.handle);
   try {
-    const handles = talentsWithTwitch.map((t) => t.handle);
     liveStreams = await fetchTwitchLiveByLogins(handles);
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
@@ -39,7 +39,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       : 'twitch_api_error';
     console.error(`[poll-live] reason=${reason} — skipping DB update:`, message);
     return NextResponse.json(
-      { ok: false, skipped: true, reason, checked: 0, _debug: message },
+      { ok: false, skipped: true, reason, checked: 0, _debug: message, _handles: handles },
       { status: 200 }, // 200 para que Vercel no marque el cron como fallido
     );
   }

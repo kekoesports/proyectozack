@@ -366,12 +366,13 @@ export type TwitchLiveStream = {
  * to avoid false "offline" marks due to transient errors.
  */
 export async function fetchTwitchLiveByLogins(logins: string[]): Promise<TwitchLiveStream[]> {
-  if (logins.length === 0) return [];
+  const validLogins = logins.filter((l) => l && l.trim().length > 0);
+  if (validLogins.length === 0) return [];
   const { token, clientId } = await getAppAccessToken();
 
   const results: TwitchLiveStream[] = [];
-  for (let i = 0; i < logins.length; i += 100) {
-    const chunk = logins.slice(i, i + 100);
+  for (let i = 0; i < validLogins.length; i += 100) {
+    const chunk = validLogins.slice(i, i + 100);
     const params = chunk
       .map((l) => `user_login=${encodeURIComponent(l.toLowerCase())}`)
       .join('&');
