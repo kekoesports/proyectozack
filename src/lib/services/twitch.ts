@@ -365,8 +365,21 @@ export type TwitchLiveStream = {
  * IMPORTANT: if the API call fails, the caller must NOT update the DB
  * to avoid false "offline" marks due to transient errors.
  */
+/** Extrae el login de un valor que puede ser handle o URL completa de Twitch. */
+function normalizeTwitchHandle(raw: string): string {
+  const s = raw.trim();
+  // Si contiene "/", extraer el último segmento no-vacío (e.g. "twitch.tv/user" → "user", ".../user/about" → "user")
+  if (s.includes('/')) {
+    const parts = s.split('/').filter(Boolean);
+    return parts[parts.length - 1] ?? s;
+  }
+  return s;
+}
+
 export async function fetchTwitchLiveByLogins(logins: string[]): Promise<TwitchLiveStream[]> {
-  const validLogins = logins.filter((l) => l && l.trim().length > 0);
+  const validLogins = logins
+    .map(normalizeTwitchHandle)
+    .filter((l) => l.length > 0 && /^[a-zA-Z0-9_]+$/.test(l));
   if (validLogins.length === 0) return [];
   const { token, clientId } = await getAppAccessToken();
 
