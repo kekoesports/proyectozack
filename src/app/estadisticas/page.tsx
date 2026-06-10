@@ -6,6 +6,7 @@ import { absoluteUrl, SITE_URL } from '@/lib/site-url';
 import { getTopRanking } from '@/lib/queries/rankingEntries';
 import { getTwitchRoster } from '@/lib/queries/live';
 import { getStatsPosts } from '@/lib/queries/posts';
+import { getLastTwitchCheck } from '@/lib/queries/live';
 import { ESTADISTICAS_NOINDEX } from '@/lib/feature-flags';
 
 export const revalidate = 300;
@@ -68,10 +69,11 @@ function buildJsonLd(rankingCount: number, articleCount: number) {
 }
 
 export default async function EstadisticasPage() {
-  const [ranking, roster, statsPosts] = await Promise.all([
+  const [ranking, roster, statsPosts, lastCheck] = await Promise.all([
     getTopRanking(10),
     getTwitchRoster(),
     getStatsPosts(8),
+    getLastTwitchCheck(),
   ]);
 
   const jsonLd = buildJsonLd(ranking.length, statsPosts.length);
@@ -194,17 +196,24 @@ export default async function EstadisticasPage() {
               >
                 Streamers en directo
               </h2>
-              <Link
-                href="/news/live"
-                className="text-xs text-sp-orange hover:text-sp-orange/80 font-semibold transition-colors"
-              >
-                Ver todos →
-              </Link>
+              <div className="flex items-center gap-3">
+                {lastCheck && (
+                  <span className="text-[10px] text-white/25 tabular-nums">
+                    Act. {lastCheck.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                )}
+                <Link
+                  href="/news/live"
+                  className="text-xs text-sp-orange hover:text-sp-orange/80 font-semibold transition-colors"
+                >
+                  Ver todos →
+                </Link>
+              </div>
             </div>
 
             {roster.length === 0 ? (
               <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-10 text-center">
-                <p className="text-white/30 text-sm">Cargando datos de Twitch.</p>
+                <p className="text-white/30 text-sm">Sin datos de streamers disponibles.</p>
               </div>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">

@@ -1,4 +1,4 @@
-import { and, eq, gt, isNull, or, desc, isNotNull, sql, count } from 'drizzle-orm';
+import { and, eq, gt, isNull, or, desc, isNotNull, sql, count, max } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { talents, talentSocials, talentLiveStatus } from '@/db/schema';
 
@@ -207,6 +207,14 @@ export async function getTwitchRoster(): Promise<TwitchRosterEntry[]> {
         startedAt:        r.startedAt,
       };
     });
+}
+
+/** Timestamp del último poll de Twitch exitoso, o null si nunca se ha hecho. */
+export async function getLastTwitchCheck(): Promise<Date | null> {
+  const result = await db
+    .select({ ts: max(talentLiveStatus.lastCheckedAt) })
+    .from(talentLiveStatus);
+  return result[0]?.ts ?? null;
 }
 
 export type Cs2SidebarEntry = {
