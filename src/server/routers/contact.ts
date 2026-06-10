@@ -47,6 +47,7 @@ export const contactRouter = router({
           timeline: input.timeline,
           audience: input.audience,
           vertical: input.vertical,
+          campaignType: input.campaignType,
           platform: input.platform,
           viewers: input.viewers,
           monetization: input.monetization,

@@ -13,6 +13,7 @@ export const contactSubmissions = pgTable('contact_submissions', {
   timeline: varchar('timeline', { length: 30 }),
   audience: varchar('audience', { length: 200 }),
   vertical: varchar('vertical', { length: 30 }),
+  campaignType: varchar('campaign_type', { length: 50 }),
   // Creator-specific fields
   platform: varchar('platform', { length: 30 }),
   viewers: varchar('viewers', { length: 100 }),

@@ -1,0 +1,1 @@
+ALTER TABLE "contact_submissions" ADD COLUMN "campaign_type" varchar(50);

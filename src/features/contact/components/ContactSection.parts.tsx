@@ -17,6 +17,7 @@ export const contactSchema = z.object({
   timeline: z.string().max(30).optional(),
   audience: z.string().max(200).optional(),
   vertical: z.string().max(30).optional(),
+  campaignType: z.string().max(50).optional(),
   // Creator-specific
   platform: z.string().max(30).optional(),
   viewers: z.string().max(100).optional(),
@@ -53,6 +54,17 @@ export const VERTICAL_OPTIONS = [
   { value: 'esports', label: 'Esports' },
   { value: 'hardware', label: 'Hardware / Periféricos' },
   { value: 'other', label: 'Otro' },
+];
+
+export const CAMPAIGN_TYPE_OPTIONS = [
+  { value: 'sponsored_stream', label: 'Stream patrocinado' },
+  { value: 'dedicated_video', label: 'Vídeo dedicado' },
+  { value: 'social_posts', label: 'Posts en redes sociales' },
+  { value: 'event_sponsorship', label: 'Patrocinio de evento / torneo' },
+  { value: 'brand_ambassador', label: 'Brand ambassador' },
+  { value: 'giveaway', label: 'Sorteo / Giveaway' },
+  { value: 'product_review', label: 'Reseña de producto' },
+  { value: 'other', label: 'Otro / A definir' },
 ];
 
 export const PLATFORM_OPTIONS = [
@@ -123,16 +135,29 @@ export function BrandFields({ register }: FieldsProps): React.JSX.Element {
             </select>
           </div>
         </div>
-        <div>
-          <label className={labelClasses}>Vertical</label>
-          <select {...register('vertical')} className={selectClasses}>
-            <option value="" className="bg-sp-black">Selecciona vertical...</option>
-            {VERTICAL_OPTIONS.map((v) => (
-              <option key={v.value} value={v.value} className="bg-sp-black">
-                {v.label}
-              </option>
-            ))}
-          </select>
+        <div className="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label className={labelClasses}>Vertical</label>
+            <select {...register('vertical')} className={selectClasses}>
+              <option value="" className="bg-sp-black">Selecciona vertical...</option>
+              {VERTICAL_OPTIONS.map((v) => (
+                <option key={v.value} value={v.value} className="bg-sp-black">
+                  {v.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className={labelClasses}>Tipo de campaña</label>
+            <select {...register('campaignType')} className={selectClasses}>
+              <option value="" className="bg-sp-black">Selecciona tipo...</option>
+              {CAMPAIGN_TYPE_OPTIONS.map((c) => (
+                <option key={c.value} value={c.value} className="bg-sp-black">
+                  {c.label}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
         <div>
           <label className={labelClasses}>Público objetivo</label>
