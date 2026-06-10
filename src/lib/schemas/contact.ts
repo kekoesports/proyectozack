@@ -11,6 +11,7 @@ export const contactBodySchema = z.object({
   budget: z.string().max(20).optional(),
   timeline: z.string().max(30).optional(),
   audience: z.string().max(200).optional(),
+  vertical: z.string().max(30).optional(),
   // Creator-specific
   platform: z.string().max(30).optional(),
   viewers: z.string().max(100).optional(),

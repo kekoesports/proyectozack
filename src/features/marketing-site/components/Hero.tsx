@@ -113,7 +113,7 @@ export function Hero() {
         {/* Hero H1 = LCP element. Mantenemos el slide-in (y: 40 → 0) pero
             quitamos opacity:0 inicial: si el elemento empieza invisible, el
             navegador no contabiliza el LCP hasta que la animación termina. */}
-        <h1 className="font-display text-[2.75rem] xs:text-[3.5rem] sm:text-[5rem] md:text-[7rem] lg:text-[10rem] font-black uppercase leading-[0.85] tracking-tight mb-10">
+        <h1 aria-label="Conectamos creadores con marcas" className="font-display text-[2.75rem] xs:text-[3.5rem] sm:text-[5rem] md:text-[7rem] lg:text-[10rem] font-black uppercase leading-[0.85] tracking-tight mb-10">
           <m.span
             initial={{ y: 40 }}
             animate={{ y: 0 }}

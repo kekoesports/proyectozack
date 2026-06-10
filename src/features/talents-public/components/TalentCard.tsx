@@ -77,23 +77,29 @@ export function TalentCard({ talent, priority = false }: TalentCardProps) {
           {[talent.role, talent.role2].filter(Boolean).join(' · ')}
         </p>
 
-        {/* Stats — from social followers */}
-        {talent.socials.length > 0 && (
-          <div
-            className="grid gap-3 mb-4"
-            style={{ gridTemplateColumns: `repeat(${Math.min(talent.socials.length, 3)}, minmax(0, 1fr))` }}
-          >
-            {talent.socials.slice(0, 3).map((social) => (
-              <div key={social.id} className="text-center">
-                <div className="text-sm font-bold text-sp-dark">{social.followersDisplay}</div>
-                <div className="flex items-center justify-center gap-0.5 text-[10px] text-sp-muted leading-tight mt-0.5">
-                  <SocialIcon type={social.platform} size={9} />
-                  <span>{social.platform === 'youtube' ? 'Suscriptores' : 'Seguidores'}</span>
+        {/* Stats — from social followers; skip entries with no data */}
+        {(() => {
+          const displayed = talent.socials
+            .filter((s) => s.followersDisplay && s.followersDisplay !== '-' && s.followersDisplay !== '0')
+            .slice(0, 3);
+          if (displayed.length === 0) return null;
+          return (
+            <div
+              className="grid gap-3 mb-4"
+              style={{ gridTemplateColumns: `repeat(${displayed.length}, minmax(0, 1fr))` }}
+            >
+              {displayed.map((social) => (
+                <div key={social.id} className="text-center">
+                  <div className="text-sm font-bold text-sp-dark">{social.followersDisplay}</div>
+                  <div className="flex items-center justify-center gap-0.5 text-[10px] text-sp-muted leading-tight mt-0.5">
+                    <SocialIcon type={social.platform} size={9} />
+                    <span>{social.platform.charAt(0).toUpperCase() + social.platform.slice(1)}</span>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
+              ))}
+            </div>
+          );
+        })()}
 
         {/* Socials — z-10 to stack above the stretched link overlay */}
         <nav aria-label="Redes sociales" className="relative z-10 flex items-center gap-2">

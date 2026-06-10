@@ -16,6 +16,7 @@ export const contactSchema = z.object({
   budget: z.string().max(20).optional(),
   timeline: z.string().max(30).optional(),
   audience: z.string().max(200).optional(),
+  vertical: z.string().max(30).optional(),
   // Creator-specific
   platform: z.string().max(30).optional(),
   viewers: z.string().max(100).optional(),
@@ -42,6 +43,16 @@ export const TIMELINE_OPTIONS = [
   { value: '1month', label: '1 mes' },
   { value: '2-3months', label: '2-3 meses' },
   { value: 'flexible', label: 'Flexible / sin fecha' },
+];
+
+export const VERTICAL_OPTIONS = [
+  { value: 'cs2_skins', label: 'CS2 Skins' },
+  { value: 'betting', label: 'Apuestas / Betting' },
+  { value: 'casino', label: 'Casino' },
+  { value: 'gaming', label: 'Gaming' },
+  { value: 'esports', label: 'Esports' },
+  { value: 'hardware', label: 'Hardware / Periféricos' },
+  { value: 'other', label: 'Otro' },
 ];
 
 export const PLATFORM_OPTIONS = [
@@ -111,6 +122,17 @@ export function BrandFields({ register }: FieldsProps): React.JSX.Element {
               ))}
             </select>
           </div>
+        </div>
+        <div>
+          <label className={labelClasses}>Vertical</label>
+          <select {...register('vertical')} className={selectClasses}>
+            <option value="" className="bg-sp-black">Selecciona vertical...</option>
+            {VERTICAL_OPTIONS.map((v) => (
+              <option key={v.value} value={v.value} className="bg-sp-black">
+                {v.label}
+              </option>
+            ))}
+          </select>
         </div>
         <div>
           <label className={labelClasses}>Público objetivo</label>

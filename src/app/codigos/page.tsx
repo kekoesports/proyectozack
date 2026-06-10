@@ -13,7 +13,7 @@ import { SITE_URL, absoluteUrl } from '@/lib/site-url';
 import { ResponsibleGamingFooter } from '@/components/ui/ResponsibleGamingFooter';
 
 export const metadata: Metadata = {
-  title: 'Códigos y Recompensas Gaming — SocialPro',
+  title: 'Códigos y Recompensas Gaming',
   description:
     'Todos los códigos activos de tus creadores favoritos de casino, apuestas y CS2. Sorteos y recompensas exclusivas.',
   alternates: { canonical: '/codigos' },
@@ -84,7 +84,7 @@ export default async function GiveawaysPage(): Promise<React.JSX.Element> {
       {offerListSchema && (
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(offerListSchema) }} />
       )}
-      <h1 className="sr-only">Códigos y Recompensas Gaming — SocialPro</h1>
+      <h1 className="sr-only">Códigos y Recompensas Gaming</h1>
 
       {/* Live ticker */}
       {active.length > 0 && (

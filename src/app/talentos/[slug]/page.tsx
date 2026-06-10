@@ -38,11 +38,15 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { slug } = await params;
   const talent = await getTalentBySlug(slug);
   if (!talent) return {};
-  const roleLabel = talent.role.charAt(0).toUpperCase() + talent.role.slice(1).toLowerCase();
+  const roleLabel = (talent.role.charAt(0).toUpperCase() + talent.role.slice(1)).replace(/\bcs2\b/gi, 'CS2');
+  const gameSuffix = talent.game && !roleLabel.toLowerCase().includes(talent.game.toLowerCase())
+    ? ` de ${talent.game}` : '';
   // seoTitle / seoDescription solo se usan si el contenido está aprobado o viene de edición manual
   const seoApproved = talent.seoBioStatus === 'approved' || !!talent.seoBioManual?.trim();
-  const title = (seoApproved && talent.seoTitle?.trim())
-    || `${talent.name} — ${roleLabel} de ${talent.game} | SocialPro`;
+  // Strip accidental " | SocialPro" from manually-entered seoTitle — the template appends it automatically
+  const rawSeoTitle = talent.seoTitle?.trim()?.replace(/\s*\|\s*SocialPro\s*$/i, '');
+  const title = (seoApproved && rawSeoTitle)
+    || `${talent.name} — ${roleLabel}${gameSuffix}`;
   const metaSocial = talent.socials.find((s) => s.platform === talent.platform) ?? talent.socials[0];
   const metaFollowers = metaSocial?.followersDisplay && metaSocial.followersDisplay !== '-'
     ? metaSocial.followersDisplay : null;
@@ -227,8 +231,8 @@ export default async function TalentPage({ params }: PageProps) {
 
       <header className="sticky top-0 z-50 bg-sp-black/90 backdrop-blur-xl border-b border-white/[0.04]">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
-          <Link href="/codigos" className="flex items-center gap-2 group">
-            <span className="text-white/40 group-hover:text-white/80 transition-colors text-[11px] font-bold uppercase tracking-[0.15em]">← SocialPro Códigos</span>
+          <Link href="/talentos" className="flex items-center gap-2 group">
+            <span className="text-white/40 group-hover:text-white/80 transition-colors text-[11px] font-bold uppercase tracking-[0.15em]">← Todos los creadores</span>
           </Link>
           <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/20">Perfil de creador</span>
         </div>
@@ -599,8 +603,8 @@ export default async function TalentPage({ params }: PageProps) {
       ) : null}
 
       <div className="border-t border-white/[0.04] py-6 text-center">
-        <Link href="/codigos" className="inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] text-white/20 hover:text-white/50 font-bold transition-colors">
-          ← Ver todos los creadores en SocialPro
+        <Link href="/talentos" className="inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] text-white/20 hover:text-white/50 font-bold transition-colors">
+          ← Ver todos los creadores
         </Link>
       </div>
     </div>
