@@ -11,7 +11,7 @@ import { TALENT_VERTICAL_LABELS } from '@/lib/schemas/talentBusiness';
 import { TalentPhotoUpload } from '@/features/admin/talents/components/TalentPhotoUpload';
 import { getTalentLiveStatus, getFeaturedFallbackCount } from '@/lib/queries/live';
 import { setFeaturedLiveAction, setFeaturedFallbackAction, setExcludeFromLiveAction } from '@/app/admin/(dashboard)/live/actions';
-import { setTalentPublishedAction } from '@/app/admin/(dashboard)/talents/actions';
+import { setTalentPublishedAction, archiveTalentAction, restoreTalentAction } from '@/app/admin/(dashboard)/talents/actions';
 import { getAdminGiveawaysByTalent } from '@/lib/queries/giveaways';
 import { getAdminCodesByTalent } from '@/lib/queries/creatorCodes';
 import { listCrmBrandsForPicker, getBrandNamesByIds } from '@/lib/queries/crmBrands';
@@ -236,9 +236,12 @@ export default async function TalentProfilePage({
         brandMap={brandMap}
         defaultTab={defaultTab}
         isStaffRole={isStaffRole}
+        isAdmin={session.user.role === 'admin'}
         setFeaturedLiveAction={setFeaturedLiveAction.bind(null, talent.id, !talent.featuredLive)}
         setFeaturedFallbackAction={setFeaturedFallbackAction.bind(null, talent.id, !talent.featuredFallback, fallbackCount)}
         setExcludeFromLiveAction={setExcludeFromLiveAction.bind(null, talent.id, !talent.excludeFromLive)}
+        archiveAction={archiveTalentAction.bind(null, talent.id)}
+        restoreAction={restoreTalentAction.bind(null, talent.id)}
       />
     </div>
   );

@@ -277,6 +277,46 @@ export async function bulkUpdateSortOrderAction(
   return { ok: true };
 }
 
+export async function archiveTalentAction(id: number, _formData?: FormData): Promise<void> {
+  const session = await requirePermission('talentos', 'read');
+  assertCanDelete(session.user.role);
+  if (!id || !Number.isFinite(id)) return;
+  const current = await db.select({ slug: talents.slug }).from(talents).where(eq(talents.id, id)).limit(1);
+  const slug = current[0]?.slug;
+  await db.update(talents).set({ archivedAt: new Date(), archivedBy: session.user.id }).where(eq(talents.id, id));
+  revalidatePath('/admin/talents');
+  revalidatePath('/talentos');
+  if (slug) {
+    revalidatePath(`/talentos/${slug}`);
+    revalidatePath(`/${slug}`);
+  }
+  revalidatePath('/codigos');
+  revalidatePath('/sorteos');
+  revalidatePath('/sitemap.xml');
+  revalidatePath('/news/live');
+  revalidatePath('/');
+}
+
+export async function restoreTalentAction(id: number, _formData?: FormData): Promise<void> {
+  const session = await requirePermission('talentos', 'read');
+  assertCanDelete(session.user.role);
+  if (!id || !Number.isFinite(id)) return;
+  const current = await db.select({ slug: talents.slug }).from(talents).where(eq(talents.id, id)).limit(1);
+  const slug = current[0]?.slug;
+  await db.update(talents).set({ archivedAt: null, archivedBy: null }).where(eq(talents.id, id));
+  revalidatePath('/admin/talents');
+  revalidatePath('/talentos');
+  if (slug) {
+    revalidatePath(`/talentos/${slug}`);
+    revalidatePath(`/${slug}`);
+  }
+  revalidatePath('/codigos');
+  revalidatePath('/sorteos');
+  revalidatePath('/sitemap.xml');
+  revalidatePath('/news/live');
+  revalidatePath('/');
+}
+
 export async function updateSortOrderAction(
   talentId: number,
   sortOrder: number,

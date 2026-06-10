@@ -37,13 +37,17 @@ export const metadata: Metadata = {
 export const revalidate = 3600;
 
 export default async function GiveawaysPage(): Promise<React.JSX.Element> {
-  const [active, finished, codes, talents, recentWinners] = await Promise.all([
+  const [rawActive, rawFinished, rawCodes, talents, recentWinners] = await Promise.all([
     getAllActiveGiveaways(),
     getAllFinishedGiveaways(),
     getAllCodes(),
     getAllTalents(),
     getRecentWinners(6),
   ]);
+
+  const active   = rawActive.filter((g) => !g.talent.archivedAt);
+  const finished = rawFinished.filter((g) => !g.talent.archivedAt);
+  const codes    = rawCodes.filter((c) => !c.talent.archivedAt);
 
   const allGiveaways = [...active, ...finished];
   const brands = extractUniqueBrands(allGiveaways, codes);

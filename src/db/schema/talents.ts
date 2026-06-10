@@ -94,6 +94,10 @@ export const talents = pgTable('talents', {
   seoKeywords:      text('seo_keywords').array(),                                             // internal CRM use only — NOT emitted as <meta keywords>
 
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
+
+  // ── Soft archive ──
+  archivedAt: timestamp('archived_at', { withTimezone: true }),
+  archivedBy: text('archived_by'),
 }, (t) => [
   index('talents_slug_idx').on(t.slug),
   index('talents_platform_idx').on(t.platform),

@@ -1,5 +1,5 @@
 import { cache } from 'react';
-import { eq, and, inArray, sql, count, type SQL } from 'drizzle-orm';
+import { eq, and, inArray, isNull, sql, count, type SQL } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { talents, talentTags, talentStats, talentSocials, talentBusiness, talentVerticals, campaigns } from '@/db/schema';
 import { parseFollowers, formatFollowers, slugify, initialsOf } from '@/lib/utils/import-utils';
@@ -30,7 +30,7 @@ export async function getTalentSlugs(): Promise<{ slug: string; updatedAt: Date 
   // Si se quiere noindex en el futuro, añadir campo isIndexable (no implementado aún).
   return db.select({ slug: talents.slug, updatedAt: talents.updatedAt })
     .from(talents)
-    .where(eq(talents.isPublished, true));
+    .where(and(eq(talents.isPublished, true), isNull(talents.archivedAt)));
 }
 
 /**
@@ -41,8 +41,8 @@ export async function getTalentSlugs(): Promise<{ slug: string; updatedAt: Date 
  * @returns array de TalentWithRelations (puede ser vacío). Nunca null.
  */
 export async function getTalents(filters?: TalentFilters): Promise<TalentWithRelations[]> {
-  // Public listing: only talents explicitly published AND listed in roster.
-  const conditions: SQL[] = [eq(talents.isPublished, true), eq(talents.showInRoster, true)];
+  // Public listing: only talents explicitly published AND listed in roster AND not archived.
+  const conditions: SQL[] = [eq(talents.isPublished, true), eq(talents.showInRoster, true), isNull(talents.archivedAt)];
 
   if (filters?.platform) {
     conditions.push(eq(talents.platform, filters.platform));
@@ -82,7 +82,7 @@ export async function getTalents(filters?: TalentFilters): Promise<TalentWithRel
  */
 export const getTalentBySlug = cache(async (slug: string): Promise<TalentWithRelations | undefined> => {
   const row = await db.query.talents.findFirst({
-    where: and(eq(talents.slug, slug), eq(talents.isPublished, true)),
+    where: and(eq(talents.slug, slug), eq(talents.isPublished, true), isNull(talents.archivedAt)),
     with: {
       tags: true,
       stats: { orderBy: (s, { asc }) => [asc(s.sortOrder)] },
@@ -120,8 +120,9 @@ export async function getTalentsByIds(ids: number[]): Promise<TalentWithRelation
  * @visibility admin
  * @returns array de TalentWithRelations (puede ser vacío). Nunca null.
  */
-export async function getAllTalents(): Promise<TalentWithRelations[]> {
+export async function getAllTalents(opts?: { includeArchived?: boolean }): Promise<TalentWithRelations[]> {
   return db.query.talents.findMany({
+    where: opts?.includeArchived ? undefined : isNull(talents.archivedAt),
     with: {
       tags: true,
       stats: { orderBy: (s, { asc }) => [asc(s.sortOrder)] },
@@ -204,7 +205,7 @@ export async function getAdminRosterWithGrowth(): Promise<AdminRosterRow[]> {
   const fromDate = thirtyDaysAgo.toISOString().slice(0, 10);
 
   const [allTalents, latestSnaps, earliestSnaps, activeDealRows] = await Promise.all([
-    getAllTalents(),
+    getAllTalents({ includeArchived: false }),
     getLatestSnapshots(),
     getEarliestSnapshots(fromDate),
     db

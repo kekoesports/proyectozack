@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { TalentSocialsEditor } from './TalentSocialsEditor';
 import { TalentTagsEditor } from './TalentTagsEditor';
 import { TalentGiveawaysSection } from './TalentGiveawaysSection';
+import { ArchiveTalentDialog } from './ArchiveTalentDialog';
 import type {
   TalentWithRelations,
   TalentBusiness,
@@ -36,9 +37,12 @@ type Props = {
   readonly brandMap: Readonly<Record<number, string>>;
   readonly defaultTab: string;
   readonly isStaffRole: boolean;
+  readonly isAdmin: boolean;
   readonly setFeaturedLiveAction: () => Promise<void>;
   readonly setFeaturedFallbackAction: () => Promise<void>;
   readonly setExcludeFromLiveAction: () => Promise<void>;
+  readonly archiveAction: () => Promise<void>;
+  readonly restoreAction: () => Promise<void>;
 };
 
 const TAB_LABELS: Record<Tab, string> = {
@@ -138,9 +142,12 @@ export function TalentDetailTabs({
   brandMap,
   defaultTab,
   isStaffRole,
+  isAdmin,
   setFeaturedLiveAction,
   setFeaturedFallbackAction,
   setExcludeFromLiveAction,
+  archiveAction,
+  restoreAction,
 }: Props): React.ReactElement {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<Tab>(() => {
@@ -521,6 +528,22 @@ export function TalentDetailTabs({
               Gestionar roster live →
             </Link>
           </div>
+
+          {/* Danger zone — admin only */}
+          {isAdmin && (
+            <ArchiveTalentDialog
+              talent={{ id: talent.id, name: talent.name, slug: talent.slug, archivedAt: talent.archivedAt }}
+              activeCampaignCount={campaigns.filter((c) =>
+                ['propuesta', 'negociacion', 'aprobada', 'activa'].includes(c.status),
+              ).length}
+              activeCodeCount={codes.length}
+              activeGiveawayCount={giveaways.filter((g) =>
+                !g.endsAt || new Date(g.endsAt) > new Date(),
+              ).length}
+              archiveAction={archiveAction}
+              restoreAction={restoreAction}
+            />
+          )}
         </div>
       )}
     </div>

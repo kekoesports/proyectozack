@@ -1,4 +1,4 @@
-import { and, eq, gt, or, desc, isNotNull, sql, count } from 'drizzle-orm';
+import { and, eq, gt, isNull, or, desc, isNotNull, sql, count } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { talents, talentSocials, talentLiveStatus } from '@/db/schema';
 
@@ -64,6 +64,7 @@ export async function getLiveTalents(): Promise<LiveTalent[]> {
         eq(talents.excludeFromLive, false),
         eq(talentLiveStatus.isLive, true),
         gt(talentLiveStatus.lastCheckedAt, tenMinutesAgo),
+        isNull(talents.archivedAt),
       )
     )
     .orderBy(desc(talentLiveStatus.viewerCount));
@@ -95,6 +96,7 @@ export async function getTalentsWithTwitch() {
       or(eq(talents.status, 'active'), eq(talents.status, 'available')),
       eq(talents.excludeFromLive, false),
       isNotNull(talentSocials.handle),
+      isNull(talents.archivedAt),
     ));
 }
 
@@ -116,6 +118,7 @@ export async function getTalentsWithYouTube() {
       or(eq(talents.status, 'active'), eq(talents.status, 'available')),
       eq(talents.excludeFromLive, false),
       isNotNull(talentSocials.platformId),
+      isNull(talents.archivedAt),
     ));
 }
 
@@ -172,6 +175,7 @@ export async function getTwitchRoster(): Promise<TwitchRosterEntry[]> {
       or(eq(talents.status, 'active'), eq(talents.status, 'available')),
       eq(talents.excludeFromLive, false),
       isNotNull(talentSocials.handle),
+      isNull(talents.archivedAt),
     ))
     .orderBy(
       desc(talentLiveStatus.isLive),
@@ -266,6 +270,7 @@ export async function getCs2RosterForSidebar(): Promise<Cs2SidebarEntry[]> {
         eq(talents.status, 'active'),
         eq(talents.excludeFromLive, false),
         isNotNull(talentSocials.handle),
+        isNull(talents.archivedAt),
         sql`(${talents.game} ILIKE '%cs2%' OR ${talents.game} ILIKE '%counter%' OR ${talents.featuredLive} = true)`,
       ),
     )
@@ -336,6 +341,6 @@ export async function getFeaturedFallbackCount(): Promise<number> {
   const [row] = await db
     .select({ total: count() })
     .from(talents)
-    .where(eq(talents.featuredFallback, true));
+    .where(and(eq(talents.featuredFallback, true), isNull(talents.archivedAt)));
   return row?.total ?? 0;
 }

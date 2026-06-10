@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, isNull } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { talents, talentLiveStatus, talentSocials } from '@/db/schema';
 
@@ -49,7 +49,7 @@ export async function GET(
         eq(talentSocials.platform, 'twitch'),
       ),
     )
-    .where(eq(talents.slug, slug))
+    .where(and(eq(talents.slug, slug), isNull(talents.archivedAt)))
     .limit(1);
 
   if (!row) {
