@@ -157,6 +157,28 @@ export function EcosystemPanel({ slug, ecosystem }: Props) {
               </div>
             ) : null}
 
+            {creators.length > 0 ? (
+              <div className="bg-[#0c1016] border border-white/[0.06] rounded-2xl p-5">
+                <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-white/40 mb-1">
+                  Trabaja con ellos
+                </p>
+                <p className="text-sm font-bold text-white leading-snug mb-3">
+                  ¿Tu marca encaja con este roster?
+                </p>
+                <p className="text-[12px] text-white/50 leading-relaxed mb-4">
+                  Cuéntanos tu campaña y te preparamos una propuesta en 24h.
+                </p>
+                <TrackedCtaLink
+                  href="/contacto?type=brand"
+                  ctaId={`news_ecosystem_${slug}_brand_cta`}
+                  className="inline-flex items-center justify-center w-full gap-2 bg-sp-grad text-white font-display font-bold uppercase tracking-wider text-xs px-5 py-2.5 rounded-full hover:opacity-90 transition-opacity"
+                >
+                  Solicitar propuesta
+                  <span aria-hidden>→</span>
+                </TrackedCtaLink>
+              </div>
+            ) : null}
+
             {channelTelegram ? (
               <div className="relative bg-[#0c1016] border border-white/[0.07] rounded-2xl p-5 overflow-hidden">
                 <div
