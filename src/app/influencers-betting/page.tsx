@@ -18,7 +18,7 @@ export const metadata: Metadata = {
     description: 'Streamers de apuestas y casino verificados. Compliance DGOJ, FTD tracking y ROI demostrable en España y LatAm.',
     url: absoluteUrl('/influencers-betting'),
     type: 'website',
-    images: [{ url: absoluteUrl('/og-socialpro.png'), width: 1200, height: 630 }],
+    images: [{ url: absoluteUrl('/og-socialpro.png'), width: 1200, height: 630, alt: 'Influencers Betting y Apuestas Online España y LatAm — SocialPro' }],
   },
   twitter: {
     card: 'summary_large_image',

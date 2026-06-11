@@ -20,7 +20,7 @@ export const metadata: Metadata = {
       'Streamers de CS2 verificados en España y LatAm para campañas gaming. Esports marketing agency con +13 años y FTD tracking. Activa en <72h.',
     url: absoluteUrl('/gaming/cs2'),
     type: 'website',
-    images: [{ url: absoluteUrl('/og-socialpro.png'), width: 1200, height: 630 }],
+    images: [{ url: absoluteUrl('/og-socialpro.png'), width: 1200, height: 630, alt: 'CS2 Influencer Marketing — Streamers CS2 para tu Marca | SocialPro' }],
   },
   twitter: {
     card: 'summary_large_image',
