@@ -89,6 +89,14 @@ export default async function NewsArticlePage({ params }: PageProps) {
     articleSection: category.label,
     inLanguage: 'es',
     ...(post.coverUrl ? { image: absoluteUrl(post.coverUrl) } : {}),
+    ...(ecosystem.creators.length > 0 ? {
+      mentions: ecosystem.creators.map((c) => ({
+        '@type': 'Person',
+        name: c.name,
+        url: absoluteUrl(`/talentos/${c.slug}`),
+        jobTitle: c.role,
+      })),
+    } : {}),
   };
 
   const breadcrumb = buildBreadcrumbJsonLd([
