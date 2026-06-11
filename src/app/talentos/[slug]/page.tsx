@@ -440,10 +440,10 @@ export default async function TalentPage({ params }: PageProps) {
           <div className="flex-1 min-w-0 space-y-10">
 
           {codesWithTalent.length > 0 && (
-              <section className="space-y-4">
-                <p className="text-[10px] font-black uppercase tracking-[0.25em] text-white/30">
+              <section className="space-y-4" aria-labelledby="codes-heading">
+                <h2 id="codes-heading" className="text-[10px] font-black uppercase tracking-[0.25em] text-white/30">
                   Códigos de {talent.name} · {codesWithTalent.length} activos
-                </p>
+                </h2>
                 {heroCode && <HeroSponsorCard code={heroCode} />}
                 {secondaryCodes.length > 0 && (
                   <CodesExpandable codes={secondaryCodes} label={heroCode ? 'Más códigos' : `Códigos de ${talent.name}`} />
@@ -452,10 +452,10 @@ export default async function TalentPage({ params }: PageProps) {
             )}
 
             {activeWithTalent.length > 0 && (
-              <section id="sorteos" className="space-y-3">
+              <section id="sorteos" className="space-y-3" aria-labelledby="sorteos-heading">
                 <div className="flex items-center justify-between gap-2 mb-1">
                   <div className="flex items-center gap-2">
-                    <p className="text-[10px] font-black uppercase tracking-[0.25em] text-white/30">Sorteos activos</p>
+                    <h2 id="sorteos-heading" className="text-[10px] font-black uppercase tracking-[0.25em] text-white/30">Sorteos activos</h2>
                     <span className="flex items-center gap-1 text-[9px] font-black text-[#C3FC00]">
                       <span className="w-1.5 h-1.5 rounded-full bg-[#C3FC00] animate-pulse" aria-hidden />
                       {activeWithTalent.length} live
@@ -481,11 +481,11 @@ export default async function TalentPage({ params }: PageProps) {
 
             {/* Últimos ganadores */}
             {winners.length > 0 && (
-              <section className="space-y-4">
+              <section className="space-y-4" aria-labelledby="winners-heading">
                 <div className="flex items-center justify-between">
-                  <p className="text-[10px] font-black uppercase tracking-[0.25em] text-white/30">
+                  <h2 id="winners-heading" className="text-[10px] font-black uppercase tracking-[0.25em] text-white/30">
                     Últimos ganadores con {talent.name}
-                  </p>
+                  </h2>
                   <Link href="/ganadores" className="text-[9px] font-bold text-white/25 hover:text-white/50 uppercase tracking-wider transition-colors">
                     Ver todos →
                   </Link>
