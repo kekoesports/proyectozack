@@ -2,6 +2,7 @@
 import { safeJsonLd } from '@/lib/safeJsonLd';
 import Link from 'next/link';
 import { SITE_URL, absoluteUrl } from '@/lib/site-url';
+import { buildBreadcrumbJsonLd } from '@/lib/utils/breadcrumbs';
 import { TrackedCtaLink } from '@/components/ui/TrackedCtaLink';
 import { StickyCtaMobile } from '@/components/ui/StickyCtaMobile';
 
@@ -53,6 +54,10 @@ const STATS = [
   { stat: '13+', label: 'Años en marketing gaming' },
 ];
 
+const breadcrumbJsonLd = buildBreadcrumbJsonLd([
+  { name: 'Agencia Influencers Valorant', url: absoluteUrl('/agencia-influencers-valorant') },
+]);
+
 const OPORTUNIDADES = [
   { title: 'El FPS de mayor crecimiento en LatAm', desc: 'Valorant es hoy el juego competitivo dominante en la mayoría de mercados de habla hispana. La audiencia está en plena fase de crecimiento — el momento de entrar es ahora, antes de que la saturación de marcas llegue.' },
   { title: 'Audiencia más diversa y mainstream', desc: 'Comparado con CS2, Valorant atrae un perfil más joven, más femenino y más abierto a marcas de consumo general. Marcas que buscan alcanzar a la Generación Z gamer encuentran en Valorant su nicho natural.' },
@@ -63,6 +68,7 @@ export default function AgenciaInfluencersValorantPage() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbJsonLd) }} />
 
       <section className="bg-sp-black pt-24 pb-12 md:pt-32 md:pb-20">
         <div className="max-w-4xl mx-auto px-6 text-center">
