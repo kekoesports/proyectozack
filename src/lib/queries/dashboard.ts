@@ -783,3 +783,88 @@ export async function getDashboardInsights(): Promise<readonly InsightItem[]> {
 
   return insights;
 }
+
+// ── Pipeline history (datos reales) ──────────────────────────────────────────
+
+export type PipelinePoint = { readonly date: string; readonly value: number };
+
+export type PipelineHistoryAll = {
+  readonly d7: readonly PipelinePoint[];
+  readonly d30: readonly PipelinePoint[];
+  readonly d90: readonly PipelinePoint[];
+};
+
+/**
+ * Evolución del pipeline: facturas de ingreso agrupadas por periodo.
+ * Cada punto = sum(totalAmount) de income invoices emitidas en ese bucket.
+ * Los buckets vacíos valen 0.
+ *
+ * @cache none
+ * @visibility admin
+ */
+export async function getPipelineHistory(range: '7d' | '30d' | '90d'): Promise<PipelinePoint[]> {
+  const now = new Date();
+
+  type Bucket = { start: string; label: string };
+  const buckets: Bucket[] = [];
+
+  if (range === '7d') {
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(now);
+      d.setDate(d.getDate() - i);
+      const start = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      const label = d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+      buckets.push({ start, label });
+    }
+  } else if (range === '30d') {
+    for (let i = 4; i >= 0; i--) {
+      const d = new Date(now);
+      d.setDate(d.getDate() - i * 7);
+      const start = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      const label = d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+      buckets.push({ start, label });
+    }
+  } else {
+    for (let i = 3; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const start = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`;
+      const label = d.toLocaleDateString('es-ES', { month: 'short', year: '2-digit' });
+      buckets.push({ start, label });
+    }
+  }
+
+  const startStr = buckets[0]?.start ?? '';
+  const rows = await db
+    .select({ issueDate: invoices.issueDate, total: invoices.totalAmount })
+    .from(invoices)
+    .where(and(eq(invoices.kind, 'income'), gte(invoices.issueDate, startStr)));
+
+  const totals = new Array<number>(buckets.length).fill(0);
+  for (const row of rows) {
+    const dateStr = String(row.issueDate).slice(0, 10);
+    for (let i = buckets.length - 1; i >= 0; i--) {
+      if (dateStr >= (buckets[i]?.start ?? '')) {
+        totals[i] = (totals[i] ?? 0) + parseFloat(String(row.total));
+        break;
+      }
+    }
+  }
+
+  return buckets.map((b, i) => ({ date: b.label, value: totals[i] ?? 0 }));
+}
+
+/**
+ * Obtiene el histórico de pipeline para los tres rangos en paralelo.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns `{ d7, d30, d90 }`
+ */
+export async function getPipelineHistoryAll(): Promise<PipelineHistoryAll> {
+  const [d7, d30, d90] = await Promise.all([
+    getPipelineHistory('7d'),
+    getPipelineHistory('30d'),
+    getPipelineHistory('90d'),
+  ]);
+  return { d7, d30, d90 };
+}

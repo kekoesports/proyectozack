@@ -1,16 +1,15 @@
 'use client';
 
 import { useState } from 'react';
-import type { PipelinePoint } from '@/lib/mock-dashboard-data';
-import { MOCK_PIPELINE_7D, MOCK_PIPELINE_30D, MOCK_PIPELINE_90D } from '@/lib/mock-dashboard-data';
+import type { PipelinePoint } from '@/lib/queries/dashboard';
 
 type Range = '7d' | '30d' | '90d';
 
-const RANGES = [
-  { key: '7d'  as Range, label: '7d',  data: MOCK_PIPELINE_7D  },
-  { key: '30d' as Range, label: '30d', data: MOCK_PIPELINE_30D },
-  { key: '90d' as Range, label: '90d', data: MOCK_PIPELINE_90D },
-] as const;
+const RANGE_TABS: Array<{ key: Range; label: string }> = [
+  { key: '7d',  label: '7d'  },
+  { key: '30d', label: '30d' },
+  { key: '90d', label: '90d' },
+];
 
 function buildPaths(data: PipelinePoint[], w: number, h: number): { line: string; area: string } {
   const values = data.map((d) => d.value);
@@ -49,15 +48,20 @@ function formatEur(n: number): string {
 type PipelineChartCardProps = {
   readonly total: number;
   readonly trend?: number;
+  readonly data7d: readonly PipelinePoint[];
+  readonly data30d: readonly PipelinePoint[];
+  readonly data90d: readonly PipelinePoint[];
 };
 
-export function PipelineChartCard({ total, trend = 0 }: PipelineChartCardProps): React.ReactElement {
+export function PipelineChartCard({ total, trend = 0, data7d, data30d, data90d }: PipelineChartCardProps): React.ReactElement {
   const [range, setRange] = useState<Range>('30d');
-  const active = RANGES.find((r) => r.key === range) ?? RANGES[0];
-  const { line, area } = buildPaths(active.data, 300, 80);
 
-  const lastLabel = active.data[active.data.length - 1]?.date ?? '';
-  const firstLabel = active.data[0]?.date ?? '';
+  const rangeData: Record<Range, readonly PipelinePoint[]> = { '7d': data7d, '30d': data30d, '90d': data90d };
+  const activeData = rangeData[range];
+  const { line, area } = buildPaths([...activeData], 300, 80);
+
+  const lastLabel = activeData[activeData.length - 1]?.date ?? '';
+  const firstLabel = activeData[0]?.date ?? '';
 
   return (
     <section className="flex flex-col rounded-xl bg-sp-admin-card shadow-[0_1px_3px_rgba(0,0,0,0.06),0_1px_2px_rgba(0,0,0,0.04)] overflow-hidden">
@@ -68,7 +72,7 @@ export function PipelineChartCard({ total, trend = 0 }: PipelineChartCardProps):
         </h2>
         {/* Range tabs */}
         <div className="flex items-center gap-0.5 bg-sp-admin-bg rounded-lg p-0.5">
-          {RANGES.map((r) => (
+          {RANGE_TABS.map((r) => (
             <button
               key={r.key}
               type="button"
@@ -99,7 +103,7 @@ export function PipelineChartCard({ total, trend = 0 }: PipelineChartCardProps):
             )}
           </div>
           <p className="text-[10px] text-sp-admin-muted mt-0.5">
-            Facturas pendientes de cobro · evolución estimada
+            Facturas pendientes de cobro · evolución por periodo
           </p>
         </div>
 
@@ -120,7 +124,6 @@ export function PipelineChartCard({ total, trend = 0 }: PipelineChartCardProps):
             <path d={area} fill="url(#pipe-fill)" />
             {/* Line */}
             <path d={line} fill="none" stroke="#8b3aad" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            {/* Last point dot */}
           </svg>
         </div>
 

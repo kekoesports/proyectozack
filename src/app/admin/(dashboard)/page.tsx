@@ -8,6 +8,7 @@ import {
   getPendingBrandPaymentsTotal,
   getDashboardActivity,
   getDashboardInsights,
+  getPipelineHistoryAll,
 } from '@/lib/queries/dashboard';
 import { getDashboardAlerts } from '@/lib/queries/alerts';
 import { requirePermission } from '@/lib/permissions';
@@ -50,7 +51,7 @@ export default async function AdminDashboardPage(): Promise<ReactElement> {
   const weekStart = getWeekStart(weekLabel);
   const weekStr = weekStart.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' });
 
-  const [{ stats }, brandCounts, pendingTasks, followups, revenue, deals, { alerts, summary: alertSummary }, pipelineTotal, activity, insights] = await Promise.all([
+  const [{ stats }, brandCounts, pendingTasks, followups, revenue, deals, { alerts, summary: alertSummary }, pipelineTotal, activity, insights, pipelineHistory] = await Promise.all([
     getAdminDashboardData(),
     getCrmBrandCounts(),
     getDashboardPendingTasks(weekLabel),
@@ -61,6 +62,7 @@ export default async function AdminDashboardPage(): Promise<ReactElement> {
     getPendingBrandPaymentsTotal(),
     getDashboardActivity(5),
     getDashboardInsights(),
+    getPipelineHistoryAll(),
   ]);
 
   return (
@@ -162,7 +164,12 @@ export default async function AdminDashboardPage(): Promise<ReactElement> {
           <FollowUpPanel followups={followups} />
         </div>
         <div className="lg:col-span-2">
-          <PipelineChartCard total={pipelineTotal} />
+          <PipelineChartCard
+            total={pipelineTotal}
+            data7d={pipelineHistory.d7}
+            data30d={pipelineHistory.d30}
+            data90d={pipelineHistory.d90}
+          />
         </div>
       </div>
 

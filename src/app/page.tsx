@@ -22,7 +22,6 @@ const ServicesSection = dynamic(() => import('@/features/marketing-site/componen
 const CtaSection      = dynamic(() => import('@/features/marketing-site/components/CtaSection').then(m => ({ default: m.CtaSection })));
 // FaqSection is now a Server Component — regular import, no client JS bundle
 import { FaqSection } from '@/features/marketing-site/components/FaqSection';
-const ContactSection  = dynamic(() => import('@/features/contact/components/ContactSection').then(m => ({ default: m.ContactSection })));
 
 async function CasesSectionAsync() {
   const cases = await getCaseStudies();
@@ -94,7 +93,6 @@ export default async function HomePage() {
       </Suspense>
       <CtaSection />
       <FaqSection />
-      <ContactSection />
     </>
   );
 }
