@@ -89,9 +89,9 @@ export default async function SorteosPage({ searchParams }: PageProps): Promise<
       )}
       <h1 className="sr-only">Sorteos de Skins — SocialPro</h1>
 
-      {/* Live ticker */}
+      {/* Live ticker — decorativo, contenido real en el hub */}
       {active.length > 0 && (
-        <div className="bg-sp-grad overflow-hidden">
+        <div className="bg-sp-grad overflow-hidden" aria-hidden="true">
           <div className="gw-sp-ticker-track whitespace-nowrap">
             {Array.from({ length: 4 }).map((_, i) => (
               <span key={i} className="inline-flex items-center gap-6 px-6">
@@ -101,6 +101,7 @@ export default async function SorteosPage({ searchParams }: PageProps): Promise<
                     href={g.redirectUrl}
                     target="_blank"
                     rel="noopener noreferrer"
+                    tabIndex={-1}
                     className="inline-flex items-center gap-2 text-[11px] font-black uppercase tracking-wider text-white/90 hover:text-white transition-colors"
                   >
                     <span className="w-1.5 h-1.5 rounded-full bg-white/40 animate-pulse" />

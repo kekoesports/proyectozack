@@ -86,9 +86,9 @@ export default async function GiveawaysPage(): Promise<React.JSX.Element> {
       )}
       <h1 className="sr-only">Códigos y Recompensas Gaming</h1>
 
-      {/* Live ticker */}
+      {/* Live ticker — decorativo, contenido real en el hub */}
       {active.length > 0 && (
-        <div className="bg-sp-grad overflow-hidden">
+        <div className="bg-sp-grad overflow-hidden" aria-hidden="true">
           <div className="gw-sp-ticker-track whitespace-nowrap">
             {Array.from({ length: 4 }).map((_, i) => (
               <span key={i} className="inline-flex items-center gap-6 px-6">
@@ -98,6 +98,7 @@ export default async function GiveawaysPage(): Promise<React.JSX.Element> {
                     href={g.redirectUrl}
                     target="_blank"
                     rel="noopener noreferrer"
+                    tabIndex={-1}
                     className="inline-flex items-center gap-2 text-[11px] font-black uppercase tracking-wider text-white/90 hover:text-white transition-colors"
                   >
                     <span className="w-1.5 h-1.5 rounded-full bg-white/40 animate-pulse" />
@@ -153,7 +154,7 @@ export default async function GiveawaysPage(): Promise<React.JSX.Element> {
       </header>
 
       {/* SocialPro brand ticker — sticky debajo del header, siempre visible */}
-      <div className="sticky top-14 z-40 overflow-hidden bg-[#09090f]/80 backdrop-blur-sm border-b border-white/[0.03]">
+      <div className="sticky top-14 z-40 overflow-hidden bg-[#09090f]/80 backdrop-blur-sm border-b border-white/[0.03]" aria-hidden="true">
         <div className="gw-sp-ticker-track whitespace-nowrap">
           {Array.from({ length: 8 }).map((_, i) => (
             <span key={i} className="inline-flex items-center gap-5 px-6 py-2">
