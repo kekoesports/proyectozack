@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { getTalents } from '@/lib/queries/talents';
 import { getCaseStudies } from '@/lib/queries/cases';
 import { absoluteUrl, SITE_URL } from '@/lib/site-url';
+import { safeJsonLd } from '@/lib/safeJsonLd';
 
 export const revalidate = 3600;
 
@@ -66,6 +67,18 @@ const FAQ = [
 ];
 
 
+const faqJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  '@id': absoluteUrl('/en#faq'),
+  inLanguage: 'en',
+  mainEntity: FAQ.map(({ q, a }) => ({
+    '@type': 'Question',
+    name: q,
+    acceptedAnswer: { '@type': 'Answer', text: a },
+  })),
+};
+
 export default async function HomeEnPage() {
   const [talents, cases] = await Promise.all([getTalents(), getCaseStudies()]);
   const topTalents = talents.slice(0, 8);
@@ -73,6 +86,7 @@ export default async function HomeEnPage() {
 
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(faqJsonLd) }} />
 
       {/* Hero */}
       <section className="relative bg-sp-black text-white pt-32 pb-24 overflow-hidden">

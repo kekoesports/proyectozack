@@ -3,7 +3,8 @@ import Link from 'next/link';
 import Image from 'next/image';
 
 import { getCaseStudies } from '@/lib/queries/cases';
-import { absoluteUrl } from '@/lib/site-url';
+import { absoluteUrl, SITE_URL } from '@/lib/site-url';
+import { safeJsonLd } from '@/lib/safeJsonLd';
 
 export const revalidate = 3600;
 
@@ -43,8 +44,33 @@ const g = {
 export default async function CasesEnPage() {
   const cases = await getCaseStudies();
 
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    '@id': absoluteUrl('/cases'),
+    url: absoluteUrl('/cases'),
+    name: 'Gaming Campaign Case Studies — Verified Results',
+    description: 'Real campaigns with verified results: 1WIN (8M+ reach), SkinsMonkey (200K+ in tracked conversions).',
+    inLanguage: 'en',
+    publisher: { '@type': 'Organization', name: 'SocialPro', url: SITE_URL },
+    hasPart: cases.map((c) => ({
+      '@type': 'WebPage',
+      '@id': absoluteUrl(`/casos/${c.slug}`),
+      url: absoluteUrl(`/casos/${c.slug}`),
+      name: c.title,
+    })),
+    breadcrumb: {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'SocialPro', item: SITE_URL },
+        { '@type': 'ListItem', position: 2, name: 'Cases', item: absoluteUrl('/cases') },
+      ],
+    },
+  };
+
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }} />
       {/* Hero */}
       <section className="bg-sp-black pt-32 pb-16 text-center">
         <div className="max-w-4xl mx-auto px-6">

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 
-import { absoluteUrl } from '@/lib/site-url';
+import { absoluteUrl, SITE_URL } from '@/lib/site-url';
+import { safeJsonLd } from '@/lib/safeJsonLd';
 import { ContactFormEn } from '@/features/contact/components/ContactFormEn';
 import type { ContactForm } from '@/features/contact/components/ContactSection.parts';
 
@@ -30,6 +31,23 @@ export const metadata: Metadata = {
   },
 };
 
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'ContactPage',
+  '@id': absoluteUrl('/contact'),
+  url: absoluteUrl('/contact'),
+  name: 'Contact SocialPro — Gaming & iGaming Influencer Agency',
+  inLanguage: 'en',
+  mainEntity: { '@type': 'Organization', '@id': absoluteUrl('/#organization') },
+  breadcrumb: {
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'SocialPro', item: SITE_URL },
+      { '@type': 'ListItem', position: 2, name: 'Contact', item: absoluteUrl('/contact') },
+    ],
+  },
+};
+
 const g = {
   background: 'linear-gradient(135deg,#f5632a 0%,#e03070 35%,#c42880 62%,#8b3aad 100%)',
   WebkitBackgroundClip: 'text' as const,
@@ -51,6 +69,7 @@ export default async function ContactEnPage({
 
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }} />
       {/* Hero */}
       <section className="bg-sp-black pt-32 pb-12 text-center">
         <div className="max-w-3xl mx-auto px-6">
