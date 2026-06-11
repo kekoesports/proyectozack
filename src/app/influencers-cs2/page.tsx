@@ -51,6 +51,29 @@ const breadcrumbJsonLd = buildBreadcrumbJsonLd([
   { name: 'Influencers CS2', url: absoluteUrl('/influencers-cs2') },
 ]);
 
+const faqJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: [
+    {
+      '@type': 'Question',
+      name: '¿Por qué SocialPro es la agencia especializada en influencers CS2 para el mercado hispano?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'SocialPro lleva más de cuatro años ejecutando campañas con streamers de CS2 en España y LatAm. Esto significa que cuando un operador de iGaming, una marca de hardware o una plataforma de skins quiere activar en el ecosistema hispanohablante de CS2, SocialPro no necesita construir el roster desde cero: ya tiene relaciones directas con los creadores, conoce sus tasas de conversión históricas, sabe cuál funciona mejor para cada tipo de producto y entiende las diferencias de audiencia entre un streamer de Madrid, uno de Buenos Aires y uno de Ciudad de México. La escena CS2 en español no es un segmento genérico de gaming — es una comunidad con sus propios códigos, plataformas preferidas y ciclos de gasto que SocialPro conoce desde dentro.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: '¿Qué resultados verificados han generado los influencers CS2 de SocialPro?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Los datos de las campañas CS2 de SocialPro proceden directamente de los paneles de los operadores y plataformas, no de analytics de terceros ni estimaciones de alcance. En la campaña 1WIN (Q1-Q2 2025), 100+ streamers de CS2 hispanohablantes fueron activados en simultáneo durante un torneo internacional, generando 340+ FTDs verificados desde el dashboard de afiliados del operador y un alcance de 8 millones de usuarios en Instagram. En la campaña SkinsMonkey, el código de referido único por creador permitió atribuir 200.000€ en volumen de trading directamente a los streamers de SocialPro, con datos validados desde la plataforma del marketplace. El ROI fue positivo desde la primera semana de activación.',
+      },
+    },
+  ],
+};
+
 
 const STATS = [
   { stat: '8M+', label: 'Reach en campaña 1WIN CS2' },
@@ -70,6 +93,7 @@ export default function InfluencersCs2Page() {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(faqJsonLd) }} />
 
       <section className="bg-sp-black pt-24 pb-12 md:pt-32 md:pb-20">
         <div className="max-w-4xl mx-auto px-6 text-center">
