@@ -7,36 +7,33 @@
 export type PipelinePoint = { date: string; value: number };
 
 export const MOCK_PIPELINE_7D: PipelinePoint[] = [
-  { date: '22 Abr', value: 15200 },
-  { date: '23 Abr', value: 15800 },
-  { date: '24 Abr', value: 16100 },
-  { date: '25 Abr', value: 15600 },
-  { date: '26 Abr', value: 17200 },
-  { date: '27 Abr', value: 17800 },
-  { date: '28 Abr', value: 18400 },
+  { date: '4 Jun',  value: 15200 },
+  { date: '5 Jun',  value: 15800 },
+  { date: '6 Jun',  value: 16100 },
+  { date: '7 Jun',  value: 15600 },
+  { date: '8 Jun',  value: 17200 },
+  { date: '9 Jun',  value: 17800 },
+  { date: '10 Jun', value: 18400 },
 ];
 
 export const MOCK_PIPELINE_30D: PipelinePoint[] = [
-  { date: '29 Mar', value: 9800 },
-  { date: '5 Abr',  value: 11200 },
-  { date: '12 Abr', value: 12800 },
-  { date: '19 Abr', value: 14500 },
-  { date: '22 Abr', value: 15200 },
-  { date: '25 Abr', value: 17200 },
-  { date: '28 Abr', value: 18400 },
+  { date: '12 May', value: 9800 },
+  { date: '19 May', value: 11200 },
+  { date: '26 May', value: 12800 },
+  { date: '2 Jun',  value: 14500 },
+  { date: '5 Jun',  value: 15200 },
+  { date: '8 Jun',  value: 17200 },
+  { date: '10 Jun', value: 18400 },
 ];
 
 export const MOCK_PIPELINE_90D: PipelinePoint[] = [
-  { date: 'Feb',     value: 4200 },
-  { date: '1 Mar',   value: 6800 },
-  { date: '15 Mar',  value: 8200 },
-  { date: '1 Abr',   value: 9800 },
-  { date: '15 Abr',  value: 14500 },
-  { date: '28 Abr',  value: 18400 },
+  { date: 'Mar',    value: 4200 },
+  { date: '1 Abr',  value: 6800 },
+  { date: '15 Abr', value: 8200 },
+  { date: '1 May',  value: 9800 },
+  { date: '15 May', value: 14500 },
+  { date: '10 Jun', value: 18400 },
 ];
-
-export const MOCK_PIPELINE_TOTAL = 18_400;
-export const MOCK_PIPELINE_TREND = 24; // % positivo
 
 // ── Activity feed [MOCK] ──────────────────────────────────────────────
 
