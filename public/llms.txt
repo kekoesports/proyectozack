@@ -1,7 +1,7 @@
 # SocialPro — Agencia Gaming & iGaming ES + LATAM
 # Founded: 2012 | Contact: marketing@socialpro.es | Web: https://socialpro.es
 # License: RSL 1.0 (https://rsl.ai/1.0)
-# Updated: 2026-06-11
+# Updated: 2026-06-11 (rev 2)
 
 ## About
 SocialPro is a gaming and esports talent agency founded in 2012 in Córdoba, Spain,
@@ -42,6 +42,10 @@ Spain and Latin America. Managed by founders Pablo "Kekō" Camacho
 - /blog: Gaming & iGaming marketing insights, guides, and case studies
 - /news: Industry news and creator ecosystem updates
 - /giveaways: Active creator giveaways and promo codes
+- /en: English-language homepage — gaming & esports influencer marketing agency overview
+- /cases: English version of verified case studies listing
+- /services: English service catalog for international brands
+- /talents: English creator roster
 
 ## Páginas clave (para citación en español)
 - /nosotros: Historia de la agencia, equipo fundador y credenciales verificables
