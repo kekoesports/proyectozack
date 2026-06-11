@@ -37,9 +37,9 @@ const CTA_BY_LOCALE: Record<Locale, string> = {
   en: 'Let’s work together',
 };
 
-const MENU_ARIA_BY_LOCALE: Record<Locale, string> = {
-  es: 'Abrir menú',
-  en: 'Open menu',
+const MENU_ARIA_BY_LOCALE: Record<Locale, { open: string; close: string }> = {
+  es: { open: 'Abrir menú', close: 'Cerrar menú' },
+  en: { open: 'Open menu',  close: 'Close menu' },
 };
 
 /**
@@ -55,7 +55,7 @@ export function Nav() {
   const locale = localeFromPathname(pathname);
   const navLinks = NAV_LINKS_BY_LOCALE[locale];
   const ctaLabel = CTA_BY_LOCALE[locale];
-  const menuAria = MENU_ARIA_BY_LOCALE[locale];
+  const menuAriaLabels = MENU_ARIA_BY_LOCALE[locale];
   const homeHref = locale === 'en' ? '/en' : '/';
   const contactHref = locale === 'en' ? '/contact' : '/contacto';
   const showLangToggle = hasLangAlternate(pathname);
@@ -172,7 +172,8 @@ export function Nav() {
         {/* Mobile burger */}
         <button
           className="xl:hidden text-white/70 hover:text-white transition-colors p-2"
-          aria-label={menuAria}
+          aria-label={open ? menuAriaLabels.close : menuAriaLabels.open}
+          aria-expanded={open}
           onClick={() => setOpen((v) => !v)}
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
