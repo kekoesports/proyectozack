@@ -202,7 +202,7 @@ export function Cs2LabCard({ variant = 'compact', ctaId, className = '' }: Props
         </div>
         <span className="flex-none inline-flex items-center gap-2 font-display font-bold uppercase tracking-wider text-xs text-white/85 group-hover:text-white transition-colors">
           Entrar al canal
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="transition-transform group-hover:translate-x-0.5">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="transition-transform group-hover:translate-x-0.5" aria-hidden="true">
             <path d="M2 7H12M12 7L8 3M12 7L8 11" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </span>

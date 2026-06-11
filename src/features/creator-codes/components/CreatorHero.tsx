@@ -32,7 +32,7 @@ function SocialButton({ platform, url, color }: { platform: string; url: string;
       whileHover={{ scale: 1.1, y: -2 }}
       whileTap={{ scale: 0.95 }}
     >
-      <svg viewBox="0 0 24 24" fill={color} className="w-4.5 h-4.5">
+      <svg viewBox="0 0 24 24" fill={color} className="w-4.5 h-4.5" aria-hidden="true">
         <path d={path} />
       </svg>
     </motion.a>

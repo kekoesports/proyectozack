@@ -129,7 +129,7 @@ function YouTubeCard({ clip }: { clip: StaticYoutubeClip }) {
           <div className="absolute inset-0 bg-black/30 group-hover:bg-black/10 transition-colors" />
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="w-12 h-12 rounded-full bg-red-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-              <svg viewBox="0 0 24 24" fill="white" className="w-5 h-5 ml-0.5">
+              <svg viewBox="0 0 24 24" fill="white" className="w-5 h-5 ml-0.5" aria-hidden="true">
                 <path d="M8 5v14l11-7z" />
               </svg>
             </div>

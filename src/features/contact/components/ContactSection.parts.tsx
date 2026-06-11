@@ -247,7 +247,7 @@ export function InfoCards(): React.JSX.Element {
           href="mailto:marketing@socialpro.es"
           className="flex items-center gap-3 w-full px-5 py-3.5 rounded-xl font-semibold text-white text-sm border border-white/10 bg-white/5 hover:bg-white/10 transition-colors group"
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-sp-orange flex-shrink-0">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-sp-orange flex-shrink-0" aria-hidden="true">
             <rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
           </svg>
           marketing@socialpro.es
@@ -261,7 +261,7 @@ export function SuccessMessage(): React.JSX.Element {
   return (
     <div className="rounded-2xl border border-white/10 bg-white/5 p-8 text-center">
       <div className="w-12 h-12 rounded-full bg-green-500/15 border border-green-500/30 flex items-center justify-center mx-auto mb-3">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
       </div>
       <h3 className="font-bold text-white mb-2">¡Mensaje enviado!</h3>
       <p className="text-sm text-sp-muted2">Te respondemos en menos de 24h.</p>

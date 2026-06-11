@@ -10,7 +10,7 @@ function Tick({ checked }: { checked: boolean }) {
       checked ? 'bg-sp-orange border-sp-orange' : 'bg-transparent border-white/20',
     ].join(' ')}>
       {checked && (
-        <svg viewBox="0 0 12 12" fill="none" className="w-full h-full p-0.5">
+        <svg viewBox="0 0 12 12" fill="none" className="w-full h-full p-0.5" aria-hidden="true">
           <path d="M2 6l3 3 5-5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>
       )}
