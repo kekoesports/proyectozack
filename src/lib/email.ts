@@ -19,30 +19,72 @@ function escapeHtml(str: string): string {
 type ContactEmailPayload = {
   name: string;
   email: string;
+  phone?: string | undefined;
   type: string;
   company?: string | undefined;
   message: string;
+  // Brand-specific
+  budget?: string | undefined;
+  timeline?: string | undefined;
+  audience?: string | undefined;
+  vertical?: string | undefined;
+  campaignType?: string | undefined;
+  // Creator-specific
+  platform?: string | undefined;
+  viewers?: string | undefined;
+  monetization?: string | undefined;
+}
+
+function row(label: string, value: string | undefined): string {
+  if (!value) return '';
+  return `<p><strong>${label}:</strong> ${escapeHtml(value)}</p>`;
 }
 
 export async function sendContactEmail(payload: ContactEmailPayload): Promise<void> {
   const name = escapeHtml(payload.name);
   const email = escapeHtml(payload.email);
   const type = escapeHtml(payload.type);
-  const company = payload.company ? escapeHtml(payload.company) : '';
   const message = escapeHtml(payload.message).replace(/\n/g, '<br/>');
+
+  const isBrand = payload.type === 'brand';
+  const isCreator = payload.type === 'talent';
+
+  const brandSection = isBrand ? `
+    <h3 style="margin:16px 0 8px; color:#f5632a;">Datos de campaña</h3>
+    ${row('Vertical', payload.vertical)}
+    ${row('Tipo de campaña', payload.campaignType)}
+    ${row('Presupuesto', payload.budget)}
+    ${row('Timeline', payload.timeline)}
+    ${row('Público objetivo', payload.audience)}
+  ` : '';
+
+  const creatorSection = isCreator ? `
+    <h3 style="margin:16px 0 8px; color:#f5632a;">Datos del canal</h3>
+    ${row('Plataforma', payload.platform)}
+    ${row('Viewers / Suscriptores', payload.viewers)}
+    ${row('Monetización', payload.monetization)}
+  ` : '';
 
   await resend.emails.send({
     from: 'SocialPro <noreply@socialpro.es>',
     to: 'marketing@socialpro.es',
     subject: `Nuevo contacto: ${name} (${type})`,
     html: `
-      <h2>Nuevo mensaje de contacto</h2>
-      <p><strong>Nombre:</strong> ${name}</p>
-      <p><strong>Email:</strong> ${email}</p>
-      <p><strong>Tipo:</strong> ${type}</p>
-      ${company ? `<p><strong>Empresa:</strong> ${company}</p>` : ''}
-      <hr/>
-      <p>${message}</p>
+      <div style="font-family:Inter,sans-serif;max-width:560px;">
+        <h2 style="font-family:'Barlow Condensed',sans-serif;text-transform:uppercase;">
+          Nuevo contacto
+        </h2>
+        <p><strong>Nombre:</strong> ${name}</p>
+        <p><strong>Email:</strong> ${email}</p>
+        ${row('Teléfono', payload.phone)}
+        <p><strong>Tipo:</strong> ${type}</p>
+        ${row('Empresa', payload.company)}
+        ${brandSection}
+        ${creatorSection}
+        <hr style="margin:16px 0;border:none;border-top:1px solid #e5e7eb;"/>
+        <h3 style="margin:0 0 8px;">Mensaje</h3>
+        <p style="white-space:pre-wrap;">${message}</p>
+      </div>
     `,
   });
 }
