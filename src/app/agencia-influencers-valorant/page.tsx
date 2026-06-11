@@ -58,6 +58,29 @@ const breadcrumbJsonLd = buildBreadcrumbJsonLd([
   { name: 'Agencia Influencers Valorant', url: absoluteUrl('/agencia-influencers-valorant') },
 ]);
 
+const faqJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: [
+    {
+      '@type': 'Question',
+      name: '¿Por qué Valorant para campañas de marketing en el mercado hispano?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Valorant es hoy el juego competitivo dominante en la mayoría de mercados de habla hispana. La audiencia está en plena fase de crecimiento. Comparado con CS2, Valorant atrae un perfil más joven, más femenino y más abierto a marcas de consumo general — marcas que buscan alcanzar a la Generación Z gamer encuentran en Valorant su nicho natural. Además, Riot Games regula activamente el contenido de su ecosistema, reduciendo el riesgo reputacional asociado a contenido gaming no regulado.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: '¿Cómo funciona el proceso de una campaña con influencers de Valorant en SocialPro?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'El proceso tiene tres pasos. Primero, selección de influencers: elegimos streamers Valorant cuya audiencia, estilo y valores encajan con tu marca, con verificación de audiencia real antes de cualquier activación. Segundo, ejecución coordinada: gestión completa de briefings, revisión de contenido, calendario y publicación. Tercero, reporting verificado: métricas reales de alcance, engagement y conversiones atribuidas con reportes en 48 horas tras el fin de campaña.',
+      },
+    },
+  ],
+};
+
 const OPORTUNIDADES = [
   { title: 'El FPS de mayor crecimiento en LatAm', desc: 'Valorant es hoy el juego competitivo dominante en la mayoría de mercados de habla hispana. La audiencia está en plena fase de crecimiento — el momento de entrar es ahora, antes de que la saturación de marcas llegue.' },
   { title: 'Audiencia más diversa y mainstream', desc: 'Comparado con CS2, Valorant atrae un perfil más joven, más femenino y más abierto a marcas de consumo general. Marcas que buscan alcanzar a la Generación Z gamer encuentran en Valorant su nicho natural.' },
@@ -69,6 +92,7 @@ export default function AgenciaInfluencersValorantPage() {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(faqJsonLd) }} />
 
       <section className="bg-sp-black pt-24 pb-12 md:pt-32 md:pb-20">
         <div className="max-w-4xl mx-auto px-6 text-center">

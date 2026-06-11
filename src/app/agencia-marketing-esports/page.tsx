@@ -72,11 +72,35 @@ const breadcrumbJsonLd = buildBreadcrumbJsonLd([
   { name: 'Agencia Marketing Esports', url: absoluteUrl('/agencia-marketing-esports') },
 ]);
 
+const faqJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: [
+    {
+      '@type': 'Question',
+      name: '¿Qué diferencia a SocialPro de otras agencias de marketing esports?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'SocialPro lleva 13+ años exclusivamente en gaming y esports. No somos generalistas con una práctica gaming. Somos gaming. Cada campaña tiene KPIs de negocio claros: medimos conversiones, no solo alcance, sin vanity metrics. España y LatAm representan una de las comunidades gaming más grandes del mundo, y nuestros creadores dan acceso directo y auténtico a esas audiencias.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: '¿Qué servicios ofrece una agencia de marketing esports?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'SocialPro ofrece activaciones con streamers y creadores gaming para awareness, lanzamientos de producto y campañas de conversión, con cada creador verificado y cada métrica rastreada. También integración de marca en torneos esports con overlays personalizados, menciones en directo y activaciones de experiencia. Además, representación y gestión de creadores gaming: negociación de contratos, estrategia de contenido y patrocinios. Y campañas iGaming × esports que combinan audiencias esports con mecánicas iGaming con compliance DGOJ incluido.',
+      },
+    },
+  ],
+};
+
 export default function AgenciaMarketingEsportsPage() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(faqJsonLd) }} />
 
       <section className="bg-sp-black pt-24 pb-12 md:pt-32 md:pb-20">
         <div className="max-w-4xl mx-auto px-6 text-center">
