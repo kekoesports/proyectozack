@@ -38,8 +38,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       description,
       url: absoluteUrl(`/creadores/${slug}`),
       images: ogImage
-        ? [{ url: ogImage, width: 600, height: 600 }]
-        : [{ url: absoluteUrl('/og-socialpro.png'), width: 1200, height: 630 }],
+        ? [{ url: ogImage, width: 600, height: 600, alt: title }]
+        : [{ url: absoluteUrl('/og-socialpro.png'), width: 1200, height: 630, alt: title }],
     },
     twitter: {
       card: 'summary_large_image',
