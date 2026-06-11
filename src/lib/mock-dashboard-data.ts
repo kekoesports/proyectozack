@@ -35,29 +35,7 @@ export const MOCK_PIPELINE_90D: PipelinePoint[] = [
   { date: '10 Jun', value: 18400 },
 ];
 
-// ── Activity feed [MOCK] ──────────────────────────────────────────────
-
-export type ActivityIcon = 'brand' | 'lead' | 'deal' | 'task' | 'invoice' | 'talent';
-
-export type ActivityItem = {
-  readonly id: number;
-  readonly icon: ActivityIcon;
-  readonly text: string;
-  readonly entity: string;
-  readonly time: Date;
-};
-
-const now = Date.now();
-
-export const MOCK_ACTIVITY: ActivityItem[] = [
-  { id: 1, icon: 'brand',   text: 'Nueva marca añadida',             entity: 'Winamax ES',       time: new Date(now - 2 * 3600_000) },
-  { id: 2, icon: 'lead',    text: 'Lead actualizado a negociación',  entity: 'JD Sports',        time: new Date(now - 5 * 3600_000) },
-  { id: 3, icon: 'deal',    text: 'Deal ganado',                     entity: 'New Balance',      time: new Date(now - 24 * 3600_000) },
-  { id: 4, icon: 'task',    text: 'Tarea completada',                entity: 'Follow-up Pringles', time: new Date(now - 2 * 86_400_000) },
-  { id: 5, icon: 'invoice', text: 'Factura emitida',                 entity: 'SocialPro Agency', time: new Date(now - 3 * 86_400_000) },
-];
-
-// ── Insights [MOCK + generados dinámicamente en page.tsx] ─────────────
+// ── Insights [MOCK — pendiente query real] ───────────────────────────
 
 export type InsightType = 'danger' | 'warning' | 'success';
 

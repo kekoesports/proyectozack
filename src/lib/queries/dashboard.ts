@@ -1,4 +1,4 @@
-import { sql, eq, gt, lt, lte, ne, and, or, inArray, isNull, isNotNull, asc, gte } from 'drizzle-orm';
+import { sql, desc, eq, gt, lt, lte, ne, and, or, inArray, isNull, isNotNull, asc, gte } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import {
   talents,
@@ -588,3 +588,87 @@ export async function getDealStats(): Promise<DealStats> {
   };
 }
 
+// ── Activity feed (datos reales) ──────────────────────────────────────────────
+
+export type ActivityIcon = 'brand' | 'lead' | 'deal' | 'task' | 'invoice' | 'talent';
+
+export type DashboardActivityItem = {
+  readonly id: string;
+  readonly icon: ActivityIcon;
+  readonly text: string;
+  readonly entity: string;
+  readonly time: Date;
+};
+
+/**
+ * Feed de actividad reciente: últimas facturas, brands y tareas completadas,
+ * mezcladas y ordenadas por tiempo descendente.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns array <= limit ordenado por `time DESC`.
+ */
+export async function getDashboardActivity(limit = 5): Promise<readonly DashboardActivityItem[]> {
+  const [recentInvoices, recentBrands, recentTasks] = await Promise.all([
+    db
+      .select({
+        id: invoices.id,
+        kind: invoices.kind,
+        status: invoices.status,
+        counterpartyName: invoices.counterpartyName,
+        createdAt: invoices.createdAt,
+      })
+      .from(invoices)
+      .where(ne(invoices.status, 'borrador'))
+      .orderBy(desc(invoices.createdAt))
+      .limit(4),
+
+    db
+      .select({
+        id: crmBrands.id,
+        name: crmBrands.name,
+        status: crmBrands.status,
+        createdAt: crmBrands.createdAt,
+      })
+      .from(crmBrands)
+      .orderBy(desc(crmBrands.createdAt))
+      .limit(4),
+
+    db
+      .select({
+        id: crmTasks.id,
+        title: crmTasks.title,
+        updatedAt: crmTasks.updatedAt,
+      })
+      .from(crmTasks)
+      .where(eq(crmTasks.status, 'completada'))
+      .orderBy(desc(crmTasks.updatedAt))
+      .limit(4),
+  ]);
+
+  const items: DashboardActivityItem[] = [
+    ...recentInvoices.map((inv) => ({
+      id: `invoice-${inv.id}`,
+      icon: 'invoice' as ActivityIcon,
+      text: inv.kind === 'income' ? 'Factura de ingreso emitida' : 'Factura de gasto registrada',
+      entity: inv.counterpartyName ?? '—',
+      time: inv.createdAt,
+    })),
+    ...recentBrands.map((b) => ({
+      id: `brand-${b.id}`,
+      icon: (b.status === 'lead' ? 'lead' : 'brand') as ActivityIcon,
+      text: b.status === 'lead' ? 'Nuevo lead añadido' : 'Marca registrada en CRM',
+      entity: b.name,
+      time: b.createdAt,
+    })),
+    ...recentTasks.map((t) => ({
+      id: `task-${t.id}`,
+      icon: 'task' as ActivityIcon,
+      text: 'Tarea completada',
+      entity: t.title,
+      time: t.updatedAt,
+    })),
+  ];
+
+  return items.sort((a, b) => b.time.getTime() - a.time.getTime()).slice(0, limit);
+}

@@ -1,4 +1,4 @@
-import type { ActivityItem, ActivityIcon } from '@/lib/mock-dashboard-data';
+import type { DashboardActivityItem, ActivityIcon } from '@/lib/queries/dashboard';
 
 function timeAgo(date: Date): string {
   const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
@@ -22,7 +22,7 @@ const ICON_CONFIG: Record<ActivityIcon, { emoji: string; bg: string; color: stri
 };
 
 type ActivityPanelProps = {
-  readonly items: readonly ActivityItem[];
+  readonly items: readonly DashboardActivityItem[];
 };
 
 export function ActivityPanel({ items }: ActivityPanelProps): React.ReactElement {
@@ -69,10 +69,9 @@ export function ActivityPanel({ items }: ActivityPanelProps): React.ReactElement
         })}
       </div>
 
-      {/* Footer mock note */}
-      <div className="px-5 py-2.5 border-t border-sp-admin-border/40 bg-sp-admin-hover/20">
-        <p className="text-[9px] text-sp-admin-muted/50 italic uppercase tracking-wide">
-          Datos de ejemplo — conectar a backend
+      <div className="px-5 py-2 border-t border-sp-admin-border/40 bg-sp-admin-hover/20">
+        <p className="text-[9px] text-sp-admin-muted/50 uppercase tracking-wide">
+          Últimos eventos del CRM
         </p>
       </div>
     </section>
