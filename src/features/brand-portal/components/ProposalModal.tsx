@@ -81,6 +81,7 @@ export function ProposalModal({ talentId, talentName, onClose }: ProposalModalPr
         className="w-full max-w-lg bg-white rounded-2xl shadow-xl p-8"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
+        aria-modal="true"
         aria-label={`Propuesta para ${talentName}`}
       >
         <div className="flex items-center justify-between mb-6">
@@ -101,29 +102,30 @@ export function ProposalModal({ talentId, talentName, onClose }: ProposalModalPr
         ) : (
           <form onSubmit={(e) => { void handleSubmit(e); }} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-sp-dark mb-1.5">Tipo de campana</label>
-              <select value={form.campaignType} onChange={(e) => setForm({ ...form, campaignType: e.target.value as ProposalInput['campaignType'] | '' })} required className={selectClass}>
+              <label htmlFor="proposal-campaign-type" className="block text-xs font-semibold text-sp-dark mb-1.5">Tipo de campaña</label>
+              <select id="proposal-campaign-type" value={form.campaignType} onChange={(e) => setForm({ ...form, campaignType: e.target.value as ProposalInput['campaignType'] | '' })} required className={selectClass}>
                 <option value="">Seleccionar...</option>
                 {['Streaming', 'YouTube', 'Social', 'Evento', 'Otro'].map((v) => <option key={v} value={v}>{v}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-xs font-semibold text-sp-dark mb-1.5">Presupuesto</label>
-              <select value={form.budgetRange} onChange={(e) => setForm({ ...form, budgetRange: e.target.value as ProposalInput['budgetRange'] | '' })} required className={selectClass}>
+              <label htmlFor="proposal-budget" className="block text-xs font-semibold text-sp-dark mb-1.5">Presupuesto</label>
+              <select id="proposal-budget" value={form.budgetRange} onChange={(e) => setForm({ ...form, budgetRange: e.target.value as ProposalInput['budgetRange'] | '' })} required className={selectClass}>
                 <option value="">Seleccionar...</option>
                 {['<5K', '5-10K', '10-25K', '25K+', 'A definir'].map((v) => <option key={v} value={v}>{v}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-xs font-semibold text-sp-dark mb-1.5">Timeline</label>
-              <select value={form.timeline} onChange={(e) => setForm({ ...form, timeline: e.target.value as ProposalInput['timeline'] | '' })} required className={selectClass}>
+              <label htmlFor="proposal-timeline" className="block text-xs font-semibold text-sp-dark mb-1.5">Timeline</label>
+              <select id="proposal-timeline" value={form.timeline} onChange={(e) => setForm({ ...form, timeline: e.target.value as ProposalInput['timeline'] | '' })} required className={selectClass}>
                 <option value="">Seleccionar...</option>
                 {['1 semana', '2 semanas', '1 mes', '2+ meses', 'Flexible'].map((v) => <option key={v} value={v}>{v}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-xs font-semibold text-sp-dark mb-1.5">Mensaje</label>
+              <label htmlFor="proposal-message" className="block text-xs font-semibold text-sp-dark mb-1.5">Mensaje</label>
               <textarea
+                id="proposal-message"
                 value={form.message}
                 onChange={(e) => setForm({ ...form, message: e.target.value })}
                 required
