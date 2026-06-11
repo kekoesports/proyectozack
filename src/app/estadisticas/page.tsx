@@ -274,11 +274,6 @@ export default async function EstadisticasPage() {
               >
                 Análisis y estadísticas
               </h2>
-              <Link
-                href="/admin/noticias?type=estadisticas"
-                className="hidden"
-                aria-hidden="true"
-              />
             </div>
 
             {statsPosts.length === 0 ? (
