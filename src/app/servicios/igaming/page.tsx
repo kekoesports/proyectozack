@@ -181,7 +181,7 @@ export default function IgamingPage() {
             ))}
           </div>
           <TrackedCtaLink
-            href="/#contacto"
+            href="/contacto?type=brand"
             ctaId="landing_igaming_es_hero"
             className="inline-block bg-sp-grad text-white font-display font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-full hover:opacity-90 transition-opacity"
           >
@@ -447,7 +447,7 @@ export default function IgamingPage() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
-              href="/#contacto"
+              href="/contacto?type=brand"
               className="inline-block bg-sp-grad text-white font-display font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-full hover:opacity-90 transition-opacity"
             >
               Contactar ahora
@@ -485,7 +485,7 @@ export default function IgamingPage() {
         </div>
       </nav>
 
-      <StickyCtaMobile href="/#contacto" label="Solicitar propuesta (48h)" ctaId="sticky_igaming_es_mobile" />
+      <StickyCtaMobile href="/contacto?type=brand" label="Solicitar propuesta (48h)" ctaId="sticky_igaming_es_mobile" />
     </>
   );
 }

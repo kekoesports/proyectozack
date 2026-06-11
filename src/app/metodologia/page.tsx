@@ -201,7 +201,7 @@ export default function MetodologiaPage() {
             Cuéntanos tu proyecto y diseñamos una propuesta a medida.
           </p>
           <Link
-            href="/#contacto"
+            href="/contacto?type=brand"
             className="inline-block bg-sp-grad text-white font-display font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-full hover:opacity-90 transition-opacity"
           >
             Hablemos de tu campaña
