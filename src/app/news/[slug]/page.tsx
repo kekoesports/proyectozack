@@ -167,7 +167,7 @@ export default async function NewsArticlePage({ params }: PageProps) {
                   <div className="relative aspect-[4/3] rounded-xl overflow-hidden border border-white/[0.06] bg-white/[0.03]">
                     <Image
                       src={post.coverUrl}
-                      alt=""
+                      alt={post.title}
                       fill
                       priority
                       sizes="(min-width:1024px) 40vw, 100vw"

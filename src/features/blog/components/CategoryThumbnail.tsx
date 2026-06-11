@@ -300,7 +300,7 @@ function BrandedComposition({
       <div className={`relative ${logoSize} flex items-center justify-center`}>
         <Image
           src={brand.logoUrl}
-          alt=""
+          alt={brand.name}
           width={460}
           height={140}
           className="w-full h-auto object-contain drop-shadow-[0_4px_24px_rgba(0,0,0,0.5)]"
