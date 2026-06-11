@@ -270,7 +270,7 @@ export default async function CaseStudyPage({ params }: PageProps) {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {config.services.map((s) => (
                 <div key={s} className="flex items-start gap-3 bg-sp-off rounded-xl px-4 py-3.5">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-sp-orange shrink-0 mt-0.5">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-sp-orange shrink-0 mt-0.5" aria-hidden="true">
                     <polyline points="20 6 9 17 4 12" />
                   </svg>
                   <span className="text-sm text-sp-dark font-medium">{s}</span>
