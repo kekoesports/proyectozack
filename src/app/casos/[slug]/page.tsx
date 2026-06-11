@@ -223,7 +223,7 @@ export default async function CaseStudyPage({ params }: PageProps) {
 
           {/* CTA inline en hero */}
           <Link
-            href="/contacto"
+            href="/contacto?type=brand"
             className="inline-flex items-center gap-2 bg-sp-grad text-white font-display font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-full hover:opacity-90 transition-opacity"
           >
             Hablemos de tu campaña
@@ -408,7 +408,7 @@ export default async function CaseStudyPage({ params }: PageProps) {
         <div className="max-w-2xl mx-auto px-6 text-center">
           <p className="text-sp-muted mb-6 text-base leading-relaxed">{ctaText}</p>
           <Link
-            href="/contacto"
+            href="/contacto?type=brand"
             className="inline-block bg-sp-grad text-white font-display font-bold uppercase tracking-wider text-sm px-10 py-3.5 rounded-full hover:opacity-90 transition-opacity"
           >
             Hablemos de tu campaña
