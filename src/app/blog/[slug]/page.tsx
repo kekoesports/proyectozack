@@ -165,6 +165,7 @@ export default async function BlogPostPage({ params }: PageProps) {
             '@type': 'Person',
             name: t.name,
             url: absoluteUrl(`/talentos/${t.slug}`),
+            jobTitle: t.role,
           })),
         }
       : {}),

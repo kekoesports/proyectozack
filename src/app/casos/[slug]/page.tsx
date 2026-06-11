@@ -155,6 +155,15 @@ export default async function CaseStudyPage({ params }: PageProps) {
     author: { '@type': 'Organization', '@id': absoluteUrl('/#organization') },
     publisher: { '@type': 'Organization', '@id': absoluteUrl('/#organization') },
     mainEntityOfPage: { '@type': 'WebPage', '@id': absoluteUrl(`/casos/${slug}`) },
+    ...(cs.creators.some((c) => c.talentSlug) ? {
+      mentions: cs.creators
+        .filter((c) => c.talentSlug)
+        .map((c) => ({
+          '@type': 'Person',
+          name: c.creatorName,
+          url: absoluteUrl(`/talentos/${c.talentSlug}`),
+        })),
+    } : {}),
   };
 
   return (
