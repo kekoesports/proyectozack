@@ -77,7 +77,7 @@ export default async function HomePage() {
       <Marquee />
       <BrandsCarousel brands={brands} />
       <TalentSection talents={talents} />
-      <WorkedWithSection />
+      {false && <WorkedWithSection />}
       {SHOW_LIVE_SECTION && (
         <Suspense fallback={
           <section className="bg-sp-black py-16 px-4 sm:px-6 border-t border-white/[0.06]">
@@ -87,7 +87,9 @@ export default async function HomePage() {
           <LiveSection />
         </Suspense>
       )}
-      <ServicesSection />
+      <div className="border-t border-sp-border">
+        <ServicesSection />
+      </div>
       <Suspense>
         <CasesSectionAsync />
       </Suspense>
