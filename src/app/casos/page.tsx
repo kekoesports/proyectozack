@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import { getCaseStudies } from '@/lib/queries/cases';
 import { CasesSection } from '@/features/marketing-site/components/CasesSection';
 import { absoluteUrl } from '@/lib/site-url';
 import { safeJsonLd } from '@/lib/safeJsonLd';
+import { TrackedCtaLink } from '@/components/ui/TrackedCtaLink';
 
 export const revalidate = 3600;
 
@@ -96,12 +96,13 @@ export default async function CasosPage() {
             Cuéntanos tu producto, mercado y objetivo. Propuesta con creadores
             seleccionados en 48h, sin compromiso.
           </p>
-          <Link
+          <TrackedCtaLink
             href="/contacto?type=brand"
+            ctaId="casos_list_bottom_cta"
             className="inline-block bg-sp-grad text-white font-display font-bold uppercase tracking-wider text-sm px-10 py-3.5 rounded-full hover:opacity-90 transition-opacity"
           >
             Iniciar Propuesta →
-          </Link>
+          </TrackedCtaLink>
           <p className="mt-4 text-[11px] font-semibold uppercase tracking-[0.25em] text-white/40">
             Respuesta en 24h · Sin compromiso
           </p>

@@ -8,6 +8,7 @@ import { buildBreadcrumbJsonLd } from '@/lib/utils/breadcrumbs';
 import { absoluteUrl } from '@/lib/site-url';
 import { truncateMetaDescription } from '@/lib/utils/text';
 import { getCaseConfig } from '@/features/cases/case-config';
+import { TrackedCtaLink } from '@/components/ui/TrackedCtaLink';
 import type { CaseCreatorWithSlug } from '@/types';
 
 export const revalidate = 3600;
@@ -231,13 +232,14 @@ export default async function CaseStudyPage({ params }: PageProps) {
           )}
 
           {/* CTA inline en hero */}
-          <Link
+          <TrackedCtaLink
             href="/contacto?type=brand"
+            ctaId={`caso_${slug}_hero_cta`}
             className="inline-flex items-center gap-2 bg-sp-grad text-white font-display font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-full hover:opacity-90 transition-opacity"
           >
             Hablemos de tu campaña
             <span aria-hidden="true">→</span>
-          </Link>
+          </TrackedCtaLink>
         </div>
       </section>
 
@@ -416,12 +418,13 @@ export default async function CaseStudyPage({ params }: PageProps) {
       <section className="bg-white py-20">
         <div className="max-w-2xl mx-auto px-6 text-center">
           <p className="text-sp-muted mb-6 text-base leading-relaxed">{ctaText}</p>
-          <Link
+          <TrackedCtaLink
             href="/contacto?type=brand"
+            ctaId={`caso_${slug}_footer_cta`}
             className="inline-block bg-sp-grad text-white font-display font-bold uppercase tracking-wider text-sm px-10 py-3.5 rounded-full hover:opacity-90 transition-opacity"
           >
             Hablemos de tu campaña
-          </Link>
+          </TrackedCtaLink>
           <div className="mt-8 pt-8 border-t border-sp-border">
             <Link
               href="/casos"
