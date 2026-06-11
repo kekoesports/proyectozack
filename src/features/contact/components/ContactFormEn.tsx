@@ -99,18 +99,20 @@ export function ContactFormEn(): React.JSX.Element {
               <form onSubmit={(e) => { void handleSubmit(onSubmit)(e); }} className="space-y-5">
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div>
-                    <label className={labelClasses}>Name *</label>
+                    <label htmlFor="contact-en-name" className={labelClasses}>Name *</label>
                     <input
                       {...register('name')}
+                      id="contact-en-name"
                       placeholder="Your name"
                       className={inputClasses}
                     />
                     {errors.name && <p className="text-xs text-red-400 mt-1">{errors.name.message}</p>}
                   </div>
                   <div>
-                    <label className={labelClasses}>Email *</label>
+                    <label htmlFor="contact-en-email" className={labelClasses}>Email *</label>
                     <input
                       {...register('email')}
+                      id="contact-en-email"
                       type="email"
                       placeholder="you@email.com"
                       className={inputClasses}
@@ -120,8 +122,8 @@ export function ContactFormEn(): React.JSX.Element {
                 </div>
 
                 <div>
-                  <label className={labelClasses}>I am… *</label>
-                  <select {...register('type')} className={selectClasses}>
+                  <label htmlFor="contact-en-type" className={labelClasses}>I am… *</label>
+                  <select {...register('type')} id="contact-en-type" className={selectClasses}>
                     <option value="" className="bg-sp-black">Select...</option>
                     {TYPES_EN.map((t) => (
                       <option key={t.value} value={t.value} className="bg-sp-black">
@@ -133,18 +135,20 @@ export function ContactFormEn(): React.JSX.Element {
                 </div>
 
                 <div>
-                  <label className={labelClasses}>Company / Channel</label>
+                  <label htmlFor="contact-en-company" className={labelClasses}>Company / Channel</label>
                   <input
                     {...register('company')}
+                    id="contact-en-company"
                     placeholder="Your company or channel"
                     className={inputClasses}
                   />
                 </div>
 
                 <div>
-                  <label className={labelClasses}>Message *</label>
+                  <label htmlFor="contact-en-message" className={labelClasses}>Message *</label>
                   <textarea
                     {...register('message')}
+                    id="contact-en-message"
                     rows={5}
                     placeholder="Tell us what you have in mind..."
                     className={`${inputClasses} resize-none`}
