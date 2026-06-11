@@ -35,40 +35,6 @@ export const MOCK_PIPELINE_90D: PipelinePoint[] = [
   { date: '10 Jun', value: 18400 },
 ];
 
-// ── Insights [MOCK — pendiente query real] ───────────────────────────
-
-export type InsightType = 'danger' | 'warning' | 'success';
-
-export type InsightItem = {
-  readonly id: number;
-  readonly type: InsightType;
-  readonly text: string;
-  readonly action?: string;
-  readonly actionHref?: string;
-};
-
-export const MOCK_INSIGHTS: InsightItem[] = [
-  {
-    id: 1,
-    type: 'danger',
-    text: 'Tienes 3 deals sin actividad en los últimos 7 días',
-    action: 'Revisar marcas',
-    actionHref: '/admin/brands',
-  },
-  {
-    id: 2,
-    type: 'warning',
-    text: 'Has recibido 1 lead esta semana. Media: 4 leads',
-    action: 'Activar prospección',
-    actionHref: '/admin/brands',
-  },
-  {
-    id: 3,
-    type: 'success',
-    text: 'Tu tasa de cierre este mes es del 40%',
-  },
-];
-
 // ── KPI mock values [MOCK] ────────────────────────────────────────────
 
 export const MOCK_DEALS_WON = { value: 0, trend: 0 };

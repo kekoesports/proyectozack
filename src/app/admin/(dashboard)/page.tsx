@@ -7,14 +7,12 @@ import {
   getDealStats,
   getPendingBrandPaymentsTotal,
   getDashboardActivity,
+  getDashboardInsights,
 } from '@/lib/queries/dashboard';
 import { getDashboardAlerts } from '@/lib/queries/alerts';
 import { requirePermission } from '@/lib/permissions';
 import { DashboardAlerts } from '@/features/admin/_shared/components/dashboard/DashboardAlerts';
 import { getIsoWeekLabel, getWeekStart } from '@/lib/utils/week';
-import {
-  MOCK_INSIGHTS,
-} from '@/lib/mock-dashboard-data';
 
 import { StatCard } from '@/features/admin/_shared/components/dashboard/StatCard';
 import { FollowUpPanel } from '@/features/admin/_shared/components/dashboard/FollowUpPanel';
@@ -52,7 +50,7 @@ export default async function AdminDashboardPage(): Promise<ReactElement> {
   const weekStart = getWeekStart(weekLabel);
   const weekStr = weekStart.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' });
 
-  const [{ stats }, brandCounts, pendingTasks, followups, revenue, deals, { alerts, summary: alertSummary }, pipelineTotal, activity] = await Promise.all([
+  const [{ stats }, brandCounts, pendingTasks, followups, revenue, deals, { alerts, summary: alertSummary }, pipelineTotal, activity, insights] = await Promise.all([
     getAdminDashboardData(),
     getCrmBrandCounts(),
     getDashboardPendingTasks(weekLabel),
@@ -62,6 +60,7 @@ export default async function AdminDashboardPage(): Promise<ReactElement> {
     getDashboardAlerts(isStaff ? { staffUserId: session.user.id, skipFinancial: true } : undefined),
     getPendingBrandPaymentsTotal(),
     getDashboardActivity(5),
+    getDashboardInsights(),
   ]);
 
   return (
@@ -171,7 +170,7 @@ export default async function AdminDashboardPage(): Promise<ReactElement> {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
         <TaskPanel tasks={pendingTasks} weekLabel={weekLabel} />
         <ActivityPanel items={activity} />
-        <InsightsPanel insights={MOCK_INSIGHTS} />
+        <InsightsPanel insights={insights} />
       </div>
 
       {/* ── Alertas editoriales (NewsData) ──────────────────── */}

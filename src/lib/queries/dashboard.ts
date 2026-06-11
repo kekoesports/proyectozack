@@ -672,3 +672,114 @@ export async function getDashboardActivity(limit = 5): Promise<readonly Dashboar
 
   return items.sort((a, b) => b.time.getTime() - a.time.getTime()).slice(0, limit);
 }
+
+// ── Dashboard insights (datos reales) ────────────────────────────────────────
+
+export type InsightType = 'danger' | 'warning' | 'success';
+
+export type InsightItem = {
+  readonly id: number;
+  readonly type: InsightType;
+  readonly text: string;
+  readonly action?: string;
+  readonly actionHref?: string;
+};
+
+/**
+ * Insights accionables del CRM: follow-ups vencidos, leads nuevos esta semana
+ * y tasa de cierre del año en curso.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns array de hasta 3 InsightItem ordenados por severidad.
+ */
+export async function getDashboardInsights(): Promise<readonly InsightItem[]> {
+  const now = new Date();
+  const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+  const fourteenDaysAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const yearStart = `${now.getFullYear()}-01-01`;
+
+  const [overdueRows, thisWeekRows, prevWeekRows, dealRows] = await Promise.all([
+    db.select({ count: sql<number>`count(*)::int` })
+      .from(crmBrandFollowups)
+      .where(and(
+        isNull(crmBrandFollowups.completedAt),
+        or(
+          eq(crmBrandFollowups.status, 'vencido'),
+          and(lt(crmBrandFollowups.scheduledAt, today), eq(crmBrandFollowups.status, 'pendiente')),
+        ),
+      )),
+    db.select({ count: sql<number>`count(*)::int` })
+      .from(crmBrands)
+      .where(and(eq(crmBrands.status, 'lead'), gte(crmBrands.createdAt, sevenDaysAgo))),
+    db.select({ count: sql<number>`count(*)::int` })
+      .from(crmBrands)
+      .where(and(
+        eq(crmBrands.status, 'lead'),
+        gte(crmBrands.createdAt, fourteenDaysAgo),
+        lt(crmBrands.createdAt, sevenDaysAgo),
+      )),
+    db.select({ status: invoices.status, count: sql<number>`count(*)::int` })
+      .from(invoices)
+      .where(and(
+        eq(invoices.kind, 'income'),
+        inArray(invoices.status, ['cobrada', 'emitida']),
+        gte(invoices.issueDate, yearStart),
+      ))
+      .groupBy(invoices.status),
+  ]);
+
+  const insights: InsightItem[] = [];
+  let id = 1;
+
+  const overdueCount = overdueRows[0]?.count ?? 0;
+  if (overdueCount > 0) {
+    insights.push({
+      id: id++,
+      type: 'danger',
+      text: `Tienes ${overdueCount} follow-up${overdueCount > 1 ? 's' : ''} vencido${overdueCount > 1 ? 's' : ''}`,
+      action: 'Revisar pipeline',
+      actionHref: '/admin/brands',
+    });
+  } else {
+    insights.push({ id: id++, type: 'success', text: 'Sin follow-ups vencidos esta semana' });
+  }
+
+  const thisWeek = thisWeekRows[0]?.count ?? 0;
+  const prevWeek = prevWeekRows[0]?.count ?? 0;
+  if (thisWeek === 0) {
+    insights.push({
+      id: id++,
+      type: 'warning',
+      text: prevWeek > 0
+        ? `Sin leads nuevos esta semana (sem. ant.: ${prevWeek})`
+        : 'Sin leads nuevos esta semana',
+      action: 'Activar prospección',
+      actionHref: '/admin/brands',
+    });
+  } else {
+    insights.push({
+      id: id++,
+      type: thisWeek >= prevWeek ? 'success' : 'warning',
+      text: prevWeek > 0
+        ? `${thisWeek} lead${thisWeek > 1 ? 's' : ''} esta semana (sem. ant.: ${prevWeek})`
+        : `${thisWeek} lead${thisWeek > 1 ? 's' : ''} nuevo${thisWeek > 1 ? 's' : ''} esta semana`,
+      ...(thisWeek < prevWeek ? { action: 'Ver pipeline', actionHref: '/admin/brands' } : {}),
+    });
+  }
+
+  const cobradas = dealRows.filter((r) => r.status === 'cobrada').reduce((s, r) => s + r.count, 0);
+  const emitidas = dealRows.filter((r) => r.status === 'emitida').reduce((s, r) => s + r.count, 0);
+  const total = cobradas + emitidas;
+  if (total > 0) {
+    const rate = Math.round((cobradas / total) * 100);
+    insights.push({
+      id: id++,
+      type: rate >= 30 ? 'success' : 'warning',
+      text: `Tasa de cierre ${now.getFullYear()}: ${rate}% (${cobradas}/${total} tratos)`,
+    });
+  }
+
+  return insights;
+}

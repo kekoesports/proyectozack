@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import type { InsightItem } from '@/lib/mock-dashboard-data';
+import type { InsightItem } from '@/lib/queries/dashboard';
 
 const TYPE_STYLES: Record<InsightItem['type'], { bar: string; bg: string; icon: string; label: string }> = {
   danger:  { bar: 'bg-red-500',     bg: 'bg-red-50',     icon: '⚠',  label: 'Riesgo' },
@@ -60,8 +60,8 @@ export function InsightsPanel({ insights }: InsightsPanelProps): React.ReactElem
       </div>
 
       <div className="px-5 py-2.5 border-t border-sp-admin-border/40 bg-sp-admin-hover/20">
-        <p className="text-[9px] text-sp-admin-muted/50 italic uppercase tracking-wide">
-          Datos de ejemplo — conectar a backend
+        <p className="text-[9px] text-sp-admin-muted/50 uppercase tracking-wide">
+          Follow-ups · leads · tratos — datos en tiempo real
         </p>
       </div>
     </section>
