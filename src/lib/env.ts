@@ -26,6 +26,10 @@ export const env = createEnv({
     // Sal para el hash de sesión de analytics de posts. Opcional: si no está definida se
     // usa un valor fijo de fallback. Genera con: crypto.randomBytes(32).toString('hex')
     ANALYTICS_SALT: z.string().min(8).optional(),
+    // Vercel Blob tokens. Optional: the app boots without them; Blob ops fail gracefully.
+    BLOB_READ_WRITE_TOKEN: z.string().min(1).optional(),
+    // Dedicated public-store token for news covers. Falls back to BLOB_READ_WRITE_TOKEN when absent.
+    BLOB_READ_WRITE_TOKEN_NEWS: z.string().min(1).optional(),
   },
   client: {
     NEXT_PUBLIC_SITE_URL: z.string().url(),
@@ -48,6 +52,8 @@ export const env = createEnv({
     GEMINI_MODEL: process.env.GEMINI_MODEL,
     NEWSDATA_API_KEY: process.env.NEWSDATA_API_KEY,
     ANALYTICS_SALT: process.env.ANALYTICS_SALT,
+    BLOB_READ_WRITE_TOKEN: process.env.BLOB_READ_WRITE_TOKEN,
+    BLOB_READ_WRITE_TOKEN_NEWS: process.env.BLOB_READ_WRITE_TOKEN_NEWS,
 
     NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
     NEXT_PUBLIC_GTM_ID: process.env.NEXT_PUBLIC_GTM_ID,

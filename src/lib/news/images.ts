@@ -17,6 +17,7 @@
  */
 import { list, put, del } from '@vercel/blob';
 import sharp from 'sharp';
+import { env } from '@/lib/env';
 
 const PREFIX = 'news/';
 const MAX_WIDTH = 1536;
@@ -32,7 +33,7 @@ export type NewsImage = {
 };
 
 function getToken(): string | undefined {
-  return process.env.BLOB_READ_WRITE_TOKEN_NEWS ?? process.env.BLOB_READ_WRITE_TOKEN;
+  return env.BLOB_READ_WRITE_TOKEN_NEWS ?? env.BLOB_READ_WRITE_TOKEN;
 }
 
 function sanitizeFilename(input: string): string {

@@ -1,6 +1,7 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { list } from '@vercel/blob';
+import { env } from '@/lib/env';
 
 /**
  * Proxy público para fotos de talento almacenadas en Vercel Blob privado.
@@ -36,7 +37,7 @@ export async function GET(
   if (!blob) return new NextResponse('No photo', { status: 404 });
 
   // Fetch the private blob with Bearer token
-  const token = process.env.BLOB_READ_WRITE_TOKEN;
+  const token = env.BLOB_READ_WRITE_TOKEN;
   if (!token) {
     // No token — fall back to redirect (will fail for private blobs but graceful)
     return NextResponse.redirect(blob.url, 302);
