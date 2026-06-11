@@ -1,4 +1,4 @@
-import Image from 'next/image';
+﻿import Image from 'next/image';
 import Link from 'next/link';
 import type { Brand } from '@/types';
 import { FadeInOnScroll } from '@/components/ui/FadeInOnScroll';
@@ -62,7 +62,7 @@ export function NosotrosHero({ brands }: Props) {
 
             <div className="flex flex-col sm:flex-row gap-3">
               <Link
-                href="/contacto"
+                href="/contacto?type=brand"
                 className="inline-flex items-center justify-center px-8 py-3.5 rounded-full bg-sp-grad text-white font-display font-bold uppercase tracking-wider text-sm hover:opacity-90 transition-opacity"
               >
                 Hablemos de tu campaña

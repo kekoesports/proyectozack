@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+﻿import type { Metadata } from 'next';
 import Link from 'next/link';
 import { safeJsonLd } from '@/lib/safeJsonLd';
 import { getTeam, getBrands } from '@/lib/queries/content';
@@ -253,7 +253,7 @@ export default async function NosotrosPage() {
             3. Sin compromiso — decides si avanzar
           </p>
           <Link
-            href="/contacto"
+            href="/contacto?type=brand"
             className="inline-block bg-sp-grad text-white font-display font-bold uppercase tracking-wider text-sm px-10 py-4 rounded-full hover:opacity-90 transition-opacity"
           >
             Iniciar propuesta →

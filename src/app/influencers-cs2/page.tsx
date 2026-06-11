@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+﻿import type { Metadata } from 'next';
 import { safeJsonLd } from '@/lib/safeJsonLd';
 import Link from 'next/link';
 import { SITE_URL, absoluteUrl } from '@/lib/site-url';
@@ -89,7 +89,7 @@ export default function InfluencersCs2Page() {
               </div>
             ))}
           </div>
-          <TrackedCtaLink href="/contacto" ctaId="landing_cs2_es_hero" className="inline-block bg-sp-grad text-white font-display font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-full hover:opacity-90 transition-opacity">
+          <TrackedCtaLink href="/contacto?type=brand" ctaId="landing_cs2_es_hero" className="inline-block bg-sp-grad text-white font-display font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-full hover:opacity-90 transition-opacity">
             Encuentra streamers de CS2 para tu campaña
           </TrackedCtaLink>
         </div>
@@ -156,13 +156,13 @@ export default function InfluencersCs2Page() {
           <h2 className="font-display text-3xl font-black uppercase text-white mb-4">¿Listo para activar tu campaña con <span style={g}>influencers CS2 hispanohablantes?</span></h2>
           <p className="text-white/50 mb-8">Cuéntanos tu producto, objetivo de conversión y mercado. Diseñamos una propuesta con influencers CS2 seleccionados en 48 horas.</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/contacto" className="inline-block bg-sp-grad text-white font-display font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-full hover:opacity-90 transition-opacity">Solicitar propuesta</Link>
+            <Link href="/contacto?type=brand" className="inline-block bg-sp-grad text-white font-display font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-full hover:opacity-90 transition-opacity">Solicitar propuesta</Link>
             <Link href="/cs2-influencer-marketing" className="inline-block border border-white/20 text-white/60 font-display font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-full hover:border-white/40 hover:text-white transition-colors">English version →</Link>
           </div>
         </div>
       </section>
 
-      <StickyCtaMobile href="/contacto" label="Solicitar propuesta" ctaId="sticky_cs2_es_mobile" />
+      <StickyCtaMobile href="/contacto?type=brand" label="Solicitar propuesta" ctaId="sticky_cs2_es_mobile" />
     </>
   );
 }

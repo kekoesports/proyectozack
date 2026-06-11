@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+﻿import type { Metadata } from 'next';
 import { safeJsonLd } from '@/lib/safeJsonLd';
 import Link from 'next/link';
 import { SITE_URL, absoluteUrl } from '@/lib/site-url';
@@ -83,7 +83,7 @@ export default function AgenciaInfluencersValorantPage() {
               </div>
             ))}
           </div>
-          <TrackedCtaLink href="/contacto" ctaId="landing_valorant_es_hero" className="inline-block bg-sp-grad text-white font-display font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-full hover:opacity-90 transition-opacity">
+          <TrackedCtaLink href="/contacto?type=brand" ctaId="landing_valorant_es_hero" className="inline-block bg-sp-grad text-white font-display font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-full hover:opacity-90 transition-opacity">
             Valida tu campaña con influencers de Valorant
           </TrackedCtaLink>
         </div>
@@ -129,13 +129,13 @@ export default function AgenciaInfluencersValorantPage() {
           <h2 className="font-display text-3xl font-black uppercase text-white mb-4">Lanza tu campaña <span style={g}>Valorant</span></h2>
           <p className="text-white/50 mb-8">Cuéntanos tu marca, audiencia objetivo y KPIs. Diseñamos una propuesta personalizada de influencers Valorant en 48 horas.</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/contacto" className="inline-block bg-sp-grad text-white font-display font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-full hover:opacity-90 transition-opacity">Solicitar propuesta</Link>
+            <Link href="/contacto?type=brand" className="inline-block bg-sp-grad text-white font-display font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-full hover:opacity-90 transition-opacity">Solicitar propuesta</Link>
             <Link href="/valorant-influencers-agency" className="inline-block border border-white/20 text-white/60 font-display font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-full hover:border-white/40 hover:text-white transition-colors">English version →</Link>
           </div>
         </div>
       </section>
 
-      <StickyCtaMobile href="/contacto" label="Solicitar propuesta" ctaId="sticky_valorant_es_mobile" />
+      <StickyCtaMobile href="/contacto?type=brand" label="Solicitar propuesta" ctaId="sticky_valorant_es_mobile" />
     </>
   );
 }

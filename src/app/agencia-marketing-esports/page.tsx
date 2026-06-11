@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+﻿import type { Metadata } from 'next';
 import { safeJsonLd } from '@/lib/safeJsonLd';
 import Link from 'next/link';
 import { SITE_URL, absoluteUrl } from '@/lib/site-url';
@@ -97,7 +97,7 @@ export default function AgenciaMarketingEsportsPage() {
               </div>
             ))}
           </div>
-          <TrackedCtaLink href="/contacto" ctaId="landing_esports_es_hero" className="inline-block bg-sp-grad text-white font-display font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-full hover:opacity-90 transition-opacity">
+          <TrackedCtaLink href="/contacto?type=brand" ctaId="landing_esports_es_hero" className="inline-block bg-sp-grad text-white font-display font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-full hover:opacity-90 transition-opacity">
             Diseñamos tu campaña en esports
           </TrackedCtaLink>
         </div>
@@ -138,13 +138,13 @@ export default function AgenciaMarketingEsportsPage() {
           <h2 className="font-display text-3xl font-black uppercase text-sp-dark mb-4">¿Listo para entrar en <span style={g}>esports?</span></h2>
           <p className="text-sp-muted mb-8">Seas una marca endémica o estés entrando en esports por primera vez, construimos la activación correcta para tus objetivos y audiencia.</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/contacto" className="inline-block bg-sp-grad text-white font-display font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-full hover:opacity-90 transition-opacity">Solicitar propuesta</Link>
+            <Link href="/contacto?type=brand" className="inline-block bg-sp-grad text-white font-display font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-full hover:opacity-90 transition-opacity">Solicitar propuesta</Link>
             <Link href="/esports-marketing-agency" className="inline-block border border-sp-border text-sp-dark font-display font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-full hover:border-sp-orange hover:text-sp-orange transition-colors">English version →</Link>
           </div>
         </div>
       </section>
 
-      <StickyCtaMobile href="/contacto" label="Solicitar propuesta" ctaId="sticky_esports_es_mobile" />
+      <StickyCtaMobile href="/contacto?type=brand" label="Solicitar propuesta" ctaId="sticky_esports_es_mobile" />
     </>
   );
 }

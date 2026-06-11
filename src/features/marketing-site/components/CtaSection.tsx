@@ -54,8 +54,8 @@ export function CtaSection(): React.JSX.Element {
           3. Sin compromiso — decides si avanzar.
         </m.p>
         <m.a
-          href="/contacto"
-          onClick={() => trackEvent('cta_click', { cta_id: 'home_cta_section', cta_destination: '/contacto' })}
+          href="/contacto?type=brand"
+          onClick={() => trackEvent('cta_click', { cta_id: 'home_cta_section', cta_destination: '/contacto?type=brand' })}
           variants={fadeUp}
           transition={{ duration: DURATION.slow, ease: EASE.out }}
           whileHover={{ scale: 1.05 }}

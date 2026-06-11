@@ -160,8 +160,8 @@ export function Hero() {
           >
             {/* CTA para marcas — primario */}
             <m.a
-              href="/contacto"
-              onClick={() => trackEvent('cta_click', { cta_id: 'hero_home_primary', cta_destination: '/contacto' })}
+              href="/contacto?type=brand"
+              onClick={() => trackEvent('cta_click', { cta_id: 'hero_home_primary', cta_destination: '/contacto?type=brand' })}
               whileHover={{ scale: 1.05, boxShadow: '0 0 30px rgba(224,48,112,0.3)' }}
               whileTap={{ scale: 0.95 }}
               className="px-10 py-4 rounded-full font-bold text-white text-sm tracking-widest uppercase transition-shadow bg-sp-grad"

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useRef } from 'react';
 import Image from 'next/image';
@@ -199,7 +199,7 @@ export function TalentModal({ talent, onClose }: TalentModalProps): React.JSX.El
 
           {/* CTA */}
           <Link
-            href="/contacto"
+            href="/contacto?type=brand"
             onClick={onClose}
             className="block text-center w-full py-3.5 rounded-full font-bold text-white text-sm"
             style={{ background: grad }}

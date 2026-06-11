@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+﻿import type { Metadata } from 'next';
 import { safeJsonLd } from '@/lib/safeJsonLd';
 import Link from 'next/link';
 import { absoluteUrl, SITE_URL } from '@/lib/site-url';
@@ -392,7 +392,7 @@ export default function GuiaDgojPage() {
               de contenido y FTD tracking verificado. Cuéntanos tu proyecto.
             </p>
             <TrackedCtaLink
-              href="/contacto"
+              href="/contacto?type=brand"
               ctaId="dgoj_guide_cta"
               className="inline-block bg-sp-grad text-white font-display font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-full hover:opacity-90 transition-opacity"
             >

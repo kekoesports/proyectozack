@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+﻿import type { Metadata } from 'next';
 import { safeJsonLd } from '@/lib/safeJsonLd';
 import Link from 'next/link';
 import { SITE_URL, absoluteUrl } from '@/lib/site-url';
@@ -81,7 +81,7 @@ export default function InfluencersBettingPage() {
               </div>
             ))}
           </div>
-          <Link href="/contacto" className="inline-block bg-sp-grad text-white font-display font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-full hover:opacity-90 transition-opacity">
+          <Link href="/contacto?type=brand" className="inline-block bg-sp-grad text-white font-display font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-full hover:opacity-90 transition-opacity">
             Activar campaña de apuestas
           </Link>
         </div>
@@ -111,7 +111,7 @@ export default function InfluencersBettingPage() {
           <h2 className="font-display text-3xl font-black uppercase text-white mb-4">Activa tus <span style={g}>influencers de apuestas</span></h2>
           <p className="text-white/50 mb-8">Cuéntanos tu operador, mercado y objetivo de conversión. Diseñamos una propuesta con compliance incluido en 48 horas.</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/contacto" className="inline-block bg-sp-grad text-white font-display font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-full hover:opacity-90 transition-opacity">Solicitar propuesta</Link>
+            <Link href="/contacto?type=brand" className="inline-block bg-sp-grad text-white font-display font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-full hover:opacity-90 transition-opacity">Solicitar propuesta</Link>
             <Link href="/betting-influencers" className="inline-block border border-white/20 text-white/60 font-display font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-full hover:border-white/40 hover:text-white transition-colors">English version →</Link>
           </div>
         </div>

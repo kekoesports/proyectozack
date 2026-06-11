@@ -274,7 +274,7 @@ export default async function BlogPostPage({ params }: PageProps) {
               Gestionamos campañas con creadores gaming e iGaming en España y Latinoamérica.
             </p>
             <Link
-              href="/contacto"
+              href="/contacto?type=brand"
               className="inline-block bg-sp-grad text-white font-display font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-full hover:opacity-90 transition-opacity"
             >
               Hablemos de tu campaña →

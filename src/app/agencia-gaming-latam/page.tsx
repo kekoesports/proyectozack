@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+﻿import type { Metadata } from 'next';
 import { safeJsonLd } from '@/lib/safeJsonLd';
 import Link from 'next/link';
 import { SITE_URL, absoluteUrl } from '@/lib/site-url';
@@ -94,7 +94,7 @@ export default function AgenciaGamingLatamPage() {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbJsonLd) }} />
-      <StickyCtaMobile href="/contacto" label="Activar campaña LATAM →" ctaId="latam_sticky_cta" />
+      <StickyCtaMobile href="/contacto?type=brand" label="Activar campaña LATAM →" ctaId="latam_sticky_cta" />
 
       <main className="bg-sp-black text-white">
 
@@ -111,7 +111,7 @@ export default function AgenciaGamingLatamPage() {
               13+ años de experiencia. FTD tracking. Compliance local.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <TrackedCtaLink href="/contacto" ctaId="latam_hero_primary" className="px-10 py-4 rounded-full font-bold text-white text-sm tracking-widest uppercase bg-sp-grad">
+              <TrackedCtaLink href="/contacto?type=brand" ctaId="latam_hero_primary" className="px-10 py-4 rounded-full font-bold text-white text-sm tracking-widest uppercase bg-sp-grad">
                 Activar campaña LATAM →
               </TrackedCtaLink>
               <Link href="/casos" className="px-10 py-4 rounded-full font-bold text-white text-sm tracking-widest uppercase border border-white/15 hover:bg-white/10 transition-colors">
@@ -251,7 +251,7 @@ export default function AgenciaGamingLatamPage() {
             <p className="text-sp-muted2 mb-10">
               Cuéntanos tu proyecto. Respondemos en menos de 24h con una propuesta adaptada al mercado que necesitas.
             </p>
-            <TrackedCtaLink href="/contacto" ctaId="latam_bottom_cta" className="px-12 py-4 rounded-full font-bold text-white text-sm tracking-widest uppercase bg-sp-grad">
+            <TrackedCtaLink href="/contacto?type=brand" ctaId="latam_bottom_cta" className="px-12 py-4 rounded-full font-bold text-white text-sm tracking-widest uppercase bg-sp-grad">
               Activar campaña LATAM →
             </TrackedCtaLink>
           </div>

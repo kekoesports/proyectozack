@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+﻿import type { Metadata } from 'next';
 import { safeJsonLd } from '@/lib/safeJsonLd';
 import Link from 'next/link';
 import { SectionTag } from '@/components/ui/SectionTag';
@@ -133,7 +133,7 @@ export default function BettingPage() {
             ))}
           </div>
           <Link
-            href="/contacto"
+            href="/contacto?type=brand"
             className="inline-block bg-sp-grad text-white font-display font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-full hover:opacity-90 transition-opacity"
           >
             Activar campaña de betting
@@ -220,7 +220,7 @@ export default function BettingPage() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
-              href="/contacto"
+              href="/contacto?type=brand"
               className="inline-block bg-sp-grad text-white font-display font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-full hover:opacity-90 transition-opacity"
             >
               Solicitar propuesta

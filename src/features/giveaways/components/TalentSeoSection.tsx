@@ -1,4 +1,4 @@
-import Link from 'next/link';
+﻿import Link from 'next/link';
 import { CONTACT_EMAIL } from '@/lib/utils/constants';
 
 // ── Tipos ────────────────────────────────────────────────────────────────────
@@ -213,7 +213,7 @@ export function TalentSeoSection({ talent }: Props): React.ReactElement {
             Todos los talentos →
           </Link>
           <Link
-            href="/contacto"
+            href="/contacto?type=brand"
             className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full border border-white/[0.06] text-[10px] font-medium text-white/35 hover:border-white/15 hover:text-white/60 transition-all"
           >
             Contactar →
