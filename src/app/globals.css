@@ -6,6 +6,25 @@
 
 @layer base {
   button, [role="button"], select { cursor: pointer; }
+
+  /* Skip navigation — visually hidden until focused (WCAG 2.4.1) */
+  .skip-nav {
+    position: absolute;
+    top: -100%;
+    left: 0.5rem;
+    z-index: 9999;
+    padding: 0.5rem 1rem;
+    border-radius: 0 0 0.5rem 0.5rem;
+    background: var(--color-sp-orange);
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.875rem;
+    text-decoration: none;
+    transition: top 0.1s;
+  }
+  .skip-nav:focus {
+    top: 0;
+  }
 }
 
 /* ── SocialPro brand tokens ──────────────────────────────────────────────── */

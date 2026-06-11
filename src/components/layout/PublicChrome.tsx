@@ -86,8 +86,9 @@ export function PublicChrome({ nav, footer, children }: PublicChromeProps) {
 
   return (
     <>
+      <a href="#main-content" className="skip-nav">Saltar al contenido</a>
       {nav}
-      <main className="pt-16">{children}</main>
+      <main id="main-content" className="pt-16">{children}</main>
       {footer}
       {hideWhatsApp ? null : <WhatsAppWidget />}
     </>
