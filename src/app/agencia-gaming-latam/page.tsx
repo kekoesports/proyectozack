@@ -89,11 +89,23 @@ const breadcrumbJsonLd = buildBreadcrumbJsonLd([
   { name: 'Agencia Gaming LATAM', url: absoluteUrl('/agencia-gaming-latam') },
 ]);
 
+const faqJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  '@id': absoluteUrl('/agencia-gaming-latam#faq'),
+  mainEntity: FAQ_ITEMS.map((item) => ({
+    '@type': 'Question',
+    name: item.name,
+    acceptedAnswer: { '@type': 'Answer', text: item.acceptedAnswer.text },
+  })),
+};
+
 export default function AgenciaGamingLatamPage() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(faqJsonLd) }} />
       <StickyCtaMobile href="/contacto?type=brand" label="Activar campaña LATAM →" ctaId="latam_sticky_cta" />
 
       <main className="bg-sp-black text-white">
