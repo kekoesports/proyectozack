@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { getCaseStudies } from '@/lib/queries/cases';
 import { CasesSection } from '@/features/marketing-site/components/CasesSection';
 import { absoluteUrl } from '@/lib/site-url';
@@ -84,6 +85,28 @@ export default async function CasosPage() {
       </section>
 
       <CasesSection cases={cases} />
+
+      {/* CTA final — marca que acaba de revisar los casos */}
+      <section className="py-16 bg-sp-black text-center">
+        <div className="max-w-2xl mx-auto px-6">
+          <p className="font-display text-2xl sm:text-3xl font-black uppercase text-white mb-4">
+            ¿Tu marca es la próxima?
+          </p>
+          <p className="text-white/55 text-base leading-relaxed mb-8">
+            Cuéntanos tu producto, mercado y objetivo. Propuesta con creadores
+            seleccionados en 48h, sin compromiso.
+          </p>
+          <Link
+            href="/contacto?type=brand"
+            className="inline-block bg-sp-grad text-white font-display font-bold uppercase tracking-wider text-sm px-10 py-3.5 rounded-full hover:opacity-90 transition-opacity"
+          >
+            Iniciar Propuesta →
+          </Link>
+          <p className="mt-4 text-[11px] font-semibold uppercase tracking-[0.25em] text-white/40">
+            Respuesta en 24h · Sin compromiso
+          </p>
+        </div>
+      </section>
     </div>
   );
 }
