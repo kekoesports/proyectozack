@@ -31,23 +31,18 @@ export function CodesExpandable({ codes, label }: Props): React.JSX.Element {
         {visible.map((c) => <CodeRowMini key={c.id} code={c} />)}
       </div>
 
-      {!expanded && remaining > 0 && (
+      {remaining > 0 && (
         <button
           type="button"
-          onClick={() => setExpanded(true)}
-          className="mt-2 w-full py-2 rounded-xl border border-dashed border-white/10 text-[10px] font-bold uppercase tracking-wider text-white/30 hover:text-white/50 hover:border-white/20 transition-colors cursor-pointer"
+          onClick={() => setExpanded((v) => !v)}
+          aria-expanded={expanded}
+          className={`mt-2 w-full py-2 rounded-xl border border-dashed text-[10px] font-bold uppercase tracking-wider transition-colors cursor-pointer ${
+            expanded
+              ? 'border-white/[0.06] text-white/20 hover:text-white/40'
+              : 'border-white/10 text-white/30 hover:text-white/50 hover:border-white/20'
+          }`}
         >
-          Ver {remaining} más ▾
-        </button>
-      )}
-
-      {expanded && remaining > 0 && (
-        <button
-          type="button"
-          onClick={() => setExpanded(false)}
-          className="mt-2 w-full py-2 rounded-xl border border-dashed border-white/[0.06] text-[10px] font-bold uppercase tracking-wider text-white/20 hover:text-white/40 transition-colors cursor-pointer"
-        >
-          Ocultar ▴
+          {expanded ? 'Ocultar ▴' : `Ver ${remaining} más ▾`}
         </button>
       )}
     </div>

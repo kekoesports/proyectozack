@@ -87,6 +87,7 @@ export function CreatorsSidebar({ creators, selected, onSelectAction }: Creators
           <button
             type="button"
             onClick={() => onSelectAction(null)}
+            aria-pressed={selected === null}
             className={`w-full flex items-center gap-3 px-2 py-2.5 rounded-xl transition-all border-l-2 ${
               selected === null
                 ? 'border-sp-orange bg-sp-orange/[0.08] shadow-[inset_4px_0_12px_rgba(245,99,42,0.04)]'
@@ -117,6 +118,7 @@ export function CreatorsSidebar({ creators, selected, onSelectAction }: Creators
                 <button
                   type="button"
                   onClick={() => onSelectAction(isActive ? null : c.id)}
+                  aria-pressed={isActive}
                   className={`w-full flex items-center gap-3 px-2 py-2.5 rounded-xl transition-all border-l-2 ${
                     isActive
                       ? 'border-sp-orange bg-sp-orange/[0.08] shadow-[inset_4px_0_12px_rgba(245,99,42,0.04)]'
