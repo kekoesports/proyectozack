@@ -4,6 +4,8 @@ import { getPosts } from '@/lib/queries/posts';
 import { BlogCard } from '@/features/blog/components/BlogCard';
 import { FeaturedBlogCard } from '@/features/blog/components/FeaturedBlogCard';
 import { absoluteUrl } from '@/lib/site-url';
+import { safeJsonLd } from '@/lib/safeJsonLd';
+import { buildBreadcrumbJsonLd } from '@/lib/utils/breadcrumbs';
 import { deriveCategory, formatBlogDate } from '@/lib/utils/blog';
 
 export const revalidate = 3600;
@@ -29,6 +31,25 @@ export const metadata: Metadata = {
   },
 };
 
+const blogJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Blog',
+  '@id': absoluteUrl('/blog'),
+  name: 'Blog SocialPro — Insights & Tendencias Gaming',
+  description: 'Estrategias de marketing gaming, análisis iGaming, casos de éxito y guías para marcas y creadores en España y LatAm.',
+  url: absoluteUrl('/blog'),
+  inLanguage: 'es',
+  publisher: {
+    '@type': 'Organization',
+    '@id': absoluteUrl('/#organization'),
+    name: 'SocialPro',
+  },
+};
+
+const breadcrumbJsonLd = buildBreadcrumbJsonLd([
+  { name: 'Blog', url: absoluteUrl('/blog') },
+]);
+
 const CATEGORY_LABELS = [
   'Todos', 'Casos de éxito', 'Guías', 'iGaming', 'Tendencias', 'YouTube',
 ] as const;
@@ -43,6 +64,8 @@ export default async function BlogPage() {
 
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(blogJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbJsonLd) }} />
       {/* ── HERO compacto — split ───────────────────────────────────── */}
       <section className="relative bg-sp-black pt-8 pb-0 border-b border-white/[0.05] overflow-hidden">
 
