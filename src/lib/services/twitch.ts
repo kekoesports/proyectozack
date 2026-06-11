@@ -368,12 +368,14 @@ export type TwitchLiveStream = {
 /** Extrae el login de un valor que puede ser handle o URL completa de Twitch. */
 function normalizeTwitchHandle(raw: string): string {
   const s = raw.trim();
-  // Si contiene "/", extraer el último segmento no-vacío (e.g. "twitch.tv/user" → "user", ".../user/about" → "user")
-  if (s.includes('/')) {
-    const parts = s.split('/').filter(Boolean);
-    return parts[parts.length - 1] ?? s;
-  }
-  return s;
+  if (!s.includes('/')) return s;
+  // Para URLs de Twitch, el username es el segmento inmediatamente después de twitch.tv/
+  // (e.g. "https://www.twitch.tv/pela_dego/about" → "pela_dego")
+  const twitchMatch = s.match(/twitch\.tv\/([a-zA-Z0-9_]+)/i);
+  if (twitchMatch?.[1]) return twitchMatch[1];
+  // Fallback: último segmento no-vacío para otras URLs
+  const parts = s.split('/').filter(Boolean);
+  return parts[parts.length - 1] ?? s;
 }
 
 export async function fetchTwitchLiveByLogins(logins: string[]): Promise<TwitchLiveStream[]> {
