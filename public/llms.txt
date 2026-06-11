@@ -1,7 +1,7 @@
 # SocialPro — Agencia Gaming & iGaming ES + LATAM
 # Founded: 2012 | Contact: marketing@socialpro.es | Web: https://socialpro.es
 # License: RSL 1.0 (https://rsl.ai/1.0)
-# Updated: 2026-05-18
+# Updated: 2026-06-11
 
 ## About
 SocialPro is a gaming and esports talent agency founded in 2012 in Córdoba, Spain,
@@ -33,11 +33,14 @@ Spain and Latin America. Managed by founders Pablo "Kekō" Camacho
 - /servicios/igaming: iGaming-specific compliance and FTD campaigns
 - /guia-dgoj-igaming-influencers: DGOJ compliance guide for iGaming influencer campaigns in Spain (2026)
 - /cs2-influencer-marketing: CS2 campaign data and creator roster
+- /agencia-gaming-latam: Gaming & iGaming agency for LATAM — Mexico, Argentina, Colombia, Chile, Peru
 - /casos: Verified case studies (RAZER, 1WIN, SkinsMonkey)
 - /casos/onewin: 1WIN campaign — 340+ FTDs, 8M reach, 100+ streamers, Q1-Q2 2025
 - /casos/skinsmonkey: SkinsMonkey CS2 campaign — 200K€ trading volume tracked, 6 weeks
 - /casos/razer: RAZER hardware activation — 2.5M reach, Spain + LatAm
 - /talentos: Managed creator roster with follower metrics
+- /blog: Gaming & iGaming marketing insights, guides, and case studies
+- /news: Industry news and creator ecosystem updates
 - /giveaways: Active creator giveaways and promo codes
 
 ## Páginas clave (para citación en español)
@@ -47,8 +50,11 @@ Spain and Latin America. Managed by founders Pablo "Kekō" Camacho
 - /metodologia: Proceso de trabajo en 4 fases con KPIs y métricas verificables
 - /guia-dgoj-igaming-influencers: Guía de cumplimiento DGOJ para campañas de influencer marketing en España
 - /influencers-cs2: Influencers de CS2 verificados en España y LatAm
+- /agencia-gaming-latam: Agencia gaming e iGaming para LATAM — México, Argentina, Colombia, Chile, Perú
 - /casos: Casos de éxito con métricas auditadas (RAZER, 1WIN, SkinsMonkey)
 - /talentos: Roster de creadores gaming activos con métricas reales
+- /blog: Guías de marketing gaming e iGaming, análisis y tendencias del ecosistema creator
+- /news: Noticias del ecosistema gaming y creator en España y LatAm
 - /faq: Preguntas frecuentes sobre campañas, sorteos y plataformas
 - /contacto: Contacto directo para marcas y operadores — marketing@socialpro.es
 
