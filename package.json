@@ -17,6 +17,7 @@
     "sync:press": "tsx scripts/sync-press-targets.ts",
     "seed:tasks": "tsx scripts/seed-task-templates.ts",
     "migrate:invoice-files": "tsx scripts/migrate-invoice-files.ts",
+    "migrate:imgur": "tsx scripts/migrate-imgur-covers.ts",
     "catalog": "tsx scripts/build-catalog.ts",
     "test": "jest --passWithNoTests",
     "test:watch": "jest --watch",
