@@ -44,7 +44,7 @@ export function WhatsAppWidget() {
       >
         {/* Pulse ring */}
         <span
-          className="absolute inset-0 rounded-full animate-ping"
+          className="absolute inset-0 rounded-full motion-safe:animate-ping"
           style={{ background: 'rgba(37,211,102,0.35)', animationDuration: '2.2s' }}
         />
         <svg width="28" height="28" viewBox="0 0 24 24" fill="white" aria-hidden="true">
