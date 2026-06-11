@@ -38,7 +38,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       title,
       description,
       url: absoluteUrl(`/casos/${slug}`),
-      images: [{ url: absoluteUrl(`/api/og-image/case?slug=${slug}`), width: 1200, height: 630 }],
+      images: [{ url: absoluteUrl(`/api/og-image/case?slug=${slug}`), width: 1200, height: 630, alt: title }],
     },
     twitter: {
       card: 'summary_large_image',

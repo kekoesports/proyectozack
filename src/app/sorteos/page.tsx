@@ -29,7 +29,7 @@ export async function generateMetadata(): Promise<Metadata> {
       description:
         'Participa en los mejores sorteos de skins CS2 y recompensas gaming de tus creadores favoritos.',
       url: absoluteUrl('/sorteos'),
-      images: [{ url: ogUrl, width: 1200, height: 630 }],
+      images: [{ url: ogUrl, width: 1200, height: 630, alt: 'Sorteos de Skins CS2 y Gaming — SocialPro' }],
     },
     twitter: {
       card: 'summary_large_image',
