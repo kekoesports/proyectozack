@@ -74,28 +74,28 @@ export function CreatorApplyForm() {
     <form onSubmit={(e) => { void handleSubmit(onSubmit)(e); }} className="space-y-5">
       {/* Name */}
       <div>
-        <label className="block text-xs font-semibold uppercase tracking-widest text-sp-muted mb-1.5">
+        <label htmlFor="apply-name" className="block text-xs font-semibold uppercase tracking-widest text-sp-muted mb-1.5">
           Nombre
         </label>
-        <input {...register('name')} placeholder="Tu nombre" className={fieldClass} />
+        <input {...register('name')} id="apply-name" placeholder="Tu nombre" className={fieldClass} />
         {errors.name && <p className="text-xs text-red-500 mt-1">{errors.name.message}</p>}
       </div>
 
       {/* Email */}
       <div>
-        <label className="block text-xs font-semibold uppercase tracking-widest text-sp-muted mb-1.5">
+        <label htmlFor="apply-email" className="block text-xs font-semibold uppercase tracking-widest text-sp-muted mb-1.5">
           Email
         </label>
-        <input {...register('email')} type="email" placeholder="tu@email.com" className={fieldClass} />
+        <input {...register('email')} id="apply-email" type="email" placeholder="tu@email.com" className={fieldClass} />
         {errors.email && <p className="text-xs text-red-500 mt-1">{errors.email.message}</p>}
       </div>
 
       {/* Platform */}
       <div>
-        <label className="block text-xs font-semibold uppercase tracking-widest text-sp-muted mb-1.5">
+        <label htmlFor="apply-platform" className="block text-xs font-semibold uppercase tracking-widest text-sp-muted mb-1.5">
           Plataforma principal
         </label>
-        <select {...register('platform')} className={fieldClass} defaultValue="">
+        <select {...register('platform')} id="apply-platform" className={fieldClass} defaultValue="">
           <option value="" disabled>Selecciona plataforma</option>
           {PLATFORMS.map((p) => (
             <option key={p} value={p.toLowerCase()}>{p}</option>
@@ -106,27 +106,27 @@ export function CreatorApplyForm() {
 
       {/* Handle */}
       <div>
-        <label className="block text-xs font-semibold uppercase tracking-widest text-sp-muted mb-1.5">
+        <label htmlFor="apply-handle" className="block text-xs font-semibold uppercase tracking-widest text-sp-muted mb-1.5">
           Handle / nombre de canal
         </label>
-        <input {...register('handle')} placeholder="@tucanal" className={fieldClass} />
+        <input {...register('handle')} id="apply-handle" placeholder="@tucanal" className={fieldClass} />
         {errors.handle && <p className="text-xs text-red-500 mt-1">{errors.handle.message}</p>}
       </div>
 
       {/* Followers */}
       <div>
-        <label className="block text-xs font-semibold uppercase tracking-widest text-sp-muted mb-1.5">
+        <label htmlFor="apply-followers" className="block text-xs font-semibold uppercase tracking-widest text-sp-muted mb-1.5">
           Seguidores aproximados <span className="text-sp-muted/50">(opcional)</span>
         </label>
-        <input {...register('followers')} placeholder="ej. 50K" className={fieldClass} />
+        <input {...register('followers')} id="apply-followers" placeholder="ej. 50K" className={fieldClass} />
       </div>
 
       {/* Message */}
       <div>
-        <label className="block text-xs font-semibold uppercase tracking-widest text-sp-muted mb-1.5">
+        <label htmlFor="apply-message" className="block text-xs font-semibold uppercase tracking-widest text-sp-muted mb-1.5">
           Mensaje <span className="text-sp-muted/50">(opcional)</span>
         </label>
-        <textarea {...register('message')} rows={3} placeholder="Cuéntanos sobre ti y tu contenido" className={fieldClass} />
+        <textarea {...register('message')} id="apply-message" rows={3} placeholder="Cuéntanos sobre ti y tu contenido" className={fieldClass} />
       </div>
 
       {status === 'error' && (
