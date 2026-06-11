@@ -26,26 +26,28 @@ export function FaqClient({ items }: Props) {
     <div className="space-y-6">
       {/* Buscador */}
       <div className="relative">
-        <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/25" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/25" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
           <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
         </svg>
         <input
           value={search}
           onChange={(e) => { setSearch(e.target.value); setOpen(null); }}
           placeholder="Buscar pregunta..."
+          aria-label="Buscar en preguntas frecuentes"
           className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-white/[0.05] border border-white/[0.08] text-white text-sm placeholder-white/25 outline-none focus:border-sp-orange/50 transition-colors"
         />
         {search && (
-          <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white text-lg leading-none">×</button>
+          <button onClick={() => setSearch('')} aria-label="Borrar búsqueda" className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white text-lg leading-none">×</button>
         )}
       </div>
 
       {/* Filtros de categoría */}
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2" role="group" aria-label="Filtrar por categoría">
         {CATEGORIES.map((cat) => (
           <button
             key={cat}
             onClick={() => { setCategory(cat); setOpen(null); }}
+            aria-pressed={category === cat}
             className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider transition-colors ${
               category === cat
                 ? 'bg-sp-orange text-white'
@@ -68,10 +70,11 @@ export function FaqClient({ items }: Props) {
               <div key={idx} className={`rounded-xl border transition-colors ${isOpen ? 'border-white/[0.12] bg-white/[0.04]' : 'border-white/[0.06] bg-white/[0.02] hover:border-white/[0.09]'}`}>
                 <button
                   onClick={() => setOpen(isOpen ? null : idx)}
+                  aria-expanded={isOpen}
                   className="w-full flex items-center justify-between gap-4 px-5 py-4 text-left"
                 >
                   <span className="font-bold text-sm text-white/90 leading-snug">{item.q}</span>
-                  <span className={`shrink-0 text-white/40 transition-transform duration-200 ${isOpen ? 'rotate-45' : ''}`} aria-hidden>+</span>
+                  <span className={`shrink-0 text-white/40 transition-transform duration-200 ${isOpen ? 'rotate-45' : ''}`} aria-hidden="true">+</span>
                 </button>
                 {isOpen && (
                   <p className="px-5 pb-5 text-sm text-white/55 leading-relaxed">
