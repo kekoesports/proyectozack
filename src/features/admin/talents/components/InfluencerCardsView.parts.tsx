@@ -294,6 +294,16 @@ export function TalentCard({ creator, verticals, selectMode, selected, onToggleS
           </span>
         )}
 
+        {/* Badge bio SEO faltante */}
+        {creator.seoBioStatus === 'empty' && (
+          <span
+            title="Bio SEO sin generar"
+            className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-bold bg-violet-500/10 text-violet-600 border border-violet-500/20"
+          >
+            Bio SEO
+          </span>
+        )}
+
       </div>
     </m.div>
   );

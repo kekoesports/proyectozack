@@ -88,6 +88,10 @@ export default async function AdminTalentsPage({
   }
 
   const missingPhotoCount = creators.reduce((acc, c) => (c.photoUrl ? acc : acc + 1), 0);
+  const missingSeoBioCount = creators.reduce(
+    (acc, c) => (c.seoBioStatus === 'empty' || c.seoBioStatus === 'generated' ? acc + 1 : acc),
+    0,
+  );
 
   // Derivar CurrentTalent[] para StatsImportPanel (actualizar estadísticas)
   const roster: CurrentTalent[] = creators.map((c) => ({
@@ -113,6 +117,9 @@ export default async function AdminTalentsPage({
           { label: 'plataformas', value: platformSet.size },
           ...(missingPhotoCount > 0
             ? [{ label: 'sin foto', value: missingPhotoCount, accent: '#f59e0b' }]
+            : []),
+          ...(missingSeoBioCount > 0
+            ? [{ label: 'sin bio SEO', value: missingSeoBioCount, accent: '#a78bfa' }]
             : []),
         ]}
         actions={[
