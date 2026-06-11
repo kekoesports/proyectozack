@@ -10,14 +10,31 @@ import {
   inputClasses,
   selectClasses,
   labelClasses,
+  VERTICAL_OPTIONS,
+  CAMPAIGN_TYPE_OPTIONS,
+  PLATFORM_OPTIONS,
   type ContactForm,
 } from './ContactSection.parts';
 
 const TYPES_EN = [
-  { value: 'brand',  label: "I'm a brand" },
+  { value: 'brand',  label: "I'm a brand / advertiser" },
   { value: 'talent', label: "I'm a content creator" },
   { value: 'other',  label: 'Other / general enquiry' },
 ] as const;
+
+const BUDGET_RANGES_EN = [
+  { value: '<5k',    label: 'Under €5,000' },
+  { value: '5k-15k', label: '€5,000 — €15,000' },
+  { value: '15k-50k',label: '€15,000 — €50,000' },
+  { value: '50k+',   label: 'Over €50,000' },
+];
+
+const TIMELINE_OPTIONS_EN = [
+  { value: 'urgent',     label: 'ASAP (< 2 weeks)' },
+  { value: '1month',     label: '1 month' },
+  { value: '2-3months',  label: '2–3 months' },
+  { value: 'flexible',   label: 'Flexible / no deadline' },
+];
 
 const INFO_CARDS = [
   {
@@ -35,8 +52,9 @@ const INFO_CARDS = [
 ];
 
 /**
- * Contact form en inglés. Reusa el mismo schema Zod y endpoint tRPC
- * `contact.submit` que la versión española.
+ * Contact form in English. Shares the same Zod schema and tRPC endpoint
+ * as the Spanish version, with EN-specific labels and conditional brand/talent
+ * fields matching the ES form parity.
  *
  * @kind client
  * @feature contact
@@ -49,9 +67,13 @@ export function ContactFormEn({ defaultValues }: { readonly defaultValues?: Part
   const {
     register,
     handleSubmit,
+    watch,
     reset,
     formState: { errors },
   } = useForm<ContactForm>({ resolver: zodResolver(contactSchema), ...(defaultValues ? { defaultValues } : {}) });
+
+  // eslint-disable-next-line react-hooks/incompatible-library -- React Hook Form watch() no es memoizable, es el comportamiento esperado
+  const selectedType = watch('type');
 
   const onSubmit = async (data: ContactForm) => {
     setStatus('sending');
@@ -143,6 +165,98 @@ export function ContactFormEn({ defaultValues }: { readonly defaultValues?: Part
                     className={inputClasses}
                   />
                 </div>
+
+                {/* Brand-specific fields */}
+                {selectedType === 'brand' && (
+                  <fieldset className="space-y-4 border-0 p-0 m-0">
+                    <legend className={labelClasses}>Campaign details</legend>
+                    <div className="grid sm:grid-cols-2 gap-4">
+                      <div>
+                        <label htmlFor="contact-en-budget" className={labelClasses}>Estimated budget</label>
+                        <select {...register('budget')} id="contact-en-budget" className={selectClasses}>
+                          <option value="" className="bg-sp-black">Select range...</option>
+                          {BUDGET_RANGES_EN.map((b) => (
+                            <option key={b.value} value={b.value} className="bg-sp-black">{b.label}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label htmlFor="contact-en-timeline" className={labelClasses}>Timeline</label>
+                        <select {...register('timeline')} id="contact-en-timeline" className={selectClasses}>
+                          <option value="" className="bg-sp-black">Select timeline...</option>
+                          {TIMELINE_OPTIONS_EN.map((t) => (
+                            <option key={t.value} value={t.value} className="bg-sp-black">{t.label}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                    <div className="grid sm:grid-cols-2 gap-4">
+                      <div>
+                        <label htmlFor="contact-en-vertical" className={labelClasses}>Vertical</label>
+                        <select {...register('vertical')} id="contact-en-vertical" className={selectClasses}>
+                          <option value="" className="bg-sp-black">Select vertical...</option>
+                          {VERTICAL_OPTIONS.map((v) => (
+                            <option key={v.value} value={v.value} className="bg-sp-black">{v.label}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label htmlFor="contact-en-campaign-type" className={labelClasses}>Campaign type</label>
+                        <select {...register('campaignType')} id="contact-en-campaign-type" className={selectClasses}>
+                          <option value="" className="bg-sp-black">Select type...</option>
+                          {CAMPAIGN_TYPE_OPTIONS.map((c) => (
+                            <option key={c.value} value={c.value} className="bg-sp-black">{c.label}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                    <div>
+                      <label htmlFor="contact-en-audience" className={labelClasses}>Target audience</label>
+                      <input
+                        {...register('audience')}
+                        id="contact-en-audience"
+                        placeholder="e.g. Slots players 25–40, Spain"
+                        className={inputClasses}
+                      />
+                    </div>
+                  </fieldset>
+                )}
+
+                {/* Talent-specific fields */}
+                {selectedType === 'talent' && (
+                  <fieldset className="space-y-4 border-0 p-0 m-0">
+                    <legend className={labelClasses}>Your channel</legend>
+                    <div className="grid sm:grid-cols-2 gap-4">
+                      <div>
+                        <label htmlFor="contact-en-platform" className={labelClasses}>Main platform</label>
+                        <select {...register('platform')} id="contact-en-platform" className={selectClasses}>
+                          <option value="" className="bg-sp-black">Select...</option>
+                          {PLATFORM_OPTIONS.map((p) => (
+                            <option key={p.value} value={p.value} className="bg-sp-black">{p.label}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label htmlFor="contact-en-viewers" className={labelClasses}>Viewers / Subscribers</label>
+                        <input
+                          {...register('viewers')}
+                          id="contact-en-viewers"
+                          placeholder="e.g. 500 avg viewers / 50K subs"
+                          className={inputClasses}
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label htmlFor="contact-en-monetization" className={labelClasses}>Monetisation status</label>
+                      <input
+                        {...register('monetization')}
+                        id="contact-en-monetization"
+                        placeholder="e.g. Twitch Partner, active sponsors, etc."
+                        className={inputClasses}
+                      />
+                    </div>
+                  </fieldset>
+                )}
 
                 <div>
                   <label htmlFor="contact-en-message" className={labelClasses}>Message *</label>
