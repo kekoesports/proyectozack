@@ -232,10 +232,10 @@ export async function sendBrandInviteEmail(payload: {
           Portal de Marcas
         </h2>
         <p>Hola <strong>${brandName}</strong>,</p>
-        <p>Has sido invitado al Portal de Marcas de SocialPro. Accede a nuestro roster de talentos, revisa metricas de campanas y envia propuestas directamente.</p>
+        <p>Has sido invitado al Portal de Marcas de SocialPro. Accede a nuestro roster de talentos, revisa métricas de campañas y envía propuestas directamente.</p>
         <p>
           <a href="${resetUrl}" style="display:inline-block;padding:12px 32px;background:linear-gradient(135deg,#f5632a 0%,#e03070 35%,#c42880 62%,#8b3aad 100%);color:#fff;text-decoration:none;border-radius:9999px;font-weight:bold;">
-            Establecer contrasena
+            Establecer contraseña
           </a>
         </p>
         <p style="color: #6b6864; font-size: 13px;">Si no esperabas este email, puedes ignorarlo.</p>
