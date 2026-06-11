@@ -21,7 +21,7 @@ export const metadata: Metadata = {
     description:
       '¿Buscas streamers para tu campaña gaming o iGaming? Cuéntanos tu proyecto. Respondemos en menos de 24h.',
     url: absoluteUrl('/contacto'),
-    images: [{ url: absoluteUrl('/og-socialpro.png'), width: 1200, height: 630 }],
+    images: [{ url: absoluteUrl('/og-socialpro.png'), width: 1200, height: 630, alt: 'Contacta con SocialPro — Agencia Gaming e iGaming' }],
   },
   twitter: {
     card: 'summary_large_image',

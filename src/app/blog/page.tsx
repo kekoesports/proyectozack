@@ -21,7 +21,7 @@ export const metadata: Metadata = {
       'Casos de éxito, guías de marketing gaming e iGaming y tendencias del ecosistema creator en España y LatAm.',
     url: absoluteUrl('/blog'),
     type: 'website',
-    images: [{ url: absoluteUrl('/og-socialpro.png'), width: 1200, height: 630 }],
+    images: [{ url: absoluteUrl('/og-socialpro.png'), width: 1200, height: 630, alt: 'Insights & Tendencias Gaming — SocialPro Blog' }],
   },
   twitter: {
     card: 'summary_large_image',
