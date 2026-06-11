@@ -47,3 +47,14 @@ export function schemaImageUrl(url: string | null | undefined): string | undefin
   if (url.startsWith('http://') || url.startsWith('https://')) return url;
   return absoluteUrl(url);
 }
+
+/**
+ * Default OG image shared across all landing pages — single source of truth
+ * for url, dimensions and alt text (used by OpenGraph and Twitter cards).
+ */
+export const OG_DEFAULT = {
+  url: () => absoluteUrl('/og-socialpro.png'),
+  width: 1200,
+  height: 630,
+  alt: 'SocialPro — Agencia Gaming & iGaming España y LatAm',
+} as const;
