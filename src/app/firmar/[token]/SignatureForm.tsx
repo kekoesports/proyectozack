@@ -27,10 +27,11 @@ export function SignatureForm({ token, signerName }: Props): React.ReactElement 
       <input type="hidden" name="token" value={token} />
 
       <div>
-        <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1.5">
+        <label htmlFor="sign-name" className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1.5">
           Confirma tu nombre para firmar *
         </label>
         <input
+          id="sign-name"
           name="signedName"
           required
           defaultValue={signerName}
