@@ -98,7 +98,7 @@ export default async function CasesEnPage() {
       <section className="bg-sp-off border-t border-sp-border py-10 text-center">
         <div className="max-w-xl mx-auto px-6">
           <p className="text-sm text-sp-muted mb-3">Working with a similar vertical?</p>
-          <Link href="/contact" className="inline-flex items-center gap-2 font-semibold text-sp-orange hover:underline text-sm">
+          <Link href="/contact?type=brand" className="inline-flex items-center gap-2 font-semibold text-sp-orange hover:underline text-sm">
             Talk to our team →
             <span className="text-sp-muted font-normal">it takes 5 minutes</span>
           </Link>
@@ -112,7 +112,7 @@ export default async function CasesEnPage() {
             Want results like <span style={g}>these?</span>
           </h2>
           <p className="text-white/60 mb-8">Tell us your brand, target market and conversion goal. We deliver a custom proposal in 48 hours.</p>
-          <Link href="/contact" className="inline-block bg-sp-grad text-white font-display font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-full hover:opacity-90 transition-opacity">
+          <Link href="/contact?type=brand" className="inline-block bg-sp-grad text-white font-display font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-full hover:opacity-90 transition-opacity">
             Get results like these — tell us about your brand
           </Link>
         </div>

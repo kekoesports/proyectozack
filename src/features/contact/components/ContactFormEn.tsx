@@ -42,7 +42,7 @@ const INFO_CARDS = [
  * @feature contact
  * @route /contact
  */
-export function ContactFormEn(): React.JSX.Element {
+export function ContactFormEn({ defaultValues }: { readonly defaultValues?: Partial<ContactForm> }): React.JSX.Element {
   const [status, setStatus] = useState<'idle' | 'sending' | 'ok' | 'error'>('idle');
   const submitMutation = trpc.contact.submit.useMutation();
 
@@ -51,7 +51,7 @@ export function ContactFormEn(): React.JSX.Element {
     handleSubmit,
     reset,
     formState: { errors },
-  } = useForm<ContactForm>({ resolver: zodResolver(contactSchema) });
+  } = useForm<ContactForm>({ resolver: zodResolver(contactSchema), ...(defaultValues ? { defaultValues } : {}) });
 
   const onSubmit = async (data: ContactForm) => {
     setStatus('sending');

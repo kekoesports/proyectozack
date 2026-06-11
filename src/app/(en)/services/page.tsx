@@ -217,7 +217,7 @@ export default function ServicesEnPage() {
             Tell us about your <span style={g}>next campaign</span>
           </h2>
           <p className="text-white/60 mb-8">Send us your product, target market and goal. We deliver a tailored proposal in 48 hours.</p>
-          <Link href="/contact" className="inline-block bg-sp-grad text-white font-display font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-full hover:opacity-90 transition-opacity">
+          <Link href="/contact?type=brand" className="inline-block bg-sp-grad text-white font-display font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-full hover:opacity-90 transition-opacity">
             Tell us about your campaign
           </Link>
         </div>

@@ -84,7 +84,7 @@ export default function ValorantInfluencersAgencyPage() {
               </div>
             ))}
           </div>
-          <TrackedCtaLink href="/contact" ctaId="landing_valorant_en_hero" className="inline-block bg-sp-grad text-white font-display font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-full hover:opacity-90 transition-opacity">
+          <TrackedCtaLink href="/contact?type=brand" ctaId="landing_valorant_en_hero" className="inline-block bg-sp-grad text-white font-display font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-full hover:opacity-90 transition-opacity">
 
             Work with Valorant streamers
           </TrackedCtaLink>
@@ -131,7 +131,7 @@ export default function ValorantInfluencersAgencyPage() {
           <h2 className="font-display text-3xl font-black uppercase text-white mb-4">Launch your <span style={g}>Valorant campaign</span></h2>
           <p className="text-white/50 mb-8">Tell us your brand, target audience and KPIs. We deliver a custom Valorant influencer proposal in 48 hours.</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/contact" className="inline-block bg-sp-grad text-white font-display font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-full hover:opacity-90 transition-opacity">Request proposal</Link>
+            <Link href="/contact?type=brand" className="inline-block bg-sp-grad text-white font-display font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-full hover:opacity-90 transition-opacity">Request proposal</Link>
             <Link href="/agencia-influencers-valorant" className="inline-block border border-white/20 text-white/60 font-display font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-full hover:border-white/40 hover:text-white transition-colors">Ver en español →</Link>
           </div>
         </div>

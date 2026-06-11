@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 
 import { absoluteUrl } from '@/lib/site-url';
 import { ContactFormEn } from '@/features/contact/components/ContactFormEn';
+import type { ContactForm } from '@/features/contact/components/ContactSection.parts';
 
 export const metadata: Metadata = {
   title: 'Contact Our Gaming Marketing Agency',
@@ -36,7 +37,18 @@ const g = {
   backgroundClip: 'text' as const,
 };
 
-export default function ContactEnPage() {
+export default async function ContactEnPage({
+  searchParams,
+}: {
+  readonly searchParams: Promise<Record<string, string | undefined>>;
+}) {
+  const params = await searchParams;
+  const typeParam = params.type;
+
+  const resolvedType: 'brand' | 'talent' | null =
+    typeParam === 'brand' ? 'brand' : typeParam === 'talent' ? 'talent' : null;
+  const defaultValues: Partial<ContactForm> | undefined = resolvedType ? { type: resolvedType } : undefined;
+
   return (
     <>
       {/* Hero */}
@@ -44,16 +56,16 @@ export default function ContactEnPage() {
         <div className="max-w-3xl mx-auto px-6">
           <p className="text-sp-orange text-xs font-bold uppercase tracking-[0.2em] mb-4">Contact</p>
           <h1 className="font-display text-4xl md:text-6xl font-black uppercase tracking-tight text-white leading-tight mb-6">
-            Let’s talk <span style={g}>today</span>
+            Let&apos;s talk <span style={g}>today</span>
           </h1>
           <p className="text-lg text-white/60 leading-relaxed max-w-2xl mx-auto">
             Tell us about your campaign. We reply within 24 hours with a tailored proposal.
-            No commitment — just a clear conversation.
+            No commitment &mdash; just a clear conversation.
           </p>
         </div>
       </section>
 
-      <ContactFormEn />
+      {defaultValues ? <ContactFormEn defaultValues={defaultValues} /> : <ContactFormEn />}
     </>
   );
 }

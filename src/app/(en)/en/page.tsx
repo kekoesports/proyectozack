@@ -91,7 +91,7 @@ export default async function HomeEnPage() {
             <Link href="/cases" className="px-10 py-4 rounded-full font-bold text-white text-sm tracking-widest uppercase bg-sp-grad hover:opacity-90 transition-opacity">
               See what we&apos;ve delivered
             </Link>
-            <Link href="/contact" className="px-10 py-4 rounded-full font-bold text-white text-sm tracking-widest uppercase border border-white/15 hover:bg-white/5 transition-colors">
+            <Link href="/contact?type=brand" className="px-10 py-4 rounded-full font-bold text-white text-sm tracking-widest uppercase border border-white/15 hover:bg-white/5 transition-colors">
               Start a proposal
             </Link>
           </div>
@@ -236,7 +236,7 @@ export default async function HomeEnPage() {
           <p className="text-white/60 mb-8 leading-relaxed">
             +340 FTDs in one activation · 15M views/month · 13 years exclusively in gaming.
           </p>
-          <Link href="/contact" className="inline-block px-10 py-4 rounded-full font-bold text-white text-sm tracking-widest uppercase bg-sp-grad hover:opacity-90 transition-opacity">
+          <Link href="/contact?type=brand" className="inline-block px-10 py-4 rounded-full font-bold text-white text-sm tracking-widest uppercase bg-sp-grad hover:opacity-90 transition-opacity">
             Start a proposal →
           </Link>
           <p className="mt-5 text-[11px] font-semibold uppercase tracking-[0.25em] text-white/40">
