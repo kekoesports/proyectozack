@@ -47,6 +47,29 @@ const jsonLd = {
 
 const breadcrumbJsonLd = buildBreadcrumbJsonLd([{ name: 'Servicios', url: absoluteUrl('/servicios') }, { name: 'Valorant Influencers Agency', url: absoluteUrl('/valorant-influencers-agency') }]);
 
+const faqJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: [
+    {
+      '@type': 'Question',
+      name: 'Why choose Valorant influencers for brand marketing in Spain and LatAm?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: "Valorant is the dominant competitive FPS in most LatAm markets, with a player base that skews younger and more gender-diverse than CS2 or traditional esports — perfect for consumer brands wanting to reach gaming-native millennials and Gen Z. Riot Games enforces content standards across its ecosystem, so Valorant streamers operate in a cleaner, more structured environment that reduces brand safety risks compared to unregulated gaming content. SocialPro's Spanish-speaking creator network gives brands direct access to one of the world's largest non-English gaming audiences.",
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'How does a Valorant influencer campaign work with SocialPro?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'SocialPro runs Valorant influencer campaigns in three steps. First, creator matching: we select Valorant streamers whose audience, content style and values align with your brand — no generic outreach, every selection is verified. Second, campaign execution: full campaign coordination including briefings, content review, scheduling and publishing so you focus on results. Third, performance reporting: real metrics of reach, engagement, conversions and ROI, delivered within 48 hours of campaign end.',
+      },
+    },
+  ],
+};
+
 const STATS = [
   { stat: '15M+', label: 'Monthly views across roster' },
   { stat: '13+', label: 'Years in gaming marketing' },
@@ -65,6 +88,7 @@ export default function ValorantInfluencersAgencyPage() {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(faqJsonLd) }} />
 
       <section className="bg-sp-black pt-32 pb-20">
         <div className="max-w-4xl mx-auto px-6 text-center">

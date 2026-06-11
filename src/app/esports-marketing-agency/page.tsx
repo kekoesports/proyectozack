@@ -48,6 +48,29 @@ const jsonLd = {
 
 const breadcrumbJsonLd = buildBreadcrumbJsonLd([{ name: 'Servicios', url: absoluteUrl('/servicios') }, { name: 'Esports Marketing Agency', url: absoluteUrl('/esports-marketing-agency') }]);
 
+const faqJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: [
+    {
+      '@type': 'Question',
+      name: 'What makes SocialPro different from other esports marketing agencies?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'SocialPro has been in gaming since 2012 — before "esports marketing" was a category. We know the culture, the audiences and the platforms inside out. Every campaign has measurable KPIs: reach, engagement, conversions and ROI. No vanity metrics, no estimated reach — verified data only. Spain and LatAm represent one of the world\'s largest non-English gaming audiences, and our creator network gives brands direct, authentic access.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'What services does an esports marketing agency provide?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'An esports marketing agency like SocialPro provides: influencer campaigns — streamer and creator activations for brand awareness, product launches and conversion-focused campaigns, with every creator verified and every metric tracked; tournament sponsorship — brand integrations in esports tournaments with custom overlays, in-stream mentions and live activations; creator management — full talent management including deal negotiation, content strategy and channel growth; and iGaming esports campaigns combining esports audiences with iGaming mechanics including FTD tracking and compliance.',
+      },
+    },
+  ],
+};
+
 const STATS = [
   { stat: '13+', label: 'Years in esports marketing' },
   { stat: '15M+', label: 'Monthly views across roster' },
@@ -67,6 +90,7 @@ export default function EsportsMarketingAgencyPage() {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(faqJsonLd) }} />
 
       <section className="bg-sp-black pt-32 pb-20">
         <div className="max-w-4xl mx-auto px-6 text-center">
