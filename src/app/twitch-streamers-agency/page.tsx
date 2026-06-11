@@ -45,6 +45,29 @@ const jsonLd = {
 
 const breadcrumbJsonLd = buildBreadcrumbJsonLd([{ name: 'Servicios', url: absoluteUrl('/servicios') }, { name: 'Twitch Streamers Agency', url: absoluteUrl('/twitch-streamers-agency') }]);
 
+const faqJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: [
+    {
+      '@type': 'Question',
+      name: 'Why is Twitch the best platform for live gaming influencer marketing?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: "Twitch viewers don't watch for 30 seconds — they watch for hours. Your brand appears repeatedly throughout a live session, building genuine recall that short-form content cannot replicate. Streamers build intimate relationships with their communities over months and years, so when they recommend your brand live on stream, it carries the weight of a personal endorsement — not an ad. Twitch chat also creates immediate, measurable audience reactions: viewers respond in real time, ask questions and engage directly, delivering focus group data that scales.",
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'What types of Twitch campaign formats does SocialPro offer?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'SocialPro offers three main Twitch campaign formats. Sponsored stream sessions: branded segments integrated naturally into a live stream, including product mentions, on-screen overlays and interactive chat moments. Twitch tournaments: custom tournaments with your brand as presenting sponsor, with full production, custom visuals and a live audience of thousands. Product launch streams: exclusive live reveals with pre-selected streamers, featuring real-time audience reactions and immediate conversion tracking.',
+      },
+    },
+  ],
+};
+
 const STATS = [
   { stat: '15M+', label: 'Monthly views across roster' },
   { stat: '4h+', label: 'Average session time on Twitch' },
@@ -64,6 +87,7 @@ export default function TwitchStreamersAgencyPage() {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(faqJsonLd) }} />
 
       <section className="bg-sp-black pt-32 pb-20">
         <div className="max-w-4xl mx-auto px-6 text-center">
