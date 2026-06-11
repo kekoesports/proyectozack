@@ -68,6 +68,29 @@ const LATAM_MARKETS = [
   { flag: '🇵🇪', country: 'Perú',      desc: 'Mercado emergente gaming' },
 ];
 
+const faqJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: [
+    {
+      '@type': 'Question',
+      name: '¿Qué ofrece SocialPro a sus creadores gaming?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'SocialPro ofrece a sus creadores: acceso a marcas premium de iGaming, periféricos y lifestyle; negociación profesional de acuerdos con las marcas; soporte en YouTube management y producción de contenido; red de más de 100 creadores para collabs y networking en España y LATAM; y compliance y protección legal en campañas iGaming.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: '¿Cómo puedo unirme al roster de SocialPro como creador gaming?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'El proceso tiene cuatro pasos. Primero, aplica: completa el formulario con tu perfil y estadísticas. Analizamos cada aplicación individualmente. Segundo, evaluación: nuestro equipo revisa tu contenido, audiencia y potencial de monetización en 48h. Tercero, onboarding: si encajas, te presentamos oportunidades activas y diseñamos un plan de crecimiento personalizado. Cuarto, monetización: empiezas a recibir campañas de marcas top. Nosotros negociamos, tú creas contenido.',
+      },
+    },
+  ],
+};
+
 export default function ParaCreadoresPage() {
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -99,6 +122,7 @@ export default function ParaCreadoresPage() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(faqJsonLd) }} />
       {/* ── Hero ── */}
       <section className="bg-sp-black pt-32 pb-20">
         <div className="max-w-4xl mx-auto px-6 text-center">

@@ -90,6 +90,29 @@ const breadcrumbJsonLd = {
   ],
 };
 
+const faqJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: [
+    {
+      '@type': 'Question',
+      name: '¿Por qué el iGaming requiere una agencia especializada?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'El iGaming —casas de apuestas, casinos online, eSports betting, skin trading— tiene una regulación específica que afecta directamente a cómo se puede comunicar en streaming. Un briefing genérico de influencer marketing no funciona aquí: cualquier error en el mensaje puede acarrear sanciones al operador y daño reputacional al creador. En SocialPro llevamos más de cuatro años ejecutando campañas iGaming en España y LatAm. Conocemos la regulación DGOJ, las diferencias entre mercados, qué puede decir un streamer y qué no, y cómo construir un flujo de revisión de contenido que proteja a todas las partes sin ralentizar la activación. La diferencia práctica es sencilla: una agencia generalista entrega el briefing al creador y confía en que lo lea bien. SocialPro entrega el briefing, lo revisa con el creador antes del directo, valida el guion de integración, y tiene un equipo de compliance que da el visto bueno final antes de que el contenido se publique. Cada campaña iGaming activa en nuestro roster lleva al menos tres puntos de revisión entre el brief del operador y el momento en que el streamer abre el enlace de afiliado.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: '¿Qué exige la DGOJ a las campañas iGaming con streamers en España?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'La Dirección General de Ordenación del Juego (DGOJ) regula la publicidad de operadores iGaming con licencia española. Las obligaciones que SocialPro garantiza en cada campaña incluyen: disclaimer de juego responsable visible en los primeros 30 segundos del contenido patrocinado; prohibición de asociar iGaming con resolución de deudas o promesas de enriquecimiento; verificación documental de que el streamer es mayor de 18 años; restricción de contenido iGaming en streams con audiencia mayoritariamente menor de edad; el operador es corresponsable del contenido del creator, por lo que la revisión previa es obligatoria; y distinción clara entre publicidad y contenido editorial en todas las plataformas.',
+      },
+    },
+  ],
+};
+
 const PROCESS_STEPS = [
   {
     num: '01',
@@ -153,6 +176,7 @@ export default function IgamingPage() {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(faqJsonLd) }} />
 
       {/* ── Hero ── */}
       <section className="bg-sp-black pt-24 pb-12 md:pt-32 md:pb-20">
