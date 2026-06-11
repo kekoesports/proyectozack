@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     description: 'Verified betting influencers and casino streamers. DGOJ compliance, FTD tracking. Spain, LatAm & Turkey.',
     url: absoluteUrl('/betting-influencers'),
     type: 'website',
-    images: [{ url: absoluteUrl('/og-socialpro.png'), width: 1200, height: 630 }],
+    images: [{ url: absoluteUrl('/og-socialpro.png'), width: 1200, height: 630, alt: 'Betting Influencers Agency — SocialPro' }],
   },
   twitter: {
     card: 'summary_large_image',

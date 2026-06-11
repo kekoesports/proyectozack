@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     title: 'Gaming Talent Roster — Verified Streamers in Spain & LatAm | SocialPro',
     description: 'CS2, Valorant, Twitch and YouTube creators with verified audiences. 15M+ monthly views across Spain and LatAm.',
     url: absoluteUrl('/talents'),
-    images: [{ url: absoluteUrl('/og-socialpro.png'), width: 1200, height: 630 }],
+    images: [{ url: absoluteUrl('/og-socialpro.png'), width: 1200, height: 630, alt: 'Gaming Talent Roster — Verified Streamers Spain & LatAm | SocialPro' }],
   },
   twitter: {
     card: 'summary_large_image',

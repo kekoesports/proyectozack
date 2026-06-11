@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     description: 'Streamers Valorant verificados en España y LatAm. Campañas orientadas a resultados con audiencias reales y métricas verificadas.',
     url: absoluteUrl('/agencia-influencers-valorant'),
     type: 'website',
-    images: [{ url: absoluteUrl('/og-socialpro.png'), width: 1200, height: 630 }],
+    images: [{ url: absoluteUrl('/og-socialpro.png'), width: 1200, height: 630, alt: 'Agencia de Influencers Valorant España y LatAm — SocialPro' }],
   },
   twitter: {
     card: 'summary_large_image',

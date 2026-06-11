@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     description: 'Esports marketing in Spain and LatAm. 13+ years, 15M+ views/month, performance-focused campaigns for endemic and non-endemic brands.',
     url: absoluteUrl('/esports-marketing-agency'),
     type: 'website',
-    images: [{ url: absoluteUrl('/og-socialpro.png'), width: 1200, height: 630 }],
+    images: [{ url: absoluteUrl('/og-socialpro.png'), width: 1200, height: 630, alt: 'Esports Marketing Agency Spain & LatAm — SocialPro' }],
   },
   twitter: {
     card: 'summary_large_image',

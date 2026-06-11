@@ -15,7 +15,7 @@ export const metadata: Metadata = {
       'Qué exige la regulación española a las campañas de iGaming con streamers. Principios de compliance, responsabilidad del operador y flujo de revisión de contenido.',
     url: absoluteUrl('/guia-dgoj-igaming-influencers'),
     type: 'article',
-    images: [{ url: absoluteUrl('/og-socialpro.png'), width: 1200, height: 630 }],
+    images: [{ url: absoluteUrl('/og-socialpro.png'), width: 1200, height: 630, alt: 'Guía DGOJ Compliance iGaming con Influencers 2026 — SocialPro' }],
   },
   twitter: {
     card: 'summary_large_image',

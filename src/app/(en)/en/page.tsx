@@ -27,7 +27,7 @@ export const metadata: Metadata = {
       'Verified gaming creators in Spain and LatAm. Performance-tracked campaigns for iGaming, esports and consumer brands.',
     url: absoluteUrl('/en'),
     type: 'website',
-    images: [{ url: absoluteUrl('/og-socialpro.png'), width: 1200, height: 630 }],
+    images: [{ url: absoluteUrl('/og-socialpro.png'), width: 1200, height: 630, alt: 'Gaming & Esports Influencer Marketing Agency — SocialPro' }],
   },
   twitter: {
     card: 'summary_large_image',

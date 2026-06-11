@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     description: 'Valorant influencer marketing with verified streamers. Brand-safe, performance-focused campaigns across the Spanish-speaking gaming market.',
     url: absoluteUrl('/valorant-influencers-agency'),
     type: 'website',
-    images: [{ url: absoluteUrl('/og-socialpro.png'), width: 1200, height: 630 }],
+    images: [{ url: absoluteUrl('/og-socialpro.png'), width: 1200, height: 630, alt: 'Valorant Influencers Agency — SocialPro' }],
   },
   twitter: {
     card: 'summary_large_image',

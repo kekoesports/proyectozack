@@ -18,7 +18,7 @@ export const metadata: Metadata = {
     description:
       'Discovery, matching, ejecución y reporting. 4 fases con KPIs claros, compliance iGaming y ROI demostrable.',
     url: absoluteUrl('/metodologia'),
-    images: [{ url: absoluteUrl('/og-socialpro.png'), width: 1200, height: 630 }],
+    images: [{ url: absoluteUrl('/og-socialpro.png'), width: 1200, height: 630, alt: 'Metodología de Campañas Gaming — SocialPro' }],
   },
   twitter: {
     card: 'summary_large_image',

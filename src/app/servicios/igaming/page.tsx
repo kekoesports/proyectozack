@@ -27,7 +27,7 @@ export const metadata: Metadata = {
       'Campañas iGaming, betting y casino con streamers verificados. Compliance DGOJ, FTD tracking y ROI demostrable en España, LatAm y Turquía.',
     url: absoluteUrl('/servicios/igaming'),
     type: 'website',
-    images: [{ url: absoluteUrl('/og-socialpro.png'), width: 1200, height: 630 }],
+    images: [{ url: absoluteUrl('/og-socialpro.png'), width: 1200, height: 630, alt: 'Streamers iGaming, Betting y Casino España y LatAm — SocialPro' }],
   },
   twitter: {
     card: 'summary_large_image',
