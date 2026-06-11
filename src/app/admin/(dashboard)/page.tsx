@@ -5,14 +5,13 @@ import {
   getDashboardUpcomingFollowups,
   getMonthlyRevenue,
   getDealStats,
+  getPendingBrandPaymentsTotal,
 } from '@/lib/queries/dashboard';
 import { getDashboardAlerts } from '@/lib/queries/alerts';
 import { requirePermission } from '@/lib/permissions';
 import { DashboardAlerts } from '@/features/admin/_shared/components/dashboard/DashboardAlerts';
 import { getIsoWeekLabel, getWeekStart } from '@/lib/utils/week';
 import {
-  MOCK_PIPELINE_TOTAL,
-  MOCK_PIPELINE_TREND,
   MOCK_ACTIVITY,
   MOCK_INSIGHTS,
 } from '@/lib/mock-dashboard-data';
@@ -53,7 +52,7 @@ export default async function AdminDashboardPage(): Promise<ReactElement> {
   const weekStart = getWeekStart(weekLabel);
   const weekStr = weekStart.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' });
 
-  const [{ stats }, brandCounts, pendingTasks, followups, revenue, deals, { alerts, summary: alertSummary }] = await Promise.all([
+  const [{ stats }, brandCounts, pendingTasks, followups, revenue, deals, { alerts, summary: alertSummary }, pipelineTotal] = await Promise.all([
     getAdminDashboardData(),
     getCrmBrandCounts(),
     getDashboardPendingTasks(weekLabel),
@@ -61,6 +60,7 @@ export default async function AdminDashboardPage(): Promise<ReactElement> {
     getMonthlyRevenue(),
     getDealStats(),
     getDashboardAlerts(isStaff ? { staffUserId: session.user.id, skipFinancial: true } : undefined),
+    getPendingBrandPaymentsTotal(),
   ]);
 
   return (
@@ -93,13 +93,11 @@ export default async function AdminDashboardPage(): Promise<ReactElement> {
         <StatCard
           size="primary"
           label="Pipeline total"
-          value={formatEur(MOCK_PIPELINE_TOTAL)}
-          description="Valor estimado en negociación"
-          trend={MOCK_PIPELINE_TREND}
+          value={formatEur(pipelineTotal)}
+          description="Facturas pendientes de cobro"
           icon={<BrandIcon />}
           accent="#8b3aad"
-          href="/admin/brands"
-          isMock
+          href="/admin/facturacion"
         />
       </div>
 
@@ -164,7 +162,7 @@ export default async function AdminDashboardPage(): Promise<ReactElement> {
           <FollowUpPanel followups={followups} />
         </div>
         <div className="lg:col-span-2">
-          <PipelineChartCard total={MOCK_PIPELINE_TOTAL} trend={MOCK_PIPELINE_TREND} />
+          <PipelineChartCard total={pipelineTotal} />
         </div>
       </div>
 

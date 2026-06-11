@@ -48,10 +48,10 @@ function formatEur(n: number): string {
 
 type PipelineChartCardProps = {
   readonly total: number;
-  readonly trend: number;
+  readonly trend?: number;
 };
 
-export function PipelineChartCard({ total, trend }: PipelineChartCardProps): React.ReactElement {
+export function PipelineChartCard({ total, trend = 0 }: PipelineChartCardProps): React.ReactElement {
   const [range, setRange] = useState<Range>('30d');
   const active = RANGES.find((r) => r.key === range) ?? RANGES[0];
   const { line, area } = buildPaths(active.data, 300, 80);
@@ -92,10 +92,14 @@ export function PipelineChartCard({ total, trend }: PipelineChartCardProps): Rea
             <span className="text-[26px] font-bold text-sp-admin-text tabular-nums">
               {formatEur(total)}
             </span>
-            <span className="text-[11px] font-semibold text-emerald-600">↑ {trend}%</span>
+            {trend !== 0 && (
+              <span className={`text-[11px] font-semibold ${trend > 0 ? 'text-emerald-600' : 'text-red-500'}`}>
+                {trend > 0 ? '↑' : '↓'} {Math.abs(trend)}%
+              </span>
+            )}
           </div>
           <p className="text-[10px] text-sp-admin-muted mt-0.5">
-            Valor total del pipeline · <span className="text-sp-admin-muted/60 italic">datos de ejemplo</span>
+            Facturas pendientes de cobro · evolución estimada
           </p>
         </div>
 
