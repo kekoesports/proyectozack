@@ -113,8 +113,8 @@ export function BrandFields({ register }: FieldsProps): React.JSX.Element {
         <legend className={labelClasses}>Datos de campaña</legend>
         <div className="grid sm:grid-cols-2 gap-4">
           <div>
-            <label className={labelClasses}>Presupuesto estimado</label>
-            <select {...register('budget')} className={selectClasses}>
+            <label htmlFor="contact-budget" className={labelClasses}>Presupuesto estimado</label>
+            <select {...register('budget')} id="contact-budget" className={selectClasses}>
               <option value="" className="bg-sp-black">Selecciona rango...</option>
               {BUDGET_RANGES.map((b) => (
                 <option key={b.value} value={b.value} className="bg-sp-black">
@@ -124,8 +124,8 @@ export function BrandFields({ register }: FieldsProps): React.JSX.Element {
             </select>
           </div>
           <div>
-            <label className={labelClasses}>Plazo / Timeline</label>
-            <select {...register('timeline')} className={selectClasses}>
+            <label htmlFor="contact-timeline" className={labelClasses}>Plazo / Timeline</label>
+            <select {...register('timeline')} id="contact-timeline" className={selectClasses}>
               <option value="" className="bg-sp-black">Selecciona plazo...</option>
               {TIMELINE_OPTIONS.map((t) => (
                 <option key={t.value} value={t.value} className="bg-sp-black">
@@ -137,8 +137,8 @@ export function BrandFields({ register }: FieldsProps): React.JSX.Element {
         </div>
         <div className="grid sm:grid-cols-2 gap-4">
           <div>
-            <label className={labelClasses}>Vertical</label>
-            <select {...register('vertical')} className={selectClasses}>
+            <label htmlFor="contact-vertical" className={labelClasses}>Vertical</label>
+            <select {...register('vertical')} id="contact-vertical" className={selectClasses}>
               <option value="" className="bg-sp-black">Selecciona vertical...</option>
               {VERTICAL_OPTIONS.map((v) => (
                 <option key={v.value} value={v.value} className="bg-sp-black">
@@ -148,8 +148,8 @@ export function BrandFields({ register }: FieldsProps): React.JSX.Element {
             </select>
           </div>
           <div>
-            <label className={labelClasses}>Tipo de campaña</label>
-            <select {...register('campaignType')} className={selectClasses}>
+            <label htmlFor="contact-campaign-type" className={labelClasses}>Tipo de campaña</label>
+            <select {...register('campaignType')} id="contact-campaign-type" className={selectClasses}>
               <option value="" className="bg-sp-black">Selecciona tipo...</option>
               {CAMPAIGN_TYPE_OPTIONS.map((c) => (
                 <option key={c.value} value={c.value} className="bg-sp-black">
@@ -160,9 +160,10 @@ export function BrandFields({ register }: FieldsProps): React.JSX.Element {
           </div>
         </div>
         <div>
-          <label className={labelClasses}>Público objetivo</label>
+          <label htmlFor="contact-audience" className={labelClasses}>Público objetivo</label>
           <input
             {...register('audience')}
+            id="contact-audience"
             placeholder="Ej: Jugadores de slots 25-40 España"
             className={inputClasses}
           />
@@ -186,8 +187,8 @@ export function TalentFields({ register }: FieldsProps): React.JSX.Element {
         <legend className={labelClasses}>Tu canal</legend>
         <div className="grid sm:grid-cols-2 gap-4">
           <div>
-            <label className={labelClasses}>Plataforma principal</label>
-            <select {...register('platform')} className={selectClasses}>
+            <label htmlFor="contact-platform" className={labelClasses}>Plataforma principal</label>
+            <select {...register('platform')} id="contact-platform" className={selectClasses}>
               <option value="" className="bg-sp-black">Selecciona...</option>
               {PLATFORM_OPTIONS.map((p) => (
                 <option key={p.value} value={p.value} className="bg-sp-black">
@@ -197,18 +198,20 @@ export function TalentFields({ register }: FieldsProps): React.JSX.Element {
             </select>
           </div>
           <div>
-            <label className={labelClasses}>Viewers / Suscriptores</label>
+            <label htmlFor="contact-viewers" className={labelClasses}>Viewers / Suscriptores</label>
             <input
               {...register('viewers')}
+              id="contact-viewers"
               placeholder="Ej: 500 viewers avg / 50K subs"
               className={inputClasses}
             />
           </div>
         </div>
         <div>
-          <label className={labelClasses}>Estado de monetización</label>
+          <label htmlFor="contact-monetization" className={labelClasses}>Estado de monetización</label>
           <input
             {...register('monetization')}
+            id="contact-monetization"
             placeholder="Ej: Partner Twitch, sponsors activos, etc."
             className={inputClasses}
           />

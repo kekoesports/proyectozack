@@ -109,18 +109,20 @@ export function ContactSection({ defaultValues }: { readonly defaultValues?: Par
                 <form onSubmit={(e) => { void handleSubmit(onSubmit)(e); }} className="space-y-5">
                   <div className="grid sm:grid-cols-2 gap-4">
                     <div>
-                      <label className={labelClasses}>Nombre *</label>
+                      <label htmlFor="contact-name" className={labelClasses}>Nombre *</label>
                       <input
                         {...register('name')}
+                        id="contact-name"
                         placeholder="Tu nombre"
                         className={inputClasses}
                       />
                       {errors.name && <p className="text-xs text-red-400 mt-1">{errors.name.message}</p>}
                     </div>
                     <div>
-                      <label className={labelClasses}>Email *</label>
+                      <label htmlFor="contact-email" className={labelClasses}>Email *</label>
                       <input
                         {...register('email')}
+                        id="contact-email"
                         type="email"
                         placeholder="tu@email.com"
                         className={inputClasses}
@@ -131,8 +133,8 @@ export function ContactSection({ defaultValues }: { readonly defaultValues?: Par
 
                   <div>
                     <div>
-                      <label className={labelClasses}>SOY… *</label>
-                      <select {...register('type')} className={selectClasses}>
+                      <label htmlFor="contact-type" className={labelClasses}>SOY… *</label>
+                      <select {...register('type')} id="contact-type" className={selectClasses}>
                         <option value="" className="bg-sp-black">Selecciona...</option>
                         {TYPES.map((t) => (
                           <option key={t.value} value={t.value} className="bg-sp-black">
@@ -145,9 +147,10 @@ export function ContactSection({ defaultValues }: { readonly defaultValues?: Par
                   </div>
 
                   <div>
-                    <label className={labelClasses}>Empresa / Canal</label>
+                    <label htmlFor="contact-company" className={labelClasses}>Empresa / Canal</label>
                     <input
                       {...register('company')}
+                      id="contact-company"
                       placeholder="Nombre de tu empresa o canal"
                       className={inputClasses}
                     />
@@ -168,9 +171,10 @@ export function ContactSection({ defaultValues }: { readonly defaultValues?: Par
                   </AnimatePresence>
 
                   <div>
-                    <label className={labelClasses}>Mensaje *</label>
+                    <label htmlFor="contact-message" className={labelClasses}>Mensaje *</label>
                     <textarea
                       {...register('message')}
+                      id="contact-message"
                       rows={4}
                       placeholder="Cuéntanos qué tienes en mente..."
                       className={`${inputClasses} resize-none`}
