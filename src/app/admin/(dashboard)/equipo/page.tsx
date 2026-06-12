@@ -78,16 +78,17 @@ export default async function EquipoAdminPage(): Promise<ReactElement> {
             return (
               <div
                 key={m.userId}
-                className={`rounded-xl bg-sp-admin-card overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.06)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.08)] transition-shadow ${
-                  isMe ? 'ring-2 ring-sp-admin-accent/30' : ''
-                }`}
+                className="relative rounded-xl shadow-[0_1px_3px_rgba(0,0,0,0.06)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.08)] transition-shadow"
               >
-                {/* Menú gestión — solo admin, no sobre sí mismo */}
+                {/* Menú gestión — fuera del overflow-hidden para que el dropdown no quede recortado */}
                 {isAdmin && !isMe && (
-                  <div className="absolute top-3 right-3">
+                  <div className="absolute top-3 right-3 z-10">
                     <UserManageMenu userId={m.userId} currentRole={roleKey} />
                   </div>
                 )}
+
+                {/* Contenedor interior con overflow-hidden para los efectos visuales */}
+                <div className={`bg-sp-admin-card overflow-hidden rounded-xl ${isMe ? 'ring-2 ring-sp-admin-accent/30' : ''}`}>
 
                 {/* Header con avatar grande */}
                 <div className={`px-5 pt-5 pb-4 flex flex-col items-center text-center gap-3 ${
@@ -165,6 +166,7 @@ export default async function EquipoAdminPage(): Promise<ReactElement> {
                     </Link>
                   </div>
                 </div>
+                </div>{/* /overflow-hidden interior */}
               </div>
             );
           })}
