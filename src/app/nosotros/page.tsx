@@ -6,6 +6,7 @@ import { NosotrosHero } from '@/features/marketing-site/components/NosotrosHero'
 import { NosotrosPorQue } from '@/features/marketing-site/components/NosotrosPorQue';
 import { BrandsCarousel } from '@/features/marketing-site/components/BrandsCarousel';
 import { TeamGrid } from '@/features/marketing-site/components/TeamGrid';
+import { PressSection } from '@/features/marketing-site/components/PressSection';
 import { absoluteUrl, SITE_URL, schemaImageUrl } from '@/lib/site-url';
 
 export const revalidate = 3600;
@@ -152,6 +153,24 @@ export default async function NosotrosPage() {
           'https://www.facebook.com/SocialProES',
           'https://www.linkedin.com/company/socialproes',
         ],
+        subjectOf: [
+          {
+            '@type': 'PodcastEpisode',
+            name: 'Todo e-Games — 13 de junio de 2026',
+            url: 'https://audio.canalsurmas.es/videos/detail/374811-podcast-todo-e-games-13062026mp3',
+            datePublished: '2026-06-13',
+            partOfSeries: {
+              '@type': 'PodcastSeries',
+              name: 'Todo e-Games',
+              url: 'https://www.canalsur.es/radio/programas/todo-egames/podcast/19795725.html',
+              publisher: {
+                '@type': 'Organization',
+                name: 'Canal Sur Radio',
+                url: 'https://www.canalsur.es',
+              },
+            },
+          },
+        ],
       },
     ],
   };
@@ -230,6 +249,9 @@ export default async function NosotrosPage() {
           </div>
         </div>
       </section>
+
+      {/* ── Apariciones en medios ────────────────────────────────── */}
+      <PressSection />
 
       {/* ── Marcas — mismo carrusel que en homepage ──────────────── */}
       <BrandsCarousel brands={brands} />

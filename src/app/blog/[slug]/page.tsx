@@ -13,6 +13,8 @@ import { buildBreadcrumbJsonLd } from '@/lib/utils/breadcrumbs';
 import { absoluteUrl, schemaImageUrl } from '@/lib/site-url';
 import { PostViewTracker } from '@/components/tracking/PostViewTracker';
 import { truncateMetaDescription, truncateMetaTitle } from '@/lib/utils/text';
+import { PodcastEmbedBlock } from '@/features/blog/components/PodcastEmbedBlock';
+import type { PodcastBlock } from '@/features/blog/components/PodcastEmbedBlock';
 
 export const revalidate = 3600;
 
@@ -121,6 +123,16 @@ function renderInline(text: string): string {
   );
 }
 
+function extractPodcastBlock(blocksJson: unknown): PodcastBlock | null {
+  if (!blocksJson || typeof blocksJson !== 'object') return null;
+  const b = blocksJson as Record<string, unknown>;
+  if (!b.podcast || typeof b.podcast !== 'object') return null;
+  const p = b.podcast as Record<string, unknown>;
+  if (typeof p.episodeTitle !== 'string' || typeof p.showName !== 'string') return null;
+  // safe: validated field by field above
+  return b.podcast as PodcastBlock;
+}
+
 export default async function BlogPostPage({ params }: PageProps) {
   const { slug } = await params;
   const [post, related] = await Promise.all([
@@ -133,11 +145,40 @@ export default async function BlogPostPage({ params }: PageProps) {
   const hasTalents = post.talentAvatars.length > 0;
   const category   = deriveCategory(post.slug, post.title);
   const mins       = readTime(post.bodyMd);
+  const podcast    = extractPodcastBlock(post.blocksJson);
 
   const breadcrumbJsonLd = buildBreadcrumbJsonLd([
     { name: 'Blog', url: absoluteUrl('/blog') },
     { name: post.title, url: absoluteUrl(`/blog/${slug}`) },
   ]);
+
+  const podcastEpisodeJsonLd = podcast ? {
+    '@context': 'https://schema.org',
+    '@type': 'PodcastEpisode',
+    '@id': absoluteUrl(`/blog/${slug}#episode`),
+    name: podcast.episodeTitle,
+    url: podcast.audioUrl,
+    datePublished: podcast.date,
+    ...(podcast.duration ? { duration: podcast.duration } : {}),
+    ...(podcast.description ? { description: podcast.description } : {}),
+    partOfSeries: {
+      '@type': 'PodcastSeries',
+      name: podcast.showName,
+      ...(podcast.showUrl ? { url: podcast.showUrl } : {}),
+      publisher: {
+        '@type': 'Organization',
+        name: podcast.network,
+      },
+    },
+    mentions: [
+      {
+        '@type': 'Organization',
+        '@id': absoluteUrl('/#organization'),
+        name: 'SocialPro',
+        url: absoluteUrl('/'),
+      },
+    ],
+  } : null;
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -176,6 +217,9 @@ export default async function BlogPostPage({ params }: PageProps) {
       <PostViewTracker postId={post.id} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbJsonLd) }} />
+      {podcastEpisodeJsonLd && (
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(podcastEpisodeJsonLd) }} />
+      )}
 
       {/* ── HERO ── */}
       <section className="bg-sp-black pt-14 md:pt-20 pb-0">
@@ -225,6 +269,9 @@ export default async function BlogPostPage({ params }: PageProps) {
           <p className="text-lg md:text-xl text-sp-dark font-medium leading-relaxed mb-10 pb-8 border-b border-sp-border">
             {post.excerpt}
           </p>
+
+          {/* ── PODCAST EMBED ── */}
+          {podcast && <PodcastEmbedBlock podcast={podcast} />}
 
           {/* ── TALENT CARDS ── */}
           {hasTalents && (
