@@ -5,12 +5,13 @@ type Props = {
   initials: string;
   role: string;
   reviewedDate: string;
+  href?: string;
   /** 'dark' para fondos oscuros (sp-black), 'light' para fondos blancos */
   variant?: 'dark' | 'light';
   className?: string;
 };
 
-export function AuthorByline({ name, initials, role, reviewedDate, variant = 'dark', className }: Props) {
+export function AuthorByline({ name, initials, role, reviewedDate, href = '/nosotros', variant = 'dark', className }: Props) {
   const textMain  = variant === 'dark' ? 'text-white/70 hover:text-white' : 'text-sp-dark hover:text-sp-orange';
   const textSub   = variant === 'dark' ? 'text-white/35' : 'text-sp-muted';
   const border    = variant === 'dark' ? 'border-white/10' : 'border-sp-border';
@@ -21,7 +22,7 @@ export function AuthorByline({ name, initials, role, reviewedDate, variant = 'da
         <span className="text-[11px] font-black text-sp-orange">{initials}</span>
       </div>
       <div>
-        <Link href="/nosotros" className={`text-sm font-semibold transition-colors ${textMain}`}>
+        <Link href={href} className={`text-sm font-semibold transition-colors ${textMain}`}>
           {name}
         </Link>
         <p className={`text-xs ${textSub}`}>{role} · Actualizado {reviewedDate}</p>

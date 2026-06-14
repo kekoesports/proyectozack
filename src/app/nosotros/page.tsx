@@ -113,12 +113,17 @@ export default async function NosotrosPage() {
             '@type': 'Person',
             '@id': absoluteUrl('/#founder-pablo'),
             name: 'Pablo Camacho',
-            alternateName: 'Kekō',
+            alternateName: ['Keko', 'Kekō', 'Pablo Camacho Carrión'],
             jobTitle: 'CEO',
             description:
-              'Ex-profesional de CS:GO con 14+ años en esports. Co-fundó SocialPro en 2012 para conectar creadores gaming con marcas en España y LatAm.',
+              'Ex-profesional de CS:GO con más de una década en esports. Fundador y CEO de SocialPro, conecta creadores gaming con marcas en España y LatAm.',
             url: 'https://kekoesports.es',
-            sameAs: ['https://kekoesports.es'],
+            sameAs: [
+              'https://kekoesports.es',
+              'https://www.linkedin.com/in/pablocamachocarrion/',
+              'https://x.com/kekOesports',
+              'https://www.instagram.com/kekoesports/',
+            ],
             worksFor: { '@id': absoluteUrl('/#organization') },
           },
           {
@@ -159,6 +164,12 @@ export default async function NosotrosPage() {
             name: "'Keko', un referente andaluz de los eSports, lanza la agencia SocialPro",
             url: 'https://audio.canalsurmas.es/videos/detail/374811-podcast-todo-e-games-13062026mp3',
             datePublished: '2026-06-13',
+            actor: {
+              '@type': 'Person',
+              '@id': absoluteUrl('/#founder-pablo'),
+              name: 'Pablo Camacho',
+              alternateName: ['Keko', 'Kekō'],
+            },
             partOfSeries: {
               '@type': 'PodcastSeries',
               name: 'Todo e-Games',
@@ -216,9 +227,9 @@ export default async function NosotrosPage() {
                 no capturas de pantalla.&rdquo;
               </p>
               <div className="border-t border-sp-border pt-5">
-                <p className="text-xs font-bold uppercase tracking-[0.25em] text-sp-orange">
+                <Link href="/keko" className="text-xs font-bold uppercase tracking-[0.25em] text-sp-orange hover:underline">
                   Pablo Camacho
-                </p>
+                </Link>
                 <p className="text-xs text-sp-muted mt-1">CEO · SocialPro · Desde 2012</p>
               </div>
             </div>

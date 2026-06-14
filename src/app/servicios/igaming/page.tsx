@@ -216,6 +216,7 @@ export default function IgamingPage() {
             initials="PC"
             role="CEO · SocialPro · 14 años en iGaming y esports"
             reviewedDate="mayo 2026"
+            href="/keko"
             variant="dark"
             className="mt-8 max-w-xs"
           />

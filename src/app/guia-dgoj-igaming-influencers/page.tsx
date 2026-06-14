@@ -3,6 +3,7 @@ import { safeJsonLd } from '@/lib/safeJsonLd';
 import Link from 'next/link';
 import { absoluteUrl, SITE_URL } from '@/lib/site-url';
 import { TrackedCtaLink } from '@/components/ui/TrackedCtaLink';
+import { AuthorByline } from '@/components/ui/AuthorByline';
 
 export const metadata: Metadata = {
   title: 'Guía DGOJ: Compliance iGaming con Influencers en España (2026)',
@@ -78,8 +79,14 @@ const jsonLd = {
         '@type': 'Person',
         '@id': absoluteUrl('/#founder-pablo'),
         name: 'Pablo Camacho',
-        alternateName: 'Kekō',
+        alternateName: ['Keko', 'Kekō', 'Pablo Camacho Carrión'],
         jobTitle: 'CEO, SocialPro',
+        sameAs: [
+          'https://kekoesports.es',
+          'https://www.linkedin.com/in/pablocamachocarrion/',
+          'https://x.com/kekOesports',
+          'https://www.instagram.com/kekoesports/',
+        ],
       },
       publisher: { '@type': 'Organization', '@id': absoluteUrl('/#organization') },
       mainEntityOfPage: { '@type': 'WebPage', '@id': absoluteUrl('/guia-dgoj-igaming-influencers') },
@@ -143,17 +150,14 @@ export default function GuiaDgojPage() {
           </p>
 
           {/* Author byline */}
-          <div className="flex items-center gap-3 border-t border-white/10 pt-6">
-            <div className="w-9 h-9 rounded-full bg-sp-orange/20 flex items-center justify-center shrink-0">
-              <span className="text-xs font-black text-sp-orange">PC</span>
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-white">
-                Pablo &ldquo;Kekō&rdquo; Camacho
-              </p>
-              <p className="text-xs text-white/40">CEO, SocialPro · 14 años en gaming e iGaming · Última revisión: mayo 2026</p>
-            </div>
-          </div>
+          <AuthorByline
+            name='Pablo "Kekō" Camacho'
+            initials="PC"
+            role="CEO · SocialPro · 14 años en gaming e iGaming"
+            reviewedDate="mayo 2026"
+            href="/keko"
+            variant="dark"
+          />
         </div>
       </section>
 
