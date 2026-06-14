@@ -156,7 +156,7 @@ export default async function NosotrosPage() {
         subjectOf: [
           {
             '@type': 'PodcastEpisode',
-            name: 'Todo e-Games — 13 de junio de 2026',
+            name: "'Keko', un referente andaluz de los eSports, lanza la agencia SocialPro",
             url: 'https://audio.canalsurmas.es/videos/detail/374811-podcast-todo-e-games-13062026mp3',
             datePublished: '2026-06-13',
             partOfSeries: {
