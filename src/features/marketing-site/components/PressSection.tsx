@@ -23,8 +23,8 @@ const APPEARANCES: MediaAppearance[] = [
     date: '13 de junio de 2026',
     description:
       'Keko (Pablo Camacho), fundador y CEO de SocialPro, participa en Todo e-Games de Canal Sur Radio para hablar sobre su trayectoria en esports y cómo SocialPro conecta creadores gaming con marcas en España y LatAm.',
-    url: 'https://audio.canalsurmas.es/videos/detail/374811-podcast-todo-e-games-13062026mp3',
-    isExternal: true,
+    url: '/news/keko-presenta-socialpro-canal-sur-radio-agencia-gaming-esports',
+    isExternal: false,
     isNew: true,
   },
 ];
