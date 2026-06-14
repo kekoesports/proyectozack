@@ -20,6 +20,7 @@ import { EditorialQuoteBlock } from '@/features/news/components/article-blocks/E
 import { ArticleEmbedBlock } from '@/features/news/components/article-blocks/ArticleEmbedBlock';
 import { InterleavedArticleBody } from '@/features/news/components/article-blocks/InterleavedArticleBody';
 import { PostViewTracker } from '@/components/tracking/PostViewTracker';
+import { PodcastEmbedBlock } from '@/features/blog/components/PodcastEmbedBlock';
 
 export const revalidate = 60;
 
@@ -194,6 +195,11 @@ export default async function NewsArticlePage({ params }: PageProps) {
           ) : (
             <>
               {blocks?.matchContext ? <MatchContextBlock match={blocks.matchContext} /> : null}
+              {blocks?.podcast ? (
+                <section className="max-w-3xl mx-auto px-5 md:px-8 pt-8 md:pt-12">
+                  <PodcastEmbedBlock podcast={blocks.podcast} />
+                </section>
+              ) : null}
               <section className="max-w-3xl mx-auto px-5 md:px-8 py-8 md:py-12">
                 <NewsArticleBody bodyMd={post.bodyMd} />
               </section>

@@ -1,3 +1,6 @@
+import type { PodcastBlock } from '@/features/blog/components/PodcastEmbedBlock';
+export type { PodcastBlock };
+
 /**
  * Tipos compartidos por los bloques visuales del article page.
  * Cada noticia editorial puede definir un PostBlocks con cualquier
@@ -88,4 +91,5 @@ export type PostBlocks = {
   readonly quotes?: ReadonlyArray<EditorialQuote>;
   readonly embeds?: ReadonlyArray<ArticleEmbed>;
   readonly layout?: PostLayout;
+  readonly podcast?: PodcastBlock;
 };
