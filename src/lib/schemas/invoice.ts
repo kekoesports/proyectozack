@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 export const INVOICE_KINDS = ['income', 'expense'] as const;
 export const INVOICE_SCOPES = ['campaign', 'company'] as const;
+export const INVOICE_CURRENCIES = ['EUR', 'USD'] as const;
 
 export const INVOICE_SCOPE_LABELS: Record<(typeof INVOICE_SCOPES)[number], string> = {
   campaign: 'Campaña',
@@ -214,7 +215,7 @@ const invoiceFields = z.object({
   withholdingPct: moneyStr.default('0.00'),
   totalAmount: positiveMoneyStr,
   paidAmount: moneyStr.optional(),
-  currency: z.string().length(3).default('EUR'),
+  currency: z.enum(INVOICE_CURRENCIES).default('EUR'),
   series: z.string().min(1).max(20).default('A'),
   status: z.enum(INVOICE_STATUSES).default('borrador'),
   company: optEnum(INVOICE_COMPANIES),

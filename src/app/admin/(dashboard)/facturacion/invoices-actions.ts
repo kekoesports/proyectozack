@@ -98,7 +98,6 @@ export async function createInvoiceAction(_prev: ActionState, formData: FormData
   try {
     const baseValues = nullify({
       ...parsed.data,
-      currency: 'EUR',
       createdByUserId: session.user.id,
     }) as NewInvoice;
     const row = await createInvoice(baseValues);
@@ -165,7 +164,7 @@ export async function updateInvoiceAction(_prev: ActionState, formData: FormData
   try {
     if (!existing) return { error: 'Factura no encontrada' };
 
-    const patch = compact({ ...rest, currency: 'EUR' }) as Partial<NewInvoice>;
+    const patch = compact({ ...rest }) as Partial<NewInvoice>;
     await updateInvoice(id, patch);
 
     const kind: 'income' | 'expense' = rest.kind ?? existing.kind;
