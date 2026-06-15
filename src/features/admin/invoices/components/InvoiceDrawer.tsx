@@ -13,6 +13,7 @@ import { InvoiceFileFields } from './InvoiceFileFields';
 import {
   INVOICE_COMPANIES,
   INVOICE_COMPANY_LABELS,
+  INVOICE_CURRENCIES,
   INVOICE_PAYMENT_METHODS,
   INVOICE_PAYMENT_METHOD_LABELS,
   INVOICE_STATUS_LABELS,
@@ -101,6 +102,8 @@ function InvoiceDrawerForm(props: Props): ReactElement {
   // Tracks si el usuario tocó brand/talent manualmente
   const [touchedBrand,  setTouchedBrand]  = useState(false);
   const [touchedTalent, setTouchedTalent] = useState(false);
+
+  const [currency,    setCurrency]    = useState<'EUR' | 'USD'>((invoice?.currency as 'EUR' | 'USD') ?? 'EUR');
 
   const [net, setNet] = useState<string>(invoice?.netAmount ?? '0.00');
   const [vat, setVat] = useState<string>(invoice?.vatPct ?? '21.00');
@@ -288,7 +291,7 @@ function InvoiceDrawerForm(props: Props): ReactElement {
         {/* Importes */}
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
           <div>
-            <label className={LABEL} htmlFor="invoice-net">Neto € *</label>
+            <label className={LABEL} htmlFor="invoice-net">Neto {currency} *</label>
             <input id="invoice-net" name="netAmount" type="number" step="0.01" min="0" required value={net} onChange={(e) => setNet(e.target.value)} className={INPUT} />
           </div>
           <div>
@@ -300,13 +303,13 @@ function InvoiceDrawerForm(props: Props): ReactElement {
             <input id="invoice-withholding" name="withholdingPct" type="number" step="0.01" min="0" value={withholding} onChange={(e) => setWithholding(e.target.value)} className={INPUT} />
           </div>
           <div>
-            <label className={LABEL} htmlFor="invoice-total">Total €</label>
+            <label className={LABEL} htmlFor="invoice-total">Total {currency}</label>
             <input id="invoice-total" name="totalAmount" type="number" step="0.01" min="0" value={total} readOnly className={`${INPUT} bg-sp-admin-card`} />
           </div>
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className={LABEL} htmlFor="invoice-paid-amount">Importe cobrado/pagado €</label>
+            <label className={LABEL} htmlFor="invoice-paid-amount">Importe cobrado/pagado {currency}</label>
             <input id="invoice-paid-amount" name="paidAmount" type="number" step="0.01" min="0" defaultValue={invoice?.paidAmount ?? '0.00'} className={INPUT} />
           </div>
           <div>
@@ -319,8 +322,18 @@ function InvoiceDrawerForm(props: Props): ReactElement {
             <label className={LABEL} htmlFor="invoice-series">Serie</label>
             <input id="invoice-series" name="series" defaultValue={invoice?.series ?? 'A'} maxLength={20} className={INPUT} />
           </div>
-          <div className="text-[10px] uppercase tracking-wider text-sp-admin-muted/70 self-end pb-2">
-            Moneda fija: EUR
+          <div>
+            <label className={LABEL} htmlFor="invoice-currency">Moneda</label>
+            <select
+              id="invoice-currency" name="currency"
+              value={currency}
+              onChange={(e) => setCurrency(e.target.value as 'EUR' | 'USD')}
+              className={INPUT}
+            >
+              {INVOICE_CURRENCIES.map((c) => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
           </div>
         </div>
 
