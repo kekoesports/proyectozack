@@ -6,7 +6,7 @@ import { dismissAlertAction, dismissAllAlertsAction } from './actions';
 import {
   DashboardIcon, TalentIcon, BrandIcon, GiveawayIcon, TeamIcon,
   TargetsIcon, TasksIcon, MyWeekIcon, InvoiceIcon, AnalyticsIcon,
-  CaseIcon, CampaignIcon, BackupIcon, ContactIcon, LiveIcon, NewsIcon, ExpenseIcon,
+  CaseIcon, CampaignIcon, BackupIcon, ContactIcon, LiveIcon, NewsIcon, ExpenseIcon, ChartIcon,
 } from '@/features/admin/_shared/components/SidebarIcons';
 import type { ReactNode } from 'react';
 
@@ -22,6 +22,7 @@ const ADMIN_PRIMARY_NAV = [
   { href: '/admin/tareas',      label: 'Tareas',      icon: <TasksIcon /> },
   { href: '/admin/facturacion', label: 'Facturación', icon: <InvoiceIcon />,  prefetch: false },
   { href: '/admin/gastos',      label: 'Gastos',      icon: <ExpenseIcon />, prefetch: false },
+  { href: '/admin/pl',          label: 'P&L',         icon: <ChartIcon />,   prefetch: false },
   { href: '/admin/equipo',      label: 'Equipo',      icon: <TeamIcon /> },
 ] as const;
 
