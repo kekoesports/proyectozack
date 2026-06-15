@@ -286,6 +286,17 @@ export function NewsIcon() {
   );
 }
 
+export function ExpenseIcon() {
+  return (
+    <svg {...s}>
+      <rect x="2" y="5" width="16" height="12" rx="2" />
+      <path d="M2 9h16" />
+      <path d="M6 13h4" />
+      <circle cx="14" cy="13" r="1.5" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
 export function LiveIcon() {
   return (
     <svg {...s}>
