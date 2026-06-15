@@ -242,12 +242,12 @@ export default async function NewsPage({ searchParams }: PageProps) {
 
                   {/* Secondary col — misma altura que el hero */}
                   <div className="flex flex-col gap-3 md:h-[440px]">
-                    <div className="flex-[5] min-h-0">
+                    <div className="min-h-[180px] md:flex-[5] md:min-h-0">
                       {trending[0]
                         ? <NewsSecondaryLarge post={trending[0]} />
                         : <div className="h-full rounded-xl bg-white/[0.03] border border-white/[0.05]" />}
                     </div>
-                    <div className="flex-[3] min-h-0">
+                    <div className="min-h-[130px] md:flex-[3] md:min-h-0">
                       {trending[1]
                         ? <NewsSecondaryMedium post={trending[1]} />
                         : <div className="h-full rounded-xl bg-white/[0.03] border border-white/[0.05]" />}
@@ -256,7 +256,7 @@ export default async function NewsPage({ searchParams }: PageProps) {
                       const compact = featuredInterview ?? featuredClip ?? editorialPosts[2] ?? null;
                       const label = featuredInterview ? 'Entrevista' : featuredClip ? 'Clip' : undefined;
                       return compact ? (
-                        <div className="flex-[2] min-h-0 min-h-[76px]">
+                        <div className="min-h-[76px] md:flex-[2] md:min-h-0">
                           <NewsCompactStrip post={compact} label={label} />
                         </div>
                       ) : null;
