@@ -33,6 +33,7 @@ export const STATUS_TONE: Record<CampaignStatus, StatusToneConfig> = {
 // ── EUR formatter ─────────────────────────────────────────────────────────────
 
 export const EUR = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 });
+export const USD = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
 
 // ── KPI calculations ──────────────────────────────────────────────────────────
 
@@ -41,10 +42,20 @@ export type CampaignKpis = {
   activos:         number;
   negociacion:     number;
   finalizados:     number;
+  countEUR:        number; // tratos activos (no archivados) en EUR
+  countUSD:        number; // tratos activos (no archivados) en USD
+  // Totales convertidos a EUR (para KPI principal)
   revenueBruto:    number;
   pendienteCobro:  number;
   pendienteTalent: number;
   margenTotal:     number;
+  // Nativos por divisa (para desglose)
+  revenueEUR:         number;
+  revenueUSD:         number;
+  pendienteCobroEUR:  number;
+  pendienteCobroUSD:  number;
+  pendienteTalentEUR: number;
+  pendienteTalentUSD: number;
 };
 
 const ACTIVE_STATUSES   = new Set<CampaignStatus>(['activa', 'aprobada']);
@@ -52,31 +63,64 @@ const FINISHED_STATUSES = new Set<CampaignStatus>(['completada', 'pagada']);
 const PAID_STATUSES     = new Set<CampaignStatus>(['pagada', 'cancelada']);
 
 export function computeKpis(campaigns: readonly CampaignWithRelations[], rate?: number): CampaignKpis {
-  let activos = 0, negociacion = 0, finalizados = 0;
+  let activos = 0, negociacion = 0, finalizados = 0, countEUR = 0, countUSD = 0;
   let revenueBruto = 0, pendienteCobro = 0, pendienteTalent = 0, margenTotal = 0;
+  let revenueEUR = 0, revenueUSD = 0;
+  let pendienteCobroEUR = 0, pendienteCobroUSD = 0;
+  let pendienteTalentEUR = 0, pendienteTalentUSD = 0;
 
   for (const c of campaigns) {
     if (c.archivedAt !== null) continue;
 
-    const cur    = c.currency ?? 'EUR';
-    const brand  = toEUR(c.amountBrand  ?? 0, cur, rate);
-    const talent = toEUR(c.amountTalent ?? 0, cur, rate);
+    const cur       = c.currency ?? 'EUR';
+    const isUSD     = cur === 'USD';
+    const brandNat  = Number(c.amountBrand  ?? 0);
+    const talentNat = Number(c.amountTalent ?? 0);
+    const brand     = toEUR(brandNat,  cur, rate);
+    const talent    = toEUR(talentNat, cur, rate);
 
     if (ACTIVE_STATUSES.has(c.status))   activos++;
     if (c.status === 'negociacion')       negociacion++;
     if (FINISHED_STATUSES.has(c.status)) finalizados++;
 
+    if (isUSD) countUSD++; else countEUR++;
+
+    revenueEUR += isUSD ? 0 : brandNat;
+    revenueUSD += isUSD ? brandNat : 0;
     revenueBruto += brand;
     margenTotal  += brand - talent;
 
     if (!PAID_STATUSES.has(c.status)) {
       pendienteCobro  += brand;
       pendienteTalent += talent;
+      if (isUSD) {
+        pendienteCobroUSD  += brandNat;
+        pendienteTalentUSD += talentNat;
+      } else {
+        pendienteCobroEUR  += brandNat;
+        pendienteTalentEUR += talentNat;
+      }
     }
   }
 
   const active = campaigns.filter((c) => c.archivedAt === null);
-  return { total: active.length, activos, negociacion, finalizados, revenueBruto, pendienteCobro, pendienteTalent, margenTotal };
+  return {
+    total: active.length, activos, negociacion, finalizados,
+    countEUR, countUSD,
+    revenueBruto, pendienteCobro, pendienteTalent, margenTotal,
+    revenueEUR, revenueUSD,
+    pendienteCobroEUR, pendienteCobroUSD,
+    pendienteTalentEUR, pendienteTalentUSD,
+  };
+}
+
+// ── Desglose divisa para sub-label de KPI ────────────────────────────────────
+
+export function fmtCurrencyBreakdown(nativeEUR: number, nativeUSD: number, rate: number): string | undefined {
+  if (nativeUSD === 0) return undefined;
+  const usdConverted = nativeUSD * rate;
+  if (nativeEUR === 0) return `${USD.format(nativeUSD)} (≈${EUR.format(usdConverted)})`;
+  return `${EUR.format(nativeEUR)} + ${USD.format(nativeUSD)} (≈${EUR.format(usdConverted)})`;
 }
 
 // ── Payment badge helpers ─────────────────────────────────────────────────────

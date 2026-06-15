@@ -19,16 +19,23 @@ import type { CampaignSplit, PartnerOwed } from '@/lib/queries/campaignSplits';
 
 import {
   EUR,
+  USD,
   STATUS_TONE,
   applyFilters,
   computeKpis,
+  fmtCurrencyBreakdown,
   brandPayBadge,
   talentPayBadge,
   type BrandOption,
   type StaffOption,
   type TalentOption,
 } from './CampaignsList.parts';
-import { fmtCurrency, USD_EUR_RATE } from '@/lib/currency';
+
+function fmtAmount(amount: number | string | null | undefined, currency: string | null | undefined): string {
+  const n = Number(amount ?? 0);
+  return (currency === 'USD' ? USD : EUR).format(n);
+}
+import { USD_EUR_RATE } from '@/lib/currency';
 import { fmtRateLabel } from '@/lib/exchangeRate';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -55,7 +62,7 @@ function KpiCard({
   readonly label:  string;
   readonly value:  string | number;
   readonly accent: string;
-  readonly sub?:   string;
+  readonly sub?:   string | undefined;
 }): React.ReactElement {
   return (
     <div className="rounded-lg bg-sp-admin-card shadow-[0_1px_3px_rgba(0,0,0,0.06)] overflow-hidden">
@@ -193,6 +200,12 @@ export function CampaignsList({
               <span><b className="text-red-500">{EUR.format(kpis.pendienteTalent)}</b> pdte. talent</span>
               <span className="opacity-40">•</span>
               <span><b className="text-sp-admin-text">{EUR.format(kpis.margenTotal)}</b> margen total</span>
+              {kpis.countUSD > 0 && (
+                <>
+                  <span className="opacity-40">•</span>
+                  <span><b className="text-sp-admin-text">{kpis.countEUR}</b> tratos € · <b className="text-sp-admin-text">{kpis.countUSD}</b> tratos $</span>
+                </>
+              )}
               <span className="opacity-40">•</span>
               <span
                 className="whitespace-nowrap text-[9px] px-1.5 py-0.5 rounded-full bg-sp-admin-hover"
@@ -221,7 +234,14 @@ export function CampaignsList({
         <KpiCard label="Activos"        value={kpis.activos}                 accent="#16a34a" />
         <KpiCard label="En negociación" value={kpis.negociacion}             accent="#f59e0b" />
         <KpiCard label="Finalizados"    value={kpis.finalizados}             accent="#5b9bd5" />
-        <KpiCard label="Revenue total"  value={EUR.format(kpis.revenueBruto)} accent="#8b3aad" />
+        <KpiCard
+          label="Revenue total"
+          value={EUR.format(kpis.revenueBruto)}
+          accent="#8b3aad"
+          {...(fmtCurrencyBreakdown(kpis.revenueEUR, kpis.revenueUSD, rate) !== undefined
+            ? { sub: fmtCurrencyBreakdown(kpis.revenueEUR, kpis.revenueUSD, rate) }
+            : {})}
+        />
         <KpiCard
           label="Margen total"
           value={EUR.format(kpis.margenTotal)}
@@ -236,13 +256,13 @@ export function CampaignsList({
           label="Pendiente de cobro (marca)"
           value={EUR.format(kpis.pendienteCobro)}
           accent="#f59e0b"
-          sub="Tratos sin marcar como pagados"
+          sub={fmtCurrencyBreakdown(kpis.pendienteCobroEUR, kpis.pendienteCobroUSD, rate) ?? 'Tratos sin marcar como pagados'}
         />
         <KpiCard
           label="Pendiente de pago (talento)"
           value={EUR.format(kpis.pendienteTalent)}
           accent="#ef4444"
-          sub="Importe a transferir a los creadores"
+          sub={fmtCurrencyBreakdown(kpis.pendienteTalentEUR, kpis.pendienteTalentUSD, rate) ?? 'Importe a transferir a los creadores'}
         />
       </div>
 
@@ -369,18 +389,18 @@ export function CampaignsList({
 
                     {/* Pago marca */}
                     <td className="px-4 py-3 whitespace-nowrap tabular-nums text-[13px] font-semibold text-sp-admin-text">
-                      {fmtCurrency(c.amountBrand ?? 0, c.currency ?? 'EUR')}
+                      {fmtAmount(c.amountBrand, c.currency)}
                     </td>
 
                     {/* Pago talent */}
                     <td className="px-4 py-3 whitespace-nowrap tabular-nums text-[13px] text-sp-admin-text">
-                      {fmtCurrency(c.amountTalent ?? 0, c.currency ?? 'EUR')}
+                      {fmtAmount(c.amountTalent, c.currency)}
                     </td>
 
                     {/* Comisión */}
                     <td className="px-4 py-3 whitespace-nowrap tabular-nums text-[13px] font-semibold"
                       style={{ color: marginNeg ? '#ef4444' : '#16a34a' }}>
-                      {fmtCurrency(derived.commissionAmount, c.currency ?? 'EUR')}
+                      {fmtAmount(derived.commissionAmount, c.currency)}
                     </td>
 
                     {/* % Margen */}
