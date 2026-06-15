@@ -11,6 +11,7 @@ type CardProps = {
   readonly value: number;
   readonly tone: 'positive' | 'neutral' | 'warning' | 'danger';
   readonly hint?: string;
+  readonly formatAs?: 'currency' | 'percent';
 };
 
 const TONES: Record<CardProps['tone'], string> = {
@@ -20,12 +21,13 @@ const TONES: Record<CardProps['tone'], string> = {
   danger: 'text-red-400',
 };
 
-function Card({ label, value, tone, hint }: CardProps): React.ReactElement {
+function Card({ label, value, tone, hint, formatAs = 'currency' }: CardProps): React.ReactElement {
+  const display = formatAs === 'percent' ? `${value.toFixed(1)}%` : EUR.format(value);
   return (
     <div className="rounded-2xl border border-sp-admin-border bg-sp-admin-card p-5">
       <p className="text-[11px] font-semibold uppercase tracking-wider text-sp-admin-muted">{label}</p>
       <p className={`mt-2 font-display text-2xl font-black tabular-nums ${TONES[tone]}`}>
-        {EUR.format(value)}
+        {display}
       </p>
       {hint && <p className="mt-1 text-[10px] uppercase tracking-wider text-sp-admin-muted">{hint}</p>}
     </div>
@@ -52,6 +54,7 @@ export function PnLOverviewCards({ pnl }: Props): React.ReactElement {
       <Card label="Pagos creadores" value={pnl.pagosCreadores} tone="warning" hint="Subset de gastos" />
       <Card label="Comisión agencia" value={pnl.comisionAgencia} tone={pnl.comisionAgencia >= 0 ? 'positive' : 'danger'} hint="Sobre campañas" />
       <Card label="Margen bruto" value={pnl.margenBruto} tone={margenTone} hint="Ingresos − gastos" />
+      <Card label="Margen %" value={pnl.margenPct} tone={margenTone} hint="Sobre ingresos totales" formatAs="percent" />
       <Card label="Pendiente cobro" value={pnl.pendienteCobro} tone={pnl.pendienteCobro > 0 ? 'warning' : 'neutral'} />
       <Card label="Pendiente pago" value={pnl.pendientePago} tone={pnl.pendientePago > 0 ? 'warning' : 'neutral'} />
     </div>

@@ -44,6 +44,8 @@ export type PnLResult = {
    * requiere reservas de impuestos por empresa fiscal — fuera del alcance de Fase 5.
    */
   readonly margenBruto: number;
+  /** `margenPct = margenBruto / ingresos × 100`, redondeado a 1 decimal. 0 si no hay ingresos. */
+  readonly margenPct: number;
   readonly pendienteCobro: number;
   readonly pendientePago: number;
   readonly breakdownByMonth: readonly PnLBreakdownByMonth[];
@@ -56,6 +58,7 @@ const ZERO_PNL: PnLResult = {
   pagosCreadores: 0,
   comisionAgencia: 0,
   margenBruto: 0,
+  margenPct: 0,
   pendienteCobro: 0,
   pendientePago: 0,
   breakdownByMonth: [],
@@ -181,6 +184,7 @@ export async function getPnL(filters: PnLFilters = {}): Promise<PnLResult> {
   }
 
   const margenBruto = ingresos - gastos;
+  const margenPct = ingresos > 0 ? Math.round((margenBruto / ingresos) * 1000) / 10 : 0;
   const comisionAgencia = comisionIngresoCampana - comisionGastoTalentCampana;
 
   const breakdownByMonth = Array.from(monthMap.entries())
@@ -203,6 +207,7 @@ export async function getPnL(filters: PnLFilters = {}): Promise<PnLResult> {
     pagosCreadores,
     comisionAgencia,
     margenBruto,
+    margenPct,
     pendienteCobro,
     pendientePago,
     breakdownByMonth,
