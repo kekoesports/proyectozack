@@ -370,11 +370,6 @@ const TEAM_DATA = [
     photoUrl: null, gradientC1: '#8b3aad', gradientC2: '#5b9bd5', initials: 'KK', sortOrder: 1,
   },
   {
-    slug: 'giuliano', name: 'Giuliano', role: 'LATAM Partnerships Manager',
-    bio: 'Experto en casino y casas de apuestas. Centrado en acuerdos iGaming para el mercado LATAM. +5 años de experiencia.',
-    photoUrl: null, gradientC1: '#e03070', gradientC2: '#c42880', initials: 'GI', sortOrder: 2,
-  },
-  {
     slug: 'cm', name: 'Community Manager', role: 'Community & Growth Manager',
     bio: 'Gestión de comunidades, contenido social y crecimiento orgánico.',
     photoUrl: null, gradientC1: '#5b9bd5', gradientC2: '#8b3aad', initials: 'CM', sortOrder: 3,
