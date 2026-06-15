@@ -5,6 +5,7 @@ import { requirePermission } from '@/lib/permissions';
 import { listCampaigns } from '@/lib/queries/campaigns';
 import { listInvoices } from '@/lib/queries/invoices';
 import { getDashboardAlerts } from '@/lib/queries/alerts';
+import { getUsdEurRate } from '@/lib/exchangeRate';
 import { getCodeClicksByDay } from '@/lib/queries/codeAnalytics';
 import { getGiveawayClicksByDay, getGiveawayHubViewsByDay } from '@/lib/queries/giveawayAnalytics';
 import { getTopPostsByViews, getPostViewsByDay } from '@/lib/queries/postAnalytics';
@@ -25,7 +26,7 @@ export default async function AdminAnalyticsPage(): Promise<React.ReactElement> 
     ? { staffUserId: session.user.id, skipFinancial: true, currentUserId: session.user.id }
     : { currentUserId: session.user.id };
 
-  const [rawCampaigns, invoices, brandsList, talentsList, alertsData, codeClicks, giveawayClicks, giveawayViews, topPosts, postViewsByDay] = await Promise.all([
+  const [rawCampaigns, invoices, brandsList, talentsList, alertsData, codeClicks, giveawayClicks, giveawayViews, topPosts, postViewsByDay, exchangeRate] = await Promise.all([
     listCampaigns(staffSession ? { session: staffSession } : undefined),
     listInvoices(isStaff ? { staffUserId: session.user.id } : {}),
     isStaff
@@ -40,6 +41,7 @@ export default async function AdminAnalyticsPage(): Promise<React.ReactElement> 
     getGiveawayHubViewsByDay(),
     getTopPostsByViews('all', 20),
     getPostViewsByDay(30),
+    getUsdEurRate(),
   ]);
 
   const brandMap  = new Map(brandsList.map((b)  => [b.id, b.name]));
@@ -84,6 +86,9 @@ export default async function AdminAnalyticsPage(): Promise<React.ReactElement> 
       giveawayViews={giveawayViews}
       topPosts={topPosts}
       postViewsByDay={postViewsByDay}
+      rate={exchangeRate.rate}
+      rateDate={exchangeRate.date}
+      rateIsEstimated={exchangeRate.isEstimated}
     />
   );
 }

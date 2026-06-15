@@ -51,7 +51,7 @@ const ACTIVE_STATUSES   = new Set<CampaignStatus>(['activa', 'aprobada']);
 const FINISHED_STATUSES = new Set<CampaignStatus>(['completada', 'pagada']);
 const PAID_STATUSES     = new Set<CampaignStatus>(['pagada', 'cancelada']);
 
-export function computeKpis(campaigns: readonly CampaignWithRelations[]): CampaignKpis {
+export function computeKpis(campaigns: readonly CampaignWithRelations[], rate?: number): CampaignKpis {
   let activos = 0, negociacion = 0, finalizados = 0;
   let revenueBruto = 0, pendienteCobro = 0, pendienteTalent = 0, margenTotal = 0;
 
@@ -59,8 +59,8 @@ export function computeKpis(campaigns: readonly CampaignWithRelations[]): Campai
     if (c.archivedAt !== null) continue;
 
     const cur    = c.currency ?? 'EUR';
-    const brand  = toEUR(c.amountBrand  ?? 0, cur);
-    const talent = toEUR(c.amountTalent ?? 0, cur);
+    const brand  = toEUR(c.amountBrand  ?? 0, cur, rate);
+    const talent = toEUR(c.amountTalent ?? 0, cur, rate);
 
     if (ACTIVE_STATUSES.has(c.status))   activos++;
     if (c.status === 'negociacion')       negociacion++;

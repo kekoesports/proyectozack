@@ -8,6 +8,6 @@ export function fmtCurrency(n: number | string, currency = 'EUR'): string {
   return (currency === 'USD' ? FMT_USD : FMT_EUR).format(Number(n));
 }
 
-export function toEUR(n: number | string, currency = 'EUR'): number {
-  return currency === 'USD' ? Number(n) * USD_EUR_RATE : Number(n);
+export function toEUR(n: number | string, currency = 'EUR', rate = USD_EUR_RATE): number {
+  return currency === 'USD' ? Number(n) * rate : Number(n);
 }

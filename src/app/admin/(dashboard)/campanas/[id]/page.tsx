@@ -16,6 +16,7 @@ import { invoices, user as userTable } from '@/db/schema';
 import { listCrmBrands, getBrandContacts } from '@/lib/queries/crmBrands';
 import { getAllTalents } from '@/lib/queries/talents';
 import { getCampaignSplits } from '@/lib/queries/campaignSplits';
+import { getUsdEurRate } from '@/lib/exchangeRate';
 import { CampaignDetailTabs } from '@/features/admin/campaigns/components/CampaignDetailTabs';
 
 import type { CrmBrandContact } from '@/types';
@@ -55,6 +56,7 @@ export default async function CampaignDetailPage({
     issuedInvoices,
     issuerCompanies,
     splits,
+    exchangeRate,
   ] = await Promise.all([
     getCampaignWithRelations(campaignId),
     listFilesByEntity('campaign', campaignId),
@@ -76,6 +78,7 @@ export default async function CampaignDetailPage({
     listIssuedInvoicesByDeal(campaignId),
     getIssuerCompanies(),
     getCampaignSplits(campaignId),
+    getUsdEurRate(),
   ]);
 
   if (!campaign) notFound();
@@ -120,6 +123,7 @@ export default async function CampaignDetailPage({
         issuedInvoices={issuedInvoices}
         issuerCompanies={issuerCompanies}
         splits={splits}
+        rate={exchangeRate.rate}
       />
     </div>
   );

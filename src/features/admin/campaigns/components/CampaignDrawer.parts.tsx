@@ -88,6 +88,7 @@ export type CampaignFormProps = {
   readonly contactsByBrand: Readonly<Record<number, readonly CrmBrandContact[]>>;
   readonly isManager: boolean;
   readonly splits: readonly CampaignSplit[];
+  readonly rate?: number;
 };
 
 export function CampaignForm({
@@ -100,6 +101,7 @@ export function CampaignForm({
   contactsByBrand,
   isManager,
   splits,
+  rate,
 }: CampaignFormProps): React.ReactElement {
   const router = useRouter();
   const [, startTransition] = useTransition();
@@ -545,6 +547,7 @@ export function CampaignForm({
             amountBrand={Number(amountBrand) || 0}
             amountTalent={Number(amountTalent) || 0}
             currency={currency}
+            {...(rate !== undefined && { rate })}
           />
         </div>
       )}

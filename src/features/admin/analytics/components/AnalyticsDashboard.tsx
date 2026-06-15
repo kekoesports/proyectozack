@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { toEUR, fmtCurrency, USD_EUR_RATE } from '@/lib/currency';
+import { fmtRateLabel } from '@/lib/exchangeRate';
 import { useMemo, useState } from 'react';
 import { BrandRankingTable }         from './BrandRankingTable';
 import { TalentRankingTable }         from './TalentRankingTable';
@@ -27,15 +28,18 @@ type TalentOption = { readonly id: number; readonly name: string };
 type Props = {
   readonly campaigns:    readonly CampaignWithRelations[];
   readonly invoices:     readonly InvoiceWithRelations[];
-  readonly brands?:       readonly BrandOption[];
-  readonly talents?:      readonly TalentOption[];
-  readonly alerts?:       readonly DashboardAlert[];
-  readonly alertSummary?: AlertSummary;
+  readonly brands?:          readonly BrandOption[];
+  readonly talents?:         readonly TalentOption[];
+  readonly alerts?:          readonly DashboardAlert[];
+  readonly alertSummary?:    AlertSummary;
   readonly codeClicks?:      readonly CodeClickRow[];
   readonly giveawayClicks?:  readonly GiveawayClickRow[];
   readonly giveawayViews?:   readonly GiveawayHubViewRow[];
   readonly topPosts?:        readonly PostTopViewRow[];
   readonly postViewsByDay?:  readonly PostViewsByDayRow[];
+  readonly rate?:            number;
+  readonly rateDate?:        string;
+  readonly rateIsEstimated?: boolean;
 };
 
 // ── Formateadores ─────────────────────────────────────────────────────
@@ -47,18 +51,18 @@ function pct(part: number, total: number): string | null {
   if (total === 0) return null;
   return `${Math.round((part / total) * 100)}%`;
 }
-function sumField(arr: readonly { totalAmount: string | number; currency?: string }[]): number {
-  return arr.reduce((s, i) => s + toEUR(i.totalAmount ?? 0, i.currency ?? 'EUR'), 0);
+function sumField(arr: readonly { totalAmount: string | number; currency?: string }[], rate = USD_EUR_RATE): number {
+  return arr.reduce((s, i) => s + toEUR(i.totalAmount ?? 0, i.currency ?? 'EUR', rate), 0);
 }
-function currencyBreakdown(arr: readonly { totalAmount: string | number; currency?: string }[]): string | undefined {
+function currencyBreakdown(arr: readonly { totalAmount: string | number; currency?: string }[], rate = USD_EUR_RATE): string | undefined {
   let eur = 0, usd = 0;
   for (const i of arr) {
     if ((i.currency ?? 'EUR') === 'USD') usd += Number(i.totalAmount ?? 0);
     else eur += Number(i.totalAmount ?? 0);
   }
   if (usd === 0) return undefined;
-  if (eur === 0) return `${fmtCurrency(usd, 'USD')} ≈ ${fmt(usd * USD_EUR_RATE)}`;
-  return `${fmt(eur)} + ${fmtCurrency(usd, 'USD')} (≈${fmt(usd * USD_EUR_RATE)})`;
+  if (eur === 0) return `${fmtCurrency(usd, 'USD')} ≈ ${fmt(usd * rate)}`;
+  return `${fmt(eur)} + ${fmtCurrency(usd, 'USD')} (≈${fmt(usd * rate)})`;
 }
 
 // ── Constantes canónicas de estados pendientes ────────────────────────
@@ -147,6 +151,7 @@ export function AnalyticsDashboard({
   campaigns, invoices, brands = [], talents = [],
   alerts = [], alertSummary, codeClicks = [], giveawayClicks = [], giveawayViews = [],
   topPosts = [], postViewsByDay = [],
+  rate = USD_EUR_RATE, rateDate = '', rateIsEstimated = true,
 }: Props): React.ReactElement {
   const [datePreset, setDatePreset] = useState<DatePreset>('year');
   const [status,     setStatus]     = useState<CampaignStatus | ''>('');
@@ -212,15 +217,15 @@ export function AnalyticsDashboard({
       const inc = filteredInvoices.filter((i) => i.kind === 'income');
       const exp = filteredInvoices.filter((i) => i.kind === 'expense');
 
-      const revTotal   = sumField(inc);
-      const revCobrado = sumField(inc.filter((i) => i.status === 'cobrada' || i.status === 'pagada'));
-      const revPdte    = sumField(inc.filter((i) => PENDING_INV.includes(i.status)));
-      const expTotal   = sumField(exp);
-      const expPagado  = sumField(exp.filter((i) => i.status === 'cobrada' || i.status === 'pagada'));
-      const expPdte    = sumField(exp.filter((i) => PENDING_EXP.includes(i.status)));
+      const revTotal   = sumField(inc, rate);
+      const revCobrado = sumField(inc.filter((i) => i.status === 'cobrada' || i.status === 'pagada'), rate);
+      const revPdte    = sumField(inc.filter((i) => PENDING_INV.includes(i.status)), rate);
+      const expTotal   = sumField(exp, rate);
+      const expPagado  = sumField(exp.filter((i) => i.status === 'cobrada' || i.status === 'pagada'), rate);
+      const expPdte    = sumField(exp.filter((i) => PENDING_EXP.includes(i.status)), rate);
       const margin     = revTotal - expTotal;
-      const revBreakdown = currencyBreakdown(inc);
-      const expBreakdown = currencyBreakdown(exp);
+      const revBreakdown = currencyBreakdown(inc, rate);
+      const expBreakdown = currencyBreakdown(exp, rate);
       return { revTotal, revCobrado, revPdte, expTotal, expPagado, expPdte, margin, revBreakdown, expBreakdown };
     }
 
@@ -229,17 +234,17 @@ export function AnalyticsDashboard({
     const asInvoice = (c: typeof valid[number], field: 'amountBrand' | 'amountTalent') =>
       ({ totalAmount: c[field] ?? 0, currency: c.currency ?? 'EUR' });
 
-    const revTotal   = valid.reduce((s, c) => s + toEUR(c.amountBrand  ?? 0, c.currency ?? 'EUR'), 0);
-    const revCobrado = valid.filter((c) => c.brandPaid  !== 'no').reduce((s, c) => s + toEUR(c.amountBrand  ?? 0, c.currency ?? 'EUR'), 0);
-    const revPdte    = valid.filter((c) => c.brandPaid  === 'no').reduce((s, c) => s + toEUR(c.amountBrand  ?? 0, c.currency ?? 'EUR'), 0);
-    const expTotal   = valid.reduce((s, c) => s + toEUR(c.amountTalent ?? 0, c.currency ?? 'EUR'), 0);
-    const expPagado  = valid.filter((c) => c.talentPaid !== 'no').reduce((s, c) => s + toEUR(c.amountTalent ?? 0, c.currency ?? 'EUR'), 0);
-    const expPdte    = valid.filter((c) => c.talentPaid === 'no').reduce((s, c) => s + toEUR(c.amountTalent ?? 0, c.currency ?? 'EUR'), 0);
+    const revTotal   = valid.reduce((s, c) => s + toEUR(c.amountBrand  ?? 0, c.currency ?? 'EUR', rate), 0);
+    const revCobrado = valid.filter((c) => c.brandPaid  !== 'no').reduce((s, c) => s + toEUR(c.amountBrand  ?? 0, c.currency ?? 'EUR', rate), 0);
+    const revPdte    = valid.filter((c) => c.brandPaid  === 'no').reduce((s, c) => s + toEUR(c.amountBrand  ?? 0, c.currency ?? 'EUR', rate), 0);
+    const expTotal   = valid.reduce((s, c) => s + toEUR(c.amountTalent ?? 0, c.currency ?? 'EUR', rate), 0);
+    const expPagado  = valid.filter((c) => c.talentPaid !== 'no').reduce((s, c) => s + toEUR(c.amountTalent ?? 0, c.currency ?? 'EUR', rate), 0);
+    const expPdte    = valid.filter((c) => c.talentPaid === 'no').reduce((s, c) => s + toEUR(c.amountTalent ?? 0, c.currency ?? 'EUR', rate), 0);
     const margin     = revTotal - expTotal;
-    const revBreakdown = currencyBreakdown(valid.map((c) => asInvoice(c, 'amountBrand')));
-    const expBreakdown = currencyBreakdown(valid.map((c) => asInvoice(c, 'amountTalent')));
+    const revBreakdown = currencyBreakdown(valid.map((c) => asInvoice(c, 'amountBrand')), rate);
+    const expBreakdown = currencyBreakdown(valid.map((c) => asInvoice(c, 'amountTalent')), rate);
     return { revTotal, revCobrado, revPdte, expTotal, expPagado, expPdte, margin, revBreakdown, expBreakdown };
-  }, [hasInvoices, filteredInvoices, filteredCampaigns]);
+  }, [hasInvoices, filteredInvoices, filteredCampaigns, rate]);
 
   const tratosActivos     = filteredCampaigns.filter((c) => c.status === 'activa').length;
   const tratosFinalizados = filteredCampaigns.filter((c) => c.status === 'completada' || c.status === 'pagada').length;
@@ -263,7 +268,7 @@ export function AnalyticsDashboard({
             {filteredCampaigns.length} tratos · {tratosActivos} activos · {tratosFinalizados} finalizados
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2">
           {hasInvoices ? (
             <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-emerald-600">
               <span className="w-2 h-2 rounded-full bg-emerald-500" />
@@ -275,6 +280,12 @@ export function AnalyticsDashboard({
               KPIs estimados desde tratos
             </span>
           )}
+          <span
+            className="whitespace-nowrap text-[9px] px-1.5 py-0.5 rounded-full bg-sp-admin-hover text-sp-admin-muted"
+            title="Tipo de cambio USD→EUR aplicado a los KPIs"
+          >
+            {fmtRateLabel({ rate, date: rateDate, isEstimated: rateIsEstimated })}
+          </span>
           <Link href="/admin/pl" className="text-[11px] font-semibold text-sp-admin-accent hover:underline">
             Ver P&L completo →
           </Link>

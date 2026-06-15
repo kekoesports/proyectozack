@@ -73,6 +73,7 @@ type Props = {
   readonly contractVars:        Readonly<Record<string, string>>;
   readonly issuedInvoices:      readonly IssuedInvoiceWithRelations[];
   readonly issuerCompanies:     readonly IssuerCompany[];
+  readonly rate?:               number;
 };
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -114,7 +115,7 @@ export function CampaignDetailTabs({
   campaign, campaignFiles, campaignInvoices, campaignDeliverables,
   isManager, isAdmin, brands, talents, staffUsers, contactsByBrand,
   contract, contractTemplates, contractVars, issuedInvoices, issuerCompanies,
-  splits,
+  splits, rate,
 }: Props): React.ReactElement {
   const router = useRouter();
   const [, startTransition] = useTransition();
@@ -333,6 +334,7 @@ export function CampaignDetailTabs({
               amountBrand={Number(campaign.amountBrand ?? 0)}
               amountTalent={Number(campaign.amountTalent ?? 0)}
               currency={campaign.currency ?? 'EUR'}
+              {...(rate !== undefined && { rate })}
             />
           </div>
         )}

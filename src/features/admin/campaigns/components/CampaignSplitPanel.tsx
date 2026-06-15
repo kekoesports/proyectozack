@@ -4,7 +4,7 @@ import { useState, useTransition } from 'react';
 import { upsertSplitsAction } from '@/app/admin/(dashboard)/campanas/campaign-actions';
 import { SPLIT_PARTIES } from '@/db/schema/campaignSplits';
 import type { CampaignSplit } from '@/lib/queries/campaignSplits';
-import { fmtCurrency, toEUR } from '@/lib/currency';
+import { fmtCurrency, toEUR, USD_EUR_RATE } from '@/lib/currency';
 
 const PARTY_LABELS: Record<string, string> = {
   pablo:    'Pablo',
@@ -19,10 +19,11 @@ type Props = {
   readonly amountBrand:  number;
   readonly amountTalent: number;
   readonly currency:     string;
+  readonly rate?:        number;
 };
 
-export function CampaignSplitPanel({ campaignId, splits, amountBrand, amountTalent, currency }: Props) {
-  const margin = toEUR(amountBrand - amountTalent, currency);
+export function CampaignSplitPanel({ campaignId, splits, amountBrand, amountTalent, currency, rate = USD_EUR_RATE }: Props) {
+  const margin = toEUR(amountBrand - amountTalent, currency, rate);
 
   const [pcts, setPcts] = useState<Record<string, string>>(() =>
     Object.fromEntries(splits.map((s) => [s.party, s.percentage > 0 ? String(s.percentage) : '']))

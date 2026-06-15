@@ -28,7 +28,8 @@ import {
   type StaffOption,
   type TalentOption,
 } from './CampaignsList.parts';
-import { fmtCurrency } from '@/lib/currency';
+import { fmtCurrency, USD_EUR_RATE } from '@/lib/currency';
+import { fmtRateLabel } from '@/lib/exchangeRate';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -41,6 +42,9 @@ type Props = {
   readonly contactsByBrand: Readonly<Record<number, readonly CrmBrandContact[]>>;
   readonly splitsMap:       Readonly<Record<number, CampaignSplit[]>>;
   readonly partnersOwed:    readonly PartnerOwed[];
+  readonly rate?:            number;
+  readonly rateDate?:        string;
+  readonly rateIsEstimated?: boolean;
 };
 
 // ── KPI Card ─────────────────────────────────────────────────────────────────
@@ -147,6 +151,7 @@ function PartnerOwedBlock({ partnersOwed }: { readonly partnersOwed: readonly Pa
  */
 export function CampaignsList({
   campaigns, isManager, brands, talents, staffUsers, contactsByBrand, splitsMap, partnersOwed,
+  rate = USD_EUR_RATE, rateDate = '', rateIsEstimated = true,
 }: Props): React.ReactElement {
   const [filters, setFilters]       = useState<CampaignFilterState>(EMPTY_FILTERS);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -156,7 +161,7 @@ export function CampaignsList({
   const talentMap = new Map(talents.map((t) => [t.id,  t.name]));
   const staffMap  = new Map(staffUsers.map((u) => [u.id, u.name]));
 
-  const kpis     = computeKpis(campaigns);
+  const kpis     = computeKpis(campaigns, rate);
   const filtered = applyFilters(campaigns, filters, brandMap, talentMap);
   const visible  = campaigns.filter((c) => c.archivedAt === null).length;
 
@@ -188,6 +193,13 @@ export function CampaignsList({
               <span><b className="text-red-500">{EUR.format(kpis.pendienteTalent)}</b> pdte. talent</span>
               <span className="opacity-40">•</span>
               <span><b className="text-sp-admin-text">{EUR.format(kpis.margenTotal)}</b> margen total</span>
+              <span className="opacity-40">•</span>
+              <span
+                className="whitespace-nowrap text-[9px] px-1.5 py-0.5 rounded-full bg-sp-admin-hover"
+                title="Tipo de cambio USD→EUR aplicado a los KPIs"
+              >
+                {fmtRateLabel({ rate, date: rateDate, isEstimated: rateIsEstimated })}
+              </span>
             </div>
           </div>
         </div>
@@ -430,6 +442,7 @@ export function CampaignsList({
         contactsByBrand={contactsByBrand}
         isManager={isManager}
         splits={selected !== null ? (splitsMap[selected.id] ?? []) : []}
+        rate={rate}
       />
     </div>
   );

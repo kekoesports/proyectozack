@@ -16,6 +16,7 @@ type Props = {
   readonly contactsByBrand: Readonly<Record<number, readonly CrmBrandContact[]>>;
   readonly isManager: boolean;
   readonly splits: readonly CampaignSplit[];
+  readonly rate?: number;
 };
 
 /**
@@ -34,6 +35,7 @@ export function CampaignDrawer({
   contactsByBrand,
   isManager,
   splits,
+  rate,
 }: Props): React.ReactElement {
   // Use campaign id (or 'new') as key so the form remounts on each open/switch
   const formKey = isOpen ? (campaign ? String(campaign.id) : 'new') : 'closed';
@@ -55,6 +57,7 @@ export function CampaignDrawer({
         contactsByBrand={contactsByBrand}
         isManager={isManager}
         splits={splits}
+        {...(rate !== undefined && { rate })}
       />
     </EditDrawer>
   );
