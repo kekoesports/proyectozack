@@ -63,10 +63,11 @@ function CoverUrlInput({ name, defaultValue, inputCls }: { name: string; default
  * 2. Programada en el futuro  → campo visible con aviso + botón "publicar ahora"
  * 3. Sin fecha                → campo vacío, al guardar = NOW()
  */
-function PublishAtField({ post, inputCls, fieldError }: {
+function PublishAtField({ post, inputCls, fieldError, isDraft }: {
   readonly post: { publishedAt?: Date | null; status?: string } | undefined;
   readonly inputCls: string;
   readonly fieldError: React.ReactNode;
+  readonly isDraft?: boolean;
 }) {
   const existing = post?.publishedAt ?? null;
   const isAlreadyPublished = !!(existing && new Date(existing) <= new Date());
@@ -94,13 +95,13 @@ function PublishAtField({ post, inputCls, fieldError }: {
         <label className="text-xs font-semibold text-sp-admin-muted uppercase tracking-wider">Fecha publicación</label>
         <span className="text-[10px] text-sp-admin-muted/60">vacío = publicar ahora</span>
       </div>
-      <PublishAtInput name="publishedAt" defaultValue={formatDatetimeLocal(existing)} inputCls={inputCls} />
+      <PublishAtInput name="publishedAt" defaultValue={formatDatetimeLocal(existing)} inputCls={inputCls} isDraft={isDraft ?? false} />
       {fieldError}
     </div>
   );
 }
 
-function PublishAtInput({ name, defaultValue, inputCls }: { name: string; defaultValue: string; inputCls: string }) {
+function PublishAtInput({ name, defaultValue, inputCls, isDraft }: { name: string; defaultValue: string; inputCls: string; isDraft?: boolean }) {
   const [val, setVal] = useState(defaultValue);
   const isScheduled = val && new Date(val) > new Date();
   return (
@@ -112,7 +113,12 @@ function PublishAtInput({ name, defaultValue, inputCls }: { name: string; defaul
         onChange={e => setVal(e.target.value)}
         className={inputCls}
       />
-      {isScheduled && (
+      {isScheduled && isDraft && (
+        <p className="text-[10px] text-red-400 mt-1.5">
+          ⚠️ En <strong>Borrador</strong> la fecha no tiene efecto — cambia el estado a <strong>Publicada</strong> para programar.
+        </p>
+      )}
+      {isScheduled && !isDraft && (
         <div className="flex items-center justify-between mt-1.5">
           <p className="text-[10px] text-amber-500">⏱ Programada — aún no visible en la web</p>
           <button type="button" onClick={() => setVal('')}
@@ -152,6 +158,7 @@ export function PostForm({ post, action, submitLabel }: Props) {
   const [title, setTitle] = useState(post?.title ?? '');
   const [preview, setPreview] = useState(false);
   const [body, setBody] = useState(post?.bodyMd ?? '');
+  const [status, setStatus] = useState<'draft' | 'published'>(post?.status ?? 'draft');
 
   function handleTitleBlur() {
     if (!post?.id && slug === '') setSlug(slugify(title));
@@ -294,13 +301,13 @@ export function PostForm({ post, action, submitLabel }: Props) {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
           <label className="block text-xs font-semibold text-sp-admin-muted uppercase tracking-wider mb-1.5">Estado *</label>
-          <select name="status" defaultValue={post?.status ?? 'draft'} className={inputCls('status')}>
+          <select name="status" value={status} onChange={e => setStatus(e.target.value as 'draft' | 'published')} className={inputCls('status')}>
             <option value="draft">Borrador</option>
             <option value="published">Publicada</option>
           </select>
           {fieldError('status')}
         </div>
-        <PublishAtField post={post ?? undefined} inputCls={inputCls('publishedAt')} fieldError={fieldError('publishedAt')} />
+        <PublishAtField post={post ?? undefined} inputCls={inputCls('publishedAt')} fieldError={fieldError('publishedAt')} isDraft={status === 'draft'} />
         <div>
           <label className="block text-xs font-semibold text-sp-admin-muted uppercase tracking-wider mb-1.5">Orden (sortOrder)</label>
           <input

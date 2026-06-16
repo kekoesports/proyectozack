@@ -35,8 +35,10 @@ export async function createPostAction(formData: FormData): Promise<ActionResult
     return { ok: false, error: 'El slug ya existe', fieldErrors: { slug: ['Este slug ya está en uso'] } };
   }
 
-  // Auto-set publishedAt to now when publishing without explicit date
-  const publishedAt = data.publishedAt ?? (data.status === 'published' ? new Date() : null);
+  // publishedAt solo se guarda si status='published'; en borradores siempre queda null.
+  const publishedAt = data.status !== 'published'
+    ? null
+    : (data.publishedAt ?? new Date());
 
   await db.insert(posts).values({
     slug: data.slug,
