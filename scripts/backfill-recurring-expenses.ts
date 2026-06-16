@@ -1,7 +1,7 @@
 /**
- * Backfill de gastos recurrentes.
+ * Backfill de gastos recurrentes — Cuota de autónomo (Keko + Zack).
  *
- * 1. Inserta la plantilla "Cuota autónomo" si no existe.
+ * 1. Upsert de ambas plantillas (crea si no existe, actualiza amount si ya existe).
  * 2. Para cada mes desde startDate hasta el mes actual, crea una invoice si no existe.
  *
  * Idempotente: seguro correr varias veces.
@@ -33,8 +33,7 @@ for (const line of envContent.split('\n')) {
 const sql = neon(process.env['DATABASE_URL']!);
 const db = drizzle(sql, { schema });
 
-const CUOTA_AUTONOMO = {
-  name: 'Cuota autónomo',
+const BASE = {
   concept: 'Cuota de autónomo',
   amount: '315.00',
   currency: 'EUR',
@@ -51,41 +50,66 @@ const CUOTA_AUTONOMO = {
   active: true,
 };
 
-async function main(): Promise<void> {
-  // 1. Upsert de la plantilla
-  const [existing] = await db
+// Dos plantillas: una por socio. El name es la clave de idempotencia del upsert.
+// La plantilla antigua "Cuota autónomo" (sin socio) corresponde a Keko;
+// el script la renombra si encuentra el nombre legacy.
+const TEMPLATES = [
+  { ...BASE, name: 'Cuota autónomo — Keko', legacyName: 'Cuota autónomo' },
+  { ...BASE, name: 'Cuota autónomo — Zack', concept: 'Cuota de autónomo — Zack' },
+];
+
+async function upsertTemplate(tpl: typeof TEMPLATES[number]): Promise<number> {
+  // Buscar por nombre definitivo
+  const [byName] = await db
     .select()
     .from(schema.recurringExpenses)
-    .where(eq(schema.recurringExpenses.name, CUOTA_AUTONOMO.name))
+    .where(eq(schema.recurringExpenses.name, tpl.name))
     .limit(1);
 
-  let templateId: number;
-  if (existing) {
-    templateId = existing.id;
-    console.log(`[cuota-autonomo] Plantilla ya existe (id=${templateId}) — actualizando amount.`);
-    await db
-      .update(schema.recurringExpenses)
-      .set({ amount: CUOTA_AUTONOMO.amount })
-      .where(eq(schema.recurringExpenses.id, templateId));
-  } else {
-    const [inserted] = await db
-      .insert(schema.recurringExpenses)
-      .values(CUOTA_AUTONOMO)
-      .returning({ id: schema.recurringExpenses.id });
-    templateId = inserted!.id;
-    console.log(`[cuota-autonomo] Plantilla creada (id=${templateId}).`);
+  if (byName) {
+    await db.update(schema.recurringExpenses)
+      .set({ amount: tpl.amount })
+      .where(eq(schema.recurringExpenses.id, byName.id));
+    console.log(`[${tpl.name}] Plantilla ya existe (id=${byName.id}) — amount actualizado.`);
+    return byName.id;
   }
 
-  // 2. Generar invoices para todos los meses desde startDate hasta hoy
+  // Buscar por nombre legacy (solo aplica a Keko)
+  if ('legacyName' in tpl && tpl.legacyName) {
+    const [byLegacy] = await db
+      .select()
+      .from(schema.recurringExpenses)
+      .where(eq(schema.recurringExpenses.name, tpl.legacyName))
+      .limit(1);
+
+    if (byLegacy) {
+      await db.update(schema.recurringExpenses)
+        .set({ name: tpl.name, amount: tpl.amount })
+        .where(eq(schema.recurringExpenses.id, byLegacy.id));
+      console.log(`[${tpl.name}] Renombrado desde "${tpl.legacyName}" (id=${byLegacy.id}).`);
+      return byLegacy.id;
+    }
+  }
+
+  const { legacyName: _legacy, ...values } = tpl as typeof TEMPLATES[number] & { legacyName?: string };
+  const [inserted] = await db
+    .insert(schema.recurringExpenses)
+    .values(values)
+    .returning({ id: schema.recurringExpenses.id });
+  console.log(`[${tpl.name}] Plantilla creada (id=${inserted!.id}).`);
+  return inserted!.id;
+}
+
+async function backfillInvoices(templateId: number, tpl: typeof TEMPLATES[number]): Promise<void> {
   const now = new Date();
-  const currentYear  = now.getFullYear();
-  const currentMonthN = now.getMonth() + 1; // 1-based
+  const currentYear = now.getFullYear();
+  const currentMonthN = now.getMonth() + 1;
 
   let created = 0;
   let skipped = 0;
 
   let cursorYear = 2026;
-  let cursorMonthN = 1; // January 2026
+  let cursorMonthN = 1;
 
   while (
     cursorYear < currentYear ||
@@ -103,38 +127,38 @@ async function main(): Promise<void> {
       .limit(1);
 
     if (exists) {
-      console.log(`[cuota-autonomo] ${monthStr} → ya existe (invoice ${exists.id}), skip.`);
+      console.log(`  ${monthStr} → ya existe (invoice ${exists.id}), skip.`);
       skipped++;
     } else {
       const lastDay = new Date(yyyy, cursorMonthN, 0).getDate();
-      const day = Math.min(CUOTA_AUTONOMO.dayOfMonth, lastDay);
+      const day = Math.min(tpl.dayOfMonth, lastDay);
       const issueDate = `${yyyy}-${mm}-${String(day).padStart(2, '0')}`;
-      const net = Number(CUOTA_AUTONOMO.amount);
+      const net = Number(tpl.amount);
       const total = net; // vatPct=0, withholdingPct=0
 
       const [inserted] = await db
         .insert(schema.invoices)
         .values({
           kind: 'expense',
-          scope: CUOTA_AUTONOMO.scope,
-          concept: CUOTA_AUTONOMO.concept,
-          category: CUOTA_AUTONOMO.category,
-          counterpartyName: CUOTA_AUTONOMO.counterpartyName,
+          scope: tpl.scope,
+          concept: tpl.concept,
+          category: tpl.category,
+          counterpartyName: tpl.counterpartyName,
           netAmount: net.toFixed(2),
-          vatPct: CUOTA_AUTONOMO.vatPct,
-          withholdingPct: CUOTA_AUTONOMO.withholdingPct,
+          vatPct: tpl.vatPct,
+          withholdingPct: tpl.withholdingPct,
           totalAmount: total.toFixed(2),
           paidAmount: '0.00',
-          currency: CUOTA_AUTONOMO.currency,
+          currency: tpl.currency,
           issueDate,
           status: 'pendiente',
-          company: CUOTA_AUTONOMO.company,
-          paymentMethod: CUOTA_AUTONOMO.paymentMethod,
+          company: tpl.company,
+          paymentMethod: tpl.paymentMethod,
           txId,
         })
         .returning({ id: schema.invoices.id });
 
-      console.log(`[cuota-autonomo] ${monthStr} → creada invoice ${inserted!.id} (${issueDate}).`);
+      console.log(`  ${monthStr} → creada invoice ${inserted!.id} (${issueDate}).`);
       created++;
     }
 
@@ -142,7 +166,16 @@ async function main(): Promise<void> {
     if (cursorMonthN > 12) { cursorMonthN = 1; cursorYear++; }
   }
 
-  console.log(`\n✓ Backfill completado: ${created} creadas, ${skipped} ya existían.`);
+  console.log(`  ✓ ${created} creadas, ${skipped} ya existían.\n`);
+}
+
+async function main(): Promise<void> {
+  for (const tpl of TEMPLATES) {
+    console.log(`\n=== ${tpl.name} ===`);
+    const templateId = await upsertTemplate(tpl);
+    await backfillInvoices(templateId, tpl);
+  }
+  console.log('✓ Backfill completo.');
 }
 
 main().catch((err) => {
