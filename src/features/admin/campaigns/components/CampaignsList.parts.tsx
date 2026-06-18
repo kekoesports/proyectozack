@@ -128,18 +128,16 @@ export function fmtCurrencyBreakdown(nativeEUR: number, nativeUSD: number, rate:
 export type PayBadge = { label: string; color: string };
 
 export function brandPayBadge(c: CampaignRow): PayBadge {
-  if (c.status === 'pagada')        return { label: 'Cobrado',   color: '#16a34a' };
-  if (c.status === 'pendiente_pago') return { label: 'Pendiente', color: '#f59e0b' };
-  if (c.status === 'cancelada')     return { label: 'Cancelado', color: '#9ca3af' };
-  if (Number(c.amountBrand ?? 0) === 0) return { label: '—', color: '#9ca3af' };
+  if (c.status === 'cancelada')         return { label: 'Cancelado', color: '#9ca3af' };
+  if (Number(c.amountBrand ?? 0) === 0) return { label: '—',         color: '#9ca3af' };
+  if (c.cobroConfirmado)                return { label: 'Cobrado',   color: '#16a34a' };
   return { label: 'Sin cobrar', color: '#f59e0b' };
 }
 
 export function talentPayBadge(c: CampaignRow): PayBadge {
-  if (c.status === 'pagada')        return { label: 'Pagado',    color: '#16a34a' };
-  if (c.status === 'pendiente_pago') return { label: 'Pendiente', color: '#f59e0b' };
-  if (c.status === 'cancelada')     return { label: 'Cancelado', color: '#9ca3af' };
-  if (Number(c.amountTalent ?? 0) === 0) return { label: '—', color: '#9ca3af' };
+  if (c.status === 'cancelada')          return { label: 'Cancelado', color: '#9ca3af' };
+  if (Number(c.amountTalent ?? 0) === 0) return { label: '—',         color: '#9ca3af' };
+  if (c.pagoTalentConfirmado)            return { label: 'Pagado',    color: '#16a34a' };
   return { label: 'Sin pagar', color: '#ef4444' };
 }
 
@@ -171,12 +169,12 @@ export function applyFilters(
     if (f.geo         !== '' && c.geo                !== f.geo)                      return false;
 
     // Cobro marca
-    if (f.cobroMarca === 'cobrado'   && c.brandPaid  === 'no') return false;
-    if (f.cobroMarca === 'pendiente' && c.brandPaid  !== 'no') return false;
+    if (f.cobroMarca === 'cobrado'   && !c.cobroConfirmado) return false;
+    if (f.cobroMarca === 'pendiente' &&  c.cobroConfirmado) return false;
 
     // Pago talento
-    if (f.pagoTalento === 'pagado'   && c.talentPaid === 'no') return false;
-    if (f.pagoTalento === 'pendiente' && c.talentPaid !== 'no') return false;
+    if (f.pagoTalento === 'pagado'   && !c.pagoTalentConfirmado) return false;
+    if (f.pagoTalento === 'pendiente' &&  c.pagoTalentConfirmado) return false;
 
     return true;
   });

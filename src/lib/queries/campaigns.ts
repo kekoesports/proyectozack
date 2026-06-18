@@ -235,6 +235,8 @@ export async function getCampaignWithRelations(
       cnmcChecklistOk: campaigns.cnmcChecklistOk,
       cnmcChecklistAt: campaigns.cnmcChecklistAt,
       cnmcChecklistUserId: campaigns.cnmcChecklistUserId,
+      cobroConfirmado: campaigns.cobroConfirmado,
+      pagoTalentConfirmado: campaigns.pagoTalentConfirmado,
       // Brand fields
       brandName: crmBrands.name,
       brandSector: crmBrands.sector,
@@ -307,6 +309,8 @@ export async function getCampaignWithRelations(
     cnmcChecklistOk: row.cnmcChecklistOk,
     cnmcChecklistAt: row.cnmcChecklistAt ?? null,
     cnmcChecklistUserId: row.cnmcChecklistUserId ?? null,
+    cobroConfirmado: row.cobroConfirmado,
+    pagoTalentConfirmado: row.pagoTalentConfirmado,
     ...derived,
     brand: {
       id: row.brandId,

@@ -59,6 +59,9 @@ export const campaigns = pgTable('campaigns', {
   brandPaymentMethod: campaignPaymentMethodEnum('brand_payment_method'),
   talentPaymentMethod: campaignPaymentMethodEnum('talent_payment_method'),
 
+  cobroConfirmado: boolean('cobro_confirmado').notNull().default(false),
+  pagoTalentConfirmado: boolean('pago_talent_confirmado').notNull().default(false),
+
   visibility: varchar('visibility', { length: 10 }).notNull().default('team'),
 
   archivedAt: timestamp('archived_at', { withTimezone: true }),

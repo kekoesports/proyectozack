@@ -1,0 +1,2 @@
+ALTER TABLE "campaigns" ADD COLUMN "cobro_confirmado" boolean DEFAULT false NOT NULL;--> statement-breakpoint
+ALTER TABLE "campaigns" ADD COLUMN "pago_talent_confirmado" boolean DEFAULT false NOT NULL;

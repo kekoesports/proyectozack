@@ -285,6 +285,30 @@ export function CampaignForm({
         </select>
       </Field>
 
+      {/* Cobro / Pago talento */}
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="Cobro marca">
+          <select
+            name="cobroConfirmado"
+            defaultValue={campaign?.cobroConfirmado ? '1' : '0'}
+            className={selectCls}
+          >
+            <option value="0">Sin cobrar</option>
+            <option value="1">Cobrado ✓</option>
+          </select>
+        </Field>
+        <Field label="Pago talento">
+          <select
+            name="pagoTalentConfirmado"
+            defaultValue={campaign?.pagoTalentConfirmado ? '1' : '0'}
+            className={selectCls}
+          >
+            <option value="0">Sin pagar</option>
+            <option value="1">Pagado ✓</option>
+          </select>
+        </Field>
+      </div>
+
       {/* Fechas */}
       <div className="grid grid-cols-2 gap-3">
         <Field label="Fecha inicio">

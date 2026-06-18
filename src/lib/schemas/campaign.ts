@@ -96,6 +96,9 @@ const baseCampaign = z.object({
   estimatedMarginPct: z.coerce.number().min(0).max(100).optional(),
   // CNMC compliance checklist
   cnmcChecklistOk: z.coerce.boolean().optional().default(false),
+  // Estado de pagos (Opción B — flags directos en campaña)
+  cobroConfirmado: z.coerce.boolean().optional().default(false),
+  pagoTalentConfirmado: z.coerce.boolean().optional().default(false),
 });
 
 export const createCampaignSchema = baseCampaign
