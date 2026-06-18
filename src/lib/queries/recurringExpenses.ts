@@ -16,7 +16,10 @@ export function getRecurringExpense(id: number): Promise<RecurringExpense | null
 }
 
 export function createRecurringExpense(values: NewRecurringExpense): Promise<RecurringExpense> {
-  return db.insert(recurringExpenses).values(values).returning().then(([r]) => r!);
+  return db.insert(recurringExpenses).values(values).returning().then(([r]) => {
+    if (!r) throw new Error('insert recurringExpense returned no row');
+    return r;
+  });
 }
 
 export function updateRecurringExpense(id: number, patch: Partial<NewRecurringExpense>): Promise<RecurringExpense | null> {
@@ -94,5 +97,6 @@ export async function createInvoiceForMonth(
     notes: template.notes ?? undefined,
   }).returning({ id: invoices.id });
 
-  return row!.id;
+  if (!row) throw new Error('insert invoice for recurring expense returned no row');
+  return row.id;
 }
