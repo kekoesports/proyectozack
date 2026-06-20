@@ -4,7 +4,10 @@ import { useMemo, useState, useTransition } from 'react';
 import { IssuedInvoiceForm }    from './IssuedInvoiceForm';
 import { RectifyInvoiceModal }  from './RectifyInvoiceModal';
 import { InvoicePdfButton }     from './InvoicePdfButton';
-import { updateInvoiceStatusAction } from '@/app/admin/(dashboard)/facturacion/issued-invoices-actions';
+import {
+  updateInvoiceStatusAction,
+  deleteIssuedInvoiceAction,
+} from '@/app/admin/(dashboard)/facturacion/issued-invoices-actions';
 import { ISSUED_INVOICE_STATUS_LABELS } from '@/lib/schemas/issuedInvoice';
 import type { IssuerCompany, BillingClient, IssuedInvoiceWithRelations } from '@/types';
 
@@ -85,10 +88,15 @@ export function IssuedInvoicesTab({
   const totalVisible = filtered.reduce((s, i) => s + Number(i.totalAmount ?? 0), 0);
   const cobradas     = invoices.filter((i) => i.status === 'cobrada').length;
   const pendientes   = invoices.filter((i) => i.status === 'emitida' || i.status === 'enviada').length;
-  const vencidas     = invoices.filter((i) => i.status === 'vencida').length;
+  const totalCreadas = invoices.filter((i) => i.status !== 'borrador').length;
 
   function changeStatus(id: number, status: string): void {
     startTransition(async () => { await updateInvoiceStatusAction(id, status); });
+  }
+
+  function deleteInvoice(id: number, number: string): void {
+    if (!confirm(`¿Eliminar definitivamente la factura ${number}?\n\nEl número ${number} no se reutilizará. Esta acción no se puede deshacer.`)) return;
+    startTransition(async () => { await deleteIssuedInvoiceAction(id); });
   }
 
   return (
@@ -96,10 +104,10 @@ export function IssuedInvoicesTab({
       {/* KPIs */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
         {[
-          { label: 'Emitidas / Enviadas', value: pendientes, accent: '#2563eb' },
-          { label: 'Cobradas',            value: cobradas,   accent: '#16a34a' },
-          { label: 'Vencidas',            value: vencidas,   accent: '#dc2626' },
-          { label: 'Total visible',       value: fmt(totalVisible), accent: '#f5632a', isAmount: true },
+          { label: 'Total emitidas',      value: totalCreadas, accent: '#6d28d9' },
+          { label: 'Emitidas / Enviadas', value: pendientes,   accent: '#2563eb' },
+          { label: 'Cobradas',            value: cobradas,     accent: '#16a34a' },
+          { label: 'Total visible',       value: fmt(totalVisible), accent: '#f5632a' },
         ].map((k) => (
           <div key={k.label} className="rounded-xl bg-sp-admin-card shadow-[0_1px_3px_rgba(0,0,0,0.06)] overflow-hidden">
             <div className="h-[2px]" style={{ background: k.accent }} />
@@ -257,6 +265,14 @@ export function IssuedInvoicesTab({
                             }}
                             className="px-2 py-1 rounded text-[10px] font-semibold text-red-500 hover:bg-red-50 disabled:opacity-40 transition-colors">
                             Anular
+                          </button>
+                        )}
+                        {/* Eliminar — solo admin, solo borrador o anulada */}
+                        {isAdmin && (inv.status === 'borrador' || inv.status === 'anulada') && (
+                          <button type="button" disabled={isPending}
+                            onClick={() => deleteInvoice(inv.id, inv.invoiceNumber)}
+                            className="px-2 py-1 rounded text-[10px] font-semibold text-zinc-400 hover:text-red-600 hover:bg-red-50 disabled:opacity-40 transition-colors">
+                            Eliminar
                           </button>
                         )}
                       </div>

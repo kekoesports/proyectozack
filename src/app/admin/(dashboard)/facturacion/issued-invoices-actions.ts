@@ -13,6 +13,7 @@ import {
   allocateRectificationNumber,
   createIssuedInvoice,
   updateIssuedInvoice,
+  deleteIssuedInvoice,
   createBillingClient,
   updateBillingClient,
   updateIssuerCompany,
@@ -311,6 +312,23 @@ export async function updateInvoiceStatusAction(id: number, status: string): Pro
   } catch (err) {
     logRedacted('error', '[issued-invoices] updateInvoiceStatus error:', err instanceof Error ? err.message : 'unknown');
     return { error: 'Error al actualizar estado' };
+  }
+}
+
+export async function deleteIssuedInvoiceAction(id: number): Promise<ActionState> {
+  const idCheck = IdSchema.safeParse(id);
+  if (!idCheck.success) return { error: 'ID inválido' };
+
+  await requirePermission('facturacion', 'delete');
+
+  try {
+    const deleted = await deleteIssuedInvoice(idCheck.data);
+    if (!deleted) return { error: 'Solo se pueden eliminar facturas en borrador o anuladas' };
+    revalidatePath('/admin/facturacion');
+    return { success: true };
+  } catch (err) {
+    logRedacted('error', '[issued-invoices] deleteIssuedInvoice error:', err instanceof Error ? err.message : 'unknown');
+    return { error: 'Error al eliminar la factura' };
   }
 }
 

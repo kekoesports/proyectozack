@@ -5,16 +5,32 @@
  */
 import type { IssuedInvoiceWithRelations, IssuerCompany, BillingClient } from '@/types';
 
+/** Carga el logo, lo redimensiona y aplana transparencia → JPEG para jsPDF */
 async function loadLogoDataUrl(): Promise<string | null> {
   try {
     const res = await fetch('/logo.png');
     if (!res.ok) return null;
     const blob = await res.blob();
-    return new Promise<string>((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = reject;
-      reader.readAsDataURL(blob);
+    const objectUrl = URL.createObjectURL(blob);
+
+    return new Promise<string>((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        const TARGET_W = 600;
+        const TARGET_H = Math.round(TARGET_W * img.height / img.width);
+        const canvas = document.createElement('canvas');
+        canvas.width  = TARGET_W;
+        canvas.height = TARGET_H;
+        const ctx = canvas.getContext('2d');
+        URL.revokeObjectURL(objectUrl);
+        if (!ctx) { resolve(null as unknown as string); return; }
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, TARGET_W, TARGET_H);
+        ctx.drawImage(img, 0, 0, TARGET_W, TARGET_H);
+        resolve(canvas.toDataURL('image/jpeg', 0.90));
+      };
+      img.onerror = () => { URL.revokeObjectURL(objectUrl); resolve(null as unknown as string); };
+      img.src = objectUrl;
     });
   } catch {
     return null;
@@ -109,8 +125,8 @@ export async function generateInvoicePdf(
 
   // Logo o nombre de empresa (izquierda)
   if (logoDataUrl) {
-    // Aspect ratio logo.png ~1.92:1 → 35×18mm
-    doc.addImage(logoDataUrl, 'PNG', MARGIN, y + 1, 35, 18);
+    // Aspect ratio logo.png ~1.92:1 → 35×18mm (JPEG tras conversión Canvas)
+    doc.addImage(logoDataUrl, 'JPEG', MARGIN, y + 1, 35, 18);
   } else {
     setFont(16, 'bold', ACCENT);
     doc.text(issuer.name, MARGIN, y + 8);

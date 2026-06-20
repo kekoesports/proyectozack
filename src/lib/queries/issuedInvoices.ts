@@ -276,3 +276,14 @@ export async function getIssuedInvoice(id: number): Promise<IssuedInvoice | null
   const [row] = await db.select().from(issuedInvoices).where(eq(issuedInvoices.id, id)).limit(1);
   return row ?? null;
 }
+
+/** Elimina permanentemente una factura (solo borrador o anulada). Las líneas se borran en cascade. */
+export async function deleteIssuedInvoice(id: number): Promise<boolean> {
+  const [deleted] = await db.delete(issuedInvoices)
+    .where(and(
+      eq(issuedInvoices.id, id),
+      sql`${issuedInvoices.status} IN ('borrador', 'anulada')`,
+    ))
+    .returning({ id: issuedInvoices.id });
+  return !!deleted;
+}
