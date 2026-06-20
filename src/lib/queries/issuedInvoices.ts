@@ -1,4 +1,5 @@
 import { and, asc, desc, eq, or, sql } from 'drizzle-orm';
+import { alias } from 'drizzle-orm/pg-core';
 import { db } from '@/lib/db';
 import {
   issuerCompanies, billingClients, issuedInvoices, issuedInvoiceLines,
@@ -8,6 +9,8 @@ import type {
   IssuerCompany, BillingClient, IssuedInvoice, IssuedInvoiceWithRelations,
   IssuedInvoiceLine,
 } from '@/types';
+
+const originalInvoice = alias(issuedInvoices, 'original_invoice');
 
 // ── Empresas emisoras ─────────────────────────────────────────────────
 
@@ -159,22 +162,27 @@ export async function listIssuedInvoices(filters: {
     legalNote:             issuedInvoices.legalNote,
     notes:                 issuedInvoices.notes,
     pdfUrl:                issuedInvoices.pdfUrl,
+    rectifiedInvoiceId:    issuedInvoices.rectifiedInvoiceId,
+    rectificationType:     issuedInvoices.rectificationType,
+    rectificationReason:   issuedInvoices.rectificationReason,
     createdByUserId:       issuedInvoices.createdByUserId,
     createdAt:             issuedInvoices.createdAt,
     updatedAt:             issuedInvoices.updatedAt,
     // Relations
-    issuerName:  issuerCompanies.name,
-    clientName:  billingClients.name,
-    brandName:   crmBrands.name,
-    talentName:  talents.name,
-    dealName:    campaigns.name,
+    issuerName:             issuerCompanies.name,
+    clientName:             billingClients.name,
+    brandName:              crmBrands.name,
+    talentName:             talents.name,
+    dealName:               campaigns.name,
+    rectifiedInvoiceNumber: originalInvoice.invoiceNumber,
   })
   .from(issuedInvoices)
   .innerJoin(issuerCompanies, eq(issuerCompanies.id, issuedInvoices.issuerCompanyId))
   .innerJoin(billingClients,  eq(billingClients.id,  issuedInvoices.billingClientId))
-  .leftJoin(crmBrands,  eq(crmBrands.id,  issuedInvoices.relatedBrandId))
-  .leftJoin(talents,    eq(talents.id,    issuedInvoices.relatedTalentId))
-  .leftJoin(campaigns,  eq(campaigns.id,  issuedInvoices.relatedDealId))
+  .leftJoin(crmBrands,       eq(crmBrands.id,        issuedInvoices.relatedBrandId))
+  .leftJoin(talents,         eq(talents.id,           issuedInvoices.relatedTalentId))
+  .leftJoin(campaigns,       eq(campaigns.id,         issuedInvoices.relatedDealId))
+  .leftJoin(originalInvoice, eq(originalInvoice.id,  issuedInvoices.rectifiedInvoiceId))
   .where(conds.length > 0 ? and(...conds) : undefined)
   .orderBy(desc(issuedInvoices.issueDate), desc(issuedInvoices.id));
 
@@ -211,6 +219,24 @@ export async function allocateInvoiceNumber(issuerId: number): Promise<string> {
   if (!row) throw new Error('Empresa emisora no encontrada');
   const year = new Date().getFullYear();
   return `${row.prefix}-${year}-${String(row.num).padStart(4, '0')}`;
+}
+
+/** Genera el próximo número de factura rectificativa y lo incrementa atómicamente */
+export async function allocateRectificationNumber(issuerId: number): Promise<string> {
+  const [row] = await db
+    .update(issuerCompanies)
+    .set({
+      nextRectificationNumber: sql`next_rectification_number + 1`,
+      updatedAt: new Date(),
+    })
+    .where(eq(issuerCompanies.id, issuerId))
+    .returning({
+      prefix: issuerCompanies.invoiceSeriesPrefix,
+      num:    sql<number>`next_rectification_number - 1`,
+    });
+  if (!row) throw new Error('Empresa emisora no encontrada');
+  const year = new Date().getFullYear();
+  return `R-${row.prefix}-${year}-${String(row.num).padStart(4, '0')}`;
 }
 
 export async function createIssuedInvoice(values: {

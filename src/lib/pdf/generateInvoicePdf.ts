@@ -5,6 +5,22 @@
  */
 import type { IssuedInvoiceWithRelations, IssuerCompany, BillingClient } from '@/types';
 
+async function loadLogoDataUrl(): Promise<string | null> {
+  try {
+    const res = await fetch('/logo.png');
+    if (!res.ok) return null;
+    const blob = await res.blob();
+    return new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  } catch {
+    return null;
+  }
+}
+
 // ── Constantes de diseño ──────────────────────────────────────────────
 
 const PAGE_W  = 210; // A4 ancho mm
@@ -52,9 +68,13 @@ export async function generateInvoicePdf(
   client:   BillingClient,
 ): Promise<void> {
   // Import dinámico para evitar SSR
-  const { jsPDF } = await import('jspdf');
+  const [{ jsPDF }, logoDataUrl] = await Promise.all([
+    import('jspdf'),
+    loadLogoDataUrl(),
+  ]);
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
 
+  const isRectificativa = !!invoice.rectifiedInvoiceId;
   let y = MARGIN;
 
   // ── Helpers internos ────────────────────────────────────────────────
@@ -87,17 +107,27 @@ export async function generateInvoicePdf(
   // Banda naranja superior
   rect(0, 0, PAGE_W, 2, ACCENT);
 
-  // Nombre de empresa emisora (izquierda)
-  setFont(16, 'bold', ACCENT);
-  doc.text(issuer.name, MARGIN, y + 8);
+  // Logo o nombre de empresa (izquierda)
+  if (logoDataUrl) {
+    // Aspect ratio logo.png ~1.92:1 → 35×18mm
+    doc.addImage(logoDataUrl, 'PNG', MARGIN, y + 1, 35, 18);
+  } else {
+    setFont(16, 'bold', ACCENT);
+    doc.text(issuer.name, MARGIN, y + 8);
+  }
 
-  // "FACTURA" + número (derecha)
-  setFont(22, 'bold', BLACK);
-  doc.text('FACTURA', COL_R, y + 5, { align: 'right' });
+  // "FACTURA [RECTIFICATIVA]" + número (derecha)
+  const invoiceTitle = isRectificativa ? 'FACTURA RECTIFICATIVA' : 'FACTURA';
+  setFont(isRectificativa ? 16 : 22, 'bold', isRectificativa ? '#7c3aed' : BLACK);
+  doc.text(invoiceTitle, COL_R, y + 5, { align: 'right' });
   setFont(12, 'normal', GRAY);
   doc.text(invoice.invoiceNumber, COL_R, y + 11, { align: 'right' });
+  if (isRectificativa && invoice.rectifiedInvoiceNumber) {
+    setFont(8, 'normal', GRAY);
+    doc.text(`Rectifica: ${invoice.rectifiedInvoiceNumber}`, COL_R, y + 16, { align: 'right' });
+  }
 
-  y += 18;
+  y += 22;
   hRule(y, '#e2e2ec');
   y += 4;
 
@@ -157,6 +187,28 @@ export async function generateInvoicePdf(
   y += 12;
   hRule(y, '#e2e2ec');
   y += 5;
+
+  // ── 4a. DATOS RECTIFICATIVA ───────────────────────────────────────────
+
+  if (isRectificativa) {
+    rect(MARGIN - 2, y - 2, PAGE_W - MARGIN * 2 + 4, 14, '#f3f0ff');
+    setFont(7, 'bold', '#7c3aed');
+    doc.text('FACTURA RECTIFICATIVA', MARGIN, y + 1.5);
+    setFont(8.5, 'normal', BLACK);
+    if (invoice.rectifiedInvoiceNumber) {
+      doc.text(`Rectifica la factura: ${invoice.rectifiedInvoiceNumber}`, MARGIN, y + 6);
+    }
+    if (invoice.rectificationType) {
+      const typeLabel = invoice.rectificationType === 'sustitutiva' ? 'Sustitutiva' : 'Por diferencia';
+      doc.text(`Tipo: ${typeLabel}`, COL_R, y + 6, { align: 'right' });
+    }
+    if (invoice.rectificationReason) {
+      setFont(8, 'normal', GRAY);
+      const reasonLines = splitText(`Motivo: ${invoice.rectificationReason}`, PAGE_W - MARGIN * 2);
+      doc.text(reasonLines[0] ?? '', MARGIN, y + 11);
+    }
+    y += 18;
+  }
 
   // ── 4. TRATO / RELACIÓN CRM ───────────────────────────────────────────
 
@@ -307,18 +359,17 @@ export async function generateInvoicePdf(
     { align: 'center' },
   );
 
-  // ── 10. MARCA DE AGUA "BORRADOR" ──────────────────────────────────────
+  // ── 10. MARCAS DE AGUA ────────────────────────────────────────────────
 
-  if (invoice.status === 'borrador' || invoice.status === 'anulada') {
+  if (invoice.status === 'borrador' || invoice.status === 'anulada' || invoice.status === 'rectificada') {
     doc.setTextColor(200, 200, 200);
-    doc.setFontSize(60);
+    doc.setFontSize(invoice.status === 'rectificada' ? 40 : 60);
     doc.setFont('helvetica', 'bold');
-    doc.setGState(doc.GState({ opacity: 0.15 }));
-    doc.text(
-      invoice.status === 'borrador' ? 'BORRADOR' : 'ANULADA',
-      PAGE_W / 2, PAGE_H / 2,
-      { angle: 45, align: 'center' },
-    );
+    doc.setGState(doc.GState({ opacity: 0.12 }));
+    const watermarkText = invoice.status === 'borrador' ? 'BORRADOR'
+      : invoice.status === 'anulada' ? 'ANULADA'
+      : 'RECTIFICADA';
+    doc.text(watermarkText, PAGE_W / 2, PAGE_H / 2, { angle: 45, align: 'center' });
     doc.setGState(doc.GState({ opacity: 1.0 }));
   }
 

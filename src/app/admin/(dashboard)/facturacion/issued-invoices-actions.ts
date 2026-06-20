@@ -10,6 +10,7 @@ import { logRedacted } from '@/lib/log';
 import { IdSchema } from '@/lib/schemas/common';
 import {
   allocateInvoiceNumber,
+  allocateRectificationNumber,
   createIssuedInvoice,
   updateIssuedInvoice,
   createBillingClient,
@@ -26,6 +27,7 @@ import { getIsoWeekLabel } from '@/lib/utils/week';
 import {
   createIssuedInvoiceSchema,
   updateIssuedInvoiceSchema,
+  rectifyInvoiceSchema,
   billingClientSchema,
   issuerCompanySchema,
   ISSUED_INVOICE_STATUSES,
@@ -113,6 +115,9 @@ export async function createIssuedInvoiceAction(
         legalNote:         invoiceData.legalNote    ?? null,
         notes:             invoiceData.notes        ?? null,
         pdfUrl:            null,
+        rectifiedInvoiceId:  null,
+        rectificationType:   null,
+        rectificationReason: null,
         createdByUserId:   session.user.id,
       },
       lines: lines.map((l) => ({
@@ -264,7 +269,7 @@ export async function updateInvoiceStatusAction(id: number, status: string): Pro
       }
     }
 
-    if (statusCheck.data === 'cobrada' && inv && Number(inv.totalAmount) > 0) {
+    if (statusCheck.data === 'cobrada' && inv && Number(inv.totalAmount) > 0 && !inv.rectifiedInvoiceId) {
       const today     = new Date().toISOString().slice(0, 10);
       const conceptId = `Factura emitida — ${inv.invoiceNumber}`;
 
@@ -306,6 +311,85 @@ export async function updateInvoiceStatusAction(id: number, status: string): Pro
   } catch (err) {
     logRedacted('error', '[issued-invoices] updateInvoiceStatus error:', err instanceof Error ? err.message : 'unknown');
     return { error: 'Error al actualizar estado' };
+  }
+}
+
+export async function rectifyInvoiceAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const session = await requirePermission('facturacion', 'read');
+
+  const parsed = parseFormData(formData, rectifyInvoiceSchema);
+  if (!parsed.ok) {
+    logRedacted('warn', '[issued-invoices] rectifyInvoice validation failed:', firstError(parsed.fieldErrors));
+    return { error: firstError(parsed.fieldErrors) };
+  }
+
+  const { originalInvoiceId, rectificationType, rectificationReason, issueDate, linesJson } = parsed.data;
+
+  const lines = parseLines(linesJson);
+  if (!lines || lines.length === 0) return { error: 'La factura rectificativa debe tener al menos una línea' };
+
+  const original = await getIssuedInvoice(originalInvoiceId);
+  if (!original) return { error: 'Factura original no encontrada' };
+  if (original.status === 'anulada') return { error: 'No se puede rectificar una factura anulada' };
+  if (original.status === 'rectificada') return { error: 'Esta factura ya tiene una rectificativa emitida' };
+
+  try {
+    const rectNumber = await allocateRectificationNumber(original.issuerCompanyId);
+
+    const amounts = computeAmounts(
+      lines,
+      Number(original.vatRate ?? '0'),
+      Number(original.withholdingRate ?? '0'),
+    );
+
+    const [newInvoice] = await Promise.all([
+      createIssuedInvoice({
+        invoice: {
+          issuerCompanyId:     original.issuerCompanyId,
+          billingClientId:     original.billingClientId,
+          relatedBrandId:      original.relatedBrandId   ?? null,
+          relatedTalentId:     original.relatedTalentId  ?? null,
+          relatedDealId:       original.relatedDealId    ?? null,
+          invoiceNumber:       rectNumber,
+          series:              rectNumber.split('-').slice(0, 2).join('-'),
+          status:              'emitida',
+          issueDate,
+          dueDate:             original.dueDate ?? null,
+          currency:            original.currency ?? 'EUR',
+          vatRate:             original.vatRate ?? '0',
+          withholdingRate:     original.withholdingRate ?? '0',
+          ...amounts,
+          paymentTerms:        original.paymentTerms ?? null,
+          legalNote:           original.legalNote ?? null,
+          notes:               null,
+          pdfUrl:              null,
+          rectifiedInvoiceId:  originalInvoiceId,
+          rectificationType,
+          rectificationReason,
+          createdByUserId:     session.user.id,
+        },
+        lines: lines.map((l) => ({
+          concept:     l.concept,
+          description: l.description ?? null,
+          quantity:    l.quantity,
+          unitPrice:   l.unitPrice,
+          discount:    l.discount,
+          subtotal:    l.subtotal,
+        })),
+      }),
+    ]);
+
+    // Marcar la original como rectificada
+    await updateIssuedInvoice(originalInvoiceId, { status: 'rectificada' });
+
+    revalidatePath('/admin/facturacion');
+    return { success: true, id: newInvoice.id };
+  } catch (err) {
+    logRedacted('error', '[issued-invoices] rectifyInvoice error:', err instanceof Error ? err.message : 'unknown');
+    return { error: 'Error al crear la factura rectificativa' };
   }
 }
 

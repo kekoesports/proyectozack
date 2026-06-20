@@ -1,8 +1,9 @@
 'use client';
 
 import { useMemo, useState, useTransition } from 'react';
-import { IssuedInvoiceForm }  from './IssuedInvoiceForm';
-import { InvoicePdfButton }   from './InvoicePdfButton';
+import { IssuedInvoiceForm }    from './IssuedInvoiceForm';
+import { RectifyInvoiceModal }  from './RectifyInvoiceModal';
+import { InvoicePdfButton }     from './InvoicePdfButton';
 import { updateInvoiceStatusAction } from '@/app/admin/(dashboard)/facturacion/issued-invoices-actions';
 import { ISSUED_INVOICE_STATUS_LABELS } from '@/lib/schemas/issuedInvoice';
 import type { IssuerCompany, BillingClient, IssuedInvoiceWithRelations } from '@/types';
@@ -30,12 +31,13 @@ type Props = {
 };
 
 const STATUS_STYLE: Record<string, string> = {
-  borrador: 'bg-slate-100 text-slate-600 border-slate-200',
-  emitida:  'bg-blue-50 text-blue-700 border-blue-200',
-  enviada:  'bg-sky-50 text-sky-700 border-sky-200',
-  cobrada:  'bg-emerald-50 text-emerald-700 border-emerald-200',
-  vencida:  'bg-red-50 text-red-700 border-red-200',
-  anulada:  'bg-zinc-100 text-zinc-400 border-zinc-200',
+  borrador:    'bg-slate-100 text-slate-600 border-slate-200',
+  emitida:     'bg-blue-50 text-blue-700 border-blue-200',
+  enviada:     'bg-sky-50 text-sky-700 border-sky-200',
+  cobrada:     'bg-emerald-50 text-emerald-700 border-emerald-200',
+  vencida:     'bg-red-50 text-red-700 border-red-200',
+  anulada:     'bg-zinc-100 text-zinc-400 border-zinc-200',
+  rectificada: 'bg-violet-50 text-violet-700 border-violet-200',
 };
 
 const INPUT_SM = 'h-8 rounded-lg border border-sp-admin-border bg-white px-3 text-[12px] text-sp-admin-text outline-none focus:border-sp-admin-accent/50 shadow-[0_1px_2px_rgba(0,0,0,0.04)]';
@@ -53,17 +55,20 @@ export function IssuedInvoicesTab({
   invoices, issuers, clients, brands, talents, campaigns,
   isAdmin = false, isStaff = false,
 }: Props): React.ReactElement {
-  const [showForm,   setShowForm]   = useState(false);
-  const [editInv,    setEditInv]    = useState<IssuedInvoiceWithRelations | null>(null);
-  const [filterStatus, setStatus]   = useState('');
-  const [filterIssuer, setIssuer]   = useState('');
-  const [search,     setSearch]     = useState('');
-  const [showAnuladas, setShowAnuladas] = useState(false);
-  const [isPending,  startTransition] = useTransition();
+  const [showForm,        setShowForm]       = useState(false);
+  const [editInv,         setEditInv]        = useState<IssuedInvoiceWithRelations | null>(null);
+  const [rectifyInv,      setRectifyInv]     = useState<IssuedInvoiceWithRelations | null>(null);
+  const [filterStatus,    setStatus]         = useState('');
+  const [filterIssuer,    setIssuer]         = useState('');
+  const [search,          setSearch]         = useState('');
+  const [showAnuladas,    setShowAnuladas]   = useState(false);
+  const [showRectificadas, setShowRectificadas] = useState(true);
+  const [isPending,       startTransition]   = useTransition();
 
   const filtered = useMemo(() => {
     let result = invoices;
     if (!showAnuladas) result = result.filter((i) => i.status !== 'anulada');
+    if (!showRectificadas) result = result.filter((i) => i.status !== 'rectificada');
     if (filterStatus) result = result.filter((i) => i.status === filterStatus);
     if (filterIssuer) result = result.filter((i) => String(i.issuerCompanyId) === filterIssuer);
     const q = search.toLowerCase().trim();
@@ -71,10 +76,11 @@ export function IssuedInvoicesTab({
       i.invoiceNumber.toLowerCase().includes(q) ||
       i.clientName.toLowerCase().includes(q) ||
       i.issuerName.toLowerCase().includes(q) ||
-      (i.brandName ?? '').toLowerCase().includes(q),
+      (i.brandName ?? '').toLowerCase().includes(q) ||
+      (i.rectifiedInvoiceNumber ?? '').toLowerCase().includes(q),
     );
     return result;
-  }, [invoices, filterStatus, filterIssuer, search, showAnuladas]);
+  }, [invoices, filterStatus, filterIssuer, search, showAnuladas, showRectificadas]);
 
   const totalVisible = filtered.reduce((s, i) => s + Number(i.totalAmount ?? 0), 0);
   const cobradas     = invoices.filter((i) => i.status === 'cobrada').length;
@@ -123,7 +129,11 @@ export function IssuedInvoicesTab({
         )}
         <label className="flex items-center gap-1.5 text-[11px] text-sp-admin-muted cursor-pointer">
           <input type="checkbox" checked={showAnuladas} onChange={(e) => setShowAnuladas(e.target.checked)} className="rounded" />
-          Mostrar anuladas
+          Anuladas
+        </label>
+        <label className="flex items-center gap-1.5 text-[11px] text-sp-admin-muted cursor-pointer">
+          <input type="checkbox" checked={showRectificadas} onChange={(e) => setShowRectificadas(e.target.checked)} className="rounded" />
+          Rectificadas
         </label>
         <div className="ml-auto flex items-center gap-2">
           {isStaff && (
@@ -166,10 +176,17 @@ export function IssuedInvoicesTab({
                 return (
                   <tr key={inv.id} className={`border-b border-sp-admin-border/40 last:border-0 hover:bg-sp-admin-hover/50 transition-colors group/row ${isOverdue ? 'bg-red-50/30' : ''}`}>
                     <td className="px-3 py-2.5">
-                      <button type="button" onClick={() => setEditInv(inv)}
-                        className="font-mono text-[12px] font-semibold text-sp-admin-accent hover:underline">
-                        {inv.invoiceNumber}
-                      </button>
+                      <div className="flex flex-col gap-0.5">
+                        <button type="button" onClick={() => setEditInv(inv)}
+                          className="font-mono text-[12px] font-semibold text-sp-admin-accent hover:underline text-left">
+                          {inv.invoiceNumber}
+                        </button>
+                        {inv.rectifiedInvoiceNumber && (
+                          <span className="text-[9px] text-violet-600 font-medium">
+                            Rectifica: {inv.rectifiedInvoiceNumber}
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-3 py-2.5 text-[12px] text-sp-admin-text max-w-[150px] truncate">{inv.clientName}</td>
                     <td className="px-3 py-2.5 text-[11px] text-sp-admin-muted max-w-[120px] truncate">{inv.issuerName}</td>
@@ -223,8 +240,16 @@ export function IssuedInvoicesTab({
                             Cobrada
                           </button>
                         )}
+                        {/* Rectificar — emitida, enviada o cobrada, sin rectificativa ya emitida */}
+                        {isAdmin && (inv.status === 'emitida' || inv.status === 'enviada' || inv.status === 'cobrada') && (
+                          <button type="button" disabled={isPending}
+                            onClick={() => setRectifyInv(inv)}
+                            className="px-2 py-1 rounded text-[10px] font-semibold text-violet-700 hover:bg-violet-50 disabled:opacity-40 transition-colors">
+                            Rectificar
+                          </button>
+                        )}
                         {/* Anular — solo admin, si no está ya anulada */}
-                        {isAdmin && inv.status !== 'anulada' && (
+                        {isAdmin && inv.status !== 'anulada' && inv.status !== 'rectificada' && (
                           <button type="button" disabled={isPending}
                             onClick={() => {
                               if (!confirm(`¿Anular la factura ${inv.invoiceNumber}? Esta acción no se puede deshacer.`)) return;
@@ -253,6 +278,13 @@ export function IssuedInvoicesTab({
           talents={talents}
           campaigns={campaigns}
           onClose={() => { setShowForm(false); setEditInv(null); }}
+        />
+      )}
+
+      {rectifyInv && (
+        <RectifyInvoiceModal
+          invoice={rectifyInv}
+          onClose={() => setRectifyInv(null)}
         />
       )}
     </div>

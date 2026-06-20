@@ -19,7 +19,8 @@ export type IssuedInvoiceStatus =
   | 'enviada'
   | 'cobrada'
   | 'vencida'
-  | 'anulada';
+  | 'anulada'
+  | 'rectificada';
 
 export type BillingClientType =
   | 'empresa_espana'
@@ -31,10 +32,11 @@ export type BillingClientType =
   | 'otro';
 
 export type IssuedInvoiceWithRelations = IssuedInvoice & {
-  readonly issuerName:   string;
-  readonly clientName:   string;
-  readonly brandName:    string | null;
-  readonly talentName:   string | null;
-  readonly dealName:     string | null;
-  readonly lines:        readonly IssuedInvoiceLine[];
+  readonly issuerName:              string;
+  readonly clientName:              string;
+  readonly brandName:               string | null;
+  readonly talentName:              string | null;
+  readonly dealName:                string | null;
+  readonly lines:                   readonly IssuedInvoiceLine[];
+  readonly rectifiedInvoiceNumber:  string | null;
 };

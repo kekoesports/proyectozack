@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const ISSUED_INVOICE_STATUSES = ['borrador', 'emitida', 'enviada', 'cobrada', 'vencida', 'anulada'] as const;
+export const ISSUED_INVOICE_STATUSES = ['borrador', 'emitida', 'enviada', 'cobrada', 'vencida', 'anulada', 'rectificada'] as const;
 
 export const BILLING_CLIENT_TYPES = [
   'empresa_espana', 'empresa_ue', 'empresa_fuera_ue',
@@ -18,12 +18,13 @@ export const BILLING_CLIENT_TYPE_LABELS: Record<typeof BILLING_CLIENT_TYPES[numb
 };
 
 export const ISSUED_INVOICE_STATUS_LABELS: Record<typeof ISSUED_INVOICE_STATUSES[number], string> = {
-  borrador: 'Borrador',
-  emitida:  'Emitida',
-  enviada:  'Enviada',
-  cobrada:  'Cobrada',
-  vencida:  'Vencida',
-  anulada:  'Anulada',
+  borrador:     'Borrador',
+  emitida:      'Emitida',
+  enviada:      'Enviada',
+  cobrada:      'Cobrada',
+  vencida:      'Vencida',
+  anulada:      'Anulada',
+  rectificada:  'Rectificada',
 };
 
 const optStr = (max: number) =>
@@ -97,6 +98,18 @@ export const issuerCompanySchema = z.object({
   invoiceSeriesPrefix:   z.string().min(1).max(10).default('SP'),
   notes:                 z.string().optional(),
 });
+
+// ── Rectificativa ────────────────────────────────────────────────────
+
+export const rectifyInvoiceSchema = z.object({
+  originalInvoiceId:  z.coerce.number().int().positive(),
+  rectificationType:  z.enum(['sustitutiva', 'por_diferencia']).default('sustitutiva'),
+  rectificationReason: z.string().min(1, 'El motivo de rectificación es obligatorio').max(500),
+  issueDate:          z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Fecha inválida'),
+  linesJson:          z.string().min(2),
+});
+
+export type RectifyInvoiceInput = z.infer<typeof rectifyInvoiceSchema>;
 
 // ── Cliente de facturación ────────────────────────────────────────────
 

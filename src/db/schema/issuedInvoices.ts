@@ -10,6 +10,7 @@ import {
   timestamp,
   index,
 } from 'drizzle-orm/pg-core';
+import type { AnyPgColumn } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 import { user } from './auth';
 import { crmBrands } from './crmBrands';
@@ -35,8 +36,9 @@ export const issuerCompanies = pgTable(
     defaultPaymentTerms:   text('default_payment_terms'),
     bankDetails:           text('bank_details'),
     cryptoDetails:         text('crypto_details'),
-    invoiceSeriesPrefix:   varchar('invoice_series_prefix', { length: 10  }).notNull().default('SP'),
-    nextInvoiceNumber:     integer('next_invoice_number').notNull().default(1),
+    invoiceSeriesPrefix:        varchar('invoice_series_prefix',        { length: 10 }).notNull().default('SP'),
+    nextInvoiceNumber:          integer('next_invoice_number').notNull().default(1),
+    nextRectificationNumber:    integer('next_rectification_number').notNull().default(1),
     notes:                 text('notes'),
     isActive:              boolean('is_active').notNull().default(true),
     createdAt:             timestamp('created_at',  { withTimezone: true }).notNull().defaultNow(),
@@ -106,6 +108,11 @@ export const issuedInvoices = pgTable(
     notes:                 text('notes'),
     pdfUrl:                text('pdf_url'),
 
+    // Rectificativas (RD 1619/2012)
+    rectifiedInvoiceId:    integer('rectified_invoice_id').references((): AnyPgColumn => issuedInvoices.id, { onDelete: 'set null' }),
+    rectificationType:     varchar('rectification_type', { length: 20 }),
+    rectificationReason:   text('rectification_reason'),
+
     createdByUserId:       text('created_by_user_id').references(() => user.id, { onDelete: 'set null' }),
     createdAt:             timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt:             timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
@@ -142,13 +149,19 @@ export const issuedInvoiceLines = pgTable(
 // ── Relaciones ────────────────────────────────────────────────────────
 
 export const issuedInvoicesRelations = relations(issuedInvoices, ({ one, many }) => ({
-  issuer:    one(issuerCompanies, { fields: [issuedInvoices.issuerCompanyId], references: [issuerCompanies.id] }),
-  client:    one(billingClients,  { fields: [issuedInvoices.billingClientId],  references: [billingClients.id]  }),
-  brand:     one(crmBrands,       { fields: [issuedInvoices.relatedBrandId],   references: [crmBrands.id]       }),
-  talent:    one(talents,         { fields: [issuedInvoices.relatedTalentId],  references: [talents.id]         }),
-  deal:      one(campaigns,       { fields: [issuedInvoices.relatedDealId],    references: [campaigns.id]       }),
-  createdBy: one(user,            { fields: [issuedInvoices.createdByUserId],  references: [user.id]            }),
-  lines:     many(issuedInvoiceLines),
+  issuer:          one(issuerCompanies, { fields: [issuedInvoices.issuerCompanyId],   references: [issuerCompanies.id] }),
+  client:          one(billingClients,  { fields: [issuedInvoices.billingClientId],   references: [billingClients.id]  }),
+  brand:           one(crmBrands,       { fields: [issuedInvoices.relatedBrandId],    references: [crmBrands.id]       }),
+  talent:          one(talents,         { fields: [issuedInvoices.relatedTalentId],   references: [talents.id]         }),
+  deal:            one(campaigns,       { fields: [issuedInvoices.relatedDealId],     references: [campaigns.id]       }),
+  createdBy:       one(user,            { fields: [issuedInvoices.createdByUserId],   references: [user.id]            }),
+  lines:           many(issuedInvoiceLines),
+  rectifiedSource: one(issuedInvoices, {
+    fields:     [issuedInvoices.rectifiedInvoiceId],
+    references: [issuedInvoices.id],
+    relationName: 'rectification',
+  }),
+  rectifications:  many(issuedInvoices, { relationName: 'rectification' }),
 }));
 
 export const issuedInvoiceLinesRelations = relations(issuedInvoiceLines, ({ one }) => ({

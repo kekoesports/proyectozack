@@ -100,7 +100,10 @@ export async function createInvoiceFromDealAction(
       paymentTerms:    issuer.defaultPaymentTerms ?? 'Pago a 30 días desde la fecha de emisión',
       legalNote,
       notes:           `Generada automáticamente desde trato: ${campaign.name}`,
-      pdfUrl:          null,
+      pdfUrl:              null,
+      rectifiedInvoiceId:  null,
+      rectificationType:   null,
+      rectificationReason: null,
       createdByUserId: session.user.id,
     },
     lines: amountBrand > 0 ? [{
