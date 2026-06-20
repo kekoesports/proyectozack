@@ -12,7 +12,8 @@ import { NowProvider } from '@/lib/now-context';
 import { Suspense } from 'react';
 
 export async function generateMetadata(): Promise<Metadata> {
-  const raw = await getAllActiveGiveaways();
+  let raw: Awaited<ReturnType<typeof getAllActiveGiveaways>> = [];
+  try { raw = await getAllActiveGiveaways(); } catch { /* fallback to default meta */ }
   const active = raw.filter((g) => !g.talent.archivedAt);
   const hero = active.find((g) => g.isFeatured) ?? active[0];
   const ogUrl = hero
@@ -63,8 +64,8 @@ export default async function SorteosPage({ searchParams }: PageProps): Promise<
   const initialCreatorSlug = sp.creator?.toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 64) || undefined;
 
   const [rawActive, rawFinished] = await Promise.all([
-    getAllActiveGiveaways(),
-    getAllFinishedGiveaways(),
+    getAllActiveGiveaways().catch(() => []),
+    getAllFinishedGiveaways().catch(() => []),
   ]);
 
   const active   = rawActive.filter((g) => !g.talent.archivedAt);

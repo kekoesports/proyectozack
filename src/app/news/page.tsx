@@ -115,16 +115,16 @@ export default async function NewsPage({ searchParams }: PageProps) {
 
   const now = new Date();
   const [allPosts, slots, liveBarItems, agenda, ranking, featuredMatchRow, rawYoutubePosts] = await Promise.all([
-    getNewsPosts(),
-    getEditorialSlots(),
-    buildLiveBarItems(),
-    getUpcomingAgendaItems(5),
-    getTopRanking(5),
-    getFeaturedMatch(),
+    getNewsPosts().catch(() => []),
+    getEditorialSlots().catch(() => []),
+    buildLiveBarItems().catch(() => []),
+    getUpcomingAgendaItems(5).catch(() => []),
+    getTopRanking(5).catch(() => []),
+    getFeaturedMatch().catch(() => null),
     db.select({
       id: posts.id, slug: posts.slug, title: posts.title, excerpt: posts.excerpt,
       coverUrl: posts.coverUrl, publishedAt: posts.publishedAt, blocksJson: posts.blocksJson,
-    }).from(posts).where(and(eq(posts.status, 'published'), eq(posts.vertical, 'news'), isNotNull(posts.blocksJson), lte(posts.publishedAt, now))).orderBy(desc(posts.publishedAt)).limit(6),
+    }).from(posts).where(and(eq(posts.status, 'published'), eq(posts.vertical, 'news'), isNotNull(posts.blocksJson), lte(posts.publishedAt, now))).orderBy(desc(posts.publishedAt)).limit(6).catch(() => []),
   ]);
 
   // Filtrar solo los que tienen embed YouTube
