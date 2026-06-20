@@ -180,7 +180,7 @@ export function IssuedInvoiceForm({ invoice, issuers, clients, brands, talents, 
                   <label className={LB}>Cliente *</label>
                   <select name="billingClientId" value={clientId} onChange={(e) => setClientId(e.target.value)} required className={I}>
                     <option value="">— seleccionar cliente —</option>
-                    {clients.map((c) => <option key={c.id} value={c.id}>{c.name}{c.taxId ? ` (${c.taxId})` : ''}</option>)}
+                    {clients.map((c) => <option key={c.id} value={c.id}>{c.name}{c.taxId ? ` (${c.taxId})` : ''}{c.notes ? ` — ${c.notes}` : ''}</option>)}
                   </select>
                 </div>
                 <button type="button" onClick={() => setShowNewClient(true)}
