@@ -16,8 +16,11 @@ import {
   updateBillingClient,
   updateIssuerCompany,
   getIssuedInvoice,
+  getBillingClient,
+  getIssuerCompany,
 } from '@/lib/queries/issuedInvoices';
 import { createInvoice, listInvoices } from '@/lib/queries/invoices';
+import { sendInvoiceEmail } from '@/lib/email';
 import { createTask } from '@/lib/queries/crmTasks';
 import { getIsoWeekLabel } from '@/lib/utils/week';
 import {
@@ -234,6 +237,31 @@ export async function updateInvoiceStatusAction(id: number, status: string): Pro
         relatedId:    inv.relatedDealId ?? null,
         recurrenceTemplateId: null,
       });
+    }
+
+    if (statusCheck.data === 'enviada' && inv) {
+      const [client, issuer] = await Promise.all([
+        getBillingClient(inv.billingClientId),
+        getIssuerCompany(inv.issuerCompanyId),
+      ]);
+      if (client?.email) {
+        sendInvoiceEmail({
+          clientEmail:   client.email,
+          clientName:    client.legalName ?? client.name,
+          issuerName:    issuer?.name ?? 'SocialPro',
+          issuerEmail:   issuer?.email,
+          invoiceNumber: inv.invoiceNumber,
+          totalAmount:   String(inv.totalAmount ?? '0'),
+          currency:      inv.currency ?? 'EUR',
+          issueDate:     inv.issueDate ?? new Date().toISOString().slice(0, 10),
+          dueDate:       inv.dueDate,
+          paymentTerms:  inv.paymentTerms ?? issuer?.defaultPaymentTerms,
+          bankDetails:   issuer?.bankDetails,
+          legalNote:     inv.legalNote ?? issuer?.notes,
+        }).catch((err: unknown) => {
+          logRedacted('error', '[issued-invoices] sendInvoiceEmail error:', err instanceof Error ? err.message : 'unknown');
+        });
+      }
     }
 
     if (statusCheck.data === 'cobrada' && inv && Number(inv.totalAmount) > 0) {

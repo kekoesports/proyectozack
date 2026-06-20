@@ -207,6 +207,95 @@ export async function sendNewsletterPostEmail(payload: {
   });
 }
 
+export async function sendInvoiceEmail(payload: {
+  clientEmail:   string;
+  clientName:    string;
+  issuerName:    string;
+  issuerEmail?:  string | null | undefined;
+  invoiceNumber: string;
+  totalAmount:   string;
+  currency:      string;
+  issueDate:     string;
+  dueDate?:      string | null | undefined;
+  paymentTerms?: string | null | undefined;
+  bankDetails?:  string | null | undefined;
+  legalNote?:    string | null | undefined;
+}): Promise<void> {
+  const clientName    = escapeHtml(payload.clientName);
+  const issuerName    = escapeHtml(payload.issuerName);
+  const invoiceNumber = escapeHtml(payload.invoiceNumber);
+  const currency      = ['EUR', 'USD', 'GBP', 'CHF'].includes(payload.currency) ? payload.currency : 'EUR';
+  const total         = new Intl.NumberFormat('es-ES', {
+    style: 'currency', currency, minimumFractionDigits: 2,
+  }).format(Number(payload.totalAmount));
+  const issueDateFmt  = payload.issueDate
+    ? new Date(payload.issueDate + 'T12:00:00').toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' })
+    : '';
+  const dueDateFmt    = payload.dueDate
+    ? new Date(payload.dueDate + 'T12:00:00').toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' })
+    : null;
+
+  const bankSection = payload.bankDetails
+    ? `<div style="margin:16px 0;padding:12px 16px;background:#f8f8fc;border-radius:8px;border-left:3px solid #f5632a;">
+        <p style="margin:0 0 4px;font-size:11px;font-weight:700;text-transform:uppercase;color:#72728a;letter-spacing:0.1em;">Datos de pago</p>
+        <pre style="margin:0;font-size:12px;color:#16161f;font-family:monospace;white-space:pre-wrap;">${escapeHtml(payload.bankDetails)}</pre>
+       </div>`
+    : '';
+
+  const termsSection = payload.paymentTerms
+    ? `<p style="font-size:13px;color:#72728a;">${escapeHtml(payload.paymentTerms)}</p>`
+    : '';
+
+  const legalSection = payload.legalNote
+    ? `<hr style="margin:16px 0;border:none;border-top:1px solid #e5e7eb;"/>
+       <p style="font-size:11px;color:#9ca3af;white-space:pre-wrap;">${escapeHtml(payload.legalNote)}</p>`
+    : '';
+
+  const replyTo = payload.issuerEmail ? [payload.issuerEmail] : undefined;
+
+  await resend.emails.send({
+    from:    `${issuerName} <noreply@socialpro.es>`,
+    to:      payload.clientEmail,
+    ...(replyTo && { replyTo }),
+    subject: `Factura ${invoiceNumber} — ${issuerName}`,
+    html: `
+      <div style="font-family:Inter,Helvetica,sans-serif;max-width:560px;margin:0 auto;color:#16161f;">
+        <div style="height:4px;background:linear-gradient(135deg,#f5632a 0%,#e03070 35%,#c42880 62%,#8b3aad 100%);border-radius:2px 2px 0 0;"></div>
+        <div style="padding:32px 32px 24px;">
+          <h1 style="margin:0 0 4px;font-size:22px;font-weight:900;text-transform:uppercase;letter-spacing:-0.02em;color:#16161f;">${issuerName}</h1>
+          <p style="margin:0;font-size:13px;color:#72728a;">Factura adjunta para tu revisión</p>
+
+          <hr style="margin:24px 0;border:none;border-top:1px solid #e5e7eb;"/>
+
+          <p style="font-size:14px;margin:0 0 16px;">Estimado/a <strong>${clientName}</strong>,</p>
+          <p style="font-size:14px;margin:0 0 24px;color:#4b5563;">
+            Te enviamos la factura <strong style="color:#f5632a;">${invoiceNumber}</strong>
+            con fecha de emisión ${issueDateFmt}${dueDateFmt ? ` y vencimiento el <strong>${dueDateFmt}</strong>` : ''}.
+          </p>
+
+          <div style="padding:20px 24px;background:#f5f5f7;border-radius:12px;text-align:center;">
+            <p style="margin:0 0 4px;font-size:11px;font-weight:700;text-transform:uppercase;color:#72728a;letter-spacing:0.1em;">Total a pagar</p>
+            <p style="margin:0;font-size:32px;font-weight:900;color:#f5632a;">${total}</p>
+            ${dueDateFmt ? `<p style="margin:6px 0 0;font-size:12px;color:#6b7280;">Vencimiento: ${dueDateFmt}</p>` : ''}
+          </div>
+
+          ${termsSection}
+          ${bankSection}
+          ${legalSection}
+
+          <hr style="margin:24px 0;border:none;border-top:1px solid #e5e7eb;"/>
+          <p style="font-size:12px;color:#9ca3af;margin:0;">
+            Para cualquier consulta responde a este email${payload.issuerEmail ? ` o escríbenos a <a href="mailto:${escapeHtml(payload.issuerEmail)}" style="color:#f5632a;">${escapeHtml(payload.issuerEmail)}</a>` : ''}.
+          </p>
+        </div>
+        <div style="padding:12px 32px;background:#1e2235;text-align:center;">
+          <p style="margin:0;font-size:11px;color:#8888a8;">${issuerName}</p>
+        </div>
+      </div>
+    `,
+  });
+}
+
 export async function sendBrandInviteEmail(payload: {
   brandEmail: string;
   brandName: string;

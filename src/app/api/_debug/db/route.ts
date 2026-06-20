@@ -18,7 +18,7 @@ export async function GET() {
       causeCode: err?.cause?.code,
       causeSource: String(err?.cause?.sourceError ?? ''),
       hasDBURL: typeof process.env.DATABASE_URL === 'string',
-      dbHost: (() => { try { return new URL(process.env.DATABASE_URL!).host; } catch { return null; } })(),
+      dbHost: (() => { try { const u = process.env.DATABASE_URL; return u ? new URL(u).host : null; } catch { return null; } })(),
     }, { status: 500 });
   }
 }
