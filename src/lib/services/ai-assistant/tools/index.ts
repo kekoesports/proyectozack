@@ -12,6 +12,13 @@ import {
   getSuggestedTransactionMatches,
   getPendingPaymentMatches,
 } from './bankReconciliation';
+import {
+  getFinanceDashboardSummary,
+  getCashflowTrend,
+  getReceivablesRiskSummary,
+  getCampaignMarginAlerts,
+  getFinanceAlerts,
+} from './financeDashboard';
 
 export type ToolResult =
   | { ok: true; data: unknown }
@@ -29,7 +36,12 @@ export type ToolName =
   | 'getBankReconciliationSummary'
   | 'getUnmatchedBankTransactions'
   | 'getSuggestedTransactionMatches'
-  | 'getPendingPaymentMatches';
+  | 'getPendingPaymentMatches'
+  | 'getFinanceDashboardSummary'
+  | 'getCashflowTrend'
+  | 'getReceivablesRiskSummary'
+  | 'getCampaignMarginAlerts'
+  | 'getFinanceAlerts';
 
 export const AVAILABLE_TOOLS = [
   'getBillingSummary',
@@ -44,6 +56,11 @@ export const AVAILABLE_TOOLS = [
   'getUnmatchedBankTransactions',
   'getSuggestedTransactionMatches',
   'getPendingPaymentMatches',
+  'getFinanceDashboardSummary',
+  'getCashflowTrend',
+  'getReceivablesRiskSummary',
+  'getCampaignMarginAlerts',
+  'getFinanceAlerts',
 ] as const satisfies readonly ToolName[];
 
 async function executeTool(name: ToolName, input?: unknown): Promise<ToolResult> {
@@ -77,6 +94,16 @@ async function executeTool(name: ToolName, input?: unknown): Promise<ToolResult>
         return { ok: true, data: await getSuggestedTransactionMatches() };
       case 'getPendingPaymentMatches':
         return { ok: true, data: await getPendingPaymentMatches() };
+      case 'getFinanceDashboardSummary':
+        return { ok: true, data: await getFinanceDashboardSummary() };
+      case 'getCashflowTrend':
+        return { ok: true, data: await getCashflowTrend() };
+      case 'getReceivablesRiskSummary':
+        return { ok: true, data: await getReceivablesRiskSummary() };
+      case 'getCampaignMarginAlerts':
+        return { ok: true, data: await getCampaignMarginAlerts() };
+      case 'getFinanceAlerts':
+        return { ok: true, data: await getFinanceAlerts() };
       default:
         return { ok: false, error: `Tool desconocida: ${name as string}` };
     }
@@ -129,6 +156,11 @@ Tienes acceso a las siguientes herramientas de solo lectura del CRM SocialPro:
 - getUnmatchedBankTransactions: lista hasta 25 transacciones bancarias importadas pendientes de conciliar
 - getSuggestedTransactionMatches: top candidato de conciliación por transacción sin conciliar (hasta 25)
 - getPendingPaymentMatches: transacciones conciliadas (aprobadas) cuyo cobro/pago aún no ha sido aplicado a la factura
+- getFinanceDashboardSummary: resumen completo del dashboard financiero (accrual, cash real del mes, estado conciliación bancaria)
+- getCashflowTrend: serie mensual de los últimos 12 meses con cobros reales (cash) y gastos facturados (devengado)
+- getReceivablesRiskSummary: cobros pendientes y vencidos agrupados por riesgo (importe total, top 5 vencidos)
+- getCampaignMarginAlerts: campañas con margen inferior al 20% (presupuesto estimado)
+- getFinanceAlerts: alertas financieras derivadas automáticamente del estado actual del sistema
 
 Para usarlas, incluye en tu respuesta una línea con el formato:
 [TOOL:nombreDeLaTool]
