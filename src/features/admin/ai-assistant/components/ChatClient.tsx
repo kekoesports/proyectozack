@@ -34,6 +34,7 @@ export function ChatClient({ initialThreads, contextType = 'general' }: Props) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
+  // useEffect: sincronizar scroll al final cuando llegan mensajes nuevos
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
@@ -101,7 +102,6 @@ export function ChatClient({ initialThreads, contextType = 'general' }: Props) {
 
       if (data.threadId && !activeThreadId) {
         setActiveThreadId(data.threadId);
-        // Recargar lista de hilos
         const threadsRes = await fetch('/api/admin/ai-assistant');
         if (threadsRes.ok) {
           const threadsData = await threadsRes.json() as { threads: readonly AiThread[] };
@@ -109,10 +109,17 @@ export function ChatClient({ initialThreads, contextType = 'general' }: Props) {
         }
       }
 
-      setMessages((prev) => [...prev, { role: 'assistant' as const, content: data.text ?? '', ...(data.messageId !== undefined ? { id: data.messageId } : {}) }]);
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: 'assistant' as const,
+          content: data.text ?? '',
+          ...(data.messageId !== undefined ? { id: data.messageId } : {}),
+        },
+      ]);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al enviar mensaje');
-      setMessages((prev) => prev.slice(0, -1)); // quitar el mensaje optimista
+      setMessages((prev) => prev.slice(0, -1));
     } finally {
       setLoading(false);
       setTimeout(() => inputRef.current?.focus(), 50);
@@ -127,35 +134,35 @@ export function ChatClient({ initialThreads, contextType = 'general' }: Props) {
   };
 
   return (
-    <div className="flex h-full gap-4">
-      {/* Sidebar de hilos */}
-      <aside className="w-56 shrink-0 flex flex-col gap-2 hidden md:flex">
+    <div className="flex h-full gap-3">
+      {/* ── Sidebar ── */}
+      <aside className="hidden w-52 shrink-0 flex-col gap-2 md:flex">
         <button
           onClick={newConversation}
-          className="flex items-center gap-2 px-3 py-2 rounded-lg bg-sp-orange text-white text-sm font-medium hover:bg-sp-pink transition-colors"
+          className="flex items-center gap-2 rounded-xl border border-sp-admin-border bg-sp-orange px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-sp-pink"
         >
-          <span className="text-lg leading-none">+</span>
+          <span className="text-base leading-none">+</span>
           Nueva conversación
         </button>
 
-        <div className="flex-1 overflow-y-auto space-y-1 mt-1">
+        <div className="mt-1 flex-1 space-y-0.5 overflow-y-auto">
           {threads.length === 0 && (
-            <p className="text-xs text-sp-muted px-2 py-1">Sin conversaciones</p>
+            <p className="px-3 py-2 text-xs text-sp-admin-muted">Sin conversaciones</p>
           )}
           {threads.map((t) => (
             <div
               key={t.id}
-              className={`group relative flex items-center gap-1 px-3 py-2 rounded-lg text-sm cursor-pointer transition-colors ${
+              className={`group relative flex cursor-pointer items-center gap-1 rounded-lg px-3 py-2 text-sm transition-colors ${
                 activeThreadId === t.id
-                  ? 'bg-sp-orange/20 text-white'
-                  : 'text-sp-muted hover:bg-white/5 hover:text-white'
+                  ? 'bg-sp-orange/15 text-sp-admin-fg'
+                  : 'text-sp-admin-muted hover:bg-sp-admin-card hover:text-sp-admin-fg'
               }`}
               onClick={() => void loadThread(t.id)}
             >
               <span className="flex-1 truncate">{t.title}</span>
               <button
                 onClick={(e) => { e.stopPropagation(); void deleteThread(t.id); }}
-                className="opacity-0 group-hover:opacity-100 text-sp-muted hover:text-red-400 transition-opacity text-xs px-1"
+                className="px-1 text-xs text-sp-admin-muted opacity-0 transition-opacity hover:text-red-400 group-hover:opacity-100"
                 title="Eliminar"
               >
                 ✕
@@ -165,37 +172,39 @@ export function ChatClient({ initialThreads, contextType = 'general' }: Props) {
         </div>
       </aside>
 
-      {/* Área de chat principal */}
-      <div className="flex-1 flex flex-col min-h-0 bg-sp-admin-bg rounded-xl border border-sp-border overflow-hidden">
+      {/* ── Área de chat ── */}
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-sp-admin-border bg-sp-admin-card">
         {/* Cabecera */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-sp-border">
+        <div className="flex items-center justify-between border-b border-sp-admin-border px-5 py-3">
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-400" />
-            <span className="text-sm text-white font-medium">Asistente SocialPro</span>
-            <span className="text-xs text-sp-muted">Solo lectura · No ejecuta acciones</span>
+            <span className="h-2 w-2 rounded-full bg-emerald-400" />
+            <span className="text-sm font-semibold text-sp-admin-fg">Asistente SocialPro</span>
+            <span className="text-xs text-sp-admin-muted">Solo lectura · No ejecuta acciones</span>
           </div>
           <button
             onClick={newConversation}
-            className="md:hidden text-xs text-sp-muted hover:text-white px-2 py-1 rounded border border-sp-border"
+            className="rounded-lg border border-sp-admin-border px-2 py-1 text-xs text-sp-admin-muted transition-colors hover:text-sp-admin-fg md:hidden"
           >
             + Nueva
           </button>
         </div>
 
         {/* Mensajes */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        <div className="flex-1 space-y-4 overflow-y-auto p-4">
           {messages.length === 0 && !loading && (
-            <div className="flex flex-col items-center justify-center h-full gap-6 text-center">
-              <div className="space-y-2">
-                <p className="text-white font-medium">¿En qué puedo ayudarte?</p>
-                <p className="text-sm text-sp-muted">Pregúntame sobre facturación, campañas, marcas, talentos o finanzas.</p>
+            <div className="flex h-full flex-col items-center justify-center gap-6 text-center">
+              <div className="space-y-1">
+                <p className="font-semibold text-sp-admin-fg">¿En qué puedo ayudarte?</p>
+                <p className="text-sm text-sp-admin-muted">
+                  Pregúntame sobre facturación, campañas, marcas, talentos o finanzas.
+                </p>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full max-w-xl">
+              <div className="grid w-full max-w-xl grid-cols-1 gap-2 sm:grid-cols-2">
                 {EXAMPLE_PROMPTS.map((prompt) => (
                   <button
                     key={prompt}
                     onClick={() => void sendMessage(prompt)}
-                    className="text-left text-sm px-3 py-2 rounded-lg border border-sp-border text-sp-muted hover:text-white hover:border-sp-orange/50 transition-colors"
+                    className="rounded-xl border border-sp-admin-border px-4 py-2.5 text-left text-sm text-sp-admin-muted transition-colors hover:border-sp-orange/40 hover:bg-sp-admin-bg hover:text-sp-admin-fg"
                   >
                     {prompt}
                   </button>
@@ -205,12 +214,15 @@ export function ChatClient({ initialThreads, contextType = 'general' }: Props) {
           )}
 
           {messages.map((msg, i) => (
-            <div key={msg.id ?? i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+            <div
+              key={msg.id ?? i}
+              className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+            >
               <div
-                className={`max-w-[85%] px-4 py-3 rounded-2xl text-sm whitespace-pre-wrap leading-relaxed ${
+                className={`max-w-[85%] whitespace-pre-wrap rounded-2xl px-4 py-3 text-sm leading-relaxed ${
                   msg.role === 'user'
-                    ? 'bg-sp-orange text-white rounded-tr-sm'
-                    : 'bg-white/5 text-white rounded-tl-sm border border-sp-border'
+                    ? 'rounded-tr-sm bg-sp-orange text-white'
+                    : 'rounded-tl-sm border border-sp-admin-border bg-sp-admin-bg text-sp-admin-fg'
                 }`}
               >
                 {msg.content}
@@ -220,18 +232,18 @@ export function ChatClient({ initialThreads, contextType = 'general' }: Props) {
 
           {loading && (
             <div className="flex justify-start">
-              <div className="bg-white/5 border border-sp-border px-4 py-3 rounded-2xl rounded-tl-sm">
+              <div className="rounded-2xl rounded-tl-sm border border-sp-admin-border bg-sp-admin-bg px-4 py-3">
                 <span className="flex gap-1">
-                  <span className="w-1.5 h-1.5 bg-sp-orange rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                  <span className="w-1.5 h-1.5 bg-sp-orange rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                  <span className="w-1.5 h-1.5 bg-sp-orange rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                  <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-sp-orange" style={{ animationDelay: '0ms' }} />
+                  <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-sp-orange" style={{ animationDelay: '150ms' }} />
+                  <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-sp-orange" style={{ animationDelay: '300ms' }} />
                 </span>
               </div>
             </div>
           )}
 
           {error && (
-            <div className="text-sm text-red-400 bg-red-400/10 border border-red-400/20 rounded-lg px-3 py-2">
+            <div className="rounded-xl border border-red-400/20 bg-red-400/10 px-3 py-2 text-sm text-red-400">
               {error}
             </div>
           )}
@@ -240,8 +252,8 @@ export function ChatClient({ initialThreads, contextType = 'general' }: Props) {
         </div>
 
         {/* Input */}
-        <div className="border-t border-sp-border p-3">
-          <div className="flex gap-2 items-end">
+        <div className="border-t border-sp-admin-border p-3">
+          <div className="flex items-end gap-2">
             <textarea
               ref={inputRef}
               value={input}
@@ -249,7 +261,7 @@ export function ChatClient({ initialThreads, contextType = 'general' }: Props) {
               onKeyDown={handleKeyDown}
               placeholder="Escribe tu pregunta… (Enter para enviar, Shift+Enter para salto de línea)"
               rows={1}
-              className="flex-1 resize-none bg-white/5 border border-sp-border rounded-xl px-4 py-3 text-sm text-white placeholder:text-sp-muted focus:outline-none focus:border-sp-orange/60 transition-colors min-h-[44px] max-h-32"
+              className="min-h-[44px] max-h-32 flex-1 resize-none rounded-xl border border-sp-admin-border bg-sp-admin-bg px-4 py-3 text-sm text-sp-admin-fg placeholder:text-sp-admin-muted focus:border-sp-orange/50 focus:outline-none transition-colors"
               style={{ height: 'auto' }}
               onInput={(e) => {
                 const el = e.currentTarget;
@@ -261,7 +273,7 @@ export function ChatClient({ initialThreads, contextType = 'general' }: Props) {
             <button
               onClick={() => void sendMessage()}
               disabled={loading || !input.trim()}
-              className="shrink-0 px-4 py-3 rounded-xl bg-sp-orange text-white text-sm font-medium hover:bg-sp-pink transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              className="shrink-0 rounded-xl bg-sp-orange px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-sp-pink disabled:cursor-not-allowed disabled:opacity-40"
             >
               Enviar
             </button>
