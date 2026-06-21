@@ -1,5 +1,6 @@
 // Re-export all types from domain files — import from '@/types' as before.
 export type * from './talent';
+export type * from './aiAssistant';
 export type * from './case';
 export type * from './brand';
 export type * from './giveaway';
@@ -21,6 +22,8 @@ export type * from './pressTarget';
 export type * from './crmEvent';
 export type { BrandFollowupDerivedStatus } from '@/lib/schemas/crmBrand';
 export type { FileType, FileRelatedType } from '@/lib/schemas/file';
+export type * from './bankReconciliation';
+export type * from './invoicePayment';
 
 import type { InferSelectModel } from 'drizzle-orm';
 import type { files, campaigns } from '@/db/schema';

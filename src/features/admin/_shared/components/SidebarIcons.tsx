@@ -297,6 +297,15 @@ export function ExpenseIcon() {
   );
 }
 
+export function AiIcon() {
+  return (
+    <svg {...s}>
+      <circle cx="10" cy="10" r="7" />
+      <path d="M7 10h2l1-3 2 6 1-3h2" />
+    </svg>
+  );
+}
+
 export function LiveIcon() {
   return (
     <svg {...s}>

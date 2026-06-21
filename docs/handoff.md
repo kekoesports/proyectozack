@@ -1,152 +1,126 @@
----
-summary: "Session handoff template. Dump state so the next session can resume fast."
-read_when:
-  - Ending a work session
-  - Switching context
-  - Handing off to another agent
----
+# Handoff — Conciliación bancaria: candidatos integrados + Aplicar cobro/pago
 
-# Handoff — 2026-05-27 (Analytics + CRM + CR-2 + fix handles + noticia CS2 + fix caché noticias)
-
-## 1. Scope / Status
-
-**Tareas completadas hoy:**
-
-### HI-4 — Analytics giveaways (vistas + clicks)
-
-**Nueva tabla `giveaway_events`** — migración `0076_easy_lilandra.sql`
-- Columnas: `id, giveaway_id (nullable FK), action ('view'|'click'), page, created_at`
-- Commit: `b08c809`
-
-**tRPC `giveaways.trackEvent`** — `src/server/routers/giveaways.ts`
-- Rate-limit 30/min por IP · Input: `{ action, giveawayId?, page? }`
-
-**Tracking en frontend:**
-- `SorteosHub.tsx` — `view + page:'sorteos'` al montar
-- `CompactSorteoCard.tsx` / `GiveawayFeatured.tsx` — `click + giveawayId` al pulsar CTA
-
-**Queries** — `src/lib/queries/giveawayAnalytics.ts`
-- `getGiveawayClicksByDay()` / `getGiveawayHubViewsByDay()` — últimos 90 días
-
-**Dashboard** — `GiveawayEventsSection` en `/admin/analytics` con KPIs + tabla top sorteos
-
-### UX — Eliminar sección "Mejores recompensas"
-- Eliminada `FeaturedCodesSection` del hub `/giveaways` · Commit: `5e45fda`
-
-### CRM — Brand picker en modales de edición
-- `EditCodeModal` y `EditGiveawayModal`: campo Marca reemplazado por `BrandPicker`
-- Commits: `082d296`, `52cbcf8`
-
-### CR-2 — Badges con emoji y color en tarjetas públicas `/sorteos`
-- `CompactSorteoCard`: `BADGE_MAP` por tipo — HOT 🔥 naranja · NUEVO ✨ verde · EXCLUSIVO 👑 morado · TOP ⭐ ámbar · LIMITED ⚡ rojo
-- `GiveawayFeatured`: badge del CRM aparece junto al pill "Live"
-- Commit: `9fc8ac5`
-
-### Noticia — CS ibérico (Sinon Community Series + Falcata Series)
-- Publicada vía Neon SQL Editor (proyecto **socialpro**, rama Primary) · vertical `news` · status `published`
-- Slug: `el-cs-iberico-recupera-el-pulso-sinon-community-series-falcata-series`
-- URL pública: `/news/el-cs-iberico-recupera-el-pulso-sinon-community-series-falcata-series`
-- **Cover URL pendiente** — subir imagen en `/admin/noticias/imagenes` y pegar URL editando el post en `/admin/noticias`
-- Tags: `cs2, torneos, competitivo, ibérico, esports, sinon, falcata`
-- Nota: primer intento fue en el proyecto Neon equivocado (proyecto de demo); el INSERT correcto se ejecutó en el proyecto **socialpro**
-
-### Fix caché noticias (bug: artículo editado no se actualizaba en la web) ✅
-- **`src/app/news/[slug]/page.tsx`**: `revalidate` bajado de 1800 → **60** s (red de seguridad: máximo 1 min de contenido stale)
-- **`src/app/admin/(dashboard)/noticias/actions.ts`** — `updatePostAction`:
-  - Se añade `slug` a la query de `currentRow` para obtener el slug actual de DB
-  - Se revalida tanto el slug nuevo (del form) como el slug antiguo si cambió
-- Commit: `6fc0f6d` · Deploy: completado en Vercel
-- Noticia CS2 corregida manualmente en admin: excerpt limpio + H1 eliminado del body_md
-
-### Fix handles — script creado, pendiente de ejecución
-- Script `scripts/fix-handles.ts` — corrige 7 canales fallidos en `sync-followers.ts`
-- **No ejecutado aún** — requiere `DATABASE_URL` real en `.env.local`
-- Commit: `4007a56`
+**Sesión:** 2026-06-21  
+**Estado al cerrar:** candidatos integrados en UI (completo), feature "Aplicar cobro/pago" en implementación.
 
 ---
 
-## 2. Handles fallidos — estado detallado
+## 1. Qué se implementó esta sesión
 
-El `vercel env pull` solo trae el entorno `development`; `DATABASE_URL` solo está en production/preview. Para ejecutar el fix:
+### Candidatos de conciliación en UI (COMPLETO)
 
-```bash
-# 1. Obtener DATABASE_URL de Neon dashboard o Vercel → Settings → Env Vars (production)
-# 2. Pegar en .env.local: DATABASE_URL="postgresql://..."
-# 3. Dry-run primero:
-npx tsx scripts/fix-handles.ts --dry-run
-# 4. Aplicar:
-npx tsx scripts/fix-handles.ts
-# 5. Verificar:
-npx tsx scripts/sync-followers.ts --dry-run
+Flujo completo de aprobación/rechazo con candidatos reales desde `/admin/facturacion/bancos/conciliacion`:
+
+| Capa | Archivo | Estado |
+|---|---|---|
+| Tipos RSC-safe | `src/types/bankReconciliation.ts` (`ScoredCandidate`, `BankTransactionWithCandidates`) | ✅ |
+| Batch scoring | `src/lib/queries/bankReconciliationCandidates.ts` | ✅ |
+| Queries atómicas | `src/lib/queries/bankReconciliation.ts` (`approveMatchFromCandidate`, `rejectMatchFromCandidate`) | ✅ |
+| Schemas Zod | `src/lib/schemas/bankReconciliation.ts` (`approveMatchFromCandidateSchema`, `rejectMatchFromCandidateSchema`) | ✅ |
+| Server actions | `src/app/.../conciliacion/actions.ts` | ✅ |
+| RSC page | `src/app/.../conciliacion/page.tsx` | ✅ |
+| UI client | `src/app/.../conciliacion/TransactionReviewList.tsx` | ✅ |
+| AI tool `getSuggestedTransactionMatches` | `src/lib/services/ai-assistant/tools/bankReconciliation.ts` | ✅ |
+| Docs | `docs/bank-reconciliation.md` | ✅ |
+
+Tests: 79 tests pasan (35 bank-reconciliation + 44 ai-assistant).
+
+### Aplicar cobro/pago a factura (EN PROGRESO)
+
+Implementación iniciada en continuación de sesión. Ver plan completo abajo.
+
+---
+
+## 2. Feature pendiente — Aplicar cobro/pago a factura
+
+Flujo dos pasos: **aprobar match ≠ aplicar cobro**. El botón "Aplicar cobro/pago" es acción humana separada y explícita.
+
+### Diseño decidido
+
+- **Tabla nueva:** `invoice_payments` (migración 0092). No existía.
+- **`issuedInvoices` no tiene `paidAmount`** → derivar sumando `invoice_payments` en cada operación.
+- **`invoices` tiene `paidAmount`** → actualizar directamente + `invoice_payments` para auditoría.
+- **`expense` matchType** → botón deshabilitado con tooltip "Próximamente".
+- **Idempotencia** → `UNIQUE(bank_transaction_id, issued_invoice_id)` y `UNIQUE(bank_transaction_id, invoice_id)`.
+- **Currency mismatch** → error claro, sin conversión automática.
+- **Auditoría** → insertar en `bank_reconciliation_events.metadata`.
+- **Status issuedInvoices** → `parcial` (varchar(30)) o `cobrada`.
+- **Status invoices** → usa `invoiceStatusEnum` existente que ya incluye `parcial`, `cobrada`, `pagada`.
+
+### Plan de archivos
+
+```
+1. src/db/schema/invoicePayments.ts          — schema nueva tabla
+2. src/db/schema/index.ts                    — export
+3. npx drizzle-kit generate && npm run migrate  — migración 0092
+4. src/types/invoicePayment.ts               — tipos derivados de Drizzle
+5. src/lib/schemas/invoicePayments.ts        — Zod applyPaymentSchema
+6. src/lib/queries/invoicePayments.ts        — apply / getPayments queries
+7. src/lib/queries/bankReconciliationMatched.ts  — getMatchedTransactionsWithPaymentStatus
+8. src/lib/queries/bankReconciliationCandidates.ts  — añadir 'parcial' al filtro issuedInvoices
+9. src/app/.../conciliacion/paymentActions.ts   — server action
+10. src/app/.../conciliacion/page.tsx           — tab "Conciliadas"
+11. src/app/.../conciliacion/MatchedTransactionList.tsx  — UI
+12. src/lib/services/ai-assistant/tools/bankReconciliation.ts  — getPendingPaymentMatches
+13. src/lib/services/ai-assistant/guardrails.ts — patrones apply-payment
+14. src/__tests__/server/invoice-payments.test.ts — tests
+15. docs/bank-reconciliation.md              — sección nueva
 ```
 
-**Correcciones que aplica el script:**
+---
 
-| Canal | Plataforma | Fix |
-|-------|-----------|-----|
-| MARTINEZ | YouTube | `martinezsaa` → `MartiinezSa` + URL correcta |
-| ADAMS | Twitch | `ADAMS` → `adamsen_` + URL correcta |
-| Lewis cs2 | Twitch | `Lewis cs2` (espacio) → `lewiscs2_` |
-| Bosko | Twitch | `Bosko` → `bosco` |
-| Branuel | Twitch | Probable `platform='tw'` → renombrar a `'twitch'` |
-| Marinho | Twitch | Ídem |
-| **julietacs_** | **YouTube** | **Manual** — script muestra estado en DB; verificar si tiene canal YT o eliminar fila |
+## 3. Tests actuales
+
+- `src/__tests__/server/bank-reconciliation.test.ts` — 35 tests (scoring, parser, hash, sanitize, matcher)
+- `src/__tests__/server/ai-assistant.test.ts` — 44 tests (guardrails, mask, sanitize, AI tools)
+- `invoice-schema.test.ts` tiene 37 fallos **preexistentes** — no tocar.
 
 ---
 
-## 3. Working Tree
+## 4. Archivos modificados en esta sesión
 
-- Branch: `master`
-- Cambios pendientes de commit: `src/app/news/[slug]/page.tsx` + `src/app/admin/(dashboard)/noticias/actions.ts`
-
----
-
-## 4. TypeScript / Lint
-
-- `npx tsc --noEmit`: 0 errores
-- `npm run lint`: 1 error pre-existente en `AdminSidebar.tsx` — no introducido esta sesión
-
----
-
-## 5. Pendiente próxima sesión
-
-### A) Ejecutar fix-handles + sync
-Ver sección 2 arriba. Una vez con DATABASE_URL disponible, son 3 comandos.
-
-### B) GSC — Esperar validaciones
-Google inició revalidación el 26-05. Comprobar en ~1-2 semanas.
-
-### C) Datos de métricas pendientes en CRM
-
-| Talento | Problema | Acción |
-|---------|---------|--------|
-| JOLU | Sin stats (`talent_stats` vacía) | Añadir en `/admin/talents/[id]` → métricas públicas |
-| MIRAI | Engagement = "—" | Actualizar en `/admin/talents/[id]` |
-| EVELYN FOXYY | Engagement = "—" | Ídem |
-
-### D) Bios SEO — pendiente revisión humana
-- 10 bios en estado `generated` en `/admin/talents/{id}/seo`
-- Especial atención: **HETTA** y **VITYSHOW**
-
-### E) No técnico
-
-- **kekoesports.es cross-reference** — Pablo debe añadir mención + link a `socialpro.es`
-- **REC-10 prensa** — contactar 5 medios gaming/esports para menciones externas
-- **Catálogo de marcas** — verificar logos correctos en `/admin/giveaways` → Catálogo de marcas
-
-### F) Analytics giveaways
-- Tabla `giveaway_events` vacía hasta que Vercel aplique la migración del deploy de hoy
-- Primera semana: verificar eventos en `/admin/analytics`
-
-### G) Cover noticia CS2 ✅ (imagen ya visible en la web)
-- Artículo publicado y correcto en `/news/el-cs-iberico-recupera-el-pulso-sinon-community-series-y-falcata-series-toman-el-relevo`
+```
+src/types/bankReconciliation.ts
+src/lib/queries/bankReconciliation.ts
+src/lib/queries/bankReconciliationCandidates.ts  (nuevo)
+src/lib/schemas/bankReconciliation.ts
+src/app/admin/(dashboard)/facturacion/bancos/conciliacion/actions.ts
+src/app/admin/(dashboard)/facturacion/bancos/conciliacion/page.tsx
+src/app/admin/(dashboard)/facturacion/bancos/conciliacion/TransactionReviewList.tsx
+src/lib/services/ai-assistant/tools/bankReconciliation.ts
+src/__tests__/server/ai-assistant.test.ts
+docs/bank-reconciliation.md
+```
 
 ---
 
-## 6. Pre-flight para retomar
+## 5. Decisiones técnicas
+
+| Decisión | Motivo |
+|---|---|
+| `rejectedKeys: readonly string[]` en lugar de `Set` | Sets no serializan sobre RSC boundary |
+| `date: string` (ISO) en `ScoredCandidate` | `Date` no serializa en RSC |
+| `substring(0, 10)` en lugar de `.split('T')[0]!` | ESLint prohíbe non-null assertions |
+| `db.transaction()` en approve/reject | Atomicidad: insert match + update tx status |
+| Candidatos on-demand | Permite recalcular si llegan facturas nuevas |
+| `expense` → botón deshabilitado | Gastos recurrentes sin factura vinculable |
+
+---
+
+## 6. Riesgos
+
+- **issuedInvoices sin paidAmount**: status se recalcula sumando invoice_payments. Si se borra un pago directamente en BD, el status queda desincronizado.
+- **'parcial' en issuedInvoices**: varchar(30), no enum. Filtro en `bankReconciliationCandidates.ts:42` debe incluirlo para que facturas parciales sigan siendo candidatas.
+- **Deuda**: `invoice-schema.test.ts` con 37 fallos preexistentes — no tocar.
+
+---
+
+## 7. Comandos para ejecutar al retomar
 
 ```bash
-git log --oneline -5
-npx tsc --noEmit
-npm run dev  # http://localhost:3000
+npx drizzle-kit generate   # tras crear invoicePayments.ts + export en index.ts
+npm run migrate            # aplicar migración 0092
+npx tsc --noEmit           # verificar types
+npm test                   # tras implementar tests
+npm run lint               # check final
 ```

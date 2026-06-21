@@ -48,4 +48,7 @@ export * from './brandCatalog';
 export * from './newsAlerts';
 export * from './giveawayEvents';
 export * from './postEvents';
+export * from './aiAssistant';
 export * from './talentProfileEvents';
+export * from './bankReconciliation';
+export * from './invoicePayments';

@@ -66,6 +66,17 @@ export const INVOICE_IMPORT_TYPES = {
   maxBytes: 10 * 1024 * 1024,
 };
 
+/** Imports de extractos bancarios (CSV/XLSX). */
+export const BANK_IMPORT_TYPES = {
+  mimes: [
+    'text/csv',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'application/vnd.ms-excel',
+  ] as const,
+  exts: ['.csv', '.xlsx', '.xls'] as const,
+  maxBytes: 6 * 1024 * 1024,
+};
+
 /** Imports de talents (CSV/XLSX). */
 export const TALENT_IMPORT_TYPES = {
   mimes: [
