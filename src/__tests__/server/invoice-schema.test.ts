@@ -10,8 +10,10 @@ import {
 } from '@/lib/schemas/invoice';
 
 // ── Minimal valid payload for createInvoiceSchema ──────────────────────────
+// scope was added as required field in commit 7c12235 (2026-05-31)
 const validCreate = {
   kind: 'income',
+  scope: 'company',
   issueDate: '2026-04-15',
   concept: 'Servicios de diseño',
   netAmount: '1000.00',
@@ -352,6 +354,12 @@ describe('invoice schemas', () => {
 
     it('rejects missing required field "kind"', () => {
       const { kind: _kind, ...rest } = validCreate;
+      const result = parse(rest);
+      expect(result.success).toBe(false);
+    });
+
+    it('rejects missing required field "scope"', () => {
+      const { scope: _scope, ...rest } = validCreate;
       const result = parse(rest);
       expect(result.success).toBe(false);
     });

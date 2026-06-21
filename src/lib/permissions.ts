@@ -46,7 +46,8 @@ export type Module =
   | 'usuarios'
   | 'targets'
   | 'prensa_targets'
-  | 'dashboard';
+  | 'dashboard'
+  | 'bancos';
 
 export type Action = 'read' | 'write' | 'publish' | 'delete' | 'manage_users';
 
@@ -132,6 +133,11 @@ export const PERMISSIONS = {
   },
   dashboard: {
     read: ['admin', 'manager', 'staff'],
+  },
+  bancos: {
+    read:   ['admin', 'manager', 'finance'],
+    write:  ['admin', 'manager', 'finance'],
+    delete: ['admin'],
   },
 } as const satisfies PermissionsMap;
 
