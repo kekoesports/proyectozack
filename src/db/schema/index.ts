@@ -52,3 +52,4 @@ export * from './aiAssistant';
 export * from './talentProfileEvents';
 export * from './bankReconciliation';
 export * from './invoicePayments';
+export * from './generatedContracts';
