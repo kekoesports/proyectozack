@@ -7,6 +7,7 @@ import {
   DashboardIcon, TalentIcon, BrandIcon, GiveawayIcon, TeamIcon,
   TargetsIcon, TasksIcon, MyWeekIcon, InvoiceIcon, AnalyticsIcon,
   CaseIcon, CampaignIcon, BackupIcon, ContactIcon, LiveIcon, NewsIcon, ExpenseIcon, ChartIcon, AiIcon,
+  ContractIcon,
 } from '@/features/admin/_shared/components/SidebarIcons';
 import type { ReactNode } from 'react';
 
@@ -38,6 +39,7 @@ const ADMIN_MORE_NAV = [
   { href: '/admin/analytics',      label: 'Analítica',     icon: <AnalyticsIcon />, prefetch: false },
   { href: '/admin/cases',      label: 'Casos',       icon: <CaseIcon />,   prefetch: false },
   { href: '/admin/asistente', label: 'Asistente IA', icon: <AiIcon />,    prefetch: false },
+  { href: '/admin/contratos',  label: 'Contratos',   icon: <ContractIcon />, prefetch: false },
   { href: '/admin/backups',   label: 'Backups',     icon: <BackupIcon />, prefetch: false },
 ] as const;
 

@@ -315,3 +315,15 @@ export function LiveIcon() {
     </svg>
   );
 }
+
+export function ContractIcon() {
+  return (
+    <svg {...s}>
+      <path d="M5 2h8l3 3v13H4V2z" />
+      <path d="M13 2v3h3" />
+      <line x1="7" y1="8"  x2="13" y2="8"  />
+      <line x1="7" y1="11" x2="13" y2="11" />
+      <line x1="7" y1="14" x2="10" y2="14" />
+    </svg>
+  );
+}
