@@ -53,17 +53,30 @@ export function CtaSection(): React.JSX.Element {
           2. Propuesta con creadores seleccionados en 48h ·
           3. Sin compromiso — decides si avanzar.
         </m.p>
-        <m.a
-          href="/contacto?type=brand"
-          onClick={() => trackEvent('cta_click', { cta_id: 'home_cta_section', cta_destination: '/contacto?type=brand' })}
+        <m.div
           variants={fadeUp}
           transition={{ duration: DURATION.slow, ease: EASE.out }}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.97 }}
-          className="inline-flex items-center justify-center px-10 py-4 rounded-full font-bold text-white text-base bg-sp-grad"
+          className="flex flex-col sm:flex-row items-center justify-center gap-4"
         >
-          Iniciar Propuesta →
-        </m.a>
+          <m.a
+            href="/contacto?type=brand"
+            onClick={() => trackEvent('cta_click', { cta_id: 'home_cta_brand', cta_destination: '/contacto?type=brand' })}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.97 }}
+            className="inline-flex w-full sm:w-auto items-center justify-center px-10 py-4 rounded-full font-bold text-white text-base bg-sp-grad"
+          >
+            Soy marca — Iniciar campaña →
+          </m.a>
+          <m.a
+            href="/contacto?type=talent"
+            onClick={() => trackEvent('cta_click', { cta_id: 'home_cta_talent', cta_destination: '/contacto?type=talent' })}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.97 }}
+            className="inline-flex w-full sm:w-auto items-center justify-center px-10 py-4 rounded-full font-bold text-base text-sp-muted2 border border-white/20 hover:text-white hover:border-white/40 transition-colors"
+          >
+            Soy creador →
+          </m.a>
+        </m.div>
         <m.p
           variants={fadeUp}
           transition={{ duration: DURATION.slow, ease: EASE.out }}

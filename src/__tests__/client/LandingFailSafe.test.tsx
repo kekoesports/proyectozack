@@ -79,7 +79,7 @@ describe('CtaSection (broken-observer regression)', () => {
   it('keeps the CTA content in the DOM and tags the wrapper for CSS fallback', () => {
     render(<CtaSection />);
 
-    expect(screen.getByText(/Iniciar Propuesta/i)).toBeInTheDocument();
+    expect(screen.getByText(/Soy marca/i)).toBeInTheDocument();
 
     const wrappers = document.querySelectorAll('[data-motion-fallback]');
     expect(wrappers.length).toBeGreaterThan(0);
