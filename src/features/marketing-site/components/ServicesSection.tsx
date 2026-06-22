@@ -37,14 +37,14 @@ const SERVICES = [
   },
   {
     id: 'youtube',
-    label: 'Gestión YouTube',
-    title: 'Gestión integral de canal YouTube',
+    label: 'Tengo un Canal de YouTube',
+    title: 'Para creadores de YouTube',
     steps: [
-      'Auditoría y optimización SEO del canal.',
-      'Estrategia de contenido y calendario editorial.',
-      'Producción de vídeos: edición, miniaturas y copywriting.',
-      'Gestión de monetización y partnerships.',
-      'Analytics mensuales y reporting de crecimiento.',
+      'Auditoría de tu canal: optimización, posicionamiento y oportunidades de crecimiento.',
+      'Estrategia de contenido y calendario editorial adaptado a tu nicho.',
+      'Producción profesional: edición, miniaturas y copywriting de títulos.',
+      'Gestión de monetización, partnerships y acuerdos con marcas.',
+      'Reporting mensual de analytics y plan de acción para el siguiente periodo.',
     ],
   },
 ];

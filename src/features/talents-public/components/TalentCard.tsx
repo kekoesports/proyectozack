@@ -112,7 +112,7 @@ export function TalentCard({ talent, priority = false }: TalentCardProps) {
               onClick={(e) => e.stopPropagation()}
               className="w-6 h-6 rounded-full flex items-center justify-center hover:scale-110 transition-transform"
               style={{ backgroundColor: `${s.hexColor}20` }}
-              aria-label={s.platform}
+              aria-label={`Ver en ${s.platform.charAt(0).toUpperCase() + s.platform.slice(1)}`}
             >
               <SocialIcon type={s.platform} color={s.hexColor} size={12} />
             </a>

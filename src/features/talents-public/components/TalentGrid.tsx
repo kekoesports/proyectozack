@@ -38,29 +38,35 @@ export function TalentGrid({ talents }: TalentGridProps): React.JSX.Element {
 
       {/* Grid: wrapper plano para no tapar el contenido en móvil con whileInView */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        <AnimatePresence mode="popLayout">
-          {visible.map((talent, index) => (
-            <m.div
-              key={talent.id}
-              layout
-              data-motion-fallback=""
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{
-                duration: DURATION.base,
-                ease: EASE.out,
-                // Cap del stagger a 8 items: evita delays >0.4s en móvil con muchas cards
-                delay: Math.min(index, 8) * STAGGER.tight,
-              }}
-            >
-              <TalentCard
-                talent={talent}
-                priority={index < 4}
-              />
-            </m.div>
-          ))}
-        </AnimatePresence>
+        {visible.length === 0 ? (
+          <div className="col-span-full py-20 text-center">
+            <p className="text-sp-muted text-sm font-semibold">Sin talentos en esta plataforma por el momento.</p>
+          </div>
+        ) : (
+          <AnimatePresence mode="popLayout">
+            {visible.map((talent, index) => (
+              <m.div
+                key={talent.id}
+                layout
+                data-motion-fallback=""
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{
+                  duration: DURATION.base,
+                  ease: EASE.out,
+                  // Cap del stagger a 8 items: evita delays >0.4s en móvil con muchas cards
+                  delay: Math.min(index, 8) * STAGGER.tight,
+                }}
+              >
+                <TalentCard
+                  talent={talent}
+                  priority={index < 4}
+                />
+              </m.div>
+            ))}
+          </AnimatePresence>
+        )}
       </div>
 
     </>

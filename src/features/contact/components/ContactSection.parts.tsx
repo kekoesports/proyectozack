@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import * as m from 'motion/react-client';
 import { Target, Gamepad2 } from 'lucide-react';
 import { z } from 'zod';
@@ -47,6 +48,7 @@ export const TIMELINE_OPTIONS = [
 ];
 
 export const VERTICAL_OPTIONS = [
+  { value: 'igaming', label: 'iGaming (general)' },
   { value: 'cs2_skins', label: 'CS2 Skins' },
   { value: 'betting', label: 'Apuestas / Betting' },
   { value: 'casino', label: 'Casino' },
@@ -264,7 +266,15 @@ export function SuccessMessage(): React.JSX.Element {
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
       </div>
       <h3 className="font-bold text-white mb-2">¡Mensaje enviado!</h3>
-      <p className="text-sm text-sp-muted2">Te respondemos en menos de 24h.</p>
+      <p className="text-sm text-sp-muted2 mb-5">
+        Te respondemos en menos de 24h. Mientras tanto, explora nuestros talentos.
+      </p>
+      <Link
+        href="/talentos"
+        className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-sm font-semibold text-white border border-white/10 bg-white/5 hover:bg-white/10 transition-colors"
+      >
+        Ver talentos →
+      </Link>
     </div>
   );
 }

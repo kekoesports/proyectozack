@@ -66,6 +66,23 @@ export function Nav() {
   // useScroll on Safari iOS, where momentum scrolling delays motion events).
   const scrollProgress = useMotionValue(0);
 
+  // Normalizar pathname quitando el prefijo /en para comparar con hrefs del nav
+  const basePath = locale === 'en' ? pathname.replace(/^\/en/, '') || '/' : pathname;
+  const isActive = (href: string): boolean =>
+    href === '/'
+      ? basePath === '/'
+      : basePath === href || basePath.startsWith(`${href}/`);
+
+  // Cerrar menu mobile al presionar Escape
+  useEffect(() => {
+    if (!open) return;
+    const onKeyDown = (e: KeyboardEvent): void => {
+      if (e.key === 'Escape') setOpen(false);
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [open]);
+
   useEffect(() => {
     let rafId = 0;
     let pending = false;
@@ -147,7 +164,10 @@ export function Nav() {
             <li key={l.href}>
               <Link
                 href={l.href}
-                className="whitespace-nowrap text-xs font-semibold uppercase tracking-wide text-white/50 hover:text-white transition-colors duration-200"
+                aria-current={isActive(l.href) ? 'page' : undefined}
+                className={`whitespace-nowrap text-xs font-semibold uppercase tracking-wide transition-colors duration-200 ${
+                  isActive(l.href) ? 'text-white' : 'text-white/50 hover:text-white'
+                }`}
               >
                 {l.label}
               </Link>
@@ -205,7 +225,10 @@ export function Nav() {
               >
                 <Link
                   href={l.href}
-                  className="text-xs font-semibold uppercase tracking-widest text-white/50 hover:text-white transition-colors block"
+                  aria-current={isActive(l.href) ? 'page' : undefined}
+                  className={`text-xs font-semibold uppercase tracking-widest block transition-colors ${
+                    isActive(l.href) ? 'text-white' : 'text-white/50 hover:text-white'
+                  }`}
                   onClick={() => setOpen(false)}
                 >
                   {l.label}
