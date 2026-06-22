@@ -173,7 +173,7 @@ export function CreateCodeForm({ talents, brandCatalog = [], defaultTalentId }: 
           </div>
           <div>
             <label className={labelCls}>Logo marca (URL)</label>
-            <input value={brandLogo} onChange={(e) => setBrandLogo(e.target.value)} type="url" placeholder="https://i.imgur.com/..." className={inputCls} />
+            <input value={brandLogo} onChange={(e) => setBrandLogo(e.target.value)} type="text" placeholder="https://i.imgur.com/... o /images/brands/logo.png" className={inputCls} />
           </div>
           <div>
             <label className={labelCls}>CTA personalizado</label>
