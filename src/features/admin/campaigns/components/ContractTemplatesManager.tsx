@@ -10,8 +10,7 @@ import {
   deleteTemplateAction,
   seedDefaultTemplatesAction,
 } from '@/app/admin/(dashboard)/campanas/plantillas/actions';
-import { AVAILABLE_VARIABLES } from '@/lib/contractVariables';
-import { TEMPLATE_TYPES } from '@/lib/queries/contractTemplates';
+import { AVAILABLE_VARIABLES, TEMPLATE_TYPES } from '@/lib/contractVariables';
 import type { ContractTemplate } from '@/lib/queries/contractTemplates';
 
 // ── Estilos ───────────────────────────────────────────────────────────

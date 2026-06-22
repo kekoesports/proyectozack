@@ -6,18 +6,7 @@ import type { InferSelectModel, InferInsertModel } from 'drizzle-orm';
 export type ContractTemplate    = InferSelectModel<typeof contractTemplates>;
 export type NewContractTemplate = InferInsertModel<typeof contractTemplates>;
 
-export const TEMPLATE_TYPES = [
-  { value: 'general',      label: 'General'             },
-  { value: 'casino',       label: 'Casino / iGaming'    },
-  { value: 'cs2_cases',    label: 'CS2 Cases / Skins'   },
-  { value: 'marketplace',  label: 'Marketplace / CS2'   },
-  { value: 'youtube',      label: 'YouTube'              },
-  { value: 'twitch',       label: 'Twitch / Streaming'  },
-  { value: 'instagram',    label: 'Instagram / Reels'   },
-  { value: 'sports_bet',   label: 'Apuestas deportivas' },
-] as const;
-
-export type TemplateType = (typeof TEMPLATE_TYPES)[number]['value'];
+export { TEMPLATE_TYPES, type TemplateType } from '@/lib/contractVariables';
 
 // ── Queries ───────────────────────────────────────────────────────────
 

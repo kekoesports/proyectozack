@@ -283,34 +283,77 @@ export function NuevoContratoForm({ templates, talents, brands }: Props): React.
       </div>
 
       {/* Paso 2: Variables detectadas */}
-      {placeholders.length > 0 && (
-        <div className="rounded-xl border border-sp-admin-border bg-sp-admin-card p-5 space-y-4">
-          <h2 className="text-[12px] font-bold uppercase tracking-wider text-sp-admin-muted">
-            2 — Variables ({placeholders.length} detectadas)
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {placeholders.map((key) => {
-              const isAuto = AGENCY_KEYS.has(key);
-              return (
-                <div key={key}>
-                  <label className={LB}>
-                    <code className="font-mono text-sp-admin-accent bg-sp-admin-accent/10 px-1 rounded text-[9px]">{`{{${key}}}`}</code>
-                    <span className="ml-1 normal-case font-normal">{VARIABLE_LABEL[key] ?? key}</span>
-                    {isAuto && <span className="ml-1 text-[9px] text-emerald-500 font-bold">auto</span>}
-                  </label>
-                  <input
-                    value={isAuto ? (agencyVars[key] ?? '') : (varValues[key] ?? '')}
-                    onChange={(e) => !isAuto && setVar(key, e.target.value)}
-                    disabled={isAuto}
-                    placeholder={isAuto ? 'Rellenado automáticamente' : `Valor para {{${key}}}`}
-                    className={`${I} ${isAuto ? 'opacity-60 cursor-not-allowed bg-sp-admin-hover/50' : ''}`}
-                  />
+      {placeholders.length > 0 && (() => {
+        const manualKeys = placeholders.filter((k) => !AGENCY_KEYS.has(k));
+        const autoKeys   = placeholders.filter((k) =>  AGENCY_KEYS.has(k));
+        return (
+          <div className="rounded-xl border border-sp-admin-border bg-sp-admin-card overflow-hidden">
+            {/* Cabecera */}
+            <div className="px-5 py-3 border-b border-sp-admin-border bg-sp-admin-bg/40 flex items-center justify-between">
+              <h2 className="text-[12px] font-bold uppercase tracking-wider text-sp-admin-muted">
+                2 — Variables
+              </h2>
+              <span className="text-[10px] text-sp-admin-muted">
+                {manualKeys.length} a rellenar · {autoKeys.length} automáticas
+              </span>
+            </div>
+
+            {/* Campos manuales */}
+            {manualKeys.length > 0 && (
+              <div className="p-5 space-y-3">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-sp-admin-muted/70">Rellenar manualmente</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {manualKeys.map((key) => (
+                    <div key={key}>
+                      <label className="block mb-1">
+                        <span className="text-[11px] font-semibold text-sp-admin-text">
+                          {VARIABLE_LABEL[key] ?? key}
+                        </span>
+                        <code className="ml-1.5 font-mono text-[9px] text-sp-admin-accent/70 bg-sp-admin-accent/8 px-1 py-0.5 rounded">{`{{${key}}}`}</code>
+                      </label>
+                      <input
+                        value={varValues[key] ?? ''}
+                        onChange={(e) => setVar(key, e.target.value)}
+                        placeholder={`—`}
+                        className={I}
+                      />
+                    </div>
+                  ))}
                 </div>
-              );
-            })}
+              </div>
+            )}
+
+            {/* Campos auto — colapsados por defecto */}
+            {autoKeys.length > 0 && (
+              <details className="border-t border-sp-admin-border/60">
+                <summary className="px-5 py-2.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-sp-admin-muted/70 cursor-pointer hover:bg-sp-admin-hover/30 select-none list-none flex items-center gap-1.5">
+                  <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor" className="opacity-50 transition-transform [[open]_&]:rotate-90" aria-hidden>
+                    <path d="M3 2l4 3-4 3V2z"/>
+                  </svg>
+                  Agencia (auto-rellenado) · {autoKeys.length} variables
+                </summary>
+                <div className="px-5 pb-4 pt-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 bg-sp-admin-hover/10">
+                  {autoKeys.map((key) => (
+                    <div key={key}>
+                      <label className="block mb-1">
+                        <span className="text-[11px] font-semibold text-sp-admin-muted">
+                          {VARIABLE_LABEL[key] ?? key}
+                        </span>
+                        <code className="ml-1.5 font-mono text-[9px] text-emerald-600 bg-emerald-50 px-1 py-0.5 rounded">{`{{${key}}}`}</code>
+                      </label>
+                      <input
+                        value={agencyVars[key] ?? ''}
+                        disabled
+                        className={`${I} opacity-60 cursor-not-allowed bg-sp-admin-hover/40`}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </details>
+            )}
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* Paso 3: Editor */}
       <div className="rounded-xl border border-sp-admin-border bg-sp-admin-card p-5 space-y-3">

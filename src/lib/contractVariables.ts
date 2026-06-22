@@ -9,6 +9,19 @@ export const CONTRACT_STATUSES: { value: GeneratedContractStatus; label: string 
   { value: 'archived', label: 'Archivado' },
 ];
 
+export const TEMPLATE_TYPES = [
+  { value: 'general',      label: 'General'             },
+  { value: 'casino',       label: 'Casino / iGaming'    },
+  { value: 'cs2_cases',    label: 'CS2 Cases / Skins'   },
+  { value: 'marketplace',  label: 'Marketplace / CS2'   },
+  { value: 'youtube',      label: 'YouTube'              },
+  { value: 'twitch',       label: 'Twitch / Streaming'  },
+  { value: 'instagram',    label: 'Instagram / Reels'   },
+  { value: 'sports_bet',   label: 'Apuestas deportivas' },
+] as const;
+
+export type TemplateType = (typeof TEMPLATE_TYPES)[number]['value'];
+
 /** Extrae las variables del trato para rellenar la plantilla */
 export function buildContractVars(c: CampaignWithRelations): Record<string, string> {
   const fmt = (n: string | number | null | undefined) =>
