@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
 import { EditCodeModal } from './EditCodeModal';
 import { deleteCodeAction, setCodeFeaturedAction } from './codes-actions';
 import { DeleteConfirmButton } from './DeleteConfirmButton';
@@ -18,6 +18,8 @@ type Props = {
 export function CodesTable({ codes, talents, brandCatalog = [] }: Props): React.ReactElement {
   const [editing, setEditing] = useState<CreatorCodeWithTalent | null>(null);
   const [query, setQuery] = useState('');
+  const [pendingId, setPendingId] = useState<number | null>(null);
+  const [, startTransition] = useTransition();
 
   const filtered = query.trim()
     ? codes.filter((c) => {
@@ -95,13 +97,23 @@ export function CodesTable({ codes, talents, brandCatalog = [] }: Props): React.
                 <td className="px-6 py-4 text-sp-admin-muted text-xs">{c.badge ?? '—'}</td>
                 <td className="px-6 py-4 text-sp-admin-muted text-xs">{c.category ?? '—'}</td>
                 <td className="px-4 py-4 text-center">
-                  <form action={setCodeFeaturedAction.bind(null, c.id, !c.isFeatured)}>
-                    <button type="submit" title={c.isFeatured ? 'Quitar destacado' : 'Marcar como destacado'}>
-                      <div className={`w-8 h-4 rounded-full relative transition-colors mx-auto ${c.isFeatured ? 'bg-sp-orange' : 'bg-sp-admin-border'}`}>
-                        <span className={`absolute top-0.5 w-3 h-3 rounded-full bg-white shadow transition-all ${c.isFeatured ? 'left-4' : 'left-0.5'}`} />
-                      </div>
-                    </button>
-                  </form>
+                  <button
+                    type="button"
+                    title={c.isFeatured ? 'Quitar destacado' : 'Marcar como destacado'}
+                    disabled={pendingId === c.id}
+                    className="cursor-pointer disabled:opacity-50 disabled:cursor-wait"
+                    onClick={() => {
+                      setPendingId(c.id);
+                      startTransition(async () => {
+                        await setCodeFeaturedAction(c.id, !c.isFeatured);
+                        setPendingId(null);
+                      });
+                    }}
+                  >
+                    <div className={`w-8 h-4 rounded-full relative transition-colors mx-auto ${c.isFeatured ? 'bg-sp-orange' : 'bg-sp-admin-border'}`}>
+                      <span className={`absolute top-0.5 w-3 h-3 rounded-full bg-white shadow transition-all ${c.isFeatured ? 'left-4' : 'left-0.5'}`} />
+                    </div>
+                  </button>
                 </td>
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-3">
