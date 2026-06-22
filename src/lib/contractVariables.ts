@@ -1,5 +1,14 @@
 import type { CampaignWithRelations } from '@/lib/queries/campaigns';
 
+export type GeneratedContractStatus = 'draft' | 'sent' | 'signed' | 'archived';
+
+export const CONTRACT_STATUSES: { value: GeneratedContractStatus; label: string }[] = [
+  { value: 'draft',    label: 'Borrador'  },
+  { value: 'sent',     label: 'Enviado'   },
+  { value: 'signed',   label: 'Firmado'   },
+  { value: 'archived', label: 'Archivado' },
+];
+
 /** Extrae las variables del trato para rellenar la plantilla */
 export function buildContractVars(c: CampaignWithRelations): Record<string, string> {
   const fmt = (n: string | number | null | undefined) =>

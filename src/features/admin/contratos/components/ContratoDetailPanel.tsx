@@ -6,7 +6,7 @@ import {
   updateContractStatusAction,
   deleteContractAction,
 } from '@/app/admin/(dashboard)/contratos/actions';
-import { CONTRACT_STATUSES } from '@/lib/queries/generatedContracts';
+import { CONTRACT_STATUSES } from '@/lib/contractVariables';
 import type { GeneratedContractDetail } from '@/lib/queries/generatedContracts';
 
 // ── Estilos ────────────────────────────────────────────────────────────

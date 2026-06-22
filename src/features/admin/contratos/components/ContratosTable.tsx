@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useTransition } from 'react';
 import { deleteContractAction } from '@/app/admin/(dashboard)/contratos/actions';
 import type { GeneratedContractRow } from '@/lib/queries/generatedContracts';
-import { CONTRACT_STATUSES } from '@/lib/queries/generatedContracts';
+import { CONTRACT_STATUSES } from '@/lib/contractVariables';
 
 // ── Estilos ────────────────────────────────────────────────────────────
 

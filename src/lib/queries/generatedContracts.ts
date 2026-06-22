@@ -5,18 +5,13 @@ import { contractTemplates } from '@/db/schema/contractTemplates';
 import { talents } from '@/db/schema/talents';
 import { crmBrands } from '@/db/schema/crmBrands';
 import type { InferSelectModel, InferInsertModel } from 'drizzle-orm';
+import { CONTRACT_STATUSES, type GeneratedContractStatus } from '@/lib/contractVariables';
+
+export type { GeneratedContractStatus };
+export { CONTRACT_STATUSES };
 
 export type GeneratedContract    = InferSelectModel<typeof generatedContracts>;
 export type NewGeneratedContract = InferInsertModel<typeof generatedContracts>;
-
-export type GeneratedContractStatus = 'draft' | 'sent' | 'signed' | 'archived';
-
-export const CONTRACT_STATUSES: { value: GeneratedContractStatus; label: string }[] = [
-  { value: 'draft',    label: 'Borrador'   },
-  { value: 'sent',     label: 'Enviado'    },
-  { value: 'signed',   label: 'Firmado'    },
-  { value: 'archived', label: 'Archivado'  },
-];
 
 // ── Row con joins para listado ─────────────────────────────────────────
 
