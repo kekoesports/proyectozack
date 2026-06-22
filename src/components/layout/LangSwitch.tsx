@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { LOCALE_COOKIE, LOCALE_COOKIE_MAX_AGE } from '@/lib/locale-detection';
 
 type Pair = { alt: string; targetLang: 'EN' | 'ES' };
 
@@ -57,13 +58,20 @@ export function LangSwitch({ className, onNavigate }: Props): React.JSX.Element 
 
   const currentLang = pair.targetLang === 'EN' ? 'ES' : 'EN';
   const ariaLabel = pair.targetLang === 'EN' ? 'Switch to English' : 'Cambiar a español';
+  const targetLocale = pair.targetLang.toLowerCase() as 'es' | 'en';
+
+  const handleClick = (): void => {
+    // Escribir preferencia de idioma — leída por el middleware en visitas futuras
+    document.cookie = `${LOCALE_COOKIE}=${targetLocale}; path=/; max-age=${LOCALE_COOKIE_MAX_AGE}; SameSite=Lax`;
+    onNavigate?.();
+  };
 
   return (
     <Link
       href={pair.alt}
       hrefLang={pair.targetLang.toLowerCase()}
       aria-label={ariaLabel}
-      {...(onNavigate ? { onClick: onNavigate } : {})}
+      onClick={handleClick}
       className={
         className ??
         'inline-flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold uppercase tracking-widest border border-white/15 hover:border-white/40 rounded-full transition-colors group'

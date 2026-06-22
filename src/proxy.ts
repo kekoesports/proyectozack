@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getLocaleDecision, LOCALE_COOKIE, LOCALE_COOKIE_MAX_AGE } from '@/lib/locale-detection';
 
 /* -------------------------------------------------------------------------- */
 /*  In-memory sliding-window rate limiter (per-IP, per-route bucket)          */
@@ -92,13 +93,44 @@ function checkAdminSession(req: NextRequest): NextResponse | null {
   return null;
 }
 
+/* ---------- Locale detection for homepages --------------------------------- */
+
+const LOCALE_COOKIE_OPTS = { path: '/', maxAge: LOCALE_COOKIE_MAX_AGE, sameSite: 'lax' as const };
+
+function handleLocaleDetection(req: NextRequest): NextResponse {
+  const decision = getLocaleDecision({
+    pathname: req.nextUrl.pathname,
+    cookieLocale: req.cookies.get(LOCALE_COOKIE)?.value,
+    country: req.headers.get('x-vercel-ip-country'),
+    acceptLanguage: req.headers.get('accept-language'),
+  });
+
+  if (decision.action === 'pass') {
+    if (!decision.writeCookie) return NextResponse.next();
+    const res = NextResponse.next();
+    res.cookies.set(LOCALE_COOKIE, decision.locale, LOCALE_COOKIE_OPTS);
+    return res;
+  }
+
+  const url = req.nextUrl.clone();
+  url.pathname = decision.to;
+  const redirectRes = NextResponse.redirect(url);
+  redirectRes.cookies.set(LOCALE_COOKIE, decision.locale, LOCALE_COOKIE_OPTS);
+  return redirectRes;
+}
+
 /* ---------- Main proxy ------------------------------------------------------ */
 
 export function proxy(req: NextRequest) {
+  const { pathname } = req.nextUrl;
+
+  // Locale detection — only for public homepages, before any other middleware
+  if (pathname === '/' || pathname === '/en') {
+    return handleLocaleDetection(req);
+  }
+
   const adminRedirect = checkAdminSession(req);
   if (adminRedirect) return adminRedirect;
-
-  const { pathname } = req.nextUrl;
 
   for (const rule of RATE_LIMITS) {
     if (rule.pattern.test(pathname)) {
@@ -119,5 +151,5 @@ export function proxy(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/api/:path*', '/admin/:path*'],
+  matcher: ['/', '/en', '/api/:path*', '/admin/:path*'],
 };
