@@ -95,9 +95,13 @@ export const AVAILABLE_VARIABLES = [
   { key: 'today',            label: 'Fecha de hoy'          },
   { key: 'brand_country',    label: 'País de la marca'      },
   { key: 'payment_method',   label: 'Método de pago'        },
-  { key: 'payment_terms',    label: 'Condiciones de pago'   },
-  { key: 'exclusivity',      label: 'Exclusividad'          },
-  { key: 'jurisdiction',     label: 'Jurisdicción'          },
+  { key: 'payment_terms',       label: 'Condiciones de pago'        },
+  { key: 'exclusivity',         label: 'Exclusividad'               },
+  { key: 'jurisdiction',        label: 'Jurisdicción'               },
+  { key: 'influencer_address',  label: 'Dirección del influencer'   },
+  { key: 'influencer_id',       label: 'NIF/ID del influencer'      },
+  { key: 'brand_url',           label: 'URL de la plataforma/marca' },
+  { key: 'referral_code',       label: 'Código de referido'         },
 ] as const;
 
 /** Mapa key→label para lookup rápido */
