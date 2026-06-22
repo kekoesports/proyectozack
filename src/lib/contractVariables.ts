@@ -102,8 +102,10 @@ export const AVAILABLE_VARIABLES = [
   { key: 'influencer_id',       label: 'NIF/ID del influencer'          },
   { key: 'brand_url',           label: 'URL de la plataforma/marca'     },
   { key: 'referral_code',       label: 'Código de referido'             },
-  { key: 'amount_per_unit',     label: 'Precio por entregable'          },
+  { key: 'amount_per_unit',      label: 'Precio por entregable'          },
   { key: 'influencer_channel',  label: 'Canal de publicación (URL)'     },
+  { key: 'campaign_duration',   label: 'Duración de la campaña'         },
+  { key: 'publish_deadline',    label: 'Plazo de publicación'           },
 ] as const;
 
 /** Mapa key→label para lookup rápido */
