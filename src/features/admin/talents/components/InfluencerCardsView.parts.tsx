@@ -45,6 +45,7 @@ export const PLATFORM_LABELS: Record<string, string> = {
   x:         'X',
   twitter:   'X',
   kick:      'Kick',
+  discord:   'Discord',
 };
 
 // Colores de plataforma para el dot indicator
@@ -56,6 +57,7 @@ const PLATFORM_DOT: Record<string, string> = {
   x:         '#1da1f2',
   twitter:   '#1da1f2',
   kick:      '#53fc18',
+  discord:   '#5865F2',
 };
 
 // Status config para el badge de footer
