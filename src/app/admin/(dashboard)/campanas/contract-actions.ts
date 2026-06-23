@@ -23,6 +23,11 @@ const resend = new Resend(env.RESEND_API_KEY);
 
 type ActionState = { readonly error?: string; readonly success?: boolean; readonly id?: number };
 
+function escapeHtml(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;').replace(/'/g, '&#x27;');
+}
+
 const UploadContractMeta = z.object({
   campaignId: IdSchema,
   notes: z.string().max(2000).optional(),
@@ -162,7 +167,7 @@ export async function requestSignaturesAction(contractId: number, campaignId: nu
             <h2 style="font-size:20px;font-weight:800;color:#16161f;margin:0 0 8px">
               Firma de contrato pendiente
             </h2>
-            <p style="color:#72728a;margin:0 0 20px">Hola <strong>${signer.name}</strong>,</p>
+            <p style="color:#72728a;margin:0 0 20px">Hola <strong>${escapeHtml(signer.name)}</strong>,</p>
             <p style="color:#72728a;margin:0 0 20px">
               Tienes un contrato pendiente de firma. Haz clic en el botón para revisarlo y firmar.
             </p>

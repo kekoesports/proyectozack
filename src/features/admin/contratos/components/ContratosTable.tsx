@@ -148,7 +148,7 @@ export function ContratosTable({ contracts }: Props): React.ReactElement {
                     <div className="flex items-center justify-end gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
                       {c.fileUrl && (
                         <a
-                          href={c.fileUrl}
+                          href={`/api/admin/contratos/${c.id}/pdf`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="h-7 px-2.5 rounded-lg border border-sp-admin-border text-[11px] font-semibold text-sp-admin-muted hover:text-sp-admin-text hover:bg-sp-admin-hover transition-colors inline-flex items-center"

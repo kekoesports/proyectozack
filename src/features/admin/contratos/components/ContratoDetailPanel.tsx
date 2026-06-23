@@ -38,6 +38,8 @@ export function ContratoDetailPanel({ contract }: Props): React.ReactElement {
 
   const statusStyle = STATUS_STYLE[contract.status as StatusKey] ?? STATUS_STYLE.draft;
   const statusLabel = CONTRACT_STATUSES.find((s) => s.value === contract.status)?.label ?? contract.status;
+  let parsedVars: Record<string, string> = {};
+  try { parsedVars = JSON.parse(contract.varsJson ?? '{}') as Record<string, string>; } catch { /* corrupt JSON — show empty */ }
 
   function handleDelete(): void {
     if (!confirm(`¿Eliminar el contrato "${contract.title}"? Esta acción no se puede deshacer.`)) return;
@@ -58,7 +60,7 @@ export function ContratoDetailPanel({ contract }: Props): React.ReactElement {
             </span>
             {contract.fileName && (
               <a
-                href={contract.fileUrl ?? '#'}
+                href={`/api/admin/contratos/${contract.id}/pdf`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1 text-[11px] text-sp-admin-accent hover:underline"
@@ -165,7 +167,7 @@ export function ContratoDetailPanel({ contract }: Props): React.ReactElement {
             Variables usadas en la generación
           </summary>
           <div className="px-4 py-3 grid grid-cols-2 md:grid-cols-3 gap-2">
-            {Object.entries(JSON.parse(contract.varsJson) as Record<string, string>).map(([k, v]) => (
+            {Object.entries(parsedVars).map(([k, v]) => (
               <div key={k} className="rounded-lg bg-sp-admin-hover/30 px-2.5 py-1.5">
                 <p className="text-[9px] font-mono font-bold text-sp-admin-accent">{`{{${k}}}`}</p>
                 <p className="text-[11px] text-sp-admin-text truncate" title={v}>{v}</p>
