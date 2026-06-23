@@ -4,6 +4,13 @@ import Image from 'next/image';
 import Link from 'next/link';
 import type { TalentWithRelations } from '@/types';
 import { SocialIcon } from '@/components/ui/SocialIcon';
+import { normalizePlatform } from '@/lib/utils/platform';
+
+const PLATFORM_LABEL: Record<string, string> = {
+  youtube: 'Youtube', twitch: 'Twitch', instagram: 'Instagram',
+  tiktok: 'TikTok', x: 'Twitter', twitter: 'Twitter',
+  kick: 'Kick', discord: 'Discord',
+};
 import { gradientStyle } from '@/lib/utils/gradient';
 import { countryFlagEmoji, getFlagImageUrl } from '@/lib/flag-images';
 import { getCountryLabel } from '@/lib/countries';
@@ -79,8 +86,15 @@ export function TalentCard({ talent, priority = false }: TalentCardProps) {
 
         {/* Stats — from social followers; skip entries with no data */}
         {(() => {
+          const seen = new Set<string>();
           const displayed = talent.socials
-            .filter((s) => s.followersDisplay && s.followersDisplay !== '-' && s.followersDisplay !== '0')
+            .filter((s) => {
+              if (!s.followersDisplay || s.followersDisplay === '-' || s.followersDisplay === '0') return false;
+              const canonical = normalizePlatform(s.platform) ?? s.platform;
+              if (seen.has(canonical)) return false;
+              seen.add(canonical);
+              return true;
+            })
             .slice(0, 3);
           if (displayed.length === 0) return null;
           return (
@@ -93,7 +107,7 @@ export function TalentCard({ talent, priority = false }: TalentCardProps) {
                   <div className="text-sm font-bold text-sp-dark">{social.followersDisplay}</div>
                   <div className="flex items-center justify-center gap-0.5 text-[10px] text-sp-muted leading-tight mt-0.5">
                     <SocialIcon type={social.platform} size={9} />
-                    <span>{social.platform.charAt(0).toUpperCase() + social.platform.slice(1)}</span>
+                    <span>{PLATFORM_LABEL[social.platform.toLowerCase()] ?? social.platform.charAt(0).toUpperCase() + social.platform.slice(1)}</span>
                   </div>
                 </div>
               ))}
