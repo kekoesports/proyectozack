@@ -50,7 +50,7 @@ export default async function SignPage({
                 <p className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-0.5">Contrato</p>
                 <p className="text-sm font-medium text-gray-900">{data.contract.fileName ?? 'Contrato.pdf'}</p>
               </div>
-              <a href={data.contract.fileUrl} target="_blank" rel="noreferrer"
+              <a href={`/api/contracts/${token}/pdf`} target="_blank" rel="noreferrer"
                 className="text-sm font-bold text-orange-500 hover:text-orange-600 underline">
                 Ver PDF →
               </a>
