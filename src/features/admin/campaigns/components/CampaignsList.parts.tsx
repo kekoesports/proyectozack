@@ -60,7 +60,7 @@ export type CampaignKpis = {
 
 const ACTIVE_STATUSES   = new Set<CampaignStatus>(['activa', 'aprobada']);
 const FINISHED_STATUSES = new Set<CampaignStatus>(['completada', 'pagada']);
-const PAID_STATUSES     = new Set<CampaignStatus>(['pagada', 'cancelada']);
+const PAID_STATUSES     = new Set<CampaignStatus>(['pagada']);
 
 export function computeKpis(campaigns: readonly CampaignWithRelations[], rate?: number): CampaignKpis {
   let activos = 0, negociacion = 0, finalizados = 0, countEUR = 0, countUSD = 0;
@@ -71,6 +71,7 @@ export function computeKpis(campaigns: readonly CampaignWithRelations[], rate?: 
 
   for (const c of campaigns) {
     if (c.archivedAt !== null) continue;
+    if (c.status === 'cancelada') continue;
 
     const cur       = c.currency ?? 'EUR';
     const isUSD     = cur === 'USD';
@@ -103,7 +104,7 @@ export function computeKpis(campaigns: readonly CampaignWithRelations[], rate?: 
     }
   }
 
-  const active = campaigns.filter((c) => c.archivedAt === null);
+  const active = campaigns.filter((c) => c.archivedAt === null && c.status !== 'cancelada');
   return {
     total: active.length, activos, negociacion, finalizados,
     countEUR, countUSD,
