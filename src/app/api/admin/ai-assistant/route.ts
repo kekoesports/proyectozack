@@ -29,6 +29,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       userId: session.user.id,
       userMessage: message,
       contextType,
+      userRole: session.user.role,
       ...(threadId !== undefined ? { threadId } : {}),
     });
     return NextResponse.json(result);

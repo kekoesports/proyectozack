@@ -4,6 +4,7 @@ import { getAiProvider, type AiMessage as ProviderMessage } from './provider';
 import { checkGuardrails } from './guardrails';
 import { buildSystemPrompt } from './context';
 import { runTool, type ToolName, AVAILABLE_TOOLS } from './tools/index';
+import type { Role } from '@/lib/auth-guard';
 import {
   createThread,
   getThread,
@@ -32,6 +33,7 @@ type ToolBlock = { readonly name: string; readonly content: string };
 async function gatherToolResults(
   firstResponseText: string,
   threadId: number,
+  userRole: Role,
 ): Promise<{ readonly hasTools: boolean; readonly blocks: readonly ToolBlock[] }> {
   const toolPattern = /\[TOOL:(\w+)(?::(\{[^}]+\}))?\]/g;
   const matches = [...firstResponseText.matchAll(toolPattern)];
@@ -61,6 +63,7 @@ async function gatherToolResults(
     const result = await runTool({
       name: toolName,
       threadId,
+      userRole,
       ...(input !== undefined ? { input } : {}),
     });
 
@@ -95,8 +98,9 @@ export async function sendMessage(opts: {
   userMessage: string;
   threadId?: number;
   contextType?: AiContextTypeKey;
+  userRole: Role;
 }): Promise<AssistantResponse> {
-  const { userId, userMessage, contextType = 'general' } = opts;
+  const { userId, userMessage, contextType = 'general', userRole } = opts;
 
   // 1. Guardrails — verificar antes de cualquier operación
   const guardrail = checkGuardrails(userMessage);
@@ -146,7 +150,7 @@ export async function sendMessage(opts: {
   let usedAi = firstAiResponse.usedAi;
 
   if (firstAiResponse.usedAi) {
-    const { hasTools, blocks } = await gatherToolResults(firstAiResponse.text, threadId);
+    const { hasTools, blocks } = await gatherToolResults(firstAiResponse.text, threadId, userRole);
 
     if (hasTools) {
       // Construir historial actualizado: añadir el turno actual para dar contexto al modelo

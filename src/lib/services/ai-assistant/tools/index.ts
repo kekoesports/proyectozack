@@ -2,6 +2,7 @@
 
 import { logToolExecution } from '@/lib/queries/aiAssistant';
 import { logRedacted } from '@/lib/log';
+import type { Role } from '@/lib/auth-guard';
 import { getBillingSummary, getOverdueInvoices, getPendingInvoices } from './billing';
 import { getCampaignMarginSummary, getActiveCampaigns } from './campaigns';
 import { getMonthlyExpenseSummary, getRecurringExpensesSummary } from './expenses';
@@ -63,6 +64,33 @@ export const AVAILABLE_TOOLS = [
   'getFinanceAlerts',
 ] as const satisfies readonly ToolName[];
 
+// Mapa de roles permitidos por tool.
+// Si una tool no aparece aquí, está disponible para todos los roles autenticados.
+// Espeja exactamente los permisos de src/lib/permissions.ts para consistencia.
+const TOOL_ALLOWED_ROLES: Partial<Record<ToolName, readonly Role[]>> = {
+  // facturacion:read — admin, manager, finance únicamente
+  getBillingSummary:           ['admin', 'manager', 'finance'],
+  getOverdueInvoices:          ['admin', 'manager', 'finance'],
+  getPendingInvoices:          ['admin', 'manager', 'finance'],
+  getRecurringExpensesSummary: ['admin', 'manager', 'finance'],
+  getMonthlyExpenseSummary:    ['admin', 'manager', 'finance'],
+  getFinanceDashboardSummary:  ['admin', 'manager', 'finance'],
+  getReceivablesRiskSummary:   ['admin', 'manager', 'finance'],
+  getFinanceAlerts:            ['admin', 'manager', 'finance'],
+  // bancos:read — admin, manager, finance únicamente
+  getBankReconciliationSummary:   ['admin', 'manager', 'finance'],
+  getUnmatchedBankTransactions:   ['admin', 'manager', 'finance'],
+  getSuggestedTransactionMatches: ['admin', 'manager', 'finance'],
+  getPendingPaymentMatches:       ['admin', 'manager', 'finance'],
+  // campanas:read — incluye ops y talent_manager
+  getCampaignMarginSummary: ['admin', 'manager', 'staff', 'ops', 'talent_manager', 'finance'],
+  getActiveCampaigns:       ['admin', 'manager', 'staff', 'ops', 'talent_manager', 'finance'],
+  // analytics:read — incluye analyst y talent_manager (datos agregados sin PII ni importes individuales)
+  getCashflowTrend:        ['admin', 'manager', 'analyst', 'finance', 'talent_manager'],
+  getCampaignMarginAlerts: ['admin', 'manager', 'analyst', 'finance', 'talent_manager'],
+  // getCrmHelpContext: sin restricción — disponible para todos los roles autenticados
+};
+
 async function executeTool(name: ToolName, input?: unknown): Promise<ToolResult> {
   try {
     switch (name) {
@@ -119,7 +147,16 @@ export async function runTool(opts: {
   input?: unknown;
   threadId: number;
   messageId?: number;
+  userRole: Role;
 }): Promise<ToolResult> {
+  const allowedRoles = TOOL_ALLOWED_ROLES[opts.name];
+  if (allowedRoles && !(allowedRoles as readonly string[]).includes(opts.userRole)) {
+    try {
+      await logToolExecution({ threadId: opts.threadId, toolName: opts.name, status: 'blocked', errorMessage: 'insufficient-role' });
+    } catch { /* best effort */ }
+    return { ok: false, error: 'Acceso denegado: tu rol no tiene permiso para esta herramienta.' };
+  }
+
   const result = await executeTool(opts.name, opts.input);
 
   // Loggear ejecución — best effort, no bloquea el flujo si falla

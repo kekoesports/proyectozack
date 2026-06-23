@@ -57,7 +57,7 @@ export async function updateTalentGeoData(formData: FormData): Promise<void> {
 export async function createStatsShareLink(): Promise<{ id: number; token: string } | null> {
   const session = await requirePermission('analytics', 'write');
 
-  const token = randomBytes(16).toString('base64url');
+  const token = randomBytes(32).toString('base64url');
 
   if (IS_DEV && session.user.id === 'dev') {
     const now = new Date();
