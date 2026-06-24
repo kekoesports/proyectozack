@@ -61,6 +61,10 @@ export type InvoiceLineInput = z.infer<typeof invoiceLineSchema>;
 export const createIssuedInvoiceSchema = z.object({
   issuerCompanyId:   z.coerce.number().int().positive(),
   billingClientId:   z.coerce.number().int().positive(),
+  invoiceNumber:     z.preprocess(
+    (v) => (typeof v === 'string' && v.trim() === '' ? undefined : v),
+    z.string().min(1).max(60).optional(),
+  ),
   relatedBrandId:    z.preprocess((v) => (v === '' || v == null ? undefined : Number(v)), z.number().int().positive().optional()),
   relatedTalentId:   z.preprocess((v) => (v === '' || v == null ? undefined : Number(v)), z.number().int().positive().optional()),
   relatedDealId:     z.preprocess((v) => (v === '' || v == null ? undefined : Number(v)), z.number().int().positive().optional()),

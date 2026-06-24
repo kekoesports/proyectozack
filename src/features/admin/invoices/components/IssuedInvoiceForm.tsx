@@ -265,6 +265,18 @@ export function IssuedInvoiceForm({ invoice, issuers, clients, brands, talents, 
           <div>
             <p className={S}>D · Datos de factura</p>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div>
+                <label className={LB}>
+                  Nº Factura
+                  {mode === 'create' && <span className="ml-1 font-normal normal-case text-sp-admin-muted/60"> (opcional)</span>}
+                </label>
+                <input
+                  name="invoiceNumber"
+                  defaultValue={invoice?.invoiceNumber ?? ''}
+                  placeholder={mode === 'create' ? 'Auto si se deja vacío' : ''}
+                  className={I}
+                />
+              </div>
               <div><label className={LB}>Fecha emisión *</label><input name="issueDate" type="date" required defaultValue={invoice?.issueDate ?? today} className={I} /></div>
               <div><label className={LB}>Vencimiento</label><input name="dueDate" type="date" defaultValue={invoice?.dueDate ?? ''} className={I} /></div>
               <div>
