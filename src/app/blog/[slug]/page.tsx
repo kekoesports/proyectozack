@@ -149,8 +149,8 @@ export default async function BlogPostPage({ params }: PageProps) {
           </div>
         </div>
 
-        {/* Cover — aspect ratio cinematic para mejor presencia visual */}
-        <div className="relative w-full overflow-hidden" style={{ aspectRatio: '21/8' }}>
+        {/* Cover — franja compacta: cap 200px desktop, proporcional mobile */}
+        <div className="relative w-full overflow-hidden" style={{ aspectRatio: '21/8', maxHeight: '200px' }}>
           <BlogCover
             coverUrl={post.coverUrl}
             category={category}
