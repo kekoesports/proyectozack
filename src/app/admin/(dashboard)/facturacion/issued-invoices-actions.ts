@@ -87,7 +87,7 @@ export async function createIssuedInvoiceAction(
     return { error: firstError(parsed.fieldErrors) };
   }
 
-  const { linesJson, vatRate, withholdingRate, issuerCompanyId, ...invoiceData } = parsed.data;
+  const { linesJson, vatRate, withholdingRate, issuerCompanyId, invoiceNumber: manualNumber, ...invoiceData } = parsed.data;
 
   const lines = parseLines(linesJson);
   if (!lines || lines.length === 0) return { error: 'La factura debe tener al menos una línea' };
@@ -95,7 +95,8 @@ export async function createIssuedInvoiceAction(
   const amounts = computeAmounts(lines, Number(vatRate), Number(withholdingRate));
 
   try {
-    const invoiceNumber = await allocateInvoiceNumber(issuerCompanyId);
+    const invoiceNumber = manualNumber ?? await allocateInvoiceNumber(issuerCompanyId);
+    const series = invoiceNumber.includes('-') ? (invoiceNumber.split('-')[0] ?? null) : null;
     const row = await createIssuedInvoice({
       invoice: {
         issuerCompanyId,
@@ -104,7 +105,7 @@ export async function createIssuedInvoiceAction(
         relatedTalentId:   invoiceData.relatedTalentId   ?? null,
         relatedDealId:     invoiceData.relatedDealId     ?? null,
         invoiceNumber,
-        series:            invoiceNumber.split('-')[0] ?? null,
+        series,
         status:            invoiceData.status,
         issueDate:         invoiceData.issueDate,
         dueDate:           invoiceData.dueDate ?? null,
@@ -152,7 +153,7 @@ export async function updateIssuedInvoiceAction(
     return { error: firstError(parsed.fieldErrors) };
   }
 
-  const { id, linesJson, vatRate, withholdingRate, issuerCompanyId, ...invoiceData } = parsed.data;
+  const { id, linesJson, vatRate, withholdingRate, issuerCompanyId, invoiceNumber, ...invoiceData } = parsed.data;
   if (!id) return { error: 'ID requerido' };
 
   let lines: InvoiceLineInput[] | undefined;
@@ -171,6 +172,7 @@ export async function updateIssuedInvoiceAction(
       id,
       {
         ...(issuerCompanyId && { issuerCompanyId }),
+        ...(invoiceNumber   && { invoiceNumber, series: invoiceNumber.includes('-') ? (invoiceNumber.split('-')[0] ?? null) : null }),
         relatedBrandId:  invoiceData.relatedBrandId  ?? null,
         relatedTalentId: invoiceData.relatedTalentId ?? null,
         relatedDealId:   invoiceData.relatedDealId   ?? null,
