@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "deal_trackers_source_block_unique" ON "deal_deliverable_trackers" USING btree ("brand_sheet_source_id","google_sheet_gid","google_sheet_block_title","google_sheet_block_index") WHERE brand_sheet_source_id IS NOT NULL;
