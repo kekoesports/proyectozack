@@ -134,7 +134,7 @@ async function main() {
     excerpt:
       'Por qué el alcance no es el KPI que importa en iGaming, cómo funciona el tracking de First Time Deposits verificados desde el panel del operador, y qué datos reales conseguimos para 1WIN en CS2. La guía que ninguna agencia generalista puede escribir.',
     bodyMd: BODY,
-    coverUrl: '/images/blog/trackeo-ftds-igaming-influencers-metodologia.jpg',
+    coverUrl: null,
     author: 'Pablo Camacho',
     status: 'published' as const,
     vertical: 'blog' as const,

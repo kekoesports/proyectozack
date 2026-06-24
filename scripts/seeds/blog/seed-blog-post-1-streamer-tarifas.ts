@@ -123,7 +123,7 @@ async function main() {
     excerpt:
       'Rangos de precios reales por segmento (nano, mid-tier, top tier), qué factores mueven la tarifa hacia arriba y los errores más comunes al negociar con streamers de CS2 sin conocer el ecosistema. Guía basada en campañas reales de SocialPro.',
     bodyMd: BODY,
-    coverUrl: '/images/blog/cuanto-cobra-streamer-cs2-patrocinio-2026.jpg',
+    coverUrl: null,
     author: 'Pablo Camacho',
     status: 'published' as const,
     vertical: 'blog' as const,
