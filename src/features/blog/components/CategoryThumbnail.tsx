@@ -214,27 +214,8 @@ export function CategoryThumbnail({ category, slug, title, brand, variant = 'car
           variant={variant}
         />
       ) : (
-        <EditorialComposition
-          title={title}
-          category={category}
-          accent={style.accent}
-          variant={variant}
-        />
+        <EditorialComposition variant={variant} />
       )}
-
-      {/* ── Etiqueta de categoría top-left ───────────────────────────── */}
-      <div className={`absolute ${isHero ? 'top-5 left-5' : 'top-3.5 left-3.5'} flex items-center gap-2 z-20`}>
-        <span
-          className="block w-1.5 h-1.5 rounded-full"
-          style={{ background: style.accent, boxShadow: `0 0 8px ${style.glow}` }}
-        />
-        <span
-          className="font-display text-[10px] font-black uppercase tracking-[0.3em]"
-          style={{ color: style.accent, opacity: 0.92 }}
-        >
-          {category.label}
-        </span>
-      </div>
 
       {/* ── Wordmark SocialPro bottom-right — branding ────────────────── */}
       <div
@@ -323,57 +304,27 @@ function BrandedComposition({
 }
 
 /* ─────────────────────────────────────────────────────────────────────── */
-/* Composición editorial sin marca — tipografía dominante                  */
+/* Composición editorial sin marca — logo SocialPro centrado en blanco     */
 
-function EditorialComposition({
-  title,
-  category,
-  accent,
-  variant,
-}: {
-  title: string;
-  category: BlogCategory;
-  accent: string;
-  variant: Variant;
-}) {
-  // Iniciales del título — acento tipográfico fantasma
-  const initials =
-    title
-      .split(' ')
-      .filter((w) => w.length > 3)
-      .slice(0, 2)
-      .map((w) => w[0]?.toUpperCase() ?? '')
-      .join('') || category.label.slice(0, 1).toUpperCase();
-
-  const initialsSize =
-    variant === 'hero' ? 'clamp(8rem, 28vw, 22rem)'
-    : variant === 'featured' ? 'clamp(6rem, 22vw, 16rem)'
-    : 'clamp(5rem, 20vw, 14rem)';
+function EditorialComposition({ variant }: { variant: Variant }) {
+  const logoSize =
+    variant === 'hero'     ? 'w-[55%] max-w-[420px]'
+    : variant === 'featured' ? 'w-[55%] max-w-[260px]'
+    : 'w-[52%] max-w-[180px]';
 
   return (
     <div className="relative w-full h-full flex items-center justify-center">
-      <span
-        className="absolute font-display font-black uppercase select-none pointer-events-none"
-        style={{
-          fontSize: initialsSize,
-          lineHeight: 0.85,
-          color: accent,
-          opacity: 0.07,
-          letterSpacing: '-0.06em',
-          mixBlendMode: 'screen',
-        }}
-      >
-        {initials}
-      </span>
-
-      {/* Línea acento horizontal */}
-      <div
-        className="absolute bottom-1/3 left-8 right-8 h-px"
-        style={{
-          background: `linear-gradient(90deg, transparent, ${accent}, transparent)`,
-          opacity: 0.35,
-        }}
-      />
+      <div className={`relative ${logoSize}`}>
+        <Image
+          src="/images/logos/socialpro-full.png"
+          alt="SocialPro"
+          width={420}
+          height={120}
+          sizes="(max-width: 640px) 180px, (max-width: 1024px) 260px, 420px"
+          className="w-full h-auto object-contain"
+          style={{ filter: 'brightness(0) invert(1)', opacity: 0.38 }}
+        />
+      </div>
     </div>
   );
 }

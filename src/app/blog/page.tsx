@@ -53,7 +53,7 @@ const breadcrumbJsonLd = buildBreadcrumbJsonLd([
 export default async function BlogPage() {
   const posts = await getPosts();
   const sorted = [...posts].sort((a, b) => (b.sortOrder ?? 0) - (a.sortOrder ?? 0));
-  const recent = sorted.slice(0, 5);
+  const recent = sorted.slice(0, 3);
 
   return (
     <>
@@ -80,7 +80,7 @@ export default async function BlogPage() {
         </svg>
 
         <div className="relative max-w-6xl mx-auto px-4 sm:px-6">
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-0 items-start">
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-0 lg:items-center">
 
             {/* Izquierda: cabecera editorial */}
             <div className="py-6 lg:pr-10 lg:border-r lg:border-white/[0.06]">
@@ -99,7 +99,7 @@ export default async function BlogPage() {
               {/* Posts recientes — visible en mobile (apilados), ocultos en lg (panel derecho los muestra) */}
               {recent.length > 0 && (
                 <div className="lg:hidden flex flex-col gap-0 mb-2 rounded-xl overflow-hidden border border-white/[0.07]">
-                  {recent.slice(0, 3).map((post) => {
+                  {recent.map((post) => {
                     const cat = deriveCategory(post.slug, post.title);
                     return (
                       <Link
