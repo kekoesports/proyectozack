@@ -659,6 +659,20 @@
       "when": 1782130379149,
       "tag": "0093_lean_magdalene",
       "breakpoints": true
+    },
+    {
+      "idx": 94,
+      "version": "7",
+      "when": 1782320554591,
+      "tag": "0094_tired_mathemanic",
+      "breakpoints": true
+    },
+    {
+      "idx": 95,
+      "version": "7",
+      "when": 1782323222084,
+      "tag": "0095_brave_bishop",
+      "breakpoints": true
     }
   ]
 }
