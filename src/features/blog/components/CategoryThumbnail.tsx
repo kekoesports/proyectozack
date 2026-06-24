@@ -5,7 +5,7 @@
  *  - Gradiente multicapa por categoría
  *  - Patrón geométrico distintivo (lines/hex/grid/wave/play/dots)
  *  - Logo de marca cuando se detecta (Razer, 1WIN, SkinsMonkey, Keydrop, Hellcase, Skinplace)
- *  - Tipografía dominante (título en mayúsculas si no hay logo, sino branding)
+ *  - Logo SocialPro en blanco centrado cuando no se detecta marca de cliente
  *  - Wordmark SocialPro discreto bottom-right
  *
  * Hook IA: cuando exista `cover_url` real en la BD, BlogCover usa la imagen.
