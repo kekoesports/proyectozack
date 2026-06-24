@@ -28,7 +28,7 @@ export function TalentMiniCard({ talent }: Props) {
 
   return (
     <Link
-      href={`/#talentos`}
+      href={talent.slug ? `/talentos/${talent.slug}` : '/talentos'}
       className="group flex flex-col items-center text-center rounded-2xl border border-sp-border bg-white hover:shadow-lg hover:-translate-y-0.5 transition-all overflow-hidden w-36 flex-shrink-0"
     >
       {/* Photo */}

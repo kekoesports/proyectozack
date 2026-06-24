@@ -30,6 +30,7 @@ export function BlogCard({ post }: BlogCardProps) {
         <BlogCover
           coverUrl={post.coverUrl}
           category={category}
+          slug={post.slug}
           title={post.title}
           variant="card"
         />
