@@ -7,6 +7,7 @@ import { BlogCard } from '@/features/blog/components/BlogCard';
 import { BlogCover } from '@/features/blog/components/BlogCover';
 import { ExploraMas } from '@/features/blog/components/ExploraMas';
 import { deriveCategory, readTime, detectBrand } from '@/lib/utils/blog';
+import { renderParagraph } from '@/lib/utils/blog-renderer';
 import { SectionTag } from '@/components/ui/SectionTag';
 import { TalentMiniCard } from '@/features/blog/components/TalentMiniCard';
 import { buildBreadcrumbJsonLd } from '@/lib/utils/breadcrumbs';
@@ -43,84 +44,6 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     },
     twitter: { card: 'summary_large_image', title, description, images: [absoluteUrl(`/api/og-image/blog?slug=${slug}`)] },
   };
-}
-
-/** Render a single body paragraph — handles ## h2, ### h3, **bold**, bullet lists */
-function renderParagraph(text: string, key: number) {
-  if (text.startsWith('## ')) {
-    return (
-      <h2 key={key} className="font-display text-2xl md:text-3xl font-black uppercase text-sp-dark mt-12 mb-3 pb-2 border-b border-sp-border">
-        {text.slice(3)}
-      </h2>
-    );
-  }
-  if (text.startsWith('### ')) {
-    return (
-      <h3 key={key} className="font-display text-xl font-black uppercase text-sp-dark mt-8 mb-2">
-        {text.slice(4)}
-      </h3>
-    );
-  }
-  // Bullet list block
-  if (text.includes('\n- ') || text.startsWith('- ')) {
-    const items = text.split('\n').filter(l => l.startsWith('- ')).map(l => l.slice(2));
-    return (
-      <ul key={key} className="space-y-2 my-4 pl-1">
-        {items.map((item, i) => (
-          <li key={i} className="flex gap-2 text-sp-muted text-base leading-relaxed">
-            <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-sp-orange flex-shrink-0" />
-            <span dangerouslySetInnerHTML={{ __html: renderInline(item) }} />
-          </li>
-        ))}
-      </ul>
-    );
-  }
-  return (
-    <p key={key} className="text-base text-sp-muted leading-relaxed"
-       dangerouslySetInnerHTML={{ __html: renderInline(text) }} />
-  );
-}
-
-/** Escape HTML entities to prevent XSS before injecting into the DOM */
-function escapeHtml(text: string): string {
-  return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
-}
-
-const INLINE_LINK_CLASS =
-  'text-sp-orange font-medium underline decoration-sp-orange/35 underline-offset-[3px] hover:decoration-sp-orange transition-colors';
-
-/**
- * Auto-linkify URLs propias en el cuerpo del post.
- *
- * Detecta menciones tipo `socialpro.es/casos`, `socialpro.es/contacto/X` etc.
- * y las convierte en enlaces internos hacia rutas relativas. No depende del
- * dominio configurado: cualquier mención literal `socialpro.es/...` queda
- * canonizada como href interno.
- *
- * Input ya viene HTML-escaped, así que sólo opera sobre texto plano seguro.
- */
-function linkifyInternal(html: string): string {
-  // Opcionalmente con `https://` o `www.` delante. Capturamos el path tras `/`.
-  const pattern = /(?:https?:\/\/)?(?:www\.)?socialpro\.es(\/[a-z0-9/_-]+)/gi;
-  return html.replace(pattern, (_match, path: string) => {
-    const cleanPath = path.replace(/[.,;:)]+$/, '');
-    return `<a href="${cleanPath}" class="${INLINE_LINK_CLASS}">socialpro.es${cleanPath}</a>`;
-  });
-}
-
-/** Convert **bold**, *italic*, and [label](/path) markdown to HTML (input is pre-escaped) */
-function renderInline(text: string): string {
-  return linkifyInternal(
-    escapeHtml(text)
-      .replace(/\*\*(.+?)\*\*/g, '<strong class="font-semibold text-sp-dark">$1</strong>')
-      .replace(/\*(.+?)\*/g, '<em>$1</em>')
-      .replace(/\[([^\]]+)\]\((\/[^)\s]+)\)/g, `<a href="$2" class="${INLINE_LINK_CLASS}">$1</a>`),
-  );
 }
 
 function extractPodcastBlock(blocksJson: unknown): PodcastBlock | null {
@@ -165,19 +88,9 @@ export default async function BlogPostPage({ params }: PageProps) {
       '@type': 'PodcastSeries',
       name: podcast.showName,
       ...(podcast.showUrl ? { url: podcast.showUrl } : {}),
-      publisher: {
-        '@type': 'Organization',
-        name: podcast.network,
-      },
+      publisher: { '@type': 'Organization', name: podcast.network },
     },
-    mentions: [
-      {
-        '@type': 'Organization',
-        '@id': absoluteUrl('/#organization'),
-        name: 'SocialPro',
-        url: absoluteUrl('/'),
-      },
-    ],
+    mentions: [{ '@type': 'Organization', '@id': absoluteUrl('/#organization'), name: 'SocialPro', url: absoluteUrl('/') }],
   } : null;
 
   const jsonLd = {
@@ -191,24 +104,12 @@ export default async function BlogPostPage({ params }: PageProps) {
     author: post.author && post.author !== 'SocialPro' && post.author !== 'Redacción'
       ? { '@type': 'Person', name: post.author, worksFor: { '@type': 'Organization', '@id': absoluteUrl('/#organization'), name: 'SocialPro' } }
       : { '@type': 'Organization', '@id': absoluteUrl('/#organization'), name: 'SocialPro' },
-    publisher: {
-      '@type': 'Organization',
-      '@id': absoluteUrl('/#organization'),
-      name: 'SocialPro',
-      url: absoluteUrl('/'),
-    },
+    publisher: { '@type': 'Organization', '@id': absoluteUrl('/#organization'), name: 'SocialPro', url: absoluteUrl('/') },
     datePublished: post.publishedAt?.toISOString(),
     dateModified: post.updatedAt.toISOString(),
     ...(schemaImageUrl(post.coverUrl) ? { image: schemaImageUrl(post.coverUrl) } : {}),
     ...(post.talentAvatars.length > 0
-      ? {
-          mentions: post.talentAvatars.map((t) => ({
-            '@type': 'Person',
-            name: t.name,
-            url: absoluteUrl(`/talentos/${t.slug}`),
-            jobTitle: t.role,
-          })),
-        }
+      ? { mentions: post.talentAvatars.map((t) => ({ '@type': 'Person', name: t.name, url: absoluteUrl(`/talentos/${t.slug}`), jobTitle: t.role })) }
       : {}),
   };
 
@@ -227,7 +128,6 @@ export default async function BlogPostPage({ params }: PageProps) {
           <Link href="/blog" className="inline-flex items-center gap-1.5 text-sm text-white/40 hover:text-white transition-colors mb-5">
             <span aria-hidden="true">←</span> Volver al blog
           </Link>
-          {/* Category + meta */}
           <div className="flex flex-wrap items-center gap-3 mb-4">
             <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-[0.12em] border ${category.bg} ${category.text} ${category.border}`}>
               <span className={`w-1 h-1 rounded-full ${category.text.replace('text-', 'bg-')}`} aria-hidden />
@@ -249,11 +149,12 @@ export default async function BlogPostPage({ params }: PageProps) {
           </div>
         </div>
 
-        {/* Cover image — con fallback editorial cuando no hay coverUrl */}
-        <div className="relative w-full h-72 md:h-96 overflow-hidden">
+        {/* Cover — aspect ratio cinematic para mejor presencia visual */}
+        <div className="relative w-full overflow-hidden" style={{ aspectRatio: '21/8' }}>
           <BlogCover
             coverUrl={post.coverUrl}
             category={category}
+            slug={slug}
             title={post.title}
             variant="hero"
             priority
@@ -288,7 +189,7 @@ export default async function BlogPostPage({ params }: PageProps) {
           )}
 
           {/* Body */}
-          <div className="space-y-5">
+          <div className="space-y-6">
             {paragraphs.map((p, i) => renderParagraph(p, i))}
           </div>
 
@@ -306,7 +207,7 @@ export default async function BlogPostPage({ params }: PageProps) {
             </div>
           )}
 
-          {/* ── EXPLORA MÁS — interlinking editorial ── */}
+          {/* ── EXPLORA MÁS ── */}
           <ExploraMas
             brand={detectBrand(post.slug, post.title)}
             categorySlug={category.slug}

@@ -22,6 +22,7 @@ type Variant = 'card' | 'featured' | 'hero';
 
 type Props = {
   readonly category: BlogCategory;
+  readonly slug: string;
   readonly title: string;
   readonly brand?: string;
   readonly variant?: Variant;
@@ -172,10 +173,10 @@ function PatternSvg({ kind, accent, id }: { kind: CategoryStyle['pattern']; acce
   }
 }
 
-export function CategoryThumbnail({ category, title, brand, variant = 'card' }: Props) {
+export function CategoryThumbnail({ category, slug, title, brand, variant = 'card' }: Props) {
   const style = CATEGORY_STYLES[category.slug] ?? FALLBACK_STYLE;
   const patternId = `pat-${category.slug}-${variant}`;
-  const detected = detectBrand(title, title);
+  const detected = detectBrand(slug, title);
 
   // Tamaños por variant — reglas editoriales
   const isHero = variant === 'hero';

@@ -7,6 +7,7 @@ type Variant = 'card' | 'featured' | 'hero';
 type Props = {
   readonly coverUrl: string | null;
   readonly category: BlogCategory;
+  readonly slug: string;
   readonly title: string;
   readonly brand?: string;
   readonly variant?: Variant;
@@ -32,6 +33,7 @@ type Props = {
 export function BlogCover({
   coverUrl,
   category,
+  slug,
   title,
   brand,
   variant = 'card',
@@ -66,6 +68,7 @@ export function BlogCover({
       ) : (
         <CategoryThumbnail
           category={category}
+          slug={slug}
           title={title}
           variant={variant}
           {...(brand ? { brand } : {})}

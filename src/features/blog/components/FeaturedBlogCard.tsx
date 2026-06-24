@@ -29,7 +29,7 @@ export function FeaturedBlogCard({ post }: Props) {
   return (
     <Link
       href={`/blog/${post.slug}`}
-      className="group block rounded-2xl overflow-hidden border border-sp-border hover:border-sp-orange/35 hover:shadow-[0_16px_70px_-16px_rgba(245,99,42,0.28)] hover:-translate-y-0.5 transition-all duration-400 will-change-transform"
+      className="group block rounded-2xl overflow-hidden border border-sp-border hover:border-sp-orange/35 hover:shadow-[0_16px_70px_-16px_rgba(245,99,42,0.28)] hover:-translate-y-0.5 transition-all duration-300 will-change-transform"
       aria-label={post.title}
     >
       <div className="grid grid-cols-1 md:grid-cols-[3fr_4fr]">
@@ -39,6 +39,7 @@ export function FeaturedBlogCard({ post }: Props) {
           <BlogCover
             coverUrl={post.coverUrl}
             category={category}
+            slug={post.slug}
             title={post.title}
             variant="featured"
             priority
@@ -55,9 +56,9 @@ export function FeaturedBlogCard({ post }: Props) {
 
         {/* ── Texto — editorial oscuro ─────────────────────────────── */}
         <div className="relative flex flex-col justify-center gap-4 p-6 sm:p-8 bg-sp-dark overflow-hidden">
-          {/* Línea acento superior */}
+          {/* Línea acento superior — oculta en mobile donde la imagen está arriba */}
           <div
-            className="absolute top-0 left-0 right-0 h-[2px]"
+            className="absolute top-0 left-0 right-0 h-[2px] hidden md:block"
             style={{ background: `linear-gradient(90deg, transparent 0%, ${accentHex} 35%, ${accentHex} 65%, transparent 100%)` }}
           />
 

@@ -42,14 +42,17 @@ export function deriveCategory(slug: string, title: string): BlogCategory {
   if (s.includes('guia') || s.includes('como-') || s.includes('conseguir') || s.includes('monetizar') || s.includes('elegir')) {
     return cat('guia');
   }
+  // Esports antes de youtube/tendencias: CS2 posts con año o 'streamer' en slug no deben caer
+  // en youtube (por 'streamer') ni en tendencias (por '-2026'). Palabras clave de esports son
+  // más específicas que las de fecha o plataforma.
+  if (s.includes('esports') || s.includes('cs2') || s.includes('gaming-hardware')) {
+    return cat('esports');
+  }
   if (s.includes('youtube') || s.includes('streamer') || s.includes('twitch') || s.includes('streaming')) {
     return cat('youtube');
   }
   if (s.includes('tendencia') || s.includes('latam') || s.includes('-2025') || s.includes('-2026')) {
     return cat('tendencias');
-  }
-  if (s.includes('esports') || s.includes('cs2') || s.includes('gaming-hardware')) {
-    return cat('esports');
   }
 
   return cat('noticias');
