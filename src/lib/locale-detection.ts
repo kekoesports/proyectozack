@@ -49,11 +49,12 @@ export type LocaleDecision =
  * Función pura que decide si redirigir o pasar, y qué cookie escribir.
  * Usada tanto por el middleware como por los tests.
  *
- * Prioridad:
- * 1. Geo (país hispanohablante) → siempre sirve español, incluso si cookie dice 'en'.
- *    Evita que una cookie caducada bloquee a usuarios españoles en /en.
- * 2. Sin país confirmado → respeta el cookie para evitar bucles de redirección.
- * 3. Sin cookie ni país → usa accept-language (default: 'es').
+ * Prioridad (asimétrica por diseño):
+ * 1. País hispanohablante → geo gana siempre, incluso sobre cookie.
+ *    Garantiza que usuarios españoles/LATAM reciben contenido en español.
+ * 2. País no hispanohablante o desconocido + cookie válido → respeta cookie.
+ *    Evita bucles de redirección para usuarios que eligieron manualmente.
+ * 3. Sin cookie ni país útil → accept-language (default: 'es').
  */
 export function getLocaleDecision(opts: {
   readonly pathname: string;
@@ -64,7 +65,7 @@ export function getLocaleDecision(opts: {
   const { pathname, cookieLocale, country, acceptLanguage } = opts;
   const currentLocale: 'es' | 'en' = pathname === '/en' ? 'en' : 'es';
 
-  // País hispanohablante detectado → geo gana sobre el cookie
+  // País hispanohablante → geo gana sobre cookie (incluye corrección silenciosa de cookie)
   if (country && SPANISH_COUNTRIES.has(country)) {
     if (currentLocale === 'es') {
       // Ya en español — pasar. Si el cookie decía 'en', corregirlo silenciosamente.
