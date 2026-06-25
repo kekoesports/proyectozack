@@ -1,11 +1,10 @@
 'use client';
 
-import { useEffect } from 'react';
 import * as m from 'motion/react-client';
-import { useMotionValue, useSpring, useTransform, useReducedMotion } from 'motion/react';
 import Image from 'next/image';
 
 import { trackEvent } from '@/lib/analytics';
+import { HeroBackground } from './HeroBackground';
 
 const HERO_STATS = [
   { value: '13+', label: 'AÑOS' },
@@ -27,50 +26,10 @@ const HERO_STATS = [
  * ```
  */
 export function Hero() {
-  const reduced = useReducedMotion();
-  const mouseX = useMotionValue(0.5);
-  const mouseY = useMotionValue(0.5);
-
-  const smoothX = useSpring(mouseX, { stiffness: 40, damping: 25 });
-  const smoothY = useSpring(mouseY, { stiffness: 40, damping: 25 });
-
-  // Inverted direction on orange creates depth parallax between the two auras
-  const pinkX = useTransform(smoothX, [0, 1], [-50, 50]);
-  const pinkY = useTransform(smoothY, [0, 1], [-50, 50]);
-  const orangeX = useTransform(smoothX, [0, 1], [25, -25]);
-  const orangeY = useTransform(smoothY, [0, 1], [20, -20]);
-
-  useEffect(() => {
-    if (reduced) return;
-    // Skip mousemove listener on touch devices (no cursor → no parallax payoff,
-    // saves listener overhead on mobile and the corresponding paint work).
-    if (typeof window === 'undefined' || !window.matchMedia('(hover: hover)').matches) return;
-    const onMouseMove = (e: MouseEvent) => {
-      mouseX.set(e.clientX / window.innerWidth);
-      mouseY.set(e.clientY / window.innerHeight);
-    };
-    window.addEventListener('mousemove', onMouseMove, { passive: true });
-    return () => window.removeEventListener('mousemove', onMouseMove);
-  }, [mouseX, mouseY, reduced]);
-
   return (
-    <section className="relative bg-sp-black text-white overflow-hidden min-h-dvh flex flex-col pt-16">
+    <section className="relative text-white overflow-hidden min-h-dvh flex flex-col pt-16">
 
-      {/* Aura layer — paint-contained so blurs never trigger outside repaints */}
-      <div className="absolute inset-0 pointer-events-none [contain:paint]">
-        <m.div
-          className="absolute top-1/2 left-1/2 -ml-[500px] -mt-[500px] will-change-transform"
-          style={{ x: pinkX, y: pinkY }}
-        >
-          <div className="hero-aura-pink hero-aura-pink-bg w-[700px] h-[700px] rounded-full blur-[16px] sm:blur-[60px]" />
-        </m.div>
-        <m.div
-          className="absolute top-[-10%] right-[-10%] will-change-transform"
-          style={{ x: orangeX, y: orangeY }}
-        >
-          <div className="hero-aura-orange hero-aura-orange-bg w-[600px] h-[600px] rounded-full blur-[20px] sm:blur-[70px]" />
-        </m.div>
-      </div>
+      <HeroBackground />
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full flex-1 flex flex-col items-center justify-center text-center pb-20">
 
