@@ -23,7 +23,7 @@ import { syncTrackerBlock } from '@/lib/sync/sheet-sync';
 import { db } from '@/lib/db';
 import { dealDeliverableTrackers } from '@/db/schema/dealDeliverableTrackers';
 import { talents } from '@/db/schema/talents';
-import { eq, sql } from 'drizzle-orm';
+import { sql } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { DELIVERABLE_TYPES } from '@/lib/schemas/deal-tracker';

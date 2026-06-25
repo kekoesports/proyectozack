@@ -173,13 +173,13 @@ function detectTargetFromGrid(grid: string[][]): number | null {
       // Pattern "Nx word" (e.g. "12x preroll + 5x video")
       const xMatches = [...cell.matchAll(WITH_X)];
       if (xMatches.length > 0) {
-        const total = xMatches.reduce((sum, m) => sum + parseInt(m[1]!, 10), 0);
+        const total = xMatches.reduce((sum, m) => sum + parseInt(m[1] ?? '0', 10), 0);
         if (total > 0) return total;
       }
       // Pattern "N videos/streams/…"
       const bareMatches = [...cell.matchAll(BARE_NUM)];
       if (bareMatches.length > 0) {
-        const total = bareMatches.reduce((sum, m) => sum + parseInt(m[1]!, 10), 0);
+        const total = bareMatches.reduce((sum, m) => sum + parseInt(m[1] ?? '0', 10), 0);
         if (total > 0) return total;
       }
     }

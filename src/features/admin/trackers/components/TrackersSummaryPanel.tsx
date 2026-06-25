@@ -26,8 +26,9 @@ export function TrackersSummaryPanel({ trackers }: Props) {
 
   // Group active trackers by brand
   const byBrand = active.reduce<Record<string, TrackerSummary[]>>((acc, t) => {
-    if (!acc[t.brandName]) acc[t.brandName] = [];
-    acc[t.brandName]!.push(t);
+    const arr: TrackerSummary[] = acc[t.brandName] ?? [];
+    acc[t.brandName] = arr;
+    arr.push(t);
     return acc;
   }, {});
   const brandNames = Object.keys(byBrand).sort();
@@ -41,7 +42,7 @@ export function TrackersSummaryPanel({ trackers }: Props) {
 
     for (const brand of brandNames) {
       lines.push(brand.toUpperCase());
-      for (const t of byBrand[brand]!) {
+      for (const t of (byBrand[brand] ?? [])) {
         const remaining = Math.max(0, t.targetCount - t.currentCount);
         const type = DELIVERABLE_LABELS[t.deliverableType] ?? 'entregables';
         const name = t.talentName ?? t.dealName;
@@ -107,7 +108,7 @@ export function TrackersSummaryPanel({ trackers }: Props) {
             <div key={brand}>
               <p className="text-[11px] font-black text-sp-muted uppercase tracking-widest mb-2">{brand}</p>
               <div className="space-y-1.5">
-                {byBrand[brand]!.map((t) => {
+                {(byBrand[brand] ?? []).map((t) => {
                   const remaining = Math.max(0, t.targetCount - t.currentCount);
                   const type      = DELIVERABLE_LABELS[t.deliverableType] ?? 'entregables';
                   const done      = remaining === 0;

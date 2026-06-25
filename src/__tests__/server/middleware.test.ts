@@ -214,9 +214,12 @@ describe('getLocaleDecision — homepages sin cookie', () => {
   });
 });
 
-describe('getLocaleDecision — cookie presente (respeto de preferencia manual)', () => {
-  // Test 5: Cookie manual en, country ES en / → no redirige (respeta cookie)
-  it('cookie=en, country ES en / → pass sin cookie write (test 5)', () => {
+describe('getLocaleDecision — cookie presente', () => {
+  // Test 5: país hispanohablante → geo gana sobre cookie (corrección silenciosa)
+  // Para países ES/LATAM el sistema garantiza siempre contenido en español,
+  // incluso si hay una cookie 'en' (puede ser caducada o accidental).
+  // Cookie gana solo para países NO hispanohablantes (ver tests 6 y anti-bucle).
+  it('cookie=en, country ES en / → pass, geo gana, corrige cookie a es (test 5)', () => {
     const d = getLocaleDecision({
       pathname: '/',
       cookieLocale: 'en',
@@ -224,8 +227,8 @@ describe('getLocaleDecision — cookie presente (respeto de preferencia manual)'
       acceptLanguage: null,
     });
     expect(d.action).toBe('pass');
-    expect(d.locale).toBe('en');
-    if (d.action === 'pass') expect(d.writeCookie).toBe(false);
+    expect(d.locale).toBe('es');
+    if (d.action === 'pass') expect(d.writeCookie).toBe(true);
   });
 
   // Test 6: Cookie manual es, country US en /en → no redirige (respeta cookie)

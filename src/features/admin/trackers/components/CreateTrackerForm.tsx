@@ -24,7 +24,7 @@ const DELIVERABLE_TYPE_LABELS: Record<string, string> = {
 // Try to extract count + type from a sheet title like "HUASOPEEK x SkinPlace — 15 streams"
 function parseTitle(title: string): { count: number | null; type: string | null } {
   const numMatch = /\b(\d{1,4})\b/.exec(title);
-  const count = numMatch ? parseInt(numMatch[1]!, 10) : null;
+  const count = numMatch ? parseInt(numMatch[1] ?? '0', 10) : null;
 
   const lower = title.toLowerCase();
   let type: string | null = null;
@@ -131,7 +131,7 @@ export function CreateTrackerForm({ brands, talents, onSuccess, onCancel }: Prop
             type="url"
             value={sheetUrl}
             onChange={(e) => setSheetUrl(e.target.value)}
-            onBlur={handleUrlBlur}
+            onBlur={() => { void handleUrlBlur(); }}
             placeholder="https://docs.google.com/spreadsheets/d/..."
             className="flex-1 border border-sp-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sp-orange/30"
           />

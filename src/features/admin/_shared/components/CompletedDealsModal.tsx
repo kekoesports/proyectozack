@@ -20,7 +20,8 @@ export function CompletedDealsModal({ alerts: initialAlerts }: Props) {
   if (!current) return null;
 
   function dismiss() {
-    const id = current!.id;
+    if (!current) return;
+    const id = current.id;
     startTransition(async () => {
       await dismissTrackerAlertAction(id);
       setQueue((prev) => prev.filter((a) => a.id !== id));
