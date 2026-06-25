@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { TrackerProgressBar } from './TrackerProgressBar';
 import { TrackerStatusBadge } from './TrackerStatusBadge';
 import { CreateTrackerForm } from './CreateTrackerForm';
+import { TrackersSummaryPanel } from './TrackersSummaryPanel';
 import { useRouter } from 'next/navigation';
 import type { TrackerSummary } from '@/lib/queries/deal-trackers';
 import type { CrmBrand } from '@/types/crmBrand';
@@ -28,9 +29,10 @@ type Props = {
 };
 
 export function TrackersListClient({ trackers, brands, talents }: Props) {
-  const [showCreate, setShowCreate] = useState(false);
+  const [showCreate, setShowCreate]     = useState(false);
+  const [showSummary, setShowSummary]   = useState(false);
   // Default: solo activos + revisión pendiente (los archivados quedan ocultos)
-  const [filter, setFilter]         = useState<string>('pending');
+  const [filter, setFilter]             = useState<string>('pending');
   const router = useRouter();
 
   const filtered =
@@ -51,13 +53,28 @@ export function TrackersListClient({ trackers, brands, talents }: Props) {
           <h1 className="text-2xl font-black text-sp-dark">Entregables</h1>
           <p className="text-sm text-sp-muted">Tracking de links entregados por deal</p>
         </div>
-        <button
-          onClick={() => setShowCreate(true)}
-          className="px-4 py-2 text-sm font-semibold rounded-lg bg-sp-orange text-white hover:bg-sp-orange/90 transition-colors"
-        >
-          + Nuevo tracker
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowSummary((v) => !v)}
+            className={`px-4 py-2 text-sm font-semibold rounded-lg border transition-colors ${
+              showSummary
+                ? 'bg-sp-dark text-white border-sp-dark'
+                : 'border-sp-border text-sp-muted hover:border-sp-dark hover:text-sp-dark'
+            }`}
+          >
+            Resumen
+          </button>
+          <button
+            onClick={() => setShowCreate(true)}
+            className="px-4 py-2 text-sm font-semibold rounded-lg bg-sp-orange text-white hover:bg-sp-orange/90 transition-colors"
+          >
+            + Nuevo tracker
+          </button>
+        </div>
       </div>
+
+      {/* Summary panel */}
+      {showSummary && <TrackersSummaryPanel trackers={trackers} />}
 
       {/* Status filter */}
       <div className="flex gap-2 flex-wrap">
