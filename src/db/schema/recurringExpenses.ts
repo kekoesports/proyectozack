@@ -14,6 +14,8 @@ import {
   invoiceScopeEnum,
   invoiceCompanyEnum,
   invoicePaymentMethodEnum,
+  expenseGroupEnum,
+  expenseSubtypeEnum,
 } from './invoices';
 
 /**
@@ -37,6 +39,10 @@ export const recurringExpenses = pgTable(
 
     category: varchar('category', { length: 80 }),
     counterpartyName: varchar('counterparty_name', { length: 200 }),
+
+    // Financial classification — mirrors invoices columns. Nullable for compat.
+    expenseGroup:   expenseGroupEnum('expense_group'),
+    expenseSubtype: expenseSubtypeEnum('expense_subtype'),
 
     scope: invoiceScopeEnum('scope').notNull().default('company'),
     company: invoiceCompanyEnum('company'),
