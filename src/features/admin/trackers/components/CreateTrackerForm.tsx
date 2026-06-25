@@ -168,14 +168,13 @@ export function CreateTrackerForm({ brands, talents, onSuccess, onCancel }: Prop
           </select>
         </div>
         <div>
-          <label className="block text-xs font-semibold text-sp-muted mb-1">Objetivo (nº piezas) *</label>
+          <label className="block text-xs font-semibold text-sp-muted mb-1">Objetivo (nº piezas)</label>
           <input
             value={targetCount}
             onChange={(e) => setTargetCount(e.target.value)}
             type="number"
-            min={1}
-            required
-            placeholder="15"
+            min={0}
+            placeholder="Ej. 15"
             className="w-full border border-sp-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sp-orange/30"
           />
         </div>

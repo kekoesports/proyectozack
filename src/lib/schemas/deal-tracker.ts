@@ -12,7 +12,7 @@ export const createTrackerSchema = z.object({
   brandName:        z.string().min(1).max(200),
   dealName:         z.string().min(1).max(300),
   deliverableType:  z.enum(DELIVERABLE_TYPES),
-  targetCount:      z.coerce.number().int().positive(),
+  targetCount:      z.coerce.number().int().min(0).default(0),
   campaignId:       z.preprocess((v) => (v === '' || v == null ? undefined : Number(v)), z.number().int().positive().optional()),
   talentId:         z.preprocess((v) => (v === '' || v == null ? undefined : Number(v)), z.number().int().positive().optional()),
   notes:            z.string().max(2000).optional(),
