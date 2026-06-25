@@ -11,6 +11,12 @@ import {
 import { extractXlsxSheet } from '@/lib/parsers/xlsx';
 import { extractCsvSheet } from '@/lib/parsers/csv';
 import { parseAnyDate } from '@/lib/parsers/common';
+import {
+  extractSpreadsheetId,
+  fetchSpreadsheetMetadata,
+  readSheetGrid,
+  validateGoogleSheetUrl,
+} from '@/lib/integrations/google-sheets';
 import { revalidatePath } from 'next/cache';
 import type { ParsedLinkRow } from '@/lib/schemas/deal-tracker';
 
@@ -129,6 +135,82 @@ export async function importTrackerLinksAction(formData: FormData): Promise<
     return { ok: true, inserted: result.inserted, duplicates: result.duplicatesSkipped, invalid: result.invalidSkipped };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : 'Error al importar' };
+  }
+}
+
+// ── syncTrackerFromSheetUrlAction ─────────────────────────────────────────────
+
+export async function syncTrackerFromSheetUrlAction(formData: FormData): Promise<
+  ActionResult & { inserted?: number; duplicates?: number }
+> {
+  await requirePermission('campanas', 'write');
+
+  const trackerId = Number(formData.get('trackerId'));
+  const sheetUrl  = String(formData.get('sheetUrl') ?? '').trim();
+
+  if (!trackerId || isNaN(trackerId)) return { ok: false, error: 'trackerId inválido' };
+  if (!sheetUrl || !validateGoogleSheetUrl(sheetUrl)) {
+    return { ok: false, error: 'URL de Google Sheets inválida' };
+  }
+
+  const spreadsheetId = extractSpreadsheetId(sheetUrl);
+  if (!spreadsheetId) return { ok: false, error: 'No se pudo extraer el ID del spreadsheet' };
+
+  try {
+    const { tabs } = await fetchSpreadsheetMetadata(spreadsheetId);
+    if (!tabs.length) return { ok: false, error: 'El spreadsheet no tiene pestañas' };
+
+    // Pick the tab from the URL gid param, or default to first tab
+    const gidMatch = /[?&#]gid=(\d+)/.exec(sheetUrl);
+    const gid = gidMatch?.[1];
+    const tab = (gid ? tabs.find((t) => t.sheetId === gid) : undefined) ?? tabs[0];
+    if (!tab) return { ok: false, error: 'Pestaña no encontrada' };
+
+    const grid = await readSheetGrid(spreadsheetId, tab.title);
+    if (!grid.length) return { ok: false, error: 'La hoja está vacía' };
+
+    // Auto-detect the link column:
+    // 1. Check header row for keywords (link, url, enlace…)
+    // 2. Fallback: find the column with the most http URLs in the first rows
+    const headerRow = grid[0] ?? [];
+    let linkColIdx = headerRow.findIndex((h) => /url|link|enlace|vod/i.test(h));
+
+    if (linkColIdx < 0) {
+      let best = 0;
+      for (let c = 0; c < headerRow.length; c++) {
+        let hits = 0;
+        for (let r = 0; r < Math.min(grid.length, 30); r++) {
+          if (/^https?:\/\//i.test((grid[r]?.[c] ?? '').trim())) hits++;
+        }
+        if (hits > best) { best = hits; linkColIdx = c; }
+      }
+    }
+
+    if (linkColIdx < 0) return { ok: false, error: 'No se encontró columna de links en la hoja' };
+
+    // Skip header row if it doesn't look like a URL
+    const startRow = /^https?:\/\//i.test((grid[0]?.[linkColIdx] ?? '').trim()) ? 0 : 1;
+
+    const rows: ParsedLinkRow[] = [];
+    for (let r = startRow; r < grid.length; r++) {
+      const url = (grid[r]?.[linkColIdx] ?? '').trim();
+      if (url && /^https?:\/\//i.test(url)) {
+        rows.push({ originalUrl: url, sourceRowIndex: r });
+      }
+    }
+
+    if (!rows.length) return { ok: false, error: 'No se encontraron URLs válidas en la hoja' };
+
+    const result = await importTrackerItems(
+      trackerId,
+      rows,
+      `gsheet:${spreadsheetId}/${tab.title}`,
+    );
+
+    revalidatePath(`/admin/entregables/${trackerId}`);
+    return { ok: true, inserted: result.inserted, duplicates: result.duplicatesSkipped };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : 'Error al sincronizar con Google Sheets' };
   }
 }
 
