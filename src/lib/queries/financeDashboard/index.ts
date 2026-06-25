@@ -28,3 +28,7 @@ export { getReceivables } from './receivables';
 export { getReconciliationSummary } from './reconciliation';
 export { getCampaignMargins, LOW_MARGIN_THRESHOLD } from './campaignMargins';
 export { deriveAlerts } from './alerts';
+export { getFinanceResumenKPIs } from './financeResumen';
+export type { FinanceResumenKPIs } from './financeResumen';
+export { getFinancePnL } from './pnlDetail';
+export type { FinancePnLResult } from './pnlDetail';

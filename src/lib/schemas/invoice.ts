@@ -46,6 +46,55 @@ export const INVOICE_AI_TOOLS = [
   'otro',
 ] as const;
 
+export const EXPENSE_GROUPS = ['campaign_direct', 'operational'] as const;
+export type ExpenseGroupValue = (typeof EXPENSE_GROUPS)[number];
+
+export const EXPENSE_GROUP_LABELS: Record<ExpenseGroupValue, string> = {
+  campaign_direct: 'Coste de campaña',
+  operational:     'Gasto operativo',
+};
+
+export const EXPENSE_SUBTYPES_CAMPAIGN = [
+  'pago_talento',
+  'coste_produccion',
+  'comision_plataforma',
+  'otros_campana',
+] as const;
+
+export const EXPENSE_SUBTYPES_OPERATIONAL = [
+  'suscripcion_software',
+  'herramienta_ia',
+  'gestoria',
+  'fiscal_impuestos',
+  'cuota_autonomo',
+  'marketing_publicidad',
+  'comision_bancaria',
+  'ajuste_fiscal',
+  'gasto_general',
+] as const;
+
+export const EXPENSE_SUBTYPES = [
+  ...EXPENSE_SUBTYPES_CAMPAIGN,
+  ...EXPENSE_SUBTYPES_OPERATIONAL,
+] as const;
+export type ExpenseSubtypeValue = (typeof EXPENSE_SUBTYPES)[number];
+
+export const EXPENSE_SUBTYPE_LABELS: Record<ExpenseSubtypeValue, string> = {
+  pago_talento:         'Pago talento',
+  coste_produccion:     'Coste producción',
+  comision_plataforma:  'Comisión plataforma',
+  otros_campana:        'Otros campaña',
+  suscripcion_software: 'Suscripción software',
+  herramienta_ia:       'Herramienta IA',
+  gestoria:             'Gestoría',
+  fiscal_impuestos:     'Fiscal / Impuestos',
+  cuota_autonomo:       'Cuota autónomo',
+  marketing_publicidad: 'Marketing / Publicidad',
+  comision_bancaria:    'Comisión bancaria',
+  ajuste_fiscal:        'Ajuste fiscal',
+  gasto_general:        'Gasto general',
+};
+
 export const INCOME_STATUSES = ['cobrada', 'no_cobrado', 'pendiente', 'anulada'] as const;
 export const EXPENSE_STATUSES = ['cobrada', 'no_pagado', 'pendiente', 'anulada'] as const;
 
@@ -221,6 +270,8 @@ const invoiceFields = z.object({
   company: optEnum(INVOICE_COMPANIES),
   paymentMethod: optEnum(INVOICE_PAYMENT_METHODS),
   aiTool: optEnum(INVOICE_AI_TOOLS),
+  expenseGroup: optEnum(EXPENSE_GROUPS),
+  expenseSubtype: optEnum(EXPENSE_SUBTYPES),
   invoiceFileId: optInt,
   statementFileId: optInt,
   txId: z.string().max(200).optional(),
