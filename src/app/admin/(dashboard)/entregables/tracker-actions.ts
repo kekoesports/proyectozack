@@ -22,6 +22,24 @@ import type { ParsedLinkRow } from '@/lib/schemas/deal-tracker';
 
 type ActionResult = { ok: true } | { ok: false; error: string };
 
+// ── fetchSheetTitleAction ─────────────────────────────────────────────────────
+// Auto-detect sheet title to pre-fill the deal name in the creation form.
+
+export async function fetchSheetTitleAction(sheetUrl: string): Promise<
+  { ok: true; title: string } | { ok: false; error: string }
+> {
+  await requirePermission('campanas', 'write');
+  if (!validateGoogleSheetUrl(sheetUrl)) return { ok: false, error: 'URL de Google Sheets inválida' };
+  const spreadsheetId = extractSpreadsheetId(sheetUrl);
+  if (!spreadsheetId) return { ok: false, error: 'No se pudo extraer el ID del spreadsheet' };
+  try {
+    const { title } = await fetchSpreadsheetMetadata(spreadsheetId);
+    return { ok: true, title };
+  } catch {
+    return { ok: false, error: 'No se pudo leer la hoja (¿es pública?)' };
+  }
+}
+
 // ── createTrackerAction ───────────────────────────────────────────────────────
 
 export async function createTrackerAction(formData: FormData): Promise<ActionResult & { id?: number }> {
