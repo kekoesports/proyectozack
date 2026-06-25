@@ -1,7 +1,10 @@
 'use client';
 
 import { useTransition } from 'react';
-import { reviewTrackerItemAction } from '@/app/admin/(dashboard)/entregables/tracker-actions';
+import {
+  reviewTrackerItemAction,
+  deleteTrackerItemAction,
+} from '@/app/admin/(dashboard)/entregables/tracker-actions';
 import type { dealDeliverableItems } from '@/db/schema/dealDeliverableTrackers';
 
 type Item = typeof dealDeliverableItems.$inferSelect;
@@ -31,6 +34,15 @@ const STATUS_CLASSES: Record<string, string> = {
 
 export function TrackerItemsTable({ trackerId, items }: Props) {
   const [isPending, startTransition] = useTransition();
+
+  function deleteItem(itemId: number) {
+    const fd = new FormData();
+    fd.append('itemId', String(itemId));
+    fd.append('trackerId', String(trackerId));
+    startTransition(async () => {
+      await deleteTrackerItemAction(fd);
+    });
+  }
 
   function review(itemId: number, status: 'valid' | 'invalid' | 'approved' | 'rejected') {
     const fd = new FormData();
@@ -88,42 +100,52 @@ export function TrackerItemsTable({ trackerId, items }: Props) {
                 </span>
               </td>
               <td className="px-4 py-2">
-                {(item.status === 'valid' || item.status === 'detected') && (
-                  <div className="flex gap-2">
+                <div className="flex items-center gap-2">
+                  {(item.status === 'valid' || item.status === 'detected') && (
+                    <>
+                      <button
+                        onClick={() => review(item.id, 'approved')}
+                        disabled={isPending}
+                        className="text-xs px-2 py-0.5 rounded border border-emerald-300 text-emerald-700 hover:bg-emerald-50 disabled:opacity-40"
+                      >
+                        Aprobar
+                      </button>
+                      <button
+                        onClick={() => review(item.id, 'invalid')}
+                        disabled={isPending}
+                        className="text-xs px-2 py-0.5 rounded border border-red-200 text-red-500 hover:bg-red-50 disabled:opacity-40"
+                      >
+                        Invalidar
+                      </button>
+                    </>
+                  )}
+                  {item.status === 'duplicate' && (
                     <button
-                      onClick={() => review(item.id, 'approved')}
+                      onClick={() => review(item.id, 'valid')}
                       disabled={isPending}
-                      className="text-xs px-2 py-0.5 rounded border border-emerald-300 text-emerald-700 hover:bg-emerald-50 disabled:opacity-40"
+                      className="text-xs px-2 py-0.5 rounded border border-blue-200 text-blue-600 hover:bg-blue-50 disabled:opacity-40"
                     >
-                      Aprobar
+                      Marcar válido
                     </button>
+                  )}
+                  {(item.status === 'invalid' || item.status === 'rejected') && (
                     <button
-                      onClick={() => review(item.id, 'invalid')}
+                      onClick={() => review(item.id, 'valid')}
                       disabled={isPending}
-                      className="text-xs px-2 py-0.5 rounded border border-red-200 text-red-500 hover:bg-red-50 disabled:opacity-40"
+                      className="text-xs px-2 py-0.5 rounded border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:opacity-40"
                     >
-                      Invalidar
+                      Reactivar
                     </button>
-                  </div>
-                )}
-                {item.status === 'duplicate' && (
+                  )}
                   <button
-                    onClick={() => review(item.id, 'valid')}
+                    onClick={() => deleteItem(item.id)}
                     disabled={isPending}
-                    className="text-xs px-2 py-0.5 rounded border border-blue-200 text-blue-600 hover:bg-blue-50 disabled:opacity-40"
+                    title="Eliminar este link"
+                    className="text-xs px-1.5 py-0.5 rounded text-red-400 hover:text-red-600 hover:bg-red-50 disabled:opacity-40 transition-colors"
                   >
-                    Marcar válido
+                    ✕
                   </button>
-                )}
-                {(item.status === 'invalid' || item.status === 'rejected') && (
-                  <button
-                    onClick={() => review(item.id, 'valid')}
-                    disabled={isPending}
-                    className="text-xs px-2 py-0.5 rounded border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:opacity-40"
-                  >
-                    Reactivar
-                  </button>
-                )}
+                </div>
               </td>
             </tr>
           ))}

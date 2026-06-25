@@ -9,6 +9,7 @@ import {
   approveTracker,
   updateTrackerTarget,
   deleteTracker,
+  deleteTrackerItem,
 } from '@/lib/queries/deal-trackers';
 import { extractXlsxSheet } from '@/lib/parsers/xlsx';
 import { extractCsvSheet } from '@/lib/parsers/csv';
@@ -283,6 +284,24 @@ export async function syncTrackerFromSheetUrlAction(formData: FormData): Promise
     return { ok: true, inserted: result.inserted, duplicates: result.duplicatesSkipped };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : 'Error al sincronizar con Google Sheets' };
+  }
+}
+
+// ── deleteTrackerItemAction ───────────────────────────────────────────────────
+
+export async function deleteTrackerItemAction(formData: FormData): Promise<ActionResult> {
+  await requirePermission('campanas', 'write');
+
+  const itemId    = Number(formData.get('itemId'));
+  const trackerId = Number(formData.get('trackerId'));
+  if (!itemId || isNaN(itemId)) return { ok: false, error: 'itemId inválido' };
+
+  try {
+    await deleteTrackerItem(itemId, trackerId);
+    revalidatePath(`/admin/entregables/${trackerId}`);
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : 'Error al eliminar' };
   }
 }
 

@@ -287,6 +287,15 @@ export async function deleteTracker(trackerId: number) {
     .where(eq(dealDeliverableTrackers.id, trackerId));
 }
 
+// ── Delete tracker item ───────────────────────────────────────────────────────
+
+export async function deleteTrackerItem(itemId: number, trackerId: number) {
+  await db
+    .delete(dealDeliverableItems)
+    .where(eq(dealDeliverableItems.id, itemId));
+  await recalculateAndMaybeComplete(trackerId);
+}
+
 // ── Review item ───────────────────────────────────────────────────────────────
 
 export async function reviewTrackerItem(
