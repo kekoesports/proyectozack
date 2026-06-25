@@ -8,12 +8,15 @@ import {
   boolean,
   pgEnum,
   index,
+  uniqueIndex,
 } from 'drizzle-orm/pg-core';
-import { relations } from 'drizzle-orm';
+import { relations, sql } from 'drizzle-orm';
 import { campaigns } from './campaigns';
 import { talents } from './talents';
 import { user } from './auth';
 import { deliverableTypeEnum } from './deliverables';
+import { brandSheetSources } from './brandSheetSources';
+import { trackerParseModeEnum } from './trackerEnums';
 
 export const trackerStatusEnum = pgEnum('tracker_status', [
   'active',
@@ -28,11 +31,6 @@ export const trackerSourceTypeEnum = pgEnum('tracker_source_type', [
   'xlsx_upload',
   'google_sheet',
   'manual',
-]);
-
-export const trackerParseModeEnum = pgEnum('tracker_parse_mode', [
-  'simple_columns',
-  'socialpro_blocks',
 ]);
 
 export const contentPlatformEnum = pgEnum('content_platform', [
@@ -95,6 +93,12 @@ export const dealDeliverableTrackers = pgTable(
     googleSheetHeaderRow: integer('google_sheet_header_row'),
     googleSheetLinkCol:   integer('google_sheet_link_col'),
 
+    // ── Brand Sheet Source FK ────────────────────────────────────────────────
+    brandSheetSourceId: integer('brand_sheet_source_id').references(
+      () => brandSheetSources.id,
+      { onDelete: 'set null' },
+    ),
+
     completedAt: timestamp('completed_at', { withTimezone: true }),
     reviewedAt: timestamp('reviewed_at', { withTimezone: true }),
     reviewedByUserId: text('reviewed_by_user_id').references(() => user.id, { onDelete: 'set null' }),
@@ -109,6 +113,12 @@ export const dealDeliverableTrackers = pgTable(
     index('deal_trackers_talent_idx').on(t.talentId),
     index('deal_trackers_status_idx').on(t.status),
     index('deal_trackers_created_idx').on(t.createdAt),
+    index('deal_trackers_source_idx').on(t.brandSheetSourceId),
+    // Partial unique index: prevents duplicate trackers for the same block when source is linked.
+    // Partial (WHERE brand_sheet_source_id IS NOT NULL) so null-sourced trackers are unaffected.
+    uniqueIndex('deal_trackers_source_block_unique')
+      .on(t.brandSheetSourceId, t.googleSheetGid, t.googleSheetBlockTitle, t.googleSheetBlockIndex)
+      .where(sql`brand_sheet_source_id IS NOT NULL`),
   ],
 );
 
@@ -146,6 +156,10 @@ export const dealDeliverableTrackersRelations = relations(dealDeliverableTracker
   campaign: one(campaigns, { fields: [dealDeliverableTrackers.campaignId], references: [campaigns.id] }),
   talent: one(talents, { fields: [dealDeliverableTrackers.talentId], references: [talents.id] }),
   reviewedBy: one(user, { fields: [dealDeliverableTrackers.reviewedByUserId], references: [user.id] }),
+  source: one(brandSheetSources, {
+    fields: [dealDeliverableTrackers.brandSheetSourceId],
+    references: [brandSheetSources.id],
+  }),
   items: many(dealDeliverableItems),
 }));
 

@@ -6,6 +6,7 @@ import { TrackerItemsTable } from './TrackerItemsTable';
 import { TrackerProgressBar } from './TrackerProgressBar';
 import { TrackerStatusBadge } from './TrackerStatusBadge';
 import { approveTrackerAction } from '@/app/admin/(dashboard)/entregables/tracker-actions';
+import { syncTrackerBlockAction } from '@/app/admin/(dashboard)/entregables/source-actions';
 import type { TrackerWithItems } from '@/lib/queries/deal-trackers';
 
 type Props = {
@@ -16,6 +17,8 @@ export function TrackerDetailClient({ tracker }: Props) {
   const [showImport, setShowImport] = useState(false);
   const [importMsg, setImportMsg]   = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [isSyncing, startSync] = useTransition();
+  const [syncMsg, setSyncMsg] = useState<string | null>(null);
 
   function handleImported(result: { inserted: number; duplicates: number; invalid: number }) {
     setShowImport(false);
@@ -29,6 +32,20 @@ export function TrackerDetailClient({ tracker }: Props) {
     fd.append('trackerId', String(tracker.id));
     startTransition(async () => {
       await approveTrackerAction(fd);
+    });
+  }
+
+  function handleSync() {
+    const fd = new FormData();
+    fd.append('trackerId', String(tracker.id));
+    startSync(async () => {
+      setSyncMsg(null);
+      const result = await syncTrackerBlockAction(fd);
+      if (!result.ok) {
+        setSyncMsg(`Error al sincronizar: ${result.error}`);
+      } else {
+        setSyncMsg(`Sync completado: ${result.inserted ?? 0} nuevos links importados.`);
+      }
     });
   }
 
@@ -52,6 +69,15 @@ export function TrackerDetailClient({ tracker }: Props) {
                 className="px-4 py-2 text-sm font-semibold rounded-lg bg-sp-orange text-white hover:bg-sp-orange/90 transition-colors"
               >
                 Importar links
+              </button>
+            )}
+            {tracker.brandSheetSourceId != null && (tracker.status === 'active' || tracker.status === 'review_pending') && (
+              <button
+                onClick={handleSync}
+                disabled={isSyncing}
+                className="px-4 py-2 text-sm font-semibold rounded-lg border border-sp-border hover:bg-sp-off disabled:opacity-50 transition-colors text-sp-dark"
+              >
+                {isSyncing ? 'Sincronizando...' : 'Sincronizar ahora'}
               </button>
             )}
             {tracker.status === 'review_pending' && (
@@ -84,6 +110,14 @@ export function TrackerDetailClient({ tracker }: Props) {
           <p className="text-sm text-sp-muted mt-3 border-t border-sp-border pt-3">{tracker.notes}</p>
         )}
       </div>
+
+      {/* Sync result message */}
+      {syncMsg && (
+        <div className="flex items-center justify-between bg-blue-50 border border-blue-200 rounded-xl px-4 py-3">
+          <p className="text-sm text-blue-800">{syncMsg}</p>
+          <button onClick={() => setSyncMsg(null)} className="text-blue-600 text-lg leading-none">&times;</button>
+        </div>
+      )}
 
       {/* Import result message */}
       {importMsg && (

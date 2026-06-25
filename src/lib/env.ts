@@ -30,6 +30,8 @@ export const env = createEnv({
     BLOB_READ_WRITE_TOKEN: z.string().min(1).optional(),
     // Dedicated public-store token for news covers. Falls back to BLOB_READ_WRITE_TOKEN when absent.
     BLOB_READ_WRITE_TOKEN_NEWS: z.string().min(1).optional(),
+    // Google Sheets API key for reading public spreadsheets (no OAuth needed).
+    GOOGLE_SHEETS_API_KEY: z.string().min(1).optional(),
   },
   client: {
     NEXT_PUBLIC_SITE_URL: z.string().url(),
@@ -54,6 +56,7 @@ export const env = createEnv({
     ANALYTICS_SALT: process.env.ANALYTICS_SALT,
     BLOB_READ_WRITE_TOKEN: process.env.BLOB_READ_WRITE_TOKEN,
     BLOB_READ_WRITE_TOKEN_NEWS: process.env.BLOB_READ_WRITE_TOKEN_NEWS,
+    GOOGLE_SHEETS_API_KEY: process.env.GOOGLE_SHEETS_API_KEY,
 
     NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
     NEXT_PUBLIC_GTM_ID: process.env.NEXT_PUBLIC_GTM_ID,

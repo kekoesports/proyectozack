@@ -673,6 +673,20 @@
       "when": 1782323222084,
       "tag": "0095_brave_bishop",
       "breakpoints": true
+    },
+    {
+      "idx": 96,
+      "version": "7",
+      "when": 1782335884203,
+      "tag": "0096_bitter_marrow",
+      "breakpoints": true
+    },
+    {
+      "idx": 97,
+      "version": "7",
+      "when": 1782337778684,
+      "tag": "0097_fluffy_black_tom",
+      "breakpoints": true
     }
   ]
 }
