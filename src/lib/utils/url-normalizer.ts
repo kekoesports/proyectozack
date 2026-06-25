@@ -134,8 +134,5 @@ export function normalizeContentUrl(rawUrl: string): NormalizeResult {
   }
 
   // ── Unknown / other ───────────────────────────────────────────────────────
-  // Accept any well-formed URL: deal trackers use brand-specific links (key-drop, etc.)
-  const cleaned = stripTrackingParams(url);
-  cleaned.protocol = 'https:';
-  return { originalUrl: rawUrl, normalizedUrl: cleaned.toString(), platform: 'other', isValid: true };
+  return { originalUrl: rawUrl, normalizedUrl: trimmed, platform: 'other', isValid: false };
 }
