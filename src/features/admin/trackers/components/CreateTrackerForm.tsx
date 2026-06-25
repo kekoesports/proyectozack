@@ -1,7 +1,11 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { createTrackerAction, fetchSheetTitleAction } from '@/app/admin/(dashboard)/entregables/tracker-actions';
+import {
+  createTrackerAction,
+  fetchSheetTitleAction,
+  syncTrackerFromSheetUrlAction,
+} from '@/app/admin/(dashboard)/entregables/tracker-actions';
 import { DELIVERABLE_TYPES } from '@/lib/schemas/deal-tracker';
 import type { CrmBrand } from '@/types/crmBrand';
 
@@ -54,8 +58,9 @@ export function CreateTrackerForm({ brands, talents, onSuccess, onCancel }: Prop
   const [talentId, setTalentId]     = useState('');
   const [notes, setNotes]           = useState('');
 
-  const [detecting, setDetecting]   = useState(false);
-  const [sheetHint, setSheetHint]   = useState<string | null>(null);
+  const [detecting, setDetecting]     = useState(false);
+  const [sheetHint, setSheetHint]     = useState<string | null>(null);
+  const [submitLabel, setSubmitLabel] = useState('Crear tracker');
 
   async function handleUrlBlur() {
     const url = sheetUrl.trim();
@@ -86,10 +91,27 @@ export function CreateTrackerForm({ brands, talents, onSuccess, onCancel }: Prop
     if (talentId) fd.set('talentId', talentId);
     if (notes)    fd.set('notes', notes);
     setError(null);
+    const url = sheetUrl.trim();
     startTransition(async () => {
+      setSubmitLabel('Creando…');
       const result = await createTrackerAction(fd);
-      if (!result.ok) { setError(result.error); return; }
-      if (!result.id) { setError('Error inesperado: sin ID'); return; }
+      if (!result.ok) { setError(result.error); setSubmitLabel('Crear tracker'); return; }
+      if (!result.id) { setError('Error inesperado: sin ID'); setSubmitLabel('Crear tracker'); return; }
+
+      if (url) {
+        setSubmitLabel('Sincronizando…');
+        const syncFd = new FormData();
+        syncFd.set('trackerId', String(result.id));
+        syncFd.set('sheetUrl', url);
+        const syncResult = await syncTrackerFromSheetUrlAction(syncFd);
+        if (!syncResult.ok) {
+          // Tracker created but sync failed — navigate anyway, show warning
+          setError(`Tracker creado pero error al sincronizar: ${syncResult.error}`);
+          onSuccess(result.id);
+          return;
+        }
+      }
+
       onSuccess(result.id);
     });
   }
@@ -217,7 +239,7 @@ export function CreateTrackerForm({ brands, talents, onSuccess, onCancel }: Prop
           disabled={isPending}
           className="px-4 py-2 text-sm font-semibold rounded-lg bg-sp-orange text-white hover:bg-sp-orange/90 transition-colors disabled:opacity-50"
         >
-          {isPending ? 'Creando…' : 'Crear tracker'}
+          {isPending ? submitLabel : 'Crear tracker'}
         </button>
       </div>
     </form>
