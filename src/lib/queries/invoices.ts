@@ -52,6 +52,8 @@ const INVOICE_LIST_COLUMNS = {
   description: invoices.description,
   category: invoices.category,
   aiToolName: invoices.aiToolName,
+  expenseGroup: invoices.expenseGroup,
+  expenseSubtype: invoices.expenseSubtype,
   netAmount: invoices.netAmount,
   vatPct: invoices.vatPct,
   withholdingPct: invoices.withholdingPct,

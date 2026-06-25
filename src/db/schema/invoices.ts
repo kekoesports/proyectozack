@@ -17,6 +17,34 @@ import { talents } from './talents';
 import { files } from './files';
 import { campaigns } from './campaigns';
 
+// ── Expense classification enums ──────────────────────────────────────────────
+// expenseGroup drives which financial section an invoice belongs to.
+// expenseSubtype is the analytical detail within that group.
+// Inference rule: campaignId IS NOT NULL → campaign_direct; NULL → operational.
+
+export const expenseGroupEnum = pgEnum('expense_group', [
+  'campaign_direct',
+  'operational',
+]);
+
+export const expenseSubtypeEnum = pgEnum('expense_subtype', [
+  // campaign_direct subtypes
+  'pago_talento',
+  'coste_produccion',
+  'comision_plataforma',
+  'otros_campana',
+  // operational subtypes
+  'suscripcion_software',
+  'herramienta_ia',
+  'gestoria',
+  'fiscal_impuestos',
+  'cuota_autonomo',
+  'marketing_publicidad',
+  'comision_bancaria',
+  'ajuste_fiscal',
+  'gasto_general',
+]);
+
 export const invoiceKindEnum = pgEnum('invoice_kind', ['income', 'expense']);
 export const invoiceScopeEnum = pgEnum('invoice_scope', ['campaign', 'company']);
 export const invoiceStatusEnum = pgEnum('invoice_status', [
@@ -83,10 +111,16 @@ export const invoices = pgTable(
     category: varchar('category', { length: 80 }),
     aiToolName: varchar('ai_tool_name', { length: 100 }),
 
+    // Financial classification — nullable for backward compat with existing records.
+    // PR 2 will add the selector in the UI and the reclassification page.
+    expenseGroup:   expenseGroupEnum('expense_group'),
+    expenseSubtype: expenseSubtypeEnum('expense_subtype'),
+
     netAmount: numeric('net_amount', { precision: 12, scale: 2 }).notNull(),
     vatPct: numeric('vat_pct', { precision: 5, scale: 2 }).notNull().default('21.00'),
     withholdingPct: numeric('withholding_pct', { precision: 5, scale: 2 }).notNull().default('0.00'),
     totalAmount: numeric('total_amount', { precision: 12, scale: 2 }).notNull(),
+    // @deprecated — use invoicePayments table for real cobros/pagos. Do not read in new P&L queries.
     paidAmount: numeric('paid_amount', { precision: 12, scale: 2 }).notNull().default('0.00'),
     currency: varchar('currency', { length: 3 }).notNull().default('EUR'),
 
@@ -131,6 +165,8 @@ export const invoices = pgTable(
     index('invoices_statement_file_idx').on(t.statementFileId),
     index('invoices_campaign_idx').on(t.campaignId),
     index('invoices_scope_idx').on(t.scope),
+    index('invoices_expense_group_idx').on(t.expenseGroup),
+    index('invoices_expense_subtype_idx').on(t.expenseSubtype),
   ],
 );
 
