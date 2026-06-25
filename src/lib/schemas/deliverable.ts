@@ -39,6 +39,8 @@ export const DELIVERABLE_TYPES = [
   'story_instagram',
   'tweet_x',
   'post_instagram',
+  'pack_mensual',
+  'pack_trimestral',
   'otro',
 ] as const;
 
@@ -51,6 +53,8 @@ export const DELIVERABLE_TYPE_LABELS: Record<DeliverableType, string> = {
   story_instagram: 'Historia Instagram',
   tweet_x: 'Tweet / Post X',
   post_instagram: 'Post Instagram',
+  pack_mensual: 'Pack mensual',
+  pack_trimestral: 'Pack trimestral',
   otro: 'Otro',
 };
 

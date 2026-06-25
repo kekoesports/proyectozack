@@ -17,6 +17,8 @@ const DELIVERABLE_LABELS: Record<string, string> = {
   story_instagram:     'Story IG',
   tweet_x:             'Tweet/X',
   post_instagram:      'Post IG',
+  pack_mensual:        'Pack mensual',
+  pack_trimestral:     'Pack trimestral',
   otro:                'Otro',
 };
 

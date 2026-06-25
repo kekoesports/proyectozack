@@ -5,7 +5,8 @@ export const TRACKER_ITEM_STATUSES = ['detected', 'valid', 'duplicate', 'invalid
 export const CONTENT_PLATFORMS = ['twitch', 'kick', 'youtube', 'instagram', 'tiktok', 'other'] as const;
 export const DELIVERABLE_TYPES = [
   'stream_integration', 'video_youtube', 'short_reel_tiktok',
-  'story_instagram', 'tweet_x', 'post_instagram', 'otro',
+  'story_instagram', 'tweet_x', 'post_instagram',
+  'pack_mensual', 'pack_trimestral', 'otro',
 ] as const;
 
 export const createTrackerSchema = z.object({
