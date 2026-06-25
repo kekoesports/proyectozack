@@ -223,37 +223,57 @@ export function BrandSheetSourceDetailClient({ source }: Props) {
           <h2 className="text-sm font-bold text-sp-dark mb-4">
             Trackers vinculados — {source.trackers.length} total
           </h2>
-          <div className="space-y-2">
-            {source.trackers.map((tracker) => (
-              <div
-                key={tracker.id}
-                className="flex items-center justify-between gap-3 py-2 border-b border-sp-border last:border-0"
-              >
-                <div className="flex-1 min-w-0">
-                  <Link
-                    href={`/admin/entregables/${tracker.id}`}
-                    className="text-sm font-semibold text-sp-dark hover:text-sp-orange truncate block"
-                  >
-                    {tracker.dealName}
-                  </Link>
-                  {tracker.googleSheetBlockTitle && (
-                    <p className="text-xs text-sp-muted truncate">{tracker.googleSheetBlockTitle}</p>
-                  )}
+          <div className="space-y-0">
+            {source.trackers.map((tracker) => {
+              const pct = tracker.targetCount > 0
+                ? Math.min(100, Math.round((tracker.currentCount / tracker.targetCount) * 100))
+                : 0;
+              const done = tracker.currentCount >= tracker.targetCount;
+              return (
+                <div
+                  key={tracker.id}
+                  className="py-3 border-b border-sp-border last:border-0"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <Link
+                        href={`/admin/entregables/${tracker.id}`}
+                        className="text-sm font-semibold text-sp-dark hover:text-sp-orange truncate block"
+                      >
+                        {tracker.dealName}
+                      </Link>
+                      {tracker.googleSheetBlockTitle && (
+                        <p className="text-xs text-sp-muted truncate">{tracker.googleSheetBlockTitle}</p>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className={`text-xs font-semibold tabular-nums ${done ? 'text-emerald-600' : 'text-sp-muted'}`}>
+                        {tracker.currentCount}/{tracker.targetCount}
+                      </span>
+                      <button
+                        onClick={() => handleSyncTracker(tracker.id)}
+                        disabled={isSyncing && syncingTracker === tracker.id}
+                        className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-sp-border hover:bg-sp-off disabled:opacity-50 transition-colors text-sp-dark"
+                      >
+                        {isSyncing && syncingTracker === tracker.id ? '...' : 'Sync'}
+                      </button>
+                    </div>
+                  </div>
+                  {/* Progress bar */}
+                  <div className="mt-2 h-1.5 bg-sp-border rounded-full overflow-hidden">
+                    <div
+                      className="h-full rounded-full transition-all duration-500"
+                      style={{
+                        width: `${pct}%`,
+                        background: done
+                          ? '#10b981'
+                          : 'linear-gradient(90deg,#f5632a 0%,#e03070 50%,#8b3aad 100%)',
+                      }}
+                    />
+                  </div>
                 </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  <span className="text-xs text-sp-muted">
-                    {tracker.currentCount}/{tracker.targetCount}
-                  </span>
-                  <button
-                    onClick={() => handleSyncTracker(tracker.id)}
-                    disabled={isSyncing && syncingTracker === tracker.id}
-                    className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-sp-border hover:bg-sp-off disabled:opacity-50 transition-colors text-sp-dark"
-                  >
-                    {isSyncing && syncingTracker === tracker.id ? 'Sincronizando...' : 'Sync'}
-                  </button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
