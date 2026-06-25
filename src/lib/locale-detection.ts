@@ -48,6 +48,12 @@ export type LocaleDecision =
 /**
  * Función pura que decide si redirigir o pasar, y qué cookie escribir.
  * Usada tanto por el middleware como por los tests.
+ *
+ * Prioridad:
+ * 1. Geo (país hispanohablante) → siempre sirve español, incluso si cookie dice 'en'.
+ *    Evita que una cookie caducada bloquee a usuarios españoles en /en.
+ * 2. Sin país confirmado → respeta el cookie para evitar bucles de redirección.
+ * 3. Sin cookie ni país → usa accept-language (default: 'es').
  */
 export function getLocaleDecision(opts: {
   readonly pathname: string;
@@ -56,24 +62,27 @@ export function getLocaleDecision(opts: {
   readonly acceptLanguage: string | null | undefined;
 }): LocaleDecision {
   const { pathname, cookieLocale, country, acceptLanguage } = opts;
+  const currentLocale: 'es' | 'en' = pathname === '/en' ? 'en' : 'es';
 
-  // Cookie válida presente → respetar siempre, sin redirigir ni reescribir
+  // País hispanohablante detectado → geo gana sobre el cookie
+  if (country && SPANISH_COUNTRIES.has(country)) {
+    if (currentLocale === 'es') {
+      // Ya en español — pasar. Si el cookie decía 'en', corregirlo silenciosamente.
+      return { action: 'pass', locale: 'es', writeCookie: cookieLocale !== 'es' };
+    }
+    // Está en /en pero el país es hispanohablante → redirigir a /
+    return { action: 'redirect', to: '/', locale: 'es' };
+  }
+
+  // País no hispanohablante (o sin país): el cookie manda para evitar bucles
   if (cookieLocale === 'es' || cookieLocale === 'en') {
     return { action: 'pass', locale: cookieLocale, writeCookie: false };
   }
 
+  // Sin cookie ni país confirmado: detectar por accept-language (default: 'es')
   const preferred = detectPreferredLocale(country, acceptLanguage);
-  const currentLocale: 'es' | 'en' = pathname === '/en' ? 'en' : 'es';
-
-  // Ya en el locale correcto → pasar y establecer cookie para no recalcular
   if (currentLocale === preferred) {
     return { action: 'pass', locale: preferred, writeCookie: true };
   }
-
-  // Locale incorrecto → redirigir y establecer cookie
-  return {
-    action: 'redirect',
-    to: preferred === 'en' ? '/en' : '/',
-    locale: preferred,
-  };
+  return { action: 'redirect', to: preferred === 'en' ? '/en' : '/', locale: preferred };
 }

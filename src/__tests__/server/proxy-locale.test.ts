@@ -90,19 +90,31 @@ describe('proxy — locale detection en homepages', () => {
     expect(res?.status).not.toBe(308);
   });
 
-  // Cookie manda sobre geo
+  // Geo gana sobre cookie para países hispanohablantes
 
-  it('cookie=en, country ES en / → pass, sin redirect', () => {
+  it('cookie=en, country ES en / → pass (no redirect), corrige cookie a es', () => {
     const res = proxy(req('/', { country: 'ES', cookieLocale: 'en' }));
+    // No redirige (ya está en /)
     expect(res?.status).not.toBe(307);
+    // Pero sí corrige el cookie caducado de 'en' a 'es'
+    expect(res?.headers.get('set-cookie')).toContain(`${LOCALE_COOKIE}=es`);
   });
+
+  it('cookie=en, country ES en /en → 307 a / (geo gana sobre cookie)', () => {
+    const res = proxy(req('/en', { country: 'ES', cookieLocale: 'en' }));
+    expect(res?.status).toBe(307);
+    expect(res?.headers.get('location')).toContain('/');
+    expect(res?.headers.get('set-cookie')).toContain(`${LOCALE_COOKIE}=es`);
+  });
+
+  // Cookie manda sobre geo solo para países NO hispanohablantes
 
   it('cookie=es, country US en /en → pass, sin redirect', () => {
     const res = proxy(req('/en', { country: 'US', cookieLocale: 'es' }));
     expect(res?.status).not.toBe(307);
   });
 
-  // Anti-bucle: cookie presente → no reescribe cookie
+  // Anti-bucle: cookie presente → no reescribe cookie cuando ya es correcto
 
   it('anti-bucle: / cookie=es país ES → no escribe Set-Cookie', () => {
     const res = proxy(req('/', { country: 'ES', cookieLocale: 'es' }));
