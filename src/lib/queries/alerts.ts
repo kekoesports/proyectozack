@@ -100,6 +100,40 @@ export async function createAlert(data: {
   });
 }
 
+export type TrackerCompletedAlert = {
+  readonly id: number;
+  readonly title: string;
+  readonly description: string | null;
+  readonly relatedEntityId: number | null;
+};
+
+/** Devuelve las alertas de tracker completado activas (para el pop-up de confirmación). */
+export async function getActiveTrackerCompletedAlerts(): Promise<TrackerCompletedAlert[]> {
+  return db
+    .select({
+      id: alerts.id,
+      title: alerts.title,
+      description: alerts.description,
+      relatedEntityId: alerts.relatedEntityId,
+    })
+    .from(alerts)
+    .where(
+      and(
+        eq(alerts.type, 'deal_tracker_complete'),
+        eq(alerts.status, 'active'),
+      ),
+    )
+    .orderBy(asc(alerts.triggeredAt));
+}
+
+/** Marca una alerta de tracker completado como dismissed (sin restricción de usuario). */
+export async function dismissTrackerCompletedAlert(id: number): Promise<void> {
+  await db
+    .update(alerts)
+    .set({ status: 'dismissed', dismissedAt: new Date(), updatedAt: new Date() })
+    .where(eq(alerts.id, id));
+}
+
 /** Marca una alerta persistente como dismissed. Solo afecta alertas asignadas al usuario. */
 export async function dismissAlert(id: number, userId: string): Promise<void> {
   await db

@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { requireAnyRole } from '@/lib/auth-guard';
-import { dismissAlert, dismissAllPersonalAlerts } from '@/lib/queries/alerts';
+import { dismissAlert, dismissAllPersonalAlerts, dismissTrackerCompletedAlert } from '@/lib/queries/alerts';
 import { IdSchema } from '@/lib/schemas/common';
 
 type ActionResult = { readonly error?: string };
@@ -23,6 +23,15 @@ export async function dismissAlertAction(id: unknown): Promise<ActionResult> {
 export async function dismissAllAlertsAction(): Promise<ActionResult> {
   const session = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
   await dismissAllPersonalAlerts(session.user.id);
+  revalidateLayout();
+  return {};
+}
+
+export async function dismissTrackerAlertAction(id: unknown): Promise<ActionResult> {
+  await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
+  const parsed = IdSchema.safeParse(id);
+  if (!parsed.success) return { error: 'ID inválido' };
+  await dismissTrackerCompletedAlert(parsed.data);
   revalidateLayout();
   return {};
 }

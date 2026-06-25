@@ -1,7 +1,8 @@
 import { requireAnyRole } from '@/lib/auth-guard';
-import { getDashboardAlerts } from '@/lib/queries/alerts';
+import { getDashboardAlerts, getActiveTrackerCompletedAlerts } from '@/lib/queries/alerts';
 import { AdminSidebar } from '@/features/admin/_shared/components/AdminSidebar';
 import { AdminHeader } from '@/features/admin/_shared/components/AdminHeader';
+import { CompletedDealsModal } from '@/features/admin/_shared/components/CompletedDealsModal';
 import { dismissAlertAction, dismissAllAlertsAction } from './actions';
 import {
   DashboardIcon, TalentIcon, BrandIcon, GiveawayIcon, TeamIcon,
@@ -67,6 +68,9 @@ export default async function AdminLayout({ children }: AdminLayoutProps): Promi
   const isManager  = session.user.role === 'manager';
   const useStaffNav = isStaff && !isManager;
 
+  // Cargar alertas de tracker completado para el pop-up de confirmación
+  const completedTrackerAlerts = await getActiveTrackerCompletedAlerts();
+
   // Cargar alertas para el badge de la campana — staff ve solo las suyas
   const { alerts, summary } = await getDashboardAlerts(
     isStaff
@@ -98,6 +102,7 @@ export default async function AdminLayout({ children }: AdminLayoutProps): Promi
         />
         <main className="flex-1 p-4 md:p-5 overflow-auto">{children}</main>
       </div>
+      <CompletedDealsModal alerts={completedTrackerAlerts} />
     </div>
   );
 }
