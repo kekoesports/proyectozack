@@ -29,12 +29,14 @@ type Props = {
 
 export function TrackersListClient({ trackers, brands, talents }: Props) {
   const [showCreate, setShowCreate] = useState(false);
-  const [filter, setFilter]         = useState<string>('all');
+  // Default: solo activos + revisión pendiente (los archivados quedan ocultos)
+  const [filter, setFilter]         = useState<string>('pending');
   const router = useRouter();
 
-  const filtered = filter === 'all'
-    ? trackers
-    : trackers.filter((t) => t.status === filter);
+  const filtered =
+    filter === 'all'     ? trackers :
+    filter === 'pending' ? trackers.filter((t) => t.status === 'active' || t.status === 'review_pending') :
+    trackers.filter((t) => t.status === filter);
 
   function handleCreated(newId: number) {
     setShowCreate(false);
@@ -59,24 +61,36 @@ export function TrackersListClient({ trackers, brands, talents }: Props) {
 
       {/* Status filter */}
       <div className="flex gap-2 flex-wrap">
-        {['all', 'active', 'review_pending', 'approved', 'paid', 'cancelled'].map((s) => (
-          <button
-            key={s}
-            onClick={() => setFilter(s)}
-            className={`px-3 py-1 text-xs rounded-full border transition-colors ${
-              filter === s
-                ? 'bg-sp-dark text-white border-sp-dark'
-                : 'border-sp-border text-sp-muted hover:border-sp-dark hover:text-sp-dark'
-            }`}
-          >
-            {s === 'all' ? 'Todos' : s === 'review_pending' ? 'Revisión' : s.charAt(0).toUpperCase() + s.slice(1)}
-            {s !== 'all' && (
-              <span className="ml-1 opacity-60">
-                ({trackers.filter((t) => t.status === s).length})
-              </span>
-            )}
-          </button>
-        ))}
+        {/* Tab pendientes — vista por defecto */}
+        {([
+          ['pending',       'Pendientes',  null],
+          ['active',        'Activos',     'active'],
+          ['review_pending','Revisión',    'review_pending'],
+          ['approved',      'Aprobados',   'approved'],
+          ['paid',          'Pagados',     'paid'],
+          ['cancelled',     'Cancelados',  'cancelled'],
+          ['all',           'Todos',       null],
+        ] as [string, string, string | null][]).map(([key, label, statusKey]) => {
+          const count = statusKey === null
+            ? (key === 'pending'
+                ? trackers.filter((t) => t.status === 'active' || t.status === 'review_pending').length
+                : trackers.length)
+            : trackers.filter((t) => t.status === statusKey).length;
+          return (
+            <button
+              key={key}
+              onClick={() => setFilter(key)}
+              className={`px-3 py-1 text-xs rounded-full border transition-colors ${
+                filter === key
+                  ? 'bg-sp-dark text-white border-sp-dark'
+                  : 'border-sp-border text-sp-muted hover:border-sp-dark hover:text-sp-dark'
+              }`}
+            >
+              {label}
+              <span className="ml-1 opacity-60">({count})</span>
+            </button>
+          );
+        })}
       </div>
 
       {/* Create form (inline) */}
