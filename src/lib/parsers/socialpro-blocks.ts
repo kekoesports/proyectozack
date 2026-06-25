@@ -35,6 +35,12 @@ export type TabDetectionResult = {
  */
 const BLOCK_TITLE_RE = /^(.+?)\s*[-–]\s*(Deal\s*#\d+)\s*[-–]\s*(.+)$/i;
 
+/**
+ * Fallback pattern for blocks where the talent name is omitted.
+ * Format: "Deal #N - <specs>" — tab name is used as talent name.
+ */
+const BLOCK_TITLE_NO_TALENT_RE = /^(Deal\s*#\d+)\s*[-–]\s*(.+)$/i;
+
 /** Maximum rows to look ahead for the header row after a title. */
 const HEADER_LOOKAHEAD = 4;
 
@@ -176,8 +182,17 @@ export function detectSocialProBlocks(
       const titleKey = `${r}:${c}`;
       if (claimedTitles.has(titleKey)) continue;
 
-      const parsed = parseDealTitle(cell);
-      if (!parsed) continue;
+      let parsed = parseDealTitle(cell);
+      if (!parsed) {
+        // Fallback: "Deal #N - specs" without talent name — use tab name instead
+        const short = BLOCK_TITLE_NO_TALENT_RE.exec(cell.trim());
+        if (!short) continue;
+        parsed = {
+          talentName: tabName,
+          dealLabel: short[1]?.trim() ?? '',
+          specsStr: short[2]?.trim() ?? '',
+        };
+      }
 
       // Found a title — search for the header row within HEADER_LOOKAHEAD rows
       let headerRow = -1;
