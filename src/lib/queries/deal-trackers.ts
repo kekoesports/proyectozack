@@ -279,6 +279,14 @@ export async function updateTrackerTarget(trackerId: number, targetCount: number
   await recalculateAndMaybeComplete(trackerId);
 }
 
+// ── Delete tracker ────────────────────────────────────────────────────────────
+
+export async function deleteTracker(trackerId: number) {
+  await db
+    .delete(dealDeliverableTrackers)
+    .where(eq(dealDeliverableTrackers.id, trackerId));
+}
+
 // ── Review item ───────────────────────────────────────────────────────────────
 
 export async function reviewTrackerItem(

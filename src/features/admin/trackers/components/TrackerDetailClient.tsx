@@ -8,8 +8,10 @@ import { TrackerStatusBadge } from './TrackerStatusBadge';
 import {
   approveTrackerAction,
   updateTrackerTargetAction,
+  deleteTrackerAction,
 } from '@/app/admin/(dashboard)/entregables/tracker-actions';
 import { syncTrackerBlockAction } from '@/app/admin/(dashboard)/entregables/source-actions';
+import { useRouter } from 'next/navigation';
 import type { TrackerWithItems } from '@/lib/queries/deal-trackers';
 
 type Props = {
@@ -17,6 +19,7 @@ type Props = {
 };
 
 export function TrackerDetailClient({ tracker }: Props) {
+  const router = useRouter();
   const [showImport, setShowImport]     = useState(false);
   const [importMsg, setImportMsg]       = useState<string | null>(null);
   const [isPending, startTransition]    = useTransition();
@@ -25,6 +28,7 @@ export function TrackerDetailClient({ tracker }: Props) {
   const [editTarget, setEditTarget]     = useState(false);
   const [targetInput, setTargetInput]   = useState(String(tracker.targetCount));
   const [isSavingTarget, startSaveTarget] = useTransition();
+  const [isDeleting, startDelete]       = useTransition();
 
   function handleImported(result: { inserted: number; duplicates: number; invalid: number }) {
     setShowImport(false);
@@ -48,6 +52,18 @@ export function TrackerDetailClient({ tracker }: Props) {
     startSaveTarget(async () => {
       await updateTrackerTargetAction(fd);
       setEditTarget(false);
+    });
+  }
+
+  function handleDelete() {
+    if (!window.confirm(`¿Eliminar el tracker "${tracker.dealName}"? Esta acción no se puede deshacer.`)) return;
+    const fd = new FormData();
+    fd.set('trackerId', String(tracker.id));
+    startDelete(async () => {
+      const result = await deleteTrackerAction(fd);
+      if (result.ok) {
+        router.push('/admin/entregables');
+      }
     });
   }
 
@@ -77,7 +93,7 @@ export function TrackerDetailClient({ tracker }: Props) {
               <p className="text-xs text-sp-muted mt-0.5">Talento: {tracker.talentName}</p>
             )}
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
             <TrackerStatusBadge status={tracker.status} />
             {(tracker.status === 'active' || tracker.status === 'review_pending') && (
               <button
@@ -105,6 +121,13 @@ export function TrackerDetailClient({ tracker }: Props) {
                 Aprobar deal
               </button>
             )}
+            <button
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="px-4 py-2 text-sm font-semibold rounded-lg border border-red-200 text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
+            >
+              {isDeleting ? 'Eliminando…' : 'Eliminar'}
+            </button>
           </div>
         </div>
 

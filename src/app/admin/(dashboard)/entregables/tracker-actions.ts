@@ -8,6 +8,7 @@ import {
   reviewTrackerItem,
   approveTracker,
   updateTrackerTarget,
+  deleteTracker,
 } from '@/lib/queries/deal-trackers';
 import { extractXlsxSheet } from '@/lib/parsers/xlsx';
 import { extractCsvSheet } from '@/lib/parsers/csv';
@@ -157,6 +158,51 @@ export async function importTrackerLinksAction(formData: FormData): Promise<
   }
 }
 
+// ── detectTargetFromGrid ──────────────────────────────────────────────────────
+// Scans cell content for patterns like "12x preroll + 5x video" → 17
+// or "15 streams", "10 videos". Returns null if nothing found.
+
+function detectTargetFromGrid(grid: string[][]): number | null {
+  const WITH_X   = /(\d+)\s*x\s+\w/gi;
+  const BARE_NUM = /(\d+)\s+(?:videos?|streams?|prerolls?|posts?|stories|reels?|shorts?|clips?)/gi;
+
+  for (const row of grid) {
+    for (const cell of row) {
+      if (!cell) continue;
+      // Pattern "Nx word" (e.g. "12x preroll + 5x video")
+      const xMatches = [...cell.matchAll(WITH_X)];
+      if (xMatches.length > 0) {
+        const total = xMatches.reduce((sum, m) => sum + parseInt(m[1]!, 10), 0);
+        if (total > 0) return total;
+      }
+      // Pattern "N videos/streams/…"
+      const bareMatches = [...cell.matchAll(BARE_NUM)];
+      if (bareMatches.length > 0) {
+        const total = bareMatches.reduce((sum, m) => sum + parseInt(m[1]!, 10), 0);
+        if (total > 0) return total;
+      }
+    }
+  }
+  return null;
+}
+
+// ── deleteTrackerAction ───────────────────────────────────────────────────────
+
+export async function deleteTrackerAction(formData: FormData): Promise<ActionResult> {
+  await requirePermission('campanas', 'write');
+
+  const trackerId = Number(formData.get('trackerId'));
+  if (!trackerId || isNaN(trackerId)) return { ok: false, error: 'trackerId inválido' };
+
+  try {
+    await deleteTracker(trackerId);
+    revalidatePath('/admin/entregables');
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : 'Error al eliminar tracker' };
+  }
+}
+
 // ── syncTrackerFromSheetUrlAction ─────────────────────────────────────────────
 
 export async function syncTrackerFromSheetUrlAction(formData: FormData): Promise<
@@ -219,6 +265,13 @@ export async function syncTrackerFromSheetUrlAction(formData: FormData): Promise
     }
 
     if (!rows.length) return { ok: false, error: 'No se encontraron URLs válidas en la hoja' };
+
+    // Auto-detect targetCount from grid content if not already set.
+    // Pattern: "12x preroll", "5x video", "15 streams", "3 videos" etc.
+    const autoTarget = detectTargetFromGrid(grid);
+    if (autoTarget !== null) {
+      await updateTrackerTarget(trackerId, autoTarget);
+    }
 
     const result = await importTrackerItems(
       trackerId,
