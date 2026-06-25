@@ -7,6 +7,7 @@ import {
   importTrackerItems,
   reviewTrackerItem,
   approveTracker,
+  updateTrackerTarget,
 } from '@/lib/queries/deal-trackers';
 import { extractXlsxSheet } from '@/lib/parsers/xlsx';
 import { extractCsvSheet } from '@/lib/parsers/csv';
@@ -229,6 +230,26 @@ export async function syncTrackerFromSheetUrlAction(formData: FormData): Promise
     return { ok: true, inserted: result.inserted, duplicates: result.duplicatesSkipped };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : 'Error al sincronizar con Google Sheets' };
+  }
+}
+
+// ── updateTrackerTargetAction ─────────────────────────────────────────────────
+
+export async function updateTrackerTargetAction(formData: FormData): Promise<ActionResult> {
+  await requirePermission('campanas', 'write');
+
+  const trackerId  = Number(formData.get('trackerId'));
+  const targetCount = Number(formData.get('targetCount'));
+
+  if (!trackerId || isNaN(trackerId))   return { ok: false, error: 'trackerId inválido' };
+  if (isNaN(targetCount) || targetCount < 0) return { ok: false, error: 'Objetivo inválido' };
+
+  try {
+    await updateTrackerTarget(trackerId, targetCount);
+    revalidatePath(`/admin/entregables/${trackerId}`);
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : 'Error al actualizar' };
   }
 }
 

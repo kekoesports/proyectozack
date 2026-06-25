@@ -5,7 +5,10 @@ import { ImportLinksModal } from './ImportLinksModal';
 import { TrackerItemsTable } from './TrackerItemsTable';
 import { TrackerProgressBar } from './TrackerProgressBar';
 import { TrackerStatusBadge } from './TrackerStatusBadge';
-import { approveTrackerAction } from '@/app/admin/(dashboard)/entregables/tracker-actions';
+import {
+  approveTrackerAction,
+  updateTrackerTargetAction,
+} from '@/app/admin/(dashboard)/entregables/tracker-actions';
 import { syncTrackerBlockAction } from '@/app/admin/(dashboard)/entregables/source-actions';
 import type { TrackerWithItems } from '@/lib/queries/deal-trackers';
 
@@ -14,11 +17,14 @@ type Props = {
 };
 
 export function TrackerDetailClient({ tracker }: Props) {
-  const [showImport, setShowImport] = useState(false);
-  const [importMsg, setImportMsg]   = useState<string | null>(null);
-  const [isPending, startTransition] = useTransition();
-  const [isSyncing, startSync] = useTransition();
-  const [syncMsg, setSyncMsg] = useState<string | null>(null);
+  const [showImport, setShowImport]     = useState(false);
+  const [importMsg, setImportMsg]       = useState<string | null>(null);
+  const [isPending, startTransition]    = useTransition();
+  const [isSyncing, startSync]          = useTransition();
+  const [syncMsg, setSyncMsg]           = useState<string | null>(null);
+  const [editTarget, setEditTarget]     = useState(false);
+  const [targetInput, setTargetInput]   = useState(String(tracker.targetCount));
+  const [isSavingTarget, startSaveTarget] = useTransition();
 
   function handleImported(result: { inserted: number; duplicates: number; invalid: number }) {
     setShowImport(false);
@@ -32,6 +38,16 @@ export function TrackerDetailClient({ tracker }: Props) {
     fd.append('trackerId', String(tracker.id));
     startTransition(async () => {
       await approveTrackerAction(fd);
+    });
+  }
+
+  function handleSaveTarget() {
+    const fd = new FormData();
+    fd.set('trackerId', String(tracker.id));
+    fd.set('targetCount', targetInput);
+    startSaveTarget(async () => {
+      await updateTrackerTargetAction(fd);
+      setEditTarget(false);
     });
   }
 
@@ -93,6 +109,38 @@ export function TrackerDetailClient({ tracker }: Props) {
         </div>
 
         <div className="mt-5">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-xs text-sp-muted">Objetivo</span>
+            {editTarget ? (
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  min={0}
+                  value={targetInput}
+                  onChange={(e) => setTargetInput(e.target.value)}
+                  className="w-20 border border-sp-border rounded px-2 py-0.5 text-sm text-right"
+                  autoFocus
+                />
+                <button
+                  onClick={handleSaveTarget}
+                  disabled={isSavingTarget}
+                  className="text-xs font-semibold text-emerald-600 hover:text-emerald-700 disabled:opacity-50"
+                >
+                  {isSavingTarget ? '...' : 'Guardar'}
+                </button>
+                <button onClick={() => setEditTarget(false)} className="text-xs text-sp-muted hover:text-sp-dark">
+                  Cancelar
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setEditTarget(true)}
+                className="text-xs text-sp-muted hover:text-sp-orange transition-colors"
+              >
+                {tracker.targetCount === 0 ? '+ Fijar objetivo' : `${tracker.currentCount}/${tracker.targetCount} · editar`}
+              </button>
+            )}
+          </div>
           <TrackerProgressBar
             current={tracker.currentCount}
             target={tracker.targetCount}

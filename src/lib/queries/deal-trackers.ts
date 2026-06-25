@@ -269,6 +269,16 @@ async function recalculateAndMaybeComplete(trackerId: number) {
     .where(eq(dealDeliverableTrackers.id, trackerId));
 }
 
+// ── Update target count ───────────────────────────────────────────────────────
+
+export async function updateTrackerTarget(trackerId: number, targetCount: number) {
+  await db
+    .update(dealDeliverableTrackers)
+    .set({ targetCount, updatedAt: new Date() })
+    .where(eq(dealDeliverableTrackers.id, trackerId));
+  await recalculateAndMaybeComplete(trackerId);
+}
+
 // ── Review item ───────────────────────────────────────────────────────────────
 
 export async function reviewTrackerItem(
