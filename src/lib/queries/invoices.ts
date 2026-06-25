@@ -1,6 +1,7 @@
-import { and, desc, eq, sql, gte, lte, ne, ilike, or, inArray } from 'drizzle-orm';
+import { and, desc, eq, sql, gte, lte, ne, ilike, or, inArray, isNull, count } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { invoices, crmBrands, talents, files, campaigns } from '@/db/schema';
+import type { ExpenseSubtypeValue } from '@/lib/schemas/invoice';
 import type {
   BillingKPIs,
   Invoice,
@@ -14,6 +15,7 @@ import type {
   NewInvoice,
   FileRecord,
 } from '@/types';
+
 
 type InvoiceFilters = {
   readonly kind?: InvoiceKind;
@@ -34,6 +36,11 @@ type InvoiceFilters = {
   readonly currency?: string;
   /** Si se proporciona, filtra solo facturas de campañas asignadas o creadas por este userId */
   readonly staffUserId?: string;
+  /**
+   * Filtro semántico para clasificación: 'operational' incluye también facturas legacy
+   * (expenseGroup IS NULL AND campaignId IS NULL). 'campaign_direct' solo filtra por expenseGroup.
+   */
+  readonly expenseGroupOrLegacy?: 'operational' | 'campaign_direct';
 };
 
 const INVOICE_LIST_COLUMNS = {
@@ -133,6 +140,15 @@ export async function listInvoices(filters: InvoiceFilters = {}): Promise<readon
   if (filters.paymentMethod) conds.push(eq(invoices.paymentMethod, filters.paymentMethod));
   if (filters.category) conds.push(ilike(invoices.category, `%${filters.category}%`));
   if (filters.currency) conds.push(eq(invoices.currency, filters.currency));
+  if (filters.expenseGroupOrLegacy === 'campaign_direct') {
+    conds.push(eq(invoices.expenseGroup, 'campaign_direct'));
+  } else if (filters.expenseGroupOrLegacy === 'operational') {
+    const operationalClause = or(
+      eq(invoices.expenseGroup, 'operational'),
+      and(isNull(invoices.expenseGroup), isNull(invoices.campaignId)),
+    );
+    if (operationalClause) conds.push(operationalClause);
+  }
   if (filters.search) {
     const q = `%${filters.search}%`;
     const searchClause = or(
@@ -461,4 +477,44 @@ export async function getInvoicesForBrandUser(portalUserId: string): Promise<rea
  */
 export async function deleteInvoice(id: number): Promise<void> {
   await db.delete(invoices).where(eq(invoices.id, id));
+}
+
+/**
+ * Número de gastos sin clasificar (expenseGroup IS NULL, kind='expense', no anuladas).
+ * Usado para mostrar badge de alerta en la sección Finanzas.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns number
+ */
+export async function getUnclassifiedExpenseCount(): Promise<number> {
+  const [row] = await db
+    .select({ n: count() })
+    .from(invoices)
+    .where(
+      and(
+        eq(invoices.kind, 'expense'),
+        isNull(invoices.expenseGroup),
+        ne(invoices.status, 'anulada'),
+      ),
+    );
+  return row?.n ?? 0;
+}
+
+/**
+ * Actualiza expenseGroup y/o expenseSubtype de una o varias facturas.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns void
+ */
+export async function classifyExpenses(
+  ids: readonly number[],
+  patch: { expenseGroup: 'campaign_direct' | 'operational'; expenseSubtype?: ExpenseSubtypeValue | null },
+): Promise<void> {
+  if (ids.length === 0) return;
+  await db
+    .update(invoices)
+    .set({ expenseGroup: patch.expenseGroup, expenseSubtype: patch.expenseSubtype ?? null, updatedAt: new Date() })
+    .where(inArray(invoices.id, ids as number[]));
 }

@@ -19,6 +19,13 @@ import {
   INVOICE_STATUS_LABELS,
   INVOICE_SCOPES,
   INVOICE_SCOPE_LABELS,
+  EXPENSE_GROUPS,
+  EXPENSE_GROUP_LABELS,
+  EXPENSE_SUBTYPES_CAMPAIGN,
+  EXPENSE_SUBTYPES_OPERATIONAL,
+  EXPENSE_SUBTYPE_LABELS,
+  type ExpenseGroupValue,
+  type ExpenseSubtypeValue,
 } from '@/lib/schemas/invoice';
 
 // Estados por tipo de movimiento
@@ -105,19 +112,52 @@ function InvoiceDrawerForm(props: Props): ReactElement {
 
   const [currency,    setCurrency]    = useState<'EUR' | 'USD'>((invoice?.currency as 'EUR' | 'USD') ?? 'EUR');
 
+  // Clasificación de gasto (solo visible para kind='expense')
+  const [expenseGroup,   setExpenseGroup]   = useState<ExpenseGroupValue | ''>(
+    (invoice?.expenseGroup as ExpenseGroupValue | null | undefined) ?? '',
+  );
+  const [expenseSubtype, setExpenseSubtype] = useState<ExpenseSubtypeValue | ''>(
+    (invoice?.expenseSubtype as ExpenseSubtypeValue | null | undefined) ?? '',
+  );
+
   const [net, setNet] = useState<string>(invoice?.netAmount ?? '0.00');
   const [vat, setVat] = useState<string>(invoice?.vatPct ?? '21.00');
   const [withholding, setWithholding] = useState<string>(invoice?.withholdingPct ?? '0.00');
 
-  // Autocompletar marca/influencer al seleccionar trato
+  // Autocompletar marca/influencer al seleccionar trato; autosugerir grupo de gasto
   function handleCampaignChange(id: string): void {
     setCampaignId(id);
-    if (!id) return;
+    if (!id) {
+      // Campaña quitada: si el grupo estaba vacío o era campaign_direct (auto-sugerido),
+      // sugerir operational. Si el usuario había elegido otro grupo manualmente, no tocar.
+      if (!expenseGroup || expenseGroup === 'campaign_direct') {
+        handleExpenseGroupChange('operational');
+      }
+      return;
+    }
     const camp = campaigns.find((c) => String(c.id) === id);
     if (!camp) return;
     if (camp.brandId  && !touchedBrand)  setBrandId(String(camp.brandId));
     if (camp.talentId && !touchedTalent) setTalentId(String(camp.talentId));
+    // Auto-sugerir grupo de campaña si el campo está vacío
+    if (!expenseGroup) setExpenseGroup('campaign_direct');
   }
+
+  function handleExpenseGroupChange(g: ExpenseGroupValue | ''): void {
+    setExpenseGroup(g);
+    // Resetear subtipo si ya no pertenece al nuevo grupo
+    if (!g) { setExpenseSubtype(''); return; }
+    const validSubtypes: readonly string[] =
+      g === 'campaign_direct' ? EXPENSE_SUBTYPES_CAMPAIGN : EXPENSE_SUBTYPES_OPERATIONAL;
+    if (expenseSubtype && !(validSubtypes as readonly string[]).includes(expenseSubtype)) {
+      setExpenseSubtype('');
+    }
+  }
+
+  const expenseSubtypeOptions: readonly string[] =
+    expenseGroup === 'campaign_direct' ? EXPENSE_SUBTYPES_CAMPAIGN
+    : expenseGroup === 'operational' ? EXPENSE_SUBTYPES_OPERATIONAL
+    : [];
 
   // Al cambiar tipo, sugerir estado coherente
   function handleKindChange(k: 'income' | 'expense'): void {
@@ -287,6 +327,43 @@ function InvoiceDrawerForm(props: Props): ReactElement {
             </select>
           </div>
         </div>
+
+        {/* Clasificación de gasto — solo para kind='expense' */}
+        {kind === 'expense' && (
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className={LABEL} htmlFor="invoice-expense-group">Grupo de gasto</label>
+              <select
+                id="invoice-expense-group"
+                name="expenseGroup"
+                value={expenseGroup}
+                onChange={(e) => handleExpenseGroupChange(e.target.value as ExpenseGroupValue | '')}
+                className={INPUT}
+              >
+                <option value="">— sin clasificar —</option>
+                {EXPENSE_GROUPS.map((g) => (
+                  <option key={g} value={g}>{EXPENSE_GROUP_LABELS[g]}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className={LABEL} htmlFor="invoice-expense-subtype">Subtipo</label>
+              <select
+                id="invoice-expense-subtype"
+                name="expenseSubtype"
+                value={expenseSubtype}
+                onChange={(e) => setExpenseSubtype(e.target.value as ExpenseSubtypeValue | '')}
+                disabled={expenseSubtypeOptions.length === 0}
+                className={INPUT}
+              >
+                <option value="">— opcional —</option>
+                {expenseSubtypeOptions.map((s) => (
+                  <option key={s} value={s}>{EXPENSE_SUBTYPE_LABELS[s as ExpenseSubtypeValue] ?? s}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+        )}
 
         {/* Importes */}
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
