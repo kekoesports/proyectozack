@@ -28,6 +28,11 @@ try {
   // ignore — fall back to existing env
 }
 
+if (process.env.VERCEL_ENV === 'preview') {
+  console.log('Skipping database migrations in Vercel Preview deployment.');
+  process.exit(0);
+}
+
 const url = process.env.DATABASE_URL;
 if (!url) {
   console.error('DATABASE_URL is not set');
