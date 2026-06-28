@@ -8,6 +8,7 @@ const TABS = [
   { href: '/admin/finanzas/pl',                label: 'P&L' },
   { href: '/admin/finanzas/costes',            label: 'Costes campaña' },
   { href: '/admin/finanzas/gastos-operativos', label: 'Gastos operativos' },
+  { href: '/admin/finanzas/setup-2026',        label: 'Setup 2026' },
 ] as const;
 
 export function FinanzasNav(): React.ReactElement {
