@@ -43,6 +43,10 @@ export const expenseSubtypeEnum = pgEnum('expense_subtype', [
   'comision_bancaria',
   'ajuste_fiscal',
   'gasto_general',
+  'factura_autonomo',
+  'nomina_socio',
+  'seguro_medico',
+  'seguridad_social',
 ]);
 
 export const invoiceKindEnum = pgEnum('invoice_kind', ['income', 'expense']);

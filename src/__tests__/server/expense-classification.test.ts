@@ -78,6 +78,59 @@ describe('compatibilidad subtipo ↔ grupo', () => {
   });
 });
 
+describe('nuevos subtipos PR B — factura_autonomo, nomina_socio, seguro_medico, seguridad_social', () => {
+  const NEW_SUBTYPES = [
+    'factura_autonomo',
+    'nomina_socio',
+    'seguro_medico',
+    'seguridad_social',
+  ] as const;
+
+  it('los 4 nuevos subtipos existen en EXPENSE_SUBTYPES', () => {
+    for (const s of NEW_SUBTYPES) {
+      expect(EXPENSE_SUBTYPES).toContain(s);
+    }
+  });
+
+  it('los 4 nuevos subtipos pertenecen a operational', () => {
+    for (const s of NEW_SUBTYPES) {
+      expect(EXPENSE_SUBTYPES_OPERATIONAL).toContain(s);
+    }
+  });
+
+  it('los 4 nuevos subtipos NO pertenecen a campaign_direct', () => {
+    for (const s of NEW_SUBTYPES) {
+      expect(EXPENSE_SUBTYPES_CAMPAIGN).not.toContain(s);
+    }
+  });
+
+  it('los 4 nuevos subtipos tienen label definido', () => {
+    for (const s of NEW_SUBTYPES) {
+      expect(EXPENSE_SUBTYPE_LABELS[s]).toBeTruthy();
+    }
+  });
+
+  it('factura_autonomo tiene label "Factura autónomo"', () => {
+    expect(EXPENSE_SUBTYPE_LABELS['factura_autonomo']).toBe('Factura autónomo');
+  });
+
+  it('nomina_socio tiene label "Nómina socio"', () => {
+    expect(EXPENSE_SUBTYPE_LABELS['nomina_socio']).toBe('Nómina socio');
+  });
+
+  it('seguro_medico tiene label "Seguro médico"', () => {
+    expect(EXPENSE_SUBTYPE_LABELS['seguro_medico']).toBe('Seguro médico');
+  });
+
+  it('seguridad_social tiene label "Seguridad Social"', () => {
+    expect(EXPENSE_SUBTYPE_LABELS['seguridad_social']).toBe('Seguridad Social');
+  });
+
+  it('EXPENSE_SUBTYPES_OPERATIONAL tiene 13 valores (9 originales + 4 nuevos)', () => {
+    expect(EXPENSE_SUBTYPES_OPERATIONAL).toHaveLength(13);
+  });
+});
+
 describe('legacy filter — gastos sin expenseGroup', () => {
   type MockInvoice = {
     expenseGroup: string | null;

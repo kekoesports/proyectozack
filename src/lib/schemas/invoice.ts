@@ -71,6 +71,10 @@ export const EXPENSE_SUBTYPES_OPERATIONAL = [
   'comision_bancaria',
   'ajuste_fiscal',
   'gasto_general',
+  'factura_autonomo',
+  'nomina_socio',
+  'seguro_medico',
+  'seguridad_social',
 ] as const;
 
 export const EXPENSE_SUBTYPES = [
@@ -93,6 +97,10 @@ export const EXPENSE_SUBTYPE_LABELS: Record<ExpenseSubtypeValue, string> = {
   comision_bancaria:    'Comisión bancaria',
   ajuste_fiscal:        'Ajuste fiscal',
   gasto_general:        'Gasto general',
+  factura_autonomo:     'Factura autónomo',
+  nomina_socio:         'Nómina socio',
+  seguro_medico:        'Seguro médico',
+  seguridad_social:     'Seguridad Social',
 };
 
 export const INCOME_STATUSES = ['cobrada', 'no_cobrado', 'pendiente', 'anulada'] as const;
