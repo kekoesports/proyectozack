@@ -38,22 +38,15 @@ type Props = {
   readonly pnl: PnLResult;
 };
 
-/**
- * Cabecera del P&L con 8 KPI cards (ingresos, gastos, beneficio, márgenes...) en EUR.
- *
- * @kind server
- * @feature admin/pnl
- * @route /admin/pl
- */
 export function PnLOverviewCards({ pnl }: Props): React.ReactElement {
   const margenTone = pnl.margenBruto >= 0 ? 'positive' : 'danger';
   return (
     <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-      <Card label="Ingresos" value={pnl.ingresos} tone="positive" />
-      <Card label="Gastos" value={pnl.gastos} tone="warning" />
-      <Card label="Pagos creadores" value={pnl.pagosCreadores} tone="warning" hint="Subset de gastos" />
-      <Card label="Comisión agencia" value={pnl.comisionAgencia} tone={pnl.comisionAgencia >= 0 ? 'positive' : 'danger'} hint="Sobre campañas" />
-      <Card label="Margen bruto" value={pnl.margenBruto} tone={margenTone} hint="Ingresos − gastos" />
+      <Card label="Ingresos devengados" value={pnl.ingresos} tone="positive" />
+      <Card label="Gastos totales" value={pnl.gastos} tone="warning" />
+      <Card label="Pagos a creadores" value={pnl.pagosCreadores} tone="warning" hint="Subset de gastos" />
+      <Card label="Margen campañas" value={pnl.comisionAgencia} tone={pnl.comisionAgencia >= 0 ? 'positive' : 'danger'} hint="Sobre campañas" />
+      <Card label="Resultado operativo" value={pnl.margenBruto} tone={margenTone} hint="Ingresos − gastos" />
       <Card label="Margen %" value={pnl.margenPct} tone={margenTone} hint="Sobre ingresos totales" formatAs="percent" />
       <Card label="Pendiente cobro" value={pnl.pendienteCobro} tone={pnl.pendienteCobro > 0 ? 'warning' : 'neutral'} />
       <Card label="Pendiente pago" value={pnl.pendientePago} tone={pnl.pendientePago > 0 ? 'warning' : 'neutral'} />

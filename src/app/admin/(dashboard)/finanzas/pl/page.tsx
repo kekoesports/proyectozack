@@ -11,7 +11,7 @@ import { PnLFilters } from '@/features/admin/pnl/components/PnLFilters';
 import type { InvoiceCompany } from '@/types';
 import type { PnLFilters as PnLFiltersType } from '@/lib/queries/pnl';
 
-export const metadata = { title: 'P&L Finanzas | Admin' };
+export const metadata = { title: 'Resultados | Finanzas Admin' };
 
 const EUR = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 });
 
@@ -56,7 +56,7 @@ export default async function FinanzasPnLPage({ searchParams }: PageProps): Prom
     <div className="space-y-6 pt-2">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="font-display text-4xl font-black uppercase text-sp-admin-text">P&amp;L</h1>
+          <h1 className="font-display text-4xl font-black uppercase text-sp-admin-text">Resultados</h1>
           <p className="text-sm text-sp-admin-muted">Resultado financiero — base devengado. Caja YTD vía invoice_payments.</p>
         </div>
       </div>
@@ -76,7 +76,7 @@ export default async function FinanzasPnLPage({ searchParams }: PageProps): Prom
       {/* Desglose por expenseGroup */}
       <div className="grid grid-cols-3 gap-3">
         <div className="rounded-xl border border-sp-admin-border bg-sp-admin-card p-4">
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-sp-admin-muted">Costes campaña</p>
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-sp-admin-muted">Costes directos</p>
           <p className="mt-2 text-xl font-bold text-red-400">{EUR.format(pnl.gastosCampanaDirect)}</p>
           <p className="text-[10px] text-sp-admin-muted mt-0.5">campaign_direct</p>
         </div>

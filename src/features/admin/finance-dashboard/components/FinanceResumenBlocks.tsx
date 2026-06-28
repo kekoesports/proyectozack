@@ -18,18 +18,20 @@ type KPICardProps = {
   readonly value: string;
   readonly sub?: string;
   readonly highlight?: 'positive' | 'negative' | 'neutral' | 'warning';
+  readonly size?: 'primary' | 'secondary';
 };
 
-function KPICard({ label, value, sub, highlight = 'neutral' }: KPICardProps): React.ReactElement {
+function KPICard({ label, value, sub, highlight = 'neutral', size = 'secondary' }: KPICardProps): React.ReactElement {
   const valueColor =
     highlight === 'positive' ? 'text-emerald-400'
     : highlight === 'negative' ? 'text-red-400'
     : highlight === 'warning' ? 'text-amber-400'
     : 'text-sp-admin-fg';
+  const valueSize = size === 'primary' ? 'text-2xl font-black' : 'text-lg font-bold';
   return (
     <div className="flex flex-col gap-1 rounded-xl border border-sp-admin-border bg-sp-admin-card p-4">
       <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-sp-admin-muted">{label}</span>
-      <span className={`text-xl font-bold ${valueColor}`}>{value}</span>
+      <span className={`${valueSize} ${valueColor} tabular-nums`}>{value}</span>
       {sub && <span className="text-[11px] text-sp-admin-muted">{sub}</span>}
     </div>
   );
@@ -42,74 +44,99 @@ type Props = {
 export function FinanceResumenBlocks({ kpis }: Props): React.ReactElement {
   return (
     <div className="space-y-5">
-      {/* Bloque A — Devengo */}
-      <section>
-        <div className="flex items-center gap-3 mb-3">
-          <h2 className="text-xs font-black uppercase tracking-widest text-sp-admin-muted">
-            Bloque A — Devengo (accrual)
-          </h2>
-          <span className="text-[10px] text-sp-admin-muted">emisión de facturas</span>
-        </div>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-          <KPICard
-            label="Facturado"
-            value={EUR.format(kpis.incomeTotal)}
-            sub="Ingresos no anulados"
-          />
-          <KPICard
-            label="Cobrado"
-            value={EUR.format(kpis.incomeSettled)}
-            sub="Estado cobrada o pagada"
-            highlight="positive"
-          />
-          <KPICard
-            label="Costes registrados"
-            value={EUR.format(kpis.gastosCampanaDirect)}
-            sub="Gastos de campaña directa"
-            highlight="negative"
-          />
-          <KPICard
-            label="Gastos registrados"
-            value={EUR.format(kpis.gastosOperativos)}
-            sub="Estructura y operaciones"
-            highlight="negative"
-          />
-          <KPICard
-            label="Margen bruto"
-            value={EUR.format(kpis.margenBruto)}
-            sub={`${pct(kpis.margenPct)} sobre cobrado`}
-            highlight={kpis.margenBruto >= 0 ? 'positive' : 'negative'}
-          />
-          <KPICard
-            label="Pendiente de cobro"
-            value={EUR.format(kpis.pendienteCobro)}
-            highlight={kpis.pendienteCobro > 0 ? 'warning' : 'neutral'}
-          />
-          <KPICard
-            label="Pendiente de pago"
-            value={EUR.format(kpis.pendientePago)}
-            highlight={kpis.pendientePago > 0 ? 'warning' : 'neutral'}
-          />
-          {kpis.gastosNoClasificados > 0 && (
-            <KPICard
-              label="Sin clasificar"
-              value={EUR.format(kpis.gastosNoClasificados)}
-              sub={`${kpis.unclassifiedCount} facturas`}
-              highlight="warning"
-            />
-          )}
-        </div>
-      </section>
+      {/* KPIs primarios */}
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <KPICard
+          label="Ingresos devengados"
+          value={EUR.format(kpis.incomeTotal)}
+          sub="Facturas no anuladas"
+          size="primary"
+        />
+        <KPICard
+          label="Costes directos"
+          value={EUR.format(kpis.gastosCampanaDirect)}
+          sub="Gastos de campaña"
+          highlight="negative"
+          size="primary"
+        />
+        <KPICard
+          label="Gastos operativos"
+          value={EUR.format(kpis.gastosOperativos)}
+          sub="Estructura y operaciones"
+          highlight="negative"
+          size="primary"
+        />
+        <KPICard
+          label="Resultado operativo"
+          value={EUR.format(kpis.margenBruto)}
+          sub={`${pct(kpis.margenPct)} sobre cobrado`}
+          highlight={kpis.margenBruto >= 0 ? 'positive' : 'negative'}
+          size="primary"
+        />
+      </div>
 
-      {/* Bloque B — Caja */}
-      <section>
-        <div className="flex items-center gap-3 mb-3">
-          <h2 className="text-xs font-black uppercase tracking-widest text-sp-admin-muted">
-            Bloque B — Caja (cash basis)
-          </h2>
-          <span className="text-[10px] text-sp-admin-muted">pagos verificados via conciliación bancaria</span>
+      {/* KPIs secundarios */}
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <KPICard
+          label="Margen %"
+          value={pct(kpis.margenPct)}
+          sub="Sobre ingresos cobrados"
+          highlight={kpis.margenPct >= 0 ? 'positive' : 'negative'}
+        />
+        <KPICard
+          label="Pendiente de cobro"
+          value={EUR.format(kpis.pendienteCobro)}
+          highlight={kpis.pendienteCobro > 0 ? 'warning' : 'neutral'}
+        />
+        <KPICard
+          label="Pendiente de pago"
+          value={EUR.format(kpis.pendientePago)}
+          highlight={kpis.pendientePago > 0 ? 'warning' : 'neutral'}
+        />
+        <KPICard
+          label="Sin clasificar"
+          value={kpis.gastosNoClasificados > 0 ? EUR.format(kpis.gastosNoClasificados) : '—'}
+          sub={kpis.gastosNoClasificados > 0 ? `${kpis.unclassifiedCount} facturas` : 'Todo clasificado'}
+          highlight={kpis.gastosNoClasificados > 0 ? 'warning' : 'neutral'}
+        />
+      </div>
+
+      {kpis.gastosNoClasificados > 0 && (
+        <div className="flex items-center gap-2 rounded-lg border border-amber-500/30 bg-amber-500/5 px-4 py-3">
+          <span className="text-amber-400 font-bold text-sm">{kpis.unclassifiedCount}</span>
+          <span className="text-sm text-amber-300">
+            {kpis.unclassifiedCount === 1
+              ? 'gasto sin grupo asignado'
+              : 'gastos sin grupo asignado'}
+          </span>
+          <Link
+            href="/admin/finanzas/gastos"
+            className="ml-auto text-xs text-amber-400 underline underline-offset-2 hover:text-amber-300"
+          >
+            Clasificar
+          </Link>
         </div>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+      )}
+
+      {/* Caja — datos verificados vía conciliación */}
+      <details className="group">
+        <summary className="flex cursor-pointer items-center gap-2 text-xs font-semibold uppercase tracking-widest text-sp-admin-muted select-none list-none">
+          <svg
+            className="h-3 w-3 rotate-0 transition-transform group-open:rotate-90"
+            fill="currentColor"
+            viewBox="0 0 6 10"
+          >
+            <path d="M1 1l4 4-4 4" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+          Caja (cash basis)
+          <span className="rounded bg-sp-admin-border px-1.5 py-0.5 text-[10px] font-bold text-sp-admin-muted normal-case tracking-normal">
+            beta
+          </span>
+          <span className="text-[10px] font-normal normal-case tracking-normal text-sp-admin-muted">
+            pagos verificados vía conciliación bancaria
+          </span>
+        </summary>
+        <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
           <KPICard
             label="Cobrado este mes"
             value={EUR.format(kpis.cobradoMes)}
@@ -134,24 +161,7 @@ export function FinanceResumenBlocks({ kpis }: Props): React.ReactElement {
             highlight={kpis.cobradoMes - kpis.pagadoMes >= 0 ? 'positive' : 'negative'}
           />
         </div>
-
-        {kpis.unclassifiedCount > 0 && (
-          <div className="mt-3 flex items-center gap-2 rounded-lg border border-amber-500/30 bg-amber-500/5 px-4 py-3">
-            <span className="text-amber-400 font-bold text-sm">{kpis.unclassifiedCount}</span>
-            <span className="text-sm text-amber-300">
-              {kpis.unclassifiedCount === 1
-                ? 'gasto sin grupo de gasto asignado'
-                : 'gastos sin grupo de gasto asignado'}
-            </span>
-            <Link
-              href="/admin/finanzas/costes"
-              className="ml-auto text-xs text-amber-400 underline underline-offset-2 hover:text-amber-300"
-            >
-              Clasificar
-            </Link>
-          </div>
-        )}
-      </section>
+      </details>
     </div>
   );
 }
