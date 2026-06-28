@@ -83,6 +83,8 @@ export async function createInvoiceForMonth(
     concept: template.concept,
     category: template.category ?? undefined,
     counterpartyName: template.counterpartyName ?? undefined,
+    expenseGroup: template.expenseGroup ?? undefined,
+    expenseSubtype: template.expenseSubtype ?? undefined,
     netAmount: net.toFixed(2),
     vatPct: template.vatPct,
     withholdingPct: template.withholdingPct,
