@@ -1,117 +1,72 @@
-# Handoff — Sprint Permisos: rol admin_limited_tasks + guards tareas
+# Handoff — Sprint Nóminas ELEVATEX: fix importador PDF
 
 **Sesión:** 2026-06-29  
-**Estado al cerrar:** ✅ COMPLETO. Código en producción (`0b33910`) y rol de Alfonso actualizado y verificado en DB.
+**Estado al cerrar:** ✅ COMPLETO. Importador PDF de nóminas ELEVATEX funcionando end-to-end en producción.
 
 ---
 
-## 1. Commit de esta sesión
+## 1. Commits de esta sesión
 
-| Commit | Descripción |
+| Commit / PR | Descripción |
 |---|---|
-| `0b33910` | feat(auth): add admin_limited_tasks role with task ownership guards (#113) |
+| `0b33910` / #113 | feat(auth): add admin_limited_tasks role with task ownership guards |
+| PR #114 | fix(finance): include pdfjs worker via literal import for Vercel NFT |
+| PR #115 | fix(storage): use private blob access to match store configuration |
 
 ---
 
-## 2. Qué se implementó
+## 2. Qué se arregló
 
-### Rol `admin_limited_tasks`
+### PR #114 — Worker pdfjs no encontrado en Vercel
 
-- **Permisos:** copia de admin en los 18 módulos CRM (noticias, sorteos, talentos, campañas, facturación, bancos, contratos, etc.)
-- **Restricción de tareas:** solo ve / edita / completa / elimina sus propias tareas (owner o assignee)
-- **Sin hardcode por email/nombre** — el rol es el único mecanismo
+**Síntoma:** 500 al pulsar "Analizar PDF". Error: `Cannot find module /var/task/node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs`
 
-### Archivos modificados
+**Causa raíz:** `outputFileTracingIncludes` en `next.config.ts` es un no-op sin `output: 'standalone'`. El path del worker calculado con `createRequire().resolve()` es una ruta en runtime — Vercel NFT no la traza y el archivo no se incluye en el deployment.
 
-| Archivo | Cambio |
-|---|---|
-| `src/lib/auth-guard.ts` | `admin_limited_tasks` añadido a `Role`, `ROLES`, `homeForRole → '/admin'` |
-| `src/lib/permissions.ts` | `canSeeAll`, `canDelete` + todos los módulos del PERMISSIONS map |
-| `src/lib/queries/crmTasks.ts` | Nueva query `getTasksByIds`; `isAssignableTaskUser` incluye el nuevo rol |
-| `src/app/admin/(dashboard)/tareas/actions.ts` | Guards de ownership en 5 actions; `resetRolledOver` callerId para todos los no-admin |
-| `src/app/admin/(dashboard)/equipo/page.tsx` | Filtro equipo: solo `admin` y `manager` ven todos los cards |
-| `src/__tests__/server/task-ownership.test.ts` | 12 tests nuevos (T1–T12, todos verdes) |
+**Fix (`src/lib/parsers/pdf.ts`):**  
+Reemplazar `createRequire().resolve()` por `await import('pdfjs-dist/legacy/build/pdf.worker.mjs')` con string literal. Doble efecto: NFT traza el import literal (archivo incluido en deployment) y el import establece `globalThis.pdfjsWorker.WorkerMessageHandler`, que pdfjs usa directamente en `_setupFakeWorkerGlobal` sin llegar al `import(workerSrc)` roto.
 
-### Guards implementados
+También añadido `src/types/pdfjs.d.ts` con `declare module 'pdfjs-dist/legacy/build/pdf.worker.mjs'` para TypeScript.
 
-- `updateTaskAction` — verifica propiedad para `role !== 'admin'`
-- `updateTaskPartialAction` — ídem
-- `completeTaskAction` — ídem
-- `deleteTaskAction` — ídem
-- `bulkDeleteTasksAction` — rechaza TODO el lote si cualquier tarea es ajena; también añade `assertCanDelete` (managers ya no pueden bulk delete)
-- `resetRolledOverAction` / `resetRolledOverBulkAction` — `callerId` para todos los no-admin (antes solo `staff`)
+### PR #115 — Blob store private-only
 
-### Garantías de seguridad confirmadas
+**Síntoma:** 500 al pulsar "Confirmar y crear 2 facturas". Error: `Cannot use public access on a private store`
 
-1. NO lista todas las tareas — `visibilityCondition` activo para `role !== 'admin'`
-2. NO acceso por URL directa a tarea ajena — no existe página de detalle individual
-3. NO edita tareas ajenas — guards en `updateTaskAction` y `updateTaskPartialAction`
-4. NO completa tareas ajenas — guard en `completeTaskAction`
-5. NO borra tareas ajenas — guards en `deleteTaskAction` y `bulkDeleteTasksAction`
-6. SÍ borra sus propias tareas
-7. SÍ tiene acceso admin en todos los demás módulos
+**Causa raíz:** `uploadFile()` en `src/lib/storage.ts` usaba `access: 'public'` pero el Blob store en Vercel está configurado como private-only. Afectaba también uploads de campañas y talentos (GEO stats).
+
+**Fix (`src/lib/storage.ts`):** `access: 'public'` → `access: 'private'`. `invoices-actions.ts` ya usaba `access: 'private'` correctamente — alineado el resto.
 
 ---
 
-## 3. ✅ Cambio de rol de Alfonso — APLICADO Y VERIFICADO
+## 3. Estado del rol de Alfonso — sin cambios
 
-Ejecutado el 2026-06-29. Script `set-alfonso-role.ts` aplicó el UPDATE y leyó de vuelta el rol para confirmar.
-
-| Campo | Valor |
-|---|---|
-| Email | `arias@socialpro.es` |
-| Nombre | Alfonso Arias |
-| Rol anterior | `manager` |
-| Rol actual | `admin_limited_tasks` |
-| Filas afectadas | 1 |
-| `check-alfonso-role.ts` | ✅ OK |
-
-**Ningún otro usuario fue modificado.** Roles del resto del equipo intactos:
-- `admin@socialpro.es` → `admin`
-- `rsnoverwatch@gmail.com` → `staff`
-- `pcamacho@socialpro.es` → `manager`
-
-**Permisos resultantes de Alfonso:**
-- Acceso admin en todos los módulos CRM fuera de tareas ✅
-- Tareas: solo ve / edita / completa / elimina las propias (owner o assignee) ✅
+El rol de Alfonso (`arias@socialpro.es`) sigue siendo `admin_limited_tasks` desde la sesión anterior. No se tocó.
 
 ---
 
-## 4. Nota menor — UI plantillas
-
-`tareas/plantillas/page.tsx` tiene un check de UI hardcodeado:
-```typescript
-canDelete={canDelete(session.user.role === 'admin' ? 'admin' : 'manager')}
-```
-Resultado: `admin_limited_tasks` no ve el botón eliminar en plantillas (pero la server action sí aceptaría la petición). Inconsistencia cosmética de UI. Corregible en fix aparte si se desea.
-
----
-
-## 5. Norma de proceso (vigente)
+## 4. Norma de proceso (vigente)
 
 Push directo a master **prohibido** para cambios que:
 - Borren datos / modifiquen producción / toquen auth o migraciones
 - Afecten finanzas, invoices, conciliación, permisos o deploy
 
-En esos casos: **branch → PR → CI verde → informe pre-merge → confirmación antes de mergear**.
+En esos casos: **branch → PR → CI verde → confirmación antes de mergear**.
+
+---
+
+## 5. Deuda técnica identificada
+
+**Display de archivos privados (campañas, talentos, GEO stats):**  
+Con `access: 'private'` los blobs no son accesibles vía URL directa. El patrón correcto es un proxy server-side (ya existe para contratos en `/api/admin/contratos/[id]/pdf`). Los módulos de campañas y talentos almacenan la URL en DB pero no tienen proxy aún — si algún componente muestra un link directo al blob, ese link estará roto.  
+Acción: auditar si hay `<a href={file.url}>` o `<img src={file.url}>` en los componentes de campañas/talentos y añadir proxy si es necesario.
 
 ---
 
 ## 6. Scripts de diagnóstico (no commiteados, desechables)
 
 En `/scripts/`:
-- `check-alfonso-role.ts`
+- `check-alfonso-role.ts`, `set-alfonso-role.ts`
 - `qa-tracker-42.ts`
 - `debug-keydrop-sheet.ts`, `debug-tracker-hyperlinks.ts`, `fix-tracker-count.ts`, `cleanup-tracker-duplicates.ts`
 
 Pueden eliminarse cuando sea conveniente.
-
----
-
-## 7. Próximos pasos
-
-1. **QA manual con la cuenta de Alfonso** (`arias@socialpro.es`):
-   - Iniciar sesión y confirmar acceso completo a campañas, talentos, finanzas, etc.
-   - En `/admin/tareas`: verificar que solo ve sus propias tareas
-   - Intentar editar/completar/borrar una tarea de otro usuario → debe recibir error
-   - Confirmar que puede gestionar sus propias tareas sin restricciones
