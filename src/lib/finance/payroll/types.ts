@@ -1,3 +1,8 @@
+export type FilenameWarning = {
+  readonly filenameMonth: string;   // e.g. "febrero 2026"
+  readonly detectedPeriod: string;  // e.g. "enero 2026"
+};
+
 export type ParsedPayrollPage = {
   readonly page: number;
   readonly employeeName: string | null;
