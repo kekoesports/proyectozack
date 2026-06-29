@@ -10,16 +10,16 @@ type Tab = {
 };
 
 const TABS: readonly Tab[] = [
-  { href: '/admin/finanzas/resumen', label: 'Resumen' },
-  { href: '/admin/finanzas/pl', label: 'Resultados' },
+  { href: '/admin/finanzas/resumen', label: 'Control mensual' },
+  { href: '/admin/finanzas/pl', label: 'Histórico mensual' },
   {
     href: '/admin/finanzas/gastos',
-    label: 'Gastos',
+    label: 'Gastos y clasificación',
     extraPaths: ['/admin/finanzas/costes', '/admin/finanzas/gastos-operativos'],
   },
   {
     href: '/admin/finanzas/herramientas',
-    label: 'Herramientas',
+    label: 'Importar documentos',
     extraPaths: ['/admin/finanzas/setup-2026', '/admin/finanzas/nominas'],
   },
 ];

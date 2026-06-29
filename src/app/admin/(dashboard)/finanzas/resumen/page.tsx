@@ -1,23 +1,38 @@
 import { requirePermission } from '@/lib/permissions';
-import { getFinanceResumenKPIs } from '@/lib/queries/financeDashboard/financeResumen';
-import { FinanceResumenBlocks } from '@/features/admin/finance-dashboard/components/FinanceResumenBlocks';
+import {
+  getMonthlyFinanceFlow,
+  getFinanceStockKPIs,
+  getMonthlyExpenseBreakdown,
+  getMonthlyDocs,
+  parseYearMonth,
+  monthRange,
+} from '@/lib/queries/financeDashboard/financeResumen';
+import { FinanceMonthlyControl } from '@/features/admin/finance-dashboard/components/FinanceMonthlyControl';
 
-export const metadata = { title: 'Resumen financiero | Admin' };
+export const metadata = { title: 'Control mensual | Finanzas' };
 
-export default async function FinanzasResumenPage(): Promise<React.ReactElement> {
+type PageProps = {
+  readonly searchParams?: Promise<Record<string, string | string[] | undefined>>;
+};
+
+export default async function FinanzasResumenPage({ searchParams }: PageProps): Promise<React.ReactElement> {
   await requirePermission('facturacion', 'read');
 
-  const kpis = await getFinanceResumenKPIs();
+  const sp = (await searchParams) ?? {};
+  const rawMes = Array.isArray(sp.mes) ? sp.mes[0] : sp.mes;
+  const mes = parseYearMonth(rawMes);
+  const { from, to } = monthRange(mes);
+
+  const [flow, stock, breakdown, docs] = await Promise.all([
+    getMonthlyFinanceFlow(from, to),
+    getFinanceStockKPIs(),
+    getMonthlyExpenseBreakdown(from, to),
+    getMonthlyDocs(from, to),
+  ]);
 
   return (
     <div className="space-y-6 pt-2">
-      <div>
-        <h1 className="text-lg font-bold text-sp-admin-fg">Resumen financiero</h1>
-        <p className="text-xs text-sp-admin-muted mt-0.5">
-          Bloque A (devengo) actualiza con cada factura. Bloque B (caja) solo refleja cobros/pagos conciliados via banco.
-        </p>
-      </div>
-      <FinanceResumenBlocks kpis={kpis} />
+      <FinanceMonthlyControl mes={mes} flow={flow} stock={stock} breakdown={breakdown} docs={docs} />
     </div>
   );
 }
