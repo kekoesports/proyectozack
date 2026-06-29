@@ -11,9 +11,13 @@ const MONTH_MAP: Record<string, number> = {
   JUL: 7, AGO: 8, SEP: 9, OCT: 10, NOV: 11, DIC: 12,
 };
 
-// Matches "01 OCT 25 a 31 OCT 25" style periods (with or without accents)
+function normStr(s: string): string {
+  return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\s+/g, ' ').trim();
+}
+
+// Matches "01 OCT 25 a 31 OCT 25" or "01-OCT-25 AL 31-OCT-25" style periods
 const PERIOD_RX =
-  /(\d{1,2})\s+([A-ZÑ]{3,4})\s+(\d{2,4})\s+[Aa]\s+(\d{1,2})\s+([A-ZÑ]{3,4})\s+(\d{2,4})/;
+  /(\d{1,2})[\s\-/]+([A-ZÑ]{3,4})[\s\-/]+(\d{2,4})\s+(?:[Aa][Ll]?)\s+(\d{1,2})[\s\-/]+([A-ZÑ]{3,4})[\s\-/]+(\d{2,4})/;
 
 // Matches Spanish monetary amounts like 1.667,51 or 350,00
 const AMOUNT_RX = /(?:\d{1,3}(?:\.\d{3})+|\d+),\d{1,2}/;
@@ -76,24 +80,50 @@ export function parsePayrollPage(
   const warnings: string[] = [];
 
   // COSTE EMPRESA
-  const costoLabel = findLabelItem(pageItems, [
-    'coste empresa', 'coste de empresa', 'costo empresa',
-  ]);
+  const COSTE_LABELS = ['coste empresa', 'coste de empresa', 'costo empresa', 'coste total empresa'];
+  const costoLabel = findLabelItem(pageItems, COSTE_LABELS);
   let costoEmpresa: number | null = null;
   if (costoLabel) {
     const hit = findNearValue(pageItems, costoLabel, amountPredicate);
     if (hit) costoEmpresa = parseEsNumber(hit.value);
   }
+  // Fallback: label may be split across multiple PDF items — search grouped line text
+  if (costoEmpresa == null) {
+    const lines = groupIntoLines(pageItems);
+    for (const line of lines) {
+      const normLine = normStr(line.text);
+      if (COSTE_LABELS.some((l) => normLine.includes(l))) {
+        // Use the rightmost item on the label line as anchor
+        const anchor = [...line.items].sort((a, b) => b.x - a.x)[0];
+        if (anchor) {
+          const hit = findNearValue(pageItems, anchor, amountPredicate);
+          if (hit) { costoEmpresa = parseEsNumber(hit.value); break; }
+        }
+      }
+    }
+  }
   if (costoEmpresa == null) warnings.push('COSTE EMPRESA no encontrado');
 
   // LIQUIDO A PERCIBIR
-  const liquidoLabel = findLabelItem(pageItems, [
-    'liquido a percibir', 'líquido a percibir', 'liquido percibir',
-  ]);
+  const LIQUIDO_LABELS = ['liquido a percibir', 'líquido a percibir', 'liquido percibir', 'liquido'];
+  const liquidoLabel = findLabelItem(pageItems, LIQUIDO_LABELS);
   let liquidoPercibir: number | null = null;
   if (liquidoLabel) {
     const hit = findNearValue(pageItems, liquidoLabel, amountPredicate);
     if (hit) liquidoPercibir = parseEsNumber(hit.value);
+  }
+  if (liquidoPercibir == null) {
+    const lines = groupIntoLines(pageItems);
+    for (const line of lines) {
+      const normLine = normStr(line.text);
+      if (LIQUIDO_LABELS.some((l) => normLine.includes(l))) {
+        const anchor = [...line.items].sort((a, b) => b.x - a.x)[0];
+        if (anchor) {
+          const hit = findNearValue(pageItems, anchor, amountPredicate);
+          if (hit) { liquidoPercibir = parseEsNumber(hit.value); break; }
+        }
+      }
+    }
   }
 
   // T.DEVENGADO
@@ -133,7 +163,7 @@ export function parsePayrollPage(
     if (hit) irpfPct = parseEsNumber(hit.value.replace(',', '.'));
   }
 
-  // PERIODO — try single items first, then combined line text
+  // PERIODO — tries in order: label→near, each item, grouped lines, PERIODO label in lines
   let yearMonth: string | null = null;
   let issueDate: string | null = null;
 
@@ -150,7 +180,7 @@ export function parsePayrollPage(
     }
   }
 
-  // Fallback: scan each item
+  // Fallback: scan each item individually
   if (!yearMonth) {
     for (const item of pageItems) {
       const p = parsePeriod(item.str);
@@ -158,12 +188,41 @@ export function parsePayrollPage(
     }
   }
 
-  // Fallback: scan line texts (handles period spread across items)
+  // Fallback: scan grouped line texts (catches periods split across PDF items)
   if (!yearMonth) {
     const lines = groupIntoLines(pageItems);
     for (const line of lines) {
       const p = parsePeriod(line.text);
       if (p) { yearMonth = p.yearMonth; issueDate = p.issueDate; break; }
+    }
+  }
+
+  // Fallback: look for "PERIODO" label in lines (split label), then scan neighbor items
+  if (!yearMonth) {
+    const lines = groupIntoLines(pageItems);
+    for (const line of lines) {
+      if (normStr(line.text).startsWith('periodo')) {
+        // The period value may be on the same line or the next item after the label
+        const p = parsePeriod(line.text);
+        if (p) { yearMonth = p.yearMonth; issueDate = p.issueDate; break; }
+        // Try items after the last item of this line
+        const anchor = [...line.items].sort((a, b) => b.x - a.x)[0];
+        if (anchor) {
+          const nearItems = pageItems
+            .filter((i) => i !== anchor && i.y >= anchor.y - 2)
+            .sort((a, b) => {
+              const dx = a.x - (anchor.x + anchor.width);
+              const dy = a.y - anchor.y;
+              return Math.hypot(Math.max(dx, 0), Math.abs(dy) * 1.5) -
+                     Math.hypot(Math.max(b.x - (anchor.x + anchor.width), 0), Math.abs(b.y - anchor.y) * 1.5);
+            });
+          for (const ni of nearItems.slice(0, 5)) {
+            const p2 = parsePeriod(ni.str);
+            if (p2) { yearMonth = p2.yearMonth; issueDate = p2.issueDate; break; }
+          }
+        }
+        if (yearMonth) break;
+      }
     }
   }
 
