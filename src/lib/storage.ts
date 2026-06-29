@@ -16,7 +16,7 @@ export async function uploadFile(input: {
   contentType: string;
 }): Promise<UploadResult> {
   const blob = await put(input.name, input.data, {
-    access: 'public',
+    access: 'private',
     contentType: input.contentType,
   });
   const size =
