@@ -279,3 +279,39 @@ describe('parsePayrollPdfBuffer — PDF con texto (fixture enero)', () => {
     expect(result.filenameWarning).toBeNull();
   });
 });
+
+// Stray items that pdfjs extracts from vectorized PDFs (page numbers, watermarks)
+// but that don't contain any payroll labels — simulates ELEVATEX MARZO 2026.pdf
+const STRAY_ITEMS: readonly import('@/lib/parsers/pdf').PdfTextItem[] = [
+  { str: '1', page: 1, x: 500, y: 20, width: 10, height: 10, fontSize: 8 },
+  { str: '2', page: 2, x: 500, y: 20, width: 10, height: 10, fontSize: 8 },
+];
+
+describe('parsePayrollPdfBuffer — PDF vectorial con items dispersos (allRowsUseless)', () => {
+  it('devuelve itemCount > 0 pero todas las filas con yearMonth=desconocido y netAmount=0.00', async () => {
+    mockExtractPdfText.mockResolvedValueOnce({
+      items: [...STRAY_ITEMS],
+      pageCount: 2,
+      text: '',
+      pageSizes: [],
+    });
+    const result = await parsePayrollPdfBuffer(new ArrayBuffer(0), 'NOMINA ELEVATEX MARZO 2026.pdf');
+    expect(result.itemCount).toBeGreaterThan(0);
+    expect(result.rows.length).toBeGreaterThan(0);
+    expect(result.rows.every((r) => r.yearMonth === 'desconocido')).toBe(true);
+    expect(result.rows.every((r) => r.netAmount === '0.00')).toBe(true);
+    expect(result.rows.every((r) => !r.include)).toBe(true);
+  });
+
+  it('filenameWarning es null cuando no se puede detectar periodo válido', async () => {
+    mockExtractPdfText.mockResolvedValueOnce({
+      items: [...STRAY_ITEMS],
+      pageCount: 2,
+      text: '',
+      pageSizes: [],
+    });
+    const result = await parsePayrollPdfBuffer(new ArrayBuffer(0), 'NOMINA ELEVATEX MARZO 2026.pdf');
+    // No valid period detected → filenameWarning should be null (no period to compare against)
+    expect(result.filenameWarning).toBeNull();
+  });
+});
