@@ -3,11 +3,110 @@
 import React, { useRef, useState, useTransition } from 'react';
 import Link from 'next/link';
 import { parsePayrollPdfAction, applyPayrollImportAction } from '@/app/admin/(dashboard)/finanzas/nominas/importar/actions';
-import type { PayrollImportRow, PayrollApplyResult } from '@/lib/finance/payroll/types';
+import type { PayrollImportRow, PayrollApplyResult, FilenameWarning } from '@/lib/finance/payroll/types';
+
+// ── Pure helpers (mirrors server-only parser, safe in client) ─────────────────
+
+function slugify(name: string): string {
+  return name
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9\s]/g, '')
+    .trim()
+    .replace(/\s+/g, '-');
+}
+
+function makeTxId(slug: string, yearMonth: string): string {
+  return `payroll:${slug}:${yearMonth}`;
+}
+
+// ── Manual entry row (mutable, pre-conversion) ────────────────────────────────
+
+type ManualRow = {
+  id: number;
+  counterpartyName: string;
+  yearMonth: string;
+  liquidoPercibir: string;
+  costoEmpresa: string;
+  totalDevengado: string;
+  totalDeducciones: string;
+  irpfPct: string;
+  notes: string;
+};
+
+function manualRowToPayrollRow(row: ManualRow): PayrollImportRow {
+  const name = row.counterpartyName.trim();
+  const slug = name ? slugify(name) : `trabajador-${row.id}`;
+  const ym = row.yearMonth.trim() || 'desconocido';
+  const txId = makeTxId(slug, ym);
+  const costoStr = row.costoEmpresa.trim() || '0.00';
+  const concept = name ? `Nómina ${name} ${ym}` : `Nómina pág. ${row.id} ${ym}`;
+  const isoDate = ym !== 'desconocido' ? `${ym}-01` : new Date().toISOString().slice(0, 10);
+
+  const noteParts: string[] = [];
+  if (ym !== 'desconocido') noteParts.push(`Período: ${ym}`);
+  if (costoStr !== '0.00') noteParts.push(`Coste empresa: ${costoStr}`);
+  if (row.liquidoPercibir) noteParts.push(`Líquido: ${row.liquidoPercibir}`);
+  if (row.totalDevengado) noteParts.push(`T.Devengado: ${row.totalDevengado}`);
+  if (row.totalDeducciones) noteParts.push(`T.Deducciones: ${row.totalDeducciones}`);
+  if (row.irpfPct) noteParts.push(`IRPF: ${row.irpfPct}%`);
+  if (row.notes) noteParts.push(row.notes);
+  noteParts.push('Entrada manual');
+
+  const missingRequired = !name || costoStr === '0.00' || ym === 'desconocido';
+
+  // Handles Spanish format (1.696,55) and plain decimals (1363.00 or 1363,00).
+  const normalizeAmount = (s: string): string => {
+    const trimmed = s.trim();
+    const cleaned = trimmed.includes(',')
+      ? trimmed.replace(/\./g, '').replace(',', '.') // remove thousands dots, swap decimal comma
+      : trimmed;
+    const n = parseFloat(cleaned);
+    return isNaN(n) ? '0.00' : n.toFixed(2);
+  };
+
+  return {
+    page: row.id,
+    include: !missingRequired,
+    slug,
+    yearMonth: ym,
+    txId,
+    counterpartyName: name,
+    concept,
+    issueDate: isoDate,
+    netAmount: normalizeAmount(costoStr),
+    totalAmount: normalizeAmount(costoStr),
+    vatPct: '0.00',
+    withholdingPct: '0.00',
+    expenseGroup: 'operational',
+    expenseSubtype: 'nomina_socio',
+    status: 'pagada',
+    notes: noteParts.join(' | '),
+    warning: missingRequired ? 'Faltan campos obligatorios (trabajador, mes/año, coste empresa)' : null,
+  };
+}
+
+function emptyManualRow(id: number, suggestedYearMonth?: string): ManualRow {
+  return {
+    id,
+    counterpartyName: '',
+    yearMonth: suggestedYearMonth ?? '',
+    liquidoPercibir: '',
+    costoEmpresa: '',
+    totalDevengado: '',
+    totalDeducciones: '',
+    irpfPct: '',
+    notes: '',
+  };
+}
+
+// ── Step discriminator ────────────────────────────────────────────────────────
 
 type Step =
   | { id: 0 }
-  | { id: 1; rows: PayrollImportRow[]; file: File; fileName: string }
+  | { id: 1; mode: 'parsed'; rows: PayrollImportRow[]; file: File; fileName: string; filenameWarning?: FilenameWarning }
+  | { id: 1; mode: 'manual'; file: File; fileName: string; pageCount: number; suggestedYearMonth?: string }
   | { id: 2; rows: PayrollImportRow[]; file: File }
   | { id: 3; result: PayrollApplyResult };
 
@@ -32,11 +131,15 @@ export function PayrollImportWizard({ existingTxIds }: Props): React.ReactElemen
     startTransition(async () => {
       const res = await parsePayrollPdfAction(fd);
       if (!res.ok) { setError(res.error); return; }
-      setStep({ id: 1, rows: res.rows, file: file as File, fileName: res.fileName });
+      if (res.mode === 'manual') {
+        setStep({ id: 1, mode: 'manual', file: file as File, fileName: res.fileName, pageCount: res.pageCount, ...(res.suggestedYearMonth !== undefined ? { suggestedYearMonth: res.suggestedYearMonth } : {}) });
+      } else {
+        setStep({ id: 1, mode: 'parsed', rows: res.rows, file: file as File, fileName: res.fileName, ...(res.filenameWarning ? { filenameWarning: res.filenameWarning } : {}) });
+      }
     });
   }
 
-  // ── Step 1 → 2: confirm preview ───────────────────────────────────────────
+  // ── Step 1 → 2 ────────────────────────────────────────────────────────────
   function goToConfirm(rows: PayrollImportRow[], file: File): void {
     setStep({ id: 2, rows, file });
   }
@@ -55,9 +158,37 @@ export function PayrollImportWizard({ existingTxIds }: Props): React.ReactElemen
   }
 
   if (step.id === 0) return <StepUpload onSubmit={handleUpload} error={error} isPending={isPending} fileRef={fileRef} />;
-  if (step.id === 1) return <StepPreview rows={step.rows} file={step.file} fileName={step.fileName} existingTxIds={existingTxIds} onBack={() => setStep({ id: 0 })} onConfirm={goToConfirm} isPending={isPending} />;
-  if (step.id === 2) return <StepConfirm rows={step.rows} file={step.file} existingTxIds={existingTxIds} error={error} onBack={(rows) => setStep({ id: 1, rows, file: step.file, fileName: step.file.name })} onApply={handleApply} isPending={isPending} />;
-  return <StepDone result={step.result} onReset={() => setStep({ id: 0 })} />;
+  if (step.id === 1 && step.mode === 'parsed') {
+    return (
+      <StepPreview
+        rows={step.rows}
+        file={step.file}
+        fileName={step.fileName}
+        existingTxIds={existingTxIds}
+        onBack={() => setStep({ id: 0 })}
+        onConfirm={goToConfirm}
+        isPending={isPending}
+        {...(step.filenameWarning ? { filenameWarning: step.filenameWarning } : {})}
+      />
+    );
+  }
+  if (step.id === 1 && step.mode === 'manual') {
+    return (
+      <StepManualEntry
+        file={step.file}
+        fileName={step.fileName}
+        pageCount={step.pageCount}
+        existingTxIds={existingTxIds}
+        onBack={() => setStep({ id: 0 })}
+        onConfirm={goToConfirm}
+        isPending={isPending}
+        {...(step.suggestedYearMonth !== undefined ? { suggestedYearMonth: step.suggestedYearMonth } : {})}
+      />
+    );
+  }
+  if (step.id === 2) return <StepConfirm rows={step.rows} file={step.file} existingTxIds={existingTxIds} error={error} onBack={(rows) => setStep({ id: 1, mode: 'parsed', rows, file: step.file, fileName: step.file.name })} onApply={handleApply} isPending={isPending} />;
+  if (step.id === 3) return <StepDone result={step.result} onReset={() => setStep({ id: 0 })} />;
+  return <StepUpload onSubmit={handleUpload} error={error} isPending={isPending} fileRef={fileRef} />;
 }
 
 // ── Step 0: Upload ────────────────────────────────────────────────────────────
@@ -98,19 +229,20 @@ function StepUpload({ onSubmit, error, isPending, fileRef }: UploadProps): React
   );
 }
 
-// ── Step 1: Preview ───────────────────────────────────────────────────────────
+// ── Step 1: Preview (parsed mode) ────────────────────────────────────────────
 
 type PreviewProps = {
   rows: PayrollImportRow[];
   file: File;
   fileName: string;
+  filenameWarning?: FilenameWarning;
   existingTxIds: string[];
   onBack: () => void;
   onConfirm: (rows: PayrollImportRow[], file: File) => void;
   isPending: boolean;
 };
 
-function StepPreview({ rows, file, fileName, existingTxIds, onBack, onConfirm, isPending }: PreviewProps): React.ReactElement {
+function StepPreview({ rows, file, fileName, filenameWarning, existingTxIds, onBack, onConfirm, isPending }: PreviewProps): React.ReactElement {
   const [editRows, setEditRows] = useState<PayrollImportRow[]>(() => rows);
 
   function toggleInclude(page: number): void {
@@ -134,6 +266,14 @@ function StepPreview({ rows, file, fileName, existingTxIds, onBack, onConfirm, i
         <span>·</span>
         <span>{rows.length} página{rows.length !== 1 ? 's' : ''} detectada{rows.length !== 1 ? 's' : ''}</span>
       </div>
+
+      {filenameWarning && (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-800">
+          <strong>Aviso:</strong> El archivo parece llamarse <strong>{filenameWarning.filenameMonth}</strong>,
+          pero el periodo detectado en el PDF es <strong>{filenameWarning.detectedPeriod}</strong>.
+          Se importará como <strong>{filenameWarning.detectedPeriod}</strong> si confirmas.
+        </div>
+      )}
 
       <div className="overflow-x-auto rounded border border-sp-border">
         <table className="w-full text-xs">
@@ -231,6 +371,192 @@ function StepPreview({ rows, file, fileName, existingTxIds, onBack, onConfirm, i
           type="button"
           disabled={isPending || editRows.every((r) => !r.include || existingSet.has(r.txId))}
           onClick={() => onConfirm(editRows, file)}
+          className="px-4 py-2 rounded bg-sp-orange text-white text-sm font-medium disabled:opacity-50"
+        >
+          Continuar a revisión →
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ── Step 1: Manual Entry (when PDF has no extractable text) ───────────────────
+
+type ManualEntryProps = {
+  file: File;
+  fileName: string;
+  pageCount: number;
+  suggestedYearMonth?: string;
+  existingTxIds: string[];
+  onBack: () => void;
+  onConfirm: (rows: PayrollImportRow[], file: File) => void;
+  isPending: boolean;
+};
+
+function StepManualEntry({ file, fileName, pageCount, suggestedYearMonth, existingTxIds, onBack, onConfirm, isPending }: ManualEntryProps): React.ReactElement {
+  const [manualRows, setManualRows] = useState<ManualRow[]>(() => [emptyManualRow(1, suggestedYearMonth)]);
+
+  const existingSet = new Set(existingTxIds);
+
+  function addRow(): void {
+    setManualRows((prev) => [...prev, emptyManualRow(prev.length + 1, suggestedYearMonth)]);
+  }
+
+  function removeRow(id: number): void {
+    setManualRows((prev) => prev.filter((r) => r.id !== id));
+  }
+
+  function updateManualField(id: number, field: keyof ManualRow, value: string): void {
+    setManualRows((prev) => prev.map((r) => (r.id === id ? { ...r, [field]: value } : r)));
+  }
+
+  function handleConfirm(): void {
+    const rows = manualRows.map((r) => manualRowToPayrollRow(r));
+    onConfirm(rows, file);
+  }
+
+  const payrollRows = manualRows.map((r) => manualRowToPayrollRow(r));
+  const canContinue = payrollRows.some((r) => r.include && !existingSet.has(r.txId));
+
+  return (
+    <div className="space-y-4 max-w-2xl">
+      <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-800 space-y-1">
+        <p className="font-semibold">No se pudo extraer texto del PDF</p>
+        <p>
+          El archivo <strong>{fileName}</strong>{pageCount > 0 ? ` (${pageCount} página${pageCount !== 1 ? 's' : ''})` : ''} parece estar
+          exportado sin texto seleccionable (PDF vectorizado o escaneado).
+        </p>
+        <p>Puedes introducir los importes manualmente o pedir a ELEVATEX una versión exportada directamente desde el software de nóminas.</p>
+      </div>
+
+      <div className="space-y-3">
+        {manualRows.map((row, idx) => {
+          const payrollRow = payrollRows[idx];
+          const alreadyExists = payrollRow ? existingSet.has(payrollRow.txId) : false;
+          return (
+            <div key={row.id} className="rounded-lg border border-sp-border bg-sp-admin-surface p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-semibold text-sp-admin-fg">Trabajador {idx + 1}</p>
+                {manualRows.length > 1 && (
+                  <button type="button" onClick={() => removeRow(row.id)} className="text-xs text-red-500 hover:text-red-700">
+                    Eliminar
+                  </button>
+                )}
+              </div>
+
+              {alreadyExists && (
+                <p className="text-[10px] text-yellow-700 bg-yellow-50 rounded px-2 py-1">
+                  ⚠ Ya existe una nómina importada para este trabajador y período ({payrollRow?.txId})
+                </p>
+              )}
+
+              <div className="grid grid-cols-2 gap-3 text-xs">
+                <label className="space-y-1 col-span-2">
+                  <span className="text-sp-admin-muted">Trabajador *</span>
+                  <input
+                    type="text"
+                    value={row.counterpartyName}
+                    onChange={(e) => updateManualField(row.id, 'counterpartyName', e.target.value)}
+                    placeholder="Nombre completo"
+                    className="w-full rounded border border-sp-border bg-transparent px-2 py-1 focus:outline-none focus:border-sp-orange"
+                  />
+                </label>
+                <label className="space-y-1">
+                  <span className="text-sp-admin-muted">Mes/Año * (YYYY-MM)</span>
+                  <input
+                    type="text"
+                    value={row.yearMonth}
+                    onChange={(e) => updateManualField(row.id, 'yearMonth', e.target.value)}
+                    placeholder="2026-01"
+                    className="w-full rounded border border-sp-border bg-transparent px-2 py-1 focus:outline-none focus:border-sp-orange font-mono"
+                  />
+                </label>
+                <label className="space-y-1">
+                  <span className="text-sp-admin-muted font-semibold text-sp-orange">Coste empresa * (EBITDA)</span>
+                  <input
+                    type="text"
+                    value={row.costoEmpresa}
+                    onChange={(e) => updateManualField(row.id, 'costoEmpresa', e.target.value)}
+                    placeholder="1.667,51"
+                    className="w-full rounded border border-sp-border bg-transparent px-2 py-1 focus:outline-none focus:border-sp-orange font-mono"
+                  />
+                </label>
+                <label className="space-y-1">
+                  <span className="text-sp-admin-muted">Líquido a percibir</span>
+                  <input
+                    type="text"
+                    value={row.liquidoPercibir}
+                    onChange={(e) => updateManualField(row.id, 'liquidoPercibir', e.target.value)}
+                    placeholder="1.000,00"
+                    className="w-full rounded border border-sp-border bg-transparent px-2 py-1 focus:outline-none focus:border-sp-orange font-mono"
+                  />
+                </label>
+                <label className="space-y-1">
+                  <span className="text-sp-admin-muted">Total devengado</span>
+                  <input
+                    type="text"
+                    value={row.totalDevengado}
+                    onChange={(e) => updateManualField(row.id, 'totalDevengado', e.target.value)}
+                    placeholder="1.500,00"
+                    className="w-full rounded border border-sp-border bg-transparent px-2 py-1 focus:outline-none focus:border-sp-orange font-mono"
+                  />
+                </label>
+                <label className="space-y-1">
+                  <span className="text-sp-admin-muted">Total a deducir</span>
+                  <input
+                    type="text"
+                    value={row.totalDeducciones}
+                    onChange={(e) => updateManualField(row.id, 'totalDeducciones', e.target.value)}
+                    placeholder="350,00"
+                    className="w-full rounded border border-sp-border bg-transparent px-2 py-1 focus:outline-none focus:border-sp-orange font-mono"
+                  />
+                </label>
+                <label className="space-y-1">
+                  <span className="text-sp-admin-muted">IRPF %</span>
+                  <input
+                    type="text"
+                    value={row.irpfPct}
+                    onChange={(e) => updateManualField(row.id, 'irpfPct', e.target.value)}
+                    placeholder="15"
+                    className="w-full rounded border border-sp-border bg-transparent px-2 py-1 focus:outline-none focus:border-sp-orange font-mono"
+                  />
+                </label>
+                <label className="space-y-1 col-span-2">
+                  <span className="text-sp-admin-muted">Notas adicionales</span>
+                  <input
+                    type="text"
+                    value={row.notes}
+                    onChange={(e) => updateManualField(row.id, 'notes', e.target.value)}
+                    placeholder="Observaciones opcionales"
+                    className="w-full rounded border border-sp-border bg-transparent px-2 py-1 focus:outline-none focus:border-sp-orange"
+                  />
+                </label>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <button
+        type="button"
+        onClick={addRow}
+        className="text-xs text-sp-orange hover:underline"
+      >
+        + Añadir trabajador
+      </button>
+
+      <div className="flex gap-3">
+        <button
+          type="button"
+          onClick={onBack}
+          className="px-4 py-2 rounded border border-sp-border text-sm text-sp-admin-muted hover:text-sp-admin-fg"
+        >
+          Volver
+        </button>
+        <button
+          type="button"
+          disabled={isPending || !canContinue}
+          onClick={handleConfirm}
           className="px-4 py-2 rounded bg-sp-orange text-white text-sm font-medium disabled:opacity-50"
         >
           Continuar a revisión →

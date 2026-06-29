@@ -1,12 +1,14 @@
 'use server';
 
 import { requirePermission } from '@/lib/permissions';
-import { parsePayrollPdfBuffer } from '@/lib/parsers/payrollPdf';
+import { parsePayrollPdfBuffer, detectMonthFromFilename } from '@/lib/parsers/payrollPdf';
 import { getExistingPayrollTxIds, applyPayrollImport } from '@/lib/queries/payrollImport';
-import type { PayrollImportRow, PayrollApplyResult } from '@/lib/finance/payroll/types';
+import { PayrollImportRowsSchema } from '@/lib/schemas/payroll';
+import type { PayrollImportRow, PayrollApplyResult, FilenameWarning } from '@/lib/finance/payroll/types';
 
-type ParseResult =
-  | { ok: true; rows: PayrollImportRow[]; fileName: string }
+export type ParseResult =
+  | { ok: true; mode: 'parsed'; rows: PayrollImportRow[]; fileName: string; filenameWarning?: FilenameWarning }
+  | { ok: true; mode: 'manual'; pageCount: number; fileName: string; suggestedYearMonth?: string }
   | { ok: false; error: string };
 
 type ApplyResult =
@@ -24,11 +26,36 @@ export async function parsePayrollPdfAction(formData: FormData): Promise<ParseRe
     return { ok: false, error: 'El archivo supera 20 MB.' };
 
   const buffer = await file.arrayBuffer();
-  const rows = await parsePayrollPdfBuffer(buffer, file.name);
+  const { rows, pageCount, itemCount, filenameWarning } = await parsePayrollPdfBuffer(buffer, file.name);
+
+  if (pageCount === 0) {
+    return { ok: false, error: 'El PDF está vacío o no es un documento válido.' };
+  }
+
+  if (itemCount === 0) {
+    // Vector/scanned PDF — no extractable text, offer manual entry
+    const dateFromFilename = detectMonthFromFilename(file.name);
+    const suggestedYearMonth = dateFromFilename
+      ? `${dateFromFilename.year}-${String(dateFromFilename.month).padStart(2, '0')}`
+      : undefined;
+    return {
+      ok: true,
+      mode: 'manual',
+      pageCount,
+      fileName: file.name,
+      ...(suggestedYearMonth !== undefined ? { suggestedYearMonth } : {}),
+    };
+  }
 
   if (rows.length === 0) return { ok: false, error: 'El PDF no contiene páginas reconocibles.' };
 
-  return { ok: true, rows, fileName: file.name };
+  return {
+    ok: true,
+    mode: 'parsed',
+    rows,
+    fileName: file.name,
+    ...(filenameWarning ? { filenameWarning } : {}),
+  };
 }
 
 export async function applyPayrollImportAction(formData: FormData): Promise<ApplyResult> {
@@ -40,13 +67,19 @@ export async function applyPayrollImportAction(formData: FormData): Promise<Appl
   const rowsJson = formData.get('rows');
   if (typeof rowsJson !== 'string') return { ok: false, error: 'Faltan las filas a insertar.' };
 
-  let rows: PayrollImportRow[];
+  let parsed: unknown;
   try {
-    rows = JSON.parse(rowsJson) as PayrollImportRow[];
+    parsed = JSON.parse(rowsJson);
   } catch {
     return { ok: false, error: 'Formato de filas inválido.' };
   }
 
+  const validation = PayrollImportRowsSchema.safeParse(parsed);
+  if (!validation.success) {
+    return { ok: false, error: `Filas inválidas: ${validation.error.issues[0]?.message ?? 'error de validación'}` };
+  }
+
+  const rows: PayrollImportRow[] = validation.data;
   const existingTxIds = await getExistingPayrollTxIds();
   const result = await applyPayrollImport(rows, existingTxIds, pdfFile, session.user.id);
 
