@@ -5,8 +5,6 @@
 // Dynamic import defers module evaluation to call time, avoiding DOMMatrix ReferenceError
 // during SSR module initialization when Turbopack bundles the server action chain.
 import type { TextItem, TextMarkedContent } from 'pdfjs-dist/types/src/display/api';
-import { createRequire } from 'node:module';
-import { join } from 'node:path';
 
 export type PdfTextItem = {
   readonly str: string;
@@ -60,17 +58,13 @@ function ensureDOMMatrixPolyfill(): void {
 }
 
 export async function extractPdfText(buffer: ArrayBuffer | Uint8Array): Promise<PdfExtract> {
-  // Must run before the dynamic import so pdfjs-dist finds DOMMatrix on globalThis
-  // when its module-level code executes. instrumentation.ts alone is insufficient
-  // in Vercel Functions because each invocation may load external modules fresh.
+  // Must run before any pdfjs-dist import: pdf.mjs has `new DOMMatrix()` at module level.
   ensureDOMMatrixPolyfill();
-  const { getDocument, GlobalWorkerOptions } = await import('pdfjs-dist/legacy/build/pdf.mjs');
-  if (!GlobalWorkerOptions.workerSrc) {
-    // pdfjs-dist v5: empty string no longer triggers the fake worker — a real path is
-    // required. pdfjs-dist is in serverExternalPackages so the file exists at runtime.
-    GlobalWorkerOptions.workerSrc = createRequire(join(process.cwd(), 'package.json'))
-      .resolve('pdfjs-dist/legacy/build/pdf.worker.mjs');
-  }
+  // Literal string import → Vercel NFT traces and includes the worker file in the deployment.
+  // Also sets globalThis.pdfjsWorker.WorkerMessageHandler, which _setupFakeWorkerGlobal
+  // checks first — pdfjs uses it directly and never reaches import(workerSrc).
+  await import('pdfjs-dist/legacy/build/pdf.worker.mjs');
+  const { getDocument } = await import('pdfjs-dist/legacy/build/pdf.mjs');
 
   const data = buffer instanceof Uint8Array ? buffer : new Uint8Array(buffer);
   const loadingTask = getDocument({
