@@ -35,6 +35,9 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  // pdfjs-dist uses DOMMatrix at module init — exclude from Turbopack SSR bundle
+  // so Node.js loads it natively at runtime instead of bundling it.
+  serverExternalPackages: ['pdfjs-dist'],
   async redirects() {
     return [
       // /gaming/cs2 → /influencers-cs2 (301 permanent)
