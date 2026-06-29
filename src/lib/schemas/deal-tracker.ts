@@ -60,3 +60,14 @@ export const parsedLinkRowSchema = z.object({
 });
 
 export type ParsedLinkRow = z.infer<typeof parsedLinkRowSchema>;
+
+export const connectTrackerSheetSchema = z.object({
+  trackerId: z.coerce.number().int().positive(),
+  googleSheetUrl: z.string().url().refine(
+    (url) => /docs\.google\.com\/spreadsheets\/d\//.test(url),
+    'La URL debe ser de Google Sheets (docs.google.com/spreadsheets/...)',
+  ),
+  trackingParseMode: z.enum(TRACKER_PARSE_MODES).default('horizontal_triplets'),
+});
+
+export type ConnectTrackerSheetInput = z.infer<typeof connectTrackerSheetSchema>;

@@ -376,6 +376,28 @@ export async function updateTrackerTarget(trackerId: number, targetCount: number
   await recalculateAndMaybeComplete(trackerId);
 }
 
+// ── Connect to Google Sheet ───────────────────────────────────────────────────
+
+export async function connectTrackerSheet(
+  trackerId: number,
+  googleSpreadsheetId: string,
+  googleSheetGid: string,
+  trackingParseMode: 'simple_columns' | 'socialpro_blocks' | 'horizontal_triplets',
+  trackingSourceUrl: string,
+) {
+  await db
+    .update(dealDeliverableTrackers)
+    .set({
+      googleSpreadsheetId,
+      googleSheetGid,
+      trackingParseMode,
+      trackingSourceType: 'google_sheet',
+      trackingSourceUrl,
+      updatedAt: new Date(),
+    })
+    .where(eq(dealDeliverableTrackers.id, trackerId));
+}
+
 // ── Update parse mode ─────────────────────────────────────────────────────────
 
 export async function updateTrackerParseMode(

@@ -1,7 +1,7 @@
 'use server';
 
 import { requirePermission } from '@/lib/permissions';
-import { createTrackerSchema, reviewTrackerItemSchema, importLinksSchema, updateTrackerParseModeSchema } from '@/lib/schemas/deal-tracker';
+import { createTrackerSchema, reviewTrackerItemSchema, importLinksSchema, updateTrackerParseModeSchema, connectTrackerSheetSchema } from '@/lib/schemas/deal-tracker';
 import {
   createTracker,
   importTrackerItems,
@@ -9,6 +9,7 @@ import {
   approveTracker,
   updateTrackerTarget,
   updateTrackerParseMode,
+  connectTrackerSheet,
   deleteTracker,
   deleteTrackerItem,
 } from '@/lib/queries/deal-trackers';
@@ -186,6 +187,46 @@ function detectTargetFromGrid(grid: string[][]): number | null {
     }
   }
   return null;
+}
+
+// ── connectTrackerSheetAction ─────────────────────────────────────────────────
+// Saves Google Sheet config on an existing tracker WITHOUT auto-syncing.
+// Enables the "Sincronizar ahora" button for subsequent manual syncs.
+
+export async function connectTrackerSheetAction(formData: FormData): Promise<ActionResult> {
+  await requirePermission('campanas', 'write');
+
+  const parsed = connectTrackerSheetSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) {
+    return { ok: false, error: parsed.error.issues.map((i) => i.message).join(', ') };
+  }
+
+  const { trackerId, googleSheetUrl, trackingParseMode } = parsed.data;
+
+  const spreadsheetId = extractSpreadsheetId(googleSheetUrl);
+  if (!spreadsheetId) {
+    return { ok: false, error: 'No se pudo extraer el ID del spreadsheet de la URL' };
+  }
+
+  // Extract GID from URL fragment or query param; default to '0' (first sheet)
+  const gidMatch = /[?&#]gid=(\d+)/.exec(googleSheetUrl);
+  const requestedGid = gidMatch?.[1] ?? '0';
+
+  try {
+    const { tabs } = await fetchSpreadsheetMetadata(spreadsheetId);
+    if (!tabs.length) return { ok: false, error: 'El spreadsheet no tiene pestañas' };
+
+    // Use the tab matching the requested GID, fall back to first tab
+    const firstTab = tabs[0];
+    if (!firstTab) return { ok: false, error: 'El spreadsheet no tiene pestañas' };
+    const resolvedGid = tabs.find((t) => t.sheetId === requestedGid)?.sheetId ?? firstTab.sheetId;
+
+    await connectTrackerSheet(trackerId, spreadsheetId, resolvedGid, trackingParseMode, googleSheetUrl);
+    revalidatePath(`/admin/entregables/${trackerId}`);
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : 'Error al conectar con Google Sheets' };
+  }
 }
 
 // ── deleteTrackerAction ───────────────────────────────────────────────────────

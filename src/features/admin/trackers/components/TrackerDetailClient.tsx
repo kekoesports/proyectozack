@@ -12,6 +12,7 @@ import {
   updateTrackerTargetAction,
   updateTrackerParseModeAction,
   deleteTrackerAction,
+  connectTrackerSheetAction,
 } from '@/app/admin/(dashboard)/entregables/tracker-actions';
 import { syncTrackerBlockAction } from '@/app/admin/(dashboard)/entregables/source-actions';
 import { useRouter } from 'next/navigation';
@@ -35,6 +36,9 @@ export function TrackerDetailClient({ tracker }: Props) {
   const [editParseMode, setEditParseMode] = useState(false);
   const [parseModeInput, setParseModeInput] = useState(tracker.trackingParseMode);
   const [isSavingParseMode, startSaveParseMode] = useTransition();
+  const [sheetUrlInput, setSheetUrlInput] = useState('');
+  const [connectMsg, setConnectMsg] = useState<string | null>(null);
+  const [isConnecting, startConnect] = useTransition();
 
   // Pre-compute subtype counts from items for SubtypeBreakdown
   const subtypeCounts = tracker.items.reduce<Record<string, number>>((acc, item) => {
@@ -91,6 +95,23 @@ export function TrackerDetailClient({ tracker }: Props) {
     });
   }
 
+  function handleConnectSheet() {
+    const fd = new FormData();
+    fd.set('trackerId', String(tracker.id));
+    fd.set('googleSheetUrl', sheetUrlInput.trim());
+    fd.set('trackingParseMode', 'horizontal_triplets');
+    startConnect(async () => {
+      setConnectMsg(null);
+      const result = await connectTrackerSheetAction(fd);
+      if (!result.ok) {
+        setConnectMsg(`Error: ${result.error}`);
+      } else {
+        setConnectMsg('Sheet conectado. Ahora puedes usar "Sincronizar ahora" para importar links.');
+        router.refresh();
+      }
+    });
+  }
+
   function handleSync() {
     const fd = new FormData();
     fd.append('trackerId', String(tracker.id));
@@ -136,7 +157,7 @@ export function TrackerDetailClient({ tracker }: Props) {
                 Importar links
               </button>
             )}
-            {tracker.brandSheetSourceId != null && (tracker.status === 'active' || tracker.status === 'review_pending') && (
+            {tracker.googleSpreadsheetId != null && (tracker.status === 'active' || tracker.status === 'review_pending') && (
               <button
                 onClick={handleSync}
                 disabled={isSyncing}
@@ -250,6 +271,39 @@ export function TrackerDetailClient({ tracker }: Props) {
           <p className="text-sm text-sp-muted mt-3 border-t border-sp-border pt-3">{tracker.notes}</p>
         )}
       </div>
+
+      {/* Conectar a Google Sheet (solo cuando no hay Sheet configurado) */}
+      {!tracker.googleSpreadsheetId && (tracker.status === 'active' || tracker.status === 'review_pending') && (
+        <div className="bg-white rounded-2xl border border-sp-border p-6">
+          <h2 className="text-sm font-bold text-sp-dark mb-3">Conectar a Google Sheet</h2>
+          <p className="text-xs text-sp-muted mb-3">
+            Pega la URL de la pestaña del Sheet (con <code>#gid=…</code> si es necesario).
+            El modo de parseo se fijará en <code>horizontal_triplets</code>.
+            Los {tracker.items.length} links existentes no se eliminarán.
+          </p>
+          <div className="flex gap-2">
+            <input
+              type="url"
+              placeholder="https://docs.google.com/spreadsheets/d/…"
+              value={sheetUrlInput}
+              onChange={(e) => setSheetUrlInput(e.target.value)}
+              className="flex-1 border border-sp-border rounded-lg px-3 py-1.5 text-sm text-sp-dark"
+            />
+            <button
+              onClick={handleConnectSheet}
+              disabled={isConnecting || !sheetUrlInput.trim()}
+              className="px-4 py-1.5 text-sm font-semibold rounded-lg bg-sp-orange text-white hover:bg-sp-orange/90 disabled:opacity-50 transition-colors whitespace-nowrap"
+            >
+              {isConnecting ? 'Conectando…' : 'Conectar Sheet'}
+            </button>
+          </div>
+          {connectMsg && (
+            <p className={`text-xs mt-2 ${connectMsg.startsWith('Error') ? 'text-red-600' : 'text-emerald-700'}`}>
+              {connectMsg}
+            </p>
+          )}
+        </div>
+      )}
 
       {/* Sync result message */}
       {syncMsg && (
