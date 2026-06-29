@@ -6,7 +6,7 @@ import {
 import { alerts } from '@/db/schema/alerts';
 import { campaigns } from '@/db/schema/campaigns';
 import { talents } from '@/db/schema/talents';
-import { eq, desc, count, inArray, and, sql, ilike, or, isNotNull } from 'drizzle-orm';
+import { eq, desc, count, inArray, and, sql, ilike, or, isNotNull, isNull } from 'drizzle-orm';
 import type { CreateTrackerInput, ParsedLinkRow, DeliverableSubtype } from '@/lib/schemas/deal-tracker';
 import { normalizeContentUrl } from '@/lib/utils/url-normalizer';
 
@@ -28,6 +28,7 @@ export type ImportResult = {
   duplicatesSkipped: number;
   invalidSkipped: number;
   total: number;
+  enriched: number;
 };
 
 export type TrackerSubtypeCounts = Record<number, { dedicated_video: number; preroll: number; stream: number }>;
@@ -259,20 +260,43 @@ export async function importTrackerItems(
 
   const { classified, inserted, duplicatesSkipped, invalidSkipped } = classifyImportRows(existingUrls, rows);
 
-  const toInsert: (typeof dealDeliverableItems.$inferInsert)[] = classified.map((r) => ({
-    trackerId,
-    sourceRowIndex: r.sourceRowIndex,
-    originalUrl: r.originalUrl,
-    normalizedUrl: r.normalizedUrl,
-    platform: r.platform,
-    deliverableSubtype: r.deliverableSubtype ?? null,
-    contentDate: r.contentDate ?? null,
-    notes: r.notes ?? null,
-    status: r.status,
-  }));
+  // Only insert genuinely new rows (not duplicates)
+  const toInsert: (typeof dealDeliverableItems.$inferInsert)[] = classified
+    .filter((r) => r.status === 'valid')
+    .map((r) => ({
+      trackerId,
+      sourceRowIndex: r.sourceRowIndex,
+      originalUrl: r.originalUrl,
+      normalizedUrl: r.normalizedUrl,
+      platform: r.platform,
+      deliverableSubtype: r.deliverableSubtype ?? null,
+      contentDate: r.contentDate ?? null,
+      notes: r.notes ?? null,
+      status: r.status,
+    }));
 
   if (toInsert.length > 0) {
     await db.insert(dealDeliverableItems).values(toInsert);
+  }
+
+  // Enrich existing duplicate rows: when DB row has no subtype but new parse provides one
+  let enriched = 0;
+  const toEnrich = classified.filter((r) => r.status === 'duplicate' && r.deliverableSubtype != null);
+  for (const r of toEnrich) {
+    const subtype = r.deliverableSubtype;
+    if (!subtype) continue;
+    const updated = await db
+      .update(dealDeliverableItems)
+      .set({ deliverableSubtype: subtype })
+      .where(
+        and(
+          eq(dealDeliverableItems.trackerId, trackerId),
+          eq(dealDeliverableItems.normalizedUrl, r.normalizedUrl),
+          isNull(dealDeliverableItems.deliverableSubtype),
+        ),
+      )
+      .returning({ id: dealDeliverableItems.id });
+    enriched += updated.length;
   }
 
   await db
@@ -282,7 +306,7 @@ export async function importTrackerItems(
 
   await recalculateAndMaybeComplete(trackerId);
 
-  return { inserted, duplicatesSkipped, invalidSkipped, total: rows.length };
+  return { inserted, duplicatesSkipped, invalidSkipped, total: rows.length, enriched };
 }
 
 // ── Recalculate currentCount ──────────────────────────────────────────────────

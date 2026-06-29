@@ -164,4 +164,46 @@ describe('classifyImportRows', () => {
     expect(classified[0]?.notes).toBe('Integración patrocinada');
     expect(classified[0]?.sourceRowIndex).toBe(1);
   });
+
+  // ── Enrichment contract ────────────────────────────────────────────────────────
+
+  test('duplicate row preserves deliverableSubtype (enables DB enrichment)', () => {
+    // Simulates a row that already exists in DB but had no subtype.
+    // The re-import now provides a subtype → classified preserves it so
+    // importTrackerItems can UPDATE the existing row.
+    const existingNorm = 'https://youtube.com/watch?v=AAA11111111';
+    const row: ParsedLinkRow = {
+      originalUrl: 'https://www.youtube.com/watch?v=AAA11111111',
+      sourceRowIndex: 1,
+      deliverableSubtype: 'dedicated_video',
+    };
+
+    const { classified, duplicatesSkipped } = classifyImportRows(new Set([existingNorm]), [row]);
+
+    expect(duplicatesSkipped).toBe(1);
+    expect(classified[0]?.status).toBe('duplicate');
+    expect(classified[0]?.deliverableSubtype).toBe('dedicated_video');
+  });
+
+  test('valid rows have status=valid; importTrackerItems must NOT insert duplicate rows', () => {
+    // Contract: only rows with status=valid should be inserted.
+    // This test confirms classifyImportRows correctly separates new from existing.
+    const rows: ParsedLinkRow[] = [
+      { originalUrl: 'https://www.youtube.com/watch?v=NEWVIDEO1111', sourceRowIndex: 1, deliverableSubtype: 'dedicated_video' },
+      { originalUrl: 'https://twitch.tv/videos/1234567890', sourceRowIndex: 2, deliverableSubtype: 'stream' },
+    ];
+    const existingNorm = 'https://youtube.com/watch?v=NEWVIDEO1111';
+
+    const { classified, inserted, duplicatesSkipped } = classifyImportRows(new Set([existingNorm]), rows);
+
+    expect(inserted).toBe(1);
+    expect(duplicatesSkipped).toBe(1);
+    const validRows = classified.filter((r) => r.status === 'valid');
+    const dupRows   = classified.filter((r) => r.status === 'duplicate');
+    expect(validRows).toHaveLength(1);
+    expect(dupRows).toHaveLength(1);
+    // Only valid rows should be inserted — duplicates preserved for enrichment only
+    expect(validRows[0]?.originalUrl).toContain('twitch.tv');
+    expect(dupRows[0]?.deliverableSubtype).toBe('dedicated_video');
+  });
 });

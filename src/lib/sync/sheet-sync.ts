@@ -9,7 +9,7 @@ import { eq } from 'drizzle-orm';
 import type { ParsedLinkRow } from '@/lib/schemas/deal-tracker';
 
 export type SyncTrackerResult =
-  | { inserted: number; duplicates: number }
+  | { inserted: number; duplicates: number; enriched: number }
   | { error: string };
 
 export async function syncTrackerBlock(
@@ -84,5 +84,5 @@ export async function syncTrackerBlock(
     .set({ lastSyncedAt: new Date(), updatedAt: new Date() })
     .where(eq(dealDeliverableTrackers.id, trackerId));
 
-  return { inserted: result.inserted, duplicates: result.duplicatesSkipped };
+  return { inserted: result.inserted, duplicates: result.duplicatesSkipped, enriched: result.enriched };
 }

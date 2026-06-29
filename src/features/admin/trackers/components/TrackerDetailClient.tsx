@@ -100,7 +100,8 @@ export function TrackerDetailClient({ tracker }: Props) {
       if (!result.ok) {
         setSyncMsg(`Error al sincronizar: ${result.error}`);
       } else {
-        setSyncMsg(`Sync completado: ${result.inserted ?? 0} nuevos links importados.`);
+        const enrichedPart = result.enriched && result.enriched > 0 ? ` · ${result.enriched} subtypes actualizados.` : '';
+        setSyncMsg(`Sync completado: ${result.inserted ?? 0} nuevos links importados.${enrichedPart}`);
       }
     });
   }

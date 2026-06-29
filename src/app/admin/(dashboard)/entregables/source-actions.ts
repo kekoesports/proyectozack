@@ -325,7 +325,7 @@ export async function applySheetDetectionAction(
 
 export async function syncTrackerBlockAction(
   formData: FormData,
-): Promise<ActionResult & { inserted?: number; duplicates?: number }> {
+): Promise<ActionResult & { inserted?: number; duplicates?: number; enriched?: number }> {
   await requirePermission('campanas', 'write');
 
   const parsed = syncTrackerBlockSchema.safeParse(Object.fromEntries(formData));
@@ -339,7 +339,7 @@ export async function syncTrackerBlockAction(
 
     revalidatePath(`/admin/entregables/${parsed.data.trackerId}`);
     revalidatePath('/admin/entregables');
-    return { ok: true, inserted: result.inserted, duplicates: result.duplicates };
+    return { ok: true, inserted: result.inserted, duplicates: result.duplicates, enriched: result.enriched };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : 'Error al sincronizar' };
   }
