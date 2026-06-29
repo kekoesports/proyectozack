@@ -6,7 +6,7 @@ import {
 import { alerts } from '@/db/schema/alerts';
 import { campaigns } from '@/db/schema/campaigns';
 import { talents } from '@/db/schema/talents';
-import { eq, desc, count, inArray, and, sql } from 'drizzle-orm';
+import { eq, desc, count, inArray, and, sql, ilike, or, isNotNull } from 'drizzle-orm';
 import type { CreateTrackerInput, ParsedLinkRow, DeliverableSubtype } from '@/lib/schemas/deal-tracker';
 import { normalizeContentUrl } from '@/lib/utils/url-normalizer';
 
@@ -29,6 +29,8 @@ export type ImportResult = {
   invalidSkipped: number;
   total: number;
 };
+
+export type TrackerSubtypeCounts = Record<number, { dedicated_video: number; preroll: number; stream: number }>;
 
 // ── Create ────────────────────────────────────────────────────────────────────
 
@@ -53,7 +55,24 @@ export async function createTracker(input: CreateTrackerInput, createdByUserId: 
 
 // ── List ──────────────────────────────────────────────────────────────────────
 
-export async function listTrackers(opts?: { status?: string; limit?: number; offset?: number }) {
+export async function listTrackers(opts?: { status?: string; limit?: number; offset?: number; search?: string }) {
+  const whereClause = opts?.search
+    ? (() => {
+        const q = `%${opts.search}%`;
+        const urlSubquery = db
+          .select({ id: dealDeliverableItems.trackerId })
+          .from(dealDeliverableItems)
+          .where(ilike(dealDeliverableItems.normalizedUrl, q));
+        return or(
+          ilike(dealDeliverableTrackers.dealName, q),
+          ilike(dealDeliverableTrackers.brandName, q),
+          ilike(campaigns.name, q),
+          ilike(talents.name, q),
+          inArray(dealDeliverableTrackers.id, urlSubquery),
+        );
+      })()
+    : undefined;
+
   const rows = await db
     .select({
       tracker: dealDeliverableTrackers,
@@ -63,6 +82,7 @@ export async function listTrackers(opts?: { status?: string; limit?: number; off
     .from(dealDeliverableTrackers)
     .leftJoin(campaigns, eq(dealDeliverableTrackers.campaignId, campaigns.id))
     .leftJoin(talents, eq(dealDeliverableTrackers.talentId, talents.id))
+    .where(whereClause)
     .orderBy(desc(dealDeliverableTrackers.createdAt))
     .limit(opts?.limit ?? 100)
     .offset(opts?.offset ?? 0);
@@ -72,6 +92,55 @@ export async function listTrackers(opts?: { status?: string; limit?: number; off
     campaignName: r.campaignName ?? null,
     talentName: r.talentName ?? null,
   }));
+}
+
+export async function listTrackersByTalentId(talentId: number): Promise<TrackerSummary[]> {
+  const rows = await db
+    .select({
+      tracker: dealDeliverableTrackers,
+      campaignName: campaigns.name,
+      talentName: talents.name,
+    })
+    .from(dealDeliverableTrackers)
+    .leftJoin(campaigns, eq(dealDeliverableTrackers.campaignId, campaigns.id))
+    .leftJoin(talents, eq(dealDeliverableTrackers.talentId, talents.id))
+    .where(eq(dealDeliverableTrackers.talentId, talentId))
+    .orderBy(desc(dealDeliverableTrackers.createdAt));
+
+  return rows.map((r) => ({
+    ...r.tracker,
+    campaignName: r.campaignName ?? null,
+    talentName: r.talentName ?? null,
+  }));
+}
+
+export async function getTrackerSubtypeCounts(trackerIds: number[]): Promise<TrackerSubtypeCounts> {
+  if (!trackerIds.length) return {};
+
+  const rows = await db
+    .select({
+      trackerId: dealDeliverableItems.trackerId,
+      subtype: dealDeliverableItems.deliverableSubtype,
+      cnt: count(),
+    })
+    .from(dealDeliverableItems)
+    .where(
+      and(
+        inArray(dealDeliverableItems.trackerId, trackerIds),
+        inArray(dealDeliverableItems.status, ['valid', 'approved']),
+        isNotNull(dealDeliverableItems.deliverableSubtype),
+      ),
+    )
+    .groupBy(dealDeliverableItems.trackerId, dealDeliverableItems.deliverableSubtype);
+
+  const result: TrackerSubtypeCounts = {};
+  for (const r of rows) {
+    if (!r.subtype) continue;
+    if (!result[r.trackerId]) result[r.trackerId] = { dedicated_video: 0, preroll: 0, stream: 0 };
+    // safe: deliverableSubtype is validated enum
+    (result[r.trackerId] as Record<string, number>)[r.subtype] = Number(r.cnt);
+  }
+  return result;
 }
 
 export async function getTrackerWithItems(trackerId: number): Promise<TrackerWithItems | null> {

@@ -15,6 +15,7 @@ import { setTalentPublishedAction, archiveTalentAction, restoreTalentAction } fr
 import { getAdminGiveawaysByTalent } from '@/lib/queries/giveaways';
 import { getAdminCodesByTalent } from '@/lib/queries/creatorCodes';
 import { listCrmBrandsForPicker, getBrandNamesByIds } from '@/lib/queries/crmBrands';
+import { listTrackersByTalentId, getTrackerSubtypeCounts } from '@/lib/queries/deal-trackers';
 import { TalentDetailTabs } from '@/features/admin/talents/components/TalentDetailTabs';
 import type { TalentVertical } from '@/types';
 
@@ -56,7 +57,7 @@ export default async function TalentProfilePage({
     if (visible.length === 0) notFound();
   }
 
-  const [talent, business, verticals, campaigns, invoices, liveStatus, fallbackCount, giveaways, codes, brandCatalog] = await Promise.all([
+  const [talent, business, verticals, campaigns, invoices, liveStatus, fallbackCount, giveaways, codes, brandCatalog, trackers] = await Promise.all([
     getTalentById(talentId),
     getTalentBusiness(talentId),
     getTalentVerticals(talentId),
@@ -67,7 +68,11 @@ export default async function TalentProfilePage({
     getAdminGiveawaysByTalent(talentId),
     getAdminCodesByTalent(talentId),
     listCrmBrandsForPicker(),
+    listTrackersByTalentId(talentId),
   ]);
+
+  const trackerIds = trackers.map((t) => t.id);
+  const trackerSubtypeCounts = await getTrackerSubtypeCounts(trackerIds);
 
   if (!talent) notFound();
 
@@ -234,6 +239,8 @@ export default async function TalentProfilePage({
         codes={codes}
         brandCatalog={brandCatalog}
         brandMap={brandMap}
+        trackers={trackers}
+        trackerSubtypeCounts={trackerSubtypeCounts}
         defaultTab={defaultTab}
         isStaffRole={isStaffRole}
         isAdmin={session.user.role === 'admin'}

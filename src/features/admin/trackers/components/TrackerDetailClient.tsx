@@ -1,10 +1,12 @@
 'use client';
 
 import { useState, useTransition } from 'react';
+import Link from 'next/link';
 import { ImportLinksModal } from './ImportLinksModal';
 import { TrackerItemsTable } from './TrackerItemsTable';
 import { TrackerProgressBar } from './TrackerProgressBar';
 import { TrackerStatusBadge } from './TrackerStatusBadge';
+import { SubtypeBreakdown } from './SubtypeBreakdown';
 import {
   approveTrackerAction,
   updateTrackerTargetAction,
@@ -14,7 +16,6 @@ import {
 import { syncTrackerBlockAction } from '@/app/admin/(dashboard)/entregables/source-actions';
 import { useRouter } from 'next/navigation';
 import type { TrackerWithItems } from '@/lib/queries/deal-trackers';
-import { parseDealTitle, parseDealSpecs } from '@/lib/parsers/socialpro-blocks';
 
 type Props = {
   tracker: TrackerWithItems;
@@ -34,6 +35,14 @@ export function TrackerDetailClient({ tracker }: Props) {
   const [editParseMode, setEditParseMode] = useState(false);
   const [parseModeInput, setParseModeInput] = useState(tracker.trackingParseMode);
   const [isSavingParseMode, startSaveParseMode] = useTransition();
+
+  // Pre-compute subtype counts from items for SubtypeBreakdown
+  const subtypeCounts = tracker.items.reduce<Record<string, number>>((acc, item) => {
+    if (item.status !== 'valid' && item.status !== 'approved') return acc;
+    const key = item.deliverableSubtype ?? 'unknown';
+    acc[key] = (acc[key] ?? 0) + 1;
+    return acc;
+  }, {});
 
   function handleImported(result: { inserted: number; duplicates: number; invalid: number }) {
     setShowImport(false);
@@ -104,8 +113,16 @@ export function TrackerDetailClient({ tracker }: Props) {
           <div>
             <h1 className="text-xl font-black text-sp-dark">{tracker.dealName}</h1>
             <p className="text-sm text-sp-muted mt-0.5">{tracker.brandName}</p>
-            {tracker.talentName && (
-              <p className="text-xs text-sp-muted mt-0.5">Talento: {tracker.talentName}</p>
+            {tracker.talentId && tracker.talentName && (
+              <p className="text-xs text-sp-muted mt-0.5">
+                Talento:{' '}
+                <Link
+                  href={`/admin/talents/${tracker.talentId}`}
+                  className="text-sp-orange hover:underline font-medium"
+                >
+                  {tracker.talentName}
+                </Link>
+              </p>
             )}
           </div>
           <div className="flex items-center gap-3 flex-wrap">
@@ -251,7 +268,7 @@ export function TrackerDetailClient({ tracker }: Props) {
 
       {/* Desglose por subtipo (solo horizontal_triplets) */}
       {tracker.trackingParseMode === 'horizontal_triplets' && tracker.items.length > 0 && (
-        <SubtypeBreakdown tracker={tracker} />
+        <SubtypeBreakdown currentCounts={subtypeCounts} dealName={tracker.dealName} />
       )}
 
       {/* Items */}
@@ -270,66 +287,6 @@ export function TrackerDetailClient({ tracker }: Props) {
           onImported={handleImported}
         />
       )}
-    </div>
-  );
-}
-
-// ── SubtypeBreakdown ──────────────────────────────────────────────────────────
-
-const SUBTYPE_LABELS: Record<string, string> = {
-  dedicated_video: 'Videos',
-  preroll:         'Prerolls',
-  stream:          'Streams',
-};
-
-function SubtypeBreakdown({ tracker }: { tracker: TrackerWithItems }) {
-  // Count current valid/approved items per subtype
-  const counts: Record<string, number> = {};
-  for (const item of tracker.items) {
-    if (item.status !== 'valid' && item.status !== 'approved') continue;
-    const key = item.deliverableSubtype ?? 'unknown';
-    counts[key] = (counts[key] ?? 0) + 1;
-  }
-
-  // Try to extract per-subtype targets from the deal name
-  const targets: Record<string, number> = {};
-  const parsed = parseDealTitle(tracker.dealName);
-  if (parsed) {
-    const specs = parseDealSpecs(parsed.specsStr);
-    for (const spec of specs) {
-      const t = spec.rawType.toLowerCase().trim();
-      if (t.includes('dedicated') || t === 'video' || t === 'vídeo' || t.includes('videos')) {
-        targets['dedicated_video'] = spec.count;
-      } else if (t === 'preroll' || t === 'prerolls') {
-        targets['preroll'] = spec.count;
-      } else if (t === 'stream' || t === 'streams' || t.includes('livestream')) {
-        targets['stream'] = spec.count;
-      }
-    }
-  }
-
-  const subtypes = ['dedicated_video', 'preroll', 'stream'] as const;
-  const hasAny = subtypes.some((s) => (counts[s] ?? 0) > 0 || (targets[s] ?? 0) > 0);
-  if (!hasAny) return null;
-
-  return (
-    <div className="bg-white rounded-2xl border border-sp-border p-4">
-      <h3 className="text-xs font-bold text-sp-muted uppercase tracking-wide mb-3">Desglose por tipo</h3>
-      <div className="flex gap-6 flex-wrap">
-        {subtypes.map((s) => {
-          const current = counts[s] ?? 0;
-          const target  = targets[s];
-          if (current === 0 && !target) return null;
-          return (
-            <div key={s} className="text-center">
-              <p className="text-lg font-black text-sp-dark">
-                {current}{target != null ? `/${target}` : ''}
-              </p>
-              <p className="text-xs text-sp-muted">{SUBTYPE_LABELS[s]}</p>
-            </div>
-          );
-        })}
-      </div>
     </div>
   );
 }

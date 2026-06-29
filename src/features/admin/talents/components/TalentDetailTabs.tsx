@@ -16,8 +16,11 @@ import type {
   CreatorCodeWithTalent,
 } from '@/types';
 import type { CrmBrandPickerEntry } from '@/lib/queries/crmBrands';
+import type { TrackerSummary, TrackerSubtypeCounts } from '@/lib/queries/deal-trackers';
+import { TrackerProgressBar } from '@/features/admin/trackers/components/TrackerProgressBar';
+import { TrackerStatusBadge } from '@/features/admin/trackers/components/TrackerStatusBadge';
 
-const TABS = ['resumen', 'campanas', 'redes', 'codigos', 'sorteos', 'contacto', 'config'] as const;
+const TABS = ['resumen', 'campanas', 'entregables', 'redes', 'codigos', 'sorteos', 'contacto', 'config'] as const;
 type Tab = typeof TABS[number];
 
 function isValidTab(v: string): v is Tab {
@@ -35,6 +38,8 @@ type Props = {
   readonly codes: readonly CreatorCodeWithTalent[];
   readonly brandCatalog: readonly CrmBrandPickerEntry[];
   readonly brandMap: Readonly<Record<number, string>>;
+  readonly trackers: readonly TrackerSummary[];
+  readonly trackerSubtypeCounts: TrackerSubtypeCounts;
   readonly defaultTab: string;
   readonly isStaffRole: boolean;
   readonly isAdmin: boolean;
@@ -46,13 +51,20 @@ type Props = {
 };
 
 const TAB_LABELS: Record<Tab, string> = {
-  resumen:  'Resumen',
-  campanas: 'Campañas',
-  redes:    'Redes',
-  codigos:  'Códigos',
-  sorteos:  'Sorteos',
-  contacto: 'Contacto',
-  config:   'Config',
+  resumen:      'Resumen',
+  campanas:     'Campañas',
+  entregables:  'Entregables',
+  redes:        'Redes',
+  codigos:      'Códigos',
+  sorteos:      'Sorteos',
+  contacto:     'Contacto',
+  config:       'Config',
+};
+
+const TRACKER_SUBTYPE_LABELS: Record<string, string> = {
+  dedicated_video: 'Videos',
+  preroll:         'Prerolls',
+  stream:          'Streams',
 };
 
 const STATUS_COLORS: Record<string, string> = {
@@ -140,6 +152,8 @@ export function TalentDetailTabs({
   codes,
   brandCatalog,
   brandMap,
+  trackers,
+  trackerSubtypeCounts,
   defaultTab,
   isStaffRole,
   isAdmin,
@@ -430,6 +444,66 @@ export function TalentDetailTabs({
           defaultActiveTab="giveaways"
           plain
         />
+      )}
+
+      {/* ── ENTREGABLES ──────────────────────────────────────────────────── */}
+      {activeTab === 'entregables' && (
+        <div className="p-4">
+          {trackers.length === 0 ? (
+            <div className="py-8 text-center">
+              <p className="text-[12px] text-sp-admin-muted">Sin trackers asociados todavía</p>
+              <Link href="/admin/entregables" className="mt-2 text-[11px] font-semibold text-sp-admin-accent hover:opacity-70 block">
+                Ir a Entregables →
+              </Link>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {trackers.map((tracker) => {
+                const sc = trackerSubtypeCounts[tracker.id];
+                const hasSubtypes = sc && (sc.dedicated_video > 0 || sc.preroll > 0 || sc.stream > 0);
+                return (
+                  <Link
+                    key={tracker.id}
+                    href={`/admin/entregables/${tracker.id}`}
+                    className="block rounded-lg border border-sp-admin-border/60 p-3 hover:bg-sp-admin-hover transition-colors"
+                  >
+                    <div className="flex items-start justify-between gap-3 mb-2">
+                      <div className="min-w-0">
+                        <p className="text-[12px] font-semibold text-sp-admin-text truncate">{tracker.dealName}</p>
+                        <p className="text-[10px] text-sp-admin-muted mt-0.5">{tracker.brandName}</p>
+                      </div>
+                      <TrackerStatusBadge status={tracker.status} />
+                    </div>
+                    <TrackerProgressBar
+                      current={tracker.currentCount}
+                      target={tracker.targetCount}
+                      status={tracker.status}
+                    />
+                    {hasSubtypes && sc && (
+                      <div className="flex gap-3 mt-2 pt-2 border-t border-sp-admin-border/40">
+                        {(['dedicated_video', 'preroll', 'stream'] as const).map((s) => {
+                          const n = sc[s];
+                          if (!n) return null;
+                          return (
+                            <span key={s} className="text-[10px] text-sp-admin-muted">
+                              <span className="font-bold text-sp-admin-text">{n}</span> {TRACKER_SUBTYPE_LABELS[s]}
+                            </span>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </Link>
+                );
+              })}
+              <Link
+                href="/admin/entregables"
+                className="block text-center text-[11px] font-semibold text-sp-admin-accent hover:opacity-70 transition-opacity pt-1"
+              >
+                Ver todos los trackers →
+              </Link>
+            </div>
+          )}
+        </div>
       )}
 
       {/* ── CONTACTO ─────────────────────────────────────────────────────── */}
