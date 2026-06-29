@@ -32,12 +32,13 @@ export async function parsePayrollPdfAction(formData: FormData): Promise<ParseRe
     return { ok: false, error: 'El PDF está vacío o no es un documento válido.' };
   }
 
-  // Also treat as manual when pdfjs extracted some items but none produced useful payroll data.
-  // This happens with vectorized PDFs that have a few stray items (page numbers, hidden text)
-  // but no actual payroll labels — all rows end up with yearMonth='desconocido' and netAmount='0.00'.
-  const allRowsUseless =
-    rows.length > 0 &&
-    rows.every((r) => r.yearMonth === 'desconocido' && r.netAmount === '0.00');
+  // A row is only valid when it has ALL THREE: real employee name, known period, coste empresa > 0.
+  // Missing ANY ONE makes the row useless. Vectorized PDFs may extract stray amounts without labels
+  // (netAmount non-zero but yearMonth='desconocido') — the old AND condition missed those cases.
+  function isRowUseless(r: PayrollImportRow): boolean {
+    return !r.counterpartyName.trim() || r.yearMonth === 'desconocido' || Number(r.netAmount) <= 0;
+  }
+  const allRowsUseless = rows.length > 0 && rows.every(isRowUseless);
 
   if (itemCount === 0 || allRowsUseless) {
     const dateFromFilename = detectMonthFromFilename(file.name);
