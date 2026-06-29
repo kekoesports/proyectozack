@@ -264,7 +264,7 @@ export function parsePayrollPage(
 export async function parsePayrollPdfBuffer(
   buffer: ArrayBuffer | Uint8Array,
   pdfFileName: string,
-): Promise<PayrollImportRow[]> {
+): Promise<{ rows: PayrollImportRow[]; pageCount: number; itemCount: number }> {
   const extract = await extractPdfText(buffer);
   const rows: PayrollImportRow[] = [];
 
@@ -304,5 +304,5 @@ export async function parsePayrollPdfBuffer(
     });
   }
 
-  return rows;
+  return { rows, pageCount: extract.pageCount, itemCount: extract.items.length };
 }

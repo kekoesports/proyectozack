@@ -24,7 +24,18 @@ export async function parsePayrollPdfAction(formData: FormData): Promise<ParseRe
     return { ok: false, error: 'El archivo supera 20 MB.' };
 
   const buffer = await file.arrayBuffer();
-  const rows = await parsePayrollPdfBuffer(buffer, file.name);
+  const { rows, pageCount, itemCount } = await parsePayrollPdfBuffer(buffer, file.name);
+
+  if (itemCount === 0 && pageCount > 0) {
+    return {
+      ok: false,
+      error:
+        `El PDF (${pageCount} página${pageCount > 1 ? 's' : ''}) no contiene texto extraíble — ` +
+        'es un PDF de imagen o escaneado, el parser no puede leerlo. ' +
+        'Pide a ELEVATEX el PDF en formato texto nativo (exportado directamente del software de nóminas, no impreso/escaneado). ' +
+        'Mientras tanto puedes introducir la nómina manualmente en Finanzas › Gastos.',
+    };
+  }
 
   if (rows.length === 0) return { ok: false, error: 'El PDF no contiene páginas reconocibles.' };
 
