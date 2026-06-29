@@ -1,7 +1,7 @@
 # Handoff — Sprint Permisos: rol admin_limited_tasks + guards tareas
 
 **Sesión:** 2026-06-29  
-**Estado al cerrar:** PR #113 mergeado en master (`0b33910`). Código en producción. Pendiente: UPDATE de Alfonso en DB.
+**Estado al cerrar:** ✅ COMPLETO. Código en producción (`0b33910`) y rol de Alfonso actualizado y verificado en DB.
 
 ---
 
@@ -53,27 +53,27 @@
 
 ---
 
-## 3. ⚠️ PENDIENTE — UPDATE de Alfonso en producción
+## 3. ✅ Cambio de rol de Alfonso — APLICADO Y VERIFICADO
 
-**El código está desplegado. Falta aplicar el cambio de rol en la DB.**
+Ejecutado el 2026-06-29. Script `set-alfonso-role.ts` aplicó el UPDATE y leyó de vuelta el rol para confirmar.
 
-```sql
--- Ejecutar en Neon (producción) ahora que el deploy está activo:
-UPDATE "user"
-SET role = 'admin_limited_tasks'
-WHERE email = 'arias@socialpro.es';
-```
+| Campo | Valor |
+|---|---|
+| Email | `arias@socialpro.es` |
+| Nombre | Alfonso Arias |
+| Rol anterior | `manager` |
+| Rol actual | `admin_limited_tasks` |
+| Filas afectadas | 1 |
+| `check-alfonso-role.ts` | ✅ OK |
 
-Verificar con:
-```sql
-SELECT email, role FROM "user" WHERE email = 'arias@socialpro.es';
--- Esperado: arias@socialpro.es | admin_limited_tasks
-```
+**Ningún otro usuario fue modificado.** Roles del resto del equipo intactos:
+- `admin@socialpro.es` → `admin`
+- `rsnoverwatch@gmail.com` → `staff`
+- `pcamacho@socialpro.es` → `manager`
 
-O con el script:
-```bash
-npx dotenv-cli -e .env.local -- npx tsx scripts/check-alfonso-role.ts
-```
+**Permisos resultantes de Alfonso:**
+- Acceso admin en todos los módulos CRM fuera de tareas ✅
+- Tareas: solo ve / edita / completa / elimina las propias (owner o assignee) ✅
 
 ---
 
@@ -110,9 +110,8 @@ Pueden eliminarse cuando sea conveniente.
 
 ## 7. Próximos pasos
 
-1. **Ejecutar UPDATE de Alfonso** (ver sección 3) — no hacerlo antes del deploy ya activo
-2. Verificar con `check-alfonso-role.ts` que el rol quedó correcto
-3. QA manual: iniciar sesión como Alfonso y confirmar:
-   - Acceso completo a campañas, talentos, finanzas, etc.
-   - En `/admin/tareas`: solo ve sus propias tareas
-   - No puede editar/completar/borrar tareas de otros
+1. **QA manual con la cuenta de Alfonso** (`arias@socialpro.es`):
+   - Iniciar sesión y confirmar acceso completo a campañas, talentos, finanzas, etc.
+   - En `/admin/tareas`: verificar que solo ve sus propias tareas
+   - Intentar editar/completar/borrar una tarea de otro usuario → debe recibir error
+   - Confirmar que puede gestionar sus propias tareas sin restricciones
