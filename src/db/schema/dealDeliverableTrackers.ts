@@ -16,7 +16,7 @@ import { talents } from './talents';
 import { user } from './auth';
 import { deliverableTypeEnum } from './deliverables';
 import { brandSheetSources } from './brandSheetSources';
-import { trackerParseModeEnum } from './trackerEnums';
+import { trackerParseModeEnum, deliverableSubtypeEnum } from './trackerEnums';
 
 export const trackerStatusEnum = pgEnum('tracker_status', [
   'active',
@@ -133,6 +133,7 @@ export const dealDeliverableItems = pgTable(
     originalUrl: text('original_url').notNull(),
     normalizedUrl: text('normalized_url').notNull(),
     platform: contentPlatformEnum('platform').notNull().default('other'),
+    deliverableSubtype: deliverableSubtypeEnum('deliverable_subtype'),
 
     contentDate: varchar('content_date', { length: 10 }),
     notes: text('notes'),

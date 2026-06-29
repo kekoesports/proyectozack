@@ -8,11 +8,13 @@ import { TrackerStatusBadge } from './TrackerStatusBadge';
 import {
   approveTrackerAction,
   updateTrackerTargetAction,
+  updateTrackerParseModeAction,
   deleteTrackerAction,
 } from '@/app/admin/(dashboard)/entregables/tracker-actions';
 import { syncTrackerBlockAction } from '@/app/admin/(dashboard)/entregables/source-actions';
 import { useRouter } from 'next/navigation';
 import type { TrackerWithItems } from '@/lib/queries/deal-trackers';
+import { parseDealTitle, parseDealSpecs } from '@/lib/parsers/socialpro-blocks';
 
 type Props = {
   tracker: TrackerWithItems;
@@ -29,6 +31,9 @@ export function TrackerDetailClient({ tracker }: Props) {
   const [targetInput, setTargetInput]   = useState(String(tracker.targetCount));
   const [isSavingTarget, startSaveTarget] = useTransition();
   const [isDeleting, startDelete]       = useTransition();
+  const [editParseMode, setEditParseMode] = useState(false);
+  const [parseModeInput, setParseModeInput] = useState(tracker.trackingParseMode);
+  const [isSavingParseMode, startSaveParseMode] = useTransition();
 
   function handleImported(result: { inserted: number; duplicates: number; invalid: number }) {
     setShowImport(false);
@@ -52,6 +57,16 @@ export function TrackerDetailClient({ tracker }: Props) {
     startSaveTarget(async () => {
       await updateTrackerTargetAction(fd);
       setEditTarget(false);
+    });
+  }
+
+  function handleSaveParseMode() {
+    const fd = new FormData();
+    fd.set('trackerId', String(tracker.id));
+    fd.set('trackingParseMode', parseModeInput);
+    startSaveParseMode(async () => {
+      await updateTrackerParseModeAction(fd);
+      setEditParseMode(false);
     });
   }
 
@@ -171,6 +186,42 @@ export function TrackerDetailClient({ tracker }: Props) {
           />
         </div>
 
+        {tracker.googleSpreadsheetId && (
+          <div className="mt-4 flex items-center gap-2 text-xs">
+            <span className="text-sp-muted">Modo parseo:</span>
+            {editParseMode ? (
+              <>
+                <select
+                  value={parseModeInput}
+                  onChange={(e) => setParseModeInput(e.target.value as typeof parseModeInput)}
+                  className="border border-sp-border rounded px-2 py-0.5 text-xs bg-white"
+                >
+                  <option value="simple_columns">simple_columns</option>
+                  <option value="socialpro_blocks">socialpro_blocks</option>
+                  <option value="horizontal_triplets">horizontal_triplets</option>
+                </select>
+                <button
+                  onClick={handleSaveParseMode}
+                  disabled={isSavingParseMode}
+                  className="text-emerald-600 hover:text-emerald-700 font-semibold disabled:opacity-50"
+                >
+                  {isSavingParseMode ? '...' : 'Guardar'}
+                </button>
+                <button onClick={() => { setEditParseMode(false); setParseModeInput(tracker.trackingParseMode); }} className="text-sp-muted hover:text-sp-dark">
+                  Cancelar
+                </button>
+              </>
+            ) : (
+              <>
+                <code className="bg-sp-off px-1.5 py-0.5 rounded text-sp-dark font-mono">{tracker.trackingParseMode}</code>
+                <button onClick={() => setEditParseMode(true)} className="text-sp-muted hover:text-sp-orange">
+                  editar
+                </button>
+              </>
+            )}
+          </div>
+        )}
+
         {tracker.lastImportedAt && (
           <p className="text-xs text-sp-muted mt-3">
             Última importación: {new Date(tracker.lastImportedAt).toLocaleString('es-ES')}
@@ -198,6 +249,11 @@ export function TrackerDetailClient({ tracker }: Props) {
         </div>
       )}
 
+      {/* Desglose por subtipo (solo horizontal_triplets) */}
+      {tracker.trackingParseMode === 'horizontal_triplets' && tracker.items.length > 0 && (
+        <SubtypeBreakdown tracker={tracker} />
+      )}
+
       {/* Items */}
       <div className="bg-white rounded-2xl border border-sp-border p-6">
         <h2 className="text-sm font-bold text-sp-dark mb-4">
@@ -214,6 +270,66 @@ export function TrackerDetailClient({ tracker }: Props) {
           onImported={handleImported}
         />
       )}
+    </div>
+  );
+}
+
+// ── SubtypeBreakdown ──────────────────────────────────────────────────────────
+
+const SUBTYPE_LABELS: Record<string, string> = {
+  dedicated_video: 'Videos',
+  preroll:         'Prerolls',
+  stream:          'Streams',
+};
+
+function SubtypeBreakdown({ tracker }: { tracker: TrackerWithItems }) {
+  // Count current valid/approved items per subtype
+  const counts: Record<string, number> = {};
+  for (const item of tracker.items) {
+    if (item.status !== 'valid' && item.status !== 'approved') continue;
+    const key = item.deliverableSubtype ?? 'unknown';
+    counts[key] = (counts[key] ?? 0) + 1;
+  }
+
+  // Try to extract per-subtype targets from the deal name
+  const targets: Record<string, number> = {};
+  const parsed = parseDealTitle(tracker.dealName);
+  if (parsed) {
+    const specs = parseDealSpecs(parsed.specsStr);
+    for (const spec of specs) {
+      const t = spec.rawType.toLowerCase().trim();
+      if (t.includes('dedicated') || t === 'video' || t === 'vídeo' || t.includes('videos')) {
+        targets['dedicated_video'] = spec.count;
+      } else if (t === 'preroll' || t === 'prerolls') {
+        targets['preroll'] = spec.count;
+      } else if (t === 'stream' || t === 'streams' || t.includes('livestream')) {
+        targets['stream'] = spec.count;
+      }
+    }
+  }
+
+  const subtypes = ['dedicated_video', 'preroll', 'stream'] as const;
+  const hasAny = subtypes.some((s) => (counts[s] ?? 0) > 0 || (targets[s] ?? 0) > 0);
+  if (!hasAny) return null;
+
+  return (
+    <div className="bg-white rounded-2xl border border-sp-border p-4">
+      <h3 className="text-xs font-bold text-sp-muted uppercase tracking-wide mb-3">Desglose por tipo</h3>
+      <div className="flex gap-6 flex-wrap">
+        {subtypes.map((s) => {
+          const current = counts[s] ?? 0;
+          const target  = targets[s];
+          if (current === 0 && !target) return null;
+          return (
+            <div key={s} className="text-center">
+              <p className="text-lg font-black text-sp-dark">
+                {current}{target != null ? `/${target}` : ''}
+              </p>
+              <p className="text-xs text-sp-muted">{SUBTYPE_LABELS[s]}</p>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }

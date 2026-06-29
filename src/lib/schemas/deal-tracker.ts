@@ -41,11 +41,22 @@ export const importLinksSchema = z.object({
 
 export type ImportLinksInput = z.infer<typeof importLinksSchema>;
 
+export const TRACKER_PARSE_MODES = ['simple_columns', 'socialpro_blocks', 'horizontal_triplets'] as const;
+
+export const updateTrackerParseModeSchema = z.object({
+  trackerId:         z.coerce.number().int().positive(),
+  trackingParseMode: z.enum(TRACKER_PARSE_MODES),
+});
+
+export const DELIVERABLE_SUBTYPES = ['dedicated_video', 'preroll', 'stream'] as const;
+export type DeliverableSubtype = typeof DELIVERABLE_SUBTYPES[number];
+
 export const parsedLinkRowSchema = z.object({
-  originalUrl:  z.string().min(1),
-  contentDate:  z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
-  notes:        z.string().max(500).optional(),
-  sourceRowIndex: z.number().int().nonnegative().optional(),
+  originalUrl:        z.string().min(1),
+  contentDate:        z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  notes:              z.string().max(500).optional(),
+  sourceRowIndex:     z.number().int().nonnegative().optional(),
+  deliverableSubtype: z.enum(DELIVERABLE_SUBTYPES).optional(),
 });
 
 export type ParsedLinkRow = z.infer<typeof parsedLinkRowSchema>;

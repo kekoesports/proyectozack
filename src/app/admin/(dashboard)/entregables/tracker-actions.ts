@@ -1,13 +1,14 @@
 'use server';
 
 import { requirePermission } from '@/lib/permissions';
-import { createTrackerSchema, reviewTrackerItemSchema, importLinksSchema } from '@/lib/schemas/deal-tracker';
+import { createTrackerSchema, reviewTrackerItemSchema, importLinksSchema, updateTrackerParseModeSchema } from '@/lib/schemas/deal-tracker';
 import {
   createTracker,
   importTrackerItems,
   reviewTrackerItem,
   approveTracker,
   updateTrackerTarget,
+  updateTrackerParseMode,
   deleteTracker,
   deleteTrackerItem,
 } from '@/lib/queries/deal-trackers';
@@ -343,6 +344,25 @@ export async function reviewTrackerItemAction(formData: FormData): Promise<Actio
     return { ok: true };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : 'Error al revisar item' };
+  }
+}
+
+// ── updateTrackerParseModeAction ──────────────────────────────────────────────
+
+export async function updateTrackerParseModeAction(formData: FormData): Promise<ActionResult> {
+  await requirePermission('campanas', 'write');
+
+  const parsed = updateTrackerParseModeSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) {
+    return { ok: false, error: parsed.error.issues.map((i) => i.message).join(', ') };
+  }
+
+  try {
+    await updateTrackerParseMode(parsed.data.trackerId, parsed.data.trackingParseMode);
+    revalidatePath(`/admin/entregables/${parsed.data.trackerId}`);
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : 'Error al actualizar modo' };
   }
 }
 
