@@ -267,7 +267,7 @@ export async function isAssignableTaskUser(userId: string): Promise<boolean> {
     .where(eq(user.id, userId))
     .limit(1);
   if (!row) return false;
-  return row.role === 'admin' || row.role === 'manager' || row.role === 'staff';
+  return row.role === 'admin' || row.role === 'manager' || row.role === 'staff' || row.role === 'admin_limited_tasks';
 }
 
 /**
@@ -295,6 +295,16 @@ export async function getTaskById(id: number): Promise<CrmTask | null> {
     .where(eq(crmTasks.id, id))
     .limit(1);
   return row ?? null;
+}
+
+/** Obtiene múltiples tareas por IDs en una sola query. */
+export async function getTasksByIds(ids: readonly number[]): Promise<CrmTask[]> {
+  if (ids.length === 0) return [];
+  return db
+    .select({ ...getTableColumns(crmTasks), recurrence: crmTaskTemplates.recurrence })
+    .from(crmTasks)
+    .leftJoin(crmTaskTemplates, eq(crmTaskTemplates.id, crmTasks.recurrenceTemplateId))
+    .where(inArray(crmTasks.id, [...ids]));
 }
 
 /**

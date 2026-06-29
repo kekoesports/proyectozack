@@ -4,11 +4,11 @@ import { requireAnyRole } from '@/lib/auth-guard';
 // ── Legacy helpers (kept for all existing call sites) ────────────────────────
 
 export function canSeeAll(role: Role): boolean {
-  return role === 'admin' || role === 'manager';
+  return role === 'admin' || role === 'manager' || role === 'admin_limited_tasks';
 }
 
 export function canDelete(role: Role): boolean {
-  return role === 'admin';
+  return role === 'admin' || role === 'admin_limited_tasks';
 }
 
 export function assertCanDelete(role: Role): void {
@@ -56,94 +56,94 @@ type PermissionsMap = Record<Module, Partial<Record<Action, readonly Role[]>>>;
 
 export const PERMISSIONS = {
   noticias: {
-    read:    ['admin', 'manager', 'staff', 'editor', 'ops', 'talent_manager', 'analyst'],
-    write:   ['admin', 'manager', 'editor'],
-    publish: ['admin', 'manager', 'editor'],
-    delete:  ['admin', 'manager'],
+    read:    ['admin', 'admin_limited_tasks', 'manager', 'staff', 'editor', 'ops', 'talent_manager', 'analyst'],
+    write:   ['admin', 'admin_limited_tasks', 'manager', 'editor'],
+    publish: ['admin', 'admin_limited_tasks', 'manager', 'editor'],
+    delete:  ['admin', 'admin_limited_tasks', 'manager'],
   },
   sorteos: {
-    read:    ['admin', 'manager', 'staff', 'ops'],
-    write:   ['admin', 'manager', 'ops'],
-    publish: ['admin', 'manager'],
-    delete:  ['admin', 'manager'],
+    read:    ['admin', 'admin_limited_tasks', 'manager', 'staff', 'ops'],
+    write:   ['admin', 'admin_limited_tasks', 'manager', 'ops'],
+    publish: ['admin', 'admin_limited_tasks', 'manager'],
+    delete:  ['admin', 'admin_limited_tasks', 'manager'],
   },
   codigos: {
-    read:    ['admin', 'manager', 'staff', 'ops'],
-    write:   ['admin', 'manager', 'ops'],
-    delete:  ['admin', 'manager'],
+    read:    ['admin', 'admin_limited_tasks', 'manager', 'staff', 'ops'],
+    write:   ['admin', 'admin_limited_tasks', 'manager', 'ops'],
+    delete:  ['admin', 'admin_limited_tasks', 'manager'],
   },
   talentos: {
-    read:    ['admin', 'manager', 'staff', 'talent_manager'],
-    write:   ['admin', 'manager', 'staff', 'talent_manager'],
-    delete:  ['admin'],
+    read:    ['admin', 'admin_limited_tasks', 'manager', 'staff', 'talent_manager'],
+    write:   ['admin', 'admin_limited_tasks', 'manager', 'staff', 'talent_manager'],
+    delete:  ['admin', 'admin_limited_tasks'],
   },
   campanas: {
-    read:    ['admin', 'manager', 'staff', 'ops', 'talent_manager', 'finance'],
-    write:   ['admin', 'manager', 'staff', 'ops'],
-    delete:  ['admin'],
+    read:    ['admin', 'admin_limited_tasks', 'manager', 'staff', 'ops', 'talent_manager', 'finance'],
+    write:   ['admin', 'admin_limited_tasks', 'manager', 'staff', 'ops'],
+    delete:  ['admin', 'admin_limited_tasks'],
   },
   facturacion: {
-    read:    ['admin', 'manager', 'finance'],
-    write:   ['admin', 'manager', 'finance'],
-    delete:  ['admin'],
+    read:    ['admin', 'admin_limited_tasks', 'manager', 'finance'],
+    write:   ['admin', 'admin_limited_tasks', 'manager', 'finance'],
+    delete:  ['admin', 'admin_limited_tasks'],
   },
   analytics: {
-    read:    ['admin', 'manager', 'analyst', 'finance', 'talent_manager'],
-    write:   ['admin', 'manager'],
+    read:    ['admin', 'admin_limited_tasks', 'manager', 'analyst', 'finance', 'talent_manager'],
+    write:   ['admin', 'admin_limited_tasks', 'manager'],
   },
   agenda: {
-    read:    ['admin', 'manager', 'staff', 'ops', 'editor'],
-    write:   ['admin', 'manager', 'ops', 'editor'],
-    delete:  ['admin', 'manager'],
+    read:    ['admin', 'admin_limited_tasks', 'manager', 'staff', 'ops', 'editor'],
+    write:   ['admin', 'admin_limited_tasks', 'manager', 'ops', 'editor'],
+    delete:  ['admin', 'admin_limited_tasks', 'manager'],
   },
   rankings: {
-    read:    ['admin', 'manager', 'staff', 'editor', 'analyst'],
-    write:   ['admin', 'manager', 'editor'],
-    delete:  ['admin', 'manager'],
+    read:    ['admin', 'admin_limited_tasks', 'manager', 'staff', 'editor', 'analyst'],
+    write:   ['admin', 'admin_limited_tasks', 'manager', 'editor'],
+    delete:  ['admin', 'admin_limited_tasks', 'manager'],
   },
   equipo: {
-    read:    ['admin', 'manager', 'staff'],
-    write:   ['admin', 'manager'],
-    delete:  ['admin'],
+    read:    ['admin', 'admin_limited_tasks', 'manager', 'staff'],
+    write:   ['admin', 'admin_limited_tasks', 'manager'],
+    delete:  ['admin', 'admin_limited_tasks'],
   },
   ajustes: {
-    read:    ['admin', 'manager'],
-    write:   ['admin'],
-    delete:  ['admin'],
+    read:    ['admin', 'admin_limited_tasks', 'manager'],
+    write:   ['admin', 'admin_limited_tasks'],
+    delete:  ['admin', 'admin_limited_tasks'],
   },
   tareas: {
-    read:    ['admin', 'manager', 'staff', 'editor', 'ops', 'talent_manager'],
-    write:   ['admin', 'manager', 'ops'],
-    delete:  ['admin', 'manager'],
+    read:    ['admin', 'admin_limited_tasks', 'manager', 'staff', 'editor', 'ops', 'talent_manager'],
+    write:   ['admin', 'admin_limited_tasks', 'manager', 'ops'],
+    delete:  ['admin', 'admin_limited_tasks', 'manager'],
   },
   usuarios: {
-    read:         ['admin'],
-    write:        ['admin'],
-    delete:       ['admin'],
-    manage_users: ['admin'],
+    read:         ['admin', 'admin_limited_tasks'],
+    write:        ['admin', 'admin_limited_tasks'],
+    delete:       ['admin', 'admin_limited_tasks'],
+    manage_users: ['admin', 'admin_limited_tasks'],
   },
   targets: {
-    read:   ['admin', 'manager', 'staff'],
-    write:  ['admin', 'manager', 'staff'],
-    delete: ['admin'],
+    read:   ['admin', 'admin_limited_tasks', 'manager', 'staff'],
+    write:  ['admin', 'admin_limited_tasks', 'manager', 'staff'],
+    delete: ['admin', 'admin_limited_tasks'],
   },
   prensa_targets: {
-    read:   ['admin', 'manager', 'staff'],
-    write:  ['admin', 'manager', 'staff'],
-    delete: ['admin', 'manager'],
+    read:   ['admin', 'admin_limited_tasks', 'manager', 'staff'],
+    write:  ['admin', 'admin_limited_tasks', 'manager', 'staff'],
+    delete: ['admin', 'admin_limited_tasks', 'manager'],
   },
   dashboard: {
-    read: ['admin', 'manager', 'staff'],
+    read: ['admin', 'admin_limited_tasks', 'manager', 'staff'],
   },
   bancos: {
-    read:   ['admin', 'manager', 'finance'],
-    write:  ['admin', 'manager', 'finance'],
-    delete: ['admin'],
+    read:   ['admin', 'admin_limited_tasks', 'manager', 'finance'],
+    write:  ['admin', 'admin_limited_tasks', 'manager', 'finance'],
+    delete: ['admin', 'admin_limited_tasks'],
   },
   contratos: {
-    read:   ['admin', 'manager', 'finance', 'ops'],
-    write:  ['admin', 'manager', 'ops'],
-    delete: ['admin'],
+    read:   ['admin', 'admin_limited_tasks', 'manager', 'finance', 'ops'],
+    write:  ['admin', 'admin_limited_tasks', 'manager', 'ops'],
+    delete: ['admin', 'admin_limited_tasks'],
   },
 } as const satisfies PermissionsMap;
 

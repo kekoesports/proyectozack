@@ -12,11 +12,13 @@ export type Role =
   | 'finance'
   | 'analyst'
   | 'ops'
-  | 'talent_manager';
+  | 'talent_manager'
+  | 'admin_limited_tasks';
 
 export const ROLES = [
   'admin', 'manager', 'staff', 'brand',
   'editor', 'finance', 'analyst', 'ops', 'talent_manager',
+  'admin_limited_tasks',
 ] as const satisfies readonly Role[];
 
 // NODE_ENV and ENABLE_DEV_AUTH_BYPASS are exempt from lib/env — they control
@@ -88,15 +90,16 @@ type SessionWithNarrowedRole<R extends Role> = {
 };
 
 function homeForRole(role: Role | null | undefined): string | null {
-  if (role === 'admin')          return '/admin';
-  if (role === 'manager')        return '/admin';
-  if (role === 'staff')          return '/admin/mi-semana';
-  if (role === 'brand')          return '/marcas';
-  if (role === 'editor')         return '/admin/noticias';
-  if (role === 'finance')        return '/admin/facturas';
-  if (role === 'analyst')        return '/admin/analytics';
-  if (role === 'ops')            return '/admin/agenda';
-  if (role === 'talent_manager') return '/admin/talentos';
+  if (role === 'admin')                return '/admin';
+  if (role === 'manager')              return '/admin';
+  if (role === 'admin_limited_tasks')  return '/admin';
+  if (role === 'staff')                return '/admin/mi-semana';
+  if (role === 'brand')                return '/marcas';
+  if (role === 'editor')               return '/admin/noticias';
+  if (role === 'finance')              return '/admin/facturas';
+  if (role === 'analyst')              return '/admin/analytics';
+  if (role === 'ops')                  return '/admin/agenda';
+  if (role === 'talent_manager')       return '/admin/talentos';
   return null;
 }
 
