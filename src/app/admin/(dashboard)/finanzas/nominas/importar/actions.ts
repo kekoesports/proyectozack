@@ -32,8 +32,14 @@ export async function parsePayrollPdfAction(formData: FormData): Promise<ParseRe
     return { ok: false, error: 'El PDF está vacío o no es un documento válido.' };
   }
 
-  if (itemCount === 0) {
-    // Vector/scanned PDF — no extractable text, offer manual entry
+  // Also treat as manual when pdfjs extracted some items but none produced useful payroll data.
+  // This happens with vectorized PDFs that have a few stray items (page numbers, hidden text)
+  // but no actual payroll labels — all rows end up with yearMonth='desconocido' and netAmount='0.00'.
+  const allRowsUseless =
+    rows.length > 0 &&
+    rows.every((r) => r.yearMonth === 'desconocido' && r.netAmount === '0.00');
+
+  if (itemCount === 0 || allRowsUseless) {
     const dateFromFilename = detectMonthFromFilename(file.name);
     const suggestedYearMonth = dateFromFilename
       ? `${dateFromFilename.year}-${String(dateFromFilename.month).padStart(2, '0')}`
