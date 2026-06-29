@@ -56,9 +56,13 @@ function manualRowToPayrollRow(row: ManualRow): PayrollImportRow {
 
   const missingRequired = !name || costoStr === '0.00' || ym === 'desconocido';
 
-  // Normalize amount to 0.00 format for schema validation
+  // Handles Spanish format (1.696,55) and plain decimals (1363.00 or 1363,00).
   const normalizeAmount = (s: string): string => {
-    const n = parseFloat(s.replace(',', '.'));
+    const trimmed = s.trim();
+    const cleaned = trimmed.includes(',')
+      ? trimmed.replace(/\./g, '').replace(',', '.') // remove thousands dots, swap decimal comma
+      : trimmed;
+    const n = parseFloat(cleaned);
     return isNaN(n) ? '0.00' : n.toFixed(2);
   };
 
