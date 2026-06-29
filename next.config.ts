@@ -37,7 +37,7 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   // pdfjs-dist uses DOMMatrix at module init — exclude from Turbopack SSR bundle
   // so Node.js loads it natively at runtime instead of bundling it.
-  serverExternalPackages: ['pdfjs-dist'],
+  serverExternalPackages: ['pdfjs-dist', 'mupdf', 'tesseract.js'],
   async redirects() {
     return [
       // /gaming/cs2 → /influencers-cs2 (301 permanent)
@@ -127,11 +127,16 @@ const nextConfig: NextConfig = {
       { protocol: 'https', hostname: 'i.imgur.com' },
     ],
   },
-  // pdfjs-dist is external (serverExternalPackages) so nft doesn't trace
-  // pdf.worker.mjs (loaded dynamically by pdf.mjs at runtime). Force-include it.
+  // pdfjs-dist, mupdf, tesseract.js are external so nft doesn't auto-trace their
+  // WASM files or data files loaded dynamically at runtime. Force-include them.
   outputFileTracingIncludes: {
     '/admin/finanzas/nominas/importar': [
       './node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs',
+      './node_modules/mupdf/dist/mupdf-wasm.wasm',
+      './node_modules/tesseract.js-core/tesseract-core*.wasm',
+      './node_modules/tesseract.js-core/tesseract-core*.wasm.js',
+      './eng.traineddata',
+      './spa.traineddata',
     ],
   },
   experimental: {

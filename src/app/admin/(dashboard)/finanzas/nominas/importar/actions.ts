@@ -2,17 +2,22 @@
 
 import { requirePermission } from '@/lib/permissions';
 import { parsePayrollPdfBuffer, detectMonthFromFilename } from '@/lib/parsers/payrollPdf';
+import { ocrPayrollPdf } from '@/lib/parsers/payrollOcr';
 import { getExistingPayrollTxIds, applyPayrollImport } from '@/lib/queries/payrollImport';
 import { PayrollImportRowsSchema } from '@/lib/schemas/payroll';
 import type { PayrollImportRow, PayrollApplyResult, FilenameWarning } from '@/lib/finance/payroll/types';
 
 export type ParseResult =
   | { ok: true; mode: 'parsed'; rows: PayrollImportRow[]; fileName: string; filenameWarning?: FilenameWarning }
-  | { ok: true; mode: 'manual'; pageCount: number; fileName: string; suggestedYearMonth?: string }
+  | { ok: true; mode: 'needs-ocr'; pageCount: number; fileName: string; suggestedYearMonth?: string }
   | { ok: false; error: string };
 
 type ApplyResult =
   | { ok: true; result: PayrollApplyResult }
+  | { ok: false; error: string };
+
+type OcrResult =
+  | { ok: true; rows: PayrollImportRow[]; fileName: string }
   | { ok: false; error: string };
 
 export async function parsePayrollPdfAction(formData: FormData): Promise<ParseResult> {
@@ -47,7 +52,7 @@ export async function parsePayrollPdfAction(formData: FormData): Promise<ParseRe
       : undefined;
     return {
       ok: true,
-      mode: 'manual',
+      mode: 'needs-ocr',
       pageCount,
       fileName: file.name,
       ...(suggestedYearMonth !== undefined ? { suggestedYearMonth } : {}),
@@ -63,6 +68,25 @@ export async function parsePayrollPdfAction(formData: FormData): Promise<ParseRe
     fileName: file.name,
     ...(filenameWarning ? { filenameWarning } : {}),
   };
+}
+
+export async function ocrPayrollPdfAction(formData: FormData): Promise<OcrResult> {
+  await requirePermission('facturacion', 'write');
+
+  const file = formData.get('pdf');
+  if (!(file instanceof File)) return { ok: false, error: 'No se recibió ningún archivo PDF.' };
+  if (!file.name.toLowerCase().endsWith('.pdf'))
+    return { ok: false, error: 'El archivo debe ser un PDF.' };
+  if (file.size > 20 * 1024 * 1024)
+    return { ok: false, error: 'El archivo supera 20 MB.' };
+
+  const buffer = await file.arrayBuffer();
+  const { rows, pageCount } = await ocrPayrollPdf(buffer, file.name);
+
+  if (pageCount === 0) return { ok: false, error: 'El PDF está vacío o no es un documento válido.' };
+  if (rows.length === 0) return { ok: false, error: 'OCR no pudo reconocer páginas en el PDF.' };
+
+  return { ok: true, rows, fileName: file.name };
 }
 
 export async function applyPayrollImportAction(formData: FormData): Promise<ApplyResult> {
