@@ -2,7 +2,11 @@
 
 import React, { useRef, useState, useTransition } from 'react';
 import Link from 'next/link';
-import { parsePayrollPdfAction, applyPayrollImportAction } from '@/app/admin/(dashboard)/finanzas/nominas/importar/actions';
+import {
+  parsePayrollPdfAction,
+  ocrPayrollPdfAction,
+  applyPayrollImportAction,
+} from '@/app/admin/(dashboard)/finanzas/nominas/importar/actions';
 import type { PayrollImportRow, PayrollApplyResult, FilenameWarning } from '@/lib/finance/payroll/types';
 import { emptyManualRow, manualRowToPayrollRow } from '@/lib/finance/payroll/manualRow';
 import type { ManualRow } from '@/lib/finance/payroll/manualRow';
@@ -12,8 +16,10 @@ import type { ManualRow } from '@/lib/finance/payroll/manualRow';
 type Step =
   | { id: 0 }
   | { id: 1; mode: 'parsed'; rows: PayrollImportRow[]; file: File; fileName: string; filenameWarning?: FilenameWarning }
+  | { id: 1; mode: 'needs-ocr'; file: File; fileName: string; pageCount: number; suggestedYearMonth?: string }
+  | { id: 1; mode: 'ocr-preview'; rows: PayrollImportRow[]; file: File; fileName: string }
   | { id: 1; mode: 'manual'; file: File; fileName: string; pageCount: number; suggestedYearMonth?: string }
-  | { id: 2; rows: PayrollImportRow[]; file: File }
+  | { id: 2; rows: PayrollImportRow[]; file: File; sourceMode: 'parsed' | 'ocr-preview' | 'manual'; pageCount?: number; suggestedYearMonth?: string; filenameWarning?: FilenameWarning }
   | { id: 3; result: PayrollApplyResult };
 
 type Props = { existingTxIds: string[] };
@@ -37,17 +43,64 @@ export function PayrollImportWizard({ existingTxIds }: Props): React.ReactElemen
     startTransition(async () => {
       const res = await parsePayrollPdfAction(fd);
       if (!res.ok) { setError(res.error); return; }
-      if (res.mode === 'manual') {
-        setStep({ id: 1, mode: 'manual', file: file as File, fileName: res.fileName, pageCount: res.pageCount, ...(res.suggestedYearMonth !== undefined ? { suggestedYearMonth: res.suggestedYearMonth } : {}) });
+      if (res.mode === 'needs-ocr') {
+        setStep({
+          id: 1, mode: 'needs-ocr',
+          file: file as File, fileName: res.fileName,
+          pageCount: res.pageCount,
+          ...(res.suggestedYearMonth !== undefined ? { suggestedYearMonth: res.suggestedYearMonth } : {}),
+        });
       } else {
-        setStep({ id: 1, mode: 'parsed', rows: res.rows, file: file as File, fileName: res.fileName, ...(res.filenameWarning ? { filenameWarning: res.filenameWarning } : {}) });
+        setStep({
+          id: 1, mode: 'parsed',
+          rows: res.rows, file: file as File, fileName: res.fileName,
+          ...(res.filenameWarning ? { filenameWarning: res.filenameWarning } : {}),
+        });
       }
     });
   }
 
+  // ── Step 1 (needs-ocr) → OCR ──────────────────────────────────────────────
+  function handleOcr(): void {
+    if (step.id !== 1 || step.mode !== 'needs-ocr') return;
+    const { file } = step;
+    setError(null);
+    startTransition(async () => {
+      const fd = new FormData();
+      fd.append('pdf', file);
+      const res = await ocrPayrollPdfAction(fd);
+      if (!res.ok) { setError(res.error); return; }
+      setStep({ id: 1, mode: 'ocr-preview', rows: res.rows, file, fileName: res.fileName });
+    });
+  }
+
+  // ── Step 1 (needs-ocr) → manual ───────────────────────────────────────────
+  function handleGoManual(): void {
+    if (step.id !== 1 || step.mode !== 'needs-ocr') return;
+    setStep({
+      id: 1, mode: 'manual',
+      file: step.file, fileName: step.fileName,
+      pageCount: step.pageCount,
+      ...(step.suggestedYearMonth !== undefined ? { suggestedYearMonth: step.suggestedYearMonth } : {}),
+    });
+  }
+
   // ── Step 1 → 2 ────────────────────────────────────────────────────────────
-  function goToConfirm(rows: PayrollImportRow[], file: File): void {
-    setStep({ id: 2, rows, file });
+  function goToConfirmParsed(rows: PayrollImportRow[], file: File, filenameWarning?: FilenameWarning): void {
+    setStep({ id: 2, rows, file, sourceMode: 'parsed', ...(filenameWarning ? { filenameWarning } : {}) });
+  }
+
+  function goToConfirmOcr(rows: PayrollImportRow[], file: File): void {
+    setStep({ id: 2, rows, file, sourceMode: 'ocr-preview' });
+  }
+
+  function goToConfirmManual(rows: PayrollImportRow[], file: File): void {
+    if (step.id !== 1 || step.mode !== 'manual') return;
+    setStep({
+      id: 2, rows, file, sourceMode: 'manual',
+      pageCount: step.pageCount,
+      ...(step.suggestedYearMonth !== undefined ? { suggestedYearMonth: step.suggestedYearMonth } : {}),
+    });
   }
 
   // ── Step 2 → 3: apply ─────────────────────────────────────────────────────
@@ -63,7 +116,47 @@ export function PayrollImportWizard({ existingTxIds }: Props): React.ReactElemen
     });
   }
 
-  if (step.id === 0) return <StepUpload onSubmit={handleUpload} error={error} isPending={isPending} fileRef={fileRef} />;
+  // ── Step 2 → 1: back ──────────────────────────────────────────────────────
+  function handleConfirmBack(rows: PayrollImportRow[]): void {
+    if (step.id !== 2) return;
+    if (step.sourceMode === 'ocr-preview') {
+      setStep({ id: 1, mode: 'ocr-preview', rows, file: step.file, fileName: step.file.name });
+    } else if (step.sourceMode === 'manual') {
+      setStep({
+        id: 1, mode: 'manual',
+        file: step.file, fileName: step.file.name,
+        pageCount: step.pageCount ?? 1,
+        ...(step.suggestedYearMonth !== undefined ? { suggestedYearMonth: step.suggestedYearMonth } : {}),
+      });
+    } else {
+      setStep({
+        id: 1, mode: 'parsed', rows, file: step.file, fileName: step.file.name,
+        ...(step.filenameWarning ? { filenameWarning: step.filenameWarning } : {}),
+      });
+    }
+  }
+
+  // ── Render ─────────────────────────────────────────────────────────────────
+
+  if (step.id === 0) {
+    return <StepUpload onSubmit={handleUpload} error={error} isPending={isPending} fileRef={fileRef} />;
+  }
+
+  if (step.id === 1 && step.mode === 'needs-ocr') {
+    return (
+      <StepNeedsOcr
+        file={step.file}
+        fileName={step.fileName}
+        pageCount={step.pageCount}
+        onBack={() => setStep({ id: 0 })}
+        onOcr={handleOcr}
+        onManual={handleGoManual}
+        isOcrPending={isPending}
+        error={error}
+      />
+    );
+  }
+
   if (step.id === 1 && step.mode === 'parsed') {
     return (
       <StepPreview
@@ -72,12 +165,32 @@ export function PayrollImportWizard({ existingTxIds }: Props): React.ReactElemen
         fileName={step.fileName}
         existingTxIds={existingTxIds}
         onBack={() => setStep({ id: 0 })}
-        onConfirm={goToConfirm}
+        onConfirm={(rows, file) => goToConfirmParsed(rows, file, step.filenameWarning)}
         isPending={isPending}
         {...(step.filenameWarning ? { filenameWarning: step.filenameWarning } : {})}
       />
     );
   }
+
+  if (step.id === 1 && step.mode === 'ocr-preview') {
+    return (
+      <StepPreview
+        rows={step.rows}
+        file={step.file}
+        fileName={step.fileName}
+        existingTxIds={existingTxIds}
+        onBack={() => {
+          if (step.id === 1 && step.mode === 'ocr-preview') {
+            setStep({ id: 1, mode: 'needs-ocr', file: step.file, fileName: step.fileName, pageCount: step.rows.length });
+          }
+        }}
+        onConfirm={goToConfirmOcr}
+        isPending={isPending}
+        isOcr
+      />
+    );
+  }
+
   if (step.id === 1 && step.mode === 'manual') {
     return (
       <StepManualEntry
@@ -86,14 +199,31 @@ export function PayrollImportWizard({ existingTxIds }: Props): React.ReactElemen
         pageCount={step.pageCount}
         existingTxIds={existingTxIds}
         onBack={() => setStep({ id: 0 })}
-        onConfirm={goToConfirm}
+        onConfirm={goToConfirmManual}
         isPending={isPending}
         {...(step.suggestedYearMonth !== undefined ? { suggestedYearMonth: step.suggestedYearMonth } : {})}
       />
     );
   }
-  if (step.id === 2) return <StepConfirm rows={step.rows} file={step.file} existingTxIds={existingTxIds} error={error} onBack={(rows) => setStep({ id: 1, mode: 'parsed', rows, file: step.file, fileName: step.file.name })} onApply={handleApply} isPending={isPending} />;
-  if (step.id === 3) return <StepDone result={step.result} onReset={() => setStep({ id: 0 })} />;
+
+  if (step.id === 2) {
+    return (
+      <StepConfirm
+        rows={step.rows}
+        file={step.file}
+        existingTxIds={existingTxIds}
+        error={error}
+        onBack={handleConfirmBack}
+        onApply={handleApply}
+        isPending={isPending}
+      />
+    );
+  }
+
+  if (step.id === 3) {
+    return <StepDone result={step.result} onReset={() => setStep({ id: 0 })} />;
+  }
+
   return <StepUpload onSubmit={handleUpload} error={error} isPending={isPending} fileRef={fileRef} />;
 }
 
@@ -135,7 +265,74 @@ function StepUpload({ onSubmit, error, isPending, fileRef }: UploadProps): React
   );
 }
 
-// ── Step 1: Preview (parsed mode) ────────────────────────────────────────────
+// ── Step 1: Needs OCR (PDF vectorizado sin texto) ─────────────────────────────
+
+type NeedsOcrProps = {
+  file: File;
+  fileName: string;
+  pageCount: number;
+  onBack: () => void;
+  onOcr: () => void;
+  onManual: () => void;
+  isOcrPending: boolean;
+  error: string | null;
+};
+
+function StepNeedsOcr({ fileName, pageCount, onBack, onOcr, onManual, isOcrPending, error }: NeedsOcrProps): React.ReactElement {
+  return (
+    <div className="space-y-4 max-w-lg">
+      <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-800 space-y-1.5">
+        <p className="font-semibold">PDF sin texto seleccionable</p>
+        <p>
+          <strong>{fileName}</strong>
+          {pageCount > 0 ? ` (${pageCount} página${pageCount !== 1 ? 's' : ''})` : ''} es un PDF
+          vectorizado o escaneado. No se pudo extraer texto directamente.
+        </p>
+        <p>Elige cómo continuar:</p>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <button
+          type="button"
+          disabled={isOcrPending}
+          onClick={onOcr}
+          className="flex flex-col items-start gap-1.5 rounded-lg border border-sp-border bg-sp-admin-surface p-4 text-left hover:border-sp-orange/60 disabled:opacity-50 transition-colors"
+        >
+          <span className="text-sm font-medium text-sp-admin-fg">
+            {isOcrPending ? 'Procesando OCR…' : 'Autocompletar con OCR'}
+          </span>
+          <span className="text-xs text-sp-admin-muted">
+            Reconocimiento óptico automático. Puede tardar 20–40 s. Revisa los datos antes de confirmar.
+          </span>
+        </button>
+        <button
+          type="button"
+          disabled={isOcrPending}
+          onClick={onManual}
+          className="flex flex-col items-start gap-1.5 rounded-lg border border-sp-border bg-sp-admin-surface p-4 text-left hover:border-sp-orange/60 disabled:opacity-50 transition-colors"
+        >
+          <span className="text-sm font-medium text-sp-admin-fg">Introducir manualmente</span>
+          <span className="text-xs text-sp-admin-muted">
+            Escribe los importes directamente desde el PDF. Sin errores de OCR.
+          </span>
+        </button>
+      </div>
+
+      {error && <p className="text-xs text-red-500">{error}</p>}
+
+      <button
+        type="button"
+        onClick={onBack}
+        disabled={isOcrPending}
+        className="text-xs text-sp-admin-muted hover:text-sp-admin-fg disabled:opacity-50"
+      >
+        ← Volver
+      </button>
+    </div>
+  );
+}
+
+// ── Step 1: Preview (parsed or ocr-preview mode) ──────────────────────────────
 
 type PreviewProps = {
   rows: PayrollImportRow[];
@@ -146,9 +343,10 @@ type PreviewProps = {
   onBack: () => void;
   onConfirm: (rows: PayrollImportRow[], file: File) => void;
   isPending: boolean;
+  isOcr?: boolean;
 };
 
-function StepPreview({ rows, file, fileName, filenameWarning, existingTxIds, onBack, onConfirm, isPending }: PreviewProps): React.ReactElement {
+function StepPreview({ rows, file, fileName, filenameWarning, existingTxIds, onBack, onConfirm, isPending, isOcr }: PreviewProps): React.ReactElement {
   const [editRows, setEditRows] = useState<PayrollImportRow[]>(() => rows);
 
   function toggleInclude(page: number): void {
@@ -172,6 +370,13 @@ function StepPreview({ rows, file, fileName, filenameWarning, existingTxIds, onB
         <span>·</span>
         <span>{rows.length} página{rows.length !== 1 ? 's' : ''} detectada{rows.length !== 1 ? 's' : ''}</span>
       </div>
+
+      {isOcr && (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-800">
+          <strong>Datos completados por OCR</strong> — revisa nombre, período y coste empresa fila a fila
+          antes de continuar. Los campos son editables.
+        </div>
+      )}
 
       {filenameWarning && (
         <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-800">
@@ -252,7 +457,12 @@ function StepPreview({ rows, file, fileName, filenameWarning, existingTxIds, onB
                         ⚠ {row.warning}
                       </span>
                     )}
-                    {!alreadyExists && !row.warning && (
+                    {!alreadyExists && !row.warning && isOcr && (
+                      <span className="inline-flex items-center gap-1 rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-medium text-amber-700">
+                        OCR
+                      </span>
+                    )}
+                    {!alreadyExists && !row.warning && !isOcr && (
                       <span className="inline-flex items-center gap-1 rounded bg-green-100 px-1.5 py-0.5 text-[10px] font-medium text-green-700">
                         OK
                       </span>
@@ -286,7 +496,7 @@ function StepPreview({ rows, file, fileName, filenameWarning, existingTxIds, onB
   );
 }
 
-// ── Step 1: Manual Entry (when PDF has no extractable text) ───────────────────
+// ── Step 1: Manual Entry ──────────────────────────────────────────────────────
 
 type ManualEntryProps = {
   file: File;
@@ -330,12 +540,12 @@ function StepManualEntry({ file, fileName, pageCount, suggestedYearMonth, existi
   return (
     <div className="space-y-4 max-w-2xl">
       <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-800 space-y-1">
-        <p className="font-semibold">No se pudo extraer texto del PDF</p>
+        <p className="font-semibold">Introducción manual de nóminas</p>
         <p>
-          El archivo <strong>{fileName}</strong>{pageCount > 0 ? ` (${pageCount} página${pageCount !== 1 ? 's' : ''})` : ''} parece estar
-          exportado sin texto seleccionable (PDF vectorizado o escaneado).
+          El archivo <strong>{fileName}</strong>{pageCount > 0 ? ` (${pageCount} página${pageCount !== 1 ? 's' : ''})` : ''} no
+          tiene texto seleccionable. Introduce los importes desde el PDF impreso o en pantalla.
         </p>
-        <p>Puedes introducir los importes manualmente o pedir a ELEVATEX una versión exportada directamente desde el software de nóminas.</p>
+        <p>Puedes pedir a ELEVATEX una versión exportada directamente desde el software de nóminas para evitar este paso.</p>
       </div>
 
       <div className="space-y-3">

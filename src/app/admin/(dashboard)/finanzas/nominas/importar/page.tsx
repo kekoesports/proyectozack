@@ -4,6 +4,9 @@ import { PayrollImportWizard } from '@/features/admin/finance-payroll/PayrollImp
 
 export const metadata = { title: 'Importar nóminas | Admin' };
 
+// OCR vía tesseract.js puede tardar ~20-30s por página a 3× resolución.
+export const maxDuration = 60;
+
 export default async function PayrollImportPage(): Promise<React.ReactElement> {
   await requirePermission('facturacion', 'write');
 
