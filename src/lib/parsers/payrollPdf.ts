@@ -4,15 +4,64 @@ import { extractPdfText, groupIntoLines } from './pdf';
 import type { PdfTextItem } from './pdf';
 import { parseEsNumber } from './common';
 import { findLabelItem, findNearValue } from './pdfHeuristics';
-import type { ParsedPayrollPage, PayrollImportRow } from '@/lib/finance/payroll/types';
+import type { ParsedPayrollPage, PayrollImportRow, FilenameWarning } from '@/lib/finance/payroll/types';
 
 const MONTH_MAP: Record<string, number> = {
   ENE: 1, FEB: 2, MAR: 3, ABR: 4, MAY: 5, JUN: 6,
   JUL: 7, AGO: 8, SEP: 9, OCT: 10, NOV: 11, DIC: 12,
 };
 
+const FILENAME_MONTH_MAP: Record<string, number> = {
+  ENE: 1, ENERO: 1,
+  FEB: 2, FEBRERO: 2,
+  MAR: 3, MARZO: 3,
+  ABR: 4, ABRIL: 4,
+  MAY: 5, MAYO: 5,
+  JUN: 6, JUNIO: 6,
+  JUL: 7, JULIO: 7,
+  AGO: 8, AGOSTO: 8,
+  SEP: 9, SEPTIEMBRE: 9,
+  OCT: 10, OCTUBRE: 10,
+  NOV: 11, NOVIEMBRE: 11,
+  DIC: 12, DICIEMBRE: 12,
+};
+
+const MONTH_NAMES_ES: Record<number, string> = {
+  1: 'enero', 2: 'febrero', 3: 'marzo', 4: 'abril', 5: 'mayo', 6: 'junio',
+  7: 'julio', 8: 'agosto', 9: 'septiembre', 10: 'octubre', 11: 'noviembre', 12: 'diciembre',
+};
+
 function normStr(s: string): string {
   return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\s+/g, ' ').trim();
+}
+
+export function detectMonthFromFilename(filename: string): { year: number; month: number } | null {
+  const upper = filename.toUpperCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+  const yearMatch = /\b(20\d{2})\b/.exec(upper);
+  if (!yearMatch?.[1]) return null;
+  const year = parseInt(yearMatch[1], 10);
+  // Match longest names first to avoid FEB matching inside FEBRERO
+  const names = Object.keys(FILENAME_MONTH_MAP).sort((a, b) => b.length - a.length);
+  for (const name of names) {
+    if (new RegExp(`\\b${name}\\b`).test(upper)) {
+      const month = FILENAME_MONTH_MAP[name];
+      if (month !== undefined) return { year, month };
+    }
+  }
+  return null;
+}
+
+export function detectFilenameMismatch(filename: string, yearMonth: string): FilenameWarning | null {
+  const fileDate = detectMonthFromFilename(filename);
+  if (!fileDate) return null;
+  const parts = yearMonth.split('-');
+  const ymYear = parseInt(parts[0] ?? '0', 10);
+  const ymMonth = parseInt(parts[1] ?? '0', 10);
+  if (fileDate.year === ymYear && fileDate.month === ymMonth) return null;
+  return {
+    filenameMonth: `${MONTH_NAMES_ES[fileDate.month] ?? String(fileDate.month)} ${fileDate.year}`,
+    detectedPeriod: `${MONTH_NAMES_ES[ymMonth] ?? String(ymMonth)} ${ymYear}`,
+  };
 }
 
 // Matches "01 OCT 25 a 31 OCT 25" or "01-OCT-25 AL 31-OCT-25" style periods
@@ -264,7 +313,7 @@ export function parsePayrollPage(
 export async function parsePayrollPdfBuffer(
   buffer: ArrayBuffer | Uint8Array,
   pdfFileName: string,
-): Promise<PayrollImportRow[]> {
+): Promise<{ rows: PayrollImportRow[]; pageCount: number; itemCount: number; filenameWarning: FilenameWarning | null }> {
   const extract = await extractPdfText(buffer);
   const rows: PayrollImportRow[] = [];
 
@@ -304,5 +353,8 @@ export async function parsePayrollPdfBuffer(
     });
   }
 
-  return rows;
+  const firstPeriod = rows.find((r) => r.yearMonth !== 'desconocido')?.yearMonth ?? null;
+  const filenameWarning = firstPeriod ? detectFilenameMismatch(pdfFileName, firstPeriod) : null;
+
+  return { rows, pageCount: extract.pageCount, itemCount: extract.items.length, filenameWarning };
 }
