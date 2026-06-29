@@ -2,7 +2,8 @@
 // from a PDF buffer. No rendering, no canvas — text layer only.
 
 // pdfjs-dist v5 main build uses DOMMatrix (browser-only). Use legacy build for Node.js.
-import { getDocument, GlobalWorkerOptions } from 'pdfjs-dist/legacy/build/pdf.mjs';
+// Dynamic import defers module evaluation to call time, avoiding DOMMatrix ReferenceError
+// during SSR module initialization when Turbopack bundles the server action chain.
 import type { TextItem, TextMarkedContent } from 'pdfjs-dist/types/src/display/api';
 
 export type PdfTextItem = {
@@ -22,17 +23,16 @@ export type PdfExtract = {
   readonly pageSizes: readonly { readonly width: number; readonly height: number }[];
 };
 
-// Disable the worker in server env — pdfjs will run in-process.
-// Setting workerSrc to an empty string forces fake worker mode.
-if (typeof window === 'undefined') {
-  GlobalWorkerOptions.workerSrc = '';
-}
-
 function isTextItem(item: TextItem | TextMarkedContent): item is TextItem {
   return 'str' in item && 'transform' in item;
 }
 
 export async function extractPdfText(buffer: ArrayBuffer | Uint8Array): Promise<PdfExtract> {
+  // Dynamic import: defers pdfjs-dist loading until this function is called (server action),
+  // not at module evaluation time. Prevents DOMMatrix crash during SSR bundle init.
+  const { getDocument, GlobalWorkerOptions } = await import('pdfjs-dist/legacy/build/pdf.mjs');
+  GlobalWorkerOptions.workerSrc = '';
+
   const data = buffer instanceof Uint8Array ? buffer : new Uint8Array(buffer);
   const loadingTask = getDocument({
     data,
