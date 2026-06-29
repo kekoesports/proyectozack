@@ -1,115 +1,117 @@
-# Handoff — Sprint finanzas: clasificación, nuevos subtipos y wizard 2026
+# Handoff — Sprint Permisos: rol admin_limited_tasks + guards tareas
 
-**Sesión:** 2026-06-28  
-**Estado al cerrar:** 3 PRs mergeados, master limpio, CI verde, wizard disponible en producción. Sin datos reales insertados.
-
----
-
-## 1. PRs mergeados esta sesión
-
-### PR #109 — `fix/recurring-expense-propagate-classification`
-
-**Problema:** `createInvoiceForMonth` generaba facturas desde plantillas recurrentes sin propagar `expenseGroup` ni `expenseSubtype`. Las facturas mensuales resultantes quedaban sin clasificar, rompiendo los filtros P&L y el dashboard de gastos operativos.
-
-**Fix:** 2 líneas en `src/lib/queries/recurringExpenses.ts` para pasar `template.expenseGroup` y `template.expenseSubtype` al `db.insert(invoices)`. Tests: 17 nuevos en `src/__tests__/server/recurring-expenses.test.ts`.
+**Sesión:** 2026-06-29  
+**Estado al cerrar:** ✅ COMPLETO. Código en producción (`0b33910`) y rol de Alfonso actualizado y verificado en DB.
 
 ---
 
-### PR #110 — `feat/expense-subtypes-payroll-insurance`
+## 1. Commit de esta sesión
 
-**Problema:** El enum `expense_subtype` no tenía valores para las categorías de nóminas de socios, cuotas RETA, seguro médico y seguridad social. Estos gastos no podían clasificarse correctamente ni agruparse en el P&L.
-
-**Cambios:**
-- `src/db/schema/invoices.ts` — 4 valores nuevos al enum: `factura_autonomo`, `nomina_socio`, `seguro_medico`, `seguridad_social`
-- `src/lib/schemas/invoice.ts` — `EXPENSE_SUBTYPES_OPERATIONAL` pasa de 9 a 13 items; labels añadidos
-- `drizzle/0100_curious_doomsday.sql` — 4× `ALTER TYPE ADD VALUE` (non-destructive, idempotente)
-- Tests: 9 nuevos en `src/__tests__/server/expense-classification.test.ts`
-
----
-
-### PR #111 — `feat/finance-expense-setup-2026`
-
-**Problema:** No había forma de cargar los gastos operativos históricos de 2026 (nóminas, autónomos, gestoría, seguro) de forma segura, con revisión previa y protección anti-duplicados.
-
-**Cambios:**
-
-| Archivo | Rol |
+| Commit | Descripción |
 |---|---|
-| `src/lib/finance/setup2026/types.ts` | Tipos: `HistoricalExpenseRow`, `RecurringExpenseRow`, `Setup2026HistoricalConfig`, `ApplyResult` |
-| `src/lib/finance/setup2026/generator.ts` | Funciones puras: `estimateGross`, `calcTotal`, `makeTxId`, `generateHistoricalRows`, `generateRecurringTemplates`, `summarize` |
-| `src/lib/queries/setup2026.ts` | DB: `getExistingSetupTxIds`, `previewSetup2026`, `applySetup2026` |
-| `src/app/admin/(dashboard)/finanzas/setup-2026/actions.ts` | Server Actions: `previewSetup2026Action`, `applySetup2026Action` |
-| `src/app/admin/(dashboard)/finanzas/setup-2026/page.tsx` | RSC shell con `requirePermission('facturacion', 'write')` |
-| `src/features/admin/finance-setup/Setup2026Wizard.tsx` | Wizard cliente 4 pasos (Config → Preview editable → Confirm → Result) |
-| `src/__tests__/server/setup2026-generator.test.ts` | 30 tests: `calcTotal`, `estimateGross`, `makeTxId`, rows, summarize, recurring, idempotencia |
-| `src/app/admin/(dashboard)/finanzas/FinanzasNav.tsx` | +1 tab "Setup 2026" |
-
-**Garantías clave:**
-- Ningún dato se inserta al cargar la página
-- Solo el botón "Confirmar y crear" del Step 3 llama a `applySetup2026Action`
-- Deduplicación por `txId` (`setup2026:{tipo}:{persona}:{YYYY-MM}`) para facturas
-- Deduplicación por `name` para templates recurrentes
-- Sin migración — usa los subtipos de PR #110
+| `0b33910` | feat(auth): add admin_limited_tasks role with task ownership guards (#113) |
 
 ---
 
-## 2. Estado actual
+## 2. Qué se implementó
 
-| Check | Estado |
+### Rol `admin_limited_tasks`
+
+- **Permisos:** copia de admin en los 18 módulos CRM (noticias, sorteos, talentos, campañas, facturación, bancos, contratos, etc.)
+- **Restricción de tareas:** solo ve / edita / completa / elimina sus propias tareas (owner o assignee)
+- **Sin hardcode por email/nombre** — el rol es el único mecanismo
+
+### Archivos modificados
+
+| Archivo | Cambio |
 |---|---|
-| `master` | Limpio (`nothing to commit`) |
-| CI (Lint + Type-check + Tests + Build + Vercel) | ✅ Verde |
-| Ruta `/admin/finanzas/setup-2026` | Disponible en producción |
-| Datos reales en `invoices` / `recurringExpenses` via wizard | **No insertados** |
-| Suite de tests | 1355 tests, 79 suites, 0 fallos |
+| `src/lib/auth-guard.ts` | `admin_limited_tasks` añadido a `Role`, `ROLES`, `homeForRole → '/admin'` |
+| `src/lib/permissions.ts` | `canSeeAll`, `canDelete` + todos los módulos del PERMISSIONS map |
+| `src/lib/queries/crmTasks.ts` | Nueva query `getTasksByIds`; `isAssignableTaskUser` incluye el nuevo rol |
+| `src/app/admin/(dashboard)/tareas/actions.ts` | Guards de ownership en 5 actions; `resetRolledOver` callerId para todos los no-admin |
+| `src/app/admin/(dashboard)/equipo/page.tsx` | Filtro equipo: solo `admin` y `manager` ven todos los cards |
+| `src/__tests__/server/task-ownership.test.ts` | 12 tests nuevos (T1–T12, todos verdes) |
+
+### Guards implementados
+
+- `updateTaskAction` — verifica propiedad para `role !== 'admin'`
+- `updateTaskPartialAction` — ídem
+- `completeTaskAction` — ídem
+- `deleteTaskAction` — ídem
+- `bulkDeleteTasksAction` — rechaza TODO el lote si cualquier tarea es ajena; también añade `assertCanDelete` (managers ya no pueden bulk delete)
+- `resetRolledOverAction` / `resetRolledOverBulkAction` — `callerId` para todos los no-admin (antes solo `staff`)
+
+### Garantías de seguridad confirmadas
+
+1. NO lista todas las tareas — `visibilityCondition` activo para `role !== 'admin'`
+2. NO acceso por URL directa a tarea ajena — no existe página de detalle individual
+3. NO edita tareas ajenas — guards en `updateTaskAction` y `updateTaskPartialAction`
+4. NO completa tareas ajenas — guard en `completeTaskAction`
+5. NO borra tareas ajenas — guards en `deleteTaskAction` y `bulkDeleteTasksAction`
+6. SÍ borra sus propias tareas
+7. SÍ tiene acceso admin en todos los demás módulos
 
 ---
 
-## 3. Siguiente paso manual (no de código)
+## 3. ✅ Cambio de rol de Alfonso — APLICADO Y VERIFICADO
 
-Entrar al wizard y cargar los gastos históricos reales:
+Ejecutado el 2026-06-29. Script `set-alfonso-role.ts` aplicó el UPDATE y leyó de vuelta el rol para confirmar.
 
-1. Ir a `/admin/finanzas/setup-2026`
-2. En **Step 1 (Config)** revisar y ajustar los importes reales:
-   - Nómina Pablo: neto real, IRPF real, meses reales (enero–marzo o los que apliquen)
-   - Nómina Alfonso: ídem
-   - Cuota autónomo Pablo (RETA): importe mensual real
-   - Cuota autónomo Alfonso (RETA): importe mensual real
-   - Gestoría: importe neto, IVA 21%, meses reales
-   - Seguro médico: importe mensual, meses reales
-3. Marcar si crear templates recurrentes (para gestoría y seguro desde julio en adelante)
-4. Avanzar a **Step 2 (Preview)** — revisar fila a fila; las filas ya existentes aparecerán con badge ⚠ y deshabilitadas
-5. Editar inline cualquier campo incorrecto (concepto, importes, fecha)
-6. Avanzar a **Step 3 (Confirm)** — ver resumen final con total EBITDA y conteo de filas a crear
-7. Pulsar **"Confirmar y crear"** solo cuando los números estén correctos
+| Campo | Valor |
+|---|---|
+| Email | `arias@socialpro.es` |
+| Nombre | Alfonso Arias |
+| Rol anterior | `manager` |
+| Rol actual | `admin_limited_tasks` |
+| Filas afectadas | 1 |
+| `check-alfonso-role.ts` | ✅ OK |
+
+**Ningún otro usuario fue modificado.** Roles del resto del equipo intactos:
+- `admin@socialpro.es` → `admin`
+- `rsnoverwatch@gmail.com` → `staff`
+- `pcamacho@socialpro.es` → `manager`
+
+**Permisos resultantes de Alfonso:**
+- Acceso admin en todos los módulos CRM fuera de tareas ✅
+- Tareas: solo ve / edita / completa / elimina las propias (owner o assignee) ✅
 
 ---
 
-## 4. Siguiente PR recomendado — después de cargar datos
+## 4. Nota menor — UI plantillas
 
-**`feat/finance-ebitda-monthly-breakdown`**
+`tareas/plantillas/page.tsx` tiene un check de UI hardcodeado:
+```typescript
+canDelete={canDelete(session.user.role === 'admin' ? 'admin' : 'manager')}
+```
+Resultado: `admin_limited_tasks` no ve el botón eliminar en plantillas (pero la server action sí aceptaría la petición). Inconsistencia cosmética de UI. Corregible en fix aparte si se desea.
 
-**Objetivo:** mostrar EBITDA devengado y caja por mes, desglosado en categorías.
+---
 
-**Vista propuesta:** tabla mes × categoría con totales:
+## 5. Norma de proceso (vigente)
 
-| Mes | Ingresos | Costes directos campaña | Nóminas socios | Autónomos (RETA) | Gestoría | Seguro médico | Otros operativos | EBITDA devengado | Cobros reales | EBITDA caja |
-|---|---|---|---|---|---|---|---|---|---|---|
-| ene 2026 | ... | ... | ... | ... | ... | ... | ... | **X** | ... | **Y** |
+Push directo a master **prohibido** para cambios que:
+- Borren datos / modifiquen producción / toquen auth o migraciones
+- Afecten finanzas, invoices, conciliación, permisos o deploy
 
-**Fuentes de datos:**
-- Ingresos: `invoices` WHERE `kind='income'` AND `status IN ('cobrada','pagada')`
-- Costes directos: `invoices` WHERE `expenseGroup='campaign_direct'`
-- Nóminas: `expenseSubtype='nomina_socio'`
-- Autónomos: `expenseSubtype IN ('cuota_autonomo','factura_autonomo','seguridad_social')`
-- Gestoría: `expenseSubtype='gestoria'`
-- Seguro: `expenseSubtype='seguro_medico'`
-- EBITDA devengado: `sum(netAmount)` ingresos − `sum(netAmount)` gastos
-- EBITDA caja: requiere `invoicePayments` (ya existe la tabla)
+En esos casos: **branch → PR → CI verde → informe pre-merge → confirmación antes de mergear**.
 
-**Archivos a tocar:**
-- `src/lib/queries/ebitda.ts` — nueva query con GROUP BY mes + subtype
-- `src/app/admin/(dashboard)/finanzas/pl/page.tsx` — añadir sección breakdown
-- Componente tabla en `src/features/admin/finance/EbitdaMonthlyBreakdown.tsx`
+---
 
-**Prerequisito:** tener datos cargados vía wizard (PR #111) para que la vista tenga contenido real.
+## 6. Scripts de diagnóstico (no commiteados, desechables)
+
+En `/scripts/`:
+- `check-alfonso-role.ts`
+- `qa-tracker-42.ts`
+- `debug-keydrop-sheet.ts`, `debug-tracker-hyperlinks.ts`, `fix-tracker-count.ts`, `cleanup-tracker-duplicates.ts`
+
+Pueden eliminarse cuando sea conveniente.
+
+---
+
+## 7. Próximos pasos
+
+1. **QA manual con la cuenta de Alfonso** (`arias@socialpro.es`):
+   - Iniciar sesión y confirmar acceso completo a campañas, talentos, finanzas, etc.
+   - En `/admin/tareas`: verificar que solo ve sus propias tareas
+   - Intentar editar/completar/borrar una tarea de otro usuario → debe recibir error
+   - Confirmar que puede gestionar sus propias tareas sin restricciones
