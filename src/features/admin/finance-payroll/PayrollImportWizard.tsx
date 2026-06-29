@@ -4,102 +4,8 @@ import React, { useRef, useState, useTransition } from 'react';
 import Link from 'next/link';
 import { parsePayrollPdfAction, applyPayrollImportAction } from '@/app/admin/(dashboard)/finanzas/nominas/importar/actions';
 import type { PayrollImportRow, PayrollApplyResult, FilenameWarning } from '@/lib/finance/payroll/types';
-
-// ── Pure helpers (mirrors server-only parser, safe in client) ─────────────────
-
-function slugify(name: string): string {
-  return name
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .replace(/[^a-z0-9\s]/g, '')
-    .trim()
-    .replace(/\s+/g, '-');
-}
-
-function makeTxId(slug: string, yearMonth: string): string {
-  return `payroll:${slug}:${yearMonth}`;
-}
-
-// ── Manual entry row (mutable, pre-conversion) ────────────────────────────────
-
-type ManualRow = {
-  id: number;
-  counterpartyName: string;
-  yearMonth: string;
-  liquidoPercibir: string;
-  costoEmpresa: string;
-  totalDevengado: string;
-  totalDeducciones: string;
-  irpfPct: string;
-  notes: string;
-};
-
-function manualRowToPayrollRow(row: ManualRow): PayrollImportRow {
-  const name = row.counterpartyName.trim();
-  const slug = name ? slugify(name) : `trabajador-${row.id}`;
-  const ym = row.yearMonth.trim() || 'desconocido';
-  const txId = makeTxId(slug, ym);
-  const costoStr = row.costoEmpresa.trim() || '0.00';
-  const concept = name ? `Nómina ${name} ${ym}` : `Nómina pág. ${row.id} ${ym}`;
-  const isoDate = ym !== 'desconocido' ? `${ym}-01` : new Date().toISOString().slice(0, 10);
-
-  const noteParts: string[] = [];
-  if (ym !== 'desconocido') noteParts.push(`Período: ${ym}`);
-  if (costoStr !== '0.00') noteParts.push(`Coste empresa: ${costoStr}`);
-  if (row.liquidoPercibir) noteParts.push(`Líquido: ${row.liquidoPercibir}`);
-  if (row.totalDevengado) noteParts.push(`T.Devengado: ${row.totalDevengado}`);
-  if (row.totalDeducciones) noteParts.push(`T.Deducciones: ${row.totalDeducciones}`);
-  if (row.irpfPct) noteParts.push(`IRPF: ${row.irpfPct}%`);
-  if (row.notes) noteParts.push(row.notes);
-  noteParts.push('Entrada manual');
-
-  const missingRequired = !name || costoStr === '0.00' || ym === 'desconocido';
-
-  // Handles Spanish format (1.696,55) and plain decimals (1363.00 or 1363,00).
-  const normalizeAmount = (s: string): string => {
-    const trimmed = s.trim();
-    const cleaned = trimmed.includes(',')
-      ? trimmed.replace(/\./g, '').replace(',', '.') // remove thousands dots, swap decimal comma
-      : trimmed;
-    const n = parseFloat(cleaned);
-    return isNaN(n) ? '0.00' : n.toFixed(2);
-  };
-
-  return {
-    page: row.id,
-    include: !missingRequired,
-    slug,
-    yearMonth: ym,
-    txId,
-    counterpartyName: name,
-    concept,
-    issueDate: isoDate,
-    netAmount: normalizeAmount(costoStr),
-    totalAmount: normalizeAmount(costoStr),
-    vatPct: '0.00',
-    withholdingPct: '0.00',
-    expenseGroup: 'operational',
-    expenseSubtype: 'nomina_socio',
-    status: 'pagada',
-    notes: noteParts.join(' | '),
-    warning: missingRequired ? 'Faltan campos obligatorios (trabajador, mes/año, coste empresa)' : null,
-  };
-}
-
-function emptyManualRow(id: number, suggestedYearMonth?: string): ManualRow {
-  return {
-    id,
-    counterpartyName: '',
-    yearMonth: suggestedYearMonth ?? '',
-    liquidoPercibir: '',
-    costoEmpresa: '',
-    totalDevengado: '',
-    totalDeducciones: '',
-    irpfPct: '',
-    notes: '',
-  };
-}
+import { emptyManualRow, manualRowToPayrollRow } from '@/lib/finance/payroll/manualRow';
+import type { ManualRow } from '@/lib/finance/payroll/manualRow';
 
 // ── Step discriminator ────────────────────────────────────────────────────────
 
@@ -480,7 +386,8 @@ function StepManualEntry({ file, fileName, pageCount, suggestedYearMonth, existi
                     type="text"
                     value={row.costoEmpresa}
                     onChange={(e) => updateManualField(row.id, 'costoEmpresa', e.target.value)}
-                    placeholder="1.667,51"
+                    placeholder="Ej. 1.696,55"
+                    autoComplete="off"
                     className="w-full rounded border border-sp-border bg-transparent px-2 py-1 focus:outline-none focus:border-sp-orange font-mono"
                   />
                 </label>
@@ -490,7 +397,8 @@ function StepManualEntry({ file, fileName, pageCount, suggestedYearMonth, existi
                     type="text"
                     value={row.liquidoPercibir}
                     onChange={(e) => updateManualField(row.id, 'liquidoPercibir', e.target.value)}
-                    placeholder="1.000,00"
+                    placeholder="Ej. 1.000,00"
+                    autoComplete="off"
                     className="w-full rounded border border-sp-border bg-transparent px-2 py-1 focus:outline-none focus:border-sp-orange font-mono"
                   />
                 </label>
@@ -500,7 +408,8 @@ function StepManualEntry({ file, fileName, pageCount, suggestedYearMonth, existi
                     type="text"
                     value={row.totalDevengado}
                     onChange={(e) => updateManualField(row.id, 'totalDevengado', e.target.value)}
-                    placeholder="1.500,00"
+                    placeholder="Ej. 1.696,55"
+                    autoComplete="off"
                     className="w-full rounded border border-sp-border bg-transparent px-2 py-1 focus:outline-none focus:border-sp-orange font-mono"
                   />
                 </label>
@@ -510,7 +419,8 @@ function StepManualEntry({ file, fileName, pageCount, suggestedYearMonth, existi
                     type="text"
                     value={row.totalDeducciones}
                     onChange={(e) => updateManualField(row.id, 'totalDeducciones', e.target.value)}
-                    placeholder="350,00"
+                    placeholder="Ej. 696,55"
+                    autoComplete="off"
                     className="w-full rounded border border-sp-border bg-transparent px-2 py-1 focus:outline-none focus:border-sp-orange font-mono"
                   />
                 </label>
@@ -520,7 +430,8 @@ function StepManualEntry({ file, fileName, pageCount, suggestedYearMonth, existi
                     type="text"
                     value={row.irpfPct}
                     onChange={(e) => updateManualField(row.id, 'irpfPct', e.target.value)}
-                    placeholder="15"
+                    placeholder="Ej. 22,49"
+                    autoComplete="off"
                     className="w-full rounded border border-sp-border bg-transparent px-2 py-1 focus:outline-none focus:border-sp-orange font-mono"
                   />
                 </label>
