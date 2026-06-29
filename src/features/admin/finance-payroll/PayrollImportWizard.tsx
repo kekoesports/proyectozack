@@ -394,7 +394,10 @@ type ManualEntryProps = {
 };
 
 function StepManualEntry({ file, fileName, pageCount, suggestedYearMonth, existingTxIds, onBack, onConfirm, isPending }: ManualEntryProps): React.ReactElement {
-  const [manualRows, setManualRows] = useState<ManualRow[]>(() => [emptyManualRow(1, suggestedYearMonth)]);
+  const initialCount = Math.max(1, Math.min(pageCount, 10));
+  const [manualRows, setManualRows] = useState<ManualRow[]>(() =>
+    Array.from({ length: initialCount }, (_, i) => emptyManualRow(i + 1, suggestedYearMonth)),
+  );
 
   const existingSet = new Set(existingTxIds);
 
