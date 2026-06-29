@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache';
 
 import { requirePermission } from '@/lib/permissions';
-import { assertCanDelete, needsVisibilityFilter } from '@/lib/permissions';
+import { assertCanDelete } from '@/lib/permissions';
 import { logRedacted } from '@/lib/log';
 import {
   completeTask,
@@ -11,6 +11,7 @@ import {
   createTaskTemplate,
   deleteTask,
   getTaskById,
+  getTasksByIds,
   isAssignableTaskUser,
   deleteTasks,
   deleteTaskTemplate,
@@ -113,6 +114,13 @@ export async function updateTaskAction(id: number, input: unknown): Promise<Acti
 
   const prevTask = await getTaskById(id);
 
+  if (session.user.role !== 'admin') {
+    if (!prevTask) return { error: 'Tarea no encontrada' };
+    if (prevTask.ownerId !== session.user.id && prevTask.assignedToUserId !== session.user.id) {
+      return { error: 'Sin permiso para modificar esta tarea' };
+    }
+  }
+
   const newCoResponsable = parsed.data.assignedToUserId && parsed.data.assignedToUserId !== parsed.data.ownerId
     ? parsed.data.assignedToUserId
     : null;
@@ -155,7 +163,7 @@ export async function updateTaskPartialAction(
   id: unknown,
   input: unknown,
 ): Promise<ActionResult> {
-  await requirePermission('tareas', 'read');
+  const session = await requirePermission('tareas', 'read');
 
   const parsedId = IdSchema.safeParse(id);
   if (!parsedId.success) return { error: 'ID inválido' };
@@ -166,6 +174,14 @@ export async function updateTaskPartialAction(
   if (parsed.data.ownerId !== undefined) {
     const ownerErr = await assertStaffOwner(parsed.data.ownerId);
     if (ownerErr) return { error: ownerErr };
+  }
+
+  if (session.user.role !== 'admin') {
+    const task = await getTaskById(parsedId.data);
+    if (!task) return { error: 'Tarea no encontrada' };
+    if (task.ownerId !== session.user.id && task.assignedToUserId !== session.user.id) {
+      return { error: 'Sin permiso para modificar esta tarea' };
+    }
   }
 
   const updated = await updateTask(
@@ -182,7 +198,14 @@ export async function updateTaskPartialAction(
 }
 
 export async function completeTaskAction(id: number): Promise<ActionResult> {
-  await requirePermission('tareas', 'read');
+  const session = await requirePermission('tareas', 'read');
+  if (session.user.role !== 'admin') {
+    const task = await getTaskById(id);
+    if (!task) return { error: 'Tarea no encontrada' };
+    if (task.ownerId !== session.user.id && task.assignedToUserId !== session.user.id) {
+      return { error: 'Sin permiso para completar esta tarea' };
+    }
+  }
   await completeTask(id);
   revalidateAll();
   return {};
@@ -195,6 +218,13 @@ export async function deleteTaskAction(id: number): Promise<ActionResult> {
   } catch {
     return { error: 'Sin permiso para eliminar' };
   }
+  if (session.user.role !== 'admin') {
+    const task = await getTaskById(id);
+    if (!task) return { error: 'Tarea no encontrada' };
+    if (task.ownerId !== session.user.id && task.assignedToUserId !== session.user.id) {
+      return { error: 'Sin permiso para eliminar esta tarea' };
+    }
+  }
   try {
     await deleteTask(id);
     revalidateAll();
@@ -206,8 +236,23 @@ export async function deleteTaskAction(id: number): Promise<ActionResult> {
 }
 
 export async function bulkDeleteTasksAction(ids: number[]): Promise<ActionResult> {
-  await requirePermission('tareas', 'read');
+  const session = await requirePermission('tareas', 'read');
+  try {
+    assertCanDelete(session.user.role);
+  } catch {
+    return { error: 'Sin permiso para eliminar' };
+  }
   if (ids.length === 0) return {};
+  if (session.user.role !== 'admin') {
+    const tasks = await getTasksByIds(ids);
+    if (tasks.length !== ids.length) return { error: 'Una o más tareas no encontradas' };
+    const forbidden = tasks.filter(
+      (t) => t.ownerId !== session.user.id && t.assignedToUserId !== session.user.id,
+    );
+    if (forbidden.length > 0) {
+      return { error: `No puedes eliminar ${forbidden.length} tarea(s) de otros miembros` };
+    }
+  }
   await deleteTasks(ids);
   revalidateAll();
   return {};
@@ -319,7 +364,7 @@ export async function resetRolledOverAction(id: unknown): Promise<ActionResult> 
   const session = await requirePermission('tareas', 'read');
   const parsed = IdSchema.safeParse(id);
   if (!parsed.success) return { error: 'ID inválido' };
-  const callerId = needsVisibilityFilter(session.user.role) ? session.user.id : undefined;
+  const callerId = session.user.role !== 'admin' ? session.user.id : undefined;
   await resetRolledOver(parsed.data, callerId);
   revalidateAll();
   return {};
@@ -330,7 +375,7 @@ export async function resetRolledOverBulkAction(ids: unknown): Promise<ActionRes
   const session = await requirePermission('tareas', 'read');
   const parsed = IdSchema.array().safeParse(ids);
   if (!parsed.success) return { error: 'IDs inválidos' };
-  const callerId = needsVisibilityFilter(session.user.role) ? session.user.id : undefined;
+  const callerId = session.user.role !== 'admin' ? session.user.id : undefined;
   await resetRolledOverBulk(parsed.data, callerId);
   revalidateAll();
   return {};
