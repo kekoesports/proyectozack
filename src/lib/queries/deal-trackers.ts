@@ -7,7 +7,7 @@ import { alerts } from '@/db/schema/alerts';
 import { campaigns } from '@/db/schema/campaigns';
 import { talents } from '@/db/schema/talents';
 import { eq, desc, count, inArray, and, sql } from 'drizzle-orm';
-import type { CreateTrackerInput, ParsedLinkRow } from '@/lib/schemas/deal-tracker';
+import type { CreateTrackerInput, ParsedLinkRow, DeliverableSubtype } from '@/lib/schemas/deal-tracker';
 import { normalizeContentUrl } from '@/lib/utils/url-normalizer';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -113,6 +113,7 @@ export type ClassifiedImportRow = {
   contentDate: string | undefined;
   notes: string | undefined;
   status: 'valid' | 'duplicate';
+  deliverableSubtype: DeliverableSubtype | undefined;
 };
 
 export type ClassifyResult = {
@@ -154,6 +155,7 @@ export function classifyImportRows(
         contentDate: row.contentDate,
         notes: row.notes,
         status: 'duplicate',
+        deliverableSubtype: row.deliverableSubtype,
       });
     } else {
       seen.add(normalized.normalizedUrl);
@@ -165,6 +167,7 @@ export function classifyImportRows(
         contentDate: row.contentDate,
         notes: row.notes,
         status: 'valid',
+        deliverableSubtype: row.deliverableSubtype,
       });
       inserted++;
     }
@@ -193,6 +196,7 @@ export async function importTrackerItems(
     originalUrl: r.originalUrl,
     normalizedUrl: r.normalizedUrl,
     platform: r.platform,
+    deliverableSubtype: r.deliverableSubtype ?? null,
     contentDate: r.contentDate ?? null,
     notes: r.notes ?? null,
     status: r.status,
@@ -277,6 +281,18 @@ export async function updateTrackerTarget(trackerId: number, targetCount: number
     .set({ targetCount, updatedAt: new Date() })
     .where(eq(dealDeliverableTrackers.id, trackerId));
   await recalculateAndMaybeComplete(trackerId);
+}
+
+// ── Update parse mode ─────────────────────────────────────────────────────────
+
+export async function updateTrackerParseMode(
+  trackerId: number,
+  trackingParseMode: 'simple_columns' | 'socialpro_blocks' | 'horizontal_triplets',
+) {
+  await db
+    .update(dealDeliverableTrackers)
+    .set({ trackingParseMode, updatedAt: new Date() })
+    .where(eq(dealDeliverableTrackers.id, trackerId));
 }
 
 // ── Delete tracker ────────────────────────────────────────────────────────────

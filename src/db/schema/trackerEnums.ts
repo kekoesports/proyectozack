@@ -7,4 +7,11 @@ import { pgEnum } from 'drizzle-orm/pg-core';
 export const trackerParseModeEnum = pgEnum('tracker_parse_mode', [
   'simple_columns',
   'socialpro_blocks',
+  'horizontal_triplets',
+]);
+
+export const deliverableSubtypeEnum = pgEnum('deliverable_subtype', [
+  'dedicated_video',
+  'preroll',
+  'stream',
 ]);

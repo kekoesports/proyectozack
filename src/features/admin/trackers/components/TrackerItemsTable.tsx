@@ -23,6 +23,12 @@ const PLATFORM_LABELS: Record<string, string> = {
   other:     'Otro',
 };
 
+const SUBTYPE_LABELS: Record<string, string> = {
+  dedicated_video: 'Video',
+  preroll:         'Preroll',
+  stream:          'Stream',
+};
+
 const STATUS_CLASSES: Record<string, string> = {
   detected:  'text-gray-400',
   valid:     'text-emerald-600 font-semibold',
@@ -67,6 +73,7 @@ export function TrackerItemsTable({ trackerId, items }: Props) {
           <tr className="bg-sp-off text-xs text-sp-muted uppercase tracking-wide">
             <th className="px-4 py-2 text-left font-semibold">#</th>
             <th className="px-4 py-2 text-left font-semibold">Plataforma</th>
+            <th className="px-4 py-2 text-left font-semibold">Tipo</th>
             <th className="px-4 py-2 text-left font-semibold">URL</th>
             <th className="px-4 py-2 text-left font-semibold">Fecha</th>
             <th className="px-4 py-2 text-left font-semibold">Estado</th>
@@ -80,6 +87,11 @@ export function TrackerItemsTable({ trackerId, items }: Props) {
               <td className="px-4 py-2">
                 <span className="text-xs font-medium text-sp-dark">
                   {PLATFORM_LABELS[item.platform] ?? item.platform}
+                </span>
+              </td>
+              <td className="px-4 py-2">
+                <span className="text-xs text-sp-muted">
+                  {item.deliverableSubtype ? (SUBTYPE_LABELS[item.deliverableSubtype] ?? item.deliverableSubtype) : '—'}
                 </span>
               </td>
               <td className="px-4 py-2 max-w-xs">
