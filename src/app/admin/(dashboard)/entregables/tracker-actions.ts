@@ -12,6 +12,7 @@ import {
   connectTrackerSheet,
   deleteTracker,
   deleteTrackerItem,
+  purgeTrackerDuplicates,
 } from '@/lib/queries/deal-trackers';
 import { extractXlsxSheet } from '@/lib/parsers/xlsx';
 import { extractCsvSheet } from '@/lib/parsers/csv';
@@ -326,6 +327,24 @@ export async function syncTrackerFromSheetUrlAction(formData: FormData): Promise
     return { ok: true, inserted: result.inserted, duplicates: result.duplicatesSkipped };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : 'Error al sincronizar con Google Sheets' };
+  }
+}
+
+// ── purgeTrackerDuplicatesAction ──────────────────────────────────────────────
+// Deletes all status='duplicate' items for a tracker and revalidates.
+
+export async function purgeTrackerDuplicatesAction(formData: FormData): Promise<ActionResult & { deleted?: number }> {
+  await requirePermission('campanas', 'write');
+
+  const trackerId = Number(formData.get('trackerId'));
+  if (!trackerId || isNaN(trackerId)) return { ok: false, error: 'trackerId inválido' };
+
+  try {
+    const deleted = await purgeTrackerDuplicates(trackerId);
+    revalidatePath(`/admin/entregables/${trackerId}`);
+    return { ok: true, deleted };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : 'Error al purgar duplicados' };
   }
 }
 

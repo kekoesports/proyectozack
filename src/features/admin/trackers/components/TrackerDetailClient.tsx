@@ -13,6 +13,7 @@ import {
   updateTrackerParseModeAction,
   deleteTrackerAction,
   connectTrackerSheetAction,
+  purgeTrackerDuplicatesAction,
 } from '@/app/admin/(dashboard)/entregables/tracker-actions';
 import { syncTrackerBlockAction } from '@/app/admin/(dashboard)/entregables/source-actions';
 import { useRouter } from 'next/navigation';
@@ -39,6 +40,8 @@ export function TrackerDetailClient({ tracker }: Props) {
   const [sheetUrlInput, setSheetUrlInput] = useState('');
   const [connectMsg, setConnectMsg] = useState<string | null>(null);
   const [isConnecting, startConnect] = useTransition();
+  const [purgeMsg, setPurgeMsg] = useState<string | null>(null);
+  const [isPurging, startPurge] = useTransition();
 
   // Pre-compute subtype counts from items for SubtypeBreakdown
   const subtypeCounts = tracker.items.reduce<Record<string, number>>((acc, item) => {
@@ -107,6 +110,23 @@ export function TrackerDetailClient({ tracker }: Props) {
         setConnectMsg(`Error: ${result.error}`);
       } else {
         setConnectMsg('Sheet conectado. Ahora puedes usar "Sincronizar ahora" para importar links.');
+        router.refresh();
+      }
+    });
+  }
+
+  function handlePurgeDuplicates() {
+    const dupeCount = tracker.items.filter((i) => i.status === 'duplicate').length;
+    if (!window.confirm(`¿Eliminar ${dupeCount} items duplicados del tracker? Esta acción no se puede deshacer.`)) return;
+    const fd = new FormData();
+    fd.set('trackerId', String(tracker.id));
+    startPurge(async () => {
+      setPurgeMsg(null);
+      const result = await purgeTrackerDuplicatesAction(fd);
+      if (!result.ok) {
+        setPurgeMsg(`Error: ${result.error}`);
+      } else {
+        setPurgeMsg(`${result.deleted ?? 0} duplicados eliminados.`);
         router.refresh();
       }
     });
@@ -318,6 +338,29 @@ export function TrackerDetailClient({ tracker }: Props) {
         <div className="flex items-center justify-between bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3">
           <p className="text-sm text-emerald-800">{importMsg}</p>
           <button onClick={() => setImportMsg(null)} className="text-emerald-600 text-lg leading-none">&times;</button>
+        </div>
+      )}
+
+      {/* Purgar duplicados (solo cuando existen) */}
+      {tracker.items.some((i) => i.status === 'duplicate') && (
+        <div className="bg-amber-50 rounded-2xl border border-amber-200 p-4 flex items-center justify-between gap-4">
+          <div>
+            <p className="text-sm font-semibold text-amber-800">
+              {tracker.items.filter((i) => i.status === 'duplicate').length} items duplicados detectados
+            </p>
+            {purgeMsg && (
+              <p className={`text-xs mt-1 ${purgeMsg.startsWith('Error') ? 'text-red-600' : 'text-emerald-700'}`}>
+                {purgeMsg}
+              </p>
+            )}
+          </div>
+          <button
+            onClick={handlePurgeDuplicates}
+            disabled={isPurging}
+            className="px-4 py-2 text-sm font-semibold rounded-lg border border-amber-400 text-amber-800 hover:bg-amber-100 disabled:opacity-50 transition-colors whitespace-nowrap"
+          >
+            {isPurging ? 'Limpiando…' : 'Limpiar duplicados'}
+          </button>
         </div>
       )}
 

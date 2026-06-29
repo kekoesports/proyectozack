@@ -418,6 +418,21 @@ export async function deleteTracker(trackerId: number) {
     .where(eq(dealDeliverableTrackers.id, trackerId));
 }
 
+// ── Purge duplicate items ─────────────────────────────────────────────────────
+
+export async function purgeTrackerDuplicates(trackerId: number): Promise<number> {
+  const deleted = await db
+    .delete(dealDeliverableItems)
+    .where(
+      and(
+        eq(dealDeliverableItems.trackerId, trackerId),
+        inArray(dealDeliverableItems.status, ['duplicate']),
+      ),
+    )
+    .returning({ id: dealDeliverableItems.id });
+  return deleted.length;
+}
+
 // ── Delete tracker item ───────────────────────────────────────────────────────
 
 export async function deleteTrackerItem(itemId: number, trackerId: number) {
