@@ -278,6 +278,7 @@ export function parsePayrollPage(
   if (!yearMonth) warnings.push('PERIODO no encontrado');
 
   // EMPLOYEE NAME — look for TRABAJADOR / NOMBRE labels
+
   const nameLabel = findLabelItem(pageItems, [
     'trabajador', 'nombre y apellidos', 'nombre trabajador',
   ]);
@@ -295,6 +296,7 @@ export function parsePayrollPage(
     const hit = findNearValue(pageItems, nameLabel, namePredicate);
     if (hit) employeeName = hit.value;
   }
+  if (!employeeName) warnings.push('TRABAJADOR no encontrado');
 
   return {
     page: pageNum,
@@ -321,7 +323,7 @@ export async function parsePayrollPdfBuffer(
     const pageItems = extract.items.filter((item) => item.page === pageNum);
     const parsed = parsePayrollPage(pageItems, pageNum);
 
-    const missingRequired = parsed.costoEmpresa == null || parsed.yearMonth == null;
+    const missingRequired = parsed.costoEmpresa == null || parsed.yearMonth == null || !parsed.employeeName;
     const nameForSlug = parsed.employeeName ?? `trabajador-${pageNum}`;
     const slug = slugifyEmployeeName(nameForSlug);
     const ym = parsed.yearMonth ?? 'desconocido';

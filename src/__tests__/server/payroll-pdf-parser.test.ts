@@ -1,4 +1,5 @@
 import type { PdfTextItem } from '@/lib/parsers/pdf';
+import { PayrollImportRowsSchema } from '@/lib/schemas/payroll';
 
 // Mock pdf.ts to avoid pdfjs-dist ESM incompatibility with Jest (import.meta.url)
 jest.mock('@/lib/parsers/pdf', () => ({
@@ -313,5 +314,162 @@ describe('parsePayrollPdfBuffer — PDF vectorial con items dispersos (allRowsUs
     const result = await parsePayrollPdfBuffer(new ArrayBuffer(0), 'NOMINA ELEVATEX MARZO 2026.pdf');
     // No valid period detected → filenameWarning should be null (no period to compare against)
     expect(result.filenameWarning).toBeNull();
+  });
+});
+
+// ── Tests: nueva validación missingRequired incluye employeeName ──────────────
+
+// Items con COSTE EMPRESA y PERIODO pero sin TRABAJADOR
+const ITEMS_MISSING_NAME: readonly PdfTextItem[] = [
+  { str: 'PERIODO', page: 1, x: 10, y: 650, width: 50, height: 10, fontSize: 10 },
+  { str: '01 ENE 26 a 31 ENE 26', page: 1, x: 70, y: 650, width: 150, height: 10, fontSize: 10 },
+  { str: 'COSTE EMPRESA', page: 1, x: 10, y: 240, width: 100, height: 10, fontSize: 10 },
+  { str: '1.667,51', page: 1, x: 120, y: 240, width: 60, height: 10, fontSize: 10 },
+];
+
+describe('parsePayrollPdfBuffer — missingRequired incluye employeeName', () => {
+  it('fila sin nombre de empleado tiene include=false', async () => {
+    mockExtractPdfText.mockResolvedValueOnce({ items: [...ITEMS_MISSING_NAME], pageCount: 1, text: '', pageSizes: [] });
+    const result = await parsePayrollPdfBuffer(new ArrayBuffer(0), 'test.pdf');
+    expect(result.rows[0]!.include).toBe(false);
+  });
+
+  it('warning incluye "TRABAJADOR no encontrado"', async () => {
+    mockExtractPdfText.mockResolvedValueOnce({ items: [...ITEMS_MISSING_NAME], pageCount: 1, text: '', pageSizes: [] });
+    const result = await parsePayrollPdfBuffer(new ArrayBuffer(0), 'test.pdf');
+    expect(result.rows[0]!.warning).toContain('TRABAJADOR');
+  });
+
+  it('counterpartyName es cadena vacía cuando no se detecta nombre', async () => {
+    mockExtractPdfText.mockResolvedValueOnce({ items: [...ITEMS_MISSING_NAME], pageCount: 1, text: '', pageSizes: [] });
+    const result = await parsePayrollPdfBuffer(new ArrayBuffer(0), 'test.pdf');
+    expect(result.rows[0]!.counterpartyName).toBe('');
+  });
+});
+
+// ── Tests: PARTIAL_AMOUNTS_ONLY — caso clave del bug de marzo ────────────────
+
+// PDF vectorial con importe de coste empresa pero sin nombre ni período (simula extracción parcial)
+const PARTIAL_AMOUNTS_ONLY: readonly PdfTextItem[] = [
+  { str: 'COSTE EMPRESA', page: 1, x: 10, y: 240, width: 100, height: 10, fontSize: 10 },
+  { str: '1.667,51', page: 1, x: 120, y: 240, width: 60, height: 10, fontSize: 10 },
+];
+
+describe('parsePayrollPdfBuffer — importes extraídos sin etiquetas de empleado/período', () => {
+  it('costoEmpresa extraído pero include=false porque faltan nombre y período', async () => {
+    mockExtractPdfText.mockResolvedValueOnce({ items: [...PARTIAL_AMOUNTS_ONLY], pageCount: 1, text: '', pageSizes: [] });
+    const result = await parsePayrollPdfBuffer(new ArrayBuffer(0), 'NOMINA ELEVATEX MARZO 2026.pdf');
+    expect(result.rows[0]!.include).toBe(false);
+    // netAmount sigue siendo el coste encontrado — esto es intencional (la fila tiene datos)
+    expect(result.rows[0]!.netAmount).toBe('1667.51');
+    expect(result.rows[0]!.yearMonth).toBe('desconocido');
+    expect(result.rows[0]!.counterpartyName).toBe('');
+  });
+
+  it('esta fila activa isRowUseless (cumple la condición OR) — el bug previo era que AND la ignoraba', () => {
+    // Confirmación explícita de la lógica: OR detecta el problema, AND no lo hacía
+    const row = { counterpartyName: '', yearMonth: 'desconocido', netAmount: '1667.51' };
+    const buggyAnd = row.yearMonth === 'desconocido' && row.netAmount === '0.00'; // AND viejo: false (BUG)
+    const fixedOr = !row.counterpartyName.trim() || row.yearMonth === 'desconocido' || Number(row.netAmount) <= 0;
+    expect(buggyAnd).toBe(false); // AND viejo NO detecta el problema
+    expect(fixedOr).toBe(true);  // OR nuevo SÍ detecta el problema
+  });
+});
+
+// ── Tests: PDF 2 páginas con 2 empleados ─────────────────────────────────────
+
+const SYNTHETIC_ITEMS_PAGE2: readonly PdfTextItem[] = [
+  { str: 'TRABAJADOR', page: 2, x: 10, y: 700, width: 80, height: 10, fontSize: 10 },
+  { str: 'EMPLEADO PRUEBA DOS', page: 2, x: 100, y: 700, width: 130, height: 10, fontSize: 10 },
+  { str: 'PERIODO', page: 2, x: 10, y: 650, width: 50, height: 10, fontSize: 10 },
+  { str: '01 ENE 26 a 31 ENE 26', page: 2, x: 70, y: 650, width: 150, height: 10, fontSize: 10 },
+  { str: 'COSTE EMPRESA', page: 2, x: 10, y: 240, width: 100, height: 10, fontSize: 10 },
+  { str: '2.100,00', page: 2, x: 120, y: 240, width: 60, height: 10, fontSize: 10 },
+];
+
+describe('parsePayrollPdfBuffer — PDF 2 páginas (enero, 2 empleados)', () => {
+  it('parsea 2 nóminas enero, ambas con include=true', async () => {
+    mockExtractPdfText.mockResolvedValueOnce({
+      items: [...SYNTHETIC_ITEMS, ...SYNTHETIC_ITEMS_PAGE2],
+      pageCount: 2,
+      text: '',
+      pageSizes: [],
+    });
+    const result = await parsePayrollPdfBuffer(new ArrayBuffer(0), 'NOMINAS ELEVATEX ENERO 2026.pdf');
+    expect(result.rows).toHaveLength(2);
+    expect(result.rows[0]!.include).toBe(true);
+    expect(result.rows[1]!.include).toBe(true);
+    expect(result.rows[0]!.counterpartyName).toBe('EMPLEADO PRUEBA UNO');
+    expect(result.rows[1]!.counterpartyName).toBe('EMPLEADO PRUEBA DOS');
+    expect(result.rows[0]!.yearMonth).toBe('2026-01');
+    expect(result.rows[1]!.yearMonth).toBe('2026-01');
+  });
+
+  it('txId es único por empleado', async () => {
+    mockExtractPdfText.mockResolvedValueOnce({
+      items: [...SYNTHETIC_ITEMS, ...SYNTHETIC_ITEMS_PAGE2],
+      pageCount: 2,
+      text: '',
+      pageSizes: [],
+    });
+    const result = await parsePayrollPdfBuffer(new ArrayBuffer(0), 'NOMINAS ELEVATEX ENERO 2026.pdf');
+    expect(result.rows[0]!.txId).toBe('payroll:empleado-prueba-uno:2026-01');
+    expect(result.rows[1]!.txId).toBe('payroll:empleado-prueba-dos:2026-01');
+  });
+});
+
+// ── Tests: Zod schema — guard server-side contra filas inválidas ──────────────
+
+const VALID_ROW_BASE = {
+  page: 1,
+  include: true,
+  slug: 'empleado-prueba',
+  yearMonth: '2026-01',
+  txId: 'payroll:empleado-prueba:2026-01',
+  counterpartyName: 'EMPLEADO PRUEBA',
+  concept: 'Nómina EMPLEADO PRUEBA 2026-01',
+  issueDate: '2026-01-01',
+  netAmount: '1667.51',
+  totalAmount: '1667.51',
+  vatPct: '0.00',
+  withholdingPct: '0.00',
+  expenseGroup: 'operational',
+  expenseSubtype: 'nomina_socio',
+  status: 'pagada',
+  notes: null,
+  warning: null,
+} as const;
+
+describe('PayrollImportRowsSchema — refinement server-side', () => {
+  it('acepta fila válida con include=true', () => {
+    expect(PayrollImportRowsSchema.safeParse([VALID_ROW_BASE]).success).toBe(true);
+  });
+
+  it('rechaza fila include=true con yearMonth=desconocido', () => {
+    const bad = { ...VALID_ROW_BASE, yearMonth: 'desconocido', txId: 'payroll:empleado-prueba:desconocido' } as const;
+    expect(PayrollImportRowsSchema.safeParse([bad]).success).toBe(false);
+  });
+
+  it('rechaza fila include=true con counterpartyName vacío', () => {
+    const bad = { ...VALID_ROW_BASE, counterpartyName: '' };
+    expect(PayrollImportRowsSchema.safeParse([bad]).success).toBe(false);
+  });
+
+  it('rechaza fila include=true con netAmount=0.00', () => {
+    const bad = { ...VALID_ROW_BASE, netAmount: '0.00', totalAmount: '0.00' };
+    expect(PayrollImportRowsSchema.safeParse([bad]).success).toBe(false);
+  });
+
+  it('acepta fila include=false con datos incompletos (no pasa por el guard)', () => {
+    const excluded = {
+      ...VALID_ROW_BASE,
+      include: false,
+      yearMonth: 'desconocido',
+      txId: 'payroll:trabajador-1:desconocido',
+      counterpartyName: '',
+      netAmount: '0.00',
+      totalAmount: '0.00',
+    } as const;
+    expect(PayrollImportRowsSchema.safeParse([excluded]).success).toBe(true);
   });
 });

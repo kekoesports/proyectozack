@@ -23,4 +23,17 @@ export const PayrollImportRowSchema = z.object({
   warning: z.string().nullable(),
 });
 
-export const PayrollImportRowsSchema = z.array(PayrollImportRowSchema).min(1, 'Se requiere al menos una fila');
+export const PayrollImportRowsSchema = z
+  .array(PayrollImportRowSchema)
+  .min(1, 'Se requiere al menos una fila')
+  .refine(
+    (rows) =>
+      rows.every(
+        (r) =>
+          !r.include ||
+          (r.counterpartyName.trim().length > 0 &&
+            r.yearMonth !== 'desconocido' &&
+            Number(r.netAmount) > 0),
+      ),
+    'Hay filas marcadas para importar con datos incompletos (empleado, período o coste empresa)',
+  );
