@@ -27,9 +27,41 @@ function isTextItem(item: TextItem | TextMarkedContent): item is TextItem {
   return 'str' in item && 'transform' in item;
 }
 
+// pdfjs-dist 5.x references DOMMatrix at module init even in the legacy build.
+// We only do text extraction (no canvas/rendering) so this stub is never invoked.
+class DOMMatrixStub {
+  a=1;b=0;c=0;d=1;e=0;f=0;
+  m11=1;m12=0;m13=0;m14=0;m21=0;m22=1;m23=0;m24=0;
+  m31=0;m32=0;m33=1;m34=0;m41=0;m42=0;m43=0;m44=1;
+  is2D=true;isIdentity=true;
+  constructor(_init?: string | number[]) {}
+  static fromMatrix() { return new DOMMatrixStub(); }
+  static fromFloat32Array(_a: Float32Array) { return new DOMMatrixStub(); }
+  static fromFloat64Array(_a: Float64Array) { return new DOMMatrixStub(); }
+  multiply() { return this; }
+  inverse() { return this; }
+  translate() { return this; }
+  scale() { return this; }
+  rotate() { return this; }
+  toFloat32Array() { return new Float32Array(16); }
+  toFloat64Array() { return new Float64Array(16); }
+  toJSON() { return {}; }
+  toString() { return 'matrix(1, 0, 0, 1, 0, 0)'; }
+  transformPoint(): DOMPoint { return DOMPoint.fromPoint({ x:0,y:0,z:0,w:1 }); }
+}
+
+function ensureDOMMatrixPolyfill(): void {
+  const g = globalThis as Record<string, unknown>;
+  if (typeof g['DOMMatrix'] === 'undefined') {
+    g['DOMMatrix'] = DOMMatrixStub;
+  }
+}
+
 export async function extractPdfText(buffer: ArrayBuffer | Uint8Array): Promise<PdfExtract> {
-  // Dynamic import: defers pdfjs-dist loading until this function is called (server action),
-  // not at module evaluation time. Prevents DOMMatrix crash during SSR bundle init.
+  // Must run before the dynamic import so pdfjs-dist finds DOMMatrix on globalThis
+  // when its module-level code executes. instrumentation.ts alone is insufficient
+  // in Vercel Functions because each invocation may load external modules fresh.
+  ensureDOMMatrixPolyfill();
   const { getDocument, GlobalWorkerOptions } = await import('pdfjs-dist/legacy/build/pdf.mjs');
   GlobalWorkerOptions.workerSrc = '';
 
