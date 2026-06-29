@@ -127,6 +127,13 @@ const nextConfig: NextConfig = {
       { protocol: 'https', hostname: 'i.imgur.com' },
     ],
   },
+  // pdfjs-dist is external (serverExternalPackages) so nft doesn't trace
+  // pdf.worker.mjs (loaded dynamically by pdf.mjs at runtime). Force-include it.
+  outputFileTracingIncludes: {
+    '/admin/finanzas/nominas/importar': [
+      './node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs',
+    ],
+  },
   experimental: {
     optimizePackageImports: ['motion', 'recharts'],
     serverActions: {
