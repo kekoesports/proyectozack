@@ -62,7 +62,7 @@ const STAFF_MORE_NAV = [
 // ──────────────────────────────────────────────────────────────────────
 
 export default async function AdminLayout({ children }: AdminLayoutProps): Promise<React.ReactElement> {
-  const session    = await requireAnyRole(['admin', 'manager', 'staff', 'editor', 'finance', 'analyst', 'ops', 'talent_manager'], '/admin/login');
+  const session    = await requireAnyRole(['admin', 'admin_limited_tasks', 'manager', 'staff', 'editor', 'finance', 'analyst', 'ops', 'talent_manager'], '/admin/login');
   const isStaff    = session.user.role === 'staff';
   const isManager  = session.user.role === 'manager';
   const useStaffNav = isStaff && !isManager;
