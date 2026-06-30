@@ -66,11 +66,15 @@ export function PayrollImportWizard({ existingTxIds }: Props): React.ReactElemen
     const { file } = step;
     setError(null);
     startTransition(async () => {
-      const fd = new FormData();
-      fd.append('pdf', file);
-      const res = await ocrPayrollPdfAction(fd);
-      if (!res.ok) { setError(res.error); return; }
-      setStep({ id: 1, mode: 'ocr-preview', rows: res.rows, file, fileName: res.fileName });
+      try {
+        const fd = new FormData();
+        fd.append('pdf', file);
+        const res = await ocrPayrollPdfAction(fd);
+        if (!res.ok) { setError(res.error); return; }
+        setStep({ id: 1, mode: 'ocr-preview', rows: res.rows, file, fileName: res.fileName });
+      } catch {
+        setError('No se pudo completar el OCR. Puedes introducir los datos manualmente.');
+      }
     });
   }
 
@@ -299,10 +303,12 @@ function StepNeedsOcr({ fileName, pageCount, onBack, onOcr, onManual, isOcrPendi
           className="flex flex-col items-start gap-1.5 rounded-lg border border-sp-border bg-sp-admin-surface p-4 text-left hover:border-sp-orange/60 disabled:opacity-50 transition-colors"
         >
           <span className="text-sm font-medium text-sp-admin-fg">
-            {isOcrPending ? 'Procesando OCR…' : 'Autocompletar con OCR'}
+            {isOcrPending ? 'Analizando con OCR…' : 'Autocompletar con OCR'}
           </span>
           <span className="text-xs text-sp-admin-muted">
-            Reconocimiento óptico automático. Puede tardar 20–40 s. Revisa los datos antes de confirmar.
+            {isOcrPending
+              ? 'Esto puede tardar hasta 30 segundos. No cierres esta página.'
+              : 'Reconocimiento óptico automático. Puede tardar 20–40 s. Revisa los datos antes de confirmar.'}
           </span>
         </button>
         <button
@@ -318,7 +324,13 @@ function StepNeedsOcr({ fileName, pageCount, onBack, onOcr, onManual, isOcrPendi
         </button>
       </div>
 
-      {error && <p className="text-xs text-red-500">{error}</p>}
+      {error && (
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-xs text-red-800 space-y-1">
+          <p className="font-semibold">No se pudo completar el OCR</p>
+          <p>{error}</p>
+          <p>Puedes usar <strong>Introducir manualmente</strong> para continuar sin OCR.</p>
+        </div>
+      )}
 
       <button
         type="button"

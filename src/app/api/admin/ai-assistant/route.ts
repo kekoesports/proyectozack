@@ -4,7 +4,7 @@ import { sendMessageSchema, deleteThreadSchema } from '@/lib/schemas/aiAssistant
 import { sendMessage } from '@/lib/services/ai-assistant/index';
 import { listThreadsForUser, deleteThread } from '@/lib/queries/aiAssistant';
 
-const ALLOWED_ROLES = ['admin', 'manager', 'finance', 'analyst', 'ops', 'talent_manager', 'editor'] as const;
+const ALLOWED_ROLES = ['admin', 'admin_limited_tasks', 'manager', 'finance', 'analyst', 'ops', 'talent_manager', 'editor'] as const;
 
 // POST /api/admin/ai-assistant — enviar mensaje al asistente
 export async function POST(req: NextRequest): Promise<NextResponse> {

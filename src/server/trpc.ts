@@ -77,8 +77,8 @@ export const brandProcedure = t.procedure.use(({ ctx, next }) => {
   return next({ ctx: { session: ctx.session } });
 });
 
-type AdminRole = 'admin' | 'manager' | 'staff';
-const ADMIN_ROLES = ['admin', 'manager', 'staff'] as const satisfies readonly AdminRole[];
+type AdminRole = 'admin' | 'admin_limited_tasks' | 'manager' | 'staff';
+const ADMIN_ROLES = ['admin', 'admin_limited_tasks', 'manager', 'staff'] as const satisfies readonly AdminRole[];
 
 /**
  * Procedure that requires `admin`, `manager`, or `staff` role.

@@ -10,7 +10,7 @@ type PageProps = {
 const VALID_CATEGORIES: readonly NewsAlertCategory[] = ['regulatory', 'competitor', 'brand', 'sector', 'own'];
 
 export default async function AdminAlertasPage({ searchParams }: PageProps): Promise<React.ReactElement> {
-  await requireAnyRole(['admin', 'manager', 'editor', 'ops'], '/admin/login');
+  await requireAnyRole(['admin', 'admin_limited_tasks', 'manager', 'editor', 'ops'], '/admin/login');
 
   const params = await searchParams;
   const rawCat = params.category ?? 'all';

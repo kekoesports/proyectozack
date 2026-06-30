@@ -120,21 +120,30 @@ export function ocrTextToPayrollRow(
   };
 }
 
+// Nóminas ELEVATEX tienen 1-2 páginas. Limitar a 3 evita timeouts en PDFs malformados.
+const MAX_OCR_PAGES = 3;
+
 export async function ocrPayrollPdf(
   buffer: ArrayBuffer,
   pdfFileName: string,
 ): Promise<OcrPayrollResult> {
   // Dynamic imports: WASM modules must not be evaluated at module parse time
+  console.log('[ocr-payroll] step=init_mupdf');
   const mupdf = await import('mupdf');
+  console.log('[ocr-payroll] step=init_tesseract');
   const { createWorker } = await import('tesseract.js');
 
-  // Render all PDF pages to PNG at 3× scale for OCR accuracy
+  // Render PDF pages to PNG at 3× scale for OCR accuracy
   const uint8 = new Uint8Array(buffer);
+  console.log('[ocr-payroll] step=open_doc');
   const doc = mupdf.Document.openDocument(uint8, 'application/pdf');
   const pageCount = doc.countPages();
+  const pagesToProcess = Math.min(pageCount, MAX_OCR_PAGES);
+  console.log('[ocr-payroll] step=pages_ready', { pageCount, pagesToProcess });
 
   const pngBuffers: Buffer[] = [];
-  for (let i = 0; i < pageCount; i++) {
+  for (let i = 0; i < pagesToProcess; i++) {
+    console.log('[ocr-payroll] step=render_page', { page: i + 1, of: pagesToProcess });
     const page = doc.loadPage(i);
     const matrix = mupdf.Matrix.scale(3, 3);
     const pixmap = page.toPixmap(matrix, mupdf.ColorSpace.DeviceRGB, false, true);
@@ -145,6 +154,7 @@ export async function ocrPayrollPdf(
   doc.destroy();
 
   // Tesseract LSTM, Spanish + English — traineddata files at process.cwd()
+  console.log('[ocr-payroll] step=create_worker', { langPath: process.cwd() });
   const worker = await createWorker(['spa', 'eng'], 1, {
     langPath: process.cwd(),
     logger: () => {},
@@ -155,11 +165,13 @@ export async function ocrPayrollPdf(
     const pageNum = i + 1;
     const png = pngBuffers[i];
     if (!png) continue;
+    console.log('[ocr-payroll] step=recognize_page', { page: pageNum });
     const { data } = await worker.recognize(png);
-    // data.text may contain PII — never log it
+    // data.text contains PII — never log it
     rows.push(ocrTextToPayrollRow(data.text, pageNum, pdfFileName));
   }
 
+  console.log('[ocr-payroll] step=terminate_worker');
   await worker.terminate();
 
   return { rows, pageCount };

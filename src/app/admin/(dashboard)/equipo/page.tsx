@@ -37,7 +37,7 @@ export default async function EquipoAdminPage(): Promise<ReactElement> {
 
   const rawSummary = await getTeamTasksSummary(weekLabel);
   // Solo admin y manager ven todos los cards del equipo
-  const summary = session.user.role === 'admin' || session.user.role === 'manager'
+  const summary = session.user.role === 'admin' || session.user.role === 'admin_limited_tasks' || session.user.role === 'manager'
     ? rawSummary
     : rawSummary.filter((m) => m.userId === session.user.id);
 

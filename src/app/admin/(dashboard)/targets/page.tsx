@@ -4,7 +4,7 @@ import { getAllBrandUsers } from '@/lib/queries/brandUsers';
 import { TargetsSpreadsheet } from '@/features/admin/targets/components/TargetsSpreadsheet';
 
 export default async function AdminTargetsPage(): Promise<React.ReactElement> {
-  await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
+  await requireAnyRole(['admin', 'admin_limited_tasks', 'manager', 'staff'], '/admin/login');
   const [targets, brands] = await Promise.all([
     getAllTargets(),
     getAllBrandUsers(),

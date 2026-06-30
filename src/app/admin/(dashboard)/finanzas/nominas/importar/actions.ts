@@ -3,9 +3,18 @@
 import { requirePermission } from '@/lib/permissions';
 import { parsePayrollPdfBuffer, detectMonthFromFilename } from '@/lib/parsers/payrollPdf';
 import { ocrPayrollPdf } from '@/lib/parsers/payrollOcr';
+import type { OcrPayrollResult } from '@/lib/parsers/payrollOcr';
 import { getExistingPayrollTxIds, applyPayrollImport } from '@/lib/queries/payrollImport';
 import { PayrollImportRowsSchema } from '@/lib/schemas/payroll';
 import type { PayrollImportRow, PayrollApplyResult, FilenameWarning } from '@/lib/finance/payroll/types';
+
+// Timeout interno: deja 5 s de margen antes de que Vercel mate la función a los 60 s.
+// Devuelve una promesa que nunca resuelve — solo rechaza con 'ocr_timeout' al cumplirse el delay.
+function ocrTimeoutRace(): Promise<never> {
+  return new Promise<never>((_, reject) =>
+    setTimeout(() => reject(new Error('ocr_timeout')), 55_000),
+  );
+}
 
 export type ParseResult =
   | { ok: true; mode: 'parsed'; rows: PayrollImportRow[]; fileName: string; filenameWarning?: FilenameWarning }
@@ -81,7 +90,31 @@ export async function ocrPayrollPdfAction(formData: FormData): Promise<OcrResult
     return { ok: false, error: 'El archivo supera 20 MB.' };
 
   const buffer = await file.arrayBuffer();
-  const { rows, pageCount } = await ocrPayrollPdf(buffer, file.name);
+  const startMs = Date.now();
+  console.log('[ocr-payroll] step=start');
+
+  let result: OcrPayrollResult;
+  try {
+    result = await Promise.race([ocrPayrollPdf(buffer, file.name), ocrTimeoutRace()]);
+  } catch (err) {
+    const elapsed = Date.now() - startMs;
+    const isTimeout = err instanceof Error && err.message === 'ocr_timeout';
+    console.error('[ocr-payroll] step=failed', {
+      step: isTimeout ? 'timeout' : 'error',
+      elapsedMs: elapsed,
+      ...(err instanceof Error && !isTimeout ? { errorMessage: err.message } : {}),
+    });
+    return {
+      ok: false,
+      error: isTimeout
+        ? 'El OCR tardó demasiado. Puedes introducir los datos manualmente.'
+        : 'No se pudo completar el OCR. Puedes introducir los datos manualmente.',
+    };
+  }
+
+  const elapsed = Date.now() - startMs;
+  const { rows, pageCount } = result;
+  console.log('[ocr-payroll] step=done', { elapsedMs: elapsed, pageCount, rowCount: rows.length });
 
   if (pageCount === 0) return { ok: false, error: 'El PDF está vacío o no es un documento válido.' };
   if (rows.length === 0) return { ok: false, error: 'OCR no pudo reconocer páginas en el PDF.' };

@@ -2,7 +2,7 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { requireAnyRole } from '@/lib/auth-guard';
 import { getThread } from '@/lib/queries/aiAssistant';
 
-const ALLOWED_ROLES = ['admin', 'manager', 'finance', 'analyst', 'ops', 'talent_manager', 'editor'] as const;
+const ALLOWED_ROLES = ['admin', 'admin_limited_tasks', 'manager', 'finance', 'analyst', 'ops', 'talent_manager', 'editor'] as const;
 
 export async function GET(
   _req: NextRequest,

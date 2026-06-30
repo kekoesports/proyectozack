@@ -12,7 +12,7 @@ function revalidateLayout(): void {
 }
 
 export async function dismissAlertAction(id: unknown): Promise<ActionResult> {
-  const session = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
+  const session = await requireAnyRole(['admin', 'admin_limited_tasks', 'manager', 'staff'], '/admin/login');
   const parsed  = IdSchema.safeParse(id);
   if (!parsed.success) return { error: 'ID inválido' };
   await dismissAlert(parsed.data, session.user.id);
@@ -21,14 +21,14 @@ export async function dismissAlertAction(id: unknown): Promise<ActionResult> {
 }
 
 export async function dismissAllAlertsAction(): Promise<ActionResult> {
-  const session = await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
+  const session = await requireAnyRole(['admin', 'admin_limited_tasks', 'manager', 'staff'], '/admin/login');
   await dismissAllPersonalAlerts(session.user.id);
   revalidateLayout();
   return {};
 }
 
 export async function dismissTrackerAlertAction(id: unknown): Promise<ActionResult> {
-  await requireAnyRole(['admin', 'manager', 'staff'], '/admin/login');
+  await requireAnyRole(['admin', 'admin_limited_tasks', 'manager', 'staff'], '/admin/login');
   const parsed = IdSchema.safeParse(id);
   if (!parsed.success) return { error: 'ID inválido' };
   await dismissTrackerCompletedAlert(parsed.data);
