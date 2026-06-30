@@ -2,13 +2,13 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { buildContextualText, EXPENSE_SUBTYPE_LABELS } from '@/lib/queries/financeDashboard/financeResumen';
+import { buildContextualText, EXPENSE_SUBTYPE_LABELS } from '@/lib/queries/financeDashboard/financeResumen.shared';
 import type {
   MonthlyFinanceFlow,
   FinanceStockKPIs,
   MonthlyExpenseBreakdownItem,
   MonthlyDocItem,
-} from '@/lib/queries/financeDashboard/financeResumen';
+} from '@/lib/queries/financeDashboard/financeResumen.shared';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 

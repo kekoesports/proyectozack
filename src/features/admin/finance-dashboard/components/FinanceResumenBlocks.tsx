@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import type { FinanceResumenKPIs } from '@/lib/queries/financeDashboard/financeResumen';
+import type { FinanceResumenKPIs } from '@/lib/queries/financeDashboard/financeResumen.shared';
 
 const EUR = new Intl.NumberFormat('es-ES', {
   style: 'currency',

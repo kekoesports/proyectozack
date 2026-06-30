@@ -1,140 +1,41 @@
-'server-only';
+// Fail-fast si este archivo se importa desde client bundle.
+// Antes había 'server-only' como string literal (no-op) — el bundler no fallaba
+// y la cadena client → financeResumen → db → env terminaba en
+// "Attempted to access a server-side environment variable on the client".
+import 'server-only';
 
 import { and, desc, eq, gte, lte, ne, sql } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { invoicePayments, invoices } from '@/db/schema';
 import { getUnclassifiedExpenseCount } from '@/lib/queries/invoices';
 
-// ── Existing types (kept for backward compat) ────────────────────────────────
+// ── Tipos, constantes y helpers puros (re-exportados desde el módulo shared) ─
+// Los Client Components deben importar directamente desde .shared.ts, no de aquí.
+export {
+  EXPENSE_SUBTYPE_LABELS,
+  currentYearMonth,
+  parseYearMonth,
+  monthRange,
+  buildContextualText,
+  computeMargen,
+} from './financeResumen.shared';
+export type {
+  FinanceResumenKPIs,
+  MonthlyFinanceFlow,
+  FinanceStockKPIs,
+  MonthlyExpenseBreakdownItem,
+  MonthlyDocItem,
+} from './financeResumen.shared';
 
-export type FinanceResumenKPIs = {
-  // Bloque A — Devengo
-  readonly incomeTotal: number;
-  readonly incomeSettled: number;
-  readonly gastosCampanaDirect: number;
-  readonly gastosOperativos: number;
-  readonly gastosNoClasificados: number;
-  readonly pendienteCobro: number;
-  readonly pendientePago: number;
-  readonly margenBruto: number;
-  readonly margenPct: number;
-  // Bloque B — Caja (via invoice_payments)
-  readonly cobradoMes: number;
-  readonly cobradoYTD: number;
-  readonly pagadoMes: number;
-  readonly unclassifiedCount: number;
-};
-
-// ── New types ────────────────────────────────────────────────────────────────
-
-export type MonthlyFinanceFlow = {
-  readonly incomeTotal: number;
-  readonly gastosCampanaDirect: number;
-  readonly gastosOperativos: number;
-  readonly gastosTotal: number;
-  readonly resultado: number;
-  readonly cobradoMes: number;
-  readonly pagadoMes: number;
-};
-
-export type FinanceStockKPIs = {
-  readonly pendienteCobro: number;
-  readonly pendientePago: number;
-  readonly gastosNoClasificados: number;
-  readonly unclassifiedCount: number;
-};
-
-export type MonthlyExpenseBreakdownItem = {
-  readonly subtype: string | null;
-  readonly label: string;
-  readonly amount: number;
-};
-
-export type MonthlyDocItem = {
-  readonly id: number;
-  readonly kind: 'income' | 'expense';
-  readonly concept: string;
-  readonly counterpartyName: string | null;
-  readonly totalAmount: number;
-  readonly status: string;
-  readonly issueDate: string;
-};
-
-// ── Expense subtype labels (human-readable) ──────────────────────────────────
-
-export const EXPENSE_SUBTYPE_LABELS: Record<string, string> = {
-  pago_talento: 'Pagos a talento',
-  coste_produccion: 'Coste de producción',
-  comision_plataforma: 'Comisión plataforma',
-  otros_campana: 'Otros (campaña)',
-  suscripcion_software: 'Suscripciones software',
-  herramienta_ia: 'Herramientas IA',
-  gestoria: 'Gestoría',
-  fiscal_impuestos: 'Impuestos',
-  cuota_autonomo: 'Cuota autónomo',
-  marketing_publicidad: 'Marketing',
-  comision_bancaria: 'Comisión bancaria',
-  ajuste_fiscal: 'Ajuste fiscal',
-  gasto_general: 'Gasto general',
-  factura_autonomo: 'Factura autónomo',
-  nomina_socio: 'Nóminas',
-  seguro_medico: 'Seguro médico',
-  seguridad_social: 'Seguridad Social',
-};
-
-// ── Pure helpers (exported for unit tests) ───────────────────────────────────
-
-export function currentYearMonth(): string {
-  const now = new Date();
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-}
-
-/** Parses ?mes=YYYY-MM; falls back to current month if invalid. */
-export function parseYearMonth(raw: unknown): string {
-  if (typeof raw !== 'string') return currentYearMonth();
-  if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(raw)) return currentYearMonth();
-  return raw;
-}
-
-/** Computes first/last day of a YYYY-MM month. */
-export function monthRange(yearMonth: string): { from: string; to: string } {
-  const parts = yearMonth.split('-');
-  const y = parseInt(parts[0] ?? '2026', 10);
-  const m = parseInt(parts[1] ?? '01', 10);
-  // new Date(y, m, 0) → last day of month m (1-indexed)
-  const lastDay = new Date(y, m, 0).getDate();
-  return { from: `${yearMonth}-01`, to: `${yearMonth}-${String(lastDay).padStart(2, '0')}` };
-}
-
-/** Generates contextual explanation text for the monthly result card. */
-export function buildContextualText(
-  incomeTotal: number,
-  gastosTotal: number,
-  topExpenseLabel: string | null,
-): string {
-  if (incomeTotal === 0 && gastosTotal === 0) return 'No hay datos registrados para este mes.';
-  if (incomeTotal >= gastosTotal) {
-    const surplus = incomeTotal - gastosTotal;
-    return surplus === 0
-      ? 'Ingresos iguales a gastos este mes.'
-      : 'Buen mes — has ingresado más de lo gastado.';
-  }
-  const base = 'Has gastado más de lo ingresado este mes.';
-  return topExpenseLabel ? `${base} Principal gasto: ${topExpenseLabel}.` : base;
-}
-
-// ── Existing pure function (kept unchanged) ──────────────────────────────────
-
-/** @pure Calcula margenBruto y margenPct desde valores liquidados. */
-export function computeMargen(
-  incomeSettled: number,
-  settledCampana: number,
-  settledOperativos: number,
-): { margenBruto: number; margenPct: number } {
-  const margenBruto = incomeSettled - settledCampana - settledOperativos;
-  const margenPct = incomeSettled > 0 ? Math.round((margenBruto / incomeSettled) * 1000) / 10 : 0;
-  return { margenBruto, margenPct };
-}
+// Imports internos para uso server-side en este archivo
+import { EXPENSE_SUBTYPE_LABELS, currentYearMonth, monthRange, computeMargen } from './financeResumen.shared';
+import type {
+  FinanceResumenKPIs,
+  MonthlyFinanceFlow,
+  FinanceStockKPIs,
+  MonthlyExpenseBreakdownItem,
+  MonthlyDocItem,
+} from './financeResumen.shared';
 
 function currentMonthRange(): { from: string; to: string } {
   return monthRange(currentYearMonth());

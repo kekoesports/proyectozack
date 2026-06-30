@@ -3,13 +3,15 @@
  * Prueba funciones puras exportadas de financeResumen.ts y el componente nuevo.
  * No accede a la DB.
  */
+// Importamos del archivo .shared (sin dependencias de db/env) para que jest
+// no cargue 'server-only' (que falla en node test env). Los helpers son los mismos.
 import {
   computeMargen,
   parseYearMonth,
   monthRange,
   buildContextualText,
   EXPENSE_SUBTYPE_LABELS,
-} from '@/lib/queries/financeDashboard/financeResumen';
+} from '@/lib/queries/financeDashboard/financeResumen.shared';
 import fs from 'fs';
 import path from 'path';
 
