@@ -3,24 +3,61 @@
 /**
  * Orquestador OCR ejecutado 100% en el navegador del admin.
  *
- * Flujo:
- *   1. Cargar pdfjs-dist y tesseract.js vía dynamic import (lazy).
- *   2. Renderizar cada página del PDF a un <canvas> en memoria.
- *   3. Pasar el canvas a Tesseract con el modelo `spa` (servido desde
- *      `/tessdata/spa.traineddata` en este origen — no hay CDN externa).
- *   4. Parsear el texto extraído con `parsePayrollOcrPage`.
+ * Todos los assets necesarios se sirven desde el mismo origen
+ * (`/tessdata/`) — sin CDN externo. Esto evita violar la CSP
+ * (`script-src 'self'`) y mantiene la privacidad.
  *
- * Privacidad:
- *   - El PDF nunca sale del navegador del usuario.
- *   - Solo se envía al server el array final `PayrollImportRow[]`
- *     cuando el usuario confirma en el preview.
- *   - No se loggea el texto OCR crudo (contiene PII).
+ * Archivos servidos desde public/tessdata/:
+ *   - worker.min.js                          (tesseract.js orchestrator)
+ *   - tesseract-core-simd-lstm.wasm[.js]     (engine WASM, OEM 1 + SIMD)
+ *   - pdf.worker.min.mjs                     (pdfjs-dist worker)
+ *   - spa.traineddata                        (modelo Tesseract español)
  *
- * No usa `@/lib/env`, `@/lib/db` ni Server Actions.
+ * Privacidad: el PDF nunca sale del navegador. Solo se envía al server
+ * el array final `PayrollImportRow[]` cuando el usuario confirma en
+ * el preview. No se loggea texto OCR (PII), nombres, importes, DNI.
+ *
+ * Diagnóstico: emite `console.log('[ocr] step=...', extra)` con datos
+ * seguros (sin PII). El paso actual se incluye en el resultado de error
+ * para que el wizard pueda mostrar detalle técnico colapsable.
  */
 
 import { parsePayrollOcrPage } from './parseOcrText';
 import type { PayrollImportRow } from '@/lib/finance/payroll/types';
+
+// ── Paths self-hosted (vía /public/tessdata/) ───────────────────────────────
+
+const TESSDATA_BASE = '/tessdata';
+const PATHS = {
+  pdfWorker:        `${TESSDATA_BASE}/pdf.worker.min.mjs`,
+  tesseractWorker:  `${TESSDATA_BASE}/worker.min.js`,
+  tesseractCore:    `${TESSDATA_BASE}/tesseract-core-simd-lstm.wasm.js`,
+  langDir:          TESSDATA_BASE,
+} as const;
+
+// ── Tipos ───────────────────────────────────────────────────────────────────
+
+export type OcrStep =
+  | 'start'
+  | 'dynamic-import-ok'
+  | 'pdfjs-loaded'
+  | 'worker-configured'
+  | 'pdf-loaded'
+  | 'render-page'
+  | 'render-page-ok'
+  | 'tesseract-import-ok'
+  | 'tesseract-create-worker'
+  | 'tesseract-worker-ready'
+  | 'recognize-start'
+  | 'recognize-ok'
+  | 'parse-ok'
+  | 'done';
+
+export type OcrDebugInfo = {
+  readonly step: OcrStep;
+  readonly errorName: string;
+  readonly errorMessage: string;
+};
 
 export type OcrProgressEvent =
   | { readonly stage: 'render'; readonly page: number; readonly total: number }
@@ -33,17 +70,26 @@ export type RunClientOcrInput = {
 
 export type RunClientOcrResult =
   | { readonly ok: true; readonly rows: PayrollImportRow[]; readonly pageCount: number }
-  | { readonly ok: false; readonly error: string };
+  | { readonly ok: false; readonly error: string; readonly debug: OcrDebugInfo };
 
-// Limitar páginas — nóminas ELEVATEX tienen 1-2. 3 = guard rail.
+// ── Constantes ──────────────────────────────────────────────────────────────
+
 const MAX_PAGES = 3;
-// Escala de renderizado para OCR. >=2 mejora reconocimiento de tablas.
 const RENDER_SCALE = 2;
 
-/**
- * Renderiza una página de PDF a un OffscreenCanvas (o canvas DOM) y
- * devuelve el ImageData listo para tesseract.
- */
+// ── Logger seguro ───────────────────────────────────────────────────────────
+
+function logStep(step: OcrStep, extra?: Record<string, unknown>): void {
+  // safe: solo metadatos (número de páginas, longitudes, etc.). Nunca PII.
+  if (extra) {
+    console.log('[ocr] step=' + step, extra);
+  } else {
+    console.log('[ocr] step=' + step);
+  }
+}
+
+// ── Helpers internos ────────────────────────────────────────────────────────
+
 async function renderPageToCanvas(
   pdfDoc: { getPage: (i: number) => Promise<unknown> },
   pageIndex: number,
@@ -63,71 +109,98 @@ async function renderPageToCanvas(
   return canvas;
 }
 
-/**
- * Ejecuta el flujo OCR completo sobre un archivo PDF.
- * Carga pdfjs y tesseract bajo demanda (dynamic import).
- *
- * Cualquier excepción se captura y se devuelve como `{ ok: false, error }`
- * — el wizard cae al modo manual sin tirar la página.
- */
+// ── Función principal ──────────────────────────────────────────────────────
+
 export async function runClientOcr({ file, onProgress }: RunClientOcrInput): Promise<RunClientOcrResult> {
+  let currentStep: OcrStep = 'start';
   try {
-    // ── 1) pdfjs-dist ─────────────────────────────────────────────────────
+    logStep(currentStep);
+
+    // ── 1) pdfjs-dist ────────────────────────────────────────────────────
     const pdfjs = await import('pdfjs-dist');
-    // Worker servido desde el bundle de Next.js (mismo origen).
-    // Si `workerSrc` no se setea, pdfjs intenta cargarlo de CDN y revienta CSP.
-    // safe: import.meta.url existe en browser ESM
-    pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-      'pdfjs-dist/build/pdf.worker.min.mjs',
-      import.meta.url,
-    ).toString();
+    currentStep = 'dynamic-import-ok';
+    logStep(currentStep);
+
+    pdfjs.GlobalWorkerOptions.workerSrc = PATHS.pdfWorker;
+    currentStep = 'worker-configured';
+    logStep(currentStep, { workerSrc: PATHS.pdfWorker });
 
     const arrayBuffer = await file.arrayBuffer();
     const loadingTask = pdfjs.getDocument({ data: new Uint8Array(arrayBuffer) });
     const pdfDoc = await loadingTask.promise;
     const totalPages = Math.min(pdfDoc.numPages, MAX_PAGES);
+    currentStep = 'pdf-loaded';
+    logStep(currentStep, { pageCount: totalPages });
 
-    // ── 2) Renderizar páginas a canvas ────────────────────────────────────
+    // ── 2) Render páginas a canvas ───────────────────────────────────────
     const canvases: HTMLCanvasElement[] = [];
     for (let i = 0; i < totalPages; i++) {
+      currentStep = 'render-page';
+      logStep(currentStep, { page: i + 1, of: totalPages });
       onProgress?.({ stage: 'render', page: i + 1, total: totalPages });
       const canvas = await renderPageToCanvas(pdfDoc, i);
       canvases.push(canvas);
+      logStep('render-page-ok', { page: i + 1, w: canvas.width, h: canvas.height });
     }
 
-    // ── 3) Tesseract con worker, modelo spa desde /tessdata ──────────────
+    // ── 3) Tesseract self-hosted ─────────────────────────────────────────
     const { createWorker } = await import('tesseract.js');
-    const worker = await createWorker('spa', 1, {
-      // Self-hosted en /public/tessdata/spa.traineddata (committed en repo).
-      // No usamos CDN externo (privacidad + estabilidad).
-      langPath: '/tessdata',
-      // El archivo está comprimido en .gz → tesseract.js sabe descomprimirlo
-      // automáticamente. Si guardamos sin comprimir cambiar a gzip: false.
-      gzip: false,
-      logger: () => {
-        // No loggear texto OCR — contiene PII (nombres, importes).
-      },
+    currentStep = 'tesseract-import-ok';
+    logStep(currentStep);
+
+    currentStep = 'tesseract-create-worker';
+    logStep(currentStep, {
+      workerPath: PATHS.tesseractWorker,
+      corePath:   PATHS.tesseractCore,
+      langPath:   PATHS.langDir,
     });
+    const worker = await createWorker('spa', 1, {
+      // Todo self-hosted: sin CDN externo, sin violar CSP.
+      workerPath:    PATHS.tesseractWorker,
+      workerBlobURL: false,
+      corePath:      PATHS.tesseractCore,
+      langPath:      PATHS.langDir,
+      gzip:          false,
+      // Logger silencioso — el texto OCR contiene PII. Solo log de progreso técnico.
+      logger:        () => {},
+    });
+    currentStep = 'tesseract-worker-ready';
+    logStep(currentStep);
 
     const rows: PayrollImportRow[] = [];
     try {
       for (let i = 0; i < canvases.length; i++) {
         const canvas = canvases[i];
         if (!canvas) continue;
-        onProgress?.({ stage: 'recognize', page: i + 1, total: totalPages });
+        currentStep = 'recognize-start';
+        logStep(currentStep, { page: i + 1 });
+        onProgress?.({ stage: 'recognize', page: i + 1, total: canvases.length });
         const { data } = await worker.recognize(canvas);
+        const textLength = data.text?.length ?? 0;
+        logStep('recognize-ok', { page: i + 1, textLength });
         const row = parsePayrollOcrPage(data.text, i + 1, file.name);
         rows.push(row);
       }
+      currentStep = 'parse-ok';
+      logStep(currentStep, { rows: rows.length });
     } finally {
       await worker.terminate();
     }
 
-    return { ok: true, rows, pageCount: totalPages };
+    currentStep = 'done';
+    logStep(currentStep);
+    return { ok: true, rows, pageCount: canvases.length };
   } catch (err) {
-    // No exponer detalles técnicos en el mensaje del usuario.
-    // El error real queda en el catch — el llamador (wizard) muestra un mensaje genérico.
-    console.error('[client-ocr] error', err instanceof Error ? err.name : 'unknown');
-    return { ok: false, error: 'No se pudo completar el OCR en tu navegador. Puedes introducir los datos manualmente.' };
+    const errorName    = err instanceof Error ? err.name    : 'UnknownError';
+    const errorMessage = err instanceof Error ? err.message : String(err);
+    // Truncar para evitar accidentes con stack que incluyan datos del PDF.
+    const safeMessage = errorMessage.slice(0, 200);
+    logStep('done', { failed: true, at: currentStep, errorName });
+    console.error('[ocr] failed at=' + currentStep, errorName, safeMessage);
+    return {
+      ok: false,
+      error: 'No se pudo completar el OCR en tu navegador. Puedes introducir los datos manualmente.',
+      debug: { step: currentStep, errorName, errorMessage: safeMessage },
+    };
   }
 }

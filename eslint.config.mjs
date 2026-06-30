@@ -63,6 +63,8 @@ const eslintConfig = defineConfig([
     ".claude/**",
     ".scratch/**",
     "*.config.{js,cjs,mjs}",
+    // Vendored OCR runtime files (tesseract.js + pdfjs-dist) served from public/.
+    "public/tessdata/**",
   ]),
 ]);
 

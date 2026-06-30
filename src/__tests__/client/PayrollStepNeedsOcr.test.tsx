@@ -27,6 +27,7 @@ const baseProps = {
   isOcrPending: false,
   error: null,
   ocrProgress: null,
+  ocrDebug: null,
 };
 
 describe('StepNeedsOcr — OCR cliente (always-on)', () => {
@@ -91,5 +92,43 @@ describe('StepNeedsOcr — OCR cliente (always-on)', () => {
     for (const kw of ['dommatrix', 'tesseract', 'pdf.worker', 'cannot find module', 'timeout']) {
       expect(text).not.toContain(kw);
     }
+  });
+
+  it('cuando ocrDebug está presente, muestra bloque colapsable de soporte', () => {
+    render(
+      <StepNeedsOcr
+        {...baseProps}
+        error="No se pudo completar el OCR en tu navegador. Puedes introducir los datos manualmente."
+        ocrDebug={{
+          step: 'tesseract-create-worker',
+          errorName: 'TypeError',
+          errorMessage: 'Failed to load worker',
+        }}
+      />,
+    );
+    // El <details> está presente y contiene la información técnica
+    expect(screen.getByText(/Detalles técnicos para soporte/i)).toBeInTheDocument();
+    expect(screen.getByText(/step: tesseract-create-worker/)).toBeInTheDocument();
+    expect(screen.getByText(/error: TypeError/)).toBeInTheDocument();
+  });
+
+  it('cuando ocrDebug es null, NO muestra el bloque de soporte', () => {
+    render(<StepNeedsOcr {...baseProps} error="Error genérico" ocrDebug={null} />);
+    expect(screen.queryByText(/Detalles técnicos para soporte/i)).not.toBeInTheDocument();
+  });
+
+  it('el bloque de soporte NO incluye nombres ni importes (solo step+error técnico)', () => {
+    // Verificación defensiva: aunque ocrDebug recibiera PII (nunca debería pasar
+    // porque runClientOcr nunca la pone), el componente solo renderiza step y
+    // errorName/errorMessage. No accede a OCR text.
+    const { container } = render(
+      <StepNeedsOcr
+        {...baseProps}
+        error="generic"
+        ocrDebug={{ step: 'recognize-start', errorName: 'AbortError', errorMessage: 'cancelled' }}
+      />,
+    );
+    expect(container.textContent).not.toMatch(/ARIAS|PABLO|CAMACHO/i);
+    expect(container.textContent).not.toMatch(/1\.000,00|1\.369,00|1\.696,55/);
   });
 });
