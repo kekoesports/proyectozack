@@ -16,10 +16,7 @@ import {
   updateCampaignAction,
   archiveCampaignAction,
 } from '@/app/admin/(dashboard)/campanas/actions';
-import { CampaignSplitPanel } from '@/features/admin/campaigns/components/CampaignSplitPanel';
-
 import type { CampaignRow, CrmBrandContact } from '@/types';
-import type { CampaignSplit } from '@/lib/queries/campaignSplits';
 
 // ── Shared types ───────────────────────────────────────────────────────────────
 
@@ -87,8 +84,6 @@ export type CampaignFormProps = {
   readonly staffUsers: readonly StaffOption[];
   readonly contactsByBrand: Readonly<Record<number, readonly CrmBrandContact[]>>;
   readonly isManager: boolean;
-  readonly splits: readonly CampaignSplit[];
-  readonly rate?: number;
 };
 
 export function CampaignForm({
@@ -100,8 +95,6 @@ export function CampaignForm({
   staffUsers,
   contactsByBrand,
   isManager,
-  splits,
-  rate,
 }: CampaignFormProps): React.ReactElement {
   const router = useRouter();
   const [, startTransition] = useTransition();
@@ -558,23 +551,6 @@ export function CampaignForm({
           className={`${inputCls} resize-none`}
         />
       </Field>
-
-      {/* Reparto socios — solo al editar un trato existente */}
-      {isEditing && (
-        <div className="border-t border-sp-admin-border/50 pt-4 space-y-2">
-          <p className="text-[11px] uppercase tracking-wider font-semibold text-sp-admin-muted">
-            Reparto socios
-          </p>
-          <CampaignSplitPanel
-            campaignId={campaign.id}
-            splits={splits}
-            amountBrand={Number(amountBrand) || 0}
-            amountTalent={Number(amountTalent) || 0}
-            currency={currency}
-            {...(rate !== undefined && { rate })}
-          />
-        </div>
-      )}
 
       {/* Footer actions (inside form so submit button works) */}
       <div className="flex items-center gap-3 pt-2 border-t border-sp-admin-border">
