@@ -11,7 +11,12 @@ const securityHeaders = [
     key: 'Content-Security-Policy',
     value: [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://va.vercel-scripts.com",
+      // 'wasm-unsafe-eval' permite WebAssembly.instantiate() — necesario para el OCR cliente
+      // de nóminas (tesseract.js core). Es el sub-permiso mínimo: NO habilita eval() ni
+      // dynamic code; solo compilación/instanciación de WASM. Ver CSP3 §6.1.
+      // Sin esto, el WASM de tesseract-core lanza:
+      //   "Compiling or instantiating WebAssembly module violates the following CSP directive"
+      "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://www.googletagmanager.com https://va.vercel-scripts.com",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com",
       "img-src 'self' blob: data: https://*.vercel-storage.com https://www.googletagmanager.com https://*.twitch.tv https://*.jtvnw.net https://img.youtube.com https://*.ytimg.com https://i.imgur.com https:",
