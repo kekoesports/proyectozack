@@ -100,7 +100,11 @@ export function InvoiceRow({ invoice, canDelete, canEdit = true, canAnnul = true
     });
   };
 
-  const attachmentUrl = invoice.invoiceFile?.url ?? invoice.fileUrl ?? null;
+  // El proxy `/api/admin/facturacion/[id]/pdf` resuelve internamente la URL real
+  // del Blob (privado) — soporta tanto invoices.invoiceFileId como invoices.fileUrl legacy.
+  // Sirve PDF con Cache-Control: private, no-store y nunca expone el token Blob.
+  const hasAttachment = Boolean(invoice.invoiceFile?.url ?? invoice.fileUrl);
+  const attachmentUrl = hasAttachment ? `/api/admin/facturacion/${invoice.id}/pdf` : null;
 
   return (
     <tr className="border-b border-sp-admin-border/50 last:border-0 hover:bg-sp-admin-hover transition-colors">
