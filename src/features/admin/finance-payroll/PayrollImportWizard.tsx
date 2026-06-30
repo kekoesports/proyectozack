@@ -22,9 +22,9 @@ type Step =
   | { id: 2; rows: PayrollImportRow[]; file: File; sourceMode: 'parsed' | 'ocr-preview' | 'manual'; pageCount?: number; suggestedYearMonth?: string; filenameWarning?: FilenameWarning }
   | { id: 3; result: PayrollApplyResult };
 
-type Props = { existingTxIds: string[] };
+type Props = { existingTxIds: string[]; ocrEnabled: boolean };
 
-export function PayrollImportWizard({ existingTxIds }: Props): React.ReactElement {
+export function PayrollImportWizard({ existingTxIds, ocrEnabled }: Props): React.ReactElement {
   const [step, setStep] = useState<Step>({ id: 0 });
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -157,6 +157,7 @@ export function PayrollImportWizard({ existingTxIds }: Props): React.ReactElemen
         onManual={handleGoManual}
         isOcrPending={isPending}
         error={error}
+        ocrEnabled={ocrEnabled}
       />
     );
   }
@@ -280,55 +281,72 @@ type NeedsOcrProps = {
   onManual: () => void;
   isOcrPending: boolean;
   error: string | null;
+  ocrEnabled: boolean;
 };
 
-function StepNeedsOcr({ fileName, pageCount, onBack, onOcr, onManual, isOcrPending, error }: NeedsOcrProps): React.ReactElement {
+export function StepNeedsOcr({ fileName, pageCount, onBack, onOcr, onManual, isOcrPending, error, ocrEnabled }: NeedsOcrProps): React.ReactElement {
   return (
     <div className="space-y-4 max-w-lg">
       <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-800 space-y-1.5">
-        <p className="font-semibold">PDF sin texto seleccionable</p>
+        <p className="font-semibold">No se pudo leer el texto del PDF automáticamente</p>
         <p>
           <strong>{fileName}</strong>
           {pageCount > 0 ? ` (${pageCount} página${pageCount !== 1 ? 's' : ''})` : ''} es un PDF
-          vectorizado o escaneado. No se pudo extraer texto directamente.
+          vectorizado o escaneado.
         </p>
-        <p>Elige cómo continuar:</p>
+        {ocrEnabled
+          ? <p>Elige cómo continuar:</p>
+          : <p>Introduce los datos manualmente revisando la nómina.</p>}
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        <button
-          type="button"
-          disabled={isOcrPending}
-          onClick={onOcr}
-          className="flex flex-col items-start gap-1.5 rounded-lg border border-sp-border bg-sp-admin-surface p-4 text-left hover:border-sp-orange/60 disabled:opacity-50 transition-colors"
-        >
-          <span className="text-sm font-medium text-sp-admin-fg">
-            {isOcrPending ? 'Analizando con OCR…' : 'Autocompletar con OCR'}
-          </span>
-          <span className="text-xs text-sp-admin-muted">
-            {isOcrPending
-              ? 'Esto puede tardar hasta 30 segundos. No cierres esta página.'
-              : 'Reconocimiento óptico automático. Puede tardar 20–40 s. Revisa los datos antes de confirmar.'}
-          </span>
-        </button>
-        <button
-          type="button"
-          disabled={isOcrPending}
-          onClick={onManual}
-          className="flex flex-col items-start gap-1.5 rounded-lg border border-sp-border bg-sp-admin-surface p-4 text-left hover:border-sp-orange/60 disabled:opacity-50 transition-colors"
-        >
-          <span className="text-sm font-medium text-sp-admin-fg">Introducir manualmente</span>
-          <span className="text-xs text-sp-admin-muted">
-            Escribe los importes directamente desde el PDF. Sin errores de OCR.
-          </span>
-        </button>
-      </div>
+      {ocrEnabled ? (
+        <div className="grid grid-cols-2 gap-3">
+          <button
+            type="button"
+            disabled={isOcrPending}
+            onClick={onOcr}
+            className="flex flex-col items-start gap-1.5 rounded-lg border border-sp-border bg-sp-admin-surface p-4 text-left hover:border-sp-orange/60 disabled:opacity-50 transition-colors"
+          >
+            <span className="text-sm font-medium text-sp-admin-fg">
+              {isOcrPending ? 'Analizando con OCR…' : 'Autocompletar con OCR'}
+            </span>
+            <span className="text-xs text-sp-admin-muted">
+              {isOcrPending
+                ? 'Esto puede tardar hasta 30 segundos. No cierres esta página.'
+                : 'Reconocimiento óptico automático. Puede tardar 20–40 s. Revisa los datos antes de confirmar.'}
+            </span>
+          </button>
+          <button
+            type="button"
+            disabled={isOcrPending}
+            onClick={onManual}
+            className="flex flex-col items-start gap-1.5 rounded-lg border border-sp-border bg-sp-admin-surface p-4 text-left hover:border-sp-orange/60 disabled:opacity-50 transition-colors"
+          >
+            <span className="text-sm font-medium text-sp-admin-fg">Introducir manualmente</span>
+            <span className="text-xs text-sp-admin-muted">
+              Escribe los importes directamente desde el PDF. Sin errores de OCR.
+            </span>
+          </button>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          <div className="rounded-lg border border-sp-border bg-sp-admin-surface px-4 py-3 text-xs text-sp-admin-muted">
+            OCR automático deshabilitado temporalmente. Puedes introducir los datos manualmente.
+          </div>
+          <button
+            type="button"
+            onClick={onManual}
+            className="flex w-full items-center justify-center rounded-lg border border-sp-orange/60 bg-sp-orange/10 px-4 py-3 text-sm font-medium text-sp-orange hover:bg-sp-orange/20 transition-colors"
+          >
+            Introducir manualmente
+          </button>
+        </div>
+      )}
 
       {error && (
         <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-xs text-red-800 space-y-1">
-          <p className="font-semibold">No se pudo completar el OCR</p>
           <p>{error}</p>
-          <p>Puedes usar <strong>Introducir manualmente</strong> para continuar sin OCR.</p>
+          <p>Puedes usar <strong>Introducir manualmente</strong> para continuar.</p>
         </div>
       )}
 

@@ -32,6 +32,11 @@ export const env = createEnv({
     BLOB_READ_WRITE_TOKEN_NEWS: z.string().min(1).optional(),
     // Google Sheets API key for reading public spreadsheets (no OAuth needed).
     GOOGLE_SHEETS_API_KEY: z.string().min(1).optional(),
+    // Kill switch del OCR de nóminas. Default false en producción (tesseract.js
+    // está roto en Vercel — Cannot find module '..' + timeouts). Solo se invoca
+    // tesseract si la variable es exactamente 'true'. Developers pueden setear
+    // PAYROLL_OCR_ENABLED=true en .env.local para probar el flujo OCR en local.
+    PAYROLL_OCR_ENABLED: z.enum(['true', 'false']).optional().default('false').transform((v) => v === 'true'),
   },
   client: {
     NEXT_PUBLIC_SITE_URL: z.string().url(),
@@ -57,6 +62,7 @@ export const env = createEnv({
     BLOB_READ_WRITE_TOKEN: process.env.BLOB_READ_WRITE_TOKEN,
     BLOB_READ_WRITE_TOKEN_NEWS: process.env.BLOB_READ_WRITE_TOKEN_NEWS,
     GOOGLE_SHEETS_API_KEY: process.env.GOOGLE_SHEETS_API_KEY,
+    PAYROLL_OCR_ENABLED: process.env.PAYROLL_OCR_ENABLED,
 
     NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
     NEXT_PUBLIC_GTM_ID: process.env.NEXT_PUBLIC_GTM_ID,

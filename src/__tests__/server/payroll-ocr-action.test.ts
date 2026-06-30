@@ -1,7 +1,15 @@
 /**
- * Tests para ocrPayrollPdfAction — error handling controlado.
+ * Tests para ocrPayrollPdfAction — error handling controlado (camino OCR habilitado).
+ * Para el kill switch (PAYROLL_OCR_ENABLED=false) ver payroll-actions-killswitch.test.ts.
  * Verifica que la action NUNCA lanza excepción al caller y NUNCA loggea PII.
  */
+
+// Forzar flag OCR ON en este test — verificamos el camino completo OCR.
+jest.mock('@/lib/env', () => ({
+  env: { PAYROLL_OCR_ENABLED: true },
+}));
+jest.mock('@/lib/auth', () => ({ auth: {} }));
+jest.mock('@/lib/db', () => ({ db: {} }));
 
 import { ocrPayrollPdfAction } from '@/app/admin/(dashboard)/finanzas/nominas/importar/actions';
 
@@ -76,16 +84,19 @@ describe('ocrPayrollPdfAction — captura excepción y devuelve { ok: false }', 
 // ── 2. Timeout ────────────────────────────────────────────────────────────────
 
 describe('ocrPayrollPdfAction — timeout interno', () => {
-  it('timeout de 55 s → retorna { ok: false } con mensaje "tardó demasiado"', async () => {
+  it('timeout de 55 s → retorna { ok: false } con mensaje genérico', async () => {
     // El internal timeout lanza `new Error('ocr_timeout')` tras 55 s.
-    // Simulamos ese escenario haciendo que ocrPayrollPdf rechace con ese error.
+    // Mensaje unificado (no expone "tardó demasiado") y guía hacia manual.
     const mock = await getOcrMock();
     mock.mockRejectedValue(new Error('ocr_timeout'));
 
     const res = await ocrPayrollPdfAction(makePdfFormData());
 
     expect(res.ok).toBe(false);
-    if (!res.ok) expect(res.error).toMatch(/tardó demasiado/i);
+    if (!res.ok) {
+      expect(res.error).toMatch(/no se pudo completar/i);
+      expect(res.error).toMatch(/manualmente/i);
+    }
   });
 });
 
