@@ -10,10 +10,16 @@ import type { PayrollImportRow, PayrollApplyResult, FilenameWarning } from '@/li
 import { emptyManualRow, manualRowToPayrollRow } from '@/lib/finance/payroll/manualRow';
 import type { ManualRow } from '@/lib/finance/payroll/manualRow';
 
-// OCR cliente: tipo del progreso (el módulo se carga por dynamic import).
+// OCR cliente: tipos del progreso y debug (el módulo se carga por dynamic import).
 type OcrProgressEvent =
   | { readonly stage: 'render'; readonly page: number; readonly total: number }
   | { readonly stage: 'recognize'; readonly page: number; readonly total: number; readonly progress?: number };
+
+type OcrDebugInfo = {
+  readonly step: string;
+  readonly errorName: string;
+  readonly errorMessage: string;
+};
 
 // ── Step discriminator ────────────────────────────────────────────────────────
 
@@ -33,6 +39,7 @@ export function PayrollImportWizard({ existingTxIds }: Props): React.ReactElemen
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const [ocrProgress, setOcrProgress] = useState<OcrProgressEvent | null>(null);
+  const [ocrDebug, setOcrDebug] = useState<OcrDebugInfo | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   // ── Step 0 → 1: parse PDF ──────────────────────────────────────────────────
@@ -74,6 +81,7 @@ export function PayrollImportWizard({ existingTxIds }: Props): React.ReactElemen
     const { file } = step;
     setError(null);
     setOcrProgress(null);
+    setOcrDebug(null);
     startTransition(async () => {
       try {
         const { runClientOcr } = await import('./client-ocr/runClientOcr');
@@ -82,11 +90,20 @@ export function PayrollImportWizard({ existingTxIds }: Props): React.ReactElemen
           onProgress: (e) => setOcrProgress(e),
         });
         setOcrProgress(null);
-        if (!res.ok) { setError(res.error); return; }
+        if (!res.ok) {
+          setError(res.error);
+          setOcrDebug(res.debug);
+          return;
+        }
         setStep({ id: 1, mode: 'ocr-preview', rows: res.rows, file, fileName: file.name });
-      } catch {
+      } catch (err) {
         setOcrProgress(null);
         setError('No se pudo completar el OCR en tu navegador. Puedes introducir los datos manualmente.');
+        setOcrDebug({
+          step: 'dynamic-import',
+          errorName: err instanceof Error ? err.name : 'UnknownError',
+          errorMessage: (err instanceof Error ? err.message : String(err)).slice(0, 200),
+        });
       }
     });
   }
@@ -171,6 +188,7 @@ export function PayrollImportWizard({ existingTxIds }: Props): React.ReactElemen
         isOcrPending={isPending}
         error={error}
         ocrProgress={ocrProgress}
+        ocrDebug={ocrDebug}
       />
     );
   }
@@ -295,6 +313,7 @@ type NeedsOcrProps = {
   isOcrPending: boolean;
   error: string | null;
   ocrProgress: OcrProgressEvent | null;
+  ocrDebug: OcrDebugInfo | null;
 };
 
 function progressLabel(p: OcrProgressEvent | null): string {
@@ -303,7 +322,7 @@ function progressLabel(p: OcrProgressEvent | null): string {
   return `Leyendo texto ${p.page}/${p.total}`;
 }
 
-export function StepNeedsOcr({ fileName, pageCount, onBack, onOcr, onManual, isOcrPending, error, ocrProgress }: NeedsOcrProps): React.ReactElement {
+export function StepNeedsOcr({ fileName, pageCount, onBack, onOcr, onManual, isOcrPending, error, ocrProgress, ocrDebug }: NeedsOcrProps): React.ReactElement {
   return (
     <div className="space-y-4 max-w-lg">
       <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-800 space-y-1.5">
@@ -358,6 +377,16 @@ export function StepNeedsOcr({ fileName, pageCount, onBack, onOcr, onManual, isO
         <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-xs text-red-800 space-y-1">
           <p>{error}</p>
           <p>Puedes usar <strong>Introducir manualmente</strong> para continuar.</p>
+          {ocrDebug && (
+            <details className="mt-2 cursor-pointer text-[10px] text-red-700/80">
+              <summary className="font-mono">Detalles técnicos para soporte</summary>
+              <pre className="mt-1 whitespace-pre-wrap font-mono leading-relaxed">
+                step: {ocrDebug.step}{'\n'}
+                error: {ocrDebug.errorName}{'\n'}
+                detail: {ocrDebug.errorMessage}
+              </pre>
+            </details>
+          )}
         </div>
       )}
 
