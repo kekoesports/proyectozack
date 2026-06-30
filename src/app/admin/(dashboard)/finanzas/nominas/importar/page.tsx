@@ -1,6 +1,7 @@
 import { requirePermission } from '@/lib/permissions';
 import { getExistingPayrollTxIds } from '@/lib/queries/payrollImport';
 import { PayrollImportWizard } from '@/features/admin/finance-payroll/PayrollImportWizard';
+import { env } from '@/lib/env';
 
 export const metadata = { title: 'Importar nóminas | Admin' };
 
@@ -21,7 +22,7 @@ export default async function PayrollImportPage(): Promise<React.ReactElement> {
           Ningún dato se inserta hasta confirmar explícitamente.
         </p>
       </div>
-      <PayrollImportWizard existingTxIds={[...existingTxIds]} />
+      <PayrollImportWizard existingTxIds={[...existingTxIds]} ocrEnabled={env.PAYROLL_OCR_ENABLED} />
     </div>
   );
 }
