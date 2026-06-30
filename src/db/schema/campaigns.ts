@@ -9,7 +9,7 @@ export const campaignStatusEnum = pgEnum('campaign_status', [
 ]);
 
 export const campaignActionTypeEnum = pgEnum('campaign_action_type', [
-  'stream', 'video_youtube', 'short_reel_tiktok', 'tweet',
+  'stream', 'preroll', 'video_youtube', 'short_reel_tiktok', 'tweet',
   'story_instagram', 'pack_mensual', 'afiliacion', 'otro',
 ]);
 

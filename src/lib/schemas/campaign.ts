@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const CAMPAIGN_STATUSES = ['propuesta','negociacion','aprobada','activa','completada','cancelada','pendiente_pago','pagada'] as const;
-export const CAMPAIGN_ACTION_TYPES = ['stream','video_youtube','short_reel_tiktok','tweet','story_instagram','pack_mensual','afiliacion','otro'] as const;
+export const CAMPAIGN_ACTION_TYPES = ['stream','preroll','video_youtube','short_reel_tiktok','tweet','story_instagram','pack_mensual','afiliacion','otro'] as const;
 export const CAMPAIGN_PAYMENT_METHODS = ['banco','crypto','banco_agencia','banco_stark','crypto_agencia','crypto_zack','otro'] as const;
 
 export type CampaignStatus = (typeof CAMPAIGN_STATUSES)[number];
@@ -22,12 +22,13 @@ export const CAMPAIGN_STATUS_LABELS: Record<CampaignStatus, string> = {
 };
 
 export const CAMPAIGN_ACTION_LABELS: Record<CampaignActionType, string> = {
-  stream: 'Stream',
-  video_youtube: 'Vídeo YouTube',
-  short_reel_tiktok: 'Short/Reel/TikTok',
+  stream: 'Streams',
+  preroll: 'Prerolls',
+  video_youtube: 'Video Dedicado',
+  short_reel_tiktok: 'Short/TikTok',
   tweet: 'Tweet',
   story_instagram: 'Historia Instagram',
-  pack_mensual: 'Pack mensual',
+  pack_mensual: 'Pack Completo',
   afiliacion: 'Afiliación',
   otro: 'Otro',
 };
