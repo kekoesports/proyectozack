@@ -7,7 +7,6 @@ import { listCampaigns } from '@/lib/queries/campaigns';
 import { listCrmBrands, getBrandContacts } from '@/lib/queries/crmBrands';
 import { getAllTalents } from '@/lib/queries/talents';
 import { listInvoices } from '@/lib/queries/invoices';
-import { getAllCampaignSplits, getPartnersOwed } from '@/lib/queries/campaignSplits';
 import { getUsdEurRate } from '@/lib/exchangeRate';
 import { CampaignsList } from '@/features/admin/campaigns/components/CampaignsList';
 
@@ -18,7 +17,7 @@ export default async function AdminCampanasPage(): Promise<React.ReactElement> {
   const role = session.user.role;
   const isManager = role === 'manager';
 
-  const [rawCampaigns, invoices, crmBrandsList, allTalents, staffUsers, splitsMap, partnersOwed, exchangeRate] = await Promise.all([
+  const [rawCampaigns, invoices, crmBrandsList, allTalents, staffUsers, exchangeRate] = await Promise.all([
     listCampaigns({ session: { userId: session.user.id, role } }),
     listInvoices({}),
     listCrmBrands(),
@@ -28,8 +27,6 @@ export default async function AdminCampanasPage(): Promise<React.ReactElement> {
       .from(userTable)
       .where(inArray(userTable.role, ['admin', 'admin_limited_tasks', 'manager', 'staff']))
       .orderBy(userTable.name),
-    getAllCampaignSplits(),
-    getPartnersOwed(),
     getUsdEurRate(),
   ]);
 
@@ -75,8 +72,6 @@ export default async function AdminCampanasPage(): Promise<React.ReactElement> {
       talents={talents}
       staffUsers={staffUsers}
       contactsByBrand={contactsByBrand}
-      splitsMap={splitsMap}
-      partnersOwed={partnersOwed}
       rate={exchangeRate.rate}
       rateDate={exchangeRate.date}
       rateIsEstimated={exchangeRate.isEstimated}
