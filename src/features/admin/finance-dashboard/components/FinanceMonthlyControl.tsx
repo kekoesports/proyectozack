@@ -9,6 +9,9 @@ import type {
   MonthlyExpenseBreakdownItem,
   MonthlyDocItem,
 } from '@/lib/queries/financeDashboard/financeResumen.shared';
+import type { FinanceAlert, ReceivableRow } from '@/types/financeDashboard';
+import { FinanceAlertsList } from './FinanceAlertsList';
+import { ReceivablesTable } from './ReceivablesTable';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -60,30 +63,36 @@ function generateMonthOptions(): { value: string; label: string }[] {
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
+type KpiAccent = 'income' | 'expense' | 'pos' | 'neg' | 'neutral' | 'warn';
+
 type KpiCardProps = {
   readonly label: string;
   readonly value: string;
-  readonly accent: 'income' | 'expense' | 'pos' | 'neg' | 'neutral';
+  readonly accent: KpiAccent;
+  readonly hint?: string;
 };
 
-function KpiCard({ label, value, accent }: KpiCardProps): React.ReactElement {
+function KpiCard({ label, value, accent, hint }: KpiCardProps): React.ReactElement {
   const border =
     accent === 'income'  ? 'border-emerald-500/40'
     : accent === 'expense' ? 'border-red-500/30'
     : accent === 'pos'   ? 'border-emerald-500/50'
     : accent === 'neg'   ? 'border-red-500/50'
+    : accent === 'warn'  ? 'border-amber-500/40'
     :                       'border-sp-admin-border';
   const dot =
     accent === 'income'  ? 'bg-emerald-500'
     : accent === 'expense' ? 'bg-red-500'
     : accent === 'pos'   ? 'bg-emerald-500'
     : accent === 'neg'   ? 'bg-red-500'
+    : accent === 'warn'  ? 'bg-amber-500'
     :                       'bg-sp-admin-muted';
   const valueColor =
     accent === 'income'  ? 'text-emerald-400'
     : accent === 'expense' ? 'text-red-400'
     : accent === 'pos'   ? 'text-emerald-400'
     : accent === 'neg'   ? 'text-red-400'
+    : accent === 'warn'  ? 'text-amber-400'
     :                       'text-sp-admin-fg';
 
   return (
@@ -95,6 +104,7 @@ function KpiCard({ label, value, accent }: KpiCardProps): React.ReactElement {
         </span>
       </div>
       <span className={`text-3xl font-black tabular-nums ${valueColor}`}>{value}</span>
+      {hint && <span className="text-[11px] text-sp-admin-muted">{hint}</span>}
     </div>
   );
 }
@@ -129,18 +139,29 @@ type Props = {
   readonly stock: FinanceStockKPIs;
   readonly breakdown: MonthlyExpenseBreakdownItem[];
   readonly docs: MonthlyDocItem[];
+  readonly alerts: readonly FinanceAlert[];
+  readonly receivables: readonly ReceivableRow[];
 };
 
-export function FinanceMonthlyControl({ mes, flow, stock, breakdown, docs }: Props): React.ReactElement {
-  const resultAccent = flow.resultado > 0 ? 'pos' : flow.resultado < 0 ? 'neg' : 'neutral';
+export function FinanceMonthlyControl({
+  mes,
+  flow,
+  stock,
+  breakdown,
+  docs,
+  alerts,
+  receivables,
+}: Props): React.ReactElement {
+  const resultAccent: KpiAccent = flow.resultado > 0 ? 'pos' : flow.resultado < 0 ? 'neg' : 'neutral';
   const topExpense = breakdown[0] ?? null;
   const topExpenseLabel = topExpense
     ? (topExpense.subtype ? (EXPENSE_SUBTYPE_LABELS[topExpense.subtype] ?? topExpense.label) : topExpense.label)
     : null;
   const contextualText = buildContextualText(flow.incomeTotal, flow.gastosTotal, topExpenseLabel);
-
-  const netoCaja = flow.cobradoMes - flow.pagadoMes;
   const breakdownTotal = breakdown.reduce((s, r) => s + r.amount, 0);
+
+  const pendienteCobroAccent: KpiAccent = stock.pendienteCobro > 0 ? 'warn' : 'neutral';
+  const pendientePagoAccent: KpiAccent = stock.pendientePago > 0 ? 'warn' : 'neutral';
 
   return (
     <div className="space-y-5">
@@ -162,11 +183,49 @@ export function FinanceMonthlyControl({ mes, flow, stock, breakdown, docs }: Pro
         </Link>
       </div>
 
-      {/* ── 3 KPI cards ─────────────────────────────────────────────── */}
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <KpiCard label="Ingresos" value={EUR.format(flow.incomeTotal)} accent="income" />
-        <KpiCard label="Gastos"   value={EUR.format(flow.gastosTotal)} accent="expense" />
-        <KpiCard label="Resultado del mes" value={EUR.format(flow.resultado)} accent={resultAccent} />
+      {/* ── Alertas financieras (solo si hay) ───────────────────────── */}
+      {alerts.length > 0 && (
+        <FinanceAlertsList alerts={alerts} />
+      )}
+
+      {/* ── 6 KPI cards (CEO-friendly) ──────────────────────────────── */}
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <KpiCard
+          label="Facturado del mes"
+          value={EUR.format(flow.incomeTotal)}
+          accent="income"
+          hint="Total emitido (devengo)"
+        />
+        <KpiCard
+          label="Cobrado del mes"
+          value={EUR.format(flow.cobradoMes)}
+          accent="income"
+          hint="Entradas reales en caja"
+        />
+        <KpiCard
+          label="Pendiente de cobrar"
+          value={stock.pendienteCobro > 0 ? EUR.format(stock.pendienteCobro) : 'Al día'}
+          accent={pendienteCobroAccent}
+          hint="Saldo vivo total"
+        />
+        <KpiCard
+          label="Gastado del mes"
+          value={EUR.format(flow.gastosTotal)}
+          accent="expense"
+          hint="Total facturas de gasto"
+        />
+        <KpiCard
+          label="Resultado del mes"
+          value={EUR.format(flow.resultado)}
+          accent={resultAccent}
+          hint="Facturado − gastado"
+        />
+        <KpiCard
+          label="Pendiente de pagar"
+          value={stock.pendientePago > 0 ? EUR.format(stock.pendientePago) : 'Al día'}
+          accent={pendientePagoAccent}
+          hint="Saldo vivo total"
+        />
       </div>
 
       {/* ── Contextual text ──────────────────────────────────────────── */}
@@ -227,6 +286,11 @@ export function FinanceMonthlyControl({ mes, flow, stock, breakdown, docs }: Pro
         </div>
       )}
 
+      {/* ── Cobros pendientes (saldo vivo detallado) ─────────────────── */}
+      <section aria-label="Cobros pendientes" data-testid="receivables-section">
+        <ReceivablesTable rows={receivables} />
+      </section>
+
       {/* ── Documentos del mes ──────────────────────────────────────── */}
       {docs.length > 0 && (
         <div className="rounded-xl border border-sp-admin-border bg-sp-admin-card p-5">
@@ -268,65 +332,6 @@ export function FinanceMonthlyControl({ mes, flow, stock, breakdown, docs }: Pro
           </div>
         </div>
       )}
-
-      {/* ── Pendientes (saldo vivo — stock) ─────────────────────────── */}
-      <div className="grid grid-cols-2 gap-3">
-        <div className={`flex flex-col gap-1 rounded-lg border px-4 py-3 ${
-          stock.pendienteCobro > 0 ? 'border-amber-500/40 bg-amber-500/5' : 'border-sp-admin-border bg-sp-admin-card'
-        }`}>
-          <span className="text-[10px] font-semibold uppercase tracking-widest text-sp-admin-muted">
-            Por cobrar (total)
-          </span>
-          <span className={`text-base font-bold tabular-nums ${
-            stock.pendienteCobro > 0 ? 'text-amber-400' : 'text-emerald-400'
-          }`}>
-            {stock.pendienteCobro > 0 ? EUR.format(stock.pendienteCobro) : 'Al día'}
-          </span>
-          {stock.pendienteCobro > 0 && (
-            <span className="text-[11px] text-sp-admin-muted">Saldo pendiente de cobro</span>
-          )}
-        </div>
-        <div className={`flex flex-col gap-1 rounded-lg border px-4 py-3 ${
-          stock.pendientePago > 0 ? 'border-amber-500/40 bg-amber-500/5' : 'border-sp-admin-border bg-sp-admin-card'
-        }`}>
-          <span className="text-[10px] font-semibold uppercase tracking-widest text-sp-admin-muted">
-            Por pagar (total)
-          </span>
-          <span className={`text-base font-bold tabular-nums ${
-            stock.pendientePago > 0 ? 'text-amber-400' : 'text-emerald-400'
-          }`}>
-            {stock.pendientePago > 0 ? EUR.format(stock.pendientePago) : 'Al día'}
-          </span>
-          {stock.pendientePago > 0 && (
-            <span className="text-[11px] text-sp-admin-muted">Saldo pendiente de pago</span>
-          )}
-        </div>
-      </div>
-
-      {/* ── Caja del mes (secundaria) ────────────────────────────────── */}
-      <details className="group rounded-xl border border-sp-admin-border">
-        <summary className="flex cursor-pointer items-center justify-between px-5 py-3 text-[11px] font-semibold uppercase tracking-widest text-sp-admin-muted hover:text-sp-admin-fg">
-          Caja del mes — pagos conciliados
-          <span className="text-xs font-normal group-open:hidden">▸ mostrar</span>
-          <span className="hidden text-xs font-normal group-open:inline">▾ ocultar</span>
-        </summary>
-        <div className="grid grid-cols-3 gap-3 px-5 pb-5">
-          <div className="flex flex-col gap-1 rounded-xl border border-sp-admin-border bg-sp-admin-card/50 p-4">
-            <span className="text-[10px] font-semibold uppercase tracking-widest text-sp-admin-muted">Cobrado</span>
-            <span className="text-xl font-bold tabular-nums text-emerald-400">{EUR.format(flow.cobradoMes)}</span>
-          </div>
-          <div className="flex flex-col gap-1 rounded-xl border border-sp-admin-border bg-sp-admin-card/50 p-4">
-            <span className="text-[10px] font-semibold uppercase tracking-widest text-sp-admin-muted">Pagado</span>
-            <span className="text-xl font-bold tabular-nums text-red-400">{EUR.format(flow.pagadoMes)}</span>
-          </div>
-          <div className="flex flex-col gap-1 rounded-xl border border-sp-admin-border bg-sp-admin-card/50 p-4">
-            <span className="text-[10px] font-semibold uppercase tracking-widest text-sp-admin-muted">Neto caja</span>
-            <span className={`text-xl font-bold tabular-nums ${netoCaja >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-              {EUR.format(netoCaja)}
-            </span>
-          </div>
-        </div>
-      </details>
 
     </div>
   );
