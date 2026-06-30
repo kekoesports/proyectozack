@@ -90,7 +90,11 @@ export default async function BrandPage({ params }: PageProps) {
     name: brand.name,
     url: brand.officialUrl,
     description: (brand.description.split('\n\n')[0] ?? '').slice(0, 300),
-    ...(brand.logoUrl ? { logo: { '@type': 'ImageObject', url: brand.logoUrl } } : {}),
+    // logoUrl puede ser absoluta (Blob legacy) o relativa al proxy /api/brand-logo/[id].
+    // Google necesita URL absoluta en JSON-LD para crawlear y mostrar el logo en SERP.
+    ...(brand.logoUrl
+      ? { logo: { '@type': 'ImageObject', url: brand.logoUrl.startsWith('http') ? brand.logoUrl : absoluteUrl(brand.logoUrl) } }
+      : {}),
     knowsAbout: categoryTopics[brand.category] ?? categoryTopics.otros,
     subjectOf: {
       '@type': 'WebPage',

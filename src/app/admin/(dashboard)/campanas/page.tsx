@@ -3,6 +3,7 @@ import { user as userTable } from '@/db/schema';
 import { inArray } from 'drizzle-orm';
 
 import { requirePermission } from '@/lib/permissions';
+import { ASSIGNABLE_TEAM_ROLES } from '@/lib/team-roles';
 import { listCampaigns } from '@/lib/queries/campaigns';
 import { listCrmBrands, getBrandContacts } from '@/lib/queries/crmBrands';
 import { getAllTalents } from '@/lib/queries/talents';
@@ -25,7 +26,7 @@ export default async function AdminCampanasPage(): Promise<React.ReactElement> {
     db
       .select({ id: userTable.id, name: userTable.name })
       .from(userTable)
-      .where(inArray(userTable.role, ['admin', 'admin_limited_tasks', 'manager', 'staff']))
+      .where(inArray(userTable.role, [...ASSIGNABLE_TEAM_ROLES]))
       .orderBy(userTable.name),
     getUsdEurRate(),
   ]);
