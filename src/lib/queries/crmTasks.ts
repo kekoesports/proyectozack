@@ -3,6 +3,7 @@ import { and, asc, desc, eq, getTableColumns, gte, inArray, isNotNull, isNull, l
 import { campaigns, crmBrands, crmTasks, invoices, talents, user } from '@/db/schema';
 import { crmTaskTemplates } from '@/db/schema/crmTaskTemplates';
 import { db } from '@/lib/db';
+import { ASSIGNABLE_TEAM_ROLES, isAssignableTeamUser } from '@/lib/team-roles';
 import { toLocalIsoDate } from '@/lib/utils/date';
 import { getIsoWeekLabel } from '@/lib/utils/week';
 
@@ -169,7 +170,7 @@ export async function getTeamTasksSummary(weekLabel: string): Promise<readonly T
     })
     .from(user)
     .leftJoin(crmTasks, eq(crmTasks.ownerId, user.id))
-    .where(inArray(user.role, ['admin', 'manager', 'staff']))
+    .where(inArray(user.role, [...ASSIGNABLE_TEAM_ROLES]))
     .groupBy(user.id, user.name, user.email, user.role)
     .orderBy(asc(user.name));
 
@@ -583,9 +584,7 @@ export function buildRecurringTaskInstances({
   readonly today: Date;
   readonly weekLabel: string;
 }): readonly NewCrmTask[] {
-  const internalUsers = users.filter(
-    (u) => u.role === 'admin' || u.role === 'manager' || u.role === 'staff',
-  );
+  const internalUsers = users.filter((u) => isAssignableTeamUser(u.role));
   const todayIso = toIsoDate(today);
   const isFirstDayOfMonth = todayIso.endsWith('-01');
   const rows: NewCrmTask[] = [];
@@ -658,7 +657,7 @@ export async function regenerateRecurringTasks({
   const users = await db
     .select({ id: user.id, role: user.role })
     .from(user)
-    .where(inArray(user.role, ['admin', 'manager', 'staff']))
+    .where(inArray(user.role, [...ASSIGNABLE_TEAM_ROLES]))
     .orderBy(asc(user.name));
 
   const fallbackCreatorUserId = users.find((u) => u.role === 'admin')?.id ?? null;

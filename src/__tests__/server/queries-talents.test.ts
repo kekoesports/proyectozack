@@ -252,6 +252,77 @@ describe('talent queries', () => {
 
       expect(result).toBeUndefined();
     });
+
+    // ── Tigerr visibility conditions ──────────────────────────────────────────
+    // Slug real en DB: "tiger". URL pública: /talentos/tigerr → redirects a /talentos/tiger.
+    // Estos tests documentan las condiciones exactas que controlan el acceso público.
+
+    it('[tigerr] slug "tiger" con isPublished=true y archivedAt=null → devuelve talent', async () => {
+      const talent = makeTalentRow({ slug: 'tiger', isPublished: true, archivedAt: null });
+      mockFindFirst.mockResolvedValue(talent);
+
+      const result = await getTalentBySlug('tiger');
+
+      expect(result).toBeDefined();
+      expect(result?.slug).toBe('tiger');
+    });
+
+    it('[tigerr] isPublished=false → DB filtra y devuelve undefined → página 404', async () => {
+      // La query incluye eq(talents.isPublished, true) — DB no devuelve la fila
+      mockFindFirst.mockResolvedValue(undefined);
+
+      const result = await getTalentBySlug('tiger');
+
+      expect(result).toBeUndefined();
+    });
+
+    it('[tigerr] archivedAt set → DB filtra y devuelve undefined → página 404', async () => {
+      // La query incluye isNull(talents.archivedAt) — DB no devuelve la fila si hay fecha
+      mockFindFirst.mockResolvedValue(undefined);
+
+      const result = await getTalentBySlug('tiger');
+
+      expect(result).toBeUndefined();
+    });
+
+    it('[tigerr] slug "tigerr" (dos r) → devuelve undefined — el slug real es "tiger"', async () => {
+      // La query usa eq exacto; "tigerr" no coincide con "tiger" en DB.
+      // El redirect /talentos/tigerr → /talentos/tiger en next.config.ts resuelve esto.
+      mockFindFirst.mockResolvedValue(undefined);
+
+      const result = await getTalentBySlug('tigerr');
+
+      expect(result).toBeUndefined();
+    });
+
+    it('[tigerr] campos opcionales vacíos (tags/stats/socials=[]) → no lanza excepción', async () => {
+      const talent = makeTalentRow({
+        slug: 'tiger',
+        isPublished: true,
+        archivedAt: null,
+        tags: [],
+        stats: [],
+        socials: [],
+      });
+      mockFindFirst.mockResolvedValue(talent);
+
+      const result = await getTalentBySlug('tiger');
+
+      expect(result).toBeDefined();
+      expect(result?.tags).toEqual([]);
+      expect(result?.stats).toEqual([]);
+      expect(result?.socials).toEqual([]);
+    });
+
+    it('[tigerr] slug en mayúsculas "TIGER" → devuelve undefined (query usa eq exacto, slugs siempre lowercase)', async () => {
+      // slugify() siempre lowercase — los slugs en DB son siempre minúsculas.
+      // El route param llega siempre lowercase desde Next.js dynamic routing.
+      mockFindFirst.mockResolvedValue(undefined);
+
+      const result = await getTalentBySlug('TIGER');
+
+      expect(result).toBeUndefined();
+    });
   });
 
   // ── getAllTalents ───────────────────────────────────────────────────────────

@@ -71,6 +71,14 @@ describe('buildRecurringTaskInstances', () => {
     { id: 'staff-1', role: 'staff' },
   ] as const;
 
+  // Fixture ampliado con admin_limited_tasks (simula lo que devuelve el cron tras el fix)
+  const usersWithAdminLimited = [
+    { id: 'admin-1', role: 'admin' },
+    { id: 'alt-1', role: 'admin_limited_tasks' },
+    { id: 'manager-1', role: 'manager' },
+    { id: 'staff-1', role: 'staff' },
+  ] as const;
+
   it('creates one weekly task per internal user when template has no default assignee', () => {
     const rows = buildRecurringTaskInstances({
       templates: [baseTemplate],
@@ -95,6 +103,22 @@ describe('buildRecurringTaskInstances', () => {
     expect(rows[1]?.assignedToUserId).toBe('manager-1');
     expect(rows[2]?.assignedToUserId).toBe('staff-1');
     expect(rows.every((row) => row.createdByUserId === 'admin-1')).toBe(true);
+  });
+
+  it('incluye admin_limited_tasks en el pool del cron — genera tarea propia para ese usuario', () => {
+    const rows = buildRecurringTaskInstances({
+      templates: [baseTemplate],
+      users: usersWithAdminLimited,
+      fallbackCreatorUserId: 'admin-1',
+      today: new Date('2026-05-04T08:00:00Z'),
+      weekLabel: '2026-W19',
+    });
+
+    expect(rows).toHaveLength(4);
+    const altRow = rows.find((r) => r.assignedToUserId === 'alt-1');
+    expect(altRow).toBeDefined();
+    expect(altRow?.ownerId).toBe('alt-1');
+    expect(altRow?.recurrenceTemplateId).toBe(1);
   });
 
   it('creates a single recurring task for the template default assignee', () => {

@@ -13,10 +13,6 @@ function pct(n: number): string {
   return `${n >= 0 ? '+' : ''}${n.toFixed(1)}%`;
 }
 
-function sign(n: number): 'positive' | 'negative' | 'neutral' {
-  return n > 0 ? 'positive' : n < 0 ? 'negative' : 'neutral';
-}
-
 // ── Headline card (top 3) ──────────────────────────────────────────────────
 
 type HeadlineCardProps = {
