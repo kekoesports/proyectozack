@@ -2,6 +2,7 @@ import { asc, inArray } from 'drizzle-orm';
 
 import { user } from '@/db/schema';
 import { db } from '@/lib/db';
+import { ASSIGNABLE_TEAM_ROLES } from '@/lib/team-roles';
 
 export type StaffUserRow = {
   readonly id: string;
@@ -27,7 +28,7 @@ export async function getAllStaffUsers(): Promise<readonly StaffUserRow[]> {
       role: user.role,
     })
     .from(user)
-    .where(inArray(user.role, ['admin', 'manager', 'staff']))
+    .where(inArray(user.role, [...ASSIGNABLE_TEAM_ROLES]))
     .orderBy(asc(user.name));
 }
 

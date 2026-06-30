@@ -99,6 +99,14 @@ const nextConfig: NextConfig = {
         destination: '/codigos',
         permanent: true,
       },
+      // /talentos/tigerr → /talentos/tiger (301 permanent — slug con typo 2026-06-30)
+      // El talent TIGERR tiene slug "tiger" en DB (una r). La URL pública usa "tigerr".
+      // Redirige al slug real hasta que el slug en DB sea corregido.
+      {
+        source: '/talentos/tigerr',
+        destination: '/talentos/tiger',
+        permanent: true,
+      },
     ];
   },
   async headers() {

@@ -1,5 +1,8 @@
 import type { Role } from '@/lib/auth-guard';
 import { requireAnyRole } from '@/lib/auth-guard';
+import { ASSIGNABLE_TEAM_ROLES, isAssignableTeamUser } from '@/lib/team-roles';
+
+export { ASSIGNABLE_TEAM_ROLES, isAssignableTeamUser };
 
 // ── Legacy helpers (kept for all existing call sites) ────────────────────────
 
