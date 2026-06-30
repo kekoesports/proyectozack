@@ -13,8 +13,24 @@ type Props = {
 const TABS = ['Directos', 'Operativos', 'Sin clasificar'] as const;
 type TabName = (typeof TABS)[number];
 
+// Formateador local — sin importar nada nuevo.
+const EUR0 = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 });
+
+function sumTotalAmount(rows: readonly InvoiceWithRelations[]): number {
+  let s = 0;
+  for (const r of rows) {
+    const n = Number(r.totalAmount);
+    if (Number.isFinite(n)) s += n;
+  }
+  return s;
+}
+
 export function GastosPageClient({ directos, operativos, sinClasificar }: Props): React.ReactElement {
   const [active, setActive] = useState<TabName>('Directos');
+
+  const totalDirectos     = sumTotalAmount(directos);
+  const totalOperativos   = sumTotalAmount(operativos);
+  const totalSinClasif    = sumTotalAmount(sinClasificar);
 
   return (
     <div className="space-y-4">
@@ -24,6 +40,10 @@ export function GastosPageClient({ directos, operativos, sinClasificar }: Props)
             tab === 'Directos' ? directos.length
             : tab === 'Operativos' ? operativos.length
             : sinClasificar.length;
+          const total =
+            tab === 'Directos' ? totalDirectos
+            : tab === 'Operativos' ? totalOperativos
+            : totalSinClasif;
           const isActive = active === tab;
           return (
             <button
@@ -38,15 +58,20 @@ export function GastosPageClient({ directos, operativos, sinClasificar }: Props)
             >
               {tab}
               {count > 0 && (
-                <span
-                  className={`ml-1.5 rounded px-1 py-0.5 text-[10px] font-semibold ${
-                    tab === 'Sin clasificar'
-                      ? 'bg-amber-500/15 text-amber-400'
-                      : 'bg-sp-admin-border text-sp-admin-muted'
-                  }`}
-                >
-                  {count}
-                </span>
+                <>
+                  <span
+                    className={`ml-1.5 rounded px-1 py-0.5 text-[10px] font-semibold ${
+                      tab === 'Sin clasificar'
+                        ? 'bg-amber-500/15 text-amber-400'
+                        : 'bg-sp-admin-border text-sp-admin-muted'
+                    }`}
+                  >
+                    {count}
+                  </span>
+                  <span className="ml-1.5 tabular-nums text-[10px] text-sp-admin-muted">
+                    · {EUR0.format(total)}
+                  </span>
+                </>
               )}
             </button>
           );

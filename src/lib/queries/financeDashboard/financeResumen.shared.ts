@@ -80,7 +80,7 @@ export const EXPENSE_SUBTYPE_LABELS: Record<string, string> = {
   ajuste_fiscal: 'Ajuste fiscal',
   gasto_general: 'Gasto general',
   factura_autonomo: 'Factura autónomo',
-  nomina_socio: 'Nóminas',
+  nomina_socio: 'Nóminas socios',
   seguro_medico: 'Seguro médico',
   seguridad_social: 'Seguridad Social',
 };

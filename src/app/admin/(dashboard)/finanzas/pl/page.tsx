@@ -57,7 +57,7 @@ export default async function FinanzasPnLPage({ searchParams }: PageProps): Prom
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="font-display text-4xl font-black uppercase text-sp-admin-text">Resultados</h1>
-          <p className="text-sm text-sp-admin-muted">Resultado financiero — base devengado. Caja YTD vía invoice_payments.</p>
+          <p className="text-sm text-sp-admin-muted">Resultado del periodo. Importes por fecha de factura/gasto. Caja muestra cobros y pagos conciliados.</p>
         </div>
       </div>
 
@@ -78,12 +78,12 @@ export default async function FinanzasPnLPage({ searchParams }: PageProps): Prom
         <div className="rounded-xl border border-sp-admin-border bg-sp-admin-card p-4">
           <p className="text-[10px] font-semibold uppercase tracking-widest text-sp-admin-muted">Costes directos</p>
           <p className="mt-2 text-xl font-bold text-red-400">{EUR.format(pnl.gastosCampanaDirect)}</p>
-          <p className="text-[10px] text-sp-admin-muted mt-0.5">campaign_direct</p>
+          <p className="text-[10px] text-sp-admin-muted mt-0.5">Gastos directos de campaña</p>
         </div>
         <div className="rounded-xl border border-sp-admin-border bg-sp-admin-card p-4">
           <p className="text-[10px] font-semibold uppercase tracking-widest text-sp-admin-muted">Gastos operativos</p>
           <p className="mt-2 text-xl font-bold text-amber-400">{EUR.format(pnl.gastosOperativos)}</p>
-          <p className="text-[10px] text-sp-admin-muted mt-0.5">operational + legacy</p>
+          <p className="text-[10px] text-sp-admin-muted mt-0.5">Software, gestoría, impuestos, nóminas y marketing</p>
         </div>
         {pnl.gastosNoClasificados > 0 && (
           <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4">
@@ -99,12 +99,12 @@ export default async function FinanzasPnLPage({ searchParams }: PageProps): Prom
         <div className="rounded-xl border border-sp-admin-border bg-sp-admin-card p-4">
           <p className="text-[10px] font-semibold uppercase tracking-widest text-sp-admin-muted">Cobrado YTD (caja)</p>
           <p className="mt-2 text-xl font-bold text-emerald-400">{EUR.format(pnl.cobradoYTD)}</p>
-          <p className="text-[10px] text-sp-admin-muted mt-0.5">invoice_payments — ingresos</p>
+          <p className="text-[10px] text-sp-admin-muted mt-0.5">Cobros conciliados del año</p>
         </div>
         <div className="rounded-xl border border-sp-admin-border bg-sp-admin-card p-4">
           <p className="text-[10px] font-semibold uppercase tracking-widest text-sp-admin-muted">Pagado YTD (caja)</p>
           <p className="mt-2 text-xl font-bold text-red-400">{EUR.format(pnl.pagadoYTD)}</p>
-          <p className="text-[10px] text-sp-admin-muted mt-0.5">invoice_payments — gastos</p>
+          <p className="text-[10px] text-sp-admin-muted mt-0.5">Pagos conciliados del año</p>
         </div>
       </div>
 

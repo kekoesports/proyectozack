@@ -187,11 +187,14 @@ export function FinanceMonthlyControl({ mes, flow, stock, breakdown, docs }: Pro
           <div className="space-y-3">
             {breakdown.map((item) => {
               const pct = breakdownTotal > 0 ? (item.amount / breakdownTotal) * 100 : 0;
+              const pctLabel = Number.isFinite(pct) ? `${pct.toFixed(0)}%` : '0%';
               return (
                 <div key={item.subtype ?? 'null'}>
                   <div className="mb-1 flex items-baseline justify-between gap-3">
                     <span className="text-sm text-sp-admin-fg">{item.label}</span>
-                    <span className="tabular-nums text-sm text-red-400">{EUR.format(item.amount)}</span>
+                    <span className="tabular-nums text-sm text-red-400">
+                      {EUR.format(item.amount)} <span className="text-sp-admin-muted">· {pctLabel}</span>
+                    </span>
                   </div>
                   <div className="h-1.5 w-full overflow-hidden rounded-full bg-sp-admin-border">
                     <div
