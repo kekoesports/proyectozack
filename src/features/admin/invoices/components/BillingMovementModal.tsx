@@ -303,8 +303,8 @@ export function BillingMovementModal({ invoice, brands, talents, campaigns, onCl
                   onChange={onInvoiceFileChange}
                   className={`${INPUT} file:mr-3 file:rounded-full file:border-0 file:bg-sp-admin-hover file:px-3 file:py-1 file:text-xs file:font-semibold file:text-sp-admin-text`}
                 />
-                {invoice?.fileUrl
-                  ? <p className="text-xs text-sp-admin-muted mt-1">Actual: <a href={invoice.fileUrl} target="_blank" rel="noreferrer" className="text-sp-admin-accent hover:underline">ver</a></p>
+                {invoice?.id && invoice?.fileUrl
+                  ? <p className="text-xs text-sp-admin-muted mt-1">Actual: <a href={`/api/admin/facturacion/${invoice.id}/pdf`} target="_blank" rel="noreferrer" className="text-sp-admin-accent hover:underline">ver</a></p>
                   : <p className="text-[10px] text-sp-admin-muted/60 mt-1">Sin factura subida</p>
                 }
               </div>
