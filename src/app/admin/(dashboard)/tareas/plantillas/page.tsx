@@ -21,7 +21,7 @@ export default async function TaskTemplatesPage(): Promise<React.ReactElement> {
     <TaskTemplatesManager
       templates={templates}
       users={users.map((user) => ({ id: user.id, name: user.name }))}
-      canDelete={canDelete(session.user.role === 'admin' ? 'admin' : 'manager')}
+      canDelete={canDelete(session.user.role)}
     />
   );
 }
