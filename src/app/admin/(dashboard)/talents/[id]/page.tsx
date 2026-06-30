@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { requirePermission } from '@/lib/permissions';
 import { needsVisibilityFilter } from '@/lib/permissions';
+import { env } from '@/lib/env';
 import { getTalentById } from '@/lib/queries/talents';
 import { getTalentBusiness, getTalentVerticals } from '@/lib/queries/talentBusiness';
 import { listCampaigns } from '@/lib/queries/campaigns';
@@ -153,6 +154,21 @@ export default async function TalentProfilePage({
                   {talent.isPublished ? 'Público' : 'Interno'}
                 </button>
               </form>
+              {talent.isPublished && (
+                <a
+                  href={`${env.NEXT_PUBLIC_SITE_URL}/talentos/${talent.slug}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title="Ver perfil público"
+                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-50 text-slate-500 border border-slate-200 hover:text-slate-800 hover:border-slate-400 transition-colors"
+                >
+                  /talentos/{talent.slug}
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-2.5 h-2.5 opacity-60" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
+                    <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
+                  </svg>
+                </a>
+              )}
               {!talent.photoUrl && (
                 <span className="inline-flex px-2 py-0.5 rounded-full text-[9px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
                   Sin foto
