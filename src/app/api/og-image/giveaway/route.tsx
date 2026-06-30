@@ -142,7 +142,7 @@ export async function GET(req: Request) {
           {/* Footer */}
           <div style={{ padding: '0 72px 24px 80px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.18)', letterSpacing: 2 }}>
-              {`socialpro.es/giveaways${talentSlug ? ` · ${talentSlug}` : ''}`}
+              {`socialpro.es/codigos${talentSlug ? ` · ${talentSlug}` : ''}`}
             </div>
             <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.12)', letterSpacing: 3, fontWeight: 700, textTransform: 'uppercase' }}>
               SocialPro
