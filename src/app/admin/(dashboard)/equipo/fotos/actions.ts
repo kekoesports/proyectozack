@@ -43,8 +43,11 @@ export async function uploadTeamPhotoAction(
   const ext = lastDot >= 0 ? fileEntry.name.slice(lastDot + 1).toLowerCase() : 'jpg';
 
   try {
-    const blob = await put(`team/${id}-${Date.now()}.${ext}`, fileEntry, { access: 'public' });
-    await db.update(teamMembers).set({ photoUrl: blob.url }).where(eq(teamMembers.id, id));
+    // Store is private-only — proxy /api/team-photo/[id] serves it publicly.
+    const blob = await put(`team/${id}-${Date.now()}.${ext}`, fileEntry, { access: 'private' });
+    void blob;
+    const proxyPhotoUrl = `/api/team-photo/${id}`;
+    await db.update(teamMembers).set({ photoUrl: proxyPhotoUrl }).where(eq(teamMembers.id, id));
   } catch (err) {
     logRedacted('error', '[admin] Team photo upload error:', err);
     return { error: 'No se pudo subir la imagen' };

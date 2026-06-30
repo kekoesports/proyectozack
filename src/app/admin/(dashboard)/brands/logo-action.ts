@@ -64,17 +64,20 @@ export async function uploadBrandLogoAction(
   try {
     const lastDot = fileEntry.name.lastIndexOf('.');
     const ext = lastDot >= 0 ? fileEntry.name.slice(lastDot + 1).toLowerCase() : 'png';
+    // Store is private-only — proxy /api/brand-logo/[id] serves it publicly.
     const blob = await put(`brands/${id}-${Date.now()}.${ext}`, fileEntry, {
-      access: 'public',
+      access: 'private',
       contentType: fileEntry.type,
     });
+    void blob;
 
-    await db.update(crmBrands).set({ logoUrl: blob.url, updatedAt: new Date() }).where(eq(crmBrands.id, id));
+    const proxyLogoUrl = `/api/brand-logo/${id}`;
+    await db.update(crmBrands).set({ logoUrl: proxyLogoUrl, updatedAt: new Date() }).where(eq(crmBrands.id, id));
 
     revalidatePath('/admin/brands');
     revalidatePath(`/admin/brands/${id}`);
 
-    return { success: true, logoUrl: blob.url };
+    return { success: true, logoUrl: proxyLogoUrl };
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     logRedacted('error', '[admin] uploadBrandLogo error:', msg);
