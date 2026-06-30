@@ -22,7 +22,7 @@
  * para que el wizard pueda mostrar detalle técnico colapsable.
  */
 
-import { parsePayrollOcrPage } from './parseOcrText';
+import { parsePayrollOcrPage, type PayrollOcrRowDiagnostic } from './parseOcrText';
 import type { PayrollImportRow } from '@/lib/finance/payroll/types';
 
 // ── Paths self-hosted (vía /public/tessdata/) ───────────────────────────────
@@ -168,6 +168,7 @@ export async function runClientOcr({ file, onProgress }: RunClientOcrInput): Pro
     logStep(currentStep);
 
     const rows: PayrollImportRow[] = [];
+    const rowMeta: Array<{ rowIndex: number } & PayrollOcrRowDiagnostic> = [];
     try {
       for (let i = 0; i < canvases.length; i++) {
         const canvas = canvases[i];
@@ -178,11 +179,13 @@ export async function runClientOcr({ file, onProgress }: RunClientOcrInput): Pro
         const { data } = await worker.recognize(canvas);
         const textLength = data.text?.length ?? 0;
         logStep('recognize-ok', { page: i + 1, textLength });
-        const row = parsePayrollOcrPage(data.text, i + 1, file.name);
+        const { row, diagnostic } = parsePayrollOcrPage(data.text, i + 1, file.name);
         rows.push(row);
+        // Solo metadata segura (sin PII): flags booleanos + token de mes + missing fields.
+        rowMeta.push({ rowIndex: i + 1, ...diagnostic });
       }
       currentStep = 'parse-ok';
-      logStep(currentStep, { rows: rows.length });
+      logStep(currentStep, { rows: rows.length, rowMeta });
     } finally {
       await worker.terminate();
     }

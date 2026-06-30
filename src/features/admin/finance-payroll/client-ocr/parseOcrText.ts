@@ -1,31 +1,64 @@
 /**
  * Parser puro de texto OCR extraído de nóminas ELEVATEX.
  *
- * Recibe el texto crudo de UNA página (un trabajador) y devuelve una
- * `PayrollImportRow` lista para mostrar en el preview del wizard.
+ * Recibe el texto crudo de UNA página (un trabajador) y devuelve:
+ *   - `row`: PayrollImportRow lista para el preview del wizard
+ *   - `diagnostic`: metadatos seguros (sin PII) para logging y troubleshooting
  *
  * Importable desde cliente y servidor (sin side-effects, sin imports
  * de env/db/server-only).
  *
  * Mantenido en paralelo con `src/lib/parsers/payrollOcr.ts::ocrTextToPayrollRow`
- * (server) — misma lógica de extracción y misma estructura de retorno.
- *
- * Sin logs con PII: solo retorna estructuras.
+ * (server, hoy en kill-switch detrás de PAYROLL_OCR_ENABLED).
  */
 
 import { normalizeAmount } from '@/lib/finance/payroll/manualRow';
 import type { PayrollImportRow } from '@/lib/finance/payroll/types';
 
-// ── Constantes ──────────────────────────────────────────────────────────────
+// ── Tipos públicos ──────────────────────────────────────────────────────────
 
-const MONTH_MAP: Record<string, number> = {
-  ENE: 1, FEB: 2, MAR: 3, ABR: 4, MAY: 5, JUN: 6,
-  JUL: 7, AGO: 8, SEP: 9, OCT: 10, NOV: 11, DIC: 12,
+export type MissingField = 'employee' | 'period' | 'costCompany';
+
+export type PayrollOcrRowDiagnostic = {
+  readonly hasEmployeeName: boolean;
+  readonly hasPeriod: boolean;
+  readonly hasCostCompany: boolean;
+  /** Token de mes encontrado por el parser (MAR, MARZO, etc.) o null. */
+  readonly monthTokenDetected: string | null;
+  readonly validationMissingFields: readonly MissingField[];
 };
 
-// "01 MAR 26 al 31 MAR 26" o "01-MAR-26 AL 31-MAR-26"
-const PERIOD_RX =
-  /(\d{1,2})[\s\-/]+([A-ZÑ]{3,4})[\s\-/]+(\d{2,4})\s+(?:[Aa][Ll]?)\s+(\d{1,2})[\s\-/]+([A-ZÑ]{3,4})[\s\-/]+(\d{2,4})/;
+export type PayrollOcrParseResult = {
+  readonly row: PayrollImportRow;
+  readonly diagnostic: PayrollOcrRowDiagnostic;
+};
+
+// ── Constantes ──────────────────────────────────────────────────────────────
+
+/**
+ * Mapa de tokens de mes (uppercase) → número de mes (1-12).
+ * Acepta abreviaturas españolas estándar (3-4 chars) y nombres completos.
+ * El parser tolera además punto final ("MAR.") y mayúscula/minúscula.
+ */
+const MONTH_MAP_EXT: Record<string, number> = {
+  ENE: 1,  ENERO: 1,
+  FEB: 2,  FEBRERO: 2,
+  MAR: 3,  MARZO: 3,
+  ABR: 4,  ABRIL: 4,
+  MAY: 5,  MAYO: 5,
+  JUN: 6,  JUNIO: 6,
+  JUL: 7,  JULIO: 7,
+  AGO: 8,  AGOSTO: 8,
+  SEP: 9,  SEPT: 9, SEPTIEMBRE: 9,
+  OCT: 10, OCTUBRE: 10,
+  NOV: 11, NOVIEMBRE: 11,
+  DIC: 12, DICIEMBRE: 12,
+};
+
+// Ordenar tokens por longitud descendente para que el regex matchee
+// "MARZO" antes que "MAR", "SEPTIEMBRE" antes que "SEPT", etc.
+const MONTH_TOKENS_SORTED = Object.keys(MONTH_MAP_EXT).sort((a, b) => b.length - a.length);
+const MONTHS_ALT = MONTH_TOKENS_SORTED.join('|');
 
 const PAYROLL_LABEL_WORDS = new Set([
   'TOTAL', 'DEVENGADO', 'DEDUCCIONES', 'EMPRESA', 'LIQUIDO', 'LÍQUIDO',
@@ -49,15 +82,93 @@ function makePayrollTxId(slug: string, yearMonth: string): string {
   return `payroll:${slug}:${yearMonth}`;
 }
 
-function parsePeriodFromText(text: string): string | null {
-  const upper = text.toUpperCase();
-  const m = PERIOD_RX.exec(upper);
-  if (!m || !m[5] || !m[6]) return null;
-  const endMonth = MONTH_MAP[m[5]];
-  if (!endMonth) return null;
-  const n = parseInt(m[6], 10);
-  const endYear = n < 100 ? 2000 + n : n;
-  return `${endYear}-${String(endMonth).padStart(2, '0')}`;
+function yearFromToken(token: string): number {
+  const n = parseInt(token, 10);
+  return n < 100 ? 2000 + n : n;
+}
+
+/**
+ * Parsea el periodo de la nómina y devuelve { yearMonth, monthToken }.
+ *
+ * Tres estrategias en cascada:
+ *
+ *   A) Rango completo: "01 MAR 26 a 31 MAR 26", "01-MAR-26 AL 31-MAR-26"
+ *      Tolera saltos de línea entre las dos fechas (whitespace normalizado).
+ *
+ *   B) Mes + año: "MAR 26", "MAR. 26", "MARZO 2026", "MARZO.2026"
+ *
+ *   C) Formato narrativo: "01 DE MARZO DE 2026"
+ *
+ * Devuelve { yearMonth: null, monthToken: null } si ninguna estrategia matchea.
+ */
+function parsePeriodFromText(text: string): { yearMonth: string | null; monthToken: string | null } {
+  // Normalizar whitespace (incluye saltos de línea) a espacios simples.
+  // Permite que la estrategia A tolere saltos de línea entre fecha inicial y final.
+  const upper = text.toUpperCase().replace(/\s+/g, ' ');
+
+  // ── Estrategia A: rango completo ──────────────────────────────────────
+  const RANGE_RX = new RegExp(
+    `(\\d{1,2})[\\s\\-/]+(${MONTHS_ALT})\\.?[\\s\\-/]+(\\d{2,4})\\s+(?:[Aa][Ll]?)\\s+(\\d{1,2})[\\s\\-/]+(${MONTHS_ALT})\\.?[\\s\\-/]+(\\d{2,4})`,
+  );
+  const mRange = RANGE_RX.exec(upper);
+  if (mRange && mRange[5] && mRange[6]) {
+    const endMonth = MONTH_MAP_EXT[mRange[5]];
+    if (endMonth) {
+      const year = yearFromToken(mRange[6]);
+      return {
+        yearMonth: `${year}-${String(endMonth).padStart(2, '0')}`,
+        monthToken: mRange[5],
+      };
+    }
+  }
+
+  // ── Estrategia B: mes + año (con o sin punto, abreviatura o nombre) ──
+  // Buscar dentro del contexto "PERIODO ..." si existe para evitar matches falsos
+  // en otras partes del documento.
+  const PERIODO_CONTEXT_RX = new RegExp(
+    `PER[IÍ]ODO[^A-ZÑ\\d]{0,20}(${MONTHS_ALT})\\.?\\s+(?:DE\\s+)?(\\d{2,4})`,
+  );
+  const mPerCtx = PERIODO_CONTEXT_RX.exec(upper);
+  if (mPerCtx && mPerCtx[1] && mPerCtx[2]) {
+    const month = MONTH_MAP_EXT[mPerCtx[1]];
+    if (month) {
+      const year = yearFromToken(mPerCtx[2]);
+      return {
+        yearMonth: `${year}-${String(month).padStart(2, '0')}`,
+        monthToken: mPerCtx[1],
+      };
+    }
+  }
+
+  // También aceptamos "MES MARZO 2026" o equivalente sin "PERIODO" cerca.
+  const SINGLE_RX = new RegExp(`\\b(${MONTHS_ALT})\\.?\\s+(?:DE\\s+)?(\\d{2,4})\\b`);
+  const mSingle = SINGLE_RX.exec(upper);
+  if (mSingle && mSingle[1] && mSingle[2]) {
+    const month = MONTH_MAP_EXT[mSingle[1]];
+    if (month) {
+      const year = yearFromToken(mSingle[2]);
+      return {
+        yearMonth: `${year}-${String(month).padStart(2, '0')}`,
+        monthToken: mSingle[1],
+      };
+    }
+  }
+
+  // ── Estrategia C: formato narrativo "01 DE MARZO DE 2026" ────────────
+  const DE_RX = new RegExp(`\\d{1,2}\\s+DE\\s+(${MONTHS_ALT})\\.?\\s+DE\\s+(\\d{2,4})`);
+  const mDe = DE_RX.exec(upper);
+  if (mDe && mDe[1] && mDe[2]) {
+    const month = MONTH_MAP_EXT[mDe[1]];
+    if (month) {
+      const year = yearFromToken(mDe[2]);
+      return {
+        yearMonth: `${year}-${String(month).padStart(2, '0')}`,
+        monthToken: mDe[1],
+      };
+    }
+  }
+
+  return { yearMonth: null, monthToken: null };
 }
 
 function extractNameFromLines(text: string): string | null {
@@ -83,21 +194,19 @@ function extractNameFromLines(text: string): string | null {
 
 /**
  * Parsea texto OCR de UNA página de nómina ELEVATEX y devuelve una
- * `PayrollImportRow` lista para el preview.
- *
- * Si faltan datos obligatorios (trabajador, periodo, coste empresa)
- * la fila se devuelve igualmente con `include=false` y un `warning`,
- * para que el usuario pueda completarla manualmente en el preview.
+ * `PayrollImportRow` lista para el preview + un objeto `diagnostic` con
+ * metadatos seguros (sin PII) para logging.
  */
 export function parsePayrollOcrPage(
   pageText: string,
   pageNum: number,
   pdfFileName: string,
-): PayrollImportRow {
+): PayrollOcrParseResult {
   const upper = pageText.toUpperCase();
 
   const employeeName = extractNameFromLines(pageText) ?? '';
-  const yearMonth = parsePeriodFromText(upper) ?? 'desconocido';
+  const periodResult = parsePeriodFromText(pageText);
+  const yearMonth = periodResult.yearMonth ?? 'desconocido';
 
   const costoMatch = /COSTE EMPRESA[:\s]+([\d.,]+)/.exec(upper);
   const costoStr = costoMatch?.[1] ? normalizeAmount(costoMatch[1]) : '0.00';
@@ -132,11 +241,19 @@ export function parsePayrollOcrPage(
   noteParts.push('OCR navegador — revisar');
   noteParts.push(`PDF: ${pdfFileName}`);
 
-  const missingRequired = !employeeName || costoStr === '0.00' || yearMonth === 'desconocido';
+  // Validación: campos obligatorios para que la fila sea importable.
+  const hasEmployeeName  = employeeName.length > 0;
+  const hasPeriod        = yearMonth !== 'desconocido';
+  const hasCostCompany   = costoStr !== '0.00';
 
-  return {
+  const validationMissingFields: MissingField[] = [];
+  if (!hasEmployeeName) validationMissingFields.push('employee');
+  if (!hasPeriod)       validationMissingFields.push('period');
+  if (!hasCostCompany)  validationMissingFields.push('costCompany');
+
+  const row: PayrollImportRow = {
     page: pageNum,
-    include: !missingRequired,
+    include: validationMissingFields.length === 0,
     slug,
     yearMonth,
     txId,
@@ -151,6 +268,18 @@ export function parsePayrollOcrPage(
     expenseSubtype: 'nomina_socio',
     status: 'pagada',
     notes: noteParts.join(' | '),
-    warning: missingRequired ? 'OCR: revisar datos (trabajador, mes/año, coste empresa)' : null,
+    warning: validationMissingFields.length > 0
+      ? `OCR: revisar datos (${validationMissingFields.map((f) => f === 'employee' ? 'trabajador' : f === 'period' ? 'mes/año' : 'coste empresa').join(', ')})`
+      : null,
   };
+
+  const diagnostic: PayrollOcrRowDiagnostic = {
+    hasEmployeeName,
+    hasPeriod,
+    hasCostCompany,
+    monthTokenDetected: periodResult.monthToken,
+    validationMissingFields,
+  };
+
+  return { row, diagnostic };
 }
