@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
-import { eq, sql, inArray } from 'drizzle-orm';
+import { eq, sql, inArray, and, ne } from 'drizzle-orm';
 import { z } from 'zod';
 
 import { requirePermission } from '@/lib/permissions';
@@ -362,6 +362,10 @@ export async function setTalentPublishedAction(talentId: number, publish: boolea
 
 const TalentProfileUpdate = z.object({
   id: IdSchema,
+  slug:          z.string().trim().toLowerCase()
+    .min(1, 'Slug obligatorio')
+    .max(100, 'Slug demasiado largo (máx 100)')
+    .regex(/^[a-z0-9-]+$/, 'Slug solo puede contener letras minúsculas, números y guiones'),
   name:          z.string().trim().min(1, 'Nombre obligatorio').max(120),
   role:          z.string().trim().min(1, 'Rol obligatorio').max(150),
   role2:         z.string().trim().max(150).optional().transform((v) => v === '' ? null : v ?? null),
@@ -400,11 +404,25 @@ export async function updateTalentProfileAction(
   }
 
   try {
-    // Obtener slug actual para revalidar la ruta pública individual
+    // Obtener slug actual para detectar cambio y revalidar el path correcto
     const current = await db.select({ slug: talents.slug }).from(talents).where(eq(talents.id, id)).limit(1);
-    const slug = current[0]?.slug;
+    const oldSlug = current[0]?.slug;
+    const newSlug = data.slug;
+
+    // Uniqueness check si el slug cambió: si existe otro talento con ese slug, error humano.
+    if (oldSlug !== newSlug) {
+      const collision = await db
+        .select({ id: talents.id })
+        .from(talents)
+        .where(and(eq(talents.slug, newSlug), ne(talents.id, id)))
+        .limit(1);
+      if (collision.length > 0) {
+        return { success: false, error: 'Este slug ya está usado por otro talento.' };
+      }
+    }
 
     await db.update(talents).set({
+      slug:          newSlug,
       name:          data.name,
       role:          data.role,
       role2:         data.role2,
@@ -427,10 +445,13 @@ export async function updateTalentProfileAction(
     revalidatePath('/admin/talents');
     revalidatePath(`/admin/talents/${id}`);
     revalidatePath('/talentos');
-    if (slug) {
-      revalidatePath(`/talentos/${slug}`);
-      revalidatePath('/sitemap.xml');
+    // Revalidar SIEMPRE el nuevo slug y, si cambió, también el antiguo
+    // para que la caché ISR no sirva contenido stale en ninguno de los dos.
+    revalidatePath(`/talentos/${newSlug}`);
+    if (oldSlug && oldSlug !== newSlug) {
+      revalidatePath(`/talentos/${oldSlug}`);
     }
+    revalidatePath('/sitemap.xml');
   } catch (err) {
     logRedacted('error', '[admin] updateTalentProfile error:', err);
     return { success: false, error: 'Error al guardar perfil' };

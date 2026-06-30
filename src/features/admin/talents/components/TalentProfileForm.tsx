@@ -4,6 +4,7 @@ import { useActionState, useState } from 'react';
 import { updateTalentProfileAction } from '@/app/admin/(dashboard)/talents/actions';
 import { COUNTRIES } from '@/lib/countries';
 import { countryFlagEmoji } from '@/lib/flag-images';
+import Link from 'next/link';
 
 const INPUT  = 'w-full rounded-lg border border-sp-admin-border bg-sp-admin-bg px-3 py-2 text-sm text-sp-admin-text outline-none focus:border-sp-admin-accent transition-colors';
 const SELECT = 'w-full rounded-lg border border-sp-admin-border bg-sp-admin-bg px-3 py-2 text-sm text-sp-admin-text outline-none focus:border-sp-admin-accent transition-colors cursor-pointer';
@@ -65,6 +66,8 @@ export function TalentProfileForm({ talent }: Props): React.JSX.Element {
   const [country, setCountry]           = useState(talent.creatorCountry ?? '');
   const [isPublished, setIsPublished]   = useState(talent.isPublished);
   const [showInRoster, setShowInRoster] = useState(talent.showInRoster);
+  const [slug, setSlug]                 = useState(talent.slug);
+  const slugChanged = slug !== talent.slug;
 
   const flagPreview = country.length === 2 ? countryFlagEmoji(country) : null;
   const knownCountry = COUNTRIES.find((c) => c.code === country);
@@ -106,6 +109,42 @@ export function TalentProfileForm({ talent }: Props): React.JSX.Element {
             <input id="pf-game" name="game" defaultValue={talent.game}
               maxLength={100} className={INPUT} placeholder="CS2, VALORANT, GTA…" />
           </div>
+        </div>
+      </section>
+
+      {/* Slug público */}
+      <section className="rounded-2xl bg-sp-admin-card border border-sp-admin-border p-5">
+        <h2 className="font-bold text-sp-admin-text text-sm mb-4">Slug público</h2>
+        <div className="space-y-2">
+          <label htmlFor="pf-slug" className={LABEL}>Slug *</label>
+          <input
+            id="pf-slug"
+            name="slug"
+            type="text"
+            required
+            maxLength={100}
+            value={slug}
+            onChange={(e) => setSlug(e.target.value.toLowerCase().trim())}
+            pattern="^[a-z0-9-]+$"
+            placeholder="ejemplo-creador"
+            className={INPUT + ' font-mono'}
+            aria-describedby="pf-slug-preview pf-slug-warning"
+          />
+          <p id="pf-slug-preview" className="text-[11px] text-sp-admin-muted">
+            URL pública: <span className="font-mono text-sp-admin-text">/talentos/{slug || '—'}</span>
+          </p>
+          <p id="pf-slug-warning" className={`text-[11px] rounded-lg px-3 py-2 ${
+            slugChanged ? 'border border-amber-500/30 bg-amber-500/5 text-amber-600' : 'text-sp-admin-muted'
+          }`}>
+            Solo letras minúsculas, números y guiones. Cambiar el slug modifica la URL pública
+            del talento. Los enlaces antiguos pueden dejar de funcionar si no se añade un redirect
+            manual.
+          </p>
+          {slugChanged && (
+            <p className="text-[11px] font-semibold text-amber-700">
+              Cambio detectado: <span className="font-mono">/talentos/{talent.slug}</span> → <span className="font-mono">/talentos/{slug || '(vacío)'}</span>
+            </p>
+          )}
         </div>
       </section>
 
@@ -299,6 +338,21 @@ export function TalentProfileForm({ talent }: Props): React.JSX.Element {
               defaultValue={talent.bioLong ?? ''} className={INPUT} />
           </div>
         </div>
+      </section>
+
+      {/* Redes sociales — link al detail (no duplicar editor) */}
+      <section className="rounded-2xl bg-sp-admin-card border border-sp-admin-border p-5">
+        <h2 className="font-bold text-sp-admin-text text-sm mb-2">Redes sociales</h2>
+        <p className="text-[11px] text-sp-admin-muted mb-3">
+          Las redes sociales se editan desde la pestaña <strong>Redes</strong> del perfil
+          (handles, followers, profile URL, colores).
+        </p>
+        <Link
+          href={`/admin/talents/${talent.id}`}
+          className="inline-flex items-center gap-1 rounded-lg border border-sp-admin-border bg-sp-admin-bg px-3 py-1.5 text-xs font-semibold text-sp-admin-text hover:border-sp-orange/60 hover:text-sp-orange transition-colors"
+        >
+          Ir a Redes →
+        </Link>
       </section>
 
       {/* Acciones */}
