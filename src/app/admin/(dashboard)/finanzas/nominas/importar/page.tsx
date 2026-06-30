@@ -1,11 +1,13 @@
 import { requirePermission } from '@/lib/permissions';
 import { getExistingPayrollTxIds } from '@/lib/queries/payrollImport';
 import { PayrollImportWizard } from '@/features/admin/finance-payroll/PayrollImportWizard';
-import { env } from '@/lib/env';
 
 export const metadata = { title: 'Importar nóminas | Admin' };
 
-// OCR vía tesseract.js puede tardar ~20-30s por página a 3× resolución.
+// El OCR ahora corre 100% en el navegador del admin (pdfjs + tesseract.js).
+// El server action ocrPayrollPdfAction queda inerte detrás del kill switch
+// PAYROLL_OCR_ENABLED (default false). El maxDuration server solo afecta
+// al parse vectorial y al apply, que son rápidos.
 export const maxDuration = 60;
 
 export default async function PayrollImportPage(): Promise<React.ReactElement> {
@@ -22,7 +24,7 @@ export default async function PayrollImportPage(): Promise<React.ReactElement> {
           Ningún dato se inserta hasta confirmar explícitamente.
         </p>
       </div>
-      <PayrollImportWizard existingTxIds={[...existingTxIds]} ocrEnabled={env.PAYROLL_OCR_ENABLED} />
+      <PayrollImportWizard existingTxIds={[...existingTxIds]} />
     </div>
   );
 }
