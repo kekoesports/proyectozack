@@ -1,0 +1,1 @@
+ALTER TYPE "public"."campaign_action_type" ADD VALUE 'preroll' BEFORE 'video_youtube';

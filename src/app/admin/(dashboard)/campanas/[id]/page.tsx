@@ -71,7 +71,7 @@ export default async function CampaignDetailPage({
     db
       .select({ id: userTable.id, name: userTable.name })
       .from(userTable)
-      .where(inArray(userTable.role, ['admin', 'manager', 'staff']))
+      .where(inArray(userTable.role, ['admin', 'admin_limited_tasks', 'manager', 'staff']))
       .orderBy(userTable.name),
     getContractByCampaign(campaignId),
     listContractTemplates(),
