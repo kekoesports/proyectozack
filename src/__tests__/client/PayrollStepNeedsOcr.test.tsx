@@ -1,13 +1,16 @@
 /**
- * UI: el wizard de nóminas oculta el botón OCR cuando ocrEnabled=false.
- * Garantiza que en producción (con kill switch on) el usuario solo ve
- * el camino manual y no aparece ningún término técnico.
+ * UI: el StepNeedsOcr del wizard de nóminas siempre ofrece OCR cliente.
+ * Garantiza que:
+ *   - aparece el botón "Autocompletar con OCR" siempre (OCR cliente always-on)
+ *   - aparece el botón "Introducir manualmente" siempre
+ *   - mientras isOcrPending=true, se muestra progreso (no botones)
+ *   - el copy NO contiene tecnicismos (DOMMatrix, tesseract, pdf.worker, timeout)
+ *   - el copy SÍ guía hacia entrada manual cuando hay error
  */
 
 // Mock de actions para evitar cargar la cadena server (auth → better-auth, etc.)
 jest.mock('@/app/admin/(dashboard)/finanzas/nominas/importar/actions', () => ({
   parsePayrollPdfAction: jest.fn(),
-  ocrPayrollPdfAction: jest.fn(),
   applyPayrollImportAction: jest.fn(),
 }));
 
@@ -23,46 +26,70 @@ const baseProps = {
   onManual: jest.fn(),
   isOcrPending: false,
   error: null,
+  ocrProgress: null,
 };
 
-describe('StepNeedsOcr — kill switch UI', () => {
-  it('[5] ocrEnabled=false → NO renderiza botón OCR; muestra solo "Introducir manualmente"', () => {
-    render(<StepNeedsOcr {...baseProps} ocrEnabled={false} />);
-    expect(screen.queryByText(/Autocompletar con OCR/i)).not.toBeInTheDocument();
-    expect(screen.getByText(/Introducir manualmente/i)).toBeInTheDocument();
+describe('StepNeedsOcr — OCR cliente (always-on)', () => {
+  it('[5/10] renderiza ambos botones: Autocompletar con OCR + Introducir manualmente', () => {
+    render(<StepNeedsOcr {...baseProps} />);
+    // El texto "Autocompletar con OCR" aparece también en el copy descriptivo.
+    // Match exacto sobre el span del botón para distinguirlo.
+    const ocrBtnLabel = screen.getByText((_, el) => el?.tagName === 'SPAN' && el.textContent === 'Autocompletar con OCR');
+    expect(ocrBtnLabel).toBeInTheDocument();
+    const manualBtnLabel = screen.getByText((_, el) => el?.tagName === 'SPAN' && el.textContent === 'Introducir manualmente');
+    expect(manualBtnLabel).toBeInTheDocument();
   });
 
-  it('ocrEnabled=false → muestra copy explicativo de OCR deshabilitado', () => {
-    render(<StepNeedsOcr {...baseProps} ocrEnabled={false} />);
+  it('muestra copy claro guiando a OCR o manual sin tecnicismos', () => {
+    render(<StepNeedsOcr {...baseProps} />);
     expect(
-      screen.getByText(/OCR automático deshabilitado temporalmente/i),
+      screen.getByText(/Puedes autocompletar con OCR en tu navegador o introducir los datos manualmente/i),
     ).toBeInTheDocument();
   });
 
-  it('ocrEnabled=true → renderiza ambos botones (OCR + Manual)', () => {
-    render(<StepNeedsOcr {...baseProps} ocrEnabled={true} />);
-    expect(screen.getByText(/Autocompletar con OCR/i)).toBeInTheDocument();
-    expect(screen.getByText(/Introducir manualmente/i)).toBeInTheDocument();
-  });
-
-  it('[8] copy de UI no contiene términos técnicos (DOMMatrix, tesseract, pdf.worker, timeout)', () => {
-    const { container } = render(<StepNeedsOcr {...baseProps} ocrEnabled={false} />);
-    const text = (container.textContent ?? '').toLowerCase();
-    for (const kw of ['dommatrix', 'tesseract', 'pdf.worker', 'cannot find module']) {
-      expect(text).not.toContain(kw);
-    }
-  });
-
-  it('error pasado por prop se renderiza pero sin filtrar términos técnicos', () => {
+  it('mientras isOcrPending=true, oculta los botones y muestra progreso', () => {
     render(
       <StepNeedsOcr
         {...baseProps}
-        ocrEnabled={false}
-        error="No se pudo leer el PDF automáticamente. Puedes introducir los datos manualmente."
+        isOcrPending={true}
+        ocrProgress={{ stage: 'recognize', page: 1, total: 2 }}
       />,
     );
-    expect(screen.getByText(/No se pudo leer el PDF automáticamente/i)).toBeInTheDocument();
+    expect(screen.queryByText(/^Autocompletar con OCR$/i)).not.toBeInTheDocument();
+    expect(screen.getByText(/Analizando el PDF en tu navegador/i)).toBeInTheDocument();
+    expect(screen.getByText(/Leyendo texto 1\/2/i)).toBeInTheDocument();
+  });
+
+  it('progreso render se etiqueta como "Renderizando página X/Y"', () => {
+    render(
+      <StepNeedsOcr
+        {...baseProps}
+        isOcrPending={true}
+        ocrProgress={{ stage: 'render', page: 2, total: 2 }}
+      />,
+    );
+    expect(screen.getByText(/Renderizando página 2\/2/i)).toBeInTheDocument();
+  });
+
+  it('[11] error visible cae a fallback manual sin filtrar tecnicismos', () => {
+    render(
+      <StepNeedsOcr
+        {...baseProps}
+        error="No se pudo completar el OCR en tu navegador. Puedes introducir los datos manualmente."
+      />,
+    );
+    expect(screen.getByText(/No se pudo completar el OCR en tu navegador/i)).toBeInTheDocument();
     expect(screen.queryByText(/tesseract/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/DOMMatrix/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/pdf\.worker/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/timeout/i)).not.toBeInTheDocument();
+  });
+
+  it('copy de UI no contiene términos técnicos en ningún estado', () => {
+    const { container } = render(<StepNeedsOcr {...baseProps} />);
+    const text = (container.textContent ?? '').toLowerCase();
+    for (const kw of ['dommatrix', 'tesseract', 'pdf.worker', 'cannot find module', 'timeout']) {
+      expect(text).not.toContain(kw);
+    }
   });
 });

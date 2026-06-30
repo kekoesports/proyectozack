@@ -4,12 +4,16 @@ import React, { useRef, useState, useTransition } from 'react';
 import Link from 'next/link';
 import {
   parsePayrollPdfAction,
-  ocrPayrollPdfAction,
   applyPayrollImportAction,
 } from '@/app/admin/(dashboard)/finanzas/nominas/importar/actions';
 import type { PayrollImportRow, PayrollApplyResult, FilenameWarning } from '@/lib/finance/payroll/types';
 import { emptyManualRow, manualRowToPayrollRow } from '@/lib/finance/payroll/manualRow';
 import type { ManualRow } from '@/lib/finance/payroll/manualRow';
+
+// OCR cliente: tipo del progreso (el módulo se carga por dynamic import).
+type OcrProgressEvent =
+  | { readonly stage: 'render'; readonly page: number; readonly total: number }
+  | { readonly stage: 'recognize'; readonly page: number; readonly total: number; readonly progress?: number };
 
 // ── Step discriminator ────────────────────────────────────────────────────────
 
@@ -22,12 +26,13 @@ type Step =
   | { id: 2; rows: PayrollImportRow[]; file: File; sourceMode: 'parsed' | 'ocr-preview' | 'manual'; pageCount?: number; suggestedYearMonth?: string; filenameWarning?: FilenameWarning }
   | { id: 3; result: PayrollApplyResult };
 
-type Props = { existingTxIds: string[]; ocrEnabled: boolean };
+type Props = { existingTxIds: string[] };
 
-export function PayrollImportWizard({ existingTxIds, ocrEnabled }: Props): React.ReactElement {
+export function PayrollImportWizard({ existingTxIds }: Props): React.ReactElement {
   const [step, setStep] = useState<Step>({ id: 0 });
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [ocrProgress, setOcrProgress] = useState<OcrProgressEvent | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   // ── Step 0 → 1: parse PDF ──────────────────────────────────────────────────
@@ -60,20 +65,28 @@ export function PayrollImportWizard({ existingTxIds, ocrEnabled }: Props): React
     });
   }
 
-  // ── Step 1 (needs-ocr) → OCR ──────────────────────────────────────────────
+  // ── Step 1 (needs-ocr) → OCR cliente (dynamic import) ─────────────────────
+  // El OCR corre 100% en el navegador del admin. El PDF nunca sale del cliente.
+  // El módulo runClientOcr (pdfjs + tesseract) se carga bajo demanda con
+  // dynamic import — cero peso en el bundle inicial.
   function handleOcr(): void {
     if (step.id !== 1 || step.mode !== 'needs-ocr') return;
     const { file } = step;
     setError(null);
+    setOcrProgress(null);
     startTransition(async () => {
       try {
-        const fd = new FormData();
-        fd.append('pdf', file);
-        const res = await ocrPayrollPdfAction(fd);
+        const { runClientOcr } = await import('./client-ocr/runClientOcr');
+        const res = await runClientOcr({
+          file,
+          onProgress: (e) => setOcrProgress(e),
+        });
+        setOcrProgress(null);
         if (!res.ok) { setError(res.error); return; }
-        setStep({ id: 1, mode: 'ocr-preview', rows: res.rows, file, fileName: res.fileName });
+        setStep({ id: 1, mode: 'ocr-preview', rows: res.rows, file, fileName: file.name });
       } catch {
-        setError('No se pudo completar el OCR. Puedes introducir los datos manualmente.');
+        setOcrProgress(null);
+        setError('No se pudo completar el OCR en tu navegador. Puedes introducir los datos manualmente.');
       }
     });
   }
@@ -157,7 +170,7 @@ export function PayrollImportWizard({ existingTxIds, ocrEnabled }: Props): React
         onManual={handleGoManual}
         isOcrPending={isPending}
         error={error}
-        ocrEnabled={ocrEnabled}
+        ocrProgress={ocrProgress}
       />
     );
   }
@@ -281,10 +294,16 @@ type NeedsOcrProps = {
   onManual: () => void;
   isOcrPending: boolean;
   error: string | null;
-  ocrEnabled: boolean;
+  ocrProgress: OcrProgressEvent | null;
 };
 
-export function StepNeedsOcr({ fileName, pageCount, onBack, onOcr, onManual, isOcrPending, error, ocrEnabled }: NeedsOcrProps): React.ReactElement {
+function progressLabel(p: OcrProgressEvent | null): string {
+  if (!p) return 'Cargando OCR…';
+  if (p.stage === 'render') return `Renderizando página ${p.page}/${p.total}`;
+  return `Leyendo texto ${p.page}/${p.total}`;
+}
+
+export function StepNeedsOcr({ fileName, pageCount, onBack, onOcr, onManual, isOcrPending, error, ocrProgress }: NeedsOcrProps): React.ReactElement {
   return (
     <div className="space-y-4 max-w-lg">
       <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-800 space-y-1.5">
@@ -294,51 +313,43 @@ export function StepNeedsOcr({ fileName, pageCount, onBack, onOcr, onManual, isO
           {pageCount > 0 ? ` (${pageCount} página${pageCount !== 1 ? 's' : ''})` : ''} es un PDF
           vectorizado o escaneado.
         </p>
-        {ocrEnabled
-          ? <p>Elige cómo continuar:</p>
-          : <p>Introduce los datos manualmente revisando la nómina.</p>}
+        <p>Puedes autocompletar con OCR en tu navegador o introducir los datos manualmente.</p>
       </div>
 
-      {ocrEnabled ? (
+      {isOcrPending ? (
+        <div className="space-y-3 rounded-lg border border-sp-orange/40 bg-sp-orange/5 px-4 py-4">
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-sm font-medium text-sp-admin-fg">
+              Analizando el PDF en tu navegador…
+            </p>
+            <span className="inline-block h-3 w-3 animate-pulse rounded-full bg-sp-orange" />
+          </div>
+          <p className="text-xs text-sp-admin-muted">
+            Esto puede tardar hasta 30 segundos la primera vez (descarga del modelo OCR). No cierres esta página.
+          </p>
+          <p className="text-[11px] font-mono text-sp-admin-muted">{progressLabel(ocrProgress)}</p>
+        </div>
+      ) : (
         <div className="grid grid-cols-2 gap-3">
           <button
             type="button"
-            disabled={isOcrPending}
             onClick={onOcr}
-            className="flex flex-col items-start gap-1.5 rounded-lg border border-sp-border bg-sp-admin-surface p-4 text-left hover:border-sp-orange/60 disabled:opacity-50 transition-colors"
+            className="flex flex-col items-start gap-1.5 rounded-lg border border-sp-border bg-sp-admin-surface p-4 text-left hover:border-sp-orange/60 transition-colors"
           >
-            <span className="text-sm font-medium text-sp-admin-fg">
-              {isOcrPending ? 'Analizando con OCR…' : 'Autocompletar con OCR'}
-            </span>
+            <span className="text-sm font-medium text-sp-admin-fg">Autocompletar con OCR</span>
             <span className="text-xs text-sp-admin-muted">
-              {isOcrPending
-                ? 'Esto puede tardar hasta 30 segundos. No cierres esta página.'
-                : 'Reconocimiento óptico automático. Puede tardar 20–40 s. Revisa los datos antes de confirmar.'}
+              El OCR corre en tu navegador. Puede tardar 20–40 s. Revisa los datos antes de confirmar.
             </span>
           </button>
           <button
             type="button"
-            disabled={isOcrPending}
             onClick={onManual}
-            className="flex flex-col items-start gap-1.5 rounded-lg border border-sp-border bg-sp-admin-surface p-4 text-left hover:border-sp-orange/60 disabled:opacity-50 transition-colors"
+            className="flex flex-col items-start gap-1.5 rounded-lg border border-sp-border bg-sp-admin-surface p-4 text-left hover:border-sp-orange/60 transition-colors"
           >
             <span className="text-sm font-medium text-sp-admin-fg">Introducir manualmente</span>
             <span className="text-xs text-sp-admin-muted">
               Escribe los importes directamente desde el PDF. Sin errores de OCR.
             </span>
-          </button>
-        </div>
-      ) : (
-        <div className="space-y-2">
-          <div className="rounded-lg border border-sp-border bg-sp-admin-surface px-4 py-3 text-xs text-sp-admin-muted">
-            OCR automático deshabilitado temporalmente. Puedes introducir los datos manualmente.
-          </div>
-          <button
-            type="button"
-            onClick={onManual}
-            className="flex w-full items-center justify-center rounded-lg border border-sp-orange/60 bg-sp-orange/10 px-4 py-3 text-sm font-medium text-sp-orange hover:bg-sp-orange/20 transition-colors"
-          >
-            Introducir manualmente
           </button>
         </div>
       )}
