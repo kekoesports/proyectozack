@@ -37,6 +37,10 @@ export const env = createEnv({
     // tesseract si la variable es exactamente 'true'. Developers pueden setear
     // PAYROLL_OCR_ENABLED=true en .env.local para probar el flujo OCR en local.
     PAYROLL_OCR_ENABLED: z.enum(['true', 'false']).optional().default('false').transform((v) => v === 'true'),
+    // Concurrencia máxima del cron /api/cron/sync-sheet-sources.
+    // Cuota Google Sheets v4: 100 reads / 100s / proyecto. Cada tracker hace 2 reads.
+    // Con concurrencia=4 → máximo 8 reads simultáneos = bien dentro del límite.
+    SHEETS_SYNC_CONCURRENCY: z.coerce.number().int().min(1).max(20).optional().default(4),
   },
   client: {
     NEXT_PUBLIC_SITE_URL: z.string().url(),
@@ -63,6 +67,7 @@ export const env = createEnv({
     BLOB_READ_WRITE_TOKEN_NEWS: process.env.BLOB_READ_WRITE_TOKEN_NEWS,
     GOOGLE_SHEETS_API_KEY: process.env.GOOGLE_SHEETS_API_KEY,
     PAYROLL_OCR_ENABLED: process.env.PAYROLL_OCR_ENABLED,
+    SHEETS_SYNC_CONCURRENCY: process.env.SHEETS_SYNC_CONCURRENCY,
 
     NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
     NEXT_PUBLIC_GTM_ID: process.env.NEXT_PUBLIC_GTM_ID,

@@ -12,9 +12,21 @@ export type SyncTrackerResult =
   | { inserted: number; duplicates: number; enriched: number }
   | { error: string };
 
+/**
+ * Opcional: inyecta un fetcher de metadata para deduplicar llamadas a Google
+ * dentro de una misma ejecución del cron. Si varios trackers comparten
+ * `spreadsheetId`, se hace 1 sola call de metadata.
+ *
+ * Si no se pasa, usa el fetcher por defecto (sin dedup).
+ */
+type MetadataFetcher = (spreadsheetId: string) => Promise<{ title: string; tabs: { sheetId: string; title: string; index: number }[] }>;
+
 export async function syncTrackerBlock(
   trackerId: number,
+  opts: { metadataFetcher?: MetadataFetcher } = {},
 ): Promise<SyncTrackerResult> {
+  const getMetadata = opts.metadataFetcher ?? fetchSpreadsheetMetadata;
+
   const [tracker] = await db
     .select()
     .from(dealDeliverableTrackers)
@@ -35,7 +47,7 @@ export async function syncTrackerBlock(
     : [];
   void source;
 
-  const { tabs } = await fetchSpreadsheetMetadata(tracker.googleSpreadsheetId);
+  const { tabs } = await getMetadata(tracker.googleSpreadsheetId);
   const tab = tabs.find((t) => t.sheetId === tracker.googleSheetGid);
   if (!tab) return { error: `Pestaña con GID ${tracker.googleSheetGid} no encontrada` };
 
