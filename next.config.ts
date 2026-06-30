@@ -133,6 +133,7 @@ const nextConfig: NextConfig = {
     '/admin/finanzas/nominas/importar': [
       './node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs',
       './node_modules/mupdf/dist/mupdf-wasm.wasm',
+      './node_modules/tesseract.js/**/*',
       './node_modules/tesseract.js-core/tesseract-core*.wasm',
       './node_modules/tesseract.js-core/tesseract-core*.wasm.js',
       './eng.traineddata',
