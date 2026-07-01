@@ -44,22 +44,32 @@ export async function getReceivables(): Promise<readonly ReceivableRow[]> {
       .orderBy(asc(issuedInvoices.dueDate))
       .limit(LIMIT),
 
-    // Facturas internas (kind=income) pendientes — paidAmount column
+    // Facturas internas (kind=income) pendientes — paid via invoice_payments
+    // (fuente canónica). No se lee `invoices.paidAmount` column porque el
+    // schema la marca @deprecated (TD-14).
     db
       .select({
         id: invoices.id,
         number: invoices.number,
         totalAmount: invoices.totalAmount,
-        paidAmount: invoices.paidAmount,
+        paidAmount: sql<string>`COALESCE(SUM(${invoicePayments.amount}), 0)::text`,
         status: invoices.status,
         dueDate: invoices.dueDate,
       })
       .from(invoices)
+      .leftJoin(invoicePayments, eq(invoicePayments.invoiceId, invoices.id))
       .where(
         and(
           eq(invoices.kind, 'income'),
           inArray(invoices.status, PENDING_INCOME_FILTER as InvoiceStatus[]),
         ),
+      )
+      .groupBy(
+        invoices.id,
+        invoices.number,
+        invoices.totalAmount,
+        invoices.status,
+        invoices.dueDate,
       )
       .orderBy(asc(invoices.dueDate))
       .limit(LIMIT),

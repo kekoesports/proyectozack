@@ -119,13 +119,19 @@ Los 76 warnings del linter son todos `no-unused-vars`. Los más repetidos:
 ### TD-13 · `import Link from 'next/link'` sin usar en AboutSection
 **Archivo:** `src/features/marketing-site/components/AboutSection.tsx` (ya limpiado hoy — ✅)
 
-### TD-14 · `receivables.ts` widget resumen usa `invoices.paidAmount` deprecated
+### TD-14 · `receivables.ts` widget resumen usa `invoices.paidAmount` deprecated — ✅ CORREGIDO (2026-07-02)
 **Archivo:** `src/lib/queries/financeDashboard/receivables.ts:53`
-**Contexto:** El schema marca `invoices.paidAmount` como `@deprecated` — la fuente canónica de pagos es `invoice_payments`. La query nueva `arAging.ts` (Fase 1B, 2026-07-01) ya usa `invoice_payments` como fuente única para ambas fuentes (issued + internal). La query legacy `receivables.ts` sigue leyendo `invoices.paidAmount` column solo para el path `internal`.
-**Consecuencia:** El widget "Cobros pendientes" del resumen puede mostrar un `pendingAmount` distinto al de la nueva vista `/admin/finanzas/cobros` si `paidAmount` column ha divergido de `invoice_payments`. En la práctica solo afecta facturas internas antiguas creadas antes de la migración a `invoice_payments` — para las nuevas, la column se mantiene sincronizada por las Server Actions.
-**Acción:** En un PR próximo (fuera de Fase 1B) migrar el internal branch de `receivables.ts` a `COALESCE(SUM(invoice_payments.amount), 0)` para uniformizar. Requiere revisar el impacto en la home CEO (Fase 1A.1) y las AI tools que consumen `getFinanceDashboard()`.
-**Riesgo:** Bajo mientras coexistan. Medio si hay incoherencia entre las dos vistas visibles al mismo tiempo.
-**Esfuerzo:** 30 min + tests.
+**Contexto:** El schema marca `invoices.paidAmount` como `@deprecated` — la fuente canónica de pagos es `invoice_payments`.
+**Corrección:** El internal path de `getReceivables()` ahora calcula `paidAmount` como `COALESCE(SUM(invoice_payments.amount), 0)` con LEFT JOIN + GROUP BY, mismo patrón que el issued path y que `arAging.ts` / `finanzasResumenV2.ts`. También se limpió `pnl.ts` que seleccionaba `paidAmount` sin usarlo (dead SELECT).
+**Estado:** `receivables.ts` y `pnl.ts` ya no leen `invoices.paidAmount`. Ver TD-14b para el residual pendiente.
+
+### TD-14b · `listInvoices()` general expone `paidAmount` column deprecated
+**Archivo:** `src/lib/queries/invoices.ts:68`
+**Contexto:** `listInvoices()` es la query genérica del módulo de facturación (`/admin/facturacion`, `/admin/finanzas/gastos`, drawers, tabs, exports). Selecciona `paidAmount: invoices.paidAmount` como parte del `InvoiceWithRelations` que consumen múltiples componentes de UI y utilidades de export.
+**Consecuencia:** Los componentes que muestran "paidAmount" (drawer de factura, tabla de gastos, export CSV/PDF) siguen leyendo la column legacy. En la práctica se sincroniza al aplicar `invoice_payments` desde conciliación, pero cualquier drift silencioso mostraría un valor incorrecto en la UI de facturación.
+**Acción:** Migrar en PR separado — reemplazar la column por `SUM(invoice_payments.amount)` con LEFT JOIN + GROUP BY sobre 4 queries de `listInvoices()`. Requiere auditar todos los consumers del tipo `InvoiceWithRelations` para asegurar que `.paidAmount` siga siendo un `string` numérico. Riesgo medio por scope amplio.
+**Riesgo:** Bajo mientras coexista con conciliación bien sincronizada. Medio si aparece drift.
+**Esfuerzo:** 1-2h (query + tipos + tests + smoke UI).
 
 ---
 
