@@ -1,6 +1,17 @@
 'use client';
 
 import type { ReceivableRow } from '@/types/financeDashboard';
+import { INVOICE_STATUS_LABELS } from '@/lib/schemas/invoice';
+import type { INVOICE_STATUSES } from '@/lib/schemas/invoice';
+
+type InvoiceStatusKey = (typeof INVOICE_STATUSES)[number];
+
+function humanStatus(raw: string): string {
+  if (raw in INVOICE_STATUS_LABELS) {
+    return INVOICE_STATUS_LABELS[raw as InvoiceStatusKey];
+  }
+  return raw;
+}
 
 const EUR = new Intl.NumberFormat('es-ES', {
   style: 'currency',
@@ -85,7 +96,7 @@ export function ReceivablesTable({ rows }: Props): React.ReactElement {
                 </td>
                 <td className="px-4 py-2">
                   <span className="rounded-full border border-sp-admin-border px-2 py-0.5 text-[10px] uppercase tracking-wider text-sp-admin-muted">
-                    {row.status}
+                    {humanStatus(row.status)}
                   </span>
                 </td>
               </tr>
