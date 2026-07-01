@@ -49,3 +49,4 @@ export type {
 } from './financeResumen';
 export { getFinancePnL } from './pnlDetail';
 export type { FinancePnLResult } from './pnlDetail';
+export { getArAging } from './arAging';
