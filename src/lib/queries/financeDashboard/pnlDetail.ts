@@ -10,6 +10,12 @@ import {
   PENDING_INCOME_STATUSES,
   PENDING_EXPENSE_STATUSES,
 } from '@/lib/utils/invoice-status';
+import {
+  classifyExpenseSubgroup,
+  summarizeExpenseSubgroups,
+  type ExpenseSubgroupKey,
+  type ExpenseSubgroupRow,
+} from './expenseSubgroups';
 
 export type FinancePnLResult = PnLResult & {
   readonly gastosCampanaDirect: number;
@@ -17,6 +23,7 @@ export type FinancePnLResult = PnLResult & {
   readonly gastosNoClasificados: number;
   readonly cobradoYTD: number;
   readonly pagadoYTD: number;
+  readonly expenseBySubgroup: readonly ExpenseSubgroupRow[];
 };
 
 /** @pure Clasifica un gasto en su bucket de expenseGroup. */
@@ -45,6 +52,7 @@ const ZERO: FinancePnLResult = {
   gastosNoClasificados: 0,
   cobradoYTD: 0,
   pagadoYTD: 0,
+  expenseBySubgroup: [],
 };
 
 /**
@@ -76,7 +84,10 @@ export async function getFinancePnL(filters: PnLFilters = {}): Promise<FinancePn
         campaignId: invoices.campaignId,
         talentId: invoices.talentId,
         expenseGroup: invoices.expenseGroup,
+        expenseSubtype: invoices.expenseSubtype,
         category: invoices.category,
+        concept: invoices.concept,
+        counterpartyName: invoices.counterpartyName,
         issueDate: invoices.issueDate,
       })
       .from(invoices)
@@ -135,6 +146,7 @@ export async function getFinancePnL(filters: PnLFilters = {}): Promise<FinancePn
 
   const monthMap = new Map<string, { ingresos: number; gastos: number }>();
   const categoryMap = new Map<string, { total: number; count: number }>();
+  const subgroupMap = new Map<ExpenseSubgroupKey, { amount: number; count: number }>();
 
   for (const row of rows) {
     const amount = Number(row.totalAmount ?? 0);
@@ -165,6 +177,18 @@ export async function getFinancePnL(filters: PnLFilters = {}): Promise<FinancePn
       if (bucket === 'campaign_direct') gastosCampanaDirect += amount;
       else if (bucket === 'operational') gastosOperativos += amount;
       else gastosNoClasificados += amount;
+
+      // Desglose visual por subgrupo (Nóminas Pablo / Alfonso, Software / IA, ...)
+      const subgroupKey = classifyExpenseSubgroup({
+        expenseGroup: row.expenseGroup,
+        expenseSubtype: row.expenseSubtype,
+        concept: row.concept,
+        counterpartyName: row.counterpartyName,
+      });
+      const subEntry = subgroupMap.get(subgroupKey) ?? { amount: 0, count: 0 };
+      subEntry.amount += amount;
+      subEntry.count += 1;
+      subgroupMap.set(subgroupKey, subEntry);
     }
 
     monthMap.set(month, monthEntry);
@@ -183,6 +207,8 @@ export async function getFinancePnL(filters: PnLFilters = {}): Promise<FinancePn
     .sort(([, a], [, b]) => b.total - a.total)
     .map(([category, v]) => ({ category, total: v.total, count: v.count }));
 
+  const expenseBySubgroup = summarizeExpenseSubgroups(subgroupMap, gastos);
+
   return {
     ingresos,
     gastos,
@@ -199,5 +225,6 @@ export async function getFinancePnL(filters: PnLFilters = {}): Promise<FinancePn
     gastosNoClasificados,
     cobradoYTD: Number(cobradoYTDRows[0]?.total ?? 0),
     pagadoYTD: Number(pagadoYTDRows[0]?.total ?? 0),
+    expenseBySubgroup,
   };
 }
