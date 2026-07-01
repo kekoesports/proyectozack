@@ -261,11 +261,11 @@ describe('FinanzasNav — etiquetas de tabs', () => {
   );
   const source = fs.readFileSync(navPath, 'utf-8');
 
+  it('tab "Resumen" (nueva V2 YTD) existe', () => { expect(source).toContain("label: 'Resumen'"); });
   it('tab "Control mensual" existe', () => { expect(source).toContain('Control mensual'); });
   it('tab "Histórico mensual" existe', () => { expect(source).toContain('Histórico mensual'); });
   it('tab "Gastos y clasificación" existe', () => { expect(source).toContain('Gastos y clasificación'); });
   it('tab "Importar documentos" existe', () => { expect(source).toContain('Importar documentos'); });
-  it('tab antiguo "Resumen" eliminado', () => { expect(source).not.toContain("label: 'Resumen'"); });
   it('tab antiguo "Resultados" eliminado', () => { expect(source).not.toContain("label: 'Resultados'"); });
   it('tab antiguo "Herramientas" eliminado', () => { expect(source).not.toContain("label: 'Herramientas'"); });
 });

@@ -10,7 +10,8 @@ type Tab = {
 };
 
 const TABS: readonly Tab[] = [
-  { href: '/admin/finanzas/resumen', label: 'Control mensual' },
+  { href: '/admin/finanzas/resumen', label: 'Resumen' },
+  { href: '/admin/finanzas/mes', label: 'Control mensual' },
   { href: '/admin/finanzas/cobros', label: 'Cobros pendientes' },
   { href: '/admin/finanzas/pl', label: 'Histórico mensual' },
   {

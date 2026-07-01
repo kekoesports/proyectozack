@@ -118,7 +118,7 @@ function MonthSelector({ mes }: { readonly mes: string }): React.ReactElement {
   return (
     <select
       value={mes}
-      onChange={(e) => router.push(`/admin/finanzas/resumen?mes=${e.target.value}`)}
+      onChange={(e) => router.push(`/admin/finanzas/mes?mes=${e.target.value}`)}
       className="rounded-lg border border-sp-admin-border bg-sp-admin-card px-3 py-1.5 text-sm font-medium text-sp-admin-fg focus:outline-none focus:ring-1 focus:ring-sp-orange"
       aria-label="Seleccionar mes"
     >

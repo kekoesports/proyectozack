@@ -67,6 +67,7 @@ export async function classifyExpensesAction(
 
   revalidatePath('/admin/finanzas');
   revalidatePath('/admin/finanzas/resumen');
+  revalidatePath('/admin/finanzas/mes');
   revalidatePath('/admin/finanzas/pl');
   revalidatePath('/admin/finanzas/costes');
   revalidatePath('/admin/finanzas/gastos-operativos');
@@ -116,6 +117,7 @@ export async function updateExpenseClassificationAction(
 
   revalidatePath('/admin/finanzas');
   revalidatePath('/admin/finanzas/resumen');
+  revalidatePath('/admin/finanzas/mes');
   revalidatePath('/admin/finanzas/pl');
   revalidatePath('/admin/finanzas/costes');
   revalidatePath('/admin/finanzas/gastos-operativos');

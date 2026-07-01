@@ -90,35 +90,35 @@ describe('[Fase 1A.2] Deduplicación dashboard financiero — verificación est�
     });
   });
 
-  // ── 4. /admin/finanzas/resumen intacto ─────────────────────────────────────
+  // ── 4. /admin/finanzas/mes intacto (movido en PR B/3 del resumen V2) ──────
 
-  describe('/admin/finanzas/resumen sigue siendo la home financiera funcional', () => {
-    const resumen = read('src/app/admin/(dashboard)/finanzas/resumen/page.tsx');
+  describe('/admin/finanzas/mes sigue siendo el control mensual funcional', () => {
+    const mensual = read('src/app/admin/(dashboard)/finanzas/mes/page.tsx');
 
     it('mantiene requirePermission("facturacion", "read")', () => {
-      expect(resumen).toMatch(
+      expect(mensual).toMatch(
         /requirePermission\(\s*['"]facturacion['"]\s*,\s*['"]read['"]\s*\)/,
       );
     });
 
     it('renderiza FinanceMonthlyControl', () => {
-      expect(resumen).toMatch(/FinanceMonthlyControl/);
+      expect(mensual).toMatch(/FinanceMonthlyControl/);
     });
 
     it('sigue invocando las queries del control mensual', () => {
-      expect(resumen).toMatch(/getMonthlyFinanceFlow/);
-      expect(resumen).toMatch(/getFinanceStockKPIs/);
-      expect(resumen).toMatch(/getMonthlyExpenseBreakdown/);
-      expect(resumen).toMatch(/getMonthlyDocs/);
+      expect(mensual).toMatch(/getMonthlyFinanceFlow/);
+      expect(mensual).toMatch(/getFinanceStockKPIs/);
+      expect(mensual).toMatch(/getMonthlyExpenseBreakdown/);
+      expect(mensual).toMatch(/getMonthlyDocs/);
     });
 
     it('sigue invocando getFinanceDashboard() para alerts + receivables', () => {
-      expect(resumen).toMatch(/getFinanceDashboard\s*\(/);
+      expect(mensual).toMatch(/getFinanceDashboard\s*\(/);
     });
 
     it('pasa alerts y receivables como props al FinanceMonthlyControl', () => {
-      expect(resumen).toMatch(/alerts=\{dashboard\.alerts\}/);
-      expect(resumen).toMatch(/receivables=\{dashboard\.receivables\}/);
+      expect(mensual).toMatch(/alerts=\{dashboard\.alerts\}/);
+      expect(mensual).toMatch(/receivables=\{dashboard\.receivables\}/);
     });
   });
 
