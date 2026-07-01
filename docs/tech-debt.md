@@ -119,6 +119,14 @@ Los 76 warnings del linter son todos `no-unused-vars`. Los más repetidos:
 ### TD-13 · `import Link from 'next/link'` sin usar en AboutSection
 **Archivo:** `src/features/marketing-site/components/AboutSection.tsx` (ya limpiado hoy — ✅)
 
+### TD-14 · `receivables.ts` widget resumen usa `invoices.paidAmount` deprecated
+**Archivo:** `src/lib/queries/financeDashboard/receivables.ts:53`
+**Contexto:** El schema marca `invoices.paidAmount` como `@deprecated` — la fuente canónica de pagos es `invoice_payments`. La query nueva `arAging.ts` (Fase 1B, 2026-07-01) ya usa `invoice_payments` como fuente única para ambas fuentes (issued + internal). La query legacy `receivables.ts` sigue leyendo `invoices.paidAmount` column solo para el path `internal`.
+**Consecuencia:** El widget "Cobros pendientes" del resumen puede mostrar un `pendingAmount` distinto al de la nueva vista `/admin/finanzas/cobros` si `paidAmount` column ha divergido de `invoice_payments`. En la práctica solo afecta facturas internas antiguas creadas antes de la migración a `invoice_payments` — para las nuevas, la column se mantiene sincronizada por las Server Actions.
+**Acción:** En un PR próximo (fuera de Fase 1B) migrar el internal branch de `receivables.ts` a `COALESCE(SUM(invoice_payments.amount), 0)` para uniformizar. Requiere revisar el impacto en la home CEO (Fase 1A.1) y las AI tools que consumen `getFinanceDashboard()`.
+**Riesgo:** Bajo mientras coexistan. Medio si hay incoherencia entre las dos vistas visibles al mismo tiempo.
+**Esfuerzo:** 30 min + tests.
+
 ---
 
 ## Rutas que necesitan clarificación de propósito
