@@ -29,8 +29,11 @@ const read = (rel: string): string => fs.readFileSync(path.join(PROJECT_ROOT, re
 
 // ── [1] Página llama a getFinanceDashboard y propaga alerts/receivables ─────
 
-describe('finanzas/resumen/page.tsx — wiring del dashboard', () => {
-  const src = read('src/app/admin/(dashboard)/finanzas/resumen/page.tsx');
+// Nota: el control mensual se movió de /admin/finanzas/resumen a /admin/finanzas/mes
+// en el rediseño del resumen V2. Estos wiring checks se mantienen apuntando a la nueva
+// ubicación para asegurar que no hay regresión en la pantalla mensual.
+describe('finanzas/mes/page.tsx — wiring del control mensual', () => {
+  const src = read('src/app/admin/(dashboard)/finanzas/mes/page.tsx');
 
   it('[1a] importa getFinanceDashboard desde @/lib/queries/financeDashboard', () => {
     expect(src).toMatch(/import\s*\{\s*getFinanceDashboard\s*\}\s*from\s*['"]@\/lib\/queries\/financeDashboard['"]/);

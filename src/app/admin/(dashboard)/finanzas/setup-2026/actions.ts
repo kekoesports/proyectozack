@@ -134,6 +134,7 @@ export async function applySetup2026Action(
 
   revalidatePath('/admin/finanzas');
   revalidatePath('/admin/finanzas/resumen');
+  revalidatePath('/admin/finanzas/mes');
   revalidatePath('/admin/finanzas/pl');
   revalidatePath('/admin/finanzas/gastos-operativos');
 
