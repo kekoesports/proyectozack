@@ -58,6 +58,36 @@ export type ExpenseClassifierInput = {
   readonly counterpartyName: string | null;
 };
 
+// ── Mapeo subgrupo → expenseGroup visible ───────────────────────────────────
+
+/**
+ * Categoría visible del subgrupo a nivel `expenseGroup` para agregación en
+ * subtotales del bloque "Dónde se ha ido el dinero".
+ *
+ * - `campaign_direct` → pagos a talentos + otros costes directos de campaña.
+ * - `operational`     → resto de gastos operativos con subtipo conocido.
+ * - `sin_clasificar`  → subgrupo residual (revisar/asignar).
+ */
+export type ExpenseSubgroupCategory = 'campaign_direct' | 'operational' | 'sin_clasificar';
+
+export function subgroupToCategory(key: ExpenseSubgroupKey): ExpenseSubgroupCategory {
+  switch (key) {
+    case 'pagos_talentos':
+    case 'campana_otros':
+      return 'campaign_direct';
+    case 'sin_clasificar':
+      return 'sin_clasificar';
+    default:
+      return 'operational';
+  }
+}
+
+export const EXPENSE_CATEGORY_LABELS: Readonly<Record<ExpenseSubgroupCategory, string>> = {
+  campaign_direct: 'Costes directos de campaña',
+  operational:     'Gastos operativos',
+  sin_clasificar:  'Sin clasificar',
+} as const;
+
 // ── Detección de socio ──────────────────────────────────────────────────────
 
 const PABLO_RE   = /\b(pablo|camacho|keko)\b/i;
