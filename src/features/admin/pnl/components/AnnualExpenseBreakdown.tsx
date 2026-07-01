@@ -1,5 +1,12 @@
 import Link from 'next/link';
-import type { ExpenseSubgroupItem, ExpenseSubgroupKey, ExpenseSubgroupRow } from '@/lib/queries/financeDashboard/expenseSubgroups';
+import {
+  EXPENSE_CATEGORY_LABELS,
+  subgroupToCategory,
+  type ExpenseSubgroupCategory,
+  type ExpenseSubgroupItem,
+  type ExpenseSubgroupKey,
+  type ExpenseSubgroupRow,
+} from '@/lib/queries/financeDashboard/expenseSubgroups';
 
 const EUR = new Intl.NumberFormat('es-ES', {
   style: 'currency',
@@ -265,6 +272,65 @@ export function AnnualExpenseBreakdown({ rows, totalExpense, from, to }: Props):
           <SubgroupRow key={r.key} row={r} isFirst={i === 0} />
         ))}
       </div>
+      <SubtotalsFooter rows={rows} totalExpense={totalExpense} />
+    </div>
+  );
+}
+
+// ── Subtotales al pie ──────────────────────────────────────────────────────
+
+function categoryColor(cat: ExpenseSubgroupCategory): string {
+  switch (cat) {
+    case 'campaign_direct': return 'text-red-400';
+    case 'operational':     return 'text-amber-400';
+    case 'sin_clasificar':  return 'text-amber-400';
+  }
+}
+
+type SubtotalsFooterProps = {
+  readonly rows: readonly ExpenseSubgroupRow[];
+  readonly totalExpense: number;
+};
+
+function SubtotalsFooter({ rows, totalExpense }: SubtotalsFooterProps): React.ReactElement {
+  const buckets = new Map<ExpenseSubgroupCategory, { amount: number; count: number }>();
+  for (const r of rows) {
+    const cat = subgroupToCategory(r.key);
+    const b = buckets.get(cat) ?? { amount: 0, count: 0 };
+    b.amount += r.amount;
+    b.count += r.count;
+    buckets.set(cat, b);
+  }
+  const order: readonly ExpenseSubgroupCategory[] = ['campaign_direct', 'operational', 'sin_clasificar'];
+
+  return (
+    <div className="mt-5 border-t border-sp-admin-border/60 pt-3">
+      <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-sp-admin-muted">
+        Subtotales
+      </p>
+      <ul className="space-y-1.5">
+        {order.map((cat) => {
+          const b = buckets.get(cat);
+          if (!b || b.count === 0) return null;
+          const pct = totalExpense > 0 ? (b.amount / totalExpense) * 100 : 0;
+          return (
+            <li key={cat} className="flex items-baseline justify-between gap-3 text-sm">
+              <span className="text-sp-admin-fg">
+                {EXPENSE_CATEGORY_LABELS[cat]}
+                <span className="ml-2 text-xs text-sp-admin-muted">· {b.count} {b.count === 1 ? 'factura' : 'facturas'}</span>
+              </span>
+              <span className={`tabular-nums ${categoryColor(cat)}`}>
+                {EUR.format(b.amount)}
+                <span className="text-sp-admin-muted"> · {pct.toFixed(0)}%</span>
+              </span>
+            </li>
+          );
+        })}
+        <li className="mt-2 flex items-baseline justify-between gap-3 border-t border-sp-admin-border/40 pt-2 text-sm font-semibold">
+          <span className="text-sp-admin-fg">Total gastos</span>
+          <span className="tabular-nums text-sp-admin-fg">{EUR.format(totalExpense)}</span>
+        </li>
+      </ul>
     </div>
   );
 }

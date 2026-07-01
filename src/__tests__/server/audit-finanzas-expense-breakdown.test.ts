@@ -16,7 +16,9 @@ import {
   buildInvoicePdfUrl,
   classifyExpenseSubgroup,
   detectPartner,
+  subgroupToCategory,
   summarizeExpenseSubgroups,
+  EXPENSE_CATEGORY_LABELS,
   EXPENSE_SUBGROUP_LABELS,
   type ExpenseClassifierInput,
   type ExpenseSubgroupAggregate,
@@ -437,6 +439,41 @@ describe('summarizeExpenseSubgroups()', () => {
   });
 });
 
+// ── Categoría (subtotales) ─────────────────────────────────────────────────
+
+describe('subgroupToCategory()', () => {
+  it('pagos a talentos → campaign_direct', () => {
+    expect(subgroupToCategory('pagos_talentos')).toBe('campaign_direct');
+  });
+
+  it('otros costes de campaña → campaign_direct', () => {
+    expect(subgroupToCategory('campana_otros')).toBe('campaign_direct');
+  });
+
+  it('sin_clasificar → sin_clasificar', () => {
+    expect(subgroupToCategory('sin_clasificar')).toBe('sin_clasificar');
+  });
+
+  const operationalKeys: readonly ExpenseSubgroupKey[] = [
+    'nomina_pablo', 'nomina_alfonso', 'nomina_otros',
+    'cuota_pablo', 'cuota_alfonso', 'cuota_otros',
+    'seguridad_social',
+    'software_ia', 'hosting_dominio', 'gestoria', 'fiscal',
+    'marketing', 'comisiones',
+    'seguro_medico', 'gasto_general',
+  ];
+
+  it.each(operationalKeys)('%s → operational', (key) => {
+    expect(subgroupToCategory(key)).toBe('operational');
+  });
+
+  it('EXPENSE_CATEGORY_LABELS mapea las 3 categorías con textos humanos', () => {
+    expect(EXPENSE_CATEGORY_LABELS.campaign_direct).toBe('Costes directos de campaña');
+    expect(EXPENSE_CATEGORY_LABELS.operational).toBe('Gastos operativos');
+    expect(EXPENSE_CATEGORY_LABELS.sin_clasificar).toBe('Sin clasificar');
+  });
+});
+
 // ── Chequeos estáticos ─────────────────────────────────────────────────────
 
 describe('Integración /admin/finanzas/pl', () => {
@@ -521,6 +558,13 @@ describe('Integración /admin/finanzas/pl', () => {
   it('expenseSubgroups.ts expone el subgrupo hosting_dominio con su label', () => {
     expect(subgroupsSrc).toMatch(/hosting_dominio/);
     expect(subgroupsSrc).toMatch(/Hosting \/ dominio/);
+  });
+
+  it('componente renderiza SubtotalsFooter con labels y "Total gastos"', () => {
+    expect(componentSrc).toMatch(/SubtotalsFooter\b/);
+    expect(componentSrc).toMatch(/subgroupToCategory\(/);
+    expect(componentSrc).toMatch(/EXPENSE_CATEGORY_LABELS\b/);
+    expect(componentSrc).toMatch(/Total gastos/);
   });
 });
 
