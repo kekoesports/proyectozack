@@ -8,6 +8,7 @@ import { PnLOverviewCards } from '@/features/admin/pnl/components/PnLOverviewCar
 import { PnLBreakdownTable } from '@/features/admin/pnl/components/PnLBreakdownTable';
 import { PnLCategoryList } from '@/features/admin/pnl/components/PnLCategoryList';
 import { PnLFilters } from '@/features/admin/pnl/components/PnLFilters';
+import { AnnualExpenseBreakdown } from '@/features/admin/pnl/components/AnnualExpenseBreakdown';
 import type { InvoiceCompany } from '@/types';
 import type { PnLFilters as PnLFiltersType } from '@/lib/queries/pnl';
 
@@ -93,6 +94,14 @@ export default async function FinanzasPnLPage({ searchParams }: PageProps): Prom
           </div>
         )}
       </div>
+
+      {/* Dónde se ha ido el dinero — desglose visual por subgrupo */}
+      <AnnualExpenseBreakdown
+        rows={pnl.expenseBySubgroup}
+        totalExpense={pnl.gastos}
+        from={from}
+        to={to}
+      />
 
       {/* Caja YTD */}
       <div className="grid grid-cols-2 gap-3">
