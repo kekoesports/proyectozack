@@ -207,6 +207,27 @@ Todas las queries **nuevas** de Finanzas usan esta tabla:
 
 Cualquier query nueva que calcule "cobrado" o "pagado" **debe** usar `invoice_payments`, nunca `invoices.paidAmount`.
 
+### Convención: `status='pagada'` sin `invoice_payments`
+
+En la práctica hay dos conceptos que **no son equivalentes**:
+
+| Campo | Significado |
+|---|---|
+| `invoices.status` (o `issued_invoices.status`) | Estado **operativo/manual** de la factura o gasto. `'pagada'` / `'cobrada'` = el usuario declara que la operación se ha materializado desde su cuenta. |
+| `invoice_payments` | **Fuente canónica de pagos conciliados** — cash real. Cada fila vincula la factura con una `bank_transaction` concreta a través del módulo de conciliación bancaria. |
+
+**Ambas cosas pueden coexistir independientemente.** Un gasto marcado como `pagada` puede no tener fila en `invoice_payments` si nunca pasó por conciliación (nóminas importadas via wizard con status ya marcado, recurrentes backfilled con `status='pagada'`, correcciones manuales, etc.). Al 2026-07-02 hay **32 filas** en esa situación — todas gastos de estructura pagados desde el banco pero no conciliados.
+
+**Efecto en las vistas del resumen:**
+
+- Los bloques **Nóminas / Impuestos / Operativos / Resultado operativo** cuentan estas 32 filas correctamente (usan `SUM(totalAmount)` en accrual, no `invoice_payments`).
+- Los KPIs **base caja** (ingresos cobrados, costes directos pagados, cashflow) sólo cuentan lo que tiene fila en `invoice_payments`. Como estas 32 filas son gastos operativos/nóminas/impuestos y no ingresos ni costes directos, no aplica.
+- El módulo de conciliación (`/admin/facturacion/bancos/conciliacion`) no ve estas filas porque no tienen `bank_transaction_id` que las respalde.
+
+**Regla de oro:** para cualquier métrica de tesorería/cash flow usar siempre `invoice_payments`. Para P&L accrual usar `SUM(totalAmount)` sobre `invoices` filtrado por `expenseGroup`/`expenseSubtype` y excluyendo `status='anulada'`.
+
+Herramienta re-ejecutable para reauditar la consistencia: `scripts/audit-finanzas-consistency.ts` (ver informe en `docs/finance-audit-2026-07-02.md`).
+
 ---
 
 ## 11. `invoices.paidAmount` deprecated

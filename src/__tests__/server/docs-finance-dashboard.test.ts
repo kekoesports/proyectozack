@@ -61,4 +61,16 @@ describe('[docs] finance-dashboard.md — estado tras rediseño 2026-07', () => 
     expect(DOC).toMatch(/0 3 \* \* \*/);
     expect(DOC).toMatch(/diario/i);
   });
+
+  it("documenta la convención status='pagada' sin invoice_payments", () => {
+    // Nueva sección añadida tras el cierre del loop nocturno.
+    expect(DOC).toMatch(/status='pagada' sin `invoice_payments`|status='pagada'[\s\S]*invoice_payments/i);
+    expect(DOC).toMatch(/32 filas/);
+    expect(DOC).toMatch(/no son equivalentes/i);
+  });
+
+  it('deja claro que invoice_payments = cash real y status = estado operativo', () => {
+    expect(DOC).toMatch(/cash real/i);
+    expect(DOC).toMatch(/estado \*\*operativo\/manual\*\*|estado operativo/i);
+  });
 });
