@@ -1,16 +1,34 @@
 # Finance Dashboard — Documentación
 
-## Overview
+## Estado (2026-07-01, Fase 1A.2)
 
-Dashboard financiero de solo lectura en `/admin/facturacion/dashboard`. Agrega datos de los módulos existentes (facturas internas, facturas emitidas, invoice_payments, conciliación bancaria, campañas) sin conexiones a APIs bancarias externas ni pagos automáticos.
+**La home financiera principal es `/admin/finanzas/resumen`.**
+
+La ruta legacy `/admin/facturacion/dashboard` **redirige de forma permanente** (308) a `/admin/finanzas/resumen`. Ya no debe usarse como URL de destino ni como referencia.
+
+Bloques que vivían en la ruta legacy y que se han **diferido a fases futuras**:
+
+| Bloque | Destino futuro |
+|---|---|
+| CashflowChart 12m | Fase 1B/3 — vive mejor en `/admin/finanzas/pl` (histórico) o widget dedicado. |
+| ReconciliationPanel | Ya existe la vista completa en `/admin/facturacion/bancos/conciliacion`. |
+| CampaignMarginsTable | Fase 2 — rentabilidad de campañas, no home financiera. |
+| FinanceKPIGrid (10 KPIs técnicos) | Reemplazado por los 6 KPIs CEO-friendly de `/admin/finanzas/resumen`. |
+
+Los componentes `FinanceKPIGrid.tsx`, `CashflowChart.tsx`, `ReconciliationPanel.tsx` y `CampaignMarginsTable.tsx` **han sido borrados**. Cuando alguna de las fases futuras los necesite se reescribirán limpios (o se recuperan del historial de git).
+
+Las queries subyacentes **siguen exportadas** desde `src/lib/queries/financeDashboard/index.ts` porque `deriveAlerts()` y otras herramientas del asistente IA las consumen — ver más abajo.
 
 ## Ruta
 
 | Ruta | Descripción |
 |---|---|
-| `/admin/facturacion/dashboard` | Dashboard completo — RSC con fetch en paralelo |
+| `/admin/finanzas/resumen` | **Home financiera principal (Fase 1A.1).** Control mensual CEO-friendly. |
+| `/admin/facturacion/dashboard` | Redirect 308 → `/admin/finanzas/resumen`. |
 
-## Arquitectura de datos
+## Arquitectura de datos (agregador `getFinanceDashboard`)
+
+Sigue disponible y en uso por `/admin/finanzas/resumen` (alertas + receivables) y por las AI tools:
 
 ```
 getFinanceDashboard()              ← composición en paralelo
@@ -63,7 +81,7 @@ Máximo 30 filas por fuente. Orden final: por `dueDate ASC` (nulls al final).
 
 ## Conciliación (`reconciliation.ts`)
 
-Wrapper sobre `getBankReconciliationKpis()` + query adicional para `pendingApplyPayment` (matched sin invoice_payment).
+Wrapper sobre `getBankReconciliationKpis()` + query adicional para `pendingApplyPayment` (matched sin invoice_payment). La UI operativa vive en `/admin/facturacion/bancos/conciliacion`.
 
 ## Márgenes campañas (`campaignMargins.ts`)
 
@@ -86,7 +104,7 @@ Orden de presentación: high → medium → low.
 
 ## AI Tools
 
-5 herramientas nuevas (solo lectura), registradas en `tools/index.ts`:
+5 herramientas (solo lectura), registradas en `tools/index.ts`:
 
 | Tool | Descripción |
 |---|---|
@@ -117,15 +135,18 @@ src/lib/services/ai-assistant/tools/financeDashboard.ts
   getCampaignMarginAlerts, getFinanceAlerts
 
 src/app/admin/(dashboard)/facturacion/dashboard/page.tsx
-  RSC — requirePermission('facturacion','read') + getFinanceDashboard()
+  permanentRedirect → /admin/finanzas/resumen  (Fase 1A.2)
+
+src/app/admin/(dashboard)/finanzas/resumen/page.tsx
+  RSC — requirePermission('facturacion','read') + FinanceMonthlyControl (Fase 1A.1)
 
 src/features/admin/finance-dashboard/components/
-  FinanceKPIGrid.tsx      — 10 KPI cards
-  CashflowChart.tsx       — AreaChart (recharts) cobrado vs pagado
-  ReceivablesTable.tsx    — tabla cobros pendientes con isOverdue highlight
-  ReconciliationPanel.tsx — stats + link a /bancos/conciliacion
-  CampaignMarginsTable.tsx — tabla con isLow highlight
-  FinanceAlertsList.tsx   — lista alertas por severidad
+  FinanceMonthlyControl.tsx — control mensual CEO (6 KPIs + breakdown + docs)
+  ReceivablesTable.tsx      — tabla cobros pendientes con isOverdue highlight
+  FinanceAlertsList.tsx     — lista alertas por severidad
+  FinanceResumenBlocks.tsx  — bloques reutilizables del resumen
+  BulkClassifyPanel.tsx     — clasificación masiva de gastos
+  ExpensesClassifyTable.tsx / ExpenseClassifyInline.tsx — clasificación individual
 
 src/__tests__/server/finance-dashboard.test.ts
   22 tests — deriveAlerts (pure), LOW_MARGIN_THRESHOLD, ReceivableRow semantics,
@@ -138,7 +159,7 @@ Usa `requirePermission('facturacion', 'read')` — mismos roles que el módulo d
 
 ## Límites
 
-- Solo lectura — sin mutaciones desde esta página
+- Solo lectura — sin mutaciones desde la home financiera
 - Sin conexiones bancarias externas (no Wise, Stripe, Open Banking)
 - Sin auto-pagos ni auto-conciliación
 - `pagado` en el cashflow es base devengado hasta que se implemente apply-payment para gastos
