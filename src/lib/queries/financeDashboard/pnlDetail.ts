@@ -11,8 +11,10 @@ import {
   PENDING_EXPENSE_STATUSES,
 } from '@/lib/utils/invoice-status';
 import {
+  buildInvoicePdfUrl,
   classifyExpenseSubgroup,
   summarizeExpenseSubgroups,
+  type ExpenseSubgroupItem,
   type ExpenseSubgroupKey,
   type ExpenseSubgroupRow,
 } from './expenseSubgroups';
@@ -78,6 +80,7 @@ export async function getFinancePnL(filters: PnLFilters = {}): Promise<FinancePn
   const [rows, cobradoYTDRows, pagadoYTDRows] = await Promise.all([
     db
       .select({
+        id: invoices.id,
         kind: invoices.kind,
         status: invoices.status,
         totalAmount: invoices.totalAmount,
@@ -89,6 +92,8 @@ export async function getFinancePnL(filters: PnLFilters = {}): Promise<FinancePn
         concept: invoices.concept,
         counterpartyName: invoices.counterpartyName,
         issueDate: invoices.issueDate,
+        invoiceFileId: invoices.invoiceFileId,
+        fileUrl: invoices.fileUrl,
       })
       .from(invoices)
       .where(and(...conds)),
@@ -146,7 +151,7 @@ export async function getFinancePnL(filters: PnLFilters = {}): Promise<FinancePn
 
   const monthMap = new Map<string, { ingresos: number; gastos: number }>();
   const categoryMap = new Map<string, { total: number; count: number }>();
-  const subgroupMap = new Map<ExpenseSubgroupKey, { amount: number; count: number }>();
+  const subgroupMap = new Map<ExpenseSubgroupKey, { amount: number; count: number; items: ExpenseSubgroupItem[] }>();
 
   for (const row of rows) {
     const amount = Number(row.totalAmount ?? 0);
@@ -185,9 +190,22 @@ export async function getFinancePnL(filters: PnLFilters = {}): Promise<FinancePn
         concept: row.concept,
         counterpartyName: row.counterpartyName,
       });
-      const subEntry = subgroupMap.get(subgroupKey) ?? { amount: 0, count: 0 };
+      const subEntry = subgroupMap.get(subgroupKey) ?? { amount: 0, count: 0, items: [] };
       subEntry.amount += amount;
       subEntry.count += 1;
+      subEntry.items.push({
+        id: row.id,
+        issueDate: row.issueDate ?? '',
+        concept: row.concept ?? '',
+        counterpartyName: row.counterpartyName,
+        totalAmount: amount,
+        status: row.status,
+        pdfUrl: buildInvoicePdfUrl({
+          id: row.id,
+          invoiceFileId: row.invoiceFileId,
+          fileUrl: row.fileUrl,
+        }),
+      });
       subgroupMap.set(subgroupKey, subEntry);
     }
 

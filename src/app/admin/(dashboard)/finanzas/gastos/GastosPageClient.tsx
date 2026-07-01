@@ -25,8 +25,16 @@ function sumTotalAmount(rows: readonly InvoiceWithRelations[]): number {
   return s;
 }
 
+// Deep-link: /admin/finanzas/gastos#sin-clasificar activa la tab correcta.
+// WHY: el CTA del bloque "Sin clasificar" de /pl (AnnualExpenseBreakdown)
+// aterriza aquí; sin este initializer el usuario cae siempre en "Directos".
+function initialTabFromHash(): TabName {
+  if (typeof window === 'undefined') return 'Directos';
+  return window.location.hash === '#sin-clasificar' ? 'Sin clasificar' : 'Directos';
+}
+
 export function GastosPageClient({ directos, operativos, sinClasificar }: Props): React.ReactElement {
-  const [active, setActive] = useState<TabName>('Directos');
+  const [active, setActive] = useState<TabName>(initialTabFromHash);
 
   const totalDirectos     = sumTotalAmount(directos);
   const totalOperativos   = sumTotalAmount(operativos);
