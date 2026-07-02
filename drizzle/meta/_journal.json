@@ -729,6 +729,13 @@
       "when": 1783003849094,
       "tag": "0103_giveaway_platform",
       "breakpoints": true
+    },
+    {
+      "idx": 104,
+      "version": "7",
+      "when": 1783029087519,
+      "tag": "0104_connected_social_accounts",
+      "breakpoints": true
     }
   ]
 }

@@ -1,0 +1,219 @@
+/*
+ * CSS de /sorteos/plataforma/perfil.
+ * Reutiliza tokens SocialPro definidos en platform.css. Scoped bajo
+ * .giveaway-platform via el layout parent.
+ */
+
+.giveaway-platform .gp-perfil { padding-top: 32px; padding-bottom: 40px; }
+.giveaway-platform .gp-perfil-header { text-align: center; margin-bottom: 28px; }
+.giveaway-platform .gp-perfil-header h1 {
+  font-family: var(--font-display), var(--font-rajdhani), sans-serif;
+  font-weight: 900;
+  font-size: clamp(36px, 5vw, 60px);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  background: var(--sp-grad);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 24px rgba(224, 48, 112, 0.28));
+  margin: 0;
+}
+.giveaway-platform .gp-perfil-sub {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 13px;
+}
+.giveaway-platform .gp-perfil-notice {
+  border-radius: 12px;
+  padding: 12px 18px;
+  margin: 0 0 20px;
+  font-size: 13px;
+}
+.giveaway-platform .gp-perfil-notice-success {
+  background: rgba(74, 222, 128, 0.12);
+  border: 1px solid rgba(74, 222, 128, 0.4);
+  color: #b9f3cd;
+}
+.giveaway-platform .gp-perfil-notice-error {
+  background: rgba(255, 93, 125, 0.10);
+  border: 1px solid rgba(255, 93, 125, 0.42);
+  color: #ffc4d1;
+}
+
+.giveaway-platform .gp-perfil-block {
+  position: relative;
+  border-radius: 18px;
+  background: linear-gradient(160deg, var(--panel), #0d0b1e 78%);
+  border: 1px solid rgba(196, 40, 128, 0.20);
+  padding: 26px 28px;
+  margin-bottom: 22px;
+  box-shadow: 0 12px 44px rgba(0, 0, 0, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  overflow: hidden;
+}
+.giveaway-platform .gp-perfil-block::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 28px; right: 28px;
+  height: 2px;
+  background: var(--sp-grad);
+  opacity: 0.75;
+}
+.giveaway-platform .gp-perfil-block h2 {
+  font-family: var(--font-display), var(--font-rajdhani), sans-serif;
+  font-weight: 800;
+  font-size: 20px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  margin: 0 0 12px;
+  background: var(--sp-grad);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.giveaway-platform .gp-perfil-note {
+  color: var(--muted);
+  font-size: 12.5px;
+  margin: 4px 0 14px;
+  line-height: 1.55;
+}
+
+/* Steam header */
+.giveaway-platform .gp-perfil-steam {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+.giveaway-platform .gp-perfil-steam-avatar {
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(160deg, var(--panel2), var(--panel));
+  border: 2px solid var(--gold);
+  display: grid;
+  place-items: center;
+  font-size: 24px;
+  box-shadow: 0 0 24px rgba(245, 183, 61, 0.4);
+}
+.giveaway-platform .gp-perfil-steam-name {
+  font-family: var(--font-display), var(--font-rajdhani), sans-serif;
+  font-weight: 800;
+  font-size: 20px;
+  letter-spacing: 1px;
+  color: var(--txt);
+}
+.giveaway-platform .gp-perfil-steam-meta { color: var(--muted); font-size: 12.5px; margin-top: 2px; }
+.giveaway-platform .gp-perfil-steam-meta b { color: var(--gold); }
+
+/* Social cards grid */
+.giveaway-platform .gp-social-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+.giveaway-platform .gp-social-card {
+  border-radius: 14px;
+  border: 1px solid rgba(196, 40, 128, 0.18);
+  background: linear-gradient(160deg, rgba(21, 16, 36, 0.9), rgba(11, 9, 23, 0.9));
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.giveaway-platform .gp-social-card.gp-social-connected {
+  border-color: rgba(74, 222, 128, 0.35);
+}
+.giveaway-platform .gp-social-card.gp-social-planned,
+.giveaway-platform .gp-social-card.gp-social-not_configured {
+  opacity: 0.7;
+}
+.giveaway-platform .gp-social-head { display: flex; gap: 12px; align-items: center; }
+.giveaway-platform .gp-social-avatar {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: rgba(11, 9, 23, 0.6);
+  border: 1px solid rgba(196, 40, 128, 0.28);
+  display: grid;
+  place-items: center;
+  font-size: 20px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.giveaway-platform .gp-social-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.giveaway-platform .gp-social-body { flex: 1; min-width: 0; }
+.giveaway-platform .gp-social-name {
+  font-family: var(--font-display), var(--font-rajdhani), sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--txt);
+  letter-spacing: 0.5px;
+}
+.giveaway-platform .gp-social-username {
+  font-size: 12.5px;
+  color: var(--txt);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.giveaway-platform .gp-social-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.giveaway-platform .gp-social-cta { display: flex; }
+.giveaway-platform .gp-social-btn {
+  flex: 1;
+  padding: 8px 14px;
+  border: 1px solid rgba(196, 40, 128, 0.35);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--txt);
+  font-family: var(--font-display), var(--font-rajdhani), sans-serif;
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 1.1px;
+  text-transform: uppercase;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+  transition: background 0.15s, border-color 0.15s;
+}
+.giveaway-platform .gp-social-btn:disabled { cursor: not-allowed; opacity: 0.55; }
+.giveaway-platform .gp-social-btn:not(:disabled):hover {
+  background: rgba(224, 48, 112, 0.10);
+  border-color: rgba(224, 48, 112, 0.5);
+}
+.giveaway-platform .gp-social-btn-primary {
+  background: var(--sp-grad);
+  border-color: transparent;
+  box-shadow: 0 4px 14px rgba(224, 48, 112, 0.35);
+  color: #fff;
+}
+.giveaway-platform .gp-social-btn-primary:hover {
+  filter: brightness(1.08);
+}
+.giveaway-platform .gp-social-btn-danger {
+  color: #ff8fa1;
+  border-color: rgba(255, 143, 161, 0.4);
+}
+.giveaway-platform .gp-social-btn-danger:not(:disabled):hover {
+  background: rgba(255, 143, 161, 0.10);
+  border-color: rgba(255, 143, 161, 0.65);
+}
+
+/* Settings list */
+.giveaway-platform .gp-perfil-settings {
+  list-style: none;
+  padding: 0;
+  margin: 6px 0 0;
+  border-radius: 12px;
+  border: 1px solid rgba(196, 40, 128, 0.16);
+  overflow: hidden;
+  background: rgba(11, 9, 23, 0.5);
+}
+.giveaway-platform .gp-perfil-settings li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.03);
+  font-size: 13px;
+}
+.giveaway-platform .gp-perfil-settings li:first-child { border-top: none; }
+.giveaway-platform .gp-perfil-settings-label { color: var(--muted); }
+.giveaway-platform .gp-perfil-settings-value { color: var(--txt); text-align: right; }
