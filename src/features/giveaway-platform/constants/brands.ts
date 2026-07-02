@@ -7,7 +7,7 @@
  * `agentAsset` apunta a `/images/agents/*` cuando existe personaje asociado.
  */
 
-export type BrandKey = 'keydrop' | 'csgoskins' | 'skinsmonkey' | 'skinclub' | 'gamdom';
+export type BrandKey = 'keydrop' | 'csgoskins' | 'skinsmonkey' | 'skinclub';
 
 export interface PlatformBrand {
   key: BrandKey;
@@ -52,15 +52,6 @@ export const PLATFORM_BRANDS: Record<BrandKey, PlatformBrand> = {
     agentAsset: '/images/agents/skinclub-agent.png',
     disclaimer: 'Juega con Responsabilidad · +18',
   },
-  gamdom: {
-    key: 'gamdom',
-    displayName: 'Gamdom',
-    // TODO(assets): drop gamdom logo en /public/images/brands/gamdom.png.
-    // Mientras no exista, la card usa displayName como fallback textual.
-    logoAsset: null,
-    agentAsset: null,
-    disclaimer: 'Juega con Responsabilidad · +18',
-  },
 };
 
-export const PLATFORM_BRAND_ORDER: BrandKey[] = ['keydrop', 'csgoskins', 'skinsmonkey', 'skinclub', 'gamdom'];
+export const PLATFORM_BRAND_ORDER: BrandKey[] = ['keydrop', 'csgoskins', 'skinsmonkey', 'skinclub'];

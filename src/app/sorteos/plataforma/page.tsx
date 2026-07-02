@@ -112,7 +112,7 @@ export default async function PlataformaSorteosPage({
         <PlatformHero code={activeVisual.code} creatorName={active.name} />
 
         {/* --- Impacto visual: partners justo después del hero --- */}
-        <BrandBonusesSection creatorCode={activeVisual.code} creatorName={active.name} />
+        <BrandBonusesSection creatorCode={activeVisual.code} />
 
         {/* --- Bloques funcionales debajo --- */}
         {userId ? (

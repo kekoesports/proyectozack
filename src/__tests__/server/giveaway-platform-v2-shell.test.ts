@@ -112,7 +112,7 @@ describe('[PR1] backend intacto', () => {
 describe('[PR1] constants/brands.ts — 5 partners requeridos', () => {
   const src = read('src/features/giveaway-platform/constants/brands.ts');
   it('exporta las 5 marcas del HTML v2', () => {
-    for (const key of ['keydrop', 'csgoskins', 'skinsmonkey', 'skinclub', 'gamdom']) {
+    for (const key of ['keydrop', 'csgoskins', 'skinsmonkey', 'skinclub']) {
       expect(src).toMatch(new RegExp(`${key}:\\s*\\{`));
     }
   });

@@ -2,18 +2,16 @@ import { BrandCardKeyDrop } from './BrandCardKeyDrop';
 import { BrandCardCsgoskins } from './BrandCardCsgoskins';
 import { BrandCardSkinsMonkey } from './BrandCardSkinsMonkey';
 import { BrandCardSkinClub } from './BrandCardSkinClub';
-import { BrandCardGamdom } from './BrandCardGamdom';
 
 interface Props {
   creatorCode: string;
-  creatorName: string;
 }
 
 /**
  * Bloque estático de bonuses de partners.
  * Datos en src/features/giveaway-platform/constants/brands.ts.
  */
-export function BrandBonusesSection({ creatorCode, creatorName }: Props) {
+export function BrandBonusesSection({ creatorCode }: Props) {
   return (
     <>
       <BrandCardKeyDrop code={creatorCode} />
@@ -26,7 +24,6 @@ export function BrandBonusesSection({ creatorCode, creatorName }: Props) {
       </section>
 
       <BrandCardSkinClub code={creatorCode} />
-      <BrandCardGamdom creatorName={creatorName} />
     </>
   );
 }
