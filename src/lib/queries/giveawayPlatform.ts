@@ -1,17 +1,16 @@
-import { and, count, countDistinct, desc, eq, gte, inArray, sql } from 'drizzle-orm';
+import { and, count, desc, eq, gte, inArray, sql } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import {
   coinTransactions,
-  dailyStreaks,
   giveawayEntries,
   giveaways,
-  missionClaims,
   platformMissions,
   playerProfiles,
   redemptions,
   shopItems,
   user,
 } from '@/db/schema';
+import { loadMissionProgress, progressFor } from '@/lib/giveaway-platform/missions';
 import type {
   CoinTransaction,
   GiveawayWithEntryData,
@@ -93,35 +92,11 @@ export async function getMissionsWithProgress(userId: string): Promise<MissionWi
   });
   if (missions.length === 0) return [];
 
-  const [entriesTotalRow] = await db
-    .select({ n: count() })
-    .from(giveawayEntries)
-    .where(eq(giveawayEntries.userId, userId));
-  const [distinctCreatorsRow] = await db
-    .select({ n: countDistinct(giveaways.talentId) })
-    .from(giveawayEntries)
-    .innerJoin(giveaways, eq(giveaways.id, giveawayEntries.giveawayId))
-    .where(eq(giveawayEntries.userId, userId));
-  const streak = await db.query.dailyStreaks.findFirst({
-    where: eq(dailyStreaks.userId, userId),
-  });
-  const claims = await db
-    .select({ missionId: missionClaims.missionId })
-    .from(missionClaims)
-    .where(eq(missionClaims.userId, userId));
-  const claimedSet = new Set(claims.map((c) => c.missionId));
-
-  const progressFor = (conditionType: string): number => {
-    if (conditionType === 'entries_total') return entriesTotalRow?.n ?? 0;
-    if (conditionType === 'distinct_creators') return distinctCreatorsRow?.n ?? 0;
-    if (conditionType === 'streak_days') return streak?.currentDay ?? 0;
-    return 0;
-  };
-
+  const state = await loadMissionProgress(userId);
   return missions.map((m) => ({
     ...m,
-    current: Math.min(progressFor(m.conditionType), m.goal),
-    claimed: claimedSet.has(m.id),
+    current: Math.min(progressFor(state, m.conditionType), m.goal),
+    claimed: state.claimedMissionIds.has(m.id),
   }));
 }
 
