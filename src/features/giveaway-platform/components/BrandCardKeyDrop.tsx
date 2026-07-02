@@ -53,8 +53,8 @@ export function BrandCardKeyDrop({ code }: Props) {
             <Image
               src={brand.agentAsset}
               alt=""
-              width={1499}
-              height={275}
+              width={723}
+              height={469}
               className="gp-brand-keydrop-banner"
             />
           ) : null}
