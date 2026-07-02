@@ -22,14 +22,18 @@ export const PLATFORM_BRANDS: Record<BrandKey, PlatformBrand> = {
     key: 'keydrop',
     displayName: 'KeyDrop',
     logoAsset: '/images/brands/keydrop.png',
-    agentAsset: '/images/agents/keydrop-agent.png',
+    // Banner de escena "HUGE MESS" recortado — reemplaza al agente/monedas
+    // en el panel derecho de la card. NOTA: agentAsset se reutiliza como
+    // asset visual "hero" del panel, la semántica no es estrictamente agente.
+    agentAsset: '/images/brands/keydrop-banner.png',
     disclaimer: 'Juega con Responsabilidad · +18',
   },
   clash: {
     key: 'clash',
     displayName: 'Clash.gg',
     logoAsset: '/images/brands/clashgg.png',
-    agentAsset: null,
+    // Ex-agente de KeyDrop reasignado a Clash.
+    agentAsset: '/images/agents/keydrop-agent.png',
     disclaimer: 'Juega con Responsabilidad · +18',
   },
   skinsmonkey: {

@@ -104,31 +104,34 @@
 }
 .giveaway-platform .p-keydrop .right {
   position: relative;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  gap: 8px;
   overflow: hidden;
-  background:
-    radial-gradient(circle at 60% 40%, rgba(30, 155, 255, 0.18), transparent 60%),
-    linear-gradient(200deg, #1a2036, #0c0e18);
+  /* Fallback color por si el banner no está cargado aún. */
+  background: linear-gradient(200deg, #2a1f36, #0c0812);
 }
-.giveaway-platform .p-keydrop .gp-brand-agent-keydrop {
+.giveaway-platform .gp-brand-keydrop-banner {
   position: absolute;
-  right: -20px;
-  bottom: 0;
-  width: 260px;
-  height: auto;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  z-index: 0;
+  /* Vignette + degradado sutil para que el VIP Club sea legible sobre la */
+  /* zona morada oscura del banner. */
+  filter: brightness(0.95) saturate(1.05);
 }
-.giveaway-platform .money {
+.giveaway-platform .p-keydrop .right::after {
+  content: "";
   position: absolute;
-  font-size: 24px;
-  animation: gp-fall 6s linear infinite;
-  opacity: 0.9;
-}
-@keyframes gp-fall {
-  0% { transform: translateY(-40px) rotate(0); }
-  100% { transform: translateY(370px) rotate(360deg); }
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(
+    115deg,
+    rgba(11, 8, 20, 0.5) 0%,
+    rgba(11, 8, 20, 0.15) 40%,
+    transparent 65%
+  );
 }
 .giveaway-platform .vip-club {
   position: absolute;

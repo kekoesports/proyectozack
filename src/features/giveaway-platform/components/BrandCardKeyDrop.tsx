@@ -49,17 +49,13 @@ export function BrandCardKeyDrop({ code }: Props) {
           </div>
         </div>
         <div className="right" aria-hidden>
-          <span className="money" style={{ left: '10%', animationDelay: '0s' }}>💵</span>
-          <span className="money" style={{ left: '32%', animationDelay: '1.4s' }}>💵</span>
-          <span className="money" style={{ left: '64%', animationDelay: '2.6s' }}>💵</span>
-          <span className="money" style={{ left: '84%', animationDelay: '.8s' }}>💵</span>
           {brand.agentAsset ? (
             <Image
               src={brand.agentAsset}
               alt=""
-              width={260}
-              height={340}
-              className="gp-brand-agent gp-brand-agent-keydrop"
+              width={1499}
+              height={275}
+              className="gp-brand-keydrop-banner"
             />
           ) : null}
           <div className="vip-club">
