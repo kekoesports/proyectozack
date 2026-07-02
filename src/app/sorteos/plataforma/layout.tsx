@@ -1,9 +1,13 @@
 import type { ReactNode } from 'react';
 import type { Metadata } from 'next';
-import { Rajdhani, Chakra_Petch, Pacifico } from 'next/font/google';
+import Image from 'next/image';
+import { Rajdhani, Chakra_Petch } from 'next/font/google';
 
 import './platform.css';
+import './platform-hero.css';
 import './platform-brand-cards.css';
+import './platform-fx.css';
+import './platform-widgets.css';
 
 const rajdhani = Rajdhani({
   subsets: ['latin'],
@@ -16,13 +20,6 @@ const chakra = Chakra_Petch({
   subsets: ['latin'],
   weight: ['400', '500', '600', '700'],
   variable: '--font-chakra',
-  display: 'swap',
-});
-
-const pacifico = Pacifico({
-  subsets: ['latin'],
-  weight: '400',
-  variable: '--font-pacifico',
   display: 'swap',
 });
 
@@ -39,7 +36,27 @@ export const metadata: Metadata = {
 
 export default function PlataformaLayout({ children }: { children: ReactNode }): React.JSX.Element {
   return (
-    <div className={`giveaway-platform ${chakra.variable} ${rajdhani.variable} ${pacifico.variable}`}>
+    <div className={`giveaway-platform ${chakra.variable} ${rajdhani.variable}`}>
+      {/* Agentes decorativos en los laterales (desktop >= 1400px). */}
+      {/* Reutilizamos los assets de KeyDrop y Skin.Club — mismos personajes CS2. */}
+      <Image
+        src="/images/agents/terrorist-cs2.png"
+        alt=""
+        aria-hidden
+        width={900}
+        height={1717}
+        className="gp-sidekick gp-sidekick-left"
+        priority={false}
+      />
+      <Image
+        src="/images/agents/skinclub-agent.png"
+        alt=""
+        aria-hidden
+        width={512}
+        height={512}
+        className="gp-sidekick gp-sidekick-right"
+        priority={false}
+      />
       {children}
     </div>
   );

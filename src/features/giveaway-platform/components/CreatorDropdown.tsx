@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
@@ -9,11 +10,32 @@ interface CreatorOption {
   emoji: string;
   color: string;
   sub: string;
+  photoUrl: string | null;
 }
 
 interface Props {
   creators: CreatorOption[];
   activeSlug: string;
+}
+
+function CreatorAvatar({ creator, size }: { creator: CreatorOption; size: number }) {
+  if (creator.photoUrl) {
+    return (
+      <Image
+        src={creator.photoUrl}
+        alt={creator.name}
+        width={size}
+        height={size}
+        className="gp-dd-avatar"
+        unoptimized={creator.photoUrl.startsWith('/api/')}
+      />
+    );
+  }
+  return (
+    <span className="gp-dd-avatar gp-dd-avatar-emoji" aria-hidden style={{ width: size, height: size, fontSize: Math.round(size * 0.55) }}>
+      {creator.emoji}
+    </span>
+  );
 }
 
 export function CreatorDropdown({ creators, activeSlug }: Props) {
@@ -44,7 +66,7 @@ export function CreatorDropdown({ creators, activeSlug }: Props) {
   return (
     <div ref={ref} className={`gp-dd${open ? ' open' : ''}`}>
       <button type="button" className="gp-dd-btn" onClick={() => setOpen((v) => !v)}>
-        <span aria-hidden>{active.emoji}</span> Creador: <span>{active.name}</span> ▾
+        <CreatorAvatar creator={active} size={22} /> Creador: <span>{active.name}</span> ▾
       </button>
       <div className="gp-dd-menu" role="menu">
         {creators.map((c) => (
@@ -56,7 +78,7 @@ export function CreatorDropdown({ creators, activeSlug }: Props) {
             style={{ ['--c' as string]: c.color }}
             onClick={() => select(c.slug)}
           >
-            <span className="em">{c.emoji}</span>
+            <CreatorAvatar creator={c} size={30} />
             <span>
               <b>{c.name}</b>
               <span>{c.sub}</span>

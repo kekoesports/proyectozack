@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import { PLATFORM_BRANDS } from '../constants/brands';
 
 interface Props {
@@ -10,11 +11,17 @@ export function BrandCardSkinsMonkey({ code }: Props) {
     <div className="gp-card p-gold">
       <div className="glow" aria-hidden />
       <div className="gp-logo-slot">
-        <div className="gp-wordmark wm-monkey">
-          <div className="gp-wm-ico" aria-hidden>🐵</div>
-          <div className="gp-wm-txt">SkinsMonkey</div>
-        </div>
-        <div className="gp-logo-note">↳ {brand.logoAsset}</div>
+        {brand.logoAsset ? (
+          <Image
+            src={brand.logoAsset}
+            alt={brand.displayName}
+            width={190}
+            height={44}
+            className="gp-brand-logo"
+          />
+        ) : (
+          <div className="gp-brand-logo-fallback">{brand.displayName}</div>
+        )}
       </div>
       <p style={{ fontSize: 14, margin: '12px 0 10px' }}>
         Compra e intercambia skins de forma rápida y segura
@@ -26,14 +33,18 @@ export function BrandCardSkinsMonkey({ code }: Props) {
       <button type="button" className="gp-btn btn-gold" data-todo="claim-code">
         Reclamar
       </button>
-      <div className="agent-wrap" aria-hidden>
-        <div className="gp-agent v2">
-          <div className="head" data-tag="" />
-          <div className="torso" />
-          <div className="arms" />
-          <div className="vest" />
+      {brand.agentAsset ? (
+        <div className="gp-brand-agent-wrap" aria-hidden>
+          <Image
+            src={brand.agentAsset}
+            alt=""
+            width={220}
+            height={280}
+            className="gp-brand-agent"
+            unoptimized
+          />
         </div>
-      </div>
+      ) : null}
     </div>
   );
 }

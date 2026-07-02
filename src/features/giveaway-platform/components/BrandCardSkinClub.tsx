@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import { PLATFORM_BRANDS } from '../constants/brands';
 
 interface Props {
@@ -12,11 +13,18 @@ export function BrandCardSkinClub({ code }: Props) {
         <div className="glow" aria-hidden />
         <div className="ufo" aria-hidden>🛸</div>
         <div className="gp-logo-slot">
-          <div className="gp-wordmark wm-skinclub">
-            <div className="gp-wm-ico" aria-hidden>◈</div>
-            <div className="gp-wm-txt" id="brand-skinclub">Skin.Club</div>
-          </div>
-          <div className="gp-logo-note">↳ {brand.logoAsset}</div>
+          {brand.logoAsset ? (
+            <Image
+              src={brand.logoAsset}
+              alt={brand.displayName}
+              width={200}
+              height={48}
+              className="gp-brand-logo"
+              id="brand-skinclub"
+            />
+          ) : (
+            <div className="gp-brand-logo-fallback" id="brand-skinclub">{brand.displayName}</div>
+          )}
         </div>
         <p className="claim" style={{ fontSize: 19, marginTop: 14 }}>
           <span className="hl-orange">Bono 7%</span> + Tickets para el sorteo de{' '}
@@ -37,15 +45,17 @@ export function BrandCardSkinClub({ code }: Props) {
             Código: <span>{code}CS</span> <span className="meta"><b>7% bonus</b> · 25 usos</span>
           </button>
         </div>
-        <div className="agent-wrap" aria-hidden>
-          <div className="gp-agent v3">
-            <div className="head" data-tag="SP" />
-            <div className="torso" />
-            <div className="arms" />
-            <div className="vest" />
+        {brand.agentAsset ? (
+          <div className="gp-brand-agent-wrap gp-brand-agent-wrap-lg" aria-hidden>
+            <Image
+              src={brand.agentAsset}
+              alt=""
+              width={280}
+              height={360}
+              className="gp-brand-agent"
+            />
           </div>
-          <div className="gp-agent-slot">↳ {brand.agentAsset}</div>
-        </div>
+        ) : null}
       </div>
     </section>
   );

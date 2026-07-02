@@ -1,0 +1,180 @@
+/*
+ * Efectos "premium" de la plataforma:
+ *   - Agentes decorativos en los laterales del fondo (desktop-only).
+ *   - Cards de sorteos con glow-behind + border-gradient técnica
+ *     (background-clip: padding-box + border-box).
+ *
+ * Scoped bajo .giveaway-platform. Cargado desde el layout.
+ */
+
+/* ================ AGENTES LATERALES DE FONDO ================ */
+.giveaway-platform .gp-sidekick {
+  position: fixed;
+  top: 45%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  z-index: 0;
+  width: 320px;
+  height: auto;
+  opacity: 0.28;
+  filter:
+    drop-shadow(0 0 40px rgba(224, 48, 112, 0.35))
+    saturate(1.05);
+  animation: gp-sidekick-float 8s ease-in-out infinite;
+}
+.giveaway-platform .gp-sidekick-left {
+  left: -60px;
+  top: 55%;
+  width: 260px;                           /* aspect 900:1717 → alto ~496px */
+  transform: translateY(-50%) rotate(-4deg);
+  animation-delay: 0s;
+}
+.giveaway-platform .gp-sidekick-right {
+  right: -80px;
+  transform: translateY(-50%) rotate(6deg) scaleX(-1);
+  animation-delay: -4s;
+  filter:
+    drop-shadow(0 0 40px rgba(40, 215, 255, 0.28))
+    saturate(1.05);
+}
+@keyframes gp-sidekick-float {
+  0%, 100% { translate: 0 0; }
+  50%      { translate: 0 -14px; }
+}
+/* Ocultar en pantallas donde comprimirían el layout. */
+@media (max-width: 1400px) {
+  .giveaway-platform .gp-sidekick { display: none; }
+}
+
+/* ================ CARDS DE SORTEOS (glow + border grad) ================ */
+.giveaway-platform .gp-sorteos-grid {
+  display: grid;
+  gap: 28px;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+}
+.giveaway-platform .gp-sorteo-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-height: 320px;
+  transition: transform 0.35s ease, filter 0.35s ease;
+}
+.giveaway-platform .gp-sorteo-card:hover {
+  transform: translateY(-4px);
+}
+/* Glow detrás — desenfocado + gradiente SP. */
+.giveaway-platform .gp-sorteo-glow {
+  position: absolute;
+  inset: 0;
+  border-radius: 32px;
+  opacity: 0.55;
+  filter: blur(45px);
+  pointer-events: none;
+  background: linear-gradient(137deg, #f5632a 0%, #e03070 45%, #8b3aad 100%);
+  transition: opacity 0.35s ease;
+}
+.giveaway-platform .gp-sorteo-card:nth-child(3n+2) .gp-sorteo-glow {
+  background: linear-gradient(137deg, #e03070 0%, #c42880 45%, #8b3aad 100%);
+}
+.giveaway-platform .gp-sorteo-card:nth-child(3n+3) .gp-sorteo-glow {
+  background: linear-gradient(137deg, #f5632a 0%, #ff9d2e 40%, #f5b73d 100%);
+  opacity: 0.45;
+}
+.giveaway-platform .gp-sorteo-card:hover .gp-sorteo-glow {
+  opacity: 0.85;
+}
+/* Foreground con border-gradient (background-clip técnica). */
+.giveaway-platform .gp-sorteo-fg {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  border-radius: 28px;
+  border: 4px solid transparent;
+  background:
+    linear-gradient(#151024, #0e0b1e) padding-box,
+    var(--sp-grad) border-box;
+  padding: 20px 18px 22px;
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+  overflow: hidden;
+}
+.giveaway-platform .gp-sorteo-card:nth-child(3n+2) .gp-sorteo-fg {
+  background:
+    linear-gradient(#151024, #0e0b1e) padding-box,
+    linear-gradient(137deg, #e03070, #c42880 45%, #8b3aad) border-box;
+}
+.giveaway-platform .gp-sorteo-card:nth-child(3n+3) .gp-sorteo-fg {
+  background:
+    linear-gradient(#151024, #0e0b1e) padding-box,
+    linear-gradient(137deg, #f5632a, #ff9d2e 40%, #f5b73d) border-box;
+}
+/* Imagen del sorteo. */
+.giveaway-platform .gp-sorteo-img {
+  height: 130px;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  background: rgba(11, 9, 23, 0.4);
+  overflow: hidden;
+}
+.giveaway-platform .gp-sorteo-img img {
+  max-height: 128px;
+  max-width: 100%;
+  object-fit: contain;
+}
+.giveaway-platform .gp-sorteo-img-empty {
+  color: var(--muted);
+  font-size: 11.5px;
+  padding: 12px;
+  border: 1px dashed rgba(196, 40, 128, 0.35);
+  border-radius: 10px;
+}
+/* Título + valor. */
+.giveaway-platform .gp-sorteo-title {
+  margin: 12px 0 4px;
+  font-family: var(--font-display), var(--font-rajdhani), sans-serif;
+  font-size: 15.5px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: #fff;
+}
+.giveaway-platform .gp-sorteo-value {
+  font-family: var(--font-display), var(--font-rajdhani), sans-serif;
+  font-size: 20px;
+  font-weight: 800;
+  background: var(--sp-grad);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  margin: 0 0 6px;
+}
+.giveaway-platform .gp-sorteo-meta {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+.giveaway-platform .gp-sorteo-meta b {
+  color: var(--sp-pink);
+  font-weight: 700;
+}
+.giveaway-platform .gp-sorteo-reward {
+  font-size: 11.5px;
+  color: var(--gold);
+  margin: 4px 0 auto;
+}
+.giveaway-platform .gp-sorteo-cta {
+  margin-top: 14px;
+}
+.giveaway-platform .gp-sorteo-locked {
+  font-size: 11px;
+  color: var(--muted);
+  font-style: italic;
+}
+
+/* Reduced-motion: sin float en agentes ni transiciones en cards. */
+@media (prefers-reduced-motion: reduce) {
+  .giveaway-platform .gp-sidekick { animation: none; }
+  .giveaway-platform .gp-sorteo-card:hover { transform: none; }
+}

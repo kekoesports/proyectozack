@@ -4,6 +4,7 @@ import { db } from './db';
 import { env } from './env';
 import { SITE_URL } from './site-url';
 import { sendPasswordResetEmail } from './email';
+import { steamOpenId } from './steam/plugin';
 
 /** Derive www/non-www variants + production domain so auth works regardless of env config. */
 function getSiteOrigins(siteUrl: string): string[] {
@@ -62,4 +63,5 @@ export const auth = betterAuth({
       },
     },
   },
+  plugins: [steamOpenId()],
 });

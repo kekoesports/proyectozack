@@ -3,56 +3,55 @@
  * plataforma de sorteos. Cuando queramos editar desde admin, migrar a tabla
  * platform_brand_partners (PR aparte).
  *
- * `codeSlot` señala qué palabra intercambiar por el código del creador activo
- * en runtime (data-code / data-code-cs del prototipo v2).
+ * `logoAsset` apunta a `/images/brands/*.png` (assets reales del repo).
+ * `agentAsset` apunta a `/images/agents/*` cuando existe personaje asociado.
  */
 
-export type BrandKey = 'csdrop' | 'clash' | 'skinsmonkey' | 'skinclub' | 'gamdom';
+export type BrandKey = 'keydrop' | 'csgoskins' | 'skinsmonkey' | 'skinclub';
 
 export interface PlatformBrand {
   key: BrandKey;
   displayName: string;
-  logoAsset: string;
+  logoAsset: string | null;
   agentAsset: string | null;
   disclaimer: string;
 }
 
 export const PLATFORM_BRANDS: Record<BrandKey, PlatformBrand> = {
-  csdrop: {
-    key: 'csdrop',
-    displayName: 'CSDrop',
-    logoAsset: '/assets/brands/csdrop.svg',
-    agentAsset: '/assets/agents/vip.png',
+  keydrop: {
+    key: 'keydrop',
+    displayName: 'KeyDrop',
+    logoAsset: '/images/brands/keydrop.png',
+    // Banner de escena "HUGE MESS" recortado — reemplaza al agente/monedas
+    // en el panel derecho de la card. NOTA: agentAsset se reutiliza como
+    // asset visual "hero" del panel, la semántica no es estrictamente agente.
+    agentAsset: '/images/brands/keydrop-banner.png',
     disclaimer: 'Juega con Responsabilidad · +18',
   },
-  clash: {
-    key: 'clash',
-    displayName: 'Clash.gg',
-    logoAsset: '/assets/brands/clash.svg',
-    agentAsset: null,
+  csgoskins: {
+    key: 'csgoskins',
+    displayName: 'CSGO-SKINS',
+    logoAsset: '/images/brands/csgoskins.png',
+    // Ex-agente de KeyDrop reasignado — continuidad del turno anterior.
+    agentAsset: '/images/agents/keydrop-agent.png',
     disclaimer: 'Juega con Responsabilidad · +18',
   },
   skinsmonkey: {
     key: 'skinsmonkey',
     displayName: 'SkinsMonkey',
-    logoAsset: '/assets/brands/skinsmonkey.svg',
-    agentAsset: null,
+    logoAsset: '/images/brands/skinsmonkey.png',
+    // TODO(assets): la thumbnail actual viene de gstatic (JPEG s=10,
+    // baja resolución). Reemplazar por PNG oficial cuando esté disponible.
+    agentAsset: '/images/agents/skinsmonkey-agent.jpg',
     disclaimer: '',
   },
   skinclub: {
     key: 'skinclub',
     displayName: 'Skin.Club',
-    logoAsset: '/assets/brands/skinclub.svg',
-    agentAsset: '/assets/agents/swat.png',
-    disclaimer: 'Juega con Responsabilidad · +18',
-  },
-  gamdom: {
-    key: 'gamdom',
-    displayName: 'Gamdom',
-    logoAsset: '/assets/brands/gamdom.svg',
-    agentAsset: null,
+    logoAsset: '/images/brands/skinclub.png',
+    agentAsset: '/images/agents/skinclub-agent.png',
     disclaimer: 'Juega con Responsabilidad · +18',
   },
 };
 
-export const PLATFORM_BRAND_ORDER: BrandKey[] = ['csdrop', 'clash', 'skinsmonkey', 'skinclub', 'gamdom'];
+export const PLATFORM_BRAND_ORDER: BrandKey[] = ['keydrop', 'csgoskins', 'skinsmonkey', 'skinclub'];

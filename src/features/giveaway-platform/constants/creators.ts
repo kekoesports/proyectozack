@@ -1,8 +1,10 @@
 /**
- * Metadata visual de los creadores en la plataforma (emoji, color acento, sub).
- * Los slugs deben coincidir con PLATFORM_CREATOR_SLUGS de
- * src/lib/giveaway-platform/constants.ts (constante de backend).
- * Este archivo es puramente presentacional (colores del dropdown).
+ * Metadata visual de los creadores en la plataforma (emoji fallback, color
+ * acento, sub). Los slugs deben coincidir con `PLATFORM_CREATOR_SLUGS` de
+ * `src/lib/giveaway-platform/constants.ts` (constante de backend). Este
+ * archivo es puramente presentacional (colores + emoji fallback del dropdown).
+ * La foto real del creador vive en `talents.photoUrl` y se inyecta desde el
+ * server en `page.tsx`.
  */
 
 export interface PlatformCreatorVisual {

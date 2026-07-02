@@ -1,32 +1,29 @@
-import { BrandCardCSDrop } from './BrandCardCSDrop';
-import { BrandCardClash } from './BrandCardClash';
+import { BrandCardKeyDrop } from './BrandCardKeyDrop';
+import { BrandCardCsgoskins } from './BrandCardCsgoskins';
 import { BrandCardSkinsMonkey } from './BrandCardSkinsMonkey';
 import { BrandCardSkinClub } from './BrandCardSkinClub';
-import { BrandCardGamdom } from './BrandCardGamdom';
 
 interface Props {
   creatorCode: string;
-  creatorName: string;
 }
 
 /**
  * Bloque estático de bonuses de partners.
- * Datos en src/features/giveaway-platform/constants/brands.ts (PR1 estático).
+ * Datos en src/features/giveaway-platform/constants/brands.ts.
  */
-export function BrandBonusesSection({ creatorCode, creatorName }: Props) {
+export function BrandBonusesSection({ creatorCode }: Props) {
   return (
     <>
-      <BrandCardCSDrop code={creatorCode} />
+      <BrandCardKeyDrop code={creatorCode} />
 
-      <section aria-label="Clash.gg y SkinsMonkey">
+      <section aria-label="CSGO-SKINS y SkinsMonkey">
         <div className="gp-grid-2">
-          <BrandCardClash code={creatorCode} />
+          <BrandCardCsgoskins code={creatorCode} />
           <BrandCardSkinsMonkey code={creatorCode} />
         </div>
       </section>
 
       <BrandCardSkinClub code={creatorCode} />
-      <BrandCardGamdom creatorName={creatorName} />
     </>
   );
 }

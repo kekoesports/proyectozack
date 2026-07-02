@@ -41,6 +41,11 @@ export const env = createEnv({
     // Cuota Google Sheets v4: 100 reads / 100s / proyecto. Cada tracker hace 2 reads.
     // Con concurrencia=4 → máximo 8 reads simultáneos = bien dentro del límite.
     SHEETS_SYNC_CONCURRENCY: z.coerce.number().int().min(1).max(20).optional().default(4),
+    // Steam Web API key para enriquecer el perfil (nombre, avatar) tras el
+    // login OpenID. Opcional: sin ella el flujo OpenID sigue funcionando y el
+    // usuario se crea con name="Jugador de Steam" y avatar=null.
+    // Server-only: nunca se envía al cliente.
+    STEAM_API_KEY: z.string().min(1).optional(),
   },
   client: {
     NEXT_PUBLIC_SITE_URL: z.string().url(),
@@ -68,6 +73,7 @@ export const env = createEnv({
     GOOGLE_SHEETS_API_KEY: process.env.GOOGLE_SHEETS_API_KEY,
     PAYROLL_OCR_ENABLED: process.env.PAYROLL_OCR_ENABLED,
     SHEETS_SYNC_CONCURRENCY: process.env.SHEETS_SYNC_CONCURRENCY,
+    STEAM_API_KEY: process.env.STEAM_API_KEY,
 
     NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
     NEXT_PUBLIC_GTM_ID: process.env.NEXT_PUBLIC_GTM_ID,
