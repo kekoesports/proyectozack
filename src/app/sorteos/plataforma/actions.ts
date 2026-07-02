@@ -24,6 +24,8 @@ import {
 import {
   ENTRY_COIN_REWARD,
   STREAK_REWARDS,
+  nextStreakDay,
+  previousDay,
   todayInPlatformTz,
 } from '@/lib/giveaway-platform/constants';
 import { evaluateAndClaimMissions } from '@/lib/giveaway-platform/missions';
@@ -112,10 +114,11 @@ export async function claimDailyReward(): Promise<ActionResult<{ coinsEarned: nu
     if (existing.lastClaimDate === today) {
       return { ok: false, error: 'Ya has reclamado la recompensa de hoy' };
     }
-    const yesterday = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Madrid' })
-      .format(new Date(Date.now() - 24 * 60 * 60 * 1000));
+    // Aritmética de calendario (previousDay) → inmune a cambios de DST.
+    const yesterday = previousDay(today);
     const isConsecutive = existing.lastClaimDate === yesterday;
-    day = isConsecutive ? Math.min(existing.currentDay + 1, STREAK_REWARDS.length) : 1;
+    // Racha rota: reset a 1. Racha viva: avanza con rotación 7→1.
+    day = isConsecutive ? nextStreakDay(existing.currentDay) : 1;
 
     // UPDATE condicional: solo gana una petición concurrente.
     const updated = await db
@@ -201,6 +204,9 @@ export async function redeemShopItem(input: unknown): Promise<ActionResult<{ red
     })
     .returning({ id: redemptions.id });
   if (!redemption) return { ok: false, error: 'No se pudo crear el canje' };
+
+  // Trigger para misiones basadas en redemptions_total (p.ej. "Primer canje").
+  await evaluateAndClaimMissions(sessionUser.id);
 
   revalidatePath('/sorteos/plataforma');
   return { ok: true, data: { redemptionId: redemption.id } };

@@ -1,4 +1,4 @@
-import { count, countDistinct, eq } from 'drizzle-orm';
+import { and, count, countDistinct, eq, gte } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import {
   coinTransactions,
@@ -7,7 +7,82 @@ import {
   giveaways,
   missionClaims,
   platformMissions,
+  redemptions,
 } from '@/db/schema';
+import { startOfCurrentMonthUtc, type MissionConditionType } from './constants';
+
+/**
+ * Estado agregado del progreso de un usuario contra todas las condition
+ * types soportadas por el motor. Se calcula UNA vez y se reutiliza tanto
+ * en el motor (`evaluateAndClaimMissions`) como en la query de UI
+ * (`getMissionsWithProgress`) — evita duplicar SQL.
+ */
+export interface MissionProgressState {
+  entriesTotal: number;
+  entriesThisMonth: number;
+  distinctCreators: number;
+  streakDays: number;
+  redemptionsTotal: number;
+  claimedMissionIds: Set<number>;
+}
+
+/**
+ * Carga el estado de progreso de misiones de un usuario en 1 pasada
+ * paralela de queries. Todas independientes: `Promise.all` es seguro
+ * (neon-http soporta múltiples requests concurrentes).
+ */
+export async function loadMissionProgress(userId: string): Promise<MissionProgressState> {
+  const monthStart = startOfCurrentMonthUtc();
+  const [
+    entriesTotalRows,
+    entriesThisMonthRows,
+    distinctCreatorsRows,
+    redemptionsRows,
+    streak,
+    claims,
+  ] = await Promise.all([
+    db.select({ n: count() }).from(giveawayEntries).where(eq(giveawayEntries.userId, userId)),
+    db.select({ n: count() })
+      .from(giveawayEntries)
+      .where(and(
+        eq(giveawayEntries.userId, userId),
+        gte(giveawayEntries.createdAt, monthStart),
+      )),
+    db.select({ n: countDistinct(giveaways.talentId) })
+      .from(giveawayEntries)
+      .innerJoin(giveaways, eq(giveaways.id, giveawayEntries.giveawayId))
+      .where(eq(giveawayEntries.userId, userId)),
+    db.select({ n: count() }).from(redemptions).where(eq(redemptions.userId, userId)),
+    db.query.dailyStreaks.findFirst({ where: eq(dailyStreaks.userId, userId) }),
+    db.select({ missionId: missionClaims.missionId })
+      .from(missionClaims)
+      .where(eq(missionClaims.userId, userId)),
+  ]);
+
+  return {
+    entriesTotal: entriesTotalRows[0]?.n ?? 0,
+    entriesThisMonth: entriesThisMonthRows[0]?.n ?? 0,
+    distinctCreators: distinctCreatorsRows[0]?.n ?? 0,
+    streakDays: streak?.currentDay ?? 0,
+    redemptionsTotal: redemptionsRows[0]?.n ?? 0,
+    claimedMissionIds: new Set(claims.map((c) => c.missionId)),
+  };
+}
+
+/**
+ * Devuelve el progreso (número) del usuario contra una condition type.
+ * Función pura sobre el estado ya cargado — testeable en aislamiento.
+ */
+export function progressFor(state: MissionProgressState, conditionType: string): number {
+  switch (conditionType as MissionConditionType) {
+    case 'entries_total':      return state.entriesTotal;
+    case 'entries_this_month': return state.entriesThisMonth;
+    case 'distinct_creators':  return state.distinctCreators;
+    case 'streak_days':        return state.streakDays;
+    case 'redemptions_total':  return state.redemptionsTotal;
+    default:                   return 0;
+  }
+}
 
 /**
  * Evalúa las misiones activas de un usuario contra datos reales de BD
@@ -28,36 +103,12 @@ export async function evaluateAndClaimMissions(
   });
   if (missions.length === 0) return [];
 
-  const [entriesTotal] = await db
-    .select({ n: count() })
-    .from(giveawayEntries)
-    .where(eq(giveawayEntries.userId, userId));
-  const [distinctCreators] = await db
-    .select({ n: countDistinct(giveaways.talentId) })
-    .from(giveawayEntries)
-    .innerJoin(giveaways, eq(giveaways.id, giveawayEntries.giveawayId))
-    .where(eq(giveawayEntries.userId, userId));
-  const streak = await db.query.dailyStreaks.findFirst({
-    where: eq(dailyStreaks.userId, userId),
-  });
-  const claims = await db
-    .select({ missionId: missionClaims.missionId })
-    .from(missionClaims)
-    .where(eq(missionClaims.userId, userId));
-  const claimedSet = new Set(claims.map((c) => c.missionId));
-
-  const progressFor = (conditionType: string): number => {
-    if (conditionType === 'entries_total') return entriesTotal?.n ?? 0;
-    if (conditionType === 'distinct_creators') return distinctCreators?.n ?? 0;
-    if (conditionType === 'streak_days') return streak?.currentDay ?? 0;
-    return 0;
-  };
-
+  const state = await loadMissionProgress(userId);
   const newlyClaimed: { id: number; title: string; rewardCoins: number }[] = [];
 
   for (const mission of missions) {
-    if (claimedSet.has(mission.id)) continue;
-    if (progressFor(mission.conditionType) < mission.goal) continue;
+    if (state.claimedMissionIds.has(mission.id)) continue;
+    if (progressFor(state, mission.conditionType) < mission.goal) continue;
 
     // 1) Reclamar (el UNIQUE nos protege de carreras).
     const inserted = await db
