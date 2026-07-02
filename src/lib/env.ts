@@ -46,6 +46,12 @@ export const env = createEnv({
     // usuario se crea con name="Jugador de Steam" y avatar=null.
     // Server-only: nunca se envía al cliente.
     STEAM_API_KEY: z.string().min(1).optional(),
+    // KeyDrop Giveaway API — clave del afiliado ZACKETIZOR (ZACKCSGO).
+    // Server-only. Opcional en dev: sin ella la sección de sorteos KeyDrop
+    // se oculta con degradación silenciosa (no crash, no error visible).
+    // Base URL: https://ws-2071.socket-cs.com/v1/giveaway-user
+    // Endpoints usados: GET /api/list, GET /api/giveaway/:id
+    KEYDROP_ZACKETIZOR_API_KEY: z.string().min(1).optional(),
   },
   client: {
     NEXT_PUBLIC_SITE_URL: z.string().url(),
@@ -74,6 +80,7 @@ export const env = createEnv({
     PAYROLL_OCR_ENABLED: process.env.PAYROLL_OCR_ENABLED,
     SHEETS_SYNC_CONCURRENCY: process.env.SHEETS_SYNC_CONCURRENCY,
     STEAM_API_KEY: process.env.STEAM_API_KEY,
+    KEYDROP_ZACKETIZOR_API_KEY: process.env.KEYDROP_ZACKETIZOR_API_KEY,
 
     NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
     NEXT_PUBLIC_GTM_ID: process.env.NEXT_PUBLIC_GTM_ID,
