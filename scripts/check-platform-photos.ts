@@ -5,7 +5,7 @@ import { inArray } from 'drizzle-orm';
 
 async function main() {
   const r = await db.query.talents.findMany({
-    where: inArray(talents.slug, ['naow', 'huasopeek', 'martinez']),
+    where: inArray(talents.slug, ['naow', 'huasopeek', 'martinez', 'zacketizor']),
     columns: { slug: true, name: true, photoUrl: true },
   });
   console.log(`Filas encontradas: ${r.length}`);
