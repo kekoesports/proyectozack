@@ -5,17 +5,17 @@ interface Props {
   code: string;
 }
 
-export function BrandCardClash({ code }: Props) {
-  const brand = PLATFORM_BRANDS.clash;
+export function BrandCardCsgoskins({ code }: Props) {
+  const brand = PLATFORM_BRANDS.csgoskins;
   return (
-    <div className="gp-card p-gold">
+    <div className="gp-card p-red">
       <div className="glow" aria-hidden />
       <div className="gp-logo-slot">
         {brand.logoAsset ? (
           <Image
             src={brand.logoAsset}
             alt={brand.displayName}
-            width={170}
+            width={190}
             height={44}
             className="gp-brand-logo"
           />
@@ -24,15 +24,15 @@ export function BrandCardClash({ code }: Props) {
         )}
       </div>
       <p className="gp-resp" style={{ margin: '12px 0 10px' }}>{brand.disclaimer}</p>
-      <span className="pill-offer">
-        <b>5% Bonus + 3 cajas gratis</b> con el código <span>{code}</span>
+      <span className="pill-offer red">
+        <b>5% Bonus + drops semanales</b> con el código <span>{code}</span>
       </span>
       <br />
-      <span className="pill-offer">
-        <b>Hasta 100%</b> en tu primer depósito
+      <span className="pill-offer red">
+        <b>Depósito 3×</b> tras verificar cuenta
       </span>
       <br />
-      <button type="button" className="gp-btn btn-gold" data-todo="claim-code">
+      <button type="button" className="gp-btn btn-red" data-todo="claim-code">
         Reclamar
       </button>
       {brand.agentAsset ? (

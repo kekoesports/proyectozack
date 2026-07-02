@@ -7,7 +7,7 @@
  * `agentAsset` apunta a `/images/agents/*` cuando existe personaje asociado.
  */
 
-export type BrandKey = 'keydrop' | 'clash' | 'skinsmonkey' | 'skinclub' | 'gamdom';
+export type BrandKey = 'keydrop' | 'csgoskins' | 'skinsmonkey' | 'skinclub' | 'gamdom';
 
 export interface PlatformBrand {
   key: BrandKey;
@@ -28,11 +28,11 @@ export const PLATFORM_BRANDS: Record<BrandKey, PlatformBrand> = {
     agentAsset: '/images/brands/keydrop-banner.png',
     disclaimer: 'Juega con Responsabilidad · +18',
   },
-  clash: {
-    key: 'clash',
-    displayName: 'Clash.gg',
-    logoAsset: '/images/brands/clashgg.png',
-    // Ex-agente de KeyDrop reasignado a Clash.
+  csgoskins: {
+    key: 'csgoskins',
+    displayName: 'CSGO-SKINS',
+    logoAsset: '/images/brands/csgoskins.png',
+    // Ex-agente de KeyDrop reasignado — continuidad del turno anterior.
     agentAsset: '/images/agents/keydrop-agent.png',
     disclaimer: 'Juega con Responsabilidad · +18',
   },
@@ -63,4 +63,4 @@ export const PLATFORM_BRANDS: Record<BrandKey, PlatformBrand> = {
   },
 };
 
-export const PLATFORM_BRAND_ORDER: BrandKey[] = ['keydrop', 'clash', 'skinsmonkey', 'skinclub', 'gamdom'];
+export const PLATFORM_BRAND_ORDER: BrandKey[] = ['keydrop', 'csgoskins', 'skinsmonkey', 'skinclub', 'gamdom'];

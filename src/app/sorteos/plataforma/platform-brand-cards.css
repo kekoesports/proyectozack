@@ -189,6 +189,32 @@
   box-shadow: 0 6px 22px rgba(245, 183, 61, 0.35);
 }
 
+/* ================ CSGO-SKINS (red variant of .p-gold) ================ */
+.giveaway-platform .p-red {
+  border-color: rgba(220, 38, 60, 0.42);
+  padding: 32px 34px;
+  min-height: 300px;
+  overflow: hidden;
+}
+.giveaway-platform .p-red .glow {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(420px 260px at 82% 60%, rgba(220, 38, 60, 0.14), transparent 70%);
+  pointer-events: none;
+}
+.giveaway-platform .pill-offer.red {
+  border-color: rgba(220, 38, 60, 0.55);
+  background: rgba(220, 38, 60, 0.08);
+}
+.giveaway-platform .pill-offer.red b { color: #ff5d7d; }
+.giveaway-platform .btn-red {
+  margin-top: 14px;
+  padding: 13px 42px;
+  background: linear-gradient(90deg, #8b1526, #dc263c);
+  color: #fff;
+  box-shadow: 0 6px 22px rgba(220, 38, 60, 0.35);
+}
+
 /* ================ SKIN.CLUB ================ */
 .giveaway-platform .p-skinclub {
   border-color: rgba(255, 61, 216, 0.45);
