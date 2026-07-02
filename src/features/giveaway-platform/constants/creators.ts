@@ -18,6 +18,9 @@ export const PLATFORM_CREATOR_VISUALS: Record<string, PlatformCreatorVisual> = {
   naow: { emoji: '🎯', color: '#28d7ff', code: 'NAOW', sub: 'Creador de CS · SocialPro' },
   huasopeek: { emoji: '🔥', color: '#ff9d2e', code: 'HUASOPEEK', sub: 'Creador de CS · SocialPro' },
   martinez: { emoji: '⚔️', color: '#4ade80', code: 'MARTINEZ', sub: 'Creador de CS · SocialPro' },
+  // ZACKETIZOR: display name en KeyDrop es "zack", código promocional real
+  // es ZACKCSGO (no ZACKETIZOR — descubierto en el probe de la API KeyDrop).
+  zacketizor: { emoji: '🎬', color: '#e03070', code: 'ZACKCSGO', sub: 'Creador CS2 · SocialPro' },
 };
 
 export function getCreatorVisual(slug: string): PlatformCreatorVisual {
