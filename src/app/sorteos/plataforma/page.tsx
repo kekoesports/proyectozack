@@ -24,8 +24,10 @@ import { MissionsGrid } from '@/features/giveaway-platform/components/MissionsGr
 import { EntryButton } from '@/features/giveaway-platform/components/EntryButton';
 import { PlatformShop } from '@/features/giveaway-platform/components/PlatformShop';
 import { MonthlyRanking } from '@/features/giveaway-platform/components/MonthlyRanking';
-import { KeydropGiveawaysSection } from '@/features/giveaway-platform/components/KeydropGiveawaysSection';
-import { getKeydropZacketizorGiveaways, type KeydropSections } from '@/lib/queries/keydropGiveaways';
+import { ExternalGiveawaysSection } from '@/features/giveaway-platform/components/ExternalGiveawaysSection';
+import { getExternalGiveawaysForCreator } from '@/lib/queries/externalGiveaways';
+import { isExternalCreator } from '@/lib/external-giveaways/creator-bindings';
+import type { ExternalGiveawaySections } from '@/lib/external-giveaways/types';
 
 /**
  * PR1 (v2 shell): nav sticky + hero Bonuses + tarjetas estáticas de marcas.
@@ -82,12 +84,12 @@ export default async function PlataformaSorteosPage({
   }
 
   const activeVisual = getCreatorVisual(active.slug);
-  // ZACKETIZOR usa exclusivamente sorteos de KeyDrop (fuente externa vía
-  // API). Para el resto de creadores usamos los sorteos internos gestionados
-  // desde el CRM. Este gate evita mostrar sorteos internos vacíos bajo
-  // ZACKETIZOR y también evita mostrar la sección KeyDrop bajo el resto.
-  const isKeydropCreator = active.slug === 'zacketizor';
-  const giveawaysData = isKeydropCreator
+  // Regla: 1 creador = 1 fuente. Si el creador tiene binding externo
+  // (external-giveaways/creator-bindings.ts), sus sorteos vienen del
+  // provider externo — la <section id="sorteos"> del CRM interno se oculta.
+  // Si no tiene binding, usa sorteos internos del CRM como hasta ahora.
+  const isExternal = isExternalCreator(active.slug);
+  const giveawaysData = isExternal
     ? []
     : await getGiveawaysWithEntryData(active.id, userId);
 
@@ -99,14 +101,15 @@ export default async function PlataformaSorteosPage({
       ])
     : [0, [], undefined];
 
-  const [ranking, shopItemsData, keydropSections] = await Promise.all([
+  const [ranking, shopItemsData, externalSections] = await Promise.all([
     getMonthlyRanking(10),
     getActiveShopItems(),
-    // KeyDrop live-cache: solo para ZACKETIZOR. Degrada a listas vacías
-    // si falta env, si KeyDrop cae, si shape falla — nunca lanza.
-    isKeydropCreator
-      ? getKeydropZacketizorGiveaways()
-      : Promise.resolve<KeydropSections>({ active: [], finished: [], status: 'not_configured' }),
+    // Sorteos externos: se dispara SOLO si el creador tiene binding externo.
+    // Degrada a listas vacías si falta env, provider cae o shape falla —
+    // nunca lanza. La UI hace return null cuando status !== 'ok'.
+    isExternal
+      ? getExternalGiveawaysForCreator(active.slug)
+      : Promise.resolve<ExternalGiveawaySections>({ active: [], finished: [], providerKey: null, status: 'no_binding' }),
   ]);
 
   const today = todayInPlatformTz();
@@ -155,10 +158,10 @@ export default async function PlataformaSorteosPage({
           </section>
         )}
 
-        {/* Sección de sorteos internos del CRM: NAOW/HUASOPEEK/MARTINEZ.  */}
-        {/* Para ZACKETIZOR se oculta y se muestra únicamente el bloque    */}
-        {/* KeyDrop (fuente externa, ver más abajo).                       */}
-        {isKeydropCreator ? null : (
+        {/* Sección de sorteos internos del CRM (NAOW/HUASOPEEK/MARTINEZ). */}
+        {/* Para creadores con binding externo (p.ej. ZACKETIZOR → KeyDrop) */}
+        {/* se oculta y solo aparece <ExternalGiveawaysSection> abajo.       */}
+        {isExternal ? null : (
           <section id="sorteos">
             <div className="gp-legacy-block">
               <h2>Sorteos de {active.name}</h2>
@@ -201,8 +204,8 @@ export default async function PlataformaSorteosPage({
           </section>
         )}
 
-        {/* --- Sorteos KeyDrop de ZACKETIZOR (live-cache, solo lectura) --- */}
-        <KeydropGiveawaysSection sections={keydropSections} creatorDisplayName={active.name} />
+        {/* --- Sorteos externos (KeyDrop, CSGORoll, etc.) — solo lectura --- */}
+        <ExternalGiveawaysSection sections={externalSections} creatorDisplayName={active.name} />
 
         <section id="ranking">
           <div className="gp-legacy-block">
