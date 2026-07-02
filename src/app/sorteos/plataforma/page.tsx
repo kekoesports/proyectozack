@@ -82,7 +82,14 @@ export default async function PlataformaSorteosPage({
   }
 
   const activeVisual = getCreatorVisual(active.slug);
-  const giveawaysData = await getGiveawaysWithEntryData(active.id, userId);
+  // ZACKETIZOR usa exclusivamente sorteos de KeyDrop (fuente externa vía
+  // API). Para el resto de creadores usamos los sorteos internos gestionados
+  // desde el CRM. Este gate evita mostrar sorteos internos vacíos bajo
+  // ZACKETIZOR y también evita mostrar la sección KeyDrop bajo el resto.
+  const isKeydropCreator = active.slug === 'zacketizor';
+  const giveawaysData = isKeydropCreator
+    ? []
+    : await getGiveawaysWithEntryData(active.id, userId);
 
   const [balance, missions, streak] = userId
     ? await Promise.all([
@@ -97,7 +104,7 @@ export default async function PlataformaSorteosPage({
     getActiveShopItems(),
     // KeyDrop live-cache: solo para ZACKETIZOR. Degrada a listas vacías
     // si falta env, si KeyDrop cae, si shape falla — nunca lanza.
-    active.slug === 'zacketizor'
+    isKeydropCreator
       ? getKeydropZacketizorGiveaways()
       : Promise.resolve<KeydropSections>({ active: [], finished: [], status: 'not_configured' }),
   ]);
@@ -148,46 +155,51 @@ export default async function PlataformaSorteosPage({
           </section>
         )}
 
-        <section id="sorteos">
-          <div className="gp-legacy-block">
-            <h2>Sorteos de {active.name}</h2>
-            <p className="gp-rank-note">
-              Participación gratuita · ganas +{ENTRY_COIN_REWARD} 🪙 por sorteo · fotos reales de las skins
-            </p>
-            <div className="gp-sorteos-grid">
-              {giveawaysData.map((g) => (
-                <article key={g.id} className="gp-sorteo-card">
-                  <div className="gp-sorteo-glow" aria-hidden />
-                  <div className="gp-sorteo-fg">
-                    <div className="gp-sorteo-img">
-                      {g.imageUrl ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={g.imageUrl} alt={g.title} />
-                      ) : (
-                        <div className="gp-sorteo-img-empty">📷 Foto de la skin</div>
-                      )}
+        {/* Sección de sorteos internos del CRM: NAOW/HUASOPEEK/MARTINEZ.  */}
+        {/* Para ZACKETIZOR se oculta y se muestra únicamente el bloque    */}
+        {/* KeyDrop (fuente externa, ver más abajo).                       */}
+        {isKeydropCreator ? null : (
+          <section id="sorteos">
+            <div className="gp-legacy-block">
+              <h2>Sorteos de {active.name}</h2>
+              <p className="gp-rank-note">
+                Participación gratuita · ganas +{ENTRY_COIN_REWARD} 🪙 por sorteo · fotos reales de las skins
+              </p>
+              <div className="gp-sorteos-grid">
+                {giveawaysData.map((g) => (
+                  <article key={g.id} className="gp-sorteo-card">
+                    <div className="gp-sorteo-glow" aria-hidden />
+                    <div className="gp-sorteo-fg">
+                      <div className="gp-sorteo-img">
+                        {g.imageUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={g.imageUrl} alt={g.title} />
+                        ) : (
+                          <div className="gp-sorteo-img-empty">📷 Foto de la skin</div>
+                        )}
+                      </div>
+                      <h3 className="gp-sorteo-title">★ {g.title}</h3>
+                      {g.value ? <div className="gp-sorteo-value">{g.value}</div> : null}
+                      <div className="gp-sorteo-meta">
+                        👥 <b>{g.entryCount.toLocaleString('es-ES')}</b> participantes
+                      </div>
+                      <div className="gp-sorteo-reward">
+                        Gratis · +{ENTRY_COIN_REWARD} 🪙
+                      </div>
+                      <div className="gp-sorteo-cta">
+                        {userId ? (
+                          <EntryButton giveawayId={g.id} initialEntered={g.userHasEntered} />
+                        ) : (
+                          <span className="gp-sorteo-locked">Inicia sesión para participar</span>
+                        )}
+                      </div>
                     </div>
-                    <h3 className="gp-sorteo-title">★ {g.title}</h3>
-                    {g.value ? <div className="gp-sorteo-value">{g.value}</div> : null}
-                    <div className="gp-sorteo-meta">
-                      👥 <b>{g.entryCount.toLocaleString('es-ES')}</b> participantes
-                    </div>
-                    <div className="gp-sorteo-reward">
-                      Gratis · +{ENTRY_COIN_REWARD} 🪙
-                    </div>
-                    <div className="gp-sorteo-cta">
-                      {userId ? (
-                        <EntryButton giveawayId={g.id} initialEntered={g.userHasEntered} />
-                      ) : (
-                        <span className="gp-sorteo-locked">Inicia sesión para participar</span>
-                      )}
-                    </div>
-                  </div>
-                </article>
-              ))}
+                  </article>
+                ))}
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
+        )}
 
         {/* --- Sorteos KeyDrop de ZACKETIZOR (live-cache, solo lectura) --- */}
         <KeydropGiveawaysSection sections={keydropSections} creatorDisplayName={active.name} />

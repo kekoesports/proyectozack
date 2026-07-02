@@ -15,16 +15,29 @@ import type { z } from 'zod';
  *   - `totalValue = totalPrizes` si viene; si no, suma de `prizes[].price`.
  *   - `promoCode`: primer requirement con `promoCode`, o `organizer.promocode`
  *     como fallback.
- *   - `externalUrl` construido con el pattern conocido; verificar en QA.
+ *   - `externalUrl`: URL general de giveaways de KeyDrop (KeyDrop no expone
+ *     URL pública individual por giveaway — el patrón /es/giveaway/{id}
+ *     devuelve 404). El botón etiquetado "Ver en KeyDrop" lleva al listing
+ *     general. Si en el futuro KeyDrop publica URLs individuales, actualizar
+ *     `KEYDROP_LISTING_URL` para volver a un patrón por id.
  *   - `imageUrl` = `prizes[0].itemImg` (mostramos solo el primer premio como
  *     portada; el conteo total va en `prizeCount`).
  *   - `status` desconocido → 'unknown' (no rompe UI).
  */
 
-const KEYDROP_GIVEAWAY_URL_TEMPLATE = 'https://key-drop.com/es/giveaway/{id}';
+/** URL genérica del listing público de giveaways de KeyDrop. */
+const KEYDROP_LISTING_URL = 'https://key-drop.com/es/giveaways';
 
-export function buildKeydropExternalUrl(id: string): string {
-  return KEYDROP_GIVEAWAY_URL_TEMPLATE.replace('{id}', encodeURIComponent(id));
+/**
+ * URL destino del botón "Ver en KeyDrop".
+ *
+ * Idealmente sería `https://key-drop.com/es/giveaway/{id}` pero ese patrón
+ * devuelve 404 (verificado 2026-07). Hasta que KeyDrop publique URLs
+ * individuales, apuntamos al listing general — el `id` queda solo como
+ * identificador interno.
+ */
+export function buildKeydropExternalUrl(_id: string): string {
+  return KEYDROP_LISTING_URL;
 }
 
 export function toKeydropCard(item: KeydropListItem): KeydropCard {

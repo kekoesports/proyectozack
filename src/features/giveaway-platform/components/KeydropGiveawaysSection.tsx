@@ -127,7 +127,7 @@ function KeydropCardArticle({ card, finished = false }: { card: KeydropCard; fin
             target="_blank"
             rel="noopener noreferrer"
           >
-            {finished ? 'Ver resultado' : 'Ver sorteo'}
+            Ver en KeyDrop
           </a>
         </div>
         {finished && card.winners.length > 0 ? (

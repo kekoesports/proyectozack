@@ -23,11 +23,25 @@ describe('[keydrop-integration] page.tsx', () => {
     expect(src).toMatch(/import\s+\{\s*getKeydropZacketizorGiveaways/);
   });
 
-  it('solo llama getKeydropZacketizorGiveaways si active.slug === "zacketizor"', () => {
-    expect(src).toMatch(/active\.slug\s*===\s*'zacketizor'\s*\?\s*getKeydropZacketizorGiveaways/);
+  it('define isKeydropCreator = active.slug === "zacketizor"', () => {
+    expect(src).toMatch(/const\s+isKeydropCreator\s*=\s*active\.slug\s*===\s*'zacketizor'/);
   });
 
-  it('el fallback devuelve status not_configured (no lanza)', () => {
+  it('solo llama getKeydropZacketizorGiveaways si isKeydropCreator', () => {
+    expect(src).toMatch(/isKeydropCreator\s*\?\s*getKeydropZacketizorGiveaways\(\)/);
+  });
+
+  it('para zacketizor NO carga sorteos internos del CRM', () => {
+    // giveawaysData = isKeydropCreator ? [] : await getGiveawaysWithEntryData(...)
+    expect(src).toMatch(/const\s+giveawaysData\s*=\s*isKeydropCreator[\s\S]{0,80}\[\][\s\S]{0,120}getGiveawaysWithEntryData/);
+  });
+
+  it('para zacketizor OCULTA la <section id="sorteos"> interna', () => {
+    // {isKeydropCreator ? null : (<section id="sorteos">...</section>)}
+    expect(src).toMatch(/isKeydropCreator\s*\?\s*null\s*:\s*\(\s*<section\s+id="sorteos"/);
+  });
+
+  it('el fallback KeyDrop devuelve status not_configured (no lanza)', () => {
     expect(src).toMatch(/status:\s*'not_configured'/);
   });
 
@@ -100,9 +114,11 @@ describe('[keydrop-integration] UI del component', () => {
     expect(src).toMatch(/sections\.active\.length\s*===\s*0\s*&&\s*sections\.finished\.length\s*===\s*0[\s\S]{0,40}return\s*null/);
   });
 
-  it('botón "Ver sorteo" abre en nueva pestaña con rel noopener noreferrer', () => {
+  it('botón "Ver en KeyDrop" abre en nueva pestaña con rel noopener noreferrer', () => {
     // <a target="_blank" rel="noopener noreferrer" ...
     expect(src).toMatch(/target="_blank"[\s\S]{0,80}rel="noopener noreferrer"/);
+    // Label del botón — no dice "Ver sorteo" o "Ver resultado", sino "Ver en KeyDrop"
+    expect(src).toMatch(/Ver en KeyDrop/);
   });
 
   it('renderiza badge KeyDrop con /images/brands/keydrop.png', () => {

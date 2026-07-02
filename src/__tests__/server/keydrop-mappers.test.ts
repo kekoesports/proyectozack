@@ -92,9 +92,11 @@ describe('[keydrop-mappers] toKeydropCard — activo', () => {
     expect(card.promoCode).toBe('ZACKCSGO');
   });
 
-  it('externalUrl construido con el id url-encoded', () => {
+  it('externalUrl apunta al listing genérico (KeyDrop no expone URL individual)', () => {
     const card = toKeydropCard(baseItem);
-    expect(card.externalUrl).toBe('https://key-drop.com/es/giveaway/o3S8gi66000');
+    // KeyDrop no publica URLs individuales por id — el listing es la landing
+    // más específica disponible por ahora.
+    expect(card.externalUrl).toBe('https://key-drop.com/es/giveaways');
   });
 
   it('prizeCount cuenta todos los premios', () => {
@@ -224,11 +226,13 @@ describe('[keydrop-mappers] requirements normalizadas + fullfilled → fulfilled
 });
 
 describe('[keydrop-mappers] buildKeydropExternalUrl', () => {
-  it('template correcto', () => {
-    expect(buildKeydropExternalUrl('abc123')).toBe('https://key-drop.com/es/giveaway/abc123');
-  });
-  it('escapa caracteres especiales', () => {
-    expect(buildKeydropExternalUrl('ab/cd')).toBe('https://key-drop.com/es/giveaway/ab%2Fcd');
+  // KeyDrop no expone URL pública por id — devolvemos el listing genérico
+  // para evitar botones que llevan a 404. El id se ignora por diseño hasta
+  // que KeyDrop publique URLs individuales.
+  it('devuelve el listing público independiente del id', () => {
+    expect(buildKeydropExternalUrl('abc123')).toBe('https://key-drop.com/es/giveaways');
+    expect(buildKeydropExternalUrl('otroId'))
+      .toBe('https://key-drop.com/es/giveaways');
   });
 });
 
