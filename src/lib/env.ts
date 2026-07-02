@@ -46,6 +46,25 @@ export const env = createEnv({
     // usuario se crea con name="Jugador de Steam" y avatar=null.
     // Server-only: nunca se envía al cliente.
     STEAM_API_KEY: z.string().min(1).optional(),
+    // Cifrado AES-256-GCM de tokens sociales guardados en connected_social_accounts.
+    // Formato: base64 de 32 bytes (256 bits). Generar con:
+    //   node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
+    // Opcional en dev; OBLIGATORIO en producción para poder cifrar/descifrar.
+    // Sin ella la UI muestra "No configurado todavía" y los endpoints /api/social/* devuelven 503.
+    SOCIAL_TOKEN_ENCRYPTION_KEY: z.string()
+      .refine((v) => { try { return Buffer.from(v, 'base64').length === 32; } catch { return false; } },
+        { message: 'SOCIAL_TOKEN_ENCRYPTION_KEY debe ser 32 bytes en base64 (usar node -e "console.log(require(\'crypto\').randomBytes(32).toString(\'base64\'))")' })
+      .optional(),
+    // Discord OAuth — https://discord.com/developers/applications
+    DISCORD_CLIENT_ID: z.string().min(1).optional(),
+    DISCORD_CLIENT_SECRET: z.string().min(1).optional(),
+    // Google/YouTube OAuth — https://console.cloud.google.com/apis/credentials
+    GOOGLE_CLIENT_ID: z.string().min(1).optional(),
+    GOOGLE_CLIENT_SECRET: z.string().min(1).optional(),
+    // Referencias públicas para PR-1b-2 (verificación de misiones sociales).
+    // No usadas en PR-1b-1; documentadas aquí para no dispersar el config.
+    DISCORD_GUILD_ID: z.string().min(1).optional(),
+    YOUTUBE_CHANNEL_ID: z.string().min(1).optional(),
   },
   client: {
     NEXT_PUBLIC_SITE_URL: z.string().url(),
@@ -74,6 +93,13 @@ export const env = createEnv({
     PAYROLL_OCR_ENABLED: process.env.PAYROLL_OCR_ENABLED,
     SHEETS_SYNC_CONCURRENCY: process.env.SHEETS_SYNC_CONCURRENCY,
     STEAM_API_KEY: process.env.STEAM_API_KEY,
+    SOCIAL_TOKEN_ENCRYPTION_KEY: process.env.SOCIAL_TOKEN_ENCRYPTION_KEY,
+    DISCORD_CLIENT_ID: process.env.DISCORD_CLIENT_ID,
+    DISCORD_CLIENT_SECRET: process.env.DISCORD_CLIENT_SECRET,
+    GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
+    GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
+    DISCORD_GUILD_ID: process.env.DISCORD_GUILD_ID,
+    YOUTUBE_CHANNEL_ID: process.env.YOUTUBE_CHANNEL_ID,
 
     NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
     NEXT_PUBLIC_GTM_ID: process.env.NEXT_PUBLIC_GTM_ID,

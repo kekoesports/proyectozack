@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useRef, useState, useTransition } from 'react';
 import { steamLogout } from '@/features/giveaway-platform/actions/steamLogout';
 
@@ -68,6 +69,18 @@ export function UserPill({ userName, balance, loggedIn }: Props) {
         <span className="gp-chev" aria-hidden>▾</span>
       </button>
       <div className="gp-user-menu" role="menu">
+        <Link
+          role="menuitem"
+          className="gp-um-item"
+          href="/sorteos/plataforma/perfil"
+          onClick={() => setOpen(false)}
+        >
+          <span className="i" aria-hidden>👤</span>
+          <span>
+            <b>Mi perfil</b>
+            <span>Cuentas conectadas y ajustes</span>
+          </span>
+        </Link>
         <button type="button" role="menuitem" className="gp-um-item" data-todo="profile-config">
           <span className="i" aria-hidden>⚙️</span>
           <span>
