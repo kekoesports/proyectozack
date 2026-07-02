@@ -715,6 +715,20 @@
       "when": 1782727780771,
       "tag": "0101_heavy_fat_cobra",
       "breakpoints": true
+    },
+    {
+      "idx": 102,
+      "version": "7",
+      "when": 1782813396484,
+      "tag": "0102_dry_fabian_cortez",
+      "breakpoints": true
+    },
+    {
+      "idx": 103,
+      "version": "7",
+      "when": 1783003849094,
+      "tag": "0103_giveaway_platform",
+      "breakpoints": true
     }
   ]
 }
