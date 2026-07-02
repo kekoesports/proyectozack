@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useTransition } from 'react';
+import { steamLogout } from '@/features/giveaway-platform/actions/steamLogout';
 
 interface Props {
   userName: string | null;
@@ -10,11 +11,13 @@ interface Props {
 
 /**
  * Pill visual con avatar + nombre + saldo + dropdown.
- * PR1 no engancha acciones reales (Steam login, logout, navegación de perfil).
- * Los ítems del menú se marcan con `data-todo` para el swap de PR3.
+ * Login = anchor a /api/auth/steam/login (redirect OpenID a Steam).
+ * Logout = server action que llama a auth.api.signOut y redirige.
+ * Perfil/Inventario/Transacciones siguen marcados como `data-todo` — PR3.
  */
 export function UserPill({ userName, balance, loggedIn }: Props) {
   const [open, setOpen] = useState(false);
+  const [isPending, startTransition] = useTransition();
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -25,19 +28,31 @@ export function UserPill({ userName, balance, loggedIn }: Props) {
     return () => document.removeEventListener('click', onDocClick);
   }, []);
 
+  function handleLogout() {
+    setOpen(false);
+    startTransition(() => {
+      void steamLogout();
+    });
+  }
+
   if (!loggedIn) {
+    // Ruta API que devuelve 302 al OpenID de Steam. No es una page → no
+    // podemos usar <Link>, que asume client-side navigation entre rutas de
+    // la app. Con <a> nativo el navegador sigue el redirect al dominio de
+    // Steam correctamente.
     return (
-      <button
-        type="button"
+      // eslint-disable-next-line @next/next/no-html-link-for-pages
+      <a
+        href="/api/auth/steam/login"
         className="gp-btn"
         style={{
           padding: '10px 18px',
           background: 'linear-gradient(90deg, var(--pink), #b44df0 40%, var(--cyan))',
+          textDecoration: 'none',
         }}
-        data-todo="steam-login"
       >
-        🎮 Iniciar sesión
-      </button>
+        🎮 Iniciar sesión con Steam
+      </a>
     );
   }
 
@@ -74,10 +89,16 @@ export function UserPill({ userName, balance, loggedIn }: Props) {
             <span>Revisa tu historial de monedas</span>
           </span>
         </button>
-        <button type="button" role="menuitem" className="gp-um-item exit" data-todo="logout">
+        <button
+          type="button"
+          role="menuitem"
+          className="gp-um-item exit"
+          onClick={handleLogout}
+          disabled={isPending}
+        >
           <span className="i" aria-hidden>🚪</span>
           <span>
-            <b>Cerrar sesión</b>
+            <b>{isPending ? 'Cerrando…' : 'Cerrar sesión'}</b>
           </span>
         </button>
       </div>
