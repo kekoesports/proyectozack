@@ -239,7 +239,7 @@ El schema marca `invoices.paidAmount` con `@deprecated` explícito. Es una colum
 - ✅ Queries de dashboard nuevas: **cero uso** de `paidAmount`.
 - ✅ `receivables.ts` — migrada a `invoice_payments` (TD-14 cerrado).
 - ✅ `pnl.ts` — dead SELECT de `paidAmount` eliminado.
-- ⚠️ **TD-14b (pendiente)**: `src/lib/queries/invoices.ts::listInvoices()` sigue seleccionando `paidAmount: invoices.paidAmount` como parte del tipo `InvoiceWithRelations`. Consumers múltiples (drawer factura, tabla gastos, exports CSV/PDF). Migrar en PR separado con auditoría de consumers. Ver `docs/tech-debt.md` § TD-14b.
+- 🟨 **TD-14b (no accionable · decisión de diseño 2026-07-02)**: `src/lib/queries/invoices.ts::listInvoices()` mantiene `paidAmount: invoices.paidAmount` como **valor operativo/manual declarado por el usuario** (editable desde `InvoiceDrawer`). Tras auditar los 10 consumers de `listInvoices()`, se confirma que ninguno calcula "cobrado real" a partir de esa column — las vistas críticas de Finanzas ya usan `invoice_payments` en queries dedicadas. Si aparece necesidad futura de cash real en un listado genérico, crear función paralela `listInvoicesWithPayments()`, **no** modificar `listInvoices()`. Ver `docs/tech-debt.md` § TD-14b.
 
 ---
 
@@ -359,7 +359,7 @@ src/app/api/cron/generate-recurring-expenses/route.ts
 
 vercel.json                       Registro de crons (incluye recurring desde jul/2026)
 
-docs/tech-debt.md                 TD-14 cerrado, TD-14b pendiente
+docs/tech-debt.md                 TD-14 cerrado, TD-14b decisión de diseño
 ```
 
 ---
@@ -372,6 +372,6 @@ docs/tech-debt.md                 TD-14 cerrado, TD-14b pendiente
 - ✅ Bloque expandible "Dónde se ha ido el dinero" con subtotales por categoría.
 - ✅ Cron de recurrentes activo diario, plantillas Pablo cuota + Alfonso seguro + Gestoría en marcha.
 - ✅ Fuente canónica `invoice_payments` en todas las queries relevantes; `paidAmount` deprecated eliminado de queries de dashboard.
-- ⚠️ TD-14b residual: `listInvoices()` genérico sigue con `paidAmount`. PR separado con scope grande.
+- 🟨 TD-14b: `listInvoices()` genérico mantiene `paidAmount` como valor manual — decisión de diseño (2026-07-02) tras auditar 10 consumers. No accionable.
 
 Cierre del bloque de rediseño de Finanzas de la semana del 2026-07-01.

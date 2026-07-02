@@ -41,8 +41,9 @@ describe('[docs] finance-dashboard.md — estado tras rediseño 2026-07', () => 
     expect(DOC).toMatch(/TD-14.*cerrado|TD-14 cerrado/i);
   });
 
-  it('menciona TD-14b como residual pendiente', () => {
+  it('menciona TD-14b como decisión de diseño (no accionable)', () => {
     expect(DOC).toMatch(/TD-14b/);
+    expect(DOC).toMatch(/decisi[óo]n de dise[ñn]o|no accionable/i);
   });
 
   it('lista las 5 plantillas de recurring_expenses (2 legacy + 3 activas)', () => {
