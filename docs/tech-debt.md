@@ -125,13 +125,28 @@ Los 76 warnings del linter son todos `no-unused-vars`. Los más repetidos:
 **Corrección:** El internal path de `getReceivables()` ahora calcula `paidAmount` como `COALESCE(SUM(invoice_payments.amount), 0)` con LEFT JOIN + GROUP BY, mismo patrón que el issued path y que `arAging.ts` / `finanzasResumenV2.ts`. También se limpió `pnl.ts` que seleccionaba `paidAmount` sin usarlo (dead SELECT).
 **Estado:** `receivables.ts` y `pnl.ts` ya no leen `invoices.paidAmount`. Ver TD-14b para el residual pendiente.
 
-### TD-14b · `listInvoices()` general expone `paidAmount` column deprecated
+### TD-14b · `listInvoices()` expone `paidAmount` column — 🟨 NO ACCIONABLE (decisión de diseño, 2026-07-02)
 **Archivo:** `src/lib/queries/invoices.ts:68`
-**Contexto:** `listInvoices()` es la query genérica del módulo de facturación (`/admin/facturacion`, `/admin/finanzas/gastos`, drawers, tabs, exports). Selecciona `paidAmount: invoices.paidAmount` como parte del `InvoiceWithRelations` que consumen múltiples componentes de UI y utilidades de export.
-**Consecuencia:** Los componentes que muestran "paidAmount" (drawer de factura, tabla de gastos, export CSV/PDF) siguen leyendo la column legacy. En la práctica se sincroniza al aplicar `invoice_payments` desde conciliación, pero cualquier drift silencioso mostraría un valor incorrecto en la UI de facturación.
-**Acción:** Migrar en PR separado — reemplazar la column por `SUM(invoice_payments.amount)` con LEFT JOIN + GROUP BY sobre 4 queries de `listInvoices()`. Requiere auditar todos los consumers del tipo `InvoiceWithRelations` para asegurar que `.paidAmount` siga siendo un `string` numérico. Riesgo medio por scope amplio.
-**Riesgo:** Bajo mientras coexista con conciliación bien sincronizada. Medio si aparece drift.
-**Esfuerzo:** 1-2h (query + tipos + tests + smoke UI).
+
+**Decisión (2026-07-02):** tras diagnóstico exhaustivo de los 10 consumers de `listInvoices()`, **no se migra**. La column `invoices.paidAmount` deja de considerarse "deuda a corregir" y pasa a ser **valor operativo manual declarado por el usuario**.
+
+**Semántica actual (documentada y aceptada):**
+- `invoices.paidAmount` (column) = valor operativo/manual editable desde `InvoiceDrawer` — lo que el usuario declara como cobrado/pagado.
+- `invoice_payments` (tabla) = fuente canónica de **cash real conciliado** con `bank_transaction`.
+- Ambos conceptos pueden coexistir independientemente. Ver `docs/finance-dashboard.md` § 10 (Convención `status='pagada'` sin `invoice_payments`).
+
+**Análisis de consumers (10 archivos):**
+Ninguno calcula "cobrado real" o "pendiente real" a partir de `.paidAmount`. Los que muestran cifras de cash (`ReceivablesTable`, `ArAgingTable`, resumen V2) reciben `paidAmount` desde queries dedicadas (`arAging.ts`, `receivables.ts`, `finanzasResumenV2.ts`) que ya usan `invoice_payments`. El único consumer que lee la column directamente es `InvoiceDrawer.tsx:390` como `defaultValue` del input editable — semánticamente correcto para el rol de "valor manual".
+
+**Regla derivada de la decisión:**
+- ✅ `listInvoices()` se mantiene tal cual. `paidAmount` = valor manual declarado.
+- ✅ Vistas críticas de Finanzas (resumen, cobros, pl, mes) deben usar `invoice_payments` o queries dedicadas — nunca `listInvoices().paidAmount`.
+- ✅ Si en el futuro se necesita cash real en un listado genérico, **crear una función paralela** `listInvoicesWithPayments()` que derive desde `invoice_payments`. **No modificar `listInvoices()` directamente** — rompería el drawer editable y ~10 pantallas.
+
+**Protección anti-migración accidental:**
+`src/__tests__/server/finance-td14-invoice-payments.test.ts` incluye un test estático que verifica que `listInvoices()` sigue con `paidAmount: invoices.paidAmount`. Si algún día se migra intencionalmente, ese test debe actualizarse y este bloque de tech-debt también.
+
+**Estado:** cerrado como decisión de diseño. No hay acción pendiente. Sin fecha de reapertura.
 
 ---
 
