@@ -1,0 +1,372 @@
+/*
+ * CSS de los widgets funcionales de la plataforma:
+ *   - Recompensa diaria (DailyStreakCard)
+ *   - Misiones (MissionsGrid)
+ *   - Ranking mensual (MonthlyRanking)
+ *   - Tienda / canjeo (PlatformShop)
+ *
+ * Scoped bajo .giveaway-platform. Cargado desde el layout.
+ * Sin depender de utilidades Tailwind — usa la paleta SP.
+ */
+
+/* ================ RECOMPENSA DIARIA ================ */
+.giveaway-platform .gp-streak-head {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 0 0 16px;
+}
+.giveaway-platform .gp-streak-head b { color: var(--gold); font-weight: 700; }
+.giveaway-platform .gp-streak-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+.giveaway-platform .gp-streak-day {
+  position: relative;
+  border-radius: 12px;
+  border: 1px solid rgba(196, 40, 128, 0.18);
+  background: linear-gradient(160deg, rgba(21,16,36,0.9), rgba(11,9,23,0.9));
+  padding: 12px 10px 14px;
+  text-align: center;
+  min-height: 108px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.giveaway-platform .gp-streak-day.is-claimed {
+  border-color: rgba(74, 222, 128, 0.45);
+  background: linear-gradient(160deg, rgba(20, 60, 40, 0.55), rgba(10, 30, 20, 0.65));
+}
+.giveaway-platform .gp-streak-day.is-today {
+  border-color: rgba(245, 183, 61, 0.7);
+  box-shadow: 0 0 0 1px rgba(245, 183, 61, 0.45), 0 10px 30px rgba(245, 99, 42, 0.18);
+  background: linear-gradient(160deg, rgba(63, 42, 15, 0.55), rgba(30, 18, 8, 0.7));
+}
+.giveaway-platform .gp-streak-label {
+  font-family: var(--font-display), var(--font-rajdhani), sans-serif;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.giveaway-platform .gp-streak-amount {
+  font-family: var(--font-display), var(--font-rajdhani), sans-serif;
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--gold);
+  margin: 4px 0;
+}
+.giveaway-platform .gp-streak-check {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  color: #4ade80;
+  font-size: 13px;
+  font-weight: 700;
+}
+.giveaway-platform .gp-streak-claim {
+  margin-top: 6px;
+  padding: 8px;
+  border: none;
+  border-radius: 8px;
+  background: linear-gradient(90deg, #b8860b, var(--gold));
+  color: #1a1405;
+  font-family: var(--font-display), var(--font-rajdhani), sans-serif;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(245, 183, 61, 0.28);
+}
+.giveaway-platform .gp-streak-claim:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ================ MISIONES ================ */
+.giveaway-platform .gp-mission-head {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 0 0 16px;
+}
+.giveaway-platform .gp-missions-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+}
+.giveaway-platform .gp-mission-card {
+  position: relative;
+  border-radius: 14px;
+  border: 1px solid rgba(196, 40, 128, 0.20);
+  background: linear-gradient(160deg, rgba(21,16,36,0.92), rgba(11,9,23,0.92));
+  padding: 16px 18px;
+}
+.giveaway-platform .gp-mission-card.is-done {
+  border-color: rgba(74, 222, 128, 0.45);
+  background: linear-gradient(160deg, rgba(20, 60, 40, 0.35), rgba(11, 9, 23, 0.85));
+}
+.giveaway-platform .gp-mission-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+.giveaway-platform .gp-mission-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--txt);
+  margin: 0;
+}
+.giveaway-platform .gp-mission-reward {
+  flex-shrink: 0;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(245, 183, 61, 0.15);
+  color: var(--gold);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+}
+.giveaway-platform .gp-mission-reward.is-done {
+  background: rgba(74, 222, 128, 0.18);
+  color: #4ade80;
+}
+.giveaway-platform .gp-mission-desc {
+  margin: 8px 0 12px;
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+.giveaway-platform .gp-mission-bar {
+  height: 8px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+}
+.giveaway-platform .gp-mission-fill {
+  height: 100%;
+  border-radius: 6px;
+  background: var(--sp-grad);
+  transition: width 0.4s ease;
+}
+.giveaway-platform .gp-mission-foot {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+/* ================ RANKING MENSUAL ================ */
+.giveaway-platform .gp-rank-empty {
+  color: var(--muted);
+  font-size: 13px;
+  padding: 6px 0;
+}
+.giveaway-platform .gp-rank-note {
+  color: var(--muted);
+  font-size: 12px;
+  margin: 0 0 14px;
+}
+.giveaway-platform .gp-rank-podium {
+  display: grid;
+  grid-template-columns: 1fr 1.15fr 1fr;
+  gap: 14px;
+  align-items: end;
+  margin-bottom: 18px;
+}
+.giveaway-platform .gp-rank-podium-card {
+  position: relative;
+  border-radius: 16px;
+  border: 1px solid rgba(196, 40, 128, 0.24);
+  background: linear-gradient(160deg, rgba(21,16,36,0.95), rgba(11,9,23,0.95));
+  padding: 30px 14px 18px;
+  text-align: center;
+  min-height: 160px;
+}
+.giveaway-platform .gp-rank-podium-card.p1 {
+  min-height: 200px;
+  border-color: rgba(245, 183, 61, 0.5);
+  box-shadow: 0 0 40px -8px rgba(245, 99, 42, 0.35);
+}
+.giveaway-platform .gp-rank-avatar {
+  position: absolute;
+  top: -22px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-display), var(--font-rajdhani), sans-serif;
+  font-weight: 800;
+  font-size: 15px;
+  color: #fff;
+  background: linear-gradient(160deg, var(--panel2), var(--panel));
+  border: 2px solid var(--sp-pink);
+  box-shadow: 0 0 20px rgba(224, 48, 112, 0.4);
+}
+.giveaway-platform .gp-rank-podium-card.p1 .gp-rank-avatar {
+  border-color: var(--gold);
+  box-shadow: 0 0 26px rgba(245, 183, 61, 0.55);
+  width: 54px;
+  height: 54px;
+}
+.giveaway-platform .gp-rank-podium-card.p3 .gp-rank-avatar { border-color: var(--sp-orange); }
+.giveaway-platform .gp-rank-pos {
+  font-family: var(--font-display), var(--font-rajdhani), sans-serif;
+  font-size: 11px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+.giveaway-platform .gp-rank-name {
+  font-family: var(--font-display), var(--font-rajdhani), sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--txt);
+  letter-spacing: 0.5px;
+  margin-bottom: 10px;
+  word-break: break-word;
+}
+.giveaway-platform .gp-rank-tickets {
+  display: inline-block;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: rgba(224, 48, 112, 0.15);
+  border: 1px solid rgba(224, 48, 112, 0.35);
+  font-size: 12px;
+  color: #fff;
+}
+.giveaway-platform .gp-rank-tickets b { color: var(--sp-pink); font-weight: 800; margin-right: 4px; }
+.giveaway-platform .gp-rank-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  border-radius: 12px;
+  border: 1px solid rgba(196, 40, 128, 0.16);
+  overflow: hidden;
+  background: rgba(11, 9, 23, 0.5);
+}
+.giveaway-platform .gp-rank-list li {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.03);
+  font-size: 13px;
+}
+.giveaway-platform .gp-rank-list li:first-child { border-top: none; }
+.giveaway-platform .gp-rank-list .num {
+  width: 26px;
+  font-family: var(--font-display), var(--font-rajdhani), sans-serif;
+  font-weight: 700;
+  color: var(--muted);
+  text-align: center;
+}
+.giveaway-platform .gp-rank-list .who { flex: 1; color: var(--txt); }
+.giveaway-platform .gp-rank-list .tix { color: var(--muted); font-size: 12px; }
+.giveaway-platform .gp-rank-list .tix b { color: var(--sp-pink); font-weight: 700; }
+
+/* ================ TIENDA / CANJEO ================ */
+.giveaway-platform .gp-shop-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+.giveaway-platform .gp-shop-tab {
+  padding: 7px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(196, 40, 128, 0.25);
+  background: transparent;
+  color: var(--muted);
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+.giveaway-platform .gp-shop-tab:hover { color: var(--txt); border-color: rgba(224, 48, 112, 0.5); }
+.giveaway-platform .gp-shop-tab.is-active {
+  color: #fff;
+  background: var(--sp-grad);
+  border-color: transparent;
+  box-shadow: 0 4px 18px rgba(224, 48, 112, 0.35);
+}
+.giveaway-platform .gp-shop-error {
+  color: #ff5d7d;
+  font-size: 13px;
+  margin: 0 0 10px;
+}
+.giveaway-platform .gp-shop-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+}
+.giveaway-platform .gp-shop-card {
+  border-radius: 14px;
+  border: 1px solid rgba(196, 40, 128, 0.18);
+  background: linear-gradient(160deg, rgba(21,16,36,0.95), rgba(11,9,23,0.95));
+  padding: 14px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+}
+.giveaway-platform .gp-shop-img {
+  height: 112px;
+  border-radius: 10px;
+  background: rgba(11, 9, 23, 0.5);
+  display: grid;
+  place-items: center;
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+.giveaway-platform .gp-shop-img img { max-height: 108px; max-width: 100%; object-fit: contain; }
+.giveaway-platform .gp-shop-img-empty {
+  border: 1px dashed rgba(196, 40, 128, 0.35);
+  border-radius: 10px;
+  padding: 20px;
+  font-size: 11px;
+  color: var(--muted);
+}
+.giveaway-platform .gp-shop-name {
+  font-family: var(--font-display), var(--font-rajdhani), sans-serif;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 4px;
+}
+.giveaway-platform .gp-shop-desc { font-size: 11.5px; color: var(--muted); line-height: 1.4; margin: 0 0 8px; min-height: 32px; }
+.giveaway-platform .gp-shop-cost {
+  font-family: var(--font-display), var(--font-rajdhani), sans-serif;
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--gold);
+  margin: 4px 0;
+}
+.giveaway-platform .gp-shop-stock { font-size: 11px; color: var(--muted); margin-bottom: 10px; }
+.giveaway-platform .gp-shop-stock.low { color: var(--sp-orange); }
+.giveaway-platform .gp-shop-stock.gone { color: #ff5d7d; }
+.giveaway-platform .gp-shop-btn {
+  margin-top: auto;
+  padding: 10px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(90deg, #b8860b, var(--gold));
+  color: #1a1405;
+  font-family: var(--font-display), var(--font-rajdhani), sans-serif;
+  font-weight: 800;
+  font-size: 12px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(245, 183, 61, 0.3);
+}
+.giveaway-platform .gp-shop-btn:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none; }
+
+/* Responsive: streak 7-col → apila en móvil. */
+@media (max-width: 720px) {
+  .giveaway-platform .gp-streak-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .giveaway-platform .gp-rank-podium { grid-template-columns: 1fr; }
+}

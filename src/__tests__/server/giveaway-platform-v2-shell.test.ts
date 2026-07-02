@@ -16,10 +16,12 @@ describe('[PR1] giveaway-platform v2 shell — estructura', () => {
     expect(src).toMatch(/from ['"]next\/font\/google['"]/);
     expect(src).toMatch(/Rajdhani/);
     expect(src).toMatch(/Chakra_Petch/);
-    expect(src).toMatch(/Pacifico/);
     expect(src).toMatch(/robots:\s*\{\s*index:\s*false/);
     expect(src).toMatch(/import\s+['"]\.\/platform\.css['"]/);
+    expect(src).toMatch(/import\s+['"]\.\/platform-hero\.css['"]/);
     expect(src).toMatch(/import\s+['"]\.\/platform-brand-cards\.css['"]/);
+    expect(src).toMatch(/import\s+['"]\.\/platform-fx\.css['"]/);
+    expect(src).toMatch(/import\s+['"]\.\/platform-widgets\.css['"]/);
     expect(src).toMatch(/giveaway-platform/);
   });
 
@@ -60,18 +62,20 @@ describe('[PR1] platform.css — shell scope estricto bajo .giveaway-platform', 
   it('platform.css: cada regla vive bajo .giveaway-platform', () => assertScoped(css));
   it('platform-brand-cards.css: cada regla vive bajo .giveaway-platform', () => assertScoped(brands));
 
-  it('platform.css define las CSS variables de la paleta v2', () => {
+  it('platform.css define las CSS variables de la paleta SocialPro', () => {
     expect(css).toMatch(/--bg:\s*#0b0a14/);
-    expect(css).toMatch(/--pink:\s*#ff3dd8/);
+    expect(css).toMatch(/--sp-orange:\s*#f5632a/);
+    expect(css).toMatch(/--sp-pink:\s*#e03070/);
+    expect(css).toMatch(/--sp-dpink:\s*#c42880/);
+    expect(css).toMatch(/--sp-purple:\s*#8b3aad/);
+    expect(css).toMatch(/--sp-grad:/);
     expect(css).toMatch(/--cyan:\s*#28d7ff/);
-    expect(css).toMatch(/--purple:\s*#8b3dff/);
     expect(css).toMatch(/--gold:\s*#f5b73d/);
   });
 
   it('platform.css usa las variables de fuente inyectadas por next/font', () => {
     expect(css).toMatch(/var\(--font-rajdhani\)/);
     expect(css).toMatch(/var\(--font-chakra\)/);
-    expect(css).toMatch(/var\(--font-pacifico\)/);
   });
 
   it('ningún archivo CSS del PR supera 500 LOC', () => {
@@ -108,7 +112,7 @@ describe('[PR1] backend intacto', () => {
 describe('[PR1] constants/brands.ts — 5 partners requeridos', () => {
   const src = read('src/features/giveaway-platform/constants/brands.ts');
   it('exporta las 5 marcas del HTML v2', () => {
-    for (const key of ['csdrop', 'clash', 'skinsmonkey', 'skinclub', 'gamdom']) {
+    for (const key of ['keydrop', 'clash', 'skinsmonkey', 'skinclub', 'gamdom']) {
       expect(src).toMatch(new RegExp(`${key}:\\s*\\{`));
     }
   });

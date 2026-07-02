@@ -47,7 +47,7 @@ export function UserPill({ userName, balance, loggedIn }: Props) {
         className="gp-btn"
         style={{
           padding: '10px 18px',
-          background: 'linear-gradient(90deg, var(--pink), #b44df0 40%, var(--cyan))',
+          background: 'var(--sp-grad)',
           textDecoration: 'none',
         }}
       >

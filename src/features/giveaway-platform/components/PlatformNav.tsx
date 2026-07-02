@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import Link from 'next/link';
 import { CreatorDropdown } from './CreatorDropdown';
 import { UserPill } from './UserPill';
@@ -8,6 +9,7 @@ interface CreatorOption {
   emoji: string;
   color: string;
   sub: string;
+  photoUrl: string | null;
 }
 
 interface Props {
@@ -31,8 +33,19 @@ export function PlatformNav({ creators, activeSlug, userName, balance, loggedIn 
   return (
     <nav className="gp-nav" aria-label="Plataforma de sorteos">
       <div className="gp-nav-inner">
-        <Link href="/sorteos/plataforma" className="gp-logo">
-          SocialPro<small>Giveaways</small>
+        <Link href="/sorteos/plataforma" className="gp-logo" aria-label="SocialPro Giveaways">
+          <Image
+            src="/logo.png"
+            alt="SocialPro"
+            width={130}
+            height={68}
+            className="gp-logo-img"
+            priority
+          />
+          <span className="gp-logo-tag">
+            <b>Giveaways</b>
+            <span>Plataforma de Sorteos</span>
+          </span>
         </Link>
 
         <CreatorDropdown creators={creators} activeSlug={activeSlug} />

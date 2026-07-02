@@ -35,46 +35,45 @@ export function PlatformShop({ items, balance }: Props) {
   }
 
   return (
-    <div>
-      <div className="mb-5 flex flex-wrap gap-2">
+    <>
+      <div className="gp-shop-tabs">
         {CATEGORIES.map((c) => (
           <button
             key={c.key}
+            type="button"
             onClick={() => setCategory(c.key)}
-            className={`rounded-full border px-4 py-1.5 text-sm font-semibold transition ${
-              category === c.key ? 'border-primary text-foreground' : 'border-border text-muted-foreground'
-            }`}
+            className={`gp-shop-tab${category === c.key ? ' is-active' : ''}`}
           >
             {c.label}
           </button>
         ))}
       </div>
-      {error ? <p className="mb-3 text-sm text-red-400">{error}</p> : null}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      {error ? <p className="gp-shop-error">{error}</p> : null}
+      <div className="gp-shop-grid">
         {visible.map((item) => {
           const affordable = balance >= item.costCoins && item.stock > 0;
+          const stockClass = item.stock === 0 ? ' gone' : item.stock < 4 ? ' low' : '';
           return (
-            <div key={item.id} className="rounded-xl border border-border bg-card p-4 text-center">
-              {item.imageUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={item.imageUrl} alt={item.name} className="mx-auto h-28 object-contain" />
-              ) : (
-                <div className="mx-auto flex h-28 items-center justify-center rounded-lg bg-muted text-xs text-muted-foreground">
-                  Imagen pendiente
-                </div>
-              )}
-              <h4 className="mt-2 text-sm font-semibold">{item.name}</h4>
-              {item.description ? (
-                <p className="text-xs text-muted-foreground">{item.description}</p>
-              ) : null}
-              <div className="mt-2 font-bold text-amber-400">🪙 {item.costCoins.toLocaleString('es-ES')}</div>
-              <div className={`text-xs ${item.stock < 4 ? 'text-orange-400' : 'text-emerald-400'}`}>
+            <div key={item.id} className="gp-shop-card">
+              <div className="gp-shop-img">
+                {item.imageUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={item.imageUrl} alt={item.name} />
+                ) : (
+                  <div className="gp-shop-img-empty">Imagen pendiente</div>
+                )}
+              </div>
+              <h4 className="gp-shop-name">{item.name}</h4>
+              {item.description ? <p className="gp-shop-desc">{item.description}</p> : <p className="gp-shop-desc" />}
+              <div className="gp-shop-cost">🪙 {item.costCoins.toLocaleString('es-ES')}</div>
+              <div className={`gp-shop-stock${stockClass}`}>
                 {item.stock > 0 ? `${item.stock} en stock` : 'Agotado'}
               </div>
               <button
+                type="button"
                 onClick={() => handleRedeem(item.id)}
                 disabled={!affordable || isPending}
-                className="mt-3 w-full rounded-lg bg-amber-500 px-3 py-2 text-sm font-bold text-black transition hover:opacity-90 disabled:opacity-40"
+                className="gp-shop-btn"
               >
                 Canjear
               </button>
@@ -82,6 +81,6 @@ export function PlatformShop({ items, balance }: Props) {
           );
         })}
       </div>
-    </div>
+    </>
   );
 }

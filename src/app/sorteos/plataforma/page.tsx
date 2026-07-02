@@ -54,6 +54,7 @@ export default async function PlataformaSorteosPage({
       emoji: visual.emoji,
       color: visual.color,
       sub: visual.sub,
+      photoUrl: c.photoUrl,
     };
   });
 
@@ -108,11 +109,12 @@ export default async function PlataformaSorteosPage({
       />
 
       <main className="gp-wrap">
-        <PlatformHero code={activeVisual.code} />
+        <PlatformHero code={activeVisual.code} creatorName={active.name} />
 
+        {/* --- Impacto visual: partners justo después del hero --- */}
         <BrandBonusesSection creatorCode={activeVisual.code} creatorName={active.name} />
 
-        {/* --- Bloques dinámicos (PR2 rediseñará) --- */}
+        {/* --- Bloques funcionales debajo --- */}
         {userId ? (
           <>
             <section id="racha">
@@ -142,59 +144,37 @@ export default async function PlataformaSorteosPage({
         <section id="sorteos">
           <div className="gp-legacy-block">
             <h2>Sorteos de {active.name}</h2>
-            <p style={{ color: 'var(--muted)', fontSize: 12.5, marginBottom: 14 }}>
-              Participación gratuita · ganas +{ENTRY_COIN_REWARD} 🪙 por sorteo · fotos reales subidas desde el panel
+            <p className="gp-rank-note">
+              Participación gratuita · ganas +{ENTRY_COIN_REWARD} 🪙 por sorteo · fotos reales de las skins
             </p>
-            <div
-              style={{
-                display: 'grid',
-                gap: 24,
-                gridTemplateColumns: 'repeat(auto-fill, minmax(228px, 1fr))',
-              }}
-            >
+            <div className="gp-sorteos-grid">
               {giveawaysData.map((g) => (
-                <article
-                  key={g.id}
-                  style={{
-                    borderRadius: 12,
-                    border: '1px solid var(--line)',
-                    background: 'var(--panel2)',
-                    padding: 16,
-                    textAlign: 'center',
-                  }}
-                >
-                  {g.imageUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={g.imageUrl} alt={g.title} style={{ maxHeight: 128, margin: '0 auto' }} />
-                  ) : (
-                    <div
-                      style={{
-                        height: 128,
-                        borderRadius: 10,
-                        display: 'grid',
-                        placeItems: 'center',
-                        border: '1px dashed rgba(139,61,255,.4)',
-                        color: 'var(--muted)',
-                        fontSize: 11,
-                      }}
-                    >
-                      📷 Foto de la skin (panel admin)
+                <article key={g.id} className="gp-sorteo-card">
+                  <div className="gp-sorteo-glow" aria-hidden />
+                  <div className="gp-sorteo-fg">
+                    <div className="gp-sorteo-img">
+                      {g.imageUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={g.imageUrl} alt={g.title} />
+                      ) : (
+                        <div className="gp-sorteo-img-empty">📷 Foto de la skin</div>
+                      )}
                     </div>
-                  )}
-                  <h3 style={{ marginTop: 10, fontSize: 15, fontWeight: 700 }}>★ {g.title}</h3>
-                  {g.value ? <div style={{ marginTop: 4, fontSize: 18, fontWeight: 700 }}>{g.value}</div> : null}
-                  <div style={{ marginTop: 4, fontSize: 12, color: 'var(--muted)' }}>
-                    👥 <b style={{ color: 'var(--cyan)' }}>{g.entryCount.toLocaleString('es-ES')}</b> participantes
-                  </div>
-                  <div style={{ marginTop: 4, fontSize: 11, color: 'var(--gold)' }}>
-                    Gratis · +{ENTRY_COIN_REWARD} 🪙
-                  </div>
-                  <div style={{ marginTop: 12 }}>
-                    {userId ? (
-                      <EntryButton giveawayId={g.id} initialEntered={g.userHasEntered} />
-                    ) : (
-                      <span style={{ fontSize: 11, color: 'var(--muted)' }}>Inicia sesión para participar</span>
-                    )}
+                    <h3 className="gp-sorteo-title">★ {g.title}</h3>
+                    {g.value ? <div className="gp-sorteo-value">{g.value}</div> : null}
+                    <div className="gp-sorteo-meta">
+                      👥 <b>{g.entryCount.toLocaleString('es-ES')}</b> participantes
+                    </div>
+                    <div className="gp-sorteo-reward">
+                      Gratis · +{ENTRY_COIN_REWARD} 🪙
+                    </div>
+                    <div className="gp-sorteo-cta">
+                      {userId ? (
+                        <EntryButton giveawayId={g.id} initialEntered={g.userHasEntered} />
+                      ) : (
+                        <span className="gp-sorteo-locked">Inicia sesión para participar</span>
+                      )}
+                    </div>
                   </div>
                 </article>
               ))}
@@ -205,9 +185,6 @@ export default async function PlataformaSorteosPage({
         <section id="ranking">
           <div className="gp-legacy-block">
             <h2>Ranking mensual</h2>
-            <p style={{ color: 'var(--muted)', fontSize: 12, marginBottom: 12 }}>
-              Mide participación (tickets), nunca dinero. Los perfiles privados aparecen enmascarados.
-            </p>
             <MonthlyRanking rows={ranking} />
           </div>
         </section>

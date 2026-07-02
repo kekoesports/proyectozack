@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import { PLATFORM_BRANDS } from '../constants/brands';
 
 interface Props {
@@ -10,13 +11,17 @@ export function BrandCardClash({ code }: Props) {
     <div className="gp-card p-gold">
       <div className="glow" aria-hidden />
       <div className="gp-logo-slot">
-        <div className="gp-wordmark wm-clash">
-          <div className="gp-wm-ico" aria-hidden><span>◆</span></div>
-          <div className="gp-wm-txt">
-            CLASH<i>.GG</i>
-          </div>
-        </div>
-        <div className="gp-logo-note">↳ {brand.logoAsset}</div>
+        {brand.logoAsset ? (
+          <Image
+            src={brand.logoAsset}
+            alt={brand.displayName}
+            width={170}
+            height={44}
+            className="gp-brand-logo"
+          />
+        ) : (
+          <div className="gp-brand-logo-fallback">{brand.displayName}</div>
+        )}
       </div>
       <p className="gp-resp" style={{ margin: '12px 0 10px' }}>{brand.disclaimer}</p>
       <span className="pill-offer">
@@ -30,14 +35,17 @@ export function BrandCardClash({ code }: Props) {
       <button type="button" className="gp-btn btn-gold" data-todo="claim-code">
         Reclamar
       </button>
-      <div className="agent-wrap" aria-hidden>
-        <div className="gp-agent v2">
-          <div className="head" data-tag="" />
-          <div className="torso" />
-          <div className="arms" />
-          <div className="vest" />
+      {brand.agentAsset ? (
+        <div className="gp-brand-agent-wrap" aria-hidden>
+          <Image
+            src={brand.agentAsset}
+            alt=""
+            width={220}
+            height={280}
+            className="gp-brand-agent"
+          />
         </div>
-      </div>
+      ) : null}
     </div>
   );
 }
