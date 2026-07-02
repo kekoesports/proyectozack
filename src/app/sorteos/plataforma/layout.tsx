@@ -8,6 +8,7 @@ import './platform-hero.css';
 import './platform-brand-cards.css';
 import './platform-fx.css';
 import './platform-widgets.css';
+import './platform-keydrop.css';
 
 const rajdhani = Rajdhani({
   subsets: ['latin'],

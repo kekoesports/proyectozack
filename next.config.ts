@@ -138,6 +138,9 @@ const nextConfig: NextConfig = {
       { protocol: 'https', hostname: '*.ytimg.com' },
       // Imgur — brand logos entered via admin panel
       { protocol: 'https', hostname: 'i.imgur.com' },
+      // KeyDrop CDN — imágenes de premios de sorteos (PR-1c-1)
+      { protocol: 'https', hostname: 'cdnkd.com' },
+      { protocol: 'https', hostname: '*.cdnkd.com' },
     ],
   },
   // pdfjs-dist, mupdf, tesseract.js are external so nft doesn't auto-trace their

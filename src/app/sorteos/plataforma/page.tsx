@@ -24,6 +24,8 @@ import { MissionsGrid } from '@/features/giveaway-platform/components/MissionsGr
 import { EntryButton } from '@/features/giveaway-platform/components/EntryButton';
 import { PlatformShop } from '@/features/giveaway-platform/components/PlatformShop';
 import { MonthlyRanking } from '@/features/giveaway-platform/components/MonthlyRanking';
+import { KeydropGiveawaysSection } from '@/features/giveaway-platform/components/KeydropGiveawaysSection';
+import { getKeydropZacketizorGiveaways, type KeydropSections } from '@/lib/queries/keydropGiveaways';
 
 /**
  * PR1 (v2 shell): nav sticky + hero Bonuses + tarjetas estáticas de marcas.
@@ -90,9 +92,14 @@ export default async function PlataformaSorteosPage({
       ])
     : [0, [], undefined];
 
-  const [ranking, shopItemsData] = await Promise.all([
+  const [ranking, shopItemsData, keydropSections] = await Promise.all([
     getMonthlyRanking(10),
     getActiveShopItems(),
+    // KeyDrop live-cache: solo para ZACKETIZOR. Degrada a listas vacías
+    // si falta env, si KeyDrop cae, si shape falla — nunca lanza.
+    active.slug === 'zacketizor'
+      ? getKeydropZacketizorGiveaways()
+      : Promise.resolve<KeydropSections>({ active: [], finished: [], status: 'not_configured' }),
   ]);
 
   const today = todayInPlatformTz();
@@ -181,6 +188,9 @@ export default async function PlataformaSorteosPage({
             </div>
           </div>
         </section>
+
+        {/* --- Sorteos KeyDrop de ZACKETIZOR (live-cache, solo lectura) --- */}
+        <KeydropGiveawaysSection sections={keydropSections} creatorDisplayName={active.name} />
 
         <section id="ranking">
           <div className="gp-legacy-block">
