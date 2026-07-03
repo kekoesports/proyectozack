@@ -296,6 +296,62 @@ export async function sendInvoiceEmail(payload: {
   });
 }
 
+/**
+ * Notifica al equipo interno que un usuario ha canjeado una recompensa que
+ * requiere envío/revisión manual (típicamente skins CS2 vía Steam Trade
+ * Offer). Se dispara desde `redeemShopItem` en fire-and-forget — si el
+ * email falla no revierte el canje. Los datos sensibles (Steam Trade URL,
+ * email) NO se loguean, se envían directo por Resend.
+ */
+export async function sendRewardRedemptionEmail(payload: {
+  redemptionId: number;
+  rewardName: string;
+  rewardCategory: string;
+  costPoints: number;
+  userEmail: string | null;
+  steamName: string | null;
+  steamId: string | null;
+  steamTradeUrl: string | null;
+  createdAtIso: string;
+}): Promise<void> {
+  const name = escapeHtml(payload.rewardName);
+  const category = escapeHtml(payload.rewardCategory);
+  const userEmail = payload.userEmail ? escapeHtml(payload.userEmail) : '—';
+  const steamName = payload.steamName ? escapeHtml(payload.steamName) : '—';
+  const steamId = payload.steamId ? escapeHtml(payload.steamId) : '—';
+  const tradeUrl = payload.steamTradeUrl ? escapeHtml(payload.steamTradeUrl) : '—';
+  const subject = payload.rewardCategory === 'skin'
+    ? `Nueva recompensa solicitada · Skin CS2 — ${payload.rewardName}`
+    : `Nueva recompensa solicitada — ${payload.rewardName}`;
+
+  await resend.emails.send({
+    from: 'SocialPro Giveaways <noreply@socialpro.es>',
+    to: 'info@socialpro.es',
+    subject,
+    html: `
+      <div style="font-family:Inter,sans-serif;max-width:560px;color:#16161f;">
+        <h2 style="font-family:'Barlow Condensed',sans-serif;text-transform:uppercase;">
+          Nueva recompensa solicitada
+        </h2>
+        <p><strong>Recompensa:</strong> ${name}</p>
+        <p><strong>Categoría:</strong> ${category}</p>
+        <p><strong>Precio en puntos:</strong> ${payload.costPoints.toLocaleString('es-ES')}</p>
+        <hr style="margin:16px 0;border:none;border-top:1px solid #e5e7eb;"/>
+        <p><strong>Usuario:</strong> ${steamName}</p>
+        <p><strong>Steam ID:</strong> ${steamId}</p>
+        <p><strong>Email:</strong> ${userEmail}</p>
+        <p><strong>Steam Trade URL:</strong> <a href="${tradeUrl}" style="color:#f5632a;">${tradeUrl}</a></p>
+        <hr style="margin:16px 0;border:none;border-top:1px solid #e5e7eb;"/>
+        <p><strong>Redemption ID:</strong> ${payload.redemptionId}</p>
+        <p><strong>Fecha:</strong> ${escapeHtml(payload.createdAtIso)}</p>
+        <p style="color:#6b6864;font-size:12px;margin-top:24px;">
+          Revisa el canje en el panel de admin y envía la recompensa manualmente.
+        </p>
+      </div>
+    `,
+  });
+}
+
 export async function sendBrandInviteEmail(payload: {
   brandEmail: string;
   brandName: string;

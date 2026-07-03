@@ -341,6 +341,29 @@
   color: #ff5d7d;
   font-size: 13px;
   margin: 0 0 10px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: rgba(255, 93, 125, 0.08);
+  border: 1px solid rgba(255, 93, 125, 0.35);
+}
+.giveaway-platform .gp-shop-error p { margin: 0 0 6px; }
+.giveaway-platform .gp-shop-error-cta {
+  display: inline-block;
+  color: var(--cyan);
+  font-weight: 700;
+  text-decoration: none;
+  font-size: 12.5px;
+  letter-spacing: 0.5px;
+}
+.giveaway-platform .gp-shop-error-cta:hover { text-decoration: underline; }
+.giveaway-platform .gp-shop-success {
+  color: #4ade80;
+  font-size: 13px;
+  margin: 0 0 10px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: rgba(74, 222, 128, 0.10);
+  border: 1px solid rgba(74, 222, 128, 0.35);
 }
 .giveaway-platform .gp-shop-grid {
   display: grid;

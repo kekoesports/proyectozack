@@ -145,23 +145,45 @@ export async function claimDailyReward(): Promise<ActionResult<{ coinsEarned: nu
   return { ok: true, data: { coinsEarned, day } };
 }
 
+/**
+ * Códigos de error del canje. Permiten al cliente diferenciar la falta
+ * de Trade URL (que muestra una CTA a /sorteos/perfil) de otros errores.
+ */
+type RedeemErrorCode =
+  | 'unauthenticated'
+  | 'invalid_input'
+  | 'item_unavailable'
+  | 'insufficient_balance'
+  | 'trade_url_required'
+  | 'shipping_required'
+  | 'out_of_stock'
+  | 'internal';
+
+/**
+ * Resultado del canje. En éxito devuelve `redemptionId` + copy amistoso
+ * para que el cliente muestre "Solicitud recibida. Revisaremos el canje…".
+ */
+export type RedeemResult =
+  | { ok: true; data: { redemptionId: number; requiresManualReview: boolean } }
+  | { ok: false; code: RedeemErrorCode; error: string };
+
 /** Canjea un item de tienda: valida saldo, decrementa stock condicionalmente y registra el canje. */
-export async function redeemShopItem(input: unknown): Promise<ActionResult<{ redemptionId: number }>> {
+export async function redeemShopItem(input: unknown): Promise<RedeemResult> {
   const sessionUser = await requirePlayerSession();
-  if (!sessionUser) return { ok: false, error: 'Inicia sesión con Steam' };
+  if (!sessionUser) return { ok: false, code: 'unauthenticated', error: 'Inicia sesión con Steam' };
 
   const parsed = redeemSchema.safeParse(input);
-  if (!parsed.success) return { ok: false, error: 'Item no válido' };
+  if (!parsed.success) return { ok: false, code: 'invalid_input', error: 'Item no válido' };
   const { shopItemId } = parsed.data;
 
   const item = await db.query.shopItems.findFirst({
     where: and(eq(shopItems.id, shopItemId), eq(shopItems.isActive, true)),
   });
-  if (!item) return { ok: false, error: 'El item no está disponible' };
+  if (!item) return { ok: false, code: 'item_unavailable', error: 'El item no está disponible' };
 
   const balance = await getCoinBalance(sessionUser.id);
   if (balance < item.costCoins) {
-    return { ok: false, error: 'No tienes puntos suficientes' };
+    return { ok: false, code: 'insufficient_balance', error: 'No tienes puntos suficientes' };
   }
 
   // Snapshot de entrega según categoría.
@@ -169,10 +191,18 @@ export async function redeemShopItem(input: unknown): Promise<ActionResult<{ red
     where: eq(playerProfiles.userId, sessionUser.id),
   });
   if (item.category === 'skin' && !profile?.steamTradeUrl) {
-    return { ok: false, error: 'Añade tu Steam Trade URL en tu perfil antes de canjear skins' };
+    return {
+      ok: false,
+      code: 'trade_url_required',
+      error: 'Para canjear esta recompensa necesitas añadir tu Steam Trade URL en tu perfil.',
+    };
   }
   if (item.category === 'merch' && !profile?.shippingAddress) {
-    return { ok: false, error: 'Añade tu dirección de envío antes de canjear merchandising' };
+    return {
+      ok: false,
+      code: 'shipping_required',
+      error: 'Añade tu dirección de envío antes de canjear merchandising',
+    };
   }
   const deliveryInfo =
     item.category === 'skin' ? profile?.steamTradeUrl
@@ -185,7 +215,7 @@ export async function redeemShopItem(input: unknown): Promise<ActionResult<{ red
     .set({ stock: sql`${shopItems.stock} - 1`, updatedAt: new Date() })
     .where(and(eq(shopItems.id, shopItemId), gt(shopItems.stock, 0)))
     .returning({ id: shopItems.id });
-  if (stockUpdated.length === 0) return { ok: false, error: 'Item agotado' };
+  if (stockUpdated.length === 0) return { ok: false, code: 'out_of_stock', error: 'Item agotado' };
 
   await db.insert(coinTransactions).values({
     userId: sessionUser.id,
@@ -203,13 +233,46 @@ export async function redeemShopItem(input: unknown): Promise<ActionResult<{ red
       deliveryInfo: deliveryInfo ?? null,
     })
     .returning({ id: redemptions.id });
-  if (!redemption) return { ok: false, error: 'No se pudo crear el canje' };
+  if (!redemption) return { ok: false, code: 'internal', error: 'No se pudo crear el canje' };
 
   // Trigger para misiones basadas en redemptions_total (p.ej. "Primer canje").
   await evaluateAndClaimMissions(sessionUser.id);
 
+  // Notificación al equipo interno — solo para categorías que requieren
+  // envío/revisión manual (skins hoy; merch cuando aplique). Fire-and-forget:
+  // si Resend falla no revertimos el canje.
+  if (item.category === 'skin') {
+    try {
+      const { sendRewardRedemptionEmail } = await import('@/lib/email');
+      await sendRewardRedemptionEmail({
+        redemptionId: redemption.id,
+        rewardName: item.name,
+        rewardCategory: item.category,
+        costPoints: item.costCoins,
+        userEmail: sessionUser.email ?? null,
+        steamName: sessionUser.name ?? null,
+        steamId: profile?.steamId ?? null,
+        steamTradeUrl: profile?.steamTradeUrl ?? null,
+        createdAtIso: new Date().toISOString(),
+      });
+    } catch {
+      // No revertimos el canje si el email falla. Log seguro (sin PII —
+      // el motivo del fallo lo veremos en el dashboard de Resend).
+      console.warn('[redeem] internal notification failed', {
+        redemptionId: redemption.id,
+        category: item.category,
+      });
+    }
+  }
+
   revalidatePath('/sorteos', 'layout');
-  return { ok: true, data: { redemptionId: redemption.id } };
+  return {
+    ok: true,
+    data: {
+      redemptionId: redemption.id,
+      requiresManualReview: item.category === 'skin' || item.category === 'merch',
+    },
+  };
 }
 
 /** Guarda la Steam Trade URL del perfil. */

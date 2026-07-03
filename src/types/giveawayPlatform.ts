@@ -34,7 +34,7 @@ export type Redemption = InferSelectModel<typeof redemptions>;
  * del usuario) sí hace falta migración — ver `docs/sorteos-coin-economy.md`
  * §4.2. Mientras tanto se pueden canjear y quedan en `redemptions`.
  */
-export type ShopCategory = 'skin' | 'merch' | 'gift' | 'profile' | 'frame' | 'badge';
+export type ShopCategory = 'skin' | 'merch' | 'team' | 'gift' | 'profile' | 'frame' | 'badge';
 export type RedemptionStatus = 'pendiente' | 'enviado' | 'cancelado';
 export type MissionConditionType = 'entries_total' | 'distinct_creators' | 'streak_days';
 export type CoinSource = 'racha' | 'mision' | 'sorteo' | 'tienda' | 'admin';
