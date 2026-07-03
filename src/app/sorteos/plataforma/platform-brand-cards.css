@@ -157,8 +157,46 @@
   font-size: 12px;
 }
 
-/* ================ CLASH + MONKEY (gold cards) ================ */
+/* ================ GRIDS ADAPTATIVOS ================ */
+.giveaway-platform .gp-grid-1 { display: grid; grid-template-columns: 1fr; gap: 26px; }
 .giveaway-platform .gp-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; }
+@media (max-width: 720px) {
+  .giveaway-platform .gp-grid-2 { grid-template-columns: 1fr; }
+}
+
+/* ================ PLACEHOLDER — creador sin deals confirmados ================
+ * Regla del proyecto: nunca inventar partnerships. Cuando un creador no
+ * tiene deals reales confirmados, se muestra este banner honesto en vez
+ * de una fila vacía o cards falsas.
+ */
+.giveaway-platform .gp-bonuses-empty { margin-top: 6px; }
+.giveaway-platform .gp-bonuses-empty-inner {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  padding: 20px 26px;
+  border-radius: 16px;
+  background: rgba(11, 9, 23, 0.55);
+  border: 1px dashed rgba(196, 40, 128, 0.35);
+}
+.giveaway-platform .gp-bonuses-empty-icon { font-size: 32px; line-height: 1; flex-shrink: 0; }
+.giveaway-platform .gp-bonuses-empty-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+  line-height: 1.55;
+}
+.giveaway-platform .gp-bonuses-empty-body b {
+  font-family: var(--font-display), var(--font-rajdhani), sans-serif;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  font-size: 14px;
+  color: var(--gold);
+}
+.giveaway-platform .gp-bonuses-empty-body span { color: var(--muted); }
+
+/* ================ CLASH + MONKEY (gold cards) ================ */
 .giveaway-platform .p-gold {
   border-color: rgba(245, 183, 61, 0.4);
   padding: 32px 34px;

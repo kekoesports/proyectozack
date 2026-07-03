@@ -17,8 +17,20 @@ const SLUG_TYPO_REDIRECTS: Record<string, string> = {
   zacketizador: 'zacketizor',
   huaso: 'huasopeek',
   huasopeak: 'huasopeek',
-  martines: 'martinez',
   naaw: 'naow',
+  // Roster nuevo (2026-07-03): defensivos para typos comunes.
+  todo: 'todocs2',
+  todocs: 'todocs2',
+  'todo-cs2': 'todocs2',
+  jolucs2: 'jolu',
+  jolucs: 'jolu',
+  'jolu-cs2': 'jolu',
+  imantao: 'imantado',
+  imanta: 'imantado',
+  // Roster antiguo (martinez retirado 2026-07-03): quien aterrice en la
+  // URL antigua va al índice, no a un notFound.
+  martinez: '',
+  martines: '',
 };
 
 export async function generateStaticParams() {
@@ -66,9 +78,12 @@ export default async function SorteosCreatorPage({
   const { creatorSlug } = await params;
   const slugLc = creatorSlug.toLowerCase();
 
-  // Redirect defensivo por typos conocidos.
-  const typoTarget = SLUG_TYPO_REDIRECTS[slugLc];
-  if (typoTarget) redirect(`/sorteos/${typoTarget}`);
+  // Redirect defensivo por typos conocidos. Target='' → índice /sorteos
+  // (útil para slugs retirados como martinez).
+  if (Object.prototype.hasOwnProperty.call(SLUG_TYPO_REDIRECTS, slugLc)) {
+    const target = SLUG_TYPO_REDIRECTS[slugLc];
+    redirect(target ? `/sorteos/${target}` : '/sorteos');
+  }
 
   // Guard duro contra slugs que no son creadores de la plataforma.
   if (!PLATFORM_CREATOR_SLUGS.includes(slugLc as (typeof PLATFORM_CREATOR_SLUGS)[number])) {

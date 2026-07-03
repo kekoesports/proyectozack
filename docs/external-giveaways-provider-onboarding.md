@@ -285,10 +285,14 @@ Al mergear, memoria (`~/.claude/.../memory/`) recibe una entry
 
 | Creador (slug) | Provider | Código | Estado |
 |---|---|---|---|
-| zacketizor | KeyDrop | ZACKCSGO | ✅ En producción desde 2026-07-01. |
+| zacketizor | KeyDrop + CSGO-SKINS | ZACKCSGO | ✅ KeyDrop con API real; CSGO-SKINS como card promocional. |
 | naow | — | — | ⏸ Pendiente de deal + datos confirmados. |
 | huasopeek | — | — | ⏸ Pendiente de deal + datos confirmados. |
-| martinez | — | — | ⏸ Pendiente de deal + datos confirmados. |
+| todocs2 | — | — | ⏸ Pendiente de deal + datos confirmados. |
+| imantado | — | — | ⏸ Pendiente de deal + datos confirmados. |
+| jolu | — | — | ⏸ Pendiente de deal + datos confirmados. |
+
+*(martinez retirado del roster público 2026-07-03.)*
 
 Nada más está confirmado. Los comentarios `csgoroll` / `hellcase` que
 aparecen en `types.ts` son placeholders históricos y NO representan

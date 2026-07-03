@@ -88,7 +88,9 @@ describe('[external-giveaways] CREATOR_PROVIDER_BINDINGS', () => {
     expect(isExternalCreator('zacketizor')).toBe(true);
     expect(isExternalCreator('naow')).toBe(false);
     expect(isExternalCreator('huasopeek')).toBe(false);
-    expect(isExternalCreator('martinez')).toBe(false);
+    expect(isExternalCreator('todocs2')).toBe(false);
+    expect(isExternalCreator('imantado')).toBe(false);
+    expect(isExternalCreator('jolu')).toBe(false);
     expect(isExternalCreator('unknown-slug')).toBe(false);
   });
 });
