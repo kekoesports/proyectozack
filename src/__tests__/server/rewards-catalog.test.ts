@@ -233,9 +233,12 @@ describe('[rewards-catalog] script enrich-rewards detecta CI/prod', () => {
 describe('[rewards-catalog] UI PlatformShop consume el catálogo', () => {
   const src = read('src/features/giveaway-platform/components/PlatformShop.tsx');
 
-  it('importa PLANNED_TEAM_MERCH del catálogo (REAL_STEAM_REWARDS vive en DB tras seed)', () => {
+  it('importa PLANNED_TEAM_MERCH y REAL_STEAM_REWARDS del catálogo', () => {
+    // REAL_STEAM_REWARDS se importa para mostrar las 8 skins como
+    // "próximamente" (con imagen real) mientras el seed no las mueva a DB.
+    // Se filtran por `name` contra items ya en DB para no duplicar.
     expect(src).toMatch(/import\s*\{[^}]*PLANNED_TEAM_MERCH[^}]*\}\s*from\s*'@\/features\/giveaway-platform\/constants\/rewards-catalog'/);
-    expect(src).not.toMatch(/import\s*\{[^}]*REAL_STEAM_REWARDS/);
+    expect(src).toMatch(/import\s*\{[^}]*REAL_STEAM_REWARDS[^}]*\}\s*from\s*'@\/features\/giveaway-platform\/constants\/rewards-catalog'/);
   });
 
   it('YA no hay bloque separado "Próximas en tienda" — todo en un grid', () => {

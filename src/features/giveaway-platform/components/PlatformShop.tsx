@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { redeemShopItem } from '@/app/sorteos/plataforma/actions';
 import {
   PLANNED_TEAM_MERCH,
+  REAL_STEAM_REWARDS,
   type CatalogReward,
 } from '@/features/giveaway-platform/constants/rewards-catalog';
 import type { ShopCategory, ShopItem } from '@/types/giveawayPlatform';
@@ -50,13 +51,25 @@ export function PlatformShop({ items, balance, hasSteamTradeUrl }: Props) {
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  // Merch de equipos CS2 planificado — se mezcla con `items` (DB) para que
-  // el filtro por categoría funcione uniforme y no haya bloque aparte.
-  // Cuando un `PLANNED_TEAM_MERCH` tenga equivalente en DB (por `name`),
-  // se filtra fuera para no duplicar.
+  // Recompensas "próximamente" en el mismo grid — sin bloque separado.
+  // Combina dos fuentes:
+  //   1. `REAL_STEAM_REWARDS` — las 8 skins CS2 reales, mientras el seed
+  //      no las haya movido a DB. Renderizadas con su imagen real, nombre,
+  //      precio en puntos y stock — Canjear disabled hasta que se active.
+  //   2. `PLANNED_TEAM_MERCH` — camisetas de equipos planned, placeholder
+  //      visual sin logo oficial.
+  //
+  // Cuando el owner corre el seed (o activa un item manualmente), el mismo
+  // `name` aparece en `items` (DB) → esta lista lo filtra para no duplicar
+  // y la card canjeable de la grid principal es la única visible.
   const upcomingCards = useMemo(() => {
     const dbNames = new Set(items.map((i) => i.name));
-    return PLANNED_TEAM_MERCH.filter((m) => !dbNames.has(m.name));
+    const skinsPending = REAL_STEAM_REWARDS.filter(
+      (r) => r.status === 'active' && !dbNames.has(r.name),
+    );
+    const teamPending = PLANNED_TEAM_MERCH.filter((m) => !dbNames.has(m.name));
+    // Skins primero (más atractivas visualmente) — luego team merch.
+    return [...skinsPending, ...teamPending];
   }, [items]);
 
   const counts = useMemo<Record<string, number>>(() => {
