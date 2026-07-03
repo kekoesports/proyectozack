@@ -175,7 +175,10 @@
   border-color: rgba(224, 48, 112, 0.55);
 }
 
-/* ================ RANKING MENSUAL ================ */
+/* ================ RANKING MENSUAL ================
+ * El variante mini (empty state small) vive en
+ * platform-mini-placeholders.css para no saturar este archivo.
+ */
 .giveaway-platform .gp-rank-empty {
   color: var(--muted);
   font-size: 13px;
@@ -305,6 +308,8 @@
   font-weight: 800;
   margin-left: 4px;
 }
+
+/* Histórico ganadores y empty-mini viven en platform-mini-placeholders.css */
 
 /* ================ TIENDA / CANJEO ================ */
 .giveaway-platform .gp-shop-tabs {

@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useRef, useState, useTransition } from 'react';
 import { steamLogout } from '@/features/giveaway-platform/actions/steamLogout';
+import { SteamAvatar } from './SteamAvatar';
 
 interface Props {
   userName: string | null;
@@ -61,19 +62,7 @@ export function UserPill({ userName, userImage, balance, loggedIn }: Props) {
   return (
     <div ref={ref} className={`gp-user-wrap${open ? ' open' : ''}`}>
       <button type="button" className="gp-user-pill" onClick={() => setOpen((v) => !v)}>
-        {userImage ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={userImage}
-            alt=""
-            aria-hidden
-            className="gp-avatar gp-avatar-img"
-            width={26}
-            height={26}
-          />
-        ) : (
-          <span className="gp-avatar" aria-hidden>🎮</span>
-        )}
+        <SteamAvatar imageUrl={userImage} name={userName} size={26} className="gp-avatar" />
         <span className="gp-user-name">{userName ?? 'Jugador'}</span>
         <span className="gp-balance">
           <span>{balance.toLocaleString('es-ES')}</span>

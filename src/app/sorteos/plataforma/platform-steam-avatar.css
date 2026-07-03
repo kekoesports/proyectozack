@@ -1,0 +1,40 @@
+/*
+ * SteamAvatar — avatar Steam con fallback premium.
+ *
+ * Se aplica encima de la clase base pasada por prop (.gp-avatar en el pill,
+ * .gp-profile-avatar en /perfil). El hijo hereda width/height/border-radius
+ * de la clase padre; SteamAvatar solo controla el look interno.
+ *
+ * Reglas del componente:
+ *   - Si session.user.image llega vacío o el <img> falla al cargar (CDN
+ *     bloqueado, CSP), NUNCA renderizamos <img> roto — caemos al fallback
+ *     de iniciales + gradient SP (orange → pink → purple).
+ *   - Esto elimina el "icono de Windows" (broken image system icon) que
+ *     aparecía cuando el user existía en DB con image=null (creado antes
+ *     de configurar STEAM_API_KEY en Vercel Production).
+ */
+
+.giveaway-platform .gp-steam-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+  display: block;
+}
+
+.giveaway-platform .gp-steam-avatar-fallback {
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--sp-orange) 0%, var(--sp-pink) 45%, var(--sp-purple) 100%);
+  color: #fff;
+  font-family: var(--font-display), var(--font-rajdhani), sans-serif;
+  font-weight: 900;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  border: 2px solid rgba(224, 48, 112, 0.55);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+/* En el pill (26px) el fallback usa border-width 1px para que no ahogue el glifo. */
+.giveaway-platform .gp-user-pill .gp-steam-avatar-fallback { border-width: 1px; }
