@@ -6,7 +6,7 @@
  * buckets active/finished.
  */
 
-import { keydropItemToCard, formatCurrency } from '@/lib/external-giveaways/providers/keydrop/mapper';
+import { keydropItemToCard, formatCurrency, buildKeydropDeepLink } from '@/lib/external-giveaways/providers/keydrop/mapper';
 import {
   KeydropListItemSchema,
   KeydropListResponseSchema,
@@ -54,10 +54,8 @@ const baseItem: KeydropListItem = {
   chance: 0,
 };
 
-const EXTERNAL_URL = 'https://key-drop.com/es/giveaways';
-
 function map(item: KeydropListItem, creatorSlug = 'zacketizor') {
-  return keydropItemToCard({ item, creatorSlug, externalUrl: EXTERNAL_URL });
+  return keydropItemToCard({ item, creatorSlug });
 }
 
 describe('[keydrop-mapper] activo → ExternalGiveawayCard', () => {
@@ -89,8 +87,23 @@ describe('[keydrop-mapper] activo → ExternalGiveawayCard', () => {
     expect(map(baseItem).promoCode).toBe('ZACKCSGO');
   });
 
-  it('externalUrl es el que llega por prop (no lo construye)', () => {
-    expect(map(baseItem).externalUrl).toBe(EXTERNAL_URL);
+  it('externalUrl usa kd.link con code + giveaway id (deep link con promocode)', () => {
+    // baseItem.organizer.promocode = 'ZACKCSGO', item.id = 'o3S8gi66000'
+    expect(map(baseItem).externalUrl).toBe(
+      'https://kd.link/?code=ZACKCSGO&giveaway=o3S8gi66000',
+    );
+  });
+
+  it('externalUrl siempre incluye el id del giveaway (no genérico)', () => {
+    const url = map(baseItem).externalUrl;
+    expect(url).toContain('o3S8gi66000');
+    expect(url).not.toBe('https://keydrop.com/es/giveaways');
+    expect(url).not.toBe('https://key-drop.com/es/giveaways');
+  });
+
+  it('externalUrl usa dominio nuevo keydrop.com (nunca el legacy key-drop.com con guión)', () => {
+    // El dominio antiguo devuelve 403 Cloudflare — nunca lo usamos.
+    expect(map(baseItem).externalUrl).not.toMatch(/key-drop\.com/);
   });
 
   it('prizeCount + prizesPreview + extraPrizeCount coherentes', () => {
@@ -239,5 +252,51 @@ describe('[keydrop-mapper] Zod schemas parsean el shape real', () => {
   it('acepta prizes con subtitle null', () => {
     const item = { ...baseItem, prizes: [prizeFactory({ subtitle: null })] };
     expect(KeydropListItemSchema.safeParse(item).success).toBe(true);
+  });
+});
+
+describe('[keydrop-mapper] buildKeydropDeepLink — deep link con promocode', () => {
+  it('id + promoCode → shortener kd.link con ambos parámetros', () => {
+    expect(buildKeydropDeepLink('o3S8gi66000', 'ZACKCSGO')).toBe(
+      'https://kd.link/?code=ZACKCSGO&giveaway=o3S8gi66000',
+    );
+  });
+
+  it('URL-encodea el id y el promoCode', () => {
+    // Caso extremo: promocode con guion o espacios NO debería llegar, pero
+    // si llegara, se sanea para no romper la URL.
+    expect(buildKeydropDeepLink('id/with slash', 'CODE 1')).toBe(
+      'https://kd.link/?code=CODE%201&giveaway=id%2Fwith%20slash',
+    );
+  });
+
+  it('sin promoCode → path canónico keydrop.com/es/giveaways/{id}', () => {
+    expect(buildKeydropDeepLink('o3S8gi66000', undefined)).toBe(
+      'https://keydrop.com/es/giveaways/o3S8gi66000',
+    );
+    expect(buildKeydropDeepLink('o3S8gi66000', '')).toBe(
+      'https://keydrop.com/es/giveaways/o3S8gi66000',
+    );
+  });
+
+  it('sin id ni promoCode → listing genérico (nunca URL rota /giveaway/ vacío)', () => {
+    expect(buildKeydropDeepLink('', undefined)).toBe('https://keydrop.com/es/giveaways');
+    expect(buildKeydropDeepLink('', '')).toBe('https://keydrop.com/es/giveaways');
+  });
+
+  it('nunca produce URL sobre el dominio legacy key-drop.com (403 Cloudflare)', () => {
+    expect(buildKeydropDeepLink('any', 'ANY')).not.toMatch(/key-drop\.com/);
+    expect(buildKeydropDeepLink('any', undefined)).not.toMatch(/key-drop\.com/);
+    expect(buildKeydropDeepLink('', undefined)).not.toMatch(/key-drop\.com/);
+  });
+
+  it('nunca genera /giveaway/ (singular) — devuelve 404 en keydrop.com', () => {
+    expect(buildKeydropDeepLink('any', 'ANY')).not.toMatch(/\/giveaway\//);
+    expect(buildKeydropDeepLink('any', undefined)).not.toMatch(/\/giveaway\//);
+  });
+
+  it('no pierde el id del giveaway cuando lo tiene', () => {
+    expect(buildKeydropDeepLink('my-real-id', 'PROMO')).toContain('my-real-id');
+    expect(buildKeydropDeepLink('my-real-id', undefined)).toContain('my-real-id');
   });
 });

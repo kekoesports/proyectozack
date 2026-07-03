@@ -194,6 +194,49 @@
 }
 .giveaway-platform .gp-dd-item span { font-size: 10.5px; color: var(--muted); }
 
+/* Scalable dropdown: search input + scrollable list + empty state */
+.giveaway-platform .gp-dd-search {
+  width: 100%;
+  padding: 8px 10px;
+  margin-bottom: 6px;
+  border-radius: 9px;
+  background: rgba(11, 9, 23, 0.6);
+  border: 1px solid rgba(196, 40, 128, 0.28);
+  color: var(--txt);
+  font-family: var(--font-body), sans-serif;
+  font-size: 12.5px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.giveaway-platform .gp-dd-search::placeholder { color: var(--muted); }
+.giveaway-platform .gp-dd-search:focus { border-color: rgba(224, 48, 112, 0.55); }
+.giveaway-platform .gp-dd-scroll {
+  max-height: 320px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(224, 48, 112, 0.45) transparent;
+}
+.giveaway-platform .gp-dd-scroll::-webkit-scrollbar { width: 6px; }
+.giveaway-platform .gp-dd-scroll::-webkit-scrollbar-thumb {
+  background: rgba(224, 48, 112, 0.45);
+  border-radius: 3px;
+}
+.giveaway-platform .gp-dd-empty {
+  padding: 14px 10px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--muted);
+  font-style: italic;
+}
+/* Items en el nuevo dropdown son <button>, no <a>: normalizamos */
+.giveaway-platform button.gp-dd-item {
+  width: 100%;
+  border: 1px solid transparent;
+  background: transparent;
+  text-align: left;
+  font-family: inherit;
+}
+
 .giveaway-platform .gp-nav-links { display: flex; gap: 2px; margin: 0 auto; }
 .giveaway-platform .gp-nav-links a {
   color: var(--txt);
@@ -243,6 +286,12 @@
   place-items: center;
   font-size: 14px;
   color: #fff;
+  flex-shrink: 0;
+}
+.giveaway-platform .gp-avatar-img {
+  padding: 0;
+  object-fit: cover;
+  border: 1px solid rgba(224, 48, 112, 0.4);
 }
 .giveaway-platform .gp-user-name { font-size: 12.5px; font-weight: 600; }
 .giveaway-platform .gp-balance {

@@ -16,6 +16,7 @@ interface Props {
   creators: CreatorOption[];
   activeSlug: string;
   userName: string | null;
+  userImage: string | null;
   balance: number;
   loggedIn: boolean;
 }
@@ -29,7 +30,7 @@ const NAV_ITEMS = [
   { href: '#tienda', label: 'Tienda' },
 ];
 
-export function PlatformNav({ creators, activeSlug, userName, balance, loggedIn }: Props) {
+export function PlatformNav({ creators, activeSlug, userName, userImage, balance, loggedIn }: Props) {
   return (
     <nav className="gp-nav" aria-label="Plataforma de sorteos">
       <div className="gp-nav-inner">
@@ -58,7 +59,7 @@ export function PlatformNav({ creators, activeSlug, userName, balance, loggedIn 
           ))}
         </div>
 
-        <UserPill userName={userName} balance={balance} loggedIn={loggedIn} />
+        <UserPill userName={userName} userImage={userImage} balance={balance} loggedIn={loggedIn} />
       </div>
     </nav>
   );

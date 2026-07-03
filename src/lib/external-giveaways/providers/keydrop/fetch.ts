@@ -13,18 +13,10 @@ import { keydropItemToCard } from './mapper';
  */
 
 const KEYDROP_BASE_URL = 'https://ws-2071.socket-cs.com/v1/giveaway-user';
-const KEYDROP_LISTING_URL = 'https://key-drop.com/es/giveaways';
+// Listing público del provider (para el badge del registry). El deep link
+// por sorteo lo construye el mapper con `buildKeydropDeepLink(id, promoCode)`.
+const KEYDROP_LISTING_URL = 'https://keydrop.com/es/giveaways';
 const KEYDROP_REVALIDATE_SECONDS = 60;
-
-/**
- * URL destino del botón "Ver en KeyDrop". KeyDrop no expone URL pública
- * individual por giveaway (verificado 2026-07 — devuelve 404); apuntamos
- * al listing general. Si en el futuro KeyDrop publica URLs por id,
- * actualizar aquí y el argumento _id vuelve a interpolarse.
- */
-function buildKeydropExternalUrl(_id: string): string {
-  return KEYDROP_LISTING_URL;
-}
 
 /**
  * Fetch para un creador concreto: llama /api/list y mapea. Devuelve el
@@ -60,10 +52,10 @@ export async function fetchKeydropForCreator(input: {
   }
 
   const active = res.data.data.active.map((item) =>
-    keydropItemToCard({ item, creatorSlug, externalUrl: buildKeydropExternalUrl(item.id) })
+    keydropItemToCard({ item, creatorSlug })
   );
   const finished = res.data.data.finished.map((item) =>
-    keydropItemToCard({ item, creatorSlug, externalUrl: buildKeydropExternalUrl(item.id) })
+    keydropItemToCard({ item, creatorSlug })
   );
   return { ok: true, active, finished };
 }

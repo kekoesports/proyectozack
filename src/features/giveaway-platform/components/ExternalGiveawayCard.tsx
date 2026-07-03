@@ -28,7 +28,7 @@ export function ExternalGiveawayCard({ card, finished = false, providerDisplayNa
             {statusLabel(card.status, finished)}
           </span>
         </div>
-        <div className="gp-sorteo-img">
+        <div className="gp-sorteo-img gp-external-img">
           {card.imageUrl ? (
             <Image
               src={card.imageUrl}
@@ -40,6 +40,24 @@ export function ExternalGiveawayCard({ card, finished = false, providerDisplayNa
           ) : (
             <div className="gp-sorteo-img-empty">📷 Sin imagen</div>
           )}
+          {card.prizeCount > 1 ? (
+            <div className="gp-external-prize-strip" aria-hidden>
+              {card.prizesPreview.slice(1, 5).map((p) => (
+                <div key={String(p.id)} className="gp-external-prize-thumb" title={p.title}>
+                  <Image
+                    src={p.imageUrl}
+                    alt=""
+                    width={44}
+                    height={32}
+                    unoptimized
+                  />
+                </div>
+              ))}
+              {card.prizeCount > 5 ? (
+                <div className="gp-external-prize-more">+{card.prizeCount - 5}</div>
+              ) : null}
+            </div>
+          ) : null}
         </div>
         <h3 className="gp-sorteo-title">
           ★ {card.title}
@@ -51,9 +69,38 @@ export function ExternalGiveawayCard({ card, finished = false, providerDisplayNa
             <span className="gp-external-multi">  · +{card.extraPrizeCount} premios</span>
           ) : null}
         </div>
-        <div className="gp-sorteo-meta">
-          👥 <b>{card.participantCount.toLocaleString('es-ES')}</b> participantes
-          {card.minUsers > 0 ? <> · <span>arranca en {card.minUsers}</span></> : null}
+        <div className="gp-external-participants">
+          <div className="gp-external-participants-row">
+            <span className="gp-external-participants-icon" aria-hidden>👥</span>
+            <b className="gp-external-participants-count">
+              {card.participantCount.toLocaleString('es-ES')}
+            </b>
+            <span className="gp-external-participants-label">participantes</span>
+          </div>
+          {card.minUsers > 0 && card.participantCount < card.minUsers ? (
+            <>
+              <div
+                className="gp-external-participants-bar"
+                role="progressbar"
+                aria-valuenow={card.participantCount}
+                aria-valuemin={0}
+                aria-valuemax={card.minUsers}
+                aria-label="Progreso hacia el mínimo para arrancar"
+              >
+                <span
+                  className="gp-external-participants-bar-fill"
+                  style={{
+                    width: `${Math.min(100, Math.round((card.participantCount / card.minUsers) * 100))}%`,
+                  }}
+                />
+              </div>
+              <span className="gp-external-participants-min">
+                Arranca en {(card.minUsers - card.participantCount).toLocaleString('es-ES')} más
+              </span>
+            </>
+          ) : card.minUsers > 0 ? (
+            <span className="gp-external-participants-ready">✓ Mínimo alcanzado — arranca ya</span>
+          ) : null}
         </div>
         <div className="gp-sorteo-reward">
           Depósito mín. <b>{formatCurrency(card.depositRequired, card.depositCurrency)}</b>

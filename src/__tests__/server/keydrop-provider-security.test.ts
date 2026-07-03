@@ -97,10 +97,17 @@ describe('[keydrop-provider] fetch.ts sigue el patrón seguro', () => {
     expect(src).toMatch(/authHeader:\s*'x-api-key'/);
   });
 
-  it('externalUrl NO incluye el id (KeyDrop no expone URL individual)', () => {
-    // buildKeydropExternalUrl ignora el argumento _id
-    expect(src).toMatch(/function\s+buildKeydropExternalUrl\(_id:\s*string\)/);
-    expect(src).toMatch(/return\s+KEYDROP_LISTING_URL/);
+  it('externalUrl se construye en el mapper con id + promoCode (deep link)', () => {
+    // Tras el diagnóstico HEAD de 2026-07 el mapper genera la URL con
+    // buildKeydropDeepLink. fetch.ts no debe seguir teniendo el builder legacy.
+    expect(src).not.toMatch(/function\s+buildKeydropExternalUrl/);
+    // Fetch delega en el mapper — pasa solo item + creatorSlug.
+    expect(src).toMatch(/keydropItemToCard\(\{\s*item,\s*creatorSlug\s*\}\)/);
+  });
+
+  it('el listing URL de la config es el dominio actual keydrop.com (no legacy)', () => {
+    expect(src).toMatch(/https:\/\/keydrop\.com\/es\/giveaways/);
+    expect(src).not.toMatch(/https:\/\/key-drop\.com/);
   });
 
   it('providerKey en safeExternalFetch = "keydrop"', () => {

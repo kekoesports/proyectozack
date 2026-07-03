@@ -9,6 +9,7 @@ import {
   getGiveawaysWithEntryData,
   getMissionsWithProgress,
   getMonthlyRanking,
+  getMonthlyRankingTotal,
 } from '@/lib/queries/giveawayPlatform';
 import {
   PLATFORM_CREATOR_SLUGS,
@@ -43,6 +44,7 @@ export default async function PlataformaSorteosPage({
   const session = await auth.api.getSession({ headers: await headers() });
   const userId = session?.user?.id ?? null;
   const userName = session?.user?.name ?? null;
+  const userImage = session?.user?.image ?? null;
 
   const dbCreators = await db.query.talents.findMany({
     where: inArray(talents.slug, [...PLATFORM_CREATOR_SLUGS]),
@@ -69,6 +71,7 @@ export default async function PlataformaSorteosPage({
           creators={creatorOptions}
           activeSlug=""
           userName={userName}
+          userImage={userImage}
           balance={0}
           loggedIn={Boolean(userId)}
         />
@@ -101,8 +104,9 @@ export default async function PlataformaSorteosPage({
       ])
     : [0, [], undefined];
 
-  const [ranking, shopItemsData, externalSections] = await Promise.all([
+  const [ranking, rankingTotal, shopItemsData, externalSections] = await Promise.all([
     getMonthlyRanking(10),
+    getMonthlyRankingTotal(),
     getActiveShopItems(),
     // Sorteos externos: se dispara SOLO si el creador tiene binding externo.
     // Degrada a listas vacías si falta env, provider cae o shape falla —
@@ -121,6 +125,7 @@ export default async function PlataformaSorteosPage({
         creators={creatorOptions}
         activeSlug={active.slug}
         userName={userName}
+        userImage={userImage}
         balance={balance}
         loggedIn={Boolean(userId)}
       />
@@ -209,8 +214,8 @@ export default async function PlataformaSorteosPage({
 
         <section id="ranking">
           <div className="gp-legacy-block">
-            <h2>Ranking mensual</h2>
-            <MonthlyRanking rows={ranking} />
+            <h2>Ranking global · mensual</h2>
+            <MonthlyRanking rows={ranking} totalPlayers={rankingTotal} currentUserId={userId} />
           </div>
         </section>
 

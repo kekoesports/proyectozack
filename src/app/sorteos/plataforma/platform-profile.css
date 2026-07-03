@@ -1,0 +1,286 @@
+/*
+ * Perfil premium del usuario Steam en /sorteos/plataforma/perfil.
+ * Consume las CSS vars del layout (--sp-grad, --panel2, --line, --txt,
+ * --muted, --sp-pink) y sigue la misma estética de gp-legacy-block.
+ */
+
+/* ================ HERO ================ */
+.giveaway-platform .gp-profile-hero {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 22px 24px;
+  margin-bottom: 22px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, rgba(245, 99, 42, 0.14) 0%, rgba(139, 58, 173, 0.22) 100%);
+  border: 1px solid rgba(224, 48, 112, 0.28);
+}
+.giveaway-platform .gp-profile-avatar {
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  background: #0b0917;
+  border: 2px solid var(--sp-pink);
+  box-shadow: 0 0 24px rgba(224, 48, 112, 0.4);
+  font-size: 32px;
+}
+.giveaway-platform .gp-profile-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.giveaway-platform .gp-profile-head h1 {
+  font-family: var(--font-display), var(--font-rajdhani), sans-serif;
+  font-weight: 900;
+  font-size: 28px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #fff;
+  margin: 0 0 6px;
+}
+.giveaway-platform .gp-profile-sub {
+  color: var(--muted);
+  font-size: 13px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.giveaway-platform .gp-profile-sub code {
+  font-family: var(--font-chakra), monospace;
+  color: var(--txt);
+  background: rgba(11, 9, 23, 0.5);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+.giveaway-platform .gp-profile-badge {
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  background: rgba(11, 9, 23, 0.5);
+  border: 1px solid rgba(196, 40, 128, 0.3);
+  color: var(--muted);
+}
+.giveaway-platform .gp-profile-badge.on {
+  background: rgba(74, 222, 128, 0.12);
+  border-color: rgba(74, 222, 128, 0.4);
+  color: #4ade80;
+}
+
+/* ================ STATS ================ */
+.giveaway-platform .gp-profile-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 22px;
+}
+.giveaway-platform .gp-profile-stat {
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: rgba(11, 9, 23, 0.55);
+  border: 1px solid rgba(196, 40, 128, 0.18);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.giveaway-platform .gp-profile-stat .l {
+  font-size: 11px;
+  letter-spacing: 1.3px;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 700;
+}
+.giveaway-platform .gp-profile-stat b {
+  font-family: var(--font-display), var(--font-rajdhani), sans-serif;
+  font-size: 30px;
+  font-weight: 900;
+  color: #fff;
+  line-height: 1.1;
+}
+.giveaway-platform .gp-profile-stat b .unit {
+  font-size: 15px;
+  color: var(--muted);
+  font-weight: 700;
+  margin-left: 2px;
+}
+.giveaway-platform .gp-profile-stat .s {
+  font-size: 11.5px;
+  color: var(--muted);
+}
+@media (max-width: 900px) {
+  .giveaway-platform .gp-profile-stats { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ================ FORM ================ */
+.giveaway-platform .gp-profile-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.giveaway-platform .gp-profile-field label {
+  display: block;
+  margin-bottom: 6px;
+}
+.giveaway-platform .gp-profile-field label b {
+  display: block;
+  font-size: 13.5px;
+  color: #fff;
+  margin-bottom: 2px;
+}
+.giveaway-platform .gp-profile-field label span {
+  display: block;
+  font-size: 11.5px;
+  color: var(--muted);
+}
+.giveaway-platform .gp-profile-field input[type="url"],
+.giveaway-platform .gp-profile-field input[type="text"] {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(11, 9, 23, 0.65);
+  border: 1px solid rgba(196, 40, 128, 0.28);
+  color: var(--txt);
+  font-family: var(--font-body), sans-serif;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.giveaway-platform .gp-profile-field input:focus {
+  border-color: rgba(224, 48, 112, 0.55);
+}
+.giveaway-platform .gp-profile-toggle {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  justify-content: space-between;
+}
+.giveaway-platform .gp-profile-toggle input[type="checkbox"] {
+  width: 44px;
+  height: 24px;
+  cursor: pointer;
+  accent-color: var(--sp-pink);
+}
+.giveaway-platform .gp-profile-err {
+  display: block;
+  font-size: 11.5px;
+  color: #ff8fa1;
+  margin-top: 4px;
+}
+.giveaway-platform .gp-profile-ok {
+  font-size: 12.5px;
+  color: #4ade80;
+  font-weight: 700;
+}
+.giveaway-platform .gp-profile-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.giveaway-platform .gp-btn-primary {
+  background: var(--sp-grad);
+  color: #fff;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-family: var(--font-display), var(--font-rajdhani), sans-serif;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  font-size: 12.5px;
+  transition: filter 0.15s;
+}
+.giveaway-platform .gp-btn-primary:hover { filter: brightness(1.15); }
+.giveaway-platform .gp-btn-primary:disabled { opacity: 0.5; cursor: default; }
+
+/* ================ INVENTARIO ================ */
+.giveaway-platform .gp-profile-inv,
+.giveaway-platform .gp-profile-tx {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.giveaway-platform .gp-profile-inv li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background: rgba(11, 9, 23, 0.5);
+  border-radius: 12px;
+  border: 1px solid rgba(196, 40, 128, 0.14);
+}
+.giveaway-platform .gp-profile-inv-thumb {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: rgba(11, 9, 23, 0.8);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  font-size: 22px;
+}
+.giveaway-platform .gp-profile-inv-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.giveaway-platform .gp-profile-inv-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.giveaway-platform .gp-profile-inv-body b { color: var(--txt); font-size: 13.5px; }
+.giveaway-platform .gp-profile-inv-body span { color: var(--muted); font-size: 11.5px; }
+.giveaway-platform .gp-profile-inv-status {
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+.giveaway-platform .gp-profile-inv-status.s-pendiente {
+  background: rgba(245, 183, 61, 0.12);
+  color: #f5b73d;
+}
+.giveaway-platform .gp-profile-inv-status.s-enviado {
+  background: rgba(74, 222, 128, 0.14);
+  color: #4ade80;
+}
+.giveaway-platform .gp-profile-inv-status.s-cancelado {
+  background: rgba(255, 143, 161, 0.14);
+  color: #ff8fa1;
+}
+
+/* ================ TRANSACCIONES ================ */
+.giveaway-platform .gp-profile-tx li {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: rgba(11, 9, 23, 0.5);
+  border-radius: 10px;
+  border: 1px solid rgba(196, 40, 128, 0.12);
+  font-size: 13px;
+}
+.giveaway-platform .gp-profile-tx-src { color: var(--txt); font-weight: 600; }
+.giveaway-platform .gp-profile-tx-date { color: var(--muted); font-size: 11.5px; }
+.giveaway-platform .gp-profile-tx-amt {
+  font-family: var(--font-display), var(--font-rajdhani), sans-serif;
+  font-weight: 800;
+  font-size: 14px;
+}
+.giveaway-platform .gp-profile-tx-amt.pos { color: #4ade80; }
+.giveaway-platform .gp-profile-tx-amt.neg { color: #ff8fa1; }

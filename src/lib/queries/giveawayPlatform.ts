@@ -135,6 +135,27 @@ export async function getMonthlyRanking(limit = 10): Promise<RankingRow[]> {
 }
 
 /**
+ * Total de jugadores distintos con participación este mes. Contexto para el
+ * ranking global — permite mostrar "top 10 de 1.234 jugadores".
+ *
+ * @cache none
+ * @visibility public
+ */
+export async function getMonthlyRankingTotal(): Promise<number> {
+  const monthStart = new Date();
+  monthStart.setUTCDate(1);
+  monthStart.setUTCHours(0, 0, 0, 0);
+
+  const [row] = await db
+    .select({
+      total: sql<number>`count(distinct ${giveawayEntries.userId})::int`,
+    })
+    .from(giveawayEntries)
+    .where(gte(giveawayEntries.createdAt, monthStart));
+  return row?.total ?? 0;
+}
+
+/**
  * Items de tienda activos con stock, por categoría opcional.
  *
  * @cache none
@@ -173,4 +194,65 @@ export async function getUserRedemptions(userId: string): Promise<(Redemption & 
     with: { shopItem: true },
     orderBy: (r, { desc: d }) => [d(r.createdAt)],
   }) as Promise<(Redemption & { shopItem: ShopItem })[]>;
+}
+
+/**
+ * Métricas agregadas del usuario para el perfil premium:
+ *  - entriesTotal: participaciones totales de por vida
+ *  - entriesMonth: participaciones del mes natural en curso
+ *  - distinctCreators: creadores distintos en los que ha entrado (all-time)
+ *  - redemptionsCount: canjes realizados en tienda (all-time)
+ *
+ * @cache none
+ * @visibility public (propio usuario)
+ */
+export async function getUserStats(userId: string): Promise<{
+  entriesTotal: number;
+  entriesMonth: number;
+  distinctCreators: number;
+  redemptionsCount: number;
+}> {
+  const monthStart = new Date();
+  monthStart.setUTCDate(1);
+  monthStart.setUTCHours(0, 0, 0, 0);
+
+  const [entriesTotalRow, entriesMonthRow, creatorsRow, redemptionsRow] = await Promise.all([
+    db
+      .select({ n: count(giveawayEntries.id) })
+      .from(giveawayEntries)
+      .where(eq(giveawayEntries.userId, userId)),
+    db
+      .select({ n: count(giveawayEntries.id) })
+      .from(giveawayEntries)
+      .where(and(eq(giveawayEntries.userId, userId), gte(giveawayEntries.createdAt, monthStart))),
+    db
+      .select({ n: sql<number>`count(distinct ${giveaways.talentId})::int` })
+      .from(giveawayEntries)
+      .innerJoin(giveaways, eq(giveaways.id, giveawayEntries.giveawayId))
+      .where(eq(giveawayEntries.userId, userId)),
+    db
+      .select({ n: count(redemptions.id) })
+      .from(redemptions)
+      .where(eq(redemptions.userId, userId)),
+  ]);
+
+  return {
+    entriesTotal: entriesTotalRow[0]?.n ?? 0,
+    entriesMonth: entriesMonthRow[0]?.n ?? 0,
+    distinctCreators: creatorsRow[0]?.n ?? 0,
+    redemptionsCount: redemptionsRow[0]?.n ?? 0,
+  };
+}
+
+/**
+ * Fila `player_profiles` del usuario. Puede ser `null` si aún no se generó
+ * (caso teórico: Steam OpenID crea la fila en el hook post-signup).
+ *
+ * @cache none
+ * @visibility public (propio usuario)
+ */
+export async function getPlayerProfile(userId: string) {
+  return db.query.playerProfiles.findFirst({
+    where: eq(playerProfiles.userId, userId),
+  });
 }

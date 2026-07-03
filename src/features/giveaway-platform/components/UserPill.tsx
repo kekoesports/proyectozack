@@ -1,10 +1,12 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useRef, useState, useTransition } from 'react';
 import { steamLogout } from '@/features/giveaway-platform/actions/steamLogout';
 
 interface Props {
   userName: string | null;
+  userImage: string | null;
   balance: number;
   loggedIn: boolean;
 }
@@ -15,7 +17,7 @@ interface Props {
  * Logout = server action que llama a auth.api.signOut y redirige.
  * Perfil/Inventario/Transacciones siguen marcados como `data-todo` — PR3.
  */
-export function UserPill({ userName, balance, loggedIn }: Props) {
+export function UserPill({ userName, userImage, balance, loggedIn }: Props) {
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const ref = useRef<HTMLDivElement>(null);
@@ -59,7 +61,19 @@ export function UserPill({ userName, balance, loggedIn }: Props) {
   return (
     <div ref={ref} className={`gp-user-wrap${open ? ' open' : ''}`}>
       <button type="button" className="gp-user-pill" onClick={() => setOpen((v) => !v)}>
-        <span className="gp-avatar" aria-hidden>🐱</span>
+        {userImage ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={userImage}
+            alt=""
+            aria-hidden
+            className="gp-avatar gp-avatar-img"
+            width={26}
+            height={26}
+          />
+        ) : (
+          <span className="gp-avatar" aria-hidden>🎮</span>
+        )}
         <span className="gp-user-name">{userName ?? 'Jugador'}</span>
         <span className="gp-balance">
           <span>{balance.toLocaleString('es-ES')}</span>
@@ -68,27 +82,27 @@ export function UserPill({ userName, balance, loggedIn }: Props) {
         <span className="gp-chev" aria-hidden>▾</span>
       </button>
       <div className="gp-user-menu" role="menu">
-        <button type="button" role="menuitem" className="gp-um-item" data-todo="profile-config">
+        <Link href="/sorteos/plataforma/perfil" role="menuitem" className="gp-um-item" onClick={() => setOpen(false)}>
           <span className="i" aria-hidden>⚙️</span>
           <span>
-            <b>Configuración</b>
-            <span>Ajusta tu perfil</span>
+            <b>Mi perfil</b>
+            <span>Ajustes, inventario y saldo</span>
           </span>
-        </button>
-        <button type="button" role="menuitem" className="gp-um-item" data-todo="profile-inv">
+        </Link>
+        <Link href="/sorteos/plataforma/perfil#inventario" role="menuitem" className="gp-um-item" onClick={() => setOpen(false)}>
           <span className="i" aria-hidden>🎒</span>
           <span>
             <b>Inventario</b>
             <span>Ver tu historial de premios</span>
           </span>
-        </button>
-        <button type="button" role="menuitem" className="gp-um-item" data-todo="profile-tx">
+        </Link>
+        <Link href="/sorteos/plataforma/perfil#transacciones" role="menuitem" className="gp-um-item" onClick={() => setOpen(false)}>
           <span className="i" aria-hidden>🧾</span>
           <span>
             <b>Transacciones</b>
             <span>Revisa tu historial de monedas</span>
           </span>
-        </button>
+        </Link>
         <button
           type="button"
           role="menuitem"
