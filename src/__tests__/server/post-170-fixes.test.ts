@@ -27,10 +27,12 @@ describe('[post-170] HistoricalWinnersPlaceholder', () => {
     expect(src).not.toMatch(/ganador\s*(?:1|2|3|:)/i); // no listas fake
   });
 
-  it('está integrado dentro de #ranking en la landing', () => {
-    const page = read('src/app/sorteos/plataforma/page.tsx');
-    expect(page).toMatch(/import\s*\{\s*HistoricalWinnersPlaceholder\s*\}/);
-    expect(page).toMatch(/<MonthlyRanking[\s\S]{0,200}<HistoricalWinnersPlaceholder\s*\/>/);
+  it('está integrado dentro de #ranking en la landing por creador', () => {
+    // La landing por creador ahora vive en el componente reutilizable
+    // PlatformCreatorLanding, no inline en page.tsx.
+    const src = read('src/features/giveaway-platform/components/PlatformCreatorLanding.tsx');
+    expect(src).toMatch(/import\s*\{\s*HistoricalWinnersPlaceholder\s*\}/);
+    expect(src).toMatch(/<MonthlyRanking[\s\S]{0,200}<HistoricalWinnersPlaceholder\s*\/>/);
   });
 });
 
@@ -80,10 +82,10 @@ describe('[post-170] SteamAvatar fallback premium', () => {
     expect(css).toMatch(/\.gp-steam-avatar-fallback\s*\{[\s\S]{0,500}linear-gradient\([\s\S]{0,120}var\(--sp-orange\)[\s\S]{0,120}var\(--sp-pink\)[\s\S]{0,120}var\(--sp-purple\)/);
   });
 
-  it('layout carga los CSS nuevos', () => {
-    const layout = read('src/app/sorteos/plataforma/layout.tsx');
-    expect(layout).toMatch(/import\s+'\.\/platform-steam-avatar\.css'/);
-    expect(layout).toMatch(/import\s+'\.\/platform-mini-placeholders\.css'/);
+  it('layout raíz de /sorteos carga los CSS de la plataforma', () => {
+    const layout = read('src/app/sorteos/layout.tsx');
+    expect(layout).toMatch(/import\s+'\.\/plataforma\/platform-steam-avatar\.css'/);
+    expect(layout).toMatch(/import\s+'\.\/plataforma\/platform-mini-placeholders\.css'/);
   });
 
   it('UserPill usa SteamAvatar (elimina el emoji 🐱/🎮 hardcodeado del avatar)', () => {
@@ -96,7 +98,7 @@ describe('[post-170] SteamAvatar fallback premium', () => {
   });
 
   it('/perfil usa SteamAvatar en el hero', () => {
-    const perfil = read('src/app/sorteos/plataforma/perfil/page.tsx');
+    const perfil = read('src/app/sorteos/perfil/page.tsx');
     expect(perfil).toMatch(/<SteamAvatar\s+imageUrl=\{userImage\}\s+name=\{userName\}\s+size=\{84\}/);
   });
 });

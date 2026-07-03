@@ -11,31 +11,39 @@ const ROOT = path.resolve(__dirname, '..', '..', '..');
 const read = (rel: string) => fs.readFileSync(path.join(ROOT, rel), 'utf-8');
 
 describe('[PR1] giveaway-platform v2 shell — estructura', () => {
-  it('layout.tsx existe con noindex + fonts + ambos CSS', () => {
-    const src = read('src/app/sorteos/plataforma/layout.tsx');
+  it('layout raíz /sorteos/layout.tsx incluye fonts + todos los CSS de la plataforma', () => {
+    const src = read('src/app/sorteos/layout.tsx');
     expect(src).toMatch(/from ['"]next\/font\/google['"]/);
     expect(src).toMatch(/Rajdhani/);
     expect(src).toMatch(/Chakra_Petch/);
-    expect(src).toMatch(/robots:\s*\{\s*index:\s*false/);
-    expect(src).toMatch(/import\s+['"]\.\/platform\.css['"]/);
-    expect(src).toMatch(/import\s+['"]\.\/platform-hero\.css['"]/);
-    expect(src).toMatch(/import\s+['"]\.\/platform-brand-cards\.css['"]/);
-    expect(src).toMatch(/import\s+['"]\.\/platform-fx\.css['"]/);
-    expect(src).toMatch(/import\s+['"]\.\/platform-widgets\.css['"]/);
-    expect(src).toMatch(/giveaway-platform/);
+    expect(src).toMatch(/import\s+['"]\.\/plataforma\/platform\.css['"]/);
+    expect(src).toMatch(/import\s+['"]\.\/plataforma\/platform-hero\.css['"]/);
+    expect(src).toMatch(/import\s+['"]\.\/plataforma\/platform-brand-cards\.css['"]/);
+    expect(src).toMatch(/import\s+['"]\.\/plataforma\/platform-fx\.css['"]/);
+    expect(src).toMatch(/import\s+['"]\.\/plataforma\/platform-widgets\.css['"]/);
   });
 
-  it('page.tsx importa PlatformNav, PlatformHero, BrandBonusesSection', () => {
-    const src = read('src/app/sorteos/plataforma/page.tsx');
+  it('layout legacy /sorteos/plataforma sigue teniendo noindex para no competir con la canónica', () => {
+    const src = read('src/app/sorteos/plataforma/layout.tsx');
+    expect(src).toMatch(/robots:\s*\{\s*index:\s*false/);
+  });
+
+  it('PlatformCreatorLanding importa PlatformNav, PlatformHero, BrandBonusesSection', () => {
+    const src = read('src/features/giveaway-platform/components/PlatformCreatorLanding.tsx');
     expect(src).toMatch(/import\s+\{\s*PlatformNav\s*\}/);
     expect(src).toMatch(/import\s+\{\s*PlatformHero\s*\}/);
     expect(src).toMatch(/import\s+\{\s*BrandBonusesSection\s*\}/);
   });
 
-  it('page.tsx renderiza PlatformHero y BrandBonusesSection', () => {
-    const src = read('src/app/sorteos/plataforma/page.tsx');
+  it('PlatformCreatorLanding renderiza PlatformHero y BrandBonusesSection', () => {
+    const src = read('src/features/giveaway-platform/components/PlatformCreatorLanding.tsx');
     expect(src).toMatch(/<PlatformHero\s/);
     expect(src).toMatch(/<BrandBonusesSection\s/);
+  });
+
+  it('el shell .giveaway-platform lo aplica PlatformShell (compartido)', () => {
+    const shell = read('src/features/giveaway-platform/components/PlatformShell.tsx');
+    expect(shell).toMatch(/giveaway-platform/);
   });
 });
 

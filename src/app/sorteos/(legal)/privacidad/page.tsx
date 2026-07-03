@@ -159,7 +159,7 @@ export default function PrivacidadPage() {
           oposición, portabilidad y limitación previstos por el RGPD y la LOPDGDD, escribiendo a{' '}
           <a href="mailto:info@socialpro.es">info@socialpro.es</a> desde el email
           asociado a tu Steam. Puedes revisar tus datos en tu perfil de{' '}
-          <Link href="/sorteos/plataforma">SocialPro Giveaways</Link>.
+          <Link href="/sorteos">SocialPro Giveaways</Link>.
         </p>
         <p>
           También puedes reclamar ante la <b>Agencia Española de Protección de Datos</b> si

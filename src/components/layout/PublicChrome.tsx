@@ -14,7 +14,9 @@ const PORTAL_PREFIXES = [
   '/giveaways',
   '/codigos',
   '/c/',
-  '/sorteos/plataforma',
+  // SocialPro Giveaways: TODA la sección /sorteos monta su propio shell
+  // dark (PlatformShell) y su propio nav. Sin chrome público encima.
+  '/sorteos',
 ];
 const LOGIN_SUFFIXES = ['/login'];
 
@@ -47,7 +49,7 @@ type PublicChromeProps = {
  * Wrapper que decide si renderizar el chrome público (Nav + Footer +
  * WhatsAppWidget + Lenis smooth scroll) o pasar `children` desnudos en rutas
  * de portal (`/admin`, `/marcas`, `/creadores`, `/giveaways`, `/c/`,
- * `/sorteos/plataforma`). Las páginas de login conservan el chrome público.
+ * `/sorteos`). Las páginas de login conservan el chrome público.
  *
  * @kind client
  * @feature layout

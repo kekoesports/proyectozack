@@ -18,10 +18,10 @@ const ROOT = path.resolve(__dirname, '..', '..', '..');
 const read = (rel: string) => fs.readFileSync(path.join(ROOT, rel), 'utf-8');
 
 describe('[profile] page — auth y data flow', () => {
-  const src = read('src/app/sorteos/plataforma/perfil/page.tsx');
+  const src = read('src/app/sorteos/perfil/page.tsx');
 
-  it('redirige a /sorteos/plataforma si no hay userId', () => {
-    expect(src).toMatch(/if\s*\(!userId\)\s*\{[\s\S]{0,150}redirect\('\/sorteos\/plataforma'\)/);
+  it('redirige a /sorteos si no hay userId', () => {
+    expect(src).toMatch(/if\s*\(!userId\)\s*\{[\s\S]{0,150}redirect\('\/sorteos'\)/);
   });
 
   it('fetches datos del perfil en paralelo (Promise.all)', () => {
@@ -75,8 +75,8 @@ describe('[profile] update server action', () => {
     expect(src).toMatch(/kickUsername\s*===\s*''\s*\?\s*null/);
   });
 
-  it('revalida /sorteos/plataforma/perfil tras el update', () => {
-    expect(src).toMatch(/revalidatePath\('\/sorteos\/plataforma\/perfil'\)/);
+  it('revalida /sorteos/perfil tras el update', () => {
+    expect(src).toMatch(/revalidatePath\('\/sorteos\/perfil'\)/);
   });
 });
 
@@ -107,8 +107,8 @@ describe('[profile] settings form (client)', () => {
 describe('[profile] UserPill enlaza al perfil', () => {
   const src = read('src/features/giveaway-platform/components/UserPill.tsx');
 
-  it('usa <Link> hacia /sorteos/plataforma/perfil', () => {
-    expect(src).toMatch(/href="\/sorteos\/plataforma\/perfil"/);
+  it('usa <Link> hacia /sorteos/perfil', () => {
+    expect(src).toMatch(/href="\/sorteos\/perfil"/);
   });
 
   it('elimina los data-todo del menú', () => {

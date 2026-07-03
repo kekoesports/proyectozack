@@ -63,7 +63,7 @@ const SECTIONS: { title: string; items: QA[] }[] = [
         q: '¿Cómo participo en un sorteo?',
         a: (
           <ol>
-            <li>Entras en <code>/sorteos/plataforma</code>.</li>
+            <li>Entras en <code>/sorteos</code>.</li>
             <li>Pulsas &quot;Iniciar sesión con Steam&quot; y confirmas en steamcommunity.com.</li>
             <li>Eliges un creador desde el selector superior.</li>
             <li>Pulsas &quot;Participar&quot; en cualquier sorteo activo.</li>
@@ -111,7 +111,7 @@ const SECTIONS: { title: string; items: QA[] }[] = [
         q: '¿Cómo canjeo un premio?',
         a: (
           <p>
-            En <code>/sorteos/plataforma#tienda</code> eliges un artículo cuyo coste sea igual o
+            En <code>/sorteos#tienda</code> eliges un artículo cuyo coste sea igual o
             menor que tu saldo. Al pulsar &quot;Canjear&quot; se descuentan las monedas y el
             equipo de SocialPro contacta contigo para coordinar el envío o la entrega digital,
             según el tipo de artículo. Una vez procesado o entregado un canje puede no ser
@@ -181,7 +181,7 @@ const SECTIONS: { title: string; items: QA[] }[] = [
         q: '¿Puedo hacer mi perfil privado?',
         a: (
           <p>
-            Sí. En <code>/sorteos/plataforma/perfil</code> puedes marcar el toggle
+            Sí. En <code>/sorteos/perfil</code> puedes marcar el toggle
             &quot;Perfil privado&quot;. Cuando está activo, tu nombre aparece enmascarado en el
             ranking global (por ejemplo, <code>k*****</code>).
           </p>

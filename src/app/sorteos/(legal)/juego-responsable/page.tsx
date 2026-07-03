@@ -24,7 +24,7 @@ export default function JuegoResponsablePage() {
       <section className="gp-legal-section">
         <h2>1. Qué es (y qué no es) SocialPro Giveaways</h2>
         <p>
-          Los sorteos internos publicados en <code>/sorteos/plataforma</code> son{' '}
+          Los sorteos internos publicados en <code>/sorteos</code> son{' '}
           <b>gratuitos</b>, no requieren depósito ni ninguna forma de pago y no reparten dinero
           en metálico. Las monedas 🪙 son puntos internos sin valor monetario. Este servicio,
           en su parte interna, <b>no es una actividad de juego regulado</b> conforme a la Ley

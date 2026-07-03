@@ -71,21 +71,21 @@ export function UserPill({ userName, userImage, balance, loggedIn }: Props) {
         <span className="gp-chev" aria-hidden>▾</span>
       </button>
       <div className="gp-user-menu" role="menu">
-        <Link href="/sorteos/plataforma/perfil" role="menuitem" className="gp-um-item" onClick={() => setOpen(false)}>
+        <Link href="/sorteos/perfil" role="menuitem" className="gp-um-item" onClick={() => setOpen(false)}>
           <span className="i" aria-hidden>⚙️</span>
           <span>
             <b>Mi perfil</b>
             <span>Ajustes, inventario y saldo</span>
           </span>
         </Link>
-        <Link href="/sorteos/plataforma/perfil#inventario" role="menuitem" className="gp-um-item" onClick={() => setOpen(false)}>
+        <Link href="/sorteos/perfil#inventario" role="menuitem" className="gp-um-item" onClick={() => setOpen(false)}>
           <span className="i" aria-hidden>🎒</span>
           <span>
             <b>Inventario</b>
             <span>Ver tu historial de premios</span>
           </span>
         </Link>
-        <Link href="/sorteos/plataforma/perfil#transacciones" role="menuitem" className="gp-um-item" onClick={() => setOpen(false)}>
+        <Link href="/sorteos/perfil#transacciones" role="menuitem" className="gp-um-item" onClick={() => setOpen(false)}>
           <span className="i" aria-hidden>🧾</span>
           <span>
             <b>Transacciones</b>

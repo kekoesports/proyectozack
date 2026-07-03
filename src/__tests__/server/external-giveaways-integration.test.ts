@@ -10,8 +10,10 @@ import * as path from 'path';
 const ROOT = path.resolve(__dirname, '..', '..', '..');
 const read = (rel: string) => fs.readFileSync(path.join(ROOT, rel), 'utf-8');
 
-describe('[external-giveaways] page.tsx uses generic binding, no hardcoded slug', () => {
-  const src = read('src/app/sorteos/plataforma/page.tsx');
+describe('[external-giveaways] landing por creador usa binding genérico, sin slug hardcoded', () => {
+  // La lógica vive ahora en PlatformCreatorLanding (reutilizado por
+  // /sorteos/[creatorSlug]). El page.tsx antiguo es solo un redirect.
+  const src = read('src/features/giveaway-platform/components/PlatformCreatorLanding.tsx');
 
   it('importa isExternalCreator y getExternalGiveawaysForCreator', () => {
     expect(src).toMatch(/import\s+\{\s*isExternalCreator\s*\}/);
@@ -127,10 +129,10 @@ describe('[external-giveaways] UI del ExternalGiveawaysSection + Card', () => {
   });
 });
 
-describe('[external-giveaways] layout carga el CSS renombrado', () => {
-  const src = read('src/app/sorteos/plataforma/layout.tsx');
-  it('platform-external-giveaways.css se importa desde el layout', () => {
-    expect(src).toMatch(/import\s+['"]\.\/platform-external-giveaways\.css['"]/);
+describe('[external-giveaways] layout raíz carga el CSS renombrado', () => {
+  const src = read('src/app/sorteos/layout.tsx');
+  it('platform-external-giveaways.css se importa desde el layout raíz /sorteos', () => {
+    expect(src).toMatch(/import\s+['"]\.\/plataforma\/platform-external-giveaways\.css['"]/);
   });
   it('platform-keydrop.css ya NO se importa', () => {
     expect(src).not.toMatch(/platform-keydrop\.css/);

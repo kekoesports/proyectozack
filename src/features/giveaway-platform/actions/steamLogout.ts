@@ -10,5 +10,5 @@ import { auth } from '@/lib/auth';
  */
 export async function steamLogout(): Promise<void> {
   await auth.api.signOut({ headers: await headers() });
-  redirect('/sorteos/plataforma');
+  redirect('/sorteos');
 }

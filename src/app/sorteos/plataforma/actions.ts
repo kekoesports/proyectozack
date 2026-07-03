@@ -88,7 +88,7 @@ export async function participateInGiveaway(input: unknown): Promise<ActionResul
 
   const missionsCompleted = await evaluateAndClaimMissions(sessionUser.id);
 
-  revalidatePath('/sorteos/plataforma');
+  revalidatePath('/sorteos', 'layout');
   return { ok: true, data: { coinsEarned: ENTRY_COIN_REWARD, missionsCompleted } };
 }
 
@@ -141,7 +141,7 @@ export async function claimDailyReward(): Promise<ActionResult<{ coinsEarned: nu
   });
 
   await evaluateAndClaimMissions(sessionUser.id);
-  revalidatePath('/sorteos/plataforma');
+  revalidatePath('/sorteos', 'layout');
   return { ok: true, data: { coinsEarned, day } };
 }
 
@@ -208,7 +208,7 @@ export async function redeemShopItem(input: unknown): Promise<ActionResult<{ red
   // Trigger para misiones basadas en redemptions_total (p.ej. "Primer canje").
   await evaluateAndClaimMissions(sessionUser.id);
 
-  revalidatePath('/sorteos/plataforma');
+  revalidatePath('/sorteos', 'layout');
   return { ok: true, data: { redemptionId: redemption.id } };
 }
 
@@ -223,7 +223,7 @@ export async function updateTradeUrl(input: unknown): Promise<ActionResult> {
     .update(playerProfiles)
     .set({ steamTradeUrl: parsed.data.tradeUrl, updatedAt: new Date() })
     .where(eq(playerProfiles.userId, sessionUser.id));
-  revalidatePath('/sorteos/plataforma');
+  revalidatePath('/sorteos', 'layout');
   return { ok: true };
 }
 
@@ -238,7 +238,7 @@ export async function updatePrivacy(input: unknown): Promise<ActionResult> {
     .update(playerProfiles)
     .set({ isPrivate: parsed.data.isPrivate, updatedAt: new Date() })
     .where(eq(playerProfiles.userId, sessionUser.id));
-  revalidatePath('/sorteos/plataforma');
+  revalidatePath('/sorteos', 'layout');
   return { ok: true };
 }
 
@@ -253,6 +253,6 @@ export async function updateShippingAddress(input: unknown): Promise<ActionResul
     .update(playerProfiles)
     .set({ shippingAddress: parsed.data.address, updatedAt: new Date() })
     .where(eq(playerProfiles.userId, sessionUser.id));
-  revalidatePath('/sorteos/plataforma');
+  revalidatePath('/sorteos', 'layout');
   return { ok: true };
 }

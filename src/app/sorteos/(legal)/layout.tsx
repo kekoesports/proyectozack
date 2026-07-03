@@ -26,7 +26,7 @@ export default function LegalLayout({ children }: { children: ReactNode }) {
     <div className="giveaway-platform">
       <nav className="gp-legal-nav" aria-label="Documentos legales">
         <div className="gp-legal-nav-inner">
-          <Link href="/sorteos/plataforma" className="gp-logo" aria-label="Volver a SocialPro Giveaways">
+          <Link href="/sorteos" className="gp-logo" aria-label="Volver a SocialPro Giveaways">
             <Image
               src="/logo.png"
               alt="SocialPro"
@@ -60,7 +60,7 @@ export default function LegalLayout({ children }: { children: ReactNode }) {
             +18 · Juega con responsabilidad.
           </p>
           <p className="gp-legal-foot-links">
-            <Link href="/sorteos/plataforma">← Volver a la plataforma</Link>
+            <Link href="/sorteos">← Volver a la plataforma</Link>
             {LEGAL_NAV.map((item) => (
               <Link key={item.href} href={item.href}>{item.label}</Link>
             ))}

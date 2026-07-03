@@ -111,7 +111,7 @@ describe('[steam-plugin] UI + logout', () => {
     const src = read('src/features/giveaway-platform/actions/steamLogout.ts');
     expect(src).toMatch(/'use server'/);
     expect(src).toMatch(/auth\.api\.signOut/);
-    expect(src).toMatch(/redirect\(['"]\/sorteos\/plataforma['"]\)/);
+    expect(src).toMatch(/redirect\(['"]\/sorteos['"]\)/);
   });
 
   it('UserPill llama a steamLogout desde el item "Cerrar sesión"', () => {
