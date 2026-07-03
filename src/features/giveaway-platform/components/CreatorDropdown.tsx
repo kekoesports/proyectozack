@@ -22,20 +22,32 @@ interface Props {
 const SEARCH_THRESHOLD = 6;
 
 function CreatorAvatar({ creator, size }: { creator: CreatorOption; size: number }) {
+  // Wrapper con dimensiones fijas + aspect-ratio 1:1 fuerza que el
+  // avatar nunca se deforme aunque la imagen fuente no sea cuadrada.
+  // <Image fill> + object-fit cover recorta al centro sin estirar.
   if (creator.photoUrl) {
     return (
-      <Image
-        src={creator.photoUrl}
-        alt={creator.name}
-        width={size}
-        height={size}
-        className="gp-dd-avatar"
-        unoptimized={creator.photoUrl.startsWith('/api/')}
-      />
+      <span
+        className="gp-dd-avatar gp-dd-avatar-photo"
+        style={{ width: size, height: size }}
+      >
+        <Image
+          src={creator.photoUrl}
+          alt={creator.name}
+          fill
+          sizes={`${size}px`}
+          className="gp-dd-avatar-img"
+          unoptimized={creator.photoUrl.startsWith('/api/')}
+        />
+      </span>
     );
   }
   return (
-    <span className="gp-dd-avatar gp-dd-avatar-emoji" aria-hidden style={{ width: size, height: size, fontSize: Math.round(size * 0.55) }}>
+    <span
+      className="gp-dd-avatar gp-dd-avatar-emoji"
+      aria-hidden
+      style={{ width: size, height: size, fontSize: Math.round(size * 0.55) }}
+    >
       {creator.emoji}
     </span>
   );

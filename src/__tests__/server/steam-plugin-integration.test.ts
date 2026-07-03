@@ -101,10 +101,19 @@ describe('[steam-plugin] env + placeholders', () => {
 });
 
 describe('[steam-plugin] UI + logout', () => {
-  it('UserPill.tsx apunta a /api/auth/steam/login como botón de login', () => {
-    const src = read('src/features/giveaway-platform/components/UserPill.tsx');
-    expect(src).toMatch(/href=["']\/api\/auth\/steam\/login["']/);
-    expect(src).toMatch(/Iniciar sesión con Steam/);
+  it('SteamLoginButton apunta a /api/auth/steam/login con copy claro', () => {
+    // El CTA vive ahora en su propio componente dedicado (SteamLoginButton).
+    // UserPill lo importa y lo renderiza cuando !loggedIn.
+    const btn = read('src/features/giveaway-platform/components/SteamLoginButton.tsx');
+    expect(btn).toMatch(/href=["']\/api\/auth\/steam\/login["']/);
+    expect(btn).toMatch(/Iniciar sesión con/);
+    expect(btn).toMatch(/STEAM/);
+    // aria-label para accesibilidad.
+    expect(btn).toMatch(/aria-label="Iniciar sesión con Steam"/);
+
+    const pill = read('src/features/giveaway-platform/components/UserPill.tsx');
+    expect(pill).toMatch(/import\s*\{\s*SteamLoginButton\s*\}/);
+    expect(pill).toMatch(/<SteamLoginButton\s+size="md"\s*\/>/);
   });
 
   it('steamLogout llama a auth.api.signOut', () => {

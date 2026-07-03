@@ -1,0 +1,96 @@
+/*
+ * Botón de login con Steam.
+ * Ver src/features/giveaway-platform/components/SteamLoginButton.tsx.
+ * Look premium: gradiente SP + logo Steam blanco + copy en 2 líneas
+ * (lead pequeño "Iniciar sesión con" + brand grande "STEAM").
+ */
+
+.giveaway-platform .gp-steam-login {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 18px;
+  border-radius: 12px;
+  text-decoration: none;
+  color: #fff;
+  background: var(--sp-grad);
+  box-shadow: 0 8px 24px -8px rgba(224, 48, 112, 0.55);
+  font-family: var(--font-display), var(--font-rajdhani), sans-serif;
+  transition: transform 0.15s ease, filter 0.15s ease, box-shadow 0.15s ease;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+.giveaway-platform .gp-steam-login:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.1);
+  box-shadow: 0 12px 30px -10px rgba(224, 48, 112, 0.7);
+}
+.giveaway-platform .gp-steam-login:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 3px;
+}
+
+.giveaway-platform .gp-steam-login-logo {
+  width: 26px;
+  height: 26px;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.giveaway-platform .gp-steam-login-text {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  line-height: 1;
+  gap: 3px;
+}
+.giveaway-platform .gp-steam-login-lead {
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.85);
+}
+.giveaway-platform .gp-steam-login-brand {
+  font-size: 16px;
+  font-weight: 900;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: #fff;
+}
+
+/* Variante grande — bloques hero/CTA fuera del nav. */
+.giveaway-platform .gp-steam-login-lg {
+  padding: 14px 24px;
+  gap: 14px;
+  border-radius: 14px;
+}
+.giveaway-platform .gp-steam-login-lg .gp-steam-login-logo { width: 32px; height: 32px; }
+.giveaway-platform .gp-steam-login-lg .gp-steam-login-lead { font-size: 10.5px; }
+.giveaway-platform .gp-steam-login-lg .gp-steam-login-brand { font-size: 20px; letter-spacing: 3.5px; }
+
+/* Bloque prompt de login en la landing por creador (sin sesión). */
+.giveaway-platform .gp-login-prompt {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 28px 20px;
+}
+.giveaway-platform .gp-login-prompt p {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.5;
+  max-width: 460px;
+  margin: 0;
+}
+
+/* Mobile: el pill/nav puede quedar apretado; encogemos ligeramente. */
+@media (max-width: 480px) {
+  .giveaway-platform .gp-steam-login-md {
+    padding: 8px 14px;
+    gap: 9px;
+  }
+  .giveaway-platform .gp-steam-login-md .gp-steam-login-logo { width: 22px; height: 22px; }
+  .giveaway-platform .gp-steam-login-md .gp-steam-login-brand { font-size: 14px; letter-spacing: 2.5px; }
+}

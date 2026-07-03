@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useEffect, useRef, useState, useTransition } from 'react';
 import { steamLogout } from '@/features/giveaway-platform/actions/steamLogout';
 import { SteamAvatar } from './SteamAvatar';
+import { SteamLoginButton } from './SteamLoginButton';
 
 interface Props {
   userName: string | null;
@@ -39,24 +40,10 @@ export function UserPill({ userName, userImage, balance, loggedIn }: Props) {
   }
 
   if (!loggedIn) {
-    // Ruta API que devuelve 302 al OpenID de Steam. No es una page → no
-    // podemos usar <Link>, que asume client-side navigation entre rutas de
-    // la app. Con <a> nativo el navegador sigue el redirect al dominio de
-    // Steam correctamente.
-    return (
-      // eslint-disable-next-line @next/next/no-html-link-for-pages
-      <a
-        href="/api/auth/steam/login"
-        className="gp-btn"
-        style={{
-          padding: '10px 18px',
-          background: 'var(--sp-grad)',
-          textDecoration: 'none',
-        }}
-      >
-        🎮 Iniciar sesión con Steam
-      </a>
-    );
+    // Botón dedicado con SVG del logo Steam + copy premium en 2 líneas.
+    // El propio SteamLoginButton usa <a> nativo (el href es una API route
+    // que devuelve 302, no una page de Next).
+    return <SteamLoginButton size="md" />;
   }
 
   return (

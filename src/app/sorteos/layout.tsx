@@ -5,6 +5,7 @@ import { absoluteUrl } from '@/lib/site-url';
 
 // CSS de la plataforma — cargados una vez para todas las rutas hijas.
 import './plataforma/platform.css';
+import './plataforma/platform-dropdown.css';
 import './plataforma/platform-hero.css';
 import './plataforma/platform-brand-cards.css';
 import './plataforma/platform-fx.css';
@@ -15,6 +16,7 @@ import './plataforma/platform-creator-profile.css';
 import './plataforma/platform-steam-avatar.css';
 import './plataforma/platform-mini-placeholders.css';
 import './plataforma/platform-legal.css';
+import './plataforma/platform-steam-login.css';
 import './sorteos-index.css';
 
 const rajdhani = Rajdhani({

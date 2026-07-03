@@ -1,0 +1,156 @@
+/*
+ * Creator dropdown de SocialPro Giveaways (nav superior).
+ * Extraído de platform.css para no superar el budget de 500 LOC.
+ *
+ * Estructura:
+ *   .gp-dd                 — wrapper con position relative.
+ *   .gp-dd-btn             — botón trigger con gradient SP.
+ *   .gp-dd-menu            — desplegable.
+ *   .gp-dd-item            — cada creador (link/button).
+ *   .gp-dd-avatar          — wrapper del avatar con aspect-ratio 1:1
+ *                            forzado y overflow hidden.
+ *   .gp-dd-avatar-img      — <Image fill> dentro con object-fit cover.
+ *   .gp-dd-avatar-emoji    — fallback emoji cuando no hay photoUrl.
+ *   .gp-dd-search          — input para dropdowns con muchos creadores.
+ *   .gp-dd-scroll          — wrapper de scroll con thumb rosa.
+ *   .gp-dd-empty           — estado vacío del filtro.
+ */
+
+.giveaway-platform .gp-dd { position: relative; flex-shrink: 0; }
+.giveaway-platform .gp-dd-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  border: none;
+  font-family: var(--font-display), var(--font-rajdhani), sans-serif;
+  font-weight: 700;
+  font-size: 12.5px;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: #fff;
+  background: var(--sp-grad);
+  box-shadow: 0 0 14px rgba(224, 48, 112, 0.35);
+  transition: filter 0.15s;
+}
+.giveaway-platform .gp-dd-btn:hover { filter: brightness(1.15); }
+.giveaway-platform .gp-dd-menu {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 0;
+  min-width: 265px;
+  background: var(--panel2);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 8px;
+  display: none;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+}
+.giveaway-platform .gp-dd.open .gp-dd-menu { display: block; }
+.giveaway-platform .gp-dd-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 9px;
+  cursor: pointer;
+  transition: background 0.15s;
+  text-decoration: none;
+  color: inherit;
+}
+.giveaway-platform .gp-dd-item:hover { background: rgba(139, 61, 255, 0.14); }
+.giveaway-platform .gp-dd-item.on {
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 50%, transparent);
+}
+
+/* Avatar — el fix clave: aspect-ratio + overflow hidden + object-fit cover.
+ * <Image fill> del CreatorDropdown coloca el <img> como position:absolute
+ * dentro de este wrapper con dimensiones fijas → jamás se deforma aunque
+ * la imagen fuente no sea cuadrada. */
+.giveaway-platform .gp-dd-avatar {
+  position: relative;
+  display: inline-block;
+  aspect-ratio: 1 / 1;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #0b0917;
+  border: 2px solid var(--c, var(--accent));
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+.giveaway-platform .gp-dd-avatar-photo { padding: 0; }
+.giveaway-platform .gp-dd-avatar-img {
+  object-fit: cover;
+  object-position: center;
+}
+.giveaway-platform .gp-dd-avatar-emoji {
+  display: inline-grid;
+  place-items: center;
+  line-height: 1;
+}
+.giveaway-platform .gp-dd-btn .gp-dd-avatar { border-width: 1px; }
+
+/* Texto del item con truncado limpio si el nombre desborda. */
+.giveaway-platform .gp-dd-item > span:not(.gp-dd-avatar) {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+.giveaway-platform .gp-dd-item b {
+  font-size: 13px;
+  display: block;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.giveaway-platform .gp-dd-item span { font-size: 10.5px; color: var(--muted); }
+
+/* Dropdown escalable a 15+ creadores: buscador, scroll, empty. */
+.giveaway-platform .gp-dd-search {
+  width: 100%;
+  padding: 8px 10px;
+  margin-bottom: 6px;
+  border-radius: 9px;
+  background: rgba(11, 9, 23, 0.6);
+  border: 1px solid rgba(196, 40, 128, 0.28);
+  color: var(--txt);
+  font-family: var(--font-body), sans-serif;
+  font-size: 12.5px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.giveaway-platform .gp-dd-search::placeholder { color: var(--muted); }
+.giveaway-platform .gp-dd-search:focus { border-color: rgba(224, 48, 112, 0.55); }
+.giveaway-platform .gp-dd-scroll {
+  max-height: 320px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(224, 48, 112, 0.45) transparent;
+}
+.giveaway-platform .gp-dd-scroll::-webkit-scrollbar { width: 6px; }
+.giveaway-platform .gp-dd-scroll::-webkit-scrollbar-thumb {
+  background: rgba(224, 48, 112, 0.45);
+  border-radius: 3px;
+}
+.giveaway-platform .gp-dd-empty {
+  padding: 14px 10px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--muted);
+  font-style: italic;
+}
+
+/* Items en el nuevo dropdown son <button>, no <a>: normalizamos. */
+.giveaway-platform button.gp-dd-item {
+  width: 100%;
+  border: 1px solid transparent;
+  background: transparent;
+  text-align: left;
+  font-family: inherit;
+}
