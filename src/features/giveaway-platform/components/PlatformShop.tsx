@@ -3,7 +3,7 @@
 import { useMemo, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { redeemShopItem } from '@/app/sorteos/plataforma/actions';
-import { PLANNED_REWARDS } from '@/features/giveaway-platform/constants/rewards-catalog';
+import { REAL_STEAM_REWARDS, type CatalogReward } from '@/features/giveaway-platform/constants/rewards-catalog';
 import type { ShopCategory, ShopItem } from '@/types/giveawayPlatform';
 
 interface Props {
@@ -33,9 +33,10 @@ const CATEGORIES: { key: ShopCategory | 'all'; label: string }[] = [
  *  2. Disclaimer compliance.
  *  3. Tabs por categoría.
  *  4. Grid de recompensas activas (fuente: `items` — DB).
- *  5. Bloque "Próximas recompensas" con items de `PLANNED_REWARDS` —
- *     no canjeables, informativos. Sirve para comunicar el roadmap sin
- *     inventar precios ni imágenes.
+ *  5. Bloque "Vitrina · próximamente en tienda" con recompensas del
+ *     catálogo `REAL_STEAM_REWARDS` que aún no están en DB. Se
+ *     deduplican por `name` para no aparecer dos veces cuando el seed
+ *     las mueva a `shop_items`.
  */
 export function PlatformShop({ items, balance }: Props) {
   const router = useRouter();
@@ -57,13 +58,18 @@ export function PlatformShop({ items, balance }: Props) {
 
   const visible = items.filter((i) => category === 'all' || i.category === category);
 
-  // Próximas recompensas — filtradas por categoría también, para respetar
-  // el tab activo. `all` muestra todas.
-  const upcoming = useMemo(
-    () =>
-      PLANNED_REWARDS.filter((r) => category === 'all' || r.category === category),
-    [category],
-  );
+  // Vitrina · items del catálogo que NO estén ya en DB. Cuando el seed
+  // pase, los mismos `name` se filtrarán de aquí y aparecerán en la grid
+  // principal como canjeables. Sin dup visual.
+  const showcase = useMemo(() => {
+    const dbNames = new Set(items.map((i) => i.name));
+    return REAL_STEAM_REWARDS.filter(
+      (r) =>
+        r.status === 'active' &&
+        !dbNames.has(r.name) &&
+        (category === 'all' || r.category === category),
+    );
+  }, [items, category]);
 
   function handleRedeem(shopItemId: number) {
     setError(null);
@@ -118,7 +124,7 @@ export function PlatformShop({ items, balance }: Props) {
       {visible.length === 0 ? (
         <p className="gp-rank-empty">
           No hay recompensas en esta categoría.{' '}
-          {upcoming.length > 0 ? 'Mira las próximas más abajo.' : 'Prueba otra pestaña.'}
+          {showcase.length > 0 ? 'Mira las próximas más abajo.' : 'Prueba otra pestaña.'}
         </p>
       ) : (
         <div className="gp-shop-grid">
@@ -160,55 +166,63 @@ export function PlatformShop({ items, balance }: Props) {
         </div>
       )}
 
-      {/* Próximas recompensas — sección informativa, no canjeable. */}
-      {upcoming.length > 0 ? (
-        <section className="gp-rewards-upcoming" aria-labelledby="rewards-upcoming-title">
+      {/* Vitrina · recompensas del catálogo aún no en DB. */}
+      {showcase.length > 0 ? (
+        <section className="gp-rewards-upcoming" aria-labelledby="rewards-showcase-title">
           <div className="gp-rewards-upcoming-head">
-            <h3 id="rewards-upcoming-title" className="gp-rewards-upcoming-title">
-              Próximas recompensas
+            <h3 id="rewards-showcase-title" className="gp-rewards-upcoming-title">
+              Próximas en tienda · Skins CS2
             </h3>
             <p className="gp-rewards-upcoming-sub">
-              En preparación · aún no canjeables · precio y stock pendientes de confirmar
+              Confirmadas en catálogo · disponibles para canjear tras el próximo update de tienda
             </p>
           </div>
           <div className="gp-shop-grid">
-            {upcoming.map((r) => (
-              <article key={r.slug} className="gp-shop-card gp-shop-card-planned">
-                <div className="gp-shop-img">
-                  {r.imageUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={r.imageUrl} alt={r.title} />
-                  ) : (
-                    <RewardPlaceholder category={r.category} />
-                  )}
-                  <span className="gp-shop-badge gp-shop-badge-soon">Próximamente</span>
-                </div>
-                <h4 className="gp-shop-name">{r.title}</h4>
-                <p className="gp-shop-desc">
-                  Recompensa en preparación. Cuando se confirme precio y stock,
-                  aparecerá disponible aquí.
-                </p>
-                <div className="gp-shop-cost gp-shop-cost-pending">
-                  {r.costPoints === null ? 'Precio pendiente' : `⭐ ${r.costPoints.toLocaleString('es-ES')}`}
-                </div>
-                <div className="gp-shop-stock">
-                  {r.stock === null ? 'Stock pendiente' : `${r.stock} en stock`}
-                </div>
-                <a
-                  href={r.steamMarketUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="gp-shop-btn gp-shop-btn-outline"
-                  aria-label={`Ver ${r.title} en Steam Market`}
-                >
-                  Ver en Steam Market
-                </a>
-              </article>
+            {showcase.map((r) => (
+              <ShowcaseCard key={r.slug} reward={r} />
             ))}
           </div>
         </section>
       ) : null}
     </>
+  );
+}
+
+/**
+ * Card de vitrina — se usa para recompensas ya definidas en el catálogo
+ * (`REAL_STEAM_REWARDS`) pero que aún no han pasado por seed al DB.
+ * Muestra la misma info que una card canjeable (imagen local, nombre,
+ * precio en puntos, stock, rareza) pero SIN botón Canjear — en su lugar
+ * indica "Próximamente disponible" y ofrece "Ver en Steam Market".
+ *
+ * Cuando el seed corra, DB tendrá el mismo `name`, la vitrina la filtra
+ * fuera automáticamente y la card canjeable de la grid principal es la
+ * única que renderiza.
+ */
+function ShowcaseCard({ reward }: { reward: CatalogReward }) {
+  return (
+    <article className="gp-shop-card gp-shop-card-planned">
+      <div className="gp-shop-img">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={reward.imageUrl} alt={reward.name} />
+        <span className="gp-shop-badge gp-shop-badge-soon">Próximamente</span>
+      </div>
+      <h4 className="gp-shop-name">{reward.name}</h4>
+      <p className="gp-shop-desc">{reward.description}</p>
+      <div className="gp-shop-cost">⭐ {reward.costPoints.toLocaleString('es-ES')}</div>
+      <div className="gp-shop-stock">
+        {reward.stock > 0 ? `${reward.stock} en stock` : 'Agotado'}
+      </div>
+      <a
+        href={reward.steamMarketUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="gp-shop-btn gp-shop-btn-outline"
+        aria-label={`Ver ${reward.name} en Steam Market`}
+      >
+        Ver en Steam Market
+      </a>
+    </article>
   );
 }
 

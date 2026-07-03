@@ -1,19 +1,18 @@
 /**
- * Contratos estructurales del catálogo de recompensas (Fase 1).
+ * Contratos estructurales del catálogo de recompensas (Fase 1 — real).
  *
  * Fuente de verdad: `src/features/giveaway-platform/constants/rewards-catalog.ts`.
  * Doc: `docs/sorteos-rewards-catalog.md`.
  *
  * Verifica:
- *  - 8 skins CS2 dadas de alta en `PLANNED_REWARDS`.
- *  - Cada una conserva su Steam Market URL exacta.
- *  - Todas quedan como `planned` / sin precio / sin stock → no canjeables.
- *  - Ninguna aparece como shop_item activo (no hay seed).
- *  - No hay scraping runtime de Steam Market en `src/`.
- *  - UI pública usa "Recompensas" (no "Tienda").
- *  - Placeholder premium reemplaza al plano "Imagen pendiente" para
- *    cards sin imagen.
- *  - Conversión $/€ → puntos no expuesta al usuario en UI.
+ *  - 8 skins CS2 en REAL_STEAM_REWARDS con metadata real.
+ *  - Cada una tiene nombre real, imagen local, precio en puntos, stock 1.
+ *  - Cada una conserva su Steam Market URL (trazabilidad interna).
+ *  - Las 8 imágenes locales existen bajo public/images/rewards/.
+ *  - UI pública no muestra precio en €/$.
+ *  - No hay fetch runtime a Steam Market en src/.
+ *  - Script enrich-rewards.ts detecta CI/prod y aborta.
+ *  - Script de seed requiere CONFIRM_SEED_STEAM_REWARDS.
  */
 
 import * as fs from 'fs';
@@ -30,64 +29,118 @@ const STEAM_MARKET_URLS = [
   'https://steamcommunity.com/market/listings/730/G181020CC043004?category_Type=CSGO_Type_Pistol&category_Type=CSGO_Type_Rifle&category_Exterior=WearCategory2&appid=730',
   'https://steamcommunity.com/market/listings/730/G180420C3073004?category_Type=CSGO_Type_Pistol&category_Type=CSGO_Type_Rifle&category_Exterior=WearCategory2&appid=730',
   'https://steamcommunity.com/market/listings/730/G1804208F093004?category_Type=CSGO_Type_Pistol&category_Type=CSGO_Type_Rifle&category_Exterior=WearCategory2&appid=730',
-  'https://steamcommunity.com/market/listings/730/G180920C6063004?category_Type=CSGO_Type_SniperRifle&category_Exterior=WearCategory2&appid=730',
+  'https://steamcommunity.com/market/listings/730/G180920C6063004?category_Type=CSGO_Type_SniperRifle&category_Exterior=WearCategory2&appid=730&detail=555779260423635183',
+] as const;
+
+const SKIN_NAMES = [
+  'Glock-18 | Fully Tuned',
+  'USP-S | Cortex',
+  'M4A4 | Temukau',
+  'AK-47 | Asiimov',
+  'M4A4 | Desolate Space',
+  'Glock-18 | Vogue',
+  'Glock-18 | Block-18',
+  'AWP | Atheris',
 ] as const;
 
 const CATALOG_PATH = 'src/features/giveaway-platform/constants/rewards-catalog.ts';
 const DOC_PATH = 'docs/sorteos-rewards-catalog.md';
+const SEED_PATH = 'scripts/seed-socialpro-rewards-steam.ts';
+const ENRICH_PATH = 'scripts/enrich-rewards.ts';
 
-describe('[rewards-catalog] constante PLANNED_REWARDS', () => {
+describe('[rewards-catalog] REAL_STEAM_REWARDS con metadata real', () => {
   const src = read(CATALOG_PATH);
 
-  it('exporta PLANNED_REWARDS como readonly', () => {
-    expect(src).toMatch(/export const PLANNED_REWARDS:\s*readonly\s+PlannedReward\[\]/);
+  it('exporta REAL_STEAM_REWARDS como readonly CatalogReward[]', () => {
+    expect(src).toMatch(/export const REAL_STEAM_REWARDS:\s*readonly\s+CatalogReward\[\]/);
   });
 
-  it('define PlannedReward con campos requeridos', () => {
+  it('define CatalogReward con campos requeridos (metadata real)', () => {
+    expect(src).toMatch(/name:\s*string/);
+    expect(src).toMatch(/costPoints:\s*number/);
+    expect(src).toMatch(/stock:\s*number/);
+    expect(src).toMatch(/imageUrl:\s*string/);
     expect(src).toMatch(/steamMarketUrl:\s*string/);
-    expect(src).toMatch(/costPoints:\s*number\s*\|\s*null/);
-    expect(src).toMatch(/stock:\s*number\s*\|\s*null/);
-    expect(src).toMatch(/imageUrl:\s*string\s*\|\s*null/);
+    expect(src).toMatch(/delivery:\s*RewardDelivery/);
+    expect(src).toMatch(/requiresManualReview:\s*boolean/);
   });
 
-  it('los 8 URLs de Steam Market están en el catálogo (uno por uno)', () => {
+  it('los 8 nombres reales están en el catálogo', () => {
+    for (const name of SKIN_NAMES) {
+      expect(src).toContain(name);
+    }
+  });
+
+  it('los 8 URLs de Steam Market están en el catálogo (trazabilidad)', () => {
     for (const url of STEAM_MARKET_URLS) {
       expect(src).toContain(url);
     }
   });
 
-  it('exactamente 8 slugs cs2-skin-reward-N', () => {
-    const slugs = src.match(/slug:\s*'cs2-skin-reward-\d+'/g) ?? [];
-    expect(slugs).toHaveLength(8);
+  it('las 8 imágenes locales están referenciadas', () => {
+    const expected = [
+      '/images/rewards/glock-18-fully-tuned-ft.png',
+      '/images/rewards/usp-s-cortex-ft.png',
+      '/images/rewards/m4a4-temukau-ft.png',
+      '/images/rewards/ak-47-asiimov-ft.png',
+      '/images/rewards/m4a4-desolate-space-ft.png',
+      '/images/rewards/glock-18-vogue-ft.png',
+      '/images/rewards/glock-18-block-18-ft.png',
+      '/images/rewards/awp-atheris-ft.png',
+    ];
+    for (const p of expected) {
+      expect(src).toContain(p);
+    }
   });
 
-  it('todos los items marcan status: "planned" — nada activo', () => {
-    // Al menos 8 líneas de status: 'planned' (pueden ser más si el JSDoc
-    // menciona el literal como referencia).
-    const matches = src.match(/status:\s*'planned'/g) ?? [];
+  it('las 8 imágenes existen en el filesystem', () => {
+    const files = [
+      'public/images/rewards/glock-18-fully-tuned-ft.png',
+      'public/images/rewards/usp-s-cortex-ft.png',
+      'public/images/rewards/m4a4-temukau-ft.png',
+      'public/images/rewards/ak-47-asiimov-ft.png',
+      'public/images/rewards/m4a4-desolate-space-ft.png',
+      'public/images/rewards/glock-18-vogue-ft.png',
+      'public/images/rewards/glock-18-block-18-ft.png',
+      'public/images/rewards/awp-atheris-ft.png',
+    ];
+    for (const f of files) {
+      const abs = path.join(ROOT, f);
+      expect(fs.existsSync(abs)).toBe(true);
+      // Cada imagen > 10KB (real, no placeholder).
+      expect(fs.statSync(abs).size).toBeGreaterThan(10_000);
+    }
+  });
+
+  it('los 8 items tienen stock: 1 (stock limitado por defecto)', () => {
+    const matches = src.match(/stock:\s*1,/g) ?? [];
     expect(matches.length).toBeGreaterThanOrEqual(8);
   });
 
-  it('todos los items tienen costPoints: null (precio pendiente)', () => {
-    const matches = src.match(/costPoints:\s*null/g) ?? [];
+  it('los 8 items marcan status: "active" (canjeables)', () => {
+    const matches = src.match(/status:\s*'active'/g) ?? [];
     expect(matches.length).toBeGreaterThanOrEqual(8);
   });
 
-  it('todos los items tienen stock: null (stock pendiente)', () => {
-    const matches = src.match(/stock:\s*null/g) ?? [];
-    expect(matches.length).toBeGreaterThanOrEqual(8);
+  it('los 8 items marcan delivery: "steam_trade_offer" + requiresManualReview: true', () => {
+    const delivery = src.match(/delivery:\s*'steam_trade_offer'/g) ?? [];
+    const review = src.match(/requiresManualReview:\s*true/g) ?? [];
+    expect(delivery.length).toBeGreaterThanOrEqual(8);
+    expect(review.length).toBeGreaterThanOrEqual(8);
   });
 
-  it('todos los items tienen imageUrl: null (sin imagen fiable)', () => {
-    const matches = src.match(/imageUrl:\s*null/g) ?? [];
-    expect(matches.length).toBeGreaterThanOrEqual(8);
-  });
-
-  it('categoría skin + game CS2 en las 8', () => {
+  it('los 8 items son categoría skin + game CS2', () => {
     const skins = src.match(/category:\s*'skin'/g) ?? [];
     const cs2 = src.match(/game:\s*'CS2'/g) ?? [];
     expect(skins.length).toBeGreaterThanOrEqual(8);
     expect(cs2.length).toBeGreaterThanOrEqual(8);
+  });
+
+  it('precios en puntos son los confirmados por el owner (números redondos)', () => {
+    // Verificación directa de los 8 precios aprobados.
+    for (const price of ['104_500', '6_500', '57_700', '70_000', '23_200', '6_700', '800', '8_100']) {
+      expect(src).toContain(`costPoints: ${price}`);
+    }
   });
 });
 
@@ -96,125 +149,119 @@ describe('[rewards-catalog] doc de política', () => {
 
   it('doc existe y no está vacío', () => {
     expect(fs.existsSync(path.join(ROOT, DOC_PATH))).toBe(true);
-    expect(fs.statSync(path.join(ROOT, DOC_PATH)).size).toBeGreaterThan(1500);
+    expect(fs.statSync(path.join(ROOT, DOC_PATH)).size).toBeGreaterThan(2500);
   });
 
-  it('los 8 URLs están en el doc', () => {
-    for (const url of STEAM_MARKET_URLS) {
-      expect(doc).toContain(url);
+  it('los 8 nombres reales están en el doc (tabla + narrativa)', () => {
+    for (const name of SKIN_NAMES) {
+      // Markdown escapa el pipe `|` como `\|` en tablas. Buscamos ambas variantes.
+      const escapedName = name.replace(/\|/g, '\\|');
+      const found = doc.includes(name) || doc.includes(escapedName);
+      expect(found).toBe(true);
     }
   });
 
-  it('deja claro que ninguna es canjeable', () => {
-    // 8 celdas ❌ en la tabla.
-    const noCells = (doc.match(/\|\s*❌\s*\|/g) ?? []).length;
-    expect(noCells).toBeGreaterThanOrEqual(8);
+  it('comando exacto de seed documentado', () => {
+    expect(doc).toMatch(/CONFIRM_SEED_STEAM_REWARDS=I_ACCEPT_ADD_STEAM_REWARDS/);
+    expect(doc).toMatch(/npx tsx scripts\/seed-socialpro-rewards-steam\.ts/);
   });
 
-  it('regla de activación documentada (planned → coming_soon → shop_items)', () => {
-    expect(doc).toMatch(/Regla de activación/i);
-    expect(doc).toMatch(/planned/);
-    expect(doc).toMatch(/coming_soon/);
-    expect(doc).toMatch(/shop_items/);
-  });
-
-  it('bloquea scraping runtime + seed sin OK', () => {
-    expect(doc).toMatch(/No hay scraping runtime/);
-    expect(doc).toMatch(/No hay seed/);
+  it('deja claro que no hay scraping runtime + no fetch en prod', () => {
+    expect(doc).toMatch(/No hay scraping runtime/i);
+    expect(doc).toMatch(/No hay fetch runtime/i);
   });
 });
 
-describe('[rewards-catalog] Tienda → Recompensas en UI pública', () => {
-  it('nav item cambiado a "Recompensas"', () => {
-    const src = read('src/features/giveaway-platform/components/PlatformNav.tsx');
-    expect(src).toMatch(/href:\s*'#recompensas',\s*label:\s*'Recompensas'/);
-    expect(src).not.toMatch(/label:\s*'Tienda'/);
+describe('[rewards-catalog] seed script requiere confirmación explícita', () => {
+  const src = read(SEED_PATH);
+
+  it('usa el token de confirmación exacto', () => {
+    expect(src).toMatch(/CONFIRM_SEED_STEAM_REWARDS/);
+    expect(src).toMatch(/I_ACCEPT_ADD_STEAM_REWARDS/);
   });
 
-  it('sección id="recompensas" y title en PlatformCreatorLanding', () => {
-    const src = read('src/features/giveaway-platform/components/PlatformCreatorLanding.tsx');
-    expect(src).toMatch(/id="recompensas"/);
-    expect(src).toMatch(/Recompensas\s*·\s*canjea tus puntos/);
-    expect(src).not.toMatch(/<h2>Tienda\s*·/);
+  it('aborta si la env var falta o no matchea', () => {
+    expect(src).toMatch(/if\s*\(confirm\s*!==\s*CONFIRM_TOKEN\)/);
+    expect(src).toMatch(/process\.exit\(1\)/);
   });
 
-  it('PlatformShop usa lenguaje de recompensas (no "tienda") en copy visible', () => {
-    const src = read('src/features/giveaway-platform/components/PlatformShop.tsx');
-    expect(src).toMatch(/Siguiente recompensa a tu alcance/);
-    expect(src).toMatch(/canjear cualquier recompensa disponible/);
-    expect(src).toMatch(/No hay recompensas en esta categoría/);
-    // Y el bloque nuevo de "Próximas recompensas".
-    expect(src).toMatch(/Próximas recompensas/);
+  it('lee de REAL_STEAM_REWARDS (fuente de verdad, no strings hardcoded)', () => {
+    expect(src).toMatch(/import\s*\{[^}]*REAL_STEAM_REWARDS[^}]*\}\s*from/);
+  });
+
+  it('es idempotente — UPDATE si el name existe, INSERT si no', () => {
+    expect(src).toMatch(/db\.query\.shopItems\.findFirst\({[\s\S]{0,120}eq\(shopItems\.name/);
+    expect(src).toMatch(/db\s*\.insert\(shopItems\)/);
+    expect(src).toMatch(/db\s*\.update\(shopItems\)/);
+  });
+
+  it('NUNCA borra items existentes (sin delete)', () => {
+    expect(src).not.toMatch(/db\s*\.delete/);
   });
 });
 
-describe('[rewards-catalog] placeholder premium reemplaza "Imagen pendiente"', () => {
+describe('[rewards-catalog] script enrich-rewards detecta CI/prod', () => {
+  const src = read(ENRICH_PATH);
+
+  it('bloquea si CI=true, VERCEL=1, GITHUB_ACTIONS, o NODE_ENV=production', () => {
+    expect(src).toMatch(/CI[\s\S]{0,80}'true'/);
+    expect(src).toMatch(/NODE_ENV[\s\S]{0,80}'production'/);
+    expect(src).toMatch(/VERCEL[\s\S]{0,80}'1'/);
+    expect(src).toMatch(/GITHUB_ACTIONS/);
+  });
+
+  it('rate limit de 3s entre requests + retries', () => {
+    expect(src).toMatch(/RATE_LIMIT_MS\s*=\s*3_?000/);
+    expect(src).toMatch(/MAX_RETRIES/);
+  });
+
+  it('NO modifica DB (no import de shopItems ni db.insert)', () => {
+    expect(src).not.toMatch(/from\s*['"].*schema['"]/);
+    expect(src).not.toMatch(/db\.insert|db\.update|db\.delete/);
+  });
+
+  it('NO actualiza rewards-catalog.ts automáticamente (solo lee)', () => {
+    expect(src).not.toMatch(/fs\.writeFileSync\(.*rewards-catalog/);
+  });
+
+  it('output JSON en .scratch/ para revisión manual', () => {
+    expect(src).toMatch(/\.scratch/);
+    expect(src).toMatch(/steam-enrich-/);
+  });
+});
+
+describe('[rewards-catalog] UI PlatformShop consume el catálogo', () => {
   const src = read('src/features/giveaway-platform/components/PlatformShop.tsx');
 
-  it('component RewardPlaceholder existe y se usa cuando falta imageUrl', () => {
-    expect(src).toMatch(/function RewardPlaceholder/);
-    // Se monta en la card cuando imageUrl es falsy.
-    expect(src).toMatch(/\?[\s\S]{0,200}<img[\s\S]{0,200}:[\s\S]{0,200}<RewardPlaceholder/);
+  it('importa REAL_STEAM_REWARDS del catálogo', () => {
+    expect(src).toMatch(/import\s*\{[^}]*REAL_STEAM_REWARDS[^}]*\}\s*from\s*'@\/features\/giveaway-platform\/constants\/rewards-catalog'/);
   });
 
-  it('cubre las 6 categorías con badge + icon + label', () => {
-    for (const cat of ['skin', 'merch', 'gift', 'profile', 'frame', 'badge'] as const) {
-      expect(src).toMatch(new RegExp(`${cat}:\\s*\\{\\s*badge:\\s*'`));
-    }
+  it('vitrina dedupica contra items ya en DB (por name)', () => {
+    // Cuando el seed pasa, el mismo `name` está en DB → la vitrina lo filtra.
+    expect(src).toMatch(/dbNames\s*=\s*new Set\(items\.map\(\(i\)\s*=>\s*i\.name\)\)/);
+    expect(src).toMatch(/!dbNames\.has\(r\.name\)/);
   });
 
-  it('CSS del placeholder existe', () => {
-    const css = read('src/app/sorteos/plataforma/platform-rewards-upcoming.css');
-    expect(css).toMatch(/\.gp-reward-placeholder\s*\{[\s\S]{0,600}aspect-ratio/);
-    expect(css).toMatch(/\.gp-reward-placeholder-skin/);
+  it('cards de vitrina muestran precio en puntos, no en €/$', () => {
+    // Vitrina renderiza costPoints con símbolo ⭐, nunca €/$.
+    // (⭐ puede ir antes o después de {costPoints} en el JSX.)
+    expect(src).toMatch(/⭐[\s\S]{0,80}reward\.costPoints|reward\.costPoints[\s\S]{0,80}⭐/);
+    expect(src).not.toMatch(/reward\.costPoints[\s\S]{0,20}€/);
+    expect(src).not.toMatch(/reward\.costPoints[\s\S]{0,20}\$\D/);
   });
 
-  it('layout raíz carga el CSS de rewards-upcoming', () => {
-    const src = read('src/app/sorteos/layout.tsx');
-    expect(src).toMatch(/platform-rewards-upcoming\.css/);
-  });
-
-  it('ya NO se muestra el string plano "Imagen pendiente" como único fallback', () => {
-    // Antes: `<div className="gp-shop-img-empty">Imagen pendiente</div>`
-    // Ahora: <RewardPlaceholder>.
-    expect(src).not.toMatch(/Imagen pendiente/);
-  });
-});
-
-describe('[rewards-catalog] próximas recompensas NO son canjeables', () => {
-  const src = read('src/features/giveaway-platform/components/PlatformShop.tsx');
-
-  it('la card de upcoming NO tiene botón Canjear', () => {
-    // El bloque de upcoming solo tiene link "Ver en Steam Market".
+  it('cards de vitrina NO tienen botón Canjear — solo "Ver en Steam Market"', () => {
+    // ShowcaseCard usa un anchor a Steam Market, no un botón de canje.
+    expect(src).toMatch(/function ShowcaseCard/);
     expect(src).toMatch(/Ver en Steam Market/);
-    // No debe existir un botón Canjear en la card planned.
-    expect(src).toMatch(/gp-shop-card-planned/);
-  });
-
-  it('se muestra "Precio pendiente" y "Stock pendiente" cuando faltan', () => {
-    expect(src).toMatch(/Precio pendiente/);
-    expect(src).toMatch(/Stock pendiente/);
-  });
-
-  it('badge "Próximamente" superpuesto en la card', () => {
-    expect(src).toMatch(/gp-shop-badge-soon/);
-    expect(src).toMatch(/Próximamente/);
+    // El componente ShowcaseCard no debería llamar handleRedeem.
+    const showcaseFn = src.match(/function ShowcaseCard[\s\S]*?^}$/m)?.[0] ?? '';
+    expect(showcaseFn).not.toMatch(/handleRedeem/);
   });
 });
 
-describe('[rewards-catalog] ningún seed activa estos 8 URLs', () => {
-  it('scripts/seed-giveaway-platform.ts no referencia los listing hashes', () => {
-    const seedPath = path.join(ROOT, 'scripts/seed-giveaway-platform.ts');
-    if (!fs.existsSync(seedPath)) return;
-    const src = fs.readFileSync(seedPath, 'utf-8');
-    for (const url of STEAM_MARKET_URLS) {
-      const hash = url.match(/\/listings\/730\/([A-Za-z0-9]+)/)?.[1];
-      if (hash) expect(src).not.toContain(hash);
-    }
-  });
-});
-
-describe('[rewards-catalog] ningún módulo hace fetch runtime a Steam Market', () => {
+describe('[rewards-catalog] no fetch runtime a Steam en src/', () => {
   const srcDir = path.join(ROOT, 'src');
   const walk = (dir: string): string[] => {
     const out: string[] = [];
@@ -230,21 +277,28 @@ describe('[rewards-catalog] ningún módulo hace fetch runtime a Steam Market', 
     return out;
   };
 
-  it('src/ (sin tests) no llama fetch/axios contra steamcommunity.com/market', () => {
+  it('ningún archivo src/ (excepto catálogo) menciona steamcommunity.com/market', () => {
+    const files = walk(srcDir);
+    for (const f of files) {
+      if (f.endsWith('rewards-catalog.ts')) continue;
+      const src = fs.readFileSync(f, 'utf-8');
+      expect(src).not.toMatch(/steamcommunity\.com\/market/);
+    }
+  });
+
+  it('ningún archivo src/ hace fetch/axios a community.steamstatic.com', () => {
     const files = walk(srcDir);
     for (const f of files) {
       const src = fs.readFileSync(f, 'utf-8');
-      // El único archivo que puede mencionar "steamcommunity.com/market"
-      // es rewards-catalog.ts (constante de URLs). Nadie hace fetch a esos.
-      if (f.endsWith('rewards-catalog.ts')) continue;
-      expect(src).not.toMatch(/steamcommunity\.com\/market/);
+      expect(src).not.toMatch(/fetch\([^)]*community\.steamstatic\.com/);
+      expect(src).not.toMatch(/axios[^;]{0,80}community\.steamstatic\.com/);
     }
   });
 });
 
 describe('[rewards-catalog] conversión $/€ → puntos no expuesta al usuario', () => {
   const src = read('src/features/giveaway-platform/components/PlatformShop.tsx');
-  it('PlatformShop no muestra ratio de conversión', () => {
+  it('PlatformShop no muestra ratio de conversión ni precios en €/$', () => {
     expect(src).not.toMatch(/1\s*USD\s*[^.]{0,60}1\.?000\s*puntos/i);
     expect(src).not.toMatch(/1\s*EUR\s*[^.]{0,60}1\.?100\s*puntos/i);
     expect(src).not.toMatch(/equivalente\s*en\s*€/i);
