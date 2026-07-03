@@ -1,5 +1,6 @@
 import Image from 'next/image';
 import { ExternalGiveawayCard } from './ExternalGiveawayCard';
+import { ProviderRankingPlaceholder } from './ProviderRankingPlaceholder';
 import { getProvider } from '@/lib/external-giveaways/providers';
 import type { ExternalGiveawaySections } from '@/lib/external-giveaways/types';
 
@@ -95,6 +96,11 @@ export function ExternalGiveawaysSection({ sections, creatorDisplayName }: Props
             </div>
           </details>
         ) : null}
+
+        <ProviderRankingPlaceholder
+          providerDisplayName={provider.displayName}
+          creatorDisplayName={creatorDisplayName}
+        />
       </div>
     </section>
   );
