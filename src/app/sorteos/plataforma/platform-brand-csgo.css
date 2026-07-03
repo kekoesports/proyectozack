@@ -18,7 +18,7 @@
 .giveaway-platform .p-csgo-v2 .gp-csgo-content {
   position: relative;
   z-index: 2;
-  max-width: 62%;
+  max-width: 56%;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -28,8 +28,8 @@
   top: 0;
   right: 0;
   bottom: 0;
-  width: 55%;
-  max-width: 340px;
+  width: 60%;
+  max-width: 460px;
   z-index: 1;
   pointer-events: none;
   overflow: hidden;
@@ -122,8 +122,8 @@
 
 /* Responsive. */
 @media (max-width: 720px) {
-  .giveaway-platform .p-csgo-v2 .gp-csgo-content { max-width: 66%; }
-  .giveaway-platform .p-csgo-v2 .gp-csgo-media { width: 45%; max-width: 240px; }
+  .giveaway-platform .p-csgo-v2 .gp-csgo-content { max-width: 60%; }
+  .giveaway-platform .p-csgo-v2 .gp-csgo-media { width: 50%; max-width: 320px; }
   .giveaway-platform .gp-csgo-event-title { font-size: 19px; }
 }
 @media (max-width: 480px) {

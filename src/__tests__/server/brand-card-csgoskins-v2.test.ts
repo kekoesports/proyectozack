@@ -36,7 +36,7 @@ describe('[csgoskins-v2] componente card', () => {
   it('monta banner del evento como <Image fill> en `.gp-csgo-media`', () => {
     expect(src).toMatch(/<div className="gp-csgo-media"\s+aria-hidden>/);
     expect(src).toMatch(/<Image[\s\S]{0,200}fill[\s\S]{0,200}gp-csgo-media-img/);
-    expect(src).toMatch(/sizes="\(max-width:\s*720px\)\s*100vw,\s*340px"/);
+    expect(src).toMatch(/sizes="\(max-width:\s*720px\)\s*100vw,\s*460px"/);
   });
 
   it('renderiza countdown live con endsAt configurable (constante bien identificada)', () => {
