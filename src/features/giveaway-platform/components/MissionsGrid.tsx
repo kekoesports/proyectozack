@@ -30,7 +30,7 @@ export function MissionsGrid({ missions }: Props) {
 
   return (
     <>
-      <p className="gp-mission-head">Las monedas de todos los creadores se suman al mismo saldo.</p>
+      <p className="gp-mission-head">Los puntos de todos los creadores se suman al mismo saldo.</p>
       <div className="gp-missions-grid">
         {visible.map((m) => {
           const pct = m.goal > 0 ? Math.min(100, Math.round((m.current / m.goal) * 100)) : 0;
@@ -39,7 +39,7 @@ export function MissionsGrid({ missions }: Props) {
               <div className="gp-mission-row">
                 <h3 className="gp-mission-title">{m.claimed ? '✓ ' : ''}{m.title}</h3>
                 <span className={`gp-mission-reward${m.claimed ? ' is-done' : ''}`}>
-                  {m.claimed ? 'Cobrado' : `+${m.rewardCoins} 🪙`}
+                  {m.claimed ? 'Cobrado' : `+${m.rewardCoins} ⭐`}
                 </span>
               </div>
               <p className="gp-mission-desc">{m.description}</p>

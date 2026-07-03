@@ -84,7 +84,7 @@ describe('[ui] UserPill usa SteamLoginButton cuando !loggedIn', () => {
 
   it('el emoji 🎮 hardcoded ya no aparece en el CTA', () => {
     // 🎮 solo aparecía en el botón antiguo "🎮 Iniciar sesión con Steam".
-    // Otros emojis del pill (🪙 monedas) siguen siendo legítimos.
+    // Otros emojis del pill (⭐ puntos) siguen siendo legítimos.
     expect(src).not.toMatch(/🎮\s+Iniciar sesión con Steam/);
   });
 });

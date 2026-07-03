@@ -1,10 +1,15 @@
 /**
- * Contratos estructurales de la Fase 1+2 de la economía de monedas.
+ * Contratos estructurales de la Fase 1+2 de la economía de puntos.
+ *
+ * Naming (2026-07-03): al usuario público se le habla siempre de "puntos".
+ * Internamente (DB, código, tests) se conservan los identificadores
+ * heredados (`coin_transactions`, `getCoinBalance`, `ENTRY_COIN_REWARD`,
+ * `costCoins`...) porque renombrarlos requeriría migración DB.
  *
  * Regla interna (docs/sorteos-coin-economy.md):
- *   1 USD ≈ 1.000 monedas · 1 EUR ≈ 1.100 monedas.
+ *   1 USD ≈ 1.000 puntos · 1 EUR ≈ 1.100 puntos.
  *   Nunca exponer esta conversión al usuario ni permitir
- *   comprar/transferir monedas.
+ *   comprar/transferir puntos.
  *
  * Este test verifica:
  *  - Doc existe con las tablas y reglas.
@@ -12,8 +17,8 @@
  *  - PlatformShop muestra las nuevas categorías + disclaimer legal.
  *  - Seed script actualizado con nueva economía + profile cards demo
  *    (NO se ejecuta desde este PR).
- *  - Sin fugas: nadie expone "1$ = 1000 monedas" en UI pública ni existe
- *    endpoint de "comprar monedas" o "transferir monedas".
+ *  - Sin fugas: nadie expone "1$ = 1000 puntos" en UI pública ni existe
+ *    endpoint de "comprar puntos" o "transferir puntos".
  */
 
 import * as fs from 'fs';
@@ -25,14 +30,14 @@ const read = (rel: string) => fs.readFileSync(path.join(ROOT, rel), 'utf-8');
 describe('[coin-economy] doc de política', () => {
   const doc = read('docs/sorteos-coin-economy.md');
 
-  it('existe y cita la regla interna 1$ ≈ 1.000 monedas', () => {
-    expect(doc).toMatch(/1 USD de coste interno\s*≈\s*1\.?000 monedas/i);
-    expect(doc).toMatch(/1 EUR de coste interno\s*≈\s*1\.?100 monedas/i);
+  it('existe y cita la regla interna 1$ ≈ 1.000 puntos', () => {
+    expect(doc).toMatch(/1 USD de coste interno\s*≈\s*1\.?000 puntos/i);
+    expect(doc).toMatch(/1 EUR de coste interno\s*≈\s*1\.?100 puntos/i);
   });
 
   it('deja claro que la regla NUNCA se expone al usuario', () => {
-    expect(doc).toMatch(/nunca exponer al usuario/i);
-    expect(doc).toMatch(/No mostrar "1\.000 monedas\s*=\s*1\$" en la UI/);
+    expect(doc).toMatch(/Prohibido exponer al usuario/i);
+    expect(doc).toMatch(/No mostrar "1\.000 puntos\s*=\s*1\$"/);
   });
 
   it('reglas legales completas de "no valor monetario"', () => {
@@ -43,8 +48,15 @@ describe('[coin-economy] doc de política', () => {
     expect(doc).toMatch(/No son canjeables por dinero/i);
   });
 
+  it('disclaimer largo con el copy compliance completo', () => {
+    // Frase canónica que se copiará literal en Términos + FAQ.
+    expect(doc).toMatch(
+      /Los puntos son un sistema interno de fidelización y recompensas[\s\S]{0,200}No son dinero, no son criptomonedas, no tienen valor monetario, no son transferibles y no pueden canjearse por efectivo/,
+    );
+  });
+
   it('incluye tabla de rewards y precios objetivo', () => {
-    expect(doc).toMatch(/Racha 7 días completada[\s\S]{0,80}250 monedas/i);
+    expect(doc).toMatch(/Racha 7 días completada[\s\S]{0,80}250 puntos/i);
     expect(doc).toMatch(/Gift card 10€[\s\S]{0,120}11\.?000-15\.?000/i);
     expect(doc).toMatch(/Skin CS2 premium/i);
   });
@@ -102,8 +114,8 @@ describe('[coin-economy] PlatformShop UI', () => {
   });
 
   it('el disclaimer NUNCA cita la conversión interna (fuga bloqueada)', () => {
-    expect(src).not.toMatch(/1\.?000 monedas\s*=\s*1\s*\$/i);
-    expect(src).not.toMatch(/1\.?100 monedas\s*=\s*1\s*€/i);
+    expect(src).not.toMatch(/1\.?000 puntos\s*=\s*1\s*\$/i);
+    expect(src).not.toMatch(/1\.?100 puntos\s*=\s*1\s*€/i);
     expect(src).not.toMatch(/1\s*USD.*1\.?000/i);
     expect(src).not.toMatch(/valor.*€|valor.*USD/i);
   });
@@ -160,20 +172,23 @@ describe('[coin-economy] safeguards — ningún vector prohibido en código', ()
     'src/features/giveaway-platform/components/PlatformCreatorLanding.tsx',
   ];
 
-  it('ningún componente/action ofrece "comprar monedas" con dinero', () => {
+  it('ningún componente/action ofrece "comprar puntos/monedas" con dinero', () => {
     for (const p of SRC_PATHS) {
       const src = read(p);
+      expect(src).not.toMatch(/comprar puntos/i);
       expect(src).not.toMatch(/comprar monedas/i);
       expect(src).not.toMatch(/purchase coins/i);
       expect(src).not.toMatch(/buy coins/i);
     }
   });
 
-  it('ningún componente/action ofrece "transferir monedas" entre usuarios', () => {
+  it('ningún componente/action ofrece "transferir puntos/monedas" entre usuarios', () => {
     for (const p of SRC_PATHS) {
       const src = read(p);
+      expect(src).not.toMatch(/transferir puntos/i);
       expect(src).not.toMatch(/transferir monedas/i);
       expect(src).not.toMatch(/transfer coins/i);
+      expect(src).not.toMatch(/enviar puntos/i);
       expect(src).not.toMatch(/enviar monedas/i);
     }
   });
@@ -182,6 +197,7 @@ describe('[coin-economy] safeguards — ningún vector prohibido en código', ()
     for (const p of SRC_PATHS) {
       const src = read(p);
       expect(src).not.toMatch(/marketplace/i);
+      expect(src).not.toMatch(/vender puntos/i);
       expect(src).not.toMatch(/vender monedas/i);
     }
   });

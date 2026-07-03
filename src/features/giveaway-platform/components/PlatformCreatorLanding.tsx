@@ -138,7 +138,7 @@ export async function PlatformCreatorLanding({ slug }: Props) {
 
             <section id="misiones">
               <div className="gp-legacy-block">
-                <h2>Misiones · gana monedas</h2>
+                <h2>Misiones · gana puntos</h2>
                 <MissionsGrid missions={missions} />
               </div>
             </section>
@@ -146,7 +146,7 @@ export async function PlatformCreatorLanding({ slug }: Props) {
         ) : (
           <section>
             <div className="gp-legacy-block gp-login-prompt">
-              <p>Inicia sesión con Steam para participar en los sorteos, completar misiones y ganar monedas.</p>
+              <p>Inicia sesión con Steam para participar en los sorteos, completar misiones y ganar puntos.</p>
               <SteamLoginButton size="lg" />
             </div>
           </section>
@@ -157,7 +157,7 @@ export async function PlatformCreatorLanding({ slug }: Props) {
             <div className="gp-legacy-block">
               <h2>Sorteos de {active.name}</h2>
               <p className="gp-rank-note">
-                Participación gratuita · ganas +{ENTRY_COIN_REWARD} 🪙 por sorteo · fotos reales de las skins
+                Participación gratuita · ganas +{ENTRY_COIN_REWARD} ⭐ por sorteo · fotos reales de las skins
               </p>
               <div className="gp-sorteos-grid">
                 {giveawaysData.map((g) => (
@@ -178,7 +178,7 @@ export async function PlatformCreatorLanding({ slug }: Props) {
                         👥 <b>{g.entryCount.toLocaleString('es-ES')}</b> participantes
                       </div>
                       <div className="gp-sorteo-reward">
-                        Gratis · +{ENTRY_COIN_REWARD} 🪙
+                        Gratis · +{ENTRY_COIN_REWARD} ⭐
                       </div>
                       <div className="gp-sorteo-cta">
                         {userId ? (
@@ -207,7 +207,7 @@ export async function PlatformCreatorLanding({ slug }: Props) {
 
         <section id="tienda">
           <div className="gp-legacy-block">
-            <h2>Tienda · canjea tus monedas</h2>
+            <h2>Tienda · canjea tus puntos</h2>
             <PlatformShop items={shopItemsData} balance={balance} />
           </div>
         </section>

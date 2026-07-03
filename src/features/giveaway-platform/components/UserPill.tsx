@@ -53,7 +53,7 @@ export function UserPill({ userName, userImage, balance, loggedIn }: Props) {
         <span className="gp-user-name">{userName ?? 'Jugador'}</span>
         <span className="gp-balance">
           <span>{balance.toLocaleString('es-ES')}</span>
-          <span className="coin" aria-hidden>🪙</span>
+          <span className="coin" aria-hidden>⭐</span>
         </span>
         <span className="gp-chev" aria-hidden>▾</span>
       </button>
@@ -76,7 +76,7 @@ export function UserPill({ userName, userImage, balance, loggedIn }: Props) {
           <span className="i" aria-hidden>🧾</span>
           <span>
             <b>Transacciones</b>
-            <span>Revisa tu historial de monedas</span>
+            <span>Revisa tu historial de puntos</span>
           </span>
         </Link>
         <button

@@ -38,7 +38,7 @@ const chakra = Chakra_Petch({
 export const metadata: Metadata = {
   title: 'Sorteos y recompensas de creadores | SocialPro',
   description:
-    'Índice público de SocialPro Giveaways. Elige un creador y participa gratis en sus sorteos, gana monedas y canjea recompensas.',
+    'Índice público de SocialPro Giveaways. Elige un creador y participa gratis en sus sorteos, gana puntos y canjea recompensas.',
   robots: { index: true, follow: true },
   alternates: { canonical: absoluteUrl('/sorteos') },
 };

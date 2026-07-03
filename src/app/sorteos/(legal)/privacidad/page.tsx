@@ -48,7 +48,7 @@ export default function PrivacidadPage() {
           </li>
           <li>
             <b>Datos de participación en la plataforma:</b> sorteos en los que participas,
-            transacciones de monedas 🪙, misiones completadas, racha diaria, canjeos en tienda.
+            historial de puntos ⭐, misiones completadas, racha diaria, canjeos en tienda.
           </li>
           <li>
             <b>Datos de sesión:</b> cookies estrictamente necesarias para mantener la sesión
@@ -73,7 +73,7 @@ export default function PrivacidadPage() {
         <ul>
           <li>
             <b>Ejecución del servicio (art. 6.1.b):</b> gestión de tu cuenta, participaciones,
-            saldo de monedas y canjeos.
+            saldo de puntos y canjeos.
           </li>
           <li>
             <b>Consentimiento (art. 6.1.a):</b> para funcionalidades opcionales (vincular tu
@@ -82,7 +82,7 @@ export default function PrivacidadPage() {
           <li>
             <b>Interés legítimo (art. 6.1.f):</b> aplicar medidas para prevenir abusos o
             uso indebido, revisar posibles incumplimientos y auditar el registro interno de
-            monedas.
+            puntos.
           </li>
         </ul>
         <p>
@@ -140,7 +140,7 @@ export default function PrivacidadPage() {
         <ul>
           <li>Datos de cuenta: mientras la cuenta permanezca activa.</li>
           <li>
-            Historial de monedas y canjeos: durante el plazo estrictamente necesario
+            Historial de puntos y canjeos: durante el plazo estrictamente necesario
             para gestionar la cuenta, resolver incidencias, prevenir abusos y cumplir,
             en su caso, con las obligaciones legales aplicables.
           </li>

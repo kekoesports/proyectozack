@@ -6,7 +6,7 @@
  *  - Category tabs con badge de count.
  *  - Card marca "affordable" cuando balance >= cost && stock > 0.
  *  - Barra de progreso por card (% balance/cost, clamped 100).
- *  - Botón muestra "Faltan N 🪙" cuando no alcanza.
+ *  - Botón muestra "Faltan N ⭐" cuando no alcanza.
  *  - Empty state cuando el filtro no devuelve items.
  *  - CSS para summary, badges y progress-fill.
  */

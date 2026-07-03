@@ -56,14 +56,14 @@ export function PlatformShop({ items, balance }: Props) {
       <div className="gp-shop-summary">
         <div className="gp-shop-balance">
           <span className="l">Tu saldo</span>
-          <b>🪙 {balance.toLocaleString('es-ES')}</b>
+          <b>⭐ {balance.toLocaleString('es-ES')}</b>
         </div>
         {cheapestUnaffordable ? (
           <div className="gp-shop-next">
             Siguiente premio a tu alcance:{' '}
             <b>{cheapestUnaffordable.name}</b> — te faltan{' '}
             <span className="gp-shop-next-gap">
-              {(cheapestUnaffordable.costCoins - balance).toLocaleString('es-ES')} 🪙
+              {(cheapestUnaffordable.costCoins - balance).toLocaleString('es-ES')} ⭐
             </span>
           </div>
         ) : items.length > 0 ? (
@@ -72,7 +72,7 @@ export function PlatformShop({ items, balance }: Props) {
       </div>
 
       <p className="gp-shop-disclaimer" role="note">
-        Las monedas son puntos internos <b>sin valor monetario</b>, no
+        Los puntos son recompensas internas <b>sin valor monetario</b>, no
         transferibles y no canjeables por dinero. Los precios y la
         disponibilidad pueden cambiar. Los canjes pueden requerir revisión
         antes del envío.
@@ -115,7 +115,7 @@ export function PlatformShop({ items, balance }: Props) {
                 </div>
                 <h4 className="gp-shop-name">{item.name}</h4>
                 {item.description ? <p className="gp-shop-desc">{item.description}</p> : <p className="gp-shop-desc" />}
-                <div className="gp-shop-cost">🪙 {item.costCoins.toLocaleString('es-ES')}</div>
+                <div className="gp-shop-cost">⭐ {item.costCoins.toLocaleString('es-ES')}</div>
                 <div className="gp-shop-progress" aria-hidden>
                   <span className="gp-shop-progress-fill" style={{ width: `${pct}%` }} />
                 </div>
@@ -128,7 +128,7 @@ export function PlatformShop({ items, balance }: Props) {
                   disabled={!affordable || isPending}
                   className="gp-shop-btn"
                 >
-                  {isPending ? 'Canjeando…' : affordable ? 'Canjear' : `Faltan ${(item.costCoins - balance).toLocaleString('es-ES')} 🪙`}
+                  {isPending ? 'Canjeando…' : affordable ? 'Canjear' : `Faltan ${(item.costCoins - balance).toLocaleString('es-ES')} ⭐`}
                 </button>
               </div>
             );
