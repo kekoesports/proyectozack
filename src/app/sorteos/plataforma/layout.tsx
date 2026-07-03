@@ -9,6 +9,8 @@ import './platform-brand-cards.css';
 import './platform-fx.css';
 import './platform-widgets.css';
 import './platform-external-giveaways.css';
+import './platform-profile.css';
+import './platform-creator-profile.css';
 
 const rajdhani = Rajdhani({
   subsets: ['latin'],

@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useRef, useState, useTransition } from 'react';
 import { steamLogout } from '@/features/giveaway-platform/actions/steamLogout';
 
@@ -68,27 +69,27 @@ export function UserPill({ userName, balance, loggedIn }: Props) {
         <span className="gp-chev" aria-hidden>▾</span>
       </button>
       <div className="gp-user-menu" role="menu">
-        <button type="button" role="menuitem" className="gp-um-item" data-todo="profile-config">
+        <Link href="/sorteos/plataforma/perfil" role="menuitem" className="gp-um-item" onClick={() => setOpen(false)}>
           <span className="i" aria-hidden>⚙️</span>
           <span>
-            <b>Configuración</b>
-            <span>Ajusta tu perfil</span>
+            <b>Mi perfil</b>
+            <span>Ajustes, inventario y saldo</span>
           </span>
-        </button>
-        <button type="button" role="menuitem" className="gp-um-item" data-todo="profile-inv">
+        </Link>
+        <Link href="/sorteos/plataforma/perfil#inventario" role="menuitem" className="gp-um-item" onClick={() => setOpen(false)}>
           <span className="i" aria-hidden>🎒</span>
           <span>
             <b>Inventario</b>
             <span>Ver tu historial de premios</span>
           </span>
-        </button>
-        <button type="button" role="menuitem" className="gp-um-item" data-todo="profile-tx">
+        </Link>
+        <Link href="/sorteos/plataforma/perfil#transacciones" role="menuitem" className="gp-um-item" onClick={() => setOpen(false)}>
           <span className="i" aria-hidden>🧾</span>
           <span>
             <b>Transacciones</b>
             <span>Revisa tu historial de monedas</span>
           </span>
-        </button>
+        </Link>
         <button
           type="button"
           role="menuitem"

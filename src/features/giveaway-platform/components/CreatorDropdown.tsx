@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 interface CreatorOption {
@@ -17,6 +17,9 @@ interface Props {
   creators: CreatorOption[];
   activeSlug: string;
 }
+
+/** Umbral a partir del cual mostramos el input de búsqueda. */
+const SEARCH_THRESHOLD = 6;
 
 function CreatorAvatar({ creator, size }: { creator: CreatorOption; size: number }) {
   if (creator.photoUrl) {
@@ -40,6 +43,7 @@ function CreatorAvatar({ creator, size }: { creator: CreatorOption; size: number
 
 export function CreatorDropdown({ creators, activeSlug }: Props) {
   const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState('');
   const router = useRouter();
   const searchParams = useSearchParams();
   const ref = useRef<HTMLDivElement>(null);
@@ -48,16 +52,32 @@ export function CreatorDropdown({ creators, activeSlug }: Props) {
   // Cierre por click fuera. Único useEffect y para una interacción imperativa real.
   useEffect(() => {
     function onDocClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+        setQuery('');
+      }
     }
     document.addEventListener('click', onDocClick);
     return () => document.removeEventListener('click', onDocClick);
   }, []);
 
+  const filtered = useMemo(() => {
+    if (!query) return creators;
+    const q = query.toLowerCase().trim();
+    return creators.filter((c) =>
+      c.name.toLowerCase().includes(q) ||
+      c.slug.toLowerCase().includes(q) ||
+      c.sub.toLowerCase().includes(q)
+    );
+  }, [creators, query]);
+
+  const showSearch = creators.length >= SEARCH_THRESHOLD;
+
   function select(slug: string) {
     const params = new URLSearchParams(searchParams.toString());
     params.set('creador', slug);
     setOpen(false);
+    setQuery('');
     router.push(`/sorteos/plataforma?${params.toString()}`, { scroll: false });
   }
 
@@ -69,22 +89,39 @@ export function CreatorDropdown({ creators, activeSlug }: Props) {
         <CreatorAvatar creator={active} size={22} /> Creador: <span>{active.name}</span> ▾
       </button>
       <div className="gp-dd-menu" role="menu">
-        {creators.map((c) => (
-          <button
-            type="button"
-            key={c.slug}
-            role="menuitem"
-            className={`gp-dd-item${c.slug === activeSlug ? ' on' : ''}`}
-            style={{ ['--c' as string]: c.color }}
-            onClick={() => select(c.slug)}
-          >
-            <CreatorAvatar creator={c} size={30} />
-            <span>
-              <b>{c.name}</b>
-              <span>{c.sub}</span>
-            </span>
-          </button>
-        ))}
+        {showSearch ? (
+          <input
+            type="text"
+            className="gp-dd-search"
+            placeholder="Buscar creador…"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            aria-label="Buscar creador"
+            autoFocus
+          />
+        ) : null}
+        <div className="gp-dd-scroll">
+          {filtered.length === 0 ? (
+            <div className="gp-dd-empty">Sin resultados</div>
+          ) : (
+            filtered.map((c) => (
+              <button
+                type="button"
+                key={c.slug}
+                role="menuitem"
+                className={`gp-dd-item${c.slug === activeSlug ? ' on' : ''}`}
+                style={{ ['--c' as string]: c.color }}
+                onClick={() => select(c.slug)}
+              >
+                <CreatorAvatar creator={c} size={30} />
+                <span>
+                  <b>{c.name}</b>
+                  <span>{c.sub}</span>
+                </span>
+              </button>
+            ))
+          )}
+        </div>
       </div>
     </div>
   );
