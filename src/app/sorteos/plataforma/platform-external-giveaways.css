@@ -1,28 +1,37 @@
 /*
- * Estilos específicos de la sección KeyDrop en /sorteos/plataforma.
- * Reutiliza `.gp-sorteo-card` + `.gp-sorteo-glow` + `.gp-sorteo-fg` de
- * platform-fx.css. Solo añade lo específico de KeyDrop (badge, tag, status,
- * winners, deadline, finished collapsible).
+ * Estilos comunes de las secciones de sorteos externos (KeyDrop, CSGORoll,
+ * Hellcase, etc.). Reutiliza `.gp-sorteo-card` + `.gp-sorteo-glow` +
+ * `.gp-sorteo-fg` de platform-fx.css. Solo añade lo específico del bloque
+ * "external": header con badge del provider, tag, status, deadline,
+ * winners, finalized collapsible.
+ *
+ * Refactor PR-2a: clases `.gp-keydrop-*` renombradas a `.gp-external-*`
+ * para desacoplar el chrome del provider concreto. Mismos valores; solo
+ * cambia el prefijo — el look visual es idéntico.
+ *
+ * Además mapea los status universales `active` / `ended` / `unknown` que
+ * produce el mapper común, en vez de los específicos `new` / `started` /
+ * `ended` de KeyDrop.
  *
  * Scoped bajo .giveaway-platform. Cargado desde el layout.
  */
 
-.giveaway-platform .gp-keydrop-section { padding-top: 6px; }
+.giveaway-platform .gp-external-section { padding-top: 6px; }
 
-.giveaway-platform .gp-keydrop-head {
+.giveaway-platform .gp-external-head {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   gap: 12px;
   margin-bottom: 12px;
 }
-.giveaway-platform .gp-keydrop-code {
+.giveaway-platform .gp-external-code {
   color: var(--gold);
   font-family: var(--font-display), var(--font-rajdhani), sans-serif;
   letter-spacing: 1.5px;
   font-weight: 800;
 }
-.giveaway-platform .gp-keydrop-badge {
+.giveaway-platform .gp-external-badge {
   flex-shrink: 0;
   padding: 6px 10px;
   border-radius: 8px;
@@ -31,11 +40,11 @@
   display: flex;
   align-items: center;
 }
-.giveaway-platform .gp-keydrop-badge img { height: auto; max-height: 22px; width: auto; }
+.giveaway-platform .gp-external-badge img { height: auto; max-height: 22px; width: auto; }
 
 /* Card overrides */
-.giveaway-platform .gp-keydrop-card { min-height: 380px; }
-.giveaway-platform .gp-keydrop-tag {
+.giveaway-platform .gp-external-card { min-height: 380px; }
+.giveaway-platform .gp-external-tag {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -45,45 +54,41 @@
   letter-spacing: 1.4px;
   text-transform: uppercase;
 }
-.giveaway-platform .gp-keydrop-tag > span:first-child {
+.giveaway-platform .gp-external-tag > span:first-child {
   color: var(--sp-pink);
   font-weight: 800;
 }
-.giveaway-platform .gp-keydrop-status {
+.giveaway-platform .gp-external-status {
   padding: 2px 8px;
   border-radius: 999px;
   font-weight: 700;
 }
-.giveaway-platform .gp-keydrop-status-new {
-  background: rgba(245, 183, 61, 0.14);
-  color: var(--gold);
-}
-.giveaway-platform .gp-keydrop-status-started {
+.giveaway-platform .gp-external-status-active {
   background: rgba(74, 222, 128, 0.12);
   color: #4ade80;
 }
-.giveaway-platform .gp-keydrop-status-ended,
-.giveaway-platform .gp-keydrop-status-unknown {
+.giveaway-platform .gp-external-status-ended,
+.giveaway-platform .gp-external-status-unknown {
   background: rgba(255, 143, 161, 0.10);
   color: #ff8fa1;
 }
-.giveaway-platform .gp-keydrop-sub {
+.giveaway-platform .gp-external-sub {
   color: var(--muted);
   font-weight: 500;
   font-size: 12.5px;
 }
-.giveaway-platform .gp-keydrop-multi {
+.giveaway-platform .gp-external-multi {
   font-size: 11px;
   color: var(--muted);
   letter-spacing: 0.5px;
   margin-left: 4px;
 }
-.giveaway-platform .gp-keydrop-deadline {
+.giveaway-platform .gp-external-deadline {
   margin-top: 6px;
   font-size: 11px;
   color: var(--muted);
 }
-.giveaway-platform .gp-keydrop-winners {
+.giveaway-platform .gp-external-winners {
   margin-top: 8px;
   padding: 6px 8px;
   border-radius: 8px;
@@ -92,23 +97,23 @@
   font-size: 11px;
   line-height: 1.4;
 }
-.giveaway-platform .gp-keydrop-winners-label {
+.giveaway-platform .gp-external-winners-label {
   color: var(--gold);
   font-weight: 700;
   margin-right: 4px;
 }
-.giveaway-platform .gp-keydrop-winners-list {
+.giveaway-platform .gp-external-winners-list {
   color: var(--txt);
   word-break: break-word;
 }
 
 /* Finalizados collapsible */
-.giveaway-platform .gp-keydrop-finished {
+.giveaway-platform .gp-external-finished {
   margin-top: 22px;
   border-top: 1px solid rgba(196, 40, 128, 0.14);
   padding-top: 16px;
 }
-.giveaway-platform .gp-keydrop-finished > summary {
+.giveaway-platform .gp-external-finished > summary {
   cursor: pointer;
   padding: 8px 14px;
   border-radius: 999px;
@@ -124,9 +129,9 @@
   user-select: none;
   transition: background 0.15s, border-color 0.15s;
 }
-.giveaway-platform .gp-keydrop-finished > summary:hover {
+.giveaway-platform .gp-external-finished > summary:hover {
   background: rgba(224, 48, 112, 0.10);
   border-color: rgba(224, 48, 112, 0.55);
 }
-.giveaway-platform .gp-keydrop-finished > summary::-webkit-details-marker { display: none; }
-.giveaway-platform .gp-keydrop-finished[open] > summary { margin-bottom: 14px; }
+.giveaway-platform .gp-external-finished > summary::-webkit-details-marker { display: none; }
+.giveaway-platform .gp-external-finished[open] > summary { margin-bottom: 14px; }
