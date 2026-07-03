@@ -227,62 +227,73 @@
   box-shadow: 0 6px 22px rgba(245, 183, 61, 0.35);
 }
 
-/* ================ SKINSMONKEY (hero-top variant of .p-gold) ================
- * Rediseño 2026-07-03: la card de SkinsMonkey usa una imagen hero a ancho
- * completo arriba en lugar del "agente flotante" que usan las demás. Esto
- * disimula la baja calidad del thumbnail actual (marcado como TODO en
- * constants/brands.ts) y le da más protagonismo visual.
+/* ================ SKINSMONKEY (compacta, media a la derecha) ==============
+ * v2 (post-revert 2026-07-03): la variante hero-top de v1 (PR #176) hacía la
+ * card mucho más alta que CSGO-SKINS y descompensaba `.gp-grid-2`. Ahora:
+ * misma altura que CSGO-SKINS (hereda `min-height: 300px` de `.p-gold`),
+ * con un "media block" de 220×260px pegado a la derecha. La imagen usa
+ * `object-fit: cover` para no aplastar el thumbnail y un mask/gradient en el
+ * borde izquierdo del bloque funde la imagen con el contenido.
  */
-.giveaway-platform .p-monkey {
-  padding: 0;
+.giveaway-platform .p-monkey-v2 {
+  position: relative;
+  overflow: hidden;
+}
+.giveaway-platform .gp-monkey-content {
+  position: relative;
+  z-index: 2;
+  max-width: 62%;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  gap: 10px;
 }
-.giveaway-platform .gp-monkey-hero {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 16 / 8;
-  min-height: 190px;
+.giveaway-platform .gp-monkey-media {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 55%;
+  max-width: 300px;
+  z-index: 1;
+  pointer-events: none;
   overflow: hidden;
-  background: linear-gradient(160deg, #2b1e40, #0d0a18);
+  /* Máscara: opaco a la derecha, transparente hacia la izquierda para
+   * fundir la foto con el contenido de texto. */
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 45%, #000 100%);
+  mask-image: linear-gradient(90deg, transparent 0%, #000 45%, #000 100%);
 }
-.giveaway-platform .gp-monkey-hero-img {
+.giveaway-platform .gp-monkey-media-img {
   object-fit: cover;
-  object-position: center 35%;
-  filter: saturate(1.05) contrast(1.02);
+  object-position: right center;
+  filter: saturate(1.08) contrast(1.02);
 }
-.giveaway-platform .gp-monkey-hero-overlay {
+/* Overlay dorado sutil arriba del media para dar brand identity SkinsMonkey. */
+.giveaway-platform .gp-monkey-media::after {
+  content: '';
   position: absolute;
   inset: 0;
-  pointer-events: none;
   background:
-    linear-gradient(180deg,
-      transparent 45%,
-      rgba(11, 8, 20, 0.55) 78%,
-      rgba(11, 8, 20, 0.92) 100%
-    ),
-    radial-gradient(600px 300px at 82% 20%, rgba(245, 183, 61, 0.16), transparent 70%);
+    linear-gradient(90deg, rgba(11, 8, 20, 0.35) 0%, transparent 55%),
+    radial-gradient(280px 220px at 100% 30%, rgba(245, 183, 61, 0.18), transparent 70%);
+  pointer-events: none;
 }
-.giveaway-platform .gp-monkey-body {
-  padding: 24px 30px 30px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  flex: 1;
-}
-.giveaway-platform .gp-monkey-body .gp-logo-slot { margin-bottom: 2px; }
-.giveaway-platform .gp-monkey-lead {
-  font-size: 14px;
-  color: var(--txt);
-  margin: 0;
-  line-height: 1.45;
-}
-.giveaway-platform .gp-monkey-body .pill-offer { margin: 4px 0 0; }
-.giveaway-platform .gp-monkey-body .btn-gold { margin-top: 8px; }
+
 @media (max-width: 720px) {
-  .giveaway-platform .gp-monkey-hero { aspect-ratio: 16 / 9; min-height: 160px; }
-  .giveaway-platform .gp-monkey-body { padding: 20px 22px 24px; }
+  .giveaway-platform .gp-monkey-content { max-width: 68%; }
+  .giveaway-platform .gp-monkey-media { width: 45%; max-width: 220px; }
+}
+@media (max-width: 480px) {
+  .giveaway-platform .gp-monkey-content { max-width: 100%; }
+  .giveaway-platform .gp-monkey-media {
+    width: 100%;
+    max-width: 100%;
+    top: auto;
+    height: 40%;
+    -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 45%, #000 100%);
+    mask-image: linear-gradient(180deg, transparent 0%, #000 45%, #000 100%);
+    opacity: 0.55;
+  }
+  .giveaway-platform .gp-monkey-media-img { object-position: center bottom; }
 }
 
 /* ================ CSGO-SKINS (red variant of .p-gold) ================ */

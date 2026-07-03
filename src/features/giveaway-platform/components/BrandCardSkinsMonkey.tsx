@@ -6,43 +6,37 @@ interface Props {
 }
 
 /**
- * Card de SkinsMonkey rediseñada en patrón "hero-top":
- *   ┌───────────────────────┐
- *   │      HERO BANNER      │  — imagen ancho completo, altura fija
- *   ├───────────────────────┤
- *   │  Logo · texto · oferta │
- *   │  CTA                  │
- *   └───────────────────────┘
+ * Card de SkinsMonkey compacta.
  *
- * Motivación: el patrón "agente flotante en esquina" que usan las otras
- * cards no encaja con SkinsMonkey porque la fuente del asset es una
- * thumbnail de baja resolución (comentario en constants/brands.ts). Con
- * un banner cover + object-position center + gradient overlay se
- * disimula el defecto y se le da más protagonismo visual.
- *
- * Reutiliza los tokens gold de `.p-gold` mediante la modificadora
- * `.p-monkey` (que además override el padding para permitir hero a full
- * ancho).
+ * Historial:
+ *   - v0: patrón "agente flotante" heredado. La foto se veía pequeña.
+ *   - v1 (PR #176): patrón "hero-top" con banner cover a ancho completo.
+ *     Rechazado — hacía la card mucho más alta que CSGO-SKINS a su lado
+ *     y descompensaba la fila `.gp-grid-2`.
+ *   - v2 (este): card compacta con altura equivalente a CSGO-SKINS. La
+ *     imagen se contiene en un "media block" a la derecha con dimensiones
+ *     controladas y `object-fit: cover` + máscara lateral para que se
+ *     integre mejor con el contenido. El logo amarillo se refuerza como
+ *     marca de identidad detrás del bloque de contenido, difuminado.
  */
 export function BrandCardSkinsMonkey({ code }: Props) {
   const brand = PLATFORM_BRANDS.skinsmonkey;
   return (
-    <div className="gp-card p-gold p-monkey">
+    <div className="gp-card p-gold p-monkey-v2">
       <div className="glow" aria-hidden />
       {brand.agentAsset ? (
-        <div className="gp-monkey-hero" aria-hidden>
+        <div className="gp-monkey-media" aria-hidden>
           <Image
             src={brand.agentAsset}
             alt=""
             fill
-            sizes="(max-width: 720px) 100vw, 520px"
-            className="gp-monkey-hero-img"
+            sizes="240px"
+            className="gp-monkey-media-img"
             unoptimized
           />
-          <span className="gp-monkey-hero-overlay" aria-hidden />
         </div>
       ) : null}
-      <div className="gp-monkey-body">
+      <div className="gp-monkey-content">
         <div className="gp-logo-slot">
           {brand.logoAsset ? (
             <Image
@@ -56,7 +50,7 @@ export function BrandCardSkinsMonkey({ code }: Props) {
             <div className="gp-brand-logo-fallback">{brand.displayName}</div>
           )}
         </div>
-        <p className="gp-monkey-lead">
+        <p style={{ fontSize: 14, margin: '12px 0 10px' }}>
           Compra e intercambia skins de forma rápida y segura
         </p>
         <span className="pill-offer">
