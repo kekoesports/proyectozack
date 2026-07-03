@@ -32,7 +32,7 @@ export function BrandCardCsgoskins({ code }: Props) {
             src={brand.agentAsset}
             alt=""
             fill
-            sizes="(max-width: 720px) 100vw, 340px"
+            sizes="(max-width: 720px) 100vw, 460px"
             className="gp-csgo-media-img"
             unoptimized
           />
