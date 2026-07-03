@@ -233,31 +233,39 @@ describe('[rewards-catalog] script enrich-rewards detecta CI/prod', () => {
 describe('[rewards-catalog] UI PlatformShop consume el catálogo', () => {
   const src = read('src/features/giveaway-platform/components/PlatformShop.tsx');
 
-  it('importa REAL_STEAM_REWARDS del catálogo', () => {
-    expect(src).toMatch(/import\s*\{[^}]*REAL_STEAM_REWARDS[^}]*\}\s*from\s*'@\/features\/giveaway-platform\/constants\/rewards-catalog'/);
+  it('importa PLANNED_TEAM_MERCH del catálogo (REAL_STEAM_REWARDS vive en DB tras seed)', () => {
+    expect(src).toMatch(/import\s*\{[^}]*PLANNED_TEAM_MERCH[^}]*\}\s*from\s*'@\/features\/giveaway-platform\/constants\/rewards-catalog'/);
+    expect(src).not.toMatch(/import\s*\{[^}]*REAL_STEAM_REWARDS/);
   });
 
-  it('vitrina dedupica contra items ya en DB (por name)', () => {
-    // Cuando el seed pasa, el mismo `name` está en DB → la vitrina lo filtra.
+  it('YA no hay bloque separado "Próximas en tienda" — todo en un grid', () => {
+    // Regresión: el bloque separado "Próximas en tienda · Skins CS2" está
+    // eliminado. Ahora es un solo grid con `PLANNED_TEAM_MERCH` mezclado.
+    expect(src).not.toMatch(/Próximas en tienda/);
+    expect(src).not.toMatch(/rewards-showcase-title/);
+    expect(src).not.toMatch(/gp-rewards-upcoming/);
+    expect(src).not.toMatch(/function ShowcaseCard/);
+  });
+
+  it('team merch dedupica contra items ya en DB (por name)', () => {
+    // Cuando el owner active un item equivalente en DB, se filtra fuera.
     expect(src).toMatch(/dbNames\s*=\s*new Set\(items\.map\(\(i\)\s*=>\s*i\.name\)\)/);
-    expect(src).toMatch(/!dbNames\.has\(r\.name\)/);
+    expect(src).toMatch(/PLANNED_TEAM_MERCH\.filter\([\s\S]{0,120}!dbNames\.has\(m\.name\)/);
   });
 
-  it('cards de vitrina muestran precio en puntos, no en €/$', () => {
-    // Vitrina renderiza costPoints con símbolo ⭐, nunca €/$.
-    // (⭐ puede ir antes o después de {costPoints} en el JSX.)
+  it('cards planned muestran precio en puntos, no en €/$', () => {
     expect(src).toMatch(/⭐[\s\S]{0,80}reward\.costPoints|reward\.costPoints[\s\S]{0,80}⭐/);
     expect(src).not.toMatch(/reward\.costPoints[\s\S]{0,20}€/);
     expect(src).not.toMatch(/reward\.costPoints[\s\S]{0,20}\$\D/);
   });
 
-  it('cards de vitrina NO tienen botón Canjear — solo "Ver en Steam Market"', () => {
-    // ShowcaseCard usa un anchor a Steam Market, no un botón de canje.
-    expect(src).toMatch(/function ShowcaseCard/);
-    expect(src).toMatch(/Ver en Steam Market/);
-    // El componente ShowcaseCard no debería llamar handleRedeem.
-    const showcaseFn = src.match(/function ShowcaseCard[\s\S]*?^}$/m)?.[0] ?? '';
-    expect(showcaseFn).not.toMatch(/handleRedeem/);
+  it('cards de team merch tienen botón "Próximamente" (deshabilitado), no Canjear', () => {
+    // UpcomingCard renderiza un botón disabled con label "Próximamente".
+    expect(src).toMatch(/function UpcomingCard/);
+    expect(src).toMatch(/Próximamente/);
+    const upcomingFn = src.match(/function UpcomingCard[\s\S]*?^}$/m)?.[0] ?? '';
+    expect(upcomingFn).not.toMatch(/handleRedeem/);
+    expect(upcomingFn).toMatch(/disabled/);
   });
 });
 

@@ -3,7 +3,7 @@ import { eq, inArray } from 'drizzle-orm';
 import { notFound } from 'next/navigation';
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
-import { dailyStreaks, talents } from '@/db/schema';
+import { dailyStreaks, playerProfiles, talents } from '@/db/schema';
 import {
   getActiveShopItems,
   getCoinBalance,
@@ -87,13 +87,19 @@ export async function PlatformCreatorLanding({ slug }: Props) {
     ? []
     : await getGiveawaysWithEntryData(active.id, userId);
 
-  const [balance, missions, streak] = userId
+  const [balance, missions, streak, playerProfile] = userId
     ? await Promise.all([
         getCoinBalance(userId),
         getMissionsWithProgress(userId),
         db.query.dailyStreaks.findFirst({ where: eq(dailyStreaks.userId, userId) }),
+        db.query.playerProfiles.findFirst({
+          where: eq(playerProfiles.userId, userId),
+          columns: { steamTradeUrl: true },
+        }),
       ])
-    : [0, [], undefined];
+    : [0, [], undefined, undefined];
+
+  const hasSteamTradeUrl = Boolean(playerProfile?.steamTradeUrl && playerProfile.steamTradeUrl.trim().length > 0);
 
   const [ranking, rankingTotal, shopItemsData, externalSections] = await Promise.all([
     getMonthlyRanking(10),
@@ -208,7 +214,7 @@ export async function PlatformCreatorLanding({ slug }: Props) {
         <section id="recompensas">
           <div className="gp-legacy-block">
             <h2>Recompensas · canjea tus puntos</h2>
-            <PlatformShop items={shopItemsData} balance={balance} />
+            <PlatformShop items={shopItemsData} balance={balance} hasSteamTradeUrl={hasSteamTradeUrl} />
           </div>
         </section>
 

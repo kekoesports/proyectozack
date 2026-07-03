@@ -42,15 +42,15 @@ export interface CatalogReward {
   /** Rareza tal como Steam la reporta (Restricted, Classified, Covert, etc.). */
   rarity: string | null;
   /** Categoría — coincide con `shop_items.category`. */
-  category: 'skin' | 'gift' | 'merch' | 'profile' | 'frame' | 'badge';
+  category: 'skin' | 'gift' | 'merch' | 'team' | 'profile' | 'frame' | 'badge';
   /** Juego asociado. */
   game: 'CS2' | null;
   /** Ruta al PNG en el repo (relativa a /public). Debe existir. */
   imageUrl: string;
-  /** Precio final en puntos SocialPro. */
-  costPoints: number;
-  /** Stock actual — el seed lo aplica en DB. */
-  stock: number;
+  /** Precio final en puntos SocialPro. `null` = pendiente de definir. */
+  costPoints: number | null;
+  /** Stock actual — el seed lo aplica en DB. `null` = pendiente de definir. */
+  stock: number | null;
   /** Estado. `active` → aparece canjeable en la tienda una vez seedeado. */
   status: RewardStatus;
   /** URL del listing en Steam Market — solo interno / trazabilidad. */
@@ -217,3 +217,55 @@ export const REAL_STEAM_REWARDS: readonly CatalogReward[] = [
  * que ningún componente lo consume.
  */
 export const PLANNED_REWARDS: readonly CatalogReward[] = [];
+
+/**
+ * Camisetas de equipos CS2 top — planificadas, no canjeables.
+ *
+ * Estado: cada card se muestra con placeholder visual + copy "Diseño
+ * pendiente de confirmación". Sin imagen fiable → placeholder premium.
+ * Sin logos oficiales de equipos ni diseños oficiales — dependemos de
+ * mockups SocialPro o de permisos oficiales antes de activarlos.
+ *
+ * Cuando se apruebe cada camiseta, se aporta imagen local + precio en
+ * puntos + stock, se mueve a `shop_items` vía seed y se retira de este
+ * array.
+ *
+ * Ver `docs/sorteos-rewards-catalog.md` §Team merch para el flujo de
+ * activación.
+ */
+export const PLANNED_TEAM_MERCH: readonly CatalogReward[] = [
+  createPlannedTeamMerch('vitality', 'Camiseta Team Vitality'),
+  createPlannedTeamMerch('spirit', 'Camiseta Team Spirit'),
+  createPlannedTeamMerch('furia', 'Camiseta FURIA'),
+  createPlannedTeamMerch('navi', 'Camiseta NAVI'),
+  createPlannedTeamMerch('aurora', 'Camiseta Aurora'),
+  createPlannedTeamMerch('g2', 'Camiseta G2 Esports'),
+  createPlannedTeamMerch('9z', 'Camiseta 9z'),
+  createPlannedTeamMerch('mouz', 'Camiseta MOUZ'),
+  createPlannedTeamMerch('betboom', 'Camiseta BetBoom'),
+  createPlannedTeamMerch('legacy', 'Camiseta Legacy'),
+  createPlannedTeamMerch('fnatic', 'Camiseta Fnatic'),
+] as const;
+
+/**
+ * Factory helper — mantiene los defaults consistentes y evita duplicar
+ * `null`/`'planned'`/`description` en cada entrada.
+ */
+function createPlannedTeamMerch(slug: string, name: string): CatalogReward {
+  return {
+    slug: `team-shirt-${slug}`,
+    name,
+    wear: null,
+    rarity: null,
+    category: 'team',
+    game: 'CS2',
+    imageUrl: '',
+    costPoints: null,
+    stock: null,
+    status: 'planned',
+    steamMarketUrl: '',
+    delivery: 'physical_shipping',
+    requiresManualReview: true,
+    description: 'Merch CS2 · Próximamente · Diseño pendiente de confirmación.',
+  };
+}
