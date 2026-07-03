@@ -2,6 +2,8 @@ import type { RankingRow } from '@/types/giveawayPlatform';
 
 interface Props {
   rows: RankingRow[];
+  totalPlayers: number;
+  currentUserId: string | null;
 }
 
 function initials(name: string): string {
@@ -16,8 +18,13 @@ function initials(name: string): string {
   return clean.slice(0, 2).toUpperCase();
 }
 
-/** Server Component. El ranking mide tickets de participación, nunca dinero. */
-export function MonthlyRanking({ rows }: Props) {
+/**
+ * Server Component. Ranking global de la plataforma (agrega participaciones
+ * en TODOS los creadores). Read-only: mide tickets, nunca dinero. Muestra
+ * el total de jugadores del mes como contexto y resalta al usuario actual
+ * si aparece en el top.
+ */
+export function MonthlyRanking({ rows, totalPlayers, currentUserId }: Props) {
   if (rows.length === 0) {
     return <p className="gp-rank-empty">Aún no hay participaciones este mes. ¡Sé el primero!</p>;
   }
@@ -33,17 +40,23 @@ export function MonthlyRanking({ rows }: Props) {
   return (
     <>
       <p className="gp-rank-note">
-        Mide participación (tickets), nunca dinero. Los perfiles privados aparecen enmascarados.
+        Ranking global de la plataforma · Top {rows.length} de{' '}
+        <b>{totalPlayers.toLocaleString('es-ES')}</b> jugadores este mes · mide
+        tickets, no dinero · read-only
       </p>
       <div className="gp-rank-podium">
         {podiumOrder.map((row) => {
           if (!row) return null;
           const pos = rows.indexOf(row) + 1;
+          const isMe = row.userId === currentUserId;
           return (
-            <div key={row.userId} className={`gp-rank-podium-card p${pos}`}>
+            <div key={row.userId} className={`gp-rank-podium-card p${pos}${isMe ? ' me' : ''}`}>
               <div className="gp-rank-avatar">{initials(row.displayName)}</div>
               <div className="gp-rank-pos">Puesto {pos}</div>
-              <div className="gp-rank-name">{row.displayName}</div>
+              <div className="gp-rank-name">
+                {row.displayName}
+                {isMe ? <span className="gp-rank-me-tag"> · tú</span> : null}
+              </div>
               <span className="gp-rank-tickets">
                 <b>{row.tickets.toLocaleString('es-ES')}</b> tickets
               </span>
@@ -53,13 +66,19 @@ export function MonthlyRanking({ rows }: Props) {
       </div>
       {rest.length > 0 ? (
         <ol className="gp-rank-list">
-          {rest.map((row, i) => (
-            <li key={row.userId}>
-              <span className="num">{i + 4}</span>
-              <span className="who">{row.displayName}</span>
-              <span className="tix"><b>{row.tickets.toLocaleString('es-ES')}</b> tickets</span>
-            </li>
-          ))}
+          {rest.map((row, i) => {
+            const isMe = row.userId === currentUserId;
+            return (
+              <li key={row.userId} className={isMe ? 'me' : undefined}>
+                <span className="num">{i + 4}</span>
+                <span className="who">
+                  {row.displayName}
+                  {isMe ? <span className="gp-rank-me-tag"> · tú</span> : null}
+                </span>
+                <span className="tix"><b>{row.tickets.toLocaleString('es-ES')}</b> tickets</span>
+              </li>
+            );
+          })}
         </ol>
       ) : null}
     </>

@@ -9,6 +9,7 @@ import {
   getGiveawaysWithEntryData,
   getMissionsWithProgress,
   getMonthlyRanking,
+  getMonthlyRankingTotal,
 } from '@/lib/queries/giveawayPlatform';
 import {
   PLATFORM_CREATOR_SLUGS,
@@ -101,8 +102,9 @@ export default async function PlataformaSorteosPage({
       ])
     : [0, [], undefined];
 
-  const [ranking, shopItemsData, externalSections] = await Promise.all([
+  const [ranking, rankingTotal, shopItemsData, externalSections] = await Promise.all([
     getMonthlyRanking(10),
+    getMonthlyRankingTotal(),
     getActiveShopItems(),
     // Sorteos externos: se dispara SOLO si el creador tiene binding externo.
     // Degrada a listas vacías si falta env, provider cae o shape falla —
@@ -209,8 +211,8 @@ export default async function PlataformaSorteosPage({
 
         <section id="ranking">
           <div className="gp-legacy-block">
-            <h2>Ranking mensual</h2>
-            <MonthlyRanking rows={ranking} />
+            <h2>Ranking global · mensual</h2>
+            <MonthlyRanking rows={ranking} totalPlayers={rankingTotal} currentUserId={userId} />
           </div>
         </section>
 

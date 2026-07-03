@@ -288,6 +288,24 @@
 .giveaway-platform .gp-rank-list .tix { color: var(--muted); font-size: 12px; }
 .giveaway-platform .gp-rank-list .tix b { color: var(--sp-pink); font-weight: 700; }
 
+/* Highlight del usuario actual dentro del ranking */
+.giveaway-platform .gp-rank-podium-card.me {
+  border-color: rgba(224, 48, 112, 0.65);
+  box-shadow: 0 0 22px rgba(224, 48, 112, 0.28);
+}
+.giveaway-platform .gp-rank-list li.me {
+  background: rgba(224, 48, 112, 0.10);
+  border-left: 3px solid var(--sp-pink);
+}
+.giveaway-platform .gp-rank-me-tag {
+  font-size: 10px;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--sp-pink);
+  font-weight: 800;
+  margin-left: 4px;
+}
+
 /* ================ TIENDA / CANJEO ================ */
 .giveaway-platform .gp-shop-tabs {
   display: flex;
@@ -384,6 +402,103 @@
   box-shadow: 0 6px 20px rgba(245, 183, 61, 0.3);
 }
 .giveaway-platform .gp-shop-btn:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none; }
+
+/* ================ TIENDA · summary + progress + affordance ================ */
+.giveaway-platform .gp-shop-summary {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  border-radius: 14px;
+  background: rgba(11, 9, 23, 0.55);
+  border: 1px solid rgba(245, 183, 61, 0.22);
+  flex-wrap: wrap;
+}
+.giveaway-platform .gp-shop-balance {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.giveaway-platform .gp-shop-balance .l {
+  font-size: 11px;
+  letter-spacing: 1.3px;
+  color: var(--muted);
+  text-transform: uppercase;
+  font-weight: 700;
+}
+.giveaway-platform .gp-shop-balance b {
+  font-family: var(--font-display), var(--font-rajdhani), sans-serif;
+  font-size: 22px;
+  font-weight: 900;
+  color: var(--gold);
+}
+.giveaway-platform .gp-shop-next {
+  flex: 1;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.4;
+  min-width: 240px;
+}
+.giveaway-platform .gp-shop-next b { color: var(--txt); }
+.giveaway-platform .gp-shop-next-gap {
+  color: var(--sp-pink);
+  font-weight: 700;
+}
+.giveaway-platform .gp-shop-next.ok { color: #4ade80; font-weight: 700; }
+
+.giveaway-platform .gp-shop-tab-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  padding: 0 6px;
+  height: 18px;
+  margin-left: 8px;
+  border-radius: 999px;
+  background: rgba(11, 9, 23, 0.55);
+  font-size: 10.5px;
+  font-weight: 800;
+  color: var(--muted);
+}
+.giveaway-platform .gp-shop-tab.is-active .gp-shop-tab-count {
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+}
+
+.giveaway-platform .gp-shop-card { position: relative; }
+.giveaway-platform .gp-shop-card.affordable {
+  border-color: rgba(74, 222, 128, 0.5);
+  box-shadow: 0 0 22px rgba(74, 222, 128, 0.14);
+}
+.giveaway-platform .gp-shop-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(74, 222, 128, 0.16);
+  border: 1px solid rgba(74, 222, 128, 0.42);
+  color: #4ade80;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.giveaway-platform .gp-shop-progress {
+  width: 100%;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(11, 9, 23, 0.7);
+  margin: 4px 0 8px;
+  overflow: hidden;
+}
+.giveaway-platform .gp-shop-progress-fill {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--sp-orange), var(--gold));
+  transition: width 0.4s ease-out;
+}
 
 /* Responsive: streak 7-col → apila en móvil. */
 @media (max-width: 720px) {
