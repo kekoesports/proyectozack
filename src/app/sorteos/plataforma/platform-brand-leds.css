@@ -26,8 +26,14 @@
  *     del contenido, para no tapar CTAs ni imágenes.
  */
 
-.giveaway-platform .gp-card-led {
-  /* Fallbacks defensivos por si una marca no declara sus tokens. */
+/*
+ * Fallbacks defensivos por si una marca no declara sus tokens.
+ * Van dentro de `:where()` para forzar especificidad 0 — así los
+ * `--brand-*` declarados por cada `.p-<marca>` (que se cargan en un
+ * archivo que se importa ANTES que éste) ganan siempre, sin depender
+ * del orden de carga del bundler.
+ */
+.giveaway-platform :where(.gp-card-led) {
   --brand-border: rgba(196, 40, 128, 0.35);
   --brand-glow: rgba(224, 48, 112, 0.20);
   --brand-accent: #e03070;
@@ -37,7 +43,9 @@
     color-mix(in srgb, var(--brand-accent) 40%, transparent) 45%,
     var(--brand-accent) 100%
   );
+}
 
+.giveaway-platform .gp-card-led {
   border-color: var(--brand-border);
   box-shadow: 0 0 0 1px var(--brand-border), 0 12px 42px -18px var(--brand-glow);
 }

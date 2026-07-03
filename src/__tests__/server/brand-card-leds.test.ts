@@ -26,15 +26,18 @@ describe('[brand-leds] mecanismo compartido `.gp-card-led`', () => {
   const css = read('src/app/sorteos/plataforma/platform-brand-leds.css');
 
   it('define tokens fallback por si una marca no declara todos', () => {
-    expect(css).toMatch(/\.gp-card-led\s*\{[\s\S]{0,600}--brand-border:/);
-    expect(css).toMatch(/\.gp-card-led\s*\{[\s\S]{0,600}--brand-glow:/);
-    expect(css).toMatch(/\.gp-card-led\s*\{[\s\S]{0,600}--brand-accent:/);
-    expect(css).toMatch(/\.gp-card-led\s*\{[\s\S]{0,800}--brand-gradient:/);
+    // Fallbacks van dentro de `:where(.gp-card-led)` — especificidad 0 —
+    // para no pisar los tokens que cada `.p-<marca>` declara.
+    expect(css).toMatch(/:where\(\.gp-card-led\)\s*\{[\s\S]{0,600}--brand-border:/);
+    expect(css).toMatch(/:where\(\.gp-card-led\)\s*\{[\s\S]{0,600}--brand-glow:/);
+    expect(css).toMatch(/:where\(\.gp-card-led\)\s*\{[\s\S]{0,600}--brand-accent:/);
+    expect(css).toMatch(/:where\(\.gp-card-led\)\s*\{[\s\S]{0,800}--brand-gradient:/);
   });
 
   it('aplica los tokens a border-color + box-shadow (halo externo)', () => {
-    expect(css).toMatch(/\.gp-card-led\s*\{[\s\S]{0,800}border-color:\s*var\(--brand-border\)/);
-    expect(css).toMatch(/\.gp-card-led\s*\{[\s\S]{0,800}box-shadow:[\s\S]{0,200}var\(--brand-glow\)/);
+    // Estas reglas van en `.gp-card-led` sin `:where` — especificidad normal.
+    expect(css).toMatch(/\.giveaway-platform \.gp-card-led\s*\{[\s\S]{0,400}border-color:\s*var\(--brand-border\)/);
+    expect(css).toMatch(/\.giveaway-platform \.gp-card-led\s*\{[\s\S]{0,400}box-shadow:[\s\S]{0,200}var\(--brand-glow\)/);
   });
 
   it('borde LED con pseudo-elemento ::before + mask-composite exclude', () => {
