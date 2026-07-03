@@ -1,0 +1,227 @@
+/*
+ * CSS del índice público /sorteos.
+ * Reutiliza el shell dark de la plataforma (.giveaway-platform) para que
+ * la transición al detalle de cada creador sea consistente.
+ */
+
+.giveaway-platform .gp-index-wrap {
+  position: relative;
+  z-index: 1;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 40px 26px 60px;
+}
+
+/* Hero */
+.giveaway-platform .gp-index-hero {
+  padding: 36px 0 28px;
+  text-align: center;
+  max-width: 780px;
+  margin: 0 auto;
+}
+.giveaway-platform .gp-index-eyebrow {
+  font-family: var(--font-display), var(--font-rajdhani), sans-serif;
+  font-size: 11px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--sp-pink);
+  font-weight: 800;
+  margin: 0 0 12px;
+}
+.giveaway-platform .gp-index-hero h1 {
+  font-family: var(--font-display), var(--font-rajdhani), sans-serif;
+  font-size: clamp(28px, 5vw, 44px);
+  line-height: 1.05;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #fff;
+  font-weight: 900;
+  margin: 0 0 18px;
+}
+.giveaway-platform .gp-index-hero-accent {
+  background: var(--sp-grad);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.giveaway-platform .gp-index-lead {
+  color: var(--txt);
+  font-size: 15px;
+  line-height: 1.65;
+  margin: 0 0 22px;
+}
+.giveaway-platform .gp-index-lead b { color: var(--gold); font-weight: 700; }
+.giveaway-platform .gp-index-hero-cta {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* Grid de creadores */
+.giveaway-platform .gp-index-creators { margin-top: 32px; }
+.giveaway-platform .gp-index-creators h2 {
+  font-family: var(--font-display), var(--font-rajdhani), sans-serif;
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin: 0 0 18px;
+}
+.giveaway-platform .gp-index-grid {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+}
+.giveaway-platform .gp-index-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 20px;
+  border-radius: 18px;
+  background:
+    radial-gradient(ellipse at top left, color-mix(in srgb, var(--c1, var(--sp-pink)) 18%, transparent), transparent 60%),
+    linear-gradient(160deg, rgba(21,16,36,0.95), rgba(11,9,23,0.95));
+  border: 1px solid rgba(196, 40, 128, 0.22);
+  text-decoration: none;
+  color: var(--txt);
+  overflow: hidden;
+  transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+}
+.giveaway-platform .gp-index-card:hover {
+  transform: translateY(-3px);
+  border-color: color-mix(in srgb, var(--c1, var(--sp-pink)) 60%, transparent);
+  box-shadow: 0 12px 40px -12px color-mix(in srgb, var(--c1, var(--sp-pink)) 45%, transparent);
+}
+.giveaway-platform .gp-index-card-glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(600px 200px at 30% 0%, color-mix(in srgb, var(--c2, var(--sp-purple)) 10%, transparent), transparent 60%);
+}
+.giveaway-platform .gp-index-card-avatar {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: rgba(11, 9, 23, 0.6);
+  border: 2px solid var(--c1, var(--sp-pink));
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+.giveaway-platform .gp-index-card-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.giveaway-platform .gp-index-card-emoji { font-size: 36px; }
+.giveaway-platform .gp-index-card-body {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.giveaway-platform .gp-index-card-code {
+  font-family: var(--font-display), var(--font-rajdhani), sans-serif;
+  font-size: 11.5px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--gold);
+  font-weight: 800;
+  margin: 0;
+}
+.giveaway-platform .gp-index-card-name {
+  font-family: var(--font-display), var(--font-rajdhani), sans-serif;
+  font-size: 22px;
+  color: #fff;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin: 0;
+  line-height: 1.15;
+}
+.giveaway-platform .gp-index-card-role {
+  font-size: 12px;
+  color: var(--sp-pink);
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin: 0 0 6px;
+}
+.giveaway-platform .gp-index-card-partner {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 0;
+}
+.giveaway-platform .gp-index-card-partner b { color: var(--txt); }
+.giveaway-platform .gp-index-card-partner-soon {
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: rgba(11, 9, 23, 0.55);
+  border: 1px dashed rgba(196, 40, 128, 0.35);
+  align-self: flex-start;
+  font-size: 10.5px;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+.giveaway-platform .gp-index-card-cta {
+  position: relative;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(196, 40, 128, 0.15);
+  font-family: var(--font-display), var(--font-rajdhani), sans-serif;
+  font-weight: 800;
+  font-size: 12px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--sp-pink);
+}
+
+/* Explainer */
+.giveaway-platform .gp-index-explainer {
+  margin-top: 36px;
+  padding: 24px;
+  border-radius: 16px;
+  background: rgba(11, 9, 23, 0.5);
+  border: 1px solid rgba(196, 40, 128, 0.18);
+}
+.giveaway-platform .gp-index-explainer h2 {
+  font-family: var(--font-display), var(--font-rajdhani), sans-serif;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin: 0 0 14px;
+}
+.giveaway-platform .gp-index-steps {
+  padding-left: 22px;
+  margin: 0 0 14px;
+}
+.giveaway-platform .gp-index-steps li {
+  color: var(--txt);
+  font-size: 14px;
+  line-height: 1.65;
+  margin-bottom: 8px;
+}
+.giveaway-platform .gp-index-steps li b { color: #fff; }
+.giveaway-platform .gp-index-explainer-note {
+  color: var(--muted);
+  font-size: 12.5px;
+  line-height: 1.6;
+  margin: 0;
+}
+.giveaway-platform .gp-index-explainer-note b { color: var(--txt); }
+
+@media (max-width: 620px) {
+  .giveaway-platform .gp-index-wrap { padding: 24px 16px 40px; }
+  .giveaway-platform .gp-index-card-name { font-size: 19px; }
+}

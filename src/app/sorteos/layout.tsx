@@ -1,35 +1,48 @@
-import '../codigos/giveaways-animations.css';
-
 import type { ReactNode } from 'react';
 import type { Metadata } from 'next';
+import { Rajdhani, Chakra_Petch } from 'next/font/google';
 import { absoluteUrl } from '@/lib/site-url';
 
+// CSS de la plataforma — cargados una vez para todas las rutas hijas.
+import './plataforma/platform.css';
+import './plataforma/platform-hero.css';
+import './plataforma/platform-brand-cards.css';
+import './plataforma/platform-fx.css';
+import './plataforma/platform-widgets.css';
+import './plataforma/platform-external-giveaways.css';
+import './plataforma/platform-profile.css';
+import './plataforma/platform-creator-profile.css';
+import './plataforma/platform-steam-avatar.css';
+import './plataforma/platform-mini-placeholders.css';
+import './plataforma/platform-legal.css';
+import './sorteos-index.css';
+
+const rajdhani = Rajdhani({
+  subsets: ['latin'],
+  weight: ['500', '600', '700'],
+  variable: '--font-rajdhani',
+  display: 'swap',
+});
+
+const chakra = Chakra_Petch({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-chakra',
+  display: 'swap',
+});
+
 export const metadata: Metadata = {
-  title: 'Sorteos de Skins — SocialPro',
-  description: 'Participa en los mejores sorteos de skins CS2 y recompensas gaming de tus creadores favoritos.',
+  title: 'Sorteos y recompensas de creadores | SocialPro',
+  description:
+    'Índice público de SocialPro Giveaways. Elige un creador y participa gratis en sus sorteos, gana monedas y canjea recompensas.',
   robots: { index: true, follow: true },
-  alternates: {
-    languages: {
-      es: absoluteUrl('/sorteos'),
-      en: absoluteUrl('/codigos'),
-      'x-default': absoluteUrl('/sorteos'),
-    },
-  },
+  alternates: { canonical: absoluteUrl('/sorteos') },
 };
 
 export default function SorteosLayout({ children }: { children: ReactNode }): React.JSX.Element {
   return (
-    <div
-      className="min-h-screen text-white font-sans relative overflow-x-hidden"
-      style={{ background: '#09090f' }}
-    >
-      {/* Animated background blobs */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden>
-        <div className="gw-bg-blob gw-bg-blob-purple" />
-        <div className="gw-bg-blob gw-bg-blob-orange" />
-        <div className="gw-bg-blob gw-bg-blob-pink" />
-      </div>
-      <div className="relative z-10">{children}</div>
+    <div className={`${chakra.variable} ${rajdhani.variable}`}>
+      {children}
     </div>
   );
 }

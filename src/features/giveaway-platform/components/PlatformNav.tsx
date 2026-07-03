@@ -32,9 +32,9 @@ const NAV_ITEMS = [
 
 export function PlatformNav({ creators, activeSlug, userName, userImage, balance, loggedIn }: Props) {
   return (
-    <nav className="gp-nav" aria-label="Plataforma de sorteos">
+    <nav className="gp-nav" aria-label="SocialPro Giveaways">
       <div className="gp-nav-inner">
-        <Link href="/sorteos/plataforma" className="gp-logo" aria-label="SocialPro Giveaways">
+        <Link href="/sorteos" className="gp-logo" aria-label="SocialPro Giveaways">
           <Image
             src="/logo.png"
             alt="SocialPro"
@@ -45,7 +45,7 @@ export function PlatformNav({ creators, activeSlug, userName, userImage, balance
           />
           <span className="gp-logo-tag">
             <b>Giveaways</b>
-            <span>Plataforma de Sorteos</span>
+            <span>Sorteos</span>
           </span>
         </Link>
 

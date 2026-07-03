@@ -1,250 +1,172 @@
 import type { Metadata } from 'next';
-import { safeJsonLd } from '@/lib/safeJsonLd';
-import Image from 'next/image';
 import Link from 'next/link';
-import { getAllActiveGiveaways, getAllFinishedGiveaways, extractUniqueBrands, extractCreators } from '@/lib/queries/giveawaysHub';
-import { SorteosHub } from '@/features/giveaways/components/SorteosHub';
-import { absoluteUrl, SITE_URL } from '@/lib/site-url';
-import { generateGiveawayListSchema } from '@/lib/schema';
-import { ResponsibleGamingFooter } from '@/components/ui/ResponsibleGamingFooter';
-import { Cs2LabCard } from '@/components/cs2-lab/Cs2LabCard';
-import { NowProvider } from '@/lib/now-context';
-import { Suspense } from 'react';
+import Image from 'next/image';
+import { db } from '@/lib/db';
+import { inArray } from 'drizzle-orm';
+import { talents } from '@/db/schema';
+import { PLATFORM_CREATOR_SLUGS } from '@/lib/giveaway-platform/constants';
+import { getCreatorVisual } from '@/features/giveaway-platform/constants/creators';
+import { isExternalCreator, getCreatorBinding } from '@/lib/external-giveaways/creator-bindings';
+import { getProvider } from '@/lib/external-giveaways/providers';
+import { PlatformFooter } from '@/features/giveaway-platform/components/PlatformFooter';
+import { PlatformShell } from '@/features/giveaway-platform/components/PlatformShell';
+import { absoluteUrl } from '@/lib/site-url';
 
-export async function generateMetadata(): Promise<Metadata> {
-  let raw: Awaited<ReturnType<typeof getAllActiveGiveaways>> = [];
-  try { raw = await getAllActiveGiveaways(); } catch { /* fallback to default meta */ }
-  const active = raw.filter((g) => !g.talent.archivedAt);
-  const hero = active.find((g) => g.isFeatured) ?? active[0];
-  const ogUrl = hero
-    ? absoluteUrl(`/api/og-image/giveaway?id=${hero.id}`)
-    : absoluteUrl('/og-socialpro.png');
-
-  return {
-    title: 'Sorteos de Skins — SocialPro',
+export const metadata: Metadata = {
+  title: 'Sorteos y recompensas de creadores | SocialPro',
+  description:
+    'Índice público de SocialPro Giveaways. Elige un creador y participa gratis en sus sorteos, gana monedas y canjea recompensas. Login con Steam, sin depósitos, +18.',
+  alternates: { canonical: '/sorteos' },
+  robots: { index: true, follow: true },
+  openGraph: {
+    title: 'SocialPro Giveaways · sorteos gratuitos de creadores',
     description:
-      'Participa en los mejores sorteos de skins CS2 y recompensas gaming de tus creadores favoritos.',
-    alternates: { canonical: '/sorteos' },
-    openGraph: {
-      title: 'Sorteos de Skins Gaming | SocialPro',
-      description:
-        'Participa en los mejores sorteos de skins CS2 y recompensas gaming de tus creadores favoritos.',
-      url: absoluteUrl('/sorteos'),
-      images: [{ url: ogUrl, width: 1200, height: 630, alt: 'Sorteos de Skins CS2 y Gaming — SocialPro' }],
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title: 'Sorteos de Skins Gaming | SocialPro',
-      description:
-        'Skins CS2 y recompensas gaming. Sorteos gratis con tus creadores favoritos.',
-      images: [ogUrl],
-    },
-  };
-}
-
-export const revalidate = 3600;
-
-function computeTotalValue(giveaways: { value: string | null }[]): string {
-  let total = 0;
-  for (const g of giveaways) {
-    if (!g.value) continue;
-    const num = parseFloat(g.value.replace(/[^\d.,]/g, '').replace(',', '.'));
-    if (!isNaN(num)) total += num;
-  }
-  if (total === 0) return '';
-  return total.toLocaleString('es-ES', { maximumFractionDigits: 0 }) + '€';
-}
-
-type PageProps = {
-  searchParams: Promise<{ creator?: string }>;
+      'Elige tu creador favorito, participa gratis, gana 🪙 y canjea recompensas. Login con Steam, sin depósitos, +18.',
+    url: absoluteUrl('/sorteos'),
+  },
 };
 
-export default async function SorteosPage({ searchParams }: PageProps): Promise<React.JSX.Element> {
-  const sp = await searchParams;
-  const initialCreatorSlug = sp.creator?.toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 64) || undefined;
+export default async function SorteosIndexPage() {
+  const dbCreators = await db.query.talents.findMany({
+    where: inArray(talents.slug, [...PLATFORM_CREATOR_SLUGS]),
+  });
 
-  const [rawActive, rawFinished] = await Promise.all([
-    getAllActiveGiveaways().catch(() => []),
-    getAllFinishedGiveaways().catch(() => []),
-  ]);
-
-  const active   = rawActive.filter((g) => !g.talent.archivedAt);
-  const finished = rawFinished.filter((g) => !g.talent.archivedAt);
-
-  const allGiveaways = [...active, ...finished];
-  const brands       = extractUniqueBrands(allGiveaways);
-  const creators     = extractCreators(allGiveaways);
-  const totalValue   = computeTotalValue(active);
-
-  const eventListSchema = active.length > 0
-    ? generateGiveawayListSchema(active, SITE_URL, 'Sorteos de skins CS2 en SocialPro')
-    : null;
+  // Ordena: primero los que tienen binding externo confirmado, luego el resto.
+  const creators = [...dbCreators].sort((a, b) => {
+    const aExt = isExternalCreator(a.slug) ? 0 : 1;
+    const bExt = isExternalCreator(b.slug) ? 0 : 1;
+    return aExt - bExt;
+  });
 
   return (
-    <>
-      {eventListSchema && (
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: safeJsonLd(eventListSchema) }}
-        />
-      )}
-      <h1 className="sr-only">Sorteos de Skins — SocialPro</h1>
-
-      {/* Live ticker — decorativo, contenido real en el hub */}
-      {active.length > 0 && (
-        <div className="bg-sp-grad overflow-hidden" aria-hidden="true">
-          <div className="gw-sp-ticker-track whitespace-nowrap">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <span key={i} className="inline-flex items-center gap-6 px-6">
-                {active.map((g) => (
-                  <a
-                    key={`${i}-${g.id}`}
-                    href={g.redirectUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    tabIndex={-1}
-                    className="inline-flex items-center gap-2 text-[11px] font-black uppercase tracking-wider text-white/90 hover:text-white transition-colors"
-                  >
-                    <span className="w-1.5 h-1.5 rounded-full bg-white/40 animate-pulse" />
-                    {g.title}{g.value ? ` — ${g.value}` : ''}
-                  </a>
-                ))}
-                <span className="text-[11px] font-black uppercase tracking-wider text-white/50">SORTEOS ACTIVOS</span>
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Sticky sub-header */}
-      <header className="sticky top-0 z-50 bg-[#09090f]/92 backdrop-blur-xl border-b border-white/[0.04]">
-        <div className="max-w-7xl mx-auto px-6 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+    <PlatformShell>
+      <nav className="gp-legal-nav" aria-label="SocialPro Giveaways">
+        <div className="gp-legal-nav-inner">
+          <Link href="/sorteos" className="gp-logo" aria-label="SocialPro Giveaways">
             <Image
-              src="/images/logos/2.png"
+              src="/logo.png"
               alt="SocialPro"
-              width={120}
-              height={32}
-              className="h-7 w-auto object-contain brightness-0 invert"
+              width={130}
+              height={68}
+              className="gp-logo-img"
               priority
             />
-            <span className="text-white/15">|</span>
-            <span className="font-display text-sm font-bold uppercase tracking-[0.15em] text-white/40">
-              Sorteos
+            <span className="gp-logo-tag">
+              <b>Giveaways</b>
+              <span>Sorteos de creadores</span>
             </span>
-          </div>
-          <div className="flex items-center gap-4">
-            {active.length > 0 && (
-              <div className="flex items-center gap-1.5">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-400/70">
-                  {active.length} activos
-                </span>
-              </div>
-            )}
-            <Link
-              href="/codigos"
-              className="text-[10px] font-black uppercase tracking-wider text-white/30 hover:text-white/70 transition-colors"
-            >
-              ← Códigos
-            </Link>
+          </Link>
+          <div className="gp-legal-nav-links">
+            <Link href="/sorteos/faq">FAQ</Link>
+            <Link href="/sorteos/juego-responsable">Juego responsable</Link>
           </div>
         </div>
-      </header>
+      </nav>
 
-      {/* Compact hero strip */}
-      <section className="relative border-b border-white/[0.05] overflow-hidden">
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{ background: 'radial-gradient(ellipse 70% 200% at 0% 50%, rgba(245,99,42,0.07) 0%, rgba(139,58,173,0.04) 45%, transparent 70%)' }}
-          aria-hidden
-        />
-        <div className="relative max-w-7xl mx-auto px-4 lg:px-6 py-4 sm:py-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
-
-          {/* Title — compacto, dashboard-style */}
-          <div className="flex items-center gap-3 sm:gap-4">
-            <div>
-              <p className="text-[9px] font-black uppercase tracking-[0.32em] text-sp-orange/60 mb-0.5">
-                SocialPro · Gaming
-              </p>
-              <h2 className="font-display text-2xl sm:text-3xl font-black uppercase text-white leading-none">
-                Sorteos{' '}
-                <span
-                  className="bg-clip-text text-transparent"
-                  style={{ backgroundImage: 'linear-gradient(135deg, #f5632a 0%, #e03070 50%, #8b3aad 100%)' }}
-                >
-                  de Skins
-                </span>
-              </h2>
-            </div>
+      <main className="gp-index-wrap">
+        <header className="gp-index-hero">
+          <p className="gp-index-eyebrow">SocialPro Giveaways</p>
+          <h1>
+            Sorteos gratis con tus <span className="gp-index-hero-accent">creadores favoritos</span>
+          </h1>
+          <p className="gp-index-lead">
+            Elige un creador, inicia sesión con Steam y participa <b>gratis</b> en sus sorteos.
+            Gana monedas <b>🪙</b> por participar, completar misiones y mantener la racha diaria,
+            y cánjealas por skins, merchandising o tarjetas regalo. Sin depósitos, sin apuestas, +18.
+          </p>
+          <div className="gp-index-hero-cta">
+            <Link href="/sorteos/faq" className="gp-btn gp-btn-ghost">¿Cómo funciona?</Link>
           </div>
+        </header>
 
-          {/* Stat pills */}
-          {(active.length > 0 || totalValue || brands.length > 0) && (
-            <div className="flex items-center gap-2 flex-wrap">
-              {active.length > 0 && (
-                <div className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-400/[0.06] border border-emerald-400/15">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />
-                  <span className="text-[11px] font-black uppercase tracking-wider text-emerald-400/80 tabular-nums">
-                    {active.length} {active.length === 1 ? 'activo' : 'activos'}
-                  </span>
-                </div>
-              )}
-              {totalValue && (
-                <div className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/[0.03] border border-white/[0.06]">
-                  <span className="text-[11px] font-black text-white/80 tabular-nums">{totalValue}</span>
-                  <span className="text-[10px] font-bold text-white/30 uppercase tracking-wider">en juego</span>
-                </div>
-              )}
-              {brands.length > 0 && (
-                <div className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/[0.03] border border-white/[0.06]">
-                  <span className="text-[11px] font-black text-white/80 tabular-nums">{brands.length}</span>
-                  <span className="text-[10px] font-bold text-white/30 uppercase tracking-wider">
-                    {brands.length === 1 ? 'marca' : 'marcas'}
-                  </span>
-                </div>
-              )}
-              {creators.length > 0 && (
-                <div className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/[0.03] border border-white/[0.06]">
-                  <span className="text-[11px] font-black text-white/80 tabular-nums">{creators.length}</span>
-                  <span className="text-[10px] font-bold text-white/30 uppercase tracking-wider">
-                    {creators.length === 1 ? 'creador' : 'creadores'}
-                  </span>
-                </div>
-              )}
-            </div>
+        <section aria-labelledby="creadores-titulo" className="gp-index-creators">
+          <h2 id="creadores-titulo">Creadores</h2>
+          {creators.length === 0 ? (
+            <p className="gp-rank-empty">
+              Todavía no hay creadores configurados en la plataforma. Vuelve pronto.
+            </p>
+          ) : (
+            <ul className="gp-index-grid" role="list">
+              {creators.map((c) => {
+                const visual = getCreatorVisual(c.slug);
+                const binding = getCreatorBinding(c.slug);
+                const provider = binding ? getProvider(binding.provider) : null;
+                return (
+                  <li key={c.slug}>
+                    <Link
+                      href={`/sorteos/${c.slug}`}
+                      className="gp-index-card"
+                      style={{
+                        ['--c1' as string]: c.gradientC1,
+                        ['--c2' as string]: c.gradientC2,
+                      }}
+                    >
+                      <span className="gp-index-card-glow" aria-hidden />
+                      <div className="gp-index-card-avatar" aria-hidden>
+                        {c.photoUrl ? (
+                          <Image
+                            src={c.photoUrl}
+                            alt=""
+                            width={72}
+                            height={72}
+                            unoptimized
+                          />
+                        ) : (
+                          <span className="gp-index-card-emoji">{visual.emoji}</span>
+                        )}
+                      </div>
+                      <div className="gp-index-card-body">
+                        <p className="gp-index-card-code">{visual.code}</p>
+                        <p className="gp-index-card-name">{c.name}</p>
+                        <p className="gp-index-card-role">{c.role}</p>
+                        {provider ? (
+                          <p className="gp-index-card-partner">
+                            <b>Partner:</b> {provider.displayName}
+                          </p>
+                        ) : (
+                          <p className="gp-index-card-partner gp-index-card-partner-soon">
+                            Provider próximamente
+                          </p>
+                        )}
+                      </div>
+                      <span className="gp-index-card-cta">Ver sorteos →</span>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
           )}
-        </div>
-      </section>
+        </section>
 
-      {/* Hub: sidebar + grid */}
-      <NowProvider>
-        <Suspense>
-          <SorteosHub
-            active={active}
-            finished={finished}
-            brands={brands}
-            creators={creators}
-            {...(totalValue ? { totalValue } : {})}
-            {...(initialCreatorSlug ? { initialCreatorSlug } : {})}
-          />
-        </Suspense>
-      </NowProvider>
+        <section className="gp-index-explainer" aria-labelledby="como-titulo">
+          <h2 id="como-titulo">Cómo funciona</h2>
+          <ol className="gp-index-steps">
+            <li>
+              <b>Elige tu creador.</b> Cada creador tiene su propia sección con sus sorteos
+              activos y su código promocional.
+            </li>
+            <li>
+              <b>Inicia sesión con Steam.</b> Solo pedimos tu identidad pública de Steam:
+              nombre, avatar y Steam ID. Ni tarjeta ni contraseñas.
+            </li>
+            <li>
+              <b>Participa gratis.</b> Cada participación cuenta un ticket + ganas 🪙 monedas.
+              La racha diaria y las misiones te suman más.
+            </li>
+            <li>
+              <b>Canjea recompensas.</b> Con tus 🪙 puedes canjear skins CS2, merchandising o
+              tarjetas regalo en la tienda interna.
+            </li>
+          </ol>
+          <p className="gp-index-explainer-note">
+            SocialPro Giveaways no acepta depósitos, no cobra comisiones y las monedas no
+            tienen valor monetario. Los sorteos internos son <b>gratuitos</b>. Algunos
+            creadores enlazan partners externos con sus propios términos.
+          </p>
+        </section>
 
-      {/* Footer */}
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-10 pt-2">
-        <Cs2LabCard variant="compact" ctaId="sorteos_cs2_lab" />
-      </div>
-
-      <div className="border-t border-white/[0.04] py-4 text-center">
-        <Link
-          href="/codigos"
-          className="inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] text-white/20 hover:text-white/50 font-bold transition-colors"
-        >
-          ← Ver códigos de descuento en SocialPro
-        </Link>
-      </div>
-      <ResponsibleGamingFooter />
-    </>
+        <PlatformFooter />
+      </main>
+    </PlatformShell>
   );
 }

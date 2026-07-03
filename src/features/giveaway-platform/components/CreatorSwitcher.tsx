@@ -1,6 +1,6 @@
 'use client';
 
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 
 interface CreatorOption {
   id: number;
@@ -14,15 +14,12 @@ interface Props {
   activeSlug: string;
 }
 
-/** Selector de creador: cambia ?creador= en la URL, la página server re-renderiza sus sorteos. */
+/** Selector de creador: navega a la URL canónica /sorteos/[slug]. */
 export function CreatorSwitcher({ creators, activeSlug }: Props) {
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   function select(slug: string) {
-    const params = new URLSearchParams(searchParams.toString());
-    params.set('creador', slug);
-    router.push(`/sorteos/plataforma?${params.toString()}`, { scroll: false });
+    router.push(`/sorteos/${slug}`, { scroll: false });
   }
 
   return (

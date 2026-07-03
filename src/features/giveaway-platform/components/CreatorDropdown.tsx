@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 
 interface CreatorOption {
   slug: string;
@@ -45,7 +45,6 @@ export function CreatorDropdown({ creators, activeSlug }: Props) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const router = useRouter();
-  const searchParams = useSearchParams();
   const ref = useRef<HTMLDivElement>(null);
   const active = creators.find((c) => c.slug === activeSlug) ?? creators[0];
 
@@ -74,11 +73,9 @@ export function CreatorDropdown({ creators, activeSlug }: Props) {
   const showSearch = creators.length >= SEARCH_THRESHOLD;
 
   function select(slug: string) {
-    const params = new URLSearchParams(searchParams.toString());
-    params.set('creador', slug);
     setOpen(false);
     setQuery('');
-    router.push(`/sorteos/plataforma?${params.toString()}`, { scroll: false });
+    router.push(`/sorteos/${slug}`, { scroll: false });
   }
 
   if (!active) return null;

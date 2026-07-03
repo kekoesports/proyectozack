@@ -25,7 +25,7 @@ export default function TerminosPage() {
         <h2>1. Objeto</h2>
         <p>
           Estos términos regulan el uso de la plataforma <b>SocialPro Giveaways</b>, disponible en{' '}
-          <code>/sorteos/plataforma</code>, operada por SocialPro. La plataforma permite a los
+          <code>/sorteos</code>, operada por SocialPro. La plataforma permite a los
           usuarios participar gratuitamente en sorteos publicados por creadores de contenido
           asociados a la agencia, acumular puntos virtuales sin valor monetario (🪙) y canjearlos
           por artículos ofertados en la tienda interna.

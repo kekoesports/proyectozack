@@ -76,9 +76,9 @@ describe('[legal] cada página adaptada a SocialPro Giveaways (no copia de otro 
       expect(src).not.toMatch(/\bTarifa\b/);
       expect(src).not.toMatch(/lorem ipsum/i);
     });
-    it(`${route} referencia la plataforma /sorteos/plataforma`, () => {
-      // La FAQ/términos/privacidad/juego citan la ruta real del producto.
-      expect(src).toMatch(/\/sorteos\/plataforma/);
+    it(`${route} referencia el producto público /sorteos`, () => {
+      // La FAQ/términos/privacidad/juego citan la ruta canónica del producto.
+      expect(src).toMatch(/\/sorteos\b/);
     });
   }
 });
@@ -168,11 +168,11 @@ describe('[legal] PlatformFooter con links legales', () => {
   });
 });
 
-describe('[legal] PlatformFooter integrado en las 3 páginas dinámicas', () => {
+describe('[legal] PlatformFooter integrado en las páginas dinámicas', () => {
   const files = [
-    'src/app/sorteos/plataforma/page.tsx',
-    'src/app/sorteos/plataforma/perfil/page.tsx',
-    'src/app/sorteos/plataforma/creadores/[slug]/page.tsx',
+    'src/app/sorteos/page.tsx',
+    'src/app/sorteos/perfil/page.tsx',
+    'src/features/giveaway-platform/components/PlatformCreatorLanding.tsx',
   ];
   for (const f of files) {
     it(`${f} usa <PlatformFooter />`, () => {

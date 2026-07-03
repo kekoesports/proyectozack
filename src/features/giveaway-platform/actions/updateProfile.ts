@@ -83,6 +83,6 @@ export async function updateProfile(formData: FormData): Promise<UpdateProfileRe
 
   await db.update(playerProfiles).set(patch).where(eq(playerProfiles.userId, userId));
 
-  revalidatePath('/sorteos/plataforma/perfil');
+  revalidatePath('/sorteos/perfil');
   return { ok: true };
 }
