@@ -452,6 +452,19 @@
 }
 .giveaway-platform .gp-shop-next.ok { color: #4ade80; font-weight: 700; }
 
+/* Disclaimer legal — sin valor monetario. Copy en docs/sorteos-coin-economy.md §3.4 */
+.giveaway-platform .gp-shop-disclaimer {
+  margin: 10px 0 16px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: rgba(11, 9, 23, 0.55);
+  border: 1px dashed rgba(196, 40, 128, 0.28);
+  color: var(--muted);
+  font-size: 11.5px;
+  line-height: 1.55;
+}
+.giveaway-platform .gp-shop-disclaimer b { color: var(--txt); font-weight: 700; }
+
 .giveaway-platform .gp-shop-tab-count {
   display: inline-flex;
   align-items: center;

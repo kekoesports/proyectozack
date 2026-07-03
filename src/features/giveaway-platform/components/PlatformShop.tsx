@@ -11,10 +11,15 @@ interface Props {
 }
 
 const CATEGORIES: { key: ShopCategory | 'all'; label: string }[] = [
-  { key: 'all', label: 'Todo' },
-  { key: 'skin', label: '🔫 Skins CS2' },
-  { key: 'merch', label: '👕 Merch SocialPro' },
-  { key: 'gift', label: '🎁 Tarjetas regalo' },
+  { key: 'all',     label: 'Todo' },
+  { key: 'skin',    label: '🔫 Skins CS2' },
+  { key: 'merch',   label: '👕 Merch SocialPro' },
+  { key: 'gift',    label: '🎁 Tarjetas regalo' },
+  // Nuevas categorías cosméticas (2026-07-03) — se muestran solo si hay
+  // items canjeables en cada una. Ver docs/sorteos-coin-economy.md §4.
+  { key: 'profile', label: '🎨 Profile Cards' },
+  { key: 'frame',   label: '🖼️ Avatar Frames' },
+  { key: 'badge',   label: '🏅 Badges' },
 ];
 
 export function PlatformShop({ items, balance }: Props) {
@@ -65,6 +70,13 @@ export function PlatformShop({ items, balance }: Props) {
           <div className="gp-shop-next ok">✓ Puedes canjear cualquier premio disponible.</div>
         ) : null}
       </div>
+
+      <p className="gp-shop-disclaimer" role="note">
+        Las monedas son puntos internos <b>sin valor monetario</b>, no
+        transferibles y no canjeables por dinero. Los precios y la
+        disponibilidad pueden cambiar. Los canjes pueden requerir revisión
+        antes del envío.
+      </p>
 
       <div className="gp-shop-tabs">
         {CATEGORIES.map((c) => (
