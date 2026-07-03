@@ -274,3 +274,47 @@
   font-size: 12.5px;
 }
 .giveaway-platform .gp-provider-rank-mini-body span { color: var(--muted); }
+
+/*
+ * Fallback informativo — se muestra cuando el creador tiene binding
+ * con un provider externo pero la API no devuelve datos (env sin key
+ * en preview, o error controlado de fetch en producción).
+ *
+ * Diseño: tarjeta ligera con icono ⚠️ a la izquierda y texto a la
+ * derecha. Sin colores agresivos — es informativo, no error.
+ */
+.giveaway-platform .gp-external-fallback {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 18px 20px;
+  border-radius: 14px;
+  background: rgba(11, 8, 20, 0.55);
+  border: 1px dashed rgba(255, 210, 100, 0.35);
+  margin: 10px 0 6px;
+}
+.giveaway-platform .gp-external-fallback-icon {
+  font-size: 24px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.giveaway-platform .gp-external-fallback-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  line-height: 1.5;
+}
+.giveaway-platform .gp-external-fallback-title {
+  margin: 0;
+  font-family: var(--font-display), var(--font-rajdhani), sans-serif;
+  font-weight: 800;
+  font-size: 15px;
+  letter-spacing: 0.5px;
+  color: #ffd77a;
+}
+.giveaway-platform .gp-external-fallback-text {
+  margin: 0;
+  font-size: 13.5px;
+  color: var(--muted);
+  max-width: 720px;
+}

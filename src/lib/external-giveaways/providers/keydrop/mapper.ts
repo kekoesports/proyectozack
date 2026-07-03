@@ -41,30 +41,31 @@ interface MapInput {
 const KEYDROP_LISTING_FALLBACK = 'https://keydrop.com/es/giveaways';
 
 /**
- * Construye la URL destino del CTA de la card para un giveaway KeyDrop.
+ * Construye la URL destino del CTA de la card para un giveaway KeyDrop
+ * concreto.
  *
- * Prioridad:
- *   1. `kd.link/?code={promo}&giveaway={id}` — shortener oficial. Aplica el
- *      promocode del creador y deep-linkea al sorteo. Best-in-class.
- *   2. `keydrop.com/es/giveaways/{id}` — path canónico (verificado en el
- *      HTML shell, sirve `<link rel="alternate">` para 12 locales del
- *      mismo path). No aplica promocode.
- *   3. Listing genérico — solo si faltan ambos id y promocode (no debería
- *      ocurrir con datos válidos).
+ * Path oficial verificado con los 5 sorteos activos de ZACKETIZOR
+ * (2026-07): `https://keydrop.com/es/giveaways/user/{id}` — abre la
+ * página del sorteo concreto en el SPA de KeyDrop.
  *
- * Los inputs se URL-encodean para no romper si un promocode contiene
- * caracteres reservados en el futuro.
+ * El shortener `kd.link/?code=X&giveaway=Y` NO se usa aquí porque en
+ * la práctica redirige a la home con el código aplicado en vez de
+ * abrir el sorteo — falla el objetivo del CTA. Queda reservado para
+ * el banner de marca (`buildKeydropClaimUrl` — sin sorteo concreto).
+ *
+ * El promocode se propaga como query param `?code=X` para preservar
+ * affiliate tracking cuando aterriza el usuario. Params desconocidos
+ * son ignorados por KeyDrop sin romper el routing.
+ *
+ * Fallback si falta id: página de listado (nunca URL rota).
  */
 export function buildKeydropDeepLink(id: string, promoCode: string | undefined): string {
   const safeId = id ? encodeURIComponent(id) : '';
   const safeCode = promoCode ? encodeURIComponent(promoCode) : '';
-  if (safeId && safeCode) {
-    return `https://kd.link/?code=${safeCode}&giveaway=${safeId}`;
-  }
-  if (safeId) {
-    return `https://keydrop.com/es/giveaways/${safeId}`;
-  }
-  return KEYDROP_LISTING_FALLBACK;
+  if (!safeId) return KEYDROP_LISTING_FALLBACK;
+
+  const base = `https://keydrop.com/es/giveaways/user/${safeId}`;
+  return safeCode ? `${base}?code=${safeCode}` : base;
 }
 
 /**
