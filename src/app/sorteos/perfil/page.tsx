@@ -148,7 +148,7 @@ export default async function PerfilPage() {
           <h2>🎒 Inventario</h2>
           {userRedemptions.length === 0 ? (
             <p className="gp-rank-empty">
-              Aún no has canjeado nada en la tienda. Consigue puntos con misiones y sorteos.
+              Aún no has canjeado ninguna recompensa. Consigue puntos con misiones y sorteos.
             </p>
           ) : (
             <ul className="gp-profile-inv">

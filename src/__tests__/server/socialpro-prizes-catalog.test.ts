@@ -116,7 +116,7 @@ describe('[prizes-catalog] no hay seed que active estos premios', () => {
     }
   });
 
-  it('src/ no referencia los URLs canónicos de Steam Market (ni en constants ni en seeds)', () => {
+  it('src/ solo referencia los URLs de Steam Market en `rewards-catalog.ts` (fuente de verdad)', () => {
     const srcDir = path.join(ROOT, 'src');
     const walk = (dir: string): string[] => {
       const out: string[] = [];
@@ -136,8 +136,12 @@ describe('[prizes-catalog] no hay seed que active estos premios', () => {
       const listingHash = url.match(/\/listings\/730\/([A-Za-z0-9]+)/)?.[1];
       if (!listingHash) continue;
       const hits = files.filter((f) => fs.readFileSync(f, 'utf-8').includes(listingHash));
-      // Cero hits en src/ non-test. La fuente de verdad está en el .md.
-      expect(hits).toHaveLength(0);
+      // El único archivo permitido es `rewards-catalog.ts` (Fase 1 —
+      // constante de "planned rewards"). Cero hits en cualquier otro
+      // archivo — no debe haber seed, no debe haber fetch runtime.
+      for (const hit of hits) {
+        expect(hit).toMatch(/rewards-catalog\.ts$/);
+      }
     }
   });
 });
@@ -158,9 +162,12 @@ describe('[prizes-catalog] no hay scraping runtime de Steam Market', () => {
     return out;
   };
 
-  it('ningún archivo en src/ hace fetch a steamcommunity.com/market', () => {
+  it('ningún archivo en src/ hace fetch a steamcommunity.com/market (rewards-catalog exento — solo constante URLs)', () => {
     const files = walk(srcDir);
     for (const f of files) {
+      // `rewards-catalog.ts` contiene las URLs como constantes de
+      // catálogo (fuente de verdad) — no hace fetch runtime.
+      if (f.endsWith('rewards-catalog.ts')) continue;
       const src = fs.readFileSync(f, 'utf-8');
       // Detectamos cualquier concatenación con la URL de Steam Market en
       // contexto de fetch — no basta con importar la constante en el .md,

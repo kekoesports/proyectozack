@@ -26,7 +26,7 @@ const SECTIONS: { title: string; items: QA[] }[] = [
             contenido asociados a la agencia publican sorteos <b>gratuitos</b> dirigidos a su
             comunidad. Los participantes ganan tickets sin coste y pueden acumular puntos
             internos (⭐) que se canjean por objetos físicos, digitales o tarjetas regalo en la
-            tienda interna. La plataforma no acepta ni gestiona dinero real de los participantes.
+            sección de recompensas. La plataforma no acepta ni gestiona dinero real de los participantes.
           </p>
         ),
       },
@@ -94,7 +94,7 @@ const SECTIONS: { title: string; items: QA[] }[] = [
     ],
   },
   {
-    title: 'Puntos y tienda',
+    title: 'Puntos y recompensas',
     items: [
       {
         q: '¿Qué son los puntos ⭐?',
@@ -103,7 +103,7 @@ const SECTIONS: { title: string; items: QA[] }[] = [
             Los puntos son un sistema interno de fidelización y recompensas dentro de SocialPro
             Giveaways. <b>No son dinero, no son criptomonedas, no tienen valor monetario, no son
             transferibles y no pueden canjearse por efectivo.</b> Se ganan participando, completando
-            misiones o manteniendo la racha diaria. Se gastan canjeando premios en la tienda.
+            misiones o manteniendo la racha diaria. Se gastan canjeando recompensas.
           </p>
         ),
       },
@@ -111,7 +111,7 @@ const SECTIONS: { title: string; items: QA[] }[] = [
         q: '¿Cómo canjeo un premio?',
         a: (
           <p>
-            En <code>/sorteos#tienda</code> eliges un artículo cuyo coste sea igual o
+            En <code>/sorteos#recompensas</code> eliges una recompensa cuyo coste sea igual o
             menor que tu saldo. Al pulsar &quot;Canjear&quot; se descuentan los puntos y el
             equipo de SocialPro contacta contigo para coordinar el envío o la entrega digital,
             según el tipo de artículo. Una vez procesado o entregado un canje puede no ser

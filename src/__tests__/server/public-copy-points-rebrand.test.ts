@@ -131,9 +131,9 @@ describe('[points-rebrand] copy legal compliance', () => {
     );
   });
 
-  it('FAQ: sección "Puntos y tienda" reemplaza a "Monedas y tienda"', () => {
+  it('FAQ: sección "Puntos y recompensas" (post rename Tienda → Recompensas)', () => {
     const src = read('src/app/sorteos/(legal)/faq/page.tsx');
-    expect(src).toMatch(/title:\s*'Puntos y tienda'/);
+    expect(src).toMatch(/title:\s*'Puntos y recompensas'/);
     expect(src).toMatch(/¿Qué son los puntos ⭐\?/);
   });
 

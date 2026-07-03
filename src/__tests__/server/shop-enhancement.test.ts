@@ -51,7 +51,9 @@ describe('[shop-enhancement] componente', () => {
   });
 
   it('empty state cuando visible.length === 0', () => {
-    expect(src).toMatch(/visible\.length\s*===\s*0\s*\?[\s\S]{0,200}No hay artículos/);
+    // Post-rebrand: "No hay recompensas en esta categoría" reemplaza al
+    // "No hay artículos" original.
+    expect(src).toMatch(/visible\.length\s*===\s*0\s*\?[\s\S]{0,200}No hay recompensas/);
   });
 });
 

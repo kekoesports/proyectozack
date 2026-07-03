@@ -48,7 +48,7 @@ export default function PrivacidadPage() {
           </li>
           <li>
             <b>Datos de participación en la plataforma:</b> sorteos en los que participas,
-            historial de puntos ⭐, misiones completadas, racha diaria, canjeos en tienda.
+            historial de puntos ⭐, misiones completadas, racha diaria, canjeos de recompensas.
           </li>
           <li>
             <b>Datos de sesión:</b> cookies estrictamente necesarias para mantener la sesión
