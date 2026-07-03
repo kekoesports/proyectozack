@@ -67,6 +67,26 @@ export function buildKeydropDeepLink(id: string, promoCode: string | undefined):
   return KEYDROP_LISTING_FALLBACK;
 }
 
+/**
+ * URL de "claim" a nivel banner/marca — sin sorteo concreto.
+ *
+ * Usado por `BrandCardKeyDrop` para todos los CTAs del banner principal
+ * (Reclamar, 200% Bonus, Cómo participar, Club VIP): abren KeyDrop con
+ * el promocode del creador aplicado, para que la sesión del usuario
+ * quede vinculada al afiliado. Igual que `buildKeydropDeepLink` pero
+ * sin `giveaway=` — no apunta a un sorteo concreto.
+ *
+ * Fallback si falta code: página de listado sin código (mejor que un
+ * botón muerto).
+ */
+export function buildKeydropClaimUrl(promoCode: string | undefined): string {
+  const safeCode = promoCode ? encodeURIComponent(promoCode) : '';
+  if (safeCode) {
+    return `https://kd.link/?code=${safeCode}`;
+  }
+  return KEYDROP_LISTING_FALLBACK;
+}
+
 export function keydropItemToCard({ item, creatorSlug }: MapInput): ExternalGiveawayCard {
   const firstPrize = item.prizes[0];
 

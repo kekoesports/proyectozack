@@ -6,7 +6,12 @@
  * buckets active/finished.
  */
 
-import { keydropItemToCard, formatCurrency, buildKeydropDeepLink } from '@/lib/external-giveaways/providers/keydrop/mapper';
+import {
+  keydropItemToCard,
+  formatCurrency,
+  buildKeydropDeepLink,
+  buildKeydropClaimUrl,
+} from '@/lib/external-giveaways/providers/keydrop/mapper';
 import {
   KeydropListItemSchema,
   KeydropListResponseSchema,
@@ -298,5 +303,29 @@ describe('[keydrop-mapper] buildKeydropDeepLink — deep link con promocode', ()
   it('no pierde el id del giveaway cuando lo tiene', () => {
     expect(buildKeydropDeepLink('my-real-id', 'PROMO')).toContain('my-real-id');
     expect(buildKeydropDeepLink('my-real-id', undefined)).toContain('my-real-id');
+  });
+});
+
+describe('[keydrop-mapper] buildKeydropClaimUrl — CTA a nivel banner/marca', () => {
+  it('con promoCode → shortener kd.link solo con code (sin giveaway=)', () => {
+    expect(buildKeydropClaimUrl('ZACKCSGO')).toBe('https://kd.link/?code=ZACKCSGO');
+  });
+
+  it('URL-encodea el promoCode', () => {
+    expect(buildKeydropClaimUrl('CODE 1')).toBe('https://kd.link/?code=CODE%201');
+  });
+
+  it('sin promoCode → listing genérico (nunca botón muerto)', () => {
+    expect(buildKeydropClaimUrl(undefined)).toBe('https://keydrop.com/es/giveaways');
+    expect(buildKeydropClaimUrl('')).toBe('https://keydrop.com/es/giveaways');
+  });
+
+  it('nunca produce URL sobre el dominio legacy key-drop.com', () => {
+    expect(buildKeydropClaimUrl('ANY')).not.toMatch(/key-drop\.com/);
+    expect(buildKeydropClaimUrl(undefined)).not.toMatch(/key-drop\.com/);
+  });
+
+  it('nunca incluye `giveaway=` — este helper NO deep-linkea a sorteo concreto', () => {
+    expect(buildKeydropClaimUrl('ZACKCSGO')).not.toMatch(/giveaway=/);
   });
 });
