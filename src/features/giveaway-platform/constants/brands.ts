@@ -32,8 +32,10 @@ export const PLATFORM_BRANDS: Record<BrandKey, PlatformBrand> = {
     key: 'csgoskins',
     displayName: 'CSGO-SKINS',
     logoAsset: '/images/brands/csgoskins.png',
-    // Ex-agente de KeyDrop reasignado — continuidad del turno anterior.
-    agentAsset: '/images/agents/keydrop-agent.png',
+    // Banner promocional del evento activo del partner (Dust II Roadtrip,
+    // 2026-07). Uso autorizado por CSGO-SKINS como affiliate. Se reemplaza
+    // cuando el partner lance un evento nuevo.
+    agentAsset: '/images/brands/csgoskins-roadtrip.png',
     disclaimer: 'Juega con Responsabilidad · +18',
   },
   skinsmonkey: {
