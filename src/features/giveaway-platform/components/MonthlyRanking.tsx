@@ -26,7 +26,18 @@ function initials(name: string): string {
  */
 export function MonthlyRanking({ rows, totalPlayers, currentUserId }: Props) {
   if (rows.length === 0) {
-    return <p className="gp-rank-empty">Aún no hay participaciones este mes. ¡Sé el primero!</p>;
+    // Empty state pequeño y honesto: el ranking se construye con
+    // participaciones internas SocialPro (giveaway_entries), no con
+    // sorteos externos KeyDrop.
+    return (
+      <aside className="gp-rank-empty-mini" aria-live="off">
+        <span className="gp-rank-empty-mini-icon" aria-hidden>🎯</span>
+        <span className="gp-rank-empty-mini-body">
+          <b>Ranking mensual próximamente.</b>
+          <span>Se activará cuando lleguen las primeras participaciones internas del mes.</span>
+        </span>
+      </aside>
+    );
   }
   const podium = rows.slice(0, 3);
   const rest = rows.slice(3);

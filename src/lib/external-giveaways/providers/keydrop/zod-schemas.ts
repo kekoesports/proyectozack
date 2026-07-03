@@ -4,7 +4,11 @@ import { z } from 'zod';
  * Zod schemas de la KeyDrop Giveaway API (afiliado ZACKETIZOR).
  *
  * Base: https://ws-2071.socket-cs.com/v1/giveaway-user
- * Endpoints: GET /api/list, GET /api/giveaway/:idGiveaway
+ * Endpoints:
+ *   - GET /api/list (usado)
+ *   - GET /api/giveaway/:idGiveaway (existe: 401 sin key; sin diagnóstico
+ *     completo de shape porque la key vive solo en Vercel Production —
+ *     ver docs/keydrop-single-giveaway-endpoint.md)
  *
  * Los shapes vienen del probe diagnóstico real (2026-07). Se preservan
  * los typos upstream (`duractionSeconds`, `fullfilled`) — se corrigen

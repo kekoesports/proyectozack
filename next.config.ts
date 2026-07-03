@@ -141,6 +141,12 @@ const nextConfig: NextConfig = {
       // KeyDrop CDN — imágenes de premios de sorteos (PR-1c-1)
       { protocol: 'https', hostname: 'cdnkd.com' },
       { protocol: 'https', hostname: '*.cdnkd.com' },
+      // Steam CDN — avatares de user.image (Better Auth guarda avatarfull
+      // en el callback OpenID). Actualmente UserPill usa <img> nativo, así
+      // que esto es defensivo por si algún día migramos a next/image.
+      { protocol: 'https', hostname: 'avatars.steamstatic.com' },
+      { protocol: 'https', hostname: '*.steamstatic.com' },
+      { protocol: 'https', hostname: 'avatars.akamai.steamstatic.com' },
     ],
   },
   // pdfjs-dist, mupdf, tesseract.js are external so nft doesn't auto-trace their

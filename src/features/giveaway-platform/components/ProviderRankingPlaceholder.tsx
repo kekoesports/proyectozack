@@ -4,35 +4,26 @@ interface Props {
 }
 
 /**
- * Placeholder read-only del ranking mensual por provider externo.
- * Los providers (KeyDrop, CSGORoll, etc.) no exponen endpoints públicos de
- * top-participantes de forma estable; hasta que llegue esa integración
- * mostramos un skeleton de 5 puestos + copy claro de "próximamente".
+ * Placeholder pequeño y honesto del ranking por provider externo.
  *
- * Renderiza dentro de la sección de ExternalGiveaways debajo de la
- * collapsible de finalizados. Sin efectos, sin datos reales: solo shell.
+ * Motivación (post-QA PR #170): la variante previa con 5 filas placeholder
+ * parecía "bloque vacío". Reducimos a un banner de 1 línea que comunica el
+ * estado real: el endpoint `/api/giveaway/:idGiveaway` de KeyDrop existe
+ * pero solo devuelve `participantCount` (ya lo tenemos en cada card) —
+ * sin lista de participantes verificable. Documentado en
+ * docs/keydrop-single-giveaway-endpoint.md.
  */
 export function ProviderRankingPlaceholder({ providerDisplayName, creatorDisplayName }: Props) {
-  const rows = Array.from({ length: 5 }, (_, i) => i + 1);
   return (
-    <section className="gp-provider-rank">
-      <h3 className="gp-provider-rank-title">
-        🏆 Top participantes en {providerDisplayName} · {creatorDisplayName}
-      </h3>
-      <p className="gp-provider-rank-note">
-        Próximamente. El ranking mensual por provider externo se activará cuando conectemos su
-        endpoint de participantes / ganadores. Este bloque quedará poblado con datos reales sin
-        cambiar la UI.
-      </p>
-      <ol className="gp-provider-rank-list">
-        {rows.map((n) => (
-          <li key={n} aria-hidden>
-            <span className="num">{n}</span>
-            <span className="skeleton skeleton-name" />
-            <span className="skeleton skeleton-value" />
-          </li>
-        ))}
-      </ol>
-    </section>
+    <aside className="gp-provider-rank-mini" aria-live="off">
+      <span className="gp-provider-rank-mini-icon" aria-hidden>🏆</span>
+      <span className="gp-provider-rank-mini-body">
+        <b>Ranking {providerDisplayName} próximamente.</b>
+        <span>
+          Se activará cuando podamos leer participantes verificables de los
+          sorteos de {creatorDisplayName}.
+        </span>
+      </span>
+    </aside>
   );
 }

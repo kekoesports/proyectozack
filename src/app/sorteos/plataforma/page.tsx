@@ -25,6 +25,7 @@ import { MissionsGrid } from '@/features/giveaway-platform/components/MissionsGr
 import { EntryButton } from '@/features/giveaway-platform/components/EntryButton';
 import { PlatformShop } from '@/features/giveaway-platform/components/PlatformShop';
 import { MonthlyRanking } from '@/features/giveaway-platform/components/MonthlyRanking';
+import { HistoricalWinnersPlaceholder } from '@/features/giveaway-platform/components/HistoricalWinnersPlaceholder';
 import { ExternalGiveawaysSection } from '@/features/giveaway-platform/components/ExternalGiveawaysSection';
 import { getExternalGiveawaysForCreator } from '@/lib/queries/externalGiveaways';
 import { isExternalCreator } from '@/lib/external-giveaways/creator-bindings';
@@ -216,6 +217,7 @@ export default async function PlataformaSorteosPage({
           <div className="gp-legacy-block">
             <h2>Ranking global · mensual</h2>
             <MonthlyRanking rows={ranking} totalPlayers={rankingTotal} currentUserId={userId} />
+            <HistoricalWinnersPlaceholder />
           </div>
         </section>
 
