@@ -1,154 +1,219 @@
 /**
- * Catálogo de recompensas planificadas — 2026-07-03.
+ * Catálogo de recompensas — 2026-07-03 (actualizado con skins reales).
  *
- * Fase 1: 8 skins CS2 con su URL de Steam Market como fuente de verdad.
+ * Fase 1: 8 skins CS2 con metadata real (nombre, imagen local, precio
+ * en puntos, stock, Steam Market URL) confirmadas por el owner.
  *
- * IMPORTANTE:
- *  - Estas recompensas NO están en `shop_items` (DB). Se renderizan como
- *    "Recompensas próximas" en `PlatformShop.tsx` de forma puramente
- *    visual, no canjeables.
- *  - No hay scraping de Steam Market en producción. Los títulos son
- *    placeholders (`CS2 Skin Reward #N`) hasta que se apruebe metadata
- *    fiable manualmente.
- *  - `costPoints: null` y `stock: null` significan "pendiente de precio
- *    y stock". La UI muestra "Pendiente de precio" / "Pendiente de stock"
- *    y bloquea el canjeo.
- *  - `imageUrl: null` significa "sin imagen fiable". La UI pinta el
- *    placeholder premium (`.gp-reward-placeholder`) — no la card fea
- *    plana de "Imagen pendiente".
+ * Reglas:
+ *  - Imágenes locales en `public/images/rewards/{slug}.png` — descargadas
+ *    desde el CDN oficial de Steam (community.steamstatic.com) una sola
+ *    vez con `scripts/enrich-rewards.ts`. No hay fetch runtime a Steam.
+ *  - Precios en puntos son fijos, calibrados por el owner. NO se muestra
+ *    ninguna conversión $/€ al usuario.
+ *  - Stock: 1 unidad por skin. Cuando alcance 0, la card muestra "Agotado".
+ *  - Delivery: `steam_trade_offer`. Todos los canjes requieren revisión
+ *    manual antes del envío.
+ *  - `steamMarketUrl` se conserva SOLO para trazabilidad interna — no
+ *    se expone en la UI pública.
  *
- * Ver `docs/sorteos-rewards-catalog.md` para el estado detallado, la
- * regla interna de conversión coste→puntos (no publicada al usuario) y
- * el flujo de activación cuando se apruebe cada recompensa.
+ * Este archivo es la fuente de verdad del contenido. `scripts/seed-
+ * socialpro-rewards-steam.ts` lee de aquí y sincroniza `shop_items` en DB
+ * cuando el owner lo ejecuta explícitamente con la env var de confirmación.
+ *
+ * Ver:
+ *  - docs/sorteos-rewards-catalog.md
+ *  - docs/sorteos-coin-economy.md § conversión interna
  */
 
-export type PlannedRewardStatus =
-  | 'planned'      // Definida pero sin metadata/precio/stock — nunca canjeable.
-  | 'coming_soon'  // Metadata OK, precio/stock pendientes — nunca canjeable.
-  | 'active';      // Metadata + precio + stock OK — canjeable (vive en DB, no aquí).
+export type RewardStatus =
+  | 'active'       // Metadata + precio + stock OK → canjeable.
+  | 'coming_soon'  // Metadata OK, precio/stock pendientes.
+  | 'planned';     // Solo idea/URL. Sin metadata fiable.
 
-export interface PlannedReward {
-  /** Slug único interno. */
+export type RewardDelivery = 'steam_trade_offer' | 'physical_shipping' | 'digital_code' | 'internal_cosmetic';
+
+export interface CatalogReward {
+  /** Slug único interno — coincide con nombre del PNG local y con `sortOrder`. */
   slug: string;
-  /** Título placeholder o real si se aprobó metadata. */
-  title: string;
-  /** URL canónica de Steam Market — fuente de verdad. */
-  steamMarketUrl: string;
-  /** Categoría de la recompensa. */
+  /** Nombre canónico Steam Market — market_hash_name sin wear. */
+  name: string;
+  /** Wear del item, cuando aplica (skins). */
+  wear: 'Factory New' | 'Minimal Wear' | 'Field-Tested' | 'Well-Worn' | 'Battle-Scarred' | null;
+  /** Rareza tal como Steam la reporta (Restricted, Classified, Covert, etc.). */
+  rarity: string | null;
+  /** Categoría — coincide con `shop_items.category`. */
   category: 'skin' | 'gift' | 'merch' | 'profile' | 'frame' | 'badge';
-  /** Juego asociado (para skins). */
+  /** Juego asociado. */
   game: 'CS2' | null;
-  /** URL de imagen fiable o `null` si aún no la tenemos. */
-  imageUrl: string | null;
-  /** Precio en puntos o `null` si aún no se ha aprobado. */
-  costPoints: number | null;
-  /** Stock disponible o `null` si aún no se ha confirmado. */
-  stock: number | null;
-  /** Estado — nunca `active` en este archivo (los activos viven en DB). */
-  status: Exclude<PlannedRewardStatus, 'active'>;
+  /** Ruta al PNG en el repo (relativa a /public). Debe existir. */
+  imageUrl: string;
+  /** Precio final en puntos SocialPro. */
+  costPoints: number;
+  /** Stock actual — el seed lo aplica en DB. */
+  stock: number;
+  /** Estado. `active` → aparece canjeable en la tienda una vez seedeado. */
+  status: RewardStatus;
+  /** URL del listing en Steam Market — solo interno / trazabilidad. */
+  steamMarketUrl: string;
+  /** Cómo se entrega el premio. */
+  delivery: RewardDelivery;
+  /** True si el canje requiere revisión manual antes del envío. */
+  requiresManualReview: boolean;
+  /** Descripción visible al usuario. NO cita precio €/$. */
+  description: string;
 }
 
 /**
- * Los 8 items iniciales fase 1. Todos `planned`, sin metadata fiable,
- * sin precio, sin stock — no canjeables. Cuando el owner apruebe cada
- * uno, se mueven a `shop_items` (DB) con precio real y se retira de
- * este array.
+ * Las 8 skins CS2 confirmadas por el owner. Todas Field-Tested, con
+ * imagen local, stock 1, y precio en puntos calibrado con multiplicador
+ * ~1.3 sobre precio Steam Market en el momento del PR.
+ *
+ * Cuando alguna se agote (`stock: 0`), se retira o se rellena stock en un
+ * PR de mantenimiento — no automático.
  */
-export const PLANNED_REWARDS: readonly PlannedReward[] = [
+export const REAL_STEAM_REWARDS: readonly CatalogReward[] = [
   {
-    slug: 'cs2-skin-reward-1',
-    title: 'CS2 Skin Reward #1',
+    slug: 'glock-18-fully-tuned-ft',
+    name: 'Glock-18 | Fully Tuned',
+    wear: 'Field-Tested',
+    rarity: 'Covert',
+    category: 'skin',
+    game: 'CS2',
+    imageUrl: '/images/rewards/glock-18-fully-tuned-ft.png',
+    costPoints: 104_500,
+    stock: 1,
+    status: 'active',
     steamMarketUrl:
       'https://steamcommunity.com/market/listings/730/G1804208D0B3004?category_Type=CSGO_Type_Pistol&category_Exterior=WearCategory2&appid=730',
-    category: 'skin',
-    game: 'CS2',
-    imageUrl: null,
-    costPoints: null,
-    stock: null,
-    status: 'planned',
+    delivery: 'steam_trade_offer',
+    requiresManualReview: true,
+    description: 'Skin premium Covert. Envío por Steam Trade Offer · stock limitado · canje sujeto a revisión manual.',
   },
   {
-    slug: 'cs2-skin-reward-2',
-    title: 'CS2 Skin Reward #2',
+    slug: 'usp-s-cortex-ft',
+    name: 'USP-S | Cortex',
+    wear: 'Field-Tested',
+    rarity: 'Classified',
+    category: 'skin',
+    game: 'CS2',
+    imageUrl: '/images/rewards/usp-s-cortex-ft.png',
+    costPoints: 6_500,
+    stock: 1,
+    status: 'active',
     steamMarketUrl:
       'https://steamcommunity.com/market/listings/730/G183D20C1053004?category_Type=CSGO_Type_Pistol&category_Exterior=WearCategory2&appid=730',
-    category: 'skin',
-    game: 'CS2',
-    imageUrl: null,
-    costPoints: null,
-    stock: null,
-    status: 'planned',
+    delivery: 'steam_trade_offer',
+    requiresManualReview: true,
+    description: 'Skin Classified. Envío por Steam Trade Offer · stock limitado · canje sujeto a revisión manual.',
   },
   {
-    slug: 'cs2-skin-reward-3',
-    title: 'CS2 Skin Reward #3',
+    slug: 'm4a4-temukau-ft',
+    name: 'M4A4 | Temukau',
+    wear: 'Field-Tested',
+    rarity: 'Covert',
+    category: 'skin',
+    game: 'CS2',
+    imageUrl: '/images/rewards/m4a4-temukau-ft.png',
+    costPoints: 57_700,
+    stock: 1,
+    status: 'active',
     steamMarketUrl:
       'https://steamcommunity.com/market/listings/730/G181020CC093004?category_Type=CSGO_Type_Pistol&category_Type=CSGO_Type_Rifle&category_Exterior=WearCategory2&appid=730',
-    category: 'skin',
-    game: 'CS2',
-    imageUrl: null,
-    costPoints: null,
-    stock: null,
-    status: 'planned',
+    delivery: 'steam_trade_offer',
+    requiresManualReview: true,
+    description: 'Skin Covert. Envío por Steam Trade Offer · stock limitado · canje sujeto a revisión manual.',
   },
   {
-    slug: 'cs2-skin-reward-4',
-    title: 'CS2 Skin Reward #4',
+    slug: 'ak-47-asiimov-ft',
+    name: 'AK-47 | Asiimov',
+    wear: 'Field-Tested',
+    rarity: 'Covert',
+    category: 'skin',
+    game: 'CS2',
+    imageUrl: '/images/rewards/ak-47-asiimov-ft.png',
+    costPoints: 70_000,
+    stock: 1,
+    status: 'active',
     steamMarketUrl:
       'https://steamcommunity.com/market/listings/730/G180720A1063004?category_Type=CSGO_Type_Pistol&category_Type=CSGO_Type_Rifle&category_Exterior=WearCategory2&appid=730&detail=555779260423308555',
-    category: 'skin',
-    game: 'CS2',
-    imageUrl: null,
-    costPoints: null,
-    stock: null,
-    status: 'planned',
+    delivery: 'steam_trade_offer',
+    requiresManualReview: true,
+    description: 'Skin Covert icónica. Envío por Steam Trade Offer · stock limitado · canje sujeto a revisión manual.',
   },
   {
-    slug: 'cs2-skin-reward-5',
-    title: 'CS2 Skin Reward #5',
+    slug: 'm4a4-desolate-space-ft',
+    name: 'M4A4 | Desolate Space',
+    wear: 'Field-Tested',
+    rarity: 'Classified',
+    category: 'skin',
+    game: 'CS2',
+    imageUrl: '/images/rewards/m4a4-desolate-space-ft.png',
+    costPoints: 23_200,
+    stock: 1,
+    status: 'active',
     steamMarketUrl:
       'https://steamcommunity.com/market/listings/730/G181020CC043004?category_Type=CSGO_Type_Pistol&category_Type=CSGO_Type_Rifle&category_Exterior=WearCategory2&appid=730',
-    category: 'skin',
-    game: 'CS2',
-    imageUrl: null,
-    costPoints: null,
-    stock: null,
-    status: 'planned',
+    delivery: 'steam_trade_offer',
+    requiresManualReview: true,
+    description: 'Skin Classified. Envío por Steam Trade Offer · stock limitado · canje sujeto a revisión manual.',
   },
   {
-    slug: 'cs2-skin-reward-6',
-    title: 'CS2 Skin Reward #6',
+    slug: 'glock-18-vogue-ft',
+    name: 'Glock-18 | Vogue',
+    wear: 'Field-Tested',
+    rarity: 'Classified',
+    category: 'skin',
+    game: 'CS2',
+    imageUrl: '/images/rewards/glock-18-vogue-ft.png',
+    costPoints: 6_700,
+    stock: 1,
+    status: 'active',
     steamMarketUrl:
       'https://steamcommunity.com/market/listings/730/G180420C3073004?category_Type=CSGO_Type_Pistol&category_Type=CSGO_Type_Rifle&category_Exterior=WearCategory2&appid=730',
-    category: 'skin',
-    game: 'CS2',
-    imageUrl: null,
-    costPoints: null,
-    stock: null,
-    status: 'planned',
+    delivery: 'steam_trade_offer',
+    requiresManualReview: true,
+    description: 'Skin Classified. Envío por Steam Trade Offer · stock limitado · canje sujeto a revisión manual.',
   },
   {
-    slug: 'cs2-skin-reward-7',
-    title: 'CS2 Skin Reward #7',
+    slug: 'glock-18-block-18-ft',
+    name: 'Glock-18 | Block-18',
+    wear: 'Field-Tested',
+    rarity: 'Restricted',
+    category: 'skin',
+    game: 'CS2',
+    imageUrl: '/images/rewards/glock-18-block-18-ft.png',
+    costPoints: 800,
+    stock: 1,
+    status: 'active',
     steamMarketUrl:
       'https://steamcommunity.com/market/listings/730/G1804208F093004?category_Type=CSGO_Type_Pistol&category_Type=CSGO_Type_Rifle&category_Exterior=WearCategory2&appid=730',
-    category: 'skin',
-    game: 'CS2',
-    imageUrl: null,
-    costPoints: null,
-    stock: null,
-    status: 'planned',
+    delivery: 'steam_trade_offer',
+    requiresManualReview: true,
+    description: 'Skin Restricted. Envío por Steam Trade Offer · stock limitado · canje sujeto a revisión manual.',
   },
   {
-    slug: 'cs2-skin-reward-8',
-    title: 'CS2 Skin Reward #8',
-    steamMarketUrl:
-      'https://steamcommunity.com/market/listings/730/G180920C6063004?category_Type=CSGO_Type_SniperRifle&category_Exterior=WearCategory2&appid=730',
+    slug: 'awp-atheris-ft',
+    name: 'AWP | Atheris',
+    wear: 'Field-Tested',
+    rarity: 'Restricted',
     category: 'skin',
     game: 'CS2',
-    imageUrl: null,
-    costPoints: null,
-    stock: null,
-    status: 'planned',
+    imageUrl: '/images/rewards/awp-atheris-ft.png',
+    costPoints: 8_100,
+    stock: 1,
+    status: 'active',
+    steamMarketUrl:
+      'https://steamcommunity.com/market/listings/730/G180920C6063004?category_Type=CSGO_Type_SniperRifle&category_Exterior=WearCategory2&appid=730&detail=555779260423635183',
+    delivery: 'steam_trade_offer',
+    requiresManualReview: true,
+    description: 'Skin AWP Restricted. Envío por Steam Trade Offer · stock limitado · canje sujeto a revisión manual.',
   },
 ] as const;
+
+/**
+ * @deprecated Reemplazado por `REAL_STEAM_REWARDS` con metadata real.
+ * Se mantiene el símbolo como alias vacío para no romper imports que
+ * puedan quedar. Se eliminará en un PR de limpieza cuando confirmemos
+ * que ningún componente lo consume.
+ */
+export const PLANNED_REWARDS: readonly CatalogReward[] = [];

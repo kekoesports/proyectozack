@@ -1,145 +1,157 @@
 # Catálogo de recompensas — SocialPro Giveaways
 
-**Estado:** Fase 1 — planificado. 2026-07-03.
+**Estado:** Fase 1 — 8 skins CS2 con metadata real confirmada por el owner. 2026-07-03.
 **Ámbito:** sección "Recompensas" en `/sorteos/[creatorSlug]`.
-**Fuente de verdad**: `src/features/giveaway-platform/constants/rewards-catalog.ts` (código) + este documento (estado, activación, procesos).
+**Fuente de verdad:** `src/features/giveaway-platform/constants/rewards-catalog.ts` → `REAL_STEAM_REWARDS`.
 
-Este documento reemplaza a `docs/socialpro-prizes-catalog.md` como fuente de verdad de la fase 1. El anterior se mantiene por retrocompatibilidad con tests existentes; su contenido no se elimina para evitar romper la trazabilidad.
+Este documento reemplaza a `docs/socialpro-prizes-catalog.md` como fuente de verdad de la fase 1. El anterior se mantiene por retrocompatibilidad con tests existentes; su contenido se conserva.
 
 ---
 
 ## TL;DR
 
-- 8 skins CS2 dadas de alta como recompensas **planificadas**.
-- Ninguna es canjeable — no tienen precio ni stock aprobado.
-- No hay seed. No hay scraping. No hay migraciones.
-- Se pintan visualmente en `PlatformShop.tsx` (renombrada "Recompensas") en un bloque **"Próximas recompensas"** con placeholder premium — no como card fea "Imagen pendiente".
-- Sólo se activan (mueven a `shop_items`) cuando el owner apruebe metadata, precio y stock por recompensa.
+- 8 skins CS2 con **metadata real**: nombre exacto, imagen local descargada del CDN oficial de Steam, precio en puntos calibrado, stock 1.
+- **Activas / canjeables** una vez ejecutado el seed en producción (comando en §5).
+- No hay scraping runtime. No hay dependencia del CDN externo de Steam.
+- Precios fijos (no live). No se muestra conversión € o $ al usuario.
 
 ---
 
-## Estado por recompensa (fase 1)
+## Las 8 skins confirmadas
 
-Cada item vive en `PLANNED_REWARDS` (`rewards-catalog.ts`). Estado inicial idéntico para las 8:
+| # | Skin | Wear | Rareza | Precio (puntos) | Stock | Imagen local |
+|---|------|------|--------|------------------|-------|--------------|
+| 1 | **Glock-18 \| Fully Tuned** | Field-Tested | Covert | 104.500 ⭐ | 1 | `public/images/rewards/glock-18-fully-tuned-ft.png` |
+| 2 | **USP-S \| Cortex** | Field-Tested | Classified | 6.500 ⭐ | 1 | `public/images/rewards/usp-s-cortex-ft.png` |
+| 3 | **M4A4 \| Temukau** | Field-Tested | Covert | 57.700 ⭐ | 1 | `public/images/rewards/m4a4-temukau-ft.png` |
+| 4 | **AK-47 \| Asiimov** | Field-Tested | Covert | 70.000 ⭐ | 1 | `public/images/rewards/ak-47-asiimov-ft.png` |
+| 5 | **M4A4 \| Desolate Space** | Field-Tested | Classified | 23.200 ⭐ | 1 | `public/images/rewards/m4a4-desolate-space-ft.png` |
+| 6 | **Glock-18 \| Vogue** | Field-Tested | Classified | 6.700 ⭐ | 1 | `public/images/rewards/glock-18-vogue-ft.png` |
+| 7 | **Glock-18 \| Block-18** | Field-Tested | Restricted | 800 ⭐ | 1 | `public/images/rewards/glock-18-block-18-ft.png` |
+| 8 | **AWP \| Atheris** | Field-Tested | Restricted | 8.100 ⭐ | 1 | `public/images/rewards/awp-atheris-ft.png` |
 
-```yaml
-category: skin
-game: CS2
-source: steam_market
-status: planned
-imageUrl: null
-costPoints: null       # pendiente de aprobar
-stock: null            # pendiente de aprobar
-```
-
-| # | Slug                    | Steam Market URL                                                                                                                                                     | Estado  | Canjeable |
-|---|-------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------|-----------|
-| 1 | `cs2-skin-reward-1`     | `https://steamcommunity.com/market/listings/730/G1804208D0B3004?category_Type=CSGO_Type_Pistol&category_Exterior=WearCategory2&appid=730`                            | planned | ❌        |
-| 2 | `cs2-skin-reward-2`     | `https://steamcommunity.com/market/listings/730/G183D20C1053004?category_Type=CSGO_Type_Pistol&category_Exterior=WearCategory2&appid=730`                            | planned | ❌        |
-| 3 | `cs2-skin-reward-3`     | `https://steamcommunity.com/market/listings/730/G181020CC093004?category_Type=CSGO_Type_Pistol&category_Type=CSGO_Type_Rifle&category_Exterior=WearCategory2&appid=730` | planned | ❌        |
-| 4 | `cs2-skin-reward-4`     | `https://steamcommunity.com/market/listings/730/G180720A1063004?category_Type=CSGO_Type_Pistol&category_Type=CSGO_Type_Rifle&category_Exterior=WearCategory2&appid=730&detail=555779260423308555` | planned | ❌        |
-| 5 | `cs2-skin-reward-5`     | `https://steamcommunity.com/market/listings/730/G181020CC043004?category_Type=CSGO_Type_Pistol&category_Type=CSGO_Type_Rifle&category_Exterior=WearCategory2&appid=730` | planned | ❌        |
-| 6 | `cs2-skin-reward-6`     | `https://steamcommunity.com/market/listings/730/G180420C3073004?category_Type=CSGO_Type_Pistol&category_Type=CSGO_Type_Rifle&category_Exterior=WearCategory2&appid=730` | planned | ❌        |
-| 7 | `cs2-skin-reward-7`     | `https://steamcommunity.com/market/listings/730/G1804208F093004?category_Type=CSGO_Type_Pistol&category_Type=CSGO_Type_Rifle&category_Exterior=WearCategory2&appid=730` | planned | ❌        |
-| 8 | `cs2-skin-reward-8`     | `https://steamcommunity.com/market/listings/730/G180920C6063004?category_Type=CSGO_Type_SniperRifle&category_Exterior=WearCategory2&appid=730`                        | planned | ❌        |
-
-Metadata real (nombre, imagen) queda como placeholder `CS2 Skin Reward #N` hasta que el owner apruebe. Ver §"Cómo obtener metadata real" en `docs/socialpro-prizes-catalog.md`.
+**Todas**:
+- `category: 'skin'`, `game: 'CS2'`, `source: 'steam_market'`.
+- `delivery: 'steam_trade_offer'`, `requiresManualReview: true`.
+- URL original de Steam Market conservada en `steamMarketUrl` para trazabilidad (no expuesta en UI).
 
 ---
 
-## Regla de activación
+## Flujo end-to-end
 
 ```
-sin metadata fiable          → status: planned      → nunca canjeable
-metadata OK, sin precio      → status: coming_soon  → nunca canjeable
-metadata OK, precio, stock   → mover a shop_items   → canjeable
-```
-
-**Requiere OK explícito del owner en cada transición.** El PR de activación debe:
-
-1. Añadir metadata real (título + imageUrl) al item en `PLANNED_REWARDS`.
-2. Fijar `costPoints` y `stock`.
-3. Escribir la fila real en `scripts/seed-giveaway-platform.ts` con `isActive: true`.
-4. Ejecutar `npx tsx scripts/seed-giveaway-platform.ts` en producción cuando decida el owner.
-5. Retirar el slug de `PLANNED_REWARDS` — ya no es "planificado".
-
----
-
-## UI
-
-**Naming**:
-- Sección: **Recompensas** (antes "Tienda").
-- Nav item: **Recompensas** (antes "Tienda").
-- Subsección para items de `PLANNED_REWARDS`: **Próximas recompensas**.
-
-**Placeholder visual para cards sin `imageUrl`**:
-- Fondo oscuro tipo CS2 (gradient dark + textura sutil).
-- Badge "CS2" arriba a la izquierda.
-- Icono de skin/caja centrado.
-- Etiqueta grande "Skin CS2".
-- Etiqueta pequeña abajo con el estado ("Próximamente", "Pendiente de precio", "Pendiente de stock").
-
-Reemplaza al placeholder anterior plano "Imagen pendiente" — feo y confuso.
-
-**Categorías visibles** (ampliación, sin migración):
-
-```
-Todas · Skins CS2 · Merch SocialPro · Tarjetas regalo · Profile Cards · Avatar Frames · Badges
+1. rewards-catalog.ts (constante REAL_STEAM_REWARDS)  ← fuente de verdad
+2. public/images/rewards/*.png                         ← imágenes locales
+3. scripts/enrich-rewards.ts (dev-only)                ← refresh metadata cuando sea necesario
+4. scripts/seed-socialpro-rewards-steam.ts (manual)    ← sincroniza a shop_items DB
+5. UI PlatformShop.tsx                                 ← lee de DB → grid + vitrina
 ```
 
 ---
 
-## Conversión coste → puntos (interno, no publicar)
+## Regla de pricing (interna, NO publicar)
 
 ```
-1 USD coste interno ≈ 1_000 puntos
-1 EUR coste interno ≈ 1_100 puntos
+1$ coste interno  ≈ 1.000 puntos
+1€ coste interno  ≈ 1.100 puntos
+precio en puntos  = coste estimado en € × 1.100 × multiplicador (1.2–1.5)
 ```
 
-**Regla dura:** esto NO se muestra al usuario. No aparece en `PlatformShop.tsx` ni en `PLANNED_REWARDS`. Solo aquí. Cuando se apruebe una activación, el precio en puntos final lo decide el owner manualmente.
+Multiplicador aplicado en este catálogo: **~1.3**.
 
-Ver `docs/sorteos-coin-economy.md` para el detalle económico completo.
+**Estas equivalencias NO se muestran al usuario.** Aparecen solo en este `.md` y en `docs/sorteos-coin-economy.md`. Un test estructural verifica que ningún componente UI las expone.
 
 ---
 
-## Categorías soportadas por el catálogo
+## Comando de seed (ejecución manual)
 
-Sin migración de esquema (`shop_items.category` es `varchar(10)`):
+**Solo tras revisar el catálogo y las imágenes.**
 
-| Categoría        | Ejemplo                                                                 | Fase |
-|------------------|-------------------------------------------------------------------------|------|
-| `skin`           | AK-47, cuchillos, pistolas CS2                                          | 1    |
-| `gift_card`      | Voucher KeyDrop/Twitch/Steam wallet                                     | 2    |
-| `merch`          | Camiseta, hoodie, taza SocialPro                                        | 2    |
-| `profile_card`   | Marco de perfil, tarjeta cosmética                                      | 3    |
-| `avatar_frame`   | Frame animado para el avatar                                            | 3    |
-| `badge`          | Insignia por evento / temporada                                         | 3    |
+```bash
+CONFIRM_SEED_STEAM_REWARDS=I_ACCEPT_ADD_STEAM_REWARDS \
+  npx tsx scripts/seed-socialpro-rewards-steam.ts
+```
 
-En este PR **solo se documenta fase 1** (skins CS2). Fase 2 y 3 quedan como referencia futura.
+Comportamiento:
+- **Idempotente**: si el `name` ya existe en `shop_items`, hace `UPDATE`. Si no, `INSERT`.
+- Nunca borra items existentes.
+- Nunca modifica items fuera del catálogo.
+- Nunca toca balances ni redemptions.
+- Requiere `DATABASE_URL` en `.env.local` — apunta a la DB que quieres actualizar (dev o prod, según sesión).
+
+**Sin la env var** el script aborta con `exit 1`. Es imposible ejecutarlo por accidente.
+
+---
+
+## Enriquecimiento local (opcional)
+
+Cuando haga falta refresh de metadata (precio cambia, item eliminado del Market, etc.):
+
+```bash
+npx tsx scripts/enrich-rewards.ts
+```
+
+Bloqueado en CI (detecta `CI=true`, `VERCEL=1`, `GITHUB_ACTIONS`).
+
+Rate-limited: 1 req cada 3s + backoff exponencial en 429/403. Salida en `.scratch/steam-enrich-<date>.json` para revisar antes de tocar el catálogo o commitear cambios.
+
+---
+
+## UI — cómo se ven
+
+Cuando el seed ha corrido y las 8 skins están en `shop_items`:
+
+- Aparecen en la grid principal de "Recompensas" bajo la tab **🔫 Skins CS2**.
+- Cada card muestra:
+  - Imagen real del skin (PNG local).
+  - Nombre exacto (`AK-47 | Asiimov`).
+  - Descripción: "Skin [rareza]. Envío por Steam Trade Offer · stock limitado · canje sujeto a revisión manual."
+  - Precio en puntos (⭐).
+  - Stock (1 en stock / Agotado).
+  - Botón **Canjear** si el usuario tiene puntos suficientes; si no, "Faltan N ⭐".
+- **No** se muestra: precio en €, precio en $, lowest price de Steam, referencia a conversión.
+
+Cuando el seed NO ha corrido aún (típicamente preview de Vercel):
+
+- Vitrina **"Próximas en tienda · Skins CS2"** debajo de la grid principal.
+- Mismas cards pero con badge "Próximamente" y CTA "Ver en Steam Market" en lugar de Canjear.
+- Se dedupica automáticamente contra items en DB una vez ejecutado el seed.
+
+---
+
+## Campos DB soportados
+
+Schema `shop_items` (`src/db/schema/shopItems.ts`):
+
+| Campo constante         | Campo DB      | Notas |
+|-------------------------|---------------|-------|
+| `category`              | `category`    | 'skin' |
+| `name`                  | `name`        | market_hash_name completo |
+| `description`           | `description` | Copy visible al usuario |
+| `imageUrl`              | `image_url`   | `/images/rewards/{slug}.png` |
+| `costPoints`            | `cost_coins`  | Precio final en puntos |
+| `stock`                 | `stock`       | 1 por skin |
+| `status: 'active'`      | `is_active`   | true |
+| — (sortOrder generado)  | `sort_order`  | 900+ (aparecen al final) |
+
+Campos del catálogo que **no** persisten en DB (viven solo en la constante):
+
+- `wear`, `rarity`, `game`, `source`, `steamMarketUrl`, `delivery`, `requiresManualReview`, `slug`, `status`.
+
+Motivo: son metadata de referencia y trazabilidad. Añadirlos como columnas requiere migración (Fase futura). Mientras tanto la UI los consume desde la constante para las cards de vitrina.
 
 ---
 
 ## Qué NO se implementa en este PR
 
-- ❌ No hay seed que active los 8 items en `shop_items`.
-- ❌ No hay scraping runtime de `steamcommunity.com/market`.
 - ❌ No hay migraciones DB.
+- ❌ No hay ejecución automática del seed. Requiere env var explícita.
+- ❌ No hay fetch runtime a Steam.
 - ❌ No hay conversión monetaria expuesta al usuario.
 - ❌ No hay marketplace P2P, ni compra de puntos, ni transferencias.
-- ❌ No se cambian precios reales de items existentes en `shop_items`.
-
----
-
-## Qué SÍ se implementa en este PR
-
-- ✅ Constante `PLANNED_REWARDS` con los 8 items.
-- ✅ Sección UI "Próximas recompensas" que renderiza los 8 items.
-- ✅ Placeholder visual premium (`.gp-reward-placeholder`) para cards sin imagen — reemplaza al plano "Imagen pendiente".
-- ✅ Naming completo Tienda → Recompensas en UI pública.
-- ✅ Tests estructurales que verifican las invariantes.
 
 ---
 
 ## Historial
 
-- **2026-07-03** — Documento inicial. 8 skins CS2 dadas de alta como `planned`. Sin seed, sin scraping, sin UI canjeable.
+- **2026-07-03** — 8 skins CS2 confirmadas por el owner con metadata real. Imágenes locales descargadas del CDN Akamai. Precios calibrados con multiplicador 1.3 sobre precios Steam Market en el momento del PR.
