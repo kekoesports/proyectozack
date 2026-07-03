@@ -402,6 +402,21 @@
   font-family: var(--font-rajdhani), sans-serif;
   letter-spacing: 1px;
 }
+.giveaway-platform .gp-footer-tagline { margin: 0 0 10px; }
+.giveaway-platform .gp-footer-links {
+  display: flex;
+  gap: 4px 18px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.giveaway-platform .gp-footer-links a {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 11.5px;
+  letter-spacing: 0.4px;
+  transition: color 0.15s;
+}
+.giveaway-platform .gp-footer-links a:hover { color: var(--sp-pink); }
 
 /* Wrapper premium SocialPro para los bloques dinámicos (racha, misiones, */
 /* sorteos, ranking, tienda). Backend intacto — solo cambia el chrome. */

@@ -26,6 +26,7 @@ import { EntryButton } from '@/features/giveaway-platform/components/EntryButton
 import { PlatformShop } from '@/features/giveaway-platform/components/PlatformShop';
 import { MonthlyRanking } from '@/features/giveaway-platform/components/MonthlyRanking';
 import { ExternalGiveawaysSection } from '@/features/giveaway-platform/components/ExternalGiveawaysSection';
+import { PlatformFooter } from '@/features/giveaway-platform/components/PlatformFooter';
 import { getExternalGiveawaysForCreator } from '@/lib/queries/externalGiveaways';
 import { isExternalCreator } from '@/lib/external-giveaways/creator-bindings';
 import type { ExternalGiveawaySections } from '@/lib/external-giveaways/types';
@@ -226,10 +227,7 @@ export default async function PlataformaSorteosPage({
           </div>
         </section>
 
-        <footer className="gp-footer">
-          <b>SOCIALPRO GIVEAWAYS</b> · Sorteos gratuitos de creadores · Sin apuestas · +18 · Juega con
-          responsabilidad
-        </footer>
+        <PlatformFooter />
       </main>
     </>
   );
