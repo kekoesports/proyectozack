@@ -189,6 +189,64 @@
   box-shadow: 0 6px 22px rgba(245, 183, 61, 0.35);
 }
 
+/* ================ SKINSMONKEY (hero-top variant of .p-gold) ================
+ * Rediseño 2026-07-03: la card de SkinsMonkey usa una imagen hero a ancho
+ * completo arriba en lugar del "agente flotante" que usan las demás. Esto
+ * disimula la baja calidad del thumbnail actual (marcado como TODO en
+ * constants/brands.ts) y le da más protagonismo visual.
+ */
+.giveaway-platform .p-monkey {
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.giveaway-platform .gp-monkey-hero {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 8;
+  min-height: 190px;
+  overflow: hidden;
+  background: linear-gradient(160deg, #2b1e40, #0d0a18);
+}
+.giveaway-platform .gp-monkey-hero-img {
+  object-fit: cover;
+  object-position: center 35%;
+  filter: saturate(1.05) contrast(1.02);
+}
+.giveaway-platform .gp-monkey-hero-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg,
+      transparent 45%,
+      rgba(11, 8, 20, 0.55) 78%,
+      rgba(11, 8, 20, 0.92) 100%
+    ),
+    radial-gradient(600px 300px at 82% 20%, rgba(245, 183, 61, 0.16), transparent 70%);
+}
+.giveaway-platform .gp-monkey-body {
+  padding: 24px 30px 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+}
+.giveaway-platform .gp-monkey-body .gp-logo-slot { margin-bottom: 2px; }
+.giveaway-platform .gp-monkey-lead {
+  font-size: 14px;
+  color: var(--txt);
+  margin: 0;
+  line-height: 1.45;
+}
+.giveaway-platform .gp-monkey-body .pill-offer { margin: 4px 0 0; }
+.giveaway-platform .gp-monkey-body .btn-gold { margin-top: 8px; }
+@media (max-width: 720px) {
+  .giveaway-platform .gp-monkey-hero { aspect-ratio: 16 / 9; min-height: 160px; }
+  .giveaway-platform .gp-monkey-body { padding: 20px 22px 24px; }
+}
+
 /* ================ CSGO-SKINS (red variant of .p-gold) ================ */
 .giveaway-platform .p-red {
   border-color: rgba(220, 38, 60, 0.42);
