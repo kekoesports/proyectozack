@@ -19,7 +19,22 @@ export type DailyStreak = InferSelectModel<typeof dailyStreaks>;
 export type ShopItem = InferSelectModel<typeof shopItems>;
 export type Redemption = InferSelectModel<typeof redemptions>;
 
-export type ShopCategory = 'skin' | 'merch' | 'gift';
+/**
+ * Categorías de items canjeables en tienda.
+ *
+ * Se amplió el 2026-07-03 con las 3 categorías cosméticas (profile, frame,
+ * badge) — todas caben en el `varchar(10)` actual de `shop_items.category`,
+ * por lo que NO se necesita migración de esquema para admitirlas.
+ *
+ * `profile` — profile cards de fondo del perfil.
+ * `frame`   — marcos animados alrededor del avatar.
+ * `badge`   — badges premium visibles en pill/perfil.
+ *
+ * NOTA: para EQUIPAR estos cosméticos (aplicarlos visualmente al perfil
+ * del usuario) sí hace falta migración — ver `docs/sorteos-coin-economy.md`
+ * §4.2. Mientras tanto se pueden canjear y quedan en `redemptions`.
+ */
+export type ShopCategory = 'skin' | 'merch' | 'gift' | 'profile' | 'frame' | 'badge';
 export type RedemptionStatus = 'pendiente' | 'enviado' | 'cancelado';
 export type MissionConditionType = 'entries_total' | 'distinct_creators' | 'streak_days';
 export type CoinSource = 'racha' | 'mision' | 'sorteo' | 'tienda' | 'admin';
