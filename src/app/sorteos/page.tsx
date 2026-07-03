@@ -155,7 +155,7 @@ export default async function SorteosIndexPage() {
             </li>
             <li>
               <b>Canjea recompensas.</b> Con tus puntos ⭐ puedes canjear skins CS2, merchandising
-              o tarjetas regalo en la tienda interna.
+              o tarjetas regalo en las recompensas internas.
             </li>
           </ol>
           <p className="gp-index-explainer-note">

@@ -27,7 +27,7 @@ const NAV_ITEMS = [
   { href: '#misiones', label: 'Misiones' },
   { href: '#sorteos', label: 'Sorteos' },
   { href: '#ranking', label: 'Ranking' },
-  { href: '#tienda', label: 'Tienda' },
+  { href: '#recompensas', label: 'Recompensas' },
 ];
 
 export function PlatformNav({ creators, activeSlug, userName, userImage, balance, loggedIn }: Props) {

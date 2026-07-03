@@ -28,7 +28,7 @@ export default function TerminosPage() {
           <code>/sorteos</code>, operada por SocialPro. La plataforma permite a los
           usuarios participar gratuitamente en sorteos publicados por creadores de contenido
           asociados a la agencia, acumular puntos internos sin valor monetario (⭐) y canjearlos
-          por artículos ofertados en la tienda interna.
+          por recompensas del catálogo interno.
         </p>
       </section>
 
@@ -74,7 +74,7 @@ export default function TerminosPage() {
           </li>
           <li>Se obtienen participando en sorteos, completando misiones o manteniendo la racha
               diaria. No se compran.</li>
-          <li>Se gastan canjeando artículos de la tienda.</li>
+          <li>Se gastan canjeando recompensas del catálogo interno.</li>
           <li>No son transferibles entre cuentas ni entre usuarios.</li>
           <li>
             SocialPro podrá revisar, suspender temporalmente o corregir saldos cuando
@@ -87,7 +87,7 @@ export default function TerminosPage() {
       </section>
 
       <section className="gp-legal-section">
-        <h2>6. Canjeos en la tienda</h2>
+        <h2>6. Canjeo de recompensas</h2>
         <p>
           El canjeo descuenta puntos del saldo y genera una solicitud de entrega. SocialPro
           coordinará contigo la entrega según el tipo de artículo (skin CS2 vía trade offer,
@@ -137,7 +137,7 @@ export default function TerminosPage() {
       <section className="gp-legal-section">
         <h2>9. Modificaciones y disponibilidad</h2>
         <p>
-          Podemos actualizar estos términos, la mecánica de puntos, el catálogo de la tienda o
+          Podemos actualizar estos términos, la mecánica de puntos, el catálogo de recompensas o
           la lista de creadores participantes en cualquier momento. Los cambios sustanciales se
           comunicarán desde la propia plataforma con antelación razonable. No garantizamos la
           disponibilidad continua del servicio; podemos suspenderlo temporalmente por

@@ -205,9 +205,9 @@ export async function PlatformCreatorLanding({ slug }: Props) {
           </div>
         </section>
 
-        <section id="tienda">
+        <section id="recompensas">
           <div className="gp-legacy-block">
-            <h2>Tienda · canjea tus puntos</h2>
+            <h2>Recompensas · canjea tus puntos</h2>
             <PlatformShop items={shopItemsData} balance={balance} />
           </div>
         </section>
