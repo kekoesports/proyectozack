@@ -73,8 +73,13 @@ export default function TerminosPage() {
               diaria. No se compran.</li>
           <li>Se gastan canjeando artículos de la tienda.</li>
           <li>No son transferibles entre cuentas ni entre usuarios.</li>
-          <li>Podemos ajustar el saldo si detectamos abuso o fraude, dejando constancia en el
-              registro de transacciones.</li>
+          <li>
+            SocialPro podrá revisar, suspender temporalmente o corregir saldos cuando
+            existan indicios razonables de error técnico, uso indebido o incumplimiento de
+            estos términos. Cuando sea posible, se informará al usuario y se le permitirá
+            aportar información adicional antes de una decisión definitiva. Toda corrección
+            queda reflejada en el registro de transacciones.
+          </li>
         </ul>
       </section>
 
@@ -83,8 +88,11 @@ export default function TerminosPage() {
         <p>
           El canjeo descuenta monedas del saldo y genera una solicitud de entrega. SocialPro
           coordinará contigo la entrega según el tipo de artículo (skin CS2 vía trade offer,
-          merchandising físico o tarjeta regalo digital). El canjeo es <b>firme y no reembolsable</b>{' '}
-          una vez procesado. La disponibilidad de cada artículo depende del stock.
+          merchandising físico o tarjeta regalo digital). Una vez procesado o entregado un
+          canje puede no ser posible cancelarlo. Lo anterior se aplicará <b>sin perjuicio de
+          los derechos que correspondan al usuario</b> según la normativa de consumidores y
+          las excepciones aplicables, especialmente en productos digitales, códigos o
+          artículos ya entregados. La disponibilidad de cada artículo depende del stock.
         </p>
       </section>
 
@@ -160,7 +168,7 @@ export default function TerminosPage() {
         <h2>12. Contacto</h2>
         <p>
           Para dudas sobre estos términos:{' '}
-          <a href="mailto:marketing@socialpro.es">marketing@socialpro.es</a>.
+          <a href="mailto:info@socialpro.es">info@socialpro.es</a>.
         </p>
       </section>
     </>

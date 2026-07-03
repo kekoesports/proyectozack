@@ -117,7 +117,7 @@ export default function JuegoResponsablePage() {
           <li>Cierra sesión desde el menú del pill de usuario.</li>
           <li>
             Escríbenos a{' '}
-            <a href="mailto:marketing@socialpro.es">marketing@socialpro.es</a> con el asunto{' '}
+            <a href="mailto:info@socialpro.es">info@socialpro.es</a> con el asunto{' '}
             <code>Autoexclusión</code>. Bloqueamos la cuenta y eliminamos los datos personales
             que no estemos obligados a conservar por ley.
           </li>
@@ -135,7 +135,7 @@ export default function JuegoResponsablePage() {
         <p>
           La plataforma está reservada a mayores de 18 años. Si eres padre, madre o tutor y
           crees que un menor ha creado una cuenta, escríbenos a{' '}
-          <a href="mailto:marketing@socialpro.es">marketing@socialpro.es</a>. Bloqueamos la
+          <a href="mailto:info@socialpro.es">info@socialpro.es</a>. Bloqueamos la
           cuenta y eliminamos los datos asociados en cuanto lo verifiquemos.
         </p>
       </section>
@@ -145,10 +145,13 @@ export default function JuegoResponsablePage() {
         <p>
           Cuando el CTA de un sorteo enlaza a un partner externo, lo indicamos con el nombre
           del partner y el código promocional del creador. No ocultamos que ese enlace forma
-          parte del programa de afiliación del creador con el partner. Aplicamos las buenas
-          prácticas de la <b>Ley 13/2022 General de Comunicación Audiovisual</b> y la{' '}
-          <b>Ley 13/2011 de regulación del juego</b> en lo que resulte aplicable a la
-          publicidad de operadores regulados.
+          parte del programa de afiliación del creador con el partner.
+        </p>
+        <p>
+          Nos comprometemos a alinearnos con las buenas prácticas y principios aplicables en
+          materia de comunicación comercial, protección de usuarios y juego responsable
+          cuando resulten aplicables, sin perjuicio de la revisión legal definitiva de este
+          documento.
         </p>
         <p>
           Ver también <Link href="/sorteos/terminos">Términos de uso</Link> y{' '}

@@ -47,9 +47,10 @@ const SECTIONS: { title: string; items: QA[] }[] = [
         a: (
           <p>
             Mayores de 18 años con una cuenta de Steam activa. Al iniciar sesión declaras que
-            cumples la edad mínima. No permitimos crear varias cuentas para el mismo participante
-            (multi-account). Los residentes en jurisdicciones donde los sorteos gratuitos con
-            componente promocional no estén permitidos deben abstenerse.
+            cumples la edad mínima. Solo se admite una cuenta por persona; nos reservamos el
+            derecho a suspender cuentas que incumplan estos términos. Los residentes en
+            jurisdicciones donde los sorteos gratuitos con componente promocional no estén
+            permitidos deben abstenerse.
           </p>
         ),
       },
@@ -113,7 +114,10 @@ const SECTIONS: { title: string; items: QA[] }[] = [
             En <code>/sorteos/plataforma#tienda</code> eliges un artículo cuyo coste sea igual o
             menor que tu saldo. Al pulsar &quot;Canjear&quot; se descuentan las monedas y el
             equipo de SocialPro contacta contigo para coordinar el envío o la entrega digital,
-            según el tipo de artículo. El canje es firme y no reembolsable.
+            según el tipo de artículo. Una vez procesado o entregado un canje puede no ser
+            posible cancelarlo, sin perjuicio de los derechos que correspondan al usuario según
+            la normativa de consumidores y las excepciones aplicables, especialmente en
+            productos digitales, códigos o artículos ya entregados.
           </p>
         ),
       },
@@ -121,9 +125,12 @@ const SECTIONS: { title: string; items: QA[] }[] = [
         q: '¿Puedo perder monedas?',
         a: (
           <p>
-            Solo si canjeas (gasto voluntario) o si tu cuenta es sancionada por incumplir estos
-            términos (multi-account, bot, fraude). No hay caducidad automática de saldo hoy;
-            si en el futuro la incorporamos, se anunciará con antelación suficiente.
+            Solo si canjeas (gasto voluntario) o si tu cuenta es suspendida por incumplir
+            estos términos (por ejemplo, uso indebido o bots). Nos reservamos el derecho a
+            revisar posibles incumplimientos y aplicar medidas para prevenir abusos, siempre
+            dejando constancia en el registro de transacciones. No hay caducidad automática
+            de saldo hoy; si en el futuro la incorporamos, se anunciará con antelación
+            suficiente.
           </p>
         ),
       },
@@ -186,7 +193,7 @@ const SECTIONS: { title: string; items: QA[] }[] = [
           <p>
             Puedes cerrar sesión desde el menú del usuario en la esquina superior derecha. Para
             eliminar tu cuenta y datos asociados, escríbenos a{' '}
-            <a href="mailto:marketing@socialpro.es">marketing@socialpro.es</a> desde el email
+            <a href="mailto:info@socialpro.es">info@socialpro.es</a> desde el email
             asociado a tu perfil de Steam.
           </p>
         ),
@@ -203,7 +210,7 @@ export default function FaqPage() {
         <h1>Preguntas frecuentes</h1>
         <p className="gp-legal-sub">
           Todo lo que necesitas saber sobre la plataforma. Si tu duda no está aquí,
-          escríbenos a <a href="mailto:marketing@socialpro.es">marketing@socialpro.es</a>.
+          escríbenos a <a href="mailto:info@socialpro.es">info@socialpro.es</a>.
         </p>
       </header>
 

@@ -213,3 +213,122 @@ describe('[legal] reglas del PR — sin cambios prohibidos', () => {
     }
   });
 });
+
+describe('[legal] pass preventivo — email de contacto info@socialpro.es', () => {
+  for (const { route, file } of LEGAL_PAGES) {
+    it(`${route}: usa info@socialpro.es y ya NO usa marketing@socialpro.es`, () => {
+      const src = read(file);
+      // Al menos una aparición del email nuevo en cada página.
+      expect(src).toMatch(/info@socialpro\.es/);
+      // El email antiguo no debe seguir apareciendo tras el pass preventivo.
+      expect(src).not.toMatch(/marketing@socialpro\.es/);
+    });
+  }
+});
+
+describe('[legal] pass preventivo — DPA suavizado', () => {
+  const src = read('src/app/sorteos/(legal)/privacidad/page.tsx');
+
+  it('ya NO afirma "contrato RGPD estándar" firmado con proveedores', () => {
+    // Ni la afirmación exacta, ni una variante con "contrato individual" DPA firmado.
+    expect(src).not.toMatch(/contrato RGPD estándar/i);
+    expect(src).not.toMatch(/DPA firmado individual/i);
+  });
+  it('usa la fórmula prudente "acuerdos de tratamiento o condiciones de privacidad"', () => {
+    expect(src).toMatch(/acuerdos de tratamiento o condiciones de privacidad/i);
+    expect(src).toMatch(/sujetos al RGPD/i);
+  });
+});
+
+describe('[legal] pass preventivo — conservación sin cifra dura', () => {
+  const src = read('src/app/sorteos/(legal)/privacidad/page.tsx');
+
+  it('ya NO afirma un plazo concreto de "5 años" ni "obligaciones contables"', () => {
+    expect(src).not.toMatch(/\b5 años\b/);
+    expect(src).not.toMatch(/obligaciones contables/i);
+  });
+  it('usa "durante el plazo estrictamente necesario"', () => {
+    expect(src).toMatch(/durante el plazo estrictamente necesario/i);
+    expect(src).toMatch(/prevenir abusos y cumplir/i);
+  });
+});
+
+describe('[legal] pass preventivo — canjeo respeta derechos de consumo', () => {
+  const files = [
+    'src/app/sorteos/(legal)/terminos/page.tsx',
+    'src/app/sorteos/(legal)/faq/page.tsx',
+  ];
+  for (const f of files) {
+    it(`${f}: ya NO usa "firme y no reembolsable" como afirmación absoluta`, () => {
+      const src = read(f);
+      // La frase agresiva completa desaparece.
+      expect(src).not.toMatch(/firme y no reembolsable/i);
+    });
+    it(`${f}: menciona la normativa de consumidores y las excepciones aplicables`, () => {
+      const src = read(f);
+      expect(src).toMatch(/normativa de consumidores/i);
+      expect(src).toMatch(/productos digitales,\s+códigos\s+o\s+artículos ya entregados/i);
+    });
+  }
+});
+
+describe('[legal] pass preventivo — ajuste de saldo con proceso', () => {
+  const src = read('src/app/sorteos/(legal)/terminos/page.tsx');
+
+  it('ya NO afirma "Podemos ajustar el saldo si detectamos abuso o fraude"', () => {
+    // Frase concreta original — no debe permanecer literal ni casi literal.
+    expect(src).not.toMatch(/Podemos ajustar el saldo si detectamos abuso o fraude/i);
+  });
+  it('usa la fórmula "indicios razonables" + "informará al usuario"', () => {
+    expect(src).toMatch(/indicios razonables/i);
+    expect(src).toMatch(/aportar información adicional/i);
+    expect(src).toMatch(/informará al usuario/i);
+  });
+});
+
+describe('[legal] pass preventivo — sin sistema antifraude/multiaccount aspiracional', () => {
+  const priv = read('src/app/sorteos/(legal)/privacidad/page.tsx');
+  const faq  = read('src/app/sorteos/(legal)/faq/page.tsx');
+
+  it('privacidad §3 (base 6.1.f) ya NO cita "prevención de fraude" / "prevención de multi-account" como sistema existente', () => {
+    // Sustituido por lenguaje de "prevenir abusos o uso indebido".
+    expect(priv).not.toMatch(/prevención de fraude/i);
+    expect(priv).not.toMatch(/prevención de multi-account/i);
+    expect(priv).toMatch(/prevenir abusos\s+o\s+uso indebido/i);
+    expect(priv).toMatch(/revisar posibles incumplimientos/i);
+  });
+
+  it('faq ya NO cita "multi-account, bot, fraude" como enumeración cerrada', () => {
+    // Sustituido por "por ejemplo, uso indebido o bots" + reserva de derecho.
+    expect(faq).not.toMatch(/multi-account,\s*bot,\s*fraude/i);
+    expect(faq).toMatch(/uso indebido o bots/i);
+    expect(faq).toMatch(/reservamos el derecho/i);
+  });
+});
+
+describe('[legal] pass preventivo — publicidad sin afirmar compliance con Leyes concretas', () => {
+  const src = read('src/app/sorteos/(legal)/juego-responsable/page.tsx');
+
+  it('ya NO afirma "Aplicamos las buenas prácticas de la Ley 13/2022 ... y la Ley 13/2011"', () => {
+    expect(src).not.toMatch(/Aplicamos las buenas prácticas de la Ley 13\/2022/i);
+    expect(src).not.toMatch(/Aplicamos las buenas prácticas de la Ley 13\/2011/i);
+  });
+  it('usa la fórmula prudente "Nos comprometemos a alinearnos ... cuando resulten aplicables"', () => {
+    expect(src).toMatch(/Nos comprometemos a alinearnos con las buenas prácticas/i);
+    expect(src).toMatch(/cuando resulten aplicables/i);
+    expect(src).toMatch(/sin perjuicio de la revisión legal definitiva/i);
+  });
+});
+
+describe('[legal] pass preventivo — base jurídica del ranking suavizada', () => {
+  const src = read('src/app/sorteos/(legal)/privacidad/page.tsx');
+
+  it('cita el modo privado como opt-out', () => {
+    expect(src).toMatch(/ranking global de la plataforma/i);
+    expect(src).toMatch(/modo privado disponible en su perfil/i);
+    expect(src).toMatch(/enmascara\s+el nombre en el listado/i);
+  });
+  it('la base jurídica y su configuración quedan pendientes de revisión legal', () => {
+    expect(src).toMatch(/pendientes\s+de revisión legal definitiva/i);
+  });
+});

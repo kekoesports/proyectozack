@@ -31,7 +31,7 @@ export default function PrivacidadPage() {
         </p>
         <p>
           Cualquier consulta sobre esta política se dirige a{' '}
-          <a href="mailto:marketing@socialpro.es">marketing@socialpro.es</a>.
+          <a href="mailto:info@socialpro.es">info@socialpro.es</a>.
         </p>
       </section>
 
@@ -80,14 +80,21 @@ export default function PrivacidadPage() {
             usuario de Kick, hacer tu perfil público, guardar tu URL de trade).
           </li>
           <li>
-            <b>Interés legítimo (art. 6.1.f):</b> prevención de fraude, prevención de
-            multi-account, auditoría del ledger de monedas.
+            <b>Interés legítimo (art. 6.1.f):</b> aplicar medidas para prevenir abusos o
+            uso indebido, revisar posibles incumplimientos y auditar el registro interno de
+            monedas.
           </li>
         </ul>
         <p>
+          El ranking global de la plataforma puede mostrarse con el nombre público del
+          usuario salvo que active el modo privado disponible en su perfil, que enmascara
+          el nombre en el listado. Esta base jurídica y su configuración quedan pendientes
+          de revisión legal definitiva.
+        </p>
+        <p>
           <em>
-            Esta sección está pendiente de validación por asesoría jurídica; puede completarse
-            con otras bases si el análisis final lo justifica.
+            El resto de esta sección también está pendiente de validación por asesoría
+            jurídica; puede completarse con otras bases si el análisis final lo justifica.
           </em>
         </p>
       </section>
@@ -102,8 +109,10 @@ export default function PrivacidadPage() {
           </li>
           <li>
             <b>Proveedores de infraestructura</b> (Vercel para hosting, Neon para base de
-            datos, Resend para email transaccional). Encargados del tratamiento con contrato
-            RGPD estándar.
+            datos, Resend para email transaccional). Actúan como proveedores técnicos que
+            operan como encargados del tratamiento, sujetos al RGPD y a los términos,
+            acuerdos de tratamiento o condiciones de privacidad que cada proveedor
+            publique o ponga a disposición.
           </li>
           <li>
             <b>Partners externos de sorteos</b> (KeyDrop y equivalentes): NO les enviamos tu
@@ -130,7 +139,11 @@ export default function PrivacidadPage() {
         <h2>6. Conservación</h2>
         <ul>
           <li>Datos de cuenta: mientras la cuenta permanezca activa.</li>
-          <li>Historial de monedas y canjeos: 5 años (obligaciones contables y auditoría).</li>
+          <li>
+            Historial de monedas y canjeos: durante el plazo estrictamente necesario
+            para gestionar la cuenta, resolver incidencias, prevenir abusos y cumplir,
+            en su caso, con las obligaciones legales aplicables.
+          </li>
           <li>Dirección de envío tras canjeo físico: se elimina al confirmar la recepción.</li>
           <li>
             Al solicitar la eliminación de tu cuenta, borramos los datos que no estemos
@@ -144,7 +157,7 @@ export default function PrivacidadPage() {
         <p>
           Puedes ejercer en cualquier momento los derechos de acceso, rectificación, supresión,
           oposición, portabilidad y limitación previstos por el RGPD y la LOPDGDD, escribiendo a{' '}
-          <a href="mailto:marketing@socialpro.es">marketing@socialpro.es</a> desde el email
+          <a href="mailto:info@socialpro.es">info@socialpro.es</a> desde el email
           asociado a tu Steam. Puedes revisar tus datos en tu perfil de{' '}
           <Link href="/sorteos/plataforma">SocialPro Giveaways</Link>.
         </p>
@@ -167,9 +180,9 @@ export default function PrivacidadPage() {
       <section className="gp-legal-section">
         <h2>9. Menores</h2>
         <p>
-          La plataforma está reservada a mayores de 18 años. Si detectamos una cuenta que
-          incumple este requisito, la eliminaremos junto con los datos asociados en cuanto
-          tengamos conocimiento razonable.
+          La plataforma está reservada a mayores de 18 años. Si tenemos conocimiento
+          razonable de una cuenta que incumple este requisito, la eliminaremos junto con
+          los datos asociados.
         </p>
       </section>
 
