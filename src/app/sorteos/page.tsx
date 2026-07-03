@@ -107,8 +107,8 @@ export default async function SorteosIndexPage() {
                           <Image
                             src={c.photoUrl}
                             alt=""
-                            width={72}
-                            height={72}
+                            fill
+                            sizes="72px"
                             unoptimized
                           />
                         ) : (

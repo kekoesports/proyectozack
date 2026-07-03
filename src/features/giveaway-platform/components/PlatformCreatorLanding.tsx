@@ -30,6 +30,7 @@ import { HistoricalWinnersPlaceholder } from '@/features/giveaway-platform/compo
 import { ExternalGiveawaysSection } from '@/features/giveaway-platform/components/ExternalGiveawaysSection';
 import { PlatformFooter } from '@/features/giveaway-platform/components/PlatformFooter';
 import { PlatformShell } from '@/features/giveaway-platform/components/PlatformShell';
+import { SteamLoginButton } from '@/features/giveaway-platform/components/SteamLoginButton';
 import { getExternalGiveawaysForCreator } from '@/lib/queries/externalGiveaways';
 import { isExternalCreator } from '@/lib/external-giveaways/creator-bindings';
 import type { ExternalGiveawaySections } from '@/lib/external-giveaways/types';
@@ -144,10 +145,9 @@ export async function PlatformCreatorLanding({ slug }: Props) {
           </>
         ) : (
           <section>
-            <div className="gp-legacy-block" style={{ textAlign: 'center' }}>
-              <p style={{ color: 'var(--muted)', fontSize: 14 }}>
-                Inicia sesión con Steam para participar en los sorteos, completar misiones y ganar monedas.
-              </p>
+            <div className="gp-legacy-block gp-login-prompt">
+              <p>Inicia sesión con Steam para participar en los sorteos, completar misiones y ganar monedas.</p>
+              <SteamLoginButton size="lg" />
             </div>
           </section>
         )}

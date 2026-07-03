@@ -53,7 +53,7 @@ describe('[creator-dropdown] escalable — component', () => {
 });
 
 describe('[creator-dropdown] escalable — CSS', () => {
-  const css = read('src/app/sorteos/plataforma/platform.css');
+  const css = read('src/app/sorteos/plataforma/platform-dropdown.css');
 
   it('define .gp-dd-search con estilo de input', () => {
     expect(css).toMatch(/\.gp-dd-search\s*\{[\s\S]{0,300}background/);

@@ -32,36 +32,44 @@ function initialsFrom(name: string | null): string {
  *     image icon del sistema (que en Windows aparece como cuadrito).
  *   - No usamos next/image para no exigir la config `remotePatterns`
  *     — el `<img>` HTML nativo carga cualquier CDN de Steam.
+ *   - Wrapper con `width`/`height` inline + `aspect-ratio 1/1` +
+ *     `overflow: hidden`. La imagen dentro es 100% + `object-fit: cover`
+ *     → nunca se deforma aunque Steam devuelva un ratio inesperado.
  */
 export function SteamAvatar({ imageUrl, name, size, className }: Props) {
   const [failed, setFailed] = useState(false);
   const show = imageUrl && !failed;
 
+  const wrapperStyle = {
+    width: size,
+    height: size,
+    fontSize: Math.round(size * 0.42),
+  };
+
   if (show) {
     return (
-      // eslint-disable-next-line @next/next/no-img-element
-      <img
-        src={imageUrl}
-        alt=""
+      <span
+        className={`gp-steam-avatar gp-steam-avatar-photo${className ? ' ' + className : ''}`}
         aria-hidden
-        width={size}
-        height={size}
-        className={`gp-steam-avatar-img${className ? ' ' + className : ''}`}
-        onError={() => setFailed(true)}
-        referrerPolicy="no-referrer"
-      />
+        style={wrapperStyle}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={imageUrl}
+          alt=""
+          className="gp-steam-avatar-img"
+          onError={() => setFailed(true)}
+          referrerPolicy="no-referrer"
+        />
+      </span>
     );
   }
 
   return (
     <span
-      className={`gp-steam-avatar-fallback${className ? ' ' + className : ''}`}
+      className={`gp-steam-avatar gp-steam-avatar-fallback${className ? ' ' + className : ''}`}
       aria-hidden
-      style={{
-        width: size,
-        height: size,
-        fontSize: Math.round(size * 0.42),
-      }}
+      style={wrapperStyle}
     >
       {initialsFrom(name)}
     </span>
