@@ -12,6 +12,7 @@ import {
 import { PLATFORM_CREATOR_SLUGS } from '@/lib/giveaway-platform/constants';
 import { getCreatorVisual } from '@/features/giveaway-platform/constants/creators';
 import { PlatformNav } from '@/features/giveaway-platform/components/PlatformNav';
+import { PlatformFooter } from '@/features/giveaway-platform/components/PlatformFooter';
 import { getExternalGiveawaysForCreator } from '@/lib/queries/externalGiveaways';
 import { isExternalCreator } from '@/lib/external-giveaways/creator-bindings';
 
@@ -178,9 +179,7 @@ export default async function CreatorProfilePage({
           </div>
         </section>
 
-        <footer className="gp-footer">
-          <b>SOCIALPRO GIVEAWAYS</b> · Sorteos gratuitos de creadores · Sin apuestas · +18
-        </footer>
+        <PlatformFooter />
       </main>
     </>
   );

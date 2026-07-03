@@ -15,6 +15,7 @@ import { PLATFORM_CREATOR_SLUGS, todayInPlatformTz } from '@/lib/giveaway-platfo
 import { getCreatorVisual } from '@/features/giveaway-platform/constants/creators';
 import { PlatformNav } from '@/features/giveaway-platform/components/PlatformNav';
 import { ProfileSettingsForm } from '@/features/giveaway-platform/components/ProfileSettingsForm';
+import { PlatformFooter } from '@/features/giveaway-platform/components/PlatformFooter';
 
 export const metadata = {
   title: 'Mi perfil · SocialPro Sorteos',
@@ -196,9 +197,7 @@ export default async function PerfilPage() {
           )}
         </section>
 
-        <footer className="gp-footer">
-          <b>SOCIALPRO GIVEAWAYS</b> · Sorteos gratuitos de creadores · Sin apuestas · +18
-        </footer>
+        <PlatformFooter />
       </main>
     </>
   );
