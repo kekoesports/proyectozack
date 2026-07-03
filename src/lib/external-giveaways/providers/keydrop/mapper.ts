@@ -15,9 +15,15 @@ import type { KeydropListItem, KeydropRequirement } from './zod-schemas';
  *   - `totalValue = totalPrizes` si viene; si no, suma de `prizes[].price`.
  *   - `promoCode`: primer requirement con `promoCode`, o
  *     `organizer.promocode` como fallback.
- *   - `externalUrl` viene inyectado por el fetch (proviene del listing URL
- *     del provider registry). NO se construye desde `id` porque KeyDrop no
- *     expone URL individual pública.
+ *   - `externalUrl` se construye con `buildKeydropDeepLink(id, promoCode)`:
+ *     usamos el shortener oficial `kd.link` que aplica el promocode del
+ *     creador y deep-linkea al giveaway concreto. Diagnóstico HEAD/curl
+ *     (2026-07): `key-drop.com` con guión devuelve 403 (Cloudflare) para
+ *     todo path; `keydrop.com/es/giveaways/{id}` responde 200 con
+ *     `<link rel="alternate">` para los 12 locales del mismo path
+ *     (canónico); `kd.link/?code=X&giveaway=Y` redirige 301 →
+ *     `keydrop.com/?code=X&giveaway=Y` (200) — preferido porque preserva
+ *     el promocode del creador para affiliate tracking.
  *   - `imageUrl` = `prizes[0].itemImg` (primer premio como portada; el
  *     conteo total va en `prizeCount`; el resto en `prizesPreview`).
  *   - `status` mapeado a los 3 valores universales:
@@ -29,10 +35,39 @@ import type { KeydropListItem, KeydropRequirement } from './zod-schemas';
 interface MapInput {
   item: KeydropListItem;
   creatorSlug: string;
-  externalUrl: string;
 }
 
-export function keydropItemToCard({ item, creatorSlug, externalUrl }: MapInput): ExternalGiveawayCard {
+/** Fallback si por algún motivo llegamos sin promocode ni id — página de listado. */
+const KEYDROP_LISTING_FALLBACK = 'https://keydrop.com/es/giveaways';
+
+/**
+ * Construye la URL destino del CTA de la card para un giveaway KeyDrop.
+ *
+ * Prioridad:
+ *   1. `kd.link/?code={promo}&giveaway={id}` — shortener oficial. Aplica el
+ *      promocode del creador y deep-linkea al sorteo. Best-in-class.
+ *   2. `keydrop.com/es/giveaways/{id}` — path canónico (verificado en el
+ *      HTML shell, sirve `<link rel="alternate">` para 12 locales del
+ *      mismo path). No aplica promocode.
+ *   3. Listing genérico — solo si faltan ambos id y promocode (no debería
+ *      ocurrir con datos válidos).
+ *
+ * Los inputs se URL-encodean para no romper si un promocode contiene
+ * caracteres reservados en el futuro.
+ */
+export function buildKeydropDeepLink(id: string, promoCode: string | undefined): string {
+  const safeId = id ? encodeURIComponent(id) : '';
+  const safeCode = promoCode ? encodeURIComponent(promoCode) : '';
+  if (safeId && safeCode) {
+    return `https://kd.link/?code=${safeCode}&giveaway=${safeId}`;
+  }
+  if (safeId) {
+    return `https://keydrop.com/es/giveaways/${safeId}`;
+  }
+  return KEYDROP_LISTING_FALLBACK;
+}
+
+export function keydropItemToCard({ item, creatorSlug }: MapInput): ExternalGiveawayCard {
   const firstPrize = item.prizes[0];
 
   const totalFromSum = item.prizes.reduce((acc, p) => acc + (typeof p.price === 'number' ? p.price : 0), 0);
@@ -99,7 +134,7 @@ export function keydropItemToCard({ item, creatorSlug, externalUrl }: MapInput):
     startsAt: item.startDate ? new Date(item.startDate) : new Date(item.createdAt),
     endsAt: item.deadlineTimestamp !== null ? new Date(item.deadlineTimestamp) : null,
     promoCode,
-    externalUrl,
+    externalUrl: buildKeydropDeepLink(item.id, promoCode),
     prizesPreview,
     prizeCount,
     extraPrizeCount,
