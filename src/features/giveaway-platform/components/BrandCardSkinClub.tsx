@@ -9,7 +9,7 @@ export function BrandCardSkinClub({ code }: Props) {
   const brand = PLATFORM_BRANDS.skinclub;
   return (
     <section aria-labelledby="brand-skinclub">
-      <div className="gp-card p-skinclub">
+      <div className="gp-card gp-card-led p-skinclub">
         <div className="glow" aria-hidden />
         <div className="ufo" aria-hidden>🛸</div>
         <div className="gp-logo-slot">

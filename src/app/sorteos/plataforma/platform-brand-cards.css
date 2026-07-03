@@ -55,12 +55,26 @@
   right: 20px;
 }
 
-/* ================ TARJETA KEYDROP (grande, arriba) ================ */
+/* ================ TARJETA KEYDROP (grande, arriba) ================
+ * Border/glow dorados coherentes con el logo oficial (naranja/amarillo).
+ * El interior del panel derecho sigue siendo morado por el banner. */
 .giveaway-platform .p-keydrop {
+  --brand-border: rgba(245, 200, 75, 0.55);
+  --brand-glow:   rgba(245, 200, 75, 0.28);
+  --brand-accent: #f5c84b;
+  --brand-gradient: linear-gradient(
+    90deg,
+    #b88a1e 0%,
+    #ffd766 20%,
+    #f5c84b 50%,
+    #ffd766 80%,
+    #b88a1e 100%
+  );
+
   display: grid;
   grid-template-columns: 1.12fr 0.88fr;
   min-height: 330px;
-  border-color: rgba(30, 155, 255, 0.35);
+  border-color: var(--brand-border);
 }
 .giveaway-platform .p-keydrop .pad { padding: 34px 38px; }
 .giveaway-platform .p-keydrop .claim { font-size: 19px; line-height: 1.55; max-width: 720px; margin-top: 16px; }
@@ -196,9 +210,24 @@
 }
 .giveaway-platform .gp-bonuses-empty-body span { color: var(--muted); }
 
-/* ================ CLASH + MONKEY (gold cards) ================ */
+/* ================ CLASH + MONKEY (gold cards) ================
+ * `.p-gold` es el look base dorado; SkinsMonkey (.p-monkey-v2) hereda
+ * de aquí, por lo que sus tokens LED también son gold.
+ */
 .giveaway-platform .p-gold {
-  border-color: rgba(245, 183, 61, 0.4);
+  --brand-border: rgba(245, 183, 61, 0.55);
+  --brand-glow:   rgba(245, 183, 61, 0.28);
+  --brand-accent: #f5b73d;
+  --brand-gradient: linear-gradient(
+    90deg,
+    #b88a1e 0%,
+    #f5b73d 30%,
+    #ffe27a 50%,
+    #f5b73d 70%,
+    #b88a1e 100%
+  );
+
+  border-color: var(--brand-border);
   padding: 32px 34px;
   min-height: 300px;
   overflow: hidden;
@@ -296,9 +325,25 @@
   .giveaway-platform .gp-monkey-media-img { object-position: center bottom; }
 }
 
-/* ================ CSGO-SKINS (red variant of .p-gold) ================ */
+/* ================ CSGO-SKINS (cyan variant, coherente con logo) ================
+ * La clase `.p-red` es legacy — el nombre queda por compatibilidad, pero
+ * los tokens ahora son cyan celeste para casar con el logo real de
+ * CSGO-SKINS. Antes usaba rojo/rosa.
+ */
 .giveaway-platform .p-red {
-  border-color: rgba(220, 38, 60, 0.42);
+  --brand-border: rgba(40, 215, 255, 0.55);
+  --brand-glow:   rgba(40, 215, 255, 0.28);
+  --brand-accent: #28d7ff;
+  --brand-gradient: linear-gradient(
+    90deg,
+    #0077ff 0%,
+    #28d7ff 30%,
+    #7ff0ff 50%,
+    #28d7ff 70%,
+    #0077ff 100%
+  );
+
+  border-color: var(--brand-border);
   padding: 32px 34px;
   min-height: 300px;
   overflow: hidden;
@@ -306,25 +351,41 @@
 .giveaway-platform .p-red .glow {
   position: absolute;
   inset: 0;
-  background: radial-gradient(420px 260px at 82% 60%, rgba(220, 38, 60, 0.14), transparent 70%);
+  background: radial-gradient(420px 260px at 82% 60%, rgba(40, 215, 255, 0.14), transparent 70%);
   pointer-events: none;
 }
 .giveaway-platform .pill-offer.red {
-  border-color: rgba(220, 38, 60, 0.55);
-  background: rgba(220, 38, 60, 0.08);
+  border-color: rgba(40, 215, 255, 0.55);
+  background: rgba(40, 215, 255, 0.08);
 }
-.giveaway-platform .pill-offer.red b { color: #ff5d7d; }
+.giveaway-platform .pill-offer.red b { color: #7ff0ff; }
 .giveaway-platform .btn-red {
   margin-top: 14px;
   padding: 13px 42px;
-  background: linear-gradient(90deg, #8b1526, #dc263c);
-  color: #fff;
-  box-shadow: 0 6px 22px rgba(220, 38, 60, 0.35);
+  background: linear-gradient(90deg, #0077ff, #28d7ff);
+  color: #0a1420;
+  box-shadow: 0 6px 22px rgba(40, 215, 255, 0.35);
+  font-weight: 800;
 }
 
-/* ================ SKIN.CLUB ================ */
+/* ================ SKIN.CLUB ================
+ * Border/glow rosa+morado coherentes con el logo. Los tokens LED
+ * unifican los dos matices (purple → pink → purple) en el gradient.
+ */
 .giveaway-platform .p-skinclub {
-  border-color: rgba(255, 61, 216, 0.45);
+  --brand-border: rgba(255, 61, 216, 0.55);
+  --brand-glow:   rgba(139, 61, 255, 0.28);
+  --brand-accent: #ff4bd8;
+  --brand-gradient: linear-gradient(
+    90deg,
+    #6a1bd8 0%,
+    #9b5cff 30%,
+    #ff4bd8 50%,
+    #9b5cff 70%,
+    #6a1bd8 100%
+  );
+
+  border-color: var(--brand-border);
   padding: 32px 36px;
   min-height: 330px;
   overflow: hidden;

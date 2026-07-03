@@ -30,10 +30,15 @@ const read = (rel: string) => fs.readFileSync(path.join(ROOT, rel), 'utf-8');
 describe('[brand-card-skinsmonkey v2] revert de hero-top y patrón compacto', () => {
   const src = read('src/features/giveaway-platform/components/BrandCardSkinsMonkey.tsx');
 
-  it('la card usa `.p-monkey-v2` (no `.p-monkey` ni hero-top)', () => {
-    expect(src).toMatch(/className="gp-card\s+p-gold\s+p-monkey-v2"/);
-    // La modificadora v1 debe estar fuera.
+  it('la card usa `.p-monkey-v2` (no `.p-monkey` ni hero-top) y hereda `.gp-card-led`', () => {
+    // La lista de clases incluye .gp-card, .gp-card-led (borde LED
+    // por marca), .p-gold y .p-monkey-v2. Toleramos cualquier orden.
+    expect(src).toMatch(/className="[^"]*\bp-monkey-v2\b[^"]*"/);
+    expect(src).toMatch(/className="[^"]*\bp-gold\b[^"]*"/);
+    expect(src).toMatch(/className="[^"]*\bgp-card-led\b[^"]*"/);
+    // La modificadora v1 (hero-top) debe estar fuera.
     expect(src).not.toMatch(/className="gp-card\s+p-gold\s+p-monkey"/);
+    expect(src).not.toMatch(/\bp-monkey\b(?!-v2)/);
   });
 
   it('YA NO existe el bloque hero-top `.gp-monkey-hero`', () => {
