@@ -11,6 +11,8 @@ import './platform-widgets.css';
 import './platform-external-giveaways.css';
 import './platform-profile.css';
 import './platform-creator-profile.css';
+import './platform-steam-avatar.css';
+import './platform-mini-placeholders.css';
 
 const rajdhani = Rajdhani({
   subsets: ['latin'],

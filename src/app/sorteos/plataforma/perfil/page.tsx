@@ -15,6 +15,7 @@ import { PLATFORM_CREATOR_SLUGS, todayInPlatformTz } from '@/lib/giveaway-platfo
 import { getCreatorVisual } from '@/features/giveaway-platform/constants/creators';
 import { PlatformNav } from '@/features/giveaway-platform/components/PlatformNav';
 import { ProfileSettingsForm } from '@/features/giveaway-platform/components/ProfileSettingsForm';
+import { SteamAvatar } from '@/features/giveaway-platform/components/SteamAvatar';
 
 export const metadata = {
   title: 'Mi perfil · SocialPro Sorteos',
@@ -98,12 +99,7 @@ export default async function PerfilPage() {
       <main className="gp-wrap">
         <section className="gp-profile-hero">
           <div className="gp-profile-avatar">
-            {userImage ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={userImage} alt={userName ?? 'Steam avatar'} />
-            ) : (
-              <span aria-hidden>🎮</span>
-            )}
+            <SteamAvatar imageUrl={userImage} name={userName} size={84} />
           </div>
           <div className="gp-profile-head">
             <h1>{userName ?? 'Jugador Steam'}</h1>

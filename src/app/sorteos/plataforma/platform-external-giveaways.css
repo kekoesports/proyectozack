@@ -240,74 +240,37 @@
 .giveaway-platform .gp-external-finished > summary::-webkit-details-marker { display: none; }
 .giveaway-platform .gp-external-finished[open] > summary { margin-bottom: 14px; }
 
-/* ================ PROVIDER RANKING PLACEHOLDER ================ */
-.giveaway-platform .gp-provider-rank {
-  margin-top: 22px;
-  padding: 16px 18px;
-  border-radius: 14px;
-  background: rgba(11, 9, 23, 0.5);
-  border: 1px dashed rgba(196, 40, 128, 0.35);
+/* ================ PROVIDER RANKING PLACEHOLDER (mini) ================
+ * Reducido tras QA PR #170: era un skeleton grande que parecía "bloque
+ * vacío". Ahora un banner de una línea, honesto y no invasivo.
+ */
+.giveaway-platform .gp-provider-rank-mini {
+  margin-top: 18px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: rgba(11, 9, 23, 0.55);
+  border: 1px dashed rgba(196, 40, 128, 0.30);
+  display: flex;
+  gap: 12px;
+  align-items: center;
 }
-.giveaway-platform .gp-provider-rank-title {
-  margin: 0 0 4px;
-  font-family: var(--font-display), var(--font-rajdhani), sans-serif;
-  font-size: 14px;
-  font-weight: 800;
-  letter-spacing: 1.2px;
-  text-transform: uppercase;
-  color: var(--gold);
+.giveaway-platform .gp-provider-rank-mini-icon {
+  font-size: 20px;
+  line-height: 1;
+  flex-shrink: 0;
 }
-.giveaway-platform .gp-provider-rank-note {
-  margin: 0 0 12px;
-  color: var(--muted);
-  font-size: 12px;
-  line-height: 1.5;
-}
-.giveaway-platform .gp-provider-rank-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
+.giveaway-platform .gp-provider-rank-mini-body {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 2px;
+  font-size: 12px;
+  line-height: 1.4;
 }
-.giveaway-platform .gp-provider-rank-list li {
-  display: grid;
-  grid-template-columns: 24px 1fr 80px;
-  align-items: center;
-  gap: 12px;
-  padding: 8px 12px;
-  background: rgba(11, 9, 23, 0.5);
-  border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.04);
-}
-.giveaway-platform .gp-provider-rank-list .num {
+.giveaway-platform .gp-provider-rank-mini-body b {
+  color: var(--gold);
   font-family: var(--font-display), var(--font-rajdhani), sans-serif;
   font-weight: 800;
-  color: var(--muted);
-  text-align: center;
-  font-size: 13px;
+  letter-spacing: 0.6px;
+  font-size: 12.5px;
 }
-.giveaway-platform .gp-provider-rank-list .skeleton {
-  display: block;
-  height: 12px;
-  border-radius: 6px;
-  background: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0.04) 0%,
-    rgba(224, 48, 112, 0.14) 50%,
-    rgba(255, 255, 255, 0.04) 100%
-  );
-  background-size: 200% 100%;
-  animation: gp-skeleton 1.8s ease-in-out infinite;
-}
-.giveaway-platform .gp-provider-rank-list .skeleton-name { width: 70%; }
-.giveaway-platform .gp-provider-rank-list .skeleton-value { width: 100%; height: 10px; }
-
-@keyframes gp-skeleton {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .giveaway-platform .gp-provider-rank-list .skeleton { animation: none; }
-}
+.giveaway-platform .gp-provider-rank-mini-body span { color: var(--muted); }

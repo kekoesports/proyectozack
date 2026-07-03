@@ -1,0 +1,74 @@
+/*
+ * Banners "mini" honestos que sustituyen a bloques placeholder grandes.
+ * Convención tras QA PR #170: no forzar un skeleton grande cuando la
+ * feature aún no tiene datos — un banner de 1-2 líneas comunica el
+ * estado real sin quedarse vacío en pantalla.
+ *
+ * Contiene:
+ *   .gp-rank-empty-mini   → MonthlyRanking sin participaciones.
+ *   .gp-hist-winners-mini → placeholder de histórico de ganadores.
+ *
+ * El variante mini del ProviderRankingPlaceholder vive en
+ * platform-external-giveaways.css (mismo dominio del provider).
+ */
+
+.giveaway-platform .gp-rank-empty-mini {
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: rgba(11, 9, 23, 0.55);
+  border: 1px dashed rgba(224, 48, 112, 0.32);
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.giveaway-platform .gp-rank-empty-mini-icon {
+  font-size: 20px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.giveaway-platform .gp-rank-empty-mini-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 12px;
+  line-height: 1.4;
+}
+.giveaway-platform .gp-rank-empty-mini-body b {
+  color: var(--sp-pink);
+  font-family: var(--font-display), var(--font-rajdhani), sans-serif;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  font-size: 12.5px;
+}
+.giveaway-platform .gp-rank-empty-mini-body span { color: var(--muted); }
+
+.giveaway-platform .gp-hist-winners-mini {
+  margin-top: 18px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: rgba(11, 9, 23, 0.55);
+  border: 1px dashed rgba(245, 183, 61, 0.30);
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.giveaway-platform .gp-hist-winners-mini-icon {
+  font-size: 20px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.giveaway-platform .gp-hist-winners-mini-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 12px;
+  line-height: 1.4;
+}
+.giveaway-platform .gp-hist-winners-mini-body b {
+  color: var(--gold);
+  font-family: var(--font-display), var(--font-rajdhani), sans-serif;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  font-size: 12.5px;
+}
+.giveaway-platform .gp-hist-winners-mini-body span { color: var(--muted); }

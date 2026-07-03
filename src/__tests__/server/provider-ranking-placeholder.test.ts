@@ -1,12 +1,13 @@
 /**
- * Contratos estructurales del ProviderRankingPlaceholder.
+ * Contratos estructurales del ProviderRankingPlaceholder (versión mini).
  *
- * Verifica:
- *  - Componente renderiza título con nombre del provider + creador.
- *  - Genera 5 puestos con skeleton (aria-hidden).
- *  - Copy "Próximamente" es explícito.
- *  - Se integra en ExternalGiveawaysSection debajo de finished.
- *  - CSS con dashed border + skeleton animation + reduced-motion off.
+ * Post-QA PR #170: el placeholder anterior era un skeleton grande que
+ * parecía "bloque vacío". Se redujo a un banner de una línea. Verificamos:
+ *  - Componente NO renderiza skeleton grande (5 filas).
+ *  - Renderiza un aside pequeño con icono + copy honesto "próximamente".
+ *  - Sigue integrándose desde ExternalGiveawaysSection.
+ *  - CSS del banner mini existe; el CSS legacy (.gp-provider-rank + skeleton)
+ *    fue eliminado.
  */
 
 import * as fs from 'fs';
@@ -15,7 +16,7 @@ import * as path from 'path';
 const ROOT = path.resolve(__dirname, '..', '..', '..');
 const read = (rel: string) => fs.readFileSync(path.join(ROOT, rel), 'utf-8');
 
-describe('[provider-ranking-placeholder] componente', () => {
+describe('[provider-ranking-placeholder] componente mini', () => {
   const src = read('src/features/giveaway-platform/components/ProviderRankingPlaceholder.tsx');
 
   it('recibe providerDisplayName + creatorDisplayName', () => {
@@ -23,29 +24,26 @@ describe('[provider-ranking-placeholder] componente', () => {
     expect(src).toMatch(/creatorDisplayName:\s*string/);
   });
 
-  it('render título "Top participantes en {provider} · {creator}"', () => {
-    expect(src).toMatch(/Top participantes en \{providerDisplayName\} · \{creatorDisplayName\}/);
+  it('NO renderiza skeleton grande (Array.from 5) — se eliminó', () => {
+    expect(src).not.toMatch(/Array\.from\(/);
+    expect(src).not.toMatch(/skeleton/);
   });
 
-  it('genera 5 filas con Array.from({ length: 5 })', () => {
-    expect(src).toMatch(/Array\.from\(\{\s*length:\s*5\s*\}/);
+  it('renderiza un banner mini con aria-live=off (no interrumpe screen readers)', () => {
+    expect(src).toMatch(/<aside[\s\S]{0,120}aria-live="off"/);
+    expect(src).toMatch(/gp-provider-rank-mini/);
   });
 
-  it('cada fila es aria-hidden y usa skeleton', () => {
-    expect(src).toMatch(/<li\s+key=\{n\}\s+aria-hidden>/);
-    expect(src).toMatch(/skeleton skeleton-name/);
-    expect(src).toMatch(/skeleton skeleton-value/);
-  });
-
-  it('copy incluye "Próximamente" explícito', () => {
-    expect(src).toMatch(/Próximamente/);
+  it('copy honesto: "Ranking {provider} próximamente"', () => {
+    expect(src).toMatch(/Ranking \{providerDisplayName\} próximamente/);
+    expect(src).toMatch(/participantes verificables/);
   });
 });
 
 describe('[provider-ranking-placeholder] integración', () => {
   const src = read('src/features/giveaway-platform/components/ExternalGiveawaysSection.tsx');
 
-  it('ExternalGiveawaysSection importa y renderiza el placeholder', () => {
+  it('ExternalGiveawaysSection sigue importando y usando el placeholder', () => {
     expect(src).toMatch(/import\s*\{\s*ProviderRankingPlaceholder\s*\}/);
     expect(src).toMatch(/<ProviderRankingPlaceholder[\s\S]{0,200}providerDisplayName=\{provider\.displayName\}/);
     expect(src).toMatch(/<ProviderRankingPlaceholder[\s\S]{0,200}creatorDisplayName=\{creatorDisplayName\}/);
@@ -55,16 +53,12 @@ describe('[provider-ranking-placeholder] integración', () => {
 describe('[provider-ranking-placeholder] CSS', () => {
   const css = read('src/app/sorteos/plataforma/platform-external-giveaways.css');
 
-  it('.gp-provider-rank tiene borde dashed', () => {
-    expect(css).toMatch(/\.gp-provider-rank\s*\{[\s\S]{0,300}border:\s*1px\s+dashed/);
+  it('define .gp-provider-rank-mini con borde dashed', () => {
+    expect(css).toMatch(/\.gp-provider-rank-mini\s*\{[\s\S]{0,400}border:\s*1px\s+dashed/);
   });
 
-  it('.skeleton tiene animation gp-skeleton', () => {
-    expect(css).toMatch(/\.skeleton\s*\{[\s\S]{0,400}animation:\s*gp-skeleton/);
-    expect(css).toMatch(/@keyframes\s+gp-skeleton/);
-  });
-
-  it('respeta prefers-reduced-motion desactivando la animación', () => {
-    expect(css).toMatch(/@media\s*\(prefers-reduced-motion:\s*reduce\)[\s\S]{0,200}animation:\s*none/);
+  it('CSS legacy del skeleton (gp-provider-rank-list .skeleton) fue eliminado', () => {
+    expect(css).not.toMatch(/\.gp-provider-rank-list/);
+    expect(css).not.toMatch(/@keyframes\s+gp-skeleton/);
   });
 });
