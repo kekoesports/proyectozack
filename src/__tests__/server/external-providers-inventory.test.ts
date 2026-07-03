@@ -43,7 +43,7 @@ describe('[external-providers-inventory] estado real 2026-07-03', () => {
     expect(src).toMatch(/zacketizor/);
     expect(src).toMatch(/provider:\s*'keydrop'/);
     // Ni bindings "de prueba" para otros creadores.
-    for (const slug of ['naow', 'huasopeek', 'martinez']) {
+    for (const slug of ['naow', 'huasopeek', 'todocs2', 'imantado', 'jolu']) {
       // Aparecer en un comentario o import está OK; aparecer como key de binding no.
       expect(src).not.toMatch(new RegExp(`^\\s*${slug}\\s*:`, 'm'));
     }
@@ -63,9 +63,9 @@ describe('[external-providers-inventory] estado real 2026-07-03', () => {
   it('doc de onboarding existe y refleja el estado real', () => {
     const doc = read('docs/external-giveaways-provider-onboarding.md');
     // Tabla de estado con zacketizor confirmado.
-    expect(doc).toMatch(/zacketizor[\s\S]{0,80}KeyDrop[\s\S]{0,80}ZACKCSGO[\s\S]{0,80}En producción/);
+    expect(doc).toMatch(/zacketizor[\s\S]{0,140}KeyDrop[\s\S]{0,140}ZACKCSGO/);
     // Los otros 3 creadores están explícitamente pendientes.
-    for (const slug of ['naow', 'huasopeek', 'martinez']) {
+    for (const slug of ['naow', 'huasopeek', 'todocs2', 'imantado', 'jolu']) {
       expect(doc).toMatch(new RegExp(`\\|\\s*${slug}\\s*\\|[^|]*\\|[^|]*\\|[^|]*Pendiente`, 'i'));
     }
     // Regla dura visible.

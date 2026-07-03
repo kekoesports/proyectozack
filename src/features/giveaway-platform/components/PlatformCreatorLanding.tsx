@@ -125,7 +125,7 @@ export async function PlatformCreatorLanding({ slug }: Props) {
 
       <main className="gp-wrap">
         <PlatformHero code={activeVisual.code} creatorName={active.name} />
-        <BrandBonusesSection creatorCode={activeVisual.code} />
+        <BrandBonusesSection creatorSlug={active.slug} creatorCode={activeVisual.code} />
 
         {userId ? (
           <>

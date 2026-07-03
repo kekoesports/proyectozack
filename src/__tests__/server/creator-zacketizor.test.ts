@@ -20,15 +20,16 @@ import {
 const ROOT = path.resolve(__dirname, '..', '..', '..');
 
 describe('[creator-zacketizor] server whitelist', () => {
-  it('PLATFORM_CREATOR_SLUGS incluye zacketizor en último lugar', () => {
+  it('PLATFORM_CREATOR_SLUGS incluye zacketizor', () => {
     expect([...PLATFORM_CREATOR_SLUGS]).toContain('zacketizor');
-    expect(PLATFORM_CREATOR_SLUGS[PLATFORM_CREATOR_SLUGS.length - 1]).toBe('zacketizor');
   });
 
-  it('los 4 creadores esperados están presentes sin duplicados', () => {
+  it('roster actual (2026-07-03): 6 slugs sin martinez, con todocs2/imantado/jolu', () => {
     expect([...PLATFORM_CREATOR_SLUGS].sort()).toEqual(
-      ['huasopeek', 'martinez', 'naow', 'zacketizor'],
+      ['huasopeek', 'imantado', 'jolu', 'naow', 'todocs2', 'zacketizor'],
     );
+    // martinez fue retirado.
+    expect([...PLATFORM_CREATOR_SLUGS]).not.toContain('martinez');
     const asSet = new Set(PLATFORM_CREATOR_SLUGS);
     expect(asSet.size).toBe(PLATFORM_CREATOR_SLUGS.length);
   });

@@ -82,10 +82,16 @@ describe('[sorteos-routes] /sorteos/[creatorSlug]', () => {
     expect(src).toMatch(/canonical:\s*`\/sorteos\/\$\{canonicalSlug\}`/);
     expect(src).toMatch(/robots:\s*\{\s*index:\s*true,\s*follow:\s*true/);
   });
-  it('redirect defensivo por typo (zackezitor → zacketizor)', () => {
+  it('redirect defensivo por typo (zackezitor → zacketizor) + target vacío al índice', () => {
     expect(src).toMatch(/SLUG_TYPO_REDIRECTS:\s*Record<string,\s*string>/);
     expect(src).toMatch(/zackezitor:\s*'zacketizor'/);
-    expect(src).toMatch(/redirect\(`\/sorteos\/\$\{typoTarget\}`\)/);
+    // Target='' (por ejemplo martinez retirado) → redirect al índice.
+    expect(src).toMatch(/redirect\(target\s*\?\s*`\/sorteos\/\$\{target\}`\s*:\s*'\/sorteos'\)/);
+  });
+  it('martinez retirado: redirect a /sorteos (no notFound ni landing)', () => {
+    expect(src).toMatch(/martinez:\s*''/);
+    // Y no aparece como slug canónico.
+    expect(src).not.toMatch(/martines:\s*'martinez'/);
   });
   it('slug no válido → notFound()', () => {
     expect(src).toMatch(/!PLATFORM_CREATOR_SLUGS\.includes\(slugLc[\s\S]{0,80}notFound\(\)/);
@@ -150,8 +156,8 @@ describe('[sorteos-routes] providers reales — no inventar bindings', () => {
     const src = read('src/lib/external-giveaways/creator-bindings.ts');
     expect(src).toMatch(/zacketizor/);
     expect(src).toMatch(/provider:\s*'keydrop'/);
-    // Los otros 3 creadores NO deben tener binding.
-    for (const slug of ['naow', 'huasopeek', 'martinez']) {
+    // Los otros creadores del roster NO deben tener binding.
+    for (const slug of ['naow', 'huasopeek', 'todocs2', 'imantado', 'jolu']) {
       expect(src).not.toMatch(new RegExp(`^\\s*${slug}\\s*:`, 'm'));
     }
   });
