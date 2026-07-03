@@ -64,7 +64,7 @@ export async function generateMetadata({
     robots: { index: true, follow: true },
     openGraph: {
       title: `Sorteos de ${name} · SocialPro Giveaways`,
-      description: `Sorteos gratis con tus creadores favoritos de SocialPro. Participa con Steam, gana 🪙 y canjea recompensas.`,
+      description: `Sorteos gratis con tus creadores favoritos de SocialPro. Participa con Steam, gana puntos y canjea recompensas.`,
       url: absoluteUrl(`/sorteos/${canonicalSlug}`),
     },
   };

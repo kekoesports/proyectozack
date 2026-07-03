@@ -4,7 +4,7 @@ import Link from 'next/link';
 export const metadata: Metadata = {
   title: 'Términos de uso · SocialPro Giveaways',
   description:
-    'Condiciones de uso de la plataforma SocialPro Giveaways: elegibilidad, gratuidad, monedas virtuales, canjeos, partners externos y limitación de responsabilidad. Borrador.',
+    'Condiciones de uso de la plataforma SocialPro Giveaways: elegibilidad, gratuidad, puntos internos, canjeos, partners externos y limitación de responsabilidad. Borrador.',
   alternates: { canonical: '/sorteos/terminos' },
   robots: { index: false, follow: false },
 };
@@ -27,7 +27,7 @@ export default function TerminosPage() {
           Estos términos regulan el uso de la plataforma <b>SocialPro Giveaways</b>, disponible en{' '}
           <code>/sorteos</code>, operada por SocialPro. La plataforma permite a los
           usuarios participar gratuitamente en sorteos publicados por creadores de contenido
-          asociados a la agencia, acumular puntos virtuales sin valor monetario (🪙) y canjearlos
+          asociados a la agencia, acumular puntos internos sin valor monetario (⭐) y canjearlos
           por artículos ofertados en la tienda interna.
         </p>
       </section>
@@ -65,10 +65,13 @@ export default function TerminosPage() {
       </section>
 
       <section className="gp-legal-section">
-        <h2>5. Monedas virtuales (🪙)</h2>
+        <h2>5. Puntos SocialPro (⭐)</h2>
         <ul>
-          <li>Son puntos internos <b>sin valor monetario</b> y sin convertibilidad a moneda
-              de curso legal.</li>
+          <li>
+            Los puntos son un sistema interno de fidelización y recompensas dentro de SocialPro
+            Giveaways. <b>No son dinero, no son criptomonedas, no tienen valor monetario, no son
+            transferibles y no pueden canjearse por efectivo.</b>
+          </li>
           <li>Se obtienen participando en sorteos, completando misiones o manteniendo la racha
               diaria. No se compran.</li>
           <li>Se gastan canjeando artículos de la tienda.</li>
@@ -86,7 +89,7 @@ export default function TerminosPage() {
       <section className="gp-legal-section">
         <h2>6. Canjeos en la tienda</h2>
         <p>
-          El canjeo descuenta monedas del saldo y genera una solicitud de entrega. SocialPro
+          El canjeo descuenta puntos del saldo y genera una solicitud de entrega. SocialPro
           coordinará contigo la entrega según el tipo de artículo (skin CS2 vía trade offer,
           merchandising físico o tarjeta regalo digital). Una vez procesado o entregado un
           canje puede no ser posible cancelarlo. Lo anterior se aplicará <b>sin perjuicio de
@@ -117,7 +120,7 @@ export default function TerminosPage() {
         <h2>8. Conducta prohibida</h2>
         <ul>
           <li>Crear varias cuentas para el mismo participante.</li>
-          <li>Usar bots o automatismos para acumular monedas o participaciones.</li>
+          <li>Usar bots o automatismos para acumular puntos o participaciones.</li>
           <li>Suplantar la identidad de otra persona o creador.</li>
           <li>Intentar vulnerar la seguridad de la plataforma, sus proveedores o los partners.</li>
           <li>
@@ -134,7 +137,7 @@ export default function TerminosPage() {
       <section className="gp-legal-section">
         <h2>9. Modificaciones y disponibilidad</h2>
         <p>
-          Podemos actualizar estos términos, la mecánica de monedas, el catálogo de la tienda o
+          Podemos actualizar estos términos, la mecánica de puntos, el catálogo de la tienda o
           la lista de creadores participantes en cualquier momento. Los cambios sustanciales se
           comunicarán desde la propia plataforma con antelación razonable. No garantizamos la
           disponibilidad continua del servicio; podemos suspenderlo temporalmente por

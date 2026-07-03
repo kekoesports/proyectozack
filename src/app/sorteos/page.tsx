@@ -15,13 +15,13 @@ import { absoluteUrl } from '@/lib/site-url';
 export const metadata: Metadata = {
   title: 'Sorteos y recompensas de creadores | SocialPro',
   description:
-    'Índice público de SocialPro Giveaways. Elige un creador y participa gratis en sus sorteos, gana monedas y canjea recompensas. Login con Steam, sin depósitos, +18.',
+    'Índice público de SocialPro Giveaways. Elige un creador y participa gratis en sus sorteos, gana puntos y canjea recompensas. Login con Steam, sin depósitos, +18.',
   alternates: { canonical: '/sorteos' },
   robots: { index: true, follow: true },
   openGraph: {
     title: 'SocialPro Giveaways · sorteos gratuitos de creadores',
     description:
-      'Elige tu creador favorito, participa gratis, gana 🪙 y canjea recompensas. Login con Steam, sin depósitos, +18.',
+      'Elige tu creador favorito, participa gratis, gana puntos y canjea recompensas. Login con Steam, sin depósitos, +18.',
     url: absoluteUrl('/sorteos'),
   },
 };
@@ -71,8 +71,8 @@ export default async function SorteosIndexPage() {
           </h1>
           <p className="gp-index-lead">
             Elige un creador, inicia sesión con Steam y participa <b>gratis</b> en sus sorteos.
-            Gana monedas <b>🪙</b> por participar, completar misiones y mantener la racha diaria,
-            y cánjealas por skins, merchandising o tarjetas regalo. Sin depósitos, sin apuestas, +18.
+            Gana puntos <b>⭐</b> por participar, completar misiones y mantener la racha diaria,
+            y cánjealos por skins, merchandising o tarjetas regalo. Sin depósitos, sin apuestas, +18.
           </p>
           <div className="gp-index-hero-cta">
             <Link href="/sorteos/faq" className="gp-btn gp-btn-ghost">¿Cómo funciona?</Link>
@@ -150,16 +150,16 @@ export default async function SorteosIndexPage() {
               nombre, avatar y Steam ID. Ni tarjeta ni contraseñas.
             </li>
             <li>
-              <b>Participa gratis.</b> Cada participación cuenta un ticket + ganas 🪙 monedas.
+              <b>Participa gratis.</b> Cada participación cuenta un ticket + ganas puntos ⭐.
               La racha diaria y las misiones te suman más.
             </li>
             <li>
-              <b>Canjea recompensas.</b> Con tus 🪙 puedes canjear skins CS2, merchandising o
-              tarjetas regalo en la tienda interna.
+              <b>Canjea recompensas.</b> Con tus puntos ⭐ puedes canjear skins CS2, merchandising
+              o tarjetas regalo en la tienda interna.
             </li>
           </ol>
           <p className="gp-index-explainer-note">
-            SocialPro Giveaways no acepta depósitos, no cobra comisiones y las monedas no
+            SocialPro Giveaways no acepta depósitos, no cobra comisiones y los puntos no
             tienen valor monetario. Los sorteos internos son <b>gratuitos</b>. Algunos
             creadores enlazan partners externos con sus propios términos.
           </p>

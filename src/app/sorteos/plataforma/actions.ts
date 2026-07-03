@@ -161,7 +161,7 @@ export async function redeemShopItem(input: unknown): Promise<ActionResult<{ red
 
   const balance = await getCoinBalance(sessionUser.id);
   if (balance < item.costCoins) {
-    return { ok: false, error: 'No tienes monedas suficientes' };
+    return { ok: false, error: 'No tienes puntos suficientes' };
   }
 
   // Snapshot de entrega según categoría.

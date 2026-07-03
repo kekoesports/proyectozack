@@ -93,19 +93,19 @@ Cualquiera de las 3 vías debe:
 
 ---
 
-## Conversión coste → monedas (interno, no publicar)
+## Conversión coste → puntos (interno, no publicar)
 
 Regla propuesta:
 
 ```txt
-1 USD coste interno  ≈ 1_000 monedas
-1 EUR coste interno  ≈ 1_100 monedas
+1 USD coste interno  ≈ 1_000 puntos
+1 EUR coste interno  ≈ 1_100 puntos
 ```
 
 **Estos valores se calculan solo en este documento** — no aparecen en
 `shop_items`, ni en `platform-shop.tsx`, ni en ningún endpoint público.
 Cuando se apruebe activar un premio, el owner define el precio final en
-monedas y lo escribe manualmente en el seed / migración.
+puntos y lo escribe manualmente en el seed / migración.
 
 Hasta entonces, cada item tiene `suggested_coin_price: pending`.
 
@@ -146,8 +146,8 @@ siguientes fuentes/categorías:
 - ❌ No hay scraping runtime. Ningún módulo en `src/` hace `fetch` a
   `steamcommunity.com/market`.
 - ❌ No hay conversión monetaria expuesta a usuario. La regla de 1$≈1000
-  monedas queda encerrada en este `.md`.
-- ❌ No hay marketplace P2P, ni compra de monedas, ni transferencias.
+  puntos queda encerrada en este `.md`.
+- ❌ No hay marketplace P2P, ni compra de puntos, ni transferencias.
 
 ---
 
@@ -159,7 +159,7 @@ siguientes fuentes/categorías:
   - Cada premio se marca como `planned` / `is_active: false`.
   - No hay seed script que inserte estos 8 URLs.
   - No hay código de producción que haga `fetch` a Steam Market.
-  - La conversión coste → monedas no aparece en ningún componente UI.
+  - La conversión coste → puntos no aparece en ningún componente UI.
 - ✅ Compatibilidad futura con más categorías (documentada).
 
 ---
@@ -169,7 +169,7 @@ siguientes fuentes/categorías:
 1. **Metadata real fase 1** — capturar título + imagen de los 8 items
    manualmente y actualizar la tabla arriba. Requiere OK del owner
    antes de tocar imagen assets.
-2. **Precios en monedas** — owner define coin-price por item cuando
+2. **Precios en puntos** — owner define coin-price por item cuando
    decida activarlos.
 3. **Sección "Próximamente" en la tienda** — cuando haya OK visual del
    owner, mostrar en `PlatformShop.tsx` bloque claramente marcado

@@ -9,7 +9,7 @@
  *  - Cada premio queda como `planned` / `is_active: false`.
  *  - Ningún seed script inserta estos 8 URLs.
  *  - Ningún módulo de `src/` hace fetch runtime a `steamcommunity.com/market`.
- *  - La regla de conversión coste → monedas NO aparece en ningún componente UI
+ *  - La regla de conversión coste → puntos NO aparece en ningún componente UI
  *    (solo en el .md).
  *
  * Objetivo: bloquear activación accidental de premios sin OK explícito.
@@ -170,12 +170,12 @@ describe('[prizes-catalog] no hay scraping runtime de Steam Market', () => {
   });
 });
 
-describe('[prizes-catalog] regla de conversión coste→monedas queda solo en el .md', () => {
+describe('[prizes-catalog] regla de conversión coste→puntos queda solo en el .md', () => {
   const doc = read(DOC_PATH);
 
-  it('la regla 1 USD ≈ 1.000 monedas está documentada en el .md', () => {
-    expect(doc).toMatch(/1\s*USD\s*coste\s*interno\s*≈\s*1_?000\s*monedas/);
-    expect(doc).toMatch(/1\s*EUR\s*coste\s*interno\s*≈\s*1_?100\s*monedas/);
+  it('la regla 1 USD ≈ 1.000 puntos está documentada en el .md', () => {
+    expect(doc).toMatch(/1\s*USD\s*coste\s*interno\s*≈\s*1_?000\s*puntos/);
+    expect(doc).toMatch(/1\s*EUR\s*coste\s*interno\s*≈\s*1_?100\s*puntos/);
   });
 
   it('la regla NO aparece en el componente PlatformShop ni en la tienda pública', () => {
@@ -196,8 +196,8 @@ describe('[prizes-catalog] regla de conversión coste→monedas queda solo en el
     const files = walk(srcDir);
     for (const f of files) {
       const src = fs.readFileSync(f, 'utf-8');
-      expect(src).not.toMatch(/1\s*USD\s*[^.]{0,40}1_?000\s*monedas/);
-      expect(src).not.toMatch(/1\s*EUR\s*[^.]{0,40}1_?100\s*monedas/);
+      expect(src).not.toMatch(/1\s*USD\s*[^.]{0,40}1_?000\s*puntos/);
+      expect(src).not.toMatch(/1\s*EUR\s*[^.]{0,40}1_?100\s*puntos/);
     }
   });
 });
