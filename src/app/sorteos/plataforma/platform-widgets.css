@@ -489,6 +489,22 @@
   border-color: rgba(74, 222, 128, 0.5);
   box-shadow: 0 0 22px rgba(74, 222, 128, 0.14);
 }
+/* Cosméticos "próximamente" — sin equipamiento, no canjeable todavía. */
+.giveaway-platform .gp-shop-card.cosmetic-soon {
+  border-color: rgba(245, 183, 61, 0.4);
+  opacity: 0.92;
+}
+.giveaway-platform .gp-shop-card.cosmetic-soon .gp-shop-btn {
+  background: linear-gradient(90deg, rgba(245, 183, 61, 0.5), rgba(245, 183, 61, 0.75));
+  color: #1a1405;
+  box-shadow: none;
+  opacity: 0.85;
+}
+.giveaway-platform .gp-shop-badge-soon {
+  background: rgba(245, 183, 61, 0.16) !important;
+  border-color: rgba(245, 183, 61, 0.5) !important;
+  color: var(--gold) !important;
+}
 .giveaway-platform .gp-shop-badge {
   position: absolute;
   top: 8px;

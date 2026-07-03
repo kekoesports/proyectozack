@@ -5,6 +5,17 @@ import { useRouter } from 'next/navigation';
 import { redeemShopItem } from '@/app/sorteos/plataforma/actions';
 import type { ShopCategory, ShopItem } from '@/types/giveawayPlatform';
 
+/**
+ * Categorías cosméticas: se muestran en la UI como "próximamente" y
+ * bloqueadas para canje hasta que exista soporte real de equipamiento
+ * (columnas `equipped_*` en player_profiles o tabla user_cosmetics).
+ * Ver docs/sorteos-coin-economy.md §4.2.
+ */
+const COSMETIC_CATEGORIES: ReadonlySet<string> = new Set(['profile', 'frame', 'badge']);
+function isCosmeticNotEquipableYet(category: string): boolean {
+  return COSMETIC_CATEGORIES.has(category);
+}
+
 interface Props {
   items: ShopItem[];
   balance: number;
@@ -99,11 +110,15 @@ export function PlatformShop({ items, balance }: Props) {
       ) : (
         <div className="gp-shop-grid">
           {visible.map((item) => {
-            const affordable = balance >= item.costCoins && item.stock > 0;
+            const cosmeticLocked = isCosmeticNotEquipableYet(item.category);
+            const affordable = balance >= item.costCoins && item.stock > 0 && !cosmeticLocked;
             const stockClass = item.stock === 0 ? ' gone' : item.stock < 4 ? ' low' : '';
             const pct = Math.min(100, Math.round((balance / Math.max(1, item.costCoins)) * 100));
             return (
-              <div key={item.id} className={`gp-shop-card${affordable ? ' affordable' : ''}`}>
+              <div
+                key={item.id}
+                className={`gp-shop-card${affordable ? ' affordable' : ''}${cosmeticLocked ? ' cosmetic-soon' : ''}`}
+              >
                 <div className="gp-shop-img">
                   {item.imageUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
@@ -111,7 +126,11 @@ export function PlatformShop({ items, balance }: Props) {
                   ) : (
                     <div className="gp-shop-img-empty">Imagen pendiente</div>
                   )}
-                  {affordable ? <span className="gp-shop-badge">Disponible</span> : null}
+                  {cosmeticLocked ? (
+                    <span className="gp-shop-badge gp-shop-badge-soon">Próximamente</span>
+                  ) : affordable ? (
+                    <span className="gp-shop-badge">Disponible</span>
+                  ) : null}
                 </div>
                 <h4 className="gp-shop-name">{item.name}</h4>
                 {item.description ? <p className="gp-shop-desc">{item.description}</p> : <p className="gp-shop-desc" />}
@@ -128,7 +147,13 @@ export function PlatformShop({ items, balance }: Props) {
                   disabled={!affordable || isPending}
                   className="gp-shop-btn"
                 >
-                  {isPending ? 'Canjeando…' : affordable ? 'Canjear' : `Faltan ${(item.costCoins - balance).toLocaleString('es-ES')} 🪙`}
+                  {cosmeticLocked
+                    ? 'Próximamente'
+                    : isPending
+                      ? 'Canjeando…'
+                      : affordable
+                        ? 'Canjear'
+                        : `Faltan ${(item.costCoins - balance).toLocaleString('es-ES')} 🪙`}
                 </button>
               </div>
             );

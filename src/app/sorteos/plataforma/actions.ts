@@ -159,6 +159,19 @@ export async function redeemShopItem(input: unknown): Promise<ActionResult<{ red
   });
   if (!item) return { ok: false, error: 'El item no está disponible' };
 
+  // Salvaguarda server-side: los cosméticos de perfil (profile / frame /
+  // badge) NO se pueden canjear hasta que exista soporte de equipamiento.
+  // La UI ya deshabilita el botón, pero un cliente hecho a mano podría
+  // saltárselo — este check lo bloquea siempre. Ver
+  // docs/sorteos-coin-economy.md §4.2.
+  const COSMETIC_CATEGORIES = new Set(['profile', 'frame', 'badge']);
+  if (COSMETIC_CATEGORIES.has(item.category)) {
+    return {
+      ok: false,
+      error: 'Los cosméticos de perfil estarán disponibles cuando habilitemos el equipamiento',
+    };
+  }
+
   const balance = await getCoinBalance(sessionUser.id);
   if (balance < item.costCoins) {
     return { ok: false, error: 'No tienes monedas suficientes' };
