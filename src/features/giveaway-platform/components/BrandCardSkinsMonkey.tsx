@@ -22,7 +22,7 @@ interface Props {
 export function BrandCardSkinsMonkey({ code }: Props) {
   const brand = PLATFORM_BRANDS.skinsmonkey;
   return (
-    <div className="gp-card p-gold p-monkey-v2">
+    <div className="gp-card gp-card-led p-gold p-monkey-v2">
       <div className="glow" aria-hidden />
       {brand.agentAsset ? (
         <div className="gp-monkey-media" aria-hidden>

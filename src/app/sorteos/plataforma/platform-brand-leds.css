@@ -1,0 +1,81 @@
+/*
+ * LED borders para las cards de partners (KeyDrop, CSGO-SKINS,
+ * SkinsMonkey, Skin.Club).
+ *
+ * Mecanismo:
+ *   .gp-card-led ganada por cualquier .gp-card + modificadora .p-*
+ *   consume 4 variables definidas por cada marca:
+ *     --brand-border    color del borde estático (rgba)
+ *     --brand-glow      halo externo (rgba)
+ *     --brand-accent    color puro para highlights (#hex)
+ *     --brand-gradient  linear-gradient para el borde LED animado
+ *
+ *   El borde LED se pinta con un pseudo-elemento ::before usando la
+ *   técnica "gradient border via mask-composite": el ::before ocupa la
+ *   caja completa con el gradient, y una máscara con content-box
+ *   descarta el interior — queda solo el aro exterior.
+ *
+ *   La animación desplaza el background-position para simular un LED
+ *   progresivo, sutil (5s ease-in-out, sin parpadeo).
+ *
+ * Accesibilidad:
+ *   - prefers-reduced-motion desactiva la animación (el gradient queda
+ *     estático, no se pierde el color de marca).
+ *   - El ::before es `pointer-events: none` — nunca bloquea clicks.
+ *   - z-index del ::before por encima del glow interno pero por debajo
+ *     del contenido, para no tapar CTAs ni imágenes.
+ */
+
+.giveaway-platform .gp-card-led {
+  /* Fallbacks defensivos por si una marca no declara sus tokens. */
+  --brand-border: rgba(196, 40, 128, 0.35);
+  --brand-glow: rgba(224, 48, 112, 0.20);
+  --brand-accent: #e03070;
+  --brand-gradient: linear-gradient(
+    90deg,
+    var(--brand-accent) 0%,
+    color-mix(in srgb, var(--brand-accent) 40%, transparent) 45%,
+    var(--brand-accent) 100%
+  );
+
+  border-color: var(--brand-border);
+  box-shadow: 0 0 0 1px var(--brand-border), 0 12px 42px -18px var(--brand-glow);
+}
+
+.giveaway-platform .gp-card-led::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: var(--brand-gradient);
+  background-size: 220% 100%;
+  background-position: 0% 50%;
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.9;
+  animation: gp-brand-led-shift 5s ease-in-out infinite;
+}
+
+/* Highlight animado adicional muy sutil — barrido lento del borde. */
+@keyframes gp-brand-led-shift {
+  0%   { background-position: 0%   50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0%   50%; }
+}
+
+/* Reduce motion — desactiva animación, mantiene color estático. */
+@media (prefers-reduced-motion: reduce) {
+  .giveaway-platform .gp-card-led::before {
+    animation: none;
+    background-position: 50% 50%;
+  }
+}

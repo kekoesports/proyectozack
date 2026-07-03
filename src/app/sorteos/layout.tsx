@@ -8,6 +8,7 @@ import './plataforma/platform.css';
 import './plataforma/platform-dropdown.css';
 import './plataforma/platform-hero.css';
 import './plataforma/platform-brand-cards.css';
+import './plataforma/platform-brand-leds.css';
 import './plataforma/platform-fx.css';
 import './plataforma/platform-widgets.css';
 import './plataforma/platform-external-giveaways.css';

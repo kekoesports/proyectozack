@@ -9,7 +9,7 @@ export function BrandCardKeyDrop({ code }: Props) {
   const brand = PLATFORM_BRANDS.keydrop;
   return (
     <section aria-labelledby="brand-keydrop">
-      <div className="gp-card p-keydrop">
+      <div className="gp-card gp-card-led p-keydrop">
         <div className="pad">
           <div className="gp-logo-slot">
             {brand.logoAsset ? (

@@ -8,7 +8,7 @@ interface Props {
 export function BrandCardCsgoskins({ code }: Props) {
   const brand = PLATFORM_BRANDS.csgoskins;
   return (
-    <div className="gp-card p-red">
+    <div className="gp-card gp-card-led p-red">
       <div className="glow" aria-hidden />
       <div className="gp-logo-slot">
         {brand.logoAsset ? (
