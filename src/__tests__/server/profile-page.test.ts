@@ -50,9 +50,19 @@ describe('[profile] update server action', () => {
     expect(src).toMatch(/if\s*\(!userId\)\s*return\s*\{\s*ok:\s*false,\s*error:\s*'unauthenticated'/);
   });
 
-  it('valida input con Zod safeParse (regla TS #5)', () => {
-    expect(src).toMatch(/UpdateProfileSchema\.safeParse\(Object\.fromEntries\(formData\)\)/);
+  it('valida input con Zod safeParse (regla TS #5) tras normalizar el checkbox', () => {
+    // La normalización del checkbox pasa el objeto ya masajeado a safeParse.
+    expect(src).toMatch(/UpdateProfileSchema\.safeParse\(raw\)/);
     expect(src).toMatch(/return\s*\{\s*ok:\s*false,\s*fieldErrors/);
+  });
+
+  it('normaliza el toggle privado: hasPrivateField=1 + isPrivate ausente → false', () => {
+    // Regla del checkbox HTML nativo: sin el flag no podemos distinguir
+    // "desmarcado" de "no tocado". Con el flag, ausente = desmarcado.
+    expect(src).toMatch(/raw\.hasPrivateField\s*===\s*'1'\s*&&\s*!\(\s*'isPrivate'\s+in\s+raw\s*\)/);
+    expect(src).toMatch(/raw\.isPrivate\s*=\s*'false'/);
+    // El flag se elimina antes del safeParse para no ensuciar el schema.
+    expect(src).toMatch(/delete\s+raw\.hasPrivateField/);
   });
 
   it('regex Steam trade URL exige partner + token', () => {
@@ -87,6 +97,10 @@ describe('[profile] settings form (client)', () => {
     expect(src).toMatch(/name="steamTradeUrl"/);
     expect(src).toMatch(/name="kickUsername"/);
     expect(src).toMatch(/name="isPrivate"[\s\S]{0,150}type="checkbox"/);
+  });
+
+  it('form incluye hidden hasPrivateField para permitir desmarcar el toggle', () => {
+    expect(src).toMatch(/<input[\s\S]{0,120}type="hidden"[\s\S]{0,120}name="hasPrivateField"[\s\S]{0,60}value="1"/);
   });
 });
 

@@ -46,7 +46,17 @@ export async function updateProfile(formData: FormData): Promise<UpdateProfileRe
   const userId = session?.user?.id;
   if (!userId) return { ok: false, error: 'unauthenticated' };
 
-  const parsed = UpdateProfileSchema.safeParse(Object.fromEntries(formData));
+  // Normalización: los checkboxes HTML no envían el campo cuando están
+  // desmarcados. El form incluye un `hasPrivateField=1` para que podamos
+  // distinguir "el form NO tocó privacidad" (isPrivate ausente sin flag)
+  // de "el usuario desmarcó el toggle" (flag presente, isPrivate ausente).
+  const raw = Object.fromEntries(formData) as Record<string, unknown>;
+  if (raw.hasPrivateField === '1' && !('isPrivate' in raw)) {
+    raw.isPrivate = 'false';
+  }
+  delete raw.hasPrivateField;
+
+  const parsed = UpdateProfileSchema.safeParse(raw);
   if (!parsed.success) {
     return { ok: false, fieldErrors: parsed.error.flatten().fieldErrors };
   }

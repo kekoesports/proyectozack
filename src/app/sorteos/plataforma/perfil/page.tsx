@@ -90,6 +90,7 @@ export default async function PerfilPage() {
         creators={creatorOptions}
         activeSlug={creatorOptions[0]?.slug ?? ''}
         userName={userName}
+        userImage={userImage}
         balance={balance}
         loggedIn
       />

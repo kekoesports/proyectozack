@@ -44,6 +44,7 @@ export default async function PlataformaSorteosPage({
   const session = await auth.api.getSession({ headers: await headers() });
   const userId = session?.user?.id ?? null;
   const userName = session?.user?.name ?? null;
+  const userImage = session?.user?.image ?? null;
 
   const dbCreators = await db.query.talents.findMany({
     where: inArray(talents.slug, [...PLATFORM_CREATOR_SLUGS]),
@@ -70,6 +71,7 @@ export default async function PlataformaSorteosPage({
           creators={creatorOptions}
           activeSlug=""
           userName={userName}
+          userImage={userImage}
           balance={0}
           loggedIn={Boolean(userId)}
         />
@@ -123,6 +125,7 @@ export default async function PlataformaSorteosPage({
         creators={creatorOptions}
         activeSlug={active.slug}
         userName={userName}
+        userImage={userImage}
         balance={balance}
         loggedIn={Boolean(userId)}
       />

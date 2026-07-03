@@ -6,6 +6,7 @@ import { steamLogout } from '@/features/giveaway-platform/actions/steamLogout';
 
 interface Props {
   userName: string | null;
+  userImage: string | null;
   balance: number;
   loggedIn: boolean;
 }
@@ -16,7 +17,7 @@ interface Props {
  * Logout = server action que llama a auth.api.signOut y redirige.
  * Perfil/Inventario/Transacciones siguen marcados como `data-todo` — PR3.
  */
-export function UserPill({ userName, balance, loggedIn }: Props) {
+export function UserPill({ userName, userImage, balance, loggedIn }: Props) {
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const ref = useRef<HTMLDivElement>(null);
@@ -60,7 +61,19 @@ export function UserPill({ userName, balance, loggedIn }: Props) {
   return (
     <div ref={ref} className={`gp-user-wrap${open ? ' open' : ''}`}>
       <button type="button" className="gp-user-pill" onClick={() => setOpen((v) => !v)}>
-        <span className="gp-avatar" aria-hidden>🐱</span>
+        {userImage ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={userImage}
+            alt=""
+            aria-hidden
+            className="gp-avatar gp-avatar-img"
+            width={26}
+            height={26}
+          />
+        ) : (
+          <span className="gp-avatar" aria-hidden>🎮</span>
+        )}
         <span className="gp-user-name">{userName ?? 'Jugador'}</span>
         <span className="gp-balance">
           <span>{balance.toLocaleString('es-ES')}</span>

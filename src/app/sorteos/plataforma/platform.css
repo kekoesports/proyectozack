@@ -286,6 +286,12 @@
   place-items: center;
   font-size: 14px;
   color: #fff;
+  flex-shrink: 0;
+}
+.giveaway-platform .gp-avatar-img {
+  padding: 0;
+  object-fit: cover;
+  border: 1px solid rgba(224, 48, 112, 0.4);
 }
 .giveaway-platform .gp-user-name { font-size: 12.5px; font-weight: 600; }
 .giveaway-platform .gp-balance {

@@ -66,6 +66,10 @@ export function ProfileSettingsForm({ initialIsPrivate, initialSteamTradeUrl, in
           <b>Perfil privado</b>
           <span>Si está activo, tu nombre aparece enmascarado en el ranking global (k*****).</span>
         </label>
+        {/* Un checkbox HTML nativo no envía el campo cuando está desmarcado.
+            Marcamos con un flag "hasPrivateField" que el server usa para
+            interpretar la ausencia como false en lugar de "no tocar". */}
+        <input type="hidden" name="hasPrivateField" value="1" />
         <input
           id="pf-private"
           name="isPrivate"

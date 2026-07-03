@@ -43,6 +43,7 @@ export default async function CreatorProfilePage({
   const session = await auth.api.getSession({ headers: await headers() });
   const userId = session?.user?.id ?? null;
   const userName = session?.user?.name ?? null;
+  const userImage = session?.user?.image ?? null;
 
   const [dbCreators, balance] = await Promise.all([
     db.query.talents.findMany({
@@ -86,6 +87,7 @@ export default async function CreatorProfilePage({
         creators={creatorOptions}
         activeSlug={active.slug}
         userName={userName}
+        userImage={userImage}
         balance={balance}
         loggedIn={Boolean(userId)}
       />
