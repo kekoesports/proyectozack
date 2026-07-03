@@ -20,6 +20,9 @@ import './plataforma/platform-steam-avatar.css';
 import './plataforma/platform-mini-placeholders.css';
 import './plataforma/platform-legal.css';
 import './plataforma/platform-steam-login.css';
+// Ajustes responsive mobile — se carga al final para que los breakpoints
+// sobreescriban las reglas base sin depender de `!important`.
+import './plataforma/platform-mobile-responsive.css';
 import './sorteos-index.css';
 
 const rajdhani = Rajdhani({
