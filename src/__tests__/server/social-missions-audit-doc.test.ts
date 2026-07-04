@@ -163,51 +163,72 @@ describe('[social-missions-audit] fuentes citadas', () => {
   });
 });
 
-describe('[social-missions-audit] NO toca nada de producción', () => {
-  it('src/lib/env.ts NO añade env vars nuevas de OAuth social', () => {
+/**
+ * A partir de Fase A Discord:
+ *   - Discord SÍ se implementa (env vars, schema, tabla, rutas OAuth,
+ *     verificación).
+ *   - Twitch y Kick siguen fuera de scope funcional.
+ *   - auth.ts no añade plugins de user OAuth para ninguno (Discord se
+ *     integra vía rutas propias `/api/auth/social/discord/*`, no vía
+ *     plugin de Better Auth).
+ */
+describe('[social-missions-audit] Fase A Discord implementada, Twitch/Kick aún no', () => {
+  it('env.ts añade DISCORD_* y TOKEN_ENCRYPTION_KEY, no Kick', () => {
     const envSrc = read('src/lib/env.ts');
-    // TWITCH_CLIENT_ID/SECRET ya existían previamente. Discord/Kick vars no.
-    expect(envSrc).not.toContain('DISCORD_CLIENT_ID');
+    expect(envSrc).toContain('DISCORD_CLIENT_ID');
+    expect(envSrc).toContain('TOKEN_ENCRYPTION_KEY');
+    // Kick sigue fuera de scope en Fase A.
     expect(envSrc).not.toContain('KICK_CLIENT_ID');
-    expect(envSrc).not.toContain('TOKEN_ENCRYPTION_KEY');
   });
 
-  it('platform_missions schema NO se ha modificado', () => {
+  it('platform_missions incluye provider/target_id/verification_mode (Fase A)', () => {
     const schema = read('src/db/schema/platformMissions.ts');
-    expect(schema).not.toMatch(/target_id|verification_mode|provider\s+VARCHAR/);
+    expect(schema).toMatch(/provider:\s*varchar\('provider'/);
+    expect(schema).toMatch(/targetId:\s*varchar\('target_id'/);
+    expect(schema).toMatch(/verificationMode:\s*varchar\('verification_mode'/);
   });
 
-  it('NO existe tabla connected_social_accounts en schema', () => {
+  it('existe tabla connected_social_accounts en schema', () => {
     const schemaDir = path.join(ROOT, 'src/db/schema');
     const files = fs.readdirSync(schemaDir);
-    for (const f of files) {
-      const src = fs.readFileSync(path.join(schemaDir, f), 'utf-8');
-      expect(src).not.toContain('connected_social_accounts');
-      expect(src).not.toContain('connectedSocialAccounts');
+    const found = files.some((f) =>
+      fs.readFileSync(path.join(schemaDir, f), 'utf-8').includes('connected_social_accounts')
+    );
+    expect(found).toBe(true);
+  });
+
+  it('existen rutas /api/auth/social/discord/{connect,callback,disconnect}', () => {
+    for (const rel of [
+      'src/app/api/auth/social/discord/connect/route.ts',
+      'src/app/api/auth/social/discord/callback/route.ts',
+      'src/app/api/auth/social/discord/disconnect/route.ts',
+    ]) {
+      expect(fs.existsSync(path.join(ROOT, rel))).toBe(true);
     }
   });
 
-  it('NO se han creado rutas /api/auth/social/{discord,twitch,kick}', () => {
-    const apiSocialDir = path.join(ROOT, 'src/app/api/auth/social');
-    expect(fs.existsSync(apiSocialDir)).toBe(false);
+  it('NO existen rutas OAuth de usuario para Twitch ni Kick (siguen fuera de scope)', () => {
+    const twitchDir = path.join(ROOT, 'src/app/api/auth/social/twitch');
+    const kickDir = path.join(ROOT, 'src/app/api/auth/social/kick');
+    expect(fs.existsSync(twitchDir)).toBe(false);
+    expect(fs.existsSync(kickDir)).toBe(false);
   });
 
-  it('src/lib/auth.ts NO añade plugins de Discord/Twitch/Kick', () => {
+  it('src/lib/auth.ts NO añade plugins de user OAuth para Discord/Twitch/Kick', () => {
+    // Discord Fase A se implementa como rutas propias, no como plugin de
+    // Better Auth. Esto lo mantenemos para no meter dependencias nuevas.
     const authSrc = read('src/lib/auth.ts');
-    expect(authSrc).not.toMatch(/discordPlugin|discord.*OAuth/i);
-    expect(authSrc).not.toMatch(/kickPlugin|kick.*OAuth/i);
-    // Twitch tiene servicio server-to-server (app token) preexistente, pero NO
-    // OAuth de usuario todavía. Confirmamos que no se haya añadido en auth.
+    expect(authSrc).not.toMatch(/discordPlugin/);
+    expect(authSrc).not.toMatch(/kickPlugin/);
     expect(authSrc).not.toMatch(/twitch.*OAuth.*(user|player)/i);
   });
 
-  it('/sorteos/privacidad NO menciona Discord/Twitch como providers de misiones (queda con gestoría)', () => {
+  it('/sorteos/privacidad aún no menciona Discord (pendiente: actualizar copy antes del go-live real)', () => {
+    // El copy legal se actualiza como paso previo al primer usuario real
+    // conectando su Discord. Fase A puede vivir en preview/staging sin
+    // tocar la política visible; en prod habrá PR de copy dedicado.
     const priv = read('src/app/sorteos/(legal)/privacidad/page.tsx');
-    // Discord y Twitch como proveedores de identidad/API no aparecen aún.
-    expect(priv).not.toMatch(/\bDiscord\b/);
     expect(priv).not.toMatch(/\bTwitch\b/);
-    // Nota: "Kick" ya se cita como usuario opcional (kickUsername) — legacy
-    // sin OAuth. No es lo mismo que un provider de misiones sociales.
   });
 });
 
