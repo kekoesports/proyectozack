@@ -70,6 +70,40 @@ export function MissionsGrid({ missions }: Props) {
           {expanded ? 'Ver menos' : `Ver ${rest.length} misiones más`}
         </button>
       ) : null}
+      <YoutubeMissionsPlaceholder />
     </>
+  );
+}
+
+/**
+ * Placeholder informativo — misiones YouTube "Próximamente".
+ *
+ * NO tiene botón de reclamar, verificar ni conectar. NO concede puntos.
+ * NO simula verificación. Sólo comunica que la fase 2 (OAuth Google +
+ * verificación real vía YouTube Data API v3) está en preparación.
+ *
+ * Ver `docs/youtube-missions-verification.md` para el plan por fases.
+ */
+function YoutubeMissionsPlaceholder() {
+  return (
+    <div
+      className="gp-missions-yt-placeholder"
+      role="note"
+      aria-label="Misiones YouTube próximamente"
+    >
+      <div className="gp-missions-yt-icon" aria-hidden>
+        📺
+      </div>
+      <div className="gp-missions-yt-body">
+        <div className="gp-missions-yt-title">
+          Misiones YouTube <span className="gp-missions-yt-soon">· Próximamente</span>
+        </div>
+        <p className="gp-missions-yt-desc">
+          Conecta tu cuenta y completa acciones verificables (suscribirte a un canal,
+          comentar en un vídeo) para ganar puntos. Estamos preparando la integración
+          para que la verificación sea real y segura.
+        </p>
+      </div>
+    </div>
   );
 }
