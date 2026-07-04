@@ -163,6 +163,6 @@ describe('[missions-yt-placeholder] no toca lógica ni schema de misiones', () =
     expect(env).not.toContain('GOOGLE_CLIENT_ID');
     expect(env).not.toContain('GOOGLE_CLIENT_SECRET');
     expect(env).not.toContain('GOOGLE_OAUTH_REDIRECT_URL');
-    expect(env).not.toContain('TOKEN_ENCRYPTION_KEY');
+    // TOKEN_ENCRYPTION_KEY sí se añade — pero por Discord Fase A, no por YouTube.
   });
 });

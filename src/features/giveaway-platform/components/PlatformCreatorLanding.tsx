@@ -18,6 +18,8 @@ import {
   todayInPlatformTz,
 } from '@/lib/giveaway-platform/constants';
 import { getCreatorVisual } from '@/features/giveaway-platform/constants/creators';
+import { getDiscordMissionTarget } from '@/features/giveaway-platform/constants/discord-missions';
+import { getConnectedAccount } from '@/lib/queries/connectedSocialAccounts';
 import { PlatformNav } from '@/features/giveaway-platform/components/PlatformNav';
 import { PlatformHero } from '@/features/giveaway-platform/components/PlatformHero';
 import { BrandBonusesSection } from '@/features/giveaway-platform/components/BrandBonusesSection';
@@ -87,7 +89,7 @@ export async function PlatformCreatorLanding({ slug }: Props) {
     ? []
     : await getGiveawaysWithEntryData(active.id, userId);
 
-  const [balance, missions, streak, playerProfile] = userId
+  const [balance, missions, streak, playerProfile, discordAccount] = userId
     ? await Promise.all([
         getCoinBalance(userId),
         getMissionsWithProgress(userId),
@@ -96,8 +98,20 @@ export async function PlatformCreatorLanding({ slug }: Props) {
           where: eq(playerProfiles.userId, userId),
           columns: { steamTradeUrl: true },
         }),
+        getConnectedAccount(userId, 'discord'),
       ])
-    : [0, [], undefined, undefined];
+    : [0, [], undefined, undefined, null];
+
+  // Config Discord del creador activo (guild id + invite URL desde env).
+  // Si el creador no está mapeado, `discord` se pasa como undefined y la
+  // grid oculta la card Discord sin explotar.
+  const discordTarget = getDiscordMissionTarget(active.slug);
+  const discordProp = discordTarget
+    ? {
+        connected: Boolean(discordAccount),
+        inviteUrl: discordTarget.inviteUrl ?? null,
+      }
+    : undefined;
 
   const hasSteamTradeUrl = Boolean(playerProfile?.steamTradeUrl && playerProfile.steamTradeUrl.trim().length > 0);
 
@@ -145,7 +159,7 @@ export async function PlatformCreatorLanding({ slug }: Props) {
             <section id="misiones">
               <div className="gp-legacy-block">
                 <h2>Misiones · gana puntos</h2>
-                <MissionsGrid missions={missions} />
+                <MissionsGrid missions={missions} discord={discordProp} />
               </div>
             </section>
           </>

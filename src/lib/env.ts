@@ -52,6 +52,32 @@ export const env = createEnv({
     // Base URL: https://ws-2071.socket-cs.com/v1/giveaway-user
     // Endpoints usados: GET /api/list, GET /api/giveaway/:id
     KEYDROP_ZACKETIZOR_API_KEY: z.string().min(1).optional(),
+
+    // ============================================================
+    // Discord Missions Fase A — OAuth de terceros para verificar
+    // membresía en un guild. Ver docs/discord-mission-fase-a.md.
+    // Todo server-only. Sin estas vars el flujo se degrada:
+    // el usuario ve la card pero no puede iniciar OAuth (mensaje
+    // "Integración Discord no configurada").
+    // ============================================================
+    DISCORD_CLIENT_ID: z.string().min(1).optional(),
+    DISCORD_CLIENT_SECRET: z.string().min(1).optional(),
+    DISCORD_OAUTH_REDIRECT_URL: z.string().url().optional(),
+    /**
+     * 64 caracteres hex (32 bytes). Generar con: openssl rand -hex 32.
+     * Se usa para AES-256-GCM sobre access tokens en DB.
+     * SIN esta clave los tokens NO se cifran ni descifran; la utility
+     * lanza error controlado y el flow se degrada.
+     */
+    TOKEN_ENCRYPTION_KEY: z.string().regex(/^[0-9a-fA-F]{64}$/).optional(),
+    /**
+     * Guild ID + Invite URL para la primera misión ZACKETIZOR.
+     * No son secretos (guild ID es público en Discord), pero
+     * mantenemos en env para que sea fácil rotar/actualizar por
+     * creador sin tocar código.
+     */
+    DISCORD_ZACKETIZOR_GUILD_ID: z.string().regex(/^\d{17,20}$/).optional(),
+    DISCORD_ZACKETIZOR_INVITE_URL: z.string().url().optional(),
   },
   client: {
     NEXT_PUBLIC_SITE_URL: z.string().url(),
@@ -81,6 +107,14 @@ export const env = createEnv({
     SHEETS_SYNC_CONCURRENCY: process.env.SHEETS_SYNC_CONCURRENCY,
     STEAM_API_KEY: process.env.STEAM_API_KEY,
     KEYDROP_ZACKETIZOR_API_KEY: process.env.KEYDROP_ZACKETIZOR_API_KEY,
+
+    // Discord Missions Fase A
+    DISCORD_CLIENT_ID: process.env.DISCORD_CLIENT_ID,
+    DISCORD_CLIENT_SECRET: process.env.DISCORD_CLIENT_SECRET,
+    DISCORD_OAUTH_REDIRECT_URL: process.env.DISCORD_OAUTH_REDIRECT_URL,
+    TOKEN_ENCRYPTION_KEY: process.env.TOKEN_ENCRYPTION_KEY,
+    DISCORD_ZACKETIZOR_GUILD_ID: process.env.DISCORD_ZACKETIZOR_GUILD_ID,
+    DISCORD_ZACKETIZOR_INVITE_URL: process.env.DISCORD_ZACKETIZOR_INVITE_URL,
 
     NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
     NEXT_PUBLIC_GTM_ID: process.env.NEXT_PUBLIC_GTM_ID,

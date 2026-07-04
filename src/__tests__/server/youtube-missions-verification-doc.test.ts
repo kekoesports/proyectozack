@@ -164,28 +164,30 @@ describe('[yt-doc] fuentes citadas', () => {
   });
 });
 
-describe('[yt-doc] NO toca nada de producción', () => {
-  it('NO modifica src/db/schema/*.ts (sin migración)', () => {
-    // Ningún cambio de schema en este PR — se documenta pero no se aplica.
+/**
+ * YouTube sigue aparcado tras Fase A Discord: no hay OAuth Google, no hay
+ * env vars, no hay rutas, no hay campos target_channel_id.
+ *
+ * Los campos `provider` y `verification_mode` de platform_missions SÍ
+ * existen desde Fase A (los usa Discord), pero eso es genérico — YouTube
+ * aún no los rellena. TOKEN_ENCRYPTION_KEY también existe desde Fase A.
+ */
+describe('[yt-doc] YouTube sigue aparcado (Fase A no lo activa)', () => {
+  it('platform_missions NO añade campos YouTube-específicos (target_channel_id, target_video_id)', () => {
     const platformMissionsSrc = read('src/db/schema/platformMissions.ts');
-    expect(platformMissionsSrc).not.toMatch(/verification_mode|provider\b|target_channel_id/);
+    expect(platformMissionsSrc).not.toMatch(/target_channel_id|target_video_id/);
   });
 
-  it('NO añade env vars OAuth nuevas a src/lib/env.ts', () => {
+  it('NO añade env vars OAuth Google a src/lib/env.ts', () => {
     const envSrc = read('src/lib/env.ts');
-    // GOOGLE_CLIENT_ID / SECRET / redirect son necesarias en fase 2 —
-    // este PR no las añade todavía.
     expect(envSrc).not.toContain('GOOGLE_CLIENT_ID');
     expect(envSrc).not.toContain('GOOGLE_CLIENT_SECRET');
     expect(envSrc).not.toContain('GOOGLE_OAUTH_REDIRECT_URL');
-    expect(envSrc).not.toContain('TOKEN_ENCRYPTION_KEY');
-    // Nota: YOUTUBE_API_KEY ya existía antes de este PR (para llamadas
-    // públicas server-side). No es OAuth de usuario y no la usamos aquí.
   });
 
   it('NO crea rutas /api/auth/social/youtube/*', () => {
-    const apiDir = path.join(ROOT, 'src/app/api/auth/social');
-    expect(fs.existsSync(apiDir)).toBe(false);
+    const ytDir = path.join(ROOT, 'src/app/api/auth/social/youtube');
+    expect(fs.existsSync(ytDir)).toBe(false);
   });
 
   it('NO modifica src/lib/auth.ts (sin Google plugin nuevo)', () => {
