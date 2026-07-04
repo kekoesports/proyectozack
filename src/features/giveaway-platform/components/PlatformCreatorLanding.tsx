@@ -18,7 +18,8 @@ import {
   todayInPlatformTz,
 } from '@/lib/giveaway-platform/constants';
 import { getCreatorVisual } from '@/features/giveaway-platform/constants/creators';
-import { getDiscordMissionTarget } from '@/features/giveaway-platform/constants/discord-missions';
+import { getDiscordMissionTarget, isDiscordOauthConfigured } from '@/features/giveaway-platform/constants/discord-missions';
+import { isTokenEncryptionConfigured } from '@/lib/crypto/token-encryption';
 import { getConnectedAccount } from '@/lib/queries/connectedSocialAccounts';
 import { PlatformNav } from '@/features/giveaway-platform/components/PlatformNav';
 import { PlatformHero } from '@/features/giveaway-platform/components/PlatformHero';
@@ -102,16 +103,21 @@ export async function PlatformCreatorLanding({ slug }: Props) {
       ])
     : [0, [], undefined, undefined, null];
 
-  // Config Discord del creador activo (guild id + invite URL desde env).
-  // Si el creador no está mapeado, `discord` se pasa como undefined y la
-  // grid oculta la card Discord sin explotar.
+  // Config Discord del creador activo. La card Discord solo se muestra si
+  // TODAS las piezas están puestas:
+  //   1) Target del creador (guild id + invite URL) → `getDiscordMissionTarget`.
+  //   2) OAuth mínimo (client id/secret/redirect) → `isDiscordOauthConfigured`.
+  //   3) Cifrado de tokens (clave AES) → `isTokenEncryptionConfigured`.
+  // Si alguna falta, `discordProp` queda undefined y la grid oculta la card
+  // — fail-safe: nada de botones que rompan a mitad de flujo.
   const discordTarget = getDiscordMissionTarget(active.slug);
-  const discordProp = discordTarget
-    ? {
-        connected: Boolean(discordAccount),
-        inviteUrl: discordTarget.inviteUrl ?? null,
-      }
-    : undefined;
+  const discordProp =
+    discordTarget && isDiscordOauthConfigured() && isTokenEncryptionConfigured()
+      ? {
+          connected: Boolean(discordAccount),
+          inviteUrl: discordTarget.inviteUrl ?? null,
+        }
+      : undefined;
 
   const hasSteamTradeUrl = Boolean(playerProfile?.steamTradeUrl && playerProfile.steamTradeUrl.trim().length > 0);
 
