@@ -1,26 +1,24 @@
 -- Discord Missions Fase A — 2026-07-04
 -- Ver docs/discord-mission-fase-a.md
 --
--- Cambios:
---  1. Ampliar `platform_missions` con columnas para misiones sociales
---     (provider, target_id, target_url, verification_mode).
---     Nullable — no rompe filas existentes.
---  2. Nueva tabla `connected_social_accounts` para tokens OAuth cifrados.
---  3. Nueva tabla `mission_verification_attempts` para rate limit por
---     (mission_id, user_id).
+-- IMPORTANTE: idempotente. Algunas versiones parciales del schema podrían
+-- estar ya aplicadas en producción por sesiones previas de desarrollo
+-- (patrón `drizzle-kit push` accidental — incidente crm_alerts, CLAUDE.md).
+-- Usamos `IF NOT EXISTS` en columnas, tablas e índices, y bloques `DO`
+-- para los constraints (que no soportan IF NOT EXISTS en Postgres <15).
 
-ALTER TABLE "platform_missions" ADD COLUMN "provider" varchar(20);
+ALTER TABLE "platform_missions" ADD COLUMN IF NOT EXISTS "provider" varchar(20);
 --> statement-breakpoint
-ALTER TABLE "platform_missions" ADD COLUMN "target_id" varchar(100);
+ALTER TABLE "platform_missions" ADD COLUMN IF NOT EXISTS "target_id" varchar(100);
 --> statement-breakpoint
-ALTER TABLE "platform_missions" ADD COLUMN "target_url" varchar(500);
+ALTER TABLE "platform_missions" ADD COLUMN IF NOT EXISTS "target_url" varchar(500);
 --> statement-breakpoint
-ALTER TABLE "platform_missions" ADD COLUMN "verification_mode" varchar(30);
+ALTER TABLE "platform_missions" ADD COLUMN IF NOT EXISTS "verification_mode" varchar(30);
 --> statement-breakpoint
-CREATE INDEX "platform_missions_provider_idx" ON "platform_missions" USING btree ("provider");
+CREATE INDEX IF NOT EXISTS "platform_missions_provider_idx" ON "platform_missions" USING btree ("provider");
 --> statement-breakpoint
 
-CREATE TABLE "connected_social_accounts" (
+CREATE TABLE IF NOT EXISTS "connected_social_accounts" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"user_id" text NOT NULL,
 	"provider" varchar(20) NOT NULL,
@@ -36,17 +34,21 @@ CREATE TABLE "connected_social_accounts" (
 	"metadata" jsonb
 );
 --> statement-breakpoint
-ALTER TABLE "connected_social_accounts" ADD CONSTRAINT "connected_social_accounts_user_id_user_id_fk"
-	FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;
+DO $$ BEGIN
+	ALTER TABLE "connected_social_accounts" ADD CONSTRAINT "connected_social_accounts_user_id_user_id_fk"
+		FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;
+EXCEPTION
+	WHEN duplicate_object THEN NULL;
+END $$;
 --> statement-breakpoint
-CREATE UNIQUE INDEX "conn_social_user_provider_uq" ON "connected_social_accounts" USING btree ("user_id","provider");
+CREATE UNIQUE INDEX IF NOT EXISTS "conn_social_user_provider_uq" ON "connected_social_accounts" USING btree ("user_id","provider");
 --> statement-breakpoint
-CREATE UNIQUE INDEX "conn_social_provider_user_uq" ON "connected_social_accounts" USING btree ("provider","provider_user_id");
+CREATE UNIQUE INDEX IF NOT EXISTS "conn_social_provider_user_uq" ON "connected_social_accounts" USING btree ("provider","provider_user_id");
 --> statement-breakpoint
-CREATE INDEX "conn_social_user_idx" ON "connected_social_accounts" USING btree ("user_id");
+CREATE INDEX IF NOT EXISTS "conn_social_user_idx" ON "connected_social_accounts" USING btree ("user_id");
 --> statement-breakpoint
 
-CREATE TABLE "mission_verification_attempts" (
+CREATE TABLE IF NOT EXISTS "mission_verification_attempts" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"mission_id" integer NOT NULL,
 	"user_id" text NOT NULL,
@@ -54,10 +56,18 @@ CREATE TABLE "mission_verification_attempts" (
 	"outcome" varchar(20) NOT NULL
 );
 --> statement-breakpoint
-ALTER TABLE "mission_verification_attempts" ADD CONSTRAINT "mission_verification_attempts_mission_id_platform_missions_id_fk"
-	FOREIGN KEY ("mission_id") REFERENCES "public"."platform_missions"("id") ON DELETE cascade ON UPDATE no action;
+DO $$ BEGIN
+	ALTER TABLE "mission_verification_attempts" ADD CONSTRAINT "mission_verification_attempts_mission_id_platform_missions_id_fk"
+		FOREIGN KEY ("mission_id") REFERENCES "public"."platform_missions"("id") ON DELETE cascade ON UPDATE no action;
+EXCEPTION
+	WHEN duplicate_object THEN NULL;
+END $$;
 --> statement-breakpoint
-ALTER TABLE "mission_verification_attempts" ADD CONSTRAINT "mission_verification_attempts_user_id_user_id_fk"
-	FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;
+DO $$ BEGIN
+	ALTER TABLE "mission_verification_attempts" ADD CONSTRAINT "mission_verification_attempts_user_id_user_id_fk"
+		FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;
+EXCEPTION
+	WHEN duplicate_object THEN NULL;
+END $$;
 --> statement-breakpoint
-CREATE INDEX "mission_verif_user_mission_time_idx" ON "mission_verification_attempts" USING btree ("user_id","mission_id","attempted_at");
+CREATE INDEX IF NOT EXISTS "mission_verif_user_mission_time_idx" ON "mission_verification_attempts" USING btree ("user_id","mission_id","attempted_at");
