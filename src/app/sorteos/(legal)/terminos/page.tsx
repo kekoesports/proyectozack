@@ -91,11 +91,21 @@ export default function TerminosPage() {
         <p>
           El canjeo descuenta puntos del saldo y genera una solicitud de entrega. SocialPro
           coordinará contigo la entrega según el tipo de artículo (skin CS2 vía trade offer,
-          merchandising físico o tarjeta regalo digital). Una vez procesado o entregado un
-          canje puede no ser posible cancelarlo. Lo anterior se aplicará <b>sin perjuicio de
-          los derechos que correspondan al usuario</b> según la normativa de consumidores y
-          las excepciones aplicables, especialmente en productos digitales, códigos o
-          artículos ya entregados. La disponibilidad de cada artículo depende del stock.
+          merchandising físico o tarjeta regalo digital).
+        </p>
+        <p>
+          <b>Todos los canjes están sujetos a revisión manual por el equipo de SocialPro antes del envío.</b>
+          {' '}
+          Comprobamos identidad, disponibilidad real de stock y ausencia de indicios de uso
+          abusivo o incumplimiento de estos términos. El plazo de revisión y envío puede
+          variar según el tipo de artículo y la carga de trabajo del equipo.
+        </p>
+        <p>
+          Una vez procesado o entregado un canje puede no ser posible cancelarlo. Lo anterior
+          se aplicará <b>sin perjuicio de los derechos que correspondan al usuario</b> según
+          la normativa de consumidores y las excepciones aplicables, especialmente en
+          productos digitales, códigos o artículos ya entregados. La disponibilidad de cada
+          artículo depende del stock.
         </p>
       </section>
 
