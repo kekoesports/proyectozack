@@ -78,6 +78,33 @@ export const env = createEnv({
      */
     DISCORD_ZACKETIZOR_GUILD_ID: z.string().regex(/^\d{17,20}$/).optional(),
     DISCORD_ZACKETIZOR_INVITE_URL: z.string().url().optional(),
+
+    // ============================================================
+    // Twitch Missions Fase B — OAuth de usuario para verificar
+    // follow al canal objetivo. Ver docs/twitch-mission-fase-b.md.
+    //
+    // TWITCH_CLIENT_ID/SECRET ya existían para el servicio
+    // server-to-server (app token, cron /sync-metrics, /poll-live).
+    // La misma app Twitch se puede reutilizar para user OAuth aquí.
+    // ============================================================
+    /**
+     * Callback URL para el flujo OAuth de usuario Twitch. Distinta por
+     * entorno (prod / preview / dev). Debe coincidir EXACTA con la
+     * OAuth Redirect URL declarada en dev.twitch.tv → Console →
+     * Applications → tu app → OAuth Redirect URLs.
+     */
+    TWITCH_OAUTH_REDIRECT_URL: z.string().url().optional(),
+    /**
+     * Broadcaster ID (Helix user ID, numérico) del canal ZACKETIZOR.
+     * Público — se obtiene con `GET /helix/users?login=zacketizor`.
+     * No es secreto.
+     */
+    TWITCH_ZACKETIZOR_BROADCASTER_ID: z.string().regex(/^\d{1,20}$/).optional(),
+    /**
+     * URL pública del canal Twitch — para el CTA "Abrir Twitch".
+     * Debe ser una URL twitch.tv/<login> válida.
+     */
+    TWITCH_ZACKETIZOR_CHANNEL_URL: z.string().url().optional(),
   },
   client: {
     NEXT_PUBLIC_SITE_URL: z.string().url(),
@@ -115,6 +142,11 @@ export const env = createEnv({
     TOKEN_ENCRYPTION_KEY: process.env.TOKEN_ENCRYPTION_KEY,
     DISCORD_ZACKETIZOR_GUILD_ID: process.env.DISCORD_ZACKETIZOR_GUILD_ID,
     DISCORD_ZACKETIZOR_INVITE_URL: process.env.DISCORD_ZACKETIZOR_INVITE_URL,
+
+    // Twitch Missions Fase B
+    TWITCH_OAUTH_REDIRECT_URL: process.env.TWITCH_OAUTH_REDIRECT_URL,
+    TWITCH_ZACKETIZOR_BROADCASTER_ID: process.env.TWITCH_ZACKETIZOR_BROADCASTER_ID,
+    TWITCH_ZACKETIZOR_CHANNEL_URL: process.env.TWITCH_ZACKETIZOR_CHANNEL_URL,
 
     NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
     NEXT_PUBLIC_GTM_ID: process.env.NEXT_PUBLIC_GTM_ID,
