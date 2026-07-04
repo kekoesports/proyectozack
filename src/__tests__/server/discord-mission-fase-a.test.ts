@@ -361,11 +361,12 @@ describe('[discord-fase-a] migración 0104 registrada', () => {
     expect(hit?.idx).toBe(104);
   });
 
-  it('SQL crea tablas y columnas Fase A', () => {
+  it('SQL crea tablas y columnas Fase A (idempotente)', () => {
     const sql = read(P.migration);
-    expect(sql).toMatch(/ALTER TABLE\s+"?platform_missions"?\s+ADD COLUMN\s+"?provider"?/i);
-    expect(sql).toMatch(/CREATE TABLE\s+(IF NOT EXISTS\s+)?"?connected_social_accounts"?/i);
-    expect(sql).toMatch(/CREATE TABLE\s+(IF NOT EXISTS\s+)?"?mission_verification_attempts"?/i);
+    // La migración es idempotente para tolerar estado parcial en prod.
+    expect(sql).toMatch(/ALTER TABLE\s+"?platform_missions"?\s+ADD COLUMN\s+IF NOT EXISTS\s+"?provider"?/i);
+    expect(sql).toMatch(/CREATE TABLE\s+IF NOT EXISTS\s+"?connected_social_accounts"?/i);
+    expect(sql).toMatch(/CREATE TABLE\s+IF NOT EXISTS\s+"?mission_verification_attempts"?/i);
   });
 });
 
