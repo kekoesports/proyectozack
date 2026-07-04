@@ -1,0 +1,111 @@
+/*
+ * Estilos para la card interactiva de misión Twitch.
+ * Fase B — verificación real vía OAuth `user:read:follows` + fetch a
+ * `GET /helix/channels/followed?user_id=...&broadcaster_id=...`.
+ *
+ * Reglas scoped bajo `.giveaway-platform`. Reutiliza `.gp-mission-card`
+ * base y añade acento "Twitch purple" (#9146FF).
+ */
+
+.giveaway-platform .gp-mission-card-twitch {
+  border-color: rgba(145, 70, 255, 0.35);
+  background:
+    radial-gradient(360px 200px at 100% 0%, rgba(145, 70, 255, 0.16), transparent 60%),
+    linear-gradient(160deg, rgba(21, 16, 36, 0.92), rgba(11, 9, 23, 0.92));
+}
+
+.giveaway-platform .gp-mission-card-twitch.is-done {
+  border-color: rgba(74, 222, 128, 0.45);
+  background: linear-gradient(160deg, rgba(20, 60, 40, 0.35), rgba(11, 9, 23, 0.85));
+}
+
+.giveaway-platform .gp-mission-twitch-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-family: var(--font-display), var(--font-rajdhani), sans-serif;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: #fff;
+  background: #9146FF;
+  vertical-align: middle;
+  margin-right: 4px;
+}
+
+.giveaway-platform .gp-mission-twitch-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.giveaway-platform .gp-mission-twitch-btn {
+  flex: 1 1 auto;
+  min-width: 120px;
+  padding: 9px 14px;
+  border-radius: 10px;
+  font-family: var(--font-display), var(--font-rajdhani), sans-serif;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  text-align: center;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, opacity 0.15s;
+  text-decoration: none;
+  border: 1px solid transparent;
+}
+
+.giveaway-platform .gp-mission-twitch-btn.is-primary {
+  background: #9146FF;
+  color: #fff;
+  border-color: #9146FF;
+}
+.giveaway-platform .gp-mission-twitch-btn.is-primary:hover {
+  background: #7a2fe0;
+  border-color: #7a2fe0;
+}
+.giveaway-platform .gp-mission-twitch-btn.is-primary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.giveaway-platform .gp-mission-twitch-btn.is-secondary {
+  background: transparent;
+  color: var(--txt);
+  border-color: rgba(145, 70, 255, 0.55);
+}
+.giveaway-platform .gp-mission-twitch-btn.is-secondary:hover {
+  background: rgba(145, 70, 255, 0.12);
+}
+
+.giveaway-platform .gp-mission-twitch-error {
+  margin-top: 10px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: rgba(255, 87, 87, 0.12);
+  border: 1px solid rgba(255, 87, 87, 0.35);
+  color: #ffb4b4;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.giveaway-platform .gp-mission-twitch-note {
+  margin: 12px 0 0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--muted);
+  opacity: 0.85;
+}
+
+@media (max-width: 480px) {
+  .giveaway-platform .gp-mission-twitch-btn {
+    font-size: 11.5px;
+    padding: 9px 12px;
+  }
+  .giveaway-platform .gp-mission-twitch-note {
+    font-size: 10.5px;
+  }
+}

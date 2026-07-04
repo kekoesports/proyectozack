@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import type { MissionWithProgress } from '@/types/giveawayPlatform';
 import { DiscordMissionCard } from '@/features/giveaway-platform/components/DiscordMissionCard';
+import { TwitchMissionCard } from '@/features/giveaway-platform/components/TwitchMissionCard';
 
 interface Props {
   missions: MissionWithProgress[];
@@ -15,6 +16,15 @@ interface Props {
     connected: boolean;
     inviteUrl: string | null;
   } | undefined;
+  /**
+   * Info Twitch del usuario (opcional): connected=true si tiene cuenta
+   * conectada activa. channelUrl para el CTA "Abrir Twitch". Se omite si
+   * el creador activo no tiene configurada la misión Twitch.
+   */
+  twitch?: {
+    connected: boolean;
+    channelUrl: string | null;
+  } | undefined;
 }
 
 /**
@@ -25,16 +35,17 @@ interface Props {
  *
  * Cobradas se envían al final dentro de cada grupo — no ocupan el top.
  */
-export function MissionsGrid({ missions, discord }: Props) {
+export function MissionsGrid({ missions, discord, twitch }: Props) {
   const [expanded, setExpanded] = useState(false);
 
   if (missions.length === 0) {
     return <p className="gp-mission-head">No hay misiones activas este mes.</p>;
   }
 
-  // Split por provider: Discord aparte para renderizado con card específica.
+  // Split por provider: Discord y Twitch aparte para renderizado con card específica.
   const discordMissions = missions.filter((m) => m.provider === 'discord');
-  const otherMissions = missions.filter((m) => m.provider !== 'discord');
+  const twitchMissions = missions.filter((m) => m.provider === 'twitch');
+  const otherMissions = missions.filter((m) => m.provider !== 'discord' && m.provider !== 'twitch');
 
   // Cobradas al final, resto en el orden que llega del server (sortOrder ASC).
   const sortedOther = [...otherMissions].sort((a, b) => Number(a.claimed) - Number(b.claimed));
@@ -56,6 +67,19 @@ export function MissionsGrid({ missions, discord }: Props) {
               mission={m}
               connected={discord.connected}
               inviteUrl={discord.inviteUrl}
+            />
+          ))}
+        </div>
+      ) : null}
+
+      {twitchMissions.length > 0 && twitch ? (
+        <div className="gp-missions-grid">
+          {twitchMissions.map((m) => (
+            <TwitchMissionCard
+              key={m.id}
+              mission={m}
+              connected={twitch.connected}
+              channelUrl={twitch.channelUrl}
             />
           ))}
         </div>

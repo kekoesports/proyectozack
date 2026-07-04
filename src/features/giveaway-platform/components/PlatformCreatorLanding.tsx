@@ -19,6 +19,7 @@ import {
 } from '@/lib/giveaway-platform/constants';
 import { getCreatorVisual } from '@/features/giveaway-platform/constants/creators';
 import { getDiscordMissionTarget, isDiscordOauthConfigured } from '@/features/giveaway-platform/constants/discord-missions';
+import { getTwitchMissionTarget, isTwitchOauthConfigured } from '@/features/giveaway-platform/constants/twitch-missions';
 import { isTokenEncryptionConfigured } from '@/lib/crypto/token-encryption';
 import { getConnectedAccount } from '@/lib/queries/connectedSocialAccounts';
 import { PlatformNav } from '@/features/giveaway-platform/components/PlatformNav';
@@ -90,7 +91,7 @@ export async function PlatformCreatorLanding({ slug }: Props) {
     ? []
     : await getGiveawaysWithEntryData(active.id, userId);
 
-  const [balance, missions, streak, playerProfile, discordAccount] = userId
+  const [balance, missions, streak, playerProfile, discordAccount, twitchAccount] = userId
     ? await Promise.all([
         getCoinBalance(userId),
         getMissionsWithProgress(userId),
@@ -100,8 +101,9 @@ export async function PlatformCreatorLanding({ slug }: Props) {
           columns: { steamTradeUrl: true },
         }),
         getConnectedAccount(userId, 'discord'),
+        getConnectedAccount(userId, 'twitch'),
       ])
-    : [0, [], undefined, undefined, null];
+    : [0, [], undefined, undefined, null, null];
 
   // Config Discord del creador activo. La card Discord solo se muestra si
   // TODAS las piezas están puestas:
@@ -116,6 +118,18 @@ export async function PlatformCreatorLanding({ slug }: Props) {
       ? {
           connected: Boolean(discordAccount),
           inviteUrl: discordTarget.inviteUrl ?? null,
+        }
+      : undefined;
+
+  // Config Twitch — misma lógica fail-safe que Discord. La card Twitch
+  // solo aparece si target del creador + OAuth + cifrado están todos
+  // configurados.
+  const twitchTarget = getTwitchMissionTarget(active.slug);
+  const twitchProp =
+    twitchTarget && isTwitchOauthConfigured() && isTokenEncryptionConfigured()
+      ? {
+          connected: Boolean(twitchAccount),
+          channelUrl: twitchTarget.channelUrl ?? null,
         }
       : undefined;
 
@@ -165,7 +179,7 @@ export async function PlatformCreatorLanding({ slug }: Props) {
             <section id="misiones">
               <div className="gp-legacy-block">
                 <h2>Misiones · gana puntos</h2>
-                <MissionsGrid missions={missions} discord={discordProp} />
+                <MissionsGrid missions={missions} discord={discordProp} twitch={twitchProp} />
               </div>
             </section>
           </>
