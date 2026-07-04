@@ -13,6 +13,7 @@ import './plataforma/platform-brand-leds.css';
 import './plataforma/platform-fx.css';
 import './plataforma/platform-widgets.css';
 import './plataforma/platform-rewards-upcoming.css';
+import './plataforma/platform-missions-yt-placeholder.css';
 import './plataforma/platform-external-giveaways.css';
 import './plataforma/platform-profile.css';
 import './plataforma/platform-creator-profile.css';
