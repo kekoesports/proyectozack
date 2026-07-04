@@ -167,7 +167,36 @@ export type RedeemResult =
   | { ok: true; data: { redemptionId: number; requiresManualReview: boolean } }
   | { ok: false; code: RedeemErrorCode; error: string };
 
-/** Canjea un item de tienda: valida saldo, decrementa stock condicionalmente y registra el canje. */
+/**
+ * Canjea un item de tienda: valida saldo, decrementa stock condicionalmente
+ * y registra el canje.
+ *
+ * ## Modelo de concurrencia y race condition teórica
+ *
+ * El driver `neon-http` no soporta transacciones multi-statement — cada
+ * `await db.xxx(...)` es una petición independiente. La secuencia es:
+ *
+ *   1. Lee saldo (`getCoinBalance`).
+ *   2. Lee perfil (Trade URL/dirección) si aplica.
+ *   3. **UPDATE condicional de stock** con `.where(and(eq(id), gt(stock, 0)))`.
+ *      → Atómico a nivel SQL: solo gana una petición cuando `stock === 1`.
+ *   4. INSERT en `coin_transactions` (negativo, descuenta puntos).
+ *   5. INSERT en `redemptions`.
+ *
+ * El paso 3 es el gate anti-oversell — dos peticiones simultáneas sobre
+ * el último item disponible no pueden ambas retornar filas. Con `stock: 1`
+ * (skins Steam) esto es suficiente en la práctica.
+ *
+ * **Riesgo teórico residual (bajo)**: entre pasos 1 y 4 no hay lock —
+ * si el usuario dispara dos canjes en paralelo con saldo justo, ambos
+ * pueden pasar el balance check y descontar dos veces. La UNIQUE de
+ * `redemptions` NO existe (múltiples canjes del mismo item por el mismo
+ * usuario son legítimos). Mitigable con transaccion pooled (neon-serverless
+ * WebSocket) o UPSERT atómico via `WITH ... UPDATE ... RETURNING`. Fuera
+ * de scope aquí.
+ *
+ * Ver `docs/sorteos-rewards-catalog.md` §canje si se decide hardening.
+ */
 export async function redeemShopItem(input: unknown): Promise<RedeemResult> {
   const sessionUser = await requirePlayerSession();
   if (!sessionUser) return { ok: false, code: 'unauthenticated', error: 'Inicia sesión con Steam' };
