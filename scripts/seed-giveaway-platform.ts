@@ -48,50 +48,37 @@ const MISSIONS = [
 const DEACTIVATE_TITLES = ['Coleccionista', 'Racha de 7 días'];
 
 /**
- * Precios reajustados 2026-07-03 según la nueva economía objetivo
- * (docs/sorteos-coin-economy.md). Factor ~11× vs valores previos para
- * alinear con la regla interna "1$ ≈ 1.000 monedas".
+ * Seed principal de la tienda — precios y stock CONSERVADORES.
  *
- * NO se ejecuta automáticamente. Correr `npx tsx scripts/seed-giveaway-platform.ts`
- * cuando decidamos aplicar los cambios en producción. Ver también
- * §5 del doc para el riesgo de reescalado del pasado.
+ * Estos valores reflejan lo que existe hoy en producción. NO reajustan la
+ * economía ni añaden cosméticos: cualquier propuesta de cambio de precios
+ * o de nuevos items (profile cards, frames, badges) vive en el seed
+ * experimental separado:
  *
- * Las 3 nuevas categorías (`profile`, `frame`, `badge`) caben en el
- * `varchar(10)` actual de `shop_items.category` — sin migración de esquema.
- * Para EQUIPAR estos cosméticos hace falta migración adicional (§4.2 del doc).
+ *   scripts/seed-giveaway-platform-v2-experimental.ts
+ *
+ * Reglas de este archivo:
+ *   1. NUNCA meter aquí cambios de economía sin OK explícito de producto.
+ *   2. NUNCA meter aquí cosméticos hasta que exista soporte de
+ *      equipamiento (migración pendiente — ver docs/sorteos-coin-economy.md §4.2).
+ *   3. Este script es idempotente y actualiza `costCoins` si difiere:
+ *      cualquier cambio de precio aquí AFECTA producción en el próximo
+ *      `npx tsx scripts/seed-giveaway-platform.ts`.
+ *
+ * Ver también: docs/sorteos-coin-economy.md para la política y el
+ * reajuste ×11 propuesto (aún no aprobado para ejecución).
  */
 const SHOP_ITEMS = [
-  // Skins CS2 — stock propio, envío por trade offer.
-  { category: 'skin',  name: '★ Glock-18 · Water Elemental', description: 'Stock propio · envío por trade offer', costCoins: 3000,  stock: 4,  sortOrder: 1 },
-  { category: 'skin',  name: '★ USP-S · Kill Confirmed',     description: 'Stock propio · envío por trade offer', costCoins: 6000,  stock: 2,  sortOrder: 2 },
-  { category: 'skin',  name: '★ AK-47 · Redline',            description: 'Stock propio · envío por trade offer', costCoins: 15000, stock: 3,  sortOrder: 3 },
-
-  // Merch físico SocialPro.
-  { category: 'merch', name: 'Camiseta SocialPro',           description: 'Edición 2026 · envío incluido',        costCoins: 15000, stock: 25, sortOrder: 10 },
-  { category: 'merch', name: 'Gorra SocialPro',              description: 'Bordado · envío incluido',             costCoins: 9000,  stock: 18, sortOrder: 11 },
-
-  // Tarjetas regalo (códigos digitales por email).
-  { category: 'gift',  name: 'Tarjeta Steam 10€',            description: 'Código digital por email',             costCoins: 11000, stock: 10, sortOrder: 20 },
-  { category: 'gift',  name: 'Tarjeta Steam 20€',            description: 'Código digital por email',             costCoins: 22000, stock: 6,  sortOrder: 21 },
-  { category: 'gift',  name: 'Tarjeta Steam 50€',            description: 'Código digital por email',             costCoins: 55000, stock: 3,  sortOrder: 22 },
-  { category: 'gift',  name: 'PSN Plus · 1 mes',             description: 'Código digital por email',             costCoins: 8500,  stock: 8,  sortOrder: 23 },
-  { category: 'gift',  name: 'Riot Points 10€',              description: 'Código digital por email',             costCoins: 11000, stock: 8,  sortOrder: 24 },
-
-  // Profile Cards — cosméticos de perfil. Efecto visual pendiente de
-  // migración (equipped_profile_card_id o user_cosmetics). El canje ya
-  // funciona: se registra en redemptions y se marca "próximamente".
-  { category: 'profile', name: 'Profile Card — Neon Pink',   description: 'Cosmético digital · próximamente equipable', costCoins: 1500, stock: 500, sortOrder: 30 },
-  { category: 'profile', name: 'Profile Card — Cyber Blue',  description: 'Cosmético digital · próximamente equipable', costCoins: 2500, stock: 500, sortOrder: 31 },
-  { category: 'profile', name: 'Profile Card — Gold Elite',  description: 'Cosmético digital premium · próximamente equipable', costCoins: 5000, stock: 200, sortOrder: 32 },
-  { category: 'profile', name: 'Profile Card — Inferno',     description: 'Cosmético digital premium · próximamente equipable', costCoins: 8000, stock: 100, sortOrder: 33 },
-
-  // Avatar Frames.
-  { category: 'frame',   name: 'Avatar Frame — Cyan',        description: 'Marco alrededor del avatar · próximamente equipable', costCoins: 2000, stock: 500, sortOrder: 40 },
-  { category: 'frame',   name: 'Avatar Frame — Gold',        description: 'Marco alrededor del avatar · próximamente equipable', costCoins: 7500, stock: 150, sortOrder: 41 },
-
-  // Badges.
-  { category: 'badge',   name: 'Badge — OG Member',          description: 'Reconocimiento pre-registro · próximamente equipable', costCoins: 3000, stock: 300, sortOrder: 50 },
-  { category: 'badge',   name: 'Badge — Top Grinder',        description: 'Reconocimiento por constancia · próximamente equipable', costCoins: 5000, stock: 200, sortOrder: 51 },
+  { category: 'skin', name: '★ Glock-18 · Water Elemental', description: 'Stock propio · envío por trade offer', costCoins: 150, stock: 4, sortOrder: 1 },
+  { category: 'skin', name: '★ USP-S · Kill Confirmed',      description: 'Stock propio · envío por trade offer', costCoins: 450, stock: 2, sortOrder: 2 },
+  { category: 'skin', name: '★ AK-47 · Redline',             description: 'Stock propio · envío por trade offer', costCoins: 800, stock: 3, sortOrder: 3 },
+  { category: 'merch', name: 'Camiseta SocialPro',            description: 'Edición 2026 · envío incluido',         costCoins: 300, stock: 25, sortOrder: 10 },
+  { category: 'merch', name: 'Gorra SocialPro',               description: 'Bordado · envío incluido',              costCoins: 220, stock: 18, sortOrder: 11 },
+  { category: 'gift', name: 'Tarjeta Steam 10€',              description: 'Código digital por email',              costCoins: 1000, stock: 10, sortOrder: 20 },
+  { category: 'gift', name: 'Tarjeta Steam 20€',              description: 'Código digital por email',              costCoins: 1900, stock: 6, sortOrder: 21 },
+  { category: 'gift', name: 'Tarjeta Steam 50€',              description: 'Código digital por email',              costCoins: 4500, stock: 3, sortOrder: 22 },
+  { category: 'gift', name: 'PSN Plus · 1 mes',               description: 'Código digital por email',              costCoins: 900, stock: 8, sortOrder: 23 },
+  { category: 'gift', name: 'Riot Points 10€',                description: 'Código digital por email',              costCoins: 1000, stock: 8, sortOrder: 24 },
 ];
 
 async function main() {

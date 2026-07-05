@@ -249,11 +249,38 @@ Cada expansión requiere PR propio + revisión legal si hay premio en dinero equ
 | Fase | Alcance | Requiere migración |
 |---|---|---|
 | Fase 1 — este doc | Política, tablas, disclaimers | No |
-| Fase 2 — UI adaptada | Nuevas categorías tienda, disclaimer, seeds actualizados (no ejecutados) | No |
+| Fase 2 — UI adaptada | Nuevas categorías tienda, disclaimer, cosméticos bloqueados como "próximamente" | No |
 | Fase 3 — equipar cosméticos | `equipped_*` en `player_profiles` o `user_cosmetics` | **Sí** — pedir OK antes |
-| Fase 4 — reajuste económico | Cambio de constantes rewards + `costCoins` en seed. Aplicar a producción con seed idempotente | No (solo re-seed) |
+| Fase 4 — reajuste económico | Cambio de constantes rewards + `costCoins`. Aplicar con seed experimental | No (solo re-seed) |
 | Fase 5 — ranking mensual bonus | Cron end-of-month que distribuye premios | Posible tabla `monthly_bonuses` |
 | Fase 6 — campañas creador | Tabla `coin_campaigns` con multiplicadores temporales | Sí |
 | Fase X — rename interno DB | `coin_transactions` → `points_transactions`, `getCoinBalance` → `getPointsBalance`, `ENTRY_COIN_REWARD` → `ENTRY_POINTS_REWARD` | **Sí** — pedir OK antes |
 
-**Este PR se limita a Fase 1 + Fase 2 sin ejecutar el reseed.** Los cambios de precios reales en producción los aplicas tú corriendo `npx tsx scripts/seed-giveaway-platform.ts` cuando decidas.
+### Separación de seeds
+
+Tras revisión post-PR #180, los cambios de economía se separan en dos scripts:
+
+1. **`scripts/seed-giveaway-platform.ts`** (seed principal) — mantiene los precios y items ACTUALES tal cual están hoy en producción. Es seguro correrlo en cualquier momento (idempotente). No debe recibir cambios de economía sin OK explícito de producto.
+
+2. **`scripts/seed-giveaway-platform-v2-experimental.ts`** (seed experimental) — contiene el reajuste ×11 y los 8 items MVP de cosméticos (insertados **`is_active: false`** para que NO aparezcan en tienda hasta que exista soporte de equipamiento). Requiere env var explícita:
+
+   ```
+   CONFIRM_SEED_V2=I_ACCEPT_ECONOMY_RESCALE \
+     npx tsx scripts/seed-giveaway-platform-v2-experimental.ts
+   ```
+
+   Sin la variable, imprime instrucciones y sale con código 1 sin tocar nada.
+
+### Cosméticos = "próximamente" en la UI
+
+Los items de categoría `profile`, `frame` o `badge` se muestran en la tienda con:
+
+- Badge visual "Próximamente" (dorado, encima de la imagen).
+- Card con `opacity: 0.92` y borde dorado tenue.
+- Botón "Próximamente" en lugar de "Canjear", `disabled`.
+- Server action `redeemShopItem` bloquea el canje server-side aunque un cliente hecho a mano lo intente:
+  ```
+  return { ok: false, error: 'Los cosméticos de perfil estarán disponibles cuando habilitemos el equipamiento' }
+  ```
+
+Esta protección se elimina automáticamente cuando se implemente Fase 3 (equipamiento) — solo hay que quitar el early-return del server action.

@@ -11,6 +11,17 @@ import {
 } from '@/features/giveaway-platform/constants/rewards-catalog';
 import type { ShopCategory, ShopItem } from '@/types/giveawayPlatform';
 
+/**
+ * Categorías cosméticas: se muestran en la UI como "próximamente" y
+ * bloqueadas para canje hasta que exista soporte real de equipamiento
+ * (columnas `equipped_*` en player_profiles o tabla user_cosmetics).
+ * Ver docs/sorteos-coin-economy.md §4.2.
+ */
+const COSMETIC_CATEGORIES: ReadonlySet<string> = new Set(['profile', 'frame', 'badge']);
+function isCosmeticNotEquipableYet(category: string): boolean {
+  return COSMETIC_CATEGORIES.has(category);
+}
+
 interface Props {
   items: ShopItem[];
   balance: number;
@@ -172,12 +183,17 @@ export function PlatformShop({ items, balance, hasSteamTradeUrl }: Props) {
         <div className="gp-shop-grid">
           {visibleItems.map((item) => {
             const affordable = balance >= item.costCoins && item.stock > 0;
+            const cosmeticLocked = isCosmeticNotEquipableYet(item.category);
             const isSkin = item.category === 'skin';
             const needsTradeUrl = isSkin && !hasSteamTradeUrl;
+            const canRedeem = affordable && !needsTradeUrl && !cosmeticLocked;
             const stockClass = item.stock === 0 ? ' gone' : item.stock < 4 ? ' low' : '';
             const pct = Math.min(100, Math.round((balance / Math.max(1, item.costCoins)) * 100));
             return (
-              <div key={`db-${item.id}`} className={`gp-shop-card${affordable && !needsTradeUrl ? ' affordable' : ''}`}>
+              <div
+                key={`db-${item.id}`}
+                className={`gp-shop-card${affordable && !needsTradeUrl ? ' affordable' : ''}${cosmeticLocked ? ' cosmetic-soon' : ''}`}
+              >
                 <div className="gp-shop-img">
                   {item.imageUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
@@ -185,7 +201,11 @@ export function PlatformShop({ items, balance, hasSteamTradeUrl }: Props) {
                   ) : (
                     <RewardPlaceholder category={item.category as ShopCategory} />
                   )}
-                  {affordable && !needsTradeUrl ? <span className="gp-shop-badge">Disponible</span> : null}
+                  {cosmeticLocked ? (
+                    <span className="gp-shop-badge gp-shop-badge-soon">Próximamente</span>
+                  ) : canRedeem ? (
+                    <span className="gp-shop-badge">Disponible</span>
+                  ) : null}
                 </div>
                 <h4 className="gp-shop-name">{item.name}</h4>
                 {item.description ? <p className="gp-shop-desc">{item.description}</p> : <p className="gp-shop-desc" />}
@@ -205,10 +225,16 @@ export function PlatformShop({ items, balance, hasSteamTradeUrl }: Props) {
                   <button
                     type="button"
                     onClick={() => handleRedeem(item.id)}
-                    disabled={!affordable || isPending}
+                    disabled={!canRedeem || isPending}
                     className="gp-shop-btn"
                   >
-                    {isPending ? 'Canjeando…' : affordable ? 'Canjear' : `Faltan ${(item.costCoins - balance).toLocaleString('es-ES')} ⭐`}
+                    {cosmeticLocked
+                      ? 'Próximamente'
+                      : isPending
+                        ? 'Canjeando…'
+                        : affordable
+                          ? 'Canjear'
+                          : `Faltan ${(item.costCoins - balance).toLocaleString('es-ES')} ⭐`}
                   </button>
                 )}
               </div>

@@ -126,26 +126,57 @@ describe('[coin-economy] PlatformShop UI', () => {
   });
 });
 
-describe('[coin-economy] seed script actualizado — NO ejecutado desde el PR', () => {
+describe('[coin-economy] seed principal — precios ANTIGUOS conservados', () => {
   const src = read('scripts/seed-giveaway-platform.ts');
 
-  it('cita el doc y advierte que no se ejecuta automáticamente', () => {
-    expect(src).toMatch(/docs\/sorteos-coin-economy\.md/);
-    expect(src).toMatch(/NO se ejecuta automáticamente/);
+  it('mantiene los precios actuales de producción (Steam 10€ = 1.000)', () => {
+    expect(src).toMatch(/Tarjeta Steam 10€[\s\S]{0,200}costCoins:\s*1000\b/);
+    expect(src).toMatch(/Tarjeta Steam 20€[\s\S]{0,200}costCoins:\s*1900\b/);
+    expect(src).toMatch(/Tarjeta Steam 50€[\s\S]{0,200}costCoins:\s*4500\b/);
+    expect(src).toMatch(/AK-47 · Redline[\s\S]{0,200}costCoins:\s*800\b/);
+    // Los reescalados ×11 quedan fuera del seed principal.
+    expect(src).not.toMatch(/Tarjeta Steam 10€[\s\S]{0,200}costCoins:\s*11000/);
+    expect(src).not.toMatch(/Tarjeta Steam 20€[\s\S]{0,200}costCoins:\s*22000/);
   });
 
-  it('precios reajustados a la nueva economía', () => {
-    expect(src).toMatch(/Tarjeta Steam 10€[\s\S]{0,200}costCoins:\s*11000/);
-    expect(src).toMatch(/Tarjeta Steam 20€[\s\S]{0,200}costCoins:\s*22000/);
-    expect(src).toMatch(/Tarjeta Steam 50€[\s\S]{0,200}costCoins:\s*55000/);
-    expect(src).toMatch(/AK-47 · Redline[\s\S]{0,200}costCoins:\s*15000/);
+  it('NO contiene items cosméticos (profile/frame/badge) hasta que exista equipamiento', () => {
+    expect(src).not.toMatch(/category:\s*'profile'/);
+    expect(src).not.toMatch(/category:\s*'frame'/);
+    expect(src).not.toMatch(/category:\s*'badge'/);
   });
 
-  it('los 4 Profile Cards MVP existen con precios en rango del doc', () => {
+  it('advierte con claridad que los cambios de economía viven en el seed experimental', () => {
+    expect(src).toMatch(/scripts\/seed-giveaway-platform-v2-experimental\.ts/);
+    expect(src).toMatch(/NUNCA meter aquí cambios de economía/);
+  });
+});
+
+describe('[coin-economy] seed experimental — safeguard obligatorio', () => {
+  const src = read('scripts/seed-giveaway-platform-v2-experimental.ts');
+
+  it('cabecera muy visible marca el script como EXPERIMENTAL', () => {
+    expect(src).toMatch(/SEED EXPERIMENTAL/);
+    expect(src).toMatch(/NO EJECUTAR EN PRODUCCIÓN SIN OK EXPLÍCITO/);
+  });
+
+  it('exige env var CONFIRM_SEED_V2 con token exacto — imprime instrucciones si falta', () => {
+    expect(src).toMatch(/CONFIRM_SEED_V2\s*!==\s*CONFIRM_TOKEN/);
+    expect(src).toMatch(/const\s+CONFIRM_TOKEN\s*=\s*'I_ACCEPT_ECONOMY_RESCALE'/);
+    expect(src).toMatch(/process\.exit\(1\)/);
+  });
+
+  it('contiene los precios reajustados ×11 en constante dedicada', () => {
+    expect(src).toMatch(/Tarjeta Steam 10€[\s\S]{0,120}costCoins:\s*11000/);
+    expect(src).toMatch(/Tarjeta Steam 20€[\s\S]{0,120}costCoins:\s*22000/);
+    expect(src).toMatch(/Tarjeta Steam 50€[\s\S]{0,120}costCoins:\s*55000/);
+  });
+
+  it('inserta cosméticos MVP con is_active: false — invisibles en tienda', () => {
     expect(src).toMatch(/Profile Card — Neon Pink[\s\S]{0,200}costCoins:\s*1500/);
-    expect(src).toMatch(/Profile Card — Cyber Blue[\s\S]{0,200}costCoins:\s*2500/);
     expect(src).toMatch(/Profile Card — Gold Elite[\s\S]{0,200}costCoins:\s*5000/);
-    expect(src).toMatch(/Profile Card — Inferno[\s\S]{0,200}costCoins:\s*8000/);
+    // Todos los cosméticos se insertan con isActive: false.
+    expect(src).toMatch(/isActive:\s*false/);
+    expect(src).toMatch(/INVISIBLE hasta que exista equipamiento/);
   });
 
   it('todos los precios de profile card están en rango 1.500-10.000', () => {
@@ -157,10 +188,30 @@ describe('[coin-economy] seed script actualizado — NO ejecutado desde el PR', 
       expect(cost).toBeLessThanOrEqual(10000);
     }
   });
+});
 
-  it('avatar frames + badges añadidos también', () => {
-    expect(src).toMatch(/category:\s*'frame'[\s\S]{0,80}Avatar Frame — Cyan/);
-    expect(src).toMatch(/category:\s*'badge'[\s\S]{0,80}Badge — OG Member/);
+describe('[coin-economy] cosméticos no canjeables hasta equipamiento', () => {
+  it('PlatformShop define COSMETIC_CATEGORIES y bloquea el canje en UI', () => {
+    const src = read('src/features/giveaway-platform/components/PlatformShop.tsx');
+    expect(src).toMatch(/COSMETIC_CATEGORIES:\s*ReadonlySet<string>\s*=\s*new Set\(\['profile',\s*'frame',\s*'badge'\]\)/);
+    expect(src).toMatch(/isCosmeticNotEquipableYet/);
+    // Botón deshabilitado + label "Próximamente".
+    expect(src).toMatch(/cosmeticLocked\s*\?\s*'Próximamente'/);
+    // Badge visual "Próximamente" en la card.
+    expect(src).toMatch(/gp-shop-badge-soon[\s\S]{0,80}Próximamente/);
+  });
+
+  it('server action redeemShopItem BLOQUEA canje de cosméticos (belt-and-braces)', () => {
+    const src = read('src/app/sorteos/plataforma/actions.ts');
+    expect(src).toMatch(/COSMETIC_CATEGORIES\s*=\s*new Set\(\['profile',\s*'frame',\s*'badge'\]\)/);
+    expect(src).toMatch(/COSMETIC_CATEGORIES\.has\(item\.category\)/);
+    expect(src).toMatch(/estarán disponibles cuando habilitemos el equipamiento/);
+  });
+
+  it('CSS `.cosmetic-soon` y `.gp-shop-badge-soon` visibles y coherentes', () => {
+    const css = read('src/app/sorteos/plataforma/platform-widgets.css');
+    expect(css).toMatch(/\.gp-shop-card\.cosmetic-soon\s*\{[\s\S]{0,300}opacity:\s*0\.92/);
+    expect(css).toMatch(/\.gp-shop-badge-soon\s*\{[\s\S]{0,300}var\(--gold\)/);
   });
 });
 
