@@ -30,8 +30,6 @@ export default function robots(): MetadataRoute.Robots {
           '/auth/',
           // Portal privado de marcas (las páginas SEO públicas están en allow arriba)
           '/marcas/',
-          // Assets internos de Next.js (no indexables)
-          '/_next/',
           // Rutas WordPress — no existen, evita que bots las rastreen
           '/wp-content/',
           '/wp-admin/',

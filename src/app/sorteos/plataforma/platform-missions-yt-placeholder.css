@@ -1,0 +1,72 @@
+/*
+ * Placeholder informativo — misiones YouTube "Próximamente".
+ *
+ * Componente meramente visual sin lógica ni CTA. Se retira o se
+ * sustituye por la card real cuando arranque la fase 2 (OAuth Google
+ * + verificación via YouTube Data API v3). Ver
+ * `docs/youtube-missions-verification.md`.
+ *
+ * Scoped bajo `.giveaway-platform`. Cargado desde el layout raíz.
+ */
+
+.giveaway-platform .gp-missions-yt-placeholder {
+  margin-top: 20px;
+  padding: 18px 20px;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  border-radius: 14px;
+  background:
+    radial-gradient(400px 220px at 100% 0%, rgba(255, 87, 87, 0.10), transparent 65%),
+    rgba(11, 8, 20, 0.55);
+  border: 1px dashed rgba(255, 87, 87, 0.35);
+}
+
+.giveaway-platform .gp-missions-yt-icon {
+  font-size: 26px;
+  line-height: 1;
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 8px rgba(255, 87, 87, 0.35));
+}
+
+.giveaway-platform .gp-missions-yt-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.giveaway-platform .gp-missions-yt-title {
+  font-family: var(--font-display), var(--font-rajdhani), sans-serif;
+  font-weight: 800;
+  font-size: 15px;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: #fff;
+}
+
+.giveaway-platform .gp-missions-yt-soon {
+  color: #ff9a9a;
+  font-weight: 800;
+  letter-spacing: 1px;
+  margin-left: 4px;
+}
+
+.giveaway-platform .gp-missions-yt-desc {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.55;
+  max-width: 720px;
+}
+
+/* Responsive — ajuste móvil sin sobrecargar el bloque genérico. */
+@media (max-width: 480px) {
+  .giveaway-platform .gp-missions-yt-placeholder {
+    padding: 14px 16px;
+    gap: 12px;
+  }
+  .giveaway-platform .gp-missions-yt-icon { font-size: 22px; }
+  .giveaway-platform .gp-missions-yt-title { font-size: 13.5px; }
+  .giveaway-platform .gp-missions-yt-desc { font-size: 12.5px; }
+}

@@ -10,6 +10,8 @@ import {
   redemptions,
 } from '@/db/schema';
 import { startOfCurrentMonthUtc, type MissionConditionType } from './constants';
+import { assertAllowedCoinSource } from '@/lib/rewards/allowed-coin-sources';
+import { logGiveawayEvent } from '@/lib/audit/logGiveawayEvent';
 
 /**
  * Estado agregado del progreso de un usuario contra todas las condition
@@ -119,12 +121,21 @@ export async function evaluateAndClaimMissions(
     if (inserted.length === 0) continue; // otra petición lo cobró antes
 
     // 2) Acreditar monedas (solo si el claim fue nuestro).
+    assertAllowedCoinSource('mision');
     await db.insert(coinTransactions).values({
       userId,
       amount: mission.rewardCoins,
       source: 'mision',
       concept: `Misión completada · ${mission.title}`,
       refId: mission.id,
+    });
+    await logGiveawayEvent({
+      userId,
+      action:  'mission_claim',
+      outcome: 'success',
+      refType: 'mission',
+      refId:   mission.id,
+      metadata: { conditionType: mission.conditionType, rewardCoins: mission.rewardCoins },
     });
     newlyClaimed.push({ id: mission.id, title: mission.title, rewardCoins: mission.rewardCoins });
   }

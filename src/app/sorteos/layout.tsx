@@ -8,9 +8,14 @@ import './plataforma/platform.css';
 import './plataforma/platform-dropdown.css';
 import './plataforma/platform-hero.css';
 import './plataforma/platform-brand-cards.css';
+import './plataforma/platform-brand-csgo.css';
 import './plataforma/platform-brand-leds.css';
 import './plataforma/platform-fx.css';
 import './plataforma/platform-widgets.css';
+import './plataforma/platform-rewards-upcoming.css';
+import './plataforma/platform-missions-yt-placeholder.css';
+import './plataforma/platform-discord-mission.css';
+import './plataforma/platform-twitch-mission.css';
 import './plataforma/platform-external-giveaways.css';
 import './plataforma/platform-profile.css';
 import './plataforma/platform-creator-profile.css';
@@ -18,6 +23,9 @@ import './plataforma/platform-steam-avatar.css';
 import './plataforma/platform-mini-placeholders.css';
 import './plataforma/platform-legal.css';
 import './plataforma/platform-steam-login.css';
+// Ajustes responsive mobile — se carga al final para que los breakpoints
+// sobreescriban las reglas base sin depender de `!important`.
+import './plataforma/platform-mobile-responsive.css';
 import './sorteos-index.css';
 
 const rajdhani = Rajdhani({
@@ -37,7 +45,7 @@ const chakra = Chakra_Petch({
 export const metadata: Metadata = {
   title: 'Sorteos y recompensas de creadores | SocialPro',
   description:
-    'Índice público de SocialPro Giveaways. Elige un creador y participa gratis en sus sorteos, gana monedas y canjea recompensas.',
+    'Índice público de SocialPro Giveaways. Elige un creador y participa gratis en sus sorteos, gana puntos y canjea recompensas.',
   robots: { index: true, follow: true },
   alternates: { canonical: absoluteUrl('/sorteos') },
 };

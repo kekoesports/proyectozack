@@ -93,7 +93,7 @@ describe('[post-170] SteamAvatar fallback premium', () => {
     expect(pill).toMatch(/<SteamAvatar\s+imageUrl=\{userImage\}\s+name=\{userName\}\s+size=\{26\}/);
     // El avatar antiguo era `<span className="gp-avatar" aria-hidden>🐱|🎮</span>`.
     // Comprobamos que ese patrón concreto ya no existe (el emoji 🎮 del botón de
-    // login y el 🪙 de las monedas son legítimos y siguen).
+    // login y el ⭐ de los puntos son legítimos y siguen).
     expect(pill).not.toMatch(/<span\s+className="gp-avatar"[^>]*>\s*(🐱|🎮)/);
   });
 

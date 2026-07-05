@@ -1,9 +1,11 @@
 /**
- * Contratos estructurales de las 4 páginas legales de SocialPro Giveaways:
+ * Contratos estructurales de las páginas legales de SocialPro Giveaways:
  *   /sorteos/faq
  *   /sorteos/terminos
  *   /sorteos/privacidad
- *   /sorteos/juego-responsable
+ *   /sorteos/participacion-responsable  (antes: juego-responsable, redirect 301)
+ *   /sorteos/recompensas-y-puntos       (Fase 0 legal)
+ *   /sorteos/partners-externos          (Fase 0 legal)
  *
  * + Banner "borrador pendiente de revisión legal" común.
  * + Footer de la plataforma con links legales.
@@ -18,10 +20,12 @@ const ROOT = path.resolve(__dirname, '..', '..', '..');
 const read = (rel: string) => fs.readFileSync(path.join(ROOT, rel), 'utf-8');
 
 const LEGAL_PAGES = [
-  { route: 'faq',                file: 'src/app/sorteos/(legal)/faq/page.tsx' },
-  { route: 'terminos',           file: 'src/app/sorteos/(legal)/terminos/page.tsx' },
-  { route: 'privacidad',         file: 'src/app/sorteos/(legal)/privacidad/page.tsx' },
-  { route: 'juego-responsable',  file: 'src/app/sorteos/(legal)/juego-responsable/page.tsx' },
+  { route: 'faq',                       file: 'src/app/sorteos/(legal)/faq/page.tsx' },
+  { route: 'terminos',                  file: 'src/app/sorteos/(legal)/terminos/page.tsx' },
+  { route: 'privacidad',                file: 'src/app/sorteos/(legal)/privacidad/page.tsx' },
+  { route: 'participacion-responsable', file: 'src/app/sorteos/(legal)/participacion-responsable/page.tsx' },
+  { route: 'recompensas-y-puntos',      file: 'src/app/sorteos/(legal)/recompensas-y-puntos/page.tsx' },
+  { route: 'partners-externos',         file: 'src/app/sorteos/(legal)/partners-externos/page.tsx' },
 ] as const;
 
 describe('[legal] archivos existen y montan Page', () => {
@@ -109,8 +113,8 @@ describe('[legal] términos — NO activa verificación de depósitos', () => {
   });
 });
 
-describe('[legal] juego responsable — recursos DGOJ + separación de partners externos', () => {
-  const src = read('src/app/sorteos/(legal)/juego-responsable/page.tsx');
+describe('[legal] participación responsable — recursos DGOJ + separación de partners externos', () => {
+  const src = read('src/app/sorteos/(legal)/participacion-responsable/page.tsx');
 
   it('afirma que los sorteos internos son gratuitos y NO son apuestas', () => {
     expect(src).toMatch(/no constituyen apuestas|no es una actividad de juego regulado/i);
@@ -128,6 +132,23 @@ describe('[legal] juego responsable — recursos DGOJ + separación de partners 
   it('separa autoexclusión de partners externos', () => {
     expect(src).toMatch(/autoexclusión de partners externos/i);
     expect(src).toMatch(/SocialPro no puede ejecutarla en tu nombre/i);
+  });
+  it('deja claro que SocialPro no es operador de juego (renombrado desde "juego responsable")', () => {
+    // El copy suele estar partido por JSX en varias líneas — normalizamos
+    // whitespace antes de matchear.
+    const normalized = src.replace(/\s+/g, ' ');
+    expect(normalized).toMatch(/SocialPro no es[\s\S]{0,10}un operador de juego/i);
+  });
+});
+
+describe('[legal] juego-responsable — legacy redirect', () => {
+  const src = read('src/app/sorteos/(legal)/juego-responsable/page.tsx');
+  it('es un redirect a /sorteos/participacion-responsable', () => {
+    expect(src).toMatch(/redirect\(\s*['"]\/sorteos\/participacion-responsable['"]\s*\)/);
+  });
+  it('no expone contenido legal — solo el redirect', () => {
+    expect(src).not.toMatch(/<section/);
+    expect(src).not.toMatch(/gp-legal-section/);
   });
 });
 
@@ -155,11 +176,16 @@ describe('[legal] privacidad — RGPD + no datos sensibles', () => {
 
 describe('[legal] PlatformFooter con links legales', () => {
   const src = read('src/features/giveaway-platform/components/PlatformFooter.tsx');
-  it('enlaza las 4 páginas legales', () => {
+  it('enlaza las páginas legales actualizadas', () => {
     expect(src).toMatch(/href="\/sorteos\/faq"/);
     expect(src).toMatch(/href="\/sorteos\/terminos"/);
     expect(src).toMatch(/href="\/sorteos\/privacidad"/);
-    expect(src).toMatch(/href="\/sorteos\/juego-responsable"/);
+    expect(src).toMatch(/href="\/sorteos\/participacion-responsable"/);
+    expect(src).toMatch(/href="\/sorteos\/recompensas-y-puntos"/);
+    expect(src).toMatch(/href="\/sorteos\/partners-externos"/);
+  });
+  it('ya NO enlaza la ruta legacy /sorteos/juego-responsable', () => {
+    expect(src).not.toMatch(/href="\/sorteos\/juego-responsable"/);
   });
   it('mantiene el tagline "SOCIALPRO GIVEAWAYS · sin apuestas · +18"', () => {
     expect(src).toMatch(/SOCIALPRO GIVEAWAYS/);
@@ -307,7 +333,7 @@ describe('[legal] pass preventivo — sin sistema antifraude/multiaccount aspira
 });
 
 describe('[legal] pass preventivo — publicidad sin afirmar compliance con Leyes concretas', () => {
-  const src = read('src/app/sorteos/(legal)/juego-responsable/page.tsx');
+  const src = read('src/app/sorteos/(legal)/participacion-responsable/page.tsx');
 
   it('ya NO afirma "Aplicamos las buenas prácticas de la Ley 13/2022 ... y la Ley 13/2011"', () => {
     expect(src).not.toMatch(/Aplicamos las buenas prácticas de la Ley 13\/2022/i);

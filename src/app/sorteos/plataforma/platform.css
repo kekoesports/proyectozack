@@ -274,6 +274,16 @@
 .giveaway-platform .gp-btn:disabled { opacity: 0.4; pointer-events: none; transform: none; }
 .giveaway-platform .gp-btn:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
 
+/* CTAs anclas — `<a>` que actúan como botón. Quita el subrayado por
+ * defecto y hereda color del padre. Usado por BrandCardKeyDrop (banner
+ * principal) para que Reclamar / Bonus / Cómo participar / VIP Club
+ * abran KeyDrop con el code aplicado sin verse como link plano. */
+.giveaway-platform a.gp-cta-link {
+  text-decoration: none;
+  color: inherit;
+}
+.giveaway-platform a.gp-cta-link:hover { text-decoration: none; }
+
 /* ================ FOOTER + LEGACY DYNAMIC (PR2 rediseñará) ================ */
 .giveaway-platform .gp-footer {
   margin-top: 50px;
@@ -367,7 +377,41 @@
   .giveaway-platform .gp-hero-video { display: none; }
 }
 @media (max-width: 980px) {
-  .giveaway-platform .gp-nav-links { display: none; }
+  /* Nav en móvil: logo + user pill en fila 1, tabs scrollables en fila 2.
+   * NO se ocultan los tabs — sigue siendo la única forma de navegar entre
+   * secciones internas. Sin JS ni hamburguesa. */
+  .giveaway-platform .gp-nav-inner {
+    flex-wrap: wrap;
+    height: auto;
+    padding: 10px 16px;
+    gap: 10px;
+  }
+  .giveaway-platform .gp-nav-links {
+    display: flex;
+    order: 3;
+    width: 100%;
+    margin: 0;
+    padding: 0 2px 4px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .giveaway-platform .gp-nav-links::-webkit-scrollbar { display: none; }
+  .giveaway-platform .gp-nav-links a {
+    flex-shrink: 0;
+    scroll-snap-align: start;
+    padding: 12px 12px;
+    font-size: 12.5px;
+    letter-spacing: 0.8px;
+  }
+  .giveaway-platform .gp-nav-links a.active::after {
+    left: 8px;
+    right: 8px;
+    height: 2px;
+  }
+
   .giveaway-platform .p-keydrop { grid-template-columns: 1fr; }
   .giveaway-platform .gp-grid-2 { grid-template-columns: 1fr; }
   .giveaway-platform .gp-hero {

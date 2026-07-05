@@ -4,7 +4,7 @@ import Link from 'next/link';
 export const metadata: Metadata = {
   title: 'FAQ · SocialPro Giveaways',
   description:
-    'Preguntas frecuentes sobre la plataforma de sorteos gratuitos de SocialPro: cómo participar, monedas, canjeo, providers externos y Steam login. Borrador.',
+    'Preguntas frecuentes sobre la plataforma de sorteos gratuitos de SocialPro: cómo participar, puntos, canjeo, providers externos y Steam login. Borrador.',
   alternates: { canonical: '/sorteos/faq' },
   robots: { index: false, follow: false },
 };
@@ -24,9 +24,9 @@ const SECTIONS: { title: string; items: QA[] }[] = [
           <p>
             SocialPro Giveaways es una plataforma web operada por SocialPro donde los creadores de
             contenido asociados a la agencia publican sorteos <b>gratuitos</b> dirigidos a su
-            comunidad. Los participantes ganan tickets sin coste y pueden acumular monedas
-            virtuales (🪙) que se canjean por objetos físicos, digitales o tarjetas regalo en la
-            tienda interna. La plataforma no acepta ni gestiona dinero real de los participantes.
+            comunidad. Los participantes ganan tickets sin coste y pueden acumular puntos
+            internos (⭐) que se canjean por objetos físicos, digitales o tarjetas regalo en la
+            sección de recompensas. La plataforma no acepta ni gestiona dinero real de los participantes.
           </p>
         ),
       },
@@ -85,7 +85,7 @@ const SECTIONS: { title: string; items: QA[] }[] = [
         q: '¿Qué es una racha diaria?',
         a: (
           <p>
-            Es una recompensa diaria de 🪙 que puedes reclamar una vez cada 24 horas si mantienes
+            Es una recompensa diaria de puntos ⭐ que puedes reclamar una vez cada 24 horas si mantienes
             el login diario. Si te saltas un día, la racha se reinicia al día 1. Es solo un bono
             de fidelidad, no una obligación.
           </p>
@@ -94,16 +94,16 @@ const SECTIONS: { title: string; items: QA[] }[] = [
     ],
   },
   {
-    title: 'Monedas y tienda',
+    title: 'Puntos y recompensas',
     items: [
       {
-        q: '¿Qué son las monedas 🪙?',
+        q: '¿Qué son los puntos ⭐?',
         a: (
           <p>
-            Son puntos internos, sin valor monetario y sin capacidad de conversión a euros o
-            cualquier moneda de curso legal. Se ganan participando, completando misiones o
-            manteniendo la racha diaria. Se gastan canjeando premios en la tienda. No se pueden
-            comprar, transferir entre cuentas ni retirar.
+            Los puntos son un sistema interno de fidelización y recompensas dentro de SocialPro
+            Giveaways. <b>No son dinero, no son criptomonedas, no tienen valor monetario, no son
+            transferibles y no pueden canjearse por efectivo.</b> Se ganan participando, completando
+            misiones o manteniendo la racha diaria. Se gastan canjeando recompensas.
           </p>
         ),
       },
@@ -111,8 +111,8 @@ const SECTIONS: { title: string; items: QA[] }[] = [
         q: '¿Cómo canjeo un premio?',
         a: (
           <p>
-            En <code>/sorteos#tienda</code> eliges un artículo cuyo coste sea igual o
-            menor que tu saldo. Al pulsar &quot;Canjear&quot; se descuentan las monedas y el
+            En <code>/sorteos#recompensas</code> eliges una recompensa cuyo coste sea igual o
+            menor que tu saldo. Al pulsar &quot;Canjear&quot; se descuentan los puntos y el
             equipo de SocialPro contacta contigo para coordinar el envío o la entrega digital,
             según el tipo de artículo. Una vez procesado o entregado un canje puede no ser
             posible cancelarlo, sin perjuicio de los derechos que correspondan al usuario según
@@ -122,7 +122,7 @@ const SECTIONS: { title: string; items: QA[] }[] = [
         ),
       },
       {
-        q: '¿Puedo perder monedas?',
+        q: '¿Puedo perder puntos?',
         a: (
           <p>
             Solo si canjeas (gasto voluntario) o si tu cuenta es suspendida por incumplir
@@ -172,7 +172,7 @@ const SECTIONS: { title: string; items: QA[] }[] = [
         a: (
           <p>
             Steam ID, nombre público de Steam, avatar público de Steam, participaciones en
-            sorteos, transacciones de monedas, misiones completadas y canjeos. Detalle completo
+            sorteos, historial de puntos, misiones completadas y canjeos. Detalle completo
             en <Link href="/sorteos/privacidad">/sorteos/privacidad</Link>.
           </p>
         ),

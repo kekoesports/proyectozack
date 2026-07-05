@@ -180,16 +180,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: absoluteUrl('/blog'),             lastModified: D.blog          },
     { url: absoluteUrl('/news'),             lastModified: BUILD_DATE             },
     { url: absoluteUrl('/news/live'),        lastModified: BUILD_DATE             },
-    {
-      url: absoluteUrl('/codigos'),
-      lastModified: D.giveaways,
-      alternates: { languages: { en: absoluteUrl('/codigos'), es: absoluteUrl('/sorteos'), 'x-default': absoluteUrl('/sorteos') } },
-    },
-    {
-      url: absoluteUrl('/sorteos'),
-      lastModified: D.sorteos,
-      alternates: { languages: { es: absoluteUrl('/sorteos'), en: absoluteUrl('/codigos'), 'x-default': absoluteUrl('/sorteos') } },
-    },
+    // /codigos y /sorteos son ambas páginas en español (locale es_ES) — NO son
+    // traducciones EN↔ES sino índices distintos del mismo idioma. Sin hreflang.
+    { url: absoluteUrl('/codigos'), lastModified: D.giveaways },
+    { url: absoluteUrl('/sorteos'), lastModified: D.sorteos    },
+    { url: absoluteUrl('/keko'),    lastModified: BUILD_DATE   },
     ...bilingualLandings,
     ...caseEntries,
     ...talentEntries,

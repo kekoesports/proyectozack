@@ -1,27 +1,32 @@
-# Economía de monedas — SocialPro Giveaways
+# Economía de puntos — SocialPro Giveaways
 
 **Estado:** Fase 1 — política aprobada por producto, pendiente de revisión legal para textos públicos.
 **Alcance:** `/sorteos/plataforma`, misiones, tienda, rankings, perfil.
 **Autor:** producto (2026-07-03).
 
-Este documento fija la regla interna de balance para la economía de monedas 🪙 de la plataforma. La regla NO se expone al usuario ni se comunica como conversión monetaria — es una guía interna para calibrar rewards y precios.
+> **Nota de naming (2026-07-03)**: el sistema se llama **puntos SocialPro (SP)** en la UI pública. Internamente (DB, código, tests) se mantienen los identificadores heredados `coin_transactions`, `getCoinBalance`, `ENTRY_COIN_REWARD`, etc. porque renombrarlos implicaría migraciones de DB — se hará en un PR separado si se aprueba. El nombre del propio archivo `sorteos-coin-economy.md` se mantiene por retrocompatibilidad con las referencias en `src/`; el contenido habla siempre de puntos.
+
+Este documento fija la regla interna de balance para la economía de puntos ⭐ de la plataforma. La regla NO se expone al usuario ni se comunica como conversión monetaria — es una guía interna para calibrar rewards y precios.
 
 ---
 
 ## 1. Regla interna de valoración
 
-- **1 USD de coste interno ≈ 1.000 monedas.**
-- **1 EUR de coste interno ≈ 1.100 monedas.**
+- **1 USD de coste interno ≈ 1.000 puntos.**
+- **1 EUR de coste interno ≈ 1.100 puntos.**
 
 Uso: cuando un artículo cueste al proveedor (SocialPro) X€, su precio interno base es `X × 1.100`. Se ajusta a la baja para incentivar canjes menores y al alza para artículos premium (fricción, uso de stock limitado, marca).
 
-**Importante — nunca exponer al usuario:**
-- No mostrar "1.000 monedas = 1$" en la UI.
-- No permitir comprar monedas con dinero.
-- No permitir transferir monedas entre usuarios.
+Esta referencia **no se muestra al usuario y no implica valor monetario de los puntos**.
+
+**Prohibido exponer al usuario:**
+- No mostrar "1.000 puntos = 1$" ni conversión equivalente en la UI.
+- No permitir comprar puntos con dinero.
+- No permitir transferir puntos entre usuarios.
 - No permitir marketplace usuario↔usuario.
-- No decir que las monedas tienen valor monetario.
-- Copy público estable: *"Las monedas son puntos internos sin valor monetario, no transferibles y no canjeables por dinero."*
+- No decir que los puntos tienen valor monetario.
+- Copy público estable — literal en tienda/FAQ/legales:
+  > *"Los puntos son un sistema interno de fidelización y recompensas dentro de SocialPro Giveaways. No son dinero, no son criptomonedas, no tienen valor monetario, no son transferibles y no pueden canjearse por efectivo."*
 
 Ver también `docs/giveaway-coin-economy-plan.md` (plan técnico futuro de expansión), `docs/sorteos-*` legales.
 
@@ -33,8 +38,8 @@ Ver también `docs/giveaway-coin-economy-plan.md` (plan técnico futuro de expan
 
 | Fuente | Valor |
 |---|---|
-| Racha diaria días 1-7 | `[10, 15, 20, 25, 30, 40, 60]` → total semana **200 monedas** |
-| Participar en sorteo interno (`ENTRY_COIN_REWARD`) | 20 monedas |
+| Racha diaria días 1-7 | `[10, 15, 20, 25, 30, 40, 60]` → total semana **200 puntos** |
+| Participar en sorteo interno (`ENTRY_COIN_REWARD`) | 20 puntos |
 | Misión "Primera participación" | 50 |
 | Misión "Participa en +5 sorteos" | 250 |
 | Misión "Participa en +50 sorteos" | 1.500 |
@@ -56,7 +61,7 @@ Ver también `docs/giveaway-coin-economy-plan.md` (plan técnico futuro de expan
 | PSN Plus 1 mes (~5€) | 900 |
 | Riot Points 10€ | 1.000 |
 
-Ratio actual = ~100 monedas/€. Propuesta = ~1.100 monedas/€. **Factor de reajuste ≈ 11×.**
+Ratio actual = ~100 puntos/€. Propuesta = ~1.100 puntos/€. **Factor de reajuste ≈ 11×.**
 
 ---
 
@@ -66,21 +71,21 @@ Ratio actual = ~100 monedas/€. Propuesta = ~1.100 monedas/€. **Factor de rea
 
 | Fuente | Rango objetivo |
 |---|---|
-| Login diario (racha día 1) | 20 monedas |
-| Racha 3 días completada | +75 monedas |
-| Racha 7 días completada | +250 monedas |
-| Misión básica | 50 monedas |
-| Misión media | 250 monedas |
-| Misión premium (verificada) | 1.000 monedas |
-| Participar en sorteo interno | 50 monedas |
-| Completar perfil | 150 monedas (una vez) |
-| Conectar Discord/YouTube (futuro) | 250-750 monedas (una vez cada canal) |
+| Login diario (racha día 1) | 20 puntos |
+| Racha 3 días completada | +75 puntos |
+| Racha 7 días completada | +250 puntos |
+| Misión básica | 50 puntos |
+| Misión media | 250 puntos |
+| Misión premium (verificada) | 1.000 puntos |
+| Participar en sorteo interno | 50 puntos |
+| Completar perfil | 150 puntos (una vez) |
+| Conectar Discord/YouTube (futuro) | 250-750 puntos (una vez cada canal) |
 | Ranking mensual — Top 3 | premio especial (ver §6) |
 
 **Ganancia esperada por perfil:**
-- **Casual** (login diario + 1 sorteo/semana): ~150 mon/semana → ~600/mes.
-- **Activo** (racha completa + 3 misiones básicas/mes): ~1.200 mon/mes.
-- **Grinder** (racha + misiones media + participaciones semanales): ~3.500-5.000 mon/mes.
+- **Casual** (login diario + 1 sorteo/semana): ~150 puntos/semana → ~600/mes.
+- **Activo** (racha completa + 3 misiones básicas/mes): ~1.200 puntos/mes.
+- **Grinder** (racha + misiones media + participaciones semanales): ~3.500-5.000 puntos/mes.
 
 ### 3.2 Precios de tienda
 
@@ -97,7 +102,7 @@ Ratio actual = ~100 monedas/€. Propuesta = ~1.100 monedas/€. **Factor de rea
 | Skin CS2 pequeña | 3.000-8.000 | Glock, USP-S básicas |
 | Skin CS2 media | 10.000-25.000 | AK-47 · Redline y similares |
 | Skin CS2 premium | 40.000+ | knife, gloves, top-tier factory new |
-| Merch físico (T-shirt) | coste-interno × 1.3 → ~15.000 mon si T-shirt cuesta ~11€ |
+| Merch físico (T-shirt) | coste-interno × 1.3 → ~15.000 puntos si T-shirt cuesta ~11€ |
 
 ### 3.3 Política de dificultad
 
@@ -106,19 +111,23 @@ Ratio actual = ~100 monedas/€. Propuesta = ~1.100 monedas/€. **Factor de rea
 - **Grinder** → skin media o gift card 25$ en 2-3 meses.
 - **Premio grande** (skin premium, knife/gloves) requiere constancia + ranking + campañas especiales — NO farmeable con solo login diario.
 
-Regla dura: **con solo login diario 30 días** el usuario acumula ~600 monedas → una profile card básica. No permite skin ni gift card. Hace falta misiones + participación.
+Regla dura: **con solo login diario 30 días** el usuario acumula ~600 puntos → una profile card básica. No permite skin ni gift card. Hace falta misiones + participación.
 
 ### 3.4 Reglas legales / disclaimers públicos
 
 Estas frases deben aparecer literales o equivalentes en tienda/FAQ/perfil (borrador; validar con gestoría antes de definitivas):
 
-- "Las monedas son puntos internos sin valor monetario."
+- "Los puntos son recompensas internas sin valor monetario."
 - "No son criptomonedas."
 - "No son transferibles entre usuarios."
 - "No pueden venderse."
 - "No son canjeables por dinero en efectivo."
 - "Los precios y disponibilidad pueden cambiar."
 - "Los canjes pueden requerir revisión antes del envío."
+
+**Disclaimer largo (recomendado en Términos y FAQ):**
+
+> Los puntos son un sistema interno de fidelización y recompensas dentro de SocialPro Giveaways. No son dinero, no son criptomonedas, no tienen valor monetario, no son transferibles y no pueden canjearse por efectivo.
 
 ---
 
@@ -193,9 +202,9 @@ Ampliación en `src/features/giveaway-platform/components/PlatformShop.tsx`:
 - `ENTRY_COIN_REWARD`: 20 → 50 (antes también incluía "por sorteo", ahora "por participación").
 
 **Misiones** — mantener rango 50-3.000, pero clarificar tiers:
-- Básica: 50 mon (una tarea puntual).
-- Media: 250 mon (semanal o "5 acciones").
-- Premium: 1.000-1.500 mon (mensual, verificada).
+- Básica: 50 puntos (una tarea puntual).
+- Media: 250 puntos (semanal o "5 acciones").
+- Premium: 1.000-1.500 puntos (mensual, verificada).
 
 **Precios shop** — factor ~11×:
 - Steam 10€: 1.000 → 11.000.
@@ -218,8 +227,8 @@ Recomiendo **B**. Documentar el cambio con fecha en un mensaje interno.
 
 Espacio reservado para expansiones futuras:
 
-- **Ranking mensual** — top 3 recibe bonus one-shot (2.500 / 1.500 / 1.000 monedas + badge exclusivo). Ver `getMonthlyRanking` en `src/lib/queries/giveawayPlatform.ts`.
-- **Campañas de creador** — un partner (KeyDrop, futuros) puede lanzar campaña con multiplicador de monedas por participar (ej. ×2 durante 1 semana). Implementación pendiente.
+- **Ranking mensual** — top 3 recibe bonus one-shot (2.500 / 1.500 / 1.000 puntos + badge exclusivo). Ver `getMonthlyRanking` en `src/lib/queries/giveawayPlatform.ts`.
+- **Campañas de creador** — un partner (KeyDrop, futuros) puede lanzar campaña con multiplicador de puntos por participar (ej. ×2 durante 1 semana). Implementación pendiente.
 - **Season pass** — badge premium mensual desbloqueable con actividad.
 
 Cada expansión requiere PR propio + revisión legal si hay premio en dinero equivalente.
@@ -245,6 +254,7 @@ Cada expansión requiere PR propio + revisión legal si hay premio en dinero equ
 | Fase 4 — reajuste económico | Cambio de constantes rewards + `costCoins`. Aplicar con seed experimental | No (solo re-seed) |
 | Fase 5 — ranking mensual bonus | Cron end-of-month que distribuye premios | Posible tabla `monthly_bonuses` |
 | Fase 6 — campañas creador | Tabla `coin_campaigns` con multiplicadores temporales | Sí |
+| Fase X — rename interno DB | `coin_transactions` → `points_transactions`, `getCoinBalance` → `getPointsBalance`, `ENTRY_COIN_REWARD` → `ENTRY_POINTS_REWARD` | **Sí** — pedir OK antes |
 
 ### Separación de seeds
 

@@ -1,4 +1,5 @@
 import { headers } from 'next/headers';
+import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { eq, inArray } from 'drizzle-orm';
 import { auth } from '@/lib/auth';
@@ -114,9 +115,9 @@ export default async function PerfilPage() {
 
         <section className="gp-profile-stats">
           <div className="gp-profile-stat">
-            <span className="l">🪙 Saldo</span>
+            <span className="l">⭐ Saldo</span>
             <b>{balance.toLocaleString('es-ES')}</b>
-            <span className="s">monedas disponibles</span>
+            <span className="s">puntos disponibles</span>
           </div>
           <div className="gp-profile-stat">
             <span className="l">🔥 Racha</span>
@@ -142,13 +143,21 @@ export default async function PerfilPage() {
             initialSteamTradeUrl={profile?.steamTradeUrl ?? null}
             initialKickUsername={profile?.kickUsername ?? null}
           />
+          <p style={{ marginTop: 16, fontSize: 13 }}>
+            <Link
+              href="/sorteos/perfil/permisos"
+              style={{ color: '#f5632a', textDecoration: 'underline' }}
+            >
+              Ver mis permisos y consentimientos →
+            </Link>
+          </p>
         </section>
 
         <section className="gp-legacy-block">
           <h2>🎒 Inventario</h2>
           {userRedemptions.length === 0 ? (
             <p className="gp-rank-empty">
-              Aún no has canjeado nada en la tienda. Consigue monedas con misiones y sorteos.
+              Aún no has canjeado ninguna recompensa. Consigue puntos con misiones y sorteos.
             </p>
           ) : (
             <ul className="gp-profile-inv">
@@ -178,7 +187,7 @@ export default async function PerfilPage() {
         <section className="gp-legacy-block">
           <h2>🧾 Últimas transacciones</h2>
           {transactions.length === 0 ? (
-            <p className="gp-rank-empty">Aún no tienes movimientos de monedas.</p>
+            <p className="gp-rank-empty">Aún no tienes movimientos de puntos.</p>
           ) : (
             <ul className="gp-profile-tx">
               {transactions.map((t) => (
@@ -186,7 +195,7 @@ export default async function PerfilPage() {
                   <span className="gp-profile-tx-src">{SOURCE_LABEL[t.source] ?? t.source}</span>
                   <span className="gp-profile-tx-date">{formatDate(t.createdAt)}</span>
                   <span className={`gp-profile-tx-amt ${t.amount >= 0 ? 'pos' : 'neg'}`}>
-                    {t.amount > 0 ? '+' : ''}{t.amount.toLocaleString('es-ES')} 🪙
+                    {t.amount > 0 ? '+' : ''}{t.amount.toLocaleString('es-ES')} ⭐
                   </span>
                 </li>
               ))}

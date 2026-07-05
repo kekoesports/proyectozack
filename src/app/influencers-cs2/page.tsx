@@ -175,6 +175,27 @@ export default function InfluencersCs2Page() {
         </div>
       </section>
 
+      {/* Editorial cross-linking — silo CS2/iGaming ES */}
+      <section className="bg-sp-off border-t border-sp-border py-10">
+        <div className="max-w-3xl mx-auto px-6 text-sm text-sp-muted leading-relaxed space-y-3">
+          <p>
+            Muchos de estos creadores CS2 forman parte del proyecto de{' '}
+            <Link href="/apuesta-segura-cs2" className="font-semibold text-sp-orange hover:underline">
+              apuestas seguras en Counter-Strike
+            </Link>
+            {' '}y trabajan campañas dentro de{' '}
+            <Link href="/servicios/igaming" className="font-semibold text-sp-orange hover:underline">
+              nuestros servicios iGaming
+            </Link>
+            . Si tu vertical es más amplio, mira la{' '}
+            <Link href="/agencia-marketing-esports" className="font-semibold text-sp-orange hover:underline">
+              agencia de marketing esports
+            </Link>
+            .
+          </p>
+        </div>
+      </section>
+
       <section className="bg-sp-black py-16 text-center">
         <div className="max-w-2xl mx-auto px-6">
           <h2 className="font-display text-3xl font-black uppercase text-white mb-4">¿Listo para activar tu campaña con <span style={g}>influencers CS2 hispanohablantes?</span></h2>

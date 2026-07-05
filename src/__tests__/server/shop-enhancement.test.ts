@@ -6,7 +6,7 @@
  *  - Category tabs con badge de count.
  *  - Card marca "affordable" cuando balance >= cost && stock > 0.
  *  - Barra de progreso por card (% balance/cost, clamped 100).
- *  - Botón muestra "Faltan N 🪙" cuando no alcanza.
+ *  - Botón muestra "Faltan N ⭐" cuando no alcanza.
  *  - Empty state cuando el filtro no devuelve items.
  *  - CSS para summary, badges y progress-fill.
  */
@@ -39,7 +39,9 @@ describe('[shop-enhancement] componente', () => {
 
   it('card marca affordable cuando balance >= cost && stock > 0', () => {
     expect(src).toMatch(/const\s+affordable\s*=\s*balance\s*>=\s*item\.costCoins\s*&&\s*item\.stock\s*>\s*0/);
-    expect(src).toMatch(/gp-shop-card\$\{affordable\s*\?\s*' affordable'\s*:\s*''\}/);
+    // Post-refactor: la card marca affordable solo si además no requiere
+    // Steam Trade URL (skin sin trade URL configurada → no affordable UX).
+    expect(src).toMatch(/gp-shop-card\$\{affordable\s*&&\s*!needsTradeUrl\s*\?\s*' affordable'\s*:\s*''\}/);
   });
 
   it('barra de progreso clamped a 100 usando Math.max(1, cost) para evitar /0', () => {
@@ -50,8 +52,9 @@ describe('[shop-enhancement] componente', () => {
     expect(src).toMatch(/Faltan\s*\$\{\(item\.costCoins\s*-\s*balance\)/);
   });
 
-  it('empty state cuando visible.length === 0', () => {
-    expect(src).toMatch(/visible\.length\s*===\s*0\s*\?[\s\S]{0,200}No hay artículos/);
+  it('empty state cuando no hay ni items ni team merch en la categoría', () => {
+    // Post-refactor: la variable es `nothing` (combina visibleItems + visibleUpcoming).
+    expect(src).toMatch(/nothing\s*\?[\s\S]{0,200}No hay recompensas/);
   });
 });
 

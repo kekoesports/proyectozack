@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { SectionTag } from '@/components/ui/SectionTag';
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { GradientText } from '@/components/ui/GradientText';
@@ -213,6 +214,34 @@ export default function ParaCreadoresPage() {
             Abierto a creadores de España y toda LATAM.
           </p>
           <CreatorApplyForm />
+        </div>
+      </section>
+
+      {/* ── Enlazado editorial contextual ── */}
+      <section className="bg-sp-off border-t border-sp-border py-10">
+        <div className="max-w-3xl mx-auto px-6 text-sp-muted text-sm leading-relaxed">
+          <p className="mb-3">
+            Antes de aplicar puedes echar un vistazo al{' '}
+            <Link href="/talentos" className="font-semibold text-sp-orange hover:underline">
+              roster actual de creadores
+            </Link>
+            {' '}y a los{' '}
+            <Link href="/casos" className="font-semibold text-sp-orange hover:underline">
+              casos que hemos ejecutado
+            </Link>
+            {' '}con marcas como 1WIN, SkinsMonkey y RAZER.
+          </p>
+          <p>
+            ¿Ya trabajas con marcas? Los{' '}
+            <Link href="/codigos" className="font-semibold text-sp-orange hover:underline">
+              códigos exclusivos
+            </Link>
+            {' '}y{' '}
+            <Link href="/sorteos" className="font-semibold text-sp-orange hover:underline">
+              sorteos de creador
+            </Link>
+            {' '}son dos de las palancas de monetización que activamos junto al talento.
+          </p>
         </div>
       </section>
     </>

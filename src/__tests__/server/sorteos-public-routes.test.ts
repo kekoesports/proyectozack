@@ -177,7 +177,17 @@ describe('[sorteos-routes] chrome público desactivado en /sorteos/*', () => {
 });
 
 describe('[sorteos-routes] páginas legales siguen bajo /sorteos/(legal)/', () => {
-  const routes = ['faq', 'terminos', 'privacidad', 'juego-responsable'];
+  // Fase 0 legal:
+  //   - juego-responsable → participacion-responsable (renombre + redirect 301).
+  //   - Añadidas recompensas-y-puntos y partners-externos.
+  const routes = [
+    'faq',
+    'terminos',
+    'privacidad',
+    'participacion-responsable',
+    'recompensas-y-puntos',
+    'partners-externos',
+  ];
   for (const r of routes) {
     it(`/sorteos/${r} sigue existiendo`, () => {
       const src = read(`src/app/sorteos/(legal)/${r}/page.tsx`);
@@ -185,10 +195,14 @@ describe('[sorteos-routes] páginas legales siguen bajo /sorteos/(legal)/', () =
       expect(src).toMatch(/robots:\s*\{\s*index:\s*false/);
     });
   }
-  it('PlatformFooter enlaza a las 4 legales', () => {
+  it('PlatformFooter enlaza a todas las legales activas', () => {
     const src = read('src/features/giveaway-platform/components/PlatformFooter.tsx');
     for (const r of routes) {
       expect(src).toMatch(new RegExp(`href="/sorteos/${r}"`));
     }
+  });
+  it('/sorteos/juego-responsable es un redirect legacy (no expone contenido)', () => {
+    const src = read('src/app/sorteos/(legal)/juego-responsable/page.tsx');
+    expect(src).toMatch(/redirect\(\s*['"]\/sorteos\/participacion-responsable['"]\s*\)/);
   });
 });

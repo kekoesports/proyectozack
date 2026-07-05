@@ -729,6 +729,27 @@
       "when": 1783003849094,
       "tag": "0103_giveaway_platform",
       "breakpoints": true
+    },
+    {
+      "idx": 104,
+      "version": "7",
+      "when": 1783166400000,
+      "tag": "0104_discord_missions_fase_a",
+      "breakpoints": true
+    },
+    {
+      "idx": 105,
+      "version": "7",
+      "when": 1783252800000,
+      "tag": "0105_fix_connected_social_accounts_schema",
+      "breakpoints": true
+    },
+    {
+      "idx": 106,
+      "version": "7",
+      "when": 1783289670314,
+      "tag": "0106_user_partner_consents_and_audit",
+      "breakpoints": true
     }
   ]
 }

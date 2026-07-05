@@ -1,9 +1,10 @@
 import { headers } from 'next/headers';
 import { eq, inArray } from 'drizzle-orm';
+import { hasActivePartnerConsent } from '@/lib/queries/partnerConsent';
 import { notFound } from 'next/navigation';
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
-import { dailyStreaks, talents } from '@/db/schema';
+import { dailyStreaks, playerProfiles, talents } from '@/db/schema';
 import {
   getActiveShopItems,
   getCoinBalance,
@@ -18,6 +19,10 @@ import {
   todayInPlatformTz,
 } from '@/lib/giveaway-platform/constants';
 import { getCreatorVisual } from '@/features/giveaway-platform/constants/creators';
+import { getDiscordMissionTarget, isDiscordOauthConfigured } from '@/features/giveaway-platform/constants/discord-missions';
+import { getTwitchMissionTarget, isTwitchOauthConfigured } from '@/features/giveaway-platform/constants/twitch-missions';
+import { isTokenEncryptionConfigured } from '@/lib/crypto/token-encryption';
+import { getConnectedAccount } from '@/lib/queries/connectedSocialAccounts';
 import { PlatformNav } from '@/features/giveaway-platform/components/PlatformNav';
 import { PlatformHero } from '@/features/giveaway-platform/components/PlatformHero';
 import { BrandBonusesSection } from '@/features/giveaway-platform/components/BrandBonusesSection';
@@ -56,10 +61,17 @@ export async function PlatformCreatorLanding({ slug }: Props) {
     notFound();
   }
 
-  const session = await auth.api.getSession({ headers: await headers() });
+  const requestHeaders = await headers();
+  const session = await auth.api.getSession({ headers: requestHeaders });
   const userId = session?.user?.id ?? null;
   const userName = session?.user?.name ?? null;
   const userImage = session?.user?.image ?? null;
+
+  // Consent gate para cards de partners externos (Fase 1 legal).
+  // Fuente de verdad → tabla `user_partner_consents`. Requiere sesión
+  // activa (si no hay login, el gate fuerza el login antes del modal).
+  // Ver docs/legal-risk-matrix.md.
+  const partnerConsentGranted = await hasActivePartnerConsent(userId);
 
   const dbCreators = await db.query.talents.findMany({
     where: inArray(talents.slug, [...PLATFORM_CREATOR_SLUGS]),
@@ -87,13 +99,49 @@ export async function PlatformCreatorLanding({ slug }: Props) {
     ? []
     : await getGiveawaysWithEntryData(active.id, userId);
 
-  const [balance, missions, streak] = userId
+  const [balance, missions, streak, playerProfile, discordAccount, twitchAccount] = userId
     ? await Promise.all([
         getCoinBalance(userId),
         getMissionsWithProgress(userId),
         db.query.dailyStreaks.findFirst({ where: eq(dailyStreaks.userId, userId) }),
+        db.query.playerProfiles.findFirst({
+          where: eq(playerProfiles.userId, userId),
+          columns: { steamTradeUrl: true },
+        }),
+        getConnectedAccount(userId, 'discord'),
+        getConnectedAccount(userId, 'twitch'),
       ])
-    : [0, [], undefined];
+    : [0, [], undefined, undefined, null, null];
+
+  // Config Discord del creador activo. La card Discord solo se muestra si
+  // TODAS las piezas están puestas:
+  //   1) Target del creador (guild id + invite URL) → `getDiscordMissionTarget`.
+  //   2) OAuth mínimo (client id/secret/redirect) → `isDiscordOauthConfigured`.
+  //   3) Cifrado de tokens (clave AES) → `isTokenEncryptionConfigured`.
+  // Si alguna falta, `discordProp` queda undefined y la grid oculta la card
+  // — fail-safe: nada de botones que rompan a mitad de flujo.
+  const discordTarget = getDiscordMissionTarget(active.slug);
+  const discordProp =
+    discordTarget && isDiscordOauthConfigured() && isTokenEncryptionConfigured()
+      ? {
+          connected: Boolean(discordAccount),
+          inviteUrl: discordTarget.inviteUrl ?? null,
+        }
+      : undefined;
+
+  // Config Twitch — misma lógica fail-safe que Discord. La card Twitch
+  // solo aparece si target del creador + OAuth + cifrado están todos
+  // configurados.
+  const twitchTarget = getTwitchMissionTarget(active.slug);
+  const twitchProp =
+    twitchTarget && isTwitchOauthConfigured() && isTokenEncryptionConfigured()
+      ? {
+          connected: Boolean(twitchAccount),
+          channelUrl: twitchTarget.channelUrl ?? null,
+        }
+      : undefined;
+
+  const hasSteamTradeUrl = Boolean(playerProfile?.steamTradeUrl && playerProfile.steamTradeUrl.trim().length > 0);
 
   const [ranking, rankingTotal, shopItemsData, externalSections] = await Promise.all([
     getMonthlyRanking(10),
@@ -125,7 +173,12 @@ export async function PlatformCreatorLanding({ slug }: Props) {
 
       <main className="gp-wrap">
         <PlatformHero code={activeVisual.code} creatorName={active.name} />
-        <BrandBonusesSection creatorSlug={active.slug} creatorCode={activeVisual.code} />
+        <BrandBonusesSection
+          creatorSlug={active.slug}
+          creatorCode={activeVisual.code}
+          isLoggedIn={Boolean(userId)}
+          partnerConsentGranted={partnerConsentGranted}
+        />
 
         {userId ? (
           <>
@@ -138,15 +191,15 @@ export async function PlatformCreatorLanding({ slug }: Props) {
 
             <section id="misiones">
               <div className="gp-legacy-block">
-                <h2>Misiones · gana monedas</h2>
-                <MissionsGrid missions={missions} />
+                <h2>Misiones · gana puntos</h2>
+                <MissionsGrid missions={missions} discord={discordProp} twitch={twitchProp} />
               </div>
             </section>
           </>
         ) : (
           <section>
             <div className="gp-legacy-block gp-login-prompt">
-              <p>Inicia sesión con Steam para participar en los sorteos, completar misiones y ganar monedas.</p>
+              <p>Inicia sesión con Steam para participar en los sorteos, completar misiones y ganar puntos.</p>
               <SteamLoginButton size="lg" />
             </div>
           </section>
@@ -157,7 +210,7 @@ export async function PlatformCreatorLanding({ slug }: Props) {
             <div className="gp-legacy-block">
               <h2>Sorteos de {active.name}</h2>
               <p className="gp-rank-note">
-                Participación gratuita · ganas +{ENTRY_COIN_REWARD} 🪙 por sorteo · fotos reales de las skins
+                Participación gratuita · ganas +{ENTRY_COIN_REWARD} ⭐ por sorteo · fotos reales de las skins
               </p>
               <div className="gp-sorteos-grid">
                 {giveawaysData.map((g) => (
@@ -178,7 +231,7 @@ export async function PlatformCreatorLanding({ slug }: Props) {
                         👥 <b>{g.entryCount.toLocaleString('es-ES')}</b> participantes
                       </div>
                       <div className="gp-sorteo-reward">
-                        Gratis · +{ENTRY_COIN_REWARD} 🪙
+                        Gratis · +{ENTRY_COIN_REWARD} ⭐
                       </div>
                       <div className="gp-sorteo-cta">
                         {userId ? (
@@ -205,10 +258,10 @@ export async function PlatformCreatorLanding({ slug }: Props) {
           </div>
         </section>
 
-        <section id="tienda">
+        <section id="recompensas">
           <div className="gp-legacy-block">
-            <h2>Tienda · canjea tus monedas</h2>
-            <PlatformShop items={shopItemsData} balance={balance} />
+            <h2>Recompensas · canjea tus puntos</h2>
+            <PlatformShop items={shopItemsData} balance={balance} hasSteamTradeUrl={hasSteamTradeUrl} />
           </div>
         </section>
 

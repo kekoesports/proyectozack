@@ -101,16 +101,37 @@ describe('[external-giveaways] UI del ExternalGiveawaysSection + Card', () => {
   const sectionSrc = read('src/features/giveaway-platform/components/ExternalGiveawaysSection.tsx');
   const cardSrc = read('src/features/giveaway-platform/components/ExternalGiveawayCard.tsx');
 
-  it('Section devuelve null si status !== "ok"', () => {
-    expect(sectionSrc).toMatch(/if\s*\(sections\.status\s*!==\s*'ok'\)\s*return\s*null/);
-  });
-
-  it('Section devuelve null si no hay providerKey', () => {
+  it('Section devuelve null si no hay providerKey (creador sin binding)', () => {
+    // Sin binding externo el creador usa sorteos internos — la sección
+    // externa queda silenciosa. Único caso donde devolvemos null.
     expect(sectionSrc).toMatch(/if\s*\(!sections\.providerKey\)\s*return\s*null/);
   });
 
-  it('Section devuelve null si no hay sorteos', () => {
-    expect(sectionSrc).toMatch(/sections\.active\.length\s*===\s*0\s*&&\s*sections\.finished\.length\s*===\s*0[\s\S]{0,40}return\s*null/);
+  it('Section renderiza fallback visible si status !== "ok" (ya no null silencioso)', () => {
+    // Con binding pero fetch failed → fallback visible, no null.
+    // (`no_binding` excluido explícitamente para satisfacer al type checker,
+    // aunque ya se filtra arriba por `!sections.providerKey`.)
+    expect(sectionSrc).toMatch(/sections\.status\s*!==\s*'ok'[\s\S]{0,300}<FallbackShell/);
+    expect(sectionSrc).toMatch(/function\s+FallbackShell/);
+  });
+
+  it('Fallback usa el copy del usuario para status `not_configured` (preview)', () => {
+    expect(sectionSrc).toMatch(/Sorteos\s\$\{providerDisplayName\}\sno\sdisponibles\sen\seste\sentorno/);
+    expect(sectionSrc).toMatch(/este\sentorno\sde\spreview\sno\stiene\sla\sAPI\skey\sconfigurada/);
+  });
+
+  it('Fallback usa copy genérico para errores runtime (no menciona preview/key)', () => {
+    // Para `error`/`timeout`/`network`/`http`/`parse` mostramos otra
+    // frase — no mencionamos preview ni API key porque podría ser
+    // producción durante una incidencia.
+    expect(sectionSrc).toMatch(/La\sconexi[oó]n\sha\sfallado\stemporalmente/);
+  });
+
+  it('Section shell muestra empty-state (no null) si status ok pero sin sorteos', () => {
+    // Antes: return null. Ahora: renderiza shell con "No hay sorteos ahora mismo".
+    expect(sectionSrc).toMatch(/No\shay\ssorteos\sahora\smismo/);
+    // Y NO tenemos ya el early-return por listas vacías.
+    expect(sectionSrc).not.toMatch(/sections\.active\.length\s*===\s*0\s*&&\s*sections\.finished\.length\s*===\s*0[\s\S]{0,40}return\s*null/);
   });
 
   it('Section resuelve badge/CTA/displayName vía getProvider (dinámico, no hardcoded)', () => {

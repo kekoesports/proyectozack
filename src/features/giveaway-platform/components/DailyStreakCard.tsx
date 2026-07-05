@@ -40,7 +40,7 @@ export function DailyStreakCard({ currentDay, claimedToday }: Props) {
             >
               {isClaimed ? <span className="gp-streak-check">✓</span> : null}
               <div className="gp-streak-label">Día {day}</div>
-              <div className="gp-streak-amount">🪙 {reward}</div>
+              <div className="gp-streak-amount">⭐ {reward}</div>
               {isToday ? (
                 <button
                   type="button"

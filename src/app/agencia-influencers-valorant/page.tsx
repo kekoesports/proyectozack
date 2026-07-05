@@ -154,6 +154,27 @@ export default function AgenciaInfluencersValorantPage() {
         </div>
       </section>
 
+      {/* Editorial cross-linking — silo esports/FPS ES */}
+      <section className="bg-sp-off border-t border-sp-border py-10">
+        <div className="max-w-3xl mx-auto px-6 text-sm text-sp-muted leading-relaxed space-y-3">
+          <p>
+            El ecosistema competitivo hispano suele combinar Valorant con{' '}
+            <Link href="/influencers-cs2" className="font-semibold text-sp-orange hover:underline">
+              creadores CS2
+            </Link>
+            . Si buscas activaciones más amplias en esports, revisa la{' '}
+            <Link href="/agencia-marketing-esports" className="font-semibold text-sp-orange hover:underline">
+              agencia de marketing esports
+            </Link>
+            {' '}o los{' '}
+            <Link href="/casos" className="font-semibold text-sp-orange hover:underline">
+              casos que hemos ejecutado
+            </Link>
+            .
+          </p>
+        </div>
+      </section>
+
       <section className="bg-sp-black py-16 text-center">
         <div className="max-w-2xl mx-auto px-6">
           <h2 className="font-display text-3xl font-black uppercase text-white mb-4">Lanza tu campaña <span style={g}>Valorant</span></h2>

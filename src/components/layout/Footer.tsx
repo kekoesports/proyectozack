@@ -399,7 +399,18 @@ export function Footer() {
         ))}
       </div>
 
-      {/* Bottom bar — sin cambios */}
+      {/* Sub-bar legal Giveaways — Fase 0 legal */}
+      <div className="border-t border-white/[0.04]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-[11px] text-white/25">
+          <span className="uppercase tracking-[0.2em] font-bold text-white/30">SocialPro Giveaways</span>
+          <Link href="/sorteos/terminos" className="hover:text-white/60 transition-colors">Bases de sorteos</Link>
+          <Link href="/sorteos/recompensas-y-puntos" className="hover:text-white/60 transition-colors">Recompensas y puntos</Link>
+          <Link href="/sorteos/partners-externos" className="hover:text-white/60 transition-colors">Partners externos</Link>
+          <Link href="/sorteos/participacion-responsable" className="hover:text-white/60 transition-colors">Participación responsable</Link>
+        </div>
+      </div>
+
+      {/* Bottom bar — copyright + legales generales */}
       <div className="border-t border-white/5">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row items-center justify-between gap-3">
           <p className="text-xs text-white/25">
@@ -409,6 +420,7 @@ export function Footer() {
             <Link href="/privacidad" className="hover:text-white/60 transition-colors">{copy.privacy}</Link>
             <Link href="/cookies" className="hover:text-white/60 transition-colors">{copy.cookies}</Link>
             <Link href="/legal" className="hover:text-white/60 transition-colors">{copy.legal}</Link>
+            <Link href="/contacto" className="hover:text-white/60 transition-colors">Contacto</Link>
             <button
               type="button"
               onClick={openConsentBanner}

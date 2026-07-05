@@ -15,10 +15,12 @@ import '../plataforma/platform-legal.css';
  * páginas legales. Todas las páginas montan LegalDraftBanner arriba.
  */
 const LEGAL_NAV = [
-  { href: '/sorteos/faq', label: 'FAQ' },
-  { href: '/sorteos/terminos', label: 'Términos' },
-  { href: '/sorteos/privacidad', label: 'Privacidad' },
-  { href: '/sorteos/juego-responsable', label: 'Juego responsable' },
+  { href: '/sorteos/faq',                       label: 'FAQ' },
+  { href: '/sorteos/recompensas-y-puntos',      label: 'Recompensas y puntos' },
+  { href: '/sorteos/terminos',                  label: 'Términos' },
+  { href: '/sorteos/privacidad',                label: 'Privacidad' },
+  { href: '/sorteos/participacion-responsable', label: 'Participación responsable' },
+  { href: '/sorteos/partners-externos',         label: 'Partners externos' },
 ];
 
 export default function LegalLayout({ children }: { children: ReactNode }) {
@@ -57,7 +59,7 @@ export default function LegalLayout({ children }: { children: ReactNode }) {
         <footer className="gp-legal-foot">
           <p>
             <b>SocialPro Giveaways</b> · Plataforma de sorteos gratuitos ·
-            +18 · Juega con responsabilidad.
+            +18 · Participa con responsabilidad.
           </p>
           <p className="gp-legal-foot-links">
             <Link href="/sorteos">← Volver a la plataforma</Link>

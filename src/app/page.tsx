@@ -34,6 +34,11 @@ export const metadata: Metadata = {
     'Agencia de talentos gaming e iGaming fundada en 2012. Streamers verificados de CS2, Valorant e iGaming en España y LatAm. FTD tracking, compliance DGOJ y ROI medible desde el panel del operador.',
   alternates: {
     canonical: SITE_URL,
+    languages: {
+      es: SITE_URL,
+      en: absoluteUrl('/en'),
+      'x-default': SITE_URL,
+    },
   },
   openGraph: {
     title: 'SocialPro — Agencia Gaming & iGaming | España y LatAm',

@@ -97,6 +97,21 @@ function checkAdminSession(req: NextRequest): NextResponse | null {
 
 const LOCALE_COOKIE_OPTS = { path: '/', maxAge: LOCALE_COOKIE_MAX_AGE, sameSite: 'lax' as const };
 
+// Bots de buscadores y redes: exentos del geo-redirect ES/EN.
+// Motivo: Googlebot crawlea desde IPs de USA → `handleLocaleDetection` los redirige
+// a /en → Google acaba eligiendo /en como canonical de /. Google Search Central
+// desaconseja explícitamente el IP-based auto-redirect. Sin bypass, el hreflang
+// del sitemap se ignora en la práctica.
+// El bypass está scoped SOLO al bloque de locale-detection ('/' y '/en'): rate-limits
+// de auth y guard de sesión admin siguen aplicándose a cualquier UA.
+const BOT_UA_REGEX =
+  /googlebot|bingbot|slurp|duckduckbot|baiduspider|yandex|applebot|facebookexternalhit|twitterbot|linkedinbot|gptbot|oai-searchbot|chatgpt-user|claudebot|anthropic-ai|perplexitybot|amazonbot|google-extended/i;
+
+export function isBotUserAgent(ua: string | null | undefined): boolean {
+  if (!ua) return false;
+  return BOT_UA_REGEX.test(ua);
+}
+
 function handleLocaleDetection(req: NextRequest): NextResponse {
   const decision = getLocaleDecision({
     pathname: req.nextUrl.pathname,
@@ -124,8 +139,12 @@ function handleLocaleDetection(req: NextRequest): NextResponse {
 export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // Locale detection — only for public homepages, before any other middleware
+  // Locale detection — only for public homepages, before any other middleware.
+  // Bots (Googlebot, Bingbot, IA crawlers…) NUNCA son redirigidos: ver `isBotUserAgent`.
   if (pathname === '/' || pathname === '/en') {
+    if (isBotUserAgent(req.headers.get('user-agent'))) {
+      return NextResponse.next();
+    }
     return handleLocaleDetection(req);
   }
 

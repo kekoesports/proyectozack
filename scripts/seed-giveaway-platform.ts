@@ -1,7 +1,22 @@
 /**
  * Seed de la plataforma de sorteos: misiones e items de tienda demo.
- * Uso: npx tsx scripts/seed-giveaway-platform.ts
+ *
+ * ============================================================
+ * NUNCA se ejecuta automáticamente. Requiere env var explícita:
+ *   CONFIRM_SEED_GIVEAWAY_PLATFORM=I_ACCEPT_SEED
+ *
+ * Comando real:
+ *   CONFIRM_SEED_GIVEAWAY_PLATFORM=I_ACCEPT_SEED \
+ *     npx tsx --env-file=.env.local scripts/seed-giveaway-platform.ts
+ * ============================================================
+ *
  * Idempotente: no duplica si ya existen filas con el mismo título/nombre.
+ * Sin borrar filas — soft-deactivate para respetar claims/redemptions
+ * históricas.
+ *
+ * Alineado con el patrón de guardas de:
+ *   · scripts/seed-socialpro-rewards-steam.ts    (CONFIRM_SEED_STEAM_REWARDS)
+ *   · scripts/cleanup-legacy-shop-items.ts       (CONFIRM_CLEANUP_LEGACY_SHOP)
  *
  * Cambio PR-1a:
  *   - "Coleccionista" (10 entries totales) → isActive=false (no borrar; puede
@@ -12,6 +27,8 @@
 import { eq } from 'drizzle-orm';
 import { db } from '../src/lib/db';
 import { platformMissions, shopItems } from '../src/db/schema';
+
+const CONFIRM_TOKEN = 'I_ACCEPT_SEED';
 
 const MISSIONS = [
   { title: 'Primera participación',        description: 'Únete a tu primer sorteo',                                           conditionType: 'entries_total',      goal: 1,   rewardCoins: 50,   sortOrder: 1 },
@@ -65,6 +82,17 @@ const SHOP_ITEMS = [
 ];
 
 async function main() {
+  const confirm = process.env.CONFIRM_SEED_GIVEAWAY_PLATFORM;
+  if (confirm !== CONFIRM_TOKEN) {
+    console.error(
+      'Seed abortado. Requiere env var explícita:\n' +
+      `  CONFIRM_SEED_GIVEAWAY_PLATFORM=${CONFIRM_TOKEN} npx tsx --env-file=.env.local scripts/seed-giveaway-platform.ts\n\n` +
+      'Motivo: este seed añade/actualiza misiones e items de tienda demo\n' +
+      'en la DB. Se ejecuta siempre a mano tras revisar la lista.',
+    );
+    process.exit(1);
+  }
+
   const existingMissions = await db.query.platformMissions.findMany();
   const missionTitles = new Set(existingMissions.map((m) => m.title));
 

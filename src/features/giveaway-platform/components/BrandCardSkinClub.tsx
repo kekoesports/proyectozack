@@ -1,14 +1,19 @@
 import Image from 'next/image';
 import { PLATFORM_BRANDS } from '../constants/brands';
+import { PartnerExternalNotice } from '@/components/partner/PartnerExternalNotice';
 
 interface Props {
   code: string;
 }
 
+// @allow-sensitive-copy: card de partner externo (Skin.Club). "Bono 7%" es información objetiva del
+// partner. Renderizado detrás de consent gate en `BrandBonusesSection`.
+
 export function BrandCardSkinClub({ code }: Props) {
   const brand = PLATFORM_BRANDS.skinclub;
   return (
     <section aria-labelledby="brand-skinclub">
+      <PartnerExternalNotice partner="Skin.Club" category="casino_like" />
       <div className="gp-card gp-card-led p-skinclub">
         <div className="glow" aria-hidden />
         <div className="ufo" aria-hidden>🛸</div>

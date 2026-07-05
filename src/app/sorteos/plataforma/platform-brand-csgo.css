@@ -1,0 +1,142 @@
+/*
+ * Card CSGO-SKINS v2 — patrón compacto con banner lateral + countdown live.
+ * Extraído de `platform-brand-cards.css` para respetar el budget de 500 LOC
+ * de ese archivo. Wiring en:
+ *   - src/features/giveaway-platform/components/BrandCardCsgoskins.tsx
+ *   - src/features/giveaway-platform/components/CsgoskinsRoadtripCountdown.tsx
+ *
+ * Aplica sobre `.p-red` (para conservar los tokens LED cyan) el mismo
+ * layout "media lateral con máscara" que ya usa la card compacta de
+ * SkinsMonkey. El banner del evento activo (Dust II Roadtrip) va a la
+ * derecha; el contenido y el countdown viven a la izquierda.
+ */
+
+.giveaway-platform .p-csgo-v2 {
+  position: relative;
+  overflow: hidden;
+}
+.giveaway-platform .p-csgo-v2 .gp-csgo-content {
+  position: relative;
+  z-index: 2;
+  max-width: 56%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.giveaway-platform .p-csgo-v2 .gp-csgo-media {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 60%;
+  max-width: 460px;
+  z-index: 1;
+  pointer-events: none;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 40%, #000 100%);
+  mask-image: linear-gradient(90deg, transparent 0%, #000 40%, #000 100%);
+}
+.giveaway-platform .p-csgo-v2 .gp-csgo-media-img {
+  object-fit: cover;
+  object-position: center center;
+  filter: saturate(1.06) contrast(1.02);
+}
+.giveaway-platform .p-csgo-v2 .gp-csgo-media::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(11, 8, 20, 0.35) 0%, transparent 55%),
+    radial-gradient(280px 220px at 100% 30%, rgba(40, 215, 255, 0.18), transparent 70%);
+  pointer-events: none;
+}
+.giveaway-platform .gp-csgo-event-tag {
+  font-family: var(--font-display), var(--font-rajdhani), sans-serif;
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #7ff0ff;
+  margin: 4px 0 -2px;
+}
+.giveaway-platform .gp-csgo-event-title {
+  font-family: var(--font-display), var(--font-rajdhani), sans-serif;
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #fff;
+  margin: 0;
+  line-height: 1.05;
+  text-shadow: 0 2px 12px rgba(40, 215, 255, 0.35);
+}
+.giveaway-platform .gp-csgo-event-lead {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 0 0 4px;
+  line-height: 1.45;
+}
+
+/* Countdown live. */
+.giveaway-platform .gp-csgo-countdown {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 14px;
+  border-radius: 10px;
+  background: rgba(11, 8, 20, 0.7);
+  border: 1px solid rgba(40, 215, 255, 0.35);
+  font-family: var(--font-chakra), monospace;
+  color: #7ff0ff;
+  box-shadow: inset 0 0 12px rgba(40, 215, 255, 0.12);
+  align-self: flex-start;
+}
+.giveaway-platform .gp-csgo-countdown-days {
+  font-size: 13px;
+  letter-spacing: 0.8px;
+}
+.giveaway-platform .gp-csgo-countdown-days b {
+  color: #fff;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  margin-left: 2px;
+}
+.giveaway-platform .gp-csgo-countdown-time {
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+}
+.giveaway-platform .gp-csgo-countdown-done {
+  color: #ff8fa1;
+  border-color: rgba(255, 143, 161, 0.4);
+  background: rgba(30, 10, 20, 0.7);
+}
+.giveaway-platform .gp-csgo-countdown-label {
+  font-size: 12px;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  font-weight: 800;
+}
+
+/* Responsive. */
+@media (max-width: 720px) {
+  .giveaway-platform .p-csgo-v2 .gp-csgo-content { max-width: 60%; }
+  .giveaway-platform .p-csgo-v2 .gp-csgo-media { width: 50%; max-width: 320px; }
+  .giveaway-platform .gp-csgo-event-title { font-size: 19px; }
+}
+@media (max-width: 480px) {
+  .giveaway-platform .p-csgo-v2 .gp-csgo-content { max-width: 100%; }
+  .giveaway-platform .p-csgo-v2 .gp-csgo-media {
+    width: 100%;
+    max-width: 100%;
+    top: auto;
+    height: 40%;
+    -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 45%, #000 100%);
+    mask-image: linear-gradient(180deg, transparent 0%, #000 45%, #000 100%);
+    opacity: 0.55;
+  }
+  .giveaway-platform .p-csgo-v2 .gp-csgo-media-img { object-position: center bottom; }
+  .giveaway-platform .gp-csgo-countdown-time { font-size: 15px; }
+}

@@ -84,11 +84,14 @@ const nextConfig: NextConfig = {
       { source: '/en/talents',                  destination: '/talents', permanent: true },
       // /en/services → /services (308 permanent)
       // /en/contact → /contact (308 permanent)
+      // /en/cases → /cases (308 permanent)
       // Regulariza rutas /en/* sin página propia para que coincidan con /en/talents.
       { source: '/en/services/',                destination: '/services', permanent: true },
       { source: '/en/services',                 destination: '/services', permanent: true },
       { source: '/en/contact/',                 destination: '/contact',  permanent: true },
       { source: '/en/contact',                  destination: '/contact',  permanent: true },
+      { source: '/en/cases/',                   destination: '/cases',    permanent: true },
+      { source: '/en/cases',                    destination: '/cases',    permanent: true },
       // /marcas/login → /admin/login (308 permanent)
       // /marcas/login page was removed in the CRM refactor; brand users log in via /admin/login
       // and are redirected to /marcas after successful auth. Keeps bookmarks and backlinks working.
@@ -110,6 +113,19 @@ const nextConfig: NextConfig = {
       {
         source: '/talentos/tiger',
         destination: '/talentos/tigerr',
+        permanent: true,
+      },
+      // /sorteos/juego-responsable → /sorteos/participacion-responsable (301)
+      // Fase 0 legal: no autocalificar SocialPro como operador de juego.
+      // Ver docs/legal-risk-matrix.md.
+      {
+        source: '/sorteos/juego-responsable',
+        destination: '/sorteos/participacion-responsable',
+        permanent: true,
+      },
+      {
+        source: '/sorteos/juego-responsable/',
+        destination: '/sorteos/participacion-responsable',
         permanent: true,
       },
     ];

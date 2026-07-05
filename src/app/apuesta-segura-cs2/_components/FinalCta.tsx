@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import Link from 'next/link';
 import { CtaButton } from './CtaButton';
 import { TELEGRAM_URL, BLOGABET_URL } from './tokens';
 
@@ -74,6 +75,28 @@ export function FinalCta() {
           {' '}· Agencia gaming y esports · Madrid · 2012 · +18 · Juega con
           responsabilidad — las apuestas conllevan riesgo de pérdida.
         </p>
+
+        {/* Enlazado interno editorial — silo iGaming + CS2 */}
+        <div className="mt-6 pt-5 border-t border-white/[0.06] flex flex-col gap-2 text-[12px] text-white/55 leading-relaxed">
+          <p>
+            El equipo detrás de este canal es{' '}
+            <Link href="/servicios/igaming" className="text-white/80 hover:text-sp-orange underline decoration-white/20 hover:decoration-sp-orange transition-colors">
+              SocialPro — campañas iGaming con streamers verificados
+            </Link>
+            . Trabajamos con operadores dentro del marco{' '}
+            <Link href="/guia-dgoj-igaming-influencers" className="text-white/80 hover:text-sp-orange underline decoration-white/20 hover:decoration-sp-orange transition-colors">
+              regulatorio DGOJ para influencers
+            </Link>
+            .
+          </p>
+          <p>
+            ¿Buscas talento CS2 para campañas de marca? Consulta nuestro roster de{' '}
+            <Link href="/influencers-cs2" className="text-white/80 hover:text-sp-orange underline decoration-white/20 hover:decoration-sp-orange transition-colors">
+              creadores especializados en Counter-Strike
+            </Link>
+            .
+          </p>
+        </div>
       </div>
     </section>
   );
