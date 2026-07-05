@@ -157,6 +157,27 @@ export default function AgenciaMarketingEsportsPage() {
         </div>
       </section>
 
+      {/* Editorial cross-linking — silo esports ES */}
+      <section className="bg-sp-off border-t border-sp-border py-10">
+        <div className="max-w-3xl mx-auto px-6 text-sm text-sp-muted leading-relaxed space-y-3">
+          <p>
+            La mayoría de estas activaciones esports se ejecutan con{' '}
+            <Link href="/influencers-cs2" className="font-semibold text-sp-orange hover:underline">
+              creadores CS2
+            </Link>
+            {' '}o{' '}
+            <Link href="/agencia-influencers-valorant" className="font-semibold text-sp-orange hover:underline">
+              streamers de Valorant
+            </Link>
+            . Para brief específico del mercado hispano en LATAM revisa la{' '}
+            <Link href="/agencia-gaming-latam" className="font-semibold text-sp-orange hover:underline">
+              agencia gaming LATAM
+            </Link>
+            .
+          </p>
+        </div>
+      </section>
+
       <section className="bg-white py-16 text-center">
         <div className="max-w-2xl mx-auto px-6">
           <h2 className="font-display text-3xl font-black uppercase text-sp-dark mb-4">¿Listo para entrar en <span style={g}>esports?</span></h2>

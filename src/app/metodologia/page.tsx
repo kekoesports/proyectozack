@@ -191,6 +191,35 @@ export default function MetodologiaPage() {
         </div>
       </section>
 
+      {/* ── Enlazado editorial contextual ── */}
+      <section className="bg-sp-off border-t border-sp-border py-12">
+        <div className="max-w-3xl mx-auto px-6 text-sp-muted leading-relaxed text-sm space-y-3">
+          <p>
+            Esta metodología atraviesa cada campaña que ejecutamos como agencia. Puedes
+            ver los{' '}
+            <Link href="/casos" className="font-semibold text-sp-orange hover:underline">
+              casos de éxito reales
+            </Link>
+            {' '}con métricas verificadas o revisar el{' '}
+            <Link href="/talentos" className="font-semibold text-sp-orange hover:underline">
+              roster completo de creadores
+            </Link>
+            {' '}con los que trabajamos.
+          </p>
+          <p>
+            Si tu proyecto es iGaming, integramos{' '}
+            <Link href="/guia-dgoj-igaming-influencers" className="font-semibold text-sp-orange hover:underline">
+              compliance DGOJ
+            </Link>
+            {' '}en cada fase. Para conocer al equipo detrás del proceso, pasa por{' '}
+            <Link href="/nosotros" className="font-semibold text-sp-orange hover:underline">
+              nosotros
+            </Link>
+            .
+          </p>
+        </div>
+      </section>
+
       {/* ── CTA ── */}
       <section className="bg-white py-16 text-center">
         <div className="max-w-2xl mx-auto px-6">

@@ -146,17 +146,24 @@ export default function ServiciosPage() {
       <div>
         <h1 className="sr-only">Agencia Marketing Gaming e iGaming</h1>
         <ServicesSection />
-        {/* Internal linking to niche SEO landings */}
+        {/* Internal linking to niche SEO landings — anchor text variado por landing */}
         <nav aria-label="Especialidades" className="bg-sp-off border-t border-sp-border py-8">
           <div className="max-w-5xl mx-auto px-6">
             <p className="text-[9px] font-bold uppercase tracking-[0.22em] text-sp-muted mb-4">Especialidades</p>
             <div className="flex flex-wrap gap-2">
               {[
-                { href: '/cs2-influencer-marketing', label: 'CS2 Influencer Marketing' },
-                { href: '/valorant-influencers-agency', label: 'Valorant Influencers Agency' },
-                { href: '/esports-marketing-agency', label: 'Esports Marketing Agency' },
-                { href: '/twitch-streamers-agency', label: 'Twitch Streamers Agency' },
-                { href: '/betting-influencers', label: 'Betting Influencers' },
+                { href: '/servicios/igaming',                 label: 'Campañas iGaming' },
+                { href: '/influencers-cs2',                   label: 'Streamers de CS2' },
+                { href: '/agencia-influencers-valorant',       label: 'Agencia Valorant' },
+                { href: '/agencia-marketing-esports',          label: 'Marketing Esports' },
+                { href: '/agencia-gaming-latam',               label: 'Gaming LATAM' },
+                { href: '/apuesta-segura-cs2',                 label: 'Apuesta Segura CS2' },
+                { href: '/guia-dgoj-igaming-influencers',      label: 'Compliance DGOJ' },
+                { href: '/betting-influencers',                label: 'Betting Influencers' },
+                { href: '/cs2-influencer-marketing',           label: 'CS2 Marketing (EN)' },
+                { href: '/twitch-streamers-agency',            label: 'Twitch Agency (EN)' },
+                { href: '/valorant-influencers-agency',        label: 'Valorant Agency (EN)' },
+                { href: '/esports-marketing-agency',           label: 'Esports Agency (EN)' },
               ].map(({ href, label }) => (
                 <Link key={href} href={href} className="text-xs font-semibold text-sp-muted hover:text-sp-orange border border-sp-border hover:border-sp-orange rounded-full px-3 py-1.5 transition-colors">
                   {label}

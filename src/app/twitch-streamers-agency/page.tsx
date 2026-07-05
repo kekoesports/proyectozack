@@ -147,6 +147,28 @@ export default function TwitchStreamersAgencyPage() {
         </div>
       </section>
 
+      {/* Editorial cross-linking — Twitch/streaming cluster (EN silo) */}
+      <section className="bg-sp-off border-t border-sp-border py-10">
+        <div className="max-w-3xl mx-auto px-6 text-sm text-sp-muted leading-relaxed space-y-3">
+          <p>
+            Twitch is where most of our{' '}
+            <Link href="/esports-marketing-agency" className="font-semibold text-sp-orange hover:underline">
+              esports marketing activations
+            </Link>
+            {' '}happen — sponsorships, watch parties and tournament co-streams. For game-specific
+            programmes see our{' '}
+            <Link href="/valorant-influencers-agency" className="font-semibold text-sp-orange hover:underline">
+              Valorant influencers agency
+            </Link>
+            {' '}and{' '}
+            <Link href="/cs2-influencer-marketing" className="font-semibold text-sp-orange hover:underline">
+              CS2 influencer marketing service
+            </Link>
+            .
+          </p>
+        </div>
+      </section>
+
       <section className="bg-sp-black py-16 text-center">
         <div className="max-w-2xl mx-auto px-6">
           <h2 className="font-display text-3xl font-black uppercase text-white mb-4">Your brand. <span style={g}>Live on Twitch.</span></h2>

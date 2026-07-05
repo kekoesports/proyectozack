@@ -254,6 +254,27 @@ export default function AgenciaGamingLatamPage() {
           </div>
         </section>
 
+        {/* Enlazado editorial contextual — silo LATAM + verticales */}
+        <section className="py-12 px-4 sm:px-6 border-t border-white/[0.06] bg-white/[0.02]">
+          <div className="max-w-3xl mx-auto text-sp-muted2 text-sm leading-relaxed space-y-3">
+            <p>
+              Muchas activaciones LATAM se apoyan en dos verticales muy activos aquí: las{' '}
+              <Link href="/servicios/igaming" className="font-semibold text-white hover:text-sp-orange underline decoration-white/20 hover:decoration-sp-orange">
+                campañas iGaming con streamers hispanohablantes
+              </Link>
+              {' '}y los{' '}
+              <Link href="/influencers-cs2" className="font-semibold text-white hover:text-sp-orange underline decoration-white/20 hover:decoration-sp-orange">
+                creadores CS2 con audiencia mexicana y argentina
+              </Link>
+              . Para brief general de esports en LATAM revisa la{' '}
+              <Link href="/agencia-marketing-esports" className="font-semibold text-white hover:text-sp-orange underline decoration-white/20 hover:decoration-sp-orange">
+                agencia de marketing esports
+              </Link>
+              .
+            </p>
+          </div>
+        </section>
+
         {/* CTA final */}
         <section className="py-20 px-4 text-center border-t border-white/[0.06]">
           <div className="max-w-2xl mx-auto">
