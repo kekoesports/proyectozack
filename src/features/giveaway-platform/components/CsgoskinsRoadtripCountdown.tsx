@@ -52,7 +52,6 @@ export function CsgoskinsRoadtripCountdown({ endsAt }: Props) {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setRemaining(compute(endsAtMs, Date.now()));
     const id = window.setInterval(() => {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setRemaining(compute(endsAtMs, Date.now()));
     }, 1000);
     return () => window.clearInterval(id);

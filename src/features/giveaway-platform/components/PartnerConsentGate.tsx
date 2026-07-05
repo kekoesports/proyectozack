@@ -99,6 +99,10 @@ export function PartnerConsentGate({ partnerLabels, isLoggedIn }: Props): React.
       {isLoggedIn ? (
         <PartnerConsentModalTrigger />
       ) : (
+        // Endpoint OAuth: Better Auth devuelve un 302 hacia Steam OpenID.
+        // `<Link>` haría client-side navigation y rompería el flujo —
+        // necesitamos navegación de navegador clásica.
+        // eslint-disable-next-line @next/next/no-html-link-for-pages
         <a
           href="/api/auth/sign-in/steam"
           style={{
