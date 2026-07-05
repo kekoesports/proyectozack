@@ -37,7 +37,8 @@ export const metadata: Metadata = {
   alternates: {
     canonical: '/',
     languages: {
-      'es': SITE_URL,
+      es: SITE_URL,
+      en: absoluteUrl('/en'),
       'x-default': SITE_URL,
     },
   },
