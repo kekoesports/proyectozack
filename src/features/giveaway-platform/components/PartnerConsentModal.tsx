@@ -1,19 +1,24 @@
 'use client';
 
 import { useId, useState, useTransition } from 'react';
+import Link from 'next/link';
+import * as Dialog from '@radix-ui/react-dialog';
 import { grantPartnerConsent } from '@/lib/actions/partner-consent-action';
 
 /**
- * Trigger client — botón que abre el modal de consent para ver ofertas
- * de partners externos. Renderiza el modal inline (sin portal para
- * simplificar el MVP; migrar a Radix Dialog en Fase 1 si hace falta).
+ * Trigger + modal Radix Dialog para el consent de partners externos.
+ *
+ * Fase 1: sustituye a la implementación DIY previa por Radix Dialog para
+ * conseguir focus trap correcto, cierre por Escape, portal fuera del
+ * árbol del server component y aria-labelledby/-describedby coherentes.
  *
  * Flujo:
- *   1. Usuario hace clic en el botón.
+ *   1. Usuario hace clic en el trigger.
  *   2. Modal muestra 3 checkboxes obligatorios: +18, participación
  *      responsable, ver contenido de partners externos.
  *   3. Al aceptar, llama a `grantPartnerConsent` (server action) que
- *      escribe la cookie `sp_partner_consent` y revalida la ruta.
+ *      escribe en `user_partner_consents` + sincroniza cookie y
+ *      revalida las rutas afectadas.
  *
  * @kind client
  * @feature giveaway-platform
@@ -21,34 +26,35 @@ import { grantPartnerConsent } from '@/lib/actions/partner-consent-action';
 export function PartnerConsentModalTrigger(): React.JSX.Element {
   const [open, setOpen] = useState(false);
   return (
-    <>
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        style={{
-          display:        'inline-flex',
-          alignItems:     'center',
-          gap:            '8px',
-          padding:        '10px 20px',
-          borderRadius:   '999px',
-          border:         '1px solid rgba(255,255,255,0.18)',
-          background:     'linear-gradient(135deg, rgba(245,99,42,0.85), rgba(139,58,173,0.85))',
-          color:          '#fff',
-          fontWeight:     700,
-          fontSize:       '13px',
-          letterSpacing:  '0.05em',
-          textTransform:  'uppercase',
-          cursor:         'pointer',
-        }}
-      >
-        Confirmar y ver ofertas
-      </button>
-      {open ? <PartnerConsentModalDialog onClose={() => setOpen(false)} /> : null}
-    </>
+    <Dialog.Root open={open} onOpenChange={setOpen}>
+      <Dialog.Trigger asChild>
+        <button
+          type="button"
+          style={{
+            display:        'inline-flex',
+            alignItems:     'center',
+            gap:            '8px',
+            padding:        '10px 20px',
+            borderRadius:   '999px',
+            border:         '1px solid rgba(255,255,255,0.18)',
+            background:     'linear-gradient(135deg, rgba(245,99,42,0.85), rgba(139,58,173,0.85))',
+            color:          '#fff',
+            fontWeight:     700,
+            fontSize:       '13px',
+            letterSpacing:  '0.05em',
+            textTransform:  'uppercase',
+            cursor:         'pointer',
+          }}
+        >
+          Confirmar y ver ofertas
+        </button>
+      </Dialog.Trigger>
+      <PartnerConsentModalContent onClose={() => setOpen(false)} />
+    </Dialog.Root>
   );
 }
 
-function PartnerConsentModalDialog({ onClose }: { onClose: () => void }): React.JSX.Element {
+function PartnerConsentModalContent({ onClose }: { onClose: () => void }): React.JSX.Element {
   const id = useId();
   const [age18, setAge18] = useState(false);
   const [responsible, setResponsible] = useState(false);
@@ -75,34 +81,35 @@ function PartnerConsentModalDialog({ onClose }: { onClose: () => void }): React.
   }
 
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby={`${id}-title`}
-      style={{
-        position:       'fixed',
-        inset:          0,
-        zIndex:         1000,
-        display:        'flex',
-        alignItems:     'center',
-        justifyContent: 'center',
-        padding:        '24px',
-        background:     'rgba(0,0,0,0.72)',
-        backdropFilter: 'blur(6px)',
-      }}
-      onClick={onClose}
-    >
-      <div
-        onClick={(e) => e.stopPropagation()}
+    <Dialog.Portal>
+      <Dialog.Overlay
         style={{
-          background:   '#0f0f13',
-          border:       '1px solid rgba(255,255,255,0.12)',
-          borderRadius: '18px',
-          padding:      '28px',
-          maxWidth:     '480px',
-          width:        '100%',
-          color:        '#fff',
-          boxShadow:    '0 20px 60px rgba(0,0,0,0.6)',
+          position:       'fixed',
+          inset:          0,
+          zIndex:         1000,
+          background:     'rgba(0,0,0,0.72)',
+          backdropFilter: 'blur(6px)',
+        }}
+      />
+      <Dialog.Content
+        aria-labelledby={`${id}-title`}
+        aria-describedby={`${id}-desc`}
+        style={{
+          position:      'fixed',
+          top:           '50%',
+          left:          '50%',
+          transform:     'translate(-50%, -50%)',
+          zIndex:        1001,
+          background:    '#0f0f13',
+          border:        '1px solid rgba(255,255,255,0.12)',
+          borderRadius:  '18px',
+          padding:       '28px',
+          maxWidth:      '480px',
+          width:         'calc(100vw - 48px)',
+          maxHeight:     'calc(100vh - 48px)',
+          overflowY:     'auto',
+          color:         '#fff',
+          boxShadow:     '0 20px 60px rgba(0,0,0,0.6)',
         }}
       >
         <p
@@ -117,27 +124,29 @@ function PartnerConsentModalDialog({ onClose }: { onClose: () => void }): React.
         >
           Ofertas de partners externos
         </p>
-        <h2
-          id={`${id}-title`}
-          style={{
-            fontSize:   '22px',
-            fontWeight: 800,
-            margin:     '0 0 12px 0',
-          }}
-        >
-          Confirma que has leído y aceptas
-        </h2>
-        <p
-          style={{
-            fontSize:   '13px',
-            lineHeight: 1.55,
-            margin:     '0 0 18px 0',
-            color:      'rgba(255,255,255,0.65)',
-          }}
-        >
-          Para mostrarte las ofertas y códigos de partners externos necesitamos que confirmes
-          las siguientes condiciones. Puedes revocar este consentimiento en cualquier momento.
-        </p>
+        <Dialog.Title asChild>
+          <h2
+            id={`${id}-title`}
+            style={{ fontSize: '22px', fontWeight: 800, margin: '0 0 12px 0' }}
+          >
+            Confirma que has leído y aceptas
+          </h2>
+        </Dialog.Title>
+        <Dialog.Description asChild>
+          <p
+            id={`${id}-desc`}
+            style={{
+              fontSize:   '13px',
+              lineHeight: 1.55,
+              margin:     '0 0 18px 0',
+              color:      'rgba(255,255,255,0.65)',
+            }}
+          >
+            Para mostrarte las ofertas y códigos de partners externos necesitamos que confirmes
+            las siguientes condiciones. Puedes revocar este consentimiento en cualquier momento
+            desde <Link href="/sorteos/perfil/permisos" style={{ color: 'rgba(255,255,255,0.85)', textDecoration: 'underline' }}>Mis permisos</Link>.
+          </p>
+        </Dialog.Description>
 
         <fieldset style={{ border: 'none', padding: 0, margin: '0 0 18px 0' }}>
           <legend className="sr-only">Condiciones para ver contenido de partners externos</legend>
@@ -184,13 +193,13 @@ function PartnerConsentModalDialog({ onClose }: { onClose: () => void }): React.
           <p
             role="alert"
             style={{
-              margin:     '0 0 12px 0',
-              padding:    '10px 12px',
+              margin:       '0 0 12px 0',
+              padding:      '10px 12px',
               borderRadius: '10px',
-              background: 'rgba(224,48,112,0.12)',
-              border:     '1px solid rgba(224,48,112,0.35)',
-              color:      '#f5a3bf',
-              fontSize:   '12px',
+              background:   'rgba(224,48,112,0.12)',
+              border:       '1px solid rgba(224,48,112,0.35)',
+              color:        '#f5a3bf',
+              fontSize:     '12px',
             }}
           >
             {error}
@@ -198,23 +207,24 @@ function PartnerConsentModalDialog({ onClose }: { onClose: () => void }): React.
         ) : null}
 
         <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
-          <button
-            type="button"
-            onClick={onClose}
-            disabled={pending}
-            style={{
-              padding:      '9px 16px',
-              borderRadius: '999px',
-              border:       '1px solid rgba(255,255,255,0.14)',
-              background:   'transparent',
-              color:        'rgba(255,255,255,0.75)',
-              fontSize:     '12px',
-              fontWeight:   700,
-              cursor:       pending ? 'not-allowed' : 'pointer',
-            }}
-          >
-            Cancelar
-          </button>
+          <Dialog.Close asChild>
+            <button
+              type="button"
+              disabled={pending}
+              style={{
+                padding:      '9px 16px',
+                borderRadius: '999px',
+                border:       '1px solid rgba(255,255,255,0.14)',
+                background:   'transparent',
+                color:        'rgba(255,255,255,0.75)',
+                fontSize:     '12px',
+                fontWeight:   700,
+                cursor:       pending ? 'not-allowed' : 'pointer',
+              }}
+            >
+              Cancelar
+            </button>
+          </Dialog.Close>
           <button
             type="button"
             onClick={handleSubmit}
@@ -226,19 +236,19 @@ function PartnerConsentModalDialog({ onClose }: { onClose: () => void }): React.
               background:   allChecked
                 ? 'linear-gradient(135deg, rgba(245,99,42,0.9), rgba(139,58,173,0.9))'
                 : 'rgba(255,255,255,0.08)',
-              color:        allChecked ? '#fff' : 'rgba(255,255,255,0.4)',
-              fontSize:     '12px',
-              fontWeight:   700,
+              color:         allChecked ? '#fff' : 'rgba(255,255,255,0.4)',
+              fontSize:      '12px',
+              fontWeight:    700,
               letterSpacing: '0.05em',
               textTransform: 'uppercase',
-              cursor:       (!allChecked || pending) ? 'not-allowed' : 'pointer',
+              cursor:        (!allChecked || pending) ? 'not-allowed' : 'pointer',
             }}
           >
             {pending ? 'Guardando…' : 'Aceptar y continuar'}
           </button>
         </div>
-      </div>
-    </div>
+      </Dialog.Content>
+    </Dialog.Portal>
   );
 }
 

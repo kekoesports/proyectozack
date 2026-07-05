@@ -743,6 +743,13 @@
       "when": 1783252800000,
       "tag": "0105_fix_connected_social_accounts_schema",
       "breakpoints": true
+    },
+    {
+      "idx": 106,
+      "version": "7",
+      "when": 1783289670314,
+      "tag": "0106_user_partner_consents_and_audit",
+      "breakpoints": true
     }
   ]
 }

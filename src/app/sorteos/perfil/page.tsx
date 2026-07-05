@@ -1,4 +1,5 @@
 import { headers } from 'next/headers';
+import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { eq, inArray } from 'drizzle-orm';
 import { auth } from '@/lib/auth';
@@ -142,6 +143,14 @@ export default async function PerfilPage() {
             initialSteamTradeUrl={profile?.steamTradeUrl ?? null}
             initialKickUsername={profile?.kickUsername ?? null}
           />
+          <p style={{ marginTop: 16, fontSize: 13 }}>
+            <Link
+              href="/sorteos/perfil/permisos"
+              style={{ color: '#f5632a', textDecoration: 'underline' }}
+            >
+              Ver mis permisos y consentimientos →
+            </Link>
+          </p>
         </section>
 
         <section className="gp-legacy-block">

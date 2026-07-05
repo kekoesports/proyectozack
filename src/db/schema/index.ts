@@ -64,3 +64,5 @@ export * from './platformMissions';
 export * from './dailyStreaks';
 export * from './shopItems';
 export * from './connectedSocialAccounts';
+export * from './userPartnerConsents';
+export * from './giveawayAuditEvents';

@@ -30,6 +30,8 @@ import {
 } from '@/lib/giveaway-platform/constants';
 import { evaluateAndClaimMissions } from '@/lib/giveaway-platform/missions';
 import { getCoinBalance } from '@/lib/queries/giveawayPlatform';
+import { assertAllowedCoinSource } from '@/lib/rewards/allowed-coin-sources';
+import { logGiveawayEvent } from '@/lib/audit/logGiveawayEvent';
 
 type ActionResult<T = undefined> =
   | { ok: true; data?: T }
@@ -78,6 +80,7 @@ export async function participateInGiveaway(input: unknown): Promise<ActionResul
     return { ok: false, error: 'Ya estás inscrito en este sorteo' };
   }
 
+  assertAllowedCoinSource('sorteo');
   await db.insert(coinTransactions).values({
     userId: sessionUser.id,
     amount: ENTRY_COIN_REWARD,
@@ -87,6 +90,15 @@ export async function participateInGiveaway(input: unknown): Promise<ActionResul
   });
 
   const missionsCompleted = await evaluateAndClaimMissions(sessionUser.id);
+
+  await logGiveawayEvent({
+    userId:  sessionUser.id,
+    action:  'giveaway_participate',
+    outcome: 'success',
+    refType: 'giveaway',
+    refId:   giveawayId,
+    metadata: { coinsEarned: ENTRY_COIN_REWARD, missionsCompleted: missionsCompleted.length },
+  });
 
   revalidatePath('/sorteos', 'layout');
   return { ok: true, data: { coinsEarned: ENTRY_COIN_REWARD, missionsCompleted } };
@@ -133,6 +145,7 @@ export async function claimDailyReward(): Promise<ActionResult<{ coinsEarned: nu
   }
 
   const coinsEarned = STREAK_REWARDS[day - 1] ?? STREAK_REWARDS[0];
+  assertAllowedCoinSource('racha');
   await db.insert(coinTransactions).values({
     userId: sessionUser.id,
     amount: coinsEarned,
@@ -141,6 +154,16 @@ export async function claimDailyReward(): Promise<ActionResult<{ coinsEarned: nu
   });
 
   await evaluateAndClaimMissions(sessionUser.id);
+
+  await logGiveawayEvent({
+    userId:  sessionUser.id,
+    action:  'streak_claim',
+    outcome: 'success',
+    refType: 'streak_day',
+    refId:   day,
+    metadata: { coinsEarned },
+  });
+
   revalidatePath('/sorteos', 'layout');
   return { ok: true, data: { coinsEarned, day } };
 }
@@ -246,6 +269,7 @@ export async function redeemShopItem(input: unknown): Promise<RedeemResult> {
     .returning({ id: shopItems.id });
   if (stockUpdated.length === 0) return { ok: false, code: 'out_of_stock', error: 'Item agotado' };
 
+  assertAllowedCoinSource('tienda');
   await db.insert(coinTransactions).values({
     userId: sessionUser.id,
     amount: -item.costCoins,
@@ -263,6 +287,15 @@ export async function redeemShopItem(input: unknown): Promise<RedeemResult> {
     })
     .returning({ id: redemptions.id });
   if (!redemption) return { ok: false, code: 'internal', error: 'No se pudo crear el canje' };
+
+  await logGiveawayEvent({
+    userId:  sessionUser.id,
+    action:  'shop_redeem',
+    outcome: 'success',
+    refType: 'redemption',
+    refId:   redemption.id,
+    metadata: { shopItemId, costCoins: item.costCoins, category: item.category },
+  });
 
   // Trigger para misiones basadas en redemptions_total (p.ej. "Primer canje").
   await evaluateAndClaimMissions(sessionUser.id);

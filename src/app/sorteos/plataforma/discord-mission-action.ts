@@ -15,6 +15,8 @@ import {
 import { getConnectedAccount } from '@/lib/queries/connectedSocialAccounts';
 import { decrypt } from '@/lib/crypto/token-encryption';
 import { DISCORD_GUILD_MEMBER_MODE } from '@/features/giveaway-platform/constants/discord-missions';
+import { assertAllowedCoinSource } from '@/lib/rewards/allowed-coin-sources';
+import { logGiveawayEvent } from '@/lib/audit/logGiveawayEvent';
 
 /** Shape mínimo del array que devuelve /users/@me/guilds — solo usamos `id`. */
 const DiscordGuildListSchema = z.array(z.object({ id: z.string() }).passthrough());
@@ -193,6 +195,7 @@ export async function verifyDiscordMission(input: unknown): Promise<DiscordVerif
     return { ok: false, code: 'already_claimed', message: 'Ya has reclamado esta misión' };
   }
 
+  assertAllowedCoinSource('mision');
   await db.insert(coinTransactions).values({
     userId: user.id,
     amount: mission.rewardCoins,
@@ -202,6 +205,15 @@ export async function verifyDiscordMission(input: unknown): Promise<DiscordVerif
   });
 
   await recordAttempt(missionId, user.id, 'success');
+
+  await logGiveawayEvent({
+    userId:  user.id,
+    action:  'mission_claim',
+    outcome: 'success',
+    refType: 'mission',
+    refId:   missionId,
+    metadata: { provider: 'discord', rewardCoins: mission.rewardCoins },
+  });
   revalidatePath('/sorteos', 'layout');
   return { ok: true, code: 'success', rewardCoins: mission.rewardCoins };
 }

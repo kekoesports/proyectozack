@@ -16,6 +16,8 @@ import {
 import { getConnectedAccount } from '@/lib/queries/connectedSocialAccounts';
 import { decrypt } from '@/lib/crypto/token-encryption';
 import { TWITCH_FOLLOW_CHANNEL_MODE } from '@/features/giveaway-platform/constants/twitch-missions';
+import { assertAllowedCoinSource } from '@/lib/rewards/allowed-coin-sources';
+import { logGiveawayEvent } from '@/lib/audit/logGiveawayEvent';
 
 /**
  * Server action — verifica una misión Twitch (follow al canal) y, si
@@ -216,6 +218,7 @@ export async function verifyTwitchMission(input: unknown): Promise<TwitchVerifyR
     return { ok: false, code: 'already_claimed', message: 'Ya has reclamado esta misión' };
   }
 
+  assertAllowedCoinSource('mision');
   await db.insert(coinTransactions).values({
     userId: user.id,
     amount: mission.rewardCoins,
@@ -225,6 +228,15 @@ export async function verifyTwitchMission(input: unknown): Promise<TwitchVerifyR
   });
 
   await recordAttempt(missionId, user.id, 'success');
+
+  await logGiveawayEvent({
+    userId:  user.id,
+    action:  'mission_claim',
+    outcome: 'success',
+    refType: 'mission',
+    refId:   missionId,
+    metadata: { provider: 'twitch', rewardCoins: mission.rewardCoins },
+  });
   revalidatePath('/sorteos', 'layout');
   return { ok: true, code: 'success', rewardCoins: mission.rewardCoins };
 }

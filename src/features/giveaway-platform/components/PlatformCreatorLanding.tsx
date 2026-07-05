@@ -1,6 +1,6 @@
-import { cookies, headers } from 'next/headers';
+import { headers } from 'next/headers';
 import { eq, inArray } from 'drizzle-orm';
-import { isPartnerConsentGranted, PARTNER_CONSENT_COOKIE } from '@/lib/partner-consent';
+import { hasActivePartnerConsent } from '@/lib/queries/partnerConsent';
 import { notFound } from 'next/navigation';
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
@@ -67,13 +67,11 @@ export async function PlatformCreatorLanding({ slug }: Props) {
   const userName = session?.user?.name ?? null;
   const userImage = session?.user?.image ?? null;
 
-  // Consent gate para cards de partners externos (Fase 0 legal).
-  // Cookie `sp_partner_consent` escrita por la server action tras el modal.
-  // Requiere sesión activa: si el usuario no está logueado, el gate ya
-  // fuerza el login antes del modal. Ver docs/legal-risk-matrix.md.
-  const cookieStore = await cookies();
-  const partnerConsentGranted =
-    Boolean(userId) && isPartnerConsentGranted(cookieStore.get(PARTNER_CONSENT_COOKIE)?.value);
+  // Consent gate para cards de partners externos (Fase 1 legal).
+  // Fuente de verdad → tabla `user_partner_consents`. Requiere sesión
+  // activa (si no hay login, el gate fuerza el login antes del modal).
+  // Ver docs/legal-risk-matrix.md.
+  const partnerConsentGranted = await hasActivePartnerConsent(userId);
 
   const dbCreators = await db.query.talents.findMany({
     where: inArray(talents.slug, [...PLATFORM_CREATOR_SLUGS]),
