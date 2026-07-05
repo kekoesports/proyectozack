@@ -193,7 +193,7 @@ export default function PrivacidadPage() {
           fecha de actualización. Cambios sustanciales se comunicarán además desde la propia
           plataforma. Ver también{' '}
           <Link href="/sorteos/terminos">Términos de uso</Link> y{' '}
-          <Link href="/sorteos/juego-responsable">Juego responsable</Link>.
+          <Link href="/sorteos/participacion-responsable">Participación responsable</Link>.
         </p>
       </section>
     </>

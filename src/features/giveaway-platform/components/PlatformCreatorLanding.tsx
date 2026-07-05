@@ -1,5 +1,6 @@
-import { headers } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import { eq, inArray } from 'drizzle-orm';
+import { isPartnerConsentGranted, PARTNER_CONSENT_COOKIE } from '@/lib/partner-consent';
 import { notFound } from 'next/navigation';
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
@@ -60,10 +61,19 @@ export async function PlatformCreatorLanding({ slug }: Props) {
     notFound();
   }
 
-  const session = await auth.api.getSession({ headers: await headers() });
+  const requestHeaders = await headers();
+  const session = await auth.api.getSession({ headers: requestHeaders });
   const userId = session?.user?.id ?? null;
   const userName = session?.user?.name ?? null;
   const userImage = session?.user?.image ?? null;
+
+  // Consent gate para cards de partners externos (Fase 0 legal).
+  // Cookie `sp_partner_consent` escrita por la server action tras el modal.
+  // Requiere sesión activa: si el usuario no está logueado, el gate ya
+  // fuerza el login antes del modal. Ver docs/legal-risk-matrix.md.
+  const cookieStore = await cookies();
+  const partnerConsentGranted =
+    Boolean(userId) && isPartnerConsentGranted(cookieStore.get(PARTNER_CONSENT_COOKIE)?.value);
 
   const dbCreators = await db.query.talents.findMany({
     where: inArray(talents.slug, [...PLATFORM_CREATOR_SLUGS]),
@@ -165,7 +175,12 @@ export async function PlatformCreatorLanding({ slug }: Props) {
 
       <main className="gp-wrap">
         <PlatformHero code={activeVisual.code} creatorName={active.name} />
-        <BrandBonusesSection creatorSlug={active.slug} creatorCode={activeVisual.code} />
+        <BrandBonusesSection
+          creatorSlug={active.slug}
+          creatorCode={activeVisual.code}
+          isLoggedIn={Boolean(userId)}
+          partnerConsentGranted={partnerConsentGranted}
+        />
 
         {userId ? (
           <>

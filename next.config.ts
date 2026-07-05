@@ -115,6 +115,19 @@ const nextConfig: NextConfig = {
         destination: '/talentos/tigerr',
         permanent: true,
       },
+      // /sorteos/juego-responsable → /sorteos/participacion-responsable (301)
+      // Fase 0 legal: no autocalificar SocialPro como operador de juego.
+      // Ver docs/legal-risk-matrix.md.
+      {
+        source: '/sorteos/juego-responsable',
+        destination: '/sorteos/participacion-responsable',
+        permanent: true,
+      },
+      {
+        source: '/sorteos/juego-responsable/',
+        destination: '/sorteos/participacion-responsable',
+        permanent: true,
+      },
     ];
   },
   async headers() {

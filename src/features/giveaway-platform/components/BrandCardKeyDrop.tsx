@@ -1,10 +1,17 @@
 import Image from 'next/image';
 import { PLATFORM_BRANDS } from '../constants/brands';
 import { buildKeydropClaimUrl } from '@/lib/external-giveaways/providers/keydrop/mapper';
+import { PartnerExternalNotice } from '@/components/partner/PartnerExternalNotice';
 
 interface Props {
   code: string;
 }
+
+// @allow-sensitive-copy: card de partner externo (KeyDrop). Todo el copy comercial ("200% Bonus",
+// "12x wagering", "raffles $", "Club VIP") es información objetiva del partner — SocialPro no la
+// origina. El renderizado de este componente está detrás de un consent gate en
+// `BrandBonusesSection`: solo se muestra a usuarios logueados que hayan aceptado +18 y participación
+// responsable. Ver docs/legal-risk-matrix.md y docs/external-partners.md.
 
 /**
  * Card grande de KeyDrop en el hero de bonuses del creador.
@@ -14,14 +21,15 @@ interface Props {
  * Es la URL oficial del shortener afiliado que registra el trackeo del
  * partner. Ver `buildKeydropClaimUrl` y `docs/keydrop-api-capabilities.md`.
  *
- * No hay botones muertos — cada elemento clickable es un `<a>` real con
- * `target="_blank"` + `rel="noopener noreferrer"` por seguridad.
+ * `PartnerExternalNotice` es obligatorio: informa al usuario de que la
+ * operativa es de KeyDrop y no de SocialPro.
  */
 export function BrandCardKeyDrop({ code }: Props) {
   const brand = PLATFORM_BRANDS.keydrop;
   const claimUrl = buildKeydropClaimUrl(code);
   return (
     <section aria-labelledby="brand-keydrop">
+      <PartnerExternalNotice partner="KeyDrop" category="casino_like" />
       <div className="gp-card gp-card-led p-keydrop">
         <div className="pad">
           <div className="gp-logo-slot">

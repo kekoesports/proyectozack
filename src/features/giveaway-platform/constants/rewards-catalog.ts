@@ -63,6 +63,7 @@ export interface CatalogReward {
   description: string;
 }
 
+// @allow-sensitive-copy: comentario técnico sobre cálculo de precio en puntos, sin exposición al usuario
 /**
  * Las 8 skins CS2 confirmadas por el owner. Todas Field-Tested, con
  * imagen local, stock 1, y precio en puntos calibrado con multiplicador

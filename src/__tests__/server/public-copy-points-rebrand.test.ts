@@ -34,7 +34,9 @@ const PUBLIC_UI_FILES = [
   'src/app/sorteos/perfil/page.tsx',
   'src/app/sorteos/(legal)/terminos/page.tsx',
   'src/app/sorteos/(legal)/privacidad/page.tsx',
-  'src/app/sorteos/(legal)/juego-responsable/page.tsx',
+  'src/app/sorteos/(legal)/participacion-responsable/page.tsx',
+  'src/app/sorteos/(legal)/recompensas-y-puntos/page.tsx',
+  'src/app/sorteos/(legal)/partners-externos/page.tsx',
   'src/app/sorteos/(legal)/faq/page.tsx',
   'src/features/giveaway-platform/components/UserPill.tsx',
   'src/features/giveaway-platform/components/PlatformShop.tsx',
@@ -137,8 +139,8 @@ describe('[points-rebrand] copy legal compliance', () => {
     expect(src).toMatch(/¿Qué son los puntos ⭐\?/);
   });
 
-  it('Juego responsable: aclara que los puntos no tienen valor monetario', () => {
-    const src = read('src/app/sorteos/(legal)/juego-responsable\/page.tsx');
+  it('Participación responsable: aclara que los puntos no tienen valor monetario', () => {
+    const src = read('src/app/sorteos/(legal)/participacion-responsable\/page.tsx');
     expect(src).toMatch(/puntos ⭐ son recompensas internas sin valor monetario/);
   });
 

@@ -2,28 +2,53 @@ import { BrandCardKeyDrop } from './BrandCardKeyDrop';
 import { BrandCardCsgoskins } from './BrandCardCsgoskins';
 import { BrandCardSkinsMonkey } from './BrandCardSkinsMonkey';
 import { BrandCardSkinClub } from './BrandCardSkinClub';
+import { PartnerConsentGate } from './PartnerConsentGate';
 import { getCreatorDeals } from '../constants/creator-deals';
-import type { BrandKey } from '../constants/brands';
+import { PLATFORM_BRANDS, type BrandKey } from '../constants/brands';
 
 interface Props {
   creatorSlug: string;
   creatorCode: string;
+  /** True si el usuario tiene sesión activa (typicamente Steam OpenID). */
+  readonly isLoggedIn: boolean;
+  /**
+   * True si el usuario ha aceptado explícitamente el consent de partners
+   * externos (+18 + participación responsable). Se lee server-side desde
+   * la cookie `sp_partner_consent` en `PlatformCreatorLanding`.
+   *
+   * Falso → renderizamos `PartnerConsentGate` en lugar de las cards.
+   *
+   * Ver docs/legal-risk-matrix.md y src/lib/partner-consent.ts.
+   */
+  readonly partnerConsentGranted: boolean;
 }
+
+const LABELS_BY_BRAND: Readonly<Record<BrandKey, string>> = {
+  keydrop:     PLATFORM_BRANDS.keydrop.displayName,
+  csgoskins:   PLATFORM_BRANDS.csgoskins.displayName,
+  skinsmonkey: PLATFORM_BRANDS.skinsmonkey.displayName,
+  skinclub:    PLATFORM_BRANDS.skinclub.displayName,
+};
 
 /**
  * Bloque de bonuses adaptativo a los deals reales del creador.
  *
  * Reglas:
  *   - 0 deals → placeholder honesto ("Deals de partners próximamente").
- *   - 1 deal  → card sola full-width (no grid).
- *   - 2 deals → grid 2 columnas (`.gp-grid-2`), sin dejar hueco.
- *   - 3+ deals → misma grid + siguientes cards apiladas.
+ *   - deals > 0 y consent NO otorgado → `PartnerConsentGate` (login +
+ *     modal +18/responsable).
+ *   - deals > 0 y consent otorgado → cards del partner con toda su info.
  *
- * Las cards que renderiza SIEMPRE están en `CREATOR_DEALS` para el
- * creador activo — nunca aparecen partners fantasma. La lista canónica
- * de partnerships vive en `creator-deals.ts`.
+ * El consent gate es un requisito legal (Fase 0): la comunicación
+ * comercial de partners externos solo se muestra tras confirmación
+ * explícita del usuario. Ver docs/legal-risk-matrix.md.
  */
-export function BrandBonusesSection({ creatorSlug, creatorCode }: Props) {
+export function BrandBonusesSection({
+  creatorSlug,
+  creatorCode,
+  isLoggedIn,
+  partnerConsentGranted,
+}: Props) {
   const deals = getCreatorDeals(creatorSlug);
 
   if (deals.length === 0) {
@@ -40,6 +65,15 @@ export function BrandBonusesSection({ creatorSlug, creatorCode }: Props) {
           </div>
         </div>
       </section>
+    );
+  }
+
+  if (!partnerConsentGranted) {
+    return (
+      <PartnerConsentGate
+        isLoggedIn={isLoggedIn}
+        partnerLabels={deals.map((d) => LABELS_BY_BRAND[d])}
+      />
     );
   }
 

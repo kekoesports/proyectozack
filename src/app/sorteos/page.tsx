@@ -58,7 +58,7 @@ export default async function SorteosIndexPage() {
           </Link>
           <div className="gp-legal-nav-links">
             <Link href="/sorteos/faq">FAQ</Link>
-            <Link href="/sorteos/juego-responsable">Juego responsable</Link>
+            <Link href="/sorteos/participacion-responsable">Participación responsable</Link>
           </div>
         </div>
       </nav>

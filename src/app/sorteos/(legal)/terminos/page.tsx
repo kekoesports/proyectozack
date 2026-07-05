@@ -37,7 +37,7 @@ export default function TerminosPage() {
         <p>
           Al iniciar sesión con Steam y usar la plataforma, aceptas estos términos, la{' '}
           <Link href="/sorteos/privacidad">política de privacidad</Link> y las normas de{' '}
-          <Link href="/sorteos/juego-responsable">juego responsable</Link>. Si no estás de acuerdo,
+          <Link href="/sorteos/participacion-responsable">participación responsable</Link>. Si no estás de acuerdo,
           no uses el servicio.
         </p>
       </section>
