@@ -480,7 +480,10 @@ describe('Integración /admin/finanzas/pl', () => {
   const pageSrc = read('src/app/admin/(dashboard)/finanzas/pl/page.tsx');
   const querySrc = read('src/lib/queries/financeDashboard/pnlDetail.ts');
   const componentSrc = read('src/features/admin/pnl/components/AnnualExpenseBreakdown.tsx');
-  const gastosClientSrc = read('src/app/admin/(dashboard)/finanzas/gastos/GastosPageClient.tsx');
+  // PR 4 (2026-07-06): GastosPageClient eliminado. El CTA de "sin
+  // clasificar" ahora aterriza en el bloque `GastosSinClasificarBloque`
+  // que envuelve `ExpensesClassifyTable`.
+  const sinClasBloqueSrc = read('src/features/admin/finance-dashboard/components/gastos/GastosSinClasificarBloque.tsx');
   const subgroupsSrc = read('src/lib/queries/financeDashboard/expenseSubgroups.ts');
 
   it('page.tsx importa y renderiza AnnualExpenseBreakdown', () => {
@@ -541,12 +544,12 @@ describe('Integración /admin/finanzas/pl', () => {
     expect(componentSrc).toMatch(/Clasificar/);
   });
 
-  it('GastosPageClient activa la tab "Sin clasificar" al detectar el hash', () => {
-    // Puede ser vía useEffect + setActive, o vía initializer del useState
-    // (patrón preferido — sin efecto, sin warning de set-state-in-effect).
-    expect(gastosClientSrc).toMatch(/window\.location\.hash/);
-    expect(gastosClientSrc).toMatch(/['"]#sin-clasificar['"]/);
-    expect(gastosClientSrc).toMatch(/Sin clasificar/);
+  it('el bloque de sin clasificar tiene el anchor id="sin-clasificar"', () => {
+    // Post PR 4: el CTA de AnnualExpenseBreakdown apunta a
+    // /admin/finanzas/gastos#sin-clasificar. El bloque destacado en la
+    // página gastos incluye ese id para el scroll.
+    expect(sinClasBloqueSrc).toMatch(/id=['"]sin-clasificar['"]/);
+    expect(sinClasBloqueSrc).toMatch(/Sin clasificar|sin clasificar/i);
   });
 
   it('la tabla de items pasa por humanStatus() y no muestra status raw', () => {
@@ -576,7 +579,7 @@ describe('Anti-scope-creep', () => {
     'src/lib/queries/financeDashboard/pnlDetail.ts',
     'src/features/admin/pnl/components/AnnualExpenseBreakdown.tsx',
     'src/app/admin/(dashboard)/finanzas/pl/page.tsx',
-    'src/app/admin/(dashboard)/finanzas/gastos/GastosPageClient.tsx',
+    'src/features/admin/finance-dashboard/components/gastos/GastosSinClasificarBloque.tsx',
   ];
 
   it.each(filesToScan)('%s no importa Resend ni utilidades de email', (rel) => {

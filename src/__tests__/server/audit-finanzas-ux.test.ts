@@ -115,23 +115,28 @@ describe('FinanceMonthlyControl — % por categoría', () => {
   });
 });
 
-// ── 8. Total por tab en Gastos ──────────────────────────────────────────────
+// ── 8. Totales por grupo en Gastos ──────────────────────────────────────────
+//
+// PR 4 rediseño 2026-07-06: `GastosPageClient` fue eliminado (tabs de
+// Directos/Operativos/Sin clasificar). El desglose por grupo lo hace
+// ahora `getGastosData` server-side (byGroup + KPIs) y lo renderizan
+// los bloques `GastosKpisBlock` + `GastosBreakdownCharts`. Ver
+// `docs/finanzas-audit.md`.
 
-describe('GastosPageClient — importe total por tab', () => {
-  const src = read('src/app/admin/(dashboard)/finanzas/gastos/GastosPageClient.tsx');
+describe('Gastos — desglose por grupo (post PR 4)', () => {
+  const querySrc = read('src/lib/queries/financeDashboard/gastos.ts');
 
-  it('[8] calcula la suma de totalAmount por cada tab', () => {
-    expect(src).toMatch(/function\s+sumTotalAmount\(/);
-    expect(src).toMatch(/Number\(r\.totalAmount\)/);
-    // El cálculo debe aplicarse a los tres arrays
-    expect(src).toMatch(/totalDirectos\s*=\s*sumTotalAmount\(directos\)/);
-    expect(src).toMatch(/totalOperativos\s*=\s*sumTotalAmount\(operativos\)/);
-    expect(src).toMatch(/totalSinClasif\s*=\s*sumTotalAmount\(sinClasificar\)/);
+  it('la query agrega gastos por grupo (directos/operativos/sin clasificar)', () => {
+    expect(querySrc).toMatch(/byGroup:\s*GastosBreakdownByGroup/);
+    expect(querySrc).toMatch(/campaign_direct/);
+    expect(querySrc).toMatch(/operational/);
+    expect(querySrc).toMatch(/sin_clasificar/);
   });
 
-  it('el importe se renderiza junto al contador (no debajo, no como tooltip)', () => {
-    // Debe aparecer el separador "·" + EUR0.format(total) en el JSX del botón
-    expect(src).toMatch(/EUR0\.format\(total\)/);
-    expect(src).toMatch(/·\s+\{EUR0\.format/);
+  it('el KPIsBlock lee `kpis.costesDirectos`, `kpis.gastosOperativos` y `kpis.sinClasificar`', () => {
+    const kpiSrc = read('src/features/admin/finance-dashboard/components/gastos/GastosKpis.tsx');
+    expect(kpiSrc).toMatch(/kpis\.costesDirectos/);
+    expect(kpiSrc).toMatch(/kpis\.gastosOperativos/);
+    expect(kpiSrc).toMatch(/kpis\.sinClasificar/);
   });
 });
