@@ -56,6 +56,9 @@ export const env = createEnv({
     // base y auth (x-api-key) que ZACKETIZOR. Un secreto por par
     // creador+provider (regla del onboarding doc §1).
     KEYDROP_IMANTADO_API_KEY: z.string().min(1).optional(),
+    // KeyDrop Giveaway API — clave del afiliado NAOW. Un secreto por par
+    // creador+provider.
+    KEYDROP_NAOW_API_KEY: z.string().min(1).optional(),
 
     // ============================================================
     // Discord Missions Fase A — OAuth de terceros para verificar
@@ -139,6 +142,7 @@ export const env = createEnv({
     STEAM_API_KEY: process.env.STEAM_API_KEY,
     KEYDROP_ZACKETIZOR_API_KEY: process.env.KEYDROP_ZACKETIZOR_API_KEY,
     KEYDROP_IMANTADO_API_KEY: process.env.KEYDROP_IMANTADO_API_KEY,
+    KEYDROP_NAOW_API_KEY: process.env.KEYDROP_NAOW_API_KEY,
 
     // Discord Missions Fase A
     DISCORD_CLIENT_ID: process.env.DISCORD_CLIENT_ID,

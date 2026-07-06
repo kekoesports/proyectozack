@@ -236,6 +236,7 @@ describe('[legal] reglas del PR — sin cambios prohibidos', () => {
       expect(src).not.toMatch(/process\.env/);
       expect(src).not.toMatch(/KEYDROP_ZACKETIZOR_API_KEY/);
       expect(src).not.toMatch(/KEYDROP_IMANTADO_API_KEY/);
+      expect(src).not.toMatch(/KEYDROP_NAOW_API_KEY/);
       expect(src).not.toMatch(/api[_-]?key/i);
     }
   });
