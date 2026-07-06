@@ -7,9 +7,24 @@ import { participateInGiveaway } from '@/app/sorteos/plataforma/actions';
 import { ParticipantsModal } from './ParticipantsModal';
 import type { FreeRaffleCardData } from '@/types/giveawayPlatform';
 
+interface PreviewParticipant {
+  userId: string;
+  displayName: string;
+  avatarUrl: string | null;
+  enteredAt: string;
+}
+
 interface Props {
   raffle: FreeRaffleCardData;
   isLoggedIn: boolean;
+  /**
+   * Modo preview/QA: no ejecuta la Server Action al pulsar "Participar",
+   * y forwarda los participantes al modal como fixtures.
+   * Solo se usa en `/sorteos/preview/*`, nunca en producción.
+   */
+  preview?: {
+    participants: readonly PreviewParticipant[];
+  };
 }
 
 function formatEndsAt(endsAt: Date | null): string {
@@ -24,7 +39,7 @@ function formatEndsAt(endsAt: Date | null): string {
   return `Finaliza en ${hours}h ${minutes}m`;
 }
 
-export function FreeRaffleCard({ raffle, isLoggedIn }: Props): React.ReactElement {
+export function FreeRaffleCard({ raffle, isLoggedIn, preview }: Props): React.ReactElement {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [msg, setMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -35,6 +50,10 @@ export function FreeRaffleCard({ raffle, isLoggedIn }: Props): React.ReactElemen
 
   function handleParticipate() {
     if (!isLoggedIn || isEnded || raffle.userHasEntered) return;
+    if (preview) {
+      setMsg({ type: 'success', text: '[Preview] Participación simulada. No se ha escrito en DB.' });
+      return;
+    }
     setMsg(null);
     startTransition(async () => {
       const result = await participateInGiveaway({ giveawayId: raffle.id });
@@ -120,6 +139,7 @@ export function FreeRaffleCard({ raffle, isLoggedIn }: Props): React.ReactElemen
           raffleId={raffle.id}
           totalCount={raffle.entryCount}
           onClose={() => setShowParticipants(false)}
+          {...(preview?.participants ? { previewParticipants: preview.participants } : {})}
         />
       )}
     </>

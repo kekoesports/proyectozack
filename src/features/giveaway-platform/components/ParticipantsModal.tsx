@@ -13,6 +13,12 @@ interface Props {
   raffleId: number;
   totalCount: number;
   onClose: () => void;
+  /**
+   * Modo preview/QA: si se pasa, se muestran los participantes inline
+   * SIN llamar a `/api/sorteos/participants`. Uso: `/sorteos/preview/*`.
+   * Nunca se activa en producción.
+   */
+  previewParticipants?: readonly Participant[];
 }
 
 const PAGE_SIZE = 20;
@@ -22,13 +28,19 @@ const PAGE_SIZE = 20;
  * `/api/sorteos/participants/[raffleId]` que respeta `player_profiles.isPrivate`
  * y jamás expone email/tradeUrl/steamId/IP.
  */
-export function ParticipantsModal({ raffleId, totalCount, onClose }: Props): React.ReactElement {
-  const [rows, setRows] = useState<Participant[]>([]);
-  const [loading, setLoading] = useState(true);
+export function ParticipantsModal({
+  raffleId,
+  totalCount,
+  onClose,
+  previewParticipants,
+}: Props): React.ReactElement {
+  const [rows, setRows] = useState<Participant[]>(() => previewParticipants ? [...previewParticipants] : []);
+  const [loading, setLoading] = useState(!previewParticipants);
   const [offset, setOffset] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (previewParticipants) return; // preview mode: skip fetch
     let cancelled = false;
     const url = `/api/sorteos/participants/${raffleId}?limit=${PAGE_SIZE}&offset=${offset}`;
     fetch(url)
@@ -44,7 +56,7 @@ export function ParticipantsModal({ raffleId, totalCount, onClose }: Props): Rea
         setLoading(false);
       });
     return () => { cancelled = true; };
-  }, [raffleId, offset]);
+  }, [raffleId, offset, previewParticipants]);
 
   const hasMore = rows.length < totalCount;
 
