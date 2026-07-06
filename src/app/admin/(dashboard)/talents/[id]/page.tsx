@@ -88,7 +88,7 @@ export default async function TalentProfilePage({
   const incomeTotal     = invoices.filter((i) => i.kind === 'income').reduce((s, i) => s + Number(i.totalAmount), 0);
   const expenseTotal    = invoices.filter((i) => i.kind === 'expense').reduce((s, i) => s + Number(i.totalAmount), 0);
   const marginTotal     = incomeTotal - expenseTotal;
-  const activeCodes     = codes.length;
+  const activeCodes     = codes.filter((c) => !c.isHidden).length;
   const activeGiveaways = giveaways.filter((g) => !g.endsAt || new Date(g.endsAt) > new Date()).length;
 
   const defaultTab = sp.tab ?? 'resumen';

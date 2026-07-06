@@ -105,6 +105,34 @@ export async function setCodeFeaturedAction(id: number, value: boolean): Promise
   revalidatePath('/');
 }
 
+/**
+ * Toggle `is_hidden` de un código — soft-hide para pausar sin borrar.
+ * Cuando `value = true` desaparece de todas las páginas públicas; cuando
+ * vuelve a `false` reaparece con toda su config y clicks históricos intactos.
+ */
+export async function setCodeHiddenAction(id: number, value: boolean): Promise<void> {
+  await requirePermission('sorteos', 'write');
+  const parsed = ToggleArgsSchema.safeParse([id, value]);
+  if (!parsed.success) return;
+  const [pid, pval] = parsed.data;
+
+  // Resolvemos el talent para revalidar las rutas del creador afectado.
+  const [row] = await db
+    .select({ talentId: creatorCodes.talentId })
+    .from(creatorCodes)
+    .where(eq(creatorCodes.id, pid))
+    .limit(1);
+
+  await db.update(creatorCodes).set({ isHidden: pval }).where(eq(creatorCodes.id, pid));
+
+  revalidatePath('/admin/giveaways');
+  revalidatePath('/codigos');
+  revalidatePath('/');
+  if (row?.talentId) {
+    revalidatePath(`/admin/talents/${row.talentId}`);
+  }
+}
+
 export async function deleteCodeAction(formData: FormData): Promise<void> {
   await requirePermission('codigos', 'delete');
   const parsed = parseFormData(formData, DeleteByIdSchema);

@@ -1,12 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
 import type { GiveawayWithTalent, CreatorCodeWithTalent } from '@/types';
 import type { CrmBrandPickerEntry } from '@/lib/queries/crmBrands';
 import { EditGiveawayModal } from '@/app/admin/(dashboard)/giveaways/EditGiveawayModal';
 import { EditCodeModal } from '@/app/admin/(dashboard)/giveaways/EditCodeModal';
 import { CreateGiveawayForm } from '@/app/admin/(dashboard)/giveaways/CreateGiveawayForm';
 import { CreateCodeForm } from '@/app/admin/(dashboard)/giveaways/CreateCodeForm';
+import { setCodeHiddenAction } from '@/app/admin/(dashboard)/giveaways/codes-actions';
 
 type TalentRef = { readonly id: number; readonly name: string; readonly slug: string };
 
@@ -73,8 +74,18 @@ export function TalentGiveawaysSection({ giveaways, codes, talent, brandCatalog,
   const [editingCode, setEditingCode]       = useState<CreatorCodeWithTalent | null>(null);
   const [showCreateGiveaway, setShowCreateGiveaway] = useState(false);
   const [showCreateCode, setShowCreateCode] = useState(false);
+  const [pendingHideId, setPendingHideId] = useState<number | null>(null);
+  const [isPending, startTransition] = useTransition();
 
   const talents = [{ id: talent.id, name: talent.name, slug: talent.slug }];
+
+  function toggleHidden(code: CreatorCodeWithTalent) {
+    setPendingHideId(code.id);
+    startTransition(async () => {
+      await setCodeHiddenAction(code.id, !code.isHidden);
+      setPendingHideId(null);
+    });
+  }
 
   const inner = (
     <>
@@ -95,7 +106,14 @@ export function TalentGiveawaysSection({ giveaways, codes, talent, brandCatalog,
                     : 'text-sp-admin-muted hover:text-sp-admin-text hover:bg-sp-admin-hover'
                 }`}
               >
-                {tab === 'giveaways' ? `Giveaways (${giveaways.length})` : `Códigos (${codes.length})`}
+                {tab === 'giveaways'
+                  ? `Giveaways (${giveaways.length})`
+                  : (() => {
+                      const hidden = codes.filter((c) => c.isHidden).length;
+                      return hidden > 0
+                        ? `Códigos (${codes.length - hidden}/${codes.length})`
+                        : `Códigos (${codes.length})`;
+                    })()}
               </button>
             ))}
           </div>
@@ -189,46 +207,78 @@ export function TalentGiveawaysSection({ giveaways, codes, talent, brandCatalog,
                 </tr>
               </thead>
               <tbody>
-                {codes.map((c) => (
-                  <tr key={c.id} className="border-b border-sp-admin-border/40 last:border-0 hover:bg-sp-admin-hover transition-colors">
-                    <td className="px-4 py-2.5">
-                      <span className="font-mono text-[12px] font-bold text-sp-admin-accent">{c.code}</span>
-                    </td>
-                    <td className="px-4 py-2.5">
-                      <div className="flex items-center gap-1.5">
-                        {c.brandLogo && (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img src={c.brandLogo} alt={c.brandName} className="w-5 h-5 rounded object-contain" />
-                        )}
-                        <span className="text-[11px] text-sp-admin-muted">{c.brandName}</span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-2.5 text-[11px] text-sp-admin-muted capitalize">{c.category ?? '—'}</td>
-                    <td className="px-4 py-2.5 text-[11px]">{c.badge ? (BADGE_LABELS[c.badge] ?? c.badge) : '—'}</td>
-                    <td className="px-4 py-2.5 text-center">
-                      {c.isFeatured && <span className="text-amber-500">★</span>}
-                    </td>
-                    <td className="px-4 py-2.5">
-                      <a
-                        href={c.ctaUrl ?? c.redirectUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-[10px] text-sp-admin-accent hover:underline max-w-[140px] truncate block"
-                      >
-                        {c.ctaText ?? 'Ver'}
-                      </a>
-                    </td>
-                    <td className="px-4 py-2.5">
-                      <button
-                        type="button"
-                        onClick={() => setEditingCode(c)}
-                        className="text-sp-admin-accent hover:opacity-80 text-xs font-bold transition-opacity"
-                      >
-                        Editar
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                {codes.map((c) => {
+                  const hiddenPending = pendingHideId === c.id && isPending;
+                  return (
+                    <tr
+                      key={c.id}
+                      className={`border-b border-sp-admin-border/40 last:border-0 hover:bg-sp-admin-hover transition-colors ${
+                        c.isHidden ? 'opacity-60' : ''
+                      }`}
+                    >
+                      <td className="px-4 py-2.5">
+                        <div className="flex items-center gap-2">
+                          <span className={`font-mono text-[12px] font-bold ${c.isHidden ? 'text-sp-admin-muted line-through' : 'text-sp-admin-accent'}`}>
+                            {c.code}
+                          </span>
+                          {c.isHidden && (
+                            <span className="text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded bg-slate-500/20 text-slate-400 border border-slate-500/30">
+                              Oculto
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-4 py-2.5">
+                        <div className="flex items-center gap-1.5">
+                          {c.brandLogo && (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={c.brandLogo} alt={c.brandName} className="w-5 h-5 rounded object-contain" />
+                          )}
+                          <span className="text-[11px] text-sp-admin-muted">{c.brandName}</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-2.5 text-[11px] text-sp-admin-muted capitalize">{c.category ?? '—'}</td>
+                      <td className="px-4 py-2.5 text-[11px]">{c.badge ? (BADGE_LABELS[c.badge] ?? c.badge) : '—'}</td>
+                      <td className="px-4 py-2.5 text-center">
+                        {c.isFeatured && <span className="text-amber-500">★</span>}
+                      </td>
+                      <td className="px-4 py-2.5">
+                        <a
+                          href={c.ctaUrl ?? c.redirectUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[10px] text-sp-admin-accent hover:underline max-w-[140px] truncate block"
+                        >
+                          {c.ctaText ?? 'Ver'}
+                        </a>
+                      </td>
+                      <td className="px-4 py-2.5">
+                        <div className="flex items-center gap-3 justify-end">
+                          <button
+                            type="button"
+                            onClick={() => toggleHidden(c)}
+                            disabled={hiddenPending}
+                            title={c.isHidden ? 'Volver a mostrar en las páginas públicas' : 'Ocultar en las páginas públicas — sin borrar'}
+                            className={`text-xs font-bold transition-opacity ${
+                              c.isHidden
+                                ? 'text-emerald-500 hover:opacity-80'
+                                : 'text-slate-400 hover:text-slate-200'
+                            } disabled:opacity-40 disabled:cursor-wait`}
+                          >
+                            {hiddenPending ? '…' : c.isHidden ? 'Reactivar' : 'Ocultar'}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setEditingCode(c)}
+                            className="text-sp-admin-accent hover:opacity-80 text-xs font-bold transition-opacity"
+                          >
+                            Editar
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
