@@ -7,8 +7,9 @@
  *   - client-factory respeta las reglas de seguridad universales.
  *   - fetch.ts de KeyDrop pasa apiKey solo por config, jamás en URL.
  *   - ningún archivo del provider loggea la key.
- *   - env.ts declara KEYDROP_ZACKETIZOR_API_KEY, KEYDROP_IMANTADO_API_KEY
- *     y KEYDROP_NAOW_API_KEY como server-only + optional.
+ *   - env.ts declara KEYDROP_ZACKETIZOR_API_KEY, KEYDROP_IMANTADO_API_KEY,
+ *     KEYDROP_NAOW_API_KEY y KEYDROP_TODOCS2_API_KEY como server-only +
+ *     optional.
  */
 
 import * as fs from 'fs';
@@ -23,6 +24,7 @@ describe('[keydrop-provider] env var declaración', () => {
     'KEYDROP_ZACKETIZOR_API_KEY',
     'KEYDROP_IMANTADO_API_KEY',
     'KEYDROP_NAOW_API_KEY',
+    'KEYDROP_TODOCS2_API_KEY',
   ] as const;
 
   it.each(KEYS)('%s vive en el bloque server', (key) => {
@@ -136,6 +138,7 @@ describe('[keydrop-provider] no leak en UI/queries/mapper', () => {
       expect(src).not.toMatch(/KEYDROP_ZACKETIZOR_API_KEY/);
       expect(src).not.toMatch(/KEYDROP_IMANTADO_API_KEY/);
       expect(src).not.toMatch(/KEYDROP_NAOW_API_KEY/);
+      expect(src).not.toMatch(/KEYDROP_TODOCS2_API_KEY/);
       expect(src).not.toMatch(/env\.KEYDROP/);
       expect(src).not.toMatch(/apiKey:\s*string/);
     });

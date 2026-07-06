@@ -21,7 +21,7 @@ export const CREATOR_DEALS: Record<PlatformCreatorSlug, readonly BrandKey[]> = {
   zacketizor: ['keydrop', 'csgoskins'],
   huasopeek:  [],
   naow:       ['keydrop'],
-  todocs2:    [],
+  todocs2:    ['keydrop'],
   imantado:   ['keydrop'],
   jolu:       [],
 };
