@@ -33,10 +33,24 @@ describe('[csgoskins-v2] componente card', () => {
     expect(src).toMatch(/className="[^"]*\bp-csgo-v2\b[^"]*"/);
   });
 
-  it('monta banner del evento como <Image fill> en `.gp-csgo-media`', () => {
-    expect(src).toMatch(/<div className="gp-csgo-media"\s+aria-hidden>/);
+  it('monta banner del evento como <Image fill> dentro de `.gp-csgo-media`', () => {
+    // Post banner-click: la media ahora es un <a> clickable con className
+    // "gp-csgo-media gp-cta-link" en lugar de un <div aria-hidden>. Ver
+    // BrandCardCsgoskins.tsx.
+    expect(src).toMatch(/className="gp-csgo-media\s+gp-cta-link"/);
     expect(src).toMatch(/<Image[\s\S]{0,200}fill[\s\S]{0,200}gp-csgo-media-img/);
     expect(src).toMatch(/sizes="\(max-width:\s*720px\)\s*100vw,\s*460px"/);
+  });
+
+  it('banner + CTA enlazan a https://csgo-skins.com/?ref={code} con noopener + sponsored', () => {
+    expect(src).toMatch(/buildCsgoskinsAffiliateUrl\(code\)/);
+    expect(src).toMatch(/https:\/\/csgo-skins\.com\/\?ref=\$\{safeCode\}/);
+    // El código llega URL-encoded.
+    expect(src).toMatch(/encodeURIComponent\(code\)/);
+    // Ambos anchors — banner + botón — apuntan al mismo URL con rel sponsored.
+    expect((src.match(/href=\{affiliateUrl\}/g) ?? []).length).toBeGreaterThanOrEqual(2);
+    expect((src.match(/rel="noopener noreferrer sponsored"/g) ?? []).length).toBeGreaterThanOrEqual(2);
+    expect(src).toMatch(/target="_blank"/);
   });
 
   it('renderiza countdown live con endsAt configurable (constante bien identificada)', () => {
