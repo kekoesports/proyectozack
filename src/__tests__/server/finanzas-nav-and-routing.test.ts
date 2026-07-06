@@ -89,12 +89,20 @@ describe('[finanzas-nav-and-routing] páginas placeholder usan PlaceholderSectio
   });
 });
 
-describe('[finanzas-nav-and-routing] /admin/finanzas/ingresos hospeda IngresosCompoundPage', () => {
-  const src = read('src/app/admin/(dashboard)/finanzas/ingresos/page.tsx');
-  it('importa IngresosCompoundPage del shared feature', () => {
-    expect(src).toMatch(/import\s*\{\s*IngresosCompoundPage\s*\}\s*from\s*['"]@\/features\/admin\/invoices\/pages\/IngresosCompoundPage['"]/);
+describe('[finanzas-nav-and-routing] /admin/finanzas/ingresos + gestor (PR 3 rediseño)', () => {
+  // PR 3 (2026-07-06): /admin/finanzas/ingresos es una sección nueva
+  // con KPIs + aging + tabla + top clientes. El compound antiguo se
+  // preserva en /admin/finanzas/ingresos/gestor, accesible desde el
+  // bloque "Accesos rápidos".
+  it('/ingresos es la nueva sección PR 3 (usa getIngresosData)', () => {
+    const src = read('src/app/admin/(dashboard)/finanzas/ingresos/page.tsx');
+    expect(src).toMatch(/import\s*\{\s*getIngresosData\s*\}/);
+    expect(src).toMatch(/<IngresosKpisBlock/);
   });
-  it('renderiza el compound', () => {
-    expect(src).toMatch(/<IngresosCompoundPage\s+headerTitle=['"]Ingresos['"]/);
+
+  it('/ingresos/gestor hospeda IngresosCompoundPage (compound preservado)', () => {
+    const src = read('src/app/admin/(dashboard)/finanzas/ingresos/gestor/page.tsx');
+    expect(src).toMatch(/import\s*\{\s*IngresosCompoundPage\s*\}\s*from\s*['"]@\/features\/admin\/invoices\/pages\/IngresosCompoundPage['"]/);
+    expect(src).toMatch(/<IngresosCompoundPage\s+headerTitle=['"]Gestor de facturación['"]/);
   });
 });
