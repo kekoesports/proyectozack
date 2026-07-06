@@ -56,6 +56,10 @@ export const AUDIT_ACTIONS = [
   'partner_consent_revoked',
   // Sorteos internos
   'giveaway_participate',
+  // Sorteos gratis (entry_award_coins = 0)
+  'free_raffle_participate',
+  // Elección de ganador (admin)
+  'raffle_winner_picked',
   // Canjeos
   'shop_redeem',
   // Misiones

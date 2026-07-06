@@ -27,12 +27,13 @@ describe('[post-170] HistoricalWinnersPlaceholder', () => {
     expect(src).not.toMatch(/ganador\s*(?:1|2|3|:)/i); // no listas fake
   });
 
-  it('está integrado dentro de #ranking en la landing por creador', () => {
-    // La landing por creador ahora vive en el componente reutilizable
-    // PlatformCreatorLanding, no inline en page.tsx.
+  it('está integrado dentro de #recompensas en la landing por creador', () => {
+    // Post rewards-hub refactor: el placeholder de winners históricos vive
+    // dentro del bloque #recompensas (bajo el hub de tabs). Ver
+    // src/features/giveaway-platform/components/RewardsHub.tsx.
     const src = read('src/features/giveaway-platform/components/PlatformCreatorLanding.tsx');
     expect(src).toMatch(/import\s*\{\s*HistoricalWinnersPlaceholder\s*\}/);
-    expect(src).toMatch(/<MonthlyRanking[\s\S]{0,200}<HistoricalWinnersPlaceholder\s*\/>/);
+    expect(src).toMatch(/<RewardsHub[\s\S]{0,600}<HistoricalWinnersPlaceholder\s*\/>/);
   });
 });
 

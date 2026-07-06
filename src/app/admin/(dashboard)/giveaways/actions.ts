@@ -4,8 +4,8 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { requirePermission } from '@/lib/permissions';
 import { createGiveaway, updateGiveaway, deleteGiveaway } from '@/lib/queries/giveaways';
-import { like, eq } from 'drizzle-orm';
-import { giveaways } from '@/db/schema';
+import { like, eq, sql } from 'drizzle-orm';
+import { giveawayWinners, giveaways } from '@/db/schema';
 import { db } from '@/lib/db';
 import { parseFormData } from '@/lib/forms/parseFormData';
 import { firstError } from '@/lib/forms/firstError';
@@ -138,4 +138,59 @@ export async function deleteGiveawayAction(formData: FormData): Promise<void> {
   if (!parsed.ok) return;
   await deleteGiveaway(parsed.data.id);
   revalidateGiveawayPaths(parsed.data.talentSlug);
+}
+
+/**
+ * Elige un ganador al azar de un sorteo, marca el sorteo como `ended` y
+ * crea la fila en `giveaway_winners` enlazada a la fila `user` real
+ * (winnerUserId). Uso admin-only — no auto-scheduled.
+ *
+ * Sorteo debe tener al menos 1 entry para poder elegir ganador.
+ * Idempotente por ausencia: si ya hay winner, la ejecución la crea nueva
+ * (no hay UNIQUE) — el admin debe tener cuidado. Diseño consciente para
+ * poder recorregir un ganador manual si es necesario.
+ */
+export async function pickRaffleWinnerAction(giveawayId: number): Promise<
+  | { ok: true; winner: { userId: string; displayName: string } }
+  | { ok: false; error: string }
+> {
+  await requirePermission('sorteos', 'write');
+  const parsed = StrictIdSchema.safeParse(giveawayId);
+  if (!parsed.success) return { ok: false, error: 'ID inválido' };
+
+  const [giveaway] = await db
+    .select({ id: giveaways.id, title: giveaways.title })
+    .from(giveaways)
+    .where(eq(giveaways.id, parsed.data))
+    .limit(1);
+  if (!giveaway) return { ok: false, error: 'Sorteo no encontrado' };
+
+  // Ganador random. Postgres `random()` es suficiente para promoción interna.
+  // No es RNG certificado — para sorteos con impacto legal habría que
+  // considerar VRF/RANDAO en fases futuras.
+  const winnerRow = await db.execute(sql`
+    SELECT ge.user_id, u.name, u.image
+    FROM giveaway_entries ge
+    INNER JOIN "user" u ON u.id = ge.user_id
+    WHERE ge.giveaway_id = ${parsed.data}
+    ORDER BY random()
+    LIMIT 1
+  `);
+  const rows = winnerRow.rows as Array<{ user_id: string; name: string; image: string | null }>;
+  const winner = rows[0];
+  if (!winner) return { ok: false, error: 'Sin participantes para elegir ganador' };
+
+  await db.insert(giveawayWinners).values({
+    giveawayId: parsed.data,
+    winnerName: winner.name,
+    winnerAvatar: winner.image,
+    winnerUserId: winner.user_id,
+  });
+
+  await db.update(giveaways)
+    .set({ status: 'ended', updatedAt: new Date() })
+    .where(eq(giveaways.id, parsed.data));
+
+  revalidateGiveawayPaths();
+  return { ok: true, winner: { userId: winner.user_id, displayName: winner.name } };
 }

@@ -8,10 +8,12 @@ import { dailyStreaks, playerProfiles, talents } from '@/db/schema';
 import {
   getActiveShopItems,
   getCoinBalance,
+  getFreeRafflesForCreator,
   getGiveawaysWithEntryData,
   getMissionsWithProgress,
-  getMonthlyRanking,
-  getMonthlyRankingTotal,
+  getMonthlyPointsRanking,
+  getMonthlyPointsRankingTotal,
+  getUserMonthlyStanding,
 } from '@/lib/queries/giveawayPlatform';
 import {
   PLATFORM_CREATOR_SLUGS,
@@ -29,8 +31,7 @@ import { BrandBonusesSection } from '@/features/giveaway-platform/components/Bra
 import { DailyStreakCard } from '@/features/giveaway-platform/components/DailyStreakCard';
 import { MissionsGrid } from '@/features/giveaway-platform/components/MissionsGrid';
 import { EntryButton } from '@/features/giveaway-platform/components/EntryButton';
-import { PlatformShop } from '@/features/giveaway-platform/components/PlatformShop';
-import { MonthlyRanking } from '@/features/giveaway-platform/components/MonthlyRanking';
+import { RewardsHub } from '@/features/giveaway-platform/components/RewardsHub';
 import { HistoricalWinnersPlaceholder } from '@/features/giveaway-platform/components/HistoricalWinnersPlaceholder';
 import { ExternalGiveawaysSection } from '@/features/giveaway-platform/components/ExternalGiveawaysSection';
 import { PlatformFooter } from '@/features/giveaway-platform/components/PlatformFooter';
@@ -143,9 +144,9 @@ export async function PlatformCreatorLanding({ slug }: Props) {
 
   const hasSteamTradeUrl = Boolean(playerProfile?.steamTradeUrl && playerProfile.steamTradeUrl.trim().length > 0);
 
-  const [ranking, rankingTotal, shopItemsData, externalSections] = await Promise.all([
-    getMonthlyRanking(10),
-    getMonthlyRankingTotal(),
+  const [pointsRanking, rankingTotal, shopItemsData, externalSections, freeRaffles, myStanding] = await Promise.all([
+    getMonthlyPointsRanking(10),
+    getMonthlyPointsRankingTotal(),
     getActiveShopItems(),
     isExternal
       ? getExternalGiveawaysForCreator(active.slug)
@@ -155,6 +156,8 @@ export async function PlatformCreatorLanding({ slug }: Props) {
           providerKey: null,
           status: 'no_binding',
         }),
+    getFreeRafflesForCreator(active.id, userId),
+    userId ? getUserMonthlyStanding(userId) : Promise.resolve(null),
   ]);
 
   const today = todayInPlatformTz();
@@ -250,18 +253,20 @@ export async function PlatformCreatorLanding({ slug }: Props) {
 
         <ExternalGiveawaysSection sections={externalSections} creatorDisplayName={active.name} />
 
-        <section id="ranking">
-          <div className="gp-legacy-block">
-            <h2>Ranking global · mensual</h2>
-            <MonthlyRanking rows={ranking} totalPlayers={rankingTotal} currentUserId={userId} />
-            <HistoricalWinnersPlaceholder />
-          </div>
-        </section>
-
         <section id="recompensas">
           <div className="gp-legacy-block">
-            <h2>Recompensas · canjea tus puntos</h2>
-            <PlatformShop items={shopItemsData} balance={balance} hasSteamTradeUrl={hasSteamTradeUrl} />
+            <h2>Recompensas</h2>
+            <RewardsHub
+              shopItems={shopItemsData}
+              balance={balance}
+              hasSteamTradeUrl={hasSteamTradeUrl}
+              freeRaffles={freeRaffles}
+              pointsRanking={pointsRanking}
+              rankingTotal={rankingTotal}
+              myStanding={myStanding}
+              isLoggedIn={Boolean(userId)}
+            />
+            <HistoricalWinnersPlaceholder />
           </div>
         </section>
 
