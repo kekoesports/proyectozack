@@ -36,7 +36,9 @@ describe('[rewards-unified] un solo grid — sin bloque separado', () => {
     expect(src).toMatch(/function UpcomingCard/);
     // Las cards planned se pintan dentro del mismo `<div className="gp-shop-grid">`.
     // Verificamos que UpcomingCard se referencia dentro del mapper del grid.
-    expect(src).toMatch(/visibleUpcoming\.map\([\s\S]{0,120}<UpcomingCard/);
+    // Nota: `shownUpcoming` es la lista paginada de `visibleUpcoming` tras
+    // el corte de "Ver más" (INITIAL_VISIBLE = 8).
+    expect(src).toMatch(/shownUpcoming\.map\([\s\S]{0,120}<UpcomingCard/);
   });
 
   it('tabs incluyen nueva categoría "Merch equipos CS2" (team)', () => {

@@ -7,7 +7,8 @@
  *   - client-factory respeta las reglas de seguridad universales.
  *   - fetch.ts de KeyDrop pasa apiKey solo por config, jamás en URL.
  *   - ningún archivo del provider loggea la key.
- *   - env.ts declara KEYDROP_ZACKETIZOR_API_KEY como server-only + optional.
+ *   - env.ts declara KEYDROP_ZACKETIZOR_API_KEY y KEYDROP_IMANTADO_API_KEY
+ *     como server-only + optional.
  */
 
 import * as fs from 'fs';
@@ -18,18 +19,20 @@ const read = (rel: string) => fs.readFileSync(path.join(ROOT, rel), 'utf-8');
 
 describe('[keydrop-provider] env var declaración', () => {
   const src = read('src/lib/env.ts');
-  it('KEYDROP_ZACKETIZOR_API_KEY vive en el bloque server', () => {
-    expect(src).toMatch(/server:\s*\{[\s\S]*KEYDROP_ZACKETIZOR_API_KEY[\s\S]*\},/);
+  const KEYS = ['KEYDROP_ZACKETIZOR_API_KEY', 'KEYDROP_IMANTADO_API_KEY'] as const;
+
+  it.each(KEYS)('%s vive en el bloque server', (key) => {
+    expect(src).toMatch(new RegExp(`server:\\s*\\{[\\s\\S]*${key}[\\s\\S]*\\},`));
   });
-  it('KEYDROP_ZACKETIZOR_API_KEY es opcional', () => {
-    expect(src).toMatch(/KEYDROP_ZACKETIZOR_API_KEY:\s*z\.string\(\)\.min\(1\)\.optional\(\)/);
+  it.each(KEYS)('%s es opcional', (key) => {
+    expect(src).toMatch(new RegExp(`${key}:\\s*z\\.string\\(\\)\\.min\\(1\\)\\.optional\\(\\)`));
   });
-  it('NO aparece en el bloque client', () => {
+  it('NO aparece KEYDROP en el bloque client', () => {
     const clientBlock = /client:\s*\{[\s\S]*?\},/.exec(src)?.[0] ?? '';
     expect(clientBlock).not.toMatch(/KEYDROP/);
   });
-  it('runtimeEnv incluye la mapping', () => {
-    expect(src).toMatch(/KEYDROP_ZACKETIZOR_API_KEY:\s*process\.env\.KEYDROP_ZACKETIZOR_API_KEY/);
+  it.each(KEYS)('runtimeEnv incluye la mapping de %s', (key) => {
+    expect(src).toMatch(new RegExp(`${key}:\\s*process\\.env\\.${key}`));
   });
 });
 
@@ -124,9 +127,10 @@ describe('[keydrop-provider] no leak en UI/queries/mapper', () => {
     'src/lib/external-giveaways/providers/keydrop/zod-schemas.ts',
   ];
   for (const rel of files) {
-    it(`${rel} no referencia KEYDROP_ZACKETIZOR_API_KEY ni env.KEYDROP`, () => {
+    it(`${rel} no referencia envs KEYDROP_* ni env.KEYDROP`, () => {
       const src = read(rel);
       expect(src).not.toMatch(/KEYDROP_ZACKETIZOR_API_KEY/);
+      expect(src).not.toMatch(/KEYDROP_IMANTADO_API_KEY/);
       expect(src).not.toMatch(/env\.KEYDROP/);
       expect(src).not.toMatch(/apiKey:\s*string/);
     });

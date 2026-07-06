@@ -5,9 +5,10 @@
  * puede mostrar cards de partners si tiene deal REAL confirmado en
  * `CREATOR_DEALS`. Los otros ven placeholder honesto.
  *
- * Estado real 2026-07-03:
- *   zacketizor → keydrop + csgoskins   ✅ único con deals confirmados
- *   huasopeek / naow / todocs2 / imantado / jolu → sin deals
+ * Estado real 2026-07-06:
+ *   zacketizor → keydrop + csgoskins   ✅
+ *   imantado   → keydrop                ✅
+ *   huasopeek / naow / todocs2 / jolu → sin deals
  */
 
 import * as fs from 'fs';
@@ -33,11 +34,14 @@ describe('[creator-deals-config] roster y datos', () => {
     expect([...CREATOR_DEALS.zacketizor].sort()).toEqual(['csgoskins', 'keydrop']);
   });
 
-  it('huasopeek / naow / todocs2 / imantado / jolu → sin deals confirmados ([])', () => {
+  it('imantado tiene exactamente keydrop (afiliado IMANTADO)', () => {
+    expect([...CREATOR_DEALS.imantado].sort()).toEqual(['keydrop']);
+  });
+
+  it('huasopeek / naow / todocs2 / jolu → sin deals confirmados ([])', () => {
     expect(CREATOR_DEALS.huasopeek).toEqual([]);
     expect(CREATOR_DEALS.naow).toEqual([]);
     expect(CREATOR_DEALS.todocs2).toEqual([]);
-    expect(CREATOR_DEALS.imantado).toEqual([]);
     expect(CREATOR_DEALS.jolu).toEqual([]);
   });
 
@@ -50,13 +54,15 @@ describe('[creator-deals-config] roster y datos', () => {
 describe('[creator-deals-config] helpers', () => {
   it('getCreatorDeals devuelve la lista o array vacío defensivo', () => {
     expect(getCreatorDeals('zacketizor').length).toBe(2);
+    expect(getCreatorDeals('imantado').length).toBe(1);
     expect(getCreatorDeals('huasopeek')).toEqual([]);
     expect(getCreatorDeals('nonexistent-slug')).toEqual([]);
   });
 
   it('hasAnyDeal true solo para creadores con al menos un partner', () => {
     expect(hasAnyDeal('zacketizor')).toBe(true);
-    for (const slug of ['huasopeek', 'naow', 'todocs2', 'imantado', 'jolu']) {
+    expect(hasAnyDeal('imantado')).toBe(true);
+    for (const slug of ['huasopeek', 'naow', 'todocs2', 'jolu']) {
       expect(hasAnyDeal(slug)).toBe(false);
     }
   });

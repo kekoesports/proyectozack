@@ -22,7 +22,7 @@ export const CREATOR_DEALS: Record<PlatformCreatorSlug, readonly BrandKey[]> = {
   huasopeek:  [],
   naow:       [],
   todocs2:    [],
-  imantado:   [],
+  imantado:   ['keydrop'],
   jolu:       [],
 };
 
