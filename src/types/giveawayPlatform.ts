@@ -50,6 +50,21 @@ export interface RankingRow {
   tickets: number;
 }
 
+/** Row del ranking mensual por puntos ganados (racha + mision). */
+export interface PointsRankingRow {
+  userId: string;
+  displayName: string;
+  avatarUrl: string | null;
+  pointsEarned: number;
+}
+
+/** Posición del usuario logueado en el ranking mensual por puntos. */
+export interface UserMonthlyStanding {
+  rank: number | null;
+  pointsEarned: number;
+  totalParticipants: number;
+}
+
 export interface GiveawayWithEntryData {
   id: number;
   title: string;
@@ -61,4 +76,26 @@ export interface GiveawayWithEntryData {
   talentId: number;
   entryCount: number;
   userHasEntered: boolean;
+}
+
+/** Card de sorteo gratis para el hub de recompensas. */
+export interface FreeRaffleCardData {
+  id: number;
+  title: string;
+  description: string | null;
+  imageUrl: string | null;
+  rewardName: string;
+  endsAt: Date | null;
+  status: 'draft' | 'active' | 'ended' | 'cancelled';
+  entryCount: number;
+  userHasEntered: boolean;
+  winner: { displayName: string; avatarUrl: string | null } | null;
+}
+
+/** Participante público de un sorteo — respeta player_profiles.isPrivate. */
+export interface RaffleParticipant {
+  userId: string;
+  displayName: string;
+  avatarUrl: string | null;
+  enteredAt: Date;
 }

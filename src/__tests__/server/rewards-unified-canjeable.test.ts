@@ -111,10 +111,14 @@ describe('[rewards-unified] Steam Trade URL gate', () => {
     expect(shopSrc).toMatch(/Añadir Steam Trade URL/);
   });
 
-  it('PlatformCreatorLanding lee steamTradeUrl del perfil y lo pasa al shop', () => {
+  it('PlatformCreatorLanding lee steamTradeUrl del perfil y lo pasa al hub', () => {
     expect(landingSrc).toMatch(/db\.query\.playerProfiles\.findFirst\({[\s\S]{0,300}steamTradeUrl:\s*true/);
     expect(landingSrc).toMatch(/const hasSteamTradeUrl\s*=\s*Boolean\(playerProfile\?\.steamTradeUrl/);
-    expect(landingSrc).toMatch(/<PlatformShop[\s\S]{0,150}hasSteamTradeUrl=\{hasSteamTradeUrl\}/);
+    // Post rewards-hub refactor: la landing pasa hasSteamTradeUrl a RewardsHub,
+    // que lo forwarda a PlatformShop en el tab "Recompensas por puntos".
+    expect(landingSrc).toMatch(/<RewardsHub[\s\S]{0,400}hasSteamTradeUrl=\{hasSteamTradeUrl\}/);
+    const hubSrc = read('src/features/giveaway-platform/components/RewardsHub.tsx');
+    expect(hubSrc).toMatch(/<PlatformShop[\s\S]{0,150}hasSteamTradeUrl=\{hasSteamTradeUrl\}/);
   });
 });
 

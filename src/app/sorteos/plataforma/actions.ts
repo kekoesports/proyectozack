@@ -22,7 +22,6 @@ import {
   tradeUrlSchema,
 } from '@/lib/schemas/giveawayPlatform';
 import {
-  ENTRY_COIN_REWARD,
   STREAK_REWARDS,
   nextStreakDay,
   previousDay,
@@ -50,7 +49,18 @@ async function requirePlayerSession() {
   return session.user;
 }
 
-/** Inscribe al usuario en un sorteo, acredita monedas y evalúa misiones. */
+/**
+ * Inscribe al usuario en un sorteo. El comportamiento depende de
+ * `giveaway.entryAwardCoins`:
+ *
+ *   - `entryAwardCoins > 0` (default 20): comportamiento histórico —
+ *     acredita coin_transactions con source='sorteo' + evalúa misiones.
+ *   - `entryAwardCoins = 0`: **sorteo gratis** — solo inserta la entry.
+ *     NO crea coin_transactions. NO evalúa misiones. Sin puntos, sin
+ *     canjes, sin depósitos, sin ranking impact.
+ *
+ * Idempotencia: UNIQUE(giveaway_id, user_id). Valida `status` y `endsAt`.
+ */
 export async function participateInGiveaway(input: unknown): Promise<ActionResult<{
   coinsEarned: number;
   missionsCompleted: { title: string; rewardCoins: number }[];
@@ -66,6 +76,12 @@ export async function participateInGiveaway(input: unknown): Promise<ActionResul
     where: eq(giveaways.id, giveawayId),
   });
   if (!giveaway) return { ok: false, error: 'El sorteo no existe' };
+  if (giveaway.status === 'draft') {
+    return { ok: false, error: 'Este sorteo todavía no está activo' };
+  }
+  if (giveaway.status === 'ended' || giveaway.status === 'cancelled') {
+    return { ok: false, error: 'Este sorteo ya ha finalizado' };
+  }
   if (giveaway.endsAt && giveaway.endsAt <= new Date()) {
     return { ok: false, error: 'Este sorteo ya ha finalizado' };
   }
@@ -77,31 +93,37 @@ export async function participateInGiveaway(input: unknown): Promise<ActionResul
     .onConflictDoNothing()
     .returning({ id: giveawayEntries.id });
   if (inserted.length === 0) {
-    return { ok: false, error: 'Ya estás inscrito en este sorteo' };
+    return { ok: false, error: 'Ya estás participando en este sorteo' };
   }
 
-  assertAllowedCoinSource('sorteo');
-  await db.insert(coinTransactions).values({
-    userId: sessionUser.id,
-    amount: ENTRY_COIN_REWARD,
-    source: 'sorteo',
-    concept: `Participación · ${giveaway.title}`,
-    refId: giveawayId,
-  });
+  const awardCoins = giveaway.entryAwardCoins;
 
-  const missionsCompleted = await evaluateAndClaimMissions(sessionUser.id);
+  if (awardCoins > 0) {
+    assertAllowedCoinSource('sorteo');
+    await db.insert(coinTransactions).values({
+      userId: sessionUser.id,
+      amount: awardCoins,
+      source: 'sorteo',
+      concept: `Participación · ${giveaway.title}`,
+      refId: giveawayId,
+    });
+  }
+
+  const missionsCompleted = awardCoins > 0
+    ? await evaluateAndClaimMissions(sessionUser.id)
+    : [];
 
   await logGiveawayEvent({
     userId:  sessionUser.id,
-    action:  'giveaway_participate',
+    action:  awardCoins > 0 ? 'giveaway_participate' : 'free_raffle_participate',
     outcome: 'success',
     refType: 'giveaway',
     refId:   giveawayId,
-    metadata: { coinsEarned: ENTRY_COIN_REWARD, missionsCompleted: missionsCompleted.length },
+    metadata: { coinsEarned: awardCoins, missionsCompleted: missionsCompleted.length, isFree: awardCoins === 0 },
   });
 
   revalidatePath('/sorteos', 'layout');
-  return { ok: true, data: { coinsEarned: ENTRY_COIN_REWARD, missionsCompleted } };
+  return { ok: true, data: { coinsEarned: awardCoins, missionsCompleted } };
 }
 
 /** Reclama la recompensa fija del día de racha (1/día, TZ Europe/Madrid). */

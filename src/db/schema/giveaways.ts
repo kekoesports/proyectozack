@@ -19,12 +19,20 @@ export const giveaways = pgTable('giveaways', {
   isFeatured: boolean('is_featured').notNull().default(false),
   badge: varchar('badge', { length: 50 }),
   sortOrder: integer('sort_order').notNull().default(0),
+  /**
+   * Puntos ⭐ que acredita participar. Default 20 preserva el comportamiento
+   * histórico; los sorteos gratis se crean con 0 (no dispara coin_transactions).
+   */
+  entryAwardCoins: integer('entry_award_coins').notNull().default(20),
+  /** draft | active | ended | cancelled. `active` por default. */
+  status: varchar('status', { length: 16 }).notNull().default('active'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [
   index('giveaways_talent_id_idx').on(t.talentId),
   index('giveaways_ends_at_idx').on(t.endsAt),
   index('giveaways_featured_sort_ends_idx').on(t.isFeatured, t.sortOrder, t.endsAt),
+  index('giveaways_status_ends_at_idx').on(t.status, t.endsAt),
 ]);
 
 export const giveawaysRelations = relations(giveaways, ({ one }) => ({

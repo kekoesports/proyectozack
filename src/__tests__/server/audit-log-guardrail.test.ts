@@ -9,12 +9,14 @@
 import { AUDIT_ACTIONS, AUDIT_OUTCOMES } from '@/db/schema';
 
 describe('sp_audit_events — set cerrado', () => {
-  it('AUDIT_ACTIONS contiene las 7 acciones de PR1', () => {
+  it('AUDIT_ACTIONS contiene las acciones canónicas (PR1 + rewards hub)', () => {
     expect([...AUDIT_ACTIONS].sort()).toEqual(
       [
         'partner_consent_granted',
         'partner_consent_revoked',
         'giveaway_participate',
+        'free_raffle_participate',
+        'raffle_winner_picked',
         'shop_redeem',
         'mission_verify',
         'mission_claim',
