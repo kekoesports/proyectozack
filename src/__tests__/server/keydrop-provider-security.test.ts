@@ -7,8 +7,8 @@
  *   - client-factory respeta las reglas de seguridad universales.
  *   - fetch.ts de KeyDrop pasa apiKey solo por config, jamás en URL.
  *   - ningún archivo del provider loggea la key.
- *   - env.ts declara KEYDROP_ZACKETIZOR_API_KEY y KEYDROP_IMANTADO_API_KEY
- *     como server-only + optional.
+ *   - env.ts declara KEYDROP_ZACKETIZOR_API_KEY, KEYDROP_IMANTADO_API_KEY
+ *     y KEYDROP_NAOW_API_KEY como server-only + optional.
  */
 
 import * as fs from 'fs';
@@ -19,7 +19,11 @@ const read = (rel: string) => fs.readFileSync(path.join(ROOT, rel), 'utf-8');
 
 describe('[keydrop-provider] env var declaración', () => {
   const src = read('src/lib/env.ts');
-  const KEYS = ['KEYDROP_ZACKETIZOR_API_KEY', 'KEYDROP_IMANTADO_API_KEY'] as const;
+  const KEYS = [
+    'KEYDROP_ZACKETIZOR_API_KEY',
+    'KEYDROP_IMANTADO_API_KEY',
+    'KEYDROP_NAOW_API_KEY',
+  ] as const;
 
   it.each(KEYS)('%s vive en el bloque server', (key) => {
     expect(src).toMatch(new RegExp(`server:\\s*\\{[\\s\\S]*${key}[\\s\\S]*\\},`));
@@ -131,6 +135,7 @@ describe('[keydrop-provider] no leak en UI/queries/mapper', () => {
       const src = read(rel);
       expect(src).not.toMatch(/KEYDROP_ZACKETIZOR_API_KEY/);
       expect(src).not.toMatch(/KEYDROP_IMANTADO_API_KEY/);
+      expect(src).not.toMatch(/KEYDROP_NAOW_API_KEY/);
       expect(src).not.toMatch(/env\.KEYDROP/);
       expect(src).not.toMatch(/apiKey:\s*string/);
     });

@@ -42,8 +42,12 @@ const BINDINGS: Record<string, CreatorBinding> = {
     envKey: 'KEYDROP_IMANTADO_API_KEY',
     apiKey: () => env.KEYDROP_IMANTADO_API_KEY,
   },
+  naow: {
+    provider: 'keydrop',
+    envKey: 'KEYDROP_NAOW_API_KEY',
+    apiKey: () => env.KEYDROP_NAOW_API_KEY,
+  },
   // Futuros bindings (comentados hasta que lleguen las API keys):
-  //   naow:       { provider: '...',  envKey: '<PROVIDER>_NAOW_API_KEY',      apiKey: () => env.<PROVIDER>_NAOW_API_KEY },
   //   huasopeek:  { provider: '...',  envKey: '<PROVIDER>_HUASOPEEK_API_KEY', apiKey: () => env.<PROVIDER>_HUASOPEEK_API_KEY },
 };
 

@@ -20,7 +20,7 @@ export type PlatformCreatorSlug = (typeof PLATFORM_CREATOR_SLUGS)[number];
 export const CREATOR_DEALS: Record<PlatformCreatorSlug, readonly BrandKey[]> = {
   zacketizor: ['keydrop', 'csgoskins'],
   huasopeek:  [],
-  naow:       [],
+  naow:       ['keydrop'],
   todocs2:    [],
   imantado:   ['keydrop'],
   jolu:       [],
