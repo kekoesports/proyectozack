@@ -216,6 +216,48 @@ describe('updateCampaignAction', () => {
       { userId: 'mgr-42', role: 'manager' },
     );
   });
+
+  // Regresión: los selects "Cobro marca" y "Pago talento" del drawer emiten
+  // "0"/"1" strings. Antes del fix, `z.coerce.boolean()` parseaba "0" como
+  // true (Boolean("0") === true) y además updateCampaign no mapeaba los
+  // campos, dejando 70 campañas con flags stuck en false. Ver docs de PR.
+  it('persiste cobroConfirmado=false cuando el select emite "0"', async () => {
+    mockRequireAnyRole.mockResolvedValue(makeSession('admin'));
+    mockAssertCanEditCampaign.mockResolvedValue(undefined);
+    mockUpdateCampaign.mockResolvedValue({ id: 1 });
+
+    const fd = makeFormData({
+      ...validCampaignFields,
+      id: '1',
+      cobroConfirmado: '0',
+      pagoTalentConfirmado: '0',
+    });
+    await updateCampaignAction(fd);
+
+    expect(mockUpdateCampaign).toHaveBeenCalledWith(
+      1,
+      expect.objectContaining({ cobroConfirmado: false, pagoTalentConfirmado: false }),
+    );
+  });
+
+  it('persiste cobroConfirmado=true y pagoTalentConfirmado=true cuando el select emite "1"', async () => {
+    mockRequireAnyRole.mockResolvedValue(makeSession('admin'));
+    mockAssertCanEditCampaign.mockResolvedValue(undefined);
+    mockUpdateCampaign.mockResolvedValue({ id: 1 });
+
+    const fd = makeFormData({
+      ...validCampaignFields,
+      id: '1',
+      cobroConfirmado: '1',
+      pagoTalentConfirmado: '1',
+    });
+    await updateCampaignAction(fd);
+
+    expect(mockUpdateCampaign).toHaveBeenCalledWith(
+      1,
+      expect.objectContaining({ cobroConfirmado: true, pagoTalentConfirmado: true }),
+    );
+  });
 });
 
 // ── archiveCampaignAction ─────────────────────────────────────────────────────

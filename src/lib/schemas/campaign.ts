@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { FormBooleanSchema } from './common';
 
 export const CAMPAIGN_STATUSES = ['propuesta','negociacion','aprobada','activa','completada','cancelada','pendiente_pago','pagada'] as const;
 export const CAMPAIGN_ACTION_TYPES = ['stream','preroll','video_youtube','short_reel_tiktok','tweet','story_instagram','pack_mensual','afiliacion','otro'] as const;
@@ -96,10 +97,10 @@ const baseCampaign = z.object({
   estimatedCostAgency: z.coerce.number().nonnegative().optional(),
   estimatedMarginPct: z.coerce.number().min(0).max(100).optional(),
   // CNMC compliance checklist
-  cnmcChecklistOk: z.coerce.boolean().optional().default(false),
-  // Estado de pagos (Opción B — flags directos en campaña)
-  cobroConfirmado: z.coerce.boolean().optional().default(false),
-  pagoTalentConfirmado: z.coerce.boolean().optional().default(false),
+  cnmcChecklistOk: FormBooleanSchema.optional().default(false),
+  // Estado de pagos (flags directos en campaña, editables desde el drawer).
+  cobroConfirmado: FormBooleanSchema.optional().default(false),
+  pagoTalentConfirmado: FormBooleanSchema.optional().default(false),
 });
 
 export const createCampaignSchema = baseCampaign
