@@ -6,14 +6,17 @@ import { resolveBrandLogo } from '@/lib/brandAssets';
 import type { CreatorCode, CreatorCodeResolved, CreatorCodeWithTalent } from '@/types';
 
 /**
- * Lista todos los códigos promocionales con su talent asociado, ordenados por sortOrder ASC, para el hub de códigos y panel admin.
+ * Lista todos los códigos promocionales visibles (`isHidden = false`) con su
+ * talent asociado, ordenados por sortOrder ASC. Para el hub público `/codigos`
+ * y consumidores públicos que no deben ver códigos pausados por el admin.
  *
  * @cache none
- * @visibility both
+ * @visibility public
  * @returns array de CreatorCodeWithTalent (puede ser vacío). Nunca null.
  */
 export async function getAllCodes(): Promise<CreatorCodeWithTalent[]> {
   const rows = await db.query.creatorCodes.findMany({
+    where: (c, { eq }) => eq(c.isHidden, false),
     with: { talent: true, crmBrand: true },
     orderBy: (c, { asc, desc }) => [desc(c.isFeatured), asc(c.sortOrder)],
   });
@@ -25,7 +28,29 @@ export async function getAllCodes(): Promise<CreatorCodeWithTalent[]> {
 }
 
 /**
- * Lista los códigos destacados (`isFeatured = true`) con su talent, ordenados por sortOrder ASC, para la home y secciones promocionales.
+ * Lista TODOS los códigos (incluyendo ocultos con `isHidden = true`) para el
+ * panel admin. Necesario para que el operador pueda volver a activar un
+ * código pausado sin recrearlo.
+ *
+ * @cache none
+ * @visibility admin
+ * @returns array de CreatorCodeWithTalent (puede ser vacío). Nunca null.
+ */
+export async function getAllAdminCodes(): Promise<CreatorCodeWithTalent[]> {
+  const rows = await db.query.creatorCodes.findMany({
+    with: { talent: true, crmBrand: true },
+    orderBy: (c, { asc, desc }) => [asc(c.isHidden), desc(c.isFeatured), asc(c.sortOrder)],
+  });
+  return rows.map(({ crmBrand, ...row }) => ({
+    ...row,
+    brandLogo: crmBrand?.logoUrl ?? resolveBrandLogo(row.brandName) ?? row.brandLogo ?? null,
+    ctaUrl: resolveCtaUrl(row.redirectUrl, crmBrand?.mainUrl),
+  }));
+}
+
+/**
+ * Lista los códigos destacados (`isFeatured = true`) visibles con su talent,
+ * ordenados por sortOrder ASC, para la home y secciones promocionales.
  *
  * @cache none
  * @visibility public
@@ -33,7 +58,7 @@ export async function getAllCodes(): Promise<CreatorCodeWithTalent[]> {
  */
 export async function getFeaturedCodes(): Promise<CreatorCodeWithTalent[]> {
   const rows = await db.query.creatorCodes.findMany({
-    where: (c, { eq }) => eq(c.isFeatured, true),
+    where: (c, { eq, and }) => and(eq(c.isFeatured, true), eq(c.isHidden, false)),
     with: { talent: true, crmBrand: true },
     orderBy: (c, { asc }) => [asc(c.sortOrder)],
   });
@@ -45,7 +70,9 @@ export async function getFeaturedCodes(): Promise<CreatorCodeWithTalent[]> {
 }
 
 /**
- * Devuelve los códigos promocionales asociados a un talent concreto, ordenados por sortOrder ASC, para la ficha `/[creatorSlug]`.
+ * Devuelve los códigos promocionales visibles (`isHidden = false`) asociados
+ * a un talent concreto, ordenados por sortOrder ASC, para la ficha pública
+ * `/[creatorSlug]`.
  *
  * @cache none
  * @visibility public
@@ -53,7 +80,7 @@ export async function getFeaturedCodes(): Promise<CreatorCodeWithTalent[]> {
  */
 export async function getCodesByTalent(talentId: number): Promise<CreatorCodeResolved[]> {
   const rows = await db.query.creatorCodes.findMany({
-    where: (c, { eq }) => eq(c.talentId, talentId),
+    where: (c, { eq, and }) => and(eq(c.talentId, talentId), eq(c.isHidden, false)),
     with: { crmBrand: true },
     orderBy: (c, { desc, asc }) => [desc(c.isFeatured), asc(c.sortOrder)],
   });
@@ -75,7 +102,7 @@ export async function getAdminCodesByTalent(talentId: number): Promise<CreatorCo
   const rows = await db.query.creatorCodes.findMany({
     where: (c, { eq }) => eq(c.talentId, talentId),
     with: { talent: true, crmBrand: true },
-    orderBy: (c, { desc, asc }) => [desc(c.isFeatured), asc(c.sortOrder)],
+    orderBy: (c, { asc, desc }) => [asc(c.isHidden), desc(c.isFeatured), asc(c.sortOrder)],
   });
   return rows.map(({ crmBrand, ...row }) => ({
     ...row,
@@ -128,6 +155,7 @@ export async function updateCode(
     description: string | null;
     badge: string | null;
     isFeatured: boolean;
+    isHidden: boolean;
     category: string | null;
     ctaText: string | null;
     sortOrder: number;

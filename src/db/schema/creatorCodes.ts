@@ -14,6 +14,9 @@ export const creatorCodes = pgTable('creator_codes', {
   description: varchar('description', { length: 300 }),
   badge: varchar('badge', { length: 50 }),
   isFeatured: boolean('is_featured').notNull().default(false),
+  // Soft-hide para pausar sin borrar: la marca vuelve, se restablece el toggle
+  // y el código sigue idéntico (con sus clicks y analytics históricos).
+  isHidden: boolean('is_hidden').notNull().default(false),
   category: varchar('category', { length: 50 }),
   ctaText: varchar('cta_text', { length: 100 }),
   sortOrder: integer('sort_order').notNull().default(0),

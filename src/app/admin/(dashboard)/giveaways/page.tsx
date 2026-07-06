@@ -1,7 +1,7 @@
 import { requirePermission } from '@/lib/permissions';
 import { getAllGiveaways } from '@/lib/queries/giveaways';
 import { getAllTalents } from '@/lib/queries/talents';
-import { getAllCodes } from '@/lib/queries/creatorCodes';
+import { getAllAdminCodes } from '@/lib/queries/creatorCodes';
 import { getAllWinners } from '@/lib/queries/giveawayWinners';
 import { listBrandCatalog } from './brand-actions';
 import { listCrmBrandsForPicker } from '@/lib/queries/crmBrands';
@@ -12,7 +12,7 @@ export default async function AdminGiveawaysPage(): Promise<React.ReactElement> 
   const [allGiveaways, allTalents, allCodes, allWinners, brands, brandCatalog] = await Promise.all([
     getAllGiveaways(),
     getAllTalents(),
-    getAllCodes(),
+    getAllAdminCodes(),
     getAllWinners(),
     listCrmBrandsForPicker(),
     listBrandCatalog(),
