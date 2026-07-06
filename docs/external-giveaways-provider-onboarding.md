@@ -281,15 +281,15 @@ Al mergear, memoria (`~/.claude/.../memory/`) recibe una entry
 
 ---
 
-## Estado de providers hoy (2026-07-03)
+## Estado de providers hoy (2026-07-06)
 
 | Creador (slug) | Provider | Código | Estado |
 |---|---|---|---|
 | zacketizor | KeyDrop + CSGO-SKINS | ZACKCSGO | ✅ KeyDrop con API real; CSGO-SKINS como card promocional. |
+| imantado | KeyDrop | IMANTADO | ✅ KeyDrop con API real (alta 2026-07-06). |
 | naow | — | — | ⏸ Pendiente de deal + datos confirmados. |
 | huasopeek | — | — | ⏸ Pendiente de deal + datos confirmados. |
 | todocs2 | — | — | ⏸ Pendiente de deal + datos confirmados. |
-| imantado | — | — | ⏸ Pendiente de deal + datos confirmados. |
 | jolu | — | — | ⏸ Pendiente de deal + datos confirmados. |
 
 *(martinez retirado del roster público 2026-07-03.)*

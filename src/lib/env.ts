@@ -52,6 +52,10 @@ export const env = createEnv({
     // Base URL: https://ws-2071.socket-cs.com/v1/giveaway-user
     // Endpoints usados: GET /api/list, GET /api/giveaway/:id
     KEYDROP_ZACKETIZOR_API_KEY: z.string().min(1).optional(),
+    // KeyDrop Giveaway API — clave del afiliado IMANTADO. Mismo endpoint
+    // base y auth (x-api-key) que ZACKETIZOR. Un secreto por par
+    // creador+provider (regla del onboarding doc §1).
+    KEYDROP_IMANTADO_API_KEY: z.string().min(1).optional(),
 
     // ============================================================
     // Discord Missions Fase A — OAuth de terceros para verificar
@@ -134,6 +138,7 @@ export const env = createEnv({
     SHEETS_SYNC_CONCURRENCY: process.env.SHEETS_SYNC_CONCURRENCY,
     STEAM_API_KEY: process.env.STEAM_API_KEY,
     KEYDROP_ZACKETIZOR_API_KEY: process.env.KEYDROP_ZACKETIZOR_API_KEY,
+    KEYDROP_IMANTADO_API_KEY: process.env.KEYDROP_IMANTADO_API_KEY,
 
     // Discord Missions Fase A
     DISCORD_CLIENT_ID: process.env.DISCORD_CLIENT_ID,

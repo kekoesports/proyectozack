@@ -6,8 +6,9 @@
  * (docs/external-giveaways-provider-onboarding.md) y sin OK del owner,
  * este test lo detecta.
  *
- * Hoy (2026-07-03) el único partnership confirmado es
- *   zacketizor → KeyDrop → ZACKCSGO.
+ * Hoy (2026-07-06) los partnerships confirmados son
+ *   zacketizor → KeyDrop → ZACKCSGO
+ *   imantado   → KeyDrop → IMANTADO
  */
 
 import * as fs from 'fs';
@@ -16,7 +17,7 @@ import * as path from 'path';
 const ROOT = path.resolve(__dirname, '..', '..', '..');
 const read = (rel: string) => fs.readFileSync(path.join(ROOT, rel), 'utf-8');
 
-describe('[external-providers-inventory] estado real 2026-07-03', () => {
+describe('[external-providers-inventory] estado real 2026-07-06', () => {
   it('ProviderKey enum en types.ts SOLO incluye providers en producción — csgoroll/hellcase siguen comentados', () => {
     const src = read('src/lib/external-giveaways/types.ts');
     // Enum activo: solo keydrop hoy.
@@ -38,34 +39,37 @@ describe('[external-providers-inventory] estado real 2026-07-03', () => {
     expect(registryBlock).not.toMatch(/\b(csgoroll|hellcase|datdrop|csgoempire|skinsmonkey|gamerpay)\s*:/);
   });
 
-  it('creator-bindings.ts solo mapea zacketizor a keydrop', () => {
+  it('creator-bindings.ts mapea zacketizor + imantado a keydrop, nada más', () => {
     const src = read('src/lib/external-giveaways/creator-bindings.ts');
-    expect(src).toMatch(/zacketizor/);
+    expect(src).toMatch(/^\s*zacketizor\s*:/m);
+    expect(src).toMatch(/^\s*imantado\s*:/m);
     expect(src).toMatch(/provider:\s*'keydrop'/);
     // Ni bindings "de prueba" para otros creadores.
-    for (const slug of ['naow', 'huasopeek', 'todocs2', 'imantado', 'jolu']) {
+    for (const slug of ['naow', 'huasopeek', 'todocs2', 'jolu']) {
       // Aparecer en un comentario o import está OK; aparecer como key de binding no.
       expect(src).not.toMatch(new RegExp(`^\\s*${slug}\\s*:`, 'm'));
     }
   });
 
-  it('env.ts solo declara KEYDROP_ZACKETIZOR_API_KEY (patrón <PROVIDER>_<CREATOR>_API_KEY)', () => {
+  it('env.ts declara KEYDROP_ZACKETIZOR + KEYDROP_IMANTADO (patrón <PROVIDER>_<CREATOR>_API_KEY)', () => {
     const src = read('src/lib/env.ts');
     expect(src).toMatch(/KEYDROP_ZACKETIZOR_API_KEY:\s*z\.string\(\)\.min\(1\)\.optional\(\)/);
+    expect(src).toMatch(/KEYDROP_IMANTADO_API_KEY:\s*z\.string\(\)\.min\(1\)\.optional\(\)/);
     // No debe haber otras claves siguiendo el patrón sin OK del owner.
     const keys = Array.from(src.matchAll(/^\s*([A-Z][A-Z0-9_]+_API_KEY)\s*:/gm)).map((m) => m[1]!);
-    // dedupe — env.ts declara la key dos veces: en `server:` y en `runtimeEnv:`.
+    // dedupe — env.ts declara cada key dos veces: en `server:` y en `runtimeEnv:`.
     const unique = Array.from(new Set(keys));
-    const external = unique.filter((k) => /^(KEYDROP|CSGOROLL|HELLCASE|DATDROP|CSGOEMPIRE|SKINSMONKEY|GAMERPAY)_/.test(k));
-    expect(external).toEqual(['KEYDROP_ZACKETIZOR_API_KEY']);
+    const external = unique.filter((k) => /^(KEYDROP|CSGOROLL|HELLCASE|DATDROP|CSGOEMPIRE|SKINSMONKEY|GAMERPAY)_/.test(k)).sort();
+    expect(external).toEqual(['KEYDROP_IMANTADO_API_KEY', 'KEYDROP_ZACKETIZOR_API_KEY']);
   });
 
   it('doc de onboarding existe y refleja el estado real', () => {
     const doc = read('docs/external-giveaways-provider-onboarding.md');
-    // Tabla de estado con zacketizor confirmado.
+    // Tabla de estado con partnerships confirmados.
     expect(doc).toMatch(/zacketizor[\s\S]{0,140}KeyDrop[\s\S]{0,140}ZACKCSGO/);
-    // Los otros 3 creadores están explícitamente pendientes.
-    for (const slug of ['naow', 'huasopeek', 'todocs2', 'imantado', 'jolu']) {
+    expect(doc).toMatch(/imantado[\s\S]{0,140}KeyDrop[\s\S]{0,140}IMANTADO/);
+    // Los creadores sin deal siguen explícitamente pendientes.
+    for (const slug of ['naow', 'huasopeek', 'todocs2', 'jolu']) {
       expect(doc).toMatch(new RegExp(`\\|\\s*${slug}\\s*\\|[^|]*\\|[^|]*\\|[^|]*Pendiente`, 'i'));
     }
     // Regla dura visible.
