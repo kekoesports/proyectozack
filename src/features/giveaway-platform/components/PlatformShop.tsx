@@ -40,6 +40,11 @@ const CATEGORIES: { key: ShopCategory | 'all'; label: string }[] = [
   { key: 'badge',   label: '🏅 Badges' },
 ];
 
+// 4 columnas × 2 filas en desktop (grid usa minmax(200px, 1fr)). En
+// mobile son ~2 columnas → 4 filas. Suficiente para que la tienda no
+// ocupe pantalla completa y el usuario decida si quiere ver más.
+const INITIAL_VISIBLE = 8;
+
 /**
  * Sección "Recompensas" (antes "Tienda"). Un solo grid unificado.
  *
@@ -57,10 +62,16 @@ const CATEGORIES: { key: ShopCategory | 'all'; label: string }[] = [
 export function PlatformShop({ items, balance, hasSteamTradeUrl }: Props) {
   const router = useRouter();
   const [category, setCategory] = useState<ShopCategory | 'all'>('all');
+  const [showAll, setShowAll] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [errorCode, setErrorCode] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+
+  function selectCategory(next: ShopCategory | 'all') {
+    setCategory(next);
+    setShowAll(false);
+  }
 
   // Recompensas "próximamente" en el mismo grid — sin bloque separado.
   // Combina dos fuentes:
@@ -99,6 +110,13 @@ export function PlatformShop({ items, balance, hasSteamTradeUrl }: Props) {
   const visibleItems = items.filter((i) => category === 'all' || i.category === category);
   const visibleUpcoming = upcomingCards.filter((u) => category === 'all' || u.category === category);
   const nothing = visibleItems.length === 0 && visibleUpcoming.length === 0;
+  const totalVisible = visibleItems.length + visibleUpcoming.length;
+  const shownItems = showAll ? visibleItems : visibleItems.slice(0, INITIAL_VISIBLE);
+  const upcomingBudget = showAll
+    ? visibleUpcoming.length
+    : Math.max(0, INITIAL_VISIBLE - shownItems.length);
+  const shownUpcoming = showAll ? visibleUpcoming : visibleUpcoming.slice(0, upcomingBudget);
+  const hiddenCount = totalVisible - (shownItems.length + shownUpcoming.length);
 
   function handleRedeem(shopItemId: number) {
     setError(null);
@@ -152,7 +170,7 @@ export function PlatformShop({ items, balance, hasSteamTradeUrl }: Props) {
           <button
             key={c.key}
             type="button"
-            onClick={() => setCategory(c.key)}
+            onClick={() => selectCategory(c.key)}
             className={`gp-shop-tab${category === c.key ? ' is-active' : ''}`}
           >
             {c.label}
@@ -181,7 +199,7 @@ export function PlatformShop({ items, balance, hasSteamTradeUrl }: Props) {
         <p className="gp-rank-empty">No hay recompensas en esta categoría. Prueba otra pestaña.</p>
       ) : (
         <div className="gp-shop-grid">
-          {visibleItems.map((item) => {
+          {shownItems.map((item) => {
             const affordable = balance >= item.costCoins && item.stock > 0;
             const cosmeticLocked = isCosmeticNotEquipableYet(item.category);
             const isSkin = item.category === 'skin';
@@ -241,11 +259,34 @@ export function PlatformShop({ items, balance, hasSteamTradeUrl }: Props) {
             );
           })}
 
-          {visibleUpcoming.map((r) => (
+          {shownUpcoming.map((r) => (
             <UpcomingCard key={`upcoming-${r.slug}`} reward={r} />
           ))}
         </div>
       )}
+
+      {!nothing && (hiddenCount > 0 || showAll) ? (
+        <div className="gp-shop-more-wrap">
+          {hiddenCount > 0 ? (
+            <button
+              type="button"
+              onClick={() => setShowAll(true)}
+              className="gp-shop-more"
+              aria-label={`Ver ${hiddenCount} recompensas más`}
+            >
+              Ver más <span className="gp-shop-more-count">({hiddenCount})</span>
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setShowAll(false)}
+              className="gp-shop-more"
+            >
+              Ver menos
+            </button>
+          )}
+        </div>
+      ) : null}
     </>
   );
 }

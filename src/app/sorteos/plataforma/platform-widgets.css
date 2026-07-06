@@ -370,6 +370,38 @@
   gap: 16px;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
 }
+.giveaway-platform .gp-shop-more-wrap {
+  display: flex;
+  justify-content: center;
+  margin-top: 18px;
+}
+.giveaway-platform .gp-shop-more {
+  appearance: none;
+  cursor: pointer;
+  padding: 12px 22px;
+  border-radius: 999px;
+  border: 1px solid rgba(196, 40, 128, 0.35);
+  background: linear-gradient(160deg, rgba(21,16,36,0.85), rgba(11,9,23,0.85));
+  color: var(--text, #fff);
+  font: 700 12.5px/1 var(--font-body, inherit);
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: transform 120ms ease, border-color 120ms ease, background 120ms ease;
+}
+.giveaway-platform .gp-shop-more:hover {
+  border-color: rgba(224, 48, 112, 0.7);
+  background: linear-gradient(160deg, rgba(35,20,55,0.95), rgba(15,11,30,0.95));
+  transform: translateY(-1px);
+}
+.giveaway-platform .gp-shop-more-count {
+  color: rgba(255, 255, 255, 0.65);
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+}
 .giveaway-platform .gp-shop-card {
   border-radius: 14px;
   border: 1px solid rgba(196, 40, 128, 0.18);
