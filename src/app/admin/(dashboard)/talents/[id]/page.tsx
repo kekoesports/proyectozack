@@ -23,10 +23,12 @@ import type { TalentVertical } from '@/types';
 const PLATFORM_COLOR: Record<string, string> = {
   twitch: '#9147ff', kick: '#53fc18', youtube: '#ff0000',
   instagram: '#e1306c', tiktok: '#010101', x: '#1da1f2', twitter: '#1da1f2',
+  discord: '#5865F2',
 };
 const PLATFORM_LABEL: Record<string, string> = {
   twitch: 'Twitch', kick: 'Kick', youtube: 'YouTube',
   instagram: 'Instagram', tiktok: 'TikTok', x: 'X', twitter: 'X',
+  discord: 'Discord',
 };
 
 function formatMoney(n: string | number | null | undefined): string {
