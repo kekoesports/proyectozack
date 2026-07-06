@@ -12,6 +12,16 @@
  *     --reward-image-url "https://cdn.example.com/ak-redline.png" \
  *     --ends-at "2026-07-31T23:59:00Z"
  *
+ * ⚠️ Windows / Git Bash: MSYS convierte cualquier argumento que empiece
+ * con `/` a un path absoluto Windows ("C:/Program Files/Git/..."). Si
+ * pasas `--reward-image-url "/images/rewards/foo.png"` directamente desde
+ * Git Bash, el valor guardado será inservible. Dos workarounds:
+ *   (a) Ejecutar con MSYS_NO_PATHCONV=1 delante:
+ *       MSYS_NO_PATHCONV=1 CONFIRM_CREATE_FREE_RAFFLE=... npx tsx ...
+ *   (b) Doble slash: `--reward-image-url "//images/rewards/foo.png"`
+ *       (MSYS respeta el doble slash y no lo convierte).
+ * PowerShell/CMD no tienen este problema — funciona con `/` directo.
+ *
  * Reglas del script:
  *   1. Sin CONFIRM_CREATE_FREE_RAFFLE=I_ACCEPT_CREATE_FREE_RAFFLE → abort.
  *   2. NO tocar producción sin OK del owner.
