@@ -40,10 +40,11 @@ const CATEGORIES: { key: ShopCategory | 'all'; label: string }[] = [
   { key: 'badge',   label: '🏅 Badges' },
 ];
 
-// 4 columnas × 2 filas en desktop (grid usa minmax(200px, 1fr)). En
-// mobile son ~2 columnas → 4 filas. Suficiente para que la tienda no
-// ocupe pantalla completa y el usuario decida si quiere ver más.
-const INITIAL_VISIBLE = 8;
+// 6 columnas × 2 filas en desktop ancho (grid usa minmax(200px, 1fr)).
+// En viewports más estrechos se muestran más filas — pero la idea es dar
+// suficiente material antes del "Ver más" para que la sección se sienta
+// completa sin ocupar pantalla infinita.
+const INITIAL_VISIBLE = 12;
 
 /**
  * Sección "Recompensas" (antes "Tienda"). Un solo grid unificado.
