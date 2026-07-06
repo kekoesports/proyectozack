@@ -1,6 +1,8 @@
-import { redirect } from 'next/navigation';
+import { permanentRedirect } from 'next/navigation';
 
-// Redirige permanentemente a la nueva sección financiera unificada
-export default function AdminGastosPage(): never {
-  redirect('/admin/finanzas/gastos-operativos');
+// PR 2 finanzas rediseño (2026-07-06): la ruta canónica de gastos es
+// /admin/finanzas/gastos (tab del nuevo hub de Finanzas), no la
+// subvista /gastos-operativos.
+export default function AdminGastosLegacyPage(): never {
+  permanentRedirect('/admin/finanzas/gastos');
 }

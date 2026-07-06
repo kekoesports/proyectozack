@@ -328,14 +328,18 @@ describe('[Fase 1B] AR Aging — chequeos estáticos', () => {
   });
 
   describe('FinanzasNav', () => {
-    const src = read('src/app/admin/(dashboard)/finanzas/FinanzasNav.tsx');
+    // PR 2 rediseño 2026-07-06: "Cobros pendientes" ya no es tab canónica.
+    // La ruta /admin/finanzas/cobros sigue funcional y se enlaza desde el
+    // gráfico Aging del Resumen. Ver docs/finanzas-audit.md §14.
+    const resumen = read('src/app/admin/(dashboard)/finanzas/resumen/page.tsx');
+    const agingChart = read('src/features/admin/finance-dashboard/components/resumen-v3/AgingChart.tsx');
 
-    it('incluye tab /admin/finanzas/cobros', () => {
-      expect(src).toMatch(/\/admin\/finanzas\/cobros/);
+    it('la ruta /admin/finanzas/cobros sigue enlazada desde AgingChart', () => {
+      expect(agingChart).toMatch(/\/admin\/finanzas\/cobros/);
     });
 
-    it('label humano "Cobros pendientes"', () => {
-      expect(src).toMatch(/Cobros pendientes/);
+    it('el Resumen v3 importa AgingChart', () => {
+      expect(resumen).toMatch(/import\s*\{\s*AgingChart\s*\}/);
     });
   });
 

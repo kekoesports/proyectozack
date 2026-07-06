@@ -1,5 +1,10 @@
 import { requirePermission } from '@/lib/permissions';
 import { getFinanzasResumenV2 } from '@/lib/queries/financeDashboard/finanzasResumenV2';
+import { getFinanceDashboard, getCashflowSeries } from '@/lib/queries/financeDashboard';
+import { getArAging } from '@/lib/queries/financeDashboard/arAging';
+import { getUnclassifiedExpenseCount } from '@/lib/queries/invoices';
+import { getBankDataStatus } from '@/lib/queries/financeDashboard/bankDataStatus';
+
 import { ResumenFilters } from '@/features/admin/finance-dashboard/components/resumen-v2/ResumenFilters';
 import { ResumenIngresosBlock } from '@/features/admin/finance-dashboard/components/resumen-v2/ResumenIngresosBlock';
 import { ResumenCostesMargenBlock } from '@/features/admin/finance-dashboard/components/resumen-v2/ResumenCostesMargenBlock';
@@ -8,6 +13,15 @@ import { ResumenImpuestosBlock } from '@/features/admin/finance-dashboard/compon
 import { ResumenOperativosBlock } from '@/features/admin/finance-dashboard/components/resumen-v2/ResumenOperativosBlock';
 import { ResumenResultadoBlock } from '@/features/admin/finance-dashboard/components/resumen-v2/ResumenResultadoBlock';
 import { ResumenPendientesBlock } from '@/features/admin/finance-dashboard/components/resumen-v2/ResumenPendientesBlock';
+
+import { KpisPrincipales } from '@/features/admin/finance-dashboard/components/resumen-v3/KpisPrincipales';
+import { BankDataWarning } from '@/features/admin/finance-dashboard/components/resumen-v3/BankDataWarning';
+import { LecturaRapida } from '@/features/admin/finance-dashboard/components/resumen-v3/LecturaRapida';
+import { AlertasBloque } from '@/features/admin/finance-dashboard/components/resumen-v3/AlertasBloque';
+import { IncomeExpenseChart } from '@/features/admin/finance-dashboard/components/resumen-v3/IncomeExpenseChart';
+import { InvoicedVsCollectedChart } from '@/features/admin/finance-dashboard/components/resumen-v3/InvoicedVsCollectedChart';
+import { ExpensesByCategoryChart } from '@/features/admin/finance-dashboard/components/resumen-v3/ExpensesByCategoryChart';
+import { AgingChart } from '@/features/admin/finance-dashboard/components/resumen-v3/AgingChart';
 
 export const metadata = { title: 'Resumen · Finanzas' };
 
@@ -41,10 +55,17 @@ export default async function FinanzasResumenPage({ searchParams }: PageProps): 
   const from = safeIsoDate(firstParam(sp.from));
   const to = safeIsoDate(firstParam(sp.to));
 
-  const data = await getFinanzasResumenV2({
-    ...(from ? { from } : {}),
-    ...(to ? { to } : {}),
-  });
+  const [resumen, dashboard, cashflow, arAging, unclassifiedCount, bankStatus] = await Promise.all([
+    getFinanzasResumenV2({
+      ...(from ? { from } : {}),
+      ...(to ? { to } : {}),
+    }),
+    getFinanceDashboard(),
+    getCashflowSeries(12),
+    getArAging({}),
+    getUnclassifiedExpenseCount(),
+    getBankDataStatus(),
+  ]);
 
   const today = todayInMadrid();
   const defaults = {
@@ -54,6 +75,7 @@ export default async function FinanzasResumenPage({ searchParams }: PageProps): 
 
   return (
     <div className="space-y-5 pt-2">
+      {/* 1. Cabecera + filtros */}
       <header className="flex items-start justify-between gap-3">
         <div>
           <h1 className="text-xl font-bold text-sp-admin-fg">Resumen económico</h1>
@@ -63,30 +85,50 @@ export default async function FinanzasResumenPage({ searchParams }: PageProps): 
         </div>
       </header>
 
-      <ResumenFilters applied={data.period} defaults={defaults} />
+      <ResumenFilters applied={resumen.period} defaults={defaults} />
 
-      <ResumenIngresosBlock ingresos={data.ingresos} />
+      {/* 2. KPIs principales */}
+      <KpisPrincipales resumen={resumen} />
 
+      {/* 3. Aviso si falta bank data */}
+      <BankDataWarning
+        bankTransactionsCount={bankStatus.bankTransactionsCount}
+        invoicePaymentsCount={bankStatus.invoicePaymentsCount}
+      />
+
+      {/* 4. Lectura rápida + Alertas — dos columnas en desktop */}
+      <div className="grid gap-4 lg:grid-cols-2">
+        <LecturaRapida resumen={resumen} unclassifiedExpensesCount={unclassifiedCount} />
+        <AlertasBloque alerts={dashboard.alerts} />
+      </div>
+
+      {/* 5. Gráficos — dos filas de 2 */}
+      <div className="grid gap-4 lg:grid-cols-2">
+        <IncomeExpenseChart data={cashflow} />
+        <InvoicedVsCollectedChart resumen={resumen} />
+      </div>
+      <div className="grid gap-4 lg:grid-cols-2">
+        <ExpensesByCategoryChart resumen={resumen} />
+        <AgingChart buckets={arAging.buckets} />
+      </div>
+
+      {/* 6. Bloques de detalle v2 (reutilizados sin cambios) */}
+      <ResumenIngresosBlock ingresos={resumen.ingresos} />
       <ResumenCostesMargenBlock
-        costesDirectos={data.costesDirectos}
-        margenBruto={data.margenBruto}
+        costesDirectos={resumen.costesDirectos}
+        margenBruto={resumen.margenBruto}
       />
-
-      <ResumenNominasBlock nominas={data.nominas} />
-
-      <ResumenImpuestosBlock impuestos={data.impuestos} />
-
-      <ResumenOperativosBlock operativos={data.operativos} />
-
+      <ResumenNominasBlock nominas={resumen.nominas} />
+      <ResumenImpuestosBlock impuestos={resumen.impuestos} />
+      <ResumenOperativosBlock operativos={resumen.operativos} />
       <ResumenResultadoBlock
-        margenBruto={data.margenBruto}
-        nominas={data.nominas}
-        impuestos={data.impuestos}
-        operativos={data.operativos}
-        resultado={data.resultado}
+        margenBruto={resumen.margenBruto}
+        nominas={resumen.nominas}
+        impuestos={resumen.impuestos}
+        operativos={resumen.operativos}
+        resultado={resumen.resultado}
       />
-
-      <ResumenPendientesBlock pendientes={data.pendientes} />
+      <ResumenPendientesBlock pendientes={resumen.pendientes} />
     </div>
   );
 }
