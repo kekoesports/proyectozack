@@ -9,7 +9,7 @@
  *   zacketizor → keydrop + csgoskins   ✅
  *   imantado   → keydrop                ✅
  *   naow       → keydrop                ✅
- *   todocs2    → keydrop                ✅
+ *   todocs2    → keydrop + csgoskins   ✅
  *   huasopeek / jolu → sin deals
  */
 
@@ -44,8 +44,8 @@ describe('[creator-deals-config] roster y datos', () => {
     expect([...CREATOR_DEALS.naow].sort()).toEqual(['keydrop']);
   });
 
-  it('todocs2 tiene exactamente keydrop (afiliado TODOCS2)', () => {
-    expect([...CREATOR_DEALS.todocs2].sort()).toEqual(['keydrop']);
+  it('todocs2 tiene keydrop + csgoskins (ambos con código TODO)', () => {
+    expect([...CREATOR_DEALS.todocs2].sort()).toEqual(['csgoskins', 'keydrop']);
   });
 
   it('huasopeek / jolu → sin deals confirmados ([])', () => {
@@ -64,7 +64,7 @@ describe('[creator-deals-config] helpers', () => {
     expect(getCreatorDeals('zacketizor').length).toBe(2);
     expect(getCreatorDeals('imantado').length).toBe(1);
     expect(getCreatorDeals('naow').length).toBe(1);
-    expect(getCreatorDeals('todocs2').length).toBe(1);
+    expect(getCreatorDeals('todocs2').length).toBe(2);
     expect(getCreatorDeals('huasopeek')).toEqual([]);
     expect(getCreatorDeals('nonexistent-slug')).toEqual([]);
   });
