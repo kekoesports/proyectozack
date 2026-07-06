@@ -288,7 +288,7 @@ Al mergear, memoria (`~/.claude/.../memory/`) recibe una entry
 | zacketizor | KeyDrop + CSGO-SKINS | ZACKCSGO | ✅ KeyDrop con API real; CSGO-SKINS como card promocional. |
 | imantado | KeyDrop | IMANTADO | ✅ KeyDrop con API real (alta 2026-07-06). |
 | naow | KeyDrop | NAOW | ✅ KeyDrop con API real (alta 2026-07-06). |
-| todocs2 | KeyDrop | TODOCS2 | ✅ KeyDrop con API real (alta 2026-07-06). |
+| todocs2 | KeyDrop | TODO | ✅ KeyDrop con API real (alta 2026-07-06). Código real registrado en KeyDrop es "TODO" (probable límite de 4 chars del sistema de promocodes). Verificado con GET /api/list. |
 | huasopeek | — | — | ⏸ Pendiente de deal + datos confirmados. |
 | jolu | — | — | ⏸ Pendiente de deal + datos confirmados. |
 

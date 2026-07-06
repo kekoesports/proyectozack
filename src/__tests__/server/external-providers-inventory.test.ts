@@ -10,7 +10,7 @@
  *   zacketizor → KeyDrop → ZACKCSGO
  *   imantado   → KeyDrop → IMANTADO
  *   naow       → KeyDrop → NAOW
- *   todocs2    → KeyDrop → TODOCS2
+ *   todocs2    → KeyDrop → TODO (código real registrado, no TODOCS2)
  */
 
 import * as fs from 'fs';
@@ -80,7 +80,9 @@ describe('[external-providers-inventory] estado real 2026-07-06', () => {
     expect(doc).toMatch(/zacketizor[\s\S]{0,140}KeyDrop[\s\S]{0,140}ZACKCSGO/);
     expect(doc).toMatch(/imantado[\s\S]{0,140}KeyDrop[\s\S]{0,140}IMANTADO/);
     expect(doc).toMatch(/naow[\s\S]{0,140}KeyDrop[\s\S]{0,140}NAOW/);
-    expect(doc).toMatch(/todocs2[\s\S]{0,140}KeyDrop[\s\S]{0,140}TODOCS2/);
+    // TODOCS2 registró su código en KeyDrop como "TODO" (no TODOCS2) —
+    // asertamos el estado real, no el nombre del creador.
+    expect(doc).toMatch(/todocs2[\s\S]{0,140}KeyDrop[\s\S]{0,40}\|[^|]*TODO[^|]*\|/);
     // Los creadores sin deal siguen explícitamente pendientes.
     for (const slug of ['huasopeek', 'jolu']) {
       expect(doc).toMatch(new RegExp(`\\|\\s*${slug}\\s*\\|[^|]*\\|[^|]*\\|[^|]*Pendiente`, 'i'));
