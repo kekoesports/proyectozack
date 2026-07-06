@@ -92,6 +92,9 @@ export type CreateCampaignInput = {
   brandPaymentMethod?: CampaignPaymentMethod;
   talentPaymentMethod?: CampaignPaymentMethod;
   visibility?: 'team' | 'private';
+  cobroConfirmado?: boolean;
+  pagoTalentConfirmado?: boolean;
+  cnmcChecklistOk?: boolean;
 };
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -414,6 +417,9 @@ export async function createCampaign(input: CreateCampaignInput): Promise<Campai
       brandPaymentMethod: input.brandPaymentMethod ?? null,
       talentPaymentMethod: input.talentPaymentMethod ?? null,
       visibility: input.visibility ?? 'team',
+      cobroConfirmado: input.cobroConfirmado ?? false,
+      pagoTalentConfirmado: input.pagoTalentConfirmado ?? false,
+      cnmcChecklistOk: input.cnmcChecklistOk ?? false,
     })
     .returning();
 
@@ -460,6 +466,10 @@ export async function updateCampaign(
   if ('brandPaymentMethod' in patch) setValue['brandPaymentMethod'] = patch.brandPaymentMethod ?? null;
   if ('talentPaymentMethod' in patch) setValue['talentPaymentMethod'] = patch.talentPaymentMethod ?? null;
   if (patch.visibility !== undefined) setValue['visibility'] = patch.visibility;
+  // Flags de cobro/pago — se persisten con valor explícito (true o false).
+  if (patch.cobroConfirmado !== undefined) setValue['cobroConfirmado'] = patch.cobroConfirmado;
+  if (patch.pagoTalentConfirmado !== undefined) setValue['pagoTalentConfirmado'] = patch.pagoTalentConfirmado;
+  if (patch.cnmcChecklistOk !== undefined) setValue['cnmcChecklistOk'] = patch.cnmcChecklistOk;
 
   const [row] = await db
     .update(campaigns)
