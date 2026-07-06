@@ -152,14 +152,15 @@ describe('[sorteos-routes] navegación no usa URLs legacy', () => {
 });
 
 describe('[sorteos-routes] providers reales — no inventar bindings', () => {
-  it('creator-bindings.ts mapea zacketizor + imantado + naow → keydrop', () => {
+  it('creator-bindings.ts mapea zacketizor + imantado + naow + todocs2 → keydrop', () => {
     const src = read('src/lib/external-giveaways/creator-bindings.ts');
     expect(src).toMatch(/^\s*zacketizor\s*:/m);
     expect(src).toMatch(/^\s*imantado\s*:/m);
     expect(src).toMatch(/^\s*naow\s*:/m);
+    expect(src).toMatch(/^\s*todocs2\s*:/m);
     expect(src).toMatch(/provider:\s*'keydrop'/);
     // Los otros creadores del roster NO deben tener binding.
-    for (const slug of ['huasopeek', 'todocs2', 'jolu']) {
+    for (const slug of ['huasopeek', 'jolu']) {
       expect(src).not.toMatch(new RegExp(`^\\s*${slug}\\s*:`, 'm'));
     }
   });

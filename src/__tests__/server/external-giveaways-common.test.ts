@@ -98,12 +98,19 @@ describe('[external-giveaways] CREATOR_PROVIDER_BINDINGS', () => {
     expect(binding?.envKey).toBe('KEYDROP_NAOW_API_KEY');
   });
 
+  it('incluye todocs2 → keydrop', () => {
+    const binding = getCreatorBinding('todocs2');
+    expect(binding).not.toBeNull();
+    expect(binding?.provider).toBe('keydrop');
+    expect(binding?.envKey).toBe('KEYDROP_TODOCS2_API_KEY');
+  });
+
   it('isExternalCreator true para bound, false para no bound', () => {
     expect(isExternalCreator('zacketizor')).toBe(true);
     expect(isExternalCreator('imantado')).toBe(true);
     expect(isExternalCreator('naow')).toBe(true);
+    expect(isExternalCreator('todocs2')).toBe(true);
     expect(isExternalCreator('huasopeek')).toBe(false);
-    expect(isExternalCreator('todocs2')).toBe(false);
     expect(isExternalCreator('jolu')).toBe(false);
     expect(isExternalCreator('unknown-slug')).toBe(false);
   });

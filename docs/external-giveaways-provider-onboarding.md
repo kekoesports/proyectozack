@@ -288,8 +288,8 @@ Al mergear, memoria (`~/.claude/.../memory/`) recibe una entry
 | zacketizor | KeyDrop + CSGO-SKINS | ZACKCSGO | ✅ KeyDrop con API real; CSGO-SKINS como card promocional. |
 | imantado | KeyDrop | IMANTADO | ✅ KeyDrop con API real (alta 2026-07-06). |
 | naow | KeyDrop | NAOW | ✅ KeyDrop con API real (alta 2026-07-06). |
+| todocs2 | KeyDrop | TODOCS2 | ✅ KeyDrop con API real (alta 2026-07-06). |
 | huasopeek | — | — | ⏸ Pendiente de deal + datos confirmados. |
-| todocs2 | — | — | ⏸ Pendiente de deal + datos confirmados. |
 | jolu | — | — | ⏸ Pendiente de deal + datos confirmados. |
 
 *(martinez retirado del roster público 2026-07-03.)*

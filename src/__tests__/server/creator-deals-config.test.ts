@@ -9,7 +9,8 @@
  *   zacketizor → keydrop + csgoskins   ✅
  *   imantado   → keydrop                ✅
  *   naow       → keydrop                ✅
- *   huasopeek / todocs2 / jolu → sin deals
+ *   todocs2    → keydrop                ✅
+ *   huasopeek / jolu → sin deals
  */
 
 import * as fs from 'fs';
@@ -43,9 +44,12 @@ describe('[creator-deals-config] roster y datos', () => {
     expect([...CREATOR_DEALS.naow].sort()).toEqual(['keydrop']);
   });
 
-  it('huasopeek / todocs2 / jolu → sin deals confirmados ([])', () => {
+  it('todocs2 tiene exactamente keydrop (afiliado TODOCS2)', () => {
+    expect([...CREATOR_DEALS.todocs2].sort()).toEqual(['keydrop']);
+  });
+
+  it('huasopeek / jolu → sin deals confirmados ([])', () => {
     expect(CREATOR_DEALS.huasopeek).toEqual([]);
-    expect(CREATOR_DEALS.todocs2).toEqual([]);
     expect(CREATOR_DEALS.jolu).toEqual([]);
   });
 
@@ -60,6 +64,7 @@ describe('[creator-deals-config] helpers', () => {
     expect(getCreatorDeals('zacketizor').length).toBe(2);
     expect(getCreatorDeals('imantado').length).toBe(1);
     expect(getCreatorDeals('naow').length).toBe(1);
+    expect(getCreatorDeals('todocs2').length).toBe(1);
     expect(getCreatorDeals('huasopeek')).toEqual([]);
     expect(getCreatorDeals('nonexistent-slug')).toEqual([]);
   });
@@ -68,7 +73,8 @@ describe('[creator-deals-config] helpers', () => {
     expect(hasAnyDeal('zacketizor')).toBe(true);
     expect(hasAnyDeal('imantado')).toBe(true);
     expect(hasAnyDeal('naow')).toBe(true);
-    for (const slug of ['huasopeek', 'todocs2', 'jolu']) {
+    expect(hasAnyDeal('todocs2')).toBe(true);
+    for (const slug of ['huasopeek', 'jolu']) {
       expect(hasAnyDeal(slug)).toBe(false);
     }
   });
