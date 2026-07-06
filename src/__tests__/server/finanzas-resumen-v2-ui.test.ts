@@ -84,10 +84,10 @@ describe('[Resumen V2] FinanzasNav', () => {
     expect(nav).toMatch(/label:\s*['"]Resumen['"]/);
   });
 
-  it('incluye tab "Control mensual" con href /admin/finanzas/mes', () => {
-    expect(nav).toMatch(/href:\s*['"]\/admin\/finanzas\/mes['"]/);
-    expect(nav).toMatch(/label:\s*['"]Control mensual['"]/);
-  });
+  // PR 2 rediseño 2026-07-06: "Control mensual" ya no es tab canónica.
+  // La ruta /admin/finanzas/mes sigue funcional y accesible por URL directa
+  // o desde enlaces internos, pero no aparece en FinanzasNav. Ver
+  // docs/finanzas-audit.md §14.
 });
 
 // ── Componentes de bloques ────────────────────────────────────────────────

@@ -254,18 +254,29 @@ describe('FinanceMonthlyControl — strings prohibidos', () => {
 
 // ── FinanzasNav — tab labels ──────────────────────────────────────────────────
 
-describe('FinanzasNav — etiquetas de tabs', () => {
+describe('FinanzasNav — etiquetas de tabs (PR 2 rediseño 2026-07-06)', () => {
   const navPath = path.resolve(
     __dirname,
     '../../app/admin/(dashboard)/finanzas/FinanzasNav.tsx',
   );
   const source = fs.readFileSync(navPath, 'utf-8');
 
-  it('tab "Resumen" (nueva V2 YTD) existe', () => { expect(source).toContain("label: 'Resumen'"); });
-  it('tab "Control mensual" existe', () => { expect(source).toContain('Control mensual'); });
-  it('tab "Histórico mensual" existe', () => { expect(source).toContain('Histórico mensual'); });
-  it('tab "Gastos y clasificación" existe', () => { expect(source).toContain('Gastos y clasificación'); });
-  it('tab "Importar documentos" existe', () => { expect(source).toContain('Importar documentos'); });
+  // 9 tabs canónicas nuevas. Ver `docs/finanzas-audit.md` §14.
+  const NEW_LABELS = [
+    'Resumen', 'Caja', 'Ingresos', 'Gastos',
+    'Nóminas y creadores', 'Rentabilidad', 'Documentos', 'Informes', 'Configuración',
+  ] as const;
+
+  it.each(NEW_LABELS)('tab "%s" existe', (label) => {
+    expect(source).toContain(`label: '${label}'`);
+  });
+
+  // Labels antiguas retiradas del nav (siguen accesibles por URL/enlace interno).
+  const REMOVED_LABELS = ['Control mensual', 'Histórico mensual', 'Gastos y clasificación', 'Importar documentos'];
+  it.each(REMOVED_LABELS)('label antiguo "%s" eliminado de la nav', (label) => {
+    expect(source).not.toContain(`label: '${label}'`);
+  });
+
   it('tab antiguo "Resultados" eliminado', () => { expect(source).not.toContain("label: 'Resultados'"); });
   it('tab antiguo "Herramientas" eliminado', () => { expect(source).not.toContain("label: 'Herramientas'"); });
 });

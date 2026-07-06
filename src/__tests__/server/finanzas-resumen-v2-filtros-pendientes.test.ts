@@ -41,11 +41,12 @@ describe('[Resumen V2 · PR C] /admin/finanzas/resumen/page.tsx', () => {
   });
 
   it('renderiza ResumenFilters con `applied` y `defaults`', () => {
-    expect(src).toMatch(/<ResumenFilters\s+applied=\{data\.period\}\s+defaults=\{defaults\}/);
+    // PR 2 rediseño 2026-07-06: la variable pasó de `data` a `resumen`.
+    expect(src).toMatch(/<ResumenFilters\s+applied=\{resumen\.period\}\s+defaults=\{defaults\}/);
   });
 
   it('renderiza ResumenPendientesBlock', () => {
-    expect(src).toMatch(/<ResumenPendientesBlock\s+pendientes=\{data\.pendientes\}/);
+    expect(src).toMatch(/<ResumenPendientesBlock\s+pendientes=\{resumen\.pendientes\}/);
   });
 
   it("no declara 'use client'", () => {
