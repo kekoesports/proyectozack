@@ -23,6 +23,22 @@ export const metadata: Metadata = {
     description:
       'Elige tu creador favorito, participa gratis, gana puntos y canjea recompensas. Login con Steam, sin depósitos, +18.',
     url: absoluteUrl('/sorteos'),
+    siteName: 'SocialPro',
+    locale: 'es_ES',
+    type: 'website',
+    images: [{
+      url: absoluteUrl('/og-socialpro.png'),
+      width: 1200,
+      height: 630,
+      alt: 'SocialPro Giveaways',
+    }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'SocialPro Giveaways · sorteos gratuitos de creadores',
+    description:
+      'Elige tu creador favorito, participa gratis, gana puntos y canjea recompensas. Login con Steam, sin depósitos, +18.',
+    images: [absoluteUrl('/og-socialpro.png')],
   },
 };
 

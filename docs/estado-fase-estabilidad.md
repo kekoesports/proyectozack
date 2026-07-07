@@ -9,7 +9,8 @@ Cerrado: 2026-05-08. Esta fase cubre quick wins, polish inicial y mobile UX bás
 ### OG / Social sharing
 - OG dinámica talentos: `/api/og-image/talent-img?slug=` con foto real, nodejs runtime
 - OG dinámica giveaways: `/api/og-image/giveaway?id=X` con título, valor, marca, creador
-- OG estática `/giveaways`: OpenGraph + Twitter card correctos
+- OG estática `/giveaways`: OpenGraph + Twitter card correctos (hoy es `/codigos` — redirect 301)
+- OG estática `/sorteos` y `/sorteos/[creatorSlug]`: OpenGraph + Twitter card con `/og-socialpro.png` (2026-07-07)
 - Metadata propia home: título, description, OG, Twitter, canonical
 - Schema JSON-LD sorteos: `Event.image` apunta a OG dinámica
 - Redirect 301 en ruta antigua `/api/og-image/talent/[slug]`
