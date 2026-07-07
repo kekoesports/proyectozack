@@ -207,7 +207,7 @@ export function FileRow({ file, campaignId, canDelete }: FileRowProps): React.Re
       {/* Actions */}
       <div className="flex items-center gap-2 shrink-0">
         <a
-          href={file.url}
+          href={`/api/admin/files/${file.id}`}
           target="_blank"
           rel="noopener noreferrer"
           className="rounded-md border border-sp-admin-border px-2.5 py-1 text-xs text-sp-admin-muted hover:text-sp-admin-text transition-colors"

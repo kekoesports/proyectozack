@@ -72,7 +72,7 @@ export function FilesList({ files, talentId, isManager, deleteAction }: Props): 
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <a
-              href={file.url}
+              href={`/api/admin/files/${file.id}`}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold border border-sp-admin-border text-sp-admin-text hover:bg-sp-admin-border/30 transition-colors"
