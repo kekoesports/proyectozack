@@ -2,6 +2,8 @@
 
 Generado 07-05-2026. Basado en análisis de código, conversaciones de sesión y análisis de deuda técnica.
 
+> **Nota 2026-07-07:** Los Quick Wins QW-1..QW-5 listados más abajo YA se cerraron el 2026-05-08 (fuente: `docs/estado-fase-estabilidad.md`). El único gap residual — OG explícita para `/sorteos` y `/sorteos/[creatorSlug]` — se cerró el 2026-07-07 en la PR de mini-QW. Consultar `docs/estado-fase-estabilidad.md` como fuente de verdad para el estado real de cada quick win.
+
 ---
 
 ## Estado actual — qué está hecho

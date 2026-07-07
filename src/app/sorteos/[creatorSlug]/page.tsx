@@ -66,6 +66,21 @@ export async function generateMetadata({
       title: `Sorteos de ${name} · SocialPro Giveaways`,
       description: `Sorteos gratis con tus creadores favoritos de SocialPro. Participa con Steam, gana puntos y canjea recompensas.`,
       url: absoluteUrl(`/sorteos/${canonicalSlug}`),
+      siteName: 'SocialPro',
+      locale: 'es_ES',
+      type: 'website',
+      images: [{
+        url: absoluteUrl('/og-socialpro.png'),
+        width: 1200,
+        height: 630,
+        alt: 'SocialPro Giveaways',
+      }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `Sorteos de ${name} · SocialPro Giveaways`,
+      description: `Sorteos gratis con tus creadores favoritos de SocialPro. Participa con Steam, gana puntos y canjea recompensas.`,
+      images: [absoluteUrl('/og-socialpro.png')],
     },
   };
 }
