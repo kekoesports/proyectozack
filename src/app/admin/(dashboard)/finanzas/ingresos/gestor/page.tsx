@@ -1,22 +1,12 @@
-import { requirePermission } from '@/lib/permissions';
-import { IngresosCompoundPage } from '@/features/admin/invoices/pages/IngresosCompoundPage';
-
-export const metadata = { title: 'Gestor de facturación · Ingresos · Finanzas' };
+import { permanentRedirect } from 'next/navigation';
 
 /**
- * Compound page migrada desde /admin/finanzas/ingresos (PR 2).
+ * `/admin/finanzas/ingresos/gestor` → `/admin/facturacion` (URL canónica).
  *
- * En PR 3 rediseñamos /ingresos con KPIs + aging + tabla + top clientes,
- * pero el compound antiguo (Facturas emitidas, Clientes de facturación,
- * Empresas emisoras, Importar) sigue siendo útil como panel operativo.
- * Se accede desde el bloque "Accesos rápidos" de la nueva ingresos.
+ * Tras restaurar Facturación como módulo operativo propio (2026-07-07), esta
+ * ruta se mantiene como alias con 308 permanente para preservar bookmarks del
+ * equipo y accesos rápidos internos que apuntaban aquí desde PR #212.
  */
-export default async function FinanzasIngresosGestorPage(): Promise<React.ReactElement> {
-  await requirePermission('facturacion', 'read');
-  return (
-    <IngresosCompoundPage
-      headerTitle="Gestor de facturación"
-      headerSubtitle="Facturas emitidas, clientes, empresas emisoras e importación de facturas"
-    />
-  );
+export default function FinanzasIngresosGestorAlias(): never {
+  permanentRedirect('/admin/facturacion');
 }
