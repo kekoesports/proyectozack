@@ -2,8 +2,14 @@
  * Generador de PDF para facturas emitidas de SocialPro.
  * Usa jsPDF para crear un documento A4 profesional.
  * Solo se ejecuta en el cliente (no importar en server components).
+ *
+ * Soporta dos idiomas:
+ *   - 'es' → labels en español + formato es-ES (compatibilidad con lo previo)
+ *   - 'en' → labels en inglés + formato en-GB (default para clientes internacionales)
  */
 import type { IssuedInvoiceWithRelations, IssuerCompany, BillingClient } from '@/types';
+
+export type PdfLanguage = 'es' | 'en';
 
 /** Carga el logo, lo redimensiona y aplana transparencia → JPEG para jsPDF */
 async function loadLogoDataUrl(): Promise<string | null> {
@@ -49,32 +55,182 @@ const BLACK   = '#16161f';
 const ACCENT  = '#f5632a';
 const LIGHT   = '#eeeef5';
 
+// ── i18n ──────────────────────────────────────────────────────────────
+
+type Strings = {
+  readonly invoiceTitle:       string;
+  readonly correctiveTitle:    string;
+  readonly amends:             string;
+  readonly issuerBlockLabel:   string;
+  readonly clientBlockLabel:   string;
+  readonly issuerTaxIdLabel:   string;
+  readonly clientTaxIdLabel:   string;
+  readonly issueDate:          string;
+  readonly dueDate:            string;
+  readonly currency:           string;
+  readonly status:             string;
+  readonly correctiveHeader:   string;
+  readonly correctiveOf:       string;
+  readonly correctiveType:     string;
+  readonly correctiveReason:   string;
+  readonly correctiveKindReplacement: string;
+  readonly correctiveKindDifference:  string;
+  readonly deal:               string;
+  readonly brand:              string;
+  readonly creator:            string;
+  readonly colConcept:         string;
+  readonly colQty:             string;
+  readonly colUnitPrice:       string;
+  readonly colDiscount:        string;
+  readonly colSubtotal:        string;
+  readonly emptyLines:         string;
+  readonly subtotal:           string;
+  readonly vat:                (rate: number) => string;
+  readonly withholding:        (rate: number) => string;
+  readonly total:              string;
+  readonly paymentDetails:     string;
+  readonly crypto:             string;
+  readonly statusLabels:       Record<string, string>;
+  readonly watermarks:         Readonly<Record<'borrador' | 'anulada' | 'rectificada', string>>;
+  readonly noDate:             string;
+  readonly locale:             string;
+};
+
+const STRINGS: Readonly<Record<PdfLanguage, Strings>> = {
+  es: {
+    invoiceTitle:       'FACTURA',
+    correctiveTitle:    'FACTURA RECTIFICATIVA',
+    amends:             'Rectifica',
+    issuerBlockLabel:   'EMPRESA EMISORA',
+    clientBlockLabel:   'FACTURAR A',
+    issuerTaxIdLabel:   'NIF',
+    clientTaxIdLabel:   'NIF/VAT',
+    issueDate:          'Fecha de emisión',
+    dueDate:            'Fecha de vencimiento',
+    currency:           'Moneda',
+    status:             'Estado',
+    correctiveHeader:   'FACTURA RECTIFICATIVA',
+    correctiveOf:       'Rectifica la factura',
+    correctiveType:     'Tipo',
+    correctiveReason:   'Motivo',
+    correctiveKindReplacement: 'Sustitutiva',
+    correctiveKindDifference:  'Por diferencia',
+    deal:               'Trato',
+    brand:              'Marca',
+    creator:            'Talento',
+    colConcept:         'CONCEPTO',
+    colQty:             'CANT.',
+    colUnitPrice:       'P. UNITARIO',
+    colDiscount:        'DTO. %',
+    colSubtotal:        'SUBTOTAL',
+    emptyLines:         'Sin líneas de factura registradas.',
+    subtotal:           'Base imponible',
+    vat:                (r: number) => `IVA (${r.toFixed(0)}%)`,
+    withholding:        (r: number) => `Retención (${r.toFixed(0)}%)`,
+    total:              'TOTAL',
+    paymentDetails:     'DATOS DE PAGO',
+    crypto:             'Crypto',
+    statusLabels: {
+      borrador: 'BORRADOR',
+      emitida:  'EMITIDA',
+      enviada:  'ENVIADA',
+      cobrada:  'COBRADA',
+      vencida:  'VENCIDA',
+      anulada:  'ANULADA',
+      rectificada: 'RECTIFICADA',
+    },
+    watermarks: {
+      borrador:    'BORRADOR',
+      anulada:     'ANULADA',
+      rectificada: 'RECTIFICADA',
+    },
+    noDate:  '—',
+    locale:  'es-ES',
+  },
+  en: {
+    invoiceTitle:       'INVOICE',
+    correctiveTitle:    'CORRECTIVE INVOICE',
+    amends:             'Amends',
+    issuerBlockLabel:   'FROM',
+    clientBlockLabel:   'BILL TO',
+    issuerTaxIdLabel:   'Tax ID',
+    clientTaxIdLabel:   'Tax ID · VAT',
+    issueDate:          'Issue Date',
+    dueDate:            'Due Date',
+    currency:           'Currency',
+    status:             'Status',
+    correctiveHeader:   'CORRECTIVE INVOICE',
+    correctiveOf:       'Amends invoice',
+    correctiveType:     'Type',
+    correctiveReason:   'Reason',
+    correctiveKindReplacement: 'Replacement',
+    correctiveKindDifference:  'Difference',
+    deal:               'Deal',
+    brand:              'Brand',
+    creator:            'Creator',
+    colConcept:         'ITEM',
+    colQty:             'QTY',
+    colUnitPrice:       'UNIT PRICE',
+    colDiscount:        'DISC. %',
+    colSubtotal:        'SUBTOTAL',
+    emptyLines:         'No invoice lines.',
+    subtotal:           'Subtotal',
+    vat:                (r: number) => `VAT (${r.toFixed(0)}%)`,
+    withholding:        (r: number) => `Withholding (${r.toFixed(0)}%)`,
+    total:              'TOTAL',
+    paymentDetails:     'PAYMENT DETAILS',
+    crypto:             'Crypto',
+    statusLabels: {
+      borrador: 'DRAFT',
+      emitida:  'ISSUED',
+      enviada:  'SENT',
+      cobrada:  'PAID',
+      vencida:  'OVERDUE',
+      anulada:  'VOID',
+      rectificada: 'AMENDED',
+    },
+    watermarks: {
+      borrador:    'DRAFT',
+      anulada:     'VOID',
+      rectificada: 'AMENDED',
+    },
+    noDate:  '—',
+    locale:  'en-GB',
+  },
+};
+
 // ── Formatters ────────────────────────────────────────────────────────
 
-function fmtMoney(n: string | number, currency = 'EUR'): string {
+function fmtMoney(n: string | number, currency: string, locale: string): string {
   const cur = ['EUR', 'USD', 'GBP', 'CHF'].includes(String(currency)) ? String(currency) : 'EUR';
-  return new Intl.NumberFormat('es-ES', {
+  return new Intl.NumberFormat(locale, {
     style: 'currency', currency: cur, minimumFractionDigits: 2, maximumFractionDigits: 2,
   }).format(Number(n));
 }
 
-function fmtDate(d: string | null | undefined): string {
-  if (!d) return '—';
-  return new Date(d + 'T12:00:00').toLocaleDateString('es-ES', {
+function fmtDate(d: string | null | undefined, locale: string, empty: string): string {
+  if (!d) return empty;
+  return new Date(d + 'T12:00:00').toLocaleDateString(locale, {
     day: '2-digit', month: 'long', year: 'numeric',
   });
 }
 
-// ── Status labels ─────────────────────────────────────────────────────
+// ── Language resolver ─────────────────────────────────────────────────
 
-const STATUS_LABELS: Record<string, string> = {
-  borrador: 'BORRADOR',
-  emitida:  'EMITIDA',
-  enviada:  'ENVIADA',
-  cobrada:  'COBRADA',
-  vencida:  'VENCIDA',
-  anulada:  'ANULADA',
-};
+/**
+ * Resuelve el idioma efectivo del PDF:
+ *   1. Override explícito (dropdown del botón de descarga) tiene prioridad.
+ *   2. Idioma persistido en el cliente (`billing_clients.pdf_language`).
+ *   3. Fallback 'en' para clientes internacionales (la mayoría).
+ */
+export function resolvePdfLanguage(
+  clientLanguage: string | null | undefined,
+  override?: PdfLanguage,
+): PdfLanguage {
+  if (override === 'es' || override === 'en') return override;
+  if (clientLanguage === 'es' || clientLanguage === 'en') return clientLanguage;
+  return 'en';
+}
 
 // ── Main generator ────────────────────────────────────────────────────
 
@@ -82,7 +238,11 @@ export async function generateInvoicePdf(
   invoice:  IssuedInvoiceWithRelations,
   issuer:   IssuerCompany,
   client:   BillingClient,
+  languageOverride?: PdfLanguage,
 ): Promise<void> {
+  const language = resolvePdfLanguage(client.pdfLanguage, languageOverride);
+  const t = STRINGS[language];
+
   // Import dinámico para evitar SSR
   const [{ jsPDF }, logoDataUrl] = await Promise.all([
     import('jspdf'),
@@ -133,14 +293,14 @@ export async function generateInvoicePdf(
   }
 
   // "FACTURA [RECTIFICATIVA]" + número (derecha)
-  const invoiceTitle = isRectificativa ? 'FACTURA RECTIFICATIVA' : 'FACTURA';
+  const invoiceTitle = isRectificativa ? t.correctiveTitle : t.invoiceTitle;
   setFont(isRectificativa ? 16 : 22, 'bold', isRectificativa ? '#7c3aed' : BLACK);
   doc.text(invoiceTitle, COL_R, y + 5, { align: 'right' });
   setFont(12, 'normal', GRAY);
   doc.text(invoice.invoiceNumber, COL_R, y + 11, { align: 'right' });
   if (isRectificativa && invoice.rectifiedInvoiceNumber) {
     setFont(8, 'normal', GRAY);
-    doc.text(`Rectifica: ${invoice.rectifiedInvoiceNumber}`, COL_R, y + 16, { align: 'right' });
+    doc.text(`${t.amends}: ${invoice.rectifiedInvoiceNumber}`, COL_R, y + 16, { align: 'right' });
   }
 
   y += 22;
@@ -153,12 +313,12 @@ export async function generateInvoicePdf(
 
   // Datos emisora (izquierda)
   setFont(7, 'bold', GRAY);
-  doc.text('EMPRESA EMISORA', MARGIN, y);
+  doc.text(t.issuerBlockLabel, MARGIN, y);
   y += 4;
   setFont(10, 'bold', BLACK);
   doc.text(issuer.legalName ?? issuer.name, MARGIN, y);
   setFont(9, 'normal', GRAY);
-  if (issuer.taxId)    doc.text(`NIF: ${issuer.taxId}`,  MARGIN, y + 4);
+  if (issuer.taxId)    doc.text(`${t.issuerTaxIdLabel}: ${issuer.taxId}`, MARGIN, y + 4);
   if (issuer.address)  doc.text(issuer.address,          MARGIN, y + 8);
   const issuerCity = [issuer.city, issuer.postalCode, issuer.country].filter(Boolean).join(', ');
   if (issuerCity)      doc.text(issuerCity,               MARGIN, y + 12);
@@ -166,12 +326,12 @@ export async function generateInvoicePdf(
 
   // Datos cliente (derecha)
   setFont(7, 'bold', GRAY);
-  doc.text('FACTURAR A', colMid, y - 4);
+  doc.text(t.clientBlockLabel, colMid, y - 4);
   setFont(10, 'bold', BLACK);
   doc.text(client.legalName ?? client.name, colMid, y);
   setFont(9, 'normal', GRAY);
   if (client.taxId || client.vatNumber) {
-    doc.text(`NIF/VAT: ${client.taxId ?? client.vatNumber}`, colMid, y + 4);
+    doc.text(`${t.clientTaxIdLabel}: ${client.taxId ?? client.vatNumber}`, colMid, y + 4);
   }
   if (client.address)  doc.text(client.address, colMid, y + 8);
   const clientCity = [client.city, client.postalCode, client.country].filter(Boolean).join(', ');
@@ -184,11 +344,14 @@ export async function generateInvoicePdf(
 
   // ── 3. METADATOS ──────────────────────────────────────────────────────
 
+  const statusRaw = invoice.status;
+  const statusLabel = t.statusLabels[statusRaw] ?? statusRaw.toUpperCase();
+
   const metaFields = [
-    ['Fecha de emisión',  fmtDate(invoice.issueDate)],
-    ['Fecha de vencimiento', invoice.dueDate ? fmtDate(invoice.dueDate) : '—'],
-    ['Moneda',            invoice.currency ?? 'EUR'],
-    ['Estado',            STATUS_LABELS[invoice.status] ?? invoice.status.toUpperCase()],
+    [t.issueDate,  fmtDate(invoice.issueDate, t.locale, t.noDate)],
+    [t.dueDate,    fmtDate(invoice.dueDate,   t.locale, t.noDate)],
+    [t.currency,   invoice.currency ?? 'EUR'],
+    [t.status,     statusLabel],
   ] as const;
 
   const metaColW = (PAGE_W - MARGIN * 2) / metaFields.length;
@@ -196,7 +359,7 @@ export async function generateInvoicePdf(
     const x = MARGIN + i * metaColW;
     setFont(7, 'bold', GRAY);
     doc.text(label, x, y);
-    setFont(10, 'bold', invoice.status === 'vencida' && label === 'Estado' ? '#ef4444' : BLACK);
+    setFont(10, 'bold', statusRaw === 'vencida' && label === t.status ? '#ef4444' : BLACK);
     doc.text(String(value), x, y + 4.5);
   });
 
@@ -209,18 +372,20 @@ export async function generateInvoicePdf(
   if (isRectificativa) {
     rect(MARGIN - 2, y - 2, PAGE_W - MARGIN * 2 + 4, 14, '#f3f0ff');
     setFont(7, 'bold', '#7c3aed');
-    doc.text('FACTURA RECTIFICATIVA', MARGIN, y + 1.5);
+    doc.text(t.correctiveHeader, MARGIN, y + 1.5);
     setFont(8.5, 'normal', BLACK);
     if (invoice.rectifiedInvoiceNumber) {
-      doc.text(`Rectifica la factura: ${invoice.rectifiedInvoiceNumber}`, MARGIN, y + 6);
+      doc.text(`${t.correctiveOf}: ${invoice.rectifiedInvoiceNumber}`, MARGIN, y + 6);
     }
     if (invoice.rectificationType) {
-      const typeLabel = invoice.rectificationType === 'sustitutiva' ? 'Sustitutiva' : 'Por diferencia';
-      doc.text(`Tipo: ${typeLabel}`, COL_R, y + 6, { align: 'right' });
+      const typeLabel = invoice.rectificationType === 'sustitutiva'
+        ? t.correctiveKindReplacement
+        : t.correctiveKindDifference;
+      doc.text(`${t.correctiveType}: ${typeLabel}`, COL_R, y + 6, { align: 'right' });
     }
     if (invoice.rectificationReason) {
       setFont(8, 'normal', GRAY);
-      const reasonLines = splitText(`Motivo: ${invoice.rectificationReason}`, PAGE_W - MARGIN * 2);
+      const reasonLines = splitText(`${t.correctiveReason}: ${invoice.rectificationReason}`, PAGE_W - MARGIN * 2);
       doc.text(reasonLines[0] ?? '', MARGIN, y + 11);
     }
     y += 18;
@@ -232,9 +397,9 @@ export async function generateInvoicePdf(
     rect(MARGIN - 2, y - 2, PAGE_W - MARGIN * 2 + 4, 7, LIGHT);
     setFont(8, 'normal', GRAY);
     const crmRef = [
-      invoice.dealName ? `Trato: ${invoice.dealName}` : null,
-      invoice.brandName ? `Marca: ${invoice.brandName}` : null,
-      invoice.talentName ? `Talento: ${invoice.talentName}` : null,
+      invoice.dealName ? `${t.deal}: ${invoice.dealName}` : null,
+      invoice.brandName ? `${t.brand}: ${invoice.brandName}` : null,
+      invoice.talentName ? `${t.creator}: ${invoice.talentName}` : null,
     ].filter(Boolean).join('  ·  ');
     doc.text(crmRef, MARGIN, y + 2.5);
     y += 10;
@@ -246,18 +411,18 @@ export async function generateInvoicePdf(
   rect(MARGIN - 2, y - 1, PAGE_W - MARGIN * 2 + 4, 7, ACCENT);
   setFont(8, 'bold', '#ffffff');
   const colsX = { concept: MARGIN, qty: 115, price: 140, disc: 162, sub: COL_R };
-  doc.text('CONCEPTO',       colsX.concept, y + 3.5);
-  doc.text('CANT.',          colsX.qty,     y + 3.5, { align: 'right' });
-  doc.text('P. UNITARIO',    colsX.price,   y + 3.5, { align: 'right' });
-  doc.text('DTO. %',         colsX.disc,    y + 3.5, { align: 'right' });
-  doc.text('SUBTOTAL',       colsX.sub,     y + 3.5, { align: 'right' });
+  doc.text(t.colConcept,    colsX.concept, y + 3.5);
+  doc.text(t.colQty,        colsX.qty,     y + 3.5, { align: 'right' });
+  doc.text(t.colUnitPrice,  colsX.price,   y + 3.5, { align: 'right' });
+  doc.text(t.colDiscount,   colsX.disc,    y + 3.5, { align: 'right' });
+  doc.text(t.colSubtotal,   colsX.sub,     y + 3.5, { align: 'right' });
   y += 9;
 
   // Filas de líneas
   const lines = invoice.lines ?? [];
   if (lines.length === 0) {
     setFont(9, 'normal', GRAY);
-    doc.text('Sin líneas de factura registradas.', MARGIN, y + 4);
+    doc.text(t.emptyLines, MARGIN, y + 4);
     y += 8;
   } else {
     lines.forEach((line, idx) => {
@@ -273,13 +438,13 @@ export async function generateInvoicePdf(
 
       setFont(9, 'normal', BLACK);
       doc.text(String(Number(line.quantity).toFixed(2)), colsX.qty, y + 3.5, { align: 'right' });
-      doc.text(fmtMoney(line.unitPrice, invoice.currency), colsX.price, y + 3.5, { align: 'right' });
+      doc.text(fmtMoney(line.unitPrice, invoice.currency, t.locale), colsX.price, y + 3.5, { align: 'right' });
       doc.text(
         Number(line.discount) > 0 ? `${Number(line.discount).toFixed(0)}%` : '—',
         colsX.disc, y + 3.5, { align: 'right' },
       );
       setFont(9, 'bold', BLACK);
-      doc.text(fmtMoney(line.subtotal, invoice.currency), colsX.sub, y + 3.5, { align: 'right' });
+      doc.text(fmtMoney(line.subtotal, invoice.currency, t.locale), colsX.sub, y + 3.5, { align: 'right' });
 
       y += line.description ? 10 : 8;
     });
@@ -294,14 +459,14 @@ export async function generateInvoicePdf(
   const totalsW = COL_R - totalsX;
 
   const totals: [string, string, boolean][] = [
-    ['Base imponible',   fmtMoney(invoice.netAmount, invoice.currency),         false],
-    [`IVA (${Number(invoice.vatRate ?? 0).toFixed(0)}%)`, fmtMoney(invoice.vatAmount, invoice.currency), false],
+    [t.subtotal,                             fmtMoney(invoice.netAmount, invoice.currency, t.locale), false],
+    [t.vat(Number(invoice.vatRate ?? 0)),    fmtMoney(invoice.vatAmount, invoice.currency, t.locale), false],
   ];
 
   if (Number(invoice.withholdingRate ?? 0) > 0) {
     totals.push([
-      `Retención (${Number(invoice.withholdingRate).toFixed(0)}%)`,
-      `-${fmtMoney(invoice.withholdingAmount, invoice.currency)}`,
+      t.withholding(Number(invoice.withholdingRate)),
+      `-${fmtMoney(invoice.withholdingAmount, invoice.currency, t.locale)}`,
       false,
     ]);
   }
@@ -317,15 +482,15 @@ export async function generateInvoicePdf(
   y += 1;
   rect(totalsX - 2, y - 1, totalsW + 4, 9, ACCENT);
   setFont(11, 'bold', '#ffffff');
-  doc.text('TOTAL', totalsX, y + 5);
-  doc.text(fmtMoney(invoice.totalAmount, invoice.currency), COL_R, y + 5, { align: 'right' });
+  doc.text(t.total, totalsX, y + 5);
+  doc.text(fmtMoney(invoice.totalAmount, invoice.currency, t.locale), COL_R, y + 5, { align: 'right' });
   y += 13;
 
   // ── 7. DATOS DE PAGO ──────────────────────────────────────────────────
 
   if (issuer.bankDetails || issuer.cryptoDetails || invoice.paymentTerms) {
     setFont(8, 'bold', GRAY);
-    doc.text('DATOS DE PAGO', MARGIN, y);
+    doc.text(t.paymentDetails, MARGIN, y);
     y += 4;
 
     if (invoice.paymentTerms) {
@@ -344,7 +509,7 @@ export async function generateInvoicePdf(
 
     if (issuer.cryptoDetails) {
       setFont(8.5, 'normal', GRAY);
-      const cryptoLines = splitText(`Crypto: ${issuer.cryptoDetails}`, PAGE_W - MARGIN * 2);
+      const cryptoLines = splitText(`${t.crypto}: ${issuer.cryptoDetails}`, PAGE_W - MARGIN * 2);
       doc.text(cryptoLines, MARGIN, y);
       y += cryptoLines.length * 4 + 1;
     }
@@ -377,14 +542,12 @@ export async function generateInvoicePdf(
 
   // ── 10. MARCAS DE AGUA ────────────────────────────────────────────────
 
-  if (invoice.status === 'borrador' || invoice.status === 'anulada' || invoice.status === 'rectificada') {
+  if (statusRaw === 'borrador' || statusRaw === 'anulada' || statusRaw === 'rectificada') {
     doc.setTextColor(200, 200, 200);
-    doc.setFontSize(invoice.status === 'rectificada' ? 40 : 60);
+    doc.setFontSize(statusRaw === 'rectificada' ? 40 : 60);
     doc.setFont('helvetica', 'bold');
     doc.setGState(doc.GState({ opacity: 0.12 }));
-    const watermarkText = invoice.status === 'borrador' ? 'BORRADOR'
-      : invoice.status === 'anulada' ? 'ANULADA'
-      : 'RECTIFICADA';
+    const watermarkText = t.watermarks[statusRaw];
     doc.text(watermarkText, PAGE_W / 2, PAGE_H / 2, { angle: 45, align: 'center' });
     doc.setGState(doc.GState({ opacity: 1.0 }));
   }

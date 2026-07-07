@@ -65,6 +65,10 @@ export const billingClients = pgTable(
     type:                  varchar('type',                  { length: 50  }).notNull().default('empresa_espana'),
     defaultVatRate:        numeric('default_vat_rate',        { precision: 5, scale: 2 }).notNull().default('0'),
     defaultWithholdingRate: numeric('default_withholding_rate', { precision: 5, scale: 2 }).notNull().default('0'),
+    // Idioma por defecto del PDF: 'es' | 'en'. Default 'en' porque la mayoría
+    // de clientes son internacionales. Override puntual disponible en el botón
+    // de descarga.
+    pdfLanguage:           varchar('pdf_language',            { length: 2   }).notNull().default('en'),
     relatedBrandId:        integer('related_brand_id').references(() => crmBrands.id, { onDelete: 'set null' }),
     notes:                 text('notes'),
     createdAt:             timestamp('created_at',  { withTimezone: true }).notNull().defaultNow(),
