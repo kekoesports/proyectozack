@@ -25,6 +25,7 @@ import {
   summarizeBuckets,
   todayInMadrid,
 } from './arAging.shared';
+import { buildInvoicePdfUrl } from './expenseSubgroups';
 
 // Facturas emitidas: status es varchar libre pero convención observada.
 const ISSUED_PENDING_STATUSES = ['emitida', 'vencida', 'parcial'] as const;
@@ -154,7 +155,7 @@ export async function getArAging(
       status: r.status,
       issueDate: r.issueDate,
       dueDate: r.dueDate,
-      pdfUrl: r.invoiceFileId ? `/api/admin/facturas/${r.id}/pdf` : (r.fileUrl ?? null),
+      pdfUrl: buildInvoicePdfUrl({ id: r.id, invoiceFileId: r.invoiceFileId, fileUrl: r.fileUrl }),
       today,
     }))
     .filter((r) => r.pendingAmount > 0);

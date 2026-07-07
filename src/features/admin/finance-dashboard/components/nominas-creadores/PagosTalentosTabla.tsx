@@ -4,6 +4,7 @@ import {
   EXPENSE_STATUS_DISPLAY_SEMANTIC,
   normalizeExpenseStatusForDisplay,
 } from '@/lib/utils/expense-status-display';
+import { buildInvoicePdfUrl } from '@/lib/queries/financeDashboard/expenseSubgroups';
 import type { InvoiceWithRelations } from '@/types/invoice';
 
 interface Props {
@@ -72,7 +73,11 @@ export function PagosTalentosTabla({ rows, totalRows }: Props): React.ReactEleme
               {rows.map((row) => {
                 const status = normalizeExpenseStatusForDisplay(row.status);
                 const semantic = EXPENSE_STATUS_DISPLAY_SEMANTIC[status];
-                const pdfHref = row.invoiceFileId ? `/api/admin/facturas/${row.id}/pdf` : (row.fileUrl ?? null);
+                const pdfHref = buildInvoicePdfUrl({
+                  id: row.id,
+                  invoiceFileId: row.invoiceFileId,
+                  fileUrl: row.fileUrl,
+                });
                 return (
                   <tr key={row.id} className="border-b border-sp-border/40 last:border-0 hover:bg-sp-admin-hover transition-colors">
                     <td className="px-3 py-2 text-[12px] text-sp-admin-fg font-medium max-w-[140px] truncate">
