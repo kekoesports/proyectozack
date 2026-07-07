@@ -70,9 +70,10 @@ describe('[finanzas-nav-and-routing] redirects legacy', () => {
 describe('[finanzas-nav-and-routing] páginas placeholder usan PlaceholderSection', () => {
   // PR 5 (2026-07-06): `nominas-creadores` ya no es placeholder — pasó
   // a implementación real. Ver `finanzas-nominas-creadores.test.ts`.
+  // PR 6A (2026-07-07): `rentabilidad` ya no es placeholder — pasó a
+  // implementación real. Ver `finanzas-rentabilidad.test.ts`.
   const PLACEHOLDER_ROUTES = [
     'caja',
-    'rentabilidad',
     'documentos',
     'informes',
     'configuracion',

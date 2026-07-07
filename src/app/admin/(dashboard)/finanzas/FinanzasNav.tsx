@@ -49,7 +49,7 @@ const TABS: readonly Tab[] = [
     label: 'Nóminas y creadores',
     extraPaths: ['/admin/finanzas/nominas'],
   },
-  { href: '/admin/finanzas/rentabilidad', label: 'Rentabilidad', soon: true },
+  { href: '/admin/finanzas/rentabilidad', label: 'Rentabilidad' },
   { href: '/admin/finanzas/documentos', label: 'Documentos', soon: true },
   { href: '/admin/finanzas/informes', label: 'Informes', soon: true },
   {
