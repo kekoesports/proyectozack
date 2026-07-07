@@ -5,6 +5,7 @@ import {
   EXPENSE_STATUS_DISPLAY_SEMANTIC,
   normalizeExpenseStatusForDisplay,
 } from '@/lib/utils/expense-status-display';
+import { buildInvoicePdfUrl } from '@/lib/queries/financeDashboard/expenseSubgroups';
 import type { InvoiceWithRelations } from '@/types/invoice';
 
 interface Props {
@@ -65,7 +66,11 @@ export function NominasInternasTabla({ rows, totalRows }: Props): React.ReactEle
                 const semantic = EXPENSE_STATUS_DISPLAY_SEMANTIC[status];
                 const subtypeLabel = row.expenseSubtype ? EXPENSE_SUBTYPE_LABELS[row.expenseSubtype] : '—';
                 const periodo = row.issueDate.slice(0, 7); // YYYY-MM
-                const pdfHref = row.invoiceFileId ? `/api/admin/facturas/${row.id}/pdf` : (row.fileUrl ?? null);
+                const pdfHref = buildInvoicePdfUrl({
+                  id: row.id,
+                  invoiceFileId: row.invoiceFileId,
+                  fileUrl: row.fileUrl,
+                });
                 return (
                   <tr key={row.id} className="border-b border-sp-border/40 last:border-0 hover:bg-sp-admin-hover transition-colors">
                     <td className="px-3 py-2 text-[12px] text-sp-admin-fg font-medium max-w-[180px] truncate">

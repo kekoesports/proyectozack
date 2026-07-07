@@ -5,6 +5,7 @@ import {
   EXPENSE_STATUS_DISPLAY_SEMANTIC,
   normalizeExpenseStatusForDisplay,
 } from '@/lib/utils/expense-status-display';
+import { buildInvoicePdfUrl } from '@/lib/queries/financeDashboard/expenseSubgroups';
 import type { InvoiceWithRelations } from '@/types/invoice';
 
 interface Props {
@@ -67,7 +68,11 @@ export function GastosTabla({ rows, totalRows }: Props): React.ReactElement {
                 const isUnclassified = !row.expenseGroup;
                 const groupLabel = row.expenseGroup ? EXPENSE_GROUP_LABELS[row.expenseGroup] : null;
                 const subtypeLabel = row.expenseSubtype ? EXPENSE_SUBTYPE_LABELS[row.expenseSubtype] : null;
-                const pdfHref = row.invoiceFileId ? `/api/admin/facturas/${row.id}/pdf` : (row.fileUrl ?? null);
+                const pdfHref = buildInvoicePdfUrl({
+                  id: row.id,
+                  invoiceFileId: row.invoiceFileId,
+                  fileUrl: row.fileUrl,
+                });
                 return (
                   <tr key={row.id} className="border-b border-sp-border/40 last:border-0 hover:bg-sp-admin-hover transition-colors">
                     <td className="px-3 py-2 text-[11px] text-sp-admin-muted whitespace-nowrap tabular-nums">{row.issueDate}</td>
