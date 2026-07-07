@@ -92,11 +92,87 @@ export type RentabilidadKpis = {
 
 export type RentabilidadPeriod = { readonly from: string; readonly to: string };
 
+// ── Rankings (PR 6B) ───────────────────────────────────────────────────
+
+export type RankingMarcaRow = {
+  readonly brandId: number;
+  readonly brandName: string;
+  readonly ingresosReales: number;
+  readonly costesReales: number;
+  readonly margenReal: number;
+  readonly margenRealPct: number | null;
+  readonly ingresosPactados: number;
+  readonly campanas: number;
+};
+
+export type RankingTalentoRow = {
+  readonly talentId: number;
+  readonly talentName: string;
+  readonly costeReal: number;
+  readonly ingresosReales: number;
+  readonly campanas: number;
+  readonly concentracionPctSobreTotal: number; // 0-100
+};
+
+export type RankingCampanaDesviacionRow = {
+  readonly id: number;
+  readonly name: string;
+  readonly brandName: string | null;
+  readonly talentName: string | null;
+  readonly margenPactadoPct: number;
+  readonly margenRealPct: number;
+  readonly desviacionPct: number;
+  readonly ingresosReales: number;
+};
+
+export type RentabilidadRankings = {
+  readonly topMarcasPorMargen: readonly RankingMarcaRow[];
+  readonly topMarcasPorFacturacion: readonly RankingMarcaRow[];
+  readonly topTalentosPorCoste: readonly RankingTalentoRow[];
+  readonly peoresDesviaciones: readonly RankingCampanaDesviacionRow[];
+  readonly clientesInsuficientes: boolean; // siempre true en 6B — sin FK campaign→client fiable
+};
+
+// ── Datos para gráficos (PR 6B) ────────────────────────────────────────
+
+export type ChartIngresosVsCostesPoint = {
+  readonly id: number;
+  readonly name: string;
+  readonly ingresosReales: number;
+  readonly costesReales: number;
+};
+
+export type ChartMargenPorMarcaPoint = {
+  readonly brandName: string;
+  readonly margenReal: number;
+};
+
+export type ChartTalentoCostePoint = {
+  readonly talentName: string;
+  readonly costeReal: number;
+};
+
+export type ChartDistribucionMargen = {
+  readonly negativo: number;
+  readonly bajo: number;
+  readonly rentable: number;
+  readonly sinDatos: number;
+};
+
+export type RentabilidadCharts = {
+  readonly ingresosVsCostesTop15: readonly ChartIngresosVsCostesPoint[];
+  readonly margenPorMarcaTop10: readonly ChartMargenPorMarcaPoint[];
+  readonly talentosPorCosteTop10: readonly ChartTalentoCostePoint[];
+  readonly distribucionMargen: ChartDistribucionMargen;
+};
+
 export type RentabilidadData = {
   readonly period: RentabilidadPeriod;
   readonly rows: readonly RentabilidadRow[];
   readonly filteredRows: readonly RentabilidadRow[];
   readonly kpis: RentabilidadKpis;
+  readonly rankings: RentabilidadRankings;
+  readonly charts: RentabilidadCharts;
   readonly totalCount: number;
   readonly filteredCount: number;
 };
@@ -198,6 +274,8 @@ export async function getRentabilidadData(input: RentabilidadFilters = {}): Prom
       rows: [],
       filteredRows: [],
       kpis: emptyKpis(),
+      rankings: emptyRankings(),
+      charts: emptyCharts(),
       totalCount: 0,
       filteredCount: 0,
     };
@@ -298,12 +376,16 @@ export async function getRentabilidadData(input: RentabilidadFilters = {}): Prom
 
   const filteredRows = applyMargenFilter(rows, input.margenFilter ?? 'todos');
   const kpis = computeKpis(rows);
+  const rankings = computeRankings(rows);
+  const charts = computeCharts(rows);
 
   return {
     period,
     rows,
     filteredRows,
     kpis,
+    rankings,
+    charts,
     totalCount: rows.length,
     filteredCount: filteredRows.length,
   };
@@ -364,6 +446,25 @@ function emptyKpis(): RentabilidadKpis {
   };
 }
 
+function emptyRankings(): RentabilidadRankings {
+  return {
+    topMarcasPorMargen: [],
+    topMarcasPorFacturacion: [],
+    topTalentosPorCoste: [],
+    peoresDesviaciones: [],
+    clientesInsuficientes: true,
+  };
+}
+
+function emptyCharts(): RentabilidadCharts {
+  return {
+    ingresosVsCostesTop15: [],
+    margenPorMarcaTop10: [],
+    talentosPorCosteTop10: [],
+    distribucionMargen: { negativo: 0, bajo: 0, rentable: 0, sinDatos: 0 },
+  };
+}
+
 // ── Filtro por chip de margen ─────────────────────────────────────────────
 
 function applyMargenFilter(
@@ -376,4 +477,182 @@ function applyMargenFilter(
   if (filter === 'negativo') return rows.filter((r) => r.estado === 'negativo');
   // 'sin_datos' abarca también 'sin_ejecucion_suficiente' desde la UI
   return rows.filter((r) => r.estado === 'sin_datos' || r.estado === 'sin_ejecucion_suficiente');
+}
+
+// ── Rankings agregados (PR 6B) ────────────────────────────────────────────
+
+function computeRankings(rows: readonly RentabilidadRow[]): RentabilidadRankings {
+  // ── Por marca ────────────────────────────────────────────────────────
+  const marcaMap = new Map<number, {
+    brandName: string;
+    ingresosReales: number;
+    costesReales: number;
+    ingresosPactados: number;
+    campanas: number;
+  }>();
+  for (const r of rows) {
+    if (r.brandId === null || r.brandName === null) continue;
+    const entry = marcaMap.get(r.brandId) ?? {
+      brandName: r.brandName,
+      ingresosReales: 0,
+      costesReales: 0,
+      ingresosPactados: 0,
+      campanas: 0,
+    };
+    entry.ingresosReales   += r.ingresosReales;
+    entry.costesReales     += r.costesReales;
+    entry.ingresosPactados += r.amountBrand;
+    entry.campanas         += 1;
+    marcaMap.set(r.brandId, entry);
+  }
+
+  const marcasAll: RankingMarcaRow[] = [...marcaMap.entries()].map(([brandId, v]) => {
+    const margenReal = v.ingresosReales - v.costesReales;
+    const margenRealPct = v.ingresosReales > 0
+      ? round1((margenReal / v.ingresosReales) * 100)
+      : null;
+    return {
+      brandId,
+      brandName:        v.brandName,
+      ingresosReales:   round2(v.ingresosReales),
+      costesReales:     round2(v.costesReales),
+      margenReal:       round2(margenReal),
+      margenRealPct,
+      ingresosPactados: round2(v.ingresosPactados),
+      campanas:         v.campanas,
+    };
+  });
+
+  const topMarcasPorMargen = [...marcasAll]
+    .filter((m) => m.ingresosReales > 0) // sin ingresos reales no ordenamos por margen
+    .sort((a, b) => b.margenReal - a.margenReal)
+    .slice(0, 10);
+
+  const topMarcasPorFacturacion = [...marcasAll]
+    .sort((a, b) => b.ingresosReales - a.ingresosReales)
+    .slice(0, 10);
+
+  // ── Por talento (coste concentrado) ─────────────────────────────────
+  const talentoMap = new Map<number, {
+    talentName: string;
+    costeReal: number;
+    ingresosReales: number;
+    campanas: number;
+  }>();
+  let totalCostesTalentos = 0;
+  for (const r of rows) {
+    if (r.talentId === null || r.talentName === null) continue;
+    const entry = talentoMap.get(r.talentId) ?? {
+      talentName: r.talentName,
+      costeReal: 0,
+      ingresosReales: 0,
+      campanas: 0,
+    };
+    // "Coste real de talento" incluye pagos_talento + amountTalent pactado si no hay ingresos reales?
+    // Mantenemos honesto: usamos pagosTalentosReales — el coste real facturado a talento.
+    entry.costeReal      += r.pagosTalentosReales;
+    entry.ingresosReales += r.ingresosReales;
+    entry.campanas       += 1;
+    totalCostesTalentos  += r.pagosTalentosReales;
+    talentoMap.set(r.talentId, entry);
+  }
+
+  const topTalentosPorCoste: RankingTalentoRow[] = [...talentoMap.entries()]
+    .map(([talentId, v]) => {
+      const concentracion = totalCostesTalentos > 0
+        ? round1((v.costeReal / totalCostesTalentos) * 100)
+        : 0;
+      return {
+        talentId,
+        talentName:                 v.talentName,
+        costeReal:                  round2(v.costeReal),
+        ingresosReales:             round2(v.ingresosReales),
+        campanas:                   v.campanas,
+        concentracionPctSobreTotal: concentracion,
+      };
+    })
+    .filter((t) => t.costeReal > 0)
+    .sort((a, b) => b.costeReal - a.costeReal)
+    .slice(0, 10);
+
+  // ── Peores desviaciones (campañas concretas) ─────────────────────────
+  const peoresDesviaciones: RankingCampanaDesviacionRow[] = rows
+    .filter((r) =>
+      r.desviacionPct !== null && r.desviacionPct < 0 &&
+      r.margenPactadoPct !== null && r.margenRealPct !== null,
+    )
+    .sort((a, b) => (a.desviacionPct ?? 0) - (b.desviacionPct ?? 0))
+    .slice(0, 10)
+    .map((r) => ({
+      id:               r.id,
+      name:             r.name,
+      brandName:        r.brandName,
+      talentName:       r.talentName,
+      margenPactadoPct: r.margenPactadoPct ?? 0,
+      margenRealPct:    r.margenRealPct ?? 0,
+      desviacionPct:    r.desviacionPct ?? 0,
+      ingresosReales:   r.ingresosReales,
+    }));
+
+  return {
+    topMarcasPorMargen,
+    topMarcasPorFacturacion,
+    topTalentosPorCoste,
+    peoresDesviaciones,
+    // En el CRM actual no hay FK fiable de campaña/factura interna → billing_client.
+    // billing_clients se usa sólo para facturas EMITIDAS (issued_invoices).
+    // Se muestra como "aparcado honesto" en la UI.
+    clientesInsuficientes: true,
+  };
+}
+
+// ── Datos para gráficos (PR 6B) ───────────────────────────────────────────
+
+function computeCharts(rows: readonly RentabilidadRow[]): RentabilidadCharts {
+  const ingresosVsCostesTop15: ChartIngresosVsCostesPoint[] = [...rows]
+    .filter((r) => r.ingresosReales > 0 || r.costesReales > 0)
+    .sort((a, b) => (b.ingresosReales + b.costesReales) - (a.ingresosReales + a.costesReales))
+    .slice(0, 15)
+    .map((r) => ({
+      id:             r.id,
+      name:           r.name,
+      ingresosReales: r.ingresosReales,
+      costesReales:   r.costesReales,
+    }));
+
+  const marcaMap = new Map<string, number>();
+  for (const r of rows) {
+    if (r.brandName === null) continue;
+    const margenReal = r.ingresosReales - r.costesReales;
+    marcaMap.set(r.brandName, (marcaMap.get(r.brandName) ?? 0) + margenReal);
+  }
+  const margenPorMarcaTop10: ChartMargenPorMarcaPoint[] = [...marcaMap.entries()]
+    .filter(([, v]) => v !== 0)
+    .sort(([, a], [, b]) => b - a)
+    .slice(0, 10)
+    .map(([brandName, margenReal]) => ({ brandName, margenReal: round2(margenReal) }));
+
+  const talentoCosteMap = new Map<string, number>();
+  for (const r of rows) {
+    if (r.talentName === null || r.pagosTalentosReales <= 0) continue;
+    talentoCosteMap.set(r.talentName, (talentoCosteMap.get(r.talentName) ?? 0) + r.pagosTalentosReales);
+  }
+  const talentosPorCosteTop10: ChartTalentoCostePoint[] = [...talentoCosteMap.entries()]
+    .sort(([, a], [, b]) => b - a)
+    .slice(0, 10)
+    .map(([talentName, costeReal]) => ({ talentName, costeReal: round2(costeReal) }));
+
+  const distribucionMargen: ChartDistribucionMargen = {
+    negativo:  rows.filter((r) => r.estado === 'negativo').length,
+    bajo:      rows.filter((r) => r.estado === 'bajo').length,
+    rentable:  rows.filter((r) => r.estado === 'rentable').length,
+    sinDatos:  rows.filter((r) => r.estado === 'sin_datos' || r.estado === 'sin_ejecucion_suficiente').length,
+  };
+
+  return {
+    ingresosVsCostesTop15,
+    margenPorMarcaTop10,
+    talentosPorCosteTop10,
+    distribucionMargen,
+  };
 }

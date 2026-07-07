@@ -7,6 +7,8 @@ import { getRentabilidadData, type RentabilidadFiltroMargen } from '@/lib/querie
 import { RentabilidadFilters } from '@/features/admin/finance-dashboard/components/rentabilidad/RentabilidadFilters';
 import { RentabilidadKpisBlock } from '@/features/admin/finance-dashboard/components/rentabilidad/RentabilidadKpis';
 import { RentabilidadLecturaRapida } from '@/features/admin/finance-dashboard/components/rentabilidad/RentabilidadLecturaRapida';
+import { RentabilidadRankingsBlock } from '@/features/admin/finance-dashboard/components/rentabilidad/RentabilidadRankings';
+import { RentabilidadChartsBlock } from '@/features/admin/finance-dashboard/components/rentabilidad/RentabilidadCharts';
 import { RentabilidadTabla } from '@/features/admin/finance-dashboard/components/rentabilidad/RentabilidadTabla';
 import { RentabilidadServicioAparcado } from '@/features/admin/finance-dashboard/components/rentabilidad/RentabilidadServicioAparcado';
 import { RentabilidadAccesosRapidos } from '@/features/admin/finance-dashboard/components/rentabilidad/RentabilidadAccesosRapidos';
@@ -101,6 +103,10 @@ export default async function FinanzasRentabilidadPage({ searchParams }: PagePro
       <RentabilidadKpisBlock kpis={data.kpis} />
 
       <RentabilidadLecturaRapida data={data} />
+
+      <RentabilidadRankingsBlock rankings={data.rankings} />
+
+      <RentabilidadChartsBlock charts={data.charts} />
 
       <RentabilidadTabla rows={data.filteredRows} totalRows={data.totalCount} />
 
