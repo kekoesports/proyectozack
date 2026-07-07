@@ -101,7 +101,7 @@ export default async function BrandInvoicesPage(): Promise<React.ReactElement> {
                   </td>
                   <td className="px-4 py-3">
                     {inv.fileUrl ? (
-                      <a href={inv.fileUrl} target="_blank" rel="noreferrer" className="text-sp-orange hover:underline text-xs font-semibold">
+                      <a href={`/api/marcas/facturas/${inv.id}/pdf`} target="_blank" rel="noreferrer" className="text-sp-orange hover:underline text-xs font-semibold">
                         Descargar
                       </a>
                     ) : (
