@@ -1,8 +1,24 @@
-import { permanentRedirect } from 'next/navigation';
+import { IngresosCompoundPage } from '@/features/admin/invoices/pages/IngresosCompoundPage';
 
-// PR 2 finanzas rediseño (2026-07-06): la ruta canónica es
-// /admin/finanzas/ingresos. Este redirect preserva bookmarks del equipo.
-// El contenido vive en `@/features/admin/invoices/pages/IngresosCompoundPage`.
-export default function FacturacionLegacyPage(): never {
-  permanentRedirect('/admin/finanzas/ingresos');
+/**
+ * Facturación — módulo operativo (URL canónica).
+ *
+ * Restaurado en 2026-07-07 como módulo propio tras PR #212, que había reducido
+ * esta ruta a un redirect y ocultado el flujo de "crear factura". Separa
+ * operativo (aquí) de análisis (Finanzas → Ingresos en /admin/finanzas/ingresos).
+ *
+ * Los sub-paths ya vigentes (import, bancos, bancos/importar, bancos/conciliacion,
+ * exports) siguen funcionando sin cambios.
+ *
+ * El guard de permiso `facturacion:read` se aplica dentro de `IngresosCompoundPage`.
+ */
+export const metadata = { title: 'Facturación · SocialPro' };
+
+export default async function FacturacionPage(): Promise<React.ReactElement> {
+  return (
+    <IngresosCompoundPage
+      headerTitle="Facturación"
+      headerSubtitle="Facturas emitidas, clientes, empresas emisoras e importación"
+    />
+  );
 }

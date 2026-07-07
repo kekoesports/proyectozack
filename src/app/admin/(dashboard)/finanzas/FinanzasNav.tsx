@@ -34,11 +34,10 @@ const TABS: readonly Tab[] = [
   {
     href: '/admin/finanzas/ingresos',
     label: 'Ingresos',
-    // Los sub-paths legacy de facturación siguen bajo /admin/facturacion/*
-    // (import, exports, bancos, bancos/importar, bancos/conciliacion). Los
-    // agregamos aquí para que el tab quede activo cuando el usuario navegue
-    // por ellos.
-    extraPaths: ['/admin/facturacion'],
+    // Facturación se restauró como módulo operativo propio (2026-07-07): la
+    // URL canónica es /admin/facturacion y ya no forma parte del scope de
+    // Finanzas → Ingresos (análisis). El tab Ingresos NO se marca activo
+    // cuando el usuario está operando facturas.
   },
   {
     href: '/admin/finanzas/gastos',

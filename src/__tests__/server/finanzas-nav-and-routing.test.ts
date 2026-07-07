@@ -52,10 +52,9 @@ describe('[finanzas-nav-and-routing] las 9 tabs canónicas', () => {
 });
 
 describe('[finanzas-nav-and-routing] redirects legacy', () => {
-  it('/admin/facturacion redirige a /admin/finanzas/ingresos', () => {
-    const src = read('src/app/admin/(dashboard)/facturacion/page.tsx');
-    expect(src).toMatch(/permanentRedirect\(['"]\/admin\/finanzas\/ingresos['"]\)/);
-  });
+  // 2026-07-07: /admin/facturacion se restauró como módulo operativo propio.
+  // El contrato del redirect anterior (PR #212) queda cubierto en
+  // `admin-facturacion-restore.test.ts`, que además vigila la regresión inversa.
 
   it('/admin/facturacion/dashboard redirige a /admin/finanzas/resumen', () => {
     const src = read('src/app/admin/(dashboard)/facturacion/dashboard/page.tsx');
@@ -90,20 +89,21 @@ describe('[finanzas-nav-and-routing] páginas placeholder usan PlaceholderSectio
   });
 });
 
-describe('[finanzas-nav-and-routing] /admin/finanzas/ingresos + gestor (PR 3 rediseño)', () => {
+describe('[finanzas-nav-and-routing] /admin/finanzas/ingresos + gestor', () => {
   // PR 3 (2026-07-06): /admin/finanzas/ingresos es una sección nueva
-  // con KPIs + aging + tabla + top clientes. El compound antiguo se
-  // preserva en /admin/finanzas/ingresos/gestor, accesible desde el
-  // bloque "Accesos rápidos".
+  // con KPIs + aging + tabla + top clientes.
+  //
+  // 2026-07-07: /ingresos/gestor pasó a redirect canónico hacia
+  // /admin/facturacion (módulo operativo restaurado). El compound
+  // IngresosCompoundPage lo hospeda ahora la ruta /admin/facturacion.
   it('/ingresos es la nueva sección PR 3 (usa getIngresosData)', () => {
     const src = read('src/app/admin/(dashboard)/finanzas/ingresos/page.tsx');
     expect(src).toMatch(/import\s*\{\s*getIngresosData\s*\}/);
     expect(src).toMatch(/<IngresosKpisBlock/);
   });
 
-  it('/ingresos/gestor hospeda IngresosCompoundPage (compound preservado)', () => {
+  it('/ingresos/gestor redirige a /admin/facturacion (URL canónica)', () => {
     const src = read('src/app/admin/(dashboard)/finanzas/ingresos/gestor/page.tsx');
-    expect(src).toMatch(/import\s*\{\s*IngresosCompoundPage\s*\}\s*from\s*['"]@\/features\/admin\/invoices\/pages\/IngresosCompoundPage['"]/);
-    expect(src).toMatch(/<IngresosCompoundPage\s+headerTitle=['"]Gestor de facturación['"]/);
+    expect(src).toMatch(/permanentRedirect\(['"]\/admin\/facturacion['"]\)/);
   });
 });
