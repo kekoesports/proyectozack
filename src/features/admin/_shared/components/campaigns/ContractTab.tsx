@@ -110,7 +110,7 @@ export function ContractTab({ campaignId, contract, templates, campaign, contrac
             </div>
             <div className="flex items-center gap-2">
               {contract.fileUrl && (
-                <a href={contract.fileUrl} target="_blank" rel="noreferrer" className={BG}>
+                <a href={`/api/admin/campanas/${campaignId}/contract/pdf`} target="_blank" rel="noreferrer" className={BG}>
                   Ver PDF →
                 </a>
               )}

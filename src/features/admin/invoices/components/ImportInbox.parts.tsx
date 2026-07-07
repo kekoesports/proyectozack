@@ -213,7 +213,7 @@ export function PendingRow({
           <div className="min-w-0">
             <p className="text-sm text-sp-admin-text truncate">
               {imp.fileUrl ? (
-                <a href={imp.fileUrl} target="_blank" rel="noreferrer" className="hover:underline">
+                <a href={`/api/admin/facturacion/import/${imp.id}/pdf`} target="_blank" rel="noreferrer" className="hover:underline">
                   {imp.sourceFilename}
                 </a>
               ) : (
@@ -281,7 +281,7 @@ export function PendingRow({
             {imp.sourceType === 'pdf-text' && imp.fileUrl && (
               <div className="px-5 pt-4 pb-0">
                 <a
-                  href={imp.fileUrl}
+                  href={`/api/admin/facturacion/import/${imp.id}/pdf`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-sp-admin-border text-[11px] font-semibold text-sp-admin-muted hover:text-sp-admin-accent hover:border-sp-admin-accent/50 transition-colors"
