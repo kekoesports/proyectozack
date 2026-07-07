@@ -117,6 +117,9 @@ export type RectifyInvoiceInput = z.infer<typeof rectifyInvoiceSchema>;
 
 // ── Cliente de facturación ────────────────────────────────────────────
 
+export const PDF_LANGUAGES = ['es', 'en'] as const;
+export type PdfLanguage = (typeof PDF_LANGUAGES)[number];
+
 export const billingClientSchema = z.object({
   name:                    z.string().min(1).max(200),
   legalName:               optStr(250),
@@ -130,6 +133,9 @@ export const billingClientSchema = z.object({
   type:                    z.enum(BILLING_CLIENT_TYPES).default('empresa_espana'),
   defaultVatRate:          moneyStr.default('0'),
   defaultWithholdingRate:  moneyStr.default('0'),
+  // Idioma del PDF de factura. Default 'en' — la mayoría de clientes son
+  // internacionales; poner 'es' desde la ficha si el cliente es español.
+  pdfLanguage:             z.enum(PDF_LANGUAGES).default('en'),
   relatedBrandId:          z.preprocess((v) => (v === '' || v == null ? undefined : Number(v)), z.number().int().positive().optional()),
   notes:                   z.string().optional(),
 });

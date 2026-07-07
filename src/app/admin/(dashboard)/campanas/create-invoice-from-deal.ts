@@ -62,6 +62,9 @@ export async function createInvoiceFromDealAction(
       type:              'empresa_espana',
       defaultVatRate:    '0',
       defaultWithholdingRate: '0',
+      // Auto-create desde trato: type='empresa_espana' apunta a cliente
+      // español → default 'es' aquí. Editable después desde la ficha.
+      pdfLanguage:       'es',
       relatedBrandId:    campaign.brandId,
       notes:             'Creado automáticamente desde trato',
     });

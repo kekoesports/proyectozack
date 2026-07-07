@@ -128,6 +128,18 @@ function ClientForm({
         </div>
       </div>
 
+      {/* Idioma del PDF */}
+      <div>
+        <label className={LABEL}>Idioma del PDF de factura</label>
+        <select name="pdfLanguage" defaultValue={client?.pdfLanguage ?? 'en'} className={INPUT}>
+          <option value="en">English (default)</option>
+          <option value="es">Español</option>
+        </select>
+        <p className="text-[10px] text-sp-admin-muted mt-1">
+          Se aplica al descargar el PDF. Puedes forzar el otro idioma puntualmente desde el botón de descarga.
+        </p>
+      </div>
+
       {/* Notas */}
       <div>
         <label className={LABEL}>Notas internas</label>
