@@ -120,7 +120,11 @@ export async function verifyDiscordMission(input: unknown): Promise<DiscordVerif
     ))
     .limit(1);
   if (recent) {
-    return { ok: false, code: 'rate_limited', message: `Espera ${RATE_LIMIT_SECONDS}s antes de volver a verificar` };
+    return {
+      ok: false,
+      code: 'rate_limited',
+      message: `Espera unos segundos antes de volver a verificar. Si acabas de unirte al servidor, espera ${RATE_LIMIT_SECONDS}s y vuelve a probar.`,
+    };
   }
 
   // Cuenta Discord conectada.

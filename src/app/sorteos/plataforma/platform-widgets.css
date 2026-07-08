@@ -87,6 +87,26 @@
   color: var(--muted);
   margin: 0 0 16px;
 }
+.giveaway-platform .gp-mission-empty {
+  border-radius: 14px;
+  border: 1px dashed rgba(196, 40, 128, 0.25);
+  background: linear-gradient(160deg, rgba(21,16,36,0.6), rgba(11,9,23,0.6));
+  padding: 28px 20px;
+  text-align: center;
+}
+.giveaway-platform .gp-mission-empty-title {
+  font-family: var(--font-display), var(--font-rajdhani), sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: var(--txt);
+  margin: 0 0 6px;
+}
+.giveaway-platform .gp-mission-empty-sub {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 0;
+}
 .giveaway-platform .gp-missions-grid {
   display: grid;
   gap: 16px;

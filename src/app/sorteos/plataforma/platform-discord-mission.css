@@ -35,6 +35,13 @@
   margin-right: 4px;
 }
 
+.giveaway-platform .gp-mission-discord-hint {
+  margin: 12px 0 -2px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: rgba(88, 101, 242, 0.95);
+  font-weight: 600;
+}
 .giveaway-platform .gp-mission-discord-actions {
   display: flex;
   flex-wrap: wrap;
