@@ -53,7 +53,7 @@ export type Module =
   | 'bancos'
   | 'contratos';
 
-export type Action = 'read' | 'write' | 'publish' | 'delete' | 'manage_users';
+export type Action = 'read' | 'write' | 'publish' | 'delete' | 'manage_users' | 'audit';
 
 type PermissionsMap = Record<Module, Partial<Record<Action, readonly Role[]>>>;
 
@@ -69,6 +69,7 @@ export const PERMISSIONS = {
     write:   ['admin', 'admin_limited_tasks', 'manager', 'ops'],
     publish: ['admin', 'admin_limited_tasks', 'manager'],
     delete:  ['admin', 'admin_limited_tasks', 'manager'],
+    audit:   ['admin', 'admin_limited_tasks', 'manager'],
   },
   codigos: {
     read:    ['admin', 'admin_limited_tasks', 'manager', 'staff', 'ops'],

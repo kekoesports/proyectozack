@@ -150,6 +150,54 @@ Ninguno calcula "cobrado real" o "pendiente real" a partir de `.paidAmount`. Los
 
 ---
 
+## MEDIO — Infra / entornos
+
+### TD-15 · Preview Deployments sin DB ni Blob aislados
+**Contexto:** El guard `VERCEL_ENV === 'preview'` en `scripts/migrate.ts:31` evita que los Previews ejecuten migraciones contra producción (PR #108, 2026-06-26). Correcto pero insuficiente.
+
+**Problema:** No existe una entrada `DATABASE_URL` con target **Preview únicamente** en Vercel. Los Previews heredan la misma `DATABASE_URL` (y probablemente el mismo `BLOB_READ_WRITE_TOKEN`) de Production. Consecuencia: un upload o cualquier `INSERT/UPDATE/DELETE` desde un Preview Deployment escribe directamente en la base de datos y en el Vercel Blob de producción.
+
+**Impacto real detectado (2026-07-08):** Impide QA end-to-end del importador de nóminas ELEVATEX. Un PDF de prueba en Preview quedaría persistido en el Blob de producción para siempre. QA cerrada con Nivel 1 (tests) + Nivel 2 (audit read-only) porque Nivel 3 no es seguro sin este aislamiento.
+
+**Acción sugerida (Opción B histórica de `project_preview_db_state.md`):**
+1. Neon Console → crear branch de producción llamado `preview` (Copy-on-write, coste cero).
+2. Vercel Dashboard → Settings → Environment Variables → añadir `DATABASE_URL` con target Preview únicamente, apuntando a esa branch.
+3. Opcional pero recomendable: crear un segundo Vercel Blob store aislado y añadir `BLOB_READ_WRITE_TOKEN` con target Preview únicamente.
+4. Verificar en el siguiente Preview Deployment que `getRuntimeContext()` o similar reporta la DB aislada.
+
+**Confirmación de éxito:** un `console.log(process.env.DATABASE_URL?.slice(0, 40))` en un endpoint Preview debe devolver un endpoint Neon distinto al de producción.
+
+**Riesgo mientras no se haga:** ALTO en el sentido de "puede haber accidente si alguien confunde Preview con dev y prueba escrituras". Ningún accidente conocido a día de hoy. Guard del migrate ya cubre el peor caso (migraciones automáticas).
+
+**Esfuerzo:** 15-30 min de configuración, sin código.
+
+### TD-16 · `invoices.txId` sin UNIQUE index (dedup payroll solo en aplicación)
+**Archivo:** `src/db/schema/invoices.ts` — la column existe con index no-unique (`invoices_expense_subtype_idx` y otros), pero no hay `UNIQUE` sobre `txId`.
+
+**Problema:** El importador de nóminas deduplica antes del INSERT vía `getExistingPayrollTxIds()` (memoria de aplicación). Dos uploads concurrentes del mismo PDF podrían crear duplicados si la lectura del set y el INSERT no son atómicos. El scope real es reducido — el importador no es multi-usuario ni de alta concurrencia — pero el blindaje es una migración muy pequeña.
+
+**Verificación de estado (2026-07-08):** `scripts/audit-nominas.ts` bloque 7 confirmó cero duplicados en producción. No hay accidente conocido.
+
+**Acción sugerida:** Migration Drizzle añadiendo `uniqueIndex('invoices_tx_id_unique').on(t.txId)`. Debe filtrar solo filas con `txId IS NOT NULL` — muchas filas de cuota autónomo y recurring tienen txId con otro formato, y hay filas con txId=null (ids 81-86 de Pablo, ver audit). Considerar partial unique index para PostgreSQL:
+`CREATE UNIQUE INDEX invoices_tx_id_unique ON invoices (tx_id) WHERE tx_id IS NOT NULL;`
+
+**Riesgo:** BAJO hoy, MEDIO en cuanto haya más importaciones simultáneas.
+
+**Esfuerzo:** 30 min (migration + regenerar journal + test estático).
+
+### TD-17 · Carpeta `proyectozack/` duplicada dentro del repo
+**Archivo:** `proyectozack/` (raíz del repo, sin trackear en git — aparece como `??` en `git status`).
+
+**Problema:** Contiene copias de `src/__mocks__/lib/db.ts`, `src/__mocks__/lib/email.ts` y `scripts/migrate.ts`. Jest emite warnings `jest-haste-map: duplicate manual mock found` cada vez que corren los tests. No causa fallos (los mocks son idénticos), pero es ruido de infraestructura.
+
+**Acción sugerida:** Confirmar que no es material vivo (probablemente un artefacto de refactor o clone). Borrar la carpeta o añadirla al `.gitignore` explícito + `jest.config` `modulePathIgnorePatterns`.
+
+**Riesgo:** BAJO. Confirmar con el usuario antes de borrar.
+
+**Esfuerzo:** 5 min.
+
+---
+
 ## Rutas que necesitan clarificación de propósito
 
 | Ruta | Descripción | Estado |

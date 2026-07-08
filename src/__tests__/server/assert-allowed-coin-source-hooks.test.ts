@@ -20,16 +20,23 @@ const WRITER_FILES = [
 ] as const;
 
 describe('assertAllowedCoinSource — enganchado en escrituras a coinTransactions', () => {
-  it.each(WRITER_FILES)('%s importa assertAllowedCoinSource', (file) => {
+  it.each(WRITER_FILES)('%s importa assertAllowedCoinSource o su wrapper con audit', (file) => {
     const src = read(file);
-    expect(src).toMatch(/assertAllowedCoinSource/);
-    expect(src).toMatch(/from ['"]@\/lib\/rewards\/allowed-coin-sources['"]/);
+    // Fase 1 PR2 sustituyó el import directo por el wrapper `assertAllowedCoinSourceOrLog`
+    // que registra outcome='blocked' antes de propagar la excepción. El original o el
+    // wrapper cumplen el contrato — ambos aseguran el check antes del insert.
+    const importsOriginal = /from ['"]@\/lib\/rewards\/allowed-coin-sources['"]/.test(src);
+    const importsWrapper = /from ['"]@\/lib\/audit\/logBlockedCoinSource['"]/.test(src);
+    expect(importsOriginal || importsWrapper).toBe(true);
+    expect(src).toMatch(/assertAllowedCoinSource(OrLog)?\(/);
   });
 
   it.each(WRITER_FILES)('%s llama a assertAllowedCoinSource antes de db.insert(coinTransactions)', (file) => {
     const src = read(file);
-    // Cada `db.insert(coinTransactions)` debe estar precedido en las 3
-    // líneas anteriores por una llamada a `assertAllowedCoinSource(...)`.
+    // Cada `db.insert(coinTransactions)` debe estar precedido por una llamada a
+    // `assertAllowedCoinSource(...)` o `assertAllowedCoinSourceOrLog(...)`.
+    // Ampliamos la ventana a 8 líneas porque el wrapper puede tomar más líneas
+    // por llevar objeto de contexto (userId/action/refType/refId).
     const lines = src.split(/\r?\n/);
     const insertLines: number[] = [];
     for (let i = 0; i < lines.length; i += 1) {
@@ -37,8 +44,8 @@ describe('assertAllowedCoinSource — enganchado en escrituras a coinTransaction
     }
     expect(insertLines.length).toBeGreaterThan(0);
     for (const idx of insertLines) {
-      const window = lines.slice(Math.max(0, idx - 4), idx).join('\n');
-      expect(window).toMatch(/assertAllowedCoinSource\(/);
+      const window = lines.slice(Math.max(0, idx - 10), idx).join('\n');
+      expect(window).toMatch(/assertAllowedCoinSource(OrLog)?\(/);
     }
   });
 

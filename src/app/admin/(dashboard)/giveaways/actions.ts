@@ -10,6 +10,7 @@ import { db } from '@/lib/db';
 import { parseFormData } from '@/lib/forms/parseFormData';
 import { firstError } from '@/lib/forms/firstError';
 import { logRedacted } from '@/lib/log';
+import { logGiveawayEvent } from '@/lib/audit/logGiveawayEvent';
 import { StrictIdSchema, StrictBooleanSchema } from '@/lib/schemas/common';
 import {
   BadgeSchema,
@@ -154,7 +155,7 @@ export async function pickRaffleWinnerAction(giveawayId: number): Promise<
   | { ok: true; winner: { userId: string; displayName: string } }
   | { ok: false; error: string }
 > {
-  await requirePermission('sorteos', 'write');
+  const { user: adminUser } = await requirePermission('sorteos', 'write');
   const parsed = StrictIdSchema.safeParse(giveawayId);
   if (!parsed.success) return { ok: false, error: 'ID inválido' };
 
@@ -164,6 +165,11 @@ export async function pickRaffleWinnerAction(giveawayId: number): Promise<
     .where(eq(giveaways.id, parsed.data))
     .limit(1);
   if (!giveaway) return { ok: false, error: 'Sorteo no encontrado' };
+
+  const entriesCountRow = await db.execute(sql`
+    SELECT count(*)::int AS c FROM giveaway_entries WHERE giveaway_id = ${parsed.data}
+  `);
+  const entriesCount = Number((entriesCountRow.rows[0] as { c: number } | undefined)?.c ?? 0);
 
   // Ganador random. Postgres `random()` es suficiente para promoción interna.
   // No es RNG certificado — para sorteos con impacto legal habría que
@@ -190,6 +196,20 @@ export async function pickRaffleWinnerAction(giveawayId: number): Promise<
   await db.update(giveaways)
     .set({ status: 'ended', updatedAt: new Date() })
     .where(eq(giveaways.id, parsed.data));
+
+  await logGiveawayEvent({
+    userId:  winner.user_id,
+    action:  'raffle_winner_picked',
+    outcome: 'success',
+    refType: 'giveaway',
+    refId:   parsed.data,
+    metadata: {
+      giveawayId:   parsed.data,
+      winnerCount:  1,
+      entriesCount,
+      adminUserId:  adminUser.id,
+    },
+  });
 
   revalidateGiveawayPaths();
   return { ok: true, winner: { userId: winner.user_id, displayName: winner.name } };
