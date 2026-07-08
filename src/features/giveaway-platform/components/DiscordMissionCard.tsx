@@ -68,7 +68,13 @@ export function DiscordMissionCard({ mission, connected, inviteUrl }: Props) {
       <p className="gp-mission-desc">{mission.description}</p>
 
       {isDone ? null : (
-        <div className="gp-mission-discord-actions">
+        <>
+          {connected && !showError ? (
+            <p className="gp-mission-discord-hint">
+              Entra al servidor y después verifica la misión.
+            </p>
+          ) : null}
+          <div className="gp-mission-discord-actions">
           {connected ? (
             <>
               {inviteUrl ? (
@@ -112,7 +118,8 @@ export function DiscordMissionCard({ mission, connected, inviteUrl }: Props) {
               </Link>
             </>
           )}
-        </div>
+          </div>
+        </>
       )}
 
       {showError ? (

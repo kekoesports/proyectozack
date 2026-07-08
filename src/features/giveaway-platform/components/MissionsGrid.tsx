@@ -38,14 +38,29 @@ interface Props {
 export function MissionsGrid({ missions, discord, twitch }: Props) {
   const [expanded, setExpanded] = useState(false);
 
-  if (missions.length === 0) {
-    return <p className="gp-mission-head">No hay misiones activas este mes.</p>;
-  }
-
   // Split por provider: Discord y Twitch aparte para renderizado con card específica.
   const discordMissions = missions.filter((m) => m.provider === 'discord');
   const twitchMissions = missions.filter((m) => m.provider === 'twitch');
   const otherMissions = missions.filter((m) => m.provider !== 'discord' && m.provider !== 'twitch');
+
+  // Empty state real: cero cards visibles de ningún tipo. El check previo
+  // `missions.length === 0` era demasiado restrictivo — si había misiones
+  // Discord/Twitch en el array pero sin `discord`/`twitch` props (fail-safe
+  // de env vars), el usuario veía "no hay misiones" incluso con otras
+  // internas potenciales. Aquí calculamos exactamente qué SE VA A RENDERIZAR.
+  const hasDiscordCard = discordMissions.length > 0 && Boolean(discord);
+  const hasTwitchCard = twitchMissions.length > 0 && Boolean(twitch);
+  const hasInternalCard = otherMissions.length > 0;
+  const hasAnyCard = hasDiscordCard || hasTwitchCard || hasInternalCard;
+
+  if (!hasAnyCard) {
+    return (
+      <div className="gp-mission-empty" role="status" aria-live="polite">
+        <p className="gp-mission-empty-title">Aún no hay misiones activas para este creador.</p>
+        <p className="gp-mission-empty-sub">Vuelve pronto — se añaden a lo largo del mes.</p>
+      </div>
+    );
+  }
 
   // Cobradas al final, resto en el orden que llega del server (sortOrder ASC).
   const sortedOther = [...otherMissions].sort((a, b) => Number(a.claimed) - Number(b.claimed));

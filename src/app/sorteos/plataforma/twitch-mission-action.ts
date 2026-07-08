@@ -137,7 +137,11 @@ export async function verifyTwitchMission(input: unknown): Promise<TwitchVerifyR
     ))
     .limit(1);
   if (recent) {
-    return { ok: false, code: 'rate_limited', message: `Espera ${RATE_LIMIT_SECONDS}s antes de volver a verificar` };
+    return {
+      ok: false,
+      code: 'rate_limited',
+      message: `Espera unos segundos antes de volver a verificar. Si acabas de seguir el canal, espera ${RATE_LIMIT_SECONDS}s y vuelve a probar.`,
+    };
   }
 
   // Cuenta Twitch conectada.
