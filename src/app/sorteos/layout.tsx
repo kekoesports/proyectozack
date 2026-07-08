@@ -15,6 +15,7 @@ import './plataforma/platform-widgets.css';
 import './plataforma/platform-rewards-upcoming.css';
 import './plataforma/platform-rewards-hub.css';
 import './plataforma/platform-missions-yt-placeholder.css';
+import './plataforma/platform-missions-social-placeholder.css';
 import './plataforma/platform-discord-mission.css';
 import './plataforma/platform-twitch-mission.css';
 import './plataforma/platform-external-giveaways.css';

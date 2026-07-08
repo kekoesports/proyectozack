@@ -25,6 +25,20 @@ interface Props {
     connected: boolean;
     channelUrl: string | null;
   } | undefined;
+  /**
+   * Cuando `discord` (real) está undefined pero sabemos que ese creador
+   * tendrá misión Discord — se muestra placeholder "Próximamente" sin
+   * botones OAuth. Cero contacto con DB / seeds / server actions.
+   */
+  discordComingSoon?: boolean;
+  /**
+   * Cuando `twitch` (real) está undefined pero sabemos que ese creador
+   * tendrá misión Twitch — se muestra placeholder "Próximamente" con
+   * link opcional al canal público (info abierta, no env var).
+   */
+  twitchComingSoon?: {
+    channelUrl: string | null;
+  } | null;
 }
 
 /**
@@ -35,7 +49,7 @@ interface Props {
  *
  * Cobradas se envían al final dentro de cada grupo — no ocupan el top.
  */
-export function MissionsGrid({ missions, discord, twitch }: Props) {
+export function MissionsGrid({ missions, discord, twitch, discordComingSoon, twitchComingSoon }: Props) {
   const [expanded, setExpanded] = useState(false);
 
   // Split por provider: Discord y Twitch aparte para renderizado con card específica.
@@ -51,7 +65,12 @@ export function MissionsGrid({ missions, discord, twitch }: Props) {
   const hasDiscordCard = discordMissions.length > 0 && Boolean(discord);
   const hasTwitchCard = twitchMissions.length > 0 && Boolean(twitch);
   const hasInternalCard = otherMissions.length > 0;
-  const hasAnyCard = hasDiscordCard || hasTwitchCard || hasInternalCard;
+  // Los placeholders "Próximamente" también cuentan como "algo visible" —
+  // no queremos mostrar empty state si vamos a renderizar al menos un
+  // placeholder social.
+  const hasDiscordPlaceholder = !hasDiscordCard && Boolean(discordComingSoon);
+  const hasTwitchPlaceholder = !hasTwitchCard && Boolean(twitchComingSoon);
+  const hasAnyCard = hasDiscordCard || hasTwitchCard || hasInternalCard || hasDiscordPlaceholder || hasTwitchPlaceholder;
 
   if (!hasAnyCard) {
     return (
@@ -85,6 +104,8 @@ export function MissionsGrid({ missions, discord, twitch }: Props) {
             />
           ))}
         </div>
+      ) : hasDiscordPlaceholder ? (
+        <DiscordMissionsPlaceholder />
       ) : null}
 
       {twitchMissions.length > 0 && twitch ? (
@@ -98,6 +119,8 @@ export function MissionsGrid({ missions, discord, twitch }: Props) {
             />
           ))}
         </div>
+      ) : hasTwitchPlaceholder ? (
+        <TwitchMissionsPlaceholder channelUrl={twitchComingSoon?.channelUrl ?? null} />
       ) : null}
 
       <div className="gp-missions-grid">
@@ -141,6 +164,74 @@ export function MissionsGrid({ missions, discord, twitch }: Props) {
       ) : null}
       <YoutubeMissionsPlaceholder />
     </>
+  );
+}
+
+/**
+ * Placeholder informativo — misión Discord "Próximamente".
+ *
+ * Se muestra cuando el creador tiene `isDiscordComingSoon(slug) === true`
+ * pero la card real todavía no puede renderizarse (falta env var, seed,
+ * OAuth o TOKEN_ENCRYPTION_KEY). Sin botones OAuth, sin server actions,
+ * sin puntos, sin claims. Cero contacto con DB.
+ *
+ * Cuando la config esté completa, `MissionsGrid` renderiza la card real
+ * (`DiscordMissionCard`) y este placeholder deja de aparecer.
+ */
+function DiscordMissionsPlaceholder() {
+  return (
+    <div
+      className="gp-missions-social-placeholder is-discord"
+      role="note"
+      aria-label="Misión Discord próximamente"
+    >
+      <div className="gp-missions-social-icon" aria-hidden>🎮</div>
+      <div className="gp-missions-social-body">
+        <div className="gp-missions-social-title">
+          Discord <span className="gp-missions-social-soon">· Próximamente</span>
+        </div>
+        <p className="gp-missions-social-desc">
+          Únete al Discord de ZACKETIZOR y consigue puntos cuando activemos esta misión.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Placeholder informativo — misión Twitch "Próximamente".
+ *
+ * Igual que el de Discord, pero con enlace opcional al canal público
+ * (info abierta — twitch.tv/<login>, no requiere env var). El link es
+ * seguro: no dispara OAuth, no crea sesión, solo redirige al canal.
+ */
+function TwitchMissionsPlaceholder({ channelUrl }: { channelUrl: string | null }) {
+  return (
+    <div
+      className="gp-missions-social-placeholder is-twitch"
+      role="note"
+      aria-label="Misión Twitch próximamente"
+    >
+      <div className="gp-missions-social-icon" aria-hidden>🎥</div>
+      <div className="gp-missions-social-body">
+        <div className="gp-missions-social-title">
+          Twitch <span className="gp-missions-social-soon">· Próximamente</span>
+        </div>
+        <p className="gp-missions-social-desc">
+          Sigue el canal de ZACKETIZOR y consigue puntos cuando activemos esta misión.
+        </p>
+        {channelUrl ? (
+          <a
+            href={channelUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="gp-missions-social-link"
+          >
+            Ver Twitch →
+          </a>
+        ) : null}
+      </div>
+    </div>
   );
 }
 

@@ -21,8 +21,8 @@ import {
   todayInPlatformTz,
 } from '@/lib/giveaway-platform/constants';
 import { getCreatorVisual } from '@/features/giveaway-platform/constants/creators';
-import { getDiscordMissionTarget, isDiscordOauthConfigured } from '@/features/giveaway-platform/constants/discord-missions';
-import { getTwitchMissionTarget, isTwitchOauthConfigured } from '@/features/giveaway-platform/constants/twitch-missions';
+import { getDiscordMissionTarget, isDiscordOauthConfigured, isDiscordComingSoon } from '@/features/giveaway-platform/constants/discord-missions';
+import { getTwitchMissionTarget, isTwitchOauthConfigured, isTwitchComingSoon, getTwitchPublicChannelUrl } from '@/features/giveaway-platform/constants/twitch-missions';
 import { isTokenEncryptionConfigured } from '@/lib/crypto/token-encryption';
 import { getConnectedAccount } from '@/lib/queries/connectedSocialAccounts';
 import { PlatformNav } from '@/features/giveaway-platform/components/PlatformNav';
@@ -130,6 +130,12 @@ export async function PlatformCreatorLanding({ slug }: Props) {
         }
       : undefined;
 
+  // Modo "Próximamente" Discord — se muestra un placeholder anunciando la
+  // misión SOLO si el creador tiene el flag `isDiscordComingSoon` Y la card
+  // real todavía no puede renderizarse. Cuando la config se complete, el
+  // placeholder desaparece automáticamente y aparece la card real.
+  const discordComingSoon = !discordProp && isDiscordComingSoon(active.slug);
+
   // Config Twitch — misma lógica fail-safe que Discord. La card Twitch
   // solo aparece si target del creador + OAuth + cifrado están todos
   // configurados.
@@ -141,6 +147,12 @@ export async function PlatformCreatorLanding({ slug }: Props) {
           channelUrl: twitchTarget.channelUrl ?? null,
         }
       : undefined;
+
+  // Placeholder Twitch — como Discord, pero además incluye el channel URL
+  // público (info abierta, no env) para el CTA "Ver Twitch".
+  const twitchComingSoon = !twitchProp && isTwitchComingSoon(active.slug)
+    ? { channelUrl: getTwitchPublicChannelUrl(active.slug) }
+    : null;
 
   const hasSteamTradeUrl = Boolean(playerProfile?.steamTradeUrl && playerProfile.steamTradeUrl.trim().length > 0);
 
@@ -195,7 +207,13 @@ export async function PlatformCreatorLanding({ slug }: Props) {
             <section id="misiones">
               <div className="gp-legacy-block">
                 <h2>Misiones · gana puntos</h2>
-                <MissionsGrid missions={missions} discord={discordProp} twitch={twitchProp} />
+                <MissionsGrid
+                  missions={missions}
+                  discord={discordProp}
+                  twitch={twitchProp}
+                  discordComingSoon={discordComingSoon}
+                  twitchComingSoon={twitchComingSoon}
+                />
               </div>
             </section>
           </>

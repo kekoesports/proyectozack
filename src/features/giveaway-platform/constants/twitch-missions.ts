@@ -58,3 +58,32 @@ export const TWITCH_OAUTH_SCOPES = 'user:read:follows' as const;
 
 /** verificationMode canónico que persiste en `platform_missions`. */
 export const TWITCH_FOLLOW_CHANNEL_MODE = 'twitch_follow_channel' as const;
+
+/**
+ * Creators cuya misión Twitch queremos anunciar públicamente en modo
+ * "Próximamente" mientras terminamos de configurar env vars / seeds.
+ *
+ * Ver comentario gemelo en `discord-missions.ts` — mismo criterio.
+ */
+const TWITCH_COMING_SOON_CREATORS: readonly string[] = ['zacketizor'];
+
+export function isTwitchComingSoon(creatorSlug: string): boolean {
+  return TWITCH_COMING_SOON_CREATORS.includes(creatorSlug);
+}
+
+/**
+ * URL pública del canal Twitch por creador — se usa solo en el placeholder
+ * "Próximamente" como enlace "Ver Twitch". No requiere env var porque el
+ * canal es información pública (twitch.tv/<login>).
+ *
+ * Cuando la misión real esté activa, el `channelUrl` viene de
+ * `env.TWITCH_ZACKETIZOR_CHANNEL_URL` vía `getTwitchMissionTarget`.
+ */
+export function getTwitchPublicChannelUrl(creatorSlug: string): string | null {
+  switch (creatorSlug) {
+    case 'zacketizor':
+      return 'https://www.twitch.tv/zacketizor';
+    default:
+      return null;
+  }
+}

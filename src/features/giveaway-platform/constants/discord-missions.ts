@@ -48,3 +48,21 @@ export const DISCORD_OAUTH_SCOPES = 'identify guilds' as const;
 
 /** verificationMode canónico que persiste en `platform_missions`. */
 export const DISCORD_GUILD_MEMBER_MODE = 'discord_guild_member' as const;
+
+/**
+ * Creators cuya misión Discord queremos anunciar públicamente en modo
+ * "Próximamente" mientras terminamos de configurar env vars / seeds.
+ *
+ * El placeholder solo aparece si `getDiscordMissionTarget(slug)` devuelve
+ * `null` (es decir, la card real todavía NO puede renderizarse). Cuando la
+ * config esté completa, `getDiscordMissionTarget` devolverá el target y
+ * el placeholder desaparece automáticamente.
+ *
+ * Añadir un creador nuevo aquí requiere que sepas que ese creador tendrá
+ * misión Discord confirmada — sino, no lo pongas.
+ */
+const DISCORD_COMING_SOON_CREATORS: readonly string[] = ['zacketizor'];
+
+export function isDiscordComingSoon(creatorSlug: string): boolean {
+  return DISCORD_COMING_SOON_CREATORS.includes(creatorSlug);
+}
