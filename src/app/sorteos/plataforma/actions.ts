@@ -29,8 +29,8 @@ import {
 } from '@/lib/giveaway-platform/constants';
 import { evaluateAndClaimMissions } from '@/lib/giveaway-platform/missions';
 import { getCoinBalance } from '@/lib/queries/giveawayPlatform';
-import { assertAllowedCoinSource } from '@/lib/rewards/allowed-coin-sources';
 import { logGiveawayEvent } from '@/lib/audit/logGiveawayEvent';
+import { assertAllowedCoinSourceOrLog } from '@/lib/audit/logBlockedCoinSource';
 
 type ActionResult<T = undefined> =
   | { ok: true; data?: T }
@@ -99,7 +99,12 @@ export async function participateInGiveaway(input: unknown): Promise<ActionResul
   const awardCoins = giveaway.entryAwardCoins;
 
   if (awardCoins > 0) {
-    assertAllowedCoinSource('sorteo');
+    await assertAllowedCoinSourceOrLog('sorteo', {
+      userId: sessionUser.id,
+      action: 'giveaway_participate',
+      refType: 'giveaway',
+      refId: giveawayId,
+    });
     await db.insert(coinTransactions).values({
       userId: sessionUser.id,
       amount: awardCoins,
@@ -167,7 +172,12 @@ export async function claimDailyReward(): Promise<ActionResult<{ coinsEarned: nu
   }
 
   const coinsEarned = STREAK_REWARDS[day - 1] ?? STREAK_REWARDS[0];
-  assertAllowedCoinSource('racha');
+  await assertAllowedCoinSourceOrLog('racha', {
+    userId: sessionUser.id,
+    action: 'streak_claim',
+    refType: 'streak_day',
+    refId: day,
+  });
   await db.insert(coinTransactions).values({
     userId: sessionUser.id,
     amount: coinsEarned,
@@ -305,7 +315,12 @@ export async function redeemShopItem(input: unknown): Promise<RedeemResult> {
     .returning({ id: shopItems.id });
   if (stockUpdated.length === 0) return { ok: false, code: 'out_of_stock', error: 'Item agotado' };
 
-  assertAllowedCoinSource('tienda');
+  await assertAllowedCoinSourceOrLog('tienda', {
+    userId: sessionUser.id,
+    action: 'shop_redeem',
+    refType: 'shop_item',
+    refId: shopItemId,
+  });
   await db.insert(coinTransactions).values({
     userId: sessionUser.id,
     amount: -item.costCoins,
