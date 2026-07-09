@@ -8,9 +8,16 @@
   "theme_color": "#f5632a",
   "icons": [
     {
-      "src": "/logo.png",
+      "src": "/icon-social-square-512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-social-square-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }
