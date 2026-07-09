@@ -59,6 +59,15 @@ export const metadata: Metadata = {
       'Performance gaming marketing: streamers CS2, Valorant e iGaming en España y LatAm. FTD tracking y ROI demostrable.',
     images: [absoluteUrl('/og-socialpro.png')],
   },
+  icons: {
+    icon: [
+      { url: '/icon.png', sizes: '32x32', type: 'image/png' },
+      { url: '/icon-social-square-512.png', sizes: '192x192', type: 'image/png' },
+      { url: '/icon-social-square-512.png', sizes: '512x512', type: 'image/png' },
+    ],
+    apple: '/apple-icon.png',
+    shortcut: '/favicon.ico',
+  },
   manifest: '/manifest.json',
 };
 
@@ -72,7 +81,7 @@ const jsonLd = {
       url: SITE_URL,
       logo: {
         '@type': 'ImageObject',
-        url: absoluteUrl('/logo.png'),
+        url: absoluteUrl('/icon-social-square-512.png'),
         width: 512,
         height: 512,
       },
@@ -162,7 +171,7 @@ const jsonLd = {
       sameAs: [absoluteUrl('/#organization')],
       name: 'SocialPro',
       url: SITE_URL,
-      image: absoluteUrl('/logo.png'),
+      image: absoluteUrl('/icon-social-square-512.png'),
       telephone: '+34-604-868-426',
       email: 'marketing@socialpro.es',
       priceRange: '$$',
