@@ -5,42 +5,44 @@
  * renderizarse (env vars pobladas + seed insertado). Sin lógica, sin
  * botones OAuth, cero contacto con DB. Solo información pública.
  *
- * Basado en el patrón `.gp-missions-yt-placeholder` — misma cardinalidad
- * y estilo de "próximamente" que ya está en producción para YouTube.
+ * Estilo: card compacta que encaja dentro de `.gp-missions-grid`
+ * (mismo tamaño que las cards de misiones internas). Antes eran banners
+ * full-width — el user pidió unificar tamaños para que "las misiones de
+ * redes" se vean igual que el resto de misiones.
  *
  * Scoped bajo `.giveaway-platform`. Cargado desde el layout raíz.
  */
 
 .giveaway-platform .gp-missions-social-placeholder {
-  margin-top: 20px;
-  padding: 18px 20px;
+  position: relative;
   display: flex;
-  align-items: flex-start;
-  gap: 14px;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px 18px;
   border-radius: 14px;
   border: 1px dashed;
+  min-height: 100%;
 }
 
 /* Variante Discord — color Discord (#5865F2 blurple). */
 .giveaway-platform .gp-missions-social-placeholder.is-discord {
   background:
-    radial-gradient(400px 220px at 100% 0%, rgba(88, 101, 242, 0.14), transparent 65%),
-    rgba(11, 8, 20, 0.55);
+    radial-gradient(360px 200px at 100% 0%, rgba(88, 101, 242, 0.15), transparent 60%),
+    linear-gradient(160deg, rgba(21, 16, 36, 0.92), rgba(11, 9, 23, 0.92));
   border-color: rgba(88, 101, 242, 0.4);
 }
 
 /* Variante Twitch — color Twitch (#9146FF violeta). */
 .giveaway-platform .gp-missions-social-placeholder.is-twitch {
   background:
-    radial-gradient(400px 220px at 100% 0%, rgba(145, 70, 255, 0.14), transparent 65%),
-    rgba(11, 8, 20, 0.55);
+    radial-gradient(360px 200px at 100% 0%, rgba(145, 70, 255, 0.15), transparent 60%),
+    linear-gradient(160deg, rgba(21, 16, 36, 0.92), rgba(11, 9, 23, 0.92));
   border-color: rgba(145, 70, 255, 0.4);
 }
 
 .giveaway-platform .gp-missions-social-icon {
-  font-size: 26px;
+  font-size: 22px;
   line-height: 1;
-  flex-shrink: 0;
 }
 .giveaway-platform .gp-missions-social-placeholder.is-discord .gp-missions-social-icon {
   filter: drop-shadow(0 0 8px rgba(88, 101, 242, 0.45));
@@ -59,7 +61,7 @@
 .giveaway-platform .gp-missions-social-title {
   font-family: var(--font-display), var(--font-rajdhani), sans-serif;
   font-weight: 800;
-  font-size: 15px;
+  font-size: 13.5px;
   letter-spacing: 0.6px;
   text-transform: uppercase;
   color: #fff;
@@ -69,6 +71,7 @@
   font-weight: 800;
   letter-spacing: 1px;
   margin-left: 4px;
+  font-size: 11px;
 }
 .giveaway-platform .gp-missions-social-placeholder.is-discord .gp-missions-social-soon {
   color: rgba(153, 165, 255, 0.95);
@@ -80,15 +83,14 @@
 .giveaway-platform .gp-missions-social-desc {
   margin: 0;
   color: var(--muted);
-  font-size: 13px;
-  line-height: 1.55;
-  max-width: 720px;
+  font-size: 12px;
+  line-height: 1.5;
 }
 
 .giveaway-platform .gp-missions-social-link {
   align-self: flex-start;
-  margin-top: 8px;
-  font-size: 12px;
+  margin-top: auto;
+  font-size: 11.5px;
   font-weight: 700;
   letter-spacing: 0.4px;
   text-decoration: none;
@@ -108,9 +110,9 @@
 @media (max-width: 480px) {
   .giveaway-platform .gp-missions-social-placeholder {
     padding: 14px 16px;
-    gap: 12px;
+    gap: 8px;
   }
-  .giveaway-platform .gp-missions-social-icon { font-size: 22px; }
-  .giveaway-platform .gp-missions-social-title { font-size: 13.5px; }
-  .giveaway-platform .gp-missions-social-desc { font-size: 12.5px; }
+  .giveaway-platform .gp-missions-social-icon { font-size: 20px; }
+  .giveaway-platform .gp-missions-social-title { font-size: 12.5px; }
+  .giveaway-platform .gp-missions-social-desc { font-size: 11.5px; }
 }

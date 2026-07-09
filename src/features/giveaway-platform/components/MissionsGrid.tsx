@@ -93,35 +93,41 @@ export function MissionsGrid({ missions, discord, twitch, discordComingSoon, twi
     <>
       <p className="gp-mission-head">Los puntos de todos los creadores se suman al mismo saldo.</p>
 
-      {discordMissions.length > 0 && discord ? (
-        <div className="gp-missions-grid">
-          {discordMissions.map((m) => (
+      {/*
+        Grid dedicado a misiones de redes (Discord / Twitch / YouTube) — placeholders
+        o cards reales, todos como cajas del mismo tamaño que las misiones internas.
+        YouTube aparece aquí (no al final) para tratar todas las redes de forma
+        coherente visualmente.
+      */}
+      <div className="gp-missions-grid">
+        {discordMissions.length > 0 && discord ? (
+          discordMissions.map((m) => (
             <DiscordMissionCard
               key={m.id}
               mission={m}
               connected={discord.connected}
               inviteUrl={discord.inviteUrl}
             />
-          ))}
-        </div>
-      ) : hasDiscordPlaceholder ? (
-        <DiscordMissionsPlaceholder />
-      ) : null}
+          ))
+        ) : hasDiscordPlaceholder ? (
+          <DiscordMissionsPlaceholder />
+        ) : null}
 
-      {twitchMissions.length > 0 && twitch ? (
-        <div className="gp-missions-grid">
-          {twitchMissions.map((m) => (
+        {twitchMissions.length > 0 && twitch ? (
+          twitchMissions.map((m) => (
             <TwitchMissionCard
               key={m.id}
               mission={m}
               connected={twitch.connected}
               channelUrl={twitch.channelUrl}
             />
-          ))}
-        </div>
-      ) : hasTwitchPlaceholder ? (
-        <TwitchMissionsPlaceholder channelUrl={twitchComingSoon?.channelUrl ?? null} />
-      ) : null}
+          ))
+        ) : hasTwitchPlaceholder ? (
+          <TwitchMissionsPlaceholder channelUrl={twitchComingSoon?.channelUrl ?? null} />
+        ) : null}
+
+        <YoutubeMissionsPlaceholder />
+      </div>
 
       <div className="gp-missions-grid">
         {visible.map((m) => {
@@ -162,7 +168,6 @@ export function MissionsGrid({ missions, discord, twitch, discordComingSoon, twi
           {expanded ? 'Ver menos' : `Ver ${rest.length} misiones más`}
         </button>
       ) : null}
-      <YoutubeMissionsPlaceholder />
     </>
   );
 }

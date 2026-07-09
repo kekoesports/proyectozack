@@ -27,12 +27,17 @@ describe('[missions-yt-placeholder] wiring básico', () => {
     expect(src).toMatch(/<YoutubeMissionsPlaceholder\s*\/>/);
   });
 
-  it('el placeholder se monta al final del <>...</>, después del botón "Ver más"', () => {
+  it('el placeholder se monta dentro del grid de misiones de redes (junto a Discord/Twitch), no después del botón "Ver más"', () => {
+    // Decisión de producto (2026-07-09): unificar las 3 misiones de redes
+    // como cards del mismo tamaño en un grid común arriba. Antes YouTube
+    // vivía al final como banner full-width. Ver commit.
     const src = read(COMPONENT);
     const idxMore = src.indexOf('gp-missions-more');
     const idxPlaceholder = src.indexOf('<YoutubeMissionsPlaceholder');
     expect(idxMore).toBeGreaterThan(-1);
-    expect(idxPlaceholder).toBeGreaterThan(idxMore);
+    expect(idxPlaceholder).toBeGreaterThan(-1);
+    // Debe aparecer ANTES del botón "Ver más" (en el grid de placeholders sociales).
+    expect(idxPlaceholder).toBeLessThan(idxMore);
   });
 
   it('CSS existe y lo importa el layout raíz', () => {
