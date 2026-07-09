@@ -32,6 +32,10 @@ export function LedgerBanner(): React.ReactElement {
             contabilidad oficial de ELEVATEX. No se crean ni modifican facturas, gastos, nóminas
             ni movimientos del CRM.
           </p>
+          <p className="mt-2 text-xs leading-relaxed text-amber-100/70">
+            Base de conciliación contable: el Libro Mayor se utiliza para <span className="font-semibold">contrastar</span> la
+            información del CRM, no para sustituir facturas, gastos ni nóminas existentes.
+          </p>
         </div>
       </div>
     </div>

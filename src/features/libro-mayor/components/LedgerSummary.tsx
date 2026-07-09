@@ -65,13 +65,13 @@ export function LedgerSummary({ metadata, kpis }: Props): React.ReactElement {
       </header>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Card label="Ingresos del periodo" value={kpis.ingresos} tone="positive" hint="705 + 755 + 769 + 778" />
-        <Card label="Gastos del periodo" value={kpis.gastos} tone="warning" hint="623 + 629 + 640 + 662 + 678" />
+        <Card label="Ingresos contables H1" value={kpis.ingresos} tone="positive" hint="Cuentas 705 · 755 · 769 · 778" />
+        <Card label="Gastos contables H1" value={kpis.gastos} tone="warning" hint="Cuentas 623 · 629 · 640 · 662 · 678" />
         <Card label="Resultado contable" value={kpis.resultadoContable} tone={resultadoTone} hint="Aproximación operativa" />
-        <Card label="Caja total" value={kpis.cajaTotal} tone={cajaTone} hint="570 + 572" />
-        <Card label="Clientes pendientes" value={kpis.clientesPendientes} tone={kpis.clientesPendientes > 0 ? 'warning' : 'neutral'} hint="430 saldo deudor" />
-        <Card label="Proveedores pendientes" value={kpis.proveedoresPendientes} tone={kpis.proveedoresPendientes > 0 ? 'warning' : 'neutral'} hint="410 saldo acreedor" />
-        <Card label="Nóminas pendientes" value={kpis.nominasPendientes} tone={kpis.nominasPendientes > 0 ? 'warning' : 'neutral'} hint="465 devengadas no pagadas" />
+        <Card label="Caja según libro mayor" value={kpis.cajaTotal} tone={cajaTone} hint="Cuentas 570 · 572" />
+        <Card label="Clientes 430 pendientes" value={kpis.clientesPendientes} tone={kpis.clientesPendientes > 0 ? 'warning' : 'neutral'} hint="Saldo deudor 430" />
+        <Card label="Proveedores 410 pendientes" value={kpis.proveedoresPendientes} tone={kpis.proveedoresPendientes > 0 ? 'warning' : 'neutral'} hint="Saldo acreedor 410" />
+        <Card label="Nóminas 465 pendientes" value={kpis.nominasPendientes} tone={kpis.nominasPendientes > 0 ? 'warning' : 'neutral'} hint="Devengadas no pagadas" />
         <Card
           label="Partidas pendientes 555"
           value={kpis.partidas555Saldo}

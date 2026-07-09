@@ -14,7 +14,7 @@ import { execSync } from 'child_process';
 const ROOT = path.resolve(__dirname, '..', '..', '..');
 
 describe('libro-mayor — el Excel real NUNCA está en el repo', () => {
-  it('git ls-files no contiene ningún archivo LM real', () => {
+  it('git ls-files no contiene ningún archivo LM real (excluyendo fixtures sintéticos)', () => {
     let output = '';
     try {
       output = execSync('git ls-files', { cwd: ROOT, encoding: 'utf-8' });
@@ -22,7 +22,9 @@ describe('libro-mayor — el Excel real NUNCA está en el repo', () => {
       // fuera de git (CI sin git) — skip
       return;
     }
-    const lower = output.toLowerCase();
+    // Filtrar líneas de fixtures sintéticos legítimos antes de comprobar.
+    const trackedFiles = output.split('\n').filter((line) => !line.includes('__fixtures__/'));
+    const lower = trackedFiles.join('\n').toLowerCase();
     expect(lower).not.toMatch(/libro[_ -]mayor.*\.(xlsx|ods|xls)/);
     expect(lower).not.toMatch(/libro-mayor-20\d\d.*\.(xlsx|ods)/);
     expect(lower).not.toMatch(/-elevatex-.*\.(xlsx|ods)/);
