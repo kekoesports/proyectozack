@@ -138,6 +138,7 @@ export type ActiveDeliverableRow = {
   readonly id: number;
   readonly deliverableType: DeliverableType;
   readonly targetCount: number;
+  readonly currentCount: number;
   readonly notes: string | null;
 };
 
@@ -151,6 +152,7 @@ export async function getCampaignActiveDeliverables(campaignId: number): Promise
       id: dealDeliverableTrackers.id,
       deliverableType: dealDeliverableTrackers.deliverableType,
       targetCount: dealDeliverableTrackers.targetCount,
+      currentCount: dealDeliverableTrackers.currentCount,
       notes: dealDeliverableTrackers.notes,
     })
     .from(dealDeliverableTrackers)
@@ -165,6 +167,7 @@ export async function getCampaignActiveDeliverables(campaignId: number): Promise
     id: r.id,
     deliverableType: r.deliverableType as DeliverableType,
     targetCount: r.targetCount,
+    currentCount: r.currentCount,
     notes: r.notes,
   }));
 }
@@ -184,6 +187,7 @@ export async function listActiveDeliverablesForCampaigns(
       campaignId: dealDeliverableTrackers.campaignId,
       deliverableType: dealDeliverableTrackers.deliverableType,
       targetCount: dealDeliverableTrackers.targetCount,
+      currentCount: dealDeliverableTrackers.currentCount,
       notes: dealDeliverableTrackers.notes,
     })
     .from(dealDeliverableTrackers)
@@ -202,6 +206,7 @@ export async function listActiveDeliverablesForCampaigns(
       id: r.id,
       deliverableType: r.deliverableType as DeliverableType,
       targetCount: r.targetCount,
+      currentCount: r.currentCount,
       notes: r.notes,
     });
     acc[r.campaignId] = list;

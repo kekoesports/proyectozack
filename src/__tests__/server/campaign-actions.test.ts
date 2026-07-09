@@ -9,6 +9,25 @@ jest.mock('next/cache', () => ({ revalidatePath: jest.fn() }));
 jest.mock('next/navigation', () => ({ redirect: jest.fn() }));
 jest.mock('next/headers', () => ({ headers: jest.fn().mockResolvedValue({}) }));
 
+// PR2 dependencies — actions.ts importa campaign-sheet-sync (server-only).
+jest.mock('server-only', () => ({}));
+jest.mock('@/lib/queries/campaign-sheet-sync', () => ({
+  syncCampaignSheet: jest.fn(),
+  normalizeTrackingSheetInput: () => ({
+    trackingSheetUrl: null,
+    trackingSheetSpreadsheetId: null,
+    trackingSheetGid: null,
+  }),
+}));
+jest.mock('@/lib/queries/campaign-deliverables-sync', () => ({
+  syncCampaignDeliverables: jest.fn(),
+}));
+jest.mock('@/lib/db', () => ({
+  db: {
+    update: () => ({ set: () => ({ where: () => Promise.resolve() }) }),
+  },
+}));
+
 // ── Mock auth-guard ───────────────────────────────────────────────────────────
 
 const mockRequireAnyRole = jest.fn();

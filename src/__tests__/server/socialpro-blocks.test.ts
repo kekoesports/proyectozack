@@ -73,7 +73,7 @@ describe('parseDealSpecs', () => {
     expect(result[0]).toEqual({
       count: 15,
       rawType: 'Prerolls',
-      suggestedType: 'stream_integration',
+      suggestedType: 'preroll',
     });
   });
 
@@ -81,24 +81,24 @@ describe('parseDealSpecs', () => {
     const result = parseDealSpecs('1 Video + 30 Prerolls');
     expect(result).toHaveLength(2);
     expect(result[0]).toMatchObject({ count: 1, rawType: 'Video', suggestedType: 'video_youtube' });
-    expect(result[1]).toMatchObject({ count: 30, rawType: 'Prerolls', suggestedType: 'stream_integration' });
+    expect(result[1]).toMatchObject({ count: 30, rawType: 'Prerolls', suggestedType: 'preroll' });
   });
 
   it('parses a 60 prerolls spec', () => {
     const result = parseDealSpecs('60 Prerolls');
     expect(result).toHaveLength(1);
     expect(result[0]?.count).toBe(60);
-    expect(result[0]?.suggestedType).toBe('stream_integration');
+    expect(result[0]?.suggestedType).toBe('preroll');
   });
 });
 
 // ── suggestDeliverableType ────────────────────────────────────────────────────
 
 describe('suggestDeliverableType', () => {
-  it('maps prerolls to stream_integration', () => {
-    expect(suggestDeliverableType('prerolls')).toBe('stream_integration');
-    expect(suggestDeliverableType('Prerolls')).toBe('stream_integration');
-    expect(suggestDeliverableType('preroll')).toBe('stream_integration');
+  it('maps prerolls to preroll (post-PR2, antes stream_integration)', () => {
+    expect(suggestDeliverableType('prerolls')).toBe('preroll');
+    expect(suggestDeliverableType('Prerolls')).toBe('preroll');
+    expect(suggestDeliverableType('preroll')).toBe('preroll');
   });
 
   it('maps video to video_youtube', () => {

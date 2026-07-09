@@ -240,6 +240,11 @@ export async function getCampaignWithRelations(
       cnmcChecklistUserId: campaigns.cnmcChecklistUserId,
       cobroConfirmado: campaigns.cobroConfirmado,
       pagoTalentConfirmado: campaigns.pagoTalentConfirmado,
+      trackingSheetUrl: campaigns.trackingSheetUrl,
+      trackingSheetSpreadsheetId: campaigns.trackingSheetSpreadsheetId,
+      trackingSheetGid: campaigns.trackingSheetGid,
+      lastTrackingSyncAt: campaigns.lastTrackingSyncAt,
+      trackingSyncError: campaigns.trackingSyncError,
       // Brand fields
       brandName: crmBrands.name,
       brandSector: crmBrands.sector,
@@ -314,6 +319,11 @@ export async function getCampaignWithRelations(
     cnmcChecklistUserId: row.cnmcChecklistUserId ?? null,
     cobroConfirmado: row.cobroConfirmado,
     pagoTalentConfirmado: row.pagoTalentConfirmado,
+    trackingSheetUrl: row.trackingSheetUrl ?? null,
+    trackingSheetSpreadsheetId: row.trackingSheetSpreadsheetId ?? null,
+    trackingSheetGid: row.trackingSheetGid ?? null,
+    lastTrackingSyncAt: row.lastTrackingSyncAt ?? null,
+    trackingSyncError: row.trackingSyncError ?? null,
     ...derived,
     brand: {
       id: row.brandId,

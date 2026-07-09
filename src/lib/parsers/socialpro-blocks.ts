@@ -71,7 +71,11 @@ export function parseDealTitle(
 export function suggestDeliverableType(rawType: string): string {
   const normalized = rawType.toLowerCase().trim();
 
-  if (normalized === 'preroll' || normalized === 'prerolls') return 'stream_integration';
+  // Preroll pasa a mapear al enum 'preroll' propio (introducido en 0110).
+  // Antes se mapeaba a 'stream_integration' porque el valor no existía.
+  // Los trackers creados antes con 'stream_integration' NO se remapean
+  // retroactivamente — el cambio solo afecta a trackers nuevos.
+  if (normalized === 'preroll' || normalized === 'prerolls') return 'preroll';
   if (normalized === 'stream' || normalized === 'streams') return 'stream_integration';
   if (
     normalized === 'video' ||

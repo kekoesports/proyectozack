@@ -16,6 +16,11 @@ type Props = {
   readonly contactsByBrand: Readonly<Record<number, readonly CrmBrandContact[]>>;
   readonly isManager: boolean;
   readonly initialDeliverables?: readonly DeliverableEditorRow[];
+  readonly initialTracking?: {
+    readonly url: string | null;
+    readonly lastSyncedAt: string | null;
+    readonly syncError: string | null;
+  };
 };
 
 /**
@@ -34,6 +39,7 @@ export function CampaignDrawer({
   contactsByBrand,
   isManager,
   initialDeliverables = [],
+  initialTracking,
 }: Props): React.ReactElement {
   // Use campaign id (or 'new') as key so the form remounts on each open/switch
   const formKey = isOpen ? (campaign ? String(campaign.id) : 'new') : 'closed';
@@ -55,6 +61,7 @@ export function CampaignDrawer({
         contactsByBrand={contactsByBrand}
         isManager={isManager}
         initialDeliverables={initialDeliverables}
+        {...(initialTracking ? { initialTracking } : {})}
       />
     </EditDrawer>
   );
