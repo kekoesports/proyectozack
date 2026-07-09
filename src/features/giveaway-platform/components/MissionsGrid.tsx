@@ -94,10 +94,9 @@ export function MissionsGrid({ missions, discord, twitch, discordComingSoon, twi
       <p className="gp-mission-head">Los puntos de todos los creadores se suman al mismo saldo.</p>
 
       {/*
-        Grid dedicado a misiones de redes (Discord / Twitch / YouTube) — placeholders
-        o cards reales, todos como cajas del mismo tamaño que las misiones internas.
-        YouTube aparece aquí (no al final) para tratar todas las redes de forma
-        coherente visualmente.
+        Un solo grid — misiones de redes (Discord / Twitch / YouTube) primero,
+        luego las regulares. Todas se renderizan como cards del mismo tamaño.
+        El botón "Ver más" solo expande las regulares (no las de redes).
       */}
       <div className="gp-missions-grid">
         {discordMissions.length > 0 && discord ? (
@@ -127,9 +126,7 @@ export function MissionsGrid({ missions, discord, twitch, discordComingSoon, twi
         ) : null}
 
         <YoutubeMissionsPlaceholder />
-      </div>
 
-      <div className="gp-missions-grid">
         {visible.map((m) => {
           const pct = m.goal > 0 ? Math.min(100, Math.round((m.current / m.goal) * 100)) : 0;
           return (
@@ -158,6 +155,7 @@ export function MissionsGrid({ missions, discord, twitch, discordComingSoon, twi
           );
         })}
       </div>
+
       {rest.length > 0 ? (
         <button
           type="button"
@@ -186,19 +184,19 @@ export function MissionsGrid({ missions, discord, twitch, discordComingSoon, twi
 function DiscordMissionsPlaceholder() {
   return (
     <div
-      className="gp-missions-social-placeholder is-discord"
+      className="gp-mission-card gp-missions-social-placeholder is-discord"
       role="note"
       aria-label="Misión Discord próximamente"
     >
-      <div className="gp-missions-social-icon" aria-hidden>🎮</div>
-      <div className="gp-missions-social-body">
-        <div className="gp-missions-social-title">
+      <div className="gp-mission-row">
+        <h3 className="gp-mission-title gp-missions-social-title">
           Discord <span className="gp-missions-social-soon">· Próximamente</span>
-        </div>
-        <p className="gp-missions-social-desc">
-          Únete al Discord de ZACKETIZOR y consigue puntos cuando activemos esta misión.
-        </p>
+        </h3>
+        <span className="gp-mission-reward">+100 ⭐</span>
       </div>
+      <p className="gp-mission-desc gp-missions-social-desc">
+        Únete al Discord de ZACKETIZOR y consigue puntos cuando activemos esta misión.
+      </p>
     </div>
   );
 }
@@ -213,29 +211,29 @@ function DiscordMissionsPlaceholder() {
 function TwitchMissionsPlaceholder({ channelUrl }: { channelUrl: string | null }) {
   return (
     <div
-      className="gp-missions-social-placeholder is-twitch"
+      className="gp-mission-card gp-missions-social-placeholder is-twitch"
       role="note"
       aria-label="Misión Twitch próximamente"
     >
-      <div className="gp-missions-social-icon" aria-hidden>🎥</div>
-      <div className="gp-missions-social-body">
-        <div className="gp-missions-social-title">
+      <div className="gp-mission-row">
+        <h3 className="gp-mission-title gp-missions-social-title">
           Twitch <span className="gp-missions-social-soon">· Próximamente</span>
-        </div>
-        <p className="gp-missions-social-desc">
-          Sigue el canal de ZACKETIZOR y consigue puntos cuando activemos esta misión.
-        </p>
-        {channelUrl ? (
-          <a
-            href={channelUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="gp-missions-social-link"
-          >
-            Ver Twitch →
-          </a>
-        ) : null}
+        </h3>
+        <span className="gp-mission-reward">+100 ⭐</span>
       </div>
+      <p className="gp-mission-desc gp-missions-social-desc">
+        Sigue el canal de ZACKETIZOR y consigue puntos cuando activemos esta misión.
+      </p>
+      {channelUrl ? (
+        <a
+          href={channelUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="gp-missions-social-link"
+        >
+          Ver Twitch →
+        </a>
+      ) : null}
     </div>
   );
 }
@@ -252,23 +250,20 @@ function TwitchMissionsPlaceholder({ channelUrl }: { channelUrl: string | null }
 function YoutubeMissionsPlaceholder() {
   return (
     <div
-      className="gp-missions-yt-placeholder"
+      className="gp-mission-card gp-missions-yt-placeholder"
       role="note"
       aria-label="Misiones YouTube próximamente"
     >
-      <div className="gp-missions-yt-icon" aria-hidden>
-        📺
-      </div>
-      <div className="gp-missions-yt-body">
-        <div className="gp-missions-yt-title">
+      <div className="gp-mission-row">
+        <h3 className="gp-mission-title gp-missions-yt-title">
           Misiones YouTube <span className="gp-missions-yt-soon">· Próximamente</span>
-        </div>
-        <p className="gp-missions-yt-desc">
-          Conecta tu cuenta y completa acciones verificables (suscribirte a un canal,
-          comentar en un vídeo) para ganar puntos. Estamos preparando la integración
-          para que la verificación sea real y segura.
-        </p>
+        </h3>
+        <span className="gp-mission-reward">+100 ⭐</span>
       </div>
+      <p className="gp-mission-desc gp-missions-yt-desc">
+        Conecta tu cuenta y completa acciones verificables (suscribirte a un canal,
+        comentar en un vídeo) para que la verificación sea real y segura.
+      </p>
     </div>
   );
 }
