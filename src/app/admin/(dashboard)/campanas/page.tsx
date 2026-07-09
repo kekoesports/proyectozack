@@ -70,6 +70,21 @@ export default async function AdminCampanasPage(): Promise<React.ReactElement> {
     campaigns.map((c) => c.id),
   );
 
+  // Tracking sheet info por campaign (PR2). Se serializa a plano para
+  // evitar pasar Date en payload de RSC → cliente.
+  const trackingByCampaign: Record<number, {
+    url: string | null;
+    lastSyncedAt: string | null;
+    syncError: string | null;
+  }> = {};
+  for (const c of rawCampaigns) {
+    trackingByCampaign[c.id] = {
+      url: c.trackingSheetUrl ?? null,
+      lastSyncedAt: c.lastTrackingSyncAt ? c.lastTrackingSyncAt.toISOString() : null,
+      syncError: c.trackingSyncError ?? null,
+    };
+  }
+
   return (
     <CampaignsList
       campaigns={campaigns}
@@ -82,6 +97,7 @@ export default async function AdminCampanasPage(): Promise<React.ReactElement> {
       rateDate={exchangeRate.date}
       rateIsEstimated={exchangeRate.isEstimated}
       deliverablesByCampaign={deliverablesByCampaign}
+      trackingByCampaign={trackingByCampaign}
     />
   );
 }

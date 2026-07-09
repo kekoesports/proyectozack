@@ -60,8 +60,18 @@ type Props = {
     readonly id: number;
     readonly deliverableType: string;
     readonly targetCount: number;
+    readonly currentCount: number;
     readonly notes: string | null;
   }>>>;
+  /**
+   * Tracking sheet info (PR2) precargada por campaign. Se pasa al drawer
+   * cuando se abre en modo edición para poblar la sección Seguimiento.
+   */
+  readonly trackingByCampaign?: Readonly<Record<number, {
+    readonly url: string | null;
+    readonly lastSyncedAt: string | null;
+    readonly syncError: string | null;
+  }>>;
 };
 
 // ── KPI Card ─────────────────────────────────────────────────────────────────
@@ -124,6 +134,7 @@ export function CampaignsList({
   campaigns, isManager, brands, talents, staffUsers, contactsByBrand,
   rate = USD_EUR_RATE, rateDate = '', rateIsEstimated = true,
   deliverablesByCampaign = {},
+  trackingByCampaign = {},
 }: Props): React.ReactElement {
   const [filters, setFilters]       = useState<CampaignFilterState>(EMPTY_FILTERS);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -434,6 +445,7 @@ export function CampaignsList({
                   id: d.id,
                   deliverableType: d.deliverableType as DeliverableType,
                   targetCount: d.targetCount,
+                  currentCount: d.currentCount,
                 };
                 return d.notes !== null && d.notes !== ''
                   ? { ...base, notes: d.notes }
@@ -441,6 +453,9 @@ export function CampaignsList({
               })
             : []
         }
+        {...(selected !== null && trackingByCampaign[selected.id]
+          ? { initialTracking: trackingByCampaign[selected.id] }
+          : {})}
       />
     </div>
   );

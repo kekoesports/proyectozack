@@ -64,6 +64,17 @@ export const campaigns = pgTable('campaigns', {
 
   visibility: varchar('visibility', { length: 10 }).notNull().default('team'),
 
+  // ── Tracking Sheet (PR2: tratos link Google Sheet) ────────────────────────
+  // Link canónico a un Google Sheet duplicado manualmente por el usuario a
+  // partir de la plantilla maestra "Jolu - KD". El parser socialpro_blocks
+  // lee este Sheet para calcular currentCount de dealDeliverableTrackers.
+  // Sin OAuth, sin Service Account: se lee vía GOOGLE_SHEETS_API_KEY.
+  trackingSheetUrl:            text('tracking_sheet_url'),
+  trackingSheetSpreadsheetId:  varchar('tracking_sheet_spreadsheet_id', { length: 100 }),
+  trackingSheetGid:            varchar('tracking_sheet_gid', { length: 20 }),
+  lastTrackingSyncAt:          timestamp('last_tracking_sync_at', { withTimezone: true }),
+  trackingSyncError:           text('tracking_sync_error'),
+
   archivedAt: timestamp('archived_at', { withTimezone: true }),
 
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),

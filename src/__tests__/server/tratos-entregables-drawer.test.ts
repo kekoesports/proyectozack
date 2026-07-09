@@ -96,11 +96,14 @@ describe('DeliverablesEditor', () => {
     expect(src).toMatch(/aria-label=["']Eliminar entregable["']/);
   });
 
-  it('el botón "Generar plantilla de seguimiento" está disabled con tooltip', () => {
-    expect(src).toMatch(/Generar plantilla de seguimiento/);
-    // Debe estar disabled y tener un title explicativo.
-    expect(src).toMatch(/disabled/);
-    expect(src).toMatch(/Próximamente[\s\S]{0,60}PR2/);
+  it('el botón "Sincronizar ahora" existe (PR2 activó el sync)', () => {
+    // Nota: PR1 tenía "Generar plantilla de seguimiento" en modo disabled.
+    // PR2 lo sustituye por un link "Abrir plantilla de referencia" +
+    // botón "Sincronizar ahora". La regla original de PR1 era que no
+    // hubiera Google APIs en el cliente — se sigue cumpliendo (el sync va
+    // por Server Action).
+    expect(src).toMatch(/Sincronizar ahora/);
+    expect(src).toMatch(/Abrir plantilla de referencia/);
   });
 
   it('NO llama a Google APIs ni menciona GOOGLE_SHEETS/drive/oauth', () => {

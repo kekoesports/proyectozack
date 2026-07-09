@@ -90,6 +90,15 @@ export type CampaignFormProps = {
    * relevante en modo edición. `[]` al crear.
    */
   readonly initialDeliverables?: readonly DeliverableEditorRow[];
+  /**
+   * Info del Google Sheet de seguimiento (PR2) — solo en modo edición.
+   * `undefined` al crear (sin sheet configurada aún).
+   */
+  readonly initialTracking?: {
+    readonly url: string | null;
+    readonly lastSyncedAt: string | null;
+    readonly syncError: string | null;
+  };
 };
 
 export function CampaignForm({
@@ -102,6 +111,7 @@ export function CampaignForm({
   contactsByBrand,
   isManager,
   initialDeliverables = [],
+  initialTracking,
 }: CampaignFormProps): React.ReactElement {
   const router = useRouter();
   const [, startTransition] = useTransition();
@@ -508,7 +518,11 @@ export function CampaignForm({
 
       {/* Entregables del trato — se persisten en dealDeliverableTrackers via
           Server Action. Ver DeliverablesEditor.tsx. */}
-      <DeliverablesEditor initialRows={initialDeliverables} />
+      <DeliverablesEditor
+        initialRows={initialDeliverables}
+        campaignId={campaign?.id ?? null}
+        {...(initialTracking ? { initialTracking } : {})}
+      />
 
       {/* Notas */}
       <Field label="Notas">

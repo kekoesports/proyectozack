@@ -13,6 +13,14 @@ import {
   assertCanEditCampaign,
 } from '@/lib/queries/campaigns';
 import { syncCampaignDeliverables } from '@/lib/queries/campaign-deliverables-sync';
+import {
+  syncCampaignSheet,
+  normalizeTrackingSheetInput,
+  type SyncResult,
+} from '@/lib/queries/campaign-sheet-sync';
+import { db } from '@/lib/db';
+import { campaigns } from '@/db/schema/campaigns';
+import { eq } from 'drizzle-orm';
 
 import { compact } from '@/lib/utils/objects';
 
@@ -48,6 +56,23 @@ export async function createCampaignAction(
       await syncCampaignDeliverables(campaign.id, deliverables);
     }
 
+    // Tracking sheet (PR2). Campo aparte del schema principal: se persiste
+    // solo si vino en el form. Empty string → null (sin tracking).
+    if (formData.has('trackingSheetUrl')) {
+      const raw = String(formData.get('trackingSheetUrl') ?? '');
+      const normalized = normalizeTrackingSheetInput(raw);
+      await db
+        .update(campaigns)
+        .set({
+          trackingSheetUrl: normalized.trackingSheetUrl,
+          trackingSheetSpreadsheetId: normalized.trackingSheetSpreadsheetId,
+          trackingSheetGid: normalized.trackingSheetGid,
+          trackingSyncError: null,
+          updatedAt: new Date(),
+        })
+        .where(eq(campaigns.id, campaign.id));
+    }
+
     revalidatePath('/admin/campanas');
     return { success: true, id: campaign.id };
   } catch (err) {
@@ -81,6 +106,23 @@ export async function updateCampaignAction(
     // parciales que ni siquiera envían deliverables_json).
     if (formData.has('deliverables_json')) {
       await syncCampaignDeliverables(id, deliverables);
+    }
+
+    // Tracking sheet (PR2). Solo se persiste si el form trae el campo, para
+    // no borrar el link existente en actualizaciones parciales.
+    if (formData.has('trackingSheetUrl')) {
+      const raw = String(formData.get('trackingSheetUrl') ?? '');
+      const normalized = normalizeTrackingSheetInput(raw);
+      await db
+        .update(campaigns)
+        .set({
+          trackingSheetUrl: normalized.trackingSheetUrl,
+          trackingSheetSpreadsheetId: normalized.trackingSheetSpreadsheetId,
+          trackingSheetGid: normalized.trackingSheetGid,
+          trackingSyncError: null,
+          updatedAt: new Date(),
+        })
+        .where(eq(campaigns.id, id));
     }
 
     revalidatePath('/admin/campanas');
@@ -133,6 +175,33 @@ export async function unarchiveCampaignAction(
     logRedacted('error', '[unarchiveCampaignAction] error:', err);
     const msg = err instanceof Error ? err.message : 'unknown';
     return { success: false, error: msg !== 'unknown' ? msg : 'Error al desarchivar campaña' };
+  }
+}
+
+// ── syncCampaignSheetAction (PR2 — tratos sheet-link tracking) ───────────────
+
+/**
+ * Sincroniza los currentCount de los trackers activos del trato leyendo la
+ * Google Sheet asociada al campaign. Nunca lanza — siempre devuelve un
+ * ActionResult para que la UI pueda mostrar el mensaje humano-readable.
+ *
+ * Requiere permiso `campanas.write`.
+ */
+export async function syncCampaignSheetAction(
+  campaignId: number,
+): Promise<SyncResult> {
+  try {
+    await requirePermission('campanas', 'write');
+    if (!Number.isInteger(campaignId) || campaignId <= 0) {
+      return { ok: false, error: 'ID de trato inválido.' };
+    }
+    const result = await syncCampaignSheet(campaignId);
+    revalidatePath('/admin/campanas');
+    return result;
+  } catch (err) {
+    logRedacted('error', '[syncCampaignSheetAction] error:', err);
+    const msg = err instanceof Error ? err.message : 'unknown';
+    return { ok: false, error: msg !== 'unknown' ? msg : 'Error al sincronizar la hoja.' };
   }
 }
 
