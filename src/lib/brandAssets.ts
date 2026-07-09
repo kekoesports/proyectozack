@@ -17,6 +17,7 @@ const BRAND_ASSET_MAP: Readonly<Record<string, string>> = {
   'kick':          '/images/brands/kick.png',
   'pccomponentes': '/images/brands/pccomponentes.png',
   'pinup':         '/images/brands/pinup.png',
+  'prozis':        '/images/brands/prozis.png',
   'razer':         '/images/brands/razer.png',
   'skinclub':      '/images/brands/skinclub.png',
   'skinplace':     '/images/brands/skinplace.png',

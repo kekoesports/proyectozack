@@ -71,6 +71,7 @@ const BRANDS_DATA = [
   { slug: 'csgoskins', displayName: 'CSGOSKINS',  logoUrl: '/images/brands/csgoskins.png',  sortOrder: 17 },
   { slug: 'yosports',  displayName: 'YOSPORTS',   logoUrl: '/images/brands/yosports.png',   sortOrder: 18 },
   { slug: 'csdrop',    displayName: 'CSDROP',      logoUrl: '/images/brands/csdrop.png',      sortOrder: 19 },
+  { slug: 'prozis',    displayName: 'PROZIS',      logoUrl: '/images/brands/prozis.png',      sortOrder: 20 },
 ];
 
 type TalentPlatform = 'twitch' | 'youtube';
