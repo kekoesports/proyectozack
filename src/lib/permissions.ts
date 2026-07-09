@@ -51,7 +51,8 @@ export type Module =
   | 'prensa_targets'
   | 'dashboard'
   | 'bancos'
-  | 'contratos';
+  | 'contratos'
+  | 'contabilidad';
 
 export type Action = 'read' | 'write' | 'publish' | 'delete' | 'manage_users' | 'audit';
 
@@ -148,6 +149,12 @@ export const PERMISSIONS = {
     read:   ['admin', 'admin_limited_tasks', 'manager', 'finance', 'ops'],
     write:  ['admin', 'admin_limited_tasks', 'manager', 'ops'],
     delete: ['admin', 'admin_limited_tasks'],
+  },
+  // Contabilidad (Libro Mayor) — vista read-only con fixture sintético en PR 1.
+  // Deliberadamente MÁS restrictivo que facturacion — solo admin real.
+  // No incluir finance/manager/staff/ops sin decisión explícita.
+  contabilidad: {
+    read: ['admin', 'admin_limited_tasks'],
   },
 } as const satisfies PermissionsMap;
 
