@@ -82,3 +82,11 @@ scripts/capture_*.mjs
 
 # Local video teaser scripts + generated clips/outputs (experimental, no van al repo)
 scripts/video-teaser/
+
+# Contabilidad — Libro Mayor real de la gestoría (nunca al repo).
+# Belt-and-suspenders sobre .scratch/ — evita fugas si alguien mueve el archivo por error.
+**/LIBRO MAYOR*
+**/libro-mayor-20*.xlsx
+**/libro-mayor-20*.ods
+**/*-elevatex-*.xlsx
+**/*-elevatex-*.ods

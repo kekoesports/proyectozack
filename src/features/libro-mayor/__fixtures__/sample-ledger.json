@@ -1,0 +1,165 @@
+{
+  "$comment": "Fixture 100% sintético — NO representa datos reales. Todos los nombres empiezan con TEST_ para trazabilidad si aparece en logs. Debe totales = Haber totales = 24590 (movimientos, sin contar arrastres).",
+  "metadata": {
+    "empresa": "TEST COMPANY SL",
+    "periodoFrom": "2026-01-01",
+    "periodoTo": "2026-06-30",
+    "fecha": "2026-07-01"
+  },
+  "accounts": [
+    {
+      "code": "10000000",
+      "name": "TEST_CAPITAL_SOCIAL",
+      "saldoAnterior": -3000,
+      "totalDebe": 0,
+      "totalHaber": 0,
+      "totalSaldo": -3000,
+      "movements": []
+    },
+    {
+      "code": "43000001",
+      "name": "TEST_CLIENTE_A",
+      "saldoAnterior": 0,
+      "totalDebe": 8000,
+      "totalHaber": 0,
+      "totalSaldo": 8000,
+      "movements": [
+        { "date": "2026-01-15", "concept": "TEST_Factura_01", "document": "F001", "debe": 5000, "haber": 0, "saldo": 5000, "contrapartida": "70500001" },
+        { "date": "2026-03-20", "concept": "TEST_Factura_02", "document": "F002", "debe": 3000, "haber": 0, "saldo": 8000, "contrapartida": "70500001" }
+      ]
+    },
+    {
+      "code": "43000002",
+      "name": "TEST_CLIENTE_B",
+      "saldoAnterior": 0,
+      "totalDebe": 2000,
+      "totalHaber": 500,
+      "totalSaldo": 1500,
+      "movements": [
+        { "date": "2026-02-10", "concept": "TEST_Factura_03", "document": "F003", "debe": 2000, "haber": 0, "saldo": 2000, "contrapartida": "70500001" },
+        { "date": "2026-04-05", "concept": "TEST_Cobro_parcial", "document": "R003", "debe": 0, "haber": 500, "saldo": 1500, "contrapartida": "57200001" }
+      ]
+    },
+    {
+      "code": "41000001",
+      "name": "TEST_PROVEEDOR_X",
+      "saldoAnterior": 0,
+      "totalDebe": 0,
+      "totalHaber": 3630,
+      "totalSaldo": -3630,
+      "movements": [
+        { "date": "2026-01-25", "concept": "TEST_Compra_hosting", "document": "P001", "debe": 0, "haber": 3630, "saldo": -3630, "contrapartida": "62900000" }
+      ]
+    },
+    {
+      "code": "41000002",
+      "name": "TEST_PROVEEDOR_Y",
+      "saldoAnterior": 0,
+      "totalDebe": 605,
+      "totalHaber": 605,
+      "totalSaldo": 0,
+      "movements": [
+        { "date": "2026-02-01", "concept": "TEST_Compra_material", "document": "P002", "debe": 0, "haber": 605, "saldo": -605, "contrapartida": "62900000" },
+        { "date": "2026-02-15", "concept": "TEST_Pago_material", "document": "R002", "debe": 605, "haber": 0, "saldo": 0, "contrapartida": "57200001" }
+      ]
+    },
+    {
+      "code": "57200001",
+      "name": "TEST_BANCO_PRINCIPAL",
+      "saldoAnterior": 3500,
+      "totalDebe": 500,
+      "totalHaber": 3855,
+      "totalSaldo": 145,
+      "movements": [
+        { "date": "2026-02-15", "concept": "TEST_Pago_material", "document": "R002", "debe": 0, "haber": 605, "saldo": 2895, "contrapartida": "41000002" },
+        { "date": "2026-03-10", "concept": "TEST_Movimiento_sin_identificar_01", "document": "S001", "debe": 0, "haber": 100, "saldo": 2795, "contrapartida": "55500000" },
+        { "date": "2026-04-05", "concept": "TEST_Cobro_parcial", "document": "R003", "debe": 500, "haber": 0, "saldo": 3295, "contrapartida": "43000002" },
+        { "date": "2026-04-22", "concept": "TEST_Movimiento_sin_identificar_02", "document": "S002", "debe": 0, "haber": 150, "saldo": 3145, "contrapartida": "55500000" },
+        { "date": "2026-06-15", "concept": "TEST_Pago_nomina_mayo", "document": "R008", "debe": 0, "haber": 3000, "saldo": 145, "contrapartida": "46500000" }
+      ]
+    },
+    {
+      "code": "57000000",
+      "name": "TEST_CAJA_EFECTIVO",
+      "saldoAnterior": 500,
+      "totalDebe": 0,
+      "totalHaber": 0,
+      "totalSaldo": 500,
+      "movements": []
+    },
+    {
+      "code": "70500001",
+      "name": "TEST_INGRESOS_SERVICIOS",
+      "saldoAnterior": 0,
+      "totalDebe": 0,
+      "totalHaber": 10000,
+      "totalSaldo": -10000,
+      "movements": [
+        { "date": "2026-01-15", "concept": "TEST_Factura_01", "document": "F001", "debe": 0, "haber": 5000, "saldo": -5000, "contrapartida": "43000001" },
+        { "date": "2026-02-10", "concept": "TEST_Factura_03", "document": "F003", "debe": 0, "haber": 2000, "saldo": -7000, "contrapartida": "43000002" },
+        { "date": "2026-03-20", "concept": "TEST_Factura_02", "document": "F002", "debe": 0, "haber": 3000, "saldo": -10000, "contrapartida": "43000001" }
+      ]
+    },
+    {
+      "code": "62900000",
+      "name": "TEST_OTROS_SERVICIOS",
+      "saldoAnterior": 0,
+      "totalDebe": 3500,
+      "totalHaber": 0,
+      "totalSaldo": 3500,
+      "movements": [
+        { "date": "2026-01-25", "concept": "TEST_Compra_hosting", "document": "P001", "debe": 3000, "haber": 0, "saldo": 3000, "contrapartida": "41000001" },
+        { "date": "2026-02-01", "concept": "TEST_Compra_material", "document": "P002", "debe": 500, "haber": 0, "saldo": 3500, "contrapartida": "41000002" }
+      ]
+    },
+    {
+      "code": "64000000",
+      "name": "TEST_SUELDOS_Y_SALARIOS",
+      "saldoAnterior": 0,
+      "totalDebe": 6000,
+      "totalHaber": 0,
+      "totalSaldo": 6000,
+      "movements": [
+        { "date": "2026-05-31", "concept": "TEST_Nomina_mayo", "document": "N005", "debe": 3000, "haber": 0, "saldo": 3000, "contrapartida": "46500000" },
+        { "date": "2026-06-30", "concept": "TEST_Nomina_junio", "document": "N006", "debe": 3000, "haber": 0, "saldo": 6000, "contrapartida": "46500000" }
+      ]
+    },
+    {
+      "code": "46500000",
+      "name": "TEST_REMUN_PENDIENTES",
+      "saldoAnterior": 0,
+      "totalDebe": 3000,
+      "totalHaber": 6000,
+      "totalSaldo": -3000,
+      "movements": [
+        { "date": "2026-05-31", "concept": "TEST_Nomina_mayo", "document": "N005", "debe": 0, "haber": 3000, "saldo": -3000, "contrapartida": "64000000" },
+        { "date": "2026-06-15", "concept": "TEST_Pago_nomina_mayo", "document": "R008", "debe": 3000, "haber": 0, "saldo": 0, "contrapartida": "57200001" },
+        { "date": "2026-06-30", "concept": "TEST_Nomina_junio", "document": "N006", "debe": 0, "haber": 3000, "saldo": -3000, "contrapartida": "64000000" }
+      ]
+    },
+    {
+      "code": "55500000",
+      "name": "TEST_PARTIDAS_PENDIENTES",
+      "saldoAnterior": 0,
+      "totalDebe": 250,
+      "totalHaber": 0,
+      "totalSaldo": 250,
+      "movements": [
+        { "date": "2026-03-10", "concept": "TEST_Movimiento_sin_identificar_01", "document": "S001", "debe": 100, "haber": 0, "saldo": 100, "contrapartida": "57200001" },
+        { "date": "2026-04-22", "concept": "TEST_Movimiento_sin_identificar_02", "document": "S002", "debe": 150, "haber": 0, "saldo": 250, "contrapartida": "57200001" }
+      ]
+    },
+    {
+      "code": "47200000",
+      "name": "TEST_IVA_SOPORTADO",
+      "saldoAnterior": 0,
+      "totalDebe": 735,
+      "totalHaber": 0,
+      "totalSaldo": 735,
+      "movements": [
+        { "date": "2026-01-25", "concept": "TEST_IVA_compra_hosting", "document": "P001", "debe": 630, "haber": 0, "saldo": 630, "contrapartida": "41000001" },
+        { "date": "2026-02-01", "concept": "TEST_IVA_compra_material", "document": "P002", "debe": 105, "haber": 0, "saldo": 735, "contrapartida": "41000002" }
+      ]
+    }
+  ]
+}
