@@ -57,7 +57,14 @@ describe('Migración 0111 — aditiva y no destructiva', () => {
   });
 
   it('afecta solo a la tabla campaigns', () => {
-    const tables = sql.match(/ALTER TABLE\s+"?(\w+)"?/gi) ?? [];
+    // Strip comentarios de línea para evitar falsos positivos si algún
+    // comentario menciona "ALTER TABLE" (ej: doc del propio breakpoint).
+    const noComments = sql
+      .split('\n')
+      .filter((line) => !line.trim().startsWith('--'))
+      .join('\n');
+    const tables = noComments.match(/ALTER TABLE\s+"?(\w+)"?/gi) ?? [];
+    expect(tables.length).toBeGreaterThan(0);
     for (const t of tables) {
       expect(t).toMatch(/campaigns/i);
     }
