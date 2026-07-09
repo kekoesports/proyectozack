@@ -15,6 +15,8 @@ import {
 import type { CampaignWithRelations } from '@/types';
 import type { CampaignFilterState } from '@/features/admin/campaigns/components/CampaignFilters';
 import type { CrmBrandContact }     from '@/types';
+import type { DeliverableType }     from '@/lib/schemas/deliverable';
+import type { DeliverableEditorRow } from '@/features/admin/campaigns/components/DeliverablesEditor';
 
 import {
   EUR,
@@ -49,6 +51,17 @@ type Props = {
   readonly rate?:            number;
   readonly rateDate?:        string;
   readonly rateIsEstimated?: boolean;
+  /**
+   * Trackers activos (`dealDeliverableTrackers`) precargados por campaign.
+   * Se pasan al drawer cuando se abre en modo edición para poblar el editor
+   * de entregables sin fetch adicional.
+   */
+  readonly deliverablesByCampaign?: Readonly<Record<number, ReadonlyArray<{
+    readonly id: number;
+    readonly deliverableType: string;
+    readonly targetCount: number;
+    readonly notes: string | null;
+  }>>>;
 };
 
 // ── KPI Card ─────────────────────────────────────────────────────────────────
@@ -110,6 +123,7 @@ function isActive(f: CampaignFilterState): boolean {
 export function CampaignsList({
   campaigns, isManager, brands, talents, staffUsers, contactsByBrand,
   rate = USD_EUR_RATE, rateDate = '', rateIsEstimated = true,
+  deliverablesByCampaign = {},
 }: Props): React.ReactElement {
   const [filters, setFilters]       = useState<CampaignFilterState>(EMPTY_FILTERS);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -409,6 +423,24 @@ export function CampaignsList({
         staffUsers={staffUsers}
         contactsByBrand={contactsByBrand}
         isManager={isManager}
+        initialDeliverables={
+          selected !== null
+            // El prop viene tipado como string genérico; DeliverableEditor lo
+            // valida y el server sólo devuelve valores del enum, así que el
+            // cast es seguro. exactOptionalPropertyTypes exige omitir la
+            // propiedad notes cuando es null en lugar de asignar undefined.
+            ? (deliverablesByCampaign[selected.id] ?? []).map((d): DeliverableEditorRow => {
+                const base: DeliverableEditorRow = {
+                  id: d.id,
+                  deliverableType: d.deliverableType as DeliverableType,
+                  targetCount: d.targetCount,
+                };
+                return d.notes !== null && d.notes !== ''
+                  ? { ...base, notes: d.notes }
+                  : base;
+              })
+            : []
+        }
       />
     </div>
   );

@@ -41,6 +41,7 @@ export const DELIVERABLE_TYPES = [
   'post_instagram',
   'pack_mensual',
   'pack_trimestral',
+  'preroll',
   'otro',
 ] as const;
 
@@ -55,6 +56,7 @@ export const DELIVERABLE_TYPE_LABELS: Record<DeliverableType, string> = {
   post_instagram: 'Post Instagram',
   pack_mensual: 'Pack mensual',
   pack_trimestral: 'Pack trimestral',
+  preroll: 'Preroll',
   otro: 'Otro',
 };
 

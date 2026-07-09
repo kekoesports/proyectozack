@@ -46,6 +46,7 @@ export const deliverableTypeEnum = pgEnum('deliverable_type', [
   'post_instagram',
   'pack_mensual',
   'pack_trimestral',
+  'preroll',
   'otro',
 ]);
 

@@ -215,12 +215,11 @@ describe('PR 6A — sin scope creep', () => {
     }
   });
 
-  it('no crea migración nueva 011X', () => {
-    // Comprobamos que el último journal entry sigue siendo el conocido del PR anterior.
-    // Si en el futuro se hace una migración legítima, este test debe actualizarse.
+  it('no crea migración nueva del ámbito rentabilidad/pnl', () => {
+    // Refactorizado tras 0110 (aditiva, otra PR): esta PR (rentabilidad 6A)
+    // sólo debía ser query + UI — comprobamos que no aparece migración
+    // relacionada con rentabilidad/pnl/margin en el journal.
     const journal = read('drizzle/meta/_journal.json');
-    expect(journal).toMatch(/"tag":\s*"0109_billing_clients_pdf_language"/);
-    // No hay 0110 aún en PR 6A
-    expect(journal).not.toMatch(/"tag":\s*"0110_/);
+    expect(journal).not.toMatch(/"tag":\s*"\d{4}_[^"]*(rentab|pnl|margin|profit)[^"]*"/i);
   });
 });

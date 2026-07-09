@@ -120,17 +120,18 @@ describe('CSS — clases añadidas por polish', () => {
 });
 
 describe('Sin migración ni server actions nuevas', () => {
-  it('la última migration sigue siendo 0109', () => {
-    const files = fs.readdirSync(path.join(ROOT, 'drizzle')).filter((f) => /^\d{4}_.*\.sql$/.test(f));
-    const last = files.sort()[files.length - 1];
-    expect(last).toBeDefined();
-    expect(last!).toMatch(/^0109_/);
-  });
+  // Verificamos que esta PR (UX puro social missions) no introdujo ninguna
+  // migración de su ámbito. Test refactorizado tras 0110 (aditiva, otra PR).
+  const SCOPE_RE = /^\d{4}_.*(social[_-]?mission|discord|twitch|youtube|coin|reward)/i;
 
-  it('no aparece migration 0110/0111 (esta PR es UX puro)', () => {
-    const files = fs.readdirSync(path.join(ROOT, 'drizzle'));
-    expect(files.find((f) => f.startsWith('0110_'))).toBeUndefined();
-    expect(files.find((f) => f.startsWith('0111_'))).toBeUndefined();
+  it('no aparecen migraciones nuevas del ámbito social missions', () => {
+    const files = fs.readdirSync(path.join(ROOT, 'drizzle')).filter((f) => /^\d{4}_.*\.sql$/.test(f));
+    for (const f of files.filter((x) => SCOPE_RE.test(x))) {
+      const idx = Number(f.substring(0, 4));
+      // La migración legítima previa de social missions ya existe; no debe
+      // aparecer ninguna nueva por encima del corte de la PR original.
+      expect(idx).toBeLessThanOrEqual(109);
+    }
   });
 
   it('discord-mission-action.ts sigue exportando solo verifyDiscordMission (no nuevas actions)', () => {

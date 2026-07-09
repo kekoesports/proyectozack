@@ -272,36 +272,9 @@ export function CampaignSummaryCard({ campaign }: Props): React.ReactElement {
           {campaign.deliveryDeadline !== null && (
             <InfoRow label="Fecha entrega" value={formatDate(campaign.deliveryDeadline)} />
           )}
-          {campaign.briefingUrl !== null && campaign.briefingUrl !== '' && (
-            <InfoRow
-              label="Briefing"
-              value={
-                <a
-                  href={campaign.briefingUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sp-admin-accent hover:underline"
-                >
-                  Ver briefing ↗
-                </a>
-              }
-            />
-          )}
-          {campaign.contentUrl !== null && campaign.contentUrl !== '' && (
-            <InfoRow
-              label="Contenido"
-              value={
-                <a
-                  href={campaign.contentUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sp-admin-accent hover:underline"
-                >
-                  Ver contenido ↗
-                </a>
-              }
-            />
-          )}
+          {/* briefingUrl y contentUrl OCULTOS (PR: tratos-entregables-editables).
+              Columnas DB conservadas; los valores guardados siguen accesibles
+              vía queries. */}
           <InfoRow
             label="Creada"
             value={formatDate(campaign.createdAt.toISOString())}

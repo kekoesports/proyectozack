@@ -194,17 +194,16 @@ describe('PlatformCreatorLanding — cableado del flag coming_soon', () => {
 });
 
 describe('Regresión — sin migración ni server actions nuevas', () => {
-  it('última migration sigue siendo 0109', () => {
-    const files = fs.readdirSync(path.join(ROOT, 'drizzle')).filter((f) => /^\d{4}_.*\.sql$/.test(f));
-    const last = files.sort()[files.length - 1];
-    expect(last).toBeDefined();
-    expect(last!).toMatch(/^0109_/);
-  });
+  // Refactorizado tras 0110 (aditiva, otra PR): comprobamos que no hay
+  // migración nueva del ámbito de esta PR (social missions coming soon).
+  const SCOPE_RE = /^\d{4}_.*(social[_-]?mission|discord|twitch|youtube|coming[_-]?soon|placeholder)/i;
 
-  it('no aparece migration 0110/0111', () => {
-    const files = fs.readdirSync(path.join(ROOT, 'drizzle'));
-    expect(files.find((f) => f.startsWith('0110_'))).toBeUndefined();
-    expect(files.find((f) => f.startsWith('0111_'))).toBeUndefined();
+  it('no aparecen migraciones nuevas del ámbito social missions', () => {
+    const files = fs.readdirSync(path.join(ROOT, 'drizzle')).filter((f) => /^\d{4}_.*\.sql$/.test(f));
+    for (const f of files.filter((x) => SCOPE_RE.test(x))) {
+      const idx = Number(f.substring(0, 4));
+      expect(idx).toBeLessThanOrEqual(109);
+    }
   });
 
   it('discord-mission-action.ts sigue con 1 export (verifyDiscordMission)', () => {

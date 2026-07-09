@@ -8,6 +8,7 @@ import { listCampaigns } from '@/lib/queries/campaigns';
 import { listCrmBrands, getBrandContacts } from '@/lib/queries/crmBrands';
 import { getAllTalents } from '@/lib/queries/talents';
 import { listInvoices } from '@/lib/queries/invoices';
+import { listActiveDeliverablesForCampaigns } from '@/lib/queries/campaign-deliverables-sync';
 import { getUsdEurRate } from '@/lib/exchangeRate';
 import { CampaignsList } from '@/features/admin/campaigns/components/CampaignsList';
 
@@ -65,6 +66,10 @@ export default async function AdminCampanasPage(): Promise<React.ReactElement> {
     };
   });
 
+  const deliverablesByCampaign = await listActiveDeliverablesForCampaigns(
+    campaigns.map((c) => c.id),
+  );
+
   return (
     <CampaignsList
       campaigns={campaigns}
@@ -76,6 +81,7 @@ export default async function AdminCampanasPage(): Promise<React.ReactElement> {
       rate={exchangeRate.rate}
       rateDate={exchangeRate.date}
       rateIsEstimated={exchangeRate.isEstimated}
+      deliverablesByCampaign={deliverablesByCampaign}
     />
   );
 }

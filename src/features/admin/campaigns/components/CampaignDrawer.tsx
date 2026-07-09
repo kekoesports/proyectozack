@@ -4,6 +4,7 @@ import { EditDrawer } from '@/features/admin/_shared/components/EditDrawer';
 import type { CampaignRow, CrmBrandContact } from '@/types';
 
 import { CampaignForm, type BrandOption, type TalentOption, type StaffOption } from './CampaignDrawer.parts';
+import type { DeliverableEditorRow } from './DeliverablesEditor';
 
 type Props = {
   readonly campaign: CampaignRow | null;
@@ -14,6 +15,7 @@ type Props = {
   readonly staffUsers: readonly StaffOption[];
   readonly contactsByBrand: Readonly<Record<number, readonly CrmBrandContact[]>>;
   readonly isManager: boolean;
+  readonly initialDeliverables?: readonly DeliverableEditorRow[];
 };
 
 /**
@@ -31,6 +33,7 @@ export function CampaignDrawer({
   staffUsers,
   contactsByBrand,
   isManager,
+  initialDeliverables = [],
 }: Props): React.ReactElement {
   // Use campaign id (or 'new') as key so the form remounts on each open/switch
   const formKey = isOpen ? (campaign ? String(campaign.id) : 'new') : 'closed';
@@ -51,6 +54,7 @@ export function CampaignDrawer({
         staffUsers={staffUsers}
         contactsByBrand={contactsByBrand}
         isManager={isManager}
+        initialDeliverables={initialDeliverables}
       />
     </EditDrawer>
   );
