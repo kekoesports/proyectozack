@@ -17,6 +17,7 @@ import {
   archiveCampaignAction,
 } from '@/app/admin/(dashboard)/campanas/actions';
 import type { CampaignRow, CrmBrandContact } from '@/types';
+import { DeliverablesEditor, type DeliverableEditorRow } from './DeliverablesEditor';
 
 // ── Shared types ───────────────────────────────────────────────────────────────
 
@@ -84,6 +85,11 @@ export type CampaignFormProps = {
   readonly staffUsers: readonly StaffOption[];
   readonly contactsByBrand: Readonly<Record<number, readonly CrmBrandContact[]>>;
   readonly isManager: boolean;
+  /**
+   * Entregables (dealDeliverableTrackers) existentes para el trato — solo
+   * relevante en modo edición. `[]` al crear.
+   */
+  readonly initialDeliverables?: readonly DeliverableEditorRow[];
 };
 
 export function CampaignForm({
@@ -95,6 +101,7 @@ export function CampaignForm({
   staffUsers,
   contactsByBrand,
   isManager,
+  initialDeliverables = [],
 }: CampaignFormProps): React.ReactElement {
   const router = useRouter();
   const [, startTransition] = useTransition();
@@ -247,7 +254,10 @@ export function CampaignForm({
       )}
 
       {/* Tipo de acción */}
-      <Field label="Tipo de acción *">
+      <Field
+        label="Tipo de acción *"
+        hint="Categoría principal. Los entregables concretos se detallan más abajo."
+      >
         <select
           name="actionType"
           required
@@ -331,26 +341,10 @@ export function CampaignForm({
         />
       </Field>
 
-      {/* URLs */}
-      <Field label="URL briefing">
-        <input
-          type="url"
-          name="briefingUrl"
-          defaultValue={campaign?.briefingUrl ?? ''}
-          placeholder="https://…"
-          className={inputCls}
-        />
-      </Field>
-
-      <Field label="URL contenido">
-        <input
-          type="url"
-          name="contentUrl"
-          defaultValue={campaign?.contentUrl ?? ''}
-          placeholder="https://…"
-          className={inputCls}
-        />
-      </Field>
+      {/* URLs briefing/contenido — OCULTOS (PR: tratos-entregables-editables).
+          Columnas DB conservadas; solo se retiran del formulario porque el
+          equipo ya no las usa activamente. Los valores existentes siguen
+          consultables desde queries y SummaryCard (también oculto). */}
 
       {/* Moneda + importes */}
       <input type="hidden" name="currency" value={currency} />
@@ -509,37 +503,12 @@ export function CampaignForm({
         </select>
       </Field>
 
-      {/* Estimates — coste interno estimado y margen previsto */}
-      <div className="border-t border-sp-admin-border/50 pt-3">
-        <p className="text-[11px] uppercase tracking-wider font-semibold text-sp-admin-muted mb-3">
-          Estimaciones internas
-        </p>
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="Coste estimado agencia (€)" hint="Horas + gastos internos previstos">
-            <input
-              type="number"
-              name="estimatedCostAgency"
-              min="0"
-              step="10"
-              defaultValue={campaign?.estimatedCostAgency ?? ''}
-              placeholder="0"
-              className={inputCls}
-            />
-          </Field>
-          <Field label="Margen previsto (%)" hint="Comisión estimada sobre el deal">
-            <input
-              type="number"
-              name="estimatedMarginPct"
-              min="0"
-              max="100"
-              step="0.5"
-              defaultValue={campaign?.estimatedMarginPct ?? ''}
-              placeholder="20"
-              className={inputCls}
-            />
-          </Field>
-        </div>
-      </div>
+      {/* Bloque estimaciones ocultado (PR tratos-entregables-editables).
+          Columnas DB conservadas. AI assistant sigue leyendo valores previos. */}
+
+      {/* Entregables del trato — se persisten en dealDeliverableTrackers via
+          Server Action. Ver DeliverablesEditor.tsx. */}
+      <DeliverablesEditor initialRows={initialDeliverables} />
 
       {/* Notas */}
       <Field label="Notas">

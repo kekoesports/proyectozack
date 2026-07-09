@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 
 import { requirePermission } from '@/lib/permissions';
 import { createCampaignSchema, updateCampaignSchema } from '@/lib/schemas/campaign';
+import { parseDeliverablesJson } from '@/lib/schemas/campaign-deliverables';
 import {
   createCampaign,
   updateCampaign,
@@ -11,6 +12,7 @@ import {
   unarchiveCampaign,
   assertCanEditCampaign,
 } from '@/lib/queries/campaigns';
+import { syncCampaignDeliverables } from '@/lib/queries/campaign-deliverables-sync';
 
 import { compact } from '@/lib/utils/objects';
 
@@ -38,6 +40,14 @@ export async function createCampaignAction(
 
     const campaign = await createCampaign(input);
 
+    // Entregables (dealDeliverableTrackers) — se sincronizan post-create con
+    // el id ya conocido. parseDeliverablesJson nunca lanza; retorna [] si el
+    // payload está ausente o malformado, así no rompe el create básico.
+    const deliverables = parseDeliverablesJson(formData.get('deliverables_json'));
+    if (deliverables.length > 0) {
+      await syncCampaignDeliverables(campaign.id, deliverables);
+    }
+
     revalidatePath('/admin/campanas');
     return { success: true, id: campaign.id };
   } catch (err) {
@@ -63,6 +73,15 @@ export async function updateCampaignAction(
     await assertCanEditCampaign(id, { userId: session.user.id, role: session.user.role });
 
     await updateCampaign(id, compact(rest) as Partial<CreateCampaignInput>);
+
+    // Entregables — sincroniza siempre (incluso array vacío) para que quitar
+    // todas las filas cancele los trackers activos.
+    const deliverables = parseDeliverablesJson(formData.get('deliverables_json'));
+    // Solo procesa si el input trajo el campo (para no cancelar en actualizaciones
+    // parciales que ni siquiera envían deliverables_json).
+    if (formData.has('deliverables_json')) {
+      await syncCampaignDeliverables(id, deliverables);
+    }
 
     revalidatePath('/admin/campanas');
     return { success: true };

@@ -12,29 +12,32 @@ import * as path from 'path';
 const DRIZZLE_DIR = path.join(process.cwd(), 'drizzle');
 
 describe('Fase 1 PR2 — sin migración nueva', () => {
-  it('la última migration en el journal es 0109_*', () => {
+  // Nota histórica: este test verificaba que la última migration fuera 0109.
+  // Cuando una PR ajena (tratos-entregables-editables) añade una migration
+  // aditiva, la aserción se refactoriza a "ninguna migración del ámbito
+  // sorteos/raffle nueva" — que es la intención real del test.
+  const SCOPE_RE = /^\d{4}_.*(sorteo|raffle|prize|coin|social[_-]?mission|consent[_-]?gate)/i;
+
+  it('no aparecen migraciones nuevas del ámbito sorteos/raffle', () => {
     const files = fs.readdirSync(DRIZZLE_DIR).filter((f) => f.endsWith('.sql'));
-    const migrations = files
-      .filter((f) => /^\d{4}_/.test(f))
-      .sort();
-    const last = migrations[migrations.length - 1];
-    expect(last).toBeDefined();
-    expect(last!).toMatch(/^0109_/);
+    const scoped = files.filter((f) => SCOPE_RE.test(f) && !f.startsWith('_legacy_'));
+    // Solo la migration 0106 legítima de Fase 1 PR1 (consent gate) debe quedar.
+    // La Fase 1 PR2 confirmó "sin nueva migración de este ámbito".
+    for (const f of scoped) {
+      const idx = Number(f.substring(0, 4));
+      expect(idx).toBeLessThanOrEqual(108);
+    }
   });
 
-  it('no existe migration 0110 ni 0111', () => {
-    const files = fs.readdirSync(DRIZZLE_DIR);
-    expect(files.find((f) => f.startsWith('0110_'))).toBeUndefined();
-    expect(files.find((f) => f.startsWith('0111_'))).toBeUndefined();
-  });
-
-  it('el journal de meta refleja 0109 como último', () => {
+  it('el journal no contiene tags de sorteos/raffle posteriores a 0106', () => {
     const journalPath = path.join(DRIZZLE_DIR, 'meta', '_journal.json');
     const raw = fs.readFileSync(journalPath, 'utf8');
-    const parsed = JSON.parse(raw) as { entries?: Array<{ tag: string }> };
+    const parsed = JSON.parse(raw) as { entries?: Array<{ idx: number; tag: string }> };
     const entries = parsed.entries ?? [];
-    const last = entries[entries.length - 1];
-    expect(last).toBeDefined();
-    expect(last!.tag).toMatch(/^0109_/);
+    for (const e of entries) {
+      if (SCOPE_RE.test(`${e.idx.toString().padStart(4, '0')}_${e.tag.replace(/^\d+_/, '')}`)) {
+        expect(e.idx).toBeLessThanOrEqual(108);
+      }
+    }
   });
 });

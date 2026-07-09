@@ -44,11 +44,12 @@ describe('Rentabilidad 6B — invariantes de PR 6A preservadas', () => {
     expect(src).toMatch(/requirePermission\(['"]facturacion['"],\s*['"]read['"]\)/);
   });
 
-  it('no crea migración nueva 011X', () => {
+  it('no crea migración nueva del ámbito rentabilidad', () => {
+    // Refactorizado tras 0110 (aditiva, otra PR): esta PR (rentabilidad 6B)
+    // sólo añade rankings y charts — no debería introducir migraciones de su
+    // ámbito. Comprobación por naming.
     const journal = read('drizzle/meta/_journal.json');
-    expect(journal).toMatch(/"tag":\s*"0109_billing_clients_pdf_language"/);
-    expect(journal).not.toMatch(/"tag":\s*"0110_/);
-    expect(journal).not.toMatch(/"tag":\s*"0111_/);
+    expect(journal).not.toMatch(/"tag":\s*"\d{4}_[^"]*(rentab|pnl|margin|profit|ranking)[^"]*"/i);
   });
 });
 
