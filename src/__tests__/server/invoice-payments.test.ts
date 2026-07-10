@@ -1,5 +1,11 @@
 import { applyPaymentSchema } from '@/lib/schemas/invoicePayments';
 import { checkGuardrails } from '@/lib/services/ai-assistant/guardrails';
+import {
+  assertInvoicePayable,
+  computePaymentPreview,
+  PaymentGuardError,
+  type PayableCheckInput,
+} from '@/lib/services/bank-reconciliation/invoicePaymentGuards';
 
 // ── applyPaymentSchema ────────────────────────────────────────────────
 
@@ -154,6 +160,163 @@ describe('checkGuardrails — patrones de aplicación de cobros/pagos', () => {
     for (const msg of cases) {
       expect(checkGuardrails(msg).blocked).toBe(false);
     }
+  });
+});
+
+// ── Guards: assertInvoicePayable ──────────────────────────────────────
+
+describe('assertInvoicePayable — guards al aplicar cobros/pagos', () => {
+  const base: PayableCheckInput = {
+    status: 'emitida',
+    totalDue: '1500.00',
+    previouslyPaid: '0.00',
+    amountToApply: '500.00',
+    kind: 'issued',
+  };
+
+  it('permite un pago parcial válido (issued)', () => {
+    expect(() => assertInvoicePayable(base)).not.toThrow();
+  });
+
+  it('permite completar exactamente hasta el total (issued)', () => {
+    expect(() =>
+      assertInvoicePayable({ ...base, previouslyPaid: '500.00', amountToApply: '1000.00' }),
+    ).not.toThrow();
+  });
+
+  it('permite tolerancia de ±0.005 al completar (issued)', () => {
+    expect(() =>
+      assertInvoicePayable({ ...base, previouslyPaid: '999.996', amountToApply: '500.00', totalDue: '1500.00' }),
+    ).not.toThrow();
+  });
+
+  it('rechaza aplicar cobro a factura issued anulada', () => {
+    let caught: unknown;
+    try {
+      assertInvoicePayable({ ...base, status: 'anulada' });
+    } catch (e) { caught = e; }
+    expect(caught).toBeInstanceOf(PaymentGuardError);
+    expect((caught as PaymentGuardError).reason).toBe('voided');
+    expect((caught as PaymentGuardError).message).toBe('No se puede aplicar un cobro/pago a una factura anulada.');
+  });
+
+  it('rechaza aplicar cobro a factura issued ya cobrada', () => {
+    let caught: unknown;
+    try {
+      assertInvoicePayable({ ...base, status: 'cobrada' });
+    } catch (e) { caught = e; }
+    expect(caught).toBeInstanceOf(PaymentGuardError);
+    expect((caught as PaymentGuardError).reason).toBe('already_completed');
+  });
+
+  it('rechaza aplicar pago a invoice interna anulada (income)', () => {
+    let caught: unknown;
+    try {
+      assertInvoicePayable({ ...base, kind: 'internal_income', status: 'anulada' });
+    } catch (e) { caught = e; }
+    expect(caught).toBeInstanceOf(PaymentGuardError);
+    expect((caught as PaymentGuardError).reason).toBe('voided');
+  });
+
+  it('rechaza aplicar cobro a invoice interna income ya cobrada', () => {
+    let caught: unknown;
+    try {
+      assertInvoicePayable({ ...base, kind: 'internal_income', status: 'cobrada' });
+    } catch (e) { caught = e; }
+    expect((caught as PaymentGuardError).reason).toBe('already_completed');
+  });
+
+  it('rechaza aplicar pago a invoice interna expense ya pagada', () => {
+    let caught: unknown;
+    try {
+      assertInvoicePayable({ ...base, kind: 'internal_expense', status: 'pagada' });
+    } catch (e) { caught = e; }
+    expect((caught as PaymentGuardError).reason).toBe('already_completed');
+  });
+
+  it('permite aplicar pago a invoice interna expense en status parcial', () => {
+    expect(() =>
+      assertInvoicePayable({ ...base, kind: 'internal_expense', status: 'parcial', previouslyPaid: '300.00', amountToApply: '200.00', totalDue: '1000.00' }),
+    ).not.toThrow();
+  });
+
+  it('rechaza sobrepago issued (previouslyPaid + amount > totalDue)', () => {
+    let caught: unknown;
+    try {
+      assertInvoicePayable({ ...base, previouslyPaid: '1000.00', amountToApply: '600.00' });
+    } catch (e) { caught = e; }
+    expect(caught).toBeInstanceOf(PaymentGuardError);
+    expect((caught as PaymentGuardError).reason).toBe('overpayment');
+    expect((caught as PaymentGuardError).message).toBe('El importe a aplicar supera el pendiente de la factura.');
+  });
+
+  it('rechaza sobrepago internal expense', () => {
+    let caught: unknown;
+    try {
+      assertInvoicePayable({ kind: 'internal_expense', status: 'emitida', totalDue: '500.00', previouslyPaid: '400.00', amountToApply: '200.00' });
+    } catch (e) { caught = e; }
+    expect((caught as PaymentGuardError).reason).toBe('overpayment');
+  });
+
+  it('normaliza el status con espacios y mayúsculas', () => {
+    expect(() => assertInvoicePayable({ ...base, status: '  Anulada  ' })).toThrow(PaymentGuardError);
+    expect(() => assertInvoicePayable({ ...base, status: null })).not.toThrow();
+  });
+});
+
+// ── Preview: computePaymentPreview ────────────────────────────────────
+
+describe('computePaymentPreview — datos para el panel de confirmación', () => {
+  it('devuelve total, previouslyPaid, remaining, amountToApply y resultingPaid formateados a 2 decimales', () => {
+    const p = computePaymentPreview({
+      status: 'emitida',
+      totalDue: '1500',
+      previouslyPaid: '500',
+      amountToApply: '250',
+      kind: 'issued',
+    });
+    expect(p.totalDue).toBe('1500.00');
+    expect(p.previouslyPaid).toBe('500.00');
+    expect(p.remaining).toBe('1000.00');
+    expect(p.amountToApply).toBe('250.00');
+    expect(p.resultingPaid).toBe('750.00');
+  });
+
+  it('estima estado "parcial" cuando queda pendiente', () => {
+    const p = computePaymentPreview({
+      status: 'emitida',
+      totalDue: '1000',
+      previouslyPaid: '200',
+      amountToApply: '300',
+      kind: 'issued',
+    });
+    expect(p.estimatedStatus).toBe('parcial');
+    expect(p.wouldOverpay).toBe(false);
+  });
+
+  it('estima estado "cobrada" cuando el pago completa una factura issued o income', () => {
+    const issued = computePaymentPreview({ status: 'emitida', totalDue: '1000', previouslyPaid: '0', amountToApply: '1000', kind: 'issued' });
+    const income = computePaymentPreview({ status: 'emitida', totalDue: '1000', previouslyPaid: '0', amountToApply: '1000', kind: 'internal_income' });
+    expect(issued.estimatedStatus).toBe('cobrada');
+    expect(income.estimatedStatus).toBe('cobrada');
+  });
+
+  it('estima estado "pagada" cuando el pago completa un expense interno', () => {
+    const p = computePaymentPreview({ status: 'emitida', totalDue: '500', previouslyPaid: '250', amountToApply: '250', kind: 'internal_expense' });
+    expect(p.estimatedStatus).toBe('pagada');
+    expect(p.wouldOverpay).toBe(false);
+  });
+
+  it('marca wouldOverpay=true cuando amount excede el pendiente (para pintar warning en UI)', () => {
+    const p = computePaymentPreview({ status: 'emitida', totalDue: '1000', previouslyPaid: '500', amountToApply: '600', kind: 'issued' });
+    expect(p.wouldOverpay).toBe(true);
+    // remaining se cappea a 0 mínimo, nunca negativo
+    expect(Number(p.remaining)).toBeGreaterThanOrEqual(0);
+  });
+
+  it('remaining no puede ser negativo aunque previouslyPaid supere el total', () => {
+    const p = computePaymentPreview({ status: 'cobrada', totalDue: '1000', previouslyPaid: '1200', amountToApply: '0', kind: 'issued' });
+    expect(p.remaining).toBe('0.00');
   });
 });
 

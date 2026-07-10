@@ -8,6 +8,10 @@ import {
   invoices,
 } from '@/db/schema';
 import { logReconciliationEvent } from './bankReconciliation';
+import {
+  assertInvoicePayable,
+  PaymentGuardError,
+} from '@/lib/services/bank-reconciliation/invoicePaymentGuards';
 import type { InvoicePayment } from '@/types';
 
 // ── Aplicar cobro a factura emitida ──────────────────────────────────
@@ -25,13 +29,26 @@ export async function applyPaymentToIssuedInvoice(opts: {
 
   const invoice = await db.query.issuedInvoices.findFirst({
     where: eq(issuedInvoices.id, issuedInvoiceId),
-    columns: { id: true, totalAmount: true, currency: true, invoiceNumber: true },
+    columns: { id: true, totalAmount: true, currency: true, invoiceNumber: true, status: true },
   });
 
   if (!invoice) throw new Error(`Factura emitida ${issuedInvoiceId} no encontrada`);
   if (invoice.currency !== currency) {
-    throw new Error(`La moneda del pago (${currency}) no coincide con la de la factura (${invoice.currency})`);
+    throw new PaymentGuardError('currency_mismatch');
   }
+
+  // previouslyPaid = SUM(invoice_payments) — fuente única para issued.
+  const previouslyPaid = await getIssuedInvoicePaidToDate(issuedInvoiceId);
+
+  // Guards ejecutan fuera de la transaction: si alguno lanza, no abrimos
+  // conexión de escritura y el action layer audita el rechazo.
+  assertInvoicePayable({
+    status: invoice.status,
+    totalDue: invoice.totalAmount,
+    previouslyPaid,
+    amountToApply: amount,
+    kind: 'issued',
+  });
 
   let payment: InvoicePayment | undefined;
 
@@ -96,13 +113,32 @@ export async function applyPaymentToInternalInvoice(opts: {
 
   const invoice = await db.query.invoices.findFirst({
     where: eq(invoices.id, invoiceId),
-    columns: { id: true, totalAmount: true, currency: true, kind: true, number: true, paidAmount: true },
+    columns: {
+      id: true,
+      totalAmount: true,
+      currency: true,
+      kind: true,
+      number: true,
+      paidAmount: true,
+      status: true,
+    },
   });
 
   if (!invoice) throw new Error(`Factura interna ${invoiceId} no encontrada`);
   if (invoice.currency !== currency) {
-    throw new Error(`La moneda del pago (${currency}) no coincide con la de la factura (${invoice.currency})`);
+    throw new PaymentGuardError('currency_mismatch');
   }
+
+  // Para internal invoices leemos paidAmount (mirror del write) para no
+  // ignorar datos legacy previos a invoice_payments (ver comentario
+  // `@deprecated` en el schema — cleanup en otra PR).
+  assertInvoicePayable({
+    status: invoice.status,
+    totalDue: invoice.totalAmount,
+    previouslyPaid: invoice.paidAmount ?? '0',
+    amountToApply: amount,
+    kind: invoice.kind === 'income' ? 'internal_income' : 'internal_expense',
+  });
 
   let payment: InvoicePayment | undefined;
 
@@ -171,4 +207,13 @@ export async function getPaymentsForIssuedInvoice(
     .select()
     .from(invoicePayments)
     .where(and(eq(invoicePayments.issuedInvoiceId, issuedInvoiceId)));
+}
+
+/** SUM(amount) de invoice_payments para una factura emitida. Numeric string. */
+export async function getIssuedInvoicePaidToDate(issuedInvoiceId: number): Promise<string> {
+  const rows = await db
+    .select({ total: sum(invoicePayments.amount) })
+    .from(invoicePayments)
+    .where(eq(invoicePayments.issuedInvoiceId, issuedInvoiceId));
+  return rows[0]?.total ?? '0';
 }

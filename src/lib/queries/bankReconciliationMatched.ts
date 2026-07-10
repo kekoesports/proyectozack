@@ -1,6 +1,6 @@
 'server-only';
 
-import { and, eq, inArray, isNotNull } from 'drizzle-orm';
+import { and, eq, inArray, isNotNull, sum } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import {
   bankTransactions,
@@ -9,6 +9,7 @@ import {
   issuedInvoices,
   invoices,
 } from '@/db/schema';
+import type { InvoiceKind } from '@/types';
 
 export type MatchedTransactionRow = {
   readonly transactionId: number;
@@ -25,6 +26,10 @@ export type MatchedTransactionRow = {
   // Datos de la factura vinculada
   readonly invoiceLabel: string;
   readonly invoiceAmount: string;
+  // Estado de la factura (para guards UI). null si el match no vincula factura.
+  readonly invoiceStatus: string | null;
+  readonly invoicePreviouslyPaid: string;
+  readonly invoiceKind: InvoiceKind | null;
   // Estado del pago
   readonly paymentApplied: boolean;
   readonly paymentId: number | null;
@@ -79,7 +84,7 @@ export async function getMatchedTransactionsWithPaymentStatus(opts: {
     .filter((r) => r.matchType === 'internal_invoice' && r.matchedEntityId !== null)
     .map((r) => r.matchedEntityId as number);
 
-  const [paymentRows, issuedRows, invoiceRows] = await Promise.all([
+  const [paymentRows, issuedRows, invoiceRows, issuedPaidSums] = await Promise.all([
     txIds.length > 0
       ? db
           .select({
@@ -97,6 +102,7 @@ export async function getMatchedTransactionsWithPaymentStatus(opts: {
             id: issuedInvoices.id,
             invoiceNumber: issuedInvoices.invoiceNumber,
             totalAmount: issuedInvoices.totalAmount,
+            status: issuedInvoices.status,
           })
           .from(issuedInvoices)
           .where(inArray(issuedInvoices.id, issuedIds))
@@ -108,9 +114,26 @@ export async function getMatchedTransactionsWithPaymentStatus(opts: {
             id: invoices.id,
             number: invoices.number,
             totalAmount: invoices.totalAmount,
+            status: invoices.status,
+            paidAmount: invoices.paidAmount,
+            kind: invoices.kind,
           })
           .from(invoices)
           .where(inArray(invoices.id, invoiceIds))
+      : Promise.resolve([]),
+
+    // SUM invoice_payments agrupada por issuedInvoiceId — fuente de
+    // previouslyPaid para facturas emitidas (consistente con
+    // getIssuedInvoicePaidToDate). Sólo consulta si hay issuedIds.
+    issuedIds.length > 0
+      ? db
+          .select({
+            id: invoicePayments.issuedInvoiceId,
+            total: sum(invoicePayments.amount),
+          })
+          .from(invoicePayments)
+          .where(inArray(invoicePayments.issuedInvoiceId, issuedIds))
+          .groupBy(invoicePayments.issuedInvoiceId)
       : Promise.resolve([]),
   ]);
 
@@ -120,6 +143,11 @@ export async function getMatchedTransactionsWithPaymentStatus(opts: {
   );
   const issuedById = new Map(issuedRows.map((r) => [r.id, r]));
   const invoiceById = new Map(invoiceRows.map((r) => [r.id, r]));
+  const issuedPaidById = new Map(
+    issuedPaidSums
+      .filter((r): r is { id: number; total: string | null } => r.id !== null)
+      .map((r) => [r.id, r.total ?? '0']),
+  );
 
   // 4. Combinar
   return txRows.map((row): MatchedTransactionRow => {
@@ -127,18 +155,27 @@ export async function getMatchedTransactionsWithPaymentStatus(opts: {
 
     let invoiceLabel = `Entidad #${row.matchedEntityId ?? 0}`;
     let invoiceAmount = '0.00';
+    let invoiceStatus: string | null = null;
+    let invoicePreviouslyPaid = '0.00';
+    let invoiceKind: InvoiceKind | null = null;
 
     if (row.matchType === 'issued_invoice' && row.matchedEntityId !== null) {
       const inv = issuedById.get(row.matchedEntityId);
       if (inv) {
         invoiceLabel = `Factura ${inv.invoiceNumber}`;
         invoiceAmount = String(inv.totalAmount);
+        invoiceStatus = inv.status;
+        invoicePreviouslyPaid = issuedPaidById.get(inv.id) ?? '0';
+        invoiceKind = 'income';
       }
     } else if (row.matchType === 'internal_invoice' && row.matchedEntityId !== null) {
       const inv = invoiceById.get(row.matchedEntityId);
       if (inv) {
         invoiceLabel = inv.number ? `Factura ${inv.number}` : `Factura interna #${inv.id}`;
         invoiceAmount = String(inv.totalAmount);
+        invoiceStatus = inv.status;
+        invoicePreviouslyPaid = String(inv.paidAmount ?? '0');
+        invoiceKind = inv.kind;
       }
     } else if (row.matchType === 'expense') {
       invoiceLabel = 'Gasto recurrente';
@@ -161,6 +198,9 @@ export async function getMatchedTransactionsWithPaymentStatus(opts: {
       matchReason: row.matchReason ?? '',
       invoiceLabel,
       invoiceAmount,
+      invoiceStatus,
+      invoicePreviouslyPaid,
+      invoiceKind,
       paymentApplied: payment !== null,
       paymentId: payment?.paymentId ?? null,
       paymentAmount: payment?.paymentAmount ?? null,
