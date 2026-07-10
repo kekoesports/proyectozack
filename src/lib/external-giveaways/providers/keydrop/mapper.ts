@@ -12,7 +12,13 @@ import type { KeydropListItem, KeydropRequirement } from './zod-schemas';
  * Reglas:
  *   - Corrige typo upstream `fullfilled → fulfilled` en `requirements`.
  *   - `duractionSeconds` NO se expone en la card; solo `endsAt` sirve a UI.
- *   - `totalValue = totalPrizes` si viene; si no, suma de `prizes[].price`.
+ *   - `totalValue = sum(prizes[].price)` SIEMPRE. `item.totalPrizes` NO
+ *     representa el valor de este sorteo — es un agregado del creador
+ *     (todos sus sorteos activos sumados). Verificado con probe real
+ *     2026-07-10: los 6 sorteos activos de ZACKETIZOR devolvían el mismo
+ *     `totalPrizes = 6165.03` mientras que sus `sum(prizes[].price)` iban
+ *     de 311.56 a 2040.30. Ese campo se descarta aquí y queda para una
+ *     futura vista agregada del creador (fuera de la card individual).
  *   - `promoCode`: primer requirement con `promoCode`, o
  *     `organizer.promocode` como fallback.
  *   - `externalUrl` se construye con `buildKeydropDeepLink(id, promoCode)`:
@@ -91,10 +97,13 @@ export function buildKeydropClaimUrl(promoCode: string | undefined): string {
 export function keydropItemToCard({ item, creatorSlug }: MapInput): ExternalGiveawayCard {
   const firstPrize = item.prizes[0];
 
-  const totalFromSum = item.prizes.reduce((acc, p) => acc + (typeof p.price === 'number' ? p.price : 0), 0);
-  const totalValue = typeof item.totalPrizes === 'number' && item.totalPrizes > 0
-    ? item.totalPrizes
-    : totalFromSum;
+  // totalValue = suma real de los premios de ESTE sorteo. `item.totalPrizes`
+  // no se usa (ver comentario en la cabecera del archivo — es un agregado
+  // del creador, no del sorteo).
+  const totalValue = item.prizes.reduce(
+    (acc, p) => acc + (typeof p.price === 'number' ? p.price : 0),
+    0,
+  );
 
   const currency = firstPrize?.currency ?? item.depositAmountRequiredCurrency;
 
