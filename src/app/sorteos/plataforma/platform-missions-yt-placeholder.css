@@ -21,6 +21,25 @@
   border-style: dashed;
 }
 
+/* Tono más discreto — 2026-07-10 Fase 1 PR6 del audit. El placeholder
+   antiguo prometía "+100 ⭐" y usaba lenguaje de acción, y por eso
+   destacaba como una card interactiva que "no funcionaba". Con
+   `is-soft` bajamos el peso visual: menos saturado, sin gradient
+   radial destacado, texto atenuado. Sigue siendo legible y accesible
+   pero cede la atención a Discord/Twitch (donde sí hay verificación). */
+.giveaway-platform .gp-missions-yt-placeholder.is-soft {
+  background: linear-gradient(160deg, rgba(21, 16, 36, 0.72), rgba(11, 9, 23, 0.72));
+  border-color: rgba(255, 255, 255, 0.08);
+  border-style: dashed;
+  opacity: 0.88;
+}
+.giveaway-platform .gp-missions-yt-placeholder.is-soft .gp-missions-yt-soon {
+  color: rgba(255, 255, 255, 0.5);
+}
+.giveaway-platform .gp-missions-yt-placeholder.is-soft .gp-mission-desc {
+  color: rgba(255, 255, 255, 0.55);
+}
+
 /* Icon legacy — mantenido por compat con tests estáticos. */
 .giveaway-platform .gp-missions-yt-icon {
   display: none;
