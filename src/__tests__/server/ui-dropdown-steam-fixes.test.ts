@@ -42,8 +42,13 @@ describe('[ui] SteamLoginButton — CTA premium con logo SVG', () => {
   const src = read('src/features/giveaway-platform/components/SteamLoginButton.tsx');
   const css = read('src/app/sorteos/plataforma/platform-steam-login.css');
 
-  it('anchor apunta a /api/auth/steam/login con aria-label descriptivo', () => {
-    expect(src).toMatch(/href="\/api\/auth\/steam\/login"/);
+  it('anchor apunta a /api/auth/steam/login (con ?returnTo=) y aria-label descriptivo', () => {
+    // Desde 2026-07-10 el botón añade `?returnTo=<encoded>` al href para
+    // preservar el sitio de origen tras el login OpenID. El destino base
+    // sigue siendo `/api/auth/steam/login`; el href se compone en runtime
+    // vía la variable `href` del componente.
+    expect(src).toMatch(/\/api\/auth\/steam\/login\?returnTo=/);
+    expect(src).toMatch(/href=\{href\}/);
     expect(src).toMatch(/aria-label="Iniciar sesión con Steam"/);
   });
 

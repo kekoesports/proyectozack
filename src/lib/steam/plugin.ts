@@ -34,9 +34,17 @@ import {
   verifyOpenIdResponse,
 } from './openid';
 import { fetchSteamProfile } from './profile';
+import { sanitizeReturnTo, SAFE_RETURN_FALLBACK } from './return-to';
 
 const STATE_COOKIE = 'steam_openid_state';
+// Cookie firmada temporal que preserva el pathname+query desde donde el
+// usuario clicó "Iniciar sesión con Steam". Vida igual a STATE_TTL_SEC
+// (misma ventana de validez que el state OpenID). Hash NO se preserva —
+// limitación del flow OpenID, ver comentario en `return-to.ts`.
+const RETURN_TO_COOKIE = 'steam_return_to';
 const STATE_TTL_SEC = 600;
+// Fallback si el usuario no llega con returnTo por query ni por cookie.
+// Ruta legacy que a su vez redirige al home canónico.
 const DEFAULT_SUCCESS_URL = '/sorteos/plataforma';
 
 export interface SteamOpenIdOptions {
@@ -114,7 +122,11 @@ interface SteamSession {
 
 export const steamOpenId = (options: SteamOpenIdOptions = {}): BetterAuthPlugin => {
   const successUrl = options.successUrl ?? DEFAULT_SUCCESS_URL;
-  const errorUrl = options.errorUrl ?? successUrl;
+  // `errorUrl` de options queda deprecado desde 2026-07-10: los errores del
+  // callback preservan el sitio de origen del usuario vía RETURN_TO_COOKIE
+  // (buildErrorRedirect) en lugar de redirigir a una URL fija. Se conserva
+  // el campo en `SteamOpenIdOptions` por retrocompatibilidad del tipo.
+  void options.errorUrl;
 
   return {
     id: 'steam-openid',
@@ -127,18 +139,39 @@ export const steamOpenId = (options: SteamOpenIdOptions = {}): BetterAuthPlugin 
           const ctx = rawCtx as SteamCtx;
           const state = generateId(32);
           const baseURL = ctx.context.baseURL;
-          const returnTo = `${baseURL}/steam/callback?state=${encodeURIComponent(state)}`;
+          // `returnTo` a Steam OpenID: el callback interno de Better Auth.
+          // No confundir con `returnToApp` (dónde vuelve el usuario tras
+          // login OK — lo persistimos en RETURN_TO_COOKIE aparte).
+          const openIdReturn = `${baseURL}/steam/callback?state=${encodeURIComponent(state)}`;
           const realm = new URL(baseURL).origin;
 
-          await ctx.setSignedCookie(STATE_COOKIE, state, ctx.context.secret, {
+          const cookieOpts = {
             httpOnly: true,
-            sameSite: 'lax',
+            sameSite: 'lax' as const,
             secure: baseURL.startsWith('https://'),
             maxAge: STATE_TTL_SEC,
             path: '/',
-          });
+          };
 
-          throw ctx.redirect(buildLoginUrl(returnTo, realm));
+          await ctx.setSignedCookie(STATE_COOKIE, state, ctx.context.secret, cookieOpts);
+
+          // Persistir el returnTo (pathname+query) del origen del click en
+          // una cookie firmada. Sanitizado antes de guardar y de nuevo al
+          // leer (defense-in-depth). Si no viene, guardamos el fallback
+          // para que la cookie exista y el callback no tenga que decidir
+          // sin datos.
+          const rawReturnTo = typeof ctx.query['returnTo'] === 'string'
+            ? ctx.query['returnTo']
+            : null;
+          const safeReturnTo = sanitizeReturnTo(rawReturnTo);
+          await ctx.setSignedCookie(
+            RETURN_TO_COOKIE,
+            safeReturnTo,
+            ctx.context.secret,
+            cookieOpts,
+          );
+
+          throw ctx.redirect(buildLoginUrl(openIdReturn, realm));
         },
       ),
 
@@ -149,27 +182,38 @@ export const steamOpenId = (options: SteamOpenIdOptions = {}): BetterAuthPlugin 
         async (rawCtx: any) => {
           const ctx = rawCtx as SteamCtx;
 
+          // Recuperar returnTo antes que cualquier otra cosa — así incluso
+          // los redirects de error preservan el sitio de origen. Sanitizado
+          // de nuevo aquí como defense-in-depth por si la cookie firmada
+          // llegase con un valor comprometido.
+          const rawReturnCookie = await ctx.getSignedCookie(RETURN_TO_COOKIE, ctx.context.secret);
+          const safeReturnTo = sanitizeReturnTo(rawReturnCookie ?? null);
+          const buildErrorRedirect = (err: string): string => {
+            const sep = safeReturnTo.includes('?') ? '&' : '?';
+            return `${safeReturnTo}${sep}steam_error=${encodeURIComponent(err)}`;
+          };
+
           const stateCookie = await ctx.getSignedCookie(STATE_COOKIE, ctx.context.secret);
           const stateQuery = typeof ctx.query['state'] === 'string' ? ctx.query['state'] : null;
           if (!stateCookie || !stateQuery || stateCookie !== stateQuery) {
-            throw ctx.redirect(`${errorUrl}?steam_error=state`);
+            throw ctx.redirect(buildErrorRedirect('state'));
           }
 
           const usp = toCallbackParams(ctx.query);
           const parsed = extractCallbackParams(usp);
           if (!parsed) {
-            throw ctx.redirect(`${errorUrl}?steam_error=params`);
+            throw ctx.redirect(buildErrorRedirect('params'));
           }
 
           const isValid = await verifyOpenIdResponse(parsed);
           if (!isValid) {
-            throw ctx.redirect(`${errorUrl}?steam_error=verify`);
+            throw ctx.redirect(buildErrorRedirect('verify'));
           }
 
           const claimedId = parsed['openid.claimed_id'] ?? '';
           const steamId = extractSteamId(claimedId);
           if (!steamId) {
-            throw ctx.redirect(`${errorUrl}?steam_error=steamid`);
+            throw ctx.redirect(buildErrorRedirect('steamid'));
           }
 
           const profile = await fetchSteamProfile(steamId, env.STEAM_API_KEY);
@@ -226,7 +270,15 @@ export const steamOpenId = (options: SteamOpenIdOptions = {}): BetterAuthPlugin 
           await setSessionCookie(ctx as any, { session, user } as any);
           /* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument */
 
-          throw ctx.redirect(successUrl);
+          // Si la cookie de returnTo no llegó (borrada, TTL expirado,
+          // navegador sin cookies…) `safeReturnTo` es SAFE_RETURN_FALLBACK.
+          // En ese caso caemos al successUrl legacy para preservar el
+          // comportamiento previo. En cualquier otro caso, honramos el
+          // sitio de origen que el usuario clicó.
+          const finalRedirect = safeReturnTo === SAFE_RETURN_FALLBACK
+            ? successUrl
+            : safeReturnTo;
+          throw ctx.redirect(finalRedirect);
         },
       ),
     },

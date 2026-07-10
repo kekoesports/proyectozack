@@ -40,8 +40,12 @@ describe('[steam-plugin] registro y endpoints', () => {
     const src = read('src/lib/steam/plugin.ts');
     expect(src).toMatch(/STATE_COOKIE\s*=\s*'steam_openid_state'/);
     expect(src).toMatch(/STATE_TTL_SEC\s*=\s*600/);
-    expect(src).toMatch(/setSignedCookie\([\s\S]*httpOnly:\s*true/);
-    expect(src).toMatch(/sameSite:\s*'lax'/);
+    // Desde 2026-07-10 las opciones de cookie se comparten entre state y
+    // returnTo vía la constante `cookieOpts`. httpOnly/sameSite/path viven
+    // ahí en lugar de en cada `setSignedCookie` inline.
+    expect(src).toMatch(/httpOnly:\s*true/);
+    expect(src).toMatch(/sameSite:\s*['"]lax['"]/);
+    expect(src).toMatch(/setSignedCookie\(\s*STATE_COOKIE\s*,\s*state\s*,\s*ctx\.context\.secret\s*,\s*cookieOpts\s*\)/);
   });
 
   it('callback valida state antes de cualquier operación', () => {
@@ -105,7 +109,11 @@ describe('[steam-plugin] UI + logout', () => {
     // El CTA vive ahora en su propio componente dedicado (SteamLoginButton).
     // UserPill lo importa y lo renderiza cuando !loggedIn.
     const btn = read('src/features/giveaway-platform/components/SteamLoginButton.tsx');
-    expect(btn).toMatch(/href=["']\/api\/auth\/steam\/login["']/);
+    // Desde 2026-07-10 el href se compone en runtime como
+    // `/api/auth/steam/login?returnTo=<encoded>` para preservar el sitio
+    // de origen tras el login OpenID.
+    expect(btn).toMatch(/\/api\/auth\/steam\/login\?returnTo=/);
+    expect(btn).toMatch(/href=\{href\}/);
     expect(btn).toMatch(/Iniciar sesión con/);
     expect(btn).toMatch(/STEAM/);
     // aria-label para accesibilidad.
