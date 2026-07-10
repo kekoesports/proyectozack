@@ -87,8 +87,14 @@ describe('[rewards-hub-actions] participateInGiveaway respeta entryAwardCoins', 
     expect(fn).toMatch(/if\s*\(\s*awardCoins\s*>\s*0\s*\)\s*\{[\s\S]{0,600}db\.insert\(coinTransactions\)/);
   });
 
-  it('NO llama a evaluateAndClaimMissions cuando awardCoins es 0', () => {
-    expect(fn).toMatch(/awardCoins\s*>\s*0\s*\?\s*await\s+evaluateAndClaimMissions/);
+  it('SIEMPRE evalúa las misiones tras un INSERT en giveaway_entries (aunque awardCoins sea 0)', () => {
+    // Regresión 2026-07-10 (bug B3 del audit): antes se llamaba a
+    // evaluateAndClaimMissions sólo cuando awardCoins > 0, lo que dejaba
+    // la misión "Primera participación" sin otorgar si el primer sorteo
+    // del usuario era gratis. Ahora la llamada es incondicional.
+    expect(fn).toMatch(/const\s+missionsCompleted\s*=\s*await\s+evaluateAndClaimMissions\(/);
+    // Bloquea la reintroducción del patrón antiguo:
+    expect(fn).not.toMatch(/awardCoins\s*>\s*0\s*\?\s*await\s+evaluateAndClaimMissions/);
   });
 
   it('valida status draft/ended/cancelled explícitamente', () => {
