@@ -213,6 +213,29 @@ applyPaymentAction → applyPaymentToIssuedInvoice / applyPaymentToInternalInvoi
 
 Los gastos recurrentes (`expense`) no tienen factura vinculable → botón "Aplicar pago" deshabilitado con tooltip "Próximamente".
 
+### Guards de aplicación
+
+Antes de insertar cualquier `invoice_payments`, `applyPaymentTo*` valida vía `assertInvoicePayable` (helper puro en `src/lib/services/bank-reconciliation/invoicePaymentGuards.ts`):
+
+| Guard | Condición que rechaza | Mensaje |
+|---|---|---|
+| `voided` | `invoice.status === 'anulada'` | "No se puede aplicar un cobro/pago a una factura anulada." |
+| `already_completed` | issued: `status === 'cobrada'`; internal income: `status === 'cobrada'`; internal expense: `status === 'pagada'` | "La factura ya está completamente cobrada/pagada." |
+| `overpayment` | `previouslyPaid + amountToApply > totalDue + 0.005` | "El importe a aplicar supera el pendiente de la factura." |
+| `currency_mismatch` | `payment.currency !== invoice.currency` | "La moneda del pago no coincide con la de la factura." |
+
+**Pagos parciales**: permitidos siempre que la suma no supere el total. La lógica de `parcial`/`cobrada`/`pagada` no cambia.
+
+**Fuente de `previouslyPaid`**:
+- `issued_invoices` → `SUM(invoice_payments.amount)` (`getIssuedInvoicePaidToDate`).
+- `invoices` (interna) → `invoices.paid_amount` (mirror del write actual — cleanup del `@deprecated` en PR futura).
+
+**Orden de ejecución**: las lecturas de guard viven DENTRO de la transacción, tras un `SELECT ... FOR UPDATE` sobre la fila de la factura. Postgres serializa los pagos concurrentes contra la misma factura hasta commit — la segunda transacción ve el `SUM(invoice_payments)` (o `paidAmount`) actualizado por la primera y su guard rechaza el sobrepago. El `UNIQUE(bank_transaction_id, issued_invoice_id | invoice_id)` sigue cubriendo la doble aplicación del mismo movimiento.
+
+**UI defense-in-depth**: en `MatchedTransactionList.tsx` el botón "Aplicar cobro/pago" se sustituye por un chip inactivo ("Factura anulada" / "Factura ya cobrada" / "Factura ya pagada") cuando `invoiceStatus` es terminal. El panel de confirmación muestra Total · Ya cobrado · Pendiente · Importe a aplicar · Estado resultante estimado, y deshabilita el submit si el importe causaría sobrepago.
+
+**Auditoría de rechazos**: cuando el guard lanza, el action layer registra `bank_reconciliation_events.event_type = 'payment_apply_blocked'` con `metadata.reason` (`voided` | `already_completed` | `overpayment` | `currency_mismatch`). El `event_type` es `varchar(100)`, sin migración.
+
 ### AI tool — getPendingPaymentMatches
 
 Lee las transacciones `matched` cuyo cobro/pago aún no ha sido aplicado. Solo lectura.

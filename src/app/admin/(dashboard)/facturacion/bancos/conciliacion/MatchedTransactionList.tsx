@@ -2,6 +2,10 @@
 
 import { useActionState, useState } from 'react';
 import { applyPaymentAction } from './paymentActions';
+import {
+  computePaymentPreview,
+  type PayableInvoiceKind,
+} from '@/lib/services/bank-reconciliation/invoicePaymentGuards';
 import type { MatchedTransactionRow } from '@/lib/queries/bankReconciliationMatched';
 
 type ActionState = { error?: string; success?: boolean };
@@ -20,6 +24,22 @@ function MatchTypeLabel({ type }: { type: string }): React.ReactElement {
   return <span className="text-xs text-sp-admin-muted">{labels[type] ?? type}</span>;
 }
 
+const STATUS_LABEL: Record<string, string> = {
+  cobrada: 'cobrada',
+  pagada: 'pagada',
+  parcial: 'parcial',
+};
+
+// Traduce el matchType + kind de factura al PayableInvoiceKind del helper.
+// Devuelve null si el match no tiene factura vinculable (expense/unknown).
+function toPayableKind(row: MatchedTransactionRow): PayableInvoiceKind | null {
+  if (row.matchType === 'issued_invoice') return 'issued';
+  if (row.matchType === 'internal_invoice') {
+    return row.invoiceKind === 'expense' ? 'internal_expense' : 'internal_income';
+  }
+  return null;
+}
+
 function ApplyPaymentPanel({
   row,
   onClose,
@@ -29,13 +49,50 @@ function ApplyPaymentPanel({
 }): React.ReactElement {
   const [state, formAction, pending] = useActionState(applyPaymentAction, initialState);
 
+  const kind = toPayableKind(row);
+  const preview = kind
+    ? computePaymentPreview({
+        status: row.invoiceStatus,
+        totalDue: row.invoiceAmount,
+        previouslyPaid: row.invoicePreviouslyPaid,
+        amountToApply: row.amount,
+        kind,
+      })
+    : null;
+
   return (
     <div className="mt-2 rounded-lg border border-sp-border bg-sp-admin-bg p-4 space-y-3">
       <p className="text-sm font-semibold text-sp-admin-fg">Confirmar cobro/pago</p>
-      <div className="text-xs text-sp-admin-muted space-y-0.5">
-        <p>Transacción: <span className="text-sp-admin-fg font-medium">{formatAmount(row.amount, row.currency)}</span></p>
-        <p>Factura: <span className="text-sp-admin-fg font-medium">{row.invoiceLabel}</span> ({formatAmount(row.invoiceAmount, row.currency)})</p>
-      </div>
+
+      {preview ? (
+        <dl className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+          <dt className="text-sp-admin-muted">Total factura</dt>
+          <dd className="text-sp-admin-fg text-right font-medium">{formatAmount(preview.totalDue, row.currency)}</dd>
+          <dt className="text-sp-admin-muted">
+            {row.direction === 'income' ? 'Cobrado hasta ahora' : 'Pagado hasta ahora'}
+          </dt>
+          <dd className="text-sp-admin-fg text-right font-medium">{formatAmount(preview.previouslyPaid, row.currency)}</dd>
+          <dt className="text-sp-admin-muted">Pendiente</dt>
+          <dd className="text-sp-admin-fg text-right font-medium">{formatAmount(preview.remaining, row.currency)}</dd>
+          <dt className="text-sp-admin-muted">Importe a aplicar</dt>
+          <dd className="text-sp-admin-fg text-right font-medium">{formatAmount(preview.amountToApply, row.currency)}</dd>
+          <dt className="text-sp-admin-muted pt-1 border-t border-sp-border">Resultado estimado</dt>
+          <dd className={`text-right pt-1 border-t border-sp-border font-semibold ${preview.wouldOverpay ? 'text-red-400' : preview.estimatedStatus === 'parcial' ? 'text-amber-300' : 'text-green-400'}`}>
+            {STATUS_LABEL[preview.estimatedStatus] ?? preview.estimatedStatus}
+          </dd>
+        </dl>
+      ) : (
+        <div className="text-xs text-sp-admin-muted space-y-0.5">
+          <p>Transacción: <span className="text-sp-admin-fg font-medium">{formatAmount(row.amount, row.currency)}</span></p>
+          <p>Factura: <span className="text-sp-admin-fg font-medium">{row.invoiceLabel}</span> ({formatAmount(row.invoiceAmount, row.currency)})</p>
+        </div>
+      )}
+
+      {preview?.wouldOverpay && (
+        <p className="text-xs text-red-400">
+          El importe a aplicar supera el pendiente de la factura. Ajusta el importe o rechaza el match.
+        </p>
+      )}
 
       {state.error && (
         <p className="text-xs text-red-400">{state.error}</p>
@@ -77,8 +134,8 @@ function ApplyPaymentPanel({
         <div className="flex gap-2 pt-1">
           <button
             type="submit"
-            disabled={pending}
-            className="px-3 py-1.5 rounded-lg bg-green-600 text-white text-xs font-semibold hover:bg-green-700 disabled:opacity-50 transition-colors"
+            disabled={pending || (preview?.wouldOverpay ?? false)}
+            className="px-3 py-1.5 rounded-lg bg-green-600 text-white text-xs font-semibold hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {pending ? 'Aplicando...' : row.direction === 'income' ? '✓ Aplicar cobro' : '✓ Aplicar pago'}
           </button>
@@ -95,9 +152,26 @@ function ApplyPaymentPanel({
   );
 }
 
+/**
+ * Determina si la factura vinculada al match ya está en un estado
+ * terminal que impide aplicar más pagos. Se usa para deshabilitar el
+ * botón preventivamente (defense-in-depth con el guard del servidor).
+ */
+function invoiceBlockedReason(row: MatchedTransactionRow): string | null {
+  const status = (row.invoiceStatus ?? '').trim().toLowerCase();
+  if (!status) return null;
+  if (status === 'anulada') return 'Factura anulada';
+  if (row.matchType === 'internal_invoice' && row.invoiceKind === 'expense' && status === 'pagada') {
+    return 'Factura ya pagada';
+  }
+  if (status === 'cobrada') return 'Factura ya cobrada';
+  return null;
+}
+
 function MatchedRow({ row }: { row: MatchedTransactionRow }): React.ReactElement {
   const [showPanel, setShowPanel] = useState(false);
   const isExpense = row.matchType === 'expense';
+  const blockedReason = invoiceBlockedReason(row);
 
   return (
     <div className="rounded-xl border border-sp-border bg-sp-admin-card p-4 space-y-2">
@@ -144,6 +218,13 @@ function MatchedRow({ row }: { row: MatchedTransactionRow }): React.ReactElement
             >
               Aplicar pago — Próximamente
             </span>
+          ) : blockedReason ? (
+            <span
+              title={blockedReason}
+              className="inline-flex items-center gap-1 rounded-lg border border-sp-border px-2.5 py-1 text-xs text-sp-admin-muted cursor-not-allowed opacity-60"
+            >
+              {blockedReason}
+            </span>
           ) : (
             <button
               onClick={() => setShowPanel((v) => !v)}
@@ -155,7 +236,7 @@ function MatchedRow({ row }: { row: MatchedTransactionRow }): React.ReactElement
         </div>
       )}
 
-      {showPanel && !row.paymentApplied && !isExpense && (
+      {showPanel && !row.paymentApplied && !isExpense && !blockedReason && (
         <ApplyPaymentPanel row={row} onClose={() => setShowPanel(false)} />
       )}
     </div>
