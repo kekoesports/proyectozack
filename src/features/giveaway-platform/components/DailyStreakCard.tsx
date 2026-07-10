@@ -1,6 +1,6 @@
 'use client';
 
-import { useTransition } from 'react';
+import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { claimDailyReward } from '@/app/sorteos/plataforma/actions';
 import { STREAK_REWARDS, nextStreakDay } from '@/lib/giveaway-platform/constants';
@@ -25,11 +25,24 @@ interface Props {
 export function DailyStreakCard({ currentDay, claimedToday, streakBroken = false }: Props) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  // Feedback inline si `claimDailyReward` devuelve `ok: false`. Antes se
+  // perdía silenciosamente porque el botón quedaba habilitado tras el
+  // fallo — bug B4 del audit del 2026-07-10. Mensajes canónicos vienen
+  // ya localizados desde el server action (ver `claimDailyReward`).
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   function handleClaim() {
+    // Limpiamos el error anterior al iniciar un nuevo intento — evita
+    // arrastrar un mensaje viejo si el usuario clica de nuevo tras
+    // corregir la causa (p. ej. abrió sesión en otra pestaña).
+    setErrorMessage(null);
     startTransition(async () => {
       const result = await claimDailyReward();
-      if (result.ok) router.refresh();
+      if (result.ok) {
+        router.refresh();
+      } else {
+        setErrorMessage(result.error);
+      }
     });
   }
 
@@ -79,6 +92,11 @@ export function DailyStreakCard({ currentDay, claimedToday, streakBroken = false
           );
         })}
       </div>
+      {errorMessage ? (
+        <p className="gp-streak-error" role="alert" aria-live="polite">
+          {errorMessage}
+        </p>
+      ) : null}
     </>
   );
 }
