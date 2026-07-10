@@ -27,12 +27,12 @@ const UpdateProfileSchema = z.object({
       { message: 'URL de intercambio Steam inválida' },
     )
     .optional(),
-  kickUsername: z
-    .string()
-    .trim()
-    .max(100)
-    .regex(/^[a-zA-Z0-9_.-]*$/, { message: 'Solo letras, números, "_", "." o "-"' })
-    .optional(),
+  // `kickUsername` intencionalmente NO se acepta desde el formulario a
+  // partir de 2026-07-10: el input manual se retiró porque no había OAuth
+  // de Kick ni misiones activas. La columna `kick_username` se conserva
+  // en DB por si se restaura la funcionalidad en el futuro (sin migración
+  // destructiva) — cualquier valor existente queda intacto porque el
+  // action ya no toca ese campo.
 });
 
 export type UpdateProfileResult =
@@ -64,16 +64,12 @@ export async function updateProfile(formData: FormData): Promise<UpdateProfileRe
   const patch: Partial<{
     isPrivate: boolean;
     steamTradeUrl: string | null;
-    kickUsername: string | null;
     updatedAt: Date;
   }> = { updatedAt: new Date() };
 
   if (parsed.data.isPrivate !== undefined) patch.isPrivate = parsed.data.isPrivate;
   if (parsed.data.steamTradeUrl !== undefined) {
     patch.steamTradeUrl = parsed.data.steamTradeUrl === '' ? null : parsed.data.steamTradeUrl;
-  }
-  if (parsed.data.kickUsername !== undefined) {
-    patch.kickUsername = parsed.data.kickUsername === '' ? null : parsed.data.kickUsername;
   }
 
   const existing = await db.query.playerProfiles.findFirst({

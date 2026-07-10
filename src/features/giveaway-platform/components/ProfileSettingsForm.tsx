@@ -6,10 +6,9 @@ import { updateProfile, type UpdateProfileResult } from '@/features/giveaway-pla
 interface Props {
   initialIsPrivate: boolean;
   initialSteamTradeUrl: string | null;
-  initialKickUsername: string | null;
 }
 
-export function ProfileSettingsForm({ initialIsPrivate, initialSteamTradeUrl, initialKickUsername }: Props) {
+export function ProfileSettingsForm({ initialIsPrivate, initialSteamTradeUrl }: Props) {
   const [isPending, startTransition] = useTransition();
   const [result, setResult] = useState<UpdateProfileResult | null>(null);
 
@@ -40,24 +39,6 @@ export function ProfileSettingsForm({ initialIsPrivate, initialSteamTradeUrl, in
         />
         {errors.steamTradeUrl?.[0] ? (
           <span className="gp-profile-err">{errors.steamTradeUrl[0]}</span>
-        ) : null}
-      </div>
-
-      <div className="gp-profile-field">
-        <label htmlFor="pf-kick">
-          <b>Usuario de Kick</b>
-          <span>Vinculación opcional para misiones que requieren interacción en Kick.</span>
-        </label>
-        <input
-          id="pf-kick"
-          name="kickUsername"
-          type="text"
-          defaultValue={initialKickUsername ?? ''}
-          placeholder="tuUsuario"
-          spellCheck={false}
-        />
-        {errors.kickUsername?.[0] ? (
-          <span className="gp-profile-err">{errors.kickUsername[0]}</span>
         ) : null}
       </div>
 
