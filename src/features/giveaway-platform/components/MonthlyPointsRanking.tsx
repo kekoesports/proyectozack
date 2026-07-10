@@ -1,5 +1,34 @@
 import Link from 'next/link';
 import type { PointsRankingRow, UserMonthlyStanding } from '@/types/giveawayPlatform';
+import {
+  getCurrentPrizeForPosition,
+  type RankingPrize,
+} from '@/features/giveaway-platform/constants/prizes';
+
+const PODIUM_EMOJI: Readonly<Record<number, string>> = { 1: '🥇', 2: '🥈', 3: '🥉' };
+
+function InlinePrize({ prize }: { prize: RankingPrize }): React.ReactElement {
+  return (
+    <div className="gp-points-ranking-prize" aria-label={`Premio para el puesto ${prize.position}`}>
+      <div className="gp-points-ranking-prize-media">
+        {prize.imageUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={prize.imageUrl} alt="" />
+        ) : (
+          <span className="gp-points-ranking-prize-fallback" aria-hidden>
+            {PODIUM_EMOJI[prize.position] ?? '🎁'}
+          </span>
+        )}
+      </div>
+      <div className="gp-points-ranking-prize-body">
+        <p className="gp-points-ranking-prize-title">{prize.title}</p>
+        {prize.description ? (
+          <p className="gp-points-ranking-prize-desc">{prize.description}</p>
+        ) : null}
+      </div>
+    </div>
+  );
+}
 
 interface Props {
   rows: readonly PointsRankingRow[];
@@ -42,6 +71,9 @@ export function MonthlyPointsRanking({
               : position === 3 ? 'is-top-3'
               : '';
             const isMe = myStanding?.rank === position;
+            // Top 1/2/3 pintan el premio configurado al lado. Si el mes no
+            // está configurado o falta ese slot, se omite silenciosamente.
+            const prize = position <= 3 ? getCurrentPrizeForPosition(position) : null;
             return (
               <div
                 key={row.userId}
@@ -60,6 +92,7 @@ export function MonthlyPointsRanking({
                 <div className="gp-points-ranking-points">
                   ⭐ {row.pointsEarned.toLocaleString('es-ES')}
                 </div>
+                {prize ? <InlinePrize prize={prize} /> : null}
               </div>
             );
           })}

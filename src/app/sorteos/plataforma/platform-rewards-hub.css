@@ -468,10 +468,65 @@
 
 .giveaway-platform .gp-prize-title { font-size: 13.5px; color: var(--text, #fff); font-weight: 600; margin: 0; }
 .giveaway-platform .gp-prize-desc { font-size: 11.5px; color: rgba(255,255,255,0.55); margin: 4px 0 0; }
+.giveaway-platform .gp-prize-image {
+  width: 100%;
+  max-height: 96px;
+  border-radius: 8px;
+  object-fit: cover;
+  margin: 8px 0;
+  background: rgba(0, 0, 0, 0.35);
+}
 
 .giveaway-platform .gp-prizes-notice {
   margin-top: 14px;
   font-size: 11px;
   color: rgba(255,255,255,0.5);
   font-style: italic;
+}
+
+/* Premio inline al lado del top 1/2/3 en el ranking mensual. Se
+   apila debajo en móvil (grid-template-columns lo colapsa). */
+.giveaway-platform .gp-points-ranking-prize {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  gap: 10px;
+  align-items: center;
+  margin-top: 8px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px dashed rgba(255, 255, 255, 0.10);
+}
+.giveaway-platform .gp-points-ranking-prize-media {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  background: rgba(0, 0, 0, 0.32);
+}
+.giveaway-platform .gp-points-ranking-prize-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.giveaway-platform .gp-points-ranking-prize-fallback {
+  font-size: 22px;
+  line-height: 1;
+}
+.giveaway-platform .gp-points-ranking-prize-body { min-width: 0; }
+.giveaway-platform .gp-points-ranking-prize-title {
+  margin: 0;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text, #fff);
+  line-height: 1.3;
+}
+.giveaway-platform .gp-points-ranking-prize-desc {
+  margin: 2px 0 0;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.55);
+  line-height: 1.35;
 }
