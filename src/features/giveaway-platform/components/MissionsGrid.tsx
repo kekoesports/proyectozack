@@ -254,24 +254,30 @@ function TwitchMissionsPlaceholder({ channelUrl }: { channelUrl: string | null }
  * NO simula verificación. Sólo comunica que la fase 2 (OAuth Google +
  * verificación real vía YouTube Data API v3) está en preparación.
  *
+ * Tono más discreto (2026-07-10, Fase 1 PR6 del audit): antes prometía
+ * "+100 ⭐" como recompensa concreta, lo que generaba expectativa sobre
+ * algo que ni siquiera está implementado y hacía parecer que "no
+ * funciona". Ahora es una nota informativa sin promesa numérica ni
+ * lenguaje de acción ("conecta tu cuenta"), coherente con las
+ * placeholders de Discord/Twitch en creadores sin seed.
+ *
  * Ver `docs/youtube-missions-verification.md` para el plan por fases.
  */
 function YoutubeMissionsPlaceholder() {
   return (
     <div
-      className="gp-mission-card gp-missions-yt-placeholder"
+      className="gp-mission-card gp-missions-yt-placeholder is-soft"
       role="note"
       aria-label="Misiones YouTube próximamente"
     >
       <div className="gp-mission-row">
         <h3 className="gp-mission-title gp-missions-yt-title">
-          Misiones YouTube <span className="gp-missions-yt-soon">· Próximamente</span>
+          Misiones de YouTube <span className="gp-missions-yt-soon">· Próximamente</span>
         </h3>
-        <span className="gp-mission-reward">+100 ⭐</span>
       </div>
       <p className="gp-mission-desc gp-missions-yt-desc">
-        Conecta tu cuenta y completa acciones verificables (suscribirte a un canal,
-        comentar en un vídeo) para que la verificación sea real y segura.
+        Estamos preparando verificaciones de suscripción y comentarios en YouTube.
+        Vuelve pronto.
       </p>
     </div>
   );

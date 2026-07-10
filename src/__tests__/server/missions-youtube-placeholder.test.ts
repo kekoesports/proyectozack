@@ -49,21 +49,28 @@ describe('[missions-yt-placeholder] wiring básico', () => {
 
 describe('[missions-yt-placeholder] copy visible correcto', () => {
   const src = read(COMPONENT);
+  const fnBody = src.match(/function YoutubeMissionsPlaceholder[\s\S]*?^}$/m)?.[0] ?? '';
 
-  it('title contiene "Misiones YouTube" + "Próximamente"', () => {
-    expect(src).toMatch(/Misiones YouTube/);
+  it('title contiene "Misiones de YouTube" + "Próximamente"', () => {
+    // Copy actualizado 2026-07-10 (Fase 1 PR6 del audit): tono
+    // informativo, sin lenguaje de acción ni promesa de puntos.
+    expect(src).toMatch(/Misiones de YouTube/);
     expect(src).toMatch(/Próximamente/);
   });
 
-  it('descripción explica que se conecta la cuenta y se ganan puntos verificando', () => {
-    expect(src).toMatch(/Conecta tu cuenta y completa acciones verificables/);
-    // Menciona los dos ejemplos que documentamos.
-    expect(src).toMatch(/suscribirte a un canal/);
-    expect(src).toMatch(/comentar en un vídeo/);
+  it('descripción menciona suscripción y comentarios en tono informativo', () => {
+    expect(fnBody).toMatch(/verificaciones de suscripción y comentarios/i);
   });
 
   it('deja claro que la integración está en preparación', () => {
-    expect(src).toMatch(/verificación sea real y segura|preparando la integración/i);
+    expect(fnBody).toMatch(/Estamos preparando|preparando la integración|en preparación/i);
+  });
+
+  it('NO usa lenguaje de acción del usuario ("Conecta tu cuenta", "completa acciones")', () => {
+    // El placeholder no debe hacer parecer que hay algo que el usuario
+    // pueda hacer ahora. Copy anterior generaba expectativa falsa.
+    expect(fnBody).not.toMatch(/Conecta tu cuenta/i);
+    expect(fnBody).not.toMatch(/completa acciones verificables/i);
   });
 });
 
@@ -117,6 +124,21 @@ describe('[missions-yt-placeholder] NO simula verificación ni promete puntos co
     // Un texto como "gana 100 puntos" sería confuso porque el sistema
     // todavía no verifica ni concede nada. El copy habla en genérico.
     expect(fnBody).not.toMatch(/\b\d+\s*puntos/);
+  });
+
+  it('NO renderiza el badge "+N ⭐" de recompensa (Fase 1 PR6 del audit)', () => {
+    // Regresión anti-badge: antes del PR6 el placeholder promocionaba
+    // "+100 ⭐" como si fuera una card real con recompensa concreta.
+    // Ahora no hay ninguna cifra de puntos en el JSX del placeholder.
+    expect(fnBody).not.toMatch(/gp-mission-reward/);
+    expect(fnBody).not.toMatch(/\+\s*\d+\s*⭐/);
+  });
+
+  it('aplica clase "is-soft" para tono discreto', () => {
+    // Regresión: si alguien quita el is-soft, el placeholder recupera el
+    // estilo "destacado" (radial gradient, borde saturado) que hacía
+    // parecer que "no funcionaba".
+    expect(fnBody).toMatch(/is-soft/);
   });
 
   it('NO usa palabras que sugieran acción "completed", "ganaste", "verificado"', () => {
