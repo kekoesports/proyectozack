@@ -114,9 +114,13 @@ export async function participateInGiveaway(input: unknown): Promise<ActionResul
     });
   }
 
-  const missionsCompleted = awardCoins > 0
-    ? await evaluateAndClaimMissions(sessionUser.id)
-    : [];
+  // Toda participación en un sorteo interno cuenta para las misiones
+  // basadas en `entries_total`, `entries_this_month` y `distinct_creators`,
+  // sin importar si el sorteo era gratuito o daba puntos por entrar. Antes
+  // sólo se evaluaba cuando awardCoins > 0, lo que dejaba la misión
+  // "Primera participación" sin otorgar si el primer sorteo del usuario
+  // era gratis — UX confuso reportado en el audit del 2026-07-10.
+  const missionsCompleted = await evaluateAndClaimMissions(sessionUser.id);
 
   await logGiveawayEvent({
     userId:  sessionUser.id,

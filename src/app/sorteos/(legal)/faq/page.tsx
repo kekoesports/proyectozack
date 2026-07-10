@@ -82,6 +82,18 @@ const SECTIONS: { title: string; items: QA[] }[] = [
         ),
       },
       {
+        q: '¿Qué cuenta como "participar" para las misiones?',
+        a: (
+          <p>
+            Cualquier participación en un sorteo interno de SocialPro cuenta para las misiones
+            del tipo &quot;Participa en +5 sorteos&quot;, &quot;Apoya a los 3 creadores&quot; y
+            similares — sin importar si el sorteo era gratuito o daba puntos ⭐ por entrar. Los
+            sorteos de plataformas externas como KeyDrop <b>no cuentan</b>: viven en otro
+            sistema, sus reglas son suyas y no comunican progreso a las misiones de SocialPro.
+          </p>
+        ),
+      },
+      {
         q: '¿Qué es una racha diaria?',
         a: (
           <p>
