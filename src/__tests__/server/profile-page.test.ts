@@ -72,7 +72,14 @@ describe('[profile] update server action', () => {
 
   it('sanea vacíos a null antes de actualizar', () => {
     expect(src).toMatch(/steamTradeUrl\s*===\s*''\s*\?\s*null/);
-    expect(src).toMatch(/kickUsername\s*===\s*''\s*\?\s*null/);
+  });
+
+  it('kickUsername retirado del formulario (regresión 2026-07-10)', () => {
+    // El input de "Usuario de Kick" se retiró — no había OAuth ni misiones.
+    // El server action no debe aceptar ese campo desde formData ni tocar
+    // la columna aunque el atacante lo mande.
+    expect(src).not.toMatch(/kickUsername:\s*z\./);
+    expect(src).not.toMatch(/patch\.kickUsername/);
   });
 
   it('revalida /sorteos/perfil tras el update', () => {
@@ -93,10 +100,12 @@ describe('[profile] settings form (client)', () => {
     expect(src).toMatch(/<form\s+action=\{handleSubmit\}/);
   });
 
-  it('inputs para trade URL, kick username y toggle privado', () => {
+  it('inputs para trade URL y toggle privado (Kick retirado 2026-07-10)', () => {
     expect(src).toMatch(/name="steamTradeUrl"/);
-    expect(src).toMatch(/name="kickUsername"/);
     expect(src).toMatch(/name="isPrivate"[\s\S]{0,150}type="checkbox"/);
+    // Regresión anti-Kick: el input y la prop del componente no deben reaparecer.
+    expect(src).not.toMatch(/name="kickUsername"/);
+    expect(src).not.toMatch(/initialKickUsername/);
   });
 
   it('form incluye hidden hasPrivateField para permitir desmarcar el toggle', () => {

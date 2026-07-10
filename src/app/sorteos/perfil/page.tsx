@@ -141,7 +141,6 @@ export default async function PerfilPage() {
           <ProfileSettingsForm
             initialIsPrivate={profile?.isPrivate ?? true}
             initialSteamTradeUrl={profile?.steamTradeUrl ?? null}
-            initialKickUsername={profile?.kickUsername ?? null}
           />
           <p style={{ marginTop: 16, fontSize: 13 }}>
             <Link
