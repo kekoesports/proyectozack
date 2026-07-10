@@ -8,12 +8,23 @@
  * realidad su próximo día era N+1. Estos tests bloquean esa regresión.
  */
 
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { DailyStreakCard } from '@/features/giveaway-platform/components/DailyStreakCard';
+import { claimDailyReward } from '@/app/sorteos/plataforma/actions';
 
 jest.mock('@/app/sorteos/plataforma/actions', () => ({
   claimDailyReward: jest.fn().mockResolvedValue({ ok: true }),
 }));
+
+// Router.refresh() se llama en el path de éxito. Lo mockeamos para no
+// intentar navegar en jsdom.
+const routerRefresh = jest.fn();
+jest.mock('next/navigation', () => ({
+  useRouter: () => ({ refresh: routerRefresh }),
+}));
+
+const mockedClaimDailyReward = claimDailyReward as jest.MockedFunction<typeof claimDailyReward>;
 
 describe('DailyStreakCard — display de racha y botón "Reclamar"', () => {
   function firstMatchingButtonInDay(day: number): HTMLButtonElement | null {
@@ -85,5 +96,86 @@ describe('DailyStreakCard — display de racha y botón "Reclamar"', () => {
     render(<DailyStreakCard currentDay={2} claimedToday={false} />);
     expect(screen.getByText(/Racha actual:/)).toHaveTextContent('2 días');
     expect(screen.getByText(/Racha actual:/)).not.toHaveTextContent('1 días');
+  });
+});
+
+// ─── Bug B4 del audit del 2026-07-10 ────────────────────────────────
+// Antes: si `claimDailyReward` devolvía `ok: false`, el componente
+// hacía `router.refresh()` en el `if (result.ok)` y el error no se
+// mostraba en ningún sitio — el botón simplemente volvía a estar
+// clickeable y el usuario no sabía por qué no había pasado nada.
+// Ahora se pinta un `<p role="alert" className="gp-streak-error">`
+// con el mensaje que devuelve el server action.
+describe('DailyStreakCard — feedback de error del server action (bug B4)', () => {
+  beforeEach(() => {
+    routerRefresh.mockClear();
+    mockedClaimDailyReward.mockClear();
+  });
+
+  it('pinta el mensaje inline cuando claimDailyReward devuelve ok:false', async () => {
+    const user = userEvent.setup();
+    mockedClaimDailyReward.mockResolvedValueOnce({
+      ok: false,
+      error: 'Ya has reclamado la recompensa de hoy',
+    });
+
+    render(<DailyStreakCard currentDay={2} claimedToday={false} />);
+    await user.click(screen.getByRole('button', { name: /reclamar/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toHaveTextContent('Ya has reclamado la recompensa de hoy');
+    });
+    // Y NO se dispara router.refresh() en el path de error.
+    expect(routerRefresh).not.toHaveBeenCalled();
+  });
+
+  it('no muestra el alert cuando claimDailyReward devuelve ok:true, y refresca la ruta', async () => {
+    const user = userEvent.setup();
+    mockedClaimDailyReward.mockResolvedValueOnce({ ok: true });
+
+    render(<DailyStreakCard currentDay={2} claimedToday={false} />);
+    await user.click(screen.getByRole('button', { name: /reclamar/i }));
+
+    await waitFor(() => {
+      expect(routerRefresh).toHaveBeenCalledTimes(1);
+    });
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
+  it('el alert desaparece al iniciar un nuevo intento (no arrastra mensaje viejo)', async () => {
+    const user = userEvent.setup();
+    // Primer click: falla.
+    mockedClaimDailyReward.mockResolvedValueOnce({
+      ok: false,
+      error: 'Inicia sesión con Steam',
+    });
+    // Segundo click: éxito (usuario ha iniciado sesión en otra pestaña).
+    mockedClaimDailyReward.mockResolvedValueOnce({ ok: true });
+
+    render(<DailyStreakCard currentDay={0} claimedToday={false} />);
+    await user.click(screen.getByRole('button', { name: /reclamar/i }));
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toHaveTextContent('Inicia sesión con Steam');
+    });
+
+    await user.click(screen.getByRole('button', { name: /reclamar/i }));
+    await waitFor(() => {
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    });
+    expect(routerRefresh).toHaveBeenCalledTimes(1);
+  });
+
+  it('el alert usa aria-live=polite para no interrumpir al lector de pantalla', async () => {
+    const user = userEvent.setup();
+    mockedClaimDailyReward.mockResolvedValueOnce({
+      ok: false,
+      error: 'Ya has reclamado hoy',
+    });
+
+    render(<DailyStreakCard currentDay={2} claimedToday={false} />);
+    await user.click(screen.getByRole('button', { name: /reclamar/i }));
+
+    const alert = await screen.findByRole('alert');
+    expect(alert).toHaveAttribute('aria-live', 'polite');
   });
 });

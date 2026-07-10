@@ -81,6 +81,21 @@
 }
 .giveaway-platform .gp-streak-claim:disabled { opacity: 0.5; cursor: not-allowed; }
 
+/* Feedback inline si claimDailyReward devuelve ok:false. `role=alert` +
+   `aria-live=polite` para lectores de pantalla. Tono rojo suave sobre
+   plate oscuro — no compite con el brillo dorado del botón "Reclamar". */
+.giveaway-platform .gp-streak-error {
+  margin: 12px 0 0;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 107, 107, 0.35);
+  background: rgba(255, 107, 107, 0.08);
+  color: #ff8f8f;
+  font-size: 13px;
+  line-height: 1.4;
+  text-align: center;
+}
+
 /* ================ MISIONES ================ */
 .giveaway-platform .gp-mission-head {
   font-size: 13px;
