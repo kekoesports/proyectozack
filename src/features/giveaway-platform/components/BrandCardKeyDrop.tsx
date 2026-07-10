@@ -8,18 +8,18 @@ interface Props {
 }
 
 // @allow-sensitive-copy: card de partner externo (KeyDrop). Todo el copy comercial ("200% Bonus",
-// "12x wagering", "raffles $", "Club VIP") es información objetiva del partner — SocialPro no la
-// origina. El renderizado de este componente está detrás de un consent gate en
-// `BrandBonusesSection`: solo se muestra a usuarios logueados que hayan aceptado +18 y participación
-// responsable. Ver docs/legal-risk-matrix.md y docs/external-partners.md.
+// "12x wagering", "raffles $") es información objetiva del partner — SocialPro no la origina. El
+// renderizado de este componente está detrás de un consent gate en `BrandBonusesSection`: solo se
+// muestra a usuarios logueados que hayan aceptado +18 y participación responsable. Ver
+// docs/legal-risk-matrix.md y docs/external-partners.md.
 
 /**
  * Card grande de KeyDrop en el hero de bonuses del creador.
  *
- * Todos los CTAs (Reclamar, 200% Bonus, Cómo participar, Club VIP) van
- * al mismo deep-link con el código del creador aplicado: `kd.link/?code=X`.
- * Es la URL oficial del shortener afiliado que registra el trackeo del
- * partner. Ver `buildKeydropClaimUrl` y `docs/keydrop-api-capabilities.md`.
+ * Los tres CTAs (Reclamar, 200% Bonus, Cómo participar) van al mismo
+ * deep-link con el código del creador aplicado: `kd.link/?code=X`. Es la
+ * URL oficial del shortener afiliado que registra el trackeo del partner.
+ * Ver `buildKeydropClaimUrl` y `docs/keydrop-api-capabilities.md`.
  *
  * `PartnerExternalNotice` es obligatorio: informa al usuario de que la
  * operativa es de KeyDrop y no de SocialPro.
@@ -97,18 +97,6 @@ export function BrandCardKeyDrop({ code }: Props) {
               className="gp-brand-keydrop-banner"
             />
           ) : null}
-          <div className="vip-club">
-            <div className="t">VIP CLUB</div>
-            <a
-              className="gp-btn btn-vip gp-cta-link"
-              href={claimUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              data-cta="keydrop-vip"
-            >
-              👑 Únete al Club VIP
-            </a>
-          </div>
         </div>
       </div>
     </section>

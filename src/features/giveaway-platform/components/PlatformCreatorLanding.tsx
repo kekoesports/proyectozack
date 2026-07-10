@@ -19,6 +19,7 @@ import {
   PLATFORM_CREATOR_SLUGS,
   ENTRY_COIN_REWARD,
   todayInPlatformTz,
+  previousDay,
 } from '@/lib/giveaway-platform/constants';
 import { getCreatorVisual } from '@/features/giveaway-platform/constants/creators';
 import { getDiscordMissionTarget, isDiscordOauthConfigured, isDiscordComingSoon } from '@/features/giveaway-platform/constants/discord-missions';
@@ -173,7 +174,14 @@ export async function PlatformCreatorLanding({ slug }: Props) {
   ]);
 
   const today = todayInPlatformTz();
+  const yesterday = previousDay(today);
   const claimedToday = streak?.lastClaimDate === today;
+  // Racha rota si hay streak pero ni hoy ni ayer se reclamó → el próximo
+  // claim reseteará a día 1 en el server. Sin streak = nunca reclamó =
+  // no está "roto", empezará limpio en día 1 (misma UX que rota).
+  const streakBroken = Boolean(streak)
+    && streak?.lastClaimDate !== today
+    && streak?.lastClaimDate !== yesterday;
 
   return (
     <PlatformShell>
@@ -200,7 +208,11 @@ export async function PlatformCreatorLanding({ slug }: Props) {
             <section id="racha">
               <div className="gp-legacy-block">
                 <h2>Recompensa diaria</h2>
-                <DailyStreakCard currentDay={streak?.currentDay ?? 1} claimedToday={claimedToday} />
+                <DailyStreakCard
+                  currentDay={streak?.currentDay ?? 0}
+                  claimedToday={claimedToday}
+                  streakBroken={streakBroken}
+                />
               </div>
             </section>
 

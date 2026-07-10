@@ -1,10 +1,11 @@
 /**
  * CTAs del banner principal de KeyDrop en `/sorteos/[creatorSlug]`.
  *
- * Contexto: hasta ahora los 4 CTAs del banner (Reclamar, 200% Bonus,
- * Cómo participar, Club VIP) eran `<button data-todo="...">` — botones
- * muertos. Ahora todos deben ser `<a>` reales con el deep-link del
- * afiliado (`kd.link/?code={promocode}`) aplicando el código del creador.
+ * Contexto: los CTAs del banner (Reclamar, 200% Bonus, Cómo participar)
+ * son `<a>` reales con el deep-link del afiliado (`kd.link/?code={promocode}`)
+ * aplicando el código del creador. El "Club VIP" original se ha retirado
+ * del banner por decisión de producto (2026-07-10) — no era información
+ * necesaria del partner en primer plano.
  *
  * Regla: ningún CTA muerto en el banner. Ni `data-todo`, ni `<button>`
  * sin `onClick`/`type="submit"`.
@@ -39,10 +40,10 @@ describe('[brand-card-keydrop] CTAs vivos con code aplicado', () => {
     expect(src).not.toMatch(/<button[\s>]/);
   });
 
-  it('los 4 CTAs son `<a>` con href={claimUrl}', () => {
+  it('los 3 CTAs son `<a>` con href={claimUrl}', () => {
     // Cada `data-cta` etiqueta un CTA. Verificamos que existe y que su
     // ancla usa `claimUrl`, `target="_blank"` y `rel="noopener noreferrer"`.
-    const ctas = ['keydrop-claim', 'keydrop-bonus', 'keydrop-how', 'keydrop-vip'] as const;
+    const ctas = ['keydrop-claim', 'keydrop-bonus', 'keydrop-how'] as const;
     for (const cta of ctas) {
       const re = new RegExp(
         `<a[^>]*href=\\{claimUrl\\}[\\s\\S]{0,300}data-cta="${cta}"|` +
@@ -52,11 +53,19 @@ describe('[brand-card-keydrop] CTAs vivos con code aplicado', () => {
     }
   });
 
+  it('el CTA de VIP se ha retirado del banner (regresión 2026-07-10)', () => {
+    // El bloque "VIP CLUB" / "Únete al Club VIP" ya no forma parte del
+    // banner. Ni el data-cta ni el copy deben aparecer.
+    expect(src).not.toMatch(/data-cta="keydrop-vip"/);
+    expect(src).not.toMatch(/VIP CLUB/);
+    expect(src).not.toMatch(/Únete al Club VIP/);
+  });
+
   it('todos los `<a>` externos llevan target="_blank" + rel="noopener noreferrer"', () => {
     // Cada ancla que use `claimUrl` debe abrir en nueva pestaña con rel seguro.
     const anchorBlocks = src.match(/<a[\s\S]*?>/g) ?? [];
     const claimAnchors = anchorBlocks.filter((a) => a.includes('href={claimUrl}'));
-    expect(claimAnchors.length).toBeGreaterThanOrEqual(4);
+    expect(claimAnchors.length).toBeGreaterThanOrEqual(3);
     for (const a of claimAnchors) {
       expect(a).toMatch(/target="_blank"/);
       expect(a).toMatch(/rel="noopener noreferrer"/);
