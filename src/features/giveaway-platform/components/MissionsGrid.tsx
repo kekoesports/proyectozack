@@ -84,9 +84,18 @@ export function MissionsGrid({ missions, discord, twitch, discordComingSoon, twi
   // Cobradas al final, resto en el orden que llega del server (sortOrder ASC).
   const sortedOther = [...otherMissions].sort((a, b) => Number(a.claimed) - Number(b.claimed));
 
-  const FEATURED_COUNT = 4;
-  const featured = sortedOther.slice(0, FEATURED_COUNT);
-  const rest = sortedOther.slice(FEATURED_COUNT);
+  // Queremos 10 cards visibles EN TOTAL, contando las de redes que ya se
+  // pintan encima (Discord, Twitch, YouTube — reales o placeholders). El
+  // botón "Ver más" expande sólo las internas restantes; las de redes
+  // están siempre visibles.
+  const TOTAL_VISIBLE = 10;
+  const socialCardCount =
+    (hasDiscordCard ? discordMissions.length : hasDiscordPlaceholder ? 1 : 0) +
+    (hasTwitchCard ? twitchMissions.length : hasTwitchPlaceholder ? 1 : 0) +
+    1; // YouTube placeholder siempre visible
+  const featuredCount = Math.max(0, TOTAL_VISIBLE - socialCardCount);
+  const featured = sortedOther.slice(0, featuredCount);
+  const rest = sortedOther.slice(featuredCount);
   const visible = expanded ? sortedOther : featured;
 
   return (
