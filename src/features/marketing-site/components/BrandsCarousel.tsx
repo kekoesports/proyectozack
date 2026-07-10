@@ -12,13 +12,14 @@ type BrandsCarouselProps = {
 /**
  * Presencia visual por marca. Default = 'normal'.
  *  - `boost`: artwork cuadrado/bajo-aspect que rinde proporcionalmente
- *             más pequeño en plate height-bound (1WIN, SKIN.CLUB).
+ *             más pequeño en plate height-bound (1WIN, SKIN.CLUB, PIRATESWAP).
  *  - `shrink`: artwork muy ancho que ocupa demasiado espacio horizontal
- *              y desbalancea el carrusel (JUGABET, SKIN.PLACE, 1XBET).
+ *              y desbalancea el carrusel (JUGABET, SKIN.PLACE, 1XBET, PROZIS).
  */
 const BRAND_PRESENCE: Readonly<Record<string, 'shrink' | 'boost'>> = {
   '1WIN':       'boost',
   'SKIN.CLUB':  'boost',
+  'PIRATESWAP': 'boost',
   'JUGABET':    'shrink',
   'SKIN.PLACE': 'shrink',
   '1XBET':      'shrink',
@@ -27,6 +28,7 @@ const BRAND_PRESENCE: Readonly<Record<string, 'shrink' | 'boost'>> = {
   'CSDROP':     'shrink',
   'KICK':       'shrink',
   'HELLCASE':   'shrink',
+  'PROZIS':     'shrink',
 };
 
 const LOGO_IMAGE_CLASS: Readonly<Record<string, string>> = {};
@@ -35,12 +37,14 @@ const LOGO_IMAGE_CLASS: Readonly<Record<string, string>> = {};
  * Override de maxHeight inline para logos con ratio extremo (>5:1).
  * Las clases Tailwind max-h no son suficientes porque el ancho resultante
  * sigue siendo desproporcionado. El estilo inline garantiza el override.
- *   EVOPLAY:   1584×257 (6.2:1) → 26px → ~160px ancho → plate ~190px
- *   CSGOSKINS: 800×112  (7.1:1) → 22px → ~157px ancho → plate ~189px
+ *   EVOPLAY:   1584×257  (6.2:1) → 26px → ~160px ancho → plate ~190px
+ *   CSGOSKINS:  800×112  (7.1:1) → 22px → ~157px ancho → plate ~189px
+ *   PROZIS:    3001×403  (7.4:1) → 22px → ~163px ancho → plate ~193px
  */
 const LOGO_IMAGE_STYLE: Readonly<Record<string, React.CSSProperties>> = {
   'EVOPLAY':   { maxHeight: '26px' },
   'CSGOSKINS': { maxHeight: '22px' },
+  'PROZIS':    { maxHeight: '22px' },
 };
 
 /**
