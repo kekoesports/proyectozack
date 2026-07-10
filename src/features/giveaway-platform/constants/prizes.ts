@@ -13,6 +13,13 @@ export interface RankingPrize {
   readonly position: 1 | 2 | 3;
   readonly title: string;
   readonly description?: string;
+  /**
+   * URL absoluta o path desde /public a la imagen del premio. Opcional —
+   * si falta, la UI pinta el emoji del podium (🥇/🥈/🥉) como placeholder.
+   * Rellenar cuando se cierre el asset de cada mes; no hace falta que
+   * sea la foto final del artículo (una imagen genérica ya orienta).
+   */
+  readonly imageUrl?: string;
 }
 
 export interface MonthlyPrizeConfig {
@@ -22,19 +29,45 @@ export interface MonthlyPrizeConfig {
 }
 
 /**
- * Premios por mes. Vacío por defecto — Pablo/Alfonso rellenan cuando
- * cierran los premios de cada mes.
+ * Premios por mes. Los títulos y descripciones son placeholders honestos
+ * ("Premio mensual destacado" / "Premio mensual") hasta que se cierre
+ * cada mes con el catálogo real. La imagen se rellena aparte editando
+ * `imageUrl` — hasta entonces la UI muestra el placeholder textual.
+ *
+ * Regla 2026-07-10 (Fase 1 PR4): siempre debe haber al menos el mes
+ * actual configurado para que `/sorteos/#recompensas` no muestre
+ * "Premios de {mes} próximamente" en producción.
  */
 export const MONTHLY_PRIZES: Record<string, MonthlyPrizeConfig> = {
-  // Ejemplo (comentado — activar cuando estén confirmados):
-  // '2026-08': {
-  //   prizes: [
-  //     { position: 1, title: 'Skin CS2 premium', description: 'AK-47 · Redline FT' },
-  //     { position: 2, title: 'Skin CS2' },
-  //     { position: 3, title: 'Puntos extra SocialPro' },
-  //   ],
-  //   notice: 'Entrega sujeta a revisión manual y Steam Trade URL configurada.',
-  // },
+  '2026-07': {
+    prizes: [
+      {
+        position: 1,
+        title: 'Premio mensual destacado',
+        description: 'Skin CS2 · asignada al cierre del mes.',
+      },
+      {
+        position: 2,
+        title: 'Premio mensual',
+        description: 'Skin CS2 · asignada al cierre del mes.',
+      },
+      {
+        position: 3,
+        title: 'Premio mensual',
+        description: 'Tarjeta regalo · asignada al cierre del mes.',
+      },
+    ],
+    notice:
+      'Los premios finales se anuncian en la sección de recompensas al cierre del mes. Entrega sujeta a revisión manual y Steam Trade URL configurada.',
+  },
+  '2026-08': {
+    prizes: [
+      { position: 1, title: 'Premio mensual destacado' },
+      { position: 2, title: 'Premio mensual' },
+      { position: 3, title: 'Premio mensual' },
+    ],
+    notice: 'Detalles del mes se cerrarán antes del 1 de agosto.',
+  },
 };
 
 /** Formatea "YYYY-MM" en el mes natural en curso (UTC). */
@@ -57,4 +90,16 @@ export function monthNameEs(monthKey: string): string {
 /** Devuelve la config del mes actual, o `null` si no está configurada. */
 export function getCurrentMonthPrizes(): MonthlyPrizeConfig | null {
   return MONTHLY_PRIZES[currentMonthKey()] ?? null;
+}
+
+/**
+ * Devuelve el premio configurado para una posición del ranking del mes
+ * actual, o `null` si no hay premio para esa posición (o si el mes no
+ * está configurado). Facilita el render inline en `MonthlyPointsRanking`
+ * sin que el componente tenga que manejar el config completo.
+ */
+export function getCurrentPrizeForPosition(position: number): RankingPrize | null {
+  const config = getCurrentMonthPrizes();
+  if (!config) return null;
+  return config.prizes.find((p) => p.position === position) ?? null;
 }

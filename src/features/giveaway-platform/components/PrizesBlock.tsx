@@ -37,6 +37,10 @@ export function PrizesBlock(): React.ReactElement {
         {config.prizes.map((p) => (
           <li key={p.position} className={`gp-prize-item pos-${p.position}`}>
             <div className="gp-prize-position">Top {p.position}</div>
+            {p.imageUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img className="gp-prize-image" src={p.imageUrl} alt="" />
+            ) : null}
             <p className="gp-prize-title">{p.title}</p>
             {p.description ? <p className="gp-prize-desc">{p.description}</p> : null}
           </li>
