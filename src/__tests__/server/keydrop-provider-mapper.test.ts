@@ -78,14 +78,48 @@ describe('[keydrop-mapper] activo → ExternalGiveawayCard', () => {
     expect(map(baseItem).imageUrl).toBe('https://cdnkd.com/skins/flip.png');
   });
 
-  it('totalValue usa totalPrizes si viene', () => {
-    expect(map(baseItem).totalValue).toBe(4253.94);
+  it('totalValue = sum(prizes[].price) SIEMPRE, incluso si totalPrizes viene', () => {
+    // Regresión 2026-07-10: `totalPrizes` en la API de KeyDrop es un
+    // agregado del creador (todos sus sorteos activos), no de este sorteo.
+    // Verificado con probe real: los 6 sorteos activos de ZACKETIZOR
+    // devolvían el mismo totalPrizes=6165.03 pero sus sum(prizes) reales
+    // iban de 311.56 a 2040.30.
+    // 421.25 + 300 = 721.25 — ignora el 4253.94 del baseItem.
+    expect(map(baseItem).totalValue).toBe(721.25);
   });
 
-  it('totalValue = sum(prizes[].price) si totalPrizes ausente', () => {
+  it('totalValue = sum(prizes[].price) también si totalPrizes ausente', () => {
     const item = { ...baseItem, totalPrizes: undefined };
-    // 421.25 + 300 = 721.25
     expect(map(item).totalValue).toBe(721.25);
+  });
+
+  it('regresión probe real: dos sorteos del mismo creador con totalPrizes idéntico devuelven totalValue distinto', () => {
+    // Escenario extraído del probe 2026-07-10 contra la API real:
+    // ambos items comparten totalPrizes=6165.03 pero cada uno tiene un
+    // sum(prizes) distinto → la UI debe pintar valores DIFERENTES.
+    const bowie: KeydropListItem = {
+      ...baseItem,
+      id: 'bowie-1',
+      totalPrizes: 6165.03,
+      prizes: [
+        prizeFactory({ id: 1, price: 1000.00, title: '★ Bowie Knife' }),
+        prizeFactory({ id: 2, price:  500.00, title: 'Glove' }),
+        prizeFactory({ id: 3, price:  453.81, title: 'AK' }),
+      ],
+    };
+    const nomad: KeydropListItem = {
+      ...baseItem,
+      id: 'nomad-1',
+      totalPrizes: 6165.03,
+      prizes: [
+        prizeFactory({ id: 4, price: 300.00, title: '★ Nomad Knife' }),
+        prizeFactory({ id: 5, price:  92.54, title: 'AWP' }),
+      ],
+    };
+    expect(map(bowie).totalValue).toBeCloseTo(1953.81, 2);
+    expect(map(nomad).totalValue).toBeCloseTo(392.54, 2);
+    // Y no coinciden entre sí, aunque totalPrizes lo hiciera:
+    expect(map(bowie).totalValue).not.toBe(map(nomad).totalValue);
   });
 
   it('promoCode desde organizer si no hay requirements', () => {
