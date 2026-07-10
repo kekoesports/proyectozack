@@ -27,32 +27,52 @@ export async function applyPaymentToIssuedInvoice(opts: {
 }): Promise<InvoicePayment> {
   const { bankTransactionId, issuedInvoiceId, amount, currency, paymentDate, notes, appliedByUserId } = opts;
 
-  const invoice = await db.query.issuedInvoices.findFirst({
-    where: eq(issuedInvoices.id, issuedInvoiceId),
-    columns: { id: true, totalAmount: true, currency: true, invoiceNumber: true, status: true },
-  });
-
-  if (!invoice) throw new Error(`Factura emitida ${issuedInvoiceId} no encontrada`);
-  if (invoice.currency !== currency) {
-    throw new PaymentGuardError('currency_mismatch');
-  }
-
-  // previouslyPaid = SUM(invoice_payments) — fuente única para issued.
-  const previouslyPaid = await getIssuedInvoicePaidToDate(issuedInvoiceId);
-
-  // Guards ejecutan fuera de la transaction: si alguno lanza, no abrimos
-  // conexión de escritura y el action layer audita el rechazo.
-  assertInvoicePayable({
-    status: invoice.status,
-    totalDue: invoice.totalAmount,
-    previouslyPaid,
-    amountToApply: amount,
-    kind: 'issued',
-  });
-
   let payment: InvoicePayment | undefined;
+  let invoiceNumber: string | undefined;
 
   await db.transaction(async (tx) => {
+    // 1) Bloquear la fila de la factura con FOR UPDATE. Postgres serializa
+    //    los pagos concurrentes contra la misma factura hasta commit —
+    //    cierra la ventana entre lectura de status/SUM y INSERT.
+    const invoiceRows = await tx
+      .select({
+        id: issuedInvoices.id,
+        totalAmount: issuedInvoices.totalAmount,
+        currency: issuedInvoices.currency,
+        invoiceNumber: issuedInvoices.invoiceNumber,
+        status: issuedInvoices.status,
+      })
+      .from(issuedInvoices)
+      .where(eq(issuedInvoices.id, issuedInvoiceId))
+      .for('update');
+
+    const invoice = invoiceRows[0];
+    if (!invoice) throw new Error(`Factura emitida ${issuedInvoiceId} no encontrada`);
+    if (invoice.currency !== currency) {
+      throw new PaymentGuardError('currency_mismatch');
+    }
+    invoiceNumber = invoice.invoiceNumber;
+
+    // 2) previouslyPaid = SUM(invoice_payments) leído DENTRO de la tx tras
+    //    el lock. Ve todos los commits anteriores; nadie más puede insertar
+    //    contra esta factura hasta que soltemos el lock.
+    const sumRows = await tx
+      .select({ total: sum(invoicePayments.amount) })
+      .from(invoicePayments)
+      .where(eq(invoicePayments.issuedInvoiceId, issuedInvoiceId));
+    const previouslyPaid = sumRows[0]?.total ?? '0';
+
+    // 3) Guards con el estado real y actualizado. Si lanzan, la tx hace
+    //    rollback y el action layer audita el rechazo.
+    assertInvoicePayable({
+      status: invoice.status,
+      totalDue: invoice.totalAmount,
+      previouslyPaid,
+      amountToApply: amount,
+      kind: 'issued',
+    });
+
+    // 4) INSERT + UPDATE dentro de la misma tx.
     const [inserted] = await tx
       .insert(invoicePayments)
       .values({
@@ -69,15 +89,11 @@ export async function applyPaymentToIssuedInvoice(opts: {
     if (!inserted) throw new Error('Error al insertar el pago');
     payment = inserted;
 
-    // Sumar todos los pagos de esta factura (incluye el recién insertado)
-    const sumRows = await tx
-      .select({ total: sum(invoicePayments.amount) })
-      .from(invoicePayments)
-      .where(eq(invoicePayments.issuedInvoiceId, issuedInvoiceId));
-
-    const totalPaid = Number(sumRows[0]?.total ?? '0');
+    // Post-lock ya sabemos que newTotal = previouslyPaid + amount sin
+    // riesgo de carrera; evitamos un segundo SELECT SUM redundante.
+    const newTotalPaid = Number(previouslyPaid) + Number(amount);
     const totalDue = Number(invoice.totalAmount);
-    const newStatus = totalPaid >= totalDue - 0.005 ? 'cobrada' : 'parcial';
+    const newStatus = newTotalPaid >= totalDue - 0.005 ? 'cobrada' : 'parcial';
 
     await tx
       .update(issuedInvoices)
@@ -85,13 +101,13 @@ export async function applyPaymentToIssuedInvoice(opts: {
       .where(eq(issuedInvoices.id, issuedInvoiceId));
   });
 
-  if (!payment) throw new Error('Error al aplicar el pago');
+  if (!payment || invoiceNumber === undefined) throw new Error('Error al aplicar el pago');
 
   await logReconciliationEvent({
     transactionId: bankTransactionId,
     eventType: 'payment_applied',
-    message: `Cobro aplicado a factura emitida ${invoice.invoiceNumber}: ${amount} ${currency}`,
-    metadata: { issuedInvoiceId, invoiceNumber: invoice.invoiceNumber, amount, currency, paymentDate },
+    message: `Cobro aplicado a factura emitida ${invoiceNumber}: ${amount} ${currency}`,
+    metadata: { issuedInvoiceId, invoiceNumber, amount, currency, paymentDate },
     createdByUserId: appliedByUserId,
   });
 
@@ -111,38 +127,49 @@ export async function applyPaymentToInternalInvoice(opts: {
 }): Promise<InvoicePayment> {
   const { bankTransactionId, invoiceId, amount, currency, paymentDate, notes, appliedByUserId } = opts;
 
-  const invoice = await db.query.invoices.findFirst({
-    where: eq(invoices.id, invoiceId),
-    columns: {
-      id: true,
-      totalAmount: true,
-      currency: true,
-      kind: true,
-      number: true,
-      paidAmount: true,
-      status: true,
-    },
-  });
-
-  if (!invoice) throw new Error(`Factura interna ${invoiceId} no encontrada`);
-  if (invoice.currency !== currency) {
-    throw new PaymentGuardError('currency_mismatch');
-  }
-
-  // Para internal invoices leemos paidAmount (mirror del write) para no
-  // ignorar datos legacy previos a invoice_payments (ver comentario
-  // `@deprecated` en el schema — cleanup en otra PR).
-  assertInvoicePayable({
-    status: invoice.status,
-    totalDue: invoice.totalAmount,
-    previouslyPaid: invoice.paidAmount ?? '0',
-    amountToApply: amount,
-    kind: invoice.kind === 'income' ? 'internal_income' : 'internal_expense',
-  });
-
   let payment: InvoicePayment | undefined;
+  let invoiceNumber: string | null | undefined;
 
   await db.transaction(async (tx) => {
+    // 1) Bloquear la fila de la factura con FOR UPDATE. Serializa pagos
+    //    concurrentes contra la misma factura interna hasta commit.
+    const invoiceRows = await tx
+      .select({
+        id: invoices.id,
+        totalAmount: invoices.totalAmount,
+        currency: invoices.currency,
+        kind: invoices.kind,
+        number: invoices.number,
+        paidAmount: invoices.paidAmount,
+        status: invoices.status,
+      })
+      .from(invoices)
+      .where(eq(invoices.id, invoiceId))
+      .for('update');
+
+    const invoice = invoiceRows[0];
+    if (!invoice) throw new Error(`Factura interna ${invoiceId} no encontrada`);
+    if (invoice.currency !== currency) {
+      throw new PaymentGuardError('currency_mismatch');
+    }
+    invoiceNumber = invoice.number;
+
+    // 2) Para internal invoices leemos paidAmount (mirror del write) para
+    //    no ignorar datos legacy previos a invoice_payments (ver
+    //    `@deprecated` en el schema — cleanup en otra PR). Tras el lock
+    //    nadie puede actualizar paidAmount hasta commit.
+    const previouslyPaid = invoice.paidAmount ?? '0';
+
+    // 3) Guards con el estado real bloqueado.
+    assertInvoicePayable({
+      status: invoice.status,
+      totalDue: invoice.totalAmount,
+      previouslyPaid,
+      amountToApply: amount,
+      kind: invoice.kind === 'income' ? 'internal_income' : 'internal_expense',
+    });
+
+    // 4) INSERT + UPDATE dentro de la misma tx.
     const [inserted] = await tx
       .insert(invoicePayments)
       .values({
@@ -159,7 +186,7 @@ export async function applyPaymentToInternalInvoice(opts: {
     if (!inserted) throw new Error('Error al insertar el pago');
     payment = inserted;
 
-    const newPaidAmount = (Number(invoice.paidAmount ?? '0') + Number(amount)).toFixed(2);
+    const newPaidAmount = (Number(previouslyPaid) + Number(amount)).toFixed(2);
     const totalDue = Number(invoice.totalAmount);
     const paid = Number(newPaidAmount);
 
@@ -181,8 +208,8 @@ export async function applyPaymentToInternalInvoice(opts: {
   await logReconciliationEvent({
     transactionId: bankTransactionId,
     eventType: 'payment_applied',
-    message: `Pago aplicado a factura ${invoice.number ?? invoiceId}: ${amount} ${currency}`,
-    metadata: { invoiceId, invoiceNumber: invoice.number ?? null, amount, currency, paymentDate },
+    message: `Pago aplicado a factura ${invoiceNumber ?? invoiceId}: ${amount} ${currency}`,
+    metadata: { invoiceId, invoiceNumber: invoiceNumber ?? null, amount, currency, paymentDate },
     createdByUserId: appliedByUserId,
   });
 

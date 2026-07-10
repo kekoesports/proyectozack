@@ -230,7 +230,7 @@ Antes de insertar cualquier `invoice_payments`, `applyPaymentTo*` valida vía `a
 - `issued_invoices` → `SUM(invoice_payments.amount)` (`getIssuedInvoicePaidToDate`).
 - `invoices` (interna) → `invoices.paid_amount` (mirror del write actual — cleanup del `@deprecated` en PR futura).
 
-**Orden de ejecución**: las lecturas de guard se hacen fuera de la transacción; sólo se abre la transacción de escritura si el guard pasa. El `UNIQUE(bank_transaction_id, issued_invoice_id | invoice_id)` sigue siendo la protección última contra doble aplicación.
+**Orden de ejecución**: las lecturas de guard viven DENTRO de la transacción, tras un `SELECT ... FOR UPDATE` sobre la fila de la factura. Postgres serializa los pagos concurrentes contra la misma factura hasta commit — la segunda transacción ve el `SUM(invoice_payments)` (o `paidAmount`) actualizado por la primera y su guard rechaza el sobrepago. El `UNIQUE(bank_transaction_id, issued_invoice_id | invoice_id)` sigue cubriendo la doble aplicación del mismo movimiento.
 
 **UI defense-in-depth**: en `MatchedTransactionList.tsx` el botón "Aplicar cobro/pago" se sustituye por un chip inactivo ("Factura anulada" / "Factura ya cobrada" / "Factura ya pagada") cuando `invoiceStatus` es terminal. El panel de confirmación muestra Total · Ya cobrado · Pendiente · Importe a aplicar · Estado resultante estimado, y deshabilita el submit si el importe causaría sobrepago.
 
