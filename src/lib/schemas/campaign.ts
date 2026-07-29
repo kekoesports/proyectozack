@@ -10,6 +10,18 @@ export type CampaignActionType = (typeof CAMPAIGN_ACTION_TYPES)[number];
 export type CampaignPaymentMethod = (typeof CAMPAIGN_PAYMENT_METHODS)[number];
 export type CampaignPaymentDerivedStatus = 'si' | 'no' | 'parcial';
 
+/**
+ * Fuente del estado de cobro/pago mostrado en la UI del trato.
+ *
+ * - `manual`: viene de los toggles `cobroConfirmado`/`pagoTalentConfirmado`
+ *   del propio trato. Es estado OPERATIVO — NO implica factura ni movimiento
+ *   bancario. Prioridad más alta.
+ * - `invoice`: derivado de facturas con `status='cobrada'` asociadas al trato
+ *   (income para marca, expense para talento). Estado CONTABLE real.
+ * - `none`: ni marcado manual ni con factura cobrada.
+ */
+export type CampaignPaymentSource = 'manual' | 'invoice' | 'none';
+
 // Labels para UI
 export const CAMPAIGN_STATUS_LABELS: Record<CampaignStatus, string> = {
   propuesta: 'Propuesta',

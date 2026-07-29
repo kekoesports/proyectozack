@@ -49,6 +49,8 @@ function makeCampaign(overrides: Partial<CampaignWithRelations> = {}): CampaignW
     ownerName: null,
     brandPaid: 'no',
     talentPaid: 'no',
+    brandPaidSource: 'none',
+    talentPaidSource: 'none',
     totalInvoicedBrand: 0,
     totalPaidTalent: 0,
     commissionAmount: 3000,

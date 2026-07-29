@@ -28,7 +28,11 @@ export type * from './financeDashboard';
 
 import type { InferSelectModel } from 'drizzle-orm';
 import type { files, campaigns } from '@/db/schema';
-import type { CampaignDerived, CampaignPaymentDerivedStatus } from '@/lib/schemas/campaign';
+import type {
+  CampaignDerived,
+  CampaignPaymentDerivedStatus,
+  CampaignPaymentSource,
+} from '@/lib/schemas/campaign';
 
 export type FileRecord = InferSelectModel<typeof files>;
 
@@ -36,6 +40,8 @@ export type CampaignRow = InferSelectModel<typeof campaigns>;
 export type Campaign = CampaignRow & CampaignDerived & {
   readonly brandPaid: CampaignPaymentDerivedStatus;
   readonly talentPaid: CampaignPaymentDerivedStatus;
+  readonly brandPaidSource: CampaignPaymentSource;
+  readonly talentPaidSource: CampaignPaymentSource;
   readonly totalInvoicedBrand: number;
   readonly totalPaidTalent: number;
 };
