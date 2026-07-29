@@ -61,7 +61,7 @@ Hecho bajo cuenta `rechedev9` / team `rechedevs-projects` / proyecto `proyectoza
 | Variable | Estado | Notas |
 |---|---|---|
 | Discord client/secret/redirect/guild | SET | App SocialPro Giveaways; redirects en portal Discord OK para socialpro.es + localhost |
-| `DISCORD_ZACKETIZOR_INVITE_URL` | **EMPTY** | Falta invite permanente humano |
+| `DISCORD_ZACKETIZOR_INVITE_URL` | **SET** `https://discord.gg/fyReqYHWm` | Pública (CTA misión); setear también en Vercel prod |
 | Twitch broadcaster + channel URL | SET | `549186441` / `https://www.twitch.tv/zacketizorcs2` |
 | Twitch client id/secret (local) | SET vía pull del Vercel **equivocado** | Revalidar en el Vercel de prod real |
 | `TOKEN_ENCRYPTION_KEY` | SET local | En prod: reutilizar el de prod si ya existe; si no, setear **una vez** y no rotar a la ligera |
@@ -114,7 +114,7 @@ DISCORD_CLIENT_ID
 DISCORD_CLIENT_SECRET
 DISCORD_OAUTH_REDIRECT_URL=https://socialpro.es/api/auth/social/discord/callback
 DISCORD_ZACKETIZOR_GUILD_ID=1183418967608524820
-DISCORD_ZACKETIZOR_INVITE_URL=https://discord.gg/<invite>
+DISCORD_ZACKETIZOR_INVITE_URL=https://discord.gg/fyReqYHWm
 TOKEN_ENCRYPTION_KEY   # reutilizar si ya existe en prod
 TWITCH_CLIENT_ID
 TWITCH_CLIENT_SECRET
@@ -149,7 +149,7 @@ npx tsx --env-file=.env.local scripts/seed-twitch-mission-zacketizor.ts
 |---|---|
 | Acceso Vercel de `socialpro.es` | Humano / org |
 | Acceso merge + deploy del repo | Humano en `kekoesports` |
-| Invite Discord permanente | Humano (admin server Zack) |
+| Invite Discord permanente | **Hecho** — `https://discord.gg/fyReqYHWm` (falta setear en Vercel prod + seed) |
 | Secrets solo en Vercel/local, nunca en git | Agente |
 
 ---
