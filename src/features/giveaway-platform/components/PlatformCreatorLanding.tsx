@@ -213,7 +213,13 @@ export async function PlatformCreatorLanding({ slug }: Props) {
 
         {userId ? (
           <>
-            {!playerProfile?.adultAttestedAt ? <AdultAttestationCard /> : null}
+            {/*
+              Gate +18 solo aplica a usuarios con `player_profiles` (login vía Steam).
+              Admins/staff sin fila en `player_profiles` no ven el gate — no pueden
+              participar/canjear porque los guards server-side de participateInGiveaway
+              y redeemShopItem exigen `adultAttestedAt`. Ver `player_profiles.ts` comment.
+            */}
+            {playerProfile && !playerProfile.adultAttestedAt ? <AdultAttestationCard /> : null}
             <section id="racha">
               <div className="gp-legacy-block">
                 <h2>Recompensa diaria</h2>
