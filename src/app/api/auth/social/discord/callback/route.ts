@@ -6,6 +6,7 @@ import { env } from '@/lib/env';
 import { encrypt, isTokenEncryptionConfigured } from '@/lib/crypto/token-encryption';
 import { upsertConnectedAccount } from '@/lib/queries/connectedSocialAccounts';
 import { isDiscordOauthConfigured } from '@/features/giveaway-platform/constants/discord-missions';
+import { sanitizeSocialReturnPath } from '@/lib/auth/sanitize-social-return';
 
 const DiscordTokenSchema = z.object({
   access_token: z.string().min(1),
@@ -66,7 +67,7 @@ export async function GET(request: Request) {
   // 3) Verificar state contra cookie.
   const cookieStore = await cookies();
   const savedState = cookieStore.get('sp_disc_oauth_state')?.value;
-  const returnTo = cookieStore.get('sp_disc_oauth_return')?.value ?? '/sorteos/perfil';
+  const returnTo = sanitizeSocialReturnPath(cookieStore.get('sp_disc_oauth_return')?.value);
   if (!savedState || savedState !== state) {
     return redirectToProfile('state_mismatch');
   }
@@ -138,7 +139,7 @@ export async function GET(request: Request) {
 
 function redirectToProfile(status: string, target = '/sorteos/perfil'): NextResponse {
   const base = env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
-  const dest = new URL(target, base);
+  const dest = new URL(sanitizeSocialReturnPath(target), base);
   dest.searchParams.set('discord_status', status);
   return NextResponse.redirect(dest.toString(), 302);
 }

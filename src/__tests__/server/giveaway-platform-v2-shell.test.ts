@@ -100,8 +100,8 @@ describe('[PR1] backend intacto', () => {
     expect(src).toMatch(/export async function participateInGiveaway/);
     expect(src).toMatch(/export async function claimDailyReward/);
     expect(src).toMatch(/export async function redeemShopItem/);
-    // Guard exigido por tsc: !redemption → ok: false, sin ID falso.
-    expect(src).toMatch(/if\s*\(!redemption\)\s*return\s*\{\s*ok:\s*false/);
+    expect(src).toMatch(/await\s+redeemAtomically\(/);
+    expect(src).toMatch(/requestKey/);
   });
 
   it('queries/giveawayPlatform.ts no modificado (mantiene getCoinBalance vía SUM)', () => {

@@ -60,8 +60,12 @@ export const AUDIT_ACTIONS = [
   'free_raffle_participate',
   // Elección de ganador (admin)
   'raffle_winner_picked',
+  'raffle_winner_registered',
+  'raffle_winner_deleted',
   // Canjeos
   'shop_redeem',
+  'redemption_sent',
+  'redemption_cancelled',
   // Misiones
   'mission_verify',
   'mission_claim',

@@ -3,6 +3,7 @@ import { ExternalGiveawayCard } from './ExternalGiveawayCard';
 import { ProviderRankingPlaceholder } from './ProviderRankingPlaceholder';
 import { getProvider } from '@/lib/external-giveaways/providers';
 import type { ExternalGiveawaySections } from '@/lib/external-giveaways/types';
+import { PartnerExternalNotice } from '@/components/partner/PartnerExternalNotice';
 
 interface Props {
   sections: ExternalGiveawaySections;
@@ -57,6 +58,7 @@ export function ExternalGiveawaysSection({ sections, creatorDisplayName }: Props
   return (
     <section aria-labelledby="external-section" className="gp-external-section">
       <div className="gp-legacy-block">
+        <PartnerExternalNotice partner={provider.displayName} category="casino_like" />
         <div className="gp-external-head">
           <div>
             <h2 id="external-section">

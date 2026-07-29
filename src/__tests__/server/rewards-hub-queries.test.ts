@@ -75,16 +75,15 @@ describe('[rewards-hub-queries] Free raffles filtro entry_award_coins = 0', () =
 describe('[rewards-hub-actions] participateInGiveaway respeta entryAwardCoins', () => {
   const src = read('src/app/sorteos/plataforma/actions.ts');
   const fn = /export async function participateInGiveaway[\s\S]{0,3500}/.exec(src)?.[0] ?? '';
+  const atomic = read('src/lib/giveaway-platform/atomicOperations.ts');
 
-  it('branchea explícitamente por giveaway.entryAwardCoins', () => {
-    expect(fn).toMatch(/awardCoins\s*=\s*giveaway\.entryAwardCoins/);
+  it('usa el premio persistido que devuelve la operación atómica', () => {
+    expect(fn).toMatch(/awardCoins\s*=\s*participation\.entry_award_coins/);
     expect(fn).toMatch(/if\s*\(\s*awardCoins\s*>\s*0\s*\)/);
   });
 
-  it('NO inserta coin_transactions cuando awardCoins es 0', () => {
-    // El insert está DENTRO del if (awardCoins > 0), y fuera del if no hay otro insert.
-    // Buscamos que el insert de coinTransactions esté anidado dentro del bloque > 0.
-    expect(fn).toMatch(/if\s*\(\s*awardCoins\s*>\s*0\s*\)\s*\{[\s\S]{0,600}db\.insert\(coinTransactions\)/);
+  it('NO inserta coin_transactions cuando el premio es 0', () => {
+    expect(atomic).toMatch(/WHERE e\.entry_award_coins > 0/);
   });
 
   it('SIEMPRE evalúa las misiones tras un INSERT en giveaway_entries (aunque awardCoins sea 0)', () => {
@@ -97,10 +96,10 @@ describe('[rewards-hub-actions] participateInGiveaway respeta entryAwardCoins', 
     expect(fn).not.toMatch(/awardCoins\s*>\s*0\s*\?\s*await\s+evaluateAndClaimMissions/);
   });
 
-  it('valida status draft/ended/cancelled explícitamente', () => {
+  it('valida borradores y exige status activo', () => {
     expect(fn).toMatch(/status\s*===\s*'draft'/);
-    expect(fn).toMatch(/status\s*===\s*'ended'/);
-    expect(fn).toMatch(/status\s*===\s*'cancelled'/);
+    expect(fn).toMatch(/status\s*!==\s*'active'/);
+    expect(atomic).toMatch(/g\.status = 'active'/);
   });
 });
 
@@ -108,19 +107,21 @@ describe('[rewards-hub-actions] pickRaffleWinnerAction admin-guarded', () => {
   const src = read('src/app/admin/(dashboard)/giveaways/actions.ts');
   const fn = /export async function pickRaffleWinnerAction[\s\S]{0,3000}/.exec(src)?.[0] ?? '';
 
-  it('gate por requirePermission("sorteos", "write")', () => {
-    expect(fn).toMatch(/requirePermission\('sorteos',\s*'write'\)/);
+  const atomic = read('src/lib/giveaway-platform/atomicOperations.ts');
+
+  it('gate por requirePermission("sorteos", "publish")', () => {
+    expect(fn).toMatch(/requirePermission\('sorteos',\s*'publish'\)/);
   });
 
   it('selecciona ganador por random() de Postgres', () => {
-    expect(fn).toMatch(/ORDER BY random\(\)/);
+    expect(atomic).toMatch(/ORDER BY random\(\)/);
   });
 
   it('marca el sorteo como status=ended tras elegir ganador', () => {
-    expect(fn).toMatch(/status:\s*'ended'/);
+    expect(atomic).toMatch(/SET status = 'ended'/);
   });
 
   it('enlaza winnerUserId al user real elegido', () => {
-    expect(fn).toMatch(/winnerUserId:\s*winner\.user_id/);
+    expect(atomic).toMatch(/winner_user_id/);
   });
 });

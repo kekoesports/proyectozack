@@ -1,4 +1,4 @@
-import { and, count, desc, eq, gt, gte, inArray, sql } from 'drizzle-orm';
+import { and, count, desc, eq, gt, gte, inArray, isNull, lte, or, sql } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import {
   coinTransactions,
@@ -24,6 +24,7 @@ import type {
   ShopItem,
   UserMonthlyStanding,
 } from '@/types/giveawayPlatform';
+import { getGeoLegalConfig } from '@/lib/geo-legal-config';
 
 /** Sources positivas que cuentan para el ranking mensual de puntos SocialPro. */
 const MONTHLY_RANKING_SOURCES = ['racha', 'mision'] as const;
@@ -67,6 +68,7 @@ export async function getGiveawaysWithEntryData(
   talentId: number,
   userId: string | null,
 ): Promise<GiveawayWithEntryData[]> {
+  const now = new Date();
   const rows = await db
     .select({
       id: giveaways.id,
@@ -77,11 +79,18 @@ export async function getGiveawaysWithEntryData(
       value: giveaways.value,
       endsAt: giveaways.endsAt,
       talentId: giveaways.talentId,
+      entryAwardCoins: giveaways.entryAwardCoins,
       entryCount: count(giveawayEntries.id),
     })
     .from(giveaways)
     .leftJoin(giveawayEntries, eq(giveawayEntries.giveawayId, giveaways.id))
-    .where(eq(giveaways.talentId, talentId))
+    .where(and(
+      eq(giveaways.talentId, talentId),
+      eq(giveaways.status, 'active'),
+      gt(giveaways.entryAwardCoins, 0),
+      lte(giveaways.startsAt, now),
+      or(isNull(giveaways.endsAt), gt(giveaways.endsAt, now)),
+    ))
     .groupBy(giveaways.id)
     .orderBy(desc(giveaways.isFeatured), giveaways.sortOrder);
 
@@ -182,9 +191,21 @@ export async function getMonthlyRankingTotal(): Promise<number> {
  * @cache none
  * @visibility public
  */
-export async function getActiveShopItems(): Promise<ShopItem[]> {
+export async function getActiveShopItems(country?: string | null): Promise<ShopItem[]> {
+  const config = getGeoLegalConfig(country);
+  const allowedCategories = [
+    ...(config.skinsRewards ? ['skin'] : []),
+    ...(config.merchRewards ? ['merch', 'team'] : []),
+    ...(config.giftCardsRewards ? ['gift'] : []),
+    'profile',
+    'frame',
+    'badge',
+  ];
   return db.query.shopItems.findMany({
-    where: eq(shopItems.isActive, true),
+    where: and(
+      eq(shopItems.isActive, true),
+      inArray(shopItems.category, allowedCategories),
+    ),
     orderBy: (s, { asc }) => [asc(s.sortOrder)],
   });
 }
@@ -405,6 +426,7 @@ export async function getFreeRafflesForCreator(
   talentId: number,
   userId: string | null,
 ): Promise<FreeRaffleCardData[]> {
+  const now = new Date();
   const rows = await db
     .select({
       id: giveaways.id,
@@ -422,7 +444,14 @@ export async function getFreeRafflesForCreator(
     .where(and(
       eq(giveaways.talentId, talentId),
       eq(giveaways.entryAwardCoins, 0),
-      inArray(giveaways.status, ['active', 'ended']),
+      lte(giveaways.startsAt, now),
+      or(
+        and(
+          eq(giveaways.status, 'active'),
+          or(isNull(giveaways.endsAt), gt(giveaways.endsAt, now)),
+        ),
+        eq(giveaways.status, 'ended'),
+      ),
     ))
     .groupBy(giveaways.id)
     .orderBy(desc(giveaways.isFeatured), giveaways.sortOrder);
@@ -483,7 +512,7 @@ export async function getRaffleParticipants(
 ): Promise<RaffleParticipant[]> {
   const rows = await db
     .select({
-      userId: giveawayEntries.userId,
+      participantKey: giveawayEntries.id,
       name: user.name,
       image: user.image,
       isPrivate: playerProfiles.isPrivate,
@@ -491,14 +520,19 @@ export async function getRaffleParticipants(
     })
     .from(giveawayEntries)
     .innerJoin(user, eq(user.id, giveawayEntries.userId))
+    .innerJoin(giveaways, eq(giveaways.id, giveawayEntries.giveawayId))
     .leftJoin(playerProfiles, eq(playerProfiles.userId, giveawayEntries.userId))
-    .where(eq(giveawayEntries.giveawayId, giveawayId))
+    .where(and(
+      eq(giveawayEntries.giveawayId, giveawayId),
+      inArray(giveaways.status, ['active', 'ended']),
+      lte(giveaways.startsAt, new Date()),
+    ))
     .orderBy(desc(giveawayEntries.createdAt))
     .limit(limit)
     .offset(offset);
 
   return rows.map((r) => ({
-    userId: r.userId,
+    participantKey: String(r.participantKey),
     displayName: r.isPrivate === false ? r.name : maskName(r.name),
     avatarUrl: r.isPrivate === false ? r.image : null,
     enteredAt: r.enteredAt,

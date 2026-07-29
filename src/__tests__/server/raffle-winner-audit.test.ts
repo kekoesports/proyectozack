@@ -41,7 +41,20 @@ describe('pickRaffleWinnerAction — audit trace', () => {
     expect(source).toMatch(/entriesCount/);
   });
 
+  it('permite adjudicar un sorteo que el cron ya marcó como ended', () => {
+    const atomicSource = fs.readFileSync(
+      path.join(process.cwd(), 'src/lib/giveaway-platform/atomicOperations.ts'),
+      'utf8',
+    );
+    const dashboardSource = fs.readFileSync(
+      path.join(process.cwd(), 'src/app/admin/(dashboard)/giveaways/GiveawaysTab.tsx'),
+      'utf8',
+    );
+    expect(atomicSource).toMatch(/status IN \('active', 'ended'\)/);
+    expect(dashboardSource).toMatch(/g\.status === 'active' \|\| g\.status === 'ended'/);
+  });
+
   it('el admin viene de requirePermission (no de fuente no verificada)', () => {
-    expect(source).toMatch(/const\s*\{\s*user:\s*adminUser\s*\}\s*=\s*await\s+requirePermission\(\s*['"]sorteos['"]\s*,\s*['"]write['"]\s*\)/);
+    expect(source).toMatch(/const\s*\{\s*user:\s*adminUser\s*\}\s*=\s*await\s+requirePermission\(\s*['"]sorteos['"]\s*,\s*['"]publish['"]\s*\)/);
   });
 });

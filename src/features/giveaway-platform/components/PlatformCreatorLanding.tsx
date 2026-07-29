@@ -17,7 +17,6 @@ import {
 } from '@/lib/queries/giveawayPlatform';
 import {
   PLATFORM_CREATOR_SLUGS,
-  ENTRY_COIN_REWARD,
   todayInPlatformTz,
   previousDay,
 } from '@/lib/giveaway-platform/constants';
@@ -41,6 +40,8 @@ import { SteamLoginButton } from '@/features/giveaway-platform/components/SteamL
 import { getExternalGiveawaysForCreator } from '@/lib/queries/externalGiveaways';
 import { isExternalCreator } from '@/lib/external-giveaways/creator-bindings';
 import type { ExternalGiveawaySections } from '@/lib/external-giveaways/types';
+import { getGeoLegalConfig } from '@/lib/geo-legal-config';
+import { AdultAttestationCard } from './AdultAttestationCard';
 
 interface Props {
   /** slug del creador (validado contra PLATFORM_CREATOR_SLUGS). */
@@ -74,6 +75,12 @@ export async function PlatformCreatorLanding({ slug }: Props) {
   // activa (si no hay login, el gate fuerza el login antes del modal).
   // Ver docs/legal-risk-matrix.md.
   const partnerConsentGranted = await hasActivePartnerConsent(userId);
+  const country = requestHeaders.get('x-vercel-ip-country');
+  const geoLegal = getGeoLegalConfig(country);
+  const partnerContentAllowed =
+    partnerConsentGranted
+    && geoLegal.keydropExternalCTAs
+    && geoLegal.externalPartnerCTAs;
 
   const dbCreators = await db.query.talents.findMany({
     where: inArray(talents.slug, [...PLATFORM_CREATOR_SLUGS]),
@@ -108,7 +115,7 @@ export async function PlatformCreatorLanding({ slug }: Props) {
         db.query.dailyStreaks.findFirst({ where: eq(dailyStreaks.userId, userId) }),
         db.query.playerProfiles.findFirst({
           where: eq(playerProfiles.userId, userId),
-          columns: { steamTradeUrl: true },
+          columns: { steamTradeUrl: true, adultAttestedAt: true },
         }),
         getConnectedAccount(userId, 'discord'),
         getConnectedAccount(userId, 'twitch'),
@@ -160,8 +167,8 @@ export async function PlatformCreatorLanding({ slug }: Props) {
   const [pointsRanking, rankingTotal, shopItemsData, externalSections, freeRaffles, myStanding] = await Promise.all([
     getMonthlyPointsRanking(10),
     getMonthlyPointsRankingTotal(),
-    getActiveShopItems(),
-    isExternal
+    getActiveShopItems(country),
+    isExternal && partnerContentAllowed
       ? getExternalGiveawaysForCreator(active.slug)
       : Promise.resolve<ExternalGiveawaySections>({
           active: [],
@@ -201,10 +208,12 @@ export async function PlatformCreatorLanding({ slug }: Props) {
           creatorCode={activeVisual.code}
           isLoggedIn={Boolean(userId)}
           partnerConsentGranted={partnerConsentGranted}
+          externalCtasAllowed={partnerContentAllowed}
         />
 
         {userId ? (
           <>
+            {!playerProfile?.adultAttestedAt ? <AdultAttestationCard /> : null}
             <section id="racha">
               <div className="gp-legacy-block">
                 <h2>Recompensa diaria</h2>
@@ -243,7 +252,7 @@ export async function PlatformCreatorLanding({ slug }: Props) {
             <div className="gp-legacy-block">
               <h2>Sorteos de {active.name}</h2>
               <p className="gp-rank-note">
-                Participación gratuita · ganas +{ENTRY_COIN_REWARD} ⭐ por sorteo · fotos reales de las skins
+                Participación gratuita · puntos según cada sorteo · fotos reales de las skins
               </p>
               <div className="gp-sorteos-grid">
                 {giveawaysData.map((g) => (
@@ -264,7 +273,7 @@ export async function PlatformCreatorLanding({ slug }: Props) {
                         👥 <b>{g.entryCount.toLocaleString('es-ES')}</b> participantes
                       </div>
                       <div className="gp-sorteo-reward">
-                        Gratis · +{ENTRY_COIN_REWARD} ⭐
+                        Gratis{g.entryAwardCoins > 0 ? ` · +${g.entryAwardCoins} ⭐` : ''}
                       </div>
                       <div className="gp-sorteo-cta">
                         {userId ? (
