@@ -225,7 +225,9 @@ export function CampaignsRevenueTable({ campaigns }: Props): React.ReactElement 
                     {c.brandPaid !== 'no' ? (
                       <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-700">
                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />
-                        {c.brandPaid === 'parcial' ? 'Parcial' : 'Sí'}
+                        {c.brandPaid === 'parcial'
+                          ? 'Parcial'
+                          : c.brandPaidSource === 'manual' ? 'Sí · manual' : 'Sí'}
                       </span>
                     ) : (
                       <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-red-500">
@@ -240,7 +242,9 @@ export function CampaignsRevenueTable({ campaigns }: Props): React.ReactElement 
                     {c.talentPaid !== 'no' ? (
                       <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-700">
                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />
-                        {c.talentPaid === 'parcial' ? 'Parcial' : 'Sí'}
+                        {c.talentPaid === 'parcial'
+                          ? 'Parcial'
+                          : c.talentPaidSource === 'manual' ? 'Sí · manual' : 'Sí'}
                       </span>
                     ) : (
                       <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-amber-600">

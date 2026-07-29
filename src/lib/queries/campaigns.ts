@@ -11,6 +11,7 @@ import type {
   CampaignDerived,
   CampaignPaymentDerivedStatus,
   CampaignPaymentMethod,
+  CampaignPaymentSource,
   CampaignStatus,
 } from '@/lib/schemas/campaign';
 import type { CampaignRow } from '@/types';
@@ -41,6 +42,8 @@ export type CampaignWithRelations = CampaignRow &
     responsibleUser: { id: string; name: string } | null;
     brandPaid: CampaignPaymentDerivedStatus;
     talentPaid: CampaignPaymentDerivedStatus;
+    brandPaidSource: CampaignPaymentSource;
+    talentPaidSource: CampaignPaymentSource;
     totalInvoicedBrand: number;
     totalPaidTalent: number;
   };
@@ -62,6 +65,8 @@ export type CampaignTalentSummary = {
 export type CampaignPaymentStatus = {
   brandPaid: CampaignPaymentDerivedStatus;
   talentPaid: CampaignPaymentDerivedStatus;
+  brandPaidSource: CampaignPaymentSource;
+  talentPaidSource: CampaignPaymentSource;
   totalInvoicedBrand: number;
   totalPaidTalent: number;
 };
@@ -275,6 +280,10 @@ export async function getCampaignWithRelations(
     id,
     Number(row.amountBrand),
     Number(row.amountTalent),
+    {
+      cobroConfirmado: row.cobroConfirmado,
+      pagoTalentConfirmado: row.pagoTalentConfirmado,
+    },
   );
 
   const derived = computeCampaignDerived({
@@ -522,17 +531,31 @@ export async function unarchiveCampaign(id: number): Promise<CampaignRow | undef
   return row ?? undefined;
 }
 /**
- * Calcula el estado de pago derivado de una campaña sumando facturas `cobrada` (income/expense)
- * y comparando con los importes acordados → `'no' | 'parcial' | 'si'`.
+ * Calcula el estado de pago derivado de una campaña. Modelo mixto:
+ *
+ * 1. Estado OPERATIVO (manual) — `cobroConfirmado` / `pagoTalentConfirmado`
+ *    marcados desde el drawer de edición. Si están en `true`, el estado se
+ *    fuerza a `'si'` con `source='manual'`. Es lo que necesita el equipo
+ *    comercial para gestión rápida y NO implica factura ni movimiento bancario.
+ * 2. Estado CONTABLE (invoice) — SUM de facturas `cobrada` (`kind=income`
+ *    para marca, `kind=expense` para talento) comparado con los importes
+ *    acordados → `'no' | 'parcial' | 'si'` con `source='invoice' | 'none'`.
+ *
+ * Prioridad: `manual > invoice > none`. P&L y dashboards financieros siguen
+ * derivando siempre de facturas, nunca de los booleanos manuales.
  *
  * @cache none
  * @visibility admin
- * @returns `{ brandPaid, talentPaid, totalInvoicedBrand, totalPaidTalent }`. EUR-only.
+ * @returns `{ brandPaid, talentPaid, brand/talentPaidSource, totalInvoicedBrand, totalPaidTalent }`. EUR-only.
  */
 export async function getCampaignPaymentStatus(
   campaignId: number,
   amountBrand: number,
   amountTalent: number,
+  opts?: {
+    readonly cobroConfirmado?: boolean | null;
+    readonly pagoTalentConfirmado?: boolean | null;
+  },
 ): Promise<CampaignPaymentStatus> {
   const [incomeRow] = await db
     .select({
@@ -563,9 +586,31 @@ export async function getCampaignPaymentStatus(
   const totalInvoicedBrand = Number(incomeRow?.total ?? 0);
   const totalPaidTalent = Number(expenseRow?.total ?? 0);
 
+  const brandFromInvoices = derivedPaymentStatus(totalInvoicedBrand, amountBrand);
+  const talentFromInvoices = derivedPaymentStatus(totalPaidTalent, amountTalent);
+
+  const manualBrand = opts?.cobroConfirmado === true;
+  const manualTalent = opts?.pagoTalentConfirmado === true;
+
+  const brandPaid: CampaignPaymentDerivedStatus = manualBrand ? 'si' : brandFromInvoices;
+  const talentPaid: CampaignPaymentDerivedStatus = manualTalent ? 'si' : talentFromInvoices;
+
+  const brandPaidSource: CampaignPaymentSource = manualBrand
+    ? 'manual'
+    : brandFromInvoices === 'no'
+      ? 'none'
+      : 'invoice';
+  const talentPaidSource: CampaignPaymentSource = manualTalent
+    ? 'manual'
+    : talentFromInvoices === 'no'
+      ? 'none'
+      : 'invoice';
+
   return {
-    brandPaid: derivedPaymentStatus(totalInvoicedBrand, amountBrand),
-    talentPaid: derivedPaymentStatus(totalPaidTalent, amountTalent),
+    brandPaid,
+    talentPaid,
+    brandPaidSource,
+    talentPaidSource,
     totalInvoicedBrand,
     totalPaidTalent,
   };

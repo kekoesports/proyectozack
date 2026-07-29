@@ -251,6 +251,7 @@ describe('getCampaignPaymentStatus', () => {
     const result = await getCampaignPaymentStatus(1, 1000, 700);
 
     expect(result.brandPaid).toBe('si');
+    expect(result.brandPaidSource).toBe('invoice');
     expect(result.totalInvoicedBrand).toBe(1000);
   });
 
@@ -283,6 +284,8 @@ describe('getCampaignPaymentStatus', () => {
     const result = await getCampaignPaymentStatus(1, 1000, 700);
 
     expect(result.brandPaid).toBe('no');
+    expect(result.brandPaidSource).toBe('none');
+    expect(result.talentPaidSource).toBe('none');
     expect(result.totalInvoicedBrand).toBe(0);
   });
 
@@ -360,6 +363,116 @@ describe('getCampaignPaymentStatus', () => {
     const result = await getCampaignPaymentStatus(1, 500, 300);
 
     expect(result.brandPaid).toBe('si');
+    expect(result.brandPaidSource).toBe('invoice');
+  });
+
+  // ── Modelo mixto: booleanos operativos + facturas contables ────────────────
+
+  it('mixto: sin manual y sin factura → todo pendiente con source=none', async () => {
+    mockSelect.mockImplementation(() => makeSelectBuilder([{ total: '0.00' }]));
+
+    const result = await getCampaignPaymentStatus(1, 1000, 700, {
+      cobroConfirmado: false,
+      pagoTalentConfirmado: false,
+    });
+
+    expect(result.brandPaid).toBe('no');
+    expect(result.talentPaid).toBe('no');
+    expect(result.brandPaidSource).toBe('none');
+    expect(result.talentPaidSource).toBe('none');
+  });
+
+  it('mixto: cobroConfirmado=true sin factura → brandPaid=si con source=manual', async () => {
+    mockSelect.mockImplementation(() => makeSelectBuilder([{ total: '0.00' }]));
+
+    const result = await getCampaignPaymentStatus(1, 1000, 700, {
+      cobroConfirmado: true,
+      pagoTalentConfirmado: false,
+    });
+
+    expect(result.brandPaid).toBe('si');
+    expect(result.brandPaidSource).toBe('manual');
+    expect(result.talentPaid).toBe('no');
+    expect(result.talentPaidSource).toBe('none');
+    // totalInvoicedBrand real (0) se conserva — el toggle no inventa dinero.
+    expect(result.totalInvoicedBrand).toBe(0);
+  });
+
+  it('mixto: pagoTalentConfirmado=true sin factura → talentPaid=si con source=manual', async () => {
+    mockSelect.mockImplementation(() => makeSelectBuilder([{ total: '0.00' }]));
+
+    const result = await getCampaignPaymentStatus(1, 1000, 700, {
+      cobroConfirmado: false,
+      pagoTalentConfirmado: true,
+    });
+
+    expect(result.talentPaid).toBe('si');
+    expect(result.talentPaidSource).toBe('manual');
+    expect(result.brandPaid).toBe('no');
+    expect(result.brandPaidSource).toBe('none');
+    expect(result.totalPaidTalent).toBe(0);
+  });
+
+  it('mixto: manual tiene prioridad sobre invoice (source=manual aunque haya factura parcial)', async () => {
+    let callCount = 0;
+    mockSelect.mockImplementation(() => {
+      callCount++;
+      if (callCount === 1) {
+        // income parcial = 400 de 1000
+        return makeSelectBuilder([{ total: '400.00' }]);
+      }
+      return makeSelectBuilder([{ total: '0.00' }]);
+    });
+
+    const result = await getCampaignPaymentStatus(1, 1000, 700, {
+      cobroConfirmado: true,
+    });
+
+    expect(result.brandPaid).toBe('si');
+    expect(result.brandPaidSource).toBe('manual');
+    // Total facturado sigue reportando lo real (400), no lo inventa el toggle.
+    expect(result.totalInvoicedBrand).toBe(400);
+  });
+
+  it('mixto: sin manual con factura parcial → source=invoice y status=parcial', async () => {
+    let callCount = 0;
+    mockSelect.mockImplementation(() => {
+      callCount++;
+      if (callCount === 1) {
+        return makeSelectBuilder([{ total: '400.00' }]);
+      }
+      return makeSelectBuilder([{ total: '350.00' }]);
+    });
+
+    const result = await getCampaignPaymentStatus(1, 1000, 700);
+
+    expect(result.brandPaid).toBe('parcial');
+    expect(result.brandPaidSource).toBe('invoice');
+    expect(result.talentPaid).toBe('parcial');
+    expect(result.talentPaidSource).toBe('invoice');
+  });
+
+  it('mixto: manual tratado como false cuando llega null', async () => {
+    mockSelect.mockImplementation(() => makeSelectBuilder([{ total: '0.00' }]));
+
+    const result = await getCampaignPaymentStatus(1, 1000, 700, {
+      cobroConfirmado: null,
+      pagoTalentConfirmado: null,
+    });
+
+    expect(result.brandPaidSource).toBe('none');
+    expect(result.talentPaidSource).toBe('none');
+    expect(result.brandPaid).toBe('no');
+    expect(result.talentPaid).toBe('no');
+  });
+
+  it('mixto: manual tratado como false cuando opts se omite', async () => {
+    mockSelect.mockImplementation(() => makeSelectBuilder([{ total: '0.00' }]));
+
+    const result = await getCampaignPaymentStatus(1, 1000, 700);
+
+    expect(result.brandPaidSource).toBe('none');
+    expect(result.talentPaidSource).toBe('none');
   });
 });
 

@@ -298,9 +298,12 @@ export function CampaignForm({
         </select>
       </Field>
 
-      {/* Cobro / Pago talento */}
+      {/* Cobro / Pago talento — estado operativo, no contable */}
       <div className="grid grid-cols-2 gap-3">
-        <Field label="Cobro marca">
+        <Field
+          label="Cobro marca"
+          hint="Marca operativa; no crea factura ni movimiento bancario."
+        >
           <select
             name="cobroConfirmado"
             defaultValue={campaign?.cobroConfirmado ? '1' : '0'}
@@ -310,7 +313,10 @@ export function CampaignForm({
             <option value="1">Cobrado ✓</option>
           </select>
         </Field>
-        <Field label="Pago talento">
+        <Field
+          label="Pago talento"
+          hint="Marca operativa; no crea factura ni movimiento bancario."
+        >
           <select
             name="pagoTalentConfirmado"
             defaultValue={campaign?.pagoTalentConfirmado ? '1' : '0'}
