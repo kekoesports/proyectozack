@@ -1,72 +1,144 @@
-# Handoff — Sprint Nóminas ELEVATEX: fix importador PDF
+# Handoff — Activar misiones Discord + Twitch (ZACKETIZOR)
 
-**Sesión:** 2026-06-29  
-**Estado al cerrar:** ✅ COMPLETO. Importador PDF de nóminas ELEVATEX funcionando end-to-end en producción.
+**Sesión:** 2026-07-29 → 2026-07-30  
+**Rama:** `master`  
+**Motivo del reinicio:** cargar **Chrome DevTools MCP** (`chrome-devtools` en `~/.grok/config.toml`) y seguir la activación.
 
 ---
 
-## 1. Commits de esta sesión
+## 1. Objetivo
 
-| Commit / PR | Descripción |
+Activar misiones sociales verificables en `/sorteos/zacketizor`:
+
+1. **Discord** — “Únete al Discord de ZACKETIZOR” (+100 pts) — casi listo de config  
+2. **Twitch** — “Sigue a ZACKETIZOR en Twitch” (+100 pts) — IDs listos, falta app OAuth  
+3. **YouTube** — solo placeholder / doc (`docs/youtube-missions-verification.md`) — no esta fase  
+
+Código de misiones Discord/Twitch **ya implementado** (Fase A/B). Lo que falta es **env + seed + Vercel**.
+
+---
+
+## 2. Commits / cambios de código
+
+| Qué | Estado |
 |---|---|
-| `0b33910` / #113 | feat(auth): add admin_limited_tasks role with task ownership guards |
-| PR #114 | fix(finance): include pdfjs worker via literal import for Vercel NFT |
-| PR #115 | fix(storage): use private blob access to match store configuration |
+| Twitch public URL `zacketizor` → `zacketizorcs2` | en commit de esta sesión |
+| Doc `docs/twitch-mission-fase-b.md` alineado al login real | en commit de esta sesión |
+| Chrome MCP en Grok | `~/.grok/config.toml` → `[mcp_servers.chrome-devtools]` (`npx -y chrome-devtools-mcp@latest`) — **fuera del repo** |
+
+**No commitear:** `.env.local` (gitignored), `.scratch/` (gitignored).
 
 ---
 
-## 2. Qué se arregló
+## 3. Estado env local (`.env.local` — no en git)
 
-### PR #114 — Worker pdfjs no encontrado en Vercel
+| Variable | Estado |
+|---|---|
+| `DISCORD_CLIENT_ID` | **SET** `1532140959805079712` (app SocialPro Giveaways) |
+| `DISCORD_CLIENT_SECRET` | **SET** (32 chars, regenerado con MFA — no loguear) |
+| `DISCORD_OAUTH_REDIRECT_URL` | **SET** `https://socialpro.es/api/auth/social/discord/callback` |
+| `DISCORD_ZACKETIZOR_GUILD_ID` | **SET** `1183418967608524820` |
+| `DISCORD_ZACKETIZOR_INVITE_URL` | **EMPTY** — falta invite permanente |
+| `TWITCH_ZACKETIZOR_BROADCASTER_ID` | **SET** `549186441` |
+| `TWITCH_ZACKETIZOR_CHANNEL_URL` | **SET** `https://www.twitch.tv/zacketizorcs2` |
+| `TWITCH_CLIENT_ID` / `SECRET` / OAuth redirect | **EMPTY** |
+| `TOKEN_ENCRYPTION_KEY` | **SET** local (64 hex). Si prod ya tiene uno, **reutilizar el de prod** al desplegar |
+| `DATABASE_URL` | **EMPTY** — bloquea seed |
 
-**Síntoma:** 500 al pulsar "Analizar PDF". Error: `Cannot find module /var/task/node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs`
+Portal Discord OAuth redirects **persistidos**:
 
-**Causa raíz:** `outputFileTracingIncludes` en `next.config.ts` es un no-op sin `output: 'standalone'`. El path del worker calculado con `createRequire().resolve()` es una ruta en runtime — Vercel NFT no la traza y el archivo no se incluye en el deployment.
+- `https://socialpro.es/api/auth/social/discord/callback`
+- `http://localhost:3000/api/auth/social/discord/callback`
 
-**Fix (`src/lib/parsers/pdf.ts`):**  
-Reemplazar `createRequire().resolve()` por `await import('pdfjs-dist/legacy/build/pdf.worker.mjs')` con string literal. Doble efecto: NFT traza el import literal (archivo incluido en deployment) y el import establece `globalThis.pdfjsWorker.WorkerMessageHandler`, que pdfjs usa directamente en `_setupFakeWorkerGlobal` sin llegar al `import(workerSrc)` roto.
-
-También añadido `src/types/pdfjs.d.ts` con `declare module 'pdfjs-dist/legacy/build/pdf.worker.mjs'` para TypeScript.
-
-### PR #115 — Blob store private-only
-
-**Síntoma:** 500 al pulsar "Confirmar y crear 2 facturas". Error: `Cannot use public access on a private store`
-
-**Causa raíz:** `uploadFile()` en `src/lib/storage.ts` usaba `access: 'public'` pero el Blob store en Vercel está configurado como private-only. Afectaba también uploads de campañas y talentos (GEO stats).
-
-**Fix (`src/lib/storage.ts`):** `access: 'public'` → `access: 'private'`. `invoices-actions.ts` ya usaba `access: 'private'` correctamente — alineado el resto.
-
----
-
-## 3. Estado del rol de Alfonso — sin cambios
-
-El rol de Alfonso (`arias@socialpro.es`) sigue siendo `admin_limited_tasks` desde la sesión anterior. No se tocó.
+App: https://discord.com/developers/applications/1532140959805079712/oauth2
 
 ---
 
-## 4. Norma de proceso (vigente)
+## 4. Datos de producto (Zack)
 
-Push directo a master **prohibido** para cambios que:
-- Borren datos / modifiquen producción / toquen auth o migraciones
-- Afecten finanzas, invoices, conciliación, permisos o deploy
+| Plataforma | Dato |
+|---|---|
+| Discord guild | `1183418967608524820` |
+| Twitch | https://www.twitch.tv/zacketizorcs2 · broadcaster `549186441` |
+| YouTube | https://www.youtube.com/@ZaCkETiZORCS2 (después) |
 
-En esos casos: **branch → PR → CI verde → confirmación antes de mergear**.
-
----
-
-## 5. Deuda técnica identificada
-
-**Display de archivos privados (campañas, talentos, GEO stats):**  
-Con `access: 'private'` los blobs no son accesibles vía URL directa. El patrón correcto es un proxy server-side (ya existe para contratos en `/api/admin/contratos/[id]/pdf`). Los módulos de campañas y talentos almacenan la URL en DB pero no tienen proxy aún — si algún componente muestra un link directo al blob, ese link estará roto.  
-Acción: auditar si hay `<a href={file.url}>` o `<img src={file.url}>` en los componentes de campañas/talentos y añadir proxy si es necesario.
+UI actual en prod: cards Discord/Twitch/YouTube en **“PRÓXIMAMENTE”** hasta que env + seed activen las reales.
 
 ---
 
-## 6. Scripts de diagnóstico (no commiteados, desechables)
+## 5. Docs / scripts canónicos
 
-En `/scripts/`:
-- `check-alfonso-role.ts`, `set-alfonso-role.ts`
-- `qa-tracker-42.ts`
-- `debug-keydrop-sheet.ts`, `debug-tracker-hyperlinks.ts`, `fix-tracker-count.ts`, `cleanup-tracker-duplicates.ts`
+- `docs/discord-mission-fase-a.md` — runbook Discord  
+- `docs/twitch-mission-fase-b.md` — runbook Twitch  
+- `docs/youtube-missions-verification.md` — YouTube (aplazado)  
+- `docs/social-missions-twitch-kick-discord.md` — auditoría  
+- Seed Discord: `scripts/seed-discord-mission-zacketizor.ts`  
+  - `CONFIRM_SEED_DISCORD_MISSION=I_ACCEPT_DISCORD_MISSION`  
+- Seed Twitch: `scripts/seed-twitch-mission-zacketizor.ts`  
+  - `CONFIRM_SEED_TWITCH_MISSION=I_ACCEPT_TWITCH_MISSION`  
+- Config maps:  
+  - `src/features/giveaway-platform/constants/discord-missions.ts`  
+  - `src/features/giveaway-platform/constants/twitch-missions.ts`  
 
-Pueden eliminarse cuando sea conveniente.
+Scratch local (gitignored): `.scratch/social-missions-activate/` (checklist, helpers CDP).
+
+---
+
+## 6. Chrome / browser
+
+- **Chrome MCP** configurado en Grok: `chrome-devtools` via `npx chrome-devtools-mcp@latest` (v1.6.0 cacheado).  
+  **Requiere reinicio de sesión Grok** para que `search_tool` lo vea.  
+- Sesión anterior usó **`browser-tools`** CDP puerto ~`50837` (Chrome del usuario con Discord logueado).  
+- Helpers en `.scratch/social-missions-activate/cdp-eval.mjs` y `cdp-type.mjs` (para Input domain si React no acepta value setter).  
+- Al setear redirects Discord: hay que **escribir con Input real** y pulsar **Save Changes** (no auto-save silencioso fiable).
+
+---
+
+## 7. Próximos 2–5 pasos (orden)
+
+1. **Pickup:** confirmar Chrome MCP vivo (`search_tool` → chrome/devtools/navigate).  
+2. Pedir al usuario **`DISCORD_ZACKETIZOR_INVITE_URL`** (`https://discord.gg/...`) y **`DATABASE_URL`** (o `vercel link` + `vercel env pull`).  
+3. Completar `.env.local` invite + DB.  
+4. Seed Discord (solo cuando secret + guild + invite + DB):  
+   ```powershell
+   $env:CONFIRM_SEED_DISCORD_MISSION='I_ACCEPT_DISCORD_MISSION'
+   npx tsx --env-file=.env.local scripts/seed-discord-mission-zacketizor.ts
+   ```  
+5. Añadir las mismas vars Discord (+ `TOKEN_ENCRYPTION_KEY` de **prod** si ya existe) en **Vercel** Production/Preview.  
+6. Twitch: login en https://dev.twitch.tv/console/apps → app + redirects  
+   - `https://socialpro.es/api/auth/social/twitch/callback`  
+   - `http://localhost:3000/api/auth/social/twitch/callback`  
+   → `TWITCH_CLIENT_ID` / `SECRET` → seed Twitch.  
+7. Smoke: conectar Discord en `/sorteos`, unirse al guild, verificar +100 pts.
+
+---
+
+## 8. Bloqueos
+
+| Bloqueo | Quién |
+|---|---|
+| Invite Discord permanente | Humano (admin del server Zack) |
+| `DATABASE_URL` local | Humano / Vercel env pull |
+| Twitch Developer login | Humano (Chrome con sesión Twitch) |
+| Vars en Vercel | Humano o CLI tras `vercel link` |
+| No commitear secrets | Agente — nunca `.env.local` |
+
+---
+
+## 9. Riesgos
+
+- **`TOKEN_ENCRYPTION_KEY`**: si se genera uno nuevo en local distinto al de prod, los tokens OAuth cifrados en prod no se pueden descifrar. Preferir copiar el de Vercel.  
+- Client Secret Discord **ya regenerado una vez** — el valor actual solo está en `.env.local` (y hay que subirlo a Vercel). Si se pierde: Reset Secret + MFA de nuevo.  
+- Push a master: cambios de código de esta sesión son mínimos (URL Twitch); seeds/migraciones no tocados. Activación runtime es env+seed, no merge obligatorio.
+
+---
+
+## 10. Pickup rápido (siguiente sesión)
+
+```text
+1. Leer este docs/handoff.md
+2. Verificar chrome-devtools MCP conectado
+3. git status -sb; cat .env.local keys (solo nombres/SET, no valores)
+4. Pedir INVITE + DATABASE_URL si siguen empty
+5. Seed Discord → Vercel env Discord → Twitch console
+```
