@@ -1,5 +1,5 @@
-import { pgTable, serial, integer, varchar, text, timestamp, index, boolean } from 'drizzle-orm/pg-core';
-import { relations } from 'drizzle-orm';
+import { pgTable, serial, integer, varchar, text, timestamp, index, boolean, check } from 'drizzle-orm/pg-core';
+import { relations, sql } from 'drizzle-orm';
 import { talents } from './talents';
 import { crmBrands } from './crmBrands';
 
@@ -33,6 +33,9 @@ export const giveaways = pgTable('giveaways', {
   index('giveaways_ends_at_idx').on(t.endsAt),
   index('giveaways_featured_sort_ends_idx').on(t.isFeatured, t.sortOrder, t.endsAt),
   index('giveaways_status_ends_at_idx').on(t.status, t.endsAt),
+  check('giveaways_entry_award_nonnegative_ck', sql`${t.entryAwardCoins} >= 0`),
+  check('giveaways_status_ck', sql`${t.status} IN ('draft', 'active', 'ended', 'cancelled')`),
+  check('giveaways_dates_ck', sql`${t.endsAt} IS NULL OR ${t.endsAt} > ${t.startsAt}`),
 ]);
 
 export const giveawaysRelations = relations(giveaways, ({ one }) => ({

@@ -214,9 +214,10 @@ describe('[discord-fase-a] route /callback', () => {
 describe('[discord-fase-a] route /disconnect', () => {
   const src = read(P.routeDisconnect);
 
-  it('requiere sesión y llama markAccountDisconnected', () => {
+  it('requiere sesión, elimina el token e intenta revocarlo', () => {
     expect(src).toMatch(/getSession/);
-    expect(src).toMatch(/markAccountDisconnected/);
+    expect(src).toMatch(/disconnectAccountAndTakeToken/);
+    expect(src).toMatch(/oauth2\/token\/revoke/);
   });
 
   it('es POST, no GET (evita CSRF trivial vía img/link)', () => {
@@ -267,14 +268,14 @@ describe('[discord-fase-a] server action verifyDiscordMission', () => {
     expect(src).toMatch(/['"]not_connected['"]/);
   });
 
-  it('INSERT missionClaims usa onConflictDoNothing (anti race-condition)', () => {
-    expect(src).toMatch(/onConflictDoNothing/);
+  it('claim y puntos se delegan a la operación atómica', () => {
+    expect(src).toMatch(/claimMissionAndAward/);
   });
 
   it('INSERT coinTransactions con source="mision" y refId=missionId', () => {
-    expect(src).toMatch(/coinTransactions/);
-    expect(src).toMatch(/source:\s*['"]mision['"]/);
-    expect(src).toMatch(/refId:\s*missionId/);
+    const atomic = read('src/lib/giveaway-platform/atomicOperations.ts');
+    expect(atomic).toMatch(/'mision'/);
+    expect(atomic).toMatch(/\$\{input\.missionId\}/);
   });
 
   it('NO loguea tokens ni ciphertext', () => {

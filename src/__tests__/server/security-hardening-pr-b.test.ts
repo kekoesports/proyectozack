@@ -76,44 +76,39 @@ describe('[hardening-pr-b] alineamiento con otros scripts destructivos', () => {
   });
 });
 
-describe('[hardening-pr-b] redeemShopItem documenta race condition teórica', () => {
+describe('[hardening-pr-b] redeemShopItem elimina la race condition', () => {
   const src = read(ACTIONS_PATH);
+  const atomic = read('src/lib/giveaway-platform/atomicOperations.ts');
 
-  it('JSDoc menciona el modelo de concurrencia con neon-http', () => {
-    expect(src).toMatch(/neon-http/);
-    expect(src).toMatch(/no soporta transacciones multi-statement/);
+  it('delega el canje a una operación serializable', () => {
+    expect(src).toMatch(/redeemAtomically/);
+    expect(atomic).toMatch(/serializableRows/);
   });
 
-  it('JSDoc explica el UPDATE condicional de stock (gt(stock, 0)) como gate', () => {
-    expect(src).toMatch(/UPDATE condicional de stock/);
-    expect(src).toMatch(/gt\(stock,\s*0\)/);
-    expect(src).toMatch(/gate anti-oversell|Atómico a nivel SQL/);
+  it('reserva stock solo si queda disponibilidad', () => {
+    expect(atomic).toMatch(/UPDATE shop_items[\s\S]{0,300}si\.stock > 0/);
   });
 
-  it('JSDoc identifica el riesgo teórico residual (doble descuento)', () => {
-    expect(src).toMatch(/Riesgo teórico residual/);
-    // Menciona el escenario de dos canjes en paralelo con saldo justo.
-    expect(src).toMatch(/dos canjes en paralelo/);
+  it('valida saldo y crea débito/canje en la misma sentencia', () => {
+    expect(atomic).toMatch(/coalesce\(sum\(ct\.amount\), 0\)/);
+    expect(atomic).toMatch(/INSERT INTO coin_transactions/);
+    expect(atomic).toMatch(/INSERT INTO redemptions/);
   });
 
-  it('JSDoc propone mitigación futura (fuera de scope de este PR)', () => {
-    // Documenta neon-serverless WebSocket o UPSERT atómico.
-    expect(src).toMatch(/neon-serverless|WebSocket|UPSERT/);
-    // Permitir cortes de línea entre "Fuera" y "de scope".
-    expect(src).toMatch(/Fuera[\s\S]{0,10}de scope/i);
+  it('usa requestKey como clave idempotente', () => {
+    expect(src).toMatch(/requestKey/);
+    expect(atomic).toMatch(/request_key/);
+    expect(atomic).toMatch(/'redemption:' \|\|/);
   });
 });
 
-describe('[hardening-pr-b] no cambia lógica del canje', () => {
+describe('[hardening-pr-b] conserva validaciones y notificación del canje', () => {
   const src = read(ACTIONS_PATH);
 
-  it('el pipeline sigue igual: balance check → profile check → stock update → tx → redemption', () => {
-    // Verificamos que las llamadas SQL clave siguen presentes en el orden.
+  it('mantiene prechecks de saldo, perfil y operación atómica', () => {
     expect(src).toMatch(/getCoinBalance\(sessionUser\.id\)/);
     expect(src).toMatch(/db\.query\.playerProfiles\.findFirst/);
-    expect(src).toMatch(/db\s*\.update\(shopItems\)[\s\S]{0,400}gt\(shopItems\.stock,\s*0\)/);
-    expect(src).toMatch(/db\.insert\(coinTransactions\)/);
-    expect(src).toMatch(/db\s*\.insert\(redemptions\)/);
+    expect(src).toMatch(/redeemAtomically/);
   });
 
   it('el gate skin/trade URL sigue devolviendo code=trade_url_required', () => {
@@ -122,6 +117,6 @@ describe('[hardening-pr-b] no cambia lógica del canje', () => {
 
   it('el email interno sigue siendo fire-and-forget para category=skin', () => {
     expect(src).toMatch(/sendRewardRedemptionEmail/);
-    expect(src).toMatch(/if\s*\(item\.category === 'skin'\)\s*\{[\s\S]{0,1500}try\s*\{/);
+    expect(src).toMatch(/if\s*\(redemption\.category === 'skin'\)\s*\{[\s\S]{0,1500}try\s*\{/);
   });
 });

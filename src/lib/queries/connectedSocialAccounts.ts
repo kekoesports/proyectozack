@@ -79,14 +79,34 @@ export async function upsertConnectedAccount(input: {
   return inserted?.id ?? null;
 }
 
-/** Marca la cuenta como desconectada (soft delete). Mantiene fila y token cifrado para auditoría. */
-export async function markAccountDisconnected(userId: string, provider: string) {
+/**
+ * Desconecta y elimina el material secreto. Devuelve el ciphertext anterior
+ * para que la ruta pueda intentar revocarlo en el proveedor sin conservarlo.
+ */
+export async function disconnectAccountAndTakeToken(userId: string, provider: string) {
+  const [existing] = await db
+    .select({ encryptedToken: connectedSocialAccounts.accessTokenEncrypted })
+    .from(connectedSocialAccounts)
+    .where(and(
+      eq(connectedSocialAccounts.userId, userId),
+      eq(connectedSocialAccounts.provider, provider),
+      isNull(connectedSocialAccounts.disconnectedAt),
+    ))
+    .limit(1);
+  if (!existing) return null;
+
   await db
     .update(connectedSocialAccounts)
-    .set({ disconnectedAt: new Date() })
+    .set({
+      disconnectedAt: new Date(),
+      accessTokenEncrypted: '',
+      refreshTokenEncrypted: null,
+      expiresAt: null,
+    })
     .where(and(
       eq(connectedSocialAccounts.userId, userId),
       eq(connectedSocialAccounts.provider, provider),
       isNull(connectedSocialAccounts.disconnectedAt),
     ));
+  return existing.encryptedToken;
 }

@@ -141,7 +141,7 @@ describe('[external-giveaways] UI del ExternalGiveawaysSection + Card', () => {
   });
 
   it('Card abre en nueva pestaña con rel noopener noreferrer', () => {
-    expect(cardSrc).toMatch(/target="_blank"[\s\S]{0,80}rel="noopener noreferrer"/);
+    expect(cardSrc).toMatch(/target="_blank"[\s\S]{0,100}rel="noopener noreferrer sponsored"/);
   });
 
   it('Card NO tiene ninguna clase .gp-keydrop-* residual', () => {

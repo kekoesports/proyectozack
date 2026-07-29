@@ -6,17 +6,13 @@ import { and, eq, gt } from 'drizzle-orm';
 import { z } from 'zod';
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
-import {
-  coinTransactions,
-  missionClaims,
-  missionVerificationAttempts,
-  platformMissions,
-} from '@/db/schema';
+import { missionClaims, missionVerificationAttempts, platformMissions } from '@/db/schema';
 import { getConnectedAccount } from '@/lib/queries/connectedSocialAccounts';
 import { decrypt } from '@/lib/crypto/token-encryption';
 import { DISCORD_GUILD_MEMBER_MODE } from '@/features/giveaway-platform/constants/discord-missions';
 import { logGiveawayEvent } from '@/lib/audit/logGiveawayEvent';
 import { assertAllowedCoinSourceOrLog } from '@/lib/audit/logBlockedCoinSource';
+import { claimMissionAndAward } from '@/lib/giveaway-platform/atomicOperations';
 
 /** Shape mínimo del array que devuelve /users/@me/guilds — solo usamos `id`. */
 const DiscordGuildListSchema = z.array(z.object({ id: z.string() }).passthrough());
@@ -155,6 +151,7 @@ export async function verifyDiscordMission(input: unknown): Promise<DiscordVerif
     const res = await fetch('https://discord.com/api/v10/users/@me/guilds', {
       headers: { Authorization: `Bearer ${accessToken}` },
       cache: 'no-store',
+      signal: AbortSignal.timeout(3_000),
     });
     if (res.status === 401) {
       await recordAttempt(missionId, user.id, 'token_expired');
@@ -187,31 +184,22 @@ export async function verifyDiscordMission(input: unknown): Promise<DiscordVerif
   // El UNIQUE `mission_claims_mission_user_uq` sobre (mission_id, user_id)
   // hace que un race no duplique. `onConflictDoNothing()` sin `target`
   // captura cualquier violación de constraint sobre esta fila.
-  const [claim] = await db
-    .insert(missionClaims)
-    .values({ missionId, userId: user.id })
-    .onConflictDoNothing()
-    .returning({ id: missionClaims.id });
-
-  if (!claim) {
-    // Ya había uno por race — considerar reclamado.
-    await recordAttempt(missionId, user.id, 'success');
-    return { ok: false, code: 'already_claimed', message: 'Ya has reclamado esta misión' };
-  }
-
   await assertAllowedCoinSourceOrLog('mision', {
     userId: user.id,
     action: 'mission_claim',
     refType: 'mission',
     refId: missionId,
   });
-  await db.insert(coinTransactions).values({
+  const claimedNow = await claimMissionAndAward({
     userId: user.id,
-    amount: mission.rewardCoins,
-    source: 'mision',
-    concept: `Misión: ${mission.title}`,
-    refId: missionId,
+    missionId,
+    title: mission.title,
+    rewardCoins: mission.rewardCoins,
   });
+  if (!claimedNow) {
+    await recordAttempt(missionId, user.id, 'already_done');
+    return { ok: false, code: 'already_claimed', message: 'Ya has reclamado esta misión' };
+  }
 
   await recordAttempt(missionId, user.id, 'success');
 
