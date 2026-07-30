@@ -25,7 +25,7 @@ export const revalidate = 3600;
 export const metadata: Metadata = {
   title: 'Gaming & Esports Influencer Marketing Agency — Spain & LatAm',
   description:
-    'SocialPro connects creators with brands. 13+ years in gaming, esports and iGaming influencer marketing. Verified streamers in Spain and LatAm. Performance-tracked campaigns.',
+    'SocialPro connects creators with brands. 13+ years in gaming and esports, specialized in iGaming and creator marketing since 2024. Verified streamers in Spain and LatAm. Performance-tracked campaigns.',
   alternates: {
     canonical: absoluteUrl('/en'),
     languages: {

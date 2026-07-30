@@ -152,6 +152,31 @@ const jsonLd = {
         'https://www.linkedin.com/company/socialproes',
         'https://www.tiktok.com/@socialproes',
       ],
+      subjectOf: [
+        {
+          '@type': 'PodcastEpisode',
+          name: "'Keko', un referente andaluz de los eSports, lanza la agencia SocialPro",
+          url: 'https://open.spotify.com/episode/1NroRDxOt87HJsTEAYBVdt',
+          datePublished: '2026-06-13',
+          partOfSeries: {
+            '@type': 'PodcastSeries',
+            name: 'Todo e-Games',
+            url: 'https://www.canalsur.es/radio/programas/todo-egames/podcast/19795725.html',
+            publisher: {
+              '@type': 'Organization',
+              name: 'Canal Sur Radio',
+              url: 'https://www.canalsur.es',
+            },
+          },
+        },
+        {
+          '@type': 'WebPage',
+          name: 'SocialPro en Canal Sur — Todo e-Games (kekoesports.es)',
+          url: 'https://kekoesports.es/medios/canal-sur-todo-egames',
+          isPartOf: { '@type': 'WebSite', url: 'https://kekoesports.es' },
+          about: { '@id': absoluteUrl('/#organization') },
+        },
+      ],
     },
     {
       '@type': 'WebSite',
