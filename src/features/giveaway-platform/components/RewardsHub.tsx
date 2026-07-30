@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { PlatformShop } from './PlatformShop';
 import { FreeRaffleCard } from './FreeRaffleCard';
 import { MonthlyPointsRanking } from './MonthlyPointsRanking';
-import { PrizesBlock } from './PrizesBlock';
 import type {
   FreeRaffleCardData,
   PointsRankingRow,
@@ -96,17 +95,12 @@ export function RewardsHub({
       ) : null}
 
       {tab === 'ranking' ? (
-        <>
-          <MonthlyPointsRanking
-            rows={pointsRanking}
-            totalParticipants={rankingTotal}
-            myStanding={myStanding}
-            isLoggedIn={isLoggedIn}
-          />
-          <div style={{ marginTop: 20 }}>
-            <PrizesBlock />
-          </div>
-        </>
+        <MonthlyPointsRanking
+          rows={pointsRanking}
+          totalParticipants={rankingTotal}
+          myStanding={myStanding}
+          isLoggedIn={isLoggedIn}
+        />
       ) : null}
     </div>
   );

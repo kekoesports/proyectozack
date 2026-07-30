@@ -3,7 +3,6 @@ import { notFound } from 'next/navigation';
 import { PlatformShell } from '@/features/giveaway-platform/components/PlatformShell';
 import { FreeRaffleCard } from '@/features/giveaway-platform/components/FreeRaffleCard';
 import { MonthlyPointsRanking } from '@/features/giveaway-platform/components/MonthlyPointsRanking';
-import { PrizesBlock } from '@/features/giveaway-platform/components/PrizesBlock';
 import type {
   FreeRaffleCardData,
   PointsRankingRow,
@@ -154,9 +153,6 @@ export default async function RewardsHubPreviewPage() {
               myStanding={MY_STANDING}
               isLoggedIn
             />
-            <div style={{ marginTop: 20 }}>
-              <PrizesBlock />
-            </div>
           </div>
         </section>
       </main>

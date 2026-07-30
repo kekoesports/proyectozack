@@ -65,26 +65,26 @@ export function DiscordMissionCard({
       const coins = searchParams.get('coins') ?? String(mission.rewardCoins);
       setUiState({
         kind: 'success',
-        message: `¡+${coins} puntos! Misión Discord completada.`,
+        message: `¡+${coins} puntos!`,
       });
       router.refresh();
     } else if (status === 'connected_join_server') {
       setUiState({
         kind: 'error',
         code: 'not_verified',
-        message: 'Discord conectado. Ahora únete al servidor con "Abrir Discord" y pulsa "Verificar misión".',
+        message: 'Discord conectado. Únete al servidor y verifica.',
       });
     } else if (status === 'account_in_use') {
       setUiState({
         kind: 'error',
         code: 'internal',
-        message: 'Esa cuenta de Discord ya está vinculada a otro usuario de SocialPro.',
+        message: 'Esa cuenta Discord ya está vinculada a otro usuario.',
       });
     } else if (status === 'encrypt_failed' || status === 'discord_not_configured') {
       setUiState({
         kind: 'error',
         code: 'internal',
-        message: 'No hemos podido guardar la conexión Discord. Inténtalo de nuevo más tarde.',
+        message: 'No se pudo conectar Discord. Inténtalo más tarde.',
       });
     }
   }, [searchParams, mission.rewardCoins, router]);
@@ -96,7 +96,7 @@ export function DiscordMissionCard({
       if (result.ok) {
         setUiState({
           kind: 'success',
-          message: `¡+${result.rewardCoins} puntos! Misión completada.`,
+          message: `¡+${result.rewardCoins} puntos!`,
         });
         router.refresh();
         return;
@@ -128,67 +128,69 @@ export function DiscordMissionCard({
           {isDone ? 'Cobrado' : `+${mission.rewardCoins} ⭐`}
         </span>
       </div>
-      <p className="gp-mission-desc">{mission.description}</p>
 
       {isDone ? null : (
         <>
+          {mission.description ? (
+            <p className="gp-mission-desc">{mission.description}</p>
+          ) : null}
           {connected && !showError ? (
             <p className="gp-mission-discord-hint">
-              Entra al servidor y después verifica la misión.
+              Únete al servidor y verifica.
             </p>
           ) : null}
           <div className="gp-mission-discord-actions">
-          {connected ? (
-            <>
-              {openDiscordCta}
-              <button
-                type="button"
-                className="gp-mission-discord-btn is-primary"
-                onClick={onVerifyClick}
-                disabled={pending || uiState.kind === 'verifying'}
-                aria-busy={pending}
-              >
-                {pending || uiState.kind === 'verifying' ? 'Verificando...' : 'Verificar misión'}
-              </button>
-            </>
-          ) : loggedIn ? (
-            <>
-              {openDiscordCta}
-              <Link
-                href={`/api/auth/social/discord/connect?return=${encodeURIComponent(returnPath)}`}
-                className="gp-mission-discord-btn is-primary"
-                prefetch={false}
-              >
-                Conectar Discord
-              </Link>
-            </>
-          ) : (
-            <>
-              {openDiscordCta}
-              <SteamLoginButton size="md" />
-            </>
-          )}
+            {connected ? (
+              <>
+                {openDiscordCta}
+                <button
+                  type="button"
+                  className="gp-mission-discord-btn is-primary"
+                  onClick={onVerifyClick}
+                  disabled={pending || uiState.kind === 'verifying'}
+                  aria-busy={pending}
+                >
+                  {pending || uiState.kind === 'verifying' ? 'Verificando...' : 'Verificar'}
+                </button>
+              </>
+            ) : loggedIn ? (
+              <>
+                {openDiscordCta}
+                <Link
+                  href={`/api/auth/social/discord/connect?return=${encodeURIComponent(returnPath)}`}
+                  className="gp-mission-discord-btn is-primary"
+                  prefetch={false}
+                >
+                  Conectar Discord
+                </Link>
+              </>
+            ) : (
+              <>
+                {openDiscordCta}
+                <SteamLoginButton size="md" />
+              </>
+            )}
           </div>
         </>
       )}
 
-      {showSuccess ? (
+      {showSuccess && !isDone ? (
         <div className="gp-mission-discord-success" role="status">
           {uiState.message}
         </div>
       ) : null}
 
-      {showError ? (
+      {showError && !isDone ? (
         <div className="gp-mission-discord-error" role="alert">
           {uiState.message}
         </div>
       ) : null}
 
-      <p className="gp-mission-discord-note">
-        Pasos: 1) Abrir Discord y unirte al servidor · 2) Conectar Discord · 3) Verificar misión.
-        Solo comprobamos que estás dentro del servidor del creador. No leemos mensajes ni
-        guardamos la lista completa de tus servidores.
-      </p>
+      {!isDone ? (
+        <p className="gp-mission-discord-note">
+          Solo comprobamos que estás en el servidor. No leemos mensajes.
+        </p>
+      ) : null}
     </div>
   );
 }

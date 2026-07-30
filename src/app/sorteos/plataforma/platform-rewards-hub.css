@@ -326,96 +326,508 @@
 
 /* ==== Monthly Points Ranking ==== */
 
-.giveaway-platform .gp-points-ranking-intro {
-  color: rgba(255,255,255,0.7);
-  font-size: 13px;
-  margin: 0 0 14px;
-}
-
-.giveaway-platform .gp-points-ranking-list {
+.giveaway-platform .gp-points-ranking {
   display: flex;
   flex-direction: column;
+  gap: 20px;
+}
+
+.giveaway-platform .gp-points-ranking-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 14px 20px;
+  padding: 18px 18px 16px;
+  border-radius: 16px;
+  border: 1px solid rgba(245, 179, 66, 0.18);
+  background:
+    radial-gradient(120% 80% at 0% 0%, rgba(245, 99, 42, 0.14), transparent 55%),
+    radial-gradient(100% 90% at 100% 0%, rgba(224, 48, 112, 0.12), transparent 50%),
+    linear-gradient(160deg, rgba(21, 16, 36, 0.96), rgba(11, 9, 23, 0.98));
+}
+
+.giveaway-platform .gp-points-ranking-kicker {
+  margin: 0 0 4px;
+  font-family: var(--font-display), var(--font-rajdhani), sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2.2px;
+  text-transform: uppercase;
+  color: #f5b342;
+}
+
+.giveaway-platform .gp-points-ranking-title {
+  margin: 0 0 6px;
+  font-family: var(--font-display), var(--font-rajdhani), sans-serif;
+  font-size: clamp(22px, 3.2vw, 28px);
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--text, #fff);
+  line-height: 1.05;
+}
+
+.giveaway-platform .gp-points-ranking-intro {
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 13.5px;
+  line-height: 1.45;
+  margin: 0;
+  max-width: 52ch;
+}
+
+.giveaway-platform .gp-points-ranking-meta {
+  display: flex;
+  flex-wrap: wrap;
   gap: 8px;
 }
 
-.giveaway-platform .gp-points-ranking-row {
-  display: grid;
-  grid-template-columns: 36px 40px 1fr auto;
-  gap: 12px;
+.giveaway-platform .gp-points-ranking-chip {
+  display: inline-flex;
   align-items: center;
-  padding: 10px 12px;
-  border-radius: 10px;
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.05);
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.78);
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.giveaway-platform .gp-points-ranking-row.is-top-1 { border-color: rgba(245, 179, 66, 0.55); background: rgba(245, 179, 66, 0.06); }
-.giveaway-platform .gp-points-ranking-row.is-top-2 { border-color: rgba(200, 200, 200, 0.35); }
-.giveaway-platform .gp-points-ranking-row.is-top-3 { border-color: rgba(196, 108, 43, 0.4); }
-.giveaway-platform .gp-points-ranking-row.is-me { border-color: rgba(224, 48, 112, 0.55); background: rgba(224, 48, 112, 0.08); }
-
-.giveaway-platform .gp-points-ranking-position {
-  font-size: 14px;
+.giveaway-platform .gp-points-ranking-chip b {
+  color: #fff;
   font-weight: 800;
-  color: var(--muted, rgba(255,255,255,0.65));
+}
+
+.giveaway-platform .gp-points-ranking-chip.is-accent {
+  border-color: rgba(245, 179, 66, 0.4);
+  background: rgba(245, 179, 66, 0.1);
+  color: #f5d48a;
+}
+
+.giveaway-platform .gp-points-ranking-chip.is-accent b {
+  color: #f5b342;
+}
+
+/* ---- Podium top 3 ---- */
+
+.giveaway-platform .gp-points-podium {
+  display: grid;
+  grid-template-columns: 1fr 1.18fr 1fr;
+  gap: 12px;
+  align-items: end;
+  padding: 8px 0 4px;
+}
+
+.giveaway-platform .gp-points-podium-slot.is-empty {
+  min-height: 1px;
+}
+
+.giveaway-platform .gp-points-podium-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+  padding: 28px 12px 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(196, 40, 128, 0.22);
+  background: linear-gradient(165deg, rgba(28, 20, 48, 0.98), rgba(11, 9, 23, 0.98));
+  min-height: 220px;
+  overflow: hidden;
+}
+
+.giveaway-platform .gp-points-podium-card::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, rgba(224, 48, 112, 0.55), transparent);
+  opacity: 0.7;
+}
+
+.giveaway-platform .gp-points-podium-card.p1 {
+  min-height: 268px;
+  padding-top: 34px;
+  border-color: rgba(245, 183, 61, 0.55);
+  background:
+    radial-gradient(90% 70% at 50% 0%, rgba(245, 183, 61, 0.18), transparent 60%),
+    linear-gradient(165deg, rgba(36, 28, 18, 0.98), rgba(14, 11, 22, 0.98));
+  box-shadow:
+    0 0 0 1px rgba(245, 183, 61, 0.08) inset,
+    0 18px 48px -16px rgba(245, 99, 42, 0.45);
+}
+
+.giveaway-platform .gp-points-podium-card.p1::before {
+  height: 4px;
+  background: linear-gradient(90deg, transparent, #f5b342, transparent);
+  opacity: 1;
+}
+
+.giveaway-platform .gp-points-podium-card.p2 {
+  border-color: rgba(200, 200, 210, 0.32);
+  background:
+    radial-gradient(90% 70% at 50% 0%, rgba(200, 200, 210, 0.1), transparent 60%),
+    linear-gradient(165deg, rgba(24, 24, 34, 0.98), rgba(11, 9, 23, 0.98));
+}
+
+.giveaway-platform .gp-points-podium-card.p2::before {
+  background: linear-gradient(90deg, transparent, rgba(200, 200, 210, 0.65), transparent);
+}
+
+.giveaway-platform .gp-points-podium-card.p3 {
+  border-color: rgba(196, 108, 43, 0.42);
+  background:
+    radial-gradient(90% 70% at 50% 0%, rgba(196, 108, 43, 0.14), transparent 60%),
+    linear-gradient(165deg, rgba(32, 20, 14, 0.98), rgba(11, 9, 23, 0.98));
+}
+
+.giveaway-platform .gp-points-podium-card.p3::before {
+  background: linear-gradient(90deg, transparent, rgba(200, 114, 43, 0.7), transparent);
+}
+
+.giveaway-platform .gp-points-podium-card.is-me {
+  box-shadow: 0 0 0 1px rgba(224, 48, 112, 0.45), 0 12px 32px -12px rgba(224, 48, 112, 0.4);
+}
+
+.giveaway-platform .gp-points-podium-medal {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 18px;
+  line-height: 1;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.45));
+}
+
+.giveaway-platform .gp-points-podium-card.p1 .gp-points-podium-medal {
+  font-size: 22px;
+  top: 12px;
+  right: 12px;
+}
+
+.giveaway-platform .gp-points-podium-rank {
+  font-family: var(--font-display), var(--font-rajdhani), sans-serif;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.giveaway-platform .gp-points-podium-card.p1 .gp-points-podium-rank { color: #f5b342; }
+.giveaway-platform .gp-points-podium-card.p2 .gp-points-podium-rank { color: #c8c8c8; }
+.giveaway-platform .gp-points-podium-card.p3 .gp-points-podium-rank { color: #d08945; }
+
+.giveaway-platform .gp-points-ranking-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: rgba(196, 40, 128, 0.18);
+  display: grid;
+  place-items: center;
+  color: var(--sp-pink, #e03070);
+  font-weight: 800;
+  font-size: 14px;
+  border: 2px solid rgba(224, 48, 112, 0.35);
+  flex-shrink: 0;
+}
+
+.giveaway-platform .gp-points-ranking-avatar.is-sm {
+  width: 34px;
+  height: 34px;
+  font-size: 12px;
+}
+
+.giveaway-platform .gp-points-ranking-avatar.is-md {
+  width: 52px;
+  height: 52px;
+  font-size: 18px;
+  margin: 2px 0 4px;
+  box-shadow: 0 0 18px rgba(224, 48, 112, 0.28);
+}
+
+.giveaway-platform .gp-points-ranking-avatar.is-lg {
+  width: 64px;
+  height: 64px;
+  font-size: 22px;
+  margin: 4px 0 6px;
+  border-color: rgba(245, 183, 61, 0.75);
+  box-shadow: 0 0 28px rgba(245, 183, 61, 0.45);
+  color: #f5b342;
+}
+
+.giveaway-platform .gp-points-podium-card.p2 .gp-points-ranking-avatar {
+  border-color: rgba(200, 200, 210, 0.55);
+  box-shadow: 0 0 18px rgba(200, 200, 210, 0.22);
+  color: #d8d8d8;
+}
+
+.giveaway-platform .gp-points-podium-card.p3 .gp-points-ranking-avatar {
+  border-color: rgba(196, 108, 43, 0.65);
+  box-shadow: 0 0 18px rgba(196, 108, 43, 0.28);
+  color: #d08945;
+}
+
+.giveaway-platform .gp-points-ranking-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.giveaway-platform .gp-points-podium-name {
+  font-family: var(--font-display), var(--font-rajdhani), sans-serif;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  color: var(--text, #fff);
+  word-break: break-word;
+  max-width: 100%;
+  line-height: 1.2;
+}
+
+.giveaway-platform .gp-points-podium-card.p1 .gp-points-podium-name {
+  font-size: 17px;
+}
+
+.giveaway-platform .gp-points-podium-points {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  font-family: var(--font-display), var(--font-rajdhani), sans-serif;
+  font-size: 16px;
+  font-weight: 800;
+  color: #f5b342;
+  background: rgba(245, 179, 66, 0.1);
+  border: 1px solid rgba(245, 179, 66, 0.28);
+}
+
+.giveaway-platform .gp-points-podium-points-star {
+  font-size: 12px;
+  opacity: 0.9;
+}
+
+.giveaway-platform .gp-points-podium-points-unit {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: rgba(245, 179, 66, 0.75);
+  margin-left: 2px;
+}
+
+.giveaway-platform .gp-points-podium-card .gp-points-ranking-prize {
+  width: 100%;
+  margin-top: 6px;
+  text-align: left;
+}
+
+/* ---- Rest of leaderboard ---- */
+
+.giveaway-platform .gp-points-rest-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-radius: 14px;
+  border: 1px solid rgba(196, 40, 128, 0.18);
+  overflow: hidden;
+  background: rgba(11, 9, 23, 0.55);
+}
+
+.giveaway-platform .gp-points-rest-row {
+  display: grid;
+  grid-template-columns: 40px 34px 1fr auto;
+  gap: 12px;
+  align-items: center;
+  padding: 11px 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.giveaway-platform .gp-points-rest-row:first-child {
+  border-top: none;
+}
+
+.giveaway-platform .gp-points-rest-row.is-me {
+  background: rgba(224, 48, 112, 0.1);
+  box-shadow: inset 3px 0 0 var(--sp-pink, #e03070);
+}
+
+.giveaway-platform .gp-points-rest-pos {
+  font-family: var(--font-display), var(--font-rajdhani), sans-serif;
+  font-size: 13px;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.45);
   text-align: center;
 }
 
-.giveaway-platform .gp-points-ranking-row.is-top-1 .gp-points-ranking-position { color: #f5b342; }
-.giveaway-platform .gp-points-ranking-row.is-top-2 .gp-points-ranking-position { color: #c8c8c8; }
-.giveaway-platform .gp-points-ranking-row.is-top-3 .gp-points-ranking-position { color: #c8722b; }
-
-.giveaway-platform .gp-points-ranking-avatar {
-  width: 40px; height: 40px; border-radius: 50%; overflow: hidden;
-  background: rgba(196, 40, 128, 0.15);
-  display: grid; place-items: center;
-  color: var(--sp-pink, #e03070);
-  font-weight: 700;
-  font-size: 14px;
+.giveaway-platform .gp-points-rest-name {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text, #fff);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.giveaway-platform .gp-points-ranking-avatar img { width: 100%; height: 100%; object-fit: cover; }
-
-.giveaway-platform .gp-points-ranking-name { font-size: 13.5px; color: var(--text, #fff); font-weight: 600; }
-
-.giveaway-platform .gp-points-ranking-points {
+.giveaway-platform .gp-points-rest-points {
+  font-family: var(--font-display), var(--font-rajdhani), sans-serif;
   font-size: 14px;
   font-weight: 800;
   color: #f5b342;
-  display: flex;
-  align-items: center;
-  gap: 4px;
+  white-space: nowrap;
 }
+
+/* ---- Standing / footer ---- */
 
 .giveaway-platform .gp-points-ranking-me {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 14px;
-  border-radius: 10px;
-  background: rgba(224, 48, 112, 0.08);
-  border: 1px solid rgba(224, 48, 112, 0.28);
-  margin-top: 14px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background:
+    linear-gradient(135deg, rgba(224, 48, 112, 0.14), rgba(139, 58, 173, 0.1));
+  border: 1px solid rgba(224, 48, 112, 0.35);
+  box-shadow: 0 10px 28px -14px rgba(224, 48, 112, 0.45);
 }
 
-.giveaway-platform .gp-points-ranking-me-label { font-size: 12px; color: rgba(255,255,255,0.7); }
-.giveaway-platform .gp-points-ranking-me-value { font-size: 15px; font-weight: 800; color: var(--text, #fff); }
+.giveaway-platform .gp-points-ranking-me-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+  margin-bottom: 4px;
+}
+
+.giveaway-platform .gp-points-ranking-me-value {
+  font-family: var(--font-display), var(--font-rajdhani), sans-serif;
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--text, #fff);
+  letter-spacing: 0.3px;
+}
 
 .giveaway-platform .gp-points-ranking-time-left {
   text-align: center;
-  color: rgba(255,255,255,0.55);
-  font-size: 12px;
-  margin-top: 10px;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 13px;
+  margin: 0;
+}
+
+.giveaway-platform .gp-points-ranking-login-link {
+  color: var(--sp-pink, #e03070);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.giveaway-platform .gp-points-ranking-login-link:hover {
+  text-decoration: underline;
+}
+
+.giveaway-platform .gp-points-ranking-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 36px 20px;
+  border-radius: 16px;
+  border: 1px dashed rgba(245, 179, 66, 0.28);
+  background: rgba(245, 179, 66, 0.04);
+  text-align: center;
 }
 
 .giveaway-platform .gp-points-ranking-empty {
-  text-align: center;
-  padding: 20px;
-  color: rgba(255,255,255,0.55);
+  margin: 0;
+  color: rgba(255, 255, 255, 0.55);
   font-size: 13px;
+  line-height: 1.45;
 }
 
-/* ==== Prizes Block ==== */
+.giveaway-platform .gp-points-ranking-empty-icon {
+  font-size: 32px;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.giveaway-platform .gp-points-ranking-empty-title {
+  margin: 0;
+  font-family: var(--font-display), var(--font-rajdhani), sans-serif;
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--text, #fff);
+}
+
+.giveaway-platform .gp-points-ranking-notice {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.48);
+  font-style: italic;
+  text-align: center;
+  padding: 0 8px;
+}
+
+/* Premio en cards del podio */
+.giveaway-platform .gp-points-ranking-prize {
+  display: grid;
+  grid-template-columns: 40px 1fr;
+  gap: 10px;
+  align-items: center;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.32);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.giveaway-platform .gp-points-ranking-prize-media {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.giveaway-platform .gp-points-ranking-prize-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.giveaway-platform .gp-points-ranking-prize-fallback {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.giveaway-platform .gp-points-ranking-prize-body {
+  min-width: 0;
+}
+
+.giveaway-platform .gp-points-ranking-prize-title {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text, #fff);
+  line-height: 1.25;
+}
+
+.giveaway-platform .gp-points-ranking-prize-desc {
+  margin: 2px 0 0;
+  font-size: 10.5px;
+  color: rgba(255, 255, 255, 0.52);
+  line-height: 1.3;
+}
+
+/* ==== Prizes Block (preview / standalone) ==== */
 
 .giveaway-platform .gp-prizes-block {
   border-radius: 14px;
@@ -484,49 +896,24 @@
   font-style: italic;
 }
 
-/* Premio inline al lado del top 1/2/3 en el ranking mensual. Se
-   apila debajo en móvil (grid-template-columns lo colapsa). */
-.giveaway-platform .gp-points-ranking-prize {
-  grid-column: 1 / -1;
-  display: grid;
-  grid-template-columns: 44px 1fr;
-  gap: 10px;
-  align-items: center;
-  margin-top: 8px;
-  padding: 8px 10px;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px dashed rgba(255, 255, 255, 0.10);
-}
-.giveaway-platform .gp-points-ranking-prize-media {
-  width: 44px;
-  height: 44px;
-  border-radius: 8px;
-  overflow: hidden;
-  display: grid;
-  place-items: center;
-  background: rgba(0, 0, 0, 0.32);
-}
-.giveaway-platform .gp-points-ranking-prize-media img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-.giveaway-platform .gp-points-ranking-prize-fallback {
-  font-size: 22px;
-  line-height: 1;
-}
-.giveaway-platform .gp-points-ranking-prize-body { min-width: 0; }
-.giveaway-platform .gp-points-ranking-prize-title {
-  margin: 0;
-  font-size: 12.5px;
-  font-weight: 600;
-  color: var(--text, #fff);
-  line-height: 1.3;
-}
-.giveaway-platform .gp-points-ranking-prize-desc {
-  margin: 2px 0 0;
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.55);
-  line-height: 1.35;
+@media (max-width: 720px) {
+  .giveaway-platform .gp-points-podium {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  /* Mobile: show real rank order 1 → 2 → 3 (not visual podium order). */
+  .giveaway-platform .gp-points-podium-slot:nth-child(1) { order: 2; }
+  .giveaway-platform .gp-points-podium-slot:nth-child(2) { order: 1; }
+  .giveaway-platform .gp-points-podium-slot:nth-child(3) { order: 3; }
+  .giveaway-platform .gp-points-podium-slot.is-empty { display: none; }
+
+  .giveaway-platform .gp-points-podium-card,
+  .giveaway-platform .gp-points-podium-card.p1 {
+    min-height: 0;
+  }
+
+  .giveaway-platform .gp-points-ranking-me {
+    grid-template-columns: 1fr;
+  }
 }

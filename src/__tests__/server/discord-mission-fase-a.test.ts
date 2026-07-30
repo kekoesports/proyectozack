@@ -304,9 +304,9 @@ describe('[discord-fase-a] UI — DiscordMissionCard', () => {
     expect(src).toMatch(/Conectar Discord/);
   });
 
-  it('CTA "Verificar misión" llama a la server action verifyDiscordMission', () => {
+  it('CTA "Verificar" llama a la server action verifyDiscordMission', () => {
     expect(src).toMatch(/verifyDiscordMission/);
-    expect(src).toMatch(/Verificar misión/);
+    expect(src).toMatch(/Verificar/);
   });
 
   it('CTA "Abrir Discord" solo se renderiza si hay inviteUrl', () => {
