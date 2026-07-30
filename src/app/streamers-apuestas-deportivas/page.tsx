@@ -6,6 +6,7 @@ import { SITE_URL, absoluteUrl } from '@/lib/site-url';
 import { TrackedCtaLink } from '@/components/ui/TrackedCtaLink';
 import { buildBreadcrumbJsonLd } from '@/lib/utils/breadcrumbs';
 import { StickyCtaMobile } from '@/components/ui/StickyCtaMobile';
+import { GlossaryText } from '@/components/ui/GlossaryText';
 
 export const metadata: Metadata = {
   title: 'Streamers de Apuestas Deportivas — Agencia Sportsbook España y LatAm',
@@ -142,11 +143,9 @@ export default function StreamersApuestasDeportivasPage() {
             <span style={g}>Sportsbook</span> con streamers y tipsters hispanohablantes
           </h1>
           <p className="text-lg text-white/60 leading-relaxed max-w-2xl mx-auto mb-6">
-            SocialPro es la agencia de streamers e influencers de apuestas deportivas para
-            España y LatAm. Activamos campañas para operadores de sportsbook con creadores
-            especializados por deporte — fútbol, baloncesto, esports, boxeo — con compliance
-            DGOJ integrado, atribución de FTDs desde el panel del propio operador y activación
-            en menos de 72 horas.
+            <GlossaryText linkClassName="text-white/80 underline underline-offset-2 decoration-sp-orange/60 hover:decoration-sp-orange transition-colors">
+              {`SocialPro es la agencia de streamers e influencers de apuestas deportivas para España y LatAm. Activamos campañas para operadores de sportsbook con creadores especializados por deporte — fútbol, baloncesto, esports, boxeo — con compliance DGOJ integrado, atribución de FTDs desde el panel del propio operador y activación en menos de 72 horas.`}
+            </GlossaryText>
           </p>
           <div className="flex flex-wrap justify-center gap-8 mb-10">
             {STATS.map(({ stat, label }) => (

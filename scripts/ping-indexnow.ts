@@ -53,6 +53,8 @@ const URL_LIST = [
   'https://socialpro.es/agencia-influencers-casino',
   'https://socialpro.es/streamers-apuestas-deportivas',
   'https://socialpro.es/influencers-poker',
+  // Fase 3 SEO+GEO 2026-07 — glosario (índice; los 25 términos se descubren por sitemap)
+  'https://socialpro.es/recursos/glosario',
   'https://socialpro.es/en',
 ];
 

@@ -58,6 +58,7 @@ const NAV_COLS_BY_LOCALE: Record<Locale, readonly NavCol[]> = {
       links: [
         { href: '/blog',               label: 'Blog' },
         { href: '/news',               label: 'News' },
+        { href: '/recursos/glosario',  label: 'Glosario iGaming & Skins CS2' },
         { href: '/estadisticas',       label: 'Estadísticas' },
         { href: '/marcas/keydrop',     label: 'Keydrop',     subheading: 'Partners' },
         { href: '/marcas/hellcase',    label: 'Hellcase' },
@@ -122,6 +123,7 @@ const NAV_COLS_BY_LOCALE: Record<Locale, readonly NavCol[]> = {
       links: [
         { href: '/blog',               label: 'Blog (ES)' },
         { href: '/news',               label: 'News (ES)' },
+        { href: '/recursos/glosario',  label: 'iGaming & Skins CS2 glossary (ES)' },
         { href: '/estadisticas',       label: 'Statistics (ES)' },
         { href: '/marcas/keydrop',     label: 'Keydrop',     subheading: 'Partners' },
         { href: '/marcas/hellcase',    label: 'Hellcase' },

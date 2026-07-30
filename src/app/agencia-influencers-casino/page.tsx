@@ -6,6 +6,7 @@ import { SITE_URL, absoluteUrl } from '@/lib/site-url';
 import { TrackedCtaLink } from '@/components/ui/TrackedCtaLink';
 import { buildBreadcrumbJsonLd } from '@/lib/utils/breadcrumbs';
 import { StickyCtaMobile } from '@/components/ui/StickyCtaMobile';
+import { GlossaryText } from '@/components/ui/GlossaryText';
 
 export const metadata: Metadata = {
   title: 'Agencia de Influencers Casino — Streamers Casino España y LatAm',
@@ -142,10 +143,9 @@ export default function AgenciaInfluencersCasinoPage() {
             <span style={g}>Streamers de casino</span> con FTDs verificados por el operador
           </h1>
           <p className="text-lg text-white/60 leading-relaxed max-w-2xl mx-auto mb-6">
-            SocialPro es la agencia especializada en influencers y streamers de casino online
-            en España y LatAm. Campañas DGOJ-compliant con creadores verificados, atribución
-            de FTDs desde el panel del propio operador y activación en menos de 72 horas.
-            Caso público: 340+ FTDs en la campaña 1WIN con 100+ streamers hispanohablantes.
+            <GlossaryText linkClassName="text-white/80 underline underline-offset-2 decoration-sp-orange/60 hover:decoration-sp-orange transition-colors">
+              {`SocialPro es la agencia especializada en influencers y streamers de casino online en España y LatAm. Campañas DGOJ-compliant con creadores verificados, atribución de FTDs desde el panel del propio operador y activación en menos de 72 horas. Caso público: 340+ FTDs en la campaña 1WIN con 100+ streamers hispanohablantes.`}
+            </GlossaryText>
           </p>
           <div className="flex flex-wrap justify-center gap-8 mb-10">
             {STATS.map(({ stat, label }) => (

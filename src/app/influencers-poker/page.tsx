@@ -6,6 +6,7 @@ import { SITE_URL, absoluteUrl } from '@/lib/site-url';
 import { TrackedCtaLink } from '@/components/ui/TrackedCtaLink';
 import { buildBreadcrumbJsonLd } from '@/lib/utils/breadcrumbs';
 import { StickyCtaMobile } from '@/components/ui/StickyCtaMobile';
+import { GlossaryText } from '@/components/ui/GlossaryText';
 
 // TODO Pablo: validar claims editoriales de esta landing antes de promocionarla.
 // A diferencia de casino y sportsbook, no hay caso público de poker con cifras
@@ -144,10 +145,9 @@ export default function InfluencersPokerPage() {
             <span style={g}>Streamers de poker online</span> para el mercado hispano
           </h1>
           <p className="text-lg text-white/60 leading-relaxed max-w-2xl mx-auto mb-6">
-            SocialPro es la agencia de streamers e influencers de poker online para España y
-            LatAm. Selección de creadores por perfil (torneos, cash game, coaching), compliance
-            DGOJ integrado por defecto y activación en menos de 72 horas. Para operadores de
-            poker que buscan activar por producto, no por alcance nominal.
+            <GlossaryText linkClassName="text-white/80 underline underline-offset-2 decoration-sp-orange/60 hover:decoration-sp-orange transition-colors">
+              {`SocialPro es la agencia de streamers e influencers de poker online para España y LatAm. Selección de creadores por perfil (torneos, cash game, coaching), compliance DGOJ integrado por defecto y activación en menos de 72 horas. Para operadores de poker que buscan activar por producto, no por alcance nominal.`}
+            </GlossaryText>
           </p>
           <div className="flex flex-wrap justify-center gap-8 mb-10">
             {STATS.map(({ stat, label }) => (
