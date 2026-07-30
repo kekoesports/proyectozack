@@ -1,3 +1,5 @@
+import { safeJsonLd } from '@/lib/safeJsonLd';
+
 const FAQS = [
   {
     q: '¿Qué tipo de competiciones analizamos?',
@@ -29,9 +31,23 @@ const FAQS = [
   },
 ];
 
+const faqJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: FAQS.map((f) => ({
+    '@type': 'Question',
+    name: f.q,
+    acceptedAnswer: { '@type': 'Answer', text: f.a },
+  })),
+};
+
 export function Faq() {
   return (
     <section id="faq" className="relative bg-white py-14 md:py-20">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(faqJsonLd) }}
+      />
       <div className="max-w-5xl mx-auto px-5 md:px-8">
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-3 mb-8 md:mb-10">
           <div>

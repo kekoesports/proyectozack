@@ -64,10 +64,12 @@ Emite un `@graph` con **4 nodos**:
 `AboutPage`, `Answer`, `Article`, `Blog`, `BlogPosting`, `BreadcrumbList`, `CollectionPage`, `ContactPage`, `ContactPoint`, `Continent`, `Country`, `Event`, `FAQPage`, `HowTo`, `HowToStep`, `ImageObject`, `ItemList`, `ListItem`, `LocalBusiness`, `NewsArticle`, `Offer`, `OfferCatalog`, `Organization`, `Person`, `Place`, `PodcastEpisode`, `PodcastSeries`, `PostalAddress`, `ProfessionalService`, `ProfilePage`, `Question`, `Service`, `SiteNavigationElement`, `Thing`, `VirtualLocation`, `WebPage`, `WebSite`.
 
 ### 2.4 Gaps para Fase 1
-- ❌ **`FAQPage` en home**: la home (`src/app/page.tsx`) NO emite JSON-LD propio (el `FaqSection` renderiza las preguntas pero no el schema). Fase 1 debe añadirlo — el componente `FaqSection` ya existe (server component); solo faltan las Q/A en JSON-LD.
-- ⚠ **`Organization.sameAs` no incluye TikTok** — brief lo pide.
+- ✅ **`FAQPage` en home**: el `FaqSection` (`src/features/marketing-site/components/FaqSection.tsx`) YA emite el JSON-LD (líneas 49-60 + 75-78). Falsa alarma en la auditoría inicial — la home sí tiene FAQPage schema, solo que dentro del componente y no directamente en `page.tsx`. **Nada que hacer aquí.**
+- ⚠ **`FAQPage` en `/apuesta-segura-cs2`**: su bloque `Faq.tsx` no emitía schema (verificado en Fase 1). Corregido en el commit de JSON-LD (Fase 1, commit 3).
+- ⚠ **`Organization.sameAs` no incluye TikTok** — corregido en el mismo commit.
 - ✅ `Person` en fichas de talento — ya está.
 - ✅ `Article` con author + datePublished — ya está en blog/news/casos.
+- ✅ Resto de landings con FAQ (`/cs2-influencer-marketing`, `/betting-influencers`, `/guia-dgoj-igaming-influencers`, `/talentos/[slug]`) ya emiten `FAQPage` schema.
 
 ---
 
@@ -149,7 +151,8 @@ Emite un `@graph` con **4 nodos**:
 Ordenado por impacto en el sprint:
 
 1. **JSON-LD**
-   - Añadir `FAQPage` en home (aprovechar `FaqSection` existente — el server component ya tiene las Q/A, solo falta emitir el schema).
+   - ~~Añadir `FAQPage` en home~~ — falsa alarma: el `FaqSection` YA emite el schema. Sin acción.
+   - Añadir `FAQPage` en `/apuesta-segura-cs2` (su `Faq.tsx` no emitía schema).
    - Añadir TikTok a `Organization.sameAs`: `https://www.tiktok.com/@socialproes`.
    - `sameAs` de founder Pablo ya está completo (LinkedIn, X, IG, kekoesports.es) — no tocar.
 2. **Redirects**

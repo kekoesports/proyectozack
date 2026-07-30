@@ -147,6 +147,7 @@ const jsonLd = {
         'https://x.com/SocialProES',
         'https://www.facebook.com/SocialProES',
         'https://www.linkedin.com/company/socialproes',
+        'https://www.tiktok.com/@socialproes',
       ],
     },
     {
