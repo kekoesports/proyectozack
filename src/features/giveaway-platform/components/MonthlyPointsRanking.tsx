@@ -127,6 +127,39 @@ function RestRow({
   );
 }
 
+/**
+ * Catálogo de premios del mes. Solo se usa cuando no hay podio (ranking vacío),
+ * para que el incentivo siga visible. Con jugadores, los premios van inline
+ * en cada card del top 3.
+ */
+function EmptyRankingPrizes({ monthLabel }: { monthLabel: string }): React.ReactElement {
+  const config = getCurrentMonthPrizes();
+
+  if (!config || config.prizes.length === 0) {
+    return (
+      <p className="gp-points-ranking-prizes-soon">
+        Premios de {monthLabel} próximamente.
+      </p>
+    );
+  }
+
+  return (
+    <div className="gp-points-ranking-prizes-catalog" aria-label={`Premios del ranking · ${monthLabel}`}>
+      <p className="gp-points-ranking-prizes-catalog-title">Premios del top 3 · {monthLabel}</p>
+      <ul className="gp-points-ranking-prizes-catalog-list">
+        {config.prizes.map((prize) => (
+          <li key={prize.position} className={`gp-points-ranking-prizes-catalog-item pos-${prize.position}`}>
+            <span className="gp-points-ranking-prizes-catalog-pos" aria-hidden>
+              {PODIUM_EMOJI[prize.position] ?? `#${prize.position}`}
+            </span>
+            <InlinePrize prize={prize} />
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 export function MonthlyPointsRanking({
   rows,
   totalParticipants,
@@ -191,13 +224,16 @@ export function MonthlyPointsRanking({
       </header>
 
       {rows.length === 0 ? (
-        <div className="gp-points-ranking-empty-state" role="status">
-          <span className="gp-points-ranking-empty-icon" aria-hidden>🏆</span>
-          <p className="gp-points-ranking-empty-title">Nadie en el podio todavía</p>
-          <p className="gp-points-ranking-empty">
-            Aún nadie ha ganado puntos este mes. ¡Sé el primero completando misiones!
-          </p>
-        </div>
+        <>
+          <div className="gp-points-ranking-empty-state" role="status">
+            <span className="gp-points-ranking-empty-icon" aria-hidden>🏆</span>
+            <p className="gp-points-ranking-empty-title">Nadie en el podio todavía</p>
+            <p className="gp-points-ranking-empty">
+              Aún nadie ha ganado puntos este mes. ¡Sé el primero completando misiones!
+            </p>
+          </div>
+          <EmptyRankingPrizes monthLabel={monthLabel} />
+        </>
       ) : (
         <>
           <div className="gp-points-podium" role="list" aria-label="Top 3 del mes">
@@ -259,6 +295,10 @@ export function MonthlyPointsRanking({
 
       {prizeConfig?.notice ? (
         <p className="gp-points-ranking-notice">{prizeConfig.notice}</p>
+      ) : rows.length > 0 && !prizeConfig ? (
+        <p className="gp-points-ranking-notice">
+          Premios de {monthLabel} próximamente.
+        </p>
       ) : null}
     </div>
   );

@@ -155,3 +155,54 @@ describe('MonthlyPointsRanking — invariantes de accesibilidad', () => {
     expect(screen.getByText(/Aún nadie ha ganado puntos este mes/i)).toBeInTheDocument();
   });
 });
+
+describe('MonthlyPointsRanking — catálogo en ranking vacío', () => {
+  const mockedMonth = jest.spyOn(prizesModule, 'getCurrentMonthPrizes');
+
+  afterEach(() => {
+    mockedMonth.mockReset();
+    mockedGetPrize.mockReset();
+  });
+
+  it('con premios configurados, el empty state pinta el catálogo top 3', () => {
+    mockedMonth.mockReturnValue({
+      prizes: [
+        { position: 1, title: 'Skin premium' },
+        { position: 2, title: 'Skin media' },
+        { position: 3, title: 'Gift card' },
+      ],
+    });
+    mockedGetPrize.mockReturnValue(null);
+
+    render(
+      <MonthlyPointsRanking
+        rows={[]}
+        totalParticipants={0}
+        myStanding={standingNone}
+        isLoggedIn={false}
+      />,
+    );
+
+    expect(screen.getByLabelText(/Premios del ranking/i)).toBeInTheDocument();
+    expect(screen.getByLabelText('Premio para el puesto 1')).toHaveTextContent('Skin premium');
+    expect(screen.getByLabelText('Premio para el puesto 2')).toHaveTextContent('Skin media');
+    expect(screen.getByLabelText('Premio para el puesto 3')).toHaveTextContent('Gift card');
+  });
+
+  it('sin config de mes, empty state muestra "próximamente"', () => {
+    mockedMonth.mockReturnValue(null);
+    mockedGetPrize.mockReturnValue(null);
+
+    render(
+      <MonthlyPointsRanking
+        rows={[]}
+        totalParticipants={0}
+        myStanding={standingNone}
+        isLoggedIn={false}
+      />,
+    );
+
+    expect(screen.getByText(/próximamente/i)).toBeInTheDocument();
+    expect(screen.queryByLabelText(/Premios del ranking/i)).not.toBeInTheDocument();
+  });
+});

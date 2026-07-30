@@ -23,7 +23,6 @@ const HUB_FILES = [
   'src/features/giveaway-platform/components/RewardsHub.tsx',
   'src/features/giveaway-platform/components/FreeRaffleCard.tsx',
   'src/features/giveaway-platform/components/MonthlyPointsRanking.tsx',
-  'src/features/giveaway-platform/components/PrizesBlock.tsx',
   'src/features/giveaway-platform/components/ParticipantsModal.tsx',
 ] as const;
 
