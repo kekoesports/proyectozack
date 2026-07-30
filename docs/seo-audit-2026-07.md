@@ -187,3 +187,52 @@ Ordenado por impacto en el sprint:
 - **Fase 4 (EN):** `/en` ya existe con hreflang correcto en las 10+ páginas bilingual. Por tanto la Fase 4 **NO es "crear la versión EN"** sino **"completar cobertura EN de las páginas nuevas de Fase 2 + traducir 2 casos"** (1WIN y SkinsMonkey según brief). El patrón `bilingualLandings` en `sitemap.ts` es el mismo, replicable sin cambios estructurales.
 - **Fase 5 (autoridad):** geo-landings LATAM y comparativa siguen la misma plantilla que Fase 2. Placeholder benchmark con `noindex` respetando la arquitectura.
 - **Fase 6 (medición):** GSC ya recibe sitemap (verificable). Bing WT necesita `BING_WEBMASTER_API_KEY` en Vercel env si vamos a hacer submit programático — evaluar en su momento si aporta versus panel manual.
+
+---
+
+## 10. Hotfix locale/EN (2026-07-30) — bugs post-Fase 1 y estado de traducción
+
+Tras el deploy de Fase 1 se verificaron externamente dos bugs SEO críticos que han sido resueltos en la branch `fix/seo-locale-en-h1` (hotfix post-Fase 1).
+
+### 10.1 Bug locale detection resuelto
+
+- **Síntoma:** peticiones a `https://socialpro.es/` con `Accept-Language: en` (incluyendo Googlebot antes del bypass explícito de julio) acababan sirviendo `/en` vía 307. Efecto: Google indexaba `/en` como canónica de la home en lugar de `/`.
+- **Origen:** `eb86ccd0` (2026-06-22) introdujo el redirect automático por Accept-Language + geo-IP. `6871f8e5` (2026-07-05) añadió bypass solo para bots, dejando el bug para usuarios humanos.
+- **Fix:** `getLocaleDecision` en `src/lib/locale-detection.ts` devuelve siempre `action: 'pass'`. `src/proxy.ts` elimina el bloque de redirect y solo escribe la cookie `socialpro_locale` como memoria de preferencia (reservada para language switcher manual de Fase 4). El proxy inyecta `x-pathname` en cada request HTML para permitir que el root layout compute `<html lang>` dinámicamente. **Nunca redirige por locale, en ninguna dirección.**
+
+### 10.2 `<html lang>` corregido para todas las rutas EN
+
+- **Síntoma:** `src/app/layout.tsx` tenía `<html lang="es">` hardcodeado. Todas las rutas EN heredaban `lang="es"` erróneo. `src/app/(en)/layout.tsx` intentaba paliar con un `<div lang="en">` interno — insuficiente, Google y screen readers priorizan el `<html lang>` raíz.
+- **Fix:** root layout ahora es `async`, lee `x-pathname` del header inyectado por el proxy y decide `lang` con `isEnPathname()` (nuevo helper en `src/lib/en-routes.ts`). El `<div lang="en">` de `(en)/layout.tsx` se conserva como reforzamiento defensivo pero ya no es la señal primaria.
+- **Rutas EN cubiertas** (fuente de verdad en `src/lib/en-routes.ts`):
+  `/en`, `/talents`, `/services`, `/cases`, `/contact`,
+  `/cs2-influencer-marketing`, `/valorant-influencers-agency`,
+  `/betting-influencers`, `/esports-marketing-agency`, `/twitch-streamers-agency`.
+
+### 10.3 Inventario de secciones sin traducir en `/en`
+
+`/en/page.tsx` reutiliza los mismos componentes que la home ES; solo `metadata` (title/description/OG) y el prop `heading` del `<Hero>` están traducidos ahora. Todo lo demás sigue en español y debe abordarse en **Fase 4** del sprint.
+
+Pendiente de traducir en `/en`:
+
+| Bloque | Fuente | Estado |
+|---|---|---|
+| Hero eyebrow "Gaming & Esports · España · LatAm · Europa" | `src/features/marketing-site/components/Hero.tsx:57` | ES literal |
+| Hero megatítulo "CONECTAMOS / CREADORES / CON MARCAS" | `src/features/marketing-site/components/Hero.tsx:75-97` | ES literal |
+| Hero párrafo descriptivo (13+ años…) | `src/features/marketing-site/components/Hero.tsx:107-112` | ES literal |
+| Hero CTAs "Tengo una marca" / "Soy creador" | `src/features/marketing-site/components/Hero.tsx:128-138` | ES literal |
+| Hero micro-copy "Respuesta en 24h · Sin compromiso" | `src/features/marketing-site/components/Hero.tsx:147-149` | ES literal |
+| Hero stats labels "AÑOS / VIEWS/MES / FTDS" | `src/features/marketing-site/components/Hero.tsx:10-13` | ES literal |
+| Marquee (mensajes deslizantes) | `src/features/marketing-site/components/Marquee.tsx` | ES literal |
+| TalentSection (título, filtros, CTAs) | `src/features/marketing-site/components/TalentSection.tsx` | ES literal |
+| BrandsCarousel (título "Marcas que confían en nosotros") | `src/features/marketing-site/components/BrandsCarousel.tsx` | ES literal |
+| ServicesSection (tabs, cards, CTAs) | `src/features/marketing-site/components/ServicesSection.tsx` | ES literal |
+| CasesSection (título, cards, CTAs) | `src/features/marketing-site/components/CasesSection.tsx` | ES literal |
+| CtaSection (todo el bloque final) | `src/features/marketing-site/components/CtaSection.tsx` | ES literal |
+| FaqSection (7 Q/A + título) | `src/features/marketing-site/components/FaqSection.tsx` | ES literal |
+
+Estrategia recomendada para Fase 4:
+- Añadir prop `locale` a cada componente marketing o extraer strings a `dictionary/es.ts` y `dictionary/en.ts` con lookup por key.
+- El prop `locale` puede provenir del helper `isEnPathname(pathname)` cuando se sirve el componente en RSC, o via `useLocale()` client-side.
+- Cada landing dentro de `(en)/` pasa `locale="en"` al componente.
+- Marcar `/en` como completa solo cuando todos los bloques anteriores tengan versión inglesa.

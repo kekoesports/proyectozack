@@ -19,13 +19,25 @@ const HERO_STATS = [
  *
  * @kind client
  * @feature marketing-site
- * @route /
+ * @route / , /en
  * @example
  * ```tsx
- * <Hero />
+ * <Hero />                                   // home ES (default)
+ * <Hero heading="Gaming & iGaming Agency" /> // home EN
  * ```
  */
-export function Hero() {
+type HeroProps = {
+  /**
+   * Texto del H1 semántico. Default: keyword ES (`Agencia de Influencers
+   * Gaming e iGaming en España y LATAM`). Se sobrescribe desde `/en/page.tsx`
+   * para el H1 inglés.
+   */
+  readonly heading?: string;
+};
+
+const DEFAULT_HEADING = 'Agencia de Influencers Gaming e iGaming en España y LATAM';
+
+export function Hero({ heading = DEFAULT_HEADING }: HeroProps = {}) {
   return (
     <section className="relative text-white overflow-hidden min-h-dvh flex flex-col pt-16">
 
@@ -67,7 +79,7 @@ export function Hero() {
           transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1], delay: 0.15 }}
           className="font-display text-sm xs:text-base sm:text-xl md:text-2xl lg:text-[1.75rem] font-bold uppercase tracking-[0.15em] text-sp-muted2/70 mb-4 sm:mb-5 max-w-4xl text-balance"
         >
-          Agencia de Influencers Gaming e iGaming en España y LATAM
+          {heading}
         </m.h1>
 
         {/* Claim visual (LCP element) — antes era el H1; ahora es un elemento
