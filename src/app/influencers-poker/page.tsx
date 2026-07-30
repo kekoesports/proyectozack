@@ -277,8 +277,9 @@ export default function InfluencersPokerPage() {
           </h2>
           <div className="space-y-4 text-base text-sp-muted leading-relaxed">
             <p>
-              El póker online es una modalidad de juego regulada en España y sigue el mismo
-              marco publicitario que casino y sportsbook. El{' '}
+              Según el marco regulatorio vigente en España a 2026, el póker online es una
+              modalidad de juego regulada en España y sigue el mismo marco publicitario que
+              casino y sportsbook. El{' '}
               <strong className="text-sp-dark">Real Decreto 958/2020</strong> aplica idéntico:
               ventana horaria 1:00-5:00, prohibición de bonos de bienvenida en creatividades,
               disclaimers +18 obligatorios y llamada a participación responsable. El operador
