@@ -278,7 +278,7 @@ export default function StreamersApuestasDeportivasPage() {
           </h2>
           <div className="space-y-4 text-base text-sp-muted leading-relaxed">
             <p>
-              El{' '}
+              Según el marco regulatorio vigente en España a 2026, el{' '}
               <strong className="text-sp-dark">Real Decreto 958/2020</strong>{' '}
               aplica idéntico a sportsbook y a casino: ventana 1:00-5:00 para la promoción
               explícita del bono/enlace, prohibición de bonos de bienvenida en creatividades,

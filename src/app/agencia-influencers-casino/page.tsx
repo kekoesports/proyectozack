@@ -270,11 +270,12 @@ export default function AgenciaInfluencersCasinoPage() {
           </h2>
           <div className="space-y-4 text-base text-sp-muted leading-relaxed">
             <p>
-              Toda campaña de casino dirigida al mercado español cumple el{' '}
+              Según el marco regulatorio vigente en España a 2026, toda campaña de casino
+              dirigida al mercado español cumple el{' '}
               <strong className="text-sp-dark">Real Decreto 958/2020</strong>: ventana
               publicitaria 1:00-5:00 para contenido de juego real, prohibición de bonos de
-              bienvenida en creatividades, disclaimers +18 obligatorios y llamada a participación
-              responsable. El operador debe tener licencia DGOJ vigente. Ver{' '}
+              bienvenida en creatividades, disclaimers +18 obligatorios y llamada a
+              participación responsable. El operador debe tener licencia DGOJ vigente. Ver{' '}
               <Link href="/guia-dgoj-igaming-influencers" className="font-semibold text-sp-orange hover:underline">
                 guía DGOJ de influencer marketing en España
               </Link>{' '}

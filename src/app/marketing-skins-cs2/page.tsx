@@ -79,7 +79,7 @@ const FAQS = [
   },
   {
     q: '¿Hay que cumplir normativa DGOJ para promocionar skins en España?',
-    a: 'Depende del producto. Los marketplaces P2P y las plataformas de trade-up no se consideran juego regulado en España — no requieren licencia DGOJ. Las plataformas de case opening operan bajo regímenes distintos según su jurisdicción; SocialPro solo colabora con operadores que cumplen la normativa aplicable en cada mercado objetivo y siempre añade disclaimers de edad (+18) en todo el contenido patrocinado. Las plataformas de casino con skins caen bajo DGOJ y usan nuestro flujo iGaming estándar.',
+    a: 'Depende del producto. Según el marco regulatorio vigente en España a 2026, los marketplaces P2P y las plataformas de trade-up no se consideran juego regulado — no requieren licencia DGOJ. El tratamiento varía por país y por tipo de plataforma, así que conviene validar el marco aplicable con el operador antes de cada activación. Las plataformas de case opening operan bajo regímenes distintos según su jurisdicción; SocialPro solo colabora con operadores que cumplen la normativa aplicable en cada mercado objetivo y siempre añade disclaimers de edad (+18) en todo el contenido patrocinado. Las plataformas de casino con skins caen bajo DGOJ y usan nuestro flujo iGaming estándar.',
   },
   {
     q: '¿En cuánto tiempo se puede activar una campaña de skins CS2?',
@@ -254,10 +254,13 @@ export default function MarketingSkinsCs2Page() {
                 <Link href="/marcas/keydrop" className="hover:underline">KeyDrop · case opening</Link>
               </div>
               <p className="text-sm text-sp-muted leading-relaxed">
-                Activaciones sostenidas con creadores del roster (Imantado, Naow, Zacketizor).
-                Códigos de referido y sistema de tracking multi-creador integrado en la
-                plataforma. EmpireDrop y CSDROP siguen un modelo operativo equivalente. Cifras
-                agregadas bajo NDA de partners.
+                Activaciones sostenidas con creadores de SocialPro y colaboradores del
+                ecosistema: Naow desde el roster de la agencia, el cofundador y streamer
+                Zacketizor (Alfonso &ldquo;Zack&rdquo; Arias, co-fundador de SocialPro que
+                sigue activo como creador de contenido en el ecosistema) y colaboraciones
+                puntuales como la de Imantado. Códigos de referido y sistema de tracking
+                multi-creador integrado en la plataforma. EmpireDrop y CSDROP siguen un
+                modelo operativo equivalente; cifras agregadas bajo NDA de partners.
               </p>
             </div>
           </div>
@@ -273,10 +276,12 @@ export default function MarketingSkinsCs2Page() {
           </h2>
           <div className="space-y-4 text-base text-sp-muted leading-relaxed">
             <p>
-              El régimen legal aplicable depende del tipo de plataforma. Los marketplaces P2P y
-              las herramientas de trade-up no se consideran juego regulado en España — no
-              requieren licencia DGOJ ni entran en los horarios publicitarios del Real Decreto
-              958/2020.
+              El régimen legal aplicable depende del tipo de plataforma. Según el marco
+              regulatorio vigente en España a 2026, los marketplaces P2P y las herramientas
+              de trade-up no se consideran juego regulado — no requieren licencia DGOJ ni
+              entran en los horarios publicitarios del Real Decreto 958/2020. El tratamiento
+              varía por país y por tipo de plataforma; conviene validar el marco aplicable
+              con cada operador antes de una activación.
             </p>
             <p>
               Las plataformas de case opening operan bajo regímenes distintos según su

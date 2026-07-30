@@ -276,11 +276,12 @@ export default function AgenciaStreamersKickPage() {
           <div className="space-y-4 text-base text-sp-muted leading-relaxed">
             <p>
               Que Kick admita técnicamente streaming de casino no exime del cumplimiento
-              regulatorio. Para el mercado español rige el{' '}
-              <strong className="text-sp-dark">Real Decreto 958/2020</strong>: la ventana
-              horaria 1:00-5:00 para contenido de juego real, prohibición de bonos de bienvenida
-              en creatividades y disclaimers +18 obligatorios. SocialPro aplica el mismo
-              protocolo iGaming en Kick que en cualquier otra plataforma.
+              regulatorio. Según el marco regulatorio vigente en España a 2026, para el
+              mercado español rige el{' '}
+              <strong className="text-sp-dark">Real Decreto 958/2020</strong>: ventana
+              horaria 1:00-5:00 para contenido de juego real, prohibición de bonos de
+              bienvenida en creatividades y disclaimers +18 obligatorios. SocialPro aplica
+              el mismo protocolo iGaming en Kick que en cualquier otra plataforma.
             </p>
             <p>
               En LatAm cada mercado tiene su propia normativa (Colombia con Coljuegos, Argentina
