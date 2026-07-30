@@ -22,7 +22,7 @@ const CREATORS: readonly Creator[] = [
   { slug: 'b0rja',        label: 'B0rja',        profileUrl: 'https://www.twitch.tv/b0rja'         },
 ];
 
-const TWITCH_GRADIENT = gradientStyle('#6441a5', '#2a0e61');
+const TWITCH_GRADIENT: React.CSSProperties = { background: gradientStyle('#6441a5', '#2a0e61') };
 
 export function WorkedWithSection(): React.JSX.Element {
   return (
