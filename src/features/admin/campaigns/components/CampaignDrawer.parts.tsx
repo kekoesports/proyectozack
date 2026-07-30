@@ -530,13 +530,24 @@ export function CampaignForm({
         {...(initialTracking ? { initialTracking } : {})}
       />
 
-      {/* Notas */}
-      <Field label="Notas">
+      {/* Notas del creador — contexto/acuerdos con el talento */}
+      <Field label="Notas del creador">
+        <textarea
+          name="creatorNotes"
+          rows={3}
+          defaultValue={campaign?.creatorNotes ?? ''}
+          placeholder="Notas sobre lo acordado con el creador…"
+          className={`${inputCls} resize-none`}
+        />
+      </Field>
+
+      {/* Notas internas — visibles solo para el equipo */}
+      <Field label="Notas internas">
         <textarea
           name="notes"
           rows={3}
           defaultValue={campaign?.notes ?? ''}
-          placeholder="Notas internas…"
+          placeholder="Notas internas del equipo…"
           className={`${inputCls} resize-none`}
         />
       </Field>

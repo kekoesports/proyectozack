@@ -89,6 +89,7 @@ export type CreateCampaignInput = {
   briefingUrl?: string;
   contentUrl?: string;
   notes?: string;
+  creatorNotes?: string;
   currency?: 'EUR' | 'USD';
   amountBrand?: number;
   amountTalent?: number;
@@ -227,6 +228,7 @@ export async function getCampaignWithRelations(
       briefingUrl: campaigns.briefingUrl,
       contentUrl: campaigns.contentUrl,
       notes: campaigns.notes,
+      creatorNotes: campaigns.creatorNotes,
       currency: campaigns.currency,
       amountBrand: campaigns.amountBrand,
       amountTalent: campaigns.amountTalent,
@@ -310,6 +312,7 @@ export async function getCampaignWithRelations(
     briefingUrl: row.briefingUrl,
     contentUrl: row.contentUrl,
     notes: row.notes,
+    creatorNotes: row.creatorNotes,
     currency: row.currency,
     amountBrand: row.amountBrand,
     amountTalent: row.amountTalent,
@@ -428,6 +431,7 @@ export async function createCampaign(input: CreateCampaignInput): Promise<Campai
       briefingUrl: input.briefingUrl ?? null,
       contentUrl: input.contentUrl ?? null,
       notes: input.notes ?? null,
+      creatorNotes: input.creatorNotes ?? null,
       currency: input.currency ?? 'EUR',
       amountBrand: String(input.amountBrand ?? 0),
       amountTalent: String(input.amountTalent ?? 0),
@@ -477,6 +481,7 @@ export async function updateCampaign(
   if ('briefingUrl' in patch) setValue['briefingUrl'] = patch.briefingUrl ?? null;
   if ('contentUrl' in patch) setValue['contentUrl'] = patch.contentUrl ?? null;
   if ('notes' in patch) setValue['notes'] = patch.notes ?? null;
+  if ('creatorNotes' in patch) setValue['creatorNotes'] = patch.creatorNotes ?? null;
   if (patch.currency !== undefined) setValue['currency'] = patch.currency;
   if (patch.amountBrand !== undefined) setValue['amountBrand'] = String(patch.amountBrand);
   if (patch.amountTalent !== undefined) setValue['amountTalent'] = String(patch.amountTalent);

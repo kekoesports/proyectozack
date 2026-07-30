@@ -21,6 +21,7 @@ function makeCampaign(overrides: Partial<CampaignWithRelations> = {}): CampaignW
     briefingUrl: null,
     contentUrl: null,
     notes: null,
+    creatorNotes: null,
     currency: 'EUR',
     amountBrand: '10000',
     amountTalent: '7000',

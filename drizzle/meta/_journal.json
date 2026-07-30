@@ -792,6 +792,13 @@
       "when": 1785329040697,
       "tag": "0112_sorteos_integrity_hardening",
       "breakpoints": true
+    },
+    {
+      "idx": 113,
+      "version": "7",
+      "when": 1785974400000,
+      "tag": "0113_add_creator_notes_to_campaigns",
+      "breakpoints": true
     }
   ]
 }

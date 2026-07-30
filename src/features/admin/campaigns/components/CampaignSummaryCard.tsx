@@ -307,10 +307,20 @@ export function CampaignSummaryCard({ campaign }: Props): React.ReactElement {
         </div>
       </section>
 
-      {/* Notes */}
+      {/* Notas del creador */}
+      {campaign.creatorNotes !== null && campaign.creatorNotes !== '' && (
+        <section className="rounded-2xl border border-sp-admin-border bg-sp-admin-card p-5">
+          <h2 className="font-bold text-sp-admin-text text-sm mb-2">Notas del creador</h2>
+          <p className="text-sm text-sp-admin-muted leading-relaxed whitespace-pre-wrap">
+            {campaign.creatorNotes}
+          </p>
+        </section>
+      )}
+
+      {/* Notas internas */}
       {campaign.notes !== null && campaign.notes !== '' && (
         <section className="rounded-2xl border border-sp-admin-border bg-sp-admin-card p-5">
-          <h2 className="font-bold text-sp-admin-text text-sm mb-2">Notas</h2>
+          <h2 className="font-bold text-sp-admin-text text-sm mb-2">Notas internas</h2>
           <p className="text-sm text-sp-admin-muted leading-relaxed whitespace-pre-wrap">
             {campaign.notes}
           </p>

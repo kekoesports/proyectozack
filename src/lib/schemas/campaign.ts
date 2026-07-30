@@ -85,6 +85,7 @@ const baseCampaign = z.object({
   briefingUrl: z.preprocess((v) => (typeof v === 'string' && v.trim() === '' ? undefined : v), z.string().url().optional()),
   contentUrl: z.preprocess((v) => (typeof v === 'string' && v.trim() === '' ? undefined : v), z.string().url().optional()),
   notes: z.preprocess((v) => (typeof v === 'string' && v.trim() === '' ? undefined : v), z.string().optional()),
+  creatorNotes: z.preprocess((v) => (typeof v === 'string' && v.trim() === '' ? undefined : v), z.string().optional()),
   currency: z.enum(['EUR', 'USD']).default('EUR'),
   amountBrand: z.coerce.number().nonnegative().default(0),
   amountTalent: z.coerce.number().nonnegative().default(0),
