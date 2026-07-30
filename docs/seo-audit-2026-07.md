@@ -17,7 +17,7 @@
 - ✅ Multilingual pairs con `alternates.languages` correctos: `es`, `en`, `x-default → ES` (mercado principal).
 - ✅ `/creadores/[slug]` y `/c/[slug]` intencionalmente excluidos (noindex).
 - ⚠ **`lastModified` fijo en `BUILD_DATE`** para el 80% de las entradas — Google acepta pero es una señal débil de frescura. Correcto por ahora dado que muchas páginas son marketing estático. Mantener.
-- ⚠ **No incluye `/keko`** — decidido 2026-07-30: **INCLUIR** en Fase 1. Es página de entidad del founder → refuerza cross-reference con kekoesports.es. Además, revisar que su `Person` schema sea coherente con el `founder` del `Organization` (mismo `name`, misma `url`) y añadir `subjectOf` apuntando al episodio de Canal Sur: `https://open.spotify.com/episode/1NroRDxOt87HJsTEAYBVdt`.
+- ✅ **`/keko` sí está en el sitemap** (falsa alarma del audit inicial — línea 187 del sitemap.ts). En Fase 1 se refuerza su schema `Person`: se unifica el `@id` con el `founder` del layout (`absoluteUrl('/#founder-pablo')`) para que Google las trate como la misma entidad y se añade el episodio de Spotify (`https://open.spotify.com/episode/1NroRDxOt87HJsTEAYBVdt`) al array `subjectOf` (ya tenía el de Canal Sur MP3).
 - ⚠ **No incluye `/faq`** aunque está en la lista de sitemap (línea 172 `{ url: absoluteUrl('/faq') }` — correcto, ✅).
 
 ### 1.2 Robots (`src/app/robots.ts`)
@@ -170,8 +170,8 @@ Ordenado por impacto en el sprint:
    - Servirla como `public/<key>.txt` con el propio valor de la key como contenido.
    - Guardar la key como env var `INDEXNOW_KEY` en Vercel (tú añades en Dashboard después de que te la pase por canal seguro, **NO en chat**).
    - `scripts/ping-indexnow.ts` como hook post-build (invocado desde `package.json` `"build": "tsx scripts/migrate.ts && next build && tsx scripts/ping-indexnow.ts"` — o mecanismo equivalente). Ping inicial con lista estática de URLs core; en fases siguientes se enriquece con las nuevas landings.
-7. **Sitemap**
-   - Añadir `/keko` (decidido en §1.1). Coordinar con el Person schema del founder y `subjectOf` del episodio Canal Sur.
+7. **Sitemap y /keko**
+   - `/keko` ya está en el sitemap (§1.1 corregido). Refuerzo del schema: unificar `@id` del `Person` de `/keko` con el del `founder` en el layout + añadir el episodio Spotify al array `subjectOf`.
    - Las URLs de las Fases 2-5 se añadirán en cada PR correspondiente al `sitemap.ts`.
 
 **No requieren cambios de código:**
