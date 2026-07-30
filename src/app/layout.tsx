@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
+import { headers } from 'next/headers';
 import { safeJsonLd } from '@/lib/safeJsonLd';
+import { isEnPathname } from '@/lib/en-routes';
 import { Inter, Barlow_Condensed } from 'next/font/google';
 import './globals.css';
 import { Nav } from '@/components/layout/Nav';
@@ -218,13 +220,21 @@ const jsonLd = {
   ],
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // `x-pathname` lo inyecta src/proxy.ts en TODA request HTML (necesario porque
+  // Next.js no expone el pathname a Server Component layouts de forma nativa).
+  // Con él decidimos el lang correcto del <html>. Fallback 'es' si por alguna
+  // razón el header no llega (dev sin proxy corriendo, tests…).
+  const h = await headers();
+  const pathname = h.get('x-pathname');
+  const lang = isEnPathname(pathname) ? 'en' : 'es';
+
   return (
-    <html lang="es">
+    <html lang={lang}>
       <head>
         <script
           type="application/ld+json"

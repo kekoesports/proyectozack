@@ -1,5 +1,18 @@
 /**
- * Lógica pura de detección de idioma para el middleware de geo-redirección.
+ * Lógica pura de detección de idioma. Se usa desde el proxy para escribir la
+ * cookie de preferencia. **NO redirige** por Accept-Language ni por geo-IP —
+ * decisión de producto (2026-07-30, sprint SEO+GEO): la URL solicitada se
+ * sirve tal cual (200 OK).
+ *
+ * Motivos:
+ * - Google Search Central desaconseja explícitamente el auto-redirect por
+ *   idioma/geo — perjudica el crawl y produce inconsistencia entre lo que
+ *   ve el bot y lo que ve el usuario.
+ * - Un usuario en España que quiere consultar la versión inglesa
+ *   (operadores internacionales con sede en ES, por ejemplo) debe poder.
+ * - Los redirects previos hacían que Googlebot con Accept-Language en-US
+ *   fuera desviado a /en desde /, apartando la home ES del crawler.
+ *
  * Sin dependencias de Next.js — importable en tests y en edge runtime.
  */
 
@@ -7,12 +20,13 @@ export const LOCALE_COOKIE = 'socialpro_locale';
 
 export const LOCALE_COOKIE_MAX_AGE = 31536000; // 1 año
 
-/** Rutas a las que aplica el middleware de detección. */
+/** Rutas a las que aplica el escritor de cookie. */
 export const LOCALE_MIDDLEWARE_MATCHER = ['/', '/en'] as const;
 
 /**
- * Países hispanohablantes — visitantes de estos países reciben ES.
- * Resto → EN (si el país es conocido y no está aquí).
+ * Países hispanohablantes — usado solo para escribir la cookie de preferencia
+ * si el usuario aterriza en la ruta que ya coincide con su locale probable.
+ * NO se usa para redirigir.
  */
 export const SPANISH_COUNTRIES: ReadonlySet<string> = new Set([
   'ES', 'MX', 'AR', 'CO', 'CL', 'PE', 'UY', 'PY', 'BO', 'EC',
@@ -20,41 +34,43 @@ export const SPANISH_COUNTRIES: ReadonlySet<string> = new Set([
 ]);
 
 /**
- * Devuelve el locale preferido basado en:
- * 1. x-vercel-ip-country (si está disponible)
- * 2. accept-language (si empieza por 'es')
- * 3. Default ES (mercado principal)
- *
- * No hace llamadas externas ni almacena IP.
+ * Devuelve el locale preferido a partir de las señales del request.
+ * Prioridad: país conocido → accept-language → default 'es'.
+ * Solo se usa para etiquetar la cookie; no dispara redirect.
  */
 export function detectPreferredLocale(
   country: string | null | undefined,
   acceptLanguage: string | null | undefined,
 ): 'es' | 'en' {
-  // País conocido → decide directamente
   if (country) {
     return SPANISH_COUNTRIES.has(country) ? 'es' : 'en';
   }
-  // Sin país: fallback a accept-language
   if (acceptLanguage?.toLowerCase().startsWith('es')) return 'es';
-  // Sin información → default ES
   return 'es';
 }
 
-export type LocaleDecision =
-  | { action: 'pass'; locale: 'es' | 'en'; writeCookie: boolean }
-  | { action: 'redirect'; to: '/' | '/en'; locale: 'es' | 'en' };
+/**
+ * Decisión post-redirect: `action` es SIEMPRE `'pass'`. Se conserva la forma
+ * de tipo para no cambiar la firma pública en un solo hotfix, pero la rama
+ * `'redirect'` está deliberadamente eliminada.
+ *
+ * `writeCookie` sigue siendo útil para que un futuro language switcher manual
+ * (previsto en Fase 4 del sprint SEO+GEO 2026-07) pueda leer la preferencia.
+ * Reservada para language switcher manual (Fase 4).
+ */
+export type LocaleDecision = {
+  readonly action: 'pass';
+  readonly locale: 'es' | 'en';
+  readonly writeCookie: boolean;
+};
 
 /**
- * Función pura que decide si redirigir o pasar, y qué cookie escribir.
- * Usada tanto por el middleware como por los tests.
+ * Devuelve solo `pass`. Nunca redirige.
  *
- * Prioridad (asimétrica por diseño):
- * 1. País hispanohablante → geo gana siempre, incluso sobre cookie.
- *    Garantiza que usuarios españoles/LATAM reciben contenido en español.
- * 2. País no hispanohablante o desconocido + cookie válido → respeta cookie.
- *    Evita bucles de redirección para usuarios que eligieron manualmente.
- * 3. Sin cookie ni país útil → accept-language (default: 'es').
+ * - Si la URL solicitada coincide con el locale preferido detectado, marcamos
+ *   la cookie para memorizar preferencia (útil si algún día añadimos switcher).
+ * - Si difiere, respetamos la URL solicitada y no reescribimos cookie
+ *   (podría ser una preferencia explícita del usuario).
  */
 export function getLocaleDecision(opts: {
   readonly pathname: string;
@@ -65,25 +81,13 @@ export function getLocaleDecision(opts: {
   const { pathname, cookieLocale, country, acceptLanguage } = opts;
   const currentLocale: 'es' | 'en' = pathname === '/en' ? 'en' : 'es';
 
-  // País hispanohablante → geo gana sobre cookie (incluye corrección silenciosa de cookie)
-  if (country && SPANISH_COUNTRIES.has(country)) {
-    if (currentLocale === 'es') {
-      // Ya en español — pasar. Si el cookie decía 'en', corregirlo silenciosamente.
-      return { action: 'pass', locale: 'es', writeCookie: cookieLocale !== 'es' };
-    }
-    // Está en /en pero el país es hispanohablante → redirigir a /
-    return { action: 'redirect', to: '/', locale: 'es' };
-  }
-
-  // País no hispanohablante (o sin país): el cookie manda para evitar bucles
-  if (cookieLocale === 'es' || cookieLocale === 'en') {
-    return { action: 'pass', locale: cookieLocale, writeCookie: false };
-  }
-
-  // Sin cookie ni país confirmado: detectar por accept-language (default: 'es')
+  // Escribimos cookie solo si (a) no había cookie válida, y (b) coincide con
+  // el locale que el usuario aparenta preferir. Esto evita sobrescribir
+  // preferencias explícitas y evita marcar cookie con la ruta que solo se
+  // visitó de pasada.
   const preferred = detectPreferredLocale(country, acceptLanguage);
-  if (currentLocale === preferred) {
-    return { action: 'pass', locale: preferred, writeCookie: true };
-  }
-  return { action: 'redirect', to: preferred === 'en' ? '/en' : '/', locale: preferred };
+  const cookieAlreadyValid = cookieLocale === 'es' || cookieLocale === 'en';
+  const writeCookie = !cookieAlreadyValid && currentLocale === preferred;
+
+  return { action: 'pass', locale: currentLocale, writeCookie };
 }
