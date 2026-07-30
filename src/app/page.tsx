@@ -81,8 +81,8 @@ export default async function HomePage() {
       <Hero />
       <Marquee />
       <BrandsCarousel brands={brands} />
+      <WorkedWithSection />
       <TalentSection talents={talents} />
-      {false && <WorkedWithSection />}
       {SHOW_LIVE_SECTION && (
         <Suspense fallback={
           <section className="bg-sp-black py-16 px-4 sm:px-6 border-t border-white/[0.06]">
