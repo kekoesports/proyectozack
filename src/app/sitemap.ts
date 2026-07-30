@@ -179,6 +179,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: absoluteUrl('/apuesta-segura-cs2'), lastModified: BUILD_DATE           },
     // Fase 2 landings de ataque — sprint SEO+GEO 2026-07
     { url: absoluteUrl('/marketing-skins-cs2'), lastModified: BUILD_DATE          },
+    { url: absoluteUrl('/agencia-streamers-kick'), lastModified: BUILD_DATE       },
     { url: absoluteUrl('/blog'),             lastModified: D.blog          },
     { url: absoluteUrl('/news'),             lastModified: BUILD_DATE             },
     { url: absoluteUrl('/news/live'),        lastModified: BUILD_DATE             },

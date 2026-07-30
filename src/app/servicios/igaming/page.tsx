@@ -498,6 +498,7 @@ export default function IgamingPage() {
               { href: '/influencers-cs2', label: 'Influencers CS2 (ES)' },
               { href: '/apuesta-segura-cs2', label: 'Apuesta Segura CS2' },
               { href: '/marketing-skins-cs2', label: 'Marketing de Skins CS2' },
+              { href: '/agencia-streamers-kick', label: 'Streamers Kick' },
               { href: '/marcas/keydrop', label: 'Keydrop' },
               { href: '/marcas/hellcase', label: 'Hellcase' },
               { href: '/marcas/skinplace', label: 'Skinplace' },

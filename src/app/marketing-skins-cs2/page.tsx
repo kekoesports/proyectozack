@@ -344,7 +344,12 @@ export default function MarketingSkinsCs2Page() {
             . Si tu plataforma combina skins con casino, revisa nuestros{' '}
             <Link href="/servicios/igaming" className="font-semibold text-sp-orange hover:underline">
               servicios iGaming con compliance DGOJ
-            </Link>.
+            </Link>{' '}
+            y nuestra{' '}
+            <Link href="/agencia-streamers-kick" className="font-semibold text-sp-orange hover:underline">
+              agencia de streamers de Kick
+            </Link>
+            {' '}(plataforma que sí admite streaming de casino en directo).
           </p>
         </div>
       </section>
