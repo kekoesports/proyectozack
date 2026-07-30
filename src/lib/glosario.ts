@@ -45,7 +45,7 @@ export const GLOSSARY_TERMS: readonly GlossaryTerm[] = [
   {
     slug: 'ftd',
     name: 'FTD',
-    alternateName: ['First Time Deposit', 'Primer Depósito'],
+    alternateName: ['FTDs', 'First Time Deposit', 'Primer Depósito'],
     block: 'iGaming',
     shortDef:
       'FTD (First Time Deposit) es el primer depósito real que un usuario hace en un operador de iGaming después de registrarse. Es la métrica primaria de conversión en campañas de casino, sportsbook y poker: mide cuántos jugadores nuevos aportan dinero real por primera vez a la plataforma, no solo cuántos se registran. Un registro sin FTD no cuenta como conversión válida en la mayoría de contratos entre operador y agencia.',
@@ -203,7 +203,7 @@ export const GLOSSARY_TERMS: readonly GlossaryTerm[] = [
   {
     slug: 'trade-up',
     name: 'Trade-up',
-    alternateName: ['Contrato de intercambio', 'Trade-Up Contract'],
+    alternateName: ['Trade-ups', 'Contrato de intercambio', 'Trade-Up Contract'],
     block: 'skins-cs2',
     shortDef:
       'Un trade-up es el mecanismo oficial de CS2 por el que un jugador entrega diez skins de una misma rareza (por ejemplo, "Mil Spec") para recibir aleatoriamente una skin de la rareza inmediatamente superior ("Restricted"). El resultado se calcula con las probabilidades públicas de las colecciones a las que pertenecen las skins entregadas. Es la única forma nativa de "subir de rareza" sin comprar directamente en el mercado, y tiene una economía optimizable propia.',
@@ -215,7 +215,7 @@ export const GLOSSARY_TERMS: readonly GlossaryTerm[] = [
   {
     slug: 'cashout',
     name: 'Cashout',
-    alternateName: ['Retirada', 'Cobrar'],
+    alternateName: ['Cashouts', 'Retirada', 'Cobrar'],
     block: 'skins-cs2',
     shortDef:
       'Cashout es la acción de convertir el saldo o inventario de una plataforma de skins en dinero real, en criptomonedas, en tarjetas regalo o en otro instrumento externo a la plataforma. Es la operación inversa del depósito y suele estar sujeta a validaciones KYC, límites diarios, comisiones y ventanas de procesamiento. La existencia y facilidad del cashout es lo que diferencia jurídicamente a un marketplace de skins de una plataforma de puro entretenimiento con premios virtuales no canjeables.',
@@ -263,7 +263,7 @@ export const GLOSSARY_TERMS: readonly GlossaryTerm[] = [
   {
     slug: 'drop',
     name: 'Drop',
-    alternateName: ['Loot drop', 'Recompensa aleatoria'],
+    alternateName: ['Drops', 'Loot drop', 'Recompensa aleatoria'],
     block: 'skins-cs2',
     shortDef:
       'Un drop es una recompensa aleatoria que el sistema del juego CS2 entrega al jugador por participar en una partida oficial o por conseguir determinados hitos semanales. Los drops pueden ser cajas, skins, gráficos o piezas de coleccionista, y su probabilidad varía por actividad y por rango. Los drops que caen directamente como skins raras tienen valor de mercado inmediato si el jugador decide venderlas en el Steam Community Market o en marketplaces externos.',
@@ -275,7 +275,7 @@ export const GLOSSARY_TERMS: readonly GlossaryTerm[] = [
   {
     slug: 'upgrade',
     name: 'Upgrade',
-    alternateName: ['Mejora de skin'],
+    alternateName: ['Upgrades', 'Mejora de skin'],
     block: 'skins-cs2',
     shortDef:
       'Upgrade es el mecanismo, ofrecido por plataformas externas al juego, por el que un usuario apuesta una skin (o combinación de skins) contra la probabilidad de recibir a cambio una skin de valor superior. La probabilidad del resultado favorable está relacionada con el ratio de precios entre la skin apostada y la skin objetivo: subir de 10 a 100 euros suele tener una probabilidad cercana al 10 %, menos las comisiones de la plataforma. Es una mecánica de juego, no un intercambio comercial.',
@@ -325,7 +325,7 @@ export const GLOSSARY_TERMS: readonly GlossaryTerm[] = [
   {
     slug: 'brand-deal',
     name: 'Brand deal',
-    alternateName: ['Acuerdo de marca', 'Deal de patrocinio'],
+    alternateName: ['Brand deals', 'Acuerdo de marca', 'Deal de patrocinio'],
     block: 'creator-economy',
     shortDef:
       'Un brand deal es cualquier acuerdo comercial entre una marca y un creador para publicar contenido patrocinado, hacer menciones en directo, aparecer en material publicitario o representar a la marca durante un periodo. Los brand deals van desde patrocinios one-shot (una pieza puntual) hasta contratos anuales con exclusividad sectorial. Son la forma dominante de monetización para creadores mid-tier y top-tier, por encima de los ingresos por publicidad nativa de las plataformas y las suscripciones de audiencia.',
@@ -337,7 +337,7 @@ export const GLOSSARY_TERMS: readonly GlossaryTerm[] = [
   {
     slug: 'media-kit',
     name: 'Media kit',
-    alternateName: ['Kit de prensa del creador', 'Press kit'],
+    alternateName: ['Media kits', 'Kit de prensa del creador', 'Press kit'],
     block: 'creator-economy',
     shortDef:
       'Un media kit de creador es el documento —habitualmente un PDF o página web— que resume las métricas verificables, el perfil de audiencia, los patrocinios previos y las tarifas de referencia de un streamer para uso comercial de marcas y agencias. Incluye datos de plataforma (viewers medios, seguidores, engagement rate), demografía de audiencia (idioma, país, edad, género), verticales de contenido y ejemplos de activaciones anteriores. Es la carta de presentación estándar del creator marketing.',

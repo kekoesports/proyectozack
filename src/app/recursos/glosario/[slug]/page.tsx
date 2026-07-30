@@ -12,6 +12,7 @@ import {
   type GlossaryBlock,
 } from '@/lib/glosario';
 import { buildBreadcrumbJsonLd } from '@/lib/utils/breadcrumbs';
+import { GlossaryText } from '@/components/ui/GlossaryText';
 
 // Landings SEO relacionadas por bloque — mostradas al pie de cada ficha.
 const RELATED_LINKS_BY_BLOCK: Record<GlossaryBlock, ReadonlyArray<{ readonly href: string; readonly label: string }>> = {
@@ -159,7 +160,7 @@ export default async function GlossaryTermPage(
             Contexto
           </h2>
           <p className="text-base text-sp-muted leading-relaxed">
-            {term.context}
+            <GlossaryText excludeSlug={term.slug}>{term.context}</GlossaryText>
           </p>
         </div>
       </section>
