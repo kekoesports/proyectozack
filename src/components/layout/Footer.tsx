@@ -69,6 +69,12 @@ const NAV_COLS_BY_LOCALE: Record<Locale, readonly NavCol[]> = {
       title: 'Especialidades',
       inline: true,
       links: [
+        // Fase 2 SEO+GEO 2026-07 — landings de ataque (arriba para más peso)
+        { href: '/marketing-skins-cs2',              label: 'Marketing Skins CS2' },
+        { href: '/agencia-streamers-kick',           label: 'Streamers Kick' },
+        { href: '/agencia-influencers-casino',       label: 'Influencers Casino' },
+        { href: '/streamers-apuestas-deportivas',    label: 'Apuestas Deportivas' },
+        { href: '/influencers-poker',                label: 'Influencers Poker' },
         { href: '/cs2-influencer-marketing',        label: 'CS2 Influencer Marketing' },
         { href: '/valorant-influencers-agency',      label: 'Valorant Influencers' },
         { href: '/servicios/igaming',                label: 'iGaming & Betting' },
@@ -127,6 +133,12 @@ const NAV_COLS_BY_LOCALE: Record<Locale, readonly NavCol[]> = {
       title: 'Specialties',
       inline: true,
       links: [
+        // Fase 2 SEO+GEO 2026-07 — Spanish-only landings (no EN versions yet)
+        { href: '/marketing-skins-cs2',              label: 'Marketing Skins CS2 (ES)' },
+        { href: '/agencia-streamers-kick',           label: 'Streamers Kick (ES)' },
+        { href: '/agencia-influencers-casino',       label: 'Influencers Casino (ES)' },
+        { href: '/streamers-apuestas-deportivas',    label: 'Sportsbook Streamers (ES)' },
+        { href: '/influencers-poker',                label: 'Influencers Poker (ES)' },
         { href: '/cs2-influencer-marketing',        label: 'CS2 Influencer Marketing' },
         { href: '/valorant-influencers-agency',      label: 'Valorant Influencers' },
         { href: '/servicios/igaming',                label: 'iGaming & Betting (ES)' },

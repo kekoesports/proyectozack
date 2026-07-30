@@ -47,6 +47,12 @@ const URL_LIST = [
   'https://socialpro.es/agencia-gaming-latam',
   'https://socialpro.es/apuesta-segura-cs2',
   'https://socialpro.es/guia-dgoj-igaming-influencers',
+  // Fase 2 SEO+GEO 2026-07 — landings de ataque
+  'https://socialpro.es/marketing-skins-cs2',
+  'https://socialpro.es/agencia-streamers-kick',
+  'https://socialpro.es/agencia-influencers-casino',
+  'https://socialpro.es/streamers-apuestas-deportivas',
+  'https://socialpro.es/influencers-poker',
   'https://socialpro.es/en',
 ];
 
