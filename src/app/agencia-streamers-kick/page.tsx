@@ -342,8 +342,19 @@ export default function AgenciaStreamersKickPage() {
             <Link href="/servicios/igaming" className="font-semibold text-sp-orange hover:underline">
               servicios iGaming
             </Link>
-            {' '}con compliance DGOJ. Para CS2 skins y case opening, tenemos landing
-            especializada en{' '}
+            {' '}con compliance DGOJ, específicos para{' '}
+            <Link href="/agencia-influencers-casino" className="font-semibold text-sp-orange hover:underline">
+              casino
+            </Link>
+            ,{' '}
+            <Link href="/streamers-apuestas-deportivas" className="font-semibold text-sp-orange hover:underline">
+              sportsbook
+            </Link>
+            {' '}o{' '}
+            <Link href="/influencers-poker" className="font-semibold text-sp-orange hover:underline">
+              poker
+            </Link>
+            . Para CS2 skins y case opening, tenemos landing especializada en{' '}
             <Link href="/marketing-skins-cs2" className="font-semibold text-sp-orange hover:underline">
               marketing de skins CS2
             </Link>.

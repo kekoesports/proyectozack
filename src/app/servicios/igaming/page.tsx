@@ -501,6 +501,7 @@ export default function IgamingPage() {
               { href: '/agencia-streamers-kick', label: 'Streamers Kick' },
               { href: '/agencia-influencers-casino', label: 'Influencers Casino' },
               { href: '/streamers-apuestas-deportivas', label: 'Streamers Sportsbook' },
+              { href: '/influencers-poker', label: 'Influencers Poker' },
               { href: '/marcas/keydrop', label: 'Keydrop' },
               { href: '/marcas/hellcase', label: 'Hellcase' },
               { href: '/marcas/skinplace', label: 'Skinplace' },

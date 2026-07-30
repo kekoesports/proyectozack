@@ -330,12 +330,16 @@ export default function AgenciaInfluencersCasinoPage() {
       <section className="bg-sp-off border-t border-sp-border py-10">
         <div className="max-w-3xl mx-auto px-6 text-sm text-sp-muted leading-relaxed space-y-3">
           <p>
-            Si tu producto es sportsbook además de casino, revisa nuestra landing de{' '}
+            Si tu producto es sportsbook además de casino, revisa{' '}
             <Link href="/streamers-apuestas-deportivas" className="font-semibold text-sp-orange hover:underline">
               streamers de apuestas deportivas
             </Link>
+            . Si incluyes poker online, mira{' '}
+            <Link href="/influencers-poker" className="font-semibold text-sp-orange hover:underline">
+              influencers de poker
+            </Link>
             . Para plataformas que emiten casino en directo con menos restricciones
-            publicitarias, mira nuestra{' '}
+            publicitarias, revisa nuestra{' '}
             <Link href="/agencia-streamers-kick" className="font-semibold text-sp-orange hover:underline">
               agencia de streamers Kick
             </Link>

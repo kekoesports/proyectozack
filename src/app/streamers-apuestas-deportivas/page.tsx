@@ -341,6 +341,10 @@ export default function StreamersApuestasDeportivasPage() {
             <Link href="/agencia-influencers-casino" className="font-semibold text-sp-orange hover:underline">
               agencia de influencers casino
             </Link>
+            . Si tu portfolio incluye poker online, tenemos landing dedicada de{' '}
+            <Link href="/influencers-poker" className="font-semibold text-sp-orange hover:underline">
+              influencers poker
+            </Link>
             . Para esports betting específicamente en CS2 con histórico público auditable, mira{' '}
             <Link href="/apuesta-segura-cs2" className="font-semibold text-sp-orange hover:underline">
               Apuesta Segura CS2

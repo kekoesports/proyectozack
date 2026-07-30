@@ -182,6 +182,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: absoluteUrl('/agencia-streamers-kick'), lastModified: BUILD_DATE       },
     { url: absoluteUrl('/agencia-influencers-casino'), lastModified: BUILD_DATE   },
     { url: absoluteUrl('/streamers-apuestas-deportivas'), lastModified: BUILD_DATE },
+    { url: absoluteUrl('/influencers-poker'), lastModified: BUILD_DATE            },
     { url: absoluteUrl('/blog'),             lastModified: D.blog          },
     { url: absoluteUrl('/news'),             lastModified: BUILD_DATE             },
     { url: absoluteUrl('/news/live'),        lastModified: BUILD_DATE             },
