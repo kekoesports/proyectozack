@@ -176,8 +176,9 @@ export default function AgenciaInfluencersCasinoPage() {
             Un operador de casino online no busca alcance. Busca FTDs verificados y quiere hablar
             con una agencia que entienda el vocabulario del sector — RTP, live casino, cross-sell
             a sportsbook, LTV por mercado — y que sepa por qué el streamer que arrasa en Valorant
-            puede convertir mal para slots. SocialPro lleva más de una década ejecutando campañas
-            iGaming en España y seis mercados LatAm. El equipo maneja compliance DGOJ, Coljuegos,
+            puede convertir mal para slots. SocialPro lleva más de una década en gaming y
+            esports, y desde 2024 opera un vertical especializado de campañas iGaming en España
+            y seis mercados LatAm. El equipo maneja compliance DGOJ, Coljuegos,
             SEGOB y las regulaciones LatAm que se estabilizan cada trimestre. Cada campaña de
             casino sale del brief con un roster preseleccionado por conversión histórica y no
             por alcance nominal.
