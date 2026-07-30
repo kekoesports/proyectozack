@@ -124,6 +124,7 @@ const jsonLd = {
           description: 'Ex-profesional de CS:GO con más de una década en esports y gaming. Fundador y CEO de SocialPro.',
           url: 'https://kekoesports.es',
           sameAs: [
+            absoluteUrl('/keko'),
             'https://kekoesports.es',
             'https://www.linkedin.com/in/pablocamachocarrion/',
             'https://x.com/kekOesports',
@@ -147,6 +148,7 @@ const jsonLd = {
         'https://x.com/SocialProES',
         'https://www.facebook.com/SocialProES',
         'https://www.linkedin.com/company/socialproes',
+        'https://www.tiktok.com/@socialproes',
       ],
     },
     {

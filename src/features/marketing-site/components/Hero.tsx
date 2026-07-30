@@ -57,22 +57,24 @@ export function Hero() {
           Gaming &amp; Esports · España · LatAm · Europa
         </span>
 
-        {/* Eyebrow — keyword context visible to AI parsers and screen readers.
-            Outside <h1> so H1 text is "CONECTAMOS CREADORES CON MARCAS" without
-            concatenation artifacts. */}
-        <m.p
+        {/* H1 semántico — keyword primaria del sprint SEO+GEO 2026-07.
+            Texto más largo que el eyebrow anterior; se ajusta el sizing y
+            el tracking para que quepa en móvil sin romper la jerarquía
+            visual (el megatítulo de abajo mantiene todo su peso). */}
+        <m.h1
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1], delay: 0.15 }}
-          className="font-display text-[0.9rem] xs:text-[1.1rem] sm:text-[1.6rem] md:text-[2.25rem] lg:text-[3rem] font-bold uppercase tracking-[0.2em] text-sp-muted2/60 mb-3 sm:mb-4"
+          className="font-display text-sm xs:text-base sm:text-xl md:text-2xl lg:text-[1.75rem] font-bold uppercase tracking-[0.15em] text-sp-muted2/70 mb-4 sm:mb-5 max-w-4xl text-balance"
         >
-          AGENCIA GAMING &amp; IGAMING
-        </m.p>
+          Agencia de Influencers Gaming e iGaming en España y LATAM
+        </m.h1>
 
-        {/* Hero H1 = LCP element. Mantenemos el slide-in (y: 40 → 0) pero
-            quitamos opacity:0 inicial: si el elemento empieza invisible, el
-            navegador no contabiliza el LCP hasta que la animación termina. */}
-        <h1 aria-label="Conectamos creadores con marcas" className="font-display text-[2.75rem] xs:text-[3.5rem] sm:text-[5rem] md:text-[7rem] lg:text-[10rem] font-black uppercase leading-[0.85] tracking-tight mb-10">
+        {/* Claim visual (LCP element) — antes era el H1; ahora es un elemento
+            decorativo grande, sin peso semántico H1 pero con toda la
+            presencia visual. Mantenemos el slide-in (y: 40 → 0) sin opacity:0
+            para que el LCP se contabilice en cuanto pinta. */}
+        <div className="font-display text-[2.75rem] xs:text-[3.5rem] sm:text-[5rem] md:text-[7rem] lg:text-[10rem] font-black uppercase leading-[0.85] tracking-tight mb-10">
           <m.span
             initial={{ y: 40 }}
             animate={{ y: 0 }}
@@ -97,7 +99,7 @@ export function Hero() {
           >
             CON MARCAS
           </m.span>
-        </h1>
+        </div>
 
         <div className="flex flex-col items-center max-w-2xl mx-auto">
           <m.p
