@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react';
 import Link from 'next/link';
 import type { MissionWithProgress } from '@/types/giveawayPlatform';
 import { verifyDiscordMission } from '@/app/sorteos/plataforma/discord-mission-action';
+import { SteamLoginButton } from '@/features/giveaway-platform/components/SteamLoginButton';
 
 type UiState =
   | { kind: 'idle' }
@@ -16,6 +17,10 @@ interface Props {
   connected: boolean;
   /** URL de invite pública de la guild — solo para el CTA "Abrir Discord". */
   inviteUrl: string | null;
+  /** Sin sesión Steam el OAuth Discord responde 401 — mostramos login. */
+  loggedIn?: boolean;
+  /** Para el return path del OAuth (`/sorteos/<slug>`). */
+  creatorSlug?: string;
 }
 
 /**
@@ -33,12 +38,19 @@ interface Props {
  * Nunca almacena en cliente ningún dato personal Discord — todo se
  * verifica vía server action con el token cifrado en BD.
  */
-export function DiscordMissionCard({ mission, connected, inviteUrl }: Props) {
+export function DiscordMissionCard({
+  mission,
+  connected,
+  inviteUrl,
+  loggedIn = false,
+  creatorSlug,
+}: Props) {
   const [uiState, setUiState] = useState<UiState>({ kind: 'idle' });
   const [pending, startTransition] = useTransition();
 
   const isDone = mission.claimed;
   const showError = uiState.kind === 'error';
+  const returnPath = creatorSlug ? `/sorteos/${creatorSlug}` : '/sorteos';
 
   function onVerifyClick() {
     setUiState({ kind: 'verifying' });
@@ -52,6 +64,17 @@ export function DiscordMissionCard({ mission, connected, inviteUrl }: Props) {
       setUiState({ kind: 'error', code: result.code, message: result.message });
     });
   }
+
+  const openDiscordCta = inviteUrl ? (
+    <a
+      href={inviteUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="gp-mission-discord-btn is-secondary"
+    >
+      Abrir Discord
+    </a>
+  ) : null;
 
   return (
     <div className={`gp-mission-card gp-mission-card-discord${isDone ? ' is-done' : ''}`}>
@@ -77,16 +100,7 @@ export function DiscordMissionCard({ mission, connected, inviteUrl }: Props) {
           <div className="gp-mission-discord-actions">
           {connected ? (
             <>
-              {inviteUrl ? (
-                <a
-                  href={inviteUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="gp-mission-discord-btn is-secondary"
-                >
-                  Abrir Discord
-                </a>
-              ) : null}
+              {openDiscordCta}
               <button
                 type="button"
                 className="gp-mission-discord-btn is-primary"
@@ -97,25 +111,21 @@ export function DiscordMissionCard({ mission, connected, inviteUrl }: Props) {
                 {pending || uiState.kind === 'verifying' ? 'Verificando...' : 'Verificar misión'}
               </button>
             </>
-          ) : (
+          ) : loggedIn ? (
             <>
-              {inviteUrl ? (
-                <a
-                  href={inviteUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="gp-mission-discord-btn is-secondary"
-                >
-                  Abrir Discord
-                </a>
-              ) : null}
+              {openDiscordCta}
               <Link
-                href="/api/auth/social/discord/connect?return=/sorteos"
+                href={`/api/auth/social/discord/connect?return=${encodeURIComponent(returnPath)}`}
                 className="gp-mission-discord-btn is-primary"
                 prefetch={false}
               >
                 Conectar Discord
               </Link>
+            </>
+          ) : (
+            <>
+              {openDiscordCta}
+              <SteamLoginButton size="md" />
             </>
           )}
           </div>

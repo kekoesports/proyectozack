@@ -120,7 +120,15 @@ export async function PlatformCreatorLanding({ slug }: Props) {
         getConnectedAccount(userId, 'discord'),
         getConnectedAccount(userId, 'twitch'),
       ])
-    : [0, [], undefined, undefined, null, null];
+    : await Promise.all([
+        Promise.resolve(0),
+        // Misiones activas sin progreso — permite CTAs públicas (Abrir Discord).
+        getMissionsWithProgress(null),
+        Promise.resolve(undefined),
+        Promise.resolve(undefined),
+        Promise.resolve(null),
+        Promise.resolve(null),
+      ]);
 
   // Config Discord del creador activo. La card Discord solo se muestra si
   // TODAS las piezas están puestas:
@@ -230,19 +238,6 @@ export async function PlatformCreatorLanding({ slug }: Props) {
                 />
               </div>
             </section>
-
-            <section id="misiones">
-              <div className="gp-legacy-block">
-                <h2>Misiones · gana puntos</h2>
-                <MissionsGrid
-                  missions={missions}
-                  discord={discordProp}
-                  twitch={twitchProp}
-                  discordComingSoon={discordComingSoon}
-                  twitchComingSoon={twitchComingSoon}
-                />
-              </div>
-            </section>
           </>
         ) : (
           <section>
@@ -252,6 +247,26 @@ export async function PlatformCreatorLanding({ slug }: Props) {
             </div>
           </section>
         )}
+
+        {/*
+          Misiones siempre visibles (logueado o no): el CTA "Abrir Discord"
+          debe funcionar sin sesión. Verificar/reclamar sigue exigiendo login
+          en la card y en las server actions.
+        */}
+        <section id="misiones">
+          <div className="gp-legacy-block">
+            <h2>Misiones · gana puntos</h2>
+            <MissionsGrid
+              missions={missions}
+              discord={discordProp}
+              twitch={twitchProp}
+              discordComingSoon={discordComingSoon}
+              twitchComingSoon={twitchComingSoon}
+              loggedIn={Boolean(userId)}
+              creatorSlug={active.slug}
+            />
+          </div>
+        </section>
 
         {isExternal ? null : (
           <section id="sorteos">
