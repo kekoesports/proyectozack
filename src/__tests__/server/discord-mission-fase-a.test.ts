@@ -252,10 +252,16 @@ describe('[discord-fase-a] server action verifyDiscordMission', () => {
     expect(src).toMatch(/DISCORD_GUILD_MEMBER_MODE/);
   });
 
-  it('descifra el token y llama a /users/@me/guilds sin cache', () => {
+  it('descifra el token y delega claim a claimDiscordGuildMissionsForUser', () => {
     expect(src).toMatch(/decrypt\s*\(\s*account\.accessTokenEncrypted\s*\)/);
-    expect(src).toMatch(/users\/@me\/guilds/);
-    expect(src).toMatch(/cache:\s*['"]no-store['"]/);
+    expect(src).toMatch(/claimDiscordGuildMissionsForUser/);
+  });
+
+  it('fetch de guilds pagina /users/@me/guilds sin cache', () => {
+    const fetchGuilds = read('src/lib/discord/fetch-user-guild-ids.ts');
+    expect(fetchGuilds).toMatch(/users\/@me\/guilds/);
+    expect(fetchGuilds).toMatch(/cache:\s*['"]no-store['"]/);
+    expect(fetchGuilds).toMatch(/after/);
   });
 
   it('registra intento (recordAttempt) en cada outcome', () => {
@@ -268,8 +274,9 @@ describe('[discord-fase-a] server action verifyDiscordMission', () => {
     expect(src).toMatch(/['"]not_connected['"]/);
   });
 
-  it('claim y puntos se delegan a la operación atómica', () => {
-    expect(src).toMatch(/claimMissionAndAward/);
+  it('claim y puntos se delegan a la operación atómica vía claim-guild-missions', () => {
+    const claimHelper = read('src/lib/discord/claim-guild-missions.ts');
+    expect(claimHelper).toMatch(/claimMissionAndAward/);
   });
 
   it('INSERT coinTransactions con source="mision" y refId=missionId', () => {

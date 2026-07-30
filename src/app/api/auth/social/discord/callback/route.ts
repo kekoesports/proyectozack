@@ -7,6 +7,7 @@ import { encrypt, isTokenEncryptionConfigured } from '@/lib/crypto/token-encrypt
 import { upsertConnectedAccount } from '@/lib/queries/connectedSocialAccounts';
 import { isDiscordOauthConfigured } from '@/features/giveaway-platform/constants/discord-missions';
 import { sanitizeSocialReturnPath } from '@/lib/auth/sanitize-social-return';
+import { claimDiscordGuildMissionsForUser } from '@/lib/discord/claim-guild-missions';
 
 const DiscordTokenSchema = z.object({
   access_token: z.string().min(1),
@@ -120,26 +121,71 @@ export async function GET(request: Request) {
   // 6) Guardar cuenta conectada con access_token cifrado.
   //    NO guardamos refresh_token (Fase A). NO guardamos la lista de
   //    guilds — se consulta en tiempo real al verificar cada misión.
-  const encryptedAccess = encrypt(tokenData.access_token);
+  let encryptedAccess: string;
+  try {
+    encryptedAccess = encrypt(tokenData.access_token);
+  } catch (err) {
+    console.warn('[discord-callback] encrypt failed', {
+      message: err instanceof Error ? err.name : 'unknown',
+    });
+    return redirectToProfile('encrypt_failed', returnTo);
+  }
   const expiresAt = new Date(Date.now() + tokenData.expires_in * 1000);
 
-  await upsertConnectedAccount({
-    userId: session.user.id,
-    provider: 'discord',
-    providerUserId: discordUser.id,
-    providerUsername: discordUser.username,
-    providerDisplayName: discordUser.global_name ?? null,
-    accessTokenEncrypted: encryptedAccess,
-    scope: tokenData.scope,
-    expiresAt,
-  });
+  try {
+    await upsertConnectedAccount({
+      userId: session.user.id,
+      provider: 'discord',
+      providerUserId: discordUser.id,
+      providerUsername: discordUser.username,
+      providerDisplayName: discordUser.global_name ?? null,
+      accessTokenEncrypted: encryptedAccess,
+      scope: tokenData.scope,
+      expiresAt,
+    });
+  } catch (err) {
+    // UNIQUE (provider, provider_user_id): la misma cuenta Discord ya
+    // está vinculada a otro usuario SocialPro.
+    console.warn('[discord-callback] upsert failed', {
+      message: err instanceof Error ? err.name : 'unknown',
+    });
+    return redirectToProfile('account_in_use', returnTo);
+  }
 
-  return redirectToProfile('ok', returnTo);
+  // 7) Auto-claim: si el jugador YA está en el guild de alguna misión
+  //    Discord activa, concede puntos en el mismo redirect. Evita el
+  //    anti-patrón "conecté y no me sumó" (antes había que pulsar Verificar).
+  try {
+    const claim = await claimDiscordGuildMissionsForUser({
+      userId: session.user.id,
+      accessToken: tokenData.access_token,
+    });
+    if (claim.ok && claim.awarded.length > 0) {
+      const total = claim.awarded.reduce((s, a) => s + a.rewardCoins, 0);
+      return redirectToProfile('rewarded', returnTo, { coins: String(total) });
+    }
+    // Conectado OK pero aún no en el servidor → pide unirse + verificar.
+    return redirectToProfile('connected_join_server', returnTo);
+  } catch (err) {
+    console.warn('[discord-callback] auto-claim failed', {
+      message: err instanceof Error ? err.name : 'unknown',
+    });
+    return redirectToProfile('ok', returnTo);
+  }
 }
 
-function redirectToProfile(status: string, target = '/sorteos/perfil'): NextResponse {
+function redirectToProfile(
+  status: string,
+  target = '/sorteos/perfil',
+  extra?: Record<string, string>,
+): NextResponse {
   const base = env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
   const dest = new URL(sanitizeSocialReturnPath(target), base);
   dest.searchParams.set('discord_status', status);
+  if (extra) {
+    for (const [k, v] of Object.entries(extra)) {
+      dest.searchParams.set(k, v);
+    }
+  }
   return NextResponse.redirect(dest.toString(), 302);
 }

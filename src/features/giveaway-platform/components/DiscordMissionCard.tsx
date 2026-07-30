@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useEffect, useState, useTransition } from 'react';
 import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
 import type { MissionWithProgress } from '@/types/giveawayPlatform';
 import { verifyDiscordMission } from '@/app/sorteos/plataforma/discord-mission-action';
 import { SteamLoginButton } from '@/features/giveaway-platform/components/SteamLoginButton';
@@ -9,6 +10,7 @@ import { SteamLoginButton } from '@/features/giveaway-platform/components/SteamL
 type UiState =
   | { kind: 'idle' }
   | { kind: 'verifying' }
+  | { kind: 'success'; message: string }
   | { kind: 'error'; code: string; message: string };
 
 interface Props {
@@ -47,18 +49,56 @@ export function DiscordMissionCard({
 }: Props) {
   const [uiState, setUiState] = useState<UiState>({ kind: 'idle' });
   const [pending, startTransition] = useTransition();
+  const searchParams = useSearchParams();
+  const router = useRouter();
 
   const isDone = mission.claimed;
   const showError = uiState.kind === 'error';
+  const showSuccess = uiState.kind === 'success';
   const returnPath = creatorSlug ? `/sorteos/${creatorSlug}` : '/sorteos';
+
+  // Feedback tras OAuth Discord (?discord_status=...&coins=...).
+  useEffect(() => {
+    const status = searchParams.get('discord_status');
+    if (!status) return;
+    if (status === 'rewarded') {
+      const coins = searchParams.get('coins') ?? String(mission.rewardCoins);
+      setUiState({
+        kind: 'success',
+        message: `¡+${coins} puntos! Misión Discord completada.`,
+      });
+      router.refresh();
+    } else if (status === 'connected_join_server') {
+      setUiState({
+        kind: 'error',
+        code: 'not_verified',
+        message: 'Discord conectado. Ahora únete al servidor con "Abrir Discord" y pulsa "Verificar misión".',
+      });
+    } else if (status === 'account_in_use') {
+      setUiState({
+        kind: 'error',
+        code: 'internal',
+        message: 'Esa cuenta de Discord ya está vinculada a otro usuario de SocialPro.',
+      });
+    } else if (status === 'encrypt_failed' || status === 'discord_not_configured') {
+      setUiState({
+        kind: 'error',
+        code: 'internal',
+        message: 'No hemos podido guardar la conexión Discord. Inténtalo de nuevo más tarde.',
+      });
+    }
+  }, [searchParams, mission.rewardCoins, router]);
 
   function onVerifyClick() {
     setUiState({ kind: 'verifying' });
     startTransition(async () => {
       const result = await verifyDiscordMission({ missionId: mission.id });
       if (result.ok) {
-        // El revalidatePath del server action refresca los datos servidor.
-        setUiState({ kind: 'idle' });
+        setUiState({
+          kind: 'success',
+          message: `¡+${result.rewardCoins} puntos! Misión completada.`,
+        });
+        router.refresh();
         return;
       }
       setUiState({ kind: 'error', code: result.code, message: result.message });
@@ -132,6 +172,12 @@ export function DiscordMissionCard({
         </>
       )}
 
+      {showSuccess ? (
+        <div className="gp-mission-discord-success" role="status">
+          {uiState.message}
+        </div>
+      ) : null}
+
       {showError ? (
         <div className="gp-mission-discord-error" role="alert">
           {uiState.message}
@@ -139,7 +185,8 @@ export function DiscordMissionCard({
       ) : null}
 
       <p className="gp-mission-discord-note">
-        Solo comprobamos que estás dentro del servidor Discord del creador. No leemos mensajes ni
+        Pasos: 1) Abrir Discord y unirte al servidor · 2) Conectar Discord · 3) Verificar misión.
+        Solo comprobamos que estás dentro del servidor del creador. No leemos mensajes ni
         guardamos la lista completa de tus servidores.
       </p>
     </div>
