@@ -306,7 +306,8 @@ describe('[discord-fase-a] UI — DiscordMissionCard', () => {
 
   it('CTA "Verificar" llama a la server action verifyDiscordMission', () => {
     expect(src).toMatch(/verifyDiscordMission/);
-    expect(src).toMatch(/Verificar/);
+    // Idle label "Verificar" (not the loading "Verificando...").
+    expect(src).toMatch(/: 'Verificar'/);
   });
 
   it('CTA "Abrir Discord" solo se renderiza si hay inviteUrl', () => {

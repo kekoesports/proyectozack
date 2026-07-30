@@ -215,7 +215,7 @@ export function MonthlyPointsRanking({
           </div>
 
           {rest.length > 0 ? (
-            <ol className="gp-points-rest-list" aria-label="Resto del ranking">
+            <ol className="gp-points-rest-list" start={4} aria-label="Resto del ranking">
               {rest.map((row, idx) => {
                 const position = idx + 4;
                 const isMe = myStanding?.rank === position;

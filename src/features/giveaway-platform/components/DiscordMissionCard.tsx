@@ -174,7 +174,9 @@ export function DiscordMissionCard({
         </>
       )}
 
-      {showSuccess && !isDone ? (
+      {/* Success stays visible even when claimed — OAuth auto-claim lands with
+          isDone already true (?discord_status=rewarded) and must still show +pts. */}
+      {showSuccess ? (
         <div className="gp-mission-discord-success" role="status">
           {uiState.message}
         </div>

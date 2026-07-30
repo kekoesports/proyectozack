@@ -3,8 +3,7 @@
  *
  * Cambios cubiertos:
  *   1. Empty state explícito en MissionsGrid cuando no hay cards visibles.
- *   2. Copy Discord "Entra al servidor y después verifica la misión" en el
- *      estado connected.
+ *   2. Copy Discord "Únete al servidor y verifica." en el estado connected.
  *   3. Rate limit copy más útil en Discord y Twitch (menciona "unos segundos"
  *      + hint específico por provider).
  *   4. Confirmación de que NO hay migración nueva ni server actions nuevas.
@@ -58,8 +57,8 @@ describe('DiscordMissionCard — hint secuencial', () => {
     expect(source).toMatch(/className="gp-mission-discord-hint"/);
   });
 
-  it('copy exacto: "Entra al servidor y después verifica la misión"', () => {
-    expect(source).toContain('Entra al servidor y después verifica la misión');
+  it('copy exacto: "Únete al servidor y verifica."', () => {
+    expect(source).toContain('Únete al servidor y verifica.');
   });
 
   it('hint solo aparece cuando connected && !showError && !isDone', () => {
