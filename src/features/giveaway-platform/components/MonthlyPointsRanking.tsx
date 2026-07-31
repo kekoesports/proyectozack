@@ -60,6 +60,11 @@ interface Props {
   totalParticipants: number;
   myStanding: UserMonthlyStanding | null;
   isLoggedIn: boolean;
+  /**
+   * `page` = full-width banner section (`#ranking`).
+   * `panel` = compact embed (preview / legacy).
+   */
+  variant?: 'page' | 'panel';
 }
 
 function daysLeftInMonth(): number {
@@ -165,10 +170,12 @@ export function MonthlyPointsRanking({
   totalParticipants,
   myStanding,
   isLoggedIn,
+  variant = 'panel',
 }: Props): React.ReactElement {
   const daysLeft = daysLeftInMonth();
   const monthLabel = monthNameEs(currentMonthKey());
   const prizeConfig = getCurrentMonthPrizes();
+  const isPage = variant === 'page';
 
   const podium = rows.slice(0, 3);
   const rest = rows.slice(3);
@@ -201,11 +208,13 @@ export function MonthlyPointsRanking({
       : `${daysLeft} día${daysLeft === 1 ? '' : 's'} restantes`;
 
   return (
-    <div className="gp-points-ranking">
+    <div className={`gp-points-ranking${isPage ? ' is-page' : ' is-panel'}`}>
       <header className="gp-points-ranking-header">
         <div className="gp-points-ranking-header-copy">
           <p className="gp-points-ranking-kicker">Temporada en curso</p>
-          <h3 className="gp-points-ranking-title">Ranking · {monthLabel}</h3>
+          <h3 className="gp-points-ranking-title">
+            {isPage ? `Clasificación · ${monthLabel}` : `Ranking · ${monthLabel}`}
+          </h3>
           <p className="gp-points-ranking-intro">
             Los usuarios que más puntos ganen completando misiones y rachas durante el mes
             ganan premios.

@@ -154,6 +154,21 @@ describe('MonthlyPointsRanking — invariantes de accesibilidad', () => {
     );
     expect(screen.getByText(/Aún nadie ha ganado puntos este mes/i)).toBeInTheDocument();
   });
+
+  it('variant=page aplica clase is-page y conserva empty state', () => {
+    mockedGetPrize.mockReturnValue(null);
+    const { container } = render(
+      <MonthlyPointsRanking
+        rows={[]}
+        totalParticipants={0}
+        myStanding={standingNone}
+        isLoggedIn={false}
+        variant="page"
+      />,
+    );
+    expect(container.querySelector('.gp-points-ranking.is-page')).toBeTruthy();
+    expect(screen.getByText(/Aún nadie ha ganado puntos este mes/i)).toBeInTheDocument();
+  });
 });
 
 describe('MonthlyPointsRanking — catálogo en ranking vacío', () => {

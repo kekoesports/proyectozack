@@ -144,14 +144,21 @@ export default async function RewardsHubPreviewPage() {
           </div>
         </section>
 
-        <section style={{ marginTop: 24 }}>
-          <div className="gp-legacy-block">
-            <h2>Ranking mensual · preview</h2>
+        <section id="ranking" className="gp-ranking-section" aria-labelledby="gp-ranking-preview-heading">
+          <div className="gp-ranking-section-inner">
+            <header className="gp-ranking-section-header">
+              <p className="gp-ranking-section-kicker">QA preview</p>
+              <h2 id="gp-ranking-preview-heading">Ranking mensual</h2>
+              <p className="gp-ranking-section-lede">
+                Preview del leaderboard full-width (fixtures, sin DB).
+              </p>
+            </header>
             <MonthlyPointsRanking
               rows={RANKING}
               totalParticipants={84}
               myStanding={MY_STANDING}
               isLoggedIn
+              variant="page"
             />
           </div>
         </section>

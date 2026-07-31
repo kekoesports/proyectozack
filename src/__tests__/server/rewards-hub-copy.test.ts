@@ -71,10 +71,21 @@ describe('[rewards-hub] copy allowlist', () => {
     expect(src).toMatch(/misiones y rachas/);
   });
 
-  it('las tabs se llaman Recompensas por puntos / Sorteos gratis / Ranking mensual', () => {
-    const src = read('src/features/giveaway-platform/components/RewardsHub.tsx');
-    expect(src).toMatch(/Recompensas por puntos/);
-    expect(src).toMatch(/Sorteos gratis/);
-    expect(src).toMatch(/Ranking mensual/);
+  it('las tabs del hub son Recompensas por puntos / Sorteos gratis (ranking vive en #ranking)', () => {
+    const hub = read('src/features/giveaway-platform/components/RewardsHub.tsx');
+    expect(hub).toMatch(/Recompensas por puntos/);
+    expect(hub).toMatch(/Sorteos gratis/);
+    // Ranking mensual ya no es tab del hub — sección banner #ranking.
+    expect(hub).not.toMatch(/label: 'Ranking mensual'/);
+    expect(hub).not.toMatch(/MonthlyPointsRanking/);
+
+    const landing = read('src/features/giveaway-platform/components/PlatformCreatorLanding.tsx');
+    expect(landing).toMatch(/id="ranking"/);
+    expect(landing).toMatch(/MonthlyPointsRanking/);
+    expect(landing).toMatch(/variant="page"/);
+
+    const nav = read('src/features/giveaway-platform/components/PlatformNav.tsx');
+    expect(nav).toMatch(/href: '#ranking'/);
+    expect(nav).toMatch(/label: 'Ranking'/);
   });
 });

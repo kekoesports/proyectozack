@@ -1,7 +1,7 @@
 /* ============================================================
- *  Hub de Recompensas — 3 tabs (Recompensas por puntos /
- *  Sorteos gratis / Ranking mensual). Se aplica dentro de
- *  `.giveaway-platform` para no filtrar al resto del site.
+ *  Hub de Recompensas — 2 tabs (Recompensas por puntos /
+ *  Sorteos gratis). Ranking mensual vive en #ranking (banner).
+ *  Se aplica dentro de `.giveaway-platform`.
  * ============================================================ */
 
 .giveaway-platform .gp-rewards-hub {
@@ -324,12 +324,142 @@
 
 .giveaway-platform .gp-participants-more:hover { background: rgba(196, 40, 128, 0.12); }
 
+/* ==== Full-page ranking section (banner #ranking) ==== */
+
+.giveaway-platform .gp-ranking-section {
+  position: relative;
+  width: 100%;
+  margin: 0;
+  padding: clamp(28px, 5vw, 56px) 0 clamp(40px, 6vw, 72px);
+  isolation: isolate;
+  overflow: hidden;
+  background:
+    radial-gradient(80% 60% at 50% -10%, rgba(245, 179, 66, 0.14), transparent 55%),
+    radial-gradient(50% 40% at 0% 80%, rgba(224, 48, 112, 0.1), transparent 50%),
+    radial-gradient(45% 40% at 100% 70%, rgba(139, 58, 173, 0.12), transparent 50%),
+    linear-gradient(180deg, rgba(11, 9, 23, 0.2) 0%, rgba(11, 9, 23, 0.85) 40%, rgba(8, 6, 18, 0.98) 100%);
+  border-top: 1px solid rgba(245, 179, 66, 0.12);
+  border-bottom: 1px solid rgba(224, 48, 112, 0.14);
+}
+
+.giveaway-platform .gp-ranking-section::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 40%, #000 20%, transparent 75%);
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.55;
+}
+
+.giveaway-platform .gp-ranking-section-inner {
+  position: relative;
+  z-index: 1;
+  width: min(1120px, calc(100% - 32px));
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(20px, 3vw, 32px);
+}
+
+.giveaway-platform .gp-ranking-section-header {
+  text-align: center;
+  max-width: 42rem;
+  margin: 0 auto;
+}
+
+.giveaway-platform .gp-ranking-section-kicker {
+  margin: 0 0 8px;
+  font-family: var(--font-display), var(--font-rajdhani), sans-serif;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: #f5b342;
+}
+
+.giveaway-platform .gp-ranking-section-header h2 {
+  margin: 0 0 10px;
+  font-family: var(--font-display), var(--font-rajdhani), sans-serif;
+  font-size: clamp(32px, 5.5vw, 52px);
+  font-weight: 900;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  line-height: 0.95;
+  color: #fff;
+  background: linear-gradient(135deg, #fff 0%, #f5d48a 45%, #f5632a 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.giveaway-platform .gp-ranking-section-lede {
+  margin: 0;
+  font-size: clamp(14px, 1.6vw, 16px);
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.68);
+}
+
 /* ==== Monthly Points Ranking ==== */
 
 .giveaway-platform .gp-points-ranking {
   display: flex;
   flex-direction: column;
   gap: 20px;
+}
+
+.giveaway-platform .gp-points-ranking.is-page {
+  gap: clamp(22px, 3vw, 36px);
+}
+
+.giveaway-platform .gp-points-ranking.is-page .gp-points-ranking-header {
+  padding: clamp(20px, 3vw, 28px) clamp(18px, 3vw, 28px);
+  border-radius: 20px;
+  border-color: rgba(245, 179, 66, 0.28);
+  box-shadow:
+    0 0 0 1px rgba(245, 179, 66, 0.06) inset,
+    0 24px 60px -28px rgba(245, 99, 42, 0.45);
+}
+
+.giveaway-platform .gp-points-ranking.is-page .gp-points-ranking-title {
+  font-size: clamp(26px, 4vw, 36px);
+}
+
+.giveaway-platform .gp-points-ranking.is-page .gp-points-podium {
+  gap: clamp(12px, 2vw, 20px);
+  margin-top: 8px;
+  padding: 12px 0 8px;
+}
+
+.giveaway-platform .gp-points-ranking.is-page .gp-points-podium-card {
+  min-height: 240px;
+  padding: 32px 16px 18px;
+  border-radius: 20px;
+}
+
+.giveaway-platform .gp-points-ranking.is-page .gp-points-podium-card.p1 {
+  min-height: 300px;
+  padding-top: 40px;
+  transform: translateY(-8px);
+}
+
+.giveaway-platform .gp-points-ranking.is-page .gp-points-rest-list {
+  border-radius: 16px;
+  border-color: rgba(196, 40, 128, 0.24);
+}
+
+.giveaway-platform .gp-points-ranking.is-page .gp-points-rest-row {
+  padding: 14px 18px;
+  font-size: 14px;
+}
+
+.giveaway-platform .gp-points-ranking.is-page .gp-points-ranking-me {
+  padding: 18px 20px;
+  border-radius: 16px;
 }
 
 .giveaway-platform .gp-points-ranking-header {
