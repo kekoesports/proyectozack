@@ -26,6 +26,8 @@ import {
   completeBrandFollowup,
   deleteBrandFollowup,
   getCrmBrandForPermission,
+  getBrandContactById,
+  getBrandFollowupById,
 } from '@/lib/queries/crmBrands';
 
 import { compact, nullify } from '@/lib/utils/objects';
@@ -254,27 +256,33 @@ export async function updateContactAction(
 
   const { id, ...rest } = parsed.data;
 
-  if (rest.brandId) {
-    try {
-      await assertCanEditBrand(rest.brandId, {
-        userId: session.user.id,
-        role: session.user.role,
-      });
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : 'unknown';
-      if (msg.startsWith('forbidden:')) return { error: 'Sin permiso para modificar esta marca' };
-      logRedacted('error', '[admin] updateContact permission error:', msg);
-      return { error: 'Error al verificar permisos' };
-    }
+  // Always resolve ownership from the stored contact — never trust client brandId alone.
+  const existing = await getBrandContactById(id);
+  if (!existing) return { error: 'Contacto no encontrado' };
+  const ownerBrandId = existing.brandId;
+
+  try {
+    await assertCanEditBrand(ownerBrandId, {
+      userId: session.user.id,
+      role: session.user.role,
+    });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : 'unknown';
+    if (msg.startsWith('forbidden:')) return { error: 'Sin permiso para modificar esta marca' };
+    logRedacted('error', '[admin] updateContact permission error:', msg);
+    return { error: 'Error al verificar permisos' };
   }
+
+  // Disallow re-parenting a contact to another brand via partial update.
+  const { brandId: _ignoredBrandId, ...safeRest } = rest;
 
   try {
     await updateBrandContact(
       id,
-      compact(rest) as Partial<Parameters<typeof updateBrandContact>[1]>,
+      compact(safeRest) as Partial<Parameters<typeof updateBrandContact>[1]>,
     );
     revalidatePath('/admin/brands');
-    if (rest.brandId) revalidatePath(`/admin/brands/${rest.brandId}`);
+    revalidatePath(`/admin/brands/${ownerBrandId}`);
     return { success: true, id };
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'unknown';
@@ -286,8 +294,15 @@ export async function updateContactAction(
 export async function deleteContactAction(id: number, brandId: number): Promise<ActionState> {
   const session = await requirePermission('campanas', 'write');
 
+  const existing = await getBrandContactById(id);
+  if (!existing) return { error: 'Contacto no encontrado' };
+  // Client brandId must match the stored row (blocks spoofed brandId + IDOR).
+  if (existing.brandId !== brandId) {
+    return { error: 'Sin permiso para modificar esta marca' };
+  }
+
   try {
-    await assertCanEditBrand(brandId, {
+    await assertCanEditBrand(existing.brandId, {
       userId: session.user.id,
       role: session.user.role,
     });
@@ -301,7 +316,7 @@ export async function deleteContactAction(id: number, brandId: number): Promise<
   try {
     await deleteBrandContact(id);
     revalidatePath('/admin/brands');
-    revalidatePath(`/admin/brands/${brandId}`);
+    revalidatePath(`/admin/brands/${existing.brandId}`);
     return { success: true };
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'unknown';
@@ -365,31 +380,33 @@ export async function updateFollowupAction(
   const parsed = updateFollowupSchema.safeParse(formToObject(formData));
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? 'Datos inválidos' };
 
-  const { id, brandId, scheduledAt, nextActionAt, ...rest } = parsed.data;
+  const { id, brandId: _clientBrandId, scheduledAt, nextActionAt, ...rest } = parsed.data;
+  const existing = await getBrandFollowupById(id);
+  if (!existing) return { error: 'Seguimiento no encontrado' };
+  const ownerBrandId = existing.brandId;
+
   const patchData = {
     ...rest,
     scheduledAt: scheduledAt ? new Date(scheduledAt) : undefined,
     nextActionAt: parseOptionalDate(nextActionAt),
   };
 
-  if (brandId !== undefined) {
-    try {
-      await assertCanEditBrand(brandId, {
-        userId: session.user.id,
-        role: session.user.role,
-      });
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : 'unknown';
-      if (msg.startsWith('forbidden:')) return { error: 'Sin permiso para modificar esta marca' };
-      logRedacted('error', '[admin] updateFollowup permission error:', msg);
-      return { error: 'Error al verificar permisos' };
-    }
+  try {
+    await assertCanEditBrand(ownerBrandId, {
+      userId: session.user.id,
+      role: session.user.role,
+    });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : 'unknown';
+    if (msg.startsWith('forbidden:')) return { error: 'Sin permiso para modificar esta marca' };
+    logRedacted('error', '[admin] updateFollowup permission error:', msg);
+    return { error: 'Error al verificar permisos' };
   }
 
   try {
     await updateBrandFollowup(id, compact(patchData) as Partial<Parameters<typeof updateBrandFollowup>[1]>);
     revalidatePath('/admin/brands');
-    if (brandId !== undefined) revalidatePath(`/admin/brands/${brandId}`);
+    revalidatePath(`/admin/brands/${ownerBrandId}`);
     return { success: true, id };
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'unknown';
@@ -407,8 +424,14 @@ export async function completeFollowupAction(
   const parsed = completeFollowupSchema.safeParse(formToObject(formData));
   if (!parsed.success) return { error: 'Datos inválidos' };
 
+  const existing = await getBrandFollowupById(parsed.data.id);
+  if (!existing) return { error: 'Seguimiento no encontrado' };
+  if (existing.brandId !== parsed.data.brandId) {
+    return { error: 'Sin permiso para modificar esta marca' };
+  }
+
   try {
-    await assertCanEditBrand(parsed.data.brandId, {
+    await assertCanEditBrand(existing.brandId, {
       userId: session.user.id,
       role: session.user.role,
     });
@@ -422,6 +445,7 @@ export async function completeFollowupAction(
   try {
     await completeBrandFollowup(parsed.data.id);
     revalidatePath('/admin/brands');
+    revalidatePath(`/admin/brands/${existing.brandId}`);
     return { success: true };
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'unknown';
@@ -439,8 +463,14 @@ export async function deleteFollowupAction(
   const parsed = deleteFollowupSchema.safeParse(formToObject(formData));
   if (!parsed.success) return { error: 'Datos inválidos' };
 
+  const existing = await getBrandFollowupById(parsed.data.id);
+  if (!existing) return { error: 'Seguimiento no encontrado' };
+  if (existing.brandId !== parsed.data.brandId) {
+    return { error: 'Sin permiso para modificar esta marca' };
+  }
+
   try {
-    await assertCanEditBrand(parsed.data.brandId, {
+    await assertCanEditBrand(existing.brandId, {
       userId: session.user.id,
       role: session.user.role,
     });
@@ -454,6 +484,7 @@ export async function deleteFollowupAction(
   try {
     await deleteBrandFollowup(parsed.data.id);
     revalidatePath('/admin/brands');
+    revalidatePath(`/admin/brands/${existing.brandId}`);
     return { success: true };
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'unknown';

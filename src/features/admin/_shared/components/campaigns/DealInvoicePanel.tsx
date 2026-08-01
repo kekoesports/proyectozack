@@ -78,17 +78,18 @@ export function DealInvoicePanel({ campaignId, existingInvoices, issuers }: Prop
           <div className="space-y-2">
             {activeInvoices.map((inv) => {
               const cfg = STATUS_CFG[inv.status] ?? { label: inv.status, cls: 'bg-slate-100 text-slate-500 border-slate-200' };
+              const isSettled = inv.status === 'cobrada' || inv.status === 'pagada';
               return (
                 <div key={inv.id}
                   className={`flex items-center gap-3 rounded-lg border px-3 py-2.5 ${
-                    inv.status === 'cobrada'
+                    isSettled
                       ? 'border-emerald-200 bg-emerald-50/40'
                       : inv.status === 'vencida'
                       ? 'border-red-200 bg-red-50/30'
                       : 'border-sp-admin-border bg-sp-admin-hover/20'
                   }`}>
                   <span className="text-base" aria-hidden>
-                    {inv.status === 'cobrada' ? '✅' : inv.status === 'vencida' ? '⚠️' : '🧾'}
+                    {isSettled ? '✅' : inv.status === 'vencida' ? '⚠️' : '🧾'}
                   </span>
                   <div className="flex-1 min-w-0">
                     <p className="text-[12px] font-semibold text-sp-admin-text truncate">
@@ -96,7 +97,7 @@ export function DealInvoicePanel({ campaignId, existingInvoices, issuers }: Prop
                     </p>
                     <p className="text-[10px] text-sp-admin-muted">
                       {inv.issuerName} · {inv.clientName}
-                      {inv.dueDate && inv.status !== 'cobrada' && (
+                      {inv.dueDate && !isSettled && (
                         <span className={`ml-1.5 ${
                           new Date(inv.dueDate) < new Date() ? 'text-red-500 font-semibold' : ''
                         }`}>

@@ -2,10 +2,32 @@
 
 import { revalidatePath } from 'next/cache';
 import { put, del } from '@vercel/blob';
-import { requirePermission } from '@/lib/permissions';
+import { requirePermission, needsVisibilityFilter } from '@/lib/permissions';
 import { createBrief, updateBrief, deleteBrief, getBrief } from '@/lib/queries/brandBriefs';
+import { getCrmBrandForPermission } from '@/lib/queries/crmBrands';
+
+import type { Role } from '@/lib/auth-guard';
 
 type ActionState = { readonly error?: string; readonly success?: boolean; readonly id?: number };
+
+async function assertCanEditBrand(
+  brandId: number,
+  session: { userId: string; role: Role },
+): Promise<void> {
+  if (!needsVisibilityFilter(session.role)) return;
+  const brand = await getCrmBrandForPermission(brandId);
+  if (!brand) throw new Error('forbidden:edit:brand');
+  const isOwner =
+    brand.assignedToUserId === session.userId ||
+    brand.coAssignedToUserId === session.userId ||
+    brand.createdByUserId === session.userId;
+  if (!isOwner) throw new Error('forbidden:edit:brand');
+}
+
+async function assertBriefBelongsToBrand(briefId: number, brandId: number): Promise<boolean> {
+  const brief = await getBrief(briefId);
+  return brief !== null && brief !== undefined && brief.brandId === brandId;
+}
 
 const MAX_BYTES = 20 * 1024 * 1024; // 20 MB
 const ALLOWED_MIME = [
@@ -25,6 +47,12 @@ export async function uploadBriefAction(
   const brandIdRaw = formData.get('brandId');
   const brandId    = brandIdRaw ? Number(brandIdRaw) : NaN;
   if (Number.isNaN(brandId)) return { error: 'ID de marca inválido' };
+
+  try {
+    await assertCanEditBrand(brandId, { userId: session.user.id, role: session.user.role });
+  } catch {
+    return { error: 'Sin permiso para modificar esta marca' };
+  }
 
   const name    = (formData.get('name')    as string | null)?.trim();
   const version = (formData.get('version') as string | null)?.trim() || 'v1';
@@ -80,7 +108,15 @@ export async function updateBriefNotesAction(
   brandId: number,
   notes: string,
 ): Promise<ActionState> {
-  await requirePermission('campanas', 'write');
+  const session = await requirePermission('campanas', 'write');
+  try {
+    await assertCanEditBrand(brandId, { userId: session.user.id, role: session.user.role });
+  } catch {
+    return { error: 'Sin permiso para modificar esta marca' };
+  }
+  if (!(await assertBriefBelongsToBrand(briefId, brandId))) {
+    return { error: 'Brief no encontrado en esta marca' };
+  }
   try {
     await updateBrief(briefId, { notes: notes.trim() || null });
     revalidatePath(`/admin/brands/${brandId}`);
@@ -96,6 +132,14 @@ export async function approveBriefAction(
   brandId: number,
 ): Promise<ActionState> {
   const session = await requirePermission('campanas', 'delete');
+  try {
+    await assertCanEditBrand(brandId, { userId: session.user.id, role: session.user.role });
+  } catch {
+    return { error: 'Sin permiso para modificar esta marca' };
+  }
+  if (!(await assertBriefBelongsToBrand(briefId, brandId))) {
+    return { error: 'Brief no encontrado en esta marca' };
+  }
   try {
     await updateBrief(briefId, {
       status:          'approved',
@@ -114,7 +158,15 @@ export async function archiveBriefAction(
   briefId: number,
   brandId: number,
 ): Promise<ActionState> {
-  await requirePermission('campanas', 'write');
+  const session = await requirePermission('campanas', 'write');
+  try {
+    await assertCanEditBrand(brandId, { userId: session.user.id, role: session.user.role });
+  } catch {
+    return { error: 'Sin permiso para modificar esta marca' };
+  }
+  if (!(await assertBriefBelongsToBrand(briefId, brandId))) {
+    return { error: 'Brief no encontrado en esta marca' };
+  }
   try {
     await updateBrief(briefId, { status: 'archived' });
     revalidatePath(`/admin/brands/${brandId}`);
@@ -129,7 +181,15 @@ export async function deleteBriefAction(
   briefId: number,
   brandId: number,
 ): Promise<ActionState> {
-  await requirePermission('campanas', 'delete');
+  const session = await requirePermission('campanas', 'delete');
+  try {
+    await assertCanEditBrand(brandId, { userId: session.user.id, role: session.user.role });
+  } catch {
+    return { error: 'Sin permiso para modificar esta marca' };
+  }
+  if (!(await assertBriefBelongsToBrand(briefId, brandId))) {
+    return { error: 'Brief no encontrado en esta marca' };
+  }
   try {
     const brief = await getBrief(briefId);
     if (brief?.sourceFilePath) {
@@ -152,7 +212,15 @@ export async function updateBriefContentAction(
   content:  BriefContent,
   meta:     { name?: string; version?: string; geo?: string },
 ): Promise<ActionState> {
-  await requirePermission('campanas', 'write');
+  const session = await requirePermission('campanas', 'write');
+  try {
+    await assertCanEditBrand(brandId, { userId: session.user.id, role: session.user.role });
+  } catch {
+    return { error: 'Sin permiso para modificar esta marca' };
+  }
+  if (!(await assertBriefBelongsToBrand(briefId, brandId))) {
+    return { error: 'Brief no encontrado en esta marca' };
+  }
   try {
     await updateBrief(briefId, {
       briefContent: content,
@@ -173,6 +241,11 @@ export async function createEmptyBriefAction(
   name:    string,
 ): Promise<ActionState> {
   const session = await requirePermission('campanas', 'write');
+  try {
+    await assertCanEditBrand(brandId, { userId: session.user.id, role: session.user.role });
+  } catch {
+    return { error: 'Sin permiso para modificar esta marca' };
+  }
   try {
     const brief = await createBrief({
       brandId,

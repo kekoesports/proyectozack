@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { sql, asc } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { talents, creatorCodes, giveaways } from '@/db/schema';
+import { requirePermission } from '@/lib/permissions';
 import { TalentPhotoCard } from '@/features/admin/talents/components/TalentPhotoCard';
 
 export const metadata = { title: 'Fotos talents · Admin' };
@@ -61,6 +62,7 @@ async function loadTalents(): Promise<Row[]> {
 }
 
 export default async function TalentsPhotosPage(): Promise<React.ReactElement> {
+  await requirePermission('talentos', 'read');
   const all = await loadTalents();
 
   // Categorise: in giveaways/codes & no photo, in giveaways/codes & photo, others

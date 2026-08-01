@@ -17,16 +17,33 @@ import type { InvoiceStatus } from '@/types';
 export const SETTLED_INCOME_STATUSES: readonly InvoiceStatus[] = ['cobrada', 'pagada'] as const;
 export const SETTLED_EXPENSE_STATUSES: readonly InvoiceStatus[] = ['cobrada', 'pagada'] as const;
 
+/** True when invoice is fully settled (income cobrada or expense pagada — both accepted). */
+export function isSettledInvoiceStatus(status: string): boolean {
+  return status === 'cobrada' || status === 'pagada';
+}
+
+/**
+ * Canonical settled status to WRITE when the user marks a movement paid.
+ * Income → cobrada; expense → pagada. Never store expense as cobrada from the deal form.
+ */
+export function settledStatusForKind(kind: 'income' | 'expense'): 'cobrada' | 'pagada' {
+  return kind === 'income' ? 'cobrada' : 'pagada';
+}
+
 export const PENDING_INCOME_STATUSES: readonly InvoiceStatus[] = [
   'emitida',
+  'pendiente',
   'no_cobrada',
+  'no_cobrado',
   'parcial',
   'vencida',
 ] as const;
 
 export const PENDING_EXPENSE_STATUSES: readonly InvoiceStatus[] = [
   'emitida',
+  'pendiente',
   'no_pagada',
+  'no_pagado',
   'parcial',
   'vencida',
 ] as const;

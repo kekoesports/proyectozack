@@ -16,7 +16,11 @@ import { getSocialPlatformKey } from '@/lib/utils/platform';
 import { countAgencyCreators } from './agencyCreators';
 import { getAllTalents } from './talents';
 import { parseFollowers, formatCompact, totalFollowersForCreator } from '@/lib/utils/format';
-import { PENDING_INCOME_FILTER } from '@/lib/utils/invoice-status';
+import {
+  PENDING_INCOME_FILTER,
+  SETTLED_INCOME_STATUSES,
+  isSettledInvoiceStatus,
+} from '@/lib/utils/invoice-status';
 
 import type { Role } from '@/lib/auth-guard';
 
@@ -725,7 +729,8 @@ export async function getDashboardInsights(): Promise<readonly InsightItem[]> {
       .from(invoices)
       .where(and(
         eq(invoices.kind, 'income'),
-        inArray(invoices.status, ['cobrada', 'emitida']),
+        // Settled = cobrada|pagada (AGENTS.md); open pipeline includes emitida.
+        inArray(invoices.status, [...SETTLED_INCOME_STATUSES, 'emitida']),
         gte(invoices.issueDate, yearStart),
       ))
       .groupBy(invoices.status),
@@ -770,15 +775,18 @@ export async function getDashboardInsights(): Promise<readonly InsightItem[]> {
     });
   }
 
-  const cobradas = dealRows.filter((r) => r.status === 'cobrada').reduce((s, r) => s + r.count, 0);
+  // Closed = any settled income status (cobrada AND pagada), not cobrada alone.
+  const settled = dealRows
+    .filter((r) => isSettledInvoiceStatus(r.status))
+    .reduce((s, r) => s + r.count, 0);
   const emitidas = dealRows.filter((r) => r.status === 'emitida').reduce((s, r) => s + r.count, 0);
-  const total = cobradas + emitidas;
+  const total = settled + emitidas;
   if (total > 0) {
-    const rate = Math.round((cobradas / total) * 100);
+    const rate = Math.round((settled / total) * 100);
     insights.push({
       id: id++,
       type: rate >= 30 ? 'success' : 'warning',
-      text: `Tasa de cierre ${now.getFullYear()}: ${rate}% (${cobradas}/${total} tratos)`,
+      text: `Tasa de cierre ${now.getFullYear()}: ${rate}% (${settled}/${total} tratos)`,
     });
   }
 

@@ -183,6 +183,26 @@ export async function getBrandContacts(brandId: number): Promise<readonly CrmBra
     .orderBy(desc(crmBrandContacts.isPrimary), asc(crmBrandContacts.name));
 }
 
+/** Load a single contact by id (for ownership checks — never trust client brandId alone). */
+export async function getBrandContactById(id: number): Promise<CrmBrandContact | null> {
+  const [row] = await db
+    .select()
+    .from(crmBrandContacts)
+    .where(eq(crmBrandContacts.id, id))
+    .limit(1);
+  return row ?? null;
+}
+
+/** Load a single follow-up by id (for ownership checks). */
+export async function getBrandFollowupById(id: number): Promise<CrmBrandFollowup | null> {
+  const [row] = await db
+    .select()
+    .from(crmBrandFollowups)
+    .where(eq(crmBrandFollowups.id, id))
+    .limit(1);
+  return row ?? null;
+}
+
 /**
  * Versión batch: contactos para varias marcas en una sola query, agrupados por `brandId`.
  * Cada grupo conserva el orden (primarios primero, luego nombre ASC).
