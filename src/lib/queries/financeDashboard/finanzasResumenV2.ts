@@ -11,6 +11,8 @@ import {
   talents,
 } from '@/db/schema';
 import {
+  ISSUED_MIRROR_NOTES_PREFIX,
+  ISSUED_PENDING_STATUSES,
   PENDING_EXPENSE_FILTER,
   PENDING_INCOME_FILTER,
 } from '@/lib/utils/invoice-status';
@@ -99,7 +101,8 @@ export async function getFinanzasResumenV2(
         ),
       ),
 
-    // 2. Ingresos facturados = SUM(totalAmount) income no-anulada con issueDate ∈ periodo
+    // 2. Ingresos facturados = issued (fiscal) + internal income excl. auto-mirrors
+    // (mirrors created on issued→cobrada would double-count the same economic event).
     db
       .select({ amount: sql<string>`COALESCE(SUM(t), 0)::text` })
       .from(
@@ -111,6 +114,7 @@ export async function getFinanzasResumenV2(
           SELECT total_amount AS t FROM invoices
             WHERE kind = 'income' AND status != 'anulada'
               AND issue_date BETWEEN ${period.from} AND ${period.to}
+              AND (notes IS NULL OR notes NOT LIKE ${ISSUED_MIRROR_NOTES_PREFIX + '%'})
         ) src`,
       ),
 
@@ -166,7 +170,7 @@ export async function getFinanzasResumenV2(
       .leftJoin(crmBrands,       eq(crmBrands.id, issuedInvoices.relatedBrandId))
       .leftJoin(billingClients,  eq(billingClients.id, issuedInvoices.billingClientId))
       .leftJoin(invoicePayments, eq(invoicePayments.issuedInvoiceId, issuedInvoices.id))
-      .where(inArray(issuedInvoices.status, ['emitida', 'vencida', 'parcial']))
+      .where(inArray(issuedInvoices.status, [...ISSUED_PENDING_STATUSES]))
       .groupBy(
         issuedInvoices.id, issuedInvoices.invoiceNumber, issuedInvoices.totalAmount,
         issuedInvoices.dueDate, crmBrands.name, billingClients.name,

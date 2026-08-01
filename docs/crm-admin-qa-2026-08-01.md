@@ -86,28 +86,33 @@ Helpers added:
 
 ---
 
-## Residual risks (not fixed in this pass)
+## Residual risks — follow-up pass (critical/high)
 
-Documented for follow-up. **Do not treat as green.**
+| ID | Sev | Status | Fix |
+|----|-----|--------|-----|
+| R01 | critical | **Fixed** | Exclude auto-mirror notes from `sumFacturado` + finanzasResumenV2 UNION (`ISSUED_MIRROR_NOTES_PREFIX`) |
+| R02 | high | **Fixed** | `getFinancePnL` cobradoYTD: `leftJoin` + count `issuedInvoiceId IS NOT NULL OR kind=income` |
+| R03 | high | **Fixed** | Canonical `ISSUED_PENDING_STATUSES` includes `enviada`; AR + resumen + bank candidates |
+| R04 | high | **Fixed** | `/api/admin/facturacion/issued/[id]/pdf` + `buildIssuedInvoicePdfUrl`; AR uses proxy |
+| R05 | high | Residual | Full permission-filtered nav matrix (staff nav exists; specialized roles still binary) |
+| R06 | high | **Fixed** | `AdminHeader` hides GlobalSearch when role not in adminProcedure set |
+| R07 | high | **Fixed** | Staff dashboard skips revenue/pipeline/deal KPIs and financial insights |
+| R08 | high | Residual | Task mutations still `tareas:read` (product staff write path) |
+| R09–R16 | med/low | Residual | See prior table; backlog for next sprint |
 
-| ID | Sev | Area | Issue | Suggested direction |
-|----|-----|------|-------|---------------------|
-| R01 | critical | finance | Double-count **facturado**: issued invoice + auto-mirror income row on cobrada | Dedup mirrors or single ledger; exclude mirrors from UNION aggregates |
-| R02 | high | finance | P&L `cobradoYTD` ignores payments on issued invoices (`issuedInvoiceId`) | Align with `sumCobradoReal` OR issued payments |
-| R03 | high | finance | AR/receivables omit issued status `enviada` | Expand `ISSUED_PENDING_STATUSES` |
-| R04 | high | finance | Issued PDF raw `pdfUrl` in client tables | Auth proxy like internal invoices |
-| R05 | high | shell | Nav is staff vs everyone; specialized roles see orphan links | Permission-filtered nav |
-| R06 | high | shell | GlobalSearch shown to roles blocked by `adminProcedure` | Hide search or widen procedure |
-| R07 | high | shell | Staff can open financial Panel KPIs | Staff-scoped dashboard widgets |
-| R08 | high | tasks | Mutations gate on `tareas:read` (product may rely on staff write) | Decide product rule; if RBAC-strict, use write + keep ownership |
-| R09 | med | brands | Private brief blob links without proxy | Authenticated download route |
-| R10 | med | brands | createTalent ignores modal contacts/verticals | Wire schema + inserts or remove fields |
-| R11 | med | brands | upsertTalentSocials platform validation / talentId scope | Schema + composite where |
-| R12 | med | campaigns | Contract blob `del(filePath)` vs URL | Delete by `fileUrl` |
-| R13 | med | campaigns | updateCampaignSchema missing amount refine | Share create refine |
-| R14 | med | campaigns | Alerts pending cobro use campaign.status proxy | Invoice SETTLED sums |
-| R15 | med | finance | Mock `extractInvoiceAction` still production-wired | Disable in prod / real parser only |
-| R16 | low | hub | P&L not in FinanzasNav tabs | Add tab or document deprecation |
+### Still residual (medium/low backlog)
+
+| ID | Sev | Area | Issue |
+|----|-----|------|-------|
+| R08 | high | tasks | Mutations gate on `tareas:read` (product may rely on staff write) |
+| R09 | med | brands | Private brief blob links without proxy |
+| R10 | med | brands | createTalent ignores modal contacts/verticals |
+| R11 | med | brands | upsertTalentSocials platform validation / talentId scope |
+| R12 | med | campaigns | Contract blob `del(filePath)` vs URL |
+| R13 | med | campaigns | updateCampaignSchema missing amount refine |
+| R14 | med | campaigns | Alerts pending cobro use campaign.status proxy |
+| R15 | med | finance | Mock `extractInvoiceAction` still production-wired |
+| R16 | low | hub | P&L not in FinanzasNav tabs |
 
 ---
 
