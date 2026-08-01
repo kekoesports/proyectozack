@@ -117,7 +117,7 @@ export function ExternalGiveawayCard({ card, finished = false, providerDisplayNa
             className="gp-social-btn gp-social-btn-primary"
             href={card.externalUrl}
             target="_blank"
-            rel="noopener noreferrer"
+            rel="noopener noreferrer sponsored"
           >
             {ctaLabel}
           </a>

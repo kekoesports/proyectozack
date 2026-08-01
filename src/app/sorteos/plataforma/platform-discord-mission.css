@@ -100,6 +100,17 @@
   line-height: 1.45;
 }
 
+.giveaway-platform .gp-mission-discord-success {
+  margin-top: 10px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: rgba(87, 242, 135, 0.12);
+  border: 1px solid rgba(87, 242, 135, 0.35);
+  color: #b4ffce;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
 .giveaway-platform .gp-mission-discord-note {
   margin: 12px 0 0;
   font-size: 11px;

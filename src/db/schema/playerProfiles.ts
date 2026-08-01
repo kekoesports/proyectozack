@@ -13,6 +13,9 @@ export const playerProfiles = pgTable('player_profiles', {
   steamTradeUrl: text('steam_trade_url'),
   kickUsername: varchar('kick_username', { length: 100 }),
   isPrivate: boolean('is_private').notNull().default(true),
+  /** Declaración +18 explícita y versionada; no equivale a verificación documental. */
+  adultAttestedAt: timestamp('adult_attested_at', { withTimezone: true }),
+  adultAttestationVersion: varchar('adult_attestation_version', { length: 16 }),
   shippingAddress: text('shipping_address'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),

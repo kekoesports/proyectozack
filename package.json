@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "tsx scripts/migrate.ts && next build",
+    "build": "tsx scripts/migrate.ts && next build && tsx scripts/ping-indexnow.ts",
     "start": "next start",
     "lint": "eslint",
     "prepare": "husky",

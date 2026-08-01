@@ -6,7 +6,9 @@ import { UnsubscribeClient } from './UnsubscribeClient';
 
 export const metadata: Metadata = {
   title: 'Darse de baja — SocialPro News',
-  robots: { index: false },
+  // Utility page con token en URL. `nofollow` complementa `noindex` para no
+  // propagar link juice desde una ruta que jamás debe ser un target SEO.
+  robots: { index: false, follow: false },
 };
 
 interface PageProps {

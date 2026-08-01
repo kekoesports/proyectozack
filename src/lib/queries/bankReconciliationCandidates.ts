@@ -39,7 +39,7 @@ export async function getCandidatesForTransactions(
       .innerJoin(billingClients, eq(issuedInvoices.billingClientId, billingClients.id))
       .where(
         and(
-          inArray(issuedInvoices.status, ['emitida', 'vencida', 'parcial']),
+          inArray(issuedInvoices.status, ['emitida', 'enviada', 'vencida', 'parcial']),
           gte(issuedInvoices.issueDate, minDate),
           lte(issuedInvoices.issueDate, maxDate),
         ),

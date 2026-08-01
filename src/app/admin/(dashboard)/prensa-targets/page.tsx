@@ -3,7 +3,7 @@ import { getAllPressTargets } from '@/lib/queries/pressTargets';
 import { PressTargetsTable } from '@/features/admin/pressTargets/components/PressTargetsTable';
 
 export default async function AdminPressTargetsPage(): Promise<React.ReactElement> {
-  await requirePermission('noticias', 'read');
+  await requirePermission('prensa_targets', 'read');
   const items = await getAllPressTargets();
 
   return (

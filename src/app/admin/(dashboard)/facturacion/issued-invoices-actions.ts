@@ -79,7 +79,7 @@ export async function createIssuedInvoiceAction(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  const session = await requirePermission('facturacion', 'read');
+  const session = await requirePermission('facturacion', 'write');
 
   const parsed = parseFormData(formData, createIssuedInvoiceSchema);
   if (!parsed.ok) {
@@ -145,7 +145,7 @@ export async function updateIssuedInvoiceAction(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  await requirePermission('facturacion', 'read');
+  await requirePermission('facturacion', 'write');
 
   const parsed = parseFormData(formData, updateIssuedInvoiceSchema);
   if (!parsed.ok) {
@@ -210,10 +210,10 @@ export async function updateInvoiceStatusAction(id: number, status: string): Pro
   const statusCheck = StatusSchema.safeParse(status);
   if (!statusCheck.success) return { error: 'Estado inválido' };
 
-  // Anular requiere admin; el resto pueden hacerlo admin y staff
+  // Anular requiere delete; status mutations require write (not read).
   const session = statusCheck.data === 'anulada'
     ? await requirePermission('facturacion', 'delete')
-    : await requirePermission('facturacion', 'read');
+    : await requirePermission('facturacion', 'write');
 
   try {
     await updateIssuedInvoice(idCheck.data, { status: statusCheck.data });
@@ -338,7 +338,7 @@ export async function rectifyInvoiceAction(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  const session = await requirePermission('facturacion', 'read');
+  const session = await requirePermission('facturacion', 'write');
 
   const parsed = parseFormData(formData, rectifyInvoiceSchema);
   if (!parsed.ok) {
@@ -414,7 +414,7 @@ export async function rectifyInvoiceAction(
 }
 
 export async function createBillingClientAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
-  await requirePermission('facturacion', 'read');
+  await requirePermission('facturacion', 'write');
   const parsed = parseFormData(formData, billingClientSchema);
   if (!parsed.ok) {
     logRedacted('warn', '[issued-invoices] createBillingClient validation failed:', firstError(parsed.fieldErrors));
@@ -474,7 +474,7 @@ export async function updateIssuerCompanyAction(_prev: ActionState, formData: Fo
 }
 
 export async function updateBillingClientAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
-  await requirePermission('facturacion', 'read');
+  await requirePermission('facturacion', 'write');
   const parsed = parseFormData(formData, billingClientWithIdSchema);
   if (!parsed.ok) {
     logRedacted('warn', '[issued-invoices] updateBillingClient validation failed:', firstError(parsed.fieldErrors));

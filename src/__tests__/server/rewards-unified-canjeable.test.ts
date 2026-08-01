@@ -139,12 +139,12 @@ describe('[rewards-unified] redeemShopItem action', () => {
   });
 
   it('en éxito devuelve requiresManualReview para skin/merch', () => {
-    expect(actionsSrc).toMatch(/requiresManualReview:\s*item\.category === 'skin'\s*\|\|\s*item\.category === 'merch'/);
+    expect(actionsSrc).toMatch(/requiresManualReview:\s*redemption\.category === 'skin'\s*\|\|\s*redemption\.category === 'merch'/);
   });
 
   it('dispara email interno a info@socialpro.es para category=skin', () => {
     expect(actionsSrc).toMatch(/sendRewardRedemptionEmail/);
-    expect(actionsSrc).toMatch(/if\s*\(item\.category === 'skin'\)\s*\{[\s\S]{0,600}sendRewardRedemptionEmail/);
+    expect(actionsSrc).toMatch(/if\s*\(redemption\.category === 'skin'\)\s*\{[\s\S]{0,800}sendRewardRedemptionEmail/);
   });
 
   it('el envío del email es fire-and-forget (try/catch, no revierte canje)', () => {

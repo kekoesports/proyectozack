@@ -31,22 +31,17 @@ describe('assertAllowedCoinSource — enganchado en escrituras a coinTransaction
     expect(src).toMatch(/assertAllowedCoinSource(OrLog)?\(/);
   });
 
-  it.each(WRITER_FILES)('%s llama a assertAllowedCoinSource antes de db.insert(coinTransactions)', (file) => {
+  it.each(WRITER_FILES)('%s valida la fuente antes de delegar la escritura atómica', (file) => {
     const src = read(file);
-    // Cada `db.insert(coinTransactions)` debe estar precedido por una llamada a
-    // `assertAllowedCoinSource(...)` o `assertAllowedCoinSourceOrLog(...)`.
-    // Ampliamos la ventana a 8 líneas porque el wrapper puede tomar más líneas
-    // por llevar objeto de contexto (userId/action/refType/refId).
-    const lines = src.split(/\r?\n/);
-    const insertLines: number[] = [];
-    for (let i = 0; i < lines.length; i += 1) {
-      if (/db\.insert\(coinTransactions\)/.test(lines[i] ?? '')) insertLines.push(i);
-    }
-    expect(insertLines.length).toBeGreaterThan(0);
-    for (const idx of insertLines) {
-      const window = lines.slice(Math.max(0, idx - 10), idx).join('\n');
-      expect(window).toMatch(/assertAllowedCoinSource(OrLog)?\(/);
-    }
+    expect(src).toMatch(/assertAllowedCoinSource(OrLog)?\(/);
+    expect(src).toMatch(/participateAndAward|redeemAtomically|claimMissionAndAward/);
+  });
+
+  it('la única implementación económica inserta ledger con claves idempotentes', () => {
+    const src = read('src/lib/giveaway-platform/atomicOperations.ts');
+    expect(src).toMatch(/INSERT INTO coin_transactions/);
+    expect(src).toMatch(/ref_key/);
+    expect(src).toMatch(/ON CONFLICT \(ref_key\) DO NOTHING/);
   });
 
   it.each(WRITER_FILES)('%s registra logGiveawayEvent tras la escritura', (file) => {

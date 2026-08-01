@@ -16,6 +16,7 @@ import {
 } from '@/lib/schemas/invoice';
 import { CAMPAIGN_PAYMENT_METHODS } from '@/lib/schemas/campaign';
 import { addDealMovimientoAction } from '@/app/admin/(dashboard)/campanas/deal-movimiento-action';
+import { settledStatusForKind } from '@/lib/utils/invoice-status';
 
 import type { Tone }                        from '@/features/admin/_shared/components/StateBadge';
 import type { Invoice }                     from '@/types';
@@ -216,6 +217,15 @@ function CreateMovimientoModal({
     const brandId  = tipo !== 'expense_op' ? campaign.brandId  : undefined;
     const talentId = tipo === 'expense_talent' ? campaign.talentId : undefined;
 
+    // UI uses a single "Cobrado / Pagado" option (value cobrada). Map to the
+    // kind-correct settled status so expenses are stored as pagada, not cobrada.
+    const resolvedStatus =
+      status === 'cobrada'
+        ? settledStatusForKind(kind)
+        : status === 'borrador'
+          ? 'borrador'
+          : 'pendiente';
+
     startTransition(async () => {
       const result = await addDealMovimientoAction({
         campaignId:    campaign.id,
@@ -223,7 +233,7 @@ function CreateMovimientoModal({
         concept,
         totalAmount:   Number(amount),
         issueDate:     date,
-        status:        status === 'cobrada' ? 'cobrada' : status === 'borrador' ? 'borrador' : 'pendiente',
+        status:        resolvedStatus,
         brandId:       brandId ?? null,
         talentId:      talentId ?? null,
         company:       company !== '' ? company as (typeof INVOICE_COMPANIES)[number] : null,

@@ -214,9 +214,10 @@ describe('[discord-fase-a] route /callback', () => {
 describe('[discord-fase-a] route /disconnect', () => {
   const src = read(P.routeDisconnect);
 
-  it('requiere sesión y llama markAccountDisconnected', () => {
+  it('requiere sesión, elimina el token e intenta revocarlo', () => {
     expect(src).toMatch(/getSession/);
-    expect(src).toMatch(/markAccountDisconnected/);
+    expect(src).toMatch(/disconnectAccountAndTakeToken/);
+    expect(src).toMatch(/oauth2\/token\/revoke/);
   });
 
   it('es POST, no GET (evita CSRF trivial vía img/link)', () => {
@@ -251,10 +252,16 @@ describe('[discord-fase-a] server action verifyDiscordMission', () => {
     expect(src).toMatch(/DISCORD_GUILD_MEMBER_MODE/);
   });
 
-  it('descifra el token y llama a /users/@me/guilds sin cache', () => {
+  it('descifra el token y delega claim a claimDiscordGuildMissionsForUser', () => {
     expect(src).toMatch(/decrypt\s*\(\s*account\.accessTokenEncrypted\s*\)/);
-    expect(src).toMatch(/users\/@me\/guilds/);
-    expect(src).toMatch(/cache:\s*['"]no-store['"]/);
+    expect(src).toMatch(/claimDiscordGuildMissionsForUser/);
+  });
+
+  it('fetch de guilds pagina /users/@me/guilds sin cache', () => {
+    const fetchGuilds = read('src/lib/discord/fetch-user-guild-ids.ts');
+    expect(fetchGuilds).toMatch(/users\/@me\/guilds/);
+    expect(fetchGuilds).toMatch(/cache:\s*['"]no-store['"]/);
+    expect(fetchGuilds).toMatch(/after/);
   });
 
   it('registra intento (recordAttempt) en cada outcome', () => {
@@ -267,14 +274,15 @@ describe('[discord-fase-a] server action verifyDiscordMission', () => {
     expect(src).toMatch(/['"]not_connected['"]/);
   });
 
-  it('INSERT missionClaims usa onConflictDoNothing (anti race-condition)', () => {
-    expect(src).toMatch(/onConflictDoNothing/);
+  it('claim y puntos se delegan a la operación atómica vía claim-guild-missions', () => {
+    const claimHelper = read('src/lib/discord/claim-guild-missions.ts');
+    expect(claimHelper).toMatch(/claimMissionAndAward/);
   });
 
   it('INSERT coinTransactions con source="mision" y refId=missionId', () => {
-    expect(src).toMatch(/coinTransactions/);
-    expect(src).toMatch(/source:\s*['"]mision['"]/);
-    expect(src).toMatch(/refId:\s*missionId/);
+    const atomic = read('src/lib/giveaway-platform/atomicOperations.ts');
+    expect(atomic).toMatch(/'mision'/);
+    expect(atomic).toMatch(/\$\{input\.missionId\}/);
   });
 
   it('NO loguea tokens ni ciphertext', () => {
@@ -296,9 +304,10 @@ describe('[discord-fase-a] UI — DiscordMissionCard', () => {
     expect(src).toMatch(/Conectar Discord/);
   });
 
-  it('CTA "Verificar misión" llama a la server action verifyDiscordMission', () => {
+  it('CTA "Verificar" llama a la server action verifyDiscordMission', () => {
     expect(src).toMatch(/verifyDiscordMission/);
-    expect(src).toMatch(/Verificar misión/);
+    // Idle label "Verificar" (not the loading "Verificando...").
+    expect(src).toMatch(/: 'Verificar'/);
   });
 
   it('CTA "Abrir Discord" solo se renderiza si hay inviteUrl', () => {

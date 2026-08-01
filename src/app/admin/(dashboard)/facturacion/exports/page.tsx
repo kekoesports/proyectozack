@@ -1,7 +1,9 @@
 import Link from 'next/link';
+import { requirePermission } from '@/lib/permissions';
 import { FiscalExports } from '@/features/admin/invoices/components/FiscalExports';
 
-export default function AdminInvoiceExportsPage(): React.ReactElement {
+export default async function AdminInvoiceExportsPage(): Promise<React.ReactElement> {
+  await requirePermission('facturacion', 'read');
   const currentYear = new Date().getFullYear();
   const years = [currentYear, currentYear - 1, currentYear - 2];
   const currentMonth = new Date().getMonth() + 1;

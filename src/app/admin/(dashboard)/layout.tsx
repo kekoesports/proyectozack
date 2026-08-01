@@ -98,6 +98,7 @@ export default async function AdminLayout({ children }: AdminLayoutProps): Promi
           recentAlerts={recentAlerts}
           onDismissAlert={dismissAlertAction}
           onDismissAllAlerts={dismissAllAlertsAction}
+          userRole={session.user.role ?? undefined}
         />
         <main className="flex-1 p-4 md:p-5 overflow-auto">{children}</main>
       </div>

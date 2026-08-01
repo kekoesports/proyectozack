@@ -1,6 +1,10 @@
 import type { InferSelectModel } from 'drizzle-orm';
 import type { campaigns } from '@/db/schema';
-import type { CampaignPaymentDerivedStatus, CampaignDerived } from '@/lib/schemas/campaign';
+import type {
+  CampaignDerived,
+  CampaignPaymentDerivedStatus,
+  CampaignPaymentSource,
+} from '@/lib/schemas/campaign';
 
 export type Campaign = InferSelectModel<typeof campaigns>;
 export type CampaignStatus = Campaign['status'];
@@ -17,6 +21,8 @@ export type CampaignWithRelations = Campaign &
     ownerName: string | null;
     brandPaid: CampaignPaymentDerivedStatus;
     talentPaid: CampaignPaymentDerivedStatus;
+    brandPaidSource: CampaignPaymentSource;
+    talentPaidSource: CampaignPaymentSource;
     totalInvoicedBrand: number;
     totalPaidTalent: number;
     brand?: { id: number; name: string; sector: string | null; geo: string | null };

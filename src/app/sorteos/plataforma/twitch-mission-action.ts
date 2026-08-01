@@ -7,17 +7,13 @@ import { z } from 'zod';
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { env } from '@/lib/env';
-import {
-  coinTransactions,
-  missionClaims,
-  missionVerificationAttempts,
-  platformMissions,
-} from '@/db/schema';
+import { missionClaims, missionVerificationAttempts, platformMissions } from '@/db/schema';
 import { getConnectedAccount } from '@/lib/queries/connectedSocialAccounts';
 import { decrypt } from '@/lib/crypto/token-encryption';
 import { TWITCH_FOLLOW_CHANNEL_MODE } from '@/features/giveaway-platform/constants/twitch-missions';
 import { logGiveawayEvent } from '@/lib/audit/logGiveawayEvent';
 import { assertAllowedCoinSourceOrLog } from '@/lib/audit/logBlockedCoinSource';
+import { claimMissionAndAward } from '@/lib/giveaway-platform/atomicOperations';
 
 /**
  * Server action — verifica una misión Twitch (follow al canal) y, si
@@ -181,6 +177,7 @@ export async function verifyTwitchMission(input: unknown): Promise<TwitchVerifyR
         'Client-Id': clientId,
       },
       cache: 'no-store',
+      signal: AbortSignal.timeout(3_000),
     });
     if (res.status === 401) {
       await recordAttempt(missionId, user.id, 'token_expired');
@@ -210,31 +207,22 @@ export async function verifyTwitchMission(input: unknown): Promise<TwitchVerifyR
 
   // Cumple: INSERT claim + coin_transactions. El UNIQUE bloquea el
   // doble claim en caso de race condition.
-  const [claim] = await db
-    .insert(missionClaims)
-    .values({ missionId, userId: user.id })
-    .onConflictDoNothing()
-    .returning({ id: missionClaims.id });
-
-  if (!claim) {
-    // Ya había uno por race — considerar reclamado.
-    await recordAttempt(missionId, user.id, 'success');
-    return { ok: false, code: 'already_claimed', message: 'Ya has reclamado esta misión' };
-  }
-
   await assertAllowedCoinSourceOrLog('mision', {
     userId: user.id,
     action: 'mission_claim',
     refType: 'mission',
     refId: missionId,
   });
-  await db.insert(coinTransactions).values({
+  const claimedNow = await claimMissionAndAward({
     userId: user.id,
-    amount: mission.rewardCoins,
-    source: 'mision',
-    concept: `Misión: ${mission.title}`,
-    refId: missionId,
+    missionId,
+    title: mission.title,
+    rewardCoins: mission.rewardCoins,
   });
+  if (!claimedNow) {
+    await recordAttempt(missionId, user.id, 'already_done');
+    return { ok: false, code: 'already_claimed', message: 'Ya has reclamado esta misión' };
+  }
 
   await recordAttempt(missionId, user.id, 'success');
 

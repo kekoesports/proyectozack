@@ -3,6 +3,7 @@
 import { useId, useState, useTransition } from 'react';
 import Link from 'next/link';
 import * as Dialog from '@radix-ui/react-dialog';
+import { useRouter } from 'next/navigation';
 import { grantPartnerConsent } from '@/lib/actions/partner-consent-action';
 
 /**
@@ -55,6 +56,7 @@ export function PartnerConsentModalTrigger(): React.JSX.Element {
 }
 
 function PartnerConsentModalContent({ onClose }: { onClose: () => void }): React.JSX.Element {
+  const router = useRouter();
   const id = useId();
   const [age18, setAge18] = useState(false);
   const [responsible, setResponsible] = useState(false);
@@ -77,6 +79,7 @@ function PartnerConsentModalContent({ onClose }: { onClose: () => void }): React
         return;
       }
       onClose();
+      router.refresh();
     });
   }
 

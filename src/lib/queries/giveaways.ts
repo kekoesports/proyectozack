@@ -12,10 +12,13 @@ import type { Giveaway, GiveawayWithTalent } from '@/types';
  * @returns array de Giveaway (puede ser vacío). Nunca null.
  */
 export async function getActiveGiveaways(talentId: number): Promise<Giveaway[]> {
+  const now = new Date();
   const rows = await db.query.giveaways.findMany({
     where: and(
       eq(giveaways.talentId, talentId),
-      or(isNull(giveaways.endsAt), gt(giveaways.endsAt, new Date())),
+      eq(giveaways.status, 'active'),
+      lte(giveaways.startsAt, now),
+      or(isNull(giveaways.endsAt), gt(giveaways.endsAt, now)),
       not(like(giveaways.title, '[DEMO]%')),
     ),
     with: { crmBrand: true },
@@ -35,11 +38,13 @@ export async function getActiveGiveaways(talentId: number): Promise<Giveaway[]> 
  * @returns array de Giveaway (puede ser vacío). Nunca null.
  */
 export async function getFinishedGiveaways(talentId: number): Promise<Giveaway[]> {
+  const now = new Date();
   const rows = await db.query.giveaways.findMany({
     where: and(
       eq(giveaways.talentId, talentId),
       isNotNull(giveaways.endsAt),
-      lte(giveaways.endsAt, new Date()),
+      lte(giveaways.endsAt, now),
+      or(eq(giveaways.status, 'ended'), eq(giveaways.status, 'active')),
       not(like(giveaways.title, '[DEMO]%')),
     ),
     with: { crmBrand: true },

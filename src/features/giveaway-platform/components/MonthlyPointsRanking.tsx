@@ -1,11 +1,15 @@
 import Link from 'next/link';
 import type { PointsRankingRow, UserMonthlyStanding } from '@/types/giveawayPlatform';
 import {
+  getCurrentMonthPrizes,
   getCurrentPrizeForPosition,
+  monthNameEs,
+  currentMonthKey,
   type RankingPrize,
 } from '@/features/giveaway-platform/constants/prizes';
 
 const PODIUM_EMOJI: Readonly<Record<number, string>> = { 1: '🥇', 2: '🥈', 3: '🥉' };
+const PODIUM_LABEL: Readonly<Record<number, string>> = { 1: '1.º', 2: '2.º', 3: '3.º' };
 
 function InlinePrize({ prize }: { prize: RankingPrize }): React.ReactElement {
   return (
@@ -30,11 +34,37 @@ function InlinePrize({ prize }: { prize: RankingPrize }): React.ReactElement {
   );
 }
 
+function Avatar({
+  name,
+  avatarUrl,
+  size = 'md',
+}: {
+  name: string;
+  avatarUrl: string | null;
+  size?: 'sm' | 'md' | 'lg';
+}): React.ReactElement {
+  return (
+    <div className={`gp-points-ranking-avatar is-${size}`} aria-hidden={Boolean(avatarUrl)}>
+      {avatarUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={avatarUrl} alt="" />
+      ) : (
+        <span>{name.slice(0, 1).toUpperCase()}</span>
+      )}
+    </div>
+  );
+}
+
 interface Props {
   rows: readonly PointsRankingRow[];
   totalParticipants: number;
   myStanding: UserMonthlyStanding | null;
   isLoggedIn: boolean;
+  /**
+   * `page` = full-width banner section (`#ranking`).
+   * `panel` = compact embed (preview / legacy).
+   */
+  variant?: 'page' | 'panel';
 }
 
 function daysLeftInMonth(): number {
@@ -44,89 +74,240 @@ function daysLeftInMonth(): number {
   return Math.max(0, Math.floor(diffMs / (1000 * 60 * 60 * 24)));
 }
 
+function PodiumCard({
+  row,
+  position,
+  isMe,
+}: {
+  row: PointsRankingRow;
+  position: 1 | 2 | 3;
+  isMe: boolean;
+}): React.ReactElement {
+  const prize = getCurrentPrizeForPosition(position);
+  return (
+    <article
+      className={`gp-points-podium-card p${position}${isMe ? ' is-me' : ''}`}
+      aria-label={`Puesto ${position}: ${row.displayName}, ${row.pointsEarned} puntos`}
+    >
+      <div className="gp-points-podium-medal" aria-hidden>
+        {PODIUM_EMOJI[position]}
+      </div>
+      <div className="gp-points-podium-rank">{PODIUM_LABEL[position]}</div>
+      <Avatar name={row.displayName} avatarUrl={row.avatarUrl} size={position === 1 ? 'lg' : 'md'} />
+      <div className="gp-points-podium-name">
+        {row.displayName}
+        {isMe ? <span className="gp-rank-me-tag"> · tú</span> : null}
+      </div>
+      <div className="gp-points-podium-points">
+        <span className="gp-points-podium-points-star" aria-hidden>★</span>
+        {row.pointsEarned.toLocaleString('es-ES')}
+        <span className="gp-points-podium-points-unit">pts</span>
+      </div>
+      {prize ? <InlinePrize prize={prize} /> : null}
+    </article>
+  );
+}
+
+function RestRow({
+  row,
+  position,
+  isMe,
+}: {
+  row: PointsRankingRow;
+  position: number;
+  isMe: boolean;
+}): React.ReactElement {
+  return (
+    <li className={`gp-points-rest-row${isMe ? ' is-me' : ''}`}>
+      <span className="gp-points-rest-pos">#{position}</span>
+      <Avatar name={row.displayName} avatarUrl={row.avatarUrl} size="sm" />
+      <span className="gp-points-rest-name">
+        {row.displayName}
+        {isMe ? <span className="gp-rank-me-tag"> · tú</span> : null}
+      </span>
+      <span className="gp-points-rest-points">
+        ★ {row.pointsEarned.toLocaleString('es-ES')}
+      </span>
+    </li>
+  );
+}
+
+/**
+ * Catálogo de premios del mes. Solo se usa cuando no hay podio (ranking vacío),
+ * para que el incentivo siga visible. Con jugadores, los premios van inline
+ * en cada card del top 3.
+ */
+function EmptyRankingPrizes({ monthLabel }: { monthLabel: string }): React.ReactElement {
+  const config = getCurrentMonthPrizes();
+
+  if (!config || config.prizes.length === 0) {
+    return (
+      <p className="gp-points-ranking-prizes-soon">
+        Premios de {monthLabel} próximamente.
+      </p>
+    );
+  }
+
+  return (
+    <div className="gp-points-ranking-prizes-catalog" aria-label={`Premios del ranking · ${monthLabel}`}>
+      <p className="gp-points-ranking-prizes-catalog-title">Premios del top 3 · {monthLabel}</p>
+      <ul className="gp-points-ranking-prizes-catalog-list">
+        {config.prizes.map((prize) => (
+          <li key={prize.position} className={`gp-points-ranking-prizes-catalog-item pos-${prize.position}`}>
+            <span className="gp-points-ranking-prizes-catalog-pos" aria-hidden>
+              {PODIUM_EMOJI[prize.position] ?? `#${prize.position}`}
+            </span>
+            <InlinePrize prize={prize} />
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 export function MonthlyPointsRanking({
   rows,
   totalParticipants,
   myStanding,
   isLoggedIn,
+  variant = 'panel',
 }: Props): React.ReactElement {
   const daysLeft = daysLeftInMonth();
+  const monthLabel = monthNameEs(currentMonthKey());
+  const prizeConfig = getCurrentMonthPrizes();
+  const isPage = variant === 'page';
+
+  const podium = rows.slice(0, 3);
+  const rest = rows.slice(3);
+
+  // Visual order: 2º · 1º · 3º (1º centrado y más alto).
+  const first = podium[0];
+  const second = podium[1];
+  const third = podium[2];
+  const podiumVisual: Array<{ row: PointsRankingRow; position: 1 | 2 | 3 } | null> =
+    first == null
+      ? []
+      : second == null
+        ? [null, { row: first, position: 1 }, null]
+        : third == null
+          ? [
+              { row: second, position: 2 },
+              { row: first, position: 1 },
+              null,
+            ]
+          : [
+              { row: second, position: 2 },
+              { row: first, position: 1 },
+              { row: third, position: 3 },
+            ];
+
+  const daysLabel =
+    daysLeft === 0
+      ? 'Último día del mes'
+      : `${daysLeft} día${daysLeft === 1 ? '' : 's'} restantes`;
 
   return (
-    <div>
-      <p className="gp-points-ranking-intro">
-        Los usuarios que más puntos ganen completando misiones y rachas durante el mes ganan premios.
-      </p>
+    <div className={`gp-points-ranking${isPage ? ' is-page' : ' is-panel'}`}>
+      <header className="gp-points-ranking-header">
+        <div className="gp-points-ranking-header-copy">
+          <p className="gp-points-ranking-kicker">Temporada en curso</p>
+          <h3 className="gp-points-ranking-title">
+            {isPage ? `Clasificación · ${monthLabel}` : `Ranking · ${monthLabel}`}
+          </h3>
+          <p className="gp-points-ranking-intro">
+            Los usuarios que más puntos ganen completando misiones y rachas durante el mes
+            ganan premios.
+          </p>
+        </div>
+        <div className="gp-points-ranking-meta" aria-label="Resumen del ranking">
+          {totalParticipants > 0 ? (
+            <span className="gp-points-ranking-chip">
+              <b>{totalParticipants.toLocaleString('es-ES')}</b> jugadores
+            </span>
+          ) : null}
+          <span className="gp-points-ranking-chip is-accent">
+            <b>{daysLabel}</b>
+          </span>
+        </div>
+      </header>
 
       {rows.length === 0 ? (
-        <p className="gp-points-ranking-empty">
-          Aún nadie ha ganado puntos este mes. ¡Sé el primero completando misiones!
-        </p>
+        <>
+          <div className="gp-points-ranking-empty-state" role="status">
+            <span className="gp-points-ranking-empty-icon" aria-hidden>🏆</span>
+            <p className="gp-points-ranking-empty-title">Nadie en el podio todavía</p>
+            <p className="gp-points-ranking-empty">
+              Aún nadie ha ganado puntos este mes. ¡Sé el primero completando misiones!
+            </p>
+          </div>
+          <EmptyRankingPrizes monthLabel={monthLabel} />
+        </>
       ) : (
-        <div className="gp-points-ranking-list">
-          {rows.map((row, idx) => {
-            const position = idx + 1;
-            const posClass = position === 1 ? 'is-top-1'
-              : position === 2 ? 'is-top-2'
-              : position === 3 ? 'is-top-3'
-              : '';
-            const isMe = myStanding?.rank === position;
-            // Top 1/2/3 pintan el premio configurado al lado. Si el mes no
-            // está configurado o falta ese slot, se omite silenciosamente.
-            const prize = position <= 3 ? getCurrentPrizeForPosition(position) : null;
-            return (
-              <div
-                key={row.userId}
-                className={`gp-points-ranking-row ${posClass}${isMe ? ' is-me' : ''}`}
-              >
-                <div className="gp-points-ranking-position">#{position}</div>
-                <div className="gp-points-ranking-avatar">
-                  {row.avatarUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={row.avatarUrl} alt="" />
-                  ) : (
-                    <span>{row.displayName.slice(0, 1).toUpperCase()}</span>
-                  )}
+        <>
+          <div className="gp-points-podium" role="list" aria-label="Top 3 del mes">
+            {podiumVisual.map((slot, idx) => {
+              if (!slot) {
+                return <div key={`empty-${idx}`} className="gp-points-podium-slot is-empty" aria-hidden />;
+              }
+              const isMe = myStanding?.rank === slot.position;
+              return (
+                <div key={slot.row.userId} className="gp-points-podium-slot" role="listitem">
+                  <PodiumCard row={slot.row} position={slot.position} isMe={Boolean(isMe)} />
                 </div>
-                <div className="gp-points-ranking-name">{row.displayName}</div>
-                <div className="gp-points-ranking-points">
-                  ⭐ {row.pointsEarned.toLocaleString('es-ES')}
-                </div>
-                {prize ? <InlinePrize prize={prize} /> : null}
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+
+          {rest.length > 0 ? (
+            <ol className="gp-points-rest-list" start={4} aria-label="Resto del ranking">
+              {rest.map((row, idx) => {
+                const position = idx + 4;
+                const isMe = myStanding?.rank === position;
+                return (
+                  <RestRow
+                    key={row.userId}
+                    row={row}
+                    position={position}
+                    isMe={Boolean(isMe)}
+                  />
+                );
+              })}
+            </ol>
+          ) : null}
+        </>
       )}
 
       {!isLoggedIn ? (
         <p className="gp-points-ranking-time-left">
-          <Link href="/sorteos" style={{ color: 'var(--sp-pink, #e03070)', fontWeight: 700 }}>
+          <Link href="/sorteos" className="gp-points-ranking-login-link">
             Inicia sesión con Steam
           </Link>{' '}
           para ver tu posición.
         </p>
       ) : myStanding ? (
         <div className="gp-points-ranking-me">
-          <div>
-            <span className="gp-points-ranking-me-label">Mi posición este mes: </span>
+          <div className="gp-points-ranking-me-rank">
+            <span className="gp-points-ranking-me-label">Mi posición</span>
             <span className="gp-points-ranking-me-value">
               {myStanding.rank ? `#${myStanding.rank}` : 'Sin puntos aún'}
             </span>
           </div>
-          <div>
-            <span className="gp-points-ranking-me-label">Mis puntos: </span>
+          <div className="gp-points-ranking-me-points">
+            <span className="gp-points-ranking-me-label">Mis puntos</span>
             <span className="gp-points-ranking-me-value">
-              ⭐ {myStanding.pointsEarned.toLocaleString('es-ES')}
+              ★ {myStanding.pointsEarned.toLocaleString('es-ES')}
             </span>
           </div>
         </div>
       ) : null}
 
-      <p className="gp-points-ranking-time-left">
-        {totalParticipants > 0 ? `${totalParticipants.toLocaleString('es-ES')} jugadores este mes · ` : ''}
-        {daysLeft === 0 ? 'Último día del mes' : `${daysLeft} día${daysLeft === 1 ? '' : 's'} restantes`}
-      </p>
+      {prizeConfig?.notice ? (
+        <p className="gp-points-ranking-notice">{prizeConfig.notice}</p>
+      ) : rows.length > 0 && !prizeConfig ? (
+        <p className="gp-points-ranking-notice">
+          Premios de {monthLabel} próximamente.
+        </p>
+      ) : null}
     </div>
   );
 }

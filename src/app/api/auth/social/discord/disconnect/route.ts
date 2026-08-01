@@ -1,15 +1,15 @@
 import { NextResponse } from 'next/server';
 import { headers } from 'next/headers';
 import { auth } from '@/lib/auth';
-import { markAccountDisconnected } from '@/lib/queries/connectedSocialAccounts';
+import { disconnectAccountAndTakeToken } from '@/lib/queries/connectedSocialAccounts';
+import { decrypt } from '@/lib/crypto/token-encryption';
+import { env } from '@/lib/env';
 
 /**
  * POST /api/auth/social/discord/disconnect
  *
- * Marca la cuenta Discord del usuario como desconectada (soft delete).
- * NO borra la fila — mantiene auditoría.
- * NO revoca el token en Discord (Discord no expone endpoint público
- * simple para ello; el token caducará por sí solo en 7 días).
+ * Marca la cuenta como desconectada, elimina el token almacenado e intenta
+ * revocarlo en Discord. El fallo de red no impide la desconexión local.
  * NO revierte `mission_claims` — los canjes históricos son firmes.
  */
 export async function POST() {
@@ -17,6 +17,23 @@ export async function POST() {
   if (!session?.user) {
     return NextResponse.json({ error: 'unauthenticated' }, { status: 401 });
   }
-  await markAccountDisconnected(session.user.id, 'discord');
+  const encryptedToken = await disconnectAccountAndTakeToken(session.user.id, 'discord');
+  if (encryptedToken && env.DISCORD_CLIENT_ID && env.DISCORD_CLIENT_SECRET) {
+    try {
+      const token = decrypt(encryptedToken);
+      await fetch('https://discord.com/api/oauth2/token/revoke', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          client_id: env.DISCORD_CLIENT_ID,
+          client_secret: env.DISCORD_CLIENT_SECRET,
+          token,
+        }),
+        signal: AbortSignal.timeout(3_000),
+      });
+    } catch {
+      console.warn('[discord-disconnect] provider revocation failed');
+    }
+  }
   return NextResponse.json({ ok: true });
 }

@@ -93,17 +93,12 @@ function checkAdminSession(req: NextRequest): NextResponse | null {
   return null;
 }
 
-/* ---------- Locale detection for homepages --------------------------------- */
+/* ---------- Locale cookie writer -------------------------------------------- */
 
 const LOCALE_COOKIE_OPTS = { path: '/', maxAge: LOCALE_COOKIE_MAX_AGE, sameSite: 'lax' as const };
 
-// Bots de buscadores y redes: exentos del geo-redirect ES/EN.
-// Motivo: Googlebot crawlea desde IPs de USA → `handleLocaleDetection` los redirige
-// a /en → Google acaba eligiendo /en como canonical de /. Google Search Central
-// desaconseja explícitamente el IP-based auto-redirect. Sin bypass, el hreflang
-// del sitemap se ignora en la práctica.
-// El bypass está scoped SOLO al bloque de locale-detection ('/' y '/en'): rate-limits
-// de auth y guard de sesión admin siguen aplicándose a cualquier UA.
+// Bot UA detector — hoy no cambia el flujo (nadie redirige por locale) pero
+// se conserva para consumidores que puedan necesitarlo.
 const BOT_UA_REGEX =
   /googlebot|bingbot|slurp|duckduckbot|baiduspider|yandex|applebot|facebookexternalhit|twitterbot|linkedinbot|gptbot|oai-searchbot|chatgpt-user|claudebot|anthropic-ai|perplexitybot|amazonbot|google-extended/i;
 
@@ -112,26 +107,25 @@ export function isBotUserAgent(ua: string | null | undefined): boolean {
   return BOT_UA_REGEX.test(ua);
 }
 
-function handleLocaleDetection(req: NextRequest): NextResponse {
+/**
+ * Escribe la cookie de preferencia de idioma cuando corresponda. NUNCA
+ * redirige. Ver `src/lib/locale-detection.ts` para el porqué.
+ */
+function applyLocaleCookie(req: NextRequest, res: NextResponse): NextResponse {
+  const { pathname } = req.nextUrl;
+  if (pathname !== '/' && pathname !== '/en') return res;
+
   const decision = getLocaleDecision({
-    pathname: req.nextUrl.pathname,
+    pathname,
     cookieLocale: req.cookies.get(LOCALE_COOKIE)?.value,
     country: req.headers.get('x-vercel-ip-country'),
     acceptLanguage: req.headers.get('accept-language'),
   });
 
-  if (decision.action === 'pass') {
-    if (!decision.writeCookie) return NextResponse.next();
-    const res = NextResponse.next();
+  if (decision.writeCookie) {
     res.cookies.set(LOCALE_COOKIE, decision.locale, LOCALE_COOKIE_OPTS);
-    return res;
   }
-
-  const url = req.nextUrl.clone();
-  url.pathname = decision.to;
-  const redirectRes = NextResponse.redirect(url);
-  redirectRes.cookies.set(LOCALE_COOKIE, decision.locale, LOCALE_COOKIE_OPTS);
-  return redirectRes;
+  return res;
 }
 
 /* ---------- Main proxy ------------------------------------------------------ */
@@ -139,18 +133,18 @@ function handleLocaleDetection(req: NextRequest): NextResponse {
 export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // Locale detection — only for public homepages, before any other middleware.
-  // Bots (Googlebot, Bingbot, IA crawlers…) NUNCA son redirigidos: ver `isBotUserAgent`.
-  if (pathname === '/' || pathname === '/en') {
-    if (isBotUserAgent(req.headers.get('user-agent'))) {
-      return NextResponse.next();
-    }
-    return handleLocaleDetection(req);
-  }
+  // Inyecta `x-pathname` en la request para que el root layout pueda leer la
+  // ruta y decidir `<html lang>`. Sin esto, `layout.tsx` no tiene acceso al
+  // pathname en RSC. Ver src/app/layout.tsx.
+  const requestHeaders = new Headers(req.headers);
+  requestHeaders.set('x-pathname', pathname);
+  const passWithHeaders = () => NextResponse.next({ request: { headers: requestHeaders } });
 
+  // Admin session guard.
   const adminRedirect = checkAdminSession(req);
   if (adminRedirect) return adminRedirect;
 
+  // Rate limits sobre rutas API sensibles.
   for (const rule of RATE_LIMITS) {
     if (rule.pattern.test(pathname)) {
       const ip = getClientIp(req);
@@ -166,9 +160,14 @@ export function proxy(req: NextRequest) {
     }
   }
 
-  return NextResponse.next();
+  return applyLocaleCookie(req, passWithHeaders());
 }
 
+// Matcher amplio: cubre TODAS las rutas HTML públicas + api + admin. Excluye
+// assets estáticos y archivos con extensión. Necesario para que `x-pathname`
+// llegue al root layout en cualquier ruta y `<html lang>` sea correcto.
 export const config = {
-  matcher: ['/', '/en', '/api/:path*', '/admin/:path*'],
+  matcher: [
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:png|jpg|jpeg|webp|avif|svg|ico|txt|xml|json|mp4|webm|woff2?)$).*)',
+  ],
 };
