@@ -17,16 +17,33 @@ import type { InvoiceStatus } from '@/types';
 export const SETTLED_INCOME_STATUSES: readonly InvoiceStatus[] = ['cobrada', 'pagada'] as const;
 export const SETTLED_EXPENSE_STATUSES: readonly InvoiceStatus[] = ['cobrada', 'pagada'] as const;
 
+/** True when invoice is fully settled (income cobrada or expense pagada — both accepted). */
+export function isSettledInvoiceStatus(status: string): boolean {
+  return status === 'cobrada' || status === 'pagada';
+}
+
+/**
+ * Canonical settled status to WRITE when the user marks a movement paid.
+ * Income → cobrada; expense → pagada. Never store expense as cobrada from the deal form.
+ */
+export function settledStatusForKind(kind: 'income' | 'expense'): 'cobrada' | 'pagada' {
+  return kind === 'income' ? 'cobrada' : 'pagada';
+}
+
 export const PENDING_INCOME_STATUSES: readonly InvoiceStatus[] = [
   'emitida',
+  'pendiente',
   'no_cobrada',
+  'no_cobrado',
   'parcial',
   'vencida',
 ] as const;
 
 export const PENDING_EXPENSE_STATUSES: readonly InvoiceStatus[] = [
   'emitida',
+  'pendiente',
   'no_pagada',
+  'no_pagado',
   'parcial',
   'vencida',
 ] as const;
@@ -34,3 +51,34 @@ export const PENDING_EXPENSE_STATUSES: readonly InvoiceStatus[] = [
 /** Mutable copies typed as `InvoiceStatus[]` for drizzle's `inArray`. */
 export const PENDING_INCOME_FILTER: InvoiceStatus[] = [...PENDING_INCOME_STATUSES];
 export const PENDING_EXPENSE_FILTER: InvoiceStatus[] = [...PENDING_EXPENSE_STATUSES];
+
+/**
+ * Open (receivable) statuses for `issued_invoices`.
+ * Includes `enviada` (sent to client, still unpaid) — AR must not drop those.
+ */
+export const ISSUED_PENDING_STATUSES = [
+  'emitida',
+  'enviada',
+  'vencida',
+  'parcial',
+] as const;
+
+/** Notes prefix written by updateInvoiceStatusAction when auto-mirroring issued→internal. */
+export const ISSUED_MIRROR_NOTES_PREFIX =
+  'Creado automáticamente al marcar cobrada la factura' as const;
+
+/** Concept prefix for the same auto-mirror rows. */
+export const ISSUED_MIRROR_CONCEPT_PREFIX = 'Factura emitida — ' as const;
+
+/**
+ * True when an internal `invoices` income row is an auto-mirror of an issued invoice.
+ * These must be excluded from dual-ledger "facturado" aggregates to avoid double-count.
+ */
+export function isIssuedInvoiceMirror(
+  notes: string | null | undefined,
+  concept: string | null | undefined,
+): boolean {
+  if (notes != null && notes.startsWith(ISSUED_MIRROR_NOTES_PREFIX)) return true;
+  if (concept != null && concept.startsWith(ISSUED_MIRROR_CONCEPT_PREFIX)) return true;
+  return false;
+}

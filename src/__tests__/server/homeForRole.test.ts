@@ -9,7 +9,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 const ROOT = path.resolve(__dirname, '..', '..', '..');
-const AUTH_GUARD = path.join(ROOT, 'src/lib/auth-guard.ts');
+// Pure module is the source of truth (auth-guard re-exports it).
+const AUTH_GUARD = path.join(ROOT, 'src/lib/home-for-role.ts');
 
 function adminPageExists(urlPath: string): boolean {
   const suffix = urlPath.replace(/^\/admin\/?/, '');
@@ -58,5 +59,20 @@ describe('homeForRole (source contract)', () => {
 
   it('homeForRole is exported for reuse', () => {
     expect(src).toMatch(/export function homeForRole/);
+  });
+
+  it('auth-guard imports and re-exports homeForRole from pure module', () => {
+    const guard = fs.readFileSync(path.join(ROOT, 'src/lib/auth-guard.ts'), 'utf-8');
+    expect(guard).toMatch(/import \{ homeForRole \} from '@\/lib\/home-for-role'/);
+    expect(guard).toMatch(/export \{ homeForRole \}/);
+  });
+
+  it('login page uses homeForRole instead of hardcoding /admin', () => {
+    const login = fs.readFileSync(
+      path.join(ROOT, 'src/app/admin/login/page.tsx'),
+      'utf-8',
+    );
+    expect(login).toMatch(/homeForRole/);
+    expect(login).not.toMatch(/router\.push\('\/admin'\)/);
   });
 });

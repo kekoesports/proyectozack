@@ -447,7 +447,7 @@ function DealFlowTimeline({
       note:  activeInvoices.length === 0
         ? 'Sin factura'
         : `${activeInvoices.length} factura${activeInvoices.length > 1 ? 's' : ''} — ${
-            activeInvoices[0]?.status === 'cobrada' ? 'Cobrada'
+            activeInvoices[0]?.status === 'cobrada' || activeInvoices[0]?.status === 'pagada' ? 'Cobrada'
             : activeInvoices[0]?.status === 'emitida' ? 'Emitida'
             : activeInvoices[0]?.status === 'borrador' ? 'Borrador'
             : activeInvoices[0]?.status ?? ''}`,

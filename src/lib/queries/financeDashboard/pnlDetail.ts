@@ -101,20 +101,21 @@ export async function getFinancePnL(filters: PnLFilters = {}): Promise<FinancePn
       .from(invoices)
       .where(and(...conds)),
 
-    // Cobrado YTD via invoice_payments (income)
+    // Cobrado YTD via invoice_payments: internal income OR issued invoices
+    // (issued payments often have issuedInvoiceId set and invoiceId null).
     db
       .select({ total: sql<string>`COALESCE(SUM(${invoicePayments.amount}), 0)::text` })
       .from(invoicePayments)
-      .innerJoin(invoices, eq(invoices.id, invoicePayments.invoiceId))
+      .leftJoin(invoices, eq(invoices.id, invoicePayments.invoiceId))
       .where(
         and(
           gte(invoicePayments.paymentDate, yearStart),
           lte(invoicePayments.paymentDate, yearEnd),
-          eq(invoices.kind, 'income'),
+          sql`(${invoicePayments.issuedInvoiceId} IS NOT NULL OR ${invoices.kind} = 'income')`,
         ),
       ),
 
-    // Pagado YTD via invoice_payments (expense)
+    // Pagado YTD via invoice_payments (expense internals only — issued are income)
     db
       .select({ total: sql<string>`COALESCE(SUM(${invoicePayments.amount}), 0)::text` })
       .from(invoicePayments)

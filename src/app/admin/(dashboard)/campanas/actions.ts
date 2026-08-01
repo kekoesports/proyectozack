@@ -36,7 +36,7 @@ export async function createCampaignAction(
   formData: FormData,
 ): Promise<{ success: true; id: number } | { success: false; error: string }> {
   try {
-    const session = await requirePermission('campanas', 'read');
+    const session = await requirePermission('campanas', 'write');
 
     const parsed = parseFormData(formData, createCampaignSchema);
     if (!parsed.ok) return { success: false, error: firstError(parsed.fieldErrors) };
@@ -74,6 +74,7 @@ export async function createCampaignAction(
     }
 
     revalidatePath('/admin/campanas');
+    revalidatePath(`/admin/campanas/${campaign.id}`);
     return { success: true, id: campaign.id };
   } catch (err) {
     logRedacted('error', '[createCampaignAction] error:', err);
@@ -88,7 +89,7 @@ export async function updateCampaignAction(
   formData: FormData,
 ): Promise<{ success: true } | { success: false; error: string }> {
   try {
-    const session = await requirePermission('campanas', 'read');
+    const session = await requirePermission('campanas', 'write');
 
     const parsed = parseFormData(formData, updateCampaignSchema);
     if (!parsed.ok) return { success: false, error: firstError(parsed.fieldErrors) };
@@ -126,6 +127,7 @@ export async function updateCampaignAction(
     }
 
     revalidatePath('/admin/campanas');
+    revalidatePath(`/admin/campanas/${id}`);
     return { success: true };
   } catch (err) {
     logRedacted('error', '[updateCampaignAction] error:', err);
@@ -140,7 +142,7 @@ export async function archiveCampaignAction(
   id: number,
 ): Promise<{ success: true } | { success: false; error: string }> {
   try {
-    const session = await requirePermission('campanas', 'read');
+    const session = await requirePermission('campanas', 'delete');
 
     if (session.user.role === 'staff') throw new Error(`forbidden:delete:${session.user.role}`);
 
@@ -149,6 +151,7 @@ export async function archiveCampaignAction(
     await archiveCampaign(id);
 
     revalidatePath('/admin/campanas');
+    revalidatePath(`/admin/campanas/${id}`);
     return { success: true };
   } catch (err) {
     logRedacted('error', '[archiveCampaignAction] error:', err);
@@ -163,13 +166,14 @@ export async function unarchiveCampaignAction(
   id: number,
 ): Promise<{ success: true } | { success: false; error: string }> {
   try {
-    const session = await requirePermission('campanas', 'read');
+    const session = await requirePermission('campanas', 'write');
 
     if (session.user.role === 'staff') throw new Error(`forbidden:delete:${session.user.role}`);
 
     await unarchiveCampaign(id);
 
     revalidatePath('/admin/campanas');
+    revalidatePath(`/admin/campanas/${id}`);
     return { success: true };
   } catch (err) {
     logRedacted('error', '[unarchiveCampaignAction] error:', err);
