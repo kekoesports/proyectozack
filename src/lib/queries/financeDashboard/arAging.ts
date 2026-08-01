@@ -11,7 +11,10 @@ import {
   issuerCompanies,
 } from '@/db/schema';
 import { INVOICE_COMPANY_LABELS } from '@/lib/schemas/invoice';
-import { PENDING_INCOME_FILTER } from '@/lib/utils/invoice-status';
+import {
+  ISSUED_PENDING_STATUSES,
+  PENDING_INCOME_FILTER,
+} from '@/lib/utils/invoice-status';
 import type { InvoiceStatus } from '@/types';
 import type { ArAgingData, ArAgingFilters, ArAgingRow } from '@/types/arAging';
 import {
@@ -25,10 +28,7 @@ import {
   summarizeBuckets,
   todayInMadrid,
 } from './arAging.shared';
-import { buildInvoicePdfUrl } from './expenseSubgroups';
-
-// Facturas emitidas: status es varchar libre pero convención observada.
-const ISSUED_PENDING_STATUSES = ['emitida', 'vencida', 'parcial'] as const;
+import { buildInvoicePdfUrl, buildIssuedInvoicePdfUrl } from './expenseSubgroups';
 
 /**
  * Fetch AR aging: cobros pendientes de `issued_invoices` + `invoices kind=income`.
@@ -136,7 +136,8 @@ export async function getArAging(
       status: r.status,
       issueDate: r.issueDate,
       dueDate: r.dueDate,
-      pdfUrl: r.pdfUrl ?? null,
+      // Never pass private blob URLs — always auth proxy when a PDF exists.
+      pdfUrl: buildIssuedInvoicePdfUrl({ id: r.id, pdfUrl: r.pdfUrl ?? null }),
       today,
     }))
     .filter((r) => r.pendingAmount > 0);

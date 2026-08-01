@@ -21,18 +21,18 @@ import { z } from 'zod';
 export const KeydropOrganizerSchema = z.object({
   idSteam: z.string(),
   username: z.string(),
-  steamAvatar: z.string(),
+  steamAvatar: z.string().url(),
   promocode: z.string(),
 });
 
 export const KeydropPrizeSchema = z.object({
-  id: z.number(),
+  id: z.number().nonnegative(),
   color: z.string(),
-  itemImg: z.string(),        // URL — cdnkd.com
+  itemImg: z.string().url(),        // URL — cdnkd.com
   title: z.string(),
   subtitle: z.string().nullable().optional(),
   phase: z.string().nullable().optional(),
-  price: z.number(),
+  price: z.number().nonnegative(),
   condition: z.string(),
   weaponType: z.string(),
   currency: z.string(),
@@ -41,8 +41,8 @@ export const KeydropPrizeSchema = z.object({
 export const KeydropWinnerSchema = z.object({
   idSteam: z.string(),
   username: z.string(),
-  steamAvatar: z.string(),
-  prizeId: z.number(),
+  steamAvatar: z.string().url(),
+  prizeId: z.number().nonnegative(),
 });
 
 /**
@@ -52,8 +52,8 @@ export const KeydropWinnerSchema = z.object({
 export const KeydropRequirementSchema = z.object({
   type: z.string(),
   promoCode: z.string().optional(),
-  refillAmount: z.number().optional(),
-  missingRefillAmount: z.number().optional(),
+  refillAmount: z.number().nonnegative().optional(),
+  missingRefillAmount: z.number().nonnegative().optional(),
   fullfilled: z.boolean().optional(),   // sic — typo upstream preservado
   currency: z.string().optional(),
 });
@@ -64,28 +64,30 @@ export type KeydropStatus = z.infer<typeof KeydropStatusSchema>;
 /** Item del array `data.active[]` o `data.finished[]`. */
 export const KeydropListItemSchema = z.object({
   id: z.string(),
-  hot: z.number().nullable().optional(),
+  hot: z.number().nonnegative().nullable().optional(),
   boost: z.unknown().nullable().optional(),
-  status: z.string(),
-  maxUsers: z.number(),
-  minUsers: z.number(),
-  duractionSeconds: z.number(),          // sic — typo upstream preservado
-  totalPrizes: z.number().optional(),
+  // El proveedor ha introducido estados transitorios fuera del set público;
+  // el mapper los trata como desconocidos sin convertirlos en activos.
+  status: z.string().min(1),
+  maxUsers: z.number().int().nonnegative(),
+  minUsers: z.number().int().nonnegative(),
+  duractionSeconds: z.number().int().nonnegative(),          // sic — typo upstream preservado
+  totalPrizes: z.number().nonnegative().optional(),
   organizer: KeydropOrganizerSchema,
-  depositAmountRequired: z.number(),
-  depositAmountRequiredUSD: z.number().optional(),
+  depositAmountRequired: z.number().nonnegative(),
+  depositAmountRequiredUSD: z.number().nonnegative().optional(),
   depositAmountRequiredCurrency: z.string(),
-  createdAt: z.number(),
-  deadlineTimestamp: z.number().nullable(),
-  prize: z.number().optional(),
+  createdAt: z.number().nonnegative(),
+  deadlineTimestamp: z.number().nonnegative().nullable(),
+  prize: z.number().nonnegative().optional(),
   prizes: z.array(KeydropPrizeSchema),
-  participantCount: z.number(),
+  participantCount: z.number().int().nonnegative(),
   haveIJoined: z.boolean().optional(),
   mySlot: z.unknown().nullable().optional(),
-  chance: z.number().optional(),
+  chance: z.number().nonnegative().optional(),
   publicHash: z.string().optional(),
   winners: z.array(KeydropWinnerSchema).optional(),
-  startDate: z.number().nullable().optional(),
+  startDate: z.number().nonnegative().nullable().optional(),
   requirements: z.record(z.string(), KeydropRequirementSchema).optional(),
 });
 export type KeydropListItem = z.infer<typeof KeydropListItemSchema>;
@@ -93,7 +95,7 @@ export type KeydropRequirement = z.infer<typeof KeydropRequirementSchema>;
 
 /** Response de GET /api/list. */
 export const KeydropListResponseSchema = z.object({
-  success: z.boolean(),
+  success: z.literal(true),
   data: z.object({
     active: z.array(KeydropListItemSchema),
     finished: z.array(KeydropListItemSchema),

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
 import { participateInGiveaway } from '@/app/sorteos/plataforma/actions';
 
 interface Props {
@@ -14,6 +15,7 @@ interface Props {
  * (ver src/app/globals.css @theme y src/components/ui/button.tsx).
  */
 export function EntryButton({ giveawayId, initialEntered }: Props) {
+  const router = useRouter();
   const [entered, setEntered] = useState(initialEntered);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -24,6 +26,7 @@ export function EntryButton({ giveawayId, initialEntered }: Props) {
       const result = await participateInGiveaway({ giveawayId });
       if (result.ok) {
         setEntered(true);
+        router.refresh();
       } else {
         setError(result.error);
         if (result.error.includes('Ya estás inscrito')) setEntered(true);

@@ -4,6 +4,7 @@ import { randomBytes } from 'node:crypto';
 import { auth } from '@/lib/auth';
 import { env } from '@/lib/env';
 import { DISCORD_OAUTH_SCOPES, isDiscordOauthConfigured } from '@/features/giveaway-platform/constants/discord-missions';
+import { sanitizeSocialReturnPath } from '@/lib/auth/sanitize-social-return';
 
 /**
  * GET /api/auth/social/discord/connect
@@ -47,7 +48,7 @@ export async function GET(request: Request) {
 
   // Preserva el destino de retorno (querystring `return` opcional).
   const url = new URL(request.url);
-  const returnTo = sanitizeReturnPath(url.searchParams.get('return'));
+  const returnTo = sanitizeSocialReturnPath(url.searchParams.get('return'));
 
   // State: 32 bytes hex.
   const state = randomBytes(32).toString('hex');
@@ -76,14 +77,6 @@ export async function GET(request: Request) {
   authorizeUrl.searchParams.set('prompt', 'consent');
 
   return NextResponse.redirect(authorizeUrl.toString(), 302);
-}
-
-/** Normaliza el destino de retorno — solo aceptamos rutas internas. */
-function sanitizeReturnPath(raw: string | null): string {
-  if (!raw) return '/sorteos/perfil';
-  if (!raw.startsWith('/')) return '/sorteos/perfil';
-  if (raw.startsWith('//')) return '/sorteos/perfil';
-  return raw;
 }
 
 function isLocalHost(): boolean {

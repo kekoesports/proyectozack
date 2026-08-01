@@ -4,8 +4,8 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { requirePermission } from '@/lib/permissions';
 import { createGiveaway, updateGiveaway, deleteGiveaway } from '@/lib/queries/giveaways';
-import { like, eq, sql } from 'drizzle-orm';
-import { giveawayWinners, giveaways } from '@/db/schema';
+import { like, eq } from 'drizzle-orm';
+import { giveaways } from '@/db/schema';
 import { db } from '@/lib/db';
 import { parseFormData } from '@/lib/forms/parseFormData';
 import { firstError } from '@/lib/forms/firstError';
@@ -19,6 +19,7 @@ import {
   UpdateGiveawayFormSchema,
   type BadgeValue,
 } from '@/lib/schemas/giveaway';
+import { pickWinnerAtomically } from '@/lib/giveaway-platform/atomicOperations';
 
 const ToggleArgsSchema      = z.tuple([StrictIdSchema, StrictBooleanSchema]);
 const BadgeBoundArgsSchema  = z.tuple([StrictIdSchema, BadgeSchema.nullable()]);
@@ -147,55 +148,24 @@ export async function deleteGiveawayAction(formData: FormData): Promise<void> {
  * (winnerUserId). Uso admin-only — no auto-scheduled.
  *
  * Sorteo debe tener al menos 1 entry para poder elegir ganador.
- * Idempotente por ausencia: si ya hay winner, la ejecución la crea nueva
- * (no hay UNIQUE) — el admin debe tener cuidado. Diseño consciente para
- * poder recorregir un ganador manual si es necesario.
+ * La selección, el cierre y la inserción del ganador son una sola operación
+ * serializable. Solo permite sorteos activos cuya fecha de fin ya pasó.
  */
 export async function pickRaffleWinnerAction(giveawayId: number): Promise<
   | { ok: true; winner: { userId: string; displayName: string } }
   | { ok: false; error: string }
 > {
-  const { user: adminUser } = await requirePermission('sorteos', 'write');
+  const { user: adminUser } = await requirePermission('sorteos', 'publish');
   const parsed = StrictIdSchema.safeParse(giveawayId);
   if (!parsed.success) return { ok: false, error: 'ID inválido' };
 
-  const [giveaway] = await db
-    .select({ id: giveaways.id, title: giveaways.title })
-    .from(giveaways)
-    .where(eq(giveaways.id, parsed.data))
-    .limit(1);
-  if (!giveaway) return { ok: false, error: 'Sorteo no encontrado' };
-
-  const entriesCountRow = await db.execute(sql`
-    SELECT count(*)::int AS c FROM giveaway_entries WHERE giveaway_id = ${parsed.data}
-  `);
-  const entriesCount = Number((entriesCountRow.rows[0] as { c: number } | undefined)?.c ?? 0);
-
-  // Ganador random. Postgres `random()` es suficiente para promoción interna.
-  // No es RNG certificado — para sorteos con impacto legal habría que
-  // considerar VRF/RANDAO en fases futuras.
-  const winnerRow = await db.execute(sql`
-    SELECT ge.user_id, u.name, u.image
-    FROM giveaway_entries ge
-    INNER JOIN "user" u ON u.id = ge.user_id
-    WHERE ge.giveaway_id = ${parsed.data}
-    ORDER BY random()
-    LIMIT 1
-  `);
-  const rows = winnerRow.rows as Array<{ user_id: string; name: string; image: string | null }>;
-  const winner = rows[0];
-  if (!winner) return { ok: false, error: 'Sin participantes para elegir ganador' };
-
-  await db.insert(giveawayWinners).values({
-    giveawayId: parsed.data,
-    winnerName: winner.name,
-    winnerAvatar: winner.image,
-    winnerUserId: winner.user_id,
-  });
-
-  await db.update(giveaways)
-    .set({ status: 'ended', updatedAt: new Date() })
-    .where(eq(giveaways.id, parsed.data));
+  const winner = await pickWinnerAtomically({ giveawayId: parsed.data });
+  if (!winner) {
+    return {
+      ok: false,
+      error: 'El sorteo no ha finalizado, ya tiene ganador o no tiene participantes',
+    };
+  }
 
   await logGiveawayEvent({
     userId:  winner.user_id,
@@ -206,11 +176,14 @@ export async function pickRaffleWinnerAction(giveawayId: number): Promise<
     metadata: {
       giveawayId:   parsed.data,
       winnerCount:  1,
-      entriesCount,
+      entriesCount: winner.entries_count,
       adminUserId:  adminUser.id,
     },
   });
 
   revalidateGiveawayPaths();
-  return { ok: true, winner: { userId: winner.user_id, displayName: winner.name } };
+  return {
+    ok: true,
+    winner: { userId: winner.user_id, displayName: winner.display_name },
+  };
 }

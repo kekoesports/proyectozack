@@ -99,7 +99,7 @@ const faqJsonLd = {
       name: '¿Por qué el iGaming requiere una agencia especializada?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'El iGaming —casas de apuestas, casinos online, eSports betting, skin trading— tiene una regulación específica que afecta directamente a cómo se puede comunicar en streaming. Un briefing genérico de influencer marketing no funciona aquí: cualquier error en el mensaje puede acarrear sanciones al operador y daño reputacional al creador. En SocialPro llevamos más de cuatro años ejecutando campañas iGaming en España y LatAm. Conocemos la regulación DGOJ, las diferencias entre mercados, qué puede decir un streamer y qué no, y cómo construir un flujo de revisión de contenido que proteja a todas las partes sin ralentizar la activación. La diferencia práctica es sencilla: una agencia generalista entrega el briefing al creador y confía en que lo lea bien. SocialPro entrega el briefing, lo revisa con el creador antes del directo, valida el guion de integración, y tiene un equipo de compliance que da el visto bueno final antes de que el contenido se publique. Cada campaña iGaming activa en nuestro roster lleva al menos tres puntos de revisión entre el brief del operador y el momento en que el streamer abre el enlace de afiliado.',
+        text: 'El iGaming —casas de apuestas, casinos online, eSports betting, skin trading— tiene una regulación específica que afecta directamente a cómo se puede comunicar en streaming. Un briefing genérico de influencer marketing no funciona aquí: cualquier error en el mensaje puede acarrear sanciones al operador y daño reputacional al creador. En SocialPro operamos un vertical iGaming especializado desde 2024, con 13+ años previos en gaming y esports en España y LatAm. Conocemos la regulación DGOJ, las diferencias entre mercados, qué puede decir un streamer y qué no, y cómo construir un flujo de revisión de contenido que proteja a todas las partes sin ralentizar la activación. La diferencia práctica es sencilla: una agencia generalista entrega el briefing al creador y confía en que lo lea bien. SocialPro entrega el briefing, lo revisa con el creador antes del directo, valida el guion de integración, y tiene un equipo de compliance que da el visto bueno final antes de que el contenido se publique. Cada campaña iGaming activa en nuestro roster lleva al menos tres puntos de revisión entre el brief del operador y el momento en que el streamer abre el enlace de afiliado.',
       },
     },
     {
@@ -244,7 +244,7 @@ export default function IgamingPage() {
               es su principal activo.
             </p>
             <p>
-              En SocialPro llevamos más de cuatro años ejecutando campañas iGaming en España y LatAm.
+              En SocialPro operamos un vertical iGaming especializado desde 2024, con 13+ años previos en gaming y esports en España y LatAm.
               Conocemos la regulación DGOJ, las diferencias entre mercados, qué puede
               decir un streamer y qué no, y cómo construir un flujo de revisión de contenido que
               proteja a todas las partes sin ralentizar la activación.
@@ -497,6 +497,11 @@ export default function IgamingPage() {
               { href: '/cs2-influencer-marketing', label: 'CS2 Influencer Marketing' },
               { href: '/influencers-cs2', label: 'Influencers CS2 (ES)' },
               { href: '/apuesta-segura-cs2', label: 'Apuesta Segura CS2' },
+              { href: '/marketing-skins-cs2', label: 'Marketing de Skins CS2' },
+              { href: '/agencia-streamers-kick', label: 'Streamers Kick' },
+              { href: '/agencia-influencers-casino', label: 'Influencers Casino' },
+              { href: '/streamers-apuestas-deportivas', label: 'Streamers Sportsbook' },
+              { href: '/influencers-poker', label: 'Influencers Poker' },
               { href: '/marcas/keydrop', label: 'Keydrop' },
               { href: '/marcas/hellcase', label: 'Hellcase' },
               { href: '/marcas/skinplace', label: 'Skinplace' },

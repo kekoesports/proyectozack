@@ -42,7 +42,7 @@ export function CtaSection(): React.JSX.Element {
           className="text-sp-muted2 text-lg mb-4"
         >
           +340 FTDs en una activación (1WIN × CS2, 2025, panel del operador) ·
-          15M+ views/mes · 13 años en gaming e iGaming.
+          15M+ views/mes · 13+ años en gaming y esports, especializados en iGaming y creadores desde 2024.
         </m.p>
         <m.p
           variants={fadeUp}

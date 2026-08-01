@@ -2,8 +2,10 @@
  * Config de premios del ranking mensual SocialPro.
  *
  * Regla del proyecto (Fase 1): no entregamos premios automáticamente. La
- * lista es puramente informativa/copy visible. Cuando un mes no está
- * configurado el bloque muestra "Premios de {mes} próximamente".
+ * lista es puramente informativa/copy visible en `MonthlyPointsRanking`:
+ *   - con jugadores → premios inline en el podio top 1/2/3
+ *   - ranking vacío → catálogo compacto bajo el empty state
+ *   - mes sin config → "Premios de {mes} próximamente."
  *
  * Para actualizar los premios de un mes, editar el mapa `MONTHLY_PRIZES`
  * abajo. La key es "YYYY-MM". Sin PR, sin panel admin (pendiente fase 2).
@@ -35,7 +37,7 @@ export interface MonthlyPrizeConfig {
  * `imageUrl` — hasta entonces la UI muestra el placeholder textual.
  *
  * Regla 2026-07-10 (Fase 1 PR4): siempre debe haber al menos el mes
- * actual configurado para que `/sorteos/#recompensas` no muestre
+ * actual configurado para que el ranking no caiga en
  * "Premios de {mes} próximamente" en producción.
  */
 export const MONTHLY_PRIZES: Record<string, MonthlyPrizeConfig> = {

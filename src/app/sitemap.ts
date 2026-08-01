@@ -5,6 +5,7 @@ import { getTalentSlugs } from '@/lib/queries/talents';
 import { getPostSlugs, getNewsSlugs } from '@/lib/queries/posts';
 import { SITE_URL, absoluteUrl } from '@/lib/site-url';
 import { getBrandSlugs } from '@/lib/brands';
+import { getAllGlossarySlugs } from '@/lib/glosario';
 
 // priority and changeFrequency omitted — Google ignores both fields (2023+).
 const BUILD_DATE = new Date();
@@ -177,6 +178,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: absoluteUrl('/agencia-gaming-latam'), lastModified: BUILD_DATE         },
     { url: absoluteUrl('/guia-dgoj-igaming-influencers'), lastModified: BUILD_DATE },
     { url: absoluteUrl('/apuesta-segura-cs2'), lastModified: BUILD_DATE           },
+    // Fase 2 landings de ataque — sprint SEO+GEO 2026-07
+    { url: absoluteUrl('/marketing-skins-cs2'), lastModified: BUILD_DATE          },
+    { url: absoluteUrl('/agencia-streamers-kick'), lastModified: BUILD_DATE       },
+    { url: absoluteUrl('/agencia-influencers-casino'), lastModified: BUILD_DATE   },
+    { url: absoluteUrl('/streamers-apuestas-deportivas'), lastModified: BUILD_DATE },
+    { url: absoluteUrl('/influencers-poker'), lastModified: BUILD_DATE            },
+    // Fase 3 — Glosario iGaming & Skins CS2 (25 términos + índice)
+    { url: absoluteUrl('/recursos/glosario'), lastModified: BUILD_DATE            },
+    ...getAllGlossarySlugs().map((slug) => ({
+      url: absoluteUrl(`/recursos/glosario/${slug}`),
+      lastModified: BUILD_DATE,
+    })),
     { url: absoluteUrl('/blog'),             lastModified: D.blog          },
     { url: absoluteUrl('/news'),             lastModified: BUILD_DATE             },
     { url: absoluteUrl('/news/live'),        lastModified: BUILD_DATE             },

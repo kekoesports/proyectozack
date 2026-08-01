@@ -19,7 +19,11 @@ import {
   PENDING_EXPENSE_STATUSES,
   PENDING_INCOME_FILTER,
   PENDING_EXPENSE_FILTER,
+  isSettledInvoiceStatus,
+  settledStatusForKind,
 } from '@/lib/utils/invoice-status';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 
 describe('invoice status semantics', () => {
   describe('SETTLED_*_STATUSES', () => {
@@ -96,6 +100,57 @@ describe('invoice status semantics', () => {
       const buggyExclusion = ['cobrada'];
       expect(buggyExclusion).not.toEqual([...SETTLED_INCOME_STATUSES]);
       expect(buggyExclusion).not.toEqual([...SETTLED_EXPENSE_STATUSES]);
+    });
+  });
+
+  describe('isSettledInvoiceStatus + settledStatusForKind', () => {
+    it.each([
+      ['cobrada', true],
+      ['pagada', true],
+      ['emitida', false],
+      ['pendiente', false],
+      ['borrador', false],
+      ['anulada', false],
+    ] as const)('isSettledInvoiceStatus(%s) → %s', (status, expected) => {
+      expect(isSettledInvoiceStatus(status)).toBe(expected);
+    });
+
+    it('writes cobrada for income and pagada for expense', () => {
+      expect(settledStatusForKind('income')).toBe('cobrada');
+      expect(settledStatusForKind('expense')).toBe('pagada');
+    });
+  });
+
+  describe('CRM admin QA root locks (source contracts)', () => {
+    it('CampaignPayments maps paid UI option via settledStatusForKind (not hard-coded cobrada)', () => {
+      const src = readFileSync(
+        resolve(__dirname, '../../features/admin/campaigns/components/CampaignPayments.tsx'),
+        'utf-8',
+      );
+      expect(src).toMatch(/settledStatusForKind/);
+      // Regression: never map both kinds to literal cobrada only.
+      expect(src).not.toMatch(
+        /status:\s*status\s*===\s*'cobrada'\s*\?\s*'cobrada'\s*:\s*status\s*===\s*'borrador'/,
+      );
+    });
+
+    it('dashboard close-rate insight includes SETTLED_INCOME (cobrada+pagada)', () => {
+      const src = readFileSync(
+        resolve(__dirname, '../../lib/queries/dashboard.ts'),
+        'utf-8',
+      );
+      expect(src).toMatch(/SETTLED_INCOME_STATUSES/);
+      expect(src).toMatch(/isSettledInvoiceStatus/);
+      // Old bug: only ['cobrada', 'emitida'] for deal close-rate query.
+      expect(src).not.toMatch(/inArray\(invoices\.status,\s*\['cobrada',\s*'emitida'\]\)/);
+    });
+
+    it('IssuedInvoicesTab KPI counts cobrada OR pagada as settled', () => {
+      const src = readFileSync(
+        resolve(__dirname, '../../features/admin/invoices/components/IssuedInvoicesTab.tsx'),
+        'utf-8',
+      );
+      expect(src).toMatch(/status === 'cobrada' \|\| i\.status === 'pagada'/);
     });
   });
 });

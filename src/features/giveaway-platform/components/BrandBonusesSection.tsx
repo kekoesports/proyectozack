@@ -21,6 +21,8 @@ interface Props {
    * Ver docs/legal-risk-matrix.md y src/lib/partner-consent.ts.
    */
   readonly partnerConsentGranted: boolean;
+  /** Resultado del feature flag + matriz geográfica, calculado en servidor. */
+  readonly externalCtasAllowed: boolean;
 }
 
 const LABELS_BY_BRAND: Readonly<Record<BrandKey, string>> = {
@@ -48,6 +50,7 @@ export function BrandBonusesSection({
   creatorCode,
   isLoggedIn,
   partnerConsentGranted,
+  externalCtasAllowed,
 }: Props) {
   const deals = getCreatorDeals(creatorSlug);
 
@@ -74,6 +77,23 @@ export function BrandBonusesSection({
         isLoggedIn={isLoggedIn}
         partnerLabels={deals.map((d) => LABELS_BY_BRAND[d])}
       />
+    );
+  }
+
+  if (!externalCtasAllowed) {
+    return (
+      <section aria-label="Ofertas de partners no disponibles" className="gp-bonuses-empty">
+        <div className="gp-bonuses-empty-inner" role="note">
+          <span className="gp-bonuses-empty-icon" aria-hidden>🛡️</span>
+          <div className="gp-bonuses-empty-body">
+            <b>Ofertas externas no disponibles en tu región.</b>
+            <span>
+              Los códigos, depósitos y enlaces comerciales permanecen ocultos
+              mientras la revisión legal o el feature flag estén cerrados.
+            </span>
+          </div>
+        </div>
+      </section>
     );
   }
 

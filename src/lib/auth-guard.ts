@@ -2,6 +2,9 @@ import { redirect } from 'next/navigation';
 import { headers } from 'next/headers';
 import { auth } from '@/lib/auth';
 import { env } from '@/lib/env';
+import { homeForRole } from '@/lib/home-for-role';
+
+export { homeForRole };
 
 export type Role =
   | 'admin'
@@ -88,20 +91,6 @@ type SessionWithNarrowedRole<R extends Role> = {
     role: R;
   };
 };
-
-function homeForRole(role: Role | null | undefined): string | null {
-  if (role === 'admin')                return '/admin';
-  if (role === 'manager')              return '/admin';
-  if (role === 'admin_limited_tasks')  return '/admin';
-  if (role === 'staff')                return '/admin/mi-semana';
-  if (role === 'brand')                return '/marcas';
-  if (role === 'editor')               return '/admin/noticias';
-  if (role === 'finance')              return '/admin/facturas';
-  if (role === 'analyst')              return '/admin/analytics';
-  if (role === 'ops')                  return '/admin/agenda';
-  if (role === 'talent_manager')       return '/admin/talentos';
-  return null;
-}
 
 async function loadSession(loginPath: string): Promise<SessionWithRole> {
   const safePath = ALLOWED_LOGIN_PATHS.has(loginPath) ? loginPath : '/admin/login';

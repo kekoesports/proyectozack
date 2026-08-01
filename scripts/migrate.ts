@@ -1,6 +1,6 @@
 import { readFileSync } from 'fs';
 import { join } from 'path';
-import { neon } from '@neondatabase/serverless';
+import { neon, neonConfig } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-http';
 import { migrate } from 'drizzle-orm/neon-http/migrator';
 
@@ -38,6 +38,9 @@ if (!url) {
   console.error('DATABASE_URL is not set');
   process.exit(1);
 }
+
+const fetchEndpoint = process.env.NEON_HTTP_FETCH_ENDPOINT;
+if (fetchEndpoint) neonConfig.fetchEndpoint = fetchEndpoint;
 
 const sql = neon(url);
 const db = drizzle(sql);

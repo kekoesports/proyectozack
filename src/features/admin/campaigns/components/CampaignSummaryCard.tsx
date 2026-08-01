@@ -8,7 +8,10 @@ import { CAMPAIGN_ACTION_LABELS, CAMPAIGN_STATUS_LABELS } from '@/lib/schemas/ca
 
 import type { Tone } from '@/features/admin/_shared/components/StateBadge';
 import type { CampaignWithRelations } from '@/lib/queries/campaigns';
-import type { CampaignPaymentDerivedStatus } from '@/lib/schemas/campaign';
+import type {
+  CampaignPaymentDerivedStatus,
+  CampaignPaymentSource,
+} from '@/lib/schemas/campaign';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -33,6 +36,12 @@ function paymentLabel(status: CampaignPaymentDerivedStatus): string {
   if (status === 'si') return 'Pagado';
   if (status === 'parcial') return 'Parcial';
   return 'Pendiente';
+}
+
+function paymentSourceLabel(source: CampaignPaymentSource): string | null {
+  if (source === 'manual') return 'Confirmado manual';
+  if (source === 'invoice') return 'Por factura';
+  return null;
 }
 
 // ── Sub-components ─────────────────────────────────────────────────────────────
@@ -88,6 +97,8 @@ export function CampaignSummaryCard({ campaign }: Props): React.ReactElement {
     commissionPct,
     brandPaid,
     talentPaid,
+    brandPaidSource,
+    talentPaidSource,
     totalInvoicedBrand,
     totalPaidTalent,
     amountInKindTalent,
@@ -172,17 +183,31 @@ export function CampaignSummaryCard({ campaign }: Props): React.ReactElement {
           <Kpi
             label="Estado pago marca"
             value={
-              <StateBadge tone={paymentTone(brandPaid)}>
-                {paymentLabel(brandPaid)}
-              </StateBadge>
+              <div className="flex flex-col gap-1">
+                <StateBadge tone={paymentTone(brandPaid)}>
+                  {paymentLabel(brandPaid)}
+                </StateBadge>
+                {paymentSourceLabel(brandPaidSource) !== null && (
+                  <span className="text-[10px] uppercase tracking-wider text-sp-admin-muted">
+                    {paymentSourceLabel(brandPaidSource)}
+                  </span>
+                )}
+              </div>
             }
           />
           <Kpi
             label="Estado pago influencer"
             value={
-              <StateBadge tone={paymentTone(talentPaid)}>
-                {paymentLabel(talentPaid)}
-              </StateBadge>
+              <div className="flex flex-col gap-1">
+                <StateBadge tone={paymentTone(talentPaid)}>
+                  {paymentLabel(talentPaid)}
+                </StateBadge>
+                {paymentSourceLabel(talentPaidSource) !== null && (
+                  <span className="text-[10px] uppercase tracking-wider text-sp-admin-muted">
+                    {paymentSourceLabel(talentPaidSource)}
+                  </span>
+                )}
+              </div>
             }
           />
           <Kpi
@@ -282,10 +307,20 @@ export function CampaignSummaryCard({ campaign }: Props): React.ReactElement {
         </div>
       </section>
 
-      {/* Notes */}
+      {/* Notas del creador */}
+      {campaign.creatorNotes !== null && campaign.creatorNotes !== '' && (
+        <section className="rounded-2xl border border-sp-admin-border bg-sp-admin-card p-5">
+          <h2 className="font-bold text-sp-admin-text text-sm mb-2">Notas del creador</h2>
+          <p className="text-sm text-sp-admin-muted leading-relaxed whitespace-pre-wrap">
+            {campaign.creatorNotes}
+          </p>
+        </section>
+      )}
+
+      {/* Notas internas */}
       {campaign.notes !== null && campaign.notes !== '' && (
         <section className="rounded-2xl border border-sp-admin-border bg-sp-admin-card p-5">
-          <h2 className="font-bold text-sp-admin-text text-sm mb-2">Notas</h2>
+          <h2 className="font-bold text-sp-admin-text text-sm mb-2">Notas internas</h2>
           <p className="text-sm text-sp-admin-muted leading-relaxed whitespace-pre-wrap">
             {campaign.notes}
           </p>

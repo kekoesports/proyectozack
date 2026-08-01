@@ -165,9 +165,19 @@ describe('[twitch-fase-b] route /callback', () => {
 describe('[twitch-fase-b] route /disconnect', () => {
   const src = read(P.routeDisconnect);
 
-  it('requiere sesión y llama markAccountDisconnected con provider="twitch"', () => {
+  it('requiere sesión, elimina el token e intenta revocarlo en Twitch', () => {
     expect(src).toMatch(/getSession/);
-    expect(src).toMatch(/markAccountDisconnected\(session\.user\.id,\s*['"]twitch['"]\)/);
+    expect(src).toMatch(/disconnectAccountAndTakeToken\(session\.user\.id,\s*['"]twitch['"]\)/);
+    expect(src).toMatch(/oauth2\/revoke/);
+  });
+
+  it('solo elimina el token local después de una revocación aceptada', () => {
+    expect(src).toMatch(/revokeResponse\.ok/);
+    expect(src).toMatch(/revokeResponse\.status === 400/);
+    expect(src).toMatch(/provider_revocation_failed/);
+    expect(src.indexOf('await fetch')).toBeLessThan(
+      src.indexOf("disconnectAccountAndTakeToken(session.user.id, 'twitch')"),
+    );
   });
 
   it('es POST, no GET (evita CSRF trivial)', () => {
@@ -226,14 +236,14 @@ describe('[twitch-fase-b] server action verifyTwitchMission', () => {
     expect(src).toMatch(/['"]not_connected['"]/);
   });
 
-  it('INSERT missionClaims usa onConflictDoNothing (anti race-condition)', () => {
-    expect(src).toMatch(/onConflictDoNothing/);
+  it('claim y puntos se delegan a la operación atómica', () => {
+    expect(src).toMatch(/claimMissionAndAward/);
   });
 
   it('INSERT coinTransactions con source="mision" y refId=missionId', () => {
-    expect(src).toMatch(/coinTransactions/);
-    expect(src).toMatch(/source:\s*['"]mision['"]/);
-    expect(src).toMatch(/refId:\s*missionId/);
+    const atomic = read('src/lib/giveaway-platform/atomicOperations.ts');
+    expect(atomic).toMatch(/'mision'/);
+    expect(atomic).toMatch(/\$\{input\.missionId\}/);
   });
 
   it('NO loguea tokens ni ciphertext', () => {

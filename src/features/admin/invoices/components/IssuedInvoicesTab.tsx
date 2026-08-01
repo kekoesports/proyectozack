@@ -86,7 +86,8 @@ export function IssuedInvoicesTab({
   }, [invoices, filterStatus, filterIssuer, search, showAnuladas, showRectificadas]);
 
   const totalVisible = filtered.reduce((s, i) => s + Number(i.totalAmount ?? 0), 0);
-  const cobradas     = invoices.filter((i) => i.status === 'cobrada').length;
+  // Settled KPI must count both cobrada and pagada (AGENTS.md invoice_status gotcha).
+  const cobradas     = invoices.filter((i) => i.status === 'cobrada' || i.status === 'pagada').length;
   const pendientes   = invoices.filter((i) => i.status === 'emitida' || i.status === 'enviada').length;
   const totalCreadas = invoices.filter((i) => i.status !== 'borrador').length;
 

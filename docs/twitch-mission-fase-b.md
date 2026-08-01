@@ -42,7 +42,8 @@ curl 'https://api.twitch.tv/helix/users?login=zacketizor' \
 ```
 
 - Guarda el `id` en env: `TWITCH_ZACKETIZOR_BROADCASTER_ID=1234567890`.
-- La URL del canal es simplemente `https://www.twitch.tv/zacketizor` → env `TWITCH_ZACKETIZOR_CHANNEL_URL`.
+- La URL del canal real es `https://www.twitch.tv/zacketizorcs2` → env `TWITCH_ZACKETIZOR_CHANNEL_URL`.
+  (Login Helix: `zacketizorcs2`; no usar el display name solo.)
 
 ## 3. Clave de cifrado de tokens (reutilizada)
 

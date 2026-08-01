@@ -25,7 +25,7 @@ export const revalidate = 3600;
 export const metadata: Metadata = {
   title: 'Gaming & Esports Influencer Marketing Agency — Spain & LatAm',
   description:
-    'SocialPro connects creators with brands. 13+ years in gaming, esports and iGaming influencer marketing. Verified streamers in Spain and LatAm. Performance-tracked campaigns.',
+    'SocialPro connects creators with brands. 13+ years in gaming and esports, specialized in iGaming and creator marketing since 2024. Verified streamers in Spain and LatAm. Performance-tracked campaigns.',
   alternates: {
     canonical: absoluteUrl('/en'),
     languages: {
@@ -67,7 +67,10 @@ export default async function HomeEnPage() {
 
   return (
     <>
-      <Hero />
+      {/* TODO Fase 4: traducir Marquee, TalentSection, ServicesSection,
+          CasesSection, CtaSection, FaqSection y el resto del cuerpo del
+          Hero. Ver docs/seo-audit-2026-07.md §10 (inventario /en). */}
+      <Hero heading="Gaming & iGaming Influencer Agency — Spain & LATAM" />
       <Marquee />
       <BrandsCarousel brands={brands} />
       <TalentSection talents={talents} />

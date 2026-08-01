@@ -11,6 +11,7 @@ import {
   setGiveawayBadgeAction,
   setGiveawayBadgeFromFormAction,
 } from './actions';
+import { PickWinnerButton } from './PickWinnerButton';
 import type { GiveawayWithTalent } from '@/types';
 import type { CrmBrandPickerEntry } from '@/lib/queries/crmBrands';
 
@@ -19,11 +20,15 @@ type StatusFilter = 'all' | 'active' | 'finished';
 type Props = {
   readonly giveaways: readonly GiveawayWithTalent[];
   readonly brands:    readonly CrmBrandPickerEntry[];
+  readonly winnerGiveawayIds: readonly number[];
   readonly onNewGiveaway: () => void;
 };
 
-function isGiveawayActive(endsAt: Date | null): boolean {
-  return endsAt === null || new Date(endsAt) > new Date();
+function isGiveawayActive(giveaway: GiveawayWithTalent): boolean {
+  const now = new Date();
+  return giveaway.status === 'active'
+    && new Date(giveaway.startsAt) <= now
+    && (giveaway.endsAt === null || new Date(giveaway.endsAt) > now);
 }
 
 const BADGE_OPTIONS = ['HOT', 'NUEVO', 'EXCLUSIVO', 'TOP', 'LIMITED'] as const;
@@ -35,15 +40,20 @@ const STATUS_FILTERS: { id: StatusFilter; label: string }[] = [
   { id: 'finished', label: 'Finalizado' },
 ];
 
-export function GiveawaysTab({ giveaways, brands, onNewGiveaway }: Props): React.ReactElement {
+export function GiveawaysTab({
+  giveaways,
+  brands,
+  winnerGiveawayIds,
+  onNewGiveaway,
+}: Props): React.ReactElement {
   const [query,  setQuery]  = useState('');
   const [status, setStatus] = useState<StatusFilter>('all');
 
   const hasDemos = giveaways.some((g) => g.title.startsWith('[DEMO]'));
 
   const filtered = giveaways.filter((g) => {
-    if (status === 'active'   && !isGiveawayActive(g.endsAt)) return false;
-    if (status === 'finished' &&  isGiveawayActive(g.endsAt)) return false;
+    if (status === 'active'   && !isGiveawayActive(g)) return false;
+    if (status === 'finished' &&  isGiveawayActive(g)) return false;
     if (query.trim()) {
       const q = query.toLowerCase();
       return (
@@ -162,7 +172,12 @@ export function GiveawaysTab({ giveaways, brands, onNewGiveaway }: Props): React
               </thead>
               <tbody>
                 {filtered.map((g) => (
-                  <GiveawayRow key={g.id} giveaway={g} brands={brands} />
+                  <GiveawayRow
+                    key={g.id}
+                    giveaway={g}
+                    brands={brands}
+                    hasWinner={winnerGiveawayIds.includes(g.id)}
+                  />
                 ))}
               </tbody>
             </table>
@@ -178,10 +193,15 @@ export function GiveawaysTab({ giveaways, brands, onNewGiveaway }: Props): React
 type RowProps = {
   readonly giveaway: GiveawayWithTalent;
   readonly brands:   readonly CrmBrandPickerEntry[];
+  readonly hasWinner: boolean;
 };
 
-function GiveawayRow({ giveaway: g, brands }: RowProps): React.ReactElement {
-  const active = isGiveawayActive(g.endsAt);
+function GiveawayRow({ giveaway: g, brands, hasWinner }: RowProps): React.ReactElement {
+  const active = isGiveawayActive(g);
+  const canPickWinner = (g.status === 'active' || g.status === 'ended')
+    && g.endsAt !== null
+    && new Date(g.endsAt) <= new Date()
+    && !hasWinner;
 
   return (
     <tr
@@ -311,6 +331,7 @@ function GiveawayRow({ giveaway: g, brands }: RowProps): React.ReactElement {
       {/* Actions */}
       <td className="px-4 py-3">
         <div className="flex items-center gap-2">
+          {canPickWinner ? <PickWinnerButton giveawayId={g.id} /> : null}
           <EditGiveawayModal giveaway={g} brandCatalog={brands} />
           <DeleteConfirmButton
             action={deleteGiveawayAction}

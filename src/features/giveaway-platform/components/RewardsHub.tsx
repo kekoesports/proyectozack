@@ -3,13 +3,9 @@
 import { useState } from 'react';
 import { PlatformShop } from './PlatformShop';
 import { FreeRaffleCard } from './FreeRaffleCard';
-import { MonthlyPointsRanking } from './MonthlyPointsRanking';
-import { PrizesBlock } from './PrizesBlock';
 import type {
   FreeRaffleCardData,
-  PointsRankingRow,
   ShopItem,
-  UserMonthlyStanding,
 } from '@/types/giveawayPlatform';
 
 interface Props {
@@ -17,28 +13,25 @@ interface Props {
   balance: number;
   hasSteamTradeUrl: boolean;
   freeRaffles: readonly FreeRaffleCardData[];
-  pointsRanking: readonly PointsRankingRow[];
-  rankingTotal: number;
-  myStanding: UserMonthlyStanding | null;
   isLoggedIn: boolean;
 }
 
-type TabKey = 'shop' | 'raffles' | 'ranking';
+type TabKey = 'shop' | 'raffles';
 
 const TABS: { key: TabKey; label: string }[] = [
-  { key: 'shop',    label: 'Recompensas por puntos' },
+  { key: 'shop', label: 'Recompensas por puntos' },
   { key: 'raffles', label: 'Sorteos gratis' },
-  { key: 'ranking', label: 'Ranking mensual' },
 ];
 
+/**
+ * Hub de recompensas: tienda + sorteos gratis.
+ * El ranking mensual vive en la sección `#ranking` del banner (no aquí).
+ */
 export function RewardsHub({
   shopItems,
   balance,
   hasSteamTradeUrl,
   freeRaffles,
-  pointsRanking,
-  rankingTotal,
-  myStanding,
   isLoggedIn,
 }: Props): React.ReactElement {
   const [tab, setTab] = useState<TabKey>('shop');
@@ -52,11 +45,7 @@ export function RewardsHub({
       <div className="gp-rewards-hub-tabs" role="tablist">
         {TABS.map((t) => {
           const isActive = tab === t.key;
-          const count = t.key === 'raffles'
-            ? activeRafflesCount
-            : t.key === 'ranking'
-              ? rankingTotal
-              : shopItems.length;
+          const count = t.key === 'raffles' ? activeRafflesCount : shopItems.length;
           return (
             <button
               key={t.key}
@@ -92,20 +81,6 @@ export function RewardsHub({
               ))}
             </div>
           )}
-        </>
-      ) : null}
-
-      {tab === 'ranking' ? (
-        <>
-          <MonthlyPointsRanking
-            rows={pointsRanking}
-            totalParticipants={rankingTotal}
-            myStanding={myStanding}
-            isLoggedIn={isLoggedIn}
-          />
-          <div style={{ marginTop: 20 }}>
-            <PrizesBlock />
-          </div>
         </>
       ) : null}
     </div>

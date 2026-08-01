@@ -35,7 +35,8 @@ test.describe('Admin smoke tests', () => {
 
   test('/admin/giveaways renders', async ({ page }) => {
     await gotoAdmin(page, 'giveaways');
-    await expect(page.getByRole('heading', { level: 1, name: /giveaways/i })).toBeVisible();
+    // UI label is Spanish "Sorteos" (nav + H1); path remains /admin/giveaways.
+    await expect(page.getByRole('heading', { level: 1, name: /sorteos/i })).toBeVisible();
   });
 
   test('/admin/mi-semana renders', async ({ page }) => {
@@ -60,7 +61,8 @@ test.describe('Admin smoke tests', () => {
 
   test('/admin/facturacion/import renders', async ({ page }) => {
     await gotoAdmin(page, 'facturacion/import');
-    await expect(page.getByRole('heading', { level: 1, name: /importar facturas/i })).toBeVisible();
+    // H1 is singular "Importar Factura" (not "Importar facturas").
+    await expect(page.getByRole('heading', { level: 1, name: /importar factura/i })).toBeVisible();
   });
 
   test('/admin/talents/fotos renders', async ({ page }) => {

@@ -4,6 +4,8 @@ import { z } from 'zod';
 export const env = createEnv({
   server: {
     DATABASE_URL: z.string().url(),
+    /** Endpoint HTTP alternativo para el proxy Neon local de QA. */
+    NEON_HTTP_FETCH_ENDPOINT: z.string().url().optional(),
     RESEND_API_KEY: z.string().min(1),
     BETTER_AUTH_SECRET: z.string().min(32),
     // Optional in dev; required in production for cron endpoints to be reachable.
@@ -122,6 +124,7 @@ export const env = createEnv({
   },
   runtimeEnv: {
     DATABASE_URL: process.env.DATABASE_URL,
+    NEON_HTTP_FETCH_ENDPOINT: process.env.NEON_HTTP_FETCH_ENDPOINT,
     RESEND_API_KEY: process.env.RESEND_API_KEY,
     BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET,
     CRON_SECRET: process.env.CRON_SECRET,

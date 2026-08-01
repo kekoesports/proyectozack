@@ -61,9 +61,12 @@ export default async function AdminBrandsPage(): Promise<React.ReactElement> {
     followupsByBrand[b.id] = followupsMap.get(b.id) ?? [];
   }
 
-  // Group campaigns by brandId (client-side filtering avoids N+1 queries)
+  // Only attach campaigns for brands the user can already see (staff visibility).
+  // listAllCampaigns has no ownership filter — never serialize foreign-brand deals.
+  const visibleBrandIds = new Set(brandIds);
   const campaignsByBrand: Record<number, CampaignRow[]> = {};
   for (const c of allCampaigns) {
+    if (!visibleBrandIds.has(c.brandId)) continue;
     const existing = campaignsByBrand[c.brandId];
     if (existing) {
       existing.push(c);
