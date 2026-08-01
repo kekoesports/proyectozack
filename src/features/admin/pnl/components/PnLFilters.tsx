@@ -28,7 +28,7 @@ type Props = {
  *
  * @kind client
  * @feature admin/pnl
- * @route /admin/pl
+ * @route /admin/finanzas/pl (canonical; legacy /admin/pl redirects here)
  */
 export function PnLFilters(props: Props): React.ReactElement {
   const router = useRouter();
@@ -41,7 +41,8 @@ export function PnLFilters(props: Props): React.ReactElement {
     }
     startTransition(() => {
       const qs = params.toString();
-      router.push(qs ? `/admin/pl?${qs}` : '/admin/pl');
+      // Canonical hub path — do not use /admin/pl (redirect drops filters unless forwarded).
+      router.push(qs ? `/admin/finanzas/pl?${qs}` : '/admin/finanzas/pl');
     });
   }
 
@@ -52,6 +53,7 @@ export function PnLFilters(props: Props): React.ReactElement {
     if (props.to) params.set('to', props.to);
     if (props.brandId) params.set('brandId', props.brandId);
     if (props.talentId) params.set('talentId', props.talentId);
+    // Export route still lives under legacy /admin/pl/export (no finanzas twin yet).
     window.location.href = `/admin/pl/export?${params.toString()}`;
   }
 

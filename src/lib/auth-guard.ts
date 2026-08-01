@@ -89,17 +89,23 @@ type SessionWithNarrowedRole<R extends Role> = {
   };
 };
 
-function homeForRole(role: Role | null | undefined): string | null {
+/**
+ * Safe post-auth home for each role. Paths must exist under `src/app/admin/**`
+ * (or brand portal). Broken paths send users to 404 after a permission bounce.
+ *
+ * @internal exported for unit tests only
+ */
+export function homeForRole(role: Role | null | undefined): string | null {
   if (role === 'admin')                return '/admin';
   if (role === 'manager')              return '/admin';
   if (role === 'admin_limited_tasks')  return '/admin';
   if (role === 'staff')                return '/admin/mi-semana';
   if (role === 'brand')                return '/marcas';
   if (role === 'editor')               return '/admin/noticias';
-  if (role === 'finance')              return '/admin/facturas';
+  if (role === 'finance')              return '/admin/facturacion';
   if (role === 'analyst')              return '/admin/analytics';
-  if (role === 'ops')                  return '/admin/agenda';
-  if (role === 'talent_manager')       return '/admin/talentos';
+  if (role === 'ops')                  return '/admin/tareas';
+  if (role === 'talent_manager')       return '/admin/talents';
   return null;
 }
 

@@ -36,4 +36,10 @@ describe('UI admin de facturas usa el proxy /api/admin/facturacion/[id]/pdf', ()
     expect(src).toMatch(/\/api\/admin\/facturacion\/\$\{invoice\.id\}\/pdf/);
     expect(src).not.toMatch(/href=\{invoice\.fileUrl\}/);
   });
+
+  it('InvoiceFileFields.tsx usa proxy /api/admin/files/{id}, no current.url del Blob privado', () => {
+    const src = read('src/features/admin/invoices/components/InvoiceFileFields.tsx');
+    expect(src).toMatch(/\/api\/admin\/files\/\$\{current\.id\}/);
+    expect(src).not.toMatch(/href=\{current\.url\}/);
+  });
 });

@@ -4,6 +4,10 @@ import { db } from '@/lib/db';
 import { campaigns, crmBrands, crmBrandContacts, invoices, talents, user } from '@/db/schema';
 import { needsVisibilityFilter } from '@/lib/permissions';
 import { computeCampaignDerived } from '@/lib/schemas/campaign';
+import {
+  SETTLED_EXPENSE_STATUSES,
+  SETTLED_INCOME_STATUSES,
+} from '@/lib/utils/invoice-status';
 
 import type { Role } from '@/lib/auth-guard';
 import type {
@@ -542,9 +546,10 @@ export async function unarchiveCampaign(id: number): Promise<CampaignRow | undef
  *    marcados desde el drawer de edición. Si están en `true`, el estado se
  *    fuerza a `'si'` con `source='manual'`. Es lo que necesita el equipo
  *    comercial para gestión rápida y NO implica factura ni movimiento bancario.
- * 2. Estado CONTABLE (invoice) — SUM de facturas `cobrada` (`kind=income`
- *    para marca, `kind=expense` para talento) comparado con los importes
- *    acordados → `'no' | 'parcial' | 'si'` con `source='invoice' | 'none'`.
+ * 2. Estado CONTABLE (invoice) — SUM de facturas liquidadas (`cobrada` **y**
+ *    `pagada` — ver SETTLED_* en invoice-status) (`kind=income` para marca,
+ *    `kind=expense` para talento) vs importes acordados →
+ *    `'no' | 'parcial' | 'si'` con `source='invoice' | 'none'`.
  *
  * Prioridad: `manual > invoice > none`. P&L y dashboards financieros siguen
  * derivando siempre de facturas, nunca de los booleanos manuales.
@@ -562,6 +567,9 @@ export async function getCampaignPaymentStatus(
     readonly pagoTalentConfirmado?: boolean | null;
   },
 ): Promise<CampaignPaymentStatus> {
+  const settledIncome = [...SETTLED_INCOME_STATUSES];
+  const settledExpense = [...SETTLED_EXPENSE_STATUSES];
+
   const [incomeRow] = await db
     .select({
       total: sql<string>`COALESCE(SUM(${invoices.totalAmount}), 0)`,
@@ -571,7 +579,7 @@ export async function getCampaignPaymentStatus(
       and(
         eq(invoices.campaignId, campaignId),
         eq(invoices.kind, 'income'),
-        eq(invoices.status, 'cobrada'),
+        inArray(invoices.status, settledIncome),
       ),
     );
 
@@ -584,7 +592,7 @@ export async function getCampaignPaymentStatus(
       and(
         eq(invoices.campaignId, campaignId),
         eq(invoices.kind, 'expense'),
-        eq(invoices.status, 'cobrada'),
+        inArray(invoices.status, settledExpense),
       ),
     );
 

@@ -236,6 +236,20 @@ describe('getCampaignPaymentStatus', () => {
     jest.clearAllMocks();
   });
 
+  it('sums settled statuses cobrada AND pagada (source contract)', () => {
+    // Regression lock: detail path used to filter only eq(status,'cobrada'),
+    // under-counting expenses marked pagada (AGENTS.md gotcha).
+    const src = require('fs').readFileSync(
+      require('path').resolve(__dirname, '../../lib/queries/campaigns.ts'),
+      'utf-8',
+    );
+    expect(src).toMatch(/SETTLED_INCOME_STATUSES/);
+    expect(src).toMatch(/SETTLED_EXPENSE_STATUSES/);
+    expect(src).toMatch(/inArray\(invoices\.status, settledIncome\)/);
+    expect(src).toMatch(/inArray\(invoices\.status, settledExpense\)/);
+    expect(src).not.toMatch(/eq\(invoices\.status, 'cobrada'\)/);
+  });
+
   it('brandPaid=si when income cobrada sum >= amountBrand', async () => {
     let callCount = 0;
     mockSelect.mockImplementation(() => {

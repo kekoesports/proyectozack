@@ -1,6 +1,6 @@
 'server-only';
 
-import { and, eq, gte, lte, ne, sql } from 'drizzle-orm';
+import { and, eq, gte, lte, notInArray, sql } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { invoicePayments, invoices } from '@/db/schema';
 import type { PnLFilters, PnLResult, PnLBreakdownByMonth, PnLBreakdownByCategory } from '@/lib/queries/pnl';
@@ -10,6 +10,7 @@ import {
   PENDING_INCOME_STATUSES,
   PENDING_EXPENSE_STATUSES,
 } from '@/lib/utils/invoice-status';
+import type { InvoiceStatus } from '@/types';
 import {
   buildInvoicePdfUrl,
   classifyExpenseSubgroup,
@@ -67,7 +68,9 @@ const ZERO: FinancePnLResult = {
  * @visibility admin
  */
 export async function getFinancePnL(filters: PnLFilters = {}): Promise<FinancePnLResult> {
-  const conds = [ne(invoices.status, 'anulada')];
+  // Align with getPnL / rentabilidad: drafts and cancelled never enter operational totals.
+  const excluded: InvoiceStatus[] = ['anulada', 'borrador'];
+  const conds = [notInArray(invoices.status, excluded)];
   if (filters.from) conds.push(gte(invoices.issueDate, filters.from));
   if (filters.to) conds.push(lte(invoices.issueDate, filters.to));
   if (filters.company) conds.push(eq(invoices.company, filters.company));

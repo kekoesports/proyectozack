@@ -515,7 +515,8 @@ export async function getDashboardUpcomingFollowups(
 export type MonthlyRevenue = { readonly income: number; readonly expense: number };
 
 /**
- * Ingresos y gastos del mes en curso desde facturas `cobrada` o `emitida`.
+ * Ingresos y gastos del mes en curso desde facturas liquidadas o emitidas.
+ * Settled = `cobrada` **y** `pagada` (AGENTS.md gotcha); plus open `emitida`.
  *
  * @cache none
  * @visibility admin
@@ -533,7 +534,7 @@ export async function getMonthlyRevenue(): Promise<MonthlyRevenue> {
     .from(invoices)
     .where(
       and(
-        inArray(invoices.status, ['cobrada', 'emitida']),
+        inArray(invoices.status, ['cobrada', 'pagada', 'emitida']),
         gte(invoices.issueDate, firstDay),
       ),
     )
@@ -551,7 +552,7 @@ export type DealStats = {
 };
 
 /**
- * Tratos del año (income cobradas) y tratos activos (income emitidas).
+ * Tratos del año (income liquidadas: cobrada|pagada) y tratos activos (income emitidas).
  *
  * @cache none
  * @visibility admin
@@ -567,7 +568,7 @@ export async function getDealStats(): Promise<DealStats> {
       .where(
         and(
           eq(invoices.kind, 'income'),
-          eq(invoices.status, 'cobrada'),
+          inArray(invoices.status, ['cobrada', 'pagada']),
           gte(invoices.issueDate, yearStart),
         ),
       ),
