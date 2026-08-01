@@ -65,6 +65,15 @@ describe('[finanzas-nav-and-routing] redirects legacy', () => {
     const src = read('src/app/admin/(dashboard)/gastos/page.tsx');
     expect(src).toMatch(/permanentRedirect\(['"]\/admin\/finanzas\/gastos['"]\)/);
   });
+
+  // QA 2026-07-31: bare /admin/finanzas had no page.tsx → hard 404 (stress/curl).
+  // Hub index must redirect to the canonical Resumen tab.
+  it('/admin/finanzas index redirige a /admin/finanzas/resumen', () => {
+    const rel = 'src/app/admin/(dashboard)/finanzas/page.tsx';
+    expect(exists(rel)).toBe(true);
+    const src = read(rel);
+    expect(src).toMatch(/redirect\(['"]\/admin\/finanzas\/resumen['"]\)/);
+  });
 });
 
 describe('[finanzas-nav-and-routing] páginas placeholder usan PlaceholderSection', () => {

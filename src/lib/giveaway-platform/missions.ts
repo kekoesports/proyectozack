@@ -1,7 +1,6 @@
 import { and, count, countDistinct, eq, gte } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import {
-  coinTransactions,
   dailyStreaks,
   giveawayEntries,
   giveaways,
@@ -12,6 +11,7 @@ import {
 import { startOfCurrentMonthUtc, type MissionConditionType } from './constants';
 import { logGiveawayEvent } from '@/lib/audit/logGiveawayEvent';
 import { assertAllowedCoinSourceOrLog } from '@/lib/audit/logBlockedCoinSource';
+import { claimMissionAndAward } from './atomicOperations';
 
 /**
  * Estado agregado del progreso de un usuario contra todas las condition
@@ -112,28 +112,19 @@ export async function evaluateAndClaimMissions(
     if (state.claimedMissionIds.has(mission.id)) continue;
     if (progressFor(state, mission.conditionType) < mission.goal) continue;
 
-    // 1) Reclamar (el UNIQUE nos protege de carreras).
-    const inserted = await db
-      .insert(missionClaims)
-      .values({ missionId: mission.id, userId })
-      .onConflictDoNothing()
-      .returning({ id: missionClaims.id });
-    if (inserted.length === 0) continue; // otra petición lo cobró antes
-
-    // 2) Acreditar monedas (solo si el claim fue nuestro).
     await assertAllowedCoinSourceOrLog('mision', {
       userId,
       action: 'mission_claim',
       refType: 'mission',
       refId: mission.id,
     });
-    await db.insert(coinTransactions).values({
+    const claimed = await claimMissionAndAward({
       userId,
-      amount: mission.rewardCoins,
-      source: 'mision',
-      concept: `Misión completada · ${mission.title}`,
-      refId: mission.id,
+      missionId: mission.id,
+      title: mission.title,
+      rewardCoins: mission.rewardCoins,
     });
+    if (!claimed) continue;
     await logGiveawayEvent({
       userId,
       action:  'mission_claim',

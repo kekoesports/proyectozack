@@ -1,6 +1,6 @@
 'server-only';
 
-import { and, eq, gte, lte, ne, sql } from 'drizzle-orm';
+import { and, eq, gte, isNull, lte, ne, notLike, or, sql } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import {
   crmBrands,
@@ -8,8 +8,15 @@ import {
   invoices,
   issuedInvoices,
 } from '@/db/schema';
+import { ISSUED_MIRROR_NOTES_PREFIX } from '@/lib/utils/invoice-status';
 import { getArAging } from './arAging';
 import type { ArAgingBucket, ArAgingKpis, ArAgingRow } from '@/types/arAging';
+
+/** Internal income rows that are auto-mirrors of issued invoices (exclude from facturado). */
+const notIssuedMirror = or(
+  isNull(invoices.notes),
+  notLike(invoices.notes, `${ISSUED_MIRROR_NOTES_PREFIX}%`),
+);
 
 /**
  * Datos agregados de la sección "Ingresos" (PR 3).
@@ -93,11 +100,13 @@ async function sumFacturado(period: IngresosPeriod): Promise<number> {
         ne(invoices.status, 'anulada'),
         gte(invoices.issueDate, period.from),
         lte(invoices.issueDate, period.to),
+        notIssuedMirror,
       )),
     db
       .select({ total: sql<string>`COALESCE(SUM(${issuedInvoices.totalAmount}), 0)::text` })
       .from(issuedInvoices)
       .where(and(
+        ne(issuedInvoices.status, 'anulada'),
         gte(issuedInvoices.issueDate, period.from),
         lte(issuedInvoices.issueDate, period.to),
       )),
@@ -173,6 +182,7 @@ async function computeTopMarcasFacturado(period: IngresosPeriod, limit = 5): Pro
         ne(invoices.status, 'anulada'),
         gte(invoices.issueDate, period.from),
         lte(invoices.issueDate, period.to),
+        notIssuedMirror,
       ))
       .groupBy(crmBrands.name),
     db
@@ -184,6 +194,7 @@ async function computeTopMarcasFacturado(period: IngresosPeriod, limit = 5): Pro
       .from(issuedInvoices)
       .innerJoin(crmBrands, eq(crmBrands.id, issuedInvoices.relatedBrandId))
       .where(and(
+        ne(issuedInvoices.status, 'anulada'),
         gte(issuedInvoices.issueDate, period.from),
         lte(issuedInvoices.issueDate, period.to),
       ))

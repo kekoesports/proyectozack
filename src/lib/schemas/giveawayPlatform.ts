@@ -8,6 +8,7 @@ export const participateSchema = z.object({
 
 export const redeemSchema = z.object({
   shopItemId: z.coerce.number().int().positive(),
+  requestKey: z.string().uuid().optional(),
 });
 
 export const tradeUrlSchema = z.object({
@@ -22,6 +23,10 @@ export const tradeUrlSchema = z.object({
 
 export const privacySchema = z.object({
   isPrivate: z.coerce.boolean(),
+});
+
+export const adultAttestationSchema = z.object({
+  confirmed: z.literal(true),
 });
 
 export const shippingAddressSchema = z.object({

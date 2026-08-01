@@ -16,7 +16,11 @@ import { getSocialPlatformKey } from '@/lib/utils/platform';
 import { countAgencyCreators } from './agencyCreators';
 import { getAllTalents } from './talents';
 import { parseFollowers, formatCompact, totalFollowersForCreator } from '@/lib/utils/format';
-import { PENDING_INCOME_FILTER } from '@/lib/utils/invoice-status';
+import {
+  PENDING_INCOME_FILTER,
+  SETTLED_INCOME_STATUSES,
+  isSettledInvoiceStatus,
+} from '@/lib/utils/invoice-status';
 
 import type { Role } from '@/lib/auth-guard';
 
@@ -515,7 +519,8 @@ export async function getDashboardUpcomingFollowups(
 export type MonthlyRevenue = { readonly income: number; readonly expense: number };
 
 /**
- * Ingresos y gastos del mes en curso desde facturas `cobrada` o `emitida`.
+ * Ingresos y gastos del mes en curso desde facturas liquidadas o emitidas.
+ * Settled = `cobrada` **y** `pagada` (AGENTS.md gotcha); plus open `emitida`.
  *
  * @cache none
  * @visibility admin
@@ -533,7 +538,7 @@ export async function getMonthlyRevenue(): Promise<MonthlyRevenue> {
     .from(invoices)
     .where(
       and(
-        inArray(invoices.status, ['cobrada', 'emitida']),
+        inArray(invoices.status, ['cobrada', 'pagada', 'emitida']),
         gte(invoices.issueDate, firstDay),
       ),
     )
@@ -551,7 +556,7 @@ export type DealStats = {
 };
 
 /**
- * Tratos del año (income cobradas) y tratos activos (income emitidas).
+ * Tratos del año (income liquidadas: cobrada|pagada) y tratos activos (income emitidas).
  *
  * @cache none
  * @visibility admin
@@ -567,7 +572,7 @@ export async function getDealStats(): Promise<DealStats> {
       .where(
         and(
           eq(invoices.kind, 'income'),
-          eq(invoices.status, 'cobrada'),
+          inArray(invoices.status, ['cobrada', 'pagada']),
           gte(invoices.issueDate, yearStart),
         ),
       ),
@@ -724,7 +729,8 @@ export async function getDashboardInsights(): Promise<readonly InsightItem[]> {
       .from(invoices)
       .where(and(
         eq(invoices.kind, 'income'),
-        inArray(invoices.status, ['cobrada', 'emitida']),
+        // Settled = cobrada|pagada (AGENTS.md); open pipeline includes emitida.
+        inArray(invoices.status, [...SETTLED_INCOME_STATUSES, 'emitida']),
         gte(invoices.issueDate, yearStart),
       ))
       .groupBy(invoices.status),
@@ -769,15 +775,18 @@ export async function getDashboardInsights(): Promise<readonly InsightItem[]> {
     });
   }
 
-  const cobradas = dealRows.filter((r) => r.status === 'cobrada').reduce((s, r) => s + r.count, 0);
+  // Closed = any settled income status (cobrada AND pagada), not cobrada alone.
+  const settled = dealRows
+    .filter((r) => isSettledInvoiceStatus(r.status))
+    .reduce((s, r) => s + r.count, 0);
   const emitidas = dealRows.filter((r) => r.status === 'emitida').reduce((s, r) => s + r.count, 0);
-  const total = cobradas + emitidas;
+  const total = settled + emitidas;
   if (total > 0) {
-    const rate = Math.round((cobradas / total) * 100);
+    const rate = Math.round((settled / total) * 100);
     insights.push({
       id: id++,
       type: rate >= 30 ? 'success' : 'warning',
-      text: `Tasa de cierre ${now.getFullYear()}: ${rate}% (${cobradas}/${total} tratos)`,
+      text: `Tasa de cierre ${now.getFullYear()}: ${rate}% (${settled}/${total} tratos)`,
     });
   }
 

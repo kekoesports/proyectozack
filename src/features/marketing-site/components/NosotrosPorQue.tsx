@@ -21,7 +21,7 @@ const REASONS = [
     icon: '🎮',
     title: 'Solo gaming e iGaming',
     context: null,
-    desc: 'Sin clientes de otros sectores que diluyan el expertise. SocialPro opera exclusivamente en esports, CS2, Valorant, Twitch, YouTube, Kick e iGaming. 13+ años sin desviar el foco.',
+    desc: 'Sin clientes de otros sectores que diluyan el expertise. SocialPro opera exclusivamente en esports, CS2, Valorant, Twitch, YouTube y Kick, con especialización en iGaming y creadores desde 2024. 13+ años sin desviar el foco del ecosistema gaming.',
   },
   {
     icon: '🌍',

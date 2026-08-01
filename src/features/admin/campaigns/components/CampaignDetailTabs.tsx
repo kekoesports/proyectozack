@@ -253,13 +253,21 @@ export function CampaignDetailTabs({
             label="Cobro marca"
             value={campaign.brandPaid === 'si' ? '✓ Cobrado' : campaign.brandPaid === 'parcial' ? 'Parcial' : 'Pendiente'}
             accent={campaign.brandPaid === 'si' ? '#16a34a' : campaign.brandPaid === 'parcial' ? '#f59e0b' : '#ef4444'}
-            {...(campaign.totalInvoicedBrand > 0 ? { sub: `${EUR.format(campaign.totalInvoicedBrand)} facturado` } : {})}
+            {...(campaign.brandPaidSource === 'manual'
+              ? { sub: 'Confirmado manual' }
+              : campaign.totalInvoicedBrand > 0
+                ? { sub: `${EUR.format(campaign.totalInvoicedBrand)} facturado` }
+                : {})}
           />
           <MiniKpi
             label="Pago talento"
             value={campaign.talentPaid === 'si' ? '✓ Pagado' : campaign.talentPaid === 'parcial' ? 'Parcial' : 'Pendiente'}
             accent={campaign.talentPaid === 'si' ? '#16a34a' : campaign.talentPaid === 'parcial' ? '#f59e0b' : '#ef4444'}
-            {...(campaign.totalPaidTalent > 0 ? { sub: `${EUR.format(campaign.totalPaidTalent)} pagado` } : {})}
+            {...(campaign.talentPaidSource === 'manual'
+              ? { sub: 'Confirmado manual' }
+              : campaign.totalPaidTalent > 0
+                ? { sub: `${EUR.format(campaign.totalPaidTalent)} pagado` }
+                : {})}
           />
           {days !== null && (
             <MiniKpi
@@ -439,7 +447,7 @@ function DealFlowTimeline({
       note:  activeInvoices.length === 0
         ? 'Sin factura'
         : `${activeInvoices.length} factura${activeInvoices.length > 1 ? 's' : ''} — ${
-            activeInvoices[0]?.status === 'cobrada' ? 'Cobrada'
+            activeInvoices[0]?.status === 'cobrada' || activeInvoices[0]?.status === 'pagada' ? 'Cobrada'
             : activeInvoices[0]?.status === 'emitida' ? 'Emitida'
             : activeInvoices[0]?.status === 'borrador' ? 'Borrador'
             : activeInvoices[0]?.status ?? ''}`,
@@ -450,11 +458,13 @@ function DealFlowTimeline({
       label: 'Cobro marca',
       icon:  '💰',
       done:  campaign.brandPaid === 'si',
-      date:  cobradaInvoice?.paidDate ?? null,
-      note:  campaign.brandPaid === 'si'
-        ? `${new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(campaign.totalInvoicedBrand)} cobrados`
-        : campaign.brandPaid === 'parcial' ? 'Parcialmente cobrado'
-        : 'Pendiente',
+      date:  campaign.brandPaidSource === 'manual' ? null : cobradaInvoice?.paidDate ?? null,
+      note:  campaign.brandPaidSource === 'manual'
+        ? 'Confirmado manual'
+        : campaign.brandPaid === 'si'
+          ? `${new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(campaign.totalInvoicedBrand)} cobrados`
+          : campaign.brandPaid === 'parcial' ? 'Parcialmente cobrado'
+          : 'Pendiente',
       warning: activeInvoices.some((i) => i.status === 'emitida') && campaign.brandPaid === 'no',
     },
     {
@@ -462,10 +472,12 @@ function DealFlowTimeline({
       label: 'Pago talento',
       icon:  '💸',
       done:  campaign.talentPaid === 'si',
-      note:  campaign.talentPaid === 'si'
-        ? `${new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(campaign.totalPaidTalent)} pagados`
-        : campaign.talentPaid === 'parcial' ? 'Parcialmente pagado'
-        : 'Pendiente',
+      note:  campaign.talentPaidSource === 'manual'
+        ? 'Confirmado manual'
+        : campaign.talentPaid === 'si'
+          ? `${new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(campaign.totalPaidTalent)} pagados`
+          : campaign.talentPaid === 'parcial' ? 'Parcialmente pagado'
+          : 'Pendiente',
       warning: campaign.brandPaid === 'si' && campaign.talentPaid === 'no' && Number(campaign.amountTalent ?? 0) > 0,
     },
     {

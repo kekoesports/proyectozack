@@ -1,9 +1,11 @@
 /**
- * Tests para el sistema de geo-detección de idioma.
- * Cubre las 12 situaciones definidas en la especificación del middleware.
+ * Tests para las funciones puras de detección de idioma.
  *
- * Se testean funciones puras de @/lib/locale-detection (sin dependencias de Next.js).
- * El middleware (src/middleware.ts) es una capa fina sobre estas funciones.
+ * Actualizado 2026-07-30 (sprint SEO+GEO): `getLocaleDecision` ahora devuelve
+ * SIEMPRE `action: 'pass'`. Nunca redirige por Accept-Language ni por geo-IP.
+ * La cookie `socialpro_locale` se sigue escribiendo para memoria de
+ * preferencia — reservada para un language switcher manual (Fase 4).
+ * Ver src/lib/locale-detection.ts.
  */
 import {
   LOCALE_COOKIE,
@@ -33,17 +35,16 @@ describe('LOCALE_MIDDLEWARE_MATCHER', () => {
     expect(LOCALE_MIDDLEWARE_MATCHER).toEqual(['/', '/en']);
   });
 
-  // Tests 7-9: rutas excluidas del middleware
-  it('no incluye /admin (test 7)', () => {
-    expect(LOCALE_MIDDLEWARE_MATCHER).not.toContain('/admin/login');
+  it('no incluye /admin', () => {
     expect(LOCALE_MIDDLEWARE_MATCHER as readonly string[]).not.toContain('/admin');
+    expect(LOCALE_MIDDLEWARE_MATCHER as readonly string[]).not.toContain('/admin/login');
   });
 
-  it('no incluye /api (test 8)', () => {
+  it('no incluye /api', () => {
     expect(LOCALE_MIDDLEWARE_MATCHER as readonly string[]).not.toContain('/api');
   });
 
-  it('no incluye /_next (test 9)', () => {
+  it('no incluye /_next', () => {
     expect(LOCALE_MIDDLEWARE_MATCHER as readonly string[]).not.toContain('/_next');
   });
 });
@@ -96,8 +97,7 @@ describe('detectPreferredLocale', () => {
     }
   });
 
-  // Test 4: accept-language es fuera de país conocido → ES
-  it('sin país, accept-language es-AR → es (test 4)', () => {
+  it('sin país, accept-language es-AR → es', () => {
     expect(detectPreferredLocale(null, 'es-AR,es;q=0.9')).toBe('es');
   });
 
@@ -109,7 +109,9 @@ describe('detectPreferredLocale', () => {
     expect(detectPreferredLocale(undefined, 'es-MX,en;q=0.8')).toBe('es');
   });
 
-  it('sin país, accept-language en-US → es (default, no es)', () => {
+  it('sin país, accept-language en-US → es (default fallback)', () => {
+    // Sin país conocido y accept-language en-*, el default es 'es' porque el
+    // mercado principal del sitio es España/LatAm.
     expect(detectPreferredLocale(null, 'en-US,en;q=0.9')).toBe('es');
   });
 
@@ -122,197 +124,81 @@ describe('detectPreferredLocale', () => {
   });
 });
 
-// ── getLocaleDecision ─────────────────────────────────────────────────────────
+// ── getLocaleDecision: SIEMPRE pass, nunca redirect ───────────────────────────
 
-describe('getLocaleDecision — homepages sin cookie', () => {
-  // Test 1: Visitante España en / → no redirige, cookie es
-  it('visitante ES en / → pass, cookie es (test 1)', () => {
-    const d = getLocaleDecision({
-      pathname: '/',
-      cookieLocale: undefined,
-      country: 'ES',
-      acceptLanguage: null,
-    });
+describe('getLocaleDecision — action es siempre pass', () => {
+  const scenarios: ReadonlyArray<{
+    label: string;
+    args: {
+      pathname: string;
+      cookieLocale: string | undefined;
+      country: string | null | undefined;
+      acceptLanguage: string | null | undefined;
+    };
+  }> = [
+    { label: '/ ES sin cookie',           args: { pathname: '/',   cookieLocale: undefined, country: 'ES', acceptLanguage: null } },
+    { label: '/ MX sin cookie',           args: { pathname: '/',   cookieLocale: undefined, country: 'MX', acceptLanguage: null } },
+    { label: '/ US sin cookie',           args: { pathname: '/',   cookieLocale: undefined, country: 'US', acceptLanguage: null } },
+    { label: '/ GB sin cookie',           args: { pathname: '/',   cookieLocale: undefined, country: 'GB', acceptLanguage: null } },
+    { label: '/ sin país AL en-US',       args: { pathname: '/',   cookieLocale: undefined, country: null, acceptLanguage: 'en-US,en;q=0.9' } },
+    { label: '/ cookie=en país US',       args: { pathname: '/',   cookieLocale: 'en',      country: 'US', acceptLanguage: null } },
+    { label: '/ cookie=en país ES',       args: { pathname: '/',   cookieLocale: 'en',      country: 'ES', acceptLanguage: null } },
+    { label: '/en ES sin cookie',         args: { pathname: '/en', cookieLocale: undefined, country: 'ES', acceptLanguage: null } },
+    { label: '/en GB sin cookie',         args: { pathname: '/en', cookieLocale: undefined, country: 'GB', acceptLanguage: null } },
+    { label: '/en cookie=es país ES',     args: { pathname: '/en', cookieLocale: 'es',      country: 'ES', acceptLanguage: null } },
+    { label: '/en cookie=es país US',     args: { pathname: '/en', cookieLocale: 'es',      country: 'US', acceptLanguage: null } },
+  ];
+
+  it.each(scenarios)('$label → pass', ({ args }) => {
+    const d = getLocaleDecision(args);
     expect(d.action).toBe('pass');
-    expect(d.locale).toBe('es');
-    if (d.action === 'pass') expect(d.writeCookie).toBe(true);
   });
 
-  // Test 2: Visitante LATAM en / → no redirige, cookie es
-  it('visitante MX en / → pass, cookie es (test 2)', () => {
-    const d = getLocaleDecision({
-      pathname: '/',
-      cookieLocale: undefined,
-      country: 'MX',
-      acceptLanguage: null,
-    });
-    expect(d.action).toBe('pass');
+  it('locale devuelto coincide con el pathname solicitado (/ → es)', () => {
+    const d = getLocaleDecision({ pathname: '/', cookieLocale: undefined, country: 'US', acceptLanguage: 'en' });
     expect(d.locale).toBe('es');
-    if (d.action === 'pass') expect(d.writeCookie).toBe(true);
   });
 
-  // Test 3: Visitante US/GB en / → redirige a /en, cookie en
-  it('visitante US en / → redirect /en, cookie en (test 3)', () => {
-    const d = getLocaleDecision({
-      pathname: '/',
-      cookieLocale: undefined,
-      country: 'US',
-      acceptLanguage: null,
-    });
-    expect(d.action).toBe('redirect');
+  it('locale devuelto coincide con el pathname solicitado (/en → en)', () => {
+    const d = getLocaleDecision({ pathname: '/en', cookieLocale: undefined, country: 'ES', acceptLanguage: 'es' });
     expect(d.locale).toBe('en');
-    if (d.action === 'redirect') expect(d.to).toBe('/en');
-  });
-
-  it('visitante GB en / → redirect /en, cookie en (test 3)', () => {
-    const d = getLocaleDecision({
-      pathname: '/',
-      cookieLocale: undefined,
-      country: 'GB',
-      acceptLanguage: null,
-    });
-    expect(d.action).toBe('redirect');
-    if (d.action === 'redirect') expect(d.to).toBe('/en');
-  });
-
-  // Test 4: Sin país, accept-language es-AR → no redirige
-  it('sin país, accept-language es-AR en / → pass, cookie es (test 4)', () => {
-    const d = getLocaleDecision({
-      pathname: '/',
-      cookieLocale: undefined,
-      country: null,
-      acceptLanguage: 'es-AR,es;q=0.9',
-    });
-    expect(d.action).toBe('pass');
-    expect(d.locale).toBe('es');
-  });
-
-  // Test 10: /en con country GB → no redirige, ya está bien
-  it('/en con country GB → pass, cookie en (test 10)', () => {
-    const d = getLocaleDecision({
-      pathname: '/en',
-      cookieLocale: undefined,
-      country: 'GB',
-      acceptLanguage: null,
-    });
-    expect(d.action).toBe('pass');
-    expect(d.locale).toBe('en');
-    if (d.action === 'pass') expect(d.writeCookie).toBe(true);
-  });
-
-  // Test 11: /en con country ES sin cookie → redirige a /
-  it('/en con country ES sin cookie → redirect /, cookie es (test 11)', () => {
-    const d = getLocaleDecision({
-      pathname: '/en',
-      cookieLocale: undefined,
-      country: 'ES',
-      acceptLanguage: null,
-    });
-    expect(d.action).toBe('redirect');
-    expect(d.locale).toBe('es');
-    if (d.action === 'redirect') expect(d.to).toBe('/');
   });
 });
 
-describe('getLocaleDecision — cookie presente', () => {
-  // Test 5: país hispanohablante → geo gana sobre cookie (corrección silenciosa)
-  // Para países ES/LATAM el sistema garantiza siempre contenido en español,
-  // incluso si hay una cookie 'en' (puede ser caducada o accidental).
-  // Cookie gana solo para países NO hispanohablantes (ver tests 6 y anti-bucle).
-  it('cookie=en, country ES en / → pass, geo gana, corrige cookie a es (test 5)', () => {
-    const d = getLocaleDecision({
-      pathname: '/',
-      cookieLocale: 'en',
-      country: 'ES',
-      acceptLanguage: null,
-    });
+// ── writeCookie: solo si el usuario ve una ruta que coincide con su preferencia
+// detectada y no había cookie válida previa.
+
+describe('getLocaleDecision — writeCookie', () => {
+  it('/ país ES sin cookie → writeCookie=true (es coincide con /)', () => {
+    const d = getLocaleDecision({ pathname: '/', cookieLocale: undefined, country: 'ES', acceptLanguage: null });
+    expect(d.writeCookie).toBe(true);
+  });
+
+  it('/en país US sin cookie → writeCookie=true (en coincide con /en)', () => {
+    const d = getLocaleDecision({ pathname: '/en', cookieLocale: undefined, country: 'US', acceptLanguage: null });
+    expect(d.writeCookie).toBe(true);
+  });
+
+  it('/ país US sin cookie → writeCookie=false (usuario ve ES, prefiere EN)', () => {
+    // No sobrescribimos preferencia con lo que el usuario aún no ha elegido.
+    const d = getLocaleDecision({ pathname: '/', cookieLocale: undefined, country: 'US', acceptLanguage: null });
+    expect(d.writeCookie).toBe(false);
+  });
+
+  it('/en país ES sin cookie → writeCookie=false (usuario ve EN, prefiere ES)', () => {
+    const d = getLocaleDecision({ pathname: '/en', cookieLocale: undefined, country: 'ES', acceptLanguage: null });
+    expect(d.writeCookie).toBe(false);
+  });
+
+  it('cookie válida ya presente → writeCookie=false (no reescribe)', () => {
+    const d = getLocaleDecision({ pathname: '/', cookieLocale: 'es', country: 'ES', acceptLanguage: null });
+    expect(d.writeCookie).toBe(false);
+  });
+
+  it('cookie inválida ("fr") → tratada como ausente', () => {
+    const d = getLocaleDecision({ pathname: '/', cookieLocale: 'fr', country: 'ES', acceptLanguage: null });
     expect(d.action).toBe('pass');
     expect(d.locale).toBe('es');
-    if (d.action === 'pass') expect(d.writeCookie).toBe(true);
-  });
-
-  // Test 6: Cookie manual es, country US en /en → no redirige (respeta cookie)
-  it('cookie=es, country US en /en → pass sin cookie write (test 6)', () => {
-    const d = getLocaleDecision({
-      pathname: '/en',
-      cookieLocale: 'es',
-      country: 'US',
-      acceptLanguage: null,
-    });
-    expect(d.action).toBe('pass');
-    expect(d.locale).toBe('es');
-    if (d.action === 'pass') expect(d.writeCookie).toBe(false);
-  });
-
-  it('cookie=es, country ES en / → pass sin redirect', () => {
-    const d = getLocaleDecision({
-      pathname: '/',
-      cookieLocale: 'es',
-      country: 'ES',
-      acceptLanguage: null,
-    });
-    expect(d.action).toBe('pass');
-    if (d.action === 'pass') expect(d.writeCookie).toBe(false);
-  });
-});
-
-describe('getLocaleDecision — anti-bucle (test 12)', () => {
-  // Simula el flujo completo: US llega a /, middleware redirige a /en + escribe cookie.
-  // La siguiente request a /en tiene cookie=en → debe pasar sin redirigir.
-  it('después de redirect / → /en con cookie=en, no vuelve a redirigir', () => {
-    // Primera request: US sin cookie en /
-    const first = getLocaleDecision({
-      pathname: '/',
-      cookieLocale: undefined,
-      country: 'US',
-      acceptLanguage: null,
-    });
-    expect(first.action).toBe('redirect');
-    if (first.action === 'redirect') expect(first.to).toBe('/en');
-
-    // Segunda request: /en con cookie=en (escrita por el redirect)
-    const second = getLocaleDecision({
-      pathname: '/en',
-      cookieLocale: first.locale, // 'en'
-      country: 'US',
-      acceptLanguage: null,
-    });
-    expect(second.action).toBe('pass');
-    if (second.action === 'pass') expect(second.writeCookie).toBe(false);
-  });
-
-  it('después de redirect /en → / con cookie=es, no vuelve a redirigir', () => {
-    // Primera request: ES sin cookie en /en
-    const first = getLocaleDecision({
-      pathname: '/en',
-      cookieLocale: undefined,
-      country: 'ES',
-      acceptLanguage: null,
-    });
-    expect(first.action).toBe('redirect');
-    if (first.action === 'redirect') expect(first.to).toBe('/');
-
-    // Segunda request: / con cookie=es
-    const second = getLocaleDecision({
-      pathname: '/',
-      cookieLocale: first.locale, // 'es'
-      country: 'ES',
-      acceptLanguage: null,
-    });
-    expect(second.action).toBe('pass');
-    if (second.action === 'pass') expect(second.writeCookie).toBe(false);
-  });
-
-  it('cookie inválida (valor inesperado) no bloquea la detección', () => {
-    // Si la cookie tiene un valor no reconocido, cae a detección normal
-    const d = getLocaleDecision({
-      pathname: '/',
-      cookieLocale: 'fr', // valor no válido
-      country: 'US',
-      acceptLanguage: null,
-    });
-    // 'fr' no es 'es' ni 'en', así que sigue la detección → US → redirect /en
-    expect(d.action).toBe('redirect');
-    expect(d.locale).toBe('en');
+    expect(d.writeCookie).toBe(true); // como no había cookie válida
   });
 });

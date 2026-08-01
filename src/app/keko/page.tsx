@@ -59,7 +59,10 @@ export default async function KekoPage() {
         isPartOf: { '@id': absoluteUrl('/#website') },
         mainEntity: {
           '@type': 'Person',
-          '@id': absoluteUrl('/keko#person'),
+          // Mismo @id que el founder del Organization (layout.tsx) para que
+          // Google trate a Pablo como una sola entidad global — no dos
+          // Person distintos con propiedades solapadas.
+          '@id': absoluteUrl('/#founder-pablo'),
           name: 'Pablo Camacho',
           alternateName: ['Keko', 'Kekō', 'Pablo Camacho Carrión'],
           jobTitle: 'Fundador y CEO',
@@ -67,7 +70,6 @@ export default async function KekoPage() {
             'Ex-profesional de CS:GO con más de una década en el ecosistema esports de España. Fundador y CEO de SocialPro, agencia de talentos gaming e iGaming en España y LatAm.',
           url: absoluteUrl('/keko'),
           sameAs: [
-            absoluteUrl('/#founder-pablo'),
             'https://kekoesports.es',
             'https://www.linkedin.com/in/pablocamachocarrion/',
             'https://x.com/kekOesports',
@@ -100,6 +102,23 @@ export default async function KekoPage() {
               '@type': 'PodcastEpisode',
               name: "'Keko', un referente andaluz de los eSports, lanza la agencia SocialPro",
               url: 'https://audio.canalsurmas.es/videos/detail/374811-podcast-todo-e-games-13062026mp3',
+              datePublished: '2026-06-13',
+              partOfSeries: {
+                '@type': 'PodcastSeries',
+                name: 'Todo e-Games',
+                url: 'https://www.canalsur.es/radio/programas/todo-egames/podcast/19795725.html',
+                publisher: {
+                  '@type': 'Organization',
+                  name: 'Canal Sur Radio',
+                  url: 'https://www.canalsur.es',
+                },
+              },
+            },
+            {
+              // Misma entrevista, distribuida también en Spotify.
+              '@type': 'PodcastEpisode',
+              name: "'Keko', un referente andaluz de los eSports, lanza la agencia SocialPro",
+              url: 'https://open.spotify.com/episode/1NroRDxOt87HJsTEAYBVdt',
               datePublished: '2026-06-13',
               partOfSeries: {
                 '@type': 'PodcastSeries',

@@ -93,7 +93,17 @@ export default async function BrandDetailPage({
 
   const invoiceSummary = {
     incomeTotal: invoices.filter((i) => i.kind === 'income').reduce((s, i) => s + Number(i.totalAmount), 0),
-    pendingIncome: invoices.filter((i) => i.kind === 'income' && i.status !== 'cobrada').reduce((s, i) => s + Number(i.totalAmount), 0),
+    // Settled = cobrada|pagada; exclude anulada/borrador from open AR.
+    pendingIncome: invoices
+      .filter(
+        (i) =>
+          i.kind === 'income' &&
+          i.status !== 'cobrada' &&
+          i.status !== 'pagada' &&
+          i.status !== 'anulada' &&
+          i.status !== 'borrador',
+      )
+      .reduce((s, i) => s + Number(i.totalAmount), 0),
   };
 
   const now = new Date();

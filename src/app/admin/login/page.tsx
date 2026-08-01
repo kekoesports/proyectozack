@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import AuthCard from '@/components/ui/AuthCard';
+import { homeForRole } from '@/lib/home-for-role';
 
 export default function AdminLoginPage(): React.ReactElement {
   const router = useRouter();
@@ -24,8 +25,21 @@ export default function AdminLoginPage(): React.ReactElement {
       });
 
       if (res.ok) {
+        // Resolve role-specific home (staff → mi-semana, finance → facturación, …).
+        let dest = '/admin';
+        try {
+          const sessionRes = await fetch('/api/auth/get-session');
+          if (sessionRes.ok) {
+            const session = (await sessionRes.json()) as {
+              user?: { role?: string | null };
+            };
+            dest = homeForRole(session.user?.role) ?? '/admin';
+          }
+        } catch {
+          // Fall back to /admin; requirePermission will re-home if needed.
+        }
         router.refresh();
-        router.push('/admin');
+        router.push(dest);
       } else {
         setError('Credenciales incorrectas');
       }

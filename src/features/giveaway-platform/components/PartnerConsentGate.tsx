@@ -104,7 +104,7 @@ export function PartnerConsentGate({ partnerLabels, isLoggedIn }: Props): React.
         // necesitamos navegación de navegador clásica.
         // eslint-disable-next-line @next/next/no-html-link-for-pages
         <a
-          href="/api/auth/sign-in/steam"
+          href="/api/auth/steam/login?returnTo=%2Fsorteos"
           style={{
             display:        'inline-flex',
             alignItems:     'center',

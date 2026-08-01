@@ -13,6 +13,7 @@ interface Props {
  * aquí o mover a config por deal cuando lleguen más eventos.
  */
 const CSGOSKINS_EVENT_ENDS_AT = '2026-07-26T22:18:00+02:00';
+const CSGOSKINS_EVENT_ENDED = true;
 
 // @allow-sensitive-copy: card de partner externo (CSGO-SKINS). "5% Bonus + drops semanales" es
 // información objetiva del partner. Renderizado detrás de consent gate en `BrandBonusesSection`.
@@ -38,12 +39,13 @@ function buildCsgoskinsAffiliateUrl(code: string): string {
 export function BrandCardCsgoskins({ code }: Props) {
   const brand = PLATFORM_BRANDS.csgoskins;
   const affiliateUrl = buildCsgoskinsAffiliateUrl(code);
+  const eventEnded = CSGOSKINS_EVENT_ENDED;
   return (
     <>
       <PartnerExternalNotice partner="CSGO-SKINS" category="skin_market" />
       <div className="gp-card gp-card-led p-red p-csgo-v2">
         <div className="glow" aria-hidden />
-        {brand.agentAsset ? (
+        {brand.agentAsset && !eventEnded ? (
           <a
             href={affiliateUrl}
             target="_blank"
@@ -76,14 +78,16 @@ export function BrandCardCsgoskins({ code }: Props) {
               <div className="gp-brand-logo-fallback">{brand.displayName}</div>
             )}
           </div>
-          <p className="gp-csgo-event-tag">Evento activo</p>
+          <p className="gp-csgo-event-tag">
+            {eventEnded ? 'Evento finalizado' : 'Evento activo'}
+          </p>
           <h3 className="gp-csgo-event-title">DUST II ROADTRIP</h3>
           <p className="gp-csgo-event-lead">Encuentra la caja oculta en la campaña del partner.</p>
           <CsgoskinsRoadtripCountdown endsAt={CSGOSKINS_EVENT_ENDS_AT} />
           <span className="pill-offer red">
             <b>5% Bonus + drops semanales</b> con el código <span>{code}</span>
           </span>
-          <div>
+          {!eventEnded ? <div>
             <a
               href={affiliateUrl}
               target="_blank"
@@ -93,7 +97,7 @@ export function BrandCardCsgoskins({ code }: Props) {
             >
               Ir a CSGO-SKINS
             </a>
-          </div>
+          </div> : null}
         </div>
       </div>
     </>

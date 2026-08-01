@@ -55,6 +55,11 @@ function completedStatusFor(kind: PayableInvoiceKind): string {
   return kind === 'internal_expense' ? 'pagada' : 'cobrada';
 }
 
+/** Both cobrada and pagada are settled for any kind (AGENTS.md invoice_status gotcha). */
+function isAlreadySettled(status: string): boolean {
+  return status === 'cobrada' || status === 'pagada';
+}
+
 /**
  * Lanza PaymentGuardError si el estado de la factura o el importe hacen
  * que la aplicación deba rechazarse. No lanza nada si es válido.
@@ -66,7 +71,9 @@ export function assertInvoicePayable(input: PayableCheckInput): void {
     throw new PaymentGuardError('voided');
   }
 
-  if (status === completedStatusFor(input.kind)) {
+  // Prefer kind-specific status, but never allow a second payment on the
+  // sibling settled status (expense marked cobrada, income marked pagada).
+  if (status === completedStatusFor(input.kind) || isAlreadySettled(status)) {
     throw new PaymentGuardError('already_completed');
   }
 

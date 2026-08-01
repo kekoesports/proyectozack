@@ -1,4 +1,4 @@
-import { pgTable, serial, integer, varchar, timestamp, index, text } from 'drizzle-orm/pg-core';
+import { pgTable, serial, integer, varchar, timestamp, index, text, uniqueIndex } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 import { giveaways } from './giveaways';
 import { user } from './auth';
@@ -20,6 +20,7 @@ export const giveawayWinners = pgTable('giveaway_winners', {
   index('giveaway_winners_giveaway_id_idx').on(t.giveawayId),
   index('giveaway_winners_won_at_idx').on(t.wonAt),
   index('giveaway_winners_winner_user_id_idx').on(t.winnerUserId),
+  uniqueIndex('giveaway_winners_giveaway_uq').on(t.giveawayId),
 ]);
 
 export const giveawayWinnersRelations = relations(giveawayWinners, ({ one }) => ({

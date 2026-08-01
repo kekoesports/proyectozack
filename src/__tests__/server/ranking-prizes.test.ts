@@ -88,8 +88,7 @@ describe('getCurrentPrizeForPosition', () => {
     const config = getCurrentMonthPrizes();
     // La posición 4 no existe nunca (la interfaz sólo admite 1|2|3).
     // Verificamos que el helper degrada elegantemente.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    expect(getCurrentPrizeForPosition(4 as any)).toBeNull();
+    expect(getCurrentPrizeForPosition(4)).toBeNull();
     if (config === null) {
       // Si no hay config del mes actual → todos los slots devuelven null.
       expect(getCurrentPrizeForPosition(1)).toBeNull();

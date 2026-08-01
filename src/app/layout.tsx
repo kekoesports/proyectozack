@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
+import { headers } from 'next/headers';
 import { safeJsonLd } from '@/lib/safeJsonLd';
+import { isEnPathname } from '@/lib/en-routes';
 import { Inter, Barlow_Condensed } from 'next/font/google';
 import './globals.css';
 import { Nav } from '@/components/layout/Nav';
@@ -124,6 +126,7 @@ const jsonLd = {
           description: 'Ex-profesional de CS:GO con más de una década en esports y gaming. Fundador y CEO de SocialPro.',
           url: 'https://kekoesports.es',
           sameAs: [
+            absoluteUrl('/keko'),
             'https://kekoesports.es',
             'https://www.linkedin.com/in/pablocamachocarrion/',
             'https://x.com/kekOesports',
@@ -147,6 +150,32 @@ const jsonLd = {
         'https://x.com/SocialProES',
         'https://www.facebook.com/SocialProES',
         'https://www.linkedin.com/company/socialproes',
+        'https://www.tiktok.com/@socialproes',
+      ],
+      subjectOf: [
+        {
+          '@type': 'PodcastEpisode',
+          name: "'Keko', un referente andaluz de los eSports, lanza la agencia SocialPro",
+          url: 'https://open.spotify.com/episode/1NroRDxOt87HJsTEAYBVdt',
+          datePublished: '2026-06-13',
+          partOfSeries: {
+            '@type': 'PodcastSeries',
+            name: 'Todo e-Games',
+            url: 'https://www.canalsur.es/radio/programas/todo-egames/podcast/19795725.html',
+            publisher: {
+              '@type': 'Organization',
+              name: 'Canal Sur Radio',
+              url: 'https://www.canalsur.es',
+            },
+          },
+        },
+        {
+          '@type': 'WebPage',
+          name: 'SocialPro en Canal Sur — Todo e-Games (kekoesports.es)',
+          url: 'https://kekoesports.es/medios/canal-sur-todo-egames',
+          isPartOf: { '@type': 'WebSite', url: 'https://kekoesports.es' },
+          about: { '@id': absoluteUrl('/#organization') },
+        },
       ],
     },
     {
@@ -216,13 +245,21 @@ const jsonLd = {
   ],
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // `x-pathname` lo inyecta src/proxy.ts en TODA request HTML (necesario porque
+  // Next.js no expone el pathname a Server Component layouts de forma nativa).
+  // Con él decidimos el lang correcto del <html>. Fallback 'es' si por alguna
+  // razón el header no llega (dev sin proxy corriendo, tests…).
+  const h = await headers();
+  const pathname = h.get('x-pathname');
+  const lang = isEnPathname(pathname) ? 'en' : 'es';
+
   return (
-    <html lang="es">
+    <html lang={lang}>
       <head>
         <script
           type="application/ld+json"
