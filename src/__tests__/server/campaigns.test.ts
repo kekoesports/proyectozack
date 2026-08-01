@@ -5,6 +5,9 @@
  * computeCampaignDerived tests are pure — no mocks needed.
  */
 
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+
 jest.mock('@/lib/auth', () => ({ auth: {} }));
 
 // ── DB mock ───────────────────────────────────────────────────────────────────
@@ -239,8 +242,8 @@ describe('getCampaignPaymentStatus', () => {
   it('sums settled statuses cobrada AND pagada (source contract)', () => {
     // Regression lock: detail path used to filter only eq(status,'cobrada'),
     // under-counting expenses marked pagada (AGENTS.md gotcha).
-    const src = require('fs').readFileSync(
-      require('path').resolve(__dirname, '../../lib/queries/campaigns.ts'),
+    const src = readFileSync(
+      resolve(__dirname, '../../lib/queries/campaigns.ts'),
       'utf-8',
     );
     expect(src).toMatch(/SETTLED_INCOME_STATUSES/);

@@ -25,6 +25,41 @@ interface Props {
   creatorSlug?: string;
 }
 
+/** Derive OAuth callback UI from query params (no setState-in-effect). */
+function oauthUiFromSearchParams(
+  searchParams: { get: (key: string) => string | null },
+  rewardCoins: number,
+): UiState | null {
+  const status = searchParams.get('discord_status');
+  if (!status) return null;
+  if (status === 'rewarded') {
+    const coins = searchParams.get('coins') ?? String(rewardCoins);
+    return { kind: 'success', message: `¡+${coins} puntos!` };
+  }
+  if (status === 'connected_join_server') {
+    return {
+      kind: 'error',
+      code: 'not_verified',
+      message: 'Discord conectado. Únete al servidor y verifica.',
+    };
+  }
+  if (status === 'account_in_use') {
+    return {
+      kind: 'error',
+      code: 'internal',
+      message: 'Esa cuenta Discord ya está vinculada a otro usuario.',
+    };
+  }
+  if (status === 'encrypt_failed' || status === 'discord_not_configured') {
+    return {
+      kind: 'error',
+      code: 'internal',
+      message: 'No se pudo conectar Discord. Inténtalo más tarde.',
+    };
+  }
+  return null;
+}
+
 /**
  * Card interactiva para misiones Discord con verificación real vía OAuth
  * (identify + guilds). Nunca simula: si el usuario no está en la guild,
@@ -52,42 +87,21 @@ export function DiscordMissionCard({
   const searchParams = useSearchParams();
   const router = useRouter();
 
+  // Interactive verify flow overrides OAuth-derived feedback when not idle.
+  const oauthUi = oauthUiFromSearchParams(searchParams, mission.rewardCoins);
+  const displayState: UiState = uiState.kind !== 'idle' ? uiState : (oauthUi ?? uiState);
+
   const isDone = mission.claimed;
-  const showError = uiState.kind === 'error';
-  const showSuccess = uiState.kind === 'success';
+  const showError = displayState.kind === 'error';
+  const showSuccess = displayState.kind === 'success';
   const returnPath = creatorSlug ? `/sorteos/${creatorSlug}` : '/sorteos';
 
-  // Feedback tras OAuth Discord (?discord_status=...&coins=...).
+  // After OAuth reward, refresh RSC tree only — UI feedback is derived above.
   useEffect(() => {
-    const status = searchParams.get('discord_status');
-    if (!status) return;
-    if (status === 'rewarded') {
-      const coins = searchParams.get('coins') ?? String(mission.rewardCoins);
-      setUiState({
-        kind: 'success',
-        message: `¡+${coins} puntos!`,
-      });
+    if (searchParams.get('discord_status') === 'rewarded') {
       router.refresh();
-    } else if (status === 'connected_join_server') {
-      setUiState({
-        kind: 'error',
-        code: 'not_verified',
-        message: 'Discord conectado. Únete al servidor y verifica.',
-      });
-    } else if (status === 'account_in_use') {
-      setUiState({
-        kind: 'error',
-        code: 'internal',
-        message: 'Esa cuenta Discord ya está vinculada a otro usuario.',
-      });
-    } else if (status === 'encrypt_failed' || status === 'discord_not_configured') {
-      setUiState({
-        kind: 'error',
-        code: 'internal',
-        message: 'No se pudo conectar Discord. Inténtalo más tarde.',
-      });
     }
-  }, [searchParams, mission.rewardCoins, router]);
+  }, [searchParams, router]);
 
   function onVerifyClick() {
     setUiState({ kind: 'verifying' });
@@ -147,10 +161,10 @@ export function DiscordMissionCard({
                   type="button"
                   className="gp-mission-discord-btn is-primary"
                   onClick={onVerifyClick}
-                  disabled={pending || uiState.kind === 'verifying'}
+                  disabled={pending || displayState.kind === 'verifying'}
                   aria-busy={pending}
                 >
-                  {pending || uiState.kind === 'verifying' ? 'Verificando...' : 'Verificar'}
+                  {pending || displayState.kind === 'verifying' ? 'Verificando...' : 'Verificar'}
                 </button>
               </>
             ) : loggedIn ? (
@@ -176,15 +190,15 @@ export function DiscordMissionCard({
 
       {/* Success stays visible even when claimed — OAuth auto-claim lands with
           isDone already true (?discord_status=rewarded) and must still show +pts. */}
-      {showSuccess ? (
+      {showSuccess && displayState.kind === 'success' ? (
         <div className="gp-mission-discord-success" role="status">
-          {uiState.message}
+          {displayState.message}
         </div>
       ) : null}
 
-      {showError && !isDone ? (
+      {showError && !isDone && displayState.kind === 'error' ? (
         <div className="gp-mission-discord-error" role="alert">
-          {uiState.message}
+          {displayState.message}
         </div>
       ) : null}
 

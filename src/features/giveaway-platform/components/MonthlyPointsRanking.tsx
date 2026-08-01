@@ -181,25 +181,24 @@ export function MonthlyPointsRanking({
   const rest = rows.slice(3);
 
   // Visual order: 2º · 1º · 3º (1º centrado y más alto).
+  const first = podium[0];
+  const second = podium[1];
+  const third = podium[2];
   const podiumVisual: Array<{ row: PointsRankingRow; position: 1 | 2 | 3 } | null> =
-    podium.length === 0
+    first == null
       ? []
-      : podium.length === 1
-        ? [
-            null,
-            { row: podium[0]!, position: 1 },
-            null,
-          ]
-        : podium.length === 2
+      : second == null
+        ? [null, { row: first, position: 1 }, null]
+        : third == null
           ? [
-              { row: podium[1]!, position: 2 },
-              { row: podium[0]!, position: 1 },
+              { row: second, position: 2 },
+              { row: first, position: 1 },
               null,
             ]
           : [
-              { row: podium[1]!, position: 2 },
-              { row: podium[0]!, position: 1 },
-              { row: podium[2]!, position: 3 },
+              { row: second, position: 2 },
+              { row: first, position: 1 },
+              { row: third, position: 3 },
             ];
 
   const daysLabel =

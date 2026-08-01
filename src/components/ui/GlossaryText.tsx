@@ -86,12 +86,13 @@ export function GlossaryText({
     if (!found) continue;
 
     // Solapamiento con marks previos: descartar.
+    const match = found;
     const overlaps = marks.some(
-      (m) => !(found!.end <= m.start || found!.start >= m.end),
+      (m) => !(match.end <= m.start || match.start >= m.end),
     );
     if (overlaps) continue;
 
-    marks.push({ ...found, term });
+    marks.push({ ...match, term });
   }
 
   if (marks.length === 0) return <>{text}</>;
