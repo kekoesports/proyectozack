@@ -10,6 +10,10 @@ import {
 } from '@/lib/partner-consent';
 import { insertConsent, revokeConsent } from '@/lib/queries/partnerConsent';
 import { logGiveawayEvent, sha256 } from '@/lib/audit/logGiveawayEvent';
+import { db } from '@/lib/db';
+import { playerProfiles } from '@/db/schema';
+import { eq } from 'drizzle-orm';
+import { ADULT_ATTESTATION_VERSION } from '@/lib/giveaway-platform/constants';
 
 /**
  * Server action que registra el consent del usuario para ver comunicación
@@ -70,6 +74,14 @@ export async function grantPartnerConsent(input: Input): Promise<Result> {
   const userAgent = (requestHeaders.get('user-agent') ?? '').slice(0, 500) || null;
 
   const consent = await insertConsent({ userId, ipHash, userAgent });
+  await db
+    .update(playerProfiles)
+    .set({
+      adultAttestedAt: new Date(),
+      adultAttestationVersion: ADULT_ATTESTATION_VERSION,
+      updatedAt: new Date(),
+    })
+    .where(eq(playerProfiles.userId, userId));
 
   // Sincronizar cookie para lecturas ligeras subsecuentes. NO es fuente
   // de verdad — el server component siempre lee DB antes de renderizar.

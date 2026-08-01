@@ -3,10 +3,14 @@
 import { validateUploadedFile } from '@/lib/files/validateUploadedFile';
 import { INVOICE_DOC_TYPES } from '@/lib/files/allowed-types';
 import { uploadReasonMessage } from '@/lib/files/reason-messages';
+import { requirePermission } from '@/lib/permissions';
 
 import type { ExtractedInvoiceData, ExtractionResult } from '@/types';
 
 export async function extractInvoiceAction(formData: FormData): Promise<ExtractionResult> {
+  // OCR is mock today but still accepts uploads — must not be anonymous-callable.
+  await requirePermission('facturacion', 'write');
+
   const file = formData.get('file');
 
   if (!(file instanceof File) || file.size === 0) {

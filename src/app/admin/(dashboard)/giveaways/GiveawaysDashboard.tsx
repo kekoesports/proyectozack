@@ -2,6 +2,7 @@
 
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useState } from 'react';
+import Link from 'next/link';
 import { EditDrawer } from '@/features/admin/_shared/components/EditDrawer';
 import { StatsCards } from './StatsCards';
 import { GiveawaysTab } from './GiveawaysTab';
@@ -81,6 +82,12 @@ export function GiveawaysDashboard({
         >
           + Nuevo sorteo
         </button>
+        <Link
+          href="/admin/giveaways/redemptions"
+          className="ml-2 rounded-xl border border-sp-admin-border px-4 py-2.5 text-sm font-bold text-sp-admin-text"
+        >
+          Gestionar canjes
+        </Link>
       </div>
 
       {/* Stats */}
@@ -112,6 +119,7 @@ export function GiveawaysDashboard({
           <GiveawaysTab
             giveaways={giveaways}
             brands={brands}
+            winnerGiveawayIds={winners.map((winner) => winner.giveawayId)}
             onNewGiveaway={() => setNewGiveawayOpen(true)}
           />
         )}

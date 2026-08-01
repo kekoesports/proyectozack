@@ -42,12 +42,12 @@ describe('geo-legal-config — gating server-side por país', () => {
       expect(cy.requirePartnerExternalNotice).toBe(true);
     });
 
-    it('INT (resto de mundo) es menos restrictivo pero aún exige PartnerExternalNotice', () => {
+    it('INT respeta los flags globales y exige PartnerExternalNotice', () => {
       const us = getGeoLegalConfig('US');
       expect(us.country).toBe('US');
-      expect(us.keydropExternalCTAs).toBe(true);
-      expect(us.externalPartnerCTAs).toBe(true);
-      expect(us.wageringCopyAllowed).toBe(true);
+      expect(us.keydropExternalCTAs).toBe(KEYDROP_EXTERNAL_CTAS_ENABLED);
+      expect(us.externalPartnerCTAs).toBe(EXTERNAL_PARTNER_CTAS_ENABLED);
+      expect(us.wageringCopyAllowed).toBe(WAGERING_COPY_ALLOWED);
       expect(us.requirePartnerExternalNotice).toBe(true);
     });
 
@@ -63,9 +63,9 @@ describe('geo-legal-config — gating server-side por país', () => {
       expect(shouldRenderPartnerCtaFull('ES', 'generic')).toBe(false);
     });
 
-    it('País no restringido (INT) permite ambos', () => {
-      expect(shouldRenderPartnerCtaFull('US', 'keydrop')).toBe(true);
-      expect(shouldRenderPartnerCtaFull('US', 'generic')).toBe(true);
+    it('País no restringido (INT) sigue respetando los flags globales', () => {
+      expect(shouldRenderPartnerCtaFull('US', 'keydrop')).toBe(KEYDROP_EXTERNAL_CTAS_ENABLED);
+      expect(shouldRenderPartnerCtaFull('US', 'generic')).toBe(EXTERNAL_PARTNER_CTAS_ENABLED);
     });
 
     it('País desconocido cae al perfil ES', () => {

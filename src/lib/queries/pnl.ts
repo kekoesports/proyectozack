@@ -1,4 +1,4 @@
-import { and, eq, sql, gte, lte, ne } from 'drizzle-orm';
+import { and, eq, sql, gte, lte, notInArray } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { invoices, crmBrands } from '@/db/schema';
 import {
@@ -7,6 +7,7 @@ import {
   PENDING_INCOME_STATUSES,
   PENDING_EXPENSE_STATUSES,
 } from '@/lib/utils/invoice-status';
+import type { InvoiceStatus } from '@/types';
 
 import type { InvoiceCompany } from '@/types';
 
@@ -65,8 +66,11 @@ const ZERO_PNL: PnLResult = {
   breakdownByCategory: [],
 };
 
+/** Drafts are not operational P&L; cancelled never count (align with rentabilidad). */
+const PNL_EXCLUDED_STATUSES: InvoiceStatus[] = ['anulada', 'borrador'];
+
 function buildBaseConditions(filters: PnLFilters) {
-  const conds = [ne(invoices.status, 'anulada')];
+  const conds = [notInArray(invoices.status, PNL_EXCLUDED_STATUSES)];
   if (filters.from) conds.push(gte(invoices.issueDate, filters.from));
   if (filters.to) conds.push(lte(invoices.issueDate, filters.to));
   if (filters.company) conds.push(eq(invoices.company, filters.company));
@@ -80,7 +84,7 @@ function buildBaseConditions(filters: PnLFilters) {
  * margen bruto, pendiente cobro/pago y breakdowns por mes y categoría.
  *
  * Reglas clave:
- * - Excluye anuladas en todo el cálculo.
+ * - Excluye `anulada` y `borrador` en todo el cálculo (borrador ≠ emitida).
  * - `status='cobrada'` y `'pagada'` se consideran ambos liquidados (settled income/expense).
  * - `pagosCreadores` es subset de `gastos` (no se descuenta del margen bruto, ya está dentro).
  * - `comisionAgencia = settled income con campaignId − settled expense con campaignId+talentId`.

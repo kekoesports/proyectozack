@@ -11,6 +11,7 @@ import { getGiveawayClicksByDay, getGiveawayHubViewsByDay } from '@/lib/queries/
 import { getTopPostsByViews, getPostViewsByDay } from '@/lib/queries/postAnalytics';
 import { AnalyticsDashboard } from '@/features/admin/analytics/components/AnalyticsDashboard';
 import type { CampaignWithRelations } from '@/types';
+import type { CampaignPaymentDerivedStatus } from '@/lib/schemas/campaign';
 
 export const metadata = { title: 'Analítica | Admin' };
 
@@ -57,14 +58,20 @@ export default async function AdminAnalyticsPage(): Promise<React.ReactElement> 
     const paidExpense   = campInvoices.filter((i) => i.kind === 'expense' && (i.status === 'cobrada' || i.status === 'pagada'));
     const totalInvoicedBrand = paidIncome.reduce((s, i)  => s + Number(i.totalAmount), 0);
     const totalPaidTalent    = paidExpense.reduce((s, i) => s + Number(i.totalAmount), 0);
+    const brandFromInvoices: CampaignPaymentDerivedStatus  = totalInvoicedBrand === 0 ? 'no' : totalInvoicedBrand >= brand  ? 'si' : 'parcial';
+    const talentFromInvoices: CampaignPaymentDerivedStatus = totalPaidTalent    === 0 ? 'no' : totalPaidTalent    >= talent ? 'si' : 'parcial';
+    const manualBrand  = c.cobroConfirmado === true;
+    const manualTalent = c.pagoTalentConfirmado === true;
 
     const enriched: CampaignWithRelations = {
       ...c,
       brandName:  brandMap.get(c.brandId)   ?? null,
       talentName: talentMap.get(c.talentId) ?? null,
       ownerName:  null,
-      brandPaid:  totalInvoicedBrand === 0 ? 'no' : totalInvoicedBrand >= brand  ? 'si' : 'parcial',
-      talentPaid: totalPaidTalent    === 0 ? 'no' : totalPaidTalent    >= talent ? 'si' : 'parcial',
+      brandPaid:  manualBrand  ? 'si' : brandFromInvoices,
+      talentPaid: manualTalent ? 'si' : talentFromInvoices,
+      brandPaidSource:  manualBrand  ? 'manual' : brandFromInvoices  === 'no' ? 'none' : 'invoice',
+      talentPaidSource: manualTalent ? 'manual' : talentFromInvoices === 'no' ? 'none' : 'invoice',
       totalInvoicedBrand,
       totalPaidTalent,
       commissionAmount: comm,

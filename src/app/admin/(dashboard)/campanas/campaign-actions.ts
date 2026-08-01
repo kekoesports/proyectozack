@@ -32,6 +32,7 @@ const CreateLegacy = z.object({
   startDate: optionalString,
   endDate: optionalString,
   notes: optionalString,
+  creatorNotes: optionalString,
   responsibleUserId: optionalString,
 });
 
@@ -48,6 +49,7 @@ const UpdateLegacy = z.object({
   startDate: optionalString,
   endDate: optionalString,
   notes: optionalString,
+  creatorNotes: optionalString,
   responsibleUserId: optionalString,
 });
 
@@ -60,7 +62,7 @@ export async function createCampaignAction(formData: FormData): Promise<void> {
     logRedacted('warn', '[campaign-actions] createCampaign invalid input', parsed.fieldErrors);
     return;
   }
-  const { brandId, talentId, name, actionType, status, amountBrand, amountTalent, sector, geo, startDate, endDate, notes, responsibleUserId } = parsed.data;
+  const { brandId, talentId, name, actionType, status, amountBrand, amountTalent, sector, geo, startDate, endDate, notes, creatorNotes, responsibleUserId } = parsed.data;
 
   await createCampaign({
     brandId,
@@ -75,6 +77,7 @@ export async function createCampaignAction(formData: FormData): Promise<void> {
     ...(startDate ? { startDate } : {}),
     ...(endDate ? { endDate } : {}),
     ...(notes ? { notes } : {}),
+    ...(creatorNotes ? { creatorNotes } : {}),
     ...(responsibleUserId ? { responsibleUserId } : {}),
   });
 
@@ -101,6 +104,7 @@ export async function updateCampaignAction(formData: FormData): Promise<void> {
   if (rest.startDate) patch.startDate = rest.startDate;
   if (rest.endDate) patch.endDate = rest.endDate;
   if (rest.notes) patch.notes = rest.notes;
+  if (rest.creatorNotes) patch.creatorNotes = rest.creatorNotes;
   if (rest.responsibleUserId) patch.responsibleUserId = rest.responsibleUserId;
 
   await updateCampaign(id, patch);

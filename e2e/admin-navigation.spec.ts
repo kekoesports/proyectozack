@@ -5,17 +5,10 @@
  * Sidebar component: src/features/admin/_shared/components/AdminSidebar.tsx
  * Layout:           src/app/admin/(dashboard)/layout.tsx
  *
- * Nav items (admin role, from ADMIN_GROUPS + ADMIN_PRIMARY_NAV):
- *   Primary : Panel         → /admin
- *   CRM     : Marcas        → /admin/brands
- *             Campañas      → /admin/campanas
- *             Talentos      → /admin/talents
- *             Outreach      → /admin/targets
- *   Ops     : Tareas        → /admin/tareas
- *             Mi semana     → /admin/mi-semana
- *             Equipo        → /admin/equipo
- *   Finanzas: Facturación   → /admin/facturacion
- *             P&L           → /admin/pl
+ * Nav items (admin role, from ADMIN_PRIMARY_NAV — labels as of 2026-07):
+ *   Panel / Marcas / Talentos / Tratos → /admin/campanas
+ *   Tareas / Facturación / Finanzas → /admin/finanzas/resumen / Equipo
+ * Legacy e2e used "Campañas" and "P&L" — those labels no longer exist in nav.
  */
 import { test, expect } from '@playwright/test';
 
@@ -33,10 +26,10 @@ test.describe('Admin navigation', () => {
       await expect(nav).toBeVisible();
     });
 
-    test('clicking "Campañas" navigates to /admin/campanas', async ({ page }) => {
+    test('clicking "Tratos" navigates to /admin/campanas', async ({ page }) => {
       await gotoAdmin(page);
       const nav = page.getByRole('navigation');
-      await nav.getByRole('link', { name: 'Campañas', exact: true }).click();
+      await nav.getByRole('link', { name: 'Tratos', exact: true }).click();
       await page.waitForLoadState('domcontentloaded');
       await expect(page).toHaveURL(/\/admin\/campanas/);
     });
@@ -57,12 +50,12 @@ test.describe('Admin navigation', () => {
       await expect(page).toHaveURL(/\/admin\/facturacion/);
     });
 
-    test('clicking "P&L" navigates to /admin/pl', async ({ page }) => {
+    test('clicking "Finanzas" navigates to /admin/finanzas/resumen', async ({ page }) => {
       await gotoAdmin(page);
       const nav = page.getByRole('navigation');
-      await nav.getByRole('link', { name: 'P&L', exact: true }).click();
+      await nav.getByRole('link', { name: 'Finanzas', exact: true }).click();
       await page.waitForLoadState('domcontentloaded');
-      await expect(page).toHaveURL(/\/admin\/pl/);
+      await expect(page).toHaveURL(/\/admin\/finanzas\/resumen/);
     });
 
     test('clicking "Marcas" navigates to /admin/brands', async ({ page }) => {
@@ -105,19 +98,19 @@ test.describe('Admin navigation', () => {
       await gotoAdmin(page);
       await page.getByRole('button', { name: 'Abrir menu' }).click();
       const nav = page.getByRole('navigation');
-      await expect(nav.getByRole('link', { name: 'Campañas', exact: true })).toBeVisible();
+      await expect(nav.getByRole('link', { name: 'Tratos', exact: true })).toBeVisible();
       await expect(nav.getByRole('link', { name: 'Marcas', exact: true })).toBeVisible();
       await expect(nav.getByRole('link', { name: 'Talentos', exact: true })).toBeVisible();
       await expect(nav.getByRole('link', { name: 'Tareas', exact: true })).toBeVisible();
       await expect(nav.getByRole('link', { name: 'Facturación', exact: true })).toBeVisible();
-      await expect(nav.getByRole('link', { name: 'P&L', exact: true })).toBeVisible();
+      await expect(nav.getByRole('link', { name: 'Finanzas', exact: true })).toBeVisible();
     });
 
     test('clicking a nav link after opening menu navigates correctly', async ({ page }) => {
       await gotoAdmin(page);
       await page.getByRole('button', { name: 'Abrir menu' }).click();
       const nav = page.getByRole('navigation');
-      await nav.getByRole('link', { name: 'Campañas', exact: true }).click();
+      await nav.getByRole('link', { name: 'Tratos', exact: true }).click();
       await page.waitForLoadState('domcontentloaded');
       await expect(page).toHaveURL(/\/admin\/campanas/);
     });

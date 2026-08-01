@@ -4,7 +4,7 @@ import type { ExternalFetchResult, ProviderKey } from './types';
  * Factory de fetch genérico para providers externos.
  *
  * Comportamiento compartido:
- *   - Timeout 10s via AbortController.
+ *   - Timeout máximo 3s via AbortController.
  *   - Cache Next `revalidate: N` por provider (configurable).
  *   - Sin key → devuelve `not_configured` (no lanza).
  *   - Errores clasificados en `ExternalFetchResult['error']`.
@@ -16,7 +16,8 @@ import type { ExternalFetchResult, ProviderKey } from './types';
  * `src/lib/external-giveaways/providers/<key>/fetch.ts`.
  */
 
-const DEFAULT_TIMEOUT_MS = 10_000;
+const DEFAULT_TIMEOUT_MS = 3_000;
+const MAX_RESPONSE_BYTES = 1_000_000;
 
 /**
  * Realiza una petición server-only autenticada a un provider externo,
@@ -83,8 +84,21 @@ export async function safeExternalFetch<T>(config: {
     return { ok: false, error: 'http', status: res.status };
   }
 
+  const announcedLength = Number(res.headers.get('content-length') ?? 0);
+  if (announcedLength > MAX_RESPONSE_BYTES) {
+    console.warn(`[${providerKey}] fetch ${path} response_too_large`);
+    return { ok: false, error: 'parse' };
+  }
+
   let body: unknown;
-  try { body = await res.json(); }
+  try {
+    const rawBody = await res.text();
+    if (new TextEncoder().encode(rawBody).byteLength > MAX_RESPONSE_BYTES) {
+      console.warn(`[${providerKey}] fetch ${path} response_too_large`);
+      return { ok: false, error: 'parse' };
+    }
+    body = JSON.parse(rawBody);
+  }
   catch {
     console.warn(`[${providerKey}] fetch ${path} parse (non-json)`);
     return { ok: false, error: 'parse' };

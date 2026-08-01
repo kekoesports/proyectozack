@@ -1,4 +1,4 @@
-import { pgTable, serial, text, integer, varchar, timestamp, index } from 'drizzle-orm/pg-core';
+import { pgTable, serial, text, integer, varchar, timestamp, index, uniqueIndex } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 import { user } from './auth';
 
@@ -16,11 +16,14 @@ export const coinTransactions = pgTable('coin_transactions', {
   concept: varchar('concept', { length: 200 }).notNull(),
   /** id de la entidad origen (giveawayId, missionId, shopItemId…) para auditoría */
   refId: integer('ref_id'),
+  /** Clave de idempotencia de una operación económica concreta. */
+  refKey: varchar('ref_key', { length: 160 }),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [
   index('coin_tx_user_id_idx').on(t.userId),
   index('coin_tx_user_created_idx').on(t.userId, t.createdAt),
   index('coin_tx_source_idx').on(t.source),
+  uniqueIndex('coin_tx_ref_key_uq').on(t.refKey),
 ]);
 
 export const coinTransactionsRelations = relations(coinTransactions, ({ one }) => ({

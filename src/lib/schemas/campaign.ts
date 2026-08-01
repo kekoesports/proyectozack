@@ -10,6 +10,18 @@ export type CampaignActionType = (typeof CAMPAIGN_ACTION_TYPES)[number];
 export type CampaignPaymentMethod = (typeof CAMPAIGN_PAYMENT_METHODS)[number];
 export type CampaignPaymentDerivedStatus = 'si' | 'no' | 'parcial';
 
+/**
+ * Fuente del estado de cobro/pago mostrado en la UI del trato.
+ *
+ * - `manual`: viene de los toggles `cobroConfirmado`/`pagoTalentConfirmado`
+ *   del propio trato. Es estado OPERATIVO — NO implica factura ni movimiento
+ *   bancario. Prioridad más alta.
+ * - `invoice`: derivado de facturas con `status='cobrada'` asociadas al trato
+ *   (income para marca, expense para talento). Estado CONTABLE real.
+ * - `none`: ni marcado manual ni con factura cobrada.
+ */
+export type CampaignPaymentSource = 'manual' | 'invoice' | 'none';
+
 // Labels para UI
 export const CAMPAIGN_STATUS_LABELS: Record<CampaignStatus, string> = {
   propuesta: 'Propuesta',
@@ -73,6 +85,7 @@ const baseCampaign = z.object({
   briefingUrl: z.preprocess((v) => (typeof v === 'string' && v.trim() === '' ? undefined : v), z.string().url().optional()),
   contentUrl: z.preprocess((v) => (typeof v === 'string' && v.trim() === '' ? undefined : v), z.string().url().optional()),
   notes: z.preprocess((v) => (typeof v === 'string' && v.trim() === '' ? undefined : v), z.string().optional()),
+  creatorNotes: z.preprocess((v) => (typeof v === 'string' && v.trim() === '' ? undefined : v), z.string().optional()),
   currency: z.enum(['EUR', 'USD']).default('EUR'),
   amountBrand: z.coerce.number().nonnegative().default(0),
   amountTalent: z.coerce.number().nonnegative().default(0),

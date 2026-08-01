@@ -82,7 +82,8 @@ export function isTwitchComingSoon(creatorSlug: string): boolean {
 export function getTwitchPublicChannelUrl(creatorSlug: string): string | null {
   switch (creatorSlug) {
     case 'zacketizor':
-      return 'https://www.twitch.tv/zacketizor';
+      // Login real del canal (Helix). No confundir con display name ZaCkETiZOR.
+      return 'https://www.twitch.tv/zacketizorcs2';
     default:
       return null;
   }

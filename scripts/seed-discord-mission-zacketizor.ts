@@ -64,7 +64,7 @@ async function main() {
     await db
       .update(platformMissions)
       .set({
-        description: `Únete al servidor Discord de ZACKETIZOR y gana ${REWARD_COINS} puntos. Verificamos que estás dentro en tiempo real vía OAuth Discord.`,
+        description: `Únete al Discord y gana ${REWARD_COINS} puntos.`,
         conditionType: 'external_verified',
         goal: 1,
         rewardCoins: REWARD_COINS,
@@ -84,7 +84,7 @@ async function main() {
     .insert(platformMissions)
     .values({
       title: TITLE,
-      description: `Únete al servidor Discord de ZACKETIZOR y gana ${REWARD_COINS} puntos. Verificamos que estás dentro en tiempo real vía OAuth Discord.`,
+      description: `Únete al Discord y gana ${REWARD_COINS} puntos.`,
       conditionType: 'external_verified',
       goal: 1,
       rewardCoins: REWARD_COINS,

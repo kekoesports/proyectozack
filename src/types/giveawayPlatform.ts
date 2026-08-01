@@ -75,6 +75,7 @@ export interface GiveawayWithEntryData {
   endsAt: Date | null;
   talentId: number;
   entryCount: number;
+  entryAwardCoins: number;
   userHasEntered: boolean;
 }
 
@@ -94,7 +95,7 @@ export interface FreeRaffleCardData {
 
 /** Participante público de un sorteo — respeta player_profiles.isPrivate. */
 export interface RaffleParticipant {
-  userId: string;
+  participantKey: string;
   displayName: string;
   avatarUrl: string | null;
   enteredAt: Date;

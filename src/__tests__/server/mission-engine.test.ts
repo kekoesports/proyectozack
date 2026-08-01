@@ -90,6 +90,7 @@ describe('[mission-engine] escalera de participaciones (composición pura)', () 
 
 describe('[mission-engine] contratos estructurales del motor', () => {
   const missionsSrc = read('src/lib/giveaway-platform/missions.ts');
+  const atomicSrc = read('src/lib/giveaway-platform/atomicOperations.ts');
   const queriesSrc  = read('src/lib/queries/giveawayPlatform.ts');
   const actionsSrc  = read('src/app/sorteos/plataforma/actions.ts');
 
@@ -102,12 +103,11 @@ describe('[mission-engine] contratos estructurales del motor', () => {
     expect(queriesSrc).not.toMatch(/getMissionsWithProgress[\s\S]{0,120}countDistinct/);
   });
   it('mission_claims sigue protegido por onConflictDoNothing (idempotencia UNIQUE)', () => {
-    expect(missionsSrc).toMatch(/insert\(missionClaims\)[\s\S]{0,120}onConflictDoNothing/);
+    expect(atomicSrc).toMatch(/INSERT INTO mission_claims[\s\S]{0,300}ON CONFLICT \(mission_id, user_id\) DO NOTHING/);
   });
   it('coin_transactions se crea SOLO si el claim fue nuestro', () => {
-    // El flujo es: onConflictDoNothing → returning → continue si vacío → insert coin_transaction.
-    expect(missionsSrc).toMatch(/if\s*\(inserted\.length\s*===\s*0\)\s*continue/);
-    expect(missionsSrc).toMatch(/insert\(coinTransactions\)/);
+    expect(atomicSrc).toMatch(/FROM new_claim[\s\S]{0,160}ON CONFLICT \(ref_key\) DO NOTHING/);
+    expect(missionsSrc).toMatch(/claimMissionAndAward/);
   });
   it('evaluateAndClaimMissions se dispara desde participateInGiveaway', () => {
     // Test estructural: la llamada aparece dentro del cuerpo de la función,
@@ -124,8 +124,8 @@ describe('[mission-engine] contratos estructurales del motor', () => {
     expect(scope).toMatch(/evaluateAndClaimMissions\(sessionUser\.id\)/);
   });
   it('claimDailyReward usa nextStreakDay (rotación 7→1) y previousDay (DST-safe)', () => {
-    expect(actionsSrc).toMatch(/nextStreakDay/);
     expect(actionsSrc).toMatch(/previousDay/);
+    expect(atomicSrc).toMatch(/WHEN daily_streaks\.current_day >= 7[\s\S]{0,80}THEN 1/);
     // Y ya NO usa Date.now() - 24*60*60*1000 para yesterday (patrón bug DST).
     expect(actionsSrc).not.toMatch(/Date\.now\(\)\s*-\s*24\s*\*\s*60\s*\*\s*60\s*\*\s*1000/);
   });

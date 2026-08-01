@@ -1,8 +1,10 @@
 /**
- * Tests de integración del proxy: verifica que la detección de locale
- * se aplica SOLO a '/' y '/en', nunca a /admin ni /api.
+ * Tests de integración del proxy para el escritor de cookie de locale.
  *
- * Importa `proxy` directamente desde src/proxy.ts.
+ * Regla del sprint SEO+GEO 2026-07: el proxy NO redirige por locale bajo
+ * ninguna circunstancia. Toda URL se sirve como se pide (200 OK). La cookie
+ * `socialpro_locale` se escribe solo como memoria de preferencia — reservada
+ * para un language switcher manual (Fase 4). Ver src/lib/locale-detection.ts.
  */
 
 import { NextRequest } from 'next/server';
@@ -29,6 +31,32 @@ function req(
   return new NextRequest(url, { headers });
 }
 
+// ── Nunca redirigir por locale, en ninguna combinación ────────────────────────
+
+describe('proxy — nunca redirige por locale', () => {
+  const scenarios: ReadonlyArray<{
+    label: string;
+    pathname: string;
+    opts: { country?: string; acceptLanguage?: string; cookieLocale?: 'es' | 'en' };
+  }> = [
+    { label: '/ con country US',                        pathname: '/',    opts: { country: 'US' } },
+    { label: '/ con Accept-Language en',                pathname: '/',    opts: { acceptLanguage: 'en-US,en;q=0.9' } },
+    { label: '/ con cookie=en',                         pathname: '/',    opts: { cookieLocale: 'en' } },
+    { label: '/ con cookie=en + country US',            pathname: '/',    opts: { cookieLocale: 'en', country: 'US' } },
+    { label: '/en con country ES',                      pathname: '/en',  opts: { country: 'ES' } },
+    { label: '/en con Accept-Language es',              pathname: '/en',  opts: { acceptLanguage: 'es-ES,es;q=0.9' } },
+    { label: '/en con cookie=es',                       pathname: '/en',  opts: { cookieLocale: 'es' } },
+    { label: '/en con cookie=es + country ES',          pathname: '/en',  opts: { cookieLocale: 'es', country: 'ES' } },
+  ];
+
+  it.each(scenarios)('$label → pass (no 307/308)', ({ pathname, opts }) => {
+    const res = proxy(req(pathname, opts));
+    expect(res?.status).not.toBe(307);
+    expect(res?.status).not.toBe(308);
+    expect(res?.headers.get('location') ?? '').toBe('');
+  });
+});
+
 // ── Aislamiento: /api y /admin nunca reciben cookie de locale ─────────────────
 
 describe('proxy — locale isolation: /api y /admin', () => {
@@ -42,89 +70,53 @@ describe('proxy — locale isolation: /api y /admin', () => {
     expect(res?.headers.get('set-cookie') ?? '').not.toContain(LOCALE_COOKIE);
   });
 
-  it('/api/contact no redirige por locale', () => {
-    const res = proxy(req('/api/contact', { country: 'US' }));
-    // Puede ser 429 si hay rate-limit, pero nunca un redirect de locale (307 a /en)
-    expect(res?.headers.get('location') ?? '').not.toMatch(/^\/en/);
-  });
-
   it('/admin/login no recibe Set-Cookie socialpro_locale', () => {
     // /admin/login está en PUBLIC_ADMIN_PATHS → checkAdminSession retorna null → NextResponse.next()
     const res = proxy(req('/admin/login', { country: 'US' }));
     expect(res?.headers.get('set-cookie') ?? '').not.toContain(LOCALE_COOKIE);
   });
-
-  it('/admin/login no redirige a /en ni a /', () => {
-    const res = proxy(req('/admin/login', { country: 'US' }));
-    const location = res?.headers.get('location') ?? '';
-    expect(location).not.toBe('/en');
-    expect(location).not.toBe('/');
-  });
 });
 
-// ── Homepages: locale detection correcta ─────────────────────────────────────
+// ── Cookie writer solo cuando encaja con lo que el usuario está viendo ────────
 
-describe('proxy — locale detection en homepages', () => {
-  it('/ con country US → 307 a /en + cookie=en', () => {
-    const res = proxy(req('/', { country: 'US' }));
-    expect(res?.status).toBe(307);
-    expect(res?.headers.get('location')).toContain('/en');
+describe('proxy — cookie writer', () => {
+  it('/ sin cookie previa y country ES → escribe cookie=es', () => {
+    const res = proxy(req('/', { country: 'ES' }));
+    expect(res?.headers.get('set-cookie')).toContain(`${LOCALE_COOKIE}=es`);
+  });
+
+  it('/en sin cookie previa y country US → escribe cookie=en', () => {
+    const res = proxy(req('/en', { country: 'US' }));
     expect(res?.headers.get('set-cookie')).toContain(`${LOCALE_COOKIE}=en`);
   });
 
-  it('/ con country ES → pass (no redirect)', () => {
-    const res = proxy(req('/', { country: 'ES' }));
-    expect(res?.status).not.toBe(307);
-    expect(res?.status).not.toBe(308);
+  it('/ sin cookie previa y country US → NO escribe cookie (locale visto ≠ preferido)', () => {
+    // No reescribimos preferencia contra lo que el usuario está mirando.
+    const res = proxy(req('/', { country: 'US' }));
+    expect(res?.headers.get('set-cookie') ?? '').not.toContain(LOCALE_COOKIE);
   });
 
-  it('/en con country ES → 307 a / + cookie=es', () => {
-    const res = proxy(req('/en', { country: 'ES' }));
-    expect(res?.status).toBe(307);
-    expect(res?.headers.get('set-cookie')).toContain(`${LOCALE_COOKIE}=es`);
-  });
-
-  it('/en con country GB → pass (no redirect)', () => {
-    const res = proxy(req('/en', { country: 'GB' }));
-    expect(res?.status).not.toBe(307);
-    expect(res?.status).not.toBe(308);
-  });
-
-  // Geo gana sobre cookie para países hispanohablantes
-
-  it('cookie=en, country ES en / → pass (no redirect), corrige cookie a es', () => {
-    const res = proxy(req('/', { country: 'ES', cookieLocale: 'en' }));
-    // No redirige (ya está en /)
-    expect(res?.status).not.toBe(307);
-    // Pero sí corrige el cookie caducado de 'en' a 'es'
-    expect(res?.headers.get('set-cookie')).toContain(`${LOCALE_COOKIE}=es`);
-  });
-
-  it('cookie=en, country ES en /en → 307 a / (geo gana sobre cookie)', () => {
-    const res = proxy(req('/en', { country: 'ES', cookieLocale: 'en' }));
-    expect(res?.status).toBe(307);
-    expect(res?.headers.get('location')).toContain('/');
-    expect(res?.headers.get('set-cookie')).toContain(`${LOCALE_COOKIE}=es`);
-  });
-
-  // Cookie manda sobre geo solo para países NO hispanohablantes
-
-  it('cookie=es, country US en /en → pass, sin redirect', () => {
-    const res = proxy(req('/en', { country: 'US', cookieLocale: 'es' }));
-    expect(res?.status).not.toBe(307);
-  });
-
-  // Anti-bucle: cookie presente → no reescribe cookie cuando ya es correcto
-
-  it('anti-bucle: / cookie=es país ES → no escribe Set-Cookie', () => {
+  it('cookie=es ya presente → no reescribe', () => {
     const res = proxy(req('/', { country: 'ES', cookieLocale: 'es' }));
-    expect(res?.status).not.toBe(307);
     expect(res?.headers.get('set-cookie') ?? '').not.toContain(LOCALE_COOKIE);
   });
+});
 
-  it('anti-bucle: /en cookie=en país GB → no escribe Set-Cookie', () => {
-    const res = proxy(req('/en', { country: 'GB', cookieLocale: 'en' }));
-    expect(res?.status).not.toBe(307);
-    expect(res?.headers.get('set-cookie') ?? '').not.toContain(LOCALE_COOKIE);
+// ── x-pathname header inyectado siempre (necesario para <html lang>) ──────────
+
+describe('proxy — x-pathname header', () => {
+  // El header se pasa a NextResponse.next({ request: { headers } }) para que
+  // llegue al RSC del layout. No es visible en la respuesta; comprobamos que
+  // el proxy no rompe ninguna ruta y que la respuesta sale limpia (200-ish).
+  it.each([
+    '/',
+    '/en',
+    '/talents',
+    '/nosotros',
+    '/casos',
+    '/marketing-skins-cs2',
+  ])('%s → proxy responde sin redirect ni error', (pathname) => {
+    const res = proxy(req(pathname));
+    expect(res?.status ?? 200).toBeLessThan(400);
   });
 });

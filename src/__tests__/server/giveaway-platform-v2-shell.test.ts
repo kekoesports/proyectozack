@@ -41,6 +41,16 @@ describe('[PR1] giveaway-platform v2 shell — estructura', () => {
     expect(src).toMatch(/<BrandBonusesSection\s/);
   });
 
+  it('AdultAttestationCard solo se renderiza si existe player_profile (admins sin fila lo saltan)', () => {
+    const src = read('src/features/giveaway-platform/components/PlatformCreatorLanding.tsx');
+    // Debe exigir `playerProfile && !playerProfile.adultAttestedAt` — no basta con
+    // `!playerProfile?.adultAttestedAt`, que renderizaría el gate para admins sin
+    // fila en `player_profiles` (imposible de superar porque confirmAdultStatus
+    // hace UPDATE y falla con "No se encontró tu perfil de jugador").
+    expect(src).toMatch(/playerProfile\s*&&\s*!playerProfile\.adultAttestedAt\s*\?\s*<AdultAttestationCard/);
+    expect(src).not.toMatch(/!playerProfile\?\.adultAttestedAt\s*\?\s*<AdultAttestationCard/);
+  });
+
   it('el shell .giveaway-platform lo aplica PlatformShell (compartido)', () => {
     const shell = read('src/features/giveaway-platform/components/PlatformShell.tsx');
     expect(shell).toMatch(/giveaway-platform/);
@@ -100,8 +110,8 @@ describe('[PR1] backend intacto', () => {
     expect(src).toMatch(/export async function participateInGiveaway/);
     expect(src).toMatch(/export async function claimDailyReward/);
     expect(src).toMatch(/export async function redeemShopItem/);
-    // Guard exigido por tsc: !redemption → ok: false, sin ID falso.
-    expect(src).toMatch(/if\s*\(!redemption\)\s*return\s*\{\s*ok:\s*false/);
+    expect(src).toMatch(/await\s+redeemAtomically\(/);
+    expect(src).toMatch(/requestKey/);
   });
 
   it('queries/giveawayPlatform.ts no modificado (mantiene getCoinBalance vía SUM)', () => {

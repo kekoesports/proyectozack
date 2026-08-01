@@ -128,6 +128,13 @@ const nextConfig: NextConfig = {
         destination: '/sorteos/participacion-responsable',
         permanent: true,
       },
+      // /quienes-somos → /nosotros (301 permanent)
+      // Legacy slug de WordPress previo a la migración. Todo el contenido
+      // "sobre nosotros" vive hoy en /nosotros. Cubrimos con y sin trailing
+      // slash porque WordPress solía servir ambas y aún puede haber enlaces
+      // externos con la barra final.
+      { source: '/quienes-somos',  destination: '/nosotros', permanent: true },
+      { source: '/quienes-somos/', destination: '/nosotros', permanent: true },
     ];
   },
   async headers() {

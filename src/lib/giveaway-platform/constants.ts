@@ -10,6 +10,9 @@ export const ENTRY_COIN_REWARD = 20;
 /** Recompensa fija por día de racha (índice 0 = día 1). */
 export const STREAK_REWARDS = [10, 15, 20, 25, 30, 40, 60] as const;
 
+/** Versión del texto de declaración de mayoría de edad. */
+export const ADULT_ATTESTATION_VERSION = '2026-07';
+
 /**
  * Slugs de talents visibles en el selector de creador de la plataforma.
  *

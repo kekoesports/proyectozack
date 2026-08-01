@@ -1,4 +1,4 @@
-import { gt, lte, and, not, like, or, isNull } from 'drizzle-orm';
+import { eq, gt, lte, and, not, like, or, isNull } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { giveaways } from '@/db/schema';
 import type { CreatorCodeWithTalent, GiveawayWithTalent, Talent } from '@/types';
@@ -27,9 +27,15 @@ const NO_DEMO = not(like(giveaways.title, '[DEMO]%'));
  * @returns array de GiveawayWithTalent (puede ser vacío). Nunca null.
  */
 export async function getAllActiveGiveaways(): Promise<GiveawayWithTalent[]> {
+  const now = new Date();
   const rows = await db.query.giveaways.findMany({
     // endsAt null = sin fecha de fin = activo indefinidamente (igual que en perfil de talento)
-    where: and(or(isNull(giveaways.endsAt), gt(giveaways.endsAt, new Date())), NO_DEMO),
+    where: and(
+      eq(giveaways.status, 'active'),
+      lte(giveaways.startsAt, now),
+      or(isNull(giveaways.endsAt), gt(giveaways.endsAt, now)),
+      NO_DEMO,
+    ),
     with: { talent: true },
     orderBy: (g, { asc, desc }) => [desc(g.isFeatured), asc(g.sortOrder), asc(g.endsAt)],
   });
@@ -46,8 +52,13 @@ export async function getAllActiveGiveaways(): Promise<GiveawayWithTalent[]> {
  * @returns array de GiveawayWithTalent (puede ser vacío, top N). Nunca null.
  */
 export async function getAllFinishedGiveaways(): Promise<GiveawayWithTalent[]> {
+  const now = new Date();
   const rows = await db.query.giveaways.findMany({
-    where: and(lte(giveaways.endsAt, new Date()), NO_DEMO),
+    where: and(
+      lte(giveaways.endsAt, now),
+      or(eq(giveaways.status, 'ended'), eq(giveaways.status, 'active')),
+      NO_DEMO,
+    ),
     with: { talent: true },
     orderBy: (g, { desc }) => [desc(g.endsAt)],
     limit: FINISHED_LIMIT,

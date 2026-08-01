@@ -39,6 +39,10 @@ interface Props {
   twitchComingSoon?: {
     channelUrl: string | null;
   } | null;
+  /** Sesión Steam activa — sin ella el OAuth Discord/Twitch no arranca. */
+  loggedIn?: boolean;
+  /** Slug del creador activo — return path del OAuth. */
+  creatorSlug?: string;
 }
 
 /**
@@ -49,7 +53,15 @@ interface Props {
  *
  * Cobradas se envían al final dentro de cada grupo — no ocupan el top.
  */
-export function MissionsGrid({ missions, discord, twitch, discordComingSoon, twitchComingSoon }: Props) {
+export function MissionsGrid({
+  missions,
+  discord,
+  twitch,
+  discordComingSoon,
+  twitchComingSoon,
+  loggedIn = false,
+  creatorSlug,
+}: Props) {
   const [expanded, setExpanded] = useState(false);
 
   // Split por provider: Discord y Twitch aparte para renderizado con card específica.
@@ -115,6 +127,8 @@ export function MissionsGrid({ missions, discord, twitch, discordComingSoon, twi
               mission={m}
               connected={discord.connected}
               inviteUrl={discord.inviteUrl}
+              loggedIn={loggedIn}
+              {...(creatorSlug ? { creatorSlug } : {})}
             />
           ))
         ) : hasDiscordPlaceholder ? (
