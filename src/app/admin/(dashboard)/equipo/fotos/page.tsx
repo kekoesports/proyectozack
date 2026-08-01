@@ -1,11 +1,13 @@
 import { db } from '@/lib/db';
 import { teamMembers } from '@/db/schema';
 import { asc } from 'drizzle-orm';
+import { requirePermission } from '@/lib/permissions';
 import { UploadForm } from '@/features/admin/equipo/components/UploadForm';
 
 export const metadata = { title: 'Equipo | Admin' };
 
 export default async function EquipoAdminPage() {
+  await requirePermission('equipo', 'read');
   const members = await db.select().from(teamMembers).orderBy(asc(teamMembers.sortOrder));
 
   return (

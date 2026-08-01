@@ -5,6 +5,9 @@
  * computeCampaignDerived tests are pure — no mocks needed.
  */
 
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+
 jest.mock('@/lib/auth', () => ({ auth: {} }));
 
 // ── DB mock ───────────────────────────────────────────────────────────────────
@@ -234,6 +237,20 @@ describe('listCampaigns', () => {
 describe('getCampaignPaymentStatus', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  it('sums settled statuses cobrada AND pagada (source contract)', () => {
+    // Regression lock: detail path used to filter only eq(status,'cobrada'),
+    // under-counting expenses marked pagada (AGENTS.md gotcha).
+    const src = readFileSync(
+      resolve(__dirname, '../../lib/queries/campaigns.ts'),
+      'utf-8',
+    );
+    expect(src).toMatch(/SETTLED_INCOME_STATUSES/);
+    expect(src).toMatch(/SETTLED_EXPENSE_STATUSES/);
+    expect(src).toMatch(/inArray\(invoices\.status, settledIncome\)/);
+    expect(src).toMatch(/inArray\(invoices\.status, settledExpense\)/);
+    expect(src).not.toMatch(/eq\(invoices\.status, 'cobrada'\)/);
   });
 
   it('brandPaid=si when income cobrada sum >= amountBrand', async () => {

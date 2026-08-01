@@ -3,19 +3,13 @@
 import { revalidatePath } from 'next/cache';
 import { headers } from 'next/headers';
 import { and, eq, gt } from 'drizzle-orm';
-import { z } from 'zod';
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { missionClaims, missionVerificationAttempts, platformMissions } from '@/db/schema';
 import { getConnectedAccount } from '@/lib/queries/connectedSocialAccounts';
 import { decrypt } from '@/lib/crypto/token-encryption';
 import { DISCORD_GUILD_MEMBER_MODE } from '@/features/giveaway-platform/constants/discord-missions';
-import { logGiveawayEvent } from '@/lib/audit/logGiveawayEvent';
-import { assertAllowedCoinSourceOrLog } from '@/lib/audit/logBlockedCoinSource';
-import { claimMissionAndAward } from '@/lib/giveaway-platform/atomicOperations';
-
-/** Shape mínimo del array que devuelve /users/@me/guilds — solo usamos `id`. */
-const DiscordGuildListSchema = z.array(z.object({ id: z.string() }).passthrough());
+import { claimDiscordGuildMissionsForUser } from '@/lib/discord/claim-guild-missions';
 
 /**
  * Server action — verifica una misión Discord y, si cumple, concede
@@ -28,12 +22,10 @@ const DiscordGuildListSchema = z.array(z.object({ id: z.string() }).passthrough(
  *    verification_mode='discord_guild_member'.
  *  - Cuenta Discord del usuario debe estar conectada y no desconectada.
  *  - Access token no expirado.
- *  - Fetch a Discord `GET /users/@me/guilds` con el token. Filtra por
+ *  - Fetch paginado a Discord `GET /users/@me/guilds`. Filtra por
  *    `target_id` (guild objetivo). No persiste la lista de guilds.
- *  - Si es miembro → INSERT mission_claim (UNIQUE bloquea doble claim)
- *    + INSERT coin_transactions con source='mision'.
- *  - Todos los outcomes se registran en `mission_verification_attempts`
- *    para auditoría + rate limit.
+ *  - Si es miembro → claim + monedas (UNIQUE bloquea doble claim).
+ *  - Outcomes en `mission_verification_attempts` para auditoría + rate limit.
  */
 
 const RATE_LIMIT_SECONDS = 30;
@@ -145,72 +137,32 @@ export async function verifyDiscordMission(input: unknown): Promise<DiscordVerif
     return { ok: false, code: 'internal', message: 'No hemos podido verificarlo ahora. Inténtalo de nuevo más tarde.' };
   }
 
-  // Fetch guilds del usuario. NO persistimos la lista.
-  let guilds: { id: string }[];
-  try {
-    const res = await fetch('https://discord.com/api/v10/users/@me/guilds', {
-      headers: { Authorization: `Bearer ${accessToken}` },
-      cache: 'no-store',
-      signal: AbortSignal.timeout(3_000),
-    });
-    if (res.status === 401) {
-      await recordAttempt(missionId, user.id, 'token_expired');
-      return { ok: false, code: 'token_expired', message: 'Discord necesita reconectarse para verificar esta misión.' };
-    }
-    if (!res.ok) {
-      await recordAttempt(missionId, user.id, 'api_error');
-      return { ok: false, code: 'api_error', message: 'No hemos podido verificarlo ahora. Inténtalo de nuevo más tarde.' };
-    }
-    const data: unknown = await res.json();
-    const parsed = DiscordGuildListSchema.safeParse(data);
-    if (!parsed.success) {
-      await recordAttempt(missionId, user.id, 'api_error');
-      return { ok: false, code: 'api_error', message: 'No hemos podido verificarlo ahora. Inténtalo de nuevo más tarde.' };
-    }
-    guilds = parsed.data;
-  } catch {
-    await recordAttempt(missionId, user.id, 'api_error');
-    return { ok: false, code: 'api_error', message: 'No hemos podido verificarlo ahora. Inténtalo de nuevo más tarde.' };
-  }
-
-  const isMember = guilds.some((g) => g.id === mission.targetId);
-  if (!isMember) {
-    await recordAttempt(missionId, user.id, 'not_verified');
-    return { ok: false, code: 'not_verified', message: 'No hemos detectado que estés dentro del Discord todavía.' };
-  }
-
-  // Cumple: INSERT claim + coin_transactions. El UNIQUE bloquea el
-  // doble claim en caso de race condition.
-  // El UNIQUE `mission_claims_mission_user_uq` sobre (mission_id, user_id)
-  // hace que un race no duplique. `onConflictDoNothing()` sin `target`
-  // captura cualquier violación de constraint sobre esta fila.
-  await assertAllowedCoinSourceOrLog('mision', {
+  const result = await claimDiscordGuildMissionsForUser({
     userId: user.id,
-    action: 'mission_claim',
-    refType: 'mission',
-    refId: missionId,
-  });
-  const claimedNow = await claimMissionAndAward({
-    userId: user.id,
+    accessToken,
     missionId,
-    title: mission.title,
-    rewardCoins: mission.rewardCoins,
   });
-  if (!claimedNow) {
+
+  if (!result.ok) {
+    if (result.code === 'token_expired') {
+      await recordAttempt(missionId, user.id, 'token_expired');
+      return { ok: false, code: 'token_expired', message: result.message };
+    }
+    if (result.code === 'api_error') {
+      await recordAttempt(missionId, user.id, 'api_error');
+      return { ok: false, code: 'api_error', message: result.message };
+    }
+    await recordAttempt(missionId, user.id, 'not_verified');
+    return { ok: false, code: 'not_verified', message: result.message };
+  }
+
+  const award = result.awarded.find((a) => a.missionId === missionId) ?? result.awarded[0];
+  if (!award) {
     await recordAttempt(missionId, user.id, 'already_done');
     return { ok: false, code: 'already_claimed', message: 'Ya has reclamado esta misión' };
   }
 
   await recordAttempt(missionId, user.id, 'success');
-
-  await logGiveawayEvent({
-    userId:  user.id,
-    action:  'mission_claim',
-    outcome: 'success',
-    refType: 'mission',
-    refId:   missionId,
-    metadata: { provider: 'discord', rewardCoins: mission.rewardCoins },
-  });
   revalidatePath('/sorteos', 'layout');
-  return { ok: true, code: 'success', rewardCoins: mission.rewardCoins };
+  return { ok: true, code: 'success', rewardCoins: award.rewardCoins };
 }

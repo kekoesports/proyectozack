@@ -52,11 +52,21 @@ const EUR = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR',
 
 // ── Props ─────────────────────────────────────────────────────────────
 
+/** Roles allowed by tRPC `adminProcedure` for GlobalSearch. */
+const SEARCH_ROLES = new Set([
+  'admin',
+  'admin_limited_tasks',
+  'manager',
+  'staff',
+]);
+
 type Props = {
   readonly alertCount?:        number;
   readonly recentAlerts?:      readonly DashboardAlert[];
   readonly onDismissAlert?:    (id: unknown) => Promise<{ error?: string }>;
   readonly onDismissAllAlerts?: () => Promise<{ error?: string }>;
+  /** When set, GlobalSearch is hidden for roles blocked by adminProcedure. */
+  readonly userRole?: string;
 };
 
 // ── Alert dropdown item ───────────────────────────────────────────────
@@ -160,12 +170,19 @@ function useThemeToggle(): { isDark: boolean; toggle: () => void } {
 
 // ── AdminHeader ───────────────────────────────────────────────────────
 
-export function AdminHeader({ alertCount = 0, recentAlerts = [], onDismissAlert, onDismissAllAlerts }: Props): React.ReactElement {
+export function AdminHeader({
+  alertCount = 0,
+  recentAlerts = [],
+  onDismissAlert,
+  onDismissAllAlerts,
+  userRole,
+}: Props): React.ReactElement {
   const [showActions, setShowActions] = useState(false);
   const [showAlerts,  setShowAlerts]  = useState(false);
   const [isPending,   startTransition] = useTransition();
   const { isDark, toggle: toggleTheme } = useThemeToggle();
 
+  const showSearch = userRole == null || SEARCH_ROLES.has(userRole);
   const hasPersonalNotifs = recentAlerts.some((a) => a.dbId !== undefined);
 
   const handleDismiss = (id: number): void => {
@@ -196,8 +213,8 @@ export function AdminHeader({ alertCount = 0, recentAlerts = [], onDismissAlert,
       </span>
       <div className="hidden md:block h-4 w-px bg-sp-admin-border shrink-0" aria-hidden />
 
-      {/* Búsqueda global */}
-      <GlobalSearch />
+      {/* Búsqueda global — only roles allowed by adminProcedure */}
+      {showSearch ? <GlobalSearch /> : <div className="flex-1" aria-hidden />}
 
       {/* Acciones derechas */}
       <div className="flex items-center gap-2 ml-auto">

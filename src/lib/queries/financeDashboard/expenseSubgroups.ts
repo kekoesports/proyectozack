@@ -236,6 +236,18 @@ export function buildInvoicePdfUrl(input: {
   return `/api/admin/facturacion/${input.id}/pdf`;
 }
 
+/**
+ * Auth-proxied PDF URL for issued invoices (never expose private blob URLs).
+ * Returns null when no storage pointer exists so the UI can hide the link.
+ */
+export function buildIssuedInvoicePdfUrl(input: {
+  readonly id: number;
+  readonly pdfUrl: string | null;
+}): string | null {
+  if (input.pdfUrl == null || input.pdfUrl.length === 0) return null;
+  return `/api/admin/facturacion/issued/${input.id}/pdf`;
+}
+
 // ── Agregación ──────────────────────────────────────────────────────────────
 
 export type ExpenseSubgroupRow = {

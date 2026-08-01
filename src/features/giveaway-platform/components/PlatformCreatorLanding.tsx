@@ -32,6 +32,7 @@ import { DailyStreakCard } from '@/features/giveaway-platform/components/DailySt
 import { MissionsGrid } from '@/features/giveaway-platform/components/MissionsGrid';
 import { EntryButton } from '@/features/giveaway-platform/components/EntryButton';
 import { RewardsHub } from '@/features/giveaway-platform/components/RewardsHub';
+import { MonthlyPointsRanking } from '@/features/giveaway-platform/components/MonthlyPointsRanking';
 import { HistoricalWinnersPlaceholder } from '@/features/giveaway-platform/components/HistoricalWinnersPlaceholder';
 import { ExternalGiveawaysSection } from '@/features/giveaway-platform/components/ExternalGiveawaysSection';
 import { PlatformFooter } from '@/features/giveaway-platform/components/PlatformFooter';
@@ -120,7 +121,15 @@ export async function PlatformCreatorLanding({ slug }: Props) {
         getConnectedAccount(userId, 'discord'),
         getConnectedAccount(userId, 'twitch'),
       ])
-    : [0, [], undefined, undefined, null, null];
+    : await Promise.all([
+        Promise.resolve(0),
+        // Misiones activas sin progreso — permite CTAs públicas (Abrir Discord).
+        getMissionsWithProgress(null),
+        Promise.resolve(undefined),
+        Promise.resolve(undefined),
+        Promise.resolve(null),
+        Promise.resolve(null),
+      ]);
 
   // Config Discord del creador activo. La card Discord solo se muestra si
   // TODAS las piezas están puestas:
@@ -230,19 +239,6 @@ export async function PlatformCreatorLanding({ slug }: Props) {
                 />
               </div>
             </section>
-
-            <section id="misiones">
-              <div className="gp-legacy-block">
-                <h2>Misiones · gana puntos</h2>
-                <MissionsGrid
-                  missions={missions}
-                  discord={discordProp}
-                  twitch={twitchProp}
-                  discordComingSoon={discordComingSoon}
-                  twitchComingSoon={twitchComingSoon}
-                />
-              </div>
-            </section>
           </>
         ) : (
           <section>
@@ -252,6 +248,26 @@ export async function PlatformCreatorLanding({ slug }: Props) {
             </div>
           </section>
         )}
+
+        {/*
+          Misiones siempre visibles (logueado o no): el CTA "Abrir Discord"
+          debe funcionar sin sesión. Verificar/reclamar sigue exigiendo login
+          en la card y en las server actions.
+        */}
+        <section id="misiones">
+          <div className="gp-legacy-block">
+            <h2>Misiones · gana puntos</h2>
+            <MissionsGrid
+              missions={missions}
+              discord={discordProp}
+              twitch={twitchProp}
+              discordComingSoon={discordComingSoon}
+              twitchComingSoon={twitchComingSoon}
+              loggedIn={Boolean(userId)}
+              creatorSlug={active.slug}
+            />
+          </div>
+        </section>
 
         {isExternal ? null : (
           <section id="sorteos">
@@ -298,6 +314,27 @@ export async function PlatformCreatorLanding({ slug }: Props) {
 
         <ExternalGiveawaysSection sections={externalSections} creatorDisplayName={active.name} />
 
+        {/* Banner nav "Ranking" → #ranking (full-width monthly points leaderboard). */}
+        <section id="ranking" className="gp-ranking-section" aria-labelledby="gp-ranking-heading">
+          <div className="gp-ranking-section-inner">
+            <header className="gp-ranking-section-header">
+              <p className="gp-ranking-section-kicker">Competición del mes</p>
+              <h2 id="gp-ranking-heading">Ranking mensual</h2>
+              <p className="gp-ranking-section-lede">
+                Los jugadores que más puntos suman con misiones y rachas pelean por el podio y los
+                premios del mes.
+              </p>
+            </header>
+            <MonthlyPointsRanking
+              rows={pointsRanking}
+              totalParticipants={rankingTotal}
+              myStanding={myStanding}
+              isLoggedIn={Boolean(userId)}
+              variant="page"
+            />
+          </div>
+        </section>
+
         <section id="recompensas">
           <div className="gp-legacy-block">
             <h2>Recompensas</h2>
@@ -306,9 +343,6 @@ export async function PlatformCreatorLanding({ slug }: Props) {
               balance={balance}
               hasSteamTradeUrl={hasSteamTradeUrl}
               freeRaffles={freeRaffles}
-              pointsRanking={pointsRanking}
-              rankingTotal={rankingTotal}
-              myStanding={myStanding}
               isLoggedIn={Boolean(userId)}
             />
             <HistoricalWinnersPlaceholder />

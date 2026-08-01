@@ -112,15 +112,29 @@ export async function getGiveawaysWithEntryData(
  * Misiones activas con progreso real del usuario (COUNT de entries,
  * COUNT DISTINCT de creadores vía join a giveaways, día de racha).
  *
+ * Si `userId` es null (visitante anónimo) se listan igual las misiones
+ * activas con `current=0` / `claimed=false` para poder pintar CTAs
+ * públicas (ej. "Abrir Discord") sin forzar login previo.
+ *
  * @cache none
- * @visibility public (propio usuario)
+ * @visibility public (propio usuario o anónimo sin progreso)
  */
-export async function getMissionsWithProgress(userId: string): Promise<MissionWithProgress[]> {
+export async function getMissionsWithProgress(
+  userId: string | null,
+): Promise<MissionWithProgress[]> {
   const missions = await db.query.platformMissions.findMany({
     where: eq(platformMissions.isActive, true),
     orderBy: (m, { asc }) => [asc(m.sortOrder)],
   });
   if (missions.length === 0) return [];
+
+  if (!userId) {
+    return missions.map((m) => ({
+      ...m,
+      current: 0,
+      claimed: false,
+    }));
+  }
 
   const state = await loadMissionProgress(userId);
   return missions.map((m) => ({

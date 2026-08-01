@@ -181,13 +181,15 @@ export function applyFilters(
     if (f.sector      !== '' && c.sector             !== f.sector)                   return false;
     if (f.geo         !== '' && c.geo                !== f.geo)                      return false;
 
-    // Cobro marca
-    if (f.cobroMarca === 'cobrado'   && !c.cobroConfirmado) return false;
-    if (f.cobroMarca === 'pendiente' &&  c.cobroConfirmado) return false;
+    // Cobro marca — invoice-derived brandPaid wins over legacy manual flag.
+    const brandSettled = c.brandPaid === 'si' || c.cobroConfirmado;
+    if (f.cobroMarca === 'cobrado'   && !brandSettled) return false;
+    if (f.cobroMarca === 'pendiente' &&  brandSettled) return false;
 
-    // Pago talento
-    if (f.pagoTalento === 'pagado'   && !c.pagoTalentConfirmado) return false;
-    if (f.pagoTalento === 'pendiente' &&  c.pagoTalentConfirmado) return false;
+    // Pago talento — invoice-derived talentPaid wins over legacy manual flag.
+    const talentSettled = c.talentPaid === 'si' || c.pagoTalentConfirmado;
+    if (f.pagoTalento === 'pagado'   && !talentSettled) return false;
+    if (f.pagoTalento === 'pendiente' &&  talentSettled) return false;
 
     return true;
   });

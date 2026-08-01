@@ -28,7 +28,13 @@ function FileSlot({ id, name, label, current }: SlotProps): React.ReactElement {
       {current ? (
         <p className="mt-1 text-xs text-sp-admin-muted">
           Adjunto actual:{' '}
-          <a href={current.url} target="_blank" rel="noreferrer" className="text-sp-admin-accent hover:underline">
+          {/* Private Blob store: never link raw `current.url` (401). Use files proxy. */}
+          <a
+            href={`/api/admin/files/${current.id}`}
+            target="_blank"
+            rel="noreferrer"
+            className="text-sp-admin-accent hover:underline"
+          >
             {current.name}
           </a>{' '}
           — sube uno nuevo para reemplazarlo.

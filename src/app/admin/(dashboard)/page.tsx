@@ -51,18 +51,23 @@ export default async function AdminDashboardPage(): Promise<ReactElement> {
   const weekStart = getWeekStart(weekLabel);
   const weekStr = weekStart.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' });
 
+  // Staff must not load company-wide revenue/pipeline (facturacion:read excludes staff).
+  const zeroRevenue: Awaited<ReturnType<typeof getMonthlyRevenue>> = { income: 0, expense: 0 };
+  const zeroDeals: Awaited<ReturnType<typeof getDealStats>> = { yearlyDeals: 0, activeDeals: 0 };
+  const emptyPipeline: Awaited<ReturnType<typeof getPipelineHistoryAll>> = { d7: [], d30: [], d90: [] };
+
   const [{ stats }, brandCounts, pendingTasks, followups, revenue, deals, { alerts, summary: alertSummary }, pipelineTotal, activity, insights, pipelineHistory] = await Promise.all([
     getAdminDashboardData(),
     getCrmBrandCounts(),
     getDashboardPendingTasks(weekLabel),
     getDashboardUpcomingFollowups(8),
-    getMonthlyRevenue(),
-    getDealStats(),
+    isStaff ? Promise.resolve(zeroRevenue) : getMonthlyRevenue(),
+    isStaff ? Promise.resolve(zeroDeals) : getDealStats(),
     getDashboardAlerts(isStaff ? { staffUserId: session.user.id, skipFinancial: true } : undefined),
-    getPendingBrandPaymentsTotal(),
+    isStaff ? Promise.resolve(0) : getPendingBrandPaymentsTotal(),
     getDashboardActivity(5),
-    getDashboardInsights(),
-    getPipelineHistoryAll(),
+    isStaff ? Promise.resolve([]) : getDashboardInsights(),
+    isStaff ? Promise.resolve(emptyPipeline) : getPipelineHistoryAll(),
   ]);
 
   return (
@@ -81,46 +86,52 @@ export default async function AdminDashboardPage(): Promise<ReactElement> {
         </p>
       </div>
 
-      {/* ── KPIs primarios — Revenue + Pipeline ─────────────── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-        <StatCard
-          size="primary"
-          label="Revenue este mes"
-          value={formatEur(revenue.income)}
-          description="Facturas cobradas y emitidas"
-          icon={<InvoiceIcon />}
-          accent="#f5632a"
-          href="/admin/facturacion"
-        />
-        <StatCard
-          size="primary"
-          label="Pipeline total"
-          value={formatEur(pipelineTotal)}
-          description="Facturas pendientes de cobro"
-          icon={<BrandIcon />}
-          accent="#8b3aad"
-          href="/admin/facturacion"
-        />
-      </div>
+      {/* ── KPIs primarios — Revenue + Pipeline (non-staff only) ─ */}
+      {!isStaff ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <StatCard
+            size="primary"
+            label="Revenue este mes"
+            value={formatEur(revenue.income)}
+            description="Facturas cobradas y emitidas"
+            icon={<InvoiceIcon />}
+            accent="#f5632a"
+            href="/admin/facturacion"
+          />
+          <StatCard
+            size="primary"
+            label="Pipeline total"
+            value={formatEur(pipelineTotal)}
+            description="Facturas pendientes de cobro"
+            icon={<BrandIcon />}
+            accent="#8b3aad"
+            href="/admin/facturacion"
+          />
+        </div>
+      ) : null}
 
-      {/* ── KPIs secundarios — 6 métricas de cartera ─────────── */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
-        <StatCard
-          label="Tratos cerrados"
-          value={deals.yearlyDeals}
-          description={`Cobrados ${new Date().getFullYear()}`}
-          icon={<GiveawayIcon />}
-          accent="#16a34a"
-          href="/admin/facturacion"
-        />
-        <StatCard
-          label="Tratos activos"
-          value={deals.activeDeals}
-          description="Pendientes de cobro"
-          icon={<TasksIcon />}
-          accent="#e8a800"
-          href="/admin/facturacion"
-        />
+      {/* ── KPIs secundarios ─────────────────────────────────── */}
+      <div className={`grid grid-cols-2 sm:grid-cols-3 ${isStaff ? 'lg:grid-cols-4' : 'lg:grid-cols-6'} gap-2`}>
+        {!isStaff ? (
+          <>
+            <StatCard
+              label="Tratos cerrados"
+              value={deals.yearlyDeals}
+              description={`Cobrados ${new Date().getFullYear()}`}
+              icon={<GiveawayIcon />}
+              accent="#16a34a"
+              href="/admin/facturacion"
+            />
+            <StatCard
+              label="Tratos activos"
+              value={deals.activeDeals}
+              description="Pendientes de cobro"
+              icon={<TasksIcon />}
+              accent="#e8a800"
+              href="/admin/facturacion"
+            />
+          </>
+        ) : null}
         <StatCard
           label="Influencers"
           value={stats.talentCount}
@@ -163,14 +174,16 @@ export default async function AdminDashboardPage(): Promise<ReactElement> {
         <div className="lg:col-span-3">
           <FollowUpPanel followups={followups} />
         </div>
-        <div className="lg:col-span-2">
-          <PipelineChartCard
-            total={pipelineTotal}
-            data7d={pipelineHistory.d7}
-            data30d={pipelineHistory.d30}
-            data90d={pipelineHistory.d90}
-          />
-        </div>
+        {!isStaff ? (
+          <div className="lg:col-span-2">
+            <PipelineChartCard
+              total={pipelineTotal}
+              data7d={pipelineHistory.d7}
+              data30d={pipelineHistory.d30}
+              data90d={pipelineHistory.d90}
+            />
+          </div>
+        ) : null}
       </div>
 
       {/* ── Tareas + Actividad + Insights ───────────────────── */}

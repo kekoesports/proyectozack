@@ -32,7 +32,7 @@ const FAQS: FaqItem[] = [
   {
     question: '¿Qué diferencia a SocialPro de otras agencias?',
     answer:
-      'Con más de 13 años en la industria del iGaming, somos una de las agencias más experimentadas del mercado hispano. No somos una agencia genérica — nuestro equipo viene del gaming y entiende a las audiencias. Ofrecemos datos reales, no promesas.',
+      'Con más de 13 años en gaming y esports, y especializados en iGaming y creadores desde 2024, somos una de las agencias con mayor historial en el mercado hispano. No somos una agencia genérica — nuestro equipo viene del gaming y entiende a las audiencias. Ofrecemos datos reales, no promesas.',
   },
   {
     question: '¿Soy creador de contenido, cómo puedo unirme?',
