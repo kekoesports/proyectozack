@@ -45,7 +45,8 @@ describe('sprint3 — deal ledger', () => {
     const src = read('src/app/admin/(dashboard)/campanas/create-invoice-from-deal.ts');
     expect(src).toMatch(/requirePermission\(['"]facturacion['"],\s*['"]write['"]\)/);
     expect(src).not.toMatch(/campanas['"],\s*['"]delete/);
-    expect(src).toMatch(/assertCanEditCampaign/);
+    // Agency-wide finance must not require campaign ownership (blocks finance role).
+    expect(src).not.toMatch(/assertCanEditCampaign/);
   });
 });
 

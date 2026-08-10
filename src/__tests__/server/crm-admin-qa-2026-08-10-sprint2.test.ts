@@ -124,6 +124,22 @@ describe('sprint2 — tareas R08', () => {
     expect(src).toMatch(/deleteTemplateDefinitionAction[\s\S]*?requirePermission\(['"]tareas['"],\s*['"]delete['"]\)/);
   });
 
+  it('plantillas CRUD path also gates create/update to TEMPLATE_MANAGER_ROLES', () => {
+    const actions = read('src/app/admin/(dashboard)/tareas/plantillas/actions.ts');
+    expect(actions).toMatch(/TEMPLATE_MANAGER_ROLES/);
+    expect(actions).toMatch(/createTaskTemplateAction[\s\S]*?requireAnyRole\(TEMPLATE_MANAGER_ROLES/);
+    expect(actions).toMatch(/updateTaskTemplateAction[\s\S]*?requireAnyRole\(TEMPLATE_MANAGER_ROLES/);
+    expect(actions).not.toMatch(/createTaskTemplateAction[\s\S]{0,200}requirePermission\(['"]tareas['"],\s*['"]write['"]\)/);
+    const page = read('src/app/admin/(dashboard)/tareas/plantillas/page.tsx');
+    expect(page).toMatch(/requireAnyRole\(TEMPLATE_MANAGER_ROLES/);
+  });
+
+  it('staff/editor/tm cannot create tasks for other owners', () => {
+    const src = read('src/app/admin/(dashboard)/tareas/actions.ts');
+    expect(src).toMatch(/canAssignTasksToOthers/);
+    expect(src).toMatch(/Solo puedes crear tareas propias/);
+  });
+
   it('pages do not call rollOverPendingTasks on GET', () => {
     expect(read('src/app/admin/(dashboard)/tareas/page.tsx')).not.toMatch(/rollOverPendingTasks/);
     expect(read('src/app/admin/(dashboard)/mi-semana/page.tsx')).not.toMatch(/rollOverPendingTasks/);

@@ -13,6 +13,21 @@ const TEMPLATE_MANAGER_ROLES = [
   'manager',
   'ops',
 ] as const;
+
+/** Roles that may create/reassign tasks for other users. */
+const TASK_ASSIGN_OTHERS_ROLES = [
+  'admin',
+  'admin_limited_tasks',
+  'manager',
+  'ops',
+] as const;
+
+function canAssignTasksToOthers(role: string | null | undefined): boolean {
+  return (
+    !!role &&
+    (TASK_ASSIGN_OTHERS_ROLES as readonly string[]).includes(role)
+  );
+}
 import {
   completeTask,
   createTask,
@@ -72,19 +87,26 @@ export async function createTaskAction(input: unknown): Promise<ActionResult> {
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? 'Datos inválidos' };
 
   const data = parsed.data;
+  // staff/editor/tm may only create tasks for themselves (write was expanded for own-task UX).
+  if (!canAssignTasksToOthers(session.user.role) && data.ownerId !== session.user.id) {
+    return { error: 'Solo puedes crear tareas propias' };
+  }
   const ownerErr = await assertStaffOwner(data.ownerId);
   if (ownerErr) return { error: ownerErr };
 
-  const coResponsable = data.assignedToUserId && data.assignedToUserId !== data.ownerId
-    ? data.assignedToUserId
-    : null;
+  const coResponsable =
+    canAssignTasksToOthers(session.user.role) &&
+    data.assignedToUserId &&
+    data.assignedToUserId !== data.ownerId
+      ? data.assignedToUserId
+      : null;
 
   await createTask({
     title: data.title,
     description: data.description,
     ownerId: data.ownerId,
     assignedToUserId: coResponsable ?? data.ownerId,
-    createdByUserId: data.createdByUserId ?? session.user.id,
+    createdByUserId: session.user.id,
     recurrenceTemplateId: data.recurrenceTemplateId ?? null,
     dueDate: data.dueDate,
     priority: data.priority,
@@ -117,6 +139,9 @@ export async function updateTaskAction(id: number, input: unknown): Promise<Acti
   const parsed = taskFormSchema.safeParse(input);
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? 'Datos inválidos' };
 
+  if (!canAssignTasksToOthers(session.user.role) && parsed.data.ownerId !== session.user.id) {
+    return { error: 'Solo puedes asignarte tareas a ti mismo' };
+  }
   const ownerErr = await assertStaffOwner(parsed.data.ownerId);
   if (ownerErr) return { error: ownerErr };
 
@@ -129,9 +154,12 @@ export async function updateTaskAction(id: number, input: unknown): Promise<Acti
     }
   }
 
-  const newCoResponsable = parsed.data.assignedToUserId && parsed.data.assignedToUserId !== parsed.data.ownerId
-    ? parsed.data.assignedToUserId
-    : null;
+  const newCoResponsable =
+    canAssignTasksToOthers(session.user.role) &&
+    parsed.data.assignedToUserId &&
+    parsed.data.assignedToUserId !== parsed.data.ownerId
+      ? parsed.data.assignedToUserId
+      : null;
   const prevCoResponsable = prevTask?.assignedToUserId && prevTask.assignedToUserId !== prevTask.ownerId
     ? prevTask.assignedToUserId
     : null;
@@ -180,6 +208,9 @@ export async function updateTaskPartialAction(
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? 'Datos inválidos' };
 
   if (parsed.data.ownerId !== undefined) {
+    if (!canAssignTasksToOthers(session.user.role) && parsed.data.ownerId !== session.user.id) {
+      return { error: 'Solo puedes asignarte tareas a ti mismo' };
+    }
     const ownerErr = await assertStaffOwner(parsed.data.ownerId);
     if (ownerErr) return { error: ownerErr };
   }
@@ -192,11 +223,18 @@ export async function updateTaskPartialAction(
     }
   }
 
+  const patch = { ...parsed.data };
+  if (!canAssignTasksToOthers(session.user.role)) {
+    // Non-elevated callers cannot reassign ownership or co-assignee via patch.
+    delete patch.ownerId;
+    delete patch.assignedToUserId;
+  }
+
   const updated = await updateTask(
     parsedId.data,
     compact({
-      ...parsed.data,
-      assignedToUserId: parsed.data.ownerId ?? parsed.data.assignedToUserId,
+      ...patch,
+      assignedToUserId: patch.ownerId ?? patch.assignedToUserId,
     }),
   );
   if (updated === null) return { error: 'Tarea no encontrada' };
