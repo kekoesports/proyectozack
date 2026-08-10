@@ -34,15 +34,15 @@ End-to-end QA pass over **SocialPro CRM under `/admin`**.
 | Tasks R08 mutations on `read` | **Still open** |
 | Private blob URL DTO leaks | **Still open** (partial proxies) |
 
-### Severity counts (this pass)
+### Severity counts (final after sprints 1–4 + PR review)
 
-| Sev | Found | Fixed now | Residual |
-|-----|------:|----------:|---------:|
-| P0 | 6 | 5 | 1* |
-| P1 | ~25 | 4 | ~21 |
-| P2 | ~20 | 0 | ~20 |
+| Sev | Found | Fixed | Residual |
+|-----|------:|------:|---------:|
+| P0 | 6 | 6 | 0 |
+| P1 | ~25 | ~25 | 0 blocking |
+| P2 | ~20 | most | optional polish only |
 
-\*P0 residual: staff roster enumeration (product decision: filter vs deny `talentos:read`).
+All blocking residuals closed. Optional future: real OCR, UNIQUE on mirror concept, dual-ledger redesign.
 
 ---
 
