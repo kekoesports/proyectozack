@@ -248,6 +248,17 @@ export function buildIssuedInvoicePdfUrl(input: {
   return `/api/admin/facturacion/issued/${input.id}/pdf`;
 }
 
+/**
+ * Auth-proxied receipt URL for internal invoices (never expose private blob URLs).
+ */
+export function buildInvoiceReceiptUrl(input: {
+  readonly id: number;
+  readonly receiptFileUrl: string | null | undefined;
+}): string | null {
+  if (input.receiptFileUrl == null || input.receiptFileUrl.length === 0) return null;
+  return `/api/admin/facturacion/${input.id}/receipt`;
+}
+
 // ── Agregación ──────────────────────────────────────────────────────────────
 
 export type ExpenseSubgroupRow = {

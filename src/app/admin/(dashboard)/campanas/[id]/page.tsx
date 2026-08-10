@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { eq, inArray } from 'drizzle-orm';
 
-import { requirePermission } from '@/lib/permissions';
+import { needsVisibilityFilter, requirePermission } from '@/lib/permissions';
 import { assertCanEditCampaign } from '@/lib/queries/campaigns';
 import { getCampaignWithRelations } from '@/lib/queries/campaigns';
 import { listFilesByEntity } from '@/lib/queries/files';
@@ -33,12 +33,14 @@ export default async function CampaignDetailPage({
   const isManager = role === 'manager';
   const isAdmin = role === 'admin';
 
-  // IDOR guard: staff solo puede ver campañas donde participa.
-  // Ejecutarlo antes de las cargas pesadas evita trabajo inútil en requests no autorizadas.
-  try {
-    await assertCanEditCampaign(campaignId, { userId: session.user.id, role });
-  } catch {
-    notFound();
+  // IDOR: only staff is ownership-scoped. finance/ops/tm have campanas:read
+  // agency-wide (e.g. issue invoices from deal) and must not be blocked here.
+  if (needsVisibilityFilter(role)) {
+    try {
+      await assertCanEditCampaign(campaignId, { userId: session.user.id, role });
+    } catch {
+      notFound();
+    }
   }
 
   const [

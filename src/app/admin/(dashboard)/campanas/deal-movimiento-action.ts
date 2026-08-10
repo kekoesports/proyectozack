@@ -4,6 +4,8 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod/v4';
 import { requirePermission } from '@/lib/permissions';
 import { createInvoice } from '@/lib/queries/invoices';
+import { assertCanEditCampaign } from '@/lib/queries/campaigns';
+import { isSettledInvoiceStatus } from '@/lib/utils/invoice-status';
 import {
   INVOICE_KINDS,
   INVOICE_STATUSES,
@@ -38,7 +40,7 @@ export type MovimientoResult =
 export async function addDealMovimientoAction(
   input: MovimientoInput,
 ): Promise<MovimientoResult> {
-  await requirePermission('campanas', 'write');
+  const session = await requirePermission('campanas', 'write');
 
   const parsed = movimientoSchema.safeParse(input);
   if (!parsed.success) {
@@ -46,6 +48,28 @@ export async function addDealMovimientoAction(
   }
 
   const d = parsed.data;
+
+  try {
+    await assertCanEditCampaign(d.campaignId, {
+      userId: session.user.id,
+      role: session.user.role,
+    });
+  } catch {
+    return { success: false, error: 'No tienes permiso sobre este trato' };
+  }
+
+  // Settled ledger rows are finance-grade — require facturacion:write.
+  if (isSettledInvoiceStatus(d.status)) {
+    try {
+      await requirePermission('facturacion', 'write');
+    } catch {
+      return {
+        success: false,
+        error: 'Marcar cobrada/pagada requiere permiso de facturación',
+      };
+    }
+  }
+
   const amt = d.totalAmount.toFixed(2);
 
   const invoice = await createInvoice({

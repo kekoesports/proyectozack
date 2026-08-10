@@ -1,4 +1,4 @@
-import { and, eq, ilike, ne, isNull, or, asc, desc } from 'drizzle-orm';
+import { and, eq, ilike, ne, isNull, or, asc, desc, sql } from 'drizzle-orm';
 
 import { db } from '@/lib/db';
 import {
@@ -108,7 +108,7 @@ export async function globalSearch(
         .orderBy(asc(crmBrands.name))
         .limit(limit),
 
-      // Talents
+      // Talents (staff: only talents linked via owned campaigns)
       db
         .select({
           id: talents.id,
@@ -116,7 +116,20 @@ export async function globalSearch(
           slug: talents.slug,
         })
         .from(talents)
-        .where(or(ilike(talents.name, pattern), ilike(talents.slug, pattern)))
+        .where(
+          and(
+            or(ilike(talents.name, pattern), ilike(talents.slug, pattern)),
+            isStaff(session.role)
+              ? sql`${talents.id} IN (
+                  SELECT DISTINCT ${campaigns.talentId}
+                  FROM ${campaigns}
+                  WHERE ${campaigns.assignedToUserId} = ${session.userId}
+                     OR ${campaigns.createdByUserId} = ${session.userId}
+                     OR ${campaigns.responsibleUserId} = ${session.userId}
+                )`
+              : undefined,
+          ),
+        )
         .orderBy(asc(talents.name))
         .limit(limit),
 

@@ -133,8 +133,8 @@ export async function deleteContractAction(id: number): Promise<ActionState> {
     const contract = await getGeneratedContract(id);
     if (!contract) return { error: 'Contrato no encontrado' };
 
-    if (contract.filePath) {
-      try { await del(contract.filePath); } catch { /* Blob already deleted or missing */ }
+    if (contract.fileUrl) {
+      try { await del(contract.fileUrl); } catch { /* Blob already deleted or missing */ }
     }
 
     await deleteGeneratedContract(id);

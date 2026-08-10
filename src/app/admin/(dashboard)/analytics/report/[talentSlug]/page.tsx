@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation';
+import { requirePermission } from '@/lib/permissions';
 import { getTalentBySlugAdmin } from '@/lib/queries/talents';
 import { getTalentSnapshots } from '@/lib/queries/analytics';
 import { GrowthReport } from '@/features/admin/analytics/components/GrowthReport';
@@ -9,6 +10,8 @@ type ReportPageProps = {
 }
 
 export default async function GrowthReportPage({ params, searchParams }: ReportPageProps) {
+  await requirePermission('analytics', 'read');
+
   const { talentSlug } = await params;
   const { from, to } = await searchParams;
 

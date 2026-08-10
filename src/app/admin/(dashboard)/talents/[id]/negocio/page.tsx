@@ -3,6 +3,8 @@ import { notFound } from 'next/navigation';
 import { db } from '@/lib/db';
 import { talents } from '@/db/schema';
 import { eq } from 'drizzle-orm';
+import { requirePermission } from '@/lib/permissions';
+import { assertCanAccessTalent } from '@/lib/queries/talents';
 import { getTalentBusiness, getTalentVerticals } from '@/lib/queries/talentBusiness';
 import { TalentBusinessForm } from '@/features/admin/talents/components/TalentBusinessForm';
 
@@ -10,6 +12,13 @@ export default async function TalentBusinessPage({ params }: { params: Promise<{
   const { id } = await params;
   const talentId = Number(id);
   if (!Number.isInteger(talentId) || talentId <= 0) notFound();
+
+  const session = await requirePermission('talentos', 'read');
+  try {
+    await assertCanAccessTalent(talentId, { userId: session.user.id, role: session.user.role });
+  } catch {
+    notFound();
+  }
 
   const [talent, business, verticals] = await Promise.all([
     db.query.talents.findFirst({ where: eq(talents.id, talentId) }),

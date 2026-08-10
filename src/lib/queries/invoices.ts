@@ -2,6 +2,10 @@ import { and, desc, eq, sql, gte, lte, ne, ilike, or, inArray, isNull, count } f
 import { db } from '@/lib/db';
 import { invoices, crmBrands, talents, files, campaigns } from '@/db/schema';
 import type { ExpenseSubtypeValue } from '@/lib/schemas/invoice';
+import {
+  ISSUED_MIRROR_CONCEPT_PREFIX,
+  ISSUED_MIRROR_NOTES_PREFIX,
+} from '@/lib/utils/invoice-status';
 import type {
   BillingKPIs,
   Invoice,
@@ -93,6 +97,27 @@ type InvoiceListRow = Invoice & {
   readonly campaignName?: string | null;
 };
 
+/** Strip private blob URLs before serializing invoices to the client. Presence flags stay via non-null proxy paths / file ids. */
+function redactPrivateUrls<T extends {
+  fileUrl?: string | null;
+  filePath?: string | null;
+  receiptFileUrl?: string | null;
+  receiptFilePath?: string | null;
+}>(row: T): T {
+  return {
+    ...row,
+    fileUrl: row.fileUrl ? `__has__` : null,
+    filePath: null,
+    receiptFileUrl: row.receiptFileUrl ? `__has__` : null,
+    receiptFilePath: null,
+  };
+}
+
+function redactFileRecord(f: FileRecord | null | undefined): FileRecord | null {
+  if (!f) return null;
+  return { ...f, url: `/api/admin/files/${f.id}`, path: null };
+}
+
 async function attachFiles(rows: readonly InvoiceListRow[]): Promise<readonly InvoiceWithRelations[]> {
   const fileIds = new Set<number>();
   for (const row of rows) {
@@ -100,7 +125,12 @@ async function attachFiles(rows: readonly InvoiceListRow[]): Promise<readonly In
     if (row.statementFileId !== null && row.statementFileId !== undefined) fileIds.add(row.statementFileId);
   }
   if (fileIds.size === 0) {
-    return rows.map((row) => ({ ...row, campaignName: row.campaignName ?? null, invoiceFile: null, statementFile: null }));
+    return rows.map((row) => ({
+      ...redactPrivateUrls(row),
+      campaignName: row.campaignName ?? null,
+      invoiceFile: null,
+      statementFile: null,
+    }));
   }
   const fileRows = await db
     .select()
@@ -108,10 +138,10 @@ async function attachFiles(rows: readonly InvoiceListRow[]): Promise<readonly In
     .where(inArray(files.id, Array.from(fileIds)));
   const byId = new Map<number, FileRecord>(fileRows.map((f) => [f.id, f]));
   return rows.map((row) => ({
-    ...row,
+    ...redactPrivateUrls(row),
     campaignName: row.campaignName ?? null,
-    invoiceFile: row.invoiceFileId !== null ? byId.get(row.invoiceFileId) ?? null : null,
-    statementFile: row.statementFileId !== null ? byId.get(row.statementFileId) ?? null : null,
+    invoiceFile: redactFileRecord(row.invoiceFileId !== null ? byId.get(row.invoiceFileId) ?? null : null),
+    statementFile: redactFileRecord(row.statementFileId !== null ? byId.get(row.statementFileId) ?? null : null),
   }));
 }
 
@@ -214,13 +244,14 @@ export async function getBillingKPIs(from?: string, to?: string): Promise<Billin
 
   const [row] = await db
     .select({
-      incomeTotal: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind} = 'income' AND ${invoices.status} != 'anulada' THEN ${invoices.totalAmount} ELSE 0 END), 0)::text`,
+      // Exclude issued→internal auto-mirrors from income totals (dual-ledger).
+      incomeTotal: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind} = 'income' AND ${invoices.status} != 'anulada' AND NOT (${invoices.notes} LIKE ${ISSUED_MIRROR_NOTES_PREFIX + '%'} OR ${invoices.concept} LIKE ${ISSUED_MIRROR_CONCEPT_PREFIX + '%'}) THEN ${invoices.totalAmount} ELSE 0 END), 0)::text`,
       expenseTotal: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind} = 'expense' AND ${invoices.status} != 'anulada' THEN ${invoices.totalAmount} ELSE 0 END), 0)::text`,
-      pendingCobro: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind}='income' AND ${invoices.status} IN ('no_cobrado','pendiente','emitida','no_cobrada') THEN ${invoices.totalAmount} ELSE 0 END),0)::text`,
-      pendingPago: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind}='expense' AND ${invoices.status} IN ('no_pagado','pendiente','emitida','no_pagada') THEN ${invoices.totalAmount} ELSE 0 END),0)::text`,
+      pendingCobro: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind}='income' AND ${invoices.status} IN ('no_cobrado','pendiente','emitida','no_cobrada','parcial','vencida') AND NOT (${invoices.notes} LIKE ${ISSUED_MIRROR_NOTES_PREFIX + '%'} OR ${invoices.concept} LIKE ${ISSUED_MIRROR_CONCEPT_PREFIX + '%'}) THEN ${invoices.totalAmount} ELSE 0 END),0)::text`,
+      pendingPago: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind}='expense' AND ${invoices.status} IN ('no_pagado','pendiente','emitida','no_pagada','parcial','vencida') THEN ${invoices.totalAmount} ELSE 0 END),0)::text`,
       gastosCampana: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind}='expense' AND ${invoices.scope}='campaign' AND ${invoices.status}!='anulada' THEN ${invoices.totalAmount} ELSE 0 END),0)::text`,
       gastosEmpresa: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind}='expense' AND ${invoices.scope}='company' AND ${invoices.status}!='anulada' THEN ${invoices.totalAmount} ELSE 0 END),0)::text`,
-      incomeSettled: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind}='income' AND ${invoices.status} IN ('cobrada','pagada') THEN ${invoices.totalAmount} ELSE 0 END),0)::text`,
+      incomeSettled: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind}='income' AND ${invoices.status} IN ('cobrada','pagada') AND NOT (${invoices.notes} LIKE ${ISSUED_MIRROR_NOTES_PREFIX + '%'} OR ${invoices.concept} LIKE ${ISSUED_MIRROR_CONCEPT_PREFIX + '%'}) THEN ${invoices.totalAmount} ELSE 0 END),0)::text`,
       expenseCampanaSettled: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind}='expense' AND ${invoices.scope}='campaign' AND ${invoices.status} IN ('cobrada','pagada') THEN ${invoices.totalAmount} ELSE 0 END),0)::text`,
       expenseEmpresaSettled: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind}='expense' AND ${invoices.scope}='company' AND ${invoices.status} IN ('cobrada','pagada') THEN ${invoices.totalAmount} ELSE 0 END),0)::text`,
     })

@@ -25,7 +25,10 @@ export async function createInvoiceFromDealAction(
   issuerId: number,
   forceCreate = false,
 ): Promise<Result> {
-  const session = await requirePermission('campanas', 'delete');
+  // Issuing fiscal invoices requires facturacion write (not campanas:delete).
+  // facturacion:write is agency-wide (admin/manager/finance) — do NOT require
+  // campaign ownership here; that blocked finance who are never campaign assignees.
+  const session = await requirePermission('facturacion', 'write');
 
   const campaign = await getCampaignWithRelations(campaignId);
   if (!campaign) return { error: 'Trato no encontrado' };

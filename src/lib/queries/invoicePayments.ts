@@ -154,11 +154,17 @@ export async function applyPaymentToInternalInvoice(opts: {
     }
     invoiceNumber = invoice.number;
 
-    // 2) Para internal invoices leemos paidAmount (mirror del write) para
-    //    no ignorar datos legacy previos a invoice_payments (ver
-    //    `@deprecated` en el schema — cleanup en otra PR). Tras el lock
-    //    nadie puede actualizar paidAmount hasta commit.
-    const previouslyPaid = invoice.paidAmount ?? '0';
+    // 2) Canonical paid total = SUM(invoice_payments). Fall back to paidAmount
+    //    only when no payment rows exist (legacy pre-payments data).
+    const sumRows = await tx
+      .select({ total: sum(invoicePayments.amount) })
+      .from(invoicePayments)
+      .where(eq(invoicePayments.invoiceId, invoiceId));
+    const sumPaid = sumRows[0]?.total;
+    const previouslyPaid =
+      sumPaid != null && Number(sumPaid) > 0
+        ? String(sumPaid)
+        : (invoice.paidAmount ?? '0');
 
     // 3) Guards con el estado real bloqueado.
     assertInvoicePayable({

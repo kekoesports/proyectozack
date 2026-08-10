@@ -21,10 +21,14 @@ import {
   getBillingClient,
   getIssuerCompany,
 } from '@/lib/queries/issuedInvoices';
-import { createInvoice, listInvoices } from '@/lib/queries/invoices';
+import { createInvoice } from '@/lib/queries/invoices';
 import { sendInvoiceEmail } from '@/lib/email';
 import { createTask } from '@/lib/queries/crmTasks';
 import { getIsoWeekLabel } from '@/lib/utils/week';
+import {
+  ISSUED_MIRROR_CONCEPT_PREFIX,
+  ISSUED_MIRROR_NOTES_PREFIX,
+} from '@/lib/utils/invoice-status';
 import {
   createIssuedInvoiceSchema,
   updateIssuedInvoiceSchema,
@@ -34,6 +38,9 @@ import {
   ISSUED_INVOICE_STATUSES,
   type InvoiceLineInput,
 } from '@/lib/schemas/issuedInvoice';
+import { db } from '@/lib/db';
+import { invoices } from '@/db/schema';
+import { and, eq } from 'drizzle-orm';
 
 type ActionState = { readonly error?: string; readonly success?: boolean; readonly id?: number };
 
@@ -274,35 +281,43 @@ export async function updateInvoiceStatusAction(id: number, status: string): Pro
 
     if (statusCheck.data === 'cobrada' && inv && Number(inv.totalAmount) > 0 && !inv.rectifiedInvoiceId) {
       const today     = new Date().toISOString().slice(0, 10);
-      const conceptId = `Factura emitida — ${inv.invoiceNumber}`;
+      const conceptId = `${ISSUED_MIRROR_CONCEPT_PREFIX}${inv.invoiceNumber}`;
+      const notesId   = `${ISSUED_MIRROR_NOTES_PREFIX} ${inv.invoiceNumber}`;
 
-      const existingMov = await listInvoices({ search: inv.invoiceNumber });
-      const duplicate   = existingMov.find(
-        (m) => m.kind === 'income' && m.concept.includes(inv.invoiceNumber),
-      );
+      // Exact concept match (not ILIKE search) — reduces race duplicates.
+      const [existingMov] = await db
+        .select({ id: invoices.id })
+        .from(invoices)
+        .where(and(eq(invoices.kind, 'income'), eq(invoices.concept, conceptId)))
+        .limit(1);
 
-      if (!duplicate) {
-        await createInvoice({
-          kind:            'income',
-          scope:           inv.relatedDealId != null ? 'campaign' : 'company',
-          concept:         conceptId,
-          issueDate:       inv.issueDate ?? today,
-          dueDate:         inv.dueDate  ?? undefined,
-          paidDate:        today,
-          status:          'cobrada',
-          netAmount:       String(inv.netAmount       ?? inv.totalAmount),
-          vatPct:          String(inv.vatRate          ?? '0'),
-          withholdingPct:  String(inv.withholdingRate  ?? '0'),
-          totalAmount:     String(inv.totalAmount),
-          paidAmount:      String(inv.totalAmount),
-          currency:        inv.currency  ?? 'EUR',
-          series:          inv.series    ?? 'I',
-          brandId:         inv.relatedBrandId  ?? undefined,
-          talentId:        inv.relatedTalentId ?? undefined,
-          campaignId:      inv.relatedDealId   ?? undefined,
-          notes:           `Creado automáticamente al marcar cobrada la factura ${inv.invoiceNumber}`,
-          createdByUserId: session.user.id,
-        });
+      if (!existingMov) {
+        try {
+          await createInvoice({
+            kind:            'income',
+            scope:           inv.relatedDealId != null ? 'campaign' : 'company',
+            concept:         conceptId,
+            issueDate:       inv.issueDate ?? today,
+            dueDate:         inv.dueDate  ?? undefined,
+            paidDate:        today,
+            status:          'cobrada',
+            netAmount:       String(inv.netAmount       ?? inv.totalAmount),
+            vatPct:          String(inv.vatRate          ?? '0'),
+            withholdingPct:  String(inv.withholdingRate  ?? '0'),
+            totalAmount:     String(inv.totalAmount),
+            paidAmount:      String(inv.totalAmount),
+            currency:        inv.currency  ?? 'EUR',
+            series:          inv.series    ?? 'I',
+            brandId:         inv.relatedBrandId  ?? undefined,
+            talentId:        inv.relatedTalentId ?? undefined,
+            campaignId:      inv.relatedDealId   ?? undefined,
+            notes:           notesId,
+            createdByUserId: session.user.id,
+          });
+        } catch (mirrorErr) {
+          // Concurrent double-click: lose the race silently.
+          logRedacted('warn', '[issued-invoices] mirror insert skipped:', mirrorErr instanceof Error ? mirrorErr.message : 'unknown');
+        }
       }
     }
 

@@ -56,16 +56,37 @@ export default async function AdminDashboardPage(): Promise<ReactElement> {
   const zeroDeals: Awaited<ReturnType<typeof getDealStats>> = { yearlyDeals: 0, activeDeals: 0 };
   const emptyPipeline: Awaited<ReturnType<typeof getPipelineHistoryAll>> = { d7: [], d30: [], d90: [] };
 
+  const staffSession = isStaff
+    ? { userId: session.user.id, role: session.user.role }
+    : undefined;
+  const staffUserId = isStaff ? session.user.id : undefined;
+
+  // Staff: skip company-wide counts (talents/giveaways/contacts) — only personal CRM slice.
+  const emptyAdminData: Awaited<ReturnType<typeof getAdminDashboardData>> = {
+    stats: {
+      talentCount: 0,
+      publicCount: 0,
+      internalCount: 0,
+      agencyCount: 0,
+      caseCount: 0,
+      contactCount: 0,
+      activeBrandCount: 0,
+      activeGiveawayCount: 0,
+      followersByPlatform: {},
+    },
+    topCreators: [],
+  };
+
   const [{ stats }, brandCounts, pendingTasks, followups, revenue, deals, { alerts, summary: alertSummary }, pipelineTotal, activity, insights, pipelineHistory] = await Promise.all([
-    getAdminDashboardData(),
-    getCrmBrandCounts(),
-    getDashboardPendingTasks(weekLabel),
-    getDashboardUpcomingFollowups(8),
+    isStaff ? Promise.resolve(emptyAdminData) : getAdminDashboardData(),
+    getCrmBrandCounts(staffUserId ? { staffUserId } : undefined),
+    getDashboardPendingTasks(weekLabel, 6, staffSession),
+    getDashboardUpcomingFollowups(8, staffUserId ? { staffUserId } : undefined),
     isStaff ? Promise.resolve(zeroRevenue) : getMonthlyRevenue(),
     isStaff ? Promise.resolve(zeroDeals) : getDealStats(),
     getDashboardAlerts(isStaff ? { staffUserId: session.user.id, skipFinancial: true } : undefined),
     isStaff ? Promise.resolve(0) : getPendingBrandPaymentsTotal(),
-    getDashboardActivity(5),
+    getDashboardActivity(5, staffUserId ? { staffUserId, skipFinancial: true } : undefined),
     isStaff ? Promise.resolve([]) : getDashboardInsights(),
     isStaff ? Promise.resolve(emptyPipeline) : getPipelineHistoryAll(),
   ]);
@@ -132,18 +153,30 @@ export default async function AdminDashboardPage(): Promise<ReactElement> {
             />
           </>
         ) : null}
-        <StatCard
-          label="Influencers"
-          value={stats.talentCount}
-          description={`${stats.publicCount} pub · ${stats.internalCount} int`}
-          icon={<TalentIcon />}
-          accent="#f5632a"
-          href="/admin/talents"
-        />
+        {!isStaff ? (
+          <>
+            <StatCard
+              label="Influencers"
+              value={stats.talentCount}
+              description={`${stats.publicCount} pub · ${stats.internalCount} int`}
+              icon={<TalentIcon />}
+              accent="#f5632a"
+              href="/admin/talents"
+            />
+            <StatCard
+              label="Sorteos"
+              value={stats.activeGiveawayCount}
+              description="Giveaways activos"
+              icon={<GiveawayIcon />}
+              accent="#5b9bd5"
+              href="/admin/giveaways"
+            />
+          </>
+        ) : null}
         <StatCard
           label="Marcas activas"
           value={brandCounts.activa}
-          description="Con campaña en curso"
+          description={isStaff ? 'Asignadas a ti' : 'Con campaña en curso'}
           icon={<BrandIcon />}
           accent="#5b9bd5"
           href="/admin/brands"
@@ -151,18 +184,10 @@ export default async function AdminDashboardPage(): Promise<ReactElement> {
         <StatCard
           label="Leads CRM"
           value={brandCounts.lead}
-          description="En negociación"
+          description={isStaff ? 'Asignados a ti' : 'En negociación'}
           icon={<BrandIcon />}
           accent="#c42880"
           href="/admin/brands"
-        />
-        <StatCard
-          label="Sorteos"
-          value={stats.activeGiveawayCount}
-          description="Giveaways activos"
-          icon={<GiveawayIcon />}
-          accent="#5b9bd5"
-          href="/admin/giveaways"
         />
       </div>
 

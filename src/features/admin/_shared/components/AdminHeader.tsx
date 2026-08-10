@@ -9,12 +9,11 @@ import type { DashboardAlert, AlertSeverity } from '@/lib/queries/alerts';
 
 // ── Quick actions ─────────────────────────────────────────────────────
 
-const QUICK_ACTIONS = [
-  { label: 'Nueva tarea',   href: '/admin/tareas',      emoji: '✓' },
-  { label: 'Nueva marca',   href: '/admin/brands',      emoji: '🏢' },
-  { label: 'Nueva factura', href: '/admin/facturacion', emoji: '€' },
-  { label: 'Nuevo talento', href: '/admin/talents',     emoji: '⭐' },
-] as const;
+export type HeaderQuickAction = {
+  readonly label: string;
+  readonly href: string;
+  readonly emoji: string;
+};
 
 // ── Alert helpers ─────────────────────────────────────────────────────
 
@@ -67,6 +66,8 @@ type Props = {
   readonly onDismissAllAlerts?: () => Promise<{ error?: string }>;
   /** When set, GlobalSearch is hidden for roles blocked by adminProcedure. */
   readonly userRole?: string;
+  /** Permission-filtered quick actions (from server layout). */
+  readonly quickActions?: readonly HeaderQuickAction[];
 };
 
 // ── Alert dropdown item ───────────────────────────────────────────────
@@ -176,6 +177,7 @@ export function AdminHeader({
   onDismissAlert,
   onDismissAllAlerts,
   userRole,
+  quickActions = [],
 }: Props): React.ReactElement {
   const [showActions, setShowActions] = useState(false);
   const [showAlerts,  setShowAlerts]  = useState(false);
@@ -219,7 +221,8 @@ export function AdminHeader({
       {/* Acciones derechas */}
       <div className="flex items-center gap-2 ml-auto">
 
-        {/* + Acciones rápidas */}
+        {/* + Acciones rápidas (permission-filtered) */}
+        {quickActions.length > 0 && (
         <div className="relative hidden sm:block">
           <button
             type="button"
@@ -234,7 +237,7 @@ export function AdminHeader({
 
           {showActions && (
             <div className="absolute right-0 top-full mt-1 w-48 bg-sp-admin-card border border-sp-admin-border rounded-xl shadow-lg z-50 py-1 overflow-hidden">
-              {QUICK_ACTIONS.map((a) => (
+              {quickActions.map((a) => (
                 <Link
                   key={a.href}
                   href={a.href}
@@ -248,6 +251,7 @@ export function AdminHeader({
             </div>
           )}
         </div>
+        )}
 
         {/* 🔔 Campana con badge y dropdown */}
         <div className="relative">

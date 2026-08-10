@@ -389,15 +389,19 @@ function BriefReadView({ brief, brandId, isAdmin, onEdit }: {
       )}
 
       {/* Archivo adjunto */}
-      {brief.sourceFileUrl && (
+      {(brief.sourceFileUrl || brief.sourceFileName) && (
         <div className="flex items-center gap-3 rounded-xl border border-sp-admin-border bg-sp-admin-hover/20 px-4 py-3">
           <span className="text-xl" aria-hidden>{fileIcon(brief.sourceFileMime ?? null)}</span>
           <div className="flex-1 min-w-0">
             <p className="text-[12px] font-semibold text-sp-admin-text truncate">{brief.sourceFileName ?? 'Archivo adjunto'}</p>
             <p className="text-[10px] text-sp-admin-muted">{brief.sourceFileMime ?? ''}</p>
           </div>
-          <a href={brief.sourceFileUrl} target="_blank" rel="noopener noreferrer"
-            className="text-[11px] font-bold text-sp-admin-accent hover:underline shrink-0">
+          <a
+            href={`/api/admin/briefs/${brief.id}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[11px] font-bold text-sp-admin-accent hover:underline shrink-0"
+          >
             Abrir →
           </a>
         </div>

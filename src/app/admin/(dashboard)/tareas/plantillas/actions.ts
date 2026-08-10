@@ -2,8 +2,8 @@
 
 import { revalidatePath } from 'next/cache';
 
+import { requireAnyRole } from '@/lib/auth-guard';
 import { requirePermission } from '@/lib/permissions';
-import { assertCanDelete } from '@/lib/permissions';
 import { parseFormData } from '@/lib/forms/parseFormData';
 import { firstError } from '@/lib/forms/firstError';
 import { logRedacted } from '@/lib/log';
@@ -16,8 +16,17 @@ type ActionResult = { readonly error?: string };
 
 const REVALIDATE = '/admin/tareas/plantillas';
 
+/** Global template definitions — same gate as tareas/actions TEMPLATE_MANAGER_ROLES. */
+const TEMPLATE_MANAGER_ROLES = [
+  'admin',
+  'admin_limited_tasks',
+  'manager',
+  'ops',
+] as const;
+
 export async function createTaskTemplateAction(formData: FormData): Promise<ActionResult> {
-  await requirePermission('tareas', 'write');
+  // Not tareas:write — staff/editor/tm gained write for own tasks only.
+  await requireAnyRole(TEMPLATE_MANAGER_ROLES, '/admin/login');
 
   const parsed = parseFormData(formData, createTaskTemplateSchema);
   if (!parsed.ok) return { error: firstError(parsed.fieldErrors) };
@@ -37,7 +46,7 @@ export async function createTaskTemplateAction(formData: FormData): Promise<Acti
 }
 
 export async function updateTaskTemplateAction(formData: FormData): Promise<ActionResult> {
-  await requirePermission('tareas', 'write');
+  await requireAnyRole(TEMPLATE_MANAGER_ROLES, '/admin/login');
 
   const parsed = parseFormData(formData, updateTaskTemplateSchema);
   if (!parsed.ok) return { error: firstError(parsed.fieldErrors) };
@@ -58,12 +67,7 @@ export async function updateTaskTemplateAction(formData: FormData): Promise<Acti
 }
 
 export async function deleteTaskTemplateAction(id: number): Promise<ActionResult> {
-  const session = await requirePermission('tareas', 'write');
-  try {
-    assertCanDelete(session.user.role);
-  } catch {
-    return { error: 'Sin permiso para eliminar' };
-  }
+  await requirePermission('tareas', 'delete');
   try {
     await deleteTaskTemplate(id);
     revalidatePath(REVALIDATE);

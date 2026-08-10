@@ -132,6 +132,43 @@ export async function createTalentAction(
       });
     }
 
+    // Verticals from modal (comma-separated)
+    const verticalsRaw = String(formData.get('verticals') ?? '');
+    if (verticalsRaw.trim()) {
+      const { TALENT_VERTICALS } = await import('@/lib/schemas/talentBusiness');
+      const { setTalentVerticals } = await import('@/lib/queries/talentBusiness');
+      const verticals = verticalsRaw
+        .split(',')
+        .map((v) => v.trim())
+        .filter((v): v is (typeof TALENT_VERTICALS)[number] =>
+          (TALENT_VERTICALS as readonly string[]).includes(v),
+        );
+      if (verticals.length > 0) {
+        await setTalentVerticals(inserted.id, verticals);
+      }
+    }
+
+    // Contacts from modal → talent_business
+    const contactPatch: {
+      contactEmail?: string;
+      telegram?: string;
+      whatsapp?: string;
+      discord?: string;
+    } = {};
+    for (let i = 1; i <= 4; i++) {
+      const type = String(formData.get(`contact_${i}_type`) ?? '').trim();
+      const value = String(formData.get(`contact_${i}_value`) ?? '').trim();
+      if (!type || !value) continue;
+      if (type === 'email' && !contactPatch.contactEmail) contactPatch.contactEmail = value;
+      else if (type === 'telegram' && !contactPatch.telegram) contactPatch.telegram = value;
+      else if (type === 'whatsapp' && !contactPatch.whatsapp) contactPatch.whatsapp = value;
+      else if (type === 'discord' && !contactPatch.discord) contactPatch.discord = value;
+    }
+    if (Object.keys(contactPatch).length > 0) {
+      const { upsertTalentBusiness } = await import('@/lib/queries/talentBusiness');
+      await upsertTalentBusiness(inserted.id, contactPatch);
+    }
+
     revalidatePath('/admin/talents');
     return { success: true };
   } catch (err) {
@@ -190,8 +227,9 @@ type GeoEntry = { country: string; pct: number };
 export async function updateSocialGeoAction(
   socialId: number,
   topGeos: readonly GeoEntry[],
+  talentId?: number,
 ): Promise<ActionState> {
-  await requirePermission('talentos', 'read');
+  const session = await requirePermission('talentos', 'write');
   if (!socialId) return { success: false, error: 'ID inválido' };
 
   const cleaned: GeoEntry[] = [];
@@ -204,11 +242,25 @@ export async function updateSocialGeoAction(
   }
 
   try {
+    const [row] = await db
+      .select({ id: talentSocials.id, talentId: talentSocials.talentId })
+      .from(talentSocials)
+      .where(eq(talentSocials.id, socialId))
+      .limit(1);
+    if (!row) return { success: false, error: 'Red social no encontrada' };
+    if (talentId !== undefined && row.talentId !== talentId) {
+      return { success: false, error: 'Red social no pertenece al talento' };
+    }
+
+    const { assertCanAccessTalent } = await import('@/lib/queries/talents');
+    await assertCanAccessTalent(row.talentId, { userId: session.user.id, role: session.user.role });
+
     await db
       .update(talentSocials)
       .set({ topGeos: cleaned.length > 0 ? cleaned : null })
-      .where(eq(talentSocials.id, socialId));
+      .where(and(eq(talentSocials.id, socialId), eq(talentSocials.talentId, row.talentId)));
     revalidatePath('/admin/talents');
+    revalidatePath(`/admin/talents/${row.talentId}`);
     return { success: true };
   } catch (err) {
     logRedacted('error', '[admin] updateSocialGeo error:', err);
@@ -220,15 +272,21 @@ export async function updateTalentStatsAction(
   talentId: number,
   entries: Array<{ id: number; value: string }>,
 ): Promise<{ ok: boolean; error?: string }> {
-  await requirePermission('talentos', 'write');
+  const session = await requirePermission('talentos', 'write');
   if (!talentId) return { ok: false, error: 'ID inválido' };
   try {
+    const { assertCanAccessTalent } = await import('@/lib/queries/talents');
+    await assertCanAccessTalent(talentId, { userId: session.user.id, role: session.user.role });
+
     const current = await db.select({ slug: talents.slug }).from(talents).where(eq(talents.id, talentId)).limit(1);
     const slug = current[0]?.slug;
     for (const entry of entries) {
       const val = entry.value.trim();
       if (!val) continue;
-      await db.update(talentStats).set({ value: val }).where(eq(talentStats.id, entry.id));
+      await db
+        .update(talentStats)
+        .set({ value: val })
+        .where(and(eq(talentStats.id, entry.id), eq(talentStats.talentId, talentId)));
     }
     revalidatePath(`/admin/talents/${talentId}`);
     revalidatePath('/talentos');
@@ -476,7 +534,9 @@ export async function upsertTalentSocialsAction(
   entries: SocialEntryInput[],
 ): Promise<{ ok: true } | { ok: false; error: string }> {
   try {
-    await requirePermission('talentos', 'write');
+    const session = await requirePermission('talentos', 'write');
+    const { assertCanAccessTalent } = await import('@/lib/queries/talents');
+    await assertCanAccessTalent(talentId, { userId: session.user.id, role: session.user.role });
 
     const talent = await db.query.talents.findFirst({ where: eq(talents.id, talentId) });
     if (!talent) return { ok: false, error: 'Talento no encontrado.' };
@@ -488,7 +548,11 @@ export async function upsertTalentSocialsAction(
     const keptIds: number[] = [];
 
     for (const [i, entry] of entries.entries()) {
-      const platform = entry.platform.trim().toLowerCase();
+      const platformParsed = SocialPlatformSchema.safeParse(entry.platform.trim().toLowerCase());
+      if (!platformParsed.success) {
+        return { ok: false, error: `Plataforma no válida: ${entry.platform}` };
+      }
+      const platform = platformParsed.data;
       const handle   = entry.handle.trim();
       const profileUrl = entry.profileUrl?.trim() || null;
       const followersDisplay = entry.followersDisplay?.trim() || '-';
@@ -496,10 +560,11 @@ export async function upsertTalentSocialsAction(
       const sortOrder = entry.sortOrder ?? i;
 
       if (entry.id) {
-        await db.update(talentSocials)
+        const updated = await db.update(talentSocials)
           .set({ platform, handle, profileUrl, followersDisplay, hexColor, sortOrder })
-          .where(eq(talentSocials.id, entry.id));
-        keptIds.push(entry.id);
+          .where(and(eq(talentSocials.id, entry.id), eq(talentSocials.talentId, talentId)))
+          .returning({ id: talentSocials.id });
+        if (updated[0]) keptIds.push(updated[0].id);
       } else {
         const [inserted] = await db.insert(talentSocials).values({
           talentId, platform, handle, profileUrl: profileUrl ?? undefined,
@@ -509,11 +574,13 @@ export async function upsertTalentSocialsAction(
       }
     }
 
-    // Borrar redes eliminadas
+    // Borrar redes eliminadas (scoped to this talent)
     const existing = await db.select({ id: talentSocials.id }).from(talentSocials).where(eq(talentSocials.talentId, talentId));
     const toDelete = existing.map((s) => s.id).filter((sid) => !keptIds.includes(sid));
     if (toDelete.length > 0) {
-      await db.delete(talentSocials).where(inArray(talentSocials.id, toDelete));
+      await db.delete(talentSocials).where(
+        and(eq(talentSocials.talentId, talentId), inArray(talentSocials.id, toDelete)),
+      );
     }
 
     revalidatePath(`/admin/talents/${talentId}`);
@@ -559,15 +626,22 @@ export async function removeTalentTagAction(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  await requirePermission('talentos', 'write');
+  const session = await requirePermission('talentos', 'write');
   const parsed = RemoveTagSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { success: false, error: firstError(parsed.error.flatten().fieldErrors) };
 
   const { tagId, talentId } = parsed.data;
+  try {
+    const { assertCanAccessTalent } = await import('@/lib/queries/talents');
+    await assertCanAccessTalent(talentId, { userId: session.user.id, role: session.user.role });
+  } catch {
+    return { success: false, error: 'Sin permiso sobre este talento' };
+  }
+
   const talent = await db.query.talents.findFirst({ where: eq(talents.id, talentId), columns: { slug: true } });
   if (!talent) return { success: false, error: 'Talento no encontrado.' };
 
-  await db.delete(talentTags).where(eq(talentTags.id, tagId));
+  await db.delete(talentTags).where(and(eq(talentTags.id, tagId), eq(talentTags.talentId, talentId)));
 
   revalidatePath(`/admin/talents/${talentId}/edit`);
   revalidatePath(`/admin/talents/${talentId}`);

@@ -1,7 +1,6 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { requirePermission } from '@/lib/permissions';
-import { needsVisibilityFilter } from '@/lib/permissions';
 import { env } from '@/lib/env';
 import { getTalentById } from '@/lib/queries/talents';
 import { getTalentBusiness, getTalentVerticals } from '@/lib/queries/talentBusiness';
@@ -55,9 +54,14 @@ export default async function TalentProfilePage({
     : undefined;
 
   // Filtro IDOR: staff solo puede ver talentos con los que tiene campañas asignadas.
-  if (needsVisibilityFilter(session.user.role)) {
-    const visible = await listCampaigns({ filters: { talentId }, ...staffOpts });
-    if (visible.length === 0) notFound();
+  try {
+    const { assertCanAccessTalent } = await import('@/lib/queries/talents');
+    await assertCanAccessTalent(talentId, {
+      userId: session.user.id,
+      role: session.user.role,
+    });
+  } catch {
+    notFound();
   }
 
   const [talent, business, verticals, campaigns, invoices, liveStatus, fallbackCount, giveaways, codes, brandCatalog, trackers] = await Promise.all([

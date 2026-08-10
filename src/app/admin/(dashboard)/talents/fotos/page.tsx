@@ -62,8 +62,15 @@ async function loadTalents(): Promise<Row[]> {
 }
 
 export default async function TalentsPhotosPage(): Promise<React.ReactElement> {
-  await requirePermission('talentos', 'read');
-  const all = await loadTalents();
+  const session = await requirePermission('talentos', 'read');
+  const { listVisibleTalentIds } = await import('@/lib/queries/talents');
+  const visibleIds = await listVisibleTalentIds({
+    userId: session.user.id,
+    role: session.user.role,
+  });
+  const loaded = await loadTalents();
+  const allow = visibleIds ? new Set(visibleIds) : null;
+  const all = allow ? loaded.filter((t) => allow.has(t.id)) : loaded;
 
   // Categorise: in giveaways/codes & no photo, in giveaways/codes & photo, others
   const inHubMissing: Row[] = [];

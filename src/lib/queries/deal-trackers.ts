@@ -56,8 +56,15 @@ export async function createTracker(input: CreateTrackerInput, createdByUserId: 
 
 // ── List ──────────────────────────────────────────────────────────────────────
 
-export async function listTrackers(opts?: { status?: string; limit?: number; offset?: number; search?: string }) {
-  const whereClause = opts?.search
+export async function listTrackers(opts?: {
+  status?: string;
+  limit?: number;
+  offset?: number;
+  search?: string;
+  /** Staff visibility: only trackers linked to owned campaigns (or unlinked). */
+  session?: { userId: string; role: string };
+}) {
+  const searchClause = opts?.search
     ? (() => {
         const q = `%${opts.search}%`;
         const urlSubquery = db
@@ -73,6 +80,19 @@ export async function listTrackers(opts?: { status?: string; limit?: number; off
         );
       })()
     : undefined;
+
+  const staffClause =
+    opts?.session && opts.session.role === 'staff'
+      ? or(
+          // Unlinked trackers are visible (manual ops)
+          isNull(dealDeliverableTrackers.campaignId),
+          eq(campaigns.assignedToUserId, opts.session.userId),
+          eq(campaigns.createdByUserId, opts.session.userId),
+          eq(campaigns.responsibleUserId, opts.session.userId),
+        )
+      : undefined;
+
+  const whereClause = and(searchClause, staffClause);
 
   const rows = await db
     .select({
@@ -144,12 +164,18 @@ export async function getTrackerSubtypeCounts(trackerIds: number[]): Promise<Tra
   return result;
 }
 
-export async function getTrackerWithItems(trackerId: number): Promise<TrackerWithItems | null> {
+export async function getTrackerWithItems(
+  trackerId: number,
+  session?: { userId: string; role: string },
+): Promise<TrackerWithItems | null> {
   const rows = await db
     .select({
       tracker: dealDeliverableTrackers,
       campaignName: campaigns.name,
       talentName: talents.name,
+      assignedToUserId: campaigns.assignedToUserId,
+      createdByUserId: campaigns.createdByUserId,
+      responsibleUserId: campaigns.responsibleUserId,
     })
     .from(dealDeliverableTrackers)
     .leftJoin(campaigns, eq(dealDeliverableTrackers.campaignId, campaigns.id))
@@ -158,6 +184,14 @@ export async function getTrackerWithItems(trackerId: number): Promise<TrackerWit
     .limit(1);
 
   if (!rows[0]) return null;
+
+  if (session?.role === 'staff' && rows[0].tracker.campaignId != null) {
+    const owner =
+      rows[0].assignedToUserId === session.userId ||
+      rows[0].createdByUserId === session.userId ||
+      rows[0].responsibleUserId === session.userId;
+    if (!owner) return null;
+  }
 
   const items = await db
     .select()

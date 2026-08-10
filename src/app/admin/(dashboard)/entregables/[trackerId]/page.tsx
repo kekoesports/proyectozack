@@ -9,13 +9,18 @@ export const dynamic = 'force-dynamic';
 type PageProps = { params: Promise<{ trackerId: string }> };
 
 export default async function TrackerDetailPage({ params }: PageProps) {
-  await requirePermission('campanas', 'read');
+  const session = await requirePermission('campanas', 'read');
 
   const { trackerId } = await params;
   const id = Number(trackerId);
   if (!id || isNaN(id)) notFound();
 
-  const tracker = await getTrackerWithItems(id);
+  const tracker = await getTrackerWithItems(
+    id,
+    session.user.role === 'staff'
+      ? { userId: session.user.id, role: session.user.role }
+      : undefined,
+  );
   if (!tracker) notFound();
 
   return (

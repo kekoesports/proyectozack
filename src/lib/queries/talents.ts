@@ -1,11 +1,60 @@
 import { cache } from 'react';
-import { eq, and, inArray, isNull, sql, count, type SQL } from 'drizzle-orm';
+import { eq, and, inArray, isNull, or, sql, count, type SQL } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { talents, talentTags, talentStats, talentSocials, talentBusiness, talentVerticals, campaigns } from '@/db/schema';
+import { needsVisibilityFilter } from '@/lib/permissions';
 import { parseFollowers, formatFollowers, slugify, initialsOf } from '@/lib/utils/import-utils';
 import { normalizePlatform } from '@/lib/utils/platform';
+import type { Role } from '@/lib/auth-guard';
 import type { TalentWithRelations, TalentBusiness, TalentVertical, TalentSocial, TalentTag } from '@/types';
 import type { Talent } from '@/types';
+
+export type TalentAccessSession = {
+  readonly userId: string;
+  readonly role: Role;
+};
+
+/**
+ * Talent IDs visible to a staff user (via campaign ownership).
+ * Returns `null` when the role sees the full roster (no filter).
+ */
+export async function listVisibleTalentIds(
+  session: TalentAccessSession,
+): Promise<readonly number[] | null> {
+  if (!needsVisibilityFilter(session.role)) return null;
+
+  const rows = await db
+    .selectDistinct({ talentId: campaigns.talentId })
+    .from(campaigns)
+    .where(
+      and(
+        or(
+          eq(campaigns.assignedToUserId, session.userId),
+          eq(campaigns.createdByUserId, session.userId),
+          eq(campaigns.responsibleUserId, session.userId),
+        ),
+      ),
+    );
+
+  return rows
+    .map((r) => r.talentId)
+    .filter((id): id is number => typeof id === 'number' && id > 0);
+}
+
+/**
+ * Throws `forbidden:talent` when staff has no campaign link to the talent.
+ * Non-staff roles pass. Call after requirePermission.
+ */
+export async function assertCanAccessTalent(
+  talentId: number,
+  session: TalentAccessSession,
+): Promise<void> {
+  if (!needsVisibilityFilter(session.role)) return;
+  const visible = await listVisibleTalentIds(session);
+  if (!visible || !visible.includes(talentId)) {
+    throw new Error('forbidden:talent');
+  }
+}
 
 export type TalentFilters = {
   platform?: 'twitch' | 'youtube';
@@ -197,12 +246,20 @@ export type AdminRosterRow = TalentWithRelations & {
  * @visibility admin
  * @returns array de AdminRosterRow (puede ser vacío). Nunca null.
  */
-export async function getAdminRosterWithGrowth(): Promise<AdminRosterRow[]> {
+export async function getAdminRosterWithGrowth(opts?: {
+  /** When set, only these talent IDs are included (staff visibility). */
+  readonly talentIds?: readonly number[] | null;
+}): Promise<AdminRosterRow[]> {
   const { getLatestSnapshots, getEarliestSnapshots } = await import('./analytics');
 
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
   const fromDate = thirtyDaysAgo.toISOString().slice(0, 10);
+
+  // Empty allow-list → empty roster (staff with no campaigns).
+  if (opts?.talentIds && opts.talentIds.length === 0) {
+    return [];
+  }
 
   const [allTalents, latestSnaps, earliestSnaps, activeDealRows] = await Promise.all([
     getAllTalents({ includeArchived: false }),
@@ -214,6 +271,11 @@ export async function getAdminRosterWithGrowth(): Promise<AdminRosterRow[]> {
       .where(inArray(campaigns.status, ['propuesta', 'negociacion', 'aprobada', 'activa']))
       .groupBy(campaigns.talentId),
   ]);
+
+  const allow = opts?.talentIds ? new Set(opts.talentIds) : null;
+  const scopedTalents = allow
+    ? allTalents.filter((t) => allow.has(t.id))
+    : allTalents;
 
   const dealsMap = new Map<number, number>();
   for (const row of activeDealRows) {
@@ -229,7 +291,7 @@ export async function getAdminRosterWithGrowth(): Promise<AdminRosterRow[]> {
     earliestMap.set(`${s.talentId}-${s.platform}`, s.value);
   }
 
-  return allTalents.map((t) => {
+  return scopedTalents.map((t) => {
     const growth: GrowthData[] = [];
 
     for (const platform of ['youtube', 'twitch'] as const) {

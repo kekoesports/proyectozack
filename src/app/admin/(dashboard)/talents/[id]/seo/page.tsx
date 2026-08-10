@@ -16,7 +16,13 @@ export default async function TalentSeoPage({
   const talentId = Number(id);
   if (!Number.isInteger(talentId) || talentId <= 0) notFound();
 
-  await requirePermission('talentos', 'write');
+  const session = await requirePermission('talentos', 'write');
+  try {
+    const { assertCanAccessTalent } = await import('@/lib/queries/talents');
+    await assertCanAccessTalent(talentId, { userId: session.user.id, role: session.user.role });
+  } catch {
+    notFound();
+  }
 
   const [talent, seoContext] = await Promise.all([
     db.query.talents.findFirst({ where: eq(talents.id, talentId) }),

@@ -203,11 +203,11 @@ export async function deleteInvoiceAction(id: number): Promise<ActionState> {
   }
   try {
     const existing = await getInvoice(id);
-    if (existing?.filePath) {
-      try { await del(existing.filePath); } catch { /* ignore */ }
+    if (existing?.fileUrl) {
+      try { await del(existing.fileUrl); } catch { /* ignore */ }
     }
-    if (existing?.receiptFilePath) {
-      try { await del(existing.receiptFilePath); } catch { /* ignore */ }
+    if (existing?.receiptFileUrl) {
+      try { await del(existing.receiptFileUrl); } catch { /* ignore */ }
     }
     await deleteInvoice(id);
     revalidatePath('/admin/facturacion');
@@ -240,8 +240,8 @@ export async function bulkDeleteInvoicesAction(ids: number[]): Promise<ActionSta
   try {
     for (const id of ids) {
       const existing = await getInvoice(id);
-      if (existing?.filePath)        try { await del(existing.filePath);        } catch { /* ignore */ }
-      if (existing?.receiptFilePath) try { await del(existing.receiptFilePath); } catch { /* ignore */ }
+      if (existing?.fileUrl)        try { await del(existing.fileUrl);        } catch { /* ignore */ }
+      if (existing?.receiptFileUrl) try { await del(existing.receiptFileUrl); } catch { /* ignore */ }
       await deleteInvoice(id);
     }
     revalidatePath('/admin/facturacion');

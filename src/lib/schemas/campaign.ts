@@ -128,4 +128,17 @@ export const createCampaignSchema = baseCampaign
 
 export const updateCampaignSchema = baseCampaign.partial().extend({
   id: z.coerce.number().int().positive(),
-});
+}).refine(
+  (v) =>
+    v.amountBrand === undefined ||
+    v.amountTalent === undefined ||
+    v.amountBrand === 0 ||
+    v.amountTalent <= v.amountBrand,
+  { message: 'El pago al talento no puede superar el pago de la marca', path: ['amountTalent'] },
+).refine(
+  (v) =>
+    !v.startDate ||
+    !v.endDate ||
+    v.startDate <= v.endDate,
+  { message: 'La fecha de fin no puede ser anterior a la fecha de inicio', path: ['endDate'] },
+);

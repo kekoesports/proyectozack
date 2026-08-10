@@ -9,7 +9,6 @@ import {
   getUsedCategories,
   getTaskRelatedOptions,
   resolveRelatedLabels,
-  rollOverPendingTasks,
 } from '@/lib/queries/crmTasks';
 import { getEventsForMonth } from '@/lib/queries/crmEvents';
 import { getAllStaffUsers } from '@/lib/queries/staffUsers';
@@ -21,11 +20,7 @@ export const metadata: Metadata = { title: 'Tareas | Admin' };
 export default async function TareasPage(): Promise<ReactElement> {
   const session = await requirePermission('tareas', 'read');
   const weekLabel  = getIsoWeekLabel(new Date());
-  const prevDate   = new Date(); prevDate.setDate(prevDate.getDate() - 7);
-  const prevWeek   = getIsoWeekLabel(prevDate);
-
-  // Auto-rollover silencioso — idempotente: no hace nada si ya se arrastró
-  await rollOverPendingTasks(prevWeek, weekLabel);
+  // Rollover is cron-only (/api/cron/rollover-tasks) — no GET side-effect.
 
   const taskOptions = session.user.role !== 'admin'
     ? { session: { userId: session.user.id, role: session.user.role } }

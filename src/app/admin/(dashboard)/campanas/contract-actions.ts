@@ -48,12 +48,19 @@ function revalidate(campaignId: number): void {
 // ── Subir contrato ────────────────────────────────────────────────────
 
 export async function uploadContractAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
-  const session = await requirePermission('campanas', 'read');
+  const session = await requirePermission('campanas', 'write');
 
   const meta = parseFormData(formData, UploadContractMeta);
   if (!meta.ok) return { error: 'ID de trato inválido' };
   const { campaignId, notes: notesRaw } = meta.data;
   const notes = notesRaw?.trim() || null;
+
+  const { assertCanEditCampaign } = await import('@/lib/queries/campaigns');
+  try {
+    await assertCanEditCampaign(campaignId, { userId: session.user.id, role: session.user.role });
+  } catch {
+    return { error: 'No tienes permiso para editar este trato' };
+  }
 
   const fileEntry = formData.get('file');
   if (!(fileEntry instanceof File)) return { error: 'Selecciona un archivo PDF' };
@@ -72,8 +79,8 @@ export async function uploadContractAction(_prev: ActionState, formData: FormDat
   try {
     const existing = await getContractByCampaign(campaignId);
 
-    if (existing?.filePath) {
-      try { await del(existing.filePath); } catch { /* ignore */ }
+    if (existing?.fileUrl) {
+      try { await del(existing.fileUrl); } catch { /* ignore */ }
     }
 
     const safeName = fileEntry.name.replace(/[^\w.\-]/g, '_');
@@ -107,12 +114,20 @@ export async function uploadContractAction(_prev: ActionState, formData: FormDat
 // ── Añadir firmante ───────────────────────────────────────────────────
 
 export async function addSignerAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
-  await requirePermission('campanas', 'read');
+  const session = await requirePermission('campanas', 'write');
   const parsed = parseFormData(formData, AddSignerInput);
   if (!parsed.ok) return { error: firstError(parsed.fieldErrors) };
   const { contractId, campaignId, name, email, role } = parsed.data;
 
   try {
+    const { assertCanEditCampaign } = await import('@/lib/queries/campaigns');
+    await assertCanEditCampaign(campaignId, { userId: session.user.id, role: session.user.role });
+
+    const existing = await getContractByCampaign(campaignId);
+    if (!existing || existing.id !== contractId) {
+      return { error: 'El contrato no pertenece a este trato' };
+    }
+
     const token = crypto.randomUUID().replace(/-/g, '');
     const row = await addSigner({
       contractId, name, email,
@@ -132,8 +147,16 @@ export async function addSignerAction(_prev: ActionState, formData: FormData): P
 // ── Eliminar firmante ─────────────────────────────────────────────────
 
 export async function removeSignerAction(signerId: number, campaignId: number): Promise<ActionState> {
-  await requirePermission('campanas', 'read');
+  const session = await requirePermission('campanas', 'write');
   try {
+    const { assertCanEditCampaign } = await import('@/lib/queries/campaigns');
+    await assertCanEditCampaign(campaignId, { userId: session.user.id, role: session.user.role });
+
+    const existing = await getContractByCampaign(campaignId);
+    if (!existing?.signers.some((s) => s.id === signerId)) {
+      return { error: 'Firmante no encontrado en este trato' };
+    }
+
     await removeSigner(signerId);
     revalidate(campaignId);
     return { success: true };
@@ -146,10 +169,14 @@ export async function removeSignerAction(signerId: number, campaignId: number): 
 // ── Solicitar firmas ──────────────────────────────────────────────────
 
 export async function requestSignaturesAction(contractId: number, campaignId: number): Promise<ActionState> {
-  await requirePermission('campanas', 'read');
+  const session = await requirePermission('campanas', 'write');
   try {
+    const { assertCanEditCampaign } = await import('@/lib/queries/campaigns');
+    await assertCanEditCampaign(campaignId, { userId: session.user.id, role: session.user.role });
+
     const contract = await (await import('@/lib/queries/contracts')).getContractById(contractId);
     if (!contract) return { error: 'Contrato no encontrado' };
+    if (contract.campaignId !== campaignId) return { error: 'El contrato no pertenece a este trato' };
     if (!contract.fileUrl) return { error: 'Sube el PDF del contrato antes de enviar' };
     if (contract.signers.length === 0) return { error: 'Añade al menos un firmante' };
 

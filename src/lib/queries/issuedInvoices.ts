@@ -200,7 +200,12 @@ export async function listIssuedInvoices(filters: {
     linesByInvoice.set(l.invoiceId, arr);
   }
 
-  return rows.map((r) => ({ ...r, lines: linesByInvoice.get(r.id) ?? [] }));
+  return rows.map((r) => ({
+    ...r,
+    // Never expose private blob URL — UI uses buildIssuedInvoicePdfUrl / proxy.
+    pdfUrl: r.pdfUrl ? `/api/admin/facturacion/issued/${r.id}/pdf` : null,
+    lines: linesByInvoice.get(r.id) ?? [],
+  }));
 }
 
 /** Genera el próximo número de factura para una empresa y lo incrementa atómicamente */

@@ -2,27 +2,17 @@ import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { eq } from 'drizzle-orm';
 
-import { requirePermission, type Module } from '@/lib/permissions';
+import { requirePermission, needsVisibilityFilter, type Module } from '@/lib/permissions';
 import { db } from '@/lib/db';
 import { files } from '@/db/schema/files';
 import { streamPrivateBlob } from '@/lib/files/streamPrivateBlob';
+import type { Role } from '@/lib/auth-guard';
 
 /**
- * Proxy admin para archivos polimórficos almacenados en Vercel Blob privado.
+ * Proxy admin para archivos polimórficos en Vercel Blob privado.
  *
- * Sirve la fila `files.id = :id` — el permiso requerido depende de `files.relatedType`:
- *   talent    → talentos:read
- *   campaign  → campanas:read
- *   brand     → campanas:read  (brands se autoriza en el resto del código con `campanas`)
- *   invoice   → facturacion:read
- *   followup  → tareas:read
- *   task      → tareas:read
- *
- * Cualquier valor no reconocido → 404 (fail-closed).
- *
- * El token de Blob nunca se expone al cliente — se usa server-side para descargar
- * el archivo y se re-streamea con `Cache-Control: private, no-store` +
- * `X-Content-Type-Options: nosniff`.
+ * Module gate by relatedType, then entity ownership for staff.
+ * Fail-closed on unknown relatedType or ownership miss.
  */
 export const dynamic = 'force-dynamic';
 
@@ -34,6 +24,67 @@ const RELATED_TYPE_TO_MODULE: Record<string, Module> = {
   followup: 'tareas',
   task: 'tareas',
 };
+
+async function assertEntityAccess(
+  relatedType: string,
+  relatedId: number,
+  session: { userId: string; role: Role },
+): Promise<boolean> {
+  if (!needsVisibilityFilter(session.role)) return true;
+
+  try {
+    switch (relatedType) {
+      case 'campaign': {
+        const { assertCanEditCampaign } = await import('@/lib/queries/campaigns');
+        await assertCanEditCampaign(relatedId, session);
+        return true;
+      }
+      case 'talent': {
+        const { assertCanAccessTalent } = await import('@/lib/queries/talents');
+        await assertCanAccessTalent(relatedId, session);
+        return true;
+      }
+      case 'brand': {
+        const { getCrmBrandForPermission } = await import('@/lib/queries/crmBrands');
+        const brand = await getCrmBrandForPermission(relatedId);
+        if (!brand) return false;
+        return (
+          brand.assignedToUserId === session.userId ||
+          brand.coAssignedToUserId === session.userId ||
+          brand.createdByUserId === session.userId
+        );
+      }
+      case 'task': {
+        const { getTaskById } = await import('@/lib/queries/crmTasks');
+        const task = await getTaskById(relatedId);
+        if (!task) return false;
+        return task.ownerId === session.userId || task.assignedToUserId === session.userId;
+      }
+      case 'followup': {
+        const { getBrandFollowupById } = await import('@/lib/queries/crmBrands');
+        const fu = await getBrandFollowupById(relatedId);
+        if (!fu) return false;
+        const { getCrmBrandForPermission } = await import('@/lib/queries/crmBrands');
+        const brand = await getCrmBrandForPermission(fu.brandId);
+        if (!brand) return false;
+        return (
+          brand.assignedToUserId === session.userId ||
+          brand.coAssignedToUserId === session.userId ||
+          brand.createdByUserId === session.userId ||
+          fu.assignedToUserId === session.userId
+        );
+      }
+      case 'invoice':
+        // Staff never has facturacion:read — module gate already blocks.
+        // If role map changes, only creator may download.
+        return true;
+      default:
+        return false;
+    }
+  } catch {
+    return false;
+  }
+}
 
 export async function GET(
   _req: NextRequest,
@@ -51,6 +102,7 @@ export async function GET(
       name:        files.name,
       mime:        files.mime,
       relatedType: files.relatedType,
+      relatedId:   files.relatedId,
     })
     .from(files)
     .where(eq(files.id, id))
@@ -65,7 +117,15 @@ export async function GET(
     return new NextResponse('Not found', { status: 404 });
   }
 
-  await requirePermission(permissionModule, 'read');
+  const session = await requirePermission(permissionModule, 'read');
+
+  const ok = await assertEntityAccess(row.relatedType, row.relatedId, {
+    userId: session.user.id,
+    role: session.user.role,
+  });
+  if (!ok) {
+    return new NextResponse('Not found', { status: 404 });
+  }
 
   return streamPrivateBlob({
     fileUrl: row.url,

@@ -56,7 +56,8 @@ const UpdateLegacy = z.object({
 const IdOnly = z.object({ id: IdSchema });
 
 export async function createCampaignAction(formData: FormData): Promise<void> {
-  await requirePermission('campanas', 'read');
+  // Align with canonical campanas/actions.ts (write, not read).
+  await requirePermission('campanas', 'write');
   const parsed = parseFormData(formData, CreateLegacy);
   if (!parsed.ok) {
     logRedacted('warn', '[campaign-actions] createCampaign invalid input', parsed.fieldErrors);
@@ -85,13 +86,16 @@ export async function createCampaignAction(formData: FormData): Promise<void> {
 }
 
 export async function updateCampaignAction(formData: FormData): Promise<void> {
-  await requirePermission('campanas', 'read');
+  const session = await requirePermission('campanas', 'write');
   const parsed = parseFormData(formData, UpdateLegacy);
   if (!parsed.ok) {
     logRedacted('warn', '[campaign-actions] updateCampaign invalid input', parsed.fieldErrors);
     return;
   }
   const { id, ...rest } = parsed.data;
+
+  const { assertCanEditCampaign } = await import('@/lib/queries/campaigns');
+  await assertCanEditCampaign(id, { userId: session.user.id, role: session.user.role });
 
   const patch: Parameters<typeof updateCampaign>[1] = { name: rest.name };
   if (rest.brandId !== undefined) patch.brandId = rest.brandId;
@@ -113,9 +117,11 @@ export async function updateCampaignAction(formData: FormData): Promise<void> {
 }
 
 export async function deleteCampaignAction(formData: FormData): Promise<void> {
-  await requirePermission('campanas', 'read');
+  const session = await requirePermission('campanas', 'delete');
   const parsed = parseFormData(formData, IdOnly);
   if (!parsed.ok) return;
+  const { assertCanEditCampaign } = await import('@/lib/queries/campaigns');
+  await assertCanEditCampaign(parsed.data.id, { userId: session.user.id, role: session.user.role });
   // Los tratos se archivan (soft-delete) en lugar de borrarse para preservar datos históricos.
   await archiveCampaign(parsed.data.id);
   revalidatePath('/admin/campanas');

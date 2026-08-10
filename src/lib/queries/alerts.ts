@@ -236,8 +236,7 @@ export async function getDashboardAlerts(opts?: {
       .orderBy(asc(crmBrandFollowups.scheduledAt))
       .limit(3),
 
-    // 3. Cobros de marca pendientes (max 3) — campaigns where amountBrand > 0 and not cancelled/paid
-    // brandPaid is derived from invoices, not a column. Use status as proxy.
+    // 3. Cobros de marca pendientes — amountBrand > 0, no settled income invoices yet.
     db.select({
       id: campaigns.id, name: campaigns.name, status: campaigns.status,
       amountBrand: campaigns.amountBrand,
@@ -248,12 +247,18 @@ export async function getDashboardAlerts(opts?: {
       .where(and(
         sql`${campaigns.amountBrand} > 0`,
         not(eq(campaigns.status, 'cancelada')),
-        not(eq(campaigns.status, 'pagada')),
+        isNull(campaigns.archivedAt),
+        sql`NOT EXISTS (
+          SELECT 1 FROM invoices i
+          WHERE i.campaign_id = ${campaigns.id}
+            AND i.kind = 'income'
+            AND i.status IN ('cobrada', 'pagada')
+        )`,
       ))
       .orderBy(asc(campaigns.endDate))
       .limit(3),
 
-    // 4. Pagos pendientes a talento (max 3)
+    // 4. Pagos pendientes a talento — amountTalent > 0, no settled expense yet.
     db.select({
       id: campaigns.id, name: campaigns.name,
       amountTalent: campaigns.amountTalent,
@@ -263,8 +268,14 @@ export async function getDashboardAlerts(opts?: {
       .leftJoin(talents, eq(talents.id, campaigns.talentId))
       .where(and(
         not(eq(campaigns.status, 'cancelada')),
-        not(eq(campaigns.status, 'pagada')),
+        isNull(campaigns.archivedAt),
         sql`${campaigns.amountTalent} > 0`,
+        sql`NOT EXISTS (
+          SELECT 1 FROM invoices i
+          WHERE i.campaign_id = ${campaigns.id}
+            AND i.kind = 'expense'
+            AND i.status IN ('cobrada', 'pagada')
+        )`,
       ))
       .limit(3),
 
@@ -371,14 +382,14 @@ export async function getDashboardAlerts(opts?: {
         not(eq(campaigns.status, 'pagada')),
         isNull(campaigns.archivedAt),
         sql`${campaigns.amountTalent} > 0`,
-        // Has at least one cobrada income invoice
+        // Has at least one settled income invoice (cobrada OR pagada)
         sql`EXISTS (
           SELECT 1 FROM invoices i
           WHERE i.campaign_id = ${campaigns.id}
             AND i.kind = 'income'
-            AND i.status = 'cobrada'
+            AND i.status IN ('cobrada', 'pagada')
         )`,
-        // But NO pagada expense invoice
+        // But NO settled expense invoice for talent
         sql`NOT EXISTS (
           SELECT 1 FROM invoices i
           WHERE i.campaign_id = ${campaigns.id}

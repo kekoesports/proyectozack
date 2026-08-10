@@ -259,7 +259,25 @@ export async function getGastosData(input: { readonly from?: string; readonly to
     mayorCategoria,
   };
 
-  return { period, kpis, byGroup, bySubtype, monthly, topProveedores, rows, sinClasificarRows };
+  // Never serialize private blob URLs to the client — UI uses buildInvoicePdfUrl proxies.
+  const redact = <T extends { fileUrl?: string | null; filePath?: string | null; receiptFileUrl?: string | null; receiptFilePath?: string | null }>(r: T): T => ({
+    ...r,
+    fileUrl: r.fileUrl ? '__has__' : null,
+    filePath: null,
+    receiptFileUrl: r.receiptFileUrl ? '__has__' : null,
+    receiptFilePath: null,
+  });
+
+  return {
+    period,
+    kpis,
+    byGroup,
+    bySubtype,
+    monthly,
+    topProveedores,
+    rows: rows.map(redact),
+    sinClasificarRows: sinClasificarRows.map(redact),
+  };
 }
 
 function round2(n: number): number {
