@@ -19,11 +19,22 @@ export async function GET(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ): Promise<NextResponse> {
-  await requirePermission('campanas', 'read');
+  const session = await requirePermission('campanas', 'read');
 
   const { id: idStr } = await params;
   const campaignId = Number(idStr);
   if (!Number.isInteger(campaignId) || campaignId <= 0) {
+    return new NextResponse('Not found', { status: 404 });
+  }
+
+  // Same ownership gate as campaign detail page (staff cannot download others' PDFs).
+  try {
+    const { assertCanEditCampaign } = await import('@/lib/queries/campaigns');
+    await assertCanEditCampaign(campaignId, {
+      userId: session.user.id,
+      role: session.user.role,
+    });
+  } catch {
     return new NextResponse('Not found', { status: 404 });
   }
 

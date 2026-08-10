@@ -6,7 +6,6 @@ import {
   getUsedCategories,
   getTaskRelatedOptions,
   resolveRelatedLabels,
-  rollOverPendingTasks,
 } from '@/lib/queries/crmTasks';
 import { getAllStaffUsers } from '@/lib/queries/staffUsers';
 import { getIsoWeekLabel } from '@/lib/utils/week';
@@ -36,12 +35,8 @@ function KpiCard({ label, value, accent }: KpiCardProps): ReactElement {
 export default async function MiSemanaPage(): Promise<ReactElement> {
   const session  = await requirePermission('tareas', 'read');
   const weekLabel = getIsoWeekLabel(new Date());
-  const prevDate  = new Date(); prevDate.setDate(prevDate.getDate() - 7);
-  const prevWeek  = getIsoWeekLabel(prevDate);
   const todayStr  = new Date().toISOString().slice(0, 10);
-
-  // Auto-rollover silencioso
-  await rollOverPendingTasks(prevWeek, weekLabel);
+  // Rollover is cron-only — no GET side-effect on page load.
 
   const [tasks, users, suggestedCategories, relatedOptions] = await Promise.all([
     getMyTasks(session.user.id, weekLabel),

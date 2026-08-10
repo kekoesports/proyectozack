@@ -8,8 +8,19 @@ import { requirePermission } from '@/lib/permissions';
 import type { ExtractedInvoiceData, ExtractionResult } from '@/types';
 
 export async function extractInvoiceAction(formData: FormData): Promise<ExtractionResult> {
-  // OCR is mock today but still accepts uploads — must not be anonymous-callable.
   await requirePermission('facturacion', 'write');
+
+  // Mock OCR must never run outside explicit local opt-in — fake amounts pollute the ledger.
+  const mockEnabled =
+    process.env.NODE_ENV === 'development' &&
+    process.env.ENABLE_INVOICE_OCR_MOCK === 'true';
+
+  if (!mockEnabled) {
+    return {
+      error:
+        'Extracción OCR no disponible. Introduce los datos manualmente o activa ENABLE_INVOICE_OCR_MOCK en desarrollo.',
+    };
+  }
 
   const file = formData.get('file');
 

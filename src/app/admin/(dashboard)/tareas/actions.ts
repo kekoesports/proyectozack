@@ -2,9 +2,17 @@
 
 import { revalidatePath } from 'next/cache';
 
+import { requireAnyRole } from '@/lib/auth-guard';
 import { requirePermission } from '@/lib/permissions';
-import { assertCanDelete } from '@/lib/permissions';
 import { logRedacted } from '@/lib/log';
+
+/** Roles allowed to mutate global task template definitions. */
+const TEMPLATE_MANAGER_ROLES = [
+  'admin',
+  'admin_limited_tasks',
+  'manager',
+  'ops',
+] as const;
 import {
   completeTask,
   createTask,
@@ -58,7 +66,7 @@ async function assertStaffOwner(ownerId: string): Promise<string | null> {
 }
 
 export async function createTaskAction(input: unknown): Promise<ActionResult> {
-  const session = await requirePermission('tareas', 'read');
+  const session = await requirePermission('tareas', 'write');
 
   const parsed = taskFormSchema.safeParse(input);
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? 'Datos inválidos' };
@@ -104,7 +112,7 @@ export async function createTaskAction(input: unknown): Promise<ActionResult> {
 }
 
 export async function updateTaskAction(id: number, input: unknown): Promise<ActionResult> {
-  const session = await requirePermission('tareas', 'read');
+  const session = await requirePermission('tareas', 'write');
 
   const parsed = taskFormSchema.safeParse(input);
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? 'Datos inválidos' };
@@ -163,7 +171,7 @@ export async function updateTaskPartialAction(
   id: unknown,
   input: unknown,
 ): Promise<ActionResult> {
-  const session = await requirePermission('tareas', 'read');
+  const session = await requirePermission('tareas', 'write');
 
   const parsedId = IdSchema.safeParse(id);
   if (!parsedId.success) return { error: 'ID inválido' };
@@ -198,7 +206,7 @@ export async function updateTaskPartialAction(
 }
 
 export async function completeTaskAction(id: number): Promise<ActionResult> {
-  const session = await requirePermission('tareas', 'read');
+  const session = await requirePermission('tareas', 'write');
   if (session.user.role !== 'admin') {
     const task = await getTaskById(id);
     if (!task) return { error: 'Tarea no encontrada' };
@@ -212,12 +220,7 @@ export async function completeTaskAction(id: number): Promise<ActionResult> {
 }
 
 export async function deleteTaskAction(id: number): Promise<ActionResult> {
-  const session = await requirePermission('tareas', 'read');
-  try {
-    assertCanDelete(session.user.role);
-  } catch {
-    return { error: 'Sin permiso para eliminar' };
-  }
+  const session = await requirePermission('tareas', 'delete');
   if (session.user.role !== 'admin') {
     const task = await getTaskById(id);
     if (!task) return { error: 'Tarea no encontrada' };
@@ -236,12 +239,7 @@ export async function deleteTaskAction(id: number): Promise<ActionResult> {
 }
 
 export async function bulkDeleteTasksAction(ids: number[]): Promise<ActionResult> {
-  const session = await requirePermission('tareas', 'read');
-  try {
-    assertCanDelete(session.user.role);
-  } catch {
-    return { error: 'Sin permiso para eliminar' };
-  }
+  const session = await requirePermission('tareas', 'delete');
   if (ids.length === 0) return {};
   if (session.user.role !== 'admin') {
     const tasks = await getTasksByIds(ids);
@@ -268,7 +266,7 @@ export type CreateTemplatesResult = {
 
 /** Crea solo las plantillas activas que NO existen todavía en la semana actual. */
 export async function createWeeklyTemplatesAction(): Promise<CreateTemplatesResult> {
-  const session  = await requirePermission('tareas', 'read');
+  const session  = await requirePermission('tareas', 'write');
   const weekLabel = getIsoWeekLabel(new Date());
   const templates = await getTaskTemplates();
   const active    = templates.filter((t) => t.active);
@@ -294,7 +292,7 @@ export async function createWeeklyTemplatesAction(): Promise<CreateTemplatesResu
 
 /** Crea la tarea de una plantilla específica por ID (si no existe ya esta semana). */
 export async function createSingleTemplateAction(templateId: number): Promise<ActionResult> {
-  const session   = await requirePermission('tareas', 'read');
+  const session   = await requirePermission('tareas', 'write');
   const weekLabel = getIsoWeekLabel(new Date());
   const templates = await getTaskTemplates();
   const tpl       = templates.find((t) => t.id === templateId);
@@ -323,7 +321,7 @@ export async function saveTemplateDefinitionAction(
   id: number | null,
   data: { title: string; category: string; priority: 'alta' | 'media' | 'baja' },
 ): Promise<{ error?: string; template?: CrmTaskTemplate | undefined }> {
-  await requirePermission('tareas', 'read');
+  await requireAnyRole(TEMPLATE_MANAGER_ROLES, '/admin/login');
   const title = data.title.trim();
   if (!title) return { error: 'El título no puede estar vacío' };
 
@@ -344,14 +342,14 @@ export async function saveTemplateDefinitionAction(
 }
 
 export async function toggleTemplateActiveAction(id: number, isActive: boolean): Promise<ActionResult> {
-  await requirePermission('tareas', 'read');
+  await requireAnyRole(TEMPLATE_MANAGER_ROLES, '/admin/login');
   await updateTaskTemplate(id, { isActive });
   revalidatePath('/admin/tareas');
   return {};
 }
 
 export async function deleteTemplateDefinitionAction(id: number): Promise<ActionResult> {
-  await requirePermission('tareas', 'read');
+  await requirePermission('tareas', 'delete');
   await deleteTaskTemplate(id);
   revalidatePath('/admin/tareas');
   return {};
@@ -361,7 +359,7 @@ export async function deleteTemplateDefinitionAction(id: number): Promise<Action
 
 /** Quita el flag "arrastrada" de una tarea. No cambia su status. */
 export async function resetRolledOverAction(id: unknown): Promise<ActionResult> {
-  const session = await requirePermission('tareas', 'read');
+  const session = await requirePermission('tareas', 'write');
   const parsed = IdSchema.safeParse(id);
   if (!parsed.success) return { error: 'ID inválido' };
   const callerId = session.user.role !== 'admin' ? session.user.id : undefined;
@@ -372,7 +370,7 @@ export async function resetRolledOverAction(id: unknown): Promise<ActionResult> 
 
 /** Quita el flag "arrastrada" de un conjunto de tareas de una vez. */
 export async function resetRolledOverBulkAction(ids: unknown): Promise<ActionResult> {
-  const session = await requirePermission('tareas', 'read');
+  const session = await requirePermission('tareas', 'write');
   const parsed = IdSchema.array().safeParse(ids);
   if (!parsed.success) return { error: 'IDs inválidos' };
   const callerId = session.user.role !== 'admin' ? session.user.id : undefined;
@@ -387,9 +385,10 @@ export type RollOverResult = {
   readonly rolled: number;
 };
 
-/** Arrastra tareas pendientes/en_progreso de la semana anterior a la actual. */
+/** Arrastra tareas pendientes/en_progreso de la semana anterior a la actual (admin/ops only). */
 export async function rollOverTasksAction(): Promise<RollOverResult> {
-  await requirePermission('tareas', 'read');
+  // Global side-effect — not available to staff. Prefer the cron job.
+  await requireAnyRole(TEMPLATE_MANAGER_ROLES, '/admin/login');
   const currentWeek = getIsoWeekLabel(new Date());
   const prevWeek    = getIsoWeekLabel(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000));
   const result = await rollOverPendingTasks(prevWeek, currentWeek);

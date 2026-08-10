@@ -34,11 +34,14 @@ export async function uploadCampaignFileAction(
   formData: FormData,
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const session = await requirePermission('campanas', 'read');
+    const session = await requirePermission('campanas', 'write');
 
     const meta = parseFormData(formData, UploadCampaignFileMeta);
     if (!meta.ok) return { success: false, error: 'campaignId requerido' };
     const { campaignId, type, notes } = meta.data;
+
+    const { assertCanEditCampaign } = await import('@/lib/queries/campaigns');
+    await assertCanEditCampaign(campaignId, { userId: session.user.id, role: session.user.role });
 
     const fileEntry = formData.get('file');
     if (!(fileEntry instanceof File)) return { success: false, error: 'Archivo requerido' };
@@ -87,14 +90,24 @@ export async function deleteCampaignFileAction(
   formData: FormData,
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const session = await requirePermission('campanas', 'read');
+    const session = await requirePermission('campanas', 'delete');
     assertCanDelete(session.user.role);
 
     const meta = parseFormData(formData, DeleteCampaignFileMeta);
     if (!meta.ok) return { success: false, error: 'fileId y fileUrl requeridos' };
-    const { fileId, fileUrl, campaignId } = meta.data;
+    const { fileId, campaignId } = meta.data;
 
-    await deleteFile(fileUrl);
+    const { assertCanEditCampaign } = await import('@/lib/queries/campaigns');
+    await assertCanEditCampaign(campaignId, { userId: session.user.id, role: session.user.role });
+
+    const { listFilesByEntity } = await import('@/lib/queries/files');
+    const campaignFiles = await listFilesByEntity('campaign', campaignId);
+    const row = campaignFiles.find((f) => f.id === fileId);
+    if (!row) {
+      return { success: false, error: 'Archivo no encontrado en este trato' };
+    }
+
+    await deleteFile(row.url);
     await deleteFileById(fileId);
 
     revalidatePath(`/admin/campanas/${campaignId}`);

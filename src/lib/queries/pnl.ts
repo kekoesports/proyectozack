@@ -6,6 +6,7 @@ import {
   SETTLED_EXPENSE_STATUSES,
   PENDING_INCOME_STATUSES,
   PENDING_EXPENSE_STATUSES,
+  isIssuedInvoiceMirror,
 } from '@/lib/utils/invoice-status';
 import type { InvoiceStatus } from '@/types';
 
@@ -109,6 +110,8 @@ export async function getPnL(filters: PnLFilters = {}): Promise<PnLResult> {
           campaignId: invoices.campaignId,
           talentId: invoices.talentId,
           category: invoices.category,
+          concept: invoices.concept,
+          notes: invoices.notes,
           issueDate: invoices.issueDate,
           brandSector: crmBrands.sector,
           brandGeo: crmBrands.geo,
@@ -123,6 +126,8 @@ export async function getPnL(filters: PnLFilters = {}): Promise<PnLResult> {
           campaignId: invoices.campaignId,
           talentId: invoices.talentId,
           category: invoices.category,
+          concept: invoices.concept,
+          notes: invoices.notes,
           issueDate: invoices.issueDate,
           brandSector: sql<string | null>`NULL`.as('brand_sector'),
           brandGeo: sql<string | null>`NULL`.as('brand_geo'),
@@ -154,6 +159,10 @@ export async function getPnL(filters: PnLFilters = {}): Promise<PnLResult> {
   const PENDING_EXPENSE = new Set<string>(PENDING_EXPENSE_STATUSES);
 
   for (const row of rows) {
+    if (row.kind === 'income' && isIssuedInvoiceMirror(row.notes, row.concept)) {
+      continue;
+    }
+
     const amount = Number(row.totalAmount ?? 0);
     const month = row.issueDate ? row.issueDate.slice(0, 7) : 'sin-fecha';
     const monthEntry = monthMap.get(month) ?? { ingresos: 0, gastos: 0 };

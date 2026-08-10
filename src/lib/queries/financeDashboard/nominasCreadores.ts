@@ -326,6 +326,14 @@ export async function getNominasCreadoresData(input: { readonly from?: string; r
     campanasConPagosPendientes: campanasConPagos.filter((c) => c.pendiente > 0).length,
   };
 
+  const redact = <T extends { fileUrl?: string | null; filePath?: string | null; receiptFileUrl?: string | null; receiptFilePath?: string | null }>(r: T): T => ({
+    ...r,
+    fileUrl: r.fileUrl ? '__has__' : null,
+    filePath: null,
+    receiptFileUrl: r.receiptFileUrl ? '__has__' : null,
+    receiptFilePath: null,
+  });
+
   return {
     period,
     kpis,
@@ -333,7 +341,7 @@ export async function getNominasCreadoresData(input: { readonly from?: string; r
     topPersonas,
     topTalentos,
     campanasConPagos,
-    nominasRows,
-    talentosRows,
+    nominasRows: nominasRows.map(redact),
+    talentosRows: talentosRows.map(redact),
   };
 }

@@ -9,6 +9,7 @@ import {
   SETTLED_EXPENSE_STATUSES,
   PENDING_INCOME_STATUSES,
   PENDING_EXPENSE_STATUSES,
+  isIssuedInvoiceMirror,
 } from '@/lib/utils/invoice-status';
 import type { InvoiceStatus } from '@/types';
 import {
@@ -92,11 +93,12 @@ export async function getFinancePnL(filters: PnLFilters = {}): Promise<FinancePn
         expenseGroup: invoices.expenseGroup,
         expenseSubtype: invoices.expenseSubtype,
         category: invoices.category,
-        concept: invoices.concept,
-        counterpartyName: invoices.counterpartyName,
-        issueDate: invoices.issueDate,
-        invoiceFileId: invoices.invoiceFileId,
-        fileUrl: invoices.fileUrl,
+      concept: invoices.concept,
+      notes: invoices.notes,
+      counterpartyName: invoices.counterpartyName,
+      issueDate: invoices.issueDate,
+      invoiceFileId: invoices.invoiceFileId,
+      fileUrl: invoices.fileUrl,
       })
       .from(invoices)
       .where(and(...conds)),
@@ -158,6 +160,11 @@ export async function getFinancePnL(filters: PnLFilters = {}): Promise<FinancePn
   const subgroupMap = new Map<ExpenseSubgroupKey, { amount: number; count: number; items: ExpenseSubgroupItem[] }>();
 
   for (const row of rows) {
+    // Skip issued→internal auto-mirrors (same economic event already in issued ledger).
+    if (row.kind === 'income' && isIssuedInvoiceMirror(row.notes, row.concept)) {
+      continue;
+    }
+
     const amount = Number(row.totalAmount ?? 0);
     const month = row.issueDate ? row.issueDate.slice(0, 7) : 'sin-fecha';
     const monthEntry = monthMap.get(month) ?? { ingresos: 0, gastos: 0 };

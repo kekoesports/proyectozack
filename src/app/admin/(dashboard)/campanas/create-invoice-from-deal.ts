@@ -25,10 +25,21 @@ export async function createInvoiceFromDealAction(
   issuerId: number,
   forceCreate = false,
 ): Promise<Result> {
-  const session = await requirePermission('campanas', 'delete');
+  // Issuing fiscal invoices requires facturacion write (not campanas:delete).
+  const session = await requirePermission('facturacion', 'write');
 
   const campaign = await getCampaignWithRelations(campaignId);
   if (!campaign) return { error: 'Trato no encontrado' };
+
+  try {
+    const { assertCanEditCampaign } = await import('@/lib/queries/campaigns');
+    await assertCanEditCampaign(campaignId, {
+      userId: session.user.id,
+      role: session.user.role,
+    });
+  } catch {
+    return { error: 'No tienes permiso sobre este trato' };
+  }
 
   // Verificar facturas existentes para este trato
   const existing = await listIssuedInvoicesByDeal(campaignId);

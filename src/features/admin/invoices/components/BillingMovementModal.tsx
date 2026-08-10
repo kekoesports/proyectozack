@@ -312,7 +312,7 @@ export function BillingMovementModal({ invoice, brands, talents, campaigns, onCl
                 <label className={LABEL}>Comprobante (PDF, JPG, PNG, XLSX, CSV — máx 10 MB)</label>
                 <input name="receiptFile" type="file" accept="application/pdf,image/*,.xlsx,.csv" className={`${INPUT} file:mr-3 file:rounded-full file:border-0 file:bg-sp-admin-hover file:px-3 file:py-1 file:text-xs file:font-semibold file:text-sp-admin-text`} />
                 {invoice?.receiptFileUrl
-                  ? <p className="text-xs text-sp-admin-muted mt-1">Actual: <a href={invoice.receiptFileUrl} target="_blank" rel="noreferrer" className="text-sp-admin-accent hover:underline">ver</a></p>
+                  ? <p className="text-xs text-sp-admin-muted mt-1">Actual: <a href={`/api/admin/facturacion/${invoice.id}/receipt`} target="_blank" rel="noreferrer" className="text-sp-admin-accent hover:underline">ver</a></p>
                   : <p className="text-[10px] text-sp-admin-muted/60 mt-1">Sin comprobante subido</p>
                 }
               </div>

@@ -116,9 +116,11 @@ export const PERMISSIONS = {
     write:   ['admin', 'admin_limited_tasks'],
     delete:  ['admin', 'admin_limited_tasks'],
   },
+  // write includes staff/editor/tm so they can create/complete own tasks (ownership still enforced).
+  // Global template definitions are gated separately to manager+ops+admin (see tareas/actions).
   tareas: {
     read:    ['admin', 'admin_limited_tasks', 'manager', 'staff', 'editor', 'ops', 'talent_manager'],
-    write:   ['admin', 'admin_limited_tasks', 'manager', 'ops'],
+    write:   ['admin', 'admin_limited_tasks', 'manager', 'ops', 'staff', 'editor', 'talent_manager'],
     delete:  ['admin', 'admin_limited_tasks', 'manager'],
   },
   usuarios: {
@@ -177,4 +179,13 @@ export async function requirePermission(
     throw new Error(`forbidden:${module}:${action}`);
   }
   return requireAnyRole(allowedRoles, loginPath);
+}
+
+/** Pure check — safe for client nav filtering and unit tests. */
+export function hasPermission(role: Role | null | undefined, module: Module, action: Action): boolean {
+  if (!role) return false;
+  const modulePerms = PERMISSIONS[module] as Partial<Record<Action, readonly Role[]>>;
+  const allowed = modulePerms[action];
+  if (!allowed || allowed.length === 0) return false;
+  return (allowed as readonly Role[]).includes(role);
 }

@@ -14,7 +14,7 @@ function revalidateCalendar(): void {
 }
 
 export async function createEventAction(input: unknown): Promise<ActionResult> {
-  const session = await requirePermission('tareas', 'read');
+  const session = await requirePermission('tareas', 'write');
 
   const parsed = crmEventSchema.safeParse(input);
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? 'Datos inválidos' };
@@ -60,7 +60,7 @@ export async function createEventAction(input: unknown): Promise<ActionResult> {
 }
 
 export async function deleteEventAction(id: unknown): Promise<ActionResult> {
-  const session = await requirePermission('tareas', 'read');
+  const session = await requirePermission('tareas', 'write');
   const parsed  = IdSchema.safeParse(id);
   if (!parsed.success) return { error: 'ID inválido' };
   await deleteCrmEvent(parsed.data, session.user.id);

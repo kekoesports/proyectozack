@@ -434,14 +434,24 @@ export type CrmBrandCounts = {
  * @visibility admin
  * @returns `{ activa, lead, total }`.
  */
-export async function getCrmBrandCounts(): Promise<CrmBrandCounts> {
+export async function getCrmBrandCounts(opts?: {
+  readonly staffUserId?: string;
+}): Promise<CrmBrandCounts> {
+  const staffScope = opts?.staffUserId
+    ? or(
+        eq(crmBrands.assignedToUserId, opts.staffUserId),
+        eq(crmBrands.coAssignedToUserId, opts.staffUserId),
+        eq(crmBrands.createdByUserId, opts.staffUserId),
+      )
+    : undefined;
+
   const rows = await db
     .select({
       status: crmBrands.status,
       count: sql<number>`count(*)::int`,
     })
     .from(crmBrands)
-    .where(inArray(crmBrands.status, ['activa', 'lead']))
+    .where(and(inArray(crmBrands.status, ['activa', 'lead']), staffScope))
     .groupBy(crmBrands.status);
 
   const activa = rows.find((r) => r.status === 'activa')?.count ?? 0;
@@ -460,6 +470,7 @@ export async function getCrmBrandCounts(): Promise<CrmBrandCounts> {
 export async function getDashboardPendingTasks(
   weekLabel: string,
   limit = 6,
+  session?: TaskSession,
 ): Promise<readonly DashboardPendingTask[]> {
   const rows = await db
     .select({
@@ -474,6 +485,7 @@ export async function getDashboardPendingTasks(
       and(
         eq(crmTasks.weekLabel, weekLabel),
         inArray(crmTasks.status, ['pendiente', 'en_progreso']),
+        taskVisibilityCondition(session),
       ),
     )
     .orderBy(
@@ -494,7 +506,17 @@ export async function getDashboardPendingTasks(
  */
 export async function getDashboardUpcomingFollowups(
   limit = 5,
+  opts?: { readonly staffUserId?: string },
 ): Promise<readonly DashboardFollowup[]> {
+  const staffScope = opts?.staffUserId
+    ? or(
+        eq(crmBrandFollowups.assignedToUserId, opts.staffUserId),
+        eq(crmBrands.assignedToUserId, opts.staffUserId),
+        eq(crmBrands.coAssignedToUserId, opts.staffUserId),
+        eq(crmBrands.createdByUserId, opts.staffUserId),
+      )
+    : undefined;
+
   const rows = await db
     .select({
       id: crmBrandFollowups.id,
@@ -504,7 +526,7 @@ export async function getDashboardUpcomingFollowups(
     })
     .from(crmBrandFollowups)
     .leftJoin(crmBrands, eq(crmBrands.id, crmBrandFollowups.brandId))
-    .where(isNull(crmBrandFollowups.completedAt))
+    .where(and(isNull(crmBrandFollowups.completedAt), staffScope))
     .orderBy(asc(crmBrandFollowups.scheduledAt))
     .limit(limit);
 
@@ -613,20 +635,50 @@ export type DashboardActivityItem = {
  * @visibility admin
  * @returns array <= limit ordenado por `time DESC`.
  */
-export async function getDashboardActivity(limit = 5): Promise<readonly DashboardActivityItem[]> {
+export async function getDashboardActivity(
+  limit = 5,
+  opts?: { readonly staffUserId?: string; readonly skipFinancial?: boolean },
+): Promise<readonly DashboardActivityItem[]> {
+  const staffId = opts?.staffUserId;
+  const skipFinancial = opts?.skipFinancial === true || Boolean(staffId);
+
+  const brandScope = staffId
+    ? or(
+        eq(crmBrands.assignedToUserId, staffId),
+        eq(crmBrands.coAssignedToUserId, staffId),
+        eq(crmBrands.createdByUserId, staffId),
+      )
+    : undefined;
+
+  const taskScope = staffId
+    ? or(
+        eq(crmTasks.assignedToUserId, staffId),
+        eq(crmTasks.createdByUserId, staffId),
+        eq(crmTasks.ownerId, staffId),
+      )
+    : undefined;
+
   const [recentInvoices, recentBrands, recentTasks] = await Promise.all([
-    db
-      .select({
-        id: invoices.id,
-        kind: invoices.kind,
-        status: invoices.status,
-        counterpartyName: invoices.counterpartyName,
-        createdAt: invoices.createdAt,
-      })
-      .from(invoices)
-      .where(ne(invoices.status, 'borrador'))
-      .orderBy(desc(invoices.createdAt))
-      .limit(4),
+    skipFinancial
+      ? Promise.resolve([] as Array<{
+          id: number;
+          kind: string;
+          status: string;
+          counterpartyName: string | null;
+          createdAt: Date;
+        }>)
+      : db
+          .select({
+            id: invoices.id,
+            kind: invoices.kind,
+            status: invoices.status,
+            counterpartyName: invoices.counterpartyName,
+            createdAt: invoices.createdAt,
+          })
+          .from(invoices)
+          .where(ne(invoices.status, 'borrador'))
+          .orderBy(desc(invoices.createdAt))
+          .limit(4),
 
     db
       .select({
@@ -636,6 +688,7 @@ export async function getDashboardActivity(limit = 5): Promise<readonly Dashboar
         createdAt: crmBrands.createdAt,
       })
       .from(crmBrands)
+      .where(brandScope)
       .orderBy(desc(crmBrands.createdAt))
       .limit(4),
 
@@ -646,7 +699,7 @@ export async function getDashboardActivity(limit = 5): Promise<readonly Dashboar
         updatedAt: crmTasks.updatedAt,
       })
       .from(crmTasks)
-      .where(eq(crmTasks.status, 'completada'))
+      .where(and(eq(crmTasks.status, 'completada'), taskScope))
       .orderBy(desc(crmTasks.updatedAt))
       .limit(4),
   ]);

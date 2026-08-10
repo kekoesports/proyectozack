@@ -2,7 +2,7 @@ import { and, desc, eq, inArray, isNull, or, sql } from 'drizzle-orm';
 
 import { db } from '@/lib/db';
 import { campaigns, crmBrands, crmBrandContacts, invoices, talents, user } from '@/db/schema';
-import { needsVisibilityFilter } from '@/lib/permissions';
+import { canSeeAll, needsVisibilityFilter } from '@/lib/permissions';
 import { computeCampaignDerived } from '@/lib/schemas/campaign';
 import {
   SETTLED_EXPENSE_STATUSES,
@@ -642,7 +642,7 @@ export async function assertCanEditCampaign(
   campaignId: number,
   session: { userId: string; role: Role },
 ): Promise<void> {
-  if (session.role === 'admin' || session.role === 'manager') return;
+  if (canSeeAll(session.role)) return;
 
   const [row] = await db
     .select({

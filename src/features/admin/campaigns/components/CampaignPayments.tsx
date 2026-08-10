@@ -507,7 +507,7 @@ function InvoiceActionRow({
               </span>
             )}
             {inv.receiptFileUrl && (
-              <a href={inv.receiptFileUrl} target="_blank" rel="noreferrer" className="text-[10px] text-sp-admin-accent hover:underline">
+              <a href={`/api/admin/facturacion/${inv.id}/receipt`} target="_blank" rel="noreferrer" className="text-[10px] text-sp-admin-accent hover:underline">
                 Ver comprobante ↗
               </a>
             )}

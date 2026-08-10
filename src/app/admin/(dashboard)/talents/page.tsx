@@ -1,7 +1,11 @@
 ﻿import Link from 'next/link';
 import { requirePermission } from '@/lib/permissions';
 import { AdminPageHeader } from '@/features/admin/_shared/components/AdminPageHeader';
-import { getAdminRosterWithGrowth, getAllTalents } from '@/lib/queries/talents';
+import {
+  getAdminRosterWithGrowth,
+  getAllTalents,
+  listVisibleTalentIds,
+} from '@/lib/queries/talents';
 import { listAllVerticals } from '@/lib/queries/talentBusiness';
 import { RosterSpreadsheet } from '@/features/admin/talents/components/RosterSpreadsheet';
 import { InfluencerCardsView } from '@/features/admin/talents/components/InfluencerCardsView';
@@ -18,10 +22,17 @@ export default async function AdminTalentsPage({
   const session = await requirePermission('talentos', 'read');
   const sp = await searchParams;
   const showArchived = sp.archived === '1';
+  const visibleIds = await listVisibleTalentIds({
+    userId: session.user.id,
+    role: session.user.role,
+  });
 
   if (showArchived) {
     const all = await getAllTalents({ includeArchived: true });
-    const archived = all.filter((t) => t.archivedAt !== null);
+    const allow = visibleIds ? new Set(visibleIds) : null;
+    const archived = all.filter(
+      (t) => t.archivedAt !== null && (!allow || allow.has(t.id)),
+    );
 
     return (
       <div>
@@ -72,7 +83,7 @@ export default async function AdminTalentsPage({
   }
 
   const [creators, verticals] = await Promise.all([
-    getAdminRosterWithGrowth(),
+    getAdminRosterWithGrowth({ talentIds: visibleIds }),
     listAllVerticals(),
   ]);
 

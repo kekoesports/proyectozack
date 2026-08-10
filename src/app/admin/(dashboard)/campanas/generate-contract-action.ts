@@ -26,11 +26,18 @@ export async function saveGeneratedContractAction(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  const session = await requirePermission('campanas', 'read');
+  const session = await requirePermission('campanas', 'write');
 
   const meta = parseFormData(formData, GenerateContractMeta);
   if (!meta.ok) return { error: 'Parámetros inválidos' };
   const { campaignId, templateId, fileName } = meta.data;
+
+  const { assertCanEditCampaign } = await import('@/lib/queries/campaigns');
+  try {
+    await assertCanEditCampaign(campaignId, { userId: session.user.id, role: session.user.role });
+  } catch {
+    return { error: 'No tienes permiso para editar este trato' };
+  }
 
   const pdfFile = formData.get('pdf');
   if (!(pdfFile instanceof File)) return { error: 'PDF no recibido' };

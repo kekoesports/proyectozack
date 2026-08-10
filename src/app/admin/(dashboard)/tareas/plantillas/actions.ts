@@ -3,7 +3,6 @@
 import { revalidatePath } from 'next/cache';
 
 import { requirePermission } from '@/lib/permissions';
-import { assertCanDelete } from '@/lib/permissions';
 import { parseFormData } from '@/lib/forms/parseFormData';
 import { firstError } from '@/lib/forms/firstError';
 import { logRedacted } from '@/lib/log';
@@ -58,12 +57,7 @@ export async function updateTaskTemplateAction(formData: FormData): Promise<Acti
 }
 
 export async function deleteTaskTemplateAction(id: number): Promise<ActionResult> {
-  const session = await requirePermission('tareas', 'write');
-  try {
-    assertCanDelete(session.user.role);
-  } catch {
-    return { error: 'Sin permiso para eliminar' };
-  }
+  await requirePermission('tareas', 'delete');
   try {
     await deleteTaskTemplate(id);
     revalidatePath(REVALIDATE);
