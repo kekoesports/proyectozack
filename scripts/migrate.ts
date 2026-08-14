@@ -40,7 +40,24 @@ if (isPreview && !runPreviewMigrations) {
 }
 
 if (isPreview) {
-  console.log('Preview database migrations explicitly enabled.');
+  const requiredAutomationSecrets = [
+    'SOCIALPRO_INTEGRATION_TOKEN',
+    'AUTOMATION_WEBHOOK_SECRET',
+  ] as const;
+  const invalidSecrets = requiredAutomationSecrets.filter(
+    (name) => (process.env[name]?.length ?? 0) < 32,
+  );
+
+  if (invalidSecrets.length > 0) {
+    console.error(
+      `Preview automation configuration is incomplete: ${invalidSecrets.join(', ')}`,
+    );
+    process.exit(1);
+  }
+
+  console.log(
+    'Preview database migrations explicitly enabled; automation credentials validated.',
+  );
 }
 
 const url = process.env.DATABASE_URL;
