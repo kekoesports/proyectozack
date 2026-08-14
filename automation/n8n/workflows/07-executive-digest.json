@@ -1,0 +1,82 @@
+{
+  "name": "SocialPro 07 - Read only executive digest",
+  "active": false,
+  "versionId": "5b64feac-dac5-4c9b-b485-9d2a7fe7bb07",
+  "nodes": [
+    {
+      "id": "schedule",
+      "name": "Weekdays at 08 00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [-720, 0],
+      "parameters": { "rule": { "interval": [{ "field": "cronExpression", "expression": "0 8 * * 1-5" }] } }
+    },
+    {
+      "id": "summary",
+      "name": "Get Executive Summary",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [-480, 0],
+      "parameters": {
+        "url": "={{ $env.SOCIALPRO_BASE_URL + '/api/integrations/v1/executive-summary' }}",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [{ "name": "Authorization", "value": "={{ 'Bearer ' + $env.SOCIALPRO_INTEGRATION_TOKEN }}" }] },
+        "options": { "timeout": 10000 }
+      }
+    },
+    {
+      "id": "openai",
+      "name": "Summarize Without Actions",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [-220, 0],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/responses",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [
+          { "name": "Authorization", "value": "={{ 'Bearer ' + $env.OPENAI_API_KEY }}" },
+          { "name": "Content-Type", "value": "application/json" }
+        ] },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { model: 'gpt-5-mini', instructions: 'Resume en español para el COO. Sé factual, conciso y no inventes datos. No recomiendes ni ejecutes acciones; solo prioriza observaciones.', input: JSON.stringify($json.data), max_output_tokens: 500 } }}",
+        "options": { "timeout": 30000 }
+      }
+    },
+    {
+      "id": "extract",
+      "name": "Extract Digest Text",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [20, 0],
+      "parameters": {
+        "jsCode": "const text = ($json.output ?? []).flatMap((item) => item.content ?? []).find((item) => item.type === 'output_text')?.text;\nif (!text) throw new Error('Responses API returned no output_text');\nreturn [{ json: { text: `Resumen operativo SocialPro\\n\\n${text}`.slice(0, 4000) } }];"
+      }
+    },
+    {
+      "id": "telegram",
+      "name": "Send Internal Digest",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [280, 0],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ 'https://api.telegram.org/bot' + $env.TELEGRAM_BOT_TOKEN + '/sendMessage' }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { chat_id: $env.TELEGRAM_CHAT_ID, text: $json.text } }}",
+        "options": { "timeout": 10000 }
+      }
+    }
+  ],
+  "connections": {
+    "Weekdays at 08 00": { "main": [[{ "node": "Get Executive Summary", "type": "main", "index": 0 }]] },
+    "Get Executive Summary": { "main": [[{ "node": "Summarize Without Actions", "type": "main", "index": 0 }]] },
+    "Summarize Without Actions": { "main": [[{ "node": "Extract Digest Text", "type": "main", "index": 0 }]] },
+    "Extract Digest Text": { "main": [[{ "node": "Send Internal Digest", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1", "saveDataErrorExecution": "all", "saveDataSuccessExecution": "none" },
+  "pinData": {},
+  "tags": []
+}

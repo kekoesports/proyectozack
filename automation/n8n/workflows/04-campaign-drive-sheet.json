@@ -1,0 +1,86 @@
+{
+  "name": "SocialPro 04 - Campaign Drive and tracking sheet",
+  "active": false,
+  "versionId": "5b64feac-dac5-4c9b-b485-9d2a7fe7bb04",
+  "nodes": [
+    {
+      "id": "webhook",
+      "name": "Campaign Approved Event",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [-700, 0],
+      "webhookId": "socialpro-campaign-approved-v1",
+      "parameters": { "httpMethod": "POST", "path": "socialpro-campaign-approved-v1", "responseMode": "onReceived", "options": {} }
+    },
+    {
+      "id": "context",
+      "name": "Get Campaign Context",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [-460, 0],
+      "parameters": {
+        "url": "={{ $env.SOCIALPRO_BASE_URL + '/api/integrations/v1/campaigns/' + $json.body.aggregate.id }}",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [{ "name": "Authorization", "value": "={{ 'Bearer ' + $env.SOCIALPRO_INTEGRATION_TOKEN }}" }] },
+        "options": { "timeout": 10000 }
+      }
+    },
+    {
+      "id": "folder",
+      "name": "Create Campaign Folder",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [-220, 0],
+      "parameters": {
+        "resource": "folder",
+        "name": "={{ $json.data.campaign.id + ' - ' + $json.data.campaign.name }}",
+        "driveId": { "__rl": true, "mode": "list", "value": "My Drive" },
+        "folderId": { "__rl": true, "mode": "id", "value": "={{ $env.GOOGLE_DRIVE_PARENT_FOLDER_ID }}" },
+        "options": {}
+      }
+    },
+    {
+      "id": "sheet",
+      "name": "Create Tracking Sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [20, 0],
+      "parameters": {
+        "resource": "spreadsheet",
+        "operation": "create",
+        "title": "={{ 'Tracking - ' + $('Get Campaign Context').item.json.data.campaign.name }}",
+        "sheetsUi": { "sheetValues": [{ "title": "Seguimiento" }] },
+        "options": {}
+      }
+    },
+    {
+      "id": "patch",
+      "name": "Save Tracking URL",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [280, 0],
+      "parameters": {
+        "method": "PATCH",
+        "url": "={{ $env.SOCIALPRO_BASE_URL + '/api/integrations/v1/campaigns/' + $('Get Campaign Context').item.json.data.campaign.id }}",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [
+          { "name": "Authorization", "value": "={{ 'Bearer ' + $env.SOCIALPRO_INTEGRATION_TOKEN }}" },
+          { "name": "Idempotency-Key", "value": "={{ 'campaign-sheet-' + $('Get Campaign Context').item.json.data.campaign.id }}" }
+        ] },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { trackingSheetUrl: 'https://docs.google.com/spreadsheets/d/' + ($json.spreadsheetId || $json.id), trackingSheetSpreadsheetId: $json.spreadsheetId || $json.id } }}",
+        "options": { "timeout": 10000 }
+      }
+    }
+  ],
+  "connections": {
+    "Campaign Approved Event": { "main": [[{ "node": "Get Campaign Context", "type": "main", "index": 0 }]] },
+    "Get Campaign Context": { "main": [[{ "node": "Create Campaign Folder", "type": "main", "index": 0 }]] },
+    "Create Campaign Folder": { "main": [[{ "node": "Create Tracking Sheet", "type": "main", "index": 0 }]] },
+    "Create Tracking Sheet": { "main": [[{ "node": "Save Tracking URL", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1", "saveDataErrorExecution": "all", "saveDataSuccessExecution": "none" },
+  "pinData": {},
+  "tags": []
+}

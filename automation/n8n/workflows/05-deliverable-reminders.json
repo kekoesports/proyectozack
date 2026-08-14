@@ -1,0 +1,85 @@
+{
+  "name": "SocialPro 05 - Deliverable reminders and tasks",
+  "active": false,
+  "versionId": "5b64feac-dac5-4c9b-b485-9d2a7fe7bb05",
+  "nodes": [
+    {
+      "id": "schedule",
+      "name": "Weekdays at 09 00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [-700, -120],
+      "parameters": { "rule": { "interval": [{ "field": "cronExpression", "expression": "0 9 * * 1-5" }] } }
+    },
+    {
+      "id": "event-webhook",
+      "name": "Deliverable Change Event",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [-700, 140],
+      "webhookId": "socialpro-deliverable-change-v1",
+      "parameters": { "httpMethod": "POST", "path": "socialpro-deliverable-change-v1", "responseMode": "onReceived", "options": {} }
+    },
+    {
+      "id": "upcoming",
+      "name": "Get Upcoming Deliverables",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [-440, -120],
+      "parameters": {
+        "url": "={{ $env.SOCIALPRO_BASE_URL + '/api/integrations/v1/deliverables?limit=100&dueBefore=' + encodeURIComponent($now.plus({ days: 3 }).toISO()) }}",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [{ "name": "Authorization", "value": "={{ 'Bearer ' + $env.SOCIALPRO_INTEGRATION_TOKEN }}" }] },
+        "options": { "timeout": 10000 }
+      }
+    },
+    {
+      "id": "split",
+      "name": "Split Deliverables",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [-200, -120],
+      "parameters": { "fieldToSplitOut": "data", "options": {} }
+    },
+    {
+      "id": "prepare",
+      "name": "Prepare Operations Task",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [40, 0],
+      "parameters": {
+        "jsCode": "const item = $json.body?.payload ? $json.body.payload : $json;\nconst deliverableId = item.deliverableId ?? item.id;\nconst campaignId = item.campaignId;\nif (!deliverableId || !campaignId) return [];\nreturn [{ json: { title: `Revisar entregable #${deliverableId}`, description: `Estado: ${item.status ?? 'pendiente'}. Fecha: ${item.dueDate ?? 'sin fecha'}.`, ownerId: $env.SOCIALPRO_AUTOMATION_OWNER_ID, assignedToUserId: $env.SOCIALPRO_AUTOMATION_OWNER_ID, dueDate: item.dueDate ? String(item.dueDate).slice(0, 10) : undefined, priority: 'alta', category: 'deliverables', relatedType: 'campaign', relatedId: Number(campaignId), automationKey: `deliverable-task:${deliverableId}:${item.status ?? 'due'}` } }];"
+      }
+    },
+    {
+      "id": "create-task",
+      "name": "Create CRM Task",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [300, 0],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.SOCIALPRO_BASE_URL + '/api/integrations/v1/tasks' }}",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [
+          { "name": "Authorization", "value": "={{ 'Bearer ' + $env.SOCIALPRO_INTEGRATION_TOKEN }}" },
+          { "name": "Idempotency-Key", "value": "={{ $json.automationKey }}" }
+        ] },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json }}",
+        "options": { "timeout": 10000 }
+      }
+    }
+  ],
+  "connections": {
+    "Weekdays at 09 00": { "main": [[{ "node": "Get Upcoming Deliverables", "type": "main", "index": 0 }]] },
+    "Deliverable Change Event": { "main": [[{ "node": "Prepare Operations Task", "type": "main", "index": 0 }]] },
+    "Get Upcoming Deliverables": { "main": [[{ "node": "Split Deliverables", "type": "main", "index": 0 }]] },
+    "Split Deliverables": { "main": [[{ "node": "Prepare Operations Task", "type": "main", "index": 0 }]] },
+    "Prepare Operations Task": { "main": [[{ "node": "Create CRM Task", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1", "saveDataErrorExecution": "all", "saveDataSuccessExecution": "none" },
+  "pinData": {},
+  "tags": []
+}

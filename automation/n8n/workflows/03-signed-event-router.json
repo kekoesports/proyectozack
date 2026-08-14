@@ -1,0 +1,150 @@
+{
+  "name": "SocialPro 03 - Signed event router",
+  "active": false,
+  "versionId": "5b64feac-dac5-4c9b-b485-9d2a7fe7bb03",
+  "nodes": [
+    {
+      "id": "webhook",
+      "name": "Automation Event Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [-760, 0],
+      "webhookId": "socialpro-automation-events-v1",
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "socialpro-automation-events-v1",
+        "responseMode": "responseNode",
+        "options": { "rawBody": true }
+      }
+    },
+    {
+      "id": "verify",
+      "name": "Verify HMAC and Timestamp",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-520, 0],
+      "parameters": {
+        "jsCode": "const crypto = require('crypto');\nconst headers = Object.fromEntries(Object.entries($json.headers ?? {}).map(([k, v]) => [k.toLowerCase(), String(v)]));\nconst timestamp = headers['x-socialpro-timestamp'];\nconst received = headers['x-socialpro-signature'] ?? '';\nif (!timestamp || !received.startsWith('sha256=')) throw new Error('Missing webhook signature');\nconst age = Math.abs(Math.floor(Date.now() / 1000) - Number(timestamp));\nif (!Number.isFinite(age) || age > 300) throw new Error('Stale webhook timestamp');\nconst raw = typeof $json.rawBody === 'string' ? $json.rawBody : JSON.stringify($json.body ?? {});\nconst expected = 'sha256=' + crypto.createHmac('sha256', $env.AUTOMATION_WEBHOOK_SECRET).update(`${timestamp}.${raw}`).digest('hex');\nconst a = Buffer.from(received);\nconst b = Buffer.from(expected);\nif (a.length !== b.length || !crypto.timingSafeEqual(a, b)) throw new Error('Invalid webhook signature');\nconst event = typeof $json.body === 'string' ? JSON.parse($json.body) : $json.body;\nreturn [{ json: { ...event, verifiedAt: new Date().toISOString() } }];"
+      }
+    },
+    {
+      "id": "ack",
+      "name": "Acknowledge Event",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [-280, -180],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { accepted: true, eventId: $json.id } }}",
+        "options": { "responseCode": 202 }
+      }
+    },
+    {
+      "id": "record",
+      "name": "Record Event Activity",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [-280, 80],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.SOCIALPRO_BASE_URL + '/api/integrations/v1/activities' }}",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [
+          { "name": "Authorization", "value": "={{ 'Bearer ' + $env.SOCIALPRO_INTEGRATION_TOKEN }}" },
+          { "name": "Idempotency-Key", "value": "={{ 'event-activity-' + $json.id }}" }
+        ] },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { entityType: $json.aggregate.type, entityId: $json.aggregate.id, activityType: $json.type, channel: 'system', direction: 'internal', summary: ('Automation event: ' + $json.type).slice(0, 500), source: 'n8n-event-router', externalId: $json.id, occurredAt: $json.occurredAt, campaignId: $json.aggregate.type === 'campaign' ? Number($json.aggregate.id) : undefined, metadata: { traceId: $json.traceId } } }}",
+        "options": { "timeout": 10000 }
+      }
+    },
+    {
+      "id": "route",
+      "name": "Route Lifecycle Event",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [-20, 80],
+      "parameters": {
+        "rules": { "values": [
+          { "conditions": { "options": { "caseSensitive": true }, "conditions": [{ "leftValue": "={{ $('Verify HMAC and Timestamp').item.json.type }}", "rightValue": "campaign.approved", "operator": { "type": "string", "operation": "equals" } }] } },
+          { "conditions": { "options": { "caseSensitive": true }, "conditions": [{ "leftValue": "={{ $('Verify HMAC and Timestamp').item.json.type }}", "rightValue": "deliverable.status_changed", "operator": { "type": "string", "operation": "equals" } }] } }
+        ] },
+        "options": { "fallbackOutput": "extra" }
+      }
+    },
+    {
+      "id": "campaign-webhook",
+      "name": "Dispatch Campaign Approved",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [260, -20],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.N8N_INTERNAL_WEBHOOK_BASE_URL + '/socialpro-campaign-approved-v1' }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $('Verify HMAC and Timestamp').item.json }}",
+        "options": { "timeout": 10000 }
+      }
+    },
+    {
+      "id": "deliverable-webhook",
+      "name": "Dispatch Deliverable Change",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [260, 100],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.N8N_INTERNAL_WEBHOOK_BASE_URL + '/socialpro-deliverable-change-v1' }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $('Verify HMAC and Timestamp').item.json }}",
+        "options": { "timeout": 10000 }
+      }
+    },
+    {
+      "id": "telegram",
+      "name": "Telegram Internal Alert",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [260, 220],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ 'https://api.telegram.org/bot' + $env.TELEGRAM_BOT_TOKEN + '/sendMessage' }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { chat_id: $env.TELEGRAM_CHAT_ID, text: 'SocialPro: ' + $('Verify HMAC and Timestamp').item.json.type + ' (' + $('Verify HMAC and Timestamp').item.json.aggregate.type + ' #' + $('Verify HMAC and Timestamp').item.json.aggregate.id + ')' } }}",
+        "options": { "timeout": 10000 }
+      }
+    },
+    {
+      "id": "discord",
+      "name": "Discord Internal Alert",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [260, 340],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.DISCORD_WEBHOOK_URL }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { content: 'SocialPro: ' + $('Verify HMAC and Timestamp').item.json.type + ' (' + $('Verify HMAC and Timestamp').item.json.aggregate.type + ' #' + $('Verify HMAC and Timestamp').item.json.aggregate.id + ')' } }}",
+        "options": { "timeout": 10000 }
+      }
+    }
+  ],
+  "connections": {
+    "Automation Event Webhook": { "main": [[{ "node": "Verify HMAC and Timestamp", "type": "main", "index": 0 }]] },
+    "Verify HMAC and Timestamp": { "main": [[{ "node": "Acknowledge Event", "type": "main", "index": 0 }, { "node": "Record Event Activity", "type": "main", "index": 0 }]] },
+    "Record Event Activity": { "main": [[{ "node": "Route Lifecycle Event", "type": "main", "index": 0 }]] },
+    "Route Lifecycle Event": { "main": [
+      [{ "node": "Dispatch Campaign Approved", "type": "main", "index": 0 }],
+      [{ "node": "Dispatch Deliverable Change", "type": "main", "index": 0 }],
+      [{ "node": "Telegram Internal Alert", "type": "main", "index": 0 }, { "node": "Discord Internal Alert", "type": "main", "index": 0 }]
+    ] }
+  },
+  "settings": { "executionOrder": "v1", "saveDataErrorExecution": "all", "saveDataSuccessExecution": "none" },
+  "pinData": {},
+  "tags": []
+}

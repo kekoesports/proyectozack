@@ -1,0 +1,75 @@
+{
+  "name": "SocialPro 06 - Contract and finance risk tasks",
+  "active": false,
+  "versionId": "5b64feac-dac5-4c9b-b485-9d2a7fe7bb06",
+  "nodes": [
+    {
+      "id": "schedule",
+      "name": "Daily at 08 30",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [-640, 0],
+      "parameters": { "rule": { "interval": [{ "field": "cronExpression", "expression": "30 8 * * *" }] } }
+    },
+    {
+      "id": "risks",
+      "name": "Get High Risks",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [-400, 0],
+      "parameters": {
+        "url": "={{ $env.SOCIALPRO_BASE_URL + '/api/integrations/v1/risks?severity=high&limit=100' }}",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [{ "name": "Authorization", "value": "={{ 'Bearer ' + $env.SOCIALPRO_INTEGRATION_TOKEN }}" }] },
+        "options": { "timeout": 10000 }
+      }
+    },
+    {
+      "id": "split",
+      "name": "Split Risks",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [-160, 0],
+      "parameters": { "fieldToSplitOut": "data", "options": {} }
+    },
+    {
+      "id": "prepare",
+      "name": "Prepare Risk Task",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [80, 0],
+      "parameters": {
+        "jsCode": "const risk = $json;\nconst allowed = new Set(['brand', 'talent', 'campaign', 'invoice']);\nconst relatedType = allowed.has(risk.relatedEntityType) ? risk.relatedEntityType : 'general';\nconst relatedId = relatedType === 'general' ? 1 : Number(risk.relatedEntityId);\nreturn [{ json: { title: `Riesgo: ${risk.title}`.slice(0, 200), description: risk.description ?? `Alerta ${risk.type}`, ownerId: $env.SOCIALPRO_AUTOMATION_OWNER_ID, assignedToUserId: $env.SOCIALPRO_AUTOMATION_OWNER_ID, dueDate: risk.dueDate ?? $now.toISODate(), priority: risk.severity === 'critical' ? 'alta' : 'media', category: risk.type.includes('payment') ? 'finance' : 'contracts', relatedType, relatedId, automationKey: `risk-task:${risk.id}:${risk.triggeredAt}` } }];"
+      }
+    },
+    {
+      "id": "create",
+      "name": "Create Risk Task",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [340, 0],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.SOCIALPRO_BASE_URL + '/api/integrations/v1/tasks' }}",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [
+          { "name": "Authorization", "value": "={{ 'Bearer ' + $env.SOCIALPRO_INTEGRATION_TOKEN }}" },
+          { "name": "Idempotency-Key", "value": "={{ $json.automationKey }}" }
+        ] },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json }}",
+        "options": { "timeout": 10000 }
+      }
+    }
+  ],
+  "connections": {
+    "Daily at 08 30": { "main": [[{ "node": "Get High Risks", "type": "main", "index": 0 }]] },
+    "Get High Risks": { "main": [[{ "node": "Split Risks", "type": "main", "index": 0 }]] },
+    "Split Risks": { "main": [[{ "node": "Prepare Risk Task", "type": "main", "index": 0 }]] },
+    "Prepare Risk Task": { "main": [[{ "node": "Create Risk Task", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1", "saveDataErrorExecution": "all", "saveDataSuccessExecution": "none" },
+  "pinData": {},
+  "tags": []
+}

@@ -1,0 +1,77 @@
+{
+  "name": "SocialPro 02 - Due followup draft queue",
+  "active": false,
+  "versionId": "5b64feac-dac5-4c9b-b485-9d2a7fe7bb02",
+  "nodes": [
+    {
+      "id": "schedule",
+      "name": "Every 15 Minutes",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [-700, 0],
+      "parameters": { "rule": { "interval": [{ "field": "minutes", "minutesInterval": 15 }] } }
+    },
+    {
+      "id": "get-followups",
+      "name": "Get Due Followups",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [-460, 0],
+      "parameters": {
+        "url": "={{ $env.SOCIALPRO_BASE_URL + '/api/integrations/v1/followups?status=pendiente&limit=100&dueBefore=' + encodeURIComponent($now.toISO()) }}",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [
+          { "name": "Authorization", "value": "={{ 'Bearer ' + $env.SOCIALPRO_INTEGRATION_TOKEN }}" }
+        ] },
+        "options": { "timeout": 10000 }
+      }
+    },
+    {
+      "id": "split",
+      "name": "Split Followups",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [-220, 0],
+      "parameters": { "fieldToSplitOut": "data", "options": {} }
+    },
+    {
+      "id": "prepare",
+      "name": "Prepare Reviewable Draft",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [20, 0],
+      "parameters": {
+        "jsCode": "const followup = $json;\nconst recipient = followup.primaryContactEmail ?? '';\nif (!recipient) return [];\nconst nextAction = followup.nextAction || followup.note || 'retomar la conversación pendiente';\nconst greeting = followup.primaryContactName ? `Hola ${followup.primaryContactName},` : 'Hola,';\nreturn [{ json: { channel: 'email', purpose: 'crm_followup', recipient, subject: `Seguimiento SocialPro - ${followup.brandName}`, body: `${greeting}\\n\\nTe escribimos para ${nextAction}.\\n\\nEste mensaje es un borrador y debe revisarse antes del envío.\\n\\nUn saludo,\\nSocialPro`, riskLevel: 'medium', brandId: followup.brandId, automationKey: `followup:${followup.id}:${followup.scheduledAt}`, metadata: { followupId: followup.id, scheduledAt: followup.scheduledAt } } }];"
+      }
+    },
+    {
+      "id": "create-draft",
+      "name": "Create Pending Draft",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [520, 0],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.SOCIALPRO_BASE_URL + '/api/integrations/v1/drafts' }}",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [
+          { "name": "Authorization", "value": "={{ 'Bearer ' + $env.SOCIALPRO_INTEGRATION_TOKEN }}" },
+          { "name": "Idempotency-Key", "value": "={{ $json.automationKey }}" }
+        ] },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json }}",
+        "options": { "timeout": 10000 }
+      }
+    }
+  ],
+  "connections": {
+    "Every 15 Minutes": { "main": [[{ "node": "Get Due Followups", "type": "main", "index": 0 }]] },
+    "Get Due Followups": { "main": [[{ "node": "Split Followups", "type": "main", "index": 0 }]] },
+    "Split Followups": { "main": [[{ "node": "Prepare Reviewable Draft", "type": "main", "index": 0 }]] },
+    "Prepare Reviewable Draft": { "main": [[{ "node": "Create Pending Draft", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1", "saveDataErrorExecution": "all", "saveDataSuccessExecution": "none" },
+  "pinData": {},
+  "tags": []
+}

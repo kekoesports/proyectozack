@@ -48,6 +48,11 @@ jobs:
           export DATABASE_URL="${DATABASE_URL:-postgresql://ci:ci@127.0.0.1:5432/ci_check}"
           npx drizzle-kit check
 
+      - name: Automation asset checks
+        run: |
+          npm run test:automation
+          docker compose --env-file automation/n8n/.env.example -f automation/n8n/docker-compose.yml config --quiet
+
   # Unit & Fuzz Tests job removed — flaky/noisy on CI; run locally with
   # `npm run test:ci` / `npm run test:fuzz` when needed.
 

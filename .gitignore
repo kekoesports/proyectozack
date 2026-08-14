@@ -32,6 +32,7 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!automation/n8n/.env.example
 
 # vercel
 .vercel
@@ -64,6 +65,7 @@ scraper/*.pyc
 visual-*.png
 crm-*-smoke.png
 screenshots/
+/automation/n8n/backups/
 
 # One-off QA capture scripts with hardcoded local paths
 scripts/capture_*.mjs

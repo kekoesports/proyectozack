@@ -1,0 +1,124 @@
+{
+  "name": "SocialPro 01 - Gmail intake and approved send",
+  "active": false,
+  "versionId": "5b64feac-dac5-4c9b-b485-9d2a7fe7bb01",
+  "nodes": [
+    {
+      "id": "gmail-trigger",
+      "name": "Gmail Incoming",
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.3,
+      "position": [-820, -180],
+      "parameters": {
+        "pollTimes": { "item": [{ "mode": "everyMinute" }] },
+        "simple": false,
+        "filters": { "includeSpamTrash": false }
+      }
+    },
+    {
+      "id": "normalize-inbound",
+      "name": "Normalize Inbound Email",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-580, -180],
+      "parameters": {
+        "jsCode": "const message = $json;\nconst headers = message.payload?.headers ?? [];\nconst getHeader = (name) => headers.find((h) => h.name?.toLowerCase() === name)?.value ?? '';\nconst subject = getHeader('subject') || '(sin asunto)';\nconst from = getHeader('from');\nconst externalId = message.id ?? message.threadId;\nif (!externalId) throw new Error('Gmail message has no stable id');\nreturn [{ json: { entityType: 'contact', entityId: message.threadId ?? externalId, activityType: 'gmail_received', channel: 'email', direction: 'inbound', summary: `Email recibido: ${subject}`.slice(0, 500), detail: message.snippet ?? null, source: 'n8n-gmail', externalId, occurredAt: new Date(Number(message.internalDate ?? Date.now())).toISOString(), metadata: { from, to: getHeader('to'), subject, threadId: message.threadId ?? null } } }];"
+      }
+    },
+    {
+      "id": "log-inbound",
+      "name": "Log CRM Activity",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [-320, -180],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.SOCIALPRO_BASE_URL + '/api/integrations/v1/activities' }}",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [
+          { "name": "Authorization", "value": "={{ 'Bearer ' + $env.SOCIALPRO_INTEGRATION_TOKEN }}" },
+          { "name": "Idempotency-Key", "value": "={{ 'gmail-in-' + $json.externalId }}" }
+        ] },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json }}",
+        "options": { "timeout": 10000 }
+      }
+    },
+    {
+      "id": "send-schedule",
+      "name": "Check Approved Drafts",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [-820, 180],
+      "parameters": { "rule": { "interval": [{ "field": "minutes", "minutesInterval": 2 }] } }
+    },
+    {
+      "id": "get-approved",
+      "name": "Get Approved Email Drafts",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [-580, 180],
+      "parameters": {
+        "url": "={{ $env.SOCIALPRO_BASE_URL + '/api/integrations/v1/drafts?status=approved&channel=email&limit=50' }}",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [
+          { "name": "Authorization", "value": "={{ 'Bearer ' + $env.SOCIALPRO_INTEGRATION_TOKEN }}" }
+        ] },
+        "options": { "timeout": 10000 }
+      }
+    },
+    {
+      "id": "split-approved",
+      "name": "Split Approved Drafts",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [-340, 180],
+      "parameters": { "fieldToSplitOut": "data", "options": {} }
+    },
+    {
+      "id": "gmail-send",
+      "name": "Send Approved Email",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [-80, 180],
+      "parameters": {
+        "sendTo": "={{ $json.recipient }}",
+        "subject": "={{ $json.subject || '(sin asunto)' }}",
+        "message": "={{ $json.body }}",
+        "options": { "appendAttribution": false }
+      }
+    },
+    {
+      "id": "mark-sent",
+      "name": "Mark Draft Sent",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [180, 180],
+      "parameters": {
+        "method": "PATCH",
+        "url": "={{ $env.SOCIALPRO_BASE_URL + '/api/integrations/v1/drafts/' + $('Split Approved Drafts').item.json.id }}",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [
+          { "name": "Authorization", "value": "={{ 'Bearer ' + $env.SOCIALPRO_INTEGRATION_TOKEN }}" },
+          { "name": "Idempotency-Key", "value": "={{ 'gmail-sent-' + $('Split Approved Drafts').item.json.id }}" }
+        ] },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { status: 'sent', providerMessageId: $json.id || $json.messageId || ('gmail-draft-' + $('Split Approved Drafts').item.json.id) } }}",
+        "options": { "timeout": 10000 }
+      }
+    }
+  ],
+  "connections": {
+    "Gmail Incoming": { "main": [[{ "node": "Normalize Inbound Email", "type": "main", "index": 0 }]] },
+    "Normalize Inbound Email": { "main": [[{ "node": "Log CRM Activity", "type": "main", "index": 0 }]] },
+    "Check Approved Drafts": { "main": [[{ "node": "Get Approved Email Drafts", "type": "main", "index": 0 }]] },
+    "Get Approved Email Drafts": { "main": [[{ "node": "Split Approved Drafts", "type": "main", "index": 0 }]] },
+    "Split Approved Drafts": { "main": [[{ "node": "Send Approved Email", "type": "main", "index": 0 }]] },
+    "Send Approved Email": { "main": [[{ "node": "Mark Draft Sent", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1", "saveDataErrorExecution": "all", "saveDataSuccessExecution": "none" },
+  "pinData": {},
+  "tags": []
+}
