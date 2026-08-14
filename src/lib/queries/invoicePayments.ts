@@ -1,7 +1,7 @@
 'server-only';
 
 import { and, eq, sum } from 'drizzle-orm';
-import { db, transactionalDb } from '@/lib/db';
+import { db, getTransactionalDb } from '@/lib/db';
 import {
   invoicePayments,
   issuedInvoices,
@@ -25,6 +25,7 @@ export async function applyPaymentToIssuedInvoice(opts: {
   notes?: string;
   appliedByUserId: string;
 }): Promise<InvoicePayment> {
+  const transactionalDb = getTransactionalDb();
   const { bankTransactionId, issuedInvoiceId, amount, currency, paymentDate, notes, appliedByUserId } = opts;
 
   let payment: InvoicePayment | undefined;
@@ -125,6 +126,7 @@ export async function applyPaymentToInternalInvoice(opts: {
   notes?: string;
   appliedByUserId: string;
 }): Promise<InvoicePayment> {
+  const transactionalDb = getTransactionalDb();
   const { bankTransactionId, invoiceId, amount, currency, paymentDate, notes, appliedByUserId } = opts;
 
   let payment: InvoicePayment | undefined;

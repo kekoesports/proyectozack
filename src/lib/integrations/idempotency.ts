@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto';
 import { and, eq, gt, lte } from 'drizzle-orm';
 import { NextResponse, type NextRequest } from 'next/server';
 import { integrationApiIdempotency } from '@/db/schema';
-import { transactionalDb } from '@/lib/db';
+import { getTransactionalDb } from '@/lib/db';
 import { integrationError } from './responses';
 
 type MutationResult = {
@@ -40,6 +40,7 @@ export async function runIdempotentMutation<T>(
   }
 
   const hash = requestHash(args.input);
+  const transactionalDb = getTransactionalDb();
   const now = new Date();
   const existing = await transactionalDb
     .select()

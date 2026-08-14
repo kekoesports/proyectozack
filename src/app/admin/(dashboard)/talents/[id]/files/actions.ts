@@ -9,7 +9,7 @@ import { requirePermission } from '@/lib/permissions';
 import { assertCanDelete } from '@/lib/permissions';
 import { uploadFile, deleteFile } from '@/lib/storage';
 import { createFile, deleteFileById } from '@/lib/queries/files';
-import { transactionalDb } from '@/lib/db';
+import { getTransactionalDb } from '@/lib/db';
 import { talentMetricSnapshots, talentSocials } from '@/db/schema';
 import { parseFormData } from '@/lib/forms/parseFormData';
 import { validateUploadedFile } from '@/lib/files/validateUploadedFile';
@@ -153,6 +153,7 @@ export async function uploadGeoStatsAction(
 
       const today = new Date().toISOString().slice(0, 10);
 
+      const transactionalDb = getTransactionalDb();
       await transactionalDb.transaction(async (tx) => {
         await tx
           .insert(talentMetricSnapshots)

@@ -6,6 +6,13 @@ function source(path: string): string {
 }
 
 describe('transaction-capable database wiring', () => {
+  it('creates the WebSocket pool lazily so read-only imports can exit cleanly', () => {
+    const contents = source('src/lib/db.ts');
+    expect(contents).toContain('function createTransactionalDatabase()');
+    expect(contents).toContain('transactionalDatabase ??= createTransactionalDatabase()');
+    expect(contents).toContain('allowExitOnIdle: true');
+  });
+
   it.each([
     'src/lib/queries/invoicePayments.ts',
     'src/lib/queries/bankReconciliation.ts',

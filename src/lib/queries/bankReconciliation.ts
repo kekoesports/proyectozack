@@ -1,7 +1,7 @@
 'server-only';
 
 import { and, asc, count, desc, eq, inArray, sql } from 'drizzle-orm';
-import { db, transactionalDb } from '@/lib/db';
+import { db, getTransactionalDb } from '@/lib/db';
 import {
   bankAccounts,
   bankImports,
@@ -265,6 +265,7 @@ export async function approveMatchFromCandidate(opts: {
   matchReason: string;
   approvedByUserId: string;
 }): Promise<TransactionMatch> {
+  const transactionalDb = getTransactionalDb();
   const { transactionId, matchType, matchedEntityId, confidence, matchReason, approvedByUserId } = opts;
   const now = new Date();
   let match: TransactionMatch | undefined;
@@ -301,6 +302,7 @@ export async function rejectMatchFromCandidate(opts: {
   matchReason: string;
   rejectedByUserId: string;
 }): Promise<TransactionMatch> {
+  const transactionalDb = getTransactionalDb();
   const { transactionId, matchType, matchedEntityId, confidence, matchReason, rejectedByUserId } = opts;
   let match: TransactionMatch | undefined;
   await transactionalDb.transaction(async (tx) => {

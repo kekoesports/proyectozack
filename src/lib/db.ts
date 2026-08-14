@@ -24,5 +24,20 @@ export const serializableDb = drizzle(serializableSql, { schema });
  * Interactive transactions require the WebSocket driver. The neon-http
  * adapter deliberately does not implement db.transaction().
  */
-const transactionalPool = new Pool({ connectionString: env.DATABASE_URL });
-export const transactionalDb = drizzleTransactional(transactionalPool, { schema });
+function createTransactionalDatabase() {
+  const pool = new Pool({
+    connectionString: env.DATABASE_URL,
+    // Serverless invocations must be allowed to finish once every checked-out
+    // client is idle; the pool remains reusable while the process lives.
+    allowExitOnIdle: true,
+  });
+  return drizzleTransactional(pool, { schema });
+}
+
+let transactionalDatabase: ReturnType<typeof createTransactionalDatabase> | undefined;
+
+/** Lazily create the WebSocket pool only when an interactive tx is requested. */
+export function getTransactionalDb(): ReturnType<typeof createTransactionalDatabase> {
+  transactionalDatabase ??= createTransactionalDatabase();
+  return transactionalDatabase;
+}

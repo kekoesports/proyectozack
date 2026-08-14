@@ -7,12 +7,12 @@ import {
   automationWebhookDeliveries,
   integrationApiIdempotency,
 } from '@/db/schema';
-import { transactionalDb } from '@/lib/db';
+import { getTransactionalDb } from '@/lib/db';
 import { env } from '@/lib/env';
 import { cleanExpiredIntegrationRateLimits } from '@/lib/integrations/auth';
 
 type EventPayload = Record<string, unknown>;
-type OutboxWriter = Pick<typeof transactionalDb, 'insert'>;
+type OutboxWriter = Pick<ReturnType<typeof getTransactionalDb>, 'insert'>;
 
 export type AutomationEventInput = {
   eventType: string;
@@ -58,6 +58,7 @@ function responseMetadata(response: Response, text: string): Record<string, unkn
 }
 
 async function recoverStuckEvents(now: Date): Promise<number> {
+  const transactionalDb = getTransactionalDb();
   const cutoff = new Date(now.getTime() - Math.max(env.OUTBOX_TIMEOUT_MS * 3, 60_000));
   const rows = await transactionalDb
     .update(automationEventOutbox)
@@ -77,6 +78,7 @@ async function recoverStuckEvents(now: Date): Promise<number> {
 }
 
 async function claimEvents(now: Date): Promise<ClaimedEvent[]> {
+  const transactionalDb = getTransactionalDb();
   return transactionalDb.transaction(async (tx) => {
     const rows = await tx
       .select()
@@ -105,6 +107,7 @@ async function claimEvents(now: Date): Promise<ClaimedEvent[]> {
 }
 
 async function recordSuccess(event: ClaimedEvent, response: Response, durationMs: number): Promise<void> {
+  const transactionalDb = getTransactionalDb();
   const bodyText = await response.text();
   const now = new Date();
   await transactionalDb.transaction(async (tx) => {
@@ -137,6 +140,7 @@ async function recordFailure(
   response?: Response,
   bodyText = '',
 ): Promise<void> {
+  const transactionalDb = getTransactionalDb();
   const now = new Date();
   const deadLetter = event.attempt >= event.maxAttempts;
   const metadata = response ? responseMetadata(response, bodyText) : { bodySnippet: null };
@@ -220,6 +224,7 @@ export async function dispatchAutomationEvents(): Promise<DispatchResult> {
   if (!url || !secret) {
     return { configured: false, claimed: 0, delivered: 0, failed: 0, recovered: 0, cleaned: 0 };
   }
+  const transactionalDb = getTransactionalDb();
 
   const now = new Date();
   const recovered = await recoverStuckEvents(now);
@@ -246,6 +251,7 @@ export async function dispatchAutomationEvents(): Promise<DispatchResult> {
 }
 
 export async function retryOutboxEvent(id: string): Promise<boolean> {
+  const transactionalDb = getTransactionalDb();
   const [row] = await transactionalDb
     .update(automationEventOutbox)
     .set({

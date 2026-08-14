@@ -1,5 +1,5 @@
 import { eq, desc, inArray } from 'drizzle-orm';
-import { db, transactionalDb } from '@/lib/db';
+import { db, getTransactionalDb } from '@/lib/db';
 import { enqueueAutomationEvent } from '@/lib/automation/outbox';
 import { deliverables, deliverableComments } from '@/db/schema';
 import type { InferSelectModel } from 'drizzle-orm';
@@ -79,6 +79,7 @@ export async function createDeliverable(data: {
   dueDate?: string;
   contentUrl?: string;
 }): Promise<Deliverable> {
+  const transactionalDb = getTransactionalDb();
   return transactionalDb.transaction(async (tx) => {
     const [row] = await tx.insert(deliverables).values({
       campaignId: data.campaignId,
@@ -120,6 +121,7 @@ export async function transitionDeliverableStatus(
     revisionNotes?: string;
   } = {},
 ): Promise<Deliverable | null> {
+  const transactionalDb = getTransactionalDb();
   return transactionalDb.transaction(async (tx) => {
     const [existing] = await tx.select().from(deliverables)
       .where(eq(deliverables.id, deliverableId)).limit(1).for('update');

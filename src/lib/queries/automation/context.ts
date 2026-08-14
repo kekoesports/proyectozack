@@ -26,7 +26,7 @@ import {
   invoices,
   talents,
 } from '@/db/schema';
-import { db, transactionalDb } from '@/lib/db';
+import { db, getTransactionalDb } from '@/lib/db';
 import { enqueueAutomationEvent } from '@/lib/automation/outbox';
 import type { CampaignAutomationPatch } from '@/lib/schemas/integrationApi';
 
@@ -136,6 +136,7 @@ export async function patchAutomationCampaignAssets(
   id: number,
   input: CampaignAutomationPatch,
 ) {
+  const transactionalDb = getTransactionalDb();
   return transactionalDb.transaction(async (tx) => {
     const [row] = await tx
       .update(campaigns)

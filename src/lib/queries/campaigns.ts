@@ -1,6 +1,6 @@
 import { and, desc, eq, inArray, isNull, or, sql } from 'drizzle-orm';
 
-import { db, transactionalDb } from '@/lib/db';
+import { db, getTransactionalDb } from '@/lib/db';
 import { enqueueAutomationEvent } from '@/lib/automation/outbox';
 import { campaigns, crmBrands, crmBrandContacts, invoices, talents, user } from '@/db/schema';
 import { canSeeAll, needsVisibilityFilter } from '@/lib/permissions';
@@ -416,6 +416,7 @@ export async function listCampaignsByTalent(
  * @returns la fila insertada. Lanza si la inserción falla.
  */
 export async function createCampaign(input: CreateCampaignInput): Promise<CampaignRow> {
+  const transactionalDb = getTransactionalDb();
   return transactionalDb.transaction(async (tx) => {
     const [row] = await tx.insert(campaigns).values({
       name: input.name,
@@ -481,6 +482,7 @@ export async function updateCampaign(
   id: number,
   patch: Partial<CreateCampaignInput>,
 ): Promise<CampaignRow | undefined> {
+  const transactionalDb = getTransactionalDb();
   const updatedAt = new Date();
   const setValue: Record<string, unknown> = { updatedAt };
 
@@ -726,4 +728,3 @@ export async function listAllCampaigns(opts?: {
 
   return rows;
 }
-

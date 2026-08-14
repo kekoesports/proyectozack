@@ -2,7 +2,7 @@ import { createHash, randomUUID, timingSafeEqual } from 'node:crypto';
 import { and, eq, lt, sql } from 'drizzle-orm';
 import type { NextRequest } from 'next/server';
 import { integrationApiRateLimits } from '@/db/schema';
-import { transactionalDb } from '@/lib/db';
+import { getTransactionalDb } from '@/lib/db';
 import { env } from '@/lib/env';
 import { integrationError } from './responses';
 
@@ -36,6 +36,7 @@ function getTraceId(request: NextRequest): string {
 }
 
 async function consumeRateLimit(tokenFingerprint: string): Promise<boolean> {
+  const transactionalDb = getTransactionalDb();
   const now = new Date();
   const windowStartedAt = new Date(Math.floor(now.getTime() / 60_000) * 60_000);
   const [row] = await transactionalDb
@@ -85,6 +86,7 @@ export async function authorizeIntegrationRequest(
 }
 
 export async function cleanExpiredIntegrationRateLimits(before: Date): Promise<number> {
+  const transactionalDb = getTransactionalDb();
   const rows = await transactionalDb
     .delete(integrationApiRateLimits)
     .where(lt(integrationApiRateLimits.updatedAt, before))
@@ -96,6 +98,7 @@ export async function getCurrentRateCount(
   tokenFingerprint: string,
   windowStartedAt: Date,
 ): Promise<number> {
+  const transactionalDb = getTransactionalDb();
   const [row] = await transactionalDb
     .select({ requestCount: integrationApiRateLimits.requestCount })
     .from(integrationApiRateLimits)
