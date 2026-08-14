@@ -1,6 +1,7 @@
 import { and, desc, eq, inArray, isNull, or, sql } from 'drizzle-orm';
 
-import { db } from '@/lib/db';
+import { db, transactionalDb } from '@/lib/db';
+import { enqueueAutomationEvent } from '@/lib/automation/outbox';
 import { campaigns, crmBrands, crmBrandContacts, invoices, talents, user } from '@/db/schema';
 import { canSeeAll, needsVisibilityFilter } from '@/lib/permissions';
 import { computeCampaignDerived } from '@/lib/schemas/campaign';
@@ -415,9 +416,8 @@ export async function listCampaignsByTalent(
  * @returns la fila insertada. Lanza si la inserción falla.
  */
 export async function createCampaign(input: CreateCampaignInput): Promise<CampaignRow> {
-  const [row] = await db
-    .insert(campaigns)
-    .values({
+  return transactionalDb.transaction(async (tx) => {
+    const [row] = await tx.insert(campaigns).values({
       name: input.name,
       brandId: input.brandId,
       talentId: input.talentId,
@@ -447,11 +447,26 @@ export async function createCampaign(input: CreateCampaignInput): Promise<Campai
       cobroConfirmado: input.cobroConfirmado ?? false,
       pagoTalentConfirmado: input.pagoTalentConfirmado ?? false,
       cnmcChecklistOk: input.cnmcChecklistOk ?? false,
-    })
-    .returning();
-
-  if (!row) throw new Error('Failed to insert campaign');
-  return row;
+    }).returning();
+    if (!row) throw new Error('Failed to insert campaign');
+    await enqueueAutomationEvent(tx, {
+      eventType: 'campaign.created',
+      aggregateType: 'campaign',
+      aggregateId: row.id,
+      idempotencyKey: `campaign.created:${row.id}`,
+      payload: { campaignId: row.id, brandId: row.brandId, talentId: row.talentId, status: row.status },
+    });
+    if (row.status === 'aprobada') {
+      await enqueueAutomationEvent(tx, {
+        eventType: 'campaign.approved',
+        aggregateType: 'campaign',
+        aggregateId: row.id,
+        idempotencyKey: `campaign.approved:${row.id}`,
+        payload: { campaignId: row.id, brandId: row.brandId, talentId: row.talentId },
+      });
+    }
+    return row;
+  });
 }
 
 /**
@@ -466,7 +481,8 @@ export async function updateCampaign(
   id: number,
   patch: Partial<CreateCampaignInput>,
 ): Promise<CampaignRow | undefined> {
-  const setValue: Record<string, unknown> = { updatedAt: new Date() };
+  const updatedAt = new Date();
+  const setValue: Record<string, unknown> = { updatedAt };
 
   if (patch.name !== undefined) setValue['name'] = patch.name;
   if (patch.brandId !== undefined) setValue['brandId'] = patch.brandId;
@@ -499,13 +515,34 @@ export async function updateCampaign(
   if (patch.pagoTalentConfirmado !== undefined) setValue['pagoTalentConfirmado'] = patch.pagoTalentConfirmado;
   if (patch.cnmcChecklistOk !== undefined) setValue['cnmcChecklistOk'] = patch.cnmcChecklistOk;
 
-  const [row] = await db
-    .update(campaigns)
-    .set(setValue)
-    .where(eq(campaigns.id, id))
-    .returning();
-
-  return row ?? undefined;
+  return transactionalDb.transaction(async (tx) => {
+    const [before] = await tx
+      .select({ status: campaigns.status })
+      .from(campaigns)
+      .where(eq(campaigns.id, id))
+      .limit(1)
+      .for('update');
+    if (!before) return undefined;
+    const [row] = await tx.update(campaigns).set(setValue).where(eq(campaigns.id, id)).returning();
+    if (!row) return undefined;
+    await enqueueAutomationEvent(tx, {
+      eventType: 'campaign.updated',
+      aggregateType: 'campaign',
+      aggregateId: row.id,
+      idempotencyKey: `campaign.updated:${row.id}:${updatedAt.toISOString()}`,
+      payload: { campaignId: row.id, brandId: row.brandId, talentId: row.talentId, status: row.status },
+    });
+    if (before.status !== 'aprobada' && row.status === 'aprobada') {
+      await enqueueAutomationEvent(tx, {
+        eventType: 'campaign.approved',
+        aggregateType: 'campaign',
+        aggregateId: row.id,
+        idempotencyKey: `campaign.approved:${row.id}`,
+        payload: { campaignId: row.id, brandId: row.brandId, talentId: row.talentId },
+      });
+    }
+    return row;
+  });
 }
 /**
  * Soft-archive de una campaña fijando `archivedAt = now`. Las queries por defecto la ocultan.
@@ -689,5 +726,4 @@ export async function listAllCampaigns(opts?: {
 
   return rows;
 }
-
 

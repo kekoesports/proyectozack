@@ -1,5 +1,6 @@
 import { eq, desc, inArray } from 'drizzle-orm';
-import { db } from '@/lib/db';
+import { db, transactionalDb } from '@/lib/db';
+import { enqueueAutomationEvent } from '@/lib/automation/outbox';
 import { deliverables, deliverableComments } from '@/db/schema';
 import type { InferSelectModel } from 'drizzle-orm';
 import { ALLOWED_TRANSITIONS } from '@/lib/schemas/deliverable';
@@ -78,9 +79,8 @@ export async function createDeliverable(data: {
   dueDate?: string;
   contentUrl?: string;
 }): Promise<Deliverable> {
-  const [row] = await db
-    .insert(deliverables)
-    .values({
+  return transactionalDb.transaction(async (tx) => {
+    const [row] = await tx.insert(deliverables).values({
       campaignId: data.campaignId,
       talentId: data.talentId,
       title: data.title,
@@ -89,10 +89,17 @@ export async function createDeliverable(data: {
       dueDate: data.dueDate ? new Date(data.dueDate) : null,
       contentUrl: data.contentUrl ?? null,
       status: 'pending_submission',
-    })
-    .returning();
-  if (!row) throw new Error('createDeliverable: insert returned no row');
-  return row;
+    }).returning();
+    if (!row) throw new Error('createDeliverable: insert returned no row');
+    await enqueueAutomationEvent(tx, {
+      eventType: 'deliverable.created',
+      aggregateType: 'deliverable',
+      aggregateId: row.id,
+      idempotencyKey: `deliverable.created:${row.id}`,
+      payload: { deliverableId: row.id, campaignId: row.campaignId, talentId: row.talentId, status: row.status, dueDate: row.dueDate?.toISOString() ?? null },
+    });
+    return row;
+  });
 }
 
 /**
@@ -113,59 +120,64 @@ export async function transitionDeliverableStatus(
     revisionNotes?: string;
   } = {},
 ): Promise<Deliverable | null> {
-  const existing = await getDeliverable(deliverableId);
-  if (!existing) return null;
+  return transactionalDb.transaction(async (tx) => {
+    const [existing] = await tx.select().from(deliverables)
+      .where(eq(deliverables.id, deliverableId)).limit(1).for('update');
+    if (!existing) return null;
+    const allowed = ALLOWED_TRANSITIONS[existing.status];
+    if (!allowed.includes(nextStatus)) return null;
+    const now = new Date();
+    const patch: Partial<typeof deliverables.$inferInsert> = { status: nextStatus, updatedAt: now };
 
-  const allowed = ALLOWED_TRANSITIONS[existing.status];
-  if (!allowed.includes(nextStatus)) return null;
+    if (nextStatus === 'submitted') {
+      patch.submittedAt = now;
+      patch.submittedByUserId = opts.userId ?? null;
+      if (opts.contentUrl) patch.contentUrl = opts.contentUrl;
+    }
 
-  const now = new Date();
-  const patch: Partial<typeof deliverables.$inferInsert> = {
-    status: nextStatus,
-    updatedAt: now,
-  };
+    if (nextStatus === 'approved') {
+      patch.approvedAt = now;
+      patch.reviewedAt = now;
+      patch.reviewedByUserId = opts.userId ?? null;
+    }
 
-  if (nextStatus === 'submitted') {
-    patch.submittedAt = now;
-    patch.submittedByUserId = opts.userId ?? null;
-    if (opts.contentUrl) patch.contentUrl = opts.contentUrl;
-  }
+    if (nextStatus === 'internal_review' || nextStatus === 'brand_review') {
+      patch.reviewedAt = now;
+      patch.reviewedByUserId = opts.userId ?? null;
+    }
 
-  if (nextStatus === 'approved') {
-    patch.approvedAt = now;
-    patch.reviewedAt = now;
-    patch.reviewedByUserId = opts.userId ?? null;
-  }
+    if (nextStatus === 'revision_requested' && opts.revisionNotes) patch.revisionNotes = opts.revisionNotes;
 
-  if (nextStatus === 'internal_review' || nextStatus === 'brand_review') {
-    patch.reviewedAt = now;
-    patch.reviewedByUserId = opts.userId ?? null;
-  }
-
-  if (nextStatus === 'revision_requested' && opts.revisionNotes) {
-    patch.revisionNotes = opts.revisionNotes;
-  }
-
-  const [updated] = await db
-    .update(deliverables)
-    .set(patch)
-    .where(eq(deliverables.id, deliverableId))
-    .returning();
-
-  if (!updated) return null;
+    const [updated] = await tx.update(deliverables).set(patch)
+      .where(eq(deliverables.id, deliverableId)).returning();
+    if (!updated) return null;
 
   // Append comment to audit trail if provided
-  const commentText = opts.comment?.trim();
-  if (commentText) {
-    await db.insert(deliverableComments).values({
-      deliverableId,
-      authorUserId: opts.userId ?? null,
-      content: commentText,
-      statusSnapshot: nextStatus,
+    const commentText = opts.comment?.trim();
+    if (commentText) {
+      await tx.insert(deliverableComments).values({
+        deliverableId,
+        authorUserId: opts.userId ?? null,
+        content: commentText,
+        statusSnapshot: nextStatus,
+      });
+    }
+    await enqueueAutomationEvent(tx, {
+      eventType: 'deliverable.status_changed',
+      aggregateType: 'deliverable',
+      aggregateId: updated.id,
+      idempotencyKey: `deliverable.status:${updated.id}:${nextStatus}:${now.toISOString()}`,
+      payload: {
+        deliverableId: updated.id,
+        campaignId: updated.campaignId,
+        talentId: updated.talentId,
+        previousStatus: existing.status,
+        status: nextStatus,
+        dueDate: updated.dueDate?.toISOString() ?? null,
+      },
     });
-  }
-
-  return updated;
+    return updated;
+  });
 }
 
 /**

@@ -185,6 +185,7 @@ export const communicationDrafts = pgTable(
     subject: text('subject'),
     body: text('body').notNull(),
     model: varchar('model', { length: 100 }),
+    automationKey: varchar('automation_key', { length: 200 }),
     sourceActivityId: integer('source_activity_id').references(() => crmActivities.id, { onDelete: 'set null' }),
     riskLevel: automationRiskLevelEnum('risk_level').notNull().default('medium'),
     metadata: jsonb('metadata').$type<Record<string, unknown>>(),
@@ -203,6 +204,7 @@ export const communicationDrafts = pgTable(
     index('communication_drafts_brand_idx').on(t.brandId),
     index('communication_drafts_campaign_idx').on(t.campaignId),
     index('communication_drafts_created_idx').on(t.createdAt),
+    uniqueIndex('communication_drafts_automation_key_uniq').on(t.automationKey),
   ],
 );
 

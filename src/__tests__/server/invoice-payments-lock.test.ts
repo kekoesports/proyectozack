@@ -5,13 +5,13 @@
  * un sobrepago silencioso (la UNIQUE `(bank_transaction_id, factura_id)`
  * sólo protege contra doble aplicación del MISMO movimiento).
  *
- * La opción X — mover la lectura de status+SUM dentro de `db.transaction`
+ * La opción X — mover la lectura de status+SUM dentro de `transactionalDb.transaction`
  * con `SELECT ... FOR UPDATE` sobre la fila de la factura — serializa
  * los pagos concurrentes contra la misma factura hasta commit.
  *
  * Tests aquí:
  *   [E] Estructural: verifica que el código fuente usa `.for('update')`
- *       dentro del callback de `db.transaction` en ambas funciones. Es
+ *       dentro del callback de `transactionalDb.transaction` en ambas funciones. Es
  *       la garantía honesta cuando no hay un Postgres real disponible en
  *       jest (limitación documentada en la PR).
  *   [C] Comportamiento: verifica que si el guard se ejecuta *después*
@@ -32,37 +32,37 @@ const SOURCE = readFileSync(SOURCE_PATH, 'utf8');
 // ── [E] Tests estructurales ───────────────────────────────────────────
 
 describe('applyPaymentTo* — SELECT ... FOR UPDATE dentro de la transacción', () => {
-  it('applyPaymentToIssuedInvoice contiene db.transaction seguido de .for(\'update\')', () => {
+  it('applyPaymentToIssuedInvoice contiene transactionalDb.transaction seguido de .for(\'update\')', () => {
     const idx = SOURCE.indexOf('export async function applyPaymentToIssuedInvoice');
     const end = SOURCE.indexOf('export async function applyPaymentToInternalInvoice');
     expect(idx).toBeGreaterThan(0);
     expect(end).toBeGreaterThan(idx);
 
     const body = SOURCE.slice(idx, end);
-    expect(body).toMatch(/db\.transaction\s*\(/);
+    expect(body).toMatch(/transactionalDb\.transaction\s*\(/);
     expect(body).toMatch(/\.for\(\s*['"]update['"]\s*\)/);
 
-    const txIdx = body.indexOf('db.transaction');
+    const txIdx = body.indexOf('transactionalDb.transaction');
     const forUpdateIdx = body.search(/\.for\(\s*['"]update['"]\s*\)/);
     expect(forUpdateIdx).toBeGreaterThan(txIdx);
   });
 
-  it('applyPaymentToInternalInvoice contiene db.transaction seguido de .for(\'update\')', () => {
+  it('applyPaymentToInternalInvoice contiene transactionalDb.transaction seguido de .for(\'update\')', () => {
     const idx = SOURCE.indexOf('export async function applyPaymentToInternalInvoice');
     // Corta al siguiente separador de sección o export para acotar el cuerpo.
     const rest = SOURCE.slice(idx);
     const nextExportIdx = rest.slice(1).search(/\nexport /);
     const body = nextExportIdx > 0 ? rest.slice(0, nextExportIdx + 1) : rest;
 
-    expect(body).toMatch(/db\.transaction\s*\(/);
+    expect(body).toMatch(/transactionalDb\.transaction\s*\(/);
     expect(body).toMatch(/\.for\(\s*['"]update['"]\s*\)/);
 
-    const txIdx = body.indexOf('db.transaction');
+    const txIdx = body.indexOf('transactionalDb.transaction');
     const forUpdateIdx = body.search(/\.for\(\s*['"]update['"]\s*\)/);
     expect(forUpdateIdx).toBeGreaterThan(txIdx);
   });
 
-  it('assertInvoicePayable se llama DESPUÉS del FOR UPDATE dentro del db.transaction callback (issued)', () => {
+  it('assertInvoicePayable se llama DESPUÉS del FOR UPDATE dentro del transactionalDb.transaction callback (issued)', () => {
     // Acotamos al cuerpo de applyPaymentToIssuedInvoice — evita colisión
     // con el `import { assertInvoicePayable }` en la cabecera del archivo.
     const idx = SOURCE.indexOf('export async function applyPaymentToIssuedInvoice');
@@ -78,7 +78,7 @@ describe('applyPaymentTo* — SELECT ... FOR UPDATE dentro de la transacción', 
     expect(insertIdx).toBeGreaterThan(assertIdx);
   });
 
-  it('assertInvoicePayable se llama DESPUÉS del FOR UPDATE dentro del db.transaction callback (internal)', () => {
+  it('assertInvoicePayable se llama DESPUÉS del FOR UPDATE dentro del transactionalDb.transaction callback (internal)', () => {
     const idx = SOURCE.indexOf('export async function applyPaymentToInternalInvoice');
     const rest = SOURCE.slice(idx);
     const nextExportIdx = rest.slice(1).search(/\nexport /);

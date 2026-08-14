@@ -48,6 +48,8 @@ const RATE_LIMITS: { pattern: RegExp; limit: number; windowMs: number }[] = [
   { pattern: /^\/api\/auth\/forget-password/, limit: 5, windowMs: 15 * 60 * 1000 },
   { pattern: /^\/api\/contact$/,      limit: 5,  windowMs: 60 * 1000 },
   { pattern: /^\/api\/creator-apply$/,limit: 3,  windowMs: 60 * 1000 },
+  // Coarse IP shield. The integration layer also enforces a durable per-token DB limit.
+  { pattern: /^\/api\/integrations\/v1\//, limit: 300, windowMs: 60 * 1000 },
 ];
 
 function getClientIp(req: NextRequest): string {

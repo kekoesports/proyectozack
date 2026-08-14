@@ -813,6 +813,20 @@
       "when": 1786669014163,
       "tag": "0115_socialpro_automation_foundation",
       "breakpoints": true
+    },
+    {
+      "idx": 116,
+      "version": "7",
+      "when": 1786670634648,
+      "tag": "0116_automation-draft-deduplication",
+      "breakpoints": true
+    },
+    {
+      "idx": 117,
+      "version": "7",
+      "when": 1786671192975,
+      "tag": "0117_automation-task-deduplication",
+      "breakpoints": true
     }
   ]
 }

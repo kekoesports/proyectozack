@@ -1,0 +1,2 @@
+ALTER TABLE "communication_drafts" ADD COLUMN "automation_key" varchar(200);--> statement-breakpoint
+CREATE UNIQUE INDEX "communication_drafts_automation_key_uniq" ON "communication_drafts" USING btree ("automation_key");

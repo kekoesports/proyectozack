@@ -56,6 +56,7 @@ export const crmTasks = pgTable(
 
     relatedType: crmTaskRelatedTypeEnum('related_type'),
     relatedId: integer('related_id'),
+    automationKey: varchar('automation_key', { length: 200 }),
 
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
@@ -70,6 +71,7 @@ export const crmTasks = pgTable(
     index('crm_tasks_week_status_idx').on(t.weekLabel, t.status),
     index('crm_tasks_related_idx').on(t.relatedType, t.relatedId),
     index('crm_tasks_template_idx').on(t.recurrenceTemplateId),
+    uniqueIndex('crm_tasks_automation_key_uniq').on(t.automationKey),
     uniqueIndex('crm_tasks_template_week_unique')
       .on(t.recurrenceTemplateId, t.assignedToUserId, t.weekLabel)
       .where(isNotNull(t.recurrenceTemplateId)),

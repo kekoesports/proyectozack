@@ -61,8 +61,6 @@ async function main() {
             VALUES (${accountId}, ${uid}, 'credential', ${uid}, ${hashedPassword}, ${now}::timestamptz, ${now}::timestamptz)`;
 
   console.log('Admin user created successfully!');
-  console.log(`  Email: ${email}`);
-  console.log(`  Password: ${password}`);
 }
 
-main().catch(err => { console.error('Failed:', err); process.exit(1); });
+main().catch(() => { console.error('Admin creation failed'); process.exit(1); });

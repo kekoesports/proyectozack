@@ -207,9 +207,20 @@ export async function getUsedCategories(): Promise<readonly string[]> {
 export async function createTask(
   input: Omit<NewCrmTask, 'id' | 'createdAt' | 'updatedAt' | 'completedAt' | 'rolledOver' | 'rolledFromWeek'>,
 ): Promise<CrmTask> {
-  const [row] = await db.insert(crmTasks).values(input).returning();
-  if (!row) throw new Error('Failed to insert crm task');
-  return row;
+  const [row] = await db
+    .insert(crmTasks)
+    .values(input)
+    .onConflictDoNothing({ target: crmTasks.automationKey })
+    .returning();
+  if (row) return row;
+  if (!input.automationKey) throw new Error('Failed to insert crm task');
+  const [existing] = await db
+    .select()
+    .from(crmTasks)
+    .where(eq(crmTasks.automationKey, input.automationKey))
+    .limit(1);
+  if (!existing) throw new Error('Task automation key lookup returned no row');
+  return existing;
 }
 
 /**
