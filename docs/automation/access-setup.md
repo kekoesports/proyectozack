@@ -16,10 +16,11 @@ En staging:
 - `SOCIALPRO_INTEGRATION_TOKEN`: aleatorio, mínimo 32 bytes.
 - `AUTOMATION_WEBHOOK_SECRET`: aleatorio e independiente.
 - `N8N_AUTOMATION_WEBHOOK_URL`: URL de producción del workflow 03.
+- `RUN_MIGRATIONS_IN_PREVIEW=true`: solo en la rama Preview aislada que deba aplicar migraciones; nunca como variable global de Preview.
 - `INTEGRATION_RATE_LIMIT_PER_MINUTE`, `OUTBOX_BATCH_SIZE`, `OUTBOX_MAX_ATTEMPTS`, `OUTBOX_TIMEOUT_MS`: usar valores por defecto inicialmente.
 - `CRON_SECRET`: ya empleado por los crons del proyecto.
 
-El token y el HMAC se copian también al `.env` de n8n. El resto no se comparte.
+El token y el HMAC se copian también al `.env` de n8n. El resto no se comparte. Después de crear o rotar secretos en Vercel, iniciar un nuevo deployment de la rama para que las funciones los reciban.
 
 ## Infraestructura
 
