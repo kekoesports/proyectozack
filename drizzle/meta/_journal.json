@@ -806,6 +806,13 @@
       "when": 1786051200000,
       "tag": "0114_seed_twitch_mission_zacketizor",
       "breakpoints": true
+    },
+    {
+      "idx": 115,
+      "version": "7",
+      "when": 1786669014163,
+      "tag": "0115_socialpro_automation_foundation",
+      "breakpoints": true
     }
   ]
 }

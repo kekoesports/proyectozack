@@ -1,5 +1,6 @@
-import { neon, neonConfig } from '@neondatabase/serverless';
+import { neon, neonConfig, Pool } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-http';
+import { drizzle as drizzleTransactional } from 'drizzle-orm/neon-serverless';
 import { env } from './env';
 import * as schema from '@/db/schema';
 
@@ -18,3 +19,10 @@ export const db = drizzle(sql, { schema });
  * sí transacciones batch no interactivas con nivel de aislamiento explícito.
  */
 export const serializableDb = drizzle(serializableSql, { schema });
+
+/**
+ * Interactive transactions require the WebSocket driver. The neon-http
+ * adapter deliberately does not implement db.transaction().
+ */
+const transactionalPool = new Pool({ connectionString: env.DATABASE_URL });
+export const transactionalDb = drizzleTransactional(transactionalPool, { schema });

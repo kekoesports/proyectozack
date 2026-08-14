@@ -85,6 +85,7 @@ export const crmBrands = pgTable(
     // Seguimiento
     lastContactAt:  timestamp('last_contact_at',   { withTimezone: true }),
     nextFollowupAt: timestamp('next_followup_at',  { withTimezone: true }),
+    /** @deprecated Legacy date-only field. Read and write nextFollowupAt instead. */
     nextFollowUpAt: date('next_follow_up_at'),
 
     notes: text('notes'),

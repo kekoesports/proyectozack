@@ -21,6 +21,15 @@ export const env = createEnv({
     // Optional in dev so the app boots without it; endpoints fail-closed with 503 when absent.
     // Generate with `crypto.randomBytes(32).toString('hex')`.
     TARGETS_IMPORT_TOKEN: z.string().min(32).optional(),
+    // Machine-to-machine token for /api/integrations/v1. Fail-closed when absent.
+    SOCIALPRO_INTEGRATION_TOKEN: z.string().min(32).optional(),
+    // HMAC secret used to authenticate outbox webhook deliveries to n8n.
+    AUTOMATION_WEBHOOK_SECRET: z.string().min(32).optional(),
+    N8N_AUTOMATION_WEBHOOK_URL: z.string().url().optional(),
+    INTEGRATION_RATE_LIMIT_PER_MINUTE: z.coerce.number().int().min(1).max(1000).optional().default(120),
+    OUTBOX_BATCH_SIZE: z.coerce.number().int().min(1).max(100).optional().default(20),
+    OUTBOX_MAX_ATTEMPTS: z.coerce.number().int().min(1).max(20).optional().default(8),
+    OUTBOX_TIMEOUT_MS: z.coerce.number().int().min(1000).max(60000).optional().default(10000),
     GEMINI_API_KEY: z.string().min(1).optional(),
     GEMINI_MODEL: z.string().min(1).optional(),
     // NewsData.io API key para monitorización de noticias
@@ -136,6 +145,13 @@ export const env = createEnv({
     GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY: process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY,
     GOOGLE_DRIVE_BACKUP_FOLDER_ID: process.env.GOOGLE_DRIVE_BACKUP_FOLDER_ID,
     TARGETS_IMPORT_TOKEN: process.env.TARGETS_IMPORT_TOKEN,
+    SOCIALPRO_INTEGRATION_TOKEN: process.env.SOCIALPRO_INTEGRATION_TOKEN,
+    AUTOMATION_WEBHOOK_SECRET: process.env.AUTOMATION_WEBHOOK_SECRET,
+    N8N_AUTOMATION_WEBHOOK_URL: process.env.N8N_AUTOMATION_WEBHOOK_URL,
+    INTEGRATION_RATE_LIMIT_PER_MINUTE: process.env.INTEGRATION_RATE_LIMIT_PER_MINUTE,
+    OUTBOX_BATCH_SIZE: process.env.OUTBOX_BATCH_SIZE,
+    OUTBOX_MAX_ATTEMPTS: process.env.OUTBOX_MAX_ATTEMPTS,
+    OUTBOX_TIMEOUT_MS: process.env.OUTBOX_TIMEOUT_MS,
     GEMINI_API_KEY: process.env.GEMINI_API_KEY,
     GEMINI_MODEL: process.env.GEMINI_MODEL,
     NEWSDATA_API_KEY: process.env.NEWSDATA_API_KEY,

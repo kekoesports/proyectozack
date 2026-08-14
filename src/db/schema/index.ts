@@ -66,3 +66,4 @@ export * from './shopItems';
 export * from './connectedSocialAccounts';
 export * from './userPartnerConsents';
 export * from './giveawayAuditEvents';
+export * from './automation';

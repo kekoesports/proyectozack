@@ -1,7 +1,7 @@
 'server-only';
 
 import { and, asc, count, desc, eq, inArray, sql } from 'drizzle-orm';
-import { db } from '@/lib/db';
+import { db, transactionalDb } from '@/lib/db';
 import {
   bankAccounts,
   bankImports,
@@ -268,7 +268,7 @@ export async function approveMatchFromCandidate(opts: {
   const { transactionId, matchType, matchedEntityId, confidence, matchReason, approvedByUserId } = opts;
   const now = new Date();
   let match: TransactionMatch | undefined;
-  await db.transaction(async (tx) => {
+  await transactionalDb.transaction(async (tx) => {
     const [inserted] = await tx
       .insert(transactionMatches)
       .values({
@@ -303,7 +303,7 @@ export async function rejectMatchFromCandidate(opts: {
 }): Promise<TransactionMatch> {
   const { transactionId, matchType, matchedEntityId, confidence, matchReason, rejectedByUserId } = opts;
   let match: TransactionMatch | undefined;
-  await db.transaction(async (tx) => {
+  await transactionalDb.transaction(async (tx) => {
     const [inserted] = await tx
       .insert(transactionMatches)
       .values({
