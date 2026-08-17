@@ -32,37 +32,41 @@ const SOURCE = readFileSync(SOURCE_PATH, 'utf8');
 // ── [E] Tests estructurales ───────────────────────────────────────────
 
 describe('applyPaymentTo* — SELECT ... FOR UPDATE dentro de la transacción', () => {
-  it('applyPaymentToIssuedInvoice contiene db.transaction seguido de .for(\'update\')', () => {
+  // `db.transaction` (neon-http) → migrado a `getTransactionalDb().transaction`
+  // (WebSocket) porque el driver HTTP lanza al llamar .transaction.
+  const TX_CALL = /(?:db|getTransactionalDb\(\))\.transaction\s*\(/;
+
+  it('applyPaymentToIssuedInvoice abre transacción interactiva seguida de .for(\'update\')', () => {
     const idx = SOURCE.indexOf('export async function applyPaymentToIssuedInvoice');
     const end = SOURCE.indexOf('export async function applyPaymentToInternalInvoice');
     expect(idx).toBeGreaterThan(0);
     expect(end).toBeGreaterThan(idx);
 
     const body = SOURCE.slice(idx, end);
-    expect(body).toMatch(/db\.transaction\s*\(/);
+    expect(body).toMatch(TX_CALL);
     expect(body).toMatch(/\.for\(\s*['"]update['"]\s*\)/);
 
-    const txIdx = body.indexOf('db.transaction');
+    const txIdx = body.search(TX_CALL);
     const forUpdateIdx = body.search(/\.for\(\s*['"]update['"]\s*\)/);
     expect(forUpdateIdx).toBeGreaterThan(txIdx);
   });
 
-  it('applyPaymentToInternalInvoice contiene db.transaction seguido de .for(\'update\')', () => {
+  it('applyPaymentToInternalInvoice abre transacción interactiva seguida de .for(\'update\')', () => {
     const idx = SOURCE.indexOf('export async function applyPaymentToInternalInvoice');
     // Corta al siguiente separador de sección o export para acotar el cuerpo.
     const rest = SOURCE.slice(idx);
     const nextExportIdx = rest.slice(1).search(/\nexport /);
     const body = nextExportIdx > 0 ? rest.slice(0, nextExportIdx + 1) : rest;
 
-    expect(body).toMatch(/db\.transaction\s*\(/);
+    expect(body).toMatch(TX_CALL);
     expect(body).toMatch(/\.for\(\s*['"]update['"]\s*\)/);
 
-    const txIdx = body.indexOf('db.transaction');
+    const txIdx = body.search(TX_CALL);
     const forUpdateIdx = body.search(/\.for\(\s*['"]update['"]\s*\)/);
     expect(forUpdateIdx).toBeGreaterThan(txIdx);
   });
 
-  it('assertInvoicePayable se llama DESPUÉS del FOR UPDATE dentro del db.transaction callback (issued)', () => {
+  it('assertInvoicePayable se llama DESPUÉS del FOR UPDATE dentro del callback tx (issued)', () => {
     // Acotamos al cuerpo de applyPaymentToIssuedInvoice — evita colisión
     // con el `import { assertInvoicePayable }` en la cabecera del archivo.
     const idx = SOURCE.indexOf('export async function applyPaymentToIssuedInvoice');
@@ -78,7 +82,7 @@ describe('applyPaymentTo* — SELECT ... FOR UPDATE dentro de la transacción', 
     expect(insertIdx).toBeGreaterThan(assertIdx);
   });
 
-  it('assertInvoicePayable se llama DESPUÉS del FOR UPDATE dentro del db.transaction callback (internal)', () => {
+  it('assertInvoicePayable se llama DESPUÉS del FOR UPDATE dentro del callback tx (internal)', () => {
     const idx = SOURCE.indexOf('export async function applyPaymentToInternalInvoice');
     const rest = SOURCE.slice(idx);
     const nextExportIdx = rest.slice(1).search(/\nexport /);
