@@ -21,6 +21,9 @@ export const env = createEnv({
     // Optional in dev so the app boots without it; endpoints fail-closed with 503 when absent.
     // Generate with `crypto.randomBytes(32).toString('hex')`.
     TARGETS_IMPORT_TOKEN: z.string().min(32).optional(),
+    // Token dedicado para las operaciones CRM iniciadas por n8n.
+    // Fail-closed: los endpoints /api/automation/* devuelven 503 si falta.
+    AUTOMATION_API_TOKEN: z.string().min(32).optional(),
     GEMINI_API_KEY: z.string().min(1).optional(),
     GEMINI_MODEL: z.string().min(1).optional(),
     // NewsData.io API key para monitorización de noticias
@@ -136,6 +139,7 @@ export const env = createEnv({
     GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY: process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY,
     GOOGLE_DRIVE_BACKUP_FOLDER_ID: process.env.GOOGLE_DRIVE_BACKUP_FOLDER_ID,
     TARGETS_IMPORT_TOKEN: process.env.TARGETS_IMPORT_TOKEN,
+    AUTOMATION_API_TOKEN: process.env.AUTOMATION_API_TOKEN,
     GEMINI_API_KEY: process.env.GEMINI_API_KEY,
     GEMINI_MODEL: process.env.GEMINI_MODEL,
     NEWSDATA_API_KEY: process.env.NEWSDATA_API_KEY,

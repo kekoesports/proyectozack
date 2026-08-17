@@ -1,4 +1,19 @@
-import { pgEnum, pgTable, serial, varchar, text, integer, numeric, date, timestamp, index, boolean } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
+import {
+  pgEnum,
+  pgTable,
+  serial,
+  varchar,
+  text,
+  integer,
+  numeric,
+  date,
+  timestamp,
+  index,
+  uniqueIndex,
+  check,
+  boolean,
+} from 'drizzle-orm/pg-core';
 import { user } from './auth';
 import { crmBrands, crmBrandContacts } from './crmBrands';
 import { talents } from './talents';
@@ -66,8 +81,8 @@ export const campaigns = pgTable('campaigns', {
   visibility: varchar('visibility', { length: 10 }).notNull().default('team'),
 
   // ── Tracking Sheet (PR2: tratos link Google Sheet) ────────────────────────
-  // Link canónico a un Google Sheet duplicado manualmente por el usuario a
-  // partir de la plantilla maestra "Jolu - KD". El parser socialpro_blocks
+  // Link canónico a un Google Sheet duplicado manualmente o por n8n a partir
+  // de la plantilla de la marca. El parser socialpro_blocks
   // lee este Sheet para calcular currentCount de dealDeliverableTrackers.
   // Sin OAuth, sin Service Account: se lee vía GOOGLE_SHEETS_API_KEY.
   trackingSheetUrl:            text('tracking_sheet_url'),
@@ -75,6 +90,12 @@ export const campaigns = pgTable('campaigns', {
   trackingSheetGid:            varchar('tracking_sheet_gid', { length: 20 }),
   lastTrackingSyncAt:          timestamp('last_tracking_sync_at', { withTimezone: true }),
   trackingSyncError:           text('tracking_sync_error'),
+  trackingAlertLevel:          integer('tracking_alert_level').notNull().default(0),
+
+  // Identidad estable del sistema que originó el trato. Permite que n8n
+  // reintente una ejecución sin crear campañas duplicadas.
+  automationSource: varchar('automation_source', { length: 40 }),
+  automationExternalId: varchar('automation_external_id', { length: 160 }),
 
   archivedAt: timestamp('archived_at', { withTimezone: true }),
 
@@ -90,4 +111,8 @@ export const campaigns = pgTable('campaigns', {
   index('campaigns_start_idx').on(t.startDate),
   index('campaigns_action_idx').on(t.actionType),
   index('campaigns_archived_idx').on(t.archivedAt),
+  uniqueIndex('campaigns_automation_source_external_uq')
+    .on(t.automationSource, t.automationExternalId)
+    .where(sql`automation_source IS NOT NULL AND automation_external_id IS NOT NULL`),
+  check('campaigns_tracking_alert_level_check', sql`${t.trackingAlertLevel} IN (0, 70, 80, 100)`),
 ]);

@@ -47,6 +47,19 @@ const HEADER_LOOKAHEAD = 4;
 /** Maximum cols to look ahead from the block's start column when finding header cells. */
 const HEADER_COL_RANGE = 6;
 
+/** Maximum horizontal distance from a title when detecting compact triplets. */
+const COMPACT_COL_RANGE = 6;
+
+/** Labels used by the compact SocialPro tracker template. */
+const COMPACT_CONTENT_LABELS = new Set([
+  'dedicated video',
+  'dedicated videos',
+  'livestream',
+  'livestreams',
+  'preroll',
+  'prerolls',
+]);
+
 // ── Public parsers ────────────────────────────────────────────────────────────
 
 /**
@@ -76,12 +89,20 @@ export function suggestDeliverableType(rawType: string): string {
   // Los trackers creados antes con 'stream_integration' NO se remapean
   // retroactivamente — el cambio solo afecta a trackers nuevos.
   if (normalized === 'preroll' || normalized === 'prerolls') return 'preroll';
-  if (normalized === 'stream' || normalized === 'streams') return 'stream_integration';
+  if (
+    normalized === 'stream' ||
+    normalized === 'streams' ||
+    normalized === 'livestream' ||
+    normalized === 'livestreams'
+  )
+    return 'stream_integration';
   if (
     normalized === 'video' ||
     normalized === 'vídeo' ||
     normalized === 'videos' ||
-    normalized === 'vídeos'
+    normalized === 'vídeos' ||
+    normalized === 'dedicated video' ||
+    normalized === 'dedicated videos'
   )
     return 'video_youtube';
   if (
@@ -112,7 +133,7 @@ export function parseDealSpecs(specsStr: string): DealSpec[] {
   for (const part of parts) {
     const trimmed = part.trim();
     // Expect format: "<number> <type>"
-    const match = /^(\d+)\s+(.+)$/.exec(trimmed);
+    const match = /^(\d+)\s*x?\s+(.+)$/i.exec(trimmed);
     if (!match) continue;
 
     const count = parseInt(match[1] ?? '0', 10);
@@ -157,6 +178,89 @@ function isRowEmpty(row: string[] | undefined, startCol: number, endCol: number)
     if ((row[c] ?? '').trim() !== '') return false;
   }
   return true;
+}
+
+function normalizedCompactLabel(value: string): string | null {
+  const normalized = value.trim().toLowerCase();
+  return COMPACT_CONTENT_LABELS.has(normalized) ? normalized : null;
+}
+
+/**
+ * Detects the compact tracker used by CSGOSKINS/TODOCS2. It has no explicit
+ * CONTENT/nº/LINK header: each content group is a three-column triplet and the
+ * deal title sits above the triplets, for example F:H + I:K with the title in J.
+ */
+function detectCompactBlocksForTitle(args: {
+  grid: string[][];
+  title: string;
+  titleRow: number;
+  titleCol: number;
+  parsed: { talentName: string; dealLabel: string; specsStr: string };
+}): DetectedBlock[] {
+  const specs = parseDealSpecs(args.parsed.specsStr);
+  const maxTarget = Math.max(0, ...specs.map((spec) => spec.count));
+  if (maxTarget === 0) return [];
+
+  const firstCol = Math.max(0, args.titleCol - COMPACT_COL_RANGE);
+  const lastCol = args.titleCol + COMPACT_COL_RANGE;
+  const lastRow = Math.min(args.grid.length - 1, args.titleRow + maxTarget);
+  const grouped = new Map<
+    string,
+    {
+      contentCol: number;
+      type: string;
+      rawType: string;
+      firstRow: number;
+      lastRow: number;
+      links: Array<{ originalUrl: string; rowIndex: number }>;
+    }
+  >();
+
+  for (let rowIndex = args.titleRow + 1; rowIndex <= lastRow; rowIndex++) {
+    const row = args.grid[rowIndex] ?? [];
+    for (let contentCol = firstCol; contentCol <= lastCol; contentCol++) {
+      const rawType = normalizedCompactLabel(row[contentCol] ?? '');
+      if (!rawType) continue;
+
+      const type = suggestDeliverableType(rawType);
+      const key = `${contentCol}:${type}`;
+      const current = grouped.get(key) ?? {
+        contentCol,
+        type,
+        rawType,
+        firstRow: rowIndex,
+        lastRow: rowIndex,
+        links: [],
+      };
+      current.lastRow = rowIndex;
+
+      const rawUrl = (row[contentCol + 2] ?? '').trim();
+      if (rawUrl) current.links.push({ originalUrl: rawUrl, rowIndex });
+      grouped.set(key, current);
+    }
+  }
+
+  const blocks: DetectedBlock[] = [];
+  for (const group of grouped.values()) {
+    const matchingSpec = specs.find((spec) => spec.suggestedType === group.type);
+    if (!matchingSpec) continue;
+    blocks.push({
+      title: args.title,
+      talentName: args.parsed.talentName,
+      dealLabel: args.parsed.dealLabel,
+      specs: [matchingSpec],
+      startRow: args.titleRow,
+      startCol: group.contentCol,
+      headerRow: args.titleRow,
+      linkColIndex: group.contentCol + 2,
+      contentColIndex: group.contentCol,
+      numberColIndex: group.contentCol + 1,
+      endRow: group.lastRow,
+      links: group.links,
+    });
+  }
+
+  return blocks.sort((left, right) => left.startCol - right.startCol);
 }
 
 /**
@@ -228,8 +332,19 @@ export function detectSocialProBlocks(
         }
       }
 
-      // Skip title if no valid header row found
-      if (headerRow < 0) continue;
+      if (headerRow < 0) {
+        const compactBlocks = detectCompactBlocksForTitle({
+          grid,
+          title: cell,
+          titleRow: r,
+          titleCol: c,
+          parsed,
+        });
+        if (compactBlocks.length === 0) continue;
+        claimedTitles.add(titleKey);
+        blocks.push(...compactBlocks);
+        continue;
+      }
 
       claimedTitles.add(titleKey);
 

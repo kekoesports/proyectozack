@@ -28,9 +28,15 @@ try {
   // ignore — fall back to existing env
 }
 
-if (process.env.VERCEL_ENV === 'preview') {
+const runPreviewMigrations = process.env.RUN_MIGRATIONS_IN_PREVIEW === 'true';
+
+if (process.env.VERCEL_ENV === 'preview' && !runPreviewMigrations) {
   console.log('Skipping database migrations in Vercel Preview deployment.');
   process.exit(0);
+}
+
+if (process.env.VERCEL_ENV === 'preview') {
+  console.log('Preview migrations explicitly enabled for this deployment.');
 }
 
 const url = process.env.DATABASE_URL;

@@ -1,0 +1,69 @@
+{
+  "name": "SocialPro - Alta de trato en CRM",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "socialpro/deals",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "deal-webhook",
+      "name": "Recibir trato",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [-420, 0],
+      "webhookId": "socialpro-deal-intake"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://socialpro.es/api/automation/deals",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Idempotency-Key",
+              "value": "={{ $json.body.externalId }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.body.deal) }}",
+        "options": {}
+      },
+      "id": "create-crm-deal",
+      "name": "Crear trato idempotente",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [-120, 0]
+    }
+  ],
+  "connections": {
+    "Recibir trato": {
+      "main": [
+        [
+          {
+            "node": "Crear trato idempotente",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true
+  },
+  "active": false,
+  "versionId": "50ef3b59-4d3c-4e27-860f-dbb4e5701001",
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "tags": []
+}
