@@ -2,10 +2,10 @@
 -- umbral de progreso notificado. Cambios aditivos y compatibles con campañas
 -- existentes.
 
-ALTER TABLE "campaigns" ADD COLUMN IF NOT EXISTS "automation_source" varchar(40);
-ALTER TABLE "campaigns" ADD COLUMN IF NOT EXISTS "automation_external_id" varchar(160);
-ALTER TABLE "campaigns" ADD COLUMN IF NOT EXISTS "tracking_alert_level" integer DEFAULT 0 NOT NULL;
---> statement-breakpoint
+-- El driver HTTP de Neon no acepta múltiples sentencias en una sola consulta.
+ALTER TABLE "campaigns" ADD COLUMN IF NOT EXISTS "automation_source" varchar(40);--> statement-breakpoint
+ALTER TABLE "campaigns" ADD COLUMN IF NOT EXISTS "automation_external_id" varchar(160);--> statement-breakpoint
+ALTER TABLE "campaigns" ADD COLUMN IF NOT EXISTS "tracking_alert_level" integer DEFAULT 0 NOT NULL;--> statement-breakpoint
 
 CREATE UNIQUE INDEX IF NOT EXISTS "campaigns_automation_source_external_uq"
   ON "campaigns" USING btree ("automation_source", "automation_external_id")
