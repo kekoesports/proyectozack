@@ -256,6 +256,9 @@ export async function getCampaignWithRelations(
       trackingSheetGid: campaigns.trackingSheetGid,
       lastTrackingSyncAt: campaigns.lastTrackingSyncAt,
       trackingSyncError: campaigns.trackingSyncError,
+      trackingAlertLevel: campaigns.trackingAlertLevel,
+      automationSource: campaigns.automationSource,
+      automationExternalId: campaigns.automationExternalId,
       // Brand fields
       brandName: crmBrands.name,
       brandSector: crmBrands.sector,
@@ -340,6 +343,9 @@ export async function getCampaignWithRelations(
     trackingSheetGid: row.trackingSheetGid ?? null,
     lastTrackingSyncAt: row.lastTrackingSyncAt ?? null,
     trackingSyncError: row.trackingSyncError ?? null,
+    trackingAlertLevel: row.trackingAlertLevel,
+    automationSource: row.automationSource ?? null,
+    automationExternalId: row.automationExternalId ?? null,
     ...derived,
     brand: {
       id: row.brandId,
@@ -689,5 +695,4 @@ export async function listAllCampaigns(opts?: {
 
   return rows;
 }
-
 
