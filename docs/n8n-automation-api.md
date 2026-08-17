@@ -34,6 +34,8 @@ al trato mediante el CRM.
 
 1. Desplegar el código del CRM. La migración `0115_automation_deals_api.sql`
    se aplica con el flujo normal `npm run migrate` del build.
+   En un Preview aislado, definir `RUN_MIGRATIONS_IN_PREVIEW=true` únicamente
+   para la rama de prueba. Sin ese opt-in, los Preview omiten migraciones.
 2. Generar una credencial aleatoria de al menos 32 caracteres.
 3. Guardarla en Vercel como `AUTOMATION_API_TOKEN` solo en los entornos que se
    vayan a usar. No compartirla en chat, logs ni nodos de código.
