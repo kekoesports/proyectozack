@@ -206,7 +206,7 @@ describe('detectSocialProBlocks', () => {
   });
 
   describe('edge cases', () => {
-    it('detects the compact CSGOSKINS/TODOCS2 sheet without LINK headers', () => {
+    it('detects a compact three-column sheet without LINK headers', () => {
       const grid: string[][] = [
         [],
         [],
@@ -225,7 +225,7 @@ describe('detectSocialProBlocks', () => {
         ]),
       ];
 
-      const result = detectSocialProBlocks(grid, 'TODOCS2 #1');
+      const result = detectSocialProBlocks(grid, 'CREADOR DEMO #1');
       expect(result.blocks).toHaveLength(3);
 
       const byType = new Map(

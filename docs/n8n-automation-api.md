@@ -54,7 +54,7 @@ Headers:
 
 ```http
 Authorization: Bearer <secreto>
-Idempotency-Key: deal:csgoskins:todocs2:2026-08
+Idempotency-Key: deal:marca-demo:creador-demo:2026-08
 Content-Type: application/json
 ```
 
@@ -62,16 +62,16 @@ Ejemplo de body:
 
 ```json
 {
-  "name": "CSGOSKINS - TODOCS2",
-  "brand": { "name": "CSGOSKINS" },
+  "name": "Marca Demo - Creador Demo",
+  "brand": { "name": "Marca Demo" },
   "talent": {
-    "name": "TODOCS2",
-    "handle": "@todocs2",
+    "name": "Creador Demo",
+    "handle": "@creador_demo",
     "platform": "twitch",
     "country": "ES",
     "topGeos": [
-      { "country": "Spain", "pct": 85 },
-      { "country": "Argentina", "pct": 10 }
+      { "country": "Spain", "pct": 75 },
+      { "country": "Argentina", "pct": 15 }
     ]
   },
   "status": "propuesta",
@@ -143,7 +143,7 @@ trato gracias a `tracking_alert_level`:
   "alerts": [
     {
       "campaignId": 123,
-      "name": "CSGOSKINS - TODOCS2",
+      "name": "Marca Demo - Creador Demo",
       "level": 80,
       "progressPct": 80
     }
