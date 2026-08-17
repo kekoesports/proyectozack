@@ -1,0 +1,133 @@
+{
+  "name": "SocialPro - Progreso y avisos 70-80-100",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 1
+            }
+          ]
+        }
+      },
+      "id": "hourly-trigger",
+      "name": "Cada hora",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [-620, 0]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://socialpro.es/api/automation/deals/sync",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "id": "sync-deals",
+      "name": "Sincronizar tratos",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [-380, 0]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "has-alerts",
+              "leftValue": "={{ $json.alerts.length }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-alerts",
+      "name": "Hay avisos nuevos",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [-140, 0]
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "alerts",
+        "options": {}
+      },
+      "id": "split-alerts",
+      "name": "Separar avisos",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [100, -80]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "alert-message",
+              "name": "message",
+              "value": "={{ $json.level === 100 ? '✅ ' + $json.name + ' ha completado su deal (100%).' : '⚠️ ' + $json.name + ' ha alcanzado el ' + $json.level + '% de su deal.' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "format-alert",
+      "name": "Preparar mensaje",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [340, -80]
+    },
+    {
+      "parameters": {},
+      "id": "notification-placeholder",
+      "name": "Conectar Discord WhatsApp o email",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [580, -80]
+    }
+  ],
+  "connections": {
+    "Cada hora": {
+      "main": [[{"node": "Sincronizar tratos", "type": "main", "index": 0}]]
+    },
+    "Sincronizar tratos": {
+      "main": [[{"node": "Hay avisos nuevos", "type": "main", "index": 0}]]
+    },
+    "Hay avisos nuevos": {
+      "main": [[{"node": "Separar avisos", "type": "main", "index": 0}], []]
+    },
+    "Separar avisos": {
+      "main": [[{"node": "Preparar mensaje", "type": "main", "index": 0}]]
+    },
+    "Preparar mensaje": {
+      "main": [[{"node": "Conectar Discord WhatsApp o email", "type": "main", "index": 0}]]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Europe/Madrid",
+    "saveManualExecutions": true
+  },
+  "active": false,
+  "versionId": "50ef3b59-4d3c-4e27-860f-dbb4e5701002",
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "tags": []
+}

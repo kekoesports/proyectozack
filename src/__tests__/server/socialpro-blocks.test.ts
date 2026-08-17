@@ -90,6 +90,14 @@ describe('parseDealSpecs', () => {
     expect(result[0]?.count).toBe(60);
     expect(result[0]?.suggestedType).toBe('preroll');
   });
+
+  it('parses compact counts written as 20x streams', () => {
+    expect(parseDealSpecs('20x streams + 4x prerolls + 4x videos')).toEqual([
+      { count: 20, rawType: 'streams', suggestedType: 'stream_integration' },
+      { count: 4, rawType: 'prerolls', suggestedType: 'preroll' },
+      { count: 4, rawType: 'videos', suggestedType: 'video_youtube' },
+    ]);
+  });
 });
 
 // ── suggestDeliverableType ────────────────────────────────────────────────────
@@ -104,6 +112,12 @@ describe('suggestDeliverableType', () => {
   it('maps video to video_youtube', () => {
     expect(suggestDeliverableType('video')).toBe('video_youtube');
     expect(suggestDeliverableType('Video')).toBe('video_youtube');
+    expect(suggestDeliverableType('Dedicated video')).toBe('video_youtube');
+  });
+
+  it('maps livestream to stream_integration', () => {
+    expect(suggestDeliverableType('Livestream')).toBe('stream_integration');
+    expect(suggestDeliverableType('livestreams')).toBe('stream_integration');
   });
 
   it('maps unknown types to otro', () => {
@@ -192,6 +206,39 @@ describe('detectSocialProBlocks', () => {
   });
 
   describe('edge cases', () => {
+    it('detects the compact CSGOSKINS/TODOCS2 sheet without LINK headers', () => {
+      const grid: string[][] = [
+        [],
+        [],
+        ['Deliverables', '', '', '', '', '', '', '', '', 'Deal #1 -  20x streams + 4x prerolls + 4x videos'],
+        ['Dedicated video', '', 'Preroll', '', '', 'Dedicated video', '1', 'https://youtu.be/video-1', 'Livestream', '1', 'https://twitch.tv/videos/stream-1?t=10'],
+        ['2', '', '2', '', '', 'Dedicated video', '2', 'https://youtu.be/video-2', 'Livestream', '2', 'https://twitch.tv/videos/stream-2'],
+        ['Livestream', '', '', '', '', 'Dedicated video', '3', '', 'Livestream', '3', 'https://twitch.tv/videos/stream-3'],
+        ['0', '', '', '', '', 'Dedicated video', '4', '', 'Livestream', '4', 'https://twitch.tv/videos/stream-4'],
+        ['', '', '', '', '', 'Preroll', '1', 'https://youtu.be/preroll-1', 'Livestream', '5', 'https://twitch.tv/videos/stream-5'],
+        ['', '', '', '', '', 'Preroll', '2', 'https://youtu.be/preroll-2', 'Livestream', '6', 'https://twitch.tv/videos/stream-6'],
+        ['', '', '', '', '', 'Preroll', '3', '', 'Livestream', '7', 'https://twitch.tv/videos/stream-7'],
+        ['', '', '', '', '', 'Preroll', '4', '', 'Livestream', '8', 'https://twitch.tv/videos/stream-8'],
+        ...Array.from({ length: 12 }, (_, index) => [
+          '', '', '', '', '', '', '', '', 'Livestream', String(index + 9),
+          `https://twitch.tv/videos/stream-${index + 9}`,
+        ]),
+      ];
+
+      const result = detectSocialProBlocks(grid, 'TODOCS2 #1');
+      expect(result.blocks).toHaveLength(3);
+
+      const byType = new Map(
+        result.blocks.map((block) => [block.specs[0]?.suggestedType, block]),
+      );
+      expect(byType.get('video_youtube')?.specs[0]?.count).toBe(4);
+      expect(byType.get('video_youtube')?.links).toHaveLength(2);
+      expect(byType.get('preroll')?.specs[0]?.count).toBe(4);
+      expect(byType.get('preroll')?.links).toHaveLength(2);
+      expect(byType.get('stream_integration')?.specs[0]?.count).toBe(20);
+      expect(byType.get('stream_integration')?.links).toHaveLength(20);
+    });
+
     it('returns empty blocks for a grid with no titles', () => {
       const grid = [
         ['CONTENT', 'nº', 'LINK'],
