@@ -1,7 +1,7 @@
 'server-only';
 
 import { and, eq, sum } from 'drizzle-orm';
-import { db } from '@/lib/db';
+import { db, getTransactionalDb } from '@/lib/db';
 import {
   invoicePayments,
   issuedInvoices,
@@ -30,7 +30,7 @@ export async function applyPaymentToIssuedInvoice(opts: {
   let payment: InvoicePayment | undefined;
   let invoiceNumber: string | undefined;
 
-  await db.transaction(async (tx) => {
+  await getTransactionalDb().transaction(async (tx) => {
     // 1) Bloquear la fila de la factura con FOR UPDATE. Postgres serializa
     //    los pagos concurrentes contra la misma factura hasta commit —
     //    cierra la ventana entre lectura de status/SUM y INSERT.
@@ -130,7 +130,7 @@ export async function applyPaymentToInternalInvoice(opts: {
   let payment: InvoicePayment | undefined;
   let invoiceNumber: string | null | undefined;
 
-  await db.transaction(async (tx) => {
+  await getTransactionalDb().transaction(async (tx) => {
     // 1) Bloquear la fila de la factura con FOR UPDATE. Serializa pagos
     //    concurrentes contra la misma factura interna hasta commit.
     const invoiceRows = await tx
