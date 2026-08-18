@@ -34,8 +34,10 @@ al trato mediante el CRM.
 
 ## Instalación
 
-1. Desplegar el código del CRM. La migración `0115_automation_deals_api.sql`
-   se aplica con el flujo normal `npm run migrate` del build.
+1. Desplegar el código del CRM. Las migraciones
+   `0115_automation_deals_api.sql`, `0116_automation_deal_evidence.sql` y
+   `0117_automation_deal_drafts.sql` se aplican con el flujo normal
+   `npm run migrate` del build.
    En un Preview aislado, definir `RUN_MIGRATIONS_IN_PREVIEW=true` únicamente
    para la rama de prueba. Sin ese opt-in, los Preview omiten migraciones.
 2. Generar una credencial aleatoria de al menos 32 caracteres.

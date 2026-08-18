@@ -51,11 +51,11 @@ credentials.
 
 Import the JSON files under [`workflows/`](./workflows/) from the n8n editor:
 
-- `socialpro-deal-intake.json`: webhook to create an idempotent CRM deal.
+- `socialpro-deal-intake.json`: webhook to persist an idempotent CRM draft for human approval.
 - `socialpro-progress-alerts.json`: hourly Sheet sync and one-time 70/80/100 alerts.
 - `socialpro-deal-digest.json`: Monday/Wednesday/Friday 10:30 CRM digest.
 
-Both imports start disabled and intentionally contain no secrets. Before a test:
+All three imports start disabled and intentionally contain no secrets. Before a test:
 
 1. create an n8n **Header Auth** credential named for the SocialPro CRM;
 2. set header `Authorization` to `Bearer <AUTOMATION_API_TOKEN>`;
