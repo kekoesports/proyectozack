@@ -65,7 +65,7 @@ export async function applyCampaignSheetEvidence(
           .where(inArray(dealDeliverableItems.trackerId, trackerIds))
       : [];
 
-    const existingByKey = new Map(
+    const existingByKey = new Map<string, (typeof existing)[number]>(
       existing.map((item) => [`${item.trackerId}:${item.normalizedUrl}`, item] as const),
     );
     const activeSheetKeys = new Set<string>();

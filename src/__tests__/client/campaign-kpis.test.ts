@@ -40,6 +40,7 @@ function makeCampaign(overrides: Partial<CampaignWithRelations> = {}): CampaignW
     trackingSheetSpreadsheetId: null,
     trackingSheetGid: null,
     lastTrackingSyncAt: null,
+    lastEvidenceAddedAt: null,
     trackingSyncError: null,
     trackingAlertLevel: 0,
     automationSource: null,
