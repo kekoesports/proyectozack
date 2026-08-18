@@ -9,7 +9,11 @@ import {
   readSheetGrid,
   SheetsApiError,
 } from '@/lib/integrations/google-sheets';
-import { detectSocialProBlocks, type DetectedBlock } from '@/lib/parsers/socialpro-blocks';
+import {
+  detectSocialProBlocks,
+  suggestDeliverableType,
+  type DetectedBlock,
+} from '@/lib/parsers/socialpro-blocks';
 
 /**
  * Parseo del gid desde una URL de Google Sheets.
@@ -110,6 +114,128 @@ export function aggregateBlocksByType(blocks: readonly DetectedBlock[]): {
   return { countsByType, totalBlocks: blocks.length };
 }
 
+const CANONICAL_COMPLETED_STATUSES = new Set(['entregado', 'aprobado']);
+const CANONICAL_KNOWN_STATUSES = new Set([
+  'pendiente',
+  'en curso',
+  'entregado',
+  'aprobado',
+  'rechazado',
+]);
+
+function normalizeCanonicalCell(value: string): string {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, ' ');
+}
+
+function canonicalHeaderIndexes(row: readonly string[]): {
+  id: number;
+  type: number;
+  status: number;
+  evidence: number;
+} | null {
+  const normalized = row.map(normalizeCanonicalCell);
+  const id = normalized.indexOf('id');
+  const type = normalized.indexOf('tipo de contenido');
+  const status = normalized.indexOf('estado');
+  const evidence = normalized.findIndex((cell) => cell === 'enlace / evidencia');
+  if (id < 0 || type < 0 || status < 0 || evidence < 0) return null;
+  return { id, type, status, evidence };
+}
+
+export type CanonicalDealTableAggregation = {
+  readonly matched: boolean;
+  readonly countsByType: Map<string, number>;
+  readonly totalRows: number;
+  readonly completedRows: number;
+  readonly invalidRows: number;
+};
+
+/**
+ * Lee la tabla canónica `DealDeliverables` de una Sheet por trato.
+ *
+ * Una pieza solo cuenta como completada cuando:
+ *   - su estado es Entregado o Aprobado; y
+ *   - contiene una evidencia HTTP(S).
+ *
+ * Se inicializa cada tipo detectado a cero para que el sync pueda revertir un
+ * contador anterior si una pieza vuelve a Pendiente/Rechazado.
+ */
+export function aggregateCanonicalDealTable(
+  grid: readonly (readonly string[])[],
+): CanonicalDealTableAggregation {
+  let headerRow = -1;
+  let indexes: ReturnType<typeof canonicalHeaderIndexes> = null;
+  for (let rowIndex = 0; rowIndex < grid.length; rowIndex++) {
+    const found = canonicalHeaderIndexes(grid[rowIndex] ?? []);
+    if (!found) continue;
+    headerRow = rowIndex;
+    indexes = found;
+    break;
+  }
+
+  if (headerRow < 0 || !indexes) {
+    return {
+      matched: false,
+      countsByType: new Map(),
+      totalRows: 0,
+      completedRows: 0,
+      invalidRows: 0,
+    };
+  }
+
+  const uniqueEvidenceByType = new Map<string, Set<string>>();
+  let totalRows = 0;
+  let invalidRows = 0;
+
+  for (let rowIndex = headerRow + 1; rowIndex < grid.length; rowIndex++) {
+    const row = grid[rowIndex] ?? [];
+    const id = (row[indexes.id] ?? '').trim();
+    const rawType = (row[indexes.type] ?? '').trim();
+    const rawStatus = (row[indexes.status] ?? '').trim();
+    const rawEvidence = (row[indexes.evidence] ?? '').trim();
+
+    if (!id && !rawType && !rawStatus && !rawEvidence) continue;
+    if (!id || !rawType) {
+      invalidRows++;
+      continue;
+    }
+
+    totalRows++;
+    const type = suggestDeliverableType(rawType);
+    const evidence = uniqueEvidenceByType.get(type) ?? new Set<string>();
+    uniqueEvidenceByType.set(type, evidence);
+
+    const status = normalizeCanonicalCell(rawStatus);
+    if (!CANONICAL_KNOWN_STATUSES.has(status)) {
+      invalidRows++;
+      continue;
+    }
+    if (!CANONICAL_COMPLETED_STATUSES.has(status)) continue;
+
+    const normalizedEvidence = normalizeUrl(rawEvidence);
+    if (!normalizedEvidence || !/^https?:\/\//i.test(normalizedEvidence)) {
+      invalidRows++;
+      continue;
+    }
+
+    evidence.add(normalizedEvidence);
+  }
+
+  const countsByType = new Map<string, number>();
+  let completedRows = 0;
+  for (const [type, evidence] of uniqueEvidenceByType.entries()) {
+    countsByType.set(type, evidence.size);
+    completedRows += evidence.size;
+  }
+
+  return { matched: true, countsByType, totalRows, completedRows, invalidRows };
+}
+
 // ── Server: fetch + parse + apply ─────────────────────────────────────────────
 
 async function loadCampaignAndTrackers(campaignId: number): Promise<{
@@ -206,8 +332,16 @@ export async function syncCampaignSheet(campaignId: number): Promise<SyncResult>
 
     // Leer + parsear
     const grid = await readSheetGrid(spreadsheetId, tabTitle);
-    const { blocks } = detectSocialProBlocks(grid, tabTitle);
-    const { countsByType } = aggregateBlocksByType(blocks);
+    const canonical = aggregateCanonicalDealTable(grid);
+    const { countsByType, ignoredBlocks } = canonical.matched
+      ? { countsByType: canonical.countsByType, ignoredBlocks: canonical.invalidRows }
+      : (() => {
+          const { blocks } = detectSocialProBlocks(grid, tabTitle);
+          const legacy = aggregateBlocksByType(blocks);
+          // En la plantilla heredada, los bloques válidos no son "ignorados".
+          // Los tipos sin tracker se contabilizan abajo mediante unmatchedTypes.
+          return { countsByType: legacy.countsByType, ignoredBlocks: 0 };
+        })();
 
     // Cruzar con trackers del trato
     const trackerByType = new Map<string, { id: number; currentCount: number }>();
@@ -238,7 +372,8 @@ export async function syncCampaignSheet(campaignId: number): Promise<SyncResult>
       }
     }
 
-    const ignoredBlocks = Math.max(0, countsByType.size - usedTypes.size);
+    const unmatchedTypes = Math.max(0, countsByType.size - usedTypes.size);
+    const totalIgnoredBlocks = ignoredBlocks + unmatchedTypes;
     const notFoundTypes = Array.from(trackerByType.keys()).filter((t) => !usedTypes.has(t)).length;
 
     // Persistir campaign
@@ -251,11 +386,11 @@ export async function syncCampaignSheet(campaignId: number): Promise<SyncResult>
       })
       .where(eq(campaigns.id, campaignId));
 
-    const summary = buildSummary(updated, ignoredBlocks, notFoundTypes);
+    const summary = buildSummary(updated, totalIgnoredBlocks, notFoundTypes);
     return {
       ok: true,
       updated,
-      ignoredBlocks,
+      ignoredBlocks: totalIgnoredBlocks,
       notFoundTypes,
       syncedAt: now.toISOString(),
       summary,

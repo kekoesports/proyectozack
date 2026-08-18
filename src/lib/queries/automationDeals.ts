@@ -6,7 +6,7 @@ import { campaigns } from '@/db/schema/campaigns';
 import { crmBrands } from '@/db/schema/crmBrands';
 import { dealDeliverableTrackers } from '@/db/schema/dealDeliverableTrackers';
 import { talents, talentSocials } from '@/db/schema/talents';
-import { db } from '@/lib/db';
+import { db, getTransactionalDb } from '@/lib/db';
 import { normalizeTrackingSheetInput, syncCampaignSheet } from '@/lib/queries/campaign-sheet-sync';
 import type { CampaignActionType } from '@/lib/schemas/campaign';
 import type { AutomationDealCreateInput } from '@/lib/schemas/automationDeal';
@@ -14,7 +14,8 @@ import type { DeliverableType } from '@/lib/schemas/deliverable';
 import { initialsOf, slugify } from '@/lib/utils/import-utils';
 import { createLimit } from '@/lib/utils/concurrencyLimit';
 
-type AutomationTransaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
+type TransactionalDb = ReturnType<typeof getTransactionalDb>;
+type AutomationTransaction = Parameters<Parameters<TransactionalDb['transaction']>[0]>[0];
 type TopGeo = { readonly country: string; readonly pct: number };
 
 export class AutomationDealInputError extends Error {}
@@ -227,7 +228,7 @@ export async function createAutomatedDeal(
   input: AutomationDealCreateInput,
   idempotencyKey: string,
 ): Promise<CreateAutomatedDealResult> {
-  const result = await db.transaction(async (tx) => {
+  const result = await getTransactionalDb().transaction(async (tx) => {
     const [existing] = await tx
       .select({ id: campaigns.id })
       .from(campaigns)
