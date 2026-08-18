@@ -11,9 +11,18 @@ import {
 } from '@/lib/integrations/google-sheets';
 import {
   detectSocialProBlocks,
-  suggestDeliverableType,
-  type DetectedBlock,
 } from '@/lib/parsers/socialpro-blocks';
+import { applyCampaignSheetEvidence } from '@/lib/queries/campaign-sheet-evidence';
+import {
+  aggregateBlocksByType,
+  aggregateCanonicalDealTable,
+} from '@/lib/queries/campaign-sheet-aggregation';
+
+export {
+  aggregateBlocksByType,
+  aggregateCanonicalDealTable,
+  normalizeUrl,
+} from '@/lib/queries/campaign-sheet-aggregation';
 
 /**
  * Parseo del gid desde una URL de Google Sheets.
@@ -25,36 +34,6 @@ export function extractSheetGid(url: string): string | null {
   if (hashMatch?.[1]) return hashMatch[1];
   const qsMatch = /[?&]gid=(\d+)/.exec(url);
   return qsMatch?.[1] ?? null;
-}
-
-/**
- * Normaliza una URL para deduplicar en el conteo.
- *   - Trim + lowercase host
- *   - Elimina params tracking (utm_*, fbclid, gclid, si_id, s, feature, t)
- *   - Elimina '/' final
- *   - Ignora hash
- */
-export function normalizeUrl(raw: string): string | null {
-  const trimmed = raw.trim();
-  if (!trimmed) return null;
-  try {
-    const parsed = new URL(trimmed);
-    const params = new URLSearchParams();
-    const exactStrip = new Set(['fbclid', 'gclid', 'si_id', 'feature', 't']);
-    for (const [k, v] of parsed.searchParams.entries()) {
-      const kl = k.toLowerCase();
-      if (kl.startsWith('utm_')) continue;
-      if (exactStrip.has(kl)) continue;
-      params.set(k, v);
-    }
-    const q = params.toString();
-    let pathname = parsed.pathname;
-    if (pathname.length > 1 && pathname.endsWith('/')) pathname = pathname.slice(0, -1);
-    return `${parsed.protocol}//${parsed.hostname.toLowerCase()}${pathname}${q ? '?' + q : ''}`;
-  } catch {
-    // No es URL válida; usar tal cual como identificador (aún permite dedupe exacta)
-    return trimmed;
-  }
 }
 
 // ── Tipos públicos ────────────────────────────────────────────────────────────
@@ -74,167 +53,6 @@ export type SyncFailure = {
 };
 
 export type SyncResult = SyncSuccess | SyncFailure;
-
-// ── Helpers de agregación ─────────────────────────────────────────────────────
-
-/**
- * Agrupa los bloques detectados por suggestedType (deliverableType) y suma
- * el número de URLs únicas normalizadas.
- */
-export function aggregateBlocksByType(blocks: readonly DetectedBlock[]): {
-  countsByType: Map<string, number>;
-  totalBlocks: number;
-} {
-  const uniqueByType = new Map<string, Set<string>>();
-  const seenTypes = new Set<string>();
-
-  for (const block of blocks) {
-    for (const spec of block.specs) {
-      seenTypes.add(spec.suggestedType);
-    }
-    // Consideramos los links del bloque como pertenecientes al primer spec.
-    // La plantilla Jolu-KD tiene UN spec por bloque en la mayoría de casos.
-    // Si hay compound specs (ej "15 Prerolls + 1 Video"), la cuenta se atribuye
-    // al primer tipo y se documenta como limitación (mejorable en PR3).
-    const primarySpec = block.specs[0];
-    if (!primarySpec) continue;
-    const type = primarySpec.suggestedType;
-    const bucket = uniqueByType.get(type) ?? new Set<string>();
-    for (const link of block.links) {
-      const norm = normalizeUrl(link.originalUrl);
-      if (norm) bucket.add(norm);
-    }
-    uniqueByType.set(type, bucket);
-  }
-
-  const countsByType = new Map<string, number>();
-  for (const [type, urls] of uniqueByType.entries()) {
-    countsByType.set(type, urls.size);
-  }
-  return { countsByType, totalBlocks: blocks.length };
-}
-
-const CANONICAL_COMPLETED_STATUSES = new Set(['entregado', 'aprobado']);
-const CANONICAL_KNOWN_STATUSES = new Set([
-  'pendiente',
-  'en curso',
-  'entregado',
-  'aprobado',
-  'rechazado',
-]);
-
-function normalizeCanonicalCell(value: string): string {
-  return value
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .trim()
-    .toLowerCase()
-    .replace(/\s+/g, ' ');
-}
-
-function canonicalHeaderIndexes(row: readonly string[]): {
-  id: number;
-  type: number;
-  status: number;
-  evidence: number;
-} | null {
-  const normalized = row.map(normalizeCanonicalCell);
-  const id = normalized.indexOf('id');
-  const type = normalized.indexOf('tipo de contenido');
-  const status = normalized.indexOf('estado');
-  const evidence = normalized.findIndex((cell) => cell === 'enlace / evidencia');
-  if (id < 0 || type < 0 || status < 0 || evidence < 0) return null;
-  return { id, type, status, evidence };
-}
-
-export type CanonicalDealTableAggregation = {
-  readonly matched: boolean;
-  readonly countsByType: Map<string, number>;
-  readonly totalRows: number;
-  readonly completedRows: number;
-  readonly invalidRows: number;
-};
-
-/**
- * Lee la tabla canónica `DealDeliverables` de una Sheet por trato.
- *
- * Una pieza solo cuenta como completada cuando:
- *   - su estado es Entregado o Aprobado; y
- *   - contiene una evidencia HTTP(S).
- *
- * Se inicializa cada tipo detectado a cero para que el sync pueda revertir un
- * contador anterior si una pieza vuelve a Pendiente/Rechazado.
- */
-export function aggregateCanonicalDealTable(
-  grid: readonly (readonly string[])[],
-): CanonicalDealTableAggregation {
-  let headerRow = -1;
-  let indexes: ReturnType<typeof canonicalHeaderIndexes> = null;
-  for (let rowIndex = 0; rowIndex < grid.length; rowIndex++) {
-    const found = canonicalHeaderIndexes(grid[rowIndex] ?? []);
-    if (!found) continue;
-    headerRow = rowIndex;
-    indexes = found;
-    break;
-  }
-
-  if (headerRow < 0 || !indexes) {
-    return {
-      matched: false,
-      countsByType: new Map(),
-      totalRows: 0,
-      completedRows: 0,
-      invalidRows: 0,
-    };
-  }
-
-  const uniqueEvidenceByType = new Map<string, Set<string>>();
-  let totalRows = 0;
-  let invalidRows = 0;
-
-  for (let rowIndex = headerRow + 1; rowIndex < grid.length; rowIndex++) {
-    const row = grid[rowIndex] ?? [];
-    const id = (row[indexes.id] ?? '').trim();
-    const rawType = (row[indexes.type] ?? '').trim();
-    const rawStatus = (row[indexes.status] ?? '').trim();
-    const rawEvidence = (row[indexes.evidence] ?? '').trim();
-
-    if (!id && !rawType && !rawStatus && !rawEvidence) continue;
-    if (!id || !rawType) {
-      invalidRows++;
-      continue;
-    }
-
-    totalRows++;
-    const type = suggestDeliverableType(rawType);
-    const evidence = uniqueEvidenceByType.get(type) ?? new Set<string>();
-    uniqueEvidenceByType.set(type, evidence);
-
-    const status = normalizeCanonicalCell(rawStatus);
-    if (!CANONICAL_KNOWN_STATUSES.has(status)) {
-      invalidRows++;
-      continue;
-    }
-    if (!CANONICAL_COMPLETED_STATUSES.has(status)) continue;
-
-    const normalizedEvidence = normalizeUrl(rawEvidence);
-    if (!normalizedEvidence || !/^https?:\/\//i.test(normalizedEvidence)) {
-      invalidRows++;
-      continue;
-    }
-
-    evidence.add(normalizedEvidence);
-  }
-
-  const countsByType = new Map<string, number>();
-  let completedRows = 0;
-  for (const [type, evidence] of uniqueEvidenceByType.entries()) {
-    countsByType.set(type, evidence.size);
-    completedRows += evidence.size;
-  }
-
-  return { matched: true, countsByType, totalRows, completedRows, invalidRows };
-}
 
 // ── Server: fetch + parse + apply ─────────────────────────────────────────────
 
@@ -333,14 +151,22 @@ export async function syncCampaignSheet(campaignId: number): Promise<SyncResult>
     // Leer + parsear
     const grid = await readSheetGrid(spreadsheetId, tabTitle);
     const canonical = aggregateCanonicalDealTable(grid);
-    const { countsByType, ignoredBlocks } = canonical.matched
-      ? { countsByType: canonical.countsByType, ignoredBlocks: canonical.invalidRows }
+    const { countsByType, evidenceByType, ignoredBlocks } = canonical.matched
+      ? {
+          countsByType: canonical.countsByType,
+          evidenceByType: canonical.evidenceByType,
+          ignoredBlocks: canonical.invalidRows,
+        }
       : (() => {
           const { blocks } = detectSocialProBlocks(grid, tabTitle);
           const legacy = aggregateBlocksByType(blocks);
           // En la plantilla heredada, los bloques válidos no son "ignorados".
           // Los tipos sin tracker se contabilizan abajo mediante unmatchedTypes.
-          return { countsByType: legacy.countsByType, ignoredBlocks: 0 };
+          return {
+            countsByType: legacy.countsByType,
+            evidenceByType: legacy.evidenceByType,
+            ignoredBlocks: 0,
+          };
         })();
 
     // Cruzar con trackers del trato
@@ -351,45 +177,24 @@ export async function syncCampaignSheet(campaignId: number): Promise<SyncResult>
       }
     }
 
-    let updated = 0;
-    const usedTypes = new Set<string>();
     const now = new Date();
-    for (const [type, count] of countsByType.entries()) {
-      const target = trackerByType.get(type);
-      if (!target) continue; // bloque huérfano — no crear
-      usedTypes.add(type);
-      if (target.currentCount !== count) {
-        await db
-          .update(dealDeliverableTrackers)
-          .set({ currentCount: count, lastSyncedAt: now, updatedAt: now })
-          .where(eq(dealDeliverableTrackers.id, target.id));
-        updated++;
-      } else {
-        await db
-          .update(dealDeliverableTrackers)
-          .set({ lastSyncedAt: now, updatedAt: now })
-          .where(eq(dealDeliverableTrackers.id, target.id));
-      }
-    }
+    const applied = await applyCampaignSheetEvidence({
+      campaignId,
+      trackers,
+      evidenceByType,
+      resetMissingTypes: canonical.matched,
+      syncedAt: now,
+    });
 
-    const unmatchedTypes = Math.max(0, countsByType.size - usedTypes.size);
+    const unmatchedTypes = Math.max(0, countsByType.size - applied.usedTypes.size);
     const totalIgnoredBlocks = ignoredBlocks + unmatchedTypes;
-    const notFoundTypes = Array.from(trackerByType.keys()).filter((t) => !usedTypes.has(t)).length;
+    const notFoundTypes = Array.from(trackerByType.keys())
+      .filter((type) => !countsByType.has(type)).length;
 
-    // Persistir campaign
-    await db
-      .update(campaigns)
-      .set({
-        lastTrackingSyncAt: now,
-        trackingSyncError: null,
-        updatedAt: now,
-      })
-      .where(eq(campaigns.id, campaignId));
-
-    const summary = buildSummary(updated, totalIgnoredBlocks, notFoundTypes);
+    const summary = buildSummary(applied.updated, totalIgnoredBlocks, notFoundTypes);
     return {
       ok: true,
-      updated,
+      updated: applied.updated,
       ignoredBlocks: totalIgnoredBlocks,
       notFoundTypes,
       syncedAt: now.toISOString(),

@@ -140,6 +140,12 @@ export const dealDeliverableItems = pgTable(
 
     status: trackerItemStatusEnum('status').notNull().default('detected'),
 
+    // Procedencia y presencia actual de la evidencia. Los imports manuales
+    // permanecen independientes de la sincronización reversible de Sheets.
+    sourceType: varchar('source_type', { length: 20 }).notNull().default('manual'),
+    isActive: boolean('is_active').notNull().default(true),
+    lastSeenAt: timestamp('last_seen_at', { withTimezone: true }).notNull().defaultNow(),
+
     detectedAt: timestamp('detected_at', { withTimezone: true }).notNull().defaultNow(),
     reviewedAt: timestamp('reviewed_at', { withTimezone: true }),
     reviewedByUserId: text('reviewed_by_user_id').references(() => user.id, { onDelete: 'set null' }),
@@ -150,6 +156,7 @@ export const dealDeliverableItems = pgTable(
     index('deal_items_tracker_idx').on(t.trackerId),
     index('deal_items_status_idx').on(t.status),
     index('deal_items_normalized_url_idx').on(t.normalizedUrl),
+    index('deal_items_tracker_source_active_idx').on(t.trackerId, t.sourceType, t.isActive),
   ],
 );
 

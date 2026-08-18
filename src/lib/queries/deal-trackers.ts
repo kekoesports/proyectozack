@@ -149,6 +149,7 @@ export async function getTrackerSubtypeCounts(trackerIds: number[]): Promise<Tra
       and(
         inArray(dealDeliverableItems.trackerId, trackerIds),
         inArray(dealDeliverableItems.status, ['valid', 'approved']),
+        eq(dealDeliverableItems.isActive, true),
         isNotNull(dealDeliverableItems.deliverableSubtype),
       ),
     )
@@ -353,6 +354,7 @@ async function recalculateAndMaybeComplete(trackerId: number) {
       and(
         eq(dealDeliverableItems.trackerId, trackerId),
         inArray(dealDeliverableItems.status, ['valid', 'approved']),
+        eq(dealDeliverableItems.isActive, true),
       ),
     );
 

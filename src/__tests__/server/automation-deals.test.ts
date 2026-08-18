@@ -1,4 +1,9 @@
-import { AutomationDealCreate, AutomationTrackingSheetUpdate } from '@/lib/schemas/automationDeal';
+import {
+  AutomationDealCreate,
+  AutomationDealDraftCreate,
+  AutomationDealDraftReview,
+  AutomationTrackingSheetUpdate,
+} from '@/lib/schemas/automationDeal';
 import { verifyAutomationToken } from '@/lib/security/assertAutomationAuth';
 
 const validDeal = {
@@ -29,6 +34,8 @@ describe('AutomationDealCreate', () => {
     if (!parsed.success) return;
     expect(parsed.data.status).toBe('propuesta');
     expect(parsed.data.currency).toBe('EUR');
+    expect(parsed.data.amountInKindTalent).toBe(0);
+    expect(parsed.data.amountInKindCommunity).toBe(0);
     expect(parsed.data.deliverables).toHaveLength(3);
   });
 
@@ -54,6 +61,26 @@ describe('AutomationDealCreate', () => {
     });
     expect(parsed.success).toBe(false);
   });
+
+  it('acepta producto y sorteos como importes separados', () => {
+    const parsed = AutomationDealCreate.safeParse({
+      ...validDeal,
+      amountInKindTalent: 100,
+      amountInKindCommunity: 2000,
+    });
+    expect(parsed.success).toBe(true);
+  });
+
+  it('rechaza dos trackers del mismo tipo en un trato', () => {
+    const parsed = AutomationDealCreate.safeParse({
+      ...validDeal,
+      deliverables: [
+        { type: 'preroll', targetCount: 5 },
+        { type: 'preroll', targetCount: 2 },
+      ],
+    });
+    expect(parsed.success).toBe(false);
+  });
 });
 
 describe('AutomationTrackingSheetUpdate', () => {
@@ -67,6 +94,27 @@ describe('AutomationTrackingSheetUpdate', () => {
     expect(AutomationTrackingSheetUpdate.safeParse({
       trackingSheetUrl: 'https://example.com/spreadsheets/d/abc123',
     }).success).toBe(false);
+  });
+});
+
+describe('AutomationDealDraft', () => {
+  it('acepta un borrador Discord con texto y propuesta canónica', () => {
+    const parsed = AutomationDealDraftCreate.safeParse({
+      externalId: 'discord:interaction:12345678',
+      sourceUserId: 'discord-user-1',
+      sourceChannelId: 'deal-channel-1',
+      rawText: 'TODOCS2 con Marca Demo: cinco streams',
+      proposedDeal: validDeal,
+    });
+    expect(parsed.success).toBe(true);
+    if (!parsed.success) return;
+    expect(parsed.data.source).toBe('discord');
+  });
+
+  it('solo permite aprobar o rechazar con actor identificado', () => {
+    expect(AutomationDealDraftReview.safeParse({ action: 'approve', reviewedBy: 'pablo' }).success).toBe(true);
+    expect(AutomationDealDraftReview.safeParse({ action: 'create', reviewedBy: 'pablo' }).success).toBe(false);
+    expect(AutomationDealDraftReview.safeParse({ action: 'approve', reviewedBy: '' }).success).toBe(false);
   });
 });
 

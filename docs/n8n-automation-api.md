@@ -24,7 +24,9 @@ Incluye:
 - creación de trackers por tipo y cantidad de entregable;
 - vínculo posterior de la Google Sheet del trato;
 - lectura del progreso ya existente en el CRM;
-- sincronización masiva con avisos únicos al cruzar 70, 80 y 100 %.
+- sincronización masiva con avisos únicos al cruzar 70, 80 y 100 %;
+- evidencias auditables y reversibles dentro del CRM;
+- resumen operativo de tratos, errores y 10 días sin enlaces nuevos.
 
 No incluye todavía la generación del contrato ni la copia de la plantilla de
 Google Drive: esas dos operaciones se orquestan desde n8n y después se adjuntan
@@ -80,6 +82,8 @@ Ejemplo de body:
   "currency": "EUR",
   "amountBrand": 0,
   "amountTalent": 0,
+  "amountInKindTalent": 100,
+  "amountInKindCommunity": 2000,
   "deliverables": [
     { "type": "stream_integration", "targetCount": 5 },
     { "type": "video_youtube", "targetCount": 5 },
@@ -91,6 +95,13 @@ Ejemplo de body:
 La primera llamada devuelve `201` y `created: true`. Repetir exactamente la
 misma clave devuelve `200`, `created: false` y el mismo `campaignId`, sin crear
 duplicados.
+
+Los cuatro importes representan conceptos distintos:
+
+- `amountBrand`: efectivo que paga la marca a la agencia;
+- `amountTalent`: efectivo que paga la agencia al creador;
+- `amountInKindTalent`: producto o saldo entregado al creador;
+- `amountInKindCommunity`: producto o saldo reservado para sorteos.
 
 Tipos de entregable admitidos:
 
@@ -133,6 +144,12 @@ Sincronizar todos los tratos automatizados con Sheet:
 
 `POST /api/automation/deals/sync`
 
+La sincronización recorre todos los tratos activos del CRM que tengan Sheet,
+incluidos los creados manualmente. Un enlace HTTP(S) único equivale a una pieza
+completada aunque el creador no cambie la celda `ESTADO`. Una fila marcada como
+`Rechazado` no cuenta. Si se retira un enlace, el contador baja sin borrar el
+histórico de evidencia.
+
 La respuesta masiva contiene `alerts`. Cada umbral solo aparece una vez por
 trato gracias a `tracking_alert_level`:
 
@@ -157,6 +174,24 @@ n8n debe enviar cada elemento de `alerts` al canal elegido (Discord, email o
 WhatsApp Business). Una ejecución posterior no vuelve a notificar el mismo
 umbral.
 
+## Resumen operativo para Discord
+
+`GET /api/automation/deals/digest`
+
+Devuelve todos los tratos activos del CRM con marca, creador, progreso,
+`lastEvidenceAddedAt`, días sin enlaces y una acción priorizada:
+
+- `sync_error`: la Sheet no se pudo leer;
+- `missing_sheet`: el trato aún no tiene documento asociado;
+- `completed`: 100 %, listo para cierre;
+- `prepare_invoice`: 70-99 %, empezar factura;
+- `stale`: 10 o más días sin evidencia nueva;
+- `on_track`: sin excepción operativa.
+
+El workflow `socialpro-deal-digest.json` está pensado para publicar este resumen
+los lunes, miércoles y viernes a las 10:30 (`Europe/Madrid`). El CRM, no
+Discord ni n8n, conserva el estado canónico.
+
 ## Flujo recomendado en n8n
 
 ### Alta de trato
@@ -177,6 +212,38 @@ umbral.
 3. IF comprueba `alerts.length > 0`.
 4. Split Out procesa cada alerta.
 5. El canal de avisos publica el nombre, porcentaje y enlace interno del trato.
+
+### Entrada desde Discord
+
+Discord funciona como interfaz, no como base de datos. El comando `/deal`
+debe interpretar el texto y guardar primero un borrador:
+
+`POST /api/automation/deal-drafts`
+
+```json
+{
+  "source": "discord",
+  "externalId": "discord:interaction:12345678",
+  "sourceUserId": "usuario-discord",
+  "sourceChannelId": "canal-alta-deals",
+  "rawText": "TODOCS2 + Marca Demo...",
+  "proposedDeal": { "name": "...", "brand": {}, "talent": {}, "deliverables": [] }
+}
+```
+
+El CRM devuelve `draft.id`. Discord muestra la propuesta y dos botones. La
+decisión se registra con:
+
+`PATCH /api/automation/deal-drafts/{draftId}`
+
+```json
+{ "action": "approve", "reviewedBy": "usuario-discord" }
+```
+
+También admite `action: "reject"`. Solo `approve` crea el trato con una clave
+idempotente derivada del borrador. La respuesta final
+debe publicar los enlaces al trato del CRM, la Sheet y el contrato. Si falla el
+CRM, el comando falla: no se considera creado por haber aparecido en Discord.
 
 ## Operación segura
 

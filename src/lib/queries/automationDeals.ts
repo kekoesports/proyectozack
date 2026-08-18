@@ -29,6 +29,7 @@ export type AutomationDealProgress = {
   readonly trackingSheetUrl: string | null;
   readonly syncError: string | null;
   readonly lastSyncedAt: string | null;
+  readonly lastEvidenceAddedAt: string | null;
   readonly targetCount: number;
   readonly currentCount: number;
   readonly progressPct: number;
@@ -260,6 +261,8 @@ export async function createAutomatedDeal(
         currency: input.currency,
         amountBrand: String(input.amountBrand),
         amountTalent: String(input.amountTalent),
+        amountInKindTalent: String(input.amountInKindTalent),
+        amountInKindCommunity: String(input.amountInKindCommunity),
         trackingSheetUrl: tracking.trackingSheetUrl,
         trackingSheetSpreadsheetId: tracking.trackingSheetSpreadsheetId,
         trackingSheetGid: tracking.trackingSheetGid,
@@ -320,10 +323,11 @@ export async function getAutomatedDealProgress(campaignId: number): Promise<Auto
       trackingSheetUrl: campaigns.trackingSheetUrl,
       syncError: campaigns.trackingSyncError,
       lastSyncedAt: campaigns.lastTrackingSyncAt,
+      lastEvidenceAddedAt: campaigns.lastEvidenceAddedAt,
       alertLevel: campaigns.trackingAlertLevel,
     })
     .from(campaigns)
-    .where(and(eq(campaigns.id, campaignId), eq(campaigns.automationSource, 'n8n')))
+    .where(eq(campaigns.id, campaignId))
     .limit(1);
   if (!campaign) return null;
 
@@ -350,6 +354,7 @@ export async function getAutomatedDealProgress(campaignId: number): Promise<Auto
     trackingSheetUrl: campaign.trackingSheetUrl,
     syncError: campaign.syncError,
     lastSyncedAt: campaign.lastSyncedAt?.toISOString() ?? null,
+    lastEvidenceAddedAt: campaign.lastEvidenceAddedAt?.toISOString() ?? null,
     targetCount,
     currentCount,
     progressPct,
@@ -374,7 +379,7 @@ export async function attachAutomatedDealSheet(campaignId: number, url: string):
       trackingSyncError: null,
       updatedAt: new Date(),
     })
-    .where(and(eq(campaigns.id, campaignId), eq(campaigns.automationSource, 'n8n')))
+    .where(eq(campaigns.id, campaignId))
     .returning({ id: campaigns.id });
   return updated ? getAutomatedDealProgress(updated.id) : null;
 }
@@ -426,7 +431,6 @@ export async function syncAllAutomatedDeals(): Promise<SyncAllAutomatedDealsResu
     .select({ id: campaigns.id })
     .from(campaigns)
     .where(and(
-      eq(campaigns.automationSource, 'n8n'),
       isNotNull(campaigns.trackingSheetUrl),
       inArray(campaigns.status, ['propuesta', 'negociacion', 'aprobada', 'activa', 'pendiente_pago']),
     ));

@@ -240,7 +240,7 @@ describe('aggregateCanonicalDealTable — plantilla canónica por filas', () => 
     'NOTAS',
   ];
 
-  it('cuenta únicamente Entregado/Aprobado con evidencia HTTP(S)', () => {
+  it('cuenta enlaces HTTP(S) aunque el estado siga Pendiente', () => {
     const result = aggregateCanonicalDealTable([
       ['SOCIALPRO — SEGUIMIENTO DEL DEAL'],
       header,
@@ -252,9 +252,9 @@ describe('aggregateCanonicalDealTable — plantilla canónica por filas', () => 
 
     expect(result.matched).toBe(true);
     expect(result.totalRows).toBe(4);
-    expect(result.completedRows).toBe(2);
-    expect(result.invalidRows).toBe(1);
-    expect(result.countsByType.get('stream_integration')).toBe(1);
+    expect(result.completedRows).toBe(3);
+    expect(result.invalidRows).toBe(0);
+    expect(result.countsByType.get('stream_integration')).toBe(2);
     expect(result.countsByType.get('video_youtube')).toBe(1);
     expect(result.countsByType.get('preroll')).toBe(0);
   });
@@ -269,6 +269,20 @@ describe('aggregateCanonicalDealTable — plantilla canónica por filas', () => 
 
     expect(result.countsByType.get('video_youtube')).toBe(1);
     expect(result.countsByType.get('short_reel_tiktok')).toBe(0);
+  });
+
+  it('no cuenta Rechazado ni permite que una URL infle dos tipos', () => {
+    const result = aggregateCanonicalDealTable([
+      header,
+      ['VID-01', 'Video', '1', 'Entregado', '', 'https://youtu.be/abcdefghijk'],
+      ['STR-01', 'Stream', '1', 'Entregado', '', 'https://youtu.be/abcdefghijk'],
+      ['PRE-01', 'Preroll', '1', 'Rechazado', '', 'https://twitch.tv/videos/9'],
+    ]);
+
+    expect(result.countsByType.get('video_youtube')).toBe(1);
+    expect(result.countsByType.get('stream_integration')).toBe(0);
+    expect(result.countsByType.get('preroll')).toBe(0);
+    expect(result.completedRows).toBe(1);
   });
 
   it('rechaza filas incompletas o estados desconocidos sin abortar el sync', () => {

@@ -18,28 +18,27 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://socialpro.es/api/automation/deals",
+        "url": "https://socialpro.es/api/automation/deal-drafts",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Idempotency-Key",
-              "value": "={{ $json.body.externalId }}"
-            }
-          ]
-        },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify($json.body.deal) }}",
+        "jsonBody": "={{ JSON.stringify({ source: $json.body.source || 'discord', externalId: $json.body.externalId, sourceUserId: $json.body.sourceUserId, sourceChannelId: $json.body.sourceChannelId, rawText: $json.body.rawText, proposedDeal: $json.body.deal }) }}",
         "options": {}
       },
       "id": "create-crm-deal",
-      "name": "Crear trato idempotente",
+      "name": "Guardar borrador en CRM",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [-120, 0]
+      "position": [-140, 0]
+    },
+    {
+      "parameters": {},
+      "id": "discord-review-placeholder",
+      "name": "Enviar revisión y botones a Discord",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [120, 0]
     }
   ],
   "connections": {
@@ -47,7 +46,18 @@
       "main": [
         [
           {
-            "node": "Crear trato idempotente",
+            "node": "Guardar borrador en CRM",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Guardar borrador en CRM": {
+      "main": [
+        [
+          {
+            "node": "Enviar revisión y botones a Discord",
             "type": "main",
             "index": 0
           }

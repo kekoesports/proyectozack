@@ -53,6 +53,7 @@ Import the JSON files under [`workflows/`](./workflows/) from the n8n editor:
 
 - `socialpro-deal-intake.json`: webhook to create an idempotent CRM deal.
 - `socialpro-progress-alerts.json`: hourly Sheet sync and one-time 70/80/100 alerts.
+- `socialpro-deal-digest.json`: Monday/Wednesday/Friday 10:30 CRM digest.
 
 Both imports start disabled and intentionally contain no secrets. Before a test:
 
@@ -63,6 +64,6 @@ Both imports start disabled and intentionally contain no secrets. Before a test:
    [`docs/n8n-automation-api.md`](../../docs/n8n-automation-api.md);
 5. run each workflow manually with test data before activating its trigger.
 
-The progress workflow ends in a placeholder node. Replace it with the approved
-Discord, WhatsApp Business or email node only after configuring that provider's
-credential in n8n.
+The notification workflows end in a placeholder node. Replace it with the
+approved Discord node only after configuring the SocialPro Discord credential
+in n8n. Discord is an interface: every message is built from CRM API data.
