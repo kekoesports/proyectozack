@@ -29,6 +29,7 @@ import {
   extractSheetGid,
   normalizeUrl,
   aggregateBlocksByType,
+  aggregateCanonicalDealTable,
   normalizeTrackingSheetInput,
 } from '@/lib/queries/campaign-sheet-sync';
 
@@ -223,6 +224,74 @@ describe('aggregateBlocksByType — agrupa por deliverableType con dedupe URL', 
     ];
     const { countsByType } = aggregateBlocksByType(blocks);
     expect(countsByType.get('preroll')).toBe(3);
+  });
+});
+
+describe('aggregateCanonicalDealTable — plantilla canónica por filas', () => {
+  const header = [
+    'ID',
+    'TIPO DE CONTENIDO',
+    'Nº',
+    'ESTADO',
+    'FECHA PREVISTA',
+    'ENLACE / EVIDENCIA',
+    'FECHA ENTREGA',
+    'APROBACIÓN MARCA',
+    'NOTAS',
+  ];
+
+  it('cuenta únicamente Entregado/Aprobado con evidencia HTTP(S)', () => {
+    const result = aggregateCanonicalDealTable([
+      ['SOCIALPRO — SEGUIMIENTO DEL DEAL'],
+      header,
+      ['STR-01', 'Stream', '1', 'Entregado', '', 'https://twitch.tv/videos/1'],
+      ['STR-02', 'Stream', '2', 'Pendiente', '', 'https://twitch.tv/videos/2'],
+      ['VID-01', 'Vídeo', '1', 'Aprobado', '', 'https://youtu.be/video-1'],
+      ['PRE-01', 'Preroll', '1', 'Entregado', '', ''],
+    ]);
+
+    expect(result.matched).toBe(true);
+    expect(result.totalRows).toBe(4);
+    expect(result.completedRows).toBe(2);
+    expect(result.invalidRows).toBe(1);
+    expect(result.countsByType.get('stream_integration')).toBe(1);
+    expect(result.countsByType.get('video_youtube')).toBe(1);
+    expect(result.countsByType.get('preroll')).toBe(0);
+  });
+
+  it('deduplica evidencias y conserva tipos pendientes con contador cero', () => {
+    const result = aggregateCanonicalDealTable([
+      header,
+      ['VID-01', 'Video', '1', 'Entregado', '', 'https://youtu.be/abc?utm_source=x'],
+      ['VID-02', 'Vídeo', '2', 'Aprobado', '', 'https://youtu.be/abc'],
+      ['SHORT-01', 'Short', '1', 'En curso', '', ''],
+    ]);
+
+    expect(result.countsByType.get('video_youtube')).toBe(1);
+    expect(result.countsByType.get('short_reel_tiktok')).toBe(0);
+  });
+
+  it('rechaza filas incompletas o estados desconocidos sin abortar el sync', () => {
+    const result = aggregateCanonicalDealTable([
+      header,
+      ['', 'Stream', '1', 'Entregado', '', 'https://twitch.tv/videos/1'],
+      ['STR-02', 'Stream', '2', 'Terminado', '', 'https://twitch.tv/videos/2'],
+    ]);
+
+    expect(result.totalRows).toBe(1);
+    expect(result.completedRows).toBe(0);
+    expect(result.invalidRows).toBe(2);
+    expect(result.countsByType.get('stream_integration')).toBe(0);
+  });
+
+  it('devuelve matched=false para mantener el parser TODOCS2 heredado', () => {
+    const result = aggregateCanonicalDealTable([
+      ['Deal #1 - 5 streams'],
+      ['Livestream', '1', 'https://twitch.tv/videos/1'],
+    ]);
+
+    expect(result.matched).toBe(false);
+    expect(result.countsByType.size).toBe(0);
   });
 });
 
