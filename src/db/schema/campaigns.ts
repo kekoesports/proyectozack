@@ -89,6 +89,9 @@ export const campaigns = pgTable('campaigns', {
   trackingSheetSpreadsheetId:  varchar('tracking_sheet_spreadsheet_id', { length: 100 }),
   trackingSheetGid:            varchar('tracking_sheet_gid', { length: 20 }),
   lastTrackingSyncAt:          timestamp('last_tracking_sync_at', { withTimezone: true }),
+  // Última evidencia HTTP(S) nueva detectada en la Sheet. A diferencia de
+  // updatedAt/lastTrackingSyncAt, solo cambia cuando aparece un enlace nuevo.
+  lastEvidenceAddedAt:         timestamp('last_evidence_added_at', { withTimezone: true }),
   trackingSyncError:           text('tracking_sync_error'),
   trackingAlertLevel:          integer('tracking_alert_level').notNull().default(0),
 
@@ -111,6 +114,7 @@ export const campaigns = pgTable('campaigns', {
   index('campaigns_start_idx').on(t.startDate),
   index('campaigns_action_idx').on(t.actionType),
   index('campaigns_archived_idx').on(t.archivedAt),
+  index('campaigns_last_evidence_idx').on(t.lastEvidenceAddedAt),
   uniqueIndex('campaigns_automation_source_external_uq')
     .on(t.automationSource, t.automationExternalId)
     .where(sql`automation_source IS NOT NULL AND automation_external_id IS NOT NULL`),

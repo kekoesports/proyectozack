@@ -65,12 +65,15 @@ export const AutomationDealCreate = z
     status: z.enum(CAMPAIGN_STATUSES).default('propuesta'),
     startDate: OptionalDate,
     endDate: OptionalDate,
+    durationMonths: z.number().int().min(1).max(36).optional(),
     deliveryDeadline: OptionalDate,
     notes: z.string().trim().max(5000).optional(),
     creatorNotes: z.string().trim().max(5000).optional(),
     currency: z.enum(['EUR', 'USD']).default('EUR'),
     amountBrand: z.number().nonnegative().default(0),
     amountTalent: z.number().nonnegative().default(0),
+    amountInKindTalent: z.number().nonnegative().default(0),
+    amountInKindCommunity: z.number().nonnegative().default(0),
     deliverables: z
       .array(z.object({
         type: z.enum(DELIVERABLE_TYPES),
@@ -86,6 +89,10 @@ export const AutomationDealCreate = z
     { message: 'El pago al talento no puede superar el pago de la marca', path: ['amountTalent'] },
   )
   .refine(
+    (value) => new Set(value.deliverables.map((row) => row.type)).size === value.deliverables.length,
+    { message: 'No se puede repetir el mismo tipo de entregable', path: ['deliverables'] },
+  )
+  .refine(
     (value) => !value.startDate || !value.endDate || value.startDate <= value.endDate,
     { message: 'La fecha de fin no puede ser anterior a la fecha de inicio', path: ['endDate'] },
   );
@@ -96,5 +103,34 @@ export const AutomationTrackingSheetUpdate = z.object({
 
 export const AutomationDealRouteId = z.coerce.number().int().positive();
 
+export const AutomationDealDraftCreate = z.object({
+  source: z.enum(['discord', 'manual', 'api']).default('discord'),
+  externalId: AutomationIdempotencyKey,
+  sourceUserId: z.string().trim().min(1).max(80).optional(),
+  sourceChannelId: z.string().trim().min(1).max(80).optional(),
+  rawText: z.string().trim().min(1).max(10000),
+  proposedDeal: z.unknown().optional(),
+});
+
+const AutomationDealDraftReviewer = z.string().trim().min(1).max(100);
+
+export const AutomationDealDraftReview = z.discriminatedUnion('action', [
+  z.object({
+    action: z.literal('approve'),
+    reviewedBy: AutomationDealDraftReviewer,
+  }),
+  z.object({
+    action: z.literal('reject'),
+    reviewedBy: AutomationDealDraftReviewer,
+  }),
+  z.object({
+    action: z.literal('update'),
+    reviewedBy: AutomationDealDraftReviewer,
+    proposedDeal: z.unknown(),
+  }),
+]);
+
 export type AutomationDealCreateInput = z.infer<typeof AutomationDealCreate>;
+export type AutomationDealDraftCreateInput = z.infer<typeof AutomationDealDraftCreate>;
+export type AutomationDealDraftReviewInput = z.infer<typeof AutomationDealDraftReview>;
 export type AutomationTrackingSheetUpdateInput = z.infer<typeof AutomationTrackingSheetUpdate>;

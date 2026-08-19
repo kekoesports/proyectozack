@@ -150,10 +150,10 @@ resultado es directamente impredecible. Ninguna de las ramas es aceptable.
 
 ## Cómo se ha esquivado en la PR de Leads
 
-`drizzle/0116_crm_leads_module.sql` está **escrito a mano** con sólo el enum
+`drizzle/0118_crm_leads_module.sql` está **escrito a mano** con sólo el enum
 `lead_status`, las 4 columnas nuevas de `contact_submissions`, su FK y sus 2
 índices — mismo patrón que 0105. Deliberadamente **no** se añade
-`drizzle/meta/0116_snapshot.json`: generarlo consolidaría el estado incorrecto
+`drizzle/meta/0118_snapshot.json`: generarlo consolidaría el estado incorrecto
 del snapshot 0112 y agravaría el problema.
 
 La migración se validó aplicándola contra un Postgres 16 real con la tabla

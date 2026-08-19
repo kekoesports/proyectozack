@@ -19,7 +19,7 @@
 --
 --   El drift de snapshots se trata por separado — ver docs/incidents/
 --   2026-08-19-drizzle-snapshot-drift.md. Esta migración NO lo arregla y
---   deliberadamente NO añade drizzle/meta/0116_snapshot.json, para no
+--   deliberadamente NO añade drizzle/meta/0118_snapshot.json, para no
 --   consolidar un estado incorrecto.
 --
 -- Alcance: SOLO contact_submissions + el tipo lead_status. No toca ninguna
