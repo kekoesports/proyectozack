@@ -15,11 +15,17 @@ export default function ForgotPasswordPage(): React.ReactElement {
     setError('');
 
     try {
-      await fetch('/api/auth/forget-password', {
+      // Endpoint canónico de Better Auth 1.6.x — /api/auth/forget-password no existe
+      // y devuelve 404 silenciosamente si se llama.
+      const res = await fetch('/api/auth/request-password-reset', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, redirectTo: '/admin/reset-password' }),
+        body: JSON.stringify({
+          email,
+          redirectTo: `${window.location.origin}/admin/reset-password`,
+        }),
       });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       // Always show success to avoid email enumeration
       setSent(true);
     } catch {
