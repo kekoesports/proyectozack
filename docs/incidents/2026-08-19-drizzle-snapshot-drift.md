@@ -1,0 +1,166 @@
+# Drift de snapshots de Drizzle — `drizzle-kit generate` emite SQL destructivo
+
+**Fecha:** 2026-08-19
+**Severidad:** alta — riesgo de pérdida de datos en producción
+**Estado:** abierto
+**Detectado en:** rama `feat/crm-leads-module`, al generar la migración del módulo Leads
+**Ámbito:** `drizzle/meta/` en `master` (no lo introduce ninguna rama concreta)
+
+---
+
+## Resumen en una línea
+
+`npx drizzle-kit generate` sobre `master` produce hoy 69 líneas de SQL que **no
+corresponden a ningún cambio pendiente**: re-emite reparaciones ya aplicadas,
+incluyendo `DROP COLUMN` sobre `connected_social_accounts` (tokens OAuth
+cifrados) y un `ADD COLUMN ... NOT NULL` sin default.
+
+## Por qué importa
+
+`package.json` define:
+
+```json
+"build": "tsx scripts/migrate.ts && next build && tsx scripts/ping-indexnow.ts"
+```
+
+`scripts/migrate.ts` aplica todo lo pendiente en `drizzle/` contra
+`DATABASE_URL`. Es decir: **cualquiera que corra `drizzle-kit generate`,
+commitee el resultado sin leerlo y mergee a master, dispara ese SQL en el
+siguiente deploy de producción.** El fichero generado se llama igual que
+cualquier otra migración legítima y no hay nada en el flujo que avise.
+
+`drizzle-kit check` **no** detecta esto — devuelve `Everything's fine`.
+Sólo valida la coherencia interna del journal, no que los snapshots reflejen lo
+que las migraciones SQL hicieron de verdad.
+
+## Causa raíz
+
+`drizzle-kit generate` no lee la base de datos: diffea `src/db/schema/*.ts`
+contra el **último snapshot** de `drizzle/meta/`. Ese snapshot es
+`0112_snapshot.json`, y describe un estado que las migraciones posteriores —y
+algunas anteriores, escritas a mano— ya cambiaron.
+
+El caso más claro es `connected_social_accounts`:
+
+- `0105_fix_connected_social_accounts_schema.sql` es una migración **escrita a
+  mano** (incidente 2026-07-04) que hace `DROP TABLE` + `CREATE TABLE` con el
+  esquema nuevo: `provider_username`, `access_token_encrypted`, `scope`,
+  `connected_at`, `disconnected_at`, `metadata`.
+- Nadie regeneró los snapshots después. `0112_snapshot.json` sigue describiendo
+  la tabla vieja: `username`, `access_token_enc`, `scopes`, `created_at`,
+  `updated_at`.
+- Resultado: drizzle-kit cree que hay que convertir la tabla vieja en la nueva,
+  y como no le consta ningún rename, lo hace con `DROP COLUMN` + `ADD COLUMN`.
+
+## Snapshots que faltan
+
+13 entradas del journal no tienen `*_snapshot.json`:
+
+| idx | tag |
+|---|---|
+| 0018 | `0018_green_morbius` |
+| 0033 | `0033_curved_white_tiger` |
+| 0039 | `0039_contact_submissions_phone` |
+| 0040 | `0040_contact_submissions_missing_cols` |
+| 0044 | `0044_brand_brief_content` |
+| 0046 | `0046_brand_crm_redaction` |
+| 0051 | `0051_create_crm_alerts` |
+| 0059 | `0059_mature_forge` |
+| 0110 | `0110_add_preroll_to_deliverable_type` |
+| 0111 | `0111_add_tracking_sheet_to_campaigns` |
+| 0113 | `0113_add_creator_notes_to_campaigns` |
+| 0114 | `0114_seed_twitch_mission_zacketizor` |
+| 0115 | `0115_automation_deals_api` |
+
+Las de la franja 0110–0115 son las que más pesan, por ser posteriores al último
+snapshot existente.
+
+## Evidencia
+
+Sobre `origin/master` limpio (`d5ba99f1`), sin ningún cambio local:
+
+```
+$ npx drizzle-kit generate --name=drift_probe
+✓ Your SQL migration file ➜ drizzle/0116_drift_probe.sql
+
+$ wc -l < drizzle/0116_drift_probe.sql
+69
+$ grep -c "contact_submissions\|lead_status" drizzle/0116_drift_probe.sql
+0
+```
+
+Extracto de lo que emite:
+
+```sql
+ALTER TABLE "connected_social_accounts" ADD COLUMN "access_token_encrypted" text NOT NULL;
+...
+ALTER TABLE "connected_social_accounts" DROP COLUMN "username";
+ALTER TABLE "connected_social_accounts" DROP COLUMN "access_token_enc";
+ALTER TABLE "connected_social_accounts" DROP COLUMN "refresh_token_enc";
+ALTER TABLE "connected_social_accounts" DROP COLUMN "scopes";
+ALTER TABLE "connected_social_accounts" DROP COLUMN "created_at";
+ALTER TABLE "connected_social_accounts" DROP COLUMN "updated_at";
+```
+
+Además re-emite: `CREATE TABLE mission_verification_attempts`, 9 columnas de
+`campaigns` (tracking sheet + automation), 4 de `platform_missions`, 4 de
+`redemptions`, 2 de `player_profiles`, `coin_transactions.ref_key`, el
+`ALTER TYPE deliverable_type ADD VALUE 'preroll'` y 8 CHECK constraints sobre
+`giveaways`, `redemptions` y `shop_items`.
+
+Contra una DB que ya tiene 0104–0115 aplicadas, ese SQL falla en el primer
+`ADD COLUMN` duplicado o, peor, corre lo suficiente para destruir columnas antes
+de abortar. En una DB parcialmente migrada el resultado es impredecible.
+
+## Cómo se ha esquivado en la PR de Leads
+
+`drizzle/0116_crm_leads_module.sql` está **escrito a mano** con sólo el enum
+`lead_status`, las 4 columnas nuevas de `contact_submissions`, su FK y sus 2
+índices — mismo patrón que 0105. Deliberadamente **no** se añade
+`drizzle/meta/0116_snapshot.json`: generarlo consolidaría el estado incorrecto
+del snapshot 0112 y agravaría el problema.
+
+La migración se validó aplicándola contra un Postgres 16 real con la tabla
+`contact_submissions` en su forma actual y 46 filas: aplica limpio, es
+idempotente (`IF NOT EXISTS` / `DO $$ ... EXCEPTION WHEN duplicate_object`), y
+las 46 filas quedan en `status='nuevo'`.
+
+## Plan de reconciliación propuesto
+
+No lo resuelve la PR de Leads. Requiere conocer el estado real de producción,
+así que va aparte.
+
+1. **Fotografiar producción.** Volcar el esquema real:
+   `pg_dump --schema-only $DATABASE_URL > /tmp/prod-schema.sql`. Es la única
+   fuente de verdad; los snapshots no lo son ahora mismo.
+2. **Confirmar `__drizzle_migrations`.** Comprobar que contiene hasta 0115 y que
+   los hashes cuadran con los ficheros de `drizzle/`. Si falta alguna entrada,
+   backfillear antes de tocar nada (ya está documentado en CLAUDE.md).
+3. **Levantar una DB desechable** y aplicar `drizzle/*.sql` de 0000 a 0115 en
+   orden. Diffear el resultado contra `/tmp/prod-schema.sql`. Las diferencias
+   que salgan son la deuda real, distinta del ruido de snapshots.
+4. **Regenerar el snapshot de cabecera.** Con el schema TypeScript y la DB ya
+   alineados, generar un snapshot que describa el estado verdadero y commitearlo
+   como `0116_snapshot.json` (o el índice que toque), sin SQL asociado o con un
+   SQL vacío/no-op.
+5. **Verificar.** `npx drizzle-kit generate` sobre master limpio debe producir
+   **cero** statements. Ese es el criterio de cierre.
+6. **Blindarlo en CI.** Añadir un job que corra `drizzle-kit generate` en un
+   directorio temporal y falle si emite algo. Es la única defensa real: `check`
+   no cubre este caso. CLAUDE.md ya pedía `drizzle-kit check` en CI tras el
+   incidente de `crm_alerts` (2026-05-06) — no basta.
+
+## Reglas provisionales hasta que se cierre
+
+- **No commitear la salida de `drizzle-kit generate` sin leerla entera.** Si
+  menciona una tabla que no estás tocando, es drift: descártala.
+- Migraciones nuevas: escribirlas a mano, acotadas a la tabla que toca,
+  idempotentes, y añadir la entrada en `_journal.json`.
+- No añadir snapshots nuevos hasta el paso 4.
+
+## Referencias
+
+- `drizzle/0104_discord_missions_fase_a.sql`, `drizzle/0105_fix_connected_social_accounts_schema.sql`
+- `CLAUDE.md` → sección *Database Migrations* (incidente `crm_alerts`, 2026-05-06)
+- `docs/2026-05-14-drizzle-migration-tracker.md`
+- `scripts/migrate.ts`, `package.json` → script `build`
