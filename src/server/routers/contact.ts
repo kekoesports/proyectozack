@@ -6,6 +6,7 @@ import { contactSubmissions } from '@/db/schema';
 import { sendContactEmail } from '@/lib/email';
 import { contactBodySchema } from '@/lib/schemas/contact';
 import { checkRateLimit } from '@/lib/security/rateLimit';
+import { logRedacted } from '@/lib/log';
 
 async function hashIp(ip: string): Promise<string> {
   const data = new TextEncoder().encode(ip);
@@ -59,13 +60,19 @@ export const contactRouter = router({
         throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Error al guardar el mensaje' });
       }
 
+      // El lead YA está guardado. Si el email de aviso falla, no rompemos el
+      // UX del formulario público: el usuario sigue viendo su confirmación y
+      // el lead es visible en /admin/leads. Devolvemos `warning` para que el
+      // caller (y los tests e2e) puedan distinguir "enviado" de "pendiente".
+      let warning: 'email_pending' | undefined;
       try {
         await sendContactEmail(input);
       } catch (err) {
+        warning = 'email_pending';
         const msg = err instanceof Error ? err.message : 'unknown';
-        console.error('[trpc/contact] Resend error:', msg);
+        logRedacted('error', '[trpc/contact] aviso a marketing@ no enviado:', msg);
       }
 
-      return { success: true };
+      return warning ? { success: true as const, warning } : { success: true as const };
     }),
 });
