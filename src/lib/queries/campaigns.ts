@@ -255,6 +255,7 @@ export async function getCampaignWithRelations(
       trackingSheetSpreadsheetId: campaigns.trackingSheetSpreadsheetId,
       trackingSheetGid: campaigns.trackingSheetGid,
       lastTrackingSyncAt: campaigns.lastTrackingSyncAt,
+      lastEvidenceAddedAt: campaigns.lastEvidenceAddedAt,
       trackingSyncError: campaigns.trackingSyncError,
       trackingAlertLevel: campaigns.trackingAlertLevel,
       automationSource: campaigns.automationSource,
@@ -342,6 +343,7 @@ export async function getCampaignWithRelations(
     trackingSheetSpreadsheetId: row.trackingSheetSpreadsheetId ?? null,
     trackingSheetGid: row.trackingSheetGid ?? null,
     lastTrackingSyncAt: row.lastTrackingSyncAt ?? null,
+    lastEvidenceAddedAt: row.lastEvidenceAddedAt ?? null,
     trackingSyncError: row.trackingSyncError ?? null,
     trackingAlertLevel: row.trackingAlertLevel,
     automationSource: row.automationSource ?? null,
@@ -695,4 +697,3 @@ export async function listAllCampaigns(opts?: {
 
   return rows;
 }
-

@@ -1,0 +1,103 @@
+{
+  "name": "SocialPro - UPDATE DEALS L-X-V 10:30",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "30 10 * * 1,3,5"
+            }
+          ]
+        }
+      },
+      "id": "digest-trigger",
+      "name": "L-X-V a las 10:30",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [-620, 0]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://socialpro.es/api/automation/deals/sync",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "id": "sync-before-digest",
+      "name": "Sincronizar evidencias",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [-380, 0]
+    },
+    {
+      "parameters": {
+        "url": "https://socialpro.es/api/automation/deals/digest",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "id": "read-crm-digest",
+      "name": "Leer resumen CRM",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [-140, 0]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "digest-message",
+              "name": "message",
+              "value": "={{ '📊 UPDATE DEALS — ' + $now.setZone('Europe/Madrid').toFormat('dd/LL/yyyy') + '\\nActivos: ' + $json.summary.total + ' · Factura: ' + $json.summary.prepareInvoice + ' · Terminados: ' + $json.summary.completed + ' · Parados: ' + $json.summary.stale + ' · Errores: ' + $json.summary.syncErrors + '\\n\\n' + $json.deals.filter(d => d.nextAction !== 'on_track').map(d => '• ' + d.talentName + ' / ' + d.brandName + ': ' + d.currentCount + '/' + d.targetCount + ' (' + d.progressPct + '%) · ' + d.amountBrand + ' ' + d.currency + ' — ' + d.nextAction).join('\\n') }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "format-digest",
+      "name": "Preparar UPDATE DEALS",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [100, 0]
+    },
+    {
+      "parameters": {},
+      "id": "discord-placeholder",
+      "name": "Conectar canal Discord revisiones",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [340, 0]
+    }
+  ],
+  "connections": {
+    "L-X-V a las 10:30": {
+      "main": [[{"node": "Sincronizar evidencias", "type": "main", "index": 0}]]
+    },
+    "Sincronizar evidencias": {
+      "main": [[{"node": "Leer resumen CRM", "type": "main", "index": 0}]]
+    },
+    "Leer resumen CRM": {
+      "main": [[{"node": "Preparar UPDATE DEALS", "type": "main", "index": 0}]]
+    },
+    "Preparar UPDATE DEALS": {
+      "main": [[{"node": "Conectar canal Discord revisiones", "type": "main", "index": 0}]]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Europe/Madrid",
+    "saveManualExecutions": true
+  },
+  "active": false,
+  "versionId": "50ef3b59-4d3c-4e27-860f-dbb4e5701003",
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "tags": []
+}

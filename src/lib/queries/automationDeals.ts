@@ -11,6 +11,7 @@ import { normalizeTrackingSheetInput, syncCampaignSheet } from '@/lib/queries/ca
 import type { CampaignActionType } from '@/lib/schemas/campaign';
 import type { AutomationDealCreateInput } from '@/lib/schemas/automationDeal';
 import type { DeliverableType } from '@/lib/schemas/deliverable';
+import { resolveAutomationDealSchedule } from '@/lib/utils/automation-deal-schedule';
 import { initialsOf, slugify } from '@/lib/utils/import-utils';
 import { createLimit } from '@/lib/utils/concurrencyLimit';
 
@@ -29,6 +30,7 @@ export type AutomationDealProgress = {
   readonly trackingSheetUrl: string | null;
   readonly syncError: string | null;
   readonly lastSyncedAt: string | null;
+  readonly lastEvidenceAddedAt: string | null;
   readonly targetCount: number;
   readonly currentCount: number;
   readonly progressPct: number;
@@ -244,6 +246,7 @@ export async function createAutomatedDeal(
     const brand = await resolveBrand(tx, input.brand);
     const talent = await resolveTalent(tx, input.talent);
     const tracking = normalizeTrackingSheetInput(input.trackingSheetUrl ?? '');
+    const schedule = resolveAutomationDealSchedule(input);
     const [campaign] = await tx
       .insert(campaigns)
       .values({
@@ -252,14 +255,16 @@ export async function createAutomatedDeal(
         talentId: talent.id,
         actionType: inferActionType(input.deliverables),
         status: input.status,
-        startDate: input.startDate ?? null,
-        endDate: input.endDate ?? null,
-        deliveryDeadline: input.deliveryDeadline ?? null,
+        startDate: schedule.startDate,
+        endDate: schedule.endDate ?? null,
+        deliveryDeadline: schedule.deliveryDeadline ?? null,
         notes: input.notes ?? null,
         creatorNotes: input.creatorNotes ?? null,
         currency: input.currency,
         amountBrand: String(input.amountBrand),
         amountTalent: String(input.amountTalent),
+        amountInKindTalent: String(input.amountInKindTalent),
+        amountInKindCommunity: String(input.amountInKindCommunity),
         trackingSheetUrl: tracking.trackingSheetUrl,
         trackingSheetSpreadsheetId: tracking.trackingSheetSpreadsheetId,
         trackingSheetGid: tracking.trackingSheetGid,
@@ -320,10 +325,11 @@ export async function getAutomatedDealProgress(campaignId: number): Promise<Auto
       trackingSheetUrl: campaigns.trackingSheetUrl,
       syncError: campaigns.trackingSyncError,
       lastSyncedAt: campaigns.lastTrackingSyncAt,
+      lastEvidenceAddedAt: campaigns.lastEvidenceAddedAt,
       alertLevel: campaigns.trackingAlertLevel,
     })
     .from(campaigns)
-    .where(and(eq(campaigns.id, campaignId), eq(campaigns.automationSource, 'n8n')))
+    .where(eq(campaigns.id, campaignId))
     .limit(1);
   if (!campaign) return null;
 
@@ -350,6 +356,7 @@ export async function getAutomatedDealProgress(campaignId: number): Promise<Auto
     trackingSheetUrl: campaign.trackingSheetUrl,
     syncError: campaign.syncError,
     lastSyncedAt: campaign.lastSyncedAt?.toISOString() ?? null,
+    lastEvidenceAddedAt: campaign.lastEvidenceAddedAt?.toISOString() ?? null,
     targetCount,
     currentCount,
     progressPct,
@@ -374,7 +381,7 @@ export async function attachAutomatedDealSheet(campaignId: number, url: string):
       trackingSyncError: null,
       updatedAt: new Date(),
     })
-    .where(and(eq(campaigns.id, campaignId), eq(campaigns.automationSource, 'n8n')))
+    .where(eq(campaigns.id, campaignId))
     .returning({ id: campaigns.id });
   return updated ? getAutomatedDealProgress(updated.id) : null;
 }
@@ -426,7 +433,6 @@ export async function syncAllAutomatedDeals(): Promise<SyncAllAutomatedDealsResu
     .select({ id: campaigns.id })
     .from(campaigns)
     .where(and(
-      eq(campaigns.automationSource, 'n8n'),
       isNotNull(campaigns.trackingSheetUrl),
       inArray(campaigns.status, ['propuesta', 'negociacion', 'aprobada', 'activa', 'pendiente_pago']),
     ));
