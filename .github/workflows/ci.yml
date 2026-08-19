@@ -48,6 +48,39 @@ jobs:
           export DATABASE_URL="${DATABASE_URL:-postgresql://ci:ci@127.0.0.1:5432/ci_check}"
           npx drizzle-kit check
 
+      - name: Snapshot drift canary
+        # `drizzle-kit check` NO detecta el drift de snapshots: valida la coherencia
+        # interna del journal, no que los snapshots reflejen lo que el SQL hizo.
+        # Ver docs/incidents/2026-08-19-drizzle-snapshot-drift.md.
+        #
+        # Con el drift presente, `generate` se bloquea pidiendo un TTY para resolver
+        # conflictos de columnas, así que aquí falla por sí solo. Es un canario
+        # accidental, pero cubre el hueco mientras se reconcilia. Cuando el drift se
+        # cierre, `generate` debe emitir cero statements y este paso pasará limpio.
+        #
+        # INFORMATIVO POR AHORA: el drift está abierto, así que este paso falla hoy
+        # a propósito. Se deja sin bloquear para no parar todas las PRs. Al cerrar el
+        # paso 5 del plan de reconciliación, QUITAR `continue-on-error` para que pase
+        # a ser un gate real — es la única defensa contra este fallo.
+        continue-on-error: true
+        run: |
+          export DATABASE_URL="${DATABASE_URL:-postgresql://ci:ci@127.0.0.1:5432/ci_check}"
+          cp -r drizzle "$RUNNER_TEMP/drizzle-canary"
+          if ! npx drizzle-kit generate --name=ci_drift_canary < /dev/null; then
+            echo "::error::drizzle-kit generate falló o pidió entrada interactiva — hay drift de snapshots. Ver docs/incidents/2026-08-19-drizzle-snapshot-drift.md"
+            rm -rf drizzle && mv "$RUNNER_TEMP/drizzle-canary" drizzle
+            exit 1
+          fi
+          if git diff --quiet --exit-code -- drizzle/ && [ -z "$(git ls-files --others --exclude-standard drizzle/)" ]; then
+            echo "Sin drift: generate no emitió nada."
+          else
+            echo "::error::drizzle-kit generate emitió SQL sobre master limpio. No lo commitees sin leerlo: puede contener DROP COLUMN ajenos a tu cambio."
+            git status --porcelain -- drizzle/
+            rm -rf drizzle && mv "$RUNNER_TEMP/drizzle-canary" drizzle
+            exit 1
+          fi
+          rm -rf "$RUNNER_TEMP/drizzle-canary"
+
   # Unit & Fuzz Tests job removed — flaky/noisy on CI; run locally with
   # `npm run test:ci` / `npm run test:fuzz` when needed.
 
