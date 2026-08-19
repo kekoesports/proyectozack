@@ -6,6 +6,7 @@ export type AdminNavKey =
   | 'brands'
   | 'talents'
   | 'campanas'
+  | 'automation-drafts'
   | 'leads'
   | 'tareas'
   | 'facturacion'
@@ -49,6 +50,7 @@ export const ADMIN_NAV_CATALOGUE: readonly AdminNavDef[] = [
   { key: 'brands',      href: '/admin/brands',          label: 'Marcas',           module: 'campanas',       section: 'primary' },
   { key: 'talents',     href: '/admin/talents',         label: 'Talentos',         module: 'talentos',       section: 'primary', prefetch: false },
   { key: 'campanas',    href: '/admin/campanas',        label: 'Tratos',           module: 'campanas',       section: 'primary', prefetch: false },
+  { key: 'automation-drafts', href: '/admin/automation-drafts', label: 'Borradores', module: 'campanas',   section: 'primary', prefetch: false },
   { key: 'leads',       href: '/admin/leads',           label: 'Leads',            module: 'leads',          section: 'primary', prefetch: false },
   { key: 'tareas',      href: '/admin/tareas',          label: 'Tareas',           module: 'tareas',         section: 'primary' },
   { key: 'facturacion', href: '/admin/facturacion',     label: 'Facturación',      module: 'facturacion',    section: 'primary', prefetch: false },

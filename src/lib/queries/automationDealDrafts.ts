@@ -1,8 +1,9 @@
 import 'server-only';
 
-import { and, eq } from 'drizzle-orm';
+import { and, desc, eq } from 'drizzle-orm';
 
 import { automationDealDrafts } from '@/db/schema/automationDealDrafts';
+import { campaigns } from '@/db/schema/campaigns';
 import { db } from '@/lib/db';
 import {
   createAutomatedDeal,
@@ -73,6 +74,106 @@ export async function getAutomationDealDraft(id: number) {
     .where(eq(automationDealDrafts.id, id))
     .limit(1);
   return draft ?? null;
+}
+
+/** Un borrador tal como lo consume el CRM: con los campos que faltan ya calculados. */
+export type AutomationDealDraftListItem = {
+  readonly id: number;
+  readonly source: string;
+  readonly externalId: string;
+  readonly sourceUserId: string | null;
+  readonly sourceChannelId: string | null;
+  readonly rawText: string;
+  readonly proposedDeal: unknown;
+  readonly status: string;
+  readonly campaignId: number | null;
+  readonly campaignName: string | null;
+  readonly reviewedBy: string | null;
+  readonly reviewedAt: Date | null;
+  readonly error: string | null;
+  readonly createdAt: Date;
+  readonly updatedAt: Date;
+  readonly missingFields: readonly string[];
+  readonly dealName: string | null;
+};
+
+/** Nombre propuesto del trato, si el payload lo trae. El borrador puede estar incompleto. */
+function readDealName(proposedDeal: unknown): string | null {
+  if (typeof proposedDeal !== 'object' || proposedDeal === null) return null;
+  const name = (proposedDeal as { name?: unknown }).name;
+  return typeof name === 'string' && name.trim().length > 0 ? name : null;
+}
+
+/**
+ * Listado completo de borradores para el CRM.
+ *
+ * @cache none
+ * @visibility admin — gatear con requirePermission('campanas', 'read')
+ * @returns borradores ordenados por entrada descendente, con missingFields resueltos
+ */
+export async function listAutomationDealDrafts(): Promise<readonly AutomationDealDraftListItem[]> {
+  const rows = await db
+    .select({
+      id: automationDealDrafts.id,
+      source: automationDealDrafts.source,
+      externalId: automationDealDrafts.externalId,
+      sourceUserId: automationDealDrafts.sourceUserId,
+      sourceChannelId: automationDealDrafts.sourceChannelId,
+      rawText: automationDealDrafts.rawText,
+      proposedDeal: automationDealDrafts.proposedDeal,
+      status: automationDealDrafts.status,
+      campaignId: automationDealDrafts.campaignId,
+      campaignName: campaigns.name,
+      reviewedBy: automationDealDrafts.reviewedBy,
+      reviewedAt: automationDealDrafts.reviewedAt,
+      error: automationDealDrafts.error,
+      createdAt: automationDealDrafts.createdAt,
+      updatedAt: automationDealDrafts.updatedAt,
+    })
+    .from(automationDealDrafts)
+    .leftJoin(campaigns, eq(automationDealDrafts.campaignId, campaigns.id))
+    .orderBy(desc(automationDealDrafts.createdAt));
+
+  return rows.map((row) => ({
+    ...row,
+    missingFields: getAutomationDealMissingFields(row.proposedDeal),
+    dealName: readDealName(row.proposedDeal),
+  }));
+}
+
+/** Igual que getAutomationDealDraft pero con lo que el CRM necesita para pintar la ficha. */
+export async function getAutomationDealDraftDetail(
+  id: number,
+): Promise<AutomationDealDraftListItem | null> {
+  const [row] = await db
+    .select({
+      id: automationDealDrafts.id,
+      source: automationDealDrafts.source,
+      externalId: automationDealDrafts.externalId,
+      sourceUserId: automationDealDrafts.sourceUserId,
+      sourceChannelId: automationDealDrafts.sourceChannelId,
+      rawText: automationDealDrafts.rawText,
+      proposedDeal: automationDealDrafts.proposedDeal,
+      status: automationDealDrafts.status,
+      campaignId: automationDealDrafts.campaignId,
+      campaignName: campaigns.name,
+      reviewedBy: automationDealDrafts.reviewedBy,
+      reviewedAt: automationDealDrafts.reviewedAt,
+      error: automationDealDrafts.error,
+      createdAt: automationDealDrafts.createdAt,
+      updatedAt: automationDealDrafts.updatedAt,
+    })
+    .from(automationDealDrafts)
+    .leftJoin(campaigns, eq(automationDealDrafts.campaignId, campaigns.id))
+    .where(eq(automationDealDrafts.id, id))
+    .limit(1);
+
+  if (!row) return null;
+  return {
+    ...row,
+    missingFields: getAutomationDealMissingFields(row.proposedDeal),
+    dealName: readDealName(row.proposedDeal),
+  };
 }
 
 export type ReviewAutomationDealDraftResult = {

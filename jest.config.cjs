@@ -12,6 +12,8 @@ const config = {
       testMatch: ['<rootDir>/src/**/__tests__/client/**/*.test.ts?(x)'],
       setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
       moduleNameMapper: { '^@/(.*)$': '<rootDir>/src/$1' },
+      // Clon anidado accidental del repo — ver .gitignore.
+      modulePathIgnorePatterns: ['<rootDir>/proyectozack/'],
       transform: {
         '^.+\\.tsx?$': ['ts-jest', { tsconfig: '<rootDir>/tsconfig.jest.json' }],
       },
@@ -25,6 +27,8 @@ const config = {
       testMatch: ['<rootDir>/src/**/__tests__/server/**/*.test.ts'],
       setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
       moduleNameMapper: { '^@/(.*)$': '<rootDir>/src/$1' },
+      // Clon anidado accidental del repo — ver .gitignore.
+      modulePathIgnorePatterns: ['<rootDir>/proyectozack/'],
       transform: {
         '^.+\\.tsx?$': ['ts-jest', { tsconfig: '<rootDir>/tsconfig.jest.json' }],
       },
@@ -38,6 +42,8 @@ const config = {
       testMatch: ['<rootDir>/src/**/__tests__/fuzz/**/*.fuzz.ts'],
       setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
       moduleNameMapper: { '^@/(.*)$': '<rootDir>/src/$1' },
+      // Clon anidado accidental del repo — ver .gitignore.
+      modulePathIgnorePatterns: ['<rootDir>/proyectozack/'],
       transform: {
         '^.+\\.tsx?$': ['ts-jest', { tsconfig: '<rootDir>/tsconfig.jest.json' }],
       },
