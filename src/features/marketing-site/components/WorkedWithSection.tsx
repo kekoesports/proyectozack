@@ -18,8 +18,9 @@ const CREATORS: readonly Creator[] = [
   { slug: 'andreachinii', label: 'Andreachinii', profileUrl: 'https://www.twitch.tv/andreachinii', photoUrl: '/images/worked-with/andreachinii.png' },
   { slug: 'axozer',       label: 'Axozer',       profileUrl: 'https://www.twitch.tv/axozer',       photoUrl: '/images/worked-with/axozer.jpg' },
   { slug: 'jcorko',       label: 'JCorko',       profileUrl: 'https://www.twitch.tv/jcorko_',      photoUrl: '/images/worked-with/jcorko.png' },
-  { slug: 'lucasrojo',    label: 'Lucas Rojo',   profileUrl: 'https://www.twitch.tv/lucasrojo'     },
-  { slug: 'b0rja',        label: 'B0rja',        profileUrl: 'https://www.twitch.tv/b0rja'         },
+  { slug: 'lucasrojo',    label: 'Lucas Rojo',   profileUrl: 'https://www.twitch.tv/lucasrojo',    photoUrl: '/images/worked-with/lucasrojo.webp' },
+  { slug: 'b0rja',        label: 'B0rja',        profileUrl: 'https://www.twitch.tv/b0rja',        photoUrl: '/images/worked-with/b0rja.webp' },
+  { slug: 'lazypopa',     label: 'Lazypopa',     profileUrl: 'https://www.twitch.tv/lazypopa',     photoUrl: '/images/worked-with/lazypopa.webp' },
 ];
 
 const TWITCH_GRADIENT: React.CSSProperties = { background: gradientStyle('#6441a5', '#2a0e61') };
@@ -31,14 +32,14 @@ export function WorkedWithSection(): React.JSX.Element {
         <FadeInOnScroll>
           <div className="text-center mb-10 sm:mb-12">
             <SectionTag>Prestigio</SectionTag>
-            <SectionHeading>Creadores con los que hemos trabajado</SectionHeading>
+            <SectionHeading>Creadores con los que colaboramos</SectionHeading>
             <p className="mt-3 text-sm sm:text-base text-sp-muted max-w-2xl mx-auto leading-relaxed">
               Colaboraciones con algunos de los creadores más relevantes del ecosistema gaming español.
             </p>
           </div>
         </FadeInOnScroll>
 
-        <ul className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
+        <ul className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3 sm:gap-4">
           {CREATORS.map((c) => {
             const initial = c.label.charAt(0).toUpperCase();
             return (
