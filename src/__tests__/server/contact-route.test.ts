@@ -60,7 +60,7 @@ describe('trpc.contact.submit', () => {
     ).rejects.toThrow();
   });
 
-  it('still returns success if sendContactEmail throws', async () => {
+  it('still returns success if sendContactEmail throws, but flags email_pending', async () => {
     (sendContactEmail as jest.Mock).mockRejectedValueOnce(new Error('Resend down'));
     const result = await caller.contact.submit({
       name: 'Alice',
@@ -68,6 +68,20 @@ describe('trpc.contact.submit', () => {
       type: 'brand',
       message: 'Looking to collaborate on a campaign.',
     });
+    // El lead ya está persistido: el UX público no se rompe. `warning` deja
+    // rastro de que el aviso a marketing@ no salió (módulo leads, Fase 1).
+    expect(result).toEqual({ success: true, warning: 'email_pending' });
+  });
+
+  it('omits the warning field when the email goes out', async () => {
+    (sendContactEmail as jest.Mock).mockResolvedValueOnce(undefined);
+    const result = await caller.contact.submit({
+      name: 'Alice',
+      email: 'alice@example.com',
+      type: 'brand',
+      message: 'Looking to collaborate on a campaign.',
+    });
     expect(result).toEqual({ success: true });
+    expect(result).not.toHaveProperty('warning');
   });
 });
