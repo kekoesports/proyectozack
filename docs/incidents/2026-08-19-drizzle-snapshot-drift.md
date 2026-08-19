@@ -77,10 +77,32 @@ snapshot existente.
 
 ## Evidencia
 
-Sobre `origin/master` limpio (`d5ba99f1`), sin ningún cambio local:
+Sobre `origin/master` limpio (`d5ba99f1`), sin ningún cambio local, `generate`
+**ni siquiera llega a emitir SQL por sí solo**: se para a preguntar.
 
 ```
 $ npx drizzle-kit generate --name=drift_probe
+Error: Interactive prompts require a TTY terminal
+    at promptColumnsConflicts (...)
+    at columnsResolver (...)
+```
+
+Drizzle-kit detecta columnas que no sabe si son nuevas o renombradas y abre un
+prompt por cada una: *create column* frente a *rename column*. En un shell no
+interactivo (CI, un agente, un `npm script`) revienta ahí. En un terminal normal,
+espera a que alguien conteste.
+
+**Esto es lo peor del asunto: la salida no es determinista.** Depende de cómo
+conteste quien lo ejecute, y quien lo ejecute normalmente no tiene contexto para
+saber que `access_token_enc` → `access_token_encrypted` fue un rename hecho a
+mano en `0105`.
+
+Contestando *create column* a cada prompt (el valor por defecto, y lo que sale de
+darle a Enter sin leer) el resultado son 69 líneas, ninguna relacionada con el
+módulo que se estuviera desarrollando:
+
+```
+$ npx drizzle-kit generate --name=drift_probe    # respondiendo "create column"
 ✓ Your SQL migration file ➜ drizzle/0116_drift_probe.sql
 
 $ wc -l < drizzle/0116_drift_probe.sql
@@ -108,9 +130,23 @@ Además re-emite: `CREATE TABLE mission_verification_attempts`, 9 columnas de
 `ALTER TYPE deliverable_type ADD VALUE 'preroll'` y 8 CHECK constraints sobre
 `giveaways`, `redemptions` y `shop_items`.
 
-Contra una DB que ya tiene 0104–0115 aplicadas, ese SQL falla en el primer
-`ADD COLUMN` duplicado o, peor, corre lo suficiente para destruir columnas antes
-de abortar. En una DB parcialmente migrada el resultado es impredecible.
+### Modo de fallo real
+
+Contra una DB que ya tiene 0104–0115 aplicadas, el desenlace más probable **no
+es la pérdida del token**, es el bloqueo de los deploys:
+
+`ALTER TABLE "connected_social_accounts" ADD COLUMN "access_token_encrypted" text NOT NULL;`
+sobre una tabla **no vacía** y sin default falla en Postgres. Y como
+`scripts/migrate.ts` corre dentro de `npm run build`, el fallo tumba el build de
+Vercel entero: no se despliega nada hasta que alguien deshaga la migración a
+mano.
+
+Verificado en la DB de desarrollo: `connected_social_accounts` tiene 1 fila con
+tokens OAuth reales, así que la tabla no está vacía y ese `ADD COLUMN` fallaría.
+
+Cuál de los dos desenlaces toca depende del orden en que Postgres ejecute los
+statements y de dónde aborte la transacción. En una DB parcialmente migrada el
+resultado es directamente impredecible. Ninguna de las ramas es aceptable.
 
 ## Cómo se ha esquivado en la PR de Leads
 
@@ -149,6 +185,11 @@ así que va aparte.
    directorio temporal y falle si emite algo. Es la única defensa real: `check`
    no cubre este caso. CLAUDE.md ya pedía `drizzle-kit check` en CI tras el
    incidente de `crm_alerts` (2026-05-06) — no basta.
+
+   Mientras tanto, hay una defensa barata que se puede poner hoy: como
+   `generate` se bloquea pidiendo TTY en entornos no interactivos, un job de CI
+   que lo ejecute sin terminal **ya falla** ante este drift. Es un canario
+   accidental, pero funciona.
 
 ## Reglas provisionales hasta que se cierre
 
