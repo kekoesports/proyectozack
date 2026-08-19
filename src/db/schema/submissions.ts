@@ -1,4 +1,17 @@
-import { pgTable, serial, varchar, text, timestamp, index } from 'drizzle-orm/pg-core';
+import { pgTable, serial, varchar, text, timestamp, index, pgEnum } from 'drizzle-orm/pg-core';
+import { user } from './auth';
+
+/**
+ * Estado del lead en el pipeline comercial.
+ * Nombre de enum prefijado (`lead_status`) porque el enum `status` ya existe
+ * en la DB para talents — ver src/db/schema/talents.ts.
+ */
+export const leadStatusEnum = pgEnum('lead_status', [
+  'nuevo',
+  'contactado',
+  'descartado',
+  'ganado',
+]);
 
 export const contactSubmissions = pgTable('contact_submissions', {
   id: serial('id').primaryKey(),
@@ -20,7 +33,14 @@ export const contactSubmissions = pgTable('contact_submissions', {
   monetization: varchar('monetization', { length: 200 }),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   ipHash: varchar('ip_hash', { length: 64 }),
+  // CRM (módulo leads)
+  status: leadStatusEnum('status').notNull().default('nuevo'),
+  assignedToId: text('assigned_to_id').references(() => user.id, { onDelete: 'set null' }),
+  notes: text('notes'),
+  respondedAt: timestamp('responded_at', { withTimezone: true }),
 }, (t) => [
   index('contact_submissions_created_at_idx').on(t.createdAt),
   index('contact_submissions_ip_hash_idx').on(t.ipHash),
+  index('contact_submissions_status_idx').on(t.status),
+  index('contact_submissions_assigned_to_idx').on(t.assignedToId),
 ]);

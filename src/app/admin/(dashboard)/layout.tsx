@@ -20,6 +20,7 @@ const NAV_ICONS: Record<AdminNavKey, React.ReactNode> = {
   brands: <BrandIcon />,
   talents: <TalentIcon />,
   campanas: <CampaignIcon />,
+  leads: <ContactIcon />,
   tareas: <TasksIcon />,
   facturacion: <InvoiceIcon />,
   finanzas: <ChartIcon />,

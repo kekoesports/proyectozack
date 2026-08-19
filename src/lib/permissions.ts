@@ -39,6 +39,7 @@ export type Module =
   | 'codigos'
   | 'talentos'
   | 'campanas'
+  | 'leads'
   | 'facturacion'
   | 'analytics'
   | 'agenda'
@@ -84,6 +85,14 @@ export const PERMISSIONS = {
   },
   campanas: {
     read:    ['admin', 'admin_limited_tasks', 'manager', 'staff', 'ops', 'talent_manager', 'finance'],
+    write:   ['admin', 'admin_limited_tasks', 'manager', 'staff', 'ops'],
+    delete:  ['admin', 'admin_limited_tasks'],
+  },
+  // Leads (CRM sobre contact_submissions). read incluye talent_manager porque
+  // los leads de tipo 'talent' son captación de creadores. 'analyst' queda
+  // fuera deliberadamente — es un rol de sólo métricas, no de pipeline.
+  leads: {
+    read:    ['admin', 'admin_limited_tasks', 'manager', 'staff', 'ops', 'talent_manager'],
     write:   ['admin', 'admin_limited_tasks', 'manager', 'staff', 'ops'],
     delete:  ['admin', 'admin_limited_tasks'],
   },

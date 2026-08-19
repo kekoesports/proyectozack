@@ -20,6 +20,7 @@ export type * from './brandBrief';
 export type * from './contract';
 export type * from './pressTarget';
 export type * from './crmEvent';
+export type * from './lead';
 export type { BrandFollowupDerivedStatus } from '@/lib/schemas/crmBrand';
 export type { FileType, FileRelatedType } from '@/lib/schemas/file';
 export type * from './bankReconciliation';

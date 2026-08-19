@@ -1,5 +1,6 @@
 import { Resend } from 'resend';
 import { env } from './env';
+import { sendResendEmail } from './email/sendResendEmail';
 import { SITE_URL, absoluteUrl } from './site-url';
 import { buildWelcomeEmail, buildNewsletterEmail } from './email/newsletterTemplates';
 
@@ -65,9 +66,13 @@ export async function sendContactEmail(payload: ContactEmailPayload): Promise<vo
     ${row('Monetización', payload.monetization)}
   ` : '';
 
-  await resend.emails.send({
+  // Envío vía helper: lanza si Resend devuelve error, en vez de fallar en
+  // silencio. El caller (server/routers/contact.ts) decide qué hacer con el
+  // throw sin romper el UX del formulario público.
+  await sendResendEmail('sendContactEmail', {
     from: 'SocialPro <noreply@socialpro.es>',
     to: 'marketing@socialpro.es',
+    replyTo: payload.email,
     subject: `Nuevo contacto: ${name} (${type})`,
     html: `
       <div style="font-family:Inter,sans-serif;max-width:560px;">
