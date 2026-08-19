@@ -108,7 +108,7 @@ export async function sendStaffInviteEmail(payload: {
     // Malformed URL — fall through to '#'
   }
 
-  await resend.emails.send({
+  await sendResendEmail('sendStaffInviteEmail', {
     from: 'SocialPro <noreply@socialpro.es>',
     to: payload.staffEmail,
     subject: 'Acceso al Panel — SocialPro',
@@ -180,7 +180,7 @@ export async function sendNewsletterWelcomeEmail(payload: {
   unsubscribeToken: string;
 }): Promise<void> {
   const unsubUrl = absoluteUrl(`/unsubscribe?token=${encodeURIComponent(payload.unsubscribeToken)}`);
-  await resend.emails.send({
+  await sendResendEmail('sendNewsletterWelcomeEmail', {
     from:    'SocialPro News <noreply@socialpro.es>',
     to:      payload.email,
     subject: 'Bienvenido al newsletter de SocialPro News',
@@ -203,7 +203,7 @@ export async function sendNewsletterPostEmail(payload: {
 }): Promise<void> {
   const postUrl  = absoluteUrl(`/news/${payload.postSlug}`);
   const unsubUrl = absoluteUrl(`/unsubscribe?token=${encodeURIComponent(payload.unsubToken)}`);
-  await resend.emails.send({
+  await sendResendEmail('sendNewsletterPostEmail', {
     from:    'SocialPro News <noreply@socialpro.es>',
     to:      payload.email,
     subject: payload.postTitle,
@@ -268,7 +268,7 @@ export async function sendInvoiceEmail(payload: {
 
   const replyTo = payload.issuerEmail ? [payload.issuerEmail] : undefined;
 
-  await resend.emails.send({
+  await sendResendEmail('sendInvoiceEmail', {
     from:    `${issuerName} <noreply@socialpro.es>`,
     to:      payload.clientEmail,
     ...(replyTo && { replyTo }),
@@ -339,7 +339,7 @@ export async function sendRewardRedemptionEmail(payload: {
     ? `Nueva recompensa solicitada · Skin CS2 — ${payload.rewardName}`
     : `Nueva recompensa solicitada — ${payload.rewardName}`;
 
-  await resend.emails.send({
+  await sendResendEmail('sendRewardRedemptionEmail', {
     from: 'SocialPro Giveaways <noreply@socialpro.es>',
     to: 'info@socialpro.es',
     subject,
@@ -382,7 +382,7 @@ export async function sendBrandInviteEmail(payload: {
     // Malformed URL — fall through to '#'
   }
 
-  await resend.emails.send({
+  await sendResendEmail('sendBrandInviteEmail', {
     from: 'SocialPro <noreply@socialpro.es>',
     to: payload.brandEmail,
     subject: 'Bienvenido al Portal de Marcas — SocialPro',
