@@ -242,10 +242,28 @@ decisión se registra con:
 { "action": "approve", "reviewedBy": "usuario-discord" }
 ```
 
-También admite `action: "reject"`. Solo `approve` crea el trato con una clave
-idempotente derivada del borrador. La respuesta final
-debe publicar los enlaces al trato del CRM, la Sheet y el contrato. Si falla el
-CRM, el comando falla: no se considera creado por haber aparecido en Discord.
+También admite `action: "reject"`. Si el mensaje de Discord no trae todos los
+datos canónicos, el CRM guarda el borrador como `missing_info` y devuelve
+`draft.missingFields`. El bot debe pedir solo esos campos y actualizar el
+borrador antes de aprobar:
+
+```json
+{
+  "action": "update",
+  "reviewedBy": "usuario-discord",
+  "proposedDeal": { "name": "...", "brand": {}, "talent": {}, "deliverables": [] }
+}
+```
+
+Cuando no se envía `startDate`, el CRM toma por defecto dos días después de la
+fecha de creación. Si se envía `durationMonths` sin `endDate`, calcula la fecha
+final sumando esos meses a la fecha de inicio y usa esa misma fecha como
+`deliveryDeadline`.
+
+Solo `approve` crea el trato con una clave idempotente derivada del borrador. La
+respuesta final debe publicar los enlaces al trato del CRM, la Sheet y el
+contrato. Si falla el CRM, el comando falla: no se considera creado por haber
+aparecido en Discord.
 
 ## Operación segura
 

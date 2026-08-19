@@ -11,6 +11,7 @@ import { normalizeTrackingSheetInput, syncCampaignSheet } from '@/lib/queries/ca
 import type { CampaignActionType } from '@/lib/schemas/campaign';
 import type { AutomationDealCreateInput } from '@/lib/schemas/automationDeal';
 import type { DeliverableType } from '@/lib/schemas/deliverable';
+import { resolveAutomationDealSchedule } from '@/lib/utils/automation-deal-schedule';
 import { initialsOf, slugify } from '@/lib/utils/import-utils';
 import { createLimit } from '@/lib/utils/concurrencyLimit';
 
@@ -245,6 +246,7 @@ export async function createAutomatedDeal(
     const brand = await resolveBrand(tx, input.brand);
     const talent = await resolveTalent(tx, input.talent);
     const tracking = normalizeTrackingSheetInput(input.trackingSheetUrl ?? '');
+    const schedule = resolveAutomationDealSchedule(input);
     const [campaign] = await tx
       .insert(campaigns)
       .values({
@@ -253,9 +255,9 @@ export async function createAutomatedDeal(
         talentId: talent.id,
         actionType: inferActionType(input.deliverables),
         status: input.status,
-        startDate: input.startDate ?? null,
-        endDate: input.endDate ?? null,
-        deliveryDeadline: input.deliveryDeadline ?? null,
+        startDate: schedule.startDate,
+        endDate: schedule.endDate ?? null,
+        deliveryDeadline: schedule.deliveryDeadline ?? null,
         notes: input.notes ?? null,
         creatorNotes: input.creatorNotes ?? null,
         currency: input.currency,

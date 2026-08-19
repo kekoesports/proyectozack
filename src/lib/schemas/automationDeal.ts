@@ -65,6 +65,7 @@ export const AutomationDealCreate = z
     status: z.enum(CAMPAIGN_STATUSES).default('propuesta'),
     startDate: OptionalDate,
     endDate: OptionalDate,
+    durationMonths: z.number().int().min(1).max(36).optional(),
     deliveryDeadline: OptionalDate,
     notes: z.string().trim().max(5000).optional(),
     creatorNotes: z.string().trim().max(5000).optional(),
@@ -108,14 +109,28 @@ export const AutomationDealDraftCreate = z.object({
   sourceUserId: z.string().trim().min(1).max(80).optional(),
   sourceChannelId: z.string().trim().min(1).max(80).optional(),
   rawText: z.string().trim().min(1).max(10000),
-  proposedDeal: AutomationDealCreate,
+  proposedDeal: z.unknown().optional(),
 });
 
-export const AutomationDealDraftReview = z.object({
-  action: z.enum(['approve', 'reject']),
-  reviewedBy: z.string().trim().min(1).max(100),
-});
+const AutomationDealDraftReviewer = z.string().trim().min(1).max(100);
+
+export const AutomationDealDraftReview = z.discriminatedUnion('action', [
+  z.object({
+    action: z.literal('approve'),
+    reviewedBy: AutomationDealDraftReviewer,
+  }),
+  z.object({
+    action: z.literal('reject'),
+    reviewedBy: AutomationDealDraftReviewer,
+  }),
+  z.object({
+    action: z.literal('update'),
+    reviewedBy: AutomationDealDraftReviewer,
+    proposedDeal: z.unknown(),
+  }),
+]);
 
 export type AutomationDealCreateInput = z.infer<typeof AutomationDealCreate>;
 export type AutomationDealDraftCreateInput = z.infer<typeof AutomationDealDraftCreate>;
+export type AutomationDealDraftReviewInput = z.infer<typeof AutomationDealDraftReview>;
 export type AutomationTrackingSheetUpdateInput = z.infer<typeof AutomationTrackingSheetUpdate>;

@@ -33,12 +33,32 @@
       "position": [-140, 0]
     },
     {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "review-message",
+              "name": "message",
+              "value": "={{ 'DEAL #' + $json.draft.id + ' · ' + ($json.draft.proposedDeal?.name || 'Borrador sin nombre') + '\\nEstado: ' + $json.draft.status + '\\n' + (($json.draft.missingFields || []).length ? 'Falta: ' + $json.draft.missingFields.join(', ') : 'Listo para revisar/aprobar') }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "format-discord-review",
+      "name": "Preparar revisión Discord",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [120, 0]
+    },
+    {
       "parameters": {},
       "id": "discord-review-placeholder",
       "name": "Enviar revisión y botones a Discord",
       "type": "n8n-nodes-base.noOp",
       "typeVersion": 1,
-      "position": [120, 0]
+      "position": [380, 0]
     }
   ],
   "connections": {
@@ -54,6 +74,17 @@
       ]
     },
     "Guardar borrador en CRM": {
+      "main": [
+        [
+          {
+            "node": "Preparar revisión Discord",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar revisión Discord": {
       "main": [
         [
           {

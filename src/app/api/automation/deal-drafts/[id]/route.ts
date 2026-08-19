@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import {
   AutomationDealDraftError,
   getAutomationDealDraft,
+  getAutomationDealMissingFields,
   reviewAutomationDealDraft,
 } from '@/lib/queries/automationDealDrafts';
 import { AutomationDealDraftReview, AutomationDealRouteId } from '@/lib/schemas/automationDeal';
@@ -24,7 +25,13 @@ export async function GET(req: Request, context: RouteContext): Promise<NextResp
   if (!id.success) return NextResponse.json({ ok: false, error: 'invalid-id' }, { status: 400 });
   const draft = await getAutomationDealDraft(id.data);
   return draft
-    ? NextResponse.json({ ok: true, draft })
+    ? NextResponse.json({
+        ok: true,
+        draft: {
+          ...draft,
+          missingFields: getAutomationDealMissingFields(draft.proposedDeal),
+        },
+      })
     : NextResponse.json({ ok: false, error: 'not-found' }, { status: 404 });
 }
 
