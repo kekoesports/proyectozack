@@ -54,6 +54,25 @@ describe('withRetry — comportamiento', () => {
     }
   });
 
+  it('[3b] acota el Retry-After a 10s aunque Google pida mucho más', async () => {
+    // Un `Retry-After: 60` dormiría ~120s dentro de una sola campaña y se
+    // llevaría por delante el presupuesto de toda la sincronización.
+    const { sleep, waits } = makeSpySleep();
+    let attempt = 0;
+    const fn = jest.fn(() => {
+      attempt++;
+      if (attempt < 3) return Promise.reject(new SheetsApiError('rl', 429, 60));
+      return Promise.resolve('ok');
+    });
+
+    const out = await withRetry(fn, { maxAttempts: 3, baseDelayMs: 1000, sleep });
+    expect(out).toBe('ok');
+    // Tope de 10s ± 20% de jitter: nunca cerca de los 60s pedidos.
+    for (const w of waits) {
+      expect(w).toBeLessThanOrEqual(12_000);
+    }
+  });
+
   it('[4] aplica backoff exponencial + jitter ±20% cuando NO hay Retry-After', async () => {
     const { sleep, waits } = makeSpySleep();
     const fn = jest.fn(() => Promise.reject(new SheetsApiError('rl', 429)));

@@ -5,6 +5,14 @@ import { verifyAutomationToken } from '@/lib/security/assertAutomationAuth';
 
 export const dynamic = 'force-dynamic';
 
+/**
+ * Sincroniza N campañas contra Google Sheets, con 2 llamadas HTTP por campaña.
+ * El default de 15s de Vercel no da: se corta a mitad, deja campañas sin
+ * `tracking_sync_error` y n8n reintenta sobre un estado a medias.
+ * Mismo valor que `/api/cron/sync-metrics`.
+ */
+export const maxDuration = 120;
+
 export async function POST(req: Request): Promise<NextResponse> {
   const auth = verifyAutomationToken(req);
   if (!auth.ok) {

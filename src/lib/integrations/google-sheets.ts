@@ -48,6 +48,16 @@ export function validateGoogleSheetUrl(url: string): boolean {
 
 // ── Internal helpers ──────────────────────────────────────────────────────────
 
+/**
+ * Corte de cada llamada HTTP a Google. Sin esto un cuelgue de Sheets consume la
+ * invocación entera y la sincronización muere sin registrar el error en ninguna
+ * campaña. Mismo patrón que safeImageFetch, discord/fetch-user-guild-ids y steam/profile.
+ */
+const SHEETS_FETCH_TIMEOUT_MS = 10_000;
+
+/** Tope al Retry-After de Google. Ver la nota de withRetry. */
+const MAX_RETRY_AFTER_MS = 10_000;
+
 function getApiKey(): string {
   const key = env.GOOGLE_SHEETS_API_KEY;
   if (!key) {
@@ -94,7 +104,9 @@ async function handleSheetsResponse(response: Response): Promise<unknown> {
  *   - 403/404/5xx no se reintentan — se propagan directamente.
  *
  * El backoff base es 1s → secuencia típica sin Retry-After: 1.0s, 2.0s, 4.0s (±20%).
- * Si Google manda Retry-After, gana ese valor.
+ * Si Google manda Retry-After, gana ese valor, acotado a MAX_RETRY_AFTER_MS: un
+ * `Retry-After: 60` dormiría ~120s dentro de una sola campaña y se llevaría por
+ * delante el presupuesto de toda la sincronización.
  *
  * @internal Exportado solo para tests unitarios.
  */
@@ -124,7 +136,7 @@ export async function withRetry<T>(
         throw err;
       }
       const exponential = baseDelayMs * Math.pow(2, attempt - 1);
-      const headerWait = (err.retryAfterSeconds ?? 0) * 1000;
+      const headerWait = Math.min((err.retryAfterSeconds ?? 0) * 1000, MAX_RETRY_AFTER_MS);
       const baseWait = Math.max(exponential, headerWait);
       // Jitter ±20%
       const jitter = baseWait * (Math.random() * 0.4 - 0.2);
@@ -142,7 +154,7 @@ export async function listSheetTabs(spreadsheetId: string): Promise<SheetTab[]> 
     const fields = encodeURIComponent('sheets.properties(sheetId,title,index)');
     const url = `https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(spreadsheetId)}?key=${key}&fields=${fields}`;
 
-    const response = await fetch(url, { cache: 'no-store' });
+    const response = await fetch(url, { cache: 'no-store', signal: AbortSignal.timeout(SHEETS_FETCH_TIMEOUT_MS) });
     const data = await handleSheetsResponse(response);
 
     // safe: validated from Sheets API response
@@ -177,7 +189,7 @@ export async function readSheetGrid(
     const range = encodeURIComponent(sheetTitle);
     const url = `https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(spreadsheetId)}/values/${range}?key=${key}`;
 
-    const response = await fetch(url, { cache: 'no-store' });
+    const response = await fetch(url, { cache: 'no-store', signal: AbortSignal.timeout(SHEETS_FETCH_TIMEOUT_MS) });
     const data = await handleSheetsResponse(response);
 
     // safe: validated from Sheets API response — `values` may be absent on empty tabs
@@ -209,7 +221,7 @@ export async function fetchSpreadsheetMetadata(
     );
     const url = `https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(spreadsheetId)}?key=${key}&fields=${fields}`;
 
-    const response = await fetch(url, { cache: 'no-store' });
+    const response = await fetch(url, { cache: 'no-store', signal: AbortSignal.timeout(SHEETS_FETCH_TIMEOUT_MS) });
     const data = await handleSheetsResponse(response);
 
     // safe: validated from Sheets API response
