@@ -3,6 +3,7 @@ import { join } from 'path';
 import { neon, neonConfig } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-http';
 import { migrate } from 'drizzle-orm/neon-http/migrator';
+import { checkMigrationsWillApply } from './migration-skip-guard';
 
 // Load .env.local manually (drizzle-kit/tsx don't auto-load it)
 try {
@@ -52,6 +53,29 @@ const sql = neon(url);
 const db = drizzle(sql);
 
 async function main(): Promise<void> {
+  // Antes de migrar: comprobar que ninguna pendiente nace por debajo del suelo
+  // de la base. Drizzle las saltaría en silencio y el deploy saldría verde.
+  const guard = await checkMigrationsWillApply(sql);
+  if (!guard.ok) {
+    console.error('');
+    console.error('MIGRACIONES QUE NO SE APLICARIAN — abortando el deploy');
+    console.error('');
+    console.error(`  El ultimo created_at en la base es ${guard.suelo} (${new Date(guard.suelo).toISOString()}).`);
+    console.error('  Drizzle solo aplica migraciones con un `when` MAYOR que ese valor,');
+    console.error('  y estas nacieron por debajo, asi que las daria por aplicadas:');
+    console.error('');
+    for (const m of guard.saltadas) {
+      console.error(`    · ${m.tag}  when=${m.when} (${new Date(m.when).toISOString()})`);
+    }
+    console.error('');
+    console.error(`  Arreglo: subir su "when" en drizzle/meta/_journal.json por encima de ${guard.suelo}`);
+    console.error(`  (basta 1 ms: ${guard.suelo + 1}). Bajar el de la anterior NO sirve: su`);
+    console.error('  created_at ya esta grabado y la comparacion va contra la base.');
+    console.error('');
+    process.exit(1);
+  }
+  if (guard.pendientes > 0) console.log(`Migraciones pendientes: ${guard.pendientes}`);
+
   console.log('Applying migrations from ./drizzle ...');
   await migrate(db, { migrationsFolder: './drizzle' });
   console.log('Done.');
