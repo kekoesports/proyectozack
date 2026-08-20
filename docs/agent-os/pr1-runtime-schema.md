@@ -58,9 +58,31 @@ sostiene literalmente:
    impedir son dos **pendientes** equivalentes, y eso es exactamente
    `UNIQUE (action_hash) WHERE status = 'pending'`.
 
+4. **`agent_approvals.tool_call_id` es UNIQUE a secas.** El data-model decía
+   "una aprobación **activa** por call". Tal como queda, una vez que una
+   aprobación caduca no se puede pedir otra para esa misma llamada: hay que
+   registrar una llamada nueva. Es deliberado —una tool call es una propuesta
+   concreta en un momento concreto, y reabrirla a posteriori difumina qué se
+   estaba aprobando— pero conviene tenerlo presente al escribir el reintento en
+   PR 3.
+
 Añadido no previsto: `agent_usage_ledger.pricing_unknown`. El data-model pedía
 no inventar coste cuando no hay tarifa; sin una columna que lo marque, un 0
 "por desconocido" y un 0 real son indistinguibles al sumar el presupuesto.
+
+### Alcance de `action_hash`
+
+`agent_approvals_pending_hash_uq` es **global, no por ejecución**. La decisión
+que va con él: `action_hash` es el SHA-256 del JSON canónico de la acción —tool,
+versión e input— y **no incluye el id del run**. Dos ejecuciones distintas que
+proponen exactamente el mismo envío no abren dos solicitudes que un humano
+podría firmar por separado; la segunda choca contra el índice.
+
+`createApprovalRequest` absorbe ese choque con `onConflictDoNothing` sobre el
+índice parcial y devuelve `agent_approval_duplicate`, en vez de dejar salir un
+`duplicate key` crudo sin código estable. PR 2, que es quien calcula el hash,
+debe respetar este alcance: si le añadiera el run id, el índice no dispararía
+nunca y dejaría de proteger nada.
 
 ## Variables de entorno
 
@@ -135,7 +157,19 @@ concurrente con `FOR UPDATE SKIP LOCKED` y la recuperación de leases.
 
 ## Aplicar la migración
 
-No se ha aplicado a ninguna base. Cuando se decida:
+No se ha aplicado a mano en ninguna base. Con un matiz que conviene saber: el
+deploy de preview de Vercel ejecuta `npm run build`, que incluye
+`tsx scripts/migrate.ts`; ese script **salta** las migraciones cuando
+`VERCEL_ENV === 'preview'` salvo que el proyecto defina
+`RUN_MIGRATIONS_IN_PREVIEW=true`. Si importa que la branch de preview siga sin
+las tablas, confírmalo en el log del deployment buscando
+`Skipping database migrations in Vercel Preview deployment.`
+
+Y en `master` la migración se aplica **sola** en el siguiente deploy, porque
+`"build"` la incluye. Es el flujo normal del repositorio; la migración es
+aditiva, pero merece saberse antes de pulsar merge.
+
+Cuando se decida aplicarla a mano:
 
 ```bash
 npm run migrate          # aplica lo pendiente contra DATABASE_URL
@@ -176,6 +210,29 @@ Un rollback destructivo de schema **no se ejecuta en producción**. Si hiciera
 falta revertir el código, basta con revertir el PR: las tablas huérfanas no
 tienen coste operativo y borrarlas destruiría la auditoría de lo que hubiera
 pasado hasta entonces.
+
+## Deudas que hereda PR 3
+
+Tres cosas de este schema condicionan código que aún no está escrito. Se anotan
+aquí para que no se redescubran desde un error de Postgres:
+
+1. **El claim necesita `AND attempt < max_attempts` en el `WHERE`.** El CHECK
+   `agent_runs_attempt_ck` exige `attempt <= max_attempts`, y el claim que
+   propone `architecture.md` §2.3 hace `attempt = attempt + 1` sin tope. En el
+   cuarto intento de una ejecución con `max_attempts = 3`, ese `UPDATE` reventaría
+   contra el CHECK en vez de mandarla a dead-letter.
+
+2. **`recordAgentUsage` hace INSERT y luego UPDATE sin transacción.** En `master`
+   `db` es `neon-http`, que no las tiene. Si falla entre medias, el ledger queda
+   por delante de los contadores de `agent_runs` y el presupuesto cuenta de
+   menos. Hoy no lo llama nadie; al conectarlo en PR 3 debe pasar por
+   `getTransactionalDb()` (o por el pool `pg`, si para entonces ya se migró el
+   driver).
+
+3. **Ninguna transición de estado de `agent_runs` está escrita todavía.** Los
+   CHECKs `agent_runs_running_lease_ck` y `agent_runs_terminal_completed_ck`
+   obligan a que el worker escriba lease y `completed_at` **en el mismo `UPDATE`**
+   que cambia el estado, no en una segunda pasada.
 
 ## Qué sigue
 

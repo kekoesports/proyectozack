@@ -21,7 +21,7 @@ import {
   requiresApproval,
   type AgentApprovalSnapshot,
 } from '@/lib/agents/approval-state';
-import { consumeApproval, decideApproval } from '@/lib/queries/agents/approvals';
+import { consumeApproval, createApprovalRequest, decideApproval } from '@/lib/queries/agents/approvals';
 
 const HASH_A = 'a'.repeat(64);
 const HASH_B = 'b'.repeat(64);
@@ -151,6 +151,61 @@ function stubUpdate(devuelve: readonly unknown[]): void {
 function stubSelect(devuelve: readonly unknown[]): void {
   mockSelect.mockReturnValue({ from: () => ({ where: () => ({ limit: async () => devuelve }) }) });
 }
+
+describe('createApprovalRequest', () => {
+  beforeEach(() => {
+    mockInsert.mockReset();
+  });
+
+  function stubInsert(devuelve: readonly unknown[]): void {
+    mockInsert.mockReturnValue({
+      values: () => ({ onConflictDoNothing: () => ({ returning: async () => devuelve }) }),
+    });
+  }
+
+  it('crea la solicitud', async () => {
+    stubInsert([{ id: 1, status: 'pending' }]);
+    const row = await createApprovalRequest({
+      runId: 1,
+      toolCallId: 2,
+      actionHash: HASH_A,
+      actionClass: 'external_side_effect',
+      title: 'Enviar email',
+      expiresAt: new Date('2026-08-21T11:00:00.000Z'),
+    });
+    expect(row.id).toBe(1);
+  });
+
+  it('una acción forbidden no llega ni a escribirse', async () => {
+    await expect(
+      createApprovalRequest({
+        runId: 1,
+        toolCallId: 2,
+        actionHash: HASH_A,
+        actionClass: 'forbidden',
+        title: 'Transferencia',
+        expiresAt: new Date('2026-08-21T11:00:00.000Z'),
+      }),
+    ).rejects.toMatchObject({ code: 'agent_approval_invalid' });
+    expect(mockInsert).not.toHaveBeenCalled();
+  });
+
+  it('una segunda pendiente con el mismo hash da código estable, no un error crudo de la base', async () => {
+    // El índice parcial es global: dos ejecuciones que proponen la misma acción
+    // externa no abren dos solicitudes que un humano podría firmar por separado.
+    stubInsert([]);
+    await expect(
+      createApprovalRequest({
+        runId: 7,
+        toolCallId: 9,
+        actionHash: HASH_A,
+        actionClass: 'external_side_effect',
+        title: 'Enviar email',
+        expiresAt: new Date('2026-08-21T11:00:00.000Z'),
+      }),
+    ).rejects.toMatchObject({ code: 'agent_approval_duplicate' });
+  });
+});
 
 describe('decideApproval', () => {
   beforeEach(() => {

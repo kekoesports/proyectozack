@@ -12,7 +12,8 @@ export type AgentRuntimeErrorCode =
   | 'agent_disabled'
   | 'agent_invalid_input'
   | 'agent_memory_scope_invalid'
-  | 'agent_approval_invalid';
+  | 'agent_approval_invalid'
+  | 'agent_approval_duplicate';
 
 export class AgentRuntimeError extends Error {
   readonly code: AgentRuntimeErrorCode;

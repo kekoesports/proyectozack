@@ -60,9 +60,24 @@ export async function createApprovalRequest(
       requiredPermissionAction: input.requiredPermissionAction ?? null,
       expiresAt: input.expiresAt,
     })
+    // El índice `agent_approvals_pending_hash_uq` es global, no por run: dos
+    // ejecuciones que proponen exactamente la misma acción externa no abren dos
+    // solicitudes: la segunda choca. Es deliberado —evita que un humano firme
+    // dos veces el mismo envío— pero sin esto el conflicto saldría como un
+    // `duplicate key` crudo y sin código estable.
+    // `where` es aquí el predicado del índice parcial, no un filtro de filas.
+    .onConflictDoNothing({
+      target: agentApprovals.actionHash,
+      where: sql`status = 'pending'`,
+    })
     .returning();
 
-  if (!row) throw new AgentRuntimeError('agent_approval_invalid', 'No se pudo crear la aprobación.');
+  if (!row) {
+    throw new AgentRuntimeError(
+      'agent_approval_duplicate',
+      'Ya hay una aprobación pendiente para esta misma acción.',
+    );
+  }
   return row;
 }
 
