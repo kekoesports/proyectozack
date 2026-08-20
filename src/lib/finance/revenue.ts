@@ -31,7 +31,7 @@ export type RevenuePeriod = { readonly from: string; readonly to: string };
  * Condición drizzle: la fila interna NO es espejo de una emitida.
  *
  * La FK es el criterio real; los dos `notLike` son el fallback para filas
- * anteriores al backfill de la migración 0130. Cuando FV.7 confirme que no
+ * anteriores al backfill de la migración 0121. Cuando FV.7 confirme que no
  * queda ningún espejo sin FK, los prefijos se podrán retirar.
  */
 export const NOT_ISSUED_MIRROR: SQL = and(

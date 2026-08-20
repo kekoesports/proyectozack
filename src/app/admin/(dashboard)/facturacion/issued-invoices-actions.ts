@@ -285,7 +285,7 @@ export async function updateInvoiceStatusAction(id: number, status: string): Pro
       const notesId   = `${ISSUED_MIRROR_NOTES_PREFIX} ${inv.invoiceNumber}`;
 
       // FV.1: la FK es el criterio real; el concepto exacto sigue mirándose para
-      // no duplicar los espejos creados antes de la migración 0130.
+      // no duplicar los espejos creados antes de la migración 0121.
       const [existingMov] = await db
         .select({ id: invoices.id })
         .from(invoices)
