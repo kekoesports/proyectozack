@@ -1,6 +1,6 @@
 import { and, eq, sql, gte, lte, notInArray } from 'drizzle-orm';
 import { db } from '@/lib/db';
-import { invoices, crmBrands } from '@/db/schema';
+import { invoices, crmBrands, issuedInvoices } from '@/db/schema';
 import {
   SETTLED_INCOME_STATUSES,
   SETTLED_EXPENSE_STATUSES,
@@ -140,7 +140,58 @@ export async function getPnL(filters: PnLFilters = {}): Promise<PnLResult> {
   if (filters.sector) conds.push(eq(crmBrands.sector, filters.sector));
   if (filters.geo) conds.push(eq(crmBrands.geo, filters.geo));
 
-  const rows = await baseQuery.where(and(...conds));
+  // FV.1 — las emitidas también son ingreso. `filters.company` es un enum
+  // geográfico de `invoices` sin equivalente en `issued_invoices` (allí el
+  // emisor es una FK a `issuer_companies`), así que con ese filtro activo se
+  // agregan solo las internas, igual que en `getFinancePnL`.
+  const issuedApplies = filters.company == null;
+  const issuedConds = [notInArray(issuedInvoices.status, ['anulada', 'borrador'])];
+  if (filters.from) issuedConds.push(gte(issuedInvoices.issueDate, filters.from));
+  if (filters.to) issuedConds.push(lte(issuedInvoices.issueDate, filters.to));
+  if (filters.brandId) issuedConds.push(eq(issuedInvoices.relatedBrandId, filters.brandId));
+  if (filters.talentId) issuedConds.push(eq(issuedInvoices.relatedTalentId, filters.talentId));
+  if (filters.sector) issuedConds.push(eq(crmBrands.sector, filters.sector));
+  if (filters.geo) issuedConds.push(eq(crmBrands.geo, filters.geo));
+
+  const [internalRows, issuedRows] = await Promise.all([
+    baseQuery.where(and(...conds)),
+    issuedApplies
+      ? db
+          .select({
+            status: issuedInvoices.status,
+            totalAmount: issuedInvoices.totalAmount,
+            campaignId: issuedInvoices.relatedDealId,
+            talentId: issuedInvoices.relatedTalentId,
+            invoiceNumber: issuedInvoices.invoiceNumber,
+            issueDate: issuedInvoices.issueDate,
+            brandSector: crmBrands.sector,
+            brandGeo: crmBrands.geo,
+          })
+          .from(issuedInvoices)
+          .leftJoin(crmBrands, eq(crmBrands.id, issuedInvoices.relatedBrandId))
+          .where(and(...issuedConds))
+      : Promise.resolve([]),
+  ]);
+
+  type PnlRow = (typeof internalRows)[number];
+
+  /** `enviada` no existe en el ciclo de las internas; agrega como pendiente. */
+  const issuedAsRows: PnlRow[] = issuedRows.map((r) => ({
+    kind: 'income' as const,
+    status: (r.status === 'enviada' ? 'emitida' : r.status) as PnlRow['status'],
+    totalAmount: r.totalAmount,
+    campaignId: r.campaignId,
+    talentId: r.talentId,
+    category: null,
+    concept: r.invoiceNumber,
+    notes: null,
+    mirrorOfIssuedInvoiceId: null,
+    issueDate: r.issueDate,
+    brandSector: r.brandSector,
+    brandGeo: r.brandGeo,
+  }));
+
+  const rows: readonly PnlRow[] = [...internalRows, ...issuedAsRows];
 
   if (rows.length === 0) return ZERO_PNL;
 
