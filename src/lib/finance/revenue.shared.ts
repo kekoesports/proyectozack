@@ -13,7 +13,7 @@
  * A partir de aquí hay una sola respuesta: un ingreso es una factura emitida
  * (`issued_invoices`) más los movimientos internos de tipo income que NO son su
  * espejo automático. El espejo se identifica por FK (`mirror_of_issued_invoice_id`)
- * y, solo para filas anteriores al backfill de la migración 0130, por el prefijo
+ * y, solo para filas anteriores al backfill de la migración 0121, por el prefijo
  * de texto histórico.
  *
  * Este fichero no importa `@/lib/db` a propósito: es lógica pura y se testea sin
@@ -107,7 +107,7 @@ export type RevenueTotals = {
  *
  * Orden deliberado: la FK manda siempre. El prefijo de texto solo se consulta
  * cuando la FK es `null`, y únicamente para cubrir filas anteriores al backfill
- * de la migración 0130 (o espejos ambiguos que el backfill dejó sin enlazar).
+ * de la migración 0121 (o espejos ambiguos que el backfill dejó sin enlazar).
  */
 export function isIssuedMirrorRow(row: RevenueRow): boolean {
   if (row.source !== 'internal') return false;

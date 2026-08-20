@@ -15,7 +15,8 @@
 
 import { and, asc, eq, isNotNull, ne, sql } from 'drizzle-orm';
 import { db } from '@/lib/db';
-import { campaigns, crmBrands, invoices, talents } from '@/db/schema';
+import { campaigns, crmBrands, invoices, issuedInvoices, talents } from '@/db/schema';
+import { NOT_ISSUED_MIRROR } from '@/lib/finance/revenue';
 
 /** Umbral heredado de campaignMargins.ts — mantener sincronizado. */
 export const LOW_MARGIN_THRESHOLD = 20;
@@ -284,10 +285,16 @@ export async function getRentabilidadData(input: RentabilidadFilters = {}): Prom
   const campaignIds = campaignRows.map((c) => c.id);
 
   // ── 2) Agregado de invoices reales por campaignId ────────────────────
-  const invoiceAggRows = await db
+  //
+  // FV.1: `ingresosReales` excluye el espejo de una emitida — antes lo sumaba,
+  // así que una campaña facturada desde el módulo de facturación aparecía con el
+  // doble de ingreso y un margen inventado. Las emitidas entran por su propia
+  // query, más abajo.
+  const [invoiceAggRows, issuedAggRows] = await Promise.all([
+    db
     .select({
       campaignId:                 invoices.campaignId,
-      ingresosReales:             sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind} = 'income'  AND ${invoices.status} NOT IN ('anulada','borrador') THEN ${invoices.totalAmount} ELSE 0 END), 0)::text`,
+      ingresosReales:             sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind} = 'income'  AND ${invoices.status} NOT IN ('anulada','borrador') AND ${NOT_ISSUED_MIRROR} THEN ${invoices.totalAmount} ELSE 0 END), 0)::text`,
       costesReales:               sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind} = 'expense' AND ${invoices.status} NOT IN ('anulada','borrador') THEN ${invoices.totalAmount} ELSE 0 END), 0)::text`,
       pagosTalentosReales:        sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind} = 'expense' AND ${invoices.status} NOT IN ('anulada','borrador') AND ${invoices.expenseSubtype} = 'pago_talento' THEN ${invoices.totalAmount} ELSE 0 END), 0)::text`,
       otrosCostesDirectosReales:  sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind} = 'expense' AND ${invoices.status} NOT IN ('anulada','borrador') AND ${invoices.expenseSubtype} IN ('coste_produccion','comision_plataforma','otros_campana') THEN ${invoices.totalAmount} ELSE 0 END), 0)::text`,
@@ -297,7 +304,21 @@ export async function getRentabilidadData(input: RentabilidadFilters = {}): Prom
       isNotNull(invoices.campaignId),
       sql`${invoices.campaignId} IN (${sql.join(campaignIds.map((id) => sql`${id}`), sql`, `)})`,
     ))
-    .groupBy(invoices.campaignId);
+    .groupBy(invoices.campaignId),
+
+    db
+      .select({
+        campaignId: issuedInvoices.relatedDealId,
+        ingresosEmitidos: sql<string>`COALESCE(SUM(${issuedInvoices.totalAmount}), 0)::text`,
+      })
+      .from(issuedInvoices)
+      .where(and(
+        isNotNull(issuedInvoices.relatedDealId),
+        ne(issuedInvoices.status, 'anulada'),
+        sql`${issuedInvoices.relatedDealId} IN (${sql.join(campaignIds.map((id) => sql`${id}`), sql`, `)})`,
+      ))
+      .groupBy(issuedInvoices.relatedDealId),
+  ]);
 
   const aggByCampaign = new Map<number, {
     ingresosReales: number;
@@ -313,6 +334,19 @@ export async function getRentabilidadData(input: RentabilidadFilters = {}): Prom
       pagosTalentosReales:       Number(r.pagosTalentosReales),
       otrosCostesDirectosReales: Number(r.otrosCostesDirectosReales),
     });
+  }
+
+  // Las emitidas ligadas a la campaña son ingreso real igual que las internas.
+  for (const r of issuedAggRows) {
+    if (r.campaignId === null) continue;
+    const existing = aggByCampaign.get(r.campaignId) ?? {
+      ingresosReales: 0,
+      costesReales: 0,
+      pagosTalentosReales: 0,
+      otrosCostesDirectosReales: 0,
+    };
+    existing.ingresosReales += Number(r.ingresosEmitidos);
+    aggByCampaign.set(r.campaignId, existing);
   }
 
   // ── 3) Compone RentabilidadRow por campaña ──────────────────────────

@@ -52,10 +52,31 @@ type FakeInvoice = {
   issueDate: string;
   brandSector: string | null;
   brandGeo: string | null;
+  /** FV.1 — FK al emitido del que esta fila es espejo. */
+  mirrorOfIssuedInvoiceId?: number | null;
 };
 
-function setRows(rows: FakeInvoice[]): void {
-  mockSelect.mockReturnValue(makeSelectBuilder(rows));
+/** Fila de `issued_invoices` tal y como la proyecta getPnL (FV.1). */
+type FakeIssued = {
+  status: 'cobrada' | 'emitida' | 'enviada' | 'vencida' | 'parcial';
+  totalAmount: string;
+  campaignId: number | null;
+  talentId: number | null;
+  invoiceNumber: string;
+  issueDate: string;
+  brandSector: string | null;
+  brandGeo: string | null;
+};
+
+/**
+ * `getPnL` hace dos `db.select()`: primero las internas, después las emitidas.
+ * El mock tiene que distinguirlas — devolver las mismas filas a las dos
+ * duplicaría todos los importes.
+ */
+function setRows(rows: FakeInvoice[], issued: FakeIssued[] = []): void {
+  mockSelect
+    .mockReturnValueOnce(makeSelectBuilder(rows))
+    .mockReturnValue(makeSelectBuilder(issued));
 }
 
 beforeEach(() => {
@@ -141,5 +162,49 @@ describe('getPnL', () => {
     expect(pnl.breakdownByCategory[0]?.total).toBe(200);
     expect(pnl.breakdownByCategory[1]?.category).toBe('ia - claude');
     expect(pnl.breakdownByCategory[1]?.total).toBe(150);
+  });
+
+  // ── FV.1 ──────────────────────────────────────────────────────────────────
+
+  it('suma las facturas emitidas, que antes no llegaban al P&L (V2)', async () => {
+    setRows(
+      [
+        { kind: 'expense', status: 'pagada', totalAmount: '600', paidAmount: '600', campaignId: 1, talentId: 7, category: 'pago talent', issueDate: '2026-01-20', brandSector: null, brandGeo: null },
+      ],
+      [
+        { status: 'cobrada', totalAmount: '12100', campaignId: 1, talentId: null, invoiceNumber: 'ES-2026-0012', issueDate: '2026-01-15', brandSector: null, brandGeo: null },
+      ],
+    );
+
+    const pnl = await getPnL();
+    expect(pnl.ingresos).toBe(12100);
+    expect(pnl.gastos).toBe(600);
+    expect(pnl.breakdownByMonth[0]?.ingresos).toBe(12100);
+  });
+
+  it('el espejo de una emitida no vuelve a sumar', async () => {
+    setRows(
+      [
+        { kind: 'income', status: 'cobrada', totalAmount: '12100', paidAmount: '12100', campaignId: 1, talentId: null, category: null, issueDate: '2026-01-15', brandSector: null, brandGeo: null, mirrorOfIssuedInvoiceId: 10 },
+      ],
+      [
+        { status: 'cobrada', totalAmount: '12100', campaignId: 1, talentId: null, invoiceNumber: 'ES-2026-0012', issueDate: '2026-01-15', brandSector: null, brandGeo: null },
+      ],
+    );
+
+    const pnl = await getPnL();
+    expect(pnl.ingresos).toBe(12100);
+  });
+
+  it('una emitida `enviada` cuenta como pendiente de cobro', async () => {
+    setRows(
+      [],
+      [
+        { status: 'enviada', totalAmount: '5000', campaignId: null, talentId: null, invoiceNumber: 'ES-2026-0013', issueDate: '2026-03-01', brandSector: null, brandGeo: null },
+      ],
+    );
+
+    const pnl = await getPnL();
+    expect(pnl.pendienteCobro).toBe(5000);
   });
 });

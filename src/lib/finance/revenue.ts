@@ -9,7 +9,7 @@
  * mismo criterio en lugar de reimplementarlo cada uno.
  */
 
-import { and, eq, gte, isNull, lte, ne, notLike, or, sql, type SQL } from 'drizzle-orm';
+import { and, eq, gte, isNull, lte, ne, notInArray, notLike, or, sql, type SQL } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { billingClients, crmBrands, invoices, issuedInvoices } from '@/db/schema';
 import {
@@ -31,7 +31,7 @@ export type RevenuePeriod = { readonly from: string; readonly to: string };
  * Condición drizzle: la fila interna NO es espejo de una emitida.
  *
  * La FK es el criterio real; los dos `notLike` son el fallback para filas
- * anteriores al backfill de la migración 0130. Cuando FV.7 confirme que no
+ * anteriores al backfill de la migración 0121. Cuando FV.7 confirme que no
  * queda ningún espejo sin FK, los prefijos se podrán retirar.
  */
 export const NOT_ISSUED_MIRROR: SQL = and(
@@ -144,6 +144,48 @@ export async function listRevenueRows(period: RevenuePeriod): Promise<readonly R
   }));
 
   return [...issued, ...internal];
+}
+
+export type IssuedRevenueAggregates = {
+  /** Facturado (no anuladas ni borradores). */
+  readonly total: number;
+  /** Cobrado. */
+  readonly settled: number;
+  /** Pendiente de cobro — incluye `enviada`, que está en el cliente sin pagar. */
+  readonly pending: number;
+};
+
+/**
+ * Los tres agregados de `issued_invoices` que necesitan los KPI heredados, que
+ * suman en SQL sobre `invoices` y no pueden consumir `RevenueRow`.
+ *
+ * Existe para que esos KPI no vuelvan a inventarse el criterio: aquí están las
+ * mismas exclusiones de estado que usa el resto del módulo.
+ *
+ * @cache none
+ * @visibility admin (facturacion:read)
+ */
+export async function getIssuedRevenueAggregates(
+  period: { readonly from?: string; readonly to?: string } = {},
+): Promise<IssuedRevenueAggregates> {
+  const conds = [notInArray(issuedInvoices.status, ['anulada', 'borrador'])];
+  if (period.from) conds.push(gte(issuedInvoices.issueDate, period.from));
+  if (period.to) conds.push(lte(issuedInvoices.issueDate, period.to));
+
+  const [row] = await db
+    .select({
+      total: sql<string>`COALESCE(SUM(${issuedInvoices.totalAmount}), 0)::text`,
+      settled: sql<string>`COALESCE(SUM(CASE WHEN ${issuedInvoices.status} = 'cobrada' THEN ${issuedInvoices.totalAmount} ELSE 0 END), 0)::text`,
+      pending: sql<string>`COALESCE(SUM(CASE WHEN ${issuedInvoices.status} IN ('emitida','enviada','vencida','parcial') THEN ${issuedInvoices.totalAmount} ELSE 0 END), 0)::text`,
+    })
+    .from(issuedInvoices)
+    .where(and(...conds));
+
+  return {
+    total: Number(row?.total ?? 0),
+    settled: Number(row?.settled ?? 0),
+    pending: Number(row?.pending ?? 0),
+  };
 }
 
 /**

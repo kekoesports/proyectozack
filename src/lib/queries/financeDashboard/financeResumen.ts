@@ -8,6 +8,7 @@ import { and, desc, eq, gte, lte, ne, sql } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { invoicePayments, invoices } from '@/db/schema';
 import { getUnclassifiedExpenseCount } from '@/lib/queries/invoices';
+import { NOT_ISSUED_MIRROR, getIssuedRevenueAggregates } from '@/lib/finance/revenue';
 
 // ── Tipos, constantes y helpers puros (re-exportados desde el módulo shared) ─
 // Los Client Components deben importar directamente desde .shared.ts, no de aquí.
@@ -49,15 +50,19 @@ function currentMonthRange(): { from: string; to: string } {
  * DOES NOT include stock metrics (pendientes, unclassified) — use getFinanceStockKPIs().
  */
 export async function getMonthlyFinanceFlow(from: string, to: string): Promise<MonthlyFinanceFlow> {
-  const [flowRow, cobradoRow, pagadoRow] = await Promise.all([
+  // FV.1 — `incomeTotal` excluye el espejo de una emitida y suma las emitidas
+  // del mes: antes contaba el espejo pero no el original.
+  const [flowRow, issuedFlow, cobradoRow, pagadoRow] = await Promise.all([
     db
       .select({
-        incomeTotal: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind}='income' THEN ${invoices.totalAmount} ELSE 0 END),0)::text`,
+        incomeTotal: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind}='income' AND ${NOT_ISSUED_MIRROR} THEN ${invoices.totalAmount} ELSE 0 END),0)::text`,
         gastosCampanaDirect: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind}='expense' AND ${invoices.expenseGroup}='campaign_direct' THEN ${invoices.totalAmount} ELSE 0 END),0)::text`,
         gastosOperativos: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind}='expense' AND (${invoices.expenseGroup}='operational' OR (${invoices.expenseGroup} IS NULL AND ${invoices.campaignId} IS NULL)) THEN ${invoices.totalAmount} ELSE 0 END),0)::text`,
       })
       .from(invoices)
       .where(and(ne(invoices.status, 'anulada'), gte(invoices.issueDate, from), lte(invoices.issueDate, to))),
+
+    getIssuedRevenueAggregates({ from, to }),
 
     db
       .select({ total: sql<string>`COALESCE(SUM(${invoicePayments.amount}), 0)::text` })
@@ -72,7 +77,7 @@ export async function getMonthlyFinanceFlow(from: string, to: string): Promise<M
       .where(and(gte(invoicePayments.paymentDate, from), lte(invoicePayments.paymentDate, to), eq(invoices.kind, 'expense'))),
   ]);
 
-  const incomeTotal = Number(flowRow[0]?.incomeTotal ?? 0);
+  const incomeTotal = Number(flowRow[0]?.incomeTotal ?? 0) + issuedFlow.total;
   const gastosCampanaDirect = Number(flowRow[0]?.gastosCampanaDirect ?? 0);
   const gastosOperativos = Number(flowRow[0]?.gastosOperativos ?? 0);
   const gastosTotal = gastosCampanaDirect + gastosOperativos;
@@ -93,21 +98,23 @@ export async function getMonthlyFinanceFlow(from: string, to: string): Promise<M
  * Pendientes and unclassified are balance figures, not flow figures.
  */
 export async function getFinanceStockKPIs(): Promise<FinanceStockKPIs> {
-  const [stockRow, unclassifiedCount] = await Promise.all([
+  const [stockRow, issuedStock, unclassifiedCount] = await Promise.all([
     db
       .select({
-        pendienteCobro: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind}='income' AND ${invoices.status} IN ('emitida','no_cobrada','parcial','vencida') THEN ${invoices.totalAmount} ELSE 0 END),0)::text`,
+        pendienteCobro: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind}='income' AND ${invoices.status} IN ('emitida','no_cobrada','parcial','vencida') AND ${NOT_ISSUED_MIRROR} THEN ${invoices.totalAmount} ELSE 0 END),0)::text`,
         pendientePago: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind}='expense' AND ${invoices.status} IN ('emitida','no_pagada','parcial','vencida') THEN ${invoices.totalAmount} ELSE 0 END),0)::text`,
         gastosNoClasificados: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind}='expense' AND ${invoices.expenseGroup} IS NULL THEN ${invoices.totalAmount} ELSE 0 END),0)::text`,
       })
       .from(invoices)
       .where(ne(invoices.status, 'anulada')),
 
+    getIssuedRevenueAggregates(),
+
     getUnclassifiedExpenseCount(),
   ]);
 
   return {
-    pendienteCobro: Number(stockRow[0]?.pendienteCobro ?? 0),
+    pendienteCobro: Number(stockRow[0]?.pendienteCobro ?? 0) + issuedStock.pending,
     pendientePago: Number(stockRow[0]?.pendientePago ?? 0),
     gastosNoClasificados: Number(stockRow[0]?.gastosNoClasificados ?? 0),
     unclassifiedCount,
@@ -188,22 +195,28 @@ export async function getFinanceResumenKPIs(opts: {
   if (opts.from) conds.push(gte(invoices.issueDate, opts.from));
   if (opts.to) conds.push(lte(invoices.issueDate, opts.to));
 
-  const [accrualRows, unclassifiedCount, cobradoMesRows, cobradoYTDRows, pagadoMesRows] =
+  // FV.1 — mismo criterio que el resto: fuera el espejo, dentro las emitidas.
+  const [accrualRows, issuedAgg, unclassifiedCount, cobradoMesRows, cobradoYTDRows, pagadoMesRows] =
     await Promise.all([
       db
         .select({
-          incomeTotal: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind}='income' THEN ${invoices.totalAmount} ELSE 0 END),0)::text`,
-          incomeSettled: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind}='income' AND ${invoices.status} IN ('cobrada','pagada') THEN ${invoices.totalAmount} ELSE 0 END),0)::text`,
+          incomeTotal: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind}='income' AND ${NOT_ISSUED_MIRROR} THEN ${invoices.totalAmount} ELSE 0 END),0)::text`,
+          incomeSettled: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind}='income' AND ${invoices.status} IN ('cobrada','pagada') AND ${NOT_ISSUED_MIRROR} THEN ${invoices.totalAmount} ELSE 0 END),0)::text`,
           gastosCampanaDirect: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind}='expense' AND ${invoices.expenseGroup}='campaign_direct' THEN ${invoices.totalAmount} ELSE 0 END),0)::text`,
           gastosOperativos: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind}='expense' AND (${invoices.expenseGroup}='operational' OR (${invoices.expenseGroup} IS NULL AND ${invoices.campaignId} IS NULL)) THEN ${invoices.totalAmount} ELSE 0 END),0)::text`,
           gastosNoClasificados: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind}='expense' AND ${invoices.expenseGroup} IS NULL THEN ${invoices.totalAmount} ELSE 0 END),0)::text`,
-          pendienteCobro: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind}='income' AND ${invoices.status} IN ('emitida','no_cobrada','parcial','vencida') THEN ${invoices.totalAmount} ELSE 0 END),0)::text`,
+          pendienteCobro: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind}='income' AND ${invoices.status} IN ('emitida','no_cobrada','parcial','vencida') AND ${NOT_ISSUED_MIRROR} THEN ${invoices.totalAmount} ELSE 0 END),0)::text`,
           pendientePago: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind}='expense' AND ${invoices.status} IN ('emitida','no_pagada','parcial','vencida') THEN ${invoices.totalAmount} ELSE 0 END),0)::text`,
           settledCampana: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind}='expense' AND ${invoices.expenseGroup}='campaign_direct' AND ${invoices.status} IN ('cobrada','pagada') THEN ${invoices.totalAmount} ELSE 0 END),0)::text`,
           settledOperativos: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind}='expense' AND (${invoices.expenseGroup}='operational' OR (${invoices.expenseGroup} IS NULL AND ${invoices.campaignId} IS NULL)) AND ${invoices.status} IN ('cobrada','pagada') THEN ${invoices.totalAmount} ELSE 0 END),0)::text`,
         })
         .from(invoices)
         .where(and(...conds)),
+
+      getIssuedRevenueAggregates({
+        ...(opts.from ? { from: opts.from } : {}),
+        ...(opts.to ? { to: opts.to } : {}),
+      }),
 
       getUnclassifiedExpenseCount(),
 
@@ -227,18 +240,18 @@ export async function getFinanceResumenKPIs(opts: {
     ]);
 
   const row = accrualRows[0];
-  const incomeSettled = Number(row?.incomeSettled ?? 0);
+  const incomeSettled = Number(row?.incomeSettled ?? 0) + issuedAgg.settled;
   const settledCampana = Number(row?.settledCampana ?? 0);
   const settledOperativos = Number(row?.settledOperativos ?? 0);
   const { margenBruto, margenPct } = computeMargen(incomeSettled, settledCampana, settledOperativos);
 
   return {
-    incomeTotal: Number(row?.incomeTotal ?? 0),
+    incomeTotal: Number(row?.incomeTotal ?? 0) + issuedAgg.total,
     incomeSettled,
     gastosCampanaDirect: Number(row?.gastosCampanaDirect ?? 0),
     gastosOperativos: Number(row?.gastosOperativos ?? 0),
     gastosNoClasificados: Number(row?.gastosNoClasificados ?? 0),
-    pendienteCobro: Number(row?.pendienteCobro ?? 0),
+    pendienteCobro: Number(row?.pendienteCobro ?? 0) + issuedAgg.pending,
     pendientePago: Number(row?.pendientePago ?? 0),
     margenBruto,
     margenPct,
