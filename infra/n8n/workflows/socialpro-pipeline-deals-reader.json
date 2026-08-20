@@ -1,0 +1,127 @@
+{
+  "name": "SocialPro - LEER #pipeline-deals (cada 15 min)",
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 15
+            }
+          ]
+        }
+      },
+      "id": "schedule-15min",
+      "name": "Cada 15 minutos",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [-640, 0],
+      "notes": "El CRM descarta por externalId los mensajes ya vistos, así que repetir la lectura no duplica borradores. Bajar el intervalo solo añade llamadas a Discord."
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "crm-base-url",
+              "name": "crmBaseUrl",
+              "value": "https://socialpro.es",
+              "type": "string"
+            },
+            {
+              "id": "channel-id",
+              "name": "channelId",
+              "value": "1533123521574862991",
+              "type": "string"
+            },
+            {
+              "id": "max-mensajes",
+              "name": "maxMensajes",
+              "value": 25,
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "config",
+      "name": "Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [-420, 0],
+      "notes": "channelId es #pipeline-deals. NO usar el guild de ZaCkETiZOR: ese es la comunidad de un creador, no el servidor de operaciones. maxMensajes = 25 porque es el tope por lote del endpoint."
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "getAll",
+        "channelId": "={{ $('Config').first().json.channelId }}",
+        "returnAll": false,
+        "limit": "={{ $('Config').first().json.maxMensajes }}",
+        "options": {}
+      },
+      "id": "read-discord",
+      "name": "Leer mensajes del canal",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [-200, 0],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "notes": "Requiere MESSAGE CONTENT INTENT en el bot: sin él, 'content' llega vacío y ningún mensaje se reconoce como trato."
+    },
+    {
+      "parameters": {
+        "jsCode": "// Deja el lote en la forma que espera el CRM y descarta lo que no procede.\n// Los mensajes del propio bot se excluyen para no reprocesar sus respuestas.\nconst mensajes = [];\nfor (const item of $input.all()) {\n  const m = item.json;\n  if (!m || !m.id || !m.channel_id) continue;\n  if (m.author && m.author.bot === true) continue;\n  const content = typeof m.content === 'string' ? m.content.trim() : '';\n  if (content.length === 0) continue;\n  mensajes.push({\n    messageId: String(m.id),\n    channelId: String(m.channel_id),\n    authorId: m.author && m.author.id ? String(m.author.id) : undefined,\n    authorUsername: m.author && m.author.username ? String(m.author.username) : undefined,\n    content,\n    timestamp: m.timestamp ? String(m.timestamp) : undefined,\n  });\n}\n\n// Sin nada que enviar, no se llama al CRM.\nif (mensajes.length === 0) return [];\nreturn [{ json: { messages: mensajes.slice(0, 25) } }];"
+      },
+      "id": "build-batch",
+      "name": "Preparar lote",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [20, 0],
+      "notes": "Filtra bots y mensajes vacíos. Si no queda nada, devuelve [] y el workflow termina sin llamar al CRM."
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Config').first().json.crmBaseUrl }}/api/automation/discord/pipeline-deals",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "id": "send-to-crm",
+      "name": "Enviar a CRM",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [240, 0],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "notes": "Crea BORRADORES, nunca campañas. No toca /deals/sync: ese endpoint sube el watermark de avisos 70/80/100 antes de que salgan, y el watermark solo sube."
+    }
+  ],
+  "connections": {
+    "Cada 15 minutos": {
+      "main": [[{ "node": "Config", "type": "main", "index": 0 }]]
+    },
+    "Config": {
+      "main": [[{ "node": "Leer mensajes del canal", "type": "main", "index": 0 }]]
+    },
+    "Leer mensajes del canal": {
+      "main": [[{ "node": "Preparar lote", "type": "main", "index": 0 }]]
+    },
+    "Preparar lote": {
+      "main": [[{ "node": "Enviar a CRM", "type": "main", "index": 0 }]]
+    }
+  }
+}
