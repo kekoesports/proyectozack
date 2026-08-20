@@ -16,6 +16,7 @@ import { crmBrands } from './crmBrands';
 import { talents } from './talents';
 import { files } from './files';
 import { campaigns } from './campaigns';
+import { issuedInvoices } from './issuedInvoices';
 
 // ── Expense classification enums ──────────────────────────────────────────────
 // expenseGroup drives which financial section an invoice belongs to.
@@ -149,6 +150,19 @@ export const invoices = pgTable(
 
     notes: text('notes'),
 
+    /**
+     * FV.1 — cuando esta fila income es el espejo automático de una factura
+     * emitida, apunta a ella. NULL = movimiento propio.
+     *
+     * Sustituye la detección por prefijo de texto (`isIssuedInvoiceMirror`), que
+     * se rompía en cuanto alguien editaba el concepto o las notas y hacía que la
+     * misma venta se contase dos veces. Invisible en la UI.
+     */
+    mirrorOfIssuedInvoiceId: integer('mirror_of_issued_invoice_id').references(
+      () => issuedInvoices.id,
+      { onDelete: 'set null' },
+    ),
+
     createdByUserId: text('created_by_user_id').references(() => user.id, { onDelete: 'set null' }),
 
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
@@ -171,6 +185,7 @@ export const invoices = pgTable(
     index('invoices_scope_idx').on(t.scope),
     index('invoices_expense_group_idx').on(t.expenseGroup),
     index('invoices_expense_subtype_idx').on(t.expenseSubtype),
+    index('invoices_mirror_of_issued_idx').on(t.mirrorOfIssuedInvoiceId),
   ],
 );
 
@@ -179,6 +194,10 @@ export const invoicesRelations = relations(invoices, ({ one }) => ({
   talent: one(talents, { fields: [invoices.talentId], references: [talents.id] }),
   campaign: one(campaigns, { fields: [invoices.campaignId], references: [campaigns.id] }),
   createdBy: one(user, { fields: [invoices.createdByUserId], references: [user.id] }),
+  mirrorOfIssued: one(issuedInvoices, {
+    fields: [invoices.mirrorOfIssuedInvoiceId],
+    references: [issuedInvoices.id],
+  }),
   invoiceFile: one(files, { fields: [invoices.invoiceFileId], references: [files.id], relationName: 'invoiceFile' }),
   statementFile: one(files, { fields: [invoices.statementFileId], references: [files.id], relationName: 'statementFile' }),
 }));

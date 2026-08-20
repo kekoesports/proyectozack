@@ -84,6 +84,7 @@ const INVOICE_LIST_COLUMNS = {
   statementFileId: invoices.statementFileId,
   txId: invoices.txId,
   notes: invoices.notes,
+  mirrorOfIssuedInvoiceId: invoices.mirrorOfIssuedInvoiceId,
   createdByUserId: invoices.createdByUserId,
   createdAt: invoices.createdAt,
   updatedAt: invoices.updatedAt,
