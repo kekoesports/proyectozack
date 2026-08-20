@@ -16,7 +16,10 @@
       "name": "L-X-V a las 10:30",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
-      "position": [-620, 0]
+      "position": [
+        -620,
+        0
+      ]
     },
     {
       "parameters": {
@@ -42,7 +45,10 @@
       "name": "Config",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
-      "position": [-400, 0],
+      "position": [
+        -400,
+        0
+      ],
       "notes": "maxLineas acota el mensaje: Discord corta en 2000 caracteres y hoy hay ~57 tratos fuera de 'on_track' (la mayoría sin Sheet). Sin el tope, el mensaje se rechaza entero y el digest no se publica ningún día."
     },
     {
@@ -56,7 +62,10 @@
       "name": "Leer resumen CRM",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [-160, 0],
+      "position": [
+        -160,
+        0
+      ],
       "retryOnFail": true,
       "maxTries": 3,
       "waitBetweenTries": 3000,
@@ -69,7 +78,7 @@
             {
               "id": "digest-message",
               "name": "message",
-              "value": "={{ (() => { const max = $('Config').first().json.maxLineas; const fuera = $json.deals.filter(d => d.nextAction !== 'on_track'); const prioridad = { sync_error: 0, completed: 1, prepare_invoice: 2, stale: 3, missing_sheet: 4 }; const orden = fuera.slice().sort((a, b) => (prioridad[a.nextAction] ?? 9) - (prioridad[b.nextAction] ?? 9)); const visibles = orden.slice(0, max); const resto = orden.length - visibles.length; const cabecera = '📊 UPDATE DEALS — ' + $now.setZone('Europe/Madrid').toFormat('dd/LL/yyyy') + '\\nActivos: ' + $json.summary.total + ' · Factura: ' + $json.summary.prepareInvoice + ' · Terminados: ' + $json.summary.completed + ' · Parados: ' + $json.summary.stale + ' · Errores: ' + $json.summary.syncErrors + ' · Sin sheet: ' + $json.summary.missingSheets; const cuerpo = visibles.map(d => '• ' + d.talentName + ' / ' + d.brandName + ': ' + d.currentCount + '/' + d.targetCount + ' (' + d.progressPct + '%) · ' + d.amountBrand + ' ' + d.currency + ' — ' + d.nextAction).join('\\n'); const pie = resto > 0 ? '\\n…y ' + resto + ' más en ' + $('Config').first().json.crmBaseUrl + '/admin/campanas' : ''; return (cabecera + '\\n\\n' + cuerpo + pie).slice(0, 1900); })() }}",
+              "value": "={{ (() => { const max = $('Config').first().json.maxLineas; const fuera = $json.deals.filter(d => d.nextAction !== 'on_track'); const prioridad = { sync_error: 0, completed: 1, prepare_invoice: 2, stale: 3, missing_sheet: 4 }; const orden = fuera.slice().sort((a, b) => (prioridad[a.nextAction] ?? 9) - (prioridad[b.nextAction] ?? 9)); const visibles = orden.slice(0, max); const resto = orden.length - visibles.length; const cabecera = '📊 UPDATE DEALS — ' + $now.setZone('Europe/Madrid').toFormat('dd/LL/yyyy') + '\\nActivos: ' + $json.summary.total + ' · Factura: ' + $json.summary.prepareInvoice + ' · Terminados: ' + $json.summary.completed + ' · Parados: ' + $json.summary.stale + ' · Errores: ' + $json.summary.syncErrors + ' · Sin sheet: ' + $json.summary.missingSheets; const cuerpo = visibles.map(d => '• ' + d.talentName + ' / ' + d.brandName + ': ' + d.currentCount + '/' + d.targetCount + ' (' + d.progressPct + '%) — ' + d.nextAction).join('\\n'); const pie = resto > 0 ? '\\n…y ' + resto + ' más en ' + $('Config').first().json.crmBaseUrl + '/admin/campanas' : ''; return (cabecera + '\\n\\n' + cuerpo + pie).slice(0, 1900); })() }}",
               "type": "string"
             }
           ]
@@ -81,8 +90,11 @@
       "name": "Preparar UPDATE DEALS",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
-      "position": [100, 0],
-      "notes": "Ordena por gravedad (errores primero, 'sin sheet' al final), corta en maxLineas y remata con un slice(0,1900) por si algún nombre largo desborda el límite de Discord."
+      "position": [
+        100,
+        0
+      ],
+      "notes": "Ordena por gravedad (errores primero, sin-sheet al final) y corta en maxLineas. NO incluye importes: este canal es de reporting de progreso y lo puede ver mas gente que la que debe ver cifras de negocio. Si hace falta el importe, esta en la ficha del trato en el CRM."
     },
     {
       "parameters": {},
@@ -90,22 +102,57 @@
       "name": "Publicar UPDATE DEALS en Discord",
       "type": "n8n-nodes-base.noOp",
       "typeVersion": 1,
-      "position": [340, 0],
+      "position": [
+        340,
+        0
+      ],
       "notes": "SUSTITUIR antes de activar. Nodo HTTP Request POST al Incoming Webhook del canal #ops-avisos con body {\"content\": \"={{ $json.message }}\"}."
     }
   ],
   "connections": {
     "L-X-V a las 10:30": {
-      "main": [[{ "node": "Config", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Config": {
-      "main": [[{ "node": "Leer resumen CRM", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Leer resumen CRM",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Leer resumen CRM": {
-      "main": [[{ "node": "Preparar UPDATE DEALS", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Preparar UPDATE DEALS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Preparar UPDATE DEALS": {
-      "main": [[{ "node": "Publicar UPDATE DEALS en Discord", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Publicar UPDATE DEALS en Discord",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "pinData": {},
