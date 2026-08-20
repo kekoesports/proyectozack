@@ -111,9 +111,21 @@ export type RevenueTotals = {
  */
 export function isIssuedMirrorRow(row: RevenueRow): boolean {
   if (row.source !== 'internal') return false;
-  if (row.mirrorOfIssuedInvoiceId != null) return true;
-  if (row.notes != null && row.notes.startsWith(ISSUED_MIRROR_NOTES_PREFIX)) return true;
-  if (row.concept != null && row.concept.startsWith(ISSUED_MIRROR_CONCEPT_PREFIX)) return true;
+  return isMirrorByFkOrPrefix(row.mirrorOfIssuedInvoiceId, row.notes, row.concept);
+}
+
+/**
+ * Misma decisión que `isIssuedMirrorRow`, sobre los tres campos sueltos, para
+ * los agregadores que trabajan con filas propias en vez de con `RevenueRow`.
+ */
+export function isMirrorByFkOrPrefix(
+  mirrorOfIssuedInvoiceId: number | null,
+  notes: string | null | undefined,
+  concept: string | null | undefined,
+): boolean {
+  if (mirrorOfIssuedInvoiceId != null) return true;
+  if (notes != null && notes.startsWith(ISSUED_MIRROR_NOTES_PREFIX)) return true;
+  if (concept != null && concept.startsWith(ISSUED_MIRROR_CONCEPT_PREFIX)) return true;
   return false;
 }
 

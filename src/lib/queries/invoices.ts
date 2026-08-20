@@ -1,11 +1,8 @@
 import { and, desc, eq, sql, gte, lte, ne, ilike, or, inArray, isNull, count } from 'drizzle-orm';
 import { db } from '@/lib/db';
-import { invoices, crmBrands, talents, files, campaigns } from '@/db/schema';
+import { invoices, crmBrands, talents, files, campaigns, issuedInvoices } from '@/db/schema';
 import type { ExpenseSubtypeValue } from '@/lib/schemas/invoice';
-import {
-  ISSUED_MIRROR_CONCEPT_PREFIX,
-  ISSUED_MIRROR_NOTES_PREFIX,
-} from '@/lib/utils/invoice-status';
+import { NOT_ISSUED_MIRROR } from '@/lib/finance/revenue';
 import type {
   BillingKPIs,
   Invoice,
@@ -243,27 +240,50 @@ export async function getBillingKPIs(from?: string, to?: string): Promise<Billin
     day: '2-digit',
   }).format(new Date());
 
-  const [row] = await db
-    .select({
-      // Exclude issued→internal auto-mirrors from income totals (dual-ledger).
-      incomeTotal: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind} = 'income' AND ${invoices.status} != 'anulada' AND NOT (${invoices.notes} LIKE ${ISSUED_MIRROR_NOTES_PREFIX + '%'} OR ${invoices.concept} LIKE ${ISSUED_MIRROR_CONCEPT_PREFIX + '%'}) THEN ${invoices.totalAmount} ELSE 0 END), 0)::text`,
-      expenseTotal: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind} = 'expense' AND ${invoices.status} != 'anulada' THEN ${invoices.totalAmount} ELSE 0 END), 0)::text`,
-      pendingCobro: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind}='income' AND ${invoices.status} IN ('no_cobrado','pendiente','emitida','no_cobrada','parcial','vencida') AND NOT (${invoices.notes} LIKE ${ISSUED_MIRROR_NOTES_PREFIX + '%'} OR ${invoices.concept} LIKE ${ISSUED_MIRROR_CONCEPT_PREFIX + '%'}) THEN ${invoices.totalAmount} ELSE 0 END),0)::text`,
-      pendingPago: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind}='expense' AND ${invoices.status} IN ('no_pagado','pendiente','emitida','no_pagada','parcial','vencida') THEN ${invoices.totalAmount} ELSE 0 END),0)::text`,
-      gastosCampana: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind}='expense' AND ${invoices.scope}='campaign' AND ${invoices.status}!='anulada' THEN ${invoices.totalAmount} ELSE 0 END),0)::text`,
-      gastosEmpresa: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind}='expense' AND ${invoices.scope}='company' AND ${invoices.status}!='anulada' THEN ${invoices.totalAmount} ELSE 0 END),0)::text`,
-      incomeSettled: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind}='income' AND ${invoices.status} IN ('cobrada','pagada') AND NOT (${invoices.notes} LIKE ${ISSUED_MIRROR_NOTES_PREFIX + '%'} OR ${invoices.concept} LIKE ${ISSUED_MIRROR_CONCEPT_PREFIX + '%'}) THEN ${invoices.totalAmount} ELSE 0 END),0)::text`,
-      expenseCampanaSettled: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind}='expense' AND ${invoices.scope}='campaign' AND ${invoices.status} IN ('cobrada','pagada') THEN ${invoices.totalAmount} ELSE 0 END),0)::text`,
-      expenseEmpresaSettled: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind}='expense' AND ${invoices.scope}='company' AND ${invoices.status} IN ('cobrada','pagada') THEN ${invoices.totalAmount} ELSE 0 END),0)::text`,
-    })
-    .from(invoices)
-    .where(conds.length > 0 ? and(...conds) : undefined);
+  // FV.1 — las facturas emitidas también son ingreso. Este KPI leía solo
+  // `invoices`, así que todo lo facturado desde el módulo de facturación era
+  // invisible aquí (y en el dashboard y el asistente, que lo consumen).
+  const issuedConds = [ne(issuedInvoices.status, 'anulada')];
+  if (from) issuedConds.push(gte(issuedInvoices.issueDate, from));
+  if (to) issuedConds.push(lte(issuedInvoices.issueDate, to));
+
+  const [internalRows, issuedRows] = await Promise.all([
+    db
+      .select({
+        // FV.1: el espejo se excluye por FK. La versión anterior comparaba
+        // `NOT (notes LIKE ... OR concept LIKE ...)`: con `notes` a NULL la
+        // expresión entera valía NULL y la factura no sumaba en ningún sitio.
+        incomeTotal: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind} = 'income' AND ${invoices.status} != 'anulada' AND ${NOT_ISSUED_MIRROR} THEN ${invoices.totalAmount} ELSE 0 END), 0)::text`,
+        expenseTotal: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind} = 'expense' AND ${invoices.status} != 'anulada' THEN ${invoices.totalAmount} ELSE 0 END), 0)::text`,
+        pendingCobro: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind}='income' AND ${invoices.status} IN ('no_cobrado','pendiente','emitida','no_cobrada','parcial','vencida') AND ${NOT_ISSUED_MIRROR} THEN ${invoices.totalAmount} ELSE 0 END),0)::text`,
+        pendingPago: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind}='expense' AND ${invoices.status} IN ('no_pagado','pendiente','emitida','no_pagada','parcial','vencida') THEN ${invoices.totalAmount} ELSE 0 END),0)::text`,
+        gastosCampana: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind}='expense' AND ${invoices.scope}='campaign' AND ${invoices.status}!='anulada' THEN ${invoices.totalAmount} ELSE 0 END),0)::text`,
+        gastosEmpresa: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind}='expense' AND ${invoices.scope}='company' AND ${invoices.status}!='anulada' THEN ${invoices.totalAmount} ELSE 0 END),0)::text`,
+        incomeSettled: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind}='income' AND ${invoices.status} IN ('cobrada','pagada') AND ${NOT_ISSUED_MIRROR} THEN ${invoices.totalAmount} ELSE 0 END),0)::text`,
+        expenseCampanaSettled: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind}='expense' AND ${invoices.scope}='campaign' AND ${invoices.status} IN ('cobrada','pagada') THEN ${invoices.totalAmount} ELSE 0 END),0)::text`,
+        expenseEmpresaSettled: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind}='expense' AND ${invoices.scope}='company' AND ${invoices.status} IN ('cobrada','pagada') THEN ${invoices.totalAmount} ELSE 0 END),0)::text`,
+      })
+      .from(invoices)
+      .where(conds.length > 0 ? and(...conds) : undefined),
+    db
+      .select({
+        issuedTotal: sql<string>`COALESCE(SUM(${issuedInvoices.totalAmount}), 0)::text`,
+        // `enviada` cuenta como pendiente: está en el cliente y sin cobrar.
+        issuedPending: sql<string>`COALESCE(SUM(CASE WHEN ${issuedInvoices.status} IN ('emitida','enviada','vencida','parcial') THEN ${issuedInvoices.totalAmount} ELSE 0 END),0)::text`,
+        issuedSettled: sql<string>`COALESCE(SUM(CASE WHEN ${issuedInvoices.status} = 'cobrada' THEN ${issuedInvoices.totalAmount} ELSE 0 END),0)::text`,
+      })
+      .from(issuedInvoices)
+      .where(and(...issuedConds)),
+  ]);
+
+  const row = internalRows[0];
+  const issuedRow = issuedRows[0];
 
   void todayMadrid;
 
-  const incomeTotal = Number(row?.incomeTotal ?? 0);
+  const incomeTotal = Number(row?.incomeTotal ?? 0) + Number(issuedRow?.issuedTotal ?? 0);
   const expenseTotal = Number(row?.expenseTotal ?? 0);
-  const incomeSettled = Number(row?.incomeSettled ?? 0);
+  const incomeSettled = Number(row?.incomeSettled ?? 0) + Number(issuedRow?.issuedSettled ?? 0);
   const gastosCampana = Number(row?.gastosCampana ?? 0);
   const gastosEmpresa = Number(row?.gastosEmpresa ?? 0);
   const expenseCampanaSettled = Number(row?.expenseCampanaSettled ?? 0);
@@ -272,7 +292,7 @@ export async function getBillingKPIs(from?: string, to?: string): Promise<Billin
     incomeTotal,
     expenseTotal,
     netTotal: incomeTotal - expenseTotal,
-    pendingCobro: Number(row?.pendingCobro ?? 0),
+    pendingCobro: Number(row?.pendingCobro ?? 0) + Number(issuedRow?.issuedPending ?? 0),
     pendingPago: Number(row?.pendingPago ?? 0),
     gastosCampana,
     gastosEmpresa,

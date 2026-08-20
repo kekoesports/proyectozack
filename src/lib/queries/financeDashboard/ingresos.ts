@@ -1,6 +1,6 @@
 'server-only';
 
-import { and, eq, gte, isNull, lte, ne, notLike, or, sql } from 'drizzle-orm';
+import { and, eq, gte, lte, ne, sql } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import {
   crmBrands,
@@ -8,15 +8,16 @@ import {
   invoices,
   issuedInvoices,
 } from '@/db/schema';
-import { ISSUED_MIRROR_NOTES_PREFIX } from '@/lib/utils/invoice-status';
+import { NOT_ISSUED_MIRROR } from '@/lib/finance/revenue';
 import { getArAging } from './arAging';
 import type { ArAgingBucket, ArAgingKpis, ArAgingRow } from '@/types/arAging';
 
-/** Internal income rows that are auto-mirrors of issued invoices (exclude from facturado). */
-const notIssuedMirror = or(
-  isNull(invoices.notes),
-  notLike(invoices.notes, `${ISSUED_MIRROR_NOTES_PREFIX}%`),
-);
+/**
+ * FV.1 — criterio único de espejo (FK, con el prefijo como fallback histórico).
+ * Antes se filtraba solo por `notes`, así que un espejo con las notas editadas
+ * se colaba en "facturado" y duplicaba la venta.
+ */
+const notIssuedMirror = NOT_ISSUED_MIRROR;
 
 /**
  * Datos agregados de la sección "Ingresos" (PR 3).
