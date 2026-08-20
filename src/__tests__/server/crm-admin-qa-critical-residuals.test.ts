@@ -29,11 +29,16 @@ describe('critical residual R01 — facturado double-count', () => {
     expect(isIssuedInvoiceMirror(null, 'Ingreso marca Acme')).toBe(false);
   });
 
-  it('sumFacturado and finanzasResumenV2 exclude mirror notes prefix', () => {
+  // FV.1: ambos consumían su propia variante del filtro (uno por `notes`, otro
+  // por `notes OR concept`) y por eso las pantallas no cuadraban. Ahora los dos
+  // salen del mismo módulo.
+  it('sumFacturado and finanzasResumenV2 use the canonical mirror criterion', () => {
     const ingresos = read('src/lib/queries/financeDashboard/ingresos.ts');
     const resumen = read('src/lib/queries/financeDashboard/finanzasResumenV2.ts');
-    expect(ingresos).toMatch(/ISSUED_MIRROR_NOTES_PREFIX|notIssuedMirror/);
-    expect(resumen).toMatch(/ISSUED_MIRROR_NOTES_PREFIX/);
+    expect(ingresos).toMatch(/NOT_ISSUED_MIRROR/);
+    expect(resumen).toMatch(/notIssuedMirrorRawSql/);
+    expect(ingresos).toMatch(/from '@\/lib\/finance\/revenue'/);
+    expect(resumen).toMatch(/from '@\/lib\/finance\/revenue'/);
   });
 });
 

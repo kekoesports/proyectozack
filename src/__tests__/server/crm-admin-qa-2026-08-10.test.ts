@@ -50,21 +50,27 @@ describe('QA 2026-08-10 — legacy campaign actions hardened', () => {
   });
 });
 
+// FV.1 movió el criterio de espejo a `src/lib/finance/revenue`: la FK
+// `mirror_of_issued_invoice_id` con el prefijo de texto como fallback histórico.
+// Estas comprobaciones siguen protegiendo lo mismo (que el espejo no duplique la
+// venta) contra el mecanismo actual, y añaden lo que faltaba: que los
+// agregadores lean de verdad las facturas emitidas.
 describe('QA 2026-08-10 — P&L excludes issued mirrors (R01 complete)', () => {
-  it('getFinancePnL skips isIssuedInvoiceMirror', () => {
+  it('getFinancePnL skips mirrors and reads issued invoices', () => {
     const src = read('src/lib/queries/financeDashboard/pnlDetail.ts');
-    expect(src).toMatch(/isIssuedInvoiceMirror/);
+    expect(src).toMatch(/isMirrorByFkOrPrefix/);
+    expect(src).toMatch(/from\(issuedInvoices\)/);
   });
 
-  it('getPnL skips isIssuedInvoiceMirror', () => {
+  it('getPnL skips mirrors', () => {
     const src = read('src/lib/queries/pnl.ts');
-    expect(src).toMatch(/isIssuedInvoiceMirror/);
+    expect(src).toMatch(/isMirrorByFkOrPrefix/);
   });
 
-  it('getBillingKPIs excludes mirror notes and concept prefixes', () => {
+  it('getBillingKPIs excludes mirrors and adds issued invoices', () => {
     const src = read('src/lib/queries/invoices.ts');
-    expect(src).toMatch(/ISSUED_MIRROR_NOTES_PREFIX/);
-    expect(src).toMatch(/ISSUED_MIRROR_CONCEPT_PREFIX/);
-    expect(src).toMatch(/getBillingKPIs[\s\S]*ISSUED_MIRROR/);
+    expect(src).toMatch(/NOT_ISSUED_MIRROR/);
+    expect(src).toMatch(/getBillingKPIs[\s\S]*NOT_ISSUED_MIRROR/);
+    expect(src).toMatch(/getBillingKPIs[\s\S]*from\(issuedInvoices\)/);
   });
 });
