@@ -74,12 +74,32 @@ describe('[rewards-hub-queries] Free raffles filtro entry_award_coins = 0', () =
 
 describe('[rewards-hub-actions] participateInGiveaway respeta entryAwardCoins', () => {
   const src = read('src/app/sorteos/plataforma/actions.ts');
-  const fn = /export async function participateInGiveaway[\s\S]{0,3500}/.exec(src)?.[0] ?? '';
+  // Recorte hasta la siguiente `export async function` en vez de una ventana de N
+  // caracteres: el límite fijo se quedaba corto al crecer la función y las
+  // aserciones pasaban por ocurrencias truncadas (o, al ampliarlo, por código
+  // de claimDailyReward). Mismo patrón que mission-engine.test.ts.
+  const fn = /export async function participateInGiveaway[\s\S]*?(?=export async function|$)/.exec(src)?.[0] ?? '';
   const atomic = read('src/lib/giveaway-platform/atomicOperations.ts');
 
   it('usa el premio persistido que devuelve la operación atómica', () => {
+    // Lo que se reporta al usuario y lo que se audita salen del valor que
+    // devolvió la escritura, no de la lectura previa de `giveaway`.
     expect(fn).toMatch(/awardCoins\s*=\s*participation\.entry_award_coins/);
-    expect(fn).toMatch(/if\s*\(\s*awardCoins\s*>\s*0\s*\)/);
+    expect(fn).toMatch(/coinsEarned:\s*awardCoins/);
+    expect(fn).toMatch(/awardCoins\s*>\s*0\s*\?\s*'giveaway_participate'/);
+  });
+
+  it('el guardrail de fuente se decide con la lectura previa, antes de escribir', () => {
+    // El gate no puede usar participation.entry_award_coins porque para
+    // entonces la concesión ya está commiteada. Usa giveaway.entryAwardCoins,
+    // leído antes de llamar a participateAndAward. Ver el test de orden en
+    // assert-allowed-coin-source-hooks.test.ts.
+    expect(fn).toMatch(/if\s*\(\s*giveaway\.entryAwardCoins\s*>\s*0\s*\)/);
+    const gate = fn.indexOf('giveaway.entryAwardCoins > 0');
+    const write = fn.indexOf('await participateAndAward(');
+    expect(gate).toBeGreaterThan(-1);
+    expect(write).toBeGreaterThan(-1);
+    expect(gate).toBeLessThan(write);
   });
 
   it('NO inserta coin_transactions cuando el premio es 0', () => {

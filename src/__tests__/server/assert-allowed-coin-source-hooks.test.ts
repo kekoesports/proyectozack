@@ -64,13 +64,20 @@ describe('assertAllowedCoinSource — enganchado en escrituras a coinTransaction
 
   it.each(WRITER_FILES)('%s valida la fuente antes de delegar la escritura atómica', (file) => {
     const src = read(file);
-    expect(src).toMatch(/assertAllowedCoinSource(OrLog)?\s*\(/);
-    expect(src).toMatch(ESCRITURAS);
-    // Nota: aquí NO se comprueba que la validación preceda a la escritura.
-    // En participateInGiveaway (actions.ts) va después, así que el guardrail
-    // deja rastro del bloqueo pero no impide la concesión. Cambiar ese orden
-    // es tocar lógica económica y merece su propia revisión, no colarse en un
-    // arreglo de tests. Ver docs/tech-debt.md.
+    const check = /assertAllowedCoinSource(OrLog)?\s*\(/.exec(src);
+    const write = ESCRITURAS.exec(src);
+    expect(check).not.toBeNull();
+    expect(write).not.toBeNull();
+    // El orden importa: la escritura atómica commitea la concesión, así que un
+    // guardrail posterior deja rastro del bloqueo pero no lo impide. Era el
+    // caso de participateInGiveaway (actions.ts) hasta 2026-08-20, donde
+    // assertAllowedCoinSourceOrLog iba DESPUÉS de participateAndAward.
+    //
+    // Limitación conocida: es un invariante de FICHERO (primer check antes de
+    // la primera escritura), no por función. actions.ts tiene tres flujos
+    // independientes; un cuarto escritor añadido al final sin check seguiría
+    // pasando este test. Cubre la regresión concreta, no todo el espacio.
+    expect(check?.index ?? Infinity).toBeLessThan(write?.index ?? -1);
   });
 
   it.each(WRITER_FILES)('%s registra logGiveawayEvent tras la escritura', (file) => {
