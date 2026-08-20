@@ -84,6 +84,8 @@ const INVOICE_LIST_COLUMNS = {
   fxRate: invoices.fxRate,
   fxRateDate: invoices.fxRateDate,
   eurEquivalent: invoices.eurEquivalent,
+  vatAmount: invoices.vatAmount,
+  withholdingAmount: invoices.withholdingAmount,
   mirrorOfIssuedInvoiceId: invoices.mirrorOfIssuedInvoiceId,
   createdByUserId: invoices.createdByUserId,
   createdAt: invoices.createdAt,

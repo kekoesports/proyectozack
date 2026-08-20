@@ -864,5 +864,13 @@
       "tag": "0122_fv4_multidivisa",
       "breakpoints": true
     }
+  ,
+    {
+      "idx": 123,
+      "version": "7",
+      "when": 1787428487577,
+      "tag": "0123_fv3_iva_retencion",
+      "breakpoints": true
+    }
   ]
 }

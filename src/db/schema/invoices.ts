@@ -124,6 +124,8 @@ export const invoices = pgTable(
     netAmount: numeric('net_amount', { precision: 12, scale: 2 }).notNull(),
     vatPct: numeric('vat_pct', { precision: 5, scale: 2 }).notNull().default('21.00'),
     withholdingPct: numeric('withholding_pct', { precision: 5, scale: 2 }).notNull().default('0.00'),
+    vatAmount: numeric('vat_amount', { precision: 12, scale: 2 }),
+    withholdingAmount: numeric('withholding_amount', { precision: 12, scale: 2 }),
     totalAmount: numeric('total_amount', { precision: 12, scale: 2 }).notNull(),
     // @deprecated — use invoicePayments table for real cobros/pagos. Do not read in new P&L queries.
     paidAmount: numeric('paid_amount', { precision: 12, scale: 2 }).notNull().default('0.00'),
