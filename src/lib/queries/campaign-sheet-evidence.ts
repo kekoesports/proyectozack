@@ -101,7 +101,10 @@ export async function applyCampaignSheetEvidence(
         }
 
         const normalized = normalizeContentUrl(evidence.originalUrl);
-        await tx.insert(dealDeliverableItems).values({
+        // existingByKey es una foto tomada al abrir la transacción: no ve otro
+        // sync corriendo en paralelo. onConflictDoNothing + el índice único
+        // dejan que la carrera se resuelva sin duplicar ni abortar el sync.
+        const insertedRows = await tx.insert(dealDeliverableItems).values({
           trackerId: tracker.id,
           sourceRowIndex: evidence.rowIndex,
           originalUrl: evidence.originalUrl,
@@ -116,7 +119,12 @@ export async function applyCampaignSheetEvidence(
           isActive: true,
           lastSeenAt: input.syncedAt,
           detectedAt: input.syncedAt,
-        });
+        })
+          .onConflictDoNothing()
+          .returning({ id: dealDeliverableItems.id });
+        // Si la carrera nos ganó la inserción, la evidencia ya está contada por
+        // el otro sync: no la sumamos otra vez.
+        if (insertedRows.length === 0) continue;
         newEvidence++;
         if (normalized.isValid) effectiveCount++;
       }

@@ -310,8 +310,17 @@ export async function importTrackerItems(
       status: r.status,
     }));
 
+  // El filtro de classifyImportRows es en memoria: no ve dos importaciones
+  // simultáneas sobre el mismo tracker. onConflictDoNothing se apoya en
+  // deal_items_tracker_url_uidx para que la carrera no duplique ni reviente.
+  let insertedCount = inserted;
   if (toInsert.length > 0) {
-    await db.insert(dealDeliverableItems).values(toInsert);
+    const insertedRows = await db
+      .insert(dealDeliverableItems)
+      .values(toInsert)
+      .onConflictDoNothing()
+      .returning({ id: dealDeliverableItems.id });
+    insertedCount = insertedRows.length;
   }
 
   // Enrich existing duplicate rows: when DB row has no subtype but new parse provides one
@@ -341,7 +350,7 @@ export async function importTrackerItems(
 
   await recalculateAndMaybeComplete(trackerId);
 
-  return { inserted, duplicatesSkipped, invalidSkipped, total: rows.length, enriched };
+  return { inserted: insertedCount, duplicatesSkipped, invalidSkipped, total: rows.length, enriched };
 }
 
 // ── Recalculate currentCount ──────────────────────────────────────────────────
