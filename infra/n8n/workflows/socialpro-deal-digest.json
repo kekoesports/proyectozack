@@ -20,21 +20,34 @@
     },
     {
       "parameters": {
-        "method": "POST",
-        "url": "https://socialpro.es/api/automation/deals/sync",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "crm-base-url",
+              "name": "crmBaseUrl",
+              "value": "https://socialpro.es",
+              "type": "string"
+            },
+            {
+              "id": "max-lineas",
+              "name": "maxLineas",
+              "value": 20,
+              "type": "number"
+            }
+          ]
+        },
         "options": {}
       },
-      "id": "sync-before-digest",
-      "name": "Sincronizar evidencias",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [-380, 0]
+      "id": "config",
+      "name": "Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [-400, 0],
+      "notes": "maxLineas acota el mensaje: Discord corta en 2000 caracteres y hoy hay ~57 tratos fuera de 'on_track' (la mayoría sin Sheet). Sin el tope, el mensaje se rechaza entero y el digest no se publica ningún día."
     },
     {
       "parameters": {
-        "url": "https://socialpro.es/api/automation/deals/digest",
+        "url": "={{ $('Config').first().json.crmBaseUrl }}/api/automation/deals/digest",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
         "options": {}
@@ -43,7 +56,11 @@
       "name": "Leer resumen CRM",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [-140, 0]
+      "position": [-160, 0],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "notes": "SOLO LECTURA. El sync lo hace el workflow horario de progreso, que es su único dueño: dos schedules llamando a /deals/sync se solapan y duplican evidencias (no hay lock ni unique index)."
     },
     {
       "parameters": {
@@ -52,40 +69,43 @@
             {
               "id": "digest-message",
               "name": "message",
-              "value": "={{ '📊 UPDATE DEALS — ' + $now.setZone('Europe/Madrid').toFormat('dd/LL/yyyy') + '\\nActivos: ' + $json.summary.total + ' · Factura: ' + $json.summary.prepareInvoice + ' · Terminados: ' + $json.summary.completed + ' · Parados: ' + $json.summary.stale + ' · Errores: ' + $json.summary.syncErrors + '\\n\\n' + $json.deals.filter(d => d.nextAction !== 'on_track').map(d => '• ' + d.talentName + ' / ' + d.brandName + ': ' + d.currentCount + '/' + d.targetCount + ' (' + d.progressPct + '%) · ' + d.amountBrand + ' ' + d.currency + ' — ' + d.nextAction).join('\\n') }}",
+              "value": "={{ (() => { const max = $('Config').first().json.maxLineas; const fuera = $json.deals.filter(d => d.nextAction !== 'on_track'); const prioridad = { sync_error: 0, completed: 1, prepare_invoice: 2, stale: 3, missing_sheet: 4 }; const orden = fuera.slice().sort((a, b) => (prioridad[a.nextAction] ?? 9) - (prioridad[b.nextAction] ?? 9)); const visibles = orden.slice(0, max); const resto = orden.length - visibles.length; const cabecera = '📊 UPDATE DEALS — ' + $now.setZone('Europe/Madrid').toFormat('dd/LL/yyyy') + '\\nActivos: ' + $json.summary.total + ' · Factura: ' + $json.summary.prepareInvoice + ' · Terminados: ' + $json.summary.completed + ' · Parados: ' + $json.summary.stale + ' · Errores: ' + $json.summary.syncErrors + ' · Sin sheet: ' + $json.summary.missingSheets; const cuerpo = visibles.map(d => '• ' + d.talentName + ' / ' + d.brandName + ': ' + d.currentCount + '/' + d.targetCount + ' (' + d.progressPct + '%) · ' + d.amountBrand + ' ' + d.currency + ' — ' + d.nextAction).join('\\n'); const pie = resto > 0 ? '\\n…y ' + resto + ' más en ' + $('Config').first().json.crmBaseUrl + '/admin/campanas' : ''; return (cabecera + '\\n\\n' + cuerpo + pie).slice(0, 1900); })() }}",
               "type": "string"
             }
           ]
         },
+        "includeOtherFields": true,
         "options": {}
       },
       "id": "format-digest",
       "name": "Preparar UPDATE DEALS",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
-      "position": [100, 0]
+      "position": [100, 0],
+      "notes": "Ordena por gravedad (errores primero, 'sin sheet' al final), corta en maxLineas y remata con un slice(0,1900) por si algún nombre largo desborda el límite de Discord."
     },
     {
       "parameters": {},
       "id": "discord-placeholder",
-      "name": "Conectar canal Discord revisiones",
+      "name": "Publicar UPDATE DEALS en Discord",
       "type": "n8n-nodes-base.noOp",
       "typeVersion": 1,
-      "position": [340, 0]
+      "position": [340, 0],
+      "notes": "SUSTITUIR antes de activar. Nodo HTTP Request POST al Incoming Webhook del canal #ops-avisos con body {\"content\": \"={{ $json.message }}\"}."
     }
   ],
   "connections": {
     "L-X-V a las 10:30": {
-      "main": [[{"node": "Sincronizar evidencias", "type": "main", "index": 0}]]
+      "main": [[{ "node": "Config", "type": "main", "index": 0 }]]
     },
-    "Sincronizar evidencias": {
-      "main": [[{"node": "Leer resumen CRM", "type": "main", "index": 0}]]
+    "Config": {
+      "main": [[{ "node": "Leer resumen CRM", "type": "main", "index": 0 }]]
     },
     "Leer resumen CRM": {
-      "main": [[{"node": "Preparar UPDATE DEALS", "type": "main", "index": 0}]]
+      "main": [[{ "node": "Preparar UPDATE DEALS", "type": "main", "index": 0 }]]
     },
     "Preparar UPDATE DEALS": {
-      "main": [[{"node": "Conectar canal Discord revisiones", "type": "main", "index": 0}]]
+      "main": [[{ "node": "Publicar UPDATE DEALS en Discord", "type": "main", "index": 0 }]]
     }
   },
   "pinData": {},

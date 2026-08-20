@@ -16,12 +16,33 @@
       "name": "Cada hora",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
-      "position": [-620, 0]
+      "position": [-860, 0]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "crm-base-url",
+              "name": "crmBaseUrl",
+              "value": "https://socialpro.es",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "config",
+      "name": "Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [-640, 0],
+      "notes": "Único sitio donde cambiar el entorno del CRM. compose.yaml fija N8N_BLOCK_ENV_ACCESS_IN_NODE=true, así que $env no está disponible desde los nodos."
     },
     {
       "parameters": {
         "method": "POST",
-        "url": "https://socialpro.es/api/automation/deals/sync",
+        "url": "={{ $('Config').first().json.crmBaseUrl }}/api/automation/deals/sync",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
         "options": {}
@@ -30,7 +51,11 @@
       "name": "Sincronizar tratos",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [-380, 0]
+      "position": [-400, 0],
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 5000,
+      "notes": "ESTE WORKFLOW ES EL ÚNICO DUEÑO DEL SYNC. No añadir /deals/sync a ningún otro: dos schedules solapados duplican evidencias (aún no hay unique index sobre (tracker_id, normalized_url)). Sólo 2 reintentos: el sync no es idempotente en el tiempo y cada pasada consume el watermark de alertas."
     },
     {
       "parameters": {
@@ -59,7 +84,7 @@
       "name": "Hay avisos nuevos",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
-      "position": [-140, 0]
+      "position": [-160, 0]
     },
     {
       "parameters": {
@@ -70,7 +95,7 @@
       "name": "Separar avisos",
       "type": "n8n-nodes-base.splitOut",
       "typeVersion": 1,
-      "position": [100, -80]
+      "position": [80, -80]
     },
     {
       "parameters": {
@@ -79,43 +104,48 @@
             {
               "id": "alert-message",
               "name": "message",
-              "value": "={{ $json.level === 100 ? '✅ ' + $json.name + ' ha completado su deal (100%).' : '⚠️ ' + $json.name + ' ha alcanzado el ' + $json.level + '% de su deal.' }}",
+              "value": "={{ ($json.level === 100 ? '✅ ' + $json.name + ' ha completado su deal (100%).' : '⚠️ ' + $json.name + ' ha alcanzado el ' + $json.level + '% de su deal.') + ' · ' + $('Config').first().json.crmBaseUrl + '/admin/campanas/' + $json.campaignId }}",
               "type": "string"
             }
           ]
         },
+        "includeOtherFields": true,
         "options": {}
       },
       "id": "format-alert",
       "name": "Preparar mensaje",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
-      "position": [340, -80]
+      "position": [320, -80]
     },
     {
       "parameters": {},
       "id": "notification-placeholder",
-      "name": "Conectar Discord WhatsApp o email",
+      "name": "Publicar aviso en Discord",
       "type": "n8n-nodes-base.noOp",
       "typeVersion": 1,
-      "position": [580, -80]
+      "position": [560, -80],
+      "notes": "SUSTITUIR antes de activar. Nodo HTTP Request POST al Incoming Webhook del canal #ops-avisos con body {\"content\": \"={{ $json.message }}\"}. AVISO: el CRM marca trackingAlertLevel ANTES de que el aviso llegue aquí y el nivel sólo sube, así que un aviso perdido no se reemite. No activar este workflow hasta que la salida a Discord esté cableada y probada."
     }
   ],
   "connections": {
     "Cada hora": {
-      "main": [[{"node": "Sincronizar tratos", "type": "main", "index": 0}]]
+      "main": [[{ "node": "Config", "type": "main", "index": 0 }]]
+    },
+    "Config": {
+      "main": [[{ "node": "Sincronizar tratos", "type": "main", "index": 0 }]]
     },
     "Sincronizar tratos": {
-      "main": [[{"node": "Hay avisos nuevos", "type": "main", "index": 0}]]
+      "main": [[{ "node": "Hay avisos nuevos", "type": "main", "index": 0 }]]
     },
     "Hay avisos nuevos": {
-      "main": [[{"node": "Separar avisos", "type": "main", "index": 0}], []]
+      "main": [[{ "node": "Separar avisos", "type": "main", "index": 0 }], []]
     },
     "Separar avisos": {
-      "main": [[{"node": "Preparar mensaje", "type": "main", "index": 0}]]
+      "main": [[{ "node": "Preparar mensaje", "type": "main", "index": 0 }]]
     },
     "Preparar mensaje": {
-      "main": [[{"node": "Conectar Discord WhatsApp o email", "type": "main", "index": 0}]]
+      "main": [[{ "node": "Publicar aviso en Discord", "type": "main", "index": 0 }]]
     }
   },
   "pinData": {},
