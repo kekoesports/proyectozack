@@ -89,6 +89,27 @@ export async function participateInGiveaway(input: unknown): Promise<ActionResul
     return { ok: false, error: 'Este sorteo ya ha finalizado' };
   }
 
+  // El guardrail va ANTES de la escritura atómica. Con el orden inverso
+  // (hasta 2026-08-20) `assertAllowedCoinSourceOrLog` registraba
+  // outcome='blocked' y lanzaba, pero `participateAndAward` ya había
+  // commiteado la concesión: dejaba rastro sin prevenir nada.
+  //
+  // El gate usa `giveaway.entryAwardCoins` (lectura previa) y no el valor
+  // que devuelve la operación atómica, porque hay que decidir antes de
+  // escribir. No hay carrera relevante: 'sorteo' es un literal dentro del SQL
+  // de `participateAndAward`, así que la fuente no varía por request —
+  // sólo cambiaría al editar la allowlist, que es un deploy. Los sorteos
+  // gratis (entryAwardCoins = 0) no insertan en coin_transactions y por eso
+  // quedan fuera del gate.
+  if (giveaway.entryAwardCoins > 0) {
+    await assertAllowedCoinSourceOrLog('sorteo', {
+      userId: sessionUser.id,
+      action: 'giveaway_participate',
+      refType: 'giveaway',
+      refId: giveawayId,
+    });
+  }
+
   const participation = await participateAndAward({
     userId: sessionUser.id,
     giveawayId,
@@ -101,15 +122,6 @@ export async function participateInGiveaway(input: unknown): Promise<ActionResul
   }
 
   const awardCoins = participation.entry_award_coins;
-
-  if (awardCoins > 0) {
-    await assertAllowedCoinSourceOrLog('sorteo', {
-      userId: sessionUser.id,
-      action: 'giveaway_participate',
-      refType: 'giveaway',
-      refId: giveawayId,
-    });
-  }
 
   // Toda participación en un sorteo interno cuenta para las misiones
   // basadas en `entries_total`, `entries_this_month` y `distinct_creators`,
