@@ -118,6 +118,51 @@ Tipos de entregable admitidos:
 - `preroll`
 - `otro`
 
+## Generar la Sheet al crear el trato
+
+Al crear un trato por `POST /api/automation/deals` o al aprobar un borrador, el
+CRM copia la **plantilla canónica** a la carpeta de seguimiento y vincula la
+hoja resultante al trato. El nombre sigue la forma canónica `MARCA - CREADOR`.
+
+**Nunca bloquea la creación del trato.** Si Drive falla o falta configuración,
+el trato se crea igual y el digest lo marca como `missing_sheet`, que es la
+señal correcta de "hay que darle una hoja". La respuesta de `POST /deals`
+incluye un campo `sheet` con el resultado: `created`, `already_had_sheet`,
+`skipped` o `failed`.
+
+**Es idempotente.** Si el trato ya tiene `trackingSheetUrl`, no se crea otra
+hoja: aprobar dos veces un borrador o reintentar no deja huérfanas en Drive.
+
+### Configuración
+
+| Variable | Qué es |
+|---|---|
+| `GOOGLE_DRIVE_DEAL_TEMPLATE_ID` | Id de la plantilla canónica a copiar |
+| `GOOGLE_DRIVE_TRACKING_FOLDER_ID` | Carpeta donde se deja la copia |
+
+Ambas son **opcionales**: sin ellas la generación no ocurre y no se rompe nada.
+
+### Permisos que hay que dar en Drive
+
+La cuenta de servicio necesita, sobre los dos ficheros:
+
+- **Plantilla** → *Lector* (para copiarla).
+- **Carpeta de seguimiento** → *Editor* (para dejar la copia dentro).
+
+Sin esos dos permisos la API devuelve 403 o 404 y el resultado será `failed`.
+Ojo con el 404: cuando la cuenta no tiene acceso, Drive oculta la existencia
+del fichero, así que "no encontrado" casi siempre significa "no compartido".
+
+### Sobre el scope
+
+Esta ruta usa `https://www.googleapis.com/auth/drive`, no el `drive.file` del
+backup. `drive.file` solo alcanza ficheros creados por la propia app o abiertos
+con el Google Picker; una cuenta de servicio no usa Picker, así que una
+plantilla *compartida* le resulta invisible con ese scope. Por eso la
+autenticación vive en `src/lib/drive/deal-tracking-sheet.ts` con su propio
+token y su propia caché: **no se toca `src/lib/backup/drive-auth.ts`**, que
+debe seguir con el scope restringido que le basta.
+
 ## Vincular la Sheet creada por n8n
 
 Después de que Google Drive copie y adapte la plantilla:
