@@ -113,7 +113,7 @@ export default async function FinanzasResumenPage({ searchParams }: PageProps): 
       </div>
 
       {/* 6. Bloques de detalle v2 (reutilizados sin cambios) */}
-      <ResumenIngresosBlock ingresos={resumen.ingresos} />
+      <ResumenIngresosBlock ingresos={resumen.ingresos} period={resumen.period} />
       <ResumenCostesMargenBlock
         costesDirectos={resumen.costesDirectos}
         margenBruto={resumen.margenBruto}

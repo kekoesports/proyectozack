@@ -135,6 +135,17 @@ export function countsAsRevenue(row: RevenueRow): boolean {
   return !isIssuedMirrorRow(row);
 }
 
+/** Por qué una fila se quedó fuera del total. */
+export type ExclusionReason = 'espejo' | 'anulada' | 'borrador';
+
+/** Devuelve el motivo de exclusión, o `null` si la fila cuenta. */
+export function exclusionReason(row: RevenueRow): ExclusionReason | null {
+  if (row.status === 'anulada') return 'anulada';
+  if (row.status === 'borrador') return 'borrador';
+  if (isIssuedMirrorRow(row)) return 'espejo';
+  return null;
+}
+
 /** Trimestre natural de una fecha 'YYYY-MM-DD'. */
 export function quarterOf(isoDate: string): Quarter {
   const month = Number(isoDate.slice(5, 7));
@@ -254,4 +265,89 @@ export function aggregateRevenue(
       .sort((a, b) => b.eur - a.eur),
     unconverted,
   };
+}
+
+// ── Desglose ────────────────────────────────────────────────────────────────
+
+/** Fila del desglose: la fila original más por qué entra o no. */
+export type BreakdownRow = {
+  readonly row: RevenueRow;
+  /** `null` si suma en el total. */
+  readonly excluded: ExclusionReason | null;
+  /** Contravalor aplicado en el total, o `null` si la fila no suma. */
+  readonly eur: number | null;
+};
+
+/** Aviso sobre la calidad del dato que compone la cifra. */
+export type RevenueWarning = {
+  readonly code: 'espejo-sin-fk' | 'sin-tipo-de-cambio';
+  readonly count: number;
+  readonly message: string;
+  readonly rowIds: readonly number[];
+};
+
+export type RevenueBreakdown = {
+  readonly totals: RevenueTotals;
+  readonly rows: readonly BreakdownRow[];
+  readonly warnings: readonly RevenueWarning[];
+};
+
+/**
+ * Separa las filas entre las que componen el total y las que no, y levanta los
+ * avisos que se deducen de las propias filas.
+ *
+ * Reutiliza `aggregateRevenue` para el total en lugar de volver a sumar aquí:
+ * si el detalle y la cifra se calculasen por separado podrían divergir, que es
+ * exactamente el problema que FV.1 vino a cerrar.
+ */
+export function splitRevenueRows(
+  rows: readonly RevenueRow[],
+  options: AggregateRevenueOptions = {},
+): RevenueBreakdown {
+  const basis = options.basis ?? 'total';
+  const totals = aggregateRevenue(rows, options);
+
+  const detail: BreakdownRow[] = rows.map((row) => {
+    const excluded = exclusionReason(row);
+    if (excluded !== null) return { row, excluded, eur: null };
+    const amount = basis === 'net' ? (row.netAmount ?? row.totalAmount) : row.totalAmount;
+    const { eur } = toEurAmount(amount, row.currency, options.fx, row.eurEquivalent);
+    return { row, excluded: null, eur: Math.round(eur * 100) / 100 };
+  });
+
+  // Espejos que solo se reconocen por el prefijo de texto: el backfill de la
+  // migración 0121 no pudo enlazarlos (número ambiguo) o nacieron después sin
+  // FK. Editar ese texto los devolvería al total y duplicaría la venta.
+  const espejosSinFk = detail
+    .filter((d) => d.excluded === 'espejo' && d.row.mirrorOfIssuedInvoiceId == null)
+    .map((d) => d.row.id);
+
+  const sinCambio = detail
+    .filter((d) => d.excluded === null && d.row.currency !== 'EUR' && d.row.eurEquivalent == null)
+    .filter(() => totals.unconverted > 0)
+    .map((d) => d.row.id);
+
+  const warnings: RevenueWarning[] = [];
+  if (espejosSinFk.length > 0) {
+    warnings.push({
+      code: 'espejo-sin-fk',
+      count: espejosSinFk.length,
+      message:
+        'Movimientos excluidos por el texto del concepto o las notas, no por la FK. ' +
+        'Si alguien edita ese texto volverían a sumar y la venta se contaría dos veces.',
+      rowIds: espejosSinFk,
+    });
+  }
+  if (sinCambio.length > 0) {
+    warnings.push({
+      code: 'sin-tipo-de-cambio',
+      count: sinCambio.length,
+      message:
+        'Facturas en otra divisa sumadas 1:1 por no tener tipo de cambio. ' +
+        'El total es aproximado hasta que FV.4 fije el contravalor.',
+      rowIds: sinCambio,
+    });
+  }
+
+  return { totals, rows: detail, warnings };
 }
