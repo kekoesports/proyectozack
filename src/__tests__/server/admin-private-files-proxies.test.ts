@@ -28,9 +28,12 @@
 jest.mock('@/lib/auth', () => ({ auth: {} }));
 
 const mockRequirePermission = jest.fn();
+// Se conserva el módulo real y solo se sustituye requirePermission: así el mock
+// no vuelve a quedarse obsoleto cuando la ruta empieza a usar otro helper de
+// permisos. needsVisibilityFilter se añadió después y dejó estos tests rotos.
 jest.mock('@/lib/permissions', () => ({
+  ...jest.requireActual('@/lib/permissions'),
   requirePermission: (...args: unknown[]) => mockRequirePermission(...args),
-  PERMISSIONS: {},
 }));
 
 // Mock cadena Drizzle sin importar tablas reales.

@@ -53,8 +53,9 @@ describe('isTwitchComingSoon', () => {
 });
 
 describe('getTwitchPublicChannelUrl', () => {
-  it('devuelve https://www.twitch.tv/zacketizor para zacketizor', () => {
-    expect(getTwitchPublicChannelUrl('zacketizor')).toBe('https://www.twitch.tv/zacketizor');
+  it('devuelve el login real del canal (zacketizorcs2), no el display name', () => {
+        // El login de Helix es 'zacketizorcs2'; 'zacketizor' es solo el slug interno.
+    expect(getTwitchPublicChannelUrl('zacketizor')).toBe('https://www.twitch.tv/zacketizorcs2');
   });
 
   it('devuelve null para slug desconocido', () => {
@@ -200,10 +201,16 @@ describe('Regresión — sin migración ni server actions nuevas', () => {
 
   it('no aparecen migraciones nuevas del ámbito social missions', () => {
     const files = fs.readdirSync(path.join(ROOT, 'drizzle')).filter((f) => /^\d{4}_.*\.sql$/.test(f));
-    for (const f of files.filter((x) => SCOPE_RE.test(x))) {
-      const idx = Number(f.substring(0, 4));
-      expect(idx).toBeLessThanOrEqual(109);
-    }
+    // Lista congelada del ámbito. Antes esto era un corte por índice (<= 109)
+    // y lo rompía cualquier migración nueva de misiones aunque no tuviera
+    // relación con esta PR: 0114 (seed de la misión de Twitch) la tumbó.
+    // Congelarla mantiene la intención —que esta PR no metió migraciones— y
+    // obliga a revisar conscientemente cualquier añadido futuro del ámbito.
+    const CONOCIDAS = [
+      '0104_discord_missions_fase_a.sql',
+      '0114_seed_twitch_mission_zacketizor.sql',
+    ];
+    expect(files.filter((x) => SCOPE_RE.test(x)).sort()).toEqual(CONOCIDAS);
   });
 
   it('discord-mission-action.ts sigue con 1 export (verifyDiscordMission)', () => {
