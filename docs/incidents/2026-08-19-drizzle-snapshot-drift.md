@@ -2,7 +2,7 @@
 
 **Fecha:** 2026-08-19
 **Severidad:** alta — riesgo de pérdida de datos en producción
-**Estado:** abierto
+**Estado:** **CERRADO el 2026-08-20** — ver "Resolución" al final
 **Detectado en:** rama `feat/crm-leads-module`, al generar la migración del módulo Leads
 **Ámbito:** `drizzle/meta/` en `master` (no lo introduce ninguna rama concreta)
 
@@ -205,3 +205,73 @@ así que va aparte.
 - `CLAUDE.md` → sección *Database Migrations* (incidente `crm_alerts`, 2026-05-06)
 - `docs/2026-05-14-drizzle-migration-tracker.md`
 - `scripts/migrate.ts`, `package.json` → script `build`
+
+---
+
+## Resolución (2026-08-20)
+
+Cerrado con la migración `0119_reconcile_schema_drift.sql` y el snapshot rebasado
+`drizzle/meta/0119_snapshot.json`.
+
+### Cómo se diagnosticó
+
+En lugar de regenerar snapshots a ciegas, se enfrentaron **las dos verdades**:
+
+1. `drizzle-kit introspect` contra producción → el schema real de la base.
+2. `drizzle-kit generate` sobre un árbol con `drizzle/` vacío → el schema que
+   describe el TypeScript.
+
+Comparar ambos separó lo que era **ruido de snapshots perdidos** de lo que era
+**deuda real de schema**. El resultado fue tranquilizador y a la vez revelador:
+el schema TS y la base concordaban tabla a tabla y columna a columna salvo en
+cinco puntos.
+
+### Lo que se encontró
+
+| Divergencia | Naturaleza |
+|---|---|
+| `crm_brand_status` sin `inactiva` ni `perdida` | **Bug vivo en producción** |
+| 10 columnas residuales en `campaigns` | Restos de un modelo anterior |
+| `invoices.entity` | Residuo |
+| `playing_with_neon` | Tabla de ejemplo que crea Neon al provisionar |
+| Orden de `crm_task_related_type` y `deliverable_type` | Cosmético, sin efecto |
+
+**El bug:** `src/db/schema/crmBrands.ts` y `src/lib/schemas/crmBrand.ts` declaraban
+`inactiva` y `perdida` como estados de marca, pero el enum de la base sólo tenía 8
+valores. Marcar una marca con cualquiera de esos dos estados fallaba con
+`invalid input value for enum crm_brand_status: "inactiva"`. Nadie lo había
+reportado, probablemente porque son estados poco usados.
+
+Las columnas residuales se verificaron una a una antes de tocarlas: 8 de las 10 a
+`0/96` no nulos, y `brand_paid`/`talent_paid` a `boolean NOT NULL DEFAULT false`
+con las 96 filas en `false`. `invoices.entity` a `0/93`. Cero filas con valor
+significativo, y respaldo tomado antes de aplicar.
+
+### Por qué no se tocó el orden de los enums
+
+Reordenar valores de un enum en Postgres obliga a recrear el tipo. Y no hace
+falta: `generate` compara el schema TypeScript contra el **snapshot**, no contra
+la base, así que un orden distinto en la base no produce diff. Sólo se notaría al
+hacer `introspect`.
+
+### Criterio de cierre, cumplido
+
+```
+$ npx drizzle-kit generate --name=verificacion_drift < /dev/null
+No schema changes, nothing to migrate 😴
+```
+
+Sin prompts interactivos, sin SQL emitido, exit 0.
+
+### Consecuencia en CI
+
+El paso `Snapshot drift canary` de `.github/workflows/ci.yml` **deja de llevar
+`continue-on-error`** y pasa a ser un gate real. Si vuelve a fallar, es que se ha
+tocado el schema sin migración o que los snapshots se han desalineado otra vez.
+
+### Lo que esto desbloquea
+
+Las migraciones vuelven a ser seguras, así que ya se puede atacar la deuda que
+dependía de esto: el unique index `(tracker_id, normalized_url)` en
+`deal_deliverable_items`, la unificación de los dos normalizadores de URL y el
+escritor único de `current_count`.

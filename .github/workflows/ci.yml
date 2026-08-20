@@ -58,11 +58,10 @@ jobs:
         # accidental, pero cubre el hueco mientras se reconcilia. Cuando el drift se
         # cierre, `generate` debe emitir cero statements y este paso pasará limpio.
         #
-        # INFORMATIVO POR AHORA: el drift está abierto, así que este paso falla hoy
-        # a propósito. Se deja sin bloquear para no parar todas las PRs. Al cerrar el
-        # paso 5 del plan de reconciliación, QUITAR `continue-on-error` para que pase
-        # a ser un gate real — es la única defensa contra este fallo.
-        continue-on-error: true
+        # GATE REAL desde 2026-08-20 (migración 0119): el drift quedó reconciliado y
+        # `generate` sobre master limpio responde "No schema changes, nothing to migrate".
+        # Si este paso vuelve a fallar, es que alguien tocó el schema sin migración o
+        # que los snapshots se han vuelto a desalinear — no lo silencies, arréglalo.
         run: |
           export DATABASE_URL="${DATABASE_URL:-postgresql://ci:ci@127.0.0.1:5432/ci_check}"
           cp -r drizzle "$RUNNER_TEMP/drizzle-canary"
