@@ -100,6 +100,11 @@ export const issuedInvoices = pgTable(
     dueDate:               date('due_date'),
     currency:              varchar('currency', { length: 3 }).notNull().default('EUR'),
 
+    /** FV.4 — ver la nota en invoices.ts. EUR por unidad de `currency`. */
+    fxRate:                numeric('fx_rate',        { precision: 14, scale: 6 }),
+    fxRateDate:            date('fx_rate_date'),
+    eurEquivalent:         numeric('eur_equivalent', { precision: 12, scale: 2 }),
+
     netAmount:             numeric('net_amount',         { precision: 12, scale: 2 }).notNull().default('0'),
     vatRate:               numeric('vat_rate',           { precision: 5,  scale: 2 }).notNull().default('0'),
     vatAmount:             numeric('vat_amount',         { precision: 12, scale: 2 }).notNull().default('0'),

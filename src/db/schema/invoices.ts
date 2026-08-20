@@ -129,6 +129,18 @@ export const invoices = pgTable(
     paidAmount: numeric('paid_amount', { precision: 12, scale: 2 }).notNull().default('0.00'),
     currency: varchar('currency', { length: 3 }).notNull().default('EUR'),
 
+    /**
+     * FV.4 — contravalor de la operación, fijado al tipo BCE de su fecha.
+     *
+     * `fxRate` son los EUR que vale UNA unidad de `currency` (USD 0,86528 ⇒
+     * 1 $ = 0,86528 €). `fxRateDate` es el día del tipo aplicado, que en fin de
+     * semana no coincide con `issueDate` porque el BCE no publica esos días.
+     * NULL en las filas en euros: no hay nada que convertir.
+     */
+    fxRate: numeric('fx_rate', { precision: 14, scale: 6 }),
+    fxRateDate: date('fx_rate_date'),
+    eurEquivalent: numeric('eur_equivalent', { precision: 12, scale: 2 }),
+
     series: varchar('series', { length: 20 }).notNull().default('A'),
     status: invoiceStatusEnum('status').notNull().default('borrador'),
 
