@@ -103,6 +103,12 @@ export async function createInvoiceFromDealAction(
       withholdingRate: '0',
       withholdingAmount: '0',
       totalAmount:     String(amountBrand.toFixed(2)),
+      // FV.4 — en euros el contravalor es el propio importe. En divisa se deja a
+      // NULL a propósito: lo fija el proceso de tipos BCE, no el flujo de
+      // emisión, que no debe depender de una API externa.
+      fxRate:          null,
+      fxRateDate:      null,
+      eurEquivalent:   currency === 'EUR' ? String(amountBrand.toFixed(2)) : null,
       paymentTerms:    issuer.defaultPaymentTerms ?? 'Pago a 30 días desde la fecha de emisión',
       legalNote,
       notes:           `Generada automáticamente desde trato: ${campaign.name}`,

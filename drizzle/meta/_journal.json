@@ -856,5 +856,13 @@
       "tag": "0121_fv1_invoice_mirror_fk",
       "breakpoints": true
     }
+  ,
+    {
+      "idx": 122,
+      "version": "7",
+      "when": 1787342087577,
+      "tag": "0122_fv4_multidivisa",
+      "breakpoints": true
+    }
   ]
 }

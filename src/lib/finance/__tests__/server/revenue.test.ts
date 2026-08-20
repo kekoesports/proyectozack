@@ -272,3 +272,34 @@ describe('splitRevenueRows — el desglose que se enseña en pantalla', () => {
     expect(warnings).toHaveLength(0);
   });
 });
+
+describe('FV.4 — contravalor fijado en la fila', () => {
+  it('una factura en divisa con contravalor guardado no necesita tipo del periodo', () => {
+    const { totals, warnings } = splitRevenueRows([
+      row({ id: 1, currency: 'USD', totalAmount: 800, eurEquivalent: 692.22 }),
+    ]);
+    expect(totals.eur).toBe(692.22);
+    expect(totals.unconverted).toBe(0);
+    expect(warnings).toHaveLength(0);
+  });
+
+  it('el contravalor guardado gana aunque se pase otro tipo', () => {
+    // El tipo de la fecha de operación es el que vale: no se recalcula porque
+    // hoy el mercado esté en otro sitio.
+    const { totals } = splitRevenueRows(
+      [row({ id: 1, currency: 'USD', totalAmount: 800, eurEquivalent: 692.22 })],
+      { fx: { USD: 1.5 } },
+    );
+    expect(totals.eur).toBe(692.22);
+  });
+
+  it('mezcla euros y divisa con contravalor sin perder ninguna', () => {
+    const { totals } = splitRevenueRows([
+      row({ id: 1, totalAmount: 1000 }),
+      row({ id: 2, currency: 'USD', totalAmount: 800, eurEquivalent: 692.22 }),
+      row({ id: 3, currency: 'USD', totalAmount: 375, eurEquivalent: 320.35 }),
+    ]);
+    expect(totals.eur).toBe(2012.57);
+    expect(totals.nominalByCurrency).toEqual({ EUR: 1000, USD: 1175 });
+  });
+});

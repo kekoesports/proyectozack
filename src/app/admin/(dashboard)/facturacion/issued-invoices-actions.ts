@@ -120,6 +120,10 @@ export async function createIssuedInvoiceAction(
         vatRate,
         withholdingRate,
         ...amounts,
+        // FV.4 — ver la nota en create-invoice-from-deal.ts.
+        fxRate:            null,
+        fxRateDate:        null,
+        eurEquivalent:     invoiceData.currency === 'EUR' ? amounts.totalAmount : null,
         paymentTerms:      invoiceData.paymentTerms ?? null,
         legalNote:         invoiceData.legalNote    ?? null,
         notes:             invoiceData.notes        ?? null,
@@ -409,6 +413,11 @@ export async function rectifyInvoiceAction(
           vatRate:             original.vatRate ?? '0',
           withholdingRate:     original.withholdingRate ?? '0',
           ...amounts,
+          // FV.4 — la rectificativa hereda el tipo de la original: es la misma
+          // operación económica, así que su contravalor no puede ser otro.
+          fxRate:              original.fxRate ?? null,
+          fxRateDate:          original.fxRateDate ?? null,
+          eurEquivalent:       (original.currency ?? 'EUR') === 'EUR' ? amounts.totalAmount : null,
           paymentTerms:        original.paymentTerms ?? null,
           legalNote:           original.legalNote ?? null,
           notes:               null,
