@@ -1,6 +1,6 @@
 import 'server-only';
 
-import { and, eq, ilike, inArray, isNotNull, ne, or } from 'drizzle-orm';
+import { and, eq, ilike, inArray, isNotNull, isNull, ne, or } from 'drizzle-orm';
 
 import { campaigns } from '@/db/schema/campaigns';
 import { crmBrands } from '@/db/schema/crmBrands';
@@ -434,6 +434,9 @@ export async function syncAllAutomatedDeals(): Promise<SyncAllAutomatedDealsResu
     .from(campaigns)
     .where(and(
       isNotNull(campaigns.trackingSheetUrl),
+      // El digest ya excluye las archivadas; el sync no lo hacía y seguía
+      // gastando llamadas a Sheets (y watermark de alertas) en tratos cerrados.
+      isNull(campaigns.archivedAt),
       inArray(campaigns.status, ['propuesta', 'negociacion', 'aprobada', 'activa', 'pendiente_pago']),
     ));
 

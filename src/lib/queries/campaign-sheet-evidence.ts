@@ -107,14 +107,18 @@ export async function applyCampaignSheetEvidence(
           originalUrl: evidence.originalUrl,
           normalizedUrl: evidence.normalizedUrl,
           platform: normalized.isValid ? normalized.platform : 'other',
-          status: 'valid',
+          // La ruta de import manual ya descarta lo que el normalizador no
+          // reconoce (classifyImportRows en deal-trackers.ts). Esta ruta lo
+          // marcaba 'valid' igualmente, así que cualquier URL http(s) pegada en
+          // la hoja sumaba progreso y podía disparar los avisos 70/80/100.
+          status: normalized.isValid ? 'valid' : 'invalid',
           sourceType: 'google_sheet',
           isActive: true,
           lastSeenAt: input.syncedAt,
           detectedAt: input.syncedAt,
         });
         newEvidence++;
-        effectiveCount++;
+        if (normalized.isValid) effectiveCount++;
       }
       effectiveCountByType.set(type, effectiveCount);
     }
