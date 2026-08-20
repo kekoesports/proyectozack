@@ -40,7 +40,7 @@ import {
 } from '@/lib/schemas/issuedInvoice';
 import { db } from '@/lib/db';
 import { invoices } from '@/db/schema';
-import { and, eq } from 'drizzle-orm';
+import { and, eq, or } from 'drizzle-orm';
 
 type ActionState = { readonly error?: string; readonly success?: boolean; readonly id?: number };
 
@@ -284,11 +284,20 @@ export async function updateInvoiceStatusAction(id: number, status: string): Pro
       const conceptId = `${ISSUED_MIRROR_CONCEPT_PREFIX}${inv.invoiceNumber}`;
       const notesId   = `${ISSUED_MIRROR_NOTES_PREFIX} ${inv.invoiceNumber}`;
 
-      // Exact concept match (not ILIKE search) — reduces race duplicates.
+      // FV.1: la FK es el criterio real; el concepto exacto sigue mirándose para
+      // no duplicar los espejos creados antes de la migración 0130.
       const [existingMov] = await db
         .select({ id: invoices.id })
         .from(invoices)
-        .where(and(eq(invoices.kind, 'income'), eq(invoices.concept, conceptId)))
+        .where(
+          and(
+            eq(invoices.kind, 'income'),
+            or(
+              eq(invoices.mirrorOfIssuedInvoiceId, inv.id),
+              eq(invoices.concept, conceptId),
+            ),
+          ),
+        )
         .limit(1);
 
       if (!existingMov) {
@@ -312,6 +321,9 @@ export async function updateInvoiceStatusAction(id: number, status: string): Pro
             talentId:        inv.relatedTalentId ?? undefined,
             campaignId:      inv.relatedDealId   ?? undefined,
             notes:           notesId,
+            // FV.1 — enlace real con la emitida. Los agregadores excluyen la fila
+            // por esta FK, no por el texto de `concept` / `notes`.
+            mirrorOfIssuedInvoiceId: inv.id,
             createdByUserId: session.user.id,
           });
         } catch (mirrorErr) {

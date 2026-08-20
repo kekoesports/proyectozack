@@ -6,8 +6,8 @@ import {
   SETTLED_EXPENSE_STATUSES,
   PENDING_INCOME_STATUSES,
   PENDING_EXPENSE_STATUSES,
-  isIssuedInvoiceMirror,
 } from '@/lib/utils/invoice-status';
+import { isMirrorByFkOrPrefix } from '@/lib/finance/revenue.shared';
 import type { InvoiceStatus } from '@/types';
 
 import type { InvoiceCompany } from '@/types';
@@ -112,6 +112,7 @@ export async function getPnL(filters: PnLFilters = {}): Promise<PnLResult> {
           category: invoices.category,
           concept: invoices.concept,
           notes: invoices.notes,
+          mirrorOfIssuedInvoiceId: invoices.mirrorOfIssuedInvoiceId,
           issueDate: invoices.issueDate,
           brandSector: crmBrands.sector,
           brandGeo: crmBrands.geo,
@@ -128,6 +129,7 @@ export async function getPnL(filters: PnLFilters = {}): Promise<PnLResult> {
           category: invoices.category,
           concept: invoices.concept,
           notes: invoices.notes,
+          mirrorOfIssuedInvoiceId: invoices.mirrorOfIssuedInvoiceId,
           issueDate: invoices.issueDate,
           brandSector: sql<string | null>`NULL`.as('brand_sector'),
           brandGeo: sql<string | null>`NULL`.as('brand_geo'),
@@ -159,7 +161,10 @@ export async function getPnL(filters: PnLFilters = {}): Promise<PnLResult> {
   const PENDING_EXPENSE = new Set<string>(PENDING_EXPENSE_STATUSES);
 
   for (const row of rows) {
-    if (row.kind === 'income' && isIssuedInvoiceMirror(row.notes, row.concept)) {
+    if (
+      row.kind === 'income' &&
+      isMirrorByFkOrPrefix(row.mirrorOfIssuedInvoiceId, row.notes, row.concept)
+    ) {
       continue;
     }
 

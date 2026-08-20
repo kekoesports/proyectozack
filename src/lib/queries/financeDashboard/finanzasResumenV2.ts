@@ -11,11 +11,11 @@ import {
   talents,
 } from '@/db/schema';
 import {
-  ISSUED_MIRROR_NOTES_PREFIX,
   ISSUED_PENDING_STATUSES,
   PENDING_EXPENSE_FILTER,
   PENDING_INCOME_FILTER,
 } from '@/lib/utils/invoice-status';
+import { notIssuedMirrorRawSql } from '@/lib/finance/revenue';
 import type { InvoiceStatus } from '@/types';
 import type {
   FinanzasPeriod,
@@ -103,6 +103,9 @@ export async function getFinanzasResumenV2(
 
     // 2. Ingresos facturados = issued (fiscal) + internal income excl. auto-mirrors
     // (mirrors created on issued→cobrada would double-count the same economic event).
+    // FV.1: el criterio de espejo sale de `revenue.ts` — antes se filtraba solo
+    // por `notes` aquí y por `notes OR concept` en el P&L, y las dos pantallas
+    // daban cifras distintas con los mismos datos.
     db
       .select({ amount: sql<string>`COALESCE(SUM(t), 0)::text` })
       .from(
@@ -114,7 +117,7 @@ export async function getFinanzasResumenV2(
           SELECT total_amount AS t FROM invoices
             WHERE kind = 'income' AND status != 'anulada'
               AND issue_date BETWEEN ${period.from} AND ${period.to}
-              AND (notes IS NULL OR notes NOT LIKE ${ISSUED_MIRROR_NOTES_PREFIX + '%'})
+              AND ${notIssuedMirrorRawSql()}
         ) src`,
       ),
 

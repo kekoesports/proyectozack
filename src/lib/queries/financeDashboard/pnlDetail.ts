@@ -1,15 +1,15 @@
 'server-only';
 
-import { and, eq, gte, lte, notInArray, sql } from 'drizzle-orm';
+import { and, eq, gte, lte, ne, notInArray, sql } from 'drizzle-orm';
 import { db } from '@/lib/db';
-import { invoicePayments, invoices } from '@/db/schema';
+import { billingClients, invoicePayments, invoices, issuedInvoices } from '@/db/schema';
+import { isMirrorByFkOrPrefix } from '@/lib/finance/revenue.shared';
 import type { PnLFilters, PnLResult, PnLBreakdownByMonth, PnLBreakdownByCategory } from '@/lib/queries/pnl';
 import {
   SETTLED_INCOME_STATUSES,
   SETTLED_EXPENSE_STATUSES,
   PENDING_INCOME_STATUSES,
   PENDING_EXPENSE_STATUSES,
-  isIssuedInvoiceMirror,
 } from '@/lib/utils/invoice-status';
 import type { InvoiceStatus } from '@/types';
 import {
@@ -81,7 +81,21 @@ export async function getFinancePnL(filters: PnLFilters = {}): Promise<FinancePn
   const yearStart = `${new Date().getFullYear()}-01-01`;
   const yearEnd = `${new Date().getFullYear()}-12-31`;
 
-  const [rows, cobradoYTDRows, pagadoYTDRows] = await Promise.all([
+  // FV.1 — las facturas emitidas entran en el P&L.
+  //
+  // `filters.company` es un enum geográfico de `invoices` (spain / andorra /
+  // argentina…) que no tiene equivalente en `issued_invoices`, donde el emisor
+  // es una FK a `issuer_companies`. No hay mapeo 1:1, así que con ese filtro
+  // activo se agregan solo las internas y se avisa en la UI en vez de inventar
+  // una correspondencia. Se resolverá al separar entidades (LLC aparte, FV.5).
+  const issuedApplies = filters.company == null;
+  const issuedConds = [ne(issuedInvoices.status, 'anulada')];
+  if (filters.from) issuedConds.push(gte(issuedInvoices.issueDate, filters.from));
+  if (filters.to) issuedConds.push(lte(issuedInvoices.issueDate, filters.to));
+  if (filters.brandId) issuedConds.push(eq(issuedInvoices.relatedBrandId, filters.brandId));
+  if (filters.talentId) issuedConds.push(eq(issuedInvoices.relatedTalentId, filters.talentId));
+
+  const [internalRows, issuedRows, cobradoYTDRows, pagadoYTDRows] = await Promise.all([
     db
       .select({
         id: invoices.id,
@@ -95,6 +109,7 @@ export async function getFinancePnL(filters: PnLFilters = {}): Promise<FinancePn
         category: invoices.category,
       concept: invoices.concept,
       notes: invoices.notes,
+      mirrorOfIssuedInvoiceId: invoices.mirrorOfIssuedInvoiceId,
       counterpartyName: invoices.counterpartyName,
       issueDate: invoices.issueDate,
       invoiceFileId: invoices.invoiceFileId,
@@ -102,6 +117,24 @@ export async function getFinancePnL(filters: PnLFilters = {}): Promise<FinancePn
       })
       .from(invoices)
       .where(and(...conds)),
+
+    issuedApplies
+      ? db
+          .select({
+            id: issuedInvoices.id,
+            status: issuedInvoices.status,
+            totalAmount: issuedInvoices.totalAmount,
+            campaignId: issuedInvoices.relatedDealId,
+            talentId: issuedInvoices.relatedTalentId,
+            issueDate: issuedInvoices.issueDate,
+            invoiceNumber: issuedInvoices.invoiceNumber,
+            clientName: billingClients.name,
+            pdfUrl: issuedInvoices.pdfUrl,
+          })
+          .from(issuedInvoices)
+          .leftJoin(billingClients, eq(billingClients.id, issuedInvoices.billingClientId))
+          .where(and(...issuedConds))
+      : Promise.resolve([]),
 
     // Cobrado YTD via invoice_payments: internal income OR issued invoices
     // (issued payments often have issuedInvoiceId set and invoiceId null).
@@ -130,6 +163,33 @@ export async function getFinancePnL(filters: PnLFilters = {}): Promise<FinancePn
         ),
       ),
   ]);
+
+  type PnlAggRow = (typeof internalRows)[number];
+
+  /**
+   * `enviada` no existe en el ciclo de estados de las internas; para agregar
+   * equivale a emitida y pendiente de cobro (ver ISSUED_PENDING_STATUSES).
+   */
+  const issuedAsRows: PnlAggRow[] = issuedRows.map((row) => ({
+    id: row.id,
+    kind: 'income' as const,
+    status: (row.status === 'enviada' ? 'emitida' : row.status) as PnlAggRow['status'],
+    totalAmount: row.totalAmount,
+    campaignId: row.campaignId,
+    talentId: row.talentId,
+    expenseGroup: null,
+    expenseSubtype: null,
+    category: null,
+    concept: row.invoiceNumber,
+    notes: null,
+    mirrorOfIssuedInvoiceId: null,
+    counterpartyName: row.clientName,
+    issueDate: row.issueDate,
+    invoiceFileId: null,
+    fileUrl: row.pdfUrl,
+  }));
+
+  const rows: readonly PnlAggRow[] = [...internalRows, ...issuedAsRows];
 
   if (rows.length === 0) {
     return {
@@ -161,7 +221,10 @@ export async function getFinancePnL(filters: PnLFilters = {}): Promise<FinancePn
 
   for (const row of rows) {
     // Skip issued→internal auto-mirrors (same economic event already in issued ledger).
-    if (row.kind === 'income' && isIssuedInvoiceMirror(row.notes, row.concept)) {
+    if (
+      row.kind === 'income' &&
+      isMirrorByFkOrPrefix(row.mirrorOfIssuedInvoiceId, row.notes, row.concept)
+    ) {
       continue;
     }
 
