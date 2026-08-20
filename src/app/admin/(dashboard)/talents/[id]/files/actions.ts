@@ -7,7 +7,7 @@ import { eq, and } from 'drizzle-orm';
 
 import { requirePermission } from '@/lib/permissions';
 import { assertCanDelete } from '@/lib/permissions';
-import { uploadFile, deleteFile } from '@/lib/storage';
+import { uploadLegacyFile as uploadFile, deleteLegacyFile as deleteFile } from '@/lib/storage';
 import { createFile, deleteFileById } from '@/lib/queries/files';
 import { getTransactionalDb } from '@/lib/db';
 import { talentMetricSnapshots, talentSocials } from '@/db/schema';

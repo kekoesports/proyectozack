@@ -17,6 +17,12 @@ export const env = createEnv({
     DB_STATEMENT_TIMEOUT_MS: z.coerce.number().int().min(1000).default(30_000),
     // URL con el rol migrador. Si no se define, se usa DATABASE_URL.
     MIGRATION_DATABASE_URL: z.string().url().optional(),
+    // Dónde se ESCRIBEN los ficheros. Las lecturas pueden caer al otro
+    // proveedor mientras dure la migración (STORAGE_FALLBACK_TO_VERCEL).
+    STORAGE_DRIVER: z.enum(['vercel', 'local']).default('vercel'),
+    STORAGE_LOCAL_ROOT: z.string().min(1).optional(),
+    STORAGE_PUBLIC_URL_BASE: z.string().url().optional(),
+    STORAGE_FALLBACK_TO_VERCEL: z.coerce.boolean().default(true),
     RESEND_API_KEY: z.string().min(1),
     BETTER_AUTH_SECRET: z.string().min(32),
     // Optional in dev; required in production for cron endpoints to be reachable.
@@ -148,6 +154,10 @@ export const env = createEnv({
     DB_CONNECTION_TIMEOUT_MS: process.env.DB_CONNECTION_TIMEOUT_MS,
     DB_STATEMENT_TIMEOUT_MS: process.env.DB_STATEMENT_TIMEOUT_MS,
     MIGRATION_DATABASE_URL: process.env.MIGRATION_DATABASE_URL,
+    STORAGE_DRIVER: process.env.STORAGE_DRIVER,
+    STORAGE_LOCAL_ROOT: process.env.STORAGE_LOCAL_ROOT,
+    STORAGE_PUBLIC_URL_BASE: process.env.STORAGE_PUBLIC_URL_BASE,
+    STORAGE_FALLBACK_TO_VERCEL: process.env.STORAGE_FALLBACK_TO_VERCEL,
     RESEND_API_KEY: process.env.RESEND_API_KEY,
     BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET,
     CRON_SECRET: process.env.CRON_SECRET,
