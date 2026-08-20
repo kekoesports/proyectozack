@@ -18,7 +18,9 @@ import {
 } from '@/lib/utils/invoice-status';
 import {
   aggregateRevenue,
+  splitRevenueRows,
   type AggregateRevenueOptions,
+  type RevenueBreakdown,
   type RevenueRow,
   type RevenueTotals,
 } from './revenue.shared';
@@ -201,4 +203,23 @@ export async function getRevenueTotals(
 ): Promise<RevenueTotals> {
   const rows = await listRevenueRows(period);
   return aggregateRevenue(rows, options);
+}
+
+/**
+ * Facturación del periodo con su detalle: el total, las filas que lo componen,
+ * las que se dejaron fuera y por qué.
+ *
+ * Sale de la misma llamada a `listRevenueRows` que el total, así que la cifra y
+ * su desglose no pueden divergir: si la suma del detalle no da el total, es que
+ * la agregación está mal, no que sean dos consultas distintas.
+ *
+ * @cache none
+ * @visibility admin (facturacion:read)
+ */
+export async function getRevenueBreakdown(
+  period: RevenuePeriod,
+  options: AggregateRevenueOptions = {},
+): Promise<RevenueBreakdown> {
+  const rows = await listRevenueRows(period);
+  return splitRevenueRows(rows, options);
 }
