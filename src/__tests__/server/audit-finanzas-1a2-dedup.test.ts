@@ -75,18 +75,22 @@ describe('[Fase 1A.2] Deduplicación dashboard financiero — verificación est�
 
   describe('Navegación del admin no enlaza a /admin/facturacion/dashboard', () => {
     const layout = read('src/app/admin/(dashboard)/layout.tsx');
+    // La navegación se movió del layout a navForRole(): el layout ya no
+    // contiene hrefs. Se lee la fuente real para no comprobar un fichero vacío.
+    const adminNav = read('src/lib/admin-nav.ts');
     const finanzasNav = read('src/app/admin/(dashboard)/finanzas/FinanzasNav.tsx');
 
-    it('layout admin (primaryNav + moreNav) no contiene el href legacy', () => {
+    it('ni el layout ni la navegación contienen el href legacy', () => {
       expect(layout).not.toMatch(/\/admin\/facturacion\/dashboard/);
+      expect(adminNav).not.toMatch(/\/admin\/facturacion\/dashboard/);
     });
 
     it('FinanzasNav (tabs internos) no enlaza al dashboard legacy', () => {
       expect(finanzasNav).not.toMatch(/\/admin\/facturacion\/dashboard/);
     });
 
-    it('layout admin sí enlaza a /admin/finanzas/resumen (home financiera)', () => {
-      expect(layout).toMatch(/\/admin\/finanzas\/resumen/);
+    it('la navegación del admin sí enlaza a /admin/finanzas/resumen (home financiera)', () => {
+      expect(adminNav).toMatch(/\/admin\/finanzas\/resumen/);
     });
   });
 

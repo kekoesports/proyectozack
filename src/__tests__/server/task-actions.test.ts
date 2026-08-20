@@ -91,12 +91,38 @@ describe('task actions', () => {
     );
   });
 
-  it('deleteTaskAction blocks manager deletes', async () => {
+  // La regla ya no es 'un manager nunca borra': un no-admin puede borrar una
+  // tarea suya. El test anterior no configuraba getTaskById, así que salía por
+  // 'Tarea no encontrada' sin llegar a evaluar permisos — pasaba por el motivo
+  // equivocado y dejó de reflejar el comportamiento real.
+  it('deleteTaskAction impide a un manager borrar una tarea ajena', async () => {
     mockRequireAnyRole.mockResolvedValue(makeSession('manager', 'mgr-1'));
+    mockGetTaskById.mockResolvedValue({ id: 9, ownerId: 'otro', assignedToUserId: 'otro' });
 
     const result = await deleteTaskAction(9);
 
-    expect(result).toEqual({ error: 'Sin permiso para eliminar' });
+    expect(result).toEqual({ error: 'Sin permiso para eliminar esta tarea' });
     expect(mockDeleteTask).not.toHaveBeenCalled();
+  });
+
+  it('deleteTaskAction permite a un manager borrar una tarea propia', async () => {
+    mockRequireAnyRole.mockResolvedValue(makeSession('manager', 'mgr-1'));
+    mockGetTaskById.mockResolvedValue({ id: 9, ownerId: 'mgr-1', assignedToUserId: null });
+
+    const result = await deleteTaskAction(9);
+
+    expect(result).toEqual({});
+    expect(mockDeleteTask).toHaveBeenCalledWith(9);
+  });
+
+  it('deleteTaskAction deja a un admin borrar sin comprobar propiedad', async () => {
+    mockRequireAnyRole.mockResolvedValue(makeSession('admin', 'admin-1'));
+
+    const result = await deleteTaskAction(9);
+
+    expect(result).toEqual({});
+    expect(mockDeleteTask).toHaveBeenCalledWith(9);
+    // Un admin no necesita cargar la tarea para decidir.
+    expect(mockGetTaskById).not.toHaveBeenCalled();
   });
 });
