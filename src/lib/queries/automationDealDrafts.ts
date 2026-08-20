@@ -10,6 +10,7 @@ import {
   getAutomatedDealProgress,
   type AutomationDealProgress,
 } from '@/lib/queries/automationDeals';
+import { ensureDealTrackingSheet } from '@/lib/queries/ensureDealTrackingSheet';
 import {
   AutomationDealCreate,
   type AutomationDealDraftCreateInput,
@@ -260,6 +261,10 @@ export async function reviewAutomationDealDraft(input: {
   const proposedDeal = AutomationDealCreate.safeParse(draft.proposedDeal);
   if (!proposedDeal.success) throw new AutomationDealDraftError('draft-payload-invalid');
   const deal = await createAutomatedDeal(proposedDeal.data, `draft:${draft.id}`);
+  // Misma política que en POST /deals: la hoja se intenta después y sin
+  // bloquear. Aprobar el borrador dos veces no crea una segunda hoja porque
+  // ensureDealTrackingSheet corta si el trato ya tiene trackingSheetUrl.
+  await ensureDealTrackingSheet(deal.campaignId);
   await db
     .update(automationDealDrafts)
     .set({

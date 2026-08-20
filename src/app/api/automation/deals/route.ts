@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 
 import { AutomationDealInputError, createAutomatedDeal } from '@/lib/queries/automationDeals';
+import { ensureDealTrackingSheet } from '@/lib/queries/ensureDealTrackingSheet';
 import { AutomationDealCreate, AutomationIdempotencyKey } from '@/lib/schemas/automationDeal';
 import { verifyAutomationToken } from '@/lib/security/assertAutomationAuth';
 
@@ -31,7 +32,13 @@ export async function POST(req: Request): Promise<NextResponse> {
 
   try {
     const result = await createAutomatedDeal(parsed.data, key.data);
-    return NextResponse.json({ ok: true, ...result }, { status: result.created ? 201 : 200 });
+    // Se intenta después de crear el trato y sin bloquearlo: si Drive falla o
+    // no está configurado, el trato queda igualmente y el digest lo marca como
+    // `missing_sheet`, que es la señal correcta.
+    const sheet = result.created
+      ? await ensureDealTrackingSheet(result.campaignId)
+      : { status: 'already_had_sheet' as const };
+    return NextResponse.json({ ok: true, ...result, sheet }, { status: result.created ? 201 : 200 });
   } catch (error) {
     if (error instanceof AutomationDealInputError) {
       return NextResponse.json({ ok: false, error: error.message }, { status: 422 });

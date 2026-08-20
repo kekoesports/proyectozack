@@ -17,6 +17,10 @@ export const env = createEnv({
     GOOGLE_SERVICE_ACCOUNT_EMAIL: z.string().email().optional(),
     GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY: z.string().min(1).optional(),
     GOOGLE_DRIVE_BACKUP_FOLDER_ID: z.string().min(1).optional(),
+    // Plantilla y carpeta para generar la hoja de seguimiento de un trato.
+    // Opcionales: sin ellas la generación no ocurre y el trato se crea igual.
+    GOOGLE_DRIVE_DEAL_TEMPLATE_ID: z.string().min(1).optional(),
+    GOOGLE_DRIVE_TRACKING_FOLDER_ID: z.string().min(1).optional(),
     // Bearer token for skill-driven CLI endpoints (/api/admin/discover/*, /api/admin/targets/{import,active}).
     // Optional in dev so the app boots without it; endpoints fail-closed with 503 when absent.
     // Generate with `crypto.randomBytes(32).toString('hex')`.
@@ -138,6 +142,8 @@ export const env = createEnv({
     GOOGLE_SERVICE_ACCOUNT_EMAIL: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
     GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY: process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY,
     GOOGLE_DRIVE_BACKUP_FOLDER_ID: process.env.GOOGLE_DRIVE_BACKUP_FOLDER_ID,
+    GOOGLE_DRIVE_DEAL_TEMPLATE_ID: process.env.GOOGLE_DRIVE_DEAL_TEMPLATE_ID,
+    GOOGLE_DRIVE_TRACKING_FOLDER_ID: process.env.GOOGLE_DRIVE_TRACKING_FOLDER_ID,
     TARGETS_IMPORT_TOKEN: process.env.TARGETS_IMPORT_TOKEN,
     AUTOMATION_API_TOKEN: process.env.AUTOMATION_API_TOKEN,
     GEMINI_API_KEY: process.env.GEMINI_API_KEY,
