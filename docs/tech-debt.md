@@ -210,3 +210,44 @@ Ninguno calcula "cobrado real" o "pendiente real" a partir de `.paidAmount`. Los
 | `/api/og-image/test` | Debug endpoint | Eliminar |
 | `/api/og-image/talent/[slug]` | Redirect 301 a talent-img | Activo, intencional |
 | `/api/og-image/talent-img` | OG image actual (nodejs) | Activo, producción |
+
+---
+
+## Dos normalizadores de URL divergentes (evidencias de tratos)
+
+**Detectado:** 2026-08-20, al crear el índice único de la migración 0120.
+
+Hay dos caminos que escriben `deal_deliverable_items.normalized_url` y no
+coinciden:
+
+| Camino | Función | Fichero |
+|---|---|---|
+| sync de Sheets | `normalizeUrl` | `lib/queries/campaign-sheet-aggregation.ts` |
+| import manual | `normalizeContentUrl` | `lib/utils/url-normalizer.ts` |
+
+`normalizeContentUrl` quita el `www.` y canonicaliza `youtu.be` a
+`youtube.com/watch?v=`; `normalizeUrl` no hace ninguna de las dos cosas.
+Medido sobre URLs reales: **6 de 8 producen claves distintas**.
+
+**Por qué importa:** el índice único `(tracker_id, normalized_url)` impide
+duplicados *dentro* de un camino, pero no *entre* caminos. La misma URL entrada
+por Sheets y por importación manual genera dos claves y el índice no ve nada
+raro; si las dos quedan `valid`, el progreso cuenta el contenido dos veces.
+
+**Impacto real hoy: ninguno.** Medido en producción el 2026-08-20: 607 filas
+activas, 607 claves canónicas, **0 colisiones**. En la práctica cada tracker usa
+un solo camino.
+
+**Acción sugerida:** unificar en `normalizeContentUrl`, que es el más completo.
+Obliga a recalcular `normalized_url` de las filas existentes y a deduplicar de
+nuevo antes de que el índice único acepte los valores nuevos — no es un cambio
+de una línea.
+
+**Mientras tanto** queda fijado en
+`src/__tests__/server/url-normalizers-divergence.test.ts`: si alguien los
+unifica, ese test falla y obliga a leer esta entrada.
+
+**Riesgo si no se hace:** BAJO hoy, MEDIO si un mismo trato empieza a recibir
+evidencias por los dos caminos.
+
+**Esfuerzo:** 2-3 h (migración de datos incluida).
