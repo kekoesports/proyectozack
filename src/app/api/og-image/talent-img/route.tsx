@@ -1,5 +1,6 @@
 import { ImageResponse } from 'next/og';
-import { db } from '@/lib/db';
+import { sql } from 'drizzle-orm';
+import { rawRows } from '@/lib/db';
 import { safeFetchImageAsBase64 } from '@/lib/security/safeImageFetch';
 
 export const dynamic = 'force-dynamic';
@@ -18,10 +19,10 @@ export async function GET(req: Request) {
 
     if (slug) {
       try {
-        const talentRows = await db.$client`
+        const talentRows = await rawRows(sql`
           SELECT name, role, game, initials, photo_url, gradient_c1, gradient_c2
           FROM talents WHERE slug = ${slug} LIMIT 1
-        `;
+        `);
 
         const t = talentRows[0];
         if (t) {

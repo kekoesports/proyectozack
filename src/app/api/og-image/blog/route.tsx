@@ -1,5 +1,6 @@
 import { ImageResponse } from 'next/og';
-import { db } from '@/lib/db';
+import { sql } from 'drizzle-orm';
+import { rawRows } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 
@@ -161,7 +162,7 @@ export async function GET(req: Request) {
     const [loadedFont, postRows] = await Promise.all([
       loadBarlowFont(),
       slug
-        ? db.$client`SELECT title, excerpt, author, cover_url, body_md FROM posts WHERE slug = ${slug} LIMIT 1`
+        ? rawRows(sql`SELECT title, excerpt, author, cover_url, body_md FROM posts WHERE slug = ${slug} LIMIT 1`)
         : Promise.resolve([]),
     ]);
 

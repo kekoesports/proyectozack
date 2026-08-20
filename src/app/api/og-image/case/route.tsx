@@ -1,5 +1,6 @@
 import { ImageResponse } from 'next/og';
-import { db } from '@/lib/db';
+import { sql } from 'drizzle-orm';
+import { rawRows } from '@/lib/db';
 import { safeFetchImageAsBase64 } from '@/lib/security/safeImageFetch';
 import { getCaseConfig } from '@/features/cases/case-config';
 
@@ -46,12 +47,12 @@ export async function GET(req: Request) {
 
     if (slug) {
       try {
-        const rows = await db.$client`
+        const rows = await rawRows(sql`
           SELECT brand_name, title, logo_url, reach, conversions, roi_multiplier
           FROM case_studies
           WHERE slug = ${slug}
           LIMIT 1
-        `;
+        `);
         const cs = rows[0];
         if (cs) {
           brandName = String(cs.brand_name ?? brandName);

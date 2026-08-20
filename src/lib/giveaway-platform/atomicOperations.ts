@@ -46,13 +46,29 @@ function isSerializationFailure(error: unknown): boolean {
   return error instanceof Error && error.message.includes('could not serialize');
 }
 
+/**
+ * Ejecuta una sentencia del ledger bajo aislamiento SERIALIZABLE.
+ *
+ * Antes esto usaba `serializableDb.batch([...])`: un rodeo para envolver una
+ * sola sentencia en una transacción serializable, porque el driver HTTP de
+ * Neon no admitía transacciones interactivas. Con `pg` se declara el nivel de
+ * aislamiento en la propia transacción, que es más directo y más fuerte.
+ *
+ * El reintento ante 40001 sigue siendo imprescindible: con SERIALIZABLE el
+ * servidor aborta una de las transacciones en conflicto y espera que el
+ * cliente la repita.
+ */
 async function serializableRows(query: SQL): Promise<unknown[]> {
   for (let attempt = 0; attempt < 3; attempt += 1) {
     try {
-      const [result] = await serializableDb.batch([
-        serializableDb.execute(query),
-      ]);
-      return result.rows;
+      return await serializableDb.transaction(
+        async (tx) => {
+          const resultado = await tx.execute(query);
+          const filas = (resultado as unknown as { rows?: unknown[] }).rows;
+          return Array.isArray(filas) ? filas : (resultado as unknown as unknown[]);
+        },
+        { isolationLevel: 'serializable' },
+      );
     } catch (error) {
       if (!isSerializationFailure(error) || attempt === 2) throw error;
     }

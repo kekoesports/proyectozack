@@ -1,5 +1,6 @@
 import { ImageResponse } from 'next/og';
-import { db } from '@/lib/db';
+import { sql } from 'drizzle-orm';
+import { rawRows } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,7 +15,7 @@ export async function GET() {
     let totalValue = 0;
 
     try {
-      const rows = await db.$client`
+      const rows = await rawRows(sql`
         SELECT COUNT(*)::int AS cnt,
                COALESCE(SUM(
                  CASE WHEN g.value ~ '^[0-9.,]+' THEN
@@ -23,7 +24,7 @@ export async function GET() {
                ), 0)::int AS total_value
         FROM giveaway_winners gw
         JOIN giveaways g ON g.id = gw.giveaway_id
-      `;
+      `);
       totalWinners = (rows[0] as { cnt: number; total_value: number })?.cnt ?? 0;
       totalValue   = (rows[0] as { cnt: number; total_value: number })?.total_value ?? 0;
     } catch { /* fall back to zeros */ }

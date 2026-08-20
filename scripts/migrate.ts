@@ -1,8 +1,9 @@
 import { readFileSync } from 'fs';
 import { join } from 'path';
-import { neon, neonConfig } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-http';
-import { migrate } from 'drizzle-orm/neon-http/migrator';
+import { Pool } from 'pg';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { migrate } from 'drizzle-orm/node-postgres/migrator';
+import { isPreviewDeploy } from '../src/lib/deploy-env';
 import { checkMigrationsWillApply } from './migration-skip-guard';
 
 // Load .env.local manually (drizzle-kit/tsx don't auto-load it)
@@ -31,12 +32,12 @@ try {
 
 const runPreviewMigrations = process.env.RUN_MIGRATIONS_IN_PREVIEW === 'true';
 
-if (process.env.VERCEL_ENV === 'preview' && !runPreviewMigrations) {
-  console.log('Skipping database migrations in Vercel Preview deployment.');
+if (isPreviewDeploy() && !runPreviewMigrations) {
+  console.log('Skipping database migrations in preview deployment.');
   process.exit(0);
 }
 
-if (process.env.VERCEL_ENV === 'preview') {
+if (isPreviewDeploy()) {
   console.log('Preview migrations explicitly enabled for this deployment.');
 }
 
@@ -46,16 +47,15 @@ if (!url) {
   process.exit(1);
 }
 
-const fetchEndpoint = process.env.NEON_HTTP_FETCH_ENDPOINT;
-if (fetchEndpoint) neonConfig.fetchEndpoint = fetchEndpoint;
 
-const sql = neon(url);
-const db = drizzle(sql);
+// El rol migrador puede ser distinto del de la aplicación: aplica DDL.
+const pool = new Pool({ connectionString: process.env.MIGRATION_DATABASE_URL ?? url });
+const db = drizzle(pool);
 
 async function main(): Promise<void> {
   // Antes de migrar: comprobar que ninguna pendiente nace por debajo del suelo
   // de la base. Drizzle las saltaría en silencio y el deploy saldría verde.
-  const guard = await checkMigrationsWillApply(sql);
+  const guard = await checkMigrationsWillApply(pool);
   if (!guard.ok) {
     console.error('');
     console.error('MIGRACIONES QUE NO SE APLICARIAN — abortando el deploy');

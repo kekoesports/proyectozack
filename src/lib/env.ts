@@ -5,7 +5,18 @@ export const env = createEnv({
   server: {
     DATABASE_URL: z.string().url(),
     /** Endpoint HTTP alternativo para el proxy Neon local de QA. */
+    // Se conserva mientras producción siga en Vercel con el driver HTTP de
+    // Neon. Deja de leerse en cuanto el cutover termine.
     NEON_HTTP_FETCH_ENDPOINT: z.string().url().optional(),
+    // Ajustes del pool de PostgreSQL. Los valores por defecto sirven para un
+    // proceso persistente (VPS); en serverless conviene un `max` bajo porque
+    // cada instancia abre su propio pool.
+    DB_POOL_MAX: z.coerce.number().int().min(1).max(100).default(10),
+    DB_IDLE_TIMEOUT_MS: z.coerce.number().int().min(0).default(30_000),
+    DB_CONNECTION_TIMEOUT_MS: z.coerce.number().int().min(1000).default(10_000),
+    DB_STATEMENT_TIMEOUT_MS: z.coerce.number().int().min(1000).default(30_000),
+    // URL con el rol migrador. Si no se define, se usa DATABASE_URL.
+    MIGRATION_DATABASE_URL: z.string().url().optional(),
     RESEND_API_KEY: z.string().min(1),
     BETTER_AUTH_SECRET: z.string().min(32),
     // Optional in dev; required in production for cron endpoints to be reachable.
@@ -132,6 +143,11 @@ export const env = createEnv({
   runtimeEnv: {
     DATABASE_URL: process.env.DATABASE_URL,
     NEON_HTTP_FETCH_ENDPOINT: process.env.NEON_HTTP_FETCH_ENDPOINT,
+    DB_POOL_MAX: process.env.DB_POOL_MAX,
+    DB_IDLE_TIMEOUT_MS: process.env.DB_IDLE_TIMEOUT_MS,
+    DB_CONNECTION_TIMEOUT_MS: process.env.DB_CONNECTION_TIMEOUT_MS,
+    DB_STATEMENT_TIMEOUT_MS: process.env.DB_STATEMENT_TIMEOUT_MS,
+    MIGRATION_DATABASE_URL: process.env.MIGRATION_DATABASE_URL,
     RESEND_API_KEY: process.env.RESEND_API_KEY,
     BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET,
     CRON_SECRET: process.env.CRON_SECRET,
