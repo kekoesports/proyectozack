@@ -1,0 +1,37 @@
+# Tareas programadas del CRM. Sustituyen a los crons de vercel.json.
+#
+# Los horarios son los MISMOS y siguen en UTC, como en Vercel. No se han
+# trasladado a hora local a propósito: cambiarlos y migrar a la vez haría
+# imposible saber si una diferencia de comportamiento viene del cambio de
+# infraestructura o del cambio de horario.
+#
+# Equivalencia en Europe/Madrid (verano, UTC+2) en la columna de la derecha.
+#
+# ATENCIÓN: al activar esto hay que DESACTIVAR los crons de Vercel. Si quedan
+# los dos, cada tarea corre dos veces y no todas son idempotentes.
+#
+# CRON_SECRET viene de env/scheduler.env. Se llama por la red interna, así que
+# el tráfico no sale del host.
+
+# min hora dia mes dow  comando
+
+# ── diarias ─────────────────────────────────────────────────────────────────
+0 6 * * *    /usr/bin/curl -fsS -m 110 -H "Authorization: Bearer $CRON_SECRET" http://app:3000/api/cron/snapshot-metrics            # 08:00 Madrid
+0 2 * * *    /usr/bin/curl -fsS -m 110 -H "Authorization: Bearer $CRON_SECRET" http://app:3000/api/cron/backup                      # 04:00 Madrid
+0 7 * * *    /usr/bin/curl -fsS -m 110 -H "Authorization: Bearer $CRON_SECRET" http://app:3000/api/cron/sync-news-alerts            # 09:00 Madrid
+0 23 * * *   /usr/bin/curl -fsS -m 110 -H "Authorization: Bearer $CRON_SECRET" http://app:3000/api/cron/sync-sheet-sources          # 01:00 Madrid (día siguiente)
+0 3 * * *    /usr/bin/curl -fsS -m 110 -H "Authorization: Bearer $CRON_SECRET" http://app:3000/api/cron/generate-recurring-expenses # 05:00 Madrid
+
+# ── semanales (lunes) ───────────────────────────────────────────────────────
+0 5 * * 1    /usr/bin/curl -fsS -m 110 -H "Authorization: Bearer $CRON_SECRET" http://app:3000/api/cron/rollover-tasks              # lunes 07:00 Madrid
+0 7 * * 1    /usr/bin/curl -fsS -m 110 -H "Authorization: Bearer $CRON_SECRET" http://app:3000/api/cron/sync-metrics                # lunes 09:00 Madrid
+
+# ── horaria ─────────────────────────────────────────────────────────────────
+7 * * * *    /usr/bin/curl -fsS -m 110 -H "Authorization: Bearer $CRON_SECRET" http://app:3000/api/cron/giveaway-lifecycle          # cada hora, minuto 7
+
+# ── SIN MIGRAR, a propósito ─────────────────────────────────────────────────
+#
+# /api/cron/poll-live-status existe, tiene handler completo y autenticación,
+# pero NO tiene horario en vercel.json. O está muerto, o lo dispara n8n, o se
+# llama a mano. Añadirlo aquí "por si acaso" podría ponerlo a correr por
+# primera vez en su vida. Hay que aclararlo antes.
