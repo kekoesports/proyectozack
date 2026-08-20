@@ -18,6 +18,16 @@
  *
  * Fases 2-5 del sprint SEO+GEO 2026-07 enriquecerán URL_LIST con las
  * nuevas landings que se creen.
+ *
+ * Estado observado (2026-08-20): api.indexnow.org y www.bing.com/indexnow
+ * responden 403 'UserForbiddedToAccessSite' para socialpro.es y también para
+ * www.socialpro.es. La misma key y keyLocation son aceptadas por
+ * yandex.com/indexnow (202), así que el fichero de key se publica y se
+ * verifica correctamente — el rechazo es del lado de Bing. La API pide
+ * "verify the site using the key"; esa acción vive fuera del repo, en Bing
+ * Webmaster Tools, y el host verificado allí debe coincidir con HOST. No está
+ * confirmado que sea el motivo exacto del rechazo, solo que es lo que la API
+ * reclama.
  */
 
 import { readFileSync } from 'fs';
@@ -102,7 +112,21 @@ async function main(): Promise<void> {
     if (res.status === 200 || res.status === 202) {
       console.log(`[indexnow] ok (HTTP ${res.status}) — ${URL_LIST.length} URLs submitted`);
     } else {
-      console.warn(`[indexnow] warning: HTTP ${res.status} — not failing the build`);
+      // El status a secas no es accionable: el 403 del 2026-08-20 costó una
+      // investigación entera para descubrir que el cuerpo traía
+      // errorCode=UserForbiddedToAccessSite. Leer el body es best-effort y va
+      // en su propio try — un cuerpo vacío, truncado o no-JSON no puede romper
+      // el contrato fail-open de este script.
+      let detail = '';
+      try {
+        // 'responseBody', no 'body': el objeto de la petición ya ocupa ese
+        // nombre en el scope exterior.
+        const responseBody = (await res.text()).trim();
+        if (responseBody) detail = ` — ${responseBody.slice(0, 300)}`;
+      } catch {
+        detail = ' — (cuerpo de respuesta ilegible)';
+      }
+      console.warn(`[indexnow] warning: HTTP ${res.status}${detail} — not failing the build`);
     }
   } catch (err) {
     console.warn('[indexnow] warning: ping failed —', err instanceof Error ? err.message : err);
