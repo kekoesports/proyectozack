@@ -67,6 +67,28 @@ export async function createAutomationDealDraft(input: AutomationDealDraftCreate
   };
 }
 
+/**
+ * Busca un borrador por su clave de idempotencia.
+ *
+ * Sirve para cortar antes de parsear cuando el sondeo vuelve a traer un mensaje
+ * ya procesado: `createAutomationDealDraft` es idempotente, pero llegar hasta él
+ * obliga a rehacer el trabajo de extracción en cada pasada.
+ */
+export async function findAutomationDealDraftByExternalId(
+  source: AutomationDealDraftCreateInput['source'],
+  externalId: string,
+) {
+  const [draft] = await db
+    .select({ id: automationDealDrafts.id, status: automationDealDrafts.status })
+    .from(automationDealDrafts)
+    .where(and(
+      eq(automationDealDrafts.source, source),
+      eq(automationDealDrafts.externalId, externalId),
+    ))
+    .limit(1);
+  return draft ?? null;
+}
+
 export async function getAutomationDealDraft(id: number) {
   const [draft] = await db
     .select()

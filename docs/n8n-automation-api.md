@@ -217,6 +217,61 @@ Discord ni n8n, conserva el estado canónico.
 
 ### Entrada desde Discord
 
+#### Lectura automática de #pipeline-deals
+
+El equipo publica los tratos como mensaje de texto en `#pipeline-deals`. Un
+workflow de n8n (`socialpro-pipeline-deals-reader.json`) sondea el canal cada
+15 minutos con la credencial del bot y envía el lote en crudo a:
+
+`POST /api/automation/discord/pipeline-deals`
+
+```json
+{
+  "messages": [
+    {
+      "messageId": "1533123521574862991",
+      "channelId": "1533123521574862991",
+      "authorId": "1522153792592806018",
+      "content": "NUEVO DEAL
+
+Creador: ..."
+    }
+  ]
+}
+```
+
+El sondeo vive en n8n porque allí ya está el token del bot; **el parseo vive en
+el CRM** (`src/lib/parsers/discordDeal.ts`), que es donde puede tener Zod y
+tests. El parser es determinista: no llama a ningún modelo.
+
+La respuesta resume el lote y detalla cada mensaje con uno de estos resultados:
+
+| resultado | significado |
+|---|---|
+| `created` | borrador nuevo |
+| `already_seen` | el mensaje ya se había procesado; no se vuelve a parsear |
+| `ignored` | no parece un trato (charla del canal); no deja borrador |
+| `failed` | error puntual; el resto del lote sigue y n8n reintenta en la próxima pasada |
+
+**Idempotencia:** la clave es `discord:message:<id>`. El endpoint corta **antes**
+de parsear si el mensaje ya se procesó — sin ese corte, cada sondeo repetiría el
+trabajo unas 96 veces al día por mensaje.
+
+**Qué NO hace:** no crea campañas ni llama a `/deals/sync`. Solo deja borradores
+en `/admin/automation-drafts` para que los revise una persona.
+
+Dos cosas que el parser trata a propósito como campo vacío o error, porque
+aparecieron en mensajes reales:
+
+- `30/02/2027` **se rechaza**. `new Date(2027, 1, 30)` devolvería el 2 de marzo
+  sin avisar, y la errata se colaría como fecha válida.
+- `@HANDLE_EXACTO` y similares (`TBD`, `N/A`, `NOMBRE_MARCA`) **cuentan como
+  vacío**: son huecos de plantilla sin rellenar, no valores.
+
+En ambos casos el borrador aterriza como `missing_info` con los campos que
+faltan, que es justo lo que hace que alguien lo revise.
+
+
 Discord funciona como interfaz, no como base de datos. El comando `/deal`
 debe interpretar el texto y guardar primero un borrador:
 

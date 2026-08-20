@@ -69,7 +69,7 @@
       "retryOnFail": true,
       "maxTries": 3,
       "waitBetweenTries": 3000,
-      "notes": "SOLO LECTURA. El sync lo hace el workflow horario de progreso, que es su único dueño: dos schedules llamando a /deals/sync se solapan y duplican evidencias (no hay lock ni unique index)."
+      "notes": "SOLO LECTURA. El sync lo hace el workflow horario de progreso, que es su único dueño. Desde la migración 0120 hay unique index (tracker_id, normalized_url), así que un solapamiento ya no duplica evidencias; sigue sin convenir porque /deals/sync sube el watermark de avisos antes de que salgan."
     },
     {
       "parameters": {
