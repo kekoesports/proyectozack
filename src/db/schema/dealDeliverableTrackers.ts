@@ -157,6 +157,10 @@ export const dealDeliverableItems = pgTable(
     index('deal_items_status_idx').on(t.status),
     index('deal_items_normalized_url_idx').on(t.normalizedUrl),
     index('deal_items_tracker_source_active_idx').on(t.trackerId, t.sourceType, t.isActive),
+    // Una evidencia por (tracker, URL). Sin esta garantía, dos syncs solapados
+    // insertan la misma URL dos veces de forma permanente: los caminos de
+    // importación filtran en memoria, pero eso no cubre la carrera.
+    uniqueIndex('deal_items_tracker_url_uidx').on(t.trackerId, t.normalizedUrl),
   ],
 );
 
