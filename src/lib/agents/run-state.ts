@@ -105,10 +105,29 @@ const CODIGOS_TRANSITORIOS: readonly string[] = [
   'provider_quota',
   'provider_timeout',
   'provider_unavailable',
+  // Solo el de LECTURA. `tool_timeout_indeterminate` —el de una tool que
+  // escribe— queda deliberadamente fuera: ahí no se sabe si la acción ocurrió,
+  // y reintentar lo que quizá ya pasó es exactamente el fallo que la
+  // idempotencia existe para evitar.
   'tool_timeout',
   'lease_lost',
   'db_unavailable',
 ];
+
+/**
+ * Códigos que significan "no se sabe qué pasó".
+ *
+ * Ni se reintentan ni se dan por fallidos: alguien tiene que mirar si la
+ * acción llegó a ocurrir.
+ */
+export const CODIGOS_INDETERMINADOS: readonly string[] = [
+  'tool_timeout_indeterminate',
+  'tool_call_in_flight',
+];
+
+export function isIndeterminateErrorCode(code: string | null | undefined): boolean {
+  return code !== null && code !== undefined && CODIGOS_INDETERMINADOS.includes(code);
+}
 
 export function isRetryableErrorCode(code: string | null | undefined): boolean {
   return code !== null && code !== undefined && CODIGOS_TRANSITORIOS.includes(code);

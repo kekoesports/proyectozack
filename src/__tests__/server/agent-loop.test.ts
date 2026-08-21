@@ -251,6 +251,33 @@ describe('aprobación y modos', () => {
     expect(provider.callCount).toBe(1);
   });
 
+  it('un resultado indeterminado detiene la ejecución', async () => {
+    // Seguir significaría que el modelo razona sobre un estado del mundo que
+    // nadie conoce, y el siguiente paso podría duplicar lo que sí ocurrió.
+    const provider = new FakeAgentModelProvider([
+      { toolCalls: [{ id: 'c1', toolName: 'enviarEmail', input: { to: 'a@ejemplo.test' } }] },
+      { text: 'no debería llegar aquí' },
+    ]);
+    const { deps: d } = deps(provider, {
+      executor: executorDeps({
+        findApproval: async (hash) => ({
+          id: 7,
+          status: 'approved',
+          actionHash: hash,
+          actionClass: 'external_side_effect',
+          expiresAt: new Date(AHORA.getTime() + 60_000),
+          consumedAt: null,
+        }),
+        findPreviousCall: async () => ({ status: 'executing', resultJson: null }),
+      }),
+    });
+    const res = await runAgentLoop(d, { systemPrompt: 'x', userMessage: 'y', ctx: ctx() });
+
+    expect(res).toMatchObject({ status: 'stopped', reason: 'tool_outcome_unknown' });
+    expect(ejecuciones).toEqual([]);
+    expect(provider.callCount).toBe(1);
+  });
+
   it('en shadow, la acción se simula y el bucle continúa', async () => {
     const provider = new FakeAgentModelProvider([
       { toolCalls: [{ id: 'c1', toolName: 'enviarEmail', input: { to: 'a@ejemplo.test' } }] },

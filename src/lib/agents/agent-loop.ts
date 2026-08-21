@@ -181,6 +181,19 @@ export async function runAgentLoop(
         };
       }
 
+      // Si no se sabe si una escritura ocurrió, la ejecución para aquí. Seguir
+      // significaría que el modelo razona sobre un estado del mundo que nadie
+      // conoce, y el siguiente paso podría intentar arreglar algo que no está
+      // roto —o duplicar lo que sí pasó—.
+      if (resultado.status === 'indeterminate') {
+        return {
+          status: 'stopped',
+          reason: 'tool_outcome_unknown',
+          detail: `${llamada.toolName}: ${resultado.code}`,
+          turns: turnos,
+        };
+      }
+
       mensajes.push({
         role: 'tool',
         toolName: llamada.toolName,
@@ -209,6 +222,14 @@ function contenidoParaModelo(resultado: AgentToolExecutionResult): Record<string
       return { ok: false, error: 'No tienes permiso para ejecutar esta herramienta.' };
     case 'failed':
       return { ok: false, error: 'La herramienta falló. Continúa sin esos datos o termina.' };
+    case 'indeterminate':
+      // Se le dice explícitamente que NO lo repita. Un modelo que ve "falló"
+      // vuelve a intentarlo, y aquí eso podría duplicar una acción que ya
+      // ocurrió.
+      return {
+        ok: false,
+        error: 'No se sabe si la acción llegó a ocurrir. NO la repitas: una persona debe comprobarlo.',
+      };
     case 'waiting_approval':
       return { ok: false, error: 'Pendiente de aprobación humana.' };
   }

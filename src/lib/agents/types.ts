@@ -168,6 +168,22 @@ export type AgentToolExecutionResult =
       readonly code: string;
       readonly message: string;
       readonly durationMs: number;
+    }
+  /**
+   * No se sabe si la acción llegó a ocurrir.
+   *
+   * Pasa cuando una tool que escribe supera su timeout: el `Promise.race`
+   * devuelve el control, pero la escritura sigue viva y puede completarse.
+   * Registrarlo como `failed` sería mentir, y la mentira tiene consecuencias —
+   * un fallo se reintenta, y reintentar un envío que sí ocurrió lo duplica.
+   *
+   * Un resultado indeterminado **no se reintenta**: lo mira una persona.
+   */
+  | {
+      readonly status: 'indeterminate';
+      readonly code: string;
+      readonly message: string;
+      readonly durationMs: number;
     };
 
 /** Límites de una ejecución. Se comprueban en cada vuelta, no al empezar. */

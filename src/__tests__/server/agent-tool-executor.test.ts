@@ -381,6 +381,29 @@ describe('idempotencia', () => {
     expect(ejecuciones).toEqual([]);
   });
 
+  it('una llamada previa en vuelo NO se repite: podría haber ocurrido', async () => {
+    // Es lo que deja un worker que murió a mitad de la escritura. Repetirla es
+    // peor que no hacerla: no hay forma de des-enviar un email.
+    const res = await executeAgentToolCall(
+      deps([toolEnvio()], {
+        findApproval: async (hash) => ({
+          id: 7,
+          status: 'approved',
+          actionHash: hash,
+          actionClass: 'external_side_effect',
+          expiresAt: new Date(AHORA.getTime() + 60_000),
+          consumedAt: null,
+        }),
+        findPreviousCall: async () => ({ status: 'executing', resultJson: null }),
+      }),
+      contexto(),
+      { toolName: 'enviarEmail', rawInput: { to: 'a@ejemplo.test' } },
+    );
+
+    expect(res).toMatchObject({ status: 'indeterminate', code: 'tool_call_in_flight' });
+    expect(ejecuciones).toEqual([]);
+  });
+
   it('una llamada previa fallida no bloquea el reintento', async () => {
     const res = await executeAgentToolCall(
       deps([toolEnvio()], {
@@ -428,6 +451,78 @@ describe('timeout y fallos', () => {
       deps([lenta], { now: () => new Date((ahora += 10)) }),
       contexto(),
       { toolName: 'lenta', rawInput: {} },
+    );
+    expect(res).toMatchObject({ status: 'failed', code: 'tool_timeout' });
+  });
+
+  it('una tool que ESCRIBE y expira queda indeterminada, no fallida', async () => {
+    // El `race` devuelve el control, pero la escritura sigue viva y puede
+    // completarse. Marcarla `failed` la haría reintentable, y el reintento
+    // duplicaría un envío que quizá ya salió.
+    const lenta = eraseAgentTool<{ to: string }, { enviado: boolean }>({
+      name: 'enviarLento',
+      version: '1',
+      description: 'Envía, despacio.',
+      inputSchema: z.object({ to: z.string().email() }).strict(),
+      requiredPermission: null,
+      actionClass: 'external_side_effect',
+      approvalPolicy: 'always',
+      maxExecutionMs: 20,
+      redactInput: (i) => ({ to: i.to }),
+      redactOutput: (o) => ({ ...o }),
+      buildIdempotencyKey: (ctx, i) => `envio:${ctx.runId}:${i.to}`,
+      execute: async () => {
+        await new Promise((r) => setTimeout(r, 200));
+        ejecuciones.push('enviarLento');
+        return { enviado: true };
+      },
+    });
+
+    let ahora = AHORA.getTime();
+    const res = await executeAgentToolCall(
+      deps([lenta], {
+        now: () => new Date((ahora += 10)),
+        findApproval: async (hash) => ({
+          id: 7,
+          status: 'approved',
+          actionHash: hash,
+          actionClass: 'external_side_effect',
+          expiresAt: new Date(AHORA.getTime() + 600_000),
+          consumedAt: null,
+        }),
+      }),
+      contexto(),
+      { toolName: 'enviarLento', rawInput: { to: 'a@ejemplo.test' } },
+    );
+
+    expect(res).toMatchObject({ status: 'indeterminate', code: 'tool_timeout_indeterminate' });
+  });
+
+  it('una tool de LECTURA que expira sí es un fallo reintentable', async () => {
+    const lenta = eraseAgentTool<Record<string, never>, { ok: boolean }>({
+      name: 'leerLento',
+      version: '1',
+      description: 'Lee, despacio.',
+      inputSchema: z.object({}).strict(),
+      requiredPermission: null,
+      actionClass: 'read',
+      approvalPolicy: 'never',
+      maxExecutionMs: 20,
+      redactInput: () => ({}),
+      redactOutput: (o) => ({ ...o }),
+      // Sin clave: repetir una lectura no tiene consecuencias.
+      buildIdempotencyKey: null,
+      execute: async () => {
+        await new Promise((r) => setTimeout(r, 200));
+        return { ok: true };
+      },
+    });
+
+    let ahora = AHORA.getTime();
+    const res = await executeAgentToolCall(
+      deps([lenta], { now: () => new Date((ahora += 10)) }),
+      contexto(),
+      { toolName: 'leerLento', rawInput: {} },
     );
     expect(res).toMatchObject({ status: 'failed', code: 'tool_timeout' });
   });

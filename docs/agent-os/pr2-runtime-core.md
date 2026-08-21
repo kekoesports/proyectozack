@@ -141,6 +141,38 @@ a leerse: el permiso se comprueba contra el rol real del actor, así que una
 ejecución disparada por un `staff` no verá facturación aunque la tool esté en
 la lista.
 
+### Un timeout de escritura no es un fallo
+
+Si una tool que escribe supera su timeout, el `Promise.race` devuelve el
+control pero la escritura **sigue viva** y puede completarse. Registrarlo como
+`failed` sería mentir, y la mentira tiene consecuencias: un fallo es
+reintentable, y el reintento duplicaría un envío que quizá ya salió.
+
+Por eso existe el estado `indeterminate`:
+
+- `tool_timeout_indeterminate` — la tool escribe y se pasó de tiempo.
+- `tool_call_in_flight` — ya hay una llamada con la misma clave en un estado
+  que no es `failed`; es lo que deja un worker muerto a mitad.
+
+Ninguno de los dos es reintentable, el bucle detiene la ejecución, y al modelo
+se le dice explícitamente **"NO la repitas"**. Solo un `failed` explícito
+autoriza a volver a ejecutar.
+
+## Contrato obligatorio para PR 3
+
+**La fila de `agent_tool_calls` se escribe ANTES de invocar la tool, con su
+clave de idempotencia y `status = 'executing'`, en su propia sentencia
+comprometida.**
+
+Escribirla después es lo natural —ya se sabe el resultado— y es exactamente lo
+que rompe la garantía: si el worker muere a mitad de la tool, no queda rastro,
+y al reanudar `findPreviousCall` no encuentra nada y la acción se repite a
+ciegas. Con la fila escrita antes, el reintento encuentra un `executing` y
+devuelve `tool_call_in_flight` en vez de enviar el email por segunda vez.
+
+Consecuencia deseada: una fila en `executing` cuyo lease ya venció es una
+anomalía detectable, y esa es justo la señal que se quiere.
+
 ## Dos fallos que encontraron los tests
 
 Ambos en código escrito en este mismo PR, ambos arreglados:
@@ -191,12 +223,60 @@ guionizados, así que la suite es determinista y no necesita clave de API.
 Revertir el PR. Nada de lo que añade se ejecuta todavía desde una ruta de
 producción, así que quitarlo no cambia el comportamiento de nada.
 
+## Decisiones tomadas para los PRs siguientes
+
+### PR 3 — cómo se prueban las garantías de concurrencia
+
+Las de PR 1 y PR 2 son declarativas y se pueden comprobar leyendo SQL o
+llamando a funciones puras. Las de PR 3 no: que dos workers reclamen
+ejecuciones distintas, que un lease caducado se recupere, que un tick doble de
+schedule cree un solo run. Eso es comportamiento, y **exige una base real**.
+
+Decisión: los tests de concurrencia se escriben contra un Postgres desechable y
+se saltan solos cuando falta `TEST_DATABASE_URL`, de modo que CI —que no tiene
+base— siga verde sin fingir cobertura. Lo que no se pueda verificar así se
+declara explícitamente como no verificado en el cuerpo del PR, en vez de
+sustituirlo en silencio por un test de contrato más flojo.
+
+Esa base desechable **no es el VPS** ni ninguna base del proyecto: es un
+contenedor local que se tira al terminar.
+
+### PR 4 — el RBAC de aprobaciones va en el backend
+
+`canApproveActionClass` existe desde este PR pero **todavía no la llama nadie**:
+hoy `decideApproval` acepta el `decidedByUserId` que le pasen. Es un hueco
+consciente, y PR 4 tiene que cerrarlo así:
+
+- la Server Action de aprobar llama a `canApproveActionClass(role, actionClass)`;
+- **y además** revalida el permiso de dominio guardado en
+  `required_permission_module/action`, porque el snapshot es auditoría, no
+  autorización;
+- con un test de que un `manager` no puede aprobar una acción `privileged`;
+- el módulo `agents` que se añada a `PERMISSIONS` no incluye `brand`.
+
+Ocultar la opción en el menú no cuenta.
+
+### PR 3 — no tocar los ficheros compartidos de `infra/`
+
+La rama `infra/vps-compose` es de otra línea de trabajo y posee
+`infra/README.md`, `infra/crm/`, `infra/edge/Caddyfile` e `infra/backups/`. PR 3
+crea `infra/agents/` —rutas nuevas, sin conflicto— pero **no** edita el índice
+de `infra/README.md` ni la configuración de Caddy. El enlace entre ambos se
+hace cuando esa rama se mergee.
+
 ## Siguiente PR
 
 `feat/agent-worker` — claim con `FOR UPDATE SKIP LOCKED`, leases, heartbeat,
 checkpoints, reintentos con backoff, dead-letter, cancelación cooperativa,
 graceful shutdown, scheduler con advisory lock y procesador de eventos.
 
-Tres deudas de PR 1 que le tocan: el claim necesita `attempt < max_attempts` en
-el `WHERE`, `recordAgentUsage` necesita transacción, y el worker debe escribir
-lease y `completed_at` en el mismo `UPDATE` que cambia el estado.
+Cuatro deudas heredadas que le tocan:
+
+1. El claim necesita `attempt < max_attempts` en el `WHERE`, o el cuarto intento
+   de una ejecución con `max_attempts = 3` reventará contra
+   `agent_runs_attempt_ck` en vez de ir a dead-letter.
+2. `recordAgentUsage` hace INSERT y luego UPDATE sin transacción; al conectarlo
+   debe pasar por `getTransactionalDb()`.
+3. El worker escribe lease y `completed_at` en el **mismo** `UPDATE` que cambia
+   el estado: los CHECK no admiten el estado intermedio.
+4. La fila de `agent_tool_calls` se escribe **antes** de ejecutar (ver arriba).

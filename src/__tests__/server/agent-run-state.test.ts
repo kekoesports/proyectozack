@@ -10,9 +10,11 @@ jest.mock('@/lib/db', () => ({ db: {} }));
 jest.mock('@/lib/auth', () => ({ auth: {} }));
 
 import {
+  CODIGOS_INDETERMINADOS,
   ESTADOS_TERMINALES,
   canTransitionRun,
   computeRetryDelayMs,
+  isIndeterminateErrorCode,
   isRetryableErrorCode,
   isTerminalRunStatus,
   validateRunState,
@@ -96,6 +98,20 @@ describe('reintentos', () => {
     expect(isRetryableErrorCode('provider_quota')).toBe(true);
     expect(isRetryableErrorCode('tool_timeout')).toBe(true);
     expect(isRetryableErrorCode('lease_lost')).toBe(true);
+  });
+
+  it('NO reintenta el timeout de una tool que escribe', () => {
+    // Ahí no se sabe si la acción ocurrió, y reintentar lo que quizá ya pasó
+    // es justo el fallo que la idempotencia existe para evitar.
+    expect(isRetryableErrorCode('tool_timeout_indeterminate')).toBe(false);
+    expect(isIndeterminateErrorCode('tool_timeout_indeterminate')).toBe(true);
+    expect(isIndeterminateErrorCode('tool_call_in_flight')).toBe(true);
+  });
+
+  it('un código indeterminado no es a la vez reintentable', () => {
+    for (const code of CODIGOS_INDETERMINADOS) {
+      expect(isRetryableErrorCode(code)).toBe(false);
+    }
   });
 
   it('no reintenta fallos deterministas', () => {

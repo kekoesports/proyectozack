@@ -232,6 +232,11 @@ export async function executeAgentToolCall(
   // 9. Idempotencia. Antes de ejecutar y antes de gastar la aprobación: si el
   //    worker murió después de escribir pero antes de anotar el resultado, al
   //    reanudar encuentra la llamada anterior en vez de repetir el efecto.
+  //
+  //    Solo un `failed` explícito autoriza a repetir. Cualquier otro estado
+  //    —incluido `executing`, que es lo que deja un worker muerto a mitad—
+  //    significa que la acción pudo ocurrir, y repetirla es peor que no
+  //    hacerla: no hay forma de des-enviar un email.
   const idempotencyKey = call.buildIdempotencyKey ? call.buildIdempotencyKey(ctx) : null;
   if (idempotencyKey) {
     const previa = await deps.findPreviousCall(idempotencyKey);
@@ -239,6 +244,14 @@ export async function executeAgentToolCall(
       return {
         status: 'succeeded',
         output: previa.resultJson ?? { _replayed: true },
+        durationMs: 0,
+      };
+    }
+    if (previa && previa.status !== 'failed') {
+      return {
+        status: 'indeterminate',
+        code: 'tool_call_in_flight',
+        message: `Ya existe una llamada a '${tool.name}' con la misma clave en estado '${previa.status}'. No se repite: requiere revisión humana.`,
         durationMs: 0,
       };
     }
@@ -263,6 +276,19 @@ export async function executeAgentToolCall(
 
   if (!resultado.ok) {
     if (resultado.timedOut) {
+      // Una tool que escribe y se pasa de tiempo NO es un fallo: el `race`
+      // devuelve el control, pero la escritura sigue viva y puede completarse.
+      // Llamarlo `failed` lo haría reintentable, y el reintento duplicaría un
+      // envío que quizá ya salió. Lo que hay aquí es desconocimiento, y se
+      // reporta como tal para que lo mire una persona.
+      if (idempotencyKey !== null) {
+        return {
+          status: 'indeterminate',
+          code: 'tool_timeout_indeterminate',
+          message: `'${tool.name}' superó su límite de ${tool.maxExecutionMs} ms y escribe: no se sabe si la acción llegó a ocurrir.`,
+          durationMs,
+        };
+      }
       return {
         status: 'failed',
         code: 'tool_timeout',
