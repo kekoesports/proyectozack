@@ -19,8 +19,10 @@ import type { CrmBrandPickerEntry } from '@/lib/queries/crmBrands';
 import type { TrackerSummary, TrackerSubtypeCounts } from '@/lib/queries/deal-trackers';
 import { TrackerProgressBar } from '@/features/admin/trackers/components/TrackerProgressBar';
 import { TrackerStatusBadge } from '@/features/admin/trackers/components/TrackerStatusBadge';
+import { TalentEconomiaTab } from './TalentEconomiaTab';
+import type { EconomicaTalento } from '@/lib/finance/talentEconomics.shared';
 
-const TABS = ['resumen', 'campanas', 'entregables', 'redes', 'codigos', 'sorteos', 'contacto', 'config'] as const;
+const TABS = ['resumen', 'campanas', 'economia', 'entregables', 'redes', 'codigos', 'sorteos', 'contacto', 'config'] as const;
 type Tab = typeof TABS[number];
 
 function isValidTab(v: string): v is Tab {
@@ -30,6 +32,8 @@ function isValidTab(v: string): v is Tab {
 type Props = {
   readonly talent: TalentWithRelations;
   readonly business: TalentBusiness | null;
+  /** Qué dinero ha movido. Solo para quien puede ver facturación. */
+  readonly economica: EconomicaTalento | null;
   readonly campaigns: readonly CampaignRow[];
   readonly invoices: readonly InvoiceWithRelations[];
   readonly liveStatus: { isLive: boolean; platform: string | null; viewerCount: number | null } | null;
@@ -53,6 +57,7 @@ type Props = {
 const TAB_LABELS: Record<Tab, string> = {
   resumen:      'Resumen',
   campanas:     'Campañas',
+  economia:     'Economía',
   entregables:  'Entregables',
   redes:        'Redes',
   codigos:      'Códigos',
@@ -144,6 +149,7 @@ function LiveToggleRow({ label, description, action, active, activeClass, disabl
 export function TalentDetailTabs({
   talent,
   business,
+  economica,
   campaigns,
   invoices,
   liveStatus,
@@ -406,6 +412,20 @@ export function TalentDetailTabs({
       )}
 
       {/* ── REDES ────────────────────────────────────────────────────────── */}
+      {activeTab === 'economia' && (
+        economica === null ? (
+          <p className="text-xs text-sp-admin-muted">
+            No tienes permiso para ver la economía de este talento.
+          </p>
+        ) : (
+          <TalentEconomiaTab
+            economica={economica}
+            taxType={talent.taxType ?? null}
+            iaeActividad={talent.iaeActividad ?? null}
+          />
+        )
+      )}
+
       {activeTab === 'redes' && (
         <div className="p-4">
           <TalentSocialsEditor
