@@ -124,6 +124,40 @@ export const env = createEnv({
      * Debe ser una URL twitch.tv/<login> válida.
      */
     TWITCH_ZACKETIZOR_CHANNEL_URL: z.string().url().optional(),
+
+    // ============================================================
+    // Zack Agent OS — fundación del runtime de agentes.
+    // Ver docs/agent-os/architecture.md y docs/adr/0006.
+    //
+    // Todos los defaults son seguros: sin tocar nada, el sistema
+    // queda apagado. Encolar una ejecución falla en cerrado
+    // mientras AGENTS_ENABLED no sea exactamente 'true', y los
+    // dos secretos son opcionales para que la app arranque sin
+    // ellos — los endpoints internos que llegan en PR 3-5
+    // responden 503 en su ausencia, nunca abren.
+    // ============================================================
+    /**
+     * Kill switch global. Mismo patrón que PAYROLL_OCR_ENABLED:
+     * solo la cadena exacta 'true' enciende el sistema.
+     */
+    AGENTS_ENABLED: z.enum(['true', 'false']).optional().default('false').transform((v) => v === 'true'),
+    /**
+     * Bearer de máquina para /api/internal/agents/* (worker y collectors).
+     * Deliberadamente distinto de AUTOMATION_API_TOKEN: n8n y el worker no
+     * comparten superficie ni rotación.
+     * Generar con `crypto.randomBytes(32).toString('hex')`.
+     */
+    AGENT_INTERNAL_TOKEN: z.string().min(32).optional(),
+    /** Firma HMAC de los eventos entrantes, con protección de replay. */
+    AGENT_EVENT_HMAC_SECRET: z.string().min(32).optional(),
+    /** Techo de gasto global mensual. 1 USD = 1.000.000 micros → 10 USD. */
+    AGENT_GLOBAL_MONTHLY_BUDGET_MICROS: z.coerce.number().int().min(0).default(10_000_000),
+    /** Intervalo de sondeo de la cola por el worker (PR 3). */
+    AGENT_WORKER_POLL_MS: z.coerce.number().int().min(250).max(60_000).default(2_000),
+    /** Duración del lease. El heartbeat lo renueva cada ~1/4 de este valor. */
+    AGENT_LEASE_SECONDS: z.coerce.number().int().min(15).max(3_600).default(60),
+    /** Ejecuciones simultáneas por worker. */
+    AGENT_MAX_CONCURRENCY: z.coerce.number().int().min(1).max(32).default(1),
   },
   client: {
     NEXT_PUBLIC_SITE_URL: z.string().url(),
@@ -173,6 +207,15 @@ export const env = createEnv({
     TWITCH_OAUTH_REDIRECT_URL: process.env.TWITCH_OAUTH_REDIRECT_URL,
     TWITCH_ZACKETIZOR_BROADCASTER_ID: process.env.TWITCH_ZACKETIZOR_BROADCASTER_ID,
     TWITCH_ZACKETIZOR_CHANNEL_URL: process.env.TWITCH_ZACKETIZOR_CHANNEL_URL,
+
+    // Zack Agent OS
+    AGENTS_ENABLED: process.env.AGENTS_ENABLED,
+    AGENT_INTERNAL_TOKEN: process.env.AGENT_INTERNAL_TOKEN,
+    AGENT_EVENT_HMAC_SECRET: process.env.AGENT_EVENT_HMAC_SECRET,
+    AGENT_GLOBAL_MONTHLY_BUDGET_MICROS: process.env.AGENT_GLOBAL_MONTHLY_BUDGET_MICROS,
+    AGENT_WORKER_POLL_MS: process.env.AGENT_WORKER_POLL_MS,
+    AGENT_LEASE_SECONDS: process.env.AGENT_LEASE_SECONDS,
+    AGENT_MAX_CONCURRENCY: process.env.AGENT_MAX_CONCURRENCY,
 
     NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
     NEXT_PUBLIC_GTM_ID: process.env.NEXT_PUBLIC_GTM_ID,

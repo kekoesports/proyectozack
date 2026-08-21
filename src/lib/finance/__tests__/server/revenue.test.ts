@@ -15,6 +15,7 @@ import {
   isIssuedMirrorRow,
   isMirrorByFkOrPrefix,
   quarterOf,
+  splitRevenueRows,
   toEurAmount,
   type RevenueRow,
 } from '@/lib/finance/revenue.shared';
@@ -201,5 +202,104 @@ describe('aggregateRevenue — desgloses', () => {
       row({ id: 3, totalAmount: 33.333 }),
     ];
     expect(aggregateRevenue(rows).eur).toBe(100);
+  });
+});
+
+describe('splitRevenueRows — el desglose que se enseña en pantalla', () => {
+  it('la suma del detalle es exactamente el total', () => {
+    const rows = [
+      row({ id: 1, totalAmount: 1000 }),
+      row({ id: 2, totalAmount: 250.55 }),
+      row({ id: 3, currency: 'USD', totalAmount: 800 }),
+    ];
+
+    const { totals, rows: detail } = splitRevenueRows(rows, { fx: FX });
+    const suma = detail.reduce((acc, d) => acc + (d.eur ?? 0), 0);
+
+    expect(Math.abs(suma - totals.eur)).toBeLessThanOrEqual(0.02);
+  });
+
+  it('marca cada descarte con su motivo', () => {
+    const rows = [
+      row({ id: 1 }),
+      row({ id: 2, mirrorOfIssuedInvoiceId: 10 }),
+      row({ id: 3, status: 'anulada' }),
+      row({ id: 4, status: 'borrador' }),
+    ];
+
+    const byId = new Map(splitRevenueRows(rows).rows.map((d) => [d.row.id, d]));
+    expect(byId.get(1)?.excluded).toBeNull();
+    expect(byId.get(2)?.excluded).toBe('espejo');
+    expect(byId.get(3)?.excluded).toBe('anulada');
+    expect(byId.get(4)?.excluded).toBe('borrador');
+  });
+
+  it('lo excluido no lleva importe en el total', () => {
+    const { rows: detail } = splitRevenueRows([row({ id: 2, mirrorOfIssuedInvoiceId: 10 })]);
+    expect(detail[0]?.eur).toBeNull();
+  });
+
+  it('avisa de los espejos que solo se reconocen por el texto', () => {
+    const rows = [
+      row({ id: 1 }),
+      row({ id: 2, notes: `${ISSUED_MIRROR_NOTES_PREFIX} ES-2026-0012` }),
+    ];
+
+    const { warnings } = splitRevenueRows(rows);
+    const aviso = warnings.find((w) => w.code === 'espejo-sin-fk');
+    expect(aviso?.count).toBe(1);
+    expect(aviso?.rowIds).toEqual([2]);
+  });
+
+  it('no avisa cuando el espejo tiene su FK', () => {
+    const { warnings } = splitRevenueRows([row({ id: 2, mirrorOfIssuedInvoiceId: 10 })]);
+    expect(warnings.find((w) => w.code === 'espejo-sin-fk')).toBeUndefined();
+  });
+
+  it('avisa de las divisas sumadas 1:1 por falta de tipo de cambio', () => {
+    const { warnings, totals } = splitRevenueRows([
+      row({ id: 1, currency: 'USD', totalAmount: 800 }),
+    ]);
+    expect(totals.unconverted).toBe(1);
+    expect(warnings.find((w) => w.code === 'sin-tipo-de-cambio')?.rowIds).toEqual([1]);
+  });
+
+  it('con el tipo de cambio puesto no queda ningún aviso', () => {
+    const { warnings } = splitRevenueRows(
+      [row({ id: 1, currency: 'USD', totalAmount: 800 })],
+      { fx: FX },
+    );
+    expect(warnings).toHaveLength(0);
+  });
+});
+
+describe('FV.4 — contravalor fijado en la fila', () => {
+  it('una factura en divisa con contravalor guardado no necesita tipo del periodo', () => {
+    const { totals, warnings } = splitRevenueRows([
+      row({ id: 1, currency: 'USD', totalAmount: 800, eurEquivalent: 692.22 }),
+    ]);
+    expect(totals.eur).toBe(692.22);
+    expect(totals.unconverted).toBe(0);
+    expect(warnings).toHaveLength(0);
+  });
+
+  it('el contravalor guardado gana aunque se pase otro tipo', () => {
+    // El tipo de la fecha de operación es el que vale: no se recalcula porque
+    // hoy el mercado esté en otro sitio.
+    const { totals } = splitRevenueRows(
+      [row({ id: 1, currency: 'USD', totalAmount: 800, eurEquivalent: 692.22 })],
+      { fx: { USD: 1.5 } },
+    );
+    expect(totals.eur).toBe(692.22);
+  });
+
+  it('mezcla euros y divisa con contravalor sin perder ninguna', () => {
+    const { totals } = splitRevenueRows([
+      row({ id: 1, totalAmount: 1000 }),
+      row({ id: 2, currency: 'USD', totalAmount: 800, eurEquivalent: 692.22 }),
+      row({ id: 3, currency: 'USD', totalAmount: 375, eurEquivalent: 320.35 }),
+    ]);
+    expect(totals.eur).toBe(2012.57);
+    expect(totals.nominalByCurrency).toEqual({ EUR: 1000, USD: 1175 });
   });
 });

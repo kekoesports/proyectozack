@@ -13,7 +13,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-A Next.js 16 app for a gaming/esports talent agency (SocialPro). All code lives at the repo root. The migration plan and phase tracking live in `roadmap.md`. Read it before any work.
+A Next.js 16 app for a gaming/esports talent agency (SocialPro). All code lives at the repo root. The migration plan and phase tracking live in `docs/roadmap-detailed.md`. Read it before any work.
 
 ## Running the Project
 
@@ -62,7 +62,7 @@ npm run test:coverage
 
 ### Database Schema Summary
 
-See `roadmap.md` Phase 2 for exact column definitions. Tables:
+Las definiciones exactas de columna están en `src/db/schema/` (fuente de verdad). Tablas:
 - `talents`, `talent_tags`, `talent_stats`, `talent_socials`
 - `testimonials`, `collaborators`, `team_members`, `brands`, `portfolio_items`
 - `case_studies`, `case_body`, `case_tags`, `case_creators` (has `talent_id` FK)
@@ -102,7 +102,7 @@ El panel `/admin/*` es un CRM operativo completo con roles, campañas, tareas re
 
 ## CSS / Design System
 
-**Brand tokens** defined in `tailwind.config.ts` under `theme.extend.colors`:
+**Brand tokens** definidos en `src/app/globals.css` dentro de `@theme {}` (este proyecto NO tiene `tailwind.config.ts` — Tailwind v4):
 `sp-orange:#f5632a`, `sp-pink:#e03070`, `sp-dpink:#c42880`, `sp-purple:#8b3aad`, `sp-blue:#5b9bd5`, `sp-dark`, `sp-black`, `sp-muted`, `sp-border`, `sp-off`, `sp-bg2`.
 
 **Fonts:** `font-display` = Barlow Condensed 800–900 uppercase; `font-body` = Inter.
@@ -113,7 +113,7 @@ Complex CSS (marquee, gradient text, modals) stays in `globals.css` — do not f
 
 ## Design Context
 
-Full context in `.impeccable.md`. Summary:
+Resumen (el antiguo `.impeccable.md` ya no está en el repo):
 
 **Brand:** Premium · Sharp · Credible. Spanish market, international ambition. Anti-pattern: neon-on-black gamer aesthetic.
 
@@ -160,4 +160,4 @@ Etiquetas canónicas sin renombrar (`needs-triage`, `needs-info`, `ready-for-age
 
 ### Domain docs
 
-Single-context: `CONTEXT.md` + `docs/adr/` en la raíz. See `docs/agents/domain.md`.
+Single-context: `docs/adr/` para decisiones. See `docs/agents/domain.md`.

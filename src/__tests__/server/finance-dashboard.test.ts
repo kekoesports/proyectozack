@@ -20,6 +20,8 @@ function makeKPIs(overrides: Partial<FinanceDashboardKPIs> = {}): FinanceDashboa
     gastosEmpresa: 2000,
     beneficioNeto: 6000,
     cobradoRealMes: 3000,
+    pagadoRealMes: 1200,
+    netoRealMes: 1800,
     pendingApplyPayment: 0,
     unconciliatedMovements: 0,
     ...overrides,

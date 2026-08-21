@@ -1,5 +1,6 @@
 import { requirePermission } from '@/lib/permissions';
 import { getFinanzasResumenV2 } from '@/lib/queries/financeDashboard/finanzasResumenV2';
+import { getTaxPeriodSummary } from '@/lib/finance/tax';
 import { getFinanceDashboard, getCashflowSeries } from '@/lib/queries/financeDashboard';
 import { getArAging } from '@/lib/queries/financeDashboard/arAging';
 import { getUnclassifiedExpenseCount } from '@/lib/queries/invoices';
@@ -9,6 +10,7 @@ import { ResumenFilters } from '@/features/admin/finance-dashboard/components/re
 import { ResumenIngresosBlock } from '@/features/admin/finance-dashboard/components/resumen-v2/ResumenIngresosBlock';
 import { ResumenCostesMargenBlock } from '@/features/admin/finance-dashboard/components/resumen-v2/ResumenCostesMargenBlock';
 import { ResumenNominasBlock } from '@/features/admin/finance-dashboard/components/resumen-v2/ResumenNominasBlock';
+import { ResumenIvaBlock } from '@/features/admin/finance-dashboard/components/resumen-v2/ResumenIvaBlock';
 import { ResumenImpuestosBlock } from '@/features/admin/finance-dashboard/components/resumen-v2/ResumenImpuestosBlock';
 import { ResumenOperativosBlock } from '@/features/admin/finance-dashboard/components/resumen-v2/ResumenOperativosBlock';
 import { ResumenResultadoBlock } from '@/features/admin/finance-dashboard/components/resumen-v2/ResumenResultadoBlock';
@@ -55,7 +57,7 @@ export default async function FinanzasResumenPage({ searchParams }: PageProps): 
   const from = safeIsoDate(firstParam(sp.from));
   const to = safeIsoDate(firstParam(sp.to));
 
-  const [resumen, dashboard, cashflow, arAging, unclassifiedCount, bankStatus] = await Promise.all([
+  const [resumen, dashboard, cashflow, arAging, unclassifiedCount, bankStatus, tax] = await Promise.all([
     getFinanzasResumenV2({
       ...(from ? { from } : {}),
       ...(to ? { to } : {}),
@@ -65,6 +67,10 @@ export default async function FinanzasResumenPage({ searchParams }: PageProps): 
     getArAging({}),
     getUnclassifiedExpenseCount(),
     getBankDataStatus(),
+    getTaxPeriodSummary({
+      from: from ?? `${todayInMadrid().slice(0, 4)}-01-01`,
+      to: to ?? todayInMadrid(),
+    }),
   ]);
 
   const today = todayInMadrid();
@@ -113,7 +119,8 @@ export default async function FinanzasResumenPage({ searchParams }: PageProps): 
       </div>
 
       {/* 6. Bloques de detalle v2 (reutilizados sin cambios) */}
-      <ResumenIngresosBlock ingresos={resumen.ingresos} />
+      <ResumenIngresosBlock ingresos={resumen.ingresos} period={resumen.period} />
+      <ResumenIvaBlock tax={tax} />
       <ResumenCostesMargenBlock
         costesDirectos={resumen.costesDirectos}
         margenBruto={resumen.margenBruto}

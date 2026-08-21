@@ -40,6 +40,9 @@ const NAV_ICONS: Record<AdminNavKey, React.ReactNode> = {
   contratos: <ContractIcon />,
   entregables: <DealsIcon />,
   backups: <BackupIcon />,
+  // Reutiliza el icono del asistente: Agent OS es su evolución, y darle uno
+  // nuevo sugeriría que son cosas distintas cuando comparten origen.
+  agents: <AiIcon />,
 };
 
 export default async function AdminLayout({ children }: AdminLayoutProps): Promise<React.ReactElement> {

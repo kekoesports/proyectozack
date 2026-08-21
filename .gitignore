@@ -84,6 +84,12 @@ scripts/capture_*.mjs
 # Local video teaser scripts + generated clips/outputs (experimental, no van al repo)
 scripts/video-teaser/
 
+# Scripts de un solo uso: auditorías puntuales, arreglos de datos, pruebas.
+# Muchos llevan nombres y datos reales (nóminas, cuotas, credenciales) y este
+# repositorio es público, así que no se versionan. Si un script deja de ser
+# de usar y tirar, se saca de aquí, se le quitan los datos y se commitea.
+scripts/local/
+
 # Clon anidado accidental del propio repo (tiene su .git y contamina tsc/lint/jest).
 /proyectozack/
 

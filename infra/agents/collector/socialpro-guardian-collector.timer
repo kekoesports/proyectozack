@@ -1,0 +1,25 @@
+[Unit]
+Description=Dispara el collector de salud cada 5 minutos
+Documentation=https://github.com/kekoesports/proyectozack/blob/master/infra/agents/collector/README.md
+
+[Timer]
+# Cinco minutos: suficiente para enterarse de un disco lleno antes de que lo
+# note un usuario, y poco suficiente para no llenar `agent_events` de ruido.
+# Cada ejecución produce ~7 eventos, casi todos `info`, y solo los `high` y
+# `critical` despiertan a un agente.
+OnBootSec=2min
+OnUnitActiveSec=5min
+
+# Reparte el disparo dentro de 30 s. Con varias máquinas evita que todas
+# escriban en el mismo segundo.
+RandomizedDelaySec=30
+
+# Si la máquina estuvo apagada, se dispara una vez al arrancar en vez de
+# recuperar todas las ventanas perdidas.
+Persistent=true
+
+AccuracySec=30s
+Unit=socialpro-guardian-collector.service
+
+[Install]
+WantedBy=timers.target

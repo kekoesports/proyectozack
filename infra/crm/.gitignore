@@ -1,0 +1,3 @@
+# Nunca en git: contienen credenciales.
+env/*.env
+secrets/

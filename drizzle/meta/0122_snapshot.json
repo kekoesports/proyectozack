@@ -1,5 +1,5 @@
 {
-  "id": "cd7f4660-7a2e-4f9d-87a8-9cb4689b92bb",
+  "id": "6528f529-4f2c-4aac-a12d-30a173a624aa",
   "prevId": "3b30fd99-60a4-46b5-93fe-2e39a2c52bfb",
   "version": "7",
   "dialect": "postgresql",
@@ -5472,6 +5472,24 @@
           "notNull": true,
           "default": "'EUR'"
         },
+        "fx_rate": {
+          "name": "fx_rate",
+          "type": "numeric(14, 6)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "fx_rate_date": {
+          "name": "fx_rate_date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "eur_equivalent": {
+          "name": "eur_equivalent",
+          "type": "numeric(12, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
         "series": {
           "name": "series",
           "type": "varchar(20)",
@@ -8227,6 +8245,24 @@
           "primaryKey": false,
           "notNull": true,
           "default": "'EUR'"
+        },
+        "fx_rate": {
+          "name": "fx_rate",
+          "type": "numeric(14, 6)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "fx_rate_date": {
+          "name": "fx_rate_date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "eur_equivalent": {
+          "name": "eur_equivalent",
+          "type": "numeric(12, 2)",
+          "primaryKey": false,
+          "notNull": false
         },
         "net_amount": {
           "name": "net_amount",
@@ -12984,32 +13020,6 @@
           "primaryKey": false,
           "notNull": false
         },
-        "reconciliation_status": {
-          "name": "reconciliation_status",
-          "type": "tracker_reconciliation_status",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'unreconciled'"
-        },
-        "reconciliation_note": {
-          "name": "reconciliation_note",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "reconciled_at": {
-          "name": "reconciled_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "reconciled_by_user_id": {
-          "name": "reconciled_by_user_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp with time zone",
@@ -13101,21 +13111,6 @@
           "method": "btree",
           "with": {}
         },
-        "deal_trackers_reconciliation_idx": {
-          "name": "deal_trackers_reconciliation_idx",
-          "columns": [
-            {
-              "expression": "reconciliation_status",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
         "deal_trackers_source_block_unique": {
           "name": "deal_trackers_source_block_unique",
           "columns": [
@@ -13197,19 +13192,6 @@
           "tableTo": "user",
           "columnsFrom": [
             "reviewed_by_user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "set null",
-          "onUpdate": "no action"
-        },
-        "deal_deliverable_trackers_reconciled_by_user_id_user_id_fk": {
-          "name": "deal_deliverable_trackers_reconciled_by_user_id_user_id_fk",
-          "tableFrom": "deal_deliverable_trackers",
-          "tableTo": "user",
-          "columnsFrom": [
-            "reconciled_by_user_id"
           ],
           "columnsTo": [
             "id"
@@ -15803,15 +15785,6 @@
         "invalid",
         "approved",
         "rejected"
-      ]
-    },
-    "public.tracker_reconciliation_status": {
-      "name": "tracker_reconciliation_status",
-      "schema": "public",
-      "values": [
-        "unreconciled",
-        "legacy",
-        "deferred"
       ]
     },
     "public.tracker_source_type": {

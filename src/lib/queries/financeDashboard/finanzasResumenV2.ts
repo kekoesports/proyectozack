@@ -16,6 +16,7 @@ import {
   PENDING_INCOME_FILTER,
 } from '@/lib/utils/invoice-status';
 import { notIssuedMirrorRawSql } from '@/lib/finance/revenue';
+import { totalEurSql } from '@/lib/finance/money';
 import type { InvoiceStatus } from '@/types';
 import type {
   FinanzasPeriod,
@@ -122,10 +123,13 @@ export async function getFinanzasResumenV2(
       ),
 
     // 3. Expenses del periodo con detalle — usado para clasificación completa
+    //
+    // El importe llega ya en euros: estas filas solo se agregan (nóminas,
+    // impuestos, costes directos) y doce gastos de 2026 están en dólares.
     db
       .select({
         id: invoices.id,
-        totalAmount: invoices.totalAmount,
+        totalAmount: sql<string>`${totalEurSql}`,
         status: invoices.status,
         expenseGroup: invoices.expenseGroup,
         expenseSubtype: invoices.expenseSubtype,
