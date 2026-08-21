@@ -45,8 +45,16 @@ const RULES: readonly Rule[] = [
 
   // Impuestos / seguridad social
   { keywords: ['seguridad social', 'tesorería seguridad', 'tesoreria seguridad', 'tgss'], group: 'operational', subtype: 'seguridad_social' },
-  { keywords: ['cuota autónomo', 'cuota autonomo', 'autónomo', 'autonomo'], group: 'operational', subtype: 'cuota_autonomo' },
+  // FV.5 — el orden entre estas dos importa y antes estaba al revés.
+  //
+  // `cuota_autonomo` incluye la palabra suelta 'autónomo', así que evaluándose
+  // primero se tragaba "Factura autónomo de edición de vídeo" y lo clasificaba
+  // como la cuota de la Seguridad Social. Son cosas distintas: una es el recibo
+  // del RETA y la otra la factura de un proveedor que además lleva retención.
+  //
+  // La regla específica va delante; la genérica queda como último recurso.
   { keywords: ['factura autónomo', 'factura autonomo'], group: 'operational', subtype: 'factura_autonomo' },
+  { keywords: ['cuota autónomo', 'cuota autonomo', 'autónomo', 'autonomo'], group: 'operational', subtype: 'cuota_autonomo' },
   { keywords: ['irpf', 'iva trimestral', 'modelo 303', 'modelo 111', 'impuesto'], group: 'operational', subtype: 'fiscal_impuestos' },
   { keywords: ['ajuste fiscal', 'regularización fiscal', 'regularizacion fiscal'], group: 'operational', subtype: 'ajuste_fiscal' },
 

@@ -34,6 +34,24 @@ export const taxTypeEnum = pgEnum('talent_tax_type', [
   'autonomo_es', 'autonomo_es_nuevo', 'sl_sa', 'latam', 'no_residente',
 ]);
 
+/**
+ * FV.5 — sección del IAE en la que el talento tiene dada de alta su actividad.
+ *
+ * Es lo que decide si su factura lleva retención, y no lo decide `taxType`: un
+ * autónomo español puede estar en una u otra.
+ *
+ *   profesional  → sección 2ª. Retiene IRPF (15%, o 7% el primer año).
+ *   empresarial  → sección 1ª (961.1 audiovisual, 844 publicidad…). NO retiene.
+ *
+ * Sin este dato el validador no puede distinguir "factura sin retención
+ * correcta" de "factura a la que le falta la retención", así que avisa. Por eso
+ * el enum no tiene un valor "desconocido": la ausencia se representa con NULL y
+ * significa exactamente eso.
+ */
+export const iaeActividadEnum = pgEnum('talent_iae_actividad', [
+  'profesional', 'empresarial',
+]);
+
 export const talents = pgTable('talents', {
   id: serial('id').primaryKey(),
   slug: varchar('slug', { length: 100 }).notNull().unique(),
@@ -68,6 +86,10 @@ export const talents = pgTable('talents', {
   nif: varchar('nif', { length: 20 }),           // NIF/CIF/NIE del talent o su sociedad
   fiscalName: varchar('fiscal_name', { length: 250 }), // Nombre fiscal (puede diferir del nombre artístico)
   fiscalAddress: text('fiscal_address'),          // Dirección fiscal completa
+  // FV.5 — epígrafe informativo (lo que pone su alta censal) y la sección, que
+  // es la que determina si su factura lleva retención. Ver `iaeActividadEnum`.
+  iaeEpigrafe: varchar('iae_epigrafe', { length: 20 }),
+  iaeActividad: iaeActividadEnum('iae_actividad'),
 
   // ── Bio extendida (F5) ──
   bioLong:    text('bio_long'),                                        // texto largo markdown ~200-300 palabras

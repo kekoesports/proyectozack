@@ -8,6 +8,7 @@ interface AccesoItem {
 }
 
 const ACCESOS: readonly AccesoItem[] = [
+  { href: '/admin/finanzas/gastos/revision',   title: 'Revisión fiscal',   description: 'Qué gastos contradicen el perfil del talento.', icon: '🔍' },
   { href: '/admin/finanzas/costes',           title: 'Costes directos',   description: 'Vista específica del grupo campaign_direct.', icon: '🎯' },
   { href: '/admin/finanzas/gastos-operativos', title: 'Gastos operativos', description: 'Vista específica del grupo operational.',     icon: '⚙️' },
   { href: '/admin/finanzas/herramientas',      title: 'Importar documentos', description: 'Importar PDFs y CSV / setup de gastos.',    icon: '📥' },

@@ -618,6 +618,8 @@ export async function updateTalentCompliance(
     cnmcNotes?: string;
     hasRcInsurance?: boolean;
     taxType?: 'autonomo_es' | 'autonomo_es_nuevo' | 'sl_sa' | 'latam' | 'no_residente' | null;
+    iaeActividad?: 'profesional' | 'empresarial' | null;
+    iaeEpigrafe?: string;
     nif?: string;
     fiscalName?: string;
     fiscalAddress?: string;
@@ -631,6 +633,8 @@ export async function updateTalentCompliance(
   if (data.cnmcNotes !== undefined) set.cnmcNotes = data.cnmcNotes || null;
   if (data.hasRcInsurance !== undefined) set.hasRcInsurance = data.hasRcInsurance;
   if ('taxType' in data) set.taxType = data.taxType ?? null;
+  if ('iaeActividad' in data) set.iaeActividad = data.iaeActividad ?? null;
+  if (data.iaeEpigrafe !== undefined) set.iaeEpigrafe = data.iaeEpigrafe || null;
   if (data.nif !== undefined) set.nif = data.nif || null;
   if (data.fiscalName !== undefined) set.fiscalName = data.fiscalName || null;
   if (data.fiscalAddress !== undefined) set.fiscalAddress = data.fiscalAddress || null;

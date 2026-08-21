@@ -66,3 +66,36 @@ describe('[expense-suggestion] casos canónicos', () => {
     expect(before).toEqual(after);
   });
 });
+
+describe('[FV.5] orden entre "factura autónomo" y "cuota autónomo"', () => {
+  it('una factura de autónomo no se clasifica como la cuota del RETA', () => {
+    // La regla de cuota_autonomo lleva la palabra suelta 'autónomo'. Evaluándose
+    // primero se tragaba esta frase entera.
+    //
+    // El concepto va sin palabras de producción a propósito: "edición de vídeo"
+    // o "grabación" matchean antes con `coste_produccion`, que para una factura
+    // ligada a una campaña es la clasificación correcta. Ese orden —
+    // campaign_direct por delante de operational — no es el bug de aquí.
+    const s = suggestExpenseCategorization({
+      concept: 'Factura autónomo — servicios de consultoría',
+      counterpartyName: null,
+    });
+    expect(s?.expenseSubtype).toBe('factura_autonomo');
+  });
+
+  it('la cuota del RETA sigue clasificándose bien', () => {
+    const s = suggestExpenseCategorization({
+      concept: 'Cuota autónomo — Pablo',
+      counterpartyName: null,
+    });
+    expect(s?.expenseSubtype).toBe('cuota_autonomo');
+  });
+
+  it('la palabra suelta sigue valiendo como último recurso', () => {
+    const s = suggestExpenseCategorization({
+      concept: 'Pago autonomo mensual',
+      counterpartyName: null,
+    });
+    expect(s?.expenseSubtype).toBe('cuota_autonomo');
+  });
+});
