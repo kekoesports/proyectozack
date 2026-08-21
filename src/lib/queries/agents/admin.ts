@@ -45,6 +45,20 @@ function inicioDelMes(ahora: Date): Date {
   return new Date(Date.UTC(ahora.getUTCFullYear(), ahora.getUTCMonth(), 1));
 }
 
+/**
+ * Normaliza lo que devuelve un agregado SQL a `Date`.
+ *
+ * Un `sql<Date>` en Drizzle es una **afirmación**, no una conversión: el driver
+ * entrega lo que entrega —una cadena ISO— y el tipo dice `Date`. La diferencia
+ * no se nota hasta que alguien llama a `.getTime()`.
+ */
+function toDate(valor: unknown): Date | null {
+  if (valor === null || valor === undefined) return null;
+  if (valor instanceof Date) return valor;
+  const d = new Date(String(valor));
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
 /** Catálogo con la actividad reciente de cada agente. */
 export async function listAgentsWithActivity(ahora: Date = new Date()): Promise<readonly AgentWithActivity[]> {
   const agentes = await db.select().from(agentDefinitions).orderBy(agentDefinitions.slug);
@@ -93,7 +107,11 @@ export async function listAgentsWithActivity(ahora: Date = new Date()): Promise<
     failedLast7Days: Number(porId.get(agente.id)?.fallidos ?? 0),
     pendingApprovals: pendientesPorId.get(agente.id) ?? 0,
     spentThisMonthMicros: gastoPorId.get(agente.id) ?? 0,
-    lastRunAt: porId.get(agente.id)?.ultimo ?? null,
+    // `sql<Date | null>` declara el tipo, no lo convierte: Drizzle se cree lo
+    // que le digas y el driver devuelve la fecha como cadena. Sin este
+    // `toDate`, la página reventaba con `fecha.getTime is not a function` en
+    // cuanto había una sola ejecución.
+    lastRunAt: toDate(porId.get(agente.id)?.ultimo),
   }));
 }
 

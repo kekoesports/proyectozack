@@ -96,7 +96,47 @@ async function claimEvents(workerId: string, claimSeconds: number, limite: numbe
     RETURNING ${agentEvents}.*
   `);
 
-  return extraerFilas<AgentEvent>(resultado);
+  return extraerFilas<Record<string, unknown>>(resultado).map(mapAgentEventRow);
+}
+
+/**
+ * Convierte una fila cruda de `agent_events` al objeto del schema.
+ *
+ * Mismo motivo que `mapAgentRunRow`: `db.execute()` con SQL escrito a mano
+ * devuelve las columnas como se llaman en Postgres. Sin esto, `eventKey` y
+ * `payloadJson` llegaban `undefined`, la clave de idempotencia del run que
+ * genera el evento salía como `event:undefined` —la misma para todos— y el
+ * segundo evento se habría descartado como duplicado del primero.
+ */
+export function mapAgentEventRow(fila: Record<string, unknown>): AgentEvent {
+  const fecha = (v: unknown): Date => {
+    if (v instanceof Date) return v;
+    const d = new Date(String(v));
+    return Number.isNaN(d.getTime()) ? new Date() : d;
+  };
+  const texto = (v: unknown): string | null => (v === null || v === undefined ? null : String(v));
+
+  return {
+    id: Number(fila.id ?? 0),
+    source: String(fila.source ?? ''),
+    eventType: String(fila.event_type ?? ''),
+    externalId: texto(fila.external_id),
+    eventKey: String(fila.event_key ?? ''),
+    severity: String(fila.severity ?? 'info') as AgentEvent['severity'],
+    status: String(fila.status ?? 'pending') as AgentEvent['status'],
+    payloadJson: fila.payload_json !== null && typeof fila.payload_json === 'object'
+      ? (fila.payload_json as Record<string, unknown>)
+      : {},
+    fingerprint: texto(fila.fingerprint),
+    occurredAt: fecha(fila.occurred_at),
+    availableAt: fecha(fila.available_at),
+    claimedBy: texto(fila.claimed_by),
+    claimExpiresAt: fila.claim_expires_at ? fecha(fila.claim_expires_at) : null,
+    processedAt: fila.processed_at ? fecha(fila.processed_at) : null,
+    attempt: Number(fila.attempt ?? 0),
+    lastError: texto(fila.last_error),
+    createdAt: fecha(fila.created_at),
+  };
 }
 
 export async function processPendingEvents(opts: {

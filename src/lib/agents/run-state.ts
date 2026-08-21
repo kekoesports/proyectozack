@@ -104,7 +104,12 @@ export function validateRunState(fields: RunStateFields): readonly RunStateViola
 const CODIGOS_TRANSITORIOS: readonly string[] = [
   'provider_quota',
   'provider_timeout',
-  'provider_unavailable',
+  // `provider_unavailable` NO está aquí, y es deliberado: significa que no hay
+  // proveedor configurado, y eso no se arregla solo. `NullProvider` ya lo
+  // devuelve como no reintentable; tenerlo en esta lista contradecía al propio
+  // proveedor y gastaba tres intentos para llegar al mismo sitio. Se vio al
+  // ejecutar el worker: la primera ejecución real acabó en `dead_letter` tras
+  // reintentar un fallo permanente.
   // Solo el de LECTURA. `tool_timeout_indeterminate` —el de una tool que
   // escribe— queda deliberadamente fuera: ahí no se sabe si la acción ocurrió,
   // y reintentar lo que quizá ya pasó es exactamente el fallo que la
