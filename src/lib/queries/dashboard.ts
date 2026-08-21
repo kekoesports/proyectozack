@@ -23,6 +23,7 @@ import {
 } from '@/lib/utils/invoice-status';
 
 import type { Role } from '@/lib/auth-guard';
+import { totalEurSql } from '@/lib/finance/money';
 
 type TaskSession = {
   readonly userId: string;
@@ -405,7 +406,7 @@ export async function getActiveCampaignsCount(): Promise<number> {
 export async function getPendingBrandPaymentsTotal(): Promise<number> {
   const [row] = await db
     .select({
-      total: sql<string>`COALESCE(SUM(${invoices.totalAmount}), 0)`,
+      total: sql<string>`COALESCE(SUM(${totalEurSql}), 0)`,
     })
     .from(invoices)
     .where(
@@ -555,7 +556,7 @@ export async function getMonthlyRevenue(): Promise<MonthlyRevenue> {
   const rows = await db
     .select({
       kind: invoices.kind,
-      total: sql<string>`COALESCE(SUM(${invoices.totalAmount}), 0)`,
+      total: sql<string>`COALESCE(SUM(${totalEurSql}), 0)`,
     })
     .from(invoices)
     .where(

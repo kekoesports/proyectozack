@@ -4,6 +4,7 @@ import { and, eq, gte, ne, sql } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { invoicePayments, invoices } from '@/db/schema';
 import type { CashflowMonthPoint } from '@/types/financeDashboard';
+import { totalEurSql } from '@/lib/finance/money';
 
 function buildMonths(count: number): string[] {
   const months: string[] = [];
@@ -39,7 +40,7 @@ export async function getCashflowSeries(
     db
       .select({
         month: sql<string>`to_char(${invoices.issueDate}::date, 'YYYY-MM')`,
-        total: sql<string>`COALESCE(SUM(${invoices.totalAmount}), 0)::text`,
+        total: sql<string>`COALESCE(SUM(${totalEurSql}), 0)::text`,
       })
       .from(invoices)
       .where(
