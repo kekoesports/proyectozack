@@ -1,72 +1,89 @@
-# Handoff — Sprint Nóminas ELEVATEX: fix importador PDF
+# Handoff — Zack Agent OS PR 1: schema del runtime
 
-**Sesión:** 2026-06-29  
-**Estado al cerrar:** ✅ COMPLETO. Importador PDF de nóminas ELEVATEX funcionando end-to-end en producción.
+**Sesión:** 2026-08-21
+**Estado al cerrar:** PR 1 terminado y abierto. Migración **no aplicada** a ninguna base. Nada activado.
 
 ---
 
-## 1. Commits de esta sesión
+## 1. Qué se ha hecho
 
-| Commit / PR | Descripción |
+Rama `feat/agent-runtime-schema`, creada desde `origin/master` (`1d5dfe42`).
+
+Primera entrega de código de Zack Agent OS, siguiendo el blueprint del PR #304
+(`docs/zack-agent-os-blueprint`) y el encargo de
+`docs/agent-os/claude-work-prompt.md`.
+
+| Bloque | Ficheros |
 |---|---|
-| `0b33910` / #113 | feat(auth): add admin_limited_tasks role with task ownership guards |
-| PR #114 | fix(finance): include pdfjs worker via literal import for Vercel NFT |
-| PR #115 | fix(storage): use private blob access to match store configuration |
+| Schema | `src/db/schema/agentEnums.ts` + 10 tablas `agent*.ts` |
+| Migración | `drizzle/0124_agent_runtime_schema.sql` (aditiva, cero DROP) |
+| Dominio puro | `src/lib/agents/{keys,catalog,approval-state,memory-scope,runtime-flags,errors}.ts` |
+| Repositorios | `src/lib/queries/agents/*.ts` (9 ficheros) |
+| Tipos | `src/types/agent.ts` |
+| Seed | `scripts/seed-agent-definitions.ts` + `npm run seed:agents` |
+| Env | 7 variables nuevas en `src/lib/env.ts`, todas con default seguro |
+| Tests | 6 suites, 94 tests → `npm run test:agents` |
+| Doc | `docs/agent-os/pr1-runtime-schema.md` |
+
+Detalle completo, desviaciones del data-model y rollback:
+`docs/agent-os/pr1-runtime-schema.md`.
 
 ---
 
-## 2. Qué se arregló
+## 2. Lo que hay que saber antes de seguir
 
-### PR #114 — Worker pdfjs no encontrado en Vercel
+**El `when` de la migración se corrigió a mano.** `drizzle-kit` generó 0124 con
+un `when` anterior al de 0122 y 0123; el migrador la habría saltado en silencio
+y el deploy habría salido verde sin aplicarla. Se subió a `1787428487578`. Al
+generar la migración de PR 2, **volver a comprobarlo** — lo vigila
+`drizzle-journal-monotonic.test.ts`, pero el suelo real está en la base
+(`drizzle.__drizzle_migrations`), no en el journal.
 
-**Síntoma:** 500 al pulsar "Analizar PDF". Error: `Cannot find module /var/task/node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs`
+**En CI no hay Postgres.** Los tests de constraints son de contrato sobre el
+SQL; la lógica que sí se prueba de verdad vive en funciones puras en
+`src/lib/agents/`. Antes de PR 3 hay que verificar contra una base real: que
+Postgres acepta cada CHECK con datos, el claim concurrente y la recuperación de
+leases.
 
-**Causa raíz:** `outputFileTracingIncludes` en `next.config.ts` es un no-op sin `output: 'standalone'`. El path del worker calculado con `createRequire().resolve()` es una ruta en runtime — Vercel NFT no la traza y el archivo no se incluye en el deployment.
-
-**Fix (`src/lib/parsers/pdf.ts`):**  
-Reemplazar `createRequire().resolve()` por `await import('pdfjs-dist/legacy/build/pdf.worker.mjs')` con string literal. Doble efecto: NFT traza el import literal (archivo incluido en deployment) y el import establece `globalThis.pdfjsWorker.WorkerMessageHandler`, que pdfjs usa directamente en `_setupFakeWorkerGlobal` sin llegar al `import(workerSrc)` roto.
-
-También añadido `src/types/pdfjs.d.ts` con `declare module 'pdfjs-dist/legacy/build/pdf.worker.mjs'` para TypeScript.
-
-### PR #115 — Blob store private-only
-
-**Síntoma:** 500 al pulsar "Confirmar y crear 2 facturas". Error: `Cannot use public access on a private store`
-
-**Causa raíz:** `uploadFile()` en `src/lib/storage.ts` usaba `access: 'public'` pero el Blob store en Vercel está configurado como private-only. Afectaba también uploads de campañas y talentos (GEO stats).
-
-**Fix (`src/lib/storage.ts`):** `access: 'public'` → `access: 'private'`. `invoices-actions.ts` ya usaba `access: 'private'` correctamente — alineado el resto.
-
----
-
-## 3. Estado del rol de Alfonso — sin cambios
-
-El rol de Alfonso (`arias@socialpro.es`) sigue siendo `admin_limited_tasks` desde la sesión anterior. No se tocó.
+**Master sigue en Neon/Vercel.** La rama `infra/vps-portability` (driver `pg`,
+storage abstraction, Docker) no está mergeada. Los repositorios de agentes no
+usan nada exclusivo de Neon: cuando `src/lib/db.ts` cambie de driver, el
+runtime no necesita rediseño. El claim de PR 3 sí querrá transacción
+interactiva — hoy eso es `getTransactionalDb()`.
 
 ---
 
-## 4. Norma de proceso (vigente)
+## 3. Estado de activación
 
-Push directo a master **prohibido** para cambios que:
-- Borren datos / modifiquen producción / toquen auth o migraciones
-- Afecten finanzas, invoices, conciliación, permisos o deploy
+Todo apagado, y esto no cambia solo:
 
-En esos casos: **branch → PR → CI verde → confirmación antes de mergear**.
-
----
-
-## 5. Deuda técnica identificada
-
-**Display de archivos privados (campañas, talentos, GEO stats):**  
-Con `access: 'private'` los blobs no son accesibles vía URL directa. El patrón correcto es un proxy server-side (ya existe para contratos en `/api/admin/contratos/[id]/pdf`). Los módulos de campañas y talentos almacenan la URL en DB pero no tienen proxy aún — si algún componente muestra un link directo al blob, ese link estará roto.  
-Acción: auditar si hay `<a href={file.url}>` o `<img src={file.url}>` en los componentes de campañas/talentos y añadir proxy si es necesario.
+- `AGENTS_ENABLED` sin definir → el encolado falla en cerrado.
+- Los seis agentes se siembran en `status=disabled`, `mode=shadow`.
+- Ninguna rutina se crea: `agent_schedules` queda vacía.
+- No hay worker todavía.
+- `/admin/asistente` intacto: la migración no toca `ai_assistant_*`.
 
 ---
 
-## 6. Scripts de diagnóstico (no commiteados, desechables)
+## 4. Pendiente de decisión humana
 
-En `/scripts/`:
-- `check-alfonso-role.ts`, `set-alfonso-role.ts`
-- `qa-tracker-42.ts`
-- `debug-keydrop-sheet.ts`, `debug-tracker-hyperlinks.ts`, `fix-tracker-count.ts`, `cleanup-tracker-duplicates.ts`
+1. Revisar y mergear el PR de este trabajo.
+2. Decidir cuándo aplicar la migración (`npm run migrate` + `npm run seed:agents`)
+   y contra qué base. **No se ha aplicado en ningún sitio.**
+3. Revisar y mergear el PR #304 del blueprint, que aporta la documentación de
+   arquitectura a la que este código hace referencia.
 
-Pueden eliminarse cuando sea conveniente.
+---
+
+## 5. Siguiente paso
+
+PR 2 — `feat/agent-runtime-core`: tipos, errores, JSON canónico, redacción,
+policy engine, presupuesto, hash de aprobación, tool registry y executor,
+interfaz de proveedor con `NullProvider`, adaptador de Gemini y wrappers de las
+tools de solo lectura que ya existen.
+
+Gate antes de empezarlo (`docs/agent-os/handoff.md` del blueprint):
+`drizzle-kit check` limpio, migración probada, sin DROP inesperado, seed
+idempotente, agentes disabled/shadow, chat intacto y rollback funcional
+documentado. Todo cumplido salvo "migración probada contra una base", que
+depende de la decisión del punto 4.2.

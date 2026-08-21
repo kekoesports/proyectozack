@@ -26,6 +26,7 @@ export type { FileType, FileRelatedType } from '@/lib/schemas/file';
 export type * from './bankReconciliation';
 export type * from './invoicePayment';
 export type * from './financeDashboard';
+export type * from './agent';
 
 import type { InferSelectModel } from 'drizzle-orm';
 import type { files, campaigns } from '@/db/schema';
