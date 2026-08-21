@@ -39,7 +39,7 @@ const BLOCK_TITLE_RE = /^(.+?)\s*[-–]\s*(Deal\s*#\d+)\s*[-–]\s*(.+)$/i;
  * Fallback pattern for blocks where the talent name is omitted.
  * Format: "Deal #N - <specs>" — tab name is used as talent name.
  */
-const BLOCK_TITLE_NO_TALENT_RE = /^(Deal\s*#\d+)\s*[-–]\s*(.+)$/i;
+const BLOCK_TITLE_NO_TALENT_RE = /^(Deal\s*#\d+)(?:\s*[-–]\s*|\s+)(.+)$/i;
 
 /** Maximum rows to look ahead for the header row after a title. */
 const HEADER_LOOKAHEAD = 4;

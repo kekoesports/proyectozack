@@ -144,6 +144,21 @@ describe('suggestDeliverableType', () => {
 // ── detectSocialProBlocks ─────────────────────────────────────────────────────
 
 describe('detectSocialProBlocks', () => {
+  it('acepta un título compacto sin guion tras Deal #N', () => {
+    const grid = [
+      ['', '', '', '', '', '', '', 'Deal #1 30x livestream + 15x preroll + 5x video + 20x short'],
+      ['', '', '', '', '', 'Video', '1', 'https://youtu.be/7_oZg_FJj9M'],
+      ['', '', '', '', '', 'Livestream', '1', 'https://twitch.tv/videos/123'],
+    ];
+
+    const { blocks } = detectSocialProBlocks(grid, 'JCORKO #1');
+    expect(blocks).toHaveLength(2);
+    expect(blocks.map((block) => block.specs[0]?.suggestedType)).toEqual([
+      'video_youtube',
+      'stream_integration',
+    ]);
+  });
+
   describe('STAXX tab', () => {
     const result = detectSocialProBlocks(STAXX_GRID, 'STAXX');
 
