@@ -123,6 +123,10 @@ const CODIGOS_TRANSITORIOS: readonly string[] = [
 export const CODIGOS_INDETERMINADOS: readonly string[] = [
   'tool_timeout_indeterminate',
   'tool_call_in_flight',
+  // Motivo con el que el bucle detiene la ejecución al toparse con cualquiera
+  // de los dos anteriores. Acaba en `agent_runs.last_error_code`, así que tiene
+  // que estar aquí para que la UI lo destaque igual que a los otros.
+  'tool_outcome_unknown',
 ];
 
 export function isIndeterminateErrorCode(code: string | null | undefined): boolean {
