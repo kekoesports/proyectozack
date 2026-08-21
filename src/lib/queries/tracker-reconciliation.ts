@@ -59,7 +59,7 @@ function campaignVisibility(session: ReconciliationSession | undefined) {
   );
 }
 
-async function listMatchableCampaigns(
+export async function listLinkableCampaigns(
   session?: ReconciliationSession,
 ): Promise<CampaignMatchInput[]> {
   const rows = await db
@@ -125,7 +125,7 @@ export async function listReconciliationQueue(opts: {
         .groupBy(dealDeliverableItems.trackerId);
 
   const countByTracker = new Map(countRows.map((row) => [row.trackerId, Number(row.n)]));
-  const campaignsForMatch = await listMatchableCampaigns(opts.session);
+  const campaignsForMatch = await listLinkableCampaigns(opts.session);
 
   return trackers.map((row) => {
     const candidates = selectDisplayedCandidates(
@@ -199,7 +199,7 @@ export async function linkTrackerToCampaign(input: {
   }
 
   const now = new Date();
-  await db
+  const updated = await db
     .update(dealDeliverableTrackers)
     .set({
       campaignId: input.campaignId,
@@ -213,8 +213,10 @@ export async function linkTrackerToCampaign(input: {
         eq(dealDeliverableTrackers.id, input.trackerId),
         isNull(dealDeliverableTrackers.campaignId),
       ),
-    );
+    )
+    .returning({ id: dealDeliverableTrackers.id });
 
+  if (updated.length === 0) return { ok: false, error: 'El tracker ya está enlazado' };
   return { ok: true };
 }
 
@@ -237,7 +239,7 @@ export async function classifyUnlinkedTracker(input: {
   if (tracker.campaignId != null) return { ok: false, error: 'El tracker ya está enlazado' };
 
   const now = new Date();
-  await db
+  const updated = await db
     .update(dealDeliverableTrackers)
     .set({
       reconciliationStatus: input.status,
@@ -251,7 +253,9 @@ export async function classifyUnlinkedTracker(input: {
         eq(dealDeliverableTrackers.id, input.trackerId),
         isNull(dealDeliverableTrackers.campaignId),
       ),
-    );
+    )
+    .returning({ id: dealDeliverableTrackers.id });
 
+  if (updated.length === 0) return { ok: false, error: 'El tracker ya está enlazado' };
   return { ok: true };
 }

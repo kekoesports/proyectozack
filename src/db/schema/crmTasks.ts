@@ -54,6 +54,7 @@ export const crmTasks = pgTable(
     rolledOver: boolean('rolled_over').notNull().default(false),
     rolledFromWeek: varchar('rolled_from_week', { length: 8 }),
     rolloverNote: text('rollover_note'),
+    sanitationAckAt: timestamp('sanitation_ack_at', { withTimezone: true }),
 
     relatedType: crmTaskRelatedTypeEnum('related_type'),
     relatedId: integer('related_id'),

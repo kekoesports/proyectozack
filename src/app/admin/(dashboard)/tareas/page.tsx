@@ -12,6 +12,7 @@ import {
 } from '@/lib/queries/crmTasks';
 import { getEventsForMonth } from '@/lib/queries/crmEvents';
 import { getAllStaffUsers } from '@/lib/queries/staffUsers';
+import { isOpenTaskStatus } from '@/lib/schemas/task';
 import { getIsoWeekLabel } from '@/lib/utils/week';
 import { TaskWorkspace } from '@/features/admin/tasks/components/TaskWorkspace';
 
@@ -48,7 +49,7 @@ export default async function TareasPage(): Promise<ReactElement> {
     name: u.name,
   }));
 
-  const pendingCount = tasks.filter((t) => t.status !== 'completada').length;
+  const pendingCount = tasks.filter((t) => isOpenTaskStatus(t.status)).length;
   const doneCount = tasks.filter((t) => t.status === 'completada').length;
 
   return (

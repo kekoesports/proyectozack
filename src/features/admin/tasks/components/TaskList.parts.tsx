@@ -8,7 +8,9 @@ import { Avatar } from '@/features/admin/_shared/components/Avatar';
 import { PriorityBadge } from './PriorityBadge';
 import { RecurrenceBadge } from './RecurrenceBadge';
 import { TaskStatusBadge } from './TaskStatusBadge';
-import { CRM_TASK_PRIORITIES, CRM_TASK_STATUSES, isOpenTaskStatus } from '@/lib/schemas/task';
+import { CRM_TASK_OPEN_STATUSES, CRM_TASK_PRIORITIES, isOpenTaskStatus } from '@/lib/schemas/task';
+
+const LIST_EDIT_STATUSES = [...CRM_TASK_OPEN_STATUSES, 'completada'] as const;
 
 // ── Related entity helpers ────────────────────────────────────────────────────
 
@@ -222,7 +224,7 @@ export function TaskRow({
 }: RowProps): React.ReactElement {
   const owner = usersById.get(t.ownerId);
   const mine = t.ownerId === currentUserId;
-  const isDone = t.status === 'completada';
+  const isDone = !isOpenTaskStatus(t.status);
   return (
     <tr className={`${mine ? 'bg-sp-admin-accent/5' : ''} ${selected ? 'bg-red-50/40' : ''} hover:bg-sp-admin-hover`}>
       {/* Selección bulk */}
@@ -342,7 +344,7 @@ export function TaskRow({
           <Popover.Portal>
             <Popover.Content sideOffset={6} align="start" className={POPOVER_PANEL_CLS}>
               <ul role="listbox" aria-label="Estado" className="flex flex-col">
-                {CRM_TASK_STATUSES.map((value) => {
+                {LIST_EDIT_STATUSES.map((value) => {
                   const selected = t.status === value;
                   return (
                     <li key={value} role="option" aria-selected={selected}>

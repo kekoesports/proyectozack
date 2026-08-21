@@ -3,7 +3,7 @@ import { and, asc, desc, eq, getTableColumns, gte, inArray, isNotNull, isNull, l
 import { campaigns, crmBrands, crmTasks, invoices, talents, user } from '@/db/schema';
 import { crmTaskTemplates } from '@/db/schema/crmTaskTemplates';
 import { db } from '@/lib/db';
-import { CRM_TASK_OPEN_STATUSES } from '@/lib/schemas/task';
+import { CRM_TASK_OPEN_STATUSES, isOpenTaskStatus } from '@/lib/schemas/task';
 import { ASSIGNABLE_TEAM_ROLES, isAssignableTeamUser } from '@/lib/team-roles';
 import { toLocalIsoDate } from '@/lib/utils/date';
 import { getIsoWeekLabel } from '@/lib/utils/week';
@@ -224,11 +224,11 @@ export async function updateTask(
   patch: Partial<UpdatableFields>,
 ): Promise<CrmTask | null> {
   const completedAtPatch =
-    patch.status === 'completada'
-      ? { completedAt: sql`COALESCE(${crmTasks.completedAt}, NOW())` }
-      : patch.status !== undefined
+    patch.status === undefined
+      ? {}
+      : isOpenTaskStatus(patch.status)
         ? { completedAt: null }
-        : {};
+        : { completedAt: sql`COALESCE(${crmTasks.completedAt}, NOW())` };
 
   const [row] = await db
     .update(crmTasks)

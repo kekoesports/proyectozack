@@ -10,6 +10,7 @@ import {
 import type { ReconciliationQueueRow } from '@/lib/queries/tracker-reconciliation';
 import type { TrackerReconciliationPreflight } from '@/lib/queries/tracker-reconciliation-preflight';
 import type { TrackerReconciliationQueueFilter } from '@/lib/schemas/tracker-reconciliation';
+import type { CampaignMatchInput } from '@/lib/tracker-reconciliation-match';
 
 const FILTERS: { id: TrackerReconciliationQueueFilter; label: string }[] = [
   { id: 'unreconciled', label: 'Pendientes' },
@@ -27,9 +28,10 @@ type Props = {
   readonly filter: TrackerReconciliationQueueFilter;
   readonly preflight: TrackerReconciliationPreflight;
   readonly rows: readonly ReconciliationQueueRow[];
+  readonly campaigns: readonly CampaignMatchInput[];
 };
 
-export function TrackerReconciliationClient({ filter, preflight, rows }: Props) {
+export function TrackerReconciliationClient({ filter, preflight, rows, campaigns }: Props) {
   return (
     <div className="space-y-5">
       <div>
@@ -83,7 +85,7 @@ export function TrackerReconciliationClient({ filter, preflight, rows }: Props) 
         <ul className="space-y-4">
           {rows.map((row) => (
             <li key={row.trackerId}>
-              <TrackerReconciliationCard row={row} />
+              <TrackerReconciliationCard row={row} campaigns={campaigns} />
             </li>
           ))}
         </ul>
@@ -110,7 +112,13 @@ function Stat({
   );
 }
 
-function TrackerReconciliationCard({ row }: { readonly row: ReconciliationQueueRow }) {
+function TrackerReconciliationCard({
+  row,
+  campaigns,
+}: {
+  readonly row: ReconciliationQueueRow;
+  readonly campaigns: readonly CampaignMatchInput[];
+}) {
   const [campaignId, setCampaignId] = useState('');
   const [note, setNote] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -166,7 +174,7 @@ function TrackerReconciliationCard({ row }: { readonly row: ReconciliationQueueR
       ) : null}
 
       {row.candidates.length === 0 ? (
-        <p className="text-xs text-sp-muted">Sin sugerencias automáticas.</p>
+        <p className="text-xs text-sp-muted">Sin sugerencias automáticas. Elige una campaña abajo.</p>
       ) : (
         <fieldset className="space-y-1" disabled={pending}>
           <legend className="text-[10px] font-bold uppercase tracking-wider text-sp-muted mb-1">
@@ -195,6 +203,23 @@ function TrackerReconciliationCard({ row }: { readonly row: ReconciliationQueueR
           ))}
         </fieldset>
       )}
+
+      <label className="block text-xs text-sp-muted">
+        Campaña
+        <select
+          value={campaignId}
+          onChange={(e) => setCampaignId(e.target.value)}
+          disabled={pending}
+          className="mt-1 w-full border border-sp-border rounded-lg px-2 py-1.5 text-sm text-sp-dark"
+        >
+          <option value="">Selecciona una campaña…</option>
+          {campaigns.map((campaign) => (
+            <option key={campaign.id} value={campaign.id}>
+              {campaign.name} · {campaign.brandName} × {campaign.talentName}
+            </option>
+          ))}
+        </select>
+      </label>
 
       <label className="block text-xs text-sp-muted">
         Nota

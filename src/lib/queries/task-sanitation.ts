@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, getTableColumns, inArray, isNotNull, lt, or } from 'drizzle-orm';
+import { and, asc, desc, eq, getTableColumns, inArray, isNotNull, isNull, lt, or } from 'drizzle-orm';
 
 import { crmTasks } from '@/db/schema';
 import { crmTaskTemplates } from '@/db/schema/crmTaskTemplates';
@@ -43,6 +43,7 @@ export async function listTaskSanitationQueue(opts: {
     .where(
       and(
         inArray(crmTasks.status, [...CRM_TASK_OPEN_STATUSES]),
+        isNull(crmTasks.sanitationAckAt),
         or(
           eq(crmTasks.rolledOver, true),
           and(isNotNull(crmTasks.dueDate), lt(crmTasks.dueDate, opts.todayIso)),
@@ -89,7 +90,12 @@ export async function sanitizeTask(input: {
   const patch = patchForAction(input.action, input.dueDate, input.note, now);
   if ('error' in patch) return { ok: false, error: patch.error };
 
-  await db.update(crmTasks).set(patch).where(eq(crmTasks.id, input.taskId));
+  const updated = await db
+    .update(crmTasks)
+    .set(patch)
+    .where(and(eq(crmTasks.id, input.taskId), inArray(crmTasks.status, [...CRM_TASK_OPEN_STATUSES])))
+    .returning({ id: crmTasks.id });
+  if (updated.length === 0) return { ok: false, error: 'La tarea ya está cerrada' };
   return { ok: true };
 }
 
@@ -106,11 +112,18 @@ function patchForAction(
   rolledOver: boolean;
   rolledFromWeek?: string | null;
   rolloverNote: string | null;
+  sanitationAckAt?: Date | null;
   updatedAt: Date;
 } | { error: string } {
   const noteValue = note ?? null;
   if (action === 'keep') {
-    return { rolledOver: false, rolledFromWeek: null, rolloverNote: noteValue, updatedAt: now };
+    return {
+      rolledOver: false,
+      rolledFromWeek: null,
+      rolloverNote: noteValue,
+      sanitationAckAt: now,
+      updatedAt: now,
+    };
   }
   if (action === 'complete') {
     return {
@@ -147,6 +160,7 @@ function patchForAction(
     rolledOver: false,
     rolledFromWeek: null,
     rolloverNote: noteValue,
+    sanitationAckAt: null,
     updatedAt: now,
   };
 }

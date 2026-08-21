@@ -101,7 +101,7 @@ export function TaskKanban({ tasks, users, relatedLabels, onOpenAction }: Props)
               const related = t.relatedType && t.relatedId && relatedLabels
                 ? relatedLabels.get(`${t.relatedType}:${t.relatedId}`) ?? null
                 : null;
-              const overdue = t.dueDate && t.status !== 'completada'
+              const overdue = t.dueDate && isOpenTaskStatus(t.status)
                 && new Date(t.dueDate) < new Date(new Date().toISOString().slice(0, 10));
               return (
                 <div
@@ -194,7 +194,7 @@ export function TaskKanban({ tasks, users, relatedLabels, onOpenAction }: Props)
                   const related = t.relatedType && t.relatedId && relatedLabels
                     ? relatedLabels.get(`${t.relatedType}:${t.relatedId}`) ?? null
                     : null;
-                  const overdue = t.dueDate && t.status !== 'completada'
+                  const overdue = t.dueDate && isOpenTaskStatus(t.status)
                     && new Date(t.dueDate) < new Date(new Date().toISOString().slice(0, 10));
                   return (
                     <div

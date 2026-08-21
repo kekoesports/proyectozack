@@ -25,6 +25,18 @@ describe('tracker reconciliation — no auto-link', () => {
     );
   });
 
+  it('always offers a campaign select, not only matcher radios', () => {
+    const src = read('src/features/admin/trackers/components/TrackerReconciliationClient.tsx');
+    expect(src).toMatch(/Selecciona una campaña/);
+    expect(src).toMatch(/campaigns=\{campaigns\}/);
+  });
+
+  it('link/classify require a returning row', () => {
+    const src = read('src/lib/queries/tracker-reconciliation.ts');
+    expect(src).toMatch(/\.returning\(\{ id: dealDeliverableTrackers\.id \}\)/);
+    expect(src).toMatch(/updated\.length === 0/);
+  });
+
   it('keeps the full unique index — not a partial is_active unique', () => {
     const schema = read('src/db/schema/dealDeliverableTrackers.ts');
     expect(schema).toMatch(/uniqueIndex\('deal_items_tracker_url_uidx'\)\.on\(t\.trackerId, t\.normalizedUrl\)/);

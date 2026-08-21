@@ -1,4 +1,4 @@
-import { and, eq, ilike, ne, isNull, or, asc, desc, sql } from 'drizzle-orm';
+import { and, eq, ilike, inArray, ne, isNull, or, asc, desc, sql } from 'drizzle-orm';
 
 import { db } from '@/lib/db';
 import {
@@ -10,6 +10,7 @@ import {
   talents,
 } from '@/db/schema';
 
+import { CRM_TASK_OPEN_STATUSES } from '@/lib/schemas/task';
 import type { Role } from '@/lib/auth-guard';
 
 export type SearchSession = {
@@ -207,7 +208,7 @@ export async function globalSearch(
         .where(
           and(
             ilike(crmTasks.title, pattern),
-            ne(crmTasks.status, 'completada'),
+            inArray(crmTasks.status, [...CRM_TASK_OPEN_STATUSES]),
             isStaff(session.role)
               ? or(
                   eq(crmTasks.assignedToUserId, session.userId),

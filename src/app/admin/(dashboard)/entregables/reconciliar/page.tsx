@@ -2,7 +2,7 @@ import Link from 'next/link';
 
 import { requirePermission } from '@/lib/permissions';
 import { getTrackerReconciliationPreflight } from '@/lib/queries/tracker-reconciliation-preflight';
-import { listReconciliationQueue } from '@/lib/queries/tracker-reconciliation';
+import { listLinkableCampaigns, listReconciliationQueue } from '@/lib/queries/tracker-reconciliation';
 import { trackerReconciliationQueueFilterSchema } from '@/lib/schemas/tracker-reconciliation';
 import { TrackerReconciliationClient } from '@/features/admin/trackers/components/TrackerReconciliationClient';
 
@@ -22,12 +22,11 @@ export default async function EntregablesReconciliarPage({
     ? { userId: session.user.id, role: session.user.role }
     : undefined;
 
-  const [preflight, rows] = await Promise.all([
+  const queueOpts = staffSession ? { session: staffSession } : {};
+  const [preflight, rows, campaigns] = await Promise.all([
     getTrackerReconciliationPreflight(),
-    listReconciliationQueue({
-      filter,
-      ...(staffSession ? { session: staffSession } : {}),
-    }),
+    listReconciliationQueue({ filter, ...queueOpts }),
+    listLinkableCampaigns(staffSession),
   ]);
 
   return (
@@ -42,6 +41,7 @@ export default async function EntregablesReconciliarPage({
         filter={filter}
         preflight={preflight}
         rows={rows}
+        campaigns={campaigns}
       />
     </div>
   );

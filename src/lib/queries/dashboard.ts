@@ -22,6 +22,7 @@ import {
   isSettledInvoiceStatus,
 } from '@/lib/utils/invoice-status';
 
+import { CRM_TASK_OPEN_STATUSES } from '@/lib/schemas/task';
 import type { Role } from '@/lib/auth-guard';
 
 type TaskSession = {
@@ -221,7 +222,7 @@ export async function getOverdueFollowupsCount(): Promise<number> {
 }
 
 /**
- * Cuenta tareas urgentes (`dueDate <= hoy` Madrid TZ, `status != 'completada'`).
+ * Cuenta tareas urgentes (`dueDate <= hoy` Madrid TZ, status abierto).
  * Si la sesión es `staff`, filtra a tareas asignadas/creadas/owned por el user.
  *
  * @cache none
@@ -237,7 +238,7 @@ export async function getUrgentTasksCount(session?: TaskSession): Promise<number
     day: '2-digit',
   }).format(new Date());
 
-  const filters = [ne(crmTasks.status, 'completada'), lte(crmTasks.dueDate, todayMadrid)];
+  const filters = [inArray(crmTasks.status, [...CRM_TASK_OPEN_STATUSES]), lte(crmTasks.dueDate, todayMadrid)];
   const visible = taskVisibilityCondition(session);
   if (visible !== undefined) filters.push(visible);
 
@@ -324,7 +325,7 @@ export async function getUrgentTasks(limit = 5, session?: TaskSession): Promise<
     WHEN 'baja' THEN 2
   END`;
 
-  const filters = [ne(crmTasks.status, 'completada'), lte(crmTasks.dueDate, todayMadrid)];
+  const filters = [inArray(crmTasks.status, [...CRM_TASK_OPEN_STATUSES]), lte(crmTasks.dueDate, todayMadrid)];
   const visible = taskVisibilityCondition(session);
   if (visible !== undefined) filters.push(visible);
 

@@ -9,6 +9,17 @@ test.describe('Tracker reconciliation', () => {
     await expect(page.getByText(/nunca se aplica un candidato automático/i)).toBeVisible();
   });
 
+  test('campaign select is present so Enlazar works without suggestions', async ({ page }) => {
+    await gotoAdmin(page, 'entregables/reconciliar');
+    const selects = page.getByRole('combobox');
+    const count = await selects.count();
+    if (count === 0) {
+      await expect(page.getByText(/no hay trackers en esta cola/i)).toBeVisible();
+      return;
+    }
+    await expect(selects.first()).toBeVisible();
+  });
+
   test('Enlazar stays disabled until a campaign is chosen', async ({ page }) => {
     await gotoAdmin(page, 'entregables/reconciliar');
     const linkButtons = page.getByRole('button', { name: 'Enlazar' });
