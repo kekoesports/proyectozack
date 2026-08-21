@@ -41,8 +41,11 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   // Empaqueta el servidor con sus dependencias en .next/standalone, para que
   // la imagen Docker no necesite node_modules completo ni `next start`.
-  // Imprescindible para desplegar fuera de Vercel.
-  output: 'standalone',
+  //
+  // Solo fuera de Vercel: allí el empaquetado lo hace su propia plataforma y
+  // pedirle además la salida standalone no aporta nada. Mientras dure la
+  // transición los dos destinos tienen que seguir funcionando.
+  ...(process.env.VERCEL ? {} : { output: 'standalone' as const }),
   poweredByHeader: false,
   // pdfjs-dist uses DOMMatrix at module init — exclude from Turbopack SSR bundle
   // so Node.js loads it natively at runtime instead of bundling it.
