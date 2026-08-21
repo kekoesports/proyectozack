@@ -29,6 +29,10 @@ export function aggregateBlocksByType(blocks: readonly DetectedBlock[]): {
     if (!primarySpec) continue;
     const type = primarySpec.suggestedType;
     const bucket = evidenceByType.get(type) ?? [];
+    // Register the primary bucket before walking the links. Otherwise the
+    // first link of the primary type creates a second array and a later
+    // assignment can replace all collected evidence with the empty one.
+    evidenceByType.set(type, bucket);
     for (const link of block.links) {
       const linkType = link.suggestedType ?? type;
       const linkBucket = evidenceByType.get(linkType) ?? [];
@@ -40,7 +44,6 @@ export function aggregateBlocksByType(blocks: readonly DetectedBlock[]): {
       linkBucket.push({ originalUrl: link.originalUrl, normalizedUrl, rowIndex: link.rowIndex });
       evidenceByType.set(linkType, linkBucket);
     }
-    evidenceByType.set(type, bucket);
   }
 
   const targetsByType = new Map<string, number>();
