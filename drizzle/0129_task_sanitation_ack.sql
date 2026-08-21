@@ -1,0 +1,1 @@
+ALTER TABLE "crm_tasks" ADD COLUMN "sanitation_ack_at" timestamp with time zone;

@@ -1,6 +1,7 @@
 import { and, asc, desc, eq, inArray, isNull, isNotNull, lt, not, or, sql } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { alerts, crmTasks, crmBrandFollowups, crmBrands, campaigns, talents, invoices, issuedInvoices, billingClients } from '@/db/schema';
+import { CRM_TASK_OPEN_STATUSES } from '@/lib/schemas/task';
 import { getIsoWeekLabel, previousWeek } from '@/lib/utils/week';
 
 export type AlertSeverity = 'critical' | 'high' | 'medium' | 'low';
@@ -206,7 +207,7 @@ export async function getDashboardAlerts(opts?: {
       priority: crmTasks.priority, category: crmTasks.category, dueDate: crmTasks.dueDate,
     }).from(crmTasks)
       .where(and(
-        not(eq(crmTasks.status, 'completada')),
+        inArray(crmTasks.status, [...CRM_TASK_OPEN_STATUSES]),
         isNotNull(crmTasks.dueDate),
         sql`${crmTasks.dueDate}::date < ${today}::date`,
         staffUserId
@@ -322,7 +323,7 @@ export async function getDashboardAlerts(opts?: {
       id: crmTasks.id, title: crmTasks.title, category: crmTasks.category,
     }).from(crmTasks)
       .where(and(
-        not(eq(crmTasks.status, 'completada')),
+        inArray(crmTasks.status, [...CRM_TASK_OPEN_STATUSES]),
         eq(crmTasks.priority, 'alta'),
         isNotNull(crmTasks.dueDate),
         sql`${crmTasks.dueDate}::date = ${today}::date`,
@@ -338,7 +339,7 @@ export async function getDashboardAlerts(opts?: {
       category: crmTasks.category, rolledFromWeek: crmTasks.rolledFromWeek,
     }).from(crmTasks)
       .where(and(
-        not(eq(crmTasks.status, 'completada')),
+        inArray(crmTasks.status, [...CRM_TASK_OPEN_STATUSES]),
         eq(crmTasks.rolledOver, true),
         isNotNull(crmTasks.rolledFromWeek),
         sql`${crmTasks.rolledFromWeek} < ${prevWeekLabel}`,

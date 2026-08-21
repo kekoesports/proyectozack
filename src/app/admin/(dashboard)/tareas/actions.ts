@@ -41,11 +41,11 @@ import {
   getTaskTemplates,
   resetRolledOver,
   resetRolledOverBulk,
-  rollOverPendingTasks,
   taskExistsForWeek,
   updateTask,
   updateTaskTemplate,
 } from '@/lib/queries/crmTasks';
+import { rollOverPendingTasks, type RollOverResult } from '@/lib/queries/task-rollover';
 import { createAlert } from '@/lib/queries/alerts';
 import { IdSchema } from '@/lib/schemas/common';
 import { taskFormSchema, taskPatchSchema } from '@/lib/schemas/task';
@@ -419,9 +419,7 @@ export async function resetRolledOverBulkAction(ids: unknown): Promise<ActionRes
 
 // ── Arrastre automático ───────────────────────────────────────────────
 
-export type RollOverResult = {
-  readonly rolled: number;
-};
+export type { RollOverResult };
 
 /** Arrastra tareas pendientes/en_progreso de la semana anterior a la actual (admin/ops only). */
 export async function rollOverTasksAction(): Promise<RollOverResult> {

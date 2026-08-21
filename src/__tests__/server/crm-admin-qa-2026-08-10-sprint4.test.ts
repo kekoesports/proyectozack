@@ -44,6 +44,9 @@ describe('sprint4 — ENTREGABLES staff visibility', () => {
     expect(read('src/app/admin/(dashboard)/entregables/[trackerId]/page.tsx')).toMatch(
       /getTrackerWithItems\([\s\S]*staff/,
     );
+    expect(read('src/app/admin/(dashboard)/entregables/reconciliar/page.tsx')).toMatch(
+      /staffSession|session\.user\.role === 'staff'/,
+    );
   });
 });
 
