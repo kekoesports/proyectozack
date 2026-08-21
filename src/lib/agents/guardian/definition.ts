@@ -1,5 +1,4 @@
 import { GUARDIAN_PROMPT_VERSION } from './prompt';
-import { GUARDIAN_TOOL_NAMES } from './tools';
 
 /**
  * Configuración de Guardian.
@@ -15,6 +14,25 @@ import { GUARDIAN_TOOL_NAMES } from './tools';
 
 export const GUARDIAN_SLUG = 'guardian';
 export const GUARDIAN_POLICY_VERSION = 'guardian-policy-v1';
+
+/**
+ * Nombres de las tools de Guardian.
+ *
+ * Se declaran **aquí** y no se importan de `tools.ts`, aunque allí estén las
+ * implementaciones. El motivo es concreto: `tools.ts` lleva `server-only`, que
+ * lanza fuera del runtime de Next, y este módulo lo carga el seed —un script de
+ * Node corriente—. Importarlo desde allí rompía `seed-guardian-schedules.ts`
+ * con un error que no dice nada del problema real.
+ *
+ * `guardian-definition.test.ts` comprueba que esta lista y la de las
+ * implementaciones no se separen.
+ */
+export const GUARDIAN_TOOL_NAMES = [
+  'getSystemHealthSnapshot',
+  'getOpenOperationalIncidents',
+  'getAgentWorkerHealth',
+  'getAgentQueueHealth',
+] as const;
 
 /** Tools que alcanza. Todas de lectura; ninguna toca la infraestructura. */
 export const GUARDIAN_ALLOWLIST: readonly string[] = [...GUARDIAN_TOOL_NAMES, 'getCrmHelpContext'];
