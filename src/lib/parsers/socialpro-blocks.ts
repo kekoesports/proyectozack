@@ -408,11 +408,9 @@ export function detectSocialProBlocks(
         if (rawUrl) {
           const rawType = contentColIndex >= 0 ? (drow[contentColIndex] ?? '') : '';
           const detectedType = rawType ? suggestDeliverableType(rawType) : 'otro';
-          links.push({
-            originalUrl: rawUrl,
-            rowIndex: dr,
-            suggestedType: detectedType !== 'otro' ? detectedType : undefined,
-          });
+          links.push(detectedType !== 'otro'
+            ? { originalUrl: rawUrl, rowIndex: dr, suggestedType: detectedType }
+            : { originalUrl: rawUrl, rowIndex: dr });
         }
       }
 
