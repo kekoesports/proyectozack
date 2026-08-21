@@ -2,6 +2,7 @@ import 'server-only';
 import { and, eq, ne } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { campaigns } from '@/db/schema/campaigns';
+import { crmBrands } from '@/db/schema/crmBrands';
 import { dealDeliverableTrackers } from '@/db/schema/dealDeliverableTrackers';
 import {
   extractSpreadsheetId,
