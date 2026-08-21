@@ -53,9 +53,20 @@ export type Module =
   | 'dashboard'
   | 'bancos'
   | 'contratos'
-  | 'contabilidad';
+  | 'contabilidad'
+  | 'agents'
+  | 'infrastructure';
 
-export type Action = 'read' | 'write' | 'publish' | 'delete' | 'manage_users' | 'audit';
+export type Action =
+  | 'read'
+  | 'write'
+  | 'publish'
+  | 'delete'
+  | 'manage_users'
+  | 'audit'
+  | 'approve'
+  | 'manage'
+  | 'operate';
 
 type PermissionsMap = Record<Module, Partial<Record<Action, readonly Role[]>>>;
 
@@ -166,6 +177,30 @@ export const PERMISSIONS = {
   // No incluir finance/manager/staff/ops sin decisión explícita.
   contabilidad: {
     read: ['admin', 'admin_limited_tasks'],
+  },
+  // Zack Agent OS. Ver docs/agent-os/agents-tools-policies.md §13.
+  //
+  // `brand` NO aparece en ninguna acción, y es deliberado: es un rol externo
+  // —marcas que entran a su portal— y el panel de agentes expone ejecuciones,
+  // memoria y datos operativos de toda la agencia.
+  //
+  // `approve` es el permiso para ENTRAR al centro de aprobaciones. No basta por
+  // sí solo: la Server Action comprueba además `canApproveActionClass` (las
+  // acciones privilegiadas son solo de admin) y revalida el permiso de dominio
+  // de la tool concreta. Tres puertas, no una.
+  agents: {
+    read:    ['admin', 'admin_limited_tasks', 'manager', 'ops', 'analyst', 'finance', 'talent_manager', 'editor'],
+    write:   ['admin', 'admin_limited_tasks', 'manager', 'ops'],
+    approve: ['admin', 'admin_limited_tasks', 'manager'],
+    manage:  ['admin'],
+    audit:   ['admin', 'admin_limited_tasks'],
+  },
+  // Solo lectura por ahora: `operate` existe para cuando Guardian tenga
+  // acciones sobre infraestructura (PR posteriores), y hasta entonces no hay
+  // ninguna tool que lo pida.
+  infrastructure: {
+    read:    ['admin', 'admin_limited_tasks', 'ops'],
+    operate: ['admin'],
   },
 } as const satisfies PermissionsMap;
 
