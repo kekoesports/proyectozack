@@ -15,6 +15,7 @@ import {
   etiquetaDeducibilidad,
   evaluarGasto,
   retencionEsperada,
+  sugerirTipoFiscal,
   type BorradorGasto,
   type PerfilFiscal,
 } from '@/lib/finance/expenseAssistant.shared';
@@ -244,5 +245,32 @@ describe('calcularEfecto — lo que le hace a las cifras', () => {
     expect(e.reduceResultado).toBe(1000);
     expect(e.sePaga).toBe(850);
     expect(e.retencionAIngresar).toBe(150);
+  });
+});
+
+describe('sugerirTipoFiscal — un punto de partida, no una respuesta', () => {
+  it('España sugiere autónomo, que es el caso más común del roster', () => {
+    expect(sugerirTipoFiscal('ES')).toBe('autonomo_es');
+  });
+
+  it('los países de LATAM sugieren el perfil sin retención española', () => {
+    expect(sugerirTipoFiscal('AR')).toBe('latam');
+    expect(sugerirTipoFiscal('VE')).toBe('latam');
+    expect(sugerirTipoFiscal('PE')).toBe('latam');
+  });
+
+  it('el resto del mundo, no residente', () => {
+    expect(sugerirTipoFiscal('US')).toBe('no_residente');
+    expect(sugerirTipoFiscal('TR')).toBe('no_residente');
+  });
+
+  it('sin país no se sugiere nada, en vez de adivinar', () => {
+    expect(sugerirTipoFiscal(null)).toBeNull();
+    expect(sugerirTipoFiscal('')).toBeNull();
+    expect(sugerirTipoFiscal('   ')).toBeNull();
+  });
+
+  it('acepta el país en minúsculas', () => {
+    expect(sugerirTipoFiscal('es')).toBe('autonomo_es');
   });
 });

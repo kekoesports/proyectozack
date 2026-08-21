@@ -318,3 +318,24 @@ export function calcularEfecto(
     retencionAIngresar: retencion,
   };
 }
+
+// ── Perfil por país ─────────────────────────────────────────────────────────
+
+/** Países de LATAM presentes en el roster, en ISO-2. */
+const LATAM = ['AR', 'CO', 'CL', 'PE', 'VE', 'MX', 'UY', 'EC', 'BO', 'PY', 'CR', 'PA', 'DO', 'GT'];
+
+/**
+ * Qué tipo fiscal tiene pinta de corresponderle a un talento, según su país.
+ *
+ * Es un punto de partida para no rellenar nueve fichas desde cero, **no una
+ * respuesta**: un residente en Argentina puede tener sociedad española, y un
+ * español puede facturar desde una sociedad. Quien confirma es Pablo, y hasta
+ * que lo haga el campo sigue vacío y el validador sigue avisando.
+ */
+export function sugerirTipoFiscal(creatorCountry: string | null): string | null {
+  if (creatorCountry === null || creatorCountry.trim() === '') return null;
+  const pais = creatorCountry.trim().toUpperCase();
+  if (pais === 'ES') return 'autonomo_es';
+  if (LATAM.includes(pais)) return 'latam';
+  return 'no_residente';
+}
