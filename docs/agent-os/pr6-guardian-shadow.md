@@ -159,6 +159,19 @@ real, y que el bucle completo produzca un informe válido con un modelo de
 verdad. Lo primero necesita Postgres; lo segundo, clave de API — y ninguna
 prueba llama a Gemini a propósito.
 
+## El rol con el que se ejecuta
+
+Las tools de Guardian piden `infrastructure:read`, y el rol por defecto de un
+run sin humano detrás es `analyst`, que **no lo tiene**. Con ese default cada
+llamada habría acabado en `policy_denied`: informes vacíos para siempre y la
+causa invisible — la timeline solo dice `blocked`, y al modelo se le dice
+únicamente que no tiene permiso, sin decir cuál.
+
+El catálogo gana un `systemRole` opcional y Guardian se siembra con `ops`, que
+es el rol más estrecho que alcanza sus tools. `admin`, `admin_limited_tasks` y
+`brand` están prohibidos ahí: un agente que se ejecuta sin supervisión no opera
+como administrador.
+
 ## Riesgos pendientes
 
 1. **Los umbrales no se han validado contra datos reales.** Están puestos con
