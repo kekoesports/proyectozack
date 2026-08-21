@@ -19,6 +19,7 @@ import type {
   CampaignStatus,
 } from '@/lib/schemas/campaign';
 import type { CampaignRow } from '@/types';
+import { totalEurSql } from '@/lib/finance/money';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -580,7 +581,7 @@ export async function getCampaignPaymentStatus(
 
   const [incomeRow] = await db
     .select({
-      total: sql<string>`COALESCE(SUM(${invoices.totalAmount}), 0)`,
+      total: sql<string>`COALESCE(SUM(${totalEurSql}), 0)`,
     })
     .from(invoices)
     .where(
@@ -593,7 +594,7 @@ export async function getCampaignPaymentStatus(
 
   const [expenseRow] = await db
     .select({
-      total: sql<string>`COALESCE(SUM(${invoices.totalAmount}), 0)`,
+      total: sql<string>`COALESCE(SUM(${totalEurSql}), 0)`,
     })
     .from(invoices)
     .where(

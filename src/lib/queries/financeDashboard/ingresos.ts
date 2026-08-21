@@ -11,6 +11,7 @@ import {
 import { NOT_ISSUED_MIRROR } from '@/lib/finance/revenue';
 import { getArAging } from './arAging';
 import type { ArAgingBucket, ArAgingKpis, ArAgingRow } from '@/types/arAging';
+import { totalEurSql } from '@/lib/finance/money';
 
 /**
  * FV.1 — criterio único de espejo (FK, con el prefijo como fallback histórico).
@@ -94,7 +95,7 @@ function resolvePeriod(input: { readonly from?: string; readonly to?: string } =
 async function sumFacturado(period: IngresosPeriod): Promise<number> {
   const [internal, issued] = await Promise.all([
     db
-      .select({ total: sql<string>`COALESCE(SUM(${invoices.totalAmount}), 0)::text` })
+      .select({ total: sql<string>`COALESCE(SUM(${totalEurSql}), 0)::text` })
       .from(invoices)
       .where(and(
         eq(invoices.kind, 'income'),
@@ -173,7 +174,7 @@ async function computeTopMarcasFacturado(period: IngresosPeriod, limit = 5): Pro
     db
       .select({
         name: crmBrands.name,
-        total: sql<string>`COALESCE(SUM(${invoices.totalAmount}), 0)::text`,
+        total: sql<string>`COALESCE(SUM(${totalEurSql}), 0)::text`,
         cnt: sql<number>`COUNT(${invoices.id})::int`,
       })
       .from(invoices)

@@ -17,6 +17,7 @@ import { and, asc, eq, isNotNull, ne, sql } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { campaigns, crmBrands, invoices, issuedInvoices, talents } from '@/db/schema';
 import { NOT_ISSUED_MIRROR } from '@/lib/finance/revenue';
+import { totalEurSql } from '@/lib/finance/money';
 
 /** Umbral heredado de campaignMargins.ts — mantener sincronizado. */
 export const LOW_MARGIN_THRESHOLD = 20;
@@ -294,10 +295,10 @@ export async function getRentabilidadData(input: RentabilidadFilters = {}): Prom
     db
     .select({
       campaignId:                 invoices.campaignId,
-      ingresosReales:             sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind} = 'income'  AND ${invoices.status} NOT IN ('anulada','borrador') AND ${NOT_ISSUED_MIRROR} THEN ${invoices.totalAmount} ELSE 0 END), 0)::text`,
-      costesReales:               sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind} = 'expense' AND ${invoices.status} NOT IN ('anulada','borrador') THEN ${invoices.totalAmount} ELSE 0 END), 0)::text`,
-      pagosTalentosReales:        sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind} = 'expense' AND ${invoices.status} NOT IN ('anulada','borrador') AND ${invoices.expenseSubtype} = 'pago_talento' THEN ${invoices.totalAmount} ELSE 0 END), 0)::text`,
-      otrosCostesDirectosReales:  sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind} = 'expense' AND ${invoices.status} NOT IN ('anulada','borrador') AND ${invoices.expenseSubtype} IN ('coste_produccion','comision_plataforma','otros_campana') THEN ${invoices.totalAmount} ELSE 0 END), 0)::text`,
+      ingresosReales:             sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind} = 'income'  AND ${invoices.status} NOT IN ('anulada','borrador') AND ${NOT_ISSUED_MIRROR} THEN ${totalEurSql} ELSE 0 END), 0)::text`,
+      costesReales:               sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind} = 'expense' AND ${invoices.status} NOT IN ('anulada','borrador') THEN ${totalEurSql} ELSE 0 END), 0)::text`,
+      pagosTalentosReales:        sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind} = 'expense' AND ${invoices.status} NOT IN ('anulada','borrador') AND ${invoices.expenseSubtype} = 'pago_talento' THEN ${totalEurSql} ELSE 0 END), 0)::text`,
+      otrosCostesDirectosReales:  sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind} = 'expense' AND ${invoices.status} NOT IN ('anulada','borrador') AND ${invoices.expenseSubtype} IN ('coste_produccion','comision_plataforma','otros_campana') THEN ${totalEurSql} ELSE 0 END), 0)::text`,
     })
     .from(invoices)
     .where(and(

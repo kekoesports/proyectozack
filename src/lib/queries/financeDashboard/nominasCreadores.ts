@@ -4,6 +4,7 @@ import { and, eq, gte, inArray, lte, ne, sql } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { crmBrands, invoices, talents, campaigns } from '@/db/schema';
 import type { InvoiceWithRelations } from '@/types/invoice';
+import { totalEurSql } from '@/lib/finance/money';
 
 /**
  * Datos agregados para la sección /admin/finanzas/nominas-creadores (PR 5).
@@ -294,7 +295,7 @@ export async function getNominasCreadoresData(input: { readonly from?: string; r
 
   // Coste talento sobre ingresos — necesita SUM(income facturado). Query aparte.
   const [ingresosRow] = await db
-    .select({ total: sql<string>`COALESCE(SUM(${invoices.totalAmount}), 0)::text` })
+    .select({ total: sql<string>`COALESCE(SUM(${totalEurSql}), 0)::text` })
     .from(invoices)
     .where(and(
       eq(invoices.kind, 'income'),
