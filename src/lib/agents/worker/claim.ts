@@ -75,8 +75,78 @@ export function buildClaimSql(opts: ClaimAgentRunOptions) {
 export async function claimNextAgentRun(opts: ClaimAgentRunOptions): Promise<AgentRun | null> {
   const db = getTransactionalDb();
   const resultado = await db.execute(buildClaimSql(opts));
-  const filas = extraerFilas<AgentRun>(resultado);
-  return filas[0] ?? null;
+  const filas = extraerFilas<Record<string, unknown>>(resultado);
+  const fila = filas[0];
+  return fila ? mapAgentRunRow(fila) : null;
+}
+
+/**
+ * Convierte una fila cruda de `agent_runs` al objeto que espera el resto del
+ * runtime.
+ *
+ * Hace falta porque `db.execute()` con SQL escrito a mano devuelve las columnas
+ * **tal como se llaman en Postgres** —`agent_id`, `max_attempts`—, no con los
+ * nombres del schema TypeScript. El query builder de Drizzle sí hace esa
+ * traducción; `execute` no.
+ *
+ * Sin esto, `run.agentId` era `undefined`, el worker no encontraba el agente,
+ * devolvía la ejecución a la cola y volvía a intentarlo — subiendo `attempt`
+ * en cada vuelta hasta agotar los intentos y dejarla atascada. Y el tipo de
+ * retorno decía `AgentRun`, así que TypeScript no podía verlo: la firma
+ * prometía una forma que el runtime no cumplía.
+ *
+ * Se descubrió ejecutando el worker contra la base de verdad. Ningún test lo
+ * cogía porque todos mockean `db.execute` y devuelven ya el objeto en camelCase.
+ */
+export function mapAgentRunRow(fila: Record<string, unknown>): AgentRun {
+  const fecha = (v: unknown): Date | null => {
+    if (v === null || v === undefined) return null;
+    if (v instanceof Date) return v;
+    const d = new Date(String(v));
+    return Number.isNaN(d.getTime()) ? null : d;
+  };
+  const numero = (v: unknown): number => Number(v ?? 0);
+  const texto = (v: unknown): string | null => (v === null || v === undefined ? null : String(v));
+  const json = (v: unknown): Record<string, unknown> =>
+    v !== null && typeof v === 'object' ? (v as Record<string, unknown>) : {};
+
+  return {
+    id: numero(fila.id),
+    agentId: numero(fila.agent_id),
+    triggerType: String(fila.trigger_type) as AgentRun['triggerType'],
+    triggeredByUserId: texto(fila.triggered_by_user_id),
+    parentRunId: fila.parent_run_id === null || fila.parent_run_id === undefined ? null : numero(fila.parent_run_id),
+    sourceEventId: fila.source_event_id === null || fila.source_event_id === undefined ? null : numero(fila.source_event_id),
+    threadId: fila.thread_id === null || fila.thread_id === undefined ? null : numero(fila.thread_id),
+    status: String(fila.status) as AgentRun['status'],
+    priority: numero(fila.priority),
+    idempotencyKey: texto(fila.idempotency_key),
+    correlationId: String(fila.correlation_id ?? ''),
+    inputJson: json(fila.input_json),
+    outputSummary: texto(fila.output_summary),
+    stateJson: json(fila.state_json),
+    // `available_at` y `created_at` nunca son nulos en la tabla; el fallback
+    // existe para no propagar un `null` si la fila viniera de otro sitio.
+    availableAt: fecha(fila.available_at) ?? new Date(),
+    scheduledFor: fecha(fila.scheduled_for),
+    startedAt: fecha(fila.started_at),
+    completedAt: fecha(fila.completed_at),
+    cancelRequestedAt: fecha(fila.cancel_requested_at),
+    attempt: numero(fila.attempt),
+    maxAttempts: numero(fila.max_attempts),
+    leaseOwner: texto(fila.lease_owner),
+    leaseExpiresAt: fecha(fila.lease_expires_at),
+    nextStepSequence: numero(fila.next_step_sequence),
+    modelTurns: numero(fila.model_turns),
+    toolCalls: numero(fila.tool_calls),
+    inputTokens: numero(fila.input_tokens),
+    outputTokens: numero(fila.output_tokens),
+    estimatedCostMicros: numero(fila.estimated_cost_micros),
+    lastErrorCode: texto(fila.last_error_code),
+    lastErrorMessage: texto(fila.last_error_message),
+    createdAt: fecha(fila.created_at) ?? new Date(),
+    updatedAt: fecha(fila.updated_at) ?? new Date(),
+  };
 }
 
 /**

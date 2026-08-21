@@ -28,6 +28,7 @@ COPY src/lib ./src/lib
 COPY src/db ./src/db
 COPY src/types ./src/types
 COPY src/worker ./src/worker
+COPY scripts/worker-preload.cjs ./scripts/worker-preload.cjs
 
 # Usuario sin privilegios. El worker no escribe en disco ni necesita root para
 # nada; que no lo tenga limita el daño de cualquier fallo.
@@ -38,4 +39,6 @@ ENV NODE_ENV=production
 # Sin EXPOSE: el worker no escucha en ningún puerto.
 
 ENTRYPOINT ["dumb-init", "--"]
-CMD ["npx", "tsx", "src/worker/agent-worker.ts"]
+# El preload neutraliza `server-only`, que lanza en cualquier proceso de Node
+# fuera de Next. Ver scripts/worker-preload.cjs.
+CMD ["npx", "tsx", "--require", "./scripts/worker-preload.cjs", "src/worker/agent-worker.ts"]

@@ -38,9 +38,9 @@
     "load:soak": "k6 run load-tests/soak.js",
     "seed:agents": "tsx scripts/seed-agent-definitions.ts",
     "seed:guardian-schedules": "tsx scripts/seed-guardian-schedules.ts",
-    "agents:worker": "tsx src/worker/agent-worker.ts",
-    "agents:worker:once": "tsx src/worker/agent-worker.ts --once",
-    "agents:schedules:tick": "tsx src/worker/agent-worker.ts --schedules-only"
+    "agents:worker": "tsx --require ./scripts/worker-preload.cjs src/worker/agent-worker.ts",
+    "agents:worker:once": "tsx --require ./scripts/worker-preload.cjs src/worker/agent-worker.ts --once",
+    "agents:schedules:tick": "tsx --require ./scripts/worker-preload.cjs src/worker/agent-worker.ts --schedules-only"
   },
   "dependencies": {
     "@base-ui/react": "^1.3.0",

@@ -180,4 +180,5 @@ export const GUARDIAN_TOOLS: readonly ErasedAgentTool[] = [
   getAgentQueueHealthTool,
 ];
 
-export const GUARDIAN_TOOL_NAMES = GUARDIAN_TOOLS.map((t) => t.name);
+/** Reexporta los nombres declarados en `definition.ts`, que es donde viven. */
+export { GUARDIAN_TOOL_NAMES } from './definition';

@@ -114,10 +114,29 @@ export function errorCodeLabel(code: string | null): string | null {
   return etiquetas[code] ?? code;
 }
 
+/**
+ * Lo que llega puede no ser una `Date`.
+ *
+ * Un `sql<Date>` de Drizzle es una afirmación, no una conversión: el driver
+ * entrega una cadena ISO y el tipo dice `Date`. La página entera reventaba con
+ * `fecha.getTime is not a function` en cuanto había una ejecución. Las queries
+ * ya lo normalizan; esto es la segunda línea, porque el patrón reaparecerá cada
+ * vez que alguien añada un agregado.
+ */
+export type FechaLaxa = Date | string | number | null | undefined;
+
+function aFecha(valor: FechaLaxa): Date | null {
+  if (valor === null || valor === undefined) return null;
+  if (valor instanceof Date) return Number.isNaN(valor.getTime()) ? null : valor;
+  const d = new Date(valor);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
 /** Fechas en hora de Madrid: en la base son UTC. */
-export function formatDateTime(fecha: Date | null): string {
-  if (!fecha) return '—';
-  return fecha.toLocaleString('es-ES', {
+export function formatDateTime(fecha: FechaLaxa): string {
+  const d = aFecha(fecha);
+  if (!d) return '—';
+  return d.toLocaleString('es-ES', {
     timeZone: 'Europe/Madrid',
     day: '2-digit',
     month: '2-digit',
@@ -126,9 +145,10 @@ export function formatDateTime(fecha: Date | null): string {
   });
 }
 
-export function formatRelative(fecha: Date | null, ahora: Date = new Date()): string {
-  if (!fecha) return '—';
-  const segundos = Math.floor((ahora.getTime() - fecha.getTime()) / 1000);
+export function formatRelative(fecha: FechaLaxa, ahora: Date = new Date()): string {
+  const d = aFecha(fecha);
+  if (!d) return '—';
+  const segundos = Math.floor((ahora.getTime() - d.getTime()) / 1000);
   if (segundos < 60) return 'hace un momento';
   if (segundos < 3_600) return `hace ${Math.floor(segundos / 60)} min`;
   if (segundos < 86_400) return `hace ${Math.floor(segundos / 3_600)} h`;
@@ -138,6 +158,10 @@ export function formatRelative(fecha: Date | null, ahora: Date = new Date()): st
 /** Un worker sin latido reciente está muerto, diga lo que diga su estado. */
 export const SEGUNDOS_WORKER_VIVO = 120;
 
-export function isWorkerAlive(lastHeartbeatAt: Date, ahora: Date = new Date()): boolean {
-  return ahora.getTime() - lastHeartbeatAt.getTime() < SEGUNDOS_WORKER_VIVO * 1_000;
+export function isWorkerAlive(lastHeartbeatAt: FechaLaxa, ahora: Date = new Date()): boolean {
+  const d = aFecha(lastHeartbeatAt);
+  // Sin latido legible no hay prueba de vida: se le da por muerto, que es el
+  // lado correcto en el que equivocarse.
+  if (!d) return false;
+  return ahora.getTime() - d.getTime() < SEGUNDOS_WORKER_VIVO * 1_000;
 }

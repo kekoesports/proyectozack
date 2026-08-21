@@ -29,7 +29,24 @@ import type {
 export type AgentLoopEvent =
   | { readonly kind: 'model_turn'; readonly index: number; readonly text: string; readonly toolCallCount: number }
   | { readonly kind: 'tool_result'; readonly toolName: string; readonly result: AgentToolExecutionResult }
-  | { readonly kind: 'usage'; readonly inputTokens: number; readonly outputTokens: number; readonly estimatedCostMicros: number; readonly pricingUnknown: boolean };
+  | {
+      readonly kind: 'usage';
+      readonly inputTokens: number;
+      readonly outputTokens: number;
+      readonly estimatedCostMicros: number;
+      readonly pricingUnknown: boolean;
+      /**
+       * De qué proveedor y modelo salió el gasto.
+       *
+       * Van en el evento y no se leen de la definición del agente porque son
+       * cosas distintas: la definición dice con qué modelo **debería** correr,
+       * y esto dice con cuál corrió. Difieren en cuanto alguien cambia el
+       * modelo con ejecuciones en vuelo, y entonces el informe de coste por
+       * modelo atribuiría el gasto al equivocado.
+       */
+      readonly provider: string;
+      readonly model: string | null;
+    };
 
 export type AgentLoopOutcome =
   | { readonly status: 'completed'; readonly finalText: string; readonly turns: number }
@@ -138,6 +155,8 @@ export async function runAgentLoop(
         outputTokens: turno.usage.outputTokens,
         estimatedCostMicros: coste.estimatedCostMicros,
         pricingUnknown: coste.pricingUnknown,
+        provider: turno.provider,
+        model: turno.model,
       });
     }
 
