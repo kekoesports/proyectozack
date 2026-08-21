@@ -166,6 +166,12 @@ describe('normalizeUrl', () => {
     expect(normalizeUrl('   ')).toBeNull();
   });
 
+  it('extrae una URL cuando la celda lleva un prefijo', () => {
+    expect(normalizeUrl('X - https://www.twitch.tv/videos/123?t=10')).toBe(
+      'https://www.twitch.tv/videos/123',
+    );
+  });
+
   it.each([
     'https://docs.google.com/spreadsheets/d/abc/edit',
     'https://drive.google.com/file/d/xyz/view',
@@ -174,7 +180,6 @@ describe('normalizeUrl', () => {
     expect(normalizeUrl(url)).toBeNull();
   });
 });
-
 
 describe('aggregateBlocksByType — agrupa por deliverableType con dedupe URL', () => {
   it('agrupa por primary spec', () => {
@@ -233,6 +238,26 @@ describe('aggregateBlocksByType — agrupa por deliverableType con dedupe URL', 
     ];
     const { countsByType } = aggregateBlocksByType(blocks);
     expect(countsByType.get('preroll')).toBe(3);
+  });
+
+  it('devuelve objetivos por tipo desde las especificaciones del deal', () => {
+    const block = {
+      title: 'TODO - Deal #1 - 1 video + 5 prerolls + 20 streams',
+      talentName: 'TODO', dealLabel: 'Deal #1',
+      specs: [
+        { count: 1, rawType: 'video', suggestedType: 'video_youtube' },
+        { count: 5, rawType: 'prerolls', suggestedType: 'preroll' },
+        { count: 20, rawType: 'streams', suggestedType: 'stream_integration' },
+      ],
+      startRow: 0, startCol: 0, headerRow: 1,
+      linkColIndex: 2, contentColIndex: 0, numberColIndex: 1, endRow: 27,
+      links: [],
+    };
+
+    const { targetsByType } = aggregateBlocksByType([block]);
+    expect(targetsByType.get('video_youtube')).toBe(1);
+    expect(targetsByType.get('preroll')).toBe(5);
+    expect(targetsByType.get('stream_integration')).toBe(20);
   });
 });
 

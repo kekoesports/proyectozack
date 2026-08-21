@@ -7,15 +7,16 @@ export type SheetEvidence = {
   readonly rowIndex: number;
 };
 
-/** Single normalizer: Sheets, import, n8n and forms share `normalizeContentUrl`. */
 export function normalizeUrl(raw: string): string | null {
-  return canonicalEvidenceUrl(raw);
+  const embedded = /https?:\/\/[^\s<>"']+/i.exec(raw)?.[0] ?? raw;
+  return canonicalEvidenceUrl(embedded.trim().replace(/[),.;]+$/, ''));
 }
 
 /** Agrupa evidencias HTTP(S) únicas; una URL solo puede contar una vez por trato. */
 export function aggregateBlocksByType(blocks: readonly DetectedBlock[]): {
   countsByType: Map<string, number>;
   evidenceByType: Map<string, SheetEvidence[]>;
+  targetsByType: Map<string, number>;
   totalBlocks: number;
 } {
   const evidenceByType = new Map<string, SheetEvidence[]>();
@@ -29,21 +30,34 @@ export function aggregateBlocksByType(blocks: readonly DetectedBlock[]): {
     const type = primarySpec.suggestedType;
     const bucket = evidenceByType.get(type) ?? [];
     for (const link of block.links) {
+      const linkType = link.suggestedType ?? type;
+      const linkBucket = evidenceByType.get(linkType) ?? [];
       const normalizedUrl = normalizeUrl(link.originalUrl);
       if (!normalizedUrl || !/^https?:\/\//i.test(normalizedUrl) || seenEvidence.has(normalizedUrl)) {
         continue;
       }
       seenEvidence.add(normalizedUrl);
-      bucket.push({ originalUrl: link.originalUrl, normalizedUrl, rowIndex: link.rowIndex });
+      linkBucket.push({ originalUrl: link.originalUrl, normalizedUrl, rowIndex: link.rowIndex });
+      evidenceByType.set(linkType, linkBucket);
     }
     evidenceByType.set(type, bucket);
+  }
+
+  const targetsByType = new Map<string, number>();
+  for (const block of blocks) {
+    for (const spec of block.specs) {
+      targetsByType.set(
+        spec.suggestedType,
+        (targetsByType.get(spec.suggestedType) ?? 0) + spec.count,
+      );
+    }
   }
 
   const countsByType = new Map<string, number>();
   for (const type of seenTypes) {
     countsByType.set(type, evidenceByType.get(type)?.length ?? 0);
   }
-  return { countsByType, evidenceByType, totalBlocks: blocks.length };
+  return { countsByType, evidenceByType, targetsByType, totalBlocks: blocks.length };
 }
 
 const CANONICAL_KNOWN_STATUSES = new Set([
@@ -82,6 +96,7 @@ export type CanonicalDealTableAggregation = {
   readonly matched: boolean;
   readonly countsByType: Map<string, number>;
   readonly evidenceByType: Map<string, SheetEvidence[]>;
+  readonly targetsByType: Map<string, number>;
   readonly totalRows: number;
   readonly completedRows: number;
   readonly invalidRows: number;
@@ -109,6 +124,7 @@ export function aggregateCanonicalDealTable(
       matched: false,
       countsByType: new Map(),
       evidenceByType: new Map(),
+      targetsByType: new Map(),
       totalRows: 0,
       completedRows: 0,
       invalidRows: 0,
@@ -116,6 +132,7 @@ export function aggregateCanonicalDealTable(
   }
 
   const evidenceByType = new Map<string, SheetEvidence[]>();
+  const targetsByType = new Map<string, number>();
   const seenEvidence = new Set<string>();
   let totalRows = 0;
   let invalidRows = 0;
@@ -134,6 +151,7 @@ export function aggregateCanonicalDealTable(
 
     totalRows++;
     const type = suggestDeliverableType(rawType);
+    targetsByType.set(type, (targetsByType.get(type) ?? 0) + 1);
     const evidence = evidenceByType.get(type) ?? [];
     evidenceByType.set(type, evidence);
     const status = normalizeCanonicalCell(rawStatus);
@@ -159,5 +177,5 @@ export function aggregateCanonicalDealTable(
     countsByType.set(type, evidence.length);
     completedRows += evidence.length;
   }
-  return { matched: true, countsByType, evidenceByType, totalRows, completedRows, invalidRows };
+  return { matched: true, countsByType, evidenceByType, targetsByType, totalRows, completedRows, invalidRows };
 }
