@@ -136,22 +136,24 @@ describe('syncCampaignSheet — comportamientos brief PR2', () => {
     expect(src).toMatch(/['"]server-only['"]/);
   });
 
-  it('NO crea trackers nuevos (no db.insert en el path del sync)', () => {
-    // El sync solo UPDATE — jamás insert de dealDeliverableTrackers.
+  it('crea los trackers que faltan usando objetivos detectados en la Sheet', () => {
     const syncIdx = src.indexOf('export async function syncCampaignSheet');
-    const block = src.substring(syncIdx, syncIdx + 5000);
-    expect(block).not.toMatch(/db\.insert\(/);
+    const block = src.substring(syncIdx, syncIdx + 9000);
+    expect(block).toMatch(/targetsByType/);
+    expect(block).toMatch(/db\.insert\(dealDeliverableTrackers\)/);
+    expect(block).toMatch(/trackingSourceType:\s*['"]google_sheet['"]/);
   });
 
   it('mantiene currentCount de trackers sin bloque (notFoundTypes NO resetea)', () => {
     // Verificamos que solo hace UPDATE cuando hay match en countsByType,
     // no cuando NO hay match. La palabra "reset" no aparece.
     const syncIdx = src.indexOf('export async function syncCampaignSheet');
-    const block = src.substring(syncIdx, syncIdx + 5000);
+    const block = src.substring(syncIdx, syncIdx + 9000);
     // Los notFoundTypes solo se cuentan, no se actualizan
     expect(block).toMatch(/notFoundTypes/);
-    // No hay UPDATE con currentCount=0
-    expect(block).not.toMatch(/currentCount:\s*0/);
+    // El contador cero solo aparece al crear un tracker nuevo; las evidencias
+    // existentes se aplican después de forma reversible por tipo.
+    expect(block).toMatch(/applyCampaignSheetEvidence/);
   });
 
   it('errores 403 devuelven mensaje humano-readable sobre compartir', () => {
