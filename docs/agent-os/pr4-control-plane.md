@@ -152,8 +152,8 @@ navegador.
 2. **Activar una rutina no es un botón.** Calcular la próxima ventana necesita
    el parser de cron, que vive en el worker. Desde el panel solo se desactiva;
    activar pasa por `npm run agents:schedules:tick`.
-3. **Crear memoria a mano no tiene formulario.** La Server Action existe y está
-   probada; falta la pantalla.
+3. **Crear memoria a mano no tiene formulario.** La Server Action existe y su
+   validación de scope está probada; falta la pantalla.
 4. **El rol de un run manual sigue siendo el de sistema.** El panel ya tiene
    sesión, así que ahora sí se podría heredar el del autor — no se ha hecho en
    este PR para no mezclarlo con lo demás.

@@ -150,6 +150,13 @@ export async function listStuckRuns(limite = 50): Promise<readonly AgentRun[]> {
  *
  * Acción manual y explícita: subir `max_attempts` automáticamente convertiría
  * el límite de reintentos en una sugerencia.
+ *
+ * El nuevo tope es `attempt + 1`, **no** `max_attempts + 1`. La diferencia
+ * importa: una fila atascada cumple `attempt >= max_attempts`, así que sumarle
+ * uno al tope puede dejarlos iguales, y entonces el `WHERE attempt < max_attempts`
+ * del claim sigue excluyéndola — quedaría en `queued`, sin coger nunca y sin
+ * error que lo delate. Con `attempt + 1` el claim la coge y su `attempt + 1`
+ * aterriza justo en el tope, dentro de `agent_runs_attempt_ck`.
  */
 export async function unstickRun(runId: number): Promise<boolean> {
   const db = getTransactionalDb();
@@ -158,7 +165,7 @@ export async function unstickRun(runId: number): Promise<boolean> {
     .set({
       status: 'queued',
       availableAt: new Date(),
-      maxAttempts: sql`${agentRuns.maxAttempts} + 1`,
+      maxAttempts: sql`${agentRuns.attempt} + 1`,
       leaseOwner: null,
       leaseExpiresAt: null,
       updatedAt: new Date(),
