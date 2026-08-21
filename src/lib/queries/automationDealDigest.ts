@@ -22,6 +22,7 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 export type DealDigestAction =
   | 'sync_error'
   | 'missing_sheet'
+  | 'missing_targets'
   | 'completed'
   | 'prepare_invoice'
   | 'stale'
@@ -57,6 +58,7 @@ export type AutomationDealDigest = {
     readonly total: number;
     readonly syncErrors: number;
     readonly missingSheets: number;
+    readonly missingTargets: number;
     readonly completed: number;
     readonly prepareInvoice: number;
     readonly stale: number;
@@ -143,6 +145,7 @@ export async function getAutomationDealDigest(now = new Date()): Promise<Automat
     const nextAction = classifyNextAction({
       trackingSheetUrl: row.base.trackingSheetUrl,
       syncError: row.base.syncError,
+      targetCount: row.targetCount,
       progressPct,
       inactiveDays,
     });
@@ -163,6 +166,7 @@ export async function getAutomationDealDigest(now = new Date()): Promise<Automat
       total: deals.length,
       syncErrors: deals.filter((deal) => deal.nextAction === 'sync_error').length,
       missingSheets: deals.filter((deal) => deal.nextAction === 'missing_sheet').length,
+      missingTargets: deals.filter((deal) => deal.nextAction === 'missing_targets').length,
       completed: deals.filter((deal) => deal.nextAction === 'completed').length,
       prepareInvoice: deals.filter((deal) => deal.nextAction === 'prepare_invoice').length,
       stale: deals.filter((deal) => deal.nextAction === 'stale').length,
@@ -174,11 +178,13 @@ export async function getAutomationDealDigest(now = new Date()): Promise<Automat
 export function classifyNextAction(input: {
   readonly trackingSheetUrl: string | null;
   readonly syncError: string | null;
+  readonly targetCount: number;
   readonly progressPct: number;
   readonly inactiveDays: number;
 }): DealDigestAction {
   if (!input.trackingSheetUrl) return 'missing_sheet';
   if (input.syncError) return 'sync_error';
+  if (input.targetCount <= 0) return 'missing_targets';
   if (input.progressPct >= 100) return 'completed';
   if (input.progressPct >= 70) return 'prepare_invoice';
   if (input.inactiveDays >= STALE_AFTER_DAYS) return 'stale';
@@ -189,10 +195,11 @@ function actionPriority(action: DealDigestAction): number {
   const priorities: Record<DealDigestAction, number> = {
     sync_error: 0,
     missing_sheet: 1,
-    completed: 2,
-    prepare_invoice: 3,
-    stale: 4,
-    on_track: 5,
+    missing_targets: 2,
+    completed: 3,
+    prepare_invoice: 4,
+    stale: 5,
+    on_track: 6,
   };
   return priorities[action];
 }
