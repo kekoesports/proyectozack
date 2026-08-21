@@ -1,0 +1,165 @@
+# Stack del CRM: aplicación + PostgreSQL + scheduler.
+#
+# Proyecto Compose independiente del de n8n a propósito: así se puede reiniciar
+# el CRM sin tocar la automatización, y un fallo de uno no arrastra al otro.
+#
+#   docker compose -p socialpro-crm up -d
+#
+# Ningún servicio publica puertos en el host. El único que escucha en 80/443 es
+# el Caddy que ya existe, y llega hasta aquí por la red `socialpro_edge`.
+#
+# Dimensionado para 4 vCPU / 8 GB. Con los 2 vCPU / 3,8 GB actuales no cabe:
+# ver docs/migration/00-vps-capacity-audit.md.
+
+name: socialpro-crm
+
+services:
+  postgres:
+    # Fijada por versión menor: un salto de mayor en PostgreSQL exige migrar el
+    # directorio de datos, y eso no puede pasar por un `pull` desatendido.
+    image: postgres:17.6-bookworm
+    restart: unless-stopped
+    stop_grace_period: 1m
+    environment:
+      POSTGRES_DB: socialpro
+      POSTGRES_USER: socialpro_owner
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+      # Checksums de página: detectan corrupción silenciosa en disco. Solo se
+      # pueden activar al inicializar el clúster, no después.
+      POSTGRES_INITDB_ARGS: "--data-checksums --encoding=UTF8 --locale=C.UTF-8"
+      TZ: UTC
+      PGTZ: UTC
+    secrets:
+      - postgres_password
+    volumes:
+      - /opt/socialpro/data/postgres-crm:/var/lib/postgresql/data
+      - ./initdb:/docker-entrypoint-initdb.d:ro
+    networks:
+      - crm_backend
+    # PostgreSQL usa memoria compartida para ordenaciones y hashes; el valor por
+    # defecto de Docker (64 MB) provoca errores en consultas grandes.
+    shm_size: 256mb
+    command:
+      - postgres
+      - -c
+      - max_connections=100
+      - -c
+      - shared_buffers=1GB
+      - -c
+      - effective_cache_size=3GB
+      - -c
+      - work_mem=16MB
+      - -c
+      - maintenance_work_mem=256MB
+      - -c
+      - wal_compression=on
+      - -c
+      - log_min_duration_statement=1000
+      - -c
+      - timezone=UTC
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U socialpro_owner -d socialpro"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+        reservations:
+          memory: 512M
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  app:
+    # La etiqueta la fija el despliegue con el SHA de git. Nunca `latest`: sin
+    # una etiqueta inmutable no se puede saber qué está corriendo ni volver
+    # atrás con certeza.
+    image: ${CRM_IMAGE:?falta CRM_IMAGE, p.ej. socialpro:abc1234}
+    restart: unless-stopped
+    # Margen para que Next.js cierre las peticiones en curso al recibir SIGTERM.
+    stop_grace_period: 30s
+    env_file:
+      - ./env/app.env
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      HOSTNAME: 0.0.0.0
+      DEPLOY_ENV: production
+      STORAGE_DRIVER: local
+      STORAGE_LOCAL_ROOT: /srv/storage
+      TZ: Europe/Madrid
+    volumes:
+      # Los privados van a su propio directorio, que Caddy no sirve jamás.
+      - /opt/socialpro/data/storage-public:/srv/storage/public
+      - /opt/socialpro/data/storage-private:/srv/storage/private
+    networks:
+      - crm_backend
+      - socialpro_edge
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      # Contra `live`, que no consulta la base: si la base cae, no queremos que
+      # Docker reinicie en bucle un contenedor que está perfectamente.
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:3000/api/health/live || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 45s
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+        reservations:
+          memory: 512M
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  scheduler:
+    # Supercronic en vez del cron del sistema: corre sin privilegios, escribe en
+    # stdout —así los logs van al mismo sitio que los demás— y no necesita un
+    # gestor de servicios dentro del contenedor.
+    image: quay.io/prometheansacrifice/supercronic:v0.2.29
+    restart: unless-stopped
+    env_file:
+      - ./env/scheduler.env
+    volumes:
+      - ./scheduler/crontab:/etc/crontab:ro
+    networks:
+      - crm_backend
+    depends_on:
+      app:
+        condition: service_healthy
+    command: ["/usr/local/bin/supercronic", "-passthrough-logs", "/etc/crontab"]
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  # Interna: aquí viven la base y el scheduler. Sin salida ni entrada externas.
+  crm_backend:
+    driver: bridge
+    internal: true
+  # Compartida con Caddy. Se crea a mano una sola vez:
+  #   docker network create socialpro_edge
+  socialpro_edge:
+    external: true
+
+secrets:
+  postgres_password:
+    # Fichero root-only en el host, nunca en git ni en el compose.
+    file: /opt/socialpro/crm/secrets/postgres_password
