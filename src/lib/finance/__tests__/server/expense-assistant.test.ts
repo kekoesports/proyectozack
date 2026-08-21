@@ -142,6 +142,20 @@ describe('evaluarGasto — cuando hay contradicción', () => {
     expect(codigos(avisos)).toContain('autonomo-en-divisa');
   });
 
+  it('una ficha que existe pero no dice cómo tributa no pasa por comprobada', () => {
+    // HETTA, Sparky, ADAMS, n1bz… tienen ficha y pagos, y el tipo fiscal en
+    // blanco. Sin ese dato ninguna comprobación de retención tiene base, y el
+    // silencio del validador se leía como "comprobado y correcto".
+    const avisos = evaluarGasto(gasto(), perfil({ taxType: null, iaeActividad: null }));
+    expect(codigos(avisos)).toContain('perfil-incompleto');
+  });
+
+  it('con el tipo fiscal en blanco no se inventa un aviso de retención', () => {
+    const avisos = evaluarGasto(gasto({ withholdingPct: 0 }), perfil({ taxType: null, iaeActividad: null }));
+    expect(codigos(avisos)).not.toContain('falta-retencion');
+    expect(codigos(avisos)).not.toContain('retencion-de-mas');
+  });
+
   it('un pago a talento sin perfil fiscal en su ficha', () => {
     const avisos = evaluarGasto(gasto(), null);
     expect(codigos(avisos)).toContain('sin-perfil');

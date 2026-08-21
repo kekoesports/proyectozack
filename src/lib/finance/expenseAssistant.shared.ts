@@ -138,7 +138,21 @@ export function evaluarGasto(
   }
 
   // ── Avisos: hay que confirmar algo ──
-  if (perfil !== null) {
+  // Una ficha que existe pero no dice cómo tributa no es un perfil: es un hueco
+  // con nombre. Sin `tax_type` ninguna de las comprobaciones de abajo tiene base
+  // —  todas parten de la retención esperada — así que se avisa una vez y se
+  // para, en lugar de dejar pasar la factura como si estuviera comprobada.
+  if (perfil !== null && perfil.taxType === null) {
+    avisos.push({
+      codigo: 'perfil-incompleto',
+      nivel: 'aviso',
+      titulo: 'La ficha no dice cómo tributa este talento',
+      detalle:
+        `${perfil.nombre ?? 'Este talento'} tiene ficha, pero sin tipo fiscal anotado. ` +
+        'Hasta rellenarlo no se puede decir si a esta factura le corresponde retención ' +
+        'de IRPF o ninguna, así que no cuenta como comprobada.',
+    });
+  } else if (perfil !== null) {
     const esperada = retencionEsperada(perfil);
     const lleva = borrador.withholdingPct > 0;
 
