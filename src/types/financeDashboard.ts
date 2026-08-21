@@ -9,16 +9,39 @@ export type FinanceDashboardKPIs = {
   readonly gastosEmpresa: number;
   readonly beneficioNeto: number;
   // Cash basis (invoice_payments)
+  //
+  // Cobrado y pagado son direcciones distintas del mismo movimiento: un pago a
+  // un talento es una fila de `invoice_payments` igual que un cobro de una
+  // marca. Sumarlas juntas hacía que conciliar bien subiera el "cobrado".
   readonly cobradoRealMes: number;
+  readonly pagadoRealMes: number;
+  /** Caja neta del mes: cobrado − pagado. Ambas ramas en caja, sin devengo. */
+  readonly netoRealMes: number;
   // Bank reconciliation
   readonly pendingApplyPayment: number;
   readonly unconciliatedMovements: number;
 };
 
+/**
+ * Un mes de la serie de tesorería.
+ *
+ * Las dos primeras magnitudes son caja y la tercera es devengo, y llevan
+ * nombres distintos por eso: antes ambas se llamaban `cobrado`/`pagado` y
+ * restarlas daba un "neto" que mezclaba criterios — cobros reales menos gastos
+ * facturados, algunos ni pagados todavía.
+ *
+ * Mientras no haya extractos importados las dos ramas de caja valen 0. Es la
+ * respuesta correcta: no se ha cobrado nada *que conste*.
+ */
 export type CashflowMonthPoint = {
   readonly month: string; // 'YYYY-MM'
-  readonly cobrado: number; // cash receipts (invoice_payments)
-  readonly pagado: number; // expense invoices accrual (invoices kind=expense)
+  /** Caja: cobros aplicados en el mes (solo dirección ingreso). */
+  readonly cobrado: number;
+  /** Caja: pagos aplicados en el mes (solo dirección gasto). */
+  readonly pagadoCaja: number;
+  /** Devengo: facturas de gasto con fecha en el mes, pagadas o no. */
+  readonly pagadoDevengo: number;
+  /** Caja neta del mes. Cobrado − pagado, ambas en caja. */
   readonly neto: number;
 };
 
