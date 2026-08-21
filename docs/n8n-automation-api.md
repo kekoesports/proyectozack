@@ -385,3 +385,6 @@ aparecido en Discord.
 - Una copia o reintento de workflow debe conservar la misma
   `Idempotency-Key` para la misma operación lógica.
 - No reutilizar `CRON_SECRET` ni `TARGETS_IMPORT_TOKEN` para este flujo.
+
+
+> Nota operativa (2026-08-21): el historial de Drizzle 0127–0129 quedó reconciliado con el esquema ya aplicado antes de desplegar la sincronización automática de progreso.
