@@ -239,6 +239,23 @@ describe('detectSocialProBlocks', () => {
       expect(byType.get('stream_integration')?.links).toHaveLength(20);
     });
 
+    it('detecta enlaces alejados en plantillas anchas', () => {
+      const row = Array.from({ length: 25 }, () => '');
+      row[6] = 'Livestream';
+      row[7] = '1';
+      row[24] = 'https://twitch.tv/videos/wide-1';
+      const result = detectSocialProBlocks([
+        [],
+        [],
+        ['', '', '', '', '', '', '', '', 'Deal #1 - 1x livestream'],
+        row,
+      ], 'AXOZER');
+
+      expect(result.blocks).toHaveLength(1);
+      expect(result.blocks[0]?.linkColIndex).toBe(24);
+      expect(result.blocks[0]?.links[0]?.originalUrl).toContain('wide-1');
+    });
+
     it('returns empty blocks for a grid with no titles', () => {
       const grid = [
         ['CONTENT', 'nº', 'LINK'],
