@@ -182,6 +182,52 @@ describe('normalizeUrl', () => {
 });
 
 describe('aggregateBlocksByType — agrupa por deliverableType con dedupe URL', () => {
+  it('conserva evidencias del tipo principal en una hoja compacta de un solo tipo', () => {
+    const block = {
+      title: 'Deal #3 - 15 prerolls',
+      talentName: 'TODO',
+      dealLabel: 'Deal #3',
+      specs: [{ count: 15, rawType: 'prerolls', suggestedType: 'preroll' }],
+      startRow: 0, startCol: 0, headerRow: 1,
+      linkColIndex: 2, contentColIndex: 0, numberColIndex: 1,
+      endRow: 16,
+      links: Array.from({ length: 12 }, (_, index) => ({
+        originalUrl: `https://youtu.be/abcdef${String(index).padStart(5, '0')}`,
+        rowIndex: index + 2,
+        suggestedType: 'preroll',
+      })),
+    };
+
+    const { countsByType } = aggregateBlocksByType([block]);
+    expect(countsByType.get('preroll')).toBe(12);
+  });
+
+  it('conserva el tipo principal cuando un bloque contiene varios entregables', () => {
+    const block = {
+      title: 'TODOCS2 - Deal #1 - 1 video + 5 prerolls + 20 streams',
+      talentName: 'TODOCS2',
+      dealLabel: 'Deal #1',
+      specs: [
+        { count: 1, rawType: 'video', suggestedType: 'video_youtube' },
+        { count: 5, rawType: 'prerolls', suggestedType: 'preroll' },
+        { count: 20, rawType: 'streams', suggestedType: 'stream_integration' },
+      ],
+      startRow: 0, startCol: 0, headerRow: 1,
+      linkColIndex: 2, contentColIndex: 0, numberColIndex: 1,
+      endRow: 27,
+      links: [
+        { originalUrl: 'https://youtu.be/7_oZg_FJj9M', rowIndex: 2, suggestedType: 'video_youtube' },
+        { originalUrl: 'https://youtu.be/CAsznahDeXA', rowIndex: 3, suggestedType: 'preroll' },
+        { originalUrl: 'https://twitch.tv/videos/2771167604', rowIndex: 8, suggestedType: 'stream_integration' },
+      ],
+    };
+
+    const { countsByType } = aggregateBlocksByType([block]);
+    expect(countsByType.get('video_youtube')).toBe(1);
+    expect(countsByType.get('preroll')).toBe(1);
+    expect(countsByType.get('stream_integration')).toBe(1);
+  });
+
   it('agrupa por primary spec', () => {
     const blocks = [
       {
