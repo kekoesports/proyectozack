@@ -8,7 +8,7 @@ import { Avatar } from '@/features/admin/_shared/components/Avatar';
 import { PriorityBadge } from './PriorityBadge';
 import { RecurrenceBadge } from './RecurrenceBadge';
 import { TaskStatusBadge } from './TaskStatusBadge';
-import { CRM_TASK_PRIORITIES, CRM_TASK_STATUSES } from '@/lib/schemas/task';
+import { CRM_TASK_PRIORITIES, CRM_TASK_STATUSES, isOpenTaskStatus } from '@/lib/schemas/task';
 
 // ── Related entity helpers ────────────────────────────────────────────────────
 
@@ -49,7 +49,7 @@ export type FieldPatch =
   | { readonly status: CrmTaskStatus }
   | { readonly ownerId: string };
 
-export type StatusFilter = 'todos' | CrmTaskStatus | 'vencida';
+export type StatusFilter = 'todos' | 'pendiente' | 'en_progreso' | 'completada' | 'vencida';
 
 // Shared constants and helpers
 export const STATUS_TABS: readonly { readonly key: StatusFilter; readonly label: string }[] = [
@@ -70,6 +70,9 @@ export const STATUS_LABELS: Record<CrmTaskStatus, string> = {
   pendiente: 'Pendiente',
   en_progreso: 'En progreso',
   completada: 'Completada',
+  omitida: 'Omitida',
+  no_realizada: 'No realizada',
+  archivada: 'Archivada',
 };
 
 const FIELD_LABELS: Record<'priority' | 'status' | 'ownerId', string> = {
@@ -372,7 +375,7 @@ export function TaskRow({
       <td className="px-3 py-2.5 whitespace-nowrap">
         {t.dueDate ? (() => {
           const today = new Date().toISOString().slice(0, 10);
-          const isOverdue = t.status !== 'completada' && t.dueDate < today;
+          const isOverdue = isOpenTaskStatus(t.status) && t.dueDate < today;
           const isToday   = t.dueDate === today;
           const formatted = new Date(t.dueDate + 'T12:00:00').toLocaleDateString('es-ES', { day: '2-digit', month: 'short' });
           return (

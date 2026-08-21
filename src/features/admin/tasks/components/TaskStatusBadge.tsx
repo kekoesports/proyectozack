@@ -7,12 +7,18 @@ const TONE_MAP: Record<CrmTaskStatus, Tone> = {
   pendiente: 'warning',
   en_progreso: 'info',
   completada: 'success',
+  omitida: 'neutral',
+  no_realizada: 'danger',
+  archivada: 'neutral',
 };
 
 const LABEL_MAP: Record<CrmTaskStatus, string> = {
   pendiente: 'Pendiente',
   en_progreso: 'En progreso',
   completada: 'Completada',
+  omitida: 'Omitida',
+  no_realizada: 'No realizada',
+  archivada: 'Archivada',
 };
 
 /**

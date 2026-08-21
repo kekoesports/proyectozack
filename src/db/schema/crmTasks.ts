@@ -11,7 +11,7 @@ import {
   index,
   uniqueIndex,
 } from 'drizzle-orm/pg-core';
-import { isNotNull, relations } from 'drizzle-orm';
+import { relations, sql } from 'drizzle-orm';
 import { user } from './auth';
 import { crmTaskTemplates } from './crmTaskTemplates';
 import { crmTaskPriorityEnum, crmTaskStatusEnum } from './crmTaskEnums';
@@ -53,6 +53,7 @@ export const crmTasks = pgTable(
     weekLabel: varchar('week_label', { length: 8 }).notNull(),
     rolledOver: boolean('rolled_over').notNull().default(false),
     rolledFromWeek: varchar('rolled_from_week', { length: 8 }),
+    rolloverNote: text('rollover_note'),
 
     relatedType: crmTaskRelatedTypeEnum('related_type'),
     relatedId: integer('related_id'),
@@ -70,9 +71,10 @@ export const crmTasks = pgTable(
     index('crm_tasks_week_status_idx').on(t.weekLabel, t.status),
     index('crm_tasks_related_idx').on(t.relatedType, t.relatedId),
     index('crm_tasks_template_idx').on(t.recurrenceTemplateId),
+    // One open occurrence per template/assignee/week so closed rows do not block regenerate.
     uniqueIndex('crm_tasks_template_week_unique')
       .on(t.recurrenceTemplateId, t.assignedToUserId, t.weekLabel)
-      .where(isNotNull(t.recurrenceTemplateId)),
+      .where(sql`recurrence_template_id IS NOT NULL AND status IN ('pendiente', 'en_progreso')`),
   ],
 );
 

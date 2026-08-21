@@ -1,4 +1,5 @@
 import { suggestDeliverableType, type DetectedBlock } from '@/lib/parsers/socialpro-blocks';
+import { canonicalEvidenceUrl } from '@/lib/utils/url-normalizer';
 
 export type SheetEvidence = {
   readonly originalUrl: string;
@@ -6,25 +7,9 @@ export type SheetEvidence = {
   readonly rowIndex: number;
 };
 
+/** Single normalizer: Sheets, import, n8n and forms share `normalizeContentUrl`. */
 export function normalizeUrl(raw: string): string | null {
-  const trimmed = raw.trim();
-  if (!trimmed) return null;
-  try {
-    const parsed = new URL(trimmed);
-    const params = new URLSearchParams();
-    const exactStrip = new Set(['fbclid', 'gclid', 'si_id', 'feature', 't']);
-    for (const [key, value] of parsed.searchParams.entries()) {
-      const normalizedKey = key.toLowerCase();
-      if (normalizedKey.startsWith('utm_') || exactStrip.has(normalizedKey)) continue;
-      params.set(key, value);
-    }
-    const query = params.toString();
-    let pathname = parsed.pathname;
-    if (pathname.length > 1 && pathname.endsWith('/')) pathname = pathname.slice(0, -1);
-    return `${parsed.protocol}//${parsed.hostname.toLowerCase()}${pathname}${query ? `?${query}` : ''}`;
-  } catch {
-    return null;
-  }
+  return canonicalEvidenceUrl(raw);
 }
 
 /** Agrupa evidencias HTTP(S) únicas; una URL solo puede contar una vez por trato. */

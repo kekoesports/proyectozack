@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react';
 import type { CrmTask, CrmTaskStatus, CrmTaskPriority } from '@/types';
 import { updateTaskPartialAction } from '@/app/admin/(dashboard)/tareas/actions';
+import { isOpenTaskStatus } from '@/lib/schemas/task';
 import { Avatar } from '@/features/admin/_shared/components/Avatar';
 import { RecurrenceBadge } from './RecurrenceBadge';
 import type { RelatedLabel } from '@/lib/queries/crmTasks';
@@ -56,14 +57,14 @@ export function TaskKanban({ tasks, users, relatedLabels, onOpenAction }: Props)
 
   // Tareas vencidas (no completadas con dueDate pasado)
   const overdueTasks = tasks.filter(
-    (t) => t.status !== 'completada' && t.dueDate !== null && t.dueDate < today
+    (t) => isOpenTaskStatus(t.status) && t.dueDate !== null && t.dueDate < today
   );
 
   // Tareas por columna excluyendo las que ya están en "vencidas" para no duplicar en pendiente
   const tasksByStatus = new Map<CrmTaskStatus, CrmTask[]>();
   for (const c of MAIN_COLUMNS) tasksByStatus.set(c.status, []);
   for (const t of tasks) {
-    if (t.status !== 'completada' && t.dueDate !== null && t.dueDate < today) continue;
+    if (isOpenTaskStatus(t.status) && t.dueDate !== null && t.dueDate < today) continue;
     tasksByStatus.get(t.status)?.push(t);
   }
 

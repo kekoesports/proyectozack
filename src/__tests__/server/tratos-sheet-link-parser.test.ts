@@ -165,7 +165,16 @@ describe('normalizeUrl', () => {
   it('cadena vacía → null', () => {
     expect(normalizeUrl('   ')).toBeNull();
   });
+
+  it.each([
+    'https://docs.google.com/spreadsheets/d/abc/edit',
+    'https://drive.google.com/file/d/xyz/view',
+    'https://bit.ly/3abc',
+  ])('no cuenta %s como evidencia', (url) => {
+    expect(normalizeUrl(url)).toBeNull();
+  });
 });
+
 
 describe('aggregateBlocksByType — agrupa por deliverableType con dedupe URL', () => {
   it('agrupa por primary spec', () => {

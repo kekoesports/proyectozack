@@ -1,8 +1,9 @@
-import { and, asc, desc, eq, getTableColumns, gte, inArray, isNotNull, isNull, lte, ne, notLike, or, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, getTableColumns, gte, inArray, isNotNull, isNull, lte, notLike, or, sql } from 'drizzle-orm';
 
 import { campaigns, crmBrands, crmTasks, invoices, talents, user } from '@/db/schema';
 import { crmTaskTemplates } from '@/db/schema/crmTaskTemplates';
 import { db } from '@/lib/db';
+import { CRM_TASK_OPEN_STATUSES } from '@/lib/schemas/task';
 import { ASSIGNABLE_TEAM_ROLES, isAssignableTeamUser } from '@/lib/team-roles';
 import { toLocalIsoDate } from '@/lib/utils/date';
 import { getIsoWeekLabel } from '@/lib/utils/week';
@@ -10,7 +11,6 @@ import { getIsoWeekLabel } from '@/lib/utils/week';
 import type { Role } from '@/lib/auth-guard';
 import type {
   CrmTask,
-  CrmTaskStatus,
   CrmTaskTemplate,
   NewCrmTask,
   TeamTasksSummary,
@@ -337,33 +337,8 @@ export async function resetRolledOverBulk(ids: readonly number[], callerId?: str
     .where(and(inArray(crmTasks.id, [...ids]), ownershipClause));
 }
 
-/**
- * Moves every pending/in_progress task from `fromWeek` into `toWeek`, stamping
- * `rolled_over=true` and `rolled_from_week=fromWeek`. Idempotent across the
- * same week pair: a second run has no rows to match.
- */
-export async function rollOverPendingTasks(
-  fromWeek: string,
-  toWeek: string,
-): Promise<{ readonly rolled: number }> {
-  const rolled = await db
-    .update(crmTasks)
-    .set({
-      weekLabel: toWeek,
-      rolledOver: true,
-      rolledFromWeek: fromWeek,
-      updatedAt: new Date(),
-    })
-    .where(
-      and(
-        eq(crmTasks.weekLabel, fromWeek),
-        inArray(crmTasks.status, ['pendiente', 'en_progreso'] as const satisfies readonly CrmTaskStatus[]),
-      ),
-    )
-    .returning({ id: crmTasks.id });
-
-  return { rolled: rolled.length };
-}
+export { rollOverPendingTasks } from '@/lib/queries/task-rollover';
+export type { RollOverResult } from '@/lib/queries/task-rollover';
 
 export type RelatedOptionList = {
   readonly brand: ReadonlyArray<{ readonly id: number; readonly label: string }>;
@@ -531,7 +506,10 @@ export async function getUrgentTasks({
   readonly session?: TaskSession;
   readonly limit?: number;
 } = {}): Promise<readonly UrgentTask[]> {
-  const filters = [ne(crmTasks.status, 'completada'), lte(crmTasks.dueDate, todayMadridIso())];
+  const filters = [
+    inArray(crmTasks.status, [...CRM_TASK_OPEN_STATUSES]),
+    lte(crmTasks.dueDate, todayMadridIso()),
+  ];
   const visible = visibilityCondition(session);
   if (visible !== undefined) filters.push(visible);
 
