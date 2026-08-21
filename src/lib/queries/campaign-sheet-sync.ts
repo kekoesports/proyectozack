@@ -13,6 +13,7 @@ import {
   detectSocialProBlocks,
 } from '@/lib/parsers/socialpro-blocks';
 import { applyCampaignSheetEvidence } from '@/lib/queries/campaign-sheet-evidence';
+import type { DeliverableType } from '@/lib/schemas/deliverable';
 import {
   aggregateBlocksByType,
   aggregateCanonicalDealTable,
@@ -59,6 +60,9 @@ export type SyncResult = SyncSuccess | SyncFailure;
 async function loadCampaignAndTrackers(campaignId: number): Promise<{
   campaign: {
     id: number;
+    name: string;
+    talentId: number;
+    brandName: string;
     trackingSheetUrl: string | null;
     trackingSheetSpreadsheetId: string | null;
     trackingSheetGid: string | null;
@@ -68,11 +72,15 @@ async function loadCampaignAndTrackers(campaignId: number): Promise<{
   const [campaign] = await db
     .select({
       id: campaigns.id,
+      name: campaigns.name,
+      talentId: campaigns.talentId,
+      brandName: crmBrands.name,
       trackingSheetUrl: campaigns.trackingSheetUrl,
       trackingSheetSpreadsheetId: campaigns.trackingSheetSpreadsheetId,
       trackingSheetGid: campaigns.trackingSheetGid,
     })
     .from(campaigns)
+    .innerJoin(crmBrands, eq(campaigns.brandId, crmBrands.id))
     .where(eq(campaigns.id, campaignId))
     .limit(1);
 
@@ -102,14 +110,16 @@ async function loadCampaignAndTrackers(campaignId: number): Promise<{
  * Google Sheet asociado.
  *
  * Reglas:
- *   1. NO crea trackers nuevos (bloques huérfanos → ignoredBlocks++).
+ *   1. Crea únicamente los tipos ausentes cuando la Sheet declara un objetivo.
  *   2. NO resetea currentCount de trackers sin bloque → notFoundTypes++.
  *   3. Agrupa por deliverableType, cuenta URLs únicas normalizadas.
  *   4. Guarda last_tracking_sync_at + limpia tracking_sync_error en éxito.
  *   5. Guarda tracking_sync_error humano-readable en fallo — nunca throws.
  */
 export async function syncCampaignSheet(campaignId: number): Promise<SyncResult> {
-  const { campaign, trackers } = await loadCampaignAndTrackers(campaignId);
+  const loaded = await loadCampaignAndTrackers(campaignId);
+  const { campaign } = loaded;
+  let trackers = loaded.trackers;
 
   if (!campaign) {
     return { ok: false, error: 'Trato no encontrado.' };
@@ -151,10 +161,11 @@ export async function syncCampaignSheet(campaignId: number): Promise<SyncResult>
     // Leer + parsear
     const grid = await readSheetGrid(spreadsheetId, tabTitle);
     const canonical = aggregateCanonicalDealTable(grid);
-    const { countsByType, evidenceByType, ignoredBlocks } = canonical.matched
+    const { countsByType, evidenceByType, targetsByType, ignoredBlocks } = canonical.matched
       ? {
           countsByType: canonical.countsByType,
           evidenceByType: canonical.evidenceByType,
+          targetsByType: canonical.targetsByType,
           ignoredBlocks: canonical.invalidRows,
         }
       : (() => {
@@ -165,9 +176,40 @@ export async function syncCampaignSheet(campaignId: number): Promise<SyncResult>
           return {
             countsByType: legacy.countsByType,
             evidenceByType: legacy.evidenceByType,
+            targetsByType: legacy.targetsByType,
             ignoredBlocks: 0,
           };
         })();
+
+    const knownTypes = new Set(trackers.map((tracker) => tracker.deliverableType));
+    const missing = Array.from(targetsByType.entries())
+      .filter(([type, targetCount]) => type !== 'otro' && targetCount > 0 && !knownTypes.has(type));
+    if (missing.length > 0) {
+      const inserted = await db.insert(dealDeliverableTrackers).values(
+        missing.map(([deliverableType, targetCount]) => ({
+          campaignId,
+          talentId: campaign.talentId,
+          brandName: campaign.brandName,
+          dealName: campaign.name,
+          deliverableType: deliverableType as DeliverableType,
+          targetCount,
+          currentCount: 0,
+          status: 'active' as const,
+          trackingSourceType: 'google_sheet' as const,
+          trackingSourceUrl: campaign.trackingSheetUrl,
+          googleSpreadsheetId: spreadsheetId,
+          googleSheetGid: campaign.trackingSheetGid,
+          syncEnabled: true,
+          trackingParseMode: 'socialpro_blocks' as const,
+          notes: 'Objetivo detectado automáticamente desde la hoja de seguimiento.',
+        })),
+      ).returning({
+        id: dealDeliverableTrackers.id,
+        deliverableType: dealDeliverableTrackers.deliverableType,
+        currentCount: dealDeliverableTrackers.currentCount,
+      });
+      trackers = [...trackers, ...inserted];
+    }
 
     // Cruzar con trackers del trato
     const trackerByType = new Map<string, { id: number; currentCount: number }>();
