@@ -31,7 +31,7 @@ export const cnmcStatusEnum = pgEnum('cnmc_status', [
 // latam        = Latin American resident (no Spanish IRPF, may need EU VAT rules)
 // no_residente = Non-EU resident
 export const taxTypeEnum = pgEnum('talent_tax_type', [
-  'autonomo_es', 'autonomo_es_nuevo', 'sl_sa', 'latam', 'no_residente',
+  'autonomo_es', 'autonomo_es_nuevo', 'sl_sa', 'latam', 'no_residente', 'persona_fisica_es',
 ]);
 
 /**

@@ -20,7 +20,15 @@ export type TalentTaxType =
   | 'autonomo_es_nuevo'
   | 'sl_sa'
   | 'latam'
-  | 'no_residente';
+  | 'no_residente'
+  /**
+   * Particular que factura por un trabajo puntual sin estar de alta.
+   *
+   * Se le retiene IRPF pero no repercute IVA — no tiene con qué. Es un perfil
+   * distinto de `autonomo_es`, y confundirlos hacía que el validador avisara
+   * para siempre de una factura correcta.
+   */
+  | 'persona_fisica_es';
 
 /** Sección del IAE. `null` = no está anotada, que es distinto de "no retiene". */
 export type IaeActividad = 'profesional' | 'empresarial' | null;
@@ -42,6 +50,8 @@ export const IRPF_POR_PERFIL: Readonly<Record<TalentTaxType, number>> = {
   sl_sa: 0,
   latam: 0,
   no_residente: 24,
+  // El 15% sale de la factura real de KLED, no de una regla reconstruida.
+  persona_fisica_es: 15,
 };
 
 /**
@@ -203,6 +213,22 @@ export function evaluarGasto(
           (borrador.withholdingPct === 7 || esperada === 7
             ? 'El 7% solo se aplica durante los primeros años de alta como autónomo: comprueba si el perfil se ha quedado desactualizado.'
             : 'Revisa cuál de los dos está desactualizado.'),
+      });
+    }
+
+    // Una persona física que repercute IVA no es una persona física: para
+    // repercutirlo hay que estar de alta. O la factura está mal o el perfil se
+    // ha quedado corto. Hoy no salta en ninguna fila — es una guarda para las
+    // que vengan, no un hallazgo.
+    if (perfil.taxType === 'persona_fisica_es' && borrador.vatPct > 0) {
+      avisos.push({
+        codigo: 'persona-fisica-con-iva',
+        nivel: 'aviso',
+        titulo: 'Una persona física sin alta no repercute IVA',
+        detalle:
+          `La factura de ${perfil.nombre ?? 'este talento'} trae ${borrador.vatPct}% de IVA, pero su ` +
+          'perfil dice que factura como particular. Si está de alta como autónomo, hay que ' +
+          'corregir el perfil; si no lo está, la factura no debería llevar IVA.',
       });
     }
 

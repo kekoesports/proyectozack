@@ -617,7 +617,7 @@ export async function updateTalentCompliance(
     cnmcRegisteredAt?: string | null;
     cnmcNotes?: string;
     hasRcInsurance?: boolean;
-    taxType?: 'autonomo_es' | 'autonomo_es_nuevo' | 'sl_sa' | 'latam' | 'no_residente' | null;
+    taxType?: 'autonomo_es' | 'autonomo_es_nuevo' | 'sl_sa' | 'latam' | 'no_residente' | 'persona_fisica_es' | null;
     iaeActividad?: 'profesional' | 'empresarial' | null;
     iaeEpigrafe?: string;
     nif?: string;
