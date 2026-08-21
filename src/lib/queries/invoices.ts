@@ -16,6 +16,7 @@ import type {
   NewInvoice,
   FileRecord,
 } from '@/types';
+import { totalEurSql } from '@/lib/finance/money';
 
 
 type InvoiceFilters = {
@@ -81,6 +82,11 @@ const INVOICE_LIST_COLUMNS = {
   statementFileId: invoices.statementFileId,
   txId: invoices.txId,
   notes: invoices.notes,
+  fxRate: invoices.fxRate,
+  fxRateDate: invoices.fxRateDate,
+  eurEquivalent: invoices.eurEquivalent,
+  vatAmount: invoices.vatAmount,
+  withholdingAmount: invoices.withholdingAmount,
   mirrorOfIssuedInvoiceId: invoices.mirrorOfIssuedInvoiceId,
   createdByUserId: invoices.createdByUserId,
   createdAt: invoices.createdAt,
@@ -253,15 +259,15 @@ export async function getBillingKPIs(from?: string, to?: string): Promise<Billin
         // FV.1: el espejo se excluye por FK. La versión anterior comparaba
         // `NOT (notes LIKE ... OR concept LIKE ...)`: con `notes` a NULL la
         // expresión entera valía NULL y la factura no sumaba en ningún sitio.
-        incomeTotal: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind} = 'income' AND ${invoices.status} != 'anulada' AND ${NOT_ISSUED_MIRROR} THEN ${invoices.totalAmount} ELSE 0 END), 0)::text`,
-        expenseTotal: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind} = 'expense' AND ${invoices.status} != 'anulada' THEN ${invoices.totalAmount} ELSE 0 END), 0)::text`,
-        pendingCobro: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind}='income' AND ${invoices.status} IN ('no_cobrado','pendiente','emitida','no_cobrada','parcial','vencida') AND ${NOT_ISSUED_MIRROR} THEN ${invoices.totalAmount} ELSE 0 END),0)::text`,
-        pendingPago: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind}='expense' AND ${invoices.status} IN ('no_pagado','pendiente','emitida','no_pagada','parcial','vencida') THEN ${invoices.totalAmount} ELSE 0 END),0)::text`,
-        gastosCampana: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind}='expense' AND ${invoices.scope}='campaign' AND ${invoices.status}!='anulada' THEN ${invoices.totalAmount} ELSE 0 END),0)::text`,
-        gastosEmpresa: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind}='expense' AND ${invoices.scope}='company' AND ${invoices.status}!='anulada' THEN ${invoices.totalAmount} ELSE 0 END),0)::text`,
-        incomeSettled: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind}='income' AND ${invoices.status} IN ('cobrada','pagada') AND ${NOT_ISSUED_MIRROR} THEN ${invoices.totalAmount} ELSE 0 END),0)::text`,
-        expenseCampanaSettled: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind}='expense' AND ${invoices.scope}='campaign' AND ${invoices.status} IN ('cobrada','pagada') THEN ${invoices.totalAmount} ELSE 0 END),0)::text`,
-        expenseEmpresaSettled: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind}='expense' AND ${invoices.scope}='company' AND ${invoices.status} IN ('cobrada','pagada') THEN ${invoices.totalAmount} ELSE 0 END),0)::text`,
+        incomeTotal: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind} = 'income' AND ${invoices.status} != 'anulada' AND ${NOT_ISSUED_MIRROR} THEN ${totalEurSql} ELSE 0 END), 0)::text`,
+        expenseTotal: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind} = 'expense' AND ${invoices.status} != 'anulada' THEN ${totalEurSql} ELSE 0 END), 0)::text`,
+        pendingCobro: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind}='income' AND ${invoices.status} IN ('no_cobrado','pendiente','emitida','no_cobrada','parcial','vencida') AND ${NOT_ISSUED_MIRROR} THEN ${totalEurSql} ELSE 0 END),0)::text`,
+        pendingPago: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind}='expense' AND ${invoices.status} IN ('no_pagado','pendiente','emitida','no_pagada','parcial','vencida') THEN ${totalEurSql} ELSE 0 END),0)::text`,
+        gastosCampana: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind}='expense' AND ${invoices.scope}='campaign' AND ${invoices.status}!='anulada' THEN ${totalEurSql} ELSE 0 END),0)::text`,
+        gastosEmpresa: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind}='expense' AND ${invoices.scope}='company' AND ${invoices.status}!='anulada' THEN ${totalEurSql} ELSE 0 END),0)::text`,
+        incomeSettled: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind}='income' AND ${invoices.status} IN ('cobrada','pagada') AND ${NOT_ISSUED_MIRROR} THEN ${totalEurSql} ELSE 0 END),0)::text`,
+        expenseCampanaSettled: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind}='expense' AND ${invoices.scope}='campaign' AND ${invoices.status} IN ('cobrada','pagada') THEN ${totalEurSql} ELSE 0 END),0)::text`,
+        expenseEmpresaSettled: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind}='expense' AND ${invoices.scope}='company' AND ${invoices.status} IN ('cobrada','pagada') THEN ${totalEurSql} ELSE 0 END),0)::text`,
       })
       .from(invoices)
       .where(conds.length > 0 ? and(...conds) : undefined),
@@ -314,10 +320,10 @@ export async function getInvoiceSummary(from?: string, to?: string): Promise<Inv
 
   const [row] = await db
     .select({
-      incomeTotal: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind} = 'income' AND ${invoices.status} != 'anulada' THEN ${invoices.totalAmount} ELSE 0 END), 0)::text`,
-      expenseTotal: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind} = 'expense' AND ${invoices.status} != 'anulada' THEN ${invoices.totalAmount} ELSE 0 END), 0)::text`,
-      pendingIncome: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind} = 'income' AND ${invoices.status} IN ('emitida','no_cobrada','parcial','vencida') THEN ${invoices.totalAmount} ELSE 0 END), 0)::text`,
-      overdueIncome: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind} = 'income' AND ${invoices.status} IN ('emitida','no_cobrada','vencida') AND ${invoices.dueDate} IS NOT NULL AND ${invoices.dueDate} < ${todayMadrid}::date THEN ${invoices.totalAmount} ELSE 0 END), 0)::text`,
+      incomeTotal: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind} = 'income' AND ${invoices.status} != 'anulada' THEN ${totalEurSql} ELSE 0 END), 0)::text`,
+      expenseTotal: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind} = 'expense' AND ${invoices.status} != 'anulada' THEN ${totalEurSql} ELSE 0 END), 0)::text`,
+      pendingIncome: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind} = 'income' AND ${invoices.status} IN ('emitida','no_cobrada','parcial','vencida') THEN ${totalEurSql} ELSE 0 END), 0)::text`,
+      overdueIncome: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.kind} = 'income' AND ${invoices.status} IN ('emitida','no_cobrada','vencida') AND ${invoices.dueDate} IS NOT NULL AND ${invoices.dueDate} < ${todayMadrid}::date THEN ${totalEurSql} ELSE 0 END), 0)::text`,
     })
     .from(invoices)
     .where(conds.length > 0 ? and(...conds) : undefined);
@@ -353,7 +359,7 @@ async function sumIncomeBetween(from: string, to: string, company?: InvoiceCompa
   if (company) conds.push(eq(invoices.company, company));
 
   const [row] = await db
-    .select({ total: sql<string>`COALESCE(SUM(${invoices.totalAmount}), 0)::text` })
+    .select({ total: sql<string>`COALESCE(SUM(${totalEurSql}), 0)::text` })
     .from(invoices)
     .where(and(...conds));
   return Number(row?.total ?? 0);

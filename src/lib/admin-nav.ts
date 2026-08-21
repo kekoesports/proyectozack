@@ -25,7 +25,8 @@ export type AdminNavKey =
   | 'asistente'
   | 'contratos'
   | 'entregables'
-  | 'backups';
+  | 'backups'
+  | 'agents';
 
 export type AdminNavDef = {
   readonly key: AdminNavKey;
@@ -87,6 +88,9 @@ export const ADMIN_NAV_CATALOGUE: readonly AdminNavDef[] = [
   { key: 'contratos',   href: '/admin/contratos',   label: 'Contratos',   module: 'contratos', section: 'more', prefetch: false },
   { key: 'entregables', href: '/admin/entregables', label: 'Entregables', module: 'campanas',  section: 'more', prefetch: false },
   { key: 'backups',     href: '/admin/backups',     label: 'Backups',     module: 'ajustes',   section: 'more', prefetch: false },
+  // Zack Agent OS. Gate por 'agents:read', que excluye a 'brand' — el panel
+  // expone ejecuciones y memoria de toda la agencia.
+  { key: 'agents',      href: '/admin/agents',      label: 'Agentes',     module: 'agents',    section: 'more', prefetch: false },
 ] as const;
 
 /** @pure */

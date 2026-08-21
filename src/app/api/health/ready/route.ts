@@ -1,100 +1,92 @@
-/**
- * Readiness: ¿puede este proceso atender tráfico?
- *
- * Comprueba lo que la aplicación necesita de verdad para servir una petición:
- * base de datos, almacenamiento y estado de las migraciones. A diferencia de
- * `live`, aquí un fallo SÍ debe sacar la instancia del balanceo.
- *
- * Cada comprobación lleva su propio timeout corto: un readiness que se queda
- * colgado es peor que uno que falla, porque el orquestador no puede decidir.
- */
-import { NextResponse } from 'next/server';
 import { sql } from 'drizzle-orm';
+import { NextResponse } from 'next/server';
 
 import { db } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 
-const TIMEOUT_MS = 3000;
+/**
+ * ¿Puede atender peticiones?
+ *
+ * Comprueba las dependencias que, si fallan, hacen inútil al proceso aunque
+ * esté vivo. A diferencia de `/live`, **este sí toca la base** — pero con
+ * timeout propio: un check de salud que se queda colgado esperando a Postgres
+ * es peor que uno que dice "no listo", porque el balanceador no recibe
+ * respuesta y decide por su cuenta.
+ *
+ * Devuelve 503 cuando algo esencial falla, para que un balanceador lo saque de
+ * rotación sin que Docker lo reinicie.
+ *
+ * No expone versiones, cadenas de conexión ni nombres de host: un endpoint de
+ * salud es público de hecho aunque no lo sea de derecho.
+ */
 
-type Check = { readonly name: string; readonly ok: boolean; readonly detail?: string };
+const TIMEOUT_MS = 2_000;
+
+type Comprobacion = {
+  readonly name: string;
+  readonly ok: boolean;
+  readonly ms: number;
+};
 
 async function conTimeout<T>(promesa: Promise<T>, ms: number): Promise<T> {
-  return Promise.race([
-    promesa,
-    new Promise<never>((_, reject) =>
-      setTimeout(() => reject(new Error(`timeout tras ${ms}ms`)), ms),
-    ),
-  ]);
-}
-
-async function comprobarBaseDeDatos(): Promise<Check> {
+  let temporizador: ReturnType<typeof setTimeout> | undefined;
   try {
-    await conTimeout(db.execute(sql`SELECT 1`), TIMEOUT_MS);
-    return { name: 'database', ok: true };
-  } catch (err) {
-    // El mensaje puede traer la cadena de conexión: no se propaga.
-    return { name: 'database', ok: false, detail: err instanceof Error ? err.name : 'error' };
+    return await Promise.race([
+      promesa,
+      new Promise<never>((_, reject) => {
+        temporizador = setTimeout(() => reject(new Error('timeout')), ms);
+      }),
+    ]);
+  } finally {
+    if (temporizador !== undefined) clearTimeout(temporizador);
   }
 }
 
-async function comprobarMigraciones(): Promise<Check> {
+async function comprobarBase(): Promise<Comprobacion> {
+  const inicio = Date.now();
   try {
-    const filas = await conTimeout(
-      db.execute<{ n: number }>(
-        sql`SELECT count(*)::int AS n FROM drizzle.__drizzle_migrations`,
-      ),
+    await conTimeout(db.execute(sql`select 1`), TIMEOUT_MS);
+    return { name: 'database', ok: true, ms: Date.now() - inicio };
+  } catch {
+    return { name: 'database', ok: false, ms: Date.now() - inicio };
+  }
+}
+
+/**
+ * Que las migraciones se hayan aplicado alguna vez.
+ *
+ * No comprueba que estén **al día** —eso exigiría leer el journal desde el
+ * runtime y compararlo, y un despliegue a medias daría un falso rojo—, sino
+ * que la tabla de control existe. Su ausencia significa que la base se
+ * provisionó fuera de Drizzle, que es un problema real y silencioso.
+ */
+async function comprobarMigraciones(): Promise<Comprobacion> {
+  const inicio = Date.now();
+  try {
+    await conTimeout(
+      db.execute(sql`select 1 from drizzle.__drizzle_migrations limit 1`),
       TIMEOUT_MS,
     );
-    const conRows = filas as unknown as { rows?: { n: number }[] };
-    const lista: { n: number }[] = Array.isArray(filas)
-      ? (filas as unknown as { n: number }[])
-      : (conRows.rows ?? []);
-    const n = lista[0]?.n;
-    if (typeof n !== 'number' || n === 0) {
-      return { name: 'migrations', ok: false, detail: 'sin migraciones registradas' };
-    }
-    return { name: 'migrations', ok: true, detail: `${n} aplicadas` };
-  } catch (err) {
-    return { name: 'migrations', ok: false, detail: err instanceof Error ? err.name : 'error' };
+    return { name: 'migrations', ok: true, ms: Date.now() - inicio };
+  } catch {
+    return { name: 'migrations', ok: false, ms: Date.now() - inicio };
   }
-}
-
-async function comprobarAlmacenamiento(): Promise<Check> {
-  // Con el driver local se comprueba que el directorio es escribible; con
-  // Vercel Blob basta con que el token esté configurado, porque una llamada
-  // real a la API en cada readiness sería cara y añadiría una dependencia de
-  // red a algo que debe responder rápido.
-  const driver = process.env.STORAGE_DRIVER ?? 'vercel';
-  if (driver === 'local') {
-    try {
-      const { access, constants } = await import('node:fs/promises');
-      const raiz = process.env.STORAGE_LOCAL_ROOT ?? '/srv/socialpro/storage';
-      await conTimeout(access(raiz, constants.W_OK), TIMEOUT_MS);
-      return { name: 'storage', ok: true, detail: 'local' };
-    } catch {
-      return { name: 'storage', ok: false, detail: 'local no escribible' };
-    }
-  }
-  const hayToken = Boolean(process.env.BLOB_READ_WRITE_TOKEN);
-  return { name: 'storage', ok: hayToken, detail: hayToken ? 'vercel' : 'vercel sin token' };
 }
 
 export async function GET(): Promise<NextResponse> {
-  const checks = await Promise.all([
-    comprobarBaseDeDatos(),
-    comprobarMigraciones(),
-    comprobarAlmacenamiento(),
-  ]);
+  const comprobaciones = await Promise.all([comprobarBase(), comprobarMigraciones()]);
+  const listo = comprobaciones.every((c) => c.ok);
 
-  const ok = checks.every((c) => c.ok);
   return NextResponse.json(
     {
-      status: ok ? 'ready' : 'not_ready',
-      version: process.env.APP_VERSION ?? 'unknown',
-      commit: process.env.GIT_COMMIT_SHA ?? 'unknown',
-      checks,
+      status: listo ? 'ready' : 'not-ready',
+      ts: new Date().toISOString(),
+      checks: comprobaciones,
     },
-    { status: ok ? 200 : 503, headers: { 'Cache-Control': 'no-store' } },
+    {
+      status: listo ? 200 : 503,
+      headers: { 'cache-control': 'no-store' },
+    },
   );
 }

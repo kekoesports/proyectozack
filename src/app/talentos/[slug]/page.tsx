@@ -87,6 +87,7 @@ function toTalentBase(t: Talent & Record<string, unknown>): Talent {
     cnmcRegisteredAt: t.cnmcRegisteredAt, cnmcNotes: t.cnmcNotes,
     hasRcInsurance: t.hasRcInsurance, taxType: t.taxType,
     nif: t.nif, fiscalName: t.fiscalName, fiscalAddress: t.fiscalAddress,
+    iaeEpigrafe: t.iaeEpigrafe, iaeActividad: t.iaeActividad,
     featuredLive: t.featuredLive, excludeFromLive: t.excludeFromLive, featuredFallback: t.featuredFallback,
     bioLong: t.bioLong, highlights: t.highlights,
     seoBioGenerated: t.seoBioGenerated, seoBioManual: t.seoBioManual,

@@ -23,6 +23,8 @@ export async function getFinanceDashboardSummary() {
     },
     cash: {
       cobradoRealMes: kpis.cobradoRealMes,
+      pagadoRealMes: kpis.pagadoRealMes,
+      netoRealMes: kpis.netoRealMes,
     },
     bank: {
       unconciliatedMovements: kpis.unconciliatedMovements,
@@ -36,7 +38,10 @@ export async function getFinanceDashboardSummary() {
 export async function getCashflowTrend() {
   const series = await getCashflowSeries(12);
   return {
-    note: 'cobrado=cash real (invoice_payments), pagado=devengado (invoices expense)',
+    note:
+      'cobrado y pagadoCaja son caja real (invoice_payments, separados por dirección); ' +
+      'pagadoDevengo es devengo (invoices kind=expense por issue_date). neto = cobrado - pagadoCaja, ' +
+      'ambas en caja. Sin extractos importados las series de caja valen 0.',
     series,
   };
 }

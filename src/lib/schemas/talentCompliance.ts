@@ -25,6 +25,8 @@ export const TALENT_TAX_TYPES = [
   'sl_sa',
   'latam',
   'no_residente',
+  // Particular sin alta: se le retiene IRPF y no repercute IVA.
+  'persona_fisica_es',
 ] as const;
 export type TalentTaxType = (typeof TALENT_TAX_TYPES)[number];
 
@@ -34,6 +36,21 @@ export const TALENT_TAX_TYPE_LABELS: Record<TalentTaxType, string> = {
   sl_sa: 'Sociedad ES (SL/SA, sin retención)',
   latam: 'LATAM (sin retención ES)',
   no_residente: 'No residente UE',
+  persona_fisica_es: 'Persona física sin alta (15% IRPF, sin IVA)',
+};
+
+// ── Sección del IAE ──
+//
+// Manda sobre el tipo fiscal a la hora de decidir si una factura lleva
+// retención: un autónomo de alta en actividad EMPRESARIAL (961.1 producción
+// audiovisual, 844 publicidad) no retiene IRPF, aunque su tipo diga 15%.
+// Dejarlo sin anotar no equivale a "no retiene": equivale a "no se sabe".
+export const IAE_ACTIVIDADES = ['profesional', 'empresarial'] as const;
+export type IaeActividad = (typeof IAE_ACTIVIDADES)[number];
+
+export const IAE_ACTIVIDAD_LABELS: Record<IaeActividad, string> = {
+  profesional: 'Profesional (sección 2ª — retiene IRPF)',
+  empresarial: 'Empresarial (961.1, 844… — no retiene)',
 };
 
 /**
@@ -46,6 +63,7 @@ export const IRPF_BY_TAX_TYPE: Record<TalentTaxType, number> = {
   sl_sa: 0,
   latam: 0,
   no_residente: 24, // type 24: non-resident income tax (standard rate)
+  persona_fisica_es: 15,
 };
 
 const optStr = (max: number) =>
@@ -66,6 +84,13 @@ export const updateTalentComplianceSchema = z.object({
 
   // Fiscal data
   taxType: z.enum(TALENT_TAX_TYPES).optional(),
+  // El <select> vacío llega como '' y eso no es un valor del enum: se trata
+  // como "no lo toques", igual que si el campo no viniera en el formulario.
+  iaeActividad: z.preprocess(
+    (v) => (typeof v === 'string' && v.trim() === '' ? undefined : v),
+    z.enum(IAE_ACTIVIDADES).optional(),
+  ),
+  iaeEpigrafe: optStr(20),
   nif: optStr(20),
   fiscalName: optStr(250),
   fiscalAddress: z.string().optional(),

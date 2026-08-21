@@ -1,72 +1,100 @@
-# Handoff — Sprint Nóminas ELEVATEX: fix importador PDF
+# Handoff — Zack Agent OS: roadmap inicial completo
 
-**Sesión:** 2026-06-29  
-**Estado al cerrar:** ✅ COMPLETO. Importador PDF de nóminas ELEVATEX funcionando end-to-end en producción.
-
----
-
-## 1. Commits de esta sesión
-
-| Commit / PR | Descripción |
-|---|---|
-| `0b33910` / #113 | feat(auth): add admin_limited_tasks role with task ownership guards |
-| PR #114 | fix(finance): include pdfjs worker via literal import for Vercel NFT |
-| PR #115 | fix(storage): use private blob access to match store configuration |
+**Sesión:** 2026-08-21
+**Estado:** seis PRs abiertos y encadenados. **Ninguna migración aplicada, ningún agente activo, nada desplegado.**
 
 ---
 
-## 2. Qué se arregló
+## 1. Los seis PRs
 
-### PR #114 — Worker pdfjs no encontrado en Vercel
+Se apilan: cada uno sale del anterior. **Mergear en orden y con merge commit, no
+squash** — un squash reescribe los commits que las ramas de encima llevan dentro
+y convierte cada merge siguiente en una cascada de conflictos.
 
-**Síntoma:** 500 al pulsar "Analizar PDF". Error: `Cannot find module /var/task/node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs`
+| PR | Rama | Qué añade |
+|---|---|---|
+| [#308](https://github.com/kekoesports/proyectozack/pull/308) | `feat/agent-runtime-schema` | 16 enums, 10 tablas, migración 0124, repositorios, seed de 6 agentes |
+| [#309](https://github.com/kekoesports/proyectozack/pull/309) | `feat/agent-runtime-core` | Tool registry tipado, política, presupuesto, redacción, proveedores, bucle |
+| [#310](https://github.com/kekoesports/proyectozack/pull/310) | `feat/agent-worker` | Claim con `SKIP LOCKED`, leases, reintentos, scheduler, eventos, apagado |
+| [#311](https://github.com/kekoesports/proyectozack/pull/311) | `feat/agent-admin-control-plane` | Permisos, 7 páginas, centro de aprobaciones |
+| [#312](https://github.com/kekoesports/proyectozack/pull/312) | `feat/guardian-telemetry-foundation` | Health endpoints, ingestión firmada, collector del VPS |
+| [#313](https://github.com/kekoesports/proyectozack/pull/313) | `feat/guardian-shadow` | Reglas deterministas, tools, informe, rutinas desactivadas |
 
-**Causa raíz:** `outputFileTracingIncludes` en `next.config.ts` es un no-op sin `output: 'standalone'`. El path del worker calculado con `createRequire().resolve()` es una ruta en runtime — Vercel NFT no la traza y el archivo no se incluye en el deployment.
-
-**Fix (`src/lib/parsers/pdf.ts`):**  
-Reemplazar `createRequire().resolve()` por `await import('pdfjs-dist/legacy/build/pdf.worker.mjs')` con string literal. Doble efecto: NFT traza el import literal (archivo incluido en deployment) y el import establece `globalThis.pdfjsWorker.WorkerMessageHandler`, que pdfjs usa directamente en `_setupFakeWorkerGlobal` sin llegar al `import(workerSrc)` roto.
-
-También añadido `src/types/pdfjs.d.ts` con `declare module 'pdfjs-dist/legacy/build/pdf.worker.mjs'` para TypeScript.
-
-### PR #115 — Blob store private-only
-
-**Síntoma:** 500 al pulsar "Confirmar y crear 2 facturas". Error: `Cannot use public access on a private store`
-
-**Causa raíz:** `uploadFile()` en `src/lib/storage.ts` usaba `access: 'public'` pero el Blob store en Vercel está configurado como private-only. Afectaba también uploads de campañas y talentos (GEO stats).
-
-**Fix (`src/lib/storage.ts`):** `access: 'public'` → `access: 'private'`. `invoices-actions.ts` ya usaba `access: 'private'` correctamente — alineado el resto.
+Documento propio por PR en `docs/agent-os/pr{1..6}-*.md`. El blueprint sigue en
+el [PR #304](https://github.com/kekoesports/proyectozack/pull/304), sin mergear.
 
 ---
 
-## 3. Estado del rol de Alfonso — sin cambios
+## 2. Lo que hay que saber para retomarlo
 
-El rol de Alfonso (`arias@socialpro.es`) sigue siendo `admin_limited_tasks` desde la sesión anterior. No se tocó.
+**El CI de GitHub no corre en los PRs apilados.** `ci.yml` se dispara con
+`pull_request: branches: [master]`, así que solo #308 tiene Lint/Build en verde.
+Los demás los ejecutará cuando GitHub los reapunte a `master` al mergear el
+anterior. Los cinco están verificados en local: `tsc`, `lint`, `jest --ci` y
+`next build`.
 
----
+**Las garantías de concurrencia siguen sin verificar.** No hay Postgres ni
+Docker en esta máquina: dos workers reclamando filas distintas, el advisory lock
+excluyendo de verdad y los UNIQUE bajo carrera están probados **como contrato
+sobre el SQL**, no ejecutados. Es lo primero que hay que hacer contra una base
+desechable antes de arrancar nada.
 
-## 4. Norma de proceso (vigente)
-
-Push directo a master **prohibido** para cambios que:
-- Borren datos / modifiquen producción / toquen auth o migraciones
-- Afecten finanzas, invoices, conciliación, permisos o deploy
-
-En esos casos: **branch → PR → CI verde → confirmación antes de mergear**.
-
----
-
-## 5. Deuda técnica identificada
-
-**Display de archivos privados (campañas, talentos, GEO stats):**  
-Con `access: 'private'` los blobs no son accesibles vía URL directa. El patrón correcto es un proxy server-side (ya existe para contratos en `/api/admin/contratos/[id]/pdf`). Los módulos de campañas y talentos almacenan la URL en DB pero no tienen proxy aún — si algún componente muestra un link directo al blob, ese link estará roto.  
-Acción: auditar si hay `<a href={file.url}>` o `<img src={file.url}>` en los componentes de campañas/talentos y añadir proxy si es necesario.
+**El `when` de la migración se corrigió a mano** a `1787428487578`. Drizzle la
+generó por debajo de 0122/0123 y el migrador la habría saltado en silencio.
+Volver a comprobarlo en cada migración nueva.
 
 ---
 
-## 6. Scripts de diagnóstico (no commiteados, desechables)
+## 3. Estado de activación
 
-En `/scripts/`:
-- `check-alfonso-role.ts`, `set-alfonso-role.ts`
-- `qa-tracker-42.ts`
-- `debug-keydrop-sheet.ts`, `debug-tracker-hyperlinks.ts`, `fix-tracker-count.ts`, `cleanup-tracker-duplicates.ts`
+Todo apagado, y no cambia solo:
 
-Pueden eliminarse cuando sea conveniente.
+- `AGENTS_ENABLED` sin definir → el encolado falla en cerrado.
+- Los seis agentes en `status=disabled`, `mode=shadow`.
+- Cero rutinas activas; las de Guardian se siembran desactivadas.
+- Worker sin desplegar; `infra/agents/` preparado.
+- Collector sin instalar; requiere SSH.
+- `AGENT_INTERNAL_TOKEN` y `AGENT_EVENT_HMAC_SECRET` sin configurar → los
+  endpoints internos responden 503.
+
+---
+
+## 4. Qué decide una persona
+
+1. **Revisar y mergear los seis PRs**, en orden y con merge commit.
+2. **Aplicar la migración.** Mergear #308 a `master` la aplica sola en el
+   siguiente deploy, porque `"build"` incluye `tsx scripts/migrate.ts`.
+3. `npm run seed:agents` y `npm run seed:guardian-schedules` — pasos manuales.
+4. **Verificar la concurrencia contra una base desechable.**
+5. Generar los dos secretos (`openssl rand -hex 32`) y ponerlos en el proyecto.
+6. Instalar el collector en el VPS (necesita SSH).
+7. Desplegar el worker.
+8. **Decidir activar Guardian**: `AGENTS_ENABLED=true` + `status='active'` +
+   activar `guardian-daily`.
+
+Los pasos 1-3 no activan nada. El 8 sí, y es el único irreversible en la
+práctica.
+
+---
+
+## 5. Deuda conocida
+
+- `stateJson` no se usa: reanudar tras una aprobación reejecuta desde el
+  principio. Funciona, pero por casualidad.
+- `recordAgentUsage` hace INSERT + UPDATE sin transacción; se arregla al migrar
+  a `pg`.
+- `getBudgetSnapshot` suma el mes entero en cada comprobación.
+- Los umbrales de Guardian viven en código, no en `settings_json`.
+- Crear memoria a mano no tiene formulario.
+- Activar una rutina desde el panel no es un botón.
+
+---
+
+## 6. Siguiente trabajo
+
+El roadmap inicial queda cubierto. Después, **solo cuando Guardian tenga datos
+que digan que es fiable**: CRM Steward shadow → Deal Clerk drafts → Growth →
+SEO → Dev → acciones con efecto, una por una.
+
+Ninguno empieza antes de que Guardian salga de shadow con los siete criterios de
+`src/lib/agents/guardian/definition.ts` cumplidos y medidos.

@@ -2,7 +2,7 @@
 
 import { and, count, eq, gte, isNull, lte, sql } from 'drizzle-orm';
 import { db } from '@/lib/db';
-import { bankTransactions, invoicePayments } from '@/db/schema';
+import { bankTransactions, invoicePayments, invoices } from '@/db/schema';
 import { getBillingKPIs } from '@/lib/queries/invoices';
 import { getBankReconciliationKpis } from '@/lib/queries/bankReconciliation';
 import type { FinanceDashboardKPIs } from '@/types/financeDashboard';
@@ -21,24 +21,39 @@ function currentMonthRange(): { from: string; to: string } {
 export async function getFinanceDashboardKPIs(): Promise<FinanceDashboardKPIs> {
   const { from, to } = currentMonthRange();
 
-  const [billing, reconciliation, cobRow, pendingRow] = await Promise.all([
+  // La dirección de un pago sale de su FK: `issued_invoice_id` siempre es un
+  // cobro; `invoice_id` apunta a una factura interna, que puede ser de ingreso
+  // o de gasto. Sin este LEFT JOIN, cada pago a un talento engordaba el
+  // "cobrado del mes" — y cuanto mejor se conciliara, más mentía la cifra.
+  const enMes = and(
+    gte(invoicePayments.paymentDate, from),
+    lte(invoicePayments.paymentDate, to),
+  );
+
+  const [billing, reconciliation, cajaRow, pendingRow] = await Promise.all([
     getBillingKPIs(),
     getBankReconciliationKpis(),
     db
-      .select({ total: sql<string>`COALESCE(SUM(${invoicePayments.amount}), 0)::text` })
+      .select({
+        cobrado: sql<string>`COALESCE(SUM(${invoicePayments.amount}) FILTER (
+          WHERE ${invoicePayments.issuedInvoiceId} IS NOT NULL OR ${invoices.kind} = 'income'
+        ), 0)::text`,
+        pagado: sql<string>`COALESCE(SUM(${invoicePayments.amount}) FILTER (
+          WHERE ${invoices.kind} = 'expense'
+        ), 0)::text`,
+      })
       .from(invoicePayments)
-      .where(
-        and(
-          gte(invoicePayments.paymentDate, from),
-          lte(invoicePayments.paymentDate, to),
-        ),
-      ),
+      .leftJoin(invoices, eq(invoices.id, invoicePayments.invoiceId))
+      .where(enMes),
     db
       .select({ cnt: count() })
       .from(bankTransactions)
       .leftJoin(invoicePayments, eq(invoicePayments.bankTransactionId, bankTransactions.id))
       .where(and(eq(bankTransactions.status, 'matched'), isNull(invoicePayments.id))),
   ]);
+
+  const cobrado = Number(cajaRow[0]?.cobrado ?? 0);
+  const pagado = Number(cajaRow[0]?.pagado ?? 0);
 
   return {
     incomeTotal: billing.incomeTotal,
@@ -49,7 +64,9 @@ export async function getFinanceDashboardKPIs(): Promise<FinanceDashboardKPIs> {
     gastosCampana: billing.gastosCampana,
     gastosEmpresa: billing.gastosEmpresa,
     beneficioNeto: billing.beneficioNeto,
-    cobradoRealMes: Number(cobRow[0]?.total ?? 0),
+    cobradoRealMes: cobrado,
+    pagadoRealMes: pagado,
+    netoRealMes: Math.round((cobrado - pagado) * 100) / 100,
     pendingApplyPayment: Number(pendingRow[0]?.cnt ?? 0),
     unconciliatedMovements: reconciliation.importedUnmatched,
   };

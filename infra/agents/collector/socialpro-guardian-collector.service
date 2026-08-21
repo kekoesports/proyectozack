@@ -1,0 +1,58 @@
+[Unit]
+Description=Collector de salud del VPS para Zack Guardian
+Documentation=https://github.com/kekoesports/proyectozack/blob/master/infra/agents/collector/README.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/collect-system-health.sh
+
+# Usuario sin privilegios. El collector lee /proc y consulta systemd; nada de
+# eso necesita root, y darle root sería regalar la máquina a cambio de leer un
+# porcentaje de disco.
+User=guardian-collector
+Group=guardian-collector
+
+# El fichero con el token y el secreto HMAC. Debe ser 0400 y propiedad del
+# usuario del servicio.
+EnvironmentFile=/etc/socialpro/guardian-collector.env
+
+# Aislamiento. Cada línea quita algo que el collector no necesita, y el orden
+# de importancia es este:
+#
+# - NoNewPrivileges impide escalar aunque se colara una ejecución.
+# - ProtectSystem=strict deja todo el sistema en solo lectura.
+# - PrivateTmp le da su propio /tmp: no ve ni deja rastros en el compartido.
+# - ProtectHome le oculta /home y /root enteros.
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictNamespaces=true
+RestrictRealtime=true
+RestrictSUIDSGID=true
+LockPersonality=true
+MemoryDenyWriteExecute=true
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+SystemCallFilter=~@privileged @resources
+
+# Solo lectura sobre el directorio de backups: comprueba la fecha del último,
+# no toca nada.
+ReadOnlyPaths=/var/backups/socialpro
+
+# Un collector colgado no debe acumularse con el siguiente disparo del timer.
+TimeoutStartSec=60
+
+# La salida va al journal del sistema. El script no imprime nada salvo errores,
+# y nunca cabeceras ni cuerpos.
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

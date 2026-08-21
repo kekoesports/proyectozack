@@ -17,17 +17,27 @@ function formatMonth(m: string): string {
 }
 
 /**
- * Ingresos (cobrado) vs Gastos (pagado) por mes — 12 meses. Barras
- * dobles. Empty state honesto si no hay datos.
+ * Cobros conciliados vs gastos facturados, por mes — 12 meses.
+ *
+ * Las dos barras NO miden lo mismo y el rótulo lo dice: un cobro solo cuenta si
+ * hay un movimiento bancario conciliado detrás, mientras que un gasto cuenta
+ * desde que llega la factura, esté pagada o no. Comparar las dos alturas induce
+ * a error, así que la advertencia va bajo el título y no escondida en un
+ * tooltip.
  */
 export function IncomeExpenseChart({ data }: Props): React.ReactElement {
-  const rows = data.map((d) => ({ mes: formatMonth(d.month), ingresos: d.cobrado, gastos: d.pagado }));
+  const rows = data.map((d) => ({ mes: formatMonth(d.month), ingresos: d.cobrado, gastos: d.pagadoDevengo }));
   const hasData = rows.some((r) => r.ingresos > 0 || r.gastos > 0);
 
   return (
     <div className="rounded-2xl border border-sp-border bg-sp-admin-card p-4">
       <div className="mb-3 flex items-baseline justify-between">
-        <h3 className="text-sm font-bold text-sp-admin-fg">Ingresos vs gastos por mes</h3>
+        <div>
+          <h3 className="text-sm font-bold text-sp-admin-fg">Cobros vs gastos facturados</h3>
+          <p className="text-[10px] text-sp-admin-muted">
+            Los cobros son caja conciliada; los gastos, facturas emitidas. No son la misma medida.
+          </p>
+        </div>
         <span className="text-[10px] text-sp-admin-muted">Últimos 12 meses</span>
       </div>
       {!hasData ? (
