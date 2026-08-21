@@ -8,6 +8,8 @@ import {
   CNMC_STATUS_COLORS,
   TALENT_TAX_TYPES,
   TALENT_TAX_TYPE_LABELS,
+  IAE_ACTIVIDADES,
+  IAE_ACTIVIDAD_LABELS,
   IRPF_BY_TAX_TYPE,
   CNMC_CHECKLIST_ITEMS,
 } from '@/lib/schemas/talentCompliance';
@@ -29,6 +31,8 @@ type Props = {
     | 'cnmcNotes'
     | 'hasRcInsurance'
     | 'taxType'
+    | 'iaeActividad'
+    | 'iaeEpigrafe'
     | 'nif'
     | 'fiscalName'
     | 'fiscalAddress'
@@ -185,6 +189,30 @@ export function TalentComplianceForm({ talent }: Props): React.ReactElement {
                 Retención IRPF aplicable: <strong className="text-sp-admin-accent">{irpfPct}%</strong>
               </p>
             )}
+          </div>
+
+          <div>
+            <label className={LABEL}>Sección del IAE</label>
+            <select name="iaeActividad" defaultValue={talent.iaeActividad ?? ''} className={SELECT}>
+              <option value="">-- Sin definir --</option>
+              {IAE_ACTIVIDADES.map((a) => (
+                <option key={a} value={a}>{IAE_ACTIVIDAD_LABELS[a]}</option>
+              ))}
+            </select>
+            <p className="text-xs text-sp-admin-muted mt-1">
+              Manda sobre el tipo fiscal: un autónomo de alta como empresarial no retiene IRPF
+              aunque arriba ponga 15%.
+            </p>
+          </div>
+
+          <div>
+            <label className={LABEL}>Epígrafe IAE</label>
+            <input
+              name="iaeEpigrafe"
+              placeholder="961.1 / 844 / 751"
+              defaultValue={talent.iaeEpigrafe ?? ''}
+              className={INPUT}
+            />
           </div>
 
           <div>

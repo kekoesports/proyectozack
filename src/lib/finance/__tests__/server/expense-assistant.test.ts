@@ -147,7 +147,10 @@ describe('evaluarGasto — cuando hay contradicción', () => {
     // blanco. Sin ese dato ninguna comprobación de retención tiene base, y el
     // silencio del validador se leía como "comprobado y correcto".
     const avisos = evaluarGasto(gasto(), perfil({ taxType: null, iaeActividad: null }));
-    expect(codigos(avisos)).toContain('perfil-incompleto');
+    expect(codigos(avisos)).toContain('falta-tipo-fiscal');
+    // No es el mismo aviso que "falta la sección del IAE": se arregla en otro
+    // campo, así que fundirlos en un código mandaría a rellenar lo que no es.
+    expect(codigos(avisos)).not.toContain('perfil-incompleto');
   });
 
   it('con el tipo fiscal en blanco no se inventa un aviso de retención', () => {

@@ -5,9 +5,9 @@
  * Toda la lógica de validación vive en `expenseAssistant.shared.ts`.
  */
 
-import { eq, inArray } from 'drizzle-orm';
+import { and, desc, eq, inArray, ne, sql } from 'drizzle-orm';
 import { db } from '@/lib/db';
-import { talents } from '@/db/schema';
+import { invoices, talents } from '@/db/schema';
 import { sugerirTipoFiscal, type PerfilFiscal } from './expenseAssistant.shared';
 
 export * from './expenseAssistant.shared';
@@ -75,6 +75,9 @@ export async function getPerfilesFiscales(
  * @visibility admin (facturacion:read)
  */
 export async function listTalentosSinPerfilFiscal(): Promise<readonly TalentoSinPerfil[]> {
+  // Solo los que tienen pagos registrados. El roster entero son ~150 fichas y
+  // casi ninguna afecta a las cuentas: la lista de trabajo son los pocos a los
+  // que se les ha pagado algo, ordenados por cuánto.
   const rows = await db
     .select({
       id: talents.id,
@@ -82,8 +85,20 @@ export async function listTalentosSinPerfilFiscal(): Promise<readonly TalentoSin
       taxType: talents.taxType,
       iaeActividad: talents.iaeActividad,
       creatorCountry: talents.creatorCountry,
+      pagado: sql<string>`COALESCE(SUM(${invoices.totalAmount}), 0)::text`,
+      pagos: sql<number>`COUNT(${invoices.id})::int`,
     })
-    .from(talents);
+    .from(talents)
+    .innerJoin(
+      invoices,
+      and(
+        eq(invoices.talentId, talents.id),
+        eq(invoices.kind, 'expense'),
+        ne(invoices.status, 'anulada'),
+      ),
+    )
+    .groupBy(talents.id, talents.name, talents.taxType, talents.iaeActividad, talents.creatorCountry)
+    .orderBy(desc(sql`SUM(${invoices.totalAmount})`));
 
   return rows
     .map((r) => {
@@ -99,6 +114,8 @@ export async function listTalentosSinPerfilFiscal(): Promise<readonly TalentoSin
         falta: huecos.join(' y '),
         pais: r.creatorCountry,
         sugerencia: sugerirTipoFiscal(r.creatorCountry),
+        pagado: Number(r.pagado),
+        pagos: r.pagos,
       };
     })
     .filter((r) => r.falta !== '');
@@ -112,4 +129,7 @@ export type TalentoSinPerfil = {
   readonly pais: string | null;
   /** Punto de partida derivado del país. NO es la respuesta: hay que confirmarla. */
   readonly sugerencia: string | null;
+  /** Cuánto se le ha pagado ya. Es lo que ordena la lista. */
+  readonly pagado: number;
+  readonly pagos: number;
 };

@@ -144,7 +144,7 @@ export function evaluarGasto(
   // para, en lugar de dejar pasar la factura como si estuviera comprobada.
   if (perfil !== null && perfil.taxType === null) {
     avisos.push({
-      codigo: 'perfil-incompleto',
+      codigo: 'falta-tipo-fiscal',
       nivel: 'aviso',
       titulo: 'La ficha no dice cómo tributa este talento',
       detalle:
