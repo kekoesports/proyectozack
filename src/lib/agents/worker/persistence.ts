@@ -95,8 +95,11 @@ export function buildRunPersistence(opts: {
             stepId: stepActualId,
             agentId: agent.id,
             kind: 'model_turn',
-            provider: agent.modelProvider,
-            model: agent.modelName,
+            // Lo que dice el turno, no lo que dice la definición del agente:
+            // si alguien cambia el modelo con ejecuciones en vuelo, el gasto
+            // debe quedar atribuido al que realmente lo produjo.
+            provider: evento.provider,
+            model: evento.model,
             inputTokens: evento.inputTokens,
             outputTokens: evento.outputTokens,
             estimatedCostMicros: evento.estimatedCostMicros,
