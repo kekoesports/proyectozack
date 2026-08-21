@@ -165,6 +165,50 @@ describe('evaluarGasto — cuando hay contradicción', () => {
   });
 });
 
+describe('persona física sin alta — el perfil que faltaba', () => {
+  // KLED factura como particular por un trabajo puntual: se le retiene IRPF y
+  // no repercute IVA porque no está de alta. Antes había que etiquetarlo como
+  // autónomo, y entonces su factura correcta generaba un aviso para siempre.
+
+  it('retiene el 15%, igual que un autónomo profesional', () => {
+    expect(retencionEsperada(perfil({ taxType: 'persona_fisica_es', iaeActividad: null }))).toBe(15);
+  });
+
+  it('no necesita epígrafe IAE: no está de alta en ninguno', () => {
+    const avisos = evaluarGasto(
+      gasto({ vatPct: 0, withholdingPct: 15 }),
+      perfil({ taxType: 'persona_fisica_es', iaeActividad: null, iaeEpigrafe: null }),
+    );
+    expect(codigos(avisos)).not.toContain('perfil-incompleto');
+  });
+
+  it('su factura sin IVA y con retención no genera ni un aviso', () => {
+    // El caso literal de KLED: 1.350,43 € de base, 0% IVA, 15% de retención.
+    const avisos = evaluarGasto(
+      gasto({ netAmount: 1350.43, vatPct: 0, withholdingPct: 15, counterpartyName: 'KLED' }),
+      perfil({ nombre: 'KLED', taxType: 'persona_fisica_es', iaeActividad: null }),
+    );
+    expect(avisos).toHaveLength(0);
+  });
+
+  it('si le falta la retención, sí se avisa', () => {
+    const avisos = evaluarGasto(
+      gasto({ vatPct: 0, withholdingPct: 0 }),
+      perfil({ taxType: 'persona_fisica_es', iaeActividad: null }),
+    );
+    expect(codigos(avisos)).toContain('falta-retencion');
+  });
+
+  it('con IVA repercutido, el perfil o la factura están mal', () => {
+    // Guarda para lo que venga: hoy no hay ninguna fila así.
+    const avisos = evaluarGasto(
+      gasto({ vatPct: 21, withholdingPct: 15 }),
+      perfil({ taxType: 'persona_fisica_es', iaeActividad: null }),
+    );
+    expect(codigos(avisos)).toContain('persona-fisica-con-iva');
+  });
+});
+
 describe('evaluarGasto — lo que bloquea la deducción', () => {
   it('factura a nombre personal', () => {
     // Neon, con el Gmail personal.

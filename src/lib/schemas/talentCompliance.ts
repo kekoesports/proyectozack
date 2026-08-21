@@ -25,6 +25,8 @@ export const TALENT_TAX_TYPES = [
   'sl_sa',
   'latam',
   'no_residente',
+  // Particular sin alta: se le retiene IRPF y no repercute IVA.
+  'persona_fisica_es',
 ] as const;
 export type TalentTaxType = (typeof TALENT_TAX_TYPES)[number];
 
@@ -34,6 +36,7 @@ export const TALENT_TAX_TYPE_LABELS: Record<TalentTaxType, string> = {
   sl_sa: 'Sociedad ES (SL/SA, sin retención)',
   latam: 'LATAM (sin retención ES)',
   no_residente: 'No residente UE',
+  persona_fisica_es: 'Persona física sin alta (15% IRPF, sin IVA)',
 };
 
 // ── Sección del IAE ──
@@ -60,6 +63,7 @@ export const IRPF_BY_TAX_TYPE: Record<TalentTaxType, number> = {
   sl_sa: 0,
   latam: 0,
   no_residente: 24, // type 24: non-resident income tax (standard rate)
+  persona_fisica_es: 15,
 };
 
 const optStr = (max: number) =>
