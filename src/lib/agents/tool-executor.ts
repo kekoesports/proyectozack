@@ -48,8 +48,34 @@ export type ToolExecutorDeps = {
   readonly findPreviousCall: (
     idempotencyKey: string,
   ) => Promise<{ readonly status: string; readonly resultJson: Record<string, unknown> | null } | null>;
+  /**
+   * Registra la llamada **antes** de ejecutarla, en estado `executing`, y
+   * devuelve su id.
+   *
+   * Es un contrato, no una traza: escribir la fila después es lo natural —ya se
+   * sabe el resultado— y es exactamente lo que rompe la garantía. Si el worker
+   * muere a mitad de la tool, sin fila no queda rastro, `findPreviousCall` no
+   * encuentra nada al reanudar y la acción se repite a ciegas. Con la fila
+   * escrita antes, el reintento ve un `executing` y se detiene.
+   *
+   * Opcional: sin ella el executor sigue funcionando (los tests lo usan así),
+   * pero entonces la idempotencia entre procesos no está garantizada.
+   */
+  readonly beginToolCall?: (info: ToolCallRecordInput) => Promise<number>;
+  /** Cierra la fila con el desenlace. */
+  readonly settleToolCall?: (toolCallId: number, result: AgentToolExecutionResult) => Promise<void>;
   readonly policyVersion: string;
   readonly now: () => Date;
+};
+
+export type ToolCallRecordInput = {
+  readonly toolName: string;
+  readonly toolVersion: string;
+  readonly actionClass: ErasedAgentTool['actionClass'];
+  readonly inputJson: Record<string, unknown>;
+  readonly inputHash: string;
+  readonly idempotencyKey: string | null;
+  readonly providerCallId: string | null;
 };
 
 /** Códigos estables de bloqueo. Viajan a la timeline y a la UI. */
@@ -269,7 +295,26 @@ export async function executeAgentToolCall(
     }
   }
 
-  // 11. Ejecución acotada en el tiempo.
+  // 11. La fila se escribe ANTES de ejecutar, en `executing`. Ver el contrato
+  //     en el comentario de `beginToolCall`.
+  const toolCallId = deps.beginToolCall
+    ? await deps.beginToolCall({
+        toolName: tool.name,
+        toolVersion: tool.version,
+        actionClass: tool.actionClass,
+        inputJson: inputRedactado,
+        inputHash: actionHash,
+        idempotencyKey,
+        providerCallId: request.providerCallId ?? null,
+      })
+    : null;
+
+  const cerrar = async (resultado: AgentToolExecutionResult): Promise<AgentToolExecutionResult> => {
+    if (toolCallId !== null && deps.settleToolCall) await deps.settleToolCall(toolCallId, resultado);
+    return resultado;
+  };
+
+  // 12. Ejecución acotada en el tiempo.
   const inicio = deps.now().getTime();
   const resultado = await ejecutarConTimeout(tool, call, ctx, tool.maxExecutionMs);
   const durationMs = deps.now().getTime() - inicio;
@@ -282,33 +327,33 @@ export async function executeAgentToolCall(
       // envío que quizá ya salió. Lo que hay aquí es desconocimiento, y se
       // reporta como tal para que lo mire una persona.
       if (idempotencyKey !== null) {
-        return {
+        return cerrar({
           status: 'indeterminate',
           code: 'tool_timeout_indeterminate',
           message: `'${tool.name}' superó su límite de ${tool.maxExecutionMs} ms y escribe: no se sabe si la acción llegó a ocurrir.`,
           durationMs,
-        };
+        });
       }
-      return {
+      return cerrar({
         status: 'failed',
         code: 'tool_timeout',
         message: `'${tool.name}' superó su límite de ${tool.maxExecutionMs} ms.`,
         durationMs,
-      };
+      });
     }
-    return {
+    return cerrar({
       status: 'failed',
       code: 'tool_failed',
       message: redactErrorMessage(resultado.error),
       durationMs,
-    };
+    });
   }
 
-  // 12. Redacción del resultado. Doble pasada a propósito: el redactor propio
+  // 13. Redacción del resultado. Doble pasada a propósito: el redactor propio
   //     de la tool ya se aplicó dentro de `call.execute` —no hay ruta que lo
   //     salte—, y encima pasa el genérico, que no depende de que ese redactor
   //     esté bien escrito.
   const output = redactForStorage(resultado.value);
 
-  return { status: 'succeeded', output, durationMs };
+  return cerrar({ status: 'succeeded', output, durationMs });
 }
