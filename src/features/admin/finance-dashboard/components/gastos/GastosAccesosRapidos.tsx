@@ -19,7 +19,9 @@ export function GastosAccesosRapidos(): React.ReactElement {
   return (
     <section aria-labelledby="accesos-rapidos-gastos-title" className="space-y-3">
       <h2 id="accesos-rapidos-gastos-title" className="text-sm font-bold text-sp-admin-fg">Accesos rápidos</h2>
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+      {/* auto-fit en vez de un numero fijo de columnas: la lista crece y un
+          conteo a mano deja una tarjeta huerfana en su propia fila. */}
+      <div className="grid gap-3 grid-cols-[repeat(auto-fit,minmax(220px,1fr))]">
         {ACCESOS.map((a) => (
           <Link key={a.href} href={a.href}
             className="flex items-center gap-3 rounded-2xl border border-sp-border bg-sp-admin-card p-4 hover:border-sp-orange/40 transition-colors group">
