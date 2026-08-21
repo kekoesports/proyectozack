@@ -19,6 +19,11 @@ import { resolveAutomationDealSchedule } from '@/lib/utils/automation-deal-sched
 import { initialsOf, slugify } from '@/lib/utils/import-utils';
 import { createLimit } from '@/lib/utils/concurrencyLimit';
 
+// Each campaign consumes two Google Sheets reads (metadata + values). Keeping
+// the batch below 30 leaves quota headroom for interactive CRM reads and avoids
+// turning the second half of every run into HTTP 429 failures.
+const AUTOMATION_SYNC_BATCH_SIZE = 24;
+
 type TransactionalDb = ReturnType<typeof getTransactionalDb>;
 type AutomationTransaction = Parameters<Parameters<TransactionalDb['transaction']>[0]>[0];
 type TopGeo = { readonly country: string; readonly pct: number };
@@ -451,7 +456,11 @@ export async function syncAllAutomatedDeals(): Promise<SyncAllAutomatedDealsResu
       // gastando llamadas a Sheets (y watermark de alertas) en tratos cerrados.
       isNull(campaigns.archivedAt),
       inArray(campaigns.status, ['propuesta', 'negociacion', 'aprobada', 'activa', 'pendiente_pago']),
-    ));
+    ))
+    // Rotate fairly: failed/never-synced campaigns go first, then the stalest.
+    // With 44 current campaigns, two hourly runs cover the full set.
+    .orderBy(sql`${campaigns.lastTrackingSyncAt} asc nulls first`, campaigns.id)
+    .limit(AUTOMATION_SYNC_BATCH_SIZE);
 
   const limit = createLimit(3);
   const settled = await Promise.allSettled(
