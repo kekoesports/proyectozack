@@ -1,3 +1,5 @@
+import { GUARDIAN_ALLOWLIST } from '../guardian/definition';
+import { GUARDIAN_TOOLS } from '../guardian/tools';
 import { AgentToolRegistry } from '../tool-registry';
 import { LEGACY_READ_TOOLS } from './legacy-read-adapter';
 
@@ -24,7 +26,7 @@ export * from './legacy-read-adapter';
  * del CRM.
  */
 export const AGENT_TOOL_ALLOWLISTS: Readonly<Record<string, readonly string[]>> = {
-  guardian: ['getCrmHelpContext'],
+  guardian: GUARDIAN_ALLOWLIST,
   'crm-steward': [
     'getCrmHelpContext',
     'getActiveCampaigns',
@@ -40,7 +42,7 @@ export const AGENT_TOOL_ALLOWLISTS: Readonly<Record<string, readonly string[]>> 
 };
 
 /** Todas las tools registradas del runtime. */
-export const ALL_AGENT_TOOLS = [...LEGACY_READ_TOOLS];
+export const ALL_AGENT_TOOLS = [...LEGACY_READ_TOOLS, ...GUARDIAN_TOOLS];
 
 let registroCompartido: AgentToolRegistry | null = null;
 

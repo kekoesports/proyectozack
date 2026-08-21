@@ -63,7 +63,10 @@ async function main(): Promise<void> {
         maxToolCallsPerRun: agente.maxToolCallsPerRun,
         maxDurationSeconds: agente.maxDurationSeconds,
         monthlyBudgetMicros: agente.monthlyBudgetMicros,
-        settingsJson: {},
+        // Lo único que va en settings: el rol con el que se ejecuta sin humano
+        // detrás. Nada sensible — un rol no es un secreto — y sin él las tools
+        // que exijan un permiso que `analyst` no tiene fallarían en silencio.
+        settingsJson: agente.systemRole ? { systemRole: agente.systemRole } : {},
       })
       .onConflictDoUpdate({
         target: schema.agentDefinitions.slug,

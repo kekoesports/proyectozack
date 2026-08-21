@@ -47,10 +47,28 @@ const ROLES_ESPERADOS: Readonly<Record<string, readonly Role[]>> = {
 };
 
 describe('cobertura de las tools del asistente', () => {
-  it('el runtime cubre exactamente las mismas 17', () => {
-    const enRuntime = ALL_AGENT_TOOLS.map((t) => t.name).sort();
-    expect(enRuntime).toEqual([...AVAILABLE_TOOLS].sort());
-    expect(enRuntime).toHaveLength(17);
+  it('el runtime cubre las 17 del asistente, sin perder ninguna', () => {
+    // Desde PR 6 el registro tiene además las tools propias de Guardian, así
+    // que la comprobación es de cobertura y no de igualdad. El invariante que
+    // importa sigue siendo el mismo: si alguien añade una tool al asistente y
+    // no al runtime, esto falla antes de que las dos versiones divergan.
+    const enRuntime = new Set(ALL_AGENT_TOOLS.map((t) => t.name));
+    for (const nombre of AVAILABLE_TOOLS) {
+      expect(enRuntime.has(nombre)).toBe(true);
+    }
+    expect(AVAILABLE_TOOLS).toHaveLength(17);
+  });
+
+  it('las tools añadidas son las de Guardian y ninguna más', () => {
+    const extras = ALL_AGENT_TOOLS.map((t) => t.name).filter(
+      (n) => !(AVAILABLE_TOOLS as readonly string[]).includes(n),
+    );
+    expect(extras.sort()).toEqual([
+      'getAgentQueueHealth',
+      'getAgentWorkerHealth',
+      'getOpenOperationalIncidents',
+      'getSystemHealthSnapshot',
+    ]);
   });
 
   it('todas se declaran como lectura y sin aprobación', () => {

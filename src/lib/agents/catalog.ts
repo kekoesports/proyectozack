@@ -34,6 +34,21 @@ export type AgentCatalogEntry = {
   readonly maxDurationSeconds: number;
   /** 1 USD = 1.000.000 micros. */
   readonly monthlyBudgetMicros: number;
+  /**
+   * Rol con el que se ejecuta cuando no hay un humano detrás.
+   *
+   * Un run de rutina necesita un rol para que el RBAC del CRM decida y no puede
+   * heredarlo de nadie. Sin esto el default es `analyst`, que basta para
+   * lecturas de analytics y poco más: un agente cuyas tools exijan otro permiso
+   * vería **todas** sus llamadas denegadas, produciría informes vacíos para
+   * siempre, y la causa no saldría por ninguna parte — la timeline solo diría
+   * `blocked` y al modelo se le dice únicamente "no tienes permiso".
+   *
+   * Se escribe en `settings_json`. `admin`, `admin_limited_tasks` y `brand`
+   * están prohibidos: un agente que se ejecuta sin supervisión no opera como
+   * administrador.
+   */
+  readonly systemRole?: 'manager' | 'staff' | 'ops' | 'editor' | 'finance' | 'analyst' | 'talent_manager';
 };
 
 export const AGENT_CATALOG: readonly AgentCatalogEntry[] = [
@@ -52,6 +67,10 @@ export const AGENT_CATALOG: readonly AgentCatalogEntry[] = [
     maxToolCallsPerRun: 12,
     maxDurationSeconds: 300,
     monthlyBudgetMicros: 2_000_000,
+    // Sus tools piden `infrastructure:read`, que `analyst` no tiene. Con el
+    // default, cada llamada acabaría en `policy_denied` y el informe saldría
+    // vacío sin que nada dijera por qué.
+    systemRole: 'ops',
   },
   {
     slug: 'crm-steward',

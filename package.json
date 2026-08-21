@@ -37,6 +37,7 @@
     "load:bots": "k6 run load-tests/bot-simulation.js",
     "load:soak": "k6 run load-tests/soak.js",
     "seed:agents": "tsx scripts/seed-agent-definitions.ts",
+    "seed:guardian-schedules": "tsx scripts/seed-guardian-schedules.ts",
     "agents:worker": "tsx src/worker/agent-worker.ts",
     "agents:worker:once": "tsx src/worker/agent-worker.ts --once",
     "agents:schedules:tick": "tsx src/worker/agent-worker.ts --schedules-only"

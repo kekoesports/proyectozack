@@ -19,6 +19,7 @@ import {
   SEED_AGENT_MODE,
   SEED_AGENT_STATUS,
 } from '@/lib/agents/catalog';
+import { hasPermission } from '@/lib/permissions';
 
 const ROOT = path.resolve(__dirname, '..', '..', '..');
 const SEED = fs.readFileSync(path.join(ROOT, 'scripts/seed-agent-definitions.ts'), 'utf-8');
@@ -99,7 +100,29 @@ describe('scripts/seed-agent-definitions.ts', () => {
     expect(SEED).not.toMatch(/enabled:\s*true/);
   });
 
-  it('no escribe settings con contenido', () => {
-    expect(SEED).toMatch(/settingsJson: \{\}/);
+  it('lo único que escribe en settings es el rol de sistema', () => {
+    // `settings_json` no lleva secretos ni configuración libre: solo el rol con
+    // el que se ejecuta un agente sin humano detrás, que no es un secreto y sin
+    // el cual sus tools fallarían en silencio.
+    expect(SEED).toMatch(/settingsJson: agente\.systemRole \? \{ systemRole: agente\.systemRole \} : \{\}/);
+  });
+
+  it('ningún agente se ejecuta como administrador', () => {
+    // Un agente que corre sin supervisión no opera con permisos de admin.
+    for (const agente of AGENT_CATALOG) {
+      expect(agente.systemRole).not.toBe('admin');
+      expect(agente.systemRole).not.toBe('admin_limited_tasks');
+      expect(agente.systemRole).not.toBe('brand');
+    }
+  });
+
+  it('Guardian se ejecuta con un rol que alcanza sus propias tools', () => {
+    // Sus tools piden `infrastructure:read`. Con el default `analyst`, cada
+    // llamada acabaría en `policy_denied` y el informe saldría vacío sin que
+    // nada dijera por qué.
+    const guardian = AGENT_CATALOG.find((a) => a.slug === 'guardian');
+    expect(guardian?.systemRole).toBe('ops');
+    expect(hasPermission('ops', 'infrastructure', 'read')).toBe(true);
+    expect(hasPermission('analyst', 'infrastructure', 'read')).toBe(false);
   });
 });
