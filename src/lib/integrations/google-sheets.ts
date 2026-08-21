@@ -83,6 +83,10 @@ export function validateGoogleSheetUrl(url: string): boolean {
  */
 const SHEETS_FETCH_TIMEOUT_MS = 10_000;
 
+// Rich CellData includes hyperlink metadata and can be slower on templates
+// with formatting copied down hundreds of empty rows.
+const SHEETS_GRID_FETCH_TIMEOUT_MS = 30_000;
+
 /** Tope al Retry-After de Google. Ver la nota de withRetry. */
 const MAX_RETRY_AFTER_MS = 10_000;
 
@@ -205,7 +209,7 @@ export async function listSheetTabs(spreadsheetId: string): Promise<SheetTab[]> 
 }
 
 /**
- * Reads a full sheet tab as a 2D string array (rows × cols).
+ * Reads the operational area of a sheet tab as a 2D string array (rows × cols).
  * Empty values from the API are preserved as empty strings.
  */
 export async function readSheetGrid(
@@ -214,13 +218,16 @@ export async function readSheetGrid(
 ): Promise<string[][]> {
   return withRetry(async () => {
     const key = getApiKey();
-    const range = encodeURIComponent(`'${sheetTitle.replace(/'/g, "''")}'`);
+    const range = encodeURIComponent(`'${sheetTitle.replace(/'/g, "''")}'!A1:ZZ500`);
     const fields = encodeURIComponent(
       'sheets(data(startRow,startColumn,rowData(values(formattedValue,effectiveValue,hyperlink,textFormatRuns(format(link(uri)))))))',
     );
     const url = `https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(spreadsheetId)}?key=${key}&ranges=${range}&includeGridData=true&fields=${fields}`;
 
-    const response = await fetch(url, { cache: 'no-store', signal: AbortSignal.timeout(SHEETS_FETCH_TIMEOUT_MS) });
+    const response = await fetch(url, {
+      cache: 'no-store',
+      signal: AbortSignal.timeout(SHEETS_GRID_FETCH_TIMEOUT_MS),
+    });
     const data = await handleSheetsResponse(response);
 
     const json = data as {
