@@ -94,6 +94,23 @@ export function TalentBusinessForm({ talentId, business, verticals }: Props): Re
         </div>
       </section>
 
+      {/* Automatización de hojas */}
+      <section className="rounded-2xl bg-sp-admin-card border border-sp-admin-border p-5">
+        <h2 className="font-bold text-sp-admin-text text-sm mb-3">Automatización de Google Drive</h2>
+        <p className="text-xs text-sp-admin-muted mb-4">
+          Al aprobar un trato de Discord, la hoja se copiará en esta carpeta y se compartirá como editor con el email de contacto. Acepta la URL completa o el ID de la carpeta.
+        </p>
+        <div>
+          <label className={LABEL}>Carpeta Drive del creador</label>
+          <input
+            name="googleDriveFolderId"
+            placeholder="https://drive.google.com/drive/folders/..."
+            defaultValue={business?.googleDriveFolderId ?? ''}
+            className={INPUT}
+          />
+        </div>
+      </section>
+
       {/* Manager */}
       <section className="rounded-2xl bg-sp-admin-card border border-sp-admin-border p-5">
         <h2 className="font-bold text-sp-admin-text text-sm mb-3">Manager o representante</h2>

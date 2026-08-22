@@ -4,13 +4,21 @@ import { eq } from 'drizzle-orm';
 
 import { campaigns } from '@/db/schema/campaigns';
 import { crmBrands } from '@/db/schema/crmBrands';
+import { talentBusiness } from '@/db/schema/talentBusiness';
 import { talents } from '@/db/schema/talents';
 import { db } from '@/lib/db';
 import { createDealTrackingSheet } from '@/lib/drive/deal-tracking-sheet';
 import { attachAutomatedDealSheet } from '@/lib/queries/automationDeals';
 
 export type EnsureDealSheetOutcome =
-  | { readonly status: 'created'; readonly url: string; readonly name: string }
+  | {
+      readonly status: 'created';
+      readonly url: string;
+      readonly name: string;
+      readonly destination: 'creator' | 'fallback';
+      readonly shareStatus: 'not-requested' | 'shared' | 'failed';
+      readonly warnings: readonly string[];
+    }
   | { readonly status: 'already_had_sheet' }
   | { readonly status: 'skipped'; readonly reason: string }
   | { readonly status: 'failed'; readonly reason: string };
@@ -39,17 +47,23 @@ export async function ensureDealTrackingSheet(campaignId: number): Promise<Ensur
         trackingSheetUrl: campaigns.trackingSheetUrl,
         brandName: crmBrands.name,
         talentName: talents.name,
+        googleDriveFolderId: talentBusiness.googleDriveFolderId,
+        contactEmail: talentBusiness.contactEmail,
       })
       .from(campaigns)
       .innerJoin(crmBrands, eq(campaigns.brandId, crmBrands.id))
       .innerJoin(talents, eq(campaigns.talentId, talents.id))
+      .leftJoin(talentBusiness, eq(talents.id, talentBusiness.talentId))
       .where(eq(campaigns.id, campaignId))
       .limit(1);
 
     if (!row) return { status: 'skipped', reason: 'trato no encontrado' };
     if (row.trackingSheetUrl) return { status: 'already_had_sheet' };
 
-    const sheet = await createDealTrackingSheet(row.brandName, row.talentName);
+    const sheet = await createDealTrackingSheet(row.brandName, row.talentName, {
+      folderId: row.googleDriveFolderId,
+      shareWithEmail: row.contactEmail,
+    });
     if (!sheet.ok) {
       if (sheet.reason === 'missing-config') {
         return { status: 'skipped', reason: sheet.detail };
@@ -61,7 +75,14 @@ export async function ensureDealTrackingSheet(campaignId: number): Promise<Ensur
     }
 
     await attachAutomatedDealSheet(campaignId, sheet.url);
-    return { status: 'created', url: sheet.url, name: sheet.name };
+    return {
+      status: 'created',
+      url: sheet.url,
+      name: sheet.name,
+      destination: sheet.destination,
+      shareStatus: sheet.shareStatus,
+      warnings: sheet.warnings,
+    };
   } catch (err) {
     // Cualquier imprevisto se traga aquí a propósito: el trato ya existe.
     console.error(`[deal-sheet] error inesperado generando la hoja del trato ${campaignId}`);

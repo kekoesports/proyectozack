@@ -37,6 +37,11 @@ export const talentBusiness = pgTable(
     discord: varchar('discord', { length: 80 }),
     contactEmail: varchar('contact_email', { length: 180 }),
 
+    // Carpeta canónica del creador. Se guarda el ID, no el nombre: en Drive
+    // existen carpetas duplicadas para varios talentos y resolver por texto
+    // puede enviar una hoja al lugar equivocado.
+    googleDriveFolderId: varchar('google_drive_folder_id', { length: 255 }),
+
     managerName: varchar('manager_name', { length: 150 }),
     managerEmail: varchar('manager_email', { length: 180 }),
 
