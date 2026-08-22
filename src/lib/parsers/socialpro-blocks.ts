@@ -18,7 +18,7 @@ export type DetectedBlock = {
   contentColIndex: number;
   numberColIndex: number;
   endRow: number;
-  links: Array<{ originalUrl: string; rowIndex: number }>;
+  links: Array<{ originalUrl: string; rowIndex: number; suggestedType?: string }>;
 };
 
 export type TabDetectionResult = {
@@ -39,7 +39,7 @@ const BLOCK_TITLE_RE = /^(.+?)\s*[-–]\s*(Deal\s*#\d+)\s*[-–]\s*(.+)$/i;
  * Fallback pattern for blocks where the talent name is omitted.
  * Format: "Deal #N - <specs>" — tab name is used as talent name.
  */
-const BLOCK_TITLE_NO_TALENT_RE = /^(Deal\s*#\d+)\s*[-–]\s*(.+)$/i;
+const BLOCK_TITLE_NO_TALENT_RE = /^(Deal\s*#\d+)(?:\s*[-–]\s*|\s+)(.+)$/i;
 
 /** Maximum rows to look ahead for the header row after a title. */
 const HEADER_LOOKAHEAD = 4;
@@ -58,7 +58,30 @@ const COMPACT_CONTENT_LABELS = new Set([
   'livestreams',
   'preroll',
   'prerolls',
+  'video',
+  'videos',
+  'short',
+  'shorts',
+  'reel',
+  'reels',
+  'story',
+  'stories',
+  'post',
+  'posts',
+  'tiktok',
+  'tiktoks',
 ]);
+
+function findEvidenceCell(row: readonly string[], startCol: number): {
+  value: string;
+  col: number;
+} | null {
+  for (let col = startCol; col < row.length; col++) {
+    const value = (row[col] ?? '').trim();
+    if (/https?:\/\//i.test(value)) return { value, col };
+  }
+  return null;
+}
 
 // ── Public parsers ────────────────────────────────────────────────────────────
 
@@ -198,21 +221,22 @@ function detectCompactBlocksForTitle(args: {
   parsed: { talentName: string; dealLabel: string; specsStr: string };
 }): DetectedBlock[] {
   const specs = parseDealSpecs(args.parsed.specsStr);
-  const maxTarget = Math.max(0, ...specs.map((spec) => spec.count));
-  if (maxTarget === 0) return [];
+  const totalTarget = specs.reduce((sum, spec) => sum + spec.count, 0);
+  if (totalTarget === 0) return [];
 
   const firstCol = Math.max(0, args.titleCol - COMPACT_COL_RANGE);
   const lastCol = args.titleCol + COMPACT_COL_RANGE;
-  const lastRow = Math.min(args.grid.length - 1, args.titleRow + maxTarget);
+  const lastRow = Math.min(args.grid.length - 1, args.titleRow + totalTarget + 2);
   const grouped = new Map<
     string,
     {
       contentCol: number;
       type: string;
       rawType: string;
+      linkCol: number;
       firstRow: number;
       lastRow: number;
-      links: Array<{ originalUrl: string; rowIndex: number }>;
+      links: Array<{ originalUrl: string; rowIndex: number; suggestedType?: string }>;
     }
   >();
 
@@ -228,14 +252,18 @@ function detectCompactBlocksForTitle(args: {
         contentCol,
         type,
         rawType,
+        linkCol: contentCol + 2,
         firstRow: rowIndex,
         lastRow: rowIndex,
         links: [],
       };
       current.lastRow = rowIndex;
 
-      const rawUrl = (row[contentCol + 2] ?? '').trim();
-      if (rawUrl) current.links.push({ originalUrl: rawUrl, rowIndex });
+      const evidence = findEvidenceCell(row, contentCol + 2);
+      if (evidence) {
+        current.linkCol = evidence.col;
+        current.links.push({ originalUrl: evidence.value, rowIndex, suggestedType: type });
+      }
       grouped.set(key, current);
     }
   }
@@ -252,7 +280,7 @@ function detectCompactBlocksForTitle(args: {
       startRow: args.titleRow,
       startCol: group.contentCol,
       headerRow: args.titleRow,
-      linkColIndex: group.contentCol + 2,
+      linkColIndex: group.linkCol,
       contentColIndex: group.contentCol,
       numberColIndex: group.contentCol + 1,
       endRow: group.lastRow,
@@ -355,7 +383,7 @@ export function detectSocialProBlocks(
       // 1. Row is empty within the block column range, or
       // 2. Another block title is found, or
       // 3. End of grid
-      const links: Array<{ originalUrl: string; rowIndex: number }> = [];
+      const links: Array<{ originalUrl: string; rowIndex: number; suggestedType?: string }> = [];
       let endRow = headerRow;
 
       for (let dr = headerRow + 1; dr < grid.length; dr++) {
@@ -378,7 +406,11 @@ export function detectSocialProBlocks(
         // Extract link from the link column
         const rawUrl = (drow[linkColIndex] ?? '').trim();
         if (rawUrl) {
-          links.push({ originalUrl: rawUrl, rowIndex: dr });
+          const rawType = contentColIndex >= 0 ? (drow[contentColIndex] ?? '') : '';
+          const detectedType = rawType ? suggestDeliverableType(rawType) : 'otro';
+          links.push(detectedType !== 'otro'
+            ? { originalUrl: rawUrl, rowIndex: dr, suggestedType: detectedType }
+            : { originalUrl: rawUrl, rowIndex: dr });
         }
       }
 

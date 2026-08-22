@@ -55,7 +55,7 @@
       "retryOnFail": true,
       "maxTries": 2,
       "waitBetweenTries": 5000,
-      "notes": "ESTE WORKFLOW ES EL ÚNICO DUEÑO DEL SYNC. No añadir /deals/sync a ningún otro: dos schedules solapados duplican evidencias (aún no hay unique index sobre (tracker_id, normalized_url)). Sólo 2 reintentos: el sync no es idempotente en el tiempo y cada pasada consume el watermark de alertas."
+      "notes": "ESTE WORKFLOW ES EL ÚNICO DUEÑO DEL SYNC. No añadir /deals/sync a ningún otro. Los avisos se mantienen pendientes hasta que el nodo Confirmar aviso ejecuta el ACK tras publicar en Discord."
     },
     {
       "parameters": {
@@ -119,13 +119,49 @@
       "position": [320, -80]
     },
     {
-      "parameters": {},
-      "id": "notification-placeholder",
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "guildId": {
+          "__rl": true,
+          "value": "1522153792592806018",
+          "mode": "id"
+        },
+        "channelId": {
+          "__rl": true,
+          "value": "1533123515023360114",
+          "mode": "id"
+        },
+        "content": "={{ $json.message }}",
+        "options": {}
+      },
+      "id": "publish-discord-alert",
       "name": "Publicar aviso en Discord",
-      "type": "n8n-nodes-base.noOp",
-      "typeVersion": 1,
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
       "position": [560, -80],
-      "notes": "SUSTITUIR antes de activar. Nodo HTTP Request POST al Incoming Webhook del canal #ops-avisos con body {\"content\": \"={{ $json.message }}\"}. AVISO: el CRM marca trackingAlertLevel ANTES de que el aviso llegue aquí y el nivel sólo sube, así que un aviso perdido no se reemite. No activar este workflow hasta que la salida a Discord esté cableada y probada."
+      "notes": "Asignar la credencial Discord Bot account al importar. El ACK solo se ejecuta si Discord confirma el envío."
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Config').first().json.crmBaseUrl + '/api/automation/deals/' + $('Preparar mensaje').item.json.campaignId + '/alerts/ack' }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ level: $('Preparar mensaje').item.json.level }) }}",
+        "options": {}
+      },
+      "id": "acknowledge-alert",
+      "name": "Confirmar aviso en CRM",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [800, -80],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "notes": "Asignar la credencial SocialPro CRM - Production al importar. El watermark avanza después de publicar en Discord, nunca antes."
     }
   ],
   "connections": {
@@ -146,6 +182,9 @@
     },
     "Preparar mensaje": {
       "main": [[{ "node": "Publicar aviso en Discord", "type": "main", "index": 0 }]]
+    },
+    "Publicar aviso en Discord": {
+      "main": [[{ "node": "Confirmar aviso en CRM", "type": "main", "index": 0 }]]
     }
   },
   "pinData": {},

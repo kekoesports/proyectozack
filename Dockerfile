@@ -46,8 +46,13 @@ COPY . .
 
 # El build NO aplica migraciones: eso lo hace `migrate:deploy` como paso
 # separado del despliegue. Un build no debe poder tocar la base.
+#
+# Next.js sí necesita el entorno de producción para validar variables y
+# prerenderizar. Se monta como secreto de BuildKit en vez de copiarlo o pasarlo
+# como ARG: así no termina en el contexto, el historial ni una capa de imagen.
 ENV NEXT_TELEMETRY_DISABLED=1
-RUN npm run build
+RUN --mount=type=secret,id=build_env,target=/app/.env.production,required=true \
+    npm run build
 
 # ── runtime ─────────────────────────────────────────────────────────────────
 FROM node:${NODE_VERSION} AS runner

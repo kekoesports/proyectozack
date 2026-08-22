@@ -1,7 +1,4 @@
-/**
- * Create admin user directly in DB with Better Auth compatible password hash
- * Run: npx tsx scripts/create-admin.ts
- */
+/** Create admin user in DB. Run: npx tsx scripts/create-admin.ts */
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { scryptAsync } from '@noble/hashes/scrypt.js';
@@ -60,9 +57,7 @@ async function main() {
   await sql`INSERT INTO account (id, "accountId", "providerId", "userId", password, "createdAt", "updatedAt")
             VALUES (${accountId}, ${uid}, 'credential', ${uid}, ${hashedPassword}, ${now}::timestamptz, ${now}::timestamptz)`;
 
-  console.log('Admin user created successfully!');
-  console.log(`  Email: ${email}`);
-  console.log(`  Password: ${password}`);
+  console.log('Admin user created successfully.');
 }
 
 main().catch(err => { console.error('Failed:', err); process.exit(1); });

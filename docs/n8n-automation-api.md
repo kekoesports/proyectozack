@@ -197,8 +197,8 @@ completada aunque el creador no cambie la celda `ESTADO`. Una fila marcada como
 `Rechazado` no cuenta. Si se retira un enlace, el contador baja sin borrar el
 histórico de evidencia.
 
-La respuesta masiva contiene `alerts`. Cada umbral solo aparece una vez por
-trato gracias a `tracking_alert_level`:
+La respuesta masiva contiene `alerts`. Un umbral permanece pendiente hasta que
+el canal confirma que lo ha publicado:
 
 ```json
 {
@@ -218,8 +218,18 @@ trato gracias a `tracking_alert_level`:
 ```
 
 n8n debe enviar cada elemento de `alerts` al canal elegido (Discord, email o
-WhatsApp Business). Una ejecución posterior no vuelve a notificar el mismo
-umbral.
+WhatsApp Business). Solo después de que el envío termine correctamente debe
+confirmarlo con:
+
+`POST /api/automation/deals/{campaignId}/alerts/ack`
+
+```json
+{ "level": 80 }
+```
+
+El ACK acepta únicamente `70`, `80` o `100` y actualiza
+`tracking_alert_level` de forma monótona. Si Discord falla, el ACK no se
+ejecuta y el siguiente sync vuelve a emitir el aviso pendiente.
 
 ## Resumen operativo para Discord
 
@@ -259,6 +269,8 @@ Discord ni n8n, conserva el estado canónico.
 3. IF comprueba `alerts.length > 0`.
 4. Split Out procesa cada alerta.
 5. El canal de avisos publica el nombre, porcentaje y enlace interno del trato.
+6. HTTP Request confirma el umbral en
+   `/api/automation/deals/{campaignId}/alerts/ack`.
 
 ### Entrada desde Discord
 
@@ -373,3 +385,6 @@ aparecido en Discord.
 - Una copia o reintento de workflow debe conservar la misma
   `Idempotency-Key` para la misma operación lógica.
 - No reutilizar `CRON_SECRET` ni `TARGETS_IMPORT_TOKEN` para este flujo.
+
+
+> Nota operativa (2026-08-21): el historial de Drizzle 0127–0129 quedó reconciliado con el esquema ya aplicado antes de desplegar la sincronización automática de progreso.

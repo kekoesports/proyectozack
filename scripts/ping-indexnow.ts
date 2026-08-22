@@ -78,8 +78,6 @@ async function main(): Promise<void> {
     console.log(`[indexnow] skip — deploy env = ${getDeployEnv()} (solo produccion hace ping)`);
     return;
   }
-    return;
-  }
 
   const key = process.env.INDEXNOW_KEY;
   if (!key) {

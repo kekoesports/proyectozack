@@ -1,8 +1,10 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import Link from 'next/link';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { RolledOverBanner } from './RolledOverBanner';
+import { isOpenTaskStatus } from '@/lib/schemas/task';
 import type { CrmEvent, CrmTask, CrmTaskTemplate } from '@/types';
 import type { RelatedLabel } from '@/lib/queries/crmTasks';
 import { TaskTemplatesPanel } from './TaskTemplatesPanel';
@@ -79,9 +81,9 @@ export function TaskWorkspace(props: Props): React.ReactElement {
       if (t.status === 'pendiente')   p++;
       if (t.status === 'en_progreso') ip++;
       if (t.status === 'completada')  d++;
-      if (t.status !== 'completada' && t.dueDate !== null && t.dueDate < todayStr) ov++;
-      if (t.status !== 'completada' && t.dueDate === todayStr) dt++;
-      if (t.rolledOver && t.status !== 'completada') rolled.push(t);
+      if (isOpenTaskStatus(t.status) && t.dueDate !== null && t.dueDate < todayStr) ov++;
+      if (isOpenTaskStatus(t.status) && t.dueDate === todayStr) dt++;
+      if (t.rolledOver && isOpenTaskStatus(t.status)) rolled.push(t);
     }
     return { pending: p, inProgress: ip, done: d, overdue: ov, dueToday: dt, rolledTasks: rolled };
   }, [props.tasks, todayStr]);
@@ -114,6 +116,12 @@ export function TaskWorkspace(props: Props): React.ReactElement {
         <p className="text-[11px] text-sp-admin-muted hidden sm:block tabular-nums">
           {props.tasks.length} {props.tasks.length === 1 ? 'tarea' : 'tareas'} · {props.weekLabel}
         </p>
+        <Link
+          href="/admin/tareas/saneamiento"
+          className="text-[11px] font-semibold text-sp-orange hover:underline"
+        >
+          Saneamiento
+        </Link>
 
         <div className="flex items-center gap-0.5 bg-sp-admin-card border border-sp-admin-border rounded-lg p-0.5 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
           {VIEWS.map((v) => {

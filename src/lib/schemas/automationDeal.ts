@@ -101,6 +101,10 @@ export const AutomationTrackingSheetUpdate = z.object({
   trackingSheetUrl: GoogleSheetUrl,
 });
 
+export const AutomationDealAlertAcknowledgement = z.object({
+  level: z.union([z.literal(70), z.literal(80), z.literal(100)]),
+});
+
 export const AutomationDealRouteId = z.coerce.number().int().positive();
 
 export const AutomationDealDraftCreate = z.object({
@@ -133,4 +137,7 @@ export const AutomationDealDraftReview = z.discriminatedUnion('action', [
 export type AutomationDealCreateInput = z.infer<typeof AutomationDealCreate>;
 export type AutomationDealDraftCreateInput = z.infer<typeof AutomationDealDraftCreate>;
 export type AutomationDealDraftReviewInput = z.infer<typeof AutomationDealDraftReview>;
+export type AutomationDealAlertAcknowledgementInput = z.infer<
+  typeof AutomationDealAlertAcknowledgement
+>;
 export type AutomationTrackingSheetUpdateInput = z.infer<typeof AutomationTrackingSheetUpdate>;
