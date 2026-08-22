@@ -179,9 +179,17 @@ const nextConfig: NextConfig = {
       { protocol: 'https', hostname: 'avatars.akamai.steamstatic.com' },
     ],
   },
-  // pdfjs-dist, mupdf, tesseract.js are external so nft doesn't auto-trace their
-  // WASM files or data files loaded dynamically at runtime. Force-include them.
+  // pdfjs-dist, mupdf y tesseract.js son externos y se cargan dinámicamente.
+  // La ruta exacta conserva los assets junto a la Server Action; el patrón
+  // global garantiza además que la salida standalone contenga los entrypoints
+  // y dependencias que Node resuelve en runtime (y que valida el smoke de CI).
   outputFileTracingIncludes: {
+    '/*': [
+      './node_modules/pdfjs-dist/**/*',
+      './node_modules/mupdf/**/*',
+      './node_modules/tesseract.js/**/*',
+      './node_modules/tesseract.js-core/**/*',
+    ],
     '/admin/finanzas/nominas/importar': [
       './node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs',
       './node_modules/mupdf/dist/mupdf-wasm.wasm',

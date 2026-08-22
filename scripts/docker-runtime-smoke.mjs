@@ -6,8 +6,6 @@
  * No usa red, base de datos ni datos reales.
  */
 
-import { createCanvas } from 'canvas';
-import { jsPDF } from 'jspdf';
 import * as mupdf from 'mupdf';
 import { createWorker } from 'tesseract.js';
 
@@ -39,21 +37,26 @@ class DOMMatrixStub {
 
 globalThis.DOMMatrix ??= DOMMatrixStub;
 
-// Canvas fuerza la carga del binding nativo y de Cairo/Pango.
-const canvas = createCanvas(320, 120);
-const context = canvas.getContext('2d');
-context.fillStyle = '#fff';
-context.fillRect(0, 0, canvas.width, canvas.height);
-context.fillStyle = '#111';
-context.font = 'bold 34px sans-serif';
-context.fillText('SOCIALPRO 2026', 16, 72);
-assert(canvas.toBuffer('image/png').length > 1_000, 'canvas no generó un PNG válido');
-
-// PDF sintético sin datos reales. jsPDF, pdfjs y MuPDF operan sobre el mismo fichero.
-const pdf = new jsPDF({ unit: 'pt', format: 'a4' });
-pdf.setFontSize(42);
-pdf.text('SOCIALPRO 2026', 72, 150);
-const pdfBytes = new Uint8Array(pdf.output('arraybuffer'));
+// PDF sintético sin datos reales, generado con el mismo MuPDF que usa el OCR
+// del servidor. Evita depender de canvas/jsPDF, que solo participan en rutas
+// de navegador y no deben inflar ni condicionar la imagen standalone.
+const sourceDocument = new mupdf.PDFDocument();
+const sourceFont = new mupdf.Font('Helvetica');
+const sourceFontRef = sourceDocument.addSimpleFont(sourceFont);
+const sourcePage = sourceDocument.addPage(
+  [0, 0, 595, 842],
+  0,
+  { Font: { F1: sourceFontRef } },
+  'BT /F1 42 Tf 72 690 Td (SOCIALPRO 2026) Tj ET',
+);
+sourceDocument.insertPage(-1, sourcePage);
+const sourceBuffer = sourceDocument.saveToBuffer();
+const pdfBytes = sourceBuffer.asUint8Array().slice();
+sourceBuffer.destroy();
+sourcePage.destroy();
+sourceFontRef.destroy();
+sourceFont.destroy();
+sourceDocument.destroy();
 
 await import('pdfjs-dist/legacy/build/pdf.worker.mjs');
 const { getDocument } = await import('pdfjs-dist/legacy/build/pdf.mjs');
