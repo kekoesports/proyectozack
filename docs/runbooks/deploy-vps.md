@@ -8,6 +8,7 @@ volver atrás es recargar Caddy, no reconstruir nada.
 ```bash
 SHA=$(git rev-parse --short HEAD)
 docker build \
+  --secret id=build_env,src=/opt/socialpro/crm/env/app.env \
   --build-arg GIT_COMMIT_SHA="$(git rev-parse HEAD)" \
   --build-arg APP_VERSION="$SHA" \
   --build-arg NEXT_PUBLIC_SITE_URL=https://socialpro.es \
@@ -19,6 +20,16 @@ qué está corriendo ni volver a una versión concreta.
 
 `NEXT_PUBLIC_*` va como argumento de build porque se incrusta en el bundle;
 ponerlo en el entorno del contenedor no tiene ningún efecto.
+
+El resto del entorno se inyecta mediante un secreto de BuildKit. No lo cambies
+por `COPY`, `ARG` o `ENV`: cualquiera de esas variantes puede dejar las claves
+en el contexto, el historial o las capas de la imagen. El secreto solo existe
+durante el `RUN npm run build` y no queda dentro del resultado.
+
+Mientras Neon siga activo, `DATABASE_URL` puede apuntar a la rama de staging o
+producción que corresponda. Después del cutover, si el prerender necesita leer
+el PostgreSQL local, añade al build `--network socialpro-crm_crm_backend` y
+comprueba antes que el contenedor `postgres` esté sano.
 
 ## Migrar — paso aparte
 

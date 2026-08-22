@@ -62,4 +62,4 @@ networks:
   # significa que este proyecto no la crea ni la borra: solo se engancha.
   crm:
     external: true
-    name: socialpro-crm_default
+    name: socialpro-crm_crm_backend

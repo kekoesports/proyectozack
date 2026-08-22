@@ -1,4 +1,5 @@
 {
+  "buildCommand": "tsx scripts/migrate.ts && next build && tsx scripts/ping-indexnow.ts",
   "crons": [
     {
       "path": "/api/cron/snapshot-metrics",

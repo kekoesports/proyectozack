@@ -41,4 +41,4 @@ ENV NODE_ENV=production
 ENTRYPOINT ["dumb-init", "--"]
 # El preload neutraliza `server-only`, que lanza en cualquier proceso de Node
 # fuera de Next. Ver scripts/worker-preload.cjs.
-CMD ["npx", "tsx", "--require", "./scripts/worker-preload.cjs", "src/worker/agent-worker.ts"]
+CMD ["node", "--import", "tsx", "--require", "./scripts/worker-preload.cjs", "src/worker/agent-worker.ts"]

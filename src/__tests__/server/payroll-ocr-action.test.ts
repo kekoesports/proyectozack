@@ -1,3 +1,5 @@
+jest.mock('server-only', () => ({}));
+
 /**
  * Tests para ocrPayrollPdfAction — error handling controlado (camino OCR habilitado).
  * Para el kill switch (PAYROLL_OCR_ENABLED=false) ver payroll-actions-killswitch.test.ts.

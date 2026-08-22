@@ -5,7 +5,7 @@
  * última registrada en la base:
  *
  *   if (!lastDbMigration || Number(lastDbMigration.created_at) < migration.folderMillis)
- *   // drizzle-orm/neon-http/migrator.js — folderMillis === journalEntry.when
+ *   // drizzle-orm/node-postgres/migrator.js — folderMillis === journalEntry.when
  *
  * Cuando una migración pendiente nace por debajo de ese suelo, el migrador la
  * da por aplicada y sigue: sin error, sin aviso, y el deploy termina en verde
@@ -26,7 +26,14 @@ export type SkipGuardResult =
   | { ok: true; pendientes: number }
   | { ok: false; suelo: number; saltadas: readonly { tag: string; when: number }[] };
 
-type SqlTag = (strings: TemplateStringsArray, ...values: unknown[]) => Promise<unknown[]>;
+/**
+ * Lo mínimo que necesita este guard de un cliente PostgreSQL. Antes recibía el
+ * tagged template de `neon()`, que resolvía directamente a un array de filas;
+ * `pg` devuelve `{ rows }`, así que ahora se pide `query()` y punto.
+ */
+type Consultable = {
+  query: (text: string) => Promise<{ rows: unknown[] }>;
+};
 
 /**
  * Qué cuenta como "ya aplicada".
@@ -40,7 +47,7 @@ type SqlTag = (strings: TemplateStringsArray, ...values: unknown[]) => Promise<u
  * los deploys marcando 27 falsos positivos.
  */
 export async function checkMigrationsWillApply(
-  sql: SqlTag,
+  cliente: Consultable,
   folder = './drizzle',
 ): Promise<SkipGuardResult> {
   const journal = JSON.parse(
@@ -49,9 +56,8 @@ export async function checkMigrationsWillApply(
 
   let filas: { created_at: string }[];
   try {
-    filas = (await sql`
-      SELECT created_at FROM drizzle.__drizzle_migrations
-    `) as { created_at: string }[];
+    const res = await cliente.query('SELECT created_at FROM drizzle.__drizzle_migrations');
+    filas = res.rows as { created_at: string }[];
   } catch {
     // Base sin inicializar: no hay suelo que superar.
     return { ok: true, pendientes: journal.entries.length };

@@ -30,6 +30,7 @@
  * reclama.
  */
 
+import { getDeployEnv, isProductionDeploy } from '../src/lib/deploy-env';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 
@@ -69,10 +70,12 @@ const URL_LIST = [
 ];
 
 async function main(): Promise<void> {
-  const vercelEnv = process.env.VERCEL_ENV;
-  if (vercelEnv && vercelEnv !== 'production') {
-    // Preview/development builds no deben empujar a IndexNow.
-    console.log(`[indexnow] skip — VERCEL_ENV=${vercelEnv} (only production pings)`);
+  // Antes se comprobaba `VERCEL_ENV && VERCEL_ENV !== 'production'`: si la
+  // variable no existía —o sea, en cualquier sitio que no fuese Vercel— la
+  // condición era falsa y el ping se hacía igualmente. Ahora hace falta
+  // declarar producción de forma explícita.
+  if (!isProductionDeploy()) {
+    console.log(`[indexnow] skip — deploy env = ${getDeployEnv()} (solo produccion hace ping)`);
     return;
   }
 

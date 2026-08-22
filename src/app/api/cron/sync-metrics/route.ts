@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { neon } from '@neondatabase/serverless';
+import { sql as dsql } from 'drizzle-orm';
+import { rawRows } from '@/lib/db';
 import { assertCronAuth } from '@/lib/security/assertCronAuth';
 import { env } from '@/lib/env';
 import {
@@ -22,7 +23,11 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   const authError = assertCronAuth(req);
   if (authError) return authError;
 
-  const sql = neon(env.DATABASE_URL);
+  // Antes abría su propio cliente Neon, saltándose @/lib/db. Ahora usa el pool
+  // compartido; `sql` conserva la forma de tagged template para no reescribir
+  // las nueve consultas de esta ruta.
+  const sql = (strings: TemplateStringsArray, ...valores: unknown[]) =>
+    rawRows(dsql(strings, ...valores));
   const today = new Date().toISOString().slice(0, 10);
 
   const ytKey   = env.YOUTUBE_API_KEY;

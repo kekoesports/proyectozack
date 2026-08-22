@@ -174,7 +174,7 @@ La lista de comprobación completa está en su README; el resumen:
 1. Migración `0124` aplicada.
 2. `npm run seed:agents`.
 3. `.env` a partir de `env.example`.
-4. Red `socialpro-crm_default` existente.
+4. Red `socialpro-crm_crm_backend` existente.
 5. **Decisión explícita** de `AGENTS_ENABLED=true`.
 6. Al menos un agente en `active` — se siembran todos en `disabled`.
 

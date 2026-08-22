@@ -22,6 +22,14 @@
 
 const Module = require('node:module');
 
+// `@/lib/env` es compartido con Next y exige tres variables que solo usa la
+// web. El worker no recibe esos secretos: se proporcionan sentinelas cerrados
+// antes de cargar el esquema. Si algún código nuevo intentara usarlos desde el
+// worker, fallaría contra valores inválidos en vez de ampliar privilegios.
+process.env.RESEND_API_KEY ||= 'agent-worker-unused';
+process.env.BETTER_AUTH_SECRET ||= 'agent-worker-unused-not-a-session-secret';
+process.env.NEXT_PUBLIC_SITE_URL ||= 'http://agent-worker.invalid';
+
 const cargaOriginal = Module._load;
 
 Module._load = function (peticion, ...resto) {

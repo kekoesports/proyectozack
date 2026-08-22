@@ -3,7 +3,7 @@
 import { like, eq } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { invoices, files } from '@/db/schema';
-import { uploadFile } from '@/lib/storage';
+import { uploadLegacyFile as uploadFile } from '@/lib/storage';
 import type { PayrollImportRow, PayrollApplyResult } from '@/lib/finance/payroll/types';
 
 export async function getExistingPayrollTxIds(): Promise<ReadonlySet<string>> {

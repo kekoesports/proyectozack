@@ -1,10 +1,6 @@
 import { hostname } from 'node:os';
 import { randomUUID } from 'node:crypto';
 
-import { config } from 'dotenv';
-
-config({ path: '.env.local' });
-
 /**
  * Punto de entrada del worker de agentes.
  *
@@ -24,8 +20,9 @@ config({ path: '.env.local' });
  */
 
 async function main(): Promise<void> {
-  // Los imports van dentro porque `@/lib/env` valida al cargarse y necesita el
-  // .env ya leído.
+  // Los imports van dentro porque `@/lib/env` valida al cargarse. Los scripts
+  // npm cargan `.env.local` con el flag nativo de Node y Docker/Compose inyecta
+  // el entorno, así que el worker no depende de `dotenv` en producción.
   const { runWorkerLoop } = await import('@/lib/agents/worker/worker');
   const { createShutdownController } = await import('@/lib/agents/worker/shutdown');
   const { areAgentsEnabled } = await import('@/lib/agents/runtime-flags');

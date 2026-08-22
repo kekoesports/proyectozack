@@ -1,5 +1,6 @@
 import { ImageResponse } from 'next/og';
-import { db } from '@/lib/db';
+import { sql } from 'drizzle-orm';
+import { rawRows } from '@/lib/db';
 import { safeFetchImageAsBase64 } from '@/lib/security/safeImageFetch';
 
 export const dynamic = 'force-dynamic';
@@ -29,7 +30,7 @@ export async function GET(req: Request) {
 
     if (!isNaN(id)) {
       try {
-        const rows = await db.$client`
+        const rows = await rawRows(sql`
           SELECT g.title, g.value, g.brand_name, g.image_url,
                  t.name AS talent_name, t.slug AS talent_slug,
                  t.gradient_c1, t.gradient_c2
@@ -37,7 +38,7 @@ export async function GET(req: Request) {
           INNER JOIN talents t ON t.id = g.talent_id
           WHERE g.id = ${id}
           LIMIT 1
-        `;
+        `);
 
         const g = rows[0];
         if (g) {

@@ -61,7 +61,7 @@ Estado a 21-08-2026:
 1. ✅ Migración `0124` aplicada en producción (verificada en la base).
 2. ✅ `npm run seed:agents` ejecutado — los 6 agentes existen.
 3. ❌ `.env` creado a partir de `env.example`, con `DATABASE_URL`.
-4. ❌ Red `socialpro-crm_default` existente (la crea el compose del CRM).
+4. ❌ Red `socialpro-crm_crm_backend` existente (la crea el compose del CRM).
 5. ❌ **Decisión explícita** de poner `AGENTS_ENABLED=true`.
 6. ❌ Al menos un agente con `status = 'active'` — se siembran todos en `disabled`.
 

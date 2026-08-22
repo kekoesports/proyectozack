@@ -6,7 +6,7 @@ import { z } from 'zod';
 
 import { requirePermission } from '@/lib/permissions';
 import { assertCanDelete } from '@/lib/permissions';
-import { uploadFile, deleteFile } from '@/lib/storage';
+import { uploadLegacyFile as uploadFile, deleteLegacyFile as deleteFile } from '@/lib/storage';
 import { createFile, deleteFileById } from '@/lib/queries/files';
 import { parseFormData } from '@/lib/forms/parseFormData';
 import { validateUploadedFile } from '@/lib/files/validateUploadedFile';

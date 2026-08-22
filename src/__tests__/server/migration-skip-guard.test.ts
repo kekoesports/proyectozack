@@ -23,11 +23,13 @@ function montarFolder(entries: Entry[]): string {
   return dir;
 }
 
-/** `sql` de pega que devuelve las filas dadas, o revienta si se pide. */
+/** Cliente de pega con la forma mínima que pide el guard: `query()` -> `{ rows }`. */
 function sqlQueDevuelve(rows: { created_at: string }[] | 'error') {
-  return async () => {
-    if (rows === 'error') throw new Error('relation does not exist');
-    return rows;
+  return {
+    query: async () => {
+      if (rows === 'error') throw new Error('relation does not exist');
+      return { rows };
+    },
   };
 }
 
