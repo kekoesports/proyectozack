@@ -8,8 +8,9 @@
 
 import { and, eq, gte, inArray, isNull, lte, ne, or, sql } from 'drizzle-orm';
 import { db } from '@/lib/db';
-import { campaigns, invoicePayments, invoices } from '@/db/schema';
+import { campaigns, invoicePayments, invoices, issuedInvoices } from '@/db/schema';
 import { totalEurSql } from './money';
+import { ESTADOS_CERRADOS } from './talentEconomics.shared';
 import {
   ordenarChequeos,
   resumirSalud,
@@ -60,6 +61,7 @@ export async function getSaludDelDato(period: {
     divisaSinContravalor,
     sinMetodoPago,
     campanasSinCoste,
+    cerradasSinFactura,
     hayPagosAplicados,
   ] = await Promise.all([
     // 1. Espejos detectados por texto que nunca recibieron su FK.
@@ -114,6 +116,36 @@ export async function getSaludDelDato(period: {
       .innerJoin(invoices, and(eq(invoices.campaignId, campaigns.id), eq(invoices.kind, 'income'), ne(invoices.status, 'anulada')))
       .where(sql`NOT EXISTS (SELECT 1 FROM ${invoices} e WHERE e.campaign_id = ${campaigns.id} AND e.kind = 'expense' AND e.status <> 'anulada')`)
       .groupBy(campaigns.id, campaigns.name),
+
+    // 8. Campañas ya cerradas sin una sola factura enlazada.
+    //
+    // Es distinto de "sin coste": aquí no hay NADA, ni ingreso ni gasto, en una
+    // campaña que el CRM da por pagada o completada. Y es lo que impide
+    // calcular la rentabilidad de cada talento — sin factura enlazada no hay
+    // con qué comparar lo que se le pagó.
+    //
+    // Deliberadamente NO incluye las campañas en negociación o aprobadas: que
+    // un trato del pipeline no tenga facturas es lo normal, y meterlas aquí
+    // convertiría el chequeo en 79 filas que nadie mira.
+    db
+      .select({
+        id: campaigns.id,
+        name: campaigns.name,
+        status: campaigns.status,
+        importe: campaigns.amountBrand,
+      })
+      .from(campaigns)
+      .where(
+        and(
+          inArray(campaigns.status, [...ESTADOS_CERRADOS]),
+          sql`NOT EXISTS (
+            SELECT 1 FROM ${invoices} f WHERE f.campaign_id = ${campaigns.id} AND f.status <> 'anulada'
+          )`,
+          sql`NOT EXISTS (
+            SELECT 1 FROM ${issuedInvoices} e WHERE e.related_deal_id = ${campaigns.id} AND e.status <> 'anulada'
+          )`,
+        ),
+      ),
 
     // Sonda: ¿existe algún pago conciliado? Decide si el chequeo 3 es evaluable.
     db.select({ id: invoicePayments.id }).from(invoicePayments).limit(1),
@@ -208,6 +240,23 @@ export async function getSaludDelDato(period: {
         queHacer: 'Anotar el método al registrar el movimiento; en los antiguos, al revisarlos.',
       },
       sinMetodoPago.map(fila),
+    ),
+
+    construir(
+      {
+        id: 'cerradas-sin-factura',
+        titulo: 'Campañas cerradas sin ninguna factura',
+        explicacion:
+          'Una campaña marcada como pagada o completada debería tener su dinero registrado — en un sentido o en el otro. Si no tiene ninguna factura, ese trato no existe en la contabilidad, y la rentabilidad del talento que lo hizo no se puede calcular. No cuenta el pipeline: una campaña en negociación sin facturas es lo normal.',
+        severidad: 'cuentas',
+        queHacer: 'Enlazar la factura emitida a la campaña (campo "trato" de la factura), o registrar la que falte.',
+      },
+      cerradasSinFactura.map((r) => ({
+        id: r.id,
+        etiqueta: r.name,
+        detalle: r.status,
+        importe: r.importe === null ? null : Number(r.importe),
+      })),
     ),
 
     construir(
