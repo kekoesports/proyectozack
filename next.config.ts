@@ -189,6 +189,21 @@ const nextConfig: NextConfig = {
       './node_modules/mupdf/**/*',
       './node_modules/tesseract.js/**/*',
       './node_modules/tesseract.js-core/**/*',
+      // Dependencias CommonJS que el worker de Tesseract resuelve desde un
+      // hilo secundario. NFT no ve esos require() al trazar el import dinámico.
+      './node_modules/bmp-js/**/*',
+      './node_modules/data-uri-to-buffer/**/*',
+      './node_modules/fetch-blob/**/*',
+      './node_modules/formdata-polyfill/**/*',
+      './node_modules/idb-keyval/**/*',
+      './node_modules/is-url/**/*',
+      './node_modules/node-domexception/**/*',
+      './node_modules/node-fetch/**/*',
+      './node_modules/opencollective-postinstall/**/*',
+      './node_modules/regenerator-runtime/**/*',
+      './node_modules/wasm-feature-detect/**/*',
+      './node_modules/web-streams-polyfill/**/*',
+      './node_modules/zlibjs/**/*',
     ],
     '/admin/finanzas/nominas/importar': [
       './node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs',
