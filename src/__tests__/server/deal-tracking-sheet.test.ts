@@ -22,16 +22,18 @@ jest.mock('@/lib/queries/automationDeals', () => ({
 
 jest.mock('@/db/schema/campaigns', () => ({ campaigns: {} }));
 jest.mock('@/db/schema/crmBrands', () => ({ crmBrands: {} }));
+jest.mock('@/db/schema/talentBusiness', () => ({ talentBusiness: {} }));
 jest.mock('@/db/schema/talents', () => ({ talents: {} }));
 
 import { ensureDealTrackingSheet } from '@/lib/queries/ensureDealTrackingSheet';
 import { buildDealSheetName } from '@/lib/drive/deal-sheet-name';
 
-/** Simula la cadena select().from().innerJoin().innerJoin().where().limit(). */
+/** Simula la cadena select().from().innerJoin().innerJoin().leftJoin().where().limit(). */
 function dbDevuelve(row: Record<string, unknown> | null): void {
   const limit = jest.fn().mockResolvedValue(row ? [row] : []);
   const where = jest.fn(() => ({ limit }));
-  const innerJoin2 = jest.fn(() => ({ where }));
+  const leftJoin = jest.fn(() => ({ where }));
+  const innerJoin2 = jest.fn(() => ({ leftJoin }));
   const innerJoin1 = jest.fn(() => ({ innerJoin: innerJoin2 }));
   const from = jest.fn(() => ({ innerJoin: innerJoin1 }));
   mockSelect.mockReturnValue({ from });
@@ -59,9 +61,16 @@ describe('buildDealSheetName', () => {
 
 describe('ensureDealTrackingSheet', () => {
   it('crea la hoja y la vincula al trato', async () => {
-    dbDevuelve({ trackingSheetUrl: null, brandName: 'KeyDrop', talentName: 'NAOW' });
+    dbDevuelve({
+      trackingSheetUrl: null,
+      brandName: 'KeyDrop',
+      talentName: 'NAOW',
+      googleDriveFolderId: 'folder-naow-123',
+      contactEmail: 'naow@example.com',
+    });
     mockCreateDealTrackingSheet.mockResolvedValue({
       ok: true, spreadsheetId: 'abc', url: 'https://docs.google.com/spreadsheets/d/abc/edit', name: 'KeyDrop - NAOW',
+      destination: 'creator', shareStatus: 'shared', warnings: [],
     });
 
     const out = await ensureDealTrackingSheet(10);
@@ -70,8 +79,14 @@ describe('ensureDealTrackingSheet', () => {
       status: 'created',
       url: 'https://docs.google.com/spreadsheets/d/abc/edit',
       name: 'KeyDrop - NAOW',
+      destination: 'creator',
+      shareStatus: 'shared',
+      warnings: [],
     });
-    expect(mockCreateDealTrackingSheet).toHaveBeenCalledWith('KeyDrop', 'NAOW');
+    expect(mockCreateDealTrackingSheet).toHaveBeenCalledWith('KeyDrop', 'NAOW', {
+      folderId: 'folder-naow-123',
+      shareWithEmail: 'naow@example.com',
+    });
     expect(mockAttach).toHaveBeenCalledWith(10, 'https://docs.google.com/spreadsheets/d/abc/edit');
   });
 
