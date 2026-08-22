@@ -22,7 +22,9 @@ import {
   isSettledInvoiceStatus,
 } from '@/lib/utils/invoice-status';
 
+import { CRM_TASK_OPEN_STATUSES } from '@/lib/schemas/task';
 import type { Role } from '@/lib/auth-guard';
+import { totalEurSql } from '@/lib/finance/money';
 
 type TaskSession = {
   readonly userId: string;
@@ -221,7 +223,7 @@ export async function getOverdueFollowupsCount(): Promise<number> {
 }
 
 /**
- * Cuenta tareas urgentes (`dueDate <= hoy` Madrid TZ, `status != 'completada'`).
+ * Cuenta tareas urgentes (`dueDate <= hoy` Madrid TZ, status abierto).
  * Si la sesión es `staff`, filtra a tareas asignadas/creadas/owned por el user.
  *
  * @cache none
@@ -237,7 +239,7 @@ export async function getUrgentTasksCount(session?: TaskSession): Promise<number
     day: '2-digit',
   }).format(new Date());
 
-  const filters = [ne(crmTasks.status, 'completada'), lte(crmTasks.dueDate, todayMadrid)];
+  const filters = [inArray(crmTasks.status, [...CRM_TASK_OPEN_STATUSES]), lte(crmTasks.dueDate, todayMadrid)];
   const visible = taskVisibilityCondition(session);
   if (visible !== undefined) filters.push(visible);
 
@@ -324,7 +326,7 @@ export async function getUrgentTasks(limit = 5, session?: TaskSession): Promise<
     WHEN 'baja' THEN 2
   END`;
 
-  const filters = [ne(crmTasks.status, 'completada'), lte(crmTasks.dueDate, todayMadrid)];
+  const filters = [inArray(crmTasks.status, [...CRM_TASK_OPEN_STATUSES]), lte(crmTasks.dueDate, todayMadrid)];
   const visible = taskVisibilityCondition(session);
   if (visible !== undefined) filters.push(visible);
 
@@ -405,7 +407,7 @@ export async function getActiveCampaignsCount(): Promise<number> {
 export async function getPendingBrandPaymentsTotal(): Promise<number> {
   const [row] = await db
     .select({
-      total: sql<string>`COALESCE(SUM(${invoices.totalAmount}), 0)`,
+      total: sql<string>`COALESCE(SUM(${totalEurSql}), 0)`,
     })
     .from(invoices)
     .where(
@@ -555,7 +557,7 @@ export async function getMonthlyRevenue(): Promise<MonthlyRevenue> {
   const rows = await db
     .select({
       kind: invoices.kind,
-      total: sql<string>`COALESCE(SUM(${invoices.totalAmount}), 0)`,
+      total: sql<string>`COALESCE(SUM(${totalEurSql}), 0)`,
     })
     .from(invoices)
     .where(

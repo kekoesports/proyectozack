@@ -1,0 +1,65 @@
+# Worker de agentes — PREPARADO, NO DESPLEGADO.
+#
+# Este fichero existe para que desplegarlo sea una decisión, no un proyecto.
+# Nada de aquí está corriendo: hace falta arrancarlo a mano, con las variables
+# puestas y `AGENTS_ENABLED=true`, y esa es una acción que aprueba una persona.
+#
+# El worker NO publica puertos. No atiende peticiones: solo sondea la base de
+# datos y llama a APIs externas. Un puerto abierto sería superficie de ataque
+# sin ninguna función.
+#
+# Se conecta a la red del stack del CRM en vez de traer su propio Postgres:
+# comparte base con la aplicación porque la cola vive en esa base.
+
+name: socialpro-agents
+
+services:
+  agent-worker:
+    build:
+      context: ../..
+      dockerfile: infra/agents/Dockerfile
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      # Kill switch. Sin esto en 'true' el proceso arranca y no hace nada.
+      AGENTS_ENABLED: ${AGENTS_ENABLED:-false}
+      AGENT_WORKER_ID: ${AGENT_WORKER_ID:-worker-1}
+      NODE_ENV: production
+    networks:
+      - crm
+    # Sin `ports`: deliberado.
+    #
+    # Límites acordes a un VPS de 4 vCPU / 8 GB compartido con el CRM. El worker
+    # es de un solo hilo y la mayor parte del tiempo espera al modelo o a la
+    # base; darle más no lo hace más rápido, y quitárselo al CRM sí lo hace más
+    # lento.
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+    # `/api/health/live` es de la aplicación web, no del worker. La salud del
+    # worker se mira en `agent_worker_heartbeats`, que es donde se ve también
+    # desde el CRM sin entrar al VPS.
+    healthcheck:
+      test: ['CMD', 'node', '-e', 'process.exit(0)']
+      interval: 60s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    # Plazo antes del SIGKILL. El apagado ordenado suelta los leases en ~8 s
+    # para que otro worker recoja el trabajo sin esperar a que venzan.
+    stop_grace_period: 15s
+    logging:
+      driver: json-file
+      options:
+        max-size: '10m'
+        max-file: '3'
+
+networks:
+  # Red del stack del CRM, creada por su propio compose. `external: true`
+  # significa que este proyecto no la crea ni la borra: solo se engancha.
+  crm:
+    external: true
+    name: socialpro-crm_default

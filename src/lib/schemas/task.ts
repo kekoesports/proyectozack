@@ -1,8 +1,20 @@
 import { z } from 'zod';
 
 export const CRM_TASK_PRIORITIES = ['alta', 'media', 'baja'] as const;
-export const CRM_TASK_STATUSES = ['pendiente', 'en_progreso', 'completada'] as const;
+export const CRM_TASK_OPEN_STATUSES = ['pendiente', 'en_progreso'] as const;
+export const CRM_TASK_STATUSES = [
+  'pendiente',
+  'en_progreso',
+  'completada',
+  'omitida',
+  'no_realizada',
+  'archivada',
+] as const;
 export const CRM_TASK_RELATED_TYPES = ['brand', 'talent', 'campaign', 'invoice', 'general'] as const;
+
+export function isOpenTaskStatus(status: string): boolean {
+  return status === 'pendiente' || status === 'en_progreso';
+}
 
 const relatedTypeSchema = z.preprocess(
   (v) => (v === '' || v === null ? undefined : v),

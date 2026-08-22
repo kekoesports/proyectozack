@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState, useTransition } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import type { CrmTask, CrmTaskPriority } from '@/types';
 import type { RelatedLabel } from '@/lib/queries/crmTasks';
+import { isOpenTaskStatus } from '@/lib/schemas/task';
 import { TaskModal } from './TaskModal';
 import {
   bulkDeleteTasksAction,
@@ -95,7 +96,7 @@ export function TaskList({
   const todayStr = useMemo(() => new Date().toISOString().slice(0, 10), []);
 
   const isOverdue = (t: CrmTask): boolean =>
-    t.status !== 'completada' && t.dueDate !== null && t.dueDate < todayStr;
+    isOpenTaskStatus(t.status) && t.dueDate !== null && t.dueDate < todayStr;
 
   const filtered = useMemo(() => {
     const needle = search.trim().toLowerCase();
@@ -119,7 +120,9 @@ export function TaskList({
       todos: tasks.length, pendiente: 0, en_progreso: 0, completada: 0, vencida: 0,
     };
     for (const t of tasks) {
-      c[t.status]++;
+      if (t.status === 'pendiente' || t.status === 'en_progreso' || t.status === 'completada') {
+        c[t.status]++;
+      }
       if (isOverdue(t)) c.vencida++;
     }
     return c;

@@ -8,6 +8,12 @@ read_when:
 
 # Roadmap de implementación de Zack Agent OS
 
+> **Estado a 22-08-2026:** las fases PR 1–6 descritas aquí ya están
+> implementadas. El siguiente gate no es más código base, sino el rollout
+> controlado de Guardian indicado en `runbook-operacion.md`. Las fases 7–10
+> siguen pendientes y no deben activarse antes de completar la evaluación de
+> Guardian en shadow.
+
 ## 1. Estrategia
 
 No implementar todos los agentes en un único PR. El orden protege el CRM y permite obtener valor temprano:

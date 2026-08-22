@@ -8,6 +8,7 @@ import {
   resolveRelatedLabels,
 } from '@/lib/queries/crmTasks';
 import { getAllStaffUsers } from '@/lib/queries/staffUsers';
+import { isOpenTaskStatus } from '@/lib/schemas/task';
 import { getIsoWeekLabel } from '@/lib/utils/week';
 import { RolledOverBanner } from '@/features/admin/tasks/components/RolledOverBanner';
 import { TaskList } from '@/features/admin/tasks/components/TaskList';
@@ -47,14 +48,14 @@ export default async function MiSemanaPage(): Promise<ReactElement> {
 
   const relatedLabels = await resolveRelatedLabels(tasks);
 
-  const rolledTasks = tasks.filter((t) => t.rolledOver && t.status !== 'completada');
+  const rolledTasks = tasks.filter((t) => t.rolledOver && isOpenTaskStatus(t.status));
 
   // KPIs calculados server-side
   const kpis = {
     pendientes:   tasks.filter((t) => t.status === 'pendiente').length,
     enProgreso:   tasks.filter((t) => t.status === 'en_progreso').length,
     completadas:  tasks.filter((t) => t.status === 'completada').length,
-    vencidas:     tasks.filter((t) => t.status !== 'completada' && !!t.dueDate && t.dueDate < todayStr).length,
+    vencidas:     tasks.filter((t) => isOpenTaskStatus(t.status) && !!t.dueDate && t.dueDate < todayStr).length,
     arrastradas:  rolledTasks.length,
   };
 

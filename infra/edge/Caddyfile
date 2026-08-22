@@ -1,0 +1,147 @@
+# Caddy compartido.
+#
+# AMPLÍA el Caddyfile que ya existe en /opt/socialpro/n8n/Caddyfile; no lo
+# sustituye ni levanta un segundo proxy. El bloque de n8n se conserva palabra
+# por palabra: ese dominio ya tiene certificado emitido y funcionando, y
+# reescribirlo "de paso" es la forma más fácil de romper lo único que hoy va
+# bien.
+#
+# Para que Caddy alcance al CRM hay que conectarlo a la red compartida:
+#
+#   docker network create socialpro_edge
+#   docker network connect socialpro_edge socialpro-automation-caddy-1
+#
+# El `network connect` NO reinicia el contenedor: n8n sigue sirviendo mientras
+# se hace. Después hay que añadir la red al compose de n8n para que persista
+# si alguna vez se recrea.
+
+{
+	# Un email real permite a Let's Encrypt avisar antes de que un certificado
+	# caduque. Sin él, el primer aviso es el sitio caído.
+	email {$ACME_EMAIL}
+
+	# Logs con rotación: sin esto, en un VPS el disco se llena en silencio.
+	log {
+		output file /var/log/caddy/access.log {
+			roll_size 10MiB
+			roll_keep 5
+			roll_keep_for 720h
+		}
+		format json
+	}
+}
+
+# ── valores comunes ─────────────────────────────────────────────────────────
+(seguridad) {
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+}
+
+(proxy_app) {
+	reverse_proxy {args[0]} {
+		# Caddy fija X-Forwarded-For con la IP real de la conexión y descarta la
+		# que envíe el cliente. Es lo que impide que alguien falsee su origen
+		# para saltarse el limitador de peticiones.
+		header_up X-Real-IP {remote_host}
+		header_up X-Forwarded-Proto {scheme}
+
+		# Sin buffering: Next.js hace streaming de la respuesta y el buffer lo
+		# rompería, además de retrasar el primer byte.
+		flush_interval -1
+
+		transport http {
+			# Holgado, porque generar un PDF o pasar el OCR tarda.
+			response_header_timeout 120s
+			read_timeout 180s
+		}
+	}
+}
+
+# ── n8n — TAL CUAL ESTÁ HOY, no tocar ───────────────────────────────────────
+{$N8N_DOMAIN} {
+	encode zstd gzip
+	reverse_proxy n8n:5678
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "same-origin"
+		-Server
+	}
+}
+
+# ── CRM producción ──────────────────────────────────────────────────────────
+{$CRM_DOMAIN} {
+	encode zstd gzip
+	import seguridad
+
+	# Interruptor de mantenimiento: basta crear el fichero para que todo el
+	# tráfico normal reciba la página de mantenimiento. No depende de que la
+	# aplicación esté viva, que es justo lo que hace falta durante un cutover.
+	@mantenimiento file /srv/maintenance/ON
+	handle @mantenimiento {
+		# Los health checks siguen pasando: hacen falta para saber si el
+		# candidato está listo mientras el resto está cortado.
+		@salud path /api/health/*
+		handle @salud {
+			import proxy_app "{$CRM_UPSTREAM}"
+		}
+		handle {
+			root * /srv/maintenance
+			rewrite * /index.html
+			file_server
+			header Retry-After "600"
+		}
+	}
+
+	handle {
+		# El upstream es una variable: el cambio azul/verde consiste en
+		# reapuntarla y recargar, sin reconstruir ninguna imagen.
+		import proxy_app "{$CRM_UPSTREAM}"
+	}
+
+	request_body {
+		# Coherente con el bodySizeLimit de 6 MB de las Server Actions, con
+		# margen para las cabeceras del multipart.
+		max_size 12MB
+	}
+}
+
+# www → canónico
+www.{$CRM_DOMAIN} {
+	redir https://{$CRM_DOMAIN}{uri} permanent
+}
+
+# ── staging ─────────────────────────────────────────────────────────────────
+{$STAGING_DOMAIN} {
+	encode zstd gzip
+	import seguridad
+
+	# Que un buscador indexe staging duplicaría el contenido del sitio real.
+	header X-Robots-Tag "noindex, nofollow, noarchive"
+
+	import proxy_app "{$STAGING_UPSTREAM}"
+
+	request_body {
+		max_size 12MB
+	}
+}
+
+# ── estado ──────────────────────────────────────────────────────────────────
+{$STATUS_DOMAIN} {
+	encode zstd gzip
+	import seguridad
+	header X-Robots-Tag "noindex, nofollow"
+
+	# Detrás de autenticación: un panel de estado dice qué hay montado, qué
+	# versiones corren y cuándo falla cada cosa. Es reconocimiento gratis.
+	basic_auth {
+		{$STATUS_USER} {$STATUS_PASSWORD_HASH}
+	}
+
+	reverse_proxy uptime-kuma:3001
+}

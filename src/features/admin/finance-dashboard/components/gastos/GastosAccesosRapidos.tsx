@@ -8,17 +8,21 @@ interface AccesoItem {
 }
 
 const ACCESOS: readonly AccesoItem[] = [
+  { href: '/admin/finanzas/gastos/revision',   title: 'Revisión fiscal',   description: 'Qué gastos contradicen el perfil del talento.', icon: '🔍' },
   { href: '/admin/finanzas/costes',           title: 'Costes directos',   description: 'Vista específica del grupo campaign_direct.', icon: '🎯' },
   { href: '/admin/finanzas/gastos-operativos', title: 'Gastos operativos', description: 'Vista específica del grupo operational.',     icon: '⚙️' },
   { href: '/admin/finanzas/herramientas',      title: 'Importar documentos', description: 'Importar PDFs y CSV / setup de gastos.',    icon: '📥' },
   { href: '/admin/finanzas/setup-2026',        title: 'Setup gastos 2026', description: 'Carga histórica de gastos operativos.',       icon: '⚙️' },
+  { href: '/admin/finanzas/salud',            title: 'Salud del dato',    description: 'Qué hay que arreglar para que las cifras cuadren.', icon: '🩺' },
 ];
 
 export function GastosAccesosRapidos(): React.ReactElement {
   return (
     <section aria-labelledby="accesos-rapidos-gastos-title" className="space-y-3">
       <h2 id="accesos-rapidos-gastos-title" className="text-sm font-bold text-sp-admin-fg">Accesos rápidos</h2>
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      {/* auto-fit en vez de un numero fijo de columnas: la lista crece y un
+          conteo a mano deja una tarjeta huerfana en su propia fila. */}
+      <div className="grid gap-3 grid-cols-[repeat(auto-fit,minmax(220px,1fr))]">
         {ACCESOS.map((a) => (
           <Link key={a.href} href={a.href}
             className="flex items-center gap-3 rounded-2xl border border-sp-border bg-sp-admin-card p-4 hover:border-sp-orange/40 transition-colors group">

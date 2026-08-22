@@ -115,6 +115,7 @@ export async function getGastosData(input: { readonly from?: string; readonly to
       vatPct: invoices.vatPct,
       withholdingPct: invoices.withholdingPct,
       totalAmount: invoices.totalAmount,
+      eurEquivalent: invoices.eurEquivalent,
       paidAmount: invoices.paidAmount,
       currency: invoices.currency,
       series: invoices.series,
@@ -168,7 +169,9 @@ export async function getGastosData(input: { readonly from?: string; readonly to
   const sinClasificarRows: InvoiceWithRelations[] = [];
 
   for (const row of rows) {
-    const amount = Number(row.totalAmount);
+    // En euros: la tabla enseña el importe en su moneda, pero los totales no
+    // pueden sumar dólares como si fueran euros.
+    const amount = Number(row.eurEquivalent ?? row.totalAmount);
     if (!Number.isFinite(amount)) continue;
 
     gastoTotal += amount;

@@ -1,6 +1,6 @@
 import 'server-only';
 
-import { and, eq, ilike, inArray, isNotNull, isNull, ne, or } from 'drizzle-orm';
+import { and, eq, ilike, inArray, isNotNull, isNull, ne, or, sql } from 'drizzle-orm';
 
 import { campaigns } from '@/db/schema/campaigns';
 import { crmBrands } from '@/db/schema/crmBrands';
@@ -11,9 +11,18 @@ import { normalizeTrackingSheetInput, syncCampaignSheet } from '@/lib/queries/ca
 import type { CampaignActionType } from '@/lib/schemas/campaign';
 import type { AutomationDealCreateInput } from '@/lib/schemas/automationDeal';
 import type { DeliverableType } from '@/lib/schemas/deliverable';
+import {
+  pendingAutomationDealAlertLevel,
+  type AutomationDealAlertLevel,
+} from '@/lib/utils/automation-deal-alerts';
 import { resolveAutomationDealSchedule } from '@/lib/utils/automation-deal-schedule';
 import { initialsOf, slugify } from '@/lib/utils/import-utils';
 import { createLimit } from '@/lib/utils/concurrencyLimit';
+
+// Each campaign consumes two Google Sheets reads (metadata + values). Keeping
+// the batch below 30 leaves quota headroom for interactive CRM reads and avoids
+// turning the second half of every run into HTTP 429 failures.
+const AUTOMATION_SYNC_BATCH_SIZE = 24;
 
 type TransactionalDb = ReturnType<typeof getTransactionalDb>;
 type AutomationTransaction = Parameters<Parameters<TransactionalDb['transaction']>[0]>[0];
@@ -402,18 +411,27 @@ export async function syncAutomatedDeal(campaignId: number): Promise<SyncAutomat
     return { progress: after, crossedAlertLevel: null, syncOk: false };
   }
 
-  const nextLevel = after.progressPct >= 100 ? 100 : after.progressPct >= 80 ? 80 : after.progressPct >= 70 ? 70 : 0;
-  if (nextLevel > after.alertLevel) {
-    await db
-      .update(campaigns)
-      .set({ trackingAlertLevel: nextLevel, updatedAt: new Date() })
-      .where(eq(campaigns.id, campaignId));
-    const crossedAlertLevel = nextLevel === 70 || nextLevel === 80 || nextLevel === 100
-      ? nextLevel
-      : null;
-    return { progress: { ...after, alertLevel: nextLevel }, crossedAlertLevel, syncOk: true };
-  }
-  return { progress: after, crossedAlertLevel: null, syncOk: true };
+  return {
+    progress: after,
+    crossedAlertLevel: pendingAutomationDealAlertLevel(after.progressPct, after.alertLevel),
+    syncOk: true,
+  };
+}
+
+export async function acknowledgeAutomatedDealAlert(
+  campaignId: number,
+  level: AutomationDealAlertLevel,
+): Promise<AutomationDealProgress | null> {
+  const [updated] = await db
+    .update(campaigns)
+    .set({
+      trackingAlertLevel: sql`greatest(${campaigns.trackingAlertLevel}, ${level})`,
+      updatedAt: new Date(),
+    })
+    .where(eq(campaigns.id, campaignId))
+    .returning({ id: campaigns.id });
+
+  return updated ? getAutomatedDealProgress(updated.id) : null;
 }
 
 export type SyncAllAutomatedDealsResult = {
@@ -438,7 +456,11 @@ export async function syncAllAutomatedDeals(): Promise<SyncAllAutomatedDealsResu
       // gastando llamadas a Sheets (y watermark de alertas) en tratos cerrados.
       isNull(campaigns.archivedAt),
       inArray(campaigns.status, ['propuesta', 'negociacion', 'aprobada', 'activa', 'pendiente_pago']),
-    ));
+    ))
+    // Rotate fairly: failed/never-synced campaigns go first, then the stalest.
+    // With 44 current campaigns, two hourly runs cover the full set.
+    .orderBy(sql`${campaigns.lastTrackingSyncAt} asc nulls first`, campaigns.id)
+    .limit(AUTOMATION_SYNC_BATCH_SIZE);
 
   const limit = createLimit(3);
   const settled = await Promise.allSettled(

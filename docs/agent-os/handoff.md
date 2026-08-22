@@ -1,99 +1,51 @@
 ---
-summary: 'Handoff operativo del blueprint Zack Agent OS y siguiente acción para Claude Work.'
+summary: 'Handoff operativo actual de Zack Agent OS después de implementar el blueprint.'
 read_when:
   - Picking up Zack Agent OS work
-  - Reviewing PR 304
-  - Starting the runtime schema implementation
+  - Reviewing Agent OS status
+  - Preparing the first production activation
 ---
 
 # Handoff — Zack Agent OS
 
 ## Estado
 
-Blueprint documental completado en:
+El blueprint documental se implementó en seis fases y ya forma parte del
+producto. A 22-08-2026:
 
-```text
-branch: docs/zack-agent-os-blueprint
-PR: https://github.com/kekoesports/proyectozack/pull/304
-head: 7d1f4c696209e449ce304c9f4d0ffd652033eb33
-base observado: 8b0ab738dbc51a61268780ce1a693cd8e5f8fe99
-```
-
-El PR solo contiene documentación y no modifica producción.
-
-## Documentos
-
-```text
-docs/agent-os/README.md
-docs/agent-os/architecture.md
-docs/agent-os/data-model.md
-docs/agent-os/agents-tools-policies.md
-docs/agent-os/implementation-roadmap.md
-docs/agent-os/claude-work-prompt.md
-docs/adr/0006-zack-agent-os-foundation.md
-```
-
-## Decisiones cerradas
-
-- Evolucionar el asistente existente; no crear una aplicación paralela.
-- Worker separado de Next.js.
-- PostgreSQL como queue/state del MVP.
-- n8n conserva integraciones deterministas.
-- Tool registry estructurado y Zod.
-- Human approval para side effects y privilegios.
-- Sin shell, SQL libre, Docker socket, Redis, Temporal o vector DB en el MVP.
-- Gemini como adaptador inicial, con provider interface propia.
-- Agentes desactivados y en shadow mode por defecto.
-- Presupuesto duro, límites y kill switch desde la base.
-- Compatibilidad aditiva con `/admin/asistente`.
+- las diez tablas `agent_*` existen en producción;
+- los seis agentes están sembrados como `disabled` y `shadow`;
+- Guardian tiene reglas, prompt, cuatro tools de lectura y dos rutinas;
+- el control plane y las aprobaciones existen en `/admin/agents`;
+- el worker y el collector están versionados, pero no desplegados;
+- no hay proveedor real asignado: todos usan `model_provider='null'`;
+- ninguna rutina está habilitada y no hay autonomía activa.
 
 ## Próximo trabajo exacto
 
-1. Revisar y fusionar PR 304 o usar la rama como fuente.
-2. Abrir `docs/agent-os/claude-work-prompt.md`.
-3. Ejecutar ese encargo en Claude Work.
-4. Primer PR de código:
+La primera activación debe limitarse a **Guardian en shadow** y respetar el
+orden de [`runbook-operacion.md`](./runbook-operacion.md):
 
-```text
-feat/agent-runtime-schema
-```
+1. instalar el collector y comprobar que llegan eventos redactados;
+2. desplegar el worker con `AGENTS_ENABLED=false` y comprobar su heartbeat;
+3. asignar Gemini a Guardian mediante catálogo + seed versionado;
+4. encender el worker y activar solo Guardian, manteniendo `shadow`;
+5. habilitar únicamente la rutina diaria de las 08:30;
+6. evaluar sus informes durante al menos 14 días antes de plantear side effects.
 
-5. Ese PR debe incluir únicamente:
-   - schema aditivo;
-   - migración no destructiva;
-   - repositories/queries;
-   - seed idempotente;
-   - flags/env fail-closed;
-   - tests de constraints/idempotencia/approval/memory/event;
-   - documentación y rollback.
-6. No implementar el worker en el mismo PR.
-7. No aplicar la migración a producción.
+## Gaps conocidos
 
-## Gate para continuar
+- No existe botón ni endpoint de «ejecutar ahora»; solo schedules y eventos.
+- CRM Steward y Deal Clerk reutilizan algunas tools, pero aún no tienen prompt
+  ni rutinas propios.
+- Growth, SEO y Dev son reservas de catálogo, no agentes funcionales.
+- Worker y collector dependen de que la infraestructura del VPS esté validada.
 
-No empezar `feat/agent-runtime-core` hasta que:
+## Límites que se mantienen
 
-- `drizzle-kit check` esté limpio;
-- la migración haya sido probada en DB temporal;
-- no exista `DROP` inesperado;
-- el seed sea idempotente;
-- los agentes estén disabled/shadow;
-- el chat actual siga intacto;
-- PR 1 tenga rollback funcional.
-
-## Accesos externos
-
-No se necesita acceso al VPS para PR 1-4.
-
-Solicitar SSH solo al preparar/desplegar telemetría Guardian. No pedir passwords por chat; utilizar clave pública y acceso temporal.
-
-No se necesita una API key real en CI. Utilizar fake provider.
-
-## Riesgos a vigilar
-
-- El repositorio avanza rápidamente; siempre rebasar el plan contra HEAD actual.
-- La migración al VPS puede cambiar `src/lib/db.ts`; mantener repository abstraction.
-- No duplicar permisos ni queries de negocio.
-- No convertir el runtime nuevo en sustituto inmediato del chat actual.
-- No mezclar la migración de hosting con el primer PR de schema.
-- No activar autonomía antes de Guardian shadow y evals.
+- Sin shell, SQL libre ni Docker socket para el modelo.
+- Toda acción externa o privilegiada requiere aprobación humana.
+- El CRM sigue siendo la fuente de verdad y n8n conserva sincronizaciones
+  deterministas.
+- El asistente actual `/admin/asistente` no se sustituye durante el rollout.
+- Ante cualquier duda: `disabled`, `shadow` y `AGENTS_ENABLED=false`.

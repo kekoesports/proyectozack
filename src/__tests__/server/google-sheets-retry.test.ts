@@ -13,7 +13,23 @@ jest.mock('@/lib/env', () => ({
   env: { GOOGLE_SHEETS_API_KEY: 'test-key-abc' },
 }));
 
-import { withRetry, SheetsApiError } from '@/lib/integrations/google-sheets';
+import { sheetCellText, withRetry, SheetsApiError } from '@/lib/integrations/google-sheets';
+
+describe('sheetCellText — enlaces reales de Google Sheets', () => {
+  it('prefiere el hipervínculo real aunque el texto visible apunte a otra URL', () => {
+    expect(sheetCellText({
+      formattedValue: 'https://www.youtube.com/shorts/q2XRr39YUc0',
+      hyperlink: 'https://www.youtube.com/shorts/VeUm3p1mvKg',
+    })).toBe('https://www.youtube.com/shorts/VeUm3p1mvKg');
+  });
+
+  it('extrae el enlace enriquecido de una celda con prefijo', () => {
+    expect(sheetCellText({
+      formattedValue: 'X - enlace',
+      textFormatRuns: [{}, { format: { link: { uri: 'https://twitch.tv/videos/123' } } }],
+    })).toBe('https://twitch.tv/videos/123');
+  });
+});
 
 // Sleep mock que cuenta y resuelve inmediato (no esperamos en tests).
 function makeSpySleep() {

@@ -9,6 +9,19 @@ read_when:
 
 # Zack Agent OS — visión y paquete de implementación
 
+## Estado actual — 22-08-2026
+
+El blueprint ya se materializó en seis fases: schema, runtime estructurado,
+worker con leases, panel de control, ingesta autenticada de telemetría y
+Guardian en shadow. Las tablas y los seis agentes existen en producción, pero
+el sistema permanece **apagado por diseño**: agentes deshabilitados, rutinas
+deshabilitadas, proveedor `null`, worker sin desplegar y collector sin instalar.
+
+La fuente operativa vigente es [`runbook-operacion.md`](./runbook-operacion.md).
+Este documento y el roadmap conservan las decisiones y el diseño que guiaron
+la implementación; no deben interpretarse como una lista de piezas aún
+pendientes.
+
 ## Objetivo
 
 Convertir el asistente y las automatizaciones existentes de SocialPro en una plataforma interna de agentes especializada en la agencia.
@@ -116,7 +129,7 @@ CRM API · n8n · GitHub · VPS telemetry · Google · Discord
 
 ## Baseline
 
-Este paquete se preparó sobre `master` en el commit:
+Este paquete se preparó originalmente sobre `master` en el commit:
 
 ```text
 8b0ab738dbc51a61268780ce1a693cd8e5f8fe99
