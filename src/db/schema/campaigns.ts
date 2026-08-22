@@ -84,7 +84,8 @@ export const campaigns = pgTable('campaigns', {
   // Link canónico a un Google Sheet duplicado manualmente o por n8n a partir
   // de la plantilla de la marca. El parser socialpro_blocks
   // lee este Sheet para calcular currentCount de dealDeliverableTrackers.
-  // Sin OAuth, sin Service Account: se lee vía GOOGLE_SHEETS_API_KEY.
+  // Se lee con la cuenta de servicio si la hoja es privada; la API key queda
+  // como fallback compatible para trackers públicos históricos.
   trackingSheetUrl:            text('tracking_sheet_url'),
   trackingSheetSpreadsheetId:  varchar('tracking_sheet_spreadsheet_id', { length: 100 }),
   trackingSheetGid:            varchar('tracking_sheet_gid', { length: 20 }),
