@@ -34,7 +34,7 @@
             {
               "id": "max-lineas",
               "name": "maxLineas",
-              "value": 20,
+              "value": 8,
               "type": "number"
             }
           ]
@@ -78,7 +78,7 @@
             {
               "id": "digest-message",
               "name": "message",
-              "value": "={{ (() => { const max = $('Config').first().json.maxLineas; const fuera = $json.deals.filter(d => d.nextAction !== 'on_track'); const prioridad = { sync_error: 0, completed: 1, prepare_invoice: 2, stale: 3, missing_sheet: 4 }; const orden = fuera.slice().sort((a, b) => (prioridad[a.nextAction] ?? 9) - (prioridad[b.nextAction] ?? 9)); const visibles = orden.slice(0, max); const resto = orden.length - visibles.length; const cabecera = '📊 UPDATE DEALS — ' + $now.setZone('Europe/Madrid').toFormat('dd/LL/yyyy') + '\\nActivos: ' + $json.summary.total + ' · Factura: ' + $json.summary.prepareInvoice + ' · Terminados: ' + $json.summary.completed + ' · Parados: ' + $json.summary.stale + ' · Errores: ' + $json.summary.syncErrors + ' · Sin sheet: ' + $json.summary.missingSheets; const cuerpo = visibles.map(d => '• ' + d.talentName + ' / ' + d.brandName + ': ' + d.currentCount + '/' + d.targetCount + ' (' + d.progressPct + '%) — ' + d.nextAction).join('\\n'); const pie = resto > 0 ? '\\n…y ' + resto + ' más en ' + $('Config').first().json.crmBaseUrl + '/admin/campanas' : ''; return (cabecera + '\\n\\n' + cuerpo + pie).slice(0, 1900); })() }}",
+              "value": "={{ (() => { const max = $('Config').first().json.maxLineas; const base = $('Config').first().json.crmBaseUrl; const prioridad = { sync_error: 0, missing_sheet: 1, missing_targets: 2, stale: 3, prepare_invoice: 4, completed: 5 }; const etiquetas = { sync_error: '🔴 Error de sincronización', missing_sheet: '⚪ Falta enlazar la hoja', missing_targets: '🟣 Faltan objetivos', stale: '🟠 Sin avances recientes', prepare_invoice: '🟡 Preparar factura', completed: '🟢 Completado' }; const fuera = $json.deals.filter(d => d.nextAction !== 'on_track').sort((a, b) => (prioridad[a.nextAction] ?? 9) - (prioridad[b.nextAction] ?? 9)); const visibles = fuera.slice(0, max); const resto = Math.max(0, fuera.length - visibles.length); const barra = p => { const n = Math.max(0, Math.min(5, Math.round(p / 20))); return '▰'.repeat(n) + '▱'.repeat(5 - n); }; const linea = d => { const progreso = d.targetCount > 0 ? '`' + barra(d.progressPct) + '` **' + d.progressPct + '%** · ' + d.currentCount + '/' + d.targetCount : '**sin objetivos**'; return (etiquetas[d.nextAction] ?? '•') + '\\n**' + d.talentName + '** · ' + d.brandName + ' — ' + progreso; }; const s = $json.summary; const cabecera = '## 📊 SOCIALPRO · UPDATE DEALS\\n**' + s.total + ' tratos activos**  ·  🟢 ' + s.completed + ' completados  ·  🟡 ' + s.prepareInvoice + ' para facturar\\n🔴 ' + s.syncErrors + ' errores  ·  🟠 ' + s.stale + ' parados  ·  ⚪ ' + s.missingSheets + ' sin hoja  ·  🟣 ' + (s.missingTargets ?? 0) + ' sin objetivos'; const cuerpo = visibles.length ? '\\n\\n### Prioridad de hoy\\n' + visibles.map(linea).join('\\n') : '\\n\\n✅ Todo al día'; const etiqueta = resto > 0 ? 'VER TODOS LOS TRATOS (+' + resto + ')' : 'ABRIR PANEL DE CAMPAÑAS'; const pie = '\\n\\n🔗 **[' + etiqueta + '](' + base + '/admin/campanas)**'; return (cabecera + cuerpo + pie).slice(0, 1900); })() }}",
               "type": "string"
             }
           ]

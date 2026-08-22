@@ -3,7 +3,7 @@
 This file provides guidance to Codex (Codex.ai/code) when working with code in this repository.
 
 ## Agent Protocol
-- Docs: run `scripts/docs-list` before deep work; honor `read_when` hints.
+- Docs: honor `read_when` hints in `docs/`.
 - Commit helper: `scripts/committer "type(scope): message" file1 file2`.
 - Keep files <500 LOC; split when exceeded.
 

@@ -8,7 +8,9 @@ import { Avatar } from '@/features/admin/_shared/components/Avatar';
 import { PriorityBadge } from './PriorityBadge';
 import { RecurrenceBadge } from './RecurrenceBadge';
 import { TaskStatusBadge } from './TaskStatusBadge';
-import { CRM_TASK_PRIORITIES, CRM_TASK_STATUSES } from '@/lib/schemas/task';
+import { CRM_TASK_OPEN_STATUSES, CRM_TASK_PRIORITIES, isOpenTaskStatus } from '@/lib/schemas/task';
+
+const LIST_EDIT_STATUSES = [...CRM_TASK_OPEN_STATUSES, 'completada'] as const;
 
 // ── Related entity helpers ────────────────────────────────────────────────────
 
@@ -49,7 +51,7 @@ export type FieldPatch =
   | { readonly status: CrmTaskStatus }
   | { readonly ownerId: string };
 
-export type StatusFilter = 'todos' | CrmTaskStatus | 'vencida';
+export type StatusFilter = 'todos' | 'pendiente' | 'en_progreso' | 'completada' | 'vencida';
 
 // Shared constants and helpers
 export const STATUS_TABS: readonly { readonly key: StatusFilter; readonly label: string }[] = [
@@ -70,6 +72,9 @@ export const STATUS_LABELS: Record<CrmTaskStatus, string> = {
   pendiente: 'Pendiente',
   en_progreso: 'En progreso',
   completada: 'Completada',
+  omitida: 'Omitida',
+  no_realizada: 'No realizada',
+  archivada: 'Archivada',
 };
 
 const FIELD_LABELS: Record<'priority' | 'status' | 'ownerId', string> = {
@@ -219,7 +224,7 @@ export function TaskRow({
 }: RowProps): React.ReactElement {
   const owner = usersById.get(t.ownerId);
   const mine = t.ownerId === currentUserId;
-  const isDone = t.status === 'completada';
+  const isDone = !isOpenTaskStatus(t.status);
   return (
     <tr className={`${mine ? 'bg-sp-admin-accent/5' : ''} ${selected ? 'bg-red-50/40' : ''} hover:bg-sp-admin-hover`}>
       {/* Selección bulk */}
@@ -339,7 +344,7 @@ export function TaskRow({
           <Popover.Portal>
             <Popover.Content sideOffset={6} align="start" className={POPOVER_PANEL_CLS}>
               <ul role="listbox" aria-label="Estado" className="flex flex-col">
-                {CRM_TASK_STATUSES.map((value) => {
+                {LIST_EDIT_STATUSES.map((value) => {
                   const selected = t.status === value;
                   return (
                     <li key={value} role="option" aria-selected={selected}>
@@ -372,7 +377,7 @@ export function TaskRow({
       <td className="px-3 py-2.5 whitespace-nowrap">
         {t.dueDate ? (() => {
           const today = new Date().toISOString().slice(0, 10);
-          const isOverdue = t.status !== 'completada' && t.dueDate < today;
+          const isOverdue = isOpenTaskStatus(t.status) && t.dueDate < today;
           const isToday   = t.dueDate === today;
           const formatted = new Date(t.dueDate + 'T12:00:00').toLocaleDateString('es-ES', { day: '2-digit', month: 'short' });
           return (

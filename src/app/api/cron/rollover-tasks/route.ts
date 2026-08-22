@@ -13,9 +13,16 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   const prev = previousWeek(curr);
 
   try {
-    const { rolled } = await rollOverPendingTasks(prev, curr);
+    const { rolled, closedRecurring } = await rollOverPendingTasks(prev, curr);
     const { generated } = await regenerateRecurringTasks({ weekLabel: curr });
-    return NextResponse.json({ success: true, rolled, generated, from: prev, to: curr });
+    return NextResponse.json({
+      success: true,
+      rolled,
+      closedRecurring,
+      generated,
+      from: prev,
+      to: curr,
+    });
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'Unknown error';
     console.error('[rollover-tasks] error:', msg);

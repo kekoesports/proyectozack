@@ -8,6 +8,34 @@ export type SheetTab = {
   index: number;
 };
 
+export type SheetCellData = {
+  readonly formattedValue?: string;
+  readonly effectiveValue?: {
+    readonly stringValue?: string;
+    readonly numberValue?: number;
+    readonly boolValue?: boolean;
+  };
+  readonly hyperlink?: string;
+  readonly textFormatRuns?: ReadonlyArray<{
+    readonly format?: { readonly link?: { readonly uri?: string } };
+  }>;
+};
+
+/** Prefer the actual Google Sheets link target over its visible label. */
+export function sheetCellText(cell: SheetCellData | undefined): string {
+  if (!cell) return '';
+  const richLink = cell.textFormatRuns
+    ?.map((run) => run.format?.link?.uri)
+    .find((uri): uri is string => Boolean(uri && /^https?:\/\//i.test(uri)));
+  if (cell.hyperlink && /^https?:\/\//i.test(cell.hyperlink)) return cell.hyperlink;
+  if (richLink) return richLink;
+  if (cell.formattedValue !== undefined) return cell.formattedValue;
+  if (cell.effectiveValue?.stringValue !== undefined) return cell.effectiveValue.stringValue;
+  if (cell.effectiveValue?.numberValue !== undefined) return String(cell.effectiveValue.numberValue);
+  if (cell.effectiveValue?.boolValue !== undefined) return String(cell.effectiveValue.boolValue);
+  return '';
+}
+
 /**
  * Error tipado para respuestas no-OK de la API de Google Sheets.
  * `status` se preserva para que `withRetry` pueda decidir si reintentar.
@@ -54,6 +82,10 @@ export function validateGoogleSheetUrl(url: string): boolean {
  * campaña. Mismo patrón que safeImageFetch, discord/fetch-user-guild-ids y steam/profile.
  */
 const SHEETS_FETCH_TIMEOUT_MS = 10_000;
+
+// Rich CellData includes hyperlink metadata and can be slower on templates
+// with formatting copied down hundreds of empty rows.
+const SHEETS_GRID_FETCH_TIMEOUT_MS = 30_000;
 
 /** Tope al Retry-After de Google. Ver la nota de withRetry. */
 const MAX_RETRY_AFTER_MS = 10_000;
@@ -177,7 +209,7 @@ export async function listSheetTabs(spreadsheetId: string): Promise<SheetTab[]> 
 }
 
 /**
- * Reads a full sheet tab as a 2D string array (rows × cols).
+ * Reads the operational area of a sheet tab as a 2D string array (rows × cols).
  * Empty values from the API are preserved as empty strings.
  */
 export async function readSheetGrid(
@@ -186,25 +218,51 @@ export async function readSheetGrid(
 ): Promise<string[][]> {
   return withRetry(async () => {
     const key = getApiKey();
-    const range = encodeURIComponent(sheetTitle);
-    const url = `https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(spreadsheetId)}/values/${range}?key=${key}`;
+    const range = encodeURIComponent(`'${sheetTitle.replace(/'/g, "''")}'!A1:ZZ500`);
+    const fields = encodeURIComponent(
+      'sheets(data(startRow,startColumn,rowData(values(formattedValue,effectiveValue,hyperlink,textFormatRuns(format(link(uri)))))))',
+    );
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(spreadsheetId)}?key=${key}&ranges=${range}&includeGridData=true&fields=${fields}`;
 
-    const response = await fetch(url, { cache: 'no-store', signal: AbortSignal.timeout(SHEETS_FETCH_TIMEOUT_MS) });
+    const response = await fetch(url, {
+      cache: 'no-store',
+      signal: AbortSignal.timeout(SHEETS_GRID_FETCH_TIMEOUT_MS),
+    });
     const data = await handleSheetsResponse(response);
 
-    // safe: validated from Sheets API response — `values` may be absent on empty tabs
-    const json = data as { values?: unknown[][] };
-    const rawRows = json.values ?? [];
-
-    // Ensure every cell is a string; pad rows to equal width
-    const maxCols = rawRows.reduce((m, row) => Math.max(m, row.length), 0);
-    return rawRows.map((row) => {
-      const padded: string[] = Array(maxCols).fill('') as string[];
-      for (let c = 0; c < row.length; c++) {
-        padded[c] = row[c] == null ? '' : String(row[c]);
+    const json = data as {
+      sheets?: Array<{
+        data?: Array<{
+          startRow?: number;
+          startColumn?: number;
+          rowData?: Array<{ values?: SheetCellData[] }>;
+        }>;
+      }>;
+    };
+    const segments = json.sheets?.flatMap((sheet) => sheet.data ?? []) ?? [];
+    let maxRows = 0;
+    let maxCols = 0;
+    for (const segment of segments) {
+      const startRow = segment.startRow ?? 0;
+      const startColumn = segment.startColumn ?? 0;
+      maxRows = Math.max(maxRows, startRow + (segment.rowData?.length ?? 0));
+      for (const row of segment.rowData ?? []) {
+        maxCols = Math.max(maxCols, startColumn + (row.values?.length ?? 0));
       }
-      return padded;
-    });
+    }
+    const grid = Array.from({ length: maxRows }, () => Array<string>(maxCols).fill(''));
+    for (const segment of segments) {
+      const startRow = segment.startRow ?? 0;
+      const startColumn = segment.startColumn ?? 0;
+      for (let rowOffset = 0; rowOffset < (segment.rowData?.length ?? 0); rowOffset++) {
+        const row = segment.rowData?.[rowOffset];
+        for (let colOffset = 0; colOffset < (row?.values?.length ?? 0); colOffset++) {
+          const targetRow = grid[startRow + rowOffset];
+          if (targetRow) targetRow[startColumn + colOffset] = sheetCellText(row?.values?.[colOffset]);
+        }
+      }
+    }
+    return grid;
   });
 }
 

@@ -56,18 +56,21 @@ ejecuciones vencerán y otro worker las recogerá.
 
 ## Antes de arrancarlo — lista de comprobación
 
-Ninguno de estos pasos está hecho:
+Estado a 21-08-2026:
 
-1. Migración `0124` aplicada en la base de destino.
-2. `npm run seed:agents` ejecutado.
-3. `.env` creado a partir de `env.example`, con `DATABASE_URL`.
-4. Red `socialpro-crm_default` existente (la crea el compose del CRM).
-5. **Decisión explícita** de poner `AGENTS_ENABLED=true`.
-6. Al menos un agente con `status = 'active'` — se siembran todos en `disabled`.
+1. ✅ Migración `0124` aplicada en producción (verificada en la base).
+2. ✅ `npm run seed:agents` ejecutado — los 6 agentes existen.
+3. ❌ `.env` creado a partir de `env.example`, con `DATABASE_URL`.
+4. ❌ Red `socialpro-crm_default` existente (la crea el compose del CRM).
+5. ❌ **Decisión explícita** de poner `AGENTS_ENABLED=true`.
+6. ❌ Al menos un agente con `status = 'active'` — se siembran todos en `disabled`.
 
 Con los pasos 1-4 hechos y el 5 sin hacer, el worker arranca, no procesa nada y
 lo dice en el log. Es un estado válido y seguro para desplegarlo antes de
 decidir encenderlo.
+
+La secuencia completa de encendido, con el collector y el proveedor de modelo,
+está en `docs/agent-os/runbook-operacion.md`.
 
 ```bash
 docker compose -f infra/agents/compose.yaml up -d --build
