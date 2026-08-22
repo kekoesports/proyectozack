@@ -80,6 +80,12 @@ export function TrackersListClient({ trackers, brands, talents, subtypeCounts, i
           >
             Resumen
           </button>
+          <Link
+            href="/admin/entregables/reconciliar"
+            className="px-4 py-2 text-sm font-semibold rounded-lg border border-sp-border text-sp-dark hover:border-sp-dark transition-colors"
+          >
+            Reconciliar
+          </Link>
           <button
             onClick={() => setShowCreate(true)}
             className="px-4 py-2 text-sm font-semibold rounded-lg bg-sp-orange text-white hover:bg-sp-orange/90 transition-colors"

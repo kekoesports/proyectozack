@@ -64,6 +64,10 @@ All three imports start disabled and intentionally contain no secrets. Before a 
    [`docs/n8n-automation-api.md`](../../docs/n8n-automation-api.md);
 5. run each workflow manually with test data before activating its trigger.
 
-The notification workflows end in a placeholder node. Replace it with the
+The intake and digest workflows end in a placeholder node. Replace it with the
 approved Discord node only after configuring the SocialPro Discord credential
 in n8n. Discord is an interface: every message is built from CRM API data.
+
+The progress workflow additionally acknowledges each 70/80/100 alert in the
+CRM only after Discord confirms the send. Assign both the Discord and CRM
+credentials before testing it; otherwise pending alerts intentionally reappear.

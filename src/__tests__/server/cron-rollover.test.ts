@@ -51,7 +51,7 @@ describe('rollover-tasks cron route', () => {
   });
 
   it('runs rollover and recurring regeneration in one request', async () => {
-    mockRollOverPendingTasks.mockResolvedValue({ rolled: 4 });
+    mockRollOverPendingTasks.mockResolvedValue({ rolled: 4, closedRecurring: 2 });
     mockRegenerateRecurringTasks.mockResolvedValue({ generated: 18 });
 
     const req = new Request('http://localhost/api/cron/rollover-tasks', {
@@ -64,7 +64,14 @@ describe('rollover-tasks cron route', () => {
     expect(mockRollOverPendingTasks).toHaveBeenCalledWith('2026-W18', '2026-W19');
     expect(mockRegenerateRecurringTasks).toHaveBeenCalled();
     expect(body).toEqual(
-      expect.objectContaining({ success: true, rolled: 4, generated: 18, from: '2026-W18', to: '2026-W19' }),
+      expect.objectContaining({
+        success: true,
+        rolled: 4,
+        closedRecurring: 2,
+        generated: 18,
+        from: '2026-W18',
+        to: '2026-W19',
+      }),
     );
   });
 });

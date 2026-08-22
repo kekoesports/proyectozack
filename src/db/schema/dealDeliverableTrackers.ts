@@ -33,6 +33,13 @@ export const trackerSourceTypeEnum = pgEnum('tracker_source_type', [
   'manual',
 ]);
 
+/** Unlinked-only classification. Linked is derived from campaignId IS NOT NULL. */
+export const trackerReconciliationStatusEnum = pgEnum('tracker_reconciliation_status', [
+  'unreconciled',
+  'legacy',
+  'deferred',
+]);
+
 export const contentPlatformEnum = pgEnum('content_platform', [
   'twitch',
   'kick',
@@ -105,6 +112,13 @@ export const dealDeliverableTrackers = pgTable(
 
     notes: text('notes'),
 
+    reconciliationStatus: trackerReconciliationStatusEnum('reconciliation_status')
+      .notNull()
+      .default('unreconciled'),
+    reconciliationNote: text('reconciliation_note'),
+    reconciledAt: timestamp('reconciled_at', { withTimezone: true }),
+    reconciledByUserId: text('reconciled_by_user_id').references(() => user.id, { onDelete: 'set null' }),
+
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
@@ -114,6 +128,7 @@ export const dealDeliverableTrackers = pgTable(
     index('deal_trackers_status_idx').on(t.status),
     index('deal_trackers_created_idx').on(t.createdAt),
     index('deal_trackers_source_idx').on(t.brandSheetSourceId),
+    index('deal_trackers_reconciliation_idx').on(t.reconciliationStatus),
     // Partial unique index: prevents duplicate trackers for the same block when source is linked.
     // Partial (WHERE brand_sheet_source_id IS NOT NULL) so null-sourced trackers are unaffected.
     uniqueIndex('deal_trackers_source_block_unique')
@@ -157,6 +172,7 @@ export const dealDeliverableItems = pgTable(
     index('deal_items_status_idx').on(t.status),
     index('deal_items_normalized_url_idx').on(t.normalizedUrl),
     index('deal_items_tracker_source_active_idx').on(t.trackerId, t.sourceType, t.isActive),
+    // Full unique (not partial is_active): duplicates skipped at insert.
     // Una evidencia por (tracker, URL). Sin esta garantía, dos syncs solapados
     // insertan la misma URL dos veces de forma permanente: los caminos de
     // importación filtran en memoria, pero eso no cubre la carrera.
