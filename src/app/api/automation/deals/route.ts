@@ -35,9 +35,10 @@ export async function POST(req: Request): Promise<NextResponse> {
     // Se intenta después de crear el trato y sin bloquearlo: si Drive falla o
     // no está configurado, el trato queda igualmente y el digest lo marca como
     // `missing_sheet`, que es la señal correcta.
-    const sheet = result.created
-      ? await ensureDealTrackingSheet(result.campaignId)
-      : { status: 'already_had_sheet' as const };
+    // El helper es idempotente. También se ejecuta en un retry del mismo
+    // Idempotency-Key para poder reparar un fallo transitorio de Drive sin
+    // duplicar campaña ni hojas.
+    const sheet = await ensureDealTrackingSheet(result.campaignId);
     return NextResponse.json({ ok: true, ...result, sheet }, { status: result.created ? 201 : 200 });
   } catch (error) {
     if (error instanceof AutomationDealInputError) {

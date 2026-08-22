@@ -1,7 +1,7 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { getSignerByToken } from '@/lib/queries/contracts';
-import { env } from '@/lib/env';
+import { streamPrivateBlob } from '@/lib/files/streamPrivateBlob';
 
 export const dynamic = 'force-dynamic';
 
@@ -28,39 +28,13 @@ export async function GET(
     return new NextResponse('Not found', { status: 404 });
   }
 
-  const fileUrl = signerData.contract.fileUrl;
-  if (!fileUrl) {
+  if (!signerData.contract.fileUrl && !signerData.contract.filePath) {
     return new NextResponse('PDF no disponible', { status: 404 });
   }
-
-  const blobToken = env.BLOB_READ_WRITE_TOKEN;
-  if (!blobToken) {
-    return new NextResponse('Servicio no disponible', { status: 503 });
-  }
-
-  const blobRes = await fetch(fileUrl, {
-    headers: { Authorization: `Bearer ${blobToken}` },
-  });
-
-  if (!blobRes.ok) {
-    return new NextResponse('PDF no disponible', { status: 404 });
-  }
-
-  const contentType = blobRes.headers.get('content-type') ?? 'application/pdf';
-  const buffer = await blobRes.arrayBuffer();
-
-  const safeName = (signerData.contract.fileName ?? 'contrato.pdf')
-    .replace(/[^\w.\-]/g, '_')
-    .replace(/\.+/g, '.')
-    .slice(0, 200);
-
-  return new NextResponse(buffer, {
-    status: 200,
-    headers: {
-      'Content-Type': contentType,
-      'Content-Disposition': `inline; filename="${safeName}"`,
-      'Cache-Control': 'private, no-store',
-      'X-Content-Type-Options': 'nosniff',
-    },
+  return streamPrivateBlob({
+    fileUrl: signerData.contract.fileUrl,
+    storageKey: signerData.contract.filePath,
+    filename: signerData.contract.fileName ?? 'contrato.pdf',
+    fallbackContentType: 'application/pdf',
   });
 }

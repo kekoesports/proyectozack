@@ -45,6 +45,7 @@ export async function GET(
 
   return streamPrivateBlob({
     fileUrl: contract.fileUrl,
+    storageKey: contract.filePath,
     filename: contract.fileName ?? 'contrato.pdf',
     fallbackContentType: 'application/pdf',
   });

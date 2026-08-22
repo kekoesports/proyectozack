@@ -59,12 +59,14 @@ describe('sprint4 — R10 createTalent contacts/verticals', () => {
   });
 });
 
-describe('sprint4 — R12 del(url)', () => {
-  it('contract and invoice deletes use fileUrl not filePath', () => {
+describe('sprint4 — R12 borrado de almacenamiento', () => {
+  it('contratos usan la capa portable y facturas conservan el borrado Blob heredado', () => {
     expect(read('src/app/admin/(dashboard)/campanas/contract-actions.ts')).toMatch(
-      /del\(existing\.fileUrl\)/,
+      /previousFile = existing\?\.filePath \?\? existing\?\.fileUrl[\s\S]*deleteLegacyFile\(previousFile\)/,
     );
-    expect(read('src/app/admin/(dashboard)/contratos/actions.ts')).toMatch(/del\(contract\.fileUrl\)/);
+    expect(read('src/app/admin/(dashboard)/contratos/actions.ts')).toMatch(
+      /deleteLegacyFile\(contract\.filePath \?\? contract\.fileUrl/,
+    );
     expect(read('src/app/admin/(dashboard)/facturacion/invoices-actions.ts')).toMatch(
       /del\(existing\.fileUrl\)/,
     );

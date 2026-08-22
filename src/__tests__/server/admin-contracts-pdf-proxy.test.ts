@@ -31,6 +31,11 @@ jest.mock('@/lib/queries/generatedContracts', () => ({
   CONTRACT_STATUSES: [],
 }));
 
+const mockOpenFile = jest.fn();
+jest.mock('@/lib/storage', () => ({
+  openFile: (...args: unknown[]) => mockOpenFile(...args),
+}));
+
 jest.mock('@/lib/env', () => ({
   env: {
     get BLOB_READ_WRITE_TOKEN() {
@@ -91,6 +96,7 @@ beforeEach(() => {
   mockRequirePermission.mockResolvedValue({ user: { id: 'u1', role: 'admin' } });
   global.fetch = jest.fn();
   process.env.BLOB_READ_WRITE_TOKEN = BLOB_SECRET;
+  mockOpenFile.mockRejectedValue(new Error('not-found-in-primary'));
 });
 
 afterEach(() => {
@@ -177,6 +183,26 @@ describe('Admin PDF proxy — /api/admin/contratos/[id]/pdf', () => {
       const res = await adminPdfGET(makeReq(), makeParams());
       expect(res.status).toBe(200);
       expect(res.headers.get('Content-Type')).toBe('application/pdf');
+    });
+
+    it('fichero local → 200 sin necesitar BLOB_READ_WRITE_TOKEN', async () => {
+      delete process.env.BLOB_READ_WRITE_TOKEN;
+      mockGetGeneratedContract.mockResolvedValue(validContract({ fileUrl: 'contracts/local.pdf' }));
+      mockOpenFile.mockResolvedValue({
+        stream: new ReadableStream({
+          start(controller) {
+            controller.enqueue(new TextEncoder().encode('%PDF-local'));
+            controller.close();
+          },
+        }),
+        from: 'primary',
+      });
+
+      const res = await adminPdfGET(makeReq(), makeParams());
+      expect(res.status).toBe(200);
+      expect(res.headers.get('Content-Type')).toBe('application/pdf');
+      expect(mockOpenFile).toHaveBeenCalledWith('contracts/1/contrato.pdf');
+      expect(global.fetch).not.toHaveBeenCalled();
     });
 
     it('Content-Disposition es inline con el nombre del archivo', async () => {

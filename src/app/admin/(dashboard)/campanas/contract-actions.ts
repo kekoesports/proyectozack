@@ -1,7 +1,6 @@
 ﻿'use server';
 
 import { revalidatePath } from 'next/cache';
-import { put, del } from '@vercel/blob';
 import { z } from 'zod';
 import { Resend } from 'resend';
 
@@ -18,6 +17,7 @@ import { validateUploadedFile } from '@/lib/files/validateUploadedFile';
 import { CONTRACT_PDF_TYPES } from '@/lib/files/allowed-types';
 import { logRedacted } from '@/lib/log';
 import { IdSchema } from '@/lib/schemas/common';
+import { deleteLegacyFile, uploadLegacyFile } from '@/lib/storage';
 
 const resend = new Resend(env.RESEND_API_KEY);
 
@@ -78,27 +78,31 @@ export async function uploadContractAction(_prev: ActionState, formData: FormDat
 
   try {
     const existing = await getContractByCampaign(campaignId);
-
-    if (existing?.fileUrl) {
-      try { await del(existing.fileUrl); } catch { /* ignore */ }
-    }
+    const previousFile = existing?.filePath ?? existing?.fileUrl ?? null;
 
     const safeName = fileEntry.name.replace(/[^\w.\-]/g, '_');
     const path     = `contracts/${campaignId}/${Date.now()}-${safeName}`;
-    const blob     = await put(path, fileEntry, { access: 'private', contentType: 'application/pdf' });
+    const stored   = await uploadLegacyFile({
+      name: path,
+      data: fileEntry,
+      contentType: 'application/pdf',
+    });
 
     if (existing) {
       await updateContract(existing.id, {
-        fileUrl: blob.url, filePath: path, fileName: fileEntry.name,
+        fileUrl: stored.url, filePath: stored.pathname, fileName: fileEntry.name,
         status: 'draft', notes,
       });
+      if (previousFile && previousFile !== stored.pathname) {
+        try { await deleteLegacyFile(previousFile); } catch { /* keep the updated contract even if cleanup fails */ }
+      }
       revalidate(campaignId);
       return { success: true, id: existing.id };
     }
 
     const row = await createContract({
       campaignId,
-      fileUrl: blob.url, filePath: path, fileName: fileEntry.name,
+      fileUrl: stored.url, filePath: stored.pathname, fileName: fileEntry.name,
       signedFileUrl: null, status: 'draft',
       sentAt: null, signedAt: null, notes,
       createdByUserId: session.user.id,

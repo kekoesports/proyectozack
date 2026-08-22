@@ -1,7 +1,6 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { put, del } from '@vercel/blob';
 import { z } from 'zod';
 
 import { requirePermission } from '@/lib/permissions';
@@ -17,6 +16,7 @@ import { validateUploadedFile } from '@/lib/files/validateUploadedFile';
 import { CONTRACT_PDF_TYPES } from '@/lib/files/allowed-types';
 import { logRedacted } from '@/lib/log';
 import { IdSchema } from '@/lib/schemas/common';
+import { deleteLegacyFile, uploadLegacyFile } from '@/lib/storage';
 
 type ActionState = { readonly error?: string; readonly success?: boolean; readonly contractId?: number };
 
@@ -61,7 +61,11 @@ export async function saveGeneratedContractAction(
   try {
     const safeName = fileName.replace(/[^\w.\-]/g, '_');
     const path     = `contracts/standalone/${session.user.id}/${Date.now()}-${safeName}`;
-    const blob     = await put(path, pdfFile, { access: 'private', contentType: 'application/pdf' });
+    const stored   = await uploadLegacyFile({
+      name: path,
+      data: pdfFile,
+      contentType: 'application/pdf',
+    });
 
     const row = await createGeneratedContract({
       title,
@@ -72,8 +76,8 @@ export async function saveGeneratedContractAction(
       brandId:         brandId     ?? null,
       campaignId:      campaignId  ?? null,
       status:          'draft',
-      fileUrl:         blob.url,
-      filePath:        path,
+      fileUrl:         stored.url,
+      filePath:        stored.pathname,
       fileName:        safeName,
       notes:           notes ?? null,
       sentAt:          null,
@@ -133,8 +137,8 @@ export async function deleteContractAction(id: number): Promise<ActionState> {
     const contract = await getGeneratedContract(id);
     if (!contract) return { error: 'Contrato no encontrado' };
 
-    if (contract.fileUrl) {
-      try { await del(contract.fileUrl); } catch { /* Blob already deleted or missing */ }
+    if (contract.filePath || contract.fileUrl) {
+      try { await deleteLegacyFile(contract.filePath ?? contract.fileUrl ?? ''); } catch { /* already deleted or missing */ }
     }
 
     await deleteGeneratedContract(id);
