@@ -22,15 +22,15 @@ Incluye:
 - alta interna de talento cuando no existe;
 - persistencia de GEO stats en perfil y red social;
 - creación de trackers por tipo y cantidad de entregable;
-- vínculo posterior de la Google Sheet del trato;
+- generación y vínculo best-effort de la Google Sheet del trato;
+- generación opcional de un PDF de contrato en estado borrador;
 - lectura del progreso ya existente en el CRM;
 - sincronización masiva con avisos únicos al cruzar 70, 80 y 100 %;
 - evidencias auditables y reversibles dentro del CRM;
 - resumen operativo de tratos, errores y 10 días sin enlaces nuevos.
 
-No incluye todavía la generación del contrato ni la copia de la plantilla de
-Google Drive: esas dos operaciones se orquestan desde n8n y después se adjuntan
-al trato mediante el CRM.
+No envía contratos ni crea firmantes automáticamente. Esas acciones tienen
+efecto jurídico y siguen requiriendo una confirmación explícita en el CRM.
 
 ## Instalación
 
@@ -141,6 +141,35 @@ hoja: aprobar dos veces un borrador o reintentar no deja huérfanas en Drive.
 | `GOOGLE_DRIVE_TRACKING_FOLDER_ID` | Carpeta donde se deja la copia |
 
 Ambas son **opcionales**: sin ellas la generación no ocurre y no se rompe nada.
+
+## Generar el borrador de contrato al aprobar
+
+Después de la aprobación humana del borrador, el CRM puede rellenar una
+plantilla activa, generar el PDF en el servidor y asociarlo al trato con estado
+`draft`. Es una operación best-effort: si falla, el trato y su Sheet permanecen
+creados. Repetir la aprobación reintenta la operación de forma idempotente.
+
+Esta generación solo se engancha al flujo de borradores revisados. El endpoint
+directo `POST /deals` no genera contratos, porque no acredita que una persona
+haya revisado el deal.
+
+| Variable | Qué es |
+|---|---|
+| `AUTOMATION_CONTRACT_DRAFTS_ENABLED` | Kill switch; debe ser `true` para generar |
+| `AUTOMATION_CONTRACT_TEMPLATE_ID` | Plantilla exacta opcional |
+
+Sin override se usa una plantilla sectorial solo cuando hay una única opción;
+si hay ambigüedad, se cae a una única `service_agreement` o `general`. Nunca se
+elige al azar entre dos contratos del mismo tipo. Los sectores
+`casino/gambling/iGaming` usan la plantilla `casino` cuando es inequívoca.
+
+El PDF lleva la marca **BORRADOR**. La automatización no añade firmantes, no
+llama a Resend y no cambia el estado a `pending_signature`. Antes de enviarlo,
+una persona debe abrir el trato, revisar texto, importes, entregables y plantilla,
+añadir los firmantes y confirmar el envío.
+
+Los PDFs nuevos usan la capa portable de almacenamiento: Vercel Blob mientras
+`STORAGE_DRIVER=vercel` y el disco privado del VPS cuando es `local`.
 
 ### Permisos que hay que dar en Drive
 
@@ -255,12 +284,12 @@ Discord ni n8n, conserva el estado canónico.
 
 1. Webhook o formulario interno recibe el trato.
 2. Nodo de validación construye el JSON canónico.
-3. HTTP Request crea el trato con una clave de idempotencia estable.
-4. Google Drive copia la plantilla correspondiente a la marca.
-5. Google Sheets adapta los bloques a las cantidades del deal.
-6. HTTP Request vincula la URL al `campaignId`.
-7. Google Docs genera el contrato desde la plantilla de marca.
-8. El CRM guarda el documento y su estado de firma.
+3. HTTP Request crea un borrador con una clave de idempotencia estable.
+4. Una persona revisa y aprueba el borrador en el CRM.
+5. El CRM crea el trato y sus trackers.
+6. El CRM copia y vincula la Sheet en la carpeta del creador.
+7. Si está habilitado, el CRM genera el contrato como PDF `draft`.
+8. Una persona revisa el contrato, añade firmantes y confirma el envío.
 
 ### Monitor de progreso
 

@@ -22,10 +22,38 @@ export function sanitizeFilename(name: string): string {
  * El token de Blob NUNCA se envía al cliente.
  */
 export async function streamPrivateBlob(input: {
-  readonly fileUrl: string;
+  /** URL histórica de Vercel Blob. */
+  readonly fileUrl?: string | null;
+  /** Clave portable del proveedor actual. Tiene prioridad sobre fileUrl. */
+  readonly storageKey?: string | null;
   readonly filename: string;
   readonly fallbackContentType?: string;
 }): Promise<NextResponse> {
+  const safeName = sanitizeFilename(input.filename);
+  const responseHeaders = {
+    'Content-Type': input.fallbackContentType ?? 'application/octet-stream',
+    'Content-Disposition': `inline; filename="${safeName}"`,
+    'Cache-Control': 'private, no-store',
+    'X-Content-Type-Options': 'nosniff',
+  };
+
+  if (input.storageKey) {
+    try {
+      const { openFile } = await import('@/lib/storage');
+      const stored = await openFile(input.storageKey);
+      return new NextResponse(stored.stream, { status: 200, headers: responseHeaders });
+    } catch {
+      // Durante la convivencia algunas filas antiguas pueden tener un
+      // filePath incorrecto pero conservar la URL válida. Se intenta la ruta
+      // heredada antes de responder 404.
+      if (!input.fileUrl) return new NextResponse('Archivo no disponible', { status: 404 });
+    }
+  }
+
+  if (!input.fileUrl) {
+    return new NextResponse('Archivo no disponible', { status: 404 });
+  }
+
   const token = env.BLOB_READ_WRITE_TOKEN;
   if (!token) {
     return new NextResponse('Servicio no disponible', { status: 503 });
@@ -44,8 +72,6 @@ export async function streamPrivateBlob(input: {
     input.fallbackContentType ??
     'application/octet-stream';
   const buffer = await blobRes.arrayBuffer();
-  const safeName = sanitizeFilename(input.filename);
-
   return new NextResponse(buffer, {
     status: 200,
     headers: {

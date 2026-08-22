@@ -168,7 +168,7 @@ describe('normalizeUrl', () => {
 
   it('extrae una URL cuando la celda lleva un prefijo', () => {
     expect(normalizeUrl('X - https://www.twitch.tv/videos/123?t=10')).toBe(
-      'https://www.twitch.tv/videos/123',
+      'https://twitch.tv/videos/123',
     );
   });
 

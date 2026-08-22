@@ -5,7 +5,6 @@ import { crmTaskTemplates } from '@/db/schema/crmTaskTemplates';
 import { db } from '@/lib/db';
 import { CRM_TASK_OPEN_STATUSES, isOpenTaskStatus } from '@/lib/schemas/task';
 import { ASSIGNABLE_TEAM_ROLES, isAssignableTeamUser } from '@/lib/team-roles';
-import { toLocalIsoDate } from '@/lib/utils/date';
 import { getIsoWeekLabel } from '@/lib/utils/week';
 
 import type { Role } from '@/lib/auth-guard';
@@ -52,21 +51,26 @@ function todayMadridIso(date = new Date()): string {
   }).format(date);
 }
 
-function toIsoDate(date: Date): string {
-  return toLocalIsoDate(date);
+function utcDateFromIso(iso: string): Date {
+  return new Date(`${iso}T00:00:00.000Z`);
 }
 
-function endOfWeekIso(date: Date): string {
-  const utc = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+function utcIsoDate(date: Date): string {
+  return date.toISOString().slice(0, 10);
+}
+
+function endOfWeekIso(todayIso: string): string {
+  const utc = utcDateFromIso(todayIso);
   const day = utc.getUTCDay();
   const daysUntilSunday = day === 0 ? 0 : 7 - day;
   utc.setUTCDate(utc.getUTCDate() + daysUntilSunday);
-  return toIsoDate(utc);
+  return utcIsoDate(utc);
 }
 
-function endOfMonthIso(date: Date): string {
-  const utc = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + 1, 0));
-  return toIsoDate(utc);
+function endOfMonthIso(todayIso: string): string {
+  const utc = utcDateFromIso(todayIso);
+  const end = new Date(Date.UTC(utc.getUTCFullYear(), utc.getUTCMonth() + 1, 0));
+  return utcIsoDate(end);
 }
 
 function visibilityCondition(session?: TaskSession) {
@@ -563,7 +567,7 @@ export function buildRecurringTaskInstances({
   readonly weekLabel: string;
 }): readonly NewCrmTask[] {
   const internalUsers = users.filter((u) => isAssignableTeamUser(u.role));
-  const todayIso = toIsoDate(today);
+  const todayIso = todayMadridIso(today);
   const isFirstDayOfMonth = todayIso.endsWith('-01');
   const rows: NewCrmTask[] = [];
 
@@ -574,10 +578,10 @@ export function buildRecurringTaskInstances({
     if (template.recurrence === 'daily') {
       dueDate = todayIso;
     } else if (template.recurrence === 'weekly') {
-      dueDate = endOfWeekIso(today);
+      dueDate = endOfWeekIso(todayIso);
     } else {
       if (!isFirstDayOfMonth) continue;
-      dueDate = endOfMonthIso(today);
+      dueDate = endOfMonthIso(todayIso);
     }
 
     const targetIds = template.defaultAssigneeUserId
