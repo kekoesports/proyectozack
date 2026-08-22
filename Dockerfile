@@ -29,7 +29,7 @@ COPY package.json package-lock.json ./
 RUN --mount=type=cache,target=/root/.npm npm ci
 
 # ── build ───────────────────────────────────────────────────────────────────
-FROM node:${NODE_VERSION} AS build
+FROM deps AS build
 WORKDIR /app
 
 ARG GIT_COMMIT_SHA=unknown
@@ -87,6 +87,7 @@ COPY --from=build --chown=node:node /app/public ./public
 # Datos de Tesseract (~8,5 MB). Se copian aparte porque viven en la raíz del
 # repo, no bajo public/, y el trazado de standalone no los recoge.
 COPY --from=build --chown=node:node /app/eng.traineddata /app/spa.traineddata ./
+COPY --from=build --chown=node:node /app/scripts/docker-runtime-smoke.mjs ./scripts/docker-runtime-smoke.mjs
 
 EXPOSE 3000
 
