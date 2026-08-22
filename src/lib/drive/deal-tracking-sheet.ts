@@ -34,7 +34,7 @@ let cachedToken: { token: string; expiresAt: number } | null = null;
 
 export type DealSheetConfig = {
   readonly templateId: string;
-  readonly folderId: string;
+  readonly fallbackFolderId?: string;
   readonly serviceAccountEmail: string;
   readonly serviceAccountPrivateKey: string;
 };
@@ -56,15 +56,22 @@ export function getDealSheetConfig(): DealSheetConfigResult {
 
   const faltan = [
     templateId ? null : 'GOOGLE_DRIVE_DEAL_TEMPLATE_ID',
-    folderId ? null : 'GOOGLE_DRIVE_TRACKING_FOLDER_ID',
     serviceAccountEmail ? null : 'GOOGLE_SERVICE_ACCOUNT_EMAIL',
     serviceAccountPrivateKey ? null : 'GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY',
   ].filter((x): x is string => x !== null);
 
-  if (faltan.length > 0 || !templateId || !folderId || !serviceAccountEmail || !serviceAccountPrivateKey) {
+  if (faltan.length > 0 || !templateId || !serviceAccountEmail || !serviceAccountPrivateKey) {
     return { ok: false, reason: 'missing-config', detail: `faltan: ${faltan.join(', ')}` };
   }
-  return { ok: true, config: { templateId, folderId, serviceAccountEmail, serviceAccountPrivateKey } };
+  return {
+    ok: true,
+    config: {
+      templateId,
+      ...(folderId ? { fallbackFolderId: folderId } : {}),
+      serviceAccountEmail,
+      serviceAccountPrivateKey,
+    },
+  };
 }
 
 function buildJwt(email: string, privateKey: string): string {
@@ -105,8 +112,23 @@ async function getWriteAccessToken(config: DealSheetConfig): Promise<string> {
 
 
 export type CreateDealSheetResult =
-  | { ok: true; spreadsheetId: string; url: string; name: string }
+  | {
+      ok: true;
+      spreadsheetId: string;
+      url: string;
+      name: string;
+      destination: 'creator' | 'fallback';
+      shareStatus: 'not-requested' | 'shared' | 'failed';
+      warnings: readonly string[];
+    }
   | { ok: false; reason: 'missing-config' | 'no-access' | 'drive-error'; detail: string };
+
+export type CreateDealSheetOptions = {
+  /** ID explícito de la carpeta del creador. Tiene prioridad sobre el fallback global. */
+  readonly folderId?: string | null;
+  /** Email del creador. Si existe, recibe permiso writer sobre la hoja. */
+  readonly shareWithEmail?: string | null;
+};
 
 /**
  * Copia la plantilla canónica a la carpeta de seguimiento.
@@ -118,19 +140,30 @@ export type CreateDealSheetResult =
 export async function createDealTrackingSheet(
   brandName: string,
   talentName: string,
+  options: CreateDealSheetOptions = {},
 ): Promise<CreateDealSheetResult> {
   const cfg = getDealSheetConfig();
   if (!cfg.ok) return { ok: false, reason: 'missing-config', detail: cfg.detail };
+
+  const creatorFolderId = options.folderId?.trim() || null;
+  const destinationFolderId = creatorFolderId ?? cfg.config.fallbackFolderId;
+  if (!destinationFolderId) {
+    return {
+      ok: false,
+      reason: 'missing-config',
+      detail: 'falta GOOGLE_DRIVE_TRACKING_FOLDER_ID o carpeta Drive del creador',
+    };
+  }
 
   const name = buildDealSheetName(brandName, talentName);
   try {
     const token = await getWriteAccessToken(cfg.config);
     const res = await fetch(
-      `${DRIVE_FILES}/${encodeURIComponent(cfg.config.templateId)}/copy?fields=id,name`,
+      `${DRIVE_FILES}/${encodeURIComponent(cfg.config.templateId)}/copy?supportsAllDrives=true&fields=id%2Cname`,
       {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, parents: [cfg.config.folderId] }),
+        body: JSON.stringify({ name, parents: [destinationFolderId] }),
         signal: AbortSignal.timeout(TIMEOUT_MS),
       },
     );
@@ -152,11 +185,42 @@ export async function createDealTrackingSheet(
     const { id } = await res.json() as { id?: string };
     if (!id) return { ok: false, reason: 'drive-error', detail: 'respuesta sin id' };
 
+    let shareStatus: 'not-requested' | 'shared' | 'failed' = 'not-requested';
+    const warnings: string[] = [];
+    const shareWithEmail = options.shareWithEmail?.trim() || null;
+    if (shareWithEmail) {
+      // Compartir es best-effort. La copia ya existe: convertir un fallo de
+      // permisos en error global provocaría un reintento y una hoja huérfana.
+      try {
+        const permission = await fetch(
+          `${DRIVE_FILES}/${encodeURIComponent(id)}/permissions?supportsAllDrives=true&sendNotificationEmail=true&fields=id`,
+          {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type: 'user', role: 'writer', emailAddress: shareWithEmail }),
+            signal: AbortSignal.timeout(TIMEOUT_MS),
+          },
+        );
+        if (permission.ok) {
+          shareStatus = 'shared';
+        } else {
+          shareStatus = 'failed';
+          warnings.push(`no se pudo compartir la hoja (drive-${permission.status})`);
+        }
+      } catch {
+        shareStatus = 'failed';
+        warnings.push('no se pudo compartir la hoja (error de red)');
+      }
+    }
+
     return {
       ok: true,
       spreadsheetId: id,
       url: `https://docs.google.com/spreadsheets/d/${id}/edit`,
       name,
+      destination: creatorFolderId ? 'creator' : 'fallback',
+      shareStatus,
+      warnings,
     };
   } catch (err) {
     const detail = err instanceof Error ? err.message : 'error desconocido';
