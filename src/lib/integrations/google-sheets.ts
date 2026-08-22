@@ -1,3 +1,5 @@
+import { createSign } from 'crypto';
+
 import { env } from '@/lib/env';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -90,12 +92,112 @@ const SHEETS_GRID_FETCH_TIMEOUT_MS = 30_000;
 /** Tope al Retry-After de Google. Ver la nota de withRetry. */
 const MAX_RETRY_AFTER_MS = 10_000;
 
-function getApiKey(): string {
-  const key = env.GOOGLE_SHEETS_API_KEY;
-  if (!key) {
-    throw new Error('Falta configurar GOOGLE_SHEETS_API_KEY en las variables de entorno.');
+const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token';
+const GOOGLE_SHEETS_READ_SCOPE = 'https://www.googleapis.com/auth/spreadsheets.readonly';
+
+let cachedServiceAccountToken: { token: string; expiresAt: number } | null = null;
+
+function getApiKey(): string | null {
+  return env.GOOGLE_SHEETS_API_KEY?.trim() || null;
+}
+
+function getServiceAccountConfig(): { email: string; privateKey: string } | null {
+  const email = env.GOOGLE_SERVICE_ACCOUNT_EMAIL?.trim();
+  const privateKey = env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY?.trim();
+  return email && privateKey ? { email, privateKey } : null;
+}
+
+function buildServiceAccountJwt(email: string, privateKey: string): string {
+  const now = Math.floor(Date.now() / 1000);
+  const header = Buffer.from(JSON.stringify({ alg: 'RS256', typ: 'JWT' })).toString('base64url');
+  const payload = Buffer.from(JSON.stringify({
+    iss: email,
+    scope: GOOGLE_SHEETS_READ_SCOPE,
+    aud: GOOGLE_TOKEN_URL,
+    exp: now + 3600,
+    iat: now,
+  })).toString('base64url');
+
+  const signer = createSign('RSA-SHA256');
+  signer.update(`${header}.${payload}`);
+  const signature = signer.sign(privateKey.replace(/\\n/g, '\n')).toString('base64url');
+  return `${header}.${payload}.${signature}`;
+}
+
+async function getServiceAccountToken(config: { email: string; privateKey: string }): Promise<string> {
+  if (cachedServiceAccountToken && cachedServiceAccountToken.expiresAt > Date.now() + 60_000) {
+    return cachedServiceAccountToken.token;
   }
-  return key;
+
+  const jwt = buildServiceAccountJwt(config.email, config.privateKey);
+  const response = await fetch(GOOGLE_TOKEN_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: `grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=${jwt}`,
+    signal: AbortSignal.timeout(SHEETS_FETCH_TIMEOUT_MS),
+  });
+  if (!response.ok) {
+    // El cuerpo de OAuth puede contener detalles de la credencial: no se lee ni registra.
+    throw new Error(`google-sheets-oauth-${response.status}`);
+  }
+
+  const json = await response.json() as { access_token?: string; expires_in?: number };
+  if (!json.access_token) throw new Error('google-sheets-oauth-sin-token');
+  cachedServiceAccountToken = {
+    token: json.access_token,
+    expiresAt: Date.now() + (json.expires_in ?? 3600) * 1000,
+  };
+  return json.access_token;
+}
+
+function appendApiKey(url: string, key: string): string {
+  return `${url}${url.includes('?') ? '&' : '?'}key=${encodeURIComponent(key)}`;
+}
+
+/**
+ * La cuenta de servicio es la vía preferente: permite leer hojas privadas que
+ * se le hayan compartido. Si esa hoja no es visible para la cuenta, se conserva
+ * el acceso histórico por API key para trackers públicos.
+ */
+async function fetchSheetsJson(url: string, timeoutMs: number): Promise<unknown> {
+  const serviceAccount = getServiceAccountConfig();
+  const apiKey = getApiKey();
+
+  if (!serviceAccount && !apiKey) {
+    throw new Error(
+      'Falta configurar GOOGLE_SERVICE_ACCOUNT_EMAIL/GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY o GOOGLE_SHEETS_API_KEY.',
+    );
+  }
+
+  if (serviceAccount) {
+    let oauthResponse: Response | null = null;
+    try {
+      const token = await getServiceAccountToken(serviceAccount);
+      oauthResponse = await fetch(url, {
+        cache: 'no-store',
+        headers: { Authorization: `Bearer ${token}` },
+        signal: AbortSignal.timeout(timeoutMs),
+      });
+    } catch (error) {
+      if (!apiKey) throw error;
+      // OAuth no disponible: una hoja pública todavía puede leerse con API key.
+    }
+    if (oauthResponse?.ok) return oauthResponse.json() as Promise<unknown>;
+    if (oauthResponse && (!apiKey || ![401, 403, 404].includes(oauthResponse.status))) {
+      // Solo los fallos de visibilidad/autenticación justifican probar la ruta
+      // pública. 429 y 5xx deben conservar su semántica de retry/error.
+      return handleSheetsResponse(oauthResponse);
+    }
+  }
+
+  if (!apiKey) {
+    throw new Error('Google Sheet no accesible con la cuenta de servicio configurada.');
+  }
+  const response = await fetch(appendApiKey(url, apiKey), {
+    cache: 'no-store',
+    signal: AbortSignal.timeout(timeoutMs),
+  });
+  return handleSheetsResponse(response);
 }
 
 function parseRetryAfter(headerValue: string | null): number | null {
@@ -113,7 +215,7 @@ async function handleSheetsResponse(response: Response): Promise<unknown> {
 
   if (response.status === 403) {
     throw new SheetsApiError(
-      'Google Sheet no accesible. Verifica que está compartido con "cualquiera con el enlace".',
+      'Google Sheet no accesible. Compártelo con la cuenta de servicio o con "cualquiera con el enlace".',
       403,
     );
   }
@@ -182,12 +284,10 @@ export async function withRetry<T>(
 
 export async function listSheetTabs(spreadsheetId: string): Promise<SheetTab[]> {
   return withRetry(async () => {
-    const key = getApiKey();
     const fields = encodeURIComponent('sheets.properties(sheetId,title,index)');
-    const url = `https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(spreadsheetId)}?key=${key}&fields=${fields}`;
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(spreadsheetId)}?fields=${fields}`;
 
-    const response = await fetch(url, { cache: 'no-store', signal: AbortSignal.timeout(SHEETS_FETCH_TIMEOUT_MS) });
-    const data = await handleSheetsResponse(response);
+    const data = await fetchSheetsJson(url, SHEETS_FETCH_TIMEOUT_MS);
 
     // safe: validated from Sheets API response
     const json = data as {
@@ -217,18 +317,12 @@ export async function readSheetGrid(
   sheetTitle: string,
 ): Promise<string[][]> {
   return withRetry(async () => {
-    const key = getApiKey();
     const range = encodeURIComponent(`'${sheetTitle.replace(/'/g, "''")}'!A1:ZZ500`);
     const fields = encodeURIComponent(
       'sheets(data(startRow,startColumn,rowData(values(formattedValue,effectiveValue,hyperlink,textFormatRuns(format(link(uri)))))))',
     );
-    const url = `https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(spreadsheetId)}?key=${key}&ranges=${range}&includeGridData=true&fields=${fields}`;
-
-    const response = await fetch(url, {
-      cache: 'no-store',
-      signal: AbortSignal.timeout(SHEETS_GRID_FETCH_TIMEOUT_MS),
-    });
-    const data = await handleSheetsResponse(response);
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(spreadsheetId)}?ranges=${range}&includeGridData=true&fields=${fields}`;
+    const data = await fetchSheetsJson(url, SHEETS_GRID_FETCH_TIMEOUT_MS);
 
     const json = data as {
       sheets?: Array<{
@@ -273,14 +367,12 @@ export async function fetchSpreadsheetMetadata(
   spreadsheetId: string,
 ): Promise<{ title: string; tabs: SheetTab[] }> {
   return withRetry(async () => {
-    const key = getApiKey();
     const fields = encodeURIComponent(
       'properties.title,sheets.properties(sheetId,title,index)',
     );
-    const url = `https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(spreadsheetId)}?key=${key}&fields=${fields}`;
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(spreadsheetId)}?fields=${fields}`;
 
-    const response = await fetch(url, { cache: 'no-store', signal: AbortSignal.timeout(SHEETS_FETCH_TIMEOUT_MS) });
-    const data = await handleSheetsResponse(response);
+    const data = await fetchSheetsJson(url, SHEETS_FETCH_TIMEOUT_MS);
 
     // safe: validated from Sheets API response
     const json = data as {

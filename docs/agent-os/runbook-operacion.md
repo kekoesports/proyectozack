@@ -5,8 +5,8 @@ producción, las tablas existen, los agentes están sembrados. Nada se ejecuta.
 
 Este documento dice tres cosas, en este orden: qué hay realmente, qué hace falta
 para encenderlo, y cómo es el día a día una vez encendido. Es autocontenido a
-propósito — no depende de los documentos del blueprint (PR #304), que siguen sin
-mergear.
+propósito; el blueprint explica las decisiones de diseño, pero no es necesario
+para operar el sistema.
 
 ---
 

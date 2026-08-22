@@ -20,7 +20,10 @@
       "name": "Cada 15 minutos",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
-      "position": [-640, 0],
+      "position": [
+        -640,
+        0
+      ],
       "notes": "El CRM descarta por externalId los mensajes ya vistos, así que repetir la lectura no duplica borradores. Bajar el intervalo solo añade llamadas a Discord."
     },
     {
@@ -53,27 +56,41 @@
       "name": "Config",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
-      "position": [-420, 0],
+      "position": [
+        -420,
+        0
+      ],
       "notes": "channelId es #pipeline-deals. NO usar el guild de ZaCkETiZOR: ese es la comunidad de un creador, no el servidor de operaciones. maxMensajes = 25 porque es el tope por lote del endpoint."
     },
     {
       "parameters": {
         "resource": "message",
         "operation": "getAll",
-        "channelId": "={{ $('Config').first().json.channelId }}",
-        "returnAll": false,
-        "limit": "={{ $('Config').first().json.maxMensajes }}",
+        "guildId": {
+          "__rl": true,
+          "value": "1522153792592806018",
+          "mode": "id"
+        },
+        "channelId": {
+          "__rl": true,
+          "value": "1533123521574862991",
+          "mode": "id"
+        },
+        "limit": 25,
         "options": {}
       },
       "id": "read-discord",
       "name": "Leer mensajes del canal",
       "type": "n8n-nodes-base.discord",
       "typeVersion": 2,
-      "position": [-200, 0],
+      "position": [
+        -200,
+        0
+      ],
       "retryOnFail": true,
       "maxTries": 3,
       "waitBetweenTries": 3000,
-      "notes": "Requiere MESSAGE CONTENT INTENT en el bot: sin él, 'content' llega vacío y ningún mensaje se reconoce como trato."
+      "notes": "Requiere MESSAGE CONTENT INTENT en el bot: sin el, \"content\" llega vacio y ningun mensaje se reconoce como trato. guildId y channelId van como resource locator ({__rl:true}) — con cadenas sueltas n8n rechaza publicar el workflow."
     },
     {
       "parameters": {
@@ -83,7 +100,10 @@
       "name": "Preparar lote",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [20, 0],
+      "position": [
+        20,
+        0
+      ],
       "notes": "Filtra bots y mensajes vacíos. Si no queda nada, devuelve [] y el workflow termina sin llamar al CRM."
     },
     {
@@ -103,7 +123,10 @@
       "name": "Enviar a CRM",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [240, 0],
+      "position": [
+        240,
+        0
+      ],
       "retryOnFail": true,
       "maxTries": 3,
       "waitBetweenTries": 5000,
@@ -112,16 +135,48 @@
   ],
   "connections": {
     "Cada 15 minutos": {
-      "main": [[{ "node": "Config", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Config": {
-      "main": [[{ "node": "Leer mensajes del canal", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Leer mensajes del canal",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Leer mensajes del canal": {
-      "main": [[{ "node": "Preparar lote", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Preparar lote",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Preparar lote": {
-      "main": [[{ "node": "Enviar a CRM", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Enviar a CRM",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   }
 }

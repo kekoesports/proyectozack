@@ -17,6 +17,7 @@ import { getAdminCodesByTalent } from '@/lib/queries/creatorCodes';
 import { listCrmBrandsForPicker, getBrandNamesByIds } from '@/lib/queries/crmBrands';
 import { listTrackersByTalentId, getTrackerSubtypeCounts } from '@/lib/queries/deal-trackers';
 import { TalentDetailTabs } from '@/features/admin/talents/components/TalentDetailTabs';
+import { getEconomicaTalento } from '@/lib/finance/talentEconomics';
 import type { TalentVertical } from '@/types';
 
 const PLATFORM_COLOR: Record<string, string> = {
@@ -77,6 +78,11 @@ export default async function TalentProfilePage({
     listCrmBrandsForPicker(),
     listTrackersByTalentId(talentId),
   ]);
+
+  // La economía del talento no la ve el rol staff: cruza importes de facturas
+  // y márgenes de campaña, que es justo lo que el filtro de visibilidad tapa
+  // en el resto de la ficha.
+  const economica = isStaffRole ? null : await getEconomicaTalento(talentId);
 
   const trackerIds = trackers.map((t) => t.id);
   const trackerSubtypeCounts = await getTrackerSubtypeCounts(trackerIds);
@@ -253,6 +259,7 @@ export default async function TalentProfilePage({
       <TalentDetailTabs
         talent={talent}
         business={business}
+        economica={economica}
         campaigns={campaigns}
         invoices={invoices}
         liveStatus={liveStatus}
