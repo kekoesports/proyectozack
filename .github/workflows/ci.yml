@@ -169,3 +169,19 @@ jobs:
           fi
           docker run --rm --entrypoint node \
             "socialpro:ci-$GITHUB_SHA" scripts/docker-runtime-smoke.mjs
+
+      - name: Build Agent OS worker image
+        run: |
+          docker build \
+            --file infra/agents/Dockerfile \
+            --tag "socialpro-agent-worker:ci-$GITHUB_SHA" \
+            .
+
+      - name: Verify worker boots safely with kill switch off
+        run: |
+          docker run --rm --entrypoint node \
+            -e DATABASE_URL=postgresql://worker:worker@127.0.0.1:5432/worker \
+            -e AGENTS_ENABLED=false \
+            "socialpro-agent-worker:ci-$GITHUB_SHA" \
+            --import tsx --require ./scripts/worker-preload.cjs \
+            src/worker/agent-worker.ts --once
