@@ -1,7 +1,7 @@
 // Runs server-side only. Uses pdfjs-dist to extract positioned text items
 // from a PDF buffer. No rendering, no canvas — text layer only.
 
-// pdfjs-dist v5 main build uses DOMMatrix (browser-only). Use legacy build for Node.js.
+// pdfjs-dist v6 main build uses DOMMatrix (browser-only). Use legacy build for Node.js.
 // Dynamic import defers module evaluation to call time, avoiding DOMMatrix ReferenceError
 // during SSR module initialization when Turbopack bundles the server action chain.
 import type { TextItem, TextMarkedContent } from 'pdfjs-dist/types/src/display/api';
@@ -27,7 +27,7 @@ function isTextItem(item: TextItem | TextMarkedContent): item is TextItem {
   return 'str' in item && 'transform' in item;
 }
 
-// pdfjs-dist 5.x references DOMMatrix at module init even in the legacy build.
+// pdfjs-dist 6.x references DOMMatrix at module init even in the legacy build.
 // We only do text extraction (no canvas/rendering) so this stub is never invoked.
 class DOMMatrixStub {
   a=1;b=0;c=0;d=1;e=0;f=0;
@@ -71,7 +71,6 @@ export async function extractPdfText(buffer: ArrayBuffer | Uint8Array): Promise<
     data,
     disableFontFace: true,
     useSystemFonts: false,
-    isEvalSupported: false,
   });
   const doc = await loadingTask.promise;
 
@@ -116,9 +115,10 @@ export async function extractPdfText(buffer: ArrayBuffer | Uint8Array): Promise<
     page.cleanup();
   }
 
-  await doc.destroy();
+  const pageCount = doc.numPages;
+  await loadingTask.destroy();
 
-  return { pageCount: doc.numPages, items, text: fullText, pageSizes };
+  return { pageCount, items, text: fullText, pageSizes };
 }
 
 export type TextLine = {
