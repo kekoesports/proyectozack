@@ -45,6 +45,12 @@ export const env = createEnv({
     // Token dedicado para las operaciones CRM iniciadas por n8n.
     // Fail-closed: los endpoints /api/automation/* devuelven 503 si falta.
     AUTOMATION_API_TOKEN: z.string().min(32).optional(),
+    // Generación best-effort de un PDF de contrato en estado borrador al
+    // aprobar un deal automatizado. Nunca añade firmantes ni envía correos.
+    AUTOMATION_CONTRACT_DRAFTS_ENABLED: z.enum(['true', 'false']).optional().default('false').transform((v) => v === 'true'),
+    // Override opcional. Sin él se elige una plantilla activa por sector y se
+    // cae a service_agreement/general.
+    AUTOMATION_CONTRACT_TEMPLATE_ID: z.coerce.number().int().positive().optional(),
     GEMINI_API_KEY: z.string().min(1).optional(),
     GEMINI_MODEL: z.string().min(1).optional(),
     // NewsData.io API key para monitorización de noticias
@@ -206,6 +212,8 @@ export const env = createEnv({
     GOOGLE_DRIVE_TRACKING_FOLDER_ID: process.env.GOOGLE_DRIVE_TRACKING_FOLDER_ID,
     TARGETS_IMPORT_TOKEN: process.env.TARGETS_IMPORT_TOKEN,
     AUTOMATION_API_TOKEN: process.env.AUTOMATION_API_TOKEN,
+    AUTOMATION_CONTRACT_DRAFTS_ENABLED: process.env.AUTOMATION_CONTRACT_DRAFTS_ENABLED,
+    AUTOMATION_CONTRACT_TEMPLATE_ID: process.env.AUTOMATION_CONTRACT_TEMPLATE_ID,
     GEMINI_API_KEY: process.env.GEMINI_API_KEY,
     GEMINI_MODEL: process.env.GEMINI_MODEL,
     NEWSDATA_API_KEY: process.env.NEWSDATA_API_KEY,

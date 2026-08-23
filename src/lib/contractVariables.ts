@@ -46,7 +46,7 @@ export function buildContractVars(c: CampaignWithRelations): Record<string, stri
     total_amount:      fmt(c.amountBrand),
     commission:        fmt(Number(c.amountBrand ?? 0) - Number(c.amountTalent ?? 0)),
     talent_amount:     fmt(c.amountTalent),
-    currency:          'EUR',
+    currency:          c.currency || 'EUR',
 
     // Marca
     brand_name:        c.brand.name,

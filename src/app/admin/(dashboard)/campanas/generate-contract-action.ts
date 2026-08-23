@@ -1,7 +1,6 @@
 ﻿'use server';
 
 import { revalidatePath } from 'next/cache';
-import { put } from '@vercel/blob';
 import { z } from 'zod';
 
 import { requirePermission } from '@/lib/permissions';
@@ -13,6 +12,7 @@ import { validateUploadedFile } from '@/lib/files/validateUploadedFile';
 import { CONTRACT_PDF_TYPES } from '@/lib/files/allowed-types';
 import { logRedacted } from '@/lib/log';
 import { IdSchema } from '@/lib/schemas/common';
+import { deleteLegacyFile, uploadLegacyFile } from '@/lib/storage';
 
 type ActionState = { readonly error?: string; readonly success?: boolean; readonly contractId?: number };
 
@@ -55,22 +55,30 @@ export async function saveGeneratedContractAction(
 
   try {
     const path = `contracts/generated/${campaignId}/${Date.now()}-${fileName.replace(/[^\w.\-]/g, '_')}`;
-    const blob = await put(path, pdfFile, { access: 'private', contentType: 'application/pdf' });
+    const stored = await uploadLegacyFile({
+      name: path,
+      data: pdfFile,
+      contentType: 'application/pdf',
+    });
 
     const existing = await getContractByCampaign(campaignId);
 
     if (existing) {
+      const previousFile = existing.filePath ?? existing.fileUrl ?? null;
       await updateContract(existing.id, {
-        fileUrl: blob.url, filePath: path, fileName,
+        fileUrl: stored.url, filePath: stored.pathname, fileName,
         status: 'draft',
       });
+      if (previousFile && previousFile !== stored.pathname) {
+        try { await deleteLegacyFile(previousFile); } catch { /* replacement is already committed */ }
+      }
       revalidatePath(`/admin/campanas/${campaignId}`);
       return { success: true, contractId: existing.id };
     }
 
     const row = await createContract({
       campaignId,
-      fileUrl: blob.url, filePath: path, fileName,
+      fileUrl: stored.url, filePath: stored.pathname, fileName,
       signedFileUrl: null, status: 'draft',
       sentAt: null, signedAt: null, notes: `Generado desde plantilla ${templateId}`,
       createdByUserId: session.user.id,

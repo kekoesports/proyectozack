@@ -78,6 +78,9 @@ function findEvidenceCell(row: readonly string[], startCol: number): {
 } | null {
   for (let col = startCol; col < row.length; col++) {
     const value = (row[col] ?? '').trim();
+    // En la plantilla compacta puede haber otro triplete a la derecha. Si el
+    // triplete actual no tiene enlace, no debemos robar el del siguiente tipo.
+    if (col > startCol && normalizedCompactLabel(value)) return null;
     if (/https?:\/\//i.test(value)) return { value, col };
   }
   return null;

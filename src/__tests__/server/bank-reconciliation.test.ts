@@ -112,8 +112,10 @@ describe('applyBankMapping', () => {
   it('parsea fecha en formato español DD/MM/YYYY', () => {
     const rows = [['15/01/2024', 'test', '100', 'x']];
     const results = applyBankMapping({ headers, rows, mapping });
-    expect(results[0]!.bookingDate.getDate()).toBe(15);
-    expect(results[0]!.bookingDate.getMonth()).toBe(0); // enero = 0
+    // Las fechas bancarias son fechas civiles persistidas en UTC. Usar los
+    // getters locales hace que el test cambie de día según la TZ del runner.
+    expect(results[0]!.bookingDate.getUTCDate()).toBe(15);
+    expect(results[0]!.bookingDate.getUTCMonth()).toBe(0); // enero = 0
   });
 
   it('parsea importe en formato español con coma decimal', () => {

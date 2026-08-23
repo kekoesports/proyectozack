@@ -11,6 +11,7 @@ import {
   type AutomationDealProgress,
 } from '@/lib/queries/automationDeals';
 import { ensureDealTrackingSheet } from '@/lib/queries/ensureDealTrackingSheet';
+import { ensureCampaignContractDraft } from '@/lib/queries/ensureCampaignContractDraft';
 import {
   AutomationDealCreate,
   type AutomationDealDraftCreateInput,
@@ -212,6 +213,12 @@ export async function reviewAutomationDealDraft(input: {
   const draft = await getAutomationDealDraft(input.id);
   if (!draft) return null;
   if (draft.status === 'created' && draft.campaignId) {
+    // Repetir explícitamente la aprobación repara fallos transitorios sin
+    // duplicar nada. Los helpers son idempotentes y siguen siendo best-effort.
+    if (input.action === 'approve') {
+      await ensureDealTrackingSheet(draft.campaignId);
+      await ensureCampaignContractDraft(draft.campaignId);
+    }
     return {
       draftId: draft.id,
       status: draft.status,
@@ -265,6 +272,9 @@ export async function reviewAutomationDealDraft(input: {
   // bloquear. Aprobar el borrador dos veces no crea una segunda hoja porque
   // ensureDealTrackingSheet corta si el trato ya tiene trackingSheetUrl.
   await ensureDealTrackingSheet(deal.campaignId);
+  // El contrato, cuando está habilitado, se crea solo como PDF draft. No se
+  // añaden firmantes ni se envían correos desde una automatización.
+  await ensureCampaignContractDraft(deal.campaignId);
   await db
     .update(automationDealDrafts)
     .set({
