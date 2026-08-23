@@ -19,7 +19,7 @@ export function resolveAgentModelProvider(providerName: string, modelName: strin
   if (providerName === 'gemini') {
     const apiKey = env.GEMINI_API_KEY;
     if (!apiKey) return new NullAgentModelProvider();
-    return new GeminiAgentModelProvider(apiKey, modelName ?? env.GEMINI_MODEL ?? 'gemini-2.5-flash');
+    return new GeminiAgentModelProvider(apiKey, modelName ?? env.GEMINI_MODEL ?? 'gemini-3.6-flash');
   }
   return new NullAgentModelProvider();
 }

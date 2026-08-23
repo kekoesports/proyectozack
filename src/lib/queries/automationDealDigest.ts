@@ -60,6 +60,7 @@ export type AutomationDealDigest = {
     readonly missingSheets: number;
     readonly missingTargets: number;
     readonly completed: number;
+    readonly excludedOldCompleted: number;
     readonly prepareInvoice: number;
     readonly stale: number;
   };
@@ -137,7 +138,7 @@ export async function getAutomationDealDigest(now = new Date()): Promise<Automat
     grouped.set(row.campaignId, current);
   }
 
-  const deals = Array.from(grouped.values()).map((row): AutomationDealDigestRow => {
+  const allDeals = Array.from(grouped.values()).map((row): AutomationDealDigestRow => {
     const progressPct = row.targetCount > 0
       ? Math.min(100, Math.round((row.currentCount / row.targetCount) * 100))
       : 0;
@@ -159,6 +160,12 @@ export async function getAutomationDealDigest(now = new Date()): Promise<Automat
     };
   }).sort((left, right) => actionPriority(left.nextAction) - actionPriority(right.nextAction));
 
+  // Los tratos terminados hace tiempo permanecen a veces en estados activos
+  // mientras se cierra la parte administrativa. No aportan nada al parte
+  // diario y tapaban los asuntos que sí requieren atención.
+  const deals = allDeals.filter(shouldIncludeInDigest);
+  const excludedOldCompleted = allDeals.length - deals.length;
+
   return {
     generatedAt: now.toISOString(),
     staleAfterDays: STALE_AFTER_DAYS,
@@ -168,11 +175,16 @@ export async function getAutomationDealDigest(now = new Date()): Promise<Automat
       missingSheets: deals.filter((deal) => deal.nextAction === 'missing_sheet').length,
       missingTargets: deals.filter((deal) => deal.nextAction === 'missing_targets').length,
       completed: deals.filter((deal) => deal.nextAction === 'completed').length,
+      excludedOldCompleted,
       prepareInvoice: deals.filter((deal) => deal.nextAction === 'prepare_invoice').length,
       stale: deals.filter((deal) => deal.nextAction === 'stale').length,
     },
     deals,
   };
+}
+
+export function shouldIncludeInDigest(deal: Pick<AutomationDealDigestRow, 'progressPct' | 'inactiveDays'>): boolean {
+  return !(deal.progressPct >= 100 && deal.inactiveDays >= STALE_AFTER_DAYS);
 }
 
 export function classifyNextAction(input: {

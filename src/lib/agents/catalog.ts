@@ -60,7 +60,7 @@ export const AGENT_CATALOG: readonly AgentCatalogEntry[] = [
     promptVersion: 'v0',
     policyVersion: 'v0',
     modelProvider: 'gemini',
-    modelName: 'gemini-2.5-flash',
+    modelName: 'gemini-3.6-flash',
     maxConcurrentRuns: 1,
     maxRunsPerDay: 48,
     maxTurnsPerRun: 6,

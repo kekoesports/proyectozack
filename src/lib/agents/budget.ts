@@ -134,6 +134,8 @@ export type ModelPricing = {
 export const MODEL_PRICING: Readonly<Record<string, ModelPricing>> = {
   'gemini-2.0-flash': { inputMicrosPerMillion: 100_000, outputMicrosPerMillion: 400_000 },
   'gemini-2.5-flash': { inputMicrosPerMillion: 300_000, outputMicrosPerMillion: 2_500_000 },
+  // Precio introductorio Standard vigente hasta el 31-12-2026.
+  'gemini-3.6-flash': { inputMicrosPerMillion: 750_000, outputMicrosPerMillion: 3_750_000 },
 };
 
 export type CostEstimate = {
