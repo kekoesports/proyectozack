@@ -13,8 +13,12 @@ import { parseFormData } from '@/lib/forms/parseFormData';
 import { firstError } from '@/lib/forms/firstError';
 import { logRedacted } from '@/lib/log';
 import { StaffInvite, STAFF_ROLES } from '@/lib/schemas/staffInvite';
+import {
+  resetStaffPasswordCredential,
+  StaffPasswordResetError,
+} from '@/lib/auth/resetStaffPassword';
 
-type ActionResult = { readonly error?: string };
+type ActionResult = { readonly error?: string; readonly success?: boolean };
 
 type InviteState = {
   error?: string;
@@ -100,4 +104,43 @@ export async function removeUserAction(userId: unknown): Promise<ActionResult> {
 
   revalidateEquipo();
   return {};
+}
+
+export async function resetStaffPasswordAction(
+  userId: unknown,
+  newPassword: unknown,
+  confirmPassword: unknown,
+): Promise<ActionResult> {
+  const adminSession = await requirePermission('usuarios', 'manage_users');
+
+  if (typeof userId !== 'string' || !userId) return { error: 'ID inválido' };
+  if (userId === adminSession.user.id) {
+    return { error: 'Usa tu perfil para cambiar tu propia contraseña' };
+  }
+  if (typeof newPassword !== 'string' || newPassword.length < 12) {
+    return { error: 'La contraseña debe tener al menos 12 caracteres' };
+  }
+  if (newPassword.length > 128) {
+    return { error: 'La contraseña no puede superar 128 caracteres' };
+  }
+  if (newPassword !== confirmPassword) {
+    return { error: 'Las contraseñas no coinciden' };
+  }
+
+  try {
+    await resetStaffPasswordCredential({ userId, newPassword });
+    logRedacted('info', '[admin] Staff password reset', {
+      actorUserId: adminSession.user.id,
+      targetUserId: userId,
+    });
+  } catch (err) {
+    if (err instanceof StaffPasswordResetError) {
+      return { error: 'El usuario de equipo no existe' };
+    }
+    logRedacted('error', '[admin] Staff password reset error', err);
+    return { error: 'No se pudo actualizar la contraseña' };
+  }
+
+  revalidateEquipo();
+  return { success: true };
 }
