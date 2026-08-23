@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { motion } from 'motion/react';
 import { normalizePlatform } from '@/lib/utils/platform';
 import type { TalentWithRelations } from '@/types';
+import { buildTalentImageAlt } from '@/lib/talentSeo';
 
 type CreatorHeroProps = {
   talent: TalentWithRelations;
@@ -75,7 +76,7 @@ export function CreatorHero({ talent }: CreatorHeroProps) {
               {talent.photoUrl ? (
                 <Image
                   src={talent.photoUrl}
-                  alt={talent.name}
+                  alt={buildTalentImageAlt(talent)}
                   fill
                   sizes="(max-width: 768px) 112px, 144px"
                   className="object-cover object-top"
