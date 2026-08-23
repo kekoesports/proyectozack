@@ -2,6 +2,7 @@ import { ImageResponse } from 'next/og';
 import { sql } from 'drizzle-orm';
 import { rawRows } from '@/lib/db';
 import { safeFetchImageAsBase64 } from '@/lib/security/safeImageFetch';
+import { buildTalentImageAlt } from '@/lib/talentSeo';
 
 export const dynamic = 'force-dynamic';
 
@@ -13,14 +14,14 @@ export async function GET(req: Request) {
     const slug = searchParams.get('slug') ?? '';
 
     let name = slug ? slug.toUpperCase().replace(/-/g, ' ') : 'CREADOR';
-    let role = '', game = '', initials = name.slice(0, 2);
+    let role = '', game = '', creatorCountry: string | null = null, initials = name.slice(0, 2);
     let photoSrc: string | null = null;
     let c1 = '#f5632a', c2 = '#8b3aad';
 
     if (slug) {
       try {
         const talentRows = await rawRows(sql`
-          SELECT name, role, game, initials, photo_url, gradient_c1, gradient_c2
+          SELECT name, role, game, creator_country, initials, photo_url, gradient_c1, gradient_c2
           FROM talents WHERE slug = ${slug} LIMIT 1
         `);
 
@@ -29,6 +30,7 @@ export async function GET(req: Request) {
           name     = String(t.name ?? name);
           role     = String(t.role ?? '');
           game     = String(t.game ?? '');
+          creatorCountry = t.creator_country ? String(t.creator_country) : null;
           initials = String(t.initials ?? name.slice(0, 2));
           c1       = String(t.gradient_c1 ?? c1);
           c2       = String(t.gradient_c2 ?? c2);
@@ -44,6 +46,13 @@ export async function GET(req: Request) {
     }
 
     const nameSize = name.length > 14 ? 64 : name.length > 10 ? 76 : 90;
+    const photoAlt = buildTalentImageAlt({
+      name,
+      role,
+      game,
+      platform: '',
+      creatorCountry,
+    });
 
     const imgResp = new ImageResponse(
       (
@@ -54,7 +63,7 @@ export async function GET(req: Request) {
           <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 56, padding: '56px 72px 56px 80px' }}>
             {photoSrc ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={photoSrc} width={200} height={200} style={{ borderRadius: 16, objectFit: 'cover', flexShrink: 0 }} alt={name} />
+              <img src={photoSrc} width={200} height={200} style={{ borderRadius: 16, objectFit: 'cover', flexShrink: 0 }} alt={photoAlt} />
             ) : (
               <div style={{ width: 200, height: 200, borderRadius: 16, flexShrink: 0, background: `linear-gradient(135deg,${c1},${c2})`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <span style={{ fontSize: 72, fontWeight: 900, color: 'white' }}>{initials.toUpperCase()}</span>

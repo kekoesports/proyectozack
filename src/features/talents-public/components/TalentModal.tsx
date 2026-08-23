@@ -9,6 +9,7 @@ import { StatusBadge } from '@/components/ui/StatusBadge';
 import { SocialIcon } from '@/components/ui/SocialIcon';
 import { gradientStyle } from '@/lib/utils/gradient';
 import { DURATION, EASE } from '@/lib/utils/animation';
+import { buildTalentImageAlt } from '@/lib/talentSeo';
 
 type TalentModalProps = {
   readonly talent: TalentWithRelations;
@@ -108,7 +109,7 @@ export function TalentModal({ talent, onClose }: TalentModalProps): React.JSX.El
           {talent.photoUrl && (
             <Image
               src={talent.photoUrl}
-              alt={talent.name}
+              alt={buildTalentImageAlt(talent)}
               fill
               sizes="(max-width: 640px) 100vw, 600px"
               className="object-cover object-top"

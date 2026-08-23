@@ -9,6 +9,7 @@ import { HeroSponsorCard } from '@/features/giveaways/components/HeroSponsorCard
 import { CodeRowMini } from '@/features/giveaways/components/CodeRowMini';
 import { GiveawayRow } from '@/features/giveaways/components/GiveawayRow';
 import { absoluteUrl } from '@/lib/site-url';
+import { buildTalentImageAlt } from '@/lib/talentSeo';
 import type { CreatorCodeWithTalent, GiveawayWithTalent, Talent } from '@/types';
 
 export const revalidate = 3600;
@@ -146,7 +147,7 @@ export default async function RootCreatorPage({ params }: PageProps): Promise<Re
             {talent.photoUrl ? (
               <Image
                 src={talent.photoUrl}
-                alt={talent.name}
+                alt={buildTalentImageAlt(talent)}
                 fill
                 sizes="80px"
                 className="object-cover"

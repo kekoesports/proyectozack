@@ -8,6 +8,7 @@ type Props = {
   slug: string;
   talentName: string;
   talentPhotoUrl: string | null;
+  talentImageAlt: string;
   gradientC1: string;
   gradientC2: string;
   /** 'sidebar' = columna derecha desktop | 'strip' = franja mobile */
@@ -98,6 +99,7 @@ export function TalentLiveWidget({
   slug,
   talentName,
   talentPhotoUrl,
+  talentImageAlt,
   gradientC1,
   gradientC2: _gradientC2,
   variant = 'sidebar',
@@ -214,7 +216,7 @@ export function TalentLiveWidget({
         {/* Avatar */}
         <div className="relative w-8 h-8 rounded-full overflow-hidden shrink-0 bg-white/10">
           {talentPhotoUrl ? (
-            <Image src={talentPhotoUrl} alt={talentName} fill className="object-cover" sizes="32px" />
+            <Image src={talentPhotoUrl} alt={talentImageAlt} fill className="object-cover" sizes="32px" />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-[9px] font-black text-white/30">
               {talentName.slice(0, 2).toUpperCase()}
