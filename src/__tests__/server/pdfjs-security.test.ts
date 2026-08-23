@@ -15,6 +15,10 @@ const SELF_HOSTED_WORKER = fs.readFileSync(
   path.join(ROOT, 'public', 'tessdata', 'pdf.worker.min.mjs'),
   'utf8',
 );
+const DOCKER_SMOKE = fs.readFileSync(
+  path.join(ROOT, 'scripts', 'docker-runtime-smoke.mjs'),
+  'utf8',
+);
 const PACKAGE = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8')) as {
   dependencies?: Record<string, string>;
   overrides?: Record<string, string>;
@@ -25,6 +29,12 @@ describe('PDF.js security baseline', () => {
     for (const source of [SERVER_PARSER, CLIENT_OCR]) {
       expect(source).not.toMatch(/pdf_viewer|PDFScriptingManager|AnnotationLayer/);
     }
+  });
+
+  it('cierra PDF.js v6 mediante la tarea de carga también en el smoke de Docker', () => {
+    expect(SERVER_PARSER).toMatch(/loadingTask\.destroy\(\)/);
+    expect(DOCKER_SMOKE).toMatch(/pdfjsLoadingTask\.destroy\(\)/);
+    expect(DOCKER_SMOKE).not.toMatch(/pdfjsDocument\.destroy\(\)/);
   });
 
   it('fija versiones corregidas para PDF.js, su worker y js-yaml', () => {

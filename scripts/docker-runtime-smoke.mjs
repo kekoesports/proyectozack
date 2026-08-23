@@ -60,14 +60,14 @@ sourceDocument.destroy();
 
 await import('pdfjs-dist/legacy/build/pdf.worker.mjs');
 const { getDocument } = await import('pdfjs-dist/legacy/build/pdf.mjs');
-const pdfjsDocument = await getDocument({
+const pdfjsLoadingTask = getDocument({
   // pdfjs transfiere y separa el ArrayBuffer recibido. Mantener el original
   // para que MuPDF pueda abrir la misma muestra después.
   data: pdfBytes.slice(),
   disableFontFace: true,
   useSystemFonts: false,
-  isEvalSupported: false,
-}).promise;
+});
+const pdfjsDocument = await pdfjsLoadingTask.promise;
 const pdfjsPage = await pdfjsDocument.getPage(1);
 const textContent = await pdfjsPage.getTextContent();
 const extractedText = textContent.items
@@ -76,7 +76,7 @@ const extractedText = textContent.items
   .join(' ');
 assert(extractedText.includes('SOCIALPRO 2026'), 'pdfjs no extrajo el texto esperado');
 pdfjsPage.cleanup();
-await pdfjsDocument.destroy();
+await pdfjsLoadingTask.destroy();
 
 const mupdfDocument = mupdf.Document.openDocument(pdfBytes, 'application/pdf');
 assert(mupdfDocument.countPages() === 1, 'MuPDF no abrió el PDF sintético');
