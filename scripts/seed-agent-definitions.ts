@@ -1,7 +1,7 @@
 import { config } from 'dotenv';
 config({ path: '.env.local' });
 
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { neon } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-http';
 
@@ -39,6 +39,7 @@ async function main(): Promise<void> {
   let actualizados = 0;
 
   for (const agente of AGENT_CATALOG) {
+    const settingsSistema = agente.systemRole ? { systemRole: agente.systemRole } : {};
     const [existente] = await db
       .select({ id: schema.agentDefinitions.id })
       .from(schema.agentDefinitions)
@@ -66,7 +67,7 @@ async function main(): Promise<void> {
         // Lo único que va en settings: el rol con el que se ejecuta sin humano
         // detrás. Nada sensible — un rol no es un secreto — y sin él las tools
         // que exijan un permiso que `analyst` no tiene fallarían en silencio.
-        settingsJson: agente.systemRole ? { systemRole: agente.systemRole } : {},
+        settingsJson: settingsSistema,
       })
       .onConflictDoUpdate({
         target: schema.agentDefinitions.slug,
@@ -85,6 +86,14 @@ async function main(): Promise<void> {
           maxToolCallsPerRun: agente.maxToolCallsPerRun,
           maxDurationSeconds: agente.maxDurationSeconds,
           monthlyBudgetMicros: agente.monthlyBudgetMicros,
+          // El rol vive en código, pero el JSON podrá guardar umbrales
+          // ajustados por operación. Mezclar evita borrar esos ajustes al
+          // resembrar; los agentes sin rol explícito no tocan settings.
+          ...(agente.systemRole
+            ? {
+                settingsJson: sql`${schema.agentDefinitions.settingsJson} || ${JSON.stringify(settingsSistema)}::jsonb`,
+              }
+            : {}),
           updatedAt: new Date(),
         },
       });
