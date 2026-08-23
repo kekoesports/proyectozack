@@ -131,6 +131,50 @@
       "maxTries": 3,
       "waitBetweenTries": 5000,
       "notes": "Crea BORRADORES, nunca campañas. No toca /deals/sync: ese endpoint sube el watermark de avisos 70/80/100 antes de que salgan, y el watermark solo sube."
+    },
+    {
+      "parameters": {
+        "jsCode": "// Convierte el resultado del CRM en una reacción idempotente sobre el mensaje original.\n// 👀 = leído y pendiente de revisión; ⚠️ = guardado pero incompleto;\n// ✅ = trato ya aprobado; 🚫 = rechazado; ❌ = fallo, se reintentará.\nconst outcomes = Array.isArray($json.outcomes) ? $json.outcomes : [];\nconst channelId = String($('Config').first().json.channelId);\nconst emojiByStatus = {\n  missing_info: '⚠️',\n  pending_review: '👀',\n  created: '✅',\n  rejected: '🚫',\n};\n\nreturn outcomes.flatMap((outcome) => {\n  if (!outcome || outcome.result === 'ignored') return [];\n  const emoji = outcome.result === 'failed'\n    ? '❌'\n    : (emojiByStatus[outcome.status] || '👀');\n  return [{\n    json: {\n      messageId: String(outcome.messageId),\n      channelId,\n      emoji,\n      result: outcome.result,\n      status: outcome.status || null,\n      draftId: outcome.draftId || null,\n    },\n  }];\n});"
+      },
+      "id": "build-discord-feedback",
+      "name": "Preparar estado Discord",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        460,
+        0
+      ],
+      "notes": "Las reacciones son idempotentes: volver a leer los mismos 25 mensajes no duplica nada. Leyenda: 👀 pendiente, ⚠️ faltan datos, ✅ aprobado, 🚫 rechazado, ❌ fallo/reintento."
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "react",
+        "guildId": {
+          "__rl": true,
+          "value": "1522153792592806018",
+          "mode": "id"
+        },
+        "channelId": {
+          "__rl": true,
+          "value": "={{ $json.channelId }}",
+          "mode": "id"
+        },
+        "messageId": "={{ $json.messageId }}",
+        "emoji": "={{ $json.emoji }}"
+      },
+      "id": "react-discord-status",
+      "name": "Marcar estado en Discord",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [
+        680,
+        0
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "notes": "Asignar la credencial Discord Bot account al importar. El bot necesita Add Reactions y Read Message History en #pipeline-deals."
     }
   ],
   "connections": {
@@ -172,6 +216,28 @@
         [
           {
             "node": "Enviar a CRM",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar a CRM": {
+      "main": [
+        [
+          {
+            "node": "Preparar estado Discord",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar estado Discord": {
+      "main": [
+        [
+          {
+            "node": "Marcar estado en Discord",
             "type": "main",
             "index": 0
           }

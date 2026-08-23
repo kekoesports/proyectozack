@@ -339,6 +339,21 @@ La respuesta resume el lote y detalla cada mensaje con uno de estos resultados:
 | `ignored` | no parece un trato (charla del canal); no deja borrador |
 | `failed` | error puntual; el resto del lote sigue y n8n reintenta en la próxima pasada |
 
+El lector deja una reacción idempotente en el mensaje original para que el
+estado se vea sin abrir n8n:
+
+| reacción | significado |
+|---|---|
+| 👀 | leído y guardado como borrador pendiente de revisión |
+| ⚠️ | leído y guardado, pero faltan datos; se completa dentro del CRM |
+| ✅ | el borrador ya fue aprobado y creó el trato |
+| 🚫 | el borrador fue rechazado |
+| ❌ | fallo puntual; el mensaje se volverá a intentar |
+
+Los mensajes incompletos **no se descartan**. Siempre que parezcan un trato,
+quedan en `/admin/automation-drafts` con estado `missing_info` y el detalle de
+los campos que hay que corregir.
+
 **Idempotencia:** la clave es `discord:message:<id>`. El endpoint corta **antes**
 de parsear si el mensaje ya se procesó — sin ese corte, cada sondeo repetiría el
 trabajo unas 96 veces al día por mensaje.

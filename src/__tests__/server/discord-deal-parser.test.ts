@@ -80,7 +80,9 @@ describe('parseDiscordDealMessage — mensaje real con trampas', () => {
   });
 
   it('NO acepta la fecha imposible ni la corre a marzo', () => {
-    expect(result.proposedDeal.endDate).toBeUndefined();
+    // Se conserva únicamente como valor inválido para que Zod marque endDate
+    // y el borrador quede en missing_info; nunca alcanza campaigns.
+    expect(result.proposedDeal.endDate).toBe('30/02/2027');
     expect(result.warnings.join(' ')).toMatch(/finalizaci[oó]n no es una fecha v[aá]lida/i);
   });
 
@@ -120,6 +122,17 @@ describe('parseDiscordDealMessage — mensaje real con trampas', () => {
   it('al faltarle handle y fecha, NO valida como trato completo', () => {
     // Es lo que hace que el borrador aterrice como missing_info y lo revise alguien.
     expect(AutomationDealCreate.safeParse(result.proposedDeal).success).toBe(false);
+  });
+
+  it('señala endDate aunque el resto del trato esté completo', () => {
+    const onlyInvalidDate = parseDiscordDealMessage(
+      MENSAJE_COMPLETO.replace('30/12/2026', '30/02/2027'),
+    );
+    const parsed = AutomationDealCreate.safeParse(onlyInvalidDate.proposedDeal);
+    expect(parsed.success).toBe(false);
+    if (!parsed.success) {
+      expect(parsed.error.issues.map((issue) => issue.path.join('.'))).toContain('endDate');
+    }
   });
 });
 
