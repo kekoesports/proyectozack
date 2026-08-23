@@ -40,8 +40,16 @@ describe('catálogo de agentes', () => {
     expect(SEED_AGENT_MODE).toBe('shadow');
   });
 
-  it('ningún agente sale a un proveedor de modelo real todavía', () => {
-    for (const agente of AGENT_CATALOG) {
+  it('solo Guardian usa un modelo real durante el rollout', () => {
+    const guardian = AGENT_CATALOG.find((agente) => agente.slug === 'guardian');
+    const restantes = AGENT_CATALOG.filter((agente) => agente.slug !== 'guardian');
+
+    expect(guardian).toMatchObject({
+      modelProvider: 'gemini',
+      modelName: 'gemini-3.6-flash',
+      systemRole: 'ops',
+    });
+    for (const agente of restantes) {
       expect(agente.modelProvider).toBe('null');
       expect(agente.modelName).toBeNull();
     }

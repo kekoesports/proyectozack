@@ -8,8 +8,9 @@
 # datos y llama a APIs externas. Un puerto abierto sería superficie de ataque
 # sin ninguna función.
 #
-# Se conecta a la red del stack del CRM en vez de traer su propio Postgres:
-# comparte base con la aplicación porque la cola vive en esa base.
+# Mientras producción siga en Neon, el worker usa la red bridge privada de este
+# proyecto y sale por HTTPS/TCP. Tras migrar PostgreSQL al VPS se añade
+# `compose.vps-db.yaml`, que lo conecta también a la red privada del CRM.
 
 name: socialpro-agents
 
@@ -26,8 +27,6 @@ services:
       AGENTS_ENABLED: ${AGENTS_ENABLED:-false}
       AGENT_WORKER_ID: ${AGENT_WORKER_ID:-worker-1}
       NODE_ENV: production
-    networks:
-      - crm
     # Sin `ports`: deliberado.
     #
     # Límites acordes a un VPS de 4 vCPU / 8 GB compartido con el CRM. El worker
@@ -56,10 +55,3 @@ services:
       options:
         max-size: '10m'
         max-file: '3'
-
-networks:
-  # Red del stack del CRM, creada por su propio compose. `external: true`
-  # significa que este proyecto no la crea ni la borra: solo se engancha.
-  crm:
-    external: true
-    name: socialpro-crm_crm_backend

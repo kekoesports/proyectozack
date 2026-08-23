@@ -24,8 +24,8 @@ export type AgentCatalogEntry = {
   readonly description: string;
   readonly promptVersion: string;
   readonly policyVersion: string;
-  /** `null` = NullProvider. Ningún agente sale a un modelo real en PR 1. */
-  readonly modelProvider: 'null';
+  /** `null` = NullProvider. Solo Guardian puede usar modelo durante rollout. */
+  readonly modelProvider: 'null' | 'gemini';
   readonly modelName: string | null;
   readonly maxConcurrentRuns: number;
   readonly maxRunsPerDay: number;
@@ -59,8 +59,8 @@ export const AGENT_CATALOG: readonly AgentCatalogEntry[] = [
       'Vigila infraestructura, backups, n8n y CI. Detecta de forma determinista; el modelo solo interpreta y prioriza.',
     promptVersion: 'v0',
     policyVersion: 'v0',
-    modelProvider: 'null',
-    modelName: null,
+    modelProvider: 'gemini',
+    modelName: 'gemini-3.6-flash',
     maxConcurrentRuns: 1,
     maxRunsPerDay: 48,
     maxTurnsPerRun: 6,

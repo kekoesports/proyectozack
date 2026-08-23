@@ -4,7 +4,28 @@
 > (usuario `deploy`, sin privilegios de root).
 > No contiene contraseñas, tokens ni cadenas de conexión.
 
-## Veredicto: **el gate de capacidad NO se cumple**
+## Veredicto histórico: **el gate de capacidad NO se cumplía**
+
+## Actualización 23-08-2026
+
+netcup confirmó por correo el 21-08-2026 que la misma cuenta de servidor fue
+actualizada correctamente a **VPS 2000 G12 iv 12M**. La ficha oficial del plan
+indica **8 vCore, 16 GB DDR5 ECC y 512 GB NVMe**, por encima del gate mínimo de
+4 vCPU y 8 GB.
+
+El gate contractual queda cumplido, pero el gate técnico no se cierra hasta
+repetir `nproc`, `/proc/meminfo`, disco, presión, OOM y consumo de contenedores
+dentro de la máquina. La tabla siguiente conserva la medición anterior como
+línea base; no debe interpretarse como el estado actual del plan ampliado.
+
+La comprobación mínima reproducible está en:
+
+```bash
+bash scripts/vps-capacity-audit.sh
+```
+
+Es de solo lectura y termina con `capacity_gate=true` únicamente si el sistema
+ve al menos 4 vCPU, 8 GiB de RAM y 30 % de disco libre.
 
 | Requisito del encargo | Real | |
 |---|---|---|
@@ -138,11 +159,11 @@ coste marginal frente al ahorro.
 Si la ampliación no es posible, **B** antes que **C**: prefiero dos proveedores
 a un servidor al borde de la memoria con datos financieros dentro.
 
-## Qué NO se ha hecho
+## Qué NO se hizo en la medición original
 
 Según el encargo, la auditoría se detiene aquí y espera decisión. **No se ha
 tocado nada** del VPS: ni contenedores, ni configuración, ni firewall. El único
 cambio ha sido crear el usuario `deploy` y autorizar una clave pública.
 
-Pendiente para cuando haya decisión: prueba de carga representativa para medir
-el consumo real en vez de estimarlo.
+Pendiente tras la ampliación: repetir la auditoría y ejecutar una prueba de
+carga representativa para medir el consumo real en vez de estimarlo.

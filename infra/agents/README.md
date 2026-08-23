@@ -24,9 +24,10 @@ a APIs externas. Un puerto abierto sería superficie de ataque sin función.
 **Imagen propia, no la de la web con otro comando.** El worker no necesita el
 build de Next.js, ni sus assets, ni el servidor HTTP.
 
-**Sin Postgres propio.** Se engancha a la red del stack del CRM porque la cola
-vive en esa base. `networks.crm.external: true` significa que este proyecto no
-la crea ni la borra.
+**Sin Postgres propio.** Mientras producción siga en Neon, `compose.yaml` usa
+su bridge privado y la conexión saliente de `DATABASE_URL`. Cuando la base pase
+al VPS, `compose.vps-db.yaml` añade la red externa del CRM sin cambiar la imagen
+ni el worker.
 
 **`dumb-init` como PID 1.** Sin él, Node no recibe SIGTERM como se espera y el
 apagado ordenado —el que suelta los leases— no llega a ejecutarse. El resultado
@@ -61,7 +62,8 @@ Estado a 21-08-2026:
 1. ✅ Migración `0124` aplicada en producción (verificada en la base).
 2. ✅ `npm run seed:agents` ejecutado — los 6 agentes existen.
 3. ❌ `.env` creado a partir de `env.example`, con `DATABASE_URL`.
-4. ❌ Red `socialpro-crm_crm_backend` existente (la crea el compose del CRM).
+4. ✅ Para Neon no hace falta la red del CRM. Para PostgreSQL local, usar el
+   override cuando exista `socialpro-crm_crm_backend`.
 5. ❌ **Decisión explícita** de poner `AGENTS_ENABLED=true`.
 6. ❌ Al menos un agente con `status = 'active'` — se siembran todos en `disabled`.
 
@@ -75,6 +77,15 @@ está en `docs/agent-os/runbook-operacion.md`.
 ```bash
 docker compose -f infra/agents/compose.yaml up -d --build
 docker compose -f infra/agents/compose.yaml logs -f agent-worker
+```
+
+Tras el cutover a PostgreSQL local:
+
+```bash
+docker compose \
+  -f infra/agents/compose.yaml \
+  -f infra/agents/compose.vps-db.yaml \
+  up -d --build
 ```
 
 ## Cómo pararlo
