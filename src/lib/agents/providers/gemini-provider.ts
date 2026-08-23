@@ -1,4 +1,5 @@
-import { logRedacted } from "@/lib/log";
+
+import { logRedacted } from '@/lib/log';
 
 import {
   normalizeProviderTurn,
@@ -6,8 +7,8 @@ import {
   type AgentModelProvider,
   type AgentModelRequest,
   type AgentModelResult,
-} from "../model-provider";
-import type { ErasedAgentTool } from "../types";
+} from '../model-provider';
+import type { ErasedAgentTool } from '../types';
 
 /**
  * Adaptador de Gemini con function calling estructurado.
@@ -24,18 +25,18 @@ import type { ErasedAgentTool } from "../types";
 
 /** Claves de JSON Schema que Gemini rechaza o ignora. */
 const CLAVES_NO_SOPORTADAS = new Set([
-  "$schema",
-  "$id",
-  "$ref",
-  "$defs",
-  "definitions",
-  "additionalProperties",
-  "unevaluatedProperties",
-  "const",
-  "examples",
-  "default",
-  "exclusiveMinimum",
-  "exclusiveMaximum",
+  '$schema',
+  '$id',
+  '$ref',
+  '$defs',
+  'definitions',
+  'additionalProperties',
+  'unevaluatedProperties',
+  'const',
+  'examples',
+  'default',
+  'exclusiveMinimum',
+  'exclusiveMaximum',
 ]);
 
 /**
@@ -48,7 +49,7 @@ const CLAVES_NO_SOPORTADAS = new Set([
  */
 function podarSchema(valor: unknown): unknown {
   if (Array.isArray(valor)) return valor.map(podarSchema);
-  if (valor === null || typeof valor !== "object") return valor;
+  if (valor === null || typeof valor !== 'object') return valor;
 
   const salida: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(valor as Record<string, unknown>)) {
@@ -77,9 +78,7 @@ export type GeminiHistoryContent = {
   readonly parts: readonly Record<string, unknown>[];
 };
 
-function respuestaDeTool(
-  mensaje: Extract<AgentModelMessage, { readonly role: "tool" }>,
-): Record<string, unknown> {
+function respuestaDeTool(mensaje: Extract<AgentModelMessage, { readonly role: 'tool' }>): Record<string, unknown> {
   return {
     functionResponse: {
       name: mensaje.toolName,
@@ -105,33 +104,31 @@ export function appendGeminiRequestMessages(
 
   for (let i = 0; i < messages.length; i += 1) {
     const mensaje = messages[i];
-    if (!mensaje || mensaje.role === "assistant") continue;
+    if (!mensaje || mensaje.role === 'assistant') continue;
 
-    if (mensaje.role === "user") {
-      salida.push({ role: "user", parts: [{ text: mensaje.content }] });
+    if (mensaje.role === 'user') {
+      salida.push({ role: 'user', parts: [{ text: mensaje.content }] });
       continue;
     }
 
     const parts: Record<string, unknown>[] = [respuestaDeTool(mensaje)];
-    while (i + 1 < messages.length && messages[i + 1]?.role === "tool") {
+    while (i + 1 < messages.length && messages[i + 1]?.role === 'tool') {
       i += 1;
       const siguiente = messages[i];
-      if (siguiente?.role === "tool") parts.push(respuestaDeTool(siguiente));
+      if (siguiente?.role === 'tool') parts.push(respuestaDeTool(siguiente));
     }
     // Gemini 3.6 ya no acepta el rol histórico `function`: las respuestas de
     // herramientas son contenido `user` con partes `functionResponse`.
-    salida.push({ role: "user", parts });
+    salida.push({ role: 'user', parts });
   }
 
   return salida;
 }
 
-export function toolToFunctionDeclaration(
-  tool: ErasedAgentTool,
-): DeclaracionFuncion {
-  let parameters: Record<string, unknown> = { type: "object", properties: {} };
+export function toolToFunctionDeclaration(tool: ErasedAgentTool): DeclaracionFuncion {
+  let parameters: Record<string, unknown> = { type: 'object', properties: {} };
   const podado = podarSchema(tool.toJsonSchema());
-  if (podado !== null && typeof podado === "object" && !Array.isArray(podado)) {
+  if (podado !== null && typeof podado === 'object' && !Array.isArray(podado)) {
     // safe: `podarSchema` devuelve el mismo tipo que recibe y el guard acaba de
     // descartar null, array y primitivos.
     parameters = podado as Record<string, unknown>;
@@ -147,7 +144,7 @@ export function toolToFunctionDeclaration(
 }
 
 export class GeminiAgentModelProvider implements AgentModelProvider {
-  readonly name = "gemini";
+  readonly name = 'gemini';
 
   private readonly apiKey: string;
   private readonly modelName: string;
@@ -161,7 +158,7 @@ export class GeminiAgentModelProvider implements AgentModelProvider {
 
   async generate(request: AgentModelRequest): Promise<AgentModelResult> {
     try {
-      const { GoogleGenerativeAI } = await import("@google/generative-ai");
+      const { GoogleGenerativeAI } = await import('@google/generative-ai');
       const genAI = new GoogleGenerativeAI(this.apiKey);
 
       const declaraciones = request.tools.map(toolToFunctionDeclaration);
@@ -171,11 +168,7 @@ export class GeminiAgentModelProvider implements AgentModelProvider {
         ...(declaraciones.length > 0
           ? // safe: el SDK tipa `functionDeclarations` con su propio FunctionDeclaration;
             // el schema podado cumple el subconjunto que espera, pero no su tipo nominal.
-            {
-              tools: [
-                { functionDeclarations: declaraciones } as unknown as never,
-              ],
-            }
+            { tools: [{ functionDeclarations: declaraciones } as unknown as never] }
           : {}),
       });
 
@@ -200,25 +193,21 @@ export class GeminiAgentModelProvider implements AgentModelProvider {
       });
 
       const respuesta = resultado.response;
-      const candidateContent = respuesta.candidates?.[0]?.content as unknown as
-        GeminiHistoryContent | undefined;
+      const candidateContent = respuesta.candidates?.[0]?.content as unknown as GeminiHistoryContent | undefined;
       if (candidateContent?.parts?.length) this.history.push(candidateContent);
-      const llamadas =
-        typeof respuesta.functionCalls === "function"
-          ? respuesta.functionCalls()
-          : undefined;
+      const llamadas = typeof respuesta.functionCalls === 'function' ? respuesta.functionCalls() : undefined;
       const uso = respuesta.usageMetadata;
 
       return {
         ok: true,
         turn: normalizeProviderTurn({
-          text: typeof respuesta.text === "function" ? respuesta.text() : "",
+          text: typeof respuesta.text === 'function' ? respuesta.text() : '',
           toolCalls: (llamadas ?? []).map((c) => {
             const cruda = c as unknown as Record<string, unknown>;
             return {
               name: c.name,
               args: c.args,
-              ...(typeof cruda.id === "string" ? { id: cruda.id } : {}),
+              ...(typeof cruda.id === 'string' ? { id: cruda.id } : {}),
             };
           }),
           usage: uso
@@ -229,23 +218,22 @@ export class GeminiAgentModelProvider implements AgentModelProvider {
               }
             : null,
           model: this.modelName,
-          provider: "gemini",
+          provider: 'gemini',
         }),
       };
     } catch (err) {
       const mensaje = err instanceof Error ? err.message : String(err);
-      logRedacted("error", "[agents] error de Gemini:", mensaje);
+      logRedacted('error', '[agents] error de Gemini:', mensaje);
 
       // La cuota y los 5xx son transitorios: el worker reintenta con backoff.
       // Un 400 no lo es, y reintentarlo solo gasta cuota.
-      const esCuota =
-        mensaje.includes("429") || mensaje.toLowerCase().includes("quota");
+      const esCuota = mensaje.includes('429') || mensaje.toLowerCase().includes('quota');
       const esServidor = /\b5\d\d\b/.test(mensaje);
 
       return {
         ok: false,
         error: {
-          code: esCuota ? "provider_quota" : "provider_error",
+          code: esCuota ? 'provider_quota' : 'provider_error',
           message: mensaje.slice(0, 300),
           retryable: esCuota || esServidor,
         },
