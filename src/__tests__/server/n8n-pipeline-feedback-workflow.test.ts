@@ -6,6 +6,7 @@ type WorkflowNode = {
   readonly type: string;
   readonly parameters: Record<string, unknown>;
   readonly credentials?: unknown;
+  readonly onError?: string;
 };
 
 type Workflow = {
@@ -46,6 +47,18 @@ describe('workflow n8n de #pipeline-deals', () => {
     expect(code).toContain("created: '✅'");
     expect(code).toContain("rejected: '🚫'");
     expect(code).toContain("? '❌'");
+  });
+
+  it('marca todos los mensajes con fallo si el CRM agota los reintentos', () => {
+    const value = workflow();
+    const request = value.nodes.find((node) => node.name === 'Enviar a CRM');
+    const prepare = value.nodes.find((node) => node.name === 'Preparar estado Discord');
+    const code = String(prepare?.parameters.jsCode ?? '');
+
+    expect(request?.onError).toBe('continueRegularOutput');
+    expect(code).toContain("$('Preparar lote').first().json.messages");
+    expect(code).toContain("result: 'failed'");
+    expect(code).toContain('respuestaTieneOutcomes');
   });
 
   it('no versiona credenciales de producción', () => {

@@ -10,7 +10,7 @@ _Qué se migró, cuándo, y con cuánto corte de servicio._
 
 | Fase | Fecha | Notas |
 |---|---|---|
-| 0 — Auditoría | 2026-08-21 | Gate no cumplido: 2 vCPU / 3,83 GiB. VPS ampliado el _(fecha)_ |
+| 0 — Auditoría | 2026-08-21 | Línea base 2 vCPU / 3,83 GiB. Upgrade contractual a VPS 2000 G12 confirmado el 21-08; medición del sistema pendiente |
 | 1 — Código portable | 2026-08-21 | PR #303 |
 | 2 — Infraestructura | 2026-08-21 | PR #306 |
 | 3 — Staging | | |

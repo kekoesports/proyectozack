@@ -19,6 +19,7 @@ import {
   SEED_AGENT_MODE,
   SEED_AGENT_STATUS,
 } from '@/lib/agents/catalog';
+import { MODEL_PRICING } from '@/lib/agents/budget';
 import { hasPermission } from '@/lib/permissions';
 
 const ROOT = path.resolve(__dirname, '..', '..', '..');
@@ -40,8 +41,17 @@ describe('catálogo de agentes', () => {
     expect(SEED_AGENT_MODE).toBe('shadow');
   });
 
-  it('ningún agente sale a un proveedor de modelo real todavía', () => {
-    for (const agente of AGENT_CATALOG) {
+  it('solo Guardian usa un modelo real durante el rollout', () => {
+    const guardian = AGENT_CATALOG.find((agente) => agente.slug === 'guardian');
+    const restantes = AGENT_CATALOG.filter((agente) => agente.slug !== 'guardian');
+
+    expect(guardian).toMatchObject({
+      modelProvider: 'gemini',
+      modelName: 'gemini-2.5-flash',
+      systemRole: 'ops',
+    });
+    expect(MODEL_PRICING[guardian?.modelName ?? '']).toBeDefined();
+    for (const agente of restantes) {
       expect(agente.modelProvider).toBe('null');
       expect(agente.modelName).toBeNull();
     }

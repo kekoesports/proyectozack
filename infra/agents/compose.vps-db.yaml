@@ -1,0 +1,19 @@
+# Override para cuando DATABASE_URL apunte al PostgreSQL privado del VPS.
+#
+# Uso:
+#   docker compose -f compose.yaml -f compose.vps-db.yaml up -d --build
+#
+# La red la crea `infra/crm/compose.yaml`. Mientras producción siga en Neon no
+# se usa este fichero, de forma que el worker puede desplegarse antes del
+# cutover sin depender de una red que todavía no existe.
+
+services:
+  agent-worker:
+    networks:
+      - default
+      - crm
+
+networks:
+  crm:
+    external: true
+    name: socialpro-crm_crm_backend

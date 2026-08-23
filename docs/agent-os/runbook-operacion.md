@@ -15,7 +15,7 @@ para operar el sistema.
 | Pieza | Estado | Dónde se comprueba |
 |---|---|---|
 | 10 tablas `agent_*` | creadas | migración 0124, verificada en la base |
-| 6 agentes | `disabled` + `shadow`, `model_provider='null'` | `/admin/agents` |
+| 6 agentes | `disabled` + `shadow`; solo Guardian preparado para Gemini | `/admin/agents` |
 | 2 rutinas de Guardian | `enabled=false`, `next_run_at=null` | `/admin/agents/schedules` |
 | Worker | **no desplegado** en ningún sitio | `agent_worker_heartbeats` |
 | Collector del VPS | **no instalado** | `agent_events` está vacía |
@@ -77,7 +77,9 @@ docker compose -f infra/agents/compose.yaml up -d --build
 ```
 
 Antes hay que copiar `infra/agents/env.example` a `infra/agents/.env` y rellenar
-`DATABASE_URL`. Con `AGENTS_ENABLED=false` en ese `.env`, el worker arranca, no
+`DATABASE_URL`. Mientras producción siga en Neon basta el compose base. Tras
+migrar la base al VPS se añade `infra/agents/compose.vps-db.yaml` para resolver
+el host privado de PostgreSQL. Con `AGENTS_ENABLED=false`, el worker arranca, no
 procesa nada y lo dice en el log. Es un estado válido: sirve para comprobar que
 se conecta a la base antes de encenderlo.
 
@@ -85,15 +87,10 @@ se conecta a la base antes de encenderlo.
 
 ### Paso 3 — Un modelo para Guardian
 
-Los seis están con `model_provider='null'`, que falla en cerrado sin pedir
-herramientas. Darle un modelo **es un cambio de código, no un UPDATE**:
-`scripts/seed-agent-definitions.ts` incluye `modelProvider` y `modelName` en su
-`onConflictDoUpdate`, así que cualquier cambio hecho a mano en la base se
-revierte la próxima vez que alguien ejecute `npm run seed:agents`.
-
-Lo correcto: editar la entrada de `guardian` en `src/lib/agents/catalog.ts`
-(`modelProvider: 'gemini'`, `modelName`), PR, deploy, `npm run seed:agents`. Y
-`GEMINI_API_KEY` en el `.env` del worker.
+El catálogo ya prepara exclusivamente Guardian con `model_provider='gemini'`
+y `gemini-2.5-flash`; los otros cinco siguen en `null`. Falta configurar
+`GEMINI_API_KEY` en el `.env` del worker y ejecutar `npm run seed:agents` tras
+desplegar el cambio. Sin clave, el runtime mantiene el fallo cerrado.
 
 ### Paso 4 — Activar Guardian, sin sacarlo de shadow
 

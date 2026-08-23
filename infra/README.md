@@ -17,9 +17,10 @@ Cuatro proyectos Compose independientes. Se comunican por la red externa
 
 ## Estado
 
-**Nada de esto está desplegado todavía.** El VPS actual (2 vCPU / 3,83 GiB) no
-tiene capacidad: ver `docs/migration/00-vps-capacity-audit.md`. Los ficheros
-están dimensionados para 4 vCPU / 8 GB.
+**Nada del CRM está desplegado todavía.** netcup confirmó el 21-08-2026 el
+cambio de tarifa de la misma máquina a VPS 2000 G12 (8 vCore / 16 GB / 512 GB).
+El gate contractual ya supera el mínimo; antes del staging hay que repetir la
+medición dentro del sistema para confirmar que el kernel ve esos recursos.
 
 ## Orden de despliegue
 

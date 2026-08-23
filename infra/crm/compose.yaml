@@ -8,8 +8,8 @@
 # Ningún servicio publica puertos en el host. El único que escucha en 80/443 es
 # el Caddy que ya existe, y llega hasta aquí por la red `socialpro_edge`.
 #
-# Dimensionado para 4 vCPU / 8 GB. Con los 2 vCPU / 3,8 GB actuales no cabe:
-# ver docs/migration/00-vps-capacity-audit.md.
+# Dimensionado para el mínimo de 4 vCPU / 8 GB. netcup confirmó el cambio a
+# VPS 2000 G12; la capacidad visible por el kernel se verifica antes de staging.
 
 name: socialpro-crm
 
