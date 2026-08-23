@@ -15,7 +15,11 @@ import { z } from 'zod';
 import { eraseAgentTool } from '@/lib/agents/erase-tool';
 import { MAX_TOOL_CALLS_POR_TURNO, normalizeProviderTurn } from '@/lib/agents/model-provider';
 import { NullAgentModelProvider } from '@/lib/agents/providers/null-provider';
-import { toolToFunctionDeclaration } from '@/lib/agents/providers/gemini-provider';
+import {
+  appendGeminiRequestMessages,
+  toolToFunctionDeclaration,
+  type GeminiHistoryContent,
+} from '@/lib/agents/providers/gemini-provider';
 
 describe('normalizeProviderTurn', () => {
   it('normaliza un turno correcto', () => {
@@ -118,5 +122,48 @@ describe('toolToFunctionDeclaration', () => {
 
   it('anota la clase de acción para que el modelo sepa qué pedirá firma', () => {
     expect(toolToFunctionDeclaration(tool).description).toContain('clase: read');
+  });
+});
+
+describe('Gemini 3 function history', () => {
+  it('usa role user y agrupa las respuestas de tools paralelas', () => {
+    const history: GeminiHistoryContent[] = [
+      { role: 'user', parts: [{ text: 'revisa el sistema' }] },
+      {
+        role: 'model',
+        parts: [
+          {
+            functionCall: { name: 'health', args: {} },
+            thoughtSignature: 'firma-opaca-que-debe-conservarse',
+          },
+          { functionCall: { name: 'queue', args: {} } },
+        ],
+      },
+    ];
+
+    const result = appendGeminiRequestMessages(history, [
+      { role: 'assistant', content: '' },
+      { role: 'tool', toolName: 'health', toolCallId: 'call-1', content: { ok: true } },
+      { role: 'tool', toolName: 'queue', toolCallId: 'call-2', content: { pending: 0 } },
+    ]);
+
+    expect(result).toHaveLength(3);
+    expect(result[1]).toBe(history[1]);
+    expect(result[2]?.role).toBe('user');
+    expect(result[2]?.parts).toEqual([
+      { functionResponse: { name: 'health', response: { ok: true }, id: 'call-1' } },
+      { functionResponse: { name: 'queue', response: { pending: 0 }, id: 'call-2' } },
+    ]);
+  });
+
+  it('no reconstruye el turno del modelo ni usa el rol function obsoleto', () => {
+    const result = appendGeminiRequestMessages([], [
+      { role: 'user', content: 'inicio' },
+      { role: 'assistant', content: 'texto que no debe sustituir al candidate original' },
+      { role: 'tool', toolName: 'health', toolCallId: null, content: { ok: true } },
+    ]);
+
+    expect(result.map((content) => content.role)).toEqual(['user', 'user']);
+    expect(result.some((content) => content.role === 'function')).toBe(false);
   });
 });

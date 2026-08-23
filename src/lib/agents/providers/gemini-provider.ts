@@ -3,6 +3,7 @@ import { logRedacted } from '@/lib/log';
 
 import {
   normalizeProviderTurn,
+  type AgentModelMessage,
   type AgentModelProvider,
   type AgentModelRequest,
   type AgentModelResult,
@@ -64,6 +65,66 @@ type DeclaracionFuncion = {
   readonly parameters: Record<string, unknown>;
 };
 
+/**
+ * Forma mínima que necesita `generateContent` para conservar el historial.
+ *
+ * No usamos aquí el tipo de `@google/generative-ai` porque la versión actual
+ * de ese SDK aún no declara `thoughtSignature` ni el `id` de las llamadas,
+ * aunque la API sí los devuelve. Gemini 3 exige que el bloque del modelo se
+ * reenvíe sin reconstruirlo: la firma es opaca y perderla provoca un 400.
+ */
+export type GeminiHistoryContent = {
+  readonly role: string;
+  readonly parts: readonly Record<string, unknown>[];
+};
+
+function respuestaDeTool(mensaje: Extract<AgentModelMessage, { readonly role: 'tool' }>): Record<string, unknown> {
+  return {
+    functionResponse: {
+      name: mensaje.toolName,
+      response: mensaje.content,
+      ...(mensaje.toolCallId ? { id: mensaje.toolCallId } : {}),
+    },
+  };
+}
+
+/**
+ * Añade solo mensajes nuevos del executor al historial nativo de Gemini.
+ *
+ * Los mensajes `assistant` se omiten deliberadamente: el proveedor ya guarda
+ * el `candidate.content` original, con sus `functionCall`, ids y firmas de
+ * pensamiento. Los resultados de varias tools paralelas se agrupan en un solo
+ * turno `user`, exactamente en el orden en que fueron solicitadas.
+ */
+export function appendGeminiRequestMessages(
+  history: readonly GeminiHistoryContent[],
+  messages: readonly AgentModelMessage[],
+): GeminiHistoryContent[] {
+  const salida = [...history];
+
+  for (let i = 0; i < messages.length; i += 1) {
+    const mensaje = messages[i];
+    if (!mensaje || mensaje.role === 'assistant') continue;
+
+    if (mensaje.role === 'user') {
+      salida.push({ role: 'user', parts: [{ text: mensaje.content }] });
+      continue;
+    }
+
+    const parts: Record<string, unknown>[] = [respuestaDeTool(mensaje)];
+    while (i + 1 < messages.length && messages[i + 1]?.role === 'tool') {
+      i += 1;
+      const siguiente = messages[i];
+      if (siguiente?.role === 'tool') parts.push(respuestaDeTool(siguiente));
+    }
+    // Gemini 3.6 ya no acepta el rol histórico `function`: las respuestas de
+    // herramientas son contenido `user` con partes `functionResponse`.
+    salida.push({ role: 'user', parts });
+  }
+
+  return salida;
+}
+
 export function toolToFunctionDeclaration(tool: ErasedAgentTool): DeclaracionFuncion {
   let parameters: Record<string, unknown> = { type: 'object', properties: {} };
   const podado = podarSchema(tool.toJsonSchema());
@@ -87,6 +148,8 @@ export class GeminiAgentModelProvider implements AgentModelProvider {
 
   private readonly apiKey: string;
   private readonly modelName: string;
+  private history: GeminiHistoryContent[] = [];
+  private consumedMessageCount = 0;
 
   constructor(apiKey: string, modelName: string) {
     this.apiKey = apiKey;
@@ -109,25 +172,29 @@ export class GeminiAgentModelProvider implements AgentModelProvider {
           : {}),
       });
 
-      const contents = request.messages.map((m) => {
-        if (m.role === 'tool') {
-          return {
-            role: 'function' as const,
-            parts: [{ functionResponse: { name: m.toolName, response: m.content } }],
-          };
-        }
-        return {
-          role: m.role === 'assistant' ? ('model' as const) : ('user' as const),
-          parts: [{ text: m.content }],
-        };
-      });
+      // Una instancia del proveedor pertenece a una ejecución. Si alguien la
+      // reutiliza con un historial más corto, empezamos una conversación nueva
+      // en vez de mezclar dos runs.
+      if (request.messages.length < this.consumedMessageCount) {
+        this.history = [];
+        this.consumedMessageCount = 0;
+      }
+      this.history = appendGeminiRequestMessages(
+        this.history,
+        request.messages.slice(this.consumedMessageCount),
+      );
+      this.consumedMessageCount = request.messages.length;
 
       const resultado = await model.generateContent({
-        contents,
+        // El objeto original del candidato puede llevar `thoughtSignature`,
+        // campo que el SDK antiguo no tipa pero que la API de Gemini 3 valida.
+        contents: this.history as unknown as never,
         generationConfig: { maxOutputTokens: request.maxOutputTokens },
       });
 
       const respuesta = resultado.response;
+      const candidateContent = respuesta.candidates?.[0]?.content as unknown as GeminiHistoryContent | undefined;
+      if (candidateContent?.parts?.length) this.history.push(candidateContent);
       const llamadas = typeof respuesta.functionCalls === 'function' ? respuesta.functionCalls() : undefined;
       const uso = respuesta.usageMetadata;
 
@@ -135,7 +202,14 @@ export class GeminiAgentModelProvider implements AgentModelProvider {
         ok: true,
         turn: normalizeProviderTurn({
           text: typeof respuesta.text === 'function' ? respuesta.text() : '',
-          toolCalls: (llamadas ?? []).map((c) => ({ name: c.name, args: c.args })),
+          toolCalls: (llamadas ?? []).map((c) => {
+            const cruda = c as unknown as Record<string, unknown>;
+            return {
+              name: c.name,
+              args: c.args,
+              ...(typeof cruda.id === 'string' ? { id: cruda.id } : {}),
+            };
+          }),
           usage: uso
             ? {
                 inputTokens: uso.promptTokenCount ?? 0,
