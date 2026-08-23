@@ -76,7 +76,7 @@ Los umbrales se cambian en el `.env` del collector, sin tocar el script.
   systemd no necesita root.
 - **`ProtectSystem=strict`**: todo el sistema en solo lectura.
 - **`ReadOnlyPaths`** sobre el directorio de backups: comprueba la fecha, no
-  toca nada.
+  toca nada. El directorio es opcional hasta que se configure el primer backup.
 - **`SystemCallFilter`** acotado a `@system-service` sin `@privileged`.
 - **Bearer + HMAC** con ventana de replay de 5 minutos. El token vive en un
   fichero `0400` y nunca se imprime: `curl` va con `--silent` y jamás con

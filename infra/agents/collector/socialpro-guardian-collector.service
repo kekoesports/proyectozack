@@ -43,8 +43,9 @@ SystemCallFilter=@system-service
 SystemCallFilter=~@privileged @resources
 
 # Solo lectura sobre el directorio de backups: comprueba la fecha del último,
-# no toca nada.
-ReadOnlyPaths=/var/backups/socialpro
+# no toca nada. El prefijo `-` permite arrancar antes de que exista el primer
+# directorio de backup; cuando exista, seguirá montándose en solo lectura.
+ReadOnlyPaths=-/var/backups/socialpro
 
 # Un collector colgado no debe acumularse con el siguiente disparo del timer.
 TimeoutStartSec=60
