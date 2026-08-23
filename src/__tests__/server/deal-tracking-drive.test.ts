@@ -57,4 +57,43 @@ describe('createDealTrackingSheet', () => {
       emailAddress: 'creator@example.com',
     });
   });
+
+  it('usa la carpeta corporativa si la carpeta personal rechaza la copia', async () => {
+    jest.resetModules();
+    const { createDealTrackingSheet: createFreshDealTrackingSheet } = await import(
+      '@/lib/drive/deal-tracking-sheet'
+    );
+    const fetchMock = jest
+      .fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify({ access_token: 'token', expires_in: 3600 }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({
+        error: { errors: [{ reason: 'storageQuotaExceeded' }] },
+      }), { status: 403 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ id: 'sheet-fallback' }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ id: 'permission-fallback' }), { status: 200 }));
+    global.fetch = fetchMock as typeof fetch;
+
+    const result = await createFreshDealTrackingSheet('KeyDrop', 'TODOCS2', {
+      folderId: 'personal-folder-1234567890',
+      shareWithEmail: 'todocs2@example.com',
+    });
+
+    expect(result).toEqual({
+      ok: true,
+      spreadsheetId: 'sheet-fallback',
+      url: 'https://docs.google.com/spreadsheets/d/sheet-fallback/edit',
+      name: 'KeyDrop - TODOCS2',
+      destination: 'fallback',
+      shareStatus: 'shared',
+      warnings: ['la carpeta personal no admite copias automáticas; se usó la carpeta corporativa'],
+    });
+    expect(JSON.parse(String(fetchMock.mock.calls[1]?.[1]?.body))).toEqual({
+      name: 'KeyDrop - TODOCS2',
+      parents: ['personal-folder-1234567890'],
+    });
+    expect(JSON.parse(String(fetchMock.mock.calls[2]?.[1]?.body))).toEqual({
+      name: 'KeyDrop - TODOCS2',
+      parents: ['fallback-1234567890'],
+    });
+  });
 });

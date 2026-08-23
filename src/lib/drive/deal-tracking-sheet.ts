@@ -146,8 +146,8 @@ export async function createDealTrackingSheet(
   if (!cfg.ok) return { ok: false, reason: 'missing-config', detail: cfg.detail };
 
   const creatorFolderId = options.folderId?.trim() || null;
-  const destinationFolderId = creatorFolderId ?? cfg.config.fallbackFolderId;
-  if (!destinationFolderId) {
+  const fallbackFolderId = cfg.config.fallbackFolderId?.trim() || null;
+  if (!creatorFolderId && !fallbackFolderId) {
     return {
       ok: false,
       reason: 'missing-config',
@@ -158,28 +158,54 @@ export async function createDealTrackingSheet(
   const name = buildDealSheetName(brandName, talentName);
   try {
     const token = await getWriteAccessToken(cfg.config);
-    const res = await fetch(
-      `${DRIVE_FILES}/${encodeURIComponent(cfg.config.templateId)}/copy?supportsAllDrives=true&fields=id%2Cname`,
-      {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, parents: [destinationFolderId] }),
-        signal: AbortSignal.timeout(TIMEOUT_MS),
-      },
-    );
+    const destinations: Array<{ id: string; kind: 'creator' | 'fallback' }> = [];
+    if (creatorFolderId) destinations.push({ id: creatorFolderId, kind: 'creator' });
+    if (fallbackFolderId && fallbackFolderId !== creatorFolderId) {
+      destinations.push({ id: fallbackFolderId, kind: 'fallback' });
+    }
 
-    if (!res.ok) {
+    let res: Response | null = null;
+    let destination: 'creator' | 'fallback' = creatorFolderId ? 'creator' : 'fallback';
+    let usedFallbackAfterAccessFailure = false;
+    for (const candidate of destinations) {
+      res = await fetch(
+        `${DRIVE_FILES}/${encodeURIComponent(cfg.config.templateId)}/copy?supportsAllDrives=true&fields=id%2Cname`,
+        {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, parents: [candidate.id] }),
+          signal: AbortSignal.timeout(TIMEOUT_MS),
+        },
+      );
+      destination = candidate.kind;
+      if (res.ok) break;
+
+      // Una carpeta personal puede estar compartida con la cuenta de servicio
+      // y aun así rechazar la copia: las cuentas de servicio no tienen cuota de
+      // Drive propia. En ese caso se reintenta en la unidad compartida
+      // corporativa, donde los archivos pertenecen al Shared Drive.
+      const canTryFallback = candidate.kind === 'creator'
+        && (res.status === 403 || res.status === 404)
+        && destinations.some((item) => item.kind === 'fallback');
+      if (canTryFallback) {
+        usedFallbackAfterAccessFailure = true;
+        continue;
+      }
+      break;
+    }
+
+    if (!res?.ok) {
       // 403 y 404 son el mismo síntoma de fondo: la cuenta de servicio no tiene
       // acceso. Con 404 Drive oculta la existencia del fichero a quien no puede
       // verlo, así que "no encontrado" suele significar "no compartido".
-      if (res.status === 403 || res.status === 404) {
+      if (res?.status === 403 || res?.status === 404) {
         return {
           ok: false,
           reason: 'no-access',
           detail: `${res.status}: la cuenta de servicio no puede leer la plantilla o escribir en la carpeta`,
         };
       }
-      return { ok: false, reason: 'drive-error', detail: `drive-${res.status}` };
+      return { ok: false, reason: 'drive-error', detail: `drive-${res?.status ?? 'unknown'}` };
     }
 
     const { id } = await res.json() as { id?: string };
@@ -187,6 +213,9 @@ export async function createDealTrackingSheet(
 
     let shareStatus: 'not-requested' | 'shared' | 'failed' = 'not-requested';
     const warnings: string[] = [];
+    if (usedFallbackAfterAccessFailure) {
+      warnings.push('la carpeta personal no admite copias automáticas; se usó la carpeta corporativa');
+    }
     const shareWithEmail = options.shareWithEmail?.trim() || null;
     if (shareWithEmail) {
       // Compartir es best-effort. La copia ya existe: convertir un fallo de
@@ -218,7 +247,7 @@ export async function createDealTrackingSheet(
       spreadsheetId: id,
       url: `https://docs.google.com/spreadsheets/d/${id}/edit`,
       name,
-      destination: creatorFolderId ? 'creator' : 'fallback',
+      destination,
       shareStatus,
       warnings,
     };
