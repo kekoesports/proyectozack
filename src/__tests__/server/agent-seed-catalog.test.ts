@@ -76,8 +76,8 @@ describe('catálogo de agentes', () => {
   });
 
   it('el catálogo no transporta secretos', () => {
-    // settingsJson se escribe vacío en el seed; aquí se vigila que nadie meta
-    // una clave por la puerta de atrás del catálogo.
+    // settingsJson solo recibe el rol de sistema; aquí se vigila que nadie
+    // meta una clave por la puerta de atrás del catálogo.
     const serializado = JSON.stringify(AGENT_CATALOG).toLowerCase();
     for (const prohibido of ['api_key', 'apikey', 'token', 'secret', 'password']) {
       expect(serializado).not.toContain(prohibido);
@@ -114,7 +114,14 @@ describe('scripts/seed-agent-definitions.ts', () => {
     // `settings_json` no lleva secretos ni configuración libre: solo el rol con
     // el que se ejecuta un agente sin humano detrás, que no es un secreto y sin
     // el cual sus tools fallarían en silencio.
-    expect(SEED).toMatch(/settingsJson: agente\.systemRole \? \{ systemRole: agente\.systemRole \} : \{\}/);
+    expect(SEED).toMatch(/const settingsSistema = agente\.systemRole \? \{ systemRole: agente\.systemRole \} : \{\}/);
+    expect(SEED).toMatch(/settingsJson: settingsSistema/);
+  });
+
+  it('actualiza el rol sin borrar otros settings operativos', () => {
+    const bloqueSet = SEED.slice(SEED.indexOf('onConflictDoUpdate'));
+    expect(bloqueSet).toMatch(/settingsJson: sql`[\s\S]*\|\|[\s\S]*`/);
+    expect(bloqueSet).toMatch(/agente\.systemRole/);
   });
 
   it('ningún agente se ejecuta como administrador', () => {
