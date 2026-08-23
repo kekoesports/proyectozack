@@ -19,6 +19,7 @@ import {
   SEED_AGENT_MODE,
   SEED_AGENT_STATUS,
 } from '@/lib/agents/catalog';
+import { MODEL_PRICING } from '@/lib/agents/budget';
 import { hasPermission } from '@/lib/permissions';
 
 const ROOT = path.resolve(__dirname, '..', '..', '..');
@@ -46,9 +47,10 @@ describe('catálogo de agentes', () => {
 
     expect(guardian).toMatchObject({
       modelProvider: 'gemini',
-      modelName: 'gemini-3.6-flash',
+      modelName: 'gemini-2.5-flash',
       systemRole: 'ops',
     });
+    expect(MODEL_PRICING[guardian?.modelName ?? '']).toBeDefined();
     for (const agente of restantes) {
       expect(agente.modelProvider).toBe('null');
       expect(agente.modelName).toBeNull();
