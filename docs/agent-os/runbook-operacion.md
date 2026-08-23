@@ -88,7 +88,7 @@ se conecta a la base antes de encenderlo.
 ### Paso 3 — Un modelo para Guardian
 
 El catálogo ya prepara exclusivamente Guardian con `model_provider='gemini'`
-y `gemini-3.6-flash`; los otros cinco siguen en `null`. Falta configurar
+y `gemini-2.5-flash`; los otros cinco siguen en `null`. Falta configurar
 `GEMINI_API_KEY` en el `.env` del worker y ejecutar `npm run seed:agents` tras
 desplegar el cambio. Sin clave, el runtime mantiene el fallo cerrado.
 
