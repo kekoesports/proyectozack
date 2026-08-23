@@ -53,7 +53,8 @@ Import the JSON files under [`workflows/`](./workflows/) from the n8n editor:
 
 - `socialpro-deal-intake.json`: webhook to persist an idempotent CRM draft for human approval.
 - `socialpro-progress-alerts.json`: hourly Sheet sync and one-time 70/80/100 alerts.
-- `socialpro-deal-digest.json`: Monday/Wednesday/Friday 10:30 CRM digest.
+- `socialpro-deal-digest.json`: daily 10:00 CRM digest; old deals already at
+  100% are omitted so Discord focuses on current follow-up.
 
 All three imports start disabled and intentionally contain no secrets. Before a test:
 

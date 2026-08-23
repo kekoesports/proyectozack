@@ -1,7 +1,7 @@
 jest.mock('server-only', () => ({}));
 jest.mock('@/lib/db', () => ({ db: {} }));
 
-import { classifyNextAction } from '@/lib/queries/automationDealDigest';
+import { classifyNextAction, shouldIncludeInDigest } from '@/lib/queries/automationDealDigest';
 
 describe('classifyNextAction', () => {
   it('prioriza errores y ausencia de Sheet', () => {
@@ -41,5 +41,11 @@ describe('classifyNextAction', () => {
       progressPct: 0,
       inactiveDays: 30,
     })).toBe('missing_targets');
+  });
+
+  it('oculta los tratos antiguos al 100% pero conserva los recién completados', () => {
+    expect(shouldIncludeInDigest({ progressPct: 100, inactiveDays: 10 })).toBe(false);
+    expect(shouldIncludeInDigest({ progressPct: 100, inactiveDays: 9 })).toBe(true);
+    expect(shouldIncludeInDigest({ progressPct: 99, inactiveDays: 30 })).toBe(true);
   });
 });

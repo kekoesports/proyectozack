@@ -124,6 +124,13 @@ describe('estimateCostMicros', () => {
     );
   });
 
+  it('contabiliza el modelo activo de Guardian con la tarifa vigente', () => {
+    expect(estimateCostMicros('gemini-3.6-flash', 1_000_000, 1_000_000)).toEqual({
+      estimatedCostMicros: 4_500_000,
+      pricingUnknown: false,
+    });
+  });
+
   it('con un modelo desconocido NO inventa coste', () => {
     // Un coste inventado se sumaría al presupuesto como si fuera real. Un hueco
     // declarado se ve en el informe.

@@ -47,7 +47,7 @@ describe('catálogo de agentes', () => {
 
     expect(guardian).toMatchObject({
       modelProvider: 'gemini',
-      modelName: 'gemini-2.5-flash',
+      modelName: 'gemini-3.6-flash',
       systemRole: 'ops',
     });
     expect(MODEL_PRICING[guardian?.modelName ?? '']).toBeDefined();
