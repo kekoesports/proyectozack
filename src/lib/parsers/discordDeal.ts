@@ -276,7 +276,22 @@ export function parseDiscordDealMessage(rawText: string): DiscordDealParseResult
   if (status !== undefined) proposedDeal.status = status;
   if (currency !== undefined) proposedDeal.currency = currency;
   if (start.iso !== null) proposedDeal.startDate = start.iso;
+  else if (start.invalid) {
+    // Conserva el valor problemático para que AutomationDealCreate señale
+    // `startDate` y el borrador aterrice como missing_info. Omitirlo haría que
+    // una fecha escrita pero imposible pareciese simplemente opcional.
+    proposedDeal.startDate = readField(lines, 'fecha de inicio', 'inicio', 'start');
+  }
   if (end.iso !== null) proposedDeal.endDate = end.iso;
+  else if (end.invalid) {
+    proposedDeal.endDate = readField(
+      lines,
+      'fecha de finalizacion',
+      'fecha de fin',
+      'fin',
+      'end',
+    );
+  }
   if (amountBrand !== null) proposedDeal.amountBrand = amountBrand;
   if (amountTalent !== null) proposedDeal.amountTalent = amountTalent;
   if (inKindTalent !== null) proposedDeal.amountInKindTalent = inKindTalent;

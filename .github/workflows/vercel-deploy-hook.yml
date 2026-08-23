@@ -1,10 +1,10 @@
 name: Vercel Production Deploy (fallback)
 
 # Vercel's GitHub App normalmente dispara los deploys automáticamente. Este
-# workflow es un FALLBACK que llama a un Deploy Hook URL guardado en el
-# secret VERCEL_DEPLOY_HOOK_URL. Útil cuando la app de Vercel se
-# desincroniza (Hobby plan limits, webhook drift) y deja de disparar
-# deploys nuevos.
+# workflow es un FALLBACK MANUAL que llama a un Deploy Hook URL guardado en
+# el secret VERCEL_DEPLOY_HOOK_URL. Úsalo desde GitHub Actions cuando la app
+# de Vercel se desincroniza y deja de disparar deploys nuevos. No se ejecuta
+# en cada push para evitar dos despliegues de producción del mismo commit.
 #
 # Setup:
 #   1. Vercel dashboard → Settings → Git → Deploy Hooks → Create Hook
@@ -17,8 +17,6 @@ name: Vercel Production Deploy (fallback)
 # safety net.
 
 on:
-  push:
-    branches: [master]
   workflow_dispatch:  # permite trigger manual desde GitHub Actions UI
 
 concurrency:
