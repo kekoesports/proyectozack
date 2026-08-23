@@ -16,6 +16,7 @@ jest.mock('server-only', () => ({}));
 const mockInsert = jest.fn();
 const mockSelect = jest.fn();
 const mockUpdate = jest.fn();
+const mockOnConflictDoNothing = jest.fn();
 jest.mock('@/lib/db', () => ({ db: { insert: mockInsert, select: mockSelect, update: mockUpdate } }));
 jest.mock('@/lib/auth', () => ({ auth: {} }));
 
@@ -50,8 +51,9 @@ function stubSelects(respuestas: readonly unknown[][]): void {
 }
 
 function stubInsert(devuelve: readonly unknown[]): void {
+  mockOnConflictDoNothing.mockReturnValue({ returning: async () => devuelve });
   mockInsert.mockReturnValue({
-    values: () => ({ onConflictDoNothing: () => ({ returning: async () => devuelve }) }),
+    values: () => ({ onConflictDoNothing: mockOnConflictDoNothing }),
   });
 }
 
@@ -62,6 +64,7 @@ describe('kill switch global', () => {
     MOCK_AGENTS_ENABLED = false;
     mockSelect.mockReset();
     mockInsert.mockReset();
+    mockOnConflictDoNothing.mockReset();
   });
 
   it('el runtime está apagado mientras la variable no valga true', () => {
@@ -93,6 +96,7 @@ describe('enqueueAgentRun', () => {
     MOCK_AGENTS_ENABLED = true;
     mockSelect.mockReset();
     mockInsert.mockReset();
+    mockOnConflictDoNothing.mockReset();
   });
   afterEach(() => {
     MOCK_AGENTS_ENABLED = false;
@@ -143,6 +147,8 @@ describe('enqueueAgentRun', () => {
     });
     expect(res.deduplicated).toBe(true);
     expect(res.run.id).toBe(55);
+    // Sin target explícito: el índice es parcial y PostgreSQL debe inferirlo.
+    expect(mockOnConflictDoNothing).toHaveBeenCalledWith();
   });
 
   it('un conflicto sin clave de idempotencia es un fallo, no un duplicado', async () => {
