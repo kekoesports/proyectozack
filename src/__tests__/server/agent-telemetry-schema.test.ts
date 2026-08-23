@@ -192,6 +192,6 @@ describe('la unidad systemd está acotada', () => {
   });
 
   it('los backups se leen, no se tocan', () => {
-    expect(unidad).toMatch(/ReadOnlyPaths=\/var\/backups/);
+    expect(unidad).toMatch(/ReadOnlyPaths=-\/var\/backups/);
   });
 });
