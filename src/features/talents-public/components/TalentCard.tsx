@@ -14,6 +14,7 @@ const PLATFORM_LABEL: Record<string, string> = {
 import { gradientStyle } from '@/lib/utils/gradient';
 import { countryFlagEmoji, getFlagImageUrl } from '@/lib/flag-images';
 import { getCountryLabel } from '@/lib/countries';
+import { buildTalentImageAlt } from '@/lib/talentSeo';
 
 type TalentCardProps = {
   talent: TalentWithRelations;
@@ -40,7 +41,7 @@ export function TalentCard({ talent, priority = false }: TalentCardProps) {
         {talent.photoUrl ? (
           <Image
             src={talent.photoUrl}
-            alt={talent.name}
+            alt={buildTalentImageAlt(talent)}
             fill
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
             priority={priority}

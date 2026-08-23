@@ -14,7 +14,7 @@ import { GiveawayFeatured } from '@/features/giveaways/components/GiveawayFeatur
 import { GiveawayRow } from '@/features/giveaways/components/GiveawayRow';
 import { buildBreadcrumbJsonLd } from '@/lib/utils/breadcrumbs';
 import { absoluteUrl, schemaImageUrl } from '@/lib/site-url';
-import { truncateMetaDescription } from '@/lib/utils/text';
+import { buildTalentImageAlt, buildTalentMetaDescription, buildTalentSearchTitle } from '@/lib/talentSeo';
 import { TalentLiveWidget } from '@/features/giveaways/components/TalentLiveWidget';
 import { generateEventSchema } from '@/lib/schema';
 import { Cs2LabCard } from '@/components/cs2-lab/Cs2LabCard';
@@ -38,24 +38,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { slug } = await params;
   const talent = await getTalentBySlug(slug);
   if (!talent) return {};
-  const roleLabel = (talent.role.charAt(0).toUpperCase() + talent.role.slice(1)).replace(/\bcs2\b/gi, 'CS2');
-  const gameSuffix = talent.game && !roleLabel.toLowerCase().includes(talent.game.toLowerCase())
-    ? ` de ${talent.game}` : '';
-  // seoTitle / seoDescription solo se usan si el contenido está aprobado o viene de edición manual
-  const seoApproved = talent.seoBioStatus === 'approved' || !!talent.seoBioManual?.trim();
-  // Strip accidental " | SocialPro" from manually-entered seoTitle — the template appends it automatically
-  const rawSeoTitle = talent.seoTitle?.trim()?.replace(/\s*\|\s*SocialPro\s*$/i, '');
-  const title = (seoApproved && rawSeoTitle)
-    || `${talent.name} — ${roleLabel}${gameSuffix}`;
-  const metaSocial = talent.socials.find((s) => s.platform === talent.platform) ?? talent.socials[0];
-  const metaFollowers = metaSocial?.followersDisplay && metaSocial.followersDisplay !== '-'
-    ? metaSocial.followersDisplay : null;
-  const platformLabel = talent.platform === 'twitch' ? 'Twitch' : 'YouTube';
-  const descFallback = `${talent.name} — ${talent.role.toLowerCase()} de ${talent.game}${talent.creatorCountry ? `, ${talent.creatorCountry}` : ''}${metaFollowers ? `, ${metaFollowers} seguidores en ${platformLabel}` : ''}. Gestionado por SocialPro.`;
-  const description = (seoApproved && talent.seoDescription?.trim())
-    || truncateMetaDescription(talent.bio || undefined)
-    || descFallback;
-  const ogAlt = `${talent.name} — ${talent.role.toLowerCase()} de ${talent.game} en ${platformLabel}${talent.creatorCountry ? `, ${talent.creatorCountry}` : ''} | SocialPro`;
+  const title = buildTalentSearchTitle(talent);
+  const description = buildTalentMetaDescription(talent);
+  const ogAlt = buildTalentImageAlt(talent);
   return {
     title,
     description,
@@ -133,11 +118,7 @@ export default async function TalentPage({ params }: PageProps) {
   const featuredGiveaway = activeWithTalent[0] ?? null;
   const restGiveaways    = activeWithTalent.slice(1);
   const mainSocial       = talent.socials.find((s) => s.platform === talent.platform) ?? talent.socials[0];
-  const heroPlatform     = talent.platform === 'twitch' ? 'Twitch' : 'YouTube';
-  const photoAltParts    = [talent.name, `streamer de ${heroPlatform}`];
-  if (talent.creatorCountry) photoAltParts.push(talent.creatorCountry);
-  if (mainSocial?.followersDisplay && mainSocial.followersDisplay !== '-') photoAltParts.push(`${mainSocial.followersDisplay} seguidores`);
-  const photoAlt         = photoAltParts.join(', ');
+  const photoAlt         = buildTalentImageAlt(talent);
   const bioSnippet       = talent.bio?.trim()
     ? talent.bio.trim().slice(0, 120) + (talent.bio.trim().length > 120 ? '…' : '')
     : null;
@@ -199,7 +180,7 @@ export default async function TalentPage({ params }: PageProps) {
     '@type': 'ProfilePage',
     '@id': absoluteUrl(`/talentos/${slug}#profilepage`),
     url: absoluteUrl(`/talentos/${slug}`),
-    name: `${talent.name} — ${[talent.role, talent.game].filter(Boolean).join(' · ')} | SocialPro`,
+    name: `${buildTalentSearchTitle(talent)} | SocialPro`,
     inLanguage: 'es',
     dateModified: talent.updatedAt.toISOString(),
     isPartOf: { '@type': 'WebSite', '@id': absoluteUrl('/#website') },
@@ -431,6 +412,7 @@ export default async function TalentPage({ params }: PageProps) {
             slug={slug}
             talentName={talent.name}
             talentPhotoUrl={talent.photoUrl}
+            talentImageAlt={photoAlt}
             gradientC1={talent.gradientC1}
             gradientC2={talent.gradientC2}
             variant="strip"
@@ -540,6 +522,7 @@ export default async function TalentPage({ params }: PageProps) {
                 slug={slug}
                 talentName={talent.name}
                 talentPhotoUrl={talent.photoUrl}
+                talentImageAlt={photoAlt}
                 gradientC1={talent.gradientC1}
                 gradientC2={talent.gradientC2}
                 variant="sidebar"
