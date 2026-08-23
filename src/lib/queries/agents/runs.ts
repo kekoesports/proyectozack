@@ -91,7 +91,13 @@ export async function enqueueAgentRun(input: EnqueueAgentRunInput): Promise<Enqu
   const inserted = await db
     .insert(agentRuns)
     .values(values)
-    .onConflictDoNothing({ target: agentRuns.idempotencyKey })
+    // El índice de idempotencia es parcial (`WHERE idempotency_key IS NOT
+    // NULL`). `ON CONFLICT (idempotency_key)` no puede inferirlo sin repetir
+    // el predicado y PostgreSQL rechaza la consulta antes de insertar. Sin
+    // target, PostgreSQL aplica DO NOTHING ante cualquier índice único,
+    // incluido el parcial; el bloque de abajo comprueba que un conflicto sin
+    // clave nunca se acepte como deduplicación válida.
+    .onConflictDoNothing()
     .returning();
 
   const row = inserted[0];
