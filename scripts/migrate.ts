@@ -4,6 +4,7 @@ import { Pool } from 'pg';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { migrate } from 'drizzle-orm/node-postgres/migrator';
 import { isPreviewDeploy } from '../src/lib/deploy-env';
+import { normalizePostgresSslMode } from '../src/lib/postgres-url';
 import { checkMigrationsWillApply } from './migration-skip-guard';
 
 // Load .env.local manually (drizzle-kit/tsx don't auto-load it)
@@ -49,7 +50,9 @@ if (!url) {
 
 
 // El rol migrador puede ser distinto del de la aplicación: aplica DDL.
-const pool = new Pool({ connectionString: process.env.MIGRATION_DATABASE_URL ?? url });
+// Mantiene la misma verificación TLS estricta que el pool de la aplicación.
+const migrationUrl = normalizePostgresSslMode(process.env.MIGRATION_DATABASE_URL ?? url);
+const pool = new Pool({ connectionString: migrationUrl });
 const db = drizzle(pool);
 
 async function main(): Promise<void> {
