@@ -2,6 +2,7 @@ import { Pool } from 'pg';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import type { SQL } from 'drizzle-orm';
 import { env } from './env';
+import { normalizePostgresSslMode } from './postgres-url';
 import * as schema from '@/db/schema';
 
 /**
@@ -20,7 +21,7 @@ import * as schema from '@/db/schema';
  */
 
 const pool = new Pool({
-  connectionString: env.DATABASE_URL,
+  connectionString: normalizePostgresSslMode(env.DATABASE_URL),
   max: env.DB_POOL_MAX,
   idleTimeoutMillis: env.DB_IDLE_TIMEOUT_MS,
   connectionTimeoutMillis: env.DB_CONNECTION_TIMEOUT_MS,
