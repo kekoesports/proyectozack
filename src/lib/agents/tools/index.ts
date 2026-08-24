@@ -1,5 +1,7 @@
 import { GUARDIAN_ALLOWLIST } from '../guardian/definition';
 import { GUARDIAN_TOOLS } from '../guardian/tools';
+import { OPERATION_AGENT_TOOL_NAMES } from '../operations/definition';
+import { OPERATION_AGENT_TOOLS } from '../operations/tools';
 import { AgentToolRegistry } from '../tool-registry';
 import { LEGACY_READ_TOOLS } from './legacy-read-adapter';
 
@@ -28,6 +30,7 @@ export * from './legacy-read-adapter';
 export const AGENT_TOOL_ALLOWLISTS: Readonly<Record<string, readonly string[]>> = {
   guardian: GUARDIAN_ALLOWLIST,
   'crm-steward': [
+    ...OPERATION_AGENT_TOOL_NAMES['crm-steward'],
     'getCrmHelpContext',
     'getActiveCampaigns',
     'getCampaignMarginSummary',
@@ -35,14 +38,18 @@ export const AGENT_TOOL_ALLOWLISTS: Readonly<Record<string, readonly string[]>> 
     'getFinanceAlerts',
     'getFinanceDashboardSummary',
   ],
-  'deal-clerk': ['getCrmHelpContext', 'getActiveCampaigns', 'getCampaignMarginSummary'],
-  growth: ['getCrmHelpContext'],
-  seo: ['getCrmHelpContext'],
+  'deal-clerk': [
+    ...OPERATION_AGENT_TOOL_NAMES['deal-clerk'],
+    'getCrmHelpContext',
+    'getActiveCampaigns',
+  ],
+  growth: [...OPERATION_AGENT_TOOL_NAMES.growth, 'getCrmHelpContext'],
+  seo: [...OPERATION_AGENT_TOOL_NAMES.seo, 'getCrmHelpContext'],
   dev: ['getCrmHelpContext'],
 };
 
 /** Todas las tools registradas del runtime. */
-export const ALL_AGENT_TOOLS = [...LEGACY_READ_TOOLS, ...GUARDIAN_TOOLS];
+export const ALL_AGENT_TOOLS = [...LEGACY_READ_TOOLS, ...GUARDIAN_TOOLS, ...OPERATION_AGENT_TOOLS];
 
 let registroCompartido: AgentToolRegistry | null = null;
 

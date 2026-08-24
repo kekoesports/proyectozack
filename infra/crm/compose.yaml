@@ -31,8 +31,12 @@ services:
       PGTZ: UTC
     secrets:
       - postgres_password
+      - postgres_migrator_password
+      - postgres_app_password
+      - postgres_backup_password
     volumes:
       - /opt/socialpro/data/postgres-crm:/var/lib/postgresql/data
+      - /opt/socialpro/data/migration:/srv/migration:ro
       - ./initdb:/docker-entrypoint-initdb.d:ro
     networks:
       - crm_backend
@@ -163,3 +167,9 @@ secrets:
   postgres_password:
     # Fichero root-only en el host, nunca en git ni en el compose.
     file: /opt/socialpro/crm/secrets/postgres_password
+  postgres_migrator_password:
+    file: /opt/socialpro/crm/secrets/postgres_migrator_password
+  postgres_app_password:
+    file: /opt/socialpro/crm/secrets/postgres_app_password
+  postgres_backup_password:
+    file: /opt/socialpro/crm/secrets/postgres_backup_password

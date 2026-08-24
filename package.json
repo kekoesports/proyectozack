@@ -41,6 +41,7 @@
     "build:with-migrate": "npm run migrate:deploy && npm run build && npm run postdeploy",
     "seed:agents": "tsx scripts/seed-agent-definitions.ts",
     "seed:guardian-schedules": "tsx scripts/seed-guardian-schedules.ts",
+    "seed:operation-agent-schedules": "tsx scripts/seed-operation-agent-schedules.ts",
     "agents:worker": "node --env-file-if-exists=.env.local --import tsx --require ./scripts/worker-preload.cjs src/worker/agent-worker.ts",
     "agents:worker:once": "node --env-file-if-exists=.env.local --import tsx --require ./scripts/worker-preload.cjs src/worker/agent-worker.ts --once",
     "agents:schedules:tick": "node --env-file-if-exists=.env.local --import tsx --require ./scripts/worker-preload.cjs src/worker/agent-worker.ts --schedules-only"

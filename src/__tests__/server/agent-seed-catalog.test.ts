@@ -41,9 +41,10 @@ describe('catálogo de agentes', () => {
     expect(SEED_AGENT_MODE).toBe('shadow');
   });
 
-  it('solo Guardian usa un modelo real durante el rollout', () => {
+  it('los cinco agentes del rollout usan el modelo económico y Dev sigue apagado', () => {
     const guardian = AGENT_CATALOG.find((agente) => agente.slug === 'guardian');
-    const restantes = AGENT_CATALOG.filter((agente) => agente.slug !== 'guardian');
+    const rollout = AGENT_CATALOG.filter((agente) => agente.slug !== 'dev');
+    const dev = AGENT_CATALOG.find((agente) => agente.slug === 'dev');
 
     expect(guardian).toMatchObject({
       modelProvider: 'gemini',
@@ -51,10 +52,13 @@ describe('catálogo de agentes', () => {
       systemRole: 'ops',
     });
     expect(MODEL_PRICING[guardian?.modelName ?? '']).toBeDefined();
-    for (const agente of restantes) {
-      expect(agente.modelProvider).toBe('null');
-      expect(agente.modelName).toBeNull();
+    for (const agente of rollout) {
+      expect(agente.modelProvider).toBe('gemini');
+      expect(agente.modelName).toBe('gemini-3.6-flash');
+      expect(MODEL_PRICING[agente.modelName ?? '']).toBeDefined();
     }
+    expect(dev?.modelProvider).toBe('null');
+    expect(dev?.modelName).toBeNull();
   });
 
   it('los límites cumplen los CHECK de la tabla', () => {
@@ -141,5 +145,13 @@ describe('scripts/seed-agent-definitions.ts', () => {
     expect(guardian?.systemRole).toBe('ops');
     expect(hasPermission('ops', 'infrastructure', 'read')).toBe(true);
     expect(hasPermission('analyst', 'infrastructure', 'read')).toBe(false);
+  });
+
+  it('cada agente operativo alcanza las lecturas de su dominio', () => {
+    const roles = Object.fromEntries(AGENT_CATALOG.map((agent) => [agent.slug, agent.systemRole]));
+    expect(hasPermission(roles['crm-steward'], 'campanas', 'read')).toBe(true);
+    expect(hasPermission(roles['deal-clerk'], 'campanas', 'read')).toBe(true);
+    expect(hasPermission(roles.growth, 'leads', 'read')).toBe(true);
+    expect(hasPermission(roles.seo, 'analytics', 'read')).toBe(true);
   });
 });

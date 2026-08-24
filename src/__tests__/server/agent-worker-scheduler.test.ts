@@ -126,8 +126,22 @@ describe('reglas de evento', () => {
     expect(matchEventRule(evento({ severity: 'warning' }))).toBeNull();
   });
 
-  it('solo Guardian tiene disparadores por evento en esta fase', () => {
-    expect(EVENT_RULES.every((r) => r.agentSlug === 'guardian')).toBe(true);
+  it('despierta al agente de dominio solo para sus eventos allowlisted', () => {
+    expect(matchEventRule(evento({
+      source: 'discord-pipeline',
+      eventType: 'deal.draft_created',
+      severity: 'info',
+    }))?.agentSlug).toBe('deal-clerk');
+    expect(matchEventRule(evento({
+      source: 'google-search-console',
+      eventType: 'seo.search_console_snapshot',
+      severity: 'info',
+    }))?.agentSlug).toBe('seo');
+    expect(matchEventRule(evento({
+      source: 'crm',
+      eventType: 'lead.created',
+      severity: 'info',
+    }))?.agentSlug).toBe('growth');
   });
 
   it('una regla más específica gana si va antes', () => {

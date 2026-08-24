@@ -11,6 +11,7 @@ jest.mock('@/lib/db', () => ({ db: {} }));
 const verifyAutomationToken = jest.fn();
 const findAutomationDealDraftByExternalId = jest.fn();
 const createAutomationDealDraft = jest.fn();
+const ingestAgentEvent = jest.fn();
 
 jest.mock('@/lib/security/assertAutomationAuth', () => ({
   verifyAutomationToken: (req: Request) => verifyAutomationToken(req),
@@ -19,6 +20,9 @@ jest.mock('@/lib/queries/automationDealDrafts', () => ({
   findAutomationDealDraftByExternalId: (...args: unknown[]) =>
     findAutomationDealDraftByExternalId(...args),
   createAutomationDealDraft: (...args: unknown[]) => createAutomationDealDraft(...args),
+}));
+jest.mock('@/lib/queries/agents/events', () => ({
+  ingestAgentEvent: (...args: unknown[]) => ingestAgentEvent(...args),
 }));
 
 import { POST } from '@/app/api/automation/discord/pipeline-deals/route';
@@ -63,6 +67,7 @@ beforeEach(() => {
   createAutomationDealDraft.mockResolvedValue({
     id: 7, created: true, status: 'pending_review', missingFields: [],
   });
+  ingestAgentEvent.mockResolvedValue({ event: { id: 91 }, deduplicated: false });
 });
 
 describe('auth', () => {
@@ -138,6 +143,12 @@ describe('procesado', () => {
     expect(arg.sourceChannelId).toBe('1533123521574862991');
     expect(arg.proposedDeal.name).toBe('The Real Fer x SkinsMonkey');
     expect(arg.proposedDeal.deliverables).toHaveLength(1);
+    expect(ingestAgentEvent).toHaveBeenCalledWith(expect.objectContaining({
+      source: 'discord-pipeline',
+      eventType: 'deal.draft_created',
+      externalId: 'discord:message:123456789012345678',
+      payloadJson: expect.objectContaining({ draftId: 7 }),
+    }));
   });
 
   it('ignora la charla del canal sin dejar borrador', async () => {
