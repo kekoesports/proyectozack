@@ -30,6 +30,7 @@ describe('workflow diario de Search Console', () => {
     );
     expect(googleNodes).toHaveLength(2);
     for (const node of googleNodes) {
+      expect(node.parameters.authentication).toBe('predefinedCredentialType');
       expect(node.parameters.url).toBe(
         'https://www.googleapis.com/webmasters/v3/sites/https%3A%2F%2Fsocialpro.es%2F/searchAnalytics/query',
       );
