@@ -17,6 +17,8 @@ import { MAX_TOOL_CALLS_POR_TURNO, normalizeProviderTurn } from '@/lib/agents/mo
 import { NullAgentModelProvider } from '@/lib/agents/providers/null-provider';
 import {
   appendGeminiRequestMessages,
+  createGeminiRequestGate,
+  GEMINI_MIN_REQUEST_INTERVAL_MS,
   toolToFunctionDeclaration,
   type GeminiHistoryContent,
 } from '@/lib/agents/providers/gemini-provider';
@@ -87,6 +89,44 @@ describe('NullAgentModelProvider', () => {
       expect(res.error.code).toBe('provider_unavailable');
       expect(res.error.retryable).toBe(false);
     }
+  });
+});
+
+describe('Gemini request gate', () => {
+  it('espacia peticiones concurrentes con una única cola por proceso', async () => {
+    let now = 1_000;
+    const sleeps: number[] = [];
+    const gate = createGeminiRequestGate({
+      minIntervalMs: GEMINI_MIN_REQUEST_INTERVAL_MS,
+      now: () => now,
+      sleep: async (delayMs) => {
+        sleeps.push(delayMs);
+        now += delayMs;
+      },
+    });
+
+    await Promise.all([gate(), gate(), gate()]);
+
+    expect(sleeps).toEqual([GEMINI_MIN_REQUEST_INTERVAL_MS, GEMINI_MIN_REQUEST_INTERVAL_MS]);
+  });
+
+  it('no espera dos veces cuando ya pasó la ventana', async () => {
+    let now = 1_000;
+    const sleeps: number[] = [];
+    const gate = createGeminiRequestGate({
+      minIntervalMs: GEMINI_MIN_REQUEST_INTERVAL_MS,
+      now: () => now,
+      sleep: async (delayMs) => {
+        sleeps.push(delayMs);
+        now += delayMs;
+      },
+    });
+
+    await gate();
+    now += GEMINI_MIN_REQUEST_INTERVAL_MS;
+    await gate();
+
+    expect(sleeps).toEqual([]);
   });
 });
 
