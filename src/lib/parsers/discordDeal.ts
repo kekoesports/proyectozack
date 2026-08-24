@@ -132,7 +132,9 @@ export function parseSpanishDate(raw: string | null): { iso: string | null; inva
 /** Etiquetas de entregable → tipo canónico. El orden importa: gana la primera. */
 const DELIVERABLE_PATTERNS: readonly (readonly [RegExp, DeliverableType])[] = [
   [/preroll/, 'preroll'],
+  [/\bintro(s)?\b/, 'preroll'],
   [/(video|vídeo).*(dedicad|youtube|yt)|youtube.*(video|vídeo)/, 'video_youtube'],
+  [/\b(video|videos|vídeo|vídeos)\b/, 'video_youtube'],
   [/(short|reel|tiktok)/, 'short_reel_tiktok'],
   [/(story|historia).*(instagram|ig)/, 'story_instagram'],
   [/(post|publicacion).*(instagram|ig)/, 'post_instagram'],
@@ -148,6 +150,88 @@ function classifyDeliverable(label: string): DeliverableType {
     if (pattern.test(folded)) return type;
   }
   return 'otro';
+}
+
+function compactDealLine(line: string, brand: string): DiscordDealParseResult | null {
+  const match = line.match(
+    /^([^:]{1,100}):\s*(.+?)\s*=\s*([0-9][0-9.,\s]*)\s*([€$])\s+para\s+(.+?)\s+son\s*:?\s*([0-9][0-9.,\s]*)\s*([€$])\s*$/iu,
+  );
+  if (!match) return null;
+
+  const creator = (match[1] ?? '').trim();
+  const rawDeliverables = (match[2] ?? '').trim();
+  const amountBrand = readAmount(match[3] ?? null);
+  const brandCurrency = match[4];
+  const payee = (match[5] ?? '').trim().replace(/^@/, '');
+  const amountTalent = readAmount(match[6] ?? null);
+  const talentCurrency = match[7];
+  if (!creator || !rawDeliverables || amountBrand === null || amountTalent === null) return null;
+
+  const warnings: string[] = [];
+  const deliverables: { type: DeliverableType; targetCount: number; notes: string }[] = [];
+  for (const part of rawDeliverables.split(/\s*\+\s*/)) {
+    const item = part.trim().match(/^(\d{1,3})\s+(.+)$/u);
+    if (!item) {
+      warnings.push(`Entregable abreviado no reconocido: "${part.trim()}".`);
+      continue;
+    }
+    const targetCount = Number(item[1]);
+    const label = (item[2] ?? '').trim();
+    const type = classifyDeliverable(label);
+    const existing = deliverables.find((deliverable) => deliverable.type === type);
+    if (existing) existing.targetCount += targetCount;
+    else deliverables.push({ type, targetCount, notes: label });
+  }
+  if (deliverables.length === 0) warnings.push('No se ha reconocido ningún entregable.');
+  if (brandCurrency !== talentCurrency) warnings.push('Los importes usan monedas distintas.');
+  if (amountBrand > 0 && amountTalent > amountBrand) {
+    warnings.push('El pago al creador supera el importe de la marca.');
+  }
+
+  const platform = inferPlatform(
+    deliverables.map((deliverable) => deliverable.type),
+    deliverables.map((deliverable) => deliverable.notes),
+  );
+  const explicitHandle = /^[A-Za-z0-9._-]{2,120}$/.test(payee) && !isPlaceholder(payee)
+    ? payee
+    : null;
+  if (explicitHandle === null) warnings.push('Falta el handle del creador.');
+  if (platform === null && deliverables.length > 0) {
+    warnings.push('No se ha podido deducir la plataforma del creador.');
+  }
+
+  const talent: Record<string, unknown> = { name: creator, createIfMissing: true };
+  if (explicitHandle !== null) talent.handle = explicitHandle;
+  if (platform !== null) talent.platform = platform;
+  const proposedDeal: Record<string, unknown> = {
+    name: `${creator} x ${brand}`,
+    brand: { name: brand, createIfMissing: true },
+    talent,
+    currency: brandCurrency === '$' ? 'USD' : 'EUR',
+    amountBrand,
+    amountTalent,
+  };
+  if (deliverables.length > 0) proposedDeal.deliverables = deliverables;
+  return { proposedDeal, warnings, looksLikeDeal: true };
+}
+
+/**
+ * Acepta el formato rápido usado por operaciones: una marca como cabecera y
+ * una línea por creador. Un mensaje puede producir varios borradores.
+ */
+export function parseDiscordDealEntries(rawText: string): readonly DiscordDealParseResult[] {
+  const compactLines = rawText
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0 && !/^-{3,}$/.test(line));
+  const brand = compactLines[0] ?? '';
+  if (brand && !brand.includes(':') && compactLines.length >= 2) {
+    const entries = compactLines.slice(1).map((line) => compactDealLine(line, brand));
+    if (entries.every((entry) => entry !== null)) {
+      return entries.filter((entry): entry is DiscordDealParseResult => entry !== null);
+    }
+  }
+  return [parseDiscordDealMessage(rawText)];
 }
 
 /** Plataforma implícita en los entregables. Sin señal clara, no se inventa. */
