@@ -27,6 +27,10 @@ export const automationDealDrafts = pgTable(
     campaignId: integer('campaign_id').references(() => campaigns.id, { onDelete: 'set null' }),
     reviewedBy: varchar('reviewed_by', { length: 100 }),
     reviewedAt: timestamp('reviewed_at', { withTimezone: true }),
+    /** Resultado exacto de compartir la Sheet al aprobar el borrador. */
+    sheetShareStatus: varchar('sheet_share_status', { length: 20 }),
+    /** ACK de n8n después de publicar la confirmación en Discord. */
+    discordNotifiedAt: timestamp('discord_notified_at', { withTimezone: true }),
     error: text('error'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),

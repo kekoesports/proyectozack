@@ -270,7 +270,7 @@ export function parseDiscordDealMessage(rawText: string): DiscordDealParseResult
   if (Object.keys(talent).length > 0) talent.createIfMissing = true;
 
   const proposedDeal: Record<string, unknown> = {};
-  if (creator !== null && brand !== null) proposedDeal.name = `${brand} x ${creator}`;
+  if (creator !== null && brand !== null) proposedDeal.name = `${creator} x ${brand}`;
   if (brand !== null) proposedDeal.brand = { name: brand, createIfMissing: true };
   if (Object.keys(talent).length > 0) proposedDeal.talent = talent;
   if (status !== undefined) proposedDeal.status = status;

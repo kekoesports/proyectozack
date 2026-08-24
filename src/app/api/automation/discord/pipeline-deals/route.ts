@@ -95,10 +95,13 @@ export async function POST(req: Request): Promise<NextResponse> {
         missingFields: draft.missingFields,
         warnings: extraction.warnings,
       });
-    } catch {
+    } catch (error) {
       // Un mensaje que falla no puede tumbar el lote entero: el resto se procesa
       // y n8n reintentará este en la siguiente pasada (sigue sin borrador).
-      console.error('[pipeline-deals] fallo procesando un mensaje');
+      console.error('[pipeline-deals] fallo procesando un mensaje', {
+        messageId: message.messageId,
+        error: error instanceof Error ? error.name : 'unknown',
+      });
       outcomes.push({ messageId: message.messageId, result: 'failed' });
     }
   }
@@ -110,6 +113,7 @@ export async function POST(req: Request): Promise<NextResponse> {
     ignored: outcomes.filter((o) => o.result === 'ignored').length,
     failed: outcomes.filter((o) => o.result === 'failed').length,
   };
+  console.info('[pipeline-deals] lote procesado', summary);
 
   return NextResponse.json({ ok: true, summary, outcomes }, { status: 200 });
 }

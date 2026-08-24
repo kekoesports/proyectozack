@@ -131,7 +131,7 @@ describe('procesado', () => {
     const arg = createAutomationDealDraft.mock.calls[0]?.[0];
     expect(arg.source).toBe('discord');
     expect(arg.sourceChannelId).toBe('1533123521574862991');
-    expect(arg.proposedDeal.name).toBe('SkinsMonkey x The Real Fer');
+    expect(arg.proposedDeal.name).toBe('The Real Fer x SkinsMonkey');
     expect(arg.proposedDeal.deliverables).toHaveLength(1);
   });
 
