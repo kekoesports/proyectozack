@@ -1,5 +1,5 @@
 {
-  "name": "SocialPro - CONFIRMAR tratos creados en Discord (cada 2 min)",
+  "name": "SocialPro - CONFIRMAR tratos creados en Discord (instantáneo + respaldo)",
   "active": false,
   "settings": {
     "executionOrder": "v1",
@@ -7,6 +7,22 @@
     "saveManualExecutions": true
   },
   "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "socialpro-deal-created-c65a5040-f475-4f17-9527-934220db4d6f",
+        "responseMode": "onReceived",
+        "authentication": "headerAuth",
+        "options": {}
+      },
+      "id": "webhook-confirmations",
+      "name": "Aviso inmediato del CRM",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [-560, -180],
+      "webhookId": "socialpro-deal-created-immediate",
+      "notes": "El CRM lo llama al aprobar. Requiere la misma credencial Header Auth; el Schedule Trigger queda como recuperación."
+    },
     {
       "parameters": {
         "rule": {
@@ -123,6 +139,9 @@
     }
   ],
   "connections": {
+    "Aviso inmediato del CRM": {
+      "main": [[{ "node": "Config", "type": "main", "index": 0 }]]
+    },
     "Cada 2 minutos": {
       "main": [[{ "node": "Config", "type": "main", "index": 0 }]]
     },

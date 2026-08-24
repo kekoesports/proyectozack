@@ -1,6 +1,9 @@
 jest.mock('server-only', () => ({}));
 jest.mock('@/lib/db', () => ({ db: {} }));
 
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+
 import { formatDiscordDealCreatedMessage } from '@/lib/queries/automationDiscordDealNotifications';
 
 describe('confirmación de trato creado para Discord', () => {
@@ -27,6 +30,15 @@ describe('confirmación de trato creado para Discord', () => {
     });
 
     expect(message).toContain('Compartido con el influencer: **NO**');
+  });
+
+  it('no bloquea el aviso si una aprobación antigua perdió el estado de compartición', () => {
+    const source = readFileSync(
+      resolve(process.cwd(), 'src/lib/queries/automationDiscordDealNotifications.ts'),
+      'utf8',
+    );
+
+    expect(source).not.toContain('isNotNull(automationDealDrafts.sheetShareStatus)');
   });
 
   it('neutraliza markdown y menciones procedentes del nombre del trato', () => {

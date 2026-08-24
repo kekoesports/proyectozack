@@ -42,6 +42,20 @@ describe('workflow n8n de confirmación de tratos creados', () => {
       .toBe('Confirmar publicación al CRM');
   });
 
+  it('se puede despertar al instante y conserva el sondeo como respaldo', () => {
+    const value = workflow();
+    const webhook = value.nodes.find((node) => node.name === 'Aviso inmediato del CRM');
+    const schedule = value.nodes.find((node) => node.name === 'Cada 2 minutos');
+
+    expect(webhook).toMatchObject({
+      type: 'n8n-nodes-base.webhook',
+      parameters: { httpMethod: 'POST', authentication: 'headerAuth' },
+    });
+    expect(schedule).toMatchObject({ type: 'n8n-nodes-base.scheduleTrigger' });
+    expect(value.connections['Aviso inmediato del CRM']?.main[0]?.[0]?.node).toBe('Config');
+    expect(value.connections['Cada 2 minutos']?.main[0]?.[0]?.node).toBe('Config');
+  });
+
   it('no envía nada cuando el CRM no devuelve confirmaciones', () => {
     const value = workflow();
     const prepare = value.nodes.find((node) => node.name === 'Preparar confirmaciones');

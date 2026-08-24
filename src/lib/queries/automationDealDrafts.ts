@@ -10,6 +10,7 @@ import {
   type AutomationDealValidationIssue,
 } from '@/lib/automationDealValidation';
 import { db } from '@/lib/db';
+import { triggerDiscordDealCreatedWorkflow } from '@/lib/n8n/triggerDiscordDealCreated';
 import {
   createAutomatedDeal,
   getAutomatedDealProgress,
@@ -231,13 +232,17 @@ export async function reviewAutomationDealDraft(input: {
     // duplicar nada. Los helpers son idempotentes y siguen siendo best-effort.
     if (input.action === 'approve') {
       const sheet = await ensureDealTrackingSheet(draft.campaignId);
-      if (sheet.status === 'created' && draft.sheetShareStatus === null) {
+      const shareStatus = notificationShareStatus(sheet);
+      if (shareStatus !== null && draft.sheetShareStatus === null) {
         await db
           .update(automationDealDrafts)
-          .set({ sheetShareStatus: sheet.shareStatus, updatedAt: new Date() })
+          .set({ sheetShareStatus: shareStatus, updatedAt: new Date() })
           .where(eq(automationDealDrafts.id, draft.id));
       }
       await ensureCampaignContractDraft(draft.campaignId);
+      if (draft.source === 'discord' && draft.sourceChannelId) {
+        await triggerDiscordDealCreatedWorkflow();
+      }
       return {
         draftId: draft.id,
         status: draft.status,
@@ -315,5 +320,8 @@ export async function reviewAutomationDealDraft(input: {
       updatedAt: now,
     })
     .where(eq(automationDealDrafts.id, input.id));
+  if (draft.source === 'discord' && draft.sourceChannelId) {
+    await triggerDiscordDealCreatedWorkflow();
+  }
   return { draftId: draft.id, status: 'created', missingFields: [], progress: deal, sheet };
 }

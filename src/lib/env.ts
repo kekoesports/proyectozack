@@ -45,6 +45,9 @@ export const env = createEnv({
     // Token dedicado para las operaciones CRM iniciadas por n8n.
     // Fail-closed: los endpoints /api/automation/* devuelven 503 si falta.
     AUTOMATION_API_TOKEN: z.string().min(32).optional(),
+    // Webhook autenticado de n8n que fuerza el envío inmediato a Discord al
+    // aprobar un borrador. El Schedule Trigger de n8n sigue siendo el respaldo.
+    N8N_DEAL_CREATED_WEBHOOK_URL: z.string().url().optional(),
     // Generación best-effort de un PDF de contrato en estado borrador al
     // aprobar un deal automatizado. Nunca añade firmantes ni envía correos.
     AUTOMATION_CONTRACT_DRAFTS_ENABLED: z.enum(['true', 'false']).optional().default('false').transform((v) => v === 'true'),
@@ -212,6 +215,7 @@ export const env = createEnv({
     GOOGLE_DRIVE_TRACKING_FOLDER_ID: process.env.GOOGLE_DRIVE_TRACKING_FOLDER_ID,
     TARGETS_IMPORT_TOKEN: process.env.TARGETS_IMPORT_TOKEN,
     AUTOMATION_API_TOKEN: process.env.AUTOMATION_API_TOKEN,
+    N8N_DEAL_CREATED_WEBHOOK_URL: process.env.N8N_DEAL_CREATED_WEBHOOK_URL,
     AUTOMATION_CONTRACT_DRAFTS_ENABLED: process.env.AUTOMATION_CONTRACT_DRAFTS_ENABLED,
     AUTOMATION_CONTRACT_TEMPLATE_ID: process.env.AUTOMATION_CONTRACT_TEMPLATE_ID,
     GEMINI_API_KEY: process.env.GEMINI_API_KEY,
