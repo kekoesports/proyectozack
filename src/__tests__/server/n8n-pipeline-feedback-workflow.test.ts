@@ -61,6 +61,27 @@ describe('workflow n8n de #pipeline-deals', () => {
     expect(code).toContain('respuestaTieneOutcomes');
   });
 
+  it('termina sin llamar al CRM cuando Discord no trae mensajes posteriores al watermark', () => {
+    const value = workflow();
+    const batch = value.nodes.find((node) => node.name === 'Preparar lote');
+    const code = String(batch?.parameters.jsCode ?? '');
+
+    expect(code).toContain("$getWorkflowStaticData('global')");
+    expect(code).toContain('lastPipelineMessageId');
+    expect(code).toContain('BigInt(id) > BigInt(lastSeenId)');
+    expect(code).toContain('if (mensajes.length === 0) return []');
+    expect(value.connections['Preparar lote']?.main[0]?.[0]?.node).toBe('Enviar a CRM');
+  });
+
+  it('no reacciona a mensajes ignorados o ya vistos y solo avanza tras una respuesta completa', () => {
+    const prepare = workflow().nodes.find((node) => node.name === 'Preparar estado Discord');
+    const code = String(prepare?.parameters.jsCode ?? '');
+
+    expect(code).toContain("['ignored', 'already_seen'].includes(outcome.result)");
+    expect(code).toContain('respuestaCompleta && !hayFallos');
+    expect(code).toContain('state.lastPipelineMessageId = maxMessageId');
+  });
+
   it('no versiona credenciales de producción', () => {
     const react = workflow().nodes.find((node) => node.name === 'Marcar estado en Discord');
     expect(react?.credentials).toBeUndefined();
