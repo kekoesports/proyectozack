@@ -15,7 +15,10 @@ import {
   getAutomatedDealProgress,
   type AutomationDealProgress,
 } from '@/lib/queries/automationDeals';
-import { ensureDealTrackingSheet } from '@/lib/queries/ensureDealTrackingSheet';
+import {
+  ensureDealTrackingSheet,
+  type EnsureDealSheetOutcome,
+} from '@/lib/queries/ensureDealTrackingSheet';
 import { ensureCampaignContractDraft } from '@/lib/queries/ensureCampaignContractDraft';
 import {
   AutomationDealCreate,
@@ -205,7 +208,18 @@ export type ReviewAutomationDealDraftResult = {
   readonly status: string;
   readonly missingFields: readonly string[];
   readonly progress: AutomationDealProgress | null;
+  readonly sheet?: EnsureDealSheetOutcome;
 };
+
+type SheetShareStatus = 'not-requested' | 'shared' | 'failed';
+
+/** Solo encola Discord cuando existe una Sheet real cuyo resultado conocemos. */
+function notificationShareStatus(sheet: EnsureDealSheetOutcome): SheetShareStatus | null {
+  if (sheet.status === 'created') return sheet.shareStatus;
+  // Una URL aportada manualmente no se ha compartido desde esta automatización.
+  if (sheet.status === 'already_had_sheet') return 'not-requested';
+  return null;
+}
 
 export async function reviewAutomationDealDraft(input: {
   readonly id: number;
@@ -216,8 +230,21 @@ export async function reviewAutomationDealDraft(input: {
     // Repetir explícitamente la aprobación repara fallos transitorios sin
     // duplicar nada. Los helpers son idempotentes y siguen siendo best-effort.
     if (input.action === 'approve') {
-      await ensureDealTrackingSheet(draft.campaignId);
+      const sheet = await ensureDealTrackingSheet(draft.campaignId);
+      if (sheet.status === 'created' && draft.sheetShareStatus === null) {
+        await db
+          .update(automationDealDrafts)
+          .set({ sheetShareStatus: sheet.shareStatus, updatedAt: new Date() })
+          .where(eq(automationDealDrafts.id, draft.id));
+      }
       await ensureCampaignContractDraft(draft.campaignId);
+      return {
+        draftId: draft.id,
+        status: draft.status,
+        missingFields: [],
+        progress: await getAutomatedDealProgress(draft.campaignId),
+        sheet,
+      };
     }
     return {
       draftId: draft.id,
@@ -271,7 +298,7 @@ export async function reviewAutomationDealDraft(input: {
   // Misma política que en POST /deals: la hoja se intenta después y sin
   // bloquear. Aprobar el borrador dos veces no crea una segunda hoja porque
   // ensureDealTrackingSheet corta si el trato ya tiene trackingSheetUrl.
-  await ensureDealTrackingSheet(deal.campaignId);
+  const sheet = await ensureDealTrackingSheet(deal.campaignId);
   // El contrato, cuando está habilitado, se crea solo como PDF draft. No se
   // añaden firmantes ni se envían correos desde una automatización.
   await ensureCampaignContractDraft(deal.campaignId);
@@ -280,11 +307,13 @@ export async function reviewAutomationDealDraft(input: {
     .set({
       status: 'created',
       campaignId: deal.campaignId,
+      sheetShareStatus: notificationShareStatus(sheet),
+      discordNotifiedAt: null,
       reviewedBy: input.reviewedBy,
       reviewedAt: now,
       error: null,
       updatedAt: now,
     })
     .where(eq(automationDealDrafts.id, input.id));
-  return { draftId: draft.id, status: 'created', missingFields: [], progress: deal };
+  return { draftId: draft.id, status: 'created', missingFields: [], progress: deal, sheet };
 }

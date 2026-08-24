@@ -92,8 +92,8 @@ describe('parseDiscordDealMessage — mensaje real con trampas', () => {
     expect(result.warnings.join(' ')).toMatch(/handle/i);
   });
 
-  it('deriva el nombre del trato como "Marca x Creador"', () => {
-    expect(result.proposedDeal.name).toBe('SkinsMonkey x The Real Fer');
+  it('deriva el nombre del trato como "Creador x Marca"', () => {
+    expect(result.proposedDeal.name).toBe('The Real Fer x SkinsMonkey');
   });
 
   it('mapea los importes a sus campos, incluidos producto y sorteos', () => {

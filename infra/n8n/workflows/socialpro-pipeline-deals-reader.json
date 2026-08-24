@@ -1,5 +1,5 @@
 {
-  "name": "SocialPro - LEER #pipeline-deals (cada 15 min)",
+  "name": "SocialPro - LEER #pipeline-deals (cada 2 min)",
   "active": false,
   "settings": {
     "executionOrder": "v1"
@@ -11,13 +11,13 @@
           "interval": [
             {
               "field": "minutes",
-              "minutesInterval": 15
+              "minutesInterval": 2
             }
           ]
         }
       },
       "id": "schedule-15min",
-      "name": "Cada 15 minutos",
+      "name": "Cada 2 minutos",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
       "position": [
@@ -94,7 +94,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Deja el lote en la forma que espera el CRM y descarta lo que no procede.\n// El watermark evita volver a llamar al CRM cuando no hay mensajes nuevos.\nconst state = $getWorkflowStaticData('global');\nconst lastSeenId = typeof state.lastPipelineMessageId === 'string'\n  ? state.lastPipelineMessageId\n  : null;\n\nfunction isAfterWatermark(id) {\n  if (lastSeenId === null) return true;\n  try {\n    return BigInt(id) > BigInt(lastSeenId);\n  } catch {\n    return false;\n  }\n}\n\nconst mensajes = [];\nfor (const item of $input.all()) {\n  const m = item.json;\n  if (!m || !m.id || !m.channel_id) continue;\n  if (m.author && m.author.bot === true) continue;\n  const messageId = String(m.id);\n  if (!isAfterWatermark(messageId)) continue;\n  const content = typeof m.content === 'string' ? m.content.trim() : '';\n  if (content.length === 0) continue;\n  mensajes.push({\n    messageId,\n    channelId: String(m.channel_id),\n    authorId: m.author && m.author.id ? String(m.author.id) : undefined,\n    authorUsername: m.author && m.author.username ? String(m.author.username) : undefined,\n    content,\n    timestamp: m.timestamp ? String(m.timestamp) : undefined,\n  });\n}\n\n// Discord devuelve primero los más recientes. El CRM recibe orden cronológico.\nmensajes.sort((a, b) => {\n  const left = BigInt(a.messageId);\n  const right = BigInt(b.messageId);\n  return left < right ? -1 : left > right ? 1 : 0;\n});\n\n// Sin mensajes posteriores al watermark no se llama al CRM.\nif (mensajes.length === 0) return [];\nreturn [{ json: { messages: mensajes.slice(0, 25) } }];"
+        "jsCode": "// Deja el lote en la forma que espera el CRM y descarta lo que no procede.\n// El watermark evita volver a llamar al CRM cuando no hay mensajes nuevos.\nconst state = $getWorkflowStaticData('global');\nconst lastSeenId = typeof state.lastPipelineMessageId === 'string'\n  ? state.lastPipelineMessageId\n  : null;\n\nfunction isAfterWatermark(id) {\n  if (lastSeenId === null) return true;\n  try {\n    return BigInt(id) > BigInt(lastSeenId);\n  } catch {\n    return false;\n  }\n}\n\nconst stats = { input: 0, invalid: 0, bots: 0, beforeWatermark: 0, empty: 0, accepted: 0 };\nconst mensajes = [];\nfor (const item of $input.all()) {\n  stats.input += 1;\n  const m = item.json;\n  const messageId = String(m && (m.id ?? m.messageId) || '');\n  const channelId = String(m && (m.channel_id ?? m.channelId) || '');\n  if (!/^\\d{17,20}$/.test(messageId) || !/^\\d{17,20}$/.test(channelId)) {\n    stats.invalid += 1;\n    continue;\n  }\n  const author = m && typeof m.author === 'object' && m.author ? m.author : {};\n  if (author.bot === true) {\n    stats.bots += 1;\n    continue;\n  }\n  if (!isAfterWatermark(messageId)) {\n    stats.beforeWatermark += 1;\n    continue;\n  }\n  const content = typeof m.content === 'string' ? m.content.trim() : '';\n  if (content.length === 0) {\n    stats.empty += 1;\n    continue;\n  }\n  mensajes.push({\n    messageId,\n    channelId,\n    authorId: author.id ? String(author.id) : undefined,\n    authorUsername: author.username ? String(author.username) : undefined,\n    content,\n    timestamp: m.timestamp ? String(m.timestamp) : undefined,\n  });\n  stats.accepted += 1;\n}\n\n// Discord devuelve primero los más recientes. El CRM recibe orden cronológico.\nmensajes.sort((a, b) => {\n  const left = BigInt(a.messageId);\n  const right = BigInt(b.messageId);\n  return left < right ? -1 : left > right ? 1 : 0;\n});\nconsole.log('[pipeline-deals] filtro de lote', { ...stats, lastSeenId, newestAcceptedId: mensajes.at(-1)?.messageId ?? null });\n\n// Sin mensajes posteriores al watermark no se llama al CRM.\nif (mensajes.length === 0) return [];\nreturn [{ json: { messages: mensajes.slice(0, 25) } }];"
       },
       "id": "build-batch",
       "name": "Preparar lote",
@@ -179,7 +179,7 @@
     }
   ],
   "connections": {
-    "Cada 15 minutos": {
+    "Cada 2 minutos": {
       "main": [
         [
           {

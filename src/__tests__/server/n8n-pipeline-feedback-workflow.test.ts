@@ -73,6 +73,19 @@ describe('workflow n8n de #pipeline-deals', () => {
     expect(value.connections['Preparar lote']?.main[0]?.[0]?.node).toBe('Enviar a CRM');
   });
 
+  it('sondea cada dos minutos y acepta ambas formas del id de canal de Discord', () => {
+    const value = workflow();
+    const schedule = value.nodes.find((node) => node.name === 'Cada 2 minutos');
+    const batch = value.nodes.find((node) => node.name === 'Preparar lote');
+    const code = String(batch?.parameters.jsCode ?? '');
+
+    expect(schedule?.parameters).toMatchObject({
+      rule: { interval: [{ field: 'minutes', minutesInterval: 2 }] },
+    });
+    expect(code).toContain('m.channel_id ?? m.channelId');
+    expect(code).toContain("console.log('[pipeline-deals] filtro de lote'");
+  });
+
   it('no reacciona a mensajes ignorados o ya vistos y solo avanza tras una respuesta completa', () => {
     const prepare = workflow().nodes.find((node) => node.name === 'Preparar estado Discord');
     const code = String(prepare?.parameters.jsCode ?? '');

@@ -307,7 +307,7 @@ Discord ni n8n, conserva el estado canónico.
 
 El equipo publica los tratos como mensaje de texto en `#pipeline-deals`. Un
 workflow de n8n (`socialpro-pipeline-deals-reader.json`) sondea el canal cada
-15 minutos con la credencial del bot y envía el lote en crudo a:
+2 minutos con la credencial del bot y envía el lote en crudo a:
 
 `POST /api/automation/discord/pipeline-deals`
 
@@ -360,6 +360,30 @@ trabajo unas 96 veces al día por mensaje.
 
 **Qué NO hace:** no crea campañas ni llama a `/deals/sync`. Solo deja borradores
 en `/admin/automation-drafts` para que los revise una persona.
+
+Al aprobar el borrador, el nombre canónico del trato es `CREADOR x MARCA`. El
+CRM crea la Sheet y conserva si Drive logró compartirla con el correo del
+influencer. El workflow
+`socialpro-discord-deal-created-notifications.json` consulta:
+
+`GET /api/automation/discord/deal-created`
+
+Por cada confirmación pendiente publica en el canal de origen:
+
+```text
+TRATO CREADO CORRECTAMENTE
+Compartido con el influencer: SÍ/NO
+AQUÍ TIENES EL DOCUMENTO
+```
+
+El enlace apunta a la Sheet real. Solo después de que Discord acepte el mensaje,
+n8n confirma la entrega con:
+
+`POST /api/automation/discord/deal-created/{draftId}/ack`
+
+Si no hay confirmaciones pendientes, el workflow genera cero items y no publica
+ni reacciona. Tanto la lectura como el ACK usan la misma credencial Header Auth
+del resto de la API de automatizaciones.
 
 Dos cosas que el parser trata a propósito como campo vacío o error, porque
 aparecieron en mensajes reales:
