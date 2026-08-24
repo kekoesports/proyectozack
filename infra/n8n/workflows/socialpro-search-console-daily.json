@@ -41,7 +41,7 @@
       "parameters": {
         "method": "POST",
         "url": "https://www.googleapis.com/webmasters/v3/sites/https%3A%2F%2Fsocialpro.es%2F/searchAnalytics/query",
-        "authentication": "preDefinedCredentialType",
+        "authentication": "predefinedCredentialType",
         "nodeCredentialType": "googleOAuth2Api",
         "sendBody": true,
         "specifyBody": "json",
@@ -68,7 +68,7 @@
       "parameters": {
         "method": "POST",
         "url": "https://www.googleapis.com/webmasters/v3/sites/https%3A%2F%2Fsocialpro.es%2F/searchAnalytics/query",
-        "authentication": "preDefinedCredentialType",
+        "authentication": "predefinedCredentialType",
         "nodeCredentialType": "googleOAuth2Api",
         "sendBody": true,
         "specifyBody": "json",
