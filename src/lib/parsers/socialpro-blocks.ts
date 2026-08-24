@@ -118,6 +118,8 @@ export function suggestDeliverableType(rawType: string): string {
   if (
     normalized === 'stream' ||
     normalized === 'streams' ||
+    normalized === 'integración stream' ||
+    normalized === 'integracion stream' ||
     normalized === 'livestream' ||
     normalized === 'livestreams'
   )
@@ -127,6 +129,8 @@ export function suggestDeliverableType(rawType: string): string {
     normalized === 'vídeo' ||
     normalized === 'videos' ||
     normalized === 'vídeos' ||
+    normalized === 'vídeo youtube' ||
+    normalized === 'video youtube' ||
     normalized === 'dedicated video' ||
     normalized === 'dedicated videos'
   )
@@ -140,9 +144,19 @@ export function suggestDeliverableType(rawType: string): string {
     normalized === 'tiktoks'
   )
     return 'short_reel_tiktok';
-  if (normalized === 'story' || normalized === 'stories') return 'story_instagram';
-  if (normalized === 'post' || normalized === 'posts') return 'post_instagram';
-  if (normalized === 'tweet' || normalized === 'tweets' || normalized === 'x') return 'tweet_x';
+  if (
+    normalized === 'story' || normalized === 'stories' ||
+    normalized === 'historia instagram'
+  ) return 'story_instagram';
+  if (normalized === 'post' || normalized === 'posts' || normalized === 'post instagram') {
+    return 'post_instagram';
+  }
+  if (
+    normalized === 'tweet' || normalized === 'tweets' || normalized === 'x' ||
+    normalized === 'tweet / post x'
+  ) return 'tweet_x';
+  if (normalized === 'pack mensual') return 'pack_mensual';
+  if (normalized === 'pack trimestral') return 'pack_trimestral';
 
   return 'otro';
 }
