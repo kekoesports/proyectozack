@@ -22,7 +22,16 @@ export default function robots(): MetadataRoute.Robots {
         // Specificity: paths más largos ganan en robots.txt (Google usa longest-match).
         // /news?tag= y /blog?tag= son páginas de etiquetas con contenido propio → indexar.
         // /*?* bloquea el resto de query params (búsquedas, paginación) para evitar duplicados.
-        allow: ['/', '/news?tag=', '/blog?tag=', ...PUBLIC_BRAND_PAGES],
+        allow: [
+          '/',
+          // Vercel añade `?dpl=...` a JS, CSS y fuentes de Next. Sin este
+          // allow, la regla `/*?*` impide que Googlebot renderice la página y
+          // Search Console los contabiliza como cientos de URLs bloqueadas.
+          '/_next/static/',
+          '/news?tag=',
+          '/blog?tag=',
+          ...PUBLIC_BRAND_PAGES,
+        ],
         disallow: [
           // Endpoints técnicos y autenticación
           '/api/',
