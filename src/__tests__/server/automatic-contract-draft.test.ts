@@ -139,6 +139,26 @@ describe('selectAutomatedContractTemplate', () => {
     expect(chosen?.id).toBe(12);
   });
 
+  it('prefiere la plantilla específica de la marca antes que el sector', () => {
+    const chosen = selectAutomatedContractTemplate(
+      [
+        template(1, 'service_agreement'),
+        template(12, 'casino'),
+        template(25, 'brand:2', 'Contrato base — Marca X'),
+      ],
+      { brandId: 2, sector: 'gambling' },
+    );
+    expect(chosen?.id).toBe(25);
+  });
+
+  it('no escoge al azar si una marca tiene dos plantillas activas', () => {
+    const chosen = selectAutomatedContractTemplate(
+      [template(25, 'brand:2'), template(26, 'brand:2'), template(12, 'casino')],
+      { brandId: 2, sector: 'gambling' },
+    );
+    expect(chosen).toBeNull();
+  });
+
   it('no escoge al azar entre dos plantillas sectoriales', () => {
     const chosen = selectAutomatedContractTemplate(
       [template(1, 'service_agreement'), template(9, 'cs2_cases'), template(10, 'cs2_cases')],
@@ -190,6 +210,21 @@ describe('ensureCampaignContractDraft', () => {
       sentAt: null,
       signedAt: null,
       createdByUserId: null,
+    }));
+  });
+
+  it('usa el contrato interno específico de la marca cuando existe', async () => {
+    mockListTemplates.mockResolvedValue([
+      template(1, 'service_agreement'),
+      template(25, 'brand:2', 'Contrato base — Marca X'),
+    ]);
+
+    const result = await ensureCampaignContractDraft(10);
+
+    expect(result).toEqual({ status: 'created', contractId: 77, templateId: 25 });
+    expect(mockCreateContract).toHaveBeenCalledWith(expect.objectContaining({
+      status: 'draft',
+      notes: expect.stringContaining('plantilla 25'),
     }));
   });
 
