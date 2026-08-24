@@ -94,6 +94,47 @@ export async function sendContactEmail(payload: ContactEmailPayload): Promise<vo
   });
 }
 
+/**
+ * Acuse transaccional para el lead que acaba de enviar el formulario público.
+ * No intenta mantener una conversación ni tomar decisiones comerciales: solo
+ * confirma la recepción y fija una expectativa de respuesta humana.
+ */
+export async function sendContactAcknowledgementEmail(
+  payload: ContactEmailPayload,
+): Promise<void> {
+  const name = escapeHtml(payload.name);
+  const isBrand = payload.type === 'brand';
+  const isCreator = payload.type === 'talent';
+  const reviewCopy = isBrand
+    ? 'Nuestro equipo revisará el brief de campaña y te responderá personalmente.'
+    : isCreator
+      ? 'Nuestro equipo revisará tu perfil y te responderá personalmente.'
+      : 'Nuestro equipo revisará tu mensaje y te responderá personalmente.';
+
+  await sendResendEmail('sendContactAcknowledgementEmail', {
+    from: 'SocialPro <noreply@socialpro.es>',
+    to: payload.email,
+    replyTo: 'marketing@socialpro.es',
+    subject: 'Hemos recibido tu mensaje — SocialPro',
+    html: `
+      <div style="font-family:Inter,Arial,sans-serif;max-width:560px;margin:0 auto;color:#171717;">
+        <p style="font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#f5632a;">
+          SocialPro
+        </p>
+        <h2 style="font-family:'Barlow Condensed',Inter,sans-serif;text-transform:uppercase;margin:0 0 16px;">
+          Mensaje recibido
+        </h2>
+        <p>Hola <strong>${name}</strong>,</p>
+        <p>Gracias por contactar con SocialPro. ${reviewCopy}</p>
+        <p>El tiempo habitual de respuesta es de un día laborable.</p>
+        <p style="margin-top:24px;color:#6b6864;font-size:13px;">
+          Este acuse es automático. Puedes responder a este correo si necesitas añadir información.
+        </p>
+      </div>
+    `,
+  });
+}
+
 export async function sendStaffInviteEmail(payload: {
   staffEmail: string;
   staffName: string;

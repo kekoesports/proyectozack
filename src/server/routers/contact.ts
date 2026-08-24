@@ -3,7 +3,7 @@ import { headers } from 'next/headers';
 import { router, publicProcedure } from '@/server/trpc';
 import { db } from '@/lib/db';
 import { contactSubmissions } from '@/db/schema';
-import { sendContactEmail } from '@/lib/email';
+import { sendContactAcknowledgementEmail, sendContactEmail } from '@/lib/email';
 import { contactBodySchema } from '@/lib/schemas/contact';
 import { checkRateLimit } from '@/lib/security/rateLimit';
 import { logRedacted } from '@/lib/log';
@@ -64,13 +64,23 @@ export const contactRouter = router({
       // UX del formulario público: el usuario sigue viendo su confirmación y
       // el lead es visible en /admin/leads. Devolvemos `warning` para que el
       // caller (y los tests e2e) puedan distinguir "enviado" de "pendiente".
+      const [internalNotice, leadAcknowledgement] = await Promise.allSettled([
+        sendContactEmail(input),
+        sendContactAcknowledgementEmail(input),
+      ]);
+
       let warning: 'email_pending' | undefined;
-      try {
-        await sendContactEmail(input);
-      } catch (err) {
+      if (internalNotice.status === 'rejected') {
         warning = 'email_pending';
-        const msg = err instanceof Error ? err.message : 'unknown';
+        const reason = internalNotice.reason as unknown;
+        const msg = reason instanceof Error ? reason.message : 'unknown';
         logRedacted('error', '[trpc/contact] aviso a marketing@ no enviado:', msg);
+      }
+      if (leadAcknowledgement.status === 'rejected') {
+        warning = 'email_pending';
+        const reason = leadAcknowledgement.reason as unknown;
+        const msg = reason instanceof Error ? reason.message : 'unknown';
+        logRedacted('error', '[trpc/contact] acuse automático al lead no enviado:', msg);
       }
 
       return warning ? { success: true as const, warning } : { success: true as const };
