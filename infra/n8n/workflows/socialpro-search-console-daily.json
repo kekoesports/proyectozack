@@ -1,0 +1,151 @@
+{
+  "id": "gScDailySocialPr",
+  "name": "SocialPro - Search Console diario 10:15 (kekoesports)",
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Europe/Madrid",
+    "saveManualExecutions": true
+  },
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "15 10 * * *"
+            }
+          ]
+        }
+      },
+      "id": "search-console-schedule",
+      "name": "Todos los días a las 10:15",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [-760, 0],
+      "notes": "Se ejecuta 15 minutos antes del control SEO diario del agente Zack."
+    },
+    {
+      "parameters": {
+        "jsCode": "const MS_DAY = 86_400_000;\nconst end = new Date(Date.now() - (3 * MS_DAY));\nconst start = new Date(end.getTime() - (27 * MS_DAY));\nconst isoDate = (date) => date.toISOString().slice(0, 10);\nreturn [{ json: { startDate: isoDate(start), endDate: isoDate(end) } }];"
+      },
+      "id": "search-console-period",
+      "name": "Calcular ventana de 28 días",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-520, 0],
+      "notes": "Termina tres días atrás para evitar datos todavía parciales de Search Console."
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://www.googleapis.com/webmasters/v3/sites/https%3A%2F%2Fsocialpro.es%2F/searchAnalytics/query",
+        "authentication": "preDefinedCredentialType",
+        "nodeCredentialType": "googleOAuth2Api",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ startDate: $('Calcular ventana de 28 días').first().json.startDate, endDate: $('Calcular ventana de 28 días').first().json.endDate, rowLimit: 1 }) }}",
+        "options": {}
+      },
+      "id": "search-console-totals",
+      "name": "Leer totales Search Console",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [-280, 0],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 15000,
+      "credentials": {
+        "googleOAuth2Api": {
+          "id": "oZg8v0k6De5-VgUm",
+          "name": "SocialPro Search Console - kekoesports"
+        }
+      },
+      "notes": "OAuth de kekoesports@gmail.com con permisos webmasters.readonly y analytics.readonly. Solo lee https://socialpro.es/."
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://www.googleapis.com/webmasters/v3/sites/https%3A%2F%2Fsocialpro.es%2F/searchAnalytics/query",
+        "authentication": "preDefinedCredentialType",
+        "nodeCredentialType": "googleOAuth2Api",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ startDate: $('Calcular ventana de 28 días').first().json.startDate, endDate: $('Calcular ventana de 28 días').first().json.endDate, dimensions: ['query'], rowLimit: 50 }) }}",
+        "options": {}
+      },
+      "id": "search-console-queries",
+      "name": "Leer consultas principales",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [-40, 0],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 15000,
+      "credentials": {
+        "googleOAuth2Api": {
+          "id": "oZg8v0k6De5-VgUm",
+          "name": "SocialPro Search Console - kekoesports"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const period = $('Calcular ventana de 28 días').first().json;\nconst totalRows = $('Leer totales Search Console').first().json.rows;\nconst total = Array.isArray(totalRows) && totalRows[0] ? totalRows[0] : {};\nconst queryRows = Array.isArray($json.rows) ? $json.rows : [];\nconst metric = (value) => Number.isFinite(Number(value)) && Number(value) >= 0 ? Number(value) : 0;\nconst topQueries = queryRows.slice(0, 20).map((row) => ({\n  query: String(Array.isArray(row.keys) ? (row.keys[0] ?? '') : '').trim().slice(0, 200),\n  clicks: metric(row.clicks),\n  impressions: metric(row.impressions),\n  ctr: Math.min(1, metric(row.ctr)),\n  averagePosition: metric(row.position),\n})).filter((row) => row.query);\nreturn [{ json: {\n  property: 'https://socialpro.es/',\n  collectedAt: new Date().toISOString(),\n  snapshotId: `n8n-gsc-${period.endDate}`,\n  period: { startDate: period.startDate, endDate: period.endDate },\n  performance: {\n    clicks: metric(total.clicks),\n    impressions: metric(total.impressions),\n    ctr: Math.min(1, metric(total.ctr)),\n    averagePosition: metric(total.position),\n  },\n  sitemaps: [],\n  topQueries,\n  observations: ['Rendimiento automático de Search Console. La cobertura indexada/no indexada se contrasta por separado porque esta API no ofrece el total del informe Pages.'],\n} }];"
+      },
+      "id": "search-console-snapshot",
+      "name": "Preparar snapshot SEO",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [200, 0],
+      "notes": "Solo incluye métricas agregadas y consultas; no envía usuarios, correos ni datos de Drive."
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://socialpro.es/api/automation/seo/search-console",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "search-console-crm",
+      "name": "Entregar snapshot al agente SEO",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [440, 0],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "K8HEAkSfOaiMLkRD",
+          "name": "SocialPro CRM - Production"
+        }
+      },
+      "notes": "El endpoint valida propiedad, esquema y token; el evento resultante dispara Zack SEO en modo shadow."
+    }
+  ],
+  "connections": {
+    "Todos los días a las 10:15": {
+      "main": [[{ "node": "Calcular ventana de 28 días", "type": "main", "index": 0 }]]
+    },
+    "Calcular ventana de 28 días": {
+      "main": [[{ "node": "Leer totales Search Console", "type": "main", "index": 0 }]]
+    },
+    "Leer totales Search Console": {
+      "main": [[{ "node": "Leer consultas principales", "type": "main", "index": 0 }]]
+    },
+    "Leer consultas principales": {
+      "main": [[{ "node": "Preparar snapshot SEO", "type": "main", "index": 0 }]]
+    },
+    "Preparar snapshot SEO": {
+      "main": [[{ "node": "Entregar snapshot al agente SEO", "type": "main", "index": 0 }]]
+    }
+  },
+  "pinData": {},
+  "tags": []
+}
