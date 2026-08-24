@@ -40,6 +40,11 @@ Fecha de finalización: 30/12/2026
 Entregables:
 - Preroll YouTube: 30`;
 
+const MENSAJE_MULTIPLE = `SkinsMonkey
+---------------------
+TodoCS2: 30 intros + 2 videos = 8800€ para todocs2 son: 5000€
+JoluCS2: 36 intros + 2 videos = 9500€ para jolucs2 son: 3000€`;
+
 function req(body: unknown): Request {
   return new Request('https://x.test/api/automation/discord/pipeline-deals', {
     method: 'POST',
@@ -173,6 +178,61 @@ describe('procesado', () => {
       ],
     }));
     const json = await res.json();
-    expect(json.summary).toEqual({ received: 2, created: 1, alreadySeen: 0, ignored: 1, failed: 0 });
+    expect(json.summary).toEqual({
+      received: 2,
+      created: 1,
+      alreadySeen: 0,
+      ignored: 1,
+      failed: 0,
+      draftsCreated: 1,
+      draftsAlreadySeen: 0,
+    });
+  });
+
+  it('crea dos borradores idempotentes desde un solo mensaje abreviado', async () => {
+    createAutomationDealDraft
+      .mockResolvedValueOnce({ id: 11, created: true, status: 'pending_review', missingFields: [] })
+      .mockResolvedValueOnce({ id: 12, created: true, status: 'pending_review', missingFields: [] });
+
+    const res = await POST(req({
+      messages: [mensaje('323456789012345678', MENSAJE_MULTIPLE)],
+    }));
+    const json = await res.json();
+
+    expect(createAutomationDealDraft).toHaveBeenCalledTimes(2);
+    expect(createAutomationDealDraft.mock.calls.map((call) => call[0].externalId)).toEqual([
+      'discord:message:323456789012345678:deal:1',
+      'discord:message:323456789012345678:deal:2',
+    ]);
+    expect(createAutomationDealDraft.mock.calls.map((call) => call[0].proposedDeal.name)).toEqual([
+      'TodoCS2 x SkinsMonkey',
+      'JoluCS2 x SkinsMonkey',
+    ]);
+    expect(json.summary.draftsCreated).toBe(2);
+    expect(json.outcomes[0]).toMatchObject({
+      result: 'created',
+      draftId: 11,
+      draftIds: [11, 12],
+      createdDrafts: 2,
+    });
+  });
+
+  it('no duplica ninguna entrada al volver a recibir el mensaje múltiple', async () => {
+    findAutomationDealDraftByExternalId
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce({ id: 11, status: 'pending_review' })
+      .mockResolvedValueOnce({ id: 12, status: 'pending_review' });
+
+    const res = await POST(req({
+      messages: [mensaje('323456789012345678', MENSAJE_MULTIPLE)],
+    }));
+    const json = await res.json();
+
+    expect(createAutomationDealDraft).not.toHaveBeenCalled();
+    expect(json.outcomes[0]).toMatchObject({
+      result: 'already_seen',
+      draftIds: [11, 12],
+      alreadySeenDrafts: 2,
+    });
   });
 });

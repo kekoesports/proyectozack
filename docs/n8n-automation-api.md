@@ -393,6 +393,20 @@ aparecieron en mensajes reales:
 - `@HANDLE_EXACTO` y similares (`TBD`, `N/A`, `NOMBRE_MARCA`) **cuentan como
   vacío**: son huecos de plantilla sin rellenar, no valores.
 
+También acepta el formato abreviado de operaciones con una marca como cabecera
+y una línea por creador:
+
+```text
+SkinsMonkey
+TodoCS2: 30 intros + 2 videos = 8800€ para todocs2 son: 5000€
+JoluCS2: 36 intros + 2 videos = 9500€ para jolucs2 son: 3000€
+```
+
+Cada línea genera un borrador independiente (`CREADOR x MARCA`). `intros` se
+mapea a prerolls y `videos` a vídeos de YouTube. Las claves terminan en
+`:deal:1`, `:deal:2`, etc., de forma que reintentar el mismo mensaje no duplica
+ninguno de los tratos.
+
 En ambos casos el borrador aterriza como `missing_info` con los campos que
 faltan, que es justo lo que hace que alguien lo revise.
 

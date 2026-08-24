@@ -6,7 +6,11 @@
  * plantilla sin rellenar (@HANDLE_EXACTO).
  */
 
-import { parseDiscordDealMessage, parseSpanishDate } from '@/lib/parsers/discordDeal';
+import {
+  parseDiscordDealEntries,
+  parseDiscordDealMessage,
+  parseSpanishDate,
+} from '@/lib/parsers/discordDeal';
 import { AutomationDealCreate } from '@/lib/schemas/automationDeal';
 
 const MENSAJE_REAL = `NUEVO DEAL
@@ -232,5 +236,39 @@ describe('parseDiscordDealMessage — casos sueltos', () => {
     expect(r.proposedDeal.deliverables).toEqual([
       { type: 'otro', targetCount: 3, notes: 'Aparición en podcast' },
     ]);
+  });
+});
+
+describe('parseDiscordDealEntries — varios creadores en un mensaje abreviado', () => {
+  const entries = parseDiscordDealEntries(`SkinsMonkey
+---------------------
+TodoCS2: 30 intros + 2 videos = 8800€ para todocs2 son: 5000€
+JoluCS2: 36 intros + 2 videos = 9500€ para jolucs2 son: 3000€`);
+
+  it('produce dos tratos independientes con creador antes de marca', () => {
+    expect(entries).toHaveLength(2);
+    expect(entries.map((entry) => entry.proposedDeal.name)).toEqual([
+      'TodoCS2 x SkinsMonkey',
+      'JoluCS2 x SkinsMonkey',
+    ]);
+  });
+
+  it('extrae importes, handles y entregables de cada línea', () => {
+    expect(entries[0]?.proposedDeal).toMatchObject({
+      amountBrand: 8800,
+      amountTalent: 5000,
+      currency: 'EUR',
+      talent: { name: 'TodoCS2', handle: 'todocs2', platform: 'youtube' },
+      deliverables: [
+        { type: 'preroll', targetCount: 30, notes: 'intros' },
+        { type: 'video_youtube', targetCount: 2, notes: 'videos' },
+      ],
+    });
+    expect(entries[1]?.proposedDeal).toMatchObject({ amountBrand: 9500, amountTalent: 3000 });
+  });
+
+  it('genera payloads completos que pueden aprobarse en el CRM', () => {
+    expect(entries.every((entry) => AutomationDealCreate.safeParse(entry.proposedDeal).success))
+      .toBe(true);
   });
 });

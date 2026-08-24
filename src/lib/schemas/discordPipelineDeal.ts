@@ -25,7 +25,7 @@ const DiscordMessage = z.object({
 });
 
 export const DiscordPipelineDealsIntake = z.object({
-  /** Tope por lote: un sondeo cada 15 min no debería traer más. */
+  /** Tope por lote: un sondeo cada 2 min no debería traer más. */
   messages: z.array(DiscordMessage).min(1).max(25),
 });
 
