@@ -26,6 +26,9 @@ services:
       # Kill switch. Sin esto en 'true' el proceso arranca y no hace nada.
       AGENTS_ENABLED: ${AGENTS_ENABLED:-false}
       AGENT_WORKER_ID: ${AGENT_WORKER_ID:-worker-1}
+      # Se inyecta en cada despliegue para que el CRM enseñe la versión real.
+      # `environment` prevalece sobre el valor histórico del env_file.
+      GIT_SHA: ${GIT_SHA:-unknown}
       NODE_ENV: production
     # Sin `ports`: deliberado.
     #
