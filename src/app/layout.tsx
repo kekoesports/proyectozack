@@ -185,14 +185,6 @@ const jsonLd = {
       name: 'SocialPro',
       publisher: { '@id': absoluteUrl('/#organization') },
       inLanguage: 'es',
-      potentialAction: {
-        '@type': 'SearchAction',
-        target: {
-          '@type': 'EntryPoint',
-          urlTemplate: absoluteUrl('/blog?q={search_term_string}'),
-        },
-        'query-input': 'required name=search_term_string',
-      },
     },
     {
       '@type': 'LocalBusiness',
