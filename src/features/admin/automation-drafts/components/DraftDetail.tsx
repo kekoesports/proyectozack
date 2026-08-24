@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 
 import {
@@ -9,7 +10,8 @@ import {
 } from '@/app/admin/(dashboard)/automation-drafts/actions';
 import type { AutomationDealDraftListItem } from '@/lib/queries/automationDealDrafts';
 
-import { isActionable, shortDateTime, sourceMeta, statusMeta, topLevelMissing } from './draftMeta';
+import { DraftDealEditor } from './DraftDealEditor';
+import { isActionable, shortDateTime, sourceMeta, statusMeta } from './draftMeta';
 
 type Props = {
   readonly draft: AutomationDealDraftListItem;
@@ -26,13 +28,14 @@ function Field({ label, value }: { label: string; value: React.ReactNode }): Rea
 }
 
 export function DraftDetail({ draft, canWrite }: Props): React.ReactElement {
+  const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [, startTransition] = useTransition();
 
   const sm = statusMeta(draft.status);
   const src = sourceMeta(draft.source);
-  const missing = topLevelMissing(draft.missingFields);
+  const missing = draft.validationIssues;
   const actionable = isActionable(draft.status);
 
   const run = (action: typeof approveDraftAction | typeof rejectDraftAction): void => {
@@ -41,6 +44,7 @@ export function DraftDetail({ draft, canWrite }: Props): React.ReactElement {
     startTransition(async () => {
       const res = await action({ id: draft.id });
       if (!res.ok) setError(res.error);
+      else router.refresh();
       setBusy(false);
     });
   };
@@ -99,11 +103,13 @@ export function DraftDetail({ draft, canWrite }: Props): React.ReactElement {
 
       {missing.length > 0 ? (
         <div className="rounded border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm text-amber-200">
-          <strong>Faltan datos obligatorios:</strong> {missing.join(', ')}.
-          <div className="text-xs mt-1 text-amber-200/80">
-            El bot de Discord debe completarlos antes de que el trato pueda aprobarse. Este
-            borrador no se pierde: queda aquí hasta que se resuelva o se rechace.
-          </div>
+          <strong>Revisa estos datos antes de aprobar:</strong>
+          <ul className="mt-2 list-disc space-y-1 pl-5">
+            {missing.map((issue) => (
+              <li key={issue.path}><span className="font-medium">{issue.label}:</span> {issue.message}</li>
+            ))}
+          </ul>
+          <div className="mt-2 text-xs text-amber-200/80">Puedes corregirlos directamente en la ficha inferior.</div>
         </div>
       ) : null}
 
@@ -138,12 +144,12 @@ export function DraftDetail({ draft, canWrite }: Props): React.ReactElement {
         </section>
       </div>
 
-      <section className="rounded-lg border border-sp-admin-border bg-sp-admin-card p-4">
-        <h2 className="text-sm font-semibold text-sp-admin-text mb-3">Trato propuesto</h2>
-        <pre className="text-xs text-sp-admin-text whitespace-pre-wrap break-words font-mono bg-sp-admin-bg2 rounded p-3 max-h-96 overflow-y-auto">
-          {JSON.stringify(draft.proposedDeal, null, 2)}
-        </pre>
-      </section>
+      <DraftDealEditor
+        draftId={draft.id}
+        proposedDeal={draft.proposedDeal}
+        serverIssues={draft.validationIssues}
+        canWrite={canWrite && actionable}
+      />
     </div>
   );
 }

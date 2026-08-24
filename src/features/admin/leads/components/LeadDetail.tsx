@@ -12,6 +12,7 @@ import {
 
 import { STATUS_META, shortDate, typeMeta } from './leadMeta';
 import type { StaffOption } from './LeadsTable';
+import { LeadReplyComposer } from './LeadReplyComposer';
 
 type Props = {
   readonly lead: LeadWithAssignee;
@@ -30,7 +31,7 @@ function parseLog(notes: string | null): readonly LogLine[] {
     .map((line) => {
       const m = /^\[([^\]]+)\]\s([^:]+):\s([\s\S]*)$/.exec(line);
       if (!m || !m[1] || !m[2] || !m[3]) return { at: '', author: '', body: line };
-      return { at: m[1], author: m[2], body: m[3] };
+      return { at: m[1], author: m[2], body: m[3].replace(/\s*\[email:[^\]]+\]$/, '') };
     });
 }
 
@@ -171,6 +172,14 @@ export function LeadDetail({ lead, staff, canWrite }: Props): React.ReactElement
         <h2 className="text-sm font-semibold text-sp-admin-text mb-3">Mensaje</h2>
         <p className="text-sm text-sp-admin-text whitespace-pre-wrap">{lead.message}</p>
       </section>
+
+      {canWrite ? (
+        <LeadReplyComposer
+          leadId={lead.id}
+          leadName={lead.name}
+          recipientEmail={lead.email}
+        />
+      ) : null}
 
       <section className="rounded-lg border border-sp-admin-border bg-sp-admin-card p-4 space-y-3">
         <h2 className="text-sm font-semibold text-sp-admin-text">Historial y notas internas</h2>

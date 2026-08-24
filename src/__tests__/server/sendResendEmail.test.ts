@@ -81,4 +81,12 @@ describe('sendResendEmail', () => {
 
     expect(mockSend).toHaveBeenCalledWith(OPTIONS);
   });
+
+  it('envía la clave de idempotencia cuando se proporciona', async () => {
+    mockSend.mockResolvedValue({ data: { id: 'e2' }, error: null });
+
+    await sendResendEmail('ctx', OPTIONS, { idempotencyKey: 'lead-reply-123' });
+
+    expect(mockSend).toHaveBeenCalledWith(OPTIONS, { idempotencyKey: 'lead-reply-123' });
+  });
 });

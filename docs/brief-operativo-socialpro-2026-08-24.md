@@ -15,7 +15,7 @@
 | Resumen diario de deals | Operativo | Se publica cada día a las 10:00, hora de Madrid, con formato visual. Excluye tratos antiguos al 100 %. |
 | Telegram Refill | Operativo | El bot registra solicitudes de refill en el CRM y permite consultar su estado. |
 | WhatsApp | Bloqueado por Meta | Falta terminar la verificación por SMS de la cuenta de Meta. |
-| Gmail de leads | Operativo en modo seguro | Clasifica correos, aplica etiquetas y prepara borradores; no envía respuestas comerciales sin revisión. |
+| Gmail de leads | Operativo en modo seguro | Gmail y Drive usan `pcamacho@socialpro.es`; clasifica correos, prepara borradores y permite responder manualmente desde LEADS. |
 | Google Sheets de deals | Operativo | La plantilla se copia, personaliza y vincula al creador y al trato. El roster actual tiene carpeta canónica completa: 16 de 16. |
 | Contratos | Operativo en borrador | Hay 23 plantillas específicas de marca activas. Los próximos deals aprobados pueden generar PDF `draft`; el envío sigue siendo manual. |
 | Agente Zack Guardian | Operativo en `shadow` | Revisa infraestructura cada día a las 08:30 sin ejecutar acciones sobre producción. |
@@ -32,7 +32,7 @@
 3. Solo recoge mensajes posteriores al último mensaje procesado.
 4. Los mensajes del bot, los mensajes vacíos, la conversación normal y los mensajes ya vistos se ignoran.
 5. El CRM crea un borrador idempotente. El mismo mensaje no puede crear dos tratos.
-6. Si faltan datos, el borrador queda pendiente de completar; no se crea una campaña incompleta.
+6. Si faltan datos, el borrador conserva todos los valores válidos, explica cada error en lenguaje claro y permite corregirlo en el CRM; no se crea una campaña incompleta.
 7. Una persona revisa y aprueba el borrador en el CRM.
 8. Tras la aprobación se crean la campaña, los objetivos, la Google Sheet y, si corresponde, el contrato en borrador.
 
@@ -104,15 +104,25 @@ Para usarlo con una marca, hay que añadir el bot al grupo de Telegram correspon
 
 La política actual evita enviar una respuesta comercial incorrecta:
 
+- la cuenta operativa canónica de Gmail y Drive es `pcamacho@socialpro.es`;
+- Search Console permanece deliberadamente separado en la cuenta `kekoesports`;
 - n8n revisa el buzón de leads aproximadamente cada minuto;
 - clasifica el correo y aplica etiquetas;
 - crea un borrador de respuesta para revisión;
 - no pulsa enviar de forma automática;
 - conserva el hilo original para que una persona pueda revisar contexto y adjuntos.
 
+En la ficha de cada lead del CRM existe además un compositor manual:
+
+- muestra siempre remitente y destinatario antes de enviar;
+- envía como `pcamacho@socialpro.es` y dirige las respuestas al mismo buzón;
+- exige asunto y mensaje válidos;
+- evita duplicados en reintentos de red;
+- marca el lead como contactado y registra el envío en su historial únicamente después de que el proveedor acepte el email.
+
 **Correos que sí se envían automáticamente:** la confirmación de recepción de los formularios de la web, porque es un acuse fijo y no una negociación.
 
-**Correos que no se envían automáticamente:** propuestas de marca, negociación de presupuesto, contratos, mensajes de creadores, facturación y cualquier correo ambiguo. En esos casos se prepara un borrador.
+**Correos que no se envían automáticamente:** propuestas de marca, negociación de presupuesto, contratos, mensajes de creadores, facturación y cualquier correo ambiguo. En esos casos se prepara un borrador o una persona responde desde LEADS.
 
 ## 6. Contratos
 

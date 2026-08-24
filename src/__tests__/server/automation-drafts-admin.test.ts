@@ -3,6 +3,13 @@ jest.mock('@/lib/auth', () => ({ auth: {} }));
 
 import { PERMISSIONS, hasPermission } from '@/lib/permissions';
 import { reviewDraftSchema } from '@/lib/schemas/automationDealDraftReview';
+import { getAutomationDealValidationIssues } from '@/lib/automationDealValidation';
+import {
+  buildAutomationDealProposal,
+  draftDealEditorDefaults,
+  draftDealEditorFormSchema,
+  updateDraftFromEditorSchema,
+} from '@/lib/schemas/automationDealDraftEditor';
 import {
   DRAFT_STATUSES,
   isActionable,
@@ -28,6 +35,64 @@ describe('reviewDraftSchema', () => {
 
   it('rechaza un id que llega como string desde un form', () => {
     expect(reviewDraftSchema.safeParse({ id: '7' }).success).toBe(false);
+  });
+});
+
+describe('editor de borradores', () => {
+  const proposedDeal = {
+    name: 'The Real Fer × SkinsMonkey',
+    brand: { name: 'SkinsMonkey', createIfMissing: true },
+    talent: {
+      name: 'The Real Fer',
+      handle: 'the_real_feR',
+      platform: 'twitch',
+      createIfMissing: true,
+    },
+    status: 'aprobada',
+    startDate: '2026-08-20',
+    endDate: '2027-02-30',
+    currency: 'EUR',
+    amountBrand: 12000,
+    amountTalent: 5000,
+    amountInKindTalent: 0,
+    amountInKindCommunity: 0,
+    deliverables: [
+      { type: 'preroll', targetCount: 30 },
+      { type: 'video_youtube', targetCount: 2 },
+    ],
+  };
+
+  it('traduce la fecha imposible a un aviso claro y localizado', () => {
+    expect(getAutomationDealValidationIssues(proposedDeal)).toEqual([
+      {
+        path: 'endDate',
+        label: 'Fecha de finalización',
+        message: 'Introduce una fecha real en formato AAAA-MM-DD.',
+      },
+    ]);
+  });
+
+  it('autocompleta en el formulario todos los valores aceptados', () => {
+    const defaults = draftDealEditorDefaults(proposedDeal);
+    expect(defaults.brandName).toBe('SkinsMonkey');
+    expect(defaults.talentHandle).toBe('the_real_feR');
+    expect(defaults.amountBrand).toBe('12000');
+    expect(defaults.deliverables).toHaveLength(2);
+    expect(defaults.endDate).toBe('2027-02-30');
+  });
+
+  it('al corregir la fecha reconstruye un trato listo para aprobar', () => {
+    const defaults = draftDealEditorDefaults(proposedDeal);
+    const corrected = { ...defaults, endDate: '2027-02-28' };
+    expect(draftDealEditorFormSchema.safeParse(corrected).success).toBe(true);
+    const rebuilt = buildAutomationDealProposal(corrected, proposedDeal);
+    expect(getAutomationDealValidationIssues(rebuilt)).toEqual([]);
+  });
+
+  it('la action exige un id válido y un formulario validado', () => {
+    const deal = { ...draftDealEditorDefaults(proposedDeal), endDate: '2027-02-28' };
+    expect(updateDraftFromEditorSchema.safeParse({ id: 3, deal }).success).toBe(true);
+    expect(updateDraftFromEditorSchema.safeParse({ id: 0, deal }).success).toBe(false);
   });
 });
 

@@ -43,8 +43,12 @@ export class ResendSendError extends Error {
 export async function sendResendEmail(
   context: string,
   options: CreateEmailOptions,
+  requestOptions?: { readonly idempotencyKey?: string },
 ): Promise<string> {
-  const { data, error } = await resend.emails.send(options);
+  const response = requestOptions?.idempotencyKey
+    ? await resend.emails.send(options, { idempotencyKey: requestOptions.idempotencyKey })
+    : await resend.emails.send(options);
+  const { data, error } = response;
 
   if (error) {
     const err = new ResendSendError(context, error.name, error.message);

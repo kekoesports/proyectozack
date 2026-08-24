@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useTransition } from 'react';
+import { useState, useSyncExternalStore, useTransition } from 'react';
 import Link from 'next/link';
 import { BellIcon, SunIcon, MoonIcon } from './SidebarIcons';
 import { GlobalSearch } from './GlobalSearch';
@@ -144,26 +144,49 @@ function AlertDropdownItem({
 
 // ── Theme toggle ──────────────────────────────────────────────────────
 
-function useThemeToggle(): { isDark: boolean; toggle: () => void } {
-  // Lazy init — lee localStorage en cliente, retorna false en SSR
-  const [isDark, setIsDark] = useState<boolean>(() => {
-    if (typeof window === 'undefined') return false;
-    const stored = localStorage.getItem('sp-theme');
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    return stored === 'dark' || (!stored && prefersDark);
-  });
+const THEME_CHANGE_EVENT = 'sp-theme-change';
 
-  // Aplica clase al DOM cada vez que cambia isDark (sin setState dentro)
-  useEffect(() => {
-    document.documentElement.classList.toggle('dark', isDark);
-  }, [isDark]);
+function getThemeSnapshot(): boolean {
+  const stored = localStorage.getItem('sp-theme');
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  return stored === 'dark' || (!stored && prefersDark);
+}
+
+function getServerThemeSnapshot(): boolean {
+  return false;
+}
+
+function subscribeTheme(onStoreChange: () => void): () => void {
+  const media = window.matchMedia('(prefers-color-scheme: dark)');
+  const syncTheme = (): void => {
+    document.documentElement.classList.toggle('dark', getThemeSnapshot());
+    onStoreChange();
+  };
+  window.addEventListener('storage', syncTheme);
+  window.addEventListener(THEME_CHANGE_EVENT, syncTheme);
+  media.addEventListener('change', syncTheme);
+  syncTheme();
+
+  return () => {
+    window.removeEventListener('storage', syncTheme);
+    window.removeEventListener(THEME_CHANGE_EVENT, syncTheme);
+    media.removeEventListener('change', syncTheme);
+  };
+}
+
+function useThemeToggle(): { isDark: boolean; toggle: () => void } {
+  // useSyncExternalStore mantiene un snapshot SSR estable y se suscribe a la
+  // preferencia persistida después de hidratar, sin un segundo render manual.
+  const isDark = useSyncExternalStore(
+    subscribeTheme,
+    getThemeSnapshot,
+    getServerThemeSnapshot,
+  );
 
   const toggle = (): void => {
-    setIsDark((prev) => {
-      const next = !prev;
-      localStorage.setItem('sp-theme', next ? 'dark' : 'light');
-      return next;
-    });
+    const next = !isDark;
+    localStorage.setItem('sp-theme', next ? 'dark' : 'light');
+    window.dispatchEvent(new Event(THEME_CHANGE_EVENT));
   };
 
   return { isDark, toggle };
