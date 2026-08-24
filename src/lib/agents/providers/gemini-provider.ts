@@ -11,6 +11,51 @@ import {
 import type { ErasedAgentTool } from '../types';
 
 /**
+ * La cuota gratuita actual permite cinco `generateContent` por minuto y cada
+ * ejecución puede necesitar varios turnos. Sin una puerta compartida, dos runs
+ * distintos consumen la cuota a la vez, reciben 429 y agotan sus reintentos
+ * antes de que se abra la siguiente ventana.
+ *
+ * Se deja un pequeño margen sobre 60s / 5. El límite es global al proceso, no a
+ * la instancia del proveedor, porque cada run crea su propio adaptador.
+ */
+export const GEMINI_MIN_REQUEST_INTERVAL_MS = 12_500;
+
+type GeminiRequestGateOptions = {
+  readonly minIntervalMs: number;
+  readonly now?: () => number;
+  readonly sleep?: (delayMs: number) => Promise<void>;
+};
+
+export function createGeminiRequestGate(options: GeminiRequestGateOptions): () => Promise<void> {
+  const now = options.now ?? Date.now;
+  const sleep = options.sleep ?? ((delayMs: number) => new Promise<void>((resolve) => setTimeout(resolve, delayMs)));
+  let nextAllowedAt = 0;
+  let queue: Promise<void> = Promise.resolve();
+
+  return async () => {
+    let release: (() => void) | undefined;
+    const previous = queue;
+    queue = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+
+    await previous;
+    try {
+      const delayMs = Math.max(0, nextAllowedAt - now());
+      if (delayMs > 0) await sleep(delayMs);
+      nextAllowedAt = now() + options.minIntervalMs;
+    } finally {
+      release?.();
+    }
+  };
+}
+
+const waitForGeminiRequestSlot = createGeminiRequestGate({
+  minIntervalMs: GEMINI_MIN_REQUEST_INTERVAL_MS,
+});
+
+/**
  * Adaptador de Gemini con function calling estructurado.
  *
  * Es un adaptador, no el contrato: todo lo que aquí se traduce entra y sale por
@@ -185,6 +230,7 @@ export class GeminiAgentModelProvider implements AgentModelProvider {
       );
       this.consumedMessageCount = request.messages.length;
 
+      await waitForGeminiRequestSlot();
       const resultado = await model.generateContent({
         // El objeto original del candidato puede llevar `thoughtSignature`,
         // campo que el SDK antiguo no tipa pero que la API de Gemini 3 valida.
