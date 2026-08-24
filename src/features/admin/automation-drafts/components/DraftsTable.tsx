@@ -15,7 +15,6 @@ import {
   shortDateTime,
   sourceMeta,
   statusMeta,
-  topLevelMissing,
 } from './draftMeta';
 
 type StatusFilter = string;
@@ -151,7 +150,7 @@ export function DraftsTable({ drafts, canWrite }: Props): React.ReactElement {
               {filtered.map((d) => {
                 const sm = statusMeta(d.status);
                 const src = sourceMeta(d.source);
-                const missing = topLevelMissing(d.missingFields);
+                const missing = Array.from(new Set(d.validationIssues.map((issue) => issue.label)));
                 const busy = pendingId === d.id;
                 return (
                   <tr key={d.id} className="border-t border-sp-admin-border/50 hover:bg-sp-admin-bg2/40">

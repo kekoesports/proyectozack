@@ -2,16 +2,30 @@
 
 import { revalidatePath } from 'next/cache';
 
+import {
+  getAutomationDealValidationIssues,
+  type AutomationDealValidationIssue,
+} from '@/lib/automationDealValidation';
 import { logRedacted } from '@/lib/log';
 import { requirePermission } from '@/lib/permissions';
 import {
   AutomationDealDraftError,
+  getAutomationDealDraft,
   reviewAutomationDealDraft,
 } from '@/lib/queries/automationDealDrafts';
+import {
+  buildAutomationDealProposal,
+  updateDraftFromEditorSchema,
+} from '@/lib/schemas/automationDealDraftEditor';
 import { reviewDraftSchema } from '@/lib/schemas/automationDealDraftReview';
 
 export type DraftActionResult =
-  | { readonly ok: true; readonly status: string; readonly campaignId?: number }
+  | {
+      readonly ok: true;
+      readonly status: string;
+      readonly campaignId?: number;
+      readonly validationIssues?: readonly AutomationDealValidationIssue[];
+    }
   | { readonly ok: false; readonly error: string };
 
 const LIST_PATH = '/admin/automation-drafts';
@@ -30,15 +44,46 @@ function revalidateDraft(id: number): void {
 function friendlyError(message: string): string {
   switch (message) {
     case 'draft-missing_info':
-      return 'Faltan datos obligatorios. Complétalos desde Discord antes de aprobar.';
+      return 'Faltan datos obligatorios. Corrige los campos marcados en esta ficha.';
     case 'draft-rejected':
       return 'Este borrador ya estaba rechazado.';
     case 'draft-created':
       return 'Este borrador ya generó un trato.';
     case 'draft-payload-invalid':
-      return 'La propuesta guardada no es válida. Revísala en Discord.';
+      return 'La propuesta guardada no es válida. Corrige los campos marcados en esta ficha.';
     default:
       return 'No se pudo completar la revisión.';
+  }
+}
+
+export async function updateDraftAction(input: unknown): Promise<DraftActionResult> {
+  const session = await requirePermission('campanas', 'write');
+  const parsed = updateDraftFromEditorSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: 'Revisa los campos marcados antes de guardar' };
+
+  try {
+    const current = await getAutomationDealDraft(parsed.data.id);
+    if (!current) return { ok: false, error: 'El borrador ya no existe' };
+    const proposedDeal = buildAutomationDealProposal(parsed.data.deal, current.proposedDeal);
+    const result = await reviewAutomationDealDraft({
+      id: parsed.data.id,
+      action: 'update',
+      proposedDeal,
+      reviewedBy: session.user.email,
+    });
+    if (!result) return { ok: false, error: 'El borrador ya no existe' };
+    revalidateDraft(parsed.data.id);
+    return {
+      ok: true,
+      status: result.status,
+      validationIssues: getAutomationDealValidationIssues(proposedDeal),
+    };
+  } catch (err) {
+    if (err instanceof AutomationDealDraftError) {
+      return { ok: false, error: friendlyError(err.message) };
+    }
+    logRedacted('error', '[admin/automation-drafts] update error:', err);
+    return { ok: false, error: 'No se pudieron guardar los cambios' };
   }
 }
 

@@ -2,6 +2,7 @@ import { and, desc, eq, ilike, isNull, or, sql, type SQL } from 'drizzle-orm';
 
 import { db } from '@/lib/db';
 import { contactSubmissions, user } from '@/db/schema';
+import { OPERATIONAL_GOOGLE_EMAIL } from '@/lib/constants/operational-email';
 import type { Lead, LeadStatus, LeadWithAssignee } from '@/types';
 
 /** Escapa comodines LIKE en input de usuario antes de un ILIKE. */
@@ -211,6 +212,50 @@ export async function addLeadNote(
     .update(contactSubmissions)
     .set({ notes: appendNote(current.notes, entry) })
     .where(eq(contactSubmissions.id, id))
+    .returning();
+
+  return updated ?? undefined;
+}
+
+/**
+ * Registra un email aceptado por el proveedor y sella la primera respuesta.
+ * El id del proveedor evita duplicar el historial si una petición se reintenta.
+ */
+export async function recordLeadEmailSent(input: {
+  readonly id: number;
+  readonly subject: string;
+  readonly providerEmailId: string;
+  readonly userId: string;
+}): Promise<Lead | undefined> {
+  const [current] = await db
+    .select({
+      status: contactSubmissions.status,
+      notes: contactSubmissions.notes,
+    })
+    .from(contactSubmissions)
+    .where(eq(contactSubmissions.id, input.id))
+    .limit(1);
+  if (!current) return undefined;
+
+  const marker = `[email:${input.providerEmailId}]`;
+  if (current.notes?.includes(marker)) return undefined;
+
+  const actor = await resolveActorName(input.userId);
+  const now = new Date();
+  const entry = logEntry(
+    actor,
+    `Email enviado desde ${OPERATIONAL_GOOGLE_EMAIL} · Asunto: ${input.subject} ${marker}`,
+    now,
+  );
+
+  const [updated] = await db
+    .update(contactSubmissions)
+    .set({
+      status: current.status === 'nuevo' ? 'contactado' : current.status,
+      notes: appendNote(current.notes, entry),
+      respondedAt: sql`coalesce(${contactSubmissions.respondedAt}, ${now})`,
+    })
+    .where(eq(contactSubmissions.id, input.id))
     .returning();
 
   return updated ?? undefined;

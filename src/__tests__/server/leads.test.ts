@@ -41,6 +41,7 @@ import {
   updateLeadStatus,
   assignLead,
   addLeadNote,
+  recordLeadEmailSent,
 } from '@/lib/queries/leads';
 import { PERMISSIONS, hasPermission } from '@/lib/permissions';
 
@@ -265,6 +266,49 @@ describe('addLeadNote', () => {
     await addLeadNote(1, 'nota', 'u-desconocido');
 
     expect(upd.set.mock.calls[0]?.[0]?.notes as string).toContain('u-desconocido: nota');
+  });
+});
+
+describe('recordLeadEmailSent', () => {
+  beforeEach(() => { jest.clearAllMocks(); });
+
+  it('marca como contactado, sella respuesta y deja auditoría del remitente', async () => {
+    let call = 0;
+    mockSelect.mockImplementation(() => {
+      call += 1;
+      if (call === 1) return makeBuilder([{ status: 'nuevo', notes: null }]);
+      return makeBuilder([{ name: 'Pablo' }]);
+    });
+    const upd = makeBuilder([{ ...BASE_LEAD, status: 'contactado' }]);
+    mockUpdate.mockReturnValue(upd);
+
+    await recordLeadEmailSent({
+      id: 1,
+      subject: 'Re: Contacto',
+      providerEmailId: 'email_123',
+      userId: 'u1',
+    });
+
+    const values = upd.set.mock.calls[0]?.[0];
+    expect(values?.status).toBe('contactado');
+    expect(values).toHaveProperty('respondedAt');
+    expect(values?.notes as string).toContain('pcamacho@socialpro.es');
+    expect(values?.notes as string).toContain('[email:email_123]');
+  });
+
+  it('no duplica la auditoría si Resend devuelve el mismo id en un reintento', async () => {
+    mockSelect.mockReturnValue(makeBuilder([{
+      status: 'contactado',
+      notes: '[2026-01-01T00:00:00.000Z] Pablo: enviado [email:email_123]',
+    }]));
+
+    await expect(recordLeadEmailSent({
+      id: 1,
+      subject: 'Re: Contacto',
+      providerEmailId: 'email_123',
+      userId: 'u1',
+    })).resolves.toBeUndefined();
+    expect(mockUpdate).not.toHaveBeenCalled();
   });
 });
 

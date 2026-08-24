@@ -4,6 +4,11 @@ import { and, desc, eq } from 'drizzle-orm';
 
 import { automationDealDrafts } from '@/db/schema/automationDealDrafts';
 import { campaigns } from '@/db/schema/campaigns';
+import {
+  getAutomationDealMissingFields,
+  getAutomationDealValidationIssues,
+  type AutomationDealValidationIssue,
+} from '@/lib/automationDealValidation';
 import { db } from '@/lib/db';
 import {
   createAutomatedDeal,
@@ -20,15 +25,7 @@ import {
 
 export class AutomationDealDraftError extends Error {}
 
-function formatIssuePath(path: readonly PropertyKey[]): string {
-  return path.length > 0 ? path.map(String).join('.') : 'proposedDeal';
-}
-
-export function getAutomationDealMissingFields(proposedDeal: unknown): string[] {
-  const parsed = AutomationDealCreate.safeParse(proposedDeal);
-  if (parsed.success) return [];
-  return Array.from(new Set(parsed.error.issues.map((issue) => formatIssuePath(issue.path))));
-}
+export { getAutomationDealMissingFields } from '@/lib/automationDealValidation';
 
 function isDealDraftReady(proposedDeal: unknown): boolean {
   return getAutomationDealMissingFields(proposedDeal).length === 0;
@@ -118,6 +115,7 @@ export type AutomationDealDraftListItem = {
   readonly createdAt: Date;
   readonly updatedAt: Date;
   readonly missingFields: readonly string[];
+  readonly validationIssues: readonly AutomationDealValidationIssue[];
   readonly dealName: string | null;
 };
 
@@ -161,6 +159,7 @@ export async function listAutomationDealDrafts(): Promise<readonly AutomationDea
   return rows.map((row) => ({
     ...row,
     missingFields: getAutomationDealMissingFields(row.proposedDeal),
+    validationIssues: getAutomationDealValidationIssues(row.proposedDeal),
     dealName: readDealName(row.proposedDeal),
   }));
 }
@@ -196,6 +195,7 @@ export async function getAutomationDealDraftDetail(
   return {
     ...row,
     missingFields: getAutomationDealMissingFields(row.proposedDeal),
+    validationIssues: getAutomationDealValidationIssues(row.proposedDeal),
     dealName: readDealName(row.proposedDeal),
   };
 }
