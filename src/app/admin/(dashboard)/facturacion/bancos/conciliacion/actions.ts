@@ -1,7 +1,10 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { requirePermission } from '@/lib/permissions';
+import {
+  financialSecurityErrorMessage,
+  requireFinancialSecurity,
+} from '@/lib/security/financial-security';
 import { logRedacted } from '@/lib/log';
 import {
   approveMatchFromCandidateSchema,
@@ -26,7 +29,7 @@ export async function approveMatchAction(
   formData: FormData,
 ): Promise<ActionState> {
   try {
-    const session = await requirePermission('bancos', 'write');
+    const session = await requireFinancialSecurity('write');
     const parsed = approveMatchFromCandidateSchema.safeParse(Object.fromEntries(formData));
     if (!parsed.success) return { error: 'Datos inválidos' };
 
@@ -52,6 +55,8 @@ export async function approveMatchAction(
     revalidatePath(RECON_PATH);
     return { success: true };
   } catch (err) {
+    const securityMessage = financialSecurityErrorMessage(err);
+    if (securityMessage) return { error: securityMessage };
     logRedacted('error', 'approveMatchAction', err);
     return { error: 'No se pudo aprobar la conciliación' };
   }
@@ -62,7 +67,7 @@ export async function rejectMatchAction(
   formData: FormData,
 ): Promise<ActionState> {
   try {
-    const session = await requirePermission('bancos', 'write');
+    const session = await requireFinancialSecurity('write');
     const parsed = rejectMatchFromCandidateSchema.safeParse(Object.fromEntries(formData));
     if (!parsed.success) return { error: 'Datos inválidos' };
 
@@ -88,6 +93,8 @@ export async function rejectMatchAction(
     revalidatePath(RECON_PATH);
     return { success: true };
   } catch (err) {
+    const securityMessage = financialSecurityErrorMessage(err);
+    if (securityMessage) return { error: securityMessage };
     logRedacted('error', 'rejectMatchAction', err);
     return { error: 'No se pudo rechazar la conciliación' };
   }
@@ -98,7 +105,7 @@ export async function ignoreTransactionAction(
   formData: FormData,
 ): Promise<ActionState> {
   try {
-    const session = await requirePermission('bancos', 'write');
+    const session = await requireFinancialSecurity('write');
     const transactionId = Number(formData.get('transactionId'));
     if (!transactionId || transactionId < 1) return { error: 'ID inválido' };
 
@@ -113,6 +120,8 @@ export async function ignoreTransactionAction(
     revalidatePath(RECON_PATH);
     return { success: true };
   } catch (err) {
+    const securityMessage = financialSecurityErrorMessage(err);
+    if (securityMessage) return { error: securityMessage };
     logRedacted('error', 'ignoreTransactionAction', err);
     return { error: 'No se pudo ignorar la transacción' };
   }

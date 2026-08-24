@@ -1,4 +1,4 @@
-import { pgTable, text, boolean, timestamp } from 'drizzle-orm/pg-core';
+import { pgTable, text, boolean, timestamp, integer, index } from 'drizzle-orm/pg-core';
 
 export const user = pgTable('user', {
   id: text('id').primaryKey(),
@@ -9,6 +9,7 @@ export const user = pgTable('user', {
   createdAt: timestamp('createdAt', { withTimezone: true }).notNull(),
   updatedAt: timestamp('updatedAt', { withTimezone: true }).notNull(),
   role: text('role'),
+  twoFactorEnabled: boolean('twoFactorEnabled').notNull().default(false),
 });
 
 export const session = pgTable('session', {
@@ -46,3 +47,20 @@ export const verification = pgTable('verification', {
   createdAt: timestamp('createdAt', { withTimezone: true }),
   updatedAt: timestamp('updatedAt', { withTimezone: true }),
 });
+
+export const twoFactor = pgTable(
+  'twoFactor',
+  {
+    id: text('id').primaryKey(),
+    secret: text('secret').notNull(),
+    backupCodes: text('backupCodes').notNull(),
+    userId: text('userId').notNull().references(() => user.id, { onDelete: 'cascade' }),
+    verified: boolean('verified').notNull().default(true),
+    failedVerificationCount: integer('failedVerificationCount').notNull().default(0),
+    lockedUntil: timestamp('lockedUntil', { withTimezone: true }),
+  },
+  (t) => [
+    index('twoFactor_secret_idx').on(t.secret),
+    index('twoFactor_userId_idx').on(t.userId),
+  ],
+);

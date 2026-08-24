@@ -1,6 +1,6 @@
 import Link from 'next/link';
-import { requirePermission } from '@/lib/permissions';
 import { canDelete } from '@/lib/permissions';
+import { requireFinancialPageSecurity } from '@/lib/security/financial-security';
 import { listBankAccountsWithStats, getBankReconciliationKpis } from '@/lib/queries/bankReconciliation';
 import { BankAccountForm } from './BankAccountForm';
 
@@ -29,7 +29,7 @@ function KpiCard({ label, value, accent }: KpiCardProps): React.ReactElement {
 }
 
 export default async function BancosPage(): Promise<React.ReactElement> {
-  const session = await requirePermission('bancos', 'read');
+  const session = await requireFinancialPageSecurity('read');
   const isAdmin = canDelete(session.user.role as 'admin' | 'staff');
 
   const [accounts, kpis] = await Promise.all([

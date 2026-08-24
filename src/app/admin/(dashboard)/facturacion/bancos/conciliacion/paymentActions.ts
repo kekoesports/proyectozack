@@ -1,7 +1,10 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { requirePermission } from '@/lib/permissions';
+import {
+  financialSecurityErrorMessage,
+  requireFinancialSecurity,
+} from '@/lib/security/financial-security';
 import { logRedacted } from '@/lib/log';
 import { applyPaymentSchema } from '@/lib/schemas/invoicePayments';
 import {
@@ -22,7 +25,14 @@ export async function applyPaymentAction(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  const session = await requirePermission('bancos', 'write');
+  let session: Awaited<ReturnType<typeof requireFinancialSecurity>>;
+  try {
+    session = await requireFinancialSecurity('write');
+  } catch (err) {
+    const securityMessage = financialSecurityErrorMessage(err);
+    if (securityMessage) return { error: securityMessage };
+    throw err;
+  }
 
   const parsed = applyPaymentSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) {

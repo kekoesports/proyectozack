@@ -1,7 +1,10 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { requirePermission } from '@/lib/permissions';
+import {
+  financialSecurityErrorMessage,
+  requireFinancialSecurity,
+} from '@/lib/security/financial-security';
 import { logRedacted } from '@/lib/log';
 import { validateUploadedFile } from '@/lib/files/validateUploadedFile';
 import { BANK_IMPORT_TYPES } from '@/lib/files/allowed-types';
@@ -40,7 +43,7 @@ export async function analyzeImportFileAction(
   formData: FormData,
 ): Promise<ActionState & { readonly headers?: readonly string[]; readonly suggestedMapping?: BankColumnMapping }> {
   try {
-    await requirePermission('bancos', 'write');
+    await requireFinancialSecurity('write');
 
     const file = formData.get('file');
     if (!(file instanceof File)) return { error: 'No se recibió ningún archivo' };
@@ -68,6 +71,8 @@ export async function analyzeImportFileAction(
     const suggestedMapping = suggestBankMapping(headers);
     return { success: true, headers, suggestedMapping };
   } catch (err) {
+    const securityMessage = financialSecurityErrorMessage(err);
+    if (securityMessage) return { error: securityMessage };
     logRedacted('error', 'analyzeImportFileAction', err);
     return { error: 'Error al analizar el archivo' };
   }
@@ -79,7 +84,7 @@ export async function uploadAndImportAction(
   formData: FormData,
 ): Promise<ActionState> {
   try {
-    const session = await requirePermission('bancos', 'write');
+    const session = await requireFinancialSecurity('write');
 
     const file = formData.get('file');
     if (!(file instanceof File)) return { error: 'No se recibió ningún archivo' };
@@ -195,6 +200,8 @@ export async function uploadAndImportAction(
 
     return { success: true, importId: bankImport.id, totalRows, importedRows, duplicateRows };
   } catch (err) {
+    const securityMessage = financialSecurityErrorMessage(err);
+    if (securityMessage) return { error: securityMessage };
     logRedacted('error', 'uploadAndImportAction', err);
     return { error: 'Error al importar el archivo bancario' };
   }

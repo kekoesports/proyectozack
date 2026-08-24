@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { requirePermission } from '@/lib/permissions';
+import { requireFinancialPageSecurity } from '@/lib/security/financial-security';
 import {
   listBankTransactions,
   countBankTransactions,
@@ -20,7 +20,7 @@ type SearchParams = { readonly status?: string; readonly page?: string };
 export default async function ConciliacionPage(props: {
   readonly searchParams: Promise<SearchParams>;
 }): Promise<React.ReactElement> {
-  await requirePermission('bancos', 'read');
+  await requireFinancialPageSecurity('read');
 
   const searchParams = await props.searchParams;
   const statusFilter = (searchParams.status ?? 'imported') as 'imported' | 'needs_review' | 'matched';

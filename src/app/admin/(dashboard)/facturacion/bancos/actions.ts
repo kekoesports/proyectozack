@@ -1,8 +1,11 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { requirePermission } from '@/lib/permissions';
 import { assertCanDelete } from '@/lib/permissions';
+import {
+  financialSecurityErrorMessage,
+  requireFinancialSecurity,
+} from '@/lib/security/financial-security';
 import { createBankAccountSchema } from '@/lib/schemas/bankReconciliation';
 import {
   createBankAccount,
@@ -22,7 +25,7 @@ export async function createBankAccountAction(
   formData: FormData,
 ): Promise<ActionState> {
   try {
-    await requirePermission('bancos', 'write');
+    await requireFinancialSecurity('write');
     const parsed = createBankAccountSchema.safeParse(Object.fromEntries(formData));
     if (!parsed.success) {
       const first = parsed.error.issues[0];
@@ -32,6 +35,8 @@ export async function createBankAccountAction(
     revalidatePath('/admin/facturacion/bancos');
     return { success: true, id: account.id };
   } catch (err) {
+    const securityMessage = financialSecurityErrorMessage(err);
+    if (securityMessage) return { error: securityMessage };
     logRedacted('error', 'createBankAccountAction', err);
     return { error: 'No se pudo crear la cuenta bancaria' };
   }
@@ -42,7 +47,7 @@ export async function deleteBankAccountAction(
   formData: FormData,
 ): Promise<ActionState> {
   try {
-    const session = await requirePermission('bancos', 'delete');
+    const session = await requireFinancialSecurity('delete');
     assertCanDelete(session.user.role as 'admin');
 
     const id = Number(formData.get('id'));
@@ -55,6 +60,8 @@ export async function deleteBankAccountAction(
     revalidatePath('/admin/facturacion/bancos');
     return { success: true };
   } catch (err) {
+    const securityMessage = financialSecurityErrorMessage(err);
+    if (securityMessage) return { error: securityMessage };
     logRedacted('error', 'deleteBankAccountAction', err);
     return { error: 'No se pudo eliminar la cuenta bancaria' };
   }

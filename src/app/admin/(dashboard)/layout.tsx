@@ -10,6 +10,7 @@ import {
   TargetsIcon, TasksIcon, MyWeekIcon, InvoiceIcon, AnalyticsIcon,
   CaseIcon, CampaignIcon, BackupIcon, ContactIcon, LiveIcon, NewsIcon, ChartIcon, AiIcon,
   ContractIcon, DealsIcon,
+  SettingsIcon,
 } from '@/features/admin/_shared/components/SidebarIcons';
 import type { ReactNode } from 'react';
 
@@ -43,6 +44,7 @@ const NAV_ICONS: Record<AdminNavKey, React.ReactNode> = {
   // Reutiliza el icono del asistente: Agent OS es su evolución, y darle uno
   // nuevo sugeriría que son cosas distintas cuando comparten origen.
   agents: <AiIcon />,
+  seguridad: <SettingsIcon />,
 };
 
 export default async function AdminLayout({ children }: AdminLayoutProps): Promise<React.ReactElement> {

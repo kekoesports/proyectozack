@@ -68,6 +68,7 @@ const IS_DEV = process.env.NODE_ENV === 'development';
 
 const PUBLIC_ADMIN_PATHS = new Set([
   '/admin/login',
+  '/admin/two-factor',
   '/admin/forgot-password',
   '/admin/reset-password',
 ]);

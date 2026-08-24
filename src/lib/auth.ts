@@ -1,5 +1,6 @@
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
+import { twoFactor } from 'better-auth/plugins';
 import { db } from './db';
 import { env } from './env';
 import { SITE_URL } from './site-url';
@@ -24,6 +25,7 @@ function getSiteOrigins(siteUrl: string): string[] {
 }
 
 export const auth = betterAuth({
+  appName: 'SocialPro CRM',
   secret: env.BETTER_AUTH_SECRET,
   baseURL: SITE_URL,
   emailAndPassword: {
@@ -41,8 +43,8 @@ export const auth = betterAuth({
   },
   database: drizzleAdapter(db, { provider: 'pg' }),
   session: {
-    expiresIn: 60 * 60 * 24 * 30, // 30 days
-    updateAge: 60 * 60 * 24,      // refresh once per day
+    expiresIn: 60 * 60 * 24 * 7,  // 7 days
+    updateAge: 60 * 60 * 12,      // refresh twice per day
     freshAge: 60 * 60,            // require re-auth after 1h for sensitive ops
   },
   advanced: {
@@ -63,5 +65,17 @@ export const auth = betterAuth({
       },
     },
   },
-  plugins: [steamOpenId()],
+  plugins: [
+    twoFactor({
+      issuer: 'SocialPro CRM',
+      twoFactorCookieMaxAge: 5 * 60,
+      trustDeviceMaxAge: 12 * 60 * 60,
+      accountLockout: {
+        enabled: true,
+        maxFailedAttempts: 5,
+        durationSeconds: 30 * 60,
+      },
+    }),
+    steamOpenId(),
+  ],
 });
