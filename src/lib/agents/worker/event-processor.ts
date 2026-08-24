@@ -48,6 +48,24 @@ const ORDEN_SEVERIDAD: Readonly<Record<AgentEvent['severity'], number>> = {
  * ejecuciones.
  */
 export const EVENT_RULES: readonly EventRule[] = [
+  {
+    source: 'discord-pipeline',
+    eventType: 'deal.draft_created',
+    minSeverity: 'info',
+    agentSlug: 'deal-clerk',
+  },
+  {
+    source: 'google-search-console',
+    eventType: 'seo.search_console_snapshot',
+    minSeverity: 'info',
+    agentSlug: 'seo',
+  },
+  {
+    source: 'crm',
+    eventType: 'lead.created',
+    minSeverity: 'info',
+    agentSlug: 'growth',
+  },
   { source: '*', eventType: '*', minSeverity: 'high', agentSlug: 'guardian' },
 ];
 

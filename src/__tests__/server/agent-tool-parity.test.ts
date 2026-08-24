@@ -66,7 +66,11 @@ describe('cobertura de las tools del asistente', () => {
     expect(extras.sort()).toEqual([
       'getAgentQueueHealth',
       'getAgentWorkerHealth',
+      'getDealDraftQueue',
+      'getInboundLeadQueue',
       'getOpenOperationalIncidents',
+      'getOperationalCampaignSummary',
+      'getSeoOperationsSnapshot',
       'getSystemHealthSnapshot',
     ]);
   });

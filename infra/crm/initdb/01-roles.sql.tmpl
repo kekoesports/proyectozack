@@ -1,0 +1,36 @@
+-- Roles del CRM. Se ejecuta UNA vez, al inicializar el clúster.
+--
+-- Las contraseñas llegan como variables de psql desde 01-roles.sh. El fichero
+-- no se ejecuta directamente por el entrypoint porque los secretos viven en
+-- /run/secrets y nunca se copian al compose ni al repositorio.
+
+\set ON_ERROR_STOP on
+
+CREATE ROLE socialpro_migrator LOGIN PASSWORD :'migrator_password';
+COMMENT ON ROLE socialpro_migrator IS 'Aplica migraciones. Único rol con DDL.';
+
+CREATE ROLE socialpro_app LOGIN PASSWORD :'app_password';
+COMMENT ON ROLE socialpro_app IS 'Lectura y escritura de datos. Sin DDL.';
+
+CREATE ROLE socialpro_backup LOGIN PASSWORD :'backup_password';
+COMMENT ON ROLE socialpro_backup IS 'Solo lectura, para volcados.';
+
+COMMENT ON ROLE socialpro_owner IS 'Propietario técnico. No usar desde la app.';
+
+GRANT CONNECT ON DATABASE socialpro TO socialpro_migrator, socialpro_app, socialpro_backup;
+GRANT CREATE ON DATABASE socialpro TO socialpro_migrator;
+GRANT USAGE, CREATE ON SCHEMA public TO socialpro_migrator;
+GRANT USAGE ON SCHEMA public TO socialpro_app, socialpro_backup;
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO socialpro_app;
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO socialpro_app;
+GRANT SELECT ON ALL TABLES IN SCHEMA public TO socialpro_backup;
+
+ALTER DEFAULT PRIVILEGES FOR ROLE socialpro_migrator IN SCHEMA public
+  GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO socialpro_app;
+ALTER DEFAULT PRIVILEGES FOR ROLE socialpro_migrator IN SCHEMA public
+  GRANT USAGE, SELECT ON SEQUENCES TO socialpro_app;
+ALTER DEFAULT PRIVILEGES FOR ROLE socialpro_migrator IN SCHEMA public
+  GRANT SELECT ON TABLES TO socialpro_backup;
+
+REVOKE CREATE ON SCHEMA public FROM PUBLIC;

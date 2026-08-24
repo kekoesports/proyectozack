@@ -3,12 +3,16 @@
  * Tests the mutation logic directly via a caller — no HTTP layer.
  */
 
+jest.mock('server-only', () => ({}));
 jest.mock('@/lib/db', () => ({
   db: {
     insert: jest.fn().mockReturnValue({
       values: jest.fn().mockResolvedValue(undefined),
     }),
   },
+}));
+jest.mock('@/lib/queries/agents/events', () => ({
+  ingestAgentEvent: jest.fn().mockResolvedValue({ event: { id: 1 }, deduplicated: false }),
 }));
 jest.mock('@/lib/email', () => ({
   sendContactEmail: jest.fn().mockResolvedValue(undefined),

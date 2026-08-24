@@ -9,6 +9,7 @@ import { logRedacted } from '@/lib/log';
 import { upsertWorkerHeartbeat } from '@/lib/queries/agents/workers';
 
 import { areAgentsEnabled, getAgentRuntimeLimits } from '../runtime-flags';
+import { operationSystemPrompt } from '../operations/prompts';
 import { claimNextAgentRun, recoverExpiredLeases } from './claim';
 import { processPendingEvents } from './event-processor';
 import { executeAgentRun } from './execute-run';
@@ -59,6 +60,8 @@ export type WorkerTickResult = {
  * existen solo produce alucinaciones sobre lo que el agente puede hacer.
  */
 function systemPromptFor(slug: string, mode: string): string {
+  const operationPrompt = operationSystemPrompt(slug, mode);
+  if (operationPrompt) return operationPrompt;
   return [
     `Eres un agente interno de SocialPro (${slug}), operando en modo ${mode}.`,
     'Responde solo con lo que puedas comprobar con las herramientas disponibles.',

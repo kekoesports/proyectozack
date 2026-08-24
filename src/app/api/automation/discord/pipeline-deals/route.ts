@@ -19,6 +19,7 @@ import {
   createAutomationDealDraft,
   findAutomationDealDraftByExternalId,
 } from '@/lib/queries/automationDealDrafts';
+import { ingestAgentEvent } from '@/lib/queries/agents/events';
 import {
   DiscordPipelineDealsIntake,
   discordExternalId,
@@ -141,6 +142,27 @@ export async function POST(req: Request): Promise<NextResponse> {
             rawText: message.content,
             proposedDeal: extraction.proposedDeal,
           });
+          if (draft.created) {
+            try {
+              await ingestAgentEvent({
+                source: 'discord-pipeline',
+                eventType: 'deal.draft_created',
+                externalId: entryExternalId,
+                severity: 'info',
+                payloadJson: {
+                  draftId: draft.id,
+                  status: draft.status,
+                  missingFields: draft.missingFields,
+                },
+                fingerprint: `deal-draft:${draft.id}`,
+              });
+            } catch (eventError) {
+              console.error('[pipeline-deals] no se pudo avisar a Deal Clerk', {
+                draftId: draft.id,
+                error: eventError instanceof Error ? eventError.name : 'unknown',
+              });
+            }
+          }
           entryOutcomes.push({
             result: draft.created ? 'created' : 'already_seen',
             draftId: draft.id,

@@ -3,7 +3,7 @@
 ## Lo que ya se sabe
 
 - Neon corre **PostgreSQL 17.11**; el destino será 17.6 o superior.
-- **121 migraciones** en el journal de Drizzle.
+- **180 migraciones** en el journal de Drizzle a 24 de agosto de 2026.
 - El esquema de la tabla de migraciones y la lógica de comparación son
   **idénticos** entre el migrador de Neon y el de `node-postgres`: no se
   re-aplican las migraciones existentes.
@@ -60,6 +60,19 @@ primeras consultas irán mucho más lentas de lo normal.
 Cotejar contra el preflight: filas por tabla, secuencias, claves ajenas,
 índices, enums, y el recuento de migraciones. Después, probar los flujos que
 tocan dinero y permisos: facturación, conciliación, login y sesiones.
+
+## Primera réplica verificada — 24 de agosto de 2026
+
+- Destino aislado: PostgreSQL 17.6 en el VPS, sin puerto publicado.
+- Volcado lógico de producción con checksum SHA-256 registrado fuera de Git.
+- 107 tablas y 180 migraciones en origen y destino.
+- 26 MB en ambos lados después de restaurar y analizar.
+- Recuentos exactos cotejados para campañas, borradores, trackers, leads,
+  tareas, facturas, ficheros, talentos, posts, usuarios y Agent OS.
+- El staging del VPS ya arranca contra esta réplica; producción sigue en Neon.
+
+Esta réplica no autoriza el corte: aún faltan sincronización final, E2E de los
+flujos con escritura, observación y rollback ensayado.
 
 ## Cuidado con los tipos
 

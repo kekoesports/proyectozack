@@ -8,6 +8,37 @@ import { contactBodySchema } from '@/lib/schemas/contact';
 import { checkRateLimit } from '@/lib/security/rateLimit';
 import { logRedacted } from '@/lib/log';
 
+async function notifyGrowthOfLead(input: {
+  readonly eventId: string;
+  readonly type: string;
+  readonly vertical: string | null | undefined;
+  readonly campaignType: string | null | undefined;
+  readonly budgetConfirmed: boolean;
+}): Promise<void> {
+  if (process.env.NODE_ENV === 'test') return;
+  try {
+    // Import tardío: el envío es auxiliar y no debe cargar Agent OS al importar
+    // todo el router público (ni romper el formulario si el subsistema está
+    // temporalmente indisponible).
+    const { ingestAgentEvent } = await import('@/lib/queries/agents/events');
+    await ingestAgentEvent({
+      source: 'crm',
+      eventType: 'lead.created',
+      externalId: input.eventId,
+      severity: 'info',
+      payloadJson: {
+        type: input.type,
+        vertical: input.vertical ?? null,
+        campaignType: input.campaignType ?? null,
+        budgetConfirmed: input.budgetConfirmed,
+      },
+      fingerprint: `lead-created:${input.type}`,
+    });
+  } catch (eventError) {
+    logRedacted('warn', '[trpc/contact] Growth no recibió el evento:', eventError);
+  }
+}
+
 async function hashIp(ip: string): Promise<string> {
   const data = new TextEncoder().encode(ip);
   const buf = await crypto.subtle.digest('SHA-256', data);
@@ -53,6 +84,14 @@ export const contactRouter = router({
           viewers: input.viewers,
           monetization: input.monetization,
           ipHash,
+        });
+
+        await notifyGrowthOfLead({
+          eventId: `lead:${crypto.randomUUID()}`,
+          type: input.type,
+          vertical: input.vertical,
+          campaignType: input.campaignType,
+          budgetConfirmed: Boolean(input.budget),
         });
       } catch (err) {
         const msg = err instanceof Error ? err.message : 'unknown';
