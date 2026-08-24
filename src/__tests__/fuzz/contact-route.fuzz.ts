@@ -15,6 +15,7 @@ jest.mock('@/lib/db', () => ({
 }));
 jest.mock('@/lib/email', () => ({
   sendContactEmail: jest.fn().mockResolvedValue(undefined),
+  sendContactAcknowledgementEmail: jest.fn().mockResolvedValue(undefined),
 }));
 jest.mock('@/lib/auth', () => ({ auth: {} }));
 jest.mock('next/headers', () => ({
