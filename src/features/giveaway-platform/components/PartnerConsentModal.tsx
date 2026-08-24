@@ -2,7 +2,7 @@
 
 import { useId, useState, useTransition } from 'react';
 import Link from 'next/link';
-import * as Dialog from '@radix-ui/react-dialog';
+import { Dialog } from '@base-ui/react/dialog';
 import { useRouter } from 'next/navigation';
 import { grantPartnerConsent } from '@/lib/actions/partner-consent-action';
 
@@ -28,27 +28,29 @@ export function PartnerConsentModalTrigger(): React.JSX.Element {
   const [open, setOpen] = useState(false);
   return (
     <Dialog.Root open={open} onOpenChange={setOpen}>
-      <Dialog.Trigger asChild>
-        <button
-          type="button"
-          style={{
-            display:        'inline-flex',
-            alignItems:     'center',
-            gap:            '8px',
-            padding:        '10px 20px',
-            borderRadius:   '999px',
-            border:         '1px solid rgba(255,255,255,0.18)',
-            background:     'linear-gradient(135deg, rgba(245,99,42,0.85), rgba(139,58,173,0.85))',
-            color:          '#fff',
-            fontWeight:     700,
-            fontSize:       '13px',
-            letterSpacing:  '0.05em',
-            textTransform:  'uppercase',
-            cursor:         'pointer',
-          }}
-        >
-          Confirmar y ver ofertas
-        </button>
+      <Dialog.Trigger
+        render={
+          <button
+            type="button"
+            style={{
+              display:        'inline-flex',
+              alignItems:     'center',
+              gap:            '8px',
+              padding:        '10px 20px',
+              borderRadius:   '999px',
+              border:         '1px solid rgba(255,255,255,0.18)',
+              background:     'linear-gradient(135deg, rgba(245,99,42,0.85), rgba(139,58,173,0.85))',
+              color:          '#fff',
+              fontWeight:     700,
+              fontSize:       '13px',
+              letterSpacing:  '0.05em',
+              textTransform:  'uppercase',
+              cursor:         'pointer',
+            }}
+          />
+        }
+      >
+        Confirmar y ver ofertas
       </Dialog.Trigger>
       <PartnerConsentModalContent onClose={() => setOpen(false)} />
     </Dialog.Root>
@@ -85,7 +87,7 @@ function PartnerConsentModalContent({ onClose }: { onClose: () => void }): React
 
   return (
     <Dialog.Portal>
-      <Dialog.Overlay
+      <Dialog.Backdrop
         style={{
           position:       'fixed',
           inset:          0,
@@ -94,7 +96,7 @@ function PartnerConsentModalContent({ onClose }: { onClose: () => void }): React
           backdropFilter: 'blur(6px)',
         }}
       />
-      <Dialog.Content
+      <Dialog.Popup
         aria-labelledby={`${id}-title`}
         aria-describedby={`${id}-desc`}
         style={{
@@ -127,28 +129,32 @@ function PartnerConsentModalContent({ onClose }: { onClose: () => void }): React
         >
           Ofertas de partners externos
         </p>
-        <Dialog.Title asChild>
-          <h2
-            id={`${id}-title`}
-            style={{ fontSize: '22px', fontWeight: 800, margin: '0 0 12px 0' }}
-          >
-            Confirma que has leído y aceptas
-          </h2>
+        <Dialog.Title
+          render={
+            <h2
+              id={`${id}-title`}
+              style={{ fontSize: '22px', fontWeight: 800, margin: '0 0 12px 0' }}
+            />
+          }
+        >
+          Confirma que has leído y aceptas
         </Dialog.Title>
-        <Dialog.Description asChild>
-          <p
-            id={`${id}-desc`}
-            style={{
-              fontSize:   '13px',
-              lineHeight: 1.55,
-              margin:     '0 0 18px 0',
-              color:      'rgba(255,255,255,0.65)',
-            }}
-          >
-            Para mostrarte las ofertas y códigos de partners externos necesitamos que confirmes
-            las siguientes condiciones. Puedes revocar este consentimiento en cualquier momento
-            desde <Link href="/sorteos/perfil/permisos" style={{ color: 'rgba(255,255,255,0.85)', textDecoration: 'underline' }}>Mis permisos</Link>.
-          </p>
+        <Dialog.Description
+          render={
+            <p
+              id={`${id}-desc`}
+              style={{
+                fontSize:   '13px',
+                lineHeight: 1.55,
+                margin:     '0 0 18px 0',
+                color:      'rgba(255,255,255,0.65)',
+              }}
+            />
+          }
+        >
+          Para mostrarte las ofertas y códigos de partners externos necesitamos que confirmes
+          las siguientes condiciones. Puedes revocar este consentimiento en cualquier momento
+          desde <Link href="/sorteos/perfil/permisos" style={{ color: 'rgba(255,255,255,0.85)', textDecoration: 'underline' }}>Mis permisos</Link>.
         </Dialog.Description>
 
         <fieldset style={{ border: 'none', padding: 0, margin: '0 0 18px 0' }}>
@@ -210,23 +216,25 @@ function PartnerConsentModalContent({ onClose }: { onClose: () => void }): React
         ) : null}
 
         <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
-          <Dialog.Close asChild>
-            <button
-              type="button"
-              disabled={pending}
-              style={{
-                padding:      '9px 16px',
-                borderRadius: '999px',
-                border:       '1px solid rgba(255,255,255,0.14)',
-                background:   'transparent',
-                color:        'rgba(255,255,255,0.75)',
-                fontSize:     '12px',
-                fontWeight:   700,
-                cursor:       pending ? 'not-allowed' : 'pointer',
-              }}
-            >
-              Cancelar
-            </button>
+          <Dialog.Close
+            disabled={pending}
+            render={
+              <button
+                type="button"
+                style={{
+                  padding:      '9px 16px',
+                  borderRadius: '999px',
+                  border:       '1px solid rgba(255,255,255,0.14)',
+                  background:   'transparent',
+                  color:        'rgba(255,255,255,0.75)',
+                  fontSize:     '12px',
+                  fontWeight:   700,
+                  cursor:       pending ? 'not-allowed' : 'pointer',
+                }}
+              />
+            }
+          >
+            Cancelar
           </Dialog.Close>
           <button
             type="button"
@@ -250,7 +258,7 @@ function PartnerConsentModalContent({ onClose }: { onClose: () => void }): React
             {pending ? 'Guardando…' : 'Aceptar y continuar'}
           </button>
         </div>
-      </Dialog.Content>
+      </Dialog.Popup>
     </Dialog.Portal>
   );
 }
