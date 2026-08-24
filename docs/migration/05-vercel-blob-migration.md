@@ -66,8 +66,17 @@ por prefijo, marcando los tres que no tienen índice.
 
 ### 2. Índice para fotos y logos
 
-Antes de copiar nada de `talents/`, `team/` ni `brands/`. Pendiente de diseño;
-depende de si conviene una tabla nueva o columnas en las existentes.
+La tabla `entity_assets` conserva `(tipo, entidad, storageKey, fecha)` y las
+tres rutas proxy la consultan antes de abrir el objeto mediante el proveedor
+portable. El backfill parte del inventario y es dry run por defecto:
+
+```bash
+npx tsx scripts/backfill-entity-asset-index.ts inventario.json
+npx tsx scripts/backfill-entity-asset-index.ts inventario.json --apply
+```
+
+Durante la convivencia queda un fallback por `list()` con aviso en logs. Se
+retira solo cuando el inventario esté poblado y no aparezcan esos avisos.
 
 ### 3. Copia
 
@@ -105,7 +114,7 @@ Ese registro es el único dato que dirá cuándo se puede retirar el respaldo. S
 ## Criterios para dar la fase por buena
 
 - [ ] 100 % de objetos inventariados
-- [ ] Índice construido para los tres prefijos sin fila en base de datos
+- [x] Índice y backfill construidos para los tres prefijos sin fila en base de datos
 - [ ] 100 % copiados o clasificados
 - [ ] Bytes de origen y destino coinciden
 - [ ] Checksums coinciden
