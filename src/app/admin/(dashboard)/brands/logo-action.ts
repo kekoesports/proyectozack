@@ -2,7 +2,6 @@
 
 import { eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
-import { put } from '@vercel/blob';
 import { z } from 'zod';
 
 import { db } from '@/lib/db';
@@ -15,6 +14,8 @@ import { validateUploadedFile } from '@/lib/files/validateUploadedFile';
 import { PHOTO_TYPES } from '@/lib/files/allowed-types';
 import { logRedacted } from '@/lib/log';
 import { IdSchema } from '@/lib/schemas/common';
+import { uploadFile } from '@/lib/storage';
+import { registerEntityAsset } from '@/lib/queries/entityAssets';
 
 const LogoMeta = z.object({ id: IdSchema });
 
@@ -62,14 +63,19 @@ export async function uploadBrandLogoAction(
   }
 
   try {
-    const lastDot = fileEntry.name.lastIndexOf('.');
-    const ext = lastDot >= 0 ? fileEntry.name.slice(lastDot + 1).toLowerCase() : 'png';
-    // Store is private-only — proxy /api/brand-logo/[id] serves it publicly.
-    const blob = await put(`brands/${id}-${Date.now()}.${ext}`, fileEntry, {
-      access: 'private',
+    const uploaded = await uploadFile({
+      filename: fileEntry.name,
+      data: Buffer.from(await fileEntry.arrayBuffer()),
       contentType: fileEntry.type,
+      visibility: 'private',
+      prefix: 'brands',
     });
-    void blob;
+    await registerEntityAsset({
+      kind: 'brand_logo',
+      entityId: id,
+      storageKey: uploaded.storageKey,
+      contentType: uploaded.contentType,
+    });
 
     const proxyLogoUrl = `/api/brand-logo/${id}`;
     await db.update(crmBrands).set({ logoUrl: proxyLogoUrl, updatedAt: new Date() }).where(eq(crmBrands.id, id));

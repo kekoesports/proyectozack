@@ -2,7 +2,6 @@
 
 import { eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
-import { put } from '@vercel/blob';
 import { z } from 'zod';
 
 import { db } from '@/lib/db';
@@ -13,6 +12,8 @@ import { validateUploadedFile } from '@/lib/files/validateUploadedFile';
 import { PHOTO_TYPES } from '@/lib/files/allowed-types';
 import { logRedacted } from '@/lib/log';
 import { IdSchema } from '@/lib/schemas/common';
+import { uploadFile } from '@/lib/storage';
+import { registerEntityAsset } from '@/lib/queries/entityAssets';
 
 const PhotoMeta = z.object({ id: IdSchema });
 
@@ -39,13 +40,20 @@ export async function uploadTeamPhotoAction(
     return { error: 'Solo se permiten imágenes válidas (PNG, JPEG, WebP, GIF)' };
   }
 
-  const lastDot = fileEntry.name.lastIndexOf('.');
-  const ext = lastDot >= 0 ? fileEntry.name.slice(lastDot + 1).toLowerCase() : 'jpg';
-
   try {
-    // Store is private-only — proxy /api/team-photo/[id] serves it publicly.
-    const blob = await put(`team/${id}-${Date.now()}.${ext}`, fileEntry, { access: 'private' });
-    void blob;
+    const uploaded = await uploadFile({
+      filename: fileEntry.name,
+      data: Buffer.from(await fileEntry.arrayBuffer()),
+      contentType: fileEntry.type,
+      visibility: 'private',
+      prefix: 'team',
+    });
+    await registerEntityAsset({
+      kind: 'team_photo',
+      entityId: id,
+      storageKey: uploaded.storageKey,
+      contentType: uploaded.contentType,
+    });
     const proxyPhotoUrl = `/api/team-photo/${id}`;
     await db.update(teamMembers).set({ photoUrl: proxyPhotoUrl }).where(eq(teamMembers.id, id));
   } catch (err) {

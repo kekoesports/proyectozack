@@ -67,6 +67,7 @@ export * from './connectedSocialAccounts';
 export * from './userPartnerConsents';
 export * from './giveawayAuditEvents';
 export * from './automationDealDrafts';
+export * from './entityAssets';
 
 // ── Zack Agent OS (docs/agent-os/data-model.md) ───────────────────────
 export * from './agentEnums';

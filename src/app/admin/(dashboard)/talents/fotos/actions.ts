@@ -2,7 +2,6 @@
 
 import { eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
-import { put } from '@vercel/blob';
 import { z } from 'zod';
 
 import { db } from '@/lib/db';
@@ -13,6 +12,8 @@ import { validateUploadedFile } from '@/lib/files/validateUploadedFile';
 import { PHOTO_TYPES } from '@/lib/files/allowed-types';
 import { logRedacted } from '@/lib/log';
 import { IdSchema } from '@/lib/schemas/common';
+import { uploadFile } from '@/lib/storage';
+import { registerEntityAsset } from '@/lib/queries/entityAssets';
 
 const PhotoMeta = z.object({ id: IdSchema });
 
@@ -42,14 +43,19 @@ export async function uploadTalentPhotoAction(
   }
 
   try {
-    const lastDot = fileEntry.name.lastIndexOf('.');
-    const ext = lastDot >= 0 ? fileEntry.name.slice(lastDot + 1).toLowerCase() : 'jpg';
-    const blob = await put(`talents/${id}-${Date.now()}.${ext}`, fileEntry, {
-      access: 'private',   // store is private-only — proxy serves it publicly
+    const uploaded = await uploadFile({
+      filename: fileEntry.name,
+      data: Buffer.from(await fileEntry.arrayBuffer()),
       contentType: fileEntry.type,
+      visibility: 'private',
+      prefix: 'talents',
     });
-
-    void blob; // blob.url stored implicitly via Vercel Blob list(); proxy uses it
+    await registerEntityAsset({
+      kind: 'talent_photo',
+      entityId: id,
+      storageKey: uploaded.storageKey,
+      contentType: uploaded.contentType,
+    });
 
     // Public proxy URL — always valid, lists latest blob by prefix talents/{id}-*
     const publicPhotoUrl = `/api/talent-photo/${id}`;

@@ -92,6 +92,14 @@ jest.mock('@vercel/blob', () => ({
   list: (...args: unknown[]) => mockList(...args),
 }));
 
+jest.mock('@/lib/queries/entityAssets', () => ({
+  getLatestEntityAsset: jest.fn().mockResolvedValue(null),
+}));
+
+jest.mock('@/lib/storage', () => ({
+  openFile: jest.fn(),
+}));
+
 jest.mock('@/lib/env', () => ({
   env: {
     get BLOB_READ_WRITE_TOKEN() {
@@ -110,12 +118,12 @@ const makeReq = (url: string) => new NextRequest(url);
 const makeParams = (id: string) => ({ params: Promise.resolve({ id }) });
 
 const mockBlobFetchOk = (contentType = 'image/png') => {
-  (global.fetch as jest.Mock).mockResolvedValue({
-    ok: true,
-    status: 200,
-    headers: { get: (k: string) => (k === 'content-type' ? contentType : null) },
-    arrayBuffer: () => Promise.resolve(new ArrayBuffer(16)),
-  });
+  (global.fetch as jest.Mock).mockResolvedValue(
+    new Response(new Uint8Array(16), {
+      status: 200,
+      headers: { 'Content-Type': contentType },
+    }),
+  );
 };
 
 beforeEach(() => {
@@ -185,7 +193,7 @@ describe('/api/brand-logo/[id]', () => {
 
     await brandLogoGET(makeReq('http://localhost/api/brand-logo/42'), makeParams('42'));
 
-    expect(mockList).toHaveBeenCalledWith({ prefix: 'brands/42-' });
+    expect(mockList).toHaveBeenCalledWith({ prefix: 'brands/42-', token: BLOB_TOKEN });
   });
 });
 
@@ -222,6 +230,6 @@ describe('/api/team-photo/[id]', () => {
 
     await teamPhotoGET(makeReq('http://localhost/api/team-photo/7'), makeParams('7'));
 
-    expect(mockList).toHaveBeenCalledWith({ prefix: 'team/7-' });
+    expect(mockList).toHaveBeenCalledWith({ prefix: 'team/7-', token: BLOB_TOKEN });
   });
 });
