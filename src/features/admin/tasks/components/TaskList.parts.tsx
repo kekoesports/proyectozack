@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import * as Popover from '@radix-ui/react-popover';
+import { Popover } from '@base-ui/react/popover';
 import type { CrmTask, CrmTaskPriority, CrmTaskStatus } from '@/types';
 import type { RelatedLabel } from '@/lib/queries/crmTasks';
 import { Avatar } from '@/features/admin/_shared/components/Avatar';
@@ -90,8 +90,12 @@ export function fieldLabel(key: string | undefined): string {
   return 'Campo';
 }
 
+// Base UI splits Radix's Content into Positioner (placement + stacking) and
+// Popup (the styled box), so z-50 lives on the positioner now.
+const POPOVER_POSITIONER_CLS = 'isolate z-50';
+
 const POPOVER_PANEL_CLS =
-  'rounded-xl border border-sp-admin-border bg-sp-admin-bg shadow-2xl ring-1 ring-white/5 p-1 min-w-[160px] z-50';
+  'rounded-xl border border-sp-admin-border bg-sp-admin-bg shadow-2xl ring-1 ring-white/5 p-1 min-w-[160px]';
 
 const OPTION_CLS =
   'w-full flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-xs text-sp-admin-text hover:bg-sp-admin-hover focus-visible:bg-sp-admin-hover focus-visible:outline-none data-[selected=true]:bg-sp-admin-accent/10 data-[selected=true]:text-sp-admin-accent';
@@ -285,87 +289,99 @@ export function TaskRow({
       </td>
       <td className="px-3 py-2.5">
         <Popover.Root>
-          <Popover.Trigger asChild>
-            <button
-              type="button"
-              aria-label={`Prioridad ${PRIORITY_LABELS[t.priority]}, pulsa para cambiar`}
-              aria-busy={isPending}
-              disabled={isPending}
-              className={`cursor-pointer hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sp-admin-accent rounded-full ${
-                isPending ? 'opacity-70' : ''
-              }`}
-            >
-              <PriorityBadge priority={t.priority} />
-            </button>
+          <Popover.Trigger
+            disabled={isPending}
+            render={
+              <button
+                type="button"
+                aria-label={`Prioridad ${PRIORITY_LABELS[t.priority]}, pulsa para cambiar`}
+                aria-busy={isPending}
+                className={`cursor-pointer hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sp-admin-accent rounded-full ${
+                  isPending ? 'opacity-70' : ''
+                }`}
+              />
+            }
+          >
+            <PriorityBadge priority={t.priority} />
           </Popover.Trigger>
           <Popover.Portal>
-            <Popover.Content sideOffset={6} align="start" className={POPOVER_PANEL_CLS}>
-              <ul role="listbox" aria-label="Prioridad" className="flex flex-col">
-                {CRM_TASK_PRIORITIES.map((value) => {
-                  const selected = t.priority === value;
-                  return (
-                    <li key={value} role="option" aria-selected={selected}>
-                      <Popover.Close asChild>
-                        <button
-                          type="button"
-                          onClick={() => onFieldChange(t.id, { priority: value })}
-                          data-selected={selected}
-                          className={OPTION_CLS}
+            <Popover.Positioner sideOffset={6} align="start" className={POPOVER_POSITIONER_CLS}>
+              <Popover.Popup className={POPOVER_PANEL_CLS}>
+                <ul role="listbox" aria-label="Prioridad" className="flex flex-col">
+                  {CRM_TASK_PRIORITIES.map((value) => {
+                    const selected = t.priority === value;
+                    return (
+                      <li key={value} role="option" aria-selected={selected}>
+                        <Popover.Close
+                          render={
+                            <button
+                              type="button"
+                              onClick={() => onFieldChange(t.id, { priority: value })}
+                              data-selected={selected}
+                              className={OPTION_CLS}
+                            />
+                          }
                         >
                           <PriorityBadge priority={value} />
                           <span className="ml-auto text-[11px] text-sp-admin-muted">
                             {PRIORITY_LABELS[value]}
                           </span>
-                        </button>
-                      </Popover.Close>
-                    </li>
-                  );
-                })}
-              </ul>
-            </Popover.Content>
+                        </Popover.Close>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </Popover.Popup>
+            </Popover.Positioner>
           </Popover.Portal>
         </Popover.Root>
       </td>
       <td className="px-3 py-2.5">
         <Popover.Root>
-          <Popover.Trigger asChild>
-            <button
-              type="button"
-              aria-label={`Estado ${STATUS_LABELS[t.status]}, pulsa para cambiar`}
-              aria-busy={isPending}
-              disabled={isPending}
-              className={`cursor-pointer hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sp-admin-accent rounded-full ${
-                isPending ? 'opacity-70' : ''
-              }`}
-            >
-              <TaskStatusBadge status={t.status} />
-            </button>
+          <Popover.Trigger
+            disabled={isPending}
+            render={
+              <button
+                type="button"
+                aria-label={`Estado ${STATUS_LABELS[t.status]}, pulsa para cambiar`}
+                aria-busy={isPending}
+                className={`cursor-pointer hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sp-admin-accent rounded-full ${
+                  isPending ? 'opacity-70' : ''
+                }`}
+              />
+            }
+          >
+            <TaskStatusBadge status={t.status} />
           </Popover.Trigger>
           <Popover.Portal>
-            <Popover.Content sideOffset={6} align="start" className={POPOVER_PANEL_CLS}>
-              <ul role="listbox" aria-label="Estado" className="flex flex-col">
-                {LIST_EDIT_STATUSES.map((value) => {
-                  const selected = t.status === value;
-                  return (
-                    <li key={value} role="option" aria-selected={selected}>
-                      <Popover.Close asChild>
-                        <button
-                          type="button"
-                          onClick={() => onFieldChange(t.id, { status: value })}
-                          data-selected={selected}
-                          className={OPTION_CLS}
+            <Popover.Positioner sideOffset={6} align="start" className={POPOVER_POSITIONER_CLS}>
+              <Popover.Popup className={POPOVER_PANEL_CLS}>
+                <ul role="listbox" aria-label="Estado" className="flex flex-col">
+                  {LIST_EDIT_STATUSES.map((value) => {
+                    const selected = t.status === value;
+                    return (
+                      <li key={value} role="option" aria-selected={selected}>
+                        <Popover.Close
+                          render={
+                            <button
+                              type="button"
+                              onClick={() => onFieldChange(t.id, { status: value })}
+                              data-selected={selected}
+                              className={OPTION_CLS}
+                            />
+                          }
                         >
                           <TaskStatusBadge status={value} />
                           <span className="ml-auto text-[11px] text-sp-admin-muted">
                             {STATUS_LABELS[value]}
                           </span>
-                        </button>
-                      </Popover.Close>
-                    </li>
-                  );
-                })}
-              </ul>
-            </Popover.Content>
+                        </Popover.Close>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </Popover.Popup>
+            </Popover.Positioner>
           </Popover.Portal>
         </Popover.Root>
       </td>
@@ -392,49 +408,55 @@ export function TaskRow({
       </td>
       <td className="px-3 py-2.5">
         <Popover.Root>
-          <Popover.Trigger asChild>
-            <button
-              type="button"
-              aria-label={`Asignado a ${owner ? owner.name : 'sin asignar'}, pulsa para cambiar`}
-              aria-busy={isPending}
-              disabled={isPending}
-              className={`flex items-center gap-2 cursor-pointer hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sp-admin-accent rounded-lg px-1 py-0.5 ${
-                isPending ? 'opacity-70' : ''
-              }`}
-            >
-              {owner ? (
-                <>
-                  <Avatar userId={owner.id} name={owner.name} size="sm" highlight={mine} />
-                  <span className="text-xs text-sp-admin-muted">{owner.name}</span>
-                </>
-              ) : (
-                <span className="text-xs text-sp-admin-muted">—</span>
-              )}
-            </button>
+          <Popover.Trigger
+            disabled={isPending}
+            render={
+              <button
+                type="button"
+                aria-label={`Asignado a ${owner ? owner.name : 'sin asignar'}, pulsa para cambiar`}
+                aria-busy={isPending}
+                className={`flex items-center gap-2 cursor-pointer hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sp-admin-accent rounded-lg px-1 py-0.5 ${
+                  isPending ? 'opacity-70' : ''
+                }`}
+              />
+            }
+          >
+            {owner ? (
+              <>
+                <Avatar userId={owner.id} name={owner.name} size="sm" highlight={mine} />
+                <span className="text-xs text-sp-admin-muted">{owner.name}</span>
+              </>
+            ) : (
+              <span className="text-xs text-sp-admin-muted">—</span>
+            )}
           </Popover.Trigger>
           <Popover.Portal>
-            <Popover.Content sideOffset={6} align="start" className={`${POPOVER_PANEL_CLS} max-h-64 overflow-auto`}>
-              <ul role="listbox" aria-label="Asignado" className="flex flex-col">
-                {users.map((u) => {
-                  const selected = t.ownerId === u.id;
-                  return (
-                    <li key={u.id} role="option" aria-selected={selected}>
-                      <Popover.Close asChild>
-                        <button
-                          type="button"
-                          onClick={() => onFieldChange(t.id, { ownerId: u.id })}
-                          data-selected={selected}
-                          className={OPTION_CLS}
+            <Popover.Positioner sideOffset={6} align="start" className={POPOVER_POSITIONER_CLS}>
+              <Popover.Popup className={`${POPOVER_PANEL_CLS} max-h-64 overflow-auto`}>
+                <ul role="listbox" aria-label="Asignado" className="flex flex-col">
+                  {users.map((u) => {
+                    const selected = t.ownerId === u.id;
+                    return (
+                      <li key={u.id} role="option" aria-selected={selected}>
+                        <Popover.Close
+                          render={
+                            <button
+                              type="button"
+                              onClick={() => onFieldChange(t.id, { ownerId: u.id })}
+                              data-selected={selected}
+                              className={OPTION_CLS}
+                            />
+                          }
                         >
                           <Avatar userId={u.id} name={u.name} size="sm" />
                           <span>{u.name}</span>
-                        </button>
-                      </Popover.Close>
-                    </li>
-                  );
-                })}
-              </ul>
-            </Popover.Content>
+                        </Popover.Close>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </Popover.Popup>
+            </Popover.Positioner>
           </Popover.Portal>
         </Popover.Root>
       </td>
