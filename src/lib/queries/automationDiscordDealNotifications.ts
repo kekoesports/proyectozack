@@ -60,7 +60,6 @@ export async function listPendingDiscordDealCreatedNotifications(
       eq(automationDealDrafts.status, 'created'),
       isNotNull(automationDealDrafts.campaignId),
       isNotNull(automationDealDrafts.sourceChannelId),
-      isNotNull(automationDealDrafts.sheetShareStatus),
       isNull(automationDealDrafts.discordNotifiedAt),
       isNotNull(campaigns.trackingSheetUrl),
     ))
@@ -69,6 +68,9 @@ export async function listPendingDiscordDealCreatedNotifications(
 
   return rows.flatMap((row) => {
     if (row.campaignId === null || row.channelId === null || row.documentUrl === null) return [];
+    // Un estado antiguo o interrumpido puede no haber persistido el resultado
+    // de compartición. Eso no debe bloquear el aviso: null se comunica como NO
+    // y una nueva aprobación lo repara a `not-requested` de forma idempotente.
     const sharedWithInfluencer = row.sheetShareStatus === 'shared';
     return [{
       draftId: row.draftId,

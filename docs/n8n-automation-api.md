@@ -385,6 +385,12 @@ Si no hay confirmaciones pendientes, el workflow genera cero items y no publica
 ni reacciona. Tanto la lectura como el ACK usan la misma credencial Header Auth
 del resto de la API de automatizaciones.
 
+Al aprobar desde el CRM, `N8N_DEAL_CREATED_WEBHOOK_URL` despierta ese workflow
+de forma inmediata usando `AUTOMATION_API_TOKEN`. El Schedule Trigger de dos
+minutos no se elimina: funciona como respaldo duradero si n8n, Discord o la red
+fallan en el primer intento. El webhook de n8n también debe llevar la credencial
+Header Auth `SocialPro CRM - Production`.
+
 Dos cosas que el parser trata a propósito como campo vacío o error, porque
 aparecieron en mensajes reales:
 
