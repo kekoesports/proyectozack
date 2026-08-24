@@ -1,0 +1,138 @@
+{
+  "id": "gD1sc0rdGu1desSP",
+  "name": "SocialPro - Guías fijas de canales Discord",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "manual-trigger",
+      "name": "Ejecutar una vez",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [-520, 0]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "guildId": {
+          "__rl": true,
+          "value": "1522153792592806018",
+          "mode": "id"
+        },
+        "channelId": {
+          "__rl": true,
+          "value": "1533123521574862991",
+          "mode": "id"
+        },
+        "content": "[SOCIALPRO-GUIDE-PIPELINE-V1]\n📌 **Cómo usar #pipeline-deals**\n\nPublica únicamente deals nuevos. El bot procesa solo mensajes posteriores a su última lectura y no vuelve a reaccionar a mensajes antiguos. La aprobación final siempre se hace en el CRM.\n\n**Formato**\n```text\nNUEVO DEAL\nCreador:\nHandle:\nMarca:\nEstado: negociacion | aprobada\nMoneda: EUR\nImporte marca total:\nPago creador total:\nProducto:\nSorteos:\nFecha de inicio: DD/MM/AAAA\nFecha de finalización: DD/MM/AAAA\nEntregables:\n- Tipo: cantidad\nCadencia:\nNotas:\n```\n\n**Reacciones del bot**\n👀 leído y pendiente de revisión · ⚠️ guardado pero incompleto · ✅ creado/aprobado · 🚫 rechazado · ❌ error temporal; se reintentará.\n\nEvita conversaciones normales en este canal: los mensajes que no sean deals se ignoran.",
+        "options": {}
+      },
+      "id": "send-pipeline-guide",
+      "name": "Publicar guía pipeline",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [-260, -120],
+      "credentials": {
+        "discordBotApi": {
+          "id": "THOinI75cRgZmgmq",
+          "name": "Discord Bot account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "={{ 'https://discord.com/api/v10/channels/1533123521574862991/pins/' + $json.id }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "discordBotApi",
+        "options": {}
+      },
+      "id": "pin-pipeline-guide",
+      "name": "Fijar guía pipeline",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [20, -120],
+      "credentials": {
+        "discordBotApi": {
+          "id": "THOinI75cRgZmgmq",
+          "name": "Discord Bot account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "guildId": {
+          "__rl": true,
+          "value": "1522153792592806018",
+          "mode": "id"
+        },
+        "channelId": {
+          "__rl": true,
+          "value": "1533123515023360114",
+          "mode": "id"
+        },
+        "content": "[SOCIALPRO-GUIDE-OPS-V1]\n📌 **Cómo funciona este canal automatizado**\n\n• Todos los días a las **10:00 (Europe/Madrid)** llega un resumen visual de los deals vigentes que todavía no están al 100 %.\n• Se publican avisos al alcanzar el **70 %, 80 % y 100 %** de progreso.\n• Los importes financieros no se publican en Discord.\n• El CRM es la fuente de verdad: cambios, aprobaciones y correcciones se realizan allí.\n• Si no hay novedades, el bot no publica mensajes adicionales.\n\nCada aviso incluye el enlace del trato para revisarlo en el CRM.",
+        "options": {}
+      },
+      "id": "send-ops-guide",
+      "name": "Publicar guía operaciones",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [-260, 120],
+      "credentials": {
+        "discordBotApi": {
+          "id": "THOinI75cRgZmgmq",
+          "name": "Discord Bot account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "={{ 'https://discord.com/api/v10/channels/1533123515023360114/pins/' + $json.id }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "discordBotApi",
+        "options": {}
+      },
+      "id": "pin-ops-guide",
+      "name": "Fijar guía operaciones",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [20, 120],
+      "credentials": {
+        "discordBotApi": {
+          "id": "THOinI75cRgZmgmq",
+          "name": "Discord Bot account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Ejecutar una vez": {
+      "main": [[
+        { "node": "Publicar guía pipeline", "type": "main", "index": 0 },
+        { "node": "Publicar guía operaciones", "type": "main", "index": 0 }
+      ]]
+    },
+    "Publicar guía pipeline": {
+      "main": [[{ "node": "Fijar guía pipeline", "type": "main", "index": 0 }]]
+    },
+    "Publicar guía operaciones": {
+      "main": [[{ "node": "Fijar guía operaciones", "type": "main", "index": 0 }]]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Europe/Madrid",
+    "saveManualExecutions": true
+  },
+  "active": false,
+  "versionId": "79b0b3f6-5d35-4dbc-9520-60c374872ff4",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "tags": []
+}
