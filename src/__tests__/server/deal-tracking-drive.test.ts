@@ -1,13 +1,20 @@
 jest.mock('server-only', () => ({}));
 
-jest.mock('@/lib/env', () => ({
-  env: {
-    GOOGLE_DRIVE_DEAL_TEMPLATE_ID: 'template-1234567890',
-    GOOGLE_DRIVE_TRACKING_FOLDER_ID: 'fallback-1234567890',
-    GOOGLE_SERVICE_ACCOUNT_EMAIL: 'robot@example.iam.gserviceaccount.com',
-    GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY: 'fake-private-key',
-  },
-}));
+const mockEnv: {
+  GOOGLE_DRIVE_DEAL_TEMPLATE_ID: string;
+  GOOGLE_DRIVE_TRACKING_FOLDER_ID: string;
+  GOOGLE_SERVICE_ACCOUNT_EMAIL: string;
+  GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY: string;
+  AUTOMATION_API_TOKEN?: string;
+  N8N_DRIVE_COPY_WEBHOOK_URL?: string;
+} = {
+  GOOGLE_DRIVE_DEAL_TEMPLATE_ID: 'template-1234567890',
+  GOOGLE_DRIVE_TRACKING_FOLDER_ID: 'fallback-1234567890',
+  GOOGLE_SERVICE_ACCOUNT_EMAIL: 'robot@example.iam.gserviceaccount.com',
+  GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY: 'fake-private-key',
+};
+
+jest.mock('@/lib/env', () => ({ env: mockEnv }));
 
 jest.mock('crypto', () => ({
   createSign: () => ({
@@ -31,6 +38,11 @@ const deal = {
     { type: 'short_reel_tiktok', targetCount: 3 },
   ],
 };
+
+afterEach(() => {
+  delete mockEnv.AUTOMATION_API_TOKEN;
+  delete mockEnv.N8N_DRIVE_COPY_WEBHOOK_URL;
+});
 
 describe('buildDealContentRows', () => {
   it('expande cada objetivo en una fila por pieza', () => {
@@ -107,6 +119,53 @@ describe('createDealTrackingSheet', () => {
       role: 'writer',
       emailAddress: 'creator@example.com',
     });
+  });
+
+  it('prefiere el OAuth de pcamacho para crear dentro de la carpeta personal', async () => {
+    mockEnv.AUTOMATION_API_TOKEN = 'automation-token-at-least-32-characters';
+    mockEnv.N8N_DRIVE_COPY_WEBHOOK_URL = 'https://n8n.socialpro.es/webhook/drive-copy';
+    jest.resetModules();
+    const { createDealTrackingSheet: createFreshDealTrackingSheet } = await import(
+      '@/lib/drive/deal-tracking-sheet'
+    );
+    const fetchMock = jest
+      .fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify({ access_token: 'token', expires_in: 3600 }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({
+        ok: true,
+        id: 'sheet-oauth-123456',
+        name: 'KeyDrop - TODOCS2',
+      }), { status: 200 }))
+      .mockResolvedValueOnce(new Response('{}', { status: 200 }))
+      .mockResolvedValueOnce(new Response('{}', { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ id: 'permission-oauth' }), { status: 200 }));
+    global.fetch = fetchMock as typeof fetch;
+
+    const result = await createFreshDealTrackingSheet('KeyDrop', 'TODOCS2', {
+      folderId: 'personal-folder-1234567890',
+      shareWithEmail: 'todocs2@example.com',
+      deal,
+    });
+
+    expect(result).toEqual({
+      ok: true,
+      spreadsheetId: 'sheet-oauth-123456',
+      url: 'https://docs.google.com/spreadsheets/d/sheet-oauth-123456/edit',
+      name: 'KeyDrop - TODOCS2',
+      destination: 'creator',
+      shareStatus: 'shared',
+      warnings: [],
+    });
+    expect(fetchMock.mock.calls[1]?.[0]).toBe(mockEnv.N8N_DRIVE_COPY_WEBHOOK_URL);
+    expect(JSON.parse(String(fetchMock.mock.calls[1]?.[1]?.body))).toEqual({
+      templateId: 'template-1234567890',
+      folderId: 'personal-folder-1234567890',
+      name: 'KeyDrop - TODOCS2',
+      campaignId: 98,
+      talentId: 5,
+    });
+    expect(fetchMock.mock.calls.some(([url]) => String(url).includes('/template-1234567890/copy')))
+      .toBe(false);
   });
 
   it('usa la carpeta corporativa si la carpeta personal rechaza la copia', async () => {

@@ -38,6 +38,8 @@ export const env = createEnv({
     // Opcionales: sin ellas la generación no ocurre y el trato se crea igual.
     GOOGLE_DRIVE_DEAL_TEMPLATE_ID: z.string().min(1).optional(),
     GOOGLE_DRIVE_TRACKING_FOLDER_ID: z.string().min(1).optional(),
+    /** Webhook n8n que copia la plantilla con el Drive de pcamacho. */
+    N8N_DRIVE_COPY_WEBHOOK_URL: z.string().url().optional(),
     // Bearer token for skill-driven CLI endpoints (/api/admin/discover/*, /api/admin/targets/{import,active}).
     // Optional in dev so the app boots without it; endpoints fail-closed with 503 when absent.
     // Generate with `crypto.randomBytes(32).toString('hex')`.
@@ -213,6 +215,7 @@ export const env = createEnv({
     GOOGLE_DRIVE_BACKUP_FOLDER_ID: process.env.GOOGLE_DRIVE_BACKUP_FOLDER_ID,
     GOOGLE_DRIVE_DEAL_TEMPLATE_ID: process.env.GOOGLE_DRIVE_DEAL_TEMPLATE_ID,
     GOOGLE_DRIVE_TRACKING_FOLDER_ID: process.env.GOOGLE_DRIVE_TRACKING_FOLDER_ID,
+    N8N_DRIVE_COPY_WEBHOOK_URL: process.env.N8N_DRIVE_COPY_WEBHOOK_URL,
     TARGETS_IMPORT_TOKEN: process.env.TARGETS_IMPORT_TOKEN,
     AUTOMATION_API_TOKEN: process.env.AUTOMATION_API_TOKEN,
     N8N_DEAL_CREATED_WEBHOOK_URL: process.env.N8N_DEAL_CREATED_WEBHOOK_URL,
