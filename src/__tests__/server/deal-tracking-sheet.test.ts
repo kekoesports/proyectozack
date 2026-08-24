@@ -22,6 +22,7 @@ jest.mock('@/lib/queries/automationDeals', () => ({
 
 jest.mock('@/db/schema/campaigns', () => ({ campaigns: {} }));
 jest.mock('@/db/schema/crmBrands', () => ({ crmBrands: {} }));
+jest.mock('@/db/schema/dealDeliverableTrackers', () => ({ dealDeliverableTrackers: {} }));
 jest.mock('@/db/schema/talentBusiness', () => ({ talentBusiness: {} }));
 jest.mock('@/db/schema/talents', () => ({ talents: {} }));
 
@@ -29,18 +30,26 @@ import { ensureDealTrackingSheet } from '@/lib/queries/ensureDealTrackingSheet';
 import { buildDealSheetName } from '@/lib/drive/deal-sheet-name';
 
 /** Simula la cadena select().from().innerJoin().innerJoin().leftJoin().where().limit(). */
-function dbDevuelve(row: Record<string, unknown> | null): void {
+function dbDevuelve(
+  row: Record<string, unknown> | null,
+  trackers: Array<Record<string, unknown>> = [],
+): void {
   const limit = jest.fn().mockResolvedValue(row ? [row] : []);
   const where = jest.fn(() => ({ limit }));
   const leftJoin = jest.fn(() => ({ where }));
   const innerJoin2 = jest.fn(() => ({ leftJoin }));
   const innerJoin1 = jest.fn(() => ({ innerJoin: innerJoin2 }));
   const from = jest.fn(() => ({ innerJoin: innerJoin1 }));
-  mockSelect.mockReturnValue({ from });
+  const trackerWhere = jest.fn().mockResolvedValue(trackers);
+  const trackerFrom = jest.fn(() => ({ where: trackerWhere }));
+  mockSelect
+    .mockReturnValueOnce({ from })
+    .mockReturnValueOnce({ from: trackerFrom });
 }
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockSelect.mockReset();
   jest.spyOn(console, 'error').mockImplementation(() => {});
   mockAttach.mockResolvedValue({});
 });
@@ -63,11 +72,18 @@ describe('ensureDealTrackingSheet', () => {
   it('crea la hoja y la vincula al trato', async () => {
     dbDevuelve({
       trackingSheetUrl: null,
+      campaignId: 10,
+      talentId: 7,
+      startDate: '2026-08-24',
+      endDate: '2026-09-24',
       brandName: 'KeyDrop',
       talentName: 'NAOW',
       googleDriveFolderId: 'folder-naow-123',
       contactEmail: 'naow@example.com',
-    });
+    }, [
+      { type: 'stream_integration', targetCount: 2, notes: 'Dos directos' },
+      { type: 'short_reel_tiktok', targetCount: 3, notes: null },
+    ]);
     mockCreateDealTrackingSheet.mockResolvedValue({
       ok: true, spreadsheetId: 'abc', url: 'https://docs.google.com/spreadsheets/d/abc/edit', name: 'KeyDrop - NAOW',
       destination: 'creator', shareStatus: 'shared', warnings: [],
@@ -86,6 +102,16 @@ describe('ensureDealTrackingSheet', () => {
     expect(mockCreateDealTrackingSheet).toHaveBeenCalledWith('KeyDrop', 'NAOW', {
       folderId: 'folder-naow-123',
       shareWithEmail: 'naow@example.com',
+      deal: {
+        campaignId: 10,
+        talentId: 7,
+        startDate: '2026-08-24',
+        endDate: '2026-09-24',
+        deliverables: [
+          { type: 'stream_integration', targetCount: 2, notes: 'Dos directos' },
+          { type: 'short_reel_tiktok', targetCount: 3, notes: null },
+        ],
+      },
     });
     expect(mockAttach).toHaveBeenCalledWith(10, 'https://docs.google.com/spreadsheets/d/abc/edit');
   });
@@ -106,7 +132,9 @@ describe('ensureDealTrackingSheet', () => {
   });
 
   it('sin configuración no hace nada y no lo trata como error', async () => {
-    dbDevuelve({ trackingSheetUrl: null, brandName: 'A', talentName: 'B' });
+    dbDevuelve({
+      trackingSheetUrl: null, campaignId: 10, talentId: 7, brandName: 'A', talentName: 'B',
+    });
     mockCreateDealTrackingSheet.mockResolvedValue({
       ok: false, reason: 'missing-config', detail: 'faltan: GOOGLE_DRIVE_DEAL_TEMPLATE_ID',
     });
@@ -118,7 +146,9 @@ describe('ensureDealTrackingSheet', () => {
   });
 
   it('si Drive niega el acceso, informa pero NO lanza', async () => {
-    dbDevuelve({ trackingSheetUrl: null, brandName: 'A', talentName: 'B' });
+    dbDevuelve({
+      trackingSheetUrl: null, campaignId: 10, talentId: 7, brandName: 'A', talentName: 'B',
+    });
     mockCreateDealTrackingSheet.mockResolvedValue({
       ok: false, reason: 'no-access', detail: '404: la cuenta de servicio no puede leer la plantilla',
     });
@@ -130,7 +160,9 @@ describe('ensureDealTrackingSheet', () => {
   });
 
   it('un error inesperado tampoco escapa', async () => {
-    dbDevuelve({ trackingSheetUrl: null, brandName: 'A', talentName: 'B' });
+    dbDevuelve({
+      trackingSheetUrl: null, campaignId: 10, talentId: 7, brandName: 'A', talentName: 'B',
+    });
     mockCreateDealTrackingSheet.mockRejectedValue(new Error('boom'));
 
     // Si esto lanzara, tumbaría la creación del trato: el dato importante ya

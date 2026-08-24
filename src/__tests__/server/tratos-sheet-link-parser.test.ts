@@ -62,6 +62,16 @@ describe('suggestDeliverableType — mapping post-0110', () => {
     expect(suggestDeliverableType('stories')).toBe('story_instagram');
   });
 
+  it('mapea las etiquetas completas usadas por la plantilla canónica', () => {
+    expect(suggestDeliverableType('Integración stream')).toBe('stream_integration');
+    expect(suggestDeliverableType('Vídeo YouTube')).toBe('video_youtube');
+    expect(suggestDeliverableType('Historia Instagram')).toBe('story_instagram');
+    expect(suggestDeliverableType('Post Instagram')).toBe('post_instagram');
+    expect(suggestDeliverableType('Tweet / Post X')).toBe('tweet_x');
+    expect(suggestDeliverableType('Pack mensual')).toBe('pack_mensual');
+    expect(suggestDeliverableType('Pack trimestral')).toBe('pack_trimestral');
+  });
+
   it('desconocido → otro', () => {
     expect(suggestDeliverableType('xyz')).toBe('otro');
     expect(suggestDeliverableType('')).toBe('otro');

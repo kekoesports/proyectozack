@@ -1,9 +1,10 @@
 import 'server-only';
 
-import { eq } from 'drizzle-orm';
+import { and, eq, ne } from 'drizzle-orm';
 
 import { campaigns } from '@/db/schema/campaigns';
 import { crmBrands } from '@/db/schema/crmBrands';
+import { dealDeliverableTrackers } from '@/db/schema/dealDeliverableTrackers';
 import { talentBusiness } from '@/db/schema/talentBusiness';
 import { talents } from '@/db/schema/talents';
 import { db } from '@/lib/db';
@@ -45,6 +46,10 @@ export async function ensureDealTrackingSheet(campaignId: number): Promise<Ensur
     const [row] = await db
       .select({
         trackingSheetUrl: campaigns.trackingSheetUrl,
+        campaignId: campaigns.id,
+        talentId: campaigns.talentId,
+        startDate: campaigns.startDate,
+        endDate: campaigns.endDate,
         brandName: crmBrands.name,
         talentName: talents.name,
         googleDriveFolderId: talentBusiness.googleDriveFolderId,
@@ -60,9 +65,28 @@ export async function ensureDealTrackingSheet(campaignId: number): Promise<Ensur
     if (!row) return { status: 'skipped', reason: 'trato no encontrado' };
     if (row.trackingSheetUrl) return { status: 'already_had_sheet' };
 
+    const deliverables = await db
+      .select({
+        type: dealDeliverableTrackers.deliverableType,
+        targetCount: dealDeliverableTrackers.targetCount,
+        notes: dealDeliverableTrackers.notes,
+      })
+      .from(dealDeliverableTrackers)
+      .where(and(
+        eq(dealDeliverableTrackers.campaignId, campaignId),
+        ne(dealDeliverableTrackers.status, 'cancelled'),
+      ));
+
     const sheet = await createDealTrackingSheet(row.brandName, row.talentName, {
       folderId: row.googleDriveFolderId,
       shareWithEmail: row.contactEmail,
+      deal: {
+        campaignId: row.campaignId,
+        talentId: row.talentId,
+        startDate: row.startDate,
+        endDate: row.endDate,
+        deliverables,
+      },
     });
     if (!sheet.ok) {
       if (sheet.reason === 'missing-config') {
