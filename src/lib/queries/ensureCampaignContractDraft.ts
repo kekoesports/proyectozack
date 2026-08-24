@@ -41,11 +41,26 @@ function desiredTemplateType(sector: string | null | undefined): string | null {
 /** Selección determinista; evita escoger al azar entre plantillas equivalentes. */
 export function selectAutomatedContractTemplate(
   templates: readonly ContractTemplate[],
-  input: { readonly overrideId?: number; readonly sector?: string | null },
+  input: {
+    readonly overrideId?: number;
+    readonly brandId?: number;
+    readonly sector?: string | null;
+  },
 ): ContractTemplate | null {
   const active = templates.filter((template) => template.isActive);
   if (input.overrideId !== undefined) {
     return active.find((template) => template.id === input.overrideId) ?? null;
+  }
+
+  // Las plantillas de marca son copias internas de un contrato sectorial ya
+  // revisado. Tienen prioridad sobre el fallback por sector, pero una colisión
+  // se trata como ambigua para no escoger un texto legal al azar.
+  if (input.brandId !== undefined) {
+    const brandTemplates = active.filter(
+      (template) => template.type === `brand:${input.brandId}`,
+    );
+    if (brandTemplates.length === 1) return brandTemplates[0] ?? null;
+    if (brandTemplates.length > 1) return null;
   }
 
   const preferredType = desiredTemplateType(input.sector);
@@ -110,6 +125,7 @@ export async function ensureCampaignContractDraft(
       ...(env.AUTOMATION_CONTRACT_TEMPLATE_ID !== undefined
         ? { overrideId: env.AUTOMATION_CONTRACT_TEMPLATE_ID }
         : {}),
+      brandId: campaign.brand.id,
       sector: campaign.sector ?? campaign.brand.sector,
     });
     if (!template) {
