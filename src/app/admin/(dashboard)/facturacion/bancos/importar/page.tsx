@@ -1,11 +1,11 @@
-import { requirePermission } from '@/lib/permissions';
+import { requireFinancialPageSecurity } from '@/lib/security/financial-security';
 import { listBankAccounts } from '@/lib/queries/bankReconciliation';
 import { BankImportWizard } from './BankImportWizard';
 
 export const metadata = { title: 'Importar extracto | Admin' };
 
 export default async function ImportarPage(): Promise<React.ReactElement> {
-  await requirePermission('bancos', 'write');
+  await requireFinancialPageSecurity('write');
   const accounts = await listBankAccounts();
 
   return (

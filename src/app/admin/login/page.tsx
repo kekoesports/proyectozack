@@ -24,7 +24,18 @@ export default function AdminLoginPage(): React.ReactElement {
         body: JSON.stringify({ email, password }),
       });
 
+      const data = await res.json().catch(() => null) as {
+        twoFactorRedirect?: boolean;
+        message?: string;
+        error?: string;
+      } | null;
+
       if (res.ok) {
+        if (data?.twoFactorRedirect === true) {
+          router.push('/admin/two-factor');
+          return;
+        }
+
         // Resolve role-specific home (staff → mi-semana, finance → facturación, …).
         let dest = '/admin';
         try {
@@ -41,7 +52,7 @@ export default function AdminLoginPage(): React.ReactElement {
         router.refresh();
         router.push(dest);
       } else {
-        setError('Credenciales incorrectas');
+        setError(data?.message ?? data?.error ?? 'Credenciales incorrectas');
       }
     } catch {
       setError('Error de red');
