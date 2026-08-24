@@ -29,6 +29,7 @@ const TOKEN_URL = 'https://oauth2.googleapis.com/token';
 const DRIVE_FILES = 'https://www.googleapis.com/drive/v3/files';
 const SHEETS_SPREADSHEETS = 'https://sheets.googleapis.com/v4/spreadsheets';
 const TIMEOUT_MS = 10_000;
+const N8N_COPY_TIMEOUT_MS = 15_000;
 const TRACKING_TAB = 'Seguimiento';
 const FIRST_CONTENT_ROW = 7;
 const TEMPLATE_LAST_ROW = 60;
@@ -112,6 +113,58 @@ async function getWriteAccessToken(config: DealSheetConfig): Promise<string> {
   const { access_token, expires_in } = await res.json() as { access_token: string; expires_in: number };
   cachedToken = { token: access_token, expiresAt: Date.now() + expires_in * 1000 };
   return access_token;
+}
+
+type N8nDriveCopyResult = {
+  readonly id: string;
+  readonly name: string;
+};
+
+/**
+ * Copia con la cuenta humana de SocialPro conectada a n8n.
+ *
+ * Las carpetas de creadores viven en My Drive. Aunque estén compartidas con
+ * una cuenta de servicio, Google no le concede cuota para crear allí. La
+ * cuenta OAuth de pcamacho sí tiene cuota y deja la copia en la carpeta
+ * correcta; después la cuenta de servicio heredada rellena la Sheet.
+ */
+async function copyDealTemplateWithN8n(input: {
+  readonly templateId: string;
+  readonly folderId: string;
+  readonly name: string;
+  readonly campaignId?: number;
+  readonly talentId?: number;
+}): Promise<N8nDriveCopyResult | null> {
+  const url = env.N8N_DRIVE_COPY_WEBHOOK_URL;
+  const token = env.AUTOMATION_API_TOKEN;
+  if (!url || !token) return null;
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(input),
+      cache: 'no-store',
+      signal: AbortSignal.timeout(N8N_COPY_TIMEOUT_MS),
+    });
+    if (!response.ok) return null;
+    const body: unknown = await response.json().catch(() => null);
+    if (!body || typeof body !== 'object') return null;
+    const candidate = body as { ok?: unknown; id?: unknown; name?: unknown };
+    if (candidate.ok !== true || typeof candidate.id !== 'string') return null;
+    if (!/^[A-Za-z0-9_-]{10,}$/.test(candidate.id)) return null;
+    return {
+      id: candidate.id,
+      name: typeof candidate.name === 'string' && candidate.name.trim()
+        ? candidate.name.trim()
+        : input.name,
+    };
+  } catch {
+    return null;
+  }
 }
 
 
@@ -325,79 +378,98 @@ export async function createDealTrackingSheet(
   const name = buildDealSheetName(brandName, talentName);
   try {
     const token = await getWriteAccessToken(cfg.config);
+    const oauthCopy = creatorFolderId
+      ? await copyDealTemplateWithN8n({
+          templateId: cfg.config.templateId,
+          folderId: creatorFolderId,
+          name,
+          ...(options.deal ? {
+            campaignId: options.deal.campaignId,
+            talentId: options.deal.talentId,
+          } : {}),
+        })
+      : null;
     const destinations: Array<{ id: string; kind: 'creator' | 'fallback' }> = [];
     if (creatorFolderId) destinations.push({ id: creatorFolderId, kind: 'creator' });
     if (fallbackFolderId && fallbackFolderId !== creatorFolderId) {
       destinations.push({ id: fallbackFolderId, kind: 'fallback' });
     }
 
+    let spreadsheetId = oauthCopy?.id ?? null;
+    let responseName = oauthCopy?.name ?? name;
     let res: Response | null = null;
-    let destination: 'creator' | 'fallback' = creatorFolderId ? 'creator' : 'fallback';
+    let destination: 'creator' | 'fallback' = oauthCopy
+      ? 'creator'
+      : creatorFolderId ? 'creator' : 'fallback';
     let usedFallbackAfterAccessFailure = false;
-    for (const candidate of destinations) {
-      res = await fetch(
-        `${DRIVE_FILES}/${encodeURIComponent(cfg.config.templateId)}/copy?supportsAllDrives=true&fields=id%2Cname`,
-        {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            name,
-            parents: [candidate.id],
-            ...(options.deal ? {
-              appProperties: {
-                socialproCampaignId: String(options.deal.campaignId),
-                socialproTalentId: String(options.deal.talentId),
-              },
-            } : {}),
-          }),
-          signal: AbortSignal.timeout(TIMEOUT_MS),
-        },
-      );
-      destination = candidate.kind;
-      if (res.ok) break;
+    if (!spreadsheetId) {
+      for (const candidate of destinations) {
+        res = await fetch(
+          `${DRIVE_FILES}/${encodeURIComponent(cfg.config.templateId)}/copy?supportsAllDrives=true&fields=id%2Cname`,
+          {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              name,
+              parents: [candidate.id],
+              ...(options.deal ? {
+                appProperties: {
+                  socialproCampaignId: String(options.deal.campaignId),
+                  socialproTalentId: String(options.deal.talentId),
+                },
+              } : {}),
+            }),
+            signal: AbortSignal.timeout(TIMEOUT_MS),
+          },
+        );
+        destination = candidate.kind;
+        if (res.ok) break;
 
-      // Una carpeta personal puede estar compartida con la cuenta de servicio
-      // y aun así rechazar la copia: las cuentas de servicio no tienen cuota de
-      // Drive propia. En ese caso se reintenta en la unidad compartida
-      // corporativa, donde los archivos pertenecen al Shared Drive.
-      const canTryFallback = candidate.kind === 'creator'
-        && (res.status === 403 || res.status === 404)
-        && destinations.some((item) => item.kind === 'fallback');
-      if (canTryFallback) {
-        usedFallbackAfterAccessFailure = true;
-        continue;
+        // Una carpeta personal puede estar compartida con la cuenta de servicio
+        // y aun así rechazar la copia: las cuentas de servicio no tienen cuota de
+        // Drive propia. En ese caso se reintenta en la unidad compartida
+        // corporativa, donde los archivos pertenecen al Shared Drive.
+        const canTryFallback = candidate.kind === 'creator'
+          && (res.status === 403 || res.status === 404)
+          && destinations.some((item) => item.kind === 'fallback');
+        if (canTryFallback) {
+          usedFallbackAfterAccessFailure = true;
+          continue;
+        }
+        break;
       }
-      break;
-    }
 
-    if (!res?.ok) {
-      // 403 y 404 son el mismo síntoma de fondo: la cuenta de servicio no tiene
-      // acceso. Con 404 Drive oculta la existencia del fichero a quien no puede
-      // verlo, así que "no encontrado" suele significar "no compartido".
-      if (res?.status === 403 || res?.status === 404) {
-        return {
-          ok: false,
-          reason: 'no-access',
-          detail: `${res.status}: la cuenta de servicio no puede leer la plantilla o escribir en la carpeta`,
-        };
+      if (!res?.ok) {
+        // 403 y 404 son el mismo síntoma de fondo: la cuenta de servicio no tiene
+        // acceso. Con 404 Drive oculta la existencia del fichero a quien no puede
+        // verlo, así que "no encontrado" suele significar "no compartido".
+        if (res?.status === 403 || res?.status === 404) {
+          return {
+            ok: false,
+            reason: 'no-access',
+            detail: `${res.status}: la cuenta de servicio no puede leer la plantilla o escribir en la carpeta`,
+          };
+        }
+        return { ok: false, reason: 'drive-error', detail: `drive-${res?.status ?? 'unknown'}` };
       }
-      return { ok: false, reason: 'drive-error', detail: `drive-${res?.status ?? 'unknown'}` };
-    }
 
-    const { id } = await res.json() as { id?: string };
-    if (!id) return { ok: false, reason: 'drive-error', detail: 'respuesta sin id' };
+      const copied = await res.json() as { id?: string; name?: string };
+      spreadsheetId = copied.id ?? null;
+      responseName = copied.name?.trim() || name;
+    }
+    if (!spreadsheetId) return { ok: false, reason: 'drive-error', detail: 'respuesta sin id' };
 
     if (options.deal) {
       try {
         await populateCopiedSheet({
-          spreadsheetId: id,
+          spreadsheetId,
           token,
           brandName,
           talentName,
           deal: options.deal,
         });
       } catch (err) {
-        await trashFailedCopy(id, token);
+        await trashFailedCopy(spreadsheetId, token);
         return {
           ok: false,
           reason: 'drive-error',
@@ -417,7 +489,7 @@ export async function createDealTrackingSheet(
       // permisos en error global provocaría un reintento y una hoja huérfana.
       try {
         const permission = await fetch(
-          `${DRIVE_FILES}/${encodeURIComponent(id)}/permissions?supportsAllDrives=true&sendNotificationEmail=true&fields=id`,
+          `${DRIVE_FILES}/${encodeURIComponent(spreadsheetId)}/permissions?supportsAllDrives=true&sendNotificationEmail=true&fields=id`,
           {
             method: 'POST',
             headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
@@ -439,9 +511,9 @@ export async function createDealTrackingSheet(
 
     return {
       ok: true,
-      spreadsheetId: id,
-      url: `https://docs.google.com/spreadsheets/d/${id}/edit`,
-      name,
+      spreadsheetId,
+      url: `https://docs.google.com/spreadsheets/d/${spreadsheetId}/edit`,
+      name: responseName,
       destination,
       shareStatus,
       warnings,

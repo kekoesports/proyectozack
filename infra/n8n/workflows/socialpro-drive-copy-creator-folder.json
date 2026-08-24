@@ -1,0 +1,86 @@
+{
+  "name": "SocialPro - COPIAR Sheet en carpeta del creador (pcamacho)",
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Europe/Madrid"
+  },
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "socialpro-drive-copy-9fd7baf4-8b6d-4e6a-9aa6-bfd1267631e2",
+        "responseMode": "lastNode",
+        "authentication": "headerAuth",
+        "options": {}
+      },
+      "id": "drive-copy-webhook",
+      "name": "Solicitud autenticada del CRM",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [-420, 0],
+      "webhookId": "socialpro-drive-copy-creator-folder",
+      "notes": "Solo el CRM puede invocarlo mediante la credencial Header Auth compartida con AUTOMATION_API_TOKEN."
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $json && typeof $json.body === 'object' && $json.body ? $json.body : $json;\nconst clean = (value) => typeof value === 'string' ? value.trim() : '';\nconst templateId = clean(input.templateId);\nconst folderId = clean(input.folderId);\nconst name = clean(input.name);\nconst driveId = /^[A-Za-z0-9_-]{10,}$/;\nif (!driveId.test(templateId) || !driveId.test(folderId)) throw new Error('invalid-drive-id');\nif (!name || name.length > 200) throw new Error('invalid-sheet-name');\nreturn [{ json: { templateId, folderId, name } }];"
+      },
+      "id": "validate-drive-copy",
+      "name": "Validar copia solicitada",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-180, 0],
+      "notes": "No acepta URL arbitrarias: únicamente IDs de Drive y un nombre acotado."
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "resource": "file",
+        "operation": "copy",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $json.templateId }}",
+          "mode": "id"
+        },
+        "options": {
+          "fields": ["id", "name"],
+          "name": "={{ $json.name }}",
+          "parents": ["={{ $json.folderId }}"]
+        }
+      },
+      "id": "copy-drive-file",
+      "name": "Copiar con Drive de pcamacho",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 1,
+      "position": [60, 0],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "notes": "Usa Google Drive OAuth2 de pcamacho@socialpro.es para que la copia tenga cuota en My Drive."
+    },
+    {
+      "parameters": {
+        "jsCode": "const id = typeof $json.id === 'string' ? $json.id : '';\nif (!/^[A-Za-z0-9_-]{10,}$/.test(id)) throw new Error('copy-without-id');\nreturn [{ json: { ok: true, id, name: typeof $json.name === 'string' ? $json.name : '' } }];"
+      },
+      "id": "format-drive-copy",
+      "name": "Devolver documento creado",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [300, 0]
+    }
+  ],
+  "connections": {
+    "Solicitud autenticada del CRM": {
+      "main": [[{ "node": "Validar copia solicitada", "type": "main", "index": 0 }]]
+    },
+    "Validar copia solicitada": {
+      "main": [[{ "node": "Copiar con Drive de pcamacho", "type": "main", "index": 0 }]]
+    },
+    "Copiar con Drive de pcamacho": {
+      "main": [[{ "node": "Devolver documento creado", "type": "main", "index": 0 }]]
+    }
+  },
+  "pinData": {},
+  "tags": []
+}
