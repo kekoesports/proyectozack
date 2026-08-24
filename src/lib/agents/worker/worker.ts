@@ -15,6 +15,7 @@ import { processPendingEvents } from './event-processor';
 import { executeAgentRun } from './execute-run';
 import { finishAgentRun } from './finish-run';
 import { releaseLease, startHeartbeat } from './lease';
+import { startWorkerPresenceHeartbeat } from './presence-heartbeat';
 import { runSchedulerTick } from './scheduler';
 import { createShutdownController, type ShutdownController } from './shutdown';
 import type { AgentRun } from '@/types';
@@ -262,18 +263,36 @@ export async function runWorkerLoop(opts: WorkerOptions): Promise<void> {
     status: 'starting',
   });
 
+  const presenceHeartbeat = startWorkerPresenceHeartbeat({
+    workerId: opts.workerId,
+    version: opts.version ?? 'unknown',
+    hostname: opts.hostname ?? 'unknown',
+  });
+
   logRedacted('info', `[agents] worker ${opts.workerId} arrancado (poll ${pollMs} ms)`);
 
-  while (!shutdown.isDraining()) {
-    const resultado = await runWorkerTick({ ...opts, shutdown });
+  let firstTickCompleted = false;
+  try {
+    while (!shutdown.isDraining()) {
+      const resultado = await runWorkerTick({ ...opts, shutdown });
 
-    if (opts.once) break;
+      if (!firstTickCompleted) {
+        await presenceHeartbeat.touch();
+        firstTickCompleted = true;
+      }
 
-    // Sin trabajo, se espera el intervalo completo. Con trabajo, se vuelve a
-    // mirar enseguida: una cola con cien ejecuciones no debe drenarse a razón
-    // de una cada dos segundos.
-    const espera = resultado.runExecuted === null ? pollMs : 50;
-    await new Promise((r) => setTimeout(r, espera));
+      if (opts.once) break;
+
+      // Sin trabajo, se espera el intervalo completo. Con trabajo, se vuelve a
+      // mirar enseguida: una cola con cien ejecuciones no debe drenarse a razón
+      // de una cada dos segundos.
+      const espera = resultado.runExecuted === null ? pollMs : 50;
+      await new Promise((r) => setTimeout(r, espera));
+    }
+  } finally {
+    // Se espera la escritura en vuelo antes de marcar draining: de otro modo un
+    // latido tardío podría volver a poner healthy durante el apagado.
+    await presenceHeartbeat.stop();
   }
 
   await upsertWorkerHeartbeat({

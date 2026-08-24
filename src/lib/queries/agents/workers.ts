@@ -1,6 +1,6 @@
 import 'server-only';
 
-import { desc, gte } from 'drizzle-orm';
+import { desc, eq, gte } from 'drizzle-orm';
 
 import { agentWorkerHeartbeats } from '@/db/schema';
 import { db } from '@/lib/db';
@@ -50,6 +50,27 @@ export async function upsertWorkerHeartbeat(input: WorkerHeartbeatInput): Promis
         lastHeartbeatAt: now,
       },
     });
+}
+
+/**
+ * Renueva la presencia del worker sin tocar `currentRunId`.
+ *
+ * El latido periódico también corre mientras hay una ejecución larga. Usar el
+ * upsert general aquí borraría el run activo al poner `currentRunId` a null;
+ * este UPDATE deliberadamente conserva ese campo y los metadatos existentes.
+ */
+export async function touchWorkerHeartbeat(
+  input: Pick<WorkerHeartbeatInput, 'workerId' | 'version' | 'hostname'>,
+): Promise<void> {
+  await db
+    .update(agentWorkerHeartbeats)
+    .set({
+      version: input.version ?? 'unknown',
+      hostname: input.hostname ?? 'unknown',
+      status: 'healthy',
+      lastHeartbeatAt: new Date(),
+    })
+    .where(eq(agentWorkerHeartbeats.workerId, input.workerId));
 }
 
 export async function listWorkerHeartbeats(limit = 20): Promise<readonly AgentWorkerHeartbeat[]> {
