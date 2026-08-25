@@ -64,10 +64,11 @@ describe('workflow n8n del bot de KPI REPORTING', () => {
     expect(code).toContain('if (commands.length === 0)');
     expect(code).toContain("command = 'review'");
     expect(code).toContain("command = 'detail'");
+    expect(code).toContain("command = 'invoice_create'");
     expect(code).toContain("command = 'help'");
   });
 
-  it('consulta el CRM en solo lectura, responde y después guarda el watermark', () => {
+  it('consulta el CRM, permite solo borradores fiscales y después guarda el watermark', () => {
     const request = value.nodes.find((node) => node.name === 'Consultar CRM');
     const send = value.nodes.find((node) => node.name === 'Responder en KPI REPORTING');
     const save = value.nodes.find((node) => node.name === 'Guardar watermark');
@@ -75,6 +76,8 @@ describe('workflow n8n del bot de KPI REPORTING', () => {
 
     expect(request).toMatchObject({ type: 'n8n-nodes-base.httpRequest', retryOnFail: true });
     expect(String(request?.parameters.url)).toContain('/api/automation/deals/digest');
+    expect(String(request?.parameters.url)).toContain('/api/automation/deals/invoices');
+    expect(String(request?.parameters.method)).toContain('invoice_create');
     expect(send).toMatchObject({
       type: 'n8n-nodes-base.discord',
       parameters: { resource: 'message', operation: 'send' },
@@ -85,12 +88,38 @@ describe('workflow n8n del bot de KPI REPORTING', () => {
     expect(saveCode).toContain('state.lastKpiMessageId = maxId');
   });
 
-  it('no usa IA ni permite modificar tratos desde Discord', () => {
+  it('no usa IA, no sincroniza tratos y limita la escritura a borradores', () => {
     const serialized = JSON.stringify(value);
     expect(serialized).not.toContain('openAi');
     expect(serialized).not.toContain('langchain');
     expect(serialized).not.toContain('/sync');
-    expect(serialized).not.toContain('POST');
+    expect(serialized).toContain('/api/automation/deals/invoices');
+    expect(serialized).toContain('no se emiten ni se envían automáticamente');
+  });
+
+  it('queda inactivo en el repositorio y sin credenciales versionadas', () => {
+    expect(value.active).toBe(false);
+    expect(value.nodes.every((node) => node.credentials === undefined)).toBe(true);
+  });
+});
+
+describe('workflow n8n de progreso, facturas y recordatorios', () => {
+  const value = workflow('socialpro-progress-alerts.json');
+
+  it('sincroniza una vez y abre ramas idempotentes para facturas y 7 días', () => {
+    const targets = value.connections['Sincronizar tratos']?.main[0]?.map((item) => item.node) ?? [];
+    expect(targets).toEqual(expect.arrayContaining([
+      'Hay avisos nuevos',
+      'Crear borradores al 80%',
+      'Revisar inactividad 7 días',
+    ]));
+    expect(JSON.stringify(value)).toContain('/api/automation/deals/invoices');
+    expect(JSON.stringify(value)).toContain('/api/automation/deals/reminders');
+  });
+
+  it('confirma el recordatorio solo después de publicarlo en Discord', () => {
+    expect(value.connections['Publicar recordatorio en Discord']?.main[0]?.[0]?.node)
+      .toBe('Confirmar recordatorio en CRM');
   });
 
   it('queda inactivo en el repositorio y sin credenciales versionadas', () => {

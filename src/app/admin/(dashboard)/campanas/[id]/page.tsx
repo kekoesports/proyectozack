@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { eq, inArray } from 'drizzle-orm';
 
-import { needsVisibilityFilter, requirePermission } from '@/lib/permissions';
+import { hasPermission, needsVisibilityFilter, requirePermission } from '@/lib/permissions';
 import { assertCanEditCampaign } from '@/lib/queries/campaigns';
 import { getCampaignWithRelations } from '@/lib/queries/campaigns';
 import { listFilesByEntity } from '@/lib/queries/files';
@@ -32,6 +32,7 @@ export default async function CampaignDetailPage({
   const role = session.user.role;
   const isManager = role === 'manager';
   const isAdmin = role === 'admin';
+  const canArchive = role !== 'staff' && hasPermission(role, 'campanas', 'write');
 
   // IDOR: only staff is ownership-scoped. finance/ops/tm have campanas:read
   // agency-wide (e.g. issue invoices from deal) and must not be blocked here.
@@ -108,6 +109,7 @@ export default async function CampaignDetailPage({
         campaignInvoices={campaignInvoices}
         campaignDeliverables={campaignDeliverables}
         isManager={isManager}
+        canArchive={canArchive}
         isAdmin={isAdmin}
         brands={brands}
         talents={talents}

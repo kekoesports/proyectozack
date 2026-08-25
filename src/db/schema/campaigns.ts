@@ -95,6 +95,13 @@ export const campaigns = pgTable('campaigns', {
   lastEvidenceAddedAt:         timestamp('last_evidence_added_at', { withTimezone: true }),
   trackingSyncError:           text('tracking_sync_error'),
   trackingAlertLevel:          integer('tracking_alert_level').notNull().default(0),
+  // Recordatorio de inactividad al creador. El baseline identifica el último
+  // avance real para que un reintento de Discord no duplique el email.
+  trackingReminderBaselineAt:          timestamp('tracking_reminder_baseline_at', { withTimezone: true }),
+  trackingReminderAttemptAt:           timestamp('tracking_reminder_attempt_at', { withTimezone: true }),
+  trackingReminderEmailSentAt:         timestamp('tracking_reminder_email_sent_at', { withTimezone: true }),
+  trackingReminderDiscordNotifiedAt:   timestamp('tracking_reminder_discord_notified_at', { withTimezone: true }),
+  trackingReminderError:               text('tracking_reminder_error'),
 
   // Identidad estable del sistema que originó el trato. Permite que n8n
   // reintente una ejecución sin crear campañas duplicadas.
@@ -116,6 +123,7 @@ export const campaigns = pgTable('campaigns', {
   index('campaigns_action_idx').on(t.actionType),
   index('campaigns_archived_idx').on(t.archivedAt),
   index('campaigns_last_evidence_idx').on(t.lastEvidenceAddedAt),
+  index('campaigns_tracking_reminder_idx').on(t.trackingReminderBaselineAt, t.trackingReminderDiscordNotifiedAt),
   uniqueIndex('campaigns_automation_source_external_uq')
     .on(t.automationSource, t.automationExternalId)
     .where(sql`automation_source IS NOT NULL AND automation_external_id IS NOT NULL`),

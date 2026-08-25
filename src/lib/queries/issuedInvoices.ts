@@ -7,7 +7,7 @@ import {
 } from '@/db/schema';
 import type {
   IssuerCompany, BillingClient, IssuedInvoice, IssuedInvoiceWithRelations,
-  IssuedInvoiceLine,
+  IssuedInvoiceLine, NewIssuedInvoice,
 } from '@/types';
 
 const originalInvoice = alias(issuedInvoices, 'original_invoice');
@@ -146,6 +146,7 @@ export async function listIssuedInvoices(filters: {
     relatedBrandId:        issuedInvoices.relatedBrandId,
     relatedTalentId:       issuedInvoices.relatedTalentId,
     relatedDealId:         issuedInvoices.relatedDealId,
+    automationKey:         issuedInvoices.automationKey,
     invoiceNumber:         issuedInvoices.invoiceNumber,
     series:                issuedInvoices.series,
     status:                issuedInvoices.status,
@@ -248,7 +249,7 @@ export async function allocateRectificationNumber(issuerId: number): Promise<str
 }
 
 export async function createIssuedInvoice(values: {
-  invoice: Omit<IssuedInvoice, 'id' | 'createdAt' | 'updatedAt'>;
+  invoice: NewIssuedInvoice;
   lines:   Omit<IssuedInvoiceLine, 'id' | 'invoiceId' | 'createdAt' | 'updatedAt'>[];
 }): Promise<IssuedInvoice> {
   const [row] = await db.insert(issuedInvoices).values(values.invoice).returning();
@@ -282,6 +283,17 @@ export async function updateIssuedInvoice(
 
 export async function getIssuedInvoice(id: number): Promise<IssuedInvoice | null> {
   const [row] = await db.select().from(issuedInvoices).where(eq(issuedInvoices.id, id)).limit(1);
+  return row ?? null;
+}
+
+export async function getIssuedInvoiceByAutomationKey(
+  automationKey: string,
+): Promise<IssuedInvoice | null> {
+  const [row] = await db
+    .select()
+    .from(issuedInvoices)
+    .where(eq(issuedInvoices.automationKey, automationKey))
+    .limit(1);
   return row ?? null;
 }
 

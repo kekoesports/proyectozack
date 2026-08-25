@@ -14,7 +14,7 @@ type Props = {
   readonly talents: readonly TalentOption[];
   readonly staffUsers: readonly StaffOption[];
   readonly contactsByBrand: Readonly<Record<number, readonly CrmBrandContact[]>>;
-  readonly isManager: boolean;
+  readonly canArchive: boolean;
   readonly initialDeliverables?: readonly DeliverableEditorRow[];
   readonly initialTracking?: {
     readonly url: string | null;
@@ -37,7 +37,7 @@ export function CampaignDrawer({
   talents,
   staffUsers,
   contactsByBrand,
-  isManager,
+  canArchive,
   initialDeliverables = [],
   initialTracking,
 }: Props): React.ReactElement {
@@ -59,7 +59,7 @@ export function CampaignDrawer({
         talents={talents}
         staffUsers={staffUsers}
         contactsByBrand={contactsByBrand}
-        isManager={isManager}
+        canArchive={canArchive}
         initialDeliverables={initialDeliverables}
         {...(initialTracking ? { initialTracking } : {})}
       />
