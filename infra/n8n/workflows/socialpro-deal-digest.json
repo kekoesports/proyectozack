@@ -30,12 +30,6 @@
               "name": "crmBaseUrl",
               "value": "https://socialpro.es",
               "type": "string"
-            },
-            {
-              "id": "max-lineas",
-              "name": "maxLineas",
-              "value": 8,
-              "type": "number"
             }
           ]
         },
@@ -49,7 +43,7 @@
         -400,
         0
       ],
-      "notes": "maxLineas acota el mensaje: Discord corta en 2000 caracteres y hoy hay ~57 tratos fuera de 'on_track' (la mayoría sin Sheet). Sin el tope, el mensaje se rechaza entero y el digest no se publica ningún día."
+      "notes": "La API del CRM construye mensajes de hasta 1900 caracteres y devuelve tantos bloques como sean necesarios para no ocultar tratos con progreso."
     },
     {
       "parameters": {
@@ -73,40 +67,47 @@
     },
     {
       "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "digest-message",
-              "name": "message",
-              "value": "={{ (() => { const max = $('Config').first().json.maxLineas; const base = $('Config').first().json.crmBaseUrl; const prioridad = { sync_error: 0, missing_sheet: 1, missing_targets: 2, stale: 3, prepare_invoice: 4, completed: 5 }; const etiquetas = { sync_error: '🔴 Error de sincronización', missing_sheet: '⚪ Falta enlazar la hoja', missing_targets: '🟣 Faltan objetivos', stale: '🟠 Sin avances recientes', prepare_invoice: '🟡 Preparar factura', completed: '🟢 Completado reciente' }; const fuera = $json.deals.filter(d => d.nextAction !== 'on_track').sort((a, b) => (prioridad[a.nextAction] ?? 9) - (prioridad[b.nextAction] ?? 9)); const visibles = fuera.slice(0, max); const resto = Math.max(0, fuera.length - visibles.length); const barra = p => { const n = Math.max(0, Math.min(5, Math.round(p / 20))); return '▰'.repeat(n) + '▱'.repeat(5 - n); }; const linea = d => { const progreso = d.targetCount > 0 ? '`' + barra(d.progressPct) + '` **' + d.progressPct + '%** · ' + d.currentCount + '/' + d.targetCount : '**sin objetivos**'; return (etiquetas[d.nextAction] ?? '•') + '\\n**' + d.talentName + '** · ' + d.brandName + ' — ' + progreso; }; const s = $json.summary; const cabecera = '## 📊 SOCIALPRO · TRATOS DE HOY\\n**' + s.total + ' tratos en seguimiento**  ·  🟢 ' + s.completed + ' completados recientes  ·  🟡 ' + s.prepareInvoice + ' para facturar\\n🔴 ' + s.syncErrors + ' errores  ·  🟠 ' + s.stale + ' parados  ·  ⚪ ' + s.missingSheets + ' sin hoja  ·  🟣 ' + (s.missingTargets ?? 0) + ' sin objetivos'; const cuerpo = visibles.length ? '\\n\\n### Prioridad de hoy\\n' + visibles.map(linea).join('\\n') : '\\n\\n✅ Todo al día'; const etiqueta = resto > 0 ? 'VER TODOS LOS TRATOS (+' + resto + ')' : 'ABRIR PANEL DE CAMPAÑAS'; const pie = '\\n\\n🔗 **[' + etiqueta + '](' + base + '/admin/campanas)**'; return (cabecera + cuerpo + pie).slice(0, 1900); })() }}",
-              "type": "string"
-            }
-          ]
-        },
-        "includeOtherFields": true,
-        "options": {}
+        "jsCode": "const messages = Array.isArray($json.discordMessages) ? $json.discordMessages : [];\nreturn messages\n  .filter((content) => typeof content === 'string' && content.trim().length > 0)\n  .map((content) => ({ json: { content } }));"
       },
       "id": "format-digest",
       "name": "Preparar UPDATE DEALS",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
       "position": [
         100,
         0
       ],
-      "notes": "Ordena por gravedad (errores primero, sin-sheet al final) y corta en maxLineas. NO incluye importes: este canal es de reporting de progreso y lo puede ver mas gente que la que debe ver cifras de negocio. Si hace falta el importe, esta en la ficha del trato en el CRM."
+      "notes": "La API ya agrupa errores, completados, facturación, parados y progreso. Las hojas vacías se resumen sin listar una a una. No publica importes."
     },
     {
-      "parameters": {},
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "guildId": {
+          "__rl": true,
+          "value": "1522153792592806018",
+          "mode": "id"
+        },
+        "channelId": {
+          "__rl": true,
+          "value": "1533123515023360114",
+          "mode": "id"
+        },
+        "content": "={{ $json.content }}",
+        "options": {}
+      },
       "id": "discord-placeholder",
       "name": "Publicar UPDATE DEALS en Discord",
-      "type": "n8n-nodes-base.noOp",
-      "typeVersion": 1,
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
       "position": [
         340,
         0
       ],
-      "notes": "SUSTITUIR antes de activar. Nodo HTTP Request POST al Incoming Webhook del canal #ops-avisos con body {\"content\": \"={{ $json.message }}\"}."
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "notes": "Asignar Discord Bot account al importar. Publica cada bloque por separado y reintenta si Discord falla."
     }
   ],
   "connections": {
