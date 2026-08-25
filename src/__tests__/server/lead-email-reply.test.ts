@@ -23,7 +23,7 @@ describe('respuesta de email desde LEADS', () => {
     expect(mockSendResendEmail).toHaveBeenCalledWith(
       'sendLeadReplyEmail',
       expect.objectContaining({
-        from: 'Pablo Camacho | SocialPro <pcamacho@socialpro.es>',
+        from: 'Pablo Camacho - SocialPro <pcamacho@socialpro.es>',
         replyTo: 'pcamacho@socialpro.es',
         to: 'cliente@example.test',
       }),
