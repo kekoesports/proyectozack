@@ -51,11 +51,11 @@ describe('CRM admin QA 2026-08-01 — brands visibility & IDOR', () => {
 });
 
 describe('CRM admin QA 2026-08-01 — campaigns permissions & filters', () => {
-  it('create/update campaign require campanas:write; archive requires delete', () => {
+  it('create/update/archive campaign require campanas:write because archive is reversible', () => {
     const src = read('src/app/admin/(dashboard)/campanas/actions.ts');
     expect(src).toMatch(/createCampaignAction[\s\S]*?requirePermission\('campanas', 'write'\)/);
     expect(src).toMatch(/updateCampaignAction[\s\S]*?requirePermission\('campanas', 'write'\)/);
-    expect(src).toMatch(/archiveCampaignAction[\s\S]*?requirePermission\('campanas', 'delete'\)/);
+    expect(src).toMatch(/archiveCampaignAction[\s\S]*?requirePermission\('campanas', 'write'\)/);
   });
 
   it('list cobro/pago filters use brandPaid/talentPaid not only manual flags', () => {

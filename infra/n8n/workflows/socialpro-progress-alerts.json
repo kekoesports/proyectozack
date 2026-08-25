@@ -162,6 +162,135 @@
       "maxTries": 3,
       "waitBetweenTries": 3000,
       "notes": "Asignar la credencial SocialPro CRM - Production al importar. El watermark avanza después de publicar en Discord, nunca antes."
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Config').first().json.crmBaseUrl }}/api/automation/deals/invoices",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "id": "create-invoice-drafts",
+      "name": "Crear borradores al 80%",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [-160, 220],
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 5000,
+      "notes": "Crea únicamente borradores idempotentes. Nunca emite ni envía una factura."
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "discordMessages",
+        "options": {
+          "destinationFieldName": "content"
+        }
+      },
+      "id": "split-invoice-messages",
+      "name": "Separar avisos de factura",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [80, 220]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "guildId": {
+          "__rl": true,
+          "value": "1522153792592806018",
+          "mode": "id"
+        },
+        "channelId": {
+          "__rl": true,
+          "value": "1533123515023360114",
+          "mode": "id"
+        },
+        "content": "={{ $json.content }}",
+        "options": {}
+      },
+      "id": "publish-invoice-draft",
+      "name": "Publicar borrador en Discord",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [320, 220]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Config').first().json.crmBaseUrl }}/api/automation/deals/reminders",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "id": "process-tracking-reminders",
+      "name": "Revisar inactividad 7 días",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [-160, 420],
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "reminders",
+        "options": {}
+      },
+      "id": "split-tracking-reminders",
+      "name": "Separar recordatorios",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [80, 420]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "guildId": {
+          "__rl": true,
+          "value": "1522153792592806018",
+          "mode": "id"
+        },
+        "channelId": {
+          "__rl": true,
+          "value": "1533123515023360114",
+          "mode": "id"
+        },
+        "content": "={{ $json.message }}",
+        "options": {}
+      },
+      "id": "publish-tracking-reminder",
+      "name": "Publicar recordatorio en Discord",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [320, 420]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Config').first().json.crmBaseUrl + '/api/automation/deals/reminders/' + $('Separar recordatorios').item.json.campaignId + '/ack' }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ baselineAt: $('Separar recordatorios').item.json.baselineAt }) }}",
+        "options": {}
+      },
+      "id": "ack-tracking-reminder",
+      "name": "Confirmar recordatorio en CRM",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [560, 420],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000
     }
   ],
   "connections": {
@@ -172,7 +301,11 @@
       "main": [[{ "node": "Sincronizar tratos", "type": "main", "index": 0 }]]
     },
     "Sincronizar tratos": {
-      "main": [[{ "node": "Hay avisos nuevos", "type": "main", "index": 0 }]]
+      "main": [[
+        { "node": "Hay avisos nuevos", "type": "main", "index": 0 },
+        { "node": "Crear borradores al 80%", "type": "main", "index": 0 },
+        { "node": "Revisar inactividad 7 días", "type": "main", "index": 0 }
+      ]]
     },
     "Hay avisos nuevos": {
       "main": [[{ "node": "Separar avisos", "type": "main", "index": 0 }], []]
@@ -185,6 +318,21 @@
     },
     "Publicar aviso en Discord": {
       "main": [[{ "node": "Confirmar aviso en CRM", "type": "main", "index": 0 }]]
+    },
+    "Crear borradores al 80%": {
+      "main": [[{ "node": "Separar avisos de factura", "type": "main", "index": 0 }]]
+    },
+    "Separar avisos de factura": {
+      "main": [[{ "node": "Publicar borrador en Discord", "type": "main", "index": 0 }]]
+    },
+    "Revisar inactividad 7 días": {
+      "main": [[{ "node": "Separar recordatorios", "type": "main", "index": 0 }]]
+    },
+    "Separar recordatorios": {
+      "main": [[{ "node": "Publicar recordatorio en Discord", "type": "main", "index": 0 }]]
+    },
+    "Publicar recordatorio en Discord": {
+      "main": [[{ "node": "Confirmar recordatorio en CRM", "type": "main", "index": 0 }]]
     }
   },
   "pinData": {},

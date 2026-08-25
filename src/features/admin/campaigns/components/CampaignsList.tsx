@@ -7,6 +7,7 @@ import { StateBadge } from '@/features/admin/_shared/components/StateBadge';
 import { EmptyState }  from '@/features/admin/_shared/components/EmptyState';
 import { CampaignFilters, EMPTY_FILTERS } from '@/features/admin/campaigns/components/CampaignFilters';
 import { CampaignDrawer }                 from '@/features/admin/campaigns/components/CampaignDrawer';
+import { CampaignArchiveButton }          from '@/features/admin/campaigns/components/CampaignArchiveButton';
 import {
   CAMPAIGN_STATUS_LABELS,
   computeCampaignDerived,
@@ -43,7 +44,7 @@ import { fmtRateLabel } from '@/lib/exchangeRate';
 
 type Props = {
   readonly campaigns:       readonly CampaignWithRelations[];
-  readonly isManager:       boolean;
+  readonly canArchive:      boolean;
   readonly brands:          readonly BrandOption[];
   readonly talents:         readonly TalentOption[];
   readonly staffUsers:      readonly StaffOption[];
@@ -131,7 +132,7 @@ function isActive(f: CampaignFilterState): boolean {
  * @route /admin/campanas
  */
 export function CampaignsList({
-  campaigns, isManager, brands, talents, staffUsers, contactsByBrand,
+  campaigns, canArchive, brands, talents, staffUsers, contactsByBrand,
   rate = USD_EUR_RATE, rateDate = '', rateIsEstimated = true,
   deliverablesByCampaign = {},
   trackingByCampaign = {},
@@ -414,6 +415,12 @@ export function CampaignsList({
                         >
                           Editar
                         </button>
+                        <CampaignArchiveButton
+                          campaignId={c.id}
+                          campaignName={c.name}
+                          archived={isArchived}
+                          canArchive={canArchive}
+                        />
                       </div>
                     </td>
                   </tr>
@@ -433,7 +440,7 @@ export function CampaignsList({
         talents={talents}
         staffUsers={staffUsers}
         contactsByBrand={contactsByBrand}
-        isManager={isManager}
+        canArchive={canArchive}
         initialDeliverables={
           selected !== null
             // El prop viene tipado como string genérico; DeliverableEditor lo

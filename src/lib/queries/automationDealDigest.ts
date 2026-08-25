@@ -1,11 +1,12 @@
 import 'server-only';
 
-import { and, eq, inArray, isNull, ne } from 'drizzle-orm';
+import { and, desc, eq, inArray, isNull, ne } from 'drizzle-orm';
 
 import { campaigns } from '@/db/schema/campaigns';
 import { crmBrands } from '@/db/schema/crmBrands';
 import { dealDeliverableTrackers } from '@/db/schema/dealDeliverableTrackers';
 import { talents } from '@/db/schema/talents';
+import { issuedInvoices } from '@/db/schema/issuedInvoices';
 import { db } from '@/lib/db';
 
 const ACTIVE_DEAL_STATUSES = [
@@ -45,6 +46,9 @@ export type AutomationDealDigestRow = {
   readonly syncError: string | null;
   readonly lastSyncedAt: string | null;
   readonly lastEvidenceAddedAt: string | null;
+  readonly invoiceId: number | null;
+  readonly invoiceNumber: string | null;
+  readonly invoiceStatus: string | null;
   readonly targetCount: number;
   readonly currentCount: number;
   readonly progressPct: number;
@@ -129,6 +133,9 @@ export async function getAutomationDealDigest(now = new Date()): Promise<Automat
         syncError: row.syncError,
         lastSyncedAt: row.lastSyncedAt?.toISOString() ?? null,
         lastEvidenceAddedAt: row.lastEvidenceAddedAt?.toISOString() ?? null,
+        invoiceId: null,
+        invoiceNumber: null,
+        invoiceStatus: null,
       },
       targetCount: 0,
       currentCount: 0,
@@ -141,7 +148,31 @@ export async function getAutomationDealDigest(now = new Date()): Promise<Automat
     grouped.set(row.campaignId, current);
   }
 
-  const allDeals = Array.from(grouped.values()).map((row): AutomationDealDigestRow => {
+  const groupedRows = Array.from(grouped.values());
+  const campaignIds = groupedRows.map((row) => row.base.campaignId);
+  const invoiceRows = campaignIds.length > 0
+    ? await db
+      .select({
+        campaignId: issuedInvoices.relatedDealId,
+        invoiceId: issuedInvoices.id,
+        invoiceNumber: issuedInvoices.invoiceNumber,
+        invoiceStatus: issuedInvoices.status,
+      })
+      .from(issuedInvoices)
+      .where(and(
+        inArray(issuedInvoices.relatedDealId, campaignIds),
+        ne(issuedInvoices.status, 'anulada'),
+      ))
+      .orderBy(desc(issuedInvoices.id))
+    : [];
+  const invoiceByCampaign = new Map<number, typeof invoiceRows[number]>();
+  for (const invoice of invoiceRows) {
+    if (invoice.campaignId !== null && !invoiceByCampaign.has(invoice.campaignId)) {
+      invoiceByCampaign.set(invoice.campaignId, invoice);
+    }
+  }
+
+  const allDeals = groupedRows.map((row): AutomationDealDigestRow => {
     const progressPct = row.targetCount > 0
       ? Math.min(100, Math.round((row.currentCount / row.targetCount) * 100))
       : 0;
@@ -156,6 +187,9 @@ export async function getAutomationDealDigest(now = new Date()): Promise<Automat
     });
     return {
       ...row.base,
+      invoiceId: invoiceByCampaign.get(row.base.campaignId)?.invoiceId ?? null,
+      invoiceNumber: invoiceByCampaign.get(row.base.campaignId)?.invoiceNumber ?? null,
+      invoiceStatus: invoiceByCampaign.get(row.base.campaignId)?.invoiceStatus ?? null,
       targetCount: row.targetCount,
       currentCount: row.currentCount,
       progressPct,
@@ -208,7 +242,7 @@ export function classifyNextAction(input: {
   if (input.targetCount <= 0) return 'missing_targets';
   if (input.currentCount <= 0) return 'empty_sheet';
   if (input.progressPct >= 100) return 'completed';
-  if (input.progressPct >= 70) return 'prepare_invoice';
+  if (input.progressPct >= 80) return 'prepare_invoice';
   if (input.inactiveDays >= STALE_AFTER_DAYS) return 'stale';
   return 'on_track';
 }
@@ -252,7 +286,7 @@ export function formatAutomationDealDigestForDiscord(
   const sections = [
     section('🔴 ERRORES DE SINCRONIZACIÓN', byAction(digest, 'sync_error'), errorLine),
     section('🟢 COMPLETADOS', byAction(digest, 'completed'), progressLine),
-    section('🧾 LISTOS PARA FACTURAR', byAction(digest, 'prepare_invoice'), progressLine),
+    section('🧾 LISTOS PARA FACTURAR', byAction(digest, 'prepare_invoice'), invoiceLine),
     section('⏸️ PARADOS', byAction(digest, 'stale'), staleLine),
     section('📈 EN PROGRESO', byAction(digest, 'on_track'), progressLine),
   ];
@@ -327,6 +361,14 @@ function progressText(deal: AutomationDealDigestRow): string {
 
 function progressLine(deal: AutomationDealDigestRow): string {
   return `• ${dealTitle(deal)} — ${progressText(deal)}`;
+}
+
+function invoiceLine(deal: AutomationDealDigestRow): string {
+  if (!deal.invoiceNumber) return `${progressLine(deal)} · ⏳ borrador pendiente`;
+  const label = deal.invoiceStatus === 'borrador'
+    ? `📝 borrador ${safeDiscordText(deal.invoiceNumber, 70)} creado`
+    : `✅ factura ${safeDiscordText(deal.invoiceNumber, 70)} · ${safeDiscordText(deal.invoiceStatus ?? 'registrada', 40)}`;
+  return `${progressLine(deal)} · ${label}`;
 }
 
 function staleLine(deal: AutomationDealDigestRow): string {

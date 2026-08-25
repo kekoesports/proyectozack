@@ -61,6 +61,7 @@ type Props = {
   readonly campaignInvoices:    readonly Invoice[];
   readonly campaignDeliverables: readonly DeliverableWithComments[];
   readonly isManager:           boolean;
+  readonly canArchive:          boolean;
   readonly isAdmin:             boolean;
   readonly brands:              readonly BrandOption[];
   readonly talents:             readonly TalentOption[];
@@ -110,7 +111,7 @@ function MiniKpi({
 
 export function CampaignDetailTabs({
   campaign, campaignFiles, campaignInvoices, campaignDeliverables,
-  isManager, isAdmin, brands, talents, staffUsers, contactsByBrand,
+  isManager, canArchive, isAdmin, brands, talents, staffUsers, contactsByBrand,
   contract, contractTemplates, contractVars, issuedInvoices, issuerCompanies,
 }: Props): React.ReactElement {
   const router = useRouter();
@@ -216,7 +217,7 @@ export function CampaignDetailTabs({
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
-            {!isManager && (
+            {canArchive && (
               <button type="button" onClick={() => void handleArchive()} disabled={archiving}
                 className="h-8 px-3 rounded-lg border border-sp-admin-border text-[12px] text-sp-admin-muted hover:text-red-500 hover:border-red-500 transition-colors disabled:opacity-50">
                 {archiving ? 'Archivando…' : 'Archivar'}
@@ -392,7 +393,7 @@ export function CampaignDetailTabs({
         talents={talents}
         staffUsers={staffUsers}
         contactsByBrand={contactsByBrand}
-        isManager={isManager}
+        canArchive={canArchive}
       />
     </div>
   );

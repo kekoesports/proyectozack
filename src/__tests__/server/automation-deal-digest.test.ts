@@ -39,7 +39,8 @@ describe('classifyNextAction', () => {
       currentCount: 10,
     };
     expect(classifyNextAction({ ...base, progressPct: 100, inactiveDays: 0 })).toBe('completed');
-    expect(classifyNextAction({ ...base, progressPct: 70, inactiveDays: 0 })).toBe('prepare_invoice');
+    expect(classifyNextAction({ ...base, progressPct: 80, inactiveDays: 0 })).toBe('prepare_invoice');
+    expect(classifyNextAction({ ...base, progressPct: 79, inactiveDays: 0 })).toBe('on_track');
     expect(classifyNextAction({ ...base, progressPct: 50, inactiveDays: 10 })).toBe('stale');
     expect(classifyNextAction({ ...base, progressPct: 50, inactiveDays: 9 })).toBe('on_track');
   });
@@ -105,6 +106,9 @@ function row(
     syncError: null,
     lastSyncedAt: '2026-08-25T08:00:00.000Z',
     lastEvidenceAddedAt: '2026-08-25T08:00:00.000Z',
+    invoiceId: null,
+    invoiceNumber: null,
+    invoiceStatus: null,
     targetCount: 10,
     currentCount: 5,
     progressPct: 50,
@@ -163,6 +167,16 @@ describe('formato Discord del KPI diario', () => {
     expect(text).toContain('LISTOS PARA FACTURAR');
     expect(text).toContain('PARADOS');
     expect(text).toContain('EN PROGRESO');
+  });
+
+  it('distingue un borrador creado de uno todavía pendiente', () => {
+    const text = formatAutomationDealDigestForDiscord(digest([
+      row(1, 'prepare_invoice', { progressPct: 80, invoiceId: 12, invoiceNumber: 'ES-2026-0012', invoiceStatus: 'borrador' }),
+      row(2, 'prepare_invoice', { progressPct: 80 }),
+    ])).join('\n');
+
+    expect(text).toContain('borrador ES-2026-0012 creado');
+    expect(text).toContain('borrador pendiente');
   });
 
   it('resume las hojas vacías o incompletas sin listar cada trato', () => {

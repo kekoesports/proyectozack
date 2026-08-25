@@ -2,7 +2,7 @@
 import { user as userTable } from '@/db/schema';
 import { inArray } from 'drizzle-orm';
 
-import { requirePermission } from '@/lib/permissions';
+import { hasPermission, requirePermission } from '@/lib/permissions';
 import { ASSIGNABLE_TEAM_ROLES } from '@/lib/team-roles';
 import { listCampaigns } from '@/lib/queries/campaigns';
 import { listCrmBrands, getBrandContacts } from '@/lib/queries/crmBrands';
@@ -18,7 +18,7 @@ import type { CampaignPaymentDerivedStatus } from '@/lib/schemas/campaign';
 export default async function AdminCampanasPage(): Promise<React.ReactElement> {
   const session = await requirePermission('campanas', 'read');
   const role = session.user.role;
-  const isManager = role === 'manager';
+  const canArchive = role !== 'staff' && hasPermission(role, 'campanas', 'write');
 
   const [rawCampaigns, invoices, crmBrandsList, allTalents, staffUsers, exchangeRate] = await Promise.all([
     listCampaigns({ session: { userId: session.user.id, role } }),
@@ -95,7 +95,7 @@ export default async function AdminCampanasPage(): Promise<React.ReactElement> {
   return (
     <CampaignsList
       campaigns={campaigns}
-      isManager={isManager}
+      canArchive={canArchive}
       brands={brands}
       talents={talents}
       staffUsers={staffUsers}

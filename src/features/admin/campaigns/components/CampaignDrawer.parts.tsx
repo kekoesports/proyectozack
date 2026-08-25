@@ -84,7 +84,7 @@ export type CampaignFormProps = {
   readonly talents: readonly TalentOption[];
   readonly staffUsers: readonly StaffOption[];
   readonly contactsByBrand: Readonly<Record<number, readonly CrmBrandContact[]>>;
-  readonly isManager: boolean;
+  readonly canArchive: boolean;
   /**
    * Entregables (dealDeliverableTrackers) existentes para el trato — solo
    * relevante en modo edición. `[]` al crear.
@@ -109,7 +109,7 @@ export function CampaignForm({
   talents,
   staffUsers,
   contactsByBrand,
-  isManager,
+  canArchive,
   initialDeliverables = [],
   initialTracking,
 }: CampaignFormProps): React.ReactElement {
@@ -554,8 +554,8 @@ export function CampaignForm({
 
       {/* Footer actions (inside form so submit button works) */}
       <div className="flex items-center gap-3 pt-2 border-t border-sp-admin-border">
-        {/* Archivar — oculto para manager o al crear */}
-        {isEditing && !isManager && (
+        {/* Archivar — soft-delete reversible disponible para quien edita. */}
+        {isEditing && canArchive && (
           <button
             type="button"
             onClick={() => void handleArchive()}

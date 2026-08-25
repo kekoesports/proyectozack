@@ -9,7 +9,9 @@ import {
   numeric,
   timestamp,
   index,
+  uniqueIndex,
 } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
 import type { AnyPgColumn } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 import { user } from './auth';
@@ -91,6 +93,9 @@ export const issuedInvoices = pgTable(
     relatedBrandId:        integer('related_brand_id').references(() => crmBrands.id, { onDelete: 'set null' }),
     relatedTalentId:       integer('related_talent_id').references(() => talents.id, { onDelete: 'set null' }),
     relatedDealId:         integer('related_deal_id').references(() => campaigns.id, { onDelete: 'set null' }),
+    // Clave estable para que los reintentos de n8n no creen dos borradores.
+    // Las facturas manuales conservan NULL y siguen admitiendo varias por trato.
+    automationKey:         varchar('automation_key', { length: 160 }),
 
     invoiceNumber:         varchar('invoice_number', { length: 60 }).notNull(),
     series:                varchar('series',         { length: 20 }),
@@ -133,6 +138,9 @@ export const issuedInvoices = pgTable(
     index('issued_invoices_date_idx').on(t.issueDate),
     index('issued_invoices_brand_idx').on(t.relatedBrandId),
     index('issued_invoices_num_idx').on(t.issuerCompanyId, t.invoiceNumber),
+    uniqueIndex('issued_invoices_automation_key_uq')
+      .on(t.automationKey)
+      .where(sql`automation_key IS NOT NULL`),
   ],
 );
 
