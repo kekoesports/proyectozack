@@ -167,9 +167,12 @@
       "parameters": {
         "method": "POST",
         "url": "={{ $('Config').first().json.crmBaseUrl }}/api/automation/deals/invoices",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "options": {
+      "authentication": "genericCredentialType",
+      "genericAuthType": "httpHeaderAuth",
+      "sendBody": true,
+      "specifyBody": "json",
+      "jsonBody": "={{ JSON.stringify({ excludedCampaignIds: [48, 19, 17] }) }}",
+      "options": {
           "timeout": 120000
         }
       },
@@ -181,7 +184,7 @@
       "retryOnFail": true,
       "maxTries": 2,
       "waitBetweenTries": 5000,
-      "notes": "Crea únicamente borradores idempotentes. Nunca emite ni envía una factura."
+    "notes": "Crea únicamente borradores idempotentes. Nunca emite ni envía una factura. UXU × YOSPORTS, TODOCS2 × SKINSMONKEY y FER × SKINSMONKEY quedan excluidos por decisión operativa."
     },
     {
       "parameters": {

@@ -27,6 +27,7 @@ jest.mock('@/lib/queries/issuedInvoices', () => ({
 }));
 
 import {
+  createEligibleDealInvoiceDrafts,
   ensureDealInvoiceDraft,
   formatInvoiceDraftBatchForDiscord,
 } from '@/lib/services/dealInvoiceDrafts';
@@ -104,6 +105,27 @@ describe('borradores automáticos de factura por trato', () => {
       status: 'skipped',
       reason: 'invalid-amount',
     });
+    expect(mockCreateInvoice).not.toHaveBeenCalled();
+  });
+
+  it('respeta las exclusiones operativas antes de intentar crear facturas', async () => {
+    mockGetDigest.mockResolvedValue({
+      deals: [{
+        campaignId: 7,
+        name: campaign.name,
+        talentName: 'Creador',
+        brandName: 'Marca',
+        progressPct: 100,
+        targetCount: 10,
+        trackingSheetUrl: 'https://docs.google.com/spreadsheets/d/test',
+        syncError: null,
+      }],
+    });
+
+    const result = await createEligibleDealInvoiceDrafts({ excludedCampaignIds: [7] });
+
+    expect(result).toMatchObject({ candidates: 0, created: 0, outcomes: [] });
+    expect(mockGetCampaign).not.toHaveBeenCalled();
     expect(mockCreateInvoice).not.toHaveBeenCalled();
   });
 
