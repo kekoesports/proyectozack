@@ -57,20 +57,22 @@ describe('sprint2 — hasPermission + nav R05', () => {
     expect(hrefs).toContain('/admin/campanas');
   });
 
-  it('admin sees full primary catalogue items that map to admin modules', () => {
-    const { primary } = navForRole('admin');
-    expect(primary.map((i) => i.href)).toEqual(
-      expect.arrayContaining([
-        '/admin',
-        '/admin/brands',
-        '/admin/talents',
-        '/admin/campanas',
-        '/admin/tareas',
-        '/admin/facturacion',
-        '/admin/finanzas/resumen',
-        '/admin/equipo',
-      ]),
-    );
+  it('admin keeps only daily work in primary navigation', () => {
+    const { primary, more } = navForRole('admin');
+    expect(primary.map((i) => i.href)).toEqual([
+      '/admin',
+      '/admin/campanas',
+      '/admin/tareas',
+      '/admin/talents',
+      '/admin/finanzas/resumen',
+    ]);
+    expect(more.map((i) => i.href)).toEqual(expect.arrayContaining([
+      '/admin/brands',
+      '/admin/automation-drafts',
+      '/admin/leads',
+      '/admin/facturacion',
+      '/admin/equipo',
+    ]));
   });
 
   it('quick actions hide facturacion for staff', () => {

@@ -3,11 +3,11 @@ import { listThreadsForUser } from '@/lib/queries/aiAssistant';
 import { ChatClient } from '@/features/admin/ai-assistant/components/ChatClient';
 import { env } from '@/lib/env';
 
-export const metadata = { title: 'Asistente IA — SocialPro Admin' };
+export const metadata = { title: 'Zack Operaciones — SocialPro Admin' };
 
 export default async function AsistentePage(): Promise<React.ReactElement> {
   const session = await requireAnyRole(
-    ['admin', 'manager', 'finance', 'analyst', 'ops', 'talent_manager', 'editor'],
+    ['admin', 'admin_limited_tasks', 'manager', 'finance', 'analyst', 'ops', 'talent_manager', 'editor'],
     '/admin/login',
   );
 
@@ -18,10 +18,9 @@ export default async function AsistentePage(): Promise<React.ReactElement> {
     <div className="flex flex-col h-full gap-4">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-white">Asistente IA</h1>
+          <h1 className="text-xl font-bold text-white">Zack Operaciones</h1>
           <p className="text-sm text-sp-muted mt-0.5">
-            Pregunta sobre facturación, campañas, marcas, talentos o finanzas.
-            Solo lectura — no ejecuta cambios.
+            Reúne tratos, Creadores Target, prensa, contenido, finanzas y copias de seguridad para ayudarte a priorizar. Solo lectura — no ejecuta cambios.
           </p>
         </div>
         {!hasApiKey && (

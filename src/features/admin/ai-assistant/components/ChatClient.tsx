@@ -10,12 +10,12 @@ type Props = {
 };
 
 const EXAMPLE_PROMPTS = [
+  'Dame el estado operativo de hoy',
+  '¿Cómo están Creadores Target y prensa?',
+  '¿Las copias de seguridad están al día?',
+  '¿Qué campañas requieren atención?',
+  '¿Qué alertas editoriales tengo pendientes?',
   '¿Qué facturas están vencidas?',
-  'Explícame cómo funciona el módulo de facturación',
-  '¿Qué debería revisar esta semana?',
-  'Dame un resumen financiero del mes',
-  '¿Qué campañas tienen margen bajo?',
-  '¿Qué clientes tienen facturas pendientes?',
 ];
 
 type ChatMessage = {
@@ -178,7 +178,7 @@ export function ChatClient({ initialThreads, contextType = 'general' }: Props) {
         <div className="flex items-center justify-between border-b border-sp-admin-border px-5 py-3">
           <div className="flex items-center gap-2">
             <span className="h-2 w-2 rounded-full bg-emerald-400" />
-            <span className="text-sm font-semibold text-sp-admin-fg">Asistente SocialPro</span>
+            <span className="text-sm font-semibold text-sp-admin-fg">Zack Operaciones</span>
             <span className="text-xs text-sp-admin-muted">Solo lectura · No ejecuta acciones</span>
           </div>
           <button
@@ -196,7 +196,7 @@ export function ChatClient({ initialThreads, contextType = 'general' }: Props) {
               <div className="space-y-1">
                 <p className="font-semibold text-sp-admin-fg">¿En qué puedo ayudarte?</p>
                 <p className="text-sm text-sp-admin-muted">
-                  Pregúntame sobre facturación, campañas, marcas, talentos o finanzas.
+                  Pregúntame qué requiere atención en tratos, targets, prensa, contenido, finanzas o infraestructura.
                 </p>
               </div>
               <div className="grid w-full max-w-xl grid-cols-1 gap-2 sm:grid-cols-2">

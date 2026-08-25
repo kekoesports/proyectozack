@@ -36,7 +36,7 @@ SERVICIOS="${GUARDIAN_SERVICES:-socialpro-crm socialpro-n8n caddy}"
 
 # Umbral de antigüedad del backup, en horas.
 BACKUP_MAX_HORAS="${GUARDIAN_BACKUP_MAX_HOURS:-26}"
-BACKUP_DIR="${GUARDIAN_BACKUP_DIR:-/var/backups/socialpro}"
+BACKUP_SUCCESS_MARKER="${GUARDIAN_BACKUP_SUCCESS_MARKER:-/var/lib/socialpro-guardian/backup-last-success}"
 
 VERSION="${GUARDIAN_VERSION:-desconocida}"
 
@@ -132,18 +132,21 @@ done
 
 # ── Backup ───────────────────────────────────────────────────────────────────
 
-if [ -d "$BACKUP_DIR" ]; then
-  ultimo="$(find "$BACKUP_DIR" -type f -printf '%T@\n' 2>/dev/null | sort -rn | head -1 || true)"
-  if [ -n "$ultimo" ]; then
-    horas=$(( ( $(date +%s) - ${ultimo%.*} ) / 3600 ))
-    sev='info'
-    [ "$horas" -ge "$BACKUP_MAX_HORAS" ] && sev='high'
-    # Sin nombres de fichero: revelan la convención de nombrado y las fechas de
-    # los respaldos.
-    evento 'backup.heartbeat' "$sev" "{\"ageHours\":$horas}" "backup-$MARCA"
-  else
-    evento 'backup.failed' 'high' '{"reason":"sin-ficheros"}' "backup-$MARCA"
-  fi
+if systemctl is-failed --quiet socialpro-backup-remote.service 2>/dev/null; then
+  evento 'backup.failed' 'high' '{"reason":"servicio-backup-fallido"}' "backup-$MARCA"
+elif [ -f "$BACKUP_SUCCESS_MARKER" ]; then
+  ultimo="$(stat -c '%Y' "$BACKUP_SUCCESS_MARKER")"
+  horas=$(( ( $(date +%s) - ultimo ) / 3600 ))
+  sev='info'
+  [ "$horas" -ge "$BACKUP_MAX_HORAS" ] && sev='high'
+  # Sin nombres de fichero: revelan la convención de nombrado y las fechas de
+  # los respaldos.
+  evento 'backup.heartbeat' "$sev" "{\"ageHours\":$horas}" "backup-$MARCA"
+elif systemctl is-active --quiet socialpro-backup-remote.service 2>/dev/null; then
+  # Primera ejecución todavía en curso: no inventar ni éxito ni fallo.
+  :
+else
+  evento 'backup.failed' 'high' '{"reason":"sin-copia-remota-verificada"}' "backup-$MARCA"
 fi
 
 # ── Versión desplegada ───────────────────────────────────────────────────────

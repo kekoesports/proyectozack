@@ -19,6 +19,7 @@ DESTINO="${BACKUP_DIR:-/opt/socialpro/backups/work}"
 REMOTO="${RCLONE_REMOTE:-}"           # p.ej. gdrive:socialpro-backups
 RETENCION_DIAS="${RETENCION_DIAS:-7}"
 HEARTBEAT_URL="${BACKUP_HEARTBEAT_URL:-}"
+SUCCESS_MARKER="${BACKUP_SUCCESS_MARKER:-${DESTINO}/.last-remote-success}"
 N8N_DB_USER="${N8N_DB_USER:-n8n}"
 SUBIR="si"
 [[ "${1:-}" == "--no-remote" ]] && SUBIR="no"
@@ -89,6 +90,11 @@ if [[ "$SUBIR" == "si" ]]; then
     log "ERROR: RCLONE_REMOTE sin definir. Una copia solo local no es una copia."
     exit 1
   fi
+  config_rclone="${RCLONE_CONFIG:-/root/.config/rclone/rclone.conf}"
+  if [[ ! -r "$config_rclone" || ! -w "$(dirname "$config_rclone")" ]]; then
+    log "ERROR: la configuración de rclone no se puede leer o renovar"
+    exit 1
+  fi
   log "subiendo a ${REMOTO}"
   # `--crypt-*` en la config de rclone: se sube ya cifrado, así que el destino
   # nunca ve datos en claro.
@@ -98,6 +104,12 @@ if [[ "$SUBIR" == "si" ]]; then
 
   log "verificando lo subido"
   rclone check "$trabajo" "${REMOTO}/${marca}" --one-way
+  # Guardian solo considera fresca una copia después de que el remoto haya
+  # terminado y superado la comprobación. Los ficheros que se están escribiendo
+  # no deben parecer una copia válida.
+  mkdir -p "$(dirname "$SUCCESS_MARKER")"
+  touch "$SUCCESS_MARKER"
+  chmod 0644 "$SUCCESS_MARKER"
 fi
 
 # ── 7. Limpieza local ───────────────────────────────────────────────────────

@@ -40,6 +40,7 @@ export type AdminNavDef = {
   /** Extra allow-list (e.g. asistente). When set, module is ignored. */
   readonly roles?: readonly Role[];
   readonly section: 'primary' | 'more';
+  readonly group?: 'Operaciones' | 'Crecimiento' | 'Contenido' | 'Administración' | 'Sistema';
 };
 
 /**
@@ -49,21 +50,20 @@ export type AdminNavDef = {
 export const ADMIN_NAV_CATALOGUE: readonly AdminNavDef[] = [
   // primary
   { key: 'panel',       href: '/admin',                 label: 'Panel',            module: 'dashboard',      section: 'primary' },
-  { key: 'brands',      href: '/admin/brands',          label: 'Marcas',           module: 'campanas',       section: 'primary' },
-  { key: 'talents',     href: '/admin/talents',         label: 'Talentos',         module: 'talentos',       section: 'primary', prefetch: false },
   { key: 'campanas',    href: '/admin/campanas',        label: 'Tratos',           module: 'campanas',       section: 'primary', prefetch: false },
-  { key: 'automation-drafts', href: '/admin/automation-drafts', label: 'Borradores', module: 'campanas',   section: 'primary', prefetch: false },
-  { key: 'leads',       href: '/admin/leads',           label: 'Leads',            module: 'leads',          section: 'primary', prefetch: false },
   { key: 'tareas',      href: '/admin/tareas',          label: 'Tareas',           module: 'tareas',         section: 'primary' },
-  { key: 'facturacion', href: '/admin/facturacion',     label: 'Facturación',      module: 'facturacion',    section: 'primary', prefetch: false },
+  { key: 'talents',     href: '/admin/talents',         label: 'Talentos',         module: 'talentos',       section: 'primary', prefetch: false },
   { key: 'finanzas',    href: '/admin/finanzas/resumen',label: 'Finanzas',         module: 'facturacion',    section: 'primary', prefetch: false },
-  { key: 'equipo',      href: '/admin/equipo',          label: 'Equipo',           module: 'equipo',         section: 'primary' },
   // more
-  { key: 'mi-semana',       href: '/admin/mi-semana',       label: 'Mi semana',         module: 'tareas',          section: 'more' },
-  { key: 'targets',         href: '/admin/targets',         label: 'Creadores Target',  module: 'targets',         section: 'more', prefetch: false },
-  { key: 'prensa-targets',  href: '/admin/prensa-targets',  label: 'Prensa Targets',    module: 'prensa_targets',  section: 'more', prefetch: false },
-  { key: 'live',            href: '/admin/live',            label: 'En directo',        module: 'talentos',        section: 'more', prefetch: false },
-  { key: 'giveaways',       href: '/admin/giveaways',       label: 'Sorteos',           module: 'sorteos',         section: 'more', prefetch: false },
+  { key: 'mi-semana',       href: '/admin/mi-semana',       label: 'Mi semana',         module: 'tareas',          section: 'more', group: 'Operaciones' },
+  { key: 'brands',          href: '/admin/brands',          label: 'Marcas',            module: 'campanas',        section: 'more', group: 'Operaciones' },
+  { key: 'automation-drafts', href: '/admin/automation-drafts', label: 'Borradores', module: 'campanas',    section: 'more', group: 'Operaciones', prefetch: false },
+  { key: 'leads',           href: '/admin/leads',           label: 'Leads',             module: 'leads',           section: 'more', group: 'Operaciones', prefetch: false },
+  { key: 'entregables',     href: '/admin/entregables',     label: 'Entregables',       module: 'campanas',       section: 'more', group: 'Operaciones', prefetch: false },
+  { key: 'targets',         href: '/admin/targets',         label: 'Creadores Target',  module: 'targets',         section: 'more', group: 'Crecimiento', prefetch: false },
+  { key: 'prensa-targets',  href: '/admin/prensa-targets',  label: 'Prensa Targets',    module: 'prensa_targets',  section: 'more', group: 'Crecimiento', prefetch: false },
+  { key: 'live',            href: '/admin/live',            label: 'En directo',        module: 'talentos',        section: 'more', group: 'Crecimiento', prefetch: false },
+  { key: 'giveaways',       href: '/admin/giveaways',       label: 'Sorteos',           module: 'sorteos',         section: 'more', group: 'Crecimiento', prefetch: false },
   {
     key: 'alertas',
     href: '/admin/alertas',
@@ -71,27 +71,30 @@ export const ADMIN_NAV_CATALOGUE: readonly AdminNavDef[] = [
     module: null,
     roles: ['admin', 'admin_limited_tasks', 'manager', 'editor', 'ops'],
     section: 'more',
+    group: 'Contenido',
     prefetch: false,
   },
-  { key: 'noticias',     href: '/admin/noticias',     label: 'Noticias',      module: 'noticias',  section: 'more', prefetch: false },
-  { key: 'estadisticas', href: '/admin/estadisticas', label: 'Estadísticas',  module: 'noticias',  section: 'more', prefetch: false },
-  { key: 'analytics',    href: '/admin/analytics',    label: 'Analítica',     module: 'analytics', section: 'more', prefetch: false },
-  { key: 'cases',        href: '/admin/cases',        label: 'Casos',         module: 'campanas',  section: 'more', prefetch: false },
+  { key: 'noticias',     href: '/admin/noticias',     label: 'Noticias',      module: 'noticias',  section: 'more', group: 'Contenido', prefetch: false },
+  { key: 'estadisticas', href: '/admin/estadisticas', label: 'Estadísticas',  module: 'noticias',  section: 'more', group: 'Contenido', prefetch: false },
+  { key: 'analytics',    href: '/admin/analytics',    label: 'Analítica',     module: 'analytics', section: 'more', group: 'Contenido', prefetch: false },
+  { key: 'cases',        href: '/admin/cases',        label: 'Casos',         module: 'campanas',  section: 'more', group: 'Contenido', prefetch: false },
+  { key: 'facturacion',  href: '/admin/facturacion',  label: 'Facturación',   module: 'facturacion', section: 'more', group: 'Administración', prefetch: false },
+  { key: 'equipo',       href: '/admin/equipo',       label: 'Equipo',        module: 'equipo',     section: 'more', group: 'Administración' },
+  { key: 'contratos',    href: '/admin/contratos',    label: 'Contratos',     module: 'contratos',  section: 'more', group: 'Administración', prefetch: false },
   {
     key: 'asistente',
     href: '/admin/asistente',
-    label: 'Asistente IA',
+    label: 'Zack Operaciones',
     module: null,
     roles: ['admin', 'admin_limited_tasks', 'manager', 'finance', 'analyst', 'ops', 'talent_manager', 'editor'],
     section: 'more',
+    group: 'Sistema',
     prefetch: false,
   },
-  { key: 'contratos',   href: '/admin/contratos',   label: 'Contratos',   module: 'contratos', section: 'more', prefetch: false },
-  { key: 'entregables', href: '/admin/entregables', label: 'Entregables', module: 'campanas',  section: 'more', prefetch: false },
-  { key: 'backups',     href: '/admin/backups',     label: 'Backups',     module: 'ajustes',   section: 'more', prefetch: false },
+  { key: 'backups',     href: '/admin/backups',     label: 'Copias de seguridad', module: 'ajustes', section: 'more', group: 'Sistema', prefetch: false },
   // Zack Agent OS. Gate por 'agents:read', que excluye a 'brand' — el panel
   // expone ejecuciones y memoria de toda la agencia.
-  { key: 'agents',      href: '/admin/agents',      label: 'Agentes',     module: 'agents',    section: 'more', prefetch: false },
+  { key: 'agents',      href: '/admin/agents',      label: 'Agentes Zack', module: 'agents',   section: 'more', group: 'Sistema', prefetch: false },
   {
     key: 'seguridad',
     href: '/admin/seguridad',
@@ -99,6 +102,7 @@ export const ADMIN_NAV_CATALOGUE: readonly AdminNavDef[] = [
     module: null,
     roles: ['admin', 'admin_limited_tasks', 'manager', 'staff', 'editor', 'finance', 'analyst', 'ops', 'talent_manager'],
     section: 'more',
+    group: 'Sistema',
     prefetch: false,
   },
 ] as const;
@@ -116,6 +120,7 @@ export type FilteredNavItem = {
   readonly href: string;
   readonly label: string;
   readonly prefetch?: boolean;
+  readonly group?: AdminNavDef['group'];
 };
 
 /**
@@ -135,6 +140,7 @@ export function navForRole(role: Role | null | undefined): {
     href: item.href,
     label: item.label,
     ...(item.prefetch === false ? { prefetch: false } : {}),
+    ...(item.group ? { group: item.group } : {}),
   });
 
   let primary = allowed.filter((i) => i.section === 'primary').map(toItem);

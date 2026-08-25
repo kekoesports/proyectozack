@@ -5,22 +5,26 @@ import Image from 'next/image';
 import {
   discoverYouTubeTargetsAction,
   importQualifiedYouTubeTargetsAction,
+  type Cs2CampaignType,
+  type Cs2SearchMarket,
+  type TargetLanguage,
   type YouTubeQualification,
-  type VerifiedGamblingMarket,
 } from '@/app/admin/(dashboard)/targets/youtube-actions';
-
-const MARKET_LABELS: Record<VerifiedGamblingMarket, string> = {
-  ES: 'España',
-  CO: 'Colombia',
-  PE: 'Perú',
-};
+import {
+  CS2_SEARCH_MARKETS,
+  LANGUAGE_LABELS,
+  MARKET_LABELS,
+  countryLabel,
+} from '@/lib/compliance/cs2Markets';
 
 const numberFormat = new Intl.NumberFormat('es-ES', { notation: 'compact', maximumFractionDigits: 1 });
 
 export function YouTubeTargetDiscovery(): React.ReactElement {
   const [open, setOpen] = useState(true);
-  const [query, setQuery] = useState('CS2 español');
-  const [market, setMarket] = useState<VerifiedGamblingMarket>('ES');
+  const [query, setQuery] = useState('CS2');
+  const [market, setMarket] = useState<Cs2SearchMarket>('GLOBAL');
+  const [language, setLanguage] = useState<TargetLanguage>('any');
+  const [campaignType, setCampaignType] = useState<Cs2CampaignType>('marketplace');
   const [windowDays, setWindowDays] = useState<60 | 90>(90);
   const [results, setResults] = useState<readonly YouTubeQualification[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -36,6 +40,8 @@ export function YouTubeTargetDiscovery(): React.ReactElement {
       const response = await discoverYouTubeTargetsAction({
         query,
         market,
+        language,
+        campaignType,
         windowDays,
         minimumVideos: 8,
         minimumViews: 1_000,
@@ -47,7 +53,9 @@ export function YouTubeTargetDiscovery(): React.ReactElement {
   };
 
   const importSelected = (): void => {
-    const channels = results.filter((item) => selected.has(item.channelId) && item.isQualified);
+    const channels = results
+      .filter((item) => selected.has(item.channelId) && item.isQualified)
+      .map((item) => ({ ...item, campaignType }));
     if (channels.length === 0) return;
     setMessage(null);
     startTransition(async () => {
@@ -87,7 +95,7 @@ export function YouTubeTargetDiscovery(): React.ReactElement {
 
       {open && (
         <div className="space-y-4 border-t border-sp-admin-border p-5">
-          <div className="grid gap-3 lg:grid-cols-[1fr_180px_180px_auto]">
+          <div className="grid gap-3 lg:grid-cols-[minmax(180px,1fr)_170px_170px_170px]">
             <label className="space-y-1">
               <span className="text-[10px] font-bold uppercase tracking-wider text-sp-admin-muted">Búsqueda</span>
               <input
@@ -98,21 +106,45 @@ export function YouTubeTargetDiscovery(): React.ReactElement {
               />
             </label>
             <label className="space-y-1">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-sp-admin-muted">Mercado verificado</span>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-sp-admin-muted">Mercado</span>
               <select
                 value={market}
-                onChange={(event) => setMarket(event.target.value as VerifiedGamblingMarket)}
+                onChange={(event) => setMarket(event.target.value as Cs2SearchMarket)}
                 className="w-full rounded-lg border border-sp-admin-border bg-sp-admin-bg px-3 py-2.5 text-sm text-sp-admin-text"
               >
-                {Object.entries(MARKET_LABELS).map(([code, label]) => <option key={code} value={code}>{label}</option>)}
+                {CS2_SEARCH_MARKETS.map((code) => <option key={code} value={code}>{MARKET_LABELS[code]}</option>)}
               </select>
             </label>
             <label className="space-y-1">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-sp-admin-muted">Actividad</span>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-sp-admin-muted">Idioma</span>
+              <select
+                value={language}
+                onChange={(event) => setLanguage(event.target.value as TargetLanguage)}
+                className="w-full rounded-lg border border-sp-admin-border bg-sp-admin-bg px-3 py-2.5 text-sm text-sp-admin-text"
+              >
+                {Object.entries(LANGUAGE_LABELS).map(([code, label]) => <option key={code} value={code}>{label}</option>)}
+              </select>
+            </label>
+            <label className="space-y-1">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-sp-admin-muted">Tipo de campaña</span>
+              <select
+                value={campaignType}
+                onChange={(event) => setCampaignType(event.target.value as Cs2CampaignType)}
+                className="w-full rounded-lg border border-sp-admin-border bg-sp-admin-bg px-3 py-2.5 text-sm text-sp-admin-text"
+              >
+                <option value="marketplace">Marketplace sin azar</option>
+                <option value="case-gambling">Cajas / gambling</option>
+              </select>
+            </label>
+          </div>
+
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <label className="space-y-1">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-sp-admin-muted">Actividad reciente</span>
               <select
                 value={windowDays}
                 onChange={(event) => setWindowDays(Number(event.target.value) as 60 | 90)}
-                className="w-full rounded-lg border border-sp-admin-border bg-sp-admin-bg px-3 py-2.5 text-sm text-sp-admin-text"
+                className="rounded-lg border border-sp-admin-border bg-sp-admin-bg px-3 py-2.5 text-sm text-sp-admin-text"
               >
                 <option value={60}>Últimos 2 meses</option>
                 <option value={90}>Últimos 3 meses</option>
@@ -122,14 +154,14 @@ export function YouTubeTargetDiscovery(): React.ReactElement {
               type="button"
               onClick={search}
               disabled={isPending || query.trim().length < 2}
-              className="self-end rounded-lg bg-red-600 px-5 py-2.5 text-sm font-bold text-white disabled:opacity-40"
+              className="rounded-lg bg-red-600 px-5 py-2.5 text-sm font-bold text-white disabled:opacity-40"
             >
               {isPending ? 'Revisando…' : 'Buscar y verificar'}
             </button>
           </div>
 
           <p className="rounded-lg border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-xs text-amber-200/80">
-            Solo se importan aprobados. Un canal sin país declarado se mantiene para revisión manual, nunca se da por permitido.
+            La búsqueda es mundial. Marketplace significa compraventa sin apuesta, azar ni premio. Las cajas solo se preseleccionan en mercados regulados y siempre exigen comprobar la licencia de la marca antes de contactar.
           </p>
 
           {message && <p className="text-sm text-sp-admin-muted">{message}</p>}
@@ -138,7 +170,7 @@ export function YouTubeTargetDiscovery(): React.ReactElement {
             <>
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <p className="text-xs text-sp-admin-muted">
-                  {qualified.length} aprobados de {results.length} revisados
+                  {qualified.length} preseleccionados de {results.length} revisados
                 </p>
                 <button
                   type="button"
@@ -179,11 +211,14 @@ export function YouTubeTargetDiscovery(): React.ReactElement {
                             {channel.title}
                           </a>
                           <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${channel.isQualified ? 'bg-emerald-500/15 text-emerald-300' : 'bg-amber-500/15 text-amber-300'}`}>
-                            {channel.isQualified ? 'APROBADO' : 'REVISAR'}
+                            {channel.isQualified ? 'PRESELECCIONADO' : 'REVISAR'}
+                          </span>
+                          <span className="rounded-full bg-sky-500/10 px-2 py-0.5 text-[10px] font-bold text-sky-300">
+                            {channel.complianceLabel}
                           </span>
                         </div>
                         <p className="mt-1 text-xs text-sp-admin-muted">
-                          {MARKET_LABELS[channel.country as VerifiedGamblingMarket] ?? channel.country ?? 'País desconocido'} · {numberFormat.format(channel.subscriberCount)} suscriptores
+                          {countryLabel(channel.country)} · {numberFormat.format(channel.subscriberCount)} suscriptores
                         </p>
                         <div className="mt-2 grid grid-cols-3 gap-2 text-xs">
                           <Metric label="Vídeos" value={`${channel.videoCount}/${channel.windowDays}d`} pass={channel.videoCount >= 8} />
@@ -192,6 +227,14 @@ export function YouTubeTargetDiscovery(): React.ReactElement {
                         </div>
                         {!channel.isQualified && (
                           <p className="mt-2 text-[11px] text-amber-300/80">{channel.reasons.join(' · ')}</p>
+                        )}
+                        {channel.isQualified && (
+                          <p className="mt-2 text-[11px] text-sky-300/80">{channel.complianceExplanation}</p>
+                        )}
+                        {channel.complianceSourceUrl && (
+                          <a href={channel.complianceSourceUrl} target="_blank" rel="noreferrer" className="mt-1 inline-block text-[10px] font-semibold text-sp-admin-accent hover:underline">
+                            Ver fuente del regulador →
+                          </a>
                         )}
                       </div>
                     </div>

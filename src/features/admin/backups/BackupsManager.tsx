@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { createManualBackupAction } from '@/app/admin/(dashboard)/backups/backup-actions';
 import { getDriveDownloadUrl } from '@/lib/backup/drive-upload';
 import type { DriveFile } from '@/lib/backup/drive-upload';
+import type { BackupHealthSummary } from '@/lib/queries/backupHealth';
 
 // ── Helpers ───────────────────────────────────────────────────────────
 
@@ -35,11 +36,12 @@ type Props = {
   readonly files:         readonly DriveFile[];
   readonly initialError:  string | null;
   readonly isConfigured:  boolean;
+  readonly vpsHealth: BackupHealthSummary;
 };
 
 // ── Component ─────────────────────────────────────────────────────────
 
-export function BackupsManager({ files: initialFiles, initialError, isConfigured }: Props): React.ReactElement {
+export function BackupsManager({ files: initialFiles, initialError, isConfigured, vpsHealth }: Props): React.ReactElement {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [result,    setResult]       = useState<{ ok?: boolean; msg?: string; file?: DriveFile } | null>(null);
@@ -67,9 +69,9 @@ export function BackupsManager({ files: initialFiles, initialError, isConfigured
       {/* Header */}
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-xl font-bold text-sp-admin-text leading-none">Backups</h1>
+          <h1 className="text-xl font-bold text-sp-admin-text leading-none">Copias de seguridad</h1>
           <p className="text-[11px] text-sp-admin-muted mt-1">
-            Copias de seguridad automáticas y manuales en Google Drive
+            Estado real de la copia cifrada del VPS y exportaciones JSON opcionales
           </p>
         </div>
         <button
@@ -85,8 +87,26 @@ export function BackupsManager({ files: initialFiles, initialError, isConfigured
               <path d="M7 1v8M3.5 5.5L7 9l3.5-3.5M1 12h12"/>
             </svg>
           )}
-          {isPending ? 'Creando backup…' : 'Crear backup ahora'}
+          {isPending ? 'Exportando…' : 'Exportar JSON ahora'}
         </button>
+      </div>
+
+      <div className="rounded-xl border border-sp-admin-border bg-sp-admin-card px-5 py-4 space-y-4">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-sp-admin-muted">Copia completa cifrada · VPS → Google Drive</p>
+            <p className="mt-1 text-sm font-semibold text-sp-admin-text">Base del CRM, n8n, documentos y configuración recuperable</p>
+          </div>
+          <BackupStatusBadge status={vpsHealth.status} />
+        </div>
+        <div className="grid gap-3 sm:grid-cols-3">
+          <StatusMetric label="Última copia" value={vpsHealth.lastBackupAt ? fmtDate(vpsHealth.lastBackupAt) : 'Sin señal'} />
+          <StatusMetric label="Antigüedad" value={vpsHealth.ageHours === null ? 'Desconocida' : `${vpsHealth.ageHours} h`} />
+          <StatusMetric label="Frecuencia" value="Cada 6 horas" />
+        </div>
+        <p className="text-[11px] leading-relaxed text-sp-admin-muted">
+          Los nombres y contenidos salen cifrados del VPS. Esta señal la envía Zack Guardian; un archivo JSON manual no sustituye esta copia completa.
+        </p>
       </div>
 
       {/* Banner configuración */}
@@ -94,15 +114,10 @@ export function BackupsManager({ files: initialFiles, initialError, isConfigured
         <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
           <span className="text-amber-500 text-[15px] shrink-0 mt-0.5" aria-hidden>⚠</span>
           <div>
-            <p className="text-[12px] font-semibold text-amber-800">Google Drive no está configurado</p>
+            <p className="text-[12px] font-semibold text-amber-800">Exportación JSON manual no configurada</p>
             <p className="text-[11px] text-amber-700/80 mt-0.5">
-              Añade las siguientes variables de entorno para activar los backups:
+              La copia completa cifrada de arriba no depende de esta opción y sigue funcionando. Esta sección solo sirve para generar exportaciones JSON puntuales desde el CRM.
             </p>
-            <div className="mt-2 rounded-lg bg-amber-100 border border-amber-200 px-3 py-2 font-mono text-[10px] text-amber-800 space-y-0.5">
-              <p>GOOGLE_SERVICE_ACCOUNT_EMAIL=backup@proyecto.iam.gserviceaccount.com</p>
-              <p>GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY=&quot;-----BEGIN PRIVATE KEY-----\n...&quot;</p>
-              <p>GOOGLE_DRIVE_BACKUP_FOLDER_ID=1aBcDeFgHiJkLmNoPqRs</p>
-            </div>
           </div>
         </div>
       )}
@@ -145,39 +160,11 @@ export function BackupsManager({ files: initialFiles, initialError, isConfigured
         </div>
       )}
 
-      {/* Configuración del cron */}
-      <div className="rounded-xl border border-sp-admin-border bg-sp-admin-card px-5 py-4 space-y-3">
-        <p className="text-[10px] font-bold uppercase tracking-wider text-sp-admin-muted">Backups automáticos (Vercel Cron)</p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {[
-            { type: 'Diario',  schedule: '2:00 AM (lunes–domingo, excepto lunes = semanal)', icon: '📅', active: isConfigured },
-            { type: 'Semanal', schedule: 'Lunes 2:00 AM (backup completo)',                  icon: '📋', active: isConfigured },
-          ].map((cron) => (
-            <div key={cron.type} className={`flex items-center gap-3 rounded-lg border p-3 ${
-              cron.active ? 'border-emerald-200 bg-emerald-50' : 'border-sp-admin-border bg-sp-admin-hover/20'
-            }`}>
-              <span className="text-xl" aria-hidden>{cron.icon}</span>
-              <div className="flex-1 min-w-0">
-                <p className="text-[12px] font-semibold text-sp-admin-text">{cron.type}</p>
-                <p className="text-[10px] text-sp-admin-muted truncate">{cron.schedule}</p>
-              </div>
-              <span className={`text-[9px] font-bold rounded-full px-2 py-0.5 ${
-                cron.active
-                  ? 'bg-emerald-100 text-emerald-700 border border-emerald-200'
-                  : 'bg-slate-100 text-slate-500 border border-slate-200'
-              }`}>
-                {cron.active ? 'Activo' : 'Sin configurar'}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
-
       {/* Lista de backups */}
       <div>
         <div className="flex items-center justify-between mb-2">
           <p className="text-[12px] font-bold text-sp-admin-text">
-            Backups en Google Drive
+            Exportaciones JSON en Google Drive
             {initialFiles.length > 0 && (
               <span className="ml-1.5 text-[10px] font-normal text-sp-admin-muted">
                 ({initialFiles.length} archivos)
@@ -190,8 +177,8 @@ export function BackupsManager({ files: initialFiles, initialError, isConfigured
           <div className="rounded-xl border border-dashed border-sp-admin-border bg-sp-admin-card p-8 text-center">
             <p className="text-[13px] text-sp-admin-muted">
               {isConfigured
-                ? 'No hay backups todavía. Crea el primero con el botón de arriba.'
-                : 'Configura las credenciales de Google Drive para ver los backups.'}
+                ? 'No hay exportaciones JSON todavía. Puedes crear una con el botón de arriba.'
+                : 'La exportación JSON opcional no está configurada.'}
             </p>
           </div>
         ) : (
@@ -249,6 +236,26 @@ export function BackupsManager({ files: initialFiles, initialError, isConfigured
         )}
       </div>
 
+    </div>
+  );
+}
+
+function BackupStatusBadge({ status }: { readonly status: BackupHealthSummary['status'] }): React.ReactElement {
+  const styles = {
+    healthy: 'border-emerald-200 bg-emerald-50 text-emerald-700',
+    warning: 'border-amber-200 bg-amber-50 text-amber-700',
+    failed: 'border-red-200 bg-red-50 text-red-700',
+    unknown: 'border-slate-200 bg-slate-50 text-slate-600',
+  } as const;
+  const labels = { healthy: 'Al día', warning: 'Revisar', failed: 'Fallo', unknown: 'Sin señal' } as const;
+  return <span className={`rounded-full border px-2.5 py-1 text-[10px] font-bold ${styles[status]}`}>{labels[status]}</span>;
+}
+
+function StatusMetric({ label, value }: { readonly label: string; readonly value: string }): React.ReactElement {
+  return (
+    <div className="rounded-lg border border-sp-admin-border bg-sp-admin-bg/40 px-3 py-2">
+      <p className="text-[9px] font-bold uppercase tracking-wider text-sp-admin-muted">{label}</p>
+      <p className="mt-1 text-xs font-semibold text-sp-admin-text">{value}</p>
     </div>
   );
 }

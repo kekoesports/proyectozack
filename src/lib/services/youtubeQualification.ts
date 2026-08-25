@@ -1,11 +1,20 @@
 import type { YouTubeChannelPreview, YouTubeRecentPerformance } from './youtube';
-
-export const VERIFIED_GAMBLING_MARKETS = ['ES', 'CO', 'PE'] as const;
-export type VerifiedGamblingMarket = (typeof VERIFIED_GAMBLING_MARKETS)[number];
+import {
+  assessCs2Market,
+  type Cs2CampaignType,
+  type Cs2MarketAssessmentStatus,
+  type Cs2SearchMarket,
+  type TargetLanguage,
+} from '@/lib/compliance/cs2Markets';
 
 export type YouTubeQualification = YouTubeChannelPreview & YouTubeRecentPerformance & {
-  readonly isSpanish: boolean;
+  readonly languageMatches: boolean;
   readonly isQualified: boolean;
+  readonly complianceStatus: Cs2MarketAssessmentStatus;
+  readonly complianceLabel: string;
+  readonly complianceExplanation: string;
+  readonly complianceSourceUrl: string | null;
+  readonly complianceCheckedAt: string;
   readonly reasons: readonly string[];
 };
 
@@ -20,18 +29,33 @@ export function looksSpanish(channel: YouTubeChannelPreview): boolean {
   return SPANISH_HINTS.some((hint) => text.includes(hint));
 }
 
+export function matchesTargetLanguage(
+  channel: YouTubeChannelPreview,
+  language: TargetLanguage,
+): boolean {
+  if (language === 'any') return true;
+  if (channel.defaultLanguage?.toLowerCase().startsWith(language)) return true;
+  return language === 'es' && looksSpanish(channel);
+}
+
 export function qualifyYouTubeChannel(
   channel: YouTubeChannelPreview,
   performance: YouTubeRecentPerformance,
-  market: VerifiedGamblingMarket,
+  market: Cs2SearchMarket,
+  language: TargetLanguage = 'es',
+  campaignType: Cs2CampaignType = 'case-gambling',
   minimumVideos = 8,
   minimumViews = 1_000,
 ): YouTubeQualification {
-  const isSpanish = looksSpanish(channel);
+  const languageMatches = matchesTargetLanguage(channel, language);
+  const compliance = assessCs2Market(channel.country, campaignType);
   const reasons: string[] = [];
 
-  if (channel.country !== market) reasons.push(`País del canal: ${channel.country ?? 'sin declarar'}`);
-  if (!isSpanish) reasons.push('Idioma español no confirmado');
+  if (market !== 'GLOBAL' && channel.country !== market) {
+    reasons.push(`País del canal: ${channel.country ?? 'sin declarar'}`);
+  }
+  if (!languageMatches) reasons.push('Idioma solicitado no confirmado');
+  if (!compliance.eligible) reasons.push(compliance.explanation);
   if (performance.videoCount < minimumVideos) {
     reasons.push(`${performance.videoCount}/${minimumVideos} vídeos recientes`);
   }
@@ -43,7 +67,12 @@ export function qualifyYouTubeChannel(
   return {
     ...channel,
     ...performance,
-    isSpanish,
+    languageMatches,
+    complianceStatus: compliance.status,
+    complianceLabel: compliance.label,
+    complianceExplanation: compliance.explanation,
+    complianceSourceUrl: compliance.sourceUrl,
+    complianceCheckedAt: compliance.checkedAt,
     isQualified: reasons.length === 0,
     reasons,
   };

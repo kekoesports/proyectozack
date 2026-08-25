@@ -20,6 +20,7 @@ import {
   getCampaignMarginAlerts,
   getFinanceAlerts,
 } from './financeDashboard';
+import { getOperationsSummary } from './operations';
 
 export type ToolResult =
   | { ok: true; data: unknown }
@@ -42,7 +43,8 @@ export type ToolName =
   | 'getCashflowTrend'
   | 'getReceivablesRiskSummary'
   | 'getCampaignMarginAlerts'
-  | 'getFinanceAlerts';
+  | 'getFinanceAlerts'
+  | 'getOperationsSummary';
 
 export const AVAILABLE_TOOLS = [
   'getBillingSummary',
@@ -62,6 +64,7 @@ export const AVAILABLE_TOOLS = [
   'getReceivablesRiskSummary',
   'getCampaignMarginAlerts',
   'getFinanceAlerts',
+  'getOperationsSummary',
 ] as const satisfies readonly ToolName[];
 
 // Mapa de roles permitidos por tool.
@@ -88,6 +91,7 @@ const TOOL_ALLOWED_ROLES: Partial<Record<ToolName, readonly Role[]>> = {
   // analytics:read — incluye analyst y talent_manager (datos agregados sin PII ni importes individuales)
   getCashflowTrend:        ['admin', 'manager', 'analyst', 'finance', 'talent_manager'],
   getCampaignMarginAlerts: ['admin', 'manager', 'analyst', 'finance', 'talent_manager'],
+  getOperationsSummary: ['admin', 'admin_limited_tasks', 'manager', 'ops', 'analyst', 'finance', 'talent_manager', 'editor'],
   // getCrmHelpContext: sin restricción — disponible para todos los roles autenticados
 };
 
@@ -132,6 +136,8 @@ async function executeTool(name: ToolName, input?: unknown): Promise<ToolResult>
         return { ok: true, data: await getCampaignMarginAlerts() };
       case 'getFinanceAlerts':
         return { ok: true, data: await getFinanceAlerts() };
+      case 'getOperationsSummary':
+        return { ok: true, data: await getOperationsSummary() };
       default:
         return { ok: false, error: `Tool desconocida: ${name as string}` };
     }
@@ -198,6 +204,7 @@ Tienes acceso a las siguientes herramientas de solo lectura del CRM SocialPro:
 - getReceivablesRiskSummary: cobros pendientes y vencidos agrupados por riesgo (importe total, top 5 vencidos)
 - getCampaignMarginAlerts: campañas con margen inferior al 20% (presupuesto estimado)
 - getFinanceAlerts: alertas financieras derivadas automáticamente del estado actual del sistema
+- getOperationsSummary: estado operativo de Creadores Target, prensa gratuita, alertas editoriales, publicaciones programadas y copias cifradas del VPS
 
 Para usarlas, incluye en tu respuesta una línea con el formato:
 [TOOL:nombreDeLaTool]

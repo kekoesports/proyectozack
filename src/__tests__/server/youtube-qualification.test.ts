@@ -38,9 +38,45 @@ describe('qualifyYouTubeChannel', () => {
     expect(result.isQualified).toBe(false);
     expect(result.reasons).toEqual(expect.arrayContaining([
       'País del canal: sin declarar',
-      'Idioma español no confirmado',
+      'Idioma solicitado no confirmado',
       '5/8 vídeos recientes',
     ]));
+  });
+
+  it('preselecciona worldwide para marketplace sin azar con país declarado', () => {
+    const result = qualifyYouTubeChannel(
+      { ...channel, country: 'AR', defaultLanguage: 'es' },
+      performance,
+      'GLOBAL',
+      'any',
+      'marketplace',
+    );
+    expect(result.isQualified).toBe(true);
+    expect(result.complianceStatus).toBe('marketplace-scope-only');
+  });
+
+  it('mantiene en revisión el gambling de un país sin fuente validada', () => {
+    const result = qualifyYouTubeChannel(
+      { ...channel, country: 'AR' },
+      performance,
+      'GLOBAL',
+      'any',
+      'case-gambling',
+    );
+    expect(result.isQualified).toBe(false);
+    expect(result.complianceStatus).toBe('manual-review');
+  });
+
+  it('bloquea cajas en un mercado marcado por su regulador como restringido', () => {
+    const result = qualifyYouTubeChannel(
+      { ...channel, country: 'FR' },
+      performance,
+      'GLOBAL',
+      'any',
+      'case-gambling',
+    );
+    expect(result.isQualified).toBe(false);
+    expect(result.complianceStatus).toBe('restricted');
   });
 
   it('no confunde la media con el mínimo exigido', () => {

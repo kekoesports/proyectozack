@@ -60,6 +60,9 @@ jest.mock('@/lib/services/ai-assistant/tools/financeDashboard', () => ({
   getCampaignMarginAlerts: jest.fn().mockResolvedValue([]),
   getFinanceAlerts: jest.fn().mockResolvedValue([]),
 }));
+jest.mock('@/lib/services/ai-assistant/tools/operations', () => ({
+  getOperationsSummary: jest.fn().mockResolvedValue({}),
+}));
 
 // PDF proxy — contracts query
 const mockGetSignerByToken = jest.fn();

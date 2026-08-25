@@ -65,6 +65,7 @@ export default async function AdminLayout({ children }: AdminLayoutProps): Promi
     href: item.href,
     label: item.label,
     icon: NAV_ICONS[item.key],
+    ...(item.group ? { group: item.group } : {}),
     ...(item.prefetch === false ? { prefetch: false as const } : {}),
   }));
 

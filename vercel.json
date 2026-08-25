@@ -10,10 +10,6 @@
       "schedule": "0 5 * * 1"
     },
     {
-      "path": "/api/cron/backup",
-      "schedule": "0 2 * * *"
-    },
-    {
       "path": "/api/cron/sync-metrics",
       "schedule": "0 7 * * 1"
     },
