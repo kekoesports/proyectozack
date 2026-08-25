@@ -22,4 +22,3 @@ ProtectHome=true
 ProtectSystem=strict
 ReadOnlyPaths=/opt/socialpro
 ReadWritePaths=/var/backups/socialpro
-

@@ -10,4 +10,3 @@ Unit=socialpro-backup-local.service
 
 [Install]
 WantedBy=timers.target
-
