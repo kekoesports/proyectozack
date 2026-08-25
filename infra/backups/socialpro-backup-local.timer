@@ -1,0 +1,12 @@
+[Unit]
+Description=Backup local interino de SocialPro cada 6 horas
+
+[Timer]
+OnCalendar=*-*-* 02,08,14,20:00:00
+Persistent=true
+RandomizedDelaySec=10m
+AccuracySec=1m
+Unit=socialpro-backup-local.service
+
+[Install]
+WantedBy=timers.target
