@@ -36,6 +36,11 @@ horas. Usa el remoto `rclone crypt` `socialpro-backups:`: tanto el contenido com
 los nombres llegan cifrados a Google Drive y la cuenta solo concede el alcance
 `drive.file`.
 
+Zack Guardian no se guía por la fecha de cualquier fichero temporal. El script
+actualiza `/var/lib/socialpro-guardian/backup-last-success` únicamente después de que la subida y
+`rclone check` terminen bien; el collector usa esa marca y publica
+`backup.failed` si la unidad queda en estado fallido.
+
 `socialpro-backup-local.timer` es únicamente el fallback interino. Debe quedar
 desactivado cuando el remoto funcione, para evitar dos volcados simultáneos. Una
 ejecución remota solo se considera buena después de descargarla de nuevo,

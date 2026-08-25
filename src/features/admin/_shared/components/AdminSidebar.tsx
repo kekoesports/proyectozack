@@ -11,6 +11,7 @@ type NavItem = {
   readonly label: string;
   readonly icon: React.ReactNode;
   readonly prefetch?: boolean;
+  readonly group?: string;
 };
 
 export type NavGroup = {
@@ -211,14 +212,20 @@ export function AdminSidebar({
               </button>
               {expanded && (
                 <div className="mt-0.5 flex flex-col gap-0.5">
-                  {moreNav.map((item) => (
-                    <NavLink
-                      key={item.href}
-                      item={item}
-                      active={isActive(item.href)}
-                      onClose={close}
-                      indent
-                    />
+                  {moreNav.map((item, index) => (
+                    <div key={item.href}>
+                      {item.group && item.group !== moreNav[index - 1]?.group && (
+                        <p className="px-11 pb-1 pt-3 text-[9px] font-bold uppercase tracking-[0.2em] text-sp-admin-sidebar-muted/60">
+                          {item.group}
+                        </p>
+                      )}
+                      <NavLink
+                        item={item}
+                        active={isActive(item.href)}
+                        onClose={close}
+                        indent
+                      />
+                    </div>
                   ))}
                 </div>
               )}

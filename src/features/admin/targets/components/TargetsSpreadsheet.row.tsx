@@ -119,6 +119,20 @@ export function TargetRow({
               mín. <strong className="text-sp-admin-text">{formatCompact(target.minRecentVideoViews ?? 0)}</strong>
               {' · '}media <strong className="text-sp-admin-text">{formatCompact(target.avgRecentVideoViews ?? 0)}</strong>
             </p>
+            {target.complianceStatus && (
+              <a
+                href={target.complianceSourceUrl ?? undefined}
+                target={target.complianceSourceUrl ? '_blank' : undefined}
+                rel={target.complianceSourceUrl ? 'noopener noreferrer' : undefined}
+                className={`inline-flex rounded px-1.5 py-0.5 text-[9px] font-bold ${
+                  target.complianceStatus === 'operator-check-required'
+                    ? 'bg-amber-500/10 text-amber-300'
+                    : 'bg-sky-500/10 text-sky-300'
+                }`}
+              >
+                {target.complianceStatus === 'operator-check-required' ? 'LICENCIA PENDIENTE' : 'SOLO MARKETPLACE'}
+              </a>
+            )}
           </div>
         ) : (
           <span className="text-[11px] text-sp-admin-muted/40">Sin auditar</span>

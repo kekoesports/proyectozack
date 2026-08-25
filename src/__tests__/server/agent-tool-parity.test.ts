@@ -1,7 +1,7 @@
 /**
  * Paridad con el asistente actual.
  *
- * Las 17 tools de solo lectura se envuelven, no se reimplementan: cada una
+ * Las tools de solo lectura se envuelven, no se reimplementan: cada una
  * llama a la misma función que usa `/admin/asistente` hoy. Este fichero vigila
  * que la lista no se desincronice y, sobre todo, que los permisos declarados
  * como módulo + acción concedan exactamente a los mismos roles que la tabla
@@ -44,10 +44,11 @@ const ROLES_ESPERADOS: Readonly<Record<string, readonly Role[]>> = {
   getActiveCampaigns: ['admin', 'manager', 'staff', 'ops', 'talent_manager', 'finance'],
   getCashflowTrend: ['admin', 'manager', 'analyst', 'finance', 'talent_manager'],
   getCampaignMarginAlerts: ['admin', 'manager', 'analyst', 'finance', 'talent_manager'],
+  getOperationsSummary: ['admin', 'manager', 'ops', 'analyst', 'finance', 'talent_manager', 'editor'],
 };
 
 describe('cobertura de las tools del asistente', () => {
-  it('el runtime cubre las 17 del asistente, sin perder ninguna', () => {
+  it('el runtime cubre todas las tools del asistente, sin perder ninguna', () => {
     // Desde PR 6 el registro tiene además las tools propias de Guardian, así
     // que la comprobación es de cobertura y no de igualdad. El invariante que
     // importa sigue siendo el mismo: si alguien añade una tool al asistente y
@@ -56,7 +57,7 @@ describe('cobertura de las tools del asistente', () => {
     for (const nombre of AVAILABLE_TOOLS) {
       expect(enRuntime.has(nombre)).toBe(true);
     }
-    expect(AVAILABLE_TOOLS).toHaveLength(17);
+    expect(AVAILABLE_TOOLS).toHaveLength(18);
   });
 
   it('las tools añadidas son las de Guardian y ninguna más', () => {

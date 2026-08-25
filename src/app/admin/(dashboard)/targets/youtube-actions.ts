@@ -9,16 +9,24 @@ import { bulkUpsertTargets } from '@/lib/queries/targets';
 import { getChannelRecentPerformance, searchYouTubeChannels } from '@/lib/services/youtube';
 import {
   qualifyYouTubeChannel,
-  VERIFIED_GAMBLING_MARKETS,
-  type VerifiedGamblingMarket,
   type YouTubeQualification,
 } from '@/lib/services/youtubeQualification';
+import {
+  CS2_CAMPAIGN_TYPES,
+  CS2_SEARCH_MARKETS,
+  TARGET_LANGUAGES,
+  type Cs2CampaignType,
+  type Cs2SearchMarket,
+  type TargetLanguage,
+} from '@/lib/compliance/cs2Markets';
 import { createLimit } from '@/lib/utils/concurrencyLimit';
 import type { CreateTargetInput } from '@/lib/schemas/target';
 
 const searchSchema = z.object({
   query: z.string().trim().min(2).max(120),
-  market: z.enum(VERIFIED_GAMBLING_MARKETS),
+  market: z.enum(CS2_SEARCH_MARKETS),
+  language: z.enum(TARGET_LANGUAGES).default('any'),
+  campaignType: z.enum(CS2_CAMPAIGN_TYPES).default('marketplace'),
   windowDays: z.union([z.literal(60), z.literal(90)]).default(90),
   minimumVideos: z.number().int().min(1).max(30).default(8),
   minimumViews: z.number().int().min(0).max(10_000_000).default(1_000),
@@ -52,8 +60,8 @@ export async function discoverYouTubeTargetsAction(
     const channels = await searchYouTubeChannels(
       params.query,
       fetchLimit,
-      params.market,
-      'es',
+      params.market === 'GLOBAL' ? undefined : params.market,
+      params.language === 'any' ? undefined : params.language,
     );
     const limit = createLimit(4);
     const audited = await Promise.allSettled(
@@ -63,6 +71,8 @@ export async function discoverYouTubeTargetsAction(
           channel,
           performance,
           params.market,
+          params.language,
+          params.campaignType,
           params.minimumVideos,
           params.minimumViews,
         );
@@ -88,15 +98,19 @@ const importSchema = z.array(z.object({
   description: z.string(),
   thumbnailUrl: z.url().nullable(),
   subscriberCount: z.number().int().nonnegative(),
-  country: z.enum(VERIFIED_GAMBLING_MARKETS),
+  country: z.string().length(2),
   defaultLanguage: z.string().nullable(),
   windowDays: z.union([z.literal(60), z.literal(90)]),
   videoCount: z.number().int().min(8),
   minViews: z.number().int().min(1_000),
   avgViews: z.number().int().nonnegative(),
   lastVideoAt: z.coerce.date().nullable(),
-  isSpanish: z.literal(true),
+  languageMatches: z.literal(true),
   isQualified: z.literal(true),
+  complianceStatus: z.enum(['marketplace-scope-only', 'operator-check-required']),
+  complianceSourceUrl: z.url().nullable(),
+  complianceCheckedAt: z.string().date(),
+  campaignType: z.enum(CS2_CAMPAIGN_TYPES),
 })).min(1).max(25);
 
 export async function importQualifiedYouTubeTargetsAction(
@@ -125,12 +139,16 @@ export async function importQualifiedYouTubeTargetsAction(
     avgRecentVideoViews: channel.avgViews,
     recentVideosWindowDays: channel.windowDays,
     qualificationUpdatedAt: new Date(),
+    complianceActivity: channel.campaignType,
+    complianceStatus: channel.complianceStatus,
+    complianceSourceUrl: channel.complianceSourceUrl ?? undefined,
+    complianceCheckedAt: new Date(channel.complianceCheckedAt),
     contactUrl: `https://www.youtube.com/channel/${channel.channelId}/about`,
-    discoveredVia: `youtube_search:${batchId}`,
+    discoveredVia: `youtube_search:${channel.campaignType}:${batchId}`,
   }));
   const result = await bulkUpsertTargets(rows);
   revalidatePath('/admin/targets');
   return { imported: result.inserted, updated: result.updated, error: null };
 }
 
-export type { VerifiedGamblingMarket, YouTubeQualification };
+export type { Cs2CampaignType, Cs2SearchMarket, TargetLanguage, YouTubeQualification };

@@ -24,6 +24,7 @@ import {
   getReceivablesRiskSummary,
 } from '@/lib/services/ai-assistant/tools/financeDashboard';
 import { getHelpContextText } from '@/lib/services/ai-assistant/tools/help';
+import { getOperationsSummary } from '@/lib/services/ai-assistant/tools/operations';
 
 import { eraseAgentTool } from '../erase-tool';
 import type { ErasedAgentTool } from '../types';
@@ -51,6 +52,7 @@ const FACTURACION = { module: 'facturacion', action: 'read' } as const;
 const BANCOS = { module: 'bancos', action: 'read' } as const;
 const CAMPANAS = { module: 'campanas', action: 'read' } as const;
 const ANALYTICS = { module: 'analytics', action: 'read' } as const;
+const AGENTS = { module: 'agents', action: 'read' } as const;
 
 export const getBillingSummaryTool = defineReadTool({
   name: 'getBillingSummary',
@@ -170,6 +172,13 @@ export const getCampaignMarginAlertsTool = defineReadTool({
   run: () => getCampaignMarginAlerts(),
 });
 
+export const getOperationsSummaryTool = defineReadTool({
+  name: 'getOperationsSummary',
+  description: 'Resumen de Creadores Target, prensa, contenido y copias cifradas para priorizar operaciones.',
+  permission: AGENTS,
+  run: () => getOperationsSummary(),
+});
+
 // ── Documentación interna ────────────────────────────────────────────────────
 
 const HELP_INPUT = z
@@ -204,7 +213,7 @@ export const getCrmHelpContextTool: ErasedAgentTool = eraseAgentTool<HelpInput, 
   execute: async (_ctx, input) => ({ text: getHelpContextText(input.topic) }),
 });
 
-/** Las 17, en el orden en que las declara el asistente. */
+/** Las tools, en el orden en que las declara el asistente. */
 export const LEGACY_READ_TOOLS: readonly ErasedAgentTool[] = [
   getBillingSummaryTool,
   getOverdueInvoicesTool,
@@ -223,4 +232,5 @@ export const LEGACY_READ_TOOLS: readonly ErasedAgentTool[] = [
   getReceivablesRiskSummaryTool,
   getCampaignMarginAlertsTool,
   getFinanceAlertsTool,
+  getOperationsSummaryTool,
 ];

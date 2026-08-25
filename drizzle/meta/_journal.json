@@ -960,6 +960,13 @@
       "when": 1787666562937,
       "tag": "0136_living_roland_deschain",
       "breakpoints": true
+    },
+    {
+      "idx": 137,
+      "version": "7",
+      "when": 1787673843141,
+      "tag": "0137_global-target-compliance",
+      "breakpoints": true
     }
   ]
 }

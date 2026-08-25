@@ -55,6 +55,10 @@ export const targets = pgTable(
     avgRecentVideoViews: integer('avg_recent_video_views'),
     recentVideosWindowDays: integer('recent_videos_window_days'),
     qualificationUpdatedAt: timestamp('qualification_updated_at', { withTimezone: true }),
+    complianceActivity: varchar('compliance_activity', { length: 30 }),
+    complianceStatus: varchar('compliance_status', { length: 40 }),
+    complianceSourceUrl: text('compliance_source_url'),
+    complianceCheckedAt: timestamp('compliance_checked_at', { withTimezone: true }),
     contactEmail: varchar('contact_email', { length: 320 }),
     contactUrl: text('contact_url'),
 

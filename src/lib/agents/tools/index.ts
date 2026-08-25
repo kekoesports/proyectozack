@@ -37,13 +37,14 @@ export const AGENT_TOOL_ALLOWLISTS: Readonly<Record<string, readonly string[]>> 
     'getCampaignMarginAlerts',
     'getFinanceAlerts',
     'getFinanceDashboardSummary',
+    'getOperationsSummary',
   ],
   'deal-clerk': [
     ...OPERATION_AGENT_TOOL_NAMES['deal-clerk'],
     'getCrmHelpContext',
     'getActiveCampaigns',
   ],
-  growth: [...OPERATION_AGENT_TOOL_NAMES.growth, 'getCrmHelpContext'],
+  growth: [...OPERATION_AGENT_TOOL_NAMES.growth, 'getCrmHelpContext', 'getOperationsSummary'],
   seo: [...OPERATION_AGENT_TOOL_NAMES.seo, 'getCrmHelpContext'],
   dev: ['getCrmHelpContext'],
 };
