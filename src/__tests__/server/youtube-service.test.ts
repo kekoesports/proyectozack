@@ -365,6 +365,9 @@ describe('youtube service', () => {
         description: 'A description',
         thumbnailUrl: 'https://img.example.com/med.jpg',
         subscriberCount: 123456,
+        country: null,
+        defaultLanguage: null,
+        videoCount: 0,
       });
     });
 
@@ -522,9 +525,9 @@ describe('youtube service', () => {
           status: 200,
           json: async () => ({
             items: [
-              { snippet: { resourceId: { videoId: 'vid1' } } },
-              { snippet: { resourceId: { videoId: 'vid2' } } },
-              { snippet: { resourceId: { videoId: 'vid3' } } },
+              { snippet: { publishedAt: '2026-08-24T10:00:00Z', resourceId: { videoId: 'vid1' } } },
+              { snippet: { publishedAt: '2026-08-23T10:00:00Z', resourceId: { videoId: 'vid2' } } },
+              { snippet: { publishedAt: '2026-08-22T10:00:00Z', resourceId: { videoId: 'vid3' } } },
             ],
           }),
           text: async () => '',
@@ -569,7 +572,7 @@ describe('youtube service', () => {
           ok: true,
           status: 200,
           json: async () => ({
-            items: [{ snippet: { resourceId: { videoId: 'vidA' } } }],
+            items: [{ snippet: { publishedAt: '2026-08-24T10:00:00Z', resourceId: { videoId: 'vidA' } } }],
           }),
           text: async () => '',
         })

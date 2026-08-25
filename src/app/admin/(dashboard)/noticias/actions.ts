@@ -14,8 +14,12 @@ type ActionResult =
 
 function revalidateNews(slug?: string) {
   revalidatePath('/news');
+  revalidatePath('/blog');
   revalidatePath('/admin/noticias');
-  if (slug) revalidatePath(`/news/${slug}`, 'page');
+  if (slug) {
+    revalidatePath(`/news/${slug}`, 'page');
+    revalidatePath(`/blog/${slug}`, 'page');
+  }
 }
 
 export async function createPostAction(formData: FormData): Promise<ActionResult> {
@@ -119,6 +123,7 @@ export async function updatePostAction(formData: FormData): Promise<ActionResult
   revalidateNews(data.slug ?? currentSlug);
   if (currentSlug && currentSlug !== data.slug) {
     revalidatePath(`/news/${currentSlug}`, 'page');
+    revalidatePath(`/blog/${currentSlug}`, 'page');
   }
   redirect('/admin/noticias');
 }

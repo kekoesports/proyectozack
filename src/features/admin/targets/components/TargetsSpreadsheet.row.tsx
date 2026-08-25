@@ -104,6 +104,26 @@ export function TargetRow({
       <td className="px-4 py-2.5 text-right text-[12px] font-semibold text-sp-admin-text tabular-nums">
         {target.followers > 0 ? formatCompact(target.followers) : '--'}
       </td>
+      <td className="px-4 py-2.5">
+        {target.platform === 'youtube' && target.recentVideoCount != null ? (
+          <div className="space-y-1 text-[11px]">
+            <div className="flex items-center gap-1.5">
+              <span className="rounded bg-emerald-500/10 px-1.5 py-0.5 font-semibold text-emerald-300">
+                {target.countryCode ?? '??'}
+              </span>
+              <span className="text-sp-admin-muted">
+                {target.recentVideoCount} vídeos / {target.recentVideosWindowDays ?? 90}d
+              </span>
+            </div>
+            <p className="text-sp-admin-muted">
+              mín. <strong className="text-sp-admin-text">{formatCompact(target.minRecentVideoViews ?? 0)}</strong>
+              {' · '}media <strong className="text-sp-admin-text">{formatCompact(target.avgRecentVideoViews ?? 0)}</strong>
+            </p>
+          </div>
+        ) : (
+          <span className="text-[11px] text-sp-admin-muted/40">Sin auditar</span>
+        )}
+      </td>
       <td className="px-4 py-2.5 max-w-[240px]">
         {target.bio ? (
           <p className="text-[11px] text-sp-admin-muted line-clamp-2 leading-relaxed">
@@ -114,13 +134,15 @@ export function TargetRow({
         )}
       </td>
       <td className="px-4 py-2.5">
-        {target.importBatchId ? (
+        {target.importBatchId || target.discoveredVia ? (
           <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-semibold ${
-            target.importBatchId.includes('cs2')
+            (target.importBatchId ?? target.discoveredVia ?? '').includes('cs2')
               ? 'bg-orange-900/30 text-orange-400'
               : 'bg-blue-900/20 text-blue-400'
           }`}>
-            {BATCH_LABELS[target.importBatchId] ?? target.importBatchId}
+            {target.importBatchId
+              ? (BATCH_LABELS[target.importBatchId] ?? target.importBatchId)
+              : target.discoveredVia?.split(':')[0]}
           </span>
         ) : (
           <span className="text-sp-admin-muted/25 text-[11px]">&mdash;</span>
@@ -183,6 +205,18 @@ export function TargetRow({
             {target.notes || <span className="opacity-25 italic">nota...</span>}
           </button>
         )}
+      </td>
+      <td className="px-3 py-2.5">
+        <a
+          href={target.contactEmail
+            ? `mailto:${target.contactEmail}?subject=${encodeURIComponent(`Colaboración SocialPro x ${target.fullName ?? target.username}`)}`
+            : (target.contactUrl ?? target.profileUrl)}
+          target={target.contactEmail ? undefined : '_blank'}
+          rel={target.contactEmail ? undefined : 'noopener noreferrer'}
+          className="inline-flex rounded-lg border border-sp-admin-border px-2.5 py-1.5 text-[11px] font-semibold text-sp-admin-text hover:border-sp-admin-accent hover:text-sp-admin-accent"
+        >
+          Contactar
+        </a>
       </td>
       <td className="px-3 py-2.5 text-center">
         <button

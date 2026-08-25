@@ -425,12 +425,14 @@ export function TableHeader({ allSelected, toggleAll, sort, toggleSort, sortArro
         <Th sortable field="followers" sort={sort} onSort={toggleSort} arrow={sortArrow} className="w-28 text-right">
           Audiencia
         </Th>
+        <Th className="min-w-[170px]">Encaje reciente</Th>
         <Th className="max-w-[240px]">Descripci&oacute;n</Th>
         <Th className="w-20">Fuente</Th>
         <Th sortable field="status" sort={sort} onSort={toggleSort} arrow={sortArrow} className="w-28">
           Estado
         </Th>
         <Th className="min-w-[160px]">Notas</Th>
+        <Th className="w-24">Contacto</Th>
         <Th className="w-8" />
       </tr>
     </thead>

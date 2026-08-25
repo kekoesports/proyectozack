@@ -2,6 +2,7 @@ import { requireAnyRole } from '@/lib/auth-guard';
 import { getAllTargets } from '@/lib/queries/targets';
 import { getAllBrandUsers } from '@/lib/queries/brandUsers';
 import { TargetsSpreadsheet } from '@/features/admin/targets/components/TargetsSpreadsheet';
+import { YouTubeTargetDiscovery } from '@/features/admin/targets/components/YouTubeTargetDiscovery';
 
 export default async function AdminTargetsPage(): Promise<React.ReactElement> {
   await requireAnyRole(['admin', 'admin_limited_tasks', 'manager', 'staff'], '/admin/login');
@@ -23,6 +24,7 @@ export default async function AdminTargetsPage(): Promise<React.ReactElement> {
         Importa perfiles via CSV y asigna cada fila a la marca que corresponda. La ruta sigue siendo <code className="text-sp-admin-text">/admin/targets</code> por compatibilidad de bookmarks.
       </p>
 
+      <YouTubeTargetDiscovery />
       <TargetsSpreadsheet targets={targets} brands={brands} />
     </div>
   );

@@ -1,12 +1,13 @@
 import Link from 'next/link';
 import { requirePermission } from '@/lib/permissions';
-import { getAllNewsPostsForAdmin } from '@/lib/queries/editorialSlots';
+import { getAllEditorialPostsForAdmin, getEditorialCadence } from '@/lib/queries/editorialSlots';
 import { getNewsletterStats } from '@/lib/queries/newsletterSubscribers';
 import { db } from '@/lib/db';
 import { newsletterSends } from '@/db/schema';
 import { deletePostVoidAction } from './actions';
 import { DeleteConfirmButton } from '../giveaways/DeleteConfirmButton';
 import { SendNewsletterButton } from './SendNewsletterButton';
+import { EditorialCadencePanel } from './EditorialCadencePanel';
 
 type ContentType = 'noticias' | 'analisis' | 'estadisticas';
 
@@ -28,13 +29,17 @@ export default async function AdminNoticiasPage({ searchParams }: Props) {
   await requirePermission('noticias', 'read');
   const params = await searchParams;
   const rawType = params?.type;
+  const rawVertical = params?.vertical;
+  const activeVertical: 'news' | 'blog' | undefined =
+    rawVertical === 'news' || rawVertical === 'blog' ? rawVertical : undefined;
   const activeType: ContentType | undefined =
     rawType === 'noticias' || rawType === 'analisis' || rawType === 'estadisticas'
       ? rawType
       : undefined;
 
-  const [allPosts, nlStats, existingSends] = await Promise.all([
-    getAllNewsPostsForAdmin(activeType),
+  const [allPosts, cadence, nlStats, existingSends] = await Promise.all([
+    getAllEditorialPostsForAdmin(activeVertical, activeType),
+    getEditorialCadence(6),
     getNewsletterStats(),
     db.select({ postId: newsletterSends.postId, status: newsletterSends.status }).from(newsletterSends),
   ]);
@@ -43,7 +48,7 @@ export default async function AdminNoticiasPage({ searchParams }: Props) {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="font-display text-4xl font-black uppercase text-sp-admin-text">Noticias</h1>
+        <h1 className="font-display text-4xl font-black uppercase text-sp-admin-text">Contenido</h1>
         <div className="flex items-center gap-3">
           <Link
             href="/admin/noticias/agenda"
@@ -70,19 +75,45 @@ export default async function AdminNoticiasPage({ searchParams }: Props) {
             Suscriptores
           </Link>
           <Link
-            href="/admin/noticias/new"
+            href="/admin/noticias/new?vertical=news"
             className="px-4 py-2 rounded-lg bg-sp-orange text-white text-sm font-bold hover:bg-sp-orange/90 transition-colors"
           >
-            + Nueva noticia
+            + Noticia
+          </Link>
+          <Link
+            href="/admin/noticias/new?vertical=blog"
+            className="px-4 py-2 rounded-lg bg-sp-admin-accent text-white text-sm font-bold hover:opacity-90 transition-colors"
+          >
+            + Blog
           </Link>
         </div>
       </div>
 
-      {/* Filtros por tipo */}
-      <div className="flex items-center gap-2 mb-6">
+      <EditorialCadencePanel weeks={cadence} />
+
+      <div className="flex flex-wrap items-center gap-2 mb-6">
+        {([undefined, 'news', 'blog'] as const).map((vertical) => {
+          const isActive = activeVertical === vertical;
+          const query = new URLSearchParams();
+          if (vertical) query.set('vertical', vertical);
+          if (activeType) query.set('type', activeType);
+          return (
+            <Link
+              key={vertical ?? 'all-verticals'}
+              href={`/admin/noticias${query.size ? `?${query.toString()}` : ''}`}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${isActive ? 'bg-sp-admin-accent text-white' : 'border border-sp-admin-border text-sp-admin-muted hover:bg-sp-admin-hover'}`}
+            >
+              {vertical === 'news' ? 'Noticias' : vertical === 'blog' ? 'Blogs' : 'Todo el contenido'}
+            </Link>
+          );
+        })}
+        <span className="mx-1 h-5 w-px bg-sp-admin-border" />
         {([undefined, 'noticias', 'analisis', 'estadisticas'] as const).map((t) => {
           const isActive = activeType === t;
-          const href = t ? `/admin/noticias?type=${t}` : '/admin/noticias';
+          const query = new URLSearchParams();
+          if (activeVertical) query.set('vertical', activeVertical);
+          if (t) query.set('type', t);
+          const href = `/admin/noticias${query.size ? `?${query.toString()}` : ''}`;
           const label = t ? CONTENT_TYPE_LABELS[t].label : 'Todos';
           return (
             <Link
@@ -102,7 +133,7 @@ export default async function AdminNoticiasPage({ searchParams }: Props) {
 
       {allPosts.length === 0 ? (
         <div className="rounded-2xl bg-sp-admin-card border border-sp-admin-border p-12 text-center">
-          <p className="text-sp-admin-muted text-sm mb-4">No hay noticias todavía.</p>
+          <p className="text-sp-admin-muted text-sm mb-4">No hay contenido con estos filtros.</p>
           <Link href="/admin/noticias/new" className="px-4 py-2 rounded-lg bg-sp-orange text-white text-sm font-bold hover:bg-sp-orange/90 transition-colors">
             Crear la primera
           </Link>
@@ -126,12 +157,15 @@ export default async function AdminNoticiasPage({ searchParams }: Props) {
               {allPosts.map((p) => {
                 const { label, cls } = statusLabel(p.status, p.publishedAt);
                 const ct = (p.contentType ?? 'noticias') as ContentType;
-                const { label: ctLabel, cls: ctCls } = CONTENT_TYPE_LABELS[ct];
+                const contentType = CONTENT_TYPE_LABELS[ct];
+                const ctLabel = p.vertical === 'blog' ? 'Blog' : contentType.label;
+                const ctCls = p.vertical === 'blog' ? 'bg-violet-900/30 text-violet-300' : contentType.cls;
+                const publicBase = p.vertical === 'blog' ? '/blog' : '/news';
                 return (
                   <tr key={p.id} className="border-b border-sp-admin-border/50 last:border-0 hover:bg-sp-admin-hover transition-colors">
                     <td className="px-6 py-4">
                       <p className="font-medium text-sp-admin-text line-clamp-1">{p.title}</p>
-                      <p className="text-[11px] text-sp-admin-muted font-mono mt-0.5">/news/{p.slug}</p>
+                      <p className="text-[11px] text-sp-admin-muted font-mono mt-0.5">{publicBase}/{p.slug}</p>
                     </td>
                     <td className="px-4 py-4">
                       <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-bold ${ctCls}`}>{ctLabel}</span>
@@ -155,7 +189,7 @@ export default async function AdminNoticiasPage({ searchParams }: Props) {
                       </div>
                     </td>
                     <td className="px-4 py-4">
-                      {p.status === 'published' ? (
+                      {p.vertical === 'news' && p.status === 'published' ? (
                         <SendNewsletterButton
                           postId={p.id}
                           postTitle={p.title}
@@ -175,7 +209,7 @@ export default async function AdminNoticiasPage({ searchParams }: Props) {
                           Editar
                         </Link>
                         <a
-                          href={`/news/${p.slug}`}
+                          href={`${publicBase}/${p.slug}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-xs text-sp-admin-muted hover:text-sp-admin-text transition-colors"

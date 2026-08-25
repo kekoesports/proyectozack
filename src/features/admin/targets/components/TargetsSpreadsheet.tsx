@@ -328,7 +328,7 @@ export function TargetsSpreadsheet({
       )}
 
       <div className="rounded-xl border border-sp-admin-border bg-sp-admin-card overflow-x-auto">
-        <table className="w-full text-left text-sm min-w-[720px]">
+        <table className="w-full text-left text-sm min-w-[1080px]">
           <TableHeader
             allSelected={allSelected}
             toggleAll={toggleAll}
@@ -339,7 +339,7 @@ export function TargetsSpreadsheet({
           <tbody className="divide-y divide-sp-admin-border/60">
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={9} className="px-5 py-16 text-center text-sp-admin-muted text-sm">
+                <td colSpan={11} className="px-5 py-16 text-center text-sp-admin-muted text-sm">
                   {search || statusFilter !== 'todos' || platformFilter.size > 0
                     ? 'Sin resultados para los filtros aplicados'
                     : 'Sin targets'}

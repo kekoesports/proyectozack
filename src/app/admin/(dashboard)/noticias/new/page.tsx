@@ -3,8 +3,14 @@ import { requirePermission } from '@/lib/permissions';
 import { createPostAction } from '../actions';
 import { PostForm } from '../PostForm';
 
-export default async function NewNoticiaPage() {
+type Props = { searchParams?: Promise<Record<string, string>> };
+
+export default async function NewNoticiaPage({ searchParams }: Props) {
   await requirePermission('noticias', 'write');
+  const params = await searchParams;
+  const vertical = params?.vertical === 'blog' ? 'blog' : 'news';
+  const requestedDate = params?.publishedAt ? new Date(params.publishedAt) : null;
+  const publishedAt = requestedDate && !Number.isNaN(requestedDate.getTime()) ? requestedDate : null;
 
   return (
     <div>
@@ -13,11 +19,17 @@ export default async function NewNoticiaPage() {
           ← Noticias
         </Link>
         <span className="text-sp-admin-border">/</span>
-        <h1 className="font-display text-4xl font-black uppercase text-sp-admin-text">Nueva noticia</h1>
+        <h1 className="font-display text-4xl font-black uppercase text-sp-admin-text">
+          {vertical === 'blog' ? 'Nuevo blog' : 'Nueva noticia'}
+        </h1>
       </div>
 
       <div className="rounded-2xl bg-sp-admin-card border border-sp-admin-border p-6">
-        <PostForm action={createPostAction} submitLabel="Crear noticia" />
+        <PostForm
+          post={{ vertical, publishedAt, status: publishedAt ? 'published' : 'draft' }}
+          action={createPostAction}
+          submitLabel={vertical === 'blog' ? 'Crear blog' : 'Crear noticia'}
+        />
       </div>
     </div>
   );
