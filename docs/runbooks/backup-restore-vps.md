@@ -31,11 +31,15 @@ Falla —a propósito— si no puede subir fuera del VPS. **Una copia que vive e
 mismo servidor no es una copia**: si el disco falla o se borra el VPS, se va con
 él.
 
-Mientras se autoriza el remoto cifrado existe un timer interino que ejecuta
-`backup.sh --no-remote` cada seis horas. Reduce el riesgo operativo durante el
-staging, pero **no habilita el cutover**: se sustituye por la copia remota en
-cuanto `rclone crypt` quede conectado y se haya ensayado una restauración desde
-ese remoto.
+El timer definitivo `socialpro-backup-remote.timer` ejecuta esta copia cada seis
+horas. Usa el remoto `rclone crypt` `socialpro-backups:`: tanto el contenido como
+los nombres llegan cifrados a Google Drive y la cuenta solo concede el alcance
+`drive.file`.
+
+`socialpro-backup-local.timer` es únicamente el fallback interino. Debe quedar
+desactivado cuando el remoto funcione, para evitar dos volcados simultáneos. Una
+ejecución remota solo se considera buena después de descargarla de nuevo,
+validar `SHA256SUMS` y completar el ensayo de restauración.
 
 ## Restaurar: el ensayo obligatorio
 

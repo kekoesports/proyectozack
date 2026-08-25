@@ -1,0 +1,27 @@
+[Unit]
+Description=Backup cifrado externo de infraestructura SocialPro
+Documentation=https://github.com/kekoesports/proyectozack/blob/master/docs/runbooks/backup-restore-vps.md
+After=docker.service network-online.target
+Requires=docker.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+UMask=0077
+Environment=BACKUP_DIR=/var/backups/socialpro
+Environment=RETENCION_DIAS=7
+Environment=N8N_DB_USER=n8n
+Environment=RCLONE_CONFIG=/root/.config/rclone/rclone.conf
+Environment=RCLONE_REMOTE=socialpro-backups:
+ExecStart=/opt/socialpro/backups/backup.sh
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=read-only
+ProtectSystem=strict
+ReadOnlyPaths=/opt/socialpro /root/.config/rclone
+ReadWritePaths=/var/backups/socialpro
