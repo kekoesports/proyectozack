@@ -78,6 +78,7 @@ describe('workflow n8n del bot de KPI REPORTING', () => {
     expect(String(request?.parameters.url)).toContain('/api/automation/deals/digest');
     expect(String(request?.parameters.url)).toContain('/api/automation/deals/invoices');
     expect(String(request?.parameters.method)).toContain('invoice_create');
+    expect(String(request?.parameters.jsonBody)).toContain('excludedCampaignIds: [48, 19, 17]');
     expect(send).toMatchObject({
       type: 'n8n-nodes-base.discord',
       parameters: { resource: 'message', operation: 'send' },
@@ -115,6 +116,7 @@ describe('workflow n8n de progreso, facturas y recordatorios', () => {
     ]));
     expect(JSON.stringify(value)).toContain('/api/automation/deals/invoices');
     expect(JSON.stringify(value)).toContain('/api/automation/deals/reminders');
+    expect(JSON.stringify(value)).toContain('excludedCampaignIds: [48, 19, 17]');
   });
 
   it('confirma el recordatorio solo después de publicarlo en Discord', () => {

@@ -19,15 +19,24 @@ export async function POST(req: Request): Promise<NextResponse> {
   }
 
   let announceExisting = false;
+  let excludedCampaignIds: number[] = [];
   try {
-    const body = await req.json() as { announceExisting?: unknown };
+    const body = await req.json() as {
+      announceExisting?: unknown;
+      excludedCampaignIds?: unknown;
+    };
     announceExisting = body.announceExisting === true;
+    if (Array.isArray(body.excludedCampaignIds)) {
+      excludedCampaignIds = [...new Set(body.excludedCampaignIds
+        .filter((value): value is number => Number.isInteger(value) && value > 0))]
+        .slice(0, 100);
+    }
   } catch {
     // n8n puede llamar sin body en la ejecución automática.
   }
 
   try {
-    const result = await createEligibleDealInvoiceDrafts();
+    const result = await createEligibleDealInvoiceDrafts({ excludedCampaignIds });
     return NextResponse.json({
       ok: true,
       ...result,

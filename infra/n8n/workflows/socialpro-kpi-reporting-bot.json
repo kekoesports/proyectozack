@@ -85,7 +85,7 @@
         "genericAuthType": "httpHeaderAuth",
         "sendBody": "={{ $json.command === 'invoice_create' }}",
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ announceExisting: true }) }}",
+      "jsonBody": "={{ JSON.stringify({ announceExisting: true, excludedCampaignIds: [48, 19, 17] }) }}",
         "options": {
           "timeout": 30000
         }
@@ -98,7 +98,7 @@
       "retryOnFail": true,
       "maxTries": 3,
       "waitBetweenTries": 3000,
-      "notes": "Lectura para revisa/detalle y creación segura de borradores para OK. Nunca emite ni envía facturas."
+    "notes": "Lectura para revisa/detalle y creación segura de borradores para OK. Nunca emite ni envía facturas. UXU × YOSPORTS, TODOCS2 × SKINSMONKEY y FER × SKINSMONKEY quedan excluidos por decisión operativa."
     },
     {
       "parameters": {

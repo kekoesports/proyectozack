@@ -185,13 +185,17 @@ export async function ensureDealInvoiceDraft(
   }
 }
 
-export async function createEligibleDealInvoiceDrafts(): Promise<DealInvoiceDraftBatch> {
+export async function createEligibleDealInvoiceDrafts(
+  options: { readonly excludedCampaignIds?: readonly number[] } = {},
+): Promise<DealInvoiceDraftBatch> {
   const digest = await getAutomationDealDigest();
+  const excludedCampaignIds = new Set(options.excludedCampaignIds ?? []);
   const candidates = digest.deals.filter((deal) => (
     deal.progressPct >= 80
     && deal.targetCount > 0
     && deal.trackingSheetUrl !== null
     && deal.syncError === null
+    && !excludedCampaignIds.has(deal.campaignId)
   ));
 
   const outcomes: DealInvoiceDraftOutcome[] = [];
