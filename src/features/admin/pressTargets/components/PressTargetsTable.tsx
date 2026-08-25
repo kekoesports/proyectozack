@@ -41,17 +41,20 @@ export function PressTargetsTable({ items }: { items: PressTarget[] }): React.Re
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>('all');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [freeOnly, setFreeOnly] = useState(true);
   const [, startTransition] = useTransition();
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     return items.filter((it) => {
+      if (!it.isActive) return false;
+      if (freeOnly && !it.costModel.startsWith('gratuito-')) return false;
       if (categoryFilter !== 'all' && it.category !== categoryFilter) return false;
       if (statusFilter !== 'all' && it.outreachStatus !== statusFilter) return false;
       if (q && !`${it.name} ${it.domain} ${it.region}`.toLowerCase().includes(q)) return false;
       return true;
     });
-  }, [items, search, categoryFilter, statusFilter]);
+  }, [items, search, categoryFilter, statusFilter, freeOnly]);
 
   const onStatusChange = (item: PressTarget, raw: string): void => {
     if (!isStatus(raw) || raw === item.outreachStatus) return;
@@ -70,6 +73,11 @@ export function PressTargetsTable({ items }: { items: PressTarget[] }): React.Re
 
   return (
     <div className="space-y-4">
+      <div className="grid gap-3 sm:grid-cols-3">
+        <Summary label="Gratuitos verificados" value={items.filter((item) => item.isActive && item.costModel.startsWith('gratuito-')).length} />
+        <Summary label="Contactados" value={items.filter((item) => item.outreachStatus === 'contactado').length} />
+        <Summary label="Publicaciones conseguidas" value={items.filter((item) => item.outreachStatus === 'publicado').length} />
+      </div>
       <div className="flex flex-wrap items-center gap-2">
         <input
           type="text"
@@ -88,6 +96,10 @@ export function PressTargetsTable({ items }: { items: PressTarget[] }): React.Re
             <option key={k} value={k}>{v}</option>
           ))}
         </select>
+        <label className="inline-flex items-center gap-2 rounded border border-sp-admin-border bg-sp-admin-card px-3 py-1.5 text-sm text-sp-admin-muted">
+          <input type="checkbox" checked={freeOnly} onChange={(event) => setFreeOnly(event.target.checked)} className="accent-emerald-500" />
+          Solo gratuitos verificados
+        </label>
         <select
           value={statusFilter}
           onChange={(e) => { if (isStatusFilter(e.target.value)) setStatusFilter(e.target.value); }}
@@ -112,6 +124,7 @@ export function PressTargetsTable({ items }: { items: PressTarget[] }): React.Re
               <th className="text-left px-3 py-2 font-semibold">Categoría</th>
               <th className="text-left px-3 py-2 font-semibold">Región</th>
               <th className="text-left px-3 py-2 font-semibold">Submission</th>
+              <th className="text-left px-3 py-2 font-semibold">Encaje</th>
               <th className="text-left px-3 py-2 font-semibold">Estado</th>
               <th className="text-left px-3 py-2 font-semibold">Validado</th>
             </tr>
@@ -136,7 +149,26 @@ export function PressTargetsTable({ items }: { items: PressTarget[] }): React.Re
                 <td className="px-3 py-2 align-top text-sp-admin-text">{CATEGORY_LABELS[it.category]}</td>
                 <td className="px-3 py-2 align-top text-sp-admin-text">{it.region}</td>
                 <td className="px-3 py-2 align-top text-sp-admin-text font-mono text-xs break-all max-w-[260px]">
-                  {it.submission}
+                  <p className="font-sans text-sp-admin-muted">{it.submission}</p>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {it.contactEmail && (
+                      <a
+                        href={`mailto:${it.contactEmail}?subject=${encodeURIComponent('Propuesta editorial de SocialPro sobre CS2 y creator marketing')}`}
+                        className="rounded bg-sp-admin-accent px-2.5 py-1 font-sans font-semibold text-white hover:opacity-90"
+                      >
+                        Redactar email
+                      </a>
+                    )}
+                    {it.submissionUrl && (
+                      <a href={it.submissionUrl} target="_blank" rel="noopener noreferrer" className="rounded border border-sp-admin-border px-2.5 py-1 font-sans font-semibold text-sp-admin-text hover:border-sp-admin-accent">
+                        Abrir contacto
+                      </a>
+                    )}
+                  </div>
+                </td>
+                <td className="px-3 py-2 align-top">
+                  <span className="rounded-full bg-emerald-500/10 px-2 py-1 text-xs font-bold text-emerald-300">{it.fitScore}/100</span>
+                  <p className="mt-2 text-[11px] text-sp-admin-muted">Editorial · gratuito</p>
                 </td>
                 <td className="px-3 py-2 align-top">
                   <select
@@ -157,6 +189,15 @@ export function PressTargetsTable({ items }: { items: PressTarget[] }): React.Re
           </tbody>
         </table>
       </div>
+    </div>
+  );
+}
+
+function Summary({ label, value }: { label: string; value: number }): React.ReactElement {
+  return (
+    <div className="rounded-xl border border-sp-admin-border bg-sp-admin-card p-4">
+      <p className="text-2xl font-black text-sp-admin-text">{value}</p>
+      <p className="mt-1 text-xs text-sp-admin-muted">{label}</p>
     </div>
   );
 }

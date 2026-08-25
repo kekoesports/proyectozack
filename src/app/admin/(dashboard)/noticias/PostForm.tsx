@@ -159,6 +159,7 @@ export function PostForm({ post, action, submitLabel }: Props) {
   const [preview, setPreview] = useState(false);
   const [body, setBody] = useState(post?.bodyMd ?? '');
   const [status, setStatus] = useState<'draft' | 'published'>(post?.status ?? 'draft');
+  const [vertical, setVertical] = useState<'blog' | 'news'>(post?.vertical ?? 'news');
 
   function handleTitleBlur() {
     if (!post?.id && slug === '') setSlug(slugify(title));
@@ -336,7 +337,7 @@ export function PostForm({ post, action, submitLabel }: Props) {
         </div>
         <div>
           <label className="block text-xs font-semibold text-sp-admin-muted uppercase tracking-wider mb-1.5">Vertical</label>
-          <select name="vertical" defaultValue={post?.vertical ?? 'news'} className={inputCls('vertical')}>
+          <select name="vertical" value={vertical} onChange={(event) => setVertical(event.target.value as 'blog' | 'news')} className={inputCls('vertical')}>
             <option value="news">News</option>
             <option value="blog">Blog</option>
           </select>
@@ -404,12 +405,12 @@ export function PostForm({ post, action, submitLabel }: Props) {
         {/* Ver artículo en web — solo si tiene slug */}
         {slug && (
           <a
-            href={`/news/${slug}`}
+            href={`/${vertical}/${slug}`}
             target="_blank"
             rel="noopener noreferrer"
             className="ml-auto text-sm text-sp-admin-accent hover:opacity-70 transition-opacity flex items-center gap-1"
           >
-            Ver en /news ↗
+            Ver en /{vertical} ↗
           </a>
         )}
       </div>

@@ -24,6 +24,15 @@ export const importItemSchema = z.object({
   following: z.number().int().nonnegative().nullable(),
   bio: z.string().max(5000).nullable(),
   externalUrl: z.url().nullable(),
+  countryCode: z.string().length(2).nullable().optional(),
+  defaultLanguage: z.string().max(10).nullable().optional(),
+  lastVideoAt: z.coerce.date().nullable().optional(),
+  recentVideoCount: z.number().int().nonnegative().nullable().optional(),
+  minRecentVideoViews: z.number().int().nonnegative().nullable().optional(),
+  avgRecentVideoViews: z.number().int().nonnegative().nullable().optional(),
+  recentVideosWindowDays: z.number().int().positive().max(365).nullable().optional(),
+  contactEmail: z.email().max(320).nullable().optional(),
+  contactUrl: z.url().nullable().optional(),
   discoveredVia: z.string().max(200),
 });
 

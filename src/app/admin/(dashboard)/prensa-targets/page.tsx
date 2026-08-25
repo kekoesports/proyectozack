@@ -18,7 +18,7 @@ export default async function AdminPressTargetsPage(): Promise<React.ReactElemen
       </div>
 
       <p className="text-sm text-sp-admin-muted -mt-3">
-        Medios, blogs, foros y periodistas hispanohablantes para distribuir notas de prensa. Sincronizado desde la skill personal en cada <code className="text-sp-admin-text">git push</code>.
+        Medios verificados para proponer historias de SocialPro. Por defecto se muestran solo envíos editoriales gratuitos; el medio decide si publica y si incluye enlace.
       </p>
 
       <PressTargetsTable items={items} />

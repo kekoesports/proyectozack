@@ -46,6 +46,18 @@ export const targets = pgTable(
     bio: text('bio'),
     externalUrl: text('external_url'),
 
+    // Qualification and outreach metadata (mainly YouTube discovery)
+    countryCode: varchar('country_code', { length: 2 }),
+    defaultLanguage: varchar('default_language', { length: 10 }),
+    lastVideoAt: timestamp('last_video_at', { withTimezone: true }),
+    recentVideoCount: integer('recent_video_count'),
+    minRecentVideoViews: integer('min_recent_video_views'),
+    avgRecentVideoViews: integer('avg_recent_video_views'),
+    recentVideosWindowDays: integer('recent_videos_window_days'),
+    qualificationUpdatedAt: timestamp('qualification_updated_at', { withTimezone: true }),
+    contactEmail: varchar('contact_email', { length: 320 }),
+    contactUrl: text('contact_url'),
+
     // Instagram-specific (nullable for YouTube targets)
     isPrivate: boolean('is_private'),
     isVerified: boolean('is_verified'),
@@ -73,6 +85,9 @@ export const targets = pgTable(
     index('targets_brand_user_idx').on(t.brandUserId),
     index('targets_status_idx').on(t.status),
     index('targets_followers_idx').on(t.followers),
+    index('targets_country_code_idx').on(t.countryCode),
+    index('targets_last_video_at_idx').on(t.lastVideoAt),
+    index('targets_recent_video_quality_idx').on(t.recentVideoCount, t.minRecentVideoViews),
     index('targets_created_at_idx').on(t.createdAt),
     index('targets_import_batch_idx').on(t.importBatchId),
     unique('targets_platform_username_key').on(t.platform, t.username),

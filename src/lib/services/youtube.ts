@@ -27,8 +27,12 @@ const YouTubeContentDetailsSchema = z.object({
 
 const YouTubePlaylistItemsSchema = z.object({
   items: z
-    .array(z.object({ snippet: z.object({ resourceId: z.object({ videoId: z.string() }) }) }))
+    .array(z.object({ snippet: z.object({
+      publishedAt: z.string(),
+      resourceId: z.object({ videoId: z.string() }),
+    }) }))
     .optional(),
+  nextPageToken: z.string().optional(),
 });
 
 const YouTubeVideosStatsSchema = z.object({
@@ -76,6 +80,8 @@ const YouTubeChannelsSchema = z.object({
           title: z.string(),
           description: z.string(),
           customUrl: z.string().optional(),
+          defaultLanguage: z.string().optional(),
+          country: z.string().optional(),
           thumbnails: z
             .object({
               medium: z.object({ url: z.string() }).optional(),
@@ -83,7 +89,11 @@ const YouTubeChannelsSchema = z.object({
             })
             .optional(),
         }),
-        statistics: z.object({ subscriberCount: z.string().optional() }).optional(),
+        statistics: z.object({
+          subscriberCount: z.string().optional(),
+          videoCount: z.string().optional(),
+          viewCount: z.string().optional(),
+        }).optional(),
       }),
     )
     .optional(),
@@ -116,6 +126,9 @@ export type YouTubeChannelPreview = {
   readonly description: string;
   readonly thumbnailUrl: string | null;
   readonly subscriberCount: number;
+  readonly country: string | null;
+  readonly defaultLanguage: string | null;
+  readonly videoCount: number;
 }
 
 // ── Live detection ──────────────────────────────────────────────────────
@@ -347,6 +360,9 @@ export async function getChannelDetails(
           item.snippet.thumbnails?.default?.url ??
           null,
         subscriberCount: parseInt(item.statistics?.subscriberCount ?? '0', 10) || 0,
+        country: item.snippet.country?.toUpperCase() ?? null,
+        defaultLanguage: item.snippet.defaultLanguage ?? null,
+        videoCount: parseInt(item.statistics?.videoCount ?? '0', 10) || 0,
       });
     }
   }
@@ -376,20 +392,51 @@ async function getUploadsPlaylistId(channelId: string): Promise<string | null> {
  * Get the most recent video IDs from an uploads playlist.
  * Costs 1 quota unit per request.
  */
-async function getRecentVideoIds(playlistId: string, count = 10): Promise<string[]> {
-  const apiKey = requireYoutubeKey();
+type RecentUpload = {
+  readonly videoId: string;
+  readonly publishedAt: Date;
+};
 
-  const url =
-    `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet` +
-    `&playlistId=${encodeURIComponent(playlistId)}&maxResults=${count}&key=${apiKey}`;
-  const res = await fetch(url);
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`YouTube playlistItems API error (${res.status}): ${text}`);
+async function getRecentUploads(
+  playlistId: string,
+  publishedAfter: Date,
+  maxVideos = 100,
+): Promise<RecentUpload[]> {
+  const apiKey = requireYoutubeKey();
+  const uploads: RecentUpload[] = [];
+  let pageToken: string | undefined;
+  let reachedCutoff = false;
+
+  while (uploads.length < maxVideos && !reachedCutoff) {
+    const params = new URLSearchParams({
+      part: 'snippet',
+      playlistId,
+      maxResults: String(Math.min(50, maxVideos - uploads.length)),
+      key: apiKey,
+    });
+    if (pageToken) params.set('pageToken', pageToken);
+
+    const res = await fetch(`https://www.googleapis.com/youtube/v3/playlistItems?${params.toString()}`);
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`YouTube playlistItems API error (${res.status}): ${text}`);
+    }
+
+    const data = YouTubePlaylistItemsSchema.parse(await res.json());
+    for (const item of data.items ?? []) {
+      const publishedAt = new Date(item.snippet.publishedAt);
+      if (publishedAt < publishedAfter) {
+        reachedCutoff = true;
+        break;
+      }
+      uploads.push({ videoId: item.snippet.resourceId.videoId, publishedAt });
+    }
+
+    pageToken = data.nextPageToken;
+    if (!pageToken) break;
   }
 
-  const data = YouTubePlaylistItemsSchema.parse(await res.json());
-  return (data.items ?? []).map((item) => item.snippet.resourceId.videoId).filter(Boolean);
+  return uploads;
 }
 
 /**
@@ -402,17 +449,19 @@ async function getVideoViewCounts(videoIds: string[]): Promise<Map<string, numbe
   const counts = new Map<string, number>();
   if (videoIds.length === 0) return counts;
 
-  const ids = videoIds.slice(0, 50).join(',');
-  const url = `https://www.googleapis.com/youtube/v3/videos?part=statistics&id=${ids}&key=${apiKey}`;
-  const res = await fetch(url);
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`YouTube videos API error (${res.status}): ${text}`);
-  }
+  for (let i = 0; i < videoIds.length; i += 50) {
+    const ids = videoIds.slice(i, i + 50).join(',');
+    const url = `https://www.googleapis.com/youtube/v3/videos?part=statistics&id=${ids}&key=${apiKey}`;
+    const res = await fetch(url);
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`YouTube videos API error (${res.status}): ${text}`);
+    }
 
-  const data = YouTubeVideosStatsSchema.parse(await res.json());
-  for (const item of data.items ?? []) {
-    counts.set(item.id, parseInt(item.statistics.viewCount ?? '0', 10) || 0);
+    const data = YouTubeVideosStatsSchema.parse(await res.json());
+    for (const item of data.items ?? []) {
+      counts.set(item.id, parseInt(item.statistics.viewCount ?? '0', 10) || 0);
+    }
   }
 
   return counts;
@@ -466,7 +515,8 @@ export async function getChannelAvgViews(
   const playlistId = await getUploadsPlaylistId(channelId);
   if (!playlistId) return { channelId, avgViews: 0, videoCount: 0 };
 
-  const videoIds = await getRecentVideoIds(playlistId, count);
+  const uploads = await getRecentUploads(playlistId, new Date(0), count);
+  const videoIds = uploads.map((item) => item.videoId);
   if (videoIds.length === 0) return { channelId, avgViews: 0, videoCount: 0 };
 
   const viewCounts = await getVideoViewCounts(videoIds);
@@ -475,5 +525,45 @@ export async function getChannelAvgViews(
     channelId,
     avgViews: viewCounts.size > 0 ? Math.round(total / viewCounts.size) : 0,
     videoCount: viewCounts.size,
+  };
+}
+
+export type YouTubeRecentPerformance = {
+  readonly channelId: string;
+  readonly windowDays: number;
+  readonly videoCount: number;
+  readonly minViews: number;
+  readonly avgViews: number;
+  readonly lastVideoAt: Date | null;
+};
+
+/**
+ * Audita todos los uploads encontrados dentro de una ventana reciente.
+ * Lee hasta 100 vídeos, suficiente para la calificación comercial del CRM.
+ */
+export async function getChannelRecentPerformance(
+  channelId: string,
+  windowDays = 90,
+): Promise<YouTubeRecentPerformance> {
+  const playlistId = await getUploadsPlaylistId(channelId);
+  if (!playlistId) {
+    return { channelId, windowDays, videoCount: 0, minViews: 0, avgViews: 0, lastVideoAt: null };
+  }
+
+  const cutoff = new Date(Date.now() - windowDays * 24 * 60 * 60 * 1000);
+  const uploads = await getRecentUploads(playlistId, cutoff, 100);
+  const viewCounts = await getVideoViewCounts(uploads.map((item) => item.videoId));
+  const views = uploads
+    .map((item) => viewCounts.get(item.videoId))
+    .filter((value): value is number => value !== undefined);
+
+  const total = views.reduce((sum, value) => sum + value, 0);
+  return {
+    channelId,
+    windowDays,
+    videoCount: views.length,
+    minViews: views.length > 0 ? Math.min(...views) : 0,
+    avgViews: views.length > 0 ? Math.round(total / views.length) : 0,
+    lastVideoAt: uploads[0]?.publishedAt ?? null,
   };
 }

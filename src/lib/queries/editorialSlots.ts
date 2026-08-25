@@ -1,4 +1,4 @@
-import { eq, lte, and, desc } from 'drizzle-orm';
+import { eq, lte, gte, and, desc } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { editorialSlots, posts } from '@/db/schema';
 import type { EditorialSlotKey } from '@/db/schema/editorialSlots';
@@ -157,4 +157,74 @@ export async function getAllNewsPostsForAdmin(contentType?: 'noticias' | 'analis
         : eq(posts.vertical, 'news'),
     )
     .orderBy(desc(posts.updatedAt));
+}
+
+export async function getAllEditorialPostsForAdmin(
+  vertical?: 'news' | 'blog',
+  contentType?: 'noticias' | 'analisis' | 'estadisticas',
+) {
+  const conditions = [];
+  if (vertical) conditions.push(eq(posts.vertical, vertical));
+  if (contentType) conditions.push(eq(posts.contentType, contentType));
+
+  return db
+    .select({
+      id: posts.id,
+      slug: posts.slug,
+      title: posts.title,
+      status: posts.status,
+      publishedAt: posts.publishedAt,
+      updatedAt: posts.updatedAt,
+      author: posts.author,
+      vertical: posts.vertical,
+      contentType: posts.contentType,
+      tags: posts.tags,
+      coverUrl: posts.coverUrl,
+    })
+    .from(posts)
+    .where(conditions.length > 0 ? and(...conditions) : undefined)
+    .orderBy(desc(posts.updatedAt));
+}
+
+export type EditorialCadenceWeek = {
+  readonly startsAt: Date;
+  readonly news: { readonly id: number; readonly title: string; readonly publishedAt: Date | null } | null;
+  readonly blog: { readonly id: number; readonly title: string; readonly publishedAt: Date | null } | null;
+};
+
+export async function getEditorialCadence(weeks = 6): Promise<EditorialCadenceWeek[]> {
+  const start = new Date();
+  start.setUTCHours(0, 0, 0, 0);
+  const day = start.getUTCDay();
+  start.setUTCDate(start.getUTCDate() - (day === 0 ? 6 : day - 1));
+  const end = new Date(start);
+  end.setUTCDate(end.getUTCDate() + weeks * 7);
+
+  const scheduled = await db
+    .select({
+      id: posts.id,
+      title: posts.title,
+      vertical: posts.vertical,
+      publishedAt: posts.publishedAt,
+    })
+    .from(posts)
+    .where(and(
+      eq(posts.status, 'published'),
+      gte(posts.publishedAt, start),
+      lte(posts.publishedAt, end),
+    ))
+    .orderBy(posts.publishedAt);
+
+  return Array.from({ length: weeks }, (_, index) => {
+    const startsAt = new Date(start);
+    startsAt.setUTCDate(startsAt.getUTCDate() + index * 7);
+    const weekEnd = new Date(startsAt);
+    weekEnd.setUTCDate(weekEnd.getUTCDate() + 7);
+    const inWeek = scheduled.filter((post) => (
+      post.publishedAt && post.publishedAt >= startsAt && post.publishedAt < weekEnd
+    ));
+    const news = inWeek.find((post) => post.vertical === 'news') ?? null;
+    const blog = inWeek.find((post) => post.vertical === 'blog') ?? null;
+    return { startsAt, news, blog };
+  });
 }
