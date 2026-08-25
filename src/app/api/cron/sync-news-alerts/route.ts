@@ -11,6 +11,7 @@ export const dynamic = 'force-dynamic';
 // ── Keyword groups ───────────────────────────────────────────────────────────
 
 type Group = {
+  readonly key: string;
   readonly category: 'regulatory' | 'competitor' | 'brand' | 'sector' | 'own';
   readonly priority: 'high' | 'medium' | 'low';
   readonly q: string;
@@ -19,30 +20,42 @@ type Group = {
 
 const QUERY_GROUPS: readonly Group[] = [
   {
+    key: 'regulatory',
     category: 'regulatory',
     priority: 'high',
-    q: 'DGOJ OR "ordenacion del juego" OR "publicidad juego online" OR "Real Decreto 958"',
+    q: 'DGOJ OR "publicidad juego online" OR "Real Decreto 958"',
     language: 'es',
   },
   {
+    key: 'competitor',
     category: 'competitor',
     priority: 'medium',
-    q: '"MCR Agency" OR "Infinity Talent" OR "agencia gaming esports" OR "agencia igaming influencers"',
+    q: '"MCR Agency" OR "Infinity Talent" OR "agencia gaming" OR "agencia iGaming"',
     language: 'es',
   },
   {
+    key: 'brand',
     category: 'brand',
     priority: 'medium',
-    q: '"Gran Casino Madrid" OR KeyDrop OR Hellcase OR "1xBet España" OR PlayUZU OR "iGaming Spain"',
+    q: 'KeyDrop OR Hellcase OR 1xBet OR PlayUZU OR "iGaming España"',
     language: 'es',
   },
   {
+    key: 'sector-igaming',
     category: 'sector',
     priority: 'medium',
-    q: '"casino online España" OR "apuestas deportivas España" OR "influencer igaming" OR "CNMC juego"',
+    q: 'casino online OR apuestas deportivas OR influencer iGaming OR CNMC juego',
     language: 'es',
   },
   {
+    key: 'sector-cs2',
+    category: 'sector',
+    priority: 'high',
+    q: '"Counter-Strike 2" OR CS2 OR "BLAST Premier" OR "ESL Counter-Strike" OR PGL',
+    language: 'es',
+  },
+  {
+    key: 'own',
     category: 'own',
     priority: 'low',
     q: 'SocialPro OR "socialpro.es"',
@@ -84,13 +97,13 @@ async function fetchGroup(apiKey: string, group: Group): Promise<NewsDataArticle
     size: '10',
   });
 
-  const res = await fetch(`https://newsdata.io/api/1/news?${params.toString()}`, {
+  const res = await fetch(`https://newsdata.io/api/1/latest?${params.toString()}`, {
     headers: { 'User-Agent': 'SocialPro/1.0' },
     next: { revalidate: 0 },
   });
 
   if (!res.ok) {
-    console.warn(`[sync-news-alerts] NewsData HTTP ${res.status} for group ${group.category}`);
+    console.warn(`[sync-news-alerts] NewsData HTTP ${res.status} for group ${group.key}`);
     return [];
   }
 
@@ -98,7 +111,7 @@ async function fetchGroup(apiKey: string, group: Group): Promise<NewsDataArticle
   const data = await res.json() as NewsDataResponse;
 
   if (data.status !== 'success') {
-    console.warn(`[sync-news-alerts] NewsData error for ${group.category}:`, data.message);
+    console.warn(`[sync-news-alerts] NewsData error for ${group.key}:`, data.message);
     return [];
   }
 
@@ -123,7 +136,7 @@ async function upsertArticle(article: NewsDataArticle, group: Group): Promise<bo
         sourceUrl: article.link,
         snippet,
         imageUrl: article.image_url?.slice(0, 500) ?? null,
-        keywordsMatched: [group.category],
+        keywordsMatched: [group.key, group.category],
         category: group.category,
         priority: group.priority,
         language: article.language?.slice(0, 5) ?? group.language,
@@ -160,7 +173,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     for (const article of articles) {
       if (await upsertArticle(article, group)) inserted++;
     }
-    results[group.category] = inserted;
+    results[group.key] = inserted;
     totalInserted += inserted;
   }
 
