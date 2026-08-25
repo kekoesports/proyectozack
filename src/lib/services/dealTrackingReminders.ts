@@ -4,6 +4,7 @@ import { and, eq, inArray, isNotNull, isNull, sql } from 'drizzle-orm';
 
 import { campaigns } from '@/db/schema/campaigns';
 import { crmBrands } from '@/db/schema/crmBrands';
+import { dealDeliverableTrackers } from '@/db/schema/dealDeliverableTrackers';
 import { talentBusiness } from '@/db/schema/talentBusiness';
 import { talents } from '@/db/schema/talents';
 import { sendDealTrackingReminderEmail } from '@/lib/email/dealTrackingReminder';
@@ -56,6 +57,16 @@ export async function processStaleDealTrackingReminders(
       isNotNull(campaigns.trackingSheetUrl),
       isNull(campaigns.trackingSyncError),
       sql`COALESCE(${campaigns.lastEvidenceAddedAt}, ${campaigns.createdAt}) <= ${cutoff}`,
+      // No reclamar actualizaciones si el trato no tiene objetivos definidos
+      // o ya está completo. Ambos casos requieren revisión interna, no email.
+      sql`EXISTS (
+        SELECT 1
+        FROM ${dealDeliverableTrackers} reminder_tracker
+        WHERE reminder_tracker.campaign_id = ${campaigns.id}
+          AND reminder_tracker.status <> 'cancelled'
+          AND reminder_tracker.target_count > 0
+          AND reminder_tracker.current_count < reminder_tracker.target_count
+      )`,
     ));
 
   const notifications: TrackingReminderNotification[] = [];
