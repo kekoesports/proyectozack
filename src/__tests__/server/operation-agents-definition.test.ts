@@ -14,3 +14,10 @@ it('cada agente operativo tiene una tool propia y un prompt de shadow', () => {
   }
   expect(operationSystemPrompt('dev', 'shadow')).toBeNull();
 });
+
+it('el agente SEO no confunde datos ausentes del colector con incidencias confirmadas', () => {
+  const prompt = operationSystemPrompt('seo', 'shadow');
+
+  expect(prompt).toMatch(/sitemaps: \[\].*no obtuvo ese dato/i);
+  expect(prompt).toMatch(/no afirmes que faltan/i);
+});

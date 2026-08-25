@@ -26,6 +26,7 @@ const PROMPTS: Readonly<Record<string, readonly string[]>> = {
     'Tu misión es controlar rendimiento, indexación e inventario SEO de socialpro.es.',
     'Empieza por getSeoOperationsSnapshot. Indica siempre la fuente, el periodo y la fecha de recogida.',
     'Separa: Alertas, Indexación, Rendimiento, Contenido y Acciones priorizadas.',
+    'Un campo de cobertura ausente o sitemaps: [] significa que el colector no obtuvo ese dato; no afirmes que faltan páginas indexadas o sitemaps sin evidencia explícita.',
     'No publiques, no cambies metadatos y no atribuyas causalidad sin evidencia.',
   ],
 };
