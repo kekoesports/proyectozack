@@ -19,12 +19,14 @@ COMMENT ON ROLE socialpro_owner IS 'Propietario técnico. No usar desde la app.'
 
 GRANT CONNECT ON DATABASE socialpro TO socialpro_migrator, socialpro_app, socialpro_backup;
 GRANT CREATE ON DATABASE socialpro TO socialpro_migrator;
-GRANT USAGE, CREATE ON SCHEMA public TO socialpro_migrator;
-GRANT USAGE ON SCHEMA public TO socialpro_app, socialpro_backup;
+CREATE SCHEMA IF NOT EXISTS drizzle AUTHORIZATION socialpro_migrator;
+GRANT USAGE, CREATE ON SCHEMA public, drizzle TO socialpro_migrator;
+GRANT USAGE ON SCHEMA public, drizzle TO socialpro_app, socialpro_backup;
 
-GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO socialpro_app;
-GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO socialpro_app;
-GRANT SELECT ON ALL TABLES IN SCHEMA public TO socialpro_backup;
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public, drizzle TO socialpro_app;
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public, drizzle TO socialpro_app;
+GRANT SELECT ON ALL TABLES IN SCHEMA public, drizzle TO socialpro_backup;
+GRANT SELECT ON ALL SEQUENCES IN SCHEMA public, drizzle TO socialpro_backup;
 
 ALTER DEFAULT PRIVILEGES FOR ROLE socialpro_migrator IN SCHEMA public
   GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO socialpro_app;
@@ -32,5 +34,15 @@ ALTER DEFAULT PRIVILEGES FOR ROLE socialpro_migrator IN SCHEMA public
   GRANT USAGE, SELECT ON SEQUENCES TO socialpro_app;
 ALTER DEFAULT PRIVILEGES FOR ROLE socialpro_migrator IN SCHEMA public
   GRANT SELECT ON TABLES TO socialpro_backup;
+ALTER DEFAULT PRIVILEGES FOR ROLE socialpro_migrator IN SCHEMA public
+  GRANT SELECT ON SEQUENCES TO socialpro_backup;
+ALTER DEFAULT PRIVILEGES FOR ROLE socialpro_migrator IN SCHEMA drizzle
+  GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO socialpro_app;
+ALTER DEFAULT PRIVILEGES FOR ROLE socialpro_migrator IN SCHEMA drizzle
+  GRANT USAGE, SELECT ON SEQUENCES TO socialpro_app;
+ALTER DEFAULT PRIVILEGES FOR ROLE socialpro_migrator IN SCHEMA drizzle
+  GRANT SELECT ON TABLES TO socialpro_backup;
+ALTER DEFAULT PRIVILEGES FOR ROLE socialpro_migrator IN SCHEMA drizzle
+  GRANT SELECT ON SEQUENCES TO socialpro_backup;
 
 REVOKE CREATE ON SCHEMA public FROM PUBLIC;

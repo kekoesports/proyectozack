@@ -1,0 +1,25 @@
+[Unit]
+Description=Backup local de infraestructura SocialPro (interino, sin remoto)
+Documentation=https://github.com/kekoesports/proyectozack/blob/master/docs/runbooks/backup-restore-vps.md
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+UMask=0077
+Environment=BACKUP_DIR=/var/backups/socialpro
+Environment=RETENCION_DIAS=7
+Environment=N8N_DB_USER=n8n
+ExecStart=/opt/socialpro/backups/backup.sh --no-remote
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadOnlyPaths=/opt/socialpro
+ReadWritePaths=/var/backups/socialpro
+

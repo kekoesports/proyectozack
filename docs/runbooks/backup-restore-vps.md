@@ -24,12 +24,18 @@ una filtración esperando a pasar.
 ## Ejecutar una copia
 
 ```bash
-sudo -u deploy /opt/socialpro/backups/backup.sh
+sudo env BACKUP_DIR=/var/backups/socialpro /opt/socialpro/backups/backup.sh
 ```
 
 Falla —a propósito— si no puede subir fuera del VPS. **Una copia que vive en el
 mismo servidor no es una copia**: si el disco falla o se borra el VPS, se va con
 él.
+
+Mientras se autoriza el remoto cifrado existe un timer interino que ejecuta
+`backup.sh --no-remote` cada seis horas. Reduce el riesgo operativo durante el
+staging, pero **no habilita el cutover**: se sustituye por la copia remota en
+cuanto `rclone crypt` quede conectado y se haya ensayado una restauración desde
+ese remoto.
 
 ## Restaurar: el ensayo obligatorio
 

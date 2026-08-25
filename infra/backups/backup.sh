@@ -13,11 +13,13 @@
 # Uso:  backup.sh [--no-remote]
 #
 set -Eeuo pipefail
+umask 077
 
 DESTINO="${BACKUP_DIR:-/opt/socialpro/backups/work}"
 REMOTO="${RCLONE_REMOTE:-}"           # p.ej. gdrive:socialpro-backups
 RETENCION_DIAS="${RETENCION_DIAS:-7}"
 HEARTBEAT_URL="${BACKUP_HEARTBEAT_URL:-}"
+N8N_DB_USER="${N8N_DB_USER:-n8n}"
 SUBIR="si"
 [[ "${1:-}" == "--no-remote" ]] && SUBIR="no"
 
@@ -46,9 +48,9 @@ docker exec -i socialpro-crm-postgres-1 \
 # ── 2. PostgreSQL de n8n ────────────────────────────────────────────────────
 log "volcando la base de n8n"
 docker exec -i socialpro-automation-postgres-1 \
-  pg_dumpall --roles-only -U postgres > "${trabajo}/n8n-roles.sql" 2>/dev/null || true
+  pg_dumpall --roles-only -U "$N8N_DB_USER" > "${trabajo}/n8n-roles.sql" 2>/dev/null || true
 docker exec -i socialpro-automation-postgres-1 \
-  pg_dump --format=custom --no-owner --compress=9 -U postgres n8n \
+  pg_dump --format=custom --no-owner --compress=9 -U "$N8N_DB_USER" n8n \
   > "${trabajo}/n8n.dump"
 
 # ── 3. Ficheros ─────────────────────────────────────────────────────────────
@@ -62,18 +64,20 @@ tar -czf "${trabajo}/storage-private.tar.gz" -C /opt/socialpro/data storage-priv
 # el volumen no sirve de nada, y sin el volumen la clave tampoco.
 log "empaquetando n8n_data y configuración"
 docker run --rm \
+  --user "$(id -u):$(id -g)" \
   -v socialpro-automation_n8n_data:/origen:ro \
   -v "${trabajo}":/destino \
   alpine:3.20 tar -czf /destino/n8n_data.tar.gz -C /origen . 2>/dev/null
 
-sudo -n tar -czf "${trabajo}/config.tar.gz" \
+tar -czf "${trabajo}/config.tar.gz" \
   --exclude='*.env' --exclude='secrets' \
   -C /opt/socialpro n8n/Caddyfile crm/compose.yaml 2>/dev/null || \
-  log "aviso: configuración no incluida (hace falta sudo)"
+  log "aviso: configuración no incluida (ejecuta el servicio de backup como root)"
 
 # ── 5. Integridad ───────────────────────────────────────────────────────────
 # Sin checksums no hay forma de distinguir una copia buena de una truncada.
 log "calculando checksums"
+chmod 600 "${trabajo}"/*
 ( cd "$trabajo" && sha256sum ./* > SHA256SUMS )
 
 tamano=$(du -sh "$trabajo" | cut -f1)
