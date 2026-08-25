@@ -1,0 +1,168 @@
+{
+  "name": "SocialPro - Bot KPI REPORTING",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 1
+            }
+          ]
+        }
+      },
+      "id": "kpi-command-trigger",
+      "name": "Cada minuto",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [-700, 0],
+      "notes": "Discord no ofrece trigger nativo en esta instalación. El sondeo de un minuto solo continúa cuando hay un comando humano nuevo."
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "crm-base-url",
+              "name": "crmBaseUrl",
+              "value": "https://socialpro.es",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "kpi-config",
+      "name": "Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [-500, 0]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "getAll",
+        "guildId": {
+          "__rl": true,
+          "value": "1522153792592806018",
+          "mode": "id"
+        },
+        "channelId": {
+          "__rl": true,
+          "value": "1533123515023360114",
+          "mode": "id"
+        },
+        "limit": 25,
+        "options": {}
+      },
+      "id": "read-kpi-channel",
+      "name": "Leer KPI REPORTING",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [-300, 0],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "notes": "Requiere Read Message History y MESSAGE CONTENT INTENT. Ignora mensajes del propio bot."
+    },
+    {
+      "parameters": {
+        "jsCode": "const state = $getWorkflowStaticData('global');\nconst lastSeenId = typeof state.lastKpiMessageId === 'string' ? state.lastKpiMessageId : null;\nconst items = $input.all();\nconst valid = items.flatMap((item) => {\n  const message = item.json || {};\n  const id = String(message.id ?? message.messageId ?? '');\n  if (!/^\\d{17,20}$/.test(id)) return [];\n  return [{ message, id }];\n});\nvalid.sort((left, right) => BigInt(left.id) < BigInt(right.id) ? -1 : 1);\nconst newestId = valid.at(-1)?.id ?? null;\nif (lastSeenId === null) {\n  if (newestId) state.lastKpiMessageId = newestId;\n  console.log('[kpi-bot] watermark inicializado', { newestId });\n  return [];\n}\nconst newer = valid.filter(({ id }) => BigInt(id) > BigInt(lastSeenId));\nif (newer.length === 0) return [];\nconst watermarkCandidate = newer.at(-1).id;\nconst normalize = (value) => String(value || '')\n  .normalize('NFD')\n  .replace(/[\\u0300-\\u036f]/g, '')\n  .trim()\n  .toLowerCase();\nconst commands = [];\nfor (const { message, id } of newer) {\n  if (message.author && message.author.bot === true) continue;\n  const original = typeof message.content === 'string' ? message.content.trim() : '';\n  const content = normalize(original);\n  let command = null;\n  let query = '';\n  if (['zack revisa', 'zack revisa de nuevo', 'revisa de nuevo'].includes(content)) {\n    command = 'review';\n  } else if (['zack ayuda', 'ayuda zack'].includes(content)) {\n    command = 'help';\n  } else if (content.startsWith('zack detalle ')) {\n    command = 'detail';\n    query = original.slice(original.toLowerCase().indexOf('detalle') + 7).trim();\n  } else if (content.startsWith('dame mas informacion')) {\n    command = 'detail';\n    query = original.replace(/^dame\\s+m[aá]s\\s+informaci[oó]n(?:\\s+(?:de|sobre))?\\s*/i, '').trim();\n  }\n  if (command) commands.push({ json: { command, query, sourceMessageId: id, watermarkCandidate } });\n}\nif (commands.length === 0) {\n  state.lastKpiMessageId = watermarkCandidate;\n  console.log('[kpi-bot] sin comandos nuevos', { watermarkCandidate });\n  return [];\n}\nreturn commands;"
+      },
+      "id": "detect-kpi-commands",
+      "name": "Detectar comandos nuevos",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-80, 0],
+      "notes": "Comandos: zack revisa, revisa de nuevo, zack detalle <texto>, dame más información <texto>, zack ayuda. El watermark solo avanza tras responder."
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Config').first().json.crmBaseUrl }}/api/automation/deals/digest{{ $json.command === 'detail' && $json.query ? '?q=' + encodeURIComponent($json.query) : '' }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "read-kpi-digest",
+      "name": "Consultar CRM",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [140, 0],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "notes": "SOLO LECTURA. Usa la credencial Header Auth del CRM y no cambia tratos ni hojas."
+    },
+    {
+      "parameters": {
+        "jsCode": "const requests = $('Detectar comandos nuevos').all();\nconst responses = $input.all();\nconst output = [];\nfor (let index = 0; index < responses.length; index += 1) {\n  const request = requests[index]?.json || {};\n  const response = responses[index]?.json || {};\n  let messages;\n  if (request.command === 'help') {\n    messages = ['## 🤖 ZACK · KPI REPORTING\\n`zack revisa` — vuelve a calcular el informe\\n`zack detalle <creador, marca o trato>` — muestra información concreta\\n`zack ayuda` — recuerda estos comandos'];\n  } else if (request.command === 'detail' && !String(request.query || '').trim()) {\n    messages = ['ℹ️ Indica qué trato buscas. Ejemplo: `zack detalle Curly Keydrop`.'];\n  } else {\n    messages = Array.isArray(response.discordMessages) ? response.discordMessages : [];\n  }\n  for (const content of messages) {\n    if (typeof content !== 'string' || !content.trim()) continue;\n    output.push({ json: { content, sourceMessageId: request.sourceMessageId, watermarkCandidate: request.watermarkCandidate } });\n  }\n}\nreturn output;"
+      },
+      "id": "prepare-kpi-replies",
+      "name": "Preparar respuestas",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [360, 0]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "guildId": {
+          "__rl": true,
+          "value": "1522153792592806018",
+          "mode": "id"
+        },
+        "channelId": {
+          "__rl": true,
+          "value": "1533123515023360114",
+          "mode": "id"
+        },
+        "content": "={{ $json.content }}",
+        "options": {}
+      },
+      "id": "send-kpi-reply",
+      "name": "Responder en KPI REPORTING",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [580, 0],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000
+    },
+    {
+      "parameters": {
+        "jsCode": "const replies = $('Preparar respuestas').all();\nconst candidates = replies\n  .map((item) => String(item.json.watermarkCandidate || ''))\n  .filter((id) => /^\\d{17,20}$/.test(id));\nif (candidates.length === 0) return [];\nconst maxId = candidates.reduce((max, id) => BigInt(id) > BigInt(max) ? id : max, candidates[0]);\nconst state = $getWorkflowStaticData('global');\nstate.lastKpiMessageId = maxId;\nconsole.log('[kpi-bot] comandos respondidos', { maxId, replies: replies.length });\nreturn [];"
+      },
+      "id": "save-kpi-watermark",
+      "name": "Guardar watermark",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [800, 0],
+      "notes": "Solo se ejecuta después de que todos los mensajes se hayan publicado correctamente."
+    }
+  ],
+  "connections": {
+    "Cada minuto": { "main": [[{ "node": "Config", "type": "main", "index": 0 }]] },
+    "Config": { "main": [[{ "node": "Leer KPI REPORTING", "type": "main", "index": 0 }]] },
+    "Leer KPI REPORTING": { "main": [[{ "node": "Detectar comandos nuevos", "type": "main", "index": 0 }]] },
+    "Detectar comandos nuevos": { "main": [[{ "node": "Consultar CRM", "type": "main", "index": 0 }]] },
+    "Consultar CRM": { "main": [[{ "node": "Preparar respuestas", "type": "main", "index": 0 }]] },
+    "Preparar respuestas": { "main": [[{ "node": "Responder en KPI REPORTING", "type": "main", "index": 0 }]] },
+    "Responder en KPI REPORTING": { "main": [[{ "node": "Guardar watermark", "type": "main", "index": 0 }]] }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Europe/Madrid",
+    "saveManualExecutions": true
+  },
+  "active": false,
+  "versionId": "17e608d4-e0b0-49e5-beb3-0f49ed975e7b",
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "tags": []
+}

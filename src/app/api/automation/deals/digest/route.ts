@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server';
 
-import { getAutomationDealDigest } from '@/lib/queries/automationDealDigest';
+import {
+  formatAutomationDealDetailForDiscord,
+  formatAutomationDealDigestForDiscord,
+  getAutomationDealDigest,
+} from '@/lib/queries/automationDealDigest';
 import { verifyAutomationToken } from '@/lib/security/assertAutomationAuth';
 
 export const dynamic = 'force-dynamic';
@@ -15,8 +19,15 @@ export async function GET(req: Request): Promise<NextResponse> {
   }
 
   try {
+    const query = new URL(req.url).searchParams.get('q')?.trim() ?? '';
+    if (query.length > 80) {
+      return NextResponse.json({ ok: false, error: 'query-too-long' }, { status: 400 });
+    }
     const digest = await getAutomationDealDigest();
-    return NextResponse.json({ ok: true, ...digest });
+    const discordMessages = query
+      ? formatAutomationDealDetailForDiscord(digest, query)
+      : formatAutomationDealDigestForDiscord(digest);
+    return NextResponse.json({ ok: true, ...digest, discordMessages });
   } catch {
     console.error('[automation-deals] digest failed');
     return NextResponse.json({ ok: false, error: 'internal-error' }, { status: 500 });
