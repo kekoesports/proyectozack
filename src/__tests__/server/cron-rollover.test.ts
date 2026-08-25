@@ -28,7 +28,7 @@ describe('rollover-tasks cron route', () => {
     expect(response.status).toBe(401);
   });
 
-  it('returns 503 when CRON_SECRET is not configured and request is not from Vercel cron', async () => {
+  it('returns 503 when CRON_SECRET is not configured', async () => {
     delete process.env.CRON_SECRET;
 
     const req = new Request('http://localhost/api/cron/rollover-tasks');
@@ -37,7 +37,7 @@ describe('rollover-tasks cron route', () => {
     expect(response.status).toBe(503);
   });
 
-  it('accepts requests from Vercel cron via x-vercel-cron header without secret', async () => {
+  it('rejects a forged x-vercel-cron header when the secret is unavailable', async () => {
     delete process.env.CRON_SECRET;
     mockRollOverPendingTasks.mockResolvedValue({ rolled: 0 });
     mockRegenerateRecurringTasks.mockResolvedValue({ generated: 0 });
@@ -47,7 +47,18 @@ describe('rollover-tasks cron route', () => {
     });
     const response = await GET(req as never);
 
-    expect(response.status).toBe(200);
+    expect(response.status).toBe(503);
+    expect(mockRollOverPendingTasks).not.toHaveBeenCalled();
+  });
+
+  it('rejects a forged x-vercel-cron header without the bearer token', async () => {
+    const req = new Request('http://localhost/api/cron/rollover-tasks', {
+      headers: { 'x-vercel-cron': '1' },
+    });
+    const response = await GET(req as never);
+
+    expect(response.status).toBe(401);
+    expect(mockRollOverPendingTasks).not.toHaveBeenCalled();
   });
 
   it('runs rollover and recurring regeneration in one request', async () => {
