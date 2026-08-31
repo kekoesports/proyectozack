@@ -47,6 +47,13 @@ describe('inteligencia de talentos', () => {
     expect(dashboard).toMatch(/Ranking por canal/);
     expect(dashboard).toMatch(/Fuera del ranking/);
   });
+
+  it('construye cada tendencia solo con los canales válidos de ese periodo', () => {
+    expect(query).toMatch(/channel\.growth\[period\]\.eligible/);
+    expect(query).toMatch(/buildDailyTrend\(snapshots, eligibleSocialIds\)/);
+    expect(query).toMatch(/eligibleSocialIds\.has\(row\.socialId\)/);
+    expect(dashboard).toMatch(/data\.dailyTrend\[period\]/);
+  });
 });
 
 describe('creadores target legibles', () => {

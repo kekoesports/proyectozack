@@ -177,10 +177,10 @@ export type TalentIntelligenceDashboard = {
     readonly excluded30: number;
     readonly stale: number;
   };
-  readonly dailyTrend: ReadonlyArray<{
+  readonly dailyTrend: Readonly<Record<TalentGrowthPeriod, ReadonlyArray<{
     readonly date: string;
     readonly values: Readonly<Record<string, number>>;
-  }>;
+  }>>>;
   readonly channels: readonly TalentIntelligenceChannel[];
   readonly topContent: readonly TalentIntelligenceContent[];
 };
@@ -337,7 +337,14 @@ export async function getTalentIntelligenceDashboard(opts?: {
       excluded30: growth30.filter((metric) => !metric.eligible).length,
       stale: channels.filter((channel) => channel.stale).length,
     },
-    dailyTrend: buildDailyTrend(snapshots),
+    dailyTrend: Object.fromEntries(TALENT_GROWTH_PERIODS.map((period) => {
+      const eligibleSocialIds = new Set(
+        channels
+          .filter((channel) => channel.growth[period].eligible)
+          .map((channel) => channel.socialId),
+      );
+      return [period, buildDailyTrend(snapshots, eligibleSocialIds)];
+    })) as TalentIntelligenceDashboard['dailyTrend'],
     channels,
     topContent,
   };
@@ -348,7 +355,7 @@ function emptyDashboard(): TalentIntelligenceDashboard {
     generatedAt: new Date().toISOString(),
     coverage: { talents: 0, channels: 0, trackedChannels: 0, platforms: [] },
     summary: { verifiedAudience: 0, improving30: 0, falling30: 0, excluded30: 0, stale: 0 },
-    dailyTrend: [],
+    dailyTrend: { 30: [], 60: [], 90: [], 120: [] },
     channels: [],
     topContent: [],
   };
@@ -422,8 +429,14 @@ function buildContentMonths(
   return best;
 }
 
-function buildDailyTrend(rows: readonly SnapshotRow[]): TalentIntelligenceDashboard['dailyTrend'] {
-  const byDate = groupBy(rows, (row) => row.snapshotDate);
+function buildDailyTrend(
+  rows: readonly SnapshotRow[],
+  eligibleSocialIds: ReadonlySet<number>,
+): TalentIntelligenceDashboard['dailyTrend'][TalentGrowthPeriod] {
+  const byDate = groupBy(
+    rows.filter((row) => eligibleSocialIds.has(row.socialId)),
+    (row) => row.snapshotDate,
+  );
   const latestPerSocial = new Map<number, SnapshotRow>();
   return [...byDate].sort(([a], [b]) => a.localeCompare(b)).map(([date, dateRows]) => {
     for (const row of dateRows) latestPerSocial.set(row.socialId, row);

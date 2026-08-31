@@ -91,7 +91,7 @@ export function TalentIntelligenceDashboard({ data }: { readonly data: Dashboard
   );
   const trend = useMemo(() => {
     const cutoff = new Date(data.generatedAt).getTime() - period * 86_400_000;
-    return data.dailyTrend
+    return data.dailyTrend[period]
       .filter((point) => new Date(`${point.date}T12:00:00Z`).getTime() >= cutoff)
       .map((point) => ({ date: point.date, audience: point.values[platform] ?? 0 }));
   }, [data.dailyTrend, data.generatedAt, period, platform]);
