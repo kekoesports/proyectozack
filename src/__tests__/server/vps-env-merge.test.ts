@@ -20,4 +20,9 @@ describe('VPS production env merge', () => {
     expect(source).toContain('k ~ /^VERCEL_/');
     expect(source).toContain('k ~ /^NOW_/');
   });
+
+  it('only writes the production env or the isolated VPS candidate env', () => {
+    expect(source).toContain('/opt/socialpro/crm/env/app.env|/opt/socialpro/crm/env/candidate-vps.env');
+    expect(source).toContain('Destino no permitido');
+  });
 });

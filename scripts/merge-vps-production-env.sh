@@ -4,10 +4,13 @@ set -euo pipefail
 incoming="${1:?ruta del env exportado de Vercel}"
 target="${2:-/opt/socialpro/crm/env/app.env}"
 
-if [[ "$target" != "/opt/socialpro/crm/env/app.env" ]]; then
-  printf 'Destino no permitido: %s\n' "$target" >&2
-  exit 2
-fi
+case "$target" in
+  /opt/socialpro/crm/env/app.env|/opt/socialpro/crm/env/candidate-vps.env) ;;
+  *)
+    printf 'Destino no permitido: %s\n' "$target" >&2
+    exit 2
+    ;;
+esac
 if [[ ! -f "$incoming" || ! -f "$target" ]]; then
   printf 'Falta el env de entrada o el env actual\n' >&2
   exit 3
