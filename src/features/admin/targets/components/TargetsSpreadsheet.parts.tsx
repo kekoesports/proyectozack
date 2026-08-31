@@ -70,7 +70,6 @@ type ToolbarProps = Readonly<{
   handleImportCSV: () => void;
   isPending: boolean;
   exportCSV: () => void;
-  handleDeleteAll: () => void;
 }>;
 
 export function Toolbar({
@@ -89,7 +88,6 @@ export function Toolbar({
   handleImportCSV,
   isPending,
   exportCSV,
-  handleDeleteAll,
 }: ToolbarProps): React.ReactElement {
   return (
     <div className="flex items-center gap-3">
@@ -182,14 +180,6 @@ export function Toolbar({
           className="shrink-0 px-3 py-2 rounded-lg text-[11px] font-semibold bg-sp-admin-card border border-sp-admin-border text-sp-admin-muted hover:text-sp-admin-text transition-colors"
         >
           Exportar
-        </button>
-        <button
-          type="button"
-          onClick={handleDeleteAll}
-          disabled={isPending}
-          className="shrink-0 px-3 py-2 rounded-lg text-[11px] font-semibold bg-red-900/20 border border-red-500/30 text-red-400 hover:bg-red-900/40 hover:text-red-300 transition-colors disabled:opacity-40"
-        >
-          Limpiar todo
         </button>
       </div>
     </div>

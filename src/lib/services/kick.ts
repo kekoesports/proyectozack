@@ -1,22 +1,22 @@
 import { z } from 'zod';
 
 const KickChannelSchema = z.object({
-  id: z.number(),
-  user_id: z.number(),
+  id: z.coerce.number(),
+  user_id: z.coerce.number(),
   slug: z.string(),
   is_banned: z.boolean(),
-  followers_count: z.number(),
+  followers_count: z.coerce.number(),
   banner_image: z.object({ url: z.string() }).nullable(),
-  recent_categories: z.array(z.object({ id: z.number(), name: z.string() })).nullable(),
+  recent_categories: z.array(z.object({ id: z.coerce.number(), name: z.string() })).nullable().optional(),
   user: z.object({
-    id: z.number(),
+    id: z.coerce.number(),
     username: z.string(),
     bio: z.string().nullable(),
-    country: z.string().nullable(),
+    country: z.string().nullable().optional(),
     profile_pic: z.string().nullable(),
   }),
   livestream: z.object({ is_live: z.boolean(), session_title: z.string() }).nullable(),
-  previous_livestreams: z.array(z.object({ created_at: z.string() })).nullable(),
+  previous_livestreams: z.array(z.object({ created_at: z.string() })).nullable().optional(),
 });
 
 export type KickChannelPreview = {
@@ -63,7 +63,7 @@ export async function getKickChannel(slug: string): Promise<KickChannelPreview |
     userId: data.user.id,
     followers: data.followers_count,
     bio: data.user.bio,
-    country: data.user.country,
+    country: data.user.country ?? null,
     profilePicUrl: data.user.profile_pic,
     bannerUrl: data.banner_image?.url ?? null,
     recentCategories: (data.recent_categories ?? []).map((c) => c.name),
