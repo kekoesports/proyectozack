@@ -26,9 +26,18 @@ function key_of(line, pos) {
 function preserve(k) {
   return k ~ /^(DATABASE_URL|DATABASE_URL_UNPOOLED|MIGRATION_DATABASE_URL|STORAGE_DRIVER|STORAGE_LOCAL_ROOT|STORAGE_PUBLIC_URL_BASE|STORAGE_FALLBACK_TO_VERCEL|DEPLOY_ENV|PORT|HOSTNAME|APP_VERSION|GIT_COMMIT_SHA|NODE_ENV|NEXT_TELEMETRY_DISABLED)$/
 }
+function usable_value(line, pos, value) {
+  pos=index(line, "=")
+  if (pos < 2) return 0
+  value=substr(line, pos + 1)
+  # Vercel never exposes variables marked Sensitive again. Its exports use
+  # this sentinel; copying it would replace a working secret with plain text
+  # and make the candidate fail only after deployment.
+  return value != "" && value != "\"\"" && value != "[SENSITIVE]" && value != "\"[SENSITIVE]\""
+}
 FNR == NR {
   k=key_of($0)
-  if (k != "" && !preserve(k)) {
+  if (k != "" && !preserve(k) && usable_value($0)) {
     production[k]=$0
     order[++count]=k
   }
@@ -50,6 +59,12 @@ END {
   }
 }
 ' "$incoming" "$target" > "$merged"
+
+if grep -Eq '^[A-Za-z_][A-Za-z0-9_]*=("?\[SENSITIVE\]"?)$' "$merged"; then
+  printf 'El env resultante contiene marcadores [SENSITIVE]; no se instalará\n' >&2
+  rm -f -- "$merged"
+  exit 4
+fi
 
 chmod 600 "$merged"
 mv -- "$merged" "$target"
