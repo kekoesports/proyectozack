@@ -16,7 +16,10 @@ import {
   type YouTubeChannelPreview,
 } from '@/lib/services/youtube';
 import { qualifyYouTubeChannel } from '@/lib/services/youtubeQualification';
-import { qualifyTwitchCandidate } from '@/lib/targets/qualification';
+import {
+  isLikelyPublisherChannel,
+  qualifyTwitchCandidate,
+} from '@/lib/targets/qualification';
 import { createLimit } from '@/lib/utils/concurrencyLimit';
 
 const YOUTUBE_DAILY_QUERIES = [
@@ -68,8 +71,11 @@ async function discoverYouTubeTargets(): Promise<CreatorDiscoveryPlatformResult>
     }
 
     const candidates = [...channels.values()].slice(0, 30);
+    const creatorCandidates = candidates.filter(
+      ({ channel }) => !isLikelyPublisherChannel(channel.title),
+    );
     const limit = createLimit(4);
-    const audited = await Promise.allSettled(candidates.map(({ channel, query }) => limit(async () => ({
+    const audited = await Promise.allSettled(creatorCandidates.map(({ channel, query }) => limit(async () => ({
       query,
       qualification: qualifyYouTubeChannel(
         channel,
@@ -203,13 +209,30 @@ function failed(
   platform: CreatorDiscoveryPlatformResult['platform'],
   error: unknown,
 ): CreatorDiscoveryPlatformResult {
+  return {
+    platform,
+    found: 0,
+    qualified: 0,
+    inserted: 0,
+    updated: 0,
+    error: safeCreatorDiscoveryError(error, platform),
+  };
+}
+
+export function safeCreatorDiscoveryError(
+  error: unknown,
+  platform: CreatorDiscoveryPlatformResult['platform'],
+): string {
   const message = error instanceof Error ? error.message : '';
-  const safe = message.includes('YOUTUBE_API_KEY') || message.includes('TWITCH_CLIENT')
-    ? 'Credenciales de plataforma no disponibles'
-    : message.includes('403')
-      ? 'La plataforma rechazó la consulta o agotó su cuota'
-      : 'No se pudo completar la consulta de esta plataforma';
-  return { platform, found: 0, qualified: 0, inserted: 0, updated: 0, error: safe };
+  if (platform === 'twitch' && message.includes('Twitch token error')) {
+    return 'Twitch ha rechazado las credenciales configuradas';
+  }
+  if (message.includes('YOUTUBE_API_KEY') || message.includes('TWITCH_CLIENT')) {
+    return 'Credenciales de plataforma no disponibles';
+  }
+  return message.includes('403')
+    ? 'La plataforma rechazó la consulta o agotó su cuota'
+    : 'No se pudo completar la consulta de esta plataforma';
 }
 
 function sum(
