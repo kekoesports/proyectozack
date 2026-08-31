@@ -80,7 +80,28 @@ describe('borradores automáticos de factura por trato', () => {
         status: 'borrador',
         relatedDealId: 7,
         automationKey: 'deal-progress-80:7',
+        paymentTerms: 'Payment due within 30 days of the issue date.',
+        legalNote: 'Invoice issued for digital marketing services. Review tax treatment before issuing.',
       }),
+      lines: [{
+        concept: 'Digital marketing services - Creador',
+        description: null,
+        quantity: '1',
+        unitPrice: '1250.00',
+        discount: '0',
+        subtotal: '1250.00',
+      }],
+    }));
+  });
+
+  it('crea los clientes nuevos con PDF en inglés', async () => {
+    mockGetClient.mockResolvedValueOnce(null);
+    mockCreateClient.mockResolvedValueOnce({ ...client, id: 8, pdfLanguage: 'en' });
+
+    await ensureDealInvoiceDraft(7);
+
+    expect(mockCreateClient).toHaveBeenCalledWith(expect.objectContaining({
+      pdfLanguage: 'en',
     }));
   });
 
