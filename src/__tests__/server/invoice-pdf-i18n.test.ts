@@ -5,7 +5,7 @@
  *   - Diccionario ES mantiene labels actuales (no rompe PDFs previos).
  *   - Diccionario EN usa el copy propuesto (INVOICE, BILL TO, VAT, TOTAL, etc.).
  *   - Locale ES = es-ES, EN = en-GB.
- *   - resolvePdfLanguage aplica prioridad override > client.pdfLanguage > 'en'.
+ *   - resolvePdfLanguage usa inglés salvo override explícito.
  *
  * Nota: el generador jsPDF requiere Canvas del navegador para renderizar, así
  * que estos tests validan el diccionario de strings y el resolver de idioma,
@@ -97,7 +97,7 @@ describe('generateInvoicePdf — diccionario EN es el copy aprobado', () => {
 
 // ── resolvePdfLanguage ─────────────────────────────────────────────────
 
-describe('resolvePdfLanguage — prioridad override > client > default', () => {
+describe('resolvePdfLanguage — inglés por defecto y override explícito', () => {
   it('sin nada → default en', () => {
     expect(resolvePdfLanguage(null)).toBe('en');
     expect(resolvePdfLanguage(undefined)).toBe('en');
@@ -109,15 +109,15 @@ describe('resolvePdfLanguage — prioridad override > client > default', () => {
     expect(resolvePdfLanguage('EN')).toBe('en'); // solo lowercase
   });
 
-  it('client=es sin override → es', () => {
-    expect(resolvePdfLanguage('es')).toBe('es');
+  it('client=es sin override → en', () => {
+    expect(resolvePdfLanguage('es')).toBe('en');
   });
 
   it('client=en sin override → en', () => {
     expect(resolvePdfLanguage('en')).toBe('en');
   });
 
-  it('override tiene prioridad sobre client', () => {
+  it('solo el override explícito permite español', () => {
     expect(resolvePdfLanguage('es', 'en')).toBe('en');
     expect(resolvePdfLanguage('en', 'es')).toBe('es');
     expect(resolvePdfLanguage(null, 'es')).toBe('es');

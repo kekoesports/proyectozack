@@ -65,7 +65,7 @@ export function IssuedInvoicesTab({
   const [filterIssuer,    setIssuer]         = useState('');
   const [search,          setSearch]         = useState('');
   const [showAnuladas,    setShowAnuladas]   = useState(false);
-  const [showRectificadas, setShowRectificadas] = useState(true);
+  const [showRectificadas, setShowRectificadas] = useState(false);
   const [isPending,       startTransition]   = useTransition();
 
   const filtered = useMemo(() => {
@@ -158,6 +158,10 @@ export function IssuedInvoicesTab({
           )}
         </div>
       </div>
+
+      <p className="text-[10px] text-sp-admin-muted">
+        Los borradores se corrigen con <strong>Editar</strong>. Rectificar solo se usa después de emitir una factura y conserva el historial fiscal.
+      </p>
 
       {/* Tabla */}
       {filtered.length === 0 ? (

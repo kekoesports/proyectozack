@@ -8,6 +8,11 @@
  *   - 'en' → labels en inglés + formato en-GB (default para clientes internacionales)
  */
 import type { IssuedInvoiceWithRelations, IssuerCompany, BillingClient } from '@/types';
+import {
+  localizeCountryName,
+  localizeKnownInvoiceText,
+  normalizeDealInvoiceLineForPdf,
+} from '@/lib/invoices/dealInvoiceCopy';
 
 export type PdfLanguage = 'es' | 'en';
 
@@ -220,15 +225,15 @@ function fmtDate(d: string | null | undefined, locale: string, empty: string): s
 /**
  * Resuelve el idioma efectivo del PDF:
  *   1. Override explícito (dropdown del botón de descarga) tiene prioridad.
- *   2. Idioma persistido en el cliente (`billing_clients.pdf_language`).
- *   3. Fallback 'en' para clientes internacionales (la mayoría).
+ *   2. La descarga normal usa inglés para todas las facturas comerciales.
+ * El valor persistido del cliente se conserva por compatibilidad, pero solo
+ * un override explícito puede generar ahora una copia en español.
  */
 export function resolvePdfLanguage(
-  clientLanguage: string | null | undefined,
+  _clientLanguage: string | null | undefined,
   override?: PdfLanguage,
 ): PdfLanguage {
   if (override === 'es' || override === 'en') return override;
-  if (clientLanguage === 'es' || clientLanguage === 'en') return clientLanguage;
   return 'en';
 }
 
@@ -320,7 +325,11 @@ export async function generateInvoicePdf(
   setFont(9, 'normal', GRAY);
   if (issuer.taxId)    doc.text(`${t.issuerTaxIdLabel}: ${issuer.taxId}`, MARGIN, y + 4);
   if (issuer.address)  doc.text(issuer.address,          MARGIN, y + 8);
-  const issuerCity = [issuer.city, issuer.postalCode, issuer.country].filter(Boolean).join(', ');
+  const issuerCity = [
+    issuer.city,
+    issuer.postalCode,
+    localizeCountryName(issuer.country, language),
+  ].filter(Boolean).join(', ');
   if (issuerCity)      doc.text(issuerCity,               MARGIN, y + 12);
   if (issuer.email)    doc.text(issuer.email,             MARGIN, y + 16);
 
@@ -334,7 +343,11 @@ export async function generateInvoicePdf(
     doc.text(`${t.clientTaxIdLabel}: ${client.taxId ?? client.vatNumber}`, colMid, y + 4);
   }
   if (client.address)  doc.text(client.address, colMid, y + 8);
-  const clientCity = [client.city, client.postalCode, client.country].filter(Boolean).join(', ');
+  const clientCity = [
+    client.city,
+    client.postalCode,
+    localizeCountryName(client.country, language),
+  ].filter(Boolean).join(', ');
   if (clientCity)      doc.text(clientCity, colMid, y + 12);
   if (client.email)    doc.text(client.email, colMid, y + 16);
 
@@ -426,14 +439,15 @@ export async function generateInvoicePdf(
     y += 8;
   } else {
     lines.forEach((line, idx) => {
+      const displayLine = normalizeDealInvoiceLineForPdf(line, language, invoice.talentName);
       if (idx % 2 === 1) rect(MARGIN - 2, y - 1, PAGE_W - MARGIN * 2 + 4, 8, '#f5f5f7');
 
       setFont(9, 'bold', BLACK);
-      const conceptLines = splitText(line.concept, 82);
-      doc.text(conceptLines[0] ?? line.concept, colsX.concept, y + 3.5);
-      if (line.description) {
+      const conceptLines = splitText(displayLine.concept, 82);
+      doc.text(conceptLines[0] ?? displayLine.concept, colsX.concept, y + 3.5);
+      if (displayLine.description) {
         setFont(7.5, 'normal', GRAY);
-        doc.text(line.description.slice(0, 90), colsX.concept, y + 7);
+        doc.text(displayLine.description.slice(0, 90), colsX.concept, y + 7);
       }
 
       setFont(9, 'normal', BLACK);
@@ -446,7 +460,7 @@ export async function generateInvoicePdf(
       setFont(9, 'bold', BLACK);
       doc.text(fmtMoney(line.subtotal, invoice.currency, t.locale), colsX.sub, y + 3.5, { align: 'right' });
 
-      y += line.description ? 10 : 8;
+      y += displayLine.description ? 10 : 8;
     });
   }
 
@@ -493,9 +507,10 @@ export async function generateInvoicePdf(
     doc.text(t.paymentDetails, MARGIN, y);
     y += 4;
 
-    if (invoice.paymentTerms) {
+    const paymentTerms = localizeKnownInvoiceText(invoice.paymentTerms, language);
+    if (paymentTerms) {
       setFont(8.5, 'normal', GRAY);
-      const terms = splitText(invoice.paymentTerms, PAGE_W - MARGIN * 2);
+      const terms = splitText(paymentTerms, PAGE_W - MARGIN * 2);
       doc.text(terms, MARGIN, y);
       y += terms.length * 4;
     }
@@ -519,7 +534,7 @@ export async function generateInvoicePdf(
 
   // ── 8. NOTA LEGAL ─────────────────────────────────────────────────────
 
-  const legalText = invoice.legalNote ?? issuer.notes;
+  const legalText = localizeKnownInvoiceText(invoice.legalNote ?? issuer.notes, language);
   if (legalText) {
     hRule(y, '#e2e2ec');
     y += 4;

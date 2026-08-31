@@ -11,6 +11,11 @@ import {
   getIssuerCompanies,
   listIssuedInvoicesByDeal,
 } from '@/lib/queries/issuedInvoices';
+import {
+  buildDealInvoiceConcept,
+  DEFAULT_INVOICE_LEGAL_NOTE_EN,
+  DEFAULT_INVOICE_PAYMENT_TERMS_EN,
+} from '@/lib/invoices/dealInvoiceCopy';
 
 const AUTOMATION_KEY_PREFIX = 'deal-progress-80';
 
@@ -102,7 +107,7 @@ export async function ensureDealInvoiceDraft(
       type: 'empresa_espana',
       defaultVatRate: '0',
       defaultWithholdingRate: '0',
-      pdfLanguage: 'es',
+      pdfLanguage: 'en',
       relatedBrandId: campaign.brandId,
       notes: 'Creado automáticamente desde trato al alcanzar el 80 %',
     });
@@ -140,10 +145,8 @@ export async function ensureDealInvoiceDraft(
         fxRate: null,
         fxRateDate: null,
         eurEquivalent: currency === 'EUR' ? amount : null,
-        paymentTerms: issuer.defaultPaymentTerms ?? 'Pago a 30 días desde la fecha de emisión',
-        legalNote: currency === 'EUR'
-          ? 'Borrador de factura por servicios de marketing digital. Revisar fiscalidad antes de emitir.'
-          : 'Draft invoice for international marketing services. Review tax treatment before issuing.',
+        paymentTerms: issuer.defaultPaymentTerms ?? DEFAULT_INVOICE_PAYMENT_TERMS_EN,
+        legalNote: DEFAULT_INVOICE_LEGAL_NOTE_EN,
         notes: `Borrador automático al 80 % del trato: ${campaign.name}`,
         pdfUrl: null,
         rectifiedInvoiceId: null,
@@ -152,8 +155,8 @@ export async function ensureDealInvoiceDraft(
         createdByUserId,
       },
       lines: [{
-        concept: `Campaña de marketing digital — ${campaign.name}`,
-        description: campaign.notes ?? null,
+        concept: buildDealInvoiceConcept(campaign.talent?.name),
+        description: null,
         quantity: '1',
         unitPrice: amount,
         discount: '0',

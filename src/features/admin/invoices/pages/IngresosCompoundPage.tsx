@@ -192,7 +192,7 @@ export async function IngresosCompoundPage({ headerTitle = 'Ingresos', headerSub
                 brands={brandsList}
                 talents={talentsList}
                 campaigns={campaignsList}
-                isAdmin={role === 'admin'}
+                isAdmin={canDelete(role)}
                 isStaff={isStaff}
               />
             ),

@@ -15,7 +15,7 @@ type Props = {
  * Botón que genera y descarga el PDF de una factura emitida.
  *
  * Idioma:
- *   - Descarga rápida (botón principal) usa `client.pdfLanguage` (default 'en').
+ *   - Descarga rápida (botón principal) usa siempre inglés.
  *   - Un botón "▾" adyacente abre override puntual con opciones ES/EN sin
  *     tocar la config del cliente.
  *
@@ -28,7 +28,7 @@ export function InvoicePdfButton({ invoice, issuer, client, compact = false }: P
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  const clientLang: PdfLanguage = client?.pdfLanguage === 'es' ? 'es' : 'en';
+  const clientLang: PdfLanguage = 'en';
 
   // Cerrar menu al click fuera
   useEffect(() => {

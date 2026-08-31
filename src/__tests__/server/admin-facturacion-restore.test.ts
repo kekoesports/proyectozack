@@ -31,6 +31,11 @@ describe('Facturación restaurada como módulo operativo propio', () => {
     expect(src).toMatch(/IngresosCompoundPage/);
   });
 
+  it('admin_limited_tasks recibe los controles avanzados de facturas emitidas', () => {
+    const src = read('src/features/admin/invoices/pages/IngresosCompoundPage.tsx');
+    expect(src).toMatch(/<IssuedInvoicesTab[\s\S]*?isAdmin=\{canDelete\(role\)\}/);
+  });
+
   it('/admin/facturacion pasa headerTitle "Facturación" al compound page', () => {
     const src = read('src/app/admin/(dashboard)/facturacion/page.tsx');
     expect(src).toMatch(/headerTitle=["']Facturación["']/);

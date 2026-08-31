@@ -11,6 +11,10 @@ import {
   createIssuedInvoice,
   listIssuedInvoicesByDeal,
 } from '@/lib/queries/issuedInvoices';
+import {
+  buildDealInvoiceConcept,
+  DEFAULT_INVOICE_PAYMENT_TERMS_EN,
+} from '@/lib/invoices/dealInvoiceCopy';
 
 type Result = {
   readonly error?: string;
@@ -65,9 +69,8 @@ export async function createInvoiceFromDealAction(
       type:              'empresa_espana',
       defaultVatRate:    '0',
       defaultWithholdingRate: '0',
-      // Auto-create desde trato: type='empresa_espana' apunta a cliente
-      // español → default 'es' aquí. Editable después desde la ficha.
-      pdfLanguage:       'es',
+      // Las facturas comerciales se descargan en inglés por defecto.
+      pdfLanguage:       'en',
       relatedBrandId:    campaign.brandId,
       notes:             'Creado automáticamente desde trato',
     });
@@ -82,7 +85,7 @@ export async function createInvoiceFromDealAction(
 
   const legalNote = currency !== 'EUR'
     ? 'Invoice issued for international marketing services. VAT not applied according to applicable tax rules.'
-    : 'Factura emitida por servicios de marketing digital.';
+    : 'Invoice issued for digital marketing services.';
 
   const row = await createIssuedInvoice({
     invoice: {
@@ -109,7 +112,7 @@ export async function createInvoiceFromDealAction(
       fxRate:          null,
       fxRateDate:      null,
       eurEquivalent:   currency === 'EUR' ? String(amountBrand.toFixed(2)) : null,
-      paymentTerms:    issuer.defaultPaymentTerms ?? 'Pago a 30 días desde la fecha de emisión',
+      paymentTerms:    issuer.defaultPaymentTerms ?? DEFAULT_INVOICE_PAYMENT_TERMS_EN,
       legalNote,
       notes:           `Generada automáticamente desde trato: ${campaign.name}`,
       pdfUrl:              null,
@@ -119,8 +122,8 @@ export async function createInvoiceFromDealAction(
       createdByUserId: session.user.id,
     },
     lines: amountBrand > 0 ? [{
-      concept:     `Campaña de marketing digital — ${campaign.name}`,
-      description: campaign.notes ?? null,
+      concept:     buildDealInvoiceConcept(campaign.talent?.name),
+      description: null,
       quantity:    '1',
       unitPrice:   String(amountBrand.toFixed(2)),
       discount:    '0',

@@ -8,6 +8,7 @@ import {
   createBillingClientAction,
 } from '@/app/admin/(dashboard)/facturacion/issued-invoices-actions';
 import { BILLING_CLIENT_TYPES, BILLING_CLIENT_TYPE_LABELS, ISSUED_INVOICE_STATUSES, ISSUED_INVOICE_STATUS_LABELS } from '@/lib/schemas/issuedInvoice';
+import { buildDealInvoiceConcept } from '@/lib/invoices/dealInvoiceCopy';
 import type { IssuerCompany, BillingClient, IssuedInvoiceWithRelations } from '@/types';
 
 type BrandOpt    = { readonly id: number; readonly name: string };
@@ -117,8 +118,9 @@ export function IssuedInvoiceForm({ invoice, issuers, clients, brands, talents, 
     setLines((prev) => {
       const firstEmpty = prev.length === 1 && prev[0]?.concept === '' && prev[0]?.unitPrice === '0';
       if (firstEmpty && amount > 0) {
+        const talentName = talents.find((talent) => talent.id === camp.talentId)?.name;
         return [{
-          concept:     `Campaña de marketing digital — ${camp.name}`,
+          concept:     buildDealInvoiceConcept(talentName),
           description: '',
           quantity:    '1',
           unitPrice:   amount.toFixed(2),
