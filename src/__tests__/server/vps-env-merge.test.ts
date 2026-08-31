@@ -14,4 +14,10 @@ describe('VPS production env merge', () => {
     expect(source).toMatch(/DATABASE_URL\|DATABASE_URL_UNPOOLED\|MIGRATION_DATABASE_URL/);
     expect(source).toMatch(/STORAGE_DRIVER\|STORAGE_LOCAL_ROOT\|STORAGE_PUBLIC_URL_BASE/);
   });
+
+  it('does not make a Docker build impersonate Vercel', () => {
+    expect(source).toContain('k == "VERCEL"');
+    expect(source).toContain('k ~ /^VERCEL_/');
+    expect(source).toContain('k ~ /^NOW_/');
+  });
 });

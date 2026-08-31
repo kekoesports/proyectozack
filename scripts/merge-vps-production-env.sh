@@ -26,6 +26,11 @@ function key_of(line, pos) {
 function preserve(k) {
   return k ~ /^(DATABASE_URL|DATABASE_URL_UNPOOLED|MIGRATION_DATABASE_URL|STORAGE_DRIVER|STORAGE_LOCAL_ROOT|STORAGE_PUBLIC_URL_BASE|STORAGE_FALLBACK_TO_VERCEL|DEPLOY_ENV|PORT|HOSTNAME|APP_VERSION|GIT_COMMIT_SHA|NODE_ENV|NEXT_TELEMETRY_DISABLED)$/
 }
+function platform_only(k) {
+  # Estas variables describen el runtime de Vercel. Si llegan al VPS,
+  # next.config.ts desactiva `output: standalone` y Docker no puede arrancar.
+  return k == "VERCEL" || k ~ /^VERCEL_/ || k ~ /^NOW_/
+}
 function usable_value(line, pos, value) {
   pos=index(line, "=")
   if (pos < 2) return 0
@@ -37,7 +42,7 @@ function usable_value(line, pos, value) {
 }
 FNR == NR {
   k=key_of($0)
-  if (k != "" && !preserve(k) && usable_value($0)) {
+  if (k != "" && !preserve(k) && !platform_only(k) && usable_value($0)) {
     production[k]=$0
     order[++count]=k
   }
