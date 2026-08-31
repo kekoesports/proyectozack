@@ -64,6 +64,7 @@ describe('isLikelyPublisherChannel', () => {
     'Team Spirit CS',
     'BLAST Premier',
     'CS News',
+    'CS2TV',
   ])('separa organizaciones y medios: %s', (title) => {
     expect(isLikelyPublisherChannel(title)).toBe(true);
   });
