@@ -17,6 +17,17 @@ export type CreatorFit = {
   readonly reasons: readonly string[];
 };
 
+const PUBLISHER_CHANNEL_PATTERNS = [
+  /^team\s+/i,
+  /\b(?:esl|pgl|blast|faceit|esea)\b/i,
+  /\b(?:highlights|tournament|tournaments|league|esports organization)\b/i,
+] as const;
+
+export function isLikelyPublisherChannel(title: string): boolean {
+  const normalized = title.trim();
+  return PUBLISHER_CHANNEL_PATTERNS.some((pattern) => pattern.test(normalized));
+}
+
 export function qualifyTwitchCandidate(input: TwitchFitInput): CreatorFit {
   const languageMatches = input.requiredLanguage === null
     || input.language.toLowerCase() === input.requiredLanguage.toLowerCase();

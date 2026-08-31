@@ -1,4 +1,7 @@
-import { qualifyTwitchCandidate } from '@/lib/targets/qualification';
+import {
+  isLikelyPublisherChannel,
+  qualifyTwitchCandidate,
+} from '@/lib/targets/qualification';
 
 const candidate = {
   followers: 5_400,
@@ -50,5 +53,21 @@ describe('qualifyTwitchCandidate', () => {
     });
 
     expect(result.isQualified).toBe(true);
+  });
+});
+
+describe('isLikelyPublisherChannel', () => {
+  it.each([
+    'ESL Counter-Strike',
+    'ESL Counter-Strike Highlights',
+    'PGL',
+    'Team Spirit CS',
+    'BLAST Premier',
+  ])('separa organizaciones y medios: %s', (title) => {
+    expect(isLikelyPublisherChannel(title)).toBe(true);
+  });
+
+  it.each(['ScreaM', 'renyan', 'H4RN', 'PHY'])('mantiene creadores personales: %s', (title) => {
+    expect(isLikelyPublisherChannel(title)).toBe(false);
   });
 });
