@@ -14,8 +14,10 @@
 
 - `InfluencerCardsView.tsx` — vista de cards.
 - `RosterSpreadsheet.tsx` — vista spreadsheet editable.
-- `TalentIntelligenceDashboard.tsx` — tendencias 30/90/365 días, diagnóstico,
-  mejor mes y contenido destacado.
+- `TalentIntelligenceDashboard.tsx` — rankings fiables por red y por canal a
+  30/60/90/120 días, calidad de cobertura, señales de marketing, mejor mes y
+  contenido destacado. Los perfiles sin histórico suficiente quedan fuera de
+  los tops.
 - `TalentProfileTabs.tsx` — tabs del perfil.
 - `TalentStatsByPlatform.tsx` — stats por plataforma.
 - `TalentGeoFiles.tsx` — archivos GEO.

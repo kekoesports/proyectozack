@@ -8,6 +8,12 @@ import {
   talents,
 } from '@/db/schema';
 import { db } from '@/lib/db';
+import {
+  calculateComparableGrowth,
+  TALENT_GROWTH_PERIODS,
+  type TalentGrowthMetric,
+  type TalentGrowthPeriod,
+} from '@/lib/talent-intelligence/growth';
 import { parseFollowers } from '@/lib/utils/format';
 
 export type TalentChannelSnapshotInput = {
@@ -105,6 +111,7 @@ export async function upsertTalentContentPerformance(
 export type TalentIntelligenceContent = {
   readonly id: number;
   readonly talentId: number;
+  readonly socialId: number;
   readonly talentName: string;
   readonly platform: string;
   readonly title: string;
@@ -116,25 +123,30 @@ export type TalentIntelligenceContent = {
   readonly comments: number | null;
 };
 
-export type TalentIntelligenceCreator = {
-  readonly id: number;
-  readonly name: string;
+export type TalentIntelligenceChannel = {
+  readonly socialId: number;
+  readonly talentId: number;
+  readonly talentName: string;
   readonly photoUrl: string | null;
   readonly initials: string;
   readonly gradientC1: string;
   readonly gradientC2: string;
-  readonly platforms: readonly string[];
-  readonly totalAudience: number;
-  readonly trackedAudience: number;
-  readonly growth30: number;
-  readonly growthPct30: number | null;
-  readonly growth90: number;
-  readonly growthPct90: number | null;
-  readonly growth365: number;
-  readonly growthPct365: number | null;
-  readonly direction: 'rising' | 'stable' | 'falling' | 'untracked';
+  readonly platform: string;
+  readonly handle: string;
+  readonly profileUrl: string | null;
+  readonly declaredAudience: number;
+  readonly currentAudience: number | null;
+  readonly verifiedAudience: boolean;
+  readonly growth: Readonly<Record<TalentGrowthPeriod, TalentGrowthMetric>>;
   readonly latestSnapshotAt: string | null;
   readonly stale: boolean;
+  readonly recentViews30d: number | null;
+  readonly avgViews30d: number | null;
+  readonly uploads30d: number | null;
+  readonly engagementRate30d: number | null;
+  readonly avgCcv30d: number | null;
+  readonly peakCcv30d: number | null;
+  readonly hoursLive30d: number | null;
   readonly bestGrowthMonth: { readonly month: string; readonly growth: number } | null;
   readonly bestViewsMonth: {
     readonly month: string;
@@ -142,7 +154,6 @@ export type TalentIntelligenceCreator = {
     readonly basis: 'channel-delta' | 'published-content';
   } | null;
   readonly bestContent: TalentIntelligenceContent | null;
-  readonly reason: string;
 };
 
 export type TalentIntelligenceDashboard = {
@@ -151,16 +162,26 @@ export type TalentIntelligenceDashboard = {
     readonly talents: number;
     readonly channels: number;
     readonly trackedChannels: number;
-    readonly platforms: ReadonlyArray<{ readonly platform: string; readonly channels: number; readonly tracked: number }>;
+    readonly platforms: ReadonlyArray<{
+      readonly platform: string;
+      readonly channels: number;
+      readonly tracked: number;
+      readonly fresh: number;
+      readonly comparable: Readonly<Record<TalentGrowthPeriod, number>>;
+    }>;
   };
   readonly summary: {
-    readonly totalAudience: number;
-    readonly improving: number;
-    readonly falling: number;
+    readonly verifiedAudience: number;
+    readonly improving30: number;
+    readonly falling30: number;
+    readonly excluded30: number;
     readonly stale: number;
   };
-  readonly dailyTrend: ReadonlyArray<{ readonly date: string; readonly youtube: number; readonly twitch: number; readonly total: number }>;
-  readonly creators: readonly TalentIntelligenceCreator[];
+  readonly dailyTrend: ReadonlyArray<{
+    readonly date: string;
+    readonly values: Readonly<Record<string, number>>;
+  }>;
+  readonly channels: readonly TalentIntelligenceChannel[];
   readonly topContent: readonly TalentIntelligenceContent[];
 };
 
@@ -171,8 +192,12 @@ export async function getTalentIntelligenceDashboard(opts?: {
 }): Promise<TalentIntelligenceDashboard> {
   if (opts?.talentIds && opts.talentIds.length === 0) return emptyDashboard();
 
-  const from = new Date();
-  from.setUTCDate(from.getUTCDate() - 370);
+  const generatedAt = new Date();
+  const asOfDate = generatedAt.toISOString().slice(0, 10);
+  const from = new Date(generatedAt);
+  from.setUTCDate(from.getUTCDate() - 130);
+  const contentFrom = new Date(generatedAt);
+  contentFrom.setUTCDate(contentFrom.getUTCDate() - 370);
   const fromDate = from.toISOString().slice(0, 10);
   const talentIds = opts?.talentIds ? [...opts.talentIds] : null;
   const snapshotFilter = talentIds
@@ -183,17 +208,17 @@ export async function getTalentIntelligenceDashboard(opts?: {
     : gte(talentChannelSnapshots.snapshotDate, fromDate);
   const contentFilter = talentIds
     ? and(
-        gte(talentContentPerformance.publishedAt, from),
+        gte(talentContentPerformance.publishedAt, contentFrom),
         isNull(talents.archivedAt),
         inArray(talentContentPerformance.talentId, talentIds),
       )
     : and(
-        gte(talentContentPerformance.publishedAt, from),
+        gte(talentContentPerformance.publishedAt, contentFrom),
         isNull(talents.archivedAt),
       );
   const contentMonth = sql<string>`to_char(date_trunc('month', ${talentContentPerformance.publishedAt} AT TIME ZONE 'UTC'), 'YYYY-MM')`;
 
-  const [talentRows, snapshots, topContentRows, bestContentRows, contentMonthRows] = await Promise.all([
+  const [talentRows, allSnapshots, topContentRows, bestContentRows, contentMonthRows] = await Promise.all([
     db.query.talents.findMany({
       where: (t, operators) => talentIds
         ? operators.and(operators.isNull(t.archivedAt), operators.inArray(t.id, talentIds))
@@ -204,34 +229,139 @@ export async function getTalentIntelligenceDashboard(opts?: {
     db.select().from(talentChannelSnapshots)
       .where(snapshotFilter)
       .orderBy(asc(talentChannelSnapshots.snapshotDate)),
-    db.select({
-      content: talentContentPerformance,
-      talentName: talents.name,
-    }).from(talentContentPerformance)
+    db.select({ content: talentContentPerformance, talentName: talents.name })
+      .from(talentContentPerformance)
       .innerJoin(talents, eq(talentContentPerformance.talentId, talents.id))
       .where(contentFilter)
       .orderBy(desc(talentContentPerformance.viewCount))
       .limit(30),
-    db.selectDistinctOn([talentContentPerformance.talentId], {
+    db.selectDistinctOn([talentContentPerformance.socialId], {
       content: talentContentPerformance,
       talentName: talents.name,
     }).from(talentContentPerformance)
       .innerJoin(talents, eq(talentContentPerformance.talentId, talents.id))
       .where(contentFilter)
-      .orderBy(talentContentPerformance.talentId, desc(talentContentPerformance.viewCount)),
+      .orderBy(talentContentPerformance.socialId, desc(talentContentPerformance.viewCount)),
     db.select({
-      talentId: talentContentPerformance.talentId,
+      socialId: talentContentPerformance.socialId,
       month: contentMonth,
       views: sql<number>`coalesce(sum(${talentContentPerformance.viewCount}), 0)`.mapWith(Number),
     }).from(talentContentPerformance)
       .innerJoin(talents, eq(talentContentPerformance.talentId, talents.id))
       .where(contentFilter)
-      .groupBy(talentContentPerformance.talentId, contentMonth),
+      .groupBy(talentContentPerformance.socialId, contentMonth),
   ]);
 
-  const topContent = topContentRows.map(({ content: row, talentName }) => ({
+  const activeTalentIds = new Set(talentRows.map((talent) => talent.id));
+  const snapshots = allSnapshots.filter((row) => activeTalentIds.has(row.talentId));
+  const topContent = topContentRows.map(({ content: row, talentName }) => mapContent(row, talentName));
+  const bestContentBySocial = new Map(
+    bestContentRows.map(({ content: row, talentName }) => [row.socialId, mapContent(row, talentName)] as const),
+  );
+  const contentMonthsBySocial = buildContentMonths(contentMonthRows);
+  const snapshotsBySocial = groupBy(snapshots, (row) => row.socialId);
+
+  const channels: TalentIntelligenceChannel[] = [];
+  for (const talent of talentRows) {
+    for (const social of talent.socials) {
+      const channelSnapshots = snapshotsBySocial.get(social.id) ?? [];
+      const latest = channelSnapshots.at(-1) ?? null;
+      const growth = Object.fromEntries(TALENT_GROWTH_PERIODS.map((period) => [
+        period,
+        calculateComparableGrowth(channelSnapshots, period, asOfDate),
+      ])) as Record<TalentGrowthPeriod, TalentGrowthMetric>;
+
+      channels.push({
+        socialId: social.id,
+        talentId: talent.id,
+        talentName: talent.name,
+        photoUrl: talent.photoUrl ?? null,
+        initials: talent.initials,
+        gradientC1: talent.gradientC1,
+        gradientC2: talent.gradientC2,
+        platform: social.platform,
+        handle: social.handle,
+        profileUrl: social.profileUrl ?? null,
+        declaredAudience: parseFollowers(social.followersDisplay),
+        currentAudience: latest?.followers ?? null,
+        verifiedAudience: Boolean(latest && isFreshSnapshot(latest.snapshotDate, asOfDate) && latest.followers > 0),
+        growth,
+        latestSnapshotAt: latest?.snapshotDate ?? null,
+        stale: !latest || !isFreshSnapshot(latest.snapshotDate, asOfDate),
+        recentViews30d: latest?.recentViews30d ?? null,
+        avgViews30d: latest?.avgViews30d ?? null,
+        uploads30d: latest?.uploads30d ?? null,
+        engagementRate30d: latest?.engagementRate30d === null || latest?.engagementRate30d === undefined
+          ? null
+          : Number(latest.engagementRate30d),
+        avgCcv30d: latest?.avgCcv30d ?? null,
+        peakCcv30d: latest?.peakCcv30d ?? null,
+        hoursLive30d: latest?.hoursLive30d === null || latest?.hoursLive30d === undefined
+          ? null
+          : Number(latest.hoursLive30d),
+        bestGrowthMonth: findBestGrowthMonth(channelSnapshots),
+        bestViewsMonth: findBestViewsMonth(channelSnapshots) ?? contentMonthsBySocial.get(social.id) ?? null,
+        bestContent: bestContentBySocial.get(social.id) ?? null,
+      });
+    }
+  }
+
+  const platformNames = [...new Set(channels.map((channel) => channel.platform))];
+  const platforms = platformNames.map((platform) => {
+    const platformChannels = channels.filter((channel) => channel.platform === platform);
+    return {
+      platform,
+      channels: platformChannels.length,
+      tracked: platformChannels.filter((channel) => channel.latestSnapshotAt !== null).length,
+      fresh: platformChannels.filter((channel) => channel.verifiedAudience).length,
+      comparable: Object.fromEntries(TALENT_GROWTH_PERIODS.map((period) => [
+        period,
+        platformChannels.filter((channel) => channel.growth[period].eligible).length,
+      ])) as Record<TalentGrowthPeriod, number>,
+    };
+  });
+  const growth30 = channels.map((channel) => channel.growth[30]);
+
+  return {
+    generatedAt: generatedAt.toISOString(),
+    coverage: {
+      talents: talentRows.length,
+      channels: channels.length,
+      trackedChannels: channels.filter((channel) => channel.latestSnapshotAt !== null).length,
+      platforms,
+    },
+    summary: {
+      verifiedAudience: channels.reduce((sum, channel) => sum + (channel.verifiedAudience ? channel.currentAudience ?? 0 : 0), 0),
+      improving30: growth30.filter((metric) => metric.eligible && (metric.pct ?? 0) >= 1).length,
+      falling30: growth30.filter((metric) => metric.eligible && (metric.pct ?? 0) < -0.25).length,
+      excluded30: growth30.filter((metric) => !metric.eligible).length,
+      stale: channels.filter((channel) => channel.stale).length,
+    },
+    dailyTrend: buildDailyTrend(snapshots),
+    channels,
+    topContent,
+  };
+}
+
+function emptyDashboard(): TalentIntelligenceDashboard {
+  return {
+    generatedAt: new Date().toISOString(),
+    coverage: { talents: 0, channels: 0, trackedChannels: 0, platforms: [] },
+    summary: { verifiedAudience: 0, improving30: 0, falling30: 0, excluded30: 0, stale: 0 },
+    dailyTrend: [],
+    channels: [],
+    topContent: [],
+  };
+}
+
+function mapContent(
+  row: typeof talentContentPerformance.$inferSelect,
+  talentName: string,
+): TalentIntelligenceContent {
+  return {
     id: row.id,
     talentId: row.talentId,
+    socialId: row.socialId,
     talentName,
     platform: row.platform,
     title: row.title,
@@ -241,117 +371,6 @@ export async function getTalentIntelligenceDashboard(opts?: {
     views: row.viewCount,
     likes: row.likeCount,
     comments: row.commentCount,
-  } satisfies TalentIntelligenceContent));
-  const bestContentByTalent = new Map(
-    bestContentRows.map(({ content: row, talentName }) => [
-      row.talentId,
-      {
-        id: row.id,
-        talentId: row.talentId,
-        talentName,
-        platform: row.platform,
-        title: row.title,
-        url: row.contentUrl,
-        thumbnailUrl: row.thumbnailUrl,
-        publishedAt: row.publishedAt.toISOString(),
-        views: row.viewCount,
-        likes: row.likeCount,
-        comments: row.commentCount,
-      } satisfies TalentIntelligenceContent,
-    ] as const),
-  );
-  const contentMonthsByTalent = buildContentMonths(contentMonthRows);
-
-  const snapshotsByTalent = groupBy(snapshots, (row) => row.talentId);
-  const trackedSocialIds = new Set(snapshots.map((row) => row.socialId));
-  const now = Date.now();
-
-  const creators = talentRows.map((talent) => {
-    const talentSnapshots = snapshotsByTalent.get(talent.id) ?? [];
-    const latestBySocial = latestRowsBy(talentSnapshots, (row) => row.socialId);
-    const trackedAudience = [...latestBySocial.values()].reduce((sum, row) => sum + row.followers, 0);
-    const totalAudience = talent.socials.reduce((sum, social) => sum + parseFollowers(social.followersDisplay), 0);
-    const growth30 = calculateGrowth(talentSnapshots, 30);
-    const growth90 = calculateGrowth(talentSnapshots, 90);
-    const growth365 = calculateGrowth(talentSnapshots, 365);
-    const latestDate = talentSnapshots.at(-1)?.snapshotDate ?? null;
-    const stale = latestDate === null || now - new Date(`${latestDate}T12:00:00Z`).getTime() > 8 * 86_400_000;
-    const direction = talentSnapshots.length === 0
-      ? 'untracked'
-      : growth30.pct !== null && growth30.pct >= 1
-        ? 'rising'
-        : growth30.pct !== null && growth30.pct < -0.25
-          ? 'falling'
-          : 'stable';
-    const bestGrowthMonth = findBestGrowthMonth(talentSnapshots);
-    const bestViewsMonth = findBestViewsMonth(talentSnapshots) ?? contentMonthsByTalent.get(talent.id) ?? null;
-    const bestContent = bestContentByTalent.get(talent.id) ?? null;
-
-    return {
-      id: talent.id,
-      name: talent.name,
-      photoUrl: talent.photoUrl ?? null,
-      initials: talent.initials,
-      gradientC1: talent.gradientC1,
-      gradientC2: talent.gradientC2,
-      platforms: [...new Set(talent.socials.map((social) => social.platform))],
-      totalAudience,
-      trackedAudience,
-      growth30: growth30.absolute,
-      growthPct30: growth30.pct,
-      growth90: growth90.absolute,
-      growthPct90: growth90.pct,
-      growth365: growth365.absolute,
-      growthPct365: growth365.pct,
-      direction,
-      latestSnapshotAt: latestDate,
-      stale,
-      bestGrowthMonth,
-      bestViewsMonth,
-      bestContent,
-      reason: buildTrendReason(direction, growth30.absolute, growth30.pct, bestContent, stale),
-    } satisfies TalentIntelligenceCreator;
-  });
-
-  const platformCoverage = new Map<string, { channels: number; tracked: number }>();
-  for (const talent of talentRows) {
-    for (const social of talent.socials) {
-      const current = platformCoverage.get(social.platform) ?? { channels: 0, tracked: 0 };
-      current.channels += 1;
-      if (trackedSocialIds.has(social.id)) current.tracked += 1;
-      platformCoverage.set(social.platform, current);
-    }
-  }
-
-  const dailyTrend = buildDailyTrend(snapshots);
-  return {
-    generatedAt: new Date().toISOString(),
-    coverage: {
-      talents: talentRows.length,
-      channels: talentRows.reduce((sum, talent) => sum + talent.socials.length, 0),
-      trackedChannels: trackedSocialIds.size,
-      platforms: [...platformCoverage].map(([platform, values]) => ({ platform, ...values })),
-    },
-    summary: {
-      totalAudience: creators.reduce((sum, row) => sum + row.totalAudience, 0),
-      improving: creators.filter((row) => row.direction === 'rising').length,
-      falling: creators.filter((row) => row.direction === 'falling').length,
-      stale: creators.filter((row) => row.stale).length,
-    },
-    dailyTrend,
-    creators,
-    topContent,
-  };
-}
-
-function emptyDashboard(): TalentIntelligenceDashboard {
-  return {
-    generatedAt: new Date().toISOString(),
-    coverage: { talents: 0, channels: 0, trackedChannels: 0, platforms: [] },
-    summary: { totalAudience: 0, improving: 0, falling: 0, stale: 0 },
-    dailyTrend: [],
-    creators: [],
-    topContent: [],
   };
 }
 
@@ -365,73 +384,39 @@ function groupBy<T, K>(rows: readonly T[], key: (row: T) => K): Map<K, T[]> {
   return grouped;
 }
 
-function latestRowsBy<K>(rows: readonly SnapshotRow[], key: (row: SnapshotRow) => K): Map<K, SnapshotRow> {
-  const latest = new Map<K, SnapshotRow>();
-  for (const row of rows) latest.set(key(row), row);
-  return latest;
-}
-
-function calculateGrowth(rows: readonly SnapshotRow[], days: number): { absolute: number; pct: number | null } {
-  const cutoff = Date.now() - days * 86_400_000;
-  const bySocial = groupBy(rows, (row) => row.socialId);
-  let current = 0;
-  let baseline = 0;
-  let comparable = 0;
-
-  for (const values of bySocial.values()) {
-    const latest = values.at(-1);
-    if (!latest) continue;
-    const inRange = values.find((row) => new Date(`${row.snapshotDate}T12:00:00Z`).getTime() >= cutoff) ?? values[0];
-    if (!inRange) continue;
-    current += latest.followers;
-    baseline += inRange.followers;
-    comparable += 1;
-  }
-
-  if (comparable === 0) return { absolute: 0, pct: null };
-  const absolute = current - baseline;
-  return { absolute, pct: baseline > 0 ? (absolute / baseline) * 100 : null };
-}
-
 function findBestGrowthMonth(rows: readonly SnapshotRow[]): { month: string; growth: number } | null {
   const byMonth = groupBy(rows, (row) => row.snapshotDate.slice(0, 7));
   let best: { month: string; growth: number } | null = null;
-  for (const [month, monthRows] of byMonth) {
-    const bySocial = groupBy(monthRows, (row) => row.socialId);
-    const growth = [...bySocial.values()].reduce((sum, values) => {
-      const first = values[0]?.followers ?? 0;
-      const last = values.at(-1)?.followers ?? first;
-      return sum + last - first;
-    }, 0);
+  for (const [month, values] of byMonth) {
+    const first = values[0]?.followers ?? 0;
+    const last = values.at(-1)?.followers ?? first;
+    const growth = last - first;
     if (!best || growth > best.growth) best = { month, growth };
   }
   return best;
 }
 
-function findBestViewsMonth(rows: readonly SnapshotRow[]): TalentIntelligenceCreator['bestViewsMonth'] {
+function findBestViewsMonth(rows: readonly SnapshotRow[]): TalentIntelligenceChannel['bestViewsMonth'] {
   const comparable = rows.filter((row) => row.totalViews !== null);
   const byMonth = groupBy(comparable, (row) => row.snapshotDate.slice(0, 7));
-  let best: TalentIntelligenceCreator['bestViewsMonth'] = null;
-  for (const [month, monthRows] of byMonth) {
-    const bySocial = groupBy(monthRows, (row) => row.socialId);
-    const views = [...bySocial.values()].reduce((sum, values) => {
-      const first = values[0]?.totalViews ?? 0;
-      const last = values.at(-1)?.totalViews ?? first;
-      return sum + Math.max(0, last - first);
-    }, 0);
+  let best: TalentIntelligenceChannel['bestViewsMonth'] = null;
+  for (const [month, values] of byMonth) {
+    const first = values[0]?.totalViews ?? 0;
+    const last = values.at(-1)?.totalViews ?? first;
+    const views = Math.max(0, last - first);
     if (views > 0 && (!best || views > best.views)) best = { month, views, basis: 'channel-delta' };
   }
   return best;
 }
 
 function buildContentMonths(
-  rows: ReadonlyArray<{ readonly talentId: number; readonly month: string; readonly views: number }>,
-): Map<number, NonNullable<TalentIntelligenceCreator['bestViewsMonth']>> {
-  const best = new Map<number, NonNullable<TalentIntelligenceCreator['bestViewsMonth']>>();
+  rows: ReadonlyArray<{ readonly socialId: number; readonly month: string; readonly views: number }>,
+): Map<number, NonNullable<TalentIntelligenceChannel['bestViewsMonth']>> {
+  const best = new Map<number, NonNullable<TalentIntelligenceChannel['bestViewsMonth']>>();
   for (const row of rows) {
-    const current = best.get(row.talentId);
+    const current = best.get(row.socialId);
     if (!current || row.views > current.views) {
-      best.set(row.talentId, { month: row.month, views: row.views, basis: 'published-content' });
+      best.set(row.socialId, { month: row.month, views: row.views, basis: 'published-content' });
     }
   }
   return best;
@@ -442,32 +427,15 @@ function buildDailyTrend(rows: readonly SnapshotRow[]): TalentIntelligenceDashbo
   const latestPerSocial = new Map<number, SnapshotRow>();
   return [...byDate].sort(([a], [b]) => a.localeCompare(b)).map(([date, dateRows]) => {
     for (const row of dateRows) latestPerSocial.set(row.socialId, row);
-    let youtube = 0;
-    let twitch = 0;
+    const values: Record<string, number> = {};
     for (const row of latestPerSocial.values()) {
-      if (row.platform === 'youtube') youtube += row.followers;
-      if (row.platform === 'twitch') twitch += row.followers;
+      values[row.platform] = (values[row.platform] ?? 0) + row.followers;
     }
-    return { date, youtube, twitch, total: youtube + twitch };
+    return { date, values };
   });
 }
 
-function buildTrendReason(
-  direction: TalentIntelligenceCreator['direction'],
-  growth: number,
-  pct: number | null,
-  bestContent: TalentIntelligenceContent | null,
-  stale: boolean,
-): string {
-  if (stale) return 'Datos automáticos desactualizados; conviene revisar la conexión del canal.';
-  const formattedPct = pct === null ? null : `${pct >= 0 ? '+' : ''}${pct.toFixed(1)}%`;
-  if (direction === 'rising') {
-    return `Mejora ${formattedPct ?? ''} en 30 días (${growth >= 0 ? '+' : ''}${growth.toLocaleString('es-ES')}).`;
-  }
-  if (direction === 'falling') {
-    return `Pierde ${formattedPct ?? ''} en 30 días; revisar frecuencia y rendimiento del contenido.`;
-  }
-  if (bestContent) return `Audiencia estable; su mejor pieza reciente suma ${bestContent.views.toLocaleString('es-ES')} vistas.`;
-  if (direction === 'untracked') return 'Canal sin histórico automático conectado.';
-  return 'Audiencia estable en los últimos 30 días.';
+function isFreshSnapshot(snapshotDate: string, asOfDate: string): boolean {
+  const age = new Date(`${asOfDate}T12:00:00Z`).getTime() - new Date(`${snapshotDate}T12:00:00Z`).getTime();
+  return age <= 8 * 86_400_000;
 }

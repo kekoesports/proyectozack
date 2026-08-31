@@ -12,16 +12,29 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import { ArrowDownRight, ArrowUpRight, Minus, Play, Search, Sparkles } from 'lucide-react';
+import {
+  ArrowDownRight,
+  ArrowUpRight,
+  BarChart3,
+  Minus,
+  Play,
+  Search,
+  ShieldCheck,
+  Sparkles,
+} from 'lucide-react';
 
 import type {
-  TalentIntelligenceCreator,
+  TalentIntelligenceChannel,
   TalentIntelligenceDashboard as DashboardData,
 } from '@/lib/queries/talentIntelligence';
+import {
+  TALENT_GROWTH_PERIODS,
+  type TalentGrowthMetric,
+  type TalentGrowthPeriod,
+} from '@/lib/talent-intelligence/growth';
 import { formatCompact } from '@/lib/utils/format';
 
-type Period = 30 | 90 | 365;
-type Direction = 'rising' | 'stable' | 'falling' | 'untracked';
+type Direction = 'rising' | 'stable' | 'falling';
 
 const PLATFORM_COLORS: Readonly<Record<string, string>> = {
   youtube: '#ff3b30',
@@ -33,48 +46,74 @@ const PLATFORM_COLORS: Readonly<Record<string, string>> = {
   discord: '#5865f2',
 };
 
-const PERIODS: readonly Period[] = [30, 90, 365];
+const PLATFORM_LABELS: Readonly<Record<string, string>> = {
+  youtube: 'YouTube',
+  twitch: 'Twitch',
+  instagram: 'Instagram',
+  tiktok: 'TikTok',
+  kick: 'Kick',
+  x: 'X',
+  discord: 'Discord',
+};
 
 export function TalentIntelligenceDashboard({ data }: { readonly data: DashboardData }): React.ReactElement {
-  const [period, setPeriod] = useState<Period>(30);
+  const initialPlatform = data.coverage.platforms.find((item) => item.comparable[30] > 0)?.platform
+    ?? data.coverage.platforms.find((item) => item.tracked > 0)?.platform
+    ?? data.coverage.platforms[0]?.platform
+    ?? 'youtube';
+  const [period, setPeriod] = useState<TalentGrowthPeriod>(30);
+  const [platform, setPlatform] = useState(initialPlatform);
   const [search, setSearch] = useState('');
 
-  const visibleCreators = useMemo(() => {
+  const platformCoverage = data.coverage.platforms.find((item) => item.platform === platform) ?? null;
+  const platformChannels = useMemo(
+    () => data.channels.filter((channel) => channel.platform === platform),
+    [data.channels, platform],
+  );
+  const eligibleChannels = useMemo(() => {
     const query = search.trim().toLocaleLowerCase('es');
-    return data.creators
-      .filter((creator) => !query || creator.name.toLocaleLowerCase('es').includes(query))
-      .map((creator) => ({
-        ...creator,
-        selectedGrowth: growthForPeriod(creator, period),
-      }))
-      .sort((a, b) => (b.selectedGrowth.pct ?? -Infinity) - (a.selectedGrowth.pct ?? -Infinity));
-  }, [data.creators, period, search]);
-
+    return platformChannels
+      .filter((channel) => channel.growth[period].eligible)
+      .filter((channel) => !query || `${channel.talentName} ${channel.handle}`.toLocaleLowerCase('es').includes(query))
+      .sort((a, b) => {
+        const aGrowth = a.growth[period];
+        const bGrowth = b.growth[period];
+        return (bGrowth.score ?? -Infinity) - (aGrowth.score ?? -Infinity)
+          || (bGrowth.absolute - aGrowth.absolute);
+      });
+  }, [period, platformChannels, search]);
+  const improving = eligibleChannels.filter((channel) => directionFor(channel.growth[period]) === 'rising');
+  const falling = eligibleChannels.filter((channel) => directionFor(channel.growth[period]) === 'falling');
+  const excluded = platformChannels.filter((channel) => !channel.growth[period].eligible);
+  const verifiedAudience = platformChannels.reduce(
+    (sum, channel) => sum + (channel.verifiedAudience ? channel.currentAudience ?? 0 : 0),
+    0,
+  );
   const trend = useMemo(() => {
     const cutoff = new Date(data.generatedAt).getTime() - period * 86_400_000;
-    return data.dailyTrend.filter((point) => new Date(`${point.date}T12:00:00Z`).getTime() >= cutoff);
-  }, [data.dailyTrend, data.generatedAt, period]);
-
-  const improving = visibleCreators.filter((creator) => directionFor(creator.selectedGrowth.pct) === 'rising');
-  const falling = visibleCreators.filter((creator) => directionFor(creator.selectedGrowth.pct) === 'falling');
-  const freshCreators = data.creators.filter((creator) => !creator.stale).length;
+    return data.dailyTrend
+      .filter((point) => new Date(`${point.date}T12:00:00Z`).getTime() >= cutoff)
+      .map((point) => ({ date: point.date, audience: point.values[platform] ?? 0 }));
+  }, [data.dailyTrend, data.generatedAt, period, platform]);
+  const platformContent = data.topContent.filter((content) => content.platform === platform);
+  const exclusions = countExclusions(excluded, period);
 
   return (
     <div className="space-y-4">
       <section className="rounded-2xl border border-sp-admin-border bg-sp-admin-card p-4">
-        <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">
               <Sparkles size={16} className="text-sp-admin-accent" />
-              <h2 className="text-base font-black text-sp-admin-text">Inteligencia de talentos</h2>
+              <h2 className="text-base font-black text-sp-admin-text">Inteligencia de canales</h2>
             </div>
             <p className="mt-1 max-w-3xl text-[12px] leading-relaxed text-sp-admin-muted">
-              Compara evolución, detecta canales en tendencia y relaciona el crecimiento con su mejor contenido público.
-              Instagram, TikTok y Kick muestran audiencia actual; el histórico automático depende de que su API esté conectada.
+              Rankings por red y por canal. Solo entran perfiles con audiencia reciente y una base que cubra de verdad el periodo elegido;
+              los incompletos quedan fuera para no alterar las posiciones.
             </p>
           </div>
           <div className="flex rounded-xl border border-sp-admin-border bg-sp-admin-bg p-1">
-            {PERIODS.map((value) => (
+            {TALENT_GROWTH_PERIODS.map((value) => (
               <button
                 key={value}
                 type="button"
@@ -84,174 +123,190 @@ export function TalentIntelligenceDashboard({ data }: { readonly data: Dashboard
                   period === value ? 'bg-sp-admin-accent text-white' : 'text-sp-admin-muted hover:text-sp-admin-text'
                 }`}
               >
-                {value === 365 ? '1 año' : `${value} días`}
+                {value} días
               </button>
             ))}
           </div>
         </div>
+
+        <div className="mt-4 flex flex-wrap gap-2" aria-label="Filtrar estadísticas por red social">
+          {data.coverage.platforms.map((item) => (
+            <button
+              key={item.platform}
+              type="button"
+              aria-pressed={platform === item.platform}
+              onClick={() => setPlatform(item.platform)}
+              className={`inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-[11px] font-bold transition-colors ${
+                platform === item.platform
+                  ? 'border-sp-admin-accent/60 bg-sp-admin-accent/10 text-sp-admin-text'
+                  : 'border-sp-admin-border text-sp-admin-muted hover:bg-sp-admin-hover hover:text-sp-admin-text'
+              }`}
+            >
+              <span className="h-2 w-2 rounded-full" style={{ background: platformColor(item.platform) }} />
+              {platformLabel(item.platform)}
+              <span className="rounded-md bg-sp-admin-bg px-1.5 py-0.5 text-[9px]">{item.comparable[period]}</span>
+            </button>
+          ))}
+        </div>
       </section>
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-        <Kpi label="Audiencia total" value={formatCompact(data.summary.totalAudience)} detail={`${data.coverage.channels} canales propios`} />
-        <Kpi label="Mejorando" value={improving.length.toString()} detail={`en los últimos ${period === 365 ? '12 meses' : `${period} días`}`} tone="positive" />
-        <Kpi label="Requieren atención" value={falling.length.toString()} detail="caída de audiencia detectada" tone={falling.length > 0 ? 'negative' : 'neutral'} />
-        <Kpi label="Con histórico" value={`${data.coverage.trackedChannels}/${data.coverage.channels}`} detail="canales comparables" />
-        <Kpi label="Datos recientes" value={`${freshCreators}/${data.coverage.talents}`} detail="talentos actualizados" tone={data.summary.stale > 0 ? 'warning' : 'positive'} />
+        <Kpi label="Audiencia verificada" value={formatCompact(verifiedAudience)} detail={`${platformLabel(platform)} · dato reciente`} />
+        <Kpi label="Mejorando" value={improving.length.toString()} detail={`crecen en ${period} días`} tone="positive" />
+        <Kpi label="Requieren atención" value={falling.length.toString()} detail="caída comparable" tone={falling.length > 0 ? 'negative' : 'neutral'} />
+        <Kpi label="Ranking fiable" value={`${eligibleChannels.length}/${platformChannels.length}`} detail="canales con periodo completo" />
+        <Kpi label="Fuera del ranking" value={excluded.length.toString()} detail="sin base suficiente o desactualizados" tone={excluded.length > 0 ? 'warning' : 'positive'} />
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.6fr)_minmax(320px,0.8fr)]">
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.55fr)_minmax(340px,0.85fr)]">
         <section className="rounded-2xl border border-sp-admin-border bg-sp-admin-card p-4">
           <div className="mb-4 flex items-start justify-between gap-3">
             <div>
-              <h3 className="text-sm font-bold text-sp-admin-text">Evolución de audiencia conectada</h3>
-              <p className="text-[11px] text-sp-admin-muted">Suscriptores de YouTube y seguidores de Twitch registrados por el CRM.</p>
+              <h3 className="text-sm font-bold text-sp-admin-text">Evolución de audiencia · {platformLabel(platform)}</h3>
+              <p className="text-[11px] text-sp-admin-muted">Suma únicamente los canales con histórico registrado por el CRM.</p>
             </div>
-            <span className="rounded-full bg-sp-admin-hover px-2 py-1 text-[9px] font-bold text-sp-admin-muted">FUENTE API</span>
+            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-1 text-[9px] font-bold text-emerald-400">
+              <ShieldCheck size={10} /> FUENTE VERIFICADA
+            </span>
           </div>
           <div className="h-[290px]">
             {trend.length > 1 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={trend} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
                   <defs>
-                    <linearGradient id="talentYoutube" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#ff3b30" stopOpacity={0.28} />
-                      <stop offset="95%" stopColor="#ff3b30" stopOpacity={0} />
-                    </linearGradient>
-                    <linearGradient id="talentTwitch" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#9147ff" stopOpacity={0.22} />
-                      <stop offset="95%" stopColor="#9147ff" stopOpacity={0} />
+                    <linearGradient id="talentPlatform" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor={platformColor(platform)} stopOpacity={0.28} />
+                      <stop offset="95%" stopColor={platformColor(platform)} stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.12)" />
                   <XAxis dataKey="date" tick={{ fontSize: 10, fill: '#8b91a7' }} tickFormatter={shortDate} minTickGap={28} />
                   <YAxis tick={{ fontSize: 10, fill: '#8b91a7' }} tickFormatter={formatCompact} width={50} />
-                  <Tooltip content={<TrendTooltip />} />
-                  <Area type="monotone" dataKey="youtube" name="YouTube" stroke="#ff3b30" fill="url(#talentYoutube)" strokeWidth={2} connectNulls />
-                  <Area type="monotone" dataKey="twitch" name="Twitch" stroke="#9147ff" fill="url(#talentTwitch)" strokeWidth={2} connectNulls />
+                  <Tooltip content={<TrendTooltip platform={platform} />} />
+                  <Area type="monotone" dataKey="audience" stroke={platformColor(platform)} fill="url(#talentPlatform)" strokeWidth={2} connectNulls />
                 </AreaChart>
               </ResponsiveContainer>
             ) : (
-              <Empty message="Aún no hay dos puntos comparables en este periodo." />
+              <Empty message={`Todavía no hay dos puntos comparables de ${platformLabel(platform)} en este periodo.`} />
             )}
           </div>
         </section>
 
         <section className="rounded-2xl border border-sp-admin-border bg-sp-admin-card p-4">
-          <h3 className="text-sm font-bold text-sp-admin-text">Canales en tendencia</h3>
-          <p className="mb-3 text-[11px] text-sp-admin-muted">Ordenados por crecimiento porcentual.</p>
+          <h3 className="text-sm font-bold text-sp-admin-text">Canales con más momentum</h3>
+          <p className="mb-3 text-[11px] text-sp-admin-muted">Mejora porcentual ponderada por tamaño y cobertura, sin canales incompletos.</p>
           <div className="space-y-2">
-            {improving.slice(0, 6).map((creator, index) => (
+            {improving.slice(0, 6).map((channel, index) => (
               <Link
-                key={creator.id}
-                href={`/admin/talents/${creator.id}`}
+                key={channel.socialId}
+                href={`/admin/talents/${channel.talentId}`}
                 className="flex items-center gap-3 rounded-xl border border-sp-admin-border/70 p-2.5 transition-colors hover:bg-sp-admin-hover"
               >
                 <span className="w-4 text-center text-[10px] font-black text-sp-admin-muted">{index + 1}</span>
-                <CreatorAvatar creator={creator} />
+                <ChannelAvatar channel={channel} />
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-[12px] font-bold text-sp-admin-text">{creator.name}</p>
-                  <p className="truncate text-[10px] text-sp-admin-muted">{trendReasonForPeriod(creator, creator.selectedGrowth, period)}</p>
+                  <p className="truncate text-[12px] font-bold text-sp-admin-text">{channel.talentName}</p>
+                  <p className="truncate text-[10px] text-sp-admin-muted">{channel.handle} · {channelSignal(channel)}</p>
                 </div>
-                <GrowthValue pct={creator.selectedGrowth.pct} absolute={creator.selectedGrowth.absolute} />
+                <GrowthValue metric={channel.growth[period]} />
               </Link>
             ))}
-            {improving.length === 0 && <Empty message="Ningún canal supera todavía el umbral de tendencia." />}
+            {improving.length === 0 && <Empty message="Ningún canal comparable supera todavía el umbral de crecimiento." />}
           </div>
         </section>
       </div>
 
-      <section className="rounded-2xl border border-sp-admin-border bg-sp-admin-card overflow-hidden">
+      <section className="overflow-hidden rounded-2xl border border-sp-admin-border bg-sp-admin-card">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-sp-admin-border px-4 py-3">
           <div>
-            <h3 className="text-sm font-bold text-sp-admin-text">Rendimiento por talento</h3>
-            <p className="text-[11px] text-sp-admin-muted">Qué está mejorando, empeorando y la señal que explica la clasificación.</p>
+            <h3 className="text-sm font-bold text-sp-admin-text">Ranking por canal · {platformLabel(platform)}</h3>
+            <p className="text-[11px] text-sp-admin-muted">{eligibleChannels.length} canales con una comparación válida de {period} días.</p>
           </div>
           <label className="flex h-9 min-w-[220px] items-center gap-2 rounded-xl border border-sp-admin-border bg-sp-admin-bg px-3">
             <Search size={13} className="text-sp-admin-muted" />
             <input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="Buscar talento…"
-              aria-label="Buscar talento en estadísticas"
+              placeholder="Buscar talento o canal…"
+              aria-label="Buscar canal en estadísticas"
               className="w-full bg-transparent text-[12px] text-sp-admin-text outline-none placeholder:text-sp-admin-muted/60"
             />
           </label>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[980px]">
+          <table className="w-full min-w-[1120px]">
             <thead>
               <tr className="border-b border-sp-admin-border bg-sp-admin-bg/40 text-left text-[9px] font-black uppercase tracking-[0.14em] text-sp-admin-muted">
-                <th className="px-4 py-2.5">Talento</th>
+                <th className="px-4 py-2.5"># · Canal</th>
                 <th className="px-4 py-2.5 text-right">Audiencia</th>
                 <th className="px-4 py-2.5 text-right">Cambio</th>
+                <th className="px-4 py-2.5">Señal de marketing</th>
                 <th className="px-4 py-2.5">Diagnóstico</th>
-                <th className="px-4 py-2.5">Mejor mes de vistas</th>
+                <th className="px-4 py-2.5">Mejor mes</th>
                 <th className="px-4 py-2.5">Mejor contenido</th>
-                <th className="px-4 py-2.5">Actualización</th>
+                <th className="px-4 py-2.5">Base usada</th>
               </tr>
             </thead>
             <tbody>
-              {visibleCreators.map((creator) => {
-                const direction = directionFor(creator.selectedGrowth.pct);
+              {eligibleChannels.map((channel, index) => {
+                const metric = channel.growth[period];
                 return (
-                  <tr key={creator.id} className="border-b border-sp-admin-border/50 transition-colors last:border-0 hover:bg-sp-admin-hover/60">
+                  <tr key={channel.socialId} className="border-b border-sp-admin-border/50 transition-colors last:border-0 hover:bg-sp-admin-hover/60">
                     <td className="px-4 py-3">
-                      <Link href={`/admin/talents/${creator.id}`} className="flex items-center gap-2.5">
-                        <CreatorAvatar creator={creator} />
+                      <Link href={`/admin/talents/${channel.talentId}`} className="flex items-center gap-2.5">
+                        <span className="w-5 text-right text-[9px] font-black text-sp-admin-muted">{index + 1}</span>
+                        <ChannelAvatar channel={channel} />
                         <div className="min-w-0">
-                          <p className="max-w-[150px] truncate text-[12px] font-bold text-sp-admin-text">{creator.name}</p>
-                          <div className="mt-1 flex gap-1">
-                            {creator.platforms.slice(0, 5).map((platform) => (
-                              <span key={platform} className="h-1.5 w-1.5 rounded-full" style={{ background: PLATFORM_COLORS[platform] ?? '#7d859e' }} title={platform} />
-                            ))}
-                          </div>
+                          <p className="max-w-[155px] truncate text-[12px] font-bold text-sp-admin-text">{channel.talentName}</p>
+                          <p className="max-w-[155px] truncate text-[9px] text-sp-admin-muted">{channel.handle}</p>
                         </div>
                       </Link>
                     </td>
-                    <td className="px-4 py-3 text-right text-[12px] font-black tabular-nums text-sp-admin-text">{formatCompact(creator.totalAudience)}</td>
-                    <td className="px-4 py-3 text-right"><GrowthValue pct={creator.selectedGrowth.pct} absolute={creator.selectedGrowth.absolute} /></td>
+                    <td className="px-4 py-3 text-right text-[12px] font-black tabular-nums text-sp-admin-text">{formatCompact(channel.currentAudience ?? 0)}</td>
+                    <td className="px-4 py-3 text-right"><GrowthValue metric={metric} /></td>
+                    <td className="px-4 py-3 text-[10px] text-sp-admin-muted">{channelSignal(channel)}</td>
                     <td className="px-4 py-3">
                       <div className="flex items-start gap-2">
-                        <DirectionBadge direction={direction} />
-                        <span className="max-w-[260px] text-[10px] leading-relaxed text-sp-admin-muted">{trendReasonForPeriod(creator, creator.selectedGrowth, period)}</span>
+                        <DirectionBadge direction={directionFor(metric)} />
+                        <span className="max-w-[235px] text-[10px] leading-relaxed text-sp-admin-muted">{trendReason(metric, period)}</span>
                       </div>
                     </td>
                     <td className="px-4 py-3 text-[11px] text-sp-admin-muted">
-                      {creator.bestViewsMonth ? (
-                        <>
-                          <strong className="text-sp-admin-text">{formatMonth(creator.bestViewsMonth.month)}</strong><br />
-                          {formatCompact(creator.bestViewsMonth.views)} vistas
-                          {creator.bestViewsMonth.basis === 'published-content' && <span className="ml-1 text-[8px] text-sp-admin-muted/70">de vídeos publicados</span>}
-                        </>
+                      {channel.bestViewsMonth ? (
+                        <><strong className="text-sp-admin-text">{formatMonth(channel.bestViewsMonth.month)}</strong><br />{formatCompact(channel.bestViewsMonth.views)} vistas</>
                       ) : '—'}
                     </td>
                     <td className="px-4 py-3">
-                      {creator.bestContent ? (
-                        <a href={creator.bestContent.url} target="_blank" rel="noopener noreferrer" className="group/content flex max-w-[240px] items-center gap-2">
-                          <Play size={12} className="shrink-0 text-red-400" />
+                      {channel.bestContent ? (
+                        <a href={channel.bestContent.url} target="_blank" rel="noopener noreferrer" className="group/content flex max-w-[210px] items-center gap-2">
+                          <Play size={12} className="shrink-0" style={{ color: platformColor(channel.platform) }} />
                           <span className="min-w-0">
-                            <span className="block truncate text-[10px] font-semibold text-sp-admin-text group-hover/content:text-sp-admin-accent">{creator.bestContent.title}</span>
-                            <span className="text-[9px] text-sp-admin-muted">{formatCompact(creator.bestContent.views)} vistas</span>
+                            <span className="block truncate text-[10px] font-semibold text-sp-admin-text group-hover/content:text-sp-admin-accent">{channel.bestContent.title}</span>
+                            <span className="text-[9px] text-sp-admin-muted">{formatCompact(channel.bestContent.views)} vistas</span>
                           </span>
                         </a>
-                      ) : <span className="text-[10px] text-sp-admin-muted/60">Pendiente de sincronizar</span>}
+                      ) : <span className="text-[10px] text-sp-admin-muted/60">Sin contenido sincronizado</span>}
                     </td>
-                    <td className="px-4 py-3 text-[10px] text-sp-admin-muted">{creator.latestSnapshotAt ? formatSnapshotDate(creator.latestSnapshotAt) : 'Sin histórico'}</td>
+                    <td className="px-4 py-3 text-[10px] text-sp-admin-muted">
+                      {metric.baselineDate ? `${formatSnapshotDate(metric.baselineDate)} → ${formatSnapshotDate(metric.currentDate ?? metric.baselineDate)}` : '—'}
+                      <br /><span className="text-[8px]">{metric.coverageDays} días · {metric.points} puntos</span>
+                    </td>
                   </tr>
                 );
               })}
             </tbody>
           </table>
+          {eligibleChannels.length === 0 && <div className="p-4"><Empty message="No hay canales que cumplan la cobertura completa para este filtro." /></div>}
         </div>
       </section>
 
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.4fr)_minmax(300px,0.6fr)]">
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.4fr)_minmax(330px,0.6fr)]">
         <section className="rounded-2xl border border-sp-admin-border bg-sp-admin-card p-4">
-          <h3 className="text-sm font-bold text-sp-admin-text">Contenido que mejor funciona</h3>
-          <p className="mb-3 text-[11px] text-sp-admin-muted">Vídeos públicos del último año, ordenados por visualizaciones actuales.</p>
-          {data.topContent.length > 0 ? (
+          <h3 className="text-sm font-bold text-sp-admin-text">Contenido que mejor funciona · {platformLabel(platform)}</h3>
+          <p className="mb-3 text-[11px] text-sp-admin-muted">Piezas públicas del último año, separadas por red.</p>
+          {platformContent.length > 0 ? (
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {data.topContent.slice(0, 6).map((content) => (
+              {platformContent.slice(0, 6).map((content) => (
                 <a key={content.id} href={content.url} target="_blank" rel="noopener noreferrer" className="group overflow-hidden rounded-xl border border-sp-admin-border transition-colors hover:border-sp-admin-accent/50">
                   <div className="relative aspect-video bg-sp-admin-bg">
                     {content.thumbnailUrl ? <Image src={content.thumbnailUrl} alt="" fill sizes="(max-width: 640px) 100vw, 260px" className="object-cover" /> : null}
@@ -264,28 +319,26 @@ export function TalentIntelligenceDashboard({ data }: { readonly data: Dashboard
                 </a>
               ))}
             </div>
-          ) : <Empty message="La primera sincronización de vídeos rellenará esta sección automáticamente." />}
+          ) : <Empty message={`No hay contenido público sincronizado para ${platformLabel(platform)}.`} />}
         </section>
 
         <section className="rounded-2xl border border-sp-admin-border bg-sp-admin-card p-4">
-          <h3 className="text-sm font-bold text-sp-admin-text">Cobertura de datos</h3>
-          <p className="mb-3 text-[11px] text-sp-admin-muted">Qué plataformas pueden compararse automáticamente hoy.</p>
-          <div className="space-y-2">
-            {[...data.coverage.platforms].sort((a, b) => b.channels - a.channels).map((item) => (
-              <div key={item.platform} className="rounded-xl border border-sp-admin-border/70 p-3">
-                <div className="flex items-center justify-between gap-3">
-                  <span className="flex items-center gap-2 text-[11px] font-bold capitalize text-sp-admin-text">
-                    <span className="h-2 w-2 rounded-full" style={{ background: PLATFORM_COLORS[item.platform] ?? '#7d859e' }} />
-                    {item.platform}
-                  </span>
-                  <span className="text-[10px] font-bold text-sp-admin-muted">{item.tracked}/{item.channels}</span>
-                </div>
-                <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-sp-admin-bg">
-                  <div className="h-full rounded-full bg-sp-admin-accent" style={{ width: `${item.channels > 0 ? (item.tracked / item.channels) * 100 : 0}%` }} />
-                </div>
-              </div>
-            ))}
+          <div className="flex items-center gap-2">
+            <BarChart3 size={15} className="text-sp-admin-accent" />
+            <h3 className="text-sm font-bold text-sp-admin-text">Calidad del ranking</h3>
           </div>
+          <p className="mb-3 mt-1 text-[11px] text-sp-admin-muted">Los perfiles excluidos no alteran el top ni los KPIs.</p>
+          <div className="space-y-2">
+            <QualityRow label="Comparables" value={platformCoverage?.comparable[period] ?? 0} total={platformCoverage?.channels ?? 0} tone="good" />
+            <QualityRow label="Datos recientes" value={platformCoverage?.fresh ?? 0} total={platformCoverage?.channels ?? 0} />
+            <QualityRow label="Sin histórico suficiente" value={exclusions['not-enough-history'] ?? 0} total={excluded.length} tone="warning" />
+            <QualityRow label="Desactualizados" value={exclusions.stale ?? 0} total={excluded.length} tone="warning" />
+            <QualityRow label="Sin audiencia válida" value={exclusions['missing-audience'] ?? 0} total={excluded.length} tone="warning" />
+            <QualityRow label="Histórico inconsistente" value={exclusions['inconsistent-history'] ?? 0} total={excluded.length} tone="warning" />
+          </div>
+          <p className="mt-3 rounded-xl bg-sp-admin-bg p-3 text-[10px] leading-relaxed text-sp-admin-muted">
+            Para {period} días exigimos una base entre {Math.ceil(period * 0.8)} y {Math.ceil(period * 1.2)} días, actualización de los últimos 8 días, audiencia mayor que cero y una serie sin saltos incompatibles.
+          </p>
         </section>
       </div>
     </div>
@@ -297,63 +350,80 @@ function Kpi({ label, value, detail, tone = 'neutral' }: { readonly label: strin
   return <div className="rounded-2xl border border-sp-admin-border bg-sp-admin-card p-4"><p className="text-[9px] font-black uppercase tracking-[0.15em] text-sp-admin-muted">{label}</p><p className={`mt-1 text-2xl font-black tabular-nums ${color}`}>{value}</p><p className="mt-1 text-[10px] text-sp-admin-muted">{detail}</p></div>;
 }
 
-function CreatorAvatar({ creator }: { readonly creator: TalentIntelligenceCreator }): React.ReactElement {
-  return <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full" style={{ background: `linear-gradient(135deg, ${creator.gradientC1}, ${creator.gradientC2})` }}>{creator.photoUrl ? <Image src={creator.photoUrl} alt="" fill sizes="32px" className="object-cover object-top" /> : <span className="absolute inset-0 flex items-center justify-center text-[10px] font-black text-white">{creator.initials}</span>}</div>;
+function ChannelAvatar({ channel }: { readonly channel: TalentIntelligenceChannel }): React.ReactElement {
+  return (
+    <div className="relative h-8 w-8 shrink-0">
+      <div className="absolute inset-0 overflow-hidden rounded-full" style={{ background: `linear-gradient(135deg, ${channel.gradientC1}, ${channel.gradientC2})` }}>
+        {channel.photoUrl ? <Image src={channel.photoUrl} alt="" fill sizes="32px" className="object-cover object-top" /> : <span className="absolute inset-0 flex items-center justify-center text-[10px] font-black text-white">{channel.initials}</span>}
+      </div>
+      <span className="absolute -bottom-1 -right-1 h-3.5 w-3.5 rounded-full border-2 border-sp-admin-card" style={{ background: platformColor(channel.platform) }} title={platformLabel(channel.platform)} />
+    </div>
+  );
 }
 
-function GrowthValue({ pct, absolute }: { readonly pct: number | null; readonly absolute: number }): React.ReactElement {
-  if (pct === null) return <span className="text-[10px] text-sp-admin-muted">Sin base</span>;
-  const direction = directionFor(pct);
+function GrowthValue({ metric }: { readonly metric: TalentGrowthMetric }): React.ReactElement {
+  if (!metric.eligible || metric.pct === null) return <span className="text-[10px] text-sp-admin-muted">Fuera del ranking</span>;
+  const direction = directionFor(metric);
   const color = direction === 'rising' ? 'text-emerald-400' : direction === 'falling' ? 'text-red-400' : 'text-sp-admin-muted';
-  return <span className={`inline-flex flex-col items-end text-[11px] font-black tabular-nums ${color}`}><span>{pct >= 0 ? '+' : ''}{pct.toFixed(1)}%</span><span className="text-[9px] font-medium opacity-75">{absolute >= 0 ? '+' : ''}{formatCompact(absolute)}</span></span>;
+  return <span className={`inline-flex flex-col items-end text-[11px] font-black tabular-nums ${color}`}><span>{metric.pct >= 0 ? '+' : ''}{metric.pct.toFixed(1)}%</span><span className="text-[9px] font-medium opacity-75">{metric.absolute >= 0 ? '+' : ''}{formatCompact(metric.absolute)}</span></span>;
 }
 
 function DirectionBadge({ direction }: { readonly direction: Direction }): React.ReactElement {
   if (direction === 'rising') return <span className="inline-flex shrink-0 items-center gap-1 rounded-md bg-emerald-500/10 px-1.5 py-1 text-[8px] font-black text-emerald-400"><ArrowUpRight size={10} /> SUBE</span>;
   if (direction === 'falling') return <span className="inline-flex shrink-0 items-center gap-1 rounded-md bg-red-500/10 px-1.5 py-1 text-[8px] font-black text-red-400"><ArrowDownRight size={10} /> BAJA</span>;
-  if (direction === 'untracked') return <span className="inline-flex shrink-0 items-center rounded-md bg-amber-500/10 px-1.5 py-1 text-[8px] font-black text-amber-400">SIN DATOS</span>;
   return <span className="inline-flex shrink-0 items-center gap-1 rounded-md bg-sp-admin-hover px-1.5 py-1 text-[8px] font-black text-sp-admin-muted"><Minus size={10} /> ESTABLE</span>;
+}
+
+function QualityRow({ label, value, total, tone = 'neutral' }: { readonly label: string; readonly value: number; readonly total: number; readonly tone?: 'neutral' | 'good' | 'warning' }): React.ReactElement {
+  const color = tone === 'good' ? 'text-emerald-400' : tone === 'warning' ? 'text-amber-400' : 'text-sp-admin-text';
+  return <div className="flex items-center justify-between rounded-xl border border-sp-admin-border/70 px-3 py-2.5"><span className="text-[10px] font-semibold text-sp-admin-muted">{label}</span><span className={`text-[11px] font-black tabular-nums ${color}`}>{value}<span className="text-sp-admin-muted">/{total}</span></span></div>;
 }
 
 function Empty({ message }: { readonly message: string }): React.ReactElement {
   return <div className="flex min-h-24 items-center justify-center rounded-xl border border-dashed border-sp-admin-border p-4 text-center text-[11px] text-sp-admin-muted">{message}</div>;
 }
 
-function directionFor(pct: number | null): Direction {
-  if (pct === null) return 'untracked';
-  if (pct >= 1) return 'rising';
-  if (pct < -0.25) return 'falling';
+function directionFor(metric: TalentGrowthMetric): Direction {
+  if ((metric.pct ?? 0) >= 1) return 'rising';
+  if ((metric.pct ?? 0) < -0.25) return 'falling';
   return 'stable';
 }
 
-function growthForPeriod(creator: TalentIntelligenceCreator, period: Period): { absolute: number; pct: number | null } {
-  if (period === 30) return { absolute: creator.growth30, pct: creator.growthPct30 };
-  if (period === 90) return { absolute: creator.growth90, pct: creator.growthPct90 };
-  return { absolute: creator.growth365, pct: creator.growthPct365 };
+function trendReason(metric: TalentGrowthMetric, period: TalentGrowthPeriod): string {
+  if (!metric.eligible || metric.pct === null) return 'Sin base suficiente para comparar.';
+  const pct = `${metric.pct >= 0 ? '+' : ''}${metric.pct.toFixed(1)}%`;
+  const absolute = `${metric.absolute >= 0 ? '+' : ''}${metric.absolute.toLocaleString('es-ES')}`;
+  const direction = directionFor(metric);
+  if (direction === 'rising') return `Mejora ${pct} en ${period} días (${absolute}).`;
+  if (direction === 'falling') return `Pierde ${pct}; revisar frecuencia, formato y distribución.`;
+  return `Audiencia estable durante ${period} días (${absolute}).`;
 }
 
-function trendReasonForPeriod(
-  creator: TalentIntelligenceCreator,
-  growth: { readonly absolute: number; readonly pct: number | null },
-  period: Period,
-): string {
-  if (creator.stale) return 'Datos automáticos desactualizados; conviene revisar la conexión del canal.';
-  if (growth.pct === null) return 'Canal sin histórico automático suficiente para este periodo.';
-  const label = period === 365 ? '12 meses' : `${period} días`;
-  const pct = `${growth.pct >= 0 ? '+' : ''}${growth.pct.toFixed(1)}%`;
-  const absolute = `${growth.absolute >= 0 ? '+' : ''}${growth.absolute.toLocaleString('es-ES')}`;
-  const direction = directionFor(growth.pct);
-  if (direction === 'rising') return `Mejora ${pct} en ${label} (${absolute}).`;
-  if (direction === 'falling') return `Pierde ${pct} en ${label}; revisar frecuencia y rendimiento del contenido.`;
-  if (creator.bestContent) return `Audiencia estable; su mejor pieza reciente suma ${creator.bestContent.views.toLocaleString('es-ES')} vistas.`;
-  return `Audiencia estable durante ${label}.`;
+function channelSignal(channel: TalentIntelligenceChannel): string {
+  if (channel.platform === 'youtube') {
+    if (channel.avgViews30d !== null && channel.uploads30d !== null) return `${formatCompact(channel.avgViews30d)} vistas/vídeo · ${channel.uploads30d} subidas/30d`;
+    if (channel.recentViews30d !== null) return `${formatCompact(channel.recentViews30d)} vistas en 30d`;
+  }
+  if (channel.platform === 'twitch') {
+    if (channel.avgCcv30d !== null) return `${formatCompact(channel.avgCcv30d)} espectadores medios`;
+    if (channel.hoursLive30d !== null) return `${channel.hoursLive30d.toLocaleString('es-ES')} h en directo/30d`;
+  }
+  return 'Audiencia comparable';
 }
 
+function countExclusions(channels: readonly TalentIntelligenceChannel[], period: TalentGrowthPeriod): Record<string, number> {
+  const result: Record<string, number> = {};
+  for (const channel of channels) result[channel.growth[period].reason] = (result[channel.growth[period].reason] ?? 0) + 1;
+  return result;
+}
+
+function platformLabel(platform: string): string { return PLATFORM_LABELS[platform] ?? platform; }
+function platformColor(platform: string): string { return PLATFORM_COLORS[platform] ?? '#7d859e'; }
 function shortDate(value: string): string { return new Date(`${value}T12:00:00Z`).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }); }
 function formatMonth(value: string): string { return new Date(`${value}-01T12:00:00Z`).toLocaleDateString('es-ES', { month: 'short', year: '2-digit' }); }
 function formatSnapshotDate(value: string): string { return new Date(`${value}T12:00:00Z`).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }); }
 
-function TrendTooltip({ active, payload, label }: { readonly active?: boolean; readonly payload?: ReadonlyArray<{ readonly name?: string; readonly value?: number; readonly color?: string }>; readonly label?: string }): React.ReactElement | null {
+function TrendTooltip({ active, payload, label, platform }: { readonly active?: boolean; readonly payload?: ReadonlyArray<{ readonly value?: number }>; readonly label?: string; readonly platform: string }): React.ReactElement | null {
   if (!active || !payload?.length) return null;
-  return <div className="rounded-xl border border-sp-admin-border bg-sp-admin-card p-3 shadow-xl"><p className="mb-1 text-[10px] font-bold text-sp-admin-muted">{label ? shortDate(label) : ''}</p>{payload.map((item) => <p key={item.name} className="text-[11px] font-semibold" style={{ color: item.color }}><span>{item.name}</span>: {formatCompact(item.value ?? 0)}</p>)}</div>;
+  return <div className="rounded-xl border border-sp-admin-border bg-sp-admin-card p-3 shadow-xl"><p className="mb-1 text-[10px] font-bold text-sp-admin-muted">{label ? shortDate(label) : ''}</p><p className="text-[11px] font-semibold" style={{ color: platformColor(platform) }}>{platformLabel(platform)}: {formatCompact(payload[0]?.value ?? 0)}</p></div>;
 }
