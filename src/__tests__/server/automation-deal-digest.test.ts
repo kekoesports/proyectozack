@@ -2,6 +2,7 @@ jest.mock('server-only', () => ({}));
 jest.mock('@/lib/db', () => ({ db: {} }));
 
 import {
+  campaignIdFromDealInvoiceAutomationKey,
   classifyNextAction,
   formatAutomationDealDetailForDiscord,
   formatAutomationDealDigestForDiscord,
@@ -45,6 +46,20 @@ describe('classifyNextAction', () => {
     expect(classifyNextAction({ ...base, progressPct: 50, inactiveDays: 9 })).toBe('on_track');
   });
 
+  it('no vuelve a marcar para facturar un trato que ya tiene factura emitida o cobrada', () => {
+    const base = {
+      trackingSheetUrl: 'https://docs.google.com/spreadsheets/d/1/edit',
+      syncError: null,
+      targetCount: 20,
+      currentCount: 16,
+      progressPct: 80,
+      inactiveDays: 0,
+    };
+    expect(classifyNextAction({ ...base, invoiceStatus: 'borrador' })).toBe('prepare_invoice');
+    expect(classifyNextAction({ ...base, invoiceStatus: 'emitida' })).toBe('on_track');
+    expect(classifyNextAction({ ...base, invoiceStatus: 'cobrada' })).toBe('on_track');
+  });
+
   it('no presenta 0% como progreso real cuando faltan objetivos', () => {
     expect(classifyNextAction({
       trackingSheetUrl: 'https://docs.google.com/spreadsheets/d/1/edit',
@@ -82,6 +97,19 @@ describe('classifyNextAction', () => {
     expect(shouldIncludeInDigest({ nextAction: 'completed', inactiveDays: 10 })).toBe(false);
     expect(shouldIncludeInDigest({ nextAction: 'completed', inactiveDays: 9 })).toBe(true);
     expect(shouldIncludeInDigest({ nextAction: 'sync_error', inactiveDays: 30 })).toBe(true);
+  });
+});
+
+describe('vínculo de facturas consolidadas con la automatización', () => {
+  it('recupera el trato desde una clave de automatización válida', () => {
+    expect(campaignIdFromDealInvoiceAutomationKey('deal-progress-80:50')).toBe(50);
+  });
+
+  it('ignora claves ajenas, incompletas o con identificadores no válidos', () => {
+    expect(campaignIdFromDealInvoiceAutomationKey(null)).toBeNull();
+    expect(campaignIdFromDealInvoiceAutomationKey('deal-progress-80:0')).toBeNull();
+    expect(campaignIdFromDealInvoiceAutomationKey('deal-progress-80:abc')).toBeNull();
+    expect(campaignIdFromDealInvoiceAutomationKey('otra-automatizacion:50')).toBeNull();
   });
 });
 

@@ -1,6 +1,6 @@
 import 'server-only';
 
-import { and, desc, eq, inArray, isNull, ne } from 'drizzle-orm';
+import { and, desc, eq, inArray, isNull, ne, or } from 'drizzle-orm';
 
 import { campaigns } from '@/db/schema/campaigns';
 import { crmBrands } from '@/db/schema/crmBrands';
@@ -150,29 +150,37 @@ export async function getAutomationDealDigest(now = new Date()): Promise<Automat
 
   const groupedRows = Array.from(grouped.values());
   const campaignIds = groupedRows.map((row) => row.base.campaignId);
+  const invoiceAutomationKeys = campaignIds.map((campaignId) => `deal-progress-80:${campaignId}`);
   const invoiceRows = campaignIds.length > 0
     ? await db
       .select({
         campaignId: issuedInvoices.relatedDealId,
+        automationKey: issuedInvoices.automationKey,
         invoiceId: issuedInvoices.id,
         invoiceNumber: issuedInvoices.invoiceNumber,
         invoiceStatus: issuedInvoices.status,
       })
       .from(issuedInvoices)
       .where(and(
-        inArray(issuedInvoices.relatedDealId, campaignIds),
+        or(
+          inArray(issuedInvoices.relatedDealId, campaignIds),
+          inArray(issuedInvoices.automationKey, invoiceAutomationKeys),
+        ),
         ne(issuedInvoices.status, 'anulada'),
       ))
       .orderBy(desc(issuedInvoices.id))
     : [];
   const invoiceByCampaign = new Map<number, typeof invoiceRows[number]>();
   for (const invoice of invoiceRows) {
-    if (invoice.campaignId !== null && !invoiceByCampaign.has(invoice.campaignId)) {
-      invoiceByCampaign.set(invoice.campaignId, invoice);
+    const linkedCampaignId = invoice.campaignId
+      ?? campaignIdFromDealInvoiceAutomationKey(invoice.automationKey);
+    if (linkedCampaignId !== null && !invoiceByCampaign.has(linkedCampaignId)) {
+      invoiceByCampaign.set(linkedCampaignId, invoice);
     }
   }
 
   const allDeals = groupedRows.map((row): AutomationDealDigestRow => {
+    const invoice = invoiceByCampaign.get(row.base.campaignId);
     const progressPct = row.targetCount > 0
       ? Math.min(100, Math.round((row.currentCount / row.targetCount) * 100))
       : 0;
@@ -184,12 +192,13 @@ export async function getAutomationDealDigest(now = new Date()): Promise<Automat
       currentCount: row.currentCount,
       progressPct,
       inactiveDays,
+      invoiceStatus: invoice?.invoiceStatus ?? null,
     });
     return {
       ...row.base,
-      invoiceId: invoiceByCampaign.get(row.base.campaignId)?.invoiceId ?? null,
-      invoiceNumber: invoiceByCampaign.get(row.base.campaignId)?.invoiceNumber ?? null,
-      invoiceStatus: invoiceByCampaign.get(row.base.campaignId)?.invoiceStatus ?? null,
+      invoiceId: invoice?.invoiceId ?? null,
+      invoiceNumber: invoice?.invoiceNumber ?? null,
+      invoiceStatus: invoice?.invoiceStatus ?? null,
       targetCount: row.targetCount,
       currentCount: row.currentCount,
       progressPct,
@@ -236,12 +245,16 @@ export function classifyNextAction(input: {
   readonly currentCount: number;
   readonly progressPct: number;
   readonly inactiveDays: number;
+  readonly invoiceStatus?: string | null;
 }): DealDigestAction {
   if (input.syncError) return 'sync_error';
   if (!input.trackingSheetUrl) return 'missing_sheet';
   if (input.targetCount <= 0) return 'missing_targets';
   if (input.currentCount <= 0) return 'empty_sheet';
   if (input.progressPct >= 100) return 'completed';
+  if (input.progressPct >= 80 && input.invoiceStatus && input.invoiceStatus !== 'borrador') {
+    return 'on_track';
+  }
   if (input.progressPct >= 80) return 'prepare_invoice';
   if (input.inactiveDays >= STALE_AFTER_DAYS) return 'stale';
   return 'on_track';
@@ -259,6 +272,13 @@ function actionPriority(action: DealDigestAction): number {
     on_track: 7,
   };
   return priorities[action];
+}
+
+export function campaignIdFromDealInvoiceAutomationKey(value: string | null): number | null {
+  const match = /^deal-progress-80:(\d+)$/.exec(value ?? '');
+  if (!match?.[1]) return null;
+  const campaignId = Number(match[1]);
+  return Number.isSafeInteger(campaignId) && campaignId > 0 ? campaignId : null;
 }
 
 const DISCORD_MESSAGE_LIMIT = 1_900;
