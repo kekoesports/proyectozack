@@ -76,3 +76,15 @@ sin arrancar y se cae todo, no solo el CRM.
 Mantener la versión anterior levantada durante la observación. Retirarla solo
 cuando la nueva lleve tiempo estable — es lo que hace que el rollback cueste
 segundos.
+
+## Congelar el origen anterior durante el cutover
+
+Antes del dump final, configura `MAINTENANCE_MODE=true` en Vercel y redespliega
+la misma revisión que esté en producción. Verifica que una página HTML y una
+ruta API de escritura devuelven 503, mientras `/api/health/live` y
+`/api/health/ready` siguen accesibles. Activa también mantenimiento en Caddy y
+espera el TTL anterior antes de crear el dump.
+
+No desactives el mantenimiento de Vercel al abrir el VPS: el origen anterior
+debe permanecer congelado durante la observación. Solo se reactiva como parte
+de un rollback anterior a la primera escritura en el VPS.

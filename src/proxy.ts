@@ -129,10 +129,66 @@ function applyLocaleCookie(req: NextRequest, res: NextResponse): NextResponse {
   return res;
 }
 
+/* ---------- Cutover maintenance gate --------------------------------------- */
+
+const MAINTENANCE_HEALTH_PATHS = new Set([
+  '/api/health/live',
+  '/api/health/ready',
+]);
+
+function maintenanceResponse(req: NextRequest): NextResponse | null {
+  if (process.env.MAINTENANCE_MODE !== 'true') return null;
+  if (MAINTENANCE_HEALTH_PATHS.has(req.nextUrl.pathname)) return null;
+
+  const headers = {
+    'Cache-Control': 'no-store, max-age=0',
+    'Retry-After': '300',
+    'X-Robots-Tag': 'noindex, nofollow',
+  };
+
+  if (req.nextUrl.pathname.startsWith('/api/')) {
+    return NextResponse.json(
+      { ok: false, error: 'maintenance', message: 'Servicio temporalmente en mantenimiento.' },
+      { status: 503, headers },
+    );
+  }
+
+  return new NextResponse(`<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="robots" content="noindex,nofollow">
+    <title>SocialPro · Mantenimiento</title>
+    <style>
+      :root { color-scheme: dark; font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
+      body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #101421; color: #f7f8fb; }
+      main { width: min(560px, calc(100% - 48px)); padding: 42px; border: 1px solid #30364a; border-radius: 24px; background: #171c2d; box-shadow: 0 24px 80px #0005; }
+      span { color: #ff6338; font-size: 13px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
+      h1 { margin: 14px 0 12px; font-size: clamp(30px, 6vw, 48px); line-height: 1.05; }
+      p { margin: 0; color: #adb4c9; font-size: 17px; line-height: 1.65; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <span>SocialPro</span>
+      <h1>Volvemos enseguida</h1>
+      <p>Estamos realizando una actualización programada para mejorar el servicio. No necesitas hacer nada.</p>
+    </main>
+  </body>
+</html>`, {
+    status: 503,
+    headers: { ...headers, 'Content-Type': 'text/html; charset=utf-8' },
+  });
+}
+
 /* ---------- Main proxy ------------------------------------------------------ */
 
 export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
+
+  const maintenance = maintenanceResponse(req);
+  if (maintenance) return maintenance;
 
   // Inyecta `x-pathname` en la request para que el root layout pueda leer la
   // ruta y decidir `<html lang>`. Sin esto, `layout.tsx` no tiene acceso al
