@@ -11,6 +11,7 @@ const channel: YouTubeChannelPreview = {
   country: 'ES',
   defaultLanguage: 'es',
   videoCount: 120,
+  viewCount: 1_000_000,
 };
 
 const performance: YouTubeRecentPerformance = {

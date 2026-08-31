@@ -1,4 +1,4 @@
-import { sendMessageSchema, deleteThreadSchema, AI_CONTEXT_TYPES } from '@/lib/schemas/aiAssistant';
+import { sendMessageSchema, deleteThreadSchema, dispatchAgentSchema, AI_CONTEXT_TYPES } from '@/lib/schemas/aiAssistant';
 import { checkGuardrails } from '@/lib/services/ai-assistant/guardrails';
 import { maskIban, maskEmail, maskTaxId, maskBankDetails } from '@/lib/services/ai-assistant/mask';
 import { sanitizeToolOutput, truncateText, limitArrayRows } from '@/lib/services/ai-assistant/sanitize';
@@ -56,6 +56,25 @@ describe('deleteThreadSchema', () => {
   it('rechaza threadId 0', () => {
     const r = deleteThreadSchema.safeParse({ threadId: 0 });
     expect(r.success).toBe(false);
+  });
+});
+
+describe('dispatchAgentSchema', () => {
+  it('acepta una orden explícita a un agente operativo', () => {
+    const result = dispatchAgentSchema.safeParse({
+      agentSlug: 'growth',
+      objective: 'Prioriza los leads nuevos y explica el siguiente paso.',
+      clientRequestId: '3f120ad6-c9de-4a2d-a77c-6e33f8bcfb66',
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('rechaza agentes fuera de la allowlist y objetivos vagos', () => {
+    expect(dispatchAgentSchema.safeParse({
+      agentSlug: 'guardian',
+      objective: 'Hazlo',
+      clientRequestId: '3f120ad6-c9de-4a2d-a77c-6e33f8bcfb66',
+    }).success).toBe(false);
   });
 });
 

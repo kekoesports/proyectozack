@@ -974,6 +974,13 @@
       "when": 1788198808474,
       "tag": "0138_creator_target_discovery",
       "breakpoints": true
+    },
+    {
+      "idx": 139,
+      "version": "7",
+      "when": 1788211521861,
+      "tag": "0139_talent_intelligence",
+      "breakpoints": true
     }
   ]
 }

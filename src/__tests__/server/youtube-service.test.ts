@@ -406,6 +406,7 @@ describe('youtube service', () => {
         country: null,
         defaultLanguage: null,
         videoCount: 0,
+        viewCount: 0,
       });
     });
 
