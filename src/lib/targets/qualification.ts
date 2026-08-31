@@ -20,7 +20,7 @@ export type CreatorFit = {
 const PUBLISHER_CHANNEL_PATTERNS = [
   /^team\s+/i,
   /\b(?:esl|pgl|blast|faceit|esea)\b/i,
-  /\b(?:highlights|tournament|tournaments|league|esports organization)\b/i,
+  /\b(?:highlights|news|media|tournament|tournaments|league|esports organization)\b/i,
 ] as const;
 
 export function isLikelyPublisherChannel(title: string): boolean {
