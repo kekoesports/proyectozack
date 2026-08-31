@@ -15,6 +15,7 @@ import type { TalentMetricSnapshot } from '@/types';
 export async function getTrackableSocials() {
   const rows = await db
     .select({
+      socialId: talentSocials.id,
       talentId: talentSocials.talentId,
       platform: talentSocials.platform,
       platformId: talentSocials.platformId,
@@ -31,6 +32,7 @@ export async function getTrackableSocials() {
     const platform = normalizeTrackablePlatform(r.platform);
     if (!platform || !r.platformId) return [];
     return [{
+      socialId: r.socialId,
       talentId: r.talentId,
       platform,
       platformId: r.platformId,

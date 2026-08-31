@@ -18,5 +18,12 @@ export const deleteThreadSchema = z.object({
   threadId: z.number().int().positive(),
 });
 
+export const dispatchAgentSchema = z.object({
+  agentSlug: z.enum(['crm-steward', 'deal-clerk', 'growth', 'seo']),
+  objective: z.string().trim().min(8, 'Describe mejor la tarea').max(1000, 'Máximo 1000 caracteres'),
+  clientRequestId: z.uuid(),
+  threadId: z.number().int().positive().optional(),
+});
+
 export type SendMessageInput = z.infer<typeof sendMessageSchema>;
 export type CreateThreadInput = z.infer<typeof createThreadSchema>;

@@ -166,6 +166,8 @@ const nextConfig: NextConfig = {
       // YouTube — thumbnails stored in DB or referenced from posts
       { protocol: 'https', hostname: 'img.youtube.com' },
       { protocol: 'https', hostname: '*.ytimg.com' },
+      // YouTube Data API devuelve los avatares de canal desde yt3.ggpht.com.
+      { protocol: 'https', hostname: 'yt3.ggpht.com' },
       // Imgur — brand logos entered via admin panel
       { protocol: 'https', hostname: 'i.imgur.com' },
       // KeyDrop CDN — imágenes de premios de sorteos (PR-1c-1)

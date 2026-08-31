@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import { useState } from 'react';
 import type { Target } from '@/types';
 import { formatCompact } from '@/lib/utils/format';
 import {
@@ -48,6 +49,9 @@ export function TargetRow({
   isPending,
 }: TargetRowProps): React.ReactElement {
   const isEditingNotes = editingNotes === target.id;
+  const hasQualification = target.fitScore > 0 || (target.fitReasons?.length ?? 0) > 0;
+  const displayName = target.fullName?.trim() || target.username;
+  const displayHandle = getDisplayHandle(target);
   return (
     <tr
       className={`transition-colors hover:bg-sp-admin-hover group ${selected.has(target.id) ? 'bg-sp-admin-accent/5' : ''} ${target.status === 'descartado' ? 'opacity-40' : ''}`}
@@ -64,23 +68,8 @@ export function TargetRow({
         {index + 1}
       </td>
       <td className="px-4 py-2.5">
-        <div className="flex items-center gap-2.5">
-          {target.profilePicUrl ? (
-            <Image
-              src={target.profilePicUrl}
-              alt={target.username}
-              width={28}
-              height={28}
-              className="w-7 h-7 rounded-full object-cover shrink-0 bg-sp-admin-border"
-            />
-          ) : (
-            <div
-              className="w-7 h-7 rounded-full flex items-center justify-center text-[9px] font-bold text-white shrink-0"
-              style={{ backgroundColor: PLATFORM_COLORS[target.platform] }}
-            >
-              {PLATFORM_LABELS[target.platform]}
-            </div>
-          )}
+        <div className="flex items-center gap-3">
+          <TargetAvatar target={target} />
           <div className="min-w-0">
             <a
               href={target.profileUrl}
@@ -88,16 +77,24 @@ export function TargetRow({
               rel="noopener noreferrer"
               className="font-semibold text-[13px] text-sp-admin-text hover:text-sp-admin-accent transition-colors flex items-center gap-1"
             >
-              {target.username}
+              <span className="max-w-[190px] truncate">{displayName}</span>
               <svg aria-hidden="true" className="w-2.5 h-2.5 opacity-40 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14 21 3" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </a>
-            {target.fullName && (
-              <p className="text-[11px] text-sp-admin-muted truncate max-w-[160px]">
-                {target.fullName}
-              </p>
-            )}
+            <div className="mt-0.5 flex items-center gap-1.5">
+              <span
+                className="inline-flex items-center rounded px-1.5 py-0.5 text-[8px] font-black uppercase tracking-wide text-white"
+                style={{ backgroundColor: PLATFORM_COLORS[target.platform] }}
+              >
+                {PLATFORM_LABELS[target.platform]}
+              </span>
+              {displayHandle && (
+                <span className="max-w-[125px] truncate text-[10px] text-sp-admin-muted">
+                  {displayHandle}
+                </span>
+              )}
+            </div>
           </div>
         </div>
       </td>
@@ -105,7 +102,7 @@ export function TargetRow({
         {target.followers > 0 ? formatCompact(target.followers) : '--'}
       </td>
       <td className="px-4 py-2.5">
-        {target.qualificationStatus || target.fitScore > 0 ? (
+        {hasQualification ? (
           <div className="space-y-1 text-[11px]">
             <div className="flex items-center gap-1.5">
               <span className={`rounded px-1.5 py-0.5 font-bold ${
@@ -133,6 +130,11 @@ export function TargetRow({
             {target.fitReasons && target.fitReasons.length > 0 && (
               <p className="max-w-[210px] truncate text-sp-admin-muted" title={target.fitReasons.join(' · ')}>
                 {target.fitReasons.join(' · ')}
+              </p>
+            )}
+            {target.lastActivityAt && (
+              <p className="text-[10px] text-sp-admin-muted/75">
+                Actividad {formatRelativeActivity(target.lastActivityAt)}
               </p>
             )}
           </div>
@@ -166,7 +168,7 @@ export function TargetRow({
             )}
           </div>
         ) : (
-          <span className="text-[11px] text-sp-admin-muted/40">Sin auditar</span>
+          <span className="text-[11px] text-sp-admin-muted/60">Pendiente de auditoría</span>
         )}
       </td>
       <td className="px-4 py-2.5 max-w-[240px]">
@@ -278,4 +280,67 @@ export function TargetRow({
       </td>
     </tr>
   );
+}
+
+function TargetAvatar({ target }: { readonly target: Target }): React.ReactElement {
+  const [imageFailed, setImageFailed] = useState(false);
+  const showImage = Boolean(target.profilePicUrl) && !imageFailed;
+
+  return (
+    <div className="relative h-9 w-9 shrink-0">
+      {showImage ? (
+        <Image
+          src={target.profilePicUrl ?? ''}
+          alt={target.fullName?.trim() || target.username}
+          fill
+          sizes="36px"
+          onError={() => setImageFailed(true)}
+          className="rounded-full bg-sp-admin-border object-cover"
+        />
+      ) : (
+        <div
+          className="flex h-9 w-9 items-center justify-center rounded-full text-[10px] font-black text-white"
+          style={{ backgroundColor: PLATFORM_COLORS[target.platform] }}
+        >
+          {platformMonogram(target.platform)}
+        </div>
+      )}
+      <span
+        aria-label={PLATFORM_LABELS[target.platform]}
+        title={PLATFORM_LABELS[target.platform]}
+        className="absolute -bottom-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full border-2 border-sp-admin-card text-[6px] font-black text-white"
+        style={{ backgroundColor: PLATFORM_COLORS[target.platform] }}
+      >
+        {platformMonogram(target.platform)}
+      </span>
+    </div>
+  );
+}
+
+function platformMonogram(platform: Target['platform']): string {
+  if (platform === 'youtube') return 'YT';
+  if (platform === 'instagram') return 'IG';
+  if (platform === 'twitch') return 'TW';
+  return 'K';
+}
+
+function getDisplayHandle(target: Target): string | null {
+  if (target.platform === 'youtube') {
+    try {
+      const path = new URL(target.profileUrl).pathname.replace(/\/$/, '');
+      if (path.startsWith('/@')) return path.slice(1);
+    } catch {
+      // URL validada al entrar en el CRM; un valor legado no debe romper la tabla.
+    }
+    return target.username.startsWith('UC') ? null : `@${target.username.replace(/^@/, '')}`;
+  }
+  return `@${target.username.replace(/^@/, '')}`;
+}
+
+function formatRelativeActivity(value: Date | string): string {
+  const date = value instanceof Date ? value : new Date(value);
+  const days = Math.max(0, Math.floor((Date.now() - date.getTime()) / 86_400_000));
+  if (days === 0) return 'hoy';
+  if (days === 1) return 'ayer';
+  return `hace ${days} días`;
 }

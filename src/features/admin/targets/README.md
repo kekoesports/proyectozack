@@ -11,6 +11,8 @@
 ## Componentes
 
 - `TargetsSpreadsheet.tsx` — tabla editable.
+- `TargetsSpreadsheet.row.tsx` — identidad visual de cada plataforma, avatar
+  con fallback y nombre humano (evita enseñar IDs técnicos de YouTube).
 - `CreatorDiscoveryHub.tsx` — buscador multicanal.
 - `YouTubeTargetDiscovery.tsx` — búsqueda mundial y puntuación de promesas.
 - `TwitchTargetDiscovery.tsx` — búsqueda de canales activos.

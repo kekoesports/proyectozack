@@ -7,6 +7,7 @@ export * from './creatorApplications';
 export * from './auth';
 export * from './brands';
 export * from './analytics';
+export * from './talentIntelligence';
 export * from './agencyCreators';
 export * from './giveaways';
 export * from './creatorCodes';

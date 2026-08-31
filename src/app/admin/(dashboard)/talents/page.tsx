@@ -9,9 +9,10 @@ import {
 import { listAllVerticals } from '@/lib/queries/talentBusiness';
 import { RosterSpreadsheet } from '@/features/admin/talents/components/RosterSpreadsheet';
 import { InfluencerCardsView } from '@/features/admin/talents/components/InfluencerCardsView';
-import { TalentDataTools, type CurrentTalent } from '@/features/admin/talents/components/TalentDataTools';
+import { TalentIntelligenceDashboard } from '@/features/admin/talents/components/TalentIntelligenceDashboard';
 import { BrandsTabs } from '@/features/admin/brands/components/BrandsTabs';
 import { restoreTalentAction } from '@/app/admin/(dashboard)/talents/actions';
+import { getTalentIntelligenceDashboard } from '@/lib/queries/talentIntelligence';
 import type { TalentVertical } from '@/types';
 
 export default async function AdminTalentsPage({
@@ -82,9 +83,10 @@ export default async function AdminTalentsPage({
     );
   }
 
-  const [creators, verticals] = await Promise.all([
+  const [creators, verticals, intelligence] = await Promise.all([
     getAdminRosterWithGrowth({ talentIds: visibleIds }),
     listAllVerticals(),
+    getTalentIntelligenceDashboard({ talentIds: visibleIds }),
   ]);
 
   const platformSet = new Set<string>();
@@ -103,21 +105,6 @@ export default async function AdminTalentsPage({
     (acc, c) => (c.seoBioStatus === 'empty' || c.seoBioStatus === 'generated' ? acc + 1 : acc),
     0,
   );
-
-  // Derivar CurrentTalent[] para StatsImportPanel (actualizar estadísticas)
-  const roster: CurrentTalent[] = creators.map((c) => ({
-    id:      c.id,
-    name:    c.name,
-    socials: c.socials.map((s) => ({
-      id:               s.id,
-      talentId:         c.id,
-      platform:         s.platform,
-      handle:           s.handle           ?? '',
-      followersDisplay: s.followersDisplay  ?? '-',
-      profileUrl:       s.profileUrl        ?? null,
-      avgViewers:       s.avgViewers        ?? null,
-    })),
-  }));
 
   return (
     <div>
@@ -163,14 +150,10 @@ export default async function AdminTalentsPage({
             ),
           },
           {
-            key:     'import',
-            label:   'Importar Excel/CSV',
+            key:     'stats',
+            label:   'Estadísticas',
             content: (
-              <TalentDataTools
-                roster={roster}
-                creators={creators}
-                verticalsByTalent={verticalsByTalent}
-              />
+              <TalentIntelligenceDashboard data={intelligence} />
             ),
           },
         ]}

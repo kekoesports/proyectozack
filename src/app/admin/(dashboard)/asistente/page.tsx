@@ -2,6 +2,7 @@ import { requireAnyRole } from '@/lib/auth-guard';
 import { listThreadsForUser } from '@/lib/queries/aiAssistant';
 import { ChatClient } from '@/features/admin/ai-assistant/components/ChatClient';
 import { env } from '@/lib/env';
+import { hasPermission } from '@/lib/permissions';
 
 export const metadata = { title: 'Zack Operaciones — SocialPro Admin' };
 
@@ -20,7 +21,7 @@ export default async function AsistentePage(): Promise<React.ReactElement> {
         <div>
           <h1 className="text-xl font-bold text-white">Zack Operaciones</h1>
           <p className="text-sm text-sp-muted mt-0.5">
-            Reúne tratos, Creadores Target, prensa, contenido, finanzas y copias de seguridad para ayudarte a priorizar. Solo lectura — no ejecuta cambios.
+            Consulta el CRM con datos reales y coordina los agentes especializados. Toda orden se revisa antes de ejecutarse y los efectos externos mantienen aprobación humana.
           </p>
         </div>
         {!hasApiKey && (
@@ -31,7 +32,11 @@ export default async function AsistentePage(): Promise<React.ReactElement> {
       </div>
 
       <div className="flex-1 min-h-0">
-        <ChatClient initialThreads={threads} contextType="general" />
+        <ChatClient
+          initialThreads={threads}
+          contextType="general"
+          canDispatch={hasPermission(session.user.role, 'agents', 'write')}
+        />
       </div>
     </div>
   );

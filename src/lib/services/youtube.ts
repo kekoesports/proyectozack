@@ -29,6 +29,12 @@ const YouTubePlaylistItemsSchema = z.object({
   items: z
     .array(z.object({ snippet: z.object({
       publishedAt: z.string(),
+      title: z.string().optional(),
+      thumbnails: z.object({
+        medium: z.object({ url: z.string() }).optional(),
+        high: z.object({ url: z.string() }).optional(),
+        default: z.object({ url: z.string() }).optional(),
+      }).optional(),
       resourceId: z.object({ videoId: z.string() }),
     }) }))
     .optional(),
@@ -40,7 +46,11 @@ const YouTubeVideosStatsSchema = z.object({
     .array(
       z.object({
         id: z.string(),
-        statistics: z.object({ viewCount: z.string().optional() }),
+        statistics: z.object({
+          viewCount: z.string().optional(),
+          likeCount: z.string().optional(),
+          commentCount: z.string().optional(),
+        }),
       }),
     )
     .optional(),
@@ -135,6 +145,7 @@ export type YouTubeChannelPreview = {
   readonly country: string | null;
   readonly defaultLanguage: string | null;
   readonly videoCount: number;
+  readonly viewCount: number;
 }
 
 // ── Live detection ──────────────────────────────────────────────────────
@@ -402,6 +413,7 @@ export async function getChannelDetails(
         country: item.snippet.country?.toUpperCase() ?? null,
         defaultLanguage: item.snippet.defaultLanguage ?? null,
         videoCount: parseInt(item.statistics?.videoCount ?? '0', 10) || 0,
+        viewCount: parseInt(item.statistics?.viewCount ?? '0', 10) || 0,
       });
     }
   }
@@ -434,6 +446,8 @@ async function getUploadsPlaylistId(channelId: string): Promise<string | null> {
 type RecentUpload = {
   readonly videoId: string;
   readonly publishedAt: Date;
+  readonly title: string;
+  readonly thumbnailUrl: string | null;
 };
 
 async function getRecentUploads(
@@ -468,7 +482,17 @@ async function getRecentUploads(
         reachedCutoff = true;
         break;
       }
-      uploads.push({ videoId: item.snippet.resourceId.videoId, publishedAt });
+      const videoId = item.snippet.resourceId.videoId;
+      uploads.push({
+        videoId,
+        publishedAt,
+        title: item.snippet.title ?? 'Vídeo sin título',
+        thumbnailUrl:
+          item.snippet.thumbnails?.high?.url
+          ?? item.snippet.thumbnails?.medium?.url
+          ?? item.snippet.thumbnails?.default?.url
+          ?? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`,
+      });
     }
 
     pageToken = data.nextPageToken;
@@ -483,13 +507,23 @@ async function getRecentUploads(
  * Costs 1 quota unit per 50 videos.
  */
 async function getVideoViewCounts(videoIds: string[]): Promise<Map<string, number>> {
-  const apiKey = requireYoutubeKey();
+  const stats = await getVideoPublicStats(videoIds);
+  return new Map([...stats].map(([id, value]) => [id, value.views]));
+}
 
-  const counts = new Map<string, number>();
-  if (videoIds.length === 0) return counts;
+type YouTubeVideoPublicStats = {
+  readonly views: number;
+  readonly likes: number | null;
+  readonly comments: number | null;
+};
+
+async function getVideoPublicStats(videoIds: string[]): Promise<Map<string, YouTubeVideoPublicStats>> {
+  const apiKey = requireYoutubeKey();
+  const results = new Map<string, YouTubeVideoPublicStats>();
 
   for (let i = 0; i < videoIds.length; i += 50) {
     const ids = videoIds.slice(i, i + 50).join(',');
+    if (!ids) continue;
     const url = `https://www.googleapis.com/youtube/v3/videos?part=statistics&id=${ids}&key=${apiKey}`;
     const res = await fetch(url);
     if (!res.ok) {
@@ -499,11 +533,59 @@ async function getVideoViewCounts(videoIds: string[]): Promise<Map<string, numbe
 
     const data = YouTubeVideosStatsSchema.parse(await res.json());
     for (const item of data.items ?? []) {
-      counts.set(item.id, parseInt(item.statistics.viewCount ?? '0', 10) || 0);
+      results.set(item.id, {
+        views: parseInt(item.statistics.viewCount ?? '0', 10) || 0,
+        likes: item.statistics.likeCount === undefined
+          ? null
+          : parseInt(item.statistics.likeCount, 10) || 0,
+        comments: item.statistics.commentCount === undefined
+          ? null
+          : parseInt(item.statistics.commentCount, 10) || 0,
+      });
     }
   }
 
-  return counts;
+  return results;
+}
+
+export type YouTubeContentPerformance = {
+  readonly videoId: string;
+  readonly title: string;
+  readonly url: string;
+  readonly thumbnailUrl: string | null;
+  readonly publishedAt: Date;
+  readonly views: number;
+  readonly likes: number | null;
+  readonly comments: number | null;
+};
+
+/** Datos públicos de los vídeos recientes de un canal, listos para analítica interna. */
+export async function getChannelRecentContent(
+  channelId: string,
+  windowDays = 365,
+  maxVideos = 100,
+): Promise<YouTubeContentPerformance[]> {
+  const playlistId = await getUploadsPlaylistId(channelId);
+  if (!playlistId) return [];
+
+  const cutoff = new Date(Date.now() - windowDays * 86_400_000);
+  const uploads = await getRecentUploads(playlistId, cutoff, maxVideos);
+  const stats = await getVideoPublicStats(uploads.map((upload) => upload.videoId));
+
+  return uploads.flatMap((upload) => {
+    const values = stats.get(upload.videoId);
+    if (!values) return [];
+    return [{
+      videoId: upload.videoId,
+      title: upload.title,
+      url: `https://www.youtube.com/watch?v=${upload.videoId}`,
+      thumbnailUrl: upload.thumbnailUrl,
+      publishedAt: upload.publishedAt,
+      views: values.views,
+      likes: values.likes,
+      comments: values.comments,
+    }];
+  });
 }
 
 export type YouTubeChannelPhoto = {

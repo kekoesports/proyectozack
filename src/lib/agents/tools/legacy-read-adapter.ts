@@ -25,6 +25,7 @@ import {
 } from '@/lib/services/ai-assistant/tools/financeDashboard';
 import { getHelpContextText } from '@/lib/services/ai-assistant/tools/help';
 import { getOperationsSummary } from '@/lib/services/ai-assistant/tools/operations';
+import { getTalentPerformanceSummary } from '@/lib/services/ai-assistant/tools/talentPerformance';
 
 import { eraseAgentTool } from '../erase-tool';
 import type { ErasedAgentTool } from '../types';
@@ -179,6 +180,13 @@ export const getOperationsSummaryTool = defineReadTool({
   run: () => getOperationsSummary(),
 });
 
+export const getTalentPerformanceSummaryTool = defineReadTool({
+  name: 'getTalentPerformanceSummary',
+  description: 'Tendencias de audiencia, cobertura de datos y contenido con mejor rendimiento de los talentos.',
+  permission: ANALYTICS,
+  run: () => getTalentPerformanceSummary(),
+});
+
 // ── Documentación interna ────────────────────────────────────────────────────
 
 const HELP_INPUT = z
@@ -233,4 +241,5 @@ export const LEGACY_READ_TOOLS: readonly ErasedAgentTool[] = [
   getCampaignMarginAlertsTool,
   getFinanceAlertsTool,
   getOperationsSummaryTool,
+  getTalentPerformanceSummaryTool,
 ];
