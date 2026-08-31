@@ -6,7 +6,6 @@ import {
   updateStatusAction,
   updateNotesAction,
   deleteTargetsAction,
-  deleteAllTargetsAction,
   assignTargetsToBrandAction,
   importCSVAction,
   bulkUpdateStatusAction,
@@ -22,7 +21,6 @@ import {
   ImportResultBanner,
   BulkActionsBar,
   TableHeader,
-  ConfirmDeleteAllModal,
 } from './TargetsSpreadsheet.parts';
 import { TargetRow } from './TargetsSpreadsheet.row';
 
@@ -43,7 +41,7 @@ export function TargetsSpreadsheet({
   brands?: BrandUserRow[];
 }): React.ReactElement {
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>('todos');
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('pendiente');
   const [platformFilter, setPlatformFilter] = useState<Set<PlatformValue>>(new Set());
   const [sort, setSort] = useState<SortState>({ field: 'createdAt', dir: 'desc' });
   const [selected, setSelected] = useState<Set<number>>(new Set());
@@ -54,7 +52,6 @@ export function TargetsSpreadsheet({
   const [brandUserId, setBrandUserId] = useState('');
   const [isPending, startTransition] = useTransition();
   const [importResult, setImportResult] = useState<{ inserted: number; updated: number; errors: number } | null>(null);
-  const [showDeleteAllModal, setShowDeleteAllModal] = useState(false);
   const csvInputRef = useRef<HTMLInputElement>(null);
 
   const statusCounts = useMemo(() => {
@@ -250,31 +247,11 @@ export function TargetsSpreadsheet({
     exportTargetsCSV(rows);
   };
 
-  const handleDeleteAll = (): void => {
-    setShowDeleteAllModal(true);
-  };
-
-  const confirmDeleteAll = (): void => {
-    setShowDeleteAllModal(false);
-    startTransition(async () => {
-      await deleteAllTargetsAction();
-      setSelected(new Set());
-    });
-  };
-
   if (targets.length === 0) {
     return <TargetsEmptyState />;
   }
 
   return (
-    <>
-    {showDeleteAllModal && (
-      <ConfirmDeleteAllModal
-        totalCount={targets.length}
-        onConfirm={confirmDeleteAll}
-        onCancel={() => setShowDeleteAllModal(false)}
-      />
-    )}
     <div className="space-y-4">
       <StatusTabs
         statusFilter={statusFilter}
@@ -298,7 +275,6 @@ export function TargetsSpreadsheet({
         handleImportCSV={handleImportCSV}
         isPending={isPending}
         exportCSV={exportCSV}
-        handleDeleteAll={handleDeleteAll}
       />
 
       {importResult && (
@@ -370,6 +346,5 @@ export function TargetsSpreadsheet({
         </table>
       </div>
     </div>
-    </>
   );
 }

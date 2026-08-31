@@ -13,6 +13,7 @@ export * from './creatorCodes';
 export * from './codeClicks';
 export * from './giveawayWinners';
 export * from './targets';
+export * from './creatorDiscoveryRuns';
 export * from './statsShares';
 export * from './crmTasks';
 export * from './crmTaskTemplates';

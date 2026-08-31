@@ -105,7 +105,38 @@ export function TargetRow({
         {target.followers > 0 ? formatCompact(target.followers) : '--'}
       </td>
       <td className="px-4 py-2.5">
-        {target.platform === 'youtube' && target.recentVideoCount != null ? (
+        {target.qualificationStatus || target.fitScore > 0 ? (
+          <div className="space-y-1 text-[11px]">
+            <div className="flex items-center gap-1.5">
+              <span className={`rounded px-1.5 py-0.5 font-bold ${
+                target.qualificationStatus === 'qualified'
+                  ? 'bg-emerald-500/10 text-emerald-300'
+                  : target.qualificationStatus === 'rejected'
+                    ? 'bg-red-500/10 text-red-300'
+                    : 'bg-amber-500/10 text-amber-300'
+              }`}>
+                {target.qualificationStatus === 'qualified'
+                  ? 'APTO'
+                  : target.qualificationStatus === 'rejected'
+                    ? 'NO APTO'
+                    : 'REVISAR'}
+              </span>
+              <span className="font-semibold text-sp-admin-text">{target.fitScore}/100</span>
+              {target.countryCode && <span className="text-sp-admin-muted">{target.countryCode}</span>}
+            </div>
+            {target.platform === 'youtube' && target.recentVideoCount != null && (
+              <p className="text-sp-admin-muted">
+                {target.recentVideoCount} vídeos / {target.recentVideosWindowDays ?? 90}d
+                {' · '}mín. <strong className="text-sp-admin-text">{formatCompact(target.minRecentVideoViews ?? 0)}</strong>
+              </p>
+            )}
+            {target.fitReasons && target.fitReasons.length > 0 && (
+              <p className="max-w-[210px] truncate text-sp-admin-muted" title={target.fitReasons.join(' · ')}>
+                {target.fitReasons.join(' · ')}
+              </p>
+            )}
+          </div>
+        ) : target.platform === 'youtube' && target.recentVideoCount != null ? (
           <div className="space-y-1 text-[11px]">
             <div className="flex items-center gap-1.5">
               <span className="rounded bg-emerald-500/10 px-1.5 py-0.5 font-semibold text-emerald-300">

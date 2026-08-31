@@ -105,4 +105,30 @@ describe('getKickChannel', () => {
     expect(result?.recentCategories).toEqual([]);
     expect(result?.isLive).toBe(false);
   });
+
+  it('accepts the current public payload with string counts and optional fields omitted', async () => {
+    const body = {
+      id: 1,
+      user_id: 100,
+      slug: 'current-shape',
+      is_banned: false,
+      followers_count: '1250',
+      banner_image: null,
+      user: {
+        id: '100',
+        username: 'current-shape',
+        bio: null,
+        profile_pic: null,
+      },
+      livestream: null,
+    };
+    (global.fetch as jest.Mock).mockResolvedValueOnce(makeResponse(body));
+
+    const result = await getKickChannel('current-shape');
+
+    expect(result?.followers).toBe(1_250);
+    expect(result?.country).toBeNull();
+    expect(result?.recentCategories).toEqual([]);
+    expect(result?.lastLivestreamAt).toBeNull();
+  });
 });

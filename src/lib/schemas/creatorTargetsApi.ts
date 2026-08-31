@@ -33,6 +33,11 @@ export const importItemSchema = z.object({
   recentVideosWindowDays: z.number().int().positive().max(365).nullable().optional(),
   contactEmail: z.email().max(320).nullable().optional(),
   contactUrl: z.url().nullable().optional(),
+  qualificationStatus: z.enum(['qualified', 'review', 'rejected']).default('review'),
+  fitScore: z.number().int().min(0).max(100).default(0),
+  fitReasons: z.array(z.string().max(300)).max(20).default([]),
+  sourceQuery: z.string().max(200).nullable().optional(),
+  lastActivityAt: z.coerce.date().nullable().optional(),
   discoveredVia: z.string().max(200),
 });
 

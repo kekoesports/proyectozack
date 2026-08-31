@@ -2,13 +2,16 @@ import { requireAnyRole } from '@/lib/auth-guard';
 import { getAllTargets } from '@/lib/queries/targets';
 import { getAllBrandUsers } from '@/lib/queries/brandUsers';
 import { TargetsSpreadsheet } from '@/features/admin/targets/components/TargetsSpreadsheet';
-import { YouTubeTargetDiscovery } from '@/features/admin/targets/components/YouTubeTargetDiscovery';
+import { CreatorDiscoveryHub } from '@/features/admin/targets/components/CreatorDiscoveryHub';
+import { CreatorDiscoveryOverview } from '@/features/admin/targets/components/CreatorDiscoveryOverview';
+import { listRecentCreatorDiscoveryRuns } from '@/lib/queries/creatorDiscoveryRuns';
 
 export default async function AdminTargetsPage(): Promise<React.ReactElement> {
   await requireAnyRole(['admin', 'admin_limited_tasks', 'manager', 'staff'], '/admin/login');
-  const [targets, brands] = await Promise.all([
+  const [targets, brands, discoveryRuns] = await Promise.all([
     getAllTargets(),
     getAllBrandUsers(),
+    listRecentCreatorDiscoveryRuns(),
   ]);
 
   return (
@@ -21,10 +24,11 @@ export default async function AdminTargetsPage(): Promise<React.ReactElement> {
       </div>
 
       <p className="text-sm text-sp-admin-muted -mt-3">
-        Descubre canales de CS2 en todo el mundo, revisa actividad y cumplimiento por tipo de campaña, y asigna los perfiles válidos a una marca.
+        Descubre y cualifica perfiles de YouTube, Twitch, Instagram y Kick; conserva el historial comercial y evita duplicados entre ejecuciones.
       </p>
 
-      <YouTubeTargetDiscovery />
+      <CreatorDiscoveryOverview runs={discoveryRuns} />
+      <CreatorDiscoveryHub />
       <TargetsSpreadsheet targets={targets} brands={brands} />
     </div>
   );

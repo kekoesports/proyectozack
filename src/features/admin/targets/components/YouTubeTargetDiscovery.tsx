@@ -19,7 +19,7 @@ import {
 
 const numberFormat = new Intl.NumberFormat('es-ES', { notation: 'compact', maximumFractionDigits: 1 });
 
-export function YouTubeTargetDiscovery(): React.ReactElement {
+export function YouTubeTargetDiscovery({ embedded = false }: { readonly embedded?: boolean }): React.ReactElement {
   const [open, setOpen] = useState(true);
   const [query, setQuery] = useState('CS2');
   const [market, setMarket] = useState<Cs2SearchMarket>('GLOBAL');
@@ -78,8 +78,8 @@ export function YouTubeTargetDiscovery(): React.ReactElement {
   };
 
   return (
-    <section className="overflow-hidden rounded-2xl border border-sp-admin-border bg-sp-admin-card">
-      <button
+    <section className={embedded ? 'overflow-hidden' : 'overflow-hidden rounded-2xl border border-sp-admin-border bg-sp-admin-card'}>
+      {!embedded && <button
         type="button"
         onClick={() => setOpen((value) => !value)}
         className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left hover:bg-sp-admin-hover"
@@ -91,10 +91,10 @@ export function YouTubeTargetDiscovery(): React.ReactElement {
           </span>
         </span>
         <span className="text-xs font-semibold text-red-400">{open ? 'Ocultar' : 'Abrir buscador'}</span>
-      </button>
+      </button>}
 
       {open && (
-        <div className="space-y-4 border-t border-sp-admin-border p-5">
+        <div className={embedded ? 'space-y-4' : 'space-y-4 border-t border-sp-admin-border p-5'}>
           <div className="grid gap-3 lg:grid-cols-[minmax(180px,1fr)_170px_170px_170px]">
             <label className="space-y-1">
               <span className="text-[10px] font-bold uppercase tracking-wider text-sp-admin-muted">Búsqueda</span>

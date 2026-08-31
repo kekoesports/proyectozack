@@ -18,6 +18,10 @@
       "schedule": "0 7 * * *"
     },
     {
+      "path": "/api/cron/discover-creator-targets",
+      "schedule": "30 6 * * *"
+    },
+    {
       "path": "/api/cron/sync-sheet-sources",
       "schedule": "0 23 * * *"
     },

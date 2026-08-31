@@ -27,6 +27,8 @@ const csvBool = z
   .transform((v) => (typeof v === 'string' ? v === 'true' : v))
   .optional();
 
+export const targetQualificationStatusSchema = z.enum(['qualified', 'review', 'rejected']);
+
 // ─── CSV row from target import ─────────────────────────────────────────────
 
 export const csvTargetRowSchema = z.object({
@@ -61,6 +63,11 @@ export const csvTargetRowSchema = z.object({
   compliance_checked_at: z.coerce.date().optional(),
   contact_email: z.preprocess((v) => (v === '' ? undefined : v), z.email().max(320).optional()),
   contact_url: z.preprocess((v) => (v === '' ? undefined : v), z.url().optional()),
+  qualification_status: targetQualificationStatusSchema.optional(),
+  fit_score: z.coerce.number().int().min(0).max(100).optional(),
+  fit_reasons: z.array(z.string().max(300)).max(20).optional(),
+  source_query: z.string().max(200).optional(),
+  last_activity_at: z.coerce.date().optional(),
   discovered_via: z.string().max(200).optional(),
   enriched_at: z.coerce.date().optional(),
 });
@@ -94,6 +101,12 @@ const targetFields = z.object({
   complianceCheckedAt: z.coerce.date().optional(),
   contactEmail: z.preprocess((v) => (v === '' ? undefined : v), z.email().max(320).optional()),
   contactUrl: z.preprocess((v) => (v === '' ? undefined : v), z.url().optional()),
+  qualificationStatus: targetQualificationStatusSchema.optional(),
+  fitScore: z.coerce.number().int().min(0).max(100).optional(),
+  fitReasons: z.array(z.string().max(300)).max(20).optional(),
+  sourceQuery: z.string().max(200).optional(),
+  lastActivityAt: z.coerce.date().optional(),
+  lastDiscoveredAt: z.coerce.date().optional(),
   isPrivate: z.boolean().optional(),
   isVerified: z.boolean().optional(),
   isBusiness: z.boolean().optional(),
@@ -154,3 +167,4 @@ export type UpdateTargetInput = z.infer<typeof updateTargetSchema>;
 export type UpdateTargetStatusInput = z.infer<typeof updateTargetStatusSchema>;
 export type UpdateTargetNotesInput = z.infer<typeof updateTargetNotesSchema>;
 export type BulkStatusInput = z.infer<typeof bulkStatusSchema>;
+export type TargetQualificationStatus = z.infer<typeof targetQualificationStatusSchema>;

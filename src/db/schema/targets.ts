@@ -5,6 +5,7 @@ import {
   text,
   integer,
   boolean,
+  jsonb,
   timestamp,
   pgEnum,
   index,
@@ -62,6 +63,14 @@ export const targets = pgTable(
     contactEmail: varchar('contact_email', { length: 320 }),
     contactUrl: text('contact_url'),
 
+    // Qualification shared by every discovery source/platform.
+    qualificationStatus: varchar('qualification_status', { length: 24 }).notNull().default('review'),
+    fitScore: integer('fit_score').notNull().default(0),
+    fitReasons: jsonb('fit_reasons').$type<string[]>().notNull().default([]),
+    sourceQuery: varchar('source_query', { length: 200 }),
+    lastActivityAt: timestamp('last_activity_at', { withTimezone: true }),
+    lastDiscoveredAt: timestamp('last_discovered_at', { withTimezone: true }).notNull().defaultNow(),
+
     // Instagram-specific (nullable for YouTube targets)
     isPrivate: boolean('is_private'),
     isVerified: boolean('is_verified'),
@@ -92,6 +101,8 @@ export const targets = pgTable(
     index('targets_country_code_idx').on(t.countryCode),
     index('targets_last_video_at_idx').on(t.lastVideoAt),
     index('targets_recent_video_quality_idx').on(t.recentVideoCount, t.minRecentVideoViews),
+    index('targets_qualification_idx').on(t.qualificationStatus, t.fitScore),
+    index('targets_last_discovered_idx').on(t.lastDiscoveredAt),
     index('targets_created_at_idx').on(t.createdAt),
     index('targets_import_batch_idx').on(t.importBatchId),
     unique('targets_platform_username_key').on(t.platform, t.username),
