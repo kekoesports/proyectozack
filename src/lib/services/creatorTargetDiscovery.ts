@@ -12,10 +12,11 @@ import {
 } from '@/lib/services/twitch';
 import {
   getChannelRecentPerformance,
-  searchYouTubeChannels,
+  searchYouTubeChannelsFromRecentVideos,
   type YouTubeChannelPreview,
 } from '@/lib/services/youtube';
 import { qualifyYouTubeChannel } from '@/lib/services/youtubeQualification';
+import { getKickCs2LiveCreators } from '@/lib/services/kick';
 import {
   isLikelyPublisherChannel,
   qualifyTwitchCandidate,
@@ -24,8 +25,15 @@ import { createLimit } from '@/lib/utils/concurrencyLimit';
 
 const YOUTUBE_DAILY_QUERIES = [
   'Counter-Strike 2 gameplay',
-  'CS2 highlights',
-  'CS2 esports',
+  'Counter-Strike 2 ranked',
+  'CS2 streamer',
+  'CS2 gameplay español',
+  'CS2 gameplay português',
+  'CS2 gameplay français',
+  'CS2 gameplay deutsch',
+  'CS2 gameplay polski',
+  'CS2 gameplay русский',
+  'CS2 gameplay Türkçe',
 ] as const;
 
 export type CreatorDiscoverySummary = {
@@ -45,6 +53,7 @@ export async function runCreatorTargetDiscovery(
   const platformResults = await Promise.all([
     discoverYouTubeTargets(),
     discoverTwitchTargets(),
+    discoverKickTargets(),
   ]);
   await finishCreatorDiscoveryRun(runId, platformResults);
 
@@ -63,16 +72,20 @@ export async function runCreatorTargetDiscovery(
 async function discoverYouTubeTargets(): Promise<CreatorDiscoveryPlatformResult> {
   try {
     const channels = new Map<string, { channel: YouTubeChannelPreview; query: string }>();
-    for (const query of YOUTUBE_DAILY_QUERIES) {
-      const results = await searchYouTubeChannels(query, 12, undefined, undefined);
+    const searchLimit = createLimit(4);
+    const searches = await Promise.all(YOUTUBE_DAILY_QUERIES.map((query) => searchLimit(async () => ({
+      query,
+      results: await searchYouTubeChannelsFromRecentVideos(query, 8),
+    }))));
+    for (const { query, results } of searches) {
       for (const channel of results) {
         if (!channels.has(channel.channelId)) channels.set(channel.channelId, { channel, query });
       }
     }
 
-    const candidates = [...channels.values()].slice(0, 30);
+    const candidates = [...channels.values()].slice(0, 36);
     const creatorCandidates = candidates.filter(
-      ({ channel }) => !isLikelyPublisherChannel(channel.title),
+      ({ channel }) => !isLikelyPublisherChannel(`${channel.title} ${channel.description}`),
     );
     const limit = createLimit(4);
     const audited = await Promise.allSettled(creatorCandidates.map(({ channel, query }) => limit(async () => ({
@@ -83,7 +96,7 @@ async function discoverYouTubeTargets(): Promise<CreatorDiscoveryPlatformResult>
         'GLOBAL',
         'any',
         'marketplace',
-        8,
+        3,
         1_000,
       ),
     }))));
@@ -113,11 +126,10 @@ async function discoverYouTubeTargets(): Promise<CreatorDiscoveryPlatformResult>
       avgRecentVideoViews: qualification.avgViews,
       recentVideosWindowDays: qualification.windowDays,
       qualificationUpdatedAt: new Date(),
-      qualificationStatus: 'qualified',
-      fitScore: 100,
+      qualificationStatus: 'review',
+      fitScore: qualification.fitScore,
       fitReasons: [
-        `${qualification.videoCount} vídeos en ${qualification.windowDays} días`,
-        `Mínimo ${qualification.minViews.toLocaleString('es-ES')} vistas por vídeo`,
+        ...qualification.signals,
         qualification.complianceExplanation,
       ],
       sourceQuery: query,
@@ -166,7 +178,7 @@ async function discoverTwitchTargets(): Promise<CreatorDiscoveryPlatformResult> 
           requiredLanguage: null,
           game: channel.currentGame,
           isLive: channel.isLive,
-          minimumFollowers: 1_000,
+          minimumFollowers: 250,
         }),
       };
     }).filter(({ fit }) => fit.isQualified);
@@ -205,6 +217,60 @@ async function discoverTwitchTargets(): Promise<CreatorDiscoveryPlatformResult> 
   }
 }
 
+async function discoverKickTargets(): Promise<CreatorDiscoveryPlatformResult> {
+  try {
+    const live = (await getKickCs2LiveCreators(100)).filter(
+      (creator) => !isLikelyPublisherChannel(`${creator.username} ${creator.title}`),
+    );
+    const qualified = live.map((creator) => ({
+      creator,
+      fit: qualifyTwitchCandidate({
+        followers: 0,
+        viewers: creator.viewerCount,
+        language: creator.language,
+        requiredLanguage: null,
+        game: creator.category,
+        isLive: true,
+        minimumFollowers: 250,
+      }),
+    })).filter(({ fit }) => fit.isQualified);
+
+    const now = new Date();
+    const rows: CreateTargetInput[] = qualified.map(({ creator, fit }) => ({
+      username: creator.slug.toLowerCase(),
+      fullName: creator.username,
+      platform: 'kick',
+      profileUrl: `https://kick.com/${creator.slug}`,
+      profilePicUrl: creator.profilePicUrl ?? undefined,
+      followers: 0,
+      defaultLanguage: creator.language || undefined,
+      bio: creator.title || undefined,
+      qualificationStatus: fit.status,
+      fitScore: fit.score,
+      fitReasons: [...fit.reasons, 'Seguidores pendientes de enriquecer'],
+      sourceQuery: 'Counter-Strike 2 live',
+      lastActivityAt: now,
+      lastDiscoveredAt: now,
+      complianceActivity: 'marketplace',
+      complianceStatus: 'manual-review',
+      contactUrl: `https://kick.com/${creator.slug}`,
+      discoveredVia: 'daily:kick:cs2-live',
+      enrichedAt: now,
+    }));
+    const result = await bulkUpsertTargets(rows);
+    return {
+      platform: 'kick',
+      found: live.length,
+      qualified: qualified.length,
+      inserted: result.inserted,
+      updated: result.updated,
+      error: null,
+    };
+  } catch (error) {
+    return failed('kick', error);
+  }
+}
+
 function failed(
   platform: CreatorDiscoveryPlatformResult['platform'],
   error: unknown,
@@ -227,7 +293,10 @@ export function safeCreatorDiscoveryError(
   if (platform === 'twitch' && message.includes('Twitch token error')) {
     return 'Twitch ha rechazado las credenciales configuradas';
   }
-  if (message.includes('YOUTUBE_API_KEY') || message.includes('TWITCH_CLIENT')) {
+  if (platform === 'kick' && message.includes('Kick token error')) {
+    return 'Kick ha rechazado las credenciales configuradas';
+  }
+  if (message.includes('YOUTUBE_API_KEY') || message.includes('TWITCH_CLIENT') || message.includes('KICK_CLIENT')) {
     return 'Credenciales de plataforma no disponibles';
   }
   return message.includes('403')

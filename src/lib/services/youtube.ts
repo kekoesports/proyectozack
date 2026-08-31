@@ -71,6 +71,12 @@ const YouTubeSearchSchema = z.object({
   items: z.array(z.object({ id: z.object({ channelId: z.string() }) })).optional(),
 });
 
+const YouTubeVideoSearchSchema = z.object({
+  items: z
+    .array(z.object({ snippet: z.object({ channelId: z.string() }) }))
+    .optional(),
+});
+
 const YouTubeChannelsSchema = z.object({
   items: z
     .array(
@@ -319,6 +325,39 @@ export async function searchYouTubeChannels(
 }
 
 /**
+ * Finds channels through recently published videos instead of channel-name
+ * relevance. This gives active, smaller creators a fairer chance to appear.
+ */
+export async function searchYouTubeChannelsFromRecentVideos(
+  query: string,
+  maxResults = 15,
+  publishedAfter = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000),
+): Promise<YouTubeChannelPreview[]> {
+  const apiKey = requireYoutubeKey();
+  const params = new URLSearchParams({
+    part: 'snippet',
+    type: 'video',
+    order: 'date',
+    q: query,
+    maxResults: String(Math.min(Math.max(maxResults, 1), 50)),
+    publishedAfter: publishedAfter.toISOString(),
+    key: apiKey,
+  });
+
+  const searchRes = await fetch(`https://www.googleapis.com/youtube/v3/search?${params.toString()}`);
+  if (!searchRes.ok) {
+    const text = await searchRes.text();
+    throw new Error(`YouTube search API error (${searchRes.status}): ${text}`);
+  }
+
+  const searchData = YouTubeVideoSearchSchema.parse(await searchRes.json());
+  const channelIds = [...new Set(
+    (searchData.items ?? []).map((item) => item.snippet.channelId).filter(Boolean),
+  )];
+  return channelIds.length > 0 ? getChannelDetails(channelIds) : [];
+}
+
+/**
  * Fetch snippet + statistics for a list of YouTube channel IDs.
  * Batches up to 50 IDs per request (YouTube API limit).
  */
@@ -534,6 +573,8 @@ export type YouTubeRecentPerformance = {
   readonly videoCount: number;
   readonly minViews: number;
   readonly avgViews: number;
+  readonly medianViews: number;
+  readonly videosAtOrAbove1000: number;
   readonly lastVideoAt: Date | null;
 };
 
@@ -547,7 +588,16 @@ export async function getChannelRecentPerformance(
 ): Promise<YouTubeRecentPerformance> {
   const playlistId = await getUploadsPlaylistId(channelId);
   if (!playlistId) {
-    return { channelId, windowDays, videoCount: 0, minViews: 0, avgViews: 0, lastVideoAt: null };
+    return {
+      channelId,
+      windowDays,
+      videoCount: 0,
+      minViews: 0,
+      avgViews: 0,
+      medianViews: 0,
+      videosAtOrAbove1000: 0,
+      lastVideoAt: null,
+    };
   }
 
   const cutoff = new Date(Date.now() - windowDays * 24 * 60 * 60 * 1000);
@@ -558,12 +608,21 @@ export async function getChannelRecentPerformance(
     .filter((value): value is number => value !== undefined);
 
   const total = views.reduce((sum, value) => sum + value, 0);
+  const sortedViews = [...views].sort((a, b) => a - b);
+  const middle = Math.floor(sortedViews.length / 2);
+  const medianViews = sortedViews.length === 0
+    ? 0
+    : sortedViews.length % 2 === 1
+      ? sortedViews[middle] ?? 0
+      : Math.round(((sortedViews[middle - 1] ?? 0) + (sortedViews[middle] ?? 0)) / 2);
   return {
     channelId,
     windowDays,
     videoCount: views.length,
     minViews: views.length > 0 ? Math.min(...views) : 0,
     avgViews: views.length > 0 ? Math.round(total / views.length) : 0,
+    medianViews,
+    videosAtOrAbove1000: views.filter((value) => value >= 1_000).length,
     lastVideoAt: uploads[0]?.publishedAt ?? null,
   };
 }

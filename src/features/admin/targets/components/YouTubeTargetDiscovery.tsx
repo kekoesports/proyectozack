@@ -43,7 +43,7 @@ export function YouTubeTargetDiscovery({ embedded = false }: { readonly embedded
         language,
         campaignType,
         windowDays,
-        minimumVideos: 8,
+        minimumVideos: 3,
         minimumViews: 1_000,
         limit: 15,
       });
@@ -87,7 +87,7 @@ export function YouTubeTargetDiscovery({ embedded = false }: { readonly embedded
         <span>
           <span className="block text-sm font-bold text-sp-admin-text">Descubrir canales de CS2 en YouTube</span>
           <span className="mt-1 block text-xs text-sp-admin-muted">
-            Verifica 8 vídeos recientes, 1.000 vistas mínimas por vídeo, idioma y mercado permitido.
+            Detecta promesas activas por mediana de vistas, constancia y rendimiento frente a su audiencia.
           </span>
         </span>
         <span className="text-xs font-semibold text-red-400">{open ? 'Ocultar' : 'Abrir buscador'}</span>
@@ -161,7 +161,7 @@ export function YouTubeTargetDiscovery({ embedded = false }: { readonly embedded
           </div>
 
           <p className="rounded-lg border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-xs text-amber-200/80">
-            La búsqueda es mundial. Marketplace significa compraventa sin apuesta, azar ni premio. Las cajas solo se preseleccionan en mercados regulados y siempre exigen comprobar la licencia de la marca antes de contactar.
+            La búsqueda es mundial. Se piden 3 vídeos recientes y una mediana mínima de 1.000 vistas; un vídeo aislado por debajo no descarta un canal prometedor. Las cajas siempre exigen comprobar la licencia de la marca antes de contactar.
           </p>
 
           {message && <p className="text-sm text-sp-admin-muted">{message}</p>}
@@ -170,7 +170,7 @@ export function YouTubeTargetDiscovery({ embedded = false }: { readonly embedded
             <>
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <p className="text-xs text-sp-admin-muted">
-                  {qualified.length} preseleccionados de {results.length} revisados
+                  {qualified.length} promesas preseleccionadas de {results.length} revisadas
                 </p>
                 <button
                   type="button"
@@ -221,16 +221,17 @@ export function YouTubeTargetDiscovery({ embedded = false }: { readonly embedded
                           {countryLabel(channel.country)} · {numberFormat.format(channel.subscriberCount)} suscriptores
                         </p>
                         <div className="mt-2 grid grid-cols-3 gap-2 text-xs">
-                          <Metric label="Vídeos" value={`${channel.videoCount}/${channel.windowDays}d`} pass={channel.videoCount >= 8} />
-                          <Metric label="Mínimo" value={numberFormat.format(channel.minViews)} pass={channel.minViews >= 1_000} />
-                          <Metric label="Media" value={numberFormat.format(channel.avgViews)} pass={channel.avgViews >= 1_000} />
+                          <Metric label="Potencial" value={`${channel.fitScore}/100`} pass={channel.fitScore >= 60} />
+                          <Metric label="Vídeos" value={`${channel.videoCount}/${channel.windowDays}d`} pass={channel.videoCount >= 3} />
+                          <Metric label="Mediana" value={numberFormat.format(channel.medianViews)} pass={channel.medianViews >= 1_000} />
                         </div>
                         {!channel.isQualified && (
                           <p className="mt-2 text-[11px] text-amber-300/80">{channel.reasons.join(' · ')}</p>
                         )}
                         {channel.isQualified && (
-                          <p className="mt-2 text-[11px] text-sky-300/80">{channel.complianceExplanation}</p>
+                          <p className="mt-2 text-[11px] text-emerald-300/80">{channel.signals.join(' · ')}</p>
                         )}
+                        <p className="mt-1 text-[10px] text-sky-300/80">{channel.complianceExplanation}</p>
                         {channel.complianceSourceUrl && (
                           <a href={channel.complianceSourceUrl} target="_blank" rel="noreferrer" className="mt-1 inline-block text-[10px] font-semibold text-sp-admin-accent hover:underline">
                             Ver fuente del regulador →

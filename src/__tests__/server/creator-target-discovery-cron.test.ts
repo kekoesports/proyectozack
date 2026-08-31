@@ -29,6 +29,8 @@ describe('descubrimiento diario de creadores target', () => {
 
   it('ejecuta el servicio multicanal y no expone errores internos', () => {
     expect(route).toMatch(/runCreatorTargetDiscovery\('scheduled'\)/);
+    expect(service).toMatch(/searchYouTubeChannelsFromRecentVideos/);
+    expect(service).toMatch(/getKickCs2LiveCreators/);
     expect(service).toMatch(/Credenciales de plataforma no disponibles/);
     expect(service).toMatch(/No se pudo completar la consulta de esta plataforma/);
   });

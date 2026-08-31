@@ -19,7 +19,9 @@ const performance: YouTubeRecentPerformance = {
   videoCount: 8,
   minViews: 1_000,
   avgViews: 2_400,
-  lastVideoAt: new Date('2026-08-24T10:00:00Z'),
+  medianViews: 2_400,
+  videosAtOrAbove1000: 8,
+  lastVideoAt: new Date(),
 };
 
 describe('qualifyYouTubeChannel', () => {
@@ -32,14 +34,14 @@ describe('qualifyYouTubeChannel', () => {
   it('explica todos los criterios incumplidos', () => {
     const result = qualifyYouTubeChannel(
       { ...channel, country: null, defaultLanguage: 'en', title: 'FPS clips', description: '' },
-      { ...performance, videoCount: 5, minViews: 400 },
+      { ...performance, videoCount: 2, minViews: 400, medianViews: 400, videosAtOrAbove1000: 0 },
       'CO',
     );
     expect(result.isQualified).toBe(false);
     expect(result.reasons).toEqual(expect.arrayContaining([
       'País del canal: sin declarar',
       'Idioma solicitado no confirmado',
-      '5/8 vídeos recientes',
+      '2/3 vídeos recientes',
     ]));
   });
 
@@ -79,13 +81,35 @@ describe('qualifyYouTubeChannel', () => {
     expect(result.complianceStatus).toBe('restricted');
   });
 
-  it('no confunde la media con el mínimo exigido', () => {
+  it('no descarta una promesa por un vídeo aislado por debajo de 1.000', () => {
     const result = qualifyYouTubeChannel(
       channel,
-      { ...performance, minViews: 999, avgViews: 50_000 },
+      { ...performance, minViews: 200, medianViews: 2_100, avgViews: 50_000, videosAtOrAbove1000: 6 },
+      'ES',
+    );
+    expect(result.isQualified).toBe(true);
+  });
+
+  it('rechaza una media inflada si la mediana real no llega a 1.000', () => {
+    const result = qualifyYouTubeChannel(
+      channel,
+      { ...performance, minViews: 100, medianViews: 999, avgViews: 50_000, videosAtOrAbove1000: 3 },
       'ES',
     );
     expect(result.isQualified).toBe(false);
-    expect(result.reasons[0]).toContain('Mínimo reciente');
+    expect(result.reasons[0]).toContain('Mediana reciente');
+  });
+
+  it('premia un canal pequeño que convierte suscriptores en vistas', () => {
+    const result = qualifyYouTubeChannel(
+      { ...channel, subscriberCount: 4_000 },
+      { ...performance, videoCount: 3, medianViews: 1_400, avgViews: 1_800, videosAtOrAbove1000: 2 },
+      'GLOBAL',
+      'any',
+      'marketplace',
+    );
+    expect(result.isQualified).toBe(true);
+    expect(result.fitScore).toBeGreaterThanOrEqual(60);
+    expect(result.signals.join(' ')).toContain('Mediana');
   });
 });

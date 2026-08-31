@@ -2,6 +2,7 @@ import {
   fetchYouTubeSubscriberCounts,
   fetchYouTubeChannelSnippets,
   searchYouTubeChannels,
+  searchYouTubeChannelsFromRecentVideos,
   getChannelDetails,
   getChannelAvgViews,
 } from '@/lib/services/youtube';
@@ -325,6 +326,43 @@ describe('youtube service', () => {
       await expect(searchYouTubeChannels('gaming')).rejects.toThrow(
         'YouTube search API error (429)',
       );
+    });
+  });
+
+  describe('searchYouTubeChannelsFromRecentVideos', () => {
+    it('discovers unique active channels through recent video results', async () => {
+      (global.fetch as jest.Mock)
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          json: async () => ({ items: [
+            { snippet: { channelId: 'UC_promise' } },
+            { snippet: { channelId: 'UC_promise' } },
+          ] }),
+          text: async () => '',
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          json: async () => ({ items: [{
+            id: 'UC_promise',
+            snippet: { title: 'Promise', description: 'CS2', thumbnails: {} },
+            statistics: { subscriberCount: '3200' },
+          }] }),
+          text: async () => '',
+        });
+
+      const result = await searchYouTubeChannelsFromRecentVideos(
+        'CS2 gameplay',
+        15,
+        new Date('2026-06-01T00:00:00Z'),
+      );
+
+      expect(result).toHaveLength(1);
+      const searchUrl = (global.fetch as jest.Mock).mock.calls[0][0] as string;
+      expect(searchUrl).toContain('type=video');
+      expect(searchUrl).toContain('order=date');
+      expect(searchUrl).toContain('publishedAfter=2026-06-01T00%3A00%3A00.000Z');
     });
   });
 

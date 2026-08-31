@@ -19,16 +19,23 @@ describe('qualifyTwitchCandidate', () => {
 
     expect(result.isQualified).toBe(true);
     expect(result.status).toBe('review');
-    expect(result.score).toBe(100);
+    expect(result.score).toBeGreaterThanOrEqual(90);
     expect(result.reasons).toContain('Revisar país y encaje legal antes de contactar');
   });
 
   it('rechaza y explica una audiencia insuficiente', () => {
-    const result = qualifyTwitchCandidate({ ...candidate, followers: 450 });
+    const result = qualifyTwitchCandidate({ ...candidate, followers: 450, viewers: 5 });
 
     expect(result.isQualified).toBe(false);
     expect(result.status).toBe('rejected');
-    expect(result.reasons[0]).toMatch(/Audiencia inferior a 1[.\s]?000/);
+    expect(result.reasons[0]).toMatch(/Menos de 1[.\s]?000 seguidores y 20 espectadores/);
+  });
+
+  it('mantiene una promesa pequeña cuando ya reúne audiencia en directo', () => {
+    const result = qualifyTwitchCandidate({ ...candidate, followers: 180, viewers: 35 });
+
+    expect(result.isQualified).toBe(true);
+    expect(result.reasons[0]).toContain('promete pese a su audiencia pequeña');
   });
 
   it('rechaza categorías ajenas a CS2', () => {

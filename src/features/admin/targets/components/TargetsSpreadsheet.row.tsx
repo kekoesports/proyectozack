@@ -127,7 +127,7 @@ export function TargetRow({
             {target.platform === 'youtube' && target.recentVideoCount != null && (
               <p className="text-sp-admin-muted">
                 {target.recentVideoCount} vídeos / {target.recentVideosWindowDays ?? 90}d
-                {' · '}mín. <strong className="text-sp-admin-text">{formatCompact(target.minRecentVideoViews ?? 0)}</strong>
+                {' · '}media <strong className="text-sp-admin-text">{formatCompact(target.avgRecentVideoViews ?? 0)}</strong>
               </p>
             )}
             {target.fitReasons && target.fitReasons.length > 0 && (
