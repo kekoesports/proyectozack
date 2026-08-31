@@ -14,7 +14,7 @@ const TABS: readonly { value: DiscoveryTab; label: string; automated: boolean }[
   { value: 'youtube', label: 'YouTube', automated: true },
   { value: 'twitch', label: 'Twitch', automated: true },
   { value: 'instagram', label: 'Instagram', automated: false },
-  { value: 'kick', label: 'Kick', automated: false },
+  { value: 'kick', label: 'Kick', automated: true },
 ];
 
 export function CreatorDiscoveryHub(): React.ReactElement {
@@ -40,7 +40,7 @@ export function CreatorDiscoveryHub(): React.ReactElement {
         <div>
           <h2 className="text-sm font-bold text-sp-admin-text">Buscador multicanal</h2>
           <p className="mt-1 max-w-3xl text-xs text-sp-admin-muted">
-            YouTube y Twitch se revisan cada mañana. Instagram y Kick permiten incorporar perfiles concretos sin depender de scraping frágil.
+            YouTube, Twitch y Kick se revisan cada mañana. Instagram permite incorporar perfiles concretos hasta conectar una cuenta profesional de Meta.
           </p>
         </div>
         <button

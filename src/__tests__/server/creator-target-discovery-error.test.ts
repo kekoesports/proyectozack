@@ -15,4 +15,9 @@ describe('safeCreatorDiscoveryError', () => {
     expect(safeCreatorDiscoveryError(new Error('internal detail'), 'youtube'))
       .toBe('No se pudo completar la consulta de esta plataforma');
   });
+
+  it('explica el rechazo de Kick sin exponer la respuesta OAuth', () => {
+    expect(safeCreatorDiscoveryError(new Error('Kick token error (401)'), 'kick'))
+      .toBe('Kick ha rechazado las credenciales configuradas');
+  });
 });

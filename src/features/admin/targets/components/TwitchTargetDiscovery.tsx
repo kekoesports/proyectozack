@@ -15,7 +15,7 @@ const INPUT_CLASS = 'w-full rounded-lg border border-sp-admin-border bg-sp-admin
 export function TwitchTargetDiscovery(): React.ReactElement {
   const [query, setQuery] = useState('Counter-Strike');
   const [language, setLanguage] = useState('any');
-  const [minimumFollowers, setMinimumFollowers] = useState(1_000);
+  const [minimumFollowers, setMinimumFollowers] = useState(250);
   const [results, setResults] = useState<readonly TwitchDiscoveryCandidate[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [message, setMessage] = useState<string | null>(null);
@@ -80,7 +80,7 @@ export function TwitchTargetDiscovery(): React.ReactElement {
       </div>
 
       <p className="rounded-lg border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-xs text-amber-200/80">
-        Twitch permite localizar canales activos, pero no devuelve el país. Los candidatos se guardan para revisión y nunca se aprueban legalmente de forma automática.
+        Se priorizan directos de CS2 con al menos 250 seguidores o 20 espectadores simultáneos. Twitch no devuelve el país: todos se guardan para revisión legal antes de contactar.
       </p>
       {message && <p className="text-xs text-sp-admin-muted">{message}</p>}
 

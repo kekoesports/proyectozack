@@ -10,12 +10,14 @@ import {
 export type YouTubeQualification = YouTubeChannelPreview & YouTubeRecentPerformance & {
   readonly languageMatches: boolean;
   readonly isQualified: boolean;
+  readonly fitScore: number;
   readonly complianceStatus: Cs2MarketAssessmentStatus;
   readonly complianceLabel: string;
   readonly complianceExplanation: string;
   readonly complianceSourceUrl: string | null;
   readonly complianceCheckedAt: string;
   readonly reasons: readonly string[];
+  readonly signals: readonly string[];
 };
 
 const SPANISH_HINTS = [
@@ -44,7 +46,7 @@ export function qualifyYouTubeChannel(
   market: Cs2SearchMarket,
   language: TargetLanguage = 'es',
   campaignType: Cs2CampaignType = 'case-gambling',
-  minimumVideos = 8,
+  minimumVideos = 3,
   minimumViews = 1_000,
 ): YouTubeQualification {
   const languageMatches = matchesTargetLanguage(channel, language);
@@ -59,10 +61,33 @@ export function qualifyYouTubeChannel(
   if (performance.videoCount < minimumVideos) {
     reasons.push(`${performance.videoCount}/${minimumVideos} vídeos recientes`);
   }
-  if (performance.videoCount > 0 && performance.minViews < minimumViews) {
-    reasons.push(`Mínimo reciente: ${performance.minViews.toLocaleString('es-ES')} vistas`);
+  if (performance.videoCount > 0 && performance.medianViews < minimumViews) {
+    reasons.push(`Mediana reciente: ${performance.medianViews.toLocaleString('es-ES')} vistas`);
   }
   if (performance.videoCount === 0) reasons.push('Sin vídeos en la ventana elegida');
+
+  const daysSinceLastVideo = performance.lastVideoAt
+    ? Math.max(0, Math.floor((Date.now() - performance.lastVideoAt.getTime()) / 86_400_000))
+    : null;
+  if (daysSinceLastVideo !== null && daysSinceLastVideo > 45) {
+    reasons.push(`Último vídeo hace ${daysSinceLastVideo} días`);
+  }
+
+  const fitScore = scoreYouTubeProspect(channel, performance, daysSinceLastVideo);
+  if (reasons.length === 0 && fitScore < 60) {
+    reasons.push(`Potencial comercial ${fitScore}/100 (mínimo 60)`);
+  }
+
+  const signals = [
+    `${performance.videoCount} vídeos en ${performance.windowDays} días`,
+    `Mediana de ${performance.medianViews.toLocaleString('es-ES')} vistas`,
+    `${performance.videosAtOrAbove1000}/${performance.videoCount} vídeos con al menos 1.000 vistas`,
+  ];
+  if (channel.subscriberCount > 0) {
+    const efficiency = Math.round((performance.medianViews / channel.subscriberCount) * 100);
+    signals.push(`Mediana equivalente al ${efficiency}% de suscriptores`);
+  }
+  if (daysSinceLastVideo !== null) signals.push(`Último vídeo hace ${daysSinceLastVideo} días`);
 
   return {
     ...channel,
@@ -73,7 +98,54 @@ export function qualifyYouTubeChannel(
     complianceExplanation: compliance.explanation,
     complianceSourceUrl: compliance.sourceUrl,
     complianceCheckedAt: compliance.checkedAt,
+    fitScore,
     isQualified: reasons.length === 0,
     reasons,
+    signals,
   };
+}
+
+function scoreYouTubeProspect(
+  channel: YouTubeChannelPreview,
+  performance: YouTubeRecentPerformance,
+  daysSinceLastVideo: number | null,
+): number {
+  let score = performance.videoCount >= 8 ? 25 : performance.videoCount >= 5 ? 22 : performance.videoCount >= 3 ? 18 : 0;
+
+  score += performance.medianViews >= 10_000
+    ? 30
+    : performance.medianViews >= 3_000
+      ? 25
+      : performance.medianViews >= 1_000
+        ? 20
+        : Math.min(18, Math.round((performance.medianViews / 1_000) * 18));
+
+  if (daysSinceLastVideo !== null) {
+    score += daysSinceLastVideo <= 14 ? 15 : daysSinceLastVideo <= 30 ? 12 : daysSinceLastVideo <= 45 ? 8 : 0;
+  }
+
+  if (channel.subscriberCount <= 0) {
+    score += 10;
+  } else {
+    const viewsPerSubscriber = performance.medianViews / channel.subscriberCount;
+    score += viewsPerSubscriber >= 1
+      ? 20
+      : viewsPerSubscriber >= 0.3
+        ? 18
+        : viewsPerSubscriber >= 0.1
+          ? 14
+          : viewsPerSubscriber >= 0.03
+            ? 8
+            : 4;
+  }
+
+  score += channel.subscriberCount < 1_000
+    ? 8
+    : channel.subscriberCount <= 250_000
+      ? 10
+      : channel.subscriberCount <= 1_000_000
+        ? 5
+        : 2;
+
+  return Math.max(0, Math.min(score, 100));
 }

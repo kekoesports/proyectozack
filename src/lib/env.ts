@@ -31,6 +31,9 @@ export const env = createEnv({
     YOUTUBE_API_KEY: z.string().min(1).optional(),
     TWITCH_CLIENT_ID: z.string().min(1).optional(),
     TWITCH_CLIENT_SECRET: z.string().min(1).optional(),
+    // Kick Developer Public API (app token, client-credentials flow).
+    KICK_CLIENT_ID: z.string().min(1).optional(),
+    KICK_CLIENT_SECRET: z.string().min(1).optional(),
     GOOGLE_SERVICE_ACCOUNT_EMAIL: z.string().email().optional(),
     GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY: z.string().min(1).optional(),
     GOOGLE_DRIVE_BACKUP_FOLDER_ID: z.string().min(1).optional(),
@@ -210,6 +213,8 @@ export const env = createEnv({
     YOUTUBE_API_KEY: process.env.YOUTUBE_API_KEY,
     TWITCH_CLIENT_ID: process.env.TWITCH_CLIENT_ID,
     TWITCH_CLIENT_SECRET: process.env.TWITCH_CLIENT_SECRET,
+    KICK_CLIENT_ID: process.env.KICK_CLIENT_ID,
+    KICK_CLIENT_SECRET: process.env.KICK_CLIENT_SECRET,
     GOOGLE_SERVICE_ACCOUNT_EMAIL: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
     GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY: process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY,
     GOOGLE_DRIVE_BACKUP_FOLDER_ID: process.env.GOOGLE_DRIVE_BACKUP_FOLDER_ID,

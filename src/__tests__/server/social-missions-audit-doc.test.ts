@@ -167,19 +167,19 @@ describe('[social-missions-audit] fuentes citadas', () => {
  * A partir de Fase A Discord:
  *   - Discord SÍ se implementa (env vars, schema, tabla, rutas OAuth,
  *     verificación).
- *   - Twitch y Kick siguen fuera de scope funcional.
+ *   - Kick Missions sigue fuera de scope, pero su app token se reutiliza para
+ *     el descubrimiento diario de Creadores Target.
  *   - auth.ts no añade plugins de user OAuth para ninguno (Discord se
  *     integra vía rutas propias `/api/auth/social/discord/*`, no vía
  *     plugin de Better Auth).
  */
-describe('[social-missions-audit] Fase A Discord + Fase B Twitch implementadas, Kick aún no', () => {
-  it('env.ts añade DISCORD_* y TWITCH_* Fase B y TOKEN_ENCRYPTION_KEY, no Kick', () => {
+describe('[social-missions-audit] Fase A Discord + Fase B Twitch implementadas', () => {
+  it('env.ts incluye OAuth social y el app token de descubrimiento Kick', () => {
     const envSrc = read('src/lib/env.ts');
     expect(envSrc).toContain('DISCORD_CLIENT_ID');
     expect(envSrc).toContain('TWITCH_OAUTH_REDIRECT_URL');
     expect(envSrc).toContain('TOKEN_ENCRYPTION_KEY');
-    // Kick sigue fuera de scope.
-    expect(envSrc).not.toContain('KICK_CLIENT_ID');
+    expect(envSrc).toContain('KICK_CLIENT_ID');
   });
 
   it('platform_missions incluye provider/target_id/verification_mode (Fase A)', () => {

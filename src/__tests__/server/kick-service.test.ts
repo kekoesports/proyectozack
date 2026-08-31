@@ -1,4 +1,8 @@
-import { getKickChannel } from '@/lib/services/kick';
+jest.mock('@/lib/env', () => ({
+  env: { KICK_CLIENT_ID: 'kick-client', KICK_CLIENT_SECRET: 'kick-secret' },
+}));
+
+import { getKickChannel, getKickCs2LiveCreators } from '@/lib/services/kick';
 
 function makeResponse(body: unknown, ok = true, status = 200): Response {
   return {
@@ -130,5 +134,33 @@ describe('getKickChannel', () => {
     expect(result?.country).toBeNull();
     expect(result?.recentCategories).toEqual([]);
     expect(result?.lastLivestreamAt).toBeNull();
+  });
+});
+
+describe('getKickCs2LiveCreators', () => {
+  it('uses the official app token, category and livestream endpoints', async () => {
+    (global.fetch as jest.Mock)
+      .mockResolvedValueOnce(makeResponse({ access_token: 'token', expires_in: 3600 }))
+      .mockResolvedValueOnce(makeResponse({ data: [{ id: 12, name: 'Counter-Strike 2' }] }))
+      .mockResolvedValueOnce(makeResponse({ data: [{
+        broadcaster_user: { id: 7, username: 'promise', profile_picture: 'https://img.example/p.jpg' },
+        category: { id: 12, name: 'Counter-Strike 2' },
+        channel: { slug: 'promise' },
+        language_code: 'pt-BR',
+        started_at: '2026-08-31T10:00:00Z',
+        title: 'Road to global',
+        viewer_count: 42,
+      }] }));
+
+    const result = await getKickCs2LiveCreators(100);
+
+    expect(result).toHaveLength(1);
+    expect(result[0]).toMatchObject({ slug: 'promise', viewerCount: 42, category: 'Counter-Strike 2' });
+    expect(global.fetch).toHaveBeenNthCalledWith(
+      1,
+      'https://id.kick.com/oauth/token',
+      expect.objectContaining({ method: 'POST' }),
+    );
+    expect((global.fetch as jest.Mock).mock.calls[2][0]).toContain('category_id=12');
   });
 });

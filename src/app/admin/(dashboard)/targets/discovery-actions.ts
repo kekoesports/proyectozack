@@ -19,7 +19,7 @@ const twitchSearchSchema = z.object({
   query: z.string().trim().min(2).max(100),
   language: z.enum(['any', 'es', 'en', 'pt', 'de', 'fr']).default('any'),
   liveOnly: z.boolean().default(true),
-  minimumFollowers: z.number().int().min(100).max(10_000_000).default(1_000),
+  minimumFollowers: z.number().int().min(100).max(10_000_000).default(250),
 });
 
 export type TwitchDiscoveryCandidate = TwitchChannelPreview & CreatorFit;
@@ -60,13 +60,15 @@ const twitchImportSchema = z.array(z.object({
   broadcasterId: z.string().min(1).max(50),
   login: z.string().min(1).max(100),
   displayName: z.string().min(1).max(200),
-  followerCount: z.number().int().min(1_000),
+  followerCount: z.number().int().nonnegative(),
+  viewerCount: z.number().int().nonnegative(),
   language: z.string().max(10),
   currentGame: z.string().max(200),
   thumbnailUrl: z.url().nullable(),
-  score: z.number().int().min(0).max(100),
+  score: z.number().int().min(60).max(100),
   reasons: z.array(z.string().max(300)).max(20),
   isLive: z.boolean(),
+  isQualified: z.literal(true),
 })).min(1).max(20);
 
 export async function importTwitchTargetsAction(input: unknown): Promise<{

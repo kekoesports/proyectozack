@@ -9,7 +9,7 @@ import {
 } from 'drizzle-orm/pg-core';
 
 export type CreatorDiscoveryPlatformResult = {
-  readonly platform: 'youtube' | 'twitch';
+  readonly platform: 'youtube' | 'twitch' | 'kick';
   readonly found: number;
   readonly qualified: number;
   readonly inserted: number;

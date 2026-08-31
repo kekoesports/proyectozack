@@ -27,8 +27,8 @@ export function CreatorDiscoveryOverview({
       />
       <MetricCard
         label="Plataformas automáticas"
-        value={`${platformResults.filter((row) => row.error === null).length}/2`}
-        detail={platformResults.find((row) => row.error)?.error ?? 'YouTube y Twitch operativas'}
+        value={`${platformResults.filter((row) => row.error === null).length}/3`}
+        detail={platformResults.find((row) => row.error)?.error ?? 'YouTube, Twitch y Kick operativas'}
       />
     </div>
   );
