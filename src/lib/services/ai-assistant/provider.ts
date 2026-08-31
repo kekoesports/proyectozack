@@ -86,7 +86,7 @@ export function getAiProvider(): AiProvider {
   if (!apiKey) {
     _provider = new NullProvider();
   } else {
-    _provider = new GeminiProvider(apiKey, env.GEMINI_MODEL ?? 'gemini-2.0-flash');
+    _provider = new GeminiProvider(apiKey, env.GEMINI_MODEL ?? 'gemini-3.6-flash');
   }
   return _provider;
 }

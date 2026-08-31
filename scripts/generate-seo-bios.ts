@@ -185,7 +185,7 @@ async function fetchBatchInputs(
 async function main() {
   const sql   = neon(DATABASE_URL);
   const model = HAS_GEMINI
-    ? new GoogleGenerativeAI(GEMINI_API_KEY).getGenerativeModel({ model: 'gemini-2.0-flash' })
+    ? new GoogleGenerativeAI(GEMINI_API_KEY).getGenerativeModel({ model: 'gemini-3.6-flash' })
     : null;
 
   const opts = { ...DEFAULT_OPTIONS, force: FORCE };

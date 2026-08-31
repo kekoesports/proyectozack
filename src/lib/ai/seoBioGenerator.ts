@@ -207,7 +207,7 @@ export async function generateSeoBio(input: TalentSeoInput): Promise<SeoBioResul
   }
 
   const { GoogleGenerativeAI } = await import('@google/generative-ai');
-  const modelName = env.GEMINI_MODEL ?? 'gemini-2.0-flash';
+  const modelName = env.GEMINI_MODEL ?? 'gemini-3.6-flash';
   const genAI = new GoogleGenerativeAI(apiKey);
   const model = genAI.getGenerativeModel({ model: modelName });
 

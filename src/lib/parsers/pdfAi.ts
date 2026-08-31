@@ -306,7 +306,7 @@ export async function extractInvoiceWithClaude(
   logRedacted('info', '[pdf-ai] DIAG-2 pdf buffer bytes:', String(pdfBuffer.byteLength));
 
   const { GoogleGenerativeAI } = await import('@google/generative-ai');
-  const modelName = env.GEMINI_MODEL ?? 'gemini-2.0-flash';
+  const modelName = env.GEMINI_MODEL ?? 'gemini-3.6-flash';
   logRedacted('info', '[pdf-ai] DIAG-3 model:', modelName);
   const genAI = new GoogleGenerativeAI(apiKey);
   const model = genAI.getGenerativeModel({ model: modelName });
