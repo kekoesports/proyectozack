@@ -24,6 +24,12 @@ Documentos:
 - [`HISTORICAL_CONTRIBUTOR_PROTOCOL.md`](./HISTORICAL_CONTRIBUTOR_PROTOCOL.md):
   protocolo para reconstruir de forma veraz una colaboración histórica y
   entregarla a asesores laborales, fiscales y de propiedad intelectual.
+- [`TECHNICAL_VALUATION_BASELINE_2026-09-01.md`](./TECHNICAL_VALUATION_BASELINE_2026-09-01.md):
+  valoración técnica interna por coste de reposición, separada del valor
+  contable, fiscal y de transferencia.
+- [`FOUNDER_TIME_AND_COST_POLICY.md`](./FOUNDER_TIME_AND_COST_POLICY.md): reglas
+  para registrar el tiempo del fundador y convertir únicamente costes reales
+  en evidencia contable o fiscal.
 
 Plantillas:
 
@@ -34,6 +40,8 @@ Plantillas:
 - [`HISTORICAL_TIME_RECONSTRUCTION.csv`](./templates/HISTORICAL_TIME_RECONSTRUCTION.csv):
   hoja de reconstrucción de actividad; registra rangos y fuentes, no horas
   inventadas.
+- [`CONTEMPORANEOUS_TIME_LEDGER.csv`](./templates/CONTEMPORANEOUS_TIME_LEDGER.csv):
+  registro diario prospectivo por entidad, proyecto, activo y actividad.
 
 ## Reglas
 
