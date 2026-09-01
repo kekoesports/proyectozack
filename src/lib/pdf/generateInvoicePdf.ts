@@ -441,14 +441,22 @@ export async function generateInvoicePdf(
   } else {
     lines.forEach((line, idx) => {
       const displayLine = normalizeDealInvoiceLineForPdf(line, language, invoice.talentName);
-      if (idx % 2 === 1) rect(MARGIN - 2, y - 1, PAGE_W - MARGIN * 2 + 4, 8, '#f5f5f7');
+      const conceptLines = splitText(displayLine.concept, 82);
+      const descriptionLines = displayLine.description
+        ? splitText(displayLine.description, 82)
+        : [];
+      const rowHeight = descriptionLines.length > 0
+        ? Math.max(10, 7 + descriptionLines.length * 3)
+        : 8;
+      if (idx % 2 === 1) {
+        rect(MARGIN - 2, y - 1, PAGE_W - MARGIN * 2 + 4, rowHeight, '#f5f5f7');
+      }
 
       setFont(9, 'bold', BLACK);
-      const conceptLines = splitText(displayLine.concept, 82);
       doc.text(conceptLines[0] ?? displayLine.concept, colsX.concept, y + 3.5);
-      if (displayLine.description) {
+      if (descriptionLines.length > 0) {
         setFont(7.5, 'normal', GRAY);
-        doc.text(displayLine.description.slice(0, 90), colsX.concept, y + 7);
+        doc.text(descriptionLines, colsX.concept, y + 7);
       }
 
       setFont(9, 'normal', BLACK);
@@ -461,7 +469,7 @@ export async function generateInvoicePdf(
       setFont(9, 'bold', BLACK);
       doc.text(fmtMoney(line.subtotal, invoice.currency, t.locale), colsX.sub, y + 3.5, { align: 'right' });
 
-      y += displayLine.description ? 10 : 8;
+      y += rowHeight;
     });
   }
 
