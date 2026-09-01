@@ -57,9 +57,13 @@ const PLATFORM_LABELS: Readonly<Record<string, string>> = {
 };
 
 export function TalentIntelligenceDashboard({ data }: { readonly data: DashboardData }): React.ReactElement {
-  const initialPlatform = data.coverage.platforms.find((item) => item.comparable[30] > 0)?.platform
-    ?? data.coverage.platforms.find((item) => item.tracked > 0)?.platform
-    ?? data.coverage.platforms[0]?.platform
+  const coverageByPlatform = useMemo(
+    () => [...new Map(data.coverage.platforms.map((item) => [item.platform, item] as const)).values()],
+    [data.coverage.platforms],
+  );
+  const initialPlatform = coverageByPlatform.find((item) => item.comparable[30] > 0)?.platform
+    ?? coverageByPlatform.find((item) => item.tracked > 0)?.platform
+    ?? coverageByPlatform[0]?.platform
     ?? 'youtube';
   const [period, setPeriod] = useState<TalentGrowthPeriod>(30);
   const [platform, setPlatform] = useState(initialPlatform);
@@ -130,7 +134,7 @@ export function TalentIntelligenceDashboard({ data }: { readonly data: Dashboard
         </div>
 
         <div className="mt-4 flex flex-wrap gap-2" aria-label="Filtrar estadísticas por red social">
-          {data.coverage.platforms.map((item) => (
+          {coverageByPlatform.map((item) => (
             <button
               key={item.platform}
               type="button"
@@ -169,9 +173,15 @@ export function TalentIntelligenceDashboard({ data }: { readonly data: Dashboard
               <ShieldCheck size={10} /> FUENTE VERIFICADA
             </span>
           </div>
-          <div className="h-[290px]">
+          <div className="h-[290px] min-w-0">
             {trend.length > 1 ? (
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer
+                width="100%"
+                height="100%"
+                minWidth={0}
+                minHeight={1}
+                initialDimension={{ width: 720, height: 290 }}
+              >
                 <AreaChart data={trend} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
                   <defs>
                     <linearGradient id="talentPlatform" x1="0" y1="0" x2="0" y2="1">

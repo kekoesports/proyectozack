@@ -46,6 +46,9 @@ describe('inteligencia de talentos', () => {
     expect(dashboard).toMatch(/Filtrar estadísticas por red social/);
     expect(dashboard).toMatch(/Ranking por canal/);
     expect(dashboard).toMatch(/Fuera del ranking/);
+    expect(dashboard).toMatch(/coverageByPlatform/);
+    expect(dashboard).toMatch(/new Map\(data\.coverage\.platforms/);
+    expect(dashboard).toMatch(/initialDimension=\{\{ width: 720, height: 290 \}\}/);
   });
 
   it('construye cada tendencia solo con los canales válidos de ese periodo', () => {
@@ -70,6 +73,15 @@ describe('creadores target legibles', () => {
     expect(row).toMatch(/displayName = target\.fullName/);
     expect(row).toMatch(/Pendiente de auditoría/);
     expect(row).toMatch(/hasQualification = target\.fitScore > 0/);
+  });
+});
+
+describe('tarjetas de talentos con varios canales por red', () => {
+  const cards = read('src/features/admin/talents/components/InfluencerCardsView.parts.tsx');
+
+  it('usa la identidad del canal y no la plataforma como clave React', () => {
+    expect(cards).toMatch(/<div key=\{s\.id\}/);
+    expect(cards).not.toMatch(/<div key=\{s\.platform\}/);
   });
 });
 

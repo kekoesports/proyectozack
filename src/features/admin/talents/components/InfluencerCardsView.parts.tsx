@@ -230,7 +230,7 @@ export function TalentCard({ creator, verticals, selectMode, selected, onToggleS
               const count = parseFollowers(s.followersDisplay);
               const pKey  = s.platform.toLowerCase();
               return (
-                <div key={s.platform} className="flex items-center justify-between gap-1">
+                <div key={s.id} className="flex items-center justify-between gap-1">
                   <span className="inline-flex items-center gap-1">
                     <span
                       className="w-1.5 h-1.5 rounded-full shrink-0"
