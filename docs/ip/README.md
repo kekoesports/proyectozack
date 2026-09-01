@@ -21,6 +21,19 @@ Documentos:
   bloqueos y hoja de ruta para KekoPilot/Cyprus.
 - [`RD_EVIDENCE_POLICY.md`](./RD_EVIDENCE_POLICY.md): reglas para registrar
   actividad técnica, tiempo, coste real, ahorro e ingresos sin mezclarlos.
+- [`HISTORICAL_CONTRIBUTOR_PROTOCOL.md`](./HISTORICAL_CONTRIBUTOR_PROTOCOL.md):
+  protocolo para reconstruir de forma veraz una colaboración histórica y
+  entregarla a asesores laborales, fiscales y de propiedad intelectual.
+
+Plantillas:
+
+- [`CONTRIBUTOR_EVIDENCE_PACKET.md`](./templates/CONTRIBUTOR_EVIDENCE_PACKET.md):
+  expediente individual de hechos y evidencias.
+- [`ADVISOR_DECISION_RECORD.md`](./templates/ADVISOR_DECISION_RECORD.md):
+  registro de la decisión profesional que autoriza cualquier regularización.
+- [`HISTORICAL_TIME_RECONSTRUCTION.csv`](./templates/HISTORICAL_TIME_RECONSTRUCTION.csv):
+  hoja de reconstrucción de actividad; registra rangos y fuentes, no horas
+  inventadas.
 
 ## Reglas
 
