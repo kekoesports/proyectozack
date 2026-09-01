@@ -7,7 +7,11 @@ volver atrás es recargar Caddy, no reconstruir nada.
 
 ```bash
 SHA=$(git rev-parse --short HEAD)
-docker build \
+docker buildx build \
+  --builder socialpro-crm-builder \
+  --load \
+  --network host \
+  --allow network.host \
   --secret id=build_env,src=/opt/socialpro/crm/env/app.env \
   --build-arg GIT_COMMIT_SHA="$(git rev-parse HEAD)" \
   --build-arg APP_VERSION="$SHA" \
@@ -27,9 +31,13 @@ en el contexto, el historial o las capas de la imagen. El secreto solo existe
 durante el `RUN npm run build` y no queda dentro del resultado.
 
 Mientras Neon siga activo, `DATABASE_URL` puede apuntar a la rama de staging o
-producción que corresponda. Después del cutover, si el prerender necesita leer
-el PostgreSQL local, añade al build `--network socialpro-crm_crm_backend` y
-comprueba antes que el contenedor `postgres` esté sano.
+producción que corresponda. Para prerenderizar contra PostgreSQL local se usa
+el builder dedicado `socialpro-crm-builder`, conectado de forma permanente a
+`socialpro-crm_crm_backend`, y `--network host` hace que los pasos `RUN` del
+build compartan la resolución DNS de ese builder. Comprueba antes que el
+contenedor `postgres` esté sano y que, desde el builder, `getent hosts postgres`
+resuelva correctamente. El modo host se habilita de forma explícita con
+`--allow network.host`; no expone puertos de PostgreSQL en el host.
 
 ## Migrar — paso aparte
 
