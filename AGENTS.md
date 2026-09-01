@@ -4,7 +4,7 @@ This file provides guidance to Codex (Codex.ai/code) when working with code in t
 
 ## Agent Protocol
 - Docs: honor `read_when` hints in `docs/`.
-- Commit helper: `scripts/committer "type(scope): message" file1 file2`.
+- Commits: ordinary `git add` / `git commit` on named in-scope paths. Conventional Commits: `type(scope): message`.
 - Keep files <500 LOC; split when exceeded.
 
 ## Session Continuity

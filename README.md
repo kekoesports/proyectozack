@@ -70,7 +70,7 @@ src/
 drizzle/                     # Migraciones SQL generadas
 e2e/                         # Specs Playwright
 load-tests/                  # Scripts k6
-scripts/                     # Utilidades (seed, sync-followers, committer, ...)
+scripts/                     # Utilidades (seed, sync-followers, ...)
 docs/                        # Notas técnicas internas
 ```
 
@@ -355,7 +355,7 @@ Las variables de entorno de producción se gestionan en el dashboard de Vercel (
 
 ## Convenciones rápidas
 
-- **Commits**: Conventional Commits estrictos — `type(scope): imperative summary`. Usa `scripts/committer "type(scope): msg" file1 file2`.
+- **Commits**: Conventional Commits estrictos — `type(scope): imperative summary`. `git add` / `git commit` on named paths; never `git add .`.
 - **TypeScript**: strict, sin `any`, sin `@ts-ignore`, sin non-null assertions (`!.`). Return types explícitos en funciones exportadas. `type` en vez de `interface`. `readonly` por defecto.
 - **Archivos** bajo ~500 LOC; split cuando se excedan.
 - **Named exports** salvo en pages/layouts.
