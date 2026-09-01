@@ -13,6 +13,7 @@ import {
 import { IP_ACTIVITY_CATEGORIES } from '@/lib/ip-evidence/policy';
 import { logRedacted } from '@/lib/log';
 import { requirePermission } from '@/lib/permissions';
+import { syncGithubIpEvidence } from '@/lib/services/ipEvidenceGithubSync';
 
 const TODAY = () => new Date().toISOString().slice(0, 10);
 const REVALIDATE_PATH = '/admin/asistente/ip';
@@ -34,13 +35,31 @@ const projectSchema = z.object({
 
 const workLogSchema = z.object({
   projectId: z.coerce.number().int().positive(),
+  evidenceEventId: z.preprocess(
+    (value) => String(value ?? '').trim() || undefined,
+    z.coerce.number().int().positive().optional(),
+  ),
   contributorName: z.string().trim().min(2).max(160),
   workDate: z.string().date(),
   minutes: z.coerce.number().int().min(1).max(1_440),
   activityCategory: z.enum(IP_ACTIVITY_CATEGORIES),
   description: z.string().trim().min(10).max(4_000),
-  evidenceKind: z.enum(IP_EVIDENCE_KINDS),
-  evidenceRef: z.string().trim().min(3).max(500),
+  evidenceKind: z.preprocess(
+    (value) => String(value ?? '').trim() || undefined,
+    z.enum(IP_EVIDENCE_KINDS).optional(),
+  ),
+  evidenceRef: z.preprocess(
+    (value) => String(value ?? '').trim() || undefined,
+    z.string().min(3).max(500).optional(),
+  ),
+}).superRefine((value, context) => {
+  if (!value.evidenceEventId && (!value.evidenceKind || !value.evidenceRef)) {
+    context.addIssue({
+      code: 'custom',
+      path: ['evidenceRef'],
+      message: 'Selecciona una evidencia automática o añade una referencia manual.',
+    });
+  }
 });
 
 function optionalFormValue(formData: FormData, key: string): string | undefined {
@@ -92,6 +111,7 @@ export async function createIpWorkLogAction(formData: FormData): Promise<never> 
   const session = await requirePermission('ip_evidence', 'write');
   const parsed = workLogSchema.safeParse({
     projectId: formData.get('projectId'),
+    evidenceEventId: formData.get('evidenceEventId'),
     contributorName: String(formData.get('contributorName') ?? ''),
     workDate: String(formData.get('workDate') ?? ''),
     minutes: formData.get('minutes'),
@@ -120,4 +140,23 @@ export async function createIpWorkLogAction(formData: FormData): Promise<never> 
   if (errorCode) redirect(`${REVALIDATE_PATH}?error=${errorCode}`);
   revalidatePath(REVALIDATE_PATH);
   redirect(`${REVALIDATE_PATH}?created=log`);
+}
+
+export async function syncIpEvidenceAction(): Promise<never> {
+  await requirePermission('ip_evidence', 'write');
+
+  let inserted = 0;
+  let failed = false;
+  try {
+    const result = await syncGithubIpEvidence();
+    inserted = result.inserted;
+    failed = result.errors > 0;
+  } catch (error) {
+    logRedacted('error', '[ip-evidence] No se pudo sincronizar GitHub:', error);
+    failed = true;
+  }
+
+  if (failed) redirect(`${REVALIDATE_PATH}?error=evidence-sync`);
+  revalidatePath(REVALIDATE_PATH);
+  redirect(`${REVALIDATE_PATH}?created=evidence-sync&count=${inserted}`);
 }

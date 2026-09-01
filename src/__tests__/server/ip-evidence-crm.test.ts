@@ -41,4 +41,32 @@ describe('Expediente IP del CRM', () => {
     const page = source('src/app/admin/(dashboard)/asistente/ip/page.tsx');
     expect(page).toContain('Por determinar / revisión legal');
   });
+
+  it('crea un baseline prudente sin horas ni titularidad inventadas', () => {
+    const migration = source('drizzle/0142_outgoing_blindfold.sql');
+    expect(migration).toContain("'SP-PRE-001'");
+    expect(migration).toContain("'SocialPro CRM — baseline PRE-CYPRUS'");
+    expect(migration).toMatch(/'SP-PRE-001'[\s\S]*NULL,[\s\r\n\t]+NULL,[\s\r\n\t]+false/);
+    expect(migration).not.toMatch(/INSERT INTO "ip_work_logs"/);
+  });
+
+  it('mantiene la evidencia automática separada del libro de horas', () => {
+    const schema = source('src/db/schema/ipEvidence.ts');
+    const service = source('src/lib/services/ipEvidenceGithubSync.ts');
+    const migration = source('drizzle/0142_outgoing_blindfold.sql');
+    expect(schema).toContain("'ip_evidence_events'");
+    expect(schema).toContain("evidenceEventId: integer('evidence_event_id')");
+    expect(service).toContain('onConflictDoNothing');
+    expect(service).not.toMatch(/minutes|provisionalAssessment/);
+    expect(migration).toContain('ip_evidence_events_append_only');
+  });
+
+  it('programa la sincronización en Vercel y en el scheduler del VPS', () => {
+    const vercel = source('vercel.json');
+    const vps = source('infra/crm/scheduler/crontab');
+    const route = source('src/app/api/cron/sync-ip-evidence/route.ts');
+    expect(vercel).toContain('"path": "/api/cron/sync-ip-evidence"');
+    expect(vps).toContain('/api/cron/sync-ip-evidence');
+    expect(route).toContain('assertCronAuth(request)');
+  });
 });

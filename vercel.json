@@ -26,6 +26,10 @@
       "schedule": "0 23 * * *"
     },
     {
+      "path": "/api/cron/sync-ip-evidence",
+      "schedule": "30 22 * * *"
+    },
+    {
       "path": "/api/cron/generate-recurring-expenses",
       "schedule": "0 3 * * *"
     },

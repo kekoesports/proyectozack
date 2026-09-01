@@ -29,11 +29,11 @@ y la sustancia. Se utilizará un patrón gradual por APIs, no una reescritura.
 
 | Área | Estado real | Próximo control |
 | --- | --- | --- |
-| Historial Git y PR | Fuerte desde marzo de 2026 | Mantener y clasificar cambios futuros |
+| Historial Git y PR | Fuerte desde marzo de 2026; captura prospectiva diaria activa desde 01-09-2026 | Vincular cada evidencia relevante a un parte humano real |
 | Agent OS | Runtime, worker, aprobaciones y usage ledger implementados | Separar uso de producto, producción e I+D |
 | Auditoría e idempotencia | Ledger IP append-only con hash y snapshots de titular/pagador | Añadir eventos formales de corrección y exportación |
 | Docker/VPS | Aplicación portable y staging preparado | No ligar KekoPilot a Vercel/Neon |
-| Registro de activos IP | `ip_projects` conserva activo, titular y pagador actuales | Añadir ownership events cuando exista decisión jurídica |
+| Registro de activos IP | Baseline `SP-PRE-001` activo; titular y pagador pendientes de revisión | Añadir ownership events cuando exista decisión jurídica |
 | Proyectos/experimentos I+D | Proyecto y clasificación provisional disponibles; experimentos no | Añadir hipótesis/experimentos tras aprobar el modelo |
 | Tiempo y coste por activo | `ip_work_logs` registra tiempo/evidencia; no calcula coste | Conciliar después con nómina y facturas reales |
 | Multi-tenancy | No existe `organizationId` en las entidades | Diseñar aislamiento y tests cross-tenant |
@@ -45,9 +45,11 @@ y la sustancia. Se utilizará un patrón gradual por APIs, no una reescritura.
 
 Siguen sin existir tablas formales `ip_assets`, `rd_experiments`, `rd_costs`,
 `ip_revenue`, `revenue_allocations`, `nexus_snapshots`, `advisor_reviews` ni
-columnas `organizationId`/`organization_id`. `ip_projects` e `ip_work_logs`
-son la capa prospectiva mínima de evidencia; no sustituyen todavía esos
-ledgers fiscales o multi-tenant.
+columnas `organizationId`/`organization_id`. `ip_projects`,
+`ip_evidence_events` e `ip_work_logs` son la capa prospectiva mínima de
+evidencia; no sustituyen todavía esos ledgers fiscales o multi-tenant. Los PR
+se incorporan como evidencia sin horas ni clasificación, y solo se enlazan a
+un parte cuando se registra trabajo real.
 
 ## Gates obligatorios
 
@@ -58,6 +60,7 @@ ledgers fiscales o multi-tenant.
 - [x] Añadir plantilla de PR con procedencia y evidencia.
 - [x] Separar evidencia, coste, ahorro e ingreso por política.
 - [x] Implantar expediente prospectivo de proyectos, tiempo y evidencia en el CRM.
+- [x] Activar bandeja inmutable y sincronización diaria de PR fusionados.
 - [ ] Recopilar contratos de empleados/contratistas y cesiones existentes.
 - [ ] Identificar quién pagó desarrollo, APIs y hosting por periodo.
 - [ ] Crear inventario de dependencias y licencias de terceros.
