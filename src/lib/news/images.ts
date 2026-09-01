@@ -4,13 +4,14 @@
  * Storage: Vercel Blob con prefijo `news/`, access público (CDN-served).
  *
  * Token strategy:
- *   - Lee `BLOB_READ_WRITE_TOKEN_NEWS` si existe (store dedicado público).
+ *   - Lee `BLOB_NEWS_READ_WRITE_TOKEN` (conexión pública gestionada por Vercel).
+ *   - Acepta `BLOB_READ_WRITE_TOKEN_NEWS` durante la migración.
  *   - Si no, cae a `BLOB_READ_WRITE_TOKEN` (el de facturas/contratos).
  *
  * Si el token apunta a un store privado, `put({ access: 'public' })` falla
  * con "Cannot use public access on a private store". En ese caso, crear
- * un Blob store nuevo en Vercel Dashboard → Storage → tipo Public, copiar
- * el token y setear `BLOB_READ_WRITE_TOKEN_NEWS` en Vercel + .env.local.
+ * un Blob store público en Vercel Dashboard → Storage y conectarlo al
+ * proyecto con el prefijo de variables `BLOB_NEWS`.
  *
  * Procesado: sharp resize a max 1536px width + WebP q82. Asegura covers
  * <250KB tras compresión, match 3:2 del article cover container.
@@ -33,7 +34,9 @@ export type NewsImage = {
 };
 
 function getToken(): string | undefined {
-  return env.BLOB_READ_WRITE_TOKEN_NEWS ?? env.BLOB_READ_WRITE_TOKEN;
+  return env.BLOB_NEWS_READ_WRITE_TOKEN
+    ?? env.BLOB_READ_WRITE_TOKEN_NEWS
+    ?? env.BLOB_READ_WRITE_TOKEN;
 }
 
 function sanitizeFilename(input: string): string {
@@ -73,7 +76,7 @@ export async function uploadNewsImage(
 ): Promise<UploadResult> {
   const token = getToken();
   if (!token) {
-    return { ok: false, error: 'BLOB_READ_WRITE_TOKEN no configurado. Ver Vercel Dashboard → Storage.' };
+    return { ok: false, error: 'Storage público de noticias no configurado. Conecta el Blob público con el prefijo BLOB_NEWS.' };
   }
 
   if (file.size > MAX_RAW_BYTES) {
@@ -122,7 +125,7 @@ export async function uploadNewsImage(
       return {
         ok: false,
         error:
-          'El Blob store actual es privado. Crear un store nuevo público en Vercel Dashboard → Storage → New Store → Public, y setear BLOB_READ_WRITE_TOKEN_NEWS con el token resultante.',
+          'El storage de noticias apunta a un Blob privado. Conecta un Blob público al proyecto con el prefijo BLOB_NEWS.',
       };
     }
     return { ok: false, error: `Upload Blob falló: ${msg}` };
@@ -131,7 +134,7 @@ export async function uploadNewsImage(
 
 export async function deleteNewsImage(url: string): Promise<{ ok: true } | { ok: false; error: string }> {
   const token = getToken();
-  if (!token) return { ok: false, error: 'BLOB_READ_WRITE_TOKEN no configurado.' };
+  if (!token) return { ok: false, error: 'Storage público de noticias no configurado.' };
   try {
     await del(url, { token });
     return { ok: true };

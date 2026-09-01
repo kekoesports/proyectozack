@@ -22,6 +22,10 @@ function revalidateNews(slug?: string) {
   }
 }
 
+function missingPublishedCover(status: 'draft' | 'published' | undefined, coverUrl: string | null | undefined) {
+  return status === 'published' && !coverUrl;
+}
+
 export async function createPostAction(formData: FormData): Promise<ActionResult> {
   await requirePermission('noticias', 'write');
 
@@ -32,6 +36,14 @@ export async function createPostAction(formData: FormData): Promise<ActionResult
   }
 
   const data = parsed.data;
+
+  if (missingPublishedCover(data.status, data.coverUrl)) {
+    return {
+      ok: false,
+      error: 'Añade una portada antes de publicar',
+      fieldErrors: { coverUrl: ['Toda noticia o blog publicado debe tener una imagen de portada'] },
+    };
+  }
 
   // Verificar slug único
   const existing = await db.select({ id: posts.id }).from(posts).where(eq(posts.slug, data.slug)).limit(1);
@@ -54,7 +66,7 @@ export async function createPostAction(formData: FormData): Promise<ActionResult
     vertical: data.vertical,
     contentType: data.contentType,
     coverUrl: data.coverUrl ?? null,
-    ogImageUrl: data.ogImageUrl ?? null,
+    ogImageUrl: data.ogImageUrl ?? data.coverUrl ?? null,
     publishedAt,
     sortOrder: data.sortOrder,
     tags: data.tags,
@@ -76,6 +88,14 @@ export async function updatePostAction(formData: FormData): Promise<ActionResult
   }
 
   const { id, ...data } = parsed.data;
+
+  if (missingPublishedCover(data.status, data.coverUrl)) {
+    return {
+      ok: false,
+      error: 'Añade una portada antes de publicar',
+      fieldErrors: { coverUrl: ['Toda noticia o blog publicado debe tener una imagen de portada'] },
+    };
+  }
 
   // Si cambia slug, verificar que no exista en otro post
   if (data.slug) {
@@ -112,7 +132,7 @@ export async function updatePostAction(formData: FormData): Promise<ActionResult
     .set({
       ...data,
       coverUrl: data.coverUrl ?? null,
-      ogImageUrl: data.ogImageUrl ?? null,
+      ogImageUrl: data.ogImageUrl ?? data.coverUrl ?? null,
       publishedAt,
       talentSlugs: data.talentSlugs ?? null,
       blocksJson: data.blocksJson ?? null,

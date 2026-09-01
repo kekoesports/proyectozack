@@ -5,7 +5,7 @@
  * 1. Documentos financieros (facturas, nóminas, contratos, campañas, finanzas)
  *    NUNCA usan `access: 'public'`.
  * 2. El único path con `access: 'public'` legítimo en src/ es news/images.ts
- *    (usa un store público dedicado vía BLOB_READ_WRITE_TOKEN_NEWS).
+ *    (usa un store público dedicado vía BLOB_NEWS_READ_WRITE_TOKEN).
  * 3. Los nuevos proxies de imágenes (/api/brand-logo, /api/team-photo) sirven
  *    blobs privados con Bearer token y caché.
  */
@@ -62,7 +62,7 @@ describe('Blob access audit — static source scan', () => {
 
   it('el único path con access: "public" en src/ es news/images.ts', () => {
     // Lista blanca: archivos donde access:'public' está justificado
-    // (store público dedicado vía BLOB_READ_WRITE_TOKEN_NEWS)
+    // (store público dedicado vía BLOB_NEWS_READ_WRITE_TOKEN)
     const ALLOWED = new Set([
       path.join('src', 'lib', 'news', 'images.ts'),
     ].map((p) => p.replace(/\\/g, '/')));
@@ -81,6 +81,17 @@ describe('Blob access audit — static source scan', () => {
     }
 
     expect(offenders).toEqual([]);
+  });
+
+  it('las portadas prefieren el store público BLOB_NEWS y no el financiero', () => {
+    const source = fs.readFileSync(path.join(SRC_ROOT, 'lib', 'news', 'images.ts'), 'utf-8');
+    const managed = source.indexOf('env.BLOB_NEWS_READ_WRITE_TOKEN');
+    const legacy = source.indexOf('env.BLOB_READ_WRITE_TOKEN_NEWS');
+    const financialFallback = source.indexOf('env.BLOB_READ_WRITE_TOKEN;');
+
+    expect(managed).toBeGreaterThan(-1);
+    expect(legacy).toBeGreaterThan(managed);
+    expect(financialFallback).toBeGreaterThan(legacy);
   });
 });
 

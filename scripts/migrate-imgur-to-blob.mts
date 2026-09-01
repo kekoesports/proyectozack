@@ -27,12 +27,14 @@ try {
 
 const raw = process.env.DATABASE_URL ?? '';
 if (!raw) { console.error('DATABASE_URL not set'); process.exit(1); }
-// News covers need a PUBLIC Blob store — use BLOB_READ_WRITE_TOKEN_NEWS if available.
-// To create one: Vercel Dashboard → Storage → New Store → type Public → copy token → set BLOB_READ_WRITE_TOKEN_NEWS in Vercel + .env.local
-const blobToken = process.env.BLOB_READ_WRITE_TOKEN_NEWS ?? process.env.BLOB_READ_WRITE_TOKEN;
-if (!blobToken) { console.error('BLOB_READ_WRITE_TOKEN_NEWS (or BLOB_READ_WRITE_TOKEN) not set'); process.exit(1); }
-if (!process.env.BLOB_READ_WRITE_TOKEN_NEWS) {
-  console.warn('⚠️  BLOB_READ_WRITE_TOKEN_NEWS not set — using private store token. Migration will fail if store is private.\n   Create a public store and set BLOB_READ_WRITE_TOKEN_NEWS to fix.\n');
+// News covers need a PUBLIC Blob store. Vercel creates BLOB_NEWS_READ_WRITE_TOKEN
+// when the store is connected with the BLOB_NEWS environment prefix.
+const blobToken = process.env.BLOB_NEWS_READ_WRITE_TOKEN
+  ?? process.env.BLOB_READ_WRITE_TOKEN_NEWS
+  ?? process.env.BLOB_READ_WRITE_TOKEN;
+if (!blobToken) { console.error('BLOB_NEWS_READ_WRITE_TOKEN (or legacy Blob token) not set'); process.exit(1); }
+if (!process.env.BLOB_NEWS_READ_WRITE_TOKEN && !process.env.BLOB_READ_WRITE_TOKEN_NEWS) {
+  console.warn('⚠️  Dedicated public news Blob token not set — the private fallback will reject public covers.\n   Connect a public store with the BLOB_NEWS prefix.\n');
 }
 
 const u = new URL(raw);
