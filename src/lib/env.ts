@@ -121,6 +121,14 @@ export const env = createEnv({
      */
     TOKEN_ENCRYPTION_KEY: z.string().regex(/^[0-9a-fA-F]{64}$/).optional(),
     /**
+     * Clave paralela durante una rotación controlada. Mientras exista, las
+     * escrituras nuevas usan esta clave y las lecturas aceptan ambas. Nunca se
+     * envía en una request: la rotación ocurre completamente en el servidor.
+     */
+    TOKEN_ENCRYPTION_KEY_NEXT: z.string().regex(/^[0-9a-fA-F]{64}$/).optional(),
+    /** Kill switch explícito para el endpoint de re-cifrado de tokens. */
+    TOKEN_ENCRYPTION_ROTATION_ENABLED: z.enum(['true', 'false']).optional().default('false').transform((v) => v === 'true'),
+    /**
      * Guild ID + Invite URL para la primera misión ZACKETIZOR.
      * No son secretos (guild ID es público en Discord), pero
      * mantenemos en env para que sea fácil rotar/actualizar por
@@ -246,6 +254,8 @@ export const env = createEnv({
     DISCORD_CLIENT_SECRET: process.env.DISCORD_CLIENT_SECRET,
     DISCORD_OAUTH_REDIRECT_URL: process.env.DISCORD_OAUTH_REDIRECT_URL,
     TOKEN_ENCRYPTION_KEY: process.env.TOKEN_ENCRYPTION_KEY,
+    TOKEN_ENCRYPTION_KEY_NEXT: process.env.TOKEN_ENCRYPTION_KEY_NEXT,
+    TOKEN_ENCRYPTION_ROTATION_ENABLED: process.env.TOKEN_ENCRYPTION_ROTATION_ENABLED,
     DISCORD_ZACKETIZOR_GUILD_ID: process.env.DISCORD_ZACKETIZOR_GUILD_ID,
     DISCORD_ZACKETIZOR_INVITE_URL: process.env.DISCORD_ZACKETIZOR_INVITE_URL,
 

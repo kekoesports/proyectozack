@@ -33,15 +33,30 @@ class TokenEncryptionError extends Error {
   }
 }
 
-function loadKey(): Buffer {
-  const keyHex = env.TOKEN_ENCRYPTION_KEY;
+function loadKey(keyHex: string | undefined, name: string): Buffer {
   if (!keyHex) {
-    throw new TokenEncryptionError('TOKEN_ENCRYPTION_KEY no configurada');
+    throw new TokenEncryptionError(`${name} no configurada`);
   }
   if (keyHex.length !== KEY_HEX_LEN) {
-    throw new TokenEncryptionError(`TOKEN_ENCRYPTION_KEY debe ser hex de ${KEY_HEX_LEN} chars (32 bytes)`);
+    throw new TokenEncryptionError(`${name} debe ser hex de ${KEY_HEX_LEN} chars (32 bytes)`);
   }
   return Buffer.from(keyHex, 'hex');
+}
+
+function currentKey(): Buffer {
+  return loadKey(env.TOKEN_ENCRYPTION_KEY, 'TOKEN_ENCRYPTION_KEY');
+}
+
+function nextKey(): Buffer {
+  return loadKey(env.TOKEN_ENCRYPTION_KEY_NEXT, 'TOKEN_ENCRYPTION_KEY_NEXT');
+}
+
+function encryptWithKey(plaintext: string, key: Buffer): EncryptedToken {
+  const iv = randomBytes(IV_LEN);
+  const cipher = createCipheriv('aes-256-gcm', key, iv);
+  const ct = Buffer.concat([cipher.update(plaintext, 'utf-8'), cipher.final()]);
+  const tag = cipher.getAuthTag();
+  return `${SCHEME_VERSION}:${iv.toString('hex')}:${ct.toString('hex')}:${tag.toString('hex')}`;
 }
 
 /**
@@ -52,12 +67,8 @@ function loadKey(): Buffer {
  * NO logueamos el plaintext.
  */
 export function encrypt(plaintext: string): EncryptedToken {
-  const key = loadKey();
-  const iv = randomBytes(IV_LEN);
-  const cipher = createCipheriv('aes-256-gcm', key, iv);
-  const ct = Buffer.concat([cipher.update(plaintext, 'utf-8'), cipher.final()]);
-  const tag = cipher.getAuthTag();
-  return `${SCHEME_VERSION}:${iv.toString('hex')}:${ct.toString('hex')}:${tag.toString('hex')}`;
+  const key = env.TOKEN_ENCRYPTION_KEY_NEXT ? nextKey() : currentKey();
+  return encryptWithKey(plaintext, key);
 }
 
 /**
@@ -67,7 +78,7 @@ export function encrypt(plaintext: string): EncryptedToken {
  *  - Versión desconocida.
  *  - Clave incorrecta o ciphertext manipulado (auth tag mismatch).
  */
-export function decrypt(token: EncryptedToken): string {
+function decryptWithKey(token: EncryptedToken, key: Buffer): string {
   const parts = token.split(':');
   if (parts.length !== 4) {
     throw new TokenEncryptionError('Token cifrado con formato inválido');
@@ -85,7 +96,6 @@ export function decrypt(token: EncryptedToken): string {
   if (iv.length !== IV_LEN || tag.length !== TAG_LEN) {
     throw new TokenEncryptionError('Token cifrado con tamaños inválidos');
   }
-  const key = loadKey();
   const decipher = createDecipheriv('aes-256-gcm', key, iv);
   decipher.setAuthTag(tag);
   try {
@@ -96,10 +106,61 @@ export function decrypt(token: EncryptedToken): string {
   }
 }
 
+export function decrypt(token: EncryptedToken): string {
+  try {
+    return decryptWithKey(token, currentKey());
+  } catch (currentError) {
+    if (!env.TOKEN_ENCRYPTION_KEY_NEXT) throw currentError;
+    try {
+      return decryptWithKey(token, nextKey());
+    } catch {
+      throw new TokenEncryptionError('Fallo al descifrar token (integridad o claves activas)');
+    }
+  }
+}
+
+/**
+ * Re-cifra un token con la clave paralela. Es idempotente: si el token ya se
+ * puede leer con NEXT no modifica el ciphertext. Nunca expone el texto plano.
+ */
+export function rotateEncryptedToken(token: EncryptedToken): { token: EncryptedToken; changed: boolean } {
+  const current = currentKey();
+  const next = nextKey();
+  if (current.equals(next)) {
+    throw new TokenEncryptionError('Las claves actual y paralela deben ser distintas');
+  }
+
+  try {
+    decryptWithKey(token, next);
+    return { token, changed: false };
+  } catch {
+    // El token todavía está cifrado con la clave actual.
+  }
+
+  const plaintext = decryptWithKey(token, current);
+  const rotated = encryptWithKey(plaintext, next);
+  if (decryptWithKey(rotated, next) !== plaintext) {
+    throw new TokenEncryptionError('La verificación posterior a la rotación falló');
+  }
+  return { token: rotated, changed: true };
+}
+
 /** True si la utility puede operar (env var presente y con longitud válida). */
 export function isTokenEncryptionConfigured(): boolean {
   const k = env.TOKEN_ENCRYPTION_KEY;
   return Boolean(k && k.length === KEY_HEX_LEN);
+}
+
+export function isTokenEncryptionRotationConfigured(): boolean {
+  const current = env.TOKEN_ENCRYPTION_KEY;
+  const next = env.TOKEN_ENCRYPTION_KEY_NEXT;
+  return Boolean(
+    current
+    && next
+    && current.length === KEY_HEX_LEN
+    && next.length === KEY_HEX_LEN
+    && current.toLowerCase() !== next.toLowerCase(),
+  );
 }
 
 export { TokenEncryptionError };
