@@ -31,6 +31,11 @@ export const env = createEnv({
     // Solo en el receptor de Vercel. Separado del token cliente para evitar
     // que la propia instancia de Vercel intente reenviarse emails a sí misma.
     EMAIL_RELAY_AUTH_TOKEN: z.string().min(32).optional(),
+    // Mismo patrón para las operaciones de Drive que todavía dependen de la
+    // identidad Google cifrada en Vercel durante la migración.
+    DRIVE_RELAY_URL: z.string().url().optional(),
+    DRIVE_RELAY_TOKEN: z.string().min(32).optional(),
+    DRIVE_RELAY_AUTH_TOKEN: z.string().min(32).optional(),
     BETTER_AUTH_SECRET: z.string().min(32),
     // Optional in dev; required in production for cron endpoints to be reachable.
     CRON_SECRET: z.string().min(8).optional(),
@@ -227,6 +232,9 @@ export const env = createEnv({
     EMAIL_RELAY_URL: process.env.EMAIL_RELAY_URL,
     EMAIL_RELAY_TOKEN: process.env.EMAIL_RELAY_TOKEN,
     EMAIL_RELAY_AUTH_TOKEN: process.env.EMAIL_RELAY_AUTH_TOKEN,
+    DRIVE_RELAY_URL: process.env.DRIVE_RELAY_URL,
+    DRIVE_RELAY_TOKEN: process.env.DRIVE_RELAY_TOKEN,
+    DRIVE_RELAY_AUTH_TOKEN: process.env.DRIVE_RELAY_AUTH_TOKEN,
     BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET,
     CRON_SECRET: process.env.CRON_SECRET,
     DEV_ROLE_OVERRIDE: process.env.DEV_ROLE_OVERRIDE,
