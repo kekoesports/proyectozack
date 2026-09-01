@@ -70,6 +70,7 @@ export * from './userPartnerConsents';
 export * from './giveawayAuditEvents';
 export * from './automationDealDrafts';
 export * from './entityAssets';
+export * from './ipEvidence';
 
 // ── Zack Agent OS (docs/agent-os/data-model.md) ───────────────────────
 export * from './agentEnums';

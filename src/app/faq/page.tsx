@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   },
 };
 
-export const FAQ_ITEMS = [
+const FAQ_ITEMS = [
   // ── Sobre los códigos ──────────────────────────────────────────────
   {
     category: 'Códigos',
@@ -107,6 +107,8 @@ export const FAQ_ITEMS = [
     a: 'Puedes contactarnos en /contacto o directamente en marketing@socialpro.es. Respondemos con una propuesta en menos de 48 horas. Ofrecemos desde activaciones puntuales (72h de plazo) hasta campañas multistreamer a largo plazo con FTD tracking y reporting auditable por tu equipo de affiliate.',
   },
 ] as const;
+
+export type FaqItem = (typeof FAQ_ITEMS)[number];
 
 const jsonLd = {
   '@context': 'https://schema.org',

@@ -26,6 +26,7 @@ import {
 import { getHelpContextText } from '@/lib/services/ai-assistant/tools/help';
 import { getOperationsSummary } from '@/lib/services/ai-assistant/tools/operations';
 import { getTalentPerformanceSummary } from '@/lib/services/ai-assistant/tools/talentPerformance';
+import { getIpReadinessSummary } from '@/lib/services/ai-assistant/tools/ipReadiness';
 
 import { eraseAgentTool } from '../erase-tool';
 import type { ErasedAgentTool } from '../types';
@@ -54,6 +55,7 @@ const BANCOS = { module: 'bancos', action: 'read' } as const;
 const CAMPANAS = { module: 'campanas', action: 'read' } as const;
 const ANALYTICS = { module: 'analytics', action: 'read' } as const;
 const AGENTS = { module: 'agents', action: 'read' } as const;
+const IP_EVIDENCE = { module: 'ip_evidence', action: 'read' } as const;
 
 export const getBillingSummaryTool = defineReadTool({
   name: 'getBillingSummary',
@@ -187,6 +189,13 @@ export const getTalentPerformanceSummaryTool = defineReadTool({
   run: () => getTalentPerformanceSummary(),
 });
 
+export const getIpReadinessSummaryTool = defineReadTool({
+  name: 'getIpReadinessSummary',
+  description: 'Preparación documental de activos IP, horas, titularidad y huecos pendientes sin emitir conclusiones fiscales.',
+  permission: IP_EVIDENCE,
+  run: () => getIpReadinessSummary(),
+});
+
 // ── Documentación interna ────────────────────────────────────────────────────
 
 const HELP_INPUT = z
@@ -242,4 +251,5 @@ export const LEGACY_READ_TOOLS: readonly ErasedAgentTool[] = [
   getFinanceAlertsTool,
   getOperationsSummaryTool,
   getTalentPerformanceSummaryTool,
+  getIpReadinessSummaryTool,
 ];

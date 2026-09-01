@@ -31,11 +31,11 @@ y la sustancia. Se utilizará un patrón gradual por APIs, no una reescritura.
 | --- | --- | --- |
 | Historial Git y PR | Fuerte desde marzo de 2026 | Mantener y clasificar cambios futuros |
 | Agent OS | Runtime, worker, aprobaciones y usage ledger implementados | Separar uso de producto, producción e I+D |
-| Auditoría e idempotencia | Parciales y específicas por dominio | Diseñar audit log del ledger IP/R&D |
+| Auditoría e idempotencia | Ledger IP append-only con hash y snapshots de titular/pagador | Añadir eventos formales de corrección y exportación |
 | Docker/VPS | Aplicación portable y staging preparado | No ligar KekoPilot a Vercel/Neon |
-| Registro de activos IP | No existe | Crear después de aprobar el modelo de propiedad |
-| Proyectos/experimentos I+D | No existen como entidades | Crear `rd_projects` y `rd_experiments` |
-| Tiempo y coste por activo | No existe | Timesheets y conciliación con facturas reales |
+| Registro de activos IP | `ip_projects` conserva activo, titular y pagador actuales | Añadir ownership events cuando exista decisión jurídica |
+| Proyectos/experimentos I+D | Proyecto y clasificación provisional disponibles; experimentos no | Añadir hipótesis/experimentos tras aprobar el modelo |
+| Tiempo y coste por activo | `ip_work_logs` registra tiempo/evidencia; no calcula coste | Conciliar después con nómina y facturas reales |
 | Multi-tenancy | No existe `organizationId` en las entidades | Diseñar aislamiento y tests cross-tenant |
 | Revenue/IP ledger | No existe | Separar SaaS, licencia, servicios y embedded income |
 | Nexus anual | No existe | Cálculo informativo con revisión profesional |
@@ -43,10 +43,11 @@ y la sustancia. Se utilizará un patrón gradual por APIs, no una reescritura.
 | Cyprus Ltd y sustancia | No existen | Diseño con abogado/asesor antes del core nuevo |
 | Tax ruling | No solicitado | Preparar hechos solo cuando el modelo sea real |
 
-La auditoría de código confirmó ausencia total de tablas `ip_assets`,
-`rd_projects`, `rd_experiments`, `rd_time_entries`, `rd_costs`, `ip_revenue`,
-`revenue_allocations`, `nexus_snapshots`, `advisor_reviews` y de columnas
-`organizationId`/`organization_id`.
+Siguen sin existir tablas formales `ip_assets`, `rd_experiments`, `rd_costs`,
+`ip_revenue`, `revenue_allocations`, `nexus_snapshots`, `advisor_reviews` ni
+columnas `organizationId`/`organization_id`. `ip_projects` e `ip_work_logs`
+son la capa prospectiva mínima de evidencia; no sustituyen todavía esos
+ledgers fiscales o multi-tenant.
 
 ## Gates obligatorios
 
@@ -56,6 +57,7 @@ La auditoría de código confirmó ausencia total de tablas `ip_assets`,
 - [x] Inventariar activos técnicos iniciales.
 - [x] Añadir plantilla de PR con procedencia y evidencia.
 - [x] Separar evidencia, coste, ahorro e ingreso por política.
+- [x] Implantar expediente prospectivo de proyectos, tiempo y evidencia en el CRM.
 - [ ] Recopilar contratos de empleados/contratistas y cesiones existentes.
 - [ ] Identificar quién pagó desarrollo, APIs y hosting por periodo.
 - [ ] Crear inventario de dependencias y licencias de terceros.
@@ -98,8 +100,9 @@ core nuevo sustancial debe esperar a este gate.
 
 ### Gate 4 — ledgers y evidence pack
 
-- [ ] IP Registry, ownership events y versiones.
-- [ ] R&D projects, experiments, time, costs y evidence.
+- [x] Registro inicial de proyectos, tiempo y evidencia con historial append-only.
+- [ ] IP Registry formal, ownership events y versiones.
+- [ ] Experimentos I+D, costes reales conciliados y revisión del asesor.
 - [ ] Reconciliación de usage IA con factura/pago real.
 - [ ] Revenue/IP allocation con estados de revisión.
 - [ ] Nexus por activo y ejercicio, siempre marcado `Draft`.

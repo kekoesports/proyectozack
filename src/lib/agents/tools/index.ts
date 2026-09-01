@@ -39,6 +39,7 @@ export const AGENT_TOOL_ALLOWLISTS: Readonly<Record<string, readonly string[]>> 
     'getFinanceDashboardSummary',
     'getOperationsSummary',
     'getTalentPerformanceSummary',
+    'getIpReadinessSummary',
   ],
   'deal-clerk': [
     ...OPERATION_AGENT_TOOL_NAMES['deal-clerk'],

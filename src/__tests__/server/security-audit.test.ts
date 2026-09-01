@@ -66,6 +66,9 @@ jest.mock('@/lib/services/ai-assistant/tools/talentPerformance', () => ({
 jest.mock('@/lib/services/ai-assistant/tools/operations', () => ({
   getOperationsSummary: jest.fn().mockResolvedValue({}),
 }));
+jest.mock('@/lib/services/ai-assistant/tools/ipReadiness', () => ({
+  getIpReadinessSummary: jest.fn().mockResolvedValue({}),
+}));
 
 // PDF proxy — contracts query
 const mockGetSignerByToken = jest.fn();

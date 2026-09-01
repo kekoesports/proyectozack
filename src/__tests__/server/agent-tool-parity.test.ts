@@ -46,6 +46,7 @@ const ROLES_ESPERADOS: Readonly<Record<string, readonly Role[]>> = {
   getCampaignMarginAlerts: ['admin', 'manager', 'analyst', 'finance', 'talent_manager'],
   getOperationsSummary: ['admin', 'manager', 'ops', 'analyst', 'finance', 'talent_manager', 'editor'],
   getTalentPerformanceSummary: ['admin', 'manager', 'analyst', 'finance', 'talent_manager'],
+  getIpReadinessSummary: ['admin', 'finance'],
 };
 
 describe('cobertura de las tools del asistente', () => {
@@ -58,7 +59,7 @@ describe('cobertura de las tools del asistente', () => {
     for (const nombre of AVAILABLE_TOOLS) {
       expect(enRuntime.has(nombre)).toBe(true);
     }
-    expect(AVAILABLE_TOOLS).toHaveLength(19);
+    expect(AVAILABLE_TOOLS).toHaveLength(20);
   });
 
   it('las tools añadidas son las de Guardian y ninguna más', () => {
