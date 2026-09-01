@@ -28,12 +28,16 @@ function baseRow(overrides: Partial<MatchedTransactionRow> = {}): MatchedTransac
     matchReason: 'Cliente + monto exacto',
     invoiceLabel: 'Factura SP-2026-0042',
     invoiceAmount: '1500.00',
+    invoiceCurrency: 'EUR',
     invoiceStatus: 'emitida',
     invoicePreviouslyPaid: '500.00',
     invoiceKind: 'income',
     paymentApplied: false,
     paymentId: null,
     paymentAmount: null,
+    paymentSettlementAmount: null,
+    paymentSettlementCurrency: null,
+    paymentEffectiveExchangeRate: null,
     ...overrides,
   };
 }
@@ -144,7 +148,25 @@ describe('MatchedTransactionList — smoke UI de los cinco escenarios de guards'
     expect(submit).not.toBeDisabled();
   });
 
-  it('[6 — sanity] empty state cuando no hay filas', () => {
+  it('[6] cobro convertido: separa el abono USD del importe aplicado en EUR', async () => {
+    const user = userEvent.setup();
+    render(<MatchedTransactionList rows={[baseRow({
+      amount: '1620.00',
+      currency: 'USD',
+      invoiceAmount: '1500.00',
+      invoiceCurrency: 'EUR',
+      invoicePreviouslyPaid: '0.00',
+    })]} />);
+
+    await user.click(screen.getByRole('button', { name: /Aplicar cobro/i }));
+
+    expect(screen.getByText('Abono bancario')).toBeInTheDocument();
+    expect(screen.getByText('Cambio efectivo')).toBeInTheDocument();
+    expect(screen.getByLabelText(/Importe que se liquida en la factura \(EUR\)/i)).toHaveValue(1500);
+    expect(screen.getByText(/1 EUR = 1\.080000 USD/)).toBeInTheDocument();
+  });
+
+  it('[7 — sanity] empty state cuando no hay filas', () => {
     render(<MatchedTransactionList rows={[]} />);
     expect(screen.getByText(/No hay transacciones conciliadas/i)).toBeInTheDocument();
   });

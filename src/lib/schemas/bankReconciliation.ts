@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 export const createBankAccountSchema = z.object({
   displayName: z.string().min(1).max(200),
-  provider: z.enum(['manual', 'wise', 'stripe', 'bank', 'paypal', 'other']).default('manual'),
+  provider: z.enum(['manual', 'wise', 'stripe', 'slash', 'bank', 'paypal', 'other']).default('manual'),
   bankName: z.string().max(200).optional(),
   ibanMasked: z.string().max(40).optional(),
   currency: z.string().length(3).default('EUR'),

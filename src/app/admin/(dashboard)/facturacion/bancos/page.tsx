@@ -83,6 +83,7 @@ export default async function BancosPage(): Promise<React.ReactElement> {
             <thead>
               <tr className="text-[10px] uppercase tracking-wider text-sp-admin-muted bg-sp-admin-bg/50">
                 <th className="px-4 py-2 text-left font-semibold">Nombre</th>
+                <th className="px-4 py-2 text-left font-semibold">Empresa</th>
                 <th className="px-4 py-2 text-left font-semibold">Banco</th>
                 <th className="px-4 py-2 text-left font-semibold">IBAN</th>
                 <th className="px-4 py-2 text-left font-semibold">Moneda</th>
@@ -94,6 +95,7 @@ export default async function BancosPage(): Promise<React.ReactElement> {
               {accounts.map((acc) => (
                 <tr key={acc.id} className="hover:bg-sp-admin-bg/40 transition-colors">
                   <td className="px-4 py-3 font-medium">{acc.displayName}</td>
+                  <td className="px-4 py-3 text-sp-admin-muted">{acc.company ?? '—'}</td>
                   <td className="px-4 py-3 text-sp-admin-muted">{acc.bankName ?? '—'}</td>
                   <td className="px-4 py-3 font-mono text-xs text-sp-admin-muted">{acc.ibanMasked ?? '—'}</td>
                   <td className="px-4 py-3 text-sp-admin-muted">{acc.currency}</td>

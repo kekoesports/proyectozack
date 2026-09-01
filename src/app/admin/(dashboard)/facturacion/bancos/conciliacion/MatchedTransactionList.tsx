@@ -50,15 +50,27 @@ function ApplyPaymentPanel({
   const [state, formAction, pending] = useActionState(applyPaymentAction, initialState);
 
   const kind = toPayableKind(row);
+  const isCrossCurrency = row.currency !== row.invoiceCurrency;
+  const remainingInvoiceAmount = Math.max(
+    Number(row.invoiceAmount) - Number(row.invoicePreviouslyPaid),
+    0,
+  );
+  const [amountToApply, setAmountToApply] = useState(() => (
+    isCrossCurrency ? remainingInvoiceAmount.toFixed(2) : row.amount
+  ));
   const preview = kind
     ? computePaymentPreview({
         status: row.invoiceStatus,
         totalDue: row.invoiceAmount,
         previouslyPaid: row.invoicePreviouslyPaid,
-        amountToApply: row.amount,
+        amountToApply,
         kind,
       })
     : null;
+  const effectiveRate = Number(amountToApply) > 0
+    ? Number(row.amount) / Number(amountToApply)
+    : 0;
+  const invalidAmount = !Number.isFinite(Number(amountToApply)) || Number(amountToApply) <= 0;
 
   return (
     <div className="mt-2 rounded-lg border border-sp-border bg-sp-admin-bg p-4 space-y-3">
@@ -67,15 +79,25 @@ function ApplyPaymentPanel({
       {preview ? (
         <dl className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
           <dt className="text-sp-admin-muted">Total factura</dt>
-          <dd className="text-sp-admin-fg text-right font-medium">{formatAmount(preview.totalDue, row.currency)}</dd>
+          <dd className="text-sp-admin-fg text-right font-medium">{formatAmount(preview.totalDue, row.invoiceCurrency)}</dd>
           <dt className="text-sp-admin-muted">
             {row.direction === 'income' ? 'Cobrado hasta ahora' : 'Pagado hasta ahora'}
           </dt>
-          <dd className="text-sp-admin-fg text-right font-medium">{formatAmount(preview.previouslyPaid, row.currency)}</dd>
+          <dd className="text-sp-admin-fg text-right font-medium">{formatAmount(preview.previouslyPaid, row.invoiceCurrency)}</dd>
           <dt className="text-sp-admin-muted">Pendiente</dt>
-          <dd className="text-sp-admin-fg text-right font-medium">{formatAmount(preview.remaining, row.currency)}</dd>
+          <dd className="text-sp-admin-fg text-right font-medium">{formatAmount(preview.remaining, row.invoiceCurrency)}</dd>
+          <dt className="text-sp-admin-muted">Abono bancario</dt>
+          <dd className="text-sp-admin-fg text-right font-medium">{formatAmount(row.amount, row.currency)}</dd>
           <dt className="text-sp-admin-muted">Importe a aplicar</dt>
-          <dd className="text-sp-admin-fg text-right font-medium">{formatAmount(preview.amountToApply, row.currency)}</dd>
+          <dd className="text-sp-admin-fg text-right font-medium">{formatAmount(preview.amountToApply, row.invoiceCurrency)}</dd>
+          {isCrossCurrency ? (
+            <>
+              <dt className="text-sp-admin-muted">Cambio efectivo</dt>
+              <dd className="text-sp-admin-fg text-right font-medium">
+                1 {row.invoiceCurrency} = {effectiveRate.toFixed(6)} {row.currency}
+              </dd>
+            </>
+          ) : null}
           <dt className="text-sp-admin-muted pt-1 border-t border-sp-border">Resultado estimado</dt>
           <dd className={`text-right pt-1 border-t border-sp-border font-semibold ${preview.wouldOverpay ? 'text-red-400' : preview.estimatedStatus === 'parcial' ? 'text-amber-300' : 'text-green-400'}`}>
             {STATUS_LABEL[preview.estimatedStatus] ?? preview.estimatedStatus}
@@ -84,7 +106,7 @@ function ApplyPaymentPanel({
       ) : (
         <div className="text-xs text-sp-admin-muted space-y-0.5">
           <p>Transacción: <span className="text-sp-admin-fg font-medium">{formatAmount(row.amount, row.currency)}</span></p>
-          <p>Factura: <span className="text-sp-admin-fg font-medium">{row.invoiceLabel}</span> ({formatAmount(row.invoiceAmount, row.currency)})</p>
+          <p>Factura: <span className="text-sp-admin-fg font-medium">{row.invoiceLabel}</span> ({formatAmount(row.invoiceAmount, row.invoiceCurrency)})</p>
         </div>
       )}
 
@@ -106,8 +128,31 @@ function ApplyPaymentPanel({
         {row.matchType === 'internal_invoice' && (
           <input type="hidden" name="invoiceId" value={row.matchedEntityId} />
         )}
-        <input type="hidden" name="amount" value={row.amount} />
-        <input type="hidden" name="currency" value={row.currency} />
+        <input type="hidden" name="currency" value={row.invoiceCurrency} />
+
+        {isCrossCurrency ? (
+          <div>
+            <label htmlFor={`invoice-amount-${row.transactionId}`} className="text-xs text-sp-admin-muted block mb-1">
+              Importe que se liquida en la factura ({row.invoiceCurrency})
+            </label>
+            <input
+              type="number"
+              id={`invoice-amount-${row.transactionId}`}
+              name="amount"
+              min="0.01"
+              step="0.01"
+              value={amountToApply}
+              onChange={(event) => setAmountToApply(event.target.value)}
+              required
+              className="w-full rounded-lg border border-sp-border bg-sp-admin-card px-2.5 py-1.5 text-xs text-sp-admin-fg focus:outline-none focus:ring-1 focus:ring-sp-orange"
+            />
+            <p className="mt-1 text-[10px] text-sp-admin-muted">
+              El CRM guardará {formatAmount(row.amount, row.currency)} como efectivo recibido y este importe como cobro aplicado.
+            </p>
+          </div>
+        ) : (
+          <input type="hidden" name="amount" value={amountToApply} />
+        )}
 
         <div>
           <label className="text-xs text-sp-admin-muted block mb-1">Fecha de pago</label>
@@ -134,7 +179,7 @@ function ApplyPaymentPanel({
         <div className="flex gap-2 pt-1">
           <button
             type="submit"
-            disabled={pending || (preview?.wouldOverpay ?? false)}
+            disabled={pending || invalidAmount || (preview?.wouldOverpay ?? false)}
             className="px-3 py-1.5 rounded-lg bg-green-600 text-white text-xs font-semibold hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {pending ? 'Aplicando...' : row.direction === 'income' ? '✓ Aplicar cobro' : '✓ Aplicar pago'}
@@ -195,7 +240,7 @@ function MatchedRow({ row }: { row: MatchedTransactionRow }): React.ReactElement
       <div className="flex items-center gap-2 flex-wrap">
         <MatchTypeLabel type={row.matchType} />
         <span className="text-xs text-sp-admin-fg font-medium">{row.invoiceLabel}</span>
-        <span className="text-xs text-sp-admin-muted">— {formatAmount(row.invoiceAmount, row.currency)}</span>
+        <span className="text-xs text-sp-admin-muted">— {formatAmount(row.invoiceAmount, row.invoiceCurrency)}</span>
         <span className="ml-auto text-xs text-sp-admin-muted">Confianza: {row.matchConfidence}%</span>
       </div>
 
@@ -206,7 +251,15 @@ function MatchedRow({ row }: { row: MatchedTransactionRow }): React.ReactElement
             ✓ {row.direction === 'income' ? 'Cobro aplicado' : 'Pago aplicado'}
           </span>
           {row.paymentAmount && (
-            <span className="text-xs text-sp-admin-muted">{formatAmount(row.paymentAmount, row.currency)}</span>
+            <span className="text-xs text-sp-admin-muted">
+              {formatAmount(row.paymentAmount, row.invoiceCurrency)} aplicado
+              {row.paymentSettlementAmount && row.paymentSettlementCurrency
+                ? ` · ${formatAmount(row.paymentSettlementAmount, row.paymentSettlementCurrency)} recibido`
+                : ''}
+              {row.paymentEffectiveExchangeRate && row.paymentSettlementCurrency !== row.invoiceCurrency
+                ? ` · 1 ${row.invoiceCurrency} = ${Number(row.paymentEffectiveExchangeRate).toFixed(6)} ${row.paymentSettlementCurrency}`
+                : ''}
+            </span>
           )}
         </div>
       ) : (

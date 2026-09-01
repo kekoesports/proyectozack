@@ -17,7 +17,7 @@ import { user } from './auth';
 // ── Enums ─────────────────────────────────────────────────────────────
 
 export const bankAccountProviderEnum = pgEnum('bank_account_provider', [
-  'manual', 'wise', 'stripe', 'bank', 'paypal', 'other',
+  'manual', 'wise', 'stripe', 'slash', 'bank', 'paypal', 'other',
 ]);
 
 export const bankConnectionStatusEnum = pgEnum('bank_connection_status', [
