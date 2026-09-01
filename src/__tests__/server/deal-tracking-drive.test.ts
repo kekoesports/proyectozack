@@ -7,6 +7,8 @@ const mockEnv: {
   GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY: string;
   AUTOMATION_API_TOKEN?: string;
   N8N_DRIVE_COPY_WEBHOOK_URL?: string;
+  DRIVE_RELAY_URL?: string;
+  DRIVE_RELAY_TOKEN?: string;
 } = {
   GOOGLE_DRIVE_DEAL_TEMPLATE_ID: 'template-1234567890',
   GOOGLE_DRIVE_TRACKING_FOLDER_ID: 'fallback-1234567890',
@@ -42,6 +44,8 @@ const deal = {
 afterEach(() => {
   delete mockEnv.AUTOMATION_API_TOKEN;
   delete mockEnv.N8N_DRIVE_COPY_WEBHOOK_URL;
+  delete mockEnv.DRIVE_RELAY_URL;
+  delete mockEnv.DRIVE_RELAY_TOKEN;
 });
 
 describe('buildDealContentRows', () => {
@@ -57,6 +61,35 @@ describe('buildDealContentRows', () => {
 });
 
 describe('createDealTrackingSheet', () => {
+  it('delega toda la operación en el relé autenticado cuando está configurado', async () => {
+    mockEnv.DRIVE_RELAY_URL = 'https://relay.example.test/api/internal/drive-relay';
+    mockEnv.DRIVE_RELAY_TOKEN = 'r'.repeat(64);
+    const relayed = {
+      ok: true as const,
+      spreadsheetId: 'sheet-relay-123',
+      url: 'https://docs.google.com/spreadsheets/d/sheet-relay-123/edit',
+      name: 'KeyDrop - NAOW',
+      destination: 'creator' as const,
+      shareStatus: 'shared' as const,
+      warnings: [],
+    };
+    const fetchMock = jest.fn().mockResolvedValue(new Response(JSON.stringify(relayed), { status: 200 }));
+    global.fetch = fetchMock as typeof fetch;
+
+    await expect(createDealTrackingSheet('KeyDrop', 'NAOW', {
+      folderId: 'creator-folder-1234567890',
+      shareWithEmail: 'creator@example.com',
+      deal,
+    })).resolves.toEqual(relayed);
+    expect(fetchMock).toHaveBeenCalledWith(
+      mockEnv.DRIVE_RELAY_URL,
+      expect.objectContaining({
+        method: 'POST',
+        headers: expect.objectContaining({ Authorization: `Bearer ${mockEnv.DRIVE_RELAY_TOKEN}` }),
+      }),
+    );
+  });
+
   it('copia en la carpeta del creador y comparte la hoja como editor', async () => {
     const fetchMock = jest
       .fn()

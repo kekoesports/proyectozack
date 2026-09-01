@@ -2,14 +2,13 @@
 
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
-import { Resend } from 'resend';
 
 import { requirePermission } from '@/lib/permissions';
 import {
   getContractByCampaign, createContract, updateContract,
   addSigner, removeSigner,
 } from '@/lib/queries/contracts';
-import { env } from '@/lib/env';
+import { sendResendEmail } from '@/lib/email/sendResendEmail';
 import { absoluteUrl } from '@/lib/site-url';
 import { parseFormData } from '@/lib/forms/parseFormData';
 import { firstError } from '@/lib/forms/firstError';
@@ -18,8 +17,6 @@ import { CONTRACT_PDF_TYPES } from '@/lib/files/allowed-types';
 import { logRedacted } from '@/lib/log';
 import { IdSchema } from '@/lib/schemas/common';
 import { deleteLegacyFile, uploadLegacyFile } from '@/lib/storage';
-
-const resend = new Resend(env.RESEND_API_KEY);
 
 type ActionState = { readonly error?: string; readonly success?: boolean; readonly id?: number };
 
@@ -189,7 +186,7 @@ export async function requestSignaturesAction(contractId: number, campaignId: nu
 
     for (const signer of pendingSigners) {
       const signingUrl = absoluteUrl(`/firmar/${signer.token}`);
-      await resend.emails.send({
+      await sendResendEmail('requestSignaturesAction', {
         from: 'SocialPro <noreply@socialpro.es>',
         to:   signer.email,
         subject: 'Solicitud de firma de contrato — SocialPro',

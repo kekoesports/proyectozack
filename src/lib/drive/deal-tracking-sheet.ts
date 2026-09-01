@@ -362,6 +362,41 @@ export async function createDealTrackingSheet(
   talentName: string,
   options: CreateDealSheetOptions = {},
 ): Promise<CreateDealSheetResult> {
+  const relayUrl = env.DRIVE_RELAY_URL;
+  const relayToken = env.DRIVE_RELAY_TOKEN;
+  if (relayUrl || relayToken) {
+    if (!relayUrl || !relayToken) {
+      return { ok: false, reason: 'missing-config', detail: 'relé de Drive incompleto' };
+    }
+    try {
+      const response = await fetch(relayUrl, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${relayToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ brandName, talentName, options }),
+        cache: 'no-store',
+        signal: AbortSignal.timeout(30_000),
+      });
+      const body = await response.json().catch(() => null) as CreateDealSheetResult | null;
+      if (!response.ok || !body || typeof body !== 'object' || !('ok' in body)) {
+        return { ok: false, reason: 'drive-error', detail: `drive-relay-${response.status}` };
+      }
+      return body;
+    } catch {
+      return { ok: false, reason: 'drive-error', detail: 'drive-relay-network' };
+    }
+  }
+
+  return createDealTrackingSheetDirect(brandName, talentName, options);
+}
+
+export async function createDealTrackingSheetDirect(
+  brandName: string,
+  talentName: string,
+  options: CreateDealSheetOptions = {},
+): Promise<CreateDealSheetResult> {
   const cfg = getDealSheetConfig();
   if (!cfg.ok) return { ok: false, reason: 'missing-config', detail: cfg.detail };
 

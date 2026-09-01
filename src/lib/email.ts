@@ -1,10 +1,7 @@
-import { Resend } from 'resend';
-import { env } from './env';
 import { sendResendEmail } from './email/sendResendEmail';
 import { SITE_URL, absoluteUrl } from './site-url';
 import { buildWelcomeEmail, buildNewsletterEmail } from './email/newsletterTemplates';
 
-const resend = new Resend(env.RESEND_API_KEY);
 const SITE_HOSTNAME = new URL(SITE_URL).hostname;
 
 /** Escape user-supplied strings before embedding in HTML email templates. */
@@ -184,7 +181,7 @@ export async function sendPasswordResetEmail(payload: {
     if (parsed.hostname === SITE_HOSTNAME) resetUrl = payload.resetUrl;
   } catch { /* fall through */ }
 
-  const { data, error } = await resend.emails.send({
+  await sendResendEmail('sendPasswordResetEmail', {
     from: 'SocialPro <noreply@socialpro.es>',
     to: payload.email,
     subject: 'Restablecer contraseña — SocialPro',
@@ -205,15 +202,6 @@ export async function sendPasswordResetEmail(payload: {
     `,
   });
 
-  // Resend SDK v3+ retorna { data, error } y NO throws en errores del API. Sin
-  // este check, un envío fallido (dominio no verificado, API key inválida,
-  // rate limit…) devuelve void y la capa de auth marca "éxito" silencioso.
-  if (error) {
-    const msg = `Resend rechazó el email de reset: ${error.name} — ${error.message}`;
-    console.error('[sendPasswordResetEmail]', msg);
-    throw new Error(msg);
-  }
-  console.info('[sendPasswordResetEmail] enviado', { id: data?.id });
 }
 
 export async function sendNewsletterWelcomeEmail(payload: {
