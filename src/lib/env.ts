@@ -126,6 +126,8 @@ export const env = createEnv({
      * envía en una request: la rotación ocurre completamente en el servidor.
      */
     TOKEN_ENCRYPTION_KEY_NEXT: z.string().regex(/^[0-9a-fA-F]{64}$/).optional(),
+    /** Bearer exclusivo y temporal para ejecutar la rotación una sola vez. */
+    TOKEN_ENCRYPTION_ROTATION_TOKEN: z.string().min(32).optional(),
     /** Kill switch explícito para el endpoint de re-cifrado de tokens. */
     TOKEN_ENCRYPTION_ROTATION_ENABLED: z.enum(['true', 'false']).optional().default('false').transform((v) => v === 'true'),
     /**
@@ -255,6 +257,7 @@ export const env = createEnv({
     DISCORD_OAUTH_REDIRECT_URL: process.env.DISCORD_OAUTH_REDIRECT_URL,
     TOKEN_ENCRYPTION_KEY: process.env.TOKEN_ENCRYPTION_KEY,
     TOKEN_ENCRYPTION_KEY_NEXT: process.env.TOKEN_ENCRYPTION_KEY_NEXT,
+    TOKEN_ENCRYPTION_ROTATION_TOKEN: process.env.TOKEN_ENCRYPTION_ROTATION_TOKEN,
     TOKEN_ENCRYPTION_ROTATION_ENABLED: process.env.TOKEN_ENCRYPTION_ROTATION_ENABLED,
     DISCORD_ZACKETIZOR_GUILD_ID: process.env.DISCORD_ZACKETIZOR_GUILD_ID,
     DISCORD_ZACKETIZOR_INVITE_URL: process.env.DISCORD_ZACKETIZOR_INVITE_URL,
