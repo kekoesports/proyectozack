@@ -3,14 +3,21 @@
 ## Migraciones
 
 ```bash
+docker buildx build --load --target migrator \
+  -t socialpro-migrator:SHA .
+
 docker run --rm --network socialpro-crm_crm_backend \
   --env-file /opt/socialpro/crm/env/app.env \
-  socialpro:SHA npm run migrate:deploy
+  socialpro-migrator:SHA
 ```
 
 Usa `MIGRATION_DATABASE_URL` (rol migrador). La aplicación corre con
 `socialpro_app`, que **no puede alterar el esquema**: así un fallo en tiempo de
 ejecución no puede convertirse en un cambio de estructura.
+
+No ejecutar migraciones desde la imagen web final: es una imagen minima y no
+incluye `tsx`, `scripts/` ni `drizzle/`. El target Docker `migrator` existe para
+mantener ese limite de seguridad sin romper el paso de despliegue.
 
 ### Si el guard aborta el despliegue
 
