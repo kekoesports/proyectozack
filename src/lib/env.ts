@@ -80,7 +80,9 @@ export const env = createEnv({
     ANALYTICS_SALT: z.string().min(8).optional(),
     // Vercel Blob tokens. Optional: the app boots without them; Blob ops fail gracefully.
     BLOB_READ_WRITE_TOKEN: z.string().min(1).optional(),
-    // Dedicated public-store token for news covers. Falls back to BLOB_READ_WRITE_TOKEN when absent.
+    // Canonical token created by the Vercel Blob connection named BLOB_NEWS.
+    BLOB_NEWS_READ_WRITE_TOKEN: z.string().min(1).optional(),
+    // Legacy dedicated public-store token for news covers. Kept during migration.
     BLOB_READ_WRITE_TOKEN_NEWS: z.string().min(1).optional(),
     // Google Sheets API key for reading public spreadsheets (no OAuth needed).
     GOOGLE_SHEETS_API_KEY: z.string().min(1).optional(),
@@ -259,6 +261,7 @@ export const env = createEnv({
     NEWSDATA_API_KEY: process.env.NEWSDATA_API_KEY,
     ANALYTICS_SALT: process.env.ANALYTICS_SALT,
     BLOB_READ_WRITE_TOKEN: process.env.BLOB_READ_WRITE_TOKEN,
+    BLOB_NEWS_READ_WRITE_TOKEN: process.env.BLOB_NEWS_READ_WRITE_TOKEN,
     BLOB_READ_WRITE_TOKEN_NEWS: process.env.BLOB_READ_WRITE_TOKEN_NEWS,
     GOOGLE_SHEETS_API_KEY: process.env.GOOGLE_SHEETS_API_KEY,
     PAYROLL_OCR_ENABLED: process.env.PAYROLL_OCR_ENABLED,

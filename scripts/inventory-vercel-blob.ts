@@ -18,7 +18,7 @@ type Objeto = {
 
 const TOKENS = [
   { nombre: 'principal', token: process.env.BLOB_READ_WRITE_TOKEN },
-  { nombre: 'news', token: process.env.BLOB_READ_WRITE_TOKEN_NEWS },
+  { nombre: 'news', token: process.env.BLOB_NEWS_READ_WRITE_TOKEN ?? process.env.BLOB_READ_WRITE_TOKEN_NEWS },
 ];
 
 /** El primer segmento de la ruta agrupa por tipo: invoices/, talents/… */

@@ -15,7 +15,7 @@ export default async function NewsImagesPage(): Promise<React.ReactElement> {
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     listError = msg.includes('private store')
-      ? 'El Blob store actual es privado. Para subir covers públicas, crea un Blob store nuevo público en Vercel Dashboard → Storage → New Store → Public, y setea BLOB_READ_WRITE_TOKEN_NEWS con el token resultante.'
+      ? 'El storage de noticias apunta a un Blob privado. Conecta un Blob público al proyecto con el prefijo BLOB_NEWS.'
       : msg;
   }
 

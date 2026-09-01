@@ -1,6 +1,10 @@
 import { z } from 'zod';
 
 const slugPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+const optionalImageUrl = z.preprocess(
+  (value) => typeof value === 'string' && value.trim() === '' ? null : value,
+  z.string().trim().url('URL inválida').max(500).nullable().optional(),
+);
 
 export const PostCreateSchema = z.object({
   title: z.string().min(5, 'Mínimo 5 caracteres').max(300),
@@ -15,8 +19,8 @@ export const PostCreateSchema = z.object({
   status: z.enum(['draft', 'published']).default('draft'),
   vertical: z.enum(['blog', 'news']).default('news'),
   contentType: z.enum(['noticias', 'analisis', 'estadisticas']).default('noticias'),
-  coverUrl: z.string().url('URL inválida').max(500).nullable().optional(),
-  ogImageUrl: z.string().url('URL inválida').max(500).nullable().optional(),
+  coverUrl: optionalImageUrl,
+  ogImageUrl: optionalImageUrl,
   publishedAt: z
     .string()
     .nullable()
