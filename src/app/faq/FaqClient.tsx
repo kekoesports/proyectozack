@@ -1,10 +1,9 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import type { FAQ_ITEMS } from './page';
+import type { FaqItem } from './page';
 
-type Item = (typeof FAQ_ITEMS)[number];
-type Props = { items: readonly Item[] };
+type Props = { items: readonly FaqItem[] };
 
 const CATEGORIES = ['Todos', 'Códigos', 'Sorteos', 'Marcas', 'SocialPro'] as const;
 

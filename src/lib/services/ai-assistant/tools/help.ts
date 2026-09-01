@@ -99,6 +99,23 @@ NOTA: campaigns.amountBrand es el presupuesto previsto, NO los pagos reales. Los
     `.trim(),
   },
   {
+    topic: 'ip_box',
+    content: `
+El **Expediente IP** está dentro de Zack Operaciones y conserva la trazabilidad del software y otros activos técnicos.
+
+**Qué registra:** proyecto, activo resultante, titular legal actual, entidad que soporta realmente el coste, persona que trabaja, tiempo, actividad y evidencia verificable.
+
+**Reglas importantes:**
+- Las etiquetas I+D e innovación tecnológica son provisionales y no sustituyen la revisión del asesor ni un informe técnico.
+- Un parte creado el mismo día o al día siguiente se marca como contemporáneo; los anteriores se conservan como reconstruidos.
+- Una futura sociedad de Chipre no puede aparecer hoy como titular ni como pagadora porque todavía no existe.
+- “Candidato Chipre” es una señal de revisión futura, no una transferencia, licencia ni aplicación automática del IP Box.
+- Las horas no pagadas del fundador sirven como evidencia de autoría y valoración interna, pero no se convierten por sí solas en gasto fiscal deducible.
+
+La puntuación de preparación mide completitud documental interna, no la probabilidad de obtener un incentivo fiscal.
+    `.trim(),
+  },
+  {
     topic: 'sistema_archivos',
     content: `
 Los **Archivos** en SocialPro se guardan en Vercel Blob Storage.

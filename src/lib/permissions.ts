@@ -55,7 +55,8 @@ export type Module =
   | 'contratos'
   | 'contabilidad'
   | 'agents'
-  | 'infrastructure';
+  | 'infrastructure'
+  | 'ip_evidence';
 
 export type Action =
   | 'read'
@@ -201,6 +202,13 @@ export const PERMISSIONS = {
   infrastructure: {
     read:    ['admin', 'admin_limited_tasks', 'ops'],
     operate: ['admin'],
+  },
+  // Expediente de propiedad intelectual: contiene costes, autoría y estrategia
+  // societaria. Solo administración puede escribir; finanzas puede auditarlo.
+  ip_evidence: {
+    read:  ['admin', 'admin_limited_tasks', 'finance'],
+    write: ['admin', 'admin_limited_tasks'],
+    audit: ['admin', 'admin_limited_tasks', 'finance'],
   },
 } as const satisfies PermissionsMap;
 

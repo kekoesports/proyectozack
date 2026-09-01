@@ -22,6 +22,7 @@ import {
 } from './financeDashboard';
 import { getOperationsSummary } from './operations';
 import { getTalentPerformanceSummary } from './talentPerformance';
+import { getIpReadinessSummary } from './ipReadiness';
 
 export type ToolResult =
   | { ok: true; data: unknown }
@@ -46,7 +47,8 @@ export type ToolName =
   | 'getCampaignMarginAlerts'
   | 'getFinanceAlerts'
   | 'getOperationsSummary'
-  | 'getTalentPerformanceSummary';
+  | 'getTalentPerformanceSummary'
+  | 'getIpReadinessSummary';
 
 export const AVAILABLE_TOOLS = [
   'getBillingSummary',
@@ -68,6 +70,7 @@ export const AVAILABLE_TOOLS = [
   'getFinanceAlerts',
   'getOperationsSummary',
   'getTalentPerformanceSummary',
+  'getIpReadinessSummary',
 ] as const satisfies readonly ToolName[];
 
 // Mapa de roles permitidos por tool.
@@ -96,6 +99,8 @@ const TOOL_ALLOWED_ROLES: Partial<Record<ToolName, readonly Role[]>> = {
   getCampaignMarginAlerts: ['admin', 'manager', 'analyst', 'finance', 'talent_manager'],
   getOperationsSummary: ['admin', 'admin_limited_tasks', 'manager', 'ops', 'analyst', 'finance', 'talent_manager', 'editor'],
   getTalentPerformanceSummary: ['admin', 'admin_limited_tasks', 'manager', 'analyst', 'finance', 'talent_manager'],
+  // ip_evidence:read — estrategia societaria y trazabilidad de desarrollo
+  getIpReadinessSummary: ['admin', 'admin_limited_tasks', 'finance'],
   // getCrmHelpContext: sin restricción — disponible para todos los roles autenticados
 };
 
@@ -144,6 +149,8 @@ async function executeTool(name: ToolName, input?: unknown): Promise<ToolResult>
         return { ok: true, data: await getOperationsSummary() };
       case 'getTalentPerformanceSummary':
         return { ok: true, data: await getTalentPerformanceSummary() };
+      case 'getIpReadinessSummary':
+        return { ok: true, data: await getIpReadinessSummary() };
       default:
         return { ok: false, error: `Tool desconocida: ${name as string}` };
     }
@@ -212,6 +219,7 @@ Tienes acceso a las siguientes herramientas de solo lectura del CRM SocialPro:
 - getFinanceAlerts: alertas financieras derivadas automáticamente del estado actual del sistema
 - getOperationsSummary: estado operativo de Creadores Target, prensa gratuita, alertas editoriales, publicaciones programadas y copias cifradas del VPS
 - getTalentPerformanceSummary: tendencias de audiencia de los talentos, canales que mejoran o requieren atención y contenido con mejor rendimiento
+- getIpReadinessSummary: preparación documental de los activos IP, horas registradas, titular/pagador y huecos pendientes; no emite conclusiones fiscales
 
 Para usarlas, incluye en tu respuesta una línea con el formato:
 [TOOL:nombreDeLaTool]

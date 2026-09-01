@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { requireAnyRole } from '@/lib/auth-guard';
 import { listThreadsForUser } from '@/lib/queries/aiAssistant';
 import { ChatClient } from '@/features/admin/ai-assistant/components/ChatClient';
@@ -24,11 +25,21 @@ export default async function AsistentePage(): Promise<React.ReactElement> {
             Consulta el CRM con datos reales y coordina los agentes especializados. Toda orden se revisa antes de ejecutarse y los efectos externos mantienen aprobación humana.
           </p>
         </div>
-        {!hasApiKey && (
-          <div className="shrink-0 text-xs text-amber-400 bg-amber-400/10 border border-amber-400/20 rounded-lg px-3 py-2">
-            GEMINI_API_KEY no configurada — el asistente responderá sin IA
-          </div>
-        )}
+        <div className="flex shrink-0 flex-col items-end gap-2">
+          {hasPermission(session.user.role, 'ip_evidence', 'read') && (
+            <Link
+              href="/admin/asistente/ip"
+              className="rounded-lg border border-sp-orange/30 bg-sp-orange/10 px-3 py-2 text-xs font-semibold text-sp-orange transition hover:bg-sp-orange/20"
+            >
+              Expediente IP
+            </Link>
+          )}
+          {!hasApiKey && (
+            <div className="text-xs text-amber-400 bg-amber-400/10 border border-amber-400/20 rounded-lg px-3 py-2">
+              GEMINI_API_KEY no configurada — el asistente responderá sin IA
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="flex-1 min-h-0">

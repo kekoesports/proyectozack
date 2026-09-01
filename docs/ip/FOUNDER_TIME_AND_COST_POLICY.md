@@ -21,9 +21,11 @@ económica, pero no se convierten automáticamente en gasto de la sociedad.
 
 ## Registro desde el 1 de septiembre de 2026
 
-Cada día se registra una línea en
+Cada día se registra el trabajo en **Zack Operaciones → Expediente IP**, con
+entidad, proyecto, activo, actividad, minutos y evidencia. La plantilla
 [`CONTEMPORANEOUS_TIME_LEDGER.csv`](./templates/CONTEMPORANEOUS_TIME_LEDGER.csv)
-con entidad, proyecto, activo, actividad, inicio, fin, minutos y evidencia.
+queda como formato de contingencia y exportación, no como un segundo registro
+que deba mantenerse manualmente en paralelo.
 
 Categorías:
 
@@ -119,7 +121,8 @@ sujeta a validación local.
 
 - Ningún agente aprueba elegibilidad fiscal.
 - Ninguna hora crea por sí sola una nómina, factura o asiento.
-- Las entradas aprobadas no se reescriben; se corrigen con historial.
+- El ledger del CRM rechaza `UPDATE` y `DELETE`; las correcciones futuras se
+  incorporarán como eventos separados sin destruir el original.
 - Las horas históricas se marcan `reconstructed`.
 - Las horas diarias introducidas al terminar el trabajo se marcan
   `contemporaneous`.
