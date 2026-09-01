@@ -49,13 +49,19 @@ ver `docs/runbooks/database-operations.md`.
 ## Levantar el candidato
 
 ```bash
-CRM_IMAGE=socialpro:"$SHA" docker compose -p socialpro-crm-candidate up -d
+CRM_IMAGE=socialpro:"$SHA" \
+APP_ENV_FILE=/opt/socialpro/crm/env/candidate-vps.env \
+docker compose -f compose.candidate.yaml -p socialpro-crm-candidate up -d
 ```
+
+El compose candidato solo levanta la aplicación. Reutiliza como redes externas
+el PostgreSQL y el edge existentes; nunca arranca un segundo PostgreSQL sobre
+el mismo directorio de datos.
 
 ## Comprobar antes de dirigirle tráfico
 
 ```bash
-docker exec socialpro-crm-candidate-app-1 \
+docker exec socialpro-crm-candidate-candidate-app-1 \
   wget -qO- http://127.0.0.1:3000/api/health/ready
 ```
 
@@ -65,7 +71,7 @@ Tiene que devolver 200 con base, migraciones y almacenamiento en verde. Si
 ## Cambiar el tráfico
 
 ```bash
-CRM_UPSTREAM=candidate-app:3000 caddy reload --config /etc/caddy/Caddyfile
+CRM_UPSTREAM=socialpro-crm-candidate-app:3000 caddy reload --config /etc/caddy/Caddyfile
 ```
 
 `caddy validate` antes de recargar: una configuración inválida deja el proxy
