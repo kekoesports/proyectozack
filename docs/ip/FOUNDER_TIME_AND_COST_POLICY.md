@@ -27,6 +27,12 @@ entidad, proyecto, activo, actividad, minutos y evidencia. La plantilla
 queda como formato de contingencia y exportación, no como un segundo registro
 que deba mantenerse manualmente en paralelo.
 
+GitHub se sincroniza cada día y también mediante **Sincronizar GitHub ahora**.
+Un PR fusionado aparece primero en la bandeja de evidencias automáticas: no
+genera horas. Al cerrar la jornada se crea el parte con los minutos reales y se
+selecciona esa evidencia. Si un PR agrupa trabajo de varios días, se crean los
+partes diarios reales que correspondan, sin repartir horas por estimación.
+
 Categorías:
 
 ```text
@@ -121,6 +127,7 @@ sujeta a validación local.
 
 - Ningún agente aprueba elegibilidad fiscal.
 - Ninguna hora crea por sí sola una nómina, factura o asiento.
+- Ningún PR crea ni infiere horas por sí solo.
 - El ledger del CRM rechaza `UPDATE` y `DELETE`; las correcciones futuras se
   incorporarán como eventos separados sin destruir el original.
 - Las horas históricas se marcan `reconstructed`.

@@ -5,6 +5,7 @@ import {
   date,
   index,
   integer,
+  jsonb,
   pgEnum,
   pgTable,
   serial,
@@ -81,6 +82,9 @@ export const ipProjects = pgTable(
     payingEntity: ipLegalEntityEnum('paying_entity'),
     futureCyprusCandidate: boolean('future_cyprus_candidate').notNull().default(false),
     repositoryRef: varchar('repository_ref', { length: 500 }),
+    evidenceTrackingStartedAt: timestamp('evidence_tracking_started_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
     technicalUncertainty: text('technical_uncertainty'),
     expectedOutcome: text('expected_outcome'),
     startedOn: date('started_on').notNull(),
@@ -98,6 +102,31 @@ export const ipProjects = pgTable(
 );
 
 /**
+ * Evidencia técnica descubierta automáticamente. Es un registro factual e
+ * inmutable: por sí solo no declara horas, costes ni una calificación fiscal.
+ */
+export const ipEvidenceEvents = pgTable(
+  'ip_evidence_events',
+  {
+    id: serial('id').primaryKey(),
+    projectId: integer('project_id').notNull().references(() => ipProjects.id, { onDelete: 'restrict' }),
+    externalId: varchar('external_id', { length: 240 }).notNull(),
+    evidenceKind: ipEvidenceKindEnum('evidence_kind').notNull(),
+    title: varchar('title', { length: 500 }).notNull(),
+    evidenceRef: varchar('evidence_ref', { length: 500 }).notNull(),
+    occurredAt: timestamp('occurred_at', { withTimezone: true }).notNull(),
+    actorName: varchar('actor_name', { length: 160 }),
+    sourceMetadata: jsonb('source_metadata').$type<Record<string, unknown>>().notNull().default({}),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex('ip_evidence_events_external_id_uq').on(t.externalId),
+    index('ip_evidence_events_project_occurred_idx').on(t.projectId, t.occurredAt),
+    index('ip_evidence_events_created_idx').on(t.createdAt),
+  ],
+);
+
+/**
  * Ledger append-only de trabajo. No existe acción de edición o borrado: una
  * futura corrección deberá añadirse como evento separado y conservar el original.
  */
@@ -106,6 +135,7 @@ export const ipWorkLogs = pgTable(
   {
     id: serial('id').primaryKey(),
     projectId: integer('project_id').notNull().references(() => ipProjects.id, { onDelete: 'restrict' }),
+    evidenceEventId: integer('evidence_event_id').references(() => ipEvidenceEvents.id, { onDelete: 'restrict' }),
     contributorName: varchar('contributor_name', { length: 160 }).notNull(),
     contributorUserId: text('contributor_user_id').references(() => user.id, { onDelete: 'set null' }),
     workDate: date('work_date').notNull(),
@@ -129,5 +159,6 @@ export const ipWorkLogs = pgTable(
     index('ip_work_logs_project_date_idx').on(t.projectId, t.workDate),
     index('ip_work_logs_assessment_date_idx').on(t.provisionalAssessment, t.workDate),
     index('ip_work_logs_created_idx').on(t.createdAt),
+    index('ip_work_logs_evidence_event_idx').on(t.evidenceEventId),
   ],
 );

@@ -2,9 +2,9 @@ import 'server-only';
 
 import { createHash } from 'node:crypto';
 
-import { and, desc, eq, gte, inArray, sql } from 'drizzle-orm';
+import { and, desc, eq, gte, inArray, isNull, sql } from 'drizzle-orm';
 
-import { ipProjects, ipWorkLogs } from '@/db/schema';
+import { ipEvidenceEvents, ipProjects, ipWorkLogs } from '@/db/schema';
 import { db } from '@/lib/db';
 import {
   calculateProjectReadiness,
@@ -48,14 +48,15 @@ export type CreateIpProjectInput = {
 
 export type CreateIpWorkLogInput = {
   readonly projectId: number;
+  readonly evidenceEventId?: number | undefined;
   readonly contributorName: string;
   readonly contributorUserId?: string;
   readonly workDate: string;
   readonly minutes: number;
   readonly activityCategory: IpActivityCategory;
   readonly description: string;
-  readonly evidenceKind: IpEvidenceKind;
-  readonly evidenceRef: string;
+  readonly evidenceKind?: IpEvidenceKind | undefined;
+  readonly evidenceRef?: string | undefined;
   readonly recordedByUserId: string;
 };
 
@@ -100,6 +101,29 @@ export async function createIpWorkLog(input: CreateIpWorkLogInput): Promise<numb
 
     if (!project) throw new Error('ip-project-not-available');
 
+    let evidenceKind = input.evidenceKind;
+    let evidenceRef = input.evidenceRef;
+    if (input.evidenceEventId) {
+      const [evidenceEvent] = await tx
+        .select({
+          id: ipEvidenceEvents.id,
+          evidenceKind: ipEvidenceEvents.evidenceKind,
+          evidenceRef: ipEvidenceEvents.evidenceRef,
+        })
+        .from(ipEvidenceEvents)
+        .where(
+          and(
+            eq(ipEvidenceEvents.id, input.evidenceEventId),
+            eq(ipEvidenceEvents.projectId, project.id),
+          ),
+        )
+        .limit(1);
+      if (!evidenceEvent) throw new Error('ip-evidence-event-not-available');
+      evidenceKind = evidenceEvent.evidenceKind;
+      evidenceRef = evidenceEvent.evidenceRef;
+    }
+    if (!evidenceKind || !evidenceRef) throw new Error('ip-evidence-reference-required');
+
     const createdAt = new Date();
     const provisionalAssessment = provisionalAssessmentForCategory(input.activityCategory);
     const recordMode = recordModeForWorkDate(input.workDate, createdAt);
@@ -112,8 +136,9 @@ export async function createIpWorkLog(input: CreateIpWorkLogInput): Promise<numb
       activityCategory: input.activityCategory,
       provisionalAssessment,
       description: input.description,
-      evidenceKind: input.evidenceKind,
-      evidenceRef: input.evidenceRef,
+      evidenceEventId: input.evidenceEventId ?? null,
+      evidenceKind,
+      evidenceRef,
       recordMode,
       ownerEntitySnapshot: project.ownerEntity,
       payingEntitySnapshot: project.payingEntity,
@@ -126,6 +151,7 @@ export async function createIpWorkLog(input: CreateIpWorkLogInput): Promise<numb
       .insert(ipWorkLogs)
       .values({
         projectId: project.id,
+        evidenceEventId: input.evidenceEventId || null,
         contributorName: input.contributorName,
         contributorUserId: input.contributorUserId || null,
         workDate: input.workDate,
@@ -133,8 +159,8 @@ export async function createIpWorkLog(input: CreateIpWorkLogInput): Promise<numb
         activityCategory: input.activityCategory,
         provisionalAssessment,
         description: input.description,
-        evidenceKind: input.evidenceKind,
-        evidenceRef: input.evidenceRef,
+        evidenceKind,
+        evidenceRef,
         recordMode,
         ownerEntitySnapshot: project.ownerEntity,
         payingEntitySnapshot: project.payingEntity,
@@ -188,6 +214,7 @@ export async function getIpReadinessDashboard() {
   const recentLogs = await db
     .select({
       id: ipWorkLogs.id,
+      evidenceEventId: ipWorkLogs.evidenceEventId,
       projectCode: ipProjects.code,
       projectName: ipProjects.name,
       contributorName: ipWorkLogs.contributorName,
@@ -207,6 +234,32 @@ export async function getIpReadinessDashboard() {
     .innerJoin(ipProjects, eq(ipWorkLogs.projectId, ipProjects.id))
     .orderBy(desc(ipWorkLogs.createdAt))
     .limit(30);
+
+  const pendingEvidence = await db
+    .select({
+      id: ipEvidenceEvents.id,
+      projectId: ipEvidenceEvents.projectId,
+      projectCode: ipProjects.code,
+      projectName: ipProjects.name,
+      evidenceKind: ipEvidenceEvents.evidenceKind,
+      title: ipEvidenceEvents.title,
+      evidenceRef: ipEvidenceEvents.evidenceRef,
+      occurredAt: ipEvidenceEvents.occurredAt,
+      actorName: ipEvidenceEvents.actorName,
+      createdAt: ipEvidenceEvents.createdAt,
+    })
+    .from(ipEvidenceEvents)
+    .innerJoin(ipProjects, eq(ipEvidenceEvents.projectId, ipProjects.id))
+    .leftJoin(ipWorkLogs, eq(ipWorkLogs.evidenceEventId, ipEvidenceEvents.id))
+    .where(isNull(ipWorkLogs.id))
+    .orderBy(desc(ipEvidenceEvents.occurredAt))
+    .limit(50);
+
+  const [pendingEvidenceStats] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(ipEvidenceEvents)
+    .leftJoin(ipWorkLogs, eq(ipWorkLogs.evidenceEventId, ipEvidenceEvents.id))
+    .where(isNull(ipWorkLogs.id));
 
   const statsByProject = new Map(projectStats.map((row) => [row.projectId, row]));
   const projectsWithReadiness = projects.map((project) => {
@@ -243,12 +296,14 @@ export async function getIpReadinessDashboard() {
   return {
     projects: projectsWithReadiness,
     recentLogs,
+    pendingEvidence,
     summary: {
       activeProjects: projects.filter((project) => project.status === 'active').length,
       monthMinutes: month.minutes,
       candidateMinutes: month.candidateMinutes,
       contemporaneousPercentage:
         month.logCount === 0 ? 0 : Math.round((month.contemporaneousCount / month.logCount) * 100),
+      pendingEvidence: pendingEvidenceStats?.count ?? 0,
     },
   };
 }

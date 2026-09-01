@@ -1,6 +1,6 @@
 # Migración de las tareas programadas
 
-## Los ocho
+## Los nueve
 
 Todos en UTC, con los mismos horarios. La equivalencia a `Europe/Madrid` (verano)
 está anotada en el crontab.
@@ -12,6 +12,7 @@ está anotada en el crontab.
 | `sync-metrics` | `0 7 * * 1` | lunes 09:00 |
 | `sync-news-alerts` | `0 7 * * *` | 09:00 |
 | `discover-creator-targets` | `30 6 * * *` | 08:30 |
+| `sync-ip-evidence` | `30 22 * * *` | 00:30 (día siguiente, verano) |
 | `sync-sheet-sources` | `0 23 * * *` | 01:00 (día siguiente) |
 | `generate-recurring-expenses` | `0 3 * * *` | 05:00 |
 | `giveaway-lifecycle` | `7 * * * *` | cada hora, minuto 7 |
@@ -19,12 +20,11 @@ está anotada en el crontab.
 **Los horarios no se cambian al migrar.** Cambiar la hora y la infraestructura a
 la vez haría imposible saber de dónde viene una diferencia de comportamiento.
 
-## El noveno
+## Rutas internas no programadas
 
 `poll-live-status` tiene handler completo y autenticación, pero **ningún horario
 en `vercel.json`**. `backup` también existe como ruta interna/manual, pero la
-copia real de infraestructura corre mediante el timer cifrado del VPS. Hay diez
-directorios de cron y ocho horarios.
+copia real de infraestructura corre mediante el timer cifrado del VPS.
 
 Queda **fuera del scheduler a propósito**: añadirlo "por si acaso" podría
 ponerlo a correr por primera vez en su vida. Antes hay que aclarar si está

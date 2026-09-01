@@ -995,6 +995,13 @@
       "when": 1788271038746,
       "tag": "0141_allow_unresolved_ip_ownership",
       "breakpoints": true
+    },
+    {
+      "idx": 142,
+      "version": "7",
+      "when": 1788272285530,
+      "tag": "0142_outgoing_blindfold",
+      "breakpoints": true
     }
   ]
 }

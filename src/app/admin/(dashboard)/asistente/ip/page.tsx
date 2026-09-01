@@ -8,7 +8,7 @@ import {
   getIpReadinessDashboard,
 } from '@/lib/queries/ipEvidence';
 
-import { createIpProjectAction, createIpWorkLogAction } from './actions';
+import { createIpProjectAction, createIpWorkLogAction, syncIpEvidenceAction } from './actions';
 
 export const metadata = { title: 'Expediente IP — Zack Operaciones' };
 
@@ -60,6 +60,7 @@ const MESSAGE_BY_CODE: Record<string, { tone: 'success' | 'error'; text: string 
   'project-create': { tone: 'error', text: 'No se pudo crear el proyecto.' },
   'log-validation': { tone: 'error', text: 'Revisa las horas y la evidencia del parte.' },
   'log-create': { tone: 'error', text: 'No se pudo registrar el parte.' },
+  'evidence-sync': { tone: 'error', text: 'No se pudo completar la sincronización con GitHub.' },
 };
 
 function hours(minutes: number): string {
@@ -72,7 +73,11 @@ function dateLabel(value: string | Date): string {
 }
 
 type PageProps = {
-  readonly searchParams: Promise<{ readonly created?: string; readonly error?: string }>;
+  readonly searchParams: Promise<{
+    readonly created?: string;
+    readonly error?: string;
+    readonly count?: string;
+  }>;
 };
 
 export default async function IpEvidencePage({ searchParams }: PageProps): Promise<React.ReactElement> {
@@ -80,7 +85,12 @@ export default async function IpEvidencePage({ searchParams }: PageProps): Promi
   const [params, dashboard] = await Promise.all([searchParams, getIpReadinessDashboard()]);
   const canWrite = hasPermission(session.user.role, 'ip_evidence', 'write');
   const messageCode = params.error ?? params.created;
-  const message = messageCode ? MESSAGE_BY_CODE[messageCode] : undefined;
+  const message = messageCode === 'evidence-sync' && params.created
+    ? {
+        tone: 'success' as const,
+        text: `${Math.max(0, Number.parseInt(params.count ?? '0', 10) || 0)} evidencias nuevas registradas desde GitHub.`,
+      }
+    : messageCode ? MESSAGE_BY_CODE[messageCode] : undefined;
   const today = new Date().toISOString().slice(0, 10);
   const writableProjects = dashboard.projects.filter((project) =>
     ['draft', 'active', 'paused'].includes(project.status),
@@ -100,12 +110,24 @@ export default async function IpEvidencePage({ searchParams }: PageProps): Promi
             Registra quién desarrolla cada activo, qué entidad soporta el coste y qué evidencia técnica existe. Prepara la trazabilidad para España y una futura estructura en Chipre sin atribuir hoy costes a una sociedad que aún no existe.
           </p>
         </div>
-        <Link
-          href="/admin/asistente"
-          className="w-fit rounded-lg border border-white/10 px-4 py-2 text-sm text-white transition hover:border-sp-orange/50 hover:text-sp-orange"
-        >
-          Preguntar a Zack
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          {canWrite && (
+            <form action={syncIpEvidenceAction}>
+              <button
+                type="submit"
+                className="rounded-lg border border-white/10 px-4 py-2 text-sm text-white transition hover:border-sp-orange/50 hover:text-sp-orange"
+              >
+                Sincronizar GitHub ahora
+              </button>
+            </form>
+          )}
+          <Link
+            href="/admin/asistente"
+            className="w-fit rounded-lg border border-white/10 px-4 py-2 text-sm text-white transition hover:border-sp-orange/50 hover:text-sp-orange"
+          >
+            Preguntar a Zack
+          </Link>
+        </div>
       </header>
 
       <div className="rounded-xl border border-amber-400/20 bg-amber-400/5 px-4 py-3 text-sm text-amber-100">
@@ -125,12 +147,13 @@ export default async function IpEvidencePage({ searchParams }: PageProps): Promi
         </div>
       )}
 
-      <section aria-label="Resumen del expediente" className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <section aria-label="Resumen del expediente" className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
         {[
-          ['Proyectos activos', String(dashboard.summary.activeProjects), 'Activos con titular identificado'],
+          ['Proyectos activos', String(dashboard.summary.activeProjects), 'Expedientes en seguimiento'],
           ['Horas este mes', `${hours(dashboard.summary.monthMinutes)} h`, 'Trabajo total documentado'],
           ['Horas candidatas', `${hours(dashboard.summary.candidateMinutes)} h`, 'Clasificación provisional I+D/IT'],
           ['Registro contemporáneo', `${dashboard.summary.contemporaneousPercentage}%`, 'Partes del mismo día o siguiente'],
+          ['Evidencias pendientes', String(dashboard.summary.pendingEvidence), 'PRs aún sin parte humano'],
         ].map(([label, value, detail]) => (
           <article key={label} className="rounded-xl border border-white/10 bg-sp-admin-card p-4">
             <p className="text-xs uppercase tracking-wider text-sp-muted">{label}</p>
@@ -240,15 +263,28 @@ export default async function IpEvidencePage({ searchParams }: PageProps): Promi
                 Trabajo realizado
                 <textarea name="description" minLength={10} rows={3} required placeholder="Problema abordado, decisión técnica y resultado comprobable" className="mt-1 w-full rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-sm text-white" />
               </label>
+              <label className="text-xs text-sp-muted sm:col-span-2">
+                Evidencia automática (opcional)
+                <select name="evidenceEventId" className="mt-1 w-full rounded-lg border border-white/10 bg-sp-admin-bg px-3 py-2 text-sm text-white">
+                  <option value="">Añadir referencia manual</option>
+                  {dashboard.pendingEvidence.map((event) => (
+                    <option key={event.id} value={event.id}>
+                      {event.projectCode} · {event.title}
+                    </option>
+                  ))}
+                </select>
+                <span className="mt-1 block leading-5">Si eliges una, utiliza el mismo proyecto. El enlace y el tipo se copiarán sin alterar la evidencia original.</span>
+              </label>
               <label className="text-xs text-sp-muted">
-                Tipo de evidencia
-                <select name="evidenceKind" required className="mt-1 w-full rounded-lg border border-white/10 bg-sp-admin-bg px-3 py-2 text-sm text-white">
+                Tipo de evidencia manual
+                <select name="evidenceKind" defaultValue="" className="mt-1 w-full rounded-lg border border-white/10 bg-sp-admin-bg px-3 py-2 text-sm text-white">
+                  <option value="">Se toma de la evidencia automática</option>
                   {IP_EVIDENCE_KINDS.map((kind) => <option key={kind} value={kind}>{EVIDENCE_LABELS[kind]}</option>)}
                 </select>
               </label>
               <label className="text-xs text-sp-muted">
-                Enlace o referencia verificable
-                <input name="evidenceRef" required placeholder="PR #398, commit, documento o ejecución" className="mt-1 w-full rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-sm text-white" />
+                Enlace o referencia manual
+                <input name="evidenceRef" placeholder="PR, commit, documento o ejecución" className="mt-1 w-full rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-sm text-white" />
               </label>
               <button type="submit" className="w-fit rounded-lg bg-sp-orange px-4 py-2 text-sm font-semibold text-white hover:brightness-110 sm:col-span-2">
                 Sellar parte de trabajo
@@ -260,6 +296,47 @@ export default async function IpEvidencePage({ searchParams }: PageProps): Promi
         ) : (
           <div className="rounded-xl border border-white/10 bg-sp-admin-card p-4 text-sm text-sp-muted 2xl:col-span-2">
             Tu acceso es de auditoría: puedes consultar proyectos, horas y huecos documentales, pero solo administración puede registrar o modificar proyectos.
+          </div>
+        )}
+      </section>
+
+      <section>
+        <div className="mb-3">
+          <h2 className="text-lg font-semibold text-white">Bandeja de evidencias automáticas</h2>
+          <p className="text-xs text-sp-muted">
+            PRs fusionados desde el inicio del seguimiento. No crean horas ni clasificación hasta que se vinculan a un parte real.
+          </p>
+        </div>
+        {dashboard.pendingEvidence.length === 0 ? (
+          <div className="rounded-xl border border-dashed border-white/15 p-6 text-center text-sm text-sp-muted">
+            No hay evidencias técnicas pendientes de asociar.
+          </div>
+        ) : (
+          <div className="grid gap-3 xl:grid-cols-2">
+            {dashboard.pendingEvidence.map((event) => (
+              <article key={event.id} className="rounded-xl border border-white/10 bg-sp-admin-card p-4">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <div className="flex flex-wrap gap-2 text-xs">
+                      <span className="rounded bg-white/10 px-2 py-1 font-semibold text-white">{event.projectCode}</span>
+                      <span className="rounded bg-cyan-400/10 px-2 py-1 text-cyan-200">{EVIDENCE_LABELS[event.evidenceKind]}</span>
+                    </div>
+                    <h3 className="mt-2 font-medium text-white">{event.title}</h3>
+                    <p className="mt-1 text-xs text-sp-muted">
+                      {dateLabel(event.occurredAt)}{event.actorName ? ` · ${event.actorName}` : ''}
+                    </p>
+                  </div>
+                  <a
+                    href={event.evidenceRef}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="rounded-lg border border-white/10 px-3 py-2 text-xs text-white hover:border-sp-orange/50 hover:text-sp-orange"
+                  >
+                    Abrir evidencia
+                  </a>
+                </div>
+              </article>
+            ))}
           </div>
         )}
       </section>

@@ -86,7 +86,7 @@ permisos y hacen `fetch` con el token desde el servidor.
 
 ## Tareas programadas
 
-Ocho crons en `vercel.json`, todos en UTC:
+Nueve crons en `vercel.json`, todos en UTC:
 
 | Ruta | Cron (UTC) | Europe/Madrid (verano) |
 |---|---|---|
@@ -95,11 +95,12 @@ Ocho crons en `vercel.json`, todos en UTC:
 | `sync-metrics` | `0 7 * * 1` | lunes 09:00 |
 | `sync-news-alerts` | `0 7 * * *` | 09:00 |
 | `discover-creator-targets` | `30 6 * * *` | 08:30 |
+| `sync-ip-evidence` | `30 22 * * *` | 00:30 del día siguiente |
 | `sync-sheet-sources` | `0 23 * * *` | 01:00 del día siguiente |
 | `generate-recurring-expenses` | `0 3 * * *` | 05:00 |
 | `giveaway-lifecycle` | `7 * * * *` | cada hora, minuto 7 |
 
-Hay **diez** directorios en `src/app/api/cron/` y ocho horarios.
+Hay **once** directorios en `src/app/api/cron/` y nueve horarios.
 `poll-live-status` queda fuera porque nunca tuvo programación; `backup` queda
 fuera porque la copia real es el timer cifrado del VPS. Ninguno se activa “por
 si acaso” durante la migración.
@@ -127,7 +128,7 @@ De mayor a menor dificultad:
 | Fotos y logos indexados por `list()` con prefijo | **alta** |
 | Geo por `x-vercel-ip-country` (gating **legal** de sorteos) | **alta** |
 | Guards de `VERCEL_ENV` en el build | media → **ya resuelto** |
-| Ocho crons | media |
+| Nueve crons | media |
 | Blob de contratos, facturas y ficheros | media |
 | `runtime = 'edge'` en 4 imágenes OG, `maxDuration` en 5 rutas | media |
 | Analytics y Speed Insights | baja |
