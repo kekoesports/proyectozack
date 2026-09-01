@@ -169,6 +169,13 @@ describe('InvoicePdfButton — override no persiste', () => {
   });
 });
 
+describe('generateInvoicePdf — entregables completos', () => {
+  it('envuelve el resumen de entregables y no lo corta por caracteres', () => {
+    expect(src).toMatch(/splitText\(displayLine\.description, 82\)/);
+    expect(src).not.toMatch(/displayLine\.description\.slice\(/);
+  });
+});
+
 // ── Migración añade columna, no toca numeración ────────────────────────
 
 describe('migración 0109 — pdf_language en billing_clients, sin tocar issued_invoices', () => {

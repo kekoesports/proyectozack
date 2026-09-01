@@ -24,10 +24,22 @@ export function normalizeDealInvoiceLineForPdf(
 
   return {
     concept: buildDealInvoiceConcept(talentName),
-    // Deal notes may contain internal pricing, splits or in-kind compensation.
-    // They are operational context and must not leak into a client invoice.
-    description: null,
+    // Only the deliberately sanitised deliverables summary is client-facing.
+    // Legacy deal notes may contain pricing, splits or in-kind compensation.
+    description: safeDeliverablesDescription(line.description),
   };
+}
+
+function safeDeliverablesDescription(description: string | null): string | null {
+  if (!description) return null;
+
+  const normalized = description.trim().replace(/\s+/g, ' ');
+  if (!/^Campaign deliverables:\s+.+/i.test(normalized)) return null;
+
+  const forbiddenCommercialTerms =
+    /[€$£%]|\b(?:EUR|USD|GBP|CHF|price|rate|fee|split|commission|skins?|giveaways?|gift\s*cards?|crypto)\b/i;
+
+  return forbiddenCommercialTerms.test(normalized) ? null : normalized;
 }
 
 export function localizeKnownInvoiceText(

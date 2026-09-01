@@ -20,6 +20,24 @@ describe('copy comercial de facturas de trato', () => {
     });
   });
 
+  it('conserva solo el resumen saneado de entregables en el PDF inglés', () => {
+    expect(normalizeDealInvoiceLineForPdf({
+      concept: 'Digital marketing services - Horcus',
+      description: 'Campaign deliverables: 12 livestreams.',
+    }, 'en', 'Horcus')).toEqual({
+      concept: 'Digital marketing services - Horcus',
+      description: 'Campaign deliverables: 12 livestreams.',
+    });
+
+    expect(normalizeDealInvoiceLineForPdf({
+      concept: 'Digital marketing services - Horcus',
+      description: 'Campaign deliverables: 12 livestreams, EUR 6,800 + skins.',
+    }, 'en', 'Horcus')).toEqual({
+      concept: 'Digital marketing services - Horcus',
+      description: null,
+    });
+  });
+
   it('no altera las líneas manuales ni una descarga española explícita', () => {
     const line = { concept: 'Consultoría específica', description: 'Trabajo aprobado' };
     expect(normalizeDealInvoiceLineForPdf(line, 'en', 'Horcus')).toBe(line);
