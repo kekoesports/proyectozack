@@ -81,7 +81,7 @@ Integra la plataforma de sorteos cuyo código acabo de copiar al repo
    claim diario, y ranking que enmascara perfiles privados.
 
 7. Recorre el flujo completo en local con el seed y arregla lo que falle.
-   Un commit por paso con scripts/committer.
+   Un commit por paso con `git add` / `git commit` sobre las rutas de ese paso.
 ```
 
 ## Decisiones técnicas que Claude Code debe respetar

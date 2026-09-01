@@ -17,7 +17,7 @@
 | H1s | Hardcoded in component files under `src/components/sections/` |
 | Talent metadata | Dynamic — generated from DB in `talentos/[slug]/page.tsx`. Fix the template bug; content comes from DB |
 | Blog metadata | Dynamic — generated from DB in `blog/[slug]/page.tsx`. Same template bug |
-| Committer | `scripts/committer "type(scope): msg" file1 file2` — never bare `git add .` |
+| Commits | Conventional Commits via `git add` / `git commit` on named paths — never bare `git add .` |
 
 ---
 
