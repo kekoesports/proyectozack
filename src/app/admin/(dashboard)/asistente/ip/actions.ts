@@ -21,8 +21,10 @@ const projectSchema = z.object({
   code: z.string().trim().min(2).max(40).regex(/^[A-Z0-9][A-Z0-9_-]*$/),
   name: z.string().trim().min(3).max(180),
   assetName: z.string().trim().min(3).max(180),
-  ownerEntity: z.enum(IP_LEGAL_ENTITIES),
-  payingEntity: z.enum(IP_LEGAL_ENTITIES),
+  ownerEntity: z.union([z.enum(IP_LEGAL_ENTITIES), z.literal('')])
+    .transform((value) => value || null),
+  payingEntity: z.union([z.enum(IP_LEGAL_ENTITIES), z.literal('')])
+    .transform((value) => value || null),
   repositoryRef: z.string().trim().max(500).optional(),
   technicalUncertainty: z.string().trim().max(4_000).optional(),
   expectedOutcome: z.string().trim().max(4_000).optional(),
