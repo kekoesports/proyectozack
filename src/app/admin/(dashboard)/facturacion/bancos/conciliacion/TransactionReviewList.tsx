@@ -76,11 +76,9 @@ function matchTypeLabel(t: string): string {
 function CandidateRow({
   candidate,
   transactionId,
-  currency,
 }: {
   readonly candidate: ScoredCandidate;
   readonly transactionId: number;
-  readonly currency: string;
 }): React.ReactElement {
   const [approveState, approveAction, approvePending] = useActionState(approveMatchAction, init);
   const [rejectState, rejectAction, rejectPending] = useActionState(rejectMatchAction, init);
@@ -98,7 +96,7 @@ function CandidateRow({
         </div>
         <p className="text-xs font-medium truncate">{candidate.name}</p>
         <div className="flex items-center gap-2 text-[10px] text-sp-admin-muted flex-wrap">
-          <span className="font-semibold text-sp-admin-fg">{fmt(candidate.amount, currency)}</span>
+          <span className="font-semibold text-sp-admin-fg">{fmt(candidate.amount, candidate.currency)}</span>
           <span>·</span>
           <span>{fmtDate(candidate.date)}</span>
           {candidate.reference && (
@@ -210,7 +208,6 @@ function TransactionRow({
               key={`${c.matchType}:${c.entityId}`}
               candidate={c}
               transactionId={tx.id}
-              currency={tx.currency}
             />
           ))}
         </div>

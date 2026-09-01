@@ -3,6 +3,7 @@
 import { and, eq, sum } from 'drizzle-orm';
 import { db, getTransactionalDb } from '@/lib/db';
 import {
+  bankTransactions,
   invoicePayments,
   issuedInvoices,
   invoices,
@@ -31,8 +32,9 @@ export async function applyPaymentToIssuedInvoice(opts: {
   let invoiceNumber: string | undefined;
 
   await getTransactionalDb().transaction(async (tx) => {
-    // 1) Bloquear la fila de la factura con FOR UPDATE. Postgres serializa
-    //    los pagos concurrentes contra la misma factura hasta commit —
+    // 1) Bloquear factura y movimiento. Postgres serializa tanto los pagos
+    //    contra la misma factura como la aplicación del mismo movimiento.
+    //    Los pagos concurrentes contra la misma factura esperan al commit;
     //    cierra la ventana entre lectura de status/SUM y INSERT.
     const invoiceRows = await tx
       .select({
@@ -45,9 +47,25 @@ export async function applyPaymentToIssuedInvoice(opts: {
       .from(issuedInvoices)
       .where(eq(issuedInvoices.id, issuedInvoiceId))
       .for('update');
+    const transactionRows = await tx
+      .select({
+        id: bankTransactions.id,
+        amount: bankTransactions.amount,
+        currency: bankTransactions.currency,
+        direction: bankTransactions.direction,
+        status: bankTransactions.status,
+      })
+      .from(bankTransactions)
+      .where(eq(bankTransactions.id, bankTransactionId))
+      .for('update');
 
     const invoice = invoiceRows[0];
     if (!invoice) throw new Error(`Factura emitida ${issuedInvoiceId} no encontrada`);
+    const bankTransaction = transactionRows[0];
+    if (!bankTransaction) throw new Error(`Movimiento bancario ${bankTransactionId} no encontrado`);
+    if (bankTransaction.direction !== 'income' || bankTransaction.status !== 'matched') {
+      throw new Error('El movimiento debe ser un ingreso conciliado');
+    }
     if (invoice.currency !== currency) {
       throw new PaymentGuardError('currency_mismatch');
     }
@@ -73,6 +91,10 @@ export async function applyPaymentToIssuedInvoice(opts: {
     });
 
     // 4) INSERT + UPDATE dentro de la misma tx.
+    const settlementAmount = Math.abs(Number(bankTransaction.amount));
+    const appliedAmount = Number(amount);
+    const effectiveExchangeRate = settlementAmount / appliedAmount;
+
     const [inserted] = await tx
       .insert(invoicePayments)
       .values({
@@ -80,6 +102,9 @@ export async function applyPaymentToIssuedInvoice(opts: {
         issuedInvoiceId,
         amount,
         currency,
+        settlementAmount: settlementAmount.toFixed(2),
+        settlementCurrency: bankTransaction.currency,
+        effectiveExchangeRate: effectiveExchangeRate.toFixed(8),
         paymentDate,
         notes: notes ?? null,
         appliedByUserId,
@@ -107,7 +132,7 @@ export async function applyPaymentToIssuedInvoice(opts: {
     transactionId: bankTransactionId,
     eventType: 'payment_applied',
     message: `Cobro aplicado a factura emitida ${invoiceNumber}: ${amount} ${currency}`,
-    metadata: { issuedInvoiceId, invoiceNumber, amount, currency, paymentDate },
+    metadata: { issuedInvoiceId, invoiceNumber, amount, currency, paymentDate, settlement: 'bank_transaction' },
     createdByUserId: appliedByUserId,
   });
 
@@ -146,9 +171,26 @@ export async function applyPaymentToInternalInvoice(opts: {
       .from(invoices)
       .where(eq(invoices.id, invoiceId))
       .for('update');
+    const transactionRows = await tx
+      .select({
+        id: bankTransactions.id,
+        amount: bankTransactions.amount,
+        currency: bankTransactions.currency,
+        direction: bankTransactions.direction,
+        status: bankTransactions.status,
+      })
+      .from(bankTransactions)
+      .where(eq(bankTransactions.id, bankTransactionId))
+      .for('update');
 
     const invoice = invoiceRows[0];
     if (!invoice) throw new Error(`Factura interna ${invoiceId} no encontrada`);
+    const bankTransaction = transactionRows[0];
+    if (!bankTransaction) throw new Error(`Movimiento bancario ${bankTransactionId} no encontrado`);
+    const expectedDirection = invoice.kind === 'income' ? 'income' : 'expense';
+    if (bankTransaction.direction !== expectedDirection || bankTransaction.status !== 'matched') {
+      throw new Error('La dirección del movimiento no coincide con la factura conciliada');
+    }
     if (invoice.currency !== currency) {
       throw new PaymentGuardError('currency_mismatch');
     }
@@ -176,6 +218,10 @@ export async function applyPaymentToInternalInvoice(opts: {
     });
 
     // 4) INSERT + UPDATE dentro de la misma tx.
+    const settlementAmount = Math.abs(Number(bankTransaction.amount));
+    const appliedAmount = Number(amount);
+    const effectiveExchangeRate = settlementAmount / appliedAmount;
+
     const [inserted] = await tx
       .insert(invoicePayments)
       .values({
@@ -183,6 +229,9 @@ export async function applyPaymentToInternalInvoice(opts: {
         invoiceId,
         amount,
         currency,
+        settlementAmount: settlementAmount.toFixed(2),
+        settlementCurrency: bankTransaction.currency,
+        effectiveExchangeRate: effectiveExchangeRate.toFixed(8),
         paymentDate,
         notes: notes ?? null,
         appliedByUserId,
@@ -215,7 +264,7 @@ export async function applyPaymentToInternalInvoice(opts: {
     transactionId: bankTransactionId,
     eventType: 'payment_applied',
     message: `Pago aplicado a factura ${invoiceNumber ?? invoiceId}: ${amount} ${currency}`,
-    metadata: { invoiceId, invoiceNumber: invoiceNumber ?? null, amount, currency, paymentDate },
+    metadata: { invoiceId, invoiceNumber: invoiceNumber ?? null, amount, currency, paymentDate, settlement: 'bank_transaction' },
     createdByUserId: appliedByUserId,
   });
 

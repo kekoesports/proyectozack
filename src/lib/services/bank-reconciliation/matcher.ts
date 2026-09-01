@@ -11,6 +11,7 @@ export type MatchCandidate = {
   // issued_invoice + income; expense + expense; internal_invoice + income
   readonly direction: 'income' | 'expense';
   readonly amount: number;
+  readonly currency: string;
   readonly date: Date;
   readonly name: string;
   readonly reference?: string | null;
@@ -31,6 +32,7 @@ const SCORE_DATE_SAME = 20;      // same day
 const SCORE_DATE_CLOSE = 10;     // within 3 days
 const SCORE_NAME_CONTAINS = 15;
 const SCORE_REFERENCE_MATCH = 15;
+const SCORE_CROSS_CURRENCY_REFERENCE_MATCH = 60;
 const SCORE_DIRECTION_MISMATCH = -100; // hard penalty — wrong direction never matches
 
 function normalize(s: string): string {
@@ -51,14 +53,17 @@ function scoreCandidate(tx: BankTransaction, candidate: MatchCandidate): number 
   }
 
   // Amount scoring
-  const txAmount = Math.abs(Number(tx.amount));
-  const diff = Math.abs(txAmount - candidate.amount);
-  if (diff === 0) {
-    score += SCORE_AMOUNT_EXACT;
-    reasons.push('importe exacto');
-  } else if (diff <= 1) {
-    score += SCORE_AMOUNT_CLOSE;
-    reasons.push('importe aproximado');
+  const sameCurrency = tx.currency.toUpperCase() === candidate.currency.toUpperCase();
+  if (sameCurrency) {
+    const txAmount = Math.abs(Number(tx.amount));
+    const diff = Math.abs(txAmount - candidate.amount);
+    if (diff === 0) {
+      score += SCORE_AMOUNT_EXACT;
+      reasons.push('importe exacto');
+    } else if (diff <= 1) {
+      score += SCORE_AMOUNT_CLOSE;
+      reasons.push('importe aproximado');
+    }
   }
 
   // Date scoring
@@ -91,8 +96,8 @@ function scoreCandidate(tx: BankTransaction, candidate: MatchCandidate): number 
     const txRef = normalize(tx.reference);
     const candRef = normalize(candidate.reference);
     if (txRef === candRef || txRef.includes(candRef) || candRef.includes(txRef)) {
-      score += SCORE_REFERENCE_MATCH;
-      reasons.push('referencia coincide');
+      score += sameCurrency ? SCORE_REFERENCE_MATCH : SCORE_CROSS_CURRENCY_REFERENCE_MATCH;
+      reasons.push(sameCurrency ? 'referencia coincide' : 'referencia coincide (conversión de moneda)');
     }
   }
 
@@ -114,10 +119,13 @@ export function scoreMatches(
     if (score < CONFIDENCE_THRESHOLD) continue;
 
     const reasons: string[] = [];
-    const txAmount = Math.abs(Number(transaction.amount));
-    const diff = Math.abs(txAmount - candidate.amount);
-    if (diff === 0) reasons.push('importe exacto');
-    else if (diff <= 1) reasons.push('importe aproximado');
+    const sameCurrency = transaction.currency.toUpperCase() === candidate.currency.toUpperCase();
+    if (sameCurrency) {
+      const txAmount = Math.abs(Number(transaction.amount));
+      const diff = Math.abs(txAmount - candidate.amount);
+      if (diff === 0) reasons.push('importe exacto');
+      else if (diff <= 1) reasons.push('importe aproximado');
+    }
     const dayDiff = dateDiffDays(transaction.bookingDate, candidate.date);
     if (dayDiff === 0) reasons.push('misma fecha');
     else if (dayDiff <= 3) reasons.push(`${dayDiff}d de diferencia`);
@@ -133,7 +141,7 @@ export function scoreMatches(
       const txRef = normalize(transaction.reference);
       const candRef = normalize(candidate.reference);
       if (txRef === candRef || txRef.includes(candRef) || candRef.includes(txRef)) {
-        reasons.push('referencia coincide');
+        reasons.push(sameCurrency ? 'referencia coincide' : 'referencia coincide (conversión de moneda)');
       }
     }
 

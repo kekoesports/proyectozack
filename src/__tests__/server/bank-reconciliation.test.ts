@@ -236,6 +236,7 @@ const mockCandidate = (overrides?: Partial<MatchCandidate>): MatchCandidate => (
   matchType: 'expense',
   direction: 'expense',
   amount: 150,
+  currency: 'EUR',
   date: new Date('2024-01-15'),
   name: 'Empresa X',
   reference: 'REF-001',
@@ -289,6 +290,31 @@ describe('scoreMatches', () => {
     if (results.length >= 2) {
       expect(results[0]!.confidence).toBeGreaterThanOrEqual(results[1]!.confidence);
     }
+  });
+
+  it('reconoce una factura EUR cobrada en USD cuando coincide la referencia', () => {
+    const results = scoreMatches(
+      mockTx({
+        amount: '159.27',
+        currency: 'USD',
+        direction: 'income',
+        description: 'Incoming international wire',
+        counterpartyName: 'V&X Limited',
+        reference: 'PM-2026-0001',
+      }),
+      [mockCandidate({
+        matchType: 'issued_invoice',
+        direction: 'income',
+        amount: 150,
+        currency: 'EUR',
+        name: 'V&X Limited',
+        reference: 'PM-2026-0001',
+      })],
+    );
+
+    expect(results).toHaveLength(1);
+    expect(results[0]?.confidence).toBeGreaterThanOrEqual(75);
+    expect(results[0]?.matchReason).toContain('conversión de moneda');
   });
 });
 

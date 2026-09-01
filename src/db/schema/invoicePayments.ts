@@ -38,6 +38,14 @@ export const invoicePayments = pgTable(
 
     amount: numeric('amount', { precision: 12, scale: 2 }).notNull(),
     currency: varchar('currency', { length: 3 }).notNull().default('EUR'),
+
+    // Importe aplicado a la factura (amount/currency) y efectivo realmente
+    // abonado por el banco pueden estar en monedas distintas. Ejemplo:
+    // factura Playmaker en EUR y abono de Slash en USD tras conversión.
+    settlementAmount: numeric('settlement_amount', { precision: 14, scale: 2 }),
+    settlementCurrency: varchar('settlement_currency', { length: 3 }),
+    // Unidades de settlementCurrency recibidas por cada unidad de currency.
+    effectiveExchangeRate: numeric('effective_exchange_rate', { precision: 18, scale: 8 }),
     paymentDate: date('payment_date').notNull(),
     notes: text('notes'),
 

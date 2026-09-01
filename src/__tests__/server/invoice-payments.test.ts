@@ -58,6 +58,11 @@ describe('applyPaymentSchema', () => {
     expect(r.success).toBe(false);
   });
 
+  it('rechaza importes cero', () => {
+    const r = applyPaymentSchema.safeParse({ ...base, amount: '0.00' });
+    expect(r.success).toBe(false);
+  });
+
   it('rechaza fecha inválida', () => {
     const r = applyPaymentSchema.safeParse({ ...base, paymentDate: '21-06-2026' });
     expect(r.success).toBe(false);

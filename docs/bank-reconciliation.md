@@ -71,11 +71,14 @@ Motor en `src/lib/services/bank-reconciliation/matcher.ts`:
 | Fecha ±3 días | +10 |
 | Nombre contiene coincidencia | +15 |
 | Referencia coincide | +15 |
+| Referencia coincide entre monedas distintas | +60 |
 | Dirección incorrecta (income ≠ expense) | -100 |
 
 Umbral mínimo: 50 puntos. `scoreMatches()` retorna candidatos ordenados por confidence desc.
 
 **Dirección obligatoria**: `issued_invoice` solo coincide con transacciones `income`; expenses solo con `expense`.
+Cuando la moneda del extracto y la factura no coincide, el importe no suma puntos:
+la referencia de factura es la señal fuerte que habilita el candidato para revisión manual.
 
 ## Candidatos integrados en UI
 
@@ -191,13 +194,19 @@ applyPaymentAction → applyPaymentToIssuedInvoice / applyPaymentToInternalInvoi
 | `issued_invoice_id` | FK → issued_invoices (nullable) |
 | `invoice_id` | FK → invoices (nullable) |
 | `amount` | Importe aplicado (numeric 12,2) |
-| `currency` | Moneda (varchar 3) |
+| `currency` | Moneda de la factura (varchar 3) |
+| `settlement_amount` | Efectivo realmente abonado según el movimiento bancario |
+| `settlement_currency` | Moneda del abono bancario |
+| `effective_exchange_rate` | Unidades abonadas por cada unidad de la moneda de factura |
 | `payment_date` | Fecha del pago |
 | `applied_by_user_id` | Usuario que aplicó |
 
 **Idempotencia:** `UNIQUE(bank_transaction_id, issued_invoice_id)` y `UNIQUE(bank_transaction_id, invoice_id)`.
 
-**Restricciones:** exactamente una FK de factura. Currency mismatch → error, sin conversión.
+**Restricciones:** exactamente una FK de factura. `amount/currency` siempre se expresan
+en la moneda de la factura; los datos de liquidación se obtienen de la transacción
+bancaria bloqueada y nunca del navegador. Esto permite, por ejemplo, facturar en EUR
+y conservar por separado el efectivo que Slash abona en USD.
 
 ### Status resultante
 
@@ -222,17 +231,17 @@ Antes de insertar cualquier `invoice_payments`, `applyPaymentTo*` valida vía `a
 | `voided` | `invoice.status === 'anulada'` | "No se puede aplicar un cobro/pago a una factura anulada." |
 | `already_completed` | issued: `status === 'cobrada'`; internal income: `status === 'cobrada'`; internal expense: `status === 'pagada'` | "La factura ya está completamente cobrada/pagada." |
 | `overpayment` | `previouslyPaid + amountToApply > totalDue + 0.005` | "El importe a aplicar supera el pendiente de la factura." |
-| `currency_mismatch` | `payment.currency !== invoice.currency` | "La moneda del pago no coincide con la de la factura." |
+| `currency_mismatch` | `payment.currency !== invoice.currency` | "La moneda aplicada no coincide con la de la factura." |
 
 **Pagos parciales**: permitidos siempre que la suma no supere el total. La lógica de `parcial`/`cobrada`/`pagada` no cambia.
 
 **Fuente de `previouslyPaid`**:
 - `issued_invoices` → `SUM(invoice_payments.amount)` (`getIssuedInvoicePaidToDate`).
-- `invoices` (interna) → `invoices.paid_amount` (mirror del write actual — cleanup del `@deprecated` en PR futura).
+- `invoices` (interna) → `SUM(invoice_payments.amount)`, con fallback legacy a `invoices.paid_amount` cuando aún no hay filas canónicas.
 
 **Orden de ejecución**: las lecturas de guard viven DENTRO de la transacción, tras un `SELECT ... FOR UPDATE` sobre la fila de la factura. Postgres serializa los pagos concurrentes contra la misma factura hasta commit — la segunda transacción ve el `SUM(invoice_payments)` (o `paidAmount`) actualizado por la primera y su guard rechaza el sobrepago. El `UNIQUE(bank_transaction_id, issued_invoice_id | invoice_id)` sigue cubriendo la doble aplicación del mismo movimiento.
 
-**UI defense-in-depth**: en `MatchedTransactionList.tsx` el botón "Aplicar cobro/pago" se sustituye por un chip inactivo ("Factura anulada" / "Factura ya cobrada" / "Factura ya pagada") cuando `invoiceStatus` es terminal. El panel de confirmación muestra Total · Ya cobrado · Pendiente · Importe a aplicar · Estado resultante estimado, y deshabilita el submit si el importe causaría sobrepago.
+**UI defense-in-depth**: en `MatchedTransactionList.tsx` el botón "Aplicar cobro/pago" se sustituye por un chip inactivo ("Factura anulada" / "Factura ya cobrada" / "Factura ya pagada") cuando `invoiceStatus` es terminal. El panel de confirmación muestra Total · Ya cobrado · Pendiente · Abono bancario · Importe a aplicar · Cambio efectivo · Estado resultante estimado, y deshabilita el submit si el importe causaría sobrepago.
 
 **Auditoría de rechazos**: cuando el guard lanza, el action layer registra `bank_reconciliation_events.event_type = 'payment_apply_blocked'` con `metadata.reason` (`voided` | `already_completed` | `overpayment` | `currency_mismatch`). El `event_type` es `varchar(100)`, sin migración.
 

@@ -33,7 +33,7 @@ export const GUARD_ERROR_MESSAGES: Readonly<Record<GuardFailureReason, string>> 
   voided:            'No se puede aplicar un cobro/pago a una factura anulada.',
   already_completed: 'La factura ya está completamente cobrada/pagada.',
   overpayment:       'El importe a aplicar supera el pendiente de la factura.',
-  currency_mismatch: 'La moneda del pago no coincide con la de la factura.',
+  currency_mismatch: 'La moneda aplicada no coincide con la de la factura.',
 };
 
 // Error tipado para poder diferenciar en el action layer los rechazos

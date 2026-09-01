@@ -26,6 +26,7 @@ export type MatchedTransactionRow = {
   // Datos de la factura vinculada
   readonly invoiceLabel: string;
   readonly invoiceAmount: string;
+  readonly invoiceCurrency: string;
   // Estado de la factura (para guards UI). null si el match no vincula factura.
   readonly invoiceStatus: string | null;
   readonly invoicePreviouslyPaid: string;
@@ -34,6 +35,9 @@ export type MatchedTransactionRow = {
   readonly paymentApplied: boolean;
   readonly paymentId: number | null;
   readonly paymentAmount: string | null;
+  readonly paymentSettlementAmount: string | null;
+  readonly paymentSettlementCurrency: string | null;
+  readonly paymentEffectiveExchangeRate: string | null;
 };
 
 export async function getMatchedTransactionsWithPaymentStatus(opts: {
@@ -91,6 +95,9 @@ export async function getMatchedTransactionsWithPaymentStatus(opts: {
             bankTransactionId: invoicePayments.bankTransactionId,
             paymentId: invoicePayments.id,
             paymentAmount: invoicePayments.amount,
+            paymentSettlementAmount: invoicePayments.settlementAmount,
+            paymentSettlementCurrency: invoicePayments.settlementCurrency,
+            paymentEffectiveExchangeRate: invoicePayments.effectiveExchangeRate,
           })
           .from(invoicePayments)
           .where(inArray(invoicePayments.bankTransactionId, txIds))
@@ -102,6 +109,7 @@ export async function getMatchedTransactionsWithPaymentStatus(opts: {
             id: issuedInvoices.id,
             invoiceNumber: issuedInvoices.invoiceNumber,
             totalAmount: issuedInvoices.totalAmount,
+            currency: issuedInvoices.currency,
             status: issuedInvoices.status,
           })
           .from(issuedInvoices)
@@ -114,6 +122,7 @@ export async function getMatchedTransactionsWithPaymentStatus(opts: {
             id: invoices.id,
             number: invoices.number,
             totalAmount: invoices.totalAmount,
+            currency: invoices.currency,
             status: invoices.status,
             paidAmount: invoices.paidAmount,
             kind: invoices.kind,
@@ -155,6 +164,7 @@ export async function getMatchedTransactionsWithPaymentStatus(opts: {
 
     let invoiceLabel = `Entidad #${row.matchedEntityId ?? 0}`;
     let invoiceAmount = '0.00';
+    let invoiceCurrency = row.currency;
     let invoiceStatus: string | null = null;
     let invoicePreviouslyPaid = '0.00';
     let invoiceKind: InvoiceKind | null = null;
@@ -164,6 +174,7 @@ export async function getMatchedTransactionsWithPaymentStatus(opts: {
       if (inv) {
         invoiceLabel = `Factura ${inv.invoiceNumber}`;
         invoiceAmount = String(inv.totalAmount);
+        invoiceCurrency = inv.currency;
         invoiceStatus = inv.status;
         invoicePreviouslyPaid = issuedPaidById.get(inv.id) ?? '0';
         invoiceKind = 'income';
@@ -173,6 +184,7 @@ export async function getMatchedTransactionsWithPaymentStatus(opts: {
       if (inv) {
         invoiceLabel = inv.number ? `Factura ${inv.number}` : `Factura interna #${inv.id}`;
         invoiceAmount = String(inv.totalAmount);
+        invoiceCurrency = inv.currency;
         invoiceStatus = inv.status;
         invoicePreviouslyPaid = String(inv.paidAmount ?? '0');
         invoiceKind = inv.kind;
@@ -198,12 +210,16 @@ export async function getMatchedTransactionsWithPaymentStatus(opts: {
       matchReason: row.matchReason ?? '',
       invoiceLabel,
       invoiceAmount,
+      invoiceCurrency,
       invoiceStatus,
       invoicePreviouslyPaid,
       invoiceKind,
       paymentApplied: payment !== null,
       paymentId: payment?.paymentId ?? null,
       paymentAmount: payment?.paymentAmount ?? null,
+      paymentSettlementAmount: payment?.paymentSettlementAmount ?? null,
+      paymentSettlementCurrency: payment?.paymentSettlementCurrency ?? null,
+      paymentEffectiveExchangeRate: payment?.paymentEffectiveExchangeRate ?? null,
     };
   });
 }

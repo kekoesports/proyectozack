@@ -32,6 +32,7 @@ export type ScoredCandidate = {
   readonly confidence: number;
   readonly matchReason: string;
   readonly amount: number;
+  readonly currency: string;
   readonly date: string; // ISO YYYY-MM-DD — safe for RSC serialization
   readonly name: string;
   readonly reference?: string | null;
