@@ -16,10 +16,22 @@ import {
 const CURRENT = '11'.repeat(32);
 const NEXT = '22'.repeat(32);
 
+const fs = jest.requireActual<typeof import('node:fs')>('node:fs');
+
 describe('controlled token encryption rotation', () => {
   beforeEach(() => {
     mockEnv.TOKEN_ENCRYPTION_KEY = CURRENT;
     delete mockEnv.TOKEN_ENCRYPTION_KEY_NEXT;
+  });
+
+  it('protege la operación HTTP con un Bearer temporal dedicado', () => {
+    const route = fs.readFileSync(
+      'src/app/api/internal/security/rotate-token-encryption/route.ts',
+      'utf8',
+    );
+    expect(route).toContain('TOKEN_ENCRYPTION_ROTATION_TOKEN');
+    expect(route).toContain('timingSafeEqual');
+    expect(route).not.toContain('assertCronAuth');
   });
 
   it('mantiene lectura de tokens actuales y escribe con NEXT al activarla', () => {

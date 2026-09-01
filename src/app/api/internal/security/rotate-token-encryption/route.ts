@@ -8,7 +8,7 @@ import {
 } from '@/lib/crypto/token-encryption';
 import { db } from '@/lib/db';
 import { env } from '@/lib/env';
-import { assertCronAuth } from '@/lib/security/assertCronAuth';
+import { timingSafeEqual } from '@/lib/security/timingSafeEqual';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,15 +16,21 @@ export const dynamic = 'force-dynamic';
  * Operación de mantenimiento de un solo uso para rotar tokens OAuth.
  *
  * Seguridad:
- * - exige el Bearer de cron;
+ * - exige un Bearer exclusivo para esta rotación;
  * - permanece apagada salvo kill switch explícito;
  * - las claves solo se leen del entorno del servidor;
  * - la respuesta y los logs contienen únicamente contadores;
  * - toda la tabla se bloquea y se actualiza en una transacción.
  */
 export async function POST(request: NextRequest): Promise<NextResponse> {
-  const authError = assertCronAuth(request);
-  if (authError) return authError;
+  const rotationToken = env.TOKEN_ENCRYPTION_ROTATION_TOKEN;
+  if (!rotationToken) {
+    return NextResponse.json({ error: 'Rotation auth misconfigured' }, { status: 503 });
+  }
+  const authorization = request.headers.get('authorization') ?? '';
+  if (!timingSafeEqual(authorization, `Bearer ${rotationToken}`)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
 
   if (!env.TOKEN_ENCRYPTION_ROTATION_ENABLED) {
     return NextResponse.json({ error: 'Rotation disabled' }, { status: 503 });
