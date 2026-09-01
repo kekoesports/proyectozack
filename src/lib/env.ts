@@ -24,6 +24,13 @@ export const env = createEnv({
     STORAGE_PUBLIC_URL_BASE: z.string().url().optional(),
     STORAGE_FALLBACK_TO_VERCEL: z.coerce.boolean().default(true),
     RESEND_API_KEY: z.string().min(1),
+    // Durante y después del cutover, el VPS puede delegar únicamente el envío
+    // de email en la instancia gratuita de Vercel, que conserva RESEND_API_KEY.
+    EMAIL_RELAY_URL: z.string().url().optional(),
+    EMAIL_RELAY_TOKEN: z.string().min(32).optional(),
+    // Solo en el receptor de Vercel. Separado del token cliente para evitar
+    // que la propia instancia de Vercel intente reenviarse emails a sí misma.
+    EMAIL_RELAY_AUTH_TOKEN: z.string().min(32).optional(),
     BETTER_AUTH_SECRET: z.string().min(32),
     // Optional in dev; required in production for cron endpoints to be reachable.
     CRON_SECRET: z.string().min(8).optional(),
@@ -217,6 +224,9 @@ export const env = createEnv({
     STORAGE_PUBLIC_URL_BASE: process.env.STORAGE_PUBLIC_URL_BASE,
     STORAGE_FALLBACK_TO_VERCEL: process.env.STORAGE_FALLBACK_TO_VERCEL,
     RESEND_API_KEY: process.env.RESEND_API_KEY,
+    EMAIL_RELAY_URL: process.env.EMAIL_RELAY_URL,
+    EMAIL_RELAY_TOKEN: process.env.EMAIL_RELAY_TOKEN,
+    EMAIL_RELAY_AUTH_TOKEN: process.env.EMAIL_RELAY_AUTH_TOKEN,
     BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET,
     CRON_SECRET: process.env.CRON_SECRET,
     DEV_ROLE_OVERRIDE: process.env.DEV_ROLE_OVERRIDE,

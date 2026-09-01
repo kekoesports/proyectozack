@@ -1,4 +1,10 @@
 const mockSend = jest.fn();
+const mockEnv: {
+  RESEND_API_KEY: string;
+  EMAIL_RELAY_URL?: string;
+  EMAIL_RELAY_TOKEN?: string;
+} = { RESEND_API_KEY: 're_test' };
+jest.mock('@/lib/env', () => ({ env: mockEnv }));
 jest.mock('resend', () => ({
   Resend: jest.fn().mockImplementation(() => ({ emails: { send: mockSend } })),
 }));
@@ -16,6 +22,8 @@ const OPTIONS = {
 describe('sendResendEmail', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    delete mockEnv.EMAIL_RELAY_URL;
+    delete mockEnv.EMAIL_RELAY_TOKEN;
     jest.spyOn(console, 'error').mockImplementation(() => {});
     jest.spyOn(console, 'info').mockImplementation(() => {});
   });
@@ -88,5 +96,31 @@ describe('sendResendEmail', () => {
     await sendResendEmail('ctx', OPTIONS, { idempotencyKey: 'lead-reply-123' });
 
     expect(mockSend).toHaveBeenCalledWith(OPTIONS, { idempotencyKey: 'lead-reply-123' });
+  });
+
+  it('delega en el relé autenticado cuando está configurado', async () => {
+    mockEnv.EMAIL_RELAY_URL = 'https://relay.example.test/api/internal/email-relay';
+    mockEnv.EMAIL_RELAY_TOKEN = 'x'.repeat(64);
+    const fetchMock = jest.spyOn(global, 'fetch').mockResolvedValue(new Response(
+      JSON.stringify({ id: 'relay_123' }),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    ));
+
+    await expect(sendResendEmail('relayCtx', OPTIONS)).resolves.toBe('relay_123');
+    expect(mockSend).not.toHaveBeenCalled();
+    expect(fetchMock).toHaveBeenCalledWith(
+      mockEnv.EMAIL_RELAY_URL,
+      expect.objectContaining({
+        method: 'POST',
+        headers: expect.objectContaining({ Authorization: `Bearer ${mockEnv.EMAIL_RELAY_TOKEN}` }),
+      }),
+    );
+  });
+
+  it('falla cerrado si la configuración del relé está incompleta', async () => {
+    mockEnv.EMAIL_RELAY_URL = 'https://relay.example.test/api/internal/email-relay';
+    await expect(sendResendEmail('relayCtx', OPTIONS)).rejects.toMatchObject({
+      resendErrorName: 'relay_misconfigured',
+    });
   });
 });

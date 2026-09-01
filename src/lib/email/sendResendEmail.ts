@@ -45,6 +45,23 @@ export async function sendResendEmail(
   options: CreateEmailOptions,
   requestOptions?: { readonly idempotencyKey?: string },
 ): Promise<string> {
+  const relayUrl = env.EMAIL_RELAY_URL;
+  const relayToken = env.EMAIL_RELAY_TOKEN;
+  if (relayUrl || relayToken) {
+    if (!relayUrl || !relayToken) {
+      throw new ResendSendError(context, 'relay_misconfigured', 'relé de email incompleto');
+    }
+    return sendEmailThroughRelay(context, options, requestOptions, relayUrl, relayToken);
+  }
+
+  return sendDirectResendEmail(context, options, requestOptions);
+}
+
+export async function sendDirectResendEmail(
+  context: string,
+  options: CreateEmailOptions,
+  requestOptions?: { readonly idempotencyKey?: string },
+): Promise<string> {
   const response = requestOptions?.idempotencyKey
     ? await resend.emails.send(options, { idempotencyKey: requestOptions.idempotencyKey })
     : await resend.emails.send(options);
@@ -64,4 +81,36 @@ export async function sendResendEmail(
 
   console.info('[sendResendEmail] enviado', { context, id: data.id });
   return data.id;
+}
+
+async function sendEmailThroughRelay(
+  context: string,
+  options: CreateEmailOptions,
+  requestOptions: { readonly idempotencyKey?: string } | undefined,
+  relayUrl: string,
+  relayToken: string,
+): Promise<string> {
+  const response = await fetch(relayUrl, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${relayToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ context, options, requestOptions }),
+    signal: AbortSignal.timeout(20_000),
+  });
+
+  const body = await response.json().catch(() => null) as {
+    id?: string;
+    error?: { name?: string; message?: string };
+  } | null;
+  if (!response.ok || !body?.id) {
+    const errorName = body?.error?.name ?? `relay_http_${response.status}`;
+    const detail = body?.error?.message ?? 'el relé no aceptó el email';
+    console.error('[sendResendEmail]', { context, resendError: errorName });
+    throw new ResendSendError(context, errorName, detail);
+  }
+
+  console.info('[sendResendEmail] enviado por relé', { context, id: body.id });
+  return body.id;
 }
