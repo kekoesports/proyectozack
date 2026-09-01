@@ -18,6 +18,10 @@ const ENTITY_LABELS: Record<(typeof IP_LEGAL_ENTITIES)[number], string> = {
   founder_personal: 'Pablo / fundador (personal)',
 };
 
+function entityLabel(entity: (typeof IP_LEGAL_ENTITIES)[number] | null): string {
+  return entity ? ENTITY_LABELS[entity] : 'Por determinar / revisión legal';
+}
+
 const CATEGORY_LABELS: Record<(typeof IP_ACTIVITY_CATEGORIES)[number], string> = {
   research: 'Investigación',
   experimental_development: 'Desarrollo experimental',
@@ -163,13 +167,15 @@ export default async function IpEvidencePage({ searchParams }: PageProps): Promi
             </label>
             <label className="text-xs text-sp-muted">
               Titular actual
-              <select name="ownerEntity" required className="mt-1 w-full rounded-lg border border-white/10 bg-sp-admin-bg px-3 py-2 text-sm text-white">
+              <select name="ownerEntity" className="mt-1 w-full rounded-lg border border-white/10 bg-sp-admin-bg px-3 py-2 text-sm text-white">
+                <option value="">Por determinar / revisión legal</option>
                 {IP_LEGAL_ENTITIES.map((entity) => <option key={entity} value={entity}>{ENTITY_LABELS[entity]}</option>)}
               </select>
             </label>
             <label className="text-xs text-sp-muted">
               Entidad que paga el coste
-              <select name="payingEntity" required className="mt-1 w-full rounded-lg border border-white/10 bg-sp-admin-bg px-3 py-2 text-sm text-white">
+              <select name="payingEntity" className="mt-1 w-full rounded-lg border border-white/10 bg-sp-admin-bg px-3 py-2 text-sm text-white">
+                <option value="">Por determinar / conciliar</option>
                 {IP_LEGAL_ENTITIES.map((entity) => <option key={entity} value={entity}>{ENTITY_LABELS[entity]}</option>)}
               </select>
             </label>
@@ -287,8 +293,8 @@ export default async function IpEvidencePage({ searchParams }: PageProps): Promi
                   <div className="h-full rounded-full bg-sp-orange" style={{ width: `${project.readiness.score}%` }} />
                 </div>
                 <dl className="mt-4 grid gap-3 text-xs sm:grid-cols-2">
-                  <div><dt className="text-sp-muted">Titular</dt><dd className="mt-1 text-white">{ENTITY_LABELS[project.ownerEntity]}</dd></div>
-                  <div><dt className="text-sp-muted">Pagador</dt><dd className="mt-1 text-white">{ENTITY_LABELS[project.payingEntity]}</dd></div>
+                  <div><dt className="text-sp-muted">Titular</dt><dd className="mt-1 text-white">{entityLabel(project.ownerEntity)}</dd></div>
+                  <div><dt className="text-sp-muted">Pagador</dt><dd className="mt-1 text-white">{entityLabel(project.payingEntity)}</dd></div>
                   <div><dt className="text-sp-muted">Horas registradas</dt><dd className="mt-1 text-white">{hours(project.totalMinutes)} h</dd></div>
                   <div><dt className="text-sp-muted">Horas candidatas</dt><dd className="mt-1 text-white">{hours(project.candidateMinutes)} h</dd></div>
                 </dl>

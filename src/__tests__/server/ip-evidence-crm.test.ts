@@ -38,5 +38,7 @@ describe('Expediente IP del CRM', () => {
     expect(schema).toContain("'playmaker_media_llc'");
     expect(schema).toContain("'founder_personal'");
     expect(schema).not.toMatch(/['"]cyprus[^'"]*['"]/i);
+    const page = source('src/app/admin/(dashboard)/asistente/ip/page.tsx');
+    expect(page).toContain('Por determinar / revisión legal');
   });
 });

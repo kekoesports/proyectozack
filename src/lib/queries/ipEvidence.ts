@@ -36,8 +36,8 @@ export type CreateIpProjectInput = {
   readonly code: string;
   readonly name: string;
   readonly assetName: string;
-  readonly ownerEntity: IpLegalEntity;
-  readonly payingEntity: IpLegalEntity;
+  readonly ownerEntity: IpLegalEntity | null;
+  readonly payingEntity: IpLegalEntity | null;
   readonly futureCyprusCandidate: boolean;
   readonly repositoryRef: string | undefined;
   readonly technicalUncertainty: string | undefined;
@@ -227,7 +227,8 @@ export async function getIpReadinessDashboard() {
         evidenceCount: stats.evidenceCount,
         candidateMinutes: stats.candidateMinutes,
         contemporaneousCount: stats.contemporaneousCount,
-        ownerEqualsPayer: project.ownerEntity === project.payingEntity,
+        ownerEqualsPayer:
+          project.ownerEntity !== null && project.ownerEntity === project.payingEntity,
       }),
     };
   });

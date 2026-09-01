@@ -74,8 +74,11 @@ export const ipProjects = pgTable(
     code: varchar('code', { length: 40 }).notNull(),
     name: varchar('name', { length: 180 }).notNull(),
     assetName: varchar('asset_name', { length: 180 }).notNull(),
-    ownerEntity: ipLegalEntityEnum('owner_entity').notNull(),
-    payingEntity: ipLegalEntityEnum('paying_entity').notNull(),
+    // Nullable mientras la cadena jurídica o el pagador real estén bajo
+    // revisión. Es preferible un dato pendiente explícito a una atribución
+    // inventada para poder abrir el expediente.
+    ownerEntity: ipLegalEntityEnum('owner_entity'),
+    payingEntity: ipLegalEntityEnum('paying_entity'),
     futureCyprusCandidate: boolean('future_cyprus_candidate').notNull().default(false),
     repositoryRef: varchar('repository_ref', { length: 500 }),
     technicalUncertainty: text('technical_uncertainty'),
@@ -113,8 +116,8 @@ export const ipWorkLogs = pgTable(
     evidenceKind: ipEvidenceKindEnum('evidence_kind').notNull(),
     evidenceRef: varchar('evidence_ref', { length: 500 }).notNull(),
     recordMode: ipRecordModeEnum('record_mode').notNull(),
-    ownerEntitySnapshot: ipLegalEntityEnum('owner_entity_snapshot').notNull(),
-    payingEntitySnapshot: ipLegalEntityEnum('paying_entity_snapshot').notNull(),
+    ownerEntitySnapshot: ipLegalEntityEnum('owner_entity_snapshot'),
+    payingEntitySnapshot: ipLegalEntityEnum('paying_entity_snapshot'),
     integrityHash: varchar('integrity_hash', { length: 64 }).notNull(),
     recordedByUserId: text('recorded_by_user_id').references(() => user.id, { onDelete: 'set null' }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
@@ -128,4 +131,3 @@ export const ipWorkLogs = pgTable(
     index('ip_work_logs_created_idx').on(t.createdAt),
   ],
 );
-

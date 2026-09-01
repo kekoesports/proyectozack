@@ -126,7 +126,9 @@ sujeta a validación local.
 - Las horas históricas se marcan `reconstructed`.
 - Las horas diarias introducidas al terminar el trabajo se marcan
   `contemporaneous`.
-- Proyecto, activo, entidad pagadora y evidencia son obligatorios.
+- Proyecto, activo, persona, minutos y evidencia son obligatorios.
+- Cuando el titular o pagador no esté acreditado se registra como pendiente de
+  revisión; nunca se selecciona una entidad por defecto para completar el formulario.
 
 ## Referencias
 
