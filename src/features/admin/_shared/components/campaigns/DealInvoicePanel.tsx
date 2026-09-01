@@ -167,7 +167,11 @@ export function DealInvoicePanel({ campaignId, existingInvoices, issuers }: Prop
           <div className="flex items-center gap-3 flex-wrap">
             {issuers.length > 1 && (
               <select value={issuerId} onChange={(e) => setIssuerId(Number(e.target.value))} className={INPUT_SM}>
-                {issuers.map((i) => <option key={i.id} value={i.id}>{i.name}</option>)}
+                {issuers.map((i) => (
+                  <option key={i.id} value={i.id}>
+                    {i.name}{i.isDefault ? ' · Principal' : ''}
+                  </option>
+                ))}
               </select>
             )}
             <button type="button" onClick={() => doCreate(false)} disabled={isPending || !issuerId}

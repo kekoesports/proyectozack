@@ -93,14 +93,25 @@ export const issuerCompanySchema = z.object({
   country:               optStr(50),
   address:               z.string().optional(),
   city:                  optStr(100),
+  stateRegion:           optStr(100),
   postalCode:            optStr(20),
   email:                 z.preprocess((v) => (v === '' ? undefined : v), z.email().optional()),
+  phone:                 optStr(40),
+  registrationNumber:    optStr(80),
+  incorporationDate:     z.preprocess(
+    (v) => (v === '' ? undefined : v),
+    z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Fecha inválida').optional(),
+  ),
   defaultCurrency:       z.string().length(3).default('EUR'),
   defaultPaymentTerms:   z.string().optional(),
   bankDetails:           z.string().optional(),
   cryptoDetails:         z.string().optional(),
   invoiceSeriesPrefix:   z.string().min(1).max(10).default('SP'),
   notes:                 z.string().optional(),
+  isDefault:             z.preprocess(
+    (v) => v === true || v === 'true' || v === 'on',
+    z.boolean(),
+  ).default(false),
 });
 
 // ── Rectificativa ────────────────────────────────────────────────────

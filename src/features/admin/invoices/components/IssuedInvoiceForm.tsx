@@ -160,7 +160,11 @@ export function IssuedInvoiceForm({ invoice, issuers, clients, brands, talents, 
               <div>
                 <label className={LB}>Empresa *</label>
                 <select name="issuerCompanyId" value={issuerId} onChange={(e) => setIssuerId(e.target.value)} required className={I}>
-                  {issuers.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                  {issuers.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}{c.isDefault ? ' · Principal' : ''}
+                    </option>
+                  ))}
                 </select>
               </div>
               {selectedIssuer && (

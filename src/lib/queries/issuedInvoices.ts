@@ -27,6 +27,7 @@ const DEFAULT_ISSUERS = [
     nextInvoiceNumber: 1,
     bankDetails: 'IBAN: ES00 0000 0000 0000 0000 0000\nBIC/SWIFT: XXXXX\nBanco: ',
     isActive: true,
+    isDefault: true,
   },
   {
     name: 'SocialPro Andorra',
@@ -36,6 +37,7 @@ const DEFAULT_ISSUERS = [
     invoiceSeriesPrefix: 'AD',
     nextInvoiceNumber: 1,
     isActive: true,
+    isDefault: false,
   },
   {
     name: 'SocialPro LLC',
@@ -45,13 +47,14 @@ const DEFAULT_ISSUERS = [
     invoiceSeriesPrefix: 'US',
     nextInvoiceNumber: 1,
     isActive: true,
+    isDefault: false,
   },
 ] as const;
 
 export async function getIssuerCompanies(): Promise<readonly IssuerCompany[]> {
   const rows = await db.select().from(issuerCompanies)
     .where(eq(issuerCompanies.isActive, true))
-    .orderBy(asc(issuerCompanies.id));
+    .orderBy(desc(issuerCompanies.isDefault), asc(issuerCompanies.id));
 
   if (rows.length === 0) {
     // Seed inicial con las 3 empresas por defecto
@@ -69,11 +72,27 @@ export async function getIssuerCompany(id: number): Promise<IssuerCompany | null
 }
 
 export async function updateIssuerCompany(id: number, patch: Partial<IssuerCompany>): Promise<IssuerCompany | null> {
-  const [row] = await db.update(issuerCompanies)
-    .set({ ...patch, updatedAt: new Date() })
-    .where(eq(issuerCompanies.id, id))
-    .returning();
-  return row ?? null;
+  return db.transaction(async (tx) => {
+    const { isDefault, ...rest } = patch;
+
+    if (isDefault === true) {
+      await tx.update(issuerCompanies)
+        .set({ isDefault: false, updatedAt: new Date() })
+        .where(eq(issuerCompanies.isDefault, true));
+    }
+
+    const [row] = await tx.update(issuerCompanies)
+      .set({
+        ...rest,
+        // Un emisor principal solo se sustituye seleccionando otro. Un
+        // checkbox desmarcado nunca deja el sistema sin empresa por defecto.
+        ...(isDefault === true ? { isDefault: true } : {}),
+        updatedAt: new Date(),
+      })
+      .where(eq(issuerCompanies.id, id))
+      .returning();
+    return row ?? null;
+  });
 }
 
 // ── Clientes de facturación ───────────────────────────────────────────
