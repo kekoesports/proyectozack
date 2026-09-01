@@ -92,21 +92,20 @@ Ocho crons en `vercel.json`, todos en UTC:
 |---|---|---|
 | `snapshot-metrics` | `0 6 * * *` | 08:00 |
 | `rollover-tasks` | `0 5 * * 1` | lunes 07:00 |
-| `backup` | `0 2 * * *` | 04:00 |
 | `sync-metrics` | `0 7 * * 1` | lunes 09:00 |
 | `sync-news-alerts` | `0 7 * * *` | 09:00 |
+| `discover-creator-targets` | `30 6 * * *` | 08:30 |
 | `sync-sheet-sources` | `0 23 * * *` | 01:00 del día siguiente |
 | `generate-recurring-expenses` | `0 3 * * *` | 05:00 |
 | `giveaway-lifecycle` | `7 * * * *` | cada hora, minuto 7 |
 
-**Descuadre detectado:** hay **nueve** directorios en `src/app/api/cron/` y solo
-ocho horarios. `poll-live-status` tiene handler completo con autenticación pero
-ningún cron declarado — o está muerto, o lo dispara n8n, o alguien lo llama a
-mano. Hay que aclararlo antes de migrar el scheduler.
+Hay **diez** directorios en `src/app/api/cron/` y ocho horarios.
+`poll-live-status` queda fuera porque nunca tuvo programación; `backup` queda
+fuera porque la copia real es el timer cifrado del VPS. Ninguno se activa “por
+si acaso” durante la migración.
 
-La autenticación admite `x-vercel-cron: 1` **o** `Authorization: Bearer
-CRON_SECRET`. La segunda vía ya existe y está probada, así que fuera de Vercel
-no hace falta inventar nada.
+La autenticación exige `Authorization: Bearer CRON_SECRET`. La cabecera
+`x-vercel-cron` ya no se considera autenticación porque puede falsificarse.
 
 ## Despliegue
 

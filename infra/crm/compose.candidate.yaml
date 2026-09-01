@@ -1,0 +1,52 @@
+name: socialpro-crm-candidate
+
+services:
+  candidate-app:
+    image: ${CRM_IMAGE:?falta CRM_IMAGE, p.ej. socialpro:abc1234}
+    restart: unless-stopped
+    stop_grace_period: 30s
+    env_file:
+      - ${APP_ENV_FILE:-/opt/socialpro/crm/env/candidate-vps.env}
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      HOSTNAME: 0.0.0.0
+      DEPLOY_ENV: staging
+      STORAGE_DRIVER: local
+      STORAGE_LOCAL_ROOT: /srv/storage
+      TZ: Europe/Madrid
+    volumes:
+      - /opt/socialpro/data/storage-public:/srv/storage/public
+      - /opt/socialpro/data/storage-private:/srv/storage/private
+    networks:
+      crm_backend:
+        aliases:
+          - socialpro-crm-candidate-app
+      socialpro_edge:
+        aliases:
+          - socialpro-crm-candidate-app
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:3000/api/health/live || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 45s
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+        reservations:
+          memory: 512M
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  crm_backend:
+    external: true
+    name: socialpro-crm_crm_backend
+  socialpro_edge:
+    external: true
+    name: socialpro_edge

@@ -43,9 +43,10 @@ Cada paso indica cómo saber que salió bien. Si un paso no verifica, se para.
 
 | # | Paso | Verificación |
 |---|---|---|
-| 6 | Activar mantenimiento en Caddy | la web muestra la página; `/api/health/*` sigue respondiendo |
-| 7 | Esperar a que terminen las peticiones en curso | logs sin peticiones activas |
-| 8 | Desactivar los crons de Vercel | ninguno programado |
+| 6 | Activar `MAINTENANCE_MODE=true` en Vercel y redesplegar | HTML y API devuelven 503; `/api/health/*` sigue respondiendo |
+| 7 | Activar también mantenimiento en Caddy | el VPS no admite escrituras anticipadas |
+| 8 | Esperar el TTL anterior y a que terminen las peticiones | logs sin peticiones activas; Vercel y VPS congelados |
+| 8a | Confirmar que los crons de Vercel y las llamadas n8n reciben 503 | ninguna escritura nueva |
 | 9 | **Dump final de Neon** | `pg_dump --format=custom`, checksum anotado |
 | 10 | Restaurar en PostgreSQL del VPS | `pg_restore --exit-on-error` sin errores |
 | 11 | `ANALYZE` | termina |
@@ -61,7 +62,7 @@ Cada paso indica cómo saber que salió bien. Si un paso no verifica, se para.
 | 16 | `/api/health/ready` | 200 con las tres comprobaciones en verde |
 | 17 | Pruebas de humo internas | login, una consulta, una descarga privada |
 | 18 | **Cambiar el upstream de Caddy** | `caddy reload`, sin cortes |
-| 19 | Quitar mantenimiento | la web responde |
+| 19 | Quitar mantenimiento solo en el VPS | la web responde en el nuevo origen; Vercel permanece congelado |
 | 20 | DNS si procede | propagación comprobada |
 
 ### Después
@@ -96,11 +97,15 @@ cambio de DNS para convertirse en una recuperación con pérdida de datos.
 Conviene anotar **la hora exacta** del paso 19: es la frontera entre "los datos
 están en los dos sitios" y "los datos solo están aquí".
 
+> Caddy por sí solo no congela el origen antiguo mientras el DNS todavía apunta
+> a Vercel. El paso 6 es obligatorio: evita dos escritores y garantiza que el
+> dump final represente el último estado aceptado por producción.
+
 ## Si algo falla
 
 | Momento | Qué hacer |
 |---|---|
 | Antes del 14 | Quitar mantenimiento. No ha pasado nada |
-| Entre 14 y 18 | Quitar mantenimiento. Vercel sigue sirviendo contra Neon |
+| Entre 14 y 18 | Desactivar `MAINTENANCE_MODE` en Vercel, redesplegar y quitar mantenimiento de Caddy. Neon sigue siendo la fuente |
 | Entre 18 y 19 | Reapuntar el upstream de Caddy y recargar |
 | **Después del 19** | Ver `08-rollback-plan.md`. Ya no es un cambio de configuración |

@@ -9,9 +9,9 @@ está anotada en el crontab.
 |---|---|---|
 | `snapshot-metrics` | `0 6 * * *` | 08:00 |
 | `rollover-tasks` | `0 5 * * 1` | lunes 07:00 |
-| `backup` | `0 2 * * *` | 04:00 |
 | `sync-metrics` | `0 7 * * 1` | lunes 09:00 |
 | `sync-news-alerts` | `0 7 * * *` | 09:00 |
+| `discover-creator-targets` | `30 6 * * *` | 08:30 |
 | `sync-sheet-sources` | `0 23 * * *` | 01:00 (día siguiente) |
 | `generate-recurring-expenses` | `0 3 * * *` | 05:00 |
 | `giveaway-lifecycle` | `7 * * * *` | cada hora, minuto 7 |
@@ -22,7 +22,9 @@ la vez haría imposible saber de dónde viene una diferencia de comportamiento.
 ## El noveno
 
 `poll-live-status` tiene handler completo y autenticación, pero **ningún horario
-en `vercel.json`**. Hay nueve directorios de cron y ocho horarios.
+en `vercel.json`**. `backup` también existe como ruta interna/manual, pero la
+copia real de infraestructura corre mediante el timer cifrado del VPS. Hay diez
+directorios de cron y ocho horarios.
 
 Queda **fuera del scheduler a propósito**: añadirlo "por si acaso" podría
 ponerlo a correr por primera vez en su vida. Antes hay que aclarar si está
@@ -30,9 +32,9 @@ muerto, si lo dispara n8n o si se llama a mano.
 
 ## Autenticación
 
-`assertCronAuth` ya admite `Authorization: Bearer ${CRON_SECRET}` además de la
-cabecera de Vercel. Esa vía existe y está probada, así que fuera de Vercel no
-hace falta cambiar código.
+`assertCronAuth` exige `Authorization: Bearer ${CRON_SECRET}` tanto en Vercel
+como en el VPS. La antigua confianza en `x-vercel-cron` se retiró porque esa
+cabecera se podía falsificar desde Internet.
 
 ## Un solo dueño por tarea
 
@@ -48,5 +50,6 @@ El backup de infraestructura **no** se llama por el endpoint del CRM: corre
 directamente contra los contenedores de PostgreSQL. Un backup que necesita que
 la aplicación responda deja de funcionar justo el día que hace falta.
 
-El cron `/api/cron/backup` del CRM se mantiene para lo suyo, pero no es el
-backup de infraestructura.
+La ruta `/api/cron/backup` del CRM se conserva solo para uso manual/interno y no
+se programa. El backup real es `socialpro-backup-remote.timer`, con volcado,
+cifrado, copia a Drive y verificación.

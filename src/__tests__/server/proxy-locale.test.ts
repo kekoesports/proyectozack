@@ -15,6 +15,13 @@ jest.mock('@/lib/auth', () => ({ auth: {} }));
 import { proxy } from '@/proxy';
 import { LOCALE_COOKIE } from '@/lib/locale-detection';
 
+const ORIGINAL_MAINTENANCE_MODE = process.env.MAINTENANCE_MODE;
+
+afterEach(() => {
+  if (ORIGINAL_MAINTENANCE_MODE === undefined) delete process.env.MAINTENANCE_MODE;
+  else process.env.MAINTENANCE_MODE = ORIGINAL_MAINTENANCE_MODE;
+});
+
 function req(
   pathname: string,
   opts: {
@@ -118,5 +125,27 @@ describe('proxy — x-pathname header', () => {
   ])('%s → proxy responde sin redirect ni error', (pathname) => {
     const res = proxy(req(pathname));
     expect(res?.status ?? 200).toBeLessThan(400);
+  });
+});
+
+describe('proxy — congelación segura para el cutover', () => {
+  it('bloquea HTML y API con 503 sin caché durante el mantenimiento', async () => {
+    process.env.MAINTENANCE_MODE = 'true';
+
+    const html = proxy(req('/admin/campanas'));
+    const api = proxy(new NextRequest('http://localhost:3000/api/automation/deal-drafts', {
+      method: 'POST',
+    }));
+
+    expect(html.status).toBe(503);
+    expect(html.headers.get('cache-control')).toContain('no-store');
+    expect(await html.text()).toContain('Volvemos enseguida');
+    expect(api.status).toBe(503);
+    await expect(api.json()).resolves.toMatchObject({ error: 'maintenance' });
+  });
+
+  it.each(['/api/health/live', '/api/health/ready'])('mantiene %s disponible', (pathname) => {
+    process.env.MAINTENANCE_MODE = 'true';
+    expect(proxy(req(pathname)).status).toBeLessThan(400);
   });
 });

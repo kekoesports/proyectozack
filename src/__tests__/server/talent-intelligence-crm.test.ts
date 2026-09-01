@@ -9,6 +9,7 @@ describe('inteligencia de talentos', () => {
   const page = read('src/app/admin/(dashboard)/talents/page.tsx');
   const cron = read('src/app/api/cron/snapshot-metrics/route.ts');
   const query = read('src/lib/queries/talentIntelligence.ts');
+  const dashboard = read('src/features/admin/talents/components/TalentIntelligenceDashboard.tsx');
 
   it('crea snapshots de canal, rendimiento de contenido y recupera el histórico existente', () => {
     expect(migration).toMatch(/CREATE TABLE "talent_channel_snapshots"/);
@@ -33,11 +34,25 @@ describe('inteligencia de talentos', () => {
     expect(cron).toMatch(/Promise\.allSettled/);
   });
 
-  it('calcula el mejor contenido y los meses en base de datos para todos los talentos visibles', () => {
-    expect(query).toMatch(/selectDistinctOn\(\[talentContentPerformance\.talentId\]/);
+  it('calcula contenido y meses por canal, no mezclando redes del mismo talento', () => {
+    expect(query).toMatch(/selectDistinctOn\(\[talentContentPerformance\.socialId\]/);
     expect(query).toMatch(/coalesce\(sum\(/);
     expect(query).toMatch(/inArray\(talentContentPerformance\.talentId, talentIds\)/);
     expect(query).toMatch(/bestViewsMonth/);
+  });
+
+  it('separa los rankings por red y ofrece 30, 60, 90 y 120 días', () => {
+    expect(dashboard).toMatch(/TALENT_GROWTH_PERIODS/);
+    expect(dashboard).toMatch(/Filtrar estadísticas por red social/);
+    expect(dashboard).toMatch(/Ranking por canal/);
+    expect(dashboard).toMatch(/Fuera del ranking/);
+  });
+
+  it('construye cada tendencia solo con los canales válidos de ese periodo', () => {
+    expect(query).toMatch(/channel\.growth\[period\]\.eligible/);
+    expect(query).toMatch(/buildDailyTrend\(snapshots, eligibleSocialIds\)/);
+    expect(query).toMatch(/eligibleSocialIds\.has\(row\.socialId\)/);
+    expect(dashboard).toMatch(/data\.dailyTrend\[period\]/);
   });
 });
 
