@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { getNewsSlugs, getPostBySlug, getRelatedNewsPosts } from '@/lib/queries/posts';
 import { deriveNewsCategory, formatNewsDate, readingMinutes } from '@/lib/utils/news';
-import { absoluteUrl } from '@/lib/site-url';
+import { absoluteUrl, schemaImageUrl } from '@/lib/site-url';
 import { buildBreadcrumbJsonLd } from '@/lib/utils/breadcrumbs';
 import { truncateMetaDescription, truncateMetaTitle } from '@/lib/utils/text';
 import { NewsArticleBody } from '@/features/news/components/NewsArticleBody';
@@ -37,7 +37,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!post || post.vertical !== 'news') return {};
   const description = truncateMetaDescription(post.excerpt || undefined);
   const title = truncateMetaTitle(post.title);
-  const cover = post.coverUrl ? absoluteUrl(post.coverUrl) : absoluteUrl('/og-socialpro.png');
+  const cover = schemaImageUrl(post.ogImageUrl ?? post.coverUrl) ?? absoluteUrl('/og-socialpro.png');
   return {
     title,
     description,
@@ -89,7 +89,7 @@ export default async function NewsArticlePage({ params }: PageProps) {
     mainEntityOfPage: { '@type': 'WebPage', '@id': absoluteUrl(`/news/${slug}`) },
     articleSection: category.label,
     inLanguage: 'es',
-    ...(post.coverUrl ? { image: absoluteUrl(post.coverUrl) } : {}),
+    ...(schemaImageUrl(post.coverUrl) ? { image: schemaImageUrl(post.coverUrl) } : {}),
     ...(ecosystem.creators.length > 0 ? {
       mentions: ecosystem.creators.map((c) => ({
         '@type': 'Person',

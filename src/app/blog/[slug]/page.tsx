@@ -32,6 +32,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!post) return {};
   const description = truncateMetaDescription(post.excerpt || undefined);
   const title = truncateMetaTitle(post.title);
+  const socialImage = schemaImageUrl(post.ogImageUrl ?? post.coverUrl)
+    ?? absoluteUrl(`/api/og-image/blog?slug=${slug}`);
   return {
     title, description,
     alternates: { canonical: `/blog/${slug}` },
@@ -40,9 +42,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       url: absoluteUrl(`/blog/${slug}`),
       type: 'article',
       publishedTime: post.publishedAt?.toISOString(),
-      images: [{ url: absoluteUrl(`/api/og-image/blog?slug=${slug}`), width: 1200, height: 630, alt: title }],
+      images: [{ url: socialImage, width: 1200, height: 630, alt: title }],
     },
-    twitter: { card: 'summary_large_image', title, description, images: [absoluteUrl(`/api/og-image/blog?slug=${slug}`)] },
+    twitter: { card: 'summary_large_image', title, description, images: [socialImage] },
   };
 }
 

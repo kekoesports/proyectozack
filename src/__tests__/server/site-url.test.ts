@@ -1,5 +1,5 @@
 
-import { SITE_URL, absoluteUrl, normalizeSiteUrl } from '@/lib/site-url';
+import { SITE_URL, absoluteUrl, normalizeSiteUrl, schemaImageUrl } from '@/lib/site-url';
 
 describe('normalizeSiteUrl', () => {
   it('strips trailing newlines and whitespace', () => {
@@ -53,5 +53,20 @@ describe('absoluteUrl', () => {
     expect(absoluteUrl('/blog?q={search_term_string}')).toBe(
       'http://localhost:3000/blog?q={search_term_string}',
     );
+  });
+});
+
+describe('schemaImageUrl', () => {
+  it('conserva sin cambios una imagen CDN absoluta', () => {
+    expect(schemaImageUrl('https://media.example.com/news/cover.webp')).toBe(
+      'https://media.example.com/news/cover.webp',
+    );
+  });
+
+  it('convierte una ruta local en absoluta y acepta valores vacíos', () => {
+    expect(schemaImageUrl('/images/news/cover.webp')).toBe(
+      'http://localhost:3000/images/news/cover.webp',
+    );
+    expect(schemaImageUrl(null)).toBeUndefined();
   });
 });
