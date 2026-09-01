@@ -28,6 +28,20 @@ COPY package.json package-lock.json ./
 # `npm ci` respeta el lockfile: build reproducible.
 RUN --mount=type=cache,target=/root/.npm npm ci
 
+# ── migrations ──────────────────────────────────────────────────────────────
+# Imagen separada para aplicar migraciones antes de arrancar la web. La imagen
+# final es deliberadamente minima y no incluye `tsx`, las migraciones ni el
+# arbol de fuentes; por eso nunca debe usarse como migrador.
+FROM deps AS migrator
+WORKDIR /app
+
+COPY . .
+
+ENV NODE_ENV=production
+USER node
+
+CMD ["npm", "run", "migrate:deploy"]
+
 # ── build ───────────────────────────────────────────────────────────────────
 FROM deps AS build
 WORKDIR /app

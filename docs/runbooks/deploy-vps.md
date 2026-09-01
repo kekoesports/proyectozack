@@ -42,14 +42,24 @@ resuelva correctamente. El modo host se habilita de forma explícita con
 ## Migrar — paso aparte
 
 ```bash
+docker buildx build \
+  --builder socialpro-crm-builder \
+  --load \
+  --target migrator \
+  -t socialpro-migrator:"$SHA" .
+
 docker run --rm --network socialpro-crm_crm_backend \
   --env-file /opt/socialpro/crm/env/app.env \
-  socialpro:"$SHA" npm run migrate:deploy
+  socialpro-migrator:"$SHA"
 ```
 
 **Antes de arrancar la aplicación y una sola vez.** El contenedor web no migra
 al arrancar: si lo hiciera, levantar dos réplicas lanzaría dos migraciones a la
 vez.
+
+La imagen web de runtime no contiene `tsx`, las migraciones ni el código fuente.
+Usar siempre el target `migrator`; si se intenta ejecutar `migrate:deploy` sobre
+la imagen web, el despliegue debe considerarse fallido.
 
 El guard aborta si alguna migración fuera a saltarse en silencio. Si eso pasa,
 ver `docs/runbooks/database-operations.md`.
