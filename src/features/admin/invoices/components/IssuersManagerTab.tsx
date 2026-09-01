@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useState } from 'react';
+import { useActionState, useEffect, useState } from 'react';
 import { updateIssuerCompanyAction } from '@/app/admin/(dashboard)/facturacion/issued-invoices-actions';
 import type { IssuerCompany } from '@/types';
 
@@ -32,10 +32,11 @@ function IssuerEditForm({
 }): React.ReactElement {
   const [state, formAction, isPending] = useActionState<EditState, FormData>(updateIssuerCompanyAction, {});
 
-  if (state.success) {
-    onDone();
-    return <></>;
-  }
+  useEffect(() => {
+    if (state.success) onDone();
+  }, [onDone, state.success]);
+
+  if (state.success) return <></>;
 
   return (
     <form action={formAction} className="space-y-4 px-5 py-4 bg-sp-admin-hover/20 border-t border-sp-admin-border">
@@ -64,6 +65,10 @@ function IssuerEditForm({
           <input name="city" defaultValue={issuer.city ?? ''} className={INPUT} maxLength={100} />
         </div>
         <div>
+          <label className={LABEL}>Estado / Región</label>
+          <input name="stateRegion" defaultValue={issuer.stateRegion ?? ''} className={INPUT} maxLength={100} />
+        </div>
+        <div>
           <label className={LABEL}>Código postal</label>
           <input name="postalCode" defaultValue={issuer.postalCode ?? ''} className={INPUT} maxLength={20} />
         </div>
@@ -72,11 +77,48 @@ function IssuerEditForm({
           <input name="email" type="email" defaultValue={issuer.email ?? ''} className={INPUT} maxLength={180} />
         </div>
         <div>
+          <label className={LABEL}>Teléfono</label>
+          <input name="phone" type="tel" defaultValue={issuer.phone ?? ''} className={INPUT} maxLength={40} />
+        </div>
+        <div>
+          <label className={LABEL}>Nº de registro mercantil</label>
+          <input name="registrationNumber" defaultValue={issuer.registrationNumber ?? ''} className={INPUT} maxLength={80} />
+        </div>
+        <div>
+          <label className={LABEL}>Fecha de constitución</label>
+          <input name="incorporationDate" type="date" defaultValue={issuer.incorporationDate ?? ''} className={INPUT} />
+        </div>
+        <div>
           <label className={LABEL}>Moneda por defecto</label>
           <select name="defaultCurrency" defaultValue={issuer.defaultCurrency ?? 'EUR'} className={INPUT}>
             {CURRENCIES.map((c) => <option key={c} value={c}>{c}</option>)}
           </select>
         </div>
+      </div>
+
+      <div>
+        <label className={LABEL}>Dirección</label>
+        <textarea name="address" rows={2} defaultValue={issuer.address ?? ''} className={TEXTAR} />
+      </div>
+
+      <div className="rounded-lg border border-sp-admin-border/60 bg-sp-admin-card px-3 py-2.5">
+        <input type="hidden" name="isDefault" value="false" />
+        <label className="flex items-start gap-2 cursor-pointer">
+          <input
+            type="checkbox"
+            name="isDefault"
+            value="true"
+            defaultChecked={issuer.isDefault}
+            disabled={issuer.isDefault}
+            className="mt-0.5"
+          />
+          <span>
+            <span className="block text-[11px] font-semibold text-sp-admin-text">Empresa emisora principal</span>
+            <span className="block text-[9px] text-sp-admin-muted mt-0.5">
+              Se seleccionará por defecto en facturas nuevas y borradores automáticos. Para sustituirla, marca otra empresa como principal.
+            </span>
+          </span>
+        </label>
       </div>
 
       {/* Serie de facturación */}
@@ -166,7 +208,14 @@ function IssuerCard({ issuer, isAdmin }: { issuer: IssuerCompany; isAdmin: boole
             </span>
           </div>
           <div>
-            <h3 className="text-[14px] font-bold text-sp-admin-text">{issuer.name}</h3>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h3 className="text-[14px] font-bold text-sp-admin-text">{issuer.name}</h3>
+              {issuer.isDefault ? (
+                <span className="rounded-full bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-emerald-700">
+                  Principal
+                </span>
+              ) : null}
+            </div>
             {issuer.legalName && (
               <p className="text-[11px] text-sp-admin-muted">{issuer.legalName}</p>
             )}
@@ -209,6 +258,14 @@ function IssuerCard({ issuer, isAdmin }: { issuer: IssuerCompany; isAdmin: boole
           <p className="text-[11px] text-sp-admin-muted font-mono whitespace-pre-line leading-relaxed">{issuer.bankDetails}</p>
         </div>
       )}
+
+      {!editing && issuer.isDefault && !issuer.bankDetails ? (
+        <div className="px-5 py-3 border-t border-amber-200 bg-amber-50">
+          <p className="text-[10px] font-semibold text-amber-800">
+            Falta configurar una cuenta de cobro verificada antes de emitir o enviar facturas reales.
+          </p>
+        </div>
+      ) : null}
 
       {/* Formulario de edición */}
       {editing && (

@@ -79,7 +79,7 @@ export async function createInvoiceFromDealAction(
   const amountBrand = Number(campaign.amountBrand ?? 0);
   const today       = new Date().toISOString().slice(0, 10);
   const dueDate     = new Date(Date.now() + 30 * 86_400_000).toISOString().slice(0, 10);
-  const currency    = issuer.defaultCurrency ?? 'EUR';
+  const currency    = campaign.currency || issuer.defaultCurrency || 'EUR';
 
   const invoiceNumber = await allocateInvoiceNumber(issuer.id);
 

@@ -31,8 +31,12 @@ export const issuerCompanies = pgTable(
     country:               varchar('country',               { length: 50  }),
     address:               text('address'),
     city:                  varchar('city',                  { length: 100 }),
+    stateRegion:           varchar('state_region',          { length: 100 }),
     postalCode:            varchar('postal_code',           { length: 20  }),
     email:                 varchar('email',                 { length: 180 }),
+    phone:                 varchar('phone',                 { length: 40  }),
+    registrationNumber:    varchar('registration_number',   { length: 80  }),
+    incorporationDate:     date('incorporation_date'),
     logoUrl:               text('logo_url'),
     defaultCurrency:       varchar('default_currency',      { length: 3   }).notNull().default('EUR'),
     defaultPaymentTerms:   text('default_payment_terms'),
@@ -43,10 +47,16 @@ export const issuerCompanies = pgTable(
     nextRectificationNumber:    integer('next_rectification_number').notNull().default(1),
     notes:                 text('notes'),
     isActive:              boolean('is_active').notNull().default(true),
+    isDefault:             boolean('is_default').notNull().default(false),
     createdAt:             timestamp('created_at',  { withTimezone: true }).notNull().defaultNow(),
     updatedAt:             timestamp('updated_at',  { withTimezone: true }).notNull().defaultNow(),
   },
-  (t) => [index('issuer_companies_active_idx').on(t.isActive)],
+  (t) => [
+    index('issuer_companies_active_idx').on(t.isActive),
+    uniqueIndex('issuer_companies_single_default_uq')
+      .on(t.isDefault)
+      .where(sql`is_default = true`),
+  ],
 );
 
 // ── Clientes de facturación ───────────────────────────────────────────

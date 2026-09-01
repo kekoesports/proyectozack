@@ -325,9 +325,10 @@ export async function generateInvoicePdf(
   setFont(9, 'normal', GRAY);
   if (issuer.taxId)    doc.text(`${t.issuerTaxIdLabel}: ${issuer.taxId}`, MARGIN, y + 4);
   if (issuer.address)  doc.text(issuer.address,          MARGIN, y + 8);
+  const issuerCityRegion = [issuer.city, issuer.stateRegion].filter(Boolean).join(', ');
+  const issuerLocality = [issuerCityRegion, issuer.postalCode].filter(Boolean).join(' ');
   const issuerCity = [
-    issuer.city,
-    issuer.postalCode,
+    issuerLocality,
     localizeCountryName(issuer.country, language),
   ].filter(Boolean).join(', ');
   if (issuerCity)      doc.text(issuerCity,               MARGIN, y + 12);
