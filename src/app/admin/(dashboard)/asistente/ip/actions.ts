@@ -5,8 +5,13 @@ import { redirect } from 'next/navigation';
 import { z } from 'zod';
 
 import {
+  IP_DATA_ROOM_REQUIREMENTS,
+  IP_DOCUMENT_CATEGORIES,
+  IP_DOCUMENT_STATUSES,
+  IP_DOCUMENT_STORAGE_LOCATIONS,
   IP_EVIDENCE_KINDS,
   IP_LEGAL_ENTITIES,
+  createIpDocument,
   createIpProject,
   createIpWorkLog,
 } from '@/lib/queries/ipEvidence';
@@ -58,6 +63,55 @@ const workLogSchema = z.object({
       code: 'custom',
       path: ['evidenceRef'],
       message: 'Selecciona una evidencia automática o añade una referencia manual.',
+    });
+  }
+});
+
+const knownRequirementCodes = new Set(IP_DATA_ROOM_REQUIREMENTS.map((requirement) => requirement.code));
+
+const documentSchema = z.object({
+  projectId: z.coerce.number().int().positive(),
+  requirementCode: z.string().trim().min(2).max(60).refine(
+    (value) => knownRequirementCodes.has(value),
+    'Selecciona un requisito documental conocido.',
+  ),
+  title: z.string().trim().min(3).max(240),
+  category: z.enum(IP_DOCUMENT_CATEGORIES),
+  status: z.enum(IP_DOCUMENT_STATUSES),
+  legalEntity: z.union([z.enum(IP_LEGAL_ENTITIES), z.literal('')])
+    .transform((value) => value || null),
+  storageLocation: z.enum(IP_DOCUMENT_STORAGE_LOCATIONS),
+  documentRef: z.string().trim().min(3).max(1_000).refine(
+    (value) => value.startsWith('https://') || value.startsWith('repo:'),
+    'Usa un enlace HTTPS o una referencia repo: verificable.',
+  ),
+  versionLabel: z.string().trim().max(80).optional(),
+  contentSha256: z.preprocess(
+    (value) => String(value ?? '').trim().toLowerCase() || undefined,
+    z.string().regex(/^[0-9a-f]{64}$/).optional(),
+  ),
+  effectiveOn: z.preprocess(
+    (value) => String(value ?? '').trim() || undefined,
+    z.string().date().optional(),
+  ),
+  expiresOn: z.preprocess(
+    (value) => String(value ?? '').trim() || undefined,
+    z.string().date().optional(),
+  ),
+  notes: z.string().trim().max(2_000).optional(),
+}).superRefine((value, context) => {
+  if (value.expiresOn && value.effectiveOn && value.expiresOn < value.effectiveOn) {
+    context.addIssue({
+      code: 'custom',
+      path: ['expiresOn'],
+      message: 'La caducidad no puede ser anterior a la fecha efectiva.',
+    });
+  }
+  if (value.status === 'advisor_approved' && !value.notes) {
+    context.addIssue({
+      code: 'custom',
+      path: ['notes'],
+      message: 'Identifica la revisión profesional antes de marcar el documento como aprobado.',
     });
   }
 });
@@ -140,6 +194,56 @@ export async function createIpWorkLogAction(formData: FormData): Promise<never> 
   if (errorCode) redirect(`${REVALIDATE_PATH}?error=${errorCode}`);
   revalidatePath(REVALIDATE_PATH);
   redirect(`${REVALIDATE_PATH}?created=log`);
+}
+
+export async function createIpDocumentAction(formData: FormData): Promise<never> {
+  const session = await requirePermission('ip_evidence', 'write');
+  const requirementCode = String(formData.get('requirementCode') ?? '').trim();
+  const requirement = IP_DATA_ROOM_REQUIREMENTS.find((item) => item.code === requirementCode);
+  const parsed = documentSchema.safeParse({
+    projectId: formData.get('projectId'),
+    requirementCode,
+    title: String(formData.get('title') ?? ''),
+    category: String(formData.get('category') ?? requirement?.category ?? ''),
+    status: String(formData.get('status') ?? ''),
+    legalEntity: String(formData.get('legalEntity') ?? ''),
+    storageLocation: String(formData.get('storageLocation') ?? ''),
+    documentRef: String(formData.get('documentRef') ?? ''),
+    versionLabel: optionalFormValue(formData, 'versionLabel'),
+    contentSha256: formData.get('contentSha256'),
+    effectiveOn: formData.get('effectiveOn'),
+    expiresOn: formData.get('expiresOn'),
+    notes: optionalFormValue(formData, 'notes'),
+  });
+
+  if (
+    !parsed.success
+    || !requirement
+    || parsed.data.category !== requirement.category
+    || parsed.data.effectiveOn && parsed.data.effectiveOn > TODAY()
+  ) {
+    redirect(`${REVALIDATE_PATH}?error=document-validation`);
+  }
+
+  let failed = false;
+  try {
+    await createIpDocument({
+      ...parsed.data,
+      versionLabel: parsed.data.versionLabel,
+      contentSha256: parsed.data.contentSha256,
+      effectiveOn: parsed.data.effectiveOn,
+      expiresOn: parsed.data.expiresOn,
+      notes: parsed.data.notes,
+      recordedByUserId: session.user.id,
+    });
+  } catch (error) {
+    logRedacted('error', '[ip-evidence] No se pudo registrar el documento:', error);
+    failed = true;
+  }
+
+  if (failed) redirect(`${REVALIDATE_PATH}?error=document-create`);
+  revalidatePath(REVALIDATE_PATH);
+  redirect(`${REVALIDATE_PATH}?created=document`);
 }
 
 export async function syncIpEvidenceAction(): Promise<never> {

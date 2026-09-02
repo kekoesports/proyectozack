@@ -3,12 +3,21 @@ import Link from 'next/link';
 import { IP_ACTIVITY_CATEGORIES } from '@/lib/ip-evidence/policy';
 import { hasPermission, requirePermission } from '@/lib/permissions';
 import {
+  IP_DATA_ROOM_REQUIREMENTS,
+  IP_DOCUMENT_CATEGORIES,
+  IP_DOCUMENT_STATUSES,
+  IP_DOCUMENT_STORAGE_LOCATIONS,
   IP_EVIDENCE_KINDS,
   IP_LEGAL_ENTITIES,
   getIpReadinessDashboard,
 } from '@/lib/queries/ipEvidence';
 
-import { createIpProjectAction, createIpWorkLogAction, syncIpEvidenceAction } from './actions';
+import {
+  createIpDocumentAction,
+  createIpProjectAction,
+  createIpWorkLogAction,
+  syncIpEvidenceAction,
+} from './actions';
 
 export const metadata = { title: 'Expediente IP — Zack Operaciones' };
 
@@ -52,14 +61,53 @@ const ASSESSMENT_LABELS = {
   non_qualifying: 'No candidata',
 } as const;
 
+const DOCUMENT_CATEGORY_LABELS: Record<(typeof IP_DOCUMENT_CATEGORIES)[number], string> = {
+  ownership: 'Titularidad y cesiones',
+  people: 'Personas y contratos',
+  cost: 'Costes y facturas',
+  technical: 'Evidencia técnica',
+  valuation: 'Valoración',
+  tax: 'Fiscalidad / asesor',
+  transfer_pricing: 'Operaciones vinculadas',
+  corporate: 'Societario',
+  revenue: 'Ingresos y Nexus',
+  brand_domain: 'Dominio y producto',
+  other: 'Otro',
+};
+
+const DOCUMENT_STATUS_LABELS: Record<(typeof IP_DOCUMENT_STATUSES)[number], string> = {
+  draft: 'Borrador',
+  collected: 'Recopilado',
+  review_required: 'Requiere revisión',
+  advisor_approved: 'Aprobado por asesor',
+  replaced: 'Sustituido',
+};
+
+const STORAGE_LABELS: Record<(typeof IP_DOCUMENT_STORAGE_LOCATIONS)[number], string> = {
+  google_drive: 'Google Drive privado',
+  crm_private: 'Almacenamiento privado CRM',
+  github: 'Repositorio GitHub',
+  other: 'Otra ubicación controlada',
+};
+
+const STAGE_LABELS = {
+  now: 'Ahora',
+  before_transfer: 'Antes de cualquier transferencia',
+  after_incorporation: 'Después de constituir Cyprus Ltd',
+  annual_claim: 'Por ejercicio fiscal',
+} as const;
+
 const MESSAGE_BY_CODE: Record<string, { tone: 'success' | 'error'; text: string }> = {
   project: { tone: 'success', text: 'Proyecto de propiedad intelectual creado.' },
   log: { tone: 'success', text: 'Parte de trabajo registrado y sellado.' },
+  document: { tone: 'success', text: 'Documento añadido al data room sin alterar versiones anteriores.' },
   'project-validation': { tone: 'error', text: 'Revisa los datos del proyecto.' },
   'project-code-exists': { tone: 'error', text: 'Ese código de proyecto ya existe.' },
   'project-create': { tone: 'error', text: 'No se pudo crear el proyecto.' },
   'log-validation': { tone: 'error', text: 'Revisa las horas y la evidencia del parte.' },
   'log-create': { tone: 'error', text: 'No se pudo registrar el parte.' },
+  'document-validation': { tone: 'error', text: 'Revisa la referencia, fechas y estado del documento.' },
+  'document-create': { tone: 'error', text: 'No se pudo registrar el documento.' },
   'evidence-sync': { tone: 'error', text: 'No se pudo completar la sincronización con GitHub.' },
 };
 
@@ -147,13 +195,16 @@ export default async function IpEvidencePage({ searchParams }: PageProps): Promi
         </div>
       )}
 
-      <section aria-label="Resumen del expediente" className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+      <section aria-label="Resumen del expediente" className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {[
           ['Proyectos activos', String(dashboard.summary.activeProjects), 'Expedientes en seguimiento'],
           ['Horas este mes', `${hours(dashboard.summary.monthMinutes)} h`, 'Trabajo total documentado'],
           ['Horas candidatas', `${hours(dashboard.summary.candidateMinutes)} h`, 'Clasificación provisional I+D/IT'],
           ['Registro contemporáneo', `${dashboard.summary.contemporaneousPercentage}%`, 'Partes del mismo día o siguiente'],
           ['Evidencias pendientes', String(dashboard.summary.pendingEvidence), 'PRs aún sin parte humano'],
+          ['Documentos registrados', String(dashboard.summary.documentsRegistered), 'Versiones conservadas en el data room'],
+          ['Checklist preparada', `${dashboard.summary.readyRequirements}/${dashboard.summary.totalRequirements}`, 'Recopilado o aprobado'],
+          ['Aprobación profesional', String(dashboard.summary.advisorApprovedDocuments), 'Documentos validados por asesor'],
         ].map(([label, value, detail]) => (
           <article key={label} className="rounded-xl border border-white/10 bg-sp-admin-card p-4">
             <p className="text-xs uppercase tracking-wider text-sp-muted">{label}</p>
@@ -297,6 +348,134 @@ export default async function IpEvidencePage({ searchParams }: PageProps): Promi
           <div className="rounded-xl border border-white/10 bg-sp-admin-card p-4 text-sm text-sp-muted 2xl:col-span-2">
             Tu acceso es de auditoría: puedes consultar proyectos, horas y huecos documentales, pero solo administración puede registrar o modificar proyectos.
           </div>
+        )}
+      </section>
+
+      <section className="space-y-4">
+        <div className="flex flex-col gap-2 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <h2 className="text-lg font-semibold text-white">Data room PRE-CYPRUS</h2>
+            <p className="max-w-3xl text-xs leading-5 text-sp-muted">
+              Índice de contratos, justificantes, informes y decisiones. Los archivos sensibles permanecen en Drive o almacenamiento privado; el CRM conserva la referencia, versión y huella de integridad.
+            </p>
+          </div>
+          <a
+            href="https://drive.google.com/drive/folders/1N00gIbraMwi6k_ov8AIzFhmtT31ohQTU"
+            target="_blank"
+            rel="noreferrer"
+            className="w-fit rounded-lg border border-white/10 px-4 py-2 text-sm text-white transition hover:border-sp-orange/50 hover:text-sp-orange"
+          >
+            Abrir archivo privado
+          </a>
+        </div>
+
+        <div className="grid gap-3 xl:grid-cols-2">
+          {dashboard.dataRoomRequirements.map((requirement) => {
+            const document = requirement.currentDocument;
+            const ready = document?.status === 'collected' || document?.status === 'advisor_approved';
+            return (
+              <article key={requirement.code} className="rounded-xl border border-white/10 bg-sp-admin-card p-4">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <div className="flex flex-wrap gap-2 text-[11px]">
+                      <span className="rounded bg-white/10 px-2 py-1 font-semibold text-white">{requirement.code}</span>
+                      <span className="rounded bg-white/5 px-2 py-1 text-sp-muted">{DOCUMENT_CATEGORY_LABELS[requirement.category]}</span>
+                      <span className="rounded bg-cyan-400/10 px-2 py-1 text-cyan-200">{STAGE_LABELS[requirement.stage]}</span>
+                    </div>
+                    <h3 className="mt-2 font-medium text-white">{requirement.title}</h3>
+                    <p className="mt-1 text-xs leading-5 text-sp-muted">{requirement.description}</p>
+                  </div>
+                  <span className={`rounded px-2 py-1 text-xs font-semibold ${ready ? 'bg-emerald-400/10 text-emerald-200' : 'bg-amber-400/10 text-amber-200'}`}>
+                    {document ? DOCUMENT_STATUS_LABELS[document.status] : 'Pendiente'}
+                  </span>
+                </div>
+                {document && (
+                  <div className="mt-3 border-t border-white/5 pt-3 text-xs text-sp-muted">
+                    <p className="text-white">{document.title}{document.versionLabel ? ` · ${document.versionLabel}` : ''}</p>
+                    <p className="mt-1">{STORAGE_LABELS[document.storageLocation]} · {dateLabel(document.createdAt)}</p>
+                    {document.documentRef.startsWith('https://') ? (
+                      <a href={document.documentRef} target="_blank" rel="noreferrer" className="mt-2 inline-block text-sp-orange hover:underline">Abrir última versión</a>
+                    ) : (
+                      <p className="mt-2 break-all font-mono text-[11px]">{document.documentRef}</p>
+                    )}
+                  </div>
+                )}
+              </article>
+            );
+          })}
+        </div>
+
+        {canWrite && writableProjects.length > 0 && (
+          <details className="rounded-xl border border-white/10 bg-sp-admin-card p-4">
+            <summary className="cursor-pointer select-none font-semibold text-white">Registrar una versión documental</summary>
+            <p className="mt-2 text-xs leading-5 text-sp-muted">
+              No subas claves, contraseñas ni códigos 2FA. Para sustituir un documento, crea una nueva versión; el registro anterior se conserva.
+            </p>
+            <form action={createIpDocumentAction} className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+              <label className="text-xs text-sp-muted">
+                Proyecto / activo
+                <select name="projectId" required className="mt-1 w-full rounded-lg border border-white/10 bg-sp-admin-bg px-3 py-2 text-sm text-white">
+                  {writableProjects.map((project) => <option key={project.id} value={project.id}>{project.code} · {project.name}</option>)}
+                </select>
+              </label>
+              <label className="text-xs text-sp-muted xl:col-span-2">
+                Requisito documental
+                <select name="requirementCode" required className="mt-1 w-full rounded-lg border border-white/10 bg-sp-admin-bg px-3 py-2 text-sm text-white">
+                  {IP_DATA_ROOM_REQUIREMENTS.map((requirement) => <option key={requirement.code} value={requirement.code}>{requirement.code} · {requirement.title}</option>)}
+                </select>
+              </label>
+              <label className="text-xs text-sp-muted xl:col-span-2">
+                Título exacto del documento
+                <input name="title" required placeholder="Contrato, informe, factura o registro" className="mt-1 w-full rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-sm text-white" />
+              </label>
+              <label className="text-xs text-sp-muted">
+                Estado
+                <select name="status" defaultValue="review_required" required className="mt-1 w-full rounded-lg border border-white/10 bg-sp-admin-bg px-3 py-2 text-sm text-white">
+                  {IP_DOCUMENT_STATUSES.filter((status) => status !== 'replaced').map((status) => <option key={status} value={status}>{DOCUMENT_STATUS_LABELS[status]}</option>)}
+                </select>
+              </label>
+              <label className="text-xs text-sp-muted">
+                Entidad relacionada
+                <select name="legalEntity" className="mt-1 w-full rounded-lg border border-white/10 bg-sp-admin-bg px-3 py-2 text-sm text-white">
+                  <option value="">Por determinar / varias entidades</option>
+                  {IP_LEGAL_ENTITIES.map((entity) => <option key={entity} value={entity}>{ENTITY_LABELS[entity]}</option>)}
+                </select>
+              </label>
+              <label className="text-xs text-sp-muted">
+                Ubicación
+                <select name="storageLocation" defaultValue="google_drive" required className="mt-1 w-full rounded-lg border border-white/10 bg-sp-admin-bg px-3 py-2 text-sm text-white">
+                  {IP_DOCUMENT_STORAGE_LOCATIONS.map((location) => <option key={location} value={location}>{STORAGE_LABELS[location]}</option>)}
+                </select>
+              </label>
+              <label className="text-xs text-sp-muted">
+                Versión
+                <input name="versionLabel" placeholder="v1 / firmado / 2026-Q3" className="mt-1 w-full rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-sm text-white" />
+              </label>
+              <label className="text-xs text-sp-muted sm:col-span-2 xl:col-span-3">
+                Enlace HTTPS o referencia del repositorio
+                <input name="documentRef" type="text" required placeholder="https://drive.google.com/... o repo:docs/ip/..." className="mt-1 w-full rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-sm text-white" />
+              </label>
+              <label className="text-xs text-sp-muted">
+                Fecha efectiva
+                <input name="effectiveOn" type="date" max={today} className="mt-1 w-full rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-sm text-white" />
+              </label>
+              <label className="text-xs text-sp-muted">
+                Caducidad, si existe
+                <input name="expiresOn" type="date" className="mt-1 w-full rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-sm text-white" />
+              </label>
+              <label className="text-xs text-sp-muted">
+                SHA-256 del archivo, opcional
+                <input name="contentSha256" minLength={64} maxLength={64} placeholder="64 caracteres hexadecimales" className="mt-1 w-full rounded-lg border border-white/10 bg-black/20 px-3 py-2 font-mono text-xs text-white" />
+              </label>
+              <label className="text-xs text-sp-muted sm:col-span-2 xl:col-span-3">
+                Notas de revisión
+                <textarea name="notes" rows={3} placeholder="Quién debe revisarlo, alcance y decisión pendiente. Obligatorio si se marca como aprobado por asesor." className="mt-1 w-full rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-sm text-white" />
+              </label>
+              <button type="submit" className="w-fit rounded-lg bg-sp-orange px-4 py-2 text-sm font-semibold text-white hover:brightness-110 sm:col-span-2 xl:col-span-3">
+                Sellar versión en el data room
+              </button>
+            </form>
+          </details>
         )}
       </section>
 

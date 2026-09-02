@@ -61,6 +61,8 @@ un parte cuando se registra trabajo real.
 - [x] Separar evidencia, coste, ahorro e ingreso por política.
 - [x] Implantar expediente prospectivo de proyectos, tiempo y evidencia en el CRM.
 - [x] Activar bandeja inmutable y sincronización diaria de PR fusionados.
+- [x] Crear data room privado, checklist por fases y registro append-only de versiones documentales.
+- [x] Definir la separación de `kekopilot.com`, `app`, `docs`, `status` y `api` sin iniciar el core.
 - [ ] Recopilar contratos de empleados/contratistas y cesiones existentes.
 - [ ] Identificar quién pagó desarrollo, APIs y hosting por periodo.
 - [ ] Crear inventario de dependencias y licencias de terceros.
@@ -104,6 +106,7 @@ core nuevo sustancial debe esperar a este gate.
 ### Gate 4 — ledgers y evidence pack
 
 - [x] Registro inicial de proyectos, tiempo y evidencia con historial append-only.
+- [x] Registro documental con ubicación, estado, versión, huella y revisión profesional separada.
 - [ ] IP Registry formal, ownership events y versiones.
 - [ ] Experimentos I+D, costes reales conciliados y revisión del asesor.
 - [ ] Reconciliación de usage IA con factura/pago real.

@@ -4,8 +4,18 @@ import { createHash } from 'node:crypto';
 
 import { and, desc, eq, gte, inArray, isNull, sql } from 'drizzle-orm';
 
-import { ipEvidenceEvents, ipProjects, ipWorkLogs } from '@/db/schema';
+import { ipDocuments, ipEvidenceEvents, ipProjects, ipWorkLogs } from '@/db/schema';
 import { db } from '@/lib/db';
+import {
+  IP_DATA_ROOM_REQUIREMENTS,
+  IP_DOCUMENT_CATEGORIES,
+  IP_DOCUMENT_STATUSES,
+  IP_DOCUMENT_STORAGE_LOCATIONS,
+  isIpDocumentReady,
+  type IpDocumentCategory,
+  type IpDocumentStatus,
+  type IpDocumentStorageLocation,
+} from '@/lib/ip-evidence/data-room';
 import {
   calculateProjectReadiness,
   provisionalAssessmentForCategory,
@@ -32,6 +42,13 @@ export const IP_EVIDENCE_KINDS = [
 export type IpLegalEntity = (typeof IP_LEGAL_ENTITIES)[number];
 export type IpEvidenceKind = (typeof IP_EVIDENCE_KINDS)[number];
 
+export {
+  IP_DATA_ROOM_REQUIREMENTS,
+  IP_DOCUMENT_CATEGORIES,
+  IP_DOCUMENT_STATUSES,
+  IP_DOCUMENT_STORAGE_LOCATIONS,
+};
+
 export type CreateIpProjectInput = {
   readonly code: string;
   readonly name: string;
@@ -57,6 +74,23 @@ export type CreateIpWorkLogInput = {
   readonly description: string;
   readonly evidenceKind?: IpEvidenceKind | undefined;
   readonly evidenceRef?: string | undefined;
+  readonly recordedByUserId: string;
+};
+
+export type CreateIpDocumentInput = {
+  readonly projectId: number;
+  readonly requirementCode: string;
+  readonly title: string;
+  readonly category: IpDocumentCategory;
+  readonly status: IpDocumentStatus;
+  readonly legalEntity: IpLegalEntity | null;
+  readonly storageLocation: IpDocumentStorageLocation;
+  readonly documentRef: string;
+  readonly versionLabel: string | undefined;
+  readonly contentSha256: string | undefined;
+  readonly effectiveOn: string | undefined;
+  readonly expiresOn: string | undefined;
+  readonly notes: string | undefined;
   readonly recordedByUserId: string;
 };
 
@@ -175,6 +209,68 @@ export async function createIpWorkLog(input: CreateIpWorkLogInput): Promise<numb
   });
 }
 
+export async function createIpDocument(input: CreateIpDocumentInput): Promise<number> {
+  return db.transaction(async (tx) => {
+    const [project] = await tx
+      .select({ id: ipProjects.id })
+      .from(ipProjects)
+      .where(
+        and(
+          eq(ipProjects.id, input.projectId),
+          inArray(ipProjects.status, ['draft', 'active', 'paused', 'completed']),
+        ),
+      )
+      .limit(1);
+
+    if (!project) throw new Error('ip-project-not-available');
+
+    const createdAt = new Date();
+    const canonicalDocument = JSON.stringify({
+      projectId: project.id,
+      requirementCode: input.requirementCode,
+      title: input.title,
+      category: input.category,
+      status: input.status,
+      legalEntity: input.legalEntity,
+      storageLocation: input.storageLocation,
+      documentRef: input.documentRef,
+      versionLabel: input.versionLabel ?? null,
+      contentSha256: input.contentSha256 ?? null,
+      effectiveOn: input.effectiveOn ?? null,
+      expiresOn: input.expiresOn ?? null,
+      notes: input.notes ?? null,
+      recordedByUserId: input.recordedByUserId,
+      createdAt: createdAt.toISOString(),
+    });
+    const integrityHash = createHash('sha256').update(canonicalDocument).digest('hex');
+
+    const [created] = await tx
+      .insert(ipDocuments)
+      .values({
+        projectId: project.id,
+        requirementCode: input.requirementCode,
+        title: input.title,
+        category: input.category,
+        status: input.status,
+        legalEntity: input.legalEntity,
+        storageLocation: input.storageLocation,
+        documentRef: input.documentRef,
+        versionLabel: input.versionLabel || null,
+        contentSha256: input.contentSha256 || null,
+        effectiveOn: input.effectiveOn || null,
+        expiresOn: input.expiresOn || null,
+        notes: input.notes || null,
+        integrityHash,
+        recordedByUserId: input.recordedByUserId,
+        createdAt,
+      })
+      .returning({ id: ipDocuments.id });
+
+    if (!created) throw new Error('ip-document-not-created');
+    return created.id;
+  });
+}
+
 function firstDayOfUtcMonth(now: Date): string {
   return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)).toISOString().slice(0, 10);
 }
@@ -261,6 +357,47 @@ export async function getIpReadinessDashboard() {
     .leftJoin(ipWorkLogs, eq(ipWorkLogs.evidenceEventId, ipEvidenceEvents.id))
     .where(isNull(ipWorkLogs.id));
 
+  const documents = await db
+    .select({
+      id: ipDocuments.id,
+      projectId: ipDocuments.projectId,
+      projectCode: ipProjects.code,
+      requirementCode: ipDocuments.requirementCode,
+      title: ipDocuments.title,
+      category: ipDocuments.category,
+      status: ipDocuments.status,
+      legalEntity: ipDocuments.legalEntity,
+      storageLocation: ipDocuments.storageLocation,
+      documentRef: ipDocuments.documentRef,
+      versionLabel: ipDocuments.versionLabel,
+      contentSha256: ipDocuments.contentSha256,
+      effectiveOn: ipDocuments.effectiveOn,
+      expiresOn: ipDocuments.expiresOn,
+      notes: ipDocuments.notes,
+      integrityHash: ipDocuments.integrityHash,
+      createdAt: ipDocuments.createdAt,
+    })
+    .from(ipDocuments)
+    .innerJoin(ipProjects, eq(ipDocuments.projectId, ipProjects.id))
+    .orderBy(desc(ipDocuments.createdAt), desc(ipDocuments.id));
+
+  const latestDocumentByRequirement = new Map<string, (typeof documents)[number]>();
+  for (const document of documents) {
+    if (!latestDocumentByRequirement.has(document.requirementCode)) {
+      latestDocumentByRequirement.set(document.requirementCode, document);
+    }
+  }
+  const dataRoomRequirements = IP_DATA_ROOM_REQUIREMENTS.map((requirement) => ({
+    ...requirement,
+    currentDocument: latestDocumentByRequirement.get(requirement.code) ?? null,
+  }));
+  const readyRequirementCount = dataRoomRequirements.filter(
+    (requirement) => requirement.currentDocument && isIpDocumentReady(requirement.currentDocument.status),
+  ).length;
+  const advisorApprovedDocumentCount = documents.filter(
+    (document) => document.status === 'advisor_approved',
+  ).length;
+
   const statsByProject = new Map(projectStats.map((row) => [row.projectId, row]));
   const projectsWithReadiness = projects.map((project) => {
     const stats = statsByProject.get(project.id) ?? {
@@ -297,6 +434,8 @@ export async function getIpReadinessDashboard() {
     projects: projectsWithReadiness,
     recentLogs,
     pendingEvidence,
+    documents: documents.slice(0, 50),
+    dataRoomRequirements,
     summary: {
       activeProjects: projects.filter((project) => project.status === 'active').length,
       monthMinutes: month.minutes,
@@ -304,6 +443,10 @@ export async function getIpReadinessDashboard() {
       contemporaneousPercentage:
         month.logCount === 0 ? 0 : Math.round((month.contemporaneousCount / month.logCount) * 100),
       pendingEvidence: pendingEvidenceStats?.count ?? 0,
+      documentsRegistered: documents.length,
+      readyRequirements: readyRequirementCount,
+      totalRequirements: IP_DATA_ROOM_REQUIREMENTS.length,
+      advisorApprovedDocuments: advisorApprovedDocumentCount,
     },
   };
 }
