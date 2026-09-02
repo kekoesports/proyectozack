@@ -32,6 +32,9 @@ Documentos:
   en evidencia contable o fiscal.
 - [`CYPRUS_DATA_ROOM_CHECKLIST.md`](./CYPRUS_DATA_ROOM_CHECKLIST.md): estructura
   del archivo privado, checklist por fases y reglas de conservación.
+- [`IP_BOX_SOURCE_LIBRARY_2026-09.md`](./IP_BOX_SOURCE_LIBRARY_2026-09.md):
+  jerarquía de fuentes, cuestiones pendientes de asesor y protocolo de cierre
+  documental mensual.
 - [`../kekopilot/PRODUCT_DOMAIN_BLUEPRINT.md`](../kekopilot/PRODUCT_DOMAIN_BLUEPRINT.md):
   separación entre la web pública, el panel SaaS futuro y el CRM preexistente.
 
@@ -68,3 +71,5 @@ Plantillas:
    cualquier tratamiento tributario.
 5. KekoPilot y SocialPro pueden compartir conceptos o APIs sin que eso
    convierta automáticamente la IP de SocialPro en propiedad de KekoPilot.
+6. El cierre documental mensual recopila evidencia existente; no genera horas,
+   costes, contratos, titularidad, allocation o aprobación profesional.

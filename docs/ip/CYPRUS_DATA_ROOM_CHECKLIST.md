@@ -31,6 +31,11 @@ de asesor se archiva en `06 — Asesores España y Chipre`.
 | 08 | Contratos SaaS, ingresos, costes por activo y cálculos Nexus |
 | 09 | Dominio, marca, producto, diseños y materiales comerciales |
 
+La subcarpeta `Biblioteca normativa y fuentes` dentro de `06` conserva la
+investigación aportada, copias oficiales, fecha de consulta y el registro de
+fuentes. Las guías secundarias no se mezclan con una opinión profesional
+firmada.
+
 ## Reglas
 
 1. No guardar contraseñas, secretos API, semillas, recovery codes ni códigos
@@ -46,6 +51,14 @@ de asesor se archiva en `06 — Asesores España y Chipre`.
 6. Solo un asesor identificado puede justificar el estado
    `advisor_approved`.
 
+## Cierre mensual
+
+El primer día de cada mes se revisa el mes anterior y se archiva evidencia en
+las carpetas existentes. Cada cierre genera un manifiesto versionado con
+fuente, entidad, activo, periodo, estado e integridad. Si no existe soporte
+documental se registra el hueco, no se fabrica el dato. El procedimiento
+completo está en `IP_BOX_SOURCE_LIBRARY_2026-09.md`.
+
 ## Paquetes pendientes inmediatos
 
 - expediente factual de Luis Reche y decisión profesional posterior;
@@ -55,4 +68,3 @@ de asesor se archiva en `06 — Asesores España y Chipre`.
 - facts pack común para asesores de España y Chipre;
 - decisión sobre el tratamiento del baseline SocialPro;
 - arquitectura comercial de KekoPilot y uso de `kekopilot.com`.
-
