@@ -29,7 +29,7 @@ export const slashCardSchema = z.object({
   isPhysical: z.boolean(),
   cardGroupName: z.string().nullish(),
   createdAt: z.string().nullish(),
-  userData: z.record(z.string(), z.unknown()).optional(),
+  userData: z.record(z.string(), z.unknown()).nullish(),
 });
 
 const moneyInfoSchema = z.object({ amountCents: z.number() });
