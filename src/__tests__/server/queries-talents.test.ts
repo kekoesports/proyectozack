@@ -221,6 +221,30 @@ describe('talent queries', () => {
       expect(result).toHaveLength(2);
       expect(mockFindMany).toHaveBeenCalledTimes(1);
     });
+
+    it('repairs legacy social URLs before returning a talent', async () => {
+      const talent = makeTalentRow({
+        id: 12,
+        socials: [{
+          id: 4,
+          talentId: 12,
+          platform: 'twitch',
+          handle: 'creator',
+          followersDisplay: '10K',
+          profileUrl: 'twitch.tv/creator',
+          hexColor: '#9146ff',
+          platformId: null,
+          sortOrder: 0,
+          avgViewers: null,
+          topGeos: null,
+        }],
+      });
+      mockFindMany.mockResolvedValue([talent]);
+
+      const result = await getTalentsByIds([12]);
+
+      expect(result[0]?.socials[0]?.profileUrl).toBe('https://www.twitch.tv/creator');
+    });
   });
 
   // ── getTalentBySlug ─────────────────────────────────────────────────────────

@@ -5,6 +5,7 @@ import { talents, talentTags, talentStats, talentSocials, talentBusiness, talent
 import { needsVisibilityFilter } from '@/lib/permissions';
 import { parseFollowers, formatFollowers, slugify, initialsOf } from '@/lib/utils/import-utils';
 import { normalizePlatform } from '@/lib/utils/platform';
+import { normalizeSocialProfileUrl } from '@/lib/utils/social-profile-url';
 import type { Role } from '@/lib/auth-guard';
 import type { TalentWithRelations, TalentBusiness, TalentVertical, TalentSocial, TalentTag } from '@/types';
 import type { Talent } from '@/types';
@@ -13,6 +14,16 @@ export type TalentAccessSession = {
   readonly userId: string;
   readonly role: Role;
 };
+
+function withNormalizedSocialUrls(talent: TalentWithRelations): TalentWithRelations {
+  return {
+    ...talent,
+    socials: talent.socials.map((social) => ({
+      ...social,
+      profileUrl: normalizeSocialProfileUrl(social),
+    })),
+  };
+}
 
 /**
  * Talent IDs visible to a staff user (via campaign ownership).
@@ -119,7 +130,7 @@ export async function getTalents(filters?: TalentFilters): Promise<TalentWithRel
     orderBy: (t, { asc }) => [asc(t.sortOrder)],
   });
 
-  return rows;
+  return rows.map(withNormalizedSocialUrls);
 }
 
 /**
@@ -138,7 +149,7 @@ export const getTalentBySlug = cache(async (slug: string): Promise<TalentWithRel
       socials: { orderBy: (s, { asc }) => [asc(s.sortOrder)] },
     },
   });
-  return row ?? undefined;
+  return row ? withNormalizedSocialUrls(row) : undefined;
 });
 
 /**
@@ -150,7 +161,7 @@ export const getTalentBySlug = cache(async (slug: string): Promise<TalentWithRel
  */
 export async function getTalentsByIds(ids: number[]): Promise<TalentWithRelations[]> {
   if (ids.length === 0) return [];
-  return db.query.talents.findMany({
+  const rows = await db.query.talents.findMany({
     where: inArray(talents.id, ids),
     with: {
       tags: true,
@@ -158,6 +169,7 @@ export async function getTalentsByIds(ids: number[]): Promise<TalentWithRelation
       socials: { orderBy: (s, { asc }) => [asc(s.sortOrder)] },
     },
   });
+  return rows.map(withNormalizedSocialUrls);
 }
 
 // ── Admin queries (no visibility filter) ────────────────────────────
@@ -170,7 +182,7 @@ export async function getTalentsByIds(ids: number[]): Promise<TalentWithRelation
  * @returns array de TalentWithRelations (puede ser vacío). Nunca null.
  */
 export async function getAllTalents(opts?: { includeArchived?: boolean }): Promise<TalentWithRelations[]> {
-  return db.query.talents.findMany({
+  const rows = await db.query.talents.findMany({
     where: opts?.includeArchived ? undefined : isNull(talents.archivedAt),
     with: {
       tags: true,
@@ -179,6 +191,7 @@ export async function getAllTalents(opts?: { includeArchived?: boolean }): Promi
     },
     orderBy: (t, { asc }) => [asc(t.sortOrder)],
   });
+  return rows.map(withNormalizedSocialUrls);
 }
 
 /**
@@ -202,7 +215,7 @@ export async function getTalentById(id: number): Promise<TalentWithRelations | n
       socials: { orderBy: (s, { asc }) => [asc(s.sortOrder)] },
     },
   });
-  return row ?? null;
+  return row ? withNormalizedSocialUrls(row) : null;
 }
 
 /**
@@ -221,7 +234,7 @@ export const getTalentBySlugAdmin = cache(async (slug: string): Promise<TalentWi
       socials: { orderBy: (s, { asc }) => [asc(s.sortOrder)] },
     },
   });
-  return row ?? undefined;
+  return row ? withNormalizedSocialUrls(row) : undefined;
 });
 
 // ── Admin roster with 30-day growth data ─────────────────────────────
@@ -348,6 +361,10 @@ export async function getTalentFullProfile(id: number): Promise<TalentFullProfil
 
   return {
     ...row,
+    socials: row.socials.map((social) => ({
+      ...social,
+      profileUrl: normalizeSocialProfileUrl(social),
+    })),
     business: businessRows[0] ?? undefined,
     verticals: verticalRows.map((r) => r.vertical),
   };
@@ -524,6 +541,7 @@ async function insertSocialsFromMapped(
       talentId,
       platform: entry.platform,
       handle,
+      profileUrl: normalizeSocialProfileUrl({ platform: entry.platform, handle }) ?? undefined,
       followersDisplay: display,
       hexColor: PLATFORM_HEX[entry.platform] ?? '#888',
       sortOrder: sortOrder++,
@@ -552,13 +570,18 @@ async function upsertSocialsFromMapped(
     if (existing.length > 0 && existing[0]) {
       await db
         .update(talentSocials)
-        .set({ handle, followersDisplay })
+        .set({
+          handle,
+          profileUrl: normalizeSocialProfileUrl({ platform: entry.platform, handle }) ?? undefined,
+          followersDisplay,
+        })
         .where(eq(talentSocials.id, existing[0].id));
     } else {
       await db.insert(talentSocials).values({
         talentId,
         platform: entry.platform,
         handle,
+        profileUrl: normalizeSocialProfileUrl({ platform: entry.platform, handle }) ?? undefined,
         followersDisplay,
         hexColor: PLATFORM_HEX[entry.platform] ?? '#888',
         sortOrder: 0,

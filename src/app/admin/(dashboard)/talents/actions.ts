@@ -15,6 +15,7 @@ import { firstError } from '@/lib/forms/firstError';
 import { logRedacted } from '@/lib/log';
 import { IdSchema } from '@/lib/schemas/common';
 import { SocialPlatformSchema } from '@/lib/schemas/talentSocials';
+import { normalizeSocialProfileUrl } from '@/lib/utils/social-profile-url';
 
 type ActionState = { readonly success: boolean; readonly error?: string };
 
@@ -554,7 +555,18 @@ export async function upsertTalentSocialsAction(
       }
       const platform = platformParsed.data;
       const handle   = entry.handle.trim();
-      const profileUrl = entry.profileUrl?.trim() || null;
+      const suppliedProfileUrl = entry.profileUrl?.trim() || null;
+      const normalizedSuppliedUrl = suppliedProfileUrl
+        ? normalizeSocialProfileUrl({ platform, profileUrl: suppliedProfileUrl })
+        : null;
+      if (suppliedProfileUrl && !normalizedSuppliedUrl) {
+        return { ok: false, error: `La URL de ${platform} no corresponde a esa plataforma.` };
+      }
+      const profileUrl = normalizeSocialProfileUrl({
+        platform,
+        profileUrl: suppliedProfileUrl,
+        handle,
+      });
       const followersDisplay = entry.followersDisplay?.trim() || '-';
       const hexColor = PLATFORM_COLORS[platform] ?? '#888888';
       const sortOrder = entry.sortOrder ?? i;
