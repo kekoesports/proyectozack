@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
-import { requireFinancialSecurity } from '@/lib/security/financial-security';
+import { requireFinancialPageSecurity } from '@/lib/security/financial-security';
 import { setSlashCardOwnerLabel } from '@/lib/queries/slashAccounting';
 
 const ownerSchema = z.object({
@@ -12,7 +12,7 @@ const ownerSchema = z.object({
 });
 
 export async function updateSlashCardOwnerAction(formData: FormData): Promise<void> {
-  await requireFinancialSecurity('write');
+  await requireFinancialPageSecurity('write');
   const parsed = ownerSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return;
   await setSlashCardOwnerLabel(
