@@ -1,0 +1,2 @@
+DROP INDEX "bank_txn_external_account_uniq";--> statement-breakpoint
+CREATE INDEX "bank_txn_external_account_idx" ON "bank_transactions" USING btree ("external_id","bank_account_id") WHERE external_id IS NOT NULL;

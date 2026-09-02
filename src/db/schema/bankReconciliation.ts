@@ -183,7 +183,7 @@ export const bankTransactions = pgTable(
     index('bank_txn_booking_date_idx').on(t.bookingDate),
     index('bank_txn_direction_idx').on(t.direction),
     uniqueIndex('bank_txn_hash_account_uniq').on(t.transactionHash, t.bankAccountId),
-    uniqueIndex('bank_txn_external_account_uniq')
+    index('bank_txn_external_account_idx')
       .on(t.externalId, t.bankAccountId)
       .where(sql`external_id IS NOT NULL`),
   ],

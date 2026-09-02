@@ -39,12 +39,12 @@ const BANK_FIELD_HINTS: Record<BankMappableField, readonly string[]> = {
   currency: ['divisa', 'currency', 'moneda'],
   direction: ['tipo', 'type', 'sentido', 'direction', 'cargo/abono', 'debe/haber'],
   description: ['concepto', 'description', 'descripcion', 'descripción', 'detalle', 'memo', 'motivo', 'narrative'],
-  counterpartyName: ['nombre', 'beneficiario', 'ordenante', 'counterparty', 'payee', 'payer', 'razon social', 'razón social', 'nombre beneficiario', 'nombre tercero'],
+  counterpartyName: ['merchant', 'nombre', 'beneficiario', 'ordenante', 'counterparty', 'payee', 'payer', 'razon social', 'razón social', 'nombre beneficiario', 'nombre tercero'],
   counterpartyAccount: ['iban', 'cuenta', 'account', 'cuenta destino', 'cuenta origen', 'cuenta contraparte'],
   reference: ['referencia', 'reference', 'ref', 'id transaccion', 'id transacción', 'transaction id', 'num operacion'],
-  category: ['categoria', 'categoría', 'category', 'tipo gasto', 'subcategoria'],
-  originalAmount: ['exchange from amount', 'original amount', 'importe original'],
-  originalCurrency: ['exchange from currency', 'original currency', 'moneda original'],
+  category: ['transaction details type', 'categoria', 'categoría', 'category', 'tipo gasto', 'subcategoria'],
+  originalAmount: ['exchange to amount', 'exchange from amount', 'original amount', 'importe original'],
+  originalCurrency: ['exchange to', 'exchange from currency', 'original currency', 'moneda original'],
   conversionRate: ['exchange rate', 'conversion rate', 'tipo de cambio'],
   fxFee: ['total fees', 'fee', 'fees', 'comision', 'comisión'],
 };
@@ -208,12 +208,73 @@ export function applyBankMapping(opts: {
   return results;
 }
 
+/**
+ * Completa las particularidades del CSV oficial de Wise sin confiar en una
+ * única columna de contraparte. Los cargos de tarjeta usan Merchant, las
+ * salidas Payee y las entradas Payer. También conserva la divisa original de
+ * una conversión desde/hacia la cuenta seleccionada.
+ */
+export function applyWiseBankMapping(opts: {
+  readonly headers: readonly string[];
+  readonly rows: readonly (readonly string[])[];
+  readonly mapping: BankColumnMapping;
+  readonly defaultCurrency?: string;
+}): readonly ParsedBankRow[] {
+  return applyBankMapping(opts).map((row) => {
+    const merchant = row.rawFields.Merchant?.trim() ?? '';
+    const payer = row.rawFields['Payer Name']?.trim() ?? '';
+    const payee = row.rawFields['Payee Name']?.trim() ?? '';
+    const counterpartyName = merchant
+      || (row.direction === 'expense' ? payee || payer : payer || payee)
+      || row.counterpartyName;
+
+    const detailsType = row.rawFields['Transaction Details Type']?.trim() ?? '';
+    const exchangeFrom = row.rawFields['Exchange From']?.trim().toUpperCase() ?? '';
+    const exchangeTo = row.rawFields['Exchange To']?.trim().toUpperCase() ?? '';
+    const exchangeToAmountRaw = row.rawFields['Exchange To Amount']?.trim() ?? '';
+    const exchangeToAmount = exchangeToAmountRaw ? parseEsNumber(exchangeToAmountRaw) : null;
+
+    let originalAmount = row.originalAmount;
+    let originalCurrency = row.originalCurrency;
+    if (exchangeFrom && exchangeTo && exchangeFrom !== exchangeTo) {
+      if (exchangeFrom === row.currency && exchangeToAmount !== null) {
+        originalAmount = Math.abs(exchangeToAmount);
+        originalCurrency = exchangeTo.slice(0, 3);
+      } else if (
+        exchangeTo === row.currency
+        && row.conversionRate !== null
+        && row.conversionRate !== 0
+      ) {
+        originalAmount = Math.abs(row.amount / row.conversionRate);
+        originalCurrency = exchangeFrom.slice(0, 3);
+      }
+    }
+
+    return {
+      ...row,
+      counterpartyName: counterpartyName || null,
+      category: detailsType || row.category,
+      originalAmount,
+      originalCurrency,
+    };
+  });
+}
+
 // ── Hash for deduplication ────────────────────────────────────────────
 
 export function hashTransaction(row: ParsedBankRow, bankAccountId: number | null): string {
   if (row.externalId) {
+    const normalizedDate = row.bookingDate.toISOString().split('T')[0] ?? '';
     return createHash('sha256')
-      .update([String(bankAccountId ?? 'null'), 'external', row.externalId.trim()].join('|'))
+      .update([
+        String(bankAccountId ?? 'null'),
+        'external',
+        row.externalId.trim(),
+        normalizedDate,
+        row.direction,
+        row.amount.toFixed(2),
+        row.currency,
+      ].join('|'))
       .digest('hex');
   }
   const normalizedDate = row.bookingDate.toISOString().split('T')[0] ?? '';

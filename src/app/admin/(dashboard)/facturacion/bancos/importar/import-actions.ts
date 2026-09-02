@@ -15,6 +15,7 @@ import {
   parseBankXlsx,
   suggestBankMapping,
   applyBankMapping,
+  applyWiseBankMapping,
   hashTransaction,
   sanitizeBankRawJson,
 } from '@/lib/parsers/bankTransaction';
@@ -25,7 +26,6 @@ import {
   getBankAccount,
   createBankTransaction,
   getBankTransactionByHash,
-  getBankTransactionByExternalId,
   logReconciliationEvent,
 } from '@/lib/queries/bankReconciliation';
 import { getIssuerCompany } from '@/lib/queries/issuedInvoices';
@@ -165,7 +165,9 @@ export async function uploadAndImportAction(
       rows = sheet.rows;
     }
 
-    const parsedRows = applyBankMapping({ headers, rows, mapping, defaultCurrency: 'EUR' });
+    const parsedRows = wiseAccount.account
+      ? applyWiseBankMapping({ headers, rows, mapping, defaultCurrency: wiseAccount.account.currency })
+      : applyBankMapping({ headers, rows, mapping, defaultCurrency: 'EUR' });
     const totalRows = parsedRows.length;
 
     if (wiseAccount.account) {
@@ -196,10 +198,7 @@ export async function uploadAndImportAction(
     for (const row of parsedRows) {
       const txHash = hashTransaction(row, bankAccountId);
       const existing = await getBankTransactionByHash(txHash, bankAccountId);
-      const existingExternal = row.externalId && bankAccountId !== null
-        ? await getBankTransactionByExternalId(row.externalId, bankAccountId)
-        : null;
-      if (existing || existingExternal) {
+      if (existing) {
         duplicateRows += 1;
         continue;
       }
