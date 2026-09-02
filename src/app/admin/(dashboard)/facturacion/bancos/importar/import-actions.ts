@@ -22,11 +22,36 @@ import {
   createBankImport,
   updateBankImport,
   getBankImportByHash,
+  getBankAccount,
   createBankTransaction,
   getBankTransactionByHash,
+  getBankTransactionByExternalId,
   logReconciliationEvent,
 } from '@/lib/queries/bankReconciliation';
+import { getIssuerCompany } from '@/lib/queries/issuedInvoices';
 import type { BankColumnMapping } from '@/lib/parsers/bankTransaction';
+
+const ELEVATEX_TAX_ID = 'B21821046';
+
+async function validateWiseImportAccount(formData: FormData): Promise<{
+  readonly error?: string;
+  readonly account?: NonNullable<Awaited<ReturnType<typeof getBankAccount>>>;
+}> {
+  if (formData.get('sourceFormat') !== 'wise') return {};
+  const accountId = Number(formData.get('bankAccountId'));
+  if (!Number.isInteger(accountId) || accountId < 1) {
+    return { error: 'Selecciona una cuenta Wise de ELEVATEX' };
+  }
+  const account = await getBankAccount(accountId);
+  if (!account || account.provider !== 'wise' || account.issuerCompanyId === null) {
+    return { error: 'La cuenta seleccionada no es una cuenta Wise válida' };
+  }
+  const issuer = await getIssuerCompany(account.issuerCompanyId);
+  if (!issuer || issuer.taxId?.toUpperCase() !== ELEVATEX_TAX_ID) {
+    return { error: 'Wise solo puede importarse en la contabilidad de ELEVATEX AGENCY PA SL' };
+  }
+  return { account };
+}
 
 type ActionState = {
   readonly error?: string;
@@ -36,6 +61,10 @@ type ActionState = {
   readonly importedRows?: number;
   readonly duplicateRows?: number;
 };
+
+function isCsvFile(file: File): boolean {
+  return file.type === 'text/csv' || file.name.toLowerCase().endsWith('.csv');
+}
 
 // Step 1: upload file → return headers so the user can map columns
 export async function analyzeImportFileAction(
@@ -55,8 +84,11 @@ export async function analyzeImportFileAction(
     });
     if (!validation.ok) return { error: `Archivo no válido: ${validation.reason}` };
 
+    const wiseAccount = await validateWiseImportAccount(formData);
+    if (wiseAccount.error) return { error: wiseAccount.error };
+
     let headers: readonly string[];
-    if (file.type === 'text/csv') {
+    if (isCsvFile(file)) {
       const text = await file.text();
       const sheet = parseBankCsv(text);
       headers = sheet.headers;
@@ -96,6 +128,9 @@ export async function uploadAndImportAction(
     });
     if (!validation.ok) return { error: `Archivo no válido: ${validation.reason}` };
 
+    const wiseAccount = await validateWiseImportAccount(formData);
+    if (wiseAccount.error) return { error: wiseAccount.error };
+
     const rawMapping = Object.fromEntries(formData);
     const parsedMapping = bankColumnMappingSchema.safeParse(rawMapping);
     if (!parsedMapping.success) return { error: 'Mapeo de columnas inválido' };
@@ -118,7 +153,7 @@ export async function uploadAndImportAction(
     let headers: readonly string[];
     let rows: readonly (readonly string[])[];
 
-    if (file.type === 'text/csv') {
+    if (isCsvFile(file)) {
       const text = await file.text();
       const sheet = parseBankCsv(text);
       headers = sheet.headers;
@@ -133,10 +168,19 @@ export async function uploadAndImportAction(
     const parsedRows = applyBankMapping({ headers, rows, mapping, defaultCurrency: 'EUR' });
     const totalRows = parsedRows.length;
 
+    if (wiseAccount.account) {
+      const mismatchedCurrency = parsedRows.find((row) => row.currency !== wiseAccount.account?.currency);
+      if (mismatchedCurrency) {
+        return {
+          error: `El extracto contiene ${mismatchedCurrency.currency}, pero la cuenta Wise seleccionada es ${wiseAccount.account.currency}. Importa cada divisa en su cuenta correspondiente.`,
+        };
+      }
+    }
+
     // Create import record
     const bankImport = await createBankImport({
       ...(bankAccountId !== null ? { bankAccountId } : {}),
-      sourceType: file.type === 'text/csv' ? 'csv' : 'xlsx',
+      sourceType: isCsvFile(file) ? 'csv' : 'xlsx',
       sourceFilename: file.name,
       fileHash,
       status: 'pending',
@@ -152,7 +196,10 @@ export async function uploadAndImportAction(
     for (const row of parsedRows) {
       const txHash = hashTransaction(row, bankAccountId);
       const existing = await getBankTransactionByHash(txHash, bankAccountId);
-      if (existing) {
+      const existingExternal = row.externalId && bankAccountId !== null
+        ? await getBankTransactionByExternalId(row.externalId, bankAccountId)
+        : null;
+      if (existing || existingExternal) {
         duplicateRows += 1;
         continue;
       }
@@ -162,6 +209,7 @@ export async function uploadAndImportAction(
       await createBankTransaction({
         ...(bankAccountId !== null ? { bankAccountId } : {}),
         importId: bankImport.id,
+        ...(row.externalId !== null ? { externalId: row.externalId } : {}),
         transactionHash: txHash,
         bookingDate: row.bookingDate,
         ...(row.valueDate !== null ? { valueDate: row.valueDate } : {}),
@@ -173,6 +221,10 @@ export async function uploadAndImportAction(
         ...(row.counterpartyAccountMasked !== null ? { counterpartyAccountMasked: row.counterpartyAccountMasked } : {}),
         ...(row.reference !== null ? { reference: row.reference } : {}),
         ...(row.category !== null ? { category: row.category } : {}),
+        ...(row.originalAmount !== null ? { originalAmount: row.originalAmount.toString() } : {}),
+        ...(row.originalCurrency !== null ? { originalCurrency: row.originalCurrency } : {}),
+        ...(row.conversionRate !== null ? { conversionRate: row.conversionRate.toString() } : {}),
+        ...(row.fxFee !== null ? { fxFee: row.fxFee.toString() } : {}),
         status: 'imported',
         rawJsonSanitized: rawJson,
       });

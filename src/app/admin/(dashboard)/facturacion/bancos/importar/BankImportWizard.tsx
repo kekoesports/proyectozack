@@ -7,6 +7,7 @@ import type { BankAccount } from '@/types';
 import type { BankMappableField, BankColumnMapping } from '@/lib/parsers/bankTransaction';
 
 const FIELD_LABELS: Record<BankMappableField, string> = {
+  externalId: 'ID de transacción',
   bookingDate: 'Fecha operación *',
   valueDate: 'Fecha valor',
   amount: 'Importe *',
@@ -17,6 +18,10 @@ const FIELD_LABELS: Record<BankMappableField, string> = {
   counterpartyAccount: 'IBAN contraparte',
   reference: 'Referencia',
   category: 'Categoría',
+  originalAmount: 'Importe original',
+  originalCurrency: 'Moneda original',
+  conversionRate: 'Tipo de cambio',
+  fxFee: 'Comisión',
 };
 
 const REQUIRED_FIELDS: BankMappableField[] = ['bookingDate', 'amount', 'description'];
@@ -40,18 +45,24 @@ type ImportState = {
 const initAnalyze: AnalyzeState = {};
 const initImport: ImportState = {};
 
-type Props = { readonly accounts: readonly BankAccount[] };
+type Props = {
+  readonly accounts: readonly BankAccount[];
+  readonly wiseMode?: boolean;
+};
 
-export function BankImportWizard({ accounts }: Props): React.ReactElement {
+export function BankImportWizard({ accounts, wiseMode = false }: Props): React.ReactElement {
   const [analyzeState, analyzeAction, analyzePending] = useActionState(analyzeImportFileAction, initAnalyze);
   const [importState, importAction, importPending] = useActionState(uploadAndImportAction, initImport);
 
   const [file, setFile] = useState<File | null>(null);
   const [mapping, setMapping] = useState<BankColumnMapping>({});
-  const [accountId, setAccountId] = useState<string>('');
+  const [accountId, setAccountId] = useState<string>(accounts.length === 1 ? String(accounts[0]?.id ?? '') : '');
 
   const headers = analyzeState.headers;
   const step = importState.success ? 3 : headers ? 2 : 1;
+  const resolvedMapping = Object.keys(mapping).length === 0
+    ? analyzeState.suggestedMapping ?? mapping
+    : mapping;
 
   function handleAnalyze(e: React.FormEvent<HTMLFormElement>): void {
     e.preventDefault();
@@ -60,6 +71,7 @@ export function BankImportWizard({ accounts }: Props): React.ReactElement {
     const fd = new FormData();
     fd.set('file', file);
     if (accountId) fd.set('bankAccountId', accountId);
+    if (wiseMode) fd.set('sourceFormat', 'wise');
     analyzeAction(fd);
   }
 
@@ -69,15 +81,11 @@ export function BankImportWizard({ accounts }: Props): React.ReactElement {
     const fd = new FormData();
     fd.set('file', file);
     if (accountId) fd.set('bankAccountId', accountId);
-    for (const [field, idx] of Object.entries(mapping)) {
+    if (wiseMode) fd.set('sourceFormat', 'wise');
+    for (const [field, idx] of Object.entries(resolvedMapping)) {
       if (idx !== undefined) fd.set(field, String(idx));
     }
     importAction(fd);
-  }
-
-  // Apply suggested mapping when headers arrive
-  if (headers && analyzeState.suggestedMapping && Object.keys(mapping).length === 0) {
-    setMapping(analyzeState.suggestedMapping);
   }
 
   if (step === 3) {
@@ -113,13 +121,13 @@ export function BankImportWizard({ accounts }: Props): React.ReactElement {
         <form onSubmit={handleAnalyze} className="space-y-3">
           {accounts.length > 0 && (
             <div>
-              <label className="block text-xs font-semibold text-sp-admin-muted mb-1">Cuenta bancaria (opcional)</label>
+              <label className="block text-xs font-semibold text-sp-admin-muted mb-1">Cuenta bancaria {wiseMode ? '*' : '(opcional)'}</label>
               <select
                 value={accountId}
                 onChange={(e) => setAccountId(e.target.value)}
                 className="w-full rounded-lg border border-sp-border bg-sp-admin-bg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-sp-orange/40"
               >
-                <option value="">— Sin asignar —</option>
+                <option value="">{wiseMode ? '— Selecciona la cuenta Wise —' : '— Sin asignar —'}</option>
                 {accounts.map((a) => (
                   <option key={a.id} value={String(a.id)}>{a.displayName}</option>
                 ))}
@@ -127,7 +135,7 @@ export function BankImportWizard({ accounts }: Props): React.ReactElement {
             </div>
           )}
           <div>
-            <label className="block text-xs font-semibold text-sp-admin-muted mb-1">Archivo CSV o XLSX *</label>
+            <label className="block text-xs font-semibold text-sp-admin-muted mb-1">{wiseMode ? 'Extracto contable de Wise (CSV o XLSX) *' : 'Archivo CSV o XLSX *'}</label>
             <input
               type="file"
               accept=".csv,.xlsx,.xls"
@@ -144,7 +152,7 @@ export function BankImportWizard({ accounts }: Props): React.ReactElement {
           )}
           <button
             type="submit"
-            disabled={analyzePending || !file}
+            disabled={analyzePending || !file || (wiseMode && !accountId)}
             className="px-4 py-2 text-sm font-semibold rounded-lg bg-sp-orange text-white hover:bg-sp-orange/90 disabled:opacity-50 transition-colors"
           >
             {analyzePending ? 'Analizando…' : 'Analizar columnas →'}
@@ -168,16 +176,18 @@ export function BankImportWizard({ accounts }: Props): React.ReactElement {
                 <div key={field}>
                   <label className="block text-xs font-semibold text-sp-admin-muted mb-1">{FIELD_LABELS[field]}</label>
                   <select
-                    value={mapping[field] !== undefined ? String(mapping[field]) : ''}
+                    value={resolvedMapping[field] !== undefined ? String(resolvedMapping[field]) : ''}
                     onChange={(e) => {
                       const val = e.target.value;
                       setMapping((prev) => {
+                        const next = Object.keys(prev).length === 0
+                          ? { ...(analyzeState.suggestedMapping ?? {}) }
+                          : { ...prev };
                         if (!val) {
-                          const next = { ...prev };
                           delete next[field];
                           return next;
                         }
-                        return { ...prev, [field]: Number(val) };
+                        return { ...next, [field]: Number(val) };
                       });
                     }}
                     className="w-full rounded-lg border border-sp-border bg-sp-admin-bg px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-sp-orange/40"
@@ -193,14 +203,14 @@ export function BankImportWizard({ accounts }: Props): React.ReactElement {
             {importState.error && (
               <p className="text-xs text-red-500 bg-red-50 rounded-lg px-3 py-2">{importState.error}</p>
             )}
-            {REQUIRED_FIELDS.some((f) => mapping[f] === undefined) && (
+            {REQUIRED_FIELDS.some((f) => resolvedMapping[f] === undefined) && (
               <p className="text-xs text-amber-600 bg-amber-50 rounded-lg px-3 py-2">
                 Debes mapear los campos obligatorios: Fecha operación, Importe y Concepto.
               </p>
             )}
             <button
               type="submit"
-              disabled={importPending || REQUIRED_FIELDS.some((f) => mapping[f] === undefined)}
+              disabled={importPending || REQUIRED_FIELDS.some((f) => resolvedMapping[f] === undefined)}
               className="px-4 py-2 text-sm font-semibold rounded-lg bg-sp-orange text-white hover:bg-sp-orange/90 disabled:opacity-50 transition-colors"
             >
               {importPending ? 'Importando…' : 'Importar transacciones →'}

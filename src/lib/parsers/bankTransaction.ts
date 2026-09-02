@@ -11,6 +11,7 @@ import type { SheetExtract } from './common';
 // ── Field mapping ─────────────────────────────────────────────────────
 
 export const BANK_MAPPABLE_FIELDS = [
+  'externalId',
   'bookingDate',
   'valueDate',
   'amount',
@@ -21,12 +22,17 @@ export const BANK_MAPPABLE_FIELDS = [
   'counterpartyAccount',
   'reference',
   'category',
+  'originalAmount',
+  'originalCurrency',
+  'conversionRate',
+  'fxFee',
 ] as const;
 
 export type BankMappableField = (typeof BANK_MAPPABLE_FIELDS)[number];
 export type BankColumnMapping = Partial<Record<BankMappableField, number>>;
 
 const BANK_FIELD_HINTS: Record<BankMappableField, readonly string[]> = {
+  externalId: ['transferwise id', 'wise id', 'transaction id', 'id transaccion', 'id transacción'],
   bookingDate: ['fecha', 'fecha operacion', 'fecha operación', 'booking date', 'date', 'fecha contable', 'transaction date'],
   valueDate: ['valor', 'fecha valor', 'value date', 'settlement date'],
   amount: ['importe', 'amount', 'cantidad', 'monto', 'saldo', 'movimiento', 'cargo haber'],
@@ -37,6 +43,10 @@ const BANK_FIELD_HINTS: Record<BankMappableField, readonly string[]> = {
   counterpartyAccount: ['iban', 'cuenta', 'account', 'cuenta destino', 'cuenta origen', 'cuenta contraparte'],
   reference: ['referencia', 'reference', 'ref', 'id transaccion', 'id transacción', 'transaction id', 'num operacion'],
   category: ['categoria', 'categoría', 'category', 'tipo gasto', 'subcategoria'],
+  originalAmount: ['exchange from amount', 'original amount', 'importe original'],
+  originalCurrency: ['exchange from currency', 'original currency', 'moneda original'],
+  conversionRate: ['exchange rate', 'conversion rate', 'tipo de cambio'],
+  fxFee: ['total fees', 'fee', 'fees', 'comision', 'comisión'],
 };
 
 function normalizeHeader(s: string): string {
@@ -78,6 +88,7 @@ export function suggestBankMapping(headers: readonly string[]): BankColumnMappin
 // ── Parsed row intermediate ───────────────────────────────────────────
 
 export type ParsedBankRow = {
+  readonly externalId: string | null;
   readonly bookingDate: Date;
   readonly valueDate: Date | null;
   readonly amount: number;
@@ -88,6 +99,10 @@ export type ParsedBankRow = {
   readonly counterpartyAccountMasked: string | null;
   readonly reference: string | null;
   readonly category: string | null;
+  readonly originalAmount: number | null;
+  readonly originalCurrency: string | null;
+  readonly conversionRate: number | null;
+  readonly fxFee: number | null;
   readonly rawFields: Readonly<Record<string, string>>;
   readonly warnings: readonly string[];
 };
@@ -121,6 +136,8 @@ export function applyBankMapping(opts: {
 
     const warnings: string[] = [];
 
+    const externalId = cellAt(row, mapping.externalId) || null;
+
     const rawBooking = cellAt(row, mapping.bookingDate);
     const bookingDateStr = rawBooking ? parseAnyDate(rawBooking) : null;
     if (!bookingDateStr) {
@@ -150,6 +167,16 @@ export function applyBankMapping(opts: {
     const counterpartyAccountMasked = counterpartyAccountRaw ? maskIban(counterpartyAccountRaw) : null;
     const reference = cellAt(row, mapping.reference) || null;
     const category = cellAt(row, mapping.category) || null;
+    const rawOriginalAmount = cellAt(row, mapping.originalAmount);
+    const parsedOriginalAmount = rawOriginalAmount ? parseEsNumber(rawOriginalAmount) : null;
+    const originalAmount = parsedOriginalAmount === null ? null : Math.abs(parsedOriginalAmount);
+    const originalCurrencyRaw = cellAt(row, mapping.originalCurrency);
+    const originalCurrency = originalCurrencyRaw ? originalCurrencyRaw.toUpperCase().slice(0, 3) : null;
+    const rawConversionRate = cellAt(row, mapping.conversionRate);
+    const conversionRate = rawConversionRate ? parseEsNumber(rawConversionRate) : null;
+    const rawFxFee = cellAt(row, mapping.fxFee);
+    const parsedFxFee = rawFxFee ? parseEsNumber(rawFxFee) : null;
+    const fxFee = parsedFxFee === null ? null : Math.abs(parsedFxFee);
 
     // Capture all raw fields for audit trail (sanitized)
     const rawFields: Record<string, string> = {};
@@ -158,6 +185,7 @@ export function applyBankMapping(opts: {
     }
 
     results.push({
+      externalId,
       bookingDate,
       valueDate,
       amount,
@@ -168,6 +196,10 @@ export function applyBankMapping(opts: {
       counterpartyAccountMasked,
       reference,
       category,
+      originalAmount,
+      originalCurrency,
+      conversionRate,
+      fxFee,
       rawFields,
       warnings,
     });
@@ -179,6 +211,11 @@ export function applyBankMapping(opts: {
 // ── Hash for deduplication ────────────────────────────────────────────
 
 export function hashTransaction(row: ParsedBankRow, bankAccountId: number | null): string {
+  if (row.externalId) {
+    return createHash('sha256')
+      .update([String(bankAccountId ?? 'null'), 'external', row.externalId.trim()].join('|'))
+      .digest('hex');
+  }
   const normalizedDate = row.bookingDate.toISOString().split('T')[0] ?? '';
   const normalizedDesc = row.description.toLowerCase().replace(/\s+/g, ' ').trim();
   const normalizedRef = (row.reference ?? '').toLowerCase().trim();

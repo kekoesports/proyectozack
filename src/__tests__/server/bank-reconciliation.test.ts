@@ -145,6 +145,11 @@ describe('hashTransaction', () => {
     counterpartyAccountMasked: null,
     reference: null,
     category: null,
+    externalId: null,
+    originalAmount: null,
+    originalCurrency: null,
+    conversionRate: null,
+    fxFee: null,
     rawFields: {},
     warnings: [],
   };
@@ -182,6 +187,12 @@ describe('hashTransaction', () => {
   it('bankAccountId null produce hash válido', () => {
     const hash = hashTransaction(baseRow, null);
     expect(hash).toHaveLength(64);
+  });
+
+  it('prioriza el ID externo para deduplicar aunque cambie el texto', () => {
+    const first = hashTransaction({ ...baseRow, externalId: 'WISE-123' }, 1);
+    const second = hashTransaction({ ...baseRow, externalId: 'WISE-123', description: 'Texto traducido' }, 1);
+    expect(first).toBe(second);
   });
 });
 
@@ -356,5 +367,66 @@ describe('BANK_MAPPABLE_FIELDS', () => {
     expect(BANK_MAPPABLE_FIELDS).toContain('bookingDate');
     expect(BANK_MAPPABLE_FIELDS).toContain('amount');
     expect(BANK_MAPPABLE_FIELDS).toContain('description');
+  });
+
+  it('incluye los campos contables de los extractos Wise', () => {
+    expect(BANK_MAPPABLE_FIELDS).toContain('externalId');
+    expect(BANK_MAPPABLE_FIELDS).toContain('originalAmount');
+    expect(BANK_MAPPABLE_FIELDS).toContain('originalCurrency');
+    expect(BANK_MAPPABLE_FIELDS).toContain('conversionRate');
+    expect(BANK_MAPPABLE_FIELDS).toContain('fxFee');
+  });
+});
+
+describe('Wise accounting export', () => {
+  it('reconoce las columnas habituales del export contable de Wise', () => {
+    const headers = [
+      'TransferWise ID',
+      'Date',
+      'Amount',
+      'Currency',
+      'Description',
+      'Payment Reference',
+      'Exchange From Amount',
+      'Exchange From Currency',
+      'Exchange Rate',
+      'Total Fees',
+    ];
+    const mapping = suggestBankMapping(headers);
+    expect(mapping).toMatchObject({
+      externalId: 0,
+      bookingDate: 1,
+      amount: 2,
+      currency: 3,
+      description: 4,
+      reference: 5,
+      originalAmount: 6,
+      originalCurrency: 7,
+      conversionRate: 8,
+      fxFee: 9,
+    });
+  });
+
+  it('conserva ID, cambio y comisión sin alterar el importe contable', () => {
+    const headers = [
+      'TransferWise ID', 'Date', 'Amount', 'Currency', 'Description',
+      'Exchange From Amount', 'Exchange From Currency', 'Exchange Rate', 'Total Fees',
+    ];
+    const mapping = suggestBankMapping(headers);
+    const [row] = applyBankMapping({
+      headers,
+      mapping,
+      rows: [['WISE-123', '2026-09-01', '-920.50', 'EUR', 'Card payment', '1000', 'USD', '0.9205', '4.25']],
+    });
+    expect(row).toMatchObject({
+      externalId: 'WISE-123',
+      amount: 920.5,
+      currency: 'EUR',
+      direction: 'expense',
+      originalAmount: 1000,
+      originalCurrency: 'USD',
+      conversionRate: 0.9205,
+      fxFee: 4.25,
+    });
   });
 });
