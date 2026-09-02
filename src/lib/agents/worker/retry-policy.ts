@@ -28,6 +28,8 @@ export type RetryDecision =
 
 export type RetryInput = {
   readonly errorCode: string | null;
+  /** Decisión explícita del origen del error; si falta, se usa la lista estable de códigos. */
+  readonly retryable?: boolean;
   readonly attempt: number;
   readonly maxAttempts: number;
   readonly now: Date;
@@ -44,7 +46,7 @@ export function decideRetry(input: RetryInput): RetryDecision {
     };
   }
 
-  if (!isRetryableErrorCode(input.errorCode)) {
+  if (input.retryable === false || (input.retryable !== true && !isRetryableErrorCode(input.errorCode))) {
     return { kind: 'fail', reason: input.errorCode ?? 'error_desconocido' };
   }
 

@@ -222,6 +222,7 @@ export async function claimAndExecuteOne(opts: WorkerOptions): Promise<number | 
         status: 'failed',
         code: 'worker_exception',
         message: err instanceof Error ? err.message : 'error desconocido',
+        retryable: false,
         turns: 0,
       },
     });
