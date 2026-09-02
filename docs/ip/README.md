@@ -30,6 +30,10 @@ Documentos:
 - [`FOUNDER_TIME_AND_COST_POLICY.md`](./FOUNDER_TIME_AND_COST_POLICY.md): reglas
   para registrar el tiempo del fundador y convertir únicamente costes reales
   en evidencia contable o fiscal.
+- [`CYPRUS_DATA_ROOM_CHECKLIST.md`](./CYPRUS_DATA_ROOM_CHECKLIST.md): estructura
+  del archivo privado, checklist por fases y reglas de conservación.
+- [`../kekopilot/PRODUCT_DOMAIN_BLUEPRINT.md`](../kekopilot/PRODUCT_DOMAIN_BLUEPRINT.md):
+  separación entre la web pública, el panel SaaS futuro y el CRM preexistente.
 
 Plantillas:
 
@@ -42,6 +46,14 @@ Plantillas:
   inventadas.
 - [`CONTEMPORANEOUS_TIME_LEDGER.csv`](./templates/CONTEMPORANEOUS_TIME_LEDGER.csv):
   registro diario prospectivo por entidad, proyecto, activo y actividad.
+- [`CYPRUS_ADVISOR_FACTS_PACK.md`](./templates/CYPRUS_ADVISOR_FACTS_PACK.md):
+  paquete común de hechos y preguntas para asesores españoles y chipriotas.
+- [`IP_ASSET_REGISTER.csv`](./templates/IP_ASSET_REGISTER.csv): inventario de
+  activos y cadena de titularidad.
+- [`THIRD_PARTY_LICENSE_REGISTER.csv`](./templates/THIRD_PARTY_LICENSE_REGISTER.csv):
+  dependencias, APIs, modelos, datasets y sus restricciones.
+- [`RD_COST_LEDGER.csv`](./templates/RD_COST_LEDGER.csv): costes reales y pagos
+  por proyecto, activo y entidad, pendientes de revisión profesional.
 
 ## Reglas
 

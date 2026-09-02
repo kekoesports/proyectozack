@@ -68,6 +68,35 @@ export const ipRecordModeEnum = pgEnum('ip_record_mode', [
   'reconstructed',
 ]);
 
+export const ipDocumentCategoryEnum = pgEnum('ip_document_category', [
+  'ownership',
+  'people',
+  'cost',
+  'technical',
+  'valuation',
+  'tax',
+  'transfer_pricing',
+  'corporate',
+  'revenue',
+  'brand_domain',
+  'other',
+]);
+
+export const ipDocumentStatusEnum = pgEnum('ip_document_status', [
+  'draft',
+  'collected',
+  'review_required',
+  'advisor_approved',
+  'replaced',
+]);
+
+export const ipDocumentStorageLocationEnum = pgEnum('ip_document_storage_location', [
+  'google_drive',
+  'crm_private',
+  'github',
+  'other',
+]);
+
 export const ipProjects = pgTable(
   'ip_projects',
   {
@@ -160,5 +189,43 @@ export const ipWorkLogs = pgTable(
     index('ip_work_logs_assessment_date_idx').on(t.provisionalAssessment, t.workDate),
     index('ip_work_logs_created_idx').on(t.createdAt),
     index('ip_work_logs_evidence_event_idx').on(t.evidenceEventId),
+  ],
+);
+
+/**
+ * Índice append-only de documentos del data room. El archivo sensible vive en
+ * Drive privado o en el almacenamiento privado del CRM; aquí se conserva su
+ * referencia, versión, estado e integridad sin permitir reescritura histórica.
+ */
+export const ipDocuments = pgTable(
+  'ip_documents',
+  {
+    id: serial('id').primaryKey(),
+    projectId: integer('project_id').notNull().references(() => ipProjects.id, { onDelete: 'restrict' }),
+    requirementCode: varchar('requirement_code', { length: 60 }).notNull(),
+    title: varchar('title', { length: 240 }).notNull(),
+    category: ipDocumentCategoryEnum('category').notNull(),
+    status: ipDocumentStatusEnum('status').notNull(),
+    legalEntity: ipLegalEntityEnum('legal_entity'),
+    storageLocation: ipDocumentStorageLocationEnum('storage_location').notNull(),
+    documentRef: varchar('document_ref', { length: 1_000 }).notNull(),
+    versionLabel: varchar('version_label', { length: 80 }),
+    contentSha256: varchar('content_sha256', { length: 64 }),
+    effectiveOn: date('effective_on'),
+    expiresOn: date('expires_on'),
+    notes: text('notes'),
+    integrityHash: varchar('integrity_hash', { length: 64 }).notNull(),
+    recordedByUserId: text('recorded_by_user_id').references(() => user.id, { onDelete: 'set null' }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    check(
+      'ip_documents_content_sha256_check',
+      sql`${t.contentSha256} IS NULL OR ${t.contentSha256} ~ '^[0-9a-f]{64}$'`,
+    ),
+    uniqueIndex('ip_documents_integrity_hash_uq').on(t.integrityHash),
+    index('ip_documents_project_created_idx').on(t.projectId, t.createdAt),
+    index('ip_documents_requirement_created_idx').on(t.requirementCode, t.createdAt),
+    index('ip_documents_status_idx').on(t.status),
   ],
 );

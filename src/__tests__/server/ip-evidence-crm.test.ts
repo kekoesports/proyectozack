@@ -69,4 +69,28 @@ describe('Expediente IP del CRM', () => {
     expect(vps).toContain('/api/cron/sync-ip-evidence');
     expect(route).toContain('assertCronAuth(request)');
   });
+
+  it('añade un data room documental append-only sin guardar archivos sensibles en la tabla', () => {
+    const schema = source('src/db/schema/ipEvidence.ts');
+    const queries = source('src/lib/queries/ipEvidence.ts');
+    const migration = source('drizzle/0146_ip_data_room.sql');
+    expect(schema).toContain("'ip_documents'");
+    expect(schema).toContain("storageLocation: ipDocumentStorageLocationEnum('storage_location')");
+    expect(schema).toContain("contentSha256: varchar('content_sha256'");
+    expect(schema).not.toMatch(/password|api_key|two_factor_secret/i);
+    expect(queries).toContain("createHash('sha256')");
+    expect(queries).not.toMatch(/export async function (update|delete)IpDocument/);
+    expect(migration).toContain('ip_documents_append_only');
+    expect(migration).toContain('BEFORE UPDATE OR DELETE');
+  });
+
+  it('separa la documentación actual de una Cyprus Ltd todavía inexistente', () => {
+    const checklist = source('src/lib/ip-evidence/data-room.ts');
+    const page = source('src/app/admin/(dashboard)/asistente/ip/page.tsx');
+    expect(checklist).toContain("stage: 'after_incorporation'");
+    expect(checklist).toContain("code: 'CY-INCORPORATION'");
+    expect(page).toContain('Data room PRE-CYPRUS');
+    expect(page).toContain('No subas claves, contraseñas ni códigos 2FA');
+    expect(page).toContain('1N00gIbraMwi6k_ov8AIzFhmtT31ohQTU');
+  });
 });
