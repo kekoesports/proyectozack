@@ -35,6 +35,16 @@ Documentos:
 - [`IP_BOX_SOURCE_LIBRARY_2026-09.md`](./IP_BOX_SOURCE_LIBRARY_2026-09.md):
   jerarquía de fuentes, cuestiones pendientes de asesor y protocolo de cierre
   documental mensual.
+- [`evidence/OPENING_EVIDENCE_MANIFEST_2026-09-02.md`](./evidence/OPENING_EVIDENCE_MANIFEST_2026-09-02.md):
+  manifiesto de apertura de la reconstrucción histórica.
+- [`evidence/CONTRIBUTOR_FACT_PACK_2026-09-02.md`](./evidence/CONTRIBUTOR_FACT_PACK_2026-09-02.md):
+  expediente factual inicial de Pablo Camacho y Luis Reche.
+- [`evidence/HISTORICAL_GIT_ACTIVITY_2026-03-17_2026-09-02.csv`](./evidence/HISTORICAL_GIT_ACTIVITY_2026-03-17_2026-09-02.csv):
+  actividad objetiva mensual de Git y GitHub, sin inferir horas.
+- [`evidence/HISTORICAL_TIME_RECONSTRUCTION_2026-03-17_2026-09-02.csv`](./evidence/HISTORICAL_TIME_RECONSTRUCTION_2026-03-17_2026-09-02.csv):
+  primera reconstrucción mensual, pendiente de confirmación individual.
+- [`evidence/TIME_COST_SAVINGS_VALUE_RECONCILIATION_2026-09-02.md`](./evidence/TIME_COST_SAVINGS_VALUE_RECONCILIATION_2026-09-02.md):
+  separación operativa entre tiempo, coste soportado, ahorro y valoración.
 - [`../kekopilot/PRODUCT_DOMAIN_BLUEPRINT.md`](../kekopilot/PRODUCT_DOMAIN_BLUEPRINT.md):
   separación entre la web pública, el panel SaaS futuro y el CRM preexistente.
 
