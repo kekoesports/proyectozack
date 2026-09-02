@@ -52,7 +52,13 @@ export type AgentLoopOutcome =
   | { readonly status: 'completed'; readonly finalText: string; readonly turns: number }
   | { readonly status: 'waiting_approval'; readonly actionHash: string; readonly toolName: string; readonly turns: number }
   | { readonly status: 'stopped'; readonly reason: string; readonly detail: string; readonly turns: number }
-  | { readonly status: 'failed'; readonly code: string; readonly message: string; readonly turns: number };
+  | {
+      readonly status: 'failed';
+      readonly code: string;
+      readonly message: string;
+      readonly retryable: boolean;
+      readonly turns: number;
+    };
 
 export type AgentLoopDeps = {
   readonly provider: AgentModelProvider;
@@ -131,6 +137,7 @@ export async function runAgentLoop(
         status: 'failed',
         code: respuesta.error.code,
         message: respuesta.error.message,
+        retryable: respuesta.error.retryable,
         turns: turnos,
       };
     }

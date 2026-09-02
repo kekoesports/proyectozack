@@ -246,6 +246,29 @@ describe('política de reintentos', () => {
     }
   });
 
+  it('respeta que el proveedor marque un 5xx como transitorio aunque use provider_error', () => {
+    const d = decideRetry({
+      errorCode: 'provider_error',
+      retryable: true,
+      attempt: 1,
+      maxAttempts: 3,
+      now: AHORA,
+      aleatorio: 0,
+    });
+    expect(d.kind).toBe('retry');
+  });
+
+  it('no reintenta un provider_error determinista cuando el proveedor lo descarta', () => {
+    const d = decideRetry({
+      errorCode: 'provider_error',
+      retryable: false,
+      attempt: 1,
+      maxAttempts: 3,
+      now: AHORA,
+    });
+    expect(d.kind).toBe('fail');
+  });
+
   it('manda a dead-letter al agotar intentos', () => {
     const d = decideRetry({ errorCode: 'provider_quota', attempt: 3, maxAttempts: 3, now: AHORA });
     expect(d.kind).toBe('dead_letter');

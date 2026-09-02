@@ -96,6 +96,7 @@ export async function finishAgentRun(opts: {
     case 'failed': {
       const decision = decideRetry({
         errorCode: opts.outcome.code,
+        retryable: opts.outcome.retryable,
         attempt: opts.run.attempt,
         maxAttempts: opts.run.maxAttempts,
         now: ahora,

@@ -328,7 +328,7 @@ describe('robustez frente al proveedor', () => {
     const { deps: d } = deps(provider);
     const res = await runAgentLoop(d, { systemPrompt: 'x', userMessage: 'y', ctx: ctx() });
 
-    expect(res).toMatchObject({ status: 'failed', code: 'provider_error' });
+    expect(res).toMatchObject({ status: 'failed', code: 'provider_error', retryable: false });
   });
 
   it('registra el consumo de cada turno', async () => {
