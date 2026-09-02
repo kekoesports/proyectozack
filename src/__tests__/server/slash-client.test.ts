@@ -13,6 +13,7 @@ describe('Slash read-only client', () => {
       name: 'PLAYMAKER',
       status: 'active',
       isPhysical: false,
+      userData: null,
       pan: '4111111111111111',
       cvv: '123',
     });
@@ -29,6 +30,7 @@ describe('Slash read-only client', () => {
 
     expect(card).not.toHaveProperty('pan');
     expect(card).not.toHaveProperty('cvv');
+    expect(card.userData).toBeNull();
     expect(transaction).not.toHaveProperty('sepaInfo');
   });
 
