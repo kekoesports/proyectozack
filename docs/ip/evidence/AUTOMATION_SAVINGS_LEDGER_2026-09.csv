@@ -1,0 +1,8 @@
+process_code,process_name,measurement_period,volume_source,units_processed,manual_minutes_before_per_unit,human_minutes_after_per_unit,exception_minutes,error_count_before,error_count_after,hours_saved,cost_rate_reference_eur,management_value_saved_eur,evidence_reference,measurement_status,reviewer,notes
+AUT-001,"Alta de trato, Sheet y compartición",2026-09,"CRM + n8n executions",,,,,,,,,,,BASELINE_PENDING,,"Observe at least four weeks; do not estimate from design claims"
+AUT-002,"Detección Discord y actualización pipeline",2026-09,"Discord watermark + n8n executions",,,,,,,,,,,BASELINE_PENDING,,"Measure only new-message executions and manual exceptions"
+AUT-003,"KPI diario y recordatorios",2026-09,"n8n executions + CRM deal states",,,,,,,,,,,BASELINE_PENDING,,"Separate successful summaries, errors and human follow-up"
+AUT-004,"Borradores y preparación de facturas",2026-09,"CRM invoices + approval audit",,,,,,,,,,,BASELINE_PENDING,,"Exclude issuing/sending time until actually measured"
+AUT-005,"Clasificación y respuesta de leads",2026-09,"CRM leads + Gmail audit",,,,,,,,,,,BASELINE_PENDING,,"Separate automatic classification from human-approved replies"
+AUT-006,"Descubrimiento de Creadores Target",2026-09,"Target discovery runs + review decisions",,,,,,,,,,,BASELINE_PENDING,,"Measure qualified profiles and reviewer time; not raw candidates"
+AUT-007,"SEO, editorial y copias",2026-09,"Search Console/editorial/backup runs",,,,,,,,,,,BASELINE_PENDING,,"Keep each subsystem separable when entering observations"
