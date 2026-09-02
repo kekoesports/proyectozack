@@ -1,6 +1,7 @@
 import type { InferSelectModel } from 'drizzle-orm';
 import type {
   bankAccounts,
+  bankCards,
   bankImports,
   bankTransactions,
   transactionMatches,
@@ -8,6 +9,7 @@ import type {
 } from '@/db/schema';
 
 export type BankAccount = InferSelectModel<typeof bankAccounts>;
+export type BankCard = InferSelectModel<typeof bankCards>;
 export type BankImport = InferSelectModel<typeof bankImports>;
 export type BankTransaction = InferSelectModel<typeof bankTransactions>;
 export type TransactionMatch = InferSelectModel<typeof transactionMatches>;
@@ -19,6 +21,7 @@ export type BankImportSource = NonNullable<BankImport['sourceType']>;
 export type BankImportStatus = NonNullable<BankImport['status']>;
 export type BankTransactionDirection = NonNullable<BankTransaction['direction']>;
 export type BankTransactionStatus = NonNullable<BankTransaction['status']>;
+export type BankReceiptStatus = NonNullable<BankTransaction['receiptStatus']>;
 export type TransactionMatchType = NonNullable<TransactionMatch['matchType']>;
 export type TransactionMatchStatus = NonNullable<TransactionMatch['status']>;
 
@@ -48,7 +51,32 @@ export type BankImportWithTransactions = BankImport & {
 };
 
 export type BankAccountWithStats = BankAccount & {
+  readonly issuerName: string | null;
   readonly totalTransactions: number;
   readonly unmatchedCount: number;
   readonly matchedCount: number;
+};
+
+export type BankEntityReconciliationKpis = {
+  readonly issuerCompanyId: number | null;
+  readonly issuerName: string;
+  readonly totalTransactions: number;
+  readonly importedUnmatched: number;
+  readonly matched: number;
+  readonly ignored: number;
+  readonly needsReview: number;
+};
+
+export type SlashCardSpendSummary = {
+  readonly cardId: number;
+  readonly displayName: string;
+  readonly ownerLabel: string | null;
+  readonly last4: string;
+  readonly status: string;
+  readonly currentMonthSpend: number;
+  readonly last30DaysSpend: number;
+  readonly transactionCount: number;
+  readonly missingReceipts: number;
+  readonly fxFees: number;
+  readonly cashback: number;
 };

@@ -5,14 +5,16 @@ import {
   integer,
   text,
   varchar,
+  boolean,
   numeric,
   timestamp,
   jsonb,
   index,
   uniqueIndex,
 } from 'drizzle-orm/pg-core';
-import { relations } from 'drizzle-orm';
+import { relations, sql } from 'drizzle-orm';
 import { user } from './auth';
+import { issuerCompanies } from './issuedInvoices';
 
 // ── Enums ─────────────────────────────────────────────────────────────
 
@@ -48,13 +50,19 @@ export const transactionMatchStatusEnum = pgEnum('transaction_match_status', [
   'suggested', 'approved', 'rejected',
 ]);
 
+export const bankReceiptStatusEnum = pgEnum('bank_receipt_status', [
+  'not_required', 'missing', 'attached', 'reviewed',
+]);
+
 // ── bank_accounts ─────────────────────────────────────────────────────
 
 export const bankAccounts = pgTable(
   'bank_accounts',
   {
     id: serial('id').primaryKey(),
+    issuerCompanyId: integer('issuer_company_id').references(() => issuerCompanies.id, { onDelete: 'restrict' }),
     provider: bankAccountProviderEnum('provider').notNull().default('manual'),
+    externalProviderAccountId: varchar('external_provider_account_id', { length: 200 }),
     displayName: varchar('display_name', { length: 200 }).notNull(),
     bankName: varchar('bank_name', { length: 200 }),
     ibanMasked: varchar('iban_masked', { length: 40 }),
@@ -69,6 +77,38 @@ export const bankAccounts = pgTable(
   },
   (t) => [
     index('bank_accounts_provider_idx').on(t.provider),
+    index('bank_accounts_issuer_idx').on(t.issuerCompanyId),
+    uniqueIndex('bank_accounts_provider_external_uniq')
+      .on(t.provider, t.externalProviderAccountId)
+      .where(sql`external_provider_account_id IS NOT NULL`),
+  ],
+);
+
+// ── bank_cards ────────────────────────────────────────────────────────
+
+export const bankCards = pgTable(
+  'bank_cards',
+  {
+    id: serial('id').primaryKey(),
+    bankAccountId: integer('bank_account_id')
+      .notNull()
+      .references(() => bankAccounts.id, { onDelete: 'cascade' }),
+    externalId: varchar('external_id', { length: 200 }).notNull(),
+    displayName: varchar('display_name', { length: 200 }).notNull(),
+    ownerLabel: varchar('owner_label', { length: 200 }),
+    last4: varchar('last4', { length: 4 }).notNull(),
+    status: varchar('status', { length: 30 }).notNull(),
+    isPhysical: boolean('is_physical').notNull().default(false),
+    cardGroupName: varchar('card_group_name', { length: 200 }),
+    providerCreatedAt: timestamp('provider_created_at', { withTimezone: true }),
+    lastSyncedAt: timestamp('last_synced_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index('bank_cards_account_idx').on(t.bankAccountId),
+    index('bank_cards_status_idx').on(t.status),
+    uniqueIndex('bank_cards_account_external_uniq').on(t.bankAccountId, t.externalId),
   ],
 );
 
@@ -106,6 +146,7 @@ export const bankTransactions = pgTable(
   {
     id: serial('id').primaryKey(),
     bankAccountId: integer('bank_account_id').references(() => bankAccounts.id, { onDelete: 'set null' }),
+    bankCardId: integer('bank_card_id').references(() => bankCards.id, { onDelete: 'set null' }),
     importId: integer('import_id').references(() => bankImports.id, { onDelete: 'set null' }),
     externalId: varchar('external_id', { length: 200 }),
     transactionHash: varchar('transaction_hash', { length: 64 }).notNull(),
@@ -119,6 +160,17 @@ export const bankTransactions = pgTable(
     counterpartyAccountMasked: varchar('counterparty_account_masked', { length: 40 }),
     reference: varchar('reference', { length: 300 }),
     category: varchar('category', { length: 100 }),
+    providerStatus: varchar('provider_status', { length: 40 }),
+    providerDetailedStatus: varchar('provider_detailed_status', { length: 60 }),
+    merchantName: varchar('merchant_name', { length: 300 }),
+    merchantCategoryCode: varchar('merchant_category_code', { length: 20 }),
+    merchantCountry: varchar('merchant_country', { length: 80 }),
+    originalAmount: numeric('original_amount', { precision: 14, scale: 2 }),
+    originalCurrency: varchar('original_currency', { length: 3 }),
+    conversionRate: numeric('conversion_rate', { precision: 18, scale: 8 }),
+    fxFee: numeric('fx_fee', { precision: 14, scale: 2 }),
+    cashback: numeric('cashback', { precision: 14, scale: 2 }),
+    receiptStatus: bankReceiptStatusEnum('receipt_status').notNull().default('not_required'),
     status: bankTransactionStatusEnum('status').notNull().default('imported'),
     rawJsonSanitized: jsonb('raw_json_sanitized'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
@@ -126,10 +178,34 @@ export const bankTransactions = pgTable(
   },
   (t) => [
     index('bank_txn_account_idx').on(t.bankAccountId),
+    index('bank_txn_card_idx').on(t.bankCardId),
     index('bank_txn_status_idx').on(t.status),
     index('bank_txn_booking_date_idx').on(t.bookingDate),
     index('bank_txn_direction_idx').on(t.direction),
     uniqueIndex('bank_txn_hash_account_uniq').on(t.transactionHash, t.bankAccountId),
+    uniqueIndex('bank_txn_external_account_uniq')
+      .on(t.externalId, t.bankAccountId)
+      .where(sql`external_id IS NOT NULL`),
+  ],
+);
+
+// ── slash_webhook_events ─────────────────────────────────────────────
+
+export const slashWebhookEvents = pgTable(
+  'slash_webhook_events',
+  {
+    id: serial('id').primaryKey(),
+    eventId: varchar('event_id', { length: 200 }).notNull(),
+    entityId: varchar('entity_id', { length: 200 }).notNull(),
+    eventType: varchar('event_type', { length: 100 }).notNull(),
+    status: varchar('status', { length: 30 }).notNull().default('received'),
+    errorMessage: text('error_message'),
+    receivedAt: timestamp('received_at', { withTimezone: true }).notNull().defaultNow(),
+    processedAt: timestamp('processed_at', { withTimezone: true }),
+  },
+  (t) => [
+    uniqueIndex('slash_webhook_events_event_uniq').on(t.eventId),
+    index('slash_webhook_events_status_idx').on(t.status),
   ],
 );
 
@@ -182,8 +258,15 @@ export const bankReconciliationEvents = pgTable(
 
 // ── Relations ─────────────────────────────────────────────────────────
 
-export const bankAccountsRelations = relations(bankAccounts, ({ many }) => ({
+export const bankAccountsRelations = relations(bankAccounts, ({ one, many }) => ({
+  issuerCompany: one(issuerCompanies, { fields: [bankAccounts.issuerCompanyId], references: [issuerCompanies.id] }),
   imports: many(bankImports),
+  cards: many(bankCards),
+  transactions: many(bankTransactions),
+}));
+
+export const bankCardsRelations = relations(bankCards, ({ one, many }) => ({
+  bankAccount: one(bankAccounts, { fields: [bankCards.bankAccountId], references: [bankAccounts.id] }),
   transactions: many(bankTransactions),
 }));
 
@@ -195,6 +278,7 @@ export const bankImportsRelations = relations(bankImports, ({ one, many }) => ({
 
 export const bankTransactionsRelations = relations(bankTransactions, ({ one, many }) => ({
   bankAccount: one(bankAccounts, { fields: [bankTransactions.bankAccountId], references: [bankAccounts.id] }),
+  bankCard: one(bankCards, { fields: [bankTransactions.bankCardId], references: [bankCards.id] }),
   import: one(bankImports, { fields: [bankTransactions.importId], references: [bankImports.id] }),
   matches: many(transactionMatches),
   events: many(bankReconciliationEvents),

@@ -208,7 +208,7 @@ Tienes acceso a las siguientes herramientas de solo lectura del CRM SocialPro:
 - getRecurringExpensesSummary: gastos recurrentes activos (suscripciones, pagos fijos)
 - getMonthlyExpenseSummary: total mensual de gastos recurrentes por categoría
 - getCrmHelpContext: documentación interna sobre cómo funciona cada módulo del CRM
-- getBankReconciliationSummary: resumen global de conciliación bancaria (total, sin conciliar, conciliadas, pendientes revisión, tasa de conciliación)
+- getBankReconciliationSummary: resumen de conciliación separado por entidad legal; nunca suma ELEVATEX y PLAYMAKER
 - getUnmatchedBankTransactions: lista hasta 25 transacciones bancarias importadas pendientes de conciliar
 - getSuggestedTransactionMatches: top candidato de conciliación por transacción sin conciliar (hasta 25)
 - getPendingPaymentMatches: transacciones conciliadas (aprobadas) cuyo cobro/pago aún no ha sido aplicado a la factura

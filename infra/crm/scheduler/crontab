@@ -22,6 +22,7 @@
 30 22 * * *  /usr/bin/curl -fsS -m 110 -H "Authorization: Bearer $CRON_SECRET" http://app:3000/api/cron/sync-ip-evidence            # 00:30 Madrid (verano)
 0 23 * * *   /usr/bin/curl -fsS -m 110 -H "Authorization: Bearer $CRON_SECRET" http://app:3000/api/cron/sync-sheet-sources          # 01:00 Madrid (día siguiente)
 0 3 * * *    /usr/bin/curl -fsS -m 110 -H "Authorization: Bearer $CRON_SECRET" http://app:3000/api/cron/generate-recurring-expenses # 05:00 Madrid
+15 5 * * *   /usr/bin/curl -fsS -m 110 -H "Authorization: Bearer $CRON_SECRET" http://app:3000/api/cron/sync-slash                  # 07:15 Madrid (respaldo diario)
 
 # ── semanales (lunes) ───────────────────────────────────────────────────────
 0 5 * * 1    /usr/bin/curl -fsS -m 110 -H "Authorization: Bearer $CRON_SECRET" http://app:3000/api/cron/rollover-tasks              # lunes 07:00 Madrid

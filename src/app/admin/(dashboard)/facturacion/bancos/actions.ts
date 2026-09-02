@@ -12,6 +12,7 @@ import {
   deleteBankAccount,
   getBankAccount,
 } from '@/lib/queries/bankReconciliation';
+import { getIssuerCompany } from '@/lib/queries/issuedInvoices';
 import { logRedacted } from '@/lib/log';
 
 type ActionState = {
@@ -31,6 +32,8 @@ export async function createBankAccountAction(
       const first = parsed.error.issues[0];
       return { error: first?.message ?? 'Datos inválidos' };
     }
+    const issuer = await getIssuerCompany(parsed.data.issuerCompanyId);
+    if (!issuer?.isActive) return { error: 'La entidad legal no existe o está inactiva' };
     const account = await createBankAccount({ ...parsed.data });
     revalidatePath('/admin/facturacion/bancos');
     return { success: true, id: account.id };

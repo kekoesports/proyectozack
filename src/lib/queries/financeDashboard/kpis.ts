@@ -1,10 +1,11 @@
 'server-only';
 
-import { and, count, eq, gte, isNull, lte, sql } from 'drizzle-orm';
+import { and, count, eq, gte, isNull, lte, ne, or, sql } from 'drizzle-orm';
 import { db } from '@/lib/db';
-import { bankTransactions, invoicePayments, invoices } from '@/db/schema';
+import { bankAccounts, bankTransactions, invoicePayments, invoices, issuerCompanies } from '@/db/schema';
 import { getBillingKPIs } from '@/lib/queries/invoices';
-import { getBankReconciliationKpis } from '@/lib/queries/bankReconciliation';
+import { getBankReconciliationKpisExcludingIssuerTaxId } from '@/lib/queries/bankReconciliation';
+import { env } from '@/lib/env';
 import type { FinanceDashboardKPIs } from '@/types/financeDashboard';
 
 function currentMonthRange(): { from: string; to: string } {
@@ -32,7 +33,7 @@ export async function getFinanceDashboardKPIs(): Promise<FinanceDashboardKPIs> {
 
   const [billing, reconciliation, cajaRow, pendingRow] = await Promise.all([
     getBillingKPIs(),
-    getBankReconciliationKpis(),
+    getBankReconciliationKpisExcludingIssuerTaxId(env.SLASH_PLAYMAKER_ISSUER_TAX_ID),
     db
       .select({
         cobrado: sql<string>`COALESCE(SUM(${invoicePayments.amount}) FILTER (
@@ -44,12 +45,24 @@ export async function getFinanceDashboardKPIs(): Promise<FinanceDashboardKPIs> {
       })
       .from(invoicePayments)
       .leftJoin(invoices, eq(invoices.id, invoicePayments.invoiceId))
-      .where(enMes),
+      .leftJoin(bankTransactions, eq(bankTransactions.id, invoicePayments.bankTransactionId))
+      .leftJoin(bankAccounts, eq(bankAccounts.id, bankTransactions.bankAccountId))
+      .leftJoin(issuerCompanies, eq(issuerCompanies.id, bankAccounts.issuerCompanyId))
+      .where(and(enMes, or(
+        isNull(issuerCompanies.taxId),
+        ne(issuerCompanies.taxId, env.SLASH_PLAYMAKER_ISSUER_TAX_ID),
+      ))),
     db
       .select({ cnt: count() })
       .from(bankTransactions)
       .leftJoin(invoicePayments, eq(invoicePayments.bankTransactionId, bankTransactions.id))
-      .where(and(eq(bankTransactions.status, 'matched'), isNull(invoicePayments.id))),
+      .leftJoin(bankAccounts, eq(bankAccounts.id, bankTransactions.bankAccountId))
+      .leftJoin(issuerCompanies, eq(issuerCompanies.id, bankAccounts.issuerCompanyId))
+      .where(and(
+        eq(bankTransactions.status, 'matched'),
+        isNull(invoicePayments.id),
+        or(isNull(issuerCompanies.taxId), ne(issuerCompanies.taxId, env.SLASH_PLAYMAKER_ISSUER_TAX_ID)),
+      )),
   ]);
 
   const cobrado = Number(cajaRow[0]?.cobrado ?? 0);

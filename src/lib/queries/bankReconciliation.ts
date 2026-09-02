@@ -1,6 +1,6 @@
 'server-only';
 
-import { and, asc, count, desc, eq, inArray, sql } from 'drizzle-orm';
+import { and, asc, count, desc, eq, inArray, isNull, ne, or, sql } from 'drizzle-orm';
 import { db, getTransactionalDb } from '@/lib/db';
 import {
   bankAccounts,
@@ -8,6 +8,7 @@ import {
   bankTransactions,
   transactionMatches,
   bankReconciliationEvents,
+  issuerCompanies,
 } from '@/db/schema';
 import type {
   BankAccount,
@@ -18,6 +19,7 @@ import type {
   TransactionMatch,
   BankTransactionStatus,
   TransactionMatchStatus,
+  BankEntityReconciliationKpis,
 } from '@/types';
 
 // ── Bank Accounts ─────────────────────────────────────────────────────
@@ -27,10 +29,17 @@ export async function listBankAccounts(): Promise<readonly BankAccount[]> {
 }
 
 export async function listBankAccountsWithStats(): Promise<readonly BankAccountWithStats[]> {
-  const rows = await db.select().from(bankAccounts).orderBy(asc(bankAccounts.displayName));
+  const rows = await db
+    .select({
+      account: bankAccounts,
+      issuerName: sql<string | null>`COALESCE(${issuerCompanies.legalName}, ${issuerCompanies.name})`,
+    })
+    .from(bankAccounts)
+    .leftJoin(issuerCompanies, eq(issuerCompanies.id, bankAccounts.issuerCompanyId))
+    .orderBy(asc(issuerCompanies.legalName), asc(bankAccounts.displayName));
   if (rows.length === 0) return [];
 
-  const ids = rows.map((r) => r.id);
+  const ids = rows.map((r) => r.account.id);
 
   const [totalRows, unmatchedRows] = await Promise.all([
     db
@@ -53,10 +62,16 @@ export async function listBankAccountsWithStats(): Promise<readonly BankAccountW
   const totalMap = new Map(totalRows.map((r) => [r.accountId, Number(r.total)]));
   const unmatchedMap = new Map(unmatchedRows.map((r) => [r.accountId, Number(r.unmatched)]));
 
-  return rows.map((row) => {
-    const total = totalMap.get(row.id) ?? 0;
-    const unmatched = unmatchedMap.get(row.id) ?? 0;
-    return { ...row, totalTransactions: total, unmatchedCount: unmatched, matchedCount: total - unmatched };
+  return rows.map(({ account, issuerName }) => {
+    const total = totalMap.get(account.id) ?? 0;
+    const unmatched = unmatchedMap.get(account.id) ?? 0;
+    return {
+      ...account,
+      issuerName,
+      totalTransactions: total,
+      unmatchedCount: unmatched,
+      matchedCount: total - unmatched,
+    };
   });
 }
 
@@ -147,14 +162,18 @@ export async function updateBankImport(
 
 export async function listBankTransactions(opts: {
   bankAccountId?: number;
+  issuerCompanyId?: number;
   status?: BankTransactionStatus;
   limit?: number;
   offset?: number;
 }): Promise<readonly BankTransaction[]> {
-  const { bankAccountId, status, limit = 50, offset = 0 } = opts;
+  const { bankAccountId, issuerCompanyId, status, limit = 50, offset = 0 } = opts;
 
   const conditions = [
     ...(bankAccountId !== undefined ? [eq(bankTransactions.bankAccountId, bankAccountId)] : []),
+    ...(issuerCompanyId !== undefined ? [sql`${bankTransactions.bankAccountId} IN (
+      SELECT id FROM bank_accounts WHERE issuer_company_id = ${issuerCompanyId}
+    )`] : []),
     ...(status !== undefined ? [eq(bankTransactions.status, status)] : []),
   ];
 
@@ -169,11 +188,15 @@ export async function listBankTransactions(opts: {
 
 export async function countBankTransactions(opts: {
   bankAccountId?: number;
+  issuerCompanyId?: number;
   status?: BankTransactionStatus;
 }): Promise<number> {
-  const { bankAccountId, status } = opts;
+  const { bankAccountId, issuerCompanyId, status } = opts;
   const conditions = [
     ...(bankAccountId !== undefined ? [eq(bankTransactions.bankAccountId, bankAccountId)] : []),
+    ...(issuerCompanyId !== undefined ? [sql`${bankTransactions.bankAccountId} IN (
+      SELECT id FROM bank_accounts WHERE issuer_company_id = ${issuerCompanyId}
+    )`] : []),
     ...(status !== undefined ? [eq(bankTransactions.status, status)] : []),
   ];
   const [row] = await db
@@ -396,4 +419,107 @@ export async function getBankReconciliationKpis(bankAccountId?: number): Promise
     ignored: byStatus.get('ignored') ?? 0,
     needsReview: byStatus.get('needs_review') ?? 0,
   };
+}
+
+/**
+ * Resumen heredado del panel de la agencia excluyendo otra entidad legal.
+ * Mantiene las cuentas antiguas sin asignar para no ocultar extractos de la SL.
+ */
+export async function getBankReconciliationKpisExcludingIssuerTaxId(
+  excludedTaxId: string,
+): Promise<{
+  readonly totalTransactions: number;
+  readonly importedUnmatched: number;
+  readonly matched: number;
+  readonly ignored: number;
+  readonly needsReview: number;
+}> {
+  const rows = await db
+    .select({ status: bankTransactions.status, total: count() })
+    .from(bankTransactions)
+    .leftJoin(bankAccounts, eq(bankAccounts.id, bankTransactions.bankAccountId))
+    .leftJoin(issuerCompanies, eq(issuerCompanies.id, bankAccounts.issuerCompanyId))
+    .where(or(isNull(issuerCompanies.taxId), ne(issuerCompanies.taxId, excludedTaxId)))
+    .groupBy(bankTransactions.status);
+
+  const byStatus = new Map(rows.map((row) => [row.status, Number(row.total)]));
+  return {
+    totalTransactions: [...byStatus.values()].reduce((sum, value) => sum + value, 0),
+    importedUnmatched: byStatus.get('imported') ?? 0,
+    matched: byStatus.get('matched') ?? 0,
+    ignored: byStatus.get('ignored') ?? 0,
+    needsReview: byStatus.get('needs_review') ?? 0,
+  };
+}
+
+export async function getBankReconciliationKpisForIssuer(issuerCompanyId: number): Promise<{
+  readonly totalTransactions: number;
+  readonly importedUnmatched: number;
+  readonly matched: number;
+  readonly ignored: number;
+  readonly needsReview: number;
+}> {
+  const rows = await db
+    .select({ status: bankTransactions.status, total: count() })
+    .from(bankTransactions)
+    .innerJoin(bankAccounts, eq(bankAccounts.id, bankTransactions.bankAccountId))
+    .where(eq(bankAccounts.issuerCompanyId, issuerCompanyId))
+    .groupBy(bankTransactions.status);
+  const byStatus = new Map(rows.map((row) => [row.status, Number(row.total)]));
+  return {
+    totalTransactions: [...byStatus.values()].reduce((sum, value) => sum + value, 0),
+    importedUnmatched: byStatus.get('imported') ?? 0,
+    matched: byStatus.get('matched') ?? 0,
+    ignored: byStatus.get('ignored') ?? 0,
+    needsReview: byStatus.get('needs_review') ?? 0,
+  };
+}
+
+/**
+ * KPIs separados por entidad legal. No devuelve una fila consolidada porque
+ * ELEVATEX y PLAYMAKER mantienen contabilidades independientes.
+ */
+export async function getBankReconciliationKpisByIssuer(): Promise<readonly BankEntityReconciliationKpis[]> {
+  const rows = await db
+    .select({
+      issuerCompanyId: bankAccounts.issuerCompanyId,
+      issuerName: sql<string | null>`COALESCE(${issuerCompanies.legalName}, ${issuerCompanies.name})`,
+      status: bankTransactions.status,
+      total: count(),
+    })
+    .from(bankAccounts)
+    .leftJoin(issuerCompanies, eq(issuerCompanies.id, bankAccounts.issuerCompanyId))
+    .leftJoin(bankTransactions, eq(bankTransactions.bankAccountId, bankAccounts.id))
+    .groupBy(
+      bankAccounts.issuerCompanyId,
+      issuerCompanies.legalName,
+      issuerCompanies.name,
+      bankTransactions.status,
+    )
+    .orderBy(asc(issuerCompanies.legalName));
+
+  const grouped = new Map<string, BankEntityReconciliationKpis>();
+  for (const row of rows) {
+    const key = row.issuerCompanyId === null ? 'unassigned' : String(row.issuerCompanyId);
+    const current = grouped.get(key) ?? {
+      issuerCompanyId: row.issuerCompanyId,
+      issuerName: row.issuerName ?? 'Sin entidad legal asignada',
+      totalTransactions: 0,
+      importedUnmatched: 0,
+      matched: 0,
+      ignored: 0,
+      needsReview: 0,
+    };
+    const amount = row.status === null ? 0 : Number(row.total);
+    const next: BankEntityReconciliationKpis = {
+      ...current,
+      totalTransactions: current.totalTransactions + amount,
+      importedUnmatched: current.importedUnmatched + (row.status === 'imported' ? amount : 0),
+      matched: current.matched + (row.status === 'matched' ? amount : 0),
+      ignored: current.ignored + (row.status === 'ignored' ? amount : 0),
+      needsReview: current.needsReview + (row.status === 'needs_review' ? amount : 0),
+    };
+    grouped.set(key, next);
+  }
+  return [...grouped.values()];
 }

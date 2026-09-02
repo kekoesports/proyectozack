@@ -4,6 +4,7 @@ import { and, eq, inArray, isNotNull, sum } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import {
   bankTransactions,
+  bankAccounts,
   transactionMatches,
   invoicePayments,
   issuedInvoices,
@@ -43,8 +44,9 @@ export type MatchedTransactionRow = {
 export async function getMatchedTransactionsWithPaymentStatus(opts: {
   limit: number;
   offset: number;
+  issuerCompanyId?: number;
 }): Promise<readonly MatchedTransactionRow[]> {
-  const { limit, offset } = opts;
+  const { limit, offset, issuerCompanyId } = opts;
 
   // 1. Obtener transacciones matched + su match aprobado
   const txRows = await db
@@ -62,6 +64,7 @@ export async function getMatchedTransactionsWithPaymentStatus(opts: {
       matchReason: transactionMatches.matchReason,
     })
     .from(bankTransactions)
+    .innerJoin(bankAccounts, eq(bankAccounts.id, bankTransactions.bankAccountId))
     .innerJoin(
       transactionMatches,
       and(
@@ -70,7 +73,10 @@ export async function getMatchedTransactionsWithPaymentStatus(opts: {
         isNotNull(transactionMatches.matchedEntityId),
       ),
     )
-    .where(eq(bankTransactions.status, 'matched'))
+    .where(and(
+      eq(bankTransactions.status, 'matched'),
+      ...(issuerCompanyId !== undefined ? [eq(bankAccounts.issuerCompanyId, issuerCompanyId)] : []),
+    ))
     .orderBy(bankTransactions.bookingDate)
     .limit(limit)
     .offset(offset);
@@ -224,10 +230,14 @@ export async function getMatchedTransactionsWithPaymentStatus(opts: {
   });
 }
 
-export async function countMatchedTransactions(): Promise<number> {
+export async function countMatchedTransactions(issuerCompanyId?: number): Promise<number> {
   const rows = await db
     .select({ id: bankTransactions.id })
     .from(bankTransactions)
-    .where(eq(bankTransactions.status, 'matched'));
+    .innerJoin(bankAccounts, eq(bankAccounts.id, bankTransactions.bankAccountId))
+    .where(and(
+      eq(bankTransactions.status, 'matched'),
+      ...(issuerCompanyId !== undefined ? [eq(bankAccounts.issuerCompanyId, issuerCompanyId)] : []),
+    ));
   return rows.length;
 }

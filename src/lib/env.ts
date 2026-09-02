@@ -75,6 +75,12 @@ export const env = createEnv({
     GEMINI_MODEL: z.string().min(1).optional(),
     // NewsData.io API key para monitorización de noticias
     NEWSDATA_API_KEY: z.string().min(1).optional(),
+    // Slash API — conexión exclusiva de PLAYMAKER MEDIA LLC y solo lectura.
+    // La clave debe crearse dentro de esa entidad legal, nunca a nivel de usuario.
+    SLASH_PLAYMAKER_API_KEY: z.string().min(32).optional(),
+    SLASH_PLAYMAKER_LEGAL_ENTITY_ID: z.string().min(1).optional(),
+    SLASH_PLAYMAKER_ISSUER_TAX_ID: z.string().min(1).default('98-1925044'),
+    SLASH_SYNC_LOOKBACK_DAYS: z.coerce.number().int().min(1).max(730).default(365),
     // Sal para el hash de sesión de analytics de posts. Opcional: si no está definida se
     // usa un valor fijo de fallback. Genera con: crypto.randomBytes(32).toString('hex')
     ANALYTICS_SALT: z.string().min(8).optional(),
@@ -259,6 +265,10 @@ export const env = createEnv({
     GEMINI_API_KEY: process.env.GEMINI_API_KEY,
     GEMINI_MODEL: process.env.GEMINI_MODEL,
     NEWSDATA_API_KEY: process.env.NEWSDATA_API_KEY,
+    SLASH_PLAYMAKER_API_KEY: process.env.SLASH_PLAYMAKER_API_KEY,
+    SLASH_PLAYMAKER_LEGAL_ENTITY_ID: process.env.SLASH_PLAYMAKER_LEGAL_ENTITY_ID,
+    SLASH_PLAYMAKER_ISSUER_TAX_ID: process.env.SLASH_PLAYMAKER_ISSUER_TAX_ID,
+    SLASH_SYNC_LOOKBACK_DAYS: process.env.SLASH_SYNC_LOOKBACK_DAYS,
     ANALYTICS_SALT: process.env.ANALYTICS_SALT,
     BLOB_READ_WRITE_TOKEN: process.env.BLOB_READ_WRITE_TOKEN,
     BLOB_NEWS_READ_WRITE_TOKEN: process.env.BLOB_NEWS_READ_WRITE_TOKEN,

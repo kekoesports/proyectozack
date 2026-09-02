@@ -1,6 +1,6 @@
 'server-only';
 
-import { and, eq, gte, inArray, isNull, lte, not, or } from 'drizzle-orm';
+import { and, eq, gte, inArray, isNull, lte, not, or, sql } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import {
   billingClients,
@@ -18,6 +18,10 @@ const DATE_WINDOW_MS = 30 * 86_400_000;
 
 export async function getCandidatesForTransactions(
   transactions: readonly BankTransaction[],
+  options: {
+    readonly issuerCompanyId?: number;
+    readonly includeLegacyInternalInvoices?: boolean;
+  } = {},
 ): Promise<readonly BankTransactionWithCandidates[]> {
   if (transactions.length === 0) return [];
 
@@ -41,6 +45,9 @@ export async function getCandidatesForTransactions(
       .where(
         and(
           inArray(issuedInvoices.status, ['emitida', 'enviada', 'vencida', 'parcial']),
+          ...(options.issuerCompanyId !== undefined
+            ? [eq(issuedInvoices.issuerCompanyId, options.issuerCompanyId)]
+            : []),
           gte(issuedInvoices.issueDate, minDate),
           lte(issuedInvoices.issueDate, maxDate),
         ),
@@ -60,6 +67,7 @@ export async function getCandidatesForTransactions(
       .from(invoices)
       .where(
         and(
+          sql`${options.includeLegacyInternalInvoices ?? true}`,
           gte(invoices.issueDate, minDate),
           lte(invoices.issueDate, maxDate),
           not(inArray(invoices.status, ['cobrada', 'pagada', 'anulada', 'borrador'])),
@@ -80,6 +88,7 @@ export async function getCandidatesForTransactions(
       .from(recurringExpenses)
       .where(
         and(
+          sql`${options.includeLegacyInternalInvoices ?? true}`,
           eq(recurringExpenses.active, true),
           lte(recurringExpenses.startDate, maxDate),
           or(isNull(recurringExpenses.endDate), gte(recurringExpenses.endDate, minDate)),
