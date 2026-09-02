@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 export const createBankAccountSchema = z.object({
+  issuerCompanyId: z.coerce.number().int().positive('Selecciona una entidad legal'),
   displayName: z.string().min(1).max(200),
   provider: z.enum(['manual', 'wise', 'stripe', 'slash', 'bank', 'paypal', 'other']).default('manual'),
   bankName: z.string().max(200).optional(),

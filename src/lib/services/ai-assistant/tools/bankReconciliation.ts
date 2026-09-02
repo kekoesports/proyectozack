@@ -1,16 +1,21 @@
 'server-only';
 
-import { getBankReconciliationKpis, listBankTransactions } from '@/lib/queries/bankReconciliation';
+import { getBankReconciliationKpisByIssuer, listBankTransactions } from '@/lib/queries/bankReconciliation';
 import { getCandidatesForTransactions } from '@/lib/queries/bankReconciliationCandidates';
 import { getMatchedTransactionsWithPaymentStatus } from '@/lib/queries/bankReconciliationMatched';
 
 export type BankReconciliationSummary = {
-  readonly totalTransactions: number;
-  readonly importedUnmatched: number;
-  readonly matched: number;
-  readonly ignored: number;
-  readonly needsReview: number;
-  readonly matchRate: string;
+  readonly consolidated: false;
+  readonly entities: readonly {
+    readonly issuerCompanyId: number | null;
+    readonly issuerName: string;
+    readonly totalTransactions: number;
+    readonly importedUnmatched: number;
+    readonly matched: number;
+    readonly ignored: number;
+    readonly needsReview: number;
+    readonly matchRate: string;
+  }[];
 };
 
 export type UnmatchedTransaction = {
@@ -40,17 +45,15 @@ export type SuggestedMatchesResult = {
 };
 
 export async function getBankReconciliationSummary(): Promise<BankReconciliationSummary> {
-  const kpis = await getBankReconciliationKpis();
-  const matchRate = kpis.totalTransactions > 0
-    ? `${Math.round((kpis.matched / kpis.totalTransactions) * 100)}%`
-    : '0%';
+  const entities = await getBankReconciliationKpisByIssuer();
   return {
-    totalTransactions: kpis.totalTransactions,
-    importedUnmatched: kpis.importedUnmatched,
-    matched: kpis.matched,
-    ignored: kpis.ignored,
-    needsReview: kpis.needsReview,
-    matchRate,
+    consolidated: false,
+    entities: entities.map((entity) => ({
+      ...entity,
+      matchRate: entity.totalTransactions > 0
+        ? `${Math.round((entity.matched / entity.totalTransactions) * 100)}%`
+        : '0%',
+    })),
   };
 }
 

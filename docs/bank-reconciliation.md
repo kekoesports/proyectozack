@@ -2,15 +2,29 @@
 
 ## Overview
 
-Módulo de conciliación bancaria manual dentro del CRM (`/admin/facturacion/bancos`). Permite importar extractos CSV/XLSX, deduplicar transacciones y aprobar/rechazar conciliaciones manualmente. **Sin conexiones a APIs bancarias reales.**
+Módulo de conciliación bancaria dentro del CRM (`/admin/facturacion/bancos`). Permite importar extractos CSV/XLSX y sincronizar en modo de solo lectura la cuenta de Slash de PLAYMAKER MEDIA LLC. Las entidades legales se calculan por separado y nunca se ofrece un total consolidado entre ELEVATEX y PLAYMAKER.
 
 ## Rutas
 
 | Ruta | Descripción |
 |---|---|
-| `/admin/facturacion/bancos` | Lista de cuentas + KPIs globales |
+| `/admin/facturacion/bancos` | Cuentas y KPIs separados por entidad legal |
 | `/admin/facturacion/bancos/importar` | Wizard de importación CSV/XLSX |
-| `/admin/facturacion/bancos/conciliacion` | Revisión y aprobación de conciliaciones |
+| `/admin/facturacion/bancos/conciliacion?entity=:id` | Revisión y aprobación limitada a una entidad |
+| `/admin/facturacion/bancos/slash?entity=:id` | Gastos, tarjetas y justificantes de PLAYMAKER |
+
+## Integración Slash (PLAYMAKER)
+
+- Clave API limitada a la entidad legal PLAYMAKER MEDIA LLC.
+- Operaciones `GET` exclusivamente: la integración no contiene código para transferencias, pagos, tarjetas o límites.
+- Sincroniza cuentas, tarjetas y movimientos asentados; omite operaciones pendientes, fallidas, rechazadas, canceladas o revertidas.
+- Los esquemas descartan PAN, CVV, números de cuenta completos y campos desconocidos antes de persistir.
+- La cuenta y las tarjetas se guardan enmascaradas; cada tarjeta puede asignarse a su responsable dentro del CRM.
+- Los webhooks se verifican con la clave RSA pública de Slash, se deduplican por `eventId` y vuelven a leer el movimiento desde la API antes de guardarlo.
+- `/api/cron/sync-slash` ejecuta una comprobación diaria de respaldo con `CRON_SECRET`.
+- Los gastos de PLAYMAKER no alimentan los indicadores bancarios del panel económico de ELEVATEX.
+
+Variables privadas del servidor: `SLASH_PLAYMAKER_API_KEY`, `SLASH_PLAYMAKER_LEGAL_ENTITY_ID`, `SLASH_PLAYMAKER_ISSUER_TAX_ID` y `SLASH_SYNC_LOOKBACK_DAYS`. Nunca se exponen al navegador.
 
 ## Permisos
 
@@ -121,12 +135,14 @@ Máximo 5 candidatos por transacción (ordenados por confidence desc).
 | Tabla | Descripción |
 |---|---|
 | `bank_accounts` | Cuentas bancarias registradas |
+| `bank_cards` | Tarjetas enmascaradas y responsable interno |
 | `bank_imports` | Archivos CSV/XLSX importados |
 | `bank_transactions` | Transacciones individuales |
 | `transaction_matches` | Sugerencias y aprobaciones de conciliación |
 | `bank_reconciliation_events` | Audit log de todas las acciones |
+| `slash_webhook_events` | Idempotencia y estado de avisos de Slash |
 
-Migración: `drizzle/0091_real_harrier.sql`
+Migraciones base: `drizzle/0091_real_harrier.sql`; separación por entidad y Slash: `drizzle/0145_hesitant_hex.sql`.
 
 ## AI Tools (solo lectura)
 
