@@ -11,7 +11,7 @@ import {
 import { NOT_ISSUED_MIRROR } from '@/lib/finance/revenue';
 import { getArAging } from './arAging';
 import type { ArAgingBucket, ArAgingKpis, ArAgingRow } from '@/types/arAging';
-import { totalEurSql } from '@/lib/finance/money';
+import { issuedTotalEurSql, paymentEurSql, totalEurSql } from '@/lib/finance/money';
 
 /**
  * FV.1 — criterio único de espejo (FK, con el prefijo como fallback histórico).
@@ -105,7 +105,7 @@ async function sumFacturado(period: IngresosPeriod): Promise<number> {
         notIssuedMirror,
       )),
     db
-      .select({ total: sql<string>`COALESCE(SUM(${issuedInvoices.totalAmount}), 0)::text` })
+      .select({ total: sql<string>`COALESCE(SUM(${issuedTotalEurSql}), 0)::text` })
       .from(issuedInvoices)
       .where(and(
         ne(issuedInvoices.status, 'anulada'),
@@ -122,9 +122,10 @@ async function sumFacturado(period: IngresosPeriod): Promise<number> {
  */
 async function sumCobradoReal(period: IngresosPeriod): Promise<number> {
   const [row] = await db
-    .select({ total: sql<string>`COALESCE(SUM(${invoicePayments.amount}), 0)::text` })
+    .select({ total: sql<string>`COALESCE(SUM(${paymentEurSql}), 0)::text` })
     .from(invoicePayments)
     .leftJoin(invoices, eq(invoices.id, invoicePayments.invoiceId))
+    .leftJoin(issuedInvoices, eq(issuedInvoices.id, invoicePayments.issuedInvoiceId))
     .where(and(
       gte(invoicePayments.paymentDate, period.from),
       lte(invoicePayments.paymentDate, period.to),
@@ -190,7 +191,7 @@ async function computeTopMarcasFacturado(period: IngresosPeriod, limit = 5): Pro
     db
       .select({
         name: crmBrands.name,
-        total: sql<string>`COALESCE(SUM(${issuedInvoices.totalAmount}), 0)::text`,
+        total: sql<string>`COALESCE(SUM(${issuedTotalEurSql}), 0)::text`,
         cnt: sql<number>`COUNT(${issuedInvoices.id})::int`,
       })
       .from(issuedInvoices)

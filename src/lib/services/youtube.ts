@@ -150,18 +150,13 @@ export type YouTubeChannelPreview = {
 
 // ── Live detection ──────────────────────────────────────────────────────
 
-const YouTubeLiveBroadcastSchema = z.object({
+const YouTubeLiveVideosSchema = z.object({
   items: z.array(z.object({
     id: z.string(),
-    snippet: z.object({ liveBroadcastContent: z.enum(['live', 'upcoming', 'none']) }),
-  })).optional(),
-});
-
-const YouTubeLiveSearchSchema = z.object({
-  items: z.array(z.object({
-    id: z.object({ videoId: z.string() }),
     snippet: z.object({
+      channelId: z.string(),
       title: z.string(),
+      liveBroadcastContent: z.enum(['live', 'upcoming', 'none']),
       thumbnails: z.object({
         medium: z.object({ url: z.string() }).optional(),
         high:   z.object({ url: z.string() }).optional(),
@@ -177,57 +172,74 @@ export type YouTubeLiveResult = {
   thumbnailUrl: string;
 };
 
+function parseFeedVideoIds(xml: string): string[] {
+  return [...xml.matchAll(/<yt:videoId>([^<]+)<\/yt:videoId>/g)]
+    .map((match) => match[1]?.trim())
+    .filter((videoId): videoId is string => Boolean(videoId));
+}
+
 /**
  * Detect which YouTube channels are currently live, and return their video IDs for embedding.
  *
- * Step 1: channels.list?part=snippet&id=BATCH → 1 quota unit total
- * Step 2: search.list per live channel → 100 units each (rare — only when live)
+ * No usa search.list: su cupo diario es muy pequeño para monitorizar un roster.
+ * Lee el feed público de cada canal (sin cuota API) y confirma los vídeos
+ * recientes en lotes con videos.list (1 unidad por lote de hasta 50 vídeos).
  *
  * IMPORTANT: if ANY API call fails the caller must NOT update the DB to avoid
  * false "offline" marks. Throw on error; caller catches and skips.
  */
 export async function fetchYouTubeLive(channelIds: string[]): Promise<YouTubeLiveResult[]> {
-  if (channelIds.length === 0) return [];
+  const validChannelIds = [...new Set(channelIds.map((id) => id.trim()))]
+    .filter((id) => /^UC[A-Za-z0-9_-]{22}$/.test(id));
+  if (validChannelIds.length === 0) return [];
   const apiKey = requireYoutubeKey();
 
-  // Step 1: batch check which channels are live (1 quota unit)
-  const ids = channelIds.join(',');
-  const checkRes = await fetch(
-    `https://www.googleapis.com/youtube/v3/channels?part=snippet&id=${ids}&key=${apiKey}`
-  );
-  if (!checkRes.ok) {
-    const text = await checkRes.text();
-    throw new Error(`YouTube channels live check error (${checkRes.status}): ${text}`);
-  }
-  const checkData = YouTubeLiveBroadcastSchema.parse(await checkRes.json());
-  const liveChannelIds = (checkData.items ?? [])
-    .filter((i) => i.snippet.liveBroadcastContent === 'live')
-    .map((i) => i.id);
-
-  if (liveChannelIds.length === 0) return [];
-
-  // Step 2: for each live channel, get the video ID via search (100 units each)
-  const results: YouTubeLiveResult[] = [];
-  await Promise.all(
-    liveChannelIds.map(async (channelId) => {
-      const searchRes = await fetch(
-        `https://www.googleapis.com/youtube/v3/search?part=id,snippet&channelId=${channelId}` +
-        `&eventType=live&type=video&maxResults=1&key=${apiKey}`
+  // 1. Leer los últimos vídeos del feed público. Se limita la concurrencia
+  // para no disparar ráfagas grandes contra YouTube cuando el roster crece.
+  const channelByVideo = new Map<string, string>();
+  for (let i = 0; i < validChannelIds.length; i += 8) {
+    const chunk = validChannelIds.slice(i, i + 8);
+    await Promise.all(chunk.map(async (channelId) => {
+      const response = await fetch(
+        `https://www.youtube.com/feeds/videos.xml?channel_id=${encodeURIComponent(channelId)}`,
       );
-      if (!searchRes.ok) return; // skip this channel if search fails
-      const searchData = YouTubeLiveSearchSchema.parse(await searchRes.json());
-      const item = searchData.items?.[0];
-      if (!item) return;
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(`YouTube channel feed error (${response.status}): ${text}`);
+      }
+      const xml = await response.text();
+      for (const videoId of parseFeedVideoIds(xml).slice(0, 5)) {
+        channelByVideo.set(videoId, channelId);
+      }
+    }));
+  }
+
+  // 2. videos.list confirma cuáles están realmente emitiendo y aporta el CTA.
+  const results: YouTubeLiveResult[] = [];
+  const videoIds = [...channelByVideo.keys()];
+  for (let i = 0; i < videoIds.length; i += 50) {
+    const ids = videoIds.slice(i, i + 50).join(',');
+    const response = await fetch(
+      `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${ids}&key=${apiKey}`,
+    );
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(`YouTube videos live check error (${response.status}): ${text}`);
+    }
+    const data = YouTubeLiveVideosSchema.parse(await response.json());
+    for (const item of data.items ?? []) {
+      if (item.snippet.liveBroadcastContent !== 'live') continue;
+      const channelId = channelByVideo.get(item.id) ?? item.snippet.channelId;
       results.push({
         channelId,
-        videoId:      item.id.videoId,
+        videoId:      item.id,
         title:        item.snippet.title,
         thumbnailUrl: item.snippet.thumbnails?.high?.url
           ?? item.snippet.thumbnails?.medium?.url
-          ?? `https://img.youtube.com/vi/${item.id.videoId}/hqdefault.jpg`,
+          ?? `https://img.youtube.com/vi/${item.id}/hqdefault.jpg`,
       });
-    })
-  );
+    }
+  }
   return results;
 }
 

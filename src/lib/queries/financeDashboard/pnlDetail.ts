@@ -12,6 +12,7 @@ import {
   PENDING_EXPENSE_STATUSES,
 } from '@/lib/utils/invoice-status';
 import type { InvoiceStatus } from '@/types';
+import { issuedTotalEurSql, paymentEurSql, totalEurSql } from '@/lib/finance/money';
 import {
   buildInvoicePdfUrl,
   classifyExpenseSubgroup,
@@ -101,7 +102,7 @@ export async function getFinancePnL(filters: PnLFilters = {}): Promise<FinancePn
         id: invoices.id,
         kind: invoices.kind,
         status: invoices.status,
-        totalAmount: invoices.totalAmount,
+        totalAmount: sql<string>`${totalEurSql}::text`,
         campaignId: invoices.campaignId,
         talentId: invoices.talentId,
         expenseGroup: invoices.expenseGroup,
@@ -123,7 +124,7 @@ export async function getFinancePnL(filters: PnLFilters = {}): Promise<FinancePn
           .select({
             id: issuedInvoices.id,
             status: issuedInvoices.status,
-            totalAmount: issuedInvoices.totalAmount,
+            totalAmount: sql<string>`${issuedTotalEurSql}::text`,
             campaignId: issuedInvoices.relatedDealId,
             talentId: issuedInvoices.relatedTalentId,
             issueDate: issuedInvoices.issueDate,
@@ -139,9 +140,10 @@ export async function getFinancePnL(filters: PnLFilters = {}): Promise<FinancePn
     // Cobrado YTD via invoice_payments: internal income OR issued invoices
     // (issued payments often have issuedInvoiceId set and invoiceId null).
     db
-      .select({ total: sql<string>`COALESCE(SUM(${invoicePayments.amount}), 0)::text` })
+      .select({ total: sql<string>`COALESCE(SUM(${paymentEurSql}), 0)::text` })
       .from(invoicePayments)
       .leftJoin(invoices, eq(invoices.id, invoicePayments.invoiceId))
+      .leftJoin(issuedInvoices, eq(issuedInvoices.id, invoicePayments.issuedInvoiceId))
       .where(
         and(
           gte(invoicePayments.paymentDate, yearStart),
@@ -152,7 +154,7 @@ export async function getFinancePnL(filters: PnLFilters = {}): Promise<FinancePn
 
     // Pagado YTD via invoice_payments (expense internals only — issued are income)
     db
-      .select({ total: sql<string>`COALESCE(SUM(${invoicePayments.amount}), 0)::text` })
+      .select({ total: sql<string>`COALESCE(SUM(CASE WHEN ${invoices.fxRate} IS NOT NULL THEN ${invoicePayments.amount} * ${invoices.fxRate} ELSE ${invoicePayments.amount} END), 0)::text` })
       .from(invoicePayments)
       .innerJoin(invoices, eq(invoices.id, invoicePayments.invoiceId))
       .where(

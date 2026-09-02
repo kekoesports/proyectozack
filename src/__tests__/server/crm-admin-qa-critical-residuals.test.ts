@@ -112,6 +112,15 @@ describe('high residual shell — search + staff dashboard', () => {
     expect(src).toMatch(/userRole=\{session\.user\.role/);
   });
 
+  it('calculates the header date on the server to avoid hydration mismatches', () => {
+    const header = read('src/features/admin/_shared/components/AdminHeader.tsx');
+    const layout = read('src/app/admin/(dashboard)/layout.tsx');
+    expect(header).toMatch(/todayLabel/);
+    expect(header).not.toMatch(/new Date\(\)\.toLocaleDateString/);
+    expect(layout).toMatch(/timeZone: 'Europe\/Madrid'/);
+    expect(layout).toMatch(/todayLabel=\{todayLabel\}/);
+  });
+
   it('staff dashboard skips financial KPI queries', () => {
     const src = read('src/app/admin/(dashboard)/page.tsx');
     expect(src).toMatch(/isStaff \? Promise\.resolve\(zeroRevenue\)/);
@@ -126,5 +135,40 @@ describe('issued money mutations use facturacion:write', () => {
     expect(src).toMatch(/updateInvoiceStatusAction[\s\S]*?requirePermission\('facturacion', 'write'\)/);
     // No remaining mutation gates on facturacion:read in this module.
     expect(src).not.toMatch(/requirePermission\('facturacion', 'read'\)/);
+  });
+});
+
+describe('foreign-currency finance totals stay in EUR', () => {
+  it('defines canonical issued totals and applied-payment conversions', () => {
+    const money = read('src/lib/finance/money.ts');
+    expect(money).toMatch(/issuedTotalEurSql/);
+    expect(money).toMatch(/issuedPaymentEurSql/);
+    expect(money).toMatch(/internalPaymentEurSql/);
+    expect(money).toMatch(/paymentEurSql/);
+  });
+
+  it.each([
+    'src/lib/queries/financeDashboard/ingresos.ts',
+    'src/lib/queries/financeDashboard/receivables.ts',
+    'src/lib/queries/financeDashboard/arAging.ts',
+    'src/lib/queries/financeDashboard/rentabilidad.ts',
+    'src/lib/queries/financeDashboard/pnlDetail.ts',
+  ])('%s uses the canonical issued EUR amount', (file) => {
+    expect(read(file)).toMatch(/issuedTotalEurSql/);
+  });
+
+  it('the main summary converts both issued and internal revenue in its union', () => {
+    const summary = read('src/lib/queries/financeDashboard/finanzasResumenV2.ts');
+    expect(summary.match(/COALESCE\(eur_equivalent, total_amount\)/g)).toHaveLength(2);
+    expect(summary).toMatch(/paymentEurSql/);
+  });
+});
+
+describe('public news cover', () => {
+  it('rejects editorial slots that repeat a post already used in the hero', () => {
+    const source = read('src/app/news/page.tsx');
+    expect(source).toContain('!heroSlugs.has(secondary1Candidate.slug)');
+    expect(source).toContain('!usedHeroSlugs.has(secondary2Candidate.slug)');
+    expect(source).toContain('!allHeroSlugs.has(compactCandidate.slug)');
   });
 });

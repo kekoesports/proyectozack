@@ -60,6 +60,8 @@ const SEARCH_ROLES = new Set([
 ]);
 
 type Props = {
+  /** Etiqueta calculada en el servidor para que SSR e hidratación pinten el mismo texto. */
+  readonly todayLabel:          string;
   readonly alertCount?:        number;
   readonly recentAlerts?:      readonly DashboardAlert[];
   readonly onDismissAlert?:    (id: unknown) => Promise<{ error?: string }>;
@@ -195,6 +197,7 @@ function useThemeToggle(): { isDark: boolean; toggle: () => void } {
 // ── AdminHeader ───────────────────────────────────────────────────────
 
 export function AdminHeader({
+  todayLabel,
   alertCount = 0,
   recentAlerts = [],
   onDismissAlert,
@@ -218,10 +221,6 @@ export function AdminHeader({
     startTransition(async () => { await onDismissAllAlerts?.(); });
   };
 
-  const today = new Date().toLocaleDateString('es-ES', {
-    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
-  });
-
   const hasAlerts  = alertCount > 0;
   const badgeCount = alertCount > 99 ? '99+' : String(alertCount);
 
@@ -234,7 +233,7 @@ export function AdminHeader({
     <header className="sticky top-0 z-30 h-14 bg-sp-admin-bg/95 backdrop-blur-md border-b border-sp-admin-border/70 flex items-center gap-3 px-4 md:px-6">
       {/* Fecha */}
       <span className="hidden md:block text-[11px] font-medium text-sp-admin-muted capitalize shrink-0 tabular-nums">
-        {today}
+        {todayLabel}
       </span>
       <div className="hidden md:block h-4 w-px bg-sp-admin-border shrink-0" aria-hidden />
 

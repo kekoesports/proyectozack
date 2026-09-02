@@ -163,15 +163,40 @@ export default async function NewsPage({ searchParams }: PageProps) {
   // Posts editoriales: excluir vídeos YouTube del hero/secondary/sidebar
   const editorialPosts = sortedPosts.filter((p) => !youtubePostIds.has(p.id));
 
-  // Portada: usa editorialPosts (sin YouTube) para fallback
+  // Portada: los slots editoriales pueden quedar duplicados por una asignación
+  // antigua. La UI nunca debe enseñar dos veces la misma noticia en el hero.
   const hero = slotMap['hero'] ?? editorialPosts[0] ?? null;
-  const secondary1 = slotMap['secondary_1'] ?? editorialPosts.find((p) => p.slug !== hero?.slug) ?? null;
+  const heroSlugs = new Set(hero ? [hero.slug] : []);
+  const secondary1Candidate = slotMap['secondary_1'];
+  const secondary1 =
+    (secondary1Candidate && !heroSlugs.has(secondary1Candidate.slug) ? secondary1Candidate : null) ??
+    editorialPosts.find((p) => !heroSlugs.has(p.slug)) ??
+    null;
+  const usedHeroSlugs = new Set([
+    ...heroSlugs,
+    ...(secondary1 ? [secondary1.slug] : []),
+  ]);
+  const secondary2Candidate = slotMap['secondary_2'];
   const secondary2 =
-    slotMap['secondary_2'] ??
-    editorialPosts.find((p) => p.slug !== hero?.slug && p.slug !== secondary1?.slug) ??
+    (secondary2Candidate && !usedHeroSlugs.has(secondary2Candidate.slug) ? secondary2Candidate : null) ??
+    editorialPosts.find((p) => !usedHeroSlugs.has(p.slug)) ??
     null;
   const featuredInterview = slotMap['featured_interview'] ?? null;
   const featuredClip = slotMap['featured_clip'] ?? null;
+  const allHeroSlugs = new Set([
+    ...usedHeroSlugs,
+    ...(secondary2 ? [secondary2.slug] : []),
+  ]);
+  const compactCandidate = featuredInterview ?? featuredClip;
+  const compact =
+    (compactCandidate && !allHeroSlugs.has(compactCandidate.slug) ? compactCandidate : null) ??
+    editorialPosts.find((p) => !allHeroSlugs.has(p.slug)) ??
+    null;
+  const compactLabel = compact === featuredInterview
+    ? 'Entrevista'
+    : compact === featuredClip
+      ? 'Clip'
+      : undefined;
 
   const trending = [secondary1, secondary2].filter(Boolean) as typeof allPosts;
 
@@ -252,15 +277,11 @@ export default async function NewsPage({ searchParams }: PageProps) {
                         ? <NewsSecondaryMedium post={trending[1]} />
                         : <div className="h-full rounded-xl bg-white/[0.03] border border-white/[0.05]" />}
                     </div>
-                    {(() => {
-                      const compact = featuredInterview ?? featuredClip ?? editorialPosts[2] ?? null;
-                      const label = featuredInterview ? 'Entrevista' : featuredClip ? 'Clip' : undefined;
-                      return compact ? (
-                        <div className="min-h-[76px] md:flex-[2] md:min-h-0">
-                          <NewsCompactStrip post={compact} label={label} />
-                        </div>
-                      ) : null;
-                    })()}
+                    {compact ? (
+                      <div className="min-h-[76px] md:flex-[2] md:min-h-0">
+                        <NewsCompactStrip post={compact} label={compactLabel} />
+                      </div>
+                    ) : null}
                   </div>
                 </div>
 

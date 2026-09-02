@@ -12,6 +12,7 @@
 import { and, eq, gte, isNull, lte, ne, notInArray, notLike, or, sql, type SQL } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { billingClients, crmBrands, invoices, issuedInvoices } from '@/db/schema';
+import { issuedTotalEurSql } from '@/lib/finance/money';
 import {
   ISSUED_MIRROR_CONCEPT_PREFIX,
   ISSUED_MIRROR_NOTES_PREFIX,
@@ -178,9 +179,9 @@ export async function getIssuedRevenueAggregates(
 
   const [row] = await db
     .select({
-      total: sql<string>`COALESCE(SUM(${issuedInvoices.totalAmount}), 0)::text`,
-      settled: sql<string>`COALESCE(SUM(CASE WHEN ${issuedInvoices.status} = 'cobrada' THEN ${issuedInvoices.totalAmount} ELSE 0 END), 0)::text`,
-      pending: sql<string>`COALESCE(SUM(CASE WHEN ${issuedInvoices.status} IN ('emitida','enviada','vencida','parcial') THEN ${issuedInvoices.totalAmount} ELSE 0 END), 0)::text`,
+      total: sql<string>`COALESCE(SUM(${issuedTotalEurSql}), 0)::text`,
+      settled: sql<string>`COALESCE(SUM(CASE WHEN ${issuedInvoices.status} = 'cobrada' THEN ${issuedTotalEurSql} ELSE 0 END), 0)::text`,
+      pending: sql<string>`COALESCE(SUM(CASE WHEN ${issuedInvoices.status} IN ('emitida','enviada','vencida','parcial') THEN ${issuedTotalEurSql} ELSE 0 END), 0)::text`,
     })
     .from(issuedInvoices)
     .where(and(...conds));

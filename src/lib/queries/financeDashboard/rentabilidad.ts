@@ -17,7 +17,7 @@ import { and, asc, eq, isNotNull, ne, sql } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { campaigns, crmBrands, invoices, issuedInvoices, talents } from '@/db/schema';
 import { NOT_ISSUED_MIRROR } from '@/lib/finance/revenue';
-import { totalEurSql } from '@/lib/finance/money';
+import { issuedTotalEurSql, totalEurSql } from '@/lib/finance/money';
 
 /** Umbral heredado de campaignMargins.ts — mantener sincronizado. */
 export const LOW_MARGIN_THRESHOLD = 20;
@@ -310,7 +310,7 @@ export async function getRentabilidadData(input: RentabilidadFilters = {}): Prom
     db
       .select({
         campaignId: issuedInvoices.relatedDealId,
-        ingresosEmitidos: sql<string>`COALESCE(SUM(${issuedInvoices.totalAmount}), 0)::text`,
+        ingresosEmitidos: sql<string>`COALESCE(SUM(${issuedTotalEurSql}), 0)::text`,
       })
       .from(issuedInvoices)
       .where(and(

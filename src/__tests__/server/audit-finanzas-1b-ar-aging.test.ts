@@ -347,7 +347,8 @@ describe('[Fase 1B] AR Aging — chequeos estáticos', () => {
     const src = read('src/lib/queries/financeDashboard/arAging.ts');
 
     it('usa invoicePayments como fuente de paid (no invoices.paidAmount column)', () => {
-      expect(src).toMatch(/COALESCE\(SUM\(\$\{invoicePayments\.amount\}\)/);
+      expect(src).toMatch(/COALESCE\(SUM\(\$\{issuedPaymentEurSql\}\)/);
+      expect(src).toMatch(/COALESCE\(SUM\(\$\{internalPaymentEurSql\}\)/);
       expect(src).not.toMatch(/paidAmount:\s*invoices\.paidAmount/);
     });
 

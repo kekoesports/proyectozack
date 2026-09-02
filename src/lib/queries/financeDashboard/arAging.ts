@@ -29,6 +29,12 @@ import {
   todayInMadrid,
 } from './arAging.shared';
 import { buildInvoicePdfUrl, buildIssuedInvoicePdfUrl } from './expenseSubgroups';
+import {
+  internalPaymentEurSql,
+  issuedPaymentEurSql,
+  issuedTotalEurSql,
+  totalEurSql,
+} from '@/lib/finance/money';
 
 /**
  * Fetch AR aging: cobros pendientes de `issued_invoices` + `invoices kind=income`.
@@ -48,9 +54,9 @@ export async function getArAging(
       .select({
         id: issuedInvoices.id,
         invoiceNumber: issuedInvoices.invoiceNumber,
-        totalAmount: issuedInvoices.totalAmount,
-        paidAmount: sql<string>`COALESCE(SUM(${invoicePayments.amount}), 0)::text`,
-        currency: issuedInvoices.currency,
+        totalAmount: sql<string>`${issuedTotalEurSql}::text`,
+        paidAmount: sql<string>`COALESCE(SUM(${issuedPaymentEurSql}), 0)::text`,
+        currency: sql<string>`'EUR'`,
         status: issuedInvoices.status,
         issueDate: issuedInvoices.issueDate,
         dueDate: issuedInvoices.dueDate,
@@ -69,6 +75,8 @@ export async function getArAging(
         issuedInvoices.id,
         issuedInvoices.invoiceNumber,
         issuedInvoices.totalAmount,
+        issuedInvoices.eurEquivalent,
+        issuedInvoices.fxRate,
         issuedInvoices.currency,
         issuedInvoices.status,
         issuedInvoices.issueDate,
@@ -84,9 +92,9 @@ export async function getArAging(
       .select({
         id: invoices.id,
         number: invoices.number,
-        totalAmount: invoices.totalAmount,
-        paidAmount: sql<string>`COALESCE(SUM(${invoicePayments.amount}), 0)::text`,
-        currency: invoices.currency,
+        totalAmount: sql<string>`${totalEurSql}::text`,
+        paidAmount: sql<string>`COALESCE(SUM(${internalPaymentEurSql}), 0)::text`,
+        currency: sql<string>`'EUR'`,
         status: invoices.status,
         issueDate: invoices.issueDate,
         dueDate: invoices.dueDate,
@@ -109,6 +117,8 @@ export async function getArAging(
         invoices.id,
         invoices.number,
         invoices.totalAmount,
+        invoices.eurEquivalent,
+        invoices.fxRate,
         invoices.currency,
         invoices.status,
         invoices.issueDate,
