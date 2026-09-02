@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { eq, and, isNull } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { talents, talentLiveStatus, talentSocials } from '@/db/schema';
+import { normalizeSocialProfileUrl } from '@/lib/utils/social-profile-url';
 
 export const dynamic = 'force-dynamic';
 
@@ -71,7 +72,11 @@ export async function GET(
     streamUrl:     row.streamUrl,
     liveVideoId:   row.liveVideoId,
     handle:        row.handle,
-    profileUrl:    row.profileUrl,
+    profileUrl:    normalizeSocialProfileUrl({
+      platform: 'twitch',
+      profileUrl: row.profileUrl,
+      handle: row.handle,
+    }),
     lastCheckedAt: row.lastCheckedAt,
   };
 
