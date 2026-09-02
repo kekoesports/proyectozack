@@ -75,6 +75,7 @@ function EntitySection({ entity, accounts }: {
   readonly accounts: readonly BankAccountWithStats[];
 }): React.ReactElement {
   const hasSlash = accounts.some((account) => account.provider === 'slash');
+  const hasWise = accounts.some((account) => account.provider === 'wise');
   return (
     <section className="rounded-xl border border-sp-border bg-sp-admin-card overflow-hidden">
       <div className="px-4 py-3 border-b border-sp-border flex flex-wrap items-center justify-between gap-3">
@@ -90,6 +91,11 @@ function EntitySection({ entity, accounts }: {
             {hasSlash ? (
               <Link href={`/admin/facturacion/bancos/slash?entity=${entity.issuerCompanyId}`} className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-sp-orange/10 text-sp-orange hover:bg-sp-orange/20 transition-colors">
                 Ver gastos de Slash
+              </Link>
+            ) : null}
+            {hasWise ? (
+              <Link href="/admin/facturacion/bancos/importar?provider=wise" className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 transition-colors">
+                Importar Wise
               </Link>
             ) : null}
           </div>

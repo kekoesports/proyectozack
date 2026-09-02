@@ -14,6 +14,7 @@ export const createBankAccountSchema = z.object({
 export type CreateBankAccountInput = z.infer<typeof createBankAccountSchema>;
 
 export const bankColumnMappingSchema = z.object({
+  externalId: z.coerce.number().int().min(0).optional(),
   bookingDate: z.coerce.number().int().min(0).optional(),
   valueDate: z.coerce.number().int().min(0).optional(),
   amount: z.coerce.number().int().min(0).optional(),
@@ -24,6 +25,10 @@ export const bankColumnMappingSchema = z.object({
   counterpartyAccount: z.coerce.number().int().min(0).optional(),
   reference: z.coerce.number().int().min(0).optional(),
   category: z.coerce.number().int().min(0).optional(),
+  originalAmount: z.coerce.number().int().min(0).optional(),
+  originalCurrency: z.coerce.number().int().min(0).optional(),
+  conversionRate: z.coerce.number().int().min(0).optional(),
+  fxFee: z.coerce.number().int().min(0).optional(),
 });
 
 export const importBankFileSchema = z.object({

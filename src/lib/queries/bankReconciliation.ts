@@ -242,6 +242,21 @@ export async function getBankTransactionByHash(
   return row ?? null;
 }
 
+export async function getBankTransactionByExternalId(
+  externalId: string,
+  bankAccountId: number,
+): Promise<BankTransaction | null> {
+  const [row] = await db
+    .select()
+    .from(bankTransactions)
+    .where(and(
+      eq(bankTransactions.externalId, externalId),
+      eq(bankTransactions.bankAccountId, bankAccountId),
+    ))
+    .limit(1);
+  return row ?? null;
+}
+
 export async function createBankTransaction(
   data: Omit<typeof bankTransactions.$inferInsert, 'id' | 'createdAt' | 'updatedAt'>,
 ): Promise<BankTransaction> {
