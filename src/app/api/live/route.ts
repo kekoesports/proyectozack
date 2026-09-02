@@ -1,5 +1,5 @@
 import { NextResponse, after } from 'next/server';
-import { desc } from 'drizzle-orm';
+import { desc, inArray } from 'drizzle-orm';
 import { getLiveTalents, pickFeatured, getTalentsWithTwitch, getTalentsWithYouTube, getTwitchRoster } from '@/lib/queries/live';
 import { fetchTwitchLiveByLogins } from '@/lib/services/twitch';
 import { fetchYouTubeLive } from '@/lib/services/youtube';
@@ -10,6 +10,7 @@ import { talentLiveStatus } from '@/db/schema';
 export const dynamic = 'force-dynamic';
 
 const STALE_THRESHOLD_MS = 3 * 60 * 1000; // 3 minutos
+const YOUTUBE_STALE_THRESHOLD_MS = 9 * 60 * 1000;
 
 function resolveThumbnail(url: string, w = 640, h = 360): string {
   return url.replace('{width}', String(w)).replace('{height}', String(h));
@@ -18,6 +19,14 @@ function resolveThumbnail(url: string, w = 640, h = 360): string {
 async function pollTwitch(): Promise<void> {
   const talentsWithTwitch = await getTalentsWithTwitch();
   if (talentsWithTwitch.length === 0) return;
+
+  const [latest] = await db
+    .select({ lastCheckedAt: talentLiveStatus.lastCheckedAt })
+    .from(talentLiveStatus)
+    .where(inArray(talentLiveStatus.talentId, talentsWithTwitch.map((talent) => talent.talentId)))
+    .orderBy(desc(talentLiveStatus.lastCheckedAt))
+    .limit(1);
+  if (latest?.lastCheckedAt && Date.now() - latest.lastCheckedAt.getTime() <= STALE_THRESHOLD_MS) return;
 
   let liveStreams;
   try {
@@ -75,9 +84,17 @@ async function pollYouTube(): Promise<void> {
   if (talentsWithYT.length === 0) return;
 
   const validTalents = talentsWithYT.filter((t): t is typeof t & { channelId: string } =>
-    t.channelId !== null
+    t.channelId !== null && /^UC[A-Za-z0-9_-]{22}$/.test(t.channelId)
   );
   if (validTalents.length === 0) return;
+
+  const [latest] = await db
+    .select({ lastCheckedAt: talentLiveStatus.lastCheckedAt })
+    .from(talentLiveStatus)
+    .where(inArray(talentLiveStatus.talentId, validTalents.map((talent) => talent.talentId)))
+    .orderBy(desc(talentLiveStatus.lastCheckedAt))
+    .limit(1);
+  if (latest?.lastCheckedAt && Date.now() - latest.lastCheckedAt.getTime() <= YOUTUBE_STALE_THRESHOLD_MS) return;
 
   let liveResults;
   try {
@@ -139,14 +156,12 @@ export async function GET(): Promise<NextResponse> {
     !latest?.lastCheckedAt ||
     Date.now() - latest.lastCheckedAt.getTime() > STALE_THRESHOLD_MS;
 
-  // Si los datos son viejos, lanzar el poll DESPUÉS de enviar la respuesta
-  // (next/server `after` ejecuta el callback tras finalizar el streaming)
-  if (isStale) {
-    after(async () => {
-      await pollTwitch();
-      await pollYouTube();
-    });
-  }
+  // Cada plataforma aplica su propia ventana antes de llamar al proveedor.
+  // Se programa en cada MISS para que una actualización reciente de YouTube
+  // no oculte que Twitch está atrasado (y viceversa).
+  after(async () => {
+    await Promise.all([pollTwitch(), pollYouTube()]);
+  });
 
   const [lives, roster] = await Promise.all([
     getLiveTalents(),

@@ -1,4 +1,5 @@
 import { and, eq, gt, isNull, or, desc, isNotNull, sql, count, max } from 'drizzle-orm';
+import { alias } from 'drizzle-orm/pg-core';
 import { db } from '@/lib/db';
 import { talents, talentSocials, talentLiveStatus } from '@/db/schema';
 
@@ -102,6 +103,7 @@ export async function getTalentsWithTwitch() {
 
 /** Para el poll: talentos públicos activos con social de YouTube */
 export async function getTalentsWithYouTube() {
+  const twitchSocial = alias(talentSocials, 'twitch_social');
   return db
     .select({
       talentId:  talents.id,
@@ -113,11 +115,19 @@ export async function getTalentsWithYouTube() {
       eq(talentSocials.talentId, talents.id),
       eq(talentSocials.platform, 'youtube'),
     ))
+    .leftJoin(twitchSocial, and(
+      eq(twitchSocial.talentId, talents.id),
+      eq(twitchSocial.platform, 'twitch'),
+    ))
     .where(and(
       eq(talents.visibility, 'public'),
       or(eq(talents.status, 'active'), eq(talents.status, 'available')),
       eq(talents.excludeFromLive, false),
       isNotNull(talentSocials.platformId),
+      // talent_live_status tiene una fila por talento, no por plataforma.
+      // Twitch es la fuente principal cuando ambas redes existen; así YouTube
+      // no puede sobrescribir un directo real de Twitch con un falso offline.
+      isNull(twitchSocial.id),
       isNull(talents.archivedAt),
     ));
 }
@@ -314,7 +324,8 @@ export async function getCs2RosterForSidebar(): Promise<Cs2SidebarEntry[]> {
 
 /** Para la página CRM /admin/live — todos los talentos con estado live */
 export async function getAllTalentsLiveStatus() {
-  return db
+  const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
+  const rows = await db
     .select({
       id:               talents.id,
       name:             talents.name,
@@ -334,6 +345,18 @@ export async function getAllTalentsLiveStatus() {
     .leftJoin(talentLiveStatus, eq(talentLiveStatus.talentId, talents.id))
     .where(eq(talents.visibility, 'public'))
     .orderBy(desc(talentLiveStatus.isLive), desc(talentLiveStatus.viewerCount), talents.name);
+
+  return rows.map((row) => {
+    const stale = !row.lastCheckedAt || row.lastCheckedAt < tenMinutesAgo;
+    return {
+      ...row,
+      isLive: stale ? false : (row.isLive ?? false),
+      platform: stale ? null : row.platform,
+      gameName: stale ? null : row.gameName,
+      viewerCount: stale ? null : row.viewerCount,
+      streamTitle: stale ? null : row.streamTitle,
+    };
+  });
 }
 
 export async function getTalentLiveStatus(talentId: number) {

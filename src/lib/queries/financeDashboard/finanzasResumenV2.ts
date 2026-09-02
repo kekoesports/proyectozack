@@ -16,7 +16,13 @@ import {
   PENDING_INCOME_FILTER,
 } from '@/lib/utils/invoice-status';
 import { notIssuedMirrorRawSql } from '@/lib/finance/revenue';
-import { totalEurSql } from '@/lib/finance/money';
+import {
+  internalPaymentEurSql,
+  issuedPaymentEurSql,
+  issuedTotalEurSql,
+  paymentEurSql,
+  totalEurSql,
+} from '@/lib/finance/money';
 import type { InvoiceStatus } from '@/types';
 import type {
   FinanzasPeriod,
@@ -89,8 +95,10 @@ export async function getFinanzasResumenV2(
   ] = await Promise.all([
     // 1. Ingresos cobrados = SUM(invoice_payments.amount) para income (issued O internal) con paymentDate ∈ periodo
     db
-      .select({ amount: sql<string>`COALESCE(SUM(${invoicePayments.amount}), 0)::text` })
+      .select({ amount: sql<string>`COALESCE(SUM(${paymentEurSql}), 0)::text` })
       .from(invoicePayments)
+      .leftJoin(invoices, eq(invoices.id, invoicePayments.invoiceId))
+      .leftJoin(issuedInvoices, eq(issuedInvoices.id, invoicePayments.issuedInvoiceId))
       .where(
         and(
           gte(invoicePayments.paymentDate, period.from),
@@ -111,11 +119,11 @@ export async function getFinanzasResumenV2(
       .select({ amount: sql<string>`COALESCE(SUM(t), 0)::text` })
       .from(
         sql`(
-          SELECT total_amount AS t FROM issued_invoices
+          SELECT COALESCE(eur_equivalent, total_amount) AS t FROM issued_invoices
             WHERE status != 'anulada'
               AND issue_date BETWEEN ${period.from} AND ${period.to}
           UNION ALL
-          SELECT total_amount AS t FROM invoices
+          SELECT COALESCE(eur_equivalent, total_amount) AS t FROM invoices
             WHERE kind = 'income' AND status != 'anulada'
               AND issue_date BETWEEN ${period.from} AND ${period.to}
               AND ${notIssuedMirrorRawSql()}
@@ -150,7 +158,7 @@ export async function getFinanzasResumenV2(
 
     // 4. Costes directos pagados = SUM(invoice_payments.amount) para invoices campaign_direct con paymentDate ∈ periodo
     db
-      .select({ amount: sql<string>`COALESCE(SUM(${invoicePayments.amount}), 0)::text` })
+      .select({ amount: sql<string>`COALESCE(SUM(${internalPaymentEurSql}), 0)::text` })
       .from(invoicePayments)
       .innerJoin(invoices, eq(invoices.id, invoicePayments.invoiceId))
       .where(
@@ -167,8 +175,8 @@ export async function getFinanzasResumenV2(
       .select({
         id: issuedInvoices.id,
         invoiceNumber: issuedInvoices.invoiceNumber,
-        totalAmount: issuedInvoices.totalAmount,
-        paidAmount: sql<string>`COALESCE(SUM(${invoicePayments.amount}), 0)::text`,
+        totalAmount: sql<string>`${issuedTotalEurSql}::text`,
+        paidAmount: sql<string>`COALESCE(SUM(${issuedPaymentEurSql}), 0)::text`,
         dueDate: issuedInvoices.dueDate,
         brandName: crmBrands.name,
         clientName: billingClients.name,
@@ -180,6 +188,7 @@ export async function getFinanzasResumenV2(
       .where(inArray(issuedInvoices.status, [...ISSUED_PENDING_STATUSES]))
       .groupBy(
         issuedInvoices.id, issuedInvoices.invoiceNumber, issuedInvoices.totalAmount,
+        issuedInvoices.eurEquivalent, issuedInvoices.fxRate,
         issuedInvoices.dueDate, crmBrands.name, billingClients.name,
       ),
 
@@ -188,8 +197,8 @@ export async function getFinanzasResumenV2(
       .select({
         id: invoices.id,
         number: invoices.number,
-        totalAmount: invoices.totalAmount,
-        paidAmount: sql<string>`COALESCE(SUM(${invoicePayments.amount}), 0)::text`,
+        totalAmount: sql<string>`${totalEurSql}::text`,
+        paidAmount: sql<string>`COALESCE(SUM(${internalPaymentEurSql}), 0)::text`,
         dueDate: invoices.dueDate,
         brandName: crmBrands.name,
         counterpartyName: invoices.counterpartyName,
@@ -204,7 +213,8 @@ export async function getFinanzasResumenV2(
         ),
       )
       .groupBy(
-        invoices.id, invoices.number, invoices.totalAmount, invoices.dueDate,
+        invoices.id, invoices.number, invoices.totalAmount, invoices.eurEquivalent, invoices.fxRate,
+        invoices.dueDate,
         crmBrands.name, invoices.counterpartyName,
       ),
 
@@ -212,8 +222,8 @@ export async function getFinanzasResumenV2(
     db
       .select({
         id: invoices.id,
-        totalAmount: invoices.totalAmount,
-        paidAmount: sql<string>`COALESCE(SUM(${invoicePayments.amount}), 0)::text`,
+        totalAmount: sql<string>`${totalEurSql}::text`,
+        paidAmount: sql<string>`COALESCE(SUM(${internalPaymentEurSql}), 0)::text`,
         dueDate: invoices.dueDate,
         concept: invoices.concept,
         counterpartyName: invoices.counterpartyName,
@@ -233,7 +243,8 @@ export async function getFinanzasResumenV2(
         ),
       )
       .groupBy(
-        invoices.id, invoices.totalAmount, invoices.dueDate, invoices.concept,
+        invoices.id, invoices.totalAmount, invoices.eurEquivalent, invoices.fxRate,
+        invoices.dueDate, invoices.concept,
         invoices.counterpartyName, invoices.expenseGroup, invoices.expenseSubtype,
         invoices.talentId, invoices.campaignId, talents.name,
       ),

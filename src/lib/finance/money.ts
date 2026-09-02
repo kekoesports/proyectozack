@@ -1,7 +1,7 @@
 'server-only';
 
 import { sql, type SQL } from 'drizzle-orm';
-import { invoices } from '@/db/schema';
+import { invoicePayments, invoices, issuedInvoices } from '@/db/schema';
 
 /**
  * FV.4 (segunda mitad) — importes de factura expresados en euros.
@@ -22,6 +22,27 @@ import { invoices } from '@/db/schema';
 
 /** Total de la factura en euros. */
 export const totalEurSql: SQL = sql`COALESCE(${invoices.eurEquivalent}, ${invoices.totalAmount})`;
+
+/** Total de una factura emitida expresado en euros. */
+export const issuedTotalEurSql: SQL = sql`COALESCE(${issuedInvoices.eurEquivalent}, ${issuedInvoices.totalAmount})`;
+
+/** Pago aplicado a una factura interna, convertido con el cambio fijado en ella. */
+export const internalPaymentEurSql: SQL = sql`CASE WHEN ${invoices.fxRate} IS NOT NULL THEN ${invoicePayments.amount} * ${invoices.fxRate} ELSE ${invoicePayments.amount} END`;
+
+/** Pago aplicado a una factura emitida, convertido con el cambio fijado en ella. */
+export const issuedPaymentEurSql: SQL = sql`CASE WHEN ${issuedInvoices.fxRate} IS NOT NULL THEN ${invoicePayments.amount} * ${issuedInvoices.fxRate} ELSE ${invoicePayments.amount} END`;
+
+/**
+ * Pago en euros cuando la consulta admite tanto facturas internas como emitidas.
+ * La consulta que use esta expresión debe unir ambas tablas.
+ */
+export const paymentEurSql: SQL = sql`CASE
+  WHEN ${invoicePayments.issuedInvoiceId} IS NOT NULL AND ${issuedInvoices.fxRate} IS NOT NULL
+    THEN ${invoicePayments.amount} * ${issuedInvoices.fxRate}
+  WHEN ${invoicePayments.invoiceId} IS NOT NULL AND ${invoices.fxRate} IS NOT NULL
+    THEN ${invoicePayments.amount} * ${invoices.fxRate}
+  ELSE ${invoicePayments.amount}
+END`;
 
 /**
  * Base imponible en euros.

@@ -31,7 +31,10 @@ export default async function AdminLivePage() {
 
   const liveCount = talents.filter((t) => t.isLive).length;
   const fallbackCount = talents.filter((t) => t.featuredFallback).length;
-  const lastCheck = talents.find((t) => t.lastCheckedAt)?.lastCheckedAt ?? null;
+  const lastCheck = talents.reduce<Date | null>((latest, talent) => {
+    if (!talent.lastCheckedAt) return latest;
+    return !latest || talent.lastCheckedAt > latest ? talent.lastCheckedAt : latest;
+  }, null);
 
   return (
     <div>
@@ -49,7 +52,7 @@ export default async function AdminLivePage() {
           <span>Último check:</span>
           {formatTimeAgo(lastCheck, now)}
           <span className="text-sp-admin-muted/40">·</span>
-          <span>Se actualiza automáticamente cada 3 min.</span>
+          <span>Twitch se comprueba cada 3 min · YouTube cada 9 min.</span>
         </div>
 
         {fallbackCount >= MAX_FALLBACK && (

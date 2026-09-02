@@ -31,6 +31,7 @@ function codeOnly(src: string): string {
 
 describe('[TD-14] receivables.ts', () => {
   const src = read('src/lib/queries/financeDashboard/receivables.ts');
+  const moneySrc = read('src/lib/finance/money.ts');
   const code = codeOnly(src);
 
   it('no lee invoices.paidAmount en código (solo permitido en comentarios)', () => {
@@ -39,11 +40,12 @@ describe('[TD-14] receivables.ts', () => {
 
   it('usa invoice_payments como fuente canónica en el internal path', () => {
     expect(src).toMatch(/leftJoin\(\s*invoicePayments/);
-    expect(src).toMatch(/SUM\(\$\{invoicePayments\.amount\}\)/);
+    expect(src).toMatch(/SUM\(\$\{internalPaymentEurSql\}\)/);
+    expect(moneySrc).toMatch(/internalPaymentEurSql[\s\S]*invoicePayments\.amount/);
   });
 
-  it('mantiene el patrón COALESCE(SUM(...), 0)::text (idéntico al issued path)', () => {
-    const matches = src.match(/COALESCE\(SUM\(\$\{invoicePayments\.amount\}\)/g);
+  it('mantiene el patrón COALESCE(SUM(...), 0)::text y convierte ambos paths a EUR', () => {
+    const matches = src.match(/COALESCE\(SUM\(\$\{(?:issued|internal)PaymentEurSql\}\)/g);
     // Uno para issued + uno para internal.
     expect(matches?.length ?? 0).toBeGreaterThanOrEqual(2);
   });

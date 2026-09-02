@@ -5,6 +5,7 @@ import {
   searchYouTubeChannelsFromRecentVideos,
   getChannelDetails,
   getChannelAvgViews,
+  fetchYouTubeLive,
 } from '@/lib/services/youtube';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -42,6 +43,73 @@ afterEach(() => {
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
 describe('youtube service', () => {
+  describe('fetchYouTubeLive', () => {
+    const CHANNEL_ID = `UC${'a'.repeat(22)}`;
+
+    it('detects live videos through public feeds without consuming search.list quota', async () => {
+      (global.fetch as jest.Mock)
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          text: async () => '<feed><yt:videoId>video-live</yt:videoId><yt:videoId>video-offline</yt:videoId></feed>',
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          json: async () => ({ items: [
+            {
+              id: 'video-live',
+              snippet: {
+                channelId: CHANNEL_ID,
+                title: 'En directo',
+                liveBroadcastContent: 'live',
+                thumbnails: { high: { url: 'https://example.com/live.jpg' } },
+              },
+            },
+            {
+              id: 'video-offline',
+              snippet: {
+                channelId: CHANNEL_ID,
+                title: 'Grabado',
+                liveBroadcastContent: 'none',
+                thumbnails: {},
+              },
+            },
+          ] }),
+          text: async () => '',
+        });
+
+      await expect(fetchYouTubeLive([CHANNEL_ID])).resolves.toEqual([{
+        channelId: CHANNEL_ID,
+        videoId: 'video-live',
+        title: 'En directo',
+        thumbnailUrl: 'https://example.com/live.jpg',
+      }]);
+
+      const urls = (global.fetch as jest.Mock).mock.calls.map(([url]) => String(url));
+      expect(urls.some((url) => url.includes('/search?'))).toBe(false);
+    });
+
+    it('ignores malformed channel IDs without calling Google', async () => {
+      await expect(fetchYouTubeLive(['@handle', 'https://youtube.com/foo'])).resolves.toEqual([]);
+      expect(global.fetch).not.toHaveBeenCalled();
+    });
+
+    it('limits each feed to five videos and batches video confirmation', async () => {
+      const feed = Array.from({ length: 7 }, (_, i) => `<yt:videoId>video-${i}</yt:videoId>`).join('');
+      (global.fetch as jest.Mock)
+        .mockResolvedValueOnce({ ok: true, status: 200, text: async () => `<feed>${feed}</feed>` })
+        .mockResolvedValueOnce({ ok: true, status: 200, json: async () => ({ items: [] }), text: async () => '' });
+
+      await expect(fetchYouTubeLive([CHANNEL_ID])).resolves.toEqual([]);
+      expect(global.fetch).toHaveBeenCalledTimes(2);
+      const videosUrl = String((global.fetch as jest.Mock).mock.calls[1][0]);
+      expect(videosUrl).toContain('/videos?');
+      expect(videosUrl).toContain('video-4');
+      expect(videosUrl).not.toContain('video-5');
+    });
+  });
+
   // ── fetchYouTubeSubscriberCounts ──────────────────────────────────────────
 
   describe('fetchYouTubeSubscriberCounts', () => {

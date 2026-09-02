@@ -85,6 +85,13 @@ export default async function AdminLayout({ children }: AdminLayoutProps): Promi
 
   const recentAlerts = alerts.slice(0, 10);
   const alertCount = summary.total;
+  const todayLabel = new Intl.DateTimeFormat('es-ES', {
+    timeZone: 'Europe/Madrid',
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  }).format(new Date());
 
   return (
     <div className="h-screen bg-sp-admin-bg flex overflow-hidden">
@@ -99,6 +106,7 @@ export default async function AdminLayout({ children }: AdminLayoutProps): Promi
       />
       <div className="flex-1 flex flex-col min-w-0 pt-14 md:pt-0 overflow-hidden">
         <AdminHeader
+          todayLabel={todayLabel}
           alertCount={alertCount}
           recentAlerts={recentAlerts}
           onDismissAlert={dismissAlertAction}

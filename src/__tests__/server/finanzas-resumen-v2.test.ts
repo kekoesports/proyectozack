@@ -418,7 +418,8 @@ describe('finanzasResumenV2 — chequeos estáticos', () => {
 
   it('query usa invoice_payments como fuente canónica de cobros/pagos', () => {
     expect(querySrc).toMatch(/invoicePayments\b/);
-    expect(querySrc).toMatch(/SUM\(\$\{invoicePayments\.amount\}\)/);
+    expect(querySrc).toMatch(/SUM\(\$\{paymentEurSql\}\)/);
+    expect(querySrc).toMatch(/SUM\(\$\{internalPaymentEurSql\}\)/);
   });
 
   it('tipos de root incluyen los 9 bloques esperados', () => {

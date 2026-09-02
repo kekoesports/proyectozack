@@ -6,6 +6,12 @@ import { billingClients, invoicePayments, invoices, issuedInvoices } from '@/db/
 import { PENDING_INCOME_FILTER } from '@/lib/utils/invoice-status';
 import type { InvoiceStatus } from '@/types';
 import type { ReceivableRow } from '@/types/financeDashboard';
+import {
+  internalPaymentEurSql,
+  issuedPaymentEurSql,
+  issuedTotalEurSql,
+  totalEurSql,
+} from '@/lib/finance/money';
 
 const LIMIT = 30;
 
@@ -24,8 +30,8 @@ export async function getReceivables(): Promise<readonly ReceivableRow[]> {
         id: issuedInvoices.id,
         invoiceNumber: issuedInvoices.invoiceNumber,
         clientName: billingClients.name,
-        totalAmount: issuedInvoices.totalAmount,
-        paidAmount: sql<string>`COALESCE(SUM(${invoicePayments.amount}), 0)::text`,
+        totalAmount: sql<string>`${issuedTotalEurSql}::text`,
+        paidAmount: sql<string>`COALESCE(SUM(${issuedPaymentEurSql}), 0)::text`,
         status: issuedInvoices.status,
         dueDate: issuedInvoices.dueDate,
       })
@@ -38,6 +44,8 @@ export async function getReceivables(): Promise<readonly ReceivableRow[]> {
         issuedInvoices.invoiceNumber,
         billingClients.name,
         issuedInvoices.totalAmount,
+        issuedInvoices.eurEquivalent,
+        issuedInvoices.fxRate,
         issuedInvoices.status,
         issuedInvoices.dueDate,
       )
@@ -51,8 +59,8 @@ export async function getReceivables(): Promise<readonly ReceivableRow[]> {
       .select({
         id: invoices.id,
         number: invoices.number,
-        totalAmount: invoices.totalAmount,
-        paidAmount: sql<string>`COALESCE(SUM(${invoicePayments.amount}), 0)::text`,
+        totalAmount: sql<string>`${totalEurSql}::text`,
+        paidAmount: sql<string>`COALESCE(SUM(${internalPaymentEurSql}), 0)::text`,
         status: invoices.status,
         dueDate: invoices.dueDate,
       })
@@ -68,6 +76,8 @@ export async function getReceivables(): Promise<readonly ReceivableRow[]> {
         invoices.id,
         invoices.number,
         invoices.totalAmount,
+        invoices.eurEquivalent,
+        invoices.fxRate,
         invoices.status,
         invoices.dueDate,
       )
