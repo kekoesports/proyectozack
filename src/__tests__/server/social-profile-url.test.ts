@@ -1,4 +1,4 @@
-import { normalizeSocialProfileUrl } from '@/lib/utils/social-profile-url';
+import { normalizeSocialProfileUrl, normalizeTwitchLogin } from '@/lib/utils/social-profile-url';
 
 describe('normalizeSocialProfileUrl', () => {
   it.each([
@@ -45,5 +45,18 @@ describe('normalizeSocialProfileUrl', () => {
 
   it('does not invent a Discord invite from a display handle', () => {
     expect(normalizeSocialProfileUrl({ platform: 'discord', handle: 'community' })).toBeNull();
+  });
+
+  it.each([
+    ['horcus', 'horcus'],
+    ['https://www.twitch.tv/horcus', 'horcus'],
+    ['TWITCH.TV/ZACKETIZORCS2', 'ZACKETIZORCS2'],
+    ['https://www.twitch.tv/pela_dego/about', 'pela_dego'],
+  ])('normalizes legacy Twitch login %s', (raw, expected) => {
+    expect(normalizeTwitchLogin(raw)).toBe(expected);
+  });
+
+  it('rejects a Twitch handle from another domain', () => {
+    expect(normalizeTwitchLogin('https://example.com/horcus')).toBeNull();
   });
 });

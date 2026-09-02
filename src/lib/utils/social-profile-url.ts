@@ -140,3 +140,15 @@ export function normalizeSocialProfileUrl(input: SocialProfileInput): string | n
 
   return profileUrlFromHandle(input, platform);
 }
+
+/**
+ * Normaliza un login de Twitch heredado. Algunos registros antiguos guardan
+ * la URL completa (e incluso una subruta /about) en la columna `handle`.
+ */
+export function normalizeTwitchLogin(rawValue: string | null | undefined): string | null {
+  const profileUrl = normalizeSocialProfileUrl({ platform: 'twitch', handle: rawValue ?? null });
+  if (!profileUrl) return null;
+
+  const [login] = new URL(profileUrl).pathname.split('/').filter(Boolean);
+  return login && /^[a-zA-Z0-9_]+$/.test(login) ? login : null;
+}

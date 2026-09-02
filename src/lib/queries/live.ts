@@ -2,6 +2,7 @@ import { and, eq, gt, isNull, or, desc, isNotNull, sql, count, max } from 'drizz
 import { alias } from 'drizzle-orm/pg-core';
 import { db } from '@/lib/db';
 import { talents, talentSocials, talentLiveStatus } from '@/db/schema';
+import { normalizeTwitchLogin } from '@/lib/utils/social-profile-url';
 
 export type LiveTalent = {
   talentId: number;
@@ -200,22 +201,24 @@ export async function getTwitchRoster(): Promise<TwitchRosterEntry[]> {
       seen.add(r.talentId);
       return true;
     })
-    .map((r) => {
+    .flatMap((r): TwitchRosterEntry[] => {
+      const handle = normalizeTwitchLogin(r.handle);
+      if (!handle) return [];
       const stale = !r.lastCheckedAt || r.lastCheckedAt < tenMinutesAgo;
-      return {
+      return [{
         talentId:         r.talentId,
         slug:             r.slug,
         name:             r.name,
         photoUrl:         r.photoUrl,
         game:             r.game ?? '',
         featuredFallback: r.featuredFallback ?? false,
-        handle:           r.handle,
+        handle,
         isLive:           stale ? false : (r.isLive ?? false),
         viewerCount:      stale ? null : r.viewerCount,
         gameName:         stale ? null : r.gameName,
         streamUrl:        stale ? null : r.streamUrl,
         startedAt:        r.startedAt,
-      };
+      }];
     });
 }
 
@@ -301,14 +304,16 @@ export async function getCs2RosterForSidebar(): Promise<Cs2SidebarEntry[]> {
   // Safety window: si lastChecked es viejo, descarta el flag isLive y
   // datos derivados. lastCheckedAt se preserva tal cual para que la UI
   // pueda detectar staleness y mostrar mensaje contextual.
-  return rows.map((r) => {
+  return rows.flatMap((r): Cs2SidebarEntry[] => {
+    const handle = normalizeTwitchLogin(r.handle);
+    if (!handle) return [];
     const stale = !r.lastChecked || r.lastChecked < tenMinutesAgo;
-    return {
+    return [{
       talentId:      r.talentId,
       slug:          r.slug,
       name:          r.name,
       photoUrl:      r.photoUrl,
-      handle:        r.handle,
+      handle,
       game:          r.game,
       role:          r.role,
       country:       r.country,
@@ -318,7 +323,7 @@ export async function getCs2RosterForSidebar(): Promise<Cs2SidebarEntry[]> {
       streamUrl:     stale ? null : r.streamUrl,
       startedAt:     stale ? null : r.startedAt,
       lastCheckedAt: r.lastChecked,
-    };
+    }];
   });
 }
 
