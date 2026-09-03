@@ -1,14 +1,19 @@
+import Image from 'next/image';
+import type { PanelBranding } from '@/features/kekopilot-panel/data';
+
 export default function AuthCard({
   subtitle,
   backHref,
   backLabel,
   brand = 'socialpro',
+  panelBranding,
   children,
 }: {
   subtitle: string;
   backHref: string;
   backLabel: string;
   brand?: 'socialpro' | 'kekopilot';
+  panelBranding?: PanelBranding;
   children: React.ReactNode;
 }): React.ReactElement {
   const isKekoPilot = brand === 'kekopilot';
@@ -18,8 +23,21 @@ export default function AuthCard({
       <div className="w-full max-w-sm bg-sp-admin-card border border-sp-admin-border rounded-2xl shadow-xl p-8">
         <div className="text-center mb-8">
           {isKekoPilot ? (
-            <span className="text-2xl font-black uppercase tracking-tight text-white">
-              KEKO<span className="text-[#ffb000]">PILOT</span>
+            <span className="inline-flex items-center gap-2 text-2xl font-black uppercase tracking-tight text-white">
+              {panelBranding?.logoPath ? (
+                <Image alt="" height={32} src={panelBranding.logoPath} width={32} />
+              ) : (
+                <span
+                  className="inline-flex size-8 items-center justify-center rounded-md text-xs"
+                  style={{
+                    backgroundColor: panelBranding?.accentColor ?? '#ffb020',
+                    color: panelBranding?.accentTextColor ?? '#111515',
+                  }}
+                >
+                  {panelBranding?.productInitials ?? 'KP'}
+                </span>
+              )}
+              <span>{panelBranding?.productName ?? 'KekoPilot'}</span>
             </span>
           ) : (
             <span className="font-display text-2xl font-black uppercase gradient-text">SocialPro</span>

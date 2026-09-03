@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
+import type { CSSProperties } from 'react';
 import Link from 'next/link';
 import { Search } from 'lucide-react';
 import { ArchitectureView } from './ArchitectureView';
@@ -14,6 +15,11 @@ import styles from './panel.module.css';
 
 type KekoPilotPanelProps = { readonly data: KekoPilotPanelData };
 
+type PanelStyle = CSSProperties & {
+  readonly '--kp-panel-accent': string;
+  readonly '--kp-panel-accent-ink': string;
+};
+
 function firstDealId(data: KekoPilotPanelData): string {
   return data.pipeline.stages.flatMap((stage) => stage.deals)[0]?.id ?? '';
 }
@@ -24,8 +30,12 @@ export function KekoPilotPanel({ data }: KekoPilotPanelProps) {
   const [activeDealId, setActiveDealId] = useState(() => firstDealId(data));
   const [searchQuery, setSearchQuery] = useState('');
   const activeDetail = data.dealDetails[activeDealId];
+  const panelStyle: PanelStyle = {
+    '--kp-panel-accent': data.branding.accentColor,
+    '--kp-panel-accent-ink': data.branding.accentTextColor,
+  };
 
-  const heading = useMemo(() => {
+  const heading = (() => {
     if (view === 'deal' && activeDetail) {
       return {
         crumb: `${data.workspace.name} · deals · ${activeDetail.deal.ref}`,
@@ -37,7 +47,7 @@ export function KekoPilotPanel({ data }: KekoPilotPanelProps) {
     }
     if (view === 'architecture') return { crumb: 'Documentación', title: 'Arquitectura, roles y flujos' };
     return { crumb: `${data.workspace.name} · operación`, title: 'Command Center' };
-  }, [activeDetail, data.counts.deals, data.workspace.name, view]);
+  })();
 
   const openDeal = (dealId: string) => {
     setActiveDealId(dealId);
@@ -56,10 +66,10 @@ export function KekoPilotPanel({ data }: KekoPilotPanelProps) {
   }, []);
 
   return (
-    <div className={styles.app} data-theme={lightTheme ? 'light' : 'dark'}>
+    <div className={styles.app} data-theme={lightTheme ? 'light' : 'dark'} style={panelStyle}>
       <a className={styles.skipLink} href="#kp-panel-main">Saltar al contenido</a>
       <header className={styles.prototypeBar}>
-        <span>Panel · SocialPro · actualizado {data.generatedAt}</span>
+        <span>{data.branding.productName} · {data.workspace.name} · actualizado {data.generatedAt}</span>
         <nav aria-label="Vistas del panel">
           {VIEW_LABELS.map((item) => (
             <button aria-pressed={view === item.id} key={item.id} onClick={() => setView(item.id)} type="button">{item.label}</button>
@@ -71,7 +81,7 @@ export function KekoPilotPanel({ data }: KekoPilotPanelProps) {
       </header>
 
       <div className={styles.shell}>
-        <PanelSidebar activeView={view} counts={data.counts} onViewChange={setView} user={data.user} workspace={data.workspace} />
+        <PanelSidebar activeView={view} branding={data.branding} counts={data.counts} onViewChange={setView} user={data.user} workspace={data.workspace} />
         <main className={styles.main} id="kp-panel-main">
           <header className={styles.topbar}>
             <div className={styles.pageTitle}><span>{heading.crumb}</span><h1>{heading.title}</h1></div>
@@ -89,15 +99,15 @@ export function KekoPilotPanel({ data }: KekoPilotPanelProps) {
                 <kbd>⌘K</kbd>
               </label>
               <Link className={styles.approvalsButton} href="/admin/agents/approvals"><i aria-hidden="true" />{data.counts.approvals} aprobaciones</Link>
-              <Link className={styles.zackButton} href="/admin/asistente">Zack Operaciones <kbd>⌘J</kbd></Link>
+              <Link className={styles.zackButton} href="/admin/asistente">{data.branding.assistantName} <kbd>⌘J</kbd></Link>
             </div>
           </header>
 
           {view === 'command' ? <CommandCenter data={data} searchQuery={searchQuery} /> : null}
           {view === 'pipeline' ? <DealsPipeline activeDealId={activeDealId} data={data.pipeline} onOpenDeal={openDeal} searchQuery={searchQuery} /> : null}
-          {view === 'deal' && activeDetail ? <DealDetail detail={activeDetail} /> : null}
+          {view === 'deal' && activeDetail ? <DealDetail detail={activeDetail} workspaceName={data.workspace.name} /> : null}
           {view === 'deal' && !activeDetail ? <p className={styles.empty}>No hay deals visibles para abrir.</p> : null}
-          {view === 'architecture' ? <ArchitectureView /> : null}
+          {view === 'architecture' ? <ArchitectureView workspaceName={data.workspace.name} /> : null}
         </main>
       </div>
     </div>

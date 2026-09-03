@@ -96,6 +96,8 @@ export function buildPanelInbox(
   urgentTasks: readonly UrgentTask[],
   failedRuns: readonly AgentRunListItem[],
   now: Date,
+  workspaceName: string,
+  referencePrefix: string,
 ): InboxItem[] {
   const approvalItems: InboxItem[] = approvals.map((item) => ({
     id: `approval-${item.id}`,
@@ -111,9 +113,9 @@ export function buildPanelInbox(
     id: `campaign-${row.id}`,
     priority: row.trackingSyncError || row.trackingAlertLevel >= 100 ? 1 : 2,
     state: row.trackingSyncError ? 'Error' : 'Bloqueado', tone: 'danger',
-    title: `${row.name} · SP-${row.id}`,
+    title: `${row.name} · ${referencePrefix}-${row.id}`,
     body: row.trackingSyncError ?? 'La hoja de seguimiento no registra actividad reciente.',
-    evidence: `SocialPro CRM · última actividad ${formatDate(row.lastEvidenceAddedAt ?? row.lastTrackingSyncAt ?? row.updatedAt)}`,
+    evidence: `${workspaceName} CRM · última actividad ${formatDate(row.lastEvidenceAddedAt ?? row.lastTrackingSyncAt ?? row.updatedAt)}`,
     owner: row.ownerName ?? 'Sin asignar',
     due: row.deliveryDeadline ? relativeDate(row.deliveryDeadline, now) : 'Revisar',
     action: 'Abrir deal', href: `/admin/campanas/${row.id}`,
@@ -123,7 +125,7 @@ export function buildPanelInbox(
   const taskItems: InboxItem[] = urgentTasks.map((task) => ({
     id: `task-${task.id}`, priority: task.priority === 'alta' ? 1 : task.priority === 'media' ? 2 : 3,
     state: 'Tarea vencida', tone: 'draft', title: task.title,
-    body: 'Tarea abierta en SocialPro que requiere seguimiento.', evidence: `Tareas · prioridad ${task.priority}`,
+    body: `Tarea abierta en ${workspaceName} que requiere seguimiento.`, evidence: `Tareas · prioridad ${task.priority}`,
     owner: task.ownerName ?? 'Sin asignar', due: relativeDate(task.dueDate, now),
     action: 'Ver tarea', href: '/admin/tareas', category: 'Bloqueos',
   }));
@@ -158,6 +160,8 @@ export function buildDealDetails(
   contractRows: readonly (typeof contracts.$inferSelect)[],
   approvals: readonly PendingApprovalItem[],
   now: Date,
+  workspaceName: string,
+  referencePrefix: string,
 ): Record<string, DealDetailData> {
   const result: Record<string, DealDetailData> = {};
   for (const row of campaignRows) {
@@ -205,14 +209,14 @@ export function buildDealDetails(
       ...(row.lastTrackingSyncAt ? [{
         id: `tracking-${row.id}`, kind: row.trackingSyncError ? 'Error' : 'Información',
         tone: row.trackingSyncError ? 'danger' as const : 'neutral' as const,
-        source: 'SocialPro Tracking', when: formatDate(row.lastTrackingSyncAt),
+        source: `${workspaceName} Tracking`, when: formatDate(row.lastTrackingSyncAt),
         text: row.trackingSyncError || 'La hoja de seguimiento se sincronizó correctamente.',
         evidence: 'campaigns.last_tracking_sync_at',
       }] : []),
       {
-        id: `crm-${row.id}`, kind: 'Información', tone: 'neutral', source: 'SocialPro CRM',
+        id: `crm-${row.id}`, kind: 'Información', tone: 'neutral', source: `${workspaceName} CRM`,
         when: formatDate(row.updatedAt), text: `El deal está en estado ${statusLabel(row.status).toLowerCase()}.`,
-        evidence: `campaigns · SP-${row.id}`,
+        evidence: `campaigns · ${referencePrefix}-${row.id}`,
       },
     ];
 

@@ -2,9 +2,9 @@ import Link from 'next/link';
 import type { DealDetailData } from './data';
 import styles from './product.module.css';
 
-type DealDetailProps = { readonly detail: DealDetailData };
+type DealDetailProps = { readonly detail: DealDetailData; readonly workspaceName: string };
 
-export function DealDetail({ detail }: DealDetailProps) {
+export function DealDetail({ detail, workspaceName }: DealDetailProps) {
   const { deal } = detail;
   const completed = detail.deliverables.filter((item) => item.done).length;
 
@@ -22,7 +22,7 @@ export function DealDetail({ detail }: DealDetailProps) {
           <div><dt>Responsable</dt><dd>{deal.owner}</dd></div>
           <div><dt>Progreso</dt><dd>{deal.progress}%</dd></div>
         </dl>
-        <Link className={styles.crmLink} href={detail.crmHref}>Abrir ficha completa en SocialPro</Link>
+        <Link className={styles.crmLink} href={detail.crmHref}>Abrir ficha completa en {workspaceName}</Link>
       </header>
 
       <div className={styles.dealColumns}>
@@ -35,7 +35,7 @@ export function DealDetail({ detail }: DealDetailProps) {
                 <time>{item.date}</time><small>{item.state}</small>
               </article>
             ))}
-            {detail.deliverables.length === 0 ? <p className={styles.detailEmpty}>No hay entregables registrados en SocialPro.</p> : null}
+            {detail.deliverables.length === 0 ? <p className={styles.detailEmpty}>No hay entregables registrados en {workspaceName}.</p> : null}
           </DealSection>
 
           <DealSection title="Documentos y facturas" meta="evidencia vinculada">

@@ -3,13 +3,15 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import AuthCard from '@/components/ui/AuthCard';
+import type { PanelBranding } from '@/features/kekopilot-panel/data';
 import { homeForRole } from '@/lib/home-for-role';
 
 type StaffLoginProps = {
+  readonly panelBranding?: PanelBranding;
   readonly variant?: 'socialpro' | 'kekopilot';
 };
 
-export function StaffLogin({ variant = 'socialpro' }: StaffLoginProps): React.ReactElement {
+export function StaffLogin({ panelBranding, variant = 'socialpro' }: StaffLoginProps): React.ReactElement {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -74,9 +76,10 @@ export function StaffLogin({ variant = 'socialpro' }: StaffLoginProps): React.Re
   return (
     <AuthCard
       subtitle={variant === 'kekopilot' ? 'Command Center' : 'Panel de administración'}
-      backHref={variant === 'kekopilot' ? 'mailto:marketing@socialpro.es?subject=Acceso%20KekoPilot' : '/admin/forgot-password'}
+      backHref={variant === 'kekopilot' ? panelBranding?.supportHref ?? 'https://kekopilot.com' : '/admin/forgot-password'}
       backLabel={variant === 'kekopilot' ? 'Solicitar acceso' : '¿Olvidaste tu contraseña?'}
       brand={variant}
+      {...(panelBranding ? { panelBranding } : {})}
     >
       <form onSubmit={(e) => { void handleSubmit(e); }} className="space-y-4">
         <div>

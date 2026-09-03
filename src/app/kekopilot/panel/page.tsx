@@ -3,6 +3,7 @@ import { Familjen_Grotesk, IBM_Plex_Mono, Karla } from 'next/font/google';
 import { KekoPilotPanel } from '@/features/kekopilot-panel/KekoPilotPanel';
 import { createDemoKekoPilotPanelData } from '@/features/kekopilot-panel/demo-data';
 import { env } from '@/lib/env';
+import { getKekoPilotPanelConfig } from '@/lib/kekopilot-panel-config';
 import { requirePermission } from '@/lib/permissions';
 import { getKekoPilotPanelData } from '@/lib/queries/kekopilot-panel';
 
@@ -25,24 +26,28 @@ const mono = IBM_Plex_Mono({
   display: 'swap',
 });
 
-export const metadata: Metadata = {
-  title: { absolute: 'Command Center · KekoPilot' },
-  description: 'Panel operativo de KekoPilot para revisar decisiones, bloqueos, agentes y automatizaciones.',
-  robots: { index: false, follow: false },
-};
+export function generateMetadata(): Metadata {
+  const panelConfig = getKekoPilotPanelConfig();
+  return {
+    title: { absolute: `Command Center · ${panelConfig.branding.productName}` },
+    description: `Panel operativo de ${panelConfig.workspace.name} para revisar decisiones, bloqueos, agentes y automatizaciones.`,
+    robots: { index: false, follow: false },
+  };
+}
 
 export const viewport: Viewport = { themeColor: '#0b1113' };
 
 export default async function KekoPilotPanelPage(): Promise<React.ReactElement> {
   const session = await requirePermission('campanas', 'read', '/login');
+  const panelConfig = getKekoPilotPanelConfig();
   const user = {
     userId: session.user.id,
     name: session.user.name,
     role: session.user.role,
   };
   const panelData = env.KEKOPILOT_DEMO_MODE
-    ? createDemoKekoPilotPanelData(user)
-    : await getKekoPilotPanelData(user);
+    ? createDemoKekoPilotPanelData(user, panelConfig)
+    : await getKekoPilotPanelData(user, panelConfig);
 
   return (
     <div className={`${heading.variable} ${body.variable} ${mono.variable}`}>

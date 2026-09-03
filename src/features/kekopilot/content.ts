@@ -376,3 +376,4 @@ export function getHeroCopy(locale: KekoPilotLocale): KekoPilotCopy {
 }
 
 export const DEMO_HREF = 'mailto:marketing@socialpro.es?subject=Demo%20KekoPilot';
+export const SOCIALPRO_URL = 'https://socialpro.es';

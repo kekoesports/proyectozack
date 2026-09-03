@@ -120,8 +120,33 @@ export type PanelCounts = {
   readonly agents: number;
 };
 
+export type PanelBranding = {
+  readonly productName: string;
+  readonly productInitials: string;
+  readonly assistantName: string;
+  readonly agentName: string;
+  readonly accentColor: string;
+  readonly accentTextColor: string;
+  readonly referencePrefix: string;
+  readonly supportHref: string;
+  readonly logoPath?: string;
+};
+
+export type PanelWorkspace = {
+  readonly name: string;
+  readonly meta: string;
+  readonly initials: string;
+  readonly homeHref: string;
+};
+
+export type KekoPilotPanelConfig = {
+  readonly branding: PanelBranding;
+  readonly workspace: PanelWorkspace;
+};
+
 export type KekoPilotPanelData = {
-  readonly workspace: { readonly name: string; readonly meta: string; readonly initials: string };
+  readonly branding: PanelBranding;
+  readonly workspace: PanelWorkspace;
   readonly user: { readonly name: string; readonly role: string; readonly initials: string };
   readonly generatedAt: string;
   readonly counts: PanelCounts;
@@ -156,7 +181,7 @@ export const NAVIGATION: ReadonlyArray<NavigationGroup> = [
   ] },
   { title: 'Automatización', items: [
     { label: 'Automations', icon: 'workflow', href: '/admin/automation-drafts' },
-    { label: 'Zack Agents', icon: 'bot', href: '/admin/agents', badgeKey: 'agents' },
+    { label: 'Agentes', icon: 'bot', href: '/admin/agents', badgeKey: 'agents' },
   ] },
   { title: 'Inteligencia', items: [
     { label: 'Analytics & Reports', icon: 'chart', href: '/admin/analytics' },
