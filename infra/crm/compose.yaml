@@ -88,7 +88,7 @@ services:
     # Margen para que Next.js cierre las peticiones en curso al recibir SIGTERM.
     stop_grace_period: 30s
     env_file:
-      - ./env/app.env
+      - ${APP_ENV_FILE:-/opt/socialpro/crm/env/app.env}
     environment:
       NODE_ENV: production
       PORT: "3000"
@@ -134,7 +134,7 @@ services:
     image: quay.io/prometheansacrifice/supercronic:v0.2.29
     restart: unless-stopped
     env_file:
-      - ./env/scheduler.env
+      - ${SCHEDULER_ENV_FILE:-/opt/socialpro/crm/env/scheduler.env}
     volumes:
       - ./scheduler/crontab:/etc/crontab:ro
     networks:
