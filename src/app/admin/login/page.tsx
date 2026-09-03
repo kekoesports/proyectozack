@@ -109,6 +109,9 @@ export function StaffLogin({ panelBranding, variant = 'socialpro' }: StaffLoginP
           type="submit"
           disabled={loading}
           className="w-full py-3 rounded-full font-bold text-sp-admin-bg text-sm disabled:opacity-60 bg-sp-admin-accent hover:opacity-90 transition-opacity"
+          style={variant === 'kekopilot' && panelBranding
+            ? { color: panelBranding.accentTextColor }
+            : undefined}
         >
           {loading ? 'Entrando...' : 'Iniciar sesión'}
         </button>
