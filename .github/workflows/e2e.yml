@@ -44,8 +44,10 @@ jobs:
 
       - run: npm ci
 
-      - name: Apply DB migrations
-        run: npm run migrate
+      - name: Materialize current schema in ephemeral PostgreSQL
+        # The service is destroyed with the job. Production schema changes
+        # continue to use versioned migrations only.
+        run: npx drizzle-kit push --force
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium

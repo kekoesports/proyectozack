@@ -127,8 +127,12 @@ jobs:
 
       - run: npm ci
 
-      - name: Apply migrations to ephemeral PostgreSQL
-        run: npm run migrate
+      - name: Materialize current schema in ephemeral PostgreSQL
+        # This database is empty and disposable. `push` is deliberately limited
+        # to CI because the historical migration chain contains legacy entries
+        # that cannot bootstrap a fresh database; production still uses the
+        # versioned `npm run migrate` path exclusively.
+        run: npx drizzle-kit push --force
 
       - name: Build
         # The build reads from the disposable PostgreSQL service above. CI must
@@ -173,8 +177,10 @@ jobs:
 
       - run: npm ci
 
-      - name: Apply migrations to ephemeral PostgreSQL
-        run: npm run migrate
+      - name: Materialize current schema in ephemeral PostgreSQL
+        # Safe exception for a brand-new disposable CI database; never use
+        # `push` against staging or production.
+        run: npx drizzle-kit push --force
 
       - name: Build production image
         run: |
