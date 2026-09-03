@@ -172,10 +172,10 @@ describe('sprint2 — talents visibility + IDOR', () => {
     }
   });
 
-  it('upsertTalentSocials scopes updates by talentId + SocialPlatformSchema', () => {
+  it('upsertTalentSocials scopes updates by talentId + TalentSocialsUpdateSchema', () => {
     const src = read('src/app/admin/(dashboard)/talents/actions.ts');
-    expect(src).toMatch(/SocialPlatformSchema\.safeParse/);
-    expect(src).toMatch(/eq\(talentSocials\.talentId,\s*talentId\)/);
+    expect(src).toMatch(/TalentSocialsUpdateSchema\.safeParse/);
+    expect(src).toMatch(/eq\(talentSocials\.talentId,\s*validatedTalentId\)/);
     expect(src).toMatch(/updateTalentStatsAction[\s\S]*eq\(talentStats\.talentId,\s*talentId\)/);
     expect(src).toMatch(/removeTalentTagAction[\s\S]*eq\(talentTags\.talentId,\s*talentId\)/);
   });

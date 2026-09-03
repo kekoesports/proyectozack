@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { upsertTalentSocialsAction, type SocialEntryInput } from '@/app/admin/(dashboard)/talents/actions';
+import { TalentProfileSocialPlatformSchema } from '@/lib/schemas/talentSocials';
 
 type ExistingSocial = {
   readonly id:               number;
@@ -33,13 +34,25 @@ const PLATFORMS = [
 const inputCls = 'w-full rounded-md border border-sp-admin-border bg-sp-admin-bg px-3 py-2 text-sm text-sp-admin-text placeholder:text-sp-admin-muted/60 focus:outline-none focus:border-sp-admin-accent/50';
 const labelCls = 'block text-[10px] font-bold uppercase tracking-wider text-sp-admin-muted mb-1';
 
+const URL_PLACEHOLDER: Record<string, string> = {
+  youtube: 'https://youtube.com/@canal',
+  twitch: 'https://twitch.tv/creador',
+  kick: 'https://kick.com/creador',
+  instagram: 'https://instagram.com/creador',
+  tiktok: 'https://tiktok.com/@creador',
+  x: 'https://x.com/creador',
+  discord: 'https://discord.gg/invitacion',
+};
+
 function handleFromUrl(url: string): string {
-  if (!url) return '';
+  const trimmed = url.trim();
+  if (!trimmed) return '';
   try {
-    const parts = new URL(url).pathname.split('/').filter(Boolean);
+    const value = /^[a-z][a-z0-9+.-]*:/i.test(trimmed) ? trimmed : `https://${trimmed}`;
+    const parts = new URL(value).pathname.split('/').filter(Boolean);
     return (parts[parts.length - 1] ?? '').replace(/^@/, '');
   } catch {
-    return url;
+    return trimmed;
   }
 }
 
@@ -76,16 +89,23 @@ export function TalentSocialsEditor({ talentId, socials }: Props): React.ReactEl
   function handleSave(): void {
     setError('');
     setSaved(false);
-    const entries: SocialEntryInput[] = rows.map((r, i) => {
+    const entries: SocialEntryInput[] = [];
+    for (const [i, r] of rows.entries()) {
+      const platform = TalentProfileSocialPlatformSchema.safeParse(r.platform);
+      if (!platform.success) {
+        setError(`Red ${i + 1}: plataforma no válida.`);
+        return;
+      }
+      const profileUrl = r.profileUrl.trim();
       const base = {
-        platform:         r.platform,
-        handle:           r.handle.trim() || handleFromUrl(r.profileUrl),
+        platform:         platform.data,
+        handle:           profileUrl ? handleFromUrl(profileUrl) : r.handle.trim(),
         followersDisplay: r.followersDisplay.trim() || '-',
         sortOrder:        i + 1,
-        ...(r.profileUrl.trim() ? { profileUrl: r.profileUrl.trim() } : {}),
+        ...(profileUrl ? { profileUrl } : {}),
       };
-      return r.id ? { ...base, id: r.id } : base;
-    });
+      entries.push(r.id ? { ...base, id: r.id } : base);
+    }
     startTr(async () => {
       const res = await upsertTalentSocialsAction(talentId, entries);
       if (res.ok) { setSaved(true); }
@@ -136,14 +156,25 @@ export function TalentSocialsEditor({ talentId, socials }: Props): React.ReactEl
 
           {/* Fila 2: URL */}
           <div>
-            <label className={labelCls}>URL del perfil</label>
+            <label className={labelCls}>
+              {row.platform === 'discord' ? 'Enlace de invitación' : 'URL del perfil'}
+            </label>
             <input
               value={row.profileUrl}
               onChange={(e) => update(idx, 'profileUrl', e.target.value)}
-              placeholder="https://twitch.tv/todocs2"
+              placeholder={URL_PLACEHOLDER[row.platform] ?? 'https://…'}
               type="url"
+              inputMode="url"
+              autoComplete="url"
               className={inputCls}
             />
+            {(row.platform === 'discord' || row.platform === 'youtube') && (
+              <p className="mt-1 text-[10px] leading-4 text-sp-admin-muted">
+                {row.platform === 'discord'
+                  ? 'Pega una invitación discord.gg o discord.com/invite.'
+                  : 'Acepta enlaces @canal, /channel/… y /c/… de YouTube.'}
+              </p>
+            )}
           </div>
         </div>
       ))}
@@ -158,8 +189,8 @@ export function TalentSocialsEditor({ talentId, socials }: Props): React.ReactEl
           + Añadir red
         </button>
         <div className="flex-1" />
-        {error && <p className="text-[12px] text-red-500 font-medium">{error}</p>}
-        {saved && <p className="text-[12px] text-emerald-600 font-semibold">✓ Guardado</p>}
+        {error && <p aria-live="polite" className="text-[12px] text-red-500 font-medium">{error}</p>}
+        {saved && <p aria-live="polite" className="text-[12px] text-emerald-600 font-semibold">✓ Guardado</p>}
         <button
           type="button"
           onClick={handleSave}
