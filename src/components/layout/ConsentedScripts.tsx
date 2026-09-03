@@ -34,17 +34,17 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
  * Vercel Analytics se inyecta via inject() (no el componente /next que usa useSearchParams
  * y puede causar problemas cuando se renderiza condicionalmente tras interacción).
  */
-export function ConsentedScripts() {
+export function ConsentedScripts({ disabled = false }: { disabled?: boolean }) {
   const consent = useSyncExternalStore(subscribe, getConsentSnapshot, getServerSnapshot);
   const gtmId = env.NEXT_PUBLIC_GTM_ID;
 
   // Vercel Analytics — inject() es idempotente (comprueba si el script ya está en <head>)
   useEffect(() => {
-    if (!consent?.analytics) return;
+    if (disabled || !consent?.analytics) return;
     inject({ framework: 'next' });
-  }, [consent?.analytics]);
+  }, [consent?.analytics, disabled]);
 
-  if (!consent?.analytics) return null;
+  if (disabled || !consent?.analytics) return null;
 
   return gtmId && GTM_ID_RE.test(gtmId) ? <GtmScript gtmId={gtmId} /> : null;
 }

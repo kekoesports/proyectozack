@@ -5,7 +5,11 @@ import { useRouter } from 'next/navigation';
 import AuthCard from '@/components/ui/AuthCard';
 import { homeForRole } from '@/lib/home-for-role';
 
-export default function AdminLoginPage(): React.ReactElement {
+type StaffLoginProps = {
+  readonly variant?: 'socialpro' | 'kekopilot';
+};
+
+export function StaffLogin({ variant = 'socialpro' }: StaffLoginProps): React.ReactElement {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -36,6 +40,12 @@ export default function AdminLoginPage(): React.ReactElement {
           return;
         }
 
+        if (variant === 'kekopilot') {
+          router.refresh();
+          router.push('/');
+          return;
+        }
+
         // Resolve role-specific home (staff → mi-semana, finance → facturación, …).
         let dest = '/admin';
         try {
@@ -62,7 +72,12 @@ export default function AdminLoginPage(): React.ReactElement {
   };
 
   return (
-    <AuthCard subtitle="Panel de administración" backHref="/admin/forgot-password" backLabel="¿Olvidaste tu contraseña?">
+    <AuthCard
+      subtitle={variant === 'kekopilot' ? 'Command Center' : 'Panel de administración'}
+      backHref={variant === 'kekopilot' ? 'mailto:marketing@socialpro.es?subject=Acceso%20KekoPilot' : '/admin/forgot-password'}
+      backLabel={variant === 'kekopilot' ? 'Solicitar acceso' : '¿Olvidaste tu contraseña?'}
+      brand={variant}
+    >
       <form onSubmit={(e) => { void handleSubmit(e); }} className="space-y-4">
         <div>
           <label className="block text-xs font-semibold text-sp-admin-muted mb-1.5">Email</label>
@@ -97,4 +112,8 @@ export default function AdminLoginPage(): React.ReactElement {
       </form>
     </AuthCard>
   );
+}
+
+export default function AdminLoginPage(): React.ReactElement {
+  return <StaffLogin />;
 }

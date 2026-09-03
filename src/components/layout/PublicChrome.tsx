@@ -30,6 +30,7 @@ const HIDE_WHATSAPP_PREFIXES = ['/apuesta-segura-cs2', '/news'];
 function isPortalRoute(pathname: string): boolean {
   for (const prefix of PORTAL_PREFIXES) {
     if (!pathname.startsWith(prefix)) continue;
+    if (prefix === '/kekopilot' || prefix === '/en/kekopilot') return true;
     // Allow login pages to keep public chrome
     if (LOGIN_SUFFIXES.some((s) => pathname.endsWith(s))) return false;
     return true;
@@ -45,6 +46,7 @@ type PublicChromeProps = {
   nav: ReactNode;
   footer: ReactNode;
   children: ReactNode;
+  forcePortal?: boolean;
 }
 
 /**
@@ -60,9 +62,9 @@ type PublicChromeProps = {
  * <PublicChrome nav={<Nav />} footer={<Footer />}>{children}</PublicChrome>
  * ```
  */
-export function PublicChrome({ nav, footer, children }: PublicChromeProps) {
+export function PublicChrome({ nav, footer, children, forcePortal = false }: PublicChromeProps) {
   const pathname = usePathname();
-  const isPortal = isPortalRoute(pathname);
+  const isPortal = forcePortal || isPortalRoute(pathname);
   const hideWhatsApp = shouldHideWhatsApp(pathname);
 
   useEffect(() => {
