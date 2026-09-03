@@ -10,7 +10,9 @@ export function createKekoPilotPanelMetadata(
   const { branding, workspace } = panelConfig;
   const metadataBase = new URL(branding.appUrl);
   const isLogin = page === 'login';
-  const canonical = new URL(isLogin ? '/login' : '/', metadataBase);
+  // Keep this as an absolute string. Next.js otherwise resolves a URL object
+  // against the internal `/kekopilot/*` rewrite and leaks that private path.
+  const canonical = new URL(isLogin ? '/login' : '/', metadataBase).toString();
   const title = isLogin
     ? `Acceso · ${branding.productName}`
     : `Command Center · ${branding.productName}`;
