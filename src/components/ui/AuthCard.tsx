@@ -1,5 +1,10 @@
 import Image from 'next/image';
+import type { CSSProperties } from 'react';
 import type { PanelBranding } from '@/features/kekopilot-panel/data';
+
+type AuthCardStyle = CSSProperties & {
+  readonly '--color-sp-admin-accent'?: string;
+};
 
 export default function AuthCard({
   subtitle,
@@ -17,13 +22,16 @@ export default function AuthCard({
   children: React.ReactNode;
 }): React.ReactElement {
   const isKekoPilot = brand === 'kekopilot';
+  const brandStyle: AuthCardStyle | undefined = isKekoPilot && panelBranding
+    ? { '--color-sp-admin-accent': panelBranding.accentColor }
+    : undefined;
 
   return (
-    <div className="min-h-screen bg-sp-admin-bg flex items-center justify-center p-4">
+    <div className="min-h-screen bg-sp-admin-bg flex items-center justify-center p-4" style={brandStyle}>
       <div className="w-full max-w-sm bg-sp-admin-card border border-sp-admin-border rounded-2xl shadow-xl p-8">
         <div className="text-center mb-8">
           {isKekoPilot ? (
-            <span className="inline-flex items-center gap-2 text-2xl font-black uppercase tracking-tight text-white">
+            <span className="inline-flex items-center gap-2 text-2xl font-black uppercase tracking-tight text-sp-admin-text">
               {panelBranding?.logoPath ? (
                 <Image alt="" height={32} src={panelBranding.logoPath} width={32} />
               ) : (
