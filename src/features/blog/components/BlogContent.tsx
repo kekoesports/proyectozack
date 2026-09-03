@@ -25,12 +25,10 @@ export function BlogContent({ posts }: Props) {
   const searchParams = useSearchParams();
   const activeCat = searchParams.get('cat') ?? 'todos';
 
-  const sorted = [...posts].sort((a, b) => (b.sortOrder ?? 0) - (a.sortOrder ?? 0));
-
   const filtered =
     activeCat === 'todos'
-      ? sorted
-      : sorted.filter((p) => deriveCategory(p.slug, p.title).slug === activeCat);
+      ? posts
+      : posts.filter((p) => deriveCategory(p.slug, p.title).slug === activeCat);
 
   const featured = filtered[0] ?? null;
   const rest     = filtered.slice(1);

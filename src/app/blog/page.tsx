@@ -52,8 +52,7 @@ const breadcrumbJsonLd = buildBreadcrumbJsonLd([
 
 export default async function BlogPage() {
   const posts = await getPosts();
-  const sorted = [...posts].sort((a, b) => (b.sortOrder ?? 0) - (a.sortOrder ?? 0));
-  const recent = sorted.slice(0, 3);
+  const recent = posts.slice(0, 3);
 
   return (
     <>
