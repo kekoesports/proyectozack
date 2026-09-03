@@ -5,11 +5,14 @@ describe('normalizeSocialProfileUrl', () => {
     ['twitch', 'twitch.tv/horcus', 'horcus', 'https://www.twitch.tv/horcus'],
     ['twitch', 'www.twitch.tv/creator/', 'creator', 'https://www.twitch.tv/creator'],
     ['youtube', 'youtube.com/@creator?utm_source=test', 'creator', 'https://www.youtube.com/@creator'],
+    ['youtube', 'https://www.youtube.com/c/imantado', 'imantado', 'https://www.youtube.com/c/imantado'],
+    ['youtube', 'https://www.youtube.com/@imanXTRA', 'imanXTRA', 'https://www.youtube.com/@imanXTRA'],
     ['instagram', 'instagram.com/creator/', 'creator', 'https://www.instagram.com/creator'],
     ['tiktok', 'tiktok.com/@creator?lang=es', 'creator', 'https://www.tiktok.com/@creator?lang=es'],
     ['kick', 'kick.com/creator', 'creator', 'https://kick.com/creator'],
     ['x', 'twitter.com/creator', 'creator', 'https://x.com/creator'],
     ['discord', 'discord.gg/example', 'example', 'https://discord.gg/example'],
+    ['discord', 'https://discord.com/invite/6mkv82J', '6mkv82J', 'https://discord.com/invite/6mkv82J'],
   ])('%s repairs %s', (platform, profileUrl, handle, expected) => {
     expect(normalizeSocialProfileUrl({ platform, profileUrl, handle })).toBe(expected);
   });

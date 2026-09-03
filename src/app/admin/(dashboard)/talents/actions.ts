@@ -14,7 +14,11 @@ import { parseFormData } from '@/lib/forms/parseFormData';
 import { firstError } from '@/lib/forms/firstError';
 import { logRedacted } from '@/lib/log';
 import { IdSchema } from '@/lib/schemas/common';
-import { SocialPlatformSchema } from '@/lib/schemas/talentSocials';
+import {
+  SocialPlatformSchema,
+  TalentSocialsUpdateSchema,
+  type TalentSocialEntryInput,
+} from '@/lib/schemas/talentSocials';
 import { normalizeSocialProfileUrl } from '@/lib/utils/social-profile-url';
 
 type ActionState = { readonly success: boolean; readonly error?: string };
@@ -53,6 +57,7 @@ const PLATFORM_COLORS: Record<string, string> = {
   kick: '#53fc18',
   x: '#1da1f2',
   twitter: '#1da1f2',
+  discord: '#5865f2',
 };
 
 export async function createTalentAction(
@@ -521,14 +526,9 @@ export async function updateTalentProfileAction(
 
 // ── upsertTalentSocialsAction ─────────────────────────────────────────────────
 
-export type SocialEntryInput = {
-  readonly id?:               number;
-  readonly platform:          string;
-  readonly handle:            string;
-  readonly profileUrl?:       string;
-  readonly followersDisplay?: string;
-  readonly sortOrder?:        number;
-};
+export type SocialEntryInput = TalentSocialEntryInput;
+
+class TalentSocialMutationError extends Error {}
 
 export async function upsertTalentSocialsAction(
   talentId: number,
@@ -536,71 +536,123 @@ export async function upsertTalentSocialsAction(
 ): Promise<{ ok: true } | { ok: false; error: string }> {
   try {
     const session = await requirePermission('talentos', 'write');
-    const { assertCanAccessTalent } = await import('@/lib/queries/talents');
-    await assertCanAccessTalent(talentId, { userId: session.user.id, role: session.user.role });
+    const parsed = TalentSocialsUpdateSchema.safeParse({ talentId, entries });
+    if (!parsed.success) {
+      const issue = parsed.error.issues[0];
+      const rowIndex = issue?.path[0] === 'entries' && typeof issue.path[1] === 'number'
+        ? issue.path[1]
+        : null;
+      const prefix = rowIndex === null ? '' : `Red ${rowIndex + 1}: `;
+      return { ok: false, error: `${prefix}${issue?.message ?? 'Datos de redes no válidos.'}` };
+    }
 
-    const talent = await db.query.talents.findFirst({ where: eq(talents.id, talentId) });
+    const { talentId: validatedTalentId, entries: validatedEntries } = parsed.data;
+    const { assertCanAccessTalent } = await import('@/lib/queries/talents');
+    await assertCanAccessTalent(validatedTalentId, { userId: session.user.id, role: session.user.role });
+
+    const talent = await db.query.talents.findFirst({ where: eq(talents.id, validatedTalentId) });
     if (!talent) return { ok: false, error: 'Talento no encontrado.' };
 
-    if (entries.some((e) => !e.platform?.trim() || !e.handle?.trim())) {
-      return { ok: false, error: 'Plataforma y handle son obligatorios en todas las redes.' };
-    }
+    const preparedEntries: Array<{
+      readonly id?: number;
+      readonly platform: TalentSocialEntryInput['platform'];
+      readonly handle: string;
+      readonly profileUrl: string | null;
+      readonly followersDisplay: string;
+      readonly hexColor: string;
+      readonly sortOrder: number;
+    }> = [];
 
-    const keptIds: number[] = [];
-
-    for (const [i, entry] of entries.entries()) {
-      const platformParsed = SocialPlatformSchema.safeParse(entry.platform.trim().toLowerCase());
-      if (!platformParsed.success) {
-        return { ok: false, error: `Plataforma no válida: ${entry.platform}` };
-      }
-      const platform = platformParsed.data;
-      const handle   = entry.handle.trim();
+    for (const [i, entry] of validatedEntries.entries()) {
       const suppliedProfileUrl = entry.profileUrl?.trim() || null;
       const normalizedSuppliedUrl = suppliedProfileUrl
-        ? normalizeSocialProfileUrl({ platform, profileUrl: suppliedProfileUrl })
+        ? normalizeSocialProfileUrl({ platform: entry.platform, profileUrl: suppliedProfileUrl })
         : null;
       if (suppliedProfileUrl && !normalizedSuppliedUrl) {
-        return { ok: false, error: `La URL de ${platform} no corresponde a esa plataforma.` };
+        return { ok: false, error: `La URL de ${entry.platform} no corresponde a esa plataforma.` };
       }
       const profileUrl = normalizeSocialProfileUrl({
-        platform,
+        platform: entry.platform,
         profileUrl: suppliedProfileUrl,
-        handle,
+        handle: entry.handle,
       });
-      const followersDisplay = entry.followersDisplay?.trim() || '-';
-      const hexColor = PLATFORM_COLORS[platform] ?? '#888888';
-      const sortOrder = entry.sortOrder ?? i;
 
-      if (entry.id) {
-        const updated = await db.update(talentSocials)
-          .set({ platform, handle, profileUrl, followersDisplay, hexColor, sortOrder })
-          .where(and(eq(talentSocials.id, entry.id), eq(talentSocials.talentId, talentId)))
-          .returning({ id: talentSocials.id });
-        if (updated[0]) keptIds.push(updated[0].id);
-      } else {
-        const [inserted] = await db.insert(talentSocials).values({
-          talentId, platform, handle, profileUrl: profileUrl ?? undefined,
-          followersDisplay, hexColor, sortOrder,
-        }).returning({ id: talentSocials.id });
-        if (inserted) keptIds.push(inserted.id);
+      preparedEntries.push({
+        ...(entry.id === undefined ? {} : { id: entry.id }),
+        platform: entry.platform,
+        handle: entry.handle,
+        profileUrl,
+        followersDisplay: entry.followersDisplay?.trim() || '-',
+        hexColor: PLATFORM_COLORS[entry.platform] ?? '#888888',
+        sortOrder: entry.sortOrder ?? i + 1,
+      });
+    }
+
+    await db.transaction(async (tx) => {
+      const keptIds: number[] = [];
+
+      for (const entry of preparedEntries) {
+        if (entry.id !== undefined) {
+          const [updated] = await tx.update(talentSocials)
+            .set({
+              platform: entry.platform,
+              handle: entry.handle,
+              profileUrl: entry.profileUrl,
+              followersDisplay: entry.followersDisplay,
+              hexColor: entry.hexColor,
+              sortOrder: entry.sortOrder,
+            })
+            .where(and(eq(talentSocials.id, entry.id), eq(talentSocials.talentId, validatedTalentId)))
+            .returning({ id: talentSocials.id });
+          if (!updated) {
+            throw new TalentSocialMutationError('Una de las redes ha cambiado. Recarga la página e inténtalo de nuevo.');
+          }
+          keptIds.push(updated.id);
+        } else {
+          const [inserted] = await tx.insert(talentSocials).values({
+            talentId: validatedTalentId,
+            platform: entry.platform,
+            handle: entry.handle,
+            profileUrl: entry.profileUrl ?? undefined,
+            followersDisplay: entry.followersDisplay,
+            hexColor: entry.hexColor,
+            sortOrder: entry.sortOrder,
+          }).returning({ id: talentSocials.id });
+          if (!inserted) {
+            throw new TalentSocialMutationError('No se pudo guardar una de las redes.');
+          }
+          keptIds.push(inserted.id);
+        }
       }
-    }
 
-    // Borrar redes eliminadas (scoped to this talent)
-    const existing = await db.select({ id: talentSocials.id }).from(talentSocials).where(eq(talentSocials.talentId, talentId));
-    const toDelete = existing.map((s) => s.id).filter((sid) => !keptIds.includes(sid));
-    if (toDelete.length > 0) {
-      await db.delete(talentSocials).where(
-        and(eq(talentSocials.talentId, talentId), inArray(talentSocials.id, toDelete)),
-      );
-    }
+      // Borrar redes eliminadas (scoped to this talent).
+      const existing = await tx.select({ id: talentSocials.id })
+        .from(talentSocials)
+        .where(eq(talentSocials.talentId, validatedTalentId));
+      const toDelete = existing.map((social) => social.id).filter((socialId) => !keptIds.includes(socialId));
+      if (toDelete.length > 0) {
+        await tx.delete(talentSocials).where(
+          and(eq(talentSocials.talentId, validatedTalentId), inArray(talentSocials.id, toDelete)),
+        );
+      }
 
-    revalidatePath(`/admin/talents/${talentId}`);
+      await tx.update(talents)
+        .set({ updatedAt: new Date() })
+        .where(eq(talents.id, validatedTalentId));
+    });
+
+    revalidatePath(`/admin/talents/${validatedTalentId}`);
+    revalidatePath('/talentos');
     revalidatePath(`/talentos/${talent.slug}`);
+    revalidatePath(`/${talent.slug}`);
+    revalidatePath('/');
     return { ok: true };
   } catch (err) {
+    if (err instanceof TalentSocialMutationError) {
+      return { ok: false, error: err.message };
+    }
     logRedacted('error', '[admin] upsertTalentSocials error:', err);
-    return { ok: false, error: err instanceof Error ? err.message : 'Error al guardar redes.' };
+    return { ok: false, error: 'Error al guardar redes.' };
   }
 }
 
