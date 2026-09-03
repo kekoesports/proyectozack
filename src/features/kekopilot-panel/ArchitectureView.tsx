@@ -1,13 +1,15 @@
 import { ARCHITECTURE_GROUPS, FLOWS, PERMISSION_COLUMNS, PHASES, ROLES, STATE_VOCABULARY } from './product-data';
 import styles from './product.module.css';
 
-export function ArchitectureView() {
+type ArchitectureViewProps = { readonly workspaceName: string };
+
+export function ArchitectureView({ workspaceName }: ArchitectureViewProps) {
   return (
     <section className={styles.architecture}>
       <header className={styles.architectureIntro}>
-        <span>Mapa de producto · integración SocialPro</span>
+        <span>Mapa de producto · integración {workspaceName}</span>
         <h2>Arquitectura del panel</h2>
-        <p>Command Center, Pipeline y la ficha de deal son una vista del CRM actual. El resto de destinos abre el módulo canónico de SocialPro: KekoPilot no mantiene una copia paralela de los datos.</p>
+        <p>Command Center, Pipeline y la ficha de deal son una vista del CRM actual. El resto de destinos abre el módulo canónico de {workspaceName}, sin mantener una copia paralela de los datos.</p>
       </header>
 
       <ArchitectureSection title="Grupos de navegación">

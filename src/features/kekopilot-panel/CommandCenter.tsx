@@ -66,7 +66,7 @@ export function CommandCenter({ data, searchQuery }: CommandCenterProps) {
               {visibleItems.length === 0 ? <p className={styles.empty}>No hay elementos reales en este filtro.</p> : null}
             </div>
           </div>
-          <footer className={styles.inboxFooter}>Los datos se leen de SocialPro; las acciones se ejecutan en el CRM con sus permisos y auditoría.</footer>
+          <footer className={styles.inboxFooter}>Los datos se leen de {data.workspace.name}; las acciones se ejecutan en el CRM con sus permisos y auditoría.</footer>
         </section>
 
         <aside className={styles.sidePanels} aria-label="Señales del sistema">

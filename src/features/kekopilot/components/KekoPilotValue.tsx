@@ -1,5 +1,5 @@
 import type { KekoPilotLocale } from '../content';
-import { getHeroCopy } from '../content';
+import { getHeroCopy, SOCIALPRO_URL } from '../content';
 import common from '../kekopilot-sections.module.css';
 import sales from '../kekopilot-sales.module.css';
 
@@ -36,8 +36,8 @@ export function KekoPilotValue({ locale }: KekoPilotValueProps) {
                 : 'Developed from SocialPro’s day-to-day work across deals, talent, campaigns, documents and finance.'}
             </p>
           </div>
-          <a data-kp-cursor href={locale === 'es' ? '#flujo' : '#flow'}>
-            {locale === 'es' ? 'Ver el recorrido' : 'See the workflow'} <span aria-hidden="true">↓</span>
+          <a data-kp-cursor href={SOCIALPRO_URL} rel="noopener noreferrer" target="_blank">
+            {locale === 'es' ? 'Conocer SocialPro' : 'Meet SocialPro'} <span aria-hidden="true">↗</span>
           </a>
         </div>
 

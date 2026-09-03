@@ -23,6 +23,7 @@ import {
 import type {
   DealCard,
   DealStage,
+  KekoPilotPanelConfig,
   KekoPilotPanelData,
   SidePanel,
   Tone,
@@ -183,6 +184,7 @@ function progressFor(row: CampaignRow, completed: number, total: number): number
 function buildCard(
   row: CampaignRow,
   session: PanelSession,
+  referencePrefix: string,
   approvalCampaignIds: ReadonlySet<number>,
   deliverableCounts: ReadonlyMap<number, { readonly total: number; readonly completed: number }>,
   now: Date,
@@ -195,7 +197,7 @@ function buildCard(
 
   return {
     id: String(row.id),
-    ref: `SP-${row.id}`,
+    ref: `${referencePrefix}-${row.id}`,
     name: row.name,
     creator: row.talentName,
     brand: row.brandName,
@@ -229,7 +231,10 @@ function buildStages(rows: readonly CampaignRow[], cards: ReadonlyMap<number, De
   });
 }
 
-export async function getKekoPilotPanelData(session: PanelSession): Promise<KekoPilotPanelData> {
+export async function getKekoPilotPanelData(
+  session: PanelSession,
+  config: KekoPilotPanelConfig,
+): Promise<KekoPilotPanelData> {
   const now = new Date();
   const canReadTasks = hasPermission(session.role, 'tareas', 'read');
   const canReadFinance = hasPermission(session.role, 'facturacion', 'read');
@@ -273,7 +278,7 @@ export async function getKekoPilotPanelData(session: PanelSession): Promise<Keko
 
   const cards = new Map(campaignRows.map((row) => [
     row.id,
-    buildCard(row, session, approvalCampaignIds, deliverableCounts, now),
+    buildCard(row, session, config.branding.referencePrefix, approvalCampaignIds, deliverableCounts, now),
   ]));
   const blockedRows = campaignRows.filter((row) => isBlocked(row, now));
   const staleRows = campaignRows.filter((row) => isStale(row, now));
@@ -281,7 +286,15 @@ export async function getKekoPilotPanelData(session: PanelSession): Promise<Keko
     (run.status === 'failed' || run.status === 'dead_letter') &&
     now.getTime() - new Date(run.createdAt).getTime() <= DAY_MS,
   );
-  const inbox = buildPanelInbox(campaignRows, approvals, urgentTasks, failedRuns, now);
+  const inbox = buildPanelInbox(
+    campaignRows,
+    approvals,
+    urgentTasks,
+    failedRuns,
+    now,
+    config.workspace.name,
+    config.branding.referencePrefix,
+  );
   const activeRows = campaignRows.filter((row) => ACTIVE_STATUSES.has(row.status));
   const eurRows = campaignRows.filter((row) => row.currency === 'EUR');
   const eurTotal = eurRows.reduce((sum, row) => sum + Number(row.amountBrand), 0);
@@ -304,7 +317,7 @@ export async function getKekoPilotPanelData(session: PanelSession): Promise<Keko
           }))
         : [{
             title: canReadAgents ? 'Sin actividad reciente' : 'Acceso restringido',
-            body: canReadAgents ? 'No hay ejecuciones registradas.' : 'El detalle de agentes depende del rol de SocialPro.',
+            body: canReadAgents ? 'No hay ejecuciones registradas.' : `El detalle de agentes depende del rol de ${config.workspace.name}.`,
             value: '—', tone: 'neutral',
           }],
     },
@@ -318,7 +331,7 @@ export async function getKekoPilotPanelData(session: PanelSession): Promise<Keko
       ],
     },
     {
-      title: 'Operación SocialPro',
+      title: `Operación ${config.workspace.name}`,
       meta: 'fuente canónica',
       rows: [
         { title: 'Deals activos', body: 'Propuesta, negociación, aprobada o activa', value: String(activeRows.length), tone: 'neutral', href: '/admin/campanas' },
@@ -329,7 +342,8 @@ export async function getKekoPilotPanelData(session: PanelSession): Promise<Keko
   ];
 
   return {
-    workspace: { name: 'SocialPro', meta: 'Workspace operativo · datos reales', initials: 'SP' },
+    branding: config.branding,
+    workspace: config.workspace,
     user: { name: session.name, role: session.role, initials: initials(session.name) },
     generatedAt: new Intl.DateTimeFormat('es-ES', {
       timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit',
@@ -354,6 +368,16 @@ export async function getKekoPilotPanelData(session: PanelSession): Promise<Keko
       blocked: blockedRows.length,
       stages: buildStages(campaignRows, cards),
     },
-    dealDetails: buildDealDetails(campaignRows, cards, deliverableRows, invoiceRows, contractRows, approvals, now),
+    dealDetails: buildDealDetails(
+      campaignRows,
+      cards,
+      deliverableRows,
+      invoiceRows,
+      contractRows,
+      approvals,
+      now,
+      config.workspace.name,
+      config.branding.referencePrefix,
+    ),
   };
 }

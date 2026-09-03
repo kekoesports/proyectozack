@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import {
   BarChart3,
   Bot,
@@ -17,7 +18,7 @@ import {
   Workflow,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
-import type { NavigationItem, PanelCounts, PanelView } from './data';
+import type { NavigationItem, PanelBranding, PanelCounts, PanelView, PanelWorkspace } from './data';
 import { NAVIGATION } from './data';
 import styles from './panel.module.css';
 
@@ -41,20 +42,28 @@ const ICONS: Record<NavigationItem['icon'], LucideIcon> = {
 
 type PanelSidebarProps = {
   readonly activeView: PanelView;
+  readonly branding: PanelBranding;
   readonly counts: PanelCounts;
   readonly onViewChange: (view: PanelView) => void;
   readonly user: { readonly name: string; readonly role: string; readonly initials: string };
-  readonly workspace: { readonly name: string; readonly meta: string; readonly initials: string };
+  readonly workspace: PanelWorkspace;
 };
 
-export function PanelSidebar({ activeView, counts, onViewChange, user, workspace }: PanelSidebarProps) {
+export function PanelSidebar({ activeView, branding, counts, onViewChange, user, workspace }: PanelSidebarProps) {
   const activeLabel = activeView === 'pipeline' || activeView === 'deal' ? 'Deals' : 'Command Center';
 
   return (
     <aside className={styles.sidebar} aria-label="Navegación del workspace">
       <div className={styles.workspaceBlock}>
-        <strong className={styles.brand}>KEKO<span>PILOT</span></strong>
-        <Link className={styles.workspace} href="/admin" aria-label="Abrir panel principal de SocialPro">
+        <div className={styles.brandLockup}>
+          {branding.logoPath ? (
+            <Image alt="" className={styles.brandLogo} height={28} src={branding.logoPath} width={28} />
+          ) : (
+            <span aria-hidden="true" className={styles.brandMark}>{branding.productInitials}</span>
+          )}
+          <strong className={styles.brand}>{branding.productName}</strong>
+        </div>
+        <Link className={styles.workspace} href={workspace.homeHref} aria-label={`Abrir panel principal de ${workspace.name}`}>
           <span className={styles.workspaceAvatar}>{workspace.initials}</span>
           <span className={styles.workspaceCopy}>
             <strong>{workspace.name}</strong>

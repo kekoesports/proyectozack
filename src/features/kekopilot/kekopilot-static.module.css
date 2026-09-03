@@ -72,6 +72,12 @@
   text-transform: uppercase;
 }
 
+.footerBottom nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+}
+
 .problemGrid article > span,
 .tableWrap th > span,
 .integrationGrid article > span {

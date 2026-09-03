@@ -22,15 +22,15 @@ export const ROLES = [
 ] as const;
 
 export const FLOWS = [
-  { title: 'De conversación a deal', steps: ['Zack detecta importe y contraparte.', 'Crea un borrador con evidencia enlazada.', 'La persona revisa y aprueba.', 'El deal entra en Propuesta.'] },
-  { title: 'De entregable a factura', steps: ['Se confirma el entregable.', 'Zack comprueba la cláusula del contrato.', 'Prepara la factura sin emitir.', 'Finance revisa y aprueba.'] },
+  { title: 'De conversación a deal', steps: ['El agente detecta importe y contraparte.', 'Crea un borrador con evidencia enlazada.', 'La persona revisa y aprueba.', 'El deal entra en Propuesta.'] },
+  { title: 'De entregable a factura', steps: ['Se confirma el entregable.', 'El agente comprueba la cláusula del contrato.', 'Prepara la factura sin emitir.', 'Finance revisa y aprueba.'] },
   { title: 'De error a reintento', steps: ['La automatización marca el error.', 'El Command Center muestra causa y alcance.', 'Una persona corrige la conexión.', 'El sistema reintenta y registra el resultado.'] },
 ] as const;
 
 export const PHASES = [
-  { tag: 'Actual', title: 'Vista operacional', body: 'Command Center, pipeline y ficha leen las campañas, tareas, facturas y agentes de SocialPro.' },
+  { tag: 'Actual', title: 'Vista operacional', body: 'Command Center, pipeline y ficha leen campañas, tareas, facturas y agentes del workspace.' },
   { tag: 'Actual', title: 'Automatización supervisada', body: 'n8n orquesta fuentes externas; el CRM valida y conserva cada escritura.' },
-  { tag: 'Siguiente', title: 'Producto independiente', body: 'Multi-tenant, billing y dominio propio solo después de cerrar el Gate 1 legal y de propiedad.' },
+  { tag: 'Actual', title: 'Identidad white-label', body: 'Nombre, color, asistente, referencias y acceso principal se configuran por despliegue.' },
   { tag: 'Completa', title: 'Inteligencia y finanzas', body: 'Estadísticas multicanal, KPI, facturación y conciliación dentro de los permisos vigentes.' },
 ] as const;
 

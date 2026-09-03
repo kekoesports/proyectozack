@@ -29,7 +29,7 @@
 .dealCardTop i, .dealHero > div > span i, .stateVocabulary i { border: 1px solid var(--line); padding: 3px 6px; }
 .dealCardTop i[data-tone='danger'], .dealHero i[data-tone='danger'], .stateVocabulary i[data-tone='danger'] { border-color: var(--red); background: var(--red-dim); color: var(--red); }
 .dealCardTop i[data-tone='success'], .dealHero i[data-tone='success'], .stateVocabulary i[data-tone='success'] { border-color: var(--amber); color: var(--amber); }
-.dealCardTop i[data-tone='attention'], .dealHero i[data-tone='attention'] { border-color: var(--amber); background: var(--amber); color: #14100a; }
+.dealCardTop i[data-tone='attention'], .dealHero i[data-tone='attention'] { border-color: var(--amber); background: var(--amber); color: var(--amber-ink); }
 .dealCardTop small { margin-left: auto; color: var(--ink-3); font-family: var(--kp-panel-mono), monospace; font-size: 8px; }
 .dealCard > strong, .dealCard > em { display: block; }
 .dealCard > strong { margin-top: 10px; font-family: var(--kp-panel-heading), sans-serif; font-size: 14px; }
@@ -56,7 +56,7 @@
 .dealHero dl div:last-child { border-right: 0; }
 .dealHero dt { color: var(--ink-3); font-family: var(--kp-panel-mono), monospace; font-size: 8px; letter-spacing: 0.1em; text-transform: uppercase; }
 .dealHero dd { margin: 4px 0 0; font-family: var(--kp-panel-heading), sans-serif; font-size: 15px; font-weight: 700; }
-.crmLink { display: inline-flex; min-height: 38px; align-items: center; border: 1px solid var(--amber); padding: 0 13px; background: var(--amber); color: #14100a; font-family: var(--kp-panel-heading), sans-serif; font-size: 11px; font-weight: 700; }
+.crmLink { display: inline-flex; min-height: 38px; align-items: center; border: 1px solid var(--amber); padding: 0 13px; background: var(--amber); color: var(--amber-ink); font-family: var(--kp-panel-heading), sans-serif; font-size: 11px; font-weight: 700; }
 .successNotice { display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--line); padding: 10px 16px; background: var(--amber-dim); color: var(--amber); }
 .successNotice span { color: var(--ink-2); }
 .dealColumns { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(330px, 0.8fr); }
@@ -88,7 +88,7 @@
 .agentRow { border-bottom: 1px solid var(--line-soft); padding: 10px 16px; }
 .agentRow > div { display: flex; align-items: center; gap: 8px; }
 .agentRow i { border: 1px solid var(--line); padding: 2px 5px; color: var(--ink-2); }
-.agentRow i[data-tone='attention'] { border-color: var(--amber); background: var(--amber); color: #14100a; }
+.agentRow i[data-tone='attention'] { border-color: var(--amber); background: var(--amber); color: var(--amber-ink); }
 .agentRow i[data-tone='danger'] { border-color: var(--red); background: var(--red-dim); color: var(--red); }
 .agentRow small, .agentRow time, .agentRow > span { color: var(--ink-3); font-family: var(--kp-panel-mono), monospace; font-size: 8px; text-transform: uppercase; }
 .agentRow time { margin-left: auto; }
@@ -110,7 +110,7 @@
 .architectureGroups h3, .flowGrid h3, .phaseGrid h3 { margin: 0 0 8px; font-family: var(--kp-panel-heading), sans-serif; font-size: 13px; }
 .architectureGroups span { display: block; border-top: 1px solid var(--line-soft); padding: 4px 0; color: var(--ink-2); font-size: 11.5px; }
 .stateVocabulary p, .phaseGrid p { margin: 10px 0 0; color: var(--ink-2); font-size: 11.5px; line-height: 1.5; }
-.stateVocabulary i[data-tone='attention'] { border-color: var(--amber); background: var(--amber); color: #14100a; }
+.stateVocabulary i[data-tone='attention'] { border-color: var(--amber); background: var(--amber); color: var(--amber-ink); }
 .permissionScroller { overflow-x: auto; }
 .permissionScroller table { width: 100%; min-width: 800px; border-collapse: collapse; }
 .permissionScroller th, .permissionScroller td { border-bottom: 1px solid var(--line-soft); padding: 8px 10px; text-align: left; }
