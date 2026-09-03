@@ -1,0 +1,285 @@
+.agentConsole {
+  display: grid;
+  grid-template-columns: minmax(240px, 0.34fr) minmax(0, 1fr);
+  min-height: 540px;
+  margin-top: 3.5rem;
+  border: 1px solid var(--kp-line);
+  background: var(--kp-bg);
+}
+
+.agentTabs {
+  border-right: 1px solid var(--kp-line);
+}
+
+.agentTab {
+  position: relative;
+  display: grid;
+  width: 100%;
+  min-height: 118px;
+  padding: 1.5rem;
+  border: 0;
+  border-bottom: 1px solid var(--kp-line);
+  background: transparent;
+  color: var(--kp-muted);
+  cursor: pointer;
+  text-align: left;
+  transition: background 240ms ease, color 240ms ease, padding 240ms ease;
+}
+
+.agentTab:hover,
+.agentTab:focus-visible {
+  background: rgba(255, 176, 32, 0.035);
+  color: var(--kp-bone);
+}
+
+.agentTab[aria-selected='true'] {
+  padding-left: 2rem;
+  background: linear-gradient(90deg, rgba(255, 176, 32, 0.1), transparent 75%);
+  color: var(--kp-bone);
+}
+
+.agentTab span,
+.panelHeader,
+.panelBody > span,
+.activityLog > span,
+.solutionTabs button,
+.solutionPanel > span {
+  font-family: var(--kp-font-mono), monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.agentTab strong {
+  align-self: end;
+  font-family: var(--kp-font-heading), sans-serif;
+  font-size: 1.35rem;
+  font-weight: 600;
+}
+
+.agentTab i {
+  position: absolute;
+  top: 50%;
+  right: 1.4rem;
+  width: 6px;
+  height: 6px;
+  background: var(--kp-line-strong);
+  transform: translateY(-50%);
+}
+
+.agentTab[aria-selected='true'] i {
+  background: var(--kp-amber);
+  box-shadow: 0 0 14px rgba(255, 176, 32, 0.6);
+}
+
+.agentPanel {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  animation: panelIn 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.panelHeader {
+  display: flex;
+  justify-content: space-between;
+  padding: 1rem 1.3rem;
+  border-bottom: 1px solid var(--kp-line);
+  color: var(--kp-muted);
+}
+
+.panelHeader span:last-child,
+.solutionPanel > span {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  color: var(--kp-bone);
+}
+
+.panelHeader i,
+.solutionPanel > span i {
+  width: 6px;
+  height: 6px;
+  background: var(--kp-amber);
+  box-shadow: 0 0 12px rgba(255, 176, 32, 0.55);
+}
+
+.panelBody {
+  padding: clamp(2rem, 5vw, 5rem);
+}
+
+.panelBody > span,
+.activityLog > span {
+  color: var(--kp-amber);
+}
+
+.panelBody h3,
+.solutionPanel h3 {
+  margin: 0.7rem 0 0;
+  font-family: var(--kp-font-heading), sans-serif;
+  font-size: clamp(3rem, 6vw, 6rem);
+  font-weight: 600;
+  line-height: 0.92;
+  letter-spacing: -0.05em;
+}
+
+.panelBody > p,
+.solutionPanel > p {
+  max-width: 48ch;
+  margin: 1.2rem 0 0;
+  color: var(--kp-muted);
+  font-size: 1.05rem;
+  line-height: 1.6;
+}
+
+.panelBody dl {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  margin: 3rem 0 0;
+  border-top: 1px solid var(--kp-line);
+}
+
+.panelBody dl > div {
+  padding: 1rem 1rem 0 0;
+  border-right: 1px solid var(--kp-line);
+}
+
+.panelBody dt {
+  color: var(--kp-muted);
+  font-family: var(--kp-font-mono), monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.panelBody dd {
+  margin: 0.55rem 0 0;
+  font-size: 0.9rem;
+}
+
+.activityLog {
+  padding: 1.2rem 1.3rem;
+  border-top: 1px solid var(--kp-line);
+  background: var(--kp-panel-2);
+}
+
+.activityLog p {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0.6rem 0 1rem;
+}
+
+.activityLog p i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--kp-amber);
+  animation: activityPulse 1.8s ease-in-out infinite;
+}
+
+.activityLog > div {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 3px;
+  height: 18px;
+  align-items: end;
+}
+
+.activityLog > div span {
+  height: var(--bar-height, 45%);
+  background: rgba(255, 176, 32, 0.35);
+  animation: bars 2.8s ease-in-out infinite alternate;
+}
+
+.activityLog > div span:nth-child(2n) { --bar-height: 80%; animation-delay: -1s; }
+.activityLog > div span:nth-child(3n) { --bar-height: 28%; animation-delay: -2s; }
+
+.solutionsConsole {
+  display: grid;
+  grid-template-columns: minmax(230px, 0.34fr) 1fr;
+  margin-top: 3.5rem;
+  border: 1px solid var(--kp-line);
+}
+
+.solutionTabs {
+  display: grid;
+  border-right: 1px solid var(--kp-line);
+}
+
+.solutionTabs button {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  min-height: 72px;
+  padding: 1rem 1.25rem;
+  border: 0;
+  border-bottom: 1px solid var(--kp-line);
+  background: transparent;
+  color: var(--kp-muted);
+  cursor: pointer;
+  text-align: left;
+}
+
+.solutionTabs button[aria-pressed='true'] {
+  background: var(--kp-panel-2);
+  color: var(--kp-amber);
+}
+
+.solutionTabs span {
+  color: rgba(255, 176, 32, 0.4);
+}
+
+.solutionPanel {
+  position: relative;
+  overflow: hidden;
+  min-height: 360px;
+  padding: clamp(2rem, 5vw, 4.5rem);
+  animation: panelIn 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.solutionPanel h3 {
+  max-width: 12ch;
+  font-size: clamp(2.5rem, 4.5vw, 4.8rem);
+}
+
+.signalMatrix {
+  position: absolute;
+  right: 2rem;
+  bottom: 2rem;
+  display: grid;
+  grid-template-columns: repeat(6, 5px);
+  gap: 6px;
+  opacity: 0.55;
+}
+
+.signalMatrix i {
+  width: 5px;
+  height: 5px;
+  background: var(--kp-amber);
+  animation: matrix 3s ease-in-out infinite;
+}
+
+.signalMatrix i:nth-child(3n) { animation-delay: -1s; }
+.signalMatrix i:nth-child(4n) { animation-delay: -2s; }
+
+@keyframes panelIn {
+  from { opacity: 0; clip-path: inset(0 0 0 18%); transform: translateX(16px); }
+  to { opacity: 1; clip-path: inset(0); transform: none; }
+}
+
+@keyframes activityPulse { 50% { opacity: 0.35; } }
+@keyframes bars { to { height: calc(var(--bar-height) * 0.45); opacity: 0.5; } }
+@keyframes matrix { 50% { opacity: 0.15; transform: scale(0.7); } }
+
+@media (max-width: 820px) {
+  .agentConsole, .solutionsConsole { grid-template-columns: 1fr; min-height: 0; }
+  .agentTabs, .solutionTabs { display: flex; overflow-x: auto; border-right: 0; border-bottom: 1px solid var(--kp-line); scroll-snap-type: x mandatory; }
+  .agentTab { min-width: 190px; min-height: 96px; scroll-snap-align: start; }
+  .agentTab[aria-selected='true'] { padding-left: 1.5rem; }
+  .panelBody dl { grid-template-columns: 1fr; }
+  .panelBody dl > div { padding: 1rem 0; border-right: 0; border-bottom: 1px solid var(--kp-line); }
+  .solutionTabs button { min-width: 170px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .agentPanel, .solutionPanel, .activityLog p i, .activityLog > div span, .signalMatrix i { animation: none; }
+}

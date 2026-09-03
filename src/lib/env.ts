@@ -40,6 +40,9 @@ export const env = createEnv({
     // Optional in dev; required in production for cron endpoints to be reachable.
     CRON_SECRET: z.string().min(8).optional(),
     DEV_ROLE_OVERRIDE: z.enum(['admin', 'manager', 'staff', 'brand', 'editor', 'finance', 'analyst', 'ops', 'talent_manager']).optional(),
+    // Fixture explícito para pruebas visuales del panel. Producción lee siempre
+    // SocialPro salvo que alguien active deliberadamente esta bandera.
+    KEKOPILOT_DEMO_MODE: z.enum(['true', 'false']).optional().default('false').transform((v) => v === 'true'),
     YOUTUBE_API_KEY: z.string().min(1).optional(),
     TWITCH_CLIENT_ID: z.string().min(1).optional(),
     TWITCH_CLIENT_SECRET: z.string().min(1).optional(),
@@ -246,6 +249,7 @@ export const env = createEnv({
     BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET,
     CRON_SECRET: process.env.CRON_SECRET,
     DEV_ROLE_OVERRIDE: process.env.DEV_ROLE_OVERRIDE,
+    KEKOPILOT_DEMO_MODE: process.env.KEKOPILOT_DEMO_MODE,
     YOUTUBE_API_KEY: process.env.YOUTUBE_API_KEY,
     TWITCH_CLIENT_ID: process.env.TWITCH_CLIENT_ID,
     TWITCH_CLIENT_SECRET: process.env.TWITCH_CLIENT_SECRET,
