@@ -93,9 +93,14 @@ export async function getNewsUniqueTags(): Promise<string[]> {
  * Posts publicados del blog corporativo. Sin bodyMd, con readMinutes precomputado.
  */
 export async function getPosts(): Promise<PostListItem[]> {
+  const now = new Date();
   const rows = await db.query.posts.findMany({
-    where: and(eq(posts.status, 'published'), eq(posts.vertical, 'blog')),
-    orderBy: [desc(posts.publishedAt)],
+    where: and(
+      eq(posts.status, 'published'),
+      eq(posts.vertical, 'blog'),
+      lte(posts.publishedAt, now),
+    ),
+    orderBy: [desc(posts.publishedAt), desc(posts.sortOrder)],
   });
   return projectListItems(rows);
 }

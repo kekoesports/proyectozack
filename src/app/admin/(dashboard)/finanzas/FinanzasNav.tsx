@@ -30,7 +30,7 @@ type Tab = {
 
 const TABS: readonly Tab[] = [
   { href: '/admin/finanzas/resumen', label: 'Resumen' },
-  { href: '/admin/finanzas/caja', label: 'Caja', soon: true },
+  { href: '/admin/finanzas/caja', label: 'Caja' },
   {
     href: '/admin/finanzas/ingresos',
     label: 'Ingresos',

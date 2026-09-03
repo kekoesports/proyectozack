@@ -93,6 +93,50 @@ export type BankMonthlyCloseSummary = {
   readonly invoiceCurrencies: readonly InvoiceMonthlyCloseCurrency[];
 };
 
+export type BankAnnualMonth = {
+  readonly month: number;
+  readonly currency: string;
+  readonly income: number;
+  readonly expenses: number;
+  readonly net: number;
+  readonly transactionCount: number;
+};
+
+export type BankAnnualExpenseCategory = {
+  readonly category: string;
+  readonly currency: string;
+  readonly amount: number;
+  readonly transactionCount: number;
+};
+
+export type BankAnnualCounterparty = {
+  readonly name: string;
+  readonly currency: string;
+  readonly amount: number;
+  readonly transactionCount: number;
+};
+
+export type BankAnnualInvoiceMonth = {
+  readonly month: number;
+  readonly currency: string;
+  readonly billed: number;
+  readonly collected: number;
+  readonly outstanding: number;
+  readonly invoiceCount: number;
+};
+
+export type BankAnnualCashflowSummary = {
+  readonly year: number;
+  readonly transactions: number;
+  readonly unmatched: number;
+  readonly missingReceipts: number;
+  readonly uncategorizedExpenses: number;
+  readonly months: readonly BankAnnualMonth[];
+  readonly expenseCategories: readonly BankAnnualExpenseCategory[];
+  readonly expenseCounterparties: readonly BankAnnualCounterparty[];
+  readonly invoiceMonths: readonly BankAnnualInvoiceMonth[];
+};
+
 export type SlashCardSpendSummary = {
   readonly cardId: number;
   readonly displayName: string;

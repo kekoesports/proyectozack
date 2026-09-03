@@ -22,6 +22,7 @@ import type {
   TransactionMatchStatus,
   BankEntityReconciliationKpis,
   BankMonthlyCloseSummary,
+  BankAnnualCashflowSummary,
 } from '@/types';
 
 // ── Bank Accounts ─────────────────────────────────────────────────────
@@ -637,5 +638,161 @@ export async function getBankMonthlyCloseSummary(opts: {
     missingReceipts: bankRows.reduce((sum, row) => sum + Number(row.missingReceipts), 0),
     bankCurrencies,
     invoiceCurrencies: [...invoiceMap.values()],
+  };
+}
+
+/**
+ * Tesoreria anual por entidad legal. Los importes nunca se consolidan entre
+ * monedas: cada fila conserva la moneda original del banco o de la factura.
+ */
+export async function getBankAnnualCashflowSummary(opts: {
+  readonly issuerCompanyId: number;
+  readonly year: number;
+}): Promise<BankAnnualCashflowSummary> {
+  const start = new Date(Date.UTC(opts.year, 0, 1));
+  const end = new Date(Date.UTC(opts.year + 1, 0, 1));
+  const startDate = `${opts.year}-01-01`;
+  const endDate = `${opts.year + 1}-01-01`;
+
+  const [monthRows, categoryRows, counterpartyRows, invoiceRows] = await Promise.all([
+    db
+      .select({
+        month: sql<number>`EXTRACT(MONTH FROM ${bankTransactions.bookingDate})::int`,
+        currency: bankTransactions.currency,
+        income: sql<string>`COALESCE(SUM(${bankTransactions.amount}) FILTER (WHERE ${bankTransactions.direction} = 'income'), 0)`,
+        expenses: sql<string>`COALESCE(SUM(${bankTransactions.amount}) FILTER (WHERE ${bankTransactions.direction} = 'expense'), 0)`,
+        transactionCount: count(),
+        unmatched: sql<number>`COUNT(*) FILTER (WHERE ${bankTransactions.status} IN ('imported', 'needs_review'))::int`,
+        missingReceipts: sql<number>`COUNT(*) FILTER (WHERE ${bankTransactions.receiptStatus} = 'missing')::int`,
+      })
+      .from(bankTransactions)
+      .innerJoin(bankAccounts, eq(bankAccounts.id, bankTransactions.bankAccountId))
+      .where(and(
+        eq(bankAccounts.issuerCompanyId, opts.issuerCompanyId),
+        gte(bankTransactions.bookingDate, start),
+        lt(bankTransactions.bookingDate, end),
+      ))
+      .groupBy(sql`EXTRACT(MONTH FROM ${bankTransactions.bookingDate})`, bankTransactions.currency)
+      .orderBy(sql`EXTRACT(MONTH FROM ${bankTransactions.bookingDate})`, asc(bankTransactions.currency)),
+    db
+      .select({
+        category: sql<string>`COALESCE(NULLIF(TRIM(${bankTransactions.category}), ''), 'Sin categorizar')`,
+        currency: bankTransactions.currency,
+        amount: sql<string>`COALESCE(SUM(${bankTransactions.amount}), 0)`,
+        transactionCount: count(),
+      })
+      .from(bankTransactions)
+      .innerJoin(bankAccounts, eq(bankAccounts.id, bankTransactions.bankAccountId))
+      .where(and(
+        eq(bankAccounts.issuerCompanyId, opts.issuerCompanyId),
+        eq(bankTransactions.direction, 'expense'),
+        gte(bankTransactions.bookingDate, start),
+        lt(bankTransactions.bookingDate, end),
+      ))
+      .groupBy(
+        sql`COALESCE(NULLIF(TRIM(${bankTransactions.category}), ''), 'Sin categorizar')`,
+        bankTransactions.currency,
+      )
+      .orderBy(desc(sql`SUM(${bankTransactions.amount})`)),
+    db
+      .select({
+        name: sql<string>`COALESCE(NULLIF(TRIM(${bankTransactions.merchantName}), ''), NULLIF(TRIM(${bankTransactions.counterpartyName}), ''), NULLIF(TRIM(${bankTransactions.description}), ''), 'Sin identificar')`,
+        currency: bankTransactions.currency,
+        amount: sql<string>`COALESCE(SUM(${bankTransactions.amount}), 0)`,
+        transactionCount: count(),
+      })
+      .from(bankTransactions)
+      .innerJoin(bankAccounts, eq(bankAccounts.id, bankTransactions.bankAccountId))
+      .where(and(
+        eq(bankAccounts.issuerCompanyId, opts.issuerCompanyId),
+        eq(bankTransactions.direction, 'expense'),
+        gte(bankTransactions.bookingDate, start),
+        lt(bankTransactions.bookingDate, end),
+      ))
+      .groupBy(
+        sql`COALESCE(NULLIF(TRIM(${bankTransactions.merchantName}), ''), NULLIF(TRIM(${bankTransactions.counterpartyName}), ''), NULLIF(TRIM(${bankTransactions.description}), ''), 'Sin identificar')`,
+        bankTransactions.currency,
+      )
+      .orderBy(desc(sql`SUM(${bankTransactions.amount})`))
+      .limit(30),
+    db
+      .select({
+        month: sql<number>`EXTRACT(MONTH FROM ${issuedInvoices.issueDate})::int`,
+        currency: issuedInvoices.currency,
+        status: issuedInvoices.status,
+        total: sql<string>`COALESCE(SUM(${issuedInvoices.totalAmount}), 0)`,
+        invoiceCount: count(),
+      })
+      .from(issuedInvoices)
+      .where(and(
+        eq(issuedInvoices.issuerCompanyId, opts.issuerCompanyId),
+        gte(issuedInvoices.issueDate, startDate),
+        lt(issuedInvoices.issueDate, endDate),
+      ))
+      .groupBy(sql`EXTRACT(MONTH FROM ${issuedInvoices.issueDate})`, issuedInvoices.currency, issuedInvoices.status)
+      .orderBy(sql`EXTRACT(MONTH FROM ${issuedInvoices.issueDate})`, asc(issuedInvoices.currency)),
+  ]);
+
+  const invoiceMap = new Map<string, {
+    month: number;
+    currency: string;
+    billed: number;
+    collected: number;
+    outstanding: number;
+    invoiceCount: number;
+  }>();
+  for (const row of invoiceRows) {
+    const key = `${row.month}:${row.currency}`;
+    const current = invoiceMap.get(key) ?? {
+      month: row.month,
+      currency: row.currency,
+      billed: 0,
+      collected: 0,
+      outstanding: 0,
+      invoiceCount: 0,
+    };
+    const total = Number(row.total);
+    if (['emitida', 'enviada', 'cobrada', 'vencida'].includes(row.status)) {
+      current.billed += total;
+      current.invoiceCount += Number(row.invoiceCount);
+    }
+    if (row.status === 'cobrada') current.collected += total;
+    if (['emitida', 'enviada', 'vencida'].includes(row.status)) current.outstanding += total;
+    invoiceMap.set(key, current);
+  }
+
+  return {
+    year: opts.year,
+    transactions: monthRows.reduce((sum, row) => sum + Number(row.transactionCount), 0),
+    unmatched: monthRows.reduce((sum, row) => sum + Number(row.unmatched), 0),
+    missingReceipts: monthRows.reduce((sum, row) => sum + Number(row.missingReceipts), 0),
+    uncategorizedExpenses: categoryRows
+      .filter((row) => row.category === 'Sin categorizar')
+      .reduce((sum, row) => sum + Number(row.transactionCount), 0),
+    months: monthRows.map((row) => {
+      const income = Number(row.income);
+      const expenses = Number(row.expenses);
+      return {
+        month: row.month,
+        currency: row.currency,
+        income,
+        expenses,
+        net: income - expenses,
+        transactionCount: Number(row.transactionCount),
+      };
+    }),
+    expenseCategories: categoryRows.map((row) => ({
+      category: row.category,
+      currency: row.currency,
+      amount: Number(row.amount),
+      transactionCount: Number(row.transactionCount),
+    })),
+    expenseCounterparties: counterpartyRows.map((row) => ({
+      name: row.name,
+      currency: row.currency,
+      amount: Number(row.amount),
+      transactionCount: Number(row.transactionCount),
+    })),
+    invoiceMonths: [...invoiceMap.values()],
   };
 }
