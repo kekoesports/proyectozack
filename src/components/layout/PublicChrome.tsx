@@ -9,6 +9,8 @@ type LenisInstance = { raf: (time: number) => void; destroy: () => void };
 
 const PORTAL_PREFIXES = [
   '/admin',
+  '/kekopilot',
+  '/en/kekopilot',
   '/marcas',
   '/creadores',
   '/giveaways',

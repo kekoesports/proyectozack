@@ -249,14 +249,17 @@ export default async function RootLayout({
   const h = await headers();
   const pathname = h.get('x-pathname');
   const lang = isEnPathname(pathname) ? 'en' : 'es';
+  const isKekoPilot = pathname?.startsWith('/kekopilot') === true || pathname?.startsWith('/en/kekopilot') === true;
 
   return (
     <html lang={lang}>
       <head>
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }}
-        />
+        {isKekoPilot ? null : (
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }}
+          />
+        )}
       </head>
       <body className={`${inter.variable} ${barlowCondensed.variable} antialiased`}>
         <TRPCProvider>

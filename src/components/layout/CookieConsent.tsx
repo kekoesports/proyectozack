@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useSyncExternalStore, useCallback } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import {
   subscribe,
   getConsentSnapshot,
@@ -75,6 +76,7 @@ const CATEGORIES = [
 type Panel = 'banner' | 'configure';
 
 export function CookieBanner() {
+  const pathname = usePathname();
   const consent = useSyncExternalStore(subscribe, getConsentSnapshot, getServerSnapshot);
 
   // Esperar al hydration + delay antes de mostrar el banner
@@ -146,7 +148,11 @@ export function CookieBanner() {
     setPanel('configure');
   }, []);
 
-  if (!visible) return null;
+  if (
+    !visible
+    || pathname.startsWith('/kekopilot')
+    || pathname.startsWith('/en/kekopilot')
+  ) return null;
 
   return (
     <div

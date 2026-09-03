@@ -28,8 +28,16 @@ export default defineConfig({
 
   webServer: {
     command: 'npm run dev',
-    url: 'http://localhost:3000',
+    url: process.env.PLAYWRIGHT_HEALTH_URL ?? 'http://localhost:3000',
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
+    env: {
+      DATABASE_URL: process.env.DATABASE_URL ?? 'postgresql://user:pass@127.0.0.1:5432/socialpro_test',
+      RESEND_API_KEY: process.env.RESEND_API_KEY ?? 're_test_placeholder',
+      BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET ?? 'test-secret-with-at-least-32-characters',
+      NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000',
+      ENABLE_DEV_AUTH_BYPASS: 'true',
+      KEKOPILOT_DEMO_MODE: 'true',
+    },
   },
 });

@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 import path from "node:path";
 
+const devEvalSource = process.env.NODE_ENV === 'development' ? " 'unsafe-eval'" : '';
+
 const securityHeaders = [
   { key: 'X-Frame-Options', value: 'DENY' },
   { key: 'X-Content-Type-Options', value: 'nosniff' },
@@ -16,7 +18,7 @@ const securityHeaders = [
       // dynamic code; solo compilación/instanciación de WASM. Ver CSP3 §6.1.
       // Sin esto, el WASM de tesseract-core lanza:
       //   "Compiling or instantiating WebAssembly module violates the following CSP directive"
-      "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://www.googletagmanager.com https://va.vercel-scripts.com",
+      `script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'${devEvalSource} https://www.googletagmanager.com https://va.vercel-scripts.com`,
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com",
       "img-src 'self' blob: data: https://*.vercel-storage.com https://www.googletagmanager.com https://*.twitch.tv https://*.jtvnw.net https://img.youtube.com https://*.ytimg.com https://i.imgur.com https:",
