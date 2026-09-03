@@ -113,7 +113,7 @@ type KekoPilotCopy = {
 const COPY: Record<KekoPilotLocale, KekoPilotCopy> = {
   es: {
     localeLabel: 'EN',
-    localeHref: '/en/kekopilot',
+    localeHref: '/en',
     nav: [
       { href: '#beneficios', label: 'Beneficios' },
       { href: '#flujo', label: 'Cómo funciona' },
@@ -242,7 +242,7 @@ const COPY: Record<KekoPilotLocale, KekoPilotCopy> = {
   },
   en: {
     localeLabel: 'ES',
-    localeHref: '/kekopilot',
+    localeHref: '/',
     nav: [
       { href: '#benefits', label: 'Benefits' },
       { href: '#flow', label: 'How it works' },

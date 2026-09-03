@@ -1,6 +1,6 @@
 import type { KekoPilotLocale } from '../content';
 import { DEMO_HREF, getHeroCopy } from '../content';
-import Link from 'next/link';
+import { KEKOPILOT_APP_URL } from '@/lib/kekopilot-url';
 import { AgentConsole, SolutionsConsole } from './KekoPilotControls';
 import common from '../kekopilot-sections.module.css';
 import sales from '../kekopilot-sales.module.css';
@@ -159,7 +159,7 @@ export function KekoPilotSections({ locale }: KekoPilotSectionsProps) {
               </div>
             ))}
           </div>
-          <div className={styles.footerBottom}><span>{copy.footer.legal}</span><Link href="/kekopilot/panel">APP.KEKOPILOT</Link></div>
+          <div className={styles.footerBottom}><span>{copy.footer.legal}</span><a href={KEKOPILOT_APP_URL}>APP.KEKOPILOT</a></div>
         </div>
       </footer>
     </>

@@ -79,6 +79,17 @@
 	encode zstd gzip
 	import seguridad
 
+	# KekoPilot tiene dominio propio. Estas rutas solo se conservan como
+	# redirecciones para no romper enlaces que ya se hayan compartido.
+	@legacyKekoPilotPanel path /kekopilot/panel*
+	redir @legacyKekoPilotPanel https://app.kekopilot.com permanent
+
+	@legacyKekoPilotEnglish path /en/kekopilot /en/kekopilot/
+	redir @legacyKekoPilotEnglish https://kekopilot.com/en permanent
+
+	@legacyKekoPilotSpanish path /kekopilot /kekopilot/
+	redir @legacyKekoPilotSpanish https://kekopilot.com permanent
+
 	# Interruptor de mantenimiento: basta crear el fichero para que todo el
 	# tráfico normal reciba la página de mantenimiento. No depende de que la
 	# aplicación esté viva, que es justo lo que hace falta durante un cutover.
@@ -114,6 +125,82 @@
 # www → canónico
 www.{$CRM_DOMAIN} {
 	redir https://{$CRM_DOMAIN}{uri} permanent
+}
+
+# ── KekoPilot — producto separado de SocialPro ─────────────────────────────
+kekopilot.com {
+	encode zstd gzip
+	import seguridad
+
+	route {
+		# Las antiguas rutas internas nunca son la URL pública canónica.
+		@legacyPanel path /kekopilot/panel*
+		redir @legacyPanel https://app.kekopilot.com permanent
+
+		@legacyEnglish path /en/kekopilot /en/kekopilot/
+		redir @legacyEnglish https://kekopilot.com/en permanent
+
+		@legacySpanish path /kekopilot /kekopilot/
+		redir @legacySpanish https://kekopilot.com permanent
+
+		# El mismo artefacto de Next sirve la marca KekoPilot bajo URLs limpias.
+		@english path /en /en/
+		rewrite @english /en/kekopilot
+
+		@home path /
+		rewrite @home /kekopilot
+
+		@publicSurface path /kekopilot* /en/kekopilot* /_next/* /kekopilot-og.png
+		handle @publicSurface {
+			import proxy_app "{$CRM_UPSTREAM}"
+		}
+
+		handle {
+			respond "Not found" 404
+		}
+	}
+}
+
+www.kekopilot.com {
+	redir https://kekopilot.com{uri} permanent
+}
+
+app.kekopilot.com {
+	encode zstd gzip
+	import seguridad
+	header X-Robots-Tag "noindex, nofollow, noarchive"
+
+	route {
+		@legacyPanel path /kekopilot/panel*
+		redir @legacyPanel https://app.kekopilot.com permanent
+
+		@login path /login
+		rewrite @login /admin/login
+
+		@home path /
+		rewrite @home /kekopilot/panel
+
+		# Tras autenticarse, el login compartido intenta abrir /admin. En este
+		# host siempre vuelve al panel KekoPilot y nunca expone el CRM completo.
+		@privateAdmin {
+			path /admin /admin/ /admin/*
+			not path /admin/login /admin/two-factor /admin/forgot-password /admin/reset-password
+		}
+		redir @privateAdmin https://app.kekopilot.com temporary
+
+		@appSurface path /kekopilot/panel* /admin/login /admin/two-factor /admin/forgot-password /admin/reset-password /api/auth/* /_next/*
+		handle @appSurface {
+			import proxy_app "{$CRM_UPSTREAM}"
+		}
+
+		handle {
+			respond "Not found" 404
+		}
+	}
+
+	request_body {
+		max_size 12MB
+	}
 }
 
 # ── staging ─────────────────────────────────────────────────────────────────

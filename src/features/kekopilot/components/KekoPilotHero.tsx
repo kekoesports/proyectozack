@@ -1,6 +1,6 @@
 import type { KekoPilotLocale } from '../content';
 import { DEMO_HREF, getHeroCopy } from '../content';
-import Link from 'next/link';
+import { KEKOPILOT_APP_URL } from '@/lib/kekopilot-url';
 import type { CSSProperties } from 'react';
 import styles from '../kekopilot.module.css';
 import visual from '../kekopilot-visual.module.css';
@@ -117,7 +117,7 @@ export function KekoPilotHeader({ locale }: KekoPilotHeroProps) {
         </nav>
         <div className={styles.headerActions}>
           <a className={styles.localeLink} href={copy.localeHref} hrefLang={locale === 'es' ? 'en' : 'es'}>{copy.localeLabel}</a>
-          <Link className={styles.loginLink} href="/kekopilot/panel">{copy.login}</Link>
+          <a className={styles.loginLink} href={KEKOPILOT_APP_URL}>{copy.login}</a>
           <a className={styles.headerCta} data-kp-cursor data-kp-magnetic href={DEMO_HREF}>{copy.demo}</a>
         </div>
         <details className={styles.mobileNav}>

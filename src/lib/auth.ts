@@ -21,6 +21,7 @@ function getSiteOrigins(siteUrl: string): string[] {
   // Always include the production domain (handles Vercel preview URL as SITE_URL)
   origins.add('https://socialpro.es');
   origins.add('https://www.socialpro.es');
+  origins.add('https://app.kekopilot.com');
   return [...origins];
 }
 
