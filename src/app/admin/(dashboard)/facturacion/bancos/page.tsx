@@ -88,6 +88,9 @@ function EntitySection({ entity, accounts }: {
             <Link href={`/admin/facturacion/bancos/conciliacion?entity=${entity.issuerCompanyId}`} className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-sp-border text-sp-admin-fg hover:bg-sp-admin-bg transition-colors">
               Conciliar entidad
             </Link>
+            <Link href={`/admin/facturacion/bancos/cierre?entity=${entity.issuerCompanyId}`} className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-sp-border text-sp-admin-fg hover:bg-sp-admin-bg transition-colors">
+              Cierre mensual
+            </Link>
             {hasSlash ? (
               <Link href={`/admin/facturacion/bancos/slash?entity=${entity.issuerCompanyId}`} className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-sp-orange/10 text-sp-orange hover:bg-sp-orange/20 transition-colors">
                 Ver gastos de Slash

@@ -1,6 +1,6 @@
 'server-only';
 
-import { and, asc, count, desc, eq, inArray, isNull, ne, or, sql } from 'drizzle-orm';
+import { and, asc, count, desc, eq, gte, inArray, isNull, lt, ne, or, sql } from 'drizzle-orm';
 import { db, getTransactionalDb } from '@/lib/db';
 import {
   bankAccounts,
@@ -9,6 +9,7 @@ import {
   transactionMatches,
   bankReconciliationEvents,
   issuerCompanies,
+  issuedInvoices,
 } from '@/db/schema';
 import type {
   BankAccount,
@@ -20,6 +21,7 @@ import type {
   BankTransactionStatus,
   TransactionMatchStatus,
   BankEntityReconciliationKpis,
+  BankMonthlyCloseSummary,
 } from '@/types';
 
 // ── Bank Accounts ─────────────────────────────────────────────────────
@@ -537,4 +539,103 @@ export async function getBankReconciliationKpisByIssuer(): Promise<readonly Bank
     grouped.set(key, next);
   }
   return [...grouped.values()];
+}
+
+/** Cierre mensual por entidad, siempre desglosado por moneda. */
+export async function getBankMonthlyCloseSummary(opts: {
+  readonly issuerCompanyId: number;
+  readonly year: number;
+  readonly month: number;
+}): Promise<BankMonthlyCloseSummary> {
+  const start = new Date(Date.UTC(opts.year, opts.month - 1, 1));
+  const end = new Date(Date.UTC(opts.year, opts.month, 1));
+  const startDate = start.toISOString().slice(0, 10);
+  const endDate = end.toISOString().slice(0, 10);
+
+  const [bankRows, invoiceRows] = await Promise.all([
+    db
+      .select({
+        currency: bankTransactions.currency,
+        transactions: count(),
+        income: sql<string>`COALESCE(SUM(${bankTransactions.amount}) FILTER (WHERE ${bankTransactions.direction} = 'income'), 0)`,
+        expenses: sql<string>`COALESCE(SUM(${bankTransactions.amount}) FILTER (WHERE ${bankTransactions.direction} = 'expense'), 0)`,
+        fxFees: sql<string>`COALESCE(SUM(${bankTransactions.fxFee}), 0)`,
+        unmatched: sql<number>`COUNT(*) FILTER (WHERE ${bankTransactions.status} IN ('imported', 'needs_review'))::int`,
+        missingReceipts: sql<number>`COUNT(*) FILTER (WHERE ${bankTransactions.receiptStatus} = 'missing')::int`,
+      })
+      .from(bankTransactions)
+      .innerJoin(bankAccounts, eq(bankAccounts.id, bankTransactions.bankAccountId))
+      .where(and(
+        eq(bankAccounts.issuerCompanyId, opts.issuerCompanyId),
+        gte(bankTransactions.bookingDate, start),
+        lt(bankTransactions.bookingDate, end),
+      ))
+      .groupBy(bankTransactions.currency)
+      .orderBy(asc(bankTransactions.currency)),
+    db
+      .select({
+        currency: issuedInvoices.currency,
+        status: issuedInvoices.status,
+        total: sql<string>`COALESCE(SUM(${issuedInvoices.totalAmount}), 0)`,
+        invoices: count(),
+      })
+      .from(issuedInvoices)
+      .where(and(
+        eq(issuedInvoices.issuerCompanyId, opts.issuerCompanyId),
+        gte(issuedInvoices.issueDate, startDate),
+        lt(issuedInvoices.issueDate, endDate),
+      ))
+      .groupBy(issuedInvoices.currency, issuedInvoices.status)
+      .orderBy(asc(issuedInvoices.currency)),
+  ]);
+
+  const bankCurrencies = bankRows.map((row) => {
+    const income = Number(row.income);
+    const expenses = Number(row.expenses);
+    return {
+      currency: row.currency,
+      income,
+      expenses,
+      net: income - expenses,
+      fxFees: Number(row.fxFees),
+    };
+  });
+
+  const invoiceMap = new Map<string, {
+    currency: string;
+    issuedCount: number;
+    draftCount: number;
+    billed: number;
+    collected: number;
+    outstanding: number;
+  }>();
+  for (const row of invoiceRows) {
+    const current = invoiceMap.get(row.currency) ?? {
+      currency: row.currency,
+      issuedCount: 0,
+      draftCount: 0,
+      billed: 0,
+      collected: 0,
+      outstanding: 0,
+    };
+    const amount = Number(row.total);
+    const invoices = Number(row.invoices);
+    if (row.status === 'borrador') current.draftCount += invoices;
+    if (['emitida', 'enviada', 'cobrada', 'vencida'].includes(row.status)) {
+      current.issuedCount += invoices;
+      current.billed += amount;
+    }
+    if (row.status === 'cobrada') current.collected += amount;
+    if (['emitida', 'enviada', 'vencida'].includes(row.status)) current.outstanding += amount;
+    invoiceMap.set(row.currency, current);
+  }
+
+  return {
+    month: `${opts.year}-${String(opts.month).padStart(2, '0')}`,
+    transactions: bankRows.reduce((sum, row) => sum + Number(row.transactions), 0),
+    unmatched: bankRows.reduce((sum, row) => sum + Number(row.unmatched), 0),
+    missingReceipts: bankRows.reduce((sum, row) => sum + Number(row.missingReceipts), 0),
+    bankCurrencies,
+    invoiceCurrencies: [...invoiceMap.values()],
+  };
 }

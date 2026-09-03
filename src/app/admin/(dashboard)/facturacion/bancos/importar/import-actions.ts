@@ -18,6 +18,7 @@ import {
   applyWiseBankMapping,
   hashTransaction,
   sanitizeBankRawJson,
+  wiseReceiptStatus,
 } from '@/lib/parsers/bankTransaction';
 import {
   createBankImport,
@@ -224,6 +225,7 @@ export async function uploadAndImportAction(
         ...(row.originalCurrency !== null ? { originalCurrency: row.originalCurrency } : {}),
         ...(row.conversionRate !== null ? { conversionRate: row.conversionRate.toString() } : {}),
         ...(row.fxFee !== null ? { fxFee: row.fxFee.toString() } : {}),
+        ...(wiseAccount.account ? { receiptStatus: wiseReceiptStatus(row) } : {}),
         status: 'imported',
         rawJsonSanitized: rawJson,
       });

@@ -67,6 +67,32 @@ export type BankEntityReconciliationKpis = {
   readonly needsReview: number;
 };
 
+export type BankMonthlyCloseCurrency = {
+  readonly currency: string;
+  readonly income: number;
+  readonly expenses: number;
+  readonly net: number;
+  readonly fxFees: number;
+};
+
+export type InvoiceMonthlyCloseCurrency = {
+  readonly currency: string;
+  readonly issuedCount: number;
+  readonly draftCount: number;
+  readonly billed: number;
+  readonly collected: number;
+  readonly outstanding: number;
+};
+
+export type BankMonthlyCloseSummary = {
+  readonly month: string;
+  readonly transactions: number;
+  readonly unmatched: number;
+  readonly missingReceipts: number;
+  readonly bankCurrencies: readonly BankMonthlyCloseCurrency[];
+  readonly invoiceCurrencies: readonly InvoiceMonthlyCloseCurrency[];
+};
+
 export type SlashCardSpendSummary = {
   readonly cardId: number;
   readonly displayName: string;
