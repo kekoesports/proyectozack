@@ -20,8 +20,6 @@ jobs:
   lint-typecheck:
     name: Lint & Type-check
     runs-on: ubuntu-latest
-    env:
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
     steps:
       - uses: actions/checkout@v7.0.1
 
@@ -100,8 +98,22 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     needs: [lint-typecheck]
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: socialpro_ci
+          POSTGRES_USER: socialpro_ci
+          POSTGRES_PASSWORD: socialpro_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U socialpro_ci -d socialpro_ci"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     env:
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      DATABASE_URL: postgresql://socialpro_ci:socialpro_ci@127.0.0.1:5432/socialpro_ci
       RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
       BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET }}
       NEXT_PUBLIC_SITE_URL: http://localhost:3000
@@ -115,14 +127,16 @@ jobs:
 
       - run: npm ci
 
+      - name: Apply migrations to ephemeral PostgreSQL
+        run: npm run migrate
+
       - name: Build
-        # Full `npm run build` needs a real Neon URL (migrate + SSG data).
-        # Dependabot PRs do not receive repository secrets — skip rather than
-        # fail red after lint/typecheck already passed. Human PRs and master
-        # still run the full build when secrets are present.
+        # The build reads from the disposable PostgreSQL service above. CI must
+        # never wake production or a paid external database just to prerender.
+        # Dependabot PRs do not receive the remaining application secrets.
         run: |
-          if [ -z "$DATABASE_URL" ] || [ -z "$RESEND_API_KEY" ] || [ -z "$BETTER_AUTH_SECRET" ]; then
-            echo "::warning::Required secrets missing (typical for Dependabot). Skipping GitHub Actions build; Vercel preview / local verification cover the compile path."
+          if [ -z "$RESEND_API_KEY" ] || [ -z "$BETTER_AUTH_SECRET" ]; then
+            echo "::warning::Required secrets missing (typical for Dependabot). Skipping the full build after lint/type-check completed."
             exit 0
           fi
           npm run build
@@ -131,16 +145,40 @@ jobs:
     name: Docker runtime (PDF & OCR)
     runs-on: ubuntu-latest
     needs: [lint-typecheck]
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: socialpro_ci
+          POSTGRES_USER: socialpro_ci
+          POSTGRES_PASSWORD: socialpro_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U socialpro_ci -d socialpro_ci"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     env:
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      DATABASE_URL: postgresql://socialpro_ci:socialpro_ci@127.0.0.1:5432/socialpro_ci
       RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
       BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET }}
     steps:
       - uses: actions/checkout@v7.0.1
 
+      - uses: actions/setup-node@v7.0.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - run: npm ci
+
+      - name: Apply migrations to ephemeral PostgreSQL
+        run: npm run migrate
+
       - name: Build production image
         run: |
-          if [ -z "$DATABASE_URL" ] || [ -z "$RESEND_API_KEY" ] || [ -z "$BETTER_AUTH_SECRET" ]; then
+          if [ -z "$RESEND_API_KEY" ] || [ -z "$BETTER_AUTH_SECRET" ]; then
             echo "::warning::Required secrets missing. Skipping Docker build for untrusted/dependency PR."
             exit 0
           fi
@@ -155,6 +193,7 @@ jobs:
           } > "$BUILD_ENV"
 
           docker build \
+            --network host \
             --secret "id=build_env,src=$BUILD_ENV" \
             --build-arg NEXT_PUBLIC_SITE_URL=http://localhost:3000 \
             --build-arg GIT_COMMIT_SHA="$GITHUB_SHA" \
