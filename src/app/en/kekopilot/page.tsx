@@ -5,6 +5,10 @@ import { kekopilotUrl } from '@/lib/kekopilot-url';
 export const metadata: Metadata = {
   title: { absolute: 'KekoPilot — Operating system for operations teams' },
   description: 'Bring deals, documents, tasks and billing together with specialised AI agents and human approval.',
+  manifest: '/kekopilot.webmanifest',
+  icons: {
+    icon: [{ url: '/kekopilot/icon.svg', type: 'image/svg+xml' }],
+  },
   alternates: {
     canonical: kekopilotUrl('/en'),
     languages: {

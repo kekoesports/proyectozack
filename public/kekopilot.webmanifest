@@ -1,0 +1,16 @@
+{
+  "name": "KekoPilot",
+  "short_name": "KekoPilot",
+  "description": "Sistema operativo para equipos de operaciones con agentes especializados y aprobación humana.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0b1113",
+  "theme_color": "#0b1113",
+  "icons": [
+    {
+      "src": "/kekopilot/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

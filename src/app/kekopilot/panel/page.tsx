@@ -34,7 +34,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = { themeColor: '#0b1113' };
 
 export default async function KekoPilotPanelPage(): Promise<React.ReactElement> {
-  const session = await requirePermission('campanas', 'read');
+  const session = await requirePermission('campanas', 'read', '/login');
   const user = {
     userId: session.user.id,
     name: session.user.name,

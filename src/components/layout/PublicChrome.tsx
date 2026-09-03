@@ -30,6 +30,7 @@ const HIDE_WHATSAPP_PREFIXES = ['/apuesta-segura-cs2', '/news'];
 function isPortalRoute(pathname: string): boolean {
   for (const prefix of PORTAL_PREFIXES) {
     if (!pathname.startsWith(prefix)) continue;
+    if (prefix === '/kekopilot' || prefix === '/en/kekopilot') return true;
     // Allow login pages to keep public chrome
     if (LOGIN_SUFFIXES.some((s) => pathname.endsWith(s))) return false;
     return true;

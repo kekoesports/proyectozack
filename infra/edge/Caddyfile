@@ -150,7 +150,7 @@ kekopilot.com {
 		@home path /
 		rewrite @home /kekopilot
 
-		@publicSurface path /kekopilot* /en/kekopilot* /_next/* /kekopilot-og.png
+		@publicSurface path /kekopilot* /en/kekopilot* /_next/* /kekopilot-og.png /kekopilot.webmanifest
 		handle @publicSurface {
 			import proxy_app "{$CRM_UPSTREAM}"
 		}
@@ -174,8 +174,11 @@ app.kekopilot.com {
 		@legacyPanel path /kekopilot/panel*
 		redir @legacyPanel https://app.kekopilot.com permanent
 
+		@legacyLogin path /kekopilot/login
+		redir @legacyLogin https://app.kekopilot.com/login permanent
+
 		@login path /login
-		rewrite @login /admin/login
+		rewrite @login /kekopilot/login
 
 		@home path /
 		rewrite @home /kekopilot/panel
@@ -188,7 +191,7 @@ app.kekopilot.com {
 		}
 		redir @privateAdmin https://app.kekopilot.com temporary
 
-		@appSurface path /kekopilot/panel* /admin/login /admin/two-factor /admin/forgot-password /admin/reset-password /api/auth/* /_next/*
+		@appSurface path /kekopilot/panel* /kekopilot/login /kekopilot/icon.svg /admin/two-factor /api/auth/* /_next/*
 		handle @appSurface {
 			import proxy_app "{$CRM_UPSTREAM}"
 		}

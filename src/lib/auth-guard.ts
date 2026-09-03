@@ -69,6 +69,7 @@ export function rolesIncludes<R extends Role>(roles: readonly R[], x: Role): x i
 }
 
 const ALLOWED_LOGIN_PATHS = new Set([
+  '/login',
   '/admin/login',
   '/admin/forgot-password',
   '/admin/reset-password',
