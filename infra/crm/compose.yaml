@@ -131,7 +131,10 @@ services:
     # Supercronic en vez del cron del sistema: corre sin privilegios, escribe en
     # stdout —así los logs van al mismo sitio que los demás— y no necesita un
     # gestor de servicios dentro del contenedor.
-    image: quay.io/prometheansacrifice/supercronic:v0.2.29
+    build:
+      context: ./scheduler
+      dockerfile: Dockerfile
+    image: socialpro-supercronic:0.2.29
     restart: unless-stopped
     env_file:
       - ${SCHEDULER_ENV_FILE:-/opt/socialpro/crm/env/scheduler.env}
