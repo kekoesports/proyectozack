@@ -74,11 +74,11 @@ describe('KekoPilot panel white-label configuration', () => {
     const metadata = createKekoPilotPanelMetadata(configuration, 'login');
 
     expect(metadata.alternates).toEqual({
-      canonical: new URL('https://panel.northrail.example/login'),
+      canonical: 'https://panel.northrail.example/login',
     });
     expect(metadata.openGraph).toMatchObject({
       siteName: 'Northrail OS',
-      url: new URL('https://panel.northrail.example/login'),
+      url: 'https://panel.northrail.example/login',
     });
     expect(metadata.twitter).toMatchObject({
       card: 'summary',
