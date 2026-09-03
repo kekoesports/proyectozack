@@ -14,8 +14,22 @@ jobs:
   e2e:
     name: Playwright
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: socialpro_e2e
+          POSTGRES_USER: socialpro_e2e
+          POSTGRES_PASSWORD: socialpro_e2e
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U socialpro_e2e -d socialpro_e2e"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     env:
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      DATABASE_URL: postgresql://socialpro_e2e:socialpro_e2e@127.0.0.1:5432/socialpro_e2e
       RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
       BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET }}
       NEXT_PUBLIC_SITE_URL: http://localhost:3000
@@ -30,8 +44,10 @@ jobs:
 
       - run: npm ci
 
-      - name: Apply DB migrations
-        run: npm run migrate
+      - name: Materialize current schema in ephemeral PostgreSQL
+        # The service is destroyed with the job. Production schema changes
+        # continue to use versioned migrations only.
+        run: npx drizzle-kit push --force
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
