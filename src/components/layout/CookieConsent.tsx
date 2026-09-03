@@ -75,7 +75,7 @@ const CATEGORIES = [
 
 type Panel = 'banner' | 'configure';
 
-export function CookieBanner() {
+export function CookieBanner({ hidden = false }: { hidden?: boolean }) {
   const pathname = usePathname();
   const consent = useSyncExternalStore(subscribe, getConsentSnapshot, getServerSnapshot);
 
@@ -149,7 +149,8 @@ export function CookieBanner() {
   }, []);
 
   if (
-    !visible
+    hidden
+    || !visible
     || pathname.startsWith('/kekopilot')
     || pathname.startsWith('/en/kekopilot')
   ) return null;

@@ -46,6 +46,7 @@ type PublicChromeProps = {
   nav: ReactNode;
   footer: ReactNode;
   children: ReactNode;
+  forcePortal?: boolean;
 }
 
 /**
@@ -61,9 +62,9 @@ type PublicChromeProps = {
  * <PublicChrome nav={<Nav />} footer={<Footer />}>{children}</PublicChrome>
  * ```
  */
-export function PublicChrome({ nav, footer, children }: PublicChromeProps) {
+export function PublicChrome({ nav, footer, children, forcePortal = false }: PublicChromeProps) {
   const pathname = usePathname();
-  const isPortal = isPortalRoute(pathname);
+  const isPortal = forcePortal || isPortalRoute(pathname);
   const hideWhatsApp = shouldHideWhatsApp(pathname);
 
   useEffect(() => {

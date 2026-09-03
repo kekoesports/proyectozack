@@ -13,6 +13,7 @@ import { TRPCProvider } from '@/components/layout/TRPCProvider';
 import { ConsentedScripts } from '@/components/layout/ConsentedScripts';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { SITE_URL, absoluteUrl } from '@/lib/site-url';
+import { isKekoPilotHost } from '@/lib/kekopilot-url';
 
 const inter = Inter({
   variable: '--font-body',
@@ -248,8 +249,12 @@ export default async function RootLayout({
   // razón el header no llega (dev sin proxy corriendo, tests…).
   const h = await headers();
   const pathname = h.get('x-pathname');
+  const requestHost = h.get('host') ?? h.get('x-forwarded-host');
+  const isKekoPilotDomain = isKekoPilotHost(requestHost);
   const lang = isEnPathname(pathname) ? 'en' : 'es';
-  const isKekoPilot = pathname?.startsWith('/kekopilot') === true || pathname?.startsWith('/en/kekopilot') === true;
+  const isKekoPilot = isKekoPilotDomain
+    || pathname?.startsWith('/kekopilot') === true
+    || pathname?.startsWith('/en/kekopilot') === true;
 
   return (
     <html lang={lang}>
@@ -264,11 +269,11 @@ export default async function RootLayout({
       <body className={`${inter.variable} ${barlowCondensed.variable} antialiased`}>
         <TRPCProvider>
           <MotionRoot>
-            <PublicChrome nav={<Nav />} footer={<Footer />}>
+            <PublicChrome nav={<Nav />} footer={<Footer />} forcePortal={isKekoPilotDomain}>
               {children}
             </PublicChrome>
-            <CookieBanner />
-            <ConsentedScripts />
+            <CookieBanner hidden={isKekoPilotDomain} />
+            <ConsentedScripts disabled={isKekoPilotDomain} />
             <SpeedInsights />
           </MotionRoot>
         </TRPCProvider>
