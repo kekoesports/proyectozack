@@ -1,6 +1,7 @@
 import {
   suggestBankMapping,
   applyBankMapping,
+  applyWiseBankMapping,
   hashTransaction,
   sanitizeBankRawJson,
   parseBankCsv,
@@ -189,10 +190,85 @@ describe('hashTransaction', () => {
     expect(hash).toHaveLength(64);
   });
 
-  it('prioriza el ID externo para deduplicar aunque cambie el texto', () => {
+  it('deduplica el mismo movimiento externo aunque cambie el texto', () => {
     const first = hashTransaction({ ...baseRow, externalId: 'WISE-123' }, 1);
     const second = hashTransaction({ ...baseRow, externalId: 'WISE-123', description: 'Texto traducido' }, 1);
     expect(first).toBe(second);
+  });
+
+  it('conserva un abono y un cargo de reversión que comparten ID externo', () => {
+    const debit = hashTransaction({ ...baseRow, externalId: 'CARD-123', direction: 'expense' }, 1);
+    const credit = hashTransaction({ ...baseRow, externalId: 'CARD-123', direction: 'income' }, 1);
+    expect(debit).not.toBe(credit);
+  });
+
+  it('conserva movimientos con el mismo ID externo en fechas diferentes', () => {
+    const first = hashTransaction({ ...baseRow, externalId: 'CARD-123' }, 1);
+    const second = hashTransaction({
+      ...baseRow,
+      externalId: 'CARD-123',
+      bookingDate: new Date('2024-01-16'),
+    }, 1);
+    expect(first).not.toBe(second);
+  });
+});
+
+describe('applyWiseBankMapping', () => {
+  const headers = [
+    'TransferWise ID',
+    'Date',
+    'Amount',
+    'Currency',
+    'Description',
+    'Payment Reference',
+    'Exchange From',
+    'Exchange To',
+    'Exchange Rate',
+    'Payer Name',
+    'Payee Name',
+    'Merchant',
+    'Total fees',
+    'Exchange To Amount',
+    'Transaction Type',
+    'Transaction Details Type',
+  ];
+  const mapping = suggestBankMapping(headers);
+
+  it('elige comercio para tarjeta y conserva la moneda de destino', () => {
+    const [row] = applyWiseBankMapping({
+      headers,
+      rows: [[
+        'CARD-1', '19-08-2026', '-34.42', 'EUR', 'Card purchase', '',
+        'EUR', 'USD', '1.16765', '', '', 'Example Merchant', '0.15', '40.00',
+        'DEBIT', 'CARD',
+      ]],
+      mapping,
+      defaultCurrency: 'EUR',
+    });
+    expect(row).toMatchObject({
+      counterpartyName: 'Example Merchant',
+      category: 'CARD',
+      originalAmount: 40,
+      originalCurrency: 'USD',
+      fxFee: 0.15,
+    });
+  });
+
+  it('elige ordenante para entrada y calcula el importe previo a la conversión', () => {
+    const [row] = applyWiseBankMapping({
+      headers,
+      rows: [[
+        'CONVERSION-1', '13-08-2026', '571.53', 'EUR', 'Converted balance', '',
+        'USD', 'EUR', '0.86742', 'Client', '', '', '0', '571.53',
+        'CREDIT', 'CONVERSION',
+      ]],
+      mapping,
+      defaultCurrency: 'EUR',
+    });
+    expect(row?.counterpartyName).toBe('Client');
+    expect(row?.category).toBe('CONVERSION');
+    expect(row?.originalCurrency).toBe('USD');
+    expect(row?.originalAmount).toBeCloseTo(571.53 / 0.86742, 5);
   });
 });
 
