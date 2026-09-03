@@ -8,6 +8,7 @@ ni mantener una copia distinta del frontend.
 
 ```dotenv
 KEKOPILOT_PANEL_BRAND_NAME=Northrail OS
+KEKOPILOT_PANEL_APP_URL=https://panel.northrail.example
 KEKOPILOT_PANEL_ASSISTANT_NAME=Atlas Operaciones
 KEKOPILOT_PANEL_AGENT_NAME=Atlas
 KEKOPILOT_PANEL_ACCENT_COLOR=#1849a9
@@ -20,7 +21,9 @@ KEKOPILOT_PANEL_WORKSPACE_INITIALS=NA
 KEKOPILOT_PANEL_HOME_PATH=/admin
 ```
 
-`KEKOPILOT_PANEL_LOGO_PATH` es opcional. Debe apuntar a un recurso público del
+`KEKOPILOT_PANEL_APP_URL` fija el dominio canónico y evita que metadatos de otra
+marca aparezcan en buscadores, tarjetas sociales o pestañas. `KEKOPILOT_PANEL_LOGO_PATH`
+es opcional. Debe apuntar a un recurso público del
 mismo despliegue; si falta, el panel genera una marca con las iniciales. El
 color de texto sobre el acento se calcula automáticamente para conservar
 contraste.
