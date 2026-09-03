@@ -260,6 +260,12 @@ export function applyWiseBankMapping(opts: {
   });
 }
 
+export function wiseReceiptStatus(row: ParsedBankRow): 'missing' | 'not_required' {
+  return row.direction === 'expense' && row.category?.toUpperCase() === 'CARD'
+    ? 'missing'
+    : 'not_required';
+}
+
 // ── Hash for deduplication ────────────────────────────────────────────
 
 export function hashTransaction(row: ParsedBankRow, bankAccountId: number | null): string {

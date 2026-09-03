@@ -1,5 +1,6 @@
 import {
   suggestBankMapping,
+  wiseReceiptStatus,
   applyBankMapping,
   applyWiseBankMapping,
   hashTransaction,
@@ -269,6 +270,36 @@ describe('applyWiseBankMapping', () => {
     expect(row?.category).toBe('CONVERSION');
     expect(row?.originalCurrency).toBe('USD');
     expect(row?.originalAmount).toBeCloseTo(571.53 / 0.86742, 5);
+  });
+});
+
+describe('wiseReceiptStatus', () => {
+  const baseRow = {
+    externalId: 'WISE-1',
+    bookingDate: new Date('2026-08-01'),
+    valueDate: null,
+    amount: 20,
+    currency: 'EUR',
+    direction: 'expense' as const,
+    description: 'Card purchase',
+    counterpartyName: 'Merchant',
+    counterpartyAccountMasked: null,
+    reference: null,
+    category: 'CARD',
+    originalAmount: null,
+    originalCurrency: null,
+    conversionRate: null,
+    fxFee: null,
+    rawFields: {},
+    warnings: [],
+  };
+
+  it('pide justificante para gastos de tarjeta', () => {
+    expect(wiseReceiptStatus(baseRow)).toBe('missing');
+  });
+
+  it('no pide justificante a un abono de tarjeta', () => {
+    expect(wiseReceiptStatus({ ...baseRow, direction: 'income' })).toBe('not_required');
   });
 });
 

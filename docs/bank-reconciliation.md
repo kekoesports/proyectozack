@@ -11,6 +11,7 @@ Módulo de conciliación bancaria dentro del CRM (`/admin/facturacion/bancos`). 
 | `/admin/facturacion/bancos` | Cuentas y KPIs separados por entidad legal |
 | `/admin/facturacion/bancos/importar` | Wizard de importación CSV/XLSX |
 | `/admin/facturacion/bancos/conciliacion?entity=:id` | Revisión y aprobación limitada a una entidad |
+| `/admin/facturacion/bancos/cierre?entity=:id&month=YYYY-MM` | Cierre mensual previo, separado por entidad y moneda |
 | `/admin/facturacion/bancos/slash?entity=:id` | Gastos, tarjetas y justificantes de PLAYMAKER |
 | `/admin/facturacion/bancos/importar?provider=wise` | Importación contable de Wise limitada a ELEVATEX |
 
@@ -19,7 +20,8 @@ Módulo de conciliación bancaria dentro del CRM (`/admin/facturacion/bancos`). 
 - El servidor acepta el modo Wise únicamente para cuentas con proveedor `wise` y entidad fiscal `ELEVATEX AGENCY PA SL` (`B21821046`). No puede importar movimientos de Wise en PLAYMAKER.
 - Cada extracto debe corresponder a una sola moneda y coincidir con la moneda de la cuenta seleccionada.
 - Se admiten CSV y XLSX descargados desde `Extractos e informes` de Wise.
-- Cuando existen en el archivo, se conservan el ID de Wise, importe y moneda original, tipo de cambio y comisión. El ID y el hash evitan duplicados.
+- Cuando existen en el archivo, se conservan el ID de Wise, importe y moneda original, tipo de cambio y comisión. Los cargos y devoluciones que comparten ID siguen siendo movimientos distintos.
+- Los gastos de tarjeta entran con justificante pendiente; las entradas, conversiones y transferencias no se marcan automáticamente como gasto documentable.
 - La integración no almacena un token de Wise, no crea destinatarios, no prepara transferencias y no mueve fondos. Para cuentas europeas se prioriza el extracto contable u Open Banking autorizado por PSD2.
 
 ## Integración Slash (PLAYMAKER)
@@ -77,10 +79,26 @@ Dos niveles de dedup:
 ### Hash de transacción
 
 ```
+Con ID externo:
+sha256(bankAccountId | externalId | normalizedDate | direction | amount | currency)
+
+Sin ID externo:
 sha256(bankAccountId | normalizedDate | amount | currency | normalizedDesc | ref | counterparty)
 ```
 
 Normalización: fecha a ISO `YYYY-MM-DD`, descripción/ref/contraparte a lowercase sin espacios extra.
+
+## Cierre mensual
+
+El cierre es un control de preparación y no bloquea el periodo. Muestra por entidad:
+
+- movimientos sin conciliar;
+- justificantes pendientes;
+- facturas en borrador;
+- entradas, salidas, neto y comisiones de cambio por moneda;
+- facturado, cobrado y pendiente por moneda.
+
+Nunca suma EUR con USD ni ELEVATEX con PLAYMAKER. Una persona conserva la aprobación final del cierre.
 
 ## Scoring de conciliación
 
