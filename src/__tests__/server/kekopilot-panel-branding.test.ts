@@ -1,10 +1,12 @@
 import { createPanelConfiguration } from '@/features/kekopilot-panel/branding';
+import { createKekoPilotPanelMetadata } from '@/features/kekopilot-panel/metadata';
 import { SOCIALPRO_URL } from '@/features/kekopilot/content';
 
 describe('KekoPilot panel white-label configuration', () => {
   it('derives a complete customer identity without product defaults leaking through', () => {
     const configuration = createPanelConfiguration({
       productName: 'Northrail OS',
+      appUrl: 'https://panel.northrail.example',
       assistantName: 'Atlas Operaciones',
       agentName: 'Atlas',
       accentColor: '#1849a9',
@@ -19,6 +21,7 @@ describe('KekoPilot panel white-label configuration', () => {
     expect(configuration.branding).toEqual({
       productName: 'Northrail OS',
       productInitials: 'NO',
+      appUrl: 'https://panel.northrail.example',
       assistantName: 'Atlas Operaciones',
       agentName: 'Atlas',
       accentColor: '#1849a9',
@@ -38,6 +41,7 @@ describe('KekoPilot panel white-label configuration', () => {
   it('uses dark text for bright customer accents', () => {
     const configuration = createPanelConfiguration({
       productName: 'Client Hub',
+      appUrl: 'https://panel.client.example',
       assistantName: 'Operations',
       agentName: 'Agent',
       accentColor: '#f6d365',
@@ -50,6 +54,37 @@ describe('KekoPilot panel white-label configuration', () => {
 
     expect(configuration.branding.accentTextColor).toBe('#111515');
     expect(configuration.branding.logoPath).toBeUndefined();
+  });
+
+  it('isolates canonical and social metadata on a customer domain', () => {
+    const configuration = createPanelConfiguration({
+      productName: 'Northrail OS',
+      appUrl: 'https://panel.northrail.example',
+      assistantName: 'Atlas Operaciones',
+      agentName: 'Atlas',
+      accentColor: '#1849a9',
+      referencePrefix: 'NR',
+      supportHref: 'https://northrail.example/support',
+      logoPath: '/brands/northrail.svg',
+      workspaceName: 'Northrail Agency',
+      workspaceMeta: 'Workspace comercial',
+      homeHref: '/admin',
+    });
+
+    const metadata = createKekoPilotPanelMetadata(configuration, 'login');
+
+    expect(metadata.alternates).toEqual({
+      canonical: new URL('https://panel.northrail.example/login'),
+    });
+    expect(metadata.openGraph).toMatchObject({
+      siteName: 'Northrail OS',
+      url: new URL('https://panel.northrail.example/login'),
+    });
+    expect(metadata.twitter).toMatchObject({
+      card: 'summary',
+      title: 'Acceso · Northrail OS',
+    });
+    expect(metadata.manifest).toBeNull();
   });
 });
 

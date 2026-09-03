@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import { Familjen_Grotesk, IBM_Plex_Mono, Karla } from 'next/font/google';
 import { KekoPilotPanel } from '@/features/kekopilot-panel/KekoPilotPanel';
 import { createDemoKekoPilotPanelData } from '@/features/kekopilot-panel/demo-data';
+import { createKekoPilotPanelMetadata } from '@/features/kekopilot-panel/metadata';
 import { env } from '@/lib/env';
 import { getKekoPilotPanelConfig } from '@/lib/kekopilot-panel-config';
 import { requirePermission } from '@/lib/permissions';
@@ -27,12 +28,7 @@ const mono = IBM_Plex_Mono({
 });
 
 export function generateMetadata(): Metadata {
-  const panelConfig = getKekoPilotPanelConfig();
-  return {
-    title: { absolute: `Command Center · ${panelConfig.branding.productName}` },
-    description: `Panel operativo de ${panelConfig.workspace.name} para revisar decisiones, bloqueos, agentes y automatizaciones.`,
-    robots: { index: false, follow: false },
-  };
+  return createKekoPilotPanelMetadata(getKekoPilotPanelConfig(), 'panel');
 }
 
 export const viewport: Viewport = { themeColor: '#0b1113' };

@@ -2,6 +2,7 @@ import type { KekoPilotPanelConfig } from './data';
 
 export type PanelConfigurationInput = {
   readonly productName: string;
+  readonly appUrl: string;
   readonly assistantName: string;
   readonly agentName: string;
   readonly accentColor: string;
@@ -38,6 +39,7 @@ export function createPanelConfiguration(input: PanelConfigurationInput): KekoPi
     branding: {
       productName: input.productName,
       productInitials: initials(input.productName, 'KP'),
+      appUrl: input.appUrl,
       assistantName: input.assistantName,
       agentName: input.agentName,
       accentColor: input.accentColor,

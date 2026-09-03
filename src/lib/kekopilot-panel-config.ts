@@ -7,6 +7,7 @@ import { env } from '@/lib/env';
 export function getKekoPilotPanelConfig(): KekoPilotPanelConfig {
   return createPanelConfiguration({
     productName: env.KEKOPILOT_PANEL_BRAND_NAME,
+    appUrl: env.KEKOPILOT_PANEL_APP_URL,
     assistantName: env.KEKOPILOT_PANEL_ASSISTANT_NAME,
     agentName: env.KEKOPILOT_PANEL_AGENT_NAME,
     accentColor: env.KEKOPILOT_PANEL_ACCENT_COLOR,

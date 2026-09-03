@@ -46,6 +46,7 @@ export const env = createEnv({
     // Marca white-label del panel. Se configura por despliegue para mantener
     // aislados tanto la identidad visual como los datos de cada cliente.
     KEKOPILOT_PANEL_BRAND_NAME: z.string().trim().min(1).max(40).default('KekoPilot'),
+    KEKOPILOT_PANEL_APP_URL: z.string().url().default('https://app.kekopilot.com'),
     KEKOPILOT_PANEL_ASSISTANT_NAME: z.string().trim().min(1).max(40).default('Zack Operaciones'),
     KEKOPILOT_PANEL_AGENT_NAME: z.string().trim().min(1).max(40).default('Zack'),
     KEKOPILOT_PANEL_ACCENT_COLOR: z.string().regex(/^#[0-9a-fA-F]{6}$/).default('#ffb020'),
@@ -264,6 +265,7 @@ export const env = createEnv({
     DEV_ROLE_OVERRIDE: process.env.DEV_ROLE_OVERRIDE,
     KEKOPILOT_DEMO_MODE: process.env.KEKOPILOT_DEMO_MODE,
     KEKOPILOT_PANEL_BRAND_NAME: process.env.KEKOPILOT_PANEL_BRAND_NAME,
+    KEKOPILOT_PANEL_APP_URL: process.env.KEKOPILOT_PANEL_APP_URL,
     KEKOPILOT_PANEL_ASSISTANT_NAME: process.env.KEKOPILOT_PANEL_ASSISTANT_NAME,
     KEKOPILOT_PANEL_AGENT_NAME: process.env.KEKOPILOT_PANEL_AGENT_NAME,
     KEKOPILOT_PANEL_ACCENT_COLOR: process.env.KEKOPILOT_PANEL_ACCENT_COLOR,

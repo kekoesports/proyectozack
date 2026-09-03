@@ -123,6 +123,7 @@ export type PanelCounts = {
 export type PanelBranding = {
   readonly productName: string;
   readonly productInitials: string;
+  readonly appUrl: string;
   readonly assistantName: string;
   readonly agentName: string;
   readonly accentColor: string;
