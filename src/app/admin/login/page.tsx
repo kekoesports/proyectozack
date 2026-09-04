@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { Eye, EyeOff } from 'lucide-react';
 import AuthCard from '@/components/ui/AuthCard';
 import type { PanelBranding } from '@/features/kekopilot-panel/data';
 import { homeForRole } from '@/lib/home-for-role';
@@ -15,6 +16,7 @@ export function StaffLogin({ panelBranding, variant = 'socialpro' }: StaffLoginP
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -89,18 +91,31 @@ export function StaffLogin({ panelBranding, variant = 'socialpro' }: StaffLoginP
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
+            autoComplete="email"
             className="w-full rounded-xl border border-sp-admin-border bg-sp-admin-bg px-4 py-3 text-sm text-sp-admin-text outline-none focus:border-sp-admin-accent transition-colors"
           />
         </div>
         <div>
           <label className="block text-xs font-semibold text-sp-admin-muted mb-1.5">Contraseña</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            className="w-full rounded-xl border border-sp-admin-border bg-sp-admin-bg px-4 py-3 text-sm text-sp-admin-text outline-none focus:border-sp-admin-accent transition-colors"
-          />
+          <div className="relative">
+            <input
+              type={showPassword ? 'text' : 'password'}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              autoComplete="current-password"
+              className="w-full rounded-xl border border-sp-admin-border bg-sp-admin-bg py-3 pl-4 pr-12 text-sm text-sp-admin-text outline-none transition-colors focus:border-sp-admin-accent"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((visible) => !visible)}
+              aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+              aria-pressed={showPassword}
+              className="absolute inset-y-0 right-0 inline-flex w-12 items-center justify-center text-sp-admin-muted transition-colors hover:text-sp-admin-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-sp-admin-accent"
+            >
+              {showPassword ? <EyeOff aria-hidden="true" size={18} /> : <Eye aria-hidden="true" size={18} />}
+            </button>
+          </div>
         </div>
 
         {error && <p className="text-xs text-red-400">{error}</p>}
