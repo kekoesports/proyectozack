@@ -18,6 +18,8 @@ describe('KekoPilot panel product surface', () => {
     expect(panelSource).not.toContain('ArchitectureView');
     expect(panelSource).not.toContain('VIEW_LABELS');
     expect(panelSource).not.toContain('⌘J');
+    expect(panelSource).toContain('data-kp-panel-version="panel-v3"');
+    expect(panelSource).toContain('Sistema en línea');
     expect(commandCenterSource).not.toContain('No hay elementos reales');
   });
 

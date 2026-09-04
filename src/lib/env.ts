@@ -49,7 +49,7 @@ export const env = createEnv({
     KEKOPILOT_PANEL_APP_URL: z.string().url().default('https://app.kekopilot.com'),
     KEKOPILOT_PANEL_ASSISTANT_NAME: z.string().trim().min(1).max(40).default('Zack Operaciones'),
     KEKOPILOT_PANEL_AGENT_NAME: z.string().trim().min(1).max(40).default('Zack'),
-    KEKOPILOT_PANEL_ACCENT_COLOR: z.string().regex(/^#[0-9a-fA-F]{6}$/).default('#ffb020'),
+    KEKOPILOT_PANEL_ACCENT_COLOR: z.string().regex(/^#[0-9a-fA-F]{6}$/).default('#ec3013'),
     KEKOPILOT_PANEL_REFERENCE_PREFIX: z.string().trim().regex(/^[A-Z0-9]{2,8}$/).default('SP'),
     KEKOPILOT_PANEL_SUPPORT_URL: z.string().url().default('https://kekopilot.com'),
     KEKOPILOT_PANEL_LOGO_PATH: z.string().regex(/^\/(?!\/)[^\s]*$/).optional(),
