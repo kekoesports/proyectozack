@@ -1,0 +1,192 @@
+.promiseSection {
+  position: relative;
+  overflow: hidden;
+  padding: clamp(6rem, 10vw, 10rem) 0 0;
+  border-bottom: 1px solid var(--kp-line);
+  background: #080d0f;
+}
+
+.promiseSection::before {
+  position: absolute;
+  inset: 0;
+  content: '';
+  background:
+    radial-gradient(circle at 76% 30%, rgba(255, 176, 32, 0.13), transparent 25%),
+    linear-gradient(var(--kp-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--kp-line) 1px, transparent 1px);
+  background-size: auto, 8rem 8rem, 8rem 8rem;
+  mask-image: linear-gradient(90deg, transparent, black 42%, black);
+  opacity: 0.45;
+}
+
+.promiseLead,
+.promiseRules {
+  position: relative;
+}
+
+.promiseLead {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 0.45fr);
+  gap: clamp(3rem, 8vw, 9rem);
+  align-items: end;
+  padding-bottom: clamp(5rem, 8vw, 8rem);
+}
+
+.promiseLead h2 {
+  margin: 0;
+  font-family: var(--kp-font-heading), sans-serif;
+  font-size: clamp(4rem, 8vw, 9rem);
+  font-weight: 600;
+  line-height: 0.84;
+  letter-spacing: -0.06em;
+  text-wrap: balance;
+}
+
+.promiseLead h2 span { display: block; }
+.promiseLead h2 span:last-child { color: var(--kp-amber); }
+
+.promiseLead p {
+  margin: 0;
+  color: var(--kp-muted);
+  font-size: 1.08rem;
+  line-height: 1.65;
+}
+
+.promiseRules {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border-top: 1px solid var(--kp-line);
+  border-left: 1px solid var(--kp-line);
+}
+
+.promiseRules article {
+  min-height: 230px;
+  padding: 1.5rem;
+  border-right: 1px solid var(--kp-line);
+  background: rgba(18, 28, 31, 0.56);
+}
+
+.promiseRules article > span,
+.productSummary article > span,
+.socialProof > div > span {
+  font-family: var(--kp-font-mono), monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.promiseRules article > span,
+.productSummary article > span { color: var(--kp-amber); }
+
+.promiseRules h3 {
+  margin: 3.3rem 0 0.75rem;
+  font-family: var(--kp-font-heading), sans-serif;
+  font-size: 1.6rem;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.promiseRules p {
+  max-width: 34ch;
+  margin: 0;
+  color: var(--kp-muted);
+  line-height: 1.55;
+}
+
+.productSection {
+  padding: clamp(6rem, 9vw, 9rem) 0;
+  border-bottom: 1px solid rgba(11, 17, 19, 0.18);
+  background: #e9e6dd;
+  color: #0b1113;
+}
+
+.productIntro {
+  display: grid;
+  grid-template-columns: 180px minmax(0, 1fr);
+  gap: 2rem;
+}
+
+.productIntro > span {
+  padding-top: 0.75rem;
+  color: #a96100;
+}
+
+.productIntro h2 {
+  max-width: 16ch;
+  margin: 0;
+  font-family: var(--kp-font-heading), sans-serif;
+  font-size: clamp(3.4rem, 6.4vw, 7rem);
+  font-weight: 650;
+  line-height: 0.88;
+  letter-spacing: -0.055em;
+  text-wrap: balance;
+}
+
+.productIntro p {
+  max-width: 60ch;
+  margin: 2rem 0 0;
+  color: #4f5755;
+  font-size: 1.08rem;
+  line-height: 1.65;
+}
+
+.productSummary {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2rem;
+  margin-top: 3rem;
+}
+
+.productSummary article {
+  padding-top: 1rem;
+  border-top: 2px solid rgba(11, 17, 19, 0.78);
+}
+
+.productSummary h3 {
+  margin: 0.8rem 0 0.45rem;
+  font-family: var(--kp-font-heading), sans-serif;
+  font-size: 1.08rem;
+}
+
+.productSummary p {
+  margin: 0;
+  color: #59615f;
+  line-height: 1.5;
+}
+
+.socialProof {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 2rem;
+  align-items: center;
+  margin-top: 4rem;
+  padding: 1.5rem 0;
+  border-top: 1px solid rgba(11, 17, 19, 0.22);
+  border-bottom: 1px solid rgba(11, 17, 19, 0.22);
+}
+
+.socialProof p { margin: 0.5rem 0 0; color: #4f5755; }
+
+.socialProof a {
+  display: inline-flex;
+  gap: 1.5rem;
+  padding-bottom: 0.35rem;
+  border-bottom: 1px solid #a96100;
+  font-family: var(--kp-font-heading), sans-serif;
+  font-weight: 650;
+  text-decoration: none;
+}
+
+@media (max-width: 900px) {
+  .promiseLead,
+  .productIntro { grid-template-columns: 1fr; }
+  .promiseRules { grid-template-columns: 1fr; }
+  .promiseRules article { min-height: 190px; border-bottom: 1px solid var(--kp-line); }
+  .productSummary { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 680px) {
+  .promiseLead h2 { font-size: clamp(3.8rem, 17vw, 6.2rem); }
+  .productSummary { grid-template-columns: 1fr; }
+  .socialProof { grid-template-columns: 1fr; }
+}

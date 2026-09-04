@@ -25,7 +25,12 @@ export function KekoPilotMotion() {
     const header = root.querySelector<HTMLElement>('[data-kp-header]');
     const pinWraps = Array.from(root.querySelectorAll<HTMLElement>('[data-kp-pin-wrap]'));
     const reveals = Array.from(root.querySelectorAll<HTMLElement>('[data-kp-reveal]'));
+    const mobileNav = root.querySelector<HTMLDetailsElement>('[data-kp-mobile-nav]');
     const cursor = cursorRef.current;
+    const closeMobileNav = (event: Event) => {
+      if (event.target instanceof Element && event.target.closest('a')) mobileNav?.removeAttribute('open');
+    };
+    mobileNav?.addEventListener('click', closeMobileNav);
 
     if (reducedQuery.matches) {
       root.dataset.kpMotion = 'reduced';
@@ -33,7 +38,7 @@ export function KekoPilotMotion() {
       pinWraps.forEach((wrap) => {
         wrap.querySelectorAll<HTMLElement>('[data-kp-arch-row]').forEach((row) => { row.dataset.active = ''; });
       });
-      return;
+      return () => mobileNav?.removeEventListener('click', closeMobileNav);
     }
 
     root.dataset.kpMotion = 'enhanced';
@@ -155,6 +160,7 @@ export function KekoPilotMotion() {
     return () => {
       revealObserver.disconnect();
       sectionObserver.disconnect();
+      mobileNav?.removeEventListener('click', closeMobileNav);
       window.removeEventListener('scroll', scheduleNarrative);
       window.removeEventListener('resize', scheduleNarrative);
       window.removeEventListener('pointermove', onPointerMove);

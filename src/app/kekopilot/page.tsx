@@ -3,8 +3,8 @@ import { KekoPilotExperience } from '@/features/kekopilot/components/KekoPilotEx
 import { kekopilotUrl } from '@/lib/kekopilot-url';
 
 export const metadata: Metadata = {
-  title: { absolute: 'KekoPilot — Sistema operativo para equipos de operaciones' },
-  description: 'Centraliza acuerdos, documentos, tareas y facturación con agentes de IA especializados y aprobación humana.',
+  title: { absolute: 'KekoPilot — Tus operaciones, bajo control' },
+  description: 'Reúne email, Discord, documentos, acuerdos y facturas en un sistema operativo con agentes especializados y aprobación humana.',
   manifest: '/kekopilot.webmanifest',
   icons: {
     icon: [{ url: '/kekopilot/icon.svg', type: 'image/svg+xml' }],
@@ -17,17 +17,17 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    title: 'KekoPilot — Tu operación avanza. Tú decides.',
-    description: 'Un sistema operativo para equipos de operaciones con agentes especializados y aprobación humana.',
+    title: 'KekoPilot — Tus operaciones, bajo control',
+    description: 'Un sistema operativo para equipos con agentes especializados y aprobación humana.',
     url: kekopilotUrl('/'),
     siteName: 'KekoPilot',
     locale: 'es_ES',
     type: 'website',
-    images: [{ url: kekopilotUrl('/kekopilot-og.png'), width: 1200, height: 630, alt: 'KekoPilot — Tu operación avanza. Tú decides.' }],
+    images: [{ url: kekopilotUrl('/kekopilot-og.png'), width: 1200, height: 630, alt: 'KekoPilot — Tus operaciones, bajo control.' }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'KekoPilot — Tu operación avanza. Tú decides.',
+    title: 'KekoPilot — Tus operaciones, bajo control',
     description: 'Sistema operativo para equipos de operaciones con agentes de IA especializados.',
     images: [kekopilotUrl('/kekopilot-og.png')],
   },

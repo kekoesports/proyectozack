@@ -35,29 +35,9 @@ export function KekoPilotSections({ locale }: KekoPilotSectionsProps) {
               output: copy.agents.output,
               guardrail: copy.agents.guardrail,
               activity: copy.agents.activity,
+              status: copy.modules.beta,
             }}
           />
-        </div>
-      </section>
-
-      <section id={ids.modules} className={styles.contentSection} data-kp-section aria-labelledby="modules-title">
-        <div className={common.sectionFrame}>
-          <div className={styles.sectionIntro} data-kp-reveal>
-            <span className={common.kicker}>{copy.modules.kicker}</span>
-            <div>
-              <h2 id="modules-title">{copy.modules.title}</h2>
-              <span className={sales.moduleLabel}>{copy.modules.beta}</span>
-            </div>
-          </div>
-          <div className={sales.moduleGrid} data-kp-reveal>
-            {copy.modules.items.map((item, index) => (
-              <article key={item.name}>
-                <span>{String(index + 1).padStart(2, '0')}</span>
-                <h3>{item.name}</h3>
-                <p>{item.body}</p>
-              </article>
-            ))}
-          </div>
         </div>
       </section>
 
@@ -76,6 +56,30 @@ export function KekoPilotSections({ locale }: KekoPilotSectionsProps) {
                 <span>0{index + 1}</span>
                 <div><h3>{item.title}</h3><p>{item.body}</p></div>
                 <strong>{copy.modules.beta}</strong>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section id={ids.modules} className={styles.contentSection} data-kp-section aria-labelledby="modules-title">
+        <div className={common.sectionFrame}>
+          <div className={styles.sectionIntro} data-kp-reveal>
+            <span className={common.kicker}>{copy.modules.kicker}</span>
+            <div>
+              <h2 id="modules-title">{copy.modules.title}</h2>
+              <span className={sales.moduleLabel}>{copy.modules.beta}</span>
+            </div>
+          </div>
+          <div className={sales.moduleGrid} data-kp-reveal>
+            {copy.modules.items.map((item, index) => (
+              <article key={item.name}>
+                <span>{String(index + 1).padStart(2, '0')}</span>
+                <h3>{item.name}</h3>
+                <p>{item.body}</p>
+                <strong className={item.status === 'beta' ? styles.betaStatus : styles.soonStatus}>
+                  <i aria-hidden="true" />{item.status === 'beta' ? copy.modules.beta : copy.modules.soon}
+                </strong>
               </article>
             ))}
           </div>

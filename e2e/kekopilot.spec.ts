@@ -37,12 +37,24 @@ test('supports agent selection and keyboard navigation', async ({ page }) => {
   await expect(page.getByRole('tabpanel').getByRole('heading', { name: 'Zack Growth' })).toBeVisible();
 });
 
-test('leads with benefits and uses the on-brand commercial close', async ({ page }) => {
+test('explains human control and uses the on-brand commercial close', async ({ page }) => {
   await page.goto('/kekopilot');
 
-  await expect(page.getByRole('heading', { name: 'Menos perseguir. Más decidir.' })).toBeVisible();
-  await expect(page.getByRole('link', { name: /Ver KekoPilot en acción/ }).first()).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Automatiza el proceso. Conserva la decisión.' })).toBeVisible();
+  await expect(page.getByRole('link', { name: /Agendar una demo/ }).first()).toBeVisible();
   await expect(page.locator('[data-kp-closing]')).not.toHaveCSS('background-color', 'rgb(92, 27, 27)');
+});
+
+test('shows the three product views and supports keyboard navigation', async ({ page }) => {
+  await page.goto('/kekopilot#producto');
+
+  const decisionQueue = page.getByRole('tab', { name: /Cola de decisiones/ });
+  await decisionQueue.press('ArrowRight');
+  await expect(page.getByRole('tab', { name: /Pipeline/ })).toHaveAttribute('aria-selected', 'true');
+
+  await page.keyboard.press('ArrowRight');
+  await expect(page.getByRole('tab', { name: /Ficha de deal/ })).toHaveAttribute('aria-selected', 'true');
+  await expect(page.getByRole('tabpanel', { name: /Ficha de deal/ })).toContainText('Emitir factura 2/3');
 });
 
 test.describe('KekoPilot reduced motion', () => {
@@ -61,6 +73,6 @@ test('switches to the English experience', async ({ page }) => {
   await page.getByRole('link', { name: 'EN', exact: true }).click();
 
   await expect(page).toHaveURL(/\/en\/kekopilot$/);
-  await expect(page.getByRole('heading', { level: 1 })).toContainText('Work keeps moving');
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('Your operations');
   await expect(page.locator('html')).toHaveAttribute('lang', 'en');
 });
