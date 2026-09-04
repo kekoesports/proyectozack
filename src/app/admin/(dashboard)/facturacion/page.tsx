@@ -12,7 +12,7 @@ import { IngresosCompoundPage } from '@/features/admin/invoices/pages/IngresosCo
  *
  * El guard de permiso `facturacion:read` se aplica dentro de `IngresosCompoundPage`.
  */
-export const metadata = { title: 'Facturación · SocialPro' };
+export const metadata = { title: 'Facturación' };
 
 export default async function FacturacionPage(): Promise<React.ReactElement> {
   return (

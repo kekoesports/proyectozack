@@ -5,7 +5,7 @@ import { ChatClient } from '@/features/admin/ai-assistant/components/ChatClient'
 import { env } from '@/lib/env';
 import { hasPermission } from '@/lib/permissions';
 
-export const metadata = { title: 'Zack Operaciones — SocialPro Admin' };
+export const metadata = { title: 'Zack Operaciones' };
 
 export default async function AsistentePage(): Promise<React.ReactElement> {
   const session = await requireAnyRole(

@@ -4,7 +4,7 @@ import { auth } from '@/lib/auth';
 import { requireAnyRole } from '@/lib/auth-guard';
 import { TwoFactorSetup } from './TwoFactorSetup';
 
-export const metadata = { title: 'Seguridad | SocialPro CRM' };
+export const metadata = { title: 'Seguridad' };
 
 const CRM_ROLES = [
   'admin',
