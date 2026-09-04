@@ -2,11 +2,12 @@ import Link from 'next/link';
 import type { DealDetailData } from './data';
 import styles from './product.module.css';
 
-type DealDetailProps = { readonly detail: DealDetailData; readonly workspaceName: string };
+type DealDetailProps = { readonly detail: DealDetailData };
 
-export function DealDetail({ detail, workspaceName }: DealDetailProps) {
+export function DealDetail({ detail }: DealDetailProps) {
   const { deal } = detail;
   const completed = detail.deliverables.filter((item) => item.done).length;
+  const activeAlertsLabel = `${detail.alerts.length} ${detail.alerts.length === 1 ? 'activa' : 'activas'}`;
 
   return (
     <div className={styles.dealDetail}>
@@ -22,7 +23,7 @@ export function DealDetail({ detail, workspaceName }: DealDetailProps) {
           <div><dt>Responsable</dt><dd>{deal.owner}</dd></div>
           <div><dt>Progreso</dt><dd>{deal.progress}%</dd></div>
         </dl>
-        <Link className={styles.crmLink} href={detail.crmHref}>Abrir ficha completa en {workspaceName}</Link>
+        <Link className={styles.crmLink} href={detail.crmHref}>Gestionar deal</Link>
       </header>
 
       <div className={styles.dealColumns}>
@@ -35,10 +36,10 @@ export function DealDetail({ detail, workspaceName }: DealDetailProps) {
                 <time>{item.date}</time><small>{item.state}</small>
               </article>
             ))}
-            {detail.deliverables.length === 0 ? <p className={styles.detailEmpty}>No hay entregables registrados en {workspaceName}.</p> : null}
+            {detail.deliverables.length === 0 ? <p className={styles.detailEmpty}>No hay entregables registrados para este deal.</p> : null}
           </DealSection>
 
-          <DealSection title="Documentos y facturas" meta="evidencia vinculada">
+          <DealSection title="Documentos y facturas" meta="Archivos asociados">
             {detail.documents.map((item) => {
               const external = item.href.startsWith('http');
               return (
@@ -54,17 +55,17 @@ export function DealDetail({ detail, workspaceName }: DealDetailProps) {
         </div>
 
         <aside>
-          <DealSection title="Alertas" meta={`${detail.alerts.length} activas`}>
+          <DealSection title="Alertas" meta={activeAlertsLabel}>
             {detail.alerts.map((item) => (
               <article className={styles.alertRow} data-tone={item.tone} key={item.id}><strong>{item.title}</strong><span>{item.body}</span></article>
             ))}
             {detail.alerts.length === 0 ? <p className={styles.detailEmpty}>Sin alertas activas.</p> : null}
           </DealSection>
-          <DealSection title="Actividad" meta="con evidencia">
+          <DealSection title="Actividad" meta="Registro verificable">
             {detail.activity.map((item) => (
               <article className={styles.agentRow} key={item.id}>
                 <div><i data-tone={item.tone}>{item.kind}</i><small>{item.source}</small><time>{item.when}</time></div>
-                <p>{item.text}</p><span>Evidencia · {item.evidence}</span>
+                <p>{item.text}</p><span>Registro · {item.evidence}</span>
               </article>
             ))}
           </DealSection>

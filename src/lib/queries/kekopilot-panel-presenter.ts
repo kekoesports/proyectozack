@@ -55,6 +55,45 @@ function safeHttpUrl(value: string | null): string | null {
   }
 }
 
+function humanizeIdentifier(value: string): string {
+  const words = value.replaceAll('-', ' ').replaceAll('_', ' ').trim();
+  return words.replace(/\b\p{L}/gu, (letter) => letter.toLocaleUpperCase('es'));
+}
+
+function deliverableTypeLabel(type: (typeof deliverables.$inferSelect)['type']): string {
+  const labels: Record<(typeof deliverables.$inferSelect)['type'], string> = {
+    stream_integration: 'Integración en stream',
+    video_youtube: 'Vídeo de YouTube',
+    short_reel_tiktok: 'Vídeo corto / Reel / TikTok',
+    story_instagram: 'Story de Instagram',
+    tweet_x: 'Publicación en X',
+    post_instagram: 'Publicación de Instagram',
+    pack_mensual: 'Pack mensual',
+    pack_trimestral: 'Pack trimestral',
+    preroll: 'Pre-roll',
+    otro: 'Otro formato',
+  };
+  return labels[type];
+}
+
+function invoiceStatusLabel(status: (typeof invoices.$inferSelect)['status']): string {
+  const labels: Record<(typeof invoices.$inferSelect)['status'], string> = {
+    borrador: 'Borrador',
+    emitida: 'Emitida',
+    cobrada: 'Cobrada',
+    vencida: 'Vencida',
+    anulada: 'Anulada',
+    pagada: 'Pagada',
+    parcial: 'Pago parcial',
+    no_cobrada: 'Pendiente de cobro',
+    no_pagada: 'Pendiente de pago',
+    no_cobrado: 'Pendiente de cobro',
+    no_pagado: 'Pendiente de pago',
+    pendiente: 'Pendiente',
+  };
+  return labels[status];
+}
+
 function isStale(row: PanelCampaignRecord, now: Date): boolean {
   if (!row.trackingSheetUrl || !ACTIVE_STATUSES.has(row.status)) return false;
   const lastActivity = row.lastEvidenceAddedAt ?? row.lastTrackingSyncAt ?? row.updatedAt;
@@ -103,9 +142,9 @@ export function buildPanelInbox(
     id: `approval-${item.id}`,
     priority: item.riskLevel === 'critical' || item.riskLevel === 'high' ? 1 : 2,
     state: 'Pendiente aprobación', tone: 'attention', title: item.title,
-    body: item.summary || 'Una acción de agente espera revisión humana.',
-    evidence: `${item.agentSlug} · ${item.toolName} ${item.toolVersion}`,
-    owner: item.agentSlug, due: relativeDate(item.expiresAt, now), action: 'Revisar',
+    body: item.summary || 'Esta acción necesita una revisión antes de poder ejecutarse.',
+    evidence: `${humanizeIdentifier(item.agentSlug)} · solicitud registrada ${formatDate(item.requestedAt)}`,
+    owner: humanizeIdentifier(item.agentSlug), due: relativeDate(item.expiresAt, now), action: 'Revisar',
     href: '/admin/agents/approvals', category: 'Aprobaciones',
   }));
 
@@ -115,7 +154,7 @@ export function buildPanelInbox(
     state: row.trackingSyncError ? 'Error' : 'Bloqueado', tone: 'danger',
     title: `${row.name} · ${referencePrefix}-${row.id}`,
     body: row.trackingSyncError ?? 'La hoja de seguimiento no registra actividad reciente.',
-    evidence: `${workspaceName} CRM · última actividad ${formatDate(row.lastEvidenceAddedAt ?? row.lastTrackingSyncAt ?? row.updatedAt)}`,
+    evidence: `${workspaceName} · última actividad ${formatDate(row.lastEvidenceAddedAt ?? row.lastTrackingSyncAt ?? row.updatedAt)}`,
     owner: row.ownerName ?? 'Sin asignar',
     due: row.deliveryDeadline ? relativeDate(row.deliveryDeadline, now) : 'Revisar',
     action: 'Abrir deal', href: `/admin/campanas/${row.id}`,
@@ -124,17 +163,19 @@ export function buildPanelInbox(
 
   const taskItems: InboxItem[] = urgentTasks.map((task) => ({
     id: `task-${task.id}`, priority: task.priority === 'alta' ? 1 : task.priority === 'media' ? 2 : 3,
-    state: 'Tarea vencida', tone: 'draft', title: task.title,
-    body: `Tarea abierta en ${workspaceName} que requiere seguimiento.`, evidence: `Tareas · prioridad ${task.priority}`,
+    state: 'Tarea prioritaria', tone: 'draft', title: task.title,
+    body: `Vence ${relativeDate(task.dueDate, now).toLocaleLowerCase('es')}; todavía está pendiente.`,
+    evidence: `${workspaceName} · prioridad ${task.priority}`,
     owner: task.ownerName ?? 'Sin asignar', due: relativeDate(task.dueDate, now),
     action: 'Ver tarea', href: '/admin/tareas', category: 'Bloqueos',
   }));
 
   const runItems: InboxItem[] = failedRuns.slice(0, 5).map((run) => ({
     id: `run-${run.id}`, priority: run.status === 'dead_letter' ? 1 : 2,
-    state: 'Error', tone: 'danger', title: `${run.agentName} · ejecución ${run.id}`,
+    state: 'Error', tone: 'danger', title: `${run.agentName} no completó la tarea`,
     body: run.lastErrorMessage || 'La ejecución terminó sin completar su objetivo.',
-    evidence: run.lastErrorCode ?? run.status, owner: run.agentSlug,
+    evidence: run.lastErrorCode ? `Registro de ejecución · ${run.lastErrorCode}` : 'Registro de ejecución',
+    owner: humanizeIdentifier(run.agentSlug),
     due: relativeDate(run.completedAt ?? run.updatedAt, now), action: 'Ver ejecución',
     href: `/admin/agents/runs/${run.id}`, category: 'Errores',
   }));
@@ -189,7 +230,7 @@ export function buildDealDetails(
       ...campaignInvoices.map((invoice) => ({
         id: `invoice-${invoice.id}`, title: invoice.number ? `Factura ${invoice.number}` : `Factura #${invoice.id}`,
         meta: `${invoice.concept} · ${formatMoney(invoice.totalAmount, invoice.currency)}`,
-        state: invoice.status.replaceAll('_', ' '), href: '/admin/facturacion',
+        state: invoiceStatusLabel(invoice.status), href: '/admin/facturacion',
         attention: ['borrador', 'vencida', 'no_cobrada', 'no_pagada', 'pendiente'].includes(invoice.status),
       })),
     ];
@@ -203,20 +244,20 @@ export function buildDealDetails(
     const activity: DealDetailData['activity'] = [
       ...relatedApprovals.map((approval) => ({
         id: `approval-${approval.id}`, kind: 'Pendiente', tone: 'attention' as const,
-        source: approval.agentSlug, when: formatDate(approval.requestedAt), text: approval.summary || approval.title,
-        evidence: `${approval.toolName} ${approval.toolVersion}`,
+        source: humanizeIdentifier(approval.agentSlug), when: formatDate(approval.requestedAt), text: approval.summary || approval.title,
+        evidence: `Revisión solicitada ${formatDate(approval.requestedAt)}`,
       })),
       ...(row.lastTrackingSyncAt ? [{
         id: `tracking-${row.id}`, kind: row.trackingSyncError ? 'Error' : 'Información',
         tone: row.trackingSyncError ? 'danger' as const : 'neutral' as const,
-        source: `${workspaceName} Tracking`, when: formatDate(row.lastTrackingSyncAt),
+        source: `Seguimiento ${workspaceName}`, when: formatDate(row.lastTrackingSyncAt),
         text: row.trackingSyncError || 'La hoja de seguimiento se sincronizó correctamente.',
-        evidence: 'campaigns.last_tracking_sync_at',
+        evidence: 'Registro de sincronización',
       }] : []),
       {
         id: `crm-${row.id}`, kind: 'Información', tone: 'neutral', source: `${workspaceName} CRM`,
         when: formatDate(row.updatedAt), text: `El deal está en estado ${statusLabel(row.status).toLowerCase()}.`,
-        evidence: `campaigns · ${referencePrefix}-${row.id}`,
+        evidence: `Ficha ${referencePrefix}-${row.id}`,
       },
     ];
 
@@ -224,7 +265,7 @@ export function buildDealDetails(
       deal: card, stage: stageFor(row.status), crmHref: `/admin/campanas/${row.id}`,
       deliverables: campaignDeliverables.map((item) => ({
         id: String(item.id), title: item.title,
-        body: `${item.type.replaceAll('_', ' ')}${item.contentUrl ? ' · contenido vinculado' : ''}`,
+        body: `${deliverableTypeLabel(item.type)}${item.contentUrl ? ' · contenido vinculado' : ''}`,
         date: formatDate(item.dueDate ?? item.updatedAt), state: deliverableLabel(item.status), done: item.status === 'approved',
       })),
       documents, alerts, activity,

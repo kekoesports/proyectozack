@@ -302,15 +302,18 @@ export async function getKekoPilotPanelData(
   const totalMargin = eurRows.reduce((sum, row) => sum + Number(row.amountBrand) - Number(row.amountTalent), 0);
   const averageMargin = totalBrand > 0 ? `${Math.round((totalMargin / totalBrand) * 100)}%` : '—';
   const syncedRows = campaignRows.filter((row) => row.trackingSheetUrl && !row.trackingSyncError && !isStale(row, now));
+  const generatedAt = new Intl.DateTimeFormat('es-ES', {
+    timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit',
+  }).format(now);
 
   const sidePanels: SidePanel[] = [
     {
-      title: 'Propuestas de los agentes',
-      meta: canApproveAgents ? `${approvals.length} esperan decisión` : 'según permisos',
+      title: 'Actividad de agentes',
+      meta: canApproveAgents ? `${approvals.length} por revisar` : 'según tus permisos',
       rows: agentActivity.length > 0
         ? agentActivity.slice(0, 4).map((agent) => ({
             title: agent.displayName,
-            body: `${agent.runsLast7Days} ejecuciones · ${agent.failedLast7Days} fallidas en 7 d`,
+            body: `${agent.runsLast7Days} ejecuciones en 7 días · ${agent.failedLast7Days} con error`,
             value: String(agent.pendingApprovals),
             tone: agent.failedLast7Days > 0 ? 'danger' : agent.pendingApprovals > 0 ? 'attention' : 'success',
             href: `/admin/agents`,
@@ -322,21 +325,21 @@ export async function getKekoPilotPanelData(
           }],
     },
     {
-      title: 'Automatizaciones de deals',
-      meta: 'hojas conectadas',
+      title: 'Estado del seguimiento',
+      meta: 'deals con hoja conectada',
       rows: [
-        { title: 'Sincronizadas', body: 'Deals con seguimiento al día', value: String(syncedRows.length), tone: 'success', href: '/admin/campanas' },
-        { title: 'Estancadas', body: 'Más de 7 días sin actividad', value: String(staleRows.length), tone: staleRows.length > 0 ? 'attention' : 'neutral', href: '/admin/campanas' },
-        { title: 'Con error', body: 'Requieren revisar conexión o formato', value: String(campaignRows.filter((row) => row.trackingSyncError).length), tone: campaignRows.some((row) => row.trackingSyncError) ? 'danger' : 'success', href: '/admin/campanas' },
+        { title: 'Al día', body: 'Seguimiento sincronizado y con actividad reciente', value: String(syncedRows.length), tone: 'success', href: '/admin/campanas' },
+        { title: 'Sin actividad', body: 'Más de 7 días sin cambios', value: String(staleRows.length), tone: staleRows.length > 0 ? 'attention' : 'neutral', href: '/admin/campanas' },
+        { title: 'Con incidencia', body: 'Conexión o formato pendientes de revisión', value: String(campaignRows.filter((row) => row.trackingSyncError).length), tone: campaignRows.some((row) => row.trackingSyncError) ? 'danger' : 'success', href: '/admin/campanas' },
       ],
     },
     {
-      title: `Operación ${config.workspace.name}`,
-      meta: 'fuente canónica',
+      title: 'Carga de trabajo',
+      meta: config.workspace.name,
       rows: [
         { title: 'Deals activos', body: 'Propuesta, negociación, aprobada o activa', value: String(activeRows.length), tone: 'neutral', href: '/admin/campanas' },
         { title: 'Tareas urgentes', body: 'Abiertas y vencidas', value: String(urgentTasks.length), tone: urgentTasks.length > 0 ? 'attention' : 'success', href: '/admin/tareas' },
-        { title: 'Datos', body: 'Lectura directa del CRM, sin copia', value: 'LIVE', tone: 'success' },
+        { title: 'Última actualización', body: 'CRM, tareas y agentes', value: generatedAt, tone: 'success' },
       ],
     },
   ];
@@ -345,9 +348,7 @@ export async function getKekoPilotPanelData(
     branding: config.branding,
     workspace: config.workspace,
     user: { name: session.name, role: session.role, initials: initials(session.name) },
-    generatedAt: new Intl.DateTimeFormat('es-ES', {
-      timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit',
-    }).format(now),
+    generatedAt,
     counts: {
       approvals: approvals.length,
       deals: campaignRows.length,
@@ -355,10 +356,10 @@ export async function getKekoPilotPanelData(
       agents: agentActivity.filter((agent) => agent.status === 'active').length,
     },
     metrics: [
-      { label: 'Necesita tu decisión', value: String(approvals.length), note: canApproveAgents ? 'aprobaciones de agentes' : 'según tus permisos', tone: approvals.length > 0 ? 'attention' : 'neutral' },
-      { label: 'Deals bloqueados', value: String(blockedRows.length), note: 'alertas o sync pendiente', tone: blockedRows.length > 0 ? 'danger' : 'success' },
-      { label: 'Documentos estancados', value: String(staleRows.length), note: 'hojas sin actividad > 7 d', tone: staleRows.length > 0 ? 'attention' : 'neutral' },
-      { label: 'Automatizaciones con error', value: String(failedRuns.length), note: 'agentes · últimas 24 h', tone: failedRuns.length > 0 ? 'danger' : 'success' },
+      { label: 'Pendiente de aprobación', value: String(approvals.length), note: canApproveAgents ? 'acciones por revisar' : 'según tus permisos', tone: approvals.length > 0 ? 'attention' : 'neutral' },
+      { label: 'Deals con incidencias', value: String(blockedRows.length), note: 'errores o seguimiento detenido', tone: blockedRows.length > 0 ? 'danger' : 'success' },
+      { label: 'Seguimientos sin actividad', value: String(staleRows.length), note: 'más de 7 días sin cambios', tone: staleRows.length > 0 ? 'attention' : 'neutral' },
+      { label: 'Ejecuciones fallidas', value: String(failedRuns.length), note: 'agentes · últimas 24 horas', tone: failedRuns.length > 0 ? 'danger' : 'success' },
     ],
     inbox,
     sidePanels,

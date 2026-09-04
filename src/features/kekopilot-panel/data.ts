@@ -1,5 +1,5 @@
-export type PanelView = 'command' | 'pipeline' | 'deal' | 'architecture';
-export type InboxFilter = 'Todo' | 'Aprobaciones' | 'Bloqueos' | 'Errores';
+export type PanelView = 'command' | 'pipeline' | 'deal';
+export type InboxFilter = 'Todas' | 'Aprobaciones' | 'Bloqueos' | 'Errores';
 export type Tone = 'attention' | 'danger' | 'neutral' | 'success' | 'draft';
 
 export type NavigationItem = {
@@ -163,35 +163,28 @@ export type KekoPilotPanelData = {
   readonly dealDetails: Readonly<Record<string, DealDetailData>>;
 };
 
-export const VIEW_LABELS: ReadonlyArray<{ readonly id: PanelView; readonly label: string }> = [
-  { id: 'architecture', label: 'Arquitectura' },
-  { id: 'command', label: 'Command Center' },
-  { id: 'pipeline', label: 'Pipeline' },
-  { id: 'deal', label: 'Ficha de deal' },
-];
-
 export const NAVIGATION: ReadonlyArray<NavigationGroup> = [
   { title: 'Operación', items: [
     { label: 'Command Center', icon: 'gauge', view: 'command' },
     { label: 'Deals', icon: 'briefcase', view: 'pipeline', badgeKey: 'deals' },
-    { label: 'Creators', icon: 'user', href: '/admin/talents' },
-    { label: 'Creator Discovery', icon: 'search', href: '/admin/targets' },
-    { label: 'Leads & Communications', icon: 'mail', href: '/admin/leads' },
-    { label: 'Tasks & Approvals', icon: 'tasks', href: '/admin/tareas', badgeKey: 'tasks' },
-    { label: 'Documents', icon: 'file', href: '/admin/contratos' },
+    { label: 'Talentos', icon: 'user', href: '/admin/talents' },
+    { label: 'Descubrimiento', icon: 'search', href: '/admin/targets' },
+    { label: 'Leads y comunicaciones', icon: 'mail', href: '/admin/leads' },
+    { label: 'Tareas y aprobaciones', icon: 'tasks', href: '/admin/tareas', badgeKey: 'tasks' },
+    { label: 'Documentos', icon: 'file', href: '/admin/contratos' },
   ] },
   { title: 'Automatización', items: [
-    { label: 'Automations', icon: 'workflow', href: '/admin/automation-drafts' },
+    { label: 'Automatizaciones', icon: 'workflow', href: '/admin/automation-drafts' },
     { label: 'Agentes', icon: 'bot', href: '/admin/agents', badgeKey: 'agents' },
   ] },
   { title: 'Inteligencia', items: [
-    { label: 'Analytics & Reports', icon: 'chart', href: '/admin/analytics' },
-    { label: 'Finance', icon: 'euro', href: '/admin/finanzas/resumen' },
+    { label: 'Analítica e informes', icon: 'chart', href: '/admin/analytics' },
+    { label: 'Finanzas', icon: 'euro', href: '/admin/finanzas/resumen' },
   ] },
   { title: 'Administración', items: [
-    { label: 'Integrations', icon: 'link', href: '/admin/seguridad' },
-    { label: 'Team & Permissions', icon: 'users', href: '/admin/equipo' },
-    { label: 'Security & Audit', icon: 'shield', href: '/admin/seguridad' },
-    { label: 'Workspace Settings', icon: 'settings', href: '/admin/seguridad' },
+    { label: 'Integraciones', icon: 'link', href: '/admin/seguridad' },
+    { label: 'Equipo y permisos', icon: 'users', href: '/admin/equipo' },
+    { label: 'Seguridad y auditoría', icon: 'shield', href: '/admin/seguridad' },
+    { label: 'Configuración', icon: 'settings', href: '/admin/seguridad' },
   ] },
 ];
