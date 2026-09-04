@@ -1,10 +1,14 @@
+import { headers } from 'next/headers';
 import { requireAnyRole } from '@/lib/auth-guard';
 import { getDashboardAlerts, getActiveTrackerCompletedAlerts } from '@/lib/queries/alerts';
 import { AdminSidebar } from '@/features/admin/_shared/components/AdminSidebar';
+import type { AdminSidebarBranding } from '@/features/admin/_shared/components/AdminSidebar';
 import { AdminHeader } from '@/features/admin/_shared/components/AdminHeader';
 import { CompletedDealsModal } from '@/features/admin/_shared/components/CompletedDealsModal';
 import { dismissAlertAction, dismissAllAlertsAction } from './actions';
 import { navForRole, quickActionsForRole, type AdminNavKey } from '@/lib/admin-nav';
+import { getKekoPilotPanelConfig } from '@/lib/kekopilot-panel-config';
+import { isKekoPilotAppHost } from '@/lib/kekopilot-host';
 import {
   DashboardIcon, TalentIcon, BrandIcon, GiveawayIcon, TeamIcon,
   TargetsIcon, TasksIcon, MyWeekIcon, InvoiceIcon, AnalyticsIcon,
@@ -48,10 +52,24 @@ const NAV_ICONS: Record<AdminNavKey, React.ReactNode> = {
 };
 
 export default async function AdminLayout({ children }: AdminLayoutProps): Promise<React.ReactElement> {
+  const requestHeadersPromise = headers();
   const session = await requireAnyRole(
     ['admin', 'admin_limited_tasks', 'manager', 'staff', 'editor', 'finance', 'analyst', 'ops', 'talent_manager'],
     '/admin/login',
   );
+  const requestHeaders = await requestHeadersPromise;
+  const requestHost = requestHeaders.get('x-forwarded-host') ?? requestHeaders.get('host');
+  const isKekoPilot = isKekoPilotAppHost(requestHost);
+  const panelConfig = isKekoPilot ? getKekoPilotPanelConfig() : null;
+  const sidebarBranding = panelConfig
+    ? {
+        productName: panelConfig.branding.productName,
+        homeHref: '/',
+        loginHref: '/login',
+        logoPath: panelConfig.branding.logoPath ?? '/kekopilot/icon.svg',
+        wordmark: false,
+      } satisfies AdminSidebarBranding
+    : null;
   const isStaff = session.user.role === 'staff';
 
   const { primary, more } = navForRole(session.user.role);
@@ -96,6 +114,7 @@ export default async function AdminLayout({ children }: AdminLayoutProps): Promi
   return (
     <div className="h-screen bg-sp-admin-bg flex overflow-hidden">
       <AdminSidebar
+        {...(sidebarBranding ? { branding: sidebarBranding } : {})}
         primaryNav={primaryNav}
         groups={[]}
         moreNav={moreNav}
