@@ -30,6 +30,10 @@ function approvalCountLabel(count: number): string {
   return `${count} ${count === 1 ? 'aprobación' : 'aprobaciones'}`;
 }
 
+function agentCountLabel(count: number): string {
+  return `${count} ${count === 1 ? 'agente' : 'agentes'}`;
+}
+
 export function KekoPilotPanel({ data }: KekoPilotPanelProps) {
   const [view, setView] = useState<PanelView>('command');
   const [lightTheme, setLightTheme] = useState(true);
@@ -71,7 +75,12 @@ export function KekoPilotPanel({ data }: KekoPilotPanelProps) {
   }, []);
 
   return (
-    <div className={styles.app} data-theme={lightTheme ? 'light' : 'dark'} style={panelStyle}>
+    <div
+      className={styles.app}
+      data-kp-panel-version="panel-v3"
+      data-theme={lightTheme ? 'light' : 'dark'}
+      style={panelStyle}
+    >
       <a className={styles.skipLink} href="#kp-panel-main">Saltar al contenido</a>
       <div className={styles.shell}>
         <PanelSidebar activeView={view} branding={data.branding} counts={data.counts} onViewChange={setView} user={data.user} workspace={data.workspace} />
@@ -79,6 +88,10 @@ export function KekoPilotPanel({ data }: KekoPilotPanelProps) {
           <header className={styles.topbar}>
             <div className={styles.pageTitle}><span>{heading.crumb}</span><h1>{heading.title}</h1></div>
             <div className={styles.topActions}>
+              <span className={styles.systemStatus}>
+                <i aria-hidden="true" />
+                Sistema en línea · {agentCountLabel(data.counts.agents)}
+              </span>
               <span className={styles.dataStatus} title={`Datos actualizados a las ${data.generatedAt}`}>
                 <CheckCircle2 aria-hidden="true" size={14} />
                 Actualizado {data.generatedAt}
@@ -100,7 +113,7 @@ export function KekoPilotPanel({ data }: KekoPilotPanelProps) {
               <Link className={styles.approvalsButton} href="/admin/agents/approvals"><i aria-hidden="true" />{approvalCountLabel(data.counts.approvals)}</Link>
               <Link aria-label={`Abrir ${data.branding.assistantName}`} className={styles.assistantButton} href="/admin/asistente">
                 <MessageSquareText aria-hidden="true" size={14} />
-                <span>Asistente operativo</span>
+                <span>{data.branding.assistantName}</span>
               </Link>
               <button
                 aria-label={lightTheme ? 'Cambiar a tema oscuro' : 'Cambiar a tema claro'}

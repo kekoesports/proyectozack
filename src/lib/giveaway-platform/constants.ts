@@ -29,6 +29,7 @@ export const PLATFORM_CREATOR_SLUGS = [
   'todocs2',
   'imantado',
   'jolu',
+  'eruby',
 ] as const;
 
 /** Zona horaria para el corte del día de la racha y el mes del ranking. */

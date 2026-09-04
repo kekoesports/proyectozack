@@ -26,6 +26,7 @@ describe('sendResendEmail', () => {
     delete mockEnv.EMAIL_RELAY_TOKEN;
     jest.spyOn(console, 'error').mockImplementation(() => {});
     jest.spyOn(console, 'info').mockImplementation(() => {});
+    jest.spyOn(console, 'warn').mockImplementation(() => {});
   });
 
   afterEach(() => { jest.restoreAllMocks(); });
@@ -122,5 +123,26 @@ describe('sendResendEmail', () => {
     await expect(sendResendEmail('relayCtx', OPTIONS)).rejects.toMatchObject({
       resendErrorName: 'relay_misconfigured',
     });
+  });
+
+  it('usa envío directo si el relé retirado responde 404', async () => {
+    mockEnv.EMAIL_RELAY_URL = 'https://relay.example.test/api/internal/email-relay';
+    mockEnv.EMAIL_RELAY_TOKEN = 'x'.repeat(64);
+    jest.spyOn(global, 'fetch').mockResolvedValue(new Response('Not Found', { status: 404 }));
+    mockSend.mockResolvedValue({ data: { id: 'direct_after_404' }, error: null });
+
+    await expect(sendResendEmail('relayCtx', OPTIONS)).resolves.toBe('direct_after_404');
+    expect(mockSend).toHaveBeenCalledWith(OPTIONS);
+  });
+
+  it('no reintenta directamente ante un fallo ambiguo del relé', async () => {
+    mockEnv.EMAIL_RELAY_URL = 'https://relay.example.test/api/internal/email-relay';
+    mockEnv.EMAIL_RELAY_TOKEN = 'x'.repeat(64);
+    jest.spyOn(global, 'fetch').mockResolvedValue(new Response('Bad Gateway', { status: 502 }));
+
+    await expect(sendResendEmail('relayCtx', OPTIONS)).rejects.toMatchObject({
+      resendErrorName: 'relay_http_502',
+    });
+    expect(mockSend).not.toHaveBeenCalled();
   });
 });

@@ -19,6 +19,7 @@
 0 6 * * *    /usr/bin/curl -fsS -m 110 -H "Authorization: Bearer $CRON_SECRET" http://app:3000/api/cron/snapshot-metrics            # 08:00 Madrid
 30 6 * * *   /usr/bin/curl -fsS -m 110 -H "Authorization: Bearer $CRON_SECRET" http://app:3000/api/cron/discover-creator-targets   # 08:30 Madrid
 0 7 * * *    /usr/bin/curl -fsS -m 110 -H "Authorization: Bearer $CRON_SECRET" http://app:3000/api/cron/sync-news-alerts            # 09:00 Madrid
+15 7 * * *   /usr/bin/curl -fsS -m 110 -H "Authorization: Bearer $CRON_SECRET" http://app:3000/api/cron/keydrop-daily-report         # 09:15 Madrid
 30 22 * * *  /usr/bin/curl -fsS -m 110 -H "Authorization: Bearer $CRON_SECRET" http://app:3000/api/cron/sync-ip-evidence            # 00:30 Madrid (verano)
 0 23 * * *   /usr/bin/curl -fsS -m 110 -H "Authorization: Bearer $CRON_SECRET" http://app:3000/api/cron/sync-sheet-sources          # 01:00 Madrid (día siguiente)
 0 3 * * *    /usr/bin/curl -fsS -m 110 -H "Authorization: Bearer $CRON_SECRET" http://app:3000/api/cron/generate-recurring-expenses # 05:00 Madrid
