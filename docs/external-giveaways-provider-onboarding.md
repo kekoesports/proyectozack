@@ -281,7 +281,7 @@ Al mergear, memoria (`~/.claude/.../memory/`) recibe una entry
 
 ---
 
-## Estado de providers hoy (2026-07-06)
+## Estado de providers hoy (2026-09-04)
 
 | Creador (slug) | Provider | Código | Estado |
 |---|---|---|---|
@@ -289,6 +289,7 @@ Al mergear, memoria (`~/.claude/.../memory/`) recibe una entry
 | imantado | KeyDrop | IMANTADO | ✅ KeyDrop con API real (alta 2026-07-06). |
 | naow | KeyDrop | NAOW | ✅ KeyDrop con API real (alta 2026-07-06). |
 | todocs2 | KeyDrop + CSGO-SKINS | TODO | ✅ KeyDrop con API real; CSGO-SKINS como card promocional. Código real "TODO" (probable límite de 4 chars del sistema de promocodes de KeyDrop). Verificado con GET /api/list. Mismo código sirve para el banner CSGO-SKINS (https://csgo-skins.com/?ref=TODO). |
+| eruby | KeyDrop | ERUBY | 🟡 Binding y UI preparados; falta configurar `KEYDROP_ERUBY_API_KEY` y validar el primer fetch real. El código ERUBY está confirmado por el perfil público. |
 | huasopeek | — | — | ⏸ Pendiente de deal + datos confirmados. |
 | jolu | — | — | ⏸ Pendiente de deal + datos confirmados. |
 

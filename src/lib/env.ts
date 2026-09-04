@@ -139,6 +139,14 @@ export const env = createEnv({
     // KeyDrop Giveaway API — clave del afiliado TODOCS2. Un secreto por par
     // creador+provider.
     KEYDROP_TODOCS2_API_KEY: z.string().min(1).optional(),
+    // KeyDrop Giveaway API — clave del afiliado ERUBY. El código ERUBY
+    // está confirmado por la captura del perfil público (2026-09-04).
+    KEYDROP_ERUBY_API_KEY: z.string().min(1).optional(),
+    // Incoming webhook del canal que recibe el resumen diario de sorteos.
+    // Server-only: la URL contiene el token del webhook y nunca se loggea.
+    KEYDROP_DAILY_DISCORD_WEBHOOK_URL: z.string().url()
+      .startsWith('https://discord.com/api/webhooks/')
+      .optional(),
 
     // ============================================================
     // Discord Missions Fase A — OAuth de terceros para verificar
@@ -311,6 +319,8 @@ export const env = createEnv({
     KEYDROP_IMANTADO_API_KEY: process.env.KEYDROP_IMANTADO_API_KEY,
     KEYDROP_NAOW_API_KEY: process.env.KEYDROP_NAOW_API_KEY,
     KEYDROP_TODOCS2_API_KEY: process.env.KEYDROP_TODOCS2_API_KEY,
+    KEYDROP_ERUBY_API_KEY: process.env.KEYDROP_ERUBY_API_KEY,
+    KEYDROP_DAILY_DISCORD_WEBHOOK_URL: process.env.KEYDROP_DAILY_DISCORD_WEBHOOK_URL,
 
     // Discord Missions Fase A
     DISCORD_CLIENT_ID: process.env.DISCORD_CLIENT_ID,

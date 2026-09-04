@@ -1,6 +1,6 @@
 # Migración de las tareas programadas
 
-## Los nueve
+## Los once
 
 Todos en UTC, con los mismos horarios. La equivalencia a `Europe/Madrid` (verano)
 está anotada en el crontab.
@@ -11,11 +11,13 @@ está anotada en el crontab.
 | `rollover-tasks` | `0 5 * * 1` | lunes 07:00 |
 | `sync-metrics` | `0 7 * * 1` | lunes 09:00 |
 | `sync-news-alerts` | `0 7 * * *` | 09:00 |
+| `keydrop-daily-report` | `15 7 * * *` | 09:15 |
 | `discover-creator-targets` | `30 6 * * *` | 08:30 |
 | `sync-ip-evidence` | `30 22 * * *` | 00:30 (día siguiente, verano) |
 | `sync-sheet-sources` | `0 23 * * *` | 01:00 (día siguiente) |
 | `generate-recurring-expenses` | `0 3 * * *` | 05:00 |
 | `giveaway-lifecycle` | `7 * * * *` | cada hora, minuto 7 |
+| `sync-slash` | `15 5 * * *` | 07:15 |
 
 **Los horarios no se cambian al migrar.** Cambiar la hora y la infraestructura a
 la vez haría imposible saber de dónde viene una diferencia de comportamiento.
