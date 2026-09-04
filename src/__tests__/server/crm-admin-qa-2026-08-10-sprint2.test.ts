@@ -75,6 +75,37 @@ describe('sprint2 — hasPermission + nav R05', () => {
     ]));
   });
 
+  it('groups every lead source under the Leads submenu with the CRM labels', () => {
+    const { more } = navForRole('admin');
+    const leadItems = more.filter((item) => item.submenu === 'leads');
+
+    expect(leadItems.map((item) => [item.label, item.href])).toEqual([
+      ['Leads emails', '/admin/leads'],
+      ['Leads CC', '/admin/targets'],
+      ['Prensa targets', '/admin/prensa-targets'],
+      ['Partners CS2', '/admin/partner-leads'],
+    ]);
+    expect(more.some((item) => item.label === 'Creadores Target')).toBe(false);
+  });
+
+  it('keeps submenu children permission-filtered for restricted roles', () => {
+    const { more } = navForRole('ops');
+    const leadHrefs = more
+      .filter((item) => item.submenu === 'leads')
+      .map((item) => item.href);
+
+    expect(leadHrefs).toEqual(['/admin/leads', '/admin/partner-leads']);
+  });
+
+  it('renders the Leads submenu beside primary navigation instead of hiding it under Más', () => {
+    const layout = read('src/app/admin/(dashboard)/layout.tsx');
+    const sidebar = read('src/features/admin/_shared/components/AdminSidebar.tsx');
+
+    expect(layout).toMatch(/const leadNav = more\.filter\(\(item\) => item\.submenu === ['"]leads['"]\)/);
+    expect(layout).toMatch(/leadNav=\{leadNav\}/);
+    expect(sidebar).toMatch(/<span className="flex-1 text-left">Leads<\/span>/);
+  });
+
   it('quick actions hide facturacion for staff', () => {
     const staff = quickActionsForRole('staff').map((a) => a.href);
     expect(staff).not.toContain('/admin/facturacion');

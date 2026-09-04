@@ -19,6 +19,7 @@ export type * from './issuedInvoice';
 export type * from './brandBrief';
 export type * from './contract';
 export type * from './pressTarget';
+export type * from './partnerLead';
 export type * from './crmEvent';
 export type * from './lead';
 export type { BrandFollowupDerivedStatus } from '@/lib/schemas/crmBrand';

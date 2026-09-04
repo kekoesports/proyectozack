@@ -15,6 +15,7 @@ export type AdminNavKey =
   | 'mi-semana'
   | 'targets'
   | 'prensa-targets'
+  | 'partner-leads'
   | 'live'
   | 'giveaways'
   | 'alertas'
@@ -41,6 +42,7 @@ export type AdminNavDef = {
   readonly roles?: readonly Role[];
   readonly section: 'primary' | 'more';
   readonly group?: 'Operaciones' | 'Crecimiento' | 'Contenido' | 'Administración' | 'Sistema';
+  readonly submenu?: 'leads';
 };
 
 /**
@@ -58,10 +60,11 @@ export const ADMIN_NAV_CATALOGUE: readonly AdminNavDef[] = [
   { key: 'mi-semana',       href: '/admin/mi-semana',       label: 'Mi semana',         module: 'tareas',          section: 'more', group: 'Operaciones' },
   { key: 'brands',          href: '/admin/brands',          label: 'Marcas',            module: 'campanas',        section: 'more', group: 'Operaciones' },
   { key: 'automation-drafts', href: '/admin/automation-drafts', label: 'Borradores', module: 'campanas',    section: 'more', group: 'Operaciones', prefetch: false },
-  { key: 'leads',           href: '/admin/leads',           label: 'Leads',             module: 'leads',           section: 'more', group: 'Operaciones', prefetch: false },
   { key: 'entregables',     href: '/admin/entregables',     label: 'Entregables',       module: 'campanas',       section: 'more', group: 'Operaciones', prefetch: false },
-  { key: 'targets',         href: '/admin/targets',         label: 'Creadores Target',  module: 'targets',         section: 'more', group: 'Crecimiento', prefetch: false },
-  { key: 'prensa-targets',  href: '/admin/prensa-targets',  label: 'Prensa Targets',    module: 'prensa_targets',  section: 'more', group: 'Crecimiento', prefetch: false },
+  { key: 'leads',           href: '/admin/leads',           label: 'Leads emails',      module: 'leads',           section: 'more', group: 'Crecimiento', submenu: 'leads', prefetch: false },
+  { key: 'targets',         href: '/admin/targets',         label: 'Leads CC',          module: 'targets',         section: 'more', group: 'Crecimiento', submenu: 'leads', prefetch: false },
+  { key: 'prensa-targets',  href: '/admin/prensa-targets',  label: 'Prensa targets',    module: 'prensa_targets',  section: 'more', group: 'Crecimiento', submenu: 'leads', prefetch: false },
+  { key: 'partner-leads',   href: '/admin/partner-leads',   label: 'Partners CS2',      module: 'leads',           section: 'more', group: 'Crecimiento', submenu: 'leads', prefetch: false },
   { key: 'live',            href: '/admin/live',            label: 'En directo',        module: 'talentos',        section: 'more', group: 'Crecimiento', prefetch: false },
   { key: 'giveaways',       href: '/admin/giveaways',       label: 'Sorteos',           module: 'sorteos',         section: 'more', group: 'Crecimiento', prefetch: false },
   {
@@ -121,6 +124,7 @@ export type FilteredNavItem = {
   readonly label: string;
   readonly prefetch?: boolean;
   readonly group?: AdminNavDef['group'];
+  readonly submenu?: AdminNavDef['submenu'];
 };
 
 /**
@@ -141,6 +145,7 @@ export function navForRole(role: Role | null | undefined): {
     label: item.label,
     ...(item.prefetch === false ? { prefetch: false } : {}),
     ...(item.group ? { group: item.group } : {}),
+    ...(item.submenu ? { submenu: item.submenu } : {}),
   });
 
   let primary = allowed.filter((i) => i.section === 'primary').map(toItem);

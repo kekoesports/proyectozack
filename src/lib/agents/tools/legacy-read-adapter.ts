@@ -177,7 +177,7 @@ export const getCampaignMarginAlertsTool = defineReadTool({
 
 export const getOperationsSummaryTool = defineReadTool({
   name: 'getOperationsSummary',
-  description: 'Resumen de Creadores Target, prensa, contenido y copias cifradas para priorizar operaciones.',
+  description: 'Resumen de Leads CC, prensa, contenido y copias cifradas para priorizar operaciones.',
   permission: AGENTS,
   run: () => getOperationsSummary(),
 });

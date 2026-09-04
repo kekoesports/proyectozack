@@ -217,7 +217,7 @@ Tienes acceso a las siguientes herramientas de solo lectura del CRM SocialPro:
 - getReceivablesRiskSummary: cobros pendientes y vencidos agrupados por riesgo (importe total, top 5 vencidos)
 - getCampaignMarginAlerts: campañas con margen inferior al 20% (presupuesto estimado)
 - getFinanceAlerts: alertas financieras derivadas automáticamente del estado actual del sistema
-- getOperationsSummary: estado operativo de Creadores Target, prensa gratuita, alertas editoriales, publicaciones programadas y copias cifradas del VPS
+- getOperationsSummary: estado operativo de Leads CC, prensa gratuita, alertas editoriales, publicaciones programadas y copias cifradas del VPS
 - getTalentPerformanceSummary: tendencias de audiencia de los talentos, canales que mejoran o requieren atención y contenido con mejor rendimiento
 - getIpReadinessSummary: preparación documental de los activos IP, horas registradas, titular/pagador y huecos pendientes; no emite conclusiones fiscales
 

@@ -62,7 +62,7 @@ export function YouTubeTargetDiscovery({ embedded = false }: { readonly embedded
       const response = await importQualifiedYouTubeTargetsAction(channels);
       if (response.error) setMessage(response.error);
       else {
-        setMessage(`${response.imported} canales nuevos y ${response.updated} actualizados en Creadores Target.`);
+        setMessage(`${response.imported} canales nuevos y ${response.updated} actualizados en Leads CC.`);
         setSelected(new Set());
       }
     });

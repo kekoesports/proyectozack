@@ -79,6 +79,11 @@ export const env = createEnv({
     // Token dedicado para las operaciones CRM iniciadas por n8n.
     // Fail-closed: los endpoints /api/automation/* devuelven 503 si falta.
     AUTOMATION_API_TOKEN: z.string().min(32).optional(),
+    /** Webhook de n8n que despierta la cola de avisos del radar de partners. */
+    N8N_PARTNER_LEADS_WEBHOOK_URL: z.string().url().optional(),
+    /** Destino del digest; IDs numéricos de Discord, nunca nombres. */
+    DISCORD_PARTNER_LEADS_GUILD_ID: z.string().regex(/^\d{6,30}$/).optional(),
+    DISCORD_PARTNER_LEADS_CHANNEL_ID: z.string().regex(/^\d{6,30}$/).optional(),
     // Webhook autenticado de n8n que fuerza el envío inmediato a Discord al
     // aprobar un borrador. El Schedule Trigger de n8n sigue siendo el respaldo.
     N8N_DEAL_CREATED_WEBHOOK_URL: z.string().url().optional(),
@@ -297,6 +302,9 @@ export const env = createEnv({
     N8N_DRIVE_COPY_WEBHOOK_URL: process.env.N8N_DRIVE_COPY_WEBHOOK_URL,
     TARGETS_IMPORT_TOKEN: process.env.TARGETS_IMPORT_TOKEN,
     AUTOMATION_API_TOKEN: process.env.AUTOMATION_API_TOKEN,
+    N8N_PARTNER_LEADS_WEBHOOK_URL: process.env.N8N_PARTNER_LEADS_WEBHOOK_URL,
+    DISCORD_PARTNER_LEADS_GUILD_ID: process.env.DISCORD_PARTNER_LEADS_GUILD_ID,
+    DISCORD_PARTNER_LEADS_CHANNEL_ID: process.env.DISCORD_PARTNER_LEADS_CHANNEL_ID,
     N8N_DEAL_CREATED_WEBHOOK_URL: process.env.N8N_DEAL_CREATED_WEBHOOK_URL,
     AUTOMATION_CONTRACT_DRAFTS_ENABLED: process.env.AUTOMATION_CONTRACT_DRAFTS_ENABLED,
     AUTOMATION_CONTRACT_TEMPLATE_ID: process.env.AUTOMATION_CONTRACT_TEMPLATE_ID,
