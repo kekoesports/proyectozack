@@ -62,6 +62,19 @@ const ACTIVE_STATUSES   = new Set<CampaignStatus>(['activa', 'aprobada']);
 const FINISHED_STATUSES = new Set<CampaignStatus>(['completada', 'pagada']);
 const PAID_STATUSES     = new Set<CampaignStatus>(['pagada']);
 
+function remainingNativeAmount(
+  total: number,
+  paymentStatus: CampaignWithRelations['brandPaid'] | CampaignWithRelations['talentPaid'],
+  settledAmount: number,
+  campaignStatus: CampaignStatus,
+): number {
+  if (total <= 0 || PAID_STATUSES.has(campaignStatus) || paymentStatus === 'si') return 0;
+  if (paymentStatus === 'parcial') {
+    return Math.max(0, total - Math.max(0, settledAmount));
+  }
+  return total;
+}
+
 export function computeKpis(campaigns: readonly CampaignWithRelations[], rate?: number): CampaignKpis {
   let activos = 0, negociacion = 0, finalizados = 0, countEUR = 0, countUSD = 0;
   let revenueBruto = 0, pendienteCobro = 0, pendienteTalent = 0, margenTotal = 0;
@@ -91,16 +104,27 @@ export function computeKpis(campaigns: readonly CampaignWithRelations[], rate?: 
     revenueBruto += brand;
     margenTotal  += brand - talent;
 
-    if (!PAID_STATUSES.has(c.status)) {
-      pendienteCobro  += brand;
-      pendienteTalent += talent;
-      if (isUSD) {
-        pendienteCobroUSD  += brandNat;
-        pendienteTalentUSD += talentNat;
-      } else {
-        pendienteCobroEUR  += brandNat;
-        pendienteTalentEUR += talentNat;
-      }
+    const pendingBrandNat = remainingNativeAmount(
+      brandNat,
+      c.brandPaid,
+      c.totalInvoicedBrand,
+      c.status,
+    );
+    const pendingTalentNat = remainingNativeAmount(
+      talentNat,
+      c.talentPaid,
+      c.totalPaidTalent,
+      c.status,
+    );
+
+    pendienteCobro  += toEUR(pendingBrandNat, cur, rate);
+    pendienteTalent += toEUR(pendingTalentNat, cur, rate);
+    if (isUSD) {
+      pendienteCobroUSD  += pendingBrandNat;
+      pendienteTalentUSD += pendingTalentNat;
+    } else {
+      pendienteCobroEUR  += pendingBrandNat;
+      pendienteTalentEUR += pendingTalentNat;
     }
   }
 

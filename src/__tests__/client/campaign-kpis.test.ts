@@ -143,4 +143,65 @@ describe('computeKpis — otros estados no afectados', () => {
     expect(kpis.pendienteCobro).toBe(10000);
     expect(kpis.pendienteTalent).toBe(7000);
   });
+
+  it('respeta el cobro y pago manual aunque el trato siga activo', () => {
+    const campaigns = [makeCampaign({
+      status: 'activa',
+      brandPaid: 'si',
+      talentPaid: 'si',
+      brandPaidSource: 'manual',
+      talentPaidSource: 'manual',
+      cobroConfirmado: true,
+      pagoTalentConfirmado: true,
+    })];
+
+    const kpis = computeKpis(campaigns);
+    expect(kpis.revenueBruto).toBe(10000);
+    expect(kpis.pendienteCobro).toBe(0);
+    expect(kpis.pendienteTalent).toBe(0);
+  });
+
+  it('respeta el cobro derivado de factura aunque el trato no esté en pagada', () => {
+    const campaigns = [makeCampaign({
+      status: 'completada',
+      brandPaid: 'si',
+      brandPaidSource: 'invoice',
+      totalInvoicedBrand: 10000,
+    })];
+
+    const kpis = computeKpis(campaigns);
+    expect(kpis.pendienteCobro).toBe(0);
+    expect(kpis.pendienteTalent).toBe(7000);
+  });
+
+  it('en cobros parciales muestra únicamente el saldo restante', () => {
+    const campaigns = [makeCampaign({
+      amountBrand: '10000',
+      amountTalent: '7000',
+      brandPaid: 'parcial',
+      talentPaid: 'parcial',
+      brandPaidSource: 'invoice',
+      talentPaidSource: 'invoice',
+      totalInvoicedBrand: 4000,
+      totalPaidTalent: 2500,
+    })];
+
+    const kpis = computeKpis(campaigns);
+    expect(kpis.pendienteCobro).toBe(6000);
+    expect(kpis.pendienteTalent).toBe(4500);
+  });
+
+  it('calcula el saldo parcial en la divisa nativa antes de convertir USD', () => {
+    const campaigns = [makeCampaign({
+      currency: 'USD',
+      amountBrand: '10000',
+      amountTalent: '7000',
+      brandPaid: 'parcial',
+      totalInvoicedBrand: 2500,
+    })];
+
+    const kpis = computeKpis(campaigns, 0.86);
+    expect(kpis.pendienteCobroUSD).toBe(7500);
+    expect(kpis.pendienteCobro).toBe(6450);
+  });
 });

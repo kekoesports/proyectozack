@@ -49,8 +49,18 @@ export default async function AdminCampanasPage(): Promise<React.ReactElement> {
     const talent = Number(c.amountTalent ?? 0);
     const comm   = brand - talent;
     const campInvoices = invoices.filter((i) => i.campaignId === c.id);
-    const paidIncome   = campInvoices.filter((i) => i.kind === 'income'  && (i.status === 'cobrada' || i.status === 'pagada'));
-    const paidExpense  = campInvoices.filter((i) => i.kind === 'expense' && (i.status === 'cobrada' || i.status === 'pagada'));
+    // Los importes se comparan en la divisa nativa del trato. Una factura
+    // enlazada en otra moneda necesita su conciliacion/FX antes de descontarla.
+    const paidIncome = campInvoices.filter((i) => (
+      i.kind === 'income'
+      && (i.status === 'cobrada' || i.status === 'pagada')
+      && i.currency === c.currency
+    ));
+    const paidExpense = campInvoices.filter((i) => (
+      i.kind === 'expense'
+      && (i.status === 'cobrada' || i.status === 'pagada')
+      && i.currency === c.currency
+    ));
     const totalInvoicedBrand = paidIncome.reduce((s, i)  => s + Number(i.totalAmount), 0);
     const totalPaidTalent    = paidExpense.reduce((s, i) => s + Number(i.totalAmount), 0);
     const brandFromInvoices: CampaignPaymentDerivedStatus  = totalInvoicedBrand === 0 ? 'no' : totalInvoicedBrand >= brand  ? 'si' : 'parcial';
