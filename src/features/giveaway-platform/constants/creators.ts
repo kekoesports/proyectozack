@@ -28,6 +28,7 @@ export const PLATFORM_CREATOR_VISUALS: Record<string, PlatformCreatorVisual> = {
   imantado:   { emoji: '🧲', color: '#8b3dff', code: 'IMANTADO',  sub: 'Creador CS2 · SocialPro' },
   // Slug DB real: `jolu`; el display público es "JoluCS2".
   jolu:       { emoji: '💎', color: '#4ade80', code: 'JOLUCS2',   sub: 'Trading CS2 · SocialPro' },
+  eruby:      { emoji: '💜', color: '#e03070', code: 'ERUBY',     sub: 'Creador · SocialPro' },
 };
 
 export function getCreatorVisual(slug: string): PlatformCreatorVisual {
