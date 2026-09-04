@@ -21,6 +21,12 @@ export type PayableCheckInput = {
   readonly previouslyPaid: string;
   readonly amountToApply: string;
   readonly kind: PayableInvoiceKind;
+  /**
+   * Permite reparar datos legacy cuyo estado figura como liquidado pero no
+   * tienen todavía un pago canónico registrado. Solo debe usarse desde el
+   * flujo bancario, después de aprobar una conciliación real.
+   */
+  readonly allowLegacySettledRepair?: boolean;
 };
 
 export type GuardFailureReason =
@@ -71,18 +77,23 @@ export function assertInvoicePayable(input: PayableCheckInput): void {
     throw new PaymentGuardError('voided');
   }
 
-  // Prefer kind-specific status, but never allow a second payment on the
-  // sibling settled status (expense marked cobrada, income marked pagada).
-  if (status === completedStatusFor(input.kind) || isAlreadySettled(status)) {
-    throw new PaymentGuardError('already_completed');
-  }
-
   const total = Number(input.totalDue);
   const paid = Number(input.previouslyPaid);
   const applying = Number(input.amountToApply);
 
   if (!Number.isFinite(total) || !Number.isFinite(paid) || !Number.isFinite(applying)) {
     throw new PaymentGuardError('overpayment', 'Importe inválido');
+  }
+
+  // El estado histórico no sustituye a la caja real. El flujo de
+  // conciliación puede crear el primer invoice_payment de una factura legacy
+  // marcada como cobrada/pagada, pero nunca permite duplicar un pago ya
+  // registrado ni se habilita fuera de ese flujo.
+  if (status === completedStatusFor(input.kind) || isAlreadySettled(status)) {
+    const hasCanonicalSettlement = paid >= total - TOLERANCE;
+    if (!input.allowLegacySettledRepair || hasCanonicalSettlement) {
+      throw new PaymentGuardError('already_completed');
+    }
   }
 
   if (paid + applying > total + TOLERANCE) {

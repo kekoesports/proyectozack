@@ -88,6 +88,7 @@ export async function applyPaymentToIssuedInvoice(opts: {
       previouslyPaid,
       amountToApply: amount,
       kind: 'issued',
+      allowLegacySettledRepair: true,
     });
 
     // 4) INSERT + UPDATE dentro de la misma tx.
@@ -215,6 +216,7 @@ export async function applyPaymentToInternalInvoice(opts: {
       previouslyPaid,
       amountToApply: amount,
       kind: invoice.kind === 'income' ? 'internal_income' : 'internal_expense',
+      allowLegacySettledRepair: true,
     });
 
     // 4) INSERT + UPDATE dentro de la misma tx.

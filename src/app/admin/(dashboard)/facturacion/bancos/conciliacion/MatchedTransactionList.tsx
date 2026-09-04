@@ -206,10 +206,15 @@ function invoiceBlockedReason(row: MatchedTransactionRow): string | null {
   const status = (row.invoiceStatus ?? '').trim().toLowerCase();
   if (!status) return null;
   if (status === 'anulada') return 'Factura anulada';
-  if (row.matchType === 'internal_invoice' && row.invoiceKind === 'expense' && status === 'pagada') {
+  const canonicalPaid = Number(row.invoicePreviouslyPaid);
+  const invoiceTotal = Number(row.invoiceAmount);
+  const isCanonicallySettled = Number.isFinite(canonicalPaid)
+    && Number.isFinite(invoiceTotal)
+    && canonicalPaid >= invoiceTotal - 0.005;
+  if (row.matchType === 'internal_invoice' && row.invoiceKind === 'expense' && status === 'pagada' && isCanonicallySettled) {
     return 'Factura ya pagada';
   }
-  if (status === 'cobrada') return 'Factura ya cobrada';
+  if (status === 'cobrada' && isCanonicallySettled) return 'Factura ya cobrada';
   return null;
 }
 
