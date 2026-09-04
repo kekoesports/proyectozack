@@ -2,9 +2,9 @@ import { Familjen_Grotesk, IBM_Plex_Mono, Karla } from 'next/font/google';
 import type { KekoPilotLocale } from '../content';
 import { KekoPilotHeader, KekoPilotHero } from './KekoPilotHero';
 import { KekoPilotMotion } from './KekoPilotMotion';
+import { KekoPilotProduct, KekoPilotPromise } from './KekoPilotProduct';
 import { KekoPilotSections } from './KekoPilotSections';
 import { KekoPilotStory } from './KekoPilotStory';
-import { KekoPilotValue } from './KekoPilotValue';
 import styles from '../kekopilot.module.css';
 
 const heading = Familjen_Grotesk({
@@ -40,7 +40,8 @@ export function KekoPilotExperience({ locale }: KekoPilotExperienceProps) {
       <KekoPilotHeader locale={locale} />
       <main className={styles.main} id="contenido">
         <KekoPilotHero locale={locale} />
-        <KekoPilotValue locale={locale} />
+        <KekoPilotPromise locale={locale} />
+        <KekoPilotProduct locale={locale} />
         <KekoPilotStory locale={locale} />
         <KekoPilotSections locale={locale} />
       </main>

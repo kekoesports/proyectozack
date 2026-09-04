@@ -3,8 +3,8 @@ import { KekoPilotExperience } from '@/features/kekopilot/components/KekoPilotEx
 import { kekopilotUrl } from '@/lib/kekopilot-url';
 
 export const metadata: Metadata = {
-  title: { absolute: 'KekoPilot — Operating system for operations teams' },
-  description: 'Bring deals, documents, tasks and billing together with specialised AI agents and human approval.',
+  title: { absolute: 'KekoPilot — Your operations, under control' },
+  description: 'Bring email, Discord, documents, deals and invoices into one operating system with specialised agents and human approval.',
   manifest: '/kekopilot.webmanifest',
   icons: {
     icon: [{ url: '/kekopilot/icon.svg', type: 'image/svg+xml' }],
@@ -17,8 +17,8 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    title: 'KekoPilot — Work keeps moving. You decide.',
-    description: 'An operating system for operations teams with specialised agents and human approval.',
+    title: 'KekoPilot — Your operations, under control',
+    description: 'An operating system for teams with specialised agents and human approval.',
     url: kekopilotUrl('/en'),
     siteName: 'KekoPilot',
     locale: 'en_US',
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'KekoPilot — Work keeps moving. You decide.',
+    title: 'KekoPilot — Your operations, under control',
     description: 'Operating system for operations teams with specialised AI agents.',
     images: [kekopilotUrl('/kekopilot-og.png')],
   },

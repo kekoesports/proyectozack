@@ -14,6 +14,7 @@ type AgentConsoleProps = {
     readonly output: string;
     readonly guardrail: string;
     readonly activity: string;
+    readonly status: string;
   };
   readonly agents: ReadonlyArray<AgentCopy>;
 };
@@ -69,7 +70,7 @@ export function AgentConsole({ labels, agents }: AgentConsoleProps) {
       >
         <div className={styles.panelHeader}>
           <span>{activeAgent.code}</span>
-          <span><i aria-hidden="true" /> Private beta</span>
+          <span><i aria-hidden="true" /> {labels.status}</span>
         </div>
         <div className={styles.panelBody}>
           <span>{labels.capability}</span>

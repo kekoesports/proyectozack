@@ -120,7 +120,7 @@ export function KekoPilotHeader({ locale }: KekoPilotHeroProps) {
           <a className={styles.loginLink} href={KEKOPILOT_APP_URL}>{copy.login}</a>
           <a className={styles.headerCta} data-kp-cursor data-kp-magnetic href={DEMO_HREF}>{copy.demo}</a>
         </div>
-        <details className={styles.mobileNav}>
+        <details className={styles.mobileNav} data-kp-mobile-nav>
           <summary aria-label={locale === 'es' ? 'Abrir navegación' : 'Open navigation'}><span /><span /></summary>
           <div>
             {copy.nav.map((item) => <a key={item.href} href={item.href}>{item.label}</a>)}
