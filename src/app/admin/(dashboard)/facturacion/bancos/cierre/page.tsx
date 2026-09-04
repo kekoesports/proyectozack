@@ -151,7 +151,7 @@ export default async function MonthlyClosePage({
           <div className="mt-3 overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="text-[10px] uppercase tracking-wider text-sp-admin-muted">
-                <tr><th className="py-2 text-left">Moneda</th><th className="py-2 text-right">Emitidas</th><th className="py-2 text-right">Borradores</th><th className="py-2 text-right">Facturado</th><th className="py-2 text-right">Cobrado</th><th className="py-2 text-right">Pendiente</th></tr>
+                <tr><th className="py-2 text-left">Moneda</th><th className="py-2 text-right">Emitidas</th><th className="py-2 text-right">Borradores</th><th className="py-2 text-right">Facturado</th><th className="py-2 text-right">Cobrado conciliado</th><th className="py-2 text-right">Pendiente</th></tr>
               </thead>
               <tbody className="divide-y divide-sp-border">
                 {summary.invoiceCurrencies.map((row) => (
