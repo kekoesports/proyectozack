@@ -17,14 +17,14 @@ export default async function AdminTargetsPage(): Promise<React.ReactElement> {
   return (
     <div className="space-y-6">
       <div className="flex items-baseline gap-4 mb-6">
-        <h1 className="font-display text-3xl font-black uppercase text-sp-admin-text">Creadores Target</h1>
+        <h1 className="font-display text-3xl font-black uppercase text-sp-admin-text">Leads CC</h1>
         <span className="text-xs text-sp-admin-muted tabular-nums">
-          {targets.length} targets
+          {targets.length} leads
         </span>
       </div>
 
       <p className="text-sm text-sp-admin-muted -mt-3">
-        Descubre y cualifica perfiles de YouTube, Twitch, Instagram y Kick; conserva el historial comercial y evita duplicados entre ejecuciones.
+        Leads de creadores de contenido (CC) en YouTube, Twitch, Instagram y Kick; conserva el historial comercial y evita duplicados entre ejecuciones.
       </p>
 
       <CreatorDiscoveryOverview runs={discoveryRuns} />

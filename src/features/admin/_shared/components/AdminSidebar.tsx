@@ -4,7 +4,7 @@ import { useState, useCallback } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ChevronDownIcon, MoreIcon, LogoutIcon } from './SidebarIcons';
+import { ChevronDownIcon, ContactIcon, MoreIcon, LogoutIcon } from './SidebarIcons';
 
 type NavItem = {
   readonly href: string;
@@ -39,6 +39,7 @@ export type NavGroup = {
 type AdminSidebarProps = {
   readonly branding?: AdminSidebarBranding;
   readonly primaryNav: readonly NavItem[];
+  readonly leadNav?: readonly NavItem[];
   readonly groups?: readonly NavGroup[];
   readonly moreNav: readonly NavItem[];
   readonly userName: string;
@@ -100,6 +101,7 @@ function SidebarHero({ branding, onClick }: SidebarHeroProps): React.ReactElemen
  * ```tsx
  * <AdminSidebar
  *   primaryNav={primaryNav}
+ *   leadNav={leadNav}
  *   groups={groups}
  *   moreNav={moreNav}
  *   userName="Zack"
@@ -112,6 +114,7 @@ function SidebarHero({ branding, onClick }: SidebarHeroProps): React.ReactElemen
 export function AdminSidebar({
   branding = SOCIALPRO_BRANDING,
   primaryNav,
+  leadNav,
   groups,
   moreNav,
   userName,
@@ -121,6 +124,7 @@ export function AdminSidebar({
 }: AdminSidebarProps): React.ReactElement {
   const [open, setOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
+  const [leadOpen, setLeadOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
 
@@ -136,6 +140,8 @@ export function AdminSidebar({
   const roleLabel = userRole ? userRole.charAt(0).toUpperCase() + userRole.slice(1) : '';
   const moreActive = moreNav.some((item) => isActive(item.href));
   const expanded = moreOpen || moreActive;
+  const leadActive = leadNav?.some((item) => isActive(item.href)) ?? false;
+  const leadExpanded = leadOpen || leadActive;
 
   return (
     <>
@@ -197,6 +203,43 @@ export function AdminSidebar({
             />
           ))}
 
+          {leadNav && leadNav.length > 0 ? (
+            <div className="mt-1">
+              <button
+                type="button"
+                aria-expanded={leadExpanded}
+                onClick={() => setLeadOpen((current) => !current)}
+                className={[
+                  'flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-[13px] font-medium transition-colors',
+                  leadActive
+                    ? 'text-sp-admin-sidebar-text'
+                    : 'text-sp-admin-sidebar-muted hover:bg-sp-admin-sidebar-hover hover:text-sp-admin-sidebar-text',
+                ].join(' ')}
+              >
+                <span className={`h-5 w-5 shrink-0 ${leadActive ? 'text-sp-admin-accent' : ''}`}>
+                  <ContactIcon />
+                </span>
+                <span className="flex-1 text-left">Leads</span>
+                <span className={`h-4 w-4 transition-transform duration-150 ${leadExpanded ? 'rotate-180' : ''}`}>
+                  <ChevronDownIcon />
+                </span>
+              </button>
+              {leadExpanded ? (
+                <div className="mt-0.5 flex flex-col gap-0.5">
+                  {leadNav.map((item) => (
+                    <NavLink
+                      key={item.href}
+                      item={item}
+                      active={isActive(item.href)}
+                      onClose={close}
+                      depth={1}
+                    />
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          ) : null}
+
           {groups && groups.length > 0 && (
             <div className="mt-1 flex flex-col gap-0">
               {groups.map((group) => (
@@ -244,16 +287,14 @@ export function AdminSidebar({
                 <div className="mt-0.5 flex flex-col gap-0.5">
                   {moreNav.map((item, index) => (
                     <div key={item.href}>
-                      {item.group && item.group !== moreNav[index - 1]?.group && (
-                        <p className="px-11 pb-1 pt-3 text-[9px] font-bold uppercase tracking-[0.2em] text-sp-admin-sidebar-muted/60">
-                          {item.group}
-                        </p>
-                      )}
+                      {item.group && item.group !== moreNav[index - 1]?.group
+                        ? <NavGroupHeading label={item.group} />
+                        : null}
                       <NavLink
                         item={item}
                         active={isActive(item.href)}
                         onClose={close}
-                        indent
+                        depth={1}
                       />
                     </div>
                   ))}
@@ -307,20 +348,21 @@ type NavLinkProps = {
   readonly item: NavItem;
   readonly active: boolean;
   readonly onClose: () => void;
-  readonly indent?: boolean;
+  readonly depth?: 0 | 1 | 2;
 };
 
-function NavLink({ item, active, onClose, indent = false }: NavLinkProps): React.ReactElement {
+function NavLink({ item, active, onClose, depth = 0 }: NavLinkProps): React.ReactElement {
   const prefetch = item.prefetch ?? null;
   return (
     <Link
       href={item.href}
       prefetch={prefetch}
       onClick={onClose}
+      aria-current={active ? 'page' : undefined}
       style={active ? { background: 'rgba(245, 99, 42, 0.13)' } : undefined}
       className={[
         'relative flex items-center gap-3 py-2.5 rounded-lg transition-all duration-200 text-[13px] font-medium',
-        indent ? 'pl-11 pr-3' : 'px-3',
+        depth === 2 ? 'pl-14 pr-3' : depth === 1 ? 'pl-11 pr-3' : 'px-3',
         active
           ? 'text-white'
           : 'text-sp-admin-sidebar-muted hover:text-sp-admin-sidebar-text hover:bg-sp-admin-sidebar-hover',
@@ -334,5 +376,13 @@ function NavLink({ item, active, onClose, indent = false }: NavLinkProps): React
       </span>
       <span className="flex-1 truncate">{item.label}</span>
     </Link>
+  );
+}
+
+function NavGroupHeading({ label }: { readonly label: string }): React.ReactElement {
+  return (
+    <p className="px-11 pb-1 pt-3 text-[9px] font-bold uppercase tracking-[0.2em] text-sp-admin-sidebar-muted/60">
+      {label}
+    </p>
   );
 }

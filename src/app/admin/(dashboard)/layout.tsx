@@ -55,6 +55,7 @@ const NAV_ICONS: Record<AdminNavKey, React.ReactNode> = {
   'mi-semana': <MyWeekIcon />,
   targets: <TargetsIcon />,
   'prensa-targets': <ContactIcon />,
+  'partner-leads': <TargetsIcon />,
   live: <LiveIcon />,
   giveaways: <GiveawayIcon />,
   alertas: <NewsIcon />,
@@ -98,7 +99,13 @@ export default async function AdminLayout({ children }: AdminLayoutProps): Promi
     icon: NAV_ICONS[item.key],
     ...(item.prefetch === false ? { prefetch: false as const } : {}),
   }));
-  const moreNav = more.map((item) => ({
+  const leadNav = more.filter((item) => item.submenu === 'leads').map((item) => ({
+    href: item.href,
+    label: item.label,
+    icon: NAV_ICONS[item.key],
+    ...(item.prefetch === false ? { prefetch: false as const } : {}),
+  }));
+  const moreNav = more.filter((item) => item.submenu === undefined).map((item) => ({
     href: item.href,
     label: item.label,
     icon: NAV_ICONS[item.key],
@@ -135,6 +142,7 @@ export default async function AdminLayout({ children }: AdminLayoutProps): Promi
       <AdminSidebar
         {...(sidebarBranding ? { branding: sidebarBranding } : {})}
         primaryNav={primaryNav}
+        leadNav={leadNav}
         groups={[]}
         moreNav={moreNav}
         userName={session.user.name}

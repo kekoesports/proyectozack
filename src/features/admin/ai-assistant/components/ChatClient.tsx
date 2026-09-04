@@ -14,7 +14,7 @@ type Props = {
 
 const EXAMPLE_PROMPTS = [
   'Dame el estado operativo de hoy',
-  '¿Cómo están Creadores Target y prensa?',
+  '¿Cómo están Leads CC y prensa?',
   '¿Las copias de seguridad están al día?',
   '¿Qué campañas requieren atención?',
   '¿Qué alertas editoriales tengo pendientes?',

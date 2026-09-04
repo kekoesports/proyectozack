@@ -55,6 +55,8 @@ Import the JSON files under [`workflows/`](./workflows/) from the n8n editor:
 - `socialpro-progress-alerts.json`: hourly Sheet sync and one-time 70/80/100 alerts.
 - `socialpro-deal-digest.json`: daily 10:00 CRM digest; old deals already at
   100% are omitted so Discord focuses on current follow-up.
+- `socialpro-discord-partner-leads.json`: publishes each CS2 partner-research
+  batch to the configured Discord channel and ACKs only after a successful send.
 
 All three imports start disabled and intentionally contain no secrets. Before a test:
 

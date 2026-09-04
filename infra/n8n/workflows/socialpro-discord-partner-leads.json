@@ -1,0 +1,162 @@
+{
+  "name": "SocialPro - Radar de partners CS2 a Discord",
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Europe/Madrid",
+    "saveManualExecutions": true
+  },
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "socialpro-partner-leads-7ea0a393-5e8b-46ce-a6f6-3a39fdb86592",
+        "responseMode": "onReceived",
+        "authentication": "headerAuth",
+        "options": {}
+      },
+      "id": "webhook-partner-leads",
+      "name": "Aviso inmediato del CRM",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [-560, -180],
+      "webhookId": "socialpro-partner-leads-immediate",
+      "notes": "El import del radar despierta este flujo. Header Auth usa AUTOMATION_API_TOKEN."
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 2
+            }
+          ]
+        }
+      },
+      "id": "schedule-partner-leads",
+      "name": "Cada 2 minutos",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [-560, 0]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "crm-base-url",
+              "name": "crmBaseUrl",
+              "value": "https://socialpro.es",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "config",
+      "name": "Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [-340, 0]
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Config').first().json.crmBaseUrl }}/api/automation/discord/partner-leads",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "read-pending-partner-leads",
+      "name": "Leer digests pendientes",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [-120, 0],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "notes": "Sin configuración de guild/canal o sin informes pendientes devuelve cero items."
+    },
+    {
+      "parameters": {
+        "jsCode": "const notifications = Array.isArray($json.notifications) ? $json.notifications : [];\nreturn notifications.flatMap((notification) => {\n  if (!notification || !notification.batchId || !notification.guildId || !notification.channelId || !notification.message) return [];\n  return [{ json: notification }];\n});"
+      },
+      "id": "prepare-partner-leads",
+      "name": "Preparar digests",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [100, 0]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "guildId": {
+          "__rl": true,
+          "value": "={{ $json.guildId }}",
+          "mode": "id"
+        },
+        "channelId": {
+          "__rl": true,
+          "value": "={{ $json.channelId }}",
+          "mode": "id"
+        },
+        "content": "={{ $json.message }}",
+        "options": {}
+      },
+      "id": "publish-partner-leads",
+      "name": "Publicar radar en Discord",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [320, 0],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "notes": "Asignar la credencial del bot de Discord. El ACK sólo ocurre después de un envío aceptado."
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Config').first().json.crmBaseUrl + '/api/automation/discord/partner-leads/' + $('Preparar digests').item.json.batchId + '/ack' }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "ack-partner-leads",
+      "name": "Confirmar publicación al CRM",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [540, 0],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "notes": "Idempotente. Un fallo deja el digest pendiente para el próximo sondeo."
+    }
+  ],
+  "connections": {
+    "Aviso inmediato del CRM": {
+      "main": [[{ "node": "Config", "type": "main", "index": 0 }]]
+    },
+    "Cada 2 minutos": {
+      "main": [[{ "node": "Config", "type": "main", "index": 0 }]]
+    },
+    "Config": {
+      "main": [[{ "node": "Leer digests pendientes", "type": "main", "index": 0 }]]
+    },
+    "Leer digests pendientes": {
+      "main": [[{ "node": "Preparar digests", "type": "main", "index": 0 }]]
+    },
+    "Preparar digests": {
+      "main": [[{ "node": "Publicar radar en Discord", "type": "main", "index": 0 }]]
+    },
+    "Publicar radar en Discord": {
+      "main": [[{ "node": "Confirmar publicación al CRM", "type": "main", "index": 0 }]]
+    }
+  },
+  "pinData": {},
+  "tags": []
+}

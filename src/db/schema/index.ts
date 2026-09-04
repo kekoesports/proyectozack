@@ -36,6 +36,7 @@ export * from './brandBriefs';
 export * from './contracts';
 export * from './contractTemplates';
 export * from './pressTargets';
+export * from './partnerLeads';
 export * from './live';
 export * from './editorialSlots';
 export * from './agendaItems';
