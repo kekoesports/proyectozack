@@ -182,9 +182,9 @@ export const NAVIGATION: ReadonlyArray<NavigationGroup> = [
     { label: 'Finanzas', icon: 'euro', href: '/admin/finanzas/resumen' },
   ] },
   { title: 'Administración', items: [
-    { label: 'Integraciones', icon: 'link', href: '/admin/seguridad' },
+    { label: 'Integraciones', icon: 'link', href: '/admin/entregables/fuentes' },
     { label: 'Equipo y permisos', icon: 'users', href: '/admin/equipo' },
     { label: 'Seguridad y auditoría', icon: 'shield', href: '/admin/seguridad' },
-    { label: 'Configuración', icon: 'settings', href: '/admin/seguridad' },
+    { label: 'Configuración', icon: 'settings', href: '/admin/configuracion' },
   ] },
 ];

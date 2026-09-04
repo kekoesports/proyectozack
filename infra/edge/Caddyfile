@@ -183,15 +183,13 @@ app.kekopilot.com {
 		@home path /
 		rewrite @home /kekopilot/panel
 
-		# Tras autenticarse, el login compartido intenta abrir /admin. En este
-		# host siempre vuelve al panel KekoPilot y nunca expone el CRM completo.
-		@privateAdmin {
-			path /admin /admin/ /admin/*
-			not path /admin/login /admin/two-factor /admin/forgot-password /admin/reset-password
-		}
-		redir @privateAdmin https://app.kekopilot.com temporary
+		# Los módulos operativos del panel viven bajo /admin y mantienen sus
+		# propios guards de sesión, rol y permiso. Se sirven en este host para
+		# que la navegación lateral de KekoPilot no rebote al inicio.
+		@adminLogin path /admin/login
+		redir @adminLogin https://app.kekopilot.com/login temporary
 
-		@appSurface path /kekopilot/panel* /kekopilot/login /kekopilot/icon.svg /admin/two-factor /api/auth/* /_next/*
+		@appSurface path /kekopilot/panel* /kekopilot/login /kekopilot/icon.svg /admin* /api/* /_next/*
 		handle @appSurface {
 			import proxy_app "{$CRM_UPSTREAM}"
 		}

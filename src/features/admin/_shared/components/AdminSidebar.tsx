@@ -14,6 +14,22 @@ type NavItem = {
   readonly group?: string;
 };
 
+export type AdminSidebarBranding = {
+  readonly productName: string;
+  readonly homeHref: string;
+  readonly loginHref: string;
+  readonly logoPath: string;
+  readonly wordmark: boolean;
+};
+
+const SOCIALPRO_BRANDING: AdminSidebarBranding = {
+  productName: 'SocialPro',
+  homeHref: '/admin',
+  loginHref: '/admin/login',
+  logoPath: '/images/logos/logo-full.png',
+  wordmark: true,
+};
+
 export type NavGroup = {
   readonly key: string;
   readonly label: string;
@@ -21,6 +37,7 @@ export type NavGroup = {
 };
 
 type AdminSidebarProps = {
+  readonly branding?: AdminSidebarBranding;
   readonly primaryNav: readonly NavItem[];
   readonly groups?: readonly NavGroup[];
   readonly moreNav: readonly NavItem[];
@@ -32,23 +49,41 @@ type AdminSidebarProps = {
 
 // ── SidebarHero ──────────────────────────────────────────────────────
 
-type SidebarHeroProps = { readonly onClick: () => void };
+type SidebarHeroProps = {
+  readonly branding: AdminSidebarBranding;
+  readonly onClick: () => void;
+};
 
-function SidebarHero({ onClick }: SidebarHeroProps): React.ReactElement {
-  return (
-    <Link
-      href="/admin"
-      onClick={onClick}
-      className="flex flex-col gap-4 px-4 py-3 shrink-0"
-      aria-label="SocialPro CRM"
-    >
+function SidebarBrand({ branding }: { readonly branding: AdminSidebarBranding }): React.ReactElement {
+  if (branding.wordmark) {
+    return (
       <Image
-        src="/images/logos/logo-full.png"
-        alt="SocialPro"
+        src={branding.logoPath}
+        alt={branding.productName}
         width={100}
         height={56}
         className="h-7 w-auto object-contain brightness-0 invert opacity-85"
       />
+    );
+  }
+
+  return (
+    <span className="flex items-center gap-2.5">
+      <Image src={branding.logoPath} alt="" width={28} height={28} className="h-7 w-7" />
+      <strong className="text-sm font-black tracking-tight text-white">{branding.productName}</strong>
+    </span>
+  );
+}
+
+function SidebarHero({ branding, onClick }: SidebarHeroProps): React.ReactElement {
+  return (
+    <Link
+      href={branding.homeHref}
+      onClick={onClick}
+      className="flex flex-col gap-4 px-4 py-3 shrink-0"
+      aria-label={`${branding.productName} · panel de gestión`}
+    >
+      <SidebarBrand branding={branding} />
       <span className="text-[9px] font-semibold tracking-[0.2em] uppercase text-sp-admin-sidebar-muted leading-none pl-0.5">
         Panel de gestión
       </span>
@@ -75,6 +110,7 @@ function SidebarHero({ onClick }: SidebarHeroProps): React.ReactElement {
  * ```
  */
 export function AdminSidebar({
+  branding = SOCIALPRO_BRANDING,
   primaryNav,
   groups,
   moreNav,
@@ -108,14 +144,8 @@ export function AdminSidebar({
         className="md:hidden fixed top-0 inset-x-0 z-40 h-14 flex items-center justify-between px-4 border-b border-sp-admin-sidebar-border"
         style={{ background: '#0c0c14' }}
       >
-        <Link href="/admin" className="flex items-center gap-2.5" aria-label="SocialPro CRM">
-          <Image
-            src="/images/logos/logo-full.png"
-            alt="SocialPro"
-            width={100}
-            height={56}
-            className="h-7 w-auto object-contain brightness-0 invert opacity-85"
-          />
+        <Link href={branding.homeHref} className="flex items-center gap-2.5" aria-label={`${branding.productName} · panel de gestión`}>
+          <SidebarBrand branding={branding} />
         </Link>
         <button
           type="button"
@@ -154,7 +184,7 @@ export function AdminSidebar({
         ].join(' ')}
       >
         {/* Logo hero */}
-        <SidebarHero onClick={close} />
+        <SidebarHero branding={branding} onClick={close} />
 
         {/* Nav items */}
         <div className="flex-1 flex flex-col gap-0.5 py-4 px-3 overflow-y-auto">
@@ -259,7 +289,7 @@ export function AdminSidebar({
               title="Cerrar sesión"
               className="p-2 rounded-lg text-sp-admin-sidebar-muted hover:text-sp-admin-sidebar-text hover:bg-sp-admin-sidebar-hover transition-colors shrink-0"
               onClick={() => {
-                void fetch(logoutHref, { method: 'POST' }).then(() => router.push('/admin/login'));
+                void fetch(logoutHref, { method: 'POST' }).then(() => router.push(branding.loginHref));
               }}
             >
               <span className="w-4 h-4 block"><LogoutIcon /></span>
