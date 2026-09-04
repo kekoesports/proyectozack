@@ -96,13 +96,22 @@ export function CreateCodeForm({ talents, brandCatalog = [], defaultTalentId }: 
         if (crmBrandId !== null) fd.set('crmBrandId', String(crmBrandId));
         if (isFeatured) fd.set('isFeatured', 'on');
 
-        const res = await createCodeAction(fd);
-        if (res.ok) {
-          newResults.push({ variantIdx: i, ok: true });
-        } else {
+        try {
+          const res = await createCodeAction(fd);
+          if (res.ok) {
+            newResults.push({ variantIdx: i, ok: true });
+          } else {
+            allOk = false;
+            const msg = Object.values(res.fieldErrors).flat()[0] ?? 'Error';
+            newResults.push({ variantIdx: i, ok: false, error: msg });
+          }
+        } catch {
           allOk = false;
-          const msg = Object.values(res.fieldErrors).flat()[0] ?? 'Error';
-          newResults.push({ variantIdx: i, ok: false, error: msg });
+          newResults.push({
+            variantIdx: i,
+            ok: false,
+            error: 'No se pudo conectar con el servidor. Vuelve a intentarlo.',
+          });
         }
       }
 
@@ -168,8 +177,11 @@ export function CreateCodeForm({ talents, brandCatalog = [], defaultTalentId }: 
             <input value={brandName} onChange={(e) => { setBrandName(e.target.value); setCrmBrandId(null); }} required maxLength={150} placeholder="SkinClub" className={inputCls} />
           </div>
           <div>
-            <label className={labelCls}>URL de redirección *</label>
-            <input value={redirectUrl} onChange={(e) => setRedirectUrl(e.target.value)} type="url" required placeholder="https://..." className={inputCls} />
+            <label className={labelCls}>URL de redirección</label>
+            <input value={redirectUrl} onChange={(e) => setRedirectUrl(e.target.value)} type="url" placeholder="Automática para SkinsMonkey · https://..." className={inputCls} />
+            {brandName.trim().toLowerCase().replace(/[^a-z0-9]/g, '') === 'skinsmonkey' && !redirectUrl.trim() && (
+              <p className="text-[10px] text-emerald-500 mt-1">Se generará automáticamente con el código del creador.</p>
+            )}
           </div>
           <div>
             <label className={labelCls}>Logo marca (URL)</label>

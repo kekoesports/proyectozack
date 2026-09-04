@@ -109,4 +109,41 @@ describe('createCodeAction redirectUrl validation', () => {
     expect(result.fieldErrors).toHaveProperty('brandName');
     expect(mockCreateCode).not.toHaveBeenCalled();
   });
+
+  it('genera el enlace de referido de SkinsMonkey cuando su ficha no tiene URL', async () => {
+    mockCreateCode.mockResolvedValue(undefined);
+    const fd = makeFormData({
+      ...baseFields,
+      code: 'HUASO',
+      brandName: 'SkinsMonkey',
+      redirectUrl: '',
+    });
+
+    const result = await createCodeAction(fd);
+
+    expect(result).toEqual({ ok: true });
+    expect(mockCreateCode).toHaveBeenCalledWith(expect.objectContaining({
+      redirectUrl: 'https://skinsmonkey.com/es/r/HUASO',
+    }));
+  });
+
+  it('sigue exigiendo URL para marcas sin una plantilla conocida', async () => {
+    const fd = makeFormData({ ...baseFields, redirectUrl: '' });
+    const result = await createCodeAction(fd);
+
+    if (result.ok) throw new Error('expected failure');
+    expect(result.fieldErrors).toHaveProperty('redirectUrl');
+    expect(mockCreateCode).not.toHaveBeenCalled();
+  });
+
+  it('devuelve un error visible si la base de datos rechaza el guardado', async () => {
+    mockCreateCode.mockRejectedValue(new Error('database unavailable'));
+
+    const result = await createCodeAction(makeFormData(baseFields));
+
+    expect(result).toEqual({
+      ok: false,
+      fieldErrors: { form: ['No se pudo guardar el código. Vuelve a intentarlo.'] },
+    });
+  });
 });
