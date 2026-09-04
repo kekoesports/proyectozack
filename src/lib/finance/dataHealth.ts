@@ -9,7 +9,7 @@
 import { and, eq, gte, inArray, isNull, lte, ne, or, sql } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { campaigns, invoicePayments, invoices, issuedInvoices } from '@/db/schema';
-import { totalEurSql } from './money';
+import { issuedTotalEurSql, totalEurSql } from './money';
 import { ESTADOS_CERRADOS } from './talentEconomics.shared';
 import {
   ordenarChequeos,
@@ -57,6 +57,7 @@ export async function getSaludDelDato(period: {
     espejosSinFk,
     sinClasificar,
     liquidadasSinPago,
+    emitidasCobradasSinPago,
     pagosSinFicha,
     divisaSinContravalor,
     sinMetodoPago,
@@ -90,6 +91,25 @@ export async function getSaludDelDato(period: {
       .from(invoices)
       .leftJoin(invoicePayments, eq(invoicePayments.invoiceId, invoices.id))
       .where(and(inArray(invoices.status, ['cobrada', 'pagada']), enPeriodo, isNull(invoicePayments.id))),
+
+    // 3b. Facturas emitidas marcadas como cobradas sin pago bancario.
+    db
+      .select({
+        id: issuedInvoices.id,
+        kind: sql<string>`'factura_emitida'`,
+        issueDate: issuedInvoices.issueDate,
+        status: issuedInvoices.status,
+        concept: issuedInvoices.invoiceNumber,
+        importe: issuedTotalEurSql,
+      })
+      .from(issuedInvoices)
+      .leftJoin(invoicePayments, eq(invoicePayments.issuedInvoiceId, issuedInvoices.id))
+      .where(and(
+        eq(issuedInvoices.status, 'cobrada'),
+        gte(issuedInvoices.issueDate, period.from),
+        lte(issuedInvoices.issueDate, period.to),
+        isNull(invoicePayments.id),
+      )),
 
     // 4. Pagos a talento que no apuntan a ninguna ficha.
     db
@@ -291,7 +311,7 @@ export async function getSaludDelDato(period: {
 
   chequeos.push(
     hayConciliacion
-      ? construir(liquidadasBase, liquidadasSinPago.map(fila))
+      ? construir(liquidadasBase, [...liquidadasSinPago, ...emitidasCobradasSinPago].map(fila))
       : {
           ...liquidadasBase,
           estado: 'no-evaluable',

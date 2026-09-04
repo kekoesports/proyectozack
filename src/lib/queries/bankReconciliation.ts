@@ -8,6 +8,7 @@ import {
   bankTransactions,
   transactionMatches,
   bankReconciliationEvents,
+  invoicePayments,
   issuerCompanies,
   issuedInvoices,
 } from '@/db/schema';
@@ -553,7 +554,7 @@ export async function getBankMonthlyCloseSummary(opts: {
   const startDate = start.toISOString().slice(0, 10);
   const endDate = end.toISOString().slice(0, 10);
 
-  const [bankRows, invoiceRows] = await Promise.all([
+  const [bankRows, invoiceRows, paymentRows] = await Promise.all([
     db
       .select({
         currency: bankTransactions.currency,
@@ -588,6 +589,20 @@ export async function getBankMonthlyCloseSummary(opts: {
       ))
       .groupBy(issuedInvoices.currency, issuedInvoices.status)
       .orderBy(asc(issuedInvoices.currency)),
+    db
+      .select({
+        currency: invoicePayments.currency,
+        collected: sql<string>`COALESCE(SUM(${invoicePayments.amount}), 0)`,
+      })
+      .from(invoicePayments)
+      .innerJoin(issuedInvoices, eq(issuedInvoices.id, invoicePayments.issuedInvoiceId))
+      .where(and(
+        eq(issuedInvoices.issuerCompanyId, opts.issuerCompanyId),
+        gte(invoicePayments.paymentDate, startDate),
+        lt(invoicePayments.paymentDate, endDate),
+      ))
+      .groupBy(invoicePayments.currency)
+      .orderBy(asc(invoicePayments.currency)),
   ]);
 
   const bankCurrencies = bankRows.map((row) => {
@@ -626,8 +641,19 @@ export async function getBankMonthlyCloseSummary(opts: {
       current.issuedCount += invoices;
       current.billed += amount;
     }
-    if (row.status === 'cobrada') current.collected += amount;
     if (['emitida', 'enviada', 'vencida'].includes(row.status)) current.outstanding += amount;
+    invoiceMap.set(row.currency, current);
+  }
+  for (const row of paymentRows) {
+    const current = invoiceMap.get(row.currency) ?? {
+      currency: row.currency,
+      issuedCount: 0,
+      draftCount: 0,
+      billed: 0,
+      collected: 0,
+      outstanding: 0,
+    };
+    current.collected += Number(row.collected);
     invoiceMap.set(row.currency, current);
   }
 
@@ -654,7 +680,7 @@ export async function getBankAnnualCashflowSummary(opts: {
   const startDate = `${opts.year}-01-01`;
   const endDate = `${opts.year + 1}-01-01`;
 
-  const [monthRows, categoryRows, counterpartyRows, invoiceRows] = await Promise.all([
+  const [monthRows, categoryRows, counterpartyRows, invoiceRows, paymentRows] = await Promise.all([
     db
       .select({
         month: sql<number>`EXTRACT(MONTH FROM ${bankTransactions.bookingDate})::int`,
@@ -731,6 +757,21 @@ export async function getBankAnnualCashflowSummary(opts: {
       ))
       .groupBy(sql`EXTRACT(MONTH FROM ${issuedInvoices.issueDate})`, issuedInvoices.currency, issuedInvoices.status)
       .orderBy(sql`EXTRACT(MONTH FROM ${issuedInvoices.issueDate})`, asc(issuedInvoices.currency)),
+    db
+      .select({
+        month: sql<number>`EXTRACT(MONTH FROM ${invoicePayments.paymentDate})::int`,
+        currency: invoicePayments.currency,
+        collected: sql<string>`COALESCE(SUM(${invoicePayments.amount}), 0)`,
+      })
+      .from(invoicePayments)
+      .innerJoin(issuedInvoices, eq(issuedInvoices.id, invoicePayments.issuedInvoiceId))
+      .where(and(
+        eq(issuedInvoices.issuerCompanyId, opts.issuerCompanyId),
+        gte(invoicePayments.paymentDate, startDate),
+        lt(invoicePayments.paymentDate, endDate),
+      ))
+      .groupBy(sql`EXTRACT(MONTH FROM ${invoicePayments.paymentDate})`, invoicePayments.currency)
+      .orderBy(sql`EXTRACT(MONTH FROM ${invoicePayments.paymentDate})`, asc(invoicePayments.currency)),
   ]);
 
   const invoiceMap = new Map<string, {
@@ -756,8 +797,20 @@ export async function getBankAnnualCashflowSummary(opts: {
       current.billed += total;
       current.invoiceCount += Number(row.invoiceCount);
     }
-    if (row.status === 'cobrada') current.collected += total;
     if (['emitida', 'enviada', 'vencida'].includes(row.status)) current.outstanding += total;
+    invoiceMap.set(key, current);
+  }
+  for (const row of paymentRows) {
+    const key = `${row.month}:${row.currency}`;
+    const current = invoiceMap.get(key) ?? {
+      month: row.month,
+      currency: row.currency,
+      billed: 0,
+      collected: 0,
+      outstanding: 0,
+      invoiceCount: 0,
+    };
+    current.collected += Number(row.collected);
     invoiceMap.set(key, current);
   }
 
