@@ -10,19 +10,20 @@ import { getWinnersByTalent } from '@/lib/queries/giveawayWinners';
 import { WinnersList } from '@/features/giveaways/components/WinnersList';
 import { HeroSponsorCard } from '@/features/giveaways/components/HeroSponsorCard';
 import { CodesExpandable } from '@/features/giveaways/components/CodesExpandable';
-import { GiveawayFeatured } from '@/features/giveaways/components/GiveawayFeatured';
-import { GiveawayRow } from '@/features/giveaways/components/GiveawayRow';
-import { buildBreadcrumbJsonLd } from '@/lib/utils/breadcrumbs';
-import { absoluteUrl, schemaImageUrl } from '@/lib/site-url';
+import { TalentGiveawaysContent } from '@/features/giveaways/components/TalentGiveawaysContent';
+import { TalentProfileIcon } from '@/features/giveaways/components/TalentProfileIcon';
+import { absoluteUrl } from '@/lib/site-url';
 import { buildTalentImageAlt, buildTalentMetaDescription, buildTalentSearchTitle } from '@/lib/talentSeo';
 import { TalentLiveWidget } from '@/features/giveaways/components/TalentLiveWidget';
 import { generateEventSchema } from '@/lib/schema';
 import { Cs2LabCard } from '@/components/cs2-lab/Cs2LabCard';
-import { TalentSeoSection, generateTalentFaqs } from '@/features/giveaways/components/TalentSeoSection';
+import { TalentSeoSection } from '@/features/giveaways/components/TalentSeoSection';
 import { countryFlagEmoji, getFlagImageUrl } from '@/lib/flag-images';
 import { getCountryLabel } from '@/lib/countries';
 import { TalentViewTracker } from '@/components/tracking/TalentViewTracker';
-import type { CreatorCodeWithTalent, GiveawayWithTalent, Talent } from '@/types';
+import { getExternalGiveawaysForCreator } from '@/lib/queries/externalGiveaways';
+import { buildTalentStructuredData, toTalentBase } from '@/features/giveaways/talent-profile-data';
+import type { CreatorCodeWithTalent, GiveawayWithTalent } from '@/types';
 
 export const revalidate = 3600;
 export const dynamicParams = true;
@@ -59,52 +60,17 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
-function toTalentBase(t: Talent & Record<string, unknown>): Talent {
-  return {
-    id: t.id, slug: t.slug, name: t.name, role: t.role, role2: t.role2 ?? null, game: t.game,
-    platform: t.platform, status: t.status, bio: t.bio,
-    gradientC1: t.gradientC1, gradientC2: t.gradientC2,
-    initials: t.initials, photoUrl: t.photoUrl, sortOrder: t.sortOrder,
-    visibility: t.visibility, topGeos: t.topGeos,
-    audienceLanguage: t.audienceLanguage, creatorCountry: t.creatorCountry,
-    audienceStatus: t.audienceStatus, lastStatsUpdateAt: t.lastStatsUpdateAt,
-    updatedAt: t.updatedAt, cnmcStatus: t.cnmcStatus,
-    cnmcRegisteredAt: t.cnmcRegisteredAt, cnmcNotes: t.cnmcNotes,
-    hasRcInsurance: t.hasRcInsurance, taxType: t.taxType,
-    nif: t.nif, fiscalName: t.fiscalName, fiscalAddress: t.fiscalAddress,
-    iaeEpigrafe: t.iaeEpigrafe, iaeActividad: t.iaeActividad,
-    featuredLive: t.featuredLive, excludeFromLive: t.excludeFromLive, featuredFallback: t.featuredFallback,
-    bioLong: t.bioLong, highlights: t.highlights,
-    seoBioGenerated: t.seoBioGenerated, seoBioManual: t.seoBioManual,
-    seoBioStatus: t.seoBioStatus, seoTitle: t.seoTitle,
-    seoDescription: t.seoDescription, seoKeywords: t.seoKeywords,
-    isPublished: t.isPublished, showInRoster: t.showInRoster,
-    archivedAt: t.archivedAt, archivedBy: t.archivedBy,
-  };
-}
-
-function PlatformIcon({ platform }: { platform: string }): React.ReactElement {
-  const cls = 'w-3 h-3 shrink-0';
-  if (platform === 'twitch')    return <svg className={cls} viewBox="0 0 24 24" fill="currentColor"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z"/></svg>;
-  if (platform === 'youtube')   return <svg className={cls} viewBox="0 0 24 24" fill="currentColor"><path d="M23.495 6.205a3.007 3.007 0 0 0-2.088-2.088c-1.87-.501-9.396-.501-9.396-.501s-7.507-.01-9.396.501A3.007 3.007 0 0 0 .527 6.205a31.247 31.247 0 0 0-.522 5.805 31.247 31.247 0 0 0 .522 5.783 3.007 3.007 0 0 0 2.088 2.088c1.868.502 9.396.502 9.396.502s7.506 0 9.396-.502a3.007 3.007 0 0 0 2.088-2.088 31.247 31.247 0 0 0 .5-5.783 31.247 31.247 0 0 0-.5-5.805zM9.609 15.601V8.408l6.264 3.602z"/></svg>;
-  if (platform === 'instagram') return <svg className={cls} viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/></svg>;
-  if (platform === 'tiktok')    return <svg className={cls} viewBox="0 0 24 24" fill="currentColor"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg>;
-  if (platform === 'kick')      return <svg className={cls} viewBox="0 0 24 24" fill="currentColor"><path d="M3 3h18v18H3zm9.75 4.5H9v9h3.75v-3l2.25 3H18l-3-4.5L18 7.5h-3l-2.25 3z"/></svg>;
-  if (platform === 'x' || platform === 'twitter') return <svg className={cls} viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>;
-  if (platform === 'discord')   return <svg className={cls} viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057.102 18.076.11 18.094.12 18.11a19.9 19.9 0 0 0 5.993 3.03.077.077 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>;
-  return <svg className={cls} viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10" opacity=".3"/><path d="M12 6v6l4 2"/></svg>;
-}
-
 export default async function TalentPage({ params }: PageProps) {
   const { slug } = await params;
   const talent = await getTalentBySlug(slug);
   if (!talent) notFound();
 
-  const [codes, active, finished, winners] = await Promise.all([
+  const [codes, active, finished, winners, externalSections] = await Promise.all([
     getCodesByTalent(talent.id),
     getActiveGiveaways(talent.id),
     getFinishedGiveaways(talent.id),
     getWinnersByTalent(talent.id, 5),
+    getExternalGiveawaysForCreator(talent.slug),
   ]);
 
   // No hacer notFound aunque no haya contenido — mostramos el perfil igualmente
@@ -115,8 +81,8 @@ export default async function TalentPage({ params }: PageProps) {
   const finishedWithTalent: GiveawayWithTalent[]    = finished.map((g) => ({ ...g, talent: base }));
   const heroCode       = codesWithTalent.find((c) => c.isFeatured) ?? null;
   const secondaryCodes = heroCode ? codesWithTalent.filter((c) => c.id !== heroCode.id) : codesWithTalent;
-  const featuredGiveaway = activeWithTalent[0] ?? null;
-  const restGiveaways    = activeWithTalent.slice(1);
+  const externalActiveCount = externalSections.status === 'ok' ? externalSections.active.length : 0;
+  const activeGiveawayCount = activeWithTalent.length + externalActiveCount;
   const mainSocial       = talent.socials.find((s) => s.platform === talent.platform) ?? talent.socials[0];
   const photoAlt         = buildTalentImageAlt(talent);
   const bioSnippet       = talent.bio?.trim()
@@ -131,66 +97,7 @@ export default async function TalentPage({ params }: PageProps) {
     /cs[: ]?2|counter[- ]?strike/i.test(talent.game) ||
     talent.tags.some((t) => /cs[: ]?2|counter[- ]?strike/i.test(t.tag));
 
-  const parseFollowers = (d: string): number => {
-    const c = d.trim();
-    if (/[Mm]$/i.test(c)) return Math.round(parseFloat(c) * 1_000_000);
-    if (/[Kk]$/i.test(c)) return Math.round(parseFloat(c) * 1_000);
-    return parseInt(c.replace(/[.,\s]/g, ''), 10) || 0;
-  };
-
-  const personSchema = {
-    '@type': 'Person',
-    '@id': absoluteUrl(`/talentos/${slug}`),
-    name: talent.name,
-    jobTitle: talent.role,
-    url: absoluteUrl(`/talentos/${slug}`),
-    ...(talent.bio || talent.bioLong ? { description: (talent.bio ?? talent.bioLong ?? '').trim().slice(0, 500) } : {}),
-    ...(schemaImageUrl(talent.photoUrl) ? { image: schemaImageUrl(talent.photoUrl) } : {}),
-    ...(talent.tags.length > 0 ? { knowsAbout: talent.tags.map((t) => t.tag) } : {}),
-    ...((() => {
-      const stats = talent.socials
-        .filter((s) => s.followersDisplay && s.followersDisplay !== '-')
-        .map((s) => ({ '@type': 'InteractionCounter', interactionType: 'https://schema.org/FollowAction', userInteractionCount: parseFollowers(s.followersDisplay), name: s.platform }));
-      return stats.length > 0 ? { interactionStatistic: stats } : {};
-    })()),
-    worksFor: { '@type': 'Organization', '@id': absoluteUrl('/#organization') },
-    sameAs: talent.socials.filter((s) => s.profileUrl).map((s) => s.profileUrl),
-  };
-
-  // FAQPage schema — generado dinámicamente desde datos del talento
-  const talentFaqs = generateTalentFaqs({
-    name: talent.name, role: talent.role, game: talent.game, platform: talent.platform,
-    bioLong: talent.bioLong, tags: talent.tags, socials: talent.socials,
-    topGeos: talent.topGeos as { country: string; pct: number }[] | null,
-    audienceLanguage: talent.audienceLanguage, creatorCountry: talent.creatorCountry,
-  });
-  const faqPageJsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'FAQPage',
-    mainEntity: talentFaqs.map((f) => ({
-      '@type': 'Question',
-      name: f.q,
-      acceptedAnswer: { '@type': 'Answer', text: f.a },
-    })),
-  };
-
-  // ProfilePage wrapper — provides better entity understanding for Googlebot
-  const profilePageJsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'ProfilePage',
-    '@id': absoluteUrl(`/talentos/${slug}#profilepage`),
-    url: absoluteUrl(`/talentos/${slug}`),
-    name: `${buildTalentSearchTitle(talent)} | SocialPro`,
-    inLanguage: 'es',
-    dateModified: talent.updatedAt.toISOString(),
-    isPartOf: { '@type': 'WebSite', '@id': absoluteUrl('/#website') },
-    mainEntity: personSchema,
-  };
-
-  const breadcrumbJsonLd = buildBreadcrumbJsonLd([
-    { name: 'Talentos', url: absoluteUrl('/talentos') },
-    { name: talent.name, url: absoluteUrl(`/talentos/${slug}`) },
-  ]);
+  const { profilePageJsonLd, faqPageJsonLd, breadcrumbJsonLd } = buildTalentStructuredData(talent);
 
   return (
     <div className="min-h-screen relative overflow-x-hidden"
@@ -272,11 +179,11 @@ export default async function TalentPage({ params }: PageProps) {
                       )}
                     </span>
                   )}
-                  {activeWithTalent.length > 0 && (
+                  {activeGiveawayCount > 0 && (
                     <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider"
                       style={{ background: 'rgba(195,252,0,0.12)', border: '1px solid rgba(195,252,0,0.25)', color: '#C3FC00' }}>
                       <span className="w-1.5 h-1.5 rounded-full bg-[#C3FC00] animate-pulse" aria-hidden />
-                      {activeWithTalent.length} live
+                      {activeGiveawayCount} live
                     </span>
                   )}
                   {codesWithTalent.length > 0 && (
@@ -297,13 +204,13 @@ export default async function TalentPage({ params }: PageProps) {
                     s.profileUrl ? (
                       <a key={s.id} href={s.profileUrl} target="_blank" rel="noopener noreferrer"
                         className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-white/10 bg-white/[0.05] hover:border-white/25 hover:bg-white/[0.09] transition-all">
-                        <span style={{ color: s.hexColor ?? 'white' }}><PlatformIcon platform={s.platform} /></span>
+                        <span style={{ color: s.hexColor ?? 'white' }}><TalentProfileIcon platform={s.platform} /></span>
                         <span className="text-[11px] font-bold tabular-nums text-white/80">{s.followersDisplay}</span>
                         <span className="text-[9px] uppercase tracking-wider text-white/35">{s.platform}</span>
                       </a>
                     ) : (
                       <div key={s.id} className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-white/[0.06] bg-white/[0.02]">
-                        <span style={{ color: s.hexColor ?? 'currentColor' }}><PlatformIcon platform={s.platform} /></span>
+                        <span style={{ color: s.hexColor ?? 'currentColor' }}><TalentProfileIcon platform={s.platform} /></span>
                         <span className="text-[11px] font-bold tabular-nums text-white/35">{s.followersDisplay}</span>
                       </div>
                     )
@@ -331,13 +238,13 @@ export default async function TalentPage({ params }: PageProps) {
             </div>
 
             {/* Preview rewards desktop */}
-            {(codesWithTalent.length > 0 || activeWithTalent.length > 0) && (
+            {(codesWithTalent.length > 0 || activeGiveawayCount > 0) && (
               <div className="hidden lg:flex flex-col gap-2 w-[200px] shrink-0">
                 <p className="text-[9px] font-black uppercase tracking-[0.25em] text-white/25 mb-1">Recompensas activas</p>
-                {activeWithTalent.length > 0 && (
+                {activeGiveawayCount > 0 && (
                   <a href="#sorteos" className="flex items-center gap-2 px-3 py-2 rounded-xl border border-[#C3FC00]/15 bg-[#C3FC00]/[0.06] hover:bg-[#C3FC00]/[0.10] transition-colors">
                     <span className="w-2 h-2 rounded-full bg-[#C3FC00] animate-pulse shrink-0" aria-hidden />
-                    <span className="text-[11px] font-black text-[#C3FC00]">{activeWithTalent.length} sorteo{activeWithTalent.length > 1 ? 's' : ''} live</span>
+                    <span className="text-[11px] font-black text-[#C3FC00]">{activeGiveawayCount} sorteo{activeGiveawayCount > 1 ? 's' : ''} live</span>
                   </a>
                 )}
                 {codesWithTalent.slice(0, 4).map((c) => {
@@ -436,33 +343,14 @@ export default async function TalentPage({ params }: PageProps) {
               </section>
             )}
 
-            {activeWithTalent.length > 0 && (
-              <section id="sorteos" className="space-y-3" aria-labelledby="sorteos-heading">
-                <div className="flex items-center justify-between gap-2 mb-1">
-                  <div className="flex items-center gap-2">
-                    <h2 id="sorteos-heading" className="text-[10px] font-black uppercase tracking-[0.25em] text-white/30">Sorteos activos</h2>
-                    <span className="flex items-center gap-1 text-[9px] font-black text-[#C3FC00]">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#C3FC00] animate-pulse" aria-hidden />
-                      {activeWithTalent.length} live
-                    </span>
-                  </div>
-                  <Link
-                    href={`/sorteos?creator=${talent.slug}`}
-                    className="inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider text-white/35 hover:text-sp-orange transition-colors"
-                    aria-label={`Ver todos los sorteos de ${talent.name}`}
-                  >
-                    Ver todos en sorteos
-                    <span aria-hidden>→</span>
-                  </Link>
-                </div>
-                {featuredGiveaway && <GiveawayFeatured giveaway={featuredGiveaway} />}
-                {restGiveaways.length > 0 && (
-                  <div className="space-y-2">
-                    {restGiveaways.map((g) => <GiveawayRow key={g.id} giveaway={g} />)}
-                  </div>
-                )}
-              </section>
-            )}
+            <TalentGiveawaysContent
+              talentName={talent.name}
+              talentSlug={talent.slug}
+              hasCodes={codesWithTalent.length > 0}
+              active={activeWithTalent}
+              finished={finishedWithTalent}
+              externalSections={externalSections}
+            />
 
             {/* Últimos ganadores */}
             {winners.length > 0 && (
@@ -479,38 +367,6 @@ export default async function TalentPage({ params }: PageProps) {
               </section>
             )}
 
-          {/* Estado vacío si no hay códigos ni sorteos */}
-            {codesWithTalent.length === 0 && activeWithTalent.length === 0 && finishedWithTalent.length === 0 && (
-              <div className="flex flex-col items-center justify-center py-20 text-center">
-                <div className="w-14 h-14 rounded-2xl border border-white/[0.08] bg-white/[0.03] flex items-center justify-center mb-4">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-white/20">
-                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                  </svg>
-                </div>
-                <p className="text-sm font-bold text-white/30 uppercase tracking-wider">Próximamente</p>
-                <p className="text-xs text-white/20 mt-1">No hay códigos ni sorteos activos de momento</p>
-                <a
-                  href={`/contacto?type=brand&talent=${encodeURIComponent(talent.name)}`}
-                  className="mt-6 inline-flex items-center gap-2 px-5 py-2 rounded-full text-xs font-bold uppercase tracking-wider text-white/60 border border-white/10 hover:border-white/25 hover:text-white transition-all"
-                >
-                  Contactar para colaborar →
-                </a>
-              </div>
-            )}
-
-          {/* Finalizados en mobile */}
-            {finishedWithTalent.length > 0 && (
-              <details className="lg:hidden group border-t border-white/[0.06] pt-6">
-                <summary className="cursor-pointer list-none flex items-center justify-between mb-4">
-                  <p className="text-[10px] font-black uppercase tracking-[0.25em] text-white/25">Finalizados · {finishedWithTalent.length}</p>
-                  <span className="text-[10px] font-bold text-white/20 group-open:hidden">Mostrar ▸</span>
-                  <span className="text-[10px] font-bold text-white/20 hidden group-open:inline">Ocultar ▴</span>
-                </summary>
-                <div className="space-y-2">
-                  {finishedWithTalent.map((g) => <GiveawayRow key={g.id} giveaway={g} finished />)}
-                </div>
-              </details>
-            )}
           </div>
 
           {/* Sidebar desktop */}

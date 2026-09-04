@@ -1,7 +1,8 @@
 # Capacidades de la KeyDrop Giveaway API en perfiles SocialPro
 
-**Estado:** decisión de diseño — 2026-07-03
-**Ámbito:** Integración KeyDrop en `/sorteos/[creatorSlug]`
+**Estado:** decisión de diseño — actualizado 2026-09-04
+**Ámbito:** Integración KeyDrop en `/sorteos/[creatorSlug]`, perfiles públicos
+`/talentos/[slug]` e informe diario de Discord.
 **Docs relacionados:**
 - `docs/keydrop-single-giveaway-endpoint.md` (diagnóstico del endpoint singular)
 - `docs/external-giveaways-provider-onboarding.md` (checklist de onboarding de partners)
@@ -27,8 +28,7 @@
 ## Datos que SÍ podemos leer
 
 Endpoint autenticado: `GET https://ws-2071.socket-cs.com/v1/giveaway-user/api/list`
-(header `x-api-key`, key por afiliado — hoy solo `KEYDROP_ZACKETIZOR_API_KEY`
-en Vercel Production).
+(header `x-api-key`, una key independiente por afiliado).
 
 Shape verificada por probe real y por
 `src/lib/external-giveaways/providers/keydrop/zod-schemas.ts`:
@@ -66,9 +66,11 @@ programa afiliado y no requiere consentimiento adicional del usuario.
 
 ## Qué mostramos hoy y qué podemos añadir
 
-### Ya expuesto en `/sorteos/[creatorSlug]`
+### Ya expuesto
 
-Vía `ExternalGiveawaysSection` + `ExternalGiveawayCard`:
+Vía `ExternalGiveawaysSection` + `ExternalGiveawayCard` en
+`/sorteos/[creatorSlug]`, y mediante el mismo query en
+`/talentos/[slug]`:
 
 - Sorteos activos y finalizados por creador.
 - Imagen del premio (`prizes[0].itemImg`).
@@ -77,6 +79,8 @@ Vía `ExternalGiveawaysSection` + `ExternalGiveawayCard`:
 - Deadline / countdown por sorteo.
 - CTA deep link con código promocional aplicado.
 - Placeholder honesto de ranking (`ProviderRankingPlaceholder`).
+- Sorteos activos y contador por sorteo en el perfil público del talento.
+- Informe diario de Discord con el mismo contador por sorteo y creador.
 
 ### Podemos añadir sin riesgo (mismos datos, más pantalla)
 
