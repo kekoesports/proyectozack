@@ -214,6 +214,25 @@ describe('assertInvoicePayable — guards al aplicar cobros/pagos', () => {
     expect((caught as PaymentGuardError).reason).toBe('already_completed');
   });
 
+  it('permite reparar una factura legacy cobrada sin pago canónico desde conciliación', () => {
+    expect(() => assertInvoicePayable({
+      ...base,
+      status: 'cobrada',
+      amountToApply: '1500.00',
+      allowLegacySettledRepair: true,
+    })).not.toThrow();
+  });
+
+  it('no duplica una factura legacy que ya tiene el total canónico registrado', () => {
+    expect(() => assertInvoicePayable({
+      ...base,
+      status: 'cobrada',
+      previouslyPaid: '1500.00',
+      amountToApply: '1.00',
+      allowLegacySettledRepair: true,
+    })).toThrow(PaymentGuardError);
+  });
+
   it('rechaza aplicar pago a invoice interna anulada (income)', () => {
     let caught: unknown;
     try {
