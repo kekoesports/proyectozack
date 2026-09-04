@@ -1,4 +1,5 @@
 import { headers } from 'next/headers';
+import type { Metadata } from 'next';
 import { requireAnyRole } from '@/lib/auth-guard';
 import { getDashboardAlerts, getActiveTrackerCompletedAlerts } from '@/lib/queries/alerts';
 import { AdminSidebar } from '@/features/admin/_shared/components/AdminSidebar';
@@ -19,6 +20,26 @@ import {
 import type { ReactNode } from 'react';
 
 type AdminLayoutProps = { children: ReactNode };
+
+async function isKekoPilotRequest(): Promise<boolean> {
+  const requestHeaders = await headers();
+  const requestHost = requestHeaders.get('x-forwarded-host') ?? requestHeaders.get('host');
+
+  return isKekoPilotAppHost(requestHost);
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  if (!(await isKekoPilotRequest())) {
+    return {};
+  }
+
+  return {
+    title: {
+      default: 'KekoPilot Panel',
+      template: '%s | KekoPilot',
+    },
+  };
+}
 
 const NAV_ICONS: Record<AdminNavKey, React.ReactNode> = {
   panel: <DashboardIcon />,
@@ -52,14 +73,12 @@ const NAV_ICONS: Record<AdminNavKey, React.ReactNode> = {
 };
 
 export default async function AdminLayout({ children }: AdminLayoutProps): Promise<React.ReactElement> {
-  const requestHeadersPromise = headers();
+  const isKekoPilotPromise = isKekoPilotRequest();
   const session = await requireAnyRole(
     ['admin', 'admin_limited_tasks', 'manager', 'staff', 'editor', 'finance', 'analyst', 'ops', 'talent_manager'],
     '/admin/login',
   );
-  const requestHeaders = await requestHeadersPromise;
-  const requestHost = requestHeaders.get('x-forwarded-host') ?? requestHeaders.get('host');
-  const isKekoPilot = isKekoPilotAppHost(requestHost);
+  const isKekoPilot = await isKekoPilotPromise;
   const panelConfig = isKekoPilot ? getKekoPilotPanelConfig() : null;
   const sidebarBranding = panelConfig
     ? {
