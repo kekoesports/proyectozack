@@ -5,6 +5,7 @@ import {
   Bot,
   BriefcaseBusiness,
   CheckSquare2,
+  ChevronRight,
   CircleGauge,
   Euro,
   FileText,
@@ -49,6 +50,33 @@ type PanelSidebarProps = {
   readonly workspace: PanelWorkspace;
 };
 
+const ROLE_LABELS: Readonly<Record<string, string>> = {
+  super_admin: 'Superadministrador',
+  admin: 'Administrador',
+  admin_limited_tasks: 'Administrador de tareas',
+  analyst: 'Analista',
+  brand: 'Marca',
+  editor: 'Editor',
+  manager: 'Responsable',
+  ops: 'Operaciones',
+  staff: 'Equipo',
+  owner: 'Propietario',
+  operations_manager: 'Responsable de operaciones',
+  talent_manager: 'Talent manager',
+  sales: 'Ventas',
+  finance: 'Finanzas',
+  content_seo: 'Contenido y SEO',
+  viewer: 'Solo lectura',
+  external_collaborator: 'Colaborador externo',
+};
+
+function roleLabel(role: string): string {
+  const knownLabel = ROLE_LABELS[role];
+  if (knownLabel) return knownLabel;
+  const readable = role.replaceAll('_', ' ').trim();
+  return readable ? `${readable[0]?.toUpperCase() ?? ''}${readable.slice(1)}` : 'Usuario';
+}
+
 export function PanelSidebar({ activeView, branding, counts, onViewChange, user, workspace }: PanelSidebarProps) {
   const activeLabel = activeView === 'pipeline' || activeView === 'deal' ? 'Deals' : 'Command Center';
 
@@ -69,11 +97,11 @@ export function PanelSidebar({ activeView, branding, counts, onViewChange, user,
             <strong>{workspace.name}</strong>
             <small>{workspace.meta}</small>
           </span>
-          <span className={styles.workspaceChevron} aria-hidden="true">→</span>
+          <ChevronRight className={styles.workspaceChevron} aria-hidden="true" size={14} />
         </Link>
       </div>
 
-      <nav className={styles.sidebarNav}>
+      <nav aria-label="Secciones del panel" className={styles.sidebarNav}>
         {NAVIGATION.map((group) => (
           <div className={styles.navGroup} key={group.title}>
             <span className={styles.navGroupTitle}>{group.title}</span>
@@ -104,7 +132,7 @@ export function PanelSidebar({ activeView, branding, counts, onViewChange, user,
 
       <div className={styles.userBlock}>
         <span>{user.initials}</span>
-        <div><strong>{user.name}</strong><small>{user.role.replaceAll('_', ' ')}</small></div>
+        <div><strong>{user.name}</strong><small>{roleLabel(user.role)}</small></div>
       </div>
     </aside>
   );

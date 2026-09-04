@@ -31,7 +31,7 @@ export function generateMetadata(): Metadata {
   return createKekoPilotPanelMetadata(getKekoPilotPanelConfig(), 'panel');
 }
 
-export const viewport: Viewport = { themeColor: '#0b1113' };
+export const viewport: Viewport = { themeColor: '#f1efea' };
 
 export default async function KekoPilotPanelPage(): Promise<React.ReactElement> {
   const session = await requirePermission('campanas', 'read', '/login');

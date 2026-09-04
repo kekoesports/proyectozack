@@ -14,6 +14,10 @@ type DealsPipelineProps = {
   readonly searchQuery: string;
 };
 
+function dealCountLabel(count: number): string {
+  return `${count} ${count === 1 ? 'deal' : 'deals'}`;
+}
+
 function matchesFilter(filter: PipelineFilter, flags: KekoPilotPanelData['pipeline']['stages'][number]['deals'][number]['flags']): boolean {
   if (filter === 'Míos') return flags.mine;
   if (filter === 'Bloqueados') return flags.blocked;
@@ -51,7 +55,7 @@ export function DealsPipeline({ activeDealId, data, onOpenDeal, searchQuery }: D
         <div className={styles.board}>
           {stages.map((stage) => (
             <section className={styles.stage} key={stage.name}>
-              <header><h2>{stage.name}</h2><span>{stage.deals.length} deals</span><strong>{stage.total}</strong></header>
+              <header><h2>{stage.name}</h2><span>{dealCountLabel(stage.deals.length)}</span><strong>{stage.total}</strong></header>
               <div>
                 {stage.deals.map((deal) => (
                   <button
