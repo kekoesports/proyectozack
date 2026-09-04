@@ -233,7 +233,7 @@ export function CampaignsList({
           label="Pendiente de cobro (marca)"
           value={EUR.format(kpis.pendienteCobro)}
           accent="#f59e0b"
-          sub={fmtCurrencyBreakdown(kpis.pendienteCobroEUR, kpis.pendienteCobroUSD, rate) ?? 'Tratos sin marcar como pagados'}
+          sub={fmtCurrencyBreakdown(kpis.pendienteCobroEUR, kpis.pendienteCobroUSD, rate) ?? 'Saldo de tratos sin cobrar o parciales'}
         />
         <KpiCard
           label="Pendiente de pago (talento)"
@@ -242,6 +242,14 @@ export function CampaignsList({
           sub={fmtCurrencyBreakdown(kpis.pendienteTalentEUR, kpis.pendienteTalentUSD, rate) ?? 'Importe a transferir a los creadores'}
         />
       </div>
+
+      <p className="-mt-2 text-[10px] text-sp-admin-muted">
+        Estos saldos operativos respetan los estados de cobro y pago mostrados en cada trato.
+        La verificación contra movimientos bancarios se realiza en{' '}
+        <Link href="/admin/facturacion/bancos/conciliacion" className="font-semibold text-sp-admin-accent hover:underline">
+          Conciliación bancaria
+        </Link>.
+      </p>
 
       {/* ── Filtros ───────────────────────────────────────────────── */}
       <CampaignFilters
