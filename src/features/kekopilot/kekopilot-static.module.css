@@ -1,6 +1,6 @@
 .contentSection {
   padding: clamp(5.5rem, 7vw, 7.5rem) 0;
-  border-bottom: 1px solid var(--kp-line);
+  border-bottom: 2px solid var(--kp-line);
   background: var(--kp-bg);
   content-visibility: auto;
   contain-intrinsic-size: 760px;
@@ -18,9 +18,9 @@
   margin: 0;
   font-family: var(--kp-font-heading), sans-serif;
   font-size: clamp(3rem, 5.3vw, 6.25rem);
-  font-weight: 600;
-  line-height: 0.9;
-  letter-spacing: -0.05em;
+  font-weight: 800;
+  line-height: 0.96;
+  letter-spacing: -0.045em;
   text-wrap: balance;
 }
 
@@ -198,9 +198,7 @@
   background: transparent;
 }
 
-.trustSection {
-  background: #080d0f;
-}
+.trustSection { background: #ebe9e8; }
 
 .trustGrid {
   display: grid;
@@ -230,15 +228,15 @@
 }
 
 .controlLog {
-  border: 1px solid var(--kp-line-strong);
-  background: var(--kp-panel);
+  border: 2px solid #201e1d;
+  background: #f3f2f2;
 }
 
 .controlHeader {
   display: flex;
   justify-content: space-between;
   padding: 1rem 1.25rem;
-  border-bottom: 1px solid var(--kp-line);
+  border-bottom: 2px solid var(--kp-line);
   color: var(--kp-muted);
   font-family: var(--kp-font-mono), monospace;
   font-size: 0.58rem;
@@ -258,7 +256,6 @@
   width: 6px;
   height: 6px;
   background: var(--kp-amber);
-  box-shadow: 0 0 12px rgba(255, 176, 32, 0.55);
 }
 
 .controlLog article {
@@ -297,8 +294,8 @@
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   margin-top: 4rem;
-  border-top: 1px solid var(--kp-line);
-  border-left: 1px solid var(--kp-line);
+  border-top: 2px solid var(--kp-line);
+  border-left: 2px solid var(--kp-line);
 }
 
 .integrationGrid article {
@@ -325,7 +322,7 @@
 
 .footer {
   padding: 5rem 0 2rem;
-  background: #070b0c;
+  background: #dedbd9;
 }
 
 .footerMain {
@@ -365,7 +362,7 @@
 .footerMain a,
 .footerBottom a {
   width: fit-content;
-  color: var(--kp-bone);
+  color: #201e1d;
   font-size: 0.9rem;
   text-decoration: none;
 }
@@ -382,7 +379,7 @@
   justify-content: space-between;
   margin-top: 5rem;
   padding-top: 1.4rem;
-  border-top: 1px solid var(--kp-line);
+  border-top: 2px solid var(--kp-line);
 }
 
 @media (max-width: 900px) {

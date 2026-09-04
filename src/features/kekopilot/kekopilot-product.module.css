@@ -1,32 +1,39 @@
 .promiseSection {
   position: relative;
   overflow: hidden;
+  min-height: 760px;
   padding: clamp(6rem, 10vw, 10rem) 0 0;
-  border-bottom: 1px solid var(--kp-line);
-  background: #080d0f;
+  border-bottom: 2px solid var(--kp-line);
+  background: var(--kp-dark);
+  color: #fff;
 }
 
 .promiseSection::before {
   position: absolute;
   inset: 0;
   content: '';
-  background:
-    radial-gradient(circle at 76% 30%, rgba(255, 176, 32, 0.13), transparent 25%),
-    linear-gradient(var(--kp-line) 1px, transparent 1px),
-    linear-gradient(90deg, var(--kp-line) 1px, transparent 1px);
-  background-size: auto, 8rem 8rem, 8rem 8rem;
-  mask-image: linear-gradient(90deg, transparent, black 42%, black);
-  opacity: 0.45;
+  background: linear-gradient(90deg, rgba(26, 24, 23, 0.98) 0 48%, rgba(26, 24, 23, 0.55) 67%, transparent);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.promiseVisual {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 58%;
 }
 
 .promiseLead,
 .promiseRules {
   position: relative;
+  z-index: 2;
 }
 
 .promiseLead {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(280px, 0.45fr);
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 0.38fr);
   gap: clamp(3rem, 8vw, 9rem);
   align-items: end;
   padding-bottom: clamp(5rem, 8vw, 8rem);
@@ -36,9 +43,9 @@
   margin: 0;
   font-family: var(--kp-font-heading), sans-serif;
   font-size: clamp(4rem, 8vw, 9rem);
-  font-weight: 600;
-  line-height: 0.84;
-  letter-spacing: -0.06em;
+  font-weight: 800;
+  line-height: 0.94;
+  letter-spacing: -0.05em;
   text-wrap: balance;
 }
 
@@ -55,15 +62,16 @@
 .promiseRules {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  border-top: 1px solid var(--kp-line);
-  border-left: 1px solid var(--kp-line);
+  border-top: 2px solid rgba(255, 255, 255, 0.28);
+  border-left: 2px solid rgba(255, 255, 255, 0.28);
 }
 
 .promiseRules article {
   min-height: 230px;
   padding: 1.5rem;
-  border-right: 1px solid var(--kp-line);
-  background: rgba(18, 28, 31, 0.56);
+  border-right: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(26, 24, 23, 0.76);
+  backdrop-filter: blur(9px);
 }
 
 .promiseRules article > span,
@@ -95,9 +103,9 @@
 
 .productSection {
   padding: clamp(6rem, 9vw, 9rem) 0;
-  border-bottom: 1px solid rgba(11, 17, 19, 0.18);
-  background: #e9e6dd;
-  color: #0b1113;
+  border-bottom: 2px solid var(--kp-line);
+  background: #ebe9e8;
+  color: #201e1d;
 }
 
 .productIntro {
@@ -108,7 +116,7 @@
 
 .productIntro > span {
   padding-top: 0.75rem;
-  color: #a96100;
+  color: #bf2410;
 }
 
 .productIntro h2 {
@@ -116,16 +124,16 @@
   margin: 0;
   font-family: var(--kp-font-heading), sans-serif;
   font-size: clamp(3.4rem, 6.4vw, 7rem);
-  font-weight: 650;
-  line-height: 0.88;
-  letter-spacing: -0.055em;
+  font-weight: 800;
+  line-height: 0.95;
+  letter-spacing: -0.045em;
   text-wrap: balance;
 }
 
 .productIntro p {
   max-width: 60ch;
   margin: 2rem 0 0;
-  color: #4f5755;
+  color: #615d59;
   font-size: 1.08rem;
   line-height: 1.65;
 }
@@ -139,7 +147,7 @@
 
 .productSummary article {
   padding-top: 1rem;
-  border-top: 2px solid rgba(11, 17, 19, 0.78);
+  border-top: 2px solid #201e1d;
 }
 
 .productSummary h3 {
@@ -150,7 +158,7 @@
 
 .productSummary p {
   margin: 0;
-  color: #59615f;
+  color: #615d59;
   line-height: 1.5;
 }
 
@@ -161,17 +169,17 @@
   align-items: center;
   margin-top: 4rem;
   padding: 1.5rem 0;
-  border-top: 1px solid rgba(11, 17, 19, 0.22);
-  border-bottom: 1px solid rgba(11, 17, 19, 0.22);
+  border-top: 2px solid var(--kp-line);
+  border-bottom: 2px solid var(--kp-line);
 }
 
-.socialProof p { margin: 0.5rem 0 0; color: #4f5755; }
+.socialProof p { margin: 0.5rem 0 0; color: #615d59; }
 
 .socialProof a {
   display: inline-flex;
   gap: 1.5rem;
   padding-bottom: 0.35rem;
-  border-bottom: 1px solid #a96100;
+  border-bottom: 1px solid var(--kp-amber);
   font-family: var(--kp-font-heading), sans-serif;
   font-weight: 650;
   text-decoration: none;
@@ -182,6 +190,7 @@
   .productIntro { grid-template-columns: 1fr; }
   .promiseRules { grid-template-columns: 1fr; }
   .promiseRules article { min-height: 190px; border-bottom: 1px solid var(--kp-line); }
+  .promiseVisual { width: 100%; opacity: 0.48; }
   .productSummary { grid-template-columns: repeat(2, 1fr); }
 }
 

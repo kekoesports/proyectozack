@@ -1,9 +1,9 @@
 .productConsole {
   margin-top: 4.5rem;
-  border: 1px solid rgba(11, 17, 19, 0.28);
-  background: #11191b;
+  border: 2px solid #201e1d;
+  background: #f3f2f2;
   color: var(--kp-bone);
-  box-shadow: 0 24px 80px rgba(11, 17, 19, 0.13);
+  box-shadow: none;
 }
 
 .productTabs {
@@ -58,7 +58,7 @@
 .productTabs button:hover,
 .productTabs button:focus-visible,
 .productTabs button[aria-selected='true'] {
-  background: rgba(255, 176, 32, 0.08);
+  background: rgba(236, 48, 19, 0.09);
   color: var(--kp-bone);
 }
 
@@ -75,7 +75,6 @@
   width: 6px;
   height: 6px;
   background: var(--kp-amber);
-  box-shadow: 0 0 12px rgba(255, 176, 32, 0.55);
 }
 
 .productViewport {
@@ -165,8 +164,8 @@
   color: var(--kp-bone);
 }
 
-.status[data-tone='error'] { border-color: #da5b49; color: #ff8a78; }
-.status[data-tone='done'] { border-color: #5f8f78; color: #8dcbaa; }
+.status[data-tone='error'] { border-color: #be2510; color: #be2510; }
+.status[data-tone='done'] { border-color: #47705b; color: #315b46; }
 
 .pipelineScreen {
   display: grid;
@@ -177,7 +176,7 @@
   gap: 1px;
 }
 
-.pipelineScreen > section { background: #11191b; }
+.pipelineScreen > section { background: #f3f2f2; }
 
 .pipelineScreen > section > header {
   display: flex;
@@ -271,7 +270,7 @@
 
 .approvalBand {
   padding: 0.85rem 1.2rem;
-  border-bottom: 1px solid rgba(255, 176, 32, 0.55);
+  border-bottom: 1px solid rgba(236, 48, 19, 0.55);
   background: var(--kp-amber-soft);
 }
 
@@ -340,7 +339,7 @@
   height: 26px;
   place-items: center;
   background: var(--kp-amber);
-  color: #171005;
+  color: #fff;
   font-family: var(--kp-font-mono), monospace;
   font-size: 0.68rem;
   font-style: normal;

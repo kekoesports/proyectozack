@@ -6,7 +6,7 @@
 .pinWrap {
   position: relative;
   height: 240vh;
-  border-bottom: 1px solid var(--kp-line);
+  border-bottom: 2px solid var(--kp-line);
   background: var(--kp-bg);
 }
 
@@ -32,7 +32,7 @@
   margin: 0;
   font-family: var(--kp-font-heading), sans-serif;
   font-size: clamp(2.6rem, 4.2vw, 5rem);
-  font-weight: 600;
+  font-weight: 800;
   line-height: 0.95;
   letter-spacing: -0.045em;
   text-wrap: balance;
@@ -143,7 +143,11 @@
 
 .flowWrap {
   height: 220vh;
-  background: var(--kp-panel);
+  --kp-bone: #ffffff;
+  --kp-muted: rgba(255, 255, 255, 0.62);
+  --kp-line: rgba(255, 255, 255, 0.22);
+  background: var(--kp-dark);
+  color: #fff;
 }
 
 .flowHeading {
@@ -192,7 +196,7 @@
 }
 
 .flowStep > div > span {
-  color: rgba(255, 176, 32, 0.18);
+  color: rgba(236, 48, 19, 0.48);
   font-family: var(--kp-font-heading), sans-serif;
   font-size: 4.1rem;
   font-weight: 650;
@@ -226,7 +230,7 @@
   height: 8px;
   background: var(--kp-amber);
   opacity: 0.75;
-  box-shadow: 0 0 18px rgba(255, 176, 32, 0.65);
+  box-shadow: 0 0 18px rgba(236, 48, 19, 0.65);
 }
 
 .flowFootnote {

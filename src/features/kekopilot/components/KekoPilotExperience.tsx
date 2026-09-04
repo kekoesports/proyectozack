@@ -1,5 +1,6 @@
-import { Familjen_Grotesk, IBM_Plex_Mono, Karla } from 'next/font/google';
+import { Archivo, IBM_Plex_Mono } from 'next/font/google';
 import type { KekoPilotLocale } from '../content';
+import { getHeroCopy } from '../content';
 import { KekoPilotHeader, KekoPilotHero } from './KekoPilotHero';
 import { KekoPilotMotion } from './KekoPilotMotion';
 import { KekoPilotProduct, KekoPilotPromise } from './KekoPilotProduct';
@@ -7,15 +8,9 @@ import { KekoPilotSections } from './KekoPilotSections';
 import { KekoPilotStory } from './KekoPilotStory';
 import styles from '../kekopilot.module.css';
 
-const heading = Familjen_Grotesk({
+const archivo = Archivo({
   subsets: ['latin'],
-  variable: '--kp-font-heading',
-  display: 'swap',
-});
-
-const body = Karla({
-  subsets: ['latin'],
-  variable: '--kp-font-body',
+  variable: '--kp-font-archivo',
   display: 'swap',
 });
 
@@ -31,12 +26,24 @@ type KekoPilotExperienceProps = {
 };
 
 export function KekoPilotExperience({ locale }: KekoPilotExperienceProps) {
+  const copy = getHeroCopy(locale);
+
   return (
-    <div className={`${styles.site} ${heading.variable} ${body.variable} ${mono.variable}`} data-kp-root>
+    <div
+      className={`${styles.site} ${archivo.variable} ${mono.variable}`}
+      data-kp-root
+      data-kp-version="web-v6"
+    >
       <a className={styles.skipLink} href="#contenido">
         {locale === 'es' ? 'Saltar al contenido' : 'Skip to content'}
       </a>
       <KekoPilotMotion />
+      <div className={styles.versionBar}>
+        <span>Web v6 · KekoPilot</span>
+        <a href={copy.localeHref} hrefLang={locale === 'es' ? 'en' : 'es'}>
+          {copy.localeLabel}
+        </a>
+      </div>
       <KekoPilotHeader locale={locale} />
       <main className={styles.main} id="contenido">
         <KekoPilotHero locale={locale} />

@@ -33,7 +33,7 @@ export const metadata: Metadata = {
   },
 };
 
-export const viewport: Viewport = { themeColor: '#0b1113' };
+export const viewport: Viewport = { themeColor: '#f3f2f2' };
 
 export default function KekoPilotEnglishPage() {
   return <KekoPilotExperience locale="en" />;

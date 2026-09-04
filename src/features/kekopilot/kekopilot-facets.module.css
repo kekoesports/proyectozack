@@ -1,0 +1,70 @@
+.field {
+  position: absolute;
+  overflow: hidden;
+  inset: 0;
+  background: #1a1817;
+}
+
+.field svg {
+  width: 100%;
+  height: 100%;
+  transform: scale(1.035);
+}
+
+.facets polygon {
+  fill: rgba(255, 255, 255, 0.015);
+  stroke: rgba(255, 255, 255, 0.09);
+  stroke-width: 1.35;
+  vector-effect: non-scaling-stroke;
+}
+
+.facets polygon[data-depth='1'] { fill: rgba(255, 255, 255, 0.035); }
+.facets polygon[data-depth='2'] { fill: rgba(0, 0, 0, 0.08); }
+.facets polygon[data-depth='3'] { fill: rgba(255, 255, 255, 0.055); }
+.facets polygon[data-depth='4'] { fill: rgba(0, 0, 0, 0.16); }
+
+.seams path {
+  fill: none;
+  stroke: #ec3013;
+  stroke-width: 2.2;
+  stroke-dasharray: 34 620;
+  stroke-linecap: square;
+  filter: drop-shadow(0 0 8px rgba(236, 48, 19, 0.75));
+  vector-effect: non-scaling-stroke;
+  animation: seamTravel 9s linear infinite;
+}
+
+.seams path:nth-child(2) { animation-delay: -3s; }
+.seams path:nth-child(3) { animation-delay: -6s; }
+
+.scan {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 0 48%, rgba(236, 48, 19, 0.055) 50%, transparent 52%);
+  background-size: 100% 210%;
+  animation: scanField 8s ease-in-out infinite;
+}
+
+.field[data-variant='poster'] {
+  opacity: 0.72;
+}
+
+.field[data-variant='poster'] svg {
+  transform: scale(1.18) rotate(90deg);
+}
+
+@keyframes seamTravel {
+  to { stroke-dashoffset: -654; }
+}
+
+@keyframes scanField {
+  0%, 16% { background-position: 0 100%; }
+  84%, 100% { background-position: 0 -100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .seams path,
+  .scan {
+    animation: none;
+  }
+}

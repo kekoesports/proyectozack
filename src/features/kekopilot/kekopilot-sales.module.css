@@ -1,8 +1,8 @@
 .valueSection,
 .faqSection {
   padding: clamp(6rem, 9vw, 9rem) 0;
-  background: #e9e6dd;
-  color: #0b1113;
+  background: #ebe9e8;
+  color: #201e1d;
 }
 
 .valueHeader {
@@ -15,7 +15,7 @@
 .valueHeader > span,
 .faqHeading > span {
   padding-top: 0.8rem;
-  color: #a96100;
+  color: #bf2410;
 }
 
 .valueHeader h2,
@@ -25,16 +25,16 @@
   margin: 0;
   font-family: var(--kp-font-heading), sans-serif;
   font-size: clamp(3.4rem, 6.4vw, 7rem);
-  font-weight: 650;
-  line-height: 0.88;
-  letter-spacing: -0.055em;
+  font-weight: 800;
+  line-height: 0.95;
+  letter-spacing: -0.045em;
   text-wrap: balance;
 }
 
 .valueHeader p {
   max-width: 56ch;
   margin: 2rem 0 0;
-  color: #4f5755;
+  color: #615d59;
   font-size: 1.12rem;
   line-height: 1.65;
 }
@@ -46,8 +46,8 @@
   align-items: center;
   margin-top: 4.5rem;
   padding: 1.5rem 0;
-  border-top: 1px solid rgba(11, 17, 19, 0.22);
-  border-bottom: 1px solid rgba(11, 17, 19, 0.22);
+  border-top: 2px solid var(--kp-line);
+  border-bottom: 2px solid var(--kp-line);
 }
 
 .valueProof > div > span,
@@ -63,14 +63,14 @@
 
 .valueProof p {
   margin: 0.5rem 0 0;
-  color: #4f5755;
+  color: #615d59;
 }
 
 .valueProof a {
   display: inline-flex;
   gap: 1.5rem;
   padding-bottom: 0.35rem;
-  border-bottom: 1px solid #a96100;
+  border-bottom: 1px solid var(--kp-amber);
   font-family: var(--kp-font-heading), sans-serif;
   font-weight: 650;
   text-decoration: none;
@@ -80,8 +80,8 @@
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   margin-top: 3rem;
-  border-top: 1px solid rgba(11, 17, 19, 0.2);
-  border-left: 1px solid rgba(11, 17, 19, 0.2);
+  border-top: 2px solid var(--kp-line);
+  border-left: 2px solid var(--kp-line);
 }
 
 .valueGrid article {
@@ -93,12 +93,12 @@
 }
 
 .valueGrid article:hover {
-  background: #f7f4eb;
+  background: #fff;
   transform: translateY(-3px);
 }
 
 .valueGrid article > span {
-  color: #a96100;
+  color: #bf2410;
   font-family: var(--kp-font-mono), monospace;
   font-size: 0.62rem;
   letter-spacing: 0.13em;
@@ -115,7 +115,7 @@
 .valueGrid p {
   max-width: 46ch;
   margin: 0;
-  color: #59615f;
+  color: #615d59;
   line-height: 1.6;
 }
 
@@ -132,15 +132,14 @@
   height: 6px;
   content: '';
   background: var(--kp-amber);
-  box-shadow: 0 0 12px rgba(255, 176, 32, 0.5);
 }
 
 .moduleGrid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   margin-top: 4rem;
-  border-top: 1px solid var(--kp-line);
-  border-left: 1px solid var(--kp-line);
+  border-top: 2px solid var(--kp-line);
+  border-left: 2px solid var(--kp-line);
 }
 
 .moduleGrid article {
@@ -152,8 +151,8 @@
 }
 
 .moduleGrid article:hover {
-  border-color: rgba(255, 176, 32, 0.38);
-  background: rgba(255, 176, 32, 0.045);
+  border-color: rgba(236, 48, 19, 0.5);
+  background: rgba(236, 48, 19, 0.045);
 }
 
 .moduleGrid article > span {
@@ -181,7 +180,7 @@
 }
 
 .faqSection {
-  border-top: 1px solid rgba(11, 17, 19, 0.15);
+  border-top: 2px solid var(--kp-line);
 }
 
 .faqGrid {
@@ -217,14 +216,14 @@
 }
 
 .faqList summary::-webkit-details-marker { display: none; }
-.faqList summary::after { color: #a96100; content: '+'; }
+.faqList summary::after { color: var(--kp-amber); content: '+'; }
 .faqList details[open] summary::after { content: '−'; }
 
 .faqList p {
   max-width: 60ch;
   margin: 0;
   padding: 0 3rem 1.6rem 0;
-  color: #4f5755;
+  color: #615d59;
   line-height: 1.65;
 }
 
@@ -232,15 +231,20 @@
   position: relative;
   overflow: hidden;
   padding: clamp(6rem, 10vw, 10rem) 0;
-  border-top: 1px solid rgba(255, 176, 32, 0.45);
-  background: radial-gradient(circle at 82% 35%, rgba(255, 176, 32, 0.13), transparent 27%), #0b1113;
+  --kp-bone: #ffffff;
+  --kp-muted: rgba(255, 255, 255, 0.72);
+  --kp-line: rgba(255, 255, 255, 0.28);
+  --kp-line-strong: rgba(255, 255, 255, 0.48);
+  border-top: 6px solid var(--kp-amber);
+  background: var(--kp-amber);
+  color: #fff;
 }
 
 .closingSection::before {
   position: absolute;
   inset: 0;
   content: '';
-  background-image: linear-gradient(var(--kp-line) 1px, transparent 1px), linear-gradient(90deg, var(--kp-line) 1px, transparent 1px);
+  background-image: linear-gradient(rgba(255,255,255,.14) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.14) 1px, transparent 1px);
   background-size: 8rem 8rem;
   mask-image: linear-gradient(90deg, transparent 30%, black);
   opacity: 0.28;
@@ -255,7 +259,7 @@
 }
 
 .closingEyebrow {
-  color: var(--kp-amber);
+  color: #fff;
 }
 
 .closingCopy h2 {
@@ -286,8 +290,9 @@
   justify-content: space-between;
   gap: 2.5rem;
   padding: 0 1.2rem;
-  background: var(--kp-amber);
-  color: #171005;
+  border: 2px solid #fff;
+  background: #fff;
+  color: var(--kp-amber);
   font-family: var(--kp-font-heading), sans-serif;
   font-weight: 700;
   text-decoration: none;
@@ -301,12 +306,12 @@
   min-height: 260px;
   padding: 1.5rem;
   border: 1px solid var(--kp-line-strong);
-  background: rgba(18, 28, 31, 0.72);
+  background: rgba(138, 22, 7, 0.24);
   align-content: space-between;
 }
 
 .closingAside strong {
-  color: var(--kp-amber);
+  color: #fff;
   font-family: var(--kp-font-heading), sans-serif;
   font-size: 7rem;
   font-weight: 600;

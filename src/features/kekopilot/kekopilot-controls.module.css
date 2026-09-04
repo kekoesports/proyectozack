@@ -3,7 +3,7 @@
   grid-template-columns: minmax(240px, 0.34fr) minmax(0, 1fr);
   min-height: 540px;
   margin-top: 3.5rem;
-  border: 1px solid var(--kp-line);
+  border: 2px solid #201e1d;
   background: var(--kp-bg);
 }
 
@@ -28,13 +28,13 @@
 
 .agentTab:hover,
 .agentTab:focus-visible {
-  background: rgba(255, 176, 32, 0.035);
+  background: rgba(236, 48, 19, 0.045);
   color: var(--kp-bone);
 }
 
 .agentTab[aria-selected='true'] {
   padding-left: 2rem;
-  background: linear-gradient(90deg, rgba(255, 176, 32, 0.1), transparent 75%);
+  background: linear-gradient(90deg, rgba(236, 48, 19, 0.12), transparent 75%);
   color: var(--kp-bone);
 }
 
@@ -54,7 +54,7 @@
   align-self: end;
   font-family: var(--kp-font-heading), sans-serif;
   font-size: 1.35rem;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .agentTab i {
@@ -69,7 +69,6 @@
 
 .agentTab[aria-selected='true'] i {
   background: var(--kp-amber);
-  box-shadow: 0 0 14px rgba(255, 176, 32, 0.6);
 }
 
 .agentPanel {
@@ -99,7 +98,6 @@
   width: 6px;
   height: 6px;
   background: var(--kp-amber);
-  box-shadow: 0 0 12px rgba(255, 176, 32, 0.55);
 }
 
 .panelBody {
@@ -116,7 +114,7 @@
   margin: 0.7rem 0 0;
   font-family: var(--kp-font-heading), sans-serif;
   font-size: clamp(3rem, 6vw, 6rem);
-  font-weight: 600;
+  font-weight: 800;
   line-height: 0.92;
   letter-spacing: -0.05em;
 }
@@ -186,7 +184,7 @@
 
 .activityLog > div span {
   height: var(--bar-height, 45%);
-  background: rgba(255, 176, 32, 0.35);
+  background: rgba(236, 48, 19, 0.35);
   animation: bars 2.8s ease-in-out infinite alternate;
 }
 
@@ -197,7 +195,7 @@
   display: grid;
   grid-template-columns: minmax(230px, 0.34fr) 1fr;
   margin-top: 3.5rem;
-  border: 1px solid var(--kp-line);
+  border: 2px solid #201e1d;
 }
 
 .solutionTabs {
@@ -225,7 +223,7 @@
 }
 
 .solutionTabs span {
-  color: rgba(255, 176, 32, 0.4);
+  color: rgba(236, 48, 19, 0.5);
 }
 
 .solutionPanel {

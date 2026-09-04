@@ -2,6 +2,7 @@ import type { KekoPilotLocale } from '../content';
 import { SOCIALPRO_URL } from '../content';
 import { getProductConsoleCopy, getProductCopy } from '../product-content';
 import { KekoPilotProductConsole } from './KekoPilotProductConsole';
+import { KekoPilotFacets } from './KekoPilotFacets';
 import common from '../kekopilot-sections.module.css';
 import styles from '../kekopilot-product.module.css';
 
@@ -14,6 +15,7 @@ export function KekoPilotPromise({ locale }: KekoPilotProductProps) {
 
   return (
     <section className={styles.promiseSection} data-kp-section aria-labelledby="promise-title">
+      <div className={styles.promiseVisual}><KekoPilotFacets variant="poster" /></div>
       <div className={common.sectionFrame}>
         <div className={styles.promiseLead} data-kp-reveal>
           <h2 id="promise-title">

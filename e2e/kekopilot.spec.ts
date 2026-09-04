@@ -10,7 +10,8 @@ for (const width of VIEWPORTS) {
       await page.goto('/kekopilot');
 
       await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
-      await expect(page.locator('[data-kp-root]')).toBeVisible();
+      await expect(page.locator('[data-kp-root]'))
+        .toHaveAttribute('data-kp-version', 'web-v6');
 
       const hasOverflow = await page.evaluate(
         () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
