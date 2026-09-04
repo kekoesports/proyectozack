@@ -28,3 +28,23 @@ export function resolveCtaUrl(
   if (brandMainUrl && !isImageUrl(brandMainUrl)) return brandMainUrl;
   return null;
 }
+
+/**
+ * Completa enlaces de referido cuyo formato es estable y depende del código.
+ * Mantiene siempre la URL escrita por el operador cuando existe.
+ */
+export function resolveCreatorCodeRedirectUrl(
+  brandName: string,
+  code: string,
+  redirectUrl: string,
+): string {
+  const requestedUrl = redirectUrl.trim();
+  if (requestedUrl) return requestedUrl;
+
+  const normalizedBrand = brandName.trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+  if (normalizedBrand === 'skinsmonkey') {
+    return `https://skinsmonkey.com/es/r/${encodeURIComponent(code.trim())}`;
+  }
+
+  return '';
+}

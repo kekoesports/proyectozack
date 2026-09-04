@@ -11,6 +11,7 @@ import { parseFormData } from '@/lib/forms/parseFormData';
 import { firstError } from '@/lib/forms/firstError';
 import { logRedacted } from '@/lib/log';
 import { StrictIdSchema, StrictBooleanSchema } from '@/lib/schemas/common';
+import { resolveCreatorCodeRedirectUrl } from '@/lib/utils/cta-url';
 import {
   CreateCodeFormSchema,
   DeleteByIdSchema,
@@ -39,7 +40,18 @@ function revalidateAll(talentSlug?: string, talentId?: number): void {
 export async function createCodeAction(formData: FormData): Promise<CodeActionState> {
   await requirePermission('sorteos', 'write');
 
-  const parsed = parseFormData(formData, CreateCodeFormSchema);
+  const normalizedFormData = new FormData();
+  for (const [key, value] of formData.entries()) normalizedFormData.append(key, value);
+  normalizedFormData.set(
+    'redirectUrl',
+    resolveCreatorCodeRedirectUrl(
+      String(formData.get('brandName') ?? ''),
+      String(formData.get('code') ?? ''),
+      String(formData.get('redirectUrl') ?? ''),
+    ),
+  );
+
+  const parsed = parseFormData(normalizedFormData, CreateCodeFormSchema);
   if (!parsed.ok) {
     logRedacted('warn', '[createCodeAction] validation failed:', firstError(parsed.fieldErrors));
     return { ok: false, fieldErrors: parsed.fieldErrors };
@@ -47,19 +59,27 @@ export async function createCodeAction(formData: FormData): Promise<CodeActionSt
 
   const { talentId, talentSlug, code, brandName, brandLogo, redirectUrl, description, badge, isFeatured, category, ctaText, crmBrandId } = parsed.data;
 
-  await createCode({
-    talentId,
-    code,
-    brandName,
-    brandLogo:   brandLogo   ?? null,
-    redirectUrl,
-    description: description ?? null,
-    badge:       badge       ?? null,
-    isFeatured,
-    category:    category    ?? null,
-    ctaText:     ctaText     ?? null,
-    crmBrandId:  crmBrandId  ?? null,
-  });
+  try {
+    await createCode({
+      talentId,
+      code,
+      brandName,
+      brandLogo:   brandLogo   ?? null,
+      redirectUrl,
+      description: description ?? null,
+      badge:       badge       ?? null,
+      isFeatured,
+      category:    category    ?? null,
+      ctaText:     ctaText     ?? null,
+      crmBrandId:  crmBrandId  ?? null,
+    });
+  } catch (error) {
+    logRedacted('error', '[createCodeAction] persistence failed:', error instanceof Error ? error.name : 'UnknownError');
+    return {
+      ok: false,
+      fieldErrors: { form: ['No se pudo guardar el código. Vuelve a intentarlo.'] },
+    };
+  }
 
   revalidateAll(talentSlug, talentId);
   return { ok: true };
