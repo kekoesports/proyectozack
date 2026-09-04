@@ -17,14 +17,21 @@ describe('scheduler VPS', () => {
     if (match?.[1] && match[2]) scheduledOnVps.set(`/api/cron/${match[2]}`, match[1]);
   }
 
-  it('mantiene exactamente los mismos trabajos y horarios que Vercel', () => {
-    expect([...scheduledOnVps].sort()).toEqual(
+  it('mantiene los trabajos heredados de Vercel con los mismos horarios', () => {
+    const inheritedSchedules = [...scheduledOnVps]
+      .filter(([path]) => path !== '/api/cron/poll-live-status');
+
+    expect(inheritedSchedules.sort()).toEqual(
       vercel.crons.map((cron) => [cron.path, cron.schedule] as const).sort(),
     );
   });
 
-  it('no reactiva el antiguo backup interno ni poll-live-status', () => {
+  it('mantiene desactivado el antiguo backup interno', () => {
     expect(scheduledOnVps.has('/api/cron/backup')).toBe(false);
-    expect(scheduledOnVps.has('/api/cron/poll-live-status')).toBe(false);
+  });
+
+  it('actualiza los directos de Twitch cada cinco minutos solo en el VPS', () => {
+    expect(scheduledOnVps.get('/api/cron/poll-live-status')).toBe('*/5 * * * *');
+    expect(vercel.crons.some((cron) => cron.path === '/api/cron/poll-live-status')).toBe(false);
   });
 });

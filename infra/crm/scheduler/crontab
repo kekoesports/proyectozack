@@ -32,9 +32,8 @@
 # ── horaria ─────────────────────────────────────────────────────────────────
 7 * * * *    /usr/bin/curl -fsS -m 110 -H "Authorization: Bearer $CRON_SECRET" http://app:3000/api/cron/giveaway-lifecycle          # cada hora, minuto 7
 
-# ── SIN MIGRAR, a propósito ─────────────────────────────────────────────────
-#
-# /api/cron/poll-live-status existe, tiene handler completo y autenticación,
-# pero NO tiene horario en vercel.json. O está muerto, o lo dispara n8n, o se
-# llama a mano. Añadirlo aquí "por si acaso" podría ponerlo a correr por
-# primera vez en su vida. Hay que aclararlo antes.
+# ── frecuentes ──────────────────────────────────────────────────────────────
+# Activado tras validar las credenciales oficiales de Twitch en producción.
+# Una ejecución agrupa hasta 100 logins en una sola consulta Helix y, si Twitch
+# falla, no escribe falsos estados offline en la base de datos.
+*/5 * * * *  /usr/bin/curl -fsS -m 110 -H "Authorization: Bearer $CRON_SECRET" http://app:3000/api/cron/poll-live-status           # cada 5 minutos
