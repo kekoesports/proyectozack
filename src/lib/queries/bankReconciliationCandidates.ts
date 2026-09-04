@@ -1,9 +1,10 @@
 'server-only';
 
-import { and, eq, gte, inArray, isNull, lte, not, or, sql } from 'drizzle-orm';
+import { and, eq, gte, inArray, isNull, lte, not, notExists, or, sql } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import {
   billingClients,
+  invoicePayments,
   invoices,
   issuedInvoices,
   recurringExpenses,
@@ -44,7 +45,18 @@ export async function getCandidatesForTransactions(
       .innerJoin(billingClients, eq(issuedInvoices.billingClientId, billingClients.id))
       .where(
         and(
-          inArray(issuedInvoices.status, ['emitida', 'enviada', 'vencida', 'parcial']),
+          or(
+            inArray(issuedInvoices.status, ['emitida', 'enviada', 'vencida', 'parcial']),
+            and(
+              inArray(issuedInvoices.status, ['cobrada', 'pagada']),
+              notExists(
+                db
+                  .select({ id: invoicePayments.id })
+                  .from(invoicePayments)
+                  .where(eq(invoicePayments.issuedInvoiceId, issuedInvoices.id)),
+              ),
+            ),
+          ),
           ...(options.issuerCompanyId !== undefined
             ? [eq(issuedInvoices.issuerCompanyId, options.issuerCompanyId)]
             : []),
