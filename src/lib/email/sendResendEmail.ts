@@ -51,7 +51,25 @@ export async function sendResendEmail(
     if (!relayUrl || !relayToken) {
       throw new ResendSendError(context, 'relay_misconfigured', 'relé de email incompleto');
     }
-    return sendEmailThroughRelay(context, options, requestOptions, relayUrl, relayToken);
+    try {
+      return await sendEmailThroughRelay(context, options, requestOptions, relayUrl, relayToken);
+    } catch (error) {
+      // A 404/410 is definitive: the retired relay never accepted the email,
+      // so falling back to the local Resend client cannot create a duplicate.
+      // Do not fall back on timeouts or 5xx responses because delivery may be
+      // ambiguous in those cases.
+      if (
+        error instanceof ResendSendError
+        && (error.resendErrorName === 'relay_http_404' || error.resendErrorName === 'relay_http_410')
+      ) {
+        console.warn('[sendResendEmail] relé retirado; usando envío directo', {
+          context,
+          relayError: error.resendErrorName,
+        });
+        return sendDirectResendEmail(context, options, requestOptions);
+      }
+      throw error;
+    }
   }
 
   return sendDirectResendEmail(context, options, requestOptions);
