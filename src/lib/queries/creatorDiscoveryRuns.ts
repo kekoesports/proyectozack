@@ -3,6 +3,9 @@ import { desc, eq } from 'drizzle-orm';
 import { creatorDiscoveryRuns } from '@/db/schema';
 import type { CreatorDiscoveryPlatformResult } from '@/db/schema/creatorDiscoveryRuns';
 import { db } from '@/lib/db';
+import { creatorDiscoveryStatus, sumDiscoveryResults } from '@/lib/targets/discovery-result';
+import { recordCreatorRunReporting } from '@/lib/queries/creatorDiscoveryReporting';
+import { CreatorDiscoveryReportingPendingError } from '@/lib/services/creator-reporting-status';
 
 export type CreatorDiscoveryRun = typeof creatorDiscoveryRuns.$inferSelect;
 
@@ -21,25 +24,26 @@ export async function finishCreatorDiscoveryRun(
   id: number,
   platformResults: readonly CreatorDiscoveryPlatformResult[],
 ): Promise<void> {
-  const failures = platformResults.filter((result) => result.error !== null).length;
-  const status = failures === 0
-    ? 'success'
-    : failures === platformResults.length
-      ? 'failed'
-      : 'partial';
+  const status = creatorDiscoveryStatus(platformResults);
+  const completedAt = new Date();
+  const [run] = await db.select({ startedAt: creatorDiscoveryRuns.startedAt }).from(creatorDiscoveryRuns).where(eq(creatorDiscoveryRuns.id, id));
 
   await db
     .update(creatorDiscoveryRuns)
     .set({
       status,
-      foundCount: sum(platformResults, 'found'),
-      qualifiedCount: sum(platformResults, 'qualified'),
-      insertedCount: sum(platformResults, 'inserted'),
-      updatedCount: sum(platformResults, 'updated'),
+      foundCount: sumDiscoveryResults(platformResults, 'found'),
+      qualifiedCount: sumDiscoveryResults(platformResults, 'qualified'),
+      insertedCount: sumDiscoveryResults(platformResults, 'inserted'),
+      updatedCount: sumDiscoveryResults(platformResults, 'updated'),
       platformResults: [...platformResults],
-      completedAt: new Date(),
+      completedAt,
     })
     .where(eq(creatorDiscoveryRuns.id, id));
+  if (run) {
+    try { await recordCreatorRunReporting(id, run.startedAt, platformResults, { completedAt }); }
+    catch { throw new CreatorDiscoveryReportingPendingError(); }
+  }
 }
 
 export async function listRecentCreatorDiscoveryRuns(
@@ -50,11 +54,4 @@ export async function listRecentCreatorDiscoveryRuns(
     .from(creatorDiscoveryRuns)
     .orderBy(desc(creatorDiscoveryRuns.startedAt))
     .limit(Math.max(1, Math.min(limit, 20)));
-}
-
-function sum(
-  rows: readonly CreatorDiscoveryPlatformResult[],
-  key: 'found' | 'qualified' | 'inserted' | 'updated',
-): number {
-  return rows.reduce((total, row) => total + row[key], 0);
 }

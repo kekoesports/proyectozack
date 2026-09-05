@@ -21,12 +21,19 @@ Default budget: ~80 créditos Firecrawl + cuota platform APIs. Cada run produce 
 
 ## Setup
 
-1. **Firecrawl key**: https://firecrawl.dev → Dashboard → API Keys. Copia a `.env` en esta carpeta.
-2. **Bearer token**: pide a Reche `TARGETS_IMPORT_TOKEN`. Se genera en repo con `crypto.randomBytes(32).toString('hex')` y vive en `env.local`. Mismo valor en `.env` de la skill.
-3. **Base URL**: `SOCIALPRO_BASE_URL=http://localhost:3000` (default). Override a producción con la URL real cuando aplique.
-4. **No commitear `.env`** (ya cubierto por `.gitignore` global).
+1. **Modo y destino**: resolver primero discovery default, `--deep` o `--refresh`, plataformas y entorno incluidos en la petición vigente. `SOCIALPRO_BASE_URL=http://localhost:3000` es el default; no cambiar a producción por suposición.
+2. **Bearer token**: usar `TARGETS_IMPORT_TOKEN` existente desde la configuración segura autorizada. Si falta, identificar la dependencia al responsable actual de operaciones/configuración de SocialPro; no asumir una persona histórica ni pedir el valor por chat.
+3. **Firecrawl key**: `FIRECRAWL_API_KEY` solo se necesita en discovery default/`--deep`; reutilizar la credencial ya autorizada. `--refresh` no consulta Firecrawl ni necesita su clave.
+4. **Custodia**: no imprimir, copiar a ejemplos/argumentos visibles ni commitear secretos o archivos `.env`. La skill no autoriza crear, rotar o sustituir credenciales: tales cambios requieren alcance/autorización específicos y el mecanismo seguro correspondiente.
 
-Pre-flight automático en cada invocación: si `FIRECRAWL_API_KEY` o `TARGETS_IMPORT_TOKEN` faltan, abortar antes de cualquier coste. Si los endpoints proxy devuelven 503 con `error: 'missing-X-credentials'`, abortar con mensaje claro pidiendo a Reche revisar `env.local`.
+Pre-flight automático según modo, antes de descubrir/reenriquecer o importar el lote:
+
+| Modo | Dependencias necesarias | Si falta una dependencia |
+|---|---|---|
+| Discovery default / `--deep` | Bearer CRM, Firecrawl y credenciales del proxy de las plataformas seleccionadas | Detener el modo afectado antes de consumir Firecrawl; describir solo el nombre/configuración faltante |
+| `--refresh` | Bearer CRM y credenciales exigidas por los proxies de las plataformas seleccionadas | Detener la plataforma afectada; no exigir Firecrawl ni convertir refresh en discovery |
+
+Comprobar presencia/configuración sin revelar valores. Los probes también pueden consumir cuota de plataforma: limitarlos al modo autorizado, no tratarlos como gratis. Un 401/403, o 503 `missing-config` / `missing-X-credentials`, es un gate real: detener la operación afectada y pedir al responsable actual que restablezca el acceso por vía segura. No declarar éxito del lote incompleto. Los requisitos y presupuestos vigentes siguen aplicando; el preflight no concede permisos adicionales.
 
 ## Workflow — discovery default
 
@@ -55,7 +62,7 @@ Igual con 8–10 queries × `limit: 10`. **Avisa coste estimado (~250 créditos)
 
 ## Workflow — `--refresh`
 
-1. Cero Firecrawl. Cero discovery.
+1. Cero Firecrawl. Cero discovery. Ejecutar el preflight de `--refresh`; la ausencia de `FIRECRAWL_API_KEY` no lo bloquea.
 2. Itera `GET <BASE>/api/admin/targets/active?platform=<plat>&cursor=<id>&limit=100` hasta `nextCursor: null`.
 3. Para cada platform group, llama `/discover/<plat>/search` con username como query (resuelve a preview actualizado), o `/discover/kick/channel` directo con slug.
 4. Build `ImportItem[]` con métricas frescas. `batchId: "creator-<YYYY-MM-DD>-refresh-<plat>"`.
@@ -72,7 +79,7 @@ Igual con 8–10 queries × `limit: 10`. **Avisa coste estimado (~250 créditos)
 - **PII en logs**: jamás emails extraídos, bearer token, ni cookies. Regla TS #10 del repo aplica a esta skill.
 - **Dedup por `(platform, username)`** antes de POST. La unique key del DB lo enforza igual, pero hacer dedup client-side reduce ruido en audit log.
 - **Errores de Firecrawl**: 429/5xx/408 → backoff exponencial 5s/10s/20s, máx 2 retries. **402 → abortar** (cuota agotada). 401 → abortar (key inválida). Detalles en [FIRECRAWL.md](FIRECRAWL.md).
-- **Sin API key Firecrawl o sin `TARGETS_IMPORT_TOKEN`** → abortar con mensaje pidiendo crear `.env`.
+- **Credencial necesaria ausente o inválida** → detener el modo/plataforma afectado según el preflight y señalar la dependencia al responsable actual, sin revelar ni crear secretos. Firecrawl es obligatorio solo para discovery; no para `--refresh`.
 
 ## Feedback loops (recovery actions)
 

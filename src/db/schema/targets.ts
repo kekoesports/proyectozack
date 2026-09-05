@@ -41,7 +41,8 @@ export const targets = pgTable(
     profilePicUrl: text('profile_pic_url'),
 
     // Metrics
-    followers: integer('followers').notNull().default(0),
+    // Missing/hidden/API failure is unknown, never a measured zero.
+    followers: integer('followers'),
     following: integer('following'),
     posts: integer('posts'),
     bio: text('bio'),

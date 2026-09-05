@@ -85,3 +85,5 @@ export * from './agentSchedules';
 export * from './agentMemories';
 export * from './agentUsage';
 export * from './agentWorkers';
+export * from './creatorDiscoveryOperations';
+export * from './creatorDiscoveryDelivery';

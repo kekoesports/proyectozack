@@ -24,9 +24,9 @@ describe('[creator-zacketizor] server whitelist', () => {
     expect([...PLATFORM_CREATOR_SLUGS]).toContain('zacketizor');
   });
 
-  it('roster actual (2026-07-03): 6 slugs sin martinez, con todocs2/imantado/jolu', () => {
+  it('roster actual (2026-09-04): 7 slugs sin martinez, incluido eruby', () => {
     expect([...PLATFORM_CREATOR_SLUGS].sort()).toEqual(
-      ['huasopeek', 'imantado', 'jolu', 'naow', 'todocs2', 'zacketizor'],
+      ['eruby', 'huasopeek', 'imantado', 'jolu', 'naow', 'todocs2', 'zacketizor'],
     );
     // martinez fue retirado.
     expect([...PLATFORM_CREATOR_SLUGS]).not.toContain('martinez');

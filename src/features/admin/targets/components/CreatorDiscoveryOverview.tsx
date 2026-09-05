@@ -13,22 +13,22 @@ export function CreatorDiscoveryOverview({
       <MetricCard
         label="Última búsqueda"
         value={latest ? formatDate(latest.startedAt) : 'Sin ejecuciones'}
-        detail={latest ? statusLabel(latest.status) : 'Se activará al publicar'}
+        detail={latest ? statusLabel(latest.status) : 'Pendiente de primera ejecución verificada'}
       />
       <MetricCard
         label="Perfiles revisados"
-        value={String(latest?.foundCount ?? 0)}
-        detail={`${latest?.qualifiedCount ?? 0} compatibles`}
+        value={latest ? String(latest.foundCount) : 'Sin dato'}
+        detail={latest ? `${latest.qualifiedCount} compatibles` : 'Sin resultados registrados'}
       />
       <MetricCard
         label="Leads incorporados"
-        value={String(latest?.insertedCount ?? 0)}
-        detail={`${latest?.updatedCount ?? 0} actualizados sin duplicar`}
+        value={latest ? String(latest.insertedCount) : 'Sin dato'}
+        detail={latest ? `${latest.updatedCount} actualizados en esta ejecución` : 'Sin resultados registrados'}
       />
       <MetricCard
-        label="Plataformas automáticas"
-        value={`${platformResults.filter((row) => row.error === null).length}/3`}
-        detail={platformResults.find((row) => row.error)?.error ?? 'YouTube, Twitch y Kick operativas'}
+        label="Plataformas sin error registrado"
+        value={platformResults.length > 0 ? `${platformResults.filter((row) => row.error === null).length}/${platformResults.length}` : 'Sin dato'}
+        detail={platformResults.length === 0 ? 'Sin evidencia por plataforma' : platformResults.some((row) => row.error !== null) ? 'Hay incidencias en la última ejecución' : 'Según la última ejecución; no verificación en directo'}
       />
     </div>
   );

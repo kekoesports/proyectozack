@@ -104,7 +104,7 @@ export function TwitchTargetDiscovery(): React.ReactElement {
                       <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${candidate.isQualified ? 'bg-emerald-500/15 text-emerald-300' : 'bg-amber-500/15 text-amber-300'}`}>{candidate.isQualified ? 'CANDIDATO' : 'NO CUMPLE'}</span>
                       <span className="rounded-full bg-violet-500/10 px-2 py-0.5 text-[10px] font-bold text-violet-300">{candidate.score}/100</span>
                     </div>
-                    <p className="mt-1 text-xs text-sp-admin-muted">{numberFormat.format(candidate.followerCount)} seguidores · {candidate.language.toUpperCase()} · {candidate.currentGame || 'Sin categoría'}</p>
+                    <p className="mt-1 text-xs text-sp-admin-muted">{candidate.followerCount === null ? 'No disponible' : numberFormat.format(candidate.followerCount)} seguidores · {candidate.language.toUpperCase()} · {candidate.currentGame || 'Sin categoría'}</p>
                     <p className="mt-2 text-[11px] text-sp-admin-muted">{candidate.reasons.join(' · ')}</p>
                   </div>
                 </div>

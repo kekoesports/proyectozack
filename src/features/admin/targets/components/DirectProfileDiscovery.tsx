@@ -51,7 +51,7 @@ function KickDiscovery(): React.ReactElement {
           {profile.profilePicUrl ? <Image src={profile.profilePicUrl} alt="" width={56} height={56} unoptimized className="h-14 w-14 rounded-full object-cover" /> : <div className="h-14 w-14 rounded-full bg-sp-admin-hover" />}
           <div className="min-w-0 flex-1">
             <a href={profile.profileUrl} target="_blank" rel="noreferrer" className="font-bold text-sp-admin-text hover:text-[#53fc18]">{profile.fullName}</a>
-            <p className="mt-1 text-xs text-sp-admin-muted">{profile.followers.toLocaleString('es-ES')} seguidores · {profile.country ?? 'país sin declarar'}</p>
+            <p className="mt-1 text-xs text-sp-admin-muted">{profile.followers === null ? 'No disponible' : profile.followers.toLocaleString('es-ES')} seguidores · {profile.country ?? 'país sin declarar'}</p>
             <p className="mt-1 text-[11px] text-sp-admin-muted">{profile.categories.join(' · ') || 'Sin categorías recientes'}</p>
             <button type="button" onClick={save} disabled={isPending} className="mt-3 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white disabled:opacity-40">Añadir a Leads CC</button>
           </div>

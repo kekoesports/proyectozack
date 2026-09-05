@@ -1,5 +1,6 @@
 import { createEnv } from '@t3-oss/env-nextjs';
 import { z } from 'zod';
+import { creatorDiscoveryRolloutAtSchema } from '@/lib/schemas/creator-reporting-recovery';
 
 export const env = createEnv({
   server: {
@@ -63,6 +64,9 @@ export const env = createEnv({
     // Kick Developer Public API (app token, client-credentials flow).
     KICK_CLIENT_ID: z.string().min(1).optional(),
     KICK_CLIENT_SECRET: z.string().min(1).optional(),
+    INSTAGRAM_BUSINESS_ACCOUNT_ID: z.string().regex(/^\d+$/).optional(),
+    META_INSTAGRAM_ACCESS_TOKEN: z.string().min(1).optional(),
+    META_GRAPH_API_VERSION: z.string().regex(/^v\d+\.\d+$/).optional(),
     GOOGLE_SERVICE_ACCOUNT_EMAIL: z.string().email().optional(),
     GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY: z.string().min(1).optional(),
     GOOGLE_DRIVE_BACKUP_FOLDER_ID: z.string().min(1).optional(),
@@ -84,6 +88,10 @@ export const env = createEnv({
     /** Destino del digest; IDs numéricos de Discord, nunca nombres. */
     DISCORD_PARTNER_LEADS_GUILD_ID: z.string().regex(/^\d{6,30}$/).optional(),
     DISCORD_PARTNER_LEADS_CHANNEL_ID: z.string().regex(/^\d{6,30}$/).optional(),
+    DISCORD_CREATOR_DISCOVERY_GUILD_ID: z.string().regex(/^\d{17,20}$/).optional(),
+    DISCORD_CREATOR_DISCOVERY_CHANNEL_ID: z.string().regex(/^\d{17,20}$/).optional(),
+    /** Required to recover missing reports; absent means no historical repair. */
+    CREATOR_DISCOVERY_ROLLOUT_AT: creatorDiscoveryRolloutAtSchema.optional(),
     // Webhook autenticado de n8n que fuerza el envío inmediato a Discord al
     // aprobar un borrador. El Schedule Trigger de n8n sigue siendo el respaldo.
     N8N_DEAL_CREATED_WEBHOOK_URL: z.string().url().optional(),
@@ -245,6 +253,7 @@ export const env = createEnv({
     AGENT_GLOBAL_MONTHLY_BUDGET_MICROS: z.coerce.number().int().min(0).default(10_000_000),
     /** Intervalo de sondeo de la cola por el worker (PR 3). */
     AGENT_WORKER_POLL_MS: z.coerce.number().int().min(250).max(60_000).default(2_000),
+    AGENT_WORKER_ID: z.string().min(1).max(120).optional(),
     /** Duración del lease. El heartbeat lo renueva cada ~1/4 de este valor. */
     AGENT_LEASE_SECONDS: z.coerce.number().int().min(15).max(3_600).default(60),
     /** Ejecuciones simultáneas por worker. */
@@ -294,6 +303,9 @@ export const env = createEnv({
     TWITCH_CLIENT_SECRET: process.env.TWITCH_CLIENT_SECRET,
     KICK_CLIENT_ID: process.env.KICK_CLIENT_ID,
     KICK_CLIENT_SECRET: process.env.KICK_CLIENT_SECRET,
+    INSTAGRAM_BUSINESS_ACCOUNT_ID: process.env.INSTAGRAM_BUSINESS_ACCOUNT_ID,
+    META_INSTAGRAM_ACCESS_TOKEN: process.env.META_INSTAGRAM_ACCESS_TOKEN,
+    META_GRAPH_API_VERSION: process.env.META_GRAPH_API_VERSION,
     GOOGLE_SERVICE_ACCOUNT_EMAIL: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
     GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY: process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY,
     GOOGLE_DRIVE_BACKUP_FOLDER_ID: process.env.GOOGLE_DRIVE_BACKUP_FOLDER_ID,
@@ -305,6 +317,9 @@ export const env = createEnv({
     N8N_PARTNER_LEADS_WEBHOOK_URL: process.env.N8N_PARTNER_LEADS_WEBHOOK_URL,
     DISCORD_PARTNER_LEADS_GUILD_ID: process.env.DISCORD_PARTNER_LEADS_GUILD_ID,
     DISCORD_PARTNER_LEADS_CHANNEL_ID: process.env.DISCORD_PARTNER_LEADS_CHANNEL_ID,
+    DISCORD_CREATOR_DISCOVERY_GUILD_ID: process.env.DISCORD_CREATOR_DISCOVERY_GUILD_ID,
+    DISCORD_CREATOR_DISCOVERY_CHANNEL_ID: process.env.DISCORD_CREATOR_DISCOVERY_CHANNEL_ID,
+    CREATOR_DISCOVERY_ROLLOUT_AT: process.env.CREATOR_DISCOVERY_ROLLOUT_AT,
     N8N_DEAL_CREATED_WEBHOOK_URL: process.env.N8N_DEAL_CREATED_WEBHOOK_URL,
     AUTOMATION_CONTRACT_DRAFTS_ENABLED: process.env.AUTOMATION_CONTRACT_DRAFTS_ENABLED,
     AUTOMATION_CONTRACT_TEMPLATE_ID: process.env.AUTOMATION_CONTRACT_TEMPLATE_ID,
@@ -352,6 +367,7 @@ export const env = createEnv({
     AGENT_EVENT_HMAC_SECRET: process.env.AGENT_EVENT_HMAC_SECRET,
     AGENT_GLOBAL_MONTHLY_BUDGET_MICROS: process.env.AGENT_GLOBAL_MONTHLY_BUDGET_MICROS,
     AGENT_WORKER_POLL_MS: process.env.AGENT_WORKER_POLL_MS,
+    AGENT_WORKER_ID: process.env.AGENT_WORKER_ID,
     AGENT_LEASE_SECONDS: process.env.AGENT_LEASE_SECONDS,
     AGENT_MAX_CONCURRENCY: process.env.AGENT_MAX_CONCURRENCY,
 

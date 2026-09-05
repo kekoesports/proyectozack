@@ -176,12 +176,14 @@ See [references/COMPONENTS.md](references/COMPONENTS.md) for complete component 
 
 ## Before Writing Code
 
-When a user requests an email template, ask clarifying questions FIRST if they haven't provided:
+When a user requests an email template, first reuse the current brief, approved templates, project assets and configuration. Do not ask again for information already available:
 
-1. **Brand colors** - Ask for primary brand color (hex code like #007bff)
-2. **Logo** - Ask if they have a logo file and its format (PNG/JPG only - warn if SVG/WEBP)
-3. **Style preference** - Professional, casual, or minimal tone
-4. **Production URL** - Where will static assets be hosted in production?
+1. **Brand colors** - Use the approved palette already in the project or brief.
+2. **Logo** - Reuse the approved asset; check its email-compatible format (PNG/JPG; warn if SVG/WEBP).
+3. **Style preference** - Preserve the existing design/tone unless the user requests a change.
+4. **Production URL** - Resolve the approved asset host from existing configuration or context.
+
+Ask only for critical missing information that cannot be established safely and would materially change the requested result. Non-critical gaps need not block a clearly identified local draft. Do not invent branding, approved destinations or production asset URLs. Designing/rendering a template does not itself authorize a real send, credential changes or a new hosting service.
 
 ## Static Files and Images
 
@@ -222,7 +224,7 @@ export default function Email() {
 - **Development:** `baseURL` is empty, so URL is `/static/logo.png` - served by React Email's dev server
 - **Production:** `baseURL` is the CDN domain, so URL is `https://cdn.example.com/static/logo.png`
 
-**Important:** Always ask the user for their production hosting URL. Do not hardcode `localhost:3000`.
+**Important:** Use the verified production asset URL already available in context/configuration. Ask only if it is necessary and still unknown; a local preview can continue without it. Do not hardcode `localhost:3000` into production emails or assume permission to provision a new host.
 
 ## Styling
 

@@ -5,7 +5,7 @@ description: Patrones detallados de TypeScript estricto para este proyecto. Usar
 
 # typescript-strict
 
-Expansión de las hard rules en `.Codex/rules/typescript.md`. Contiene patrones con código real del proyecto, OWASP checklist y excepciones documentadas.
+Expansión de las hard rules en `.claude/rules/typescript.md` (ruta desde la raíz del repositorio). Contiene patrones con código real del proyecto, OWASP checklist y excepciones documentadas.
 
 ## Boundary patterns
 

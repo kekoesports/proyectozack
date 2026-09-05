@@ -81,8 +81,8 @@ describe('[finanzas-nav-and-routing] páginas placeholder usan PlaceholderSectio
   // a implementación real. Ver `finanzas-nominas-creadores.test.ts`.
   // PR 6A (2026-07-07): `rentabilidad` ya no es placeholder — pasó a
   // implementación real. Ver `finanzas-rentabilidad.test.ts`.
+  // 2026-09-04: Caja muestra datos bancarios reales y requiere el guard financiero con 2FA.
   const PLACEHOLDER_ROUTES = [
-    'caja',
     'documentos',
     'informes',
     'configuracion',
@@ -96,6 +96,24 @@ describe('[finanzas-nav-and-routing] páginas placeholder usan PlaceholderSectio
   it.each(PLACEHOLDER_ROUTES)('%s requiere permission facturacion:read', (route) => {
     const src = read(`src/app/admin/(dashboard)/finanzas/${route}/page.tsx`);
     expect(src).toMatch(/requirePermission\(['"]facturacion['"],\s*['"]read['"]\)/);
+  });
+});
+
+describe('[finanzas-nav-and-routing] Caja operativa', () => {
+  const src = read('src/app/admin/(dashboard)/finanzas/caja/page.tsx');
+
+  it('protege los datos con seguridad bancaria reforzada antes de consultar las cuentas', () => {
+    expect(src).toMatch(/await requireFinancialPageSecurity\('read'\)/);
+    const guard = src.indexOf("await requireFinancialPageSecurity('read')");
+    const query = src.indexOf('listBankAccountsWithStats()');
+    expect(guard).toBeGreaterThanOrEqual(0);
+    expect(query).toBeGreaterThan(guard);
+    expect(src).not.toContain('PlaceholderSection');
+  });
+
+  it('solicita el resumen de una única entidad y filtra sus cuentas', () => {
+    expect(src).toMatch(/getBankAnnualCashflowSummary\(\{ issuerCompanyId: selected\.id, year \}\)/);
+    expect(src).toMatch(/accounts\.filter\(\(account\) => account\.issuerCompanyId === selected\.id\)/);
   });
 });
 

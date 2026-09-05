@@ -1,16 +1,10 @@
 import { z } from 'zod';
 import { normalizeTwitchLogin } from '@/lib/utils/social-profile-url';
-import { env } from '@/lib/env';
-
-const TwitchTokenSchema = z.object({
-  access_token: z.string(),
-  expires_in: z.number(),
-  token_type: z.string(),
-});
-
-const TwitchFollowerSchema = z.object({
-  total: z.number(),
-});
+import { getAppAccessToken } from './twitch-auth';
+import { readProviderJson, ProviderReadError } from './provider-http';
+import { readGameStreams, fetchTwitchFollowerCountsReport } from './twitch-discovery';
+export { getGameLiveStreams, fetchTwitchFollowerCountsReport, searchTwitchGameCategories, fetchTwitchUserPhotosReport } from './twitch-discovery';
+export type { TwitchGameStream, TwitchGameStreamsReport, TwitchFollowersReport, TwitchCategoriesReport, TwitchPhotosReport } from './twitch-discovery';
 
 type TwitchFollowerResult = {
   broadcasterId: string;
@@ -26,21 +20,6 @@ const TwitchSearchChannelsSchema = z.object({
       is_live: z.boolean(),
       game_name: z.string(),
       broadcaster_language: z.string(),
-      thumbnail_url: z.string(),
-    }),
-  ),
-});
-
-const TwitchStreamsSchema = z.object({
-  data: z.array(
-    z.object({
-      user_id: z.string(),
-      user_login: z.string(),
-      user_name: z.string(),
-      game_id: z.string(),
-      game_name: z.string(),
-      language: z.string(),
-      viewer_count: z.number(),
       thumbnail_url: z.string(),
     }),
   ),
@@ -63,55 +42,12 @@ export type TwitchChannelPreview = {
   readonly broadcasterId: string;
   readonly login: string;
   readonly displayName: string;
-  readonly followerCount: number;
+  readonly followerCount: number | null;
   readonly language: string;
   readonly currentGame: string;
-  readonly isLive: boolean;
-  readonly viewerCount: number;
+  readonly isLive: boolean | null;
+  readonly viewerCount: number | null;
   readonly thumbnailUrl: string | null;
-}
-
-type TwitchAuth = { readonly token: string; readonly clientId: string };
-
-let cachedAuth: TwitchAuth | null = null;
-let tokenExpiresAt = 0;
-
-/**
- * Get an app access token + clientId via client credentials grant.
- * Caches the token until expiry. Returns both because every Helix call needs
- * the `Client-Id` header alongside the bearer.
- */
-async function getAppAccessToken(): Promise<TwitchAuth> {
-  if (cachedAuth && Date.now() < tokenExpiresAt) {
-    return cachedAuth;
-  }
-
-  const clientId = env.TWITCH_CLIENT_ID;
-  const clientSecret = env.TWITCH_CLIENT_SECRET;
-  if (!clientId || !clientSecret) {
-    throw new Error('TWITCH_CLIENT_ID or TWITCH_CLIENT_SECRET is not set');
-  }
-
-  const res = await fetch('https://id.twitch.tv/oauth2/token', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({
-      client_id: clientId,
-      client_secret: clientSecret,
-      grant_type: 'client_credentials',
-    }),
-  });
-
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`Twitch token error (${res.status}): ${text}`);
-  }
-
-  const data = TwitchTokenSchema.parse(await res.json());
-  cachedAuth = { token: data.access_token, clientId };
-  // Expire 5 minutes early to avoid edge cases
-  tokenExpiresAt = Date.now() + (data.expires_in - 300) * 1000;
-  return cachedAuth;
 }
 
 /**
@@ -144,16 +80,10 @@ export async function searchTwitchChannels(
     `https://api.twitch.tv/helix/search/channels?query=${encodeURIComponent(query)}` +
     `&first=20${liveOnly ? '&live_only=true' : ''}`;
 
-  const res = await fetch(url, {
+  const data = await readProviderJson(url, TwitchSearchChannelsSchema, 'Twitch search API', {
     headers: { 'Client-Id': clientId, Authorization: `Bearer ${token}` },
   });
 
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`Twitch search API error (${res.status}): ${text}`);
-  }
-
-  const data = TwitchSearchChannelsSchema.parse(await res.json());
   const channels = data.data;
   if (channels.length === 0) return [];
 
@@ -161,11 +91,11 @@ export async function searchTwitchChannels(
     broadcasterId: c.id,
     login: c.broadcaster_login,
     displayName: c.display_name,
-    followerCount: 0,
+    followerCount: null,
     language: c.broadcaster_language,
     currentGame: c.game_name,
     isLive: c.is_live,
-    viewerCount: 0,
+    viewerCount: null,
     thumbnailUrl: c.thumbnail_url || null,
   }));
 }
@@ -174,34 +104,12 @@ export async function searchTwitchChannels(
  * Get currently live CS2 streams (game_id = 32399).
  */
 export async function getCS2LiveStreams(first = 100, language?: string): Promise<TwitchChannelPreview[]> {
-  const { token, clientId } = await getAppAccessToken();
-
-  let url = `https://api.twitch.tv/helix/streams?game_id=32399&first=${first}`;
-  if (language) url += `&language=${encodeURIComponent(language)}`;
-  const res = await fetch(url, {
-    headers: { 'Client-Id': clientId, Authorization: `Bearer ${token}` },
-  });
-
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`Twitch streams API error (${res.status}): ${text}`);
+  const report = await readGameStreams('32399', 1, first, language);
+  // Legacy first-page API remains bounded; new discovery consumes the full coverage report.
+  if (report.coverage.warnings.some(warning => warning !== 'page_limit')) {
+    throw new ProviderReadError(report.coverage.warnings[0] ?? 'coverage_incomplete', 'Twitch streams API coverage unavailable');
   }
-
-  const data = TwitchStreamsSchema.parse(await res.json());
-  const streams = data.data;
-  if (streams.length === 0) return [];
-
-  return streams.map((s) => ({
-    broadcasterId: s.user_id,
-    login: s.user_login,
-    displayName: s.user_name,
-    followerCount: 0,
-    language: s.language,
-    currentGame: s.game_name,
-    isLive: true,
-    viewerCount: s.viewer_count,
-    thumbnailUrl: s.thumbnail_url || null,
-  }));
+  return report.items;
 }
 
 /**
@@ -216,16 +124,10 @@ export async function getTwitchChannelInfo(
 
   const params = broadcasterIds.map((id) => `broadcaster_id=${encodeURIComponent(id)}`).join('&');
   const url = `https://api.twitch.tv/helix/channels?${params}`;
-  const res = await fetch(url, {
+  const data = await readProviderJson(url, TwitchChannelsSchema, 'Twitch channels API', {
     headers: { 'Client-Id': clientId, Authorization: `Bearer ${token}` },
   });
 
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`Twitch channels API error (${res.status}): ${text}`);
-  }
-
-  const data = TwitchChannelsSchema.parse(await res.json());
   const channels = data.data;
   if (channels.length === 0) return [];
 
@@ -239,11 +141,11 @@ export async function getTwitchChannelInfo(
     broadcasterId: c.broadcaster_id,
     login: c.broadcaster_login,
     displayName: c.broadcaster_name,
-    followerCount: followerMap.get(c.broadcaster_id) ?? 0,
+    followerCount: followerMap.get(c.broadcaster_id) ?? null,
     language: c.broadcaster_language,
     currentGame: c.game_name,
-    isLive: false,
-    viewerCount: 0,
+    isLive: null,
+    viewerCount: null,
     thumbnailUrl: null,
   }));
 }
@@ -411,22 +313,9 @@ async function _buildFollowerMap(
   const map = new Map<string, number>();
   if (ids.length === 0) return map;
 
-  const results = await Promise.allSettled(
-    ids.map(async (broadcasterId) => {
-      const url = `https://api.twitch.tv/helix/channels/followers?broadcaster_id=${broadcasterId}`;
-      const res = await fetch(url, {
-        headers: { 'Client-Id': clientId, Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) return null;
-      const d = TwitchFollowerSchema.parse(await res.json());
-      return { broadcasterId, total: d.total };
-    }),
-  );
-
-  for (const result of results) {
-    if (result.status === 'fulfilled' && result.value !== null) {
-      map.set(result.value.broadcasterId, result.value.total);
-    }
+  const report = await fetchTwitchFollowerCountsReport(ids, { clientId, token });
+  for (const item of report.items) {
+    if (item.followerCount !== null) map.set(item.broadcasterId, item.followerCount);
   }
 
   return map;

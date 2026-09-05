@@ -169,7 +169,7 @@ export function BrandTargetsSpreadsheet({
                       </div>
                     </td>
                     <td className="px-4 py-3 text-right font-semibold text-sp-dark tabular-nums">
-                      {target.followers > 0 ? formatCompact(target.followers) : '--'}
+                      {target.followers == null ? '—' : formatCompact(target.followers)}
                     </td>
                     <td className="px-4 py-3 max-w-[260px]">
                       {target.bio ? (

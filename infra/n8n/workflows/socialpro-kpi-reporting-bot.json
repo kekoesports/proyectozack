@@ -16,157 +16,102 @@
       "name": "Cada minuto",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
-      "position": [-700, 0],
-      "notes": "Discord no ofrece trigger nativo en esta instalación. El sondeo de un minuto solo continúa cuando hay un comando humano nuevo."
+      "position": [
+        -500,
+        0
+      ],
+      "notes": "Discord no ofrece trigger nativo en esta instalación. El sondeo de un minuto solo continúa cuando hay un comando humano nuevo.",
+      "disabled": false
     },
     {
+      "id": "internal-probe-kpi",
+      "name": "Verificación interna autenticada",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -500,
+        180
+      ],
+      "webhookId": "socialpro-guard-probe-kpi",
       "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "crm-base-url",
-              "name": "crmBaseUrl",
-              "value": "https://socialpro.es",
-              "type": "string"
-            }
-          ]
-        },
+        "httpMethod": "POST",
+        "path": "socialpro-internal-check-kpi-20260905",
+        "authentication": "headerAuth",
+        "responseMode": "lastNode",
         "options": {}
       },
-      "id": "kpi-config",
-      "name": "Config",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [-500, 0]
-    },
-    {
-      "parameters": {
-        "resource": "message",
-        "operation": "getAll",
-        "guildId": {
-          "__rl": true,
-          "value": "1522153792592806018",
-          "mode": "id"
-        },
-        "channelId": {
-          "__rl": true,
-          "value": "1533123515023360114",
-          "mode": "id"
-        },
-        "limit": 25,
-        "options": {}
-      },
-      "id": "read-kpi-channel",
-      "name": "Leer KPI REPORTING",
-      "type": "n8n-nodes-base.discord",
-      "typeVersion": 2,
-      "position": [-300, 0],
-      "retryOnFail": true,
-      "maxTries": 3,
-      "waitBetweenTries": 3000,
-      "notes": "Requiere Read Message History y MESSAGE CONTENT INTENT. Ignora mensajes del propio bot."
-    },
-    {
-      "parameters": {
-        "jsCode": "const state = $getWorkflowStaticData('global');\nconst lastSeenId = typeof state.lastKpiMessageId === 'string' ? state.lastKpiMessageId : null;\nconst items = $input.all();\nconst valid = items.flatMap((item) => {\n  const message = item.json || {};\n  const id = String(message.id ?? message.messageId ?? '');\n  if (!/^\\d{17,20}$/.test(id)) return [];\n  return [{ message, id }];\n});\nvalid.sort((left, right) => BigInt(left.id) < BigInt(right.id) ? -1 : 1);\nconst newestId = valid.at(-1)?.id ?? null;\nif (lastSeenId === null) {\n  if (newestId) state.lastKpiMessageId = newestId;\n  console.log('[kpi-bot] watermark inicializado', { newestId });\n  return [];\n}\nconst newer = valid.filter(({ id }) => BigInt(id) > BigInt(lastSeenId));\nif (newer.length === 0) return [];\nconst watermarkCandidate = newer.at(-1).id;\nconst normalize = (value) => String(value || '')\n  .normalize('NFD')\n  .replace(/[\\u0300-\\u036f]/g, '')\n  .trim()\n  .toLowerCase();\nconst commands = [];\nfor (const { message, id } of newer) {\n  if (message.author && message.author.bot === true) continue;\n  const original = typeof message.content === 'string' ? message.content.trim() : '';\n  const content = normalize(original);\n  let command = null;\n  let query = '';\n  if (['zack revisa', 'zack revisa de nuevo', 'revisa de nuevo'].includes(content)) {\n    command = 'review';\n  } else if (['ok', 'zack ok', 'ok facturar', 'zack facturar', 'zack crea las facturas'].includes(content)) {\n    command = 'invoice_create';\n  } else if (['zack ayuda', 'ayuda zack'].includes(content)) {\n    command = 'help';\n  } else if (content.startsWith('zack detalle ')) {\n    command = 'detail';\n    query = original.slice(original.toLowerCase().indexOf('detalle') + 7).trim();\n  } else if (content.startsWith('dame mas informacion')) {\n    command = 'detail';\n    query = original.replace(/^dame\\s+m[aá]s\\s+informaci[oó]n(?:\\s+(?:de|sobre))?\\s*/i, '').trim();\n  }\n  if (command) commands.push({ json: { command, query, sourceMessageId: id, watermarkCandidate } });\n}\nif (commands.length === 0) {\n  state.lastKpiMessageId = watermarkCandidate;\n  console.log('[kpi-bot] sin comandos nuevos', { watermarkCandidate });\n  return [];\n}\nreturn commands;"
-      },
-      "id": "detect-kpi-commands",
-      "name": "Detectar comandos nuevos",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [-80, 0],
-      "notes": "Comandos: zack revisa, zack detalle <texto>, ok/zack facturar y zack ayuda. El watermark solo avanza tras responder."
-    },
-    {
-      "parameters": {
-        "method": "={{ $json.command === 'invoice_create' ? 'POST' : 'GET' }}",
-        "url": "={{ $('Config').first().json.crmBaseUrl + ($json.command === 'invoice_create' ? '/api/automation/deals/invoices' : '/api/automation/deals/digest' + ($json.command === 'detail' && $json.query ? '?q=' + encodeURIComponent($json.query) : '')) }}",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "sendBody": "={{ $json.command === 'invoice_create' }}",
-        "specifyBody": "json",
-      "jsonBody": "={{ JSON.stringify({ announceExisting: true, excludedCampaignIds: [48, 19, 17] }) }}",
-        "options": {
-          "timeout": 30000
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_WITH_INTERNAL_GUARD_HEADER_AUTH_ID",
+          "name": "SocialPro Internal Guard Header Auth"
         }
       },
-      "id": "read-kpi-digest",
-      "name": "Consultar CRM",
+      "notes": "Prueba interna autorizada. Digest/progreso usan body.probe=true; los lectores solo aceptan mensajes nuevos. Importación segura: asignar la credencial Header Auth autorizada (Authorization: Bearer del CRM), sin pegar secretos en nodos. Requiere guard inicializado, T0 y actores permitidos persistentes."
+    },
+    {
+      "id": "durable-internal-kpi",
+      "name": "Procesar kpi con registro persistente",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [140, 0],
+      "position": [
+        40,
+        0
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_WITH_INTERNAL_GUARD_HEADER_AUTH_ID",
+          "name": "SocialPro Internal Guard Header Auth"
+        }
+      },
       "retryOnFail": true,
       "maxTries": 3,
       "waitBetweenTries": 3000,
-    "notes": "Lectura para revisa/detalle y creación segura de borradores para OK. Nunca emite ni envía facturas. UXU × YOSPORTS, TODOCS2 × SKINSMONKEY y FER × SKINSMONKEY quedan excluidos por decisión operativa."
-    },
-    {
       "parameters": {
-        "jsCode": "const requests = $('Detectar comandos nuevos').all();\nconst responses = $input.all();\nconst output = [];\nfor (let index = 0; index < responses.length; index += 1) {\n  const request = requests[index]?.json || {};\n  const response = responses[index]?.json || {};\n  let messages;\n  if (request.command === 'help') {\n    messages = ['## 🤖 ZACK · KPI REPORTING\\n`zack revisa` — vuelve a calcular el informe\\n`zack detalle <creador, marca o trato>` — muestra información concreta\\n`ok` o `zack facturar` — crea los borradores pendientes al 80 %\\n`zack ayuda` — recuerda estos comandos\\n\\nLas facturas quedan en borrador: no se emiten ni se envían automáticamente.'];\n  } else if (request.command === 'detail' && !String(request.query || '').trim()) {\n    messages = ['ℹ️ Indica qué trato buscas. Ejemplo: `zack detalle Curly Keydrop`.'];\n  } else {\n    messages = Array.isArray(response.discordMessages) ? response.discordMessages : [];\n  }\n  for (const content of messages) {\n    if (typeof content !== 'string' || !content.trim()) continue;\n    output.push({ json: { content, sourceMessageId: request.sourceMessageId, watermarkCandidate: request.watermarkCandidate } });\n  }\n}\nreturn output;"
+        "method": "POST",
+        "url": "http://socialpro-internal-guard:8787/run/kpi",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.body || {}) }}",
+        "options": {
+          "timeout": 170000
+        }
       },
-      "id": "prepare-kpi-replies",
-      "name": "Preparar respuestas",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [360, 0]
-    },
-    {
-      "parameters": {
-        "resource": "message",
-        "operation": "send",
-        "guildId": {
-          "__rl": true,
-          "value": "1522153792592806018",
-          "mode": "id"
-        },
-        "channelId": {
-          "__rl": true,
-          "value": "1533123515023360114",
-          "mode": "id"
-        },
-        "content": "={{ $json.content }}",
-        "options": {}
-      },
-      "id": "send-kpi-reply",
-      "name": "Responder en KPI REPORTING",
-      "type": "n8n-nodes-base.discord",
-      "typeVersion": 2,
-      "position": [580, 0],
-      "retryOnFail": true,
-      "maxTries": 3,
-      "waitBetweenTries": 3000
-    },
-    {
-      "parameters": {
-        "jsCode": "const replies = $('Preparar respuestas').all();\nconst candidates = replies\n  .map((item) => String(item.json.watermarkCandidate || ''))\n  .filter((id) => /^\\d{17,20}$/.test(id));\nif (candidates.length === 0) return [];\nconst maxId = candidates.reduce((max, id) => BigInt(id) > BigInt(max) ? id : max, candidates[0]);\nconst state = $getWorkflowStaticData('global');\nstate.lastKpiMessageId = maxId;\nconsole.log('[kpi-bot] comandos respondidos', { maxId, replies: replies.length });\nreturn [];"
-      },
-      "id": "save-kpi-watermark",
-      "name": "Guardar watermark",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [800, 0],
-      "notes": "Solo se ejecuta después de que todos los mensajes se hayan publicado correctamente."
+      "notes": "Sólo rutas internas permitidas; ledger fsync, identidad estable y recibo Discord antes de ACK. No facturas, pagos, emails, contratos ni replay histórico. Código versionado: infra/n8n/guard. Importación segura: asignar la credencial Header Auth autorizada (Authorization: Bearer del CRM), sin pegar secretos en nodos. Requiere guard inicializado, T0 y actores permitidos persistentes."
     }
   ],
   "connections": {
-    "Cada minuto": { "main": [[{ "node": "Config", "type": "main", "index": 0 }]] },
-    "Config": { "main": [[{ "node": "Leer KPI REPORTING", "type": "main", "index": 0 }]] },
-    "Leer KPI REPORTING": { "main": [[{ "node": "Detectar comandos nuevos", "type": "main", "index": 0 }]] },
-    "Detectar comandos nuevos": { "main": [[{ "node": "Consultar CRM", "type": "main", "index": 0 }]] },
-    "Consultar CRM": { "main": [[{ "node": "Preparar respuestas", "type": "main", "index": 0 }]] },
-    "Preparar respuestas": { "main": [[{ "node": "Responder en KPI REPORTING", "type": "main", "index": 0 }]] },
-    "Responder en KPI REPORTING": { "main": [[{ "node": "Guardar watermark", "type": "main", "index": 0 }]] }
+    "Cada minuto": {
+      "main": [
+        [
+          {
+            "node": "Procesar kpi con registro persistente",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verificación interna autenticada": {
+      "main": [
+        [
+          {
+            "node": "Procesar kpi con registro persistente",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
   },
-  "pinData": {},
   "settings": {
     "executionOrder": "v1",
     "timezone": "Europe/Madrid",
-    "saveManualExecutions": true
+    "saveManualExecutions": true,
+    "saveDataSuccessExecution": "all",
+    "saveDataErrorExecution": "all",
+    "executionTimeout": 600
   },
-  "active": false,
-  "versionId": "17e608d4-e0b0-49e5-beb3-0f49ed975e7b",
-  "meta": {
-    "templateCredsSetupCompleted": false
-  },
-  "tags": []
+  "active": false
 }

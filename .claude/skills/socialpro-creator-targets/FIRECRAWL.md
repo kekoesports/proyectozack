@@ -6,11 +6,11 @@ Doc oficial: https://docs.firecrawl.dev/api-reference/v2-introduction.
 
 ## Cargar la API key
 
-El agente lee el `.env` de la carpeta de la skill con la herramienta Read y pasa el valor inline en cada curl. **No** sourcear el archivo en el shell (Windows/PowerShell no lo soporta limpio).
+Esta dependencia se comprueba solo en discovery default/`--deep`. `--refresh` no llama a Firecrawl y no debe cargar ni exigir su clave.
 
-Ruta: `.claude/skills/socialpro-creator-targets/.env`. Formato: `FIRECRAWL_API_KEY=fc-...`.
+Usar la credencial existente mediante el entorno/mecanismo seguro autorizado, sin mostrar valores en herramientas de lectura, chat, logs o argumentos visibles. Si se usa un `.env` local de la skill, debe permanecer fuera de Git y no se vuelca su contenido. Los ejemplos de esta referencia son placeholders, no instrucciones para pegar un secreto real.
 
-Si la variable no aparece, abortar: `Falta FIRECRAWL_API_KEY. Crea .claude/skills/socialpro-creator-targets/.env.`
+Si falta la variable necesaria para discovery, detener ese modo antes de consumir cuota y señalar `FIRECRAWL_API_KEY` al responsable actual de configuración. No crear, rotar ni sustituir claves como parte de este preflight; cualquier cambio de credenciales necesita autorización específica. Mantener la confirmación de coste y los techos establecidos en `SKILL.md`.
 
 ## Llamada principal — `/v2/search` con `scrapeOptions`
 

@@ -1,0 +1,55 @@
+{
+  "name": "SocialPro - Creator Discovery digest interno",
+  "nodes": [
+    {
+      "id": "creator-discovery-digest-trigger",
+      "name": "Cada dos minutos",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [-500, 0],
+      "parameters": {
+        "rule": { "interval": [{ "field": "minutes", "minutesInterval": 2 }] }
+      },
+      "notes": "Sólo despierta la familia creators del guard existente. No inicia búsquedas a proveedores ni transporta mensajes, destinatarios o cursores. Definición preparada, no importada ni activada."
+    },
+    {
+      "id": "durable-internal-creators",
+      "name": "Procesar creators con registro persistente",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [40, 0],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_WITH_INTERNAL_GUARD_HEADER_AUTH_ID",
+          "name": "SocialPro Internal Guard Header Auth"
+        }
+      },
+      "retryOnFail": false,
+      "parameters": {
+        "method": "POST",
+        "url": "http://socialpro-internal-guard:8787/run/creators",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{}",
+        "options": { "timeout": 170000 }
+      },
+      "notes": "Reutilizar la credencial Header Auth autorizada de los workflows protegidos; no crear una credencial ni pegar secretos en nodos. Guard existente: infra/n8n/guard, ledger fsync, T0 y destino persistentes. Sin reintento inmediato tras timeout; el siguiente sondeo conserva identidad y recibo antes de ACK. No facturas, pagos, emails, outreach ni replay histórico. No reinicializar policy o journal."
+    }
+  ],
+  "connections": {
+    "Cada dos minutos": {
+      "main": [[{ "node": "Procesar creators con registro persistente", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Europe/Madrid",
+    "saveManualExecutions": true,
+    "saveDataSuccessExecution": "all",
+    "saveDataErrorExecution": "all",
+    "executionTimeout": 180
+  },
+  "active": false
+}

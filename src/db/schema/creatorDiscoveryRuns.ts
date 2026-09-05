@@ -9,7 +9,11 @@ import {
 } from 'drizzle-orm/pg-core';
 
 export type CreatorDiscoveryPlatformResult = {
-  readonly platform: 'youtube' | 'twitch' | 'kick';
+  readonly platform: 'youtube' | 'twitch' | 'kick' | 'instagram';
+  /** Optional only for historical JSON rows written before availability tracking. */
+  readonly status?: 'success' | 'partial' | 'failed' | 'skipped';
+  readonly warnings?: readonly string[];
+  readonly usage?: { readonly searchPages: number; readonly candidateChecks: number };
   readonly found: number;
   readonly qualified: number;
   readonly inserted: number;

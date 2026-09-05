@@ -17,97 +17,67 @@
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
       "position": [
-        -620,
-        0
-      ]
-    },
-    {
-      "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "crm-base-url",
-              "name": "crmBaseUrl",
-              "value": "https://socialpro.es",
-              "type": "string"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "id": "config",
-      "name": "Config",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        -400,
+        -500,
         0
       ],
-      "notes": "La API del CRM construye mensajes de hasta 1900 caracteres y devuelve tantos bloques como sean necesarios para no ocultar tratos con progreso."
+      "disabled": false
     },
     {
+      "id": "internal-probe-digest",
+      "name": "Verificación interna autenticada",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -500,
+        180
+      ],
+      "webhookId": "socialpro-guard-probe-digest",
       "parameters": {
-        "url": "={{ $('Config').first().json.crmBaseUrl }}/api/automation/deals/digest",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
+        "httpMethod": "POST",
+        "path": "socialpro-internal-check-digest-20260905",
+        "authentication": "headerAuth",
+        "responseMode": "lastNode",
         "options": {}
       },
-      "id": "read-crm-digest",
-      "name": "Leer resumen CRM",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_WITH_INTERNAL_GUARD_HEADER_AUTH_ID",
+          "name": "SocialPro Internal Guard Header Auth"
+        }
+      },
+      "notes": "Prueba interna autorizada. Digest/progreso usan body.probe=true; los lectores solo aceptan mensajes nuevos. Importación segura: asignar la credencial Header Auth autorizada (Authorization: Bearer del CRM), sin pegar secretos en nodos. Requiere guard inicializado, T0 y actores permitidos persistentes."
+    },
+    {
+      "id": "durable-internal-digest",
+      "name": "Procesar digest con registro persistente",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        -160,
+        40,
         0
       ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_WITH_INTERNAL_GUARD_HEADER_AUTH_ID",
+          "name": "SocialPro Internal Guard Header Auth"
+        }
+      },
       "retryOnFail": true,
       "maxTries": 3,
       "waitBetweenTries": 3000,
-      "notes": "SOLO LECTURA. El sync lo hace el workflow horario de progreso, que es su único dueño. Desde la migración 0120 hay unique index (tracker_id, normalized_url), así que un solapamiento ya no duplica evidencias; sigue sin convenir porque /deals/sync sube el watermark de avisos antes de que salgan."
-    },
-    {
       "parameters": {
-        "jsCode": "const messages = Array.isArray($json.discordMessages) ? $json.discordMessages : [];\nreturn messages\n  .filter((content) => typeof content === 'string' && content.trim().length > 0)\n  .map((content) => ({ json: { content } }));"
+        "method": "POST",
+        "url": "http://socialpro-internal-guard:8787/run/digest",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.body || {}) }}",
+        "options": {
+          "timeout": 170000
+        }
       },
-      "id": "format-digest",
-      "name": "Preparar UPDATE DEALS",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        100,
-        0
-      ],
-      "notes": "La API ya agrupa errores, completados, facturación, parados y progreso. Las hojas vacías se resumen sin listar una a una. No publica importes."
-    },
-    {
-      "parameters": {
-        "resource": "message",
-        "operation": "send",
-        "guildId": {
-          "__rl": true,
-          "value": "1522153792592806018",
-          "mode": "id"
-        },
-        "channelId": {
-          "__rl": true,
-          "value": "1533123515023360114",
-          "mode": "id"
-        },
-        "content": "={{ $json.content }}",
-        "options": {}
-      },
-      "id": "discord-placeholder",
-      "name": "Publicar UPDATE DEALS en Discord",
-      "type": "n8n-nodes-base.discord",
-      "typeVersion": 2,
-      "position": [
-        340,
-        0
-      ],
-      "retryOnFail": true,
-      "maxTries": 3,
-      "waitBetweenTries": 3000,
-      "notes": "Asignar Discord Bot account al importar. Publica cada bloque por separado y reintenta si Discord falla."
+      "notes": "Sólo rutas internas permitidas; ledger fsync, identidad estable y recibo Discord antes de ACK. No facturas, pagos, emails, contratos ni replay histórico. Código versionado: infra/n8n/guard. Importación segura: asignar la credencial Header Auth autorizada (Authorization: Bearer del CRM), sin pegar secretos en nodos. Requiere guard inicializado, T0 y actores permitidos persistentes."
     }
   ],
   "connections": {
@@ -115,40 +85,18 @@
       "main": [
         [
           {
-            "node": "Config",
+            "node": "Procesar digest con registro persistente",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Config": {
+    "Verificación interna autenticada": {
       "main": [
         [
           {
-            "node": "Leer resumen CRM",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Leer resumen CRM": {
-      "main": [
-        [
-          {
-            "node": "Preparar UPDATE DEALS",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Preparar UPDATE DEALS": {
-      "main": [
-        [
-          {
-            "node": "Publicar UPDATE DEALS en Discord",
+            "node": "Procesar digest con registro persistente",
             "type": "main",
             "index": 0
           }
@@ -156,16 +104,13 @@
       ]
     }
   },
-  "pinData": {},
   "settings": {
     "executionOrder": "v1",
     "timezone": "Europe/Madrid",
-    "saveManualExecutions": true
+    "saveManualExecutions": true,
+    "saveDataSuccessExecution": "all",
+    "saveDataErrorExecution": "all",
+    "executionTimeout": 600
   },
-  "active": false,
-  "versionId": "50ef3b59-4d3c-4e27-860f-dbb4e5701003",
-  "meta": {
-    "templateCredsSetupCompleted": false
-  },
-  "tags": []
+  "active": false
 }

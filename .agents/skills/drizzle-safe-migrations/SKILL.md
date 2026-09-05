@@ -12,11 +12,23 @@ metadata:
 
 Use this skill to run database migrations in a way that is auditable, deployment-safe, and consistent with Drizzle's migration model.
 
+## Project command preflight
+
+Before proposing or running commands, read the current `package.json`, `drizzle.config.ts`, `scripts/migrate.ts` and deployment entrypoint. Resolve paths from the repository root; do not assume a package manager, script alias or target database from this skill.
+
+Verified SocialPro contract (2026-09-05): npm; generation uses `npx drizzle-kit generate`; `npm run migrate` and `npm run migrate:deploy` invoke `tsx scripts/migrate.ts` with `pg` / `drizzle-orm/node-postgres`. There is no `db:generate` or `typecheck` npm script. Recheck this contract if the files change.
+
+- `drizzle.config.ts` requires an explicit `DATABASE_URL`, reads `src/db/schema/index.ts`, and writes `drizzle/`. Generation/check can use a synthetic local URL; they do not need production credentials.
+- Applying migrations is separate: the runner loads `.env.local` without replacing existing environment values, requires `DATABASE_URL`, and prefers `MIGRATION_DATABASE_URL` for the connection. Verify the effective target privately, not just the shell's current directory.
+- The runner skips only preview unless `RUN_MIGRATIONS_IN_PREVIEW=true`. `DEPLOY_ENV` precedes `VERCEL_ENV`; missing values default to development, which does **not** block applying migrations. Never rely on missing flags as a safety barrier.
+- Apply only to the destination already authorized for the specific migration, after backup/restore, staging and rollback checks. A request to generate/review SQL does not authorize a production migration. Do not use `npx drizzle-kit migrate` as a substitute: it bypasses the project runner and its migration-skip guard.
+- `drizzle-kit push` is limited to explicitly disposable test databases, never a production/staging repair. Those empty-schema tests do not validate the historical migration chain. Do not modify migration history or backfill the journal to manufacture a green result.
+
 ## Core Rules
 
-- Always generate schema migrations with the project script (`bun run db:generate`).
+- Always generate schema migrations with the inspected project command (currently `npx drizzle-kit generate`).
 - Never hand-edit generated schema migration files.
-- Generate data backfills as custom migrations (`bun run db:generate -- --custom --name <name>`) and edit only that custom SQL file.
+- Generate data backfills as custom migrations (currently `npx drizzle-kit generate --custom --name <name>`) and edit only that custom SQL file.
 - Apply data normalization before tightening constraints.
 - Keep one-off data fixes in migration history, not as hidden runtime logic, unless an emergency hotfix requires temporary mitigation.
 
@@ -26,17 +38,20 @@ Use this skill to run database migrations in a way that is auditable, deployment
    - `schema-only`: only column/table/index/default changes.
    - `data+schema`: old rows must be transformed before new constraints/defaults.
 2. For `data+schema`, create custom migration first:
-   - `bun run db:generate -- --custom --name <descriptive_name>`
+   - `npx drizzle-kit generate --custom --name <descriptive_name>`
    - Add idempotent backfill SQL.
 3. Generate schema migration second:
-   - `bun run db:generate`
+   - `npx drizzle-kit generate`
 4. Verify migration ordering in `drizzle/meta/_journal.json`:
    - backfill migration index must be lower than constraint-tightening migration index.
 5. Verify generated SQL and snapshots:
    - backfill migration contains only intended data change.
    - schema migration contains constraint/default/type changes.
 6. Run full backend verification:
-   - `bun run lint && bun run typecheck && bun run test`
+   - `npm run lint`
+   - `npx tsc --noEmit`
+   - `npm test -- --runInBand`
+   - `npx drizzle-kit check` validates migration metadata, not live schema equivalence; inspect generated SQL/snapshots and the intended database separately.
 7. Document deployment notes:
    - expected data transformations,
    - lock-risk areas,

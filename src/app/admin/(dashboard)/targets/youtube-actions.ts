@@ -6,6 +6,7 @@ import { z } from 'zod';
 
 import { requirePermission } from '@/lib/permissions';
 import { bulkUpsertTargets } from '@/lib/queries/targets';
+import { getCreatorProviderReadiness } from '@/lib/queries/creatorProviderReadiness';
 import { getChannelRecentPerformance, searchYouTubeChannels } from '@/lib/services/youtube';
 import {
   qualifyYouTubeChannel,
@@ -53,6 +54,8 @@ export async function discoverYouTubeTargetsAction(
   await requirePermission('targets', 'read');
   const parsed = searchSchema.safeParse(input);
   if (!parsed.success) return { ok: false, candidates: [], error: 'Revisa los filtros de búsqueda' };
+  const gate = (await getCreatorProviderReadiness()).find((entry) => entry.platform === 'youtube');
+  if (!gate?.ready) return { ok: false, candidates: [], error: gate?.message ?? 'YouTube no está configurado.' };
 
   try {
     const params = parsed.data;
@@ -85,7 +88,8 @@ export async function discoverYouTubeTargetsAction(
       .sort((a, b) => Number(b.isQualified) - Number(a.isQualified) || b.avgViews - a.avgViews)
       .slice(0, params.limit);
 
-    return { ok: true, candidates, error: null };
+    const failed = audited.filter((item) => item.status === 'rejected').length;
+    return { ok: true, candidates, error: failed > 0 ? `Cobertura parcial: ${failed} canales no se pudieron comprobar; no se han contado como canales sin actividad.` : null };
   } catch (error) {
     return { ok: false, candidates: [], error: safeError(error) };
   }
@@ -97,14 +101,14 @@ const importSchema = z.array(z.object({
   title: z.string().min(1),
   description: z.string(),
   thumbnailUrl: z.url().nullable(),
-  subscriberCount: z.number().int().nonnegative(),
+  subscriberCount: z.number().int().nonnegative().nullable(),
   country: z.string().length(2).nullable(),
   defaultLanguage: z.string().nullable(),
   windowDays: z.union([z.literal(60), z.literal(90)]),
   videoCount: z.number().int().min(3),
   minViews: z.number().int().nonnegative(),
   avgViews: z.number().int().nonnegative(),
-  medianViews: z.number().int().min(1_000),
+  medianViews: z.number().min(1_000),
   videosAtOrAbove1000: z.number().int().nonnegative(),
   lastVideoAt: z.coerce.date().nullable(),
   languageMatches: z.literal(true),
@@ -123,6 +127,8 @@ export async function importQualifiedYouTubeTargetsAction(
   await requirePermission('targets', 'write');
   const parsed = importSchema.safeParse(input);
   if (!parsed.success) return { imported: 0, updated: 0, error: 'Solo se importan canales que cumplen todos los criterios' };
+  const gate = (await getCreatorProviderReadiness()).find((entry) => entry.platform === 'youtube');
+  if (!gate?.ready) return { imported: 0, updated: 0, error: gate?.message ?? 'YouTube no está configurado.' };
 
   const batchId = `youtube-${randomUUID().slice(0, 8)}`;
   const rows: CreateTargetInput[] = parsed.data.map((channel) => ({
@@ -133,7 +139,7 @@ export async function importQualifiedYouTubeTargetsAction(
       ? `https://www.youtube.com/@${channel.handle}`
       : `https://www.youtube.com/channel/${channel.channelId}`,
     profilePicUrl: channel.thumbnailUrl ?? undefined,
-    followers: channel.subscriberCount,
+    followers: channel.subscriberCount ?? undefined,
     bio: channel.description || undefined,
     countryCode: channel.country ?? undefined,
     defaultLanguage: channel.defaultLanguage ?? undefined,

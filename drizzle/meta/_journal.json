@@ -1044,6 +1044,20 @@
       "when": 1788524888533,
       "tag": "0148_partner_leads_radar",
       "breakpoints": true
+    },
+    {
+      "idx": 149,
+      "version": "7",
+      "when": 1788621261135,
+      "tag": "0149_creator_discovery_operations",
+      "breakpoints": true
+    },
+    {
+      "idx": 150,
+      "version": "7",
+      "when": 1788624317162,
+      "tag": "0150_creator_discovery_delivery",
+      "breakpoints": true
     }
   ]
 }

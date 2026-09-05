@@ -91,13 +91,29 @@ jobs:
             exit 1
           fi
 
-  # Unit & Fuzz Tests job removed — flaky/noisy on CI; run locally with
-  # `npm run test:ci` / `npm run test:fuzz` when needed.
+  unit-tests:
+    name: Unit, integration & fuzz regression tests
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: postgresql://audit:audit@127.0.0.1:5432/socialpro_test
+      RESEND_API_KEY: re_ci_disabled
+      BETTER_AUTH_SECRET: ci-test-secret-not-used-for-production-2026
+      NEXT_PUBLIC_SITE_URL: http://localhost:3000
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7.0.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      # The ordinary test suite mocks integrations; no production credentials.
+      # Optional PostgreSQL concurrency tests run separately with a disposable DB.
+      - run: npm run test:ci -- --maxWorkers=2
 
   build:
     name: Build
     runs-on: ubuntu-latest
-    needs: [lint-typecheck]
+    needs: [lint-typecheck, unit-tests]
     services:
       postgres:
         image: postgres:17
@@ -114,8 +130,9 @@ jobs:
           --health-retries 5
     env:
       DATABASE_URL: postgresql://socialpro_ci:socialpro_ci@127.0.0.1:5432/socialpro_ci
-      RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
-      BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET }}
+      # Synthetic validation values only; never grant CI production authority.
+      RESEND_API_KEY: re_ci_disabled
+      BETTER_AUTH_SECRET: ci-test-secret-not-used-for-production-2026
       NEXT_PUBLIC_SITE_URL: http://localhost:3000
     steps:
       - uses: actions/checkout@v7.0.1
@@ -137,13 +154,8 @@ jobs:
       - name: Build
         # The build reads from the disposable PostgreSQL service above. CI must
         # never wake production or a paid external database just to prerender.
-        # Dependabot PRs do not receive the remaining application secrets.
-        run: |
-          if [ -z "$RESEND_API_KEY" ] || [ -z "$BETTER_AUTH_SECRET" ]; then
-            echo "::warning::Required secrets missing (typical for Dependabot). Skipping the full build after lint/type-check completed."
-            exit 0
-          fi
-          npm run build
+        # Synthetic values let fork/Dependabot builds run the same mandatory gate.
+        run: npm run build
 
   docker-runtime:
     name: Docker runtime (PDF & OCR)
@@ -165,8 +177,8 @@ jobs:
           --health-retries 5
     env:
       DATABASE_URL: postgresql://socialpro_ci:socialpro_ci@127.0.0.1:5432/socialpro_ci
-      RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
-      BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET }}
+      RESEND_API_KEY: re_ci_disabled
+      BETTER_AUTH_SECRET: ci-test-secret-not-used-for-production-2026
     steps:
       - uses: actions/checkout@v7.0.1
 
@@ -183,12 +195,8 @@ jobs:
         run: npx drizzle-kit push --force
 
       - name: Build production image
+        # Production-format image, disposable data and synthetic values only.
         run: |
-          if [ -z "$RESEND_API_KEY" ] || [ -z "$BETTER_AUTH_SECRET" ]; then
-            echo "::warning::Required secrets missing. Skipping Docker build for untrusted/dependency PR."
-            exit 0
-          fi
-
           BUILD_ENV="$RUNNER_TEMP/socialpro-build.env"
           umask 077
           {
@@ -208,10 +216,7 @@ jobs:
 
       - name: Exercise native PDF and OCR stack in final image
         run: |
-          if ! docker image inspect "socialpro:ci-$GITHUB_SHA" >/dev/null 2>&1; then
-            echo "Docker image was intentionally skipped."
-            exit 0
-          fi
+          docker image inspect "socialpro:ci-$GITHUB_SHA" >/dev/null
           docker run --rm --entrypoint node \
             "socialpro:ci-$GITHUB_SHA" scripts/docker-runtime-smoke.mjs
 

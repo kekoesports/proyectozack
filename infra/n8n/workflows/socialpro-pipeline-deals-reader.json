@@ -1,9 +1,5 @@
 {
   "name": "SocialPro - LEER #pipeline-deals (cada 2 min)",
-  "active": false,
-  "settings": {
-    "executionOrder": "v1"
-  },
   "nodes": [
     {
       "parameters": {
@@ -21,161 +17,68 @@
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
       "position": [
-        -640,
+        -500,
         0
       ],
-      "notes": "Guarda un watermark del último snowflake procesado. Si Discord no devuelve mensajes posteriores, el workflow termina sin llamar al CRM ni reaccionar."
+      "notes": "Guarda un watermark del último snowflake procesado. Si Discord no devuelve mensajes posteriores, el workflow termina sin llamar al CRM ni reaccionar.",
+      "disabled": false
     },
     {
-      "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "crm-base-url",
-              "name": "crmBaseUrl",
-              "value": "https://socialpro.es",
-              "type": "string"
-            },
-            {
-              "id": "channel-id",
-              "name": "channelId",
-              "value": "1533123521574862991",
-              "type": "string"
-            },
-            {
-              "id": "max-mensajes",
-              "name": "maxMensajes",
-              "value": 25,
-              "type": "number"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "id": "config",
-      "name": "Config",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        -420,
-        0
-      ],
-      "notes": "channelId es #pipeline-deals. NO usar el guild de ZaCkETiZOR: ese es la comunidad de un creador, no el servidor de operaciones. maxMensajes = 25 porque es el tope por lote del endpoint."
-    },
-    {
-      "parameters": {
-        "resource": "message",
-        "operation": "getAll",
-        "guildId": {
-          "__rl": true,
-          "value": "1522153792592806018",
-          "mode": "id"
-        },
-        "channelId": {
-          "__rl": true,
-          "value": "1533123521574862991",
-          "mode": "id"
-        },
-        "limit": 25,
-        "options": {}
-      },
-      "id": "read-discord",
-      "name": "Leer mensajes del canal",
-      "type": "n8n-nodes-base.discord",
+      "id": "internal-probe-pipeline",
+      "name": "Verificación interna autenticada",
+      "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [
-        -200,
+        -500,
+        180
+      ],
+      "webhookId": "socialpro-guard-probe-pipeline",
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "socialpro-internal-check-pipeline-20260905",
+        "authentication": "headerAuth",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_WITH_INTERNAL_GUARD_HEADER_AUTH_ID",
+          "name": "SocialPro Internal Guard Header Auth"
+        }
+      },
+      "notes": "Prueba interna autorizada. Digest/progreso usan body.probe=true; los lectores solo aceptan mensajes nuevos. Importación segura: asignar la credencial Header Auth autorizada (Authorization: Bearer del CRM), sin pegar secretos en nodos. Requiere guard inicializado, T0 y actores permitidos persistentes."
+    },
+    {
+      "id": "durable-internal-pipeline",
+      "name": "Procesar pipeline con registro persistente",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        40,
         0
       ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_WITH_INTERNAL_GUARD_HEADER_AUTH_ID",
+          "name": "SocialPro Internal Guard Header Auth"
+        }
+      },
       "retryOnFail": true,
       "maxTries": 3,
       "waitBetweenTries": 3000,
-      "notes": "Requiere MESSAGE CONTENT INTENT en el bot: sin el, \"content\" llega vacio y ningun mensaje se reconoce como trato. guildId y channelId van como resource locator ({__rl:true}) — con cadenas sueltas n8n rechaza publicar el workflow."
-    },
-    {
-      "parameters": {
-        "jsCode": "// Deja el lote en la forma que espera el CRM y descarta lo que no procede.\n// El watermark evita volver a llamar al CRM cuando no hay mensajes nuevos.\nconst state = $getWorkflowStaticData('global');\nconst lastSeenId = typeof state.lastPipelineMessageId === 'string'\n  ? state.lastPipelineMessageId\n  : null;\n\nfunction isAfterWatermark(id) {\n  if (lastSeenId === null) return true;\n  try {\n    return BigInt(id) > BigInt(lastSeenId);\n  } catch {\n    return false;\n  }\n}\n\nconst stats = { input: 0, invalid: 0, bots: 0, beforeWatermark: 0, empty: 0, accepted: 0 };\nconst mensajes = [];\nfor (const item of $input.all()) {\n  stats.input += 1;\n  const m = item.json;\n  const messageId = String(m && (m.id ?? m.messageId) || '');\n  const channelId = String(m && (m.channel_id ?? m.channelId) || '');\n  if (!/^\\d{17,20}$/.test(messageId) || !/^\\d{17,20}$/.test(channelId)) {\n    stats.invalid += 1;\n    continue;\n  }\n  const author = m && typeof m.author === 'object' && m.author ? m.author : {};\n  if (author.bot === true) {\n    stats.bots += 1;\n    continue;\n  }\n  if (!isAfterWatermark(messageId)) {\n    stats.beforeWatermark += 1;\n    continue;\n  }\n  const content = typeof m.content === 'string' ? m.content.trim() : '';\n  if (content.length === 0) {\n    stats.empty += 1;\n    continue;\n  }\n  mensajes.push({\n    messageId,\n    channelId,\n    authorId: author.id ? String(author.id) : undefined,\n    authorUsername: author.username ? String(author.username) : undefined,\n    content,\n    timestamp: m.timestamp ? String(m.timestamp) : undefined,\n  });\n  stats.accepted += 1;\n}\n\n// Discord devuelve primero los más recientes. El CRM recibe orden cronológico.\nmensajes.sort((a, b) => {\n  const left = BigInt(a.messageId);\n  const right = BigInt(b.messageId);\n  return left < right ? -1 : left > right ? 1 : 0;\n});\nconsole.log('[pipeline-deals] filtro de lote', { ...stats, lastSeenId, newestAcceptedId: mensajes.at(-1)?.messageId ?? null });\n\n// Sin mensajes posteriores al watermark no se llama al CRM.\nif (mensajes.length === 0) return [];\nreturn [{ json: { messages: mensajes.slice(0, 25) } }];"
-      },
-      "id": "build-batch",
-      "name": "Preparar lote",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        20,
-        0
-      ],
-      "notes": "Filtra bots, mensajes vacíos y snowflakes que no superan el watermark. Si no hay novedades, devuelve [] y termina sin llamar al CRM."
-    },
-    {
       "parameters": {
         "method": "POST",
-        "url": "={{ $('Config').first().json.crmBaseUrl }}/api/automation/discord/pipeline-deals",
+        "url": "http://socialpro-internal-guard:8787/run/pipeline",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify($json) }}",
+        "jsonBody": "={{ JSON.stringify($json.body || {}) }}",
         "options": {
-          "timeout": 120000
+          "timeout": 170000
         }
       },
-      "id": "send-to-crm",
-      "name": "Enviar a CRM",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        240,
-        0
-      ],
-      "retryOnFail": true,
-      "maxTries": 3,
-      "waitBetweenTries": 5000,
-      "onError": "continueRegularOutput",
-      "notes": "Crea BORRADORES, nunca campañas. No toca /deals/sync: ese endpoint sube el watermark de avisos 70/80/100 antes de que salgan, y el watermark solo sube."
-    },
-    {
-      "parameters": {
-        "jsCode": "// Convierte solo resultados NUEVOS en una reacción sobre el mensaje original.\n// 👀 = leído y pendiente de revisión; ⚠️ = guardado pero incompleto;\n// ✅ = trato ya aprobado; 🚫 = rechazado; ❌ = fallo, se reintentará.\nconst channelId = String($('Config').first().json.channelId);\nconst lote = $('Preparar lote').first().json.messages;\nconst mensajes = Array.isArray(lote) ? lote : [];\nconst respuestaTieneOutcomes = Object.prototype.hasOwnProperty.call($json, 'outcomes');\nlet outcomes = Array.isArray($json.outcomes) ? $json.outcomes : [];\n\n// El HTTP Request continúa por la salida normal después de agotar sus tres\n// intentos. Si no llegó una respuesta válida del CRM, recuperamos los IDs del\n// lote original y marcamos cada mensaje como fallo visible en Discord.\nif (!respuestaTieneOutcomes) {\n  outcomes = mensajes.map((mensaje) => ({\n    messageId: mensaje.messageId,\n    result: 'failed',\n    status: null,\n  }));\n}\n\n// El watermark solo avanza tras una respuesta completa y sin fallos. Así un\n// error parcial se reintenta; los already_seen no vuelven a generar reacción.\nconst idsDevueltos = new Set(outcomes.map((outcome) => String(outcome && outcome.messageId || '')));\nconst respuestaCompleta = respuestaTieneOutcomes\n  && outcomes.length === mensajes.length\n  && mensajes.every((mensaje) => idsDevueltos.has(String(mensaje.messageId)));\nconst hayFallos = outcomes.some((outcome) => outcome && outcome.result === 'failed');\nif (respuestaCompleta && !hayFallos && mensajes.length > 0) {\n  const maxMessageId = mensajes.reduce((max, mensaje) => {\n    const current = String(mensaje.messageId);\n    return BigInt(current) > BigInt(max) ? current : max;\n  }, String(mensajes[0].messageId));\n  const state = $getWorkflowStaticData('global');\n  state.lastPipelineMessageId = maxMessageId;\n}\n\nconst emojiByStatus = {\n  missing_info: '⚠️',\n  pending_review: '👀',\n  created: '✅',\n  rejected: '🚫',\n};\n\nreturn outcomes.flatMap((outcome) => {\n  if (!outcome || ['ignored', 'already_seen'].includes(outcome.result) || !outcome.messageId) return [];\n  const emoji = outcome.result === 'failed'\n    ? '❌'\n    : (emojiByStatus[outcome.status] || '👀');\n  return [{\n    json: {\n      messageId: String(outcome.messageId),\n      channelId,\n      emoji,\n      result: outcome.result,\n      status: outcome.status || null,\n      draftId: outcome.draftId || null,\n    },\n  }];\n});"
-      },
-      "id": "build-discord-feedback",
-      "name": "Preparar estado Discord",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        460,
-        0
-      ],
-      "notes": "Avanza el watermark solo tras una respuesta completa y sin fallos. ignored y already_seen no reaccionan. Leyenda: 👀 pendiente, ⚠️ faltan datos, ✅ aprobado, 🚫 rechazado, ❌ fallo/reintento."
-    },
-    {
-      "parameters": {
-        "resource": "message",
-        "operation": "react",
-        "guildId": {
-          "__rl": true,
-          "value": "1522153792592806018",
-          "mode": "id"
-        },
-        "channelId": {
-          "__rl": true,
-          "value": "={{ $json.channelId }}",
-          "mode": "id"
-        },
-        "messageId": "={{ $json.messageId }}",
-        "emoji": "={{ $json.emoji }}"
-      },
-      "id": "react-discord-status",
-      "name": "Marcar estado en Discord",
-      "type": "n8n-nodes-base.discord",
-      "typeVersion": 2,
-      "position": [
-        680,
-        0
-      ],
-      "retryOnFail": true,
-      "maxTries": 3,
-      "waitBetweenTries": 3000,
-      "notes": "Asignar la credencial Discord Bot account al importar. El bot necesita Add Reactions y Read Message History en #pipeline-deals."
+      "notes": "Sólo rutas internas permitidas; ledger fsync, identidad estable y recibo Discord antes de ACK. No facturas, pagos, emails, contratos ni replay histórico. Código versionado: infra/n8n/guard. Importación segura: asignar la credencial Header Auth autorizada (Authorization: Bearer del CRM), sin pegar secretos en nodos. Requiere guard inicializado, T0 y actores permitidos persistentes."
     }
   ],
   "connections": {
@@ -183,67 +86,32 @@
       "main": [
         [
           {
-            "node": "Config",
+            "node": "Procesar pipeline con registro persistente",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Config": {
+    "Verificación interna autenticada": {
       "main": [
         [
           {
-            "node": "Leer mensajes del canal",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Leer mensajes del canal": {
-      "main": [
-        [
-          {
-            "node": "Preparar lote",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Preparar lote": {
-      "main": [
-        [
-          {
-            "node": "Enviar a CRM",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Enviar a CRM": {
-      "main": [
-        [
-          {
-            "node": "Preparar estado Discord",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Preparar estado Discord": {
-      "main": [
-        [
-          {
-            "node": "Marcar estado en Discord",
+            "node": "Procesar pipeline con registro persistente",
             "type": "main",
             "index": 0
           }
         ]
       ]
     }
-  }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Europe/Madrid",
+    "saveManualExecutions": true,
+    "saveDataSuccessExecution": "all",
+    "saveDataErrorExecution": "all",
+    "executionTimeout": 600
+  },
+  "active": false
 }

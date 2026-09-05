@@ -1,17 +1,24 @@
+import { Suspense } from 'react';
 import { requireAnyRole } from '@/lib/auth-guard';
 import { getAllTargets } from '@/lib/queries/targets';
 import { getAllBrandUsers } from '@/lib/queries/brandUsers';
-import { TargetsSpreadsheet } from '@/features/admin/targets/components/TargetsSpreadsheet';
-import { CreatorDiscoveryHub } from '@/features/admin/targets/components/CreatorDiscoveryHub';
+import { TargetsWorkspace } from '@/features/admin/targets/components/TargetsWorkspace';
 import { CreatorDiscoveryOverview } from '@/features/admin/targets/components/CreatorDiscoveryOverview';
 import { listRecentCreatorDiscoveryRuns } from '@/lib/queries/creatorDiscoveryRuns';
+import { hasPermission } from '@/lib/permissions';
+import { listCreatorSearchProfiles, listAutomationRegistry } from '@/lib/queries/creatorSearchProfiles';
+import { CreatorSearchProfiles } from '@/features/admin/targets/components/CreatorSearchProfiles';
+import { CreatorAutomationRegistry } from '@/features/admin/targets/components/CreatorAutomationRegistry';
+import { saveSearchProfileAction, runSearchProfileAction } from './profile-actions';
 
 export default async function AdminTargetsPage(): Promise<React.ReactElement> {
-  await requireAnyRole(['admin', 'admin_limited_tasks', 'manager', 'staff'], '/admin/login');
-  const [targets, brands, discoveryRuns] = await Promise.all([
+  const session = await requireAnyRole(['admin', 'admin_limited_tasks', 'manager', 'staff'], '/admin/login');
+  const [targets, brands, discoveryRuns, profiles, registry] = await Promise.all([
     getAllTargets(),
     getAllBrandUsers(),
     listRecentCreatorDiscoveryRuns(),
+    listCreatorSearchProfiles(),
+    listAutomationRegistry(),
   ]);
 
   return (
@@ -28,8 +35,15 @@ export default async function AdminTargetsPage(): Promise<React.ReactElement> {
       </p>
 
       <CreatorDiscoveryOverview runs={discoveryRuns} />
-      <CreatorDiscoveryHub />
-      <TargetsSpreadsheet targets={targets} brands={brands} />
+      <CreatorSearchProfiles profiles={profiles.map(({ id, name, config, enabled, version, nextRunAt, lastRunAt }) => (
+        // Do not send scheduler lease tokens, actor IDs or other internal fields to the client.
+        { id, name, config, enabled, version, nextRunAt, lastRunAt }
+      ))} canWrite={hasPermission(session.user.role, 'targets', 'write')}
+        saveAction={saveSearchProfileAction} runAction={runSearchProfileAction} />
+      <CreatorAutomationRegistry entries={registry} />
+      <Suspense fallback={<p className="text-sm text-sp-admin-muted">Cargando filtros de redes…</p>}>
+        <TargetsWorkspace targets={targets} brands={brands} />
+      </Suspense>
     </div>
   );
 }

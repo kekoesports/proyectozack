@@ -218,7 +218,7 @@ export function YouTubeTargetDiscovery({ embedded = false }: { readonly embedded
                           </span>
                         </div>
                         <p className="mt-1 text-xs text-sp-admin-muted">
-                          {countryLabel(channel.country)} · {numberFormat.format(channel.subscriberCount)} suscriptores
+                          {countryLabel(channel.country)} · {channel.subscriberCount === null ? 'No disponible' : numberFormat.format(channel.subscriberCount)} suscriptores
                         </p>
                         <div className="mt-2 grid grid-cols-3 gap-2 text-xs">
                           <Metric label="Potencial" value={`${channel.fitScore}/100`} pass={channel.fitScore >= 60} />

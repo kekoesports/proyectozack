@@ -1,131 +1,42 @@
-import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { expectGuardOnly, workflow } from './n8n-guard-workflow-fixture';
 
-type WorkflowNode = {
-  readonly name: string;
-  readonly type: string;
-  readonly parameters: Record<string, unknown>;
-  readonly credentials?: unknown;
-  readonly retryOnFail?: boolean;
-};
-
-type Workflow = {
-  readonly active: boolean;
-  readonly nodes: readonly WorkflowNode[];
-  readonly connections: Record<string, { readonly main: readonly (readonly {
-    readonly node: string;
-  }[])[] }>;
-};
-
-function workflow(name: string): Workflow {
-  const file = resolve(process.cwd(), 'infra/n8n/workflows', name);
-  return JSON.parse(readFileSync(file, 'utf8')) as Workflow;
-}
-
-describe('workflow n8n del KPI REPORTING diario', () => {
-  const value = workflow('socialpro-deal-digest.json');
-
-  it('publica todos los bloques preparados por el CRM sin límite de ocho tratos', () => {
-    const prepare = value.nodes.find((node) => node.name === 'Preparar UPDATE DEALS');
-    const publish = value.nodes.find((node) => node.name === 'Publicar UPDATE DEALS en Discord');
-    const code = String(prepare?.parameters.jsCode ?? '');
-
-    expect(prepare?.type).toBe('n8n-nodes-base.code');
-    expect(code).toContain('$json.discordMessages');
-    expect(code).toContain('.map((content)');
-    expect(JSON.stringify(value)).not.toContain('maxLineas');
-    expect(publish).toMatchObject({
-      type: 'n8n-nodes-base.discord',
-      parameters: { resource: 'message', operation: 'send' },
-      retryOnFail: true,
-    });
-  });
-
-  it('queda inactivo en el repositorio y no incluye credenciales reales', () => {
-    expect(value.active).toBe(false);
-    expect(value.nodes.every((node) => node.credentials === undefined)).toBe(true);
-  });
-});
-
-describe('workflow n8n del bot de KPI REPORTING', () => {
-  const value = workflow('socialpro-kpi-reporting-bot.json');
-
-  it('sondea cada minuto y solo continúa ante comandos humanos nuevos', () => {
-    const schedule = value.nodes.find((node) => node.name === 'Cada minuto');
-    const detect = value.nodes.find((node) => node.name === 'Detectar comandos nuevos');
-    const code = String(detect?.parameters.jsCode ?? '');
-
+describe('KPI REPORTING: plantillas de transporte al guard persistente', () => {
+  it('digest conserva las 10:00 de Madrid y entrega/recibos pertenecen al guard', () => {
+    const value = workflow('socialpro-deal-digest.json');
+    expectGuardOnly(value, 'digest');
+    const schedule = value.nodes.find(node => node.type === 'n8n-nodes-base.scheduleTrigger');
     expect(schedule?.parameters).toMatchObject({
-      rule: { interval: [{ field: 'minutes', minutesInterval: 1 }] },
+      rule: { interval: [{ field: 'cronExpression', expression: '0 10 * * *' }] },
     });
-    expect(code).toContain("$getWorkflowStaticData('global')");
-    expect(code).toContain('lastKpiMessageId');
-    expect(code).toContain('message.author.bot === true');
-    expect(code).toContain('if (commands.length === 0)');
-    expect(code).toContain("command = 'review'");
-    expect(code).toContain("command = 'detail'");
-    expect(code).toContain("command = 'invoice_create'");
-    expect(code).toContain("command = 'help'");
+    expect(value.settings.timezone).toBe('Europe/Madrid');
   });
 
-  it('consulta el CRM, permite solo borradores fiscales y después guarda el watermark', () => {
-    const request = value.nodes.find((node) => node.name === 'Consultar CRM');
-    const send = value.nodes.find((node) => node.name === 'Responder en KPI REPORTING');
-    const save = value.nodes.find((node) => node.name === 'Guardar watermark');
-    const saveCode = String(save?.parameters.jsCode ?? '');
-
-    expect(request).toMatchObject({ type: 'n8n-nodes-base.httpRequest', retryOnFail: true });
-    expect(String(request?.parameters.url)).toContain('/api/automation/deals/digest');
-    expect(String(request?.parameters.url)).toContain('/api/automation/deals/invoices');
-    expect(String(request?.parameters.method)).toContain('invoice_create');
-    expect(String(request?.parameters.jsonBody)).toContain('excludedCampaignIds: [48, 19, 17]');
-    expect(send).toMatchObject({
-      type: 'n8n-nodes-base.discord',
-      parameters: { resource: 'message', operation: 'send' },
-      retryOnFail: true,
-    });
-    expect(value.connections['Responder en KPI REPORTING']?.main[0]?.[0]?.node)
-      .toBe('Guardar watermark');
-    expect(saveCode).toContain('state.lastKpiMessageId = maxId');
+  it('bot sondea cada minuto sin cursor volátil ni comandos de facturación', () => {
+    const value = workflow('socialpro-kpi-reporting-bot.json');
+    expectGuardOnly(value, 'kpi');
+    expect(value.nodes.find(node => node.type === 'n8n-nodes-base.scheduleTrigger')?.parameters)
+      .toMatchObject({ rule: { interval: [{ field: 'minutes', minutesInterval: 1 }] } });
+    // T0, actors and no-new-message behavior are tested in gates/pollers.test.cjs.
+    expect(value.nodes.some(node => node.parameters.jsCode !== undefined)).toBe(false);
   });
 
-  it('no usa IA, no sincroniza tratos y limita la escritura a borradores', () => {
-    const serialized = JSON.stringify(value);
-    expect(serialized).not.toContain('openAi');
-    expect(serialized).not.toContain('langchain');
-    expect(serialized).not.toContain('/sync');
-    expect(serialized).toContain('/api/automation/deals/invoices');
-    expect(serialized).toContain('no se emiten ni se envían automáticamente');
+  it('progreso conserva frecuencia horaria sin ramas de facturas, emails ni recordatorios', () => {
+    const value = workflow('socialpro-progress-alerts.json');
+    expectGuardOnly(value, 'progress');
+    expect(value.nodes.find(node => node.type === 'n8n-nodes-base.scheduleTrigger')?.parameters)
+      .toMatchObject({ rule: { interval: [{ field: 'hours', hoursInterval: 1 }] } });
+    expect(value.nodes).toHaveLength(3);
   });
 
-  it('queda inactivo en el repositorio y sin credenciales versionadas', () => {
-    expect(value.active).toBe(false);
-    expect(value.nodes.every((node) => node.credentials === undefined)).toBe(true);
-  });
-});
-
-describe('workflow n8n de progreso, facturas y recordatorios', () => {
-  const value = workflow('socialpro-progress-alerts.json');
-
-  it('sincroniza una vez y abre ramas idempotentes para facturas y 7 días', () => {
-    const targets = value.connections['Sincronizar tratos']?.main[0]?.map((item) => item.node) ?? [];
-    expect(targets).toEqual(expect.arrayContaining([
-      'Hay avisos nuevos',
-      'Crear borradores al 80%',
-      'Revisar inactividad 7 días',
-    ]));
-    expect(JSON.stringify(value)).toContain('/api/automation/deals/invoices');
-    expect(JSON.stringify(value)).toContain('/api/automation/deals/reminders');
-    expect(JSON.stringify(value)).toContain('excludedCampaignIds: [48, 19, 17]');
-  });
-
-  it('confirma el recordatorio solo después de publicarlo en Discord', () => {
-    expect(value.connections['Publicar recordatorio en Discord']?.main[0]?.[0]?.node)
-      .toBe('Confirmar recordatorio en CRM');
-  });
-
-  it('queda inactivo en el repositorio y sin credenciales versionadas', () => {
-    expect(value.active).toBe(false);
-    expect(value.nodes.every((node) => node.credentials === undefined)).toBe(true);
+  it.each([
+    ['socialpro-deal-digest.json', 'digest'],
+    ['socialpro-kpi-reporting-bot.json', 'kpi'],
+    ['socialpro-progress-alerts.json', 'progress'],
+  ])('%s mantiene sonda autenticada con resultado real del guard', (file, family) => {
+    const value = workflow(file);
+    const hook = value.nodes.find(node => node.type === 'n8n-nodes-base.webhook');
+    expect(hook?.parameters).toMatchObject({ httpMethod: 'POST', authentication: 'headerAuth',
+      responseMode: 'lastNode', path: 'socialpro-internal-check-' + family + '-20260905' });
+    expectGuardOnly(value, family);
   });
 });

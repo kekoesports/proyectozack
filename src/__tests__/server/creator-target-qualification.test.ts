@@ -35,14 +35,14 @@ describe('qualifyTwitchCandidate', () => {
     const result = qualifyTwitchCandidate({ ...candidate, followers: 180, viewers: 35 });
 
     expect(result.isQualified).toBe(true);
-    expect(result.reasons[0]).toContain('promete pese a su audiencia pequeña');
+    expect(result.reasons[0]).toContain('35 espectadores en directo: observación puntual, no media histórica');
   });
 
   it('rechaza categorías ajenas a CS2', () => {
     const result = qualifyTwitchCandidate({ ...candidate, game: 'Just Chatting' });
 
     expect(result.isQualified).toBe(false);
-    expect(result.reasons).toContain('CS2 no confirmado');
+    expect(result.reasons).toContain('Juego del perfil no confirmado');
   });
 
   it('respeta el filtro de idioma cuando está configurado', () => {

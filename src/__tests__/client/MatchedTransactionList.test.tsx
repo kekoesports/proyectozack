@@ -58,7 +58,7 @@ describe('MatchedTransactionList — smoke UI de los cinco escenarios de guards'
   });
 
   it('[3a] factura issued ya cobrada: chip "Factura ya cobrada" y sin botón', () => {
-    render(<MatchedTransactionList rows={[baseRow({ invoiceStatus: 'cobrada' })]} />);
+    render(<MatchedTransactionList rows={[baseRow({ invoiceStatus: 'cobrada', invoicePreviouslyPaid: '1500.00' })]} />);
     expect(screen.getByText('Factura ya cobrada')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Aplicar cobro/i })).not.toBeInTheDocument();
   });
@@ -71,6 +71,7 @@ describe('MatchedTransactionList — smoke UI de los cinco escenarios de guards'
             direction: 'expense',
             matchType: 'internal_invoice',
             invoiceStatus: 'pagada',
+            invoicePreviouslyPaid: '1500.00',
             invoiceKind: 'expense',
           }),
         ]}
@@ -78,6 +79,30 @@ describe('MatchedTransactionList — smoke UI de los cinco escenarios de guards'
     );
     expect(screen.getByText('Factura ya pagada')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Aplicar pago/i })).not.toBeInTheDocument();
+  });
+
+  it('[3c] estado manual cobrada sin liquidación canónica permite conciliar el saldo real', async () => {
+    const user = userEvent.setup();
+    render(<MatchedTransactionList rows={[baseRow({ invoiceStatus: 'cobrada' })]} />);
+    expect(screen.queryByText('Factura ya cobrada')).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /Aplicar cobro/i }));
+    const submit = screen.getAllByRole('button', { name: /Aplicar cobro/i })
+      .find((button) => button.getAttribute('type') === 'submit');
+    expect(submit).toBeDefined();
+    expect(submit).not.toBeDisabled();
+  });
+
+  it('[3d] estado manual pagada sin liquidación canónica permite conciliar el gasto', async () => {
+    const user = userEvent.setup();
+    render(<MatchedTransactionList rows={[baseRow({
+      direction: 'expense', matchType: 'internal_invoice', invoiceStatus: 'pagada', invoiceKind: 'expense',
+    })]} />);
+    expect(screen.queryByText('Factura ya pagada')).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /Aplicar pago/i }));
+    const submit = screen.getAllByRole('button', { name: /Aplicar pago/i })
+      .find((button) => button.getAttribute('type') === 'submit');
+    expect(submit).toBeDefined();
+    expect(submit).not.toBeDisabled();
   });
 
   it('[4] transacción que sobrepasaría el pendiente: al abrir el panel muestra warning y deshabilita submit', async () => {

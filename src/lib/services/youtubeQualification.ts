@@ -83,7 +83,7 @@ export function qualifyYouTubeChannel(
     `Mediana de ${performance.medianViews.toLocaleString('es-ES')} vistas`,
     `${performance.videosAtOrAbove1000}/${performance.videoCount} vídeos con al menos 1.000 vistas`,
   ];
-  if (channel.subscriberCount > 0) {
+  if (channel.subscriberCount !== null && channel.subscriberCount > 0) {
     const efficiency = Math.round((performance.medianViews / channel.subscriberCount) * 100);
     signals.push(`Mediana equivalente al ${efficiency}% de suscriptores`);
   }
@@ -124,7 +124,9 @@ function scoreYouTubeProspect(
     score += daysSinceLastVideo <= 14 ? 15 : daysSinceLastVideo <= 30 ? 12 : daysSinceLastVideo <= 45 ? 8 : 0;
   }
 
-  if (channel.subscriberCount <= 0) {
+  if (channel.subscriberCount === null) {
+    // No audience-size/efficiency bonus for an unavailable metric.
+  } else if (channel.subscriberCount <= 0) {
     score += 10;
   } else {
     const viewsPerSubscriber = performance.medianViews / channel.subscriberCount;
@@ -139,7 +141,7 @@ function scoreYouTubeProspect(
             : 4;
   }
 
-  score += channel.subscriberCount < 1_000
+  score += channel.subscriberCount === null ? 0 : channel.subscriberCount < 1_000
     ? 8
     : channel.subscriberCount <= 250_000
       ? 10

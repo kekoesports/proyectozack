@@ -30,8 +30,9 @@ jobs:
           --health-retries 5
     env:
       DATABASE_URL: postgresql://socialpro_e2e:socialpro_e2e@127.0.0.1:5432/socialpro_e2e
-      RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
-      BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET }}
+      # Local test server only: no production email or authentication secrets.
+      RESEND_API_KEY: re_ci_disabled
+      BETTER_AUTH_SECRET: ci-test-secret-not-used-for-production-2026
       NEXT_PUBLIC_SITE_URL: http://localhost:3000
       CI: true
     steps:

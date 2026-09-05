@@ -58,7 +58,7 @@ type ToolbarProps = Readonly<{
   search: string;
   setSearch: (v: string) => void;
   activePlatforms: PlatformValue[];
-  platformFilter: Set<PlatformValue>;
+  platformFilter: ReadonlySet<PlatformValue>;
   platformCounts: Record<string, number>;
   togglePlatform: (p: PlatformValue) => void;
   activeBatches: string[];
@@ -109,7 +109,7 @@ export function Toolbar({
         />
       </div>
 
-      {activePlatforms.length > 1 && (
+      {activePlatforms.length > 0 && (
         <div className="flex items-center gap-1.5">
           {activePlatforms.map((p) => {
             const isActive = platformFilter.has(p);
@@ -118,6 +118,7 @@ export function Toolbar({
                 key={p}
                 type="button"
                 onClick={() => togglePlatform(p)}
+                aria-pressed={isActive}
                 className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-md text-[11px] font-semibold transition-all border ${
                   isActive
                     ? 'border-current opacity-100'
@@ -130,7 +131,7 @@ export function Toolbar({
                   style={{ backgroundColor: PLATFORM_COLORS[p] }}
                 />
                 {PLATFORM_LABELS[p]}
-                <span className="tabular-nums opacity-60">{platformCounts[p]}</span>
+                <span className="tabular-nums opacity-60">{platformCounts[p] ?? 0}</span>
               </button>
             );
           })}

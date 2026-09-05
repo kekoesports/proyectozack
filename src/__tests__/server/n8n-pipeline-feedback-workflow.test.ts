@@ -1,102 +1,39 @@
-import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { expectGuardOnly, workflow } from './n8n-guard-workflow-fixture';
 
-type WorkflowNode = {
-  readonly name: string;
-  readonly type: string;
-  readonly parameters: Record<string, unknown>;
-  readonly credentials?: unknown;
-  readonly onError?: string;
-};
+describe('pipeline: cursor y confirmaciones en el guard duradero', () => {
+  it('sondea cada dos minutos y no hace un POST directo con mensajes históricos', () => {
+    const value = workflow('socialpro-pipeline-deals-reader.json');
+    expectGuardOnly(value, 'pipeline');
+    expect(value.nodes.find(node => node.type === 'n8n-nodes-base.scheduleTrigger')?.parameters)
+      .toMatchObject({ rule: { interval: [{ field: 'minutes', minutesInterval: 2 }] } });
+  });
 
-type Workflow = {
-  readonly nodes: readonly WorkflowNode[];
-  readonly connections: Record<string, { readonly main: readonly (readonly {
-    readonly node: string;
-  }[])[] }>;
-};
+  it('requiere autenticar la sonda; no permite un error parcial como salida regular', () => {
+    const value = workflow('socialpro-pipeline-deals-reader.json');
+    const operation = expectGuardOnly(value, 'pipeline');
+    expect(operation.onError).toBeUndefined();
+    expect(value.nodes.find(node => node.type === 'n8n-nodes-base.webhook')?.parameters)
+      .toMatchObject({ authentication: 'headerAuth', responseMode: 'lastNode' });
+  });
 
-function workflow(): Workflow {
-  const file = resolve(process.cwd(), 'infra/n8n/workflows/socialpro-pipeline-deals-reader.json');
-  return JSON.parse(readFileSync(file, 'utf8')) as Workflow;
-}
-
-describe('workflow n8n de #pipeline-deals', () => {
-  it('marca el mensaje original después de guardar el borrador en el CRM', () => {
-    const value = workflow();
-    const prepare = value.nodes.find((node) => node.name === 'Preparar estado Discord');
-    const react = value.nodes.find((node) => node.name === 'Marcar estado en Discord');
-
-    expect(prepare?.type).toBe('n8n-nodes-base.code');
-    expect(react).toMatchObject({
-      type: 'n8n-nodes-base.discord',
-      parameters: { resource: 'message', operation: 'react' },
+  it('alta ya no termina en noOp y usa identidad durable del mismo guard', () => {
+    const value = workflow('socialpro-deal-intake.json');
+    expectGuardOnly(value, 'intake');
+    expect(value.nodes).toHaveLength(2);
+    expect(value.nodes[0]?.parameters).toMatchObject({
+      path: 'socialpro-deals-8f3a1c2e-5b7d-4a19-9e64-2c0d7f5a1b83',
+      authentication: 'headerAuth', responseMode: 'lastNode',
     });
-    expect(value.connections['Enviar a CRM']?.main[0]?.[0]?.node)
-      .toBe('Preparar estado Discord');
-    expect(value.connections['Preparar estado Discord']?.main[0]?.[0]?.node)
-      .toBe('Marcar estado en Discord');
   });
 
-  it('cubre leído, incompleto, aprobado, rechazado y fallo', () => {
-    const prepare = workflow().nodes.find((node) => node.name === 'Preparar estado Discord');
-    const code = String(prepare?.parameters.jsCode ?? '');
-
-    expect(code).toContain("missing_info: '⚠️'");
-    expect(code).toContain("pending_review: '👀'");
-    expect(code).toContain("created: '✅'");
-    expect(code).toContain("rejected: '🚫'");
-    expect(code).toContain("? '❌'");
-  });
-
-  it('marca todos los mensajes con fallo si el CRM agota los reintentos', () => {
-    const value = workflow();
-    const request = value.nodes.find((node) => node.name === 'Enviar a CRM');
-    const prepare = value.nodes.find((node) => node.name === 'Preparar estado Discord');
-    const code = String(prepare?.parameters.jsCode ?? '');
-
-    expect(request?.onError).toBe('continueRegularOutput');
-    expect(code).toContain("$('Preparar lote').first().json.messages");
-    expect(code).toContain("result: 'failed'");
-    expect(code).toContain('respuestaTieneOutcomes');
-  });
-
-  it('termina sin llamar al CRM cuando Discord no trae mensajes posteriores al watermark', () => {
-    const value = workflow();
-    const batch = value.nodes.find((node) => node.name === 'Preparar lote');
-    const code = String(batch?.parameters.jsCode ?? '');
-
-    expect(code).toContain("$getWorkflowStaticData('global')");
-    expect(code).toContain('lastPipelineMessageId');
-    expect(code).toContain('BigInt(id) > BigInt(lastSeenId)');
-    expect(code).toContain('if (mensajes.length === 0) return []');
-    expect(value.connections['Preparar lote']?.main[0]?.[0]?.node).toBe('Enviar a CRM');
-  });
-
-  it('sondea cada dos minutos y acepta ambas formas del id de canal de Discord', () => {
-    const value = workflow();
-    const schedule = value.nodes.find((node) => node.name === 'Cada 2 minutos');
-    const batch = value.nodes.find((node) => node.name === 'Preparar lote');
-    const code = String(batch?.parameters.jsCode ?? '');
-
-    expect(schedule?.parameters).toMatchObject({
-      rule: { interval: [{ field: 'minutes', minutesInterval: 2 }] },
-    });
-    expect(code).toContain('m.channel_id ?? m.channelId');
-    expect(code).toContain("console.log('[pipeline-deals] filtro de lote'");
-  });
-
-  it('no reacciona a mensajes ignorados o ya vistos y solo avanza tras una respuesta completa', () => {
-    const prepare = workflow().nodes.find((node) => node.name === 'Preparar estado Discord');
-    const code = String(prepare?.parameters.jsCode ?? '');
-
-    expect(code).toContain("['ignored', 'already_seen'].includes(outcome.result)");
-    expect(code).toContain('respuestaCompleta && !hayFallos');
-    expect(code).toContain('state.lastPipelineMessageId = maxMessageId');
-  });
-
-  it('no versiona credenciales de producción', () => {
-    const react = workflow().nodes.find((node) => node.name === 'Marcar estado en Discord');
-    expect(react?.credentials).toBeUndefined();
+  it('ambas plantillas no contienen código, estado global ni envíos Discord paralelos', () => {
+    for (const file of ['socialpro-pipeline-deals-reader.json', 'socialpro-deal-intake.json']) {
+      const value = workflow(file);
+      expect(value.active).toBe(false);
+      expect(value.nodes.every(node => node.parameters.jsCode === undefined)).toBe(true);
+      expect(value.nodes.filter(node => node.type === 'n8n-nodes-base.httpRequest')).toHaveLength(1);
+    }
+    // Actual replay/uncertainty behavior is verified by guard runtime tests;
+    // these assertions prove the template cannot bypass that boundary.
   });
 });

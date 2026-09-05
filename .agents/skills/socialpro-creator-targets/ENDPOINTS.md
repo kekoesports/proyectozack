@@ -13,7 +13,7 @@ Posibles respuestas auth:
 | 401 | `{ ok: false, error: 'unauthorized' }` | Header ausente, malformado o token incorrecto |
 | 503 | `{ ok: false, error: 'missing-config' }` | El servidor no tiene `TARGETS_IMPORT_TOKEN` configurado en `env.local` |
 
-Si recibes 503 con `missing-config` o `missing-X-credentials`, **abortar la skill con mensaje claro al usuario**: "Falta credencial X en `env.local` del proyecto. Pide a Reche revisarlo."
+Si recibes 401/403, o 503 con `missing-config` / `missing-X-credentials`, **detener la operación afectada y describir la dependencia sin su valor** al responsable actual de operaciones/configuración de SocialPro. No crear, rotar ni copiar credenciales por esta instrucción. Aplicar el preflight del modo en `SKILL.md`: `--refresh` exige el bearer y los proxies seleccionados, no Firecrawl.
 
 ## POST /api/admin/discover/twitch/search
 
@@ -244,7 +244,7 @@ Upsert idempotente de creators descubiertos. Conflict policy: actualiza solo cam
 
 ## Health-check pre-flight (recomendado)
 
-Antes de empezar discovery, hacer un ping trivial al endpoint que más probablemente falle por env keys. Por ejemplo:
+Antes de empezar discovery, verificar el acceso al proxy de una plataforma seleccionada según `SKILL.md`. Este probe puede consumir cuota de plataforma; solo usarlo dentro del alcance/presupuesto autorizado. En `--refresh`, comprobar únicamente las dependencias de las plataformas que se van a refrescar, sin llamar ni exigir credenciales de Firecrawl. Ejemplo ilustrativo con variables ya custodiadas; no sustituirlas por secretos visibles:
 
 ```bash
 curl -sS -X POST "$SOCIALPRO_BASE_URL/api/admin/discover/twitch/search" \
@@ -253,4 +253,4 @@ curl -sS -X POST "$SOCIALPRO_BASE_URL/api/admin/discover/twitch/search" \
   -d '{"query":"healthcheck","limit":1}'
 ```
 
-Si devuelve 503 con `missing-twitch-credentials` o `missing-config`, abortar antes de quemar Firecrawl creds.
+Si devuelve 503 con `missing-twitch-credentials` o `missing-config`, detener la operación afectada: no consumir Firecrawl en discovery ni continuar el refresco de esa plataforma. El 401/403 también bloquea; no resolverlo creando/rotando secretos sin autorización específica.

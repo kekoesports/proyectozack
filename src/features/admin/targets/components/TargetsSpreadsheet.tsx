@@ -1,15 +1,17 @@
 'use client';
 
 import { useState, useMemo, useRef, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
 import type { Target } from '@/types';
 import {
-  updateStatusAction,
   updateNotesAction,
   deleteTargetsAction,
   assignTargetsToBrandAction,
   importCSVAction,
-  bulkUpdateStatusAction,
 } from '@/app/admin/(dashboard)/targets/actions';
+import { updateCreatorFeedbackAction } from '@/app/admin/(dashboard)/targets/profile-actions';
+import { creatorFeedbackSchema } from '@/lib/schemas/creator-search-profile';
+import { updateTargetStatusSchema } from '@/lib/schemas/target';
 import type { BrandUserRow } from '@/lib/queries/brandUsers';
 import { TargetsEmptyState } from './TargetsEmptyState';
 import { PLATFORMS } from './targets-constants';
@@ -23,6 +25,7 @@ import {
   TableHeader,
 } from './TargetsSpreadsheet.parts';
 import { TargetRow } from './TargetsSpreadsheet.row';
+import { CreatorFeedbackForm } from './CreatorFeedbackForm';
 
 /**
  * Tabla editable tipo spreadsheet para gestionar targets de outreach (Twitch + YouTube).
@@ -36,13 +39,20 @@ import { TargetRow } from './TargetsSpreadsheet.row';
 export function TargetsSpreadsheet({
   targets,
   brands = [],
+  platformFilter,
+  togglePlatform,
 }: {
   targets: Target[];
   brands?: BrandUserRow[];
+  platformFilter: ReadonlySet<PlatformValue>;
+  togglePlatform: (platform: PlatformValue) => void;
 }): React.ReactElement {
+  const router = useRouter();
+  // A frozen, explicit selection shared with the inline decision form; no status mutation until submit.
+  const [feedback, setFeedback] = useState<{ ids: number[]; status: StatusValue } | null>(null);
+  const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('pendiente');
-  const [platformFilter, setPlatformFilter] = useState<Set<PlatformValue>>(new Set());
   const [sort, setSort] = useState<SortState>({ field: 'createdAt', dir: 'desc' });
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [openStatusMenu, setOpenStatusMenu] = useState<number | null>(null);
@@ -67,8 +77,8 @@ export function TargetsSpreadsheet({
   }, [targets]);
 
   const activePlatforms = useMemo(
-    () => PLATFORMS.filter((p) => (platformCounts[p] ?? 0) > 0),
-    [platformCounts],
+    () => PLATFORMS.filter((p) => (platformCounts[p] ?? 0) > 0 || platformFilter.has(p)),
+    [platformCounts, platformFilter],
   );
 
   const activeBatches = useMemo(() => {
@@ -112,7 +122,7 @@ export function TargetsSpreadsheet({
     }
 
     if (platformFilter.size > 0) {
-      list = list.filter((t) => platformFilter.has(t.platform as PlatformValue));
+      list = list.filter((t) => platformFilter.has(t.platform));
     }
 
     if (batchFilter.size > 0) {
@@ -134,7 +144,14 @@ export function TargetsSpreadsheet({
       const { field, dir } = sort;
       let cmp = 0;
       if (field === 'username') cmp = a.username.localeCompare(b.username, 'es');
-      else if (field === 'followers') cmp = a.followers - b.followers;
+      else if (field === 'followers') {
+        // Unknown stays last in either direction; a measured zero remains a sortable value.
+        if (a.followers == null || b.followers == null) {
+          if (a.followers == null && b.followers == null) return 0;
+          return a.followers == null ? 1 : -1;
+        }
+        cmp = a.followers - b.followers;
+      }
       else if (field === 'status') cmp = a.status.localeCompare(b.status, 'es');
       else if (field === 'createdAt')
         cmp = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
@@ -143,7 +160,10 @@ export function TargetsSpreadsheet({
   }, [targets, statusFilter, platformFilter, batchFilter, search, sort]);
 
   const allSelected = filtered.length > 0 && filtered.every((t) => selected.has(t.id));
-  const selectedIds = useMemo(() => [...selected], [selected]);
+  // Hidden selections are not an action target. Keep counts and all bulk handlers on the same visible set.
+  const visibleIds = useMemo(() => new Set(filtered.map((target) => target.id)), [filtered]);
+  const selectedIds = useMemo(() => filtered.filter((target) => selected.has(target.id)).map((target) => target.id), [filtered, selected]);
+  const feedbackIds = useMemo(() => feedback?.ids.filter((id) => visibleIds.has(id)) ?? [], [feedback, visibleIds]);
 
   const toggleAll = (): void => {
     if (allSelected) {
@@ -170,15 +190,6 @@ export function TargetsSpreadsheet({
     });
   };
 
-  const togglePlatform = (p: PlatformValue): void => {
-    setPlatformFilter((prev) => {
-      const next = new Set(prev);
-      if (next.has(p)) next.delete(p);
-      else next.add(p);
-      return next;
-    });
-  };
-
   const toggleSort = (field: SortField): void => {
     setSort((prev) =>
       prev.field === field
@@ -191,11 +202,35 @@ export function TargetsSpreadsheet({
     sort.field === field ? (sort.dir === 'asc' ? ' \u2191' : ' \u2193') : '';
 
   const setStatus = (id: number, status: StatusValue): void => {
+    setFeedbackMessage(null);
+    setFeedback({ ids: [id], status });
+  };
+
+  const saveFeedback = (input: unknown): void => {
+    const parsed = creatorFeedbackSchema.safeParse(input);
+    if (!feedback || feedbackIds.length === 0 || !parsed.success || isPending) return;
+    // Revalidate again at submit; filters may have changed while the decision form was open.
+    const request = { ids: feedbackIds, status: feedback.status };
     startTransition(async () => {
-      const fd = new FormData();
-      fd.set('id', String(id));
-      fd.set('status', status);
-      await updateStatusAction(fd);
+      let saved = 0;
+      try {
+        for (const targetId of request.ids) {
+          const result = await updateCreatorFeedbackAction({ ...parsed.data, targetId, status: request.status });
+          if (!result.ok) {
+            setFeedbackMessage(`${saved}/${request.ids.length} decisiones guardadas. ${result.error ?? 'Recarga antes de repetir las pendientes.'}`);
+            return;
+          }
+          saved++;
+        }
+        setFeedbackMessage(`${saved} decisiones registradas. No se ha enviado ningún mensaje.`);
+      } catch {
+        setFeedbackMessage(`${saved}/${request.ids.length} decisiones confirmadas; el resto no está confirmado. Recarga antes de repetir.`);
+      } finally {
+        // A bulk decision is per-row, not globally atomic. Never retry an uncertain request automatically.
+        setFeedback(null);
+        setSelected(new Set());
+        router.refresh();
+      }
     });
   };
 
@@ -210,25 +245,26 @@ export function TargetsSpreadsheet({
   };
 
   const handleDelete = (ids: number[]): void => {
-    if (!confirm(`\u00bfEliminar ${ids.length} target${ids.length > 1 ? 's' : ''}?`)) return;
+    const actionIds = ids.filter((id) => visibleIds.has(id));
+    if (actionIds.length === 0 || isPending) return;
+    if (!confirm(`\u00bfEliminar ${actionIds.length} target${actionIds.length > 1 ? 's' : ''}?`)) return;
     const fd = new FormData();
-    fd.set('ids', ids.join(','));
+    fd.set('ids', actionIds.join(','));
     startTransition(async () => {
       await deleteTargetsAction(fd);
       setSelected((prev) => {
         const next = new Set(prev);
-        for (const id of ids) next.delete(id);
+        for (const id of actionIds) next.delete(id);
         return next;
       });
     });
   };
 
   const handleBulkStatus = (status: string): void => {
-    if (selectedIds.length === 0) return;
-    startTransition(async () => {
-      await bulkUpdateStatusAction(selectedIds, status);
-      setSelected(new Set());
-    });
+    const parsed = updateTargetStatusSchema.shape.status.safeParse(status);
+    if (selectedIds.length === 0 || !parsed.success) return;
+    setFeedbackMessage(null);
+    setFeedback({ ids: selectedIds, status: parsed.data });
   };
 
   const handleAssignToBrand = (): void => {
@@ -243,7 +279,7 @@ export function TargetsSpreadsheet({
   };
 
   const exportCSV = (): void => {
-    const rows = filtered.filter((t) => selected.size === 0 || selected.has(t.id));
+    const rows = filtered.filter((t) => selectedIds.length === 0 || selected.has(t.id));
     exportTargetsCSV(rows);
   };
 
@@ -277,6 +313,12 @@ export function TargetsSpreadsheet({
         exportCSV={exportCSV}
       />
 
+      {feedbackMessage && <p role="status" className="text-xs text-sp-admin-muted">{feedbackMessage}</p>}
+      {feedback && feedbackIds.length > 0 && <CreatorFeedbackForm
+        key={`${feedback.status}:${feedbackIds.join(',')}`} targetIds={feedbackIds} status={feedback.status}
+        pending={isPending} onSave={saveFeedback} onCancel={() => setFeedback(null)}
+      />}
+
       {importResult && (
         <ImportResultBanner
           importResult={importResult}
@@ -284,9 +326,9 @@ export function TargetsSpreadsheet({
         />
       )}
 
-      {selected.size > 0 && (
+      {selectedIds.length > 0 && (
         <BulkActionsBar
-          selectedSize={selected.size}
+          selectedSize={selectedIds.length}
           brands={brands}
           brandUserId={brandUserId}
           setBrandUserId={setBrandUserId}

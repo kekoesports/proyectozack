@@ -1,166 +1,147 @@
-jest.mock('@/lib/env', () => ({
-  env: { KICK_CLIENT_ID: 'kick-client', KICK_CLIENT_SECRET: 'kick-secret' },
-}));
+jest.mock('@/lib/env', () => ({ env: { KICK_CLIENT_ID: 'test-client', KICK_CLIENT_SECRET: 'test-secret' } }));
+const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status });
+const token = () => json({ access_token: 'synthetic-token', expires_in: 3600 });
+const category = { id: 12, name: 'Counter-Strike 2' };
+const stream = (id: number, viewers = 42) => ({
+  broadcaster_user: { id, username: `creator${id}`, profile_picture: 'https://example.org/avatar.png' },
+  category, channel: { slug: `creator${id}` }, language_code: 'es',
+  started_at: '2026-01-01T10:00:00Z', title: 'CS2', viewer_count: viewers,
+});
+beforeEach(() => jest.resetModules());
+afterEach(() => jest.restoreAllMocks());
 
-import { getKickChannel, getKickCs2LiveCreators } from '@/lib/services/kick';
-
-function makeResponse(body: unknown, ok = true, status = 200): Response {
-  return {
-    ok,
-    status,
-    json: () => Promise.resolve(body),
-    text: () => Promise.resolve(JSON.stringify(body)),
-  } as unknown as Response;
-}
-
-beforeEach(() => {
-  global.fetch = jest.fn();
+it('uses official exact channels/users and never exposes private fields or invented metrics', async () => {
+  const fetcher = jest.spyOn(global, 'fetch').mockResolvedValueOnce(token())
+    .mockResolvedValueOnce(json({ data: [{
+      broadcaster_user_id: 100, slug: 'creator', channel_description: 'Public bio', category,
+      banner_picture: 'https://example.org/banner.png',
+      stream: { is_live: true, start_time: '2026-01-01T10:00:00Z', key: 'PRIVATE_STREAM_KEY' },
+    }] })).mockResolvedValueOnce(json({ data: [{
+      user_id: 100, name: 'Creator', profile_picture: 'https://example.org/avatar.png', email: 'PRIVATE_EMAIL',
+    }] }));
+  const { getKickChannel } = await import('@/lib/services/kick');
+  const result = await getKickChannel('CREATOR');
+  expect(result).toMatchObject({ slug: 'creator', username: 'Creator', followers: null, country: null,
+    currentCategory: 'Counter-Strike 2', recentCategories: [], isLive: true });
+  expect(JSON.stringify(result)).not.toMatch(/PRIVATE/);
+  expect(fetcher.mock.calls.map(([url]) => String(url))).toEqual([
+    'https://id.kick.com/oauth/token', 'https://api.kick.com/public/v1/channels?slug=creator',
+    'https://api.kick.com/public/v1/users?id=100',
+  ]);
 });
 
-afterEach(() => {
-  jest.restoreAllMocks();
+it.each([{ data: [] }, { data: [{ broadcaster_user_id: 100, slug: 'creator', stream: null }] }])('handles exact empty/offline data without history fabrication', async ({ data }) => {
+  const fetcher = jest.spyOn(global, 'fetch').mockResolvedValueOnce(token()).mockResolvedValueOnce(json({ data }));
+  if (data.length) fetcher.mockResolvedValueOnce(json({ data: [{ user_id: 100, name: 'Creator' }] }));
+  const { getKickChannel } = await import('@/lib/services/kick');
+  const result = await getKickChannel('creator');
+  if (!data.length) expect(result).toBeNull();
+  else expect(result).toMatchObject({ followers: null, isLive: null, lastLivestreamAt: null, recentCategories: [] });
 });
 
-describe('getKickChannel', () => {
-  it('maps a successful response to KickChannelPreview', async () => {
-    const body = {
-      id: 1,
-      user_id: 100,
-      slug: 'westcol',
-      is_banned: false,
-      followers_count: 850000,
-      banner_image: { url: 'https://example/banner.jpg' },
-      recent_categories: [
-        { id: 28, name: 'Counter-Strike 2' },
-        { id: 12, name: 'Just Chatting' },
-      ],
-      user: {
-        id: 100,
-        username: 'westcol',
-        bio: 'Streamer profesional',
-        country: 'Colombia',
-        profile_pic: 'https://example/pic.jpg',
-      },
-      livestream: { is_live: true, session_title: 'CS2 ranked' },
-      previous_livestreams: [{ created_at: '2026-04-30T10:00:00Z' }],
-    };
-    (global.fetch as jest.Mock).mockResolvedValueOnce(makeResponse(body));
+it('rejects malformed slugs before authentication', async () => {
+  const fetcher = jest.spyOn(global, 'fetch');
+  const { getKickChannel } = await import('@/lib/services/kick');
+  await expect(getKickChannel('../secrets')).rejects.toMatchObject({ code: 'invalid_input' });
+  expect(fetcher).not.toHaveBeenCalled();
+});
 
-    const result = await getKickChannel('westcol');
+it('rejects a mismatched channel response', async () => {
+  jest.spyOn(global, 'fetch').mockResolvedValueOnce(token())
+    .mockResolvedValueOnce(json({ data: [{ broadcaster_user_id: 100, slug: 'different' }] }));
+  const { getKickChannel } = await import('@/lib/services/kick');
+  await expect(getKickChannel('creator')).rejects.toMatchObject({ code: 'invalid_response' });
+});
 
-    expect(result).not.toBeNull();
-    expect(result?.slug).toBe('westcol');
-    expect(result?.username).toBe('westcol');
-    expect(result?.followers).toBe(850000);
-    expect(result?.country).toBe('Colombia');
-    expect(result?.recentCategories).toEqual(['Counter-Strike 2', 'Just Chatting']);
-    expect(result?.isLive).toBe(true);
-    expect(result?.lastLivestreamAt).toEqual(new Date('2026-04-30T10:00:00Z'));
-  });
+it('sanitizes provider errors without reading their body', async () => {
+  jest.spyOn(global, 'fetch').mockResolvedValueOnce(token())
+    .mockResolvedValueOnce(json({ token: 'PRIVATE_SECRET', text: 'private email' }, 403));
+  const { getKickChannel } = await import('@/lib/services/kick');
+  await expect(getKickChannel('creator')).rejects.toThrow('Discovery provider: forbidden');
+});
 
-  it('returns null for 404 (channel not found)', async () => {
-    (global.fetch as jest.Mock).mockResolvedValueOnce(
-      makeResponse({}, false, 404),
-    );
-    expect(await getKickChannel('nonexistent')).toBeNull();
-  });
+it('reads bounded V2 pages, repeats languages and preserves hidden viewers as unknown', async () => {
+  const fetcher = jest.spyOn(global, 'fetch').mockResolvedValueOnce(token())
+    .mockResolvedValueOnce(json({ data: [category] }))
+    .mockResolvedValueOnce(json({ data: [stream(1)], pagination: { next_cursor: 'next' } }))
+    .mockResolvedValueOnce(json({ data: [stream(2, 0)], pagination: { next_cursor: null } }));
+  const { getKickLiveCreatorsReport } = await import('@/lib/services/kick');
+  const report = await getKickLiveCreatorsReport({ languageCodes: ['es'], pageSize: 1 });
+  expect(report.coverage).toEqual({ status: 'complete', pagesRead: 2, warnings: [] });
+  expect(report.items.map(row => row.viewerCount)).toEqual([42, null]);
+  expect(String(fetcher.mock.calls[3]?.[0])).toContain('cursor=next');
+  expect(String(fetcher.mock.calls[2]?.[0])).toContain('language_code=es');
+});
 
-  it('returns null when the channel is banned', async () => {
-    const body = {
-      id: 1,
-      user_id: 100,
-      slug: 'banned',
-      is_banned: true,
-      followers_count: 0,
-      banner_image: null,
-      recent_categories: null,
-      user: { id: 100, username: 'banned', bio: null, country: null, profile_pic: null },
-      livestream: null,
-      previous_livestreams: null,
-    };
-    (global.fetch as jest.Mock).mockResolvedValueOnce(makeResponse(body));
-    expect(await getKickChannel('banned')).toBeNull();
-  });
+it('stops a repeated cursor and deduplicates broadcaster IDs', async () => {
+  const fetcher = jest.spyOn(global, 'fetch').mockResolvedValueOnce(token())
+    .mockResolvedValueOnce(json({ data: [category] }))
+    .mockResolvedValueOnce(json({ data: [stream(1)], pagination: { next_cursor: 'repeat' } }))
+    .mockResolvedValueOnce(json({ data: [stream(1)], pagination: { next_cursor: 'repeat' } }));
+  const { getKickLiveCreatorsReport } = await import('@/lib/services/kick');
+  const report = await getKickLiveCreatorsReport();
+  expect(report.items).toHaveLength(1);
+  expect(report.coverage).toMatchObject({ status: 'partial', pagesRead: 2,
+    warnings: expect.arrayContaining(['duplicate_record', 'repeated_cursor']) });
+  expect(fetcher).toHaveBeenCalledTimes(4);
+});
 
-  it('throws on non-404 server error', async () => {
-    (global.fetch as jest.Mock).mockResolvedValueOnce(
-      makeResponse({ message: 'boom' }, false, 500),
-    );
-    await expect(getKickChannel('any')).rejects.toThrow(/Kick API error \(500\)/);
-  });
+it('keeps earlier valid pages when a later response fails', async () => {
+  jest.spyOn(global, 'fetch').mockResolvedValueOnce(token()).mockResolvedValueOnce(json({ data: [category] }))
+    .mockResolvedValueOnce(json({ data: [stream(1)], pagination: { next_cursor: 'next' } }))
+    .mockRejectedValueOnce(new Error('PRIVATE_URL_WITH_TOKEN'));
+  const { getKickLiveCreatorsReport } = await import('@/lib/services/kick');
+  const report = await getKickLiveCreatorsReport();
+  expect(report.items).toHaveLength(1);
+  expect(report.coverage).toEqual({ status: 'partial', pagesRead: 1, warnings: ['request_failed'] });
+  expect(JSON.stringify(report)).not.toContain('PRIVATE');
+});
 
-  it('handles missing previous_livestreams gracefully', async () => {
-    const body = {
-      id: 1,
-      user_id: 100,
-      slug: 'newbie',
-      is_banned: false,
-      followers_count: 50,
-      banner_image: null,
-      recent_categories: null,
-      user: { id: 100, username: 'newbie', bio: null, country: null, profile_pic: null },
-      livestream: null,
-      previous_livestreams: null,
-    };
-    (global.fetch as jest.Mock).mockResolvedValueOnce(makeResponse(body));
+it('marks page budget exhausted and does not fetch another page', async () => {
+  const fetcher = jest.spyOn(global, 'fetch').mockResolvedValueOnce(token()).mockResolvedValueOnce(json({ data: [category] }))
+    .mockResolvedValueOnce(json({ data: [stream(1)], pagination: { next_cursor: 'next' } }));
+  const { getKickLiveCreatorsReport } = await import('@/lib/services/kick');
+  const report = await getKickLiveCreatorsReport({ maxPages: 1 });
+  expect(report.coverage).toMatchObject({ status: 'partial', warnings: ['page_limit'] });
+  expect(fetcher).toHaveBeenCalledTimes(3);
+});
 
-    const result = await getKickChannel('newbie');
-    expect(result?.lastLivestreamAt).toBeNull();
-    expect(result?.recentCategories).toEqual([]);
-    expect(result?.isLive).toBe(false);
-  });
-
-  it('accepts the current public payload with string counts and optional fields omitted', async () => {
-    const body = {
-      id: 1,
-      user_id: 100,
-      slug: 'current-shape',
-      is_banned: false,
-      followers_count: '1250',
-      banner_image: null,
-      user: {
-        id: '100',
-        username: 'current-shape',
-        bio: null,
-        profile_pic: null,
-      },
-      livestream: null,
-    };
-    (global.fetch as jest.Mock).mockResolvedValueOnce(makeResponse(body));
-
-    const result = await getKickChannel('current-shape');
-
-    expect(result?.followers).toBe(1_250);
-    expect(result?.country).toBeNull();
-    expect(result?.recentCategories).toEqual([]);
-    expect(result?.lastLivestreamAt).toBeNull();
+it('rejects invalid metrics instead of coercing null or a negative count into a score', async () => {
+  jest.spyOn(global, 'fetch').mockResolvedValueOnce(token()).mockResolvedValueOnce(json({ data: [category] }))
+    .mockResolvedValueOnce(json({ data: [{ ...stream(1), viewer_count: null }] }));
+  const { getKickLiveCreatorsReport } = await import('@/lib/services/kick');
+  expect(await getKickLiveCreatorsReport()).toMatchObject({
+    items: [], coverage: { status: 'unavailable', warnings: ['invalid_response'] },
   });
 });
 
-describe('getKickCs2LiveCreators', () => {
-  it('uses the official app token, category and livestream endpoints', async () => {
-    (global.fetch as jest.Mock)
-      .mockResolvedValueOnce(makeResponse({ access_token: 'token', expires_in: 3600 }))
-      .mockResolvedValueOnce(makeResponse({ data: [{ id: 12, name: 'Counter-Strike 2' }] }))
-      .mockResolvedValueOnce(makeResponse({ data: [{
-        broadcaster_user: { id: 7, username: 'promise', profile_picture: 'https://img.example/p.jpg' },
-        category: { id: 12, name: 'Counter-Strike 2' },
-        channel: { slug: 'promise' },
-        language_code: 'pt-BR',
-        started_at: '2026-08-31T10:00:00Z',
-        title: 'Road to global',
-        viewer_count: 42,
-      }] }));
+it('retains the legacy array entrypoint on the official route', async () => {
+  jest.spyOn(global, 'fetch').mockResolvedValueOnce(token()).mockResolvedValueOnce(json({ data: [category] }))
+    .mockResolvedValueOnce(json({ data: [stream(1)] }));
+  const { getKickCs2LiveCreators } = await import('@/lib/services/kick');
+  expect(await getKickCs2LiveCreators()).toHaveLength(1);
+});
 
-    const result = await getKickCs2LiveCreators(100);
-
-    expect(result).toHaveLength(1);
-    expect(result[0]).toMatchObject({ slug: 'promise', viewerCount: 42, category: 'Counter-Strike 2' });
-    expect(global.fetch).toHaveBeenNthCalledWith(
-      1,
-      'https://id.kick.com/oauth/token',
-      expect.objectContaining({ method: 'POST' }),
-    );
-    expect((global.fetch as jest.Mock).mock.calls[2][0]).toContain('category_id=12');
+it('does not call missing pagination a complete live search', async () => {
+  jest.spyOn(global, 'fetch').mockResolvedValueOnce(token()).mockResolvedValueOnce(json({ data: [category] }))
+    .mockResolvedValueOnce(json({ data: [stream(1)] }));
+  const { getKickLiveCreatorsReport } = await import('@/lib/services/kick');
+  expect((await getKickLiveCreatorsReport()).coverage).toEqual({
+    status: 'partial', pagesRead: 1, warnings: ['coverage_incomplete'],
   });
+});
+
+it('only treats channel-not-found, not user lookup failures, as a missing profile', async () => {
+  jest.spyOn(global, 'fetch').mockResolvedValueOnce(token())
+    .mockResolvedValueOnce(json({ data: [{ broadcaster_user_id: 100, slug: 'creator' }] }))
+    .mockResolvedValueOnce(json({}, 404));
+  const { getKickChannel } = await import('@/lib/services/kick');
+  await expect(getKickChannel('creator')).rejects.toMatchObject({ code: 'request_failed', status: 404 });
+});
+
+it('rejects unsafe numeric IDs instead of silently rounding a creator identity', async () => {
+  jest.spyOn(global, 'fetch').mockResolvedValueOnce(token())
+    .mockResolvedValueOnce(json({ data: [{ broadcaster_user_id: 9007199254740992, slug: 'creator' }] }));
+  const { getKickChannel } = await import('@/lib/services/kick');
+  await expect(getKickChannel('creator')).rejects.toMatchObject({ code: 'invalid_response' });
 });

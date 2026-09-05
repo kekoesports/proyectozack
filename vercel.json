@@ -1,5 +1,11 @@
 {
-  "buildCommand": "tsx scripts/migrate.ts && next build && tsx scripts/ping-indexnow.ts",
+  "git": {
+    "deploymentEnabled": {
+      "master": false,
+      "stabilize/socialpro-2026-09-05": false
+    }
+  },
+  "buildCommand": "node scripts/assert-vercel-build-target.cjs && tsx scripts/migrate.ts && next build && tsx scripts/ping-indexnow.ts",
   "crons": [
     {
       "path": "/api/cron/snapshot-metrics",

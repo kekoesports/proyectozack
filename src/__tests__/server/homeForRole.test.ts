@@ -69,7 +69,7 @@ describe('homeForRole (source contract)', () => {
 
   it('login page uses homeForRole instead of hardcoding /admin', () => {
     const login = fs.readFileSync(
-      path.join(ROOT, 'src/app/admin/login/page.tsx'),
+      path.join(ROOT, 'src/components/ui/StaffLogin.tsx'),
       'utf-8',
     );
     expect(login).toMatch(/homeForRole/);

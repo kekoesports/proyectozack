@@ -5,6 +5,7 @@ import { z } from 'zod';
 
 import { requirePermission } from '@/lib/permissions';
 import { bulkUpsertTargets } from '@/lib/queries/targets';
+import { getCreatorProviderReadiness } from '@/lib/queries/creatorProviderReadiness';
 import type { CreateTargetInput } from '@/lib/schemas/target';
 import { getKickChannel } from '@/lib/services/kick';
 import { runCreatorTargetDiscovery } from '@/lib/services/creatorTargetDiscovery';
@@ -14,6 +15,7 @@ import {
   type TwitchChannelPreview,
 } from '@/lib/services/twitch';
 import { qualifyTwitchCandidate, type CreatorFit } from '@/lib/targets/qualification';
+import { scoreCreatorFit } from '@/lib/targets/creator-fit-score';
 
 const twitchSearchSchema = z.object({
   query: z.string().trim().min(2).max(100),
@@ -32,13 +34,15 @@ export async function discoverTwitchTargetsAction(input: unknown): Promise<{
   await requirePermission('targets', 'read');
   const parsed = twitchSearchSchema.safeParse(input);
   if (!parsed.success) return { ok: false, candidates: [], error: 'Revisa los filtros de Twitch' };
+  const gate = (await getCreatorProviderReadiness()).find((entry) => entry.platform === 'twitch');
+  if (!gate?.ready) return { ok: false, candidates: [], error: gate?.message ?? 'Twitch no está configurado.' };
 
   try {
     const channels = await searchTwitchChannels(parsed.data.query, parsed.data.liveOnly);
     const followers = await fetchTwitchFollowerCounts(channels.map((channel) => channel.broadcasterId));
     const followerMap = new Map(followers.map((row) => [row.broadcasterId, row.followerCount]));
     const candidates = channels.map((channel) => {
-      const followerCount = followerMap.get(channel.broadcasterId) ?? 0;
+      const followerCount = followerMap.get(channel.broadcasterId) ?? null;
       const fit = qualifyTwitchCandidate({
         followers: followerCount,
         viewers: channel.viewerCount,
@@ -60,14 +64,14 @@ const twitchImportSchema = z.array(z.object({
   broadcasterId: z.string().min(1).max(50),
   login: z.string().min(1).max(100),
   displayName: z.string().min(1).max(200),
-  followerCount: z.number().int().nonnegative(),
-  viewerCount: z.number().int().nonnegative(),
+  followerCount: z.number().int().nonnegative().nullable(),
+  viewerCount: z.number().int().nonnegative().nullable(),
   language: z.string().max(10),
   currentGame: z.string().max(200),
   thumbnailUrl: z.url().nullable(),
   score: z.number().int().min(60).max(100),
   reasons: z.array(z.string().max(300)).max(20),
-  isLive: z.boolean(),
+  isLive: z.boolean().nullable(),
   isQualified: z.literal(true),
 })).min(1).max(20);
 
@@ -79,6 +83,8 @@ export async function importTwitchTargetsAction(input: unknown): Promise<{
   await requirePermission('targets', 'write');
   const parsed = twitchImportSchema.safeParse(input);
   if (!parsed.success) return { inserted: 0, updated: 0, error: 'Los candidatos seleccionados no son válidos' };
+  const gate = (await getCreatorProviderReadiness()).find((entry) => entry.platform === 'twitch');
+  if (!gate?.ready) return { inserted: 0, updated: 0, error: gate?.message ?? 'Twitch no está configurado.' };
 
   const now = new Date();
   const rows: CreateTargetInput[] = parsed.data.map((channel) => ({
@@ -87,7 +93,7 @@ export async function importTwitchTargetsAction(input: unknown): Promise<{
     platform: 'twitch',
     profileUrl: `https://www.twitch.tv/${channel.login}`,
     profilePicUrl: channel.thumbnailUrl ?? undefined,
-    followers: channel.followerCount,
+    followers: channel.followerCount ?? undefined,
     defaultLanguage: channel.language || undefined,
     qualificationStatus: 'review',
     fitScore: channel.score,
@@ -112,7 +118,7 @@ export type DirectProfilePreview = {
   readonly fullName: string;
   readonly profileUrl: string;
   readonly profilePicUrl: string | null;
-  readonly followers: number;
+  readonly followers: number | null;
   readonly bio: string | null;
   readonly country: string | null;
   readonly lastActivityAt: string | null;
@@ -126,6 +132,8 @@ export async function lookupKickProfileAction(slugInput: unknown): Promise<{
   await requirePermission('targets', 'read');
   const parsed = z.string().trim().regex(/^[a-zA-Z0-9_]{2,100}$/).safeParse(slugInput);
   if (!parsed.success) return { profile: null, error: 'Escribe un usuario de Kick válido' };
+  const gate = (await getCreatorProviderReadiness()).find((entry) => entry.platform === 'kick');
+  if (!gate?.ready) return { profile: null, error: gate?.message ?? 'Kick no está configurado.' };
 
   try {
     const channel = await getKickChannel(parsed.data.toLowerCase());
@@ -141,7 +149,7 @@ export async function lookupKickProfileAction(slugInput: unknown): Promise<{
         bio: channel.bio,
         country: channel.country,
         lastActivityAt: channel.lastLivestreamAt?.toISOString() ?? null,
-        categories: channel.recentCategories,
+        categories: channel.currentCategory ? [channel.currentCategory] : [],
       },
       error: null,
     };
@@ -162,19 +170,23 @@ export async function importKickProfileAction(slugInput: unknown): Promise<{
   const profile = lookup.profile;
   const cs2 = profile.categories.some((category) => /counter[- ]?strike|\bcs2\b/i.test(category));
   const activeAt = profile.lastActivityAt ? new Date(profile.lastActivityAt) : undefined;
+  const fit = scoreCreatorFit({ contentMatch: cs2 ? true : null, audience: null, targetAudience: 1000,
+    activityConfirmed: activeAt ? true : null, growthPercent: null, marketMatch: null,
+    professionalContact: null, brandReviewedMatch: null });
   const result = await bulkUpsertTargets([{
     username: profile.username,
     fullName: profile.fullName,
     platform: 'kick',
     profileUrl: profile.profileUrl,
     profilePicUrl: profile.profilePicUrl ?? undefined,
-    followers: profile.followers,
+    followers: profile.followers ?? undefined,
     bio: profile.bio ?? undefined,
-    qualificationStatus: cs2 && profile.followers >= 500 ? 'review' : 'rejected',
-    fitScore: Math.min(100, (profile.followers >= 500 ? 40 : 10) + (cs2 ? 40 : 0) + (activeAt ? 20 : 0)),
+    qualificationStatus: 'review',
+    fitScore: fit.score,
     fitReasons: [
-      `${profile.followers.toLocaleString('es-ES')} seguidores`,
-      cs2 ? 'CS2 aparece entre sus categorías recientes' : 'CS2 no confirmado',
+      ...fit.reasons,
+      profile.followers === null ? 'Seguidores no disponibles en la API oficial' : `${profile.followers.toLocaleString('es-ES')} seguidores`,
+      cs2 ? 'CS2 es su categoría actual observada; no constituye un histórico' : 'CS2 no confirmado',
       'Revisar país y encaje legal antes de contactar',
     ],
     sourceQuery: profile.username,

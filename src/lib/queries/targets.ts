@@ -116,7 +116,7 @@ export async function upsertTargetsFromCSV(
       platform,
       profileUrl: r.profile_url ?? buildProfileUrl(platform, r.username),
       profilePicUrl: r.profile_pic_url ?? null,
-      followers: r.followers ?? 0,
+      followers: r.followers ?? null,
       following: r.following ?? null,
       posts: r.posts ?? null,
       bio: r.biography ?? null,
@@ -159,13 +159,13 @@ export async function upsertTargetsFromCSV(
     .onConflictDoUpdate({
       target: [targets.platform, targets.username],
       set: {
-        fullName: sql`excluded.full_name`,
-        profilePicUrl: sql`excluded.profile_pic_url`,
-        followers: sql`excluded.followers`,
-        following: sql`excluded.following`,
-        posts: sql`excluded.posts`,
-        bio: sql`excluded.bio`,
-        externalUrl: sql`excluded.external_url`,
+        fullName: sql`coalesce(excluded.full_name, ${targets.fullName})`,
+        profilePicUrl: sql`coalesce(excluded.profile_pic_url, ${targets.profilePicUrl})`,
+        followers: sql`coalesce(excluded.followers, ${targets.followers})`,
+        following: sql`coalesce(excluded.following, ${targets.following})`,
+        posts: sql`coalesce(excluded.posts, ${targets.posts})`,
+        bio: sql`coalesce(nullif(excluded.bio, ''), ${targets.bio})`,
+        externalUrl: sql`coalesce(excluded.external_url, ${targets.externalUrl})`,
         countryCode: sql`coalesce(excluded.country_code, ${targets.countryCode})`,
         defaultLanguage: sql`coalesce(excluded.default_language, ${targets.defaultLanguage})`,
         lastVideoAt: sql`coalesce(excluded.last_video_at, ${targets.lastVideoAt})`,
@@ -251,7 +251,7 @@ export async function createTarget(data: CreateTargetInput): Promise<Target> {
       platform: data.platform,
       profileUrl: data.profileUrl,
       profilePicUrl: data.profilePicUrl ?? null,
-      followers: data.followers ?? 0,
+      followers: data.followers ?? null,
       following: data.following ?? null,
       posts: data.posts ?? null,
       bio: data.bio ?? null,
@@ -321,6 +321,7 @@ export async function deleteAllTargets(): Promise<void> {
  */
 export async function bulkUpsertTargets(
   rows: CreateTargetInput[],
+  executor: Pick<typeof db, 'insert'> = db,
 ): Promise<{ inserted: number; updated: number; ids: number[] }> {
   if (rows.length === 0) return { inserted: 0, updated: 0, ids: [] };
 
@@ -330,7 +331,7 @@ export async function bulkUpsertTargets(
     platform: r.platform,
     profileUrl: r.profileUrl,
     profilePicUrl: r.profilePicUrl ?? null,
-    followers: r.followers ?? 0,
+    followers: r.followers ?? null,
     following: r.following ?? null,
     posts: r.posts ?? null,
     bio: r.bio ?? null,
@@ -366,19 +367,19 @@ export async function bulkUpsertTargets(
     notes: r.notes ?? null,
   }));
 
-  const result = await db
+  const result = await executor
     .insert(targets)
     .values(values)
     .onConflictDoUpdate({
       target: [targets.platform, targets.username],
       set: {
-        fullName: sql`excluded.full_name`,
-        profilePicUrl: sql`excluded.profile_pic_url`,
-        followers: sql`excluded.followers`,
-        following: sql`excluded.following`,
-        posts: sql`excluded.posts`,
-        bio: sql`excluded.bio`,
-        externalUrl: sql`excluded.external_url`,
+        fullName: sql`coalesce(excluded.full_name, ${targets.fullName})`,
+        profilePicUrl: sql`coalesce(excluded.profile_pic_url, ${targets.profilePicUrl})`,
+        followers: sql`coalesce(excluded.followers, ${targets.followers})`,
+        following: sql`coalesce(excluded.following, ${targets.following})`,
+        posts: sql`coalesce(excluded.posts, ${targets.posts})`,
+        bio: sql`coalesce(nullif(excluded.bio, ''), ${targets.bio})`,
+        externalUrl: sql`coalesce(excluded.external_url, ${targets.externalUrl})`,
         countryCode: sql`coalesce(excluded.country_code, ${targets.countryCode})`,
         defaultLanguage: sql`coalesce(excluded.default_language, ${targets.defaultLanguage})`,
         lastVideoAt: sql`coalesce(excluded.last_video_at, ${targets.lastVideoAt})`,

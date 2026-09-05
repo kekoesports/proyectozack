@@ -99,7 +99,7 @@ export function TargetRow({
         </div>
       </td>
       <td className="px-4 py-2.5 text-right text-[12px] font-semibold text-sp-admin-text tabular-nums">
-        {target.followers > 0 ? formatCompact(target.followers) : '--'}
+        {target.followers == null ? '—' : formatCompact(target.followers)}
       </td>
       <td className="px-4 py-2.5">
         {hasQualification ? (
@@ -124,7 +124,7 @@ export function TargetRow({
             {target.platform === 'youtube' && target.recentVideoCount != null && (
               <p className="text-sp-admin-muted">
                 {target.recentVideoCount} vídeos / {target.recentVideosWindowDays ?? 90}d
-                {' · '}media <strong className="text-sp-admin-text">{formatCompact(target.avgRecentVideoViews ?? 0)}</strong>
+                {' · '}media <strong className="text-sp-admin-text">{target.avgRecentVideoViews == null ? '—' : formatCompact(target.avgRecentVideoViews)}</strong>
               </p>
             )}
             {target.fitReasons && target.fitReasons.length > 0 && (
@@ -149,8 +149,8 @@ export function TargetRow({
               </span>
             </div>
             <p className="text-sp-admin-muted">
-              mín. <strong className="text-sp-admin-text">{formatCompact(target.minRecentVideoViews ?? 0)}</strong>
-              {' · '}media <strong className="text-sp-admin-text">{formatCompact(target.avgRecentVideoViews ?? 0)}</strong>
+              mín. <strong className="text-sp-admin-text">{target.minRecentVideoViews == null ? '—' : formatCompact(target.minRecentVideoViews)}</strong>
+              {' · '}media <strong className="text-sp-admin-text">{target.avgRecentVideoViews == null ? '—' : formatCompact(target.avgRecentVideoViews)}</strong>
             </p>
             {target.complianceStatus && (
               <a

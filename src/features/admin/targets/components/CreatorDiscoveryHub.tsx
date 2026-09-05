@@ -7,19 +7,22 @@ import { runCreatorDiscoveryNowAction } from '@/app/admin/(dashboard)/targets/di
 import { DirectProfileDiscovery } from './DirectProfileDiscovery';
 import { TwitchTargetDiscovery } from './TwitchTargetDiscovery';
 import { YouTubeTargetDiscovery } from './YouTubeTargetDiscovery';
+import { PLATFORM_LABELS } from './targets-constants';
+import type { PlatformValue } from './targets-constants';
 
-type DiscoveryTab = 'youtube' | 'twitch' | 'instagram' | 'kick';
-
-const TABS: readonly { value: DiscoveryTab; label: string; automated: boolean }[] = [
+const TABS: readonly { value: PlatformValue; label: string; automated: boolean }[] = [
   { value: 'youtube', label: 'YouTube', automated: true },
   { value: 'twitch', label: 'Twitch', automated: true },
   { value: 'instagram', label: 'Instagram', automated: false },
   { value: 'kick', label: 'Kick', automated: true },
 ];
 
-export function CreatorDiscoveryHub(): React.ReactElement {
+export function CreatorDiscoveryHub({ tab, platforms, onTabChange }: {
+  readonly tab: PlatformValue;
+  readonly platforms: readonly PlatformValue[];
+  readonly onTabChange: (platform: PlatformValue) => void;
+}): React.ReactElement {
   const router = useRouter();
-  const [tab, setTab] = useState<DiscoveryTab>('youtube');
   const [message, setMessage] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -40,7 +43,7 @@ export function CreatorDiscoveryHub(): React.ReactElement {
         <div>
           <h2 className="text-sm font-bold text-sp-admin-text">Buscador multicanal</h2>
           <p className="mt-1 max-w-3xl text-xs text-sp-admin-muted">
-            YouTube, Twitch y Kick se revisan cada mañana. Instagram permite incorporar perfiles concretos hasta conectar una cuenta profesional de Meta.
+            Configura las búsquedas en perfiles; cada plataforma requiere conexión y permiso de uso antes de ejecutarse. Instagram permite revisar perfiles concretos según el acceso disponible.
           </p>
         </div>
         <button
@@ -58,7 +61,8 @@ export function CreatorDiscoveryHub(): React.ReactElement {
           <button
             key={item.value}
             type="button"
-            onClick={() => setTab(item.value)}
+            onClick={() => onTabChange(item.value)}
+            aria-pressed={tab === item.value}
             className={`rounded-t-lg border-b-2 px-4 py-2.5 text-xs font-semibold ${
               tab === item.value
                 ? 'border-sp-admin-accent bg-sp-admin-hover text-sp-admin-text'
@@ -67,11 +71,15 @@ export function CreatorDiscoveryHub(): React.ReactElement {
           >
             {item.label}
             <span className={`ml-2 rounded px-1.5 py-0.5 text-[9px] ${item.automated ? 'bg-emerald-500/10 text-emerald-300' : 'bg-amber-500/10 text-amber-300'}`}>
-              {item.automated ? 'DIARIO' : 'PERFIL'}
+              {item.automated ? 'BÚSQUEDA' : 'PERFIL'}
             </span>
           </button>
         ))}
       </div>
+
+      <p className="mx-5 mt-3 text-xs text-sp-admin-muted" aria-live="polite">
+        Tabla: {platforms.length > 0 ? platforms.map((platform) => PLATFORM_LABELS[platform]).join(' + ') : 'todas las redes'}
+      </p>
 
       {message && (
         <p className="mx-5 mt-4 rounded-lg border border-sp-admin-border bg-sp-admin-bg px-3 py-2 text-xs text-sp-admin-muted">

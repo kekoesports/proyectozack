@@ -43,16 +43,28 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
       const channelResults = await Promise.allSettled(youtubeSocials.map((social) => limit(async () => {
         const detail = detailsById.get(social.platformId);
-        if (!detail) {
+        if (!detail || detail.subscriberCount === null) {
           errors.push(`YouTube: canal ${social.socialId} no disponible`);
           return;
         }
 
-        let content: Awaited<ReturnType<typeof getChannelRecentContent>> = [];
+        // Subscribers were returned by a separate, successful API call. Keep
+        // that observation even when content is unavailable, but never replace
+        // a valid channel snapshot with fabricated zero views/uploads.
+        await insertSnapshot({
+          talentId: social.talentId,
+          platform: 'youtube',
+          metricType: 'subscribers',
+          value: detail.subscriberCount,
+          snapshotDate: today,
+        });
+
+        let content: Awaited<ReturnType<typeof getChannelRecentContent>>;
         try {
           content = await getChannelRecentContent(social.platformId, 365, 100);
         } catch {
           errors.push(`YouTube: contenido del canal ${social.socialId} no disponible`);
+          return;
         }
 
         const cutoff30 = Date.now() - 30 * 86_400_000;
@@ -62,16 +74,10 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
           (sum, video) => sum + (video.likes ?? 0) + (video.comments ?? 0),
           0,
         );
-        const engagement = recentViews > 0 ? (interactions / recentViews) * 100 : null;
+        const completeEngagement = recent.every(video => video.likes !== null && video.comments !== null);
+        const engagement = recentViews > 0 && completeEngagement ? (interactions / recentViews) * 100 : null;
 
         await Promise.all([
-          insertSnapshot({
-            talentId: social.talentId,
-            platform: 'youtube',
-            metricType: 'subscribers',
-            value: detail.subscriberCount,
-            snapshotDate: today,
-          }),
           upsertTalentChannelSnapshot({
             talentId: social.talentId,
             socialId: social.socialId,

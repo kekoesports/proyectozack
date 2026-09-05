@@ -13,108 +13,73 @@
       "name": "Recibir trato",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [-680, 0],
+      "position": [
+        -500,
+        0
+      ],
       "webhookId": "socialpro-deal-intake",
-      "notes": "authentication=headerAuth: sin esto el endpoint queda abierto a internet y cualquiera puede crear borradores en el CRM. La credencial Header Auth se asigna a mano tras importar. El path lleva UUID para que no sea adivinable."
+      "notes": "authentication=headerAuth: sin esto el endpoint queda abierto a internet y cualquiera puede crear borradores en el CRM. La credencial Header Auth se asigna a mano tras importar. El path lleva UUID para que no sea adivinable. Importación segura: asignar la credencial Header Auth autorizada (Authorization: Bearer del CRM), sin pegar secretos en nodos. Requiere guard inicializado, T0 y actores permitidos persistentes.",
+      "disabled": false,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_WITH_INTERNAL_GUARD_HEADER_AUTH_ID",
+          "name": "SocialPro Internal Guard Header Auth"
+        }
+      }
     },
     {
-      "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "crm-base-url",
-              "name": "crmBaseUrl",
-              "value": "https://socialpro.es",
-              "type": "string"
-            }
-          ]
-        },
-        "options": {}
+      "id": "durable-internal-intake",
+      "name": "Procesar intake con registro persistente",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        40,
+        0
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_WITH_INTERNAL_GUARD_HEADER_AUTH_ID",
+          "name": "SocialPro Internal Guard Header Auth"
+        }
       },
-      "id": "config",
-      "name": "Config",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [-420, 0],
-      "notes": "Único sitio donde cambiar el entorno del CRM. compose.yaml fija N8N_BLOCK_ENV_ACCESS_IN_NODE=true, así que $env no está disponible desde los nodos."
-    },
-    {
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
       "parameters": {
         "method": "POST",
-        "url": "={{ $('Config').first().json.crmBaseUrl }}/api/automation/deal-drafts",
+        "url": "http://socialpro-internal-guard:8787/run/intake",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ source: $('Recibir trato').first().json.body.source || 'discord', externalId: $('Recibir trato').first().json.body.externalId, sourceUserId: $('Recibir trato').first().json.body.sourceUserId, sourceChannelId: $('Recibir trato').first().json.body.sourceChannelId, rawText: $('Recibir trato').first().json.body.rawText, proposedDeal: $('Recibir trato').first().json.body.deal }) }}",
-        "options": {}
+        "jsonBody": "={{ JSON.stringify($json.body || {}) }}",
+        "options": {
+          "timeout": 170000
+        }
       },
-      "id": "create-crm-deal",
-      "name": "Guardar borrador en CRM",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [-160, 0],
-      "retryOnFail": true,
-      "maxTries": 3,
-      "waitBetweenTries": 3000,
-      "notes": "Requiere la credencial Header Auth 'SocialPro CRM - Production'. Reintenta 3 veces: cubre cold start de Vercel y 502 transitorios. El CRM es idempotente por (source, externalId), así que reintentar no duplica."
-    },
-    {
-      "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "review-message",
-              "name": "message",
-              "value": "={{ 'DEAL #' + $json.draft.id + ' · ' + ($json.draft.proposedDeal?.name || 'Borrador sin nombre') + '\\nEstado: ' + $json.draft.status + '\\n' + (($json.draft.missingFields || []).length ? 'Falta: ' + $json.draft.missingFields.join(', ') : 'Listo para revisar/aprobar') + '\\nRevisar: ' + $('Config').first().json.crmBaseUrl + '/admin/automation-drafts/' + $json.draft.id }}",
-              "type": "string"
-            }
-          ]
-        },
-        "includeOtherFields": true,
-        "options": {}
-      },
-      "id": "format-discord-review",
-      "name": "Preparar revisión Discord",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [120, 0],
-      "notes": "includeOtherFields=true es imprescindible: sin él la salida sólo lleva 'message' y se pierde draft.id, que es lo que enlaza con la ficha del CRM y lo que necesitarán los custom_id de los botones."
-    },
-    {
-      "parameters": {},
-      "id": "discord-review-placeholder",
-      "name": "Enviar revisión a Discord",
-      "type": "n8n-nodes-base.noOp",
-      "typeVersion": 1,
-      "position": [380, 0],
-      "notes": "SUSTITUIR antes de activar. Opción simple: nodo HTTP Request POST al Incoming Webhook del canal #ops-revision con body {\"content\": \"={{ $json.message }}\"}. Los botones aprobar/rechazar requieren una app de Discord con interaction endpoint y un workflow de callback que llame a PATCH /api/automation/deal-drafts/{id} — pospuesto a propósito; mientras tanto se aprueba desde /admin/automation-drafts."
+      "notes": "Sólo rutas internas permitidas; ledger fsync, identidad estable y recibo Discord antes de ACK. No facturas, pagos, emails, contratos ni replay histórico. Código versionado: infra/n8n/guard. Importación segura: asignar la credencial Header Auth autorizada (Authorization: Bearer del CRM), sin pegar secretos en nodos. Requiere guard inicializado, T0 y actores permitidos persistentes."
     }
   ],
   "connections": {
     "Recibir trato": {
-      "main": [[{ "node": "Config", "type": "main", "index": 0 }]]
-    },
-    "Config": {
-      "main": [[{ "node": "Guardar borrador en CRM", "type": "main", "index": 0 }]]
-    },
-    "Guardar borrador en CRM": {
-      "main": [[{ "node": "Preparar revisión Discord", "type": "main", "index": 0 }]]
-    },
-    "Preparar revisión Discord": {
-      "main": [[{ "node": "Enviar revisión a Discord", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Procesar intake con registro persistente",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
-  "pinData": {},
   "settings": {
     "executionOrder": "v1",
+    "timezone": "Europe/Madrid",
     "saveManualExecutions": true,
-    "timezone": "Europe/Madrid"
+    "saveDataSuccessExecution": "all",
+    "saveDataErrorExecution": "all",
+    "executionTimeout": 600
   },
-  "active": false,
-  "versionId": "50ef3b59-4d3c-4e27-860f-dbb4e5701001",
-  "meta": {
-    "templateCredsSetupCompleted": false
-  },
-  "tags": []
+  "active": false
 }

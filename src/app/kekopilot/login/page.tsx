@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { StaffLogin } from '@/app/admin/login/page';
+import { StaffLogin } from '@/components/ui/StaffLogin';
 import { createKekoPilotPanelMetadata } from '@/features/kekopilot-panel/metadata';
 import { getKekoPilotPanelConfig } from '@/lib/kekopilot-panel-config';
 

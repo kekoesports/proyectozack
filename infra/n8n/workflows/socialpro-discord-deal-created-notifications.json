@@ -1,11 +1,5 @@
 {
   "name": "SocialPro - CONFIRMAR tratos creados en Discord (instantáneo + respaldo)",
-  "active": false,
-  "settings": {
-    "executionOrder": "v1",
-    "timezone": "Europe/Madrid",
-    "saveManualExecutions": true
-  },
   "nodes": [
     {
       "parameters": {
@@ -19,9 +13,19 @@
       "name": "Aviso inmediato del CRM",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [-560, -180],
+      "position": [
+        -500,
+        0
+      ],
       "webhookId": "socialpro-deal-created-immediate",
-      "notes": "El CRM lo llama al aprobar. Requiere la misma credencial Header Auth; el Schedule Trigger queda como recuperación."
+      "notes": "El CRM lo llama al aprobar. Requiere la misma credencial Header Auth; el Schedule Trigger queda como recuperación. Importación segura: asignar la credencial Header Auth autorizada (Authorization: Bearer del CRM), sin pegar secretos en nodos. Requiere guard inicializado, T0 y actores permitidos persistentes.",
+      "disabled": false,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_WITH_INTERNAL_GUARD_HEADER_AUTH_ID",
+          "name": "SocialPro Internal Guard Header Auth"
+        }
+      }
     },
     {
       "parameters": {
@@ -38,126 +42,76 @@
       "name": "Cada 2 minutos",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
-      "position": [-560, 0]
+      "position": [
+        -500,
+        180
+      ],
+      "disabled": false
     },
     {
-      "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "crm-base-url",
-              "name": "crmBaseUrl",
-              "value": "https://socialpro.es",
-              "type": "string"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "id": "config",
-      "name": "Config",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [-340, 0]
-    },
-    {
-      "parameters": {
-        "url": "={{ $('Config').first().json.crmBaseUrl }}/api/automation/discord/deal-created",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "options": {
-          "timeout": 30000
-        }
-      },
-      "id": "read-pending-confirmations",
-      "name": "Leer confirmaciones pendientes",
+      "id": "durable-internal-notify",
+      "name": "Procesar notify con registro persistente",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [-120, 0],
+      "position": [
+        40,
+        0
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_WITH_INTERNAL_GUARD_HEADER_AUTH_ID",
+          "name": "SocialPro Internal Guard Header Auth"
+        }
+      },
       "retryOnFail": true,
       "maxTries": 3,
       "waitBetweenTries": 3000,
-      "notes": "Usa la misma credencial Header Auth del CRM. Si no hay avisos, el siguiente nodo devuelve cero items y Discord no recibe nada."
-    },
-    {
-      "parameters": {
-        "jsCode": "const notifications = Array.isArray($json.notifications) ? $json.notifications : [];\nreturn notifications.flatMap((notification) => {\n  if (!notification || !notification.draftId || !notification.channelId || !notification.message) return [];\n  return [{ json: notification }];\n});"
-      },
-      "id": "prepare-confirmations",
-      "name": "Preparar confirmaciones",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [100, 0],
-      "notes": "Cero confirmaciones = cero mensajes. El contenido ya viene saneado y limitado por el CRM."
-    },
-    {
-      "parameters": {
-        "resource": "message",
-        "operation": "send",
-        "guildId": {
-          "__rl": true,
-          "value": "1522153792592806018",
-          "mode": "id"
-        },
-        "channelId": {
-          "__rl": true,
-          "value": "={{ $json.channelId }}",
-          "mode": "id"
-        },
-        "content": "={{ $json.message }}",
-        "options": {}
-      },
-      "id": "publish-created-deal",
-      "name": "Publicar TRATO CREADO",
-      "type": "n8n-nodes-base.discord",
-      "typeVersion": 2,
-      "position": [320, 0],
-      "retryOnFail": true,
-      "maxTries": 3,
-      "waitBetweenTries": 3000,
-      "notes": "Asignar Discord Bot account al importar. Si Discord falla, el ACK no se ejecuta y se reintenta en la próxima pasada."
-    },
-    {
       "parameters": {
         "method": "POST",
-        "url": "={{ $('Config').first().json.crmBaseUrl + '/api/automation/discord/deal-created/' + $('Preparar confirmaciones').item.json.draftId + '/ack' }}",
+        "url": "http://socialpro-internal-guard:8787/run/notify",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.body || {}) }}",
         "options": {
-          "timeout": 30000
+          "timeout": 170000
         }
       },
-      "id": "ack-created-deal",
-      "name": "Confirmar publicación al CRM",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [540, 0],
-      "retryOnFail": true,
-      "maxTries": 3,
-      "waitBetweenTries": 3000,
-      "notes": "El ACK ocurre únicamente después de que Discord acepte el mensaje. Es idempotente."
+      "notes": "Sólo rutas internas permitidas; ledger fsync, identidad estable y recibo Discord antes de ACK. No facturas, pagos, emails, contratos ni replay histórico. Código versionado: infra/n8n/guard. Importación segura: asignar la credencial Header Auth autorizada (Authorization: Bearer del CRM), sin pegar secretos en nodos. Requiere guard inicializado, T0 y actores permitidos persistentes."
     }
   ],
   "connections": {
     "Aviso inmediato del CRM": {
-      "main": [[{ "node": "Config", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Procesar notify con registro persistente",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Cada 2 minutos": {
-      "main": [[{ "node": "Config", "type": "main", "index": 0 }]]
-    },
-    "Config": {
-      "main": [[{ "node": "Leer confirmaciones pendientes", "type": "main", "index": 0 }]]
-    },
-    "Leer confirmaciones pendientes": {
-      "main": [[{ "node": "Preparar confirmaciones", "type": "main", "index": 0 }]]
-    },
-    "Preparar confirmaciones": {
-      "main": [[{ "node": "Publicar TRATO CREADO", "type": "main", "index": 0 }]]
-    },
-    "Publicar TRATO CREADO": {
-      "main": [[{ "node": "Confirmar publicación al CRM", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Procesar notify con registro persistente",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
-  "pinData": {},
-  "tags": []
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Europe/Madrid",
+    "saveManualExecutions": true,
+    "saveDataSuccessExecution": "all",
+    "saveDataErrorExecution": "all",
+    "executionTimeout": 600
+  },
+  "active": false
 }

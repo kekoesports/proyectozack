@@ -1,6 +1,9 @@
 import { defineConfig, globalIgnores } from "eslint/config";
 import nextVitals from "eslint-config-next/core-web-vitals";
 import nextTs from "eslint-config-next/typescript";
+import js from "@eslint/js";
+import * as espree from "espree";
+import globals from "globals";
 
 const eslintConfig = defineConfig([
   ...nextVitals,
@@ -48,6 +51,36 @@ const eslintConfig = defineConfig([
       "@typescript-eslint/no-unsafe-argument": "off",
       "@typescript-eslint/no-unsafe-return": "off",
       "@typescript-eslint/no-non-null-assertion": "off",
+    },
+  },
+  {
+    // Standalone Node guard: real CommonJS, not part of the CRM TS project.
+    // Keep recommended JavaScript checks; do not relax any src/ TS rule.
+    files: ["infra/n8n/guard/*.cjs"],
+    languageOptions: {
+      parser: espree,
+      ecmaVersion: "latest",
+      sourceType: "commonjs",
+      globals: { ...globals.node, fetch: "readonly", Response: "readonly" },
+      parserOptions: { projectService: false },
+    },
+    rules: {
+      ...js.configs.recommended.rules,
+      "no-unused-vars": ["error", {
+        argsIgnorePattern: "^_", varsIgnorePattern: "^_", caughtErrorsIgnorePattern: "^_",
+      }],
+      "@typescript-eslint/no-unused-vars": "off",
+      "@typescript-eslint/no-require-imports": "off",
+      "@typescript-eslint/no-explicit-any": "off",
+      "@typescript-eslint/no-non-null-assertion": "off",
+      "@typescript-eslint/consistent-type-assertions": "off",
+      "@typescript-eslint/no-unsafe-assignment": "off",
+      "@typescript-eslint/no-unsafe-call": "off",
+      "@typescript-eslint/no-unsafe-member-access": "off",
+      "@typescript-eslint/no-unsafe-argument": "off",
+      "@typescript-eslint/no-unsafe-return": "off",
+      "@typescript-eslint/no-misused-promises": "off",
+      "@typescript-eslint/await-thenable": "off",
     },
   },
   globalIgnores([
