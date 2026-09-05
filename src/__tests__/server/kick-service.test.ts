@@ -86,6 +86,49 @@ it('stops a repeated cursor and deduplicates broadcaster IDs', async () => {
   expect(fetcher).toHaveBeenCalledTimes(4);
 });
 
+it('accepts empty category/live cursors and a hyphenated slug without requesting another page', async () => {
+  const fetcher = jest.spyOn(global, 'fetch').mockResolvedValueOnce(token())
+    .mockResolvedValueOnce(json({ data: [category], pagination: { next_cursor: '' } }))
+    .mockResolvedValueOnce(json({ data: [{ ...stream(1), channel: { slug: 'streamer-123' } }],
+      pagination: { next_cursor: '' } }));
+  const { getKickLiveCreatorsReport } = await import('@/lib/services/kick');
+  const report = await getKickLiveCreatorsReport({ minViewerCount: 20, languageCodes: ['es'] });
+  expect(report.items).toHaveLength(1);
+  expect(report.items[0]?.slug).toBe('streamer-123');
+  expect(report.coverage).toEqual({ status: 'complete', pagesRead: 1, warnings: [] });
+  expect(fetcher).toHaveBeenCalledTimes(3);
+});
+
+it('treats empty category cursor with no match as an empty completed lookup, not a provider failure', async () => {
+  const fetcher = jest.spyOn(global, 'fetch').mockResolvedValueOnce(token())
+    .mockResolvedValueOnce(json({ data: [], pagination: { next_cursor: '' } }));
+  const { getKickLiveCreatorsReport } = await import('@/lib/services/kick');
+  expect(await getKickLiveCreatorsReport()).toEqual({ items: [],
+    coverage: { status: 'complete', pagesRead: 0, warnings: [] } });
+  expect(fetcher).toHaveBeenCalledTimes(2);
+});
+
+it('stops at an empty final cursor after preserving previous live pages', async () => {
+  const fetcher = jest.spyOn(global, 'fetch').mockResolvedValueOnce(token())
+    .mockResolvedValueOnce(json({ data: [category], pagination: { next_cursor: '' } }))
+    .mockResolvedValueOnce(json({ data: [stream(1)], pagination: { next_cursor: 'next' } }))
+    .mockResolvedValueOnce(json({ data: [stream(2)], pagination: { next_cursor: '' } }));
+  const { getKickLiveCreatorsReport } = await import('@/lib/services/kick');
+  const report = await getKickLiveCreatorsReport({ pageSize: 1 });
+  expect(report.items.map(item => item.userId)).toEqual([1, 2]);
+  expect(report.coverage).toEqual({ status: 'complete', pagesRead: 2, warnings: [] });
+  expect(fetcher).toHaveBeenCalledTimes(4);
+});
+
+it('preserves exact official lookup for a normalized hyphenated slug', async () => {
+  const fetcher = jest.spyOn(global, 'fetch').mockResolvedValueOnce(token())
+    .mockResolvedValueOnce(json({ data: [{ broadcaster_user_id: 100, slug: 'streamer-123' }] }))
+    .mockResolvedValueOnce(json({ data: [{ user_id: 100, name: 'Synthetic Creator' }] }));
+  const { getKickChannel } = await import('@/lib/services/kick');
+  expect(await getKickChannel('STREAMER-123')).toMatchObject({ slug: 'streamer-123', followers: null });
+  expect(String(fetcher.mock.calls[1]?.[0])).toBe('https://api.kick.com/public/v1/channels?slug=streamer-123');
+});
+
 it('filters measured audience before its candidate limit and continues past a low-audience page', async () => {
   const fetcher = jest.spyOn(global, 'fetch').mockResolvedValueOnce(token())
     .mockResolvedValueOnce(json({ data: [category] }))

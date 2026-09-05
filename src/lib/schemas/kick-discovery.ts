@@ -2,9 +2,10 @@ import { z } from 'zod';
 
 const id = z.number().int().positive().safe();
 const image = z.string().url().refine(value => /^https?:\/\//.test(value)).or(z.literal('')).nullish();
-const cursor = z.string().min(1).max(2000).nullish();
+// Official V2 pagination permits an empty cursor: no next page, not malformed data.
+const cursor = z.string().max(2000).nullish();
 const category = z.object({ id, name: z.string().min(1) });
-export const KickSlug = z.string().trim().min(1).max(25).regex(/^[a-zA-Z0-9_]+$/).transform(value => value.toLowerCase());
+export const KickSlug = z.string().trim().min(1).max(25).regex(/^[a-zA-Z0-9_-]+$/).transform(value => value.toLowerCase());
 export const KickToken = z.object({ access_token: z.string().min(1), expires_in: z.number().int().positive().safe() });
 export const KickCategories = z.object({
   data: z.array(category).max(1000),
