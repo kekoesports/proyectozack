@@ -3,8 +3,10 @@ import { creatorAccounts, creatorIdentities, talentSocials, targets, creatorProv
 import { db } from '@/lib/db';
 import { bulkUpsertTargets } from '@/lib/queries/targets';
 import { createTargetSchema, type CreateTargetInput } from '@/lib/schemas/target';
-import { creatorObservationSchema, type CreatorObservation, type CreatorSearchConfig } from '@/lib/schemas/creator-search-profile';
-import { mergeCreatorObservation, normalizeCreatorAccountKey } from '@/lib/targets/search-profile';
+import { type CreatorObservation, type CreatorSearchConfig } from '@/lib/schemas/creator-search-profile';
+import { normalizeCreatorAccountKey } from '@/lib/targets/search-profile';
+import { creatorMetricMirrors, nextCreatorExpiry } from '@/lib/targets/creator-retention';
+import { prepareRetainedCreatorFields } from '@/lib/targets/creator-retention-storage';
 import { creatorProviderGate } from '@/lib/targets/provider-readiness';
 import { reevaluateDiscardedCreator } from './creatorDiscardReevaluation';
 
@@ -75,15 +77,8 @@ export async function persistDiscoveredCreator(input: DiscoveredCreatorInput): P
       await tx.update(creatorIdentities).set({ lastSeenAt: now, sourceLastSeen: source,
         timesObserved: sql`${creatorIdentities.timesObserved} + 1` }).where(eq(creatorIdentities.id, creatorId));
     }
-    const fields: Record<string, CreatorObservation> = { ...account?.fields };
-    const observedFields: Record<string, CreatorObservation> = {};
-    for (const [field, value] of Object.entries(input.fields)) {
-      const next = creatorObservationSchema.safeParse(value);
-      if (!next.success) continue;
-      observedFields[field] = next.data;
-      const previous = creatorObservationSchema.safeParse(fields[field]);
-      fields[field] = mergeCreatorObservation(previous.success ? previous.data : undefined, next.data);
-    }
+    const { fields, observedFields } = prepareRetainedCreatorFields({ fields: account?.fields ?? {},
+      expiresAt: account?.expiresAt ?? null, retentionDays: permission.retentionDays }, input.fields, data, now);
     // Keep represented creators out of the prospect funnel. Existing targets retain their manual status.
     const result = representedSocial && !existingTarget ? { inserted: 0, updated: 0, ids: [] }
       : await bulkUpsertTargets([{ ...data, username: existingTarget?.username ?? username }], tx);
@@ -91,9 +86,11 @@ export async function persistDiscoveredCreator(input: DiscoveredCreatorInput): P
     const reopened = wasDiscarded && account && !representedSocial
       ? await reevaluateDiscardedCreator(tx, existingTarget, account, input, now) : false;
     const targetId = result.ids[0] ?? existingTarget?.id ?? null;
+    // Generic CSV upsert deliberately preserves nulls; official mirrors must not resurrect expired data.
+    if (targetId) await tx.update(targets).set(creatorMetricMirrors(fields, data.qualificationStatus ?? existingTarget?.qualificationStatus)).where(eq(targets.id, targetId));
     const values = { creatorId, targetId, platform: data.platform, externalId: input.externalId, username,
       profileUrl: data.profileUrl, fields, lastSeenAt: now,
-      expiresAt: new Date(now.getTime() + permission.retentionDays * 86_400_000),
+      expiresAt: nextCreatorExpiry(fields),
       identityEvidence: { confidence: 'HIGH', source: representedSocial ? 'crm:talent_socials:platform_id' : `official:${data.platform}:id`,
         reason: representedSocial ? 'ID inmutable ya asociado al talento en el CRM' : 'Misma cuenta por ID inmutable; no fusión por nombre' } as const };
     let accountId = account?.id;
@@ -103,7 +100,7 @@ export async function persistDiscoveredCreator(input: DiscoveredCreatorInput): P
       accountId = inserted?.id;
     }
     if (input.runId && accountId) await tx.insert(creatorAccountObservations).values({ accountId, runId: input.runId,
-      fields: observedFields, observedAt: now, expiresAt: values.expiresAt }).onConflictDoNothing({ target: [creatorAccountObservations.accountId, creatorAccountObservations.runId] });
+      fields: observedFields, observedAt: now, expiresAt: nextCreatorExpiry(observedFields) ?? now }).onConflictDoNothing({ target: [creatorAccountObservations.accountId, creatorAccountObservations.runId] });
     return { inserted: result.inserted, updated: result.updated, represented: !!representedSocial, identityReview: false,
       ...(wasDiscarded ? { suppressed: !reopened, reopened } : {}) };
   });

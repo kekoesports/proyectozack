@@ -2,6 +2,8 @@ import { and, desc, eq, inArray, ne, sql } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { targets } from '@/db/schema';
 import type { Target } from '@/types';
+import type { TargetView } from '@/lib/targets/creator-retention';
+import { applyCreatorRetention } from './creatorTargetViews';
 import type { CreateTargetInput, CsvTargetRow } from '@/lib/schemas/target';
 import { recordTargetStatusHistory } from './targetStatusHistory';
 
@@ -27,9 +29,9 @@ function countUpsertResults(rows: Array<{ id: number; xmax: string }>): { insert
  * @visibility admin
  * @returns array (puede ser vacío). Nunca null.
  */
-export async function getAllTargets(options: Readonly<{ includeArchived?: boolean }> = {}): Promise<Target[]> {
-  return db.select().from(targets).where(options.includeArchived ? undefined : ne(targets.status, 'descartado'))
-    .orderBy(desc(targets.createdAt));
+export async function getAllTargets(options: Readonly<{ includeArchived?: boolean }> = {}): Promise<TargetView[]> {
+  return applyCreatorRetention(await db.select().from(targets).where(options.includeArchived ? undefined : ne(targets.status, 'descartado'))
+    .orderBy(desc(targets.createdAt)));
 }
 
 /**
@@ -59,12 +61,12 @@ export async function getTargetsByPlatformAndUsernames(
  * @scope brand
  * @returns array (puede ser vacío). Nunca null.
  */
-export async function getBrandTargets(brandUserId: string): Promise<Target[]> {
-  return db
+export async function getBrandTargets(brandUserId: string): Promise<TargetView[]> {
+  return applyCreatorRetention(await db
     .select()
     .from(targets)
     .where(and(eq(targets.brandUserId, brandUserId), ne(targets.status, 'descartado')))
-    .orderBy(desc(targets.updatedAt), desc(targets.createdAt));
+    .orderBy(desc(targets.updatedAt), desc(targets.createdAt)));
 }
 
 /**

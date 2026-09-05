@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import { useState } from 'react';
-import type { Target } from '@/types';
+import type { TargetView as Target } from '@/lib/targets/creator-retention';
 import { formatCompact } from '@/lib/utils/format';
 import {
   PLATFORM_COLORS,
@@ -49,7 +49,7 @@ export function TargetRow({
   isPending,
 }: TargetRowProps): React.ReactElement {
   const isEditingNotes = editingNotes === target.id;
-  const hasQualification = target.fitScore > 0 || (target.fitReasons?.length ?? 0) > 0;
+  const hasQualification = target.fitScore !== null && (target.fitScore > 0 || (target.fitReasons?.length ?? 0) > 0);
   const displayName = target.fullName?.trim() || target.username;
   const displayHandle = getDisplayHandle(target);
   return (
@@ -102,7 +102,9 @@ export function TargetRow({
         {target.followers == null ? '—' : formatCompact(target.followers)}
       </td>
       <td className="px-4 py-2.5">
-        {hasQualification ? (
+        {target.metricAvailability === 'unavailable' ? (
+          <span className="text-[11px] text-sp-admin-muted">Sin datos vigentes</span>
+        ) : hasQualification ? (
           <div className="space-y-1 text-[11px]">
             <div className="flex items-center gap-1.5">
               <span className={`rounded px-1.5 py-0.5 font-bold ${

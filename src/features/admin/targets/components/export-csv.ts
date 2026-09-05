@@ -1,6 +1,6 @@
-import type { Target } from '@/types';
+import type { TargetView as Target } from '@/lib/targets/creator-retention';
 
-const HEADERS = ['id', 'username', 'platform', 'followers', 'status', 'notes', 'profileUrl', 'createdAt'] as const;
+const HEADERS = ['id', 'username', 'platform', 'followers', 'status', 'notes', 'profileUrl', 'createdAt', 'metricAvailability'] as const;
 
 /**
  * Exporta una lista de targets a CSV con BOM UTF-8 implícito y descarga el fichero en cliente.
@@ -14,7 +14,7 @@ export function exportTargetsCSV(rows: Target[]): void {
     ...rows.map((t) =>
       HEADERS
         .map((h) => {
-          const val = t[h as keyof Target] ?? '';
+          const val = t[h] ?? '';
           const s = String(val);
           return s.includes(',') || s.includes('\n') || s.includes('"')
             ? `"${s.replace(/"/g, '""')}"`

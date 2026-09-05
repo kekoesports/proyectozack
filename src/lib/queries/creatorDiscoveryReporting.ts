@@ -6,6 +6,7 @@ import { enqueueCreatorDigest } from '@/lib/queries/creatorDigest';
 import { formatCreatorDigest } from '@/lib/targets/creator-digest';
 import { CREATOR_FIT_SCORE_VERSION } from '@/lib/targets/creator-fit-score';
 import { creatorObservationSchema } from '@/lib/schemas/creator-search-profile';
+import { applyCreatorRetention } from './creatorTargetViews';
 
 type ProcessingCounts = { scoring: number; enrichment: number; noPublicBio: number; invalidPublicInput: number };
 function processingCounts(rows: readonly { fields: Readonly<Record<string, unknown>> }[], startedAt: Date, now: Date): ProcessingCounts {
@@ -87,13 +88,15 @@ export async function recordCreatorRunReporting(runId: number, startedAt: Date, 
   await writeStage('enrichment');
   await writeStage('scoring');
   // Current target labels/scores are not evidence of an older recovered run.
-  const top = evidence?.recovered ? [] : await db.select({ name: targets.fullName, username: targets.username, platform: targets.platform, score: targets.fitScore })
+  const topRows = evidence?.recovered ? [] : await db.select({ target: targets })
     .from(creatorAccountObservations).innerJoin(creatorAccounts, eq(creatorAccounts.id, creatorAccountObservations.accountId))
     .innerJoin(targets, eq(targets.id, creatorAccounts.targetId))
     .where(and(eq(creatorAccountObservations.runId, runId), gt(creatorAccountObservations.expiresAt, writtenAt), eq(targets.status, 'pendiente')))
-    .orderBy(desc(targets.fitScore)).limit(4);
+    .orderBy(desc(targets.fitScore)).limit(400);
+  const top = (await applyCreatorRetention(topRows.map((row) => row.target), writtenAt))
+    .filter((row) => row.fitScore !== null).sort((a, b) => (b.fitScore ?? -1) - (a.fitScore ?? -1)).slice(0, 4);
   const content = formatCreatorDigest({ runId, results, durationMs,
-    top: top.map((row) => ({ name: row.name ?? row.username, platform: row.platform, score: row.score })) });
+    top: top.flatMap((row) => row.fitScore === null ? [] : [{ name: row.fullName ?? row.username, platform: row.platform, score: row.fitScore }]) });
   const queued = await enqueueCreatorDigest(`creator-run:${runId}`, evidence?.recovered
     ? content.replace('Ejecución #', 'Informe recuperado, sin nueva búsqueda #').slice(0, 1800) : content, runId);
   // enqueue is idempotent but its boolean alone does not distinguish pending from previously sent.

@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useRef, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import type { Target } from '@/types';
+import type { TargetView as Target } from '@/lib/targets/creator-retention';
 import {
   updateNotesAction,
   deleteTargetsAction,

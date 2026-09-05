@@ -72,7 +72,9 @@ describe('creadores target legibles', () => {
   it('muestra nombre humano y no presenta 0\/100 como auditoría real', () => {
     expect(row).toMatch(/displayName = target\.fullName/);
     expect(row).toMatch(/Pendiente de auditoría/);
-    expect(row).toMatch(/hasQualification = target\.fitScore > 0/);
+    expect(row).toMatch(/hasQualification = target\.fitScore !== null && \(target\.fitScore > 0/);
+    expect(row).toContain("target.metricAvailability === 'unavailable'");
+    expect(row).toContain('Sin datos vigentes');
   });
 });
 

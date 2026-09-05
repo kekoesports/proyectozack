@@ -53,6 +53,9 @@ export const creatorObservationSchema = z.object({
   source: z.string().min(1).max(200),
   observed_at: z.iso.datetime().nullable(),
   synced_at: z.iso.datetime(),
+  // Storage-owned TTL; optional for existing JSON. Refresh time never extends it.
+  expires_at: z.iso.datetime().optional(),
+  retention_days: z.number().int().positive().optional(),
   status: z.enum(['available', 'unavailable', 'stale', 'error']),
   confidence: z.enum(['HIGH', 'MEDIUM', 'LOW']),
 }).strict();

@@ -27,7 +27,7 @@ const csvBool = z
   .transform((v) => (typeof v === 'string' ? v === 'true' : v))
   .optional();
 
-export const targetQualificationStatusSchema = z.enum(['qualified', 'review', 'rejected']);
+export const targetQualificationStatusSchema = z.enum(['qualified', 'review', 'rejected', 'unavailable']);
 
 // ─── CSV row from target import ─────────────────────────────────────────────
 

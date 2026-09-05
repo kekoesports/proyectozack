@@ -3,7 +3,8 @@ import { and, asc, eq, gt, ne, sql } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { targets } from '@/db/schema';
 import type { ImportItem } from '@/lib/schemas/creatorTargetsApi';
-import type { Target } from '@/types';
+import type { TargetView } from '@/lib/targets/creator-retention';
+import { applyCreatorRetention } from './creatorTargetViews';
 
 /**
  * Upsert creators discovered by the socialpro-creator-targets skill.
@@ -103,7 +104,7 @@ export type ActiveTargetsFilter = {
 };
 
 export type ActiveTargetsPage = {
-  readonly items: readonly Target[];
+  readonly items: readonly TargetView[];
   readonly nextCursor: number | null;
 };
 
@@ -133,5 +134,5 @@ export async function getActiveTargetsPage(
   const last = items[items.length - 1];
   const nextCursor = hasMore && last ? last.id : null;
 
-  return { items, nextCursor };
+  return { items: await applyCreatorRetention(items), nextCursor };
 }

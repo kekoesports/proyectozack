@@ -3,7 +3,7 @@
 import { useSearchParams } from 'next/navigation';
 import { useMemo } from 'react';
 import type { BrandUserRow } from '@/lib/queries/brandUsers';
-import type { Target } from '@/types';
+import type { TargetView as Target } from '@/lib/targets/creator-retention';
 import { CreatorDiscoveryHub } from './CreatorDiscoveryHub';
 import { TargetsSpreadsheet } from './TargetsSpreadsheet';
 import { readTargetPlatforms, toggleTargetPlatform } from './target-platform-filter';

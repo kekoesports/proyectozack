@@ -1,6 +1,6 @@
 import { PgDialect } from 'drizzle-orm/pg-core';
 import type { SQL } from 'drizzle-orm';
-import { creatorFeedback, targets } from '@/db/schema';
+import { creatorAccounts, creatorFeedback, targets } from '@/db/schema';
 
 const mockSelect = jest.fn(), mockInsert = jest.fn(), mockUpdate = jest.fn(), mockTransaction = jest.fn(), mockDelete = jest.fn();
 jest.mock('@/lib/db', () => ({ db: {
@@ -21,7 +21,10 @@ beforeEach(() => {
   rows = [{ id: 1, status: 'pendiente' }, { id: 2, status: 'contactado' }];
   lastDecision = null;
   feedbackOrders = [];
-  mockSelect.mockImplementation(() => ({ from: (table: unknown) => ({ where: (condition: SQL | undefined) => {
+  mockSelect.mockImplementation(() => ({ from: (table: unknown) => {
+    // These archive fixtures are manual/unlinked; retention is tested separately with real account evidence.
+    if (table === creatorAccounts) return { leftJoin: () => ({ where: async () => [] }) };
+    return { where: (condition: SQL | undefined) => {
     reads.push(condition);
     if (table === creatorFeedback) return { orderBy: (...order: SQL[]) => {
       feedbackOrders.push(...order);
@@ -30,7 +33,7 @@ beforeEach(() => {
     return { orderBy: () => Object.assign(Promise.resolve(rows), { for: async (mode: string) => {
       events.push(`lock:${mode}`); return rows;
     } }) };
-  } }) }));
+  } }; } }));
   mockInsert.mockImplementation((table: unknown) => ({ values: async (values: unknown) => {
     events.push('history'); writes.push({ kind: 'insert', table, values });
   } }));

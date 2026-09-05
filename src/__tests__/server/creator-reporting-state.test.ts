@@ -1,10 +1,12 @@
-import { automationRegistry, creatorDiscoveryRuns, creatorDigestOutbox } from '@/db/schema';
+import { automationRegistry, creatorAccounts, creatorDiscoveryRuns, creatorDigestOutbox } from '@/db/schema';
 import type { CreatorDiscoveryPlatformResult } from '@/db/schema/creatorDiscoveryRuns';
 import type { CreatorObservation } from '@/lib/schemas/creator-search-profile';
 import type { SQL } from 'drizzle-orm';
 import { PgDialect } from 'drizzle-orm/pg-core';
 import { creatorObservation } from '@/lib/targets/creator-observations';
 import { CREATOR_FIT_SCORE_VERSION } from '@/lib/targets/creator-fit-score';
+import type { Target } from '@/types';
+import { targetFixture } from './creator-retention-fixtures';
 
 const mockSelect = jest.fn(), mockInsert = jest.fn(), mockUpdate = jest.fn(), mockEnqueue = jest.fn();
 jest.mock('@/lib/db', () => ({ db: {
@@ -26,6 +28,8 @@ let deliveryRows: { status: string; messageId: string | null; sentAt: Date | nul
 const observationConditions: SQL[] = [];
 const conflictConditions: SQL[] = [];
 let topReads = 0;
+let topRows: { target: Target }[];
+let accountRows: { targetId: number; fields: Record<string, CreatorObservation>; expiresAt: Date; retentionDays: number }[];
 let failRegistryKey: string | null = null;
 function processing(enrichment = 'public_bio_extracted_for_review') {
   return { fields: {
@@ -43,12 +47,14 @@ beforeEach(() => {
   observationRows = [processing()]; observationConditions.length = 0;
   deliveryRows = [{ status: 'pending', messageId: null, sentAt: null }]; conflictConditions.length = 0; topReads = 0;
   failRegistryKey = null;
+  topRows = []; accountRows = [];
   mockEnqueue.mockResolvedValue(true);
   mockSelect.mockImplementation(() => ({ from: (table: unknown) => table === creatorDiscoveryRuns
     ? { where: async () => [{ startedAt }] }
     : table === creatorDigestOutbox ? { where: async () => deliveryRows }
+    : table === creatorAccounts ? { leftJoin: () => ({ where: async () => accountRows }) }
     : { where: async (condition: SQL) => { observationConditions.push(condition); return observationRows; },
-      innerJoin: () => ({ innerJoin: () => ({ where: () => ({ orderBy: () => ({ limit: async () => { topReads++; return []; } }) }) }) }) },
+      innerJoin: () => ({ innerJoin: () => ({ where: () => ({ orderBy: () => ({ limit: async () => { topReads++; return topRows; } }) }) }) }) },
   }));
   mockInsert.mockImplementation((table: unknown) => ({ values: (values: Record<string, unknown>) => {
     if (table !== automationRegistry || typeof values.key !== 'string') throw new Error('Unexpected synthetic registry operation');
@@ -71,6 +77,21 @@ beforeEach(() => {
   }) }));
 });
 afterEach(() => jest.useRealTimers());
+
+it('excludes expired API scores from the digest top even if the legacy target score is higher', async () => {
+  topRows = [
+    { target: { ...targetFixture(), id: 1, fullName: 'Expired synthetic leader', fitScore: 100 } },
+    { target: { ...targetFixture(), id: 2, fullName: 'Fresh synthetic candidate', fitScore: 20 } },
+  ];
+  accountRows = [
+    { targetId: 1, fields: { fitScore: creatorObservation(100, 'crm:scoreCreatorFit', previous) }, expiresAt: now, retentionDays: 1 },
+    { targetId: 2, fields: { fitScore: creatorObservation(20, 'crm:scoreCreatorFit', now) },
+      expiresAt: new Date(now.getTime() + 86_400_000), retentionDays: 1 },
+  ];
+  await recordCreatorRunReporting(28, startedAt, [result()]);
+  expect(mockEnqueue).toHaveBeenCalledWith('creator-run:28', expect.stringContaining('Fresh synthetic candidate'), 28);
+  expect(mockEnqueue).not.toHaveBeenCalledWith(expect.anything(), expect.stringContaining('Expired synthetic leader'), expect.anything());
+});
 
 it('preflight and completed reporting share a single platform registry key', async () => {
   await recordCreatorPreflight([{ platform: 'youtube', ready: true, code: 'READY', message: 'Synthetic verified configuration' }]);

@@ -6,7 +6,7 @@ import {
 } from '@/app/admin/(dashboard)/targets/actions';
 import { runCreatorDiscoveryNowAction } from '@/app/admin/(dashboard)/targets/discovery-actions';
 import { updateCreatorFeedbackAction } from '@/app/admin/(dashboard)/targets/profile-actions';
-import type { Target } from '@/types';
+import type { TargetView as Target } from '@/lib/targets/creator-retention';
 
 jest.mock('next/navigation', () => {
   const React = jest.requireActual<typeof import('react')>('react');
@@ -49,7 +49,7 @@ function fixture(id: number, platform: Target['platform'], status: Target['statu
     lastActivityAt: null, lastDiscoveredAt: now, isPrivate: null, isVerified: null,
     isBusiness: null, isCreator: null, businessCategory: null, brandUserId: null, notes: null,
     discoveredVia: 'synthetic-test', importBatchId: null, enrichedAt: null, contactedAt: null,
-    createdAt: now, updatedAt: now,
+    createdAt: now, updatedAt: now, metricAvailability: 'untracked',
   };
 }
 
@@ -104,6 +104,28 @@ it('defaults to the same YouTube selection for the form and table', () => {
   expect(screen.getByText('Formulario YouTube')).toBeInTheDocument();
   expect(screen.getByRole('link', { name: 'Fixture youtube 1' })).toBeInTheDocument();
   expect(screen.queryByRole('link', { name: 'Fixture twitch 2' })).not.toBeInTheDocument();
+});
+
+it('keeps expired profiles and notes visible without inventing a score or audience', () => {
+  const stale: Target = { ...fixture(71, 'youtube'), metricAvailability: 'unavailable',
+    followers: null, fitScore: null, qualificationStatus: 'unavailable', notes: 'Historial comercial conservado' };
+  mountTargets([stale]);
+  expect(screen.getByRole('link', { name: 'Fixture youtube 71' })).toBeInTheDocument();
+  expect(screen.getByText('Sin datos vigentes')).toBeInTheDocument();
+  expect(screen.getByText('Historial comercial conservado')).toBeInTheDocument();
+  expect(screen.queryByText(/\/100/)).not.toBeInTheDocument();
+});
+
+it('sorts unavailable audience last in either direction, preserving a measured zero', () => {
+  const zero: Target = { ...fixture(72, 'youtube'), followers: 0, metricAvailability: 'current' };
+  const unknown: Target = { ...fixture(73, 'youtube'), followers: null, fitScore: null, metricAvailability: 'unavailable' };
+  mountTargets([unknown, zero]);
+  fireEvent.click(screen.getByRole('button', { name: /Audiencia/ }));
+  expect(screen.getAllByRole('row')[2]).toHaveTextContent('Fixture youtube 73');
+  expect(screen.getAllByRole('row')[1]).toHaveTextContent('Fixture youtube 72');
+  fireEvent.click(screen.getByRole('button', { name: /Audiencia/ }));
+  expect(screen.getAllByRole('row')[2]).toHaveTextContent('Fixture youtube 73');
+  expect(screen.getAllByRole('row')[1]).toHaveTextContent('Fixture youtube 72');
 });
 
 it('allows table multiselect, keeps an included form active, and moves it when deselected', () => {

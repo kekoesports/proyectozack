@@ -4,7 +4,7 @@ import Image from 'next/image';
 import { useMemo, useState, useTransition } from 'react';
 
 import { formatCompact } from '@/lib/utils/format';
-import type { Target } from '@/types';
+import type { TargetView as Target } from '@/lib/targets/creator-retention';
 
 import {
   updateBrandTargetNotesAction,
@@ -170,6 +170,7 @@ export function BrandTargetsSpreadsheet({
                     </td>
                     <td className="px-4 py-3 text-right font-semibold text-sp-dark tabular-nums">
                       {target.followers == null ? '—' : formatCompact(target.followers)}
+                      {target.metricAvailability === 'unavailable' && <p className="text-xs text-sp-muted">Sin datos vigentes</p>}
                     </td>
                     <td className="px-4 py-3 max-w-[260px]">
                       {target.bio ? (

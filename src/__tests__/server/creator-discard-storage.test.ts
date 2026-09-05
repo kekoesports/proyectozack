@@ -139,13 +139,16 @@ describe('identity → discard evidence → history/status/observations integrat
       if (scenario === 'same audience') baseline = { ...baseline, fields: fields(new Date('2026-09-02T10:00:00Z'), 1500) };
       await expect(persistDiscoveredCreator(incoming)).resolves.toMatchObject({ suppressed: true, reopened: false });
       expect(target.status).toBe('descartado');
-      expect(writes.some(row => row.table === creatorFeedback || row.table === targets)).toBe(false);
+      expect(writes.some(row => row.table === creatorFeedback || (row.table === targets && 'status' in row.values))).toBe(false);
+      for (const write of writes.filter(row => row.table === targets)) {
+        expect(write.values).not.toHaveProperty('notes'); expect(write.values).not.toHaveProperty('contactedAt');
+      }
     });
   it('does not reopen when a concurrent manual status is observed after the target lock', async () => {
     target.status = 'contactado';
     await persistDiscoveredCreator(incoming);
     expect(target.status).toBe('contactado');
-    expect(writes.some(row => row.table === creatorFeedback || row.table === targets)).toBe(false);
+    expect(writes.some(row => row.table === creatorFeedback || (row.table === targets && 'status' in row.values))).toBe(false);
   });
   it('uses insertion order under the lock when legacy transaction timestamps invert manual decisions', async () => {
     conflictingDecisions = [
