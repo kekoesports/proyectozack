@@ -65,16 +65,19 @@ export function TargetsSpreadsheet({
   const csvInputRef = useRef<HTMLInputElement>(null);
 
   const statusCounts = useMemo(() => {
-    const counts: Record<StatusFilter, number> = { todos: targets.length, pendiente: 0, contactado: 0, finalizado: 0, descartado: 0 };
+    const counts: Record<StatusFilter, number> = { todos: targets.filter(t => t.status !== 'descartado').length, pendiente: 0, contactado: 0, finalizado: 0, descartado: 0 };
     for (const t of targets) counts[t.status]++;
     return counts;
   }, [targets]);
 
   const platformCounts = useMemo(() => {
     const counts: Record<string, number> = {};
-    for (const t of targets) counts[t.platform] = (counts[t.platform] ?? 0) + 1;
+    for (const t of targets) {
+      if (statusFilter === 'descartado' ? t.status !== 'descartado' : t.status === 'descartado') continue;
+      counts[t.platform] = (counts[t.platform] ?? 0) + 1;
+    }
     return counts;
-  }, [targets]);
+  }, [targets, statusFilter]);
 
   const activePlatforms = useMemo(
     () => PLATFORMS.filter((p) => (platformCounts[p] ?? 0) > 0 || platformFilter.has(p)),
@@ -117,9 +120,7 @@ export function TargetsSpreadsheet({
   const filtered = useMemo(() => {
     let list = targets;
 
-    if (statusFilter !== 'todos') {
-      list = list.filter((t) => t.status === statusFilter);
-    }
+    list = list.filter(t => statusFilter === 'todos' ? t.status !== 'descartado' : t.status === statusFilter);
 
     if (platformFilter.size > 0) {
       list = list.filter((t) => platformFilter.has(t.platform));
@@ -247,7 +248,7 @@ export function TargetsSpreadsheet({
   const handleDelete = (ids: number[]): void => {
     const actionIds = ids.filter((id) => visibleIds.has(id));
     if (actionIds.length === 0 || isPending) return;
-    if (!confirm(`\u00bfEliminar ${actionIds.length} target${actionIds.length > 1 ? 's' : ''}?`)) return;
+    if (!confirm(`¿Archivar ${actionIds.length} lead${actionIds.length > 1 ? 's' : ''}? Se conservarán su identidad y su historial.`)) return;
     const fd = new FormData();
     fd.set('ids', actionIds.join(','));
     startTransition(async () => {
@@ -306,12 +307,16 @@ export function TargetsSpreadsheet({
         batchFilter={batchFilter}
         toggleBatch={toggleBatch}
         filteredCount={filtered.length}
-        totalCount={targets.length}
+        totalCount={statusFilter === 'descartado' ? statusCounts.descartado : statusCounts.todos}
         csvInputRef={csvInputRef}
         handleImportCSV={handleImportCSV}
         isPending={isPending}
         exportCSV={exportCSV}
       />
+
+      {statusFilter === 'descartado' && <p className="text-xs text-sp-admin-muted">
+        Archivo recuperable: conserva identidad e historial. Sin motivo y evidencia nueva comparable no hay reapertura automática; las objeciones comerciales requieren revisión manual.
+      </p>}
 
       {feedbackMessage && <p role="status" className="text-xs text-sp-admin-muted">{feedbackMessage}</p>}
       {feedback && feedbackIds.length > 0 && <CreatorFeedbackForm

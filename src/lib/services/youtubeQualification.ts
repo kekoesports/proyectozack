@@ -21,12 +21,11 @@ export type YouTubeQualification = YouTubeChannelPreview & YouTubeRecentPerforma
 };
 
 const SPANISH_HINTS = [
-  'español', 'castellano', 'latino', 'latam', 'counter strike', 'counter-strike',
-  'cs2', 'gaming', 'jugando', 'partida', 'equipo', 'canal', 'directo',
+  'español', 'castellano', 'latino', 'latam', 'jugando', 'partida', 'equipo', 'canal', 'directo',
 ] as const;
 
 export function looksSpanish(channel: YouTubeChannelPreview): boolean {
-  if (channel.defaultLanguage?.toLowerCase().startsWith('es')) return true;
+  if (channel.defaultLanguage) return channel.defaultLanguage.toLowerCase().split('-')[0] === 'es';
   const text = `${channel.title} ${channel.description}`.toLowerCase();
   return SPANISH_HINTS.some((hint) => text.includes(hint));
 }
@@ -36,7 +35,7 @@ export function matchesTargetLanguage(
   language: TargetLanguage,
 ): boolean {
   if (language === 'any') return true;
-  if (channel.defaultLanguage?.toLowerCase().startsWith(language)) return true;
+  if (channel.defaultLanguage) return channel.defaultLanguage.toLowerCase().split('-')[0] === language;
   return language === 'es' && looksSpanish(channel);
 }
 
@@ -69,14 +68,8 @@ export function qualifyYouTubeChannel(
   const daysSinceLastVideo = performance.lastVideoAt
     ? Math.max(0, Math.floor((Date.now() - performance.lastVideoAt.getTime()) / 86_400_000))
     : null;
-  if (daysSinceLastVideo !== null && daysSinceLastVideo > 45) {
-    reasons.push(`Último vídeo hace ${daysSinceLastVideo} días`);
-  }
-
+  // Activity is the configured recent-video window; freshness and fit remain informative.
   const fitScore = scoreYouTubeProspect(channel, performance, daysSinceLastVideo);
-  if (reasons.length === 0 && fitScore < 60) {
-    reasons.push(`Potencial comercial ${fitScore}/100 (mínimo 60)`);
-  }
 
   const signals = [
     `${performance.videoCount} vídeos en ${performance.windowDays} días`,

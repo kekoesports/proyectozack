@@ -35,7 +35,10 @@ const tx = {
     return { from: () => ({ where: () => {
     const rows = selects.shift();
     if (!rows) throw new Error('Unexpected read beyond synthetic fixture');
-    return Object.assign(Promise.resolve(rows), { limit: async () => rows });
+    const locked = Object.assign(Promise.resolve(rows), { for: async (mode: string) => {
+      eventOrder.push(`row-lock:${mode}`); return rows;
+    } });
+    return Object.assign(locked, { limit: () => locked });
     } }) };
   },
   insert: (table: unknown) => ({ values: (values: Record<string, unknown>) => {
@@ -77,6 +80,7 @@ describe('immutable creator identity storage boundary (mock transaction only)', 
     expect(query.sql).toContain('pg_advisory_xact_lock');
     expect(query.params).toContain('twitch:1234');
     expect(eventOrder.indexOf('advisory-lock')).toBeLessThan(eventOrder.indexOf('select'));
+    expect(eventOrder).toContain('row-lock:update');
   });
 
   it('keeps a renamed provider account attached to its existing target and does not reset manual status', async () => {

@@ -14,7 +14,7 @@ jest.mock('@/lib/queries/creatorProviderReadiness', () => ({
 jest.mock('@/lib/queries/creatorSearchProfiles', () => ({ listDueCreatorSearchProfiles: () => mockDue() }));
 jest.mock('@/lib/services/creatorTargetDiscovery', () => ({ runCreatorTargetDiscovery: (...args: unknown[]) => mockDiscovery(...args) }));
 
-import { runCreatorSearchProfile } from '@/lib/services/creatorSearchProfiles';
+import { runCreatorSearchProfile, runDueCreatorSearchProfiles } from '@/lib/services/creatorSearchProfiles';
 import { CreatorDiscoveryReportingPendingError } from '@/lib/services/creator-reporting-status';
 
 type Update = { values: Record<string, unknown>; condition?: SQL };
@@ -49,6 +49,7 @@ describe('creator profile claim and finalization boundaries (no DB or provider a
     mockReadiness.mockResolvedValue([{ platform: 'youtube', ready: true, code: 'READY', message: 'Synthetic approval' }]);
     mockPreflight.mockResolvedValue(undefined);
     mockDiscovery.mockResolvedValue({ status: 'success' });
+    mockDue.mockResolvedValue([]);
   });
   afterEach(() => jest.useRealTimers());
 
@@ -70,6 +71,19 @@ describe('creator profile claim and finalization boundaries (no DB or provider a
   it('rechecks due time in the claim, so a stale scheduler list cannot run a just-completed profile twice', async () => {
     await runCreatorSearchProfile(7, 'scheduled');
     expect(queryFor(0).sql).toMatch(/"next_run_at"\s*<=/);
+  });
+
+  it('polling five minutes later does not turn a completed daily profile into another search', async () => {
+    mockDue.mockResolvedValueOnce([fixture]).mockResolvedValueOnce([]);
+    await expect(runDueCreatorSearchProfiles()).resolves.toEqual([{ profileId: 7, ok: true, error: null }]);
+    const nextRun = writes.find(write => Object.hasOwn(write.values, 'nextRunAt'))?.values.nextRunAt;
+    expect(nextRun).toEqual(new Date('2026-09-06T06:30:00Z'));
+    expect(queryFor(0).sql).toMatch(/"next_run_at"\s*<=/);
+    expect(queryFor(0).sql).toContain('"lease_until"');
+    jest.setSystemTime(new Date(now.getTime() + 5 * 60_000));
+    await expect(runDueCreatorSearchProfiles()).resolves.toEqual([]);
+    expect(mockDiscovery).toHaveBeenCalledTimes(1);
+    expect(mockDue).toHaveBeenCalledTimes(2);
   });
 
   it('allows deliberate manual searches independent of the next scheduled date', async () => {

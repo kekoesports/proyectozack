@@ -91,6 +91,10 @@ export async function getKickLiveCreatorsReport(
       for (const stream of page.data) {
         if (users.has(stream.broadcaster_user.id)) { warnings.add('duplicate_record'); continue; }
         users.add(stream.broadcaster_user.id);
+        // No API min-audience parameter. Filter before the candidate cap, not before pagination.
+        // Zero may mean hidden audience; it cannot prove any configured measured-viewer minimum.
+        if (config.minViewerCount !== undefined
+          && (stream.viewer_count === 0 || stream.viewer_count < config.minViewerCount)) continue;
         if (items.length >= config.limit) { warnings.add('coverage_incomplete'); continue; }
         items.push({
           userId: stream.broadcaster_user.id, username: stream.broadcaster_user.username,

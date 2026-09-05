@@ -292,7 +292,7 @@ export function BulkActionsBar({
         disabled={isPending}
         className="ml-auto px-3 py-1 rounded text-[11px] font-semibold text-red-400 hover:bg-red-900/20 transition-colors"
       >
-        Eliminar
+        Archivar
       </button>
       <button
         type="button"
@@ -314,11 +314,11 @@ type ConfirmDeleteAllModalProps = Readonly<{
   onCancel: () => void;
 }>;
 
-const CONFIRM_WORD = 'ELIMINAR';
+const CONFIRM_WORD = 'ARCHIVAR';
 
 /**
- * Modal de doble confirmación para borrar TODOS los targets.
- * El usuario debe escribir "ELIMINAR" exactamente para habilitar el botón.
+ * Modal de doble confirmación para archivar los targets sin borrar su historial.
+ * El usuario debe escribir "ARCHIVAR" exactamente para habilitar el botón.
  *
  * @kind client
  * @feature admin/targets
@@ -343,10 +343,10 @@ export function ConfirmDeleteAllModal({ totalCount, onConfirm, onCancel }: Confi
           </div>
           <div>
             <h2 id="delete-all-title" className="text-sm font-semibold text-red-400">
-              Eliminar todos los targets
+              Archivar todos los leads
             </h2>
             <p className="mt-1 text-xs text-sp-admin-muted">
-              Esta acción borrará <span className="font-semibold text-sp-admin-text">{totalCount} target{totalCount !== 1 ? 's' : ''}</span> de forma permanente. No se puede deshacer.
+              Esta acción archivará <span className="font-semibold text-sp-admin-text">{totalCount} lead{totalCount !== 1 ? 's' : ''}</span>. Se conservarán su identidad y su historial en Descartado.
             </p>
           </div>
         </div>
@@ -381,7 +381,7 @@ export function ConfirmDeleteAllModal({ totalCount, onConfirm, onCancel }: Confi
             disabled={!isValid}
             className="px-4 py-2 rounded-lg text-xs font-semibold bg-red-600 text-white hover:bg-red-700 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
           >
-            Eliminar todo
+            Archivar todo
           </button>
         </div>
       </div>

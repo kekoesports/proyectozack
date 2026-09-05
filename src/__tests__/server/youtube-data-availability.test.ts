@@ -62,6 +62,34 @@ describe('YouTube channel availability, not fabricated counters', () => {
 });
 
 describe('YouTube recent content coverage', () => {
+  it('uses actual video publication for the 90-day boundary and includes a low video in the exact median', async () => {
+    const videos = [60, 70, 90, 91].map((days, index) => {
+      const id = 'video-' + index;
+      return { ...upload(id), contentDetails: { videoId: id,
+        videoPublishedAt: new Date(Date.now() - days * 86_400_000).toISOString() } };
+    });
+    jest.mocked(fetch).mockResolvedValueOnce(response(playlist))
+      .mockResolvedValueOnce(response({ items: videos }))
+      .mockResolvedValueOnce(response({ items: [1, 1000, 1000].map((views, index) => ({
+        id: 'video-' + index, statistics: { viewCount: String(views) },
+      })) }));
+    const result = await getChannelRecentPerformance('UC_synthetic', 90);
+    expect(result).toMatchObject({ windowDays: 90, videoCount: 3, minViews: 1, medianViews: 1000, videosAtOrAbove1000: 2 });
+    expect(result.lastVideoAt).toEqual(new Date(Date.now() - 60 * 86_400_000));
+    expect(new URL(String(jest.mocked(fetch).mock.calls[2]?.[0])).searchParams.get('id')).toBe('video-0,video-1,video-2');
+    expect(fetch).toHaveBeenCalledTimes(3);
+  });
+
+  it('does not round an even median up to the eligibility threshold', async () => {
+    jest.mocked(fetch).mockResolvedValueOnce(response(playlist))
+      .mockResolvedValueOnce(response({ items: [upload('video-a'), upload('video-b')] }))
+      .mockResolvedValueOnce(response({ items: [
+        { id: 'video-a', statistics: { viewCount: '999' } },
+        { id: 'video-b', statistics: { viewCount: '1000' } },
+      ] }));
+    expect((await getChannelRecentPerformance('UC_synthetic', 90)).medianViews).toBe(999.5);
+  });
+
   it('does not equate an unavailable uploads playlist with an empty channel', async () => {
     jest.mocked(fetch).mockResolvedValueOnce(response({ items: [] }));
     await expect(getChannelRecentContent('UC_synthetic')).rejects.toThrow(/unavailable|coverage/i);

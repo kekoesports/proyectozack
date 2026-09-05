@@ -5,7 +5,7 @@ jest.mock('@/lib/services/twitch-auth', () => ({
 const reply = (body: unknown) => new Response(JSON.stringify(body));
 const stream = (id: string) => ({
   id: 'stream-' + id, user_id: id, user_login: id, user_name: 'Synthetic', game_id: 'game',
-  game_name: 'Synthetic game', language: 'en', viewer_count: 0,
+  game_name: 'Synthetic game', type: 'live', language: 'en', viewer_count: 0,
   started_at: '2026-09-01T12:00:00Z', thumbnail_url: '',
 });
 beforeEach(() => {
@@ -43,6 +43,49 @@ it('deduplicates volatile pages and marks observed coverage partial', async () =
   const result = await getGameLiveStreams('game');
   expect(result.items).toHaveLength(1);
   expect(result.coverage).toMatchObject({ status: 'partial', warnings: ['duplicate_record'] });
+});
+
+it('sends all configured languages before pagination and applies the exact live audience threshold', async () => {
+  jest.mocked(fetch).mockResolvedValueOnce(reply({ data: [
+    { ...stream('below'), language: 'es', viewer_count: 19 },
+    { ...stream('boundary'), language: 'es', viewer_count: 20 },
+  ], pagination: { cursor: 'next' } })).mockResolvedValueOnce(reply({ data: [
+    { ...stream('above'), viewer_count: 21 },
+  ], pagination: {} }));
+  const result = await getGameLiveStreams('game', 3, { languageCodes: ['es-ES', 'en', 'es'], minViewerCount: 20 });
+  expect(result.items.map(item => item.broadcasterId)).toEqual(['boundary', 'above']);
+  expect(result.items.every(item => item.followerCount === null)).toBe(true);
+  expect(result.coverage).toEqual({ status: 'complete', pagesRead: 2, warnings: [] });
+  for (const [url] of jest.mocked(fetch).mock.calls) {
+    const params = new URL(String(url)).searchParams;
+    expect(params.getAll('language')).toEqual(['es', 'en']);
+    expect(params.get('game_id')).toBe('game');
+    expect(params.has('min_viewers')).toBe(false);
+  }
+});
+
+it('does not infer active status from the provider error type', async () => {
+  jest.mocked(fetch).mockResolvedValue(reply({ data: [{ ...stream('one'), type: '' }], pagination: {} }));
+  const result = await getGameLiveStreams('game');
+  expect(result.items).toEqual([]);
+  expect(result.coverage).toMatchObject({ status: 'partial', warnings: ['coverage_incomplete'] });
+});
+
+it.each([{ language: 'de' }, { game_id: 'different-game' }])('rejects provider data outside the exact requested filters: %j', async mismatch => {
+  jest.mocked(fetch).mockResolvedValue(reply({ data: [{ ...stream('one'), ...mismatch }], pagination: {} }));
+  const result = await getGameLiveStreams('game', 3, { languageCodes: ['en'] });
+  expect(result.items).toEqual([]);
+  expect(result.coverage.warnings).toContain('invalid_response');
+});
+
+it.each([-1, 1.5, Number.NaN])('rejects invalid live audience threshold %s before fetching', async minViewerCount => {
+  await expect(getGameLiveStreams('game', 3, { minViewerCount })).rejects.toThrow('Invalid Twitch discovery options');
+  expect(fetch).not.toHaveBeenCalled();
+});
+
+it('rejects unsupported three-letter languages rather than silently discarding the filter', async () => {
+  await expect(getGameLiveStreams('game', 3, { languageCodes: ['spa'] })).rejects.toThrow('Invalid Twitch discovery options');
+  expect(fetch).not.toHaveBeenCalled();
 });
 it('stops at three pages even when all pages are empty but nonterminal', async () => {
   for (const token of ['a', 'b', 'c']) jest.mocked(fetch).mockResolvedValueOnce(reply({ data: [], pagination: { cursor: token } }));

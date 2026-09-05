@@ -10,6 +10,7 @@ export const creatorSearchProfileSchema = z.object({
   windowDays: z.number().int().min(7).max(120),
   minRecentVideos: z.number().int().min(1).max(30),
   targetMedianViews: z.number().int().min(0).max(1_000_000),
+  minLiveViewers: z.number().int().min(1).max(1_000_000).default(20),
   maxCandidatesPerPlatform: z.number().int().min(1).max(100),
   searchPagesPerDay: z.number().int().min(1).max(20),
   scheduleTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),
@@ -30,7 +31,7 @@ export const DEFAULT_CREATOR_SEARCH_PROFILE: CreatorSearchConfig = {
   keywords: ['CS2', 'Counter-Strike 2', 'Counter-Strike', 'CS2 skins', 'CS2 cases', 'CS2 gameplay', 'CS2 update', 'CS2 tournament'],
   platforms: ['youtube', 'twitch', 'kick', 'instagram'],
   markets: ['WORLDWIDE'], languages: [], windowDays: 90, minRecentVideos: 3,
-  targetMedianViews: 1000, maxCandidatesPerPlatform: 36, searchPagesPerDay: 8,
+  targetMedianViews: 1000, minLiveViewers: 20, maxCandidatesPerPlatform: 36, searchPagesPerDay: 8,
   scheduleTime: '08:30', timezone: 'Europe/Madrid', enabled: false,
 };
 

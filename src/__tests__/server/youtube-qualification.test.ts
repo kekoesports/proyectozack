@@ -1,4 +1,4 @@
-import { qualifyYouTubeChannel } from '@/lib/services/youtubeQualification';
+import { qualifyYouTubeChannel, matchesTargetLanguage } from '@/lib/services/youtubeQualification';
 import type { YouTubeChannelPreview, YouTubeRecentPerformance } from '@/lib/services/youtube';
 
 const channel: YouTubeChannelPreview = {
@@ -26,6 +26,33 @@ const performance: YouTubeRecentPerformance = {
 };
 
 describe('qualifyYouTubeChannel', () => {
+  it('accepts three videos in 90 days at median 1000 even with a low video, hidden subscribers and last upload 60 days ago', () => {
+    const result = qualifyYouTubeChannel(
+      { ...channel, subscriberCount: null, country: 'US', defaultLanguage: 'en' },
+      { ...performance, videoCount: 3, minViews: 1, medianViews: 1000, avgViews: 667,
+        videosAtOrAbove1000: 2, lastVideoAt: new Date(Date.now() - 60 * 86_400_000) },
+      'GLOBAL', 'any', 'marketplace',
+    );
+    expect(result.fitScore).toBeLessThan(60);
+    expect(result.isQualified).toBe(true);
+    expect(result.reasons).toEqual([]);
+  });
+
+  it.each([
+    { videoCount: 2, medianViews: 1000 },
+    { videoCount: 3, medianViews: 999.5 },
+  ])('rejects a missing minimum without rounding median: %j', metrics => {
+    expect(qualifyYouTubeChannel(channel, { ...performance, ...metrics }, 'ES').isQualified).toBe(false);
+  });
+
+  it('does not infer Spanish from universal gaming keywords', () => {
+    expect(matchesTargetLanguage({ ...channel, defaultLanguage: null, title: 'CS2 Gaming', description: 'Counter-Strike 2' }, 'es')).toBe(false);
+  });
+
+  it('respects a declared non-Spanish language over Spanish hints', () => {
+    expect(matchesTargetLanguage({ ...channel, defaultLanguage: 'en' }, 'es')).toBe(false);
+    expect(matchesTargetLanguage({ ...channel, defaultLanguage: 'es-MX' }, 'es')).toBe(true);
+  });
   it('aprueba solo cuando mercado, idioma, actividad y vistas cumplen', () => {
     const result = qualifyYouTubeChannel(channel, performance, 'ES');
     expect(result.isQualified).toBe(true);

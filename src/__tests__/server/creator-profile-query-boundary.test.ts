@@ -22,16 +22,22 @@ let eventOrder: string[];
 let readConditions: SQL[];
 let selectRows: unknown[][];
 let returningRows: unknown[];
+let afterLockTime: Date | null;
 
 describe('profile and feedback transaction query boundaries (isolated mocks)', () => {
   beforeEach(() => {
     jest.clearAllMocks(); jest.useFakeTimers().setSystemTime(now);
     operations = []; eventOrder = []; readConditions = []; selectRows = []; returningRows = [savedProfile];
+    afterLockTime = null;
     mockSelect.mockImplementation(() => ({ from: () => ({ where: (condition: SQL) => {
       readConditions.push(condition);
       const rows = selectRows.shift() ?? [];
       return {
-        for: async (lock: string) => { eventOrder.push(`lock:${lock}`); return rows; },
+        for: async (lock: string) => {
+          eventOrder.push(`lock:${lock}`);
+          if (afterLockTime) jest.setSystemTime(afterLockTime);
+          return rows;
+        },
         limit: async () => rows,
         orderBy: () => ({ limit: async () => rows }),
       };
@@ -99,6 +105,13 @@ describe('profile and feedback transaction query boundaries (isolated mocks)', (
     mockInsert.mockImplementationOnce(() => ({ values: () => { throw new Error('Synthetic history storage failure'); } }));
     await expect(recordCreatorFeedback({ targetId: 22, status: 'descartado', reason: 'wrong_content' }, 'synthetic-user')).rejects.toThrow('history');
     expect(mockUpdate).not.toHaveBeenCalled();
+  });
+  it('timestamps a manual decision after waiting for the row lock, not at transaction start', async () => {
+    afterLockTime = new Date(now.getTime() + 5_000);
+    selectRows = [[{ id: 22, status: 'descartado' }], []];
+    await recordCreatorFeedback({ targetId: 22, status: 'descartado', reason: 'other' }, 'synthetic-user');
+    expect(operations[0]?.values.createdAt).toEqual(afterLockTime);
+    expect(operations[1]?.values.updatedAt).toEqual(afterLockTime);
   });
   it('does not create orphan feedback for a missing target', async () => {
     selectRows = [[]];

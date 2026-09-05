@@ -37,4 +37,12 @@ describe('provider-purpose preflight', () => {
     expect(creatorProviderGate('youtube', true, { ...approved, validUntil: new Date('2026-09-01Z') }, now).ready).toBe(false);
     expect(creatorProviderGate('youtube', true, { ...approved, evidenceRef: '' }, now).ready).toBe(false);
   });
+  it('labels a responsible-owner declaration without claiming a written agreement was reviewed', () => {
+    const declared = { commercialApproved: true, derivedMetricsApproved: true, retentionDays: 1,
+      evidenceRef: 'user-attestation:synthetic', reviewedBy: 'fixture-reviewer', reviewedAt: now, validUntil: null };
+    expect(creatorProviderGate('twitch', true, declared, now)).toMatchObject({ ready: true, code: 'READY' });
+    expect(creatorProviderGate('twitch', true, declared, now).message).toContain('soporte documental pendiente');
+    expect(creatorProviderGate('twitch', true, { ...declared, derivedMetricsApproved: false }, now).ready).toBe(false);
+    expect(creatorProviderGate('twitch', false, declared, now).ready).toBe(false);
+  });
 });

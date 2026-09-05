@@ -1,9 +1,9 @@
 # Tareas programadas del CRM. Sustituyen a los crons de vercel.json.
 #
-# Los horarios son los MISMOS y siguen en UTC, como en Vercel. No se han
-# trasladado a hora local a propósito: cambiarlos y migrar a la vez haría
-# imposible saber si una diferencia de comportamiento viene del cambio de
-# infraestructura o del cambio de horario.
+# Los trabajos heredados mantienen su horario UTC, salvo discovery de creadores:
+# ese endpoint sondea cada 5 minutos los perfiles diarios pendientes. La hora y
+# zona de cada perfil, nextRunAt y su lease en CRM gobiernan la búsqueda real.
+# poll-live-status es otro sondeo explícito exclusivo del VPS.
 #
 # Equivalencia en Europe/Madrid (verano, UTC+2) en la columna de la derecha.
 #
@@ -17,7 +17,10 @@
 
 # ── diarias ─────────────────────────────────────────────────────────────────
 0 6 * * *    /usr/bin/curl -fsS -m 110 -H "Authorization: Bearer $CRON_SECRET" http://app:3000/api/cron/snapshot-metrics            # 08:00 Madrid
-30 6 * * *   /usr/bin/curl -fsS -m 110 -H "Authorization: Bearer $CRON_SECRET" http://app:3000/api/cron/discover-creator-targets   # 08:30 Madrid
+# -m 240 limita la petición HTTP; no cancela el trabajo del servidor. Un lote de
+# varios perfiles puede superar ese plazo. Inicialmente se prevé un perfil global;
+# no ampliar lotes sin comprobar duración/solapamiento. El lease protege cada perfil.
+*/5 * * * *  /usr/bin/curl -fsS -m 240 -H "Authorization: Bearer $CRON_SECRET" http://app:3000/api/cron/discover-creator-targets   # Perfil diario: hora Europe/Madrid y lease en CRM, respeta DST
 0 7 * * *    /usr/bin/curl -fsS -m 110 -H "Authorization: Bearer $CRON_SECRET" http://app:3000/api/cron/sync-news-alerts            # 09:00 Madrid
 15 7 * * *   /usr/bin/curl -fsS -m 110 -H "Authorization: Bearer $CRON_SECRET" http://app:3000/api/cron/keydrop-daily-report         # 09:15 Madrid
 30 22 * * *  /usr/bin/curl -fsS -m 110 -H "Authorization: Bearer $CRON_SECRET" http://app:3000/api/cron/sync-ip-evidence            # 00:30 Madrid (verano)

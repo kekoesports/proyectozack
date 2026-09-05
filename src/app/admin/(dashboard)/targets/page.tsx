@@ -14,7 +14,8 @@ import { saveSearchProfileAction, runSearchProfileAction } from './profile-actio
 export default async function AdminTargetsPage(): Promise<React.ReactElement> {
   const session = await requireAnyRole(['admin', 'admin_limited_tasks', 'manager', 'staff'], '/admin/login');
   const [targets, brands, discoveryRuns, profiles, registry] = await Promise.all([
-    getAllTargets(),
+    // Explicit archive access remains inside the existing status tab, never in the ordinary queue.
+    getAllTargets({ includeArchived: true }),
     getAllBrandUsers(),
     listRecentCreatorDiscoveryRuns(),
     listCreatorSearchProfiles(),
@@ -26,7 +27,7 @@ export default async function AdminTargetsPage(): Promise<React.ReactElement> {
       <div className="flex items-baseline gap-4 mb-6">
         <h1 className="font-display text-3xl font-black uppercase text-sp-admin-text">Leads CC</h1>
         <span className="text-xs text-sp-admin-muted tabular-nums">
-          {targets.length} leads
+          {targets.filter(target => target.status !== 'descartado').length} leads activos
         </span>
       </div>
 

@@ -320,7 +320,7 @@ it('revalidates a pending bulk decision against the visible rows at submit time'
   expect(updateCreatorFeedbackAction).toHaveBeenCalledWith(expect.objectContaining({ targetId: 4 }));
 });
 
-it('deletes only the visible selected Twitch row, never a hidden selected YouTube row', async () => {
+it('archives only the visible selected Twitch row, never a hidden selected YouTube row', async () => {
   const confirm = jest.spyOn(window, 'confirm').mockReturnValue(true);
   jest.mocked(deleteTargetsAction).mockResolvedValue();
   mountTargets();
@@ -328,9 +328,31 @@ it('deletes only the visible selected Twitch row, never a hidden selected YouTub
   fireEvent.click(screen.getByRole('button', { name: 'Twitch BÚSQUEDA' }));
   selectVisibleRows();
   expectedDeleteCalls = 1;
-  fireEvent.click(screen.getByText('Eliminar', { selector: 'button' }));
+  fireEvent.click(screen.getByText('Archivar', { selector: 'button' }));
   await waitFor(() => expect(deleteTargetsAction).toHaveBeenCalledTimes(1));
   const input = jest.mocked(deleteTargetsAction).mock.calls[0]?.[0];
   expect(input?.get('ids')).toBe('2');
-  expect(confirm).toHaveBeenCalledWith('¿Eliminar 1 target?');
+  expect(confirm).toHaveBeenCalledWith('¿Archivar 1 lead? Se conservarán su identidad y su historial.');
+});
+
+it('keeps archived creators out of ordinary lists and totals but recoverable in the explicit tab', () => {
+  mountTargets([fixture(1, 'youtube'), fixture(8, 'youtube', 'descartado')]);
+  expect(screen.getByRole('button', { name: 'Todos 1' })).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: 'YouTube 1' })).toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button', { name: 'Todos 1' }));
+  expect(screen.queryByRole('link', { name: 'Fixture youtube 8' })).not.toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button', { name: 'Descartado 1' }));
+  expect(screen.getByRole('link', { name: 'Fixture youtube 8' })).toBeInTheDocument();
+  expect(screen.queryByRole('link', { name: 'Fixture youtube 1' })).not.toBeInTheDocument();
+  expect(screen.getByText(/Archivo recuperable/)).toBeInTheDocument();
+});
+
+it('does not include an archived selection in ordinary bulk actions after leaving the archive', () => {
+  mountTargets([fixture(1, 'youtube'), fixture(8, 'youtube', 'descartado')]);
+  fireEvent.click(screen.getByRole('button', { name: 'Descartado 1' }));
+  selectVisibleRows();
+  expect(screen.getByText('1 seleccionado')).toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button', { name: 'Todos 1' }));
+  expect(screen.queryByText('1 seleccionado')).not.toBeInTheDocument();
+  expect(screen.queryByRole('link', { name: 'Fixture youtube 8' })).not.toBeInTheDocument();
 });

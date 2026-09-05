@@ -145,7 +145,7 @@ export async function importCSVAction(formData: FormData): Promise<ImportCsvResu
 // ─── Status update ────────────────────────────────────────────────────────────
 
 export async function updateStatusAction(formData: FormData): Promise<void> {
-  await requirePermission('targets', 'write');
+  const session = await requirePermission('targets', 'write');
 
   const parsed = parseFormData(formData, updateTargetStatusSchema);
   if (!parsed.ok) {
@@ -153,7 +153,7 @@ export async function updateStatusAction(formData: FormData): Promise<void> {
     return;
   }
 
-  await updateTargetStatus(parsed.data.id, parsed.data.status);
+  await updateTargetStatus(parsed.data.id, parsed.data.status, session.user.id);
   revalidatePath(REVALIDATE);
 }
 
@@ -175,7 +175,7 @@ export async function updateNotesAction(formData: FormData): Promise<void> {
 // ─── Delete ───────────────────────────────────────────────────────────────────
 
 export async function deleteTargetsAction(formData: FormData): Promise<void> {
-  await requirePermission('targets', 'write');
+  const session = await requirePermission('targets', 'write');
 
   const parsed = parseFormData(formData, deleteTargetsSchema);
   if (!parsed.ok) {
@@ -183,8 +183,9 @@ export async function deleteTargetsAction(formData: FormData): Promise<void> {
     return;
   }
 
-  await deleteTargets(parsed.data.ids);
+  await deleteTargets(parsed.data.ids, session.user.id);
   revalidatePath(REVALIDATE);
+  revalidatePath('/marcas');
 }
 
 
@@ -208,8 +209,8 @@ export async function assignTargetsToBrandAction(
 // ─── Delete all ──────────────────────────────────────────────────────────────
 
 export async function deleteAllTargetsAction(): Promise<void> {
-  await requirePermission('targets', 'delete');
-  await deleteAllTargets();
+  const session = await requirePermission('targets', 'delete');
+  await deleteAllTargets(session.user.id);
   revalidatePath(REVALIDATE);
   revalidatePath('/marcas');
 }
@@ -217,7 +218,7 @@ export async function deleteAllTargetsAction(): Promise<void> {
 // ─── Bulk status update ───────────────────────────────────────────────────────
 
 export async function bulkUpdateStatusAction(ids: number[], status: string): Promise<void> {
-  await requirePermission('targets', 'write');
+  const session = await requirePermission('targets', 'write');
 
   const parsed = bulkStatusSchema.safeParse({ ids, status });
   if (!parsed.success) {
@@ -225,7 +226,7 @@ export async function bulkUpdateStatusAction(ids: number[], status: string): Pro
     return;
   }
 
-  await bulkUpdateStatus(parsed.data.ids, parsed.data.status);
+  await bulkUpdateStatus(parsed.data.ids, parsed.data.status, session.user.id);
   revalidatePath(REVALIDATE);
 }
 

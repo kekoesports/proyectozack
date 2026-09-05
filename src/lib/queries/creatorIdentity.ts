@@ -3,12 +3,14 @@ import { creatorAccounts, creatorIdentities, talentSocials, targets, creatorProv
 import { db } from '@/lib/db';
 import { bulkUpsertTargets } from '@/lib/queries/targets';
 import { createTargetSchema, type CreateTargetInput } from '@/lib/schemas/target';
-import { creatorObservationSchema, type CreatorObservation } from '@/lib/schemas/creator-search-profile';
+import { creatorObservationSchema, type CreatorObservation, type CreatorSearchConfig } from '@/lib/schemas/creator-search-profile';
 import { mergeCreatorObservation, normalizeCreatorAccountKey } from '@/lib/targets/search-profile';
 import { creatorProviderGate } from '@/lib/targets/provider-readiness';
+import { reevaluateDiscardedCreator } from './creatorDiscardReevaluation';
 
 export type DiscoveredCreatorInput = Readonly<{
   runId?: number;
+  searchConfig?: CreatorSearchConfig;
   externalId: string;
   target: CreateTargetInput;
   fields: Readonly<Record<string, CreatorObservation>>;
@@ -16,7 +18,7 @@ export type DiscoveredCreatorInput = Readonly<{
 
 /** Provider ID is authoritative. Existing roster ownership is the only automatic cross-network link. */
 export async function persistDiscoveredCreator(input: DiscoveredCreatorInput): Promise<{
-  inserted: number; updated: number; represented: boolean; identityReview: boolean;
+  inserted: number; updated: number; represented: boolean; identityReview: boolean; suppressed?: boolean; reopened?: boolean;
 }> {
   const data = createTargetSchema.parse(input.target);
   if (input.runId !== undefined && (!Number.isSafeInteger(input.runId) || input.runId < 1)) throw new Error('creator_run_id_invalid');
@@ -34,16 +36,17 @@ export async function persistDiscoveredCreator(input: DiscoveredCreatorInput): P
     const [account] = await tx.select().from(creatorAccounts).where(and(
       eq(creatorAccounts.platform, data.platform), eq(creatorAccounts.externalId, input.externalId),
     ));
+    const username = data.platform === 'youtube' ? data.username : data.username.toLowerCase();
+    const [existingTarget] = account?.targetId
+      ? await tx.select().from(targets).where(eq(targets.id, account.targetId)).for('update')
+      : await tx.select().from(targets).where(and(eq(targets.platform, data.platform),
+        data.platform === 'youtube' ? eq(targets.username, username) : sql`lower(${targets.username}) = ${username}`)).limit(1).for('update');
     if (account && input.runId) {
       const [observation] = await tx.select({ id: creatorAccountObservations.id }).from(creatorAccountObservations)
         .where(and(eq(creatorAccountObservations.accountId, account.id), eq(creatorAccountObservations.runId, input.runId))).limit(1);
-      if (observation) return { inserted: 0, updated: 0, represented: account.targetId === null, identityReview: false };
+      if (observation) return { inserted: 0, updated: 0, represented: account.targetId === null, identityReview: false,
+        ...(existingTarget?.status === 'descartado' ? { suppressed: true, reopened: false } : {}) };
     }
-    const username = data.platform === 'youtube' ? data.username : data.username.toLowerCase();
-    const [existingTarget] = account?.targetId
-      ? await tx.select().from(targets).where(eq(targets.id, account.targetId))
-      : await tx.select().from(targets).where(and(eq(targets.platform, data.platform),
-        data.platform === 'youtube' ? eq(targets.username, username) : sql`lower(${targets.username}) = ${username}`)).limit(1);
     if (existingTarget && !account) {
       const [otherIdentity] = await tx.select().from(creatorAccounts).where(eq(creatorAccounts.targetId, existingTarget.id));
       // Recycled handle or conflicting provider IDs: do not merge or overwrite its history.
@@ -84,6 +87,9 @@ export async function persistDiscoveredCreator(input: DiscoveredCreatorInput): P
     // Keep represented creators out of the prospect funnel. Existing targets retain their manual status.
     const result = representedSocial && !existingTarget ? { inserted: 0, updated: 0, ids: [] }
       : await bulkUpsertTargets([{ ...data, username: existingTarget?.username ?? username }], tx);
+    const wasDiscarded = existingTarget?.status === 'descartado';
+    const reopened = wasDiscarded && account && !representedSocial
+      ? await reevaluateDiscardedCreator(tx, existingTarget, account, input, now) : false;
     const targetId = result.ids[0] ?? existingTarget?.id ?? null;
     const values = { creatorId, targetId, platform: data.platform, externalId: input.externalId, username,
       profileUrl: data.profileUrl, fields, lastSeenAt: now,
@@ -98,6 +104,7 @@ export async function persistDiscoveredCreator(input: DiscoveredCreatorInput): P
     }
     if (input.runId && accountId) await tx.insert(creatorAccountObservations).values({ accountId, runId: input.runId,
       fields: observedFields, observedAt: now, expiresAt: values.expiresAt }).onConflictDoNothing({ target: [creatorAccountObservations.accountId, creatorAccountObservations.runId] });
-    return { inserted: result.inserted, updated: result.updated, represented: !!representedSocial, identityReview: false };
+    return { inserted: result.inserted, updated: result.updated, represented: !!representedSocial, identityReview: false,
+      ...(wasDiscarded ? { suppressed: !reopened, reopened } : {}) };
   });
 }

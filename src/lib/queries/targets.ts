@@ -1,8 +1,9 @@
-import { and, desc, eq, inArray, sql } from 'drizzle-orm';
+import { and, desc, eq, inArray, ne, sql } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { targets } from '@/db/schema';
 import type { Target } from '@/types';
 import type { CreateTargetInput, CsvTargetRow } from '@/lib/schemas/target';
+import { recordTargetStatusHistory } from './targetStatusHistory';
 
 function buildProfileUrl(platform: 'instagram' | 'youtube' | 'twitch' | 'kick', username: string): string {
   switch (platform) {
@@ -26,8 +27,9 @@ function countUpsertResults(rows: Array<{ id: number; xmax: string }>): { insert
  * @visibility admin
  * @returns array (puede ser vacío). Nunca null.
  */
-export async function getAllTargets(): Promise<Target[]> {
-  return db.select().from(targets).orderBy(desc(targets.createdAt));
+export async function getAllTargets(options: Readonly<{ includeArchived?: boolean }> = {}): Promise<Target[]> {
+  return db.select().from(targets).where(options.includeArchived ? undefined : ne(targets.status, 'descartado'))
+    .orderBy(desc(targets.createdAt));
 }
 
 /**
@@ -61,7 +63,7 @@ export async function getBrandTargets(brandUserId: string): Promise<Target[]> {
   return db
     .select()
     .from(targets)
-    .where(eq(targets.brandUserId, brandUserId))
+    .where(and(eq(targets.brandUserId, brandUserId), ne(targets.status, 'descartado')))
     .orderBy(desc(targets.updatedAt), desc(targets.createdAt));
 }
 
@@ -84,6 +86,7 @@ export async function getTargetStats(): Promise<{
   const byPlatformRows = await db
     .select({ platform: targets.platform, count: sql<number>`count(*)::int` })
     .from(targets)
+    .where(ne(targets.status, 'descartado'))
     .groupBy(targets.platform);
 
   const byStatus: Record<string, number> = {};
@@ -213,15 +216,9 @@ export async function upsertTargetsFromCSV(
 export async function updateTargetStatus(
   id: number,
   status: Target['status'],
+  actorId?: string,
 ): Promise<void> {
-  await db
-    .update(targets)
-    .set({
-      status,
-      contactedAt: status === 'contactado' ? new Date() : undefined,
-      updatedAt: new Date(),
-    })
-    .where(eq(targets.id, id));
+  await recordTargetStatusHistory({ ids: [id], status, ...(actorId ? { actorId } : {}) });
 }
 
 /**
@@ -290,26 +287,25 @@ export async function createTarget(data: CreateTargetInput): Promise<Target> {
 }
 
 /**
- * Borra una lista de targets por id. No-op si `ids` está vacío.
+ * Archivo recuperable por id. Nombre legado conservado para los callers; no borra filas ni identidad.
  *
  * @cache none
  * @visibility admin
  * @returns void.
  */
-export async function deleteTargets(ids: number[]): Promise<void> {
-  if (ids.length === 0) return;
-  await db.delete(targets).where(inArray(targets.id, ids));
+export async function deleteTargets(ids: number[], actorId?: string): Promise<void> {
+  await recordTargetStatusHistory({ ids, status: 'descartado', explicitArchive: true, ...(actorId ? { actorId } : {}) });
 }
 
 /**
- * Borra TODOS los targets de la tabla. Operación destructiva, solo admin.
+ * Archiva los targets no descartados. Conserva filas, notas, cuentas e historial; sólo admin.
  *
  * @cache none
  * @visibility admin
  * @returns void.
  */
-export async function deleteAllTargets(): Promise<void> {
-  await db.delete(targets);
+export async function deleteAllTargets(actorId?: string): Promise<void> {
+  await recordTargetStatusHistory({ status: 'descartado', explicitArchive: true, ...(actorId ? { actorId } : {}) });
 }
 
 /**
@@ -452,19 +448,7 @@ export async function updateBrandTargetStatus(
   targetId: number,
   status: Target['status'],
 ): Promise<void> {
-  await db
-    .update(targets)
-    .set({
-      status,
-      contactedAt: status === 'contactado' ? new Date() : undefined,
-      updatedAt: new Date(),
-    })
-    .where(
-      and(
-        eq(targets.id, targetId),
-        eq(targets.brandUserId, brandUserId),
-      ),
-    );
+  await recordTargetStatusHistory({ ids: [targetId], status, actorId: brandUserId, brandUserId });
 }
 
 /**
@@ -501,14 +485,7 @@ export async function updateBrandTargetNotes(
 export async function bulkUpdateStatus(
   ids: number[],
   status: Target['status'],
+  actorId?: string,
 ): Promise<void> {
-  if (ids.length === 0) return;
-  await db
-    .update(targets)
-    .set({
-      status,
-      contactedAt: status === 'contactado' ? new Date() : undefined,
-      updatedAt: new Date(),
-    })
-    .where(inArray(targets.id, ids));
+  await recordTargetStatusHistory({ ids, status, ...(actorId ? { actorId } : {}) });
 }

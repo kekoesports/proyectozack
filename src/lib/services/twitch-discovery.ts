@@ -3,6 +3,7 @@ import type { ProviderCoverage, ProviderWarning } from '@/lib/schemas/provider-a
 import { getAppAccessToken } from './twitch-auth';
 import { ProviderReadError, readProviderJson, providerWarning } from './provider-http';
 import type { TwitchChannelPreview, TwitchUserPhoto } from './twitch';
+import type { TwitchLiveFilters } from '@/lib/schemas/twitch-discovery';
 
 export type TwitchGameStream = TwitchChannelPreview & { readonly streamId: string; readonly startedAt: string };
 export type TwitchGameStreamsReport = { readonly items: TwitchGameStream[]; readonly coverage: ProviderCoverage };
@@ -32,14 +33,19 @@ export async function searchTwitchGameCategories(query: string): Promise<TwitchC
 }
 
 /** Public live observations only, not historical CCV; callers own retention/permission gates. */
-export async function getGameLiveStreams(gameId: string, maxPages = 3): Promise<TwitchGameStreamsReport> {
-  return readGameStreams(gameId, maxPages, 100);
+export async function getGameLiveStreams(
+  gameId: string, maxPages = 3, filters: TwitchLiveFilters = {},
+): Promise<TwitchGameStreamsReport> {
+  return readGameStreams(gameId, maxPages, 100, undefined, filters);
 }
 
 export async function readGameStreams(
-  gameId: string, maxPages: number, first: number, language?: string,
+  gameId: string, maxPages: number, first: number, language?: string, filters: TwitchLiveFilters = {},
 ): Promise<TwitchGameStreamsReport> {
-  const parsed = TwitchGameDiscovery.safeParse({ gameId, maxPages, first, language });
+  const parsed = TwitchGameDiscovery.safeParse({
+    ...filters, gameId, maxPages, first,
+    languageCodes: language ? [language, ...(filters.languageCodes ?? [])] : filters.languageCodes,
+  });
   if (!parsed.success) throw new ProviderReadError('invalid_response', 'Invalid Twitch discovery options');
   const options = parsed.data;
   const items: TwitchGameStream[] = [];
@@ -53,18 +59,22 @@ export async function readGameStreams(
     const { token, clientId } = await getAppAccessToken();
     do {
       const params = new URLSearchParams({ game_id: options.gameId, first: String(options.first) });
-      if (options.language) params.set('language', options.language);
+      // Helix accepts repeated ISO 639-1 codes, not regional audience/country targeting.
+      options.languageCodes.forEach(code => params.append('language', code));
       if (after) params.set('after', after);
       const data = await readProviderJson(`https://api.twitch.tv/helix/streams?${params}`, TwitchGameStreams,
         'Twitch streams API', { headers: { 'Client-Id': clientId, Authorization: `Bearer ${token}` } });
       pagesRead += 1;
       if (data.data.length > options.first || data.data.some(stream =>
-        stream.game_id !== options.gameId || Date.parse(stream.started_at) > Date.now())) {
+        stream.game_id !== options.gameId || Date.parse(stream.started_at) > Date.now()
+        || (options.languageCodes.length > 0 && !options.languageCodes.includes(stream.language.toLowerCase())))) {
         throw new ProviderReadError('invalid_response', 'Twitch stream coverage invalid');
       }
       for (const stream of data.data) {
+        if (stream.type !== 'live') { warnings.add('coverage_incomplete'); continue; }
         if (users.has(stream.user_id) || streams.has(stream.id)) { warnings.add('duplicate_record'); continue; }
         users.add(stream.user_id); streams.add(stream.id);
+        if (stream.viewer_count < options.minViewerCount) continue;
         items.push({
           broadcasterId: stream.user_id, streamId: stream.id, startedAt: stream.started_at,
           login: stream.user_login, displayName: stream.user_name, followerCount: null,

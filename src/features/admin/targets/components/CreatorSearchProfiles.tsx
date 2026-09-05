@@ -46,7 +46,7 @@ export function CreatorSearchProfiles({ profiles, canWrite, saveAction, runActio
     <details className="rounded-xl border border-sp-admin-border bg-sp-admin-card p-4">
       <summary className="cursor-pointer text-sm font-bold text-sp-admin-text">Perfiles de búsqueda ({profiles.length})</summary>
       <div className="mt-4 space-y-4">
-        <p className="text-xs text-sp-admin-muted">Configuración diaria reutilizable. Activar requiere al menos una plataforma con conexión y permiso de uso verificados; las demás no quedan habilitadas por activar el perfil. Una hora configurada no demuestra ejecución. No se envían mensajes a creadores.</p>
+        <p className="text-xs text-sp-admin-muted">Configuración diaria reutilizable. Activar requiere al menos una plataforma con conexión configurada y autorización de uso registrada; el registro distingue la declaración del responsable del soporte documental. Las demás no quedan habilitadas por activar el perfil. Una hora configurada no demuestra ejecución. No se envían mensajes a creadores.</p>
         {canWrite && <button type="button" disabled={pending} onClick={() => { setEditing('new'); setMessage(null); }} className={BUTTON}>Crear perfil de búsqueda</button>}
         {!canWrite && <p className="text-xs text-sp-admin-muted">Solo lectura: no tienes permiso para modificar búsquedas.</p>}
         {message && <p role="status" className="text-xs text-sp-admin-muted">{message}</p>}
@@ -58,6 +58,7 @@ export function CreatorSearchProfiles({ profiles, canWrite, saveAction, runActio
                 <h3 className="text-sm font-semibold text-sp-admin-text">{profile.name}</h3>
                 <p className="mt-1 text-xs text-sp-admin-muted">{profile.enabled ? 'Activo' : 'Pausado'} · Redes solicitadas: {profile.config.platforms.map((platform) => PLATFORM_LABELS[platform]).join(' + ')} · {profile.config.scheduleTime} ({profile.config.timezone})</p>
                 <p className="mt-1 text-xs text-sp-admin-muted">{profile.config.markets.join(', ')} · {profile.config.languages.length > 0 ? profile.config.languages.join(', ') : 'Cualquier idioma'} · {profile.config.windowDays} días · mediana objetivo {profile.config.targetMedianViews.toLocaleString('es-ES')}</p>
+                <p className="mt-1 text-xs text-sp-admin-muted">Twitch/Kick: mínimo {profile.config.minLiveViewers ?? 20} espectadores en directo. Observación actual; no media histórica.</p>
                 <p className="mt-1 text-xs text-sp-admin-muted">Próxima fecha registrada: {formatProfileDate(profile.nextRunAt)} · Última ejecución registrada: {formatProfileDate(profile.lastRunAt)}</p>
               </div>
               {canWrite && <div className="flex flex-wrap gap-2">

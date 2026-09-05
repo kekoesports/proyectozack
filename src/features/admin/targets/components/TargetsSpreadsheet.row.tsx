@@ -270,7 +270,7 @@ export function TargetRow({
           type="button"
           onClick={() => handleDelete([target.id])}
           disabled={isPending}
-          aria-label="Eliminar"
+          aria-label="Archivar"
           className="opacity-0 group-hover:opacity-100 transition-opacity text-red-400 hover:text-red-300"
         >
           <svg aria-hidden="true" className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

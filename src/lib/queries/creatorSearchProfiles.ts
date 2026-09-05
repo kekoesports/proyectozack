@@ -47,10 +47,12 @@ export async function recordCreatorFeedback(input: unknown, actorId: string): Pr
     if (!target) throw new Error('creator_target_not_found');
     const [account] = await tx.select({ creatorId: creatorAccounts.creatorId }).from(creatorAccounts)
       .where(eq(creatorAccounts.targetId, target.id)).limit(1);
+    // PostgreSQL now() is transaction-start time, not the time this manual decision acquired the row lock.
+    const decidedAt = new Date();
     await tx.insert(creatorFeedback).values({ targetId: target.id, creatorId: account?.creatorId,
-      actorId, previousStatus: target.status, status: data.status, reason: data.reason, note: data.note });
-    await tx.update(targets).set({ status: data.status, updatedAt: new Date(),
-      contactedAt: data.status === 'contactado' ? new Date() : undefined }).where(eq(targets.id, target.id));
+      actorId, previousStatus: target.status, status: data.status, reason: data.reason, note: data.note, createdAt: decidedAt });
+    await tx.update(targets).set({ status: data.status, updatedAt: decidedAt,
+      contactedAt: data.status === 'contactado' ? decidedAt : undefined }).where(eq(targets.id, target.id));
   });
 }
 

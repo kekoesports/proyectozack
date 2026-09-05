@@ -32,6 +32,7 @@ export const KickUsers = z.object({ data: z.array(z.object({
 export const KickDiscoveryInput = z.object({
   categoryName: z.string().trim().min(3).max(100).default('Counter-Strike 2'),
   languageCodes: z.array(z.string().regex(/^[a-zA-Z]{2,3}(?:-[a-zA-Z0-9]{2,8})*$/)).max(25).default([]),
+  minViewerCount: z.number().int().nonnegative().safe().optional(),
   limit: z.number().int().min(1).max(1000).default(100),
   pageSize: z.number().int().min(1).max(1000).default(100),
   maxPages: z.number().int().min(1).max(10).default(5),

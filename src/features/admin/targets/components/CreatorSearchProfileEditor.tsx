@@ -2,6 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
+import type { z } from 'zod';
 import { creatorPlatformSchema, creatorSearchProfileSchema, type CreatorSearchConfig } from '@/lib/schemas/creator-search-profile';
 import { PLATFORM_LABELS } from './targets-constants';
 
@@ -10,6 +11,7 @@ const NUMBERS = [
   { name: 'windowDays', label: 'Ventana de actividad (días)', min: 7, max: 120 },
   { name: 'minRecentVideos', label: 'Mínimo de vídeos recientes', min: 1, max: 30 },
   { name: 'targetMedianViews', label: 'Objetivo de mediana de vistas', min: 0, max: 1_000_000 },
+  { name: 'minLiveViewers', label: 'Mínimo de espectadores en directo (Twitch/Kick)', min: 1, max: 1_000_000 },
   { name: 'maxCandidatesPerPlatform', label: 'Máximo de candidatos por red', min: 1, max: 100 },
   { name: 'searchPagesPerDay', label: 'Máximo de páginas de búsqueda al día', min: 1, max: 20 },
 ] as const;
@@ -20,8 +22,8 @@ export function CreatorSearchProfileEditor({ initial, pending, onSave, onCancel 
   readonly onSave: (config: CreatorSearchConfig) => void;
   readonly onCancel: () => void;
 }): React.ReactElement {
-  const { register, control, handleSubmit, formState: { errors } } = useForm<CreatorSearchConfig>({
-    resolver: zodResolver(creatorSearchProfileSchema), defaultValues: initial,
+  const { register, control, handleSubmit, formState: { errors } } = useForm<z.input<typeof creatorSearchProfileSchema>, unknown, CreatorSearchConfig>({
+    resolver: zodResolver(creatorSearchProfileSchema), defaultValues: { ...initial, minLiveViewers: initial.minLiveViewers ?? 20 },
   });
   return (
     <form onSubmit={(event) => { void handleSubmit(onSave)(event); }} className="space-y-4 rounded-xl border border-sp-admin-border bg-sp-admin-bg/40 p-4">

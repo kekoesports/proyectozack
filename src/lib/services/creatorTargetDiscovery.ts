@@ -13,6 +13,8 @@ import { creatorDiscoveryStatus, sumDiscoveryResults } from '@/lib/targets/disco
 import { scoreCreatorFit, CREATOR_FIT_SCORE_VERSION } from '@/lib/targets/creator-fit-score';
 import { enrichPublicCreator } from '@/lib/targets/creator-enrichment';
 import { creatorObservation } from '@/lib/targets/creator-observations';
+import { liveCategoryQueries, matchesLiveCategory, matchesTwitchCategory, twitchCategoryQuery } from '@/lib/targets/live-category';
+import { CREATOR_REEVALUATION_VERSION } from '@/lib/targets/discard-reevaluation';
 import { withCreatorDiscoveryDeadline, CreatorDiscoveryDeadlineError, CreatorDiscoveryBudgetError, type CreatorDiscoveryDeadline, type CreatorDiscoveryExecutionOptions } from './creator-discovery-deadline';
 
 export type CreatorDiscoverySummary = {
@@ -177,9 +179,12 @@ async function discoverYouTubeTargets(config: CreatorSearchConfig, deadline: Cre
         medianRecentVideoViews: creatorObservation(performance.medianViews, 'youtube:videos.list:derived-median', now, 'unavailable', 'MEDIUM'),
         recentWindowDays: creatorObservation(performance.windowDays, 'crm:search-profile:windowDays', now),
         lastVideoPublishedAt: creatorObservation(performance.lastVideoAt?.toISOString() ?? null, 'youtube:playlistItems.list:videoPublishedAt', now),
+        qualificationVersion: creatorObservation(CREATOR_REEVALUATION_VERSION, 'crm:creator-reevaluation:version', now),
+        recentPerformanceCoverage: creatorObservation('complete', 'crm:youtube:recent-performance-coverage', now),
+        contentMatch: creatorObservation(contentMatch(`${channel.title} ${channel.description}`, config), 'crm:youtube:profile-content-match', now),
       } });
     }
-    return await persist('youtube', rows, evidence, deadline, runId);
+    return await persist('youtube', rows, evidence, deadline, runId, config);
   } catch (error) { return failed('youtube', error, evidence); }
 }
 
@@ -191,11 +196,11 @@ async function discoverTwitchTargets(config: CreatorSearchConfig, deadline: Crea
     const visited = new Set<string>();
     let remaining = config.searchPagesPerDay;
     let stopped = false;
-    for (const query of [...new Set(config.keywords)]) {
+    for (const query of liveCategoryQueries(config.keywords)) {
       deadline.ensure();
       if (remaining < 2 || channels.size >= config.maxCandidatesPerPlatform || stopped) { evidence.warnings.add('search_budget_limit'); break; }
       remaining -= 1;
-      const categories = await searchTwitchGameCategories(query);
+      const categories = await searchTwitchGameCategories(twitchCategoryQuery(query));
       deadline.ensure();
       evidence.searchPages += categories.coverage.pagesRead;
       recordCoverage(evidence, categories.coverage);
@@ -203,11 +208,11 @@ async function discoverTwitchTargets(config: CreatorSearchConfig, deadline: Crea
       for (const category of categories.items) {
         deadline.ensure();
         if (visited.has(category.id) || !remaining || channels.size >= config.maxCandidatesPerPlatform) continue;
-        if (!contentMatch(category.name, config)) continue;
+        if (!matchesTwitchCategory(category, query)) continue;
         visited.add(category.id);
         const pages = Math.min(3, remaining);
         remaining -= pages;
-        const report = await getGameLiveStreams(category.id, pages);
+        const report = await getGameLiveStreams(category.id, pages, { languageCodes: config.languages, minViewerCount: config.minLiveViewers });
         deadline.ensure();
         evidence.searchPages += report.coverage.pagesRead;
         recordCoverage(evidence, report.coverage);
@@ -239,9 +244,9 @@ async function discoverTwitchTargets(config: CreatorSearchConfig, deadline: Crea
     const rows: DiscoveredCreatorInput[] = candidates.flatMap(({ channel, query, observedAt }) => {
       evidence.candidateChecks += 1;
       const count = followerMap.get(channel.broadcasterId) ?? null;
-      // Existing live-prospect audience thresholds; a single observation is not historical CCV.
-      if (!((count !== null && count >= 250) || (channel.viewerCount !== null && channel.viewerCount >= 20))) return [];
-      const score = scoreCreatorFit({ contentMatch: true, audience: channel.viewerCount, targetAudience: 20,
+      // A current live observation is not historical CCV; followers never bypass this threshold.
+      if (channel.viewerCount === null || channel.viewerCount < config.minLiveViewers) return [];
+      const score = scoreCreatorFit({ contentMatch: true, audience: channel.viewerCount, targetAudience: config.minLiveViewers,
         activityConfirmed: true, growthPercent: null, marketMatch: true, professionalContact: null, brandReviewedMatch: null });
       return [{ externalId: channel.broadcasterId, target: {
         username: channel.login.toLowerCase(), fullName: channel.displayName, platform: 'twitch',
@@ -262,7 +267,7 @@ async function discoverTwitchTargets(config: CreatorSearchConfig, deadline: Crea
         avatar: creatorObservation(photoMap.get(channel.broadcasterId) ?? null, 'twitch:users:profile_image_url', photosAt, photos?.coverage.status === 'complete' ? 'unavailable' : 'error'),
       } }];
     });
-    return await persist('twitch', rows, evidence, deadline, runId);
+    return await persist('twitch', rows, evidence, deadline, runId, config);
   } catch (error) { return failed('twitch', error, evidence); }
 }
 
@@ -273,12 +278,12 @@ async function discoverKickTargets(config: CreatorSearchConfig, deadline: Creato
     const rows = new Map<string, DiscoveredCreatorInput>();
     const found = new Set<string>();
     let remaining = config.searchPagesPerDay;
-    for (const query of [...new Set(config.keywords)]) {
+    for (const query of liveCategoryQueries(config.keywords)) {
       deadline.ensure();
       if (!remaining || rows.size >= config.maxCandidatesPerPlatform) { evidence.warnings.add('search_budget_limit'); break; }
       const pages = Math.min(3, remaining); remaining -= pages;
       const report = await getKickLiveCreatorsReport({ categoryName: query, languageCodes: config.languages,
-        limit: config.maxCandidatesPerPlatform, maxPages: pages }, { signal: deadline.signal, maxRetries: 0 });
+        limit: config.maxCandidatesPerPlatform, maxPages: pages, minViewerCount: config.minLiveViewers }, { signal: deadline.signal, maxRetries: 0 });
       deadline.ensure();
       evidence.searchPages += report.coverage.pagesRead;
       recordCoverage(evidence, report.coverage);
@@ -289,9 +294,9 @@ async function discoverKickTargets(config: CreatorSearchConfig, deadline: Creato
         evidence.found = found.size;
         if (rows.size >= config.maxCandidatesPerPlatform || !languageMatches(creator.language, config)
           || isLikelyPublisherChannel(`${creator.username} ${creator.title}`)) continue;
-        if (creator.viewerCount === null || creator.viewerCount < 20) continue;
-        const score = scoreCreatorFit({ contentMatch: contentMatch(creator.category, config), audience: creator.viewerCount,
-          targetAudience: 20, activityConfirmed: true, growthPercent: null, marketMatch: true,
+        if (!matchesLiveCategory(creator.category, query) || creator.viewerCount === null || creator.viewerCount < config.minLiveViewers) continue;
+        const score = scoreCreatorFit({ contentMatch: true, audience: creator.viewerCount,
+          targetAudience: config.minLiveViewers, activityConfirmed: true, growthPercent: null, marketMatch: true,
           professionalContact: null, brandReviewedMatch: null });
         const now = new Date();
         rows.set(externalId, { externalId, target: { username: creator.slug.toLowerCase(), fullName: creator.username, platform: 'kick',
@@ -314,12 +319,12 @@ async function discoverKickTargets(config: CreatorSearchConfig, deadline: Creato
       if (stopsProvider(report.coverage)) break;
     }
     evidence.found = found.size;
-    return await persist('kick', [...rows.values()], evidence, deadline, runId);
+    return await persist('kick', [...rows.values()], evidence, deadline, runId, config);
   } catch (error) { return failed('kick', error, evidence); }
 }
 
 async function persist(platform: CreatorPlatform, rows: DiscoveredCreatorInput[], evidence: RunEvidence,
-  deadline: CreatorDiscoveryDeadline, runId: number): Promise<CreatorDiscoveryPlatformResult> {
+  deadline: CreatorDiscoveryDeadline, runId: number, config: CreatorSearchConfig): Promise<CreatorDiscoveryPlatformResult> {
   let inserted = 0, updated = 0, qualified = 0;
   for (const row of rows) {
     if (deadline.expired()) { evidence.warnings.add('deadline_exceeded'); break; }
@@ -327,10 +332,10 @@ async function persist(platform: CreatorPlatform, rows: DiscoveredCreatorInput[]
     try {
       const enriched = enrichForReview(row, evidence);
       deadline.ensure();
-      const result = await persistDiscoveredCreator({ ...enriched, runId });
+      const result = await persistDiscoveredCreator({ ...enriched, runId, searchConfig: config });
       inserted += result.inserted; updated += result.updated;
       if (result.identityReview) evidence.warnings.add('identity_review_required');
-      else if (!result.represented) qualified += 1;
+      else if (!result.represented && !result.suppressed) qualified += 1;
       if (deadline.expired()) { evidence.warnings.add('deadline_exceeded'); break; }
     } catch (error) { evidence.warnings.add(error instanceof CreatorDiscoveryDeadlineError ? 'deadline_exceeded' : 'persistence_failed'); break; }
   }

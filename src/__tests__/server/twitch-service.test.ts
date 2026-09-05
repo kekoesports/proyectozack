@@ -244,6 +244,7 @@ describe('twitch service', () => {
           user_login: 'cs2player',
           user_name: 'CS2 Player',
           game_id: '32399',
+          type: 'live',
           game_name: 'Counter-Strike 2',
           language: 'en',
           viewer_count: 1500,
@@ -282,7 +283,7 @@ describe('twitch service', () => {
       expect(calledUrl).toContain('first=50');
     });
     it('appends language filter when provided', async () => {
-      mockFetch(makeResponse(streamsData));
+      mockFetch(makeResponse({ ...streamsData, data: streamsData.data.map(stream => ({ ...stream, language: 'es' })) }));
       await getCS2LiveStreams(100, 'es');
       const mock = global.fetch as jest.Mock;
       const calledUrl = (mock.mock.calls[1] as [string, ...unknown[]])[0] as string;

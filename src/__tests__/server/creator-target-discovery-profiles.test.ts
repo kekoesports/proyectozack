@@ -149,7 +149,7 @@ it('uses the resolved non-CS2 Twitch category and never fabricates absent follow
     viewerCount: 25, language: 'en', currentGame: 'Valorant', isLive: true, startedAt: '2026-09-05T10:00:00Z', thumbnailUrl: null,
   }], coverage: complete });
   const result = await runCreatorTargetDiscovery('manual', config({ platforms: ['twitch'] }));
-  expect(getGameLiveStreams).toHaveBeenCalledWith('valorant', 2);
+  expect(getGameLiveStreams).toHaveBeenCalledWith('valorant', 2, { languageCodes: [], minViewerCount: 20 });
   expect(result.qualified).toBe(1);
   expect(persistDiscoveredCreator).toHaveBeenCalledWith(expect.objectContaining({ externalId: 'b',
     target: expect.objectContaining({ platform: 'twitch', followers: undefined }) }));
@@ -157,9 +157,42 @@ it('uses the resolved non-CS2 Twitch category and never fabricates absent follow
 it('passes a generic category and limits to the Kick report contract', async () => {
   jest.mocked(getKickLiveCreatorsReport).mockResolvedValue({ items: [], coverage: complete });
   const result = await runCreatorTargetDiscovery('manual', config({ platforms: ['kick'], maxCandidatesPerPlatform: 7 }));
-  expect(getKickLiveCreatorsReport).toHaveBeenCalledWith({ categoryName: 'Valorant', languageCodes: [], limit: 7, maxPages: 3 },
+  expect(getKickLiveCreatorsReport).toHaveBeenCalledWith({ categoryName: 'Valorant', languageCodes: [], limit: 7, maxPages: 3, minViewerCount: 20 },
     expect.objectContaining({ signal: expect.any(AbortSignal), maxRetries: 0 }));
   expect(result.status).toBe('success');
+});
+it.each([null, 0, 49])('does not let a large Twitch following bypass the configured live minimum: %s', async viewerCount => {
+  jest.mocked(searchTwitchGameCategories).mockResolvedValue({ items: [{ id: '32399', name: 'Counter-Strike' }], coverage: complete });
+  jest.mocked(getGameLiveStreams).mockResolvedValue({ items: [{
+    broadcasterId: 'b', streamId: 's', login: 'synthetic', displayName: 'Synthetic', followerCount: 100000,
+    viewerCount, language: 'es', currentGame: 'Counter-Strike', isLive: true,
+    startedAt: '2026-09-05T10:00:00Z', thumbnailUrl: null,
+  }], coverage: complete });
+  jest.mocked(fetchTwitchFollowerCountsReport).mockResolvedValue({ items: [{ broadcasterId: 'b', followerCount: 100000 }], coverage: complete });
+  const result = await runCreatorTargetDiscovery('manual', config({
+    platforms: ['twitch'], keywords: ['CS2', 'Counter-Strike 2', 'CS2 skins'], minLiveViewers: 50, languages: ['es'],
+  }));
+  expect(searchTwitchGameCategories).toHaveBeenCalledTimes(1);
+  expect(getGameLiveStreams).toHaveBeenCalledWith('32399', 2, { languageCodes: ['es'], minViewerCount: 50 });
+  expect(result.qualified).toBe(0);
+  expect(persistDiscoveredCreator).not.toHaveBeenCalled();
+});
+it.each([
+  { category: 'Counter-Strike 2', viewerCount: 49, qualified: 0 },
+  { category: 'Counter-Strike 2', viewerCount: 50, qualified: 1 },
+  { category: 'Counter-Strike: Source', viewerCount: 500, qualified: 0 },
+])('enforces the exact Kick category and custom live threshold: %j', async row => {
+  jest.mocked(getKickLiveCreatorsReport).mockResolvedValue({ items: [{
+    userId: 7001, username: 'Synthetic', slug: 'synthetic', profilePicUrl: null,
+    category: row.category, language: 'en', title: 'Synthetic live', viewerCount: row.viewerCount,
+    startedAt: new Date('2026-09-05T10:00:00Z'),
+  }], coverage: complete });
+  const result = await runCreatorTargetDiscovery('manual', config({ platforms: ['kick'], keywords: ['CS2'], minLiveViewers: 50 }));
+  expect(getKickLiveCreatorsReport).toHaveBeenCalledWith(expect.objectContaining({
+    categoryName: 'Counter-Strike 2', minViewerCount: 50,
+  }), expect.anything());
+  expect(result.qualified).toBe(row.qualified);
+  expect(persistDiscoveredCreator).toHaveBeenCalledTimes(row.qualified);
 });
 it('persists partial status, including historical JSON fallback, without a green empty run', () => {
   const row = { platform: 'youtube', found: 0, qualified: 0, inserted: 0, updated: 0, error: null } as const;

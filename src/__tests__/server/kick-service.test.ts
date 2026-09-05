@@ -86,6 +86,59 @@ it('stops a repeated cursor and deduplicates broadcaster IDs', async () => {
   expect(fetcher).toHaveBeenCalledTimes(4);
 });
 
+it('filters measured audience before its candidate limit and continues past a low-audience page', async () => {
+  const fetcher = jest.spyOn(global, 'fetch').mockResolvedValueOnce(token())
+    .mockResolvedValueOnce(json({ data: [category] }))
+    .mockResolvedValueOnce(json({ data: [stream(1, 0), stream(2, 19)], pagination: { next_cursor: 'next' } }))
+    .mockResolvedValueOnce(json({ data: [stream(3, 20)], pagination: { next_cursor: null } }));
+  const { getKickLiveCreatorsReport } = await import('@/lib/services/kick');
+  const report = await getKickLiveCreatorsReport({ minViewerCount: 20, limit: 1, pageSize: 2, languageCodes: ['es', 'en'] });
+  expect(report.items.map(item => [item.userId, item.viewerCount])).toEqual([[3, 20]]);
+  expect(report.coverage).toEqual({ status: 'complete', pagesRead: 2, warnings: [] });
+  for (const [url] of fetcher.mock.calls.slice(2)) {
+    const params = new URL(String(url)).searchParams;
+    expect(params.getAll('language_code')).toEqual(['es', 'en']);
+    expect(params.get('category_id')).toBe('12');
+    expect(params.has('min_viewers')).toBe(false);
+  }
+});
+
+it.each([
+  { category: { id: 99, name: 'Counter-Strike: Source' } },
+  { language_code: 'de' },
+])('rejects live records outside requested category/language: %j', async mismatch => {
+  jest.spyOn(global, 'fetch').mockResolvedValueOnce(token()).mockResolvedValueOnce(json({ data: [category] }))
+    .mockResolvedValueOnce(json({ data: [{ ...stream(1), ...mismatch }], pagination: { next_cursor: null } }));
+  const { getKickLiveCreatorsReport } = await import('@/lib/services/kick');
+  const report = await getKickLiveCreatorsReport({ languageCodes: ['es'], minViewerCount: 20 });
+  expect(report.items).toEqual([]);
+  expect(report.coverage.warnings).toContain('invalid_response');
+});
+
+it('does not qualify hidden audience even when an explicit minimum is zero', async () => {
+  jest.spyOn(global, 'fetch').mockResolvedValueOnce(token()).mockResolvedValueOnce(json({ data: [category] }))
+    .mockResolvedValueOnce(json({ data: [stream(1, 0), stream(2, 1)], pagination: { next_cursor: null } }));
+  const { getKickLiveCreatorsReport } = await import('@/lib/services/kick');
+  expect((await getKickLiveCreatorsReport({ minViewerCount: 0 })).items.map(item => item.userId)).toEqual([2]);
+});
+
+it('does not select a similarly named category when the exact category is absent', async () => {
+  const fetcher = jest.spyOn(global, 'fetch').mockResolvedValueOnce(token())
+    .mockResolvedValueOnce(json({ data: [{ id: 99, name: 'Counter-Strike: Source' }], pagination: { next_cursor: null } }));
+  const { getKickLiveCreatorsReport } = await import('@/lib/services/kick');
+  const report = await getKickLiveCreatorsReport({ categoryName: 'Counter-Strike 2' });
+  expect(report.items).toEqual([]);
+  expect(report.coverage.status).toBe('complete');
+  expect(fetcher).toHaveBeenCalledTimes(2);
+});
+
+it.each([-1, 1.5, Number.NaN])('rejects invalid audience minimum %s before authentication', async minViewerCount => {
+  const fetcher = jest.spyOn(global, 'fetch');
+  const { getKickLiveCreatorsReport } = await import('@/lib/services/kick');
+  await expect(getKickLiveCreatorsReport({ minViewerCount })).rejects.toMatchObject({ code: 'invalid_input' });
+  expect(fetcher).not.toHaveBeenCalled();
+});
+
 it('keeps earlier valid pages when a later response fails', async () => {
   jest.spyOn(global, 'fetch').mockResolvedValueOnce(token()).mockResolvedValueOnce(json({ data: [category] }))
     .mockResolvedValueOnce(json({ data: [stream(1)], pagination: { next_cursor: 'next' } }))

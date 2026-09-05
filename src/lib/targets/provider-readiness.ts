@@ -28,5 +28,7 @@ export function creatorProviderGate(
     && (permission.validUntil === null || permission.validUntil > now);
   if (!approved) return { platform, ready: false, code: 'PROVIDER_APPROVAL_REQUIRED',
     message: `${platform}: pendiente verificar autorización para este uso comercial, scoring y conservación; la clave API no acredita ese permiso.` };
+  if (permission.evidenceRef?.startsWith('user-attestation:')) return { platform, ready: true, code: 'READY',
+    message: `${platform}: autorización declarada por el responsable; soporte documental pendiente. Conexión configurada; su funcionamiento se comprueba en las ejecuciones.` };
   return { platform, ready: true, code: 'READY', message: `${platform}: conexión y autorización registradas.` };
 }
