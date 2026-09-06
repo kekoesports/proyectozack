@@ -60,3 +60,30 @@ in all three formats. Only fixed public sample outputs belong in the repository.
 Release the backward-compatible worker image (including the logo file) before exposing the
 new web IDs. Test save → queued snapshot → worker → private MP4 with an isolated fixture.
 Keep existing production users, projects, permissions, database and private storage unchanged.
+
+## Verified release · 2026-09-06
+
+- Source `fc5e11636fca22790d52dab705ee0e501e198095`, PR #450 merged as
+  `7e74255e8f8d17d7931263d6fda3776614654c5e`. All four GitHub checks passed.
+- TypeScript and affected lint passed; 6,414 unit tests passed (one pre-existing skipped),
+  then 73 targeted boundary tests after adding two static-host cases. All 120 layout checks
+  passed, including logo loading, animation, readable text and safe margins.
+- Native HyperFrames/FFmpeg exports verified in three formats. The three public samples play
+  at 720×1280 with durations 15.021 / 20.021 / 15.021 s and no playback errors.
+- Isolated browser: ten loaded posters, one sandboxed preview on demand, no page errors or
+  horizontal overflow at 1440 and 390 px. Added a three-scene sequence, retained the original
+  scene, edited its title, saved and exported. New Linux worker returned a private 19.021 s
+  MP4, decoded in the authenticated browser. Fixture identity and project scope verified;
+  another creator remains unable to access private assets.
+- Production aggregate counts unchanged: 148 talents, 8 users, zero creator memberships,
+  zero Studio projects/renders and zero fixture records. No production test projects created.
+- Live web: `socialpro-studio-motion-web-1`, image `socialpro:studio-motion-fc5e1163`,
+  Docker image `sha256:543cd64452c48962a8b4cbef78cf85712625134534802fd739affabc7fe82397`.
+- Live offline worker: `socialpro-studio-render-1`, image `socialpro-studio-worker:fc5e1163`,
+  Docker image `sha256:90153a326bdb4f1484fd0243d92a58924aa0eadc43dc637968e062d8414c816f`.
+- Production media HEAD: 200, video/mp4, expected byte lengths; range request: 206.
+  Creator Studio remains on app.socialpro.es; canonical CRM remains on socialpro.es.
+- Rollback: retained native web `socialpro-studio-native-web-1`; guarded private Caddy backups
+  `Caddyfile.before-motion` / `Caddyfile.with-motion` in the existing release directory. Keep
+  the new backward-compatible worker if any new-design boards/jobs exist; do not downgrade it
+  while those jobs could still run. No database migration or data rollback is involved.
