@@ -1,9 +1,13 @@
 'use client';
 
 import { useState } from 'react';
+import { usePathname } from 'next/navigation';
+import { StudioAuthCard } from '@/features/studio/StudioAuthCard';
 import AuthCard from '@/components/ui/AuthCard';
 
 export default function ForgotPasswordPage(): React.ReactElement {
+  const studio = usePathname().startsWith('/studio/');
+  const Card = studio ? StudioAuthCard : AuthCard;
   const [email, setEmail] = useState('');
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -22,7 +26,7 @@ export default function ForgotPasswordPage(): React.ReactElement {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email,
-          redirectTo: `${window.location.origin}/admin/reset-password`,
+          redirectTo: `${window.location.origin}${studio ? '/studio/reset-password' : '/admin/reset-password'}`,
         }),
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -36,7 +40,7 @@ export default function ForgotPasswordPage(): React.ReactElement {
   };
 
   return (
-    <AuthCard subtitle="Restablecer contraseña" backHref="/admin/login" backLabel="Volver al login">
+    <Card subtitle="Restablecer contraseña" backHref={studio ? '/studio/login' : '/admin/login'} backLabel="Volver al inicio de sesión">
       {sent ? (
         <p className="text-sm text-sp-admin-text text-center">
           Si el email está registrado, recibirás un enlace en breve. Revisa tu bandeja de entrada.
@@ -65,6 +69,6 @@ export default function ForgotPasswordPage(): React.ReactElement {
           </button>
         </form>
       )}
-    </AuthCard>
+    </Card>
   );
 }

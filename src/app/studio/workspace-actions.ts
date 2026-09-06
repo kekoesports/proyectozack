@@ -26,5 +26,5 @@ export async function openStudioWorkspace(input: unknown) {
 export async function leaveStudioWorkspace() {
   await requireStudioAgency();
   (await cookies()).delete(STUDIO_WORKSPACE_COOKIE);
-  redirect('/admin/studio');
+  redirect('/studio/workspaces');
 }

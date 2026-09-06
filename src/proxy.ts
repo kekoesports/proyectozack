@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getLocaleDecision, LOCALE_COOKIE, LOCALE_COOKIE_MAX_AGE } from '@/lib/locale-detection';
+import { studioHostRoute } from '@/lib/studio/host-routing';
+import { STUDIO_APP_ORIGIN } from '@/lib/studio/origins';
 
 /* -------------------------------------------------------------------------- */
 /*  In-memory sliding-window rate limiter (per-IP, per-route bucket)          */
@@ -190,6 +192,14 @@ export function proxy(req: NextRequest) {
   const maintenance = maintenanceResponse(req);
   if (maintenance) return maintenance;
 
+  const studioRoute = studioHostRoute(req.headers.get('host'), pathname, req.method);
+  if (studioRoute.kind === 'reject') return NextResponse.json({ error: 'Not found' }, { status: 404 });
+  if (studioRoute.kind === 'redirect') {
+    const destination = new URL(studioRoute.path, STUDIO_APP_ORIGIN);
+    if (studioRoute.preserveSearch) destination.search = req.nextUrl.search;
+    return NextResponse.redirect(destination);
+  }
+
   // Inyecta `x-pathname` en la request para que el root layout pueda leer la
   // ruta y decidir `<html lang>`. Sin esto, `layout.tsx` no tiene acceso al
   // pathname en RSC. Ver src/app/layout.tsx.
@@ -225,6 +235,8 @@ export function proxy(req: NextRequest) {
 // llegue al root layout en cualquier ruta y `<html lang>` sea correcto.
 export const config = {
   matcher: [
+    '/admin/:path*',
+    '/api/:path*',
     '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:png|jpg|jpeg|webp|avif|svg|ico|txt|xml|json|mp4|webm|woff2?)$).*)',
   ],
 };

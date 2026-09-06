@@ -33,7 +33,7 @@ export const requireCreator = cache(async () => {
   const repository = createStudioRepository(db, session.user.id, agencyTalentId);
   const member = await repository.membership();
   if (!member) {
-    if (session.user.role === 'admin' || session.user.role === 'manager') redirect('/admin/studio');
+    if (isAgency) redirect('/studio/workspaces');
     redirect('/studio/access');
   }
   return { session, member, repository, agencyTalentId,
@@ -52,6 +52,7 @@ export async function requireStudioWriter(expectedWorkspace: unknown) {
 }
 
 export async function requireStudioAgency() {
-  requireStudioEnabled();
-  return requireAnyRole(['admin', 'manager'], '/admin/login');
+  const session = await requireStudioSession();
+  if (session.user.role !== 'admin' && session.user.role !== 'manager') redirect('/studio');
+  return requireAnyRole(['admin', 'manager'], '/studio/login');
 }

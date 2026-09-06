@@ -1,11 +1,15 @@
 'use client';
 
 import { useState, useEffect, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
+import { StudioAuthCard } from '@/features/studio/StudioAuthCard';
 import AuthCard from '@/components/ui/AuthCard';
 
 function ResetPasswordForm(): React.ReactElement {
   const router = useRouter();
+  const studio = usePathname().startsWith('/studio/');
+  const loginPath = studio ? '/studio/login' : '/admin/login';
+  const Card = studio ? StudioAuthCard : AuthCard;
   const searchParams = useSearchParams();
   const token = searchParams.get('token') ?? '';
 
@@ -18,10 +22,11 @@ function ResetPasswordForm(): React.ReactElement {
   const tokenError = !token ? 'Enlace inválido o expirado.' : '';
 
   useEffect(() => {
+    // WHY: dispose the imperative navigation timer on unmount after a successful reset.
     if (!done) return;
-    const id = setTimeout(() => router.push('/admin/login'), 2000);
+    const id = setTimeout(() => router.push(loginPath), 2000);
     return () => clearTimeout(id);
-  }, [done, router]);
+  }, [done, router, loginPath]);
 
   const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
@@ -56,7 +61,7 @@ function ResetPasswordForm(): React.ReactElement {
   };
 
   return (
-    <AuthCard subtitle="Nueva contraseña" backHref="/admin/login" backLabel="Volver al login">
+    <Card subtitle="Nueva contraseña" backHref={loginPath} backLabel="Volver al inicio de sesión">
       {done ? (
         <p className="text-sm text-sp-admin-text text-center">
           Contraseña actualizada. Redirigiendo al login…
@@ -98,7 +103,7 @@ function ResetPasswordForm(): React.ReactElement {
           </button>
         </form>
       )}
-    </AuthCard>
+    </Card>
   );
 }
 
