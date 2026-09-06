@@ -1,4 +1,5 @@
 'use client';
+import { useStudioWorkspace } from './StudioWorkspaceContext';
 import Image from 'next/image';
 import { useState, useTransition } from 'react';
 import { useForm, useFieldArray, useWatch } from 'react-hook-form';
@@ -15,6 +16,7 @@ export function StudioTimeline({ projectId, projectRevision, board, assets, rend
   projectId: string; projectRevision: number; board: { revision: number; document: StudioBoard } | null;
   assets: StudioMediaAsset[]; renderEnabled: boolean;
 }) {
+  const workspace = useStudioWorkspace();
   const router = useRouter();
   const [selected, setSelected] = useState(0);
   const [notice, setNotice] = useState('');
@@ -30,7 +32,7 @@ export function StudioTimeline({ projectId, projectRevision, board, assets, rend
   const src = scene?.assetId ? `/api/studio/assets/${scene.assetId}` : null;
   const shift = (target: number) => { move(selected, target); setSelected(target); };
   return <form className="studio-timeline-editor" onSubmit={(event) => { void handleSubmit((data) => startTransition(async () => {
-    try { const result = await saveStudioBoard({ projectId, revision: board?.revision ?? -1, document: data }); setNotice(result.ok ? 'Montaje guardado.' : result.error); if (result.ok) router.refresh(); }
+    try { const result = await saveStudioBoard({ projectId, revision: board?.revision ?? -1, document: data }, workspace); setNotice(result.ok ? 'Montaje guardado.' : result.error); if (result.ok) router.refresh(); }
     catch { setNotice('No se guardó el montaje. Mantén esta pestaña abierta.'); }
   }))(event); }}>
     <div className="studio-montage-toolbar"><div><span className="studio-eyebrow">MONTAJE / {total.toFixed(1)} s</span><h2>La historia, escena a escena.</h2></div>
@@ -84,7 +86,7 @@ export function StudioTimeline({ projectId, projectRevision, board, assets, rend
     <div className="studio-project-toolbar"><button type="submit" className="studio-btn secondary" disabled={pending}><Save size={16} />Guardar montaje</button>
       <button type="button" className="studio-btn" disabled={pending || isDirty || !board || !renderEnabled} onClick={() => startTransition(async () => {
         if (!board) return;
-        try { const result = await renderStudioBoard({ projectId, projectRevision, boardRevision: board.revision }); setNotice(result.ok ? 'Exportación registrada. Aparecerá en Revisión al terminar.' : result.error); router.refresh(); }
+        try { const result = await renderStudioBoard({ projectId, projectRevision, boardRevision: board.revision }, workspace); setNotice(result.ok ? 'Exportación registrada. Aparecerá en Revisión al terminar.' : result.error); router.refresh(); }
         catch { setNotice('Actualiza para comprobar la cola antes de repetir.'); }
       })}><Download size={16} />Exportar MP4 · 0 créditos Higgsfield</button></div>
     {!!Object.keys(errors).length && <p role="alert">Revisa el material, los tiempos y los textos. Máximo 8 escenas y 120 segundos.</p>}

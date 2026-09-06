@@ -1,9 +1,11 @@
 'use client';
+import { useStudioWorkspace } from './StudioWorkspaceContext';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 export function StudioAssetUpload({ projectId }: { projectId?: string }) {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
+  const workspace = useStudioWorkspace();
   const router = useRouter();
   return (
     <form
@@ -24,6 +26,7 @@ export function StudioAssetUpload({ projectId }: { projectId?: string }) {
           }
           data.set('name', file.name.slice(0, 160));
           if (projectId) data.set('projectId', projectId);
+          if (workspace !== undefined) data.set('workspace', String(workspace));
           setBusy(true);
           setMessage('');
           try {

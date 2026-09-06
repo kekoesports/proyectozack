@@ -1,4 +1,5 @@
 'use client';
+import { useStudioWorkspace } from './StudioWorkspaceContext';
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowUp, Check, MessageCircle, Sparkles } from 'lucide-react';
@@ -10,6 +11,7 @@ type Turn = Awaited<ReturnType<ReturnType<typeof createProductionRepository>['tu
 export function StudioChat({ projectId, revision, turns, aiReady }: {
   projectId: string; revision: number; turns: Omit<Turn, 'createdAt'>[]; aiReady: boolean;
 }) {
+  const workspace = useStudioWorkspace();
   const router = useRouter();
   const [prompt, setPrompt] = useState('');
   const [mode, setMode] = useState<'editorial' | 'ai'>('editorial');
@@ -20,7 +22,7 @@ export function StudioChat({ projectId, revision, turns, aiReady }: {
     setNotice('');
     startTransition(async () => {
       try {
-        const result = await sendStudioMessage({ id: crypto.randomUUID(), projectId, revision, prompt: text, mode });
+        const result = await sendStudioMessage({ id: crypto.randomUUID(), projectId, revision, prompt: text, mode }, workspace);
         if (!result.ok) setNotice(result.error); else setPrompt('');
         router.refresh();
       } catch { setNotice('No se pudo confirmar. Actualiza el historial antes de repetir.'); }
@@ -44,7 +46,7 @@ export function StudioChat({ projectId, revision, turns, aiReady }: {
             {proposal?.cta && <blockquote>{proposal.cta}</blockquote>}
             {!!proposal?.checks.length && <details><summary>Controles antes de producir</summary><ul>{proposal.checks.map((c) => <li key={c}>{c}</li>)}</ul></details>}
             {proposal && (proposal.script !== null || proposal.cta !== null) && <button className="studio-btn secondary" disabled={pending || revision !== turn.projectRevision} onClick={() => startTransition(async () => {
-              try { const result = await applyStudioProposal(projectId, turn.id); setNotice(result.ok ? 'Propuesta aplicada en una nueva versión.' : result.error); router.refresh(); }
+              try { const result = await applyStudioProposal(projectId, turn.id, workspace); setNotice(result.ok ? 'Propuesta aplicada en una nueva versión.' : result.error); router.refresh(); }
               catch { setNotice('No se pudo aplicar. Tu guion guardado sigue disponible.'); }
             })}><Check size={15} />{revision === turn.projectRevision ? 'Aplicar propuesta al guion' : 'Propuesta de otra versión'}</button>}
           </div>

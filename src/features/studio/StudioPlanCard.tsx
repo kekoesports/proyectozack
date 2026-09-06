@@ -1,4 +1,5 @@
 'use client';
+import { useStudioWorkspace } from './StudioWorkspaceContext';
 import Link from 'next/link';
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
@@ -13,10 +14,11 @@ export function StudioPlanCard({ project, scheduledAt }: { project: { id: string
   const [date, setDate] = useState(localInput(scheduledAt));
   const [message, setMessage] = useState('');
   const [pending, startTransition] = useTransition();
+  const workspace = useStudioWorkspace();
   const router = useRouter();
   return <article className="studio-calendar-card"><span className="studio-badge">{project.platform} · {scheduledAt ? 'Planificado' : 'Sin fecha'}</span><h2><Link href={`/studio/projects/${project.id}`}>{project.title}</Link></h2><p>Una fecha editorial no es una publicación automática.</p>
     <form onSubmit={(event) => { event.preventDefault(); startTransition(async () => {
-      try { const result = await scheduleStudioProject({ projectId: project.id, scheduledAt: new Date(date).toISOString() }); setMessage(result.ok ? 'Fecha guardada. No se ha publicado nada.' : result.error); router.refresh(); } catch { setMessage('Revisa la fecha e inténtalo de nuevo.'); }
+      try { const result = await scheduleStudioProject({ projectId: project.id, scheduledAt: new Date(date).toISOString() }, workspace); setMessage(result.ok ? 'Fecha guardada. No se ha publicado nada.' : result.error); router.refresh(); } catch { setMessage('Revisa la fecha e inténtalo de nuevo.'); }
     }); }}><label htmlFor={`date-${project.id}`}>Fecha y hora · zona de tu dispositivo</label><input type="datetime-local" id={`date-${project.id}`} value={date} onChange={(e) => setDate(e.target.value)} required /><button className="studio-btn secondary" disabled={pending}><CalendarDays size={16} />Guardar fecha</button></form><p role="status">{message}</p>
   </article>;
 }

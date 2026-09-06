@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { requireCreator } from '@/lib/studio/access';
-import { StudioAssetInput, StudioOrigin } from '@/lib/schemas/studio';
+import { StudioAssetInput, StudioOrigin, StudioTalentId } from '@/lib/schemas/studio';
 import { uploadFile, deleteFile } from '@/lib/storage';
 import { detectStudioMedia, MAX_STUDIO_UPLOAD } from '@/lib/studio/media';
 import { SITE_URL } from '@/lib/site-url';
@@ -8,7 +8,7 @@ import { isStudioUploadOrigin } from '@/lib/studio/origins';
 
 export const runtime = 'nodejs';
 export async function POST(request: Request) {
-  const { repository } = await requireCreator();
+  const { repository, member } = await requireCreator();
   const origin = StudioOrigin.safeParse(request.headers.get('origin'));
   if (
     !origin.success ||
@@ -41,6 +41,9 @@ export async function POST(request: Request) {
     return new Response('Formulario inválido', { status: 400 });
   }
   const file = form.get('file');
+  const workspace = StudioTalentId.safeParse(form.get('workspace'));
+  if (!workspace.success || workspace.data !== member.talentId)
+    return new Response('El espacio cambió. Actualiza antes de subir.', { status: 409 });
   const parsed = StudioAssetInput.safeParse({
     name: form.get('name'),
     projectId: form.get('projectId') || null,

@@ -1,12 +1,13 @@
 import { and, desc, eq, gte, inArray } from 'drizzle-orm';
 import { studioNarrations } from '@/db/schema/studioNarrations';
-import { studioProjects, talentUsers } from '@/db/schema/studio';
+import { studioProjects } from '@/db/schema/studio';
 import { studioProfiles } from '@/db/schema/studioProfiles';
 import { StudioProfileDocument } from '@/lib/schemas/studio-profile';
 import type { StudioDatabase } from './repository';
+import { visibleStudioTalents } from './talent-scope';
 
-export function createNarrationRepository(database: StudioDatabase, userId: string) {
-  const owned = () => database.select({ id: talentUsers.talentId }).from(talentUsers).where(and(eq(talentUsers.userId, userId), eq(talentUsers.active, true)));
+export function createNarrationRepository(database: StudioDatabase, userId: string, agencyTalentId?: number) {
+  const owned = () => visibleStudioTalents(database, userId, agencyTalentId);
   return {
     async list(projectId: string) {
       return database.select({ id: studioNarrations.id, status: studioNarrations.status, projectRevision: studioNarrations.projectRevision,

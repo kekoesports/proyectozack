@@ -8,7 +8,7 @@ import { db, closeDbPool } from '../src/lib/db';
 import { env } from '../src/lib/env';
 import { studioRenders } from '../src/db/schema/studioProduction';
 import { StudioBoard } from '../src/lib/schemas/studio-production';
-import { createStudioRepository } from '../src/lib/studio/repository';
+import { studioJobRepository } from '../src/lib/studio/job-access';
 import { getStorage } from '../src/lib/storage';
 import { renderStudioTimeline } from '../src/lib/studio/render-engine';
 
@@ -25,7 +25,7 @@ async function once() {
   if (!job) return false;
   const directory = await mkdtemp(join(tmpdir(), 'socialpro-render-'));
   try {
-    const repository = createStudioRepository(db, job.requestedBy);
+    const repository = await studioJobRepository(db, job.requestedBy, job.projectId);
     const project = await repository.project(job.projectId);
     const parsed = StudioBoard.safeParse(job.document);
     if (!project || !parsed.success) throw new Error('access_or_timeline');

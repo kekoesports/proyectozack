@@ -1,6 +1,8 @@
 import { z } from 'zod';
 
 export const StudioId = z.uuid();
+export const StudioTalentId = z.union([z.number(), z.string().regex(/^[1-9]\d*$/)])
+  .transform(Number).pipe(z.number().int().positive().max(2147483647));
 export const StudioRangeHeader = z
   .string()
   .max(128)

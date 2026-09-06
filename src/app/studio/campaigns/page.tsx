@@ -1,11 +1,9 @@
 import { requireCreator } from "@/lib/studio/access";
 import { StudioShell } from "@/features/studio/StudioShell";
-import { db } from '@/lib/db';
-import { createProductionRepository } from '@/lib/studio/production-repository';
 
 export default async function CampaignReferencesPage() {
-  const { member, repository, session } = await requireCreator();
-  const campaigns = await createProductionRepository(db, session.user.id).campaigns();
+  const { member, repository, production } = await requireCreator();
+  const campaigns = await production.campaigns();
   const profile = await repository.profile();
   return (
     <StudioShell name={member.name} active="/studio/campaigns">

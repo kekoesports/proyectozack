@@ -1,9 +1,9 @@
 import { and, desc, eq, inArray } from 'drizzle-orm';
-import { talentUsers } from '@/db/schema/studio';
 import { studioChannels, studioChannelObservations } from '@/db/schema/studioProduction';
 import { StudioObservation } from '@/lib/schemas/studio-production';
 import type { StudioChannelInput } from '@/lib/schemas/studio-production';
 import type { StudioDatabase } from './repository';
+import { visibleStudioTalents, lockStudioMember } from './talent-scope';
 
 export function channelUrl(platform: string, handle: string) {
   const encoded = encodeURIComponent(handle);
@@ -16,9 +16,8 @@ export function channelUrl(platform: string, handle: string) {
     default: return null;
   }
 }
-export function createChannelRepository(database: StudioDatabase, userId: string) {
-  const owned = () => database.select({ id: talentUsers.talentId }).from(talentUsers)
-    .where(and(eq(talentUsers.userId, userId), eq(talentUsers.active, true)));
+export function createChannelRepository(database: StudioDatabase, userId: string, agencyTalentId?: number) {
+  const owned = () => visibleStudioTalents(database, userId, agencyTalentId);
   return {
     async list() {
       const channels = await database.select().from(studioChannels).where(inArray(studioChannels.talentId, owned()));
@@ -34,7 +33,7 @@ export function createChannelRepository(database: StudioDatabase, userId: string
     },
     async declare(input: StudioChannelInput) {
       return database.transaction(async (tx) => {
-        const [member] = await tx.select().from(talentUsers).where(and(eq(talentUsers.userId, userId), eq(talentUsers.active, true))).for('update');
+        const member = await lockStudioMember(tx, userId, agencyTalentId);
         if (!member) return false;
         const [existing] = await tx.select().from(studioChannels).where(and(eq(studioChannels.talentId, member.talentId), eq(studioChannels.platform, input.platform)));
         // A different handle invalidates all prior observations; never attach old metrics to a new account.

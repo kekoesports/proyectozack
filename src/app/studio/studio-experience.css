@@ -79,10 +79,19 @@
 .studio-roster-card strong { display: block; font-size: 13px; overflow-wrap: anywhere; }
 .studio-roster-card small { display: block; font-size: 10px; color: #7c6d7f; margin-top: 4px; }
 .studio-roster-card > svg { flex-shrink: 0; color: #af4277; }
+.studio-roster-entry { padding: 0 0 12px; border: 1px solid var(--studio-border); border-radius: 10px; background: white; min-width: 0; }
+.studio-roster-entry .studio-roster-card { border: 0; }
+.studio-roster-entry > div { padding: 0 14px; }
+.studio-roster-entry .studio-secondary { width: 100%; min-height: 40px; }
+.studio-agency-context { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 16px 32px; background: #f8edf2; border-bottom: 1px solid #e9d4de; color: #6d2047; }
+.studio-agency-context strong { display: block; font-size: 13px; overflow-wrap: anywhere; }
+.studio-agency-context span { display: block; margin-top: 4px; font-size: 11px; line-height: 1.5; }
+.studio-agency-context form { flex-shrink: 0; }
 @keyframes studio-orbit { 0%, 100% { transform: rotate(-8deg) translateZ(20px); } 50% { transform: rotate(6deg) translateY(-7px) translateZ(28px); } }
 @media (max-width: 1200px) { .studio-overview-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .studio-dashboard-insights { grid-template-columns: 1fr; } .studio-depth-card { min-height: 235px; display: grid; grid-template-columns: 1fr 1fr; align-items: center; } .studio-depth-card > strong { grid-row: span 2; } .studio-depth-symbol { justify-self: end; } .studio-depth-timeline { display: none; } .studio-depth-card footer { grid-column: 1 / -1; } }
 @media (max-width: 1000px) { .studio-action-grid { grid-template-columns: 1fr; } .studio-workflow-card ol { grid-template-columns: repeat(3, minmax(0, 1fr)); } .studio-workflow-card li { align-items: start; } .studio-welcome { align-items: start; flex-direction: column; } }
 @media (max-width: 760px) {
+  .studio-agency-context { padding: 16px; flex-direction: column; align-items: start; gap: 12px; }
   .studio-sidebar { height: auto; position: static; overflow: visible; padding: 18px 16px; gap: 0; }
   .studio-mobile-brand { padding: 0; }
   .studio-menu-toggle { display: flex; align-items: center; gap: 8px; background: white; border: 1px solid #ded9de; border-radius: 8px; padding: 10px; font-size: 12px; }

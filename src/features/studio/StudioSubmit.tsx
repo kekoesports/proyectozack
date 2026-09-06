@@ -1,4 +1,5 @@
 'use client';
+import { useStudioWorkspace } from './StudioWorkspaceContext';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { submitStudioProject } from '@/app/studio/actions';
@@ -11,6 +12,7 @@ export function StudioSubmit({
 }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const workspace = useStudioWorkspace();
   const router = useRouter();
   return (
     <div>
@@ -22,7 +24,7 @@ export function StudioSubmit({
             setBusy(true);
             setError('');
             try {
-              const result = await submitStudioProject({ id, revision });
+              const result = await submitStudioProject({ id, revision }, workspace);
               if (!result.ok) setError(result.error);
               else router.refresh();
             } catch {

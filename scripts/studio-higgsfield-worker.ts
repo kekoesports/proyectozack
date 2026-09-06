@@ -3,7 +3,7 @@ import { and, asc, eq, inArray, lt } from 'drizzle-orm';
 import { db, closeDbPool } from '../src/lib/db';
 import { env } from '../src/lib/env';
 import { studioNarrations } from '../src/db/schema/studioNarrations';
-import { createStudioRepository } from '../src/lib/studio/repository';
+import { studioJobRepository } from '../src/lib/studio/job-access';
 import { quoteHiggsfieldNarration, generateHiggsfieldNarration } from '../src/lib/studio/higgsfield-cli';
 import { getStorage } from '../src/lib/storage';
 import { detectStudioMedia } from '../src/lib/studio/media';
@@ -22,7 +22,7 @@ async function once() {
   if (!job) return false;
   let submitted = false;
   try {
-    const repository = createStudioRepository(db, job.requestedBy);
+    const repository = await studioJobRepository(db, job.requestedBy, job.projectId);
     const [project, profile] = await Promise.all([repository.project(job.projectId), repository.profile()]);
     if (!project || project.revision !== job.projectRevision || profile?.higgsfieldVoice?.id !== job.voiceId || profile.voiceStatus !== 'approved_external') throw new Error('identity_or_revision_changed');
     const creditsMilli = await quoteHiggsfieldNarration({ text: job.text, voiceId: job.voiceId });
