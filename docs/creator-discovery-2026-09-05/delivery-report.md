@@ -1,5 +1,12 @@
 # Creator Discovery — informe de entrega en 22 puntos
 
+**Estado posterior, 06-09 11:05 UTC:** producción ejecuta c26c8e1d, envío de
+creadores separado en roster-scouting y recorrido real n8n/CRM/Discord/ACK probado.
+Discovery diario real añadió 33 perfiles entre YouTube/Twitch/Kick; las dos
+primeras plataformas tienen cobertura parcial por límites, no fallo de credenciales.
+Consultar [cierre posterior](../discord-routing-release-2026-09-06.md); las notas
+históricas siguientes no representan la versión productiva actual.
+
 **Nota de continuidad:** el cuerpo siguiente conserva el corte histórico de las
 17:45 UTC. Para el build Linux posterior, migraciones productivas, candidato,
 pruebas Discord y bloqueos vigentes, consultar
