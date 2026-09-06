@@ -149,6 +149,11 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       { source: '/(.*)', headers: securityHeaders },
+      // Studio embeds only trusted, sandboxed srcdoc templates. The public site
+      // keeps its original frame/font policy; no external frame host is added.
+      { source: '/studio/:path*', headers: securityHeaders.filter((header) => header.key === 'Content-Security-Policy').map((header) => ({
+        ...header, value: header.value.replace("frame-src ", "frame-src 'self' ").replace("font-src 'self' ", "font-src 'self' data: "),
+      })) },
       {
         source: '/api/:path*',
         headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }],
@@ -188,6 +193,7 @@ const nextConfig: NextConfig = {
   // global garantiza además que la salida standalone contenga los entrypoints
   // y dependencias que Node resuelve en runtime (y que valida el smoke de CI).
   outputFileTracingIncludes: {
+    '/studio/**': ['./public/fonts/studio/*.ttf'],
     '/*': [
       './node_modules/pdfjs-dist/**/*',
       './node_modules/mupdf/**/*',
@@ -220,6 +226,10 @@ const nextConfig: NextConfig = {
     ],
   },
   experimental: {
+    // Studio accepts 20 MiB media + multipart headers. Next's default 10 MiB
+    // proxy buffer silently truncates bigger bodies before the route validates them.
+    // Caddy retains 12 MB elsewhere; Studio also enforces its own streamed cap.
+    proxyClientMaxBodySize: '22mb',
     optimizePackageImports: ['motion', 'recharts'],
     serverActions: {
       // Default is 1MB — photos can be up to 5MB (PHOTO_TYPES.maxBytes)

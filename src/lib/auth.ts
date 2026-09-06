@@ -1,4 +1,5 @@
 import { betterAuth } from 'better-auth';
+import { APIError, isAPIError } from 'better-auth/api';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { twoFactor } from 'better-auth/plugins';
 import { db } from './db';
@@ -6,6 +7,11 @@ import { env } from './env';
 import { SITE_URL } from './site-url';
 import { sendPasswordResetEmail } from './email';
 import { steamOpenId } from './steam/plugin';
+import { eq, and, gt, isNull } from 'drizzle-orm';
+import { user as authUser } from '@/db/schema/auth';
+import { talentUsers, studioInvitations } from '@/db/schema/studio';
+import { sendStudioVerificationEmail } from '@/lib/studio/verification-email';
+import { logAuthDiagnostic } from '@/lib/auth-logger';
 
 /** Derive www/non-www variants + production domain so auth works regardless of env config. */
 function getSiteOrigins(siteUrl: string): string[] {
@@ -27,6 +33,13 @@ function getSiteOrigins(siteUrl: string): string[] {
 
 export const auth = betterAuth({
   appName: 'SocialPro CRM',
+  logger: { log: logAuthDiagnostic },
+  onAPIError: { onError: (error) => {
+    // better-call otherwise logs raw non-API errors after Better Auth's logger.
+    if (isAPIError(error)) return;
+    logAuthDiagnostic('error');
+    throw new APIError('INTERNAL_SERVER_ERROR', { message: 'Servicio de autenticación no disponible.' });
+  } },
   secret: env.BETTER_AUTH_SECRET,
   baseURL: SITE_URL,
   emailAndPassword: {
@@ -43,6 +56,32 @@ export const auth = betterAuth({
     },
   },
   database: drizzleAdapter(db, { provider: 'pg' }),
+  emailVerification: {
+    sendOnSignUp: false,
+    sendOnSignIn: false,
+    autoSignInAfterVerification: false,
+    expiresIn: 3600,
+    sendVerificationEmail: async ({ user, url, token }) => {
+      if (!env.STUDIO_ENABLED) return;
+      const [invite] = await db.select({ id: studioInvitations.id }).from(studioInvitations).where(and(
+        eq(studioInvitations.email, user.email.toLowerCase()), isNull(studioInvitations.acceptedAt),
+        isNull(studioInvitations.revokedAt), gt(studioInvitations.expiresAt, new Date()),
+      )).limit(1);
+      if (invite) await sendStudioVerificationEmail(user.email, url, token);
+    },
+  },
+  rateLimit: { customRules: { '/send-verification-email': { window: 3600, max: 3 } } },
+  databaseHooks: {
+    session: { create: { before: async (session) => {
+      const [person] = await db.select({ role: authUser.role }).from(authUser).where(eq(authUser.id, session.userId)).limit(1);
+      if (person?.role !== 'creator') return true;
+      if (!env.STUDIO_ENABLED) return false;
+      const [member] = await db.select({ id: talentUsers.id }).from(talentUsers)
+        .where(and(eq(talentUsers.userId, session.userId), eq(talentUsers.active, true))).limit(1);
+      if (!member) return false;
+      return true;
+    } } },
+  },
   session: {
     expiresIn: 60 * 60 * 24 * 7,  // 7 days
     updateAge: 60 * 60 * 12,      // refresh twice per day

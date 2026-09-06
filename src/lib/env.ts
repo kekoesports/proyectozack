@@ -4,6 +4,14 @@ import { creatorDiscoveryRolloutAtSchema } from '@/lib/schemas/creator-reporting
 
 export const env = createEnv({
   server: {
+    AI_GATEWAY_API_KEY: z.string().min(1).optional(),
+    STUDIO_HIGGSFIELD_ENABLED: z.enum(['true', 'false']).default('false').transform((v) => v === 'true'),
+    STUDIO_HIGGSFIELD_BIN: z.string().min(1).optional(),
+    STUDIO_AI_MODEL: z.string().min(1).default('google/gemini-3.8-flash'),
+    STUDIO_RENDER_ENABLED: z.enum(['true', 'false']).default('false').transform((v) => v === 'true'),
+    STUDIO_FFMPEG_BIN: z.string().min(1).default('ffmpeg'),
+    STUDIO_FFPROBE_BIN: z.string().min(1).default('ffprobe'),
+    STUDIO_ENABLED: z.enum(['true', 'false']).default('false').transform((v) => v === 'true'),
     DATABASE_URL: z.string().url(),
     /** Endpoint HTTP alternativo para el proxy Neon local de QA. */
     // Se conserva mientras producción siga en Vercel con el driver HTTP de
@@ -264,6 +272,14 @@ export const env = createEnv({
     NEXT_PUBLIC_GTM_ID: z.string().min(1).optional(),
   },
   runtimeEnv: {
+    AI_GATEWAY_API_KEY: process.env.AI_GATEWAY_API_KEY,
+    STUDIO_HIGGSFIELD_ENABLED: process.env.STUDIO_HIGGSFIELD_ENABLED,
+    STUDIO_HIGGSFIELD_BIN: process.env.STUDIO_HIGGSFIELD_BIN,
+    STUDIO_AI_MODEL: process.env.STUDIO_AI_MODEL,
+    STUDIO_RENDER_ENABLED: process.env.STUDIO_RENDER_ENABLED,
+    STUDIO_FFMPEG_BIN: process.env.STUDIO_FFMPEG_BIN,
+    STUDIO_FFPROBE_BIN: process.env.STUDIO_FFPROBE_BIN,
+    STUDIO_ENABLED: process.env.STUDIO_ENABLED,
     DATABASE_URL: process.env.DATABASE_URL,
     NEON_HTTP_FETCH_ENDPOINT: process.env.NEON_HTTP_FETCH_ENDPOINT,
     DB_POOL_MAX: process.env.DB_POOL_MAX,

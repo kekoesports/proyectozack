@@ -87,3 +87,7 @@ export * from './agentUsage';
 export * from './agentWorkers';
 export * from './creatorDiscoveryOperations';
 export * from './creatorDiscoveryDelivery';
+export * from './studio';
+export * from './studioProfiles';
+export * from './studioProduction';
+export * from './studioNarrations';

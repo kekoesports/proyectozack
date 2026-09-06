@@ -1,4 +1,5 @@
 import { headers } from 'next/headers';
+import { env } from '@/lib/env';
 import type { Metadata } from 'next';
 import { requireAnyRole } from '@/lib/auth-guard';
 import { getDashboardAlerts, getActiveTrackerCompletedAlerts } from '@/lib/queries/alerts';
@@ -42,6 +43,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 const NAV_ICONS: Record<AdminNavKey, React.ReactNode> = {
+  studio: <LiveIcon />,
   panel: <DashboardIcon />,
   brands: <BrandIcon />,
   talents: <TalentIcon />,
@@ -92,7 +94,8 @@ export default async function AdminLayout({ children }: AdminLayoutProps): Promi
     : null;
   const isStaff = session.user.role === 'staff';
 
-  const { primary, more } = navForRole(session.user.role);
+  const { primary, more: allMore } = navForRole(session.user.role);
+  const more = allMore.filter((item) => item.key !== 'studio' || (env.STUDIO_ENABLED && !isKekoPilot));
   const primaryNav = primary.map((item) => ({
     href: item.href,
     label: item.label,

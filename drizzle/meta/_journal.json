@@ -1058,6 +1058,34 @@
       "when": 1788624317162,
       "tag": "0150_creator_discovery_delivery",
       "breakpoints": true
+    },
+    {
+      "idx": 151,
+      "version": "7",
+      "when": 1788692588136,
+      "tag": "0151_studio_creator_portal",
+      "breakpoints": true
+    },
+    {
+      "idx": 152,
+      "version": "7",
+      "when": 1788694975814,
+      "tag": "0152_studio_private_profiles",
+      "breakpoints": true
+    },
+    {
+      "idx": 153,
+      "version": "7",
+      "when": 1788696413342,
+      "tag": "0153_studio_production_workspace",
+      "breakpoints": true
+    },
+    {
+      "idx": 154,
+      "version": "7",
+      "when": 1788697461260,
+      "tag": "0154_studio_narration_approvals",
+      "breakpoints": true
     }
   ]
 }

@@ -1,0 +1,38 @@
+name: socialpro-studio
+services:
+  render:
+    image: ${STUDIO_WORKER_IMAGE:?Use an immutable Studio worker image}
+    restart: unless-stopped
+    stop_grace_period: 5m
+    env_file:
+      - ${STUDIO_WORKER_ENV:?Dedicated minimal worker environment required}
+    environment:
+      STUDIO_ENABLED: 'true'
+      STUDIO_RENDER_ENABLED: 'true'
+      STUDIO_HIGGSFIELD_ENABLED: 'false'
+      STORAGE_DRIVER: local
+      STORAGE_LOCAL_ROOT: /srv/storage
+      DB_POOL_MAX: '2'
+    volumes:
+      - /opt/socialpro/data/storage-private:/srv/storage/private
+    networks: [crm_backend]
+    read_only: true
+    tmpfs:
+      # HyperFrames checks for >1 GiB free before rendering. tmpfs is lazy;
+      # the 2 GiB cgroup memory limit still caps actual process + tmpfs use.
+      - /tmp:size=4G,uid=1000,gid=1000,mode=1777
+      - /home/node/.cache:size=256M,uid=1000,gid=1000
+      - /home/node/.config:size=128M,uid=1000,gid=1000
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    pids_limit: 256
+    cpus: 2
+    mem_limit: 2g
+    shm_size: 256m
+    logging:
+      driver: json-file
+      options: { max-size: '10m', max-file: '3' }
+networks:
+  crm_backend:
+    external: true
+    name: socialpro-crm_crm_backend

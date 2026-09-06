@@ -21,6 +21,7 @@ export type HomeRole =
  * (or brand portal). Broken paths send users to 404 after a permission bounce.
  */
 export function homeForRole(role: HomeRole | string | null | undefined): string | null {
+  if (role === 'creator')              return '/studio';
   if (role === 'admin')                return '/admin';
   if (role === 'manager')              return '/admin';
   if (role === 'admin_limited_tasks')  return '/admin';

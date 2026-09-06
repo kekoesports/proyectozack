@@ -6,6 +6,10 @@ node_modules
 .next
 .env
 .env.*
+*.env
+*.dump
+*.tar
+*.tar.gz
 !.env.example
 .vercel
 .scratch
