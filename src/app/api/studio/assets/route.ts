@@ -3,6 +3,7 @@ import { requireCreator } from '@/lib/studio/access';
 import { StudioAssetInput, StudioOrigin } from '@/lib/schemas/studio';
 import { uploadFile, deleteFile } from '@/lib/storage';
 import { detectStudioMedia, MAX_STUDIO_UPLOAD } from '@/lib/studio/media';
+import { SITE_URL } from '@/lib/site-url';
 
 export const runtime = 'nodejs';
 export async function POST(request: Request) {
@@ -10,7 +11,9 @@ export async function POST(request: Request) {
   const origin = StudioOrigin.safeParse(request.headers.get('origin'));
   if (
     !origin.success ||
-    new URL(origin.data).origin !== new URL(request.url).origin
+    // Next standalone uses its internal host/port for request.url behind Caddy.
+    // Trust the configured public origin, never client-supplied forwarded hosts.
+    origin.data !== new URL(SITE_URL).origin
   )
     return new Response('Forbidden', { status: 403 });
   // Bound actual bytes while streaming; Content-Length alone is untrusted.
