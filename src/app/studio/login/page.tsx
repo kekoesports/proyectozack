@@ -8,7 +8,7 @@ export default function StudioLoginPage() {
           <small>STUDIO</small>
         </p>
         <h1>Tu talento tiene un espacio.</h1>
-        <p>Entra con tu cuenta de SocialPro. La agencia conserva su acceso al CRM; cada creador ve únicamente su espacio asignado.</p>
+        <p>Crea vídeos, prepara ideas y organiza tu contenido. Entra con tu cuenta de SocialPro: como agencia podrás elegir un creador; como creador entrarás a tu espacio privado.</p>
         <StudioLoginForm />
       </div>
     </div>

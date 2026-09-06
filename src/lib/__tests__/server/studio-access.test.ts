@@ -74,13 +74,14 @@ test('revoked or missing membership blocks existing session', async () => {
   await expect(requireCreator()).rejects.toThrow('REDIRECT:/studio/access');
 });
 test('agency entry delegates only admin and manager to the existing role guard', async () => {
+  mockSession.mockResolvedValue({ user: { id: 'agency', role: 'admin' } });
   await requireStudioAgency();
-  expect(mockAgency).toHaveBeenCalledWith(['admin', 'manager'], '/admin/login');
+  expect(mockAgency).toHaveBeenCalledWith(['admin', 'manager'], '/studio/login');
 });
-test('existing agency login reaches CRM Studio without impersonating a creator', async () => {
+test('agency without membership reaches native Studio workspace chooser, never CRM', async () => {
   mockSession.mockResolvedValue({ user: { id: 'agency', role: 'admin' } });
   mockMembership.mockResolvedValue(null);
-  await expect(requireCreator()).rejects.toThrow('REDIRECT:/admin/studio');
+  await expect(requireCreator()).rejects.toThrow('REDIRECT:/studio/workspaces');
 });
 test('a limited CRM role is not upgraded to agency by entering Studio', async () => {
   mockSession.mockResolvedValue({ user: { id: 'limited', role: 'admin_limited_tasks' } });
@@ -93,7 +94,19 @@ test.each(['admin', 'manager'])('selected workspace preserves the actual %s acto
   mockWorkspace = '5';
   expect((await requireCreator()).agencyTalentId).toBe(5);
   expect(mockRepository).toHaveBeenCalledWith({}, 'agency', 5);
-  expect(mockAgency).toHaveBeenCalledWith(['admin', 'manager'], '/admin/login');
+  expect(mockAgency).toHaveBeenCalledWith(['admin', 'manager'], '/studio/login');
+});
+
+test.each(['creator', 'staff', 'admin_limited_tasks'])('%s cannot enumerate agency workspaces', async (role) => {
+  mockSession.mockResolvedValue({ user: { id: 'restricted', role } });
+  await expect(requireStudioAgency()).rejects.toThrow('REDIRECT:/studio');
+  expect(mockAgency).not.toHaveBeenCalled();
+});
+
+test('anonymous workspace access stays on Studio login', async () => {
+  mockSession.mockResolvedValue(null);
+  await expect(requireStudioAgency()).rejects.toThrow('REDIRECT:/studio/login');
+  expect(mockAgency).not.toHaveBeenCalled();
 });
 
 test.each(['creator', 'staff', 'admin_limited_tasks'])('%s cannot grant access using the selection cookie', async (role) => {

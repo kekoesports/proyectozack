@@ -63,7 +63,7 @@ export function StudioLoginForm({
               return;
             }
             if (parsed.data.twoFactorRedirect) {
-              router.push('/admin/two-factor');
+              router.push('/studio/two-factor');
               return;
             }
             const token = StudioToken.safeParse(inviteToken);
@@ -119,7 +119,7 @@ export function StudioLoginForm({
       <p role="alert" className="studio-error">
         {error}
       </p>
-      <Link href="/admin/forgot-password">He olvidado mi contraseña</Link>
+      <Link href="/studio/forgot-password">He olvidado mi contraseña</Link>
     </form>
   );
 }

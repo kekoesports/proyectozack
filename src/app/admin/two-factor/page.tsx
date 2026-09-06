@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
+import { StudioAuthCard } from '@/features/studio/StudioAuthCard';
 import AuthCard from '@/components/ui/AuthCard';
 import { homeForRole } from '@/lib/home-for-role';
 
@@ -9,6 +10,8 @@ type VerificationMode = 'totp' | 'backup';
 
 export default function TwoFactorPage(): React.ReactElement {
   const router = useRouter();
+  const studio = usePathname().startsWith('/studio/');
+  const Card = studio ? StudioAuthCard : AuthCard;
   const [mode, setMode] = useState<VerificationMode>('totp');
   const [code, setCode] = useState('');
   const [error, setError] = useState('');
@@ -38,6 +41,11 @@ export default function TwoFactorPage(): React.ReactElement {
         return;
       }
 
+      if (studio) {
+        router.push('/studio');
+        router.refresh();
+        return;
+      }
       let destination = '/admin';
       const sessionResponse = await fetch('/api/auth/get-session');
       if (sessionResponse.ok) {
@@ -54,7 +62,7 @@ export default function TwoFactorPage(): React.ReactElement {
   };
 
   return (
-    <AuthCard subtitle="Verificación en dos pasos" backHref="/admin/login" backLabel="Volver al inicio de sesión">
+    <Card subtitle="Verificación en dos pasos" backHref={studio ? '/studio/login' : '/admin/login'} backLabel="Volver al inicio de sesión">
       <form onSubmit={(event) => { void verify(event); }} className="space-y-4">
         <div>
           <label className="block text-xs font-semibold text-sp-admin-muted mb-1.5">
@@ -90,6 +98,6 @@ export default function TwoFactorPage(): React.ReactElement {
           {mode === 'totp' ? 'Usar un código de recuperación' : 'Usar la aplicación de autenticación'}
         </button>
       </form>
-    </AuthCard>
+    </Card>
   );
 }

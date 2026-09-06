@@ -10,6 +10,11 @@ import { user } from '@/db/schema/auth';
 import type { StudioDatabase } from './repository';
 
 /** Internal only: callers must requireStudioAgency before calling these functions. */
+export async function studioAgencyWorkspaces(database: StudioDatabase) {
+  return database.select({ id: talents.id, name: talents.name, photoUrl: talents.photoUrl, game: talents.game, status: talents.status })
+    .from(talents).orderBy(talents.name);
+}
+
 export async function studioAgencyDashboard(database: StudioDatabase) {
   const [projects, roster, members] = await Promise.all([
     database
@@ -18,10 +23,7 @@ export async function studioAgencyDashboard(database: StudioDatabase) {
       .innerJoin(talents, eq(talents.id, studioProjects.talentId))
       .orderBy(desc(studioProjects.updatedAt))
       .limit(100),
-    database
-      .select({ id: talents.id, name: talents.name, photoUrl: talents.photoUrl, game: talents.game, status: talents.status })
-      .from(talents)
-      .orderBy(talents.name),
+    studioAgencyWorkspaces(database),
     database
       .select({
         id: talentUsers.id,

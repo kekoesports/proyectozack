@@ -7,6 +7,7 @@ import "./studio-production.css";
 import "./studio-motion.css";
 import "./studio-experience.css";
 import "./studio-analytics.css";
+import "./studio-entry.css";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
