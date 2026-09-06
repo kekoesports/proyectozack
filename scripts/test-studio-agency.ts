@@ -12,6 +12,7 @@ import { createChannelRepository } from '../src/lib/studio/channel-repository';
 import { createNarrationRepository } from '../src/lib/studio/narration-repository';
 import { StudioBoard } from '../src/lib/schemas/studio-production';
 import { StudioProfileDocument } from '../src/lib/schemas/studio-profile';
+import { studioJobRepository } from '../src/lib/studio/job-access';
 
 async function main() {
   const pg = new PGlite(); const db = drizzle(pg, { schema }); let checks = 0;
@@ -54,6 +55,10 @@ async function main() {
     check(await pb.board(project.id) === null && await pb.saveBoard(project.id, 0, board.data) === null, 'agency montage scope cannot be crossed');
     check(await pa.saveBoard(project.id, 0, { ...board.data, scenes: board.data.scenes.map((scene) => ({ ...scene, assetId: otherAsset.id })) }) === null, 'foreign media rejected inside timeline');
     const render = await pa.enqueue(project.id, 0, 0); assert.ok(render);
+    const worker = await studioJobRepository(db, 'admin', project.id);
+    check((await worker.project(project.id))?.talentId === ta.id && await worker.project(foreign.id) === null, 'worker restores one queued agency workspace without cookies');
+    check(await (await studioJobRepository(db, 'b', project.id)).project(project.id) === null, 'queue cannot grant a creator access to a foreign project');
+    check((await (await studioJobRepository(db, 'a', project.id)).project(project.id))?.id === project.id, 'creator jobs retain membership access');
     const [renderRow] = await db.select().from(schema.studioRenders).where(eq(schema.studioRenders.id, render.id));
     check(renderRow?.requestedBy === 'admin', 'render request records agency actor');
     check((await pa.enqueue(project.id, 0, 0))?.id === render.id, 'render request stays idempotent');
@@ -82,6 +87,7 @@ async function main() {
       check(!await createChannelRepository(db, id, ta.id).declare({ platform: 'youtube', handle: 'forged' }), `${id}: channel lock rejects forged scope`);
     }
     await db.update(schema.user).set({ role: 'staff' }).where(eq(schema.user.id, 'admin'));
+    check(await worker.project(project.id) === null && await (await studioJobRepository(db, 'admin', project.id)).project(project.id) === null, 'worker rejects agency demotion before and after claiming a job');
     check(await adminA.membership() === null && await adminA.profile() === null && (await adminA.assets()).length === 0, 'live demotion removes reads from existing repository');
     check(await adminA.save(input) === null && await adminA.addAsset(file) === null, 'live demotion removes locked writes');
     check(await pa.board(project.id) === null && await pa.saveBoard(project.id, 0, board.data) === null && await pa.enqueue(project.id, 0, 0) === null, 'demotion removes montage/render access');
