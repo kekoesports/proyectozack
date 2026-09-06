@@ -1,5 +1,34 @@
 # Comprobaciones reales de automatizaciones — 6 septiembre 2026
 
+## KPI completo actual: lectura confirmada, envío bloqueado — 02:28 UTC
+
+Se preparó una prueba independiente de la publicación: leer el endpoint oficial
+`/api/automation/deals/digest` y entregar todos sus mensajes sin cambiar formato,
+rutas, servicios ni horario diario. Preflight real a las 02:28:02.059 UTC: seis
+partes, destino privado kpis-reporting, sin intención previa, cero escrituras CRM.
+SHA de contenido completo `28eaf20579bd519b3950f65f34e4e259a893b40f45bc83c0e4e1e648ad62c2a5`.
+
+La herramienta bloqueó el envío por requerir autorización explícita del contenido
+interno a ese canal. No se reintentó ni se envió por otra vía; no hay nuevos recibos
+ni replay ejecutado. No confundir esta lectura con entrega al Discord.
+
+Master `07efb4e0704f1d42bee771d99b03ca5d0f8bd9bb` subido y confirmado con
+`ls-remote`. CI34006388999 terminó posteriormente **SUCCESS en sus cuatro jobs**:
+lint/tipos, tests, build y runtime Docker PDF/OCR. Al subir apareció Dependabot140:
+fflate0.8.2 transitivo de jsPDF4.2.1; parche0.8.3. El análisis estático encontró uso
+de zlibSync, no la función vulnerable unzipSync, sin que esto pruebe ausencia
+general de riesgo.
+
+Parche mínimo preparado: única resolución de fflate0.8.2 a0.8.3 en lockfile,
+compatible con el rango de jsPDF; tarball e integridad cotejados con npm oficial.
+Sin actualizar jsPDF/Next ni tocar node_modules compartido. Pruebas con paquete
+0.8.3 aislado: ZIP válido de ida/vuelta exacto, PDF real comprimido jsPDF de3202
+bytes usando zlibSync parcheado y test real servidor `contract-pdf-server`1/1PASS.
+No se ejecutó el ZIP malformado del aviso sobre la versión vulnerable. Estos
+checks no sustituyen la CI completa del commit de seguridad ni acreditan parche
+en producción. La imagen candidata12bde93d no contiene este parche: reconstruir y
+actualizar los controles de publicación antes de presentarla como el master actual.
+
 ## Publicación preparada, bloqueada por herramienta — 02:23 UTC
 
 La nueva separación de canales está implementada y probada localmente, **no
