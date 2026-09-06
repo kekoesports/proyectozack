@@ -109,6 +109,11 @@ jobs:
       # The ordinary test suite mocks integrations; no production credentials.
       # Optional PostgreSQL concurrency tests run separately with a disposable DB.
       - run: npm run test:ci -- --maxWorkers=2
+      - name: Studio tenant and agency isolation (in-memory PostgreSQL)
+        run: |
+          npm run test:studio:isolation
+          npm run test:studio:production
+          npm run test:studio:agency
 
   build:
     name: Build
