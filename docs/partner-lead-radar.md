@@ -7,6 +7,12 @@ Ningún semáforo constituye aprobación jurídica ni autorización para contact
 
 ## Estado comprobado — corte del 6 septiembre 2026, 01:50 UTC
 
+**Actualización 11:05 UTC:** el nuevo destino crm-leads ya está instalado, con
+guía fijada y lote real 3 entregado/ACK confirmado; la automatización diaria
+existente también está actualizada. [Evidencias y límites actuales](discord-routing-release-2026-09-06.md).
+El lote de hoy añade un descarte, no una nueva oportunidad. Lo siguiente conserva
+los recibos históricos del canal anterior y no debe reenviarse.
+
 Según las [comprobaciones reales](automation-real-checks-2026-09-06.md), Partners
 ya completó el recorrido CRM → n8n → guard → Discord:
 

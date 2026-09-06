@@ -1,5 +1,14 @@
 # Comprobaciones reales de automatizaciones — 6 septiembre 2026
 
+## Estado posterior: publicado y probado — 11:05 UTC
+
+La autorización posterior del usuario permitió completar la publicación del master
+`c26c8e1d` en el VPS existente. Cuatro canales privados con guías fijadas, KPI real
+completo y pruebas CRM/n8n/Discord/ACK y replay verificadas. Véase el
+[cierre con recibos, resultados y límites](discord-routing-release-2026-09-06.md).
+Queda una hoja con HTTP 503 y cobertura parcial por límites de búsqueda; no declarar
+salud total. Los bloqueos y candidatos inferiores son historia, no el estado vigente.
+
 ## KPI completo actual: lectura confirmada, envío bloqueado — 02:28 UTC
 
 Se preparó una prueba independiente de la publicación: leer el endpoint oficial

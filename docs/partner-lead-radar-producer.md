@@ -1,9 +1,10 @@
 # Productor diario Partners CS2: entrega comprobable
 
-Guía actualizada el 2026-09-06. El transporte SSH diario ya se instaló; los
-lotes 1 TEST y 2 REAL tienen entrega/ACK comprobados en el canal anterior.
-La actualización hacia **crm-leads** y la prueba del horario diario siguen
-pendientes. Véase [estado y separación de canales](partner-lead-radar.md).
+Guía actualizada el 2026-09-06, después de publicar c26c8e1d. Transporte hacia
+**crm-leads** instalado y lote real 3 entregado/ACK/GET verificados a las 10:55 UTC.
+La automatización existente de las 09:00 Madrid conserva su identidad y ya usa
+esa ruta; el próximo disparo diario desatendido todavía no está probado.
+Véase [cierre operativo y límites](discord-routing-release-2026-09-06.md).
 Esta guía no instala, activa ni demuestra por sí sola una automatización.
 
 Sólo investigación pública e importación al CRM interno. No enviar correos,
