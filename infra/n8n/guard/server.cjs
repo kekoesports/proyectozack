@@ -7,11 +7,14 @@ const { makeClients } = require('./clients.cjs');
 const handlers = require('./handlers.cjs');
 const { pollPipeline, pollKpi } = require('./pollers.cjs');
 const { creators } = require('./creators.cjs');
+const { partners } = require('./partners.cjs');
+const { validateRoutingConfig, loadRoutingPolicy } = require('./routing.cjs');
 function equal(a, b) {
   const x = Buffer.from(a), y = Buffer.from(b);
   return x.length === y.length && crypto.timingSafeEqual(x, y);
 }
 function validateConfig(c) {
+  validateRoutingConfig(c);
   for (const key of ['crmToken', 'discordToken']) {
     if (typeof c[key] !== 'string' || c[key].length < 20) throw Error('missing_config');
   }
@@ -37,8 +40,9 @@ async function createService(config, directory, request) {
   const stored = await store.get('installation-policy');
   if (!stored || stored.hash !== policyHash) throw Error('persistent_policy_missing_or_changed');
   const ctx = { config, store, lock: store.lock, ...makeClients(config, store, request) };
+  await loadRoutingPolicy(ctx);
   const routes = { notify: handlers.notify, digest: handlers.digest, intake: handlers.intake,
-    progress: handlers.progress, pipeline: pollPipeline, kpi: pollKpi, creators };
+    progress: handlers.progress, pipeline: pollPipeline, kpi: pollKpi, creators, partners };
   let stopping = false;
   const server = http.createServer(async (req, res) => {
     const reply = (status, body) => { res.writeHead(status, { 'Content-Type': 'application/json' }); res.end(JSON.stringify(body)); };

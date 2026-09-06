@@ -9,6 +9,7 @@ const { once } = require('node:events');
 const { makeStore } = require('./store.cjs');
 const { initialize } = require('./initialize.cjs');
 const { createService } = require('./server.cjs');
+const { initialPartnerRollout, ROLLOUT_KEY } = require('./partners.cjs');
 
 // Destinations are fixed public identifiers required by the service contract.
 // Tokens, actor and payloads are synthetic. Only an ephemeral loopback listener
@@ -64,7 +65,7 @@ async function running(t, check) {
 
 for (const [name, token] of [['absent', null], ['wrong', 'wrong-synthetic-token']]) {
   test('HTTP missing/incorrect authentication is 401: ' + name, (t) => running(t, async f => {
-    for (const target of ['/health', '/run/kpi', '/run/notify', '/run/creators']) {
+    for (const target of ['/health', '/run/kpi', '/run/notify', '/run/creators', '/run/partners']) {
       const response = await call(f.service.server, target, { token, method: target === '/health' ? 'GET' : 'POST' });
       assert.deepEqual(response, { status: 401, body: { ok: false, error: 'unauthorized' } });
     }
@@ -87,7 +88,7 @@ test('authenticated HTTP health exposes no token and makes no provider request',
   assert.equal(response.status, 200); assert.equal(response.body.persistentPolicy, true);
   assert.ok(!JSON.stringify(response).includes(config.crmToken));
   assert.ok(!JSON.stringify(response).includes(config.discordToken));
-  assert.deepEqual(response.body.scopes.sort(), ['creators', 'digest', 'intake', 'kpi', 'notify', 'pipeline', 'progress']);
+  assert.deepEqual(response.body.scopes.sort(), ['creators', 'digest', 'intake', 'kpi', 'notify', 'partners', 'pipeline', 'progress']);
   assert.equal(f.externalCalls(), 0);
 }));
 test('authenticated creators route uses the CRM outbox contract and rejects caller-supplied content', t => running(t, async f => {
@@ -101,6 +102,32 @@ test('authenticated creators route uses the CRM outbox contract and rejects call
   assert.equal((await f.store.get('last-run:creators')).result.ok, true);
   assert.equal((await call(f.service.server, '/run/creators', { body: '{"message":"forbidden"}' })).status, 502);
   assert.equal(reads, 1); assert.equal(f.externalCalls(), 0);
+}));
+
+test('authenticated partners route requires explicit rollout state before even reading CRM', t => running(t, async f => {
+  const response = await call(f.service.server, '/run/partners');
+  assert.deepEqual(response, { status: 502, body: { ok: false, error: 'partner_rollout_missing_or_invalid' } });
+  assert.equal(f.externalCalls(), 0); assert.equal(await f.store.get(ROLLOUT_KEY), null);
+}));
+
+test('partners HTTP route accepts only an empty wake-up and retains other policy unchanged', t => running(t, async f => {
+  const previousPolicy = await f.store.get('installation-policy');
+  await f.store.put(ROLLOUT_KEY, initialPartnerRollout(config, config.reactivationAfter, 0));
+  let reads = 0;
+  f.service.ctx.crm = async route => {
+    assert.equal(route, '/api/automation/discord/partner-leads'); reads++;
+    return { ok: true, configured: true, notifications: [] };
+  };
+  const response = await call(f.service.server, '/run/partners');
+  assert.equal(response.status, 200); assert.equal(response.body.delivered, 0); assert.equal(reads, 1);
+  assert.equal((await f.store.get('last-run:partners')).result.ok, true);
+  for (const body of ['{"message":"forbidden"}', '{"channelId":"999999999999999999"}', '{"maxHistoricalBatchId":0}']) {
+    assert.equal((await call(f.service.server, '/run/partners', { body })).status, 502);
+  }
+  assert.equal((await call(f.service.server, '/run/partners', { method: 'GET' })).status, 404);
+  assert.equal((await call(f.service.server, '/run/partners?force=true')).status, 404);
+  assert.equal(reads, 1); assert.equal(f.externalCalls(), 0);
+  assert.deepEqual(await f.store.get('installation-policy'), previousPolicy);
 }));
 test('startup refuses a missing policy without initializing state or network', async t => {
   const f = await fixture(t); let externalCalls = 0;

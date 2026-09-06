@@ -1,5 +1,14 @@
 # Creator Discovery — informe de entrega en 22 puntos
 
+**Nota de continuidad:** el cuerpo siguiente conserva el corte histórico de las
+17:45 UTC. Para el build Linux posterior, migraciones productivas, candidato,
+pruebas Discord y bloqueos vigentes, consultar
+[la comprobación operativa posterior](../automation-real-checks-2026-09-06.md).
+Las frases históricas «sólo fixtures», «Linux no completado» y «workflow no importado»
+no describen ese estado posterior. La versión pública `fb394a1f` y el discovery
+nuevo ya están operativos según ese informe posterior, que conserva sus horas,
+recibos y límites; una revisión adicional de Sheets/canales sigue en preparación.
+
 Fecha: **5 de septiembre de 2026**. Este informe recoge la implementación y las pruebas comunicadas por el operador, junto con la revisión local independiente. La última conectividad real de proveedores corresponde a **15:16:28 UTC**; las validaciones locales posteriores no actualizan esa fecha de evidencia productiva.
 
 ## Resultado y alcance

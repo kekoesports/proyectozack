@@ -1,6 +1,7 @@
 'use strict';
 const { hash } = require('./store.cjs');
 const { progress } = require('./progress.cjs');
+const { loadRoutingPolicy } = require('./routing.cjs');
 const stamp = (ctx) => ctx.now();
 function split(content) {
   if (typeof content !== 'string') throw Error('invalid_message');
@@ -28,14 +29,19 @@ async function e2e(ctx, body) {
   return ctx.lock('e2e', async () => {
     const existing = await ctx.store.get('e2e:' + id);
     if (existing?.result) return { ...existing.result, duplicate: true };
+    const routing = await loadRoutingPolicy(ctx);
     let entry = existing;
     if (!entry) {
-      entry = { id, receivedAt: stamp(ctx), payload: {
+      entry = { id, receivedAt: stamp(ctx),
+        ...(routing ? { channelId: routing.intakeChannelId } : {}), payload: {
         source: 'api', externalId: id,
         rawText: '[TEST SocialPro Automation] Prueba interna técnica. NO aprobar. Sin campaña, importes, factura, contrato ni envío externo.',
         proposedDeal: { name: '[TEST SocialPro Automation] ' + id }
       } };
       await ctx.store.put('e2e:' + id, entry);
+    }
+    if (entry.channelId !== undefined && ![ctx.config.pipelineChannelId, ctx.config.kpiChannelId].includes(entry.channelId)) {
+      throw Error('test_destination_blocked');
     }
     if (!entry.draftId) {
       const r = await ctx.crm('/api/automation/deal-drafts', { method: 'POST', body: entry.payload });
@@ -54,7 +60,7 @@ async function e2e(ctx, body) {
       + '\nBorrador técnico #' + entry.draftId + ' · NO aprobar; no es un trato real.'
       + '\nReintento controlado antes del envío. Replay del mismo ID: sin mensaje adicional.'
       + '\nSin facturas, pagos, contratos ni comunicaciones externas.'
-    ], ctx.config.kpiChannelId);
+    ], entry.channelId ?? ctx.config.kpiChannelId);
     if (receipts.length !== 1) throw Error('test_message_count');
     const result = { ok: true, testEventId: id, draftId: entry.draftId, crmReadback: true,
       discord: receipts[0], processedAt: stamp(ctx), transientFaultAt: entry.transientFaultAt || null };
@@ -112,10 +118,16 @@ async function intake(ctx, body) {
   if (sourceTime <= Date.parse(ctx.config.reactivationAfter) || sourceTime > Date.parse(ctx.now())) throw Error('intake_historical_blocked');
   if (![ctx.config.pipelineChannelId, ctx.config.kpiChannelId].includes(body.sourceChannelId)) throw Error('intake_channel_blocked');
   return ctx.lock('intake:' + source + ':' + body.externalId, async () => {
+    const routing = await loadRoutingPolicy(ctx);
     const key = 'intake:' + source + ':' + body.externalId, fingerprint = hash(JSON.stringify(body));
     let entry = await ctx.store.get(key);
     if (entry && entry.fingerprint !== fingerprint) throw Error('intake_payload_conflict');
     if (entry?.result) return { ...entry.result, duplicate: true };
+    if (routing && (sourceTime <= Date.parse(routing.activatedAt)
+      || (entry && (!Number.isFinite(Date.parse(entry.receivedAt))
+        || Date.parse(entry.receivedAt) <= Date.parse(routing.activatedAt))))) {
+      throw Error('intake_pre_cutover_requires_review');
+    }
     if (!entry) {
       entry = { fingerprint, receivedAt: stamp(ctx) };
       await ctx.store.put(key, entry);
@@ -129,12 +141,12 @@ async function intake(ctx, body) {
     // Existing pre-restoration drafts are never replayed into Discord.
     const createdAt = Date.parse(r.draft.createdAt);
     if (!Number.isFinite(createdAt) || createdAt > Date.parse(ctx.now())) throw Error('intake_invalid_receipt_date');
-    const historical = createdAt < Date.parse(ctx.config.reactivationAfter);
+    const historical = createdAt < Date.parse(routing?.activatedAt || ctx.config.reactivationAfter);
     const text = '📥 BORRADOR RECIBIDO #' + r.draft.id + '\n'
       + String(r.draft.proposedDeal?.name || 'Pendiente de completar').slice(0, 200)
       + '\nEstado: ' + r.draft.status + '\nFalta: ' + (r.draft.missingFields || []).join(', ')
       + '\nhttps://socialpro.es/admin/automation-drafts/' + r.draft.id;
-    if (!historical) await deliverPlan(ctx, key, [text], ctx.config.kpiChannelId);
+    if (!historical) await deliverPlan(ctx, key, [text], routing ? routing.intakeChannelId : ctx.config.kpiChannelId);
     const result = { ok: true, draftId: r.draft.id, draftStatus: r.draft.status, historicalSkipped: historical, at: stamp(ctx) };
     await ctx.store.put(key, { ...entry, result });
     return result;

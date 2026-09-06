@@ -1,8 +1,12 @@
 'use strict';
 const { hash } = require('./store.cjs');
+const { configured, destination, validateRoutingConfig, loadRoutingPolicy } = require('./routing.cjs');
 function makeClients(config, store, request = fetch) {
+  validateRoutingConfig(config);
   const now = () => new Date().toISOString();
-  const channels = new Set([config.pipelineChannelId, config.kpiChannelId]);
+  const channels = new Set([config.pipelineChannelId, config.kpiChannelId,
+    destination(config, 'creator'), destination(config, 'partner')]);
+  const routing = () => loadRoutingPolicy({ config, store, now });
   function channel(id) { if (!channels.has(id)) throw Error('channel_not_allowed'); }
   async function discord(path, method = 'GET', body) {
     const response = await request('https://discord.com/api/v10' + path, {
@@ -23,21 +27,25 @@ function makeClients(config, store, request = fetch) {
   }
   async function crm(path, options = {}) {
     const method = options.method || 'GET';
-    const reads = /^\/api\/automation\/(?:deals\/digest(?:\?q=[^#]*)?|discord\/(?:deal-created|creator-discovery)|deal-drafts\/[1-9]\d*)$/;
+    const reads = /^\/api\/automation\/(?:deals\/digest(?:\?q=[^#]*)?|discord\/(?:deal-created|creator-discovery|partner-leads)|deal-drafts\/[1-9]\d*)$/;
     const creatorRead = /^\/api\/automation\/discord\/creator-discovery\?since=\d{4}-\d{2}-\d{2}T\d{2}%3A\d{2}%3A\d{2}\.\d{3}Z$/.test(path)
       && path === '/api/automation/discord/creator-discovery?since=' + encodeURIComponent(config.reactivationAfter);
     const writes = /^\/api\/automation\/(?:deal-drafts|discord\/pipeline-deals|discord\/deal-created\/[1-9]\d*\/ack|deals\/sync)$/;
     const alertAck = /^\/api\/automation\/deals\/[1-9]\d*\/alerts\/ack$/.test(path);
     const creatorAck = /^\/api\/automation\/discord\/creator-discovery\/[1-9]\d*\/ack$/.test(path);
+    const partnerAck = /^\/api\/automation\/discord\/partner-leads\/[1-9]\d*\/ack$/.test(path);
+    if (partnerAck && (!options.body || typeof options.body !== 'object'
+      || Array.isArray(options.body) || Object.keys(options.body).length !== 0)) throw Error('invalid_partner_ack');
     if (creatorAck && (!options.body || Object.keys(options.body).length !== 2
       || !Object.hasOwn(options.body, 'messageId') || !Object.hasOwn(options.body, 'channelId')
       || typeof options.body.messageId !== 'string' || !/^\d{17,20}$/.test(options.body.messageId)
-      || options.body.channelId !== config.kpiChannelId)) throw Error('invalid_creator_ack');
+      || options.body.channelId !== destination(config, 'creator'))) throw Error('invalid_creator_ack');
     if (alertAck && (!options.body || Object.keys(options.body).length !== 1
       || ![70, 80, 100].includes(options.body.level))) throw Error('invalid_alert_ack');
-    if (!((method === 'GET' && (reads.test(path) || creatorRead)) || (method === 'POST' && (writes.test(path) || alertAck || creatorAck)))) {
+    if (!((method === 'GET' && (reads.test(path) || creatorRead)) || (method === 'POST' && (writes.test(path) || alertAck || creatorAck || partnerAck)))) {
       throw Error('crm_effect_not_allowed');
     }
+    if (configured(config) && (creatorAck || partnerAck)) await routing();
     const r = await request('https://socialpro.es' + path, {
       method, redirect: 'error', signal: AbortSignal.timeout(path.endsWith('/sync') ? 150000 : 25000),
       headers: { Authorization: 'Bearer ' + config.crmToken, 'Content-Type': 'application/json' },
@@ -50,6 +58,7 @@ function makeClients(config, store, request = fetch) {
   async function sendOnce(key, id, content) {
     channel(id);
     if (typeof content !== 'string' || !content.trim() || content.length > 2000) throw Error('invalid_discord_content');
+    if (![config.pipelineChannelId, config.kpiChannelId].includes(id)) await routing();
     return store.lock('delivery:' + key, async () => {
       const recordKey = 'delivery:' + key;
       let row = await store.get(recordKey);

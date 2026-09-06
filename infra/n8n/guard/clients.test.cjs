@@ -117,3 +117,45 @@ test('numeric message identity and unknown reaction never reach HTTP', async () 
   await assert.rejects(f.client.reactOnce('bad', CHANNEL, ID, '❌'), /invalid_reaction/);
   assert.equal(f.calls.length, 0);
 });
+
+test('partner client permits only exact list and empty-body ACK via existing CRM credential', async () => {
+  const f = fixture((url, options) => options.method === 'GET'
+    ? Response.json({ ok: true, configured: true, notifications: [] })
+    : Response.json({ ok: true, acknowledged: true }));
+  assert.deepEqual(await f.client.crm('/api/automation/discord/partner-leads'),
+    { ok: true, configured: true, notifications: [] });
+  assert.deepEqual(await f.client.crm('/api/automation/discord/partner-leads/7/ack', { method: 'POST', body: {} }),
+    { ok: true, acknowledged: true });
+  assert.equal(f.calls.length, 2);
+  for (const call of f.calls) {
+    assert.equal(call.options.headers.Authorization, 'Bearer ' + config.crmToken);
+    assert.equal(call.options.redirect, 'error');
+    assert.ok(call.url.startsWith('https://socialpro.es/api/automation/discord/partner-leads'));
+  }
+  assert.equal(f.calls[1].options.body, '{}');
+});
+
+test('partner ACK refuses missing, non-object or extra body fields before HTTP', async () => {
+  const f = fixture();
+  for (const body of [undefined, null, [], '', 'text', 0, false, { messageId: ID }, { channelId: CHANNEL }]) {
+    await assert.rejects(f.client.crm('/api/automation/discord/partner-leads/7/ack', { method: 'POST', body }), /invalid_partner_ack/);
+  }
+  assert.equal(f.calls.length, 0);
+});
+
+test('partner routes cannot expand to intake, filters, traversal or financial effects', async () => {
+  const f = fixture();
+  for (const [route, options] of [
+    ['/api/automation/partner-leads', { method: 'POST', body: {} }],
+    ['/api/automation/discord/partner-leads', { method: 'POST', body: {} }],
+    ['/api/automation/discord/partner-leads?since=2026-09-06', {}],
+    ['/api/automation/discord/partner-leads/0/ack', { method: 'POST', body: {} }],
+    ['/api/automation/discord/partner-leads/01/ack', { method: 'POST', body: {} }],
+    ['/api/automation/discord/partner-leads/7/ack?force=true', { method: 'POST', body: {} }],
+    ['/api/automation/discord/partner-leads/7/ack', { method: 'GET', body: {} }],
+    ['/api/automation/discord/partner-leads/7/ack', { method: 'DELETE', body: {} }],
+    ['/api/automation/discord/partner-leads/../invoices', { method: 'POST', body: {} }],
+    ['/api/automation/invoices', { method: 'POST', body: {} }],
+  ]) await assert.rejects(f.client.crm(route, options), /crm_effect_not_allowed/);
+  assert.equal(f.calls.length, 0);
+});
