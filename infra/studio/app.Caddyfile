@@ -1,0 +1,31 @@
+# Additive site block; validate together with the existing VPS Caddyfile.
+# Both SocialPro domains must use this same tested web release and database.
+app.socialpro.es {
+	encode zstd gzip
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		X-Robots-Tag "noindex, nofollow, noarchive"
+		-Server
+	}
+	@home path /
+	redir @home /studio temporary
+	reverse_proxy socialpro-studio-app-web-1:3000 {
+		header_up X-Real-IP {remote_host}
+		header_up X-Forwarded-Proto {scheme}
+		flush_interval -1
+		transport http {
+			response_header_timeout 120s
+			read_timeout 180s
+		}
+	}
+	@studioUpload path /api/studio/assets
+	request_body @studioUpload {
+		max_size 22MB
+	}
+	@otherBodies not path /api/studio/assets
+	request_body @otherBodies {
+		max_size 12MB
+	}
+}

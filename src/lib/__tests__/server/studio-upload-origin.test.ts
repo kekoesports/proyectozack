@@ -10,15 +10,19 @@ beforeEach(() => {
   mockAuth.mockResolvedValue({ repository: {} });
 });
 
-test('canonical origin passes behind a reverse proxy with an internal Next URL', async () => {
+test.each(['https://socialpro.es', 'https://app.socialpro.es'])('public origin %s passes behind a reverse proxy with an internal Next URL', async (origin) => {
   const request = new Request('http://0.0.0.0:3000/api/studio/assets', {
-    method: 'POST', headers: { origin: 'https://socialpro.es' },
+    method: 'POST', headers: { origin },
   });
   // Missing body, not forbidden: origin was accepted without trusting Host.
   expect((await POST(request)).status).toBe(400);
 });
 
-test.each(['https://attacker.test', 'null', 'https://socialpro.es/unsafe', 'http://socialpro.es'])('rejects untrusted origin %s', async (origin) => {
+test.each([
+  'https://attacker.test', 'null', 'https://socialpro.es/unsafe', 'http://socialpro.es',
+  'http://app.socialpro.es', 'https://app.socialpro.es.evil.test',
+  'https://app.socialpro.es/', 'https://app.socialpro.es:444', 'https://n8n.socialpro.es',
+])('rejects untrusted origin %s', async (origin) => {
   const request = new Request('http://0.0.0.0:3000/api/studio/assets', {
     method: 'POST', headers: { origin, 'x-forwarded-host': 'socialpro.es' },
   });

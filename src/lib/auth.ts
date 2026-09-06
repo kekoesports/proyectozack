@@ -12,6 +12,7 @@ import { user as authUser } from '@/db/schema/auth';
 import { talentUsers, studioInvitations } from '@/db/schema/studio';
 import { sendStudioVerificationEmail } from '@/lib/studio/verification-email';
 import { logAuthDiagnostic } from '@/lib/auth-logger';
+import { STUDIO_APP_ORIGIN } from '@/lib/studio/origins';
 
 /** Derive www/non-www variants + production domain so auth works regardless of env config. */
 function getSiteOrigins(siteUrl: string): string[] {
@@ -27,6 +28,8 @@ function getSiteOrigins(siteUrl: string): string[] {
   // Always include the production domain (handles Vercel preview URL as SITE_URL)
   origins.add('https://socialpro.es');
   origins.add('https://www.socialpro.es');
+  // Same account database, separate host-only cookies (no wildcard subdomain trust).
+  origins.add(STUDIO_APP_ORIGIN);
   origins.add('https://app.kekopilot.com');
   return [...origins];
 }
