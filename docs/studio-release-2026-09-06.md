@@ -9,16 +9,29 @@ read_when: using Studio in production, deploying the visual Studio release, or d
 Online desde el 6 de septiembre a las 16:41 UTC. Este registro sustituye las
 notas históricas «solo local». Publicar la aplicación no hace públicos sus medios.
 
-- URL canónica de esta entrega: `https://socialpro.es/studio`.
-- Agencia: `https://socialpro.es/admin/studio`, usuarios admin/manager existentes.
-- `app.socialpro.es` no tiene DNS. Su activación queda pendiente de IONOS,
-  certificado, orígenes de autenticación y callbacks; no basta con un CNAME.
+- Entrada de Studio desde las 17:02 UTC: `https://app.socialpro.es`.
+  `https://socialpro.es/studio` continúa disponible. La web pública conserva su
+  dominio canónico `socialpro.es`.
+- Agencia: `/admin/studio` en ambos dominios, usuarios admin/manager existentes.
+- IONOS: único registro añadido `A app → 159.195.112.100`, TTL 300,
+  id `1498445897`. Confirmado en DNS autoritativo y resolver público; HTTPS
+  válido emitido automáticamente por Caddy, sin desactivar protección de dominio.
 - Imagen de apertura: `socialpro:studio-f68e6a73`, fuente `f68e6a73`.
-- Imagen vigente desde las 16:47 UTC: `socialpro:studio-29ebbf41`, fuente
+- Imagen anterior desde las 16:47 UTC: `socialpro:studio-29ebbf41`, fuente
   `29ebbf41`, servicio `socialpro-studio-final-web-1`. Añade compatibilidad de
   login con contraseñas válidas anteriores a la política nueva de alta.
+- Imagen vigente desde las 17:02 UTC: `socialpro:studio-app-0730b356`, fuente
+  `0730b356e1ca29768f7fca518e2c16e7234fc214`, servicio
+  `socialpro-studio-app-web-1`, imagen SHA256
+  `f46dd0767a79cd8c5f90fb221a8765d55b4a8ed928702564a6095c0c8ccda119`.
+  Añade el origen explícito de la app a auth y subida privada. Cookies host-only,
+  sin comodines ni ampliación a otros subdominios; puede requerir iniciar sesión
+  de nuevo, con las mismas credenciales. No es SSO entre cookies de ambos hosts.
 - PR [446](https://github.com/kekoesports/proyectozack/pull/446) integrada mediante
   merge `36696c5a`. No se reescribió historia ni se sustituyeron cambios ajenos.
+- Subdominio: PR [447](https://github.com/kekoesports/proyectozack/pull/447),
+  merge `4df65033`. Lint/tipos y tests unitarios/integración/fuzz aprobados en CI;
+  build y smoke Docker finales también aprobados directamente en el VPS.
 - Worker: `socialpro-studio-worker:eea5ecc4`; código de render idéntico al de la
   revisión web. Los cambios posteriores afectan proxy, upload HTTP e infraestructura.
 - Misma base PostgreSQL, secreto de Better Auth y almacenes privados. Se conservan
@@ -92,6 +105,18 @@ CRM sí son reutilizables; un handle declarado no equivale a conexión OAuth.
 - Contraseña corta heredada: autenticación Better Auth real en el clon y
   formulario de navegador local comprobados. Las nuevas altas conservan mínimo
   12 caracteres, también validado por el servidor.
+- Subdominio: 12 tests de orígenes, TypeScript, lint y `drizzle-kit check`.
+  Docker final construido con base pública de solo lectura, sin credenciales
+  de producción en el build; no se aplicó ninguna migración adicional.
+- Misma imagen final en clon aislado: logins Better Auth de creador en ambos
+  dominios, otro creador y agencia en `app`; sesión Secure/HttpOnly/SameSite=Lax,
+  sin Domain. SSR de inicio/stats/plantillas/crear/biblioteca y agencia; upload
+  privado real, lectura 206 y denegación 404 a otro talento. Auth y upload rechazan
+  orígenes HTTP, subdominios no autorizados y dominios parecidos maliciosos.
+- Navegador de producción: sesión real de Pablo/ADMIN y 148 fichas verificadas
+  en `socialpro.es/admin/studio`. En `app`, entrada redirige correctamente al
+  login, formulario completo y sin errores JS; móvil 390 px sin overflow.
+  Prueba autenticada del usuario real en el nuevo host pendiente de su login.
 
 ## Operación y reversión
 
@@ -106,8 +131,8 @@ Los servicios nuevos se gestionan con `infra/studio/web.yaml` y
 archivos. No ejecutar `compose down` sobre el CRM. El contenedor anterior
 `socialpro-crm-app-1` se conserva, sin modificar scheduler, n8n ni KekoPilot.
 
-Proyecto Compose web vigente: `socialpro-studio-final`; configuración desplegada
-en `source-auth/infra/studio/web.yaml` dentro del release, `STUDIO_WEB_IMAGE`
+Proyecto Compose web vigente: `socialpro-studio-app`; configuración desplegada
+en `source-app/infra/studio/web.yaml` dentro del release, `STUDIO_WEB_IMAGE`
 según la imagen vigente y `STUDIO_WEB_ENV` apuntando a `production-studio.env`.
 El trabajador usa proyecto `socialpro-studio`, `source-upload/infra/studio/compose.yaml`
 y el archivo mínimo privado `worker.env` (sin credenciales de proveedor).
@@ -115,12 +140,22 @@ Los contenedores de ensayo y el candidato intermedio están detenidos. La cuenta
 temporal de build de solo lectura quedó `NOLOGIN`; se retiró únicamente la red
 extra del builder añadida para esta prueba. Los dumps permanecen privados.
 
-Caddy cambia **solo** el upstream de `socialpro.es`. Subidas Studio admiten
+Caddy añade `app.socialpro.es` y cambia el upstream de `socialpro.es` al mismo
+servicio nuevo. n8n, KekoPilot, los dominios alternativos y el correo no cambian.
+El bloque versionado está en `infra/studio/app.Caddyfile`; raíz → `/studio`,
+`X-Robots-Tag: noindex, nofollow, noarchive`, TLS automático. Subidas Studio admiten
 22 MB de cuerpo multipart; el resto conserva 12 MB. Next permite un buffer de
 22 MiB, y el endpoint mantiene la validación propia de 20 MiB. El origen de
-subida se compara con el dominio configurado, no con el hostname interno de Next.
+subida se compara con el dominio configurado o el origen exacto de `app`, nunca
+con el hostname interno de Next ni un Host reenviado por el cliente.
 
-Rollback: restaurar el archivo privado `Caddyfile.before-studio` únicamente si
+Rollback **del subdominio**: `studio-app-edge.mjs rollback` restaura
+`Caddyfile.before-app` solo si el actual coincide con `Caddyfile.with-app`.
+Preserva inode; validar y recargar Caddy. Devuelve SocialPro a la imagen
+`29ebbf41` y retira el vhost app, sin tocar DB ni los demás dominios. El DNS
+seguiría presente: retirarlo únicamente si también se decide retirar la app.
+
+Rollback histórico del primer Studio: restaurar `Caddyfile.before-studio` únicamente si
 el actual sigue coincidiendo con `Caddyfile.studio`, preservar su inode, validar
 y recargar Caddy. El helper privado `studio-edge.mjs rollback` incorpora esa
 comparación. Detener únicamente el worker nuevo si procede. No eliminar las
