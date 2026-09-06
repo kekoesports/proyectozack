@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { previewStudioMotion } from '@/app/studio/motion-actions';
+import { previewStudioMotion, previewStudioTemplate } from '@/app/studio/motion-actions';
 
 const mockProject = jest.fn();
 const mockAuth = jest.fn();
@@ -13,7 +13,7 @@ beforeEach(() => {
   jest.clearAllMocks();
   mockAuth.mockResolvedValue({ repository: { project: mockProject } });
   mockProject.mockResolvedValue({ id: input.projectId });
-  mockFonts.mockResolvedValue({ display: 'display.ttf', body: 'body.ttf' });
+  mockFonts.mockResolvedValue({ display: 'display.ttf', body: 'body.ttf', logo: 'socialpro.png' });
 });
 test('preview rejects missing authentication before reading fonts or projects', async () => {
   mockAuth.mockRejectedValue(new Error('AUTH_REQUIRED'));
@@ -34,4 +34,12 @@ test('owned preview renders escaped text inside the fixed offline composition', 
   expect(result.ok).toBe(true);
   if (result.ok) { expect(result.html).toContain('&lt;script&gt;'); expect(result.html).toContain("connect-src 'none'"); }
   expect(mockProject).toHaveBeenCalledWith(input.projectId);
+});
+test('catalog preview requires auth, validates IDs and never queries private projects', async () => {
+  mockAuth.mockRejectedValueOnce(new Error('AUTH_REQUIRED'));
+  await expect(previewStudioTemplate({ motion: 'quiz-v1', format: '9:16', palette: 'dark' })).rejects.toThrow('AUTH_REQUIRED');
+  expect(mockFonts).not.toHaveBeenCalled();
+  expect(await previewStudioTemplate({ motion: 'remote-url', format: '9:16', palette: 'dark' })).toMatchObject({ ok: false });
+  expect(await previewStudioTemplate({ motion: 'quiz-v1', format: '9:16', palette: 'dark' })).toMatchObject({ ok: true });
+  expect(mockProject).not.toHaveBeenCalled();
 });

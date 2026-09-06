@@ -11,6 +11,7 @@ COPY tsconfig.json ./
 COPY src ./src
 COPY scripts ./scripts
 COPY public/fonts/studio ./public/fonts/studio
+COPY public/images/logos/socialpro-full.png ./public/images/logos/socialpro-full.png
 ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 HYPERFRAMES_NO_TELEMETRY=1 \
     DO_NOT_TRACK=1 HYPERFRAMES_BROWSER_PATH=/usr/bin/chromium \
     STUDIO_FFMPEG_BIN=/usr/bin/ffmpeg STUDIO_FFPROBE_BIN=/usr/bin/ffprobe

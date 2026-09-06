@@ -9,7 +9,9 @@ import { ArrowLeft, ArrowRight, Plus, Save, Trash2, Film, Download } from 'lucid
 import { StudioBoard } from '@/lib/schemas/studio-production';
 import { saveStudioBoard, renderStudioBoard } from '@/app/studio/production-actions';
 import type { StudioMediaAsset } from './StudioMedia';
-import { STUDIO_MOTION_DESIGNS, studioMotionSequence } from '@/lib/studio/motion-catalog';
+import { STUDIO_MOTION_DESIGNS, LEGACY_MOTION_DESIGNS, studioMotionSequence } from '@/lib/studio/motion-catalog';
+import { STUDIO_MOTION_EXAMPLES, studioExampleBoard } from '@/lib/studio/motion-examples';
+import { motionLineLimit } from '@/lib/schemas/studio-motion';
 import { StudioMotionPreview } from './StudioMotionPreview';
 
 export function StudioTimeline({ projectId, projectRevision, board, assets, renderEnabled }: {
@@ -43,6 +45,9 @@ export function StudioTimeline({ projectId, projectRevision, board, assets, rend
       <div>{([{ id: 'founder', name: 'Presentación' }, { id: 'creator', name: 'Historia de un creador' }, { id: 'campaign', name: 'Campaña con sentido' }] as const).map((item) =>
         <button type="button" key={item.id} disabled={fields.length > 5} onClick={() => { append(studioMotionSequence(item.id)); setSelected(fields.length); setNotice('Estructura añadida al final, sin guardar todavía. Adapta los textos al guion.'); }}>{item.name} <Plus size={14} /></button>)}</div>
       {fields.length > 5 && <p>Necesitas espacio para 3 escenas (máximo 8).</p>}
+      <p>Colección 02 · ejemplos editables con logo SocialPro. Se añaden al final.</p>
+      <div>{STUDIO_MOTION_EXAMPLES.map((item) => <button type="button" key={item.id} disabled={fields.length + item.designs.length > 8}
+        onClick={() => { append(studioExampleBoard(item.id).scenes); setSelected(fields.length); setNotice('Ejemplo añadido sin sobrescribir tus escenas. Revisa los textos y guarda el montaje.'); }}>{item.name} <Plus size={14} /></button>)}</div>
     </details>
     <div className="studio-edit-stage">
       <div className="studio-preview-checker"><div className={`studio-scene-preview ${document.palette}`} style={{ aspectRatio: document.format?.replace(':', '/') }} key={`${scene?.id}:${scene?.kind}:${scene?.assetId}`}>
@@ -58,16 +63,16 @@ export function StudioTimeline({ projectId, projectRevision, board, assets, rend
         }}><option value="title">Cartela animada</option><option value="video">Clip de vídeo</option><option value="image">Imagen completa</option></select></label>
         {scene.kind === 'title' && <label>Diseño de cartela<select value={scene.motion ?? ''} onChange={(e) => {
           const motion = e.target.value;
-          if (!motion || STUDIO_MOTION_DESIGNS.some((item) => item.id === motion)) {
-            const design = STUDIO_MOTION_DESIGNS.find((item) => item.id === motion);
+          if (!motion || [...STUDIO_MOTION_DESIGNS, ...LEGACY_MOTION_DESIGNS].some((item) => item.id === motion)) {
+            const design = [...STUDIO_MOTION_DESIGNS, ...LEGACY_MOTION_DESIGNS].find((item) => item.id === motion);
             setValue(`scenes.${selected}.motion`, design?.id, { shouldDirty: true });
           }
-        }}><option value="">Clásica · conservar diseño anterior</option>{STUDIO_MOTION_DESIGNS.map((item) => <option value={item.id} key={item.id}>{item.name} · HyperFrames v1</option>)}</select></label>}
+        }}><option value="">Clásica · conservar diseño anterior</option><optgroup label="Colección 02 · logo SocialPro">{STUDIO_MOTION_DESIGNS.map((item) => <option value={item.id} key={item.id}>{item.name}</option>)}</optgroup><optgroup label="Colección anterior · sin cambios">{LEGACY_MOTION_DESIGNS.map((item) => <option value={item.id} key={item.id}>{item.name} · v1</option>)}</optgroup></select></label>}
         {scene.kind !== 'title' && <label>Material<select value={scene.assetId ?? ''} onChange={(e) => setValue(`scenes.${selected}.assetId`, e.target.value || null, { shouldDirty: true })}>
           <option value="">Selecciona un archivo</option>{assets.filter((a) => a.contentType.startsWith(`${scene.kind}/`)).map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
         </select></label>}
         <label>{scene.kind === 'title' ? `Titular visible${scene.motion ? ' · máximo 60 caracteres' : ''}` : 'Nombre interno de escena'}<input {...register(`scenes.${selected}.title`)} maxLength={scene.motion ? 60 : 90} /></label>
-        {scene.kind === 'title' && <label>{scene.motion === 'steps-v1' ? 'Hasta 3 pasos · 48 caracteres por paso' : 'Texto de apoyo'}<textarea {...register(`scenes.${selected}.body`)} rows={3} maxLength={scene.motion ? 150 : 240} /></label>}
+        {scene.kind === 'title' && <label>{motionLineLimit(scene.motion) ? `Hasta ${motionLineLimit(scene.motion)} líneas · 48 caracteres por línea` : 'Texto de apoyo'}<textarea {...register(`scenes.${selected}.body`)} rows={3} maxLength={scene.motion ? 150 : 240} /></label>}
         <div className="studio-field-pair"><label>Duración (s)<input type="number" min="1" max="60" step="0.1" {...register(`scenes.${selected}.duration`, { valueAsNumber: true })} /></label>
           {scene.kind === 'video' && <label>Inicio en clip (s)<input type="number" min="0" max="600" step="0.1" {...register(`scenes.${selected}.start`, { valueAsNumber: true })} /></label>}</div>
         <p>Vídeos e imágenes completos, sin recortar rostros ni miniaturas. No se generan ni se retocan caras.</p>

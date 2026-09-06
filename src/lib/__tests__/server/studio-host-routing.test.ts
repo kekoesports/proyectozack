@@ -3,7 +3,7 @@ import { studioHostRoute } from '@/lib/studio/host-routing';
 test.each(['/', '/admin', '/admin/studio', '/admin/talents/1', '/admin/report.json', '/talentos', '/login-other'])('app %s leads to Studio, never CRM', (path) => {
   expect(studioHostRoute('app.socialpro.es', path, 'GET')).toEqual({ kind: 'redirect', path: '/studio', preserveSearch: false });
 });
-test.each(['/studio', '/studio/projects/123', '/studio/workspaces', '/api/studio/assets', '/api/auth/sign-in/email', '/api/health/live', '/images/talent.webp', '/_next/static/chunk.js'])('app serves its own dependency %s', (path) => {
+test.each(['/studio', '/studio/projects/123', '/studio/workspaces', '/api/studio/assets', '/api/auth/sign-in/email', '/api/health/live', '/images/talent.webp', '/_next/static/chunk.js', '/motion/collection-02/gaming-clip.mp4', '/motion/collection-02/quiz-v1.jpg'])('app serves its own dependency %s', (path) => {
   expect(studioHostRoute('app.socialpro.es', path, 'GET')).toEqual({ kind: 'pass' });
 });
 test.each(['/api/admin/export.json', '/api/trpc/private', '/api/contact', '/api/studio-evil'])('unrelated API %s is not exposed on app', (path) => {
