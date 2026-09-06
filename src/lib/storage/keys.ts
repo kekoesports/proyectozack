@@ -28,6 +28,10 @@ const EXTENSIONES: Record<string, readonly string[]> = {
   json: ['application/json'],
   txt: ['text/plain'],
   zip: ['application/zip'],
+  mp4: ['video/mp4'],
+  wav: ['audio/wav'],
+  ogg: ['audio/ogg'],
+  mp3: ['audio/mpeg'],
 };
 
 /** Solo minúsculas, dígitos, guion y barra. Sin puntos: matan el `..`. */

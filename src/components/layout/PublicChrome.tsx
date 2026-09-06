@@ -28,6 +28,7 @@ const LOGIN_SUFFIXES = ['/login'];
 const HIDE_WHATSAPP_PREFIXES = ['/apuesta-segura-cs2', '/news'];
 
 function isPortalRoute(pathname: string): boolean {
+  if (pathname === '/studio' || pathname.startsWith('/studio/')) return true;
   for (const prefix of PORTAL_PREFIXES) {
     if (!pathname.startsWith(prefix)) continue;
     if (prefix === '/kekopilot' || prefix === '/en/kekopilot') return true;

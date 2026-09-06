@@ -1,0 +1,96 @@
+/** Isolated in-memory integration checks. Never reads env files or contacts a provider. */
+import assert from 'node:assert/strict';
+import { randomUUID } from 'node:crypto';
+import { PGlite } from '@electric-sql/pglite';
+import { drizzle } from 'drizzle-orm/pglite';
+import { generateDrizzleJson, generateMigration } from 'drizzle-kit/api';
+import { eq } from 'drizzle-orm';
+import * as schema from '../src/db/schema';
+import { createStudioRepository } from '../src/lib/studio/repository';
+import { createProductionRepository } from '../src/lib/studio/production-repository';
+import { createChannelRepository } from '../src/lib/studio/channel-repository';
+import { createNarrationRepository, approveStudioNarration } from '../src/lib/studio/narration-repository';
+import { reviewStudioRender } from '../src/lib/studio/render-review';
+import { StudioBoard } from '../src/lib/schemas/studio-production';
+import { StudioProfileDocument } from '../src/lib/schemas/studio-profile';
+
+async function main() {
+  const pg = new PGlite(); const db = drizzle(pg, { schema }); let checks = 0;
+  const check = (value: unknown, name: string) => { assert.ok(value, name); checks++; };
+  try {
+    for (const sql of await generateMigration(generateDrizzleJson({}), generateDrizzleJson(schema))) await pg.exec(sql);
+    const now = new Date();
+    await db.insert(schema.user).values(['a','b','agency'].map((id) => ({ id, name: id, email: `${id}@fixture.test`, emailVerified: true, createdAt: now, updatedAt: now })));
+    const talents = await db.insert(schema.talents).values(['a','b'].map((id) => ({ slug: `fixture-${id}`, name: id, role: 'creator', game: 'Gaming', platform: 'youtube' as const, bio: 'Synthetic test', gradientC1: '#f5632a', gradientC2: '#e03070', initials: id }))).returning();
+    const ta = talents[0], tb = talents[1]; assert.ok(ta && tb);
+    await db.insert(schema.talentUsers).values([{ talentId: ta.id, userId: 'a' }, { talentId: tb.id, userId: 'b' }]);
+    const a = createStudioRepository(db, 'a'), b = createStudioRepository(db, 'b');
+    const pa = createProductionRepository(db, 'a'), pb = createProductionRepository(db, 'b');
+    const input = { title: 'Test educativo', template: 'educational' as const, platform: 'instagram' as const, brief: 'An isolated brief for integration tests', script: 'Este guion es exclusivamente una prueba sintética y nunca se enviará a un proveedor.', cta: 'Test' };
+    const project = await a.save(input); assert.ok(project);
+    const asset = await a.addAsset({ name: 'test.png', storageKey: 'studio-fixture/a.png', contentType: 'image/png', size: 20, checksum: 'synthetic', projectId: null }); assert.ok(asset);
+    const foreign = await b.addAsset({ name: 'test.png', storageKey: 'studio-fixture/b.png', contentType: 'image/png', size: 20, checksum: 'synthetic', projectId: null }); assert.ok(foreign);
+    const board = StudioBoard.safeParse({ version: 1, format: '9:16', palette: 'light', audioAssetId: null,
+      scenes: [{ id: randomUUID(), kind: 'image', assetId: asset.id, title: 'Fixture', body: '', duration: 2, start: 0 }] }); assert.ok(board.success);
+    check(await pa.saveBoard(project.id, -1, board.data), 'owner can save timeline');
+    check(await pb.saveBoard(project.id, 0, board.data) === null, 'other member cannot edit timeline');
+    check(await pb.board(project.id) === null, 'timeline cannot be read across members');
+    check(await pa.saveBoard(project.id, -1, board.data) === null, 'initial revision conflict rejected');
+    const forbidden = { ...board.data, scenes: board.data.scenes.map((s) => ({ ...s, assetId: foreign.id })) };
+    check(await pa.saveBoard(project.id, 0, forbidden) === null, 'foreign media cannot be embedded');
+    check(await pa.saveBoard(project.id, 0, { ...board.data, audioAssetId: asset.id }) === null, 'image cannot be used as audio');
+    check(await pb.enqueue(project.id, 0, 0) === null, 'render enqueue is scoped');
+    check(await pa.enqueue(project.id, 99, 0) === null, 'stale script render rejected');
+    const render = await pa.enqueue(project.id, 0, 0); assert.ok(render);
+    check((await pa.enqueue(project.id, 0, 0))?.id === render.id, 'repeated render returns same ID');
+    check((await pb.renders(project.id)).length === 0, 'render history is private');
+    check(await reviewStudioRender(db, { id: render.id, decision: 'approved', comment: 'Synthetic check' }, 'agency') === null, 'unfinished render cannot be approved');
+    await db.update(schema.studioRenders).set({ status: 'ready', assetId: asset.id }).where(eq(schema.studioRenders.id, render.id));
+    check(await pa.saveBoard(project.id, 0, board.data), 'new board revision created');
+    check(await reviewStudioRender(db, { id: render.id, decision: 'approved', comment: 'Synthetic check' }, 'agency') === null, 'old montage cannot be approved as current');
+    check(await reviewStudioRender(db, { id: render.id, decision: 'changes_requested', comment: 'Synthetic rejection' }, 'agency'), 'old montage may receive changes request');
+    const turn = { id: randomUUID(), projectId: project.id, revision: 0, prompt: 'Test', engine: 'fixture' };
+    check(!await pb.beginTurn(turn), 'cannot create chat on another creator project');
+    check(await pa.beginTurn(turn), 'chat ID saved before generation');
+    check(!await pa.beginTurn(turn), 'same chat ID cannot generate twice');
+    await pb.finishTurn(turn.id, { message: 'Forbidden', script: null, cta: null, checks: [] });
+    check((await pa.turns(project.id))[0]?.status === 'pending', 'other creator cannot overwrite assistant response');
+    await pa.finishTurn(turn.id, { message: 'Fixture', script: null, cta: null, checks: [] });
+    check((await pa.turns(project.id))[0]?.status === 'complete', 'owner response is persisted');
+    check(!await pb.plan(project.id, now), 'calendar writes scoped');
+    check(await pa.plan(project.id, now), 'calendar stores plan');
+    check((await pb.schedule()).length === 0, 'calendar reads scoped');
+    const ca = createChannelRepository(db, 'a'), cb = createChannelRepository(db, 'b');
+    check(await ca.declare({ platform: 'youtube', handle: 'fixture-a' }), 'handle declared independently of metrics');
+    const channel = (await ca.list())[0]; assert.ok(channel);
+    check(channel.observations.length === 0, 'declared handle has no invented observations');
+    const observation = { source: 'youtube_data_api', providerId: `UC${'a'.repeat(22)}`, title: 'Synthetic fixture', sourceUrl: `https://www.youtube.com/channel/UC${'a'.repeat(22)}`, followers: 123, lifetimeViews: 456, videos: 7, collectedAt: now.toISOString() };
+    check(!await cb.record(channel.id, 'fixture-a', observation), 'other user cannot attach metrics');
+    check(await ca.record(channel.id, 'fixture-a', observation), 'scoped validated observation recorded');
+    check(await ca.declare({ platform: 'youtube', handle: 'fixture-new' }), 'handle changed');
+    check((await ca.list())[0]?.observations.length === 0, 'old metrics removed after account changes');
+    check(!await ca.record(channel.id, 'fixture-a', observation), 'in-flight old handle fetch cannot save');
+    const voiceId = randomUUID();
+    const profile = StudioProfileDocument.safeParse({ version: 1, displayName: 'Fixture A', role: 'Test', bio: 'Synthetic profile', pronunciation: 'Test', voiceStatus: 'approved_external', usageScope: 'Tests only',
+      portraitAssetId: null, voiceAssetId: null, approvedVideoAssetId: null, logoAssetId: null, guidelines: [], team: [], currentCreators: [], collaborators: [], sources: [{ label: 'Synthetic test', kind: 'owner', date: '2026-09-06' }], cases: [], publicationNotes: 'No publication', higgsfieldVoice: { id: voiceId, name: 'Synthetic voice', verifiedAt: now.toISOString() } }); assert.ok(profile.success);
+    await db.insert(schema.studioProfiles).values({ talentId: ta.id, document: profile.data, recordedBy: 'a' });
+    const na = createNarrationRepository(db, 'a'), nb = createNarrationRepository(db, 'b');
+    check(await nb.request(project.id, 0) === null, 'cannot request another identity voice');
+    const narration = await na.request(project.id, 0); assert.ok(narration);
+    check((await na.request(project.id, 0))?.id === narration.id, 'one narration request per script revision');
+    check((await nb.list(project.id)).length === 0, 'narration costs/history scoped');
+    check(!await approveStudioNarration(db, narration.id, 'agency', 300), 'no generation approval before quote');
+    await db.update(schema.studioNarrations).set({ status: 'quoted', creditsMilli: 300, quotedAt: now }).where(eq(schema.studioNarrations.id, narration.id));
+    check(!await approveStudioNarration(db, narration.id, 'agency', 100), 'cannot approve a different price');
+    check(await approveStudioNarration(db, narration.id, 'agency', 300), 'matching current quote approved exactly once');
+    check(!await approveStudioNarration(db, narration.id, 'agency', 300), 'double approval rejected');
+    await db.update(schema.studioNarrations).set({ status: 'quoted', quotedAt: new Date(Date.now() - 3600000), approvedBy: null }).where(eq(schema.studioNarrations.id, narration.id));
+    check(!await approveStudioNarration(db, narration.id, 'agency', 300), 'expired quote rejected');
+    await na.request(project.id, 0);
+    check((await na.list(project.id))[0]?.status === 'quote_requested', 'expired quote can be refreshed without duplicating job');
+    await db.update(schema.talentUsers).set({ active: false }).where(eq(schema.talentUsers.userId, 'a'));
+    check(await pa.board(project.id) === null && (await pa.turns(project.id)).length === 0 && (await na.list(project.id)).length === 0 && (await ca.list()).length === 0, 'revocation removes all production visibility');
+    console.log(JSON.stringify({ ok: true, checks, network: false, realProviderCalls: 0, productionTouched: false }));
+  } finally { await pg.close(); }
+}
+main().catch((error: unknown) => { console.error(error instanceof Error ? error.message : 'Production fixture failed'); process.exitCode = 1; });

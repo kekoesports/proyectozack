@@ -2,6 +2,7 @@ import type { Role } from '@/lib/auth-guard';
 import { hasPermission, type Module, type Action } from '@/lib/permissions';
 
 export type AdminNavKey =
+  | 'studio'
   | 'panel'
   | 'brands'
   | 'talents'
@@ -50,6 +51,7 @@ export type AdminNavDef = {
  * Module gates mirror the page-level requirePermission used by each route.
  */
 export const ADMIN_NAV_CATALOGUE: readonly AdminNavDef[] = [
+  { key: 'studio', href: '/admin/studio', label: 'Content Studio', module: null, roles: ['admin', 'manager'], section: 'more', group: 'Contenido', prefetch: false },
   // primary
   { key: 'panel',       href: '/admin',                 label: 'Panel',            module: 'dashboard',      section: 'primary' },
   { key: 'campanas',    href: '/admin/campanas',        label: 'Tratos',           module: 'campanas',       section: 'primary', prefetch: false },
