@@ -6,6 +6,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   StudioLogin,
+  StudioSignup,
   StudioAuthResponse,
   StudioToken,
 } from '@/lib/schemas/studio';
@@ -23,7 +24,7 @@ export function StudioLoginForm({
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<StudioLogin>({
-    resolver: zodResolver(StudioLogin),
+    resolver: zodResolver(signup ? StudioSignup : StudioLogin),
     defaultValues: { email: '', password: '', name: '' },
   });
   return (
@@ -95,7 +96,7 @@ export function StudioLoginForm({
           autoComplete={signup ? 'new-password' : 'current-password'}
         />
       </label>
-      <small>Mínimo 12 caracteres.</small>
+      {signup && <small>Mínimo 12 caracteres.</small>}
       <p className="studio-error">{errors.password?.message}</p>
       <button className="studio-button" disabled={isSubmitting}>
         {isSubmitting

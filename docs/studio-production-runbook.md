@@ -2,7 +2,11 @@
 read_when: deploying or operating SocialPro Studio workers, investigating failed renders or voice generation
 ---
 
-# SocialPro Studio — operación y despliegue pendiente
+# SocialPro Studio — operación
+
+El estado vigente, imágenes, verificaciones y rollback están en
+[publicación del 6 de septiembre](studio-release-2026-09-06.md). Las notas del
+piloto de este documento no sustituyen ese registro de despliegue.
 
 ## Arquitectura instalada, no despliegue realizado
 
@@ -69,4 +73,4 @@ PGlite permite verificar el piloto sin acceder a producción, pero no acredita c
 
 ## Alcance visual actual
 
-El editor aplica contención sin recorte espacial, cartelas SocialPro ajustadas al formato, entrada/salida suave y audio opcional. No cambia la geometría facial ni vuelve a sintetizar la identidad por editar una cartela. Tampoco es aún una línea de tiempo multipista ni la plantilla completa de motion graphics del máster aprobado. HyperFrames, Whisper y lipsync no se anuncian como conectados.
+El editor aplica contención sin recorte espacial, cartelas SocialPro ajustadas al formato, entrada/salida suave y audio opcional. No cambia la geometría facial ni vuelve a sintetizar la identidad por editar una cartela. Tampoco es aún una línea de tiempo multipista ni la plantilla completa de motion graphics del máster aprobado. HyperFrames sí está conectado; Whisper y lipsync siguen pendientes.

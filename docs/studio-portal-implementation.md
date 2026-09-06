@@ -4,6 +4,9 @@ read_when: continuing SocialPro Studio, reviewing the creator portal, or prepari
 
 # SocialPro Studio — estado de implementación
 
+**Estado vigente de diseño/despliegue:** [publicación del 6 de septiembre](studio-release-2026-09-06.md).
+Las secciones siguientes conservan el historial del piloto, no el estado operativo actual.
+
 ## Ampliación vigente: Motion Collection 01 (6 septiembre 2026)
 
 Se ha integrado **HyperFrames 0.8.30** en el trabajador de montaje existente. `/studio/templates` ofrece tres diseños propios versionados; el editor permite añadir secuencias sin sustituir escenas, previsualizar texto real en un documento aislado y exportar con HyperFrames + FFmpeg. Los montajes sin `motion` conservan el render anterior. No hay DDL adicional.

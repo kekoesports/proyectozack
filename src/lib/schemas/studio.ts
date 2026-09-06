@@ -40,10 +40,16 @@ export const StudioInvitation = z.object({
 export const StudioToken = z.string().regex(/^[a-f0-9]{64}$/);
 export const StudioLogin = z.object({
   email: z.email(),
-  password: z.string().min(12).max(128),
+  // Signing in must accept valid older SocialPro credentials; enforce the new
+  // minimum only when creating a password, as Better Auth does server-side.
+  password: z.string().min(1, 'Introduce tu contraseña.').max(128),
   name: z.string().trim().max(100),
 });
 export type StudioLogin = z.infer<typeof StudioLogin>;
+export const StudioSignup = StudioLogin.extend({
+  password: z.string().min(12, 'Usa al menos 12 caracteres.').max(128),
+  name: z.string().trim().min(1, 'Indica tu nombre.').max(100),
+});
 export const StudioAuthResponse = z.object({
   twoFactorRedirect: z.boolean().optional(),
 });

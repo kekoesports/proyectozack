@@ -4,8 +4,18 @@ import {
   StudioReview,
   StudioAssetInput,
   StudioToken,
+  StudioLogin,
+  StudioSignup,
 } from '@/lib/schemas/studio';
 import { homeForRole } from '@/lib/home-for-role';
+
+test('existing credentials can sign in without weakening new-account password policy', () => {
+  const existing = { email: 'fixture@studio.test', password: 'Old-pass1!', name: '' };
+  expect(StudioLogin.safeParse(existing).success).toBe(true);
+  expect(StudioLogin.safeParse({ ...existing, password: '' }).success).toBe(false);
+  expect(StudioSignup.safeParse({ ...existing, name: 'Fixture' }).success).toBe(false);
+  expect(StudioSignup.safeParse({ ...existing, name: 'Fixture', password: 'New-fixture-pass-2026!' }).success).toBe(true);
+});
 
 test.each([
   '<svg onload="alert(1)"></svg>',
