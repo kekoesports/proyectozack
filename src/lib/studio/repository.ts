@@ -2,7 +2,6 @@ import { and, count, desc, eq, gte, inArray, sum } from "drizzle-orm";
 import type { PgDatabase, PgQueryResultHKT } from "drizzle-orm/pg-core";
 import * as schema from "@/db/schema";
 import {
-  talentUsers,
   studioProjects,
   studioVersions,
   studioAssets,
@@ -21,6 +20,7 @@ import {
   STUDIO_STORAGE_LIMIT,
 } from "./limits";
 import { readStudioProfile } from "./profile";
+import { visibleStudioTalents, lockStudioMember } from './talent-scope';
 
 export type StudioDatabase = PgDatabase<PgQueryResultHKT, typeof schema>;
 
@@ -28,12 +28,9 @@ export type StudioDatabase = PgDatabase<PgQueryResultHKT, typeof schema>;
 export function createStudioRepository(
   database: StudioDatabase,
   userId: string,
+  agencyTalentId?: number,
 ) {
-  const visibleTalents = () =>
-    database
-      .select({ id: talentUsers.talentId })
-      .from(talentUsers)
-      .where(and(eq(talentUsers.userId, userId), eq(talentUsers.active, true)));
+  const visibleTalents = () => visibleStudioTalents(database, userId, agencyTalentId);
   const projectScope = (id: string) =>
     and(
       eq(studioProjects.id, id),
@@ -41,15 +38,12 @@ export function createStudioRepository(
     );
 
   return {
-    profile: () => readStudioProfile(database, userId),
+    profile: () => readStudioProfile(database, userId, agencyTalentId),
     async membership() {
       const [row] = await database
         .select({ talentId: talents.id, name: talents.name })
-        .from(talentUsers)
-        .innerJoin(talents, eq(talents.id, talentUsers.talentId))
-        .where(
-          and(eq(talentUsers.userId, userId), eq(talentUsers.active, true)),
-        )
+        .from(talents)
+        .where(inArray(talents.id, visibleTalents()))
         .limit(1);
       return row ?? null;
     },
@@ -74,13 +68,7 @@ export function createStudioRepository(
       existing?: { id: string; revision: number },
     ) {
       return database.transaction(async (tx) => {
-        const [member] = await tx
-          .select()
-          .from(talentUsers)
-          .where(
-            and(eq(talentUsers.userId, userId), eq(talentUsers.active, true)),
-          )
-          .for("update");
+        const member = await lockStudioMember(tx, userId, agencyTalentId);
         if (!member) return null;
         // Multiple accounts may represent the same talent: serialize quota checks by talent.
         await tx
@@ -211,13 +199,7 @@ export function createStudioRepository(
       checksum: string;
     }) {
       return database.transaction(async (tx) => {
-        const [member] = await tx
-          .select()
-          .from(talentUsers)
-          .where(
-            and(eq(talentUsers.userId, userId), eq(talentUsers.active, true)),
-          )
-          .for("update");
+        const member = await lockStudioMember(tx, userId, agencyTalentId);
         if (!member) return null;
         await tx
           .select({ id: talents.id })

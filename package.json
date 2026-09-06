@@ -25,6 +25,7 @@
     "test": "jest",
     "test:studio:isolation": "tsx scripts/test-studio-isolation.ts",
     "test:studio:production": "tsx scripts/test-studio-production.ts",
+    "test:studio:agency": "tsx scripts/test-studio-agency.ts",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "test:ci": "jest --ci --coverage",

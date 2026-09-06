@@ -1,4 +1,5 @@
 'use client';
+import { useStudioWorkspace } from './StudioWorkspaceContext';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm, useWatch } from 'react-hook-form';
@@ -11,6 +12,7 @@ type Props = {
   project?: StudioProjectInput & { id: string; revision: number };
 };
 export function StudioProjectEditor({ project }: Props) {
+  const workspace = useStudioWorkspace();
   const router = useRouter();
   const [error, setError] = useState('');
   const {
@@ -44,6 +46,7 @@ export function StudioProjectEditor({ project }: Props) {
                 ? { ...data, id: project.id, revision: project.revision }
                 : data,
               Boolean(project),
+              workspace,
             );
             if (!result.ok) {
               setError(result.error);

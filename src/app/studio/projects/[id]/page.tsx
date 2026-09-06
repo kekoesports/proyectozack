@@ -6,30 +6,26 @@ import { StudioShell } from '@/features/studio/StudioShell';
 import { StudioProjectEditor } from '@/features/studio/StudioProjectEditor';
 import { StudioSubmit } from '@/features/studio/StudioSubmit';
 import { StudioAssetUpload } from '@/features/studio/StudioAssetUpload';
-import { db } from '@/lib/db';
 import { env } from '@/lib/env';
-import { createProductionRepository } from '@/lib/studio/production-repository';
 import { StudioWorkbench } from '@/features/studio/StudioWorkbench';
 import { StudioTimeline } from '@/features/studio/StudioTimeline';
 import { StudioChat } from '@/features/studio/StudioChat';
 import { StudioRenderList } from '@/features/studio/StudioRenderList';
 import { StudioNarration } from '@/features/studio/StudioNarration';
-import { createNarrationRepository } from '@/lib/studio/narration-repository';
 
 export default async function ProjectPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { member, repository, session } = await requireCreator();
+  const { member, repository, production, narrations: narrationRepository } = await requireCreator();
   const id = StudioId.safeParse((await params).id);
   if (!id.success) notFound();
   const project = await repository.project(id.data);
   if (!project) notFound();
   const input = StudioProjectInput.safeParse(project);
   if (!input.success) notFound();
-  const production = createProductionRepository(db, session.user.id);
-  const [profile, narrations] = await Promise.all([repository.profile(), createNarrationRepository(db, session.user.id).list(project.id)]);
+  const [profile, narrations] = await Promise.all([repository.profile(), narrationRepository.list(project.id)]);
   const [reviews, versions, assets, board, renders, turns] = await Promise.all([
     repository.reviews(project.id),
     repository.versions(project.id),

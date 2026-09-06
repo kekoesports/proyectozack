@@ -1,28 +1,29 @@
 'use server';
 import { revalidatePath } from 'next/cache';
-import { requireCreator } from '@/lib/studio/access';
-import { db } from '@/lib/db';
+import { requireStudioWriter } from '@/lib/studio/access';
 import { StudioChannelInput } from '@/lib/schemas/studio-production';
 import { StudioId } from '@/lib/schemas/studio';
-import { createChannelRepository } from '@/lib/studio/channel-repository';
 import { readYouTubeChannel } from '@/lib/studio/youtube-channel';
 
-export async function declareStudioChannel(input: unknown) {
-  const { session } = await requireCreator();
+export async function declareStudioChannel(input: unknown, workspace?: unknown) {
+  const actor = await requireStudioWriter(workspace);
+  if (!actor) return { ok: false, error: 'El espacio cambió. Actualiza antes de guardar.' };
+  const { channels } = actor;
   const parsed = StudioChannelInput.safeParse(input);
   if (!parsed.success) return { ok: false, error: 'Introduce un usuario, no una URL ni una contraseña.' };
   try {
-    const ok = await createChannelRepository(db, session.user.id).declare(parsed.data);
+    const ok = await channels.declare(parsed.data);
     revalidatePath('/studio/connections'); revalidatePath('/studio/stats');
     return { ok, error: ok ? '' : 'Tu acceso no está disponible.' };
   } catch { return { ok: false, error: 'No se pudo guardar el perfil.' }; }
 }
-export async function syncStudioYouTube(input: unknown) {
-  const { session } = await requireCreator();
+export async function syncStudioYouTube(input: unknown, workspace?: unknown) {
+  const actor = await requireStudioWriter(workspace);
+  if (!actor) return { ok: false, error: 'El espacio cambió. Actualiza antes de sincronizar.' };
   const id = StudioId.safeParse(input);
   if (!id.success) return { ok: false, error: 'Canal no válido.' };
   try {
-    const repository = createChannelRepository(db, session.user.id);
+    const repository = actor.channels;
     const channel = (await repository.list()).find((c) => c.id === id.data && c.platform === 'youtube');
     if (!channel) return { ok: false, error: 'Canal no disponible.' };
     const last = channel.observations[0];

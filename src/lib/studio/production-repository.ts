@@ -1,13 +1,13 @@
 import { and, asc, count, desc, eq, gte, inArray, isNull } from 'drizzle-orm';
 import { studioBoards, studioChatTurns, studioRenders, studioSchedule } from '@/db/schema/studioProduction';
-import { studioProjects, talentUsers, studioAssets } from '@/db/schema/studio';
+import { studioProjects, studioAssets } from '@/db/schema/studio';
 import { campaigns } from '@/db/schema/campaigns';
 import { StudioBoard, StudioAssistantProposal } from '@/lib/schemas/studio-production';
 import type { StudioDatabase } from './repository';
+import { visibleStudioTalents } from './talent-scope';
 
-export function createProductionRepository(database: StudioDatabase, userId: string) {
-  const owned = () => database.select({ id: talentUsers.talentId }).from(talentUsers)
-    .where(and(eq(talentUsers.userId, userId), eq(talentUsers.active, true)));
+export function createProductionRepository(database: StudioDatabase, userId: string, agencyTalentId?: number) {
+  const owned = () => visibleStudioTalents(database, userId, agencyTalentId);
   const scope = (id: string) => and(eq(studioProjects.id, id), inArray(studioProjects.talentId, owned()));
   const ownedProjects = () => database.select({ id: studioProjects.id }).from(studioProjects).where(inArray(studioProjects.talentId, owned()));
   return {

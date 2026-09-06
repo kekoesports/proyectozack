@@ -1,14 +1,12 @@
 import { requireCreator } from '@/lib/studio/access';
 import { StudioShell } from '@/features/studio/StudioShell';
-import { db } from '@/lib/db';
-import { createChannelRepository } from '@/lib/studio/channel-repository';
 import { StudioChannelMetrics } from '@/features/studio/StudioChannelMetrics';
 import { StudioMetricChart } from '@/features/studio/StudioMetricChart';
 import { studioPlatformName } from '@/lib/studio/analytics';
 
 export default async function StatsPage() {
-  const { member, repository, session } = await requireCreator();
-  const [channels, { snapshots, content }] = await Promise.all([createChannelRepository(db, session.user.id).list(), repository.dashboard()]);
+  const { member, repository, channels: channelRepository } = await requireCreator();
+  const [channels, { snapshots, content }] = await Promise.all([channelRepository.list(), repository.dashboard()]);
   const maxViews = Math.max(1, ...content.map((item) => item.views));
   return <StudioShell name={member.name} active="/studio/stats">
     <p className="studio-eyebrow">DATOS, NO SUPOSICIONES</p><h1 className="studio-page-title">Entiende tu contenido.</h1><p className="studio-lead">Compara la evolución de cada canal y detecta qué piezas destacan. Con fecha y fuente, sin mezclar audiencia, alcance y visualizaciones.</p>

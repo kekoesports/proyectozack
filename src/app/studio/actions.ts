@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { db } from '@/lib/db';
-import { requireCreator, requireStudioSession } from '@/lib/studio/access';
+import { requireStudioWriter, requireStudioSession } from '@/lib/studio/access';
 import {
   StudioProjectInput,
   StudioTransition,
@@ -10,8 +10,10 @@ import {
 } from '@/lib/schemas/studio';
 import { acceptStudioInvitation } from '@/lib/studio/invitations';
 
-export async function saveStudioProject(input: unknown, update: boolean) {
-  const { repository } = await requireCreator();
+export async function saveStudioProject(input: unknown, update: boolean, workspace?: unknown) {
+  const actor = await requireStudioWriter(workspace);
+  if (!actor) return { ok: false as const, error: 'El espacio cambió. Actualiza antes de guardar.' };
+  const { repository } = actor;
   const parsed = StudioProjectInput.safeParse(input);
   if (!parsed.success)
     return {
@@ -53,8 +55,10 @@ export async function saveStudioProject(input: unknown, update: boolean) {
   }
 }
 
-export async function submitStudioProject(input: unknown) {
-  const { repository } = await requireCreator();
+export async function submitStudioProject(input: unknown, workspace?: unknown) {
+  const actor = await requireStudioWriter(workspace);
+  if (!actor) return { ok: false, error: 'El espacio cambió. Actualiza antes de enviar.' };
+  const { repository } = actor;
   const parsed = StudioTransition.safeParse(input);
   if (!parsed.success) return { ok: false, error: 'Proyecto no válido.' };
   try {
