@@ -9,7 +9,9 @@ import {
   listSheetTabs,
   readSheetGrid,
   SheetsApiError,
+  type SheetsReadOptions,
 } from '@/lib/integrations/google-sheets';
+import { assertSheetsBudget, SHEETS_READ_BUDGET_MS } from '@/lib/integrations/google-sheets-policy';
 import {
   detectSocialProBlocks,
 } from '@/lib/parsers/socialpro-blocks';
@@ -117,7 +119,8 @@ async function loadCampaignAndTrackers(campaignId: number): Promise<{
  *   4. Guarda last_tracking_sync_at + limpia tracking_sync_error en éxito.
  *   5. Guarda tracking_sync_error humano-readable en fallo — nunca throws.
  */
-export async function syncCampaignSheet(campaignId: number): Promise<SyncResult> {
+export async function syncCampaignSheet(campaignId: number, options: SheetsReadOptions = {}): Promise<SyncResult> {
+  const deadlineAt = options.deadlineAt ?? Date.now() + SHEETS_READ_BUDGET_MS;
   const loaded = await loadCampaignAndTrackers(campaignId);
   const { campaign } = loaded;
   let trackers = loaded.trackers;
@@ -137,8 +140,9 @@ export async function syncCampaignSheet(campaignId: number): Promise<SyncResult>
   }
 
   try {
+    assertSheetsBudget(deadlineAt);
     // Resolver tab: gid → title
-    const tabs = await listSheetTabs(spreadsheetId);
+    const tabs = await listSheetTabs(spreadsheetId, { deadlineAt });
     if (tabs.length === 0) {
       const msg = 'La hoja no tiene pestañas legibles.';
       await persistError(campaignId, msg);
@@ -160,7 +164,8 @@ export async function syncCampaignSheet(campaignId: number): Promise<SyncResult>
     }
 
     // Leer + parsear
-    const grid = await readSheetGrid(spreadsheetId, tabTitle);
+    const grid = await readSheetGrid(spreadsheetId, tabTitle, { deadlineAt });
+    assertSheetsBudget(deadlineAt);
     const canonical = aggregateCanonicalDealTable(grid);
     const { countsByType, evidenceByType, targetsByType, ignoredBlocks } = canonical.matched
       ? {
@@ -185,6 +190,10 @@ export async function syncCampaignSheet(campaignId: number): Promise<SyncResult>
     const knownTypes = new Set(trackers.map((tracker) => tracker.deliverableType));
     const missing = Array.from(targetsByType.entries())
       .filter(([type, targetCount]) => type !== 'otro' && targetCount > 0 && !knownTypes.has(type));
+    // Last deadline gate: once persistence starts, complete the existing write
+    // phase even if DB latency crosses the read budget; do not strand a newly
+    // inserted tracker without applying the evidence already read.
+    assertSheetsBudget(deadlineAt);
     if (missing.length > 0) {
       const inserted = await db.insert(dealDeliverableTrackers).values(
         missing.map(([deliverableType, targetCount]) => ({
@@ -253,13 +262,13 @@ export async function syncCampaignSheet(campaignId: number): Promise<SyncResult>
 function errorMessage(err: unknown): string {
   if (err instanceof SheetsApiError) {
     if (err.status === 403) {
-      return 'La hoja no es pública o no se puede leer. Compártela como "cualquiera con el enlace".';
+      return 'Google Sheets ha rechazado la lectura (HTTP 403). El motivo concreto requiere revisión.';
     }
     if (err.status === 404) {
       return 'Google Sheet no encontrado. Revisa el link o el gid.';
     }
     if (err.status === 429) {
-      return 'Google Sheets ha limitado el ritmo de peticiones. Vuelve a intentarlo en unos segundos.';
+      return 'Google Sheets ha limitado el ritmo de peticiones. La lectura se volverá a intentar en una próxima sincronización.';
     }
     return err.message;
   }

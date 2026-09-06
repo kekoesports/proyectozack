@@ -30,10 +30,10 @@ export async function acknowledgeCreatorDigest(id: number, input: unknown): Prom
   return db.transaction(async (tx) => {
     const [row] = await tx.select().from(creatorDigestOutbox).where(eq(creatorDigestOutbox.id, id)).for('update');
     if (!row) return 'not_found';
-    if (row.guildId !== env.DISCORD_CREATOR_DISCOVERY_GUILD_ID || row.channelId !== env.DISCORD_CREATOR_DISCOVERY_CHANNEL_ID
-      || row.channelId !== parsed.data.channelId) return 'conflict';
+    if (row.guildId !== env.DISCORD_CREATOR_DISCOVERY_GUILD_ID || row.channelId !== parsed.data.channelId) return 'conflict';
+    // A channel move must not invalidate an already accepted, identical receipt.
     if (row.status === 'sent') return row.messageId === parsed.data.messageId ? 'duplicate' : 'conflict';
-    if (row.status !== 'pending') return 'conflict';
+    if (row.status !== 'pending' || row.channelId !== env.DISCORD_CREATOR_DISCOVERY_CHANNEL_ID) return 'conflict';
     const now = new Date();
     await tx.update(creatorDigestOutbox).set({ status: 'sent', messageId: parsed.data.messageId, sentAt: now,
       updatedAt: now, attempts: row.attempts + 1 }).where(eq(creatorDigestOutbox.id, id));

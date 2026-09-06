@@ -18,12 +18,12 @@ import {
 import { resolveAutomationDealSchedule } from '@/lib/utils/automation-deal-schedule';
 import { initialsOf, slugify } from '@/lib/utils/import-utils';
 import { createLimit } from '@/lib/utils/concurrencyLimit';
+import type { SheetsReadOptions } from '@/lib/integrations/google-sheets';
 
-// Each campaign consumes two Google Sheets reads (metadata + values). Keeping
-// the batch below 30 leaves quota headroom for interactive CRM reads and avoids
-// turning the second half of every run into HTTP 429 failures.
-const AUTOMATION_SYNC_BATCH_SIZE = 24;
-
+// Twelve campaigns need 24 base reads, up to 48 with authentication fallback;
+// HTTP pacing and the final 30s grid timeout share a 105s read budget.
+const AUTOMATION_SYNC_BATCH_SIZE = 12;
+const AUTOMATION_SHEETS_BUDGET_MS = 105_000;
 type TransactionalDb = ReturnType<typeof getTransactionalDb>;
 type AutomationTransaction = Parameters<Parameters<TransactionalDb['transaction']>[0]>[0];
 type TopGeo = { readonly country: string; readonly pct: number };
@@ -401,10 +401,10 @@ export type SyncAutomatedDealResult = {
   readonly syncOk: boolean;
 };
 
-export async function syncAutomatedDeal(campaignId: number): Promise<SyncAutomatedDealResult | null> {
+export async function syncAutomatedDeal(campaignId: number, options: SheetsReadOptions = {}): Promise<SyncAutomatedDealResult | null> {
   const before = await getAutomatedDealProgress(campaignId);
   if (!before) return null;
-  const syncResult = await syncCampaignSheet(campaignId);
+  const syncResult = await syncCampaignSheet(campaignId, options);
   const after = await getAutomatedDealProgress(campaignId);
   if (!after) return null;
   if (!syncResult.ok) {
@@ -447,6 +447,7 @@ export type SyncAllAutomatedDealsResult = {
 };
 
 export async function syncAllAutomatedDeals(): Promise<SyncAllAutomatedDealsResult> {
+  const deadlineAt = Date.now() + AUTOMATION_SHEETS_BUDGET_MS;
   const rows = await db
     .select({ id: campaigns.id })
     .from(campaigns)
@@ -457,14 +458,13 @@ export async function syncAllAutomatedDeals(): Promise<SyncAllAutomatedDealsResu
       isNull(campaigns.archivedAt),
       inArray(campaigns.status, ['propuesta', 'negociacion', 'aprobada', 'activa', 'pendiente_pago']),
     ))
-    // Rotate fairly: failed/never-synced campaigns go first, then the stalest.
-    // With 44 current campaigns, two hourly runs cover the full set.
+    // Preserve oldest-success order; persistent failures can occupy slots again.
     .orderBy(sql`${campaigns.lastTrackingSyncAt} asc nulls first`, campaigns.id)
     .limit(AUTOMATION_SYNC_BATCH_SIZE);
 
   const limit = createLimit(3);
   const settled = await Promise.allSettled(
-    rows.map((row) => limit(() => syncAutomatedDeal(row.id))),
+    rows.map((row) => limit(() => syncAutomatedDeal(row.id, { deadlineAt }))),
   );
   let synced = 0;
   let failed = 0;

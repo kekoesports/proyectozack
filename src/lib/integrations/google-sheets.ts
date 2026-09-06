@@ -1,6 +1,20 @@
 import { createSign } from 'crypto';
 
 import { env } from '@/lib/env';
+import { SheetsGrid, SheetsMetadata, SheetsOAuthToken, SheetsRetryAfterHeader, type SheetCellData } from '@/lib/schemas/google-sheets';
+import {
+  assertSheetsBudget,
+  SHEETS_READ_BUDGET_MS,
+  sheetsAdmission,
+  SheetsApiError,
+  SheetsDeadlineError,
+  type SheetsReadOptions,
+  withRetry,
+} from '@/lib/integrations/google-sheets-policy';
+
+export { SheetsApiError, SheetsDeadlineError, withRetry } from '@/lib/integrations/google-sheets-policy';
+export type { SheetsReadOptions } from '@/lib/integrations/google-sheets-policy';
+export type { SheetCellData } from '@/lib/schemas/google-sheets';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -8,19 +22,6 @@ export type SheetTab = {
   sheetId: string;
   title: string;
   index: number;
-};
-
-export type SheetCellData = {
-  readonly formattedValue?: string;
-  readonly effectiveValue?: {
-    readonly stringValue?: string;
-    readonly numberValue?: number;
-    readonly boolValue?: boolean;
-  };
-  readonly hyperlink?: string;
-  readonly textFormatRuns?: ReadonlyArray<{
-    readonly format?: { readonly link?: { readonly uri?: string } };
-  }>;
 };
 
 /** Prefer the actual Google Sheets link target over its visible label. */
@@ -36,25 +37,6 @@ export function sheetCellText(cell: SheetCellData | undefined): string {
   if (cell.effectiveValue?.numberValue !== undefined) return String(cell.effectiveValue.numberValue);
   if (cell.effectiveValue?.boolValue !== undefined) return String(cell.effectiveValue.boolValue);
   return '';
-}
-
-/**
- * Error tipado para respuestas no-OK de la API de Google Sheets.
- * `status` se preserva para que `withRetry` pueda decidir si reintentar.
- *   - 429: rate limit → retry con backoff (Retry-After si existe)
- *   - 403/404: no se reintenta (acceso o ID malo)
- *   - 5xx: tampoco se reintenta por ahora (suelen ser fallos transitorios reales,
- *     pero el usuario aprobó solo manejar 429 explícitamente)
- */
-export class SheetsApiError extends Error {
-  readonly status: number;
-  readonly retryAfterSeconds: number | null;
-  constructor(message: string, status: number, retryAfterSeconds: number | null = null) {
-    super(message);
-    this.name = 'SheetsApiError';
-    this.status = status;
-    this.retryAfterSeconds = retryAfterSeconds;
-  }
 }
 
 // ── URL helpers ───────────────────────────────────────────────────────────────
@@ -89,9 +71,6 @@ const SHEETS_FETCH_TIMEOUT_MS = 10_000;
 // with formatting copied down hundreds of empty rows.
 const SHEETS_GRID_FETCH_TIMEOUT_MS = 30_000;
 
-/** Tope al Retry-After de Google. Ver la nota de withRetry. */
-const MAX_RETRY_AFTER_MS = 10_000;
-
 const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token';
 const GOOGLE_SHEETS_READ_SCOPE = 'https://www.googleapis.com/auth/spreadsheets.readonly';
 
@@ -124,11 +103,12 @@ function buildServiceAccountJwt(email: string, privateKey: string): string {
   return `${header}.${payload}.${signature}`;
 }
 
-async function getServiceAccountToken(config: { email: string; privateKey: string }): Promise<string> {
+async function getServiceAccountToken(config: { email: string; privateKey: string }, deadlineAt: number): Promise<string> {
   if (cachedServiceAccountToken && cachedServiceAccountToken.expiresAt > Date.now() + 60_000) {
     return cachedServiceAccountToken.token;
   }
 
+  assertSheetsBudget(deadlineAt, SHEETS_FETCH_TIMEOUT_MS);
   const jwt = buildServiceAccountJwt(config.email, config.privateKey);
   const response = await fetch(GOOGLE_TOKEN_URL, {
     method: 'POST',
@@ -141,8 +121,9 @@ async function getServiceAccountToken(config: { email: string; privateKey: strin
     throw new Error(`google-sheets-oauth-${response.status}`);
   }
 
-  const json = await response.json() as { access_token?: string; expires_in?: number };
-  if (!json.access_token) throw new Error('google-sheets-oauth-sin-token');
+  const parsed = SheetsOAuthToken.safeParse(await response.json());
+  if (!parsed.success) throw new Error('google-sheets-oauth-respuesta-invalida');
+  const json = parsed.data;
   cachedServiceAccountToken = {
     token: json.access_token,
     expiresAt: Date.now() + (json.expires_in ?? 3600) * 1000,
@@ -159,7 +140,7 @@ function appendApiKey(url: string, key: string): string {
  * se le hayan compartido. Si esa hoja no es visible para la cuenta, se conserva
  * el acceso histórico por API key para trackers públicos.
  */
-async function fetchSheetsJson(url: string, timeoutMs: number): Promise<unknown> {
+async function fetchSheetsJson(url: string, timeoutMs: number, deadlineAt: number): Promise<unknown> {
   const serviceAccount = getServiceAccountConfig();
   const apiKey = getApiKey();
 
@@ -172,14 +153,13 @@ async function fetchSheetsJson(url: string, timeoutMs: number): Promise<unknown>
   if (serviceAccount) {
     let oauthResponse: Response | null = null;
     try {
-      const token = await getServiceAccountToken(serviceAccount);
-      oauthResponse = await fetch(url, {
+      const token = await getServiceAccountToken(serviceAccount, deadlineAt);
+      oauthResponse = await fetchSheetsHttp(url, {
         cache: 'no-store',
         headers: { Authorization: `Bearer ${token}` },
-        signal: AbortSignal.timeout(timeoutMs),
-      });
+      }, timeoutMs, deadlineAt);
     } catch (error) {
-      if (!apiKey) throw error;
+      if (!apiKey || error instanceof SheetsDeadlineError) throw error;
       // OAuth no disponible: una hoja pública todavía puede leerse con API key.
     }
     if (oauthResponse?.ok) return oauthResponse.json() as Promise<unknown>;
@@ -193,19 +173,34 @@ async function fetchSheetsJson(url: string, timeoutMs: number): Promise<unknown>
   if (!apiKey) {
     throw new Error('Google Sheet no accesible con la cuenta de servicio configurada.');
   }
-  const response = await fetch(appendApiKey(url, apiKey), {
+  const response = await fetchSheetsHttp(appendApiKey(url, apiKey), {
     cache: 'no-store',
-    signal: AbortSignal.timeout(timeoutMs),
-  });
+  }, timeoutMs, deadlineAt);
   return handleSheetsResponse(response);
 }
 
+async function fetchSheetsHttp(
+  url: string, init: RequestInit, timeoutMs: number, deadlineAt: number,
+): Promise<Response> {
+  const response = await sheetsAdmission.run(
+    () => fetch(url, { ...init, signal: AbortSignal.timeout(timeoutMs) }),
+    timeoutMs,
+    deadlineAt,
+  );
+  // Includes the final failed attempt: queued consumers must also cool down.
+  if (response.status === 429) sheetsAdmission.cooldown(parseRetryAfter(response.headers.get('retry-after')));
+  assertSheetsBudget(deadlineAt);
+  return response;
+}
+
 function parseRetryAfter(headerValue: string | null): number | null {
-  if (!headerValue) return null;
-  const n = Number(headerValue);
+  const parsed = SheetsRetryAfterHeader.safeParse(headerValue);
+  if (!parsed.success) return null;
+  const n = Number(parsed.data);
   if (Number.isFinite(n) && n >= 0) return n;
-  // HTTP-date format no se usa en Google API normalmente; ignoramos.
-  return null;
+  if (!/^[A-Za-z]{3}, \d{2} [A-Za-z]{3} \d{4} \d{2}:\d{2}:\d{2} GMT$/.test(parsed.data)) return null;
+  const date = Date.parse(parsed.data);
+  return Number.isFinite(date) ? Math.max(0, (date - Date.now()) / 1000) : null;
 }
 
 async function handleSheetsResponse(response: Response): Promise<unknown> {
@@ -215,7 +210,7 @@ async function handleSheetsResponse(response: Response): Promise<unknown> {
 
   if (response.status === 403) {
     throw new SheetsApiError(
-      'Google Sheet no accesible. Compártelo con la cuenta de servicio o con "cualquiera con el enlace".',
+      'Google Sheets ha rechazado la lectura (HTTP 403). El motivo concreto requiere revisión.',
       403,
     );
   }
@@ -229,83 +224,26 @@ async function handleSheetsResponse(response: Response): Promise<unknown> {
   throw new SheetsApiError(`Error leyendo Google Sheet (HTTP ${response.status})`, response.status);
 }
 
-/**
- * Wrapper de retry para llamadas a la API de Google Sheets.
- *
- *   - Solo reintenta en 429.
- *   - 3 intentos máximo (1 + 2 retries adicionales tras el 429).
- *   - Espera = max(Retry-After del header, base × 2^attempt) + jitter ±20%.
- *   - 403/404/5xx no se reintentan — se propagan directamente.
- *
- * El backoff base es 1s → secuencia típica sin Retry-After: 1.0s, 2.0s, 4.0s (±20%).
- * Si Google manda Retry-After, gana ese valor, acotado a MAX_RETRY_AFTER_MS: un
- * `Retry-After: 60` dormiría ~120s dentro de una sola campaña y se llevaría por
- * delante el presupuesto de toda la sincronización.
- *
- * @internal Exportado solo para tests unitarios.
- */
-export async function withRetry<T>(
-  fn: () => Promise<T>,
-  opts: {
-    maxAttempts?: number;
-    baseDelayMs?: number;
-    sleep?: (ms: number) => Promise<void>; // inyectable para tests
-  } = {},
-): Promise<T> {
-  const maxAttempts = opts.maxAttempts ?? 3;
-  const baseDelayMs = opts.baseDelayMs ?? 1000;
-  const sleep = opts.sleep ?? ((ms: number) => new Promise<void>((r) => setTimeout(r, ms)));
-
-  let attempt = 0;
-  // safe: el bucle siempre o retorna o lanza
-  for (;;) {
-    try {
-      return await fn();
-    } catch (err) {
-      if (!(err instanceof SheetsApiError) || err.status !== 429) {
-        throw err;
-      }
-      attempt++;
-      if (attempt >= maxAttempts) {
-        throw err;
-      }
-      const exponential = baseDelayMs * Math.pow(2, attempt - 1);
-      const headerWait = Math.min((err.retryAfterSeconds ?? 0) * 1000, MAX_RETRY_AFTER_MS);
-      const baseWait = Math.max(exponential, headerWait);
-      // Jitter ±20%
-      const jitter = baseWait * (Math.random() * 0.4 - 0.2);
-      const waitMs = Math.max(0, Math.round(baseWait + jitter));
-      await sleep(waitMs);
-    }
-  }
-}
-
 // ── Public API ────────────────────────────────────────────────────────────────
 
-export async function listSheetTabs(spreadsheetId: string): Promise<SheetTab[]> {
+export async function listSheetTabs(spreadsheetId: string, options: SheetsReadOptions = {}): Promise<SheetTab[]> {
+  const deadlineAt = options.deadlineAt ?? Date.now() + SHEETS_READ_BUDGET_MS;
   return withRetry(async () => {
     const fields = encodeURIComponent('sheets.properties(sheetId,title,index)');
     const url = `https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(spreadsheetId)}?fields=${fields}`;
 
-    const data = await fetchSheetsJson(url, SHEETS_FETCH_TIMEOUT_MS);
-
-    // safe: validated from Sheets API response
-    const json = data as {
-      sheets?: Array<{
-        properties?: {
-          sheetId?: number;
-          title?: string;
-          index?: number;
-        };
-      }>;
-    };
+    const data = await fetchSheetsJson(url, SHEETS_FETCH_TIMEOUT_MS, deadlineAt);
+    const parsed = SheetsMetadata.safeParse(data);
+    if (!parsed.success) throw new Error('Respuesta de Google Sheets no válida.');
+    assertSheetsBudget(deadlineAt);
+    const json = parsed.data;
 
     return (json.sheets ?? []).map((sheet) => ({
       sheetId: String(sheet.properties?.sheetId ?? ''),
       title: sheet.properties?.title ?? '',
       index: sheet.properties?.index ?? 0,
     }));
-  });
+  }, { deadlineAt, timeoutMs: SHEETS_FETCH_TIMEOUT_MS });
 }
 
 /**
@@ -315,24 +253,20 @@ export async function listSheetTabs(spreadsheetId: string): Promise<SheetTab[]> 
 export async function readSheetGrid(
   spreadsheetId: string,
   sheetTitle: string,
+  options: SheetsReadOptions = {},
 ): Promise<string[][]> {
+  const deadlineAt = options.deadlineAt ?? Date.now() + SHEETS_READ_BUDGET_MS;
   return withRetry(async () => {
     const range = encodeURIComponent(`'${sheetTitle.replace(/'/g, "''")}'!A1:ZZ500`);
     const fields = encodeURIComponent(
       'sheets(data(startRow,startColumn,rowData(values(formattedValue,effectiveValue,hyperlink,textFormatRuns(format(link(uri)))))))',
     );
     const url = `https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(spreadsheetId)}?ranges=${range}&includeGridData=true&fields=${fields}`;
-    const data = await fetchSheetsJson(url, SHEETS_GRID_FETCH_TIMEOUT_MS);
-
-    const json = data as {
-      sheets?: Array<{
-        data?: Array<{
-          startRow?: number;
-          startColumn?: number;
-          rowData?: Array<{ values?: SheetCellData[] }>;
-        }>;
-      }>;
-    };
+    const data = await fetchSheetsJson(url, SHEETS_GRID_FETCH_TIMEOUT_MS, deadlineAt);
+    const parsed = SheetsGrid.safeParse(data);
+    if (!parsed.success) throw new Error('Respuesta de Google Sheets no válida.');
+    assertSheetsBudget(deadlineAt);
+    const json = parsed.data;
     const segments = json.sheets?.flatMap((sheet) => sheet.data ?? []) ?? [];
     let maxRows = 0;
     let maxCols = 0;
@@ -357,7 +291,7 @@ export async function readSheetGrid(
       }
     }
     return grid;
-  });
+  }, { deadlineAt, timeoutMs: SHEETS_GRID_FETCH_TIMEOUT_MS });
 }
 
 /**
@@ -365,26 +299,20 @@ export async function readSheetGrid(
  */
 export async function fetchSpreadsheetMetadata(
   spreadsheetId: string,
+  options: SheetsReadOptions = {},
 ): Promise<{ title: string; tabs: SheetTab[] }> {
+  const deadlineAt = options.deadlineAt ?? Date.now() + SHEETS_READ_BUDGET_MS;
   return withRetry(async () => {
     const fields = encodeURIComponent(
       'properties.title,sheets.properties(sheetId,title,index)',
     );
     const url = `https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(spreadsheetId)}?fields=${fields}`;
 
-    const data = await fetchSheetsJson(url, SHEETS_FETCH_TIMEOUT_MS);
-
-    // safe: validated from Sheets API response
-    const json = data as {
-      properties?: { title?: string };
-      sheets?: Array<{
-        properties?: {
-          sheetId?: number;
-          title?: string;
-          index?: number;
-        };
-      }>;
-    };
+    const data = await fetchSheetsJson(url, SHEETS_FETCH_TIMEOUT_MS, deadlineAt);
+    const parsed = SheetsMetadata.safeParse(data);
+    if (!parsed.success) throw new Error('Respuesta de Google Sheets no válida.');
+    assertSheetsBudget(deadlineAt);
+    const json = parsed.data;
 
     const title = json.properties?.title ?? '';
     const tabs: SheetTab[] = (json.sheets ?? []).map((sheet) => ({
@@ -394,5 +322,5 @@ export async function fetchSpreadsheetMetadata(
     }));
 
     return { title, tabs };
-  });
+  }, { deadlineAt, timeoutMs: SHEETS_FETCH_TIMEOUT_MS });
 }

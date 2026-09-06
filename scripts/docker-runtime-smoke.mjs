@@ -6,12 +6,24 @@
  * No usa red, base de datos ni datos reales.
  */
 
+import { readdir } from 'node:fs/promises';
+import { join } from 'node:path';
 import * as mupdf from 'mupdf';
 import { createWorker } from 'tesseract.js';
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
 }
+
+// Next can trace a BuildKit-mounted dotenv file into standalone. Check the
+// finished image recursively without opening any configuration file contents.
+async function assertNoBundledEnvironment(directory) {
+  for (const entry of await readdir(directory, { withFileTypes: true })) {
+    assert(!entry.name.startsWith('.env'), 'La imagen contiene un archivo dotenv');
+    if (entry.isDirectory()) await assertNoBundledEnvironment(join(directory, entry.name));
+  }
+}
+await assertNoBundledEnvironment('/app');
 
 class DOMMatrixStub {
   a = 1; b = 0; c = 0; d = 1; e = 0; f = 0;

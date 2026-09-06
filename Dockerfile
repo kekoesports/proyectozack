@@ -70,7 +70,11 @@ RUN --mount=type=secret,id=build_env,target=/app/.env.production,required=true \
     export PGOPTIONS='-c default_transaction_read_only=on -c statement_timeout=15000' \
       DB_POOL_MAX=2 DB_STATEMENT_TIMEOUT_MS=15000 NODE_OPTIONS='--max-old-space-size=3072' \
     && node --env-file=/app/.env.production scripts/assert-readonly-build.cjs \
-    && npm run build
+    && npm run build \
+    && test -d /app/.next/standalone \
+    && test ! -L /app/.next/standalone \
+    && find /app/.next/standalone -name '.env*' \( -type f -o -type l \) -delete \
+    && test -z "$(find /app/.next/standalone -name '.env*' -print -quit)"
 
 # ── runtime ─────────────────────────────────────────────────────────────────
 FROM node:${NODE_VERSION} AS runner

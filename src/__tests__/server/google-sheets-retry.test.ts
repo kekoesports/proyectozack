@@ -4,7 +4,7 @@
  * Garantiza el comportamiento exigido para mitigar el 429 del cron diario:
  *   - 429 reintenta hasta 3 intentos total (1 + 2 retries).
  *   - Respeta Retry-After si Google lo envía.
- *   - Aplica backoff exponencial + jitter si no hay Retry-After.
+ *   - Sin Retry-After, espera al menos una ventana conservadora de 60s.
  *   - 403/404/5xx NO se reintentan (se propagan).
  *   - Tras agotar reintentos, error controlado (SheetsApiError 429).
  */
@@ -63,16 +63,14 @@ describe('withRetry — comportamiento', () => {
 
     const out = await withRetry(fn, { maxAttempts: 3, baseDelayMs: 1000, sleep });
     expect(out).toBe('ok');
-    // Cada espera debería estar cerca de 5s (5000ms ± 20% jitter = 4000-6000)
+    // El jitter nunca adelanta el suelo del proveedor.
     for (const w of waits) {
-      expect(w).toBeGreaterThanOrEqual(4000);
+      expect(w).toBeGreaterThanOrEqual(5000);
       expect(w).toBeLessThanOrEqual(6000);
     }
   });
 
-  it('[3b] acota el Retry-After a 10s aunque Google pida mucho más', async () => {
-    // Un `Retry-After: 60` dormiría ~120s dentro de una sola campaña y se
-    // llevaría por delante el presupuesto de toda la sincronización.
+  it('[3b] conserva Retry-After de 60s sin recortarlo', async () => {
     const { sleep, waits } = makeSpySleep();
     let attempt = 0;
     const fn = jest.fn(() => {
@@ -83,13 +81,13 @@ describe('withRetry — comportamiento', () => {
 
     const out = await withRetry(fn, { maxAttempts: 3, baseDelayMs: 1000, sleep });
     expect(out).toBe('ok');
-    // Tope de 10s ± 20% de jitter: nunca cerca de los 60s pedidos.
     for (const w of waits) {
-      expect(w).toBeLessThanOrEqual(12_000);
+      expect(w).toBeGreaterThanOrEqual(60_000);
+      expect(w).toBeLessThanOrEqual(60_400);
     }
   });
 
-  it('[4] aplica backoff exponencial + jitter ±20% cuando NO hay Retry-After', async () => {
+  it('[4] espera al menos 60s cuando NO hay Retry-After', async () => {
     const { sleep, waits } = makeSpySleep();
     const fn = jest.fn(() => Promise.reject(new SheetsApiError('rl', 429)));
 
@@ -97,12 +95,10 @@ describe('withRetry — comportamiento', () => {
       withRetry(fn, { maxAttempts: 3, baseDelayMs: 1000, sleep }),
     ).rejects.toBeInstanceOf(SheetsApiError);
 
-    // Primera espera: 1000ms ± 20% → [800, 1200]
-    expect(waits[0]).toBeGreaterThanOrEqual(800);
-    expect(waits[0]).toBeLessThanOrEqual(1200);
-    // Segunda espera: 2000ms ± 20% → [1600, 2400]
-    expect(waits[1]).toBeGreaterThanOrEqual(1600);
-    expect(waits[1]).toBeLessThanOrEqual(2400);
+    expect(waits[0]).toBeGreaterThanOrEqual(60_000);
+    expect(waits[0]).toBeLessThanOrEqual(60_200);
+    expect(waits[1]).toBeGreaterThanOrEqual(60_000);
+    expect(waits[1]).toBeLessThanOrEqual(60_400);
   });
 
   it('[6] 403 NO se reintenta — se propaga al primer intento', async () => {

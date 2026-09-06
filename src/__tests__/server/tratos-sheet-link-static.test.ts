@@ -156,8 +156,9 @@ describe('syncCampaignSheet — comportamientos brief PR2', () => {
     expect(block).toMatch(/applyCampaignSheetEvidence/);
   });
 
-  it('errores 403 devuelven mensaje humano-readable sobre compartir', () => {
-    expect(src).toMatch(/cualquiera con el enlace/i);
+  it('errores 403 describen rechazo sin atribuir una causa ni pedir publicar la hoja', () => {
+    expect(src).toMatch(/ha rechazado la lectura \(HTTP 403\)/);
+    expect(src).not.toMatch(/cualquiera con el enlace/i);
   });
 
   it('errores 429 devuelven mensaje sobre rate limit', () => {
