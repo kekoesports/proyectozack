@@ -20,7 +20,7 @@ notas históricas «solo local». Publicar la aplicación no hace públicos sus 
 - Imagen anterior desde las 16:47 UTC: `socialpro:studio-29ebbf41`, fuente
   `29ebbf41`, servicio `socialpro-studio-final-web-1`. Añade compatibilidad de
   login con contraseñas válidas anteriores a la política nueva de alta.
-- Imagen vigente desde las 17:02 UTC: `socialpro:studio-app-0730b356`, fuente
+- Imagen anterior desde las 17:02 UTC: `socialpro:studio-app-0730b356`, fuente
   `0730b356e1ca29768f7fca518e2c16e7234fc214`, servicio
   `socialpro-studio-app-web-1`, imagen SHA256
   `f46dd0767a79cd8c5f90fb221a8765d55b4a8ed928702564a6095c0c8ccda119`.
@@ -32,23 +32,38 @@ notas históricas «solo local». Publicar la aplicación no hace públicos sus 
 - Subdominio: PR [447](https://github.com/kekoesports/proyectozack/pull/447),
   merge `4df65033`. Lint/tipos y tests unitarios/integración/fuzz aprobados en CI;
   build y smoke Docker finales también aprobados directamente en el VPS.
-- Worker: `socialpro-studio-worker:eea5ecc4`; código de render idéntico al de la
-  revisión web. Los cambios posteriores afectan proxy, upload HTTP e infraestructura.
+- Edición de agencia activa desde las 18:14 UTC: web
+  `socialpro:studio-agency-dcbd17d8`, fuente
+  `dcbd17d8de62bd42ba1c94e0a7048e03e8968676`, contenedor
+  `socialpro-studio-agency-web-1`, imagen SHA256
+  `cf31499304779a3018e0b9729442d735c16b5b28a3f2c72f25b2015925e4885c`.
+- Worker vigente: `socialpro-studio-worker:afe32966`, fuente
+  `afe329666f22df7902d81ed6e750924781a56749`, imagen SHA256
+  `e87e665374464ad98ba9531d4eb49b31a1619b55a124a8cf75d62676fa6eade1`.
+  Recupera el talento del proyecto en cola y verifica los permisos reales del
+  solicitante; el worker anterior `eea5ecc4` no admite trabajos de agencia.
+- PR [448](https://github.com/kekoesports/proyectozack/pull/448) integrada con
+  merge `100ce6cad21e1c01c585ecd6910c5fce5eddd45f`. Las cuatro comprobaciones de
+  CI aprobaron: lint/tipos, tests/integración/fuzz, build y runtime Docker PDF/OCR.
 - Misma base PostgreSQL, secreto de Better Auth y almacenes privados. Se conservan
   148 talentos y 8 cuentas; no se importan fixtures ni se restablecen contraseñas.
 
 ## Qué puede hacer cada usuario
 
-La agencia entra con su cuenta habitual y ve el roster real, crea enlaces de
-invitación y revisa guiones/exportaciones. Tener una ficha de talento **no** crea
+La agencia entra con su cuenta habitual y ve el roster real, abre el editor con
+**Abrir Studio**, crea enlaces de invitación y revisa guiones/exportaciones.
+El aviso **Editando para [talento]** identifica el espacio, y **Volver a la
+agencia** cierra la selección. Tener una ficha de talento **no** crea
 una cuenta ni concede acceso automáticamente. La invitación vincula el correo
 con la ficha existente. No se enviaron invitaciones en este despliegue.
 
 Un creador con membresía activa accede a su inicio, proyectos, biblioteca,
 plantillas, estadísticas, campañas, ideas, calendario e identidad. El servidor
-filtra todas las lecturas/escrituras por esa membresía. Un admin sin membresía
-se dirige a la gestión de agencia; todavía no existe un selector para editar
-el espacio de cualquier talento como CM.
+filtra todas las lecturas/escrituras por esa membresía. Admin/manager pueden
+seleccionar un talento sin crearle membresías; los demás roles no se amplían.
+El servidor vuelve a comprobar el rol real y la selección en cada consulta.
+Las pestañas antiguas no pueden guardar en un espacio seleccionado después.
+Recorrido, límites y controles: `docs/studio-agency-workspaces.md`.
 
 El material personal del piloto KEKO sigue en el almacén local de pruebas.
 No hay ficha KEKO/Pablo en el roster de producción: no se inventó una asociación
@@ -117,6 +132,23 @@ CRM sí son reutilizables; un handle declarado no equivale a conexión OAuth.
   en `socialpro.es/admin/studio`. En `app`, entrada redirige correctamente al
   login, formulario completo y sin errores JS; móvil 390 px sin overflow.
   Prueba autenticada del usuario real en el nuevo host pendiente de su login.
+- Edición de agencia: 45 pruebas SQL de permisos y cola, 42 de aislamiento y
+  39 de producción en memoria; 36 tests de acceso/upload, tipos y lint completos.
+  Las tres suites SQL se incorporan a CI. Suite general local: 6354 tests aprobados,
+  uno omitido; la cobertura completa también aprobó en CI de la PR 448.
+- Clon PostgreSQL 17: login real de cuenta sintética de agencia → selección
+  de talento → proyecto → montaje HyperFrames → ayuda editorial → render en
+  worker restringido → MP4 privado reproducido en navegador, 720×1280,
+  4,02 segundos. El solicitante sigue siendo agencia y no se crea membresía.
+- Dos pestañas: cambiar a otro talento rechaza el guardado antiguo antes de
+  escribir y su archivo devuelve 404. Upload antiguo/sin espacio devuelve 409;
+  una cookie de agencia falsificada no amplía los permisos de un creador.
+  Upload válido y lectura privada 206 comprobados. Móvil 390 px sin overflow.
+- Producción tras activar: Pablo abre TODOCS2 desde el roster con su sesión
+  real y vuelve a la agencia. No se crean proyectos de prueba, cuentas ni
+  membresías. Persisten 148 talentos/8 usuarios/0 proyectos/0 renders/0 fixtures.
+  HTTPS válido en app, rutas privadas y KekoPilot intactos; logs de arranque
+  del nuevo web y worker sin errores. Higgsfield continúa apagado.
 
 ## Operación y reversión
 
@@ -131,12 +163,13 @@ Los servicios nuevos se gestionan con `infra/studio/web.yaml` y
 archivos. No ejecutar `compose down` sobre el CRM. El contenedor anterior
 `socialpro-crm-app-1` se conserva, sin modificar scheduler, n8n ni KekoPilot.
 
-Proyecto Compose web vigente: `socialpro-studio-app`; configuración desplegada
-en `source-app/infra/studio/web.yaml` dentro del release, `STUDIO_WEB_IMAGE`
+Proyecto Compose web vigente: `socialpro-studio-agency`; configuración desplegada
+en `source-agency/infra/studio/web.yaml` dentro del release, `STUDIO_WEB_IMAGE`
 según la imagen vigente y `STUDIO_WEB_ENV` apuntando a `production-studio.env`.
-El trabajador usa proyecto `socialpro-studio`, `source-upload/infra/studio/compose.yaml`
+El trabajador usa proyecto `socialpro-studio`, `source-agency-worker/infra/studio/compose.yaml`
 y el archivo mínimo privado `worker.env` (sin credenciales de proveedor).
-Los contenedores de ensayo y el candidato intermedio están detenidos. La cuenta
+Los contenedores de ensayo, navegador y proxy de QA están detenidos, y el túnel
+temporal está cerrado. Se conserva el web anterior para reversión. La cuenta
 temporal de build de solo lectura quedó `NOLOGIN`; se retiró únicamente la red
 extra del builder añadida para esta prueba. Los dumps permanecen privados.
 
@@ -149,7 +182,15 @@ El bloque versionado está en `infra/studio/app.Caddyfile`; raíz → `/studio`,
 subida se compara con el dominio configurado o el origen exacto de `app`, nunca
 con el hostname interno de Next ni un Host reenviado por el cliente.
 
-Rollback **del subdominio**: `studio-app-edge.mjs rollback` restaura
+Rollback **de edición de agencia**: `studio-agency-edge.mjs rollback` restaura
+`Caddyfile.before-agency` únicamente si el actual coincide con
+`Caddyfile.with-agency`. Preserva inode; validar y recargar Caddy. Devuelve ambos
+dominios al web `0730b356` sin cambiar DNS ni datos. El worker nuevo es compatible
+con los trabajos previos y debe conservarse mientras existan trabajos de agencia;
+no restaurar el worker antiguo sobre esa cola. No revertir tablas ni medios.
+
+Rollback histórico **del subdominio**, después del rollback anterior:
+`studio-app-edge.mjs rollback` restaura
 `Caddyfile.before-app` solo si el actual coincide con `Caddyfile.with-app`.
 Preserva inode; validar y recargar Caddy. Devuelve SocialPro a la imagen
 `29ebbf41` y retira el vhost app, sin tocar DB ni los demás dominios. El DNS
