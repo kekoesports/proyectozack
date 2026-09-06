@@ -1,0 +1,42 @@
+# Blue/green web release. Uses the existing database, auth secret and storage.
+# Do not run down on the CRM project or replace its PostgreSQL service.
+name: socialpro-studio-web
+services:
+  web:
+    image: ${STUDIO_WEB_IMAGE:?Immutable tested web image required}
+    restart: unless-stopped
+    stop_grace_period: 30s
+    env_file:
+      - ${STUDIO_WEB_ENV:?Existing SocialPro environment plus Studio flags}
+    environment:
+      NODE_ENV: production
+      PORT: '3000'
+      HOSTNAME: 0.0.0.0
+      DEPLOY_ENV: production
+      STORAGE_DRIVER: local
+      STORAGE_LOCAL_ROOT: /srv/storage
+      STUDIO_ENABLED: 'true'
+      STUDIO_RENDER_ENABLED: 'true'
+      STUDIO_HIGGSFIELD_ENABLED: 'false'
+      TZ: Europe/Madrid
+    volumes:
+      - /opt/socialpro/data/storage-public:/srv/storage/public
+      - /opt/socialpro/data/storage-private:/srv/storage/private
+    networks: [crm_backend, socialpro_edge]
+    healthcheck:
+      test: [CMD-SHELL, 'wget -q --spider http://127.0.0.1:3000/api/health/live || exit 1']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 45s
+    mem_limit: 2g
+    logging:
+      driver: json-file
+      options: { max-size: '10m', max-file: '3' }
+networks:
+  crm_backend:
+    external: true
+    name: socialpro-crm_crm_backend
+  socialpro_edge:
+    external: true
+    name: socialpro_edge
