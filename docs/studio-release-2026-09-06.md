@@ -14,6 +14,11 @@ notas históricas «solo local». Publicar la aplicación no hace públicos sus 
 - `app.socialpro.es` no tiene DNS. Su activación queda pendiente de IONOS,
   certificado, orígenes de autenticación y callbacks; no basta con un CNAME.
 - Imagen de apertura: `socialpro:studio-f68e6a73`, fuente `f68e6a73`.
+- Imagen vigente desde las 16:47 UTC: `socialpro:studio-29ebbf41`, fuente
+  `29ebbf41`, servicio `socialpro-studio-final-web-1`. Añade compatibilidad de
+  login con contraseñas válidas anteriores a la política nueva de alta.
+- PR [446](https://github.com/kekoesports/proyectozack/pull/446) integrada mediante
+  merge `36696c5a`. No se reescribió historia ni se sustituyeron cambios ajenos.
 - Worker: `socialpro-studio-worker:eea5ecc4`; código de render idéntico al de la
   revisión web. Los cambios posteriores afectan proxy, upload HTTP e infraestructura.
 - Misma base PostgreSQL, secreto de Better Auth y almacenes privados. Se conservan
@@ -84,6 +89,9 @@ CRM sí son reutilizables; un handle declarado no equivale a conexión OAuth.
   candidato sano, consultas con rol de app y rutas privadas protegidas.
 - HTTPS público: login de Studio, inicio SocialPro y KekoPilot correctos;
   base/migraciones sanas. Navegador real sin errores en la entrada publicada.
+- Contraseña corta heredada: autenticación Better Auth real en el clon y
+  formulario de navegador local comprobados. Las nuevas altas conservan mínimo
+  12 caracteres, también validado por el servidor.
 
 ## Operación y reversión
 
@@ -97,6 +105,15 @@ Los servicios nuevos se gestionan con `infra/studio/web.yaml` y
 `infra/studio/compose.yaml`, variables de imagen inmutable/env indicadas en los
 archivos. No ejecutar `compose down` sobre el CRM. El contenedor anterior
 `socialpro-crm-app-1` se conserva, sin modificar scheduler, n8n ni KekoPilot.
+
+Proyecto Compose web vigente: `socialpro-studio-final`; configuración desplegada
+en `source-auth/infra/studio/web.yaml` dentro del release, `STUDIO_WEB_IMAGE`
+según la imagen vigente y `STUDIO_WEB_ENV` apuntando a `production-studio.env`.
+El trabajador usa proyecto `socialpro-studio`, `source-upload/infra/studio/compose.yaml`
+y el archivo mínimo privado `worker.env` (sin credenciales de proveedor).
+Los contenedores de ensayo y el candidato intermedio están detenidos. La cuenta
+temporal de build de solo lectura quedó `NOLOGIN`; se retiró únicamente la red
+extra del builder añadida para esta prueba. Los dumps permanecen privados.
 
 Caddy cambia **solo** el upstream de `socialpro.es`. Subidas Studio admiten
 22 MB de cuerpo multipart; el resto conserva 12 MB. Next permite un buffer de
