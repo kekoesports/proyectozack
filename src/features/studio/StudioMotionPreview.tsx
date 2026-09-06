@@ -2,7 +2,7 @@
 import { useState, useTransition } from 'react';
 import { Play, X } from 'lucide-react';
 import { previewStudioMotion } from '@/app/studio/motion-actions';
-import { motionDimensions } from '@/lib/studio/motion-document';
+import { motionDimensions } from '@/lib/studio/motion-dimensions';
 import type { StudioBoard } from '@/lib/schemas/studio-production';
 
 /** Isolated document: scripts can animate, but cannot access parent, cookies or network. */

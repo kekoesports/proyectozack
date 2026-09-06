@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { StudioId } from './studio';
+import { StudioMotionId, motionLineLimit } from './studio-motion';
 
 const safeText = (max: number) => z.string().trim().max(max).refine((s) => !/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/.test(s));
 export const StudioScene = z.object({
@@ -11,16 +12,16 @@ export const StudioScene = z.object({
   duration: z.number().min(1).max(60),
   start: z.number().min(0).max(600),
   // Versioned designs; omission preserves legacy cards.
-  motion: z.enum(['statement-v1', 'steps-v1', 'contact-v1']).optional(),
+  motion: StudioMotionId.optional(),
 }).refine((s) => s.kind === 'title' || s.assetId !== null, { message: 'Selecciona el material de cada escena.' })
   .refine((s) => !s.motion || s.kind === 'title', { message: 'Los diseños animados son solo para cartelas.' })
   .refine((s) => !s.motion || s.duration >= 2, { message: 'Deja al menos 2 segundos para la animación.' })
   .refine((s) => !s.motion || (s.title.length <= 60 && s.body.length <= 150),
     { message: 'Para mantener la lectura: máximo 60 caracteres de titular y 150 de apoyo en diseños HyperFrames.' })
-  .refine((s) => s.motion !== 'steps-v1' || s.body.split('\n').filter((line) => line.trim()).length <= 3,
-    { message: 'Un proceso admite hasta 3 pasos, uno por línea.' })
-  .refine((s) => s.motion !== 'steps-v1' || s.body.split('\n').every((line) => line.trim().length <= 48),
-    { message: 'Cada paso admite hasta 48 caracteres para que se lea bien.' });
+  .refine((s) => !motionLineLimit(s.motion) || s.body.split('\n').filter((line) => line.trim()).length <= motionLineLimit(s.motion),
+    { message: 'Admite hasta 3 líneas; en Comparativa, hasta 2.' })
+  .refine((s) => !motionLineLimit(s.motion) || s.body.split('\n').every((line) => line.trim().length <= 48),
+    { message: 'Cada línea admite hasta 48 caracteres para que se lea bien.' });
 export const StudioBoard = z.object({
   version: z.literal(1),
   format: z.enum(['9:16', '1:1', '16:9']),

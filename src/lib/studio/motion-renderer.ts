@@ -14,8 +14,9 @@ export async function renderStudioMotion(scene: StudioScene, board: StudioBoard,
   await Promise.all([
     copyFile(resolve('public/fonts/studio/BarlowCondensed-ExtraBold.ttf'), join(project, 'display.ttf')),
     copyFile(resolve('public/fonts/studio/Inter.ttf'), join(project, 'body.ttf')),
+    copyFile(resolve('public/images/logos/socialpro-full.png'), join(project, 'socialpro.png')),
   ]);
-  await writeFile(join(project, 'index.html'), studioMotionDocument(scene, board, { display: 'display.ttf', body: 'body.ttf' }));
+  await writeFile(join(project, 'index.html'), studioMotionDocument(scene, board, { display: 'display.ttf', body: 'body.ttf', logo: 'socialpro.png' }));
   const output = join(project, 'motion.mp4');
   await runFile(process.execPath, [resolve('node_modules/hyperframes/bin/hyperframes.mjs'), 'render', project,
     '--output', output, '--fps', '30', '--workers', '1', '--quality', 'standard', '--no-browser-gpu', '--frames-cache-dir', 'off'],

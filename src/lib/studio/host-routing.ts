@@ -7,7 +7,7 @@ const AUTH_ALIASES: Readonly<Record<string, string>> = {
   '/admin/forgot-password': '/studio/forgot-password',
   '/admin/reset-password': '/studio/reset-password',
 };
-const ALLOWED_PREFIXES = ['/studio', '/api/studio', '/api/auth', '/_next', '/images', '/fonts'];
+const ALLOWED_PREFIXES = ['/studio', '/api/studio', '/api/auth', '/_next', '/images', '/fonts', '/motion/collection-02'];
 const ALLOWED_FILES = new Set(['/favicon.ico', '/robots.txt', '/api/health/live', '/api/health/ready']);
 
 /** Product routing only, never authorization. Every server data/action guard still runs. */

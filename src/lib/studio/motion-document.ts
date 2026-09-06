@@ -1,13 +1,16 @@
 import type { StudioBoard, StudioScene } from '@/lib/schemas/studio-production';
 import { motionDesign } from './motion-catalog';
+import { collectionDocument, type MotionResources } from './motion-collection-document';
+import { motionDimensions } from './motion-dimensions';
 
-export const motionDimensions = { '9:16': [720, 1280], '1:1': [720, 720], '16:9': [1280, 720] } satisfies Record<StudioBoard['format'], [number, number]>;
+export { motionDimensions } from './motion-dimensions';
 const escapeHTML = (text: string) => text.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#39;');
 
 /** Trusted templates only. Text is escaped, never interpolated into JS/CSS/URLs. */
 export function studioMotionDocument(scene: StudioScene, board: Pick<StudioBoard, 'format' | 'palette'>,
-  fonts: { display: string; body: string }, preview = false) {
+  fonts: MotionResources, preview = false) {
   if (!scene.motion) throw new Error('motion_required');
+  if (!['statement-v1', 'steps-v1', 'contact-v1'].includes(scene.motion)) return collectionDocument(scene, board, fonts, preview);
   const design = motionDesign(scene.motion);
   const [width, height] = motionDimensions[board.format];
   const portrait = height > width;
