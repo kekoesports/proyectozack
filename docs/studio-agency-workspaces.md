@@ -6,14 +6,23 @@ read_when: using Studio as agency staff, changing Studio permissions, or deployi
 
 ## Recorrido
 
-1. Entrar en `/admin/studio` con una cuenta existente **admin o manager**.
-2. Buscar un talento del CRM y pulsar **Abrir Studio**.
+1. Entrar en `https://app.socialpro.es` con una cuenta existente **admin o manager**.
+2. Sin selección, se abre `/studio/workspaces`, una entrada propia de Creator
+   Studio. Buscar un talento de SocialPro y pulsar **Abrir Studio**.
 3. Comprobar el aviso **Editando para [talento]**. Crear un proyecto, preparar
    el guion, subir material con derechos y guardar el montaje.
 4. Ver la animación y exportar MP4. El resultado llega a **Revisión** como
    recurso privado. Exportar no aprueba ni publica el vídeo.
-5. **Volver a la agencia** cierra la selección. Elegir otro talento para cambiar
+5. **Cambiar creador** cierra la selección y vuelve al selector dentro de Studio. Elegir otro talento para cambiar
    de espacio; no hace falta crearle una cuenta para preparar un borrador.
+
+El CRM de invitaciones, revisión y administración permanece exclusivamente en
+`https://socialpro.es/admin/studio`. No es la entrada de la app. El host `app`
+redirige sus enlaces antiguos `/admin/*` a Studio y rechaza las APIs ajenas y
+mutaciones del CRM. Login, 2FA y recuperación tienen rutas `/studio/*` propias.
+Los enlaces legales de cookies/privacidad abren la web pública. Se comparten
+usuarios y datos, pero las cookies de sesión siguen siendo host-only: iniciar
+sesión en el CRM no inicia automáticamente sesión en el subdominio.
 
 No se amplían automáticamente los permisos del resto de roles del CRM. El
 creador sigue entrando mediante su propia invitación y cuenta verificada.

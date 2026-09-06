@@ -1,6 +1,9 @@
 # Additive site block; validate together with the existing VPS Caddyfile.
 # Both SocialPro domains must use this same tested web release and database.
 app.socialpro.es {
+	# Legal information belongs to the public site, not to the creator workspace.
+	@studioLegal path /privacidad /cookies
+	redir @studioLegal https://socialpro.es{path} temporary
 	encode zstd gzip
 	header {
 		Strict-Transport-Security "max-age=31536000; includeSubDomains"
@@ -11,7 +14,7 @@ app.socialpro.es {
 	}
 	@home path /
 	redir @home /studio temporary
-	reverse_proxy socialpro-studio-agency-web-1:3000 {
+	reverse_proxy socialpro-studio-native-web-1:3000 {
 		header_up X-Real-IP {remote_host}
 		header_up X-Forwarded-Proto {scheme}
 		flush_interval -1

@@ -12,7 +12,15 @@ notas históricas «solo local». Publicar la aplicación no hace públicos sus 
 - Entrada de Studio desde las 17:02 UTC: `https://app.socialpro.es`.
   `https://socialpro.es/studio` continúa disponible. La web pública conserva su
   dominio canónico `socialpro.es`.
-- Agencia: `/admin/studio` en ambos dominios, usuarios admin/manager existentes.
+- Creator Studio: `app.socialpro.es` → `/studio`. Agencia sin selección →
+  `/studio/workspaces`, con interfaz propia y sin navegación CRM. Creador → su
+  espacio asignado. Gestión interna: solo `socialpro.es/admin/studio`.
+- Corrección de separación activa desde las 18:51 UTC: web
+  `socialpro:studio-native-dd66b71e`, fuente
+  `dd66b71e18203ebbd441f160ccd5990d17db3182`, contenedor
+  `socialpro-studio-native-web-1`, imagen SHA256
+  `55a04de7bffcca4eb7e10c88030616919d583a7cda8865ca704931e55c5cee69`.
+  Sin migraciones, altas ni cambios de permisos. Worker `afe32966` intacto.
 - IONOS: único registro añadido `A app → 159.195.112.100`, TTL 300,
   id `1498445897`. Confirmado en DNS autoritativo y resolver público; HTTPS
   válido emitido automáticamente por Caddy, sin desactivar protección de dominio.
@@ -32,7 +40,7 @@ notas históricas «solo local». Publicar la aplicación no hace públicos sus 
 - Subdominio: PR [447](https://github.com/kekoesports/proyectozack/pull/447),
   merge `4df65033`. Lint/tipos y tests unitarios/integración/fuzz aprobados en CI;
   build y smoke Docker finales también aprobados directamente en el VPS.
-- Edición de agencia activa desde las 18:14 UTC: web
+- Imagen anterior de edición de agencia, desde las 18:14 UTC: web
   `socialpro:studio-agency-dcbd17d8`, fuente
   `dcbd17d8de62bd42ba1c94e0a7048e03e8968676`, contenedor
   `socialpro-studio-agency-web-1`, imagen SHA256
@@ -50,10 +58,10 @@ notas históricas «solo local». Publicar la aplicación no hace públicos sus 
 
 ## Qué puede hacer cada usuario
 
-La agencia entra con su cuenta habitual y ve el roster real, abre el editor con
-**Abrir Studio**, crea enlaces de invitación y revisa guiones/exportaciones.
-El aviso **Editando para [talento]** identifica el espacio, y **Volver a la
-agencia** cierra la selección. Tener una ficha de talento **no** crea
+La agencia entra en la app con su cuenta habitual, elige un espacio real y abre
+el editor con **Abrir Studio**. Las invitaciones y aprobaciones de agencia
+siguen en el CRM interno. **Editando para [talento]** identifica el espacio y
+**Cambiar creador** vuelve al selector de Studio. Tener una ficha de talento **no** crea
 una cuenta ni concede acceso automáticamente. La invitación vincula el correo
 con la ficha existente. No se enviaron invitaciones en este despliegue.
 
@@ -99,6 +107,26 @@ redes y publicación automática siguen pendientes. Las métricas existentes del
 CRM sí son reutilizables; un handle declarado no equivale a conexión OAuth.
 
 ## Pruebas ejecutadas
+
+- Separación app/CRM: 85 tests de entrada/proxy/roles/locale; batería completa
+  local 6396 aprobados, uno omitido; tipos, lint y check Drizzle aprobados.
+  45 pruebas SQL agencia/worker + 42 aislamiento + 39 producción sin proveedor.
+- Imagen nativa final: login real de tres cuentas sintéticas a través del proxy
+  HTTPS del clon aislado. Agencia sin membresía accede al selector; creadores no
+  pueden enumerarlo. App rechaza API/mutación CRM, principal conserva CRM.
+  Login/2FA/recuperación sirven interfaz Studio. Medios privados: 206 propio,
+  404 cruzado. No se desactivaron los límites de acceso durante las pruebas.
+- Navegador del clon: login → selector → búsqueda → espacio → editor → revisión
+  → vídeo reproducido (51 frames decodificados, sin error) → estadísticas →
+  cambiar creador. Escritorio 1440 px y móvil 390 px, sin enlaces CRM ni overflow.
+  Fallos de fotos externas muestran iniciales, no imágenes rotas.
+- Producción: ambos hosts usan la misma imagen final; app/admin/studio devuelve
+  307 a /studio; API CRM devuelve 404; principal público 200 y CRM protegido.
+  Cookie/legal redirigen al sitio público, con TLS válido. Formulario nuevo
+  abierto en el navegador del usuario; login real en app pendiente del usuario.
+  Conteos antes/después iguales: 148 talentos, 8 usuarios, 0 membresías Studio,
+  0 proyectos, 0 renders, 0 fixtures. No se subió el piloto personal ni se
+  activaron proveedores. Build con fixture read-only y smoke PDF/OCR aprobado.
 
 - Tipos, lint y tests de componentes/datos; aislamiento 42 checks y producción
   offline 39 checks. CI completo sobre la entrega original; correcciones
@@ -163,8 +191,8 @@ Los servicios nuevos se gestionan con `infra/studio/web.yaml` y
 archivos. No ejecutar `compose down` sobre el CRM. El contenedor anterior
 `socialpro-crm-app-1` se conserva, sin modificar scheduler, n8n ni KekoPilot.
 
-Proyecto Compose web vigente: `socialpro-studio-agency`; configuración desplegada
-en `source-agency/infra/studio/web.yaml` dentro del release, `STUDIO_WEB_IMAGE`
+Proyecto Compose web vigente: `socialpro-studio-native`; configuración desplegada
+en `source-native-final/infra/studio/web.yaml` dentro del release, `STUDIO_WEB_IMAGE`
 según la imagen vigente y `STUDIO_WEB_ENV` apuntando a `production-studio.env`.
 El trabajador usa proyecto `socialpro-studio`, `source-agency-worker/infra/studio/compose.yaml`
 y el archivo mínimo privado `worker.env` (sin credenciales de proveedor).
@@ -182,7 +210,15 @@ El bloque versionado está en `infra/studio/app.Caddyfile`; raíz → `/studio`,
 subida se compara con el dominio configurado o el origen exacto de `app`, nunca
 con el hostname interno de Next ni un Host reenviado por el cliente.
 
-Rollback **de edición de agencia**: `studio-agency-edge.mjs rollback` restaura
+Rollback **de separación nativa**: primero `studio-native-legal-edge.mjs rollback`
+si el actual coincide con `Caddyfile.with-native-legal`; devuelve el contenido
+de `Caddyfile.before-native-legal`. Después `studio-native-edge.mjs rollback`
+si coincide con `Caddyfile.with-native`; restaura `Caddyfile.before-native` y
+ambos upstreams anteriores `dcbd17d8`. Preservar inode, validar y recargar Caddy.
+No tocar datos, DNS ni worker. Este rollback reintroduciría la entrada CRM que
+motivó la corrección; usar solo como recuperación operativa.
+
+Rollback histórico **de edición de agencia**, después del anterior: `studio-agency-edge.mjs rollback` restaura
 `Caddyfile.before-agency` únicamente si el actual coincide con
 `Caddyfile.with-agency`. Preserva inode; validar y recargar Caddy. Devuelve ambos
 dominios al web `0730b356` sin cambiar DNS ni datos. El worker nuevo es compatible
