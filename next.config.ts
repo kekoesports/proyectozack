@@ -226,6 +226,10 @@ const nextConfig: NextConfig = {
     ],
   },
   experimental: {
+    // Studio accepts 20 MiB media + multipart headers. Next's default 10 MiB
+    // proxy buffer silently truncates bigger bodies before the route validates them.
+    // Caddy retains 12 MB elsewhere; Studio also enforces its own streamed cap.
+    proxyClientMaxBodySize: '22mb',
     optimizePackageImports: ['motion', 'recharts'],
     serverActions: {
       // Default is 1MB — photos can be up to 5MB (PHOTO_TYPES.maxBytes)
