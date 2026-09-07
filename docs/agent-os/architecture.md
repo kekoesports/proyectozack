@@ -231,15 +231,14 @@ dockerCommand
 
 ### 2.7. Model provider
 
-Se conserva Gemini como proveedor inicial porque ya está integrado, pero se crea una interfaz nueva para el runtime.
+El runtime tiene una interfaz propia y no concede autoridad al proveedor. Los
+adaptadores reales disponibles son Gemini y xAI; `NullProvider` conserva el
+fallo cerrado y `FakeProvider` mantiene CI determinista sin tráfico externo.
 
 ```typescript
-type AgentModelTurn =
-  | { readonly type: 'final'; readonly text: string; readonly usage: ModelUsage }
-  | { readonly type: 'tool_calls'; readonly calls: readonly StructuredToolCall[]; readonly usage: ModelUsage };
-
 interface AgentModelProvider {
-  runTurn(input: AgentModelTurnInput): Promise<AgentModelTurn>;
+  readonly name: string;
+  generate(request: AgentModelRequest): Promise<AgentModelResult>;
 }
 ```
 
@@ -254,8 +253,20 @@ Reglas:
 - Si el proveedor no devuelve usage, se registra `unknown`, no se inventa.
 - Los modelos y precios se configuran; no se codifican como verdad permanente.
 - El runtime debe soportar `NullProvider` para degradación segura.
+- `agent_definitions.model_provider` y `model_name` eligen el proveedor por
+  agente; añadir un adaptador o una clave no modifica estados, modos ni
+  schedules.
+- Las tarifas se indexan por proveedor + modelo para no mezclar slugs iguales.
+- El adaptador xAI usa Chat Completions y solo declara las funciones locales
+  del registry. No habilita `web_search`, `x_search` ni otras tools ejecutadas
+  por el proveedor.
+- Un error conserva la clasificación `retryable` del adaptador hasta el
+  worker; los errores indeterminados de tools siguen sin reintentarse.
 
 El adaptador actual de chat puede mantenerse durante la transición. No se elimina hasta que la nueva implementación tenga paridad y tests.
+
+La decisión de añadir xAI y excluir Hermes del runtime embebido se documenta
+en `docs/adr/0007-xai-provider-and-hermes-boundary.md`.
 
 ### 2.8. Approval center
 

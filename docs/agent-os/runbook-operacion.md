@@ -1,7 +1,8 @@
 # Zack Agent OS — operación
 
-**Estado a 21-08-2026: montado y apagado.** Las seis fases de código están en
-producción, las tablas existen, los agentes están sembrados. Nada se ejecuta.
+**Corte histórico de 21-08-2026.** Las afirmaciones de despliegue de este bloque
+no prueban el estado actual. Antes de operar, comprobar el panel, la base y los
+heartbeats del entorno objetivo. El catálogo fuente fue revisado el 07-09-2026.
 
 Este documento dice tres cosas, en este orden: qué hay realmente, qué hace falta
 para encenderlo, y cómo es el día a día una vez encendido. Es autocontenido a
@@ -15,11 +16,11 @@ para operar el sistema.
 | Pieza | Estado | Dónde se comprueba |
 |---|---|---|
 | 10 tablas `agent_*` | creadas | migración 0124, verificada en la base |
-| 6 agentes | `disabled` + `shadow`; solo Guardian preparado para Gemini | `/admin/agents` |
+| 6 agentes | verificar estado/modo persistidos; el seed no es estado runtime | `/admin/agents` |
 | 2 rutinas de Guardian | `enabled=false`, `next_run_at=null` | `/admin/agents/schedules` |
 | Worker | **no desplegado** en ningún sitio | `agent_worker_heartbeats` |
 | Collector del VPS | **no instalado** | `agent_events` está vacía |
-| Proveedor de modelo | ninguno (`GEMINI_API_KEY` vacía) | `/admin/agents/settings` |
+| Proveedor de modelo | verificar claves y definición persistida por agente | `/admin/agents/settings` |
 
 Los seis agentes no son igual de maduros. Solo **Guardian** tiene herramientas
 propias:
@@ -85,12 +86,19 @@ se conecta a la base antes de encenderlo.
 
 **Se comprueba así:** `/admin/agents/settings` → «workers vivos: 1».
 
-### Paso 3 — Un modelo para Guardian
+### Paso 3 — Verificar el modelo de cada agente
 
-El catálogo ya prepara exclusivamente Guardian con `model_provider='gemini'`
-y `gemini-2.5-flash`; los otros cinco siguen en `null`. Falta configurar
-`GEMINI_API_KEY` en el `.env` del worker y ejecutar `npm run seed:agents` tras
-desplegar el cambio. Sin clave, el runtime mantiene el fallo cerrado.
+En el catálogo fuente revisado el 07-09-2026, `guardian`, `crm-steward`,
+`deal-clerk`, `growth` y `seo` conservan Gemini con `gemini-3.6-flash`; `dev`
+conserva NullProvider. xAI está disponible como adaptador opcional, pero ningún
+agente cambia a él automáticamente.
+
+Configurar solo la clave necesaria (`GEMINI_API_KEY` o `XAI_API_KEY`) en el
+worker. Sin ella, ese agente falla en cerrado. Antes de ejecutar
+`npm run seed:agents`, revisar la definición persistida: el seed conserva
+estado y modo, pero actualiza proveedor y modelo desde el catálogo. Por tanto,
+un cambio futuro de proveedor en el catálogo requiere su propio rollout y no
+debe entrar como efecto lateral de otro despliegue.
 
 ### Paso 4 — Activar Guardian, sin sacarlo de shadow
 
