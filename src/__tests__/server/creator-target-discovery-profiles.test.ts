@@ -26,7 +26,7 @@ const config = (extra: Partial<CreatorSearchConfig> = {}): CreatorSearchConfig =
 });
 const channel = (extra: Partial<YouTubeChannelPreview> = {}): YouTubeChannelPreview => ({
   channelId: 'UC-synthetic', title: 'Synthetic creator', handle: null, description: 'Valorant creator',
-  subscriberCount: null, viewCount: null, videoCount: null, country: null,
+  subscriberCount: 10_000, viewCount: null, videoCount: null, country: null,
   defaultLanguage: null, thumbnailUrl: null, ...extra,
 });
 const performance = (extra = {}) => ({
@@ -87,17 +87,33 @@ it('uses configured keywords, time window and thresholds, not hardcoded CS2 or w
   expect(getChannelRecentPerformanceReport).toHaveBeenCalledWith('UC-synthetic', 60);
   expect(result.qualified).toBe(1);
   expect(persistDiscoveredCreator).toHaveBeenCalledWith(expect.objectContaining({ externalId: 'UC-synthetic',
-    target: expect.objectContaining({ followers: undefined, minRecentVideoViews: 2, complianceStatus: 'manual-review' }) }));
+    target: expect.objectContaining({ followers: 10_000, minRecentVideoViews: 2, complianceStatus: 'manual-review' }) }));
 });
 it('does not qualify a YouTube channel whose last long video is older than 30 days', async () => {
   jest.mocked(getChannelRecentPerformanceReport).mockResolvedValue({ data: performance({ lastVideoAt: new Date('2026-06-01T00:00:00Z') }), coverage: complete });
   expect((await runCreatorTargetDiscovery('manual', config({ windowDays: 120 }))).qualified).toBe(0);
   expect(persistDiscoveredCreator).not.toHaveBeenCalled();
 });
-it('retains a genuinely observed zero subscriber count', async () => {
+it('does not persist a YouTube channel below the 3,000 subscriber floor', async () => {
   jest.mocked(searchYouTubeChannelsFromRecentVideosReport).mockResolvedValue({ items: [channel({ subscriberCount: 0 })], coverage: complete });
-  await runCreatorTargetDiscovery('manual', config());
-  expect(persistDiscoveredCreator).toHaveBeenCalledWith(expect.objectContaining({ target: expect.objectContaining({ followers: 0 }) }));
+  const result = await runCreatorTargetDiscovery('manual', config());
+  expect(result.qualified).toBe(0);
+  expect(getChannelRecentPerformanceReport).not.toHaveBeenCalled();
+  expect(persistDiscoveredCreator).not.toHaveBeenCalled();
+});
+it('does not persist an active YouTube channel with only 50 subscribers', async () => {
+  jest.mocked(searchYouTubeChannelsFromRecentVideosReport).mockResolvedValue({ items: [channel({ subscriberCount: 50 })], coverage: complete });
+  const result = await runCreatorTargetDiscovery('manual', config());
+  expect(result.qualified).toBe(0);
+  expect(getChannelRecentPerformanceReport).not.toHaveBeenCalled();
+  expect(persistDiscoveredCreator).not.toHaveBeenCalled();
+});
+it('does not spend an enrichment request when subscriber count is unavailable', async () => {
+  jest.mocked(searchYouTubeChannelsFromRecentVideosReport).mockResolvedValue({ items: [channel({ subscriberCount: null })], coverage: complete });
+  const result = await runCreatorTargetDiscovery('manual', config());
+  expect(result.qualified).toBe(0);
+  expect(getChannelRecentPerformanceReport).not.toHaveBeenCalled();
+  expect(persistDiscoveredCreator).not.toHaveBeenCalled();
 });
 it.each([{ videoCount: 2 }, { medianViews: 999.5 }])('applies the precise configured minimum: %j', async extra => {
   jest.mocked(getChannelRecentPerformanceReport).mockResolvedValue({ data: performance(extra), coverage: complete });
@@ -190,7 +206,7 @@ it('stores observed values, source, retrieval time and unknown status against th
   const saved = jest.mocked(persistDiscoveredCreator).mock.calls[0]?.[0];
   expect(saved?.externalId).toBe('UC-synthetic');
   expect(saved).toEqual(expect.objectContaining({ runId: 1 }));
-  expect(saved?.fields.followers).toMatchObject({ value: null, observed_at: null, status: 'unavailable', source: 'youtube:channels.list:subscriberCount' });
+  expect(saved?.fields.followers).toMatchObject({ value: 10_000, status: 'available', source: 'youtube:channels.list:subscriberCount' });
   expect(saved?.fields.medianRecentVideoViews).toMatchObject({ value: 1500, status: 'available', confidence: 'MEDIUM' });
   expect(saved?.fields.lastVideoPublishedAt?.value).toBe('2026-08-20T00:00:00.000Z');
   for (const value of Object.values(saved?.fields ?? {})) expect(creatorObservationSchema.safeParse(value).success).toBe(true);

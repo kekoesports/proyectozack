@@ -10,6 +10,7 @@ import { listCreatorSearchProfiles, listAutomationRegistry } from '@/lib/queries
 import { CreatorSearchProfiles } from '@/features/admin/targets/components/CreatorSearchProfiles';
 import { CreatorAutomationRegistry } from '@/features/admin/targets/components/CreatorAutomationRegistry';
 import { saveSearchProfileAction, runSearchProfileAction } from './profile-actions';
+import { shouldShowCreatorTarget } from '@/lib/targets/audience-thresholds';
 
 export default async function AdminTargetsPage(): Promise<React.ReactElement> {
   const session = await requireAnyRole(['admin', 'admin_limited_tasks', 'manager', 'staff'], '/admin/login');
@@ -21,13 +22,14 @@ export default async function AdminTargetsPage(): Promise<React.ReactElement> {
     listCreatorSearchProfiles(),
     listAutomationRegistry(),
   ]);
+  const visibleTargets = targets.filter(shouldShowCreatorTarget);
 
   return (
     <div className="space-y-6">
       <div className="flex items-baseline gap-4 mb-6">
         <h1 className="font-display text-3xl font-black uppercase text-sp-admin-text">Leads CC</h1>
         <span className="text-xs text-sp-admin-muted tabular-nums">
-          {targets.filter(target => target.status !== 'descartado').length} leads activos
+          {visibleTargets.filter(target => target.status !== 'descartado').length} leads activos
         </span>
       </div>
 
@@ -43,7 +45,7 @@ export default async function AdminTargetsPage(): Promise<React.ReactElement> {
         saveAction={saveSearchProfileAction} runAction={runSearchProfileAction} />
       <CreatorAutomationRegistry entries={registry} />
       <Suspense fallback={<p className="text-sm text-sp-admin-muted">Cargando filtros de redes…</p>}>
-        <TargetsWorkspace targets={targets} brands={brands} />
+        <TargetsWorkspace targets={visibleTargets} brands={brands} />
       </Suspense>
     </div>
   );

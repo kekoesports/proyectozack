@@ -22,6 +22,7 @@ import {
 } from '@/lib/compliance/cs2Markets';
 import { createLimit } from '@/lib/utils/concurrencyLimit';
 import type { CreateTargetInput } from '@/lib/schemas/target';
+import { CREATOR_MINIMUM_FOLLOWERS } from '@/lib/targets/audience-thresholds';
 
 const searchSchema = z.object({
   query: z.string().trim().min(2).max(120),
@@ -101,7 +102,7 @@ const importSchema = z.array(z.object({
   title: z.string().min(1),
   description: z.string(),
   thumbnailUrl: z.url().nullable(),
-  subscriberCount: z.number().int().nonnegative().nullable(),
+  subscriberCount: z.number().int().min(CREATOR_MINIMUM_FOLLOWERS.youtube),
   country: z.string().length(2).nullable(),
   defaultLanguage: z.string().nullable(),
   windowDays: z.union([z.literal(60), z.literal(90)]),

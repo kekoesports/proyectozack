@@ -27,6 +27,27 @@ const performance: YouTubeRecentPerformance = {
 };
 
 describe('qualifyYouTubeChannel', () => {
+  it('rechaza un canal con 50 suscriptores y 15 visitas aunque esté activo', () => {
+    const result = qualifyYouTubeChannel(
+      { ...channel, subscriberCount: 50 },
+      { ...performance, medianViews: 15, avgViews: 15, minViews: 15, videosAtOrAbove1000: 0 },
+      'ES',
+    );
+
+    expect(result.isQualified).toBe(false);
+    expect(result.reasons).toEqual(expect.arrayContaining([
+      '50/3.000 suscriptores mínimos',
+      'Mediana reciente: 15 vistas',
+    ]));
+  });
+
+  it('no preselecciona un canal si YouTube oculta sus suscriptores', () => {
+    const result = qualifyYouTubeChannel({ ...channel, subscriberCount: null }, performance, 'ES');
+
+    expect(result.isQualified).toBe(false);
+    expect(result.reasons).toContain('Suscriptores no disponibles; se necesitan al menos 3.000');
+  });
+
   it('caps a channel at review when its last long video was 60 days ago', () => {
     const result = qualifyYouTubeChannel(
       { ...channel, subscriberCount: null, country: 'US', defaultLanguage: 'en' },

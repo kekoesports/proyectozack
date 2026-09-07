@@ -15,6 +15,7 @@ import { enrichPublicCreator } from '@/lib/targets/creator-enrichment';
 import { creatorObservation } from '@/lib/targets/creator-observations';
 import { liveCategoryQueries, matchesLiveCategory, matchesTwitchCategory, twitchCategoryQuery } from '@/lib/targets/live-category';
 import { CREATOR_REEVALUATION_VERSION } from '@/lib/targets/discard-reevaluation';
+import { hasMinimumCreatorFollowers } from '@/lib/targets/audience-thresholds';
 import { withCreatorDiscoveryDeadline, CreatorDiscoveryDeadlineError, CreatorDiscoveryBudgetError, type CreatorDiscoveryDeadline, type CreatorDiscoveryExecutionOptions } from './creator-discovery-deadline';
 
 export type CreatorDiscoverySummary = {
@@ -131,6 +132,7 @@ async function discoverYouTubeTargets(config: CreatorSearchConfig, deadline: Cre
       deadline.ensure();
       if (stopped) break;
       if (isLikelyPublisherChannel(`${channel.title} ${channel.description}`)) continue;
+      if (!hasMinimumCreatorFollowers('youtube', channel.subscriberCount)) continue;
       if (!marketMatches(channel.country, config) || !languageMatches(channel.defaultLanguage, config)) {
         if (!channel.country || !channel.defaultLanguage) evidence.warnings.add('profile_filter_unverified');
         continue;
@@ -345,6 +347,10 @@ async function persist(platform: CreatorPlatform, rows: DiscoveredCreatorInput[]
   let inserted = 0, updated = 0, qualified = 0;
   for (const row of rows) {
     if (deadline.expired()) { evidence.warnings.add('deadline_exceeded'); break; }
+    if (platform !== 'instagram'
+      && row.target.followers !== null
+      && row.target.followers !== undefined
+      && !hasMinimumCreatorFollowers(platform, row.target.followers)) continue;
     // Atomic identity + observations + target write, always awaited, never raced.
     try {
       const enriched = enrichForReview(row, evidence);

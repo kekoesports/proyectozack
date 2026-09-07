@@ -6,6 +6,7 @@ import {
   type Cs2SearchMarket,
   type TargetLanguage,
 } from '@/lib/compliance/cs2Markets';
+import { CREATOR_MINIMUM_FOLLOWERS } from '@/lib/targets/audience-thresholds';
 
 export type YouTubeQualification = YouTubeChannelPreview & YouTubeRecentPerformance & {
   readonly languageMatches: boolean;
@@ -52,6 +53,11 @@ export function qualifyYouTubeChannel(
   const compliance = assessCs2Market(channel.country, campaignType);
   const reasons: string[] = [];
 
+  if (channel.subscriberCount === null) {
+    reasons.push('Suscriptores no disponibles; se necesitan al menos 3.000');
+  } else if (channel.subscriberCount < CREATOR_MINIMUM_FOLLOWERS.youtube) {
+    reasons.push(`${channel.subscriberCount.toLocaleString('es-ES')}/3.000 suscriptores mínimos`);
+  }
   if (market !== 'GLOBAL' && channel.country !== market) {
     reasons.push(`País del canal: ${channel.country ?? 'sin declarar'}`);
   }

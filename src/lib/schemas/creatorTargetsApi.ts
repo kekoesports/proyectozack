@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { CREATOR_MINIMUM_FOLLOWERS } from '@/lib/targets/audience-thresholds';
 
 // ─── Shared ──────────────────────────────────────────────────────────────────
 
@@ -39,6 +40,15 @@ export const importItemSchema = z.object({
   sourceQuery: z.string().max(200).nullable().optional(),
   lastActivityAt: z.coerce.date().nullable().optional(),
   discoveredVia: z.string().max(200),
+}).superRefine((item, context) => {
+  const minimum = CREATOR_MINIMUM_FOLLOWERS[item.platform];
+  if (item.followers < minimum) {
+    context.addIssue({
+      code: 'custom',
+      path: ['followers'],
+      message: `${item.platform} requires at least ${minimum} followers`,
+    });
+  }
 });
 
 export const creatorTargetsImportBody = z.object({
