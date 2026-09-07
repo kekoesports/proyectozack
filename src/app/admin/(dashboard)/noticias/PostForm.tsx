@@ -164,7 +164,8 @@ export function PostForm({ post, action, submitLabel }: Props) {
   const [body, setBody] = useState(post?.bodyMd ?? '');
   const [status, setStatus] = useState<'draft' | 'published'>(post?.status ?? 'draft');
   const [vertical, setVertical] = useState<'blog' | 'news'>(post?.vertical ?? 'news');
-  const safeSlug = slugify(slug);
+  const persistedSlug = post?.slug ? slugify(post.slug) : '';
+  const persistedVertical = post?.vertical ?? 'news';
 
   function handleTitleBlur() {
     if (!post?.id && slug === '') setSlug(slugify(title));
@@ -408,14 +409,14 @@ export function PostForm({ post, action, submitLabel }: Props) {
           Cancelar
         </Link>
         {/* Ver artículo en web — solo si tiene slug */}
-        {safeSlug && (
+        {persistedSlug && (
           <Link
-            href={`/${vertical}/${encodeURIComponent(safeSlug)}`}
+            href={`/${persistedVertical}/${encodeURIComponent(persistedSlug)}`}
             target="_blank"
             rel="noopener noreferrer"
             className="ml-auto text-sm text-sp-admin-accent hover:opacity-70 transition-opacity flex items-center gap-1"
           >
-            Ver en /{vertical} ↗
+            Ver en /{persistedVertical} ↗
           </Link>
         )}
       </div>
