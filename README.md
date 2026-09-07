@@ -94,8 +94,12 @@ Todas las vars están validadas en `src/lib/env.ts` con `@t3-oss/env-nextjs` y Z
 |---|---|---|---|
 | `DATABASE_URL` | server | URL Postgres | Connection string de Neon (o Postgres). |
 | `RESEND_API_KEY` | server | string (≥ 1) | API key de Resend para emails transaccionales. |
+| `RESEND_WEBHOOK_SECRET` | server | string (≥ 20) opcional | Firma del webhook de Resend; requerida para procesar rebotes y quejas. |
 | `BETTER_AUTH_SECRET` | server | string (≥ 32) | Secret para firmar sesiones de Better Auth. |
 | `NEXT_PUBLIC_SITE_URL` | client | URL | URL pública (metadata, sitemap, robots, JSON-LD, CORS de auth). |
+| `NEXT_PUBLIC_SENTRY_DSN` | client | URL opcional | Activa la captura de errores de Sentry en navegador, servidor y edge. |
+| `NEXT_PUBLIC_SENTRY_TRACES_SAMPLE_RATE` | client | 0–1 opcional | Muestreo de rendimiento; por defecto `0.05`. |
+| `SENTRY_ORG`, `SENTRY_PROJECT`, `SENTRY_AUTH_TOKEN` | build | string opcional | Subida privada de source maps durante el build. |
 
 Crea un `.env.local` en la raíz con las cuatro vars. **No commits**: `.env*` está en `.gitignore`. Los tests de Jest inyectan stubs de estas vars en `jest.setup.ts`, así que los unit tests no requieren un `.env.local` real.
 

@@ -1,7 +1,10 @@
+import * as Sentry from '@sentry/nextjs';
+
 // Next.js server startup hook — runs once before any request handler.
 // Belt-and-suspenders DOMMatrix polyfill (primary polyfill is in pdf.ts).
 export async function register() {
   if (process.env.NEXT_RUNTIME === 'nodejs') {
+    await import('./sentry.server.config');
     const g = globalThis as Record<string, unknown>;
     if (typeof g['DOMMatrix'] === 'undefined') {
       // Minimal stub — pdfjs-dist 5.x references DOMMatrix at module init
@@ -25,5 +28,9 @@ export async function register() {
         transformPoint(): DOMPoint { return DOMPoint.fromPoint({ x:0,y:0,z:0,w:1 }); }
       };
     }
+  } else if (process.env.NEXT_RUNTIME === 'edge') {
+    await import('./sentry.edge.config');
   }
 }
+
+export const onRequestError = Sentry.captureRequestError;

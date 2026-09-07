@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import * as Sentry from '@sentry/nextjs';
 
 /**
  * Error boundary del root layout. Se activa SOLO cuando falla algo dentro
@@ -26,9 +27,10 @@ export default function GlobalError({
   readonly reset: () => void;
 }): React.JSX.Element {
   useEffect(() => {
+    Sentry.captureException(error);
     // safe: solo metadata; nunca error.message ni stack
     console.error('[global-error]', { name: error.name, digest: error.digest ?? null });
-  }, [error.name, error.digest]);
+  }, [error]);
 
   return (
     <html lang="es">

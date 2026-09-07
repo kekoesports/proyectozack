@@ -1,12 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import type { NewsletterSubscriber } from '@/db/schema/newsletterSubscribers';
+import type { NewsletterSubscriberRow } from '@/lib/queries/newsletterSubscribers';
 
-type Stats = { total: number; totalMarketing: number; last30: number };
+type Stats = { total: number; totalMarketing: number; last30: number; suppressed: number };
 
 type Props = {
-  readonly subscribers: readonly NewsletterSubscriber[];
+  readonly subscribers: readonly NewsletterSubscriberRow[];
   readonly stats:       Stats;
 };
 
@@ -15,12 +15,13 @@ function fmt(d: Date | string | null) {
   return new Date(d).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
 
-function exportCsv(rows: readonly NewsletterSubscriber[]) {
-  const header = 'email,status,newsletter,marketing,version,fecha_alta,fecha_baja,source';
+function exportCsv(rows: readonly NewsletterSubscriberRow[]) {
+  const header = 'email,status,entregabilidad,newsletter,marketing,version,fecha_alta,fecha_baja,source';
   const lines = rows.map((r) =>
     [
       r.email,
       r.status,
+      r.suppressionReason ?? 'ok',
       r.consentNewsletter ? 'sí' : 'no',
       r.consentMarketing  ? 'sí' : 'no',
       r.consentVersion,
@@ -40,12 +41,13 @@ function exportCsv(rows: readonly NewsletterSubscriber[]) {
 }
 
 export function NewsletterAdminView({ subscribers, stats }: Props) {
-  const [filter, setFilter] = useState<'all' | 'newsletter' | 'marketing' | 'unsubscribed'>('all');
+  const [filter, setFilter] = useState<'all' | 'newsletter' | 'marketing' | 'unsubscribed' | 'suppressed'>('all');
   const [search, setSearch] = useState('');
 
   const filtered = subscribers.filter((s) => {
     if (filter === 'marketing'   && !s.consentMarketing)         return false;
     if (filter === 'unsubscribed' && s.status !== 'unsubscribed') return false;
+    if (filter === 'suppressed' && !s.suppressionReason) return false;
     if (filter === 'newsletter'  && s.status !== 'active')        return false;
     if (search && !s.email.toLowerCase().includes(search.toLowerCase())) return false;
     return true;
@@ -67,11 +69,12 @@ export function NewsletterAdminView({ subscribers, stats }: Props) {
       </div>
 
       {/* KPIs */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {[
           { label: 'Suscriptores activos', value: stats.total,          accent: '#16a34a' },
           { label: 'Opt-in comercial',     value: stats.totalMarketing, accent: '#f59e0b' },
           { label: 'Últimos 30 días',      value: stats.last30,         accent: '#8b3aad' },
+          { label: 'Entrega bloqueada',    value: stats.suppressed,     accent: '#dc2626' },
         ].map((k) => (
           <div key={k.label} className="rounded-xl bg-sp-admin-card border border-sp-admin-border overflow-hidden">
             <div className="h-[2px]" style={{ background: k.accent }} />
@@ -90,6 +93,7 @@ export function NewsletterAdminView({ subscribers, stats }: Props) {
           { v: 'newsletter',   label: 'Newsletter activo' },
           { v: 'marketing',    label: 'Opt-in comercial' },
           { v: 'unsubscribed', label: 'Baja' },
+          { v: 'suppressed',   label: 'Rebote / queja' },
         ] as const).map(({ v, label }) => (
           <button
             key={v}
@@ -146,7 +150,9 @@ export function NewsletterAdminView({ subscribers, stats }: Props) {
                 <td className="px-4 py-3 text-[11px] text-sp-admin-muted">{s.source}</td>
                 <td className="px-4 py-3 text-[11px] text-sp-admin-muted whitespace-nowrap">{fmt(s.subscribedAt)}</td>
                 <td className="px-4 py-3">
-                  {s.status === 'active'
+                  {s.suppressionReason
+                    ? <span className="text-[10px] font-bold text-red-600 bg-red-50 rounded-full px-2 py-0.5">Entrega bloqueada</span>
+                    : s.status === 'active'
                     ? <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 rounded-full px-2 py-0.5">Activo</span>
                     : <span className="text-[10px] font-bold text-sp-admin-muted bg-sp-admin-hover rounded-full px-2 py-0.5">Baja</span>}
                 </td>

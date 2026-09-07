@@ -33,6 +33,12 @@ export const env = createEnv({
     STORAGE_PUBLIC_URL_BASE: z.string().url().optional(),
     STORAGE_FALLBACK_TO_VERCEL: z.coerce.boolean().default(true),
     RESEND_API_KEY: z.string().min(1),
+    /** Firma Svix del endpoint /api/webhooks/resend. Sin ella falla en cerrado. */
+    RESEND_WEBHOOK_SECRET: z.string().min(20).optional(),
+    /** Solo build/CI: credenciales para subir source maps, nunca al navegador. */
+    SENTRY_ORG: z.string().min(1).optional(),
+    SENTRY_PROJECT: z.string().min(1).optional(),
+    SENTRY_AUTH_TOKEN: z.string().min(10).optional(),
     // Durante y después del cutover, el VPS puede delegar únicamente el envío
     // de email en la instancia gratuita de Vercel, que conserva RESEND_API_KEY.
     EMAIL_RELAY_URL: z.string().url().optional(),
@@ -272,6 +278,9 @@ export const env = createEnv({
   client: {
     NEXT_PUBLIC_SITE_URL: z.string().url(),
     NEXT_PUBLIC_GTM_ID: z.string().min(1).optional(),
+    /** El DSN es público por diseño; no incluir SENTRY_AUTH_TOKEN en el cliente. */
+    NEXT_PUBLIC_SENTRY_DSN: z.string().url().optional(),
+    NEXT_PUBLIC_SENTRY_TRACES_SAMPLE_RATE: z.coerce.number().min(0).max(1).default(0.05),
   },
   runtimeEnv: {
     AI_GATEWAY_API_KEY: process.env.AI_GATEWAY_API_KEY,
@@ -294,6 +303,10 @@ export const env = createEnv({
     STORAGE_PUBLIC_URL_BASE: process.env.STORAGE_PUBLIC_URL_BASE,
     STORAGE_FALLBACK_TO_VERCEL: process.env.STORAGE_FALLBACK_TO_VERCEL,
     RESEND_API_KEY: process.env.RESEND_API_KEY,
+    RESEND_WEBHOOK_SECRET: process.env.RESEND_WEBHOOK_SECRET,
+    SENTRY_ORG: process.env.SENTRY_ORG,
+    SENTRY_PROJECT: process.env.SENTRY_PROJECT,
+    SENTRY_AUTH_TOKEN: process.env.SENTRY_AUTH_TOKEN,
     EMAIL_RELAY_URL: process.env.EMAIL_RELAY_URL,
     EMAIL_RELAY_TOKEN: process.env.EMAIL_RELAY_TOKEN,
     EMAIL_RELAY_AUTH_TOKEN: process.env.EMAIL_RELAY_AUTH_TOKEN,
@@ -393,6 +406,8 @@ export const env = createEnv({
 
     NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
     NEXT_PUBLIC_GTM_ID: process.env.NEXT_PUBLIC_GTM_ID,
+    NEXT_PUBLIC_SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN,
+    NEXT_PUBLIC_SENTRY_TRACES_SAMPLE_RATE: process.env.NEXT_PUBLIC_SENTRY_TRACES_SAMPLE_RATE,
   },
   // Treat `VAR=` (empty string) the same as a missing var so optional fields
   // don't fail validation when declared but unset in .env.
