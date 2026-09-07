@@ -274,6 +274,29 @@ describe('política de reintentos', () => {
     expect(d.kind).toBe('dead_letter');
   });
 
+  it('respeta la clasificación transitoria del adaptador aunque el código sea genérico', () => {
+    const d = decideRetry({
+      errorCode: 'provider_error',
+      retryable: true,
+      attempt: 1,
+      maxAttempts: 3,
+      now: AHORA,
+      aleatorio: 0,
+    });
+    expect(d.kind).toBe('retry');
+  });
+
+  it('no reintenta cuando el adaptador clasifica el error como permanente', () => {
+    const d = decideRetry({
+      errorCode: 'provider_quota',
+      retryable: false,
+      attempt: 1,
+      maxAttempts: 3,
+      now: AHORA,
+    });
+    expect(d.kind).toBe('fail');
+  });
+
   it('no reintenta un fallo determinista', () => {
     const d = decideRetry({ errorCode: 'invalid_tool_input', attempt: 1, maxAttempts: 3, now: AHORA });
     expect(d.kind).toBe('fail');

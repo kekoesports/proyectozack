@@ -333,13 +333,19 @@ describe('robustez frente al proveedor', () => {
 
   it('registra el consumo de cada turno', async () => {
     const provider = new FakeAgentModelProvider([
-      { text: 'ok', usage: { inputTokens: 1_000, outputTokens: 500, cachedInputTokens: null }, model: 'gemini-2.0-flash' },
+      {
+        text: 'ok',
+        usage: { inputTokens: 1_000, outputTokens: 500, cachedInputTokens: 200 },
+        model: 'gemini-2.0-flash',
+        provider: 'gemini',
+      },
     ]);
     const { deps: d, eventos } = deps(provider);
     await runAgentLoop(d, { systemPrompt: 'x', userMessage: 'y', ctx: ctx() });
 
     const uso = eventos.find((e) => e.kind === 'usage');
     expect(uso?.kind === 'usage' && uso.inputTokens).toBe(1_000);
+    expect(uso?.kind === 'usage' && uso.cachedInputTokens).toBe(200);
     expect(uso?.kind === 'usage' && uso.pricingUnknown).toBe(false);
   });
 

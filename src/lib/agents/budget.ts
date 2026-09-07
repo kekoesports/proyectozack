@@ -127,15 +127,38 @@ export function checkBudgetAndLimits(
  */
 export type ModelPricing = {
   readonly inputMicrosPerMillion: number;
+  readonly cachedInputMicrosPerMillion?: number;
   readonly outputMicrosPerMillion: number;
+  readonly longContext?: {
+    readonly thresholdTokens: number;
+    readonly inputMicrosPerMillion: number;
+    readonly cachedInputMicrosPerMillion: number;
+    readonly outputMicrosPerMillion: number;
+  };
 };
 
-/** Revisado 2026-08. Verificar antes de fiarse de un informe de coste. */
+/** Clave compuesta para evitar colisiones entre proveedores. */
+export function modelPricingKey(provider: string, model: string): string {
+  return `${provider}:${model}`;
+}
+
+/** Revisado 2026-09-07. Verificar antes de fiarse de un informe de coste. */
 export const MODEL_PRICING: Readonly<Record<string, ModelPricing>> = {
-  'gemini-2.0-flash': { inputMicrosPerMillion: 100_000, outputMicrosPerMillion: 400_000 },
-  'gemini-2.5-flash': { inputMicrosPerMillion: 300_000, outputMicrosPerMillion: 2_500_000 },
+  'gemini:gemini-2.0-flash': { inputMicrosPerMillion: 100_000, outputMicrosPerMillion: 400_000 },
+  'gemini:gemini-2.5-flash': { inputMicrosPerMillion: 300_000, outputMicrosPerMillion: 2_500_000 },
   // Precio introductorio Standard vigente hasta el 31-12-2026.
-  'gemini-3.6-flash': { inputMicrosPerMillion: 750_000, outputMicrosPerMillion: 3_750_000 },
+  'gemini:gemini-3.6-flash': { inputMicrosPerMillion: 750_000, outputMicrosPerMillion: 3_750_000 },
+  'xai:grok-4.3': {
+    inputMicrosPerMillion: 1_250_000,
+    cachedInputMicrosPerMillion: 200_000,
+    outputMicrosPerMillion: 2_500_000,
+    longContext: {
+      thresholdTokens: 200_000,
+      inputMicrosPerMillion: 2_500_000,
+      cachedInputMicrosPerMillion: 400_000,
+      outputMicrosPerMillion: 5_000_000,
+    },
+  },
 };
 
 export type CostEstimate = {
@@ -144,16 +167,29 @@ export type CostEstimate = {
 };
 
 export function estimateCostMicros(
+  provider: string,
   model: string | null,
   inputTokens: number,
   outputTokens: number,
+  cachedInputTokens: number | null = null,
 ): CostEstimate {
-  const tarifa = model ? MODEL_PRICING[model] : undefined;
+  const tarifa = model ? MODEL_PRICING[modelPricingKey(provider, model)] : undefined;
   if (!tarifa) return { estimatedCostMicros: 0, pricingUnknown: true };
 
+  const longContext = tarifa.longContext && inputTokens >= tarifa.longContext.thresholdTokens
+    ? tarifa.longContext
+    : null;
+  const inputRate = longContext?.inputMicrosPerMillion ?? tarifa.inputMicrosPerMillion;
+  const outputRate = longContext?.outputMicrosPerMillion ?? tarifa.outputMicrosPerMillion;
+  const cachedRate = longContext?.cachedInputMicrosPerMillion ?? tarifa.cachedInputMicrosPerMillion;
+  const cachedTokens = cachedRate === undefined
+    ? 0
+    : Math.min(Math.max(cachedInputTokens ?? 0, 0), Math.max(inputTokens, 0));
+  const uncachedTokens = Math.max(inputTokens - cachedTokens, 0);
   const coste =
-    (inputTokens / 1_000_000) * tarifa.inputMicrosPerMillion +
-    (outputTokens / 1_000_000) * tarifa.outputMicrosPerMillion;
+    (uncachedTokens / 1_000_000) * inputRate +
+    (cachedTokens / 1_000_000) * (cachedRate ?? inputRate) +
+    (Math.max(outputTokens, 0) / 1_000_000) * outputRate;
 
   return { estimatedCostMicros: Math.round(coste), pricingUnknown: false };
 }

@@ -19,7 +19,7 @@ import {
   SEED_AGENT_MODE,
   SEED_AGENT_STATUS,
 } from '@/lib/agents/catalog';
-import { MODEL_PRICING } from '@/lib/agents/budget';
+import { MODEL_PRICING, modelPricingKey } from '@/lib/agents/budget';
 import { hasPermission } from '@/lib/permissions';
 
 const ROOT = path.resolve(__dirname, '..', '..', '..');
@@ -51,11 +51,11 @@ describe('catálogo de agentes', () => {
       modelName: 'gemini-3.6-flash',
       systemRole: 'ops',
     });
-    expect(MODEL_PRICING[guardian?.modelName ?? '']).toBeDefined();
+    expect(MODEL_PRICING[modelPricingKey(guardian?.modelProvider ?? 'null', guardian?.modelName ?? '')]).toBeDefined();
     for (const agente of rollout) {
       expect(agente.modelProvider).toBe('gemini');
       expect(agente.modelName).toBe('gemini-3.6-flash');
-      expect(MODEL_PRICING[agente.modelName ?? '']).toBeDefined();
+      expect(MODEL_PRICING[modelPricingKey(agente.modelProvider, agente.modelName ?? '')]).toBeDefined();
     }
     expect(dev?.modelProvider).toBe('null');
     expect(dev?.modelName).toBeNull();

@@ -16,6 +16,7 @@ import {
   checkBudgetAndLimits,
   checkRunLimits,
   estimateCostMicros,
+  modelPricingKey,
   type BudgetSnapshot,
 } from '@/lib/agents/budget';
 
@@ -115,9 +116,9 @@ describe('checkBudgetAndLimits', () => {
 
 describe('estimateCostMicros', () => {
   it('calcula con una tarifa conocida', () => {
-    const tarifa = MODEL_PRICING['gemini-2.0-flash'];
+    const tarifa = MODEL_PRICING[modelPricingKey('gemini', 'gemini-2.0-flash')];
     expect(tarifa).toBeDefined();
-    const res = estimateCostMicros('gemini-2.0-flash', 1_000_000, 1_000_000);
+    const res = estimateCostMicros('gemini', 'gemini-2.0-flash', 1_000_000, 1_000_000);
     expect(res.pricingUnknown).toBe(false);
     expect(res.estimatedCostMicros).toBe(
       (tarifa?.inputMicrosPerMillion ?? 0) + (tarifa?.outputMicrosPerMillion ?? 0),
@@ -125,7 +126,7 @@ describe('estimateCostMicros', () => {
   });
 
   it('contabiliza el modelo activo de Guardian con la tarifa vigente', () => {
-    expect(estimateCostMicros('gemini-3.6-flash', 1_000_000, 1_000_000)).toEqual({
+    expect(estimateCostMicros('gemini', 'gemini-3.6-flash', 1_000_000, 1_000_000)).toEqual({
       estimatedCostMicros: 4_500_000,
       pricingUnknown: false,
     });
@@ -134,18 +135,39 @@ describe('estimateCostMicros', () => {
   it('con un modelo desconocido NO inventa coste', () => {
     // Un coste inventado se sumaría al presupuesto como si fuera real. Un hueco
     // declarado se ve en el informe.
-    const res = estimateCostMicros('modelo-que-no-existe', 1_000_000, 1_000_000);
+    const res = estimateCostMicros('gemini', 'modelo-que-no-existe', 1_000_000, 1_000_000);
     expect(res).toEqual({ estimatedCostMicros: 0, pricingUnknown: true });
   });
 
   it('sin modelo tampoco', () => {
-    expect(estimateCostMicros(null, 500, 500)).toEqual({ estimatedCostMicros: 0, pricingUnknown: true });
+    expect(estimateCostMicros('gemini', null, 500, 500)).toEqual({ estimatedCostMicros: 0, pricingUnknown: true });
   });
 
   it('cero tokens cuesta cero, pero con tarifa conocida', () => {
-    expect(estimateCostMicros('gemini-2.0-flash', 0, 0)).toEqual({
+    expect(estimateCostMicros('gemini', 'gemini-2.0-flash', 0, 0)).toEqual({
       estimatedCostMicros: 0,
       pricingUnknown: false,
+    });
+  });
+
+  it('aplica el descuento de caché de xAI sin cobrar dos veces los tokens', () => {
+    expect(estimateCostMicros('xai', 'grok-4.3', 100_000, 100_000, 25_000)).toEqual({
+      estimatedCostMicros: 348_750,
+      pricingUnknown: false,
+    });
+  });
+
+  it('aplica la tarifa de contexto largo de Grok 4.3 desde 200k tokens', () => {
+    expect(estimateCostMicros('xai', 'grok-4.3', 200_000, 100_000, 0)).toEqual({
+      estimatedCostMicros: 1_000_000,
+      pricingUnknown: false,
+    });
+  });
+
+  it('no confunde el mismo nombre de modelo entre proveedores', () => {
+    expect(estimateCostMicros('otro', 'grok-4.3', 1_000_000, 1_000_000)).toEqual({
+      estimatedCostMicros: 0,
+      pricingUnknown: true,
     });
   });
 });

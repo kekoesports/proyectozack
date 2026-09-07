@@ -102,6 +102,7 @@ export function buildRunPersistence(opts: {
             model: evento.model,
             inputTokens: evento.inputTokens,
             outputTokens: evento.outputTokens,
+            cachedInputTokens: evento.cachedInputTokens,
             estimatedCostMicros: evento.estimatedCostMicros,
             pricingUnknown: evento.pricingUnknown,
           });

@@ -33,6 +33,7 @@ export type AgentLoopEvent =
       readonly kind: 'usage';
       readonly inputTokens: number;
       readonly outputTokens: number;
+      readonly cachedInputTokens: number | null;
       readonly estimatedCostMicros: number;
       readonly pricingUnknown: boolean;
       /**
@@ -155,11 +156,18 @@ export async function runAgentLoop(
     // 4. Consumo. Si el proveedor no informa de tokens, no se estima: se anota
     //    como desconocido y el presupuesto pasa a ser un mínimo, no una cifra.
     if (turno.usage) {
-      const coste = estimateCostMicros(turno.model, turno.usage.inputTokens, turno.usage.outputTokens);
+      const coste = estimateCostMicros(
+        turno.provider,
+        turno.model,
+        turno.usage.inputTokens,
+        turno.usage.outputTokens,
+        turno.usage.cachedInputTokens,
+      );
       await deps.onEvent({
         kind: 'usage',
         inputTokens: turno.usage.inputTokens,
         outputTokens: turno.usage.outputTokens,
+        cachedInputTokens: turno.usage.cachedInputTokens,
         estimatedCostMicros: coste.estimatedCostMicros,
         pricingUnknown: coste.pricingUnknown,
         provider: turno.provider,

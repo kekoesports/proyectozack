@@ -26,7 +26,7 @@ export class FakeAgentModelProvider implements AgentModelProvider {
       toolCalls: t.toolCalls ?? [],
       usage: t.usage ?? { inputTokens: 100, outputTokens: 50, cachedInputTokens: null },
       model: t.model ?? 'fake-model',
-      provider: 'fake',
+      provider: t.provider ?? 'fake',
       finishReason: t.finishReason ?? ((t.toolCalls?.length ?? 0) > 0 ? 'tool_calls' : 'stop'),
     }));
   }
