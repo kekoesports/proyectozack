@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import Link from 'next/link';
+import * as Sentry from '@sentry/nextjs';
 
 /**
  * Error boundary global para Server Components y rutas no admin.
@@ -25,9 +26,10 @@ export default function GlobalAppError({
   readonly reset: () => void;
 }): React.JSX.Element {
   useEffect(() => {
+    Sentry.captureException(error);
     // safe: solo metadata; nunca error.message ni stack (pueden contener PII)
     console.error('[app/error]', { name: error.name, digest: error.digest ?? null });
-  }, [error.name, error.digest]);
+  }, [error]);
 
   return (
     <div className="min-h-[60vh] flex flex-col items-center justify-center px-6 py-24 text-center">

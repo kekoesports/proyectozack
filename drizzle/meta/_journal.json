@@ -1086,6 +1086,13 @@
       "when": 1788697461260,
       "tag": "0154_studio_narration_approvals",
       "breakpoints": true
+    },
+    {
+      "idx": 155,
+      "version": "7",
+      "when": 1788777790844,
+      "tag": "0155_email_delivery_observability",
+      "breakpoints": true
     }
   ]
 }

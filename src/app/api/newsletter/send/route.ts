@@ -4,8 +4,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { headers } from 'next/headers';
 import { db } from '@/lib/db';
-import { newsletterSubscribers, newsletterSends, posts } from '@/db/schema';
-import { eq, and } from 'drizzle-orm';
+import { emailSuppressions, newsletterSubscribers, newsletterSends, posts } from '@/db/schema';
+import { eq, and, notExists, sql } from 'drizzle-orm';
 import { auth } from '@/lib/auth';
 import { isRole, IS_DEV } from '@/lib/auth-guard';
 import { PERMISSIONS } from '@/lib/permissions';
@@ -94,10 +94,16 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     .where(and(
       eq(newsletterSubscribers.status, 'active'),
       eq(newsletterSubscribers.consentNewsletter, true),
+      notExists(
+        db
+          .select({ id: emailSuppressions.id })
+          .from(emailSuppressions)
+          .where(eq(emailSuppressions.email, sql<string>`lower(${newsletterSubscribers.email})`)),
+      ),
     ));
 
   let sent = 0;
-  const errors: string[] = [];
+  let failed = 0;
 
   for (const sub of subscribers) {
     if (!sub.unsubscribeToken) continue;
@@ -113,13 +119,17 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       });
       sent++;
     } catch (err) {
-      errors.push(sub.email);
-      console.error(`[newsletter] Error en envío (destinatario ${sent + errors.length} de ${subscribers.length}):`, err instanceof Error ? err.message : 'unknown');
+      failed++;
+      console.error('[newsletter] Error de envío', {
+        position: sent + failed,
+        total: subscribers.length,
+        errorName: err instanceof Error ? err.name : 'unknown',
+      });
     }
     await sleep(SEND_DELAY_MS);
   }
 
-  const finalStatus = errors.length === subscribers.length && subscribers.length > 0 ? 'failed' : 'sent';
+  const finalStatus = failed === subscribers.length && subscribers.length > 0 ? 'failed' : 'sent';
 
   await db
     .update(newsletterSends)
@@ -127,9 +137,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       status:         finalStatus,
       recipientCount: sent,
       completedAt:    new Date(),
-      errorMessage:   errors.length > 0 ? `Fallos en: ${errors.slice(0, 10).join(', ')}` : null,
+      errorMessage:   failed > 0 ? `${failed} entregas fallidas; revisar eventos de Resend.` : null,
     })
     .where(eq(newsletterSends.postId, postId));
 
-  return NextResponse.json({ ok: true, sent, failed: errors.length });
+  return NextResponse.json({ ok: true, sent, failed });
 }

@@ -120,3 +120,29 @@ await sendContactNotification({ name, email, type, company, message })
 - **Rate limit:** 5 req/s per team.
 - **camelCase params:** `replyTo`, `scheduledAt` — not snake_case.
 - **Test addresses:** `delivered@resend.dev`, `bounced@resend.dev`.
+
+## Webhook de entregabilidad
+
+El endpoint de producción es `POST https://socialpro.es/api/webhooks/resend`.
+Solo procesa eventos cuya firma Svix valida el SDK oficial; si falta
+`RESEND_WEBHOOK_SECRET`, responde 503 y no persiste nada.
+
+En Resend Dashboard → Webhooks:
+
+1. Crear el endpoint con esa URL.
+2. Suscribir `email.delivered`, `email.delivery_delayed`, `email.complained`,
+   `email.bounced`, `email.failed` y `email.suppressed`.
+3. Guardar el signing secret como `RESEND_WEBHOOK_SECRET` en el entorno de la
+   aplicación. Nunca copiarlo a una variable `NEXT_PUBLIC_*`.
+4. Aplicar la migración `0155_email_delivery_observability` antes de activar
+   el webhook.
+
+El consumidor usa `svix-id` como clave idempotente. Las entregas repetidas se
+aceptan con 200 sin repetir efectos, y el orden de llegada no puede retirar una
+supresión ya creada. Solo las quejas, los rebotes permanentes y las supresiones
+del proveedor bloquean envíos posteriores de newsletter. Los rebotes
+transitorios quedan como evento para diagnóstico.
+
+Por privacidad, la base guarda únicamente el id de evento, id de email, tipo,
+fecha y —cuando hay que impedir futuros envíos— la dirección normalizada. No
+guarda asunto, cuerpo, cabeceras, IP ni payload completo.
