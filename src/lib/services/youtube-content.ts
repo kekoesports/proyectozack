@@ -124,7 +124,30 @@ type YouTubeVideoPublicStats = {
   readonly views: number;
   readonly likes: number | null;
   readonly comments: number | null;
+  readonly durationSeconds: number;
 };
+
+const YOUTUBE_SHORT_MAX_SECONDS = 180;
+
+/**
+ * YouTube Data API does not expose an `isShort` flag. Since Shorts may last up
+ * to three minutes, discovery deliberately treats every upload of 180 seconds
+ * or less as short-form. This conservative rule prevents Shorts views from
+ * inflating long-form scouting metrics.
+ */
+function youtubeDurationSeconds(duration: string): number {
+  const match = /^P(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?)?$/.exec(duration);
+  if (!match) throw new ProviderReadError('coverage_incomplete', 'YouTube duration coverage unavailable');
+  const days = Number(match[1] ?? 0);
+  const hours = Number(match[2] ?? 0);
+  const minutes = Number(match[3] ?? 0);
+  const seconds = Number(match[4] ?? 0);
+  const total = days * 86_400 + hours * 3_600 + minutes * 60 + seconds;
+  if (!Number.isSafeInteger(total) || total < 0) {
+    throw new ProviderReadError('coverage_incomplete', 'YouTube duration coverage unavailable');
+  }
+  return total;
+}
 
 async function getVideoPublicStats(videoIds: string[]): Promise<Map<string, YouTubeVideoPublicStats>> {
   const apiKey = requireYoutubeKey();
@@ -134,7 +157,7 @@ async function getVideoPublicStats(videoIds: string[]): Promise<Map<string, YouT
     const batch = videoIds.slice(i, i + 50);
     const ids = batch.join(',');
     if (!ids) continue;
-    const url = `https://www.googleapis.com/youtube/v3/videos?part=statistics&id=${ids}&key=${apiKey}`;
+    const url = `https://www.googleapis.com/youtube/v3/videos?part=statistics,contentDetails&id=${ids}&key=${apiKey}`;
     const data = await readProviderJson(url, YouTubeVideosStatsSchema, 'YouTube videos API');
     for (const item of data.items ?? []) {
       const views = readYouTubeCount(item.statistics.viewCount);
@@ -145,6 +168,7 @@ async function getVideoPublicStats(videoIds: string[]): Promise<Map<string, YouT
         views,
         likes: readYouTubeCount(item.statistics.likeCount),
         comments: readYouTubeCount(item.statistics.commentCount),
+        durationSeconds: youtubeDurationSeconds(item.contentDetails.duration),
       });
     }
     if (batch.some(id => !results.has(id))) throw new ProviderReadError('coverage_incomplete', 'YouTube video coverage incomplete');
@@ -162,6 +186,7 @@ export type YouTubeContentPerformance = {
   readonly views: number;
   readonly likes: number | null;
   readonly comments: number | null;
+  readonly durationSeconds: number;
 };
 
 /** Datos públicos de los vídeos recientes de un canal, listos para analítica interna. */
@@ -189,6 +214,7 @@ export async function getChannelRecentContent(
       views: values.views,
       likes: values.likes,
       comments: values.comments,
+      durationSeconds: values.durationSeconds,
     }];
   });
 }
@@ -226,6 +252,7 @@ export type YouTubeRecentPerformance = {
   readonly medianViews: number;
   readonly videosAtOrAbove1000: number;
   readonly lastVideoAt: Date | null;
+  readonly excludedShortCount: number;
 };
 
 /**
@@ -261,10 +288,17 @@ export async function getChannelRecentPerformanceReport(
 
   const cutoff = new Date(Date.now() - windowDays * 24 * 60 * 60 * 1000);
   const uploads = await getRecentUploads(playlistId, cutoff, 100, true, progress);
-  const viewCounts = await getVideoViewCounts(uploads.map((item) => item.videoId));
-  const views = uploads
-    .map((item) => viewCounts.get(item.videoId))
-    .filter((value): value is number => value !== undefined);
+  const stats = await getVideoPublicStats(uploads.map((item) => item.videoId));
+  const regularUploads = uploads.filter((item) => {
+    const video = stats.get(item.videoId);
+    if (!video) throw new ProviderReadError('coverage_incomplete', 'YouTube video coverage incomplete');
+    return video.durationSeconds > YOUTUBE_SHORT_MAX_SECONDS;
+  });
+  const views = regularUploads.map((item) => {
+    const video = stats.get(item.videoId);
+    if (!video) throw new ProviderReadError('coverage_incomplete', 'YouTube video coverage incomplete');
+    return video.views;
+  });
 
   const total = views.reduce((sum, value) => sum + value, 0);
   const sortedViews = [...views].sort((a, b) => a - b);
@@ -282,7 +316,8 @@ export async function getChannelRecentPerformanceReport(
     avgViews: views.length > 0 ? Math.round(total / views.length) : 0,
     medianViews,
     videosAtOrAbove1000: views.filter((value) => value >= 1_000).length,
-    lastVideoAt: uploads.length ? new Date(Math.max(...uploads.map(item => item.publishedAt.getTime()))) : null,
+    lastVideoAt: regularUploads.length ? new Date(Math.max(...regularUploads.map(item => item.publishedAt.getTime()))) : null,
+    excludedShortCount: uploads.length - regularUploads.length,
   }, coverage: { status: 'complete', pagesRead: progress.pagesRead, warnings: [] } };
   } catch (error) {
     return { data: null, coverage: {

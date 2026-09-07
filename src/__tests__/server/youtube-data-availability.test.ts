@@ -9,6 +9,11 @@ const playlist = { items: [{ id: 'UC_synthetic', contentDetails: { relatedPlayli
 const upload = (videoId = 'video-a') => ({ contentDetails: { videoId, videoPublishedAt: '2026-09-01T12:00:00Z' }, snippet: {
   resourceId: { videoId }, publishedAt: '2026-09-01T12:00:00Z', title: 'Synthetic video',
 } });
+const videoStats = (id: string, statistics: unknown, duration = 'PT10M') => ({
+  id,
+  contentDetails: { duration },
+  statistics,
+});
 const response = (body: unknown) => new Response(JSON.stringify(body), { status: 200 });
 
 beforeEach(() => {
@@ -70,9 +75,8 @@ describe('YouTube recent content coverage', () => {
     });
     jest.mocked(fetch).mockResolvedValueOnce(response(playlist))
       .mockResolvedValueOnce(response({ items: videos }))
-      .mockResolvedValueOnce(response({ items: [1, 1000, 1000].map((views, index) => ({
-        id: 'video-' + index, statistics: { viewCount: String(views) },
-      })) }));
+      .mockResolvedValueOnce(response({ items: [1, 1000, 1000].map((views, index) =>
+        videoStats('video-' + index, { viewCount: String(views) })) }));
     const result = await getChannelRecentPerformance('UC_synthetic', 90);
     expect(result).toMatchObject({ windowDays: 90, videoCount: 3, minViews: 1, medianViews: 1000, videosAtOrAbove1000: 2 });
     expect(result.lastVideoAt).toEqual(new Date(Date.now() - 60 * 86_400_000));
@@ -84,8 +88,8 @@ describe('YouTube recent content coverage', () => {
     jest.mocked(fetch).mockResolvedValueOnce(response(playlist))
       .mockResolvedValueOnce(response({ items: [upload('video-a'), upload('video-b')] }))
       .mockResolvedValueOnce(response({ items: [
-        { id: 'video-a', statistics: { viewCount: '999' } },
-        { id: 'video-b', statistics: { viewCount: '1000' } },
+        videoStats('video-a', { viewCount: '999' }),
+        videoStats('video-b', { viewCount: '1000' }),
       ] }));
     expect((await getChannelRecentPerformance('UC_synthetic', 90)).medianViews).toBe(999.5);
   });
@@ -115,7 +119,7 @@ describe('YouTube recent content coverage', () => {
     'rejects unavailable/invalid video views: %j', async statistics => {
       jest.mocked(fetch).mockResolvedValueOnce(response(playlist))
         .mockResolvedValueOnce(response({ items: [upload()] }))
-        .mockResolvedValueOnce(response({ items: [{ id: 'video-a', statistics }] }));
+        .mockResolvedValueOnce(response({ items: [videoStats('video-a', statistics)] }));
       await expect(getChannelRecentContent('UC_synthetic')).rejects.toThrow(/unavailable|coverage/i);
     },
   );
@@ -123,14 +127,14 @@ describe('YouTube recent content coverage', () => {
   it('rejects a partial video response rather than silently dropping missing uploads', async () => {
     jest.mocked(fetch).mockResolvedValueOnce(response(playlist))
       .mockResolvedValueOnce(response({ items: [upload(), upload('video-b')] }))
-      .mockResolvedValueOnce(response({ items: [{ id: 'video-a', statistics: { viewCount: '10' } }] }));
+      .mockResolvedValueOnce(response({ items: [videoStats('video-a', { viewCount: '10' })] }));
     await expect(getChannelRecentContent('UC_synthetic')).rejects.toThrow(/coverage/i);
   });
 
   it('keeps genuine zero views while absent optional engagement stays null', async () => {
     jest.mocked(fetch).mockResolvedValueOnce(response(playlist))
       .mockResolvedValueOnce(response({ items: [upload()] }))
-      .mockResolvedValueOnce(response({ items: [{ id: 'video-a', statistics: { viewCount: '0' } }] }));
+      .mockResolvedValueOnce(response({ items: [videoStats('video-a', { viewCount: '0' })] }));
     expect(await getChannelRecentContent('UC_synthetic')).toEqual([expect.objectContaining({ views: 0, likes: null, comments: null })]);
   });
 
@@ -160,8 +164,8 @@ describe('YouTube recent content coverage', () => {
     jest.mocked(fetch).mockResolvedValueOnce(response(playlist))
       .mockResolvedValueOnce(response({ items: [upload()] }))
       .mockResolvedValueOnce(response({ items: [
-        { id: 'video-a', statistics: { viewCount: '10' } },
-        { id: 'video-a', statistics: { viewCount: '99' } },
+        videoStats('video-a', { viewCount: '10' }),
+        videoStats('video-a', { viewCount: '99' }),
       ] }));
     await expect(getChannelRecentContent('UC_synthetic')).rejects.toThrow(/coverage/i);
   });
@@ -170,9 +174,33 @@ describe('YouTube recent content coverage', () => {
     jest.mocked(fetch).mockResolvedValueOnce(response(playlist))
       .mockResolvedValueOnce(response({ items: [], nextPageToken: 'more' }))
       .mockResolvedValueOnce(response({ items: [upload()] }))
-      .mockResolvedValueOnce(response({ items: [{ id: 'video-a', statistics: { viewCount: '10' } }] }));
+      .mockResolvedValueOnce(response({ items: [videoStats('video-a', { viewCount: '10' })] }));
     expect(await getChannelRecentContent('UC_synthetic')).toHaveLength(1);
     expect(fetch).toHaveBeenCalledTimes(4);
+  });
+
+  it('excludes Shorts and uses only long videos for activity and view metrics', async () => {
+    const short = { ...upload('short-a'), contentDetails: {
+      videoId: 'short-a', videoPublishedAt: new Date(Date.now() - 2 * 86_400_000).toISOString(),
+    } };
+    const long = { ...upload('long-a'), contentDetails: {
+      videoId: 'long-a', videoPublishedAt: new Date(Date.now() - 20 * 86_400_000).toISOString(),
+    } };
+    jest.mocked(fetch).mockResolvedValueOnce(response(playlist))
+      .mockResolvedValueOnce(response({ items: [short, long] }))
+      .mockResolvedValueOnce(response({ items: [
+        videoStats('short-a', { viewCount: '1000000' }, 'PT59S'),
+        videoStats('long-a', { viewCount: '1200' }, 'PT10M'),
+      ] }));
+
+    expect(await getChannelRecentPerformance('UC_synthetic', 90)).toMatchObject({
+      videoCount: 1,
+      minViews: 1_200,
+      avgViews: 1_200,
+      medianViews: 1_200,
+      lastVideoAt: new Date(Date.now() - 20 * 86_400_000),
+      excludedShortCount: 1,
+    });
   });
 
   it('rejects repeated pagination tokens rather than looping on empty pages', async () => {

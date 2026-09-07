@@ -23,10 +23,11 @@ const performance: YouTubeRecentPerformance = {
   medianViews: 2_400,
   videosAtOrAbove1000: 8,
   lastVideoAt: new Date(),
+  excludedShortCount: 0,
 };
 
 describe('qualifyYouTubeChannel', () => {
-  it('accepts three videos in 90 days at median 1000 even with a low video, hidden subscribers and last upload 60 days ago', () => {
+  it('caps a channel at review when its last long video was 60 days ago', () => {
     const result = qualifyYouTubeChannel(
       { ...channel, subscriberCount: null, country: 'US', defaultLanguage: 'en' },
       { ...performance, videoCount: 3, minViews: 1, medianViews: 1000, avgViews: 667,
@@ -34,8 +35,25 @@ describe('qualifyYouTubeChannel', () => {
       'GLOBAL', 'any', 'marketplace',
     );
     expect(result.fitScore).toBeLessThan(60);
-    expect(result.isQualified).toBe(true);
-    expect(result.reasons).toEqual([]);
+    expect(result.isQualified).toBe(false);
+    expect(result.reasons).toContain('Último vídeo largo hace 60 días; máximo 30 para preseleccionar');
+  });
+
+  it('does not treat excluded Shorts as recent long-form activity', () => {
+    const result = qualifyYouTubeChannel(channel, {
+      ...performance,
+      videoCount: 0,
+      minViews: 0,
+      avgViews: 0,
+      medianViews: 0,
+      videosAtOrAbove1000: 0,
+      lastVideoAt: null,
+      excludedShortCount: 12,
+    }, 'ES');
+
+    expect(result.isQualified).toBe(false);
+    expect(result.reasons).toContain('Sin vídeo largo reciente; los Shorts no cuentan');
+    expect(result.signals).toContain('12 Shorts/vídeos de hasta 3 minutos excluidos');
   });
 
   it.each([

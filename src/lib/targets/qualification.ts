@@ -3,6 +3,7 @@ import type { TargetQualificationStatus } from '@/lib/schemas/target';
 export type TwitchFitInput = {
   readonly followers: number | null;
   readonly viewers: number | null;
+  readonly averageCs2Viewers30d: number | null;
   readonly language: string;
   readonly requiredLanguage: string | null;
   readonly game: string;
@@ -36,20 +37,21 @@ export function qualifyTwitchCandidate(input: TwitchFitInput): CreatorFit {
   const gameMatches = input.requiredGameNames?.length
     ? input.requiredGameNames.some((game) => game.toLowerCase() === input.game.toLowerCase())
     : /counter[- ]?strike|\bcs2\b/i.test(input.game);
-  const audienceMatches = (input.followers !== null && input.followers >= input.minimumFollowers)
-    || (input.viewers !== null && input.viewers >= 20);
-  const audienceUnknown = input.followers === null && input.viewers === null;
+  const audienceMatches = input.averageCs2Viewers30d !== null && input.averageCs2Viewers30d >= 70;
+  const audienceUnknown = input.averageCs2Viewers30d === null;
 
   let score = 0;
   if (gameMatches) score += 25;
   if (languageMatches) score += 10;
   if (input.isLive) score += 20;
-  score += input.viewers !== null ? input.viewers >= 100 ? 25 : input.viewers >= 25 ? 20 : input.viewers >= 10 ? 10 : 0 : 0;
+  score += input.averageCs2Viewers30d !== null
+    ? input.averageCs2Viewers30d >= 90 ? 25 : input.averageCs2Viewers30d >= 70 ? 20 : 0
+    : 0;
   score += input.followers !== null && input.followers >= input.minimumFollowers ? 10 : 0;
-  if (input.followers !== null && input.followers > 0 && input.viewers !== null) {
-    const liveEfficiency = input.viewers / input.followers;
+  if (input.followers !== null && input.followers > 0 && input.averageCs2Viewers30d !== null) {
+    const liveEfficiency = input.averageCs2Viewers30d / input.followers;
     score += liveEfficiency >= 0.05 ? 10 : liveEfficiency >= 0.01 ? 7 : 3;
-  } else if (input.viewers !== null && input.viewers >= 20) {
+  } else if (input.averageCs2Viewers30d !== null && input.averageCs2Viewers30d >= 70) {
     score += 8;
   }
 
@@ -58,13 +60,16 @@ export function qualifyTwitchCandidate(input: TwitchFitInput): CreatorFit {
     && gameMatches
     && input.isLive === true
     && audienceMatches
+    && input.averageCs2Viewers30d !== null
+    && input.averageCs2Viewers30d >= 90
     && normalizedScore >= 60;
 
   const reasons: string[] = [];
-  if (audienceUnknown) reasons.push('Audiencia no disponible; pendiente de revisión, no equivale a cero');
-  else if (input.followers !== null && input.followers >= input.minimumFollowers) reasons.push(`${input.followers.toLocaleString('es-ES')} seguidores`);
-  else if (input.viewers !== null && input.viewers >= 20) reasons.push(`${input.viewers.toLocaleString('es-ES')} espectadores en directo: observación puntual, no media histórica`);
-  else reasons.push(`Menos de ${input.minimumFollowers.toLocaleString('es-ES')} seguidores y 20 espectadores`);
+  if (audienceUnknown) reasons.push('Media de CS2 de 30 días no disponible: solo revisión amarilla');
+  else if (input.averageCs2Viewers30d >= 90) reasons.push(`${input.averageCs2Viewers30d.toLocaleString('es-ES')} espectadores medios en CS2 (30d): nivel verde`);
+  else if (input.averageCs2Viewers30d >= 70) reasons.push(`${input.averageCs2Viewers30d.toLocaleString('es-ES')} espectadores medios en CS2 (30d): nivel amarillo`);
+  else reasons.push(`Media de CS2 de 30 días inferior a 70 (${input.averageCs2Viewers30d.toLocaleString('es-ES')})`);
+  if (input.viewers !== null) reasons.push(`${input.viewers.toLocaleString('es-ES')} espectadores ahora; no se usan como media`);
   reasons.push(gameMatches ? `Contenido actual: ${input.game}` : 'Juego del perfil no confirmado');
   if (!languageMatches) reasons.push(`Idioma ${input.language || 'desconocido'} no coincide`);
   if (input.isLive) reasons.push('Canal activo ahora');
@@ -73,7 +78,7 @@ export function qualifyTwitchCandidate(input: TwitchFitInput): CreatorFit {
   return {
     isQualified,
     score: normalizedScore,
-    status: isQualified || audienceUnknown ? 'review' : 'rejected',
+    status: isQualified || audienceUnknown || audienceMatches ? 'review' : 'rejected',
     reasons,
   };
 }

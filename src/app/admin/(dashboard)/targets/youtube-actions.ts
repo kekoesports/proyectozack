@@ -110,6 +110,7 @@ const importSchema = z.array(z.object({
   avgViews: z.number().int().nonnegative(),
   medianViews: z.number().min(1_000),
   videosAtOrAbove1000: z.number().int().nonnegative(),
+  excludedShortCount: z.number().int().nonnegative(),
   lastVideoAt: z.coerce.date().nullable(),
   languageMatches: z.literal(true),
   isQualified: z.literal(true),

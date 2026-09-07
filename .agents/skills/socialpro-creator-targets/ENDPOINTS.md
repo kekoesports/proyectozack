@@ -19,6 +19,8 @@ Si recibes 401/403, o 503 con `missing-config` / `missing-X-credentials`, **dete
 
 Busca canales Twitch + auto-enriquece follower counts en una sola llamada.
 
+> `viewerCount` es una foto del directo actual. No es la media de CS2 de 30 días y no puede, por sí sola, convertir un perfil en candidato apto. Para CS2 se exige una fuente histórica: 70–89 amarillo y 90+ verde.
+
 **Request body**:
 
 ```json
@@ -70,6 +72,8 @@ curl -sS -X POST $SOCIALPRO_BASE_URL/api/admin/discover/twitch/search \
 ## POST /api/admin/discover/youtube/search
 
 Busca canales YouTube. Devuelve previews enriquecidos (subscriber counts incluidos por el service).
+
+> El preview del canal contiene contadores globales. Para calificar se debe usar la auditoría reciente de vídeos largos: Shorts y subidas de hasta 180 segundos quedan fuera de recencia, media y mediana.
 
 **Request body**:
 
@@ -143,6 +147,8 @@ Lookup directo de un canal Kick por slug. Kick no tiene API de search pública �
 - 404 `{ ok: false, error: 'channel-not-found' }` — slug no existe o canal baneado
 
 (No requiere creds de plataforma — Kick API es pública.)
+
+`isLive` y la audiencia actual no acreditan la media histórica. En CS2, Kick sigue el mismo gate que Twitch: CCV medio de CS2 a 30 días ≥70; 90+ verde; sin histórico verificable, amarillo y sin importación automática.
 
 ## GET /api/admin/targets/active
 

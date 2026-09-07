@@ -52,6 +52,9 @@ export const YouTubeVideosStatsSchema = z.object({
     .array(
       z.object({
         id: z.string(),
+        contentDetails: z.object({
+          duration: z.string().regex(/^P(?=\d|T\d)(?:\d+D)?(?:T(?=\d)(?:\d+H)?(?:\d+M)?(?:\d+S)?)?$/),
+        }),
         statistics: z.object({
           viewCount: z.string().optional(),
           likeCount: z.string().optional(),

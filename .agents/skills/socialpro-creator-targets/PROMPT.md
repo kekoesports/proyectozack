@@ -135,11 +135,13 @@ Si (a) sí pero (b) dice `en`/`pt`/etc → **descartar** (alucinación).
 | YouTube | 3.000 subs | `--min-followers-youtube N` |
 | Kick | 500 | `--min-followers-kick N` |
 
-### 4. Activity check (último stream / upload < 60 días)
+### 4. Actividad y audiencia verificables
 
-`--no-activity-check` para skip. Twitch: usar `getCS2LiveStreams` o Helix `/streams` por broadcaster. YouTube: `getChannelDetails` devuelve fecha de último video implícitamente. Kick: `previous_livestreams[0].created_at` del response.
+**YouTube:** usa únicamente vídeos largos. Excluye Shorts y, como regla conservadora de la Data API, cualquier subida de hasta 180 segundos. No uses sus vistas en media/mediana. Verde exige último vídeo largo en ≤30 días; entre 31 y 120 días el canal queda como mucho amarillo; >120 días se descarta.
 
-Si no hay datos de actividad disponibles, **acepta con nota** `[actividad-desconocida]` en `discoveredVia` — no descartes ciegamente.
+**Twitch y Kick para CS2:** exige CCV medio específico mientras juega a CS2 durante los últimos 30 días. 70–89 = amarillo/revisión; ≥90 = verde. El viewer count del directo actual, followers, peak o la media global del canal no sirven como sustitutos. La API oficial no devuelve este histórico para terceros: si no hay una fuente verificable, conserva el perfil como amarillo y no lo importes automáticamente.
+
+Si no hay datos de actividad disponibles, marca `[actividad-desconocida]`; nunca conviertas ausencia en cero ni en aptitud.
 
 ### 5. Vertical match — juicio LLM
 

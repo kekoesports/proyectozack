@@ -48,7 +48,8 @@ Modelo agentic. Tienes herramientas, tienes guardrails, decides pasos:
 7. Aplica filtros (en orden, descarta al primer fallo):
    - **Idioma ES**: doble check según [PROMPT.md](PROMPT.md) §Idioma. Cross-check `language` de Firecrawl con `metadata.language`.
    - **Mínimo followers**: Twitch ≥ 1k, YouTube ≥ 3k, Kick ≥ 500. Override con `--min-followers-X`.
-   - **Activity check**: último stream/upload < 60 días. `--no-activity-check` para skip.
+   - **YouTube long-form**: excluir Shorts y cualquier subida de ≤ 3 minutos de actividad, media y mediana. Último vídeo largo ≤ 30 días para verde; 31–120 días queda como mucho amarillo y no se importa automáticamente.
+   - **Twitch/Kick CS2**: exigir media de espectadores concurrentes jugando a CS2 en los últimos 30 días. 70–89 = amarillo/revisión; ≥ 90 = verde. Un directo puntual, seguidores o media global del canal no sustituyen esta métrica. Sin fuente histórica verificable, no importar automáticamente.
    - **Vertical match (juicio LLM)**: ¿streamer real del vertical o variety? Lee bio + categorías recientes. Descarta variety si más del 50% del pool tras filtros pasa este corte.
    - **Dedup**: contra `existingUsernames` del paso 2.
 8. **Build `ImportItem[]`** según schema en [ENDPOINTS.md](ENDPOINTS.md) §POST /import.
@@ -74,6 +75,8 @@ Igual con 8–10 queries × `limit: 10`. **Avisa coste estimado (~250 créditos)
 - **Idioma**: solo Español. Anglo / portugués fuera de scope (excepto modo `--allow-pt` para LATAM).
 - **Regiones permitidas**: ES, MX, AR, CL, CO, PE, UY, EC, VE, PY, BO.
 - **Plataformas v1**: `twitch | youtube | kick`. Instagram fuera (sin scraper integrado).
+- **Calidad CS2 live**: Twitch/Kick requieren CCV medio específico de CS2 a 30 días; 70 es mínimo y 90 el umbral verde. Ausencia de histórico = amarillo, nunca cero ni verde.
+- **Calidad YouTube**: Shorts/≤3 min nunca cuentan como vídeos ni aportan vistas. Más de 30 días sin vídeo largo = amarillo como máximo.
 - **Vertical en `importBatchId`**: regex `^creator-\d{4}-\d{2}-\d{2}-(cs2|igaming|esports|gaming)-(twitch|youtube|kick)$` enforced server-side.
 - **Cost ceiling**: default 80 créditos Firecrawl, `--deep` 250. Si se alcanza mid-flow → POST lo descubierto hasta ese momento, audit log con `[INCOMPLETO: budget]`.
 - **PII en logs**: jamás emails extraídos, bearer token, ni cookies. Regla TS #10 del repo aplica a esta skill.

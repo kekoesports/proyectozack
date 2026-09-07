@@ -161,7 +161,7 @@ export function YouTubeTargetDiscovery({ embedded = false }: { readonly embedded
           </div>
 
           <p className="rounded-lg border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-xs text-amber-200/80">
-            La búsqueda es mundial. Se piden 3 vídeos recientes y una mediana mínima de 1.000 vistas; un vídeo aislado por debajo no descarta un canal prometedor. Las cajas siempre exigen comprobar la licencia de la marca antes de contactar.
+            Solo cuentan vídeos largos: se excluyen Shorts y cualquier subida de hasta 3 minutos. Para preseleccionar, el último vídeo largo debe ser de los últimos 30 días, con 3 vídeos recientes y mediana mínima de 1.000 vistas.
           </p>
 
           {message && <p className="text-sm text-sp-admin-muted">{message}</p>}

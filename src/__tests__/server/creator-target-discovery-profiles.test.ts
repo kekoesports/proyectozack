@@ -30,8 +30,8 @@ const channel = (extra: Partial<YouTubeChannelPreview> = {}): YouTubeChannelPrev
   defaultLanguage: null, thumbnailUrl: null, ...extra,
 });
 const performance = (extra = {}) => ({
-  channelId: 'UC-synthetic', windowDays: 90, videoCount: 3, minViews: 2, avgViews: 1400,
-  medianViews: 1500, videosAtOrAbove1000: 2, lastVideoAt: new Date('2026-08-01T00:00:00Z'), ...extra,
+  channelId: 'UC-synthetic', windowDays: 90, videoCount: 3, minViews: 2, avgViews: 1400, excludedShortCount: 0,
+  medianViews: 1500, videosAtOrAbove1000: 2, lastVideoAt: new Date('2026-08-20T00:00:00Z'), ...extra,
 });
 function noProviders(): void {
   for (const fn of [getChannelRecentPerformanceReport, searchYouTubeChannelsFromRecentVideosReport,
@@ -89,9 +89,10 @@ it('uses configured keywords, time window and thresholds, not hardcoded CS2 or w
   expect(persistDiscoveredCreator).toHaveBeenCalledWith(expect.objectContaining({ externalId: 'UC-synthetic',
     target: expect.objectContaining({ followers: undefined, minRecentVideoViews: 2, complianceStatus: 'manual-review' }) }));
 });
-it('does not reintroduce a hidden 45-day or score-60 gate', async () => {
+it('does not qualify a YouTube channel whose last long video is older than 30 days', async () => {
   jest.mocked(getChannelRecentPerformanceReport).mockResolvedValue({ data: performance({ lastVideoAt: new Date('2026-06-01T00:00:00Z') }), coverage: complete });
-  expect((await runCreatorTargetDiscovery('manual', config({ windowDays: 120 }))).qualified).toBe(1);
+  expect((await runCreatorTargetDiscovery('manual', config({ windowDays: 120 }))).qualified).toBe(0);
+  expect(persistDiscoveredCreator).not.toHaveBeenCalled();
 });
 it('retains a genuinely observed zero subscriber count', async () => {
   jest.mocked(searchYouTubeChannelsFromRecentVideosReport).mockResolvedValue({ items: [channel({ subscriberCount: 0 })], coverage: complete });
@@ -161,38 +162,21 @@ it('passes a generic category and limits to the Kick report contract', async () 
     expect.objectContaining({ signal: expect.any(AbortSignal), maxRetries: 0 }));
   expect(result.status).toBe('success');
 });
-it.each([null, 0, 49])('does not let a large Twitch following bypass the configured live minimum: %s', async viewerCount => {
-  jest.mocked(searchTwitchGameCategories).mockResolvedValue({ items: [{ id: '32399', name: 'Counter-Strike' }], coverage: complete });
-  jest.mocked(getGameLiveStreams).mockResolvedValue({ items: [{
-    broadcasterId: 'b', streamId: 's', login: 'synthetic', displayName: 'Synthetic', followerCount: 100000,
-    viewerCount, language: 'es', currentGame: 'Counter-Strike', isLive: true,
-    startedAt: '2026-09-05T10:00:00Z', thumbnailUrl: null,
-  }], coverage: complete });
-  jest.mocked(fetchTwitchFollowerCountsReport).mockResolvedValue({ items: [{ broadcasterId: 'b', followerCount: 100000 }], coverage: complete });
+it('does not run CS2 Twitch discovery without a verified 30-day game average source', async () => {
   const result = await runCreatorTargetDiscovery('manual', config({
-    platforms: ['twitch'], keywords: ['CS2', 'Counter-Strike 2', 'CS2 skins'], minLiveViewers: 50, languages: ['es'],
+    platforms: ['twitch'], keywords: ['CS2', 'Counter-Strike 2', 'CS2 skins'], minLiveViewers: 70, languages: ['es'],
   }));
-  expect(searchTwitchGameCategories).toHaveBeenCalledTimes(1);
-  expect(getGameLiveStreams).toHaveBeenCalledWith('32399', 2, { languageCodes: ['es'], minViewerCount: 50 });
+  expect(result.platformResults[0]?.warnings).toContain('CS2_30D_AVERAGE_REQUIRED');
   expect(result.qualified).toBe(0);
+  expect(searchTwitchGameCategories).not.toHaveBeenCalled();
   expect(persistDiscoveredCreator).not.toHaveBeenCalled();
 });
-it.each([
-  { category: 'Counter-Strike 2', viewerCount: 49, qualified: 0 },
-  { category: 'Counter-Strike 2', viewerCount: 50, qualified: 1 },
-  { category: 'Counter-Strike: Source', viewerCount: 500, qualified: 0 },
-])('enforces the exact Kick category and custom live threshold: %j', async row => {
-  jest.mocked(getKickLiveCreatorsReport).mockResolvedValue({ items: [{
-    userId: 7001, username: 'Synthetic', slug: 'synthetic', profilePicUrl: null,
-    category: row.category, language: 'en', title: 'Synthetic live', viewerCount: row.viewerCount,
-    startedAt: new Date('2026-09-05T10:00:00Z'),
-  }], coverage: complete });
-  const result = await runCreatorTargetDiscovery('manual', config({ platforms: ['kick'], keywords: ['CS2'], minLiveViewers: 50 }));
-  expect(getKickLiveCreatorsReport).toHaveBeenCalledWith(expect.objectContaining({
-    categoryName: 'Counter-Strike 2', minViewerCount: 50,
-  }), expect.anything());
-  expect(result.qualified).toBe(row.qualified);
-  expect(persistDiscoveredCreator).toHaveBeenCalledTimes(row.qualified);
+it('does not run CS2 Kick discovery without a verified 30-day game average source', async () => {
+  const result = await runCreatorTargetDiscovery('manual', config({ platforms: ['kick'], keywords: ['CS2'], minLiveViewers: 70 }));
+  expect(result.platformResults[0]?.warnings).toContain('CS2_30D_AVERAGE_REQUIRED');
+  expect(result.qualified).toBe(0);
+  expect(getKickLiveCreatorsReport).not.toHaveBeenCalled();
+  expect(persistDiscoveredCreator).not.toHaveBeenCalled();
 });
 it('persists partial status, including historical JSON fallback, without a green empty run', () => {
   const row = { platform: 'youtube', found: 0, qualified: 0, inserted: 0, updated: 0, error: null } as const;
@@ -208,7 +192,7 @@ it('stores observed values, source, retrieval time and unknown status against th
   expect(saved).toEqual(expect.objectContaining({ runId: 1 }));
   expect(saved?.fields.followers).toMatchObject({ value: null, observed_at: null, status: 'unavailable', source: 'youtube:channels.list:subscriberCount' });
   expect(saved?.fields.medianRecentVideoViews).toMatchObject({ value: 1500, status: 'available', confidence: 'MEDIUM' });
-  expect(saved?.fields.lastVideoPublishedAt?.value).toBe('2026-08-01T00:00:00.000Z');
+  expect(saved?.fields.lastVideoPublishedAt?.value).toBe('2026-08-20T00:00:00.000Z');
   for (const value of Object.values(saved?.fields ?? {})) expect(creatorObservationSchema.safeParse(value).success).toBe(true);
   expect(createCreatorBudgetGuard).toHaveBeenCalledWith('adhoc', 3);
 });

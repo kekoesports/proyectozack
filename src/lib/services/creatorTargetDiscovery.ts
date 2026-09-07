@@ -144,7 +144,13 @@ async function discoverYouTubeTargets(config: CreatorSearchConfig, deadline: Cre
         if (stopsProvider(report.coverage)) break;
         continue;
       }
-      if (performance.videoCount < config.minRecentVideos || performance.medianViews < config.targetMedianViews) continue;
+      const lastLongVideoAgeDays = performance.lastVideoAt
+        ? Math.max(0, Math.floor((Date.now() - performance.lastVideoAt.getTime()) / 86_400_000))
+        : null;
+      if (performance.videoCount < config.minRecentVideos
+        || performance.medianViews < config.targetMedianViews
+        || lastLongVideoAgeDays === null
+        || lastLongVideoAgeDays > 30) continue;
       const score = scoreCreatorFit({
         contentMatch: contentMatch(`${channel.title} ${channel.description}`, config),
         audience: performance.medianViews, targetAudience: config.targetMedianViews,
@@ -162,7 +168,8 @@ async function discoverYouTubeTargets(config: CreatorSearchConfig, deadline: Cre
         avgRecentVideoViews: performance.avgViews, recentVideosWindowDays: performance.windowDays,
         qualificationUpdatedAt: now, qualificationStatus: 'review', fitScore: score.score,
         fitReasons: [
-          `${performance.videoCount} vídeos publicados en ${performance.windowDays} días; mediana ${performance.medianViews} vistas acumuladas observadas.`,
+          `${performance.videoCount} vídeos largos publicados en ${performance.windowDays} días; mediana ${performance.medianViews} vistas acumuladas observadas.`,
+          `${performance.excludedShortCount} Shorts/vídeos de hasta 3 minutos excluidos. Último vídeo largo hace ${lastLongVideoAgeDays} días.`,
           'No son vistas obtenidas sólo durante ese período; no hay mínimo por peor vídeo.', ...score.reasons,
         ], sourceQuery: query, lastActivityAt: performance.lastVideoAt ?? undefined, lastDiscoveredAt: now,
         complianceStatus: 'manual-review', contactUrl: `https://www.youtube.com/channel/${channel.channelId}/about`,
@@ -189,6 +196,11 @@ async function discoverYouTubeTargets(config: CreatorSearchConfig, deadline: Cre
 }
 
 async function discoverTwitchTargets(config: CreatorSearchConfig, deadline: CreatorDiscoveryDeadline, runId: number): Promise<CreatorDiscoveryPlatformResult> {
+  // Helix exposes only the live snapshot for third-party channels, not their
+  // CS2-specific 30-day average. Do not promote a snapshot into a historical lead.
+  if (config.keywords.some(keyword => /counter[- ]?strike|\bcs2\b/i.test(keyword))) {
+    return notRun('twitch', 'CS2_30D_AVERAGE_REQUIRED');
+  }
   if (!config.markets.includes('WORLDWIDE')) return notRun('twitch', 'COUNTRY_FILTER_UNAVAILABLE');
   const evidence = newEvidence();
   try {
@@ -272,6 +284,11 @@ async function discoverTwitchTargets(config: CreatorSearchConfig, deadline: Crea
 }
 
 async function discoverKickTargets(config: CreatorSearchConfig, deadline: CreatorDiscoveryDeadline, runId: number): Promise<CreatorDiscoveryPlatformResult> {
+  // Kick's public API likewise exposes current livestream viewers, not a
+  // CS2-specific 30-day CCV average. Keep discovery fail-closed until verified.
+  if (config.keywords.some(keyword => /counter[- ]?strike|\bcs2\b/i.test(keyword))) {
+    return notRun('kick', 'CS2_30D_AVERAGE_REQUIRED');
+  }
   if (!config.markets.includes('WORLDWIDE')) return notRun('kick', 'COUNTRY_FILTER_UNAVAILABLE');
   const evidence = newEvidence();
   try {

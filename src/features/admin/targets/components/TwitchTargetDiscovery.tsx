@@ -80,7 +80,7 @@ export function TwitchTargetDiscovery(): React.ReactElement {
       </div>
 
       <p className="rounded-lg border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-xs text-amber-200/80">
-        Se priorizan directos de CS2 con al menos 250 seguidores o 20 espectadores simultáneos. Twitch no devuelve el país: todos se guardan para revisión legal antes de contactar.
+        Un directo puntual ya no valida un lead. Solo puede pasar a candidato con una media verificada de CS2 en 30 días: 70–89 se marca en amarillo y 90+ en verde. La API oficial de Twitch no entrega ese histórico, por lo que los resultados sin fuente quedan en revisión.
       </p>
       {message && <p className="text-xs text-sp-admin-muted">{message}</p>}
 
@@ -94,14 +94,20 @@ export function TwitchTargetDiscovery(): React.ReactElement {
           </div>
           <div className="grid gap-3 xl:grid-cols-2">
             {results.map((candidate) => (
-              <article key={candidate.broadcasterId} className={`rounded-xl border p-4 ${candidate.isQualified ? 'border-emerald-500/30 bg-emerald-500/5' : 'border-sp-admin-border bg-sp-admin-bg/40'}`}>
+              <article key={candidate.broadcasterId} className={`rounded-xl border p-4 ${candidate.isQualified
+                ? 'border-emerald-500/30 bg-emerald-500/5'
+                : candidate.status === 'review'
+                  ? 'border-amber-500/30 bg-amber-500/5'
+                  : 'border-sp-admin-border bg-sp-admin-bg/40'}`}>
                 <div className="flex gap-3">
                   <input type="checkbox" checked={selected.has(candidate.broadcasterId)} disabled={!candidate.isQualified} onChange={() => toggle(candidate.broadcasterId)} className="mt-1 accent-emerald-500" />
                   {candidate.thumbnailUrl ? <Image src={candidate.thumbnailUrl} alt="" width={44} height={44} unoptimized className="h-11 w-11 rounded-full object-cover" /> : <div className="h-11 w-11 rounded-full bg-sp-admin-hover" />}
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
                       <a href={`https://www.twitch.tv/${candidate.login}`} target="_blank" rel="noreferrer" className="font-bold text-sp-admin-text hover:text-[#a970ff]">{candidate.displayName}</a>
-                      <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${candidate.isQualified ? 'bg-emerald-500/15 text-emerald-300' : 'bg-amber-500/15 text-amber-300'}`}>{candidate.isQualified ? 'CANDIDATO' : 'NO CUMPLE'}</span>
+                      <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${candidate.isQualified ? 'bg-emerald-500/15 text-emerald-300' : 'bg-amber-500/15 text-amber-300'}`}>
+                        {candidate.isQualified ? 'CANDIDATO' : candidate.status === 'review' ? 'REVISAR' : 'NO CUMPLE'}
+                      </span>
                       <span className="rounded-full bg-violet-500/10 px-2 py-0.5 text-[10px] font-bold text-violet-300">{candidate.score}/100</span>
                     </div>
                     <p className="mt-1 text-xs text-sp-admin-muted">{candidate.followerCount === null ? 'No disponible' : numberFormat.format(candidate.followerCount)} seguidores · {candidate.language.toUpperCase()} · {candidate.currentGame || 'Sin categoría'}</p>

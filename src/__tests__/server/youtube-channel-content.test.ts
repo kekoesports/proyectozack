@@ -235,9 +235,9 @@ describe('youtube channel details and content', () => {
           status: 200,
           json: async () => ({
             items: [
-              { id: 'vid1', statistics: { viewCount: '3000' } },
-              { id: 'vid2', statistics: { viewCount: '6000' } },
-              { id: 'vid3', statistics: { viewCount: '9000' } },
+              { id: 'vid1', contentDetails: { duration: 'PT10M' }, statistics: { viewCount: '3000' } },
+              { id: 'vid2', contentDetails: { duration: 'PT10M' }, statistics: { viewCount: '6000' } },
+              { id: 'vid3', contentDetails: { duration: 'PT10M' }, statistics: { viewCount: '9000' } },
             ],
           }),
           text: async () => '',
@@ -277,7 +277,7 @@ describe('youtube channel details and content', () => {
           ok: true,
           status: 200,
           json: async () => ({
-            items: [{ id: 'vidA', statistics: {} }],
+            items: [{ id: 'vidA', contentDetails: { duration: 'PT10M' }, statistics: {} }],
           }),
           text: async () => '',
         });

@@ -43,7 +43,7 @@ it('does not round a 999.5 median up to the 1000 threshold', async () => {
   jest.mocked(fetch).mockResolvedValueOnce(reply(playlist))
     .mockResolvedValueOnce(reply({ items: ['a', 'b', 'c', 'd'].map(id => upload(id)) }))
     .mockResolvedValueOnce(reply({ items: [0, 999, 1000, 2000].map((views, index) => ({
-      id: ['a', 'b', 'c', 'd'][index], statistics: { viewCount: String(views) },
+      id: ['a', 'b', 'c', 'd'][index], contentDetails: { duration: 'PT10M' }, statistics: { viewCount: String(views) },
     })) }));
   const result = await getChannelRecentPerformanceReport('channel');
   expect(result.data?.medianViews).toBe(999.5);

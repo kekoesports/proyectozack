@@ -6,6 +6,7 @@ import {
 const candidate = {
   followers: 5_400,
   viewers: 180,
+  averageCs2Viewers30d: 90,
   language: 'es',
   requiredLanguage: 'es',
   game: 'Counter-Strike 2',
@@ -19,23 +20,32 @@ describe('qualifyTwitchCandidate', () => {
 
     expect(result.isQualified).toBe(true);
     expect(result.status).toBe('review');
-    expect(result.score).toBeGreaterThanOrEqual(90);
+    expect(result.score).toBeGreaterThanOrEqual(80);
     expect(result.reasons).toContain('Revisar país y encaje legal antes de contactar');
   });
 
   it('rechaza y explica una audiencia insuficiente', () => {
-    const result = qualifyTwitchCandidate({ ...candidate, followers: 450, viewers: 5 });
+    const result = qualifyTwitchCandidate({ ...candidate, followers: 450, viewers: 5, averageCs2Viewers30d: 69 });
 
     expect(result.isQualified).toBe(false);
     expect(result.status).toBe('rejected');
-    expect(result.reasons[0]).toMatch(/Menos de 1[.\s]?000 seguidores y 20 espectadores/);
+    expect(result.reasons[0]).toContain('inferior a 70');
   });
 
-  it('mantiene una promesa pequeña cuando ya reúne audiencia en directo', () => {
-    const result = qualifyTwitchCandidate({ ...candidate, followers: 180, viewers: 35 });
+  it('mantiene en amarillo una media de CS2 entre 70 y 89', () => {
+    const result = qualifyTwitchCandidate({ ...candidate, followers: 180, viewers: 35, averageCs2Viewers30d: 70 });
 
-    expect(result.isQualified).toBe(true);
-    expect(result.reasons[0]).toContain('35 espectadores en directo: observación puntual, no media histórica');
+    expect(result.isQualified).toBe(false);
+    expect(result.status).toBe('review');
+    expect(result.reasons[0]).toContain('nivel amarillo');
+  });
+
+  it('no preselecciona sin una media histórica aunque el directo actual sea grande', () => {
+    const result = qualifyTwitchCandidate({ ...candidate, viewers: 5_000, averageCs2Viewers30d: null });
+
+    expect(result.isQualified).toBe(false);
+    expect(result.status).toBe('review');
+    expect(result.reasons[0]).toContain('solo revisión amarilla');
   });
 
   it('rechaza categorías ajenas a CS2', () => {

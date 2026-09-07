@@ -24,7 +24,9 @@ const twitchSearchSchema = z.object({
   minimumFollowers: z.number().int().min(100).max(10_000_000).default(250),
 });
 
-export type TwitchDiscoveryCandidate = TwitchChannelPreview & CreatorFit;
+export type TwitchDiscoveryCandidate = TwitchChannelPreview & CreatorFit & {
+  readonly averageCs2Viewers30d: number | null;
+};
 
 export async function discoverTwitchTargetsAction(input: unknown): Promise<{
   readonly ok: boolean;
@@ -46,13 +48,14 @@ export async function discoverTwitchTargetsAction(input: unknown): Promise<{
       const fit = qualifyTwitchCandidate({
         followers: followerCount,
         viewers: channel.viewerCount,
+        averageCs2Viewers30d: null,
         language: channel.language,
         requiredLanguage: parsed.data.language === 'any' ? null : parsed.data.language,
         game: channel.currentGame,
         isLive: channel.isLive,
         minimumFollowers: parsed.data.minimumFollowers,
       });
-      return { ...channel, followerCount, ...fit };
+      return { ...channel, followerCount, averageCs2Viewers30d: null, ...fit };
     }).sort((left, right) => Number(right.isQualified) - Number(left.isQualified) || right.score - left.score);
     return { ok: true, candidates, error: null };
   } catch (error) {
@@ -66,6 +69,7 @@ const twitchImportSchema = z.array(z.object({
   displayName: z.string().min(1).max(200),
   followerCount: z.number().int().nonnegative().nullable(),
   viewerCount: z.number().int().nonnegative().nullable(),
+  averageCs2Viewers30d: z.number().int().min(90),
   language: z.string().max(10),
   currentGame: z.string().max(200),
   thumbnailUrl: z.url().nullable(),
@@ -187,6 +191,7 @@ export async function importKickProfileAction(slugInput: unknown): Promise<{
       ...fit.reasons,
       profile.followers === null ? 'Seguidores no disponibles en la API oficial' : `${profile.followers.toLocaleString('es-ES')} seguidores`,
       cs2 ? 'CS2 es su categoría actual observada; no constituye un histórico' : 'CS2 no confirmado',
+      'La media de espectadores en CS2 de los últimos 30 días debe verificarse: 70–89 amarillo; 90+ verde',
       'Revisar país y encaje legal antes de contactar',
     ],
     sourceQuery: profile.username,

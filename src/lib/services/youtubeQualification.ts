@@ -68,13 +68,18 @@ export function qualifyYouTubeChannel(
   const daysSinceLastVideo = performance.lastVideoAt
     ? Math.max(0, Math.floor((Date.now() - performance.lastVideoAt.getTime()) / 86_400_000))
     : null;
-  // Activity is the configured recent-video window; freshness and fit remain informative.
+  if (daysSinceLastVideo === null || daysSinceLastVideo > 30) {
+    reasons.push(daysSinceLastVideo === null
+      ? 'Sin vídeo largo reciente; los Shorts no cuentan'
+      : `Último vídeo largo hace ${daysSinceLastVideo} días; máximo 30 para preseleccionar`);
+  }
   const fitScore = scoreYouTubeProspect(channel, performance, daysSinceLastVideo);
 
   const signals = [
     `${performance.videoCount} vídeos en ${performance.windowDays} días`,
     `Mediana de ${performance.medianViews.toLocaleString('es-ES')} vistas`,
     `${performance.videosAtOrAbove1000}/${performance.videoCount} vídeos con al menos 1.000 vistas`,
+    `${performance.excludedShortCount} Shorts/vídeos de hasta 3 minutos excluidos`,
   ];
   if (channel.subscriberCount !== null && channel.subscriberCount > 0) {
     const efficiency = Math.round((performance.medianViews / channel.subscriberCount) * 100);
