@@ -12,13 +12,13 @@ jest.mock('@/lib/queries/targets', () => ({ bulkUpsertTargets: (...args: unknown
 import { persistDiscoveredCreator } from '@/lib/queries/creatorIdentity';
 import { recordTargetStatusHistory } from '@/lib/queries/targetStatusHistory';
 
-const now = new Date('2026-09-05T10:00:00Z'), discardedAt = new Date('2026-09-03T10:00:00Z');
+const now = new Date('2027-03-05T10:00:00Z'), discardedAt = new Date('2026-09-03T10:00:00Z');
 const permission = { commercialApproved: true, derivedMetricsApproved: true, retentionDays: 30,
   evidenceRef: 'synthetic', reviewedBy: 'synthetic', reviewedAt: new Date('2026-09-01T00:00:00Z'), validUntil: null };
 const target = { id: 22, platform: 'youtube', username: 'UC-synthetic', status: 'descartado', notes: 'Synthetic manual notes',
   contactedAt: null, createdAt: new Date('2026-01-01T00:00:00Z') };
 const account = { id: 33, creatorId: 44, targetId: 22, fields: {}, externalId: 'UC-synthetic' };
-function fields(at: Date, median: number): Record<string, CreatorObservation> {
+function fields(at: Date, median: number, published = '2027-03-04T10:00:00Z'): Record<string, CreatorObservation> {
   return {
     qualificationVersion: creatorObservation(CREATOR_REEVALUATION_VERSION, 'crm:creator-reevaluation:version', at),
     recentPerformanceCoverage: creatorObservation('complete', 'crm:youtube:recent-performance-coverage', at),
@@ -26,7 +26,7 @@ function fields(at: Date, median: number): Record<string, CreatorObservation> {
     recentWindowDays: creatorObservation(90, 'crm:search-profile:windowDays', at),
     medianRecentVideoViews: creatorObservation(median, 'youtube:videos.list:derived-median', at),
     recentVideoCount: creatorObservation(4, 'youtube:playlistItems.list:videoPublishedAt', at),
-    lastVideoPublishedAt: creatorObservation('2026-09-01T10:00:00Z', 'youtube:playlistItems.list:videoPublishedAt', at),
+    lastVideoPublishedAt: creatorObservation(published, 'youtube:playlistItems.list:videoPublishedAt', at),
   };
 }
 const incoming: DiscoveredCreatorInput = { runId: 77, externalId: account.externalId,
@@ -91,7 +91,7 @@ describe('identity → discard evidence → history/status/observations integrat
     writes = []; events = []; conditions = [];
     conflictingDecisions = null;
     decision = { id: 66, actorId: 'synthetic-human', status: 'descartado', reason: 'audience_low', createdAt: discardedAt };
-    baseline = { id: 55, fields: fields(new Date('2026-09-02T10:00:00Z'), 500) };
+    baseline = { id: 55, fields: fields(new Date('2026-09-02T10:00:00Z'), 500, '2026-08-01T10:00:00Z') };
     mockTransaction.mockImplementation((callback: (transaction: typeof tx) => Promise<unknown>) => callback(tx));
     mockBulk.mockImplementation(async () => { events.push('upsert'); return { inserted: 0, updated: 1, ids: [22] }; });
   });

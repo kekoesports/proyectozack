@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { creatorObservationSchema, creatorSearchProfileSchema, type CreatorObservation } from '@/lib/schemas/creator-search-profile';
 
 export const CREATOR_REEVALUATION_VERSION = 'youtube-recent-publications-v1';
+export const DISCARD_REVIEW_COOLDOWN_MONTHS = 6;
 const DAY_MS = 86_400_000;
 type Fields = Readonly<Record<string, CreatorObservation>>;
 type Input = Readonly<{
@@ -14,13 +15,27 @@ type Input = Readonly<{
   now: Date;
 }>;
 
+/** Six calendar months, clamped to the last valid day of the destination month. */
+export function discardReviewEligibleAt(discardedAt: Date): Date | null {
+  if (!Number.isFinite(discardedAt.getTime())) return null;
+  const eligibleAt = new Date(discardedAt);
+  const day = eligibleAt.getUTCDate();
+  eligibleAt.setUTCDate(1);
+  eligibleAt.setUTCMonth(eligibleAt.getUTCMonth() + DISCARD_REVIEW_COOLDOWN_MONTHS);
+  const lastDay = new Date(Date.UTC(eligibleAt.getUTCFullYear(), eligibleAt.getUTCMonth() + 1, 0)).getUTCDate();
+  eligibleAt.setUTCDate(Math.min(day, lastDay));
+  return eligibleAt;
+}
+
 /** Only evidence-bearing performance decisions may reopen; unknown/manual reasons remain suppressed. */
 export function canReevaluateDiscard(input: Input): boolean {
   if (input.platform !== 'youtube' || !['audience_low', 'inactive'].includes(input.reason)) return false;
   const config = creatorSearchProfileSchema.safeParse(input.searchConfig);
   const now = input.now.getTime(), discarded = input.discardedAt.getTime();
+  const eligibleAt = discardReviewEligibleAt(input.discardedAt);
   if (!config.success || !config.data.platforms.includes('youtube')
-    || !Number.isFinite(now) || !Number.isFinite(discarded) || discarded >= now) return false;
+    || !Number.isFinite(now) || !Number.isFinite(discarded) || discarded >= now
+    || !eligibleAt || now < eligibleAt.getTime()) return false;
 
   const read = (fields: Fields, key: string, source: string, fresh: boolean): CreatorObservation['value'] => {
     const result = creatorObservationSchema.safeParse(fields[key]);

@@ -1,8 +1,8 @@
-import { canReevaluateDiscard, CREATOR_REEVALUATION_VERSION } from '@/lib/targets/discard-reevaluation';
+import { canReevaluateDiscard, CREATOR_REEVALUATION_VERSION, discardReviewEligibleAt } from '@/lib/targets/discard-reevaluation';
 import { creatorObservation } from '@/lib/targets/creator-observations';
 import { DEFAULT_CREATOR_SEARCH_PROFILE, type CreatorObservation } from '@/lib/schemas/creator-search-profile';
 
-const now = new Date('2026-09-05T10:00:00Z');
+const now = new Date('2027-03-05T10:00:00Z');
 const discardedAt = new Date('2026-09-03T10:00:00Z');
 const oldAt = new Date('2026-09-02T10:00:00Z');
 function fields(at: Date, median: number, count: number, published: string): Record<string, CreatorObservation> {
@@ -22,7 +22,7 @@ function input(): Parameters<typeof canReevaluateDiscard>[0] {
   return { platform: 'youtube', reason: 'audience_low', discardedAt, now,
     searchConfig: { ...DEFAULT_CREATOR_SEARCH_PROFILE, platforms: ['youtube'], markets: ['ES'], languages: ['es'] },
     baseline: fields(oldAt, 500, 1, '2026-08-01T10:00:00Z'),
-    incoming: fields(now, 1500, 4, '2026-09-04T10:00:00Z'),
+    incoming: fields(now, 1500, 4, '2027-03-04T10:00:00Z'),
   };
 }
 function change(key: string, patch: Partial<CreatorObservation>, baseline = false): Parameters<typeof canReevaluateDiscard>[0] {
@@ -33,6 +33,10 @@ function change(key: string, patch: Partial<CreatorObservation>, baseline = fals
 }
 
 describe('discard reevaluation is fail-closed on fresh, complete, comparable evidence only', () => {
+  it('suppresses every automatic recommendation until six calendar months have elapsed', () => {
+    expect(canReevaluateDiscard({ ...input(), now: new Date('2027-03-03T09:59:59Z') })).toBe(false);
+    expect(discardReviewEligibleAt(new Date('2026-08-31T12:00:00Z'))?.toISOString()).toBe('2027-02-28T12:00:00.000Z');
+  });
   it('allows a genuine audience improvement meeting current requirements', () => expect(canReevaluateDiscard(input())).toBe(true));
   it('allows verified new activity after the discard with an improved publication count', () => {
     expect(canReevaluateDiscard({ ...input(), reason: 'inactive' })).toBe(true);
@@ -71,9 +75,9 @@ describe('discard reevaluation is fail-closed on fresh, complete, comparable evi
   });
   it('rejects old, future, malformed or out-of-order observation timestamps', () => {
     for (const patch of [
-      { observed_at: '2026-09-03T09:00:00Z' }, { observed_at: '2026-09-06T10:00:00Z' },
-      { observed_at: '2026-09-04T09:59:59Z' }, { observed_at: 'not-a-date' },
-      { synced_at: '2026-09-05T09:59:59Z' }, { synced_at: '2026-09-06T10:00:00Z' },
+      { observed_at: '2026-09-03T09:00:00Z' }, { observed_at: '2027-03-06T10:00:00Z' },
+      { observed_at: '2027-03-04T09:59:59Z' }, { observed_at: 'not-a-date' },
+      { synced_at: '2027-03-05T09:59:59Z' }, { synced_at: '2027-03-06T10:00:00Z' },
     ]) expect(canReevaluateDiscard(change('medianRecentVideoViews', patch))).toBe(false);
   });
   it('requires the baseline to have existed before the actual decision', () => {

@@ -7,6 +7,8 @@ description: Discover and enrich gaming/iGaming/esports content creators on Twit
 
 Skill agentic para descubrir creators (CS2, iGaming, esports, gaming generalista) en Twitch + YouTube + Kick — mercado hispano. Persiste cada run a la tabla `targets` del CRM con `status: 'pendiente'` para revisión manual en `/admin/targets`. Cero markdown intermedio.
 
+Registro compartido del equipo: [SocialPro · Leads CC](https://docs.google.com/spreadsheets/d/1YaiCqKeMb8BlJoZJKU4x-gEYRW8-sjOVR_bJ65teF3A/edit). El CRM es la fuente canónica para deduplicación y supresión; la hoja es la vista operativa compartida y debe reflejar cada recomendación y decisión humana.
+
 ## Quick start
 
 ```
@@ -46,6 +48,7 @@ Modelo agentic. Tienes herramientas, tienes guardrails, decides pasos:
 5. **Extrae handles** del `markdown` con juicio (no regex hardcodeado): blogs usan `twitch.tv/X`, `@X`, `(su Twitch es X)`, listas numeradas. Si nombre sin handle, calcula via search proxy (paso 6).
 6. **Resuelve handles canónicos** — para cada handle/nombre extraído llama `POST <BASE>/api/admin/discover/<plat>/search` con bearer. Devuelve preview con followers, idioma, último stream/upload, etc.
 7. Aplica filtros (en orden, descarta al primer fallo):
+   - **Memoria de decisiones**: comprueba primero la identidad canónica en CRM y en la hoja compartida. No recomiendes ni vuelvas a insertar un perfil con estado `descartado` hasta que hayan pasado seis meses naturales desde la decisión. Cumplir seis meses solo habilita una nueva revisión: exige evidencia reciente y una razón concreta; nunca lo reabras por el mero paso del tiempo. `contactado` tampoco se presenta como lead nuevo.
    - **Idioma ES**: doble check según [PROMPT.md](PROMPT.md) §Idioma. Cross-check `language` de Firecrawl con `metadata.language`.
    - **Mínimo followers**: Twitch ≥ 1k, YouTube ≥ 3k, Kick ≥ 500. Override con `--min-followers-X`.
    - **YouTube long-form**: excluir Shorts y cualquier subida de ≤ 3 minutos de actividad, media y mediana. Último vídeo largo ≤ 30 días para verde; 31–120 días queda como mucho amarillo y no se importa automáticamente.
@@ -68,7 +71,8 @@ Igual con 8–10 queries × `limit: 10`. **Avisa coste estimado (~250 créditos)
 3. Para cada platform group, llama `/discover/<plat>/search` con username como query (resuelve a preview actualizado), o `/discover/kick/channel` directo con slug.
 4. Build `ImportItem[]` con métricas frescas. `batchId: "creator-<YYYY-MM-DD>-refresh-<plat>"`.
 5. POST a `/import`. Endpoint actualiza solo campos métricos (status / brandUserId / notes / contactedAt intactos por diseño del UPSERT).
-6. Audit log en `runs/refresh-<batchId>.md`.
+6. Añade o actualiza la fila de la hoja compartida usando `ID canónico = plataforma + ID inmutable/handle normalizado`. Conserva `Estado`, `Responsable`, `Cambio de estado` y `Notas` escritos por el equipo. Si está `Descartado` y `Revisar desde` aún no ha llegado, registra la observación sin recomendarlo.
+7. Audit log en `runs/refresh-<batchId>.md`.
 
 ## Reglas duras (no-negociables)
 

@@ -114,6 +114,8 @@ skinsmonkey.com, keydrop.com, skinclub.com, skinplace.com, csgobig.com, hellcase
 
 ## Filtros (en orden, descarte al primer fallo)
 
+**Antes de puntuar**: deduplica por identidad canónica contra el CRM y la hoja compartida de Leads CC. Un `descartado` queda suprimido seis meses naturales desde su última decisión. Después de esa fecha solo puede volver como “revisión”, con evidencia reciente que justifique el cambio; el tiempo por sí solo no basta. No presentes `contactado` como lead nuevo.
+
 ### 1. Dedup `(platform, username)` contra DB
 
 Antes de POST, dedup contra `existingUsernames` construido en el paso 2 del workflow. Si platform+username ya existe → skip. (El UPSERT del endpoint también lo maneja, pero esto reduce ruido en audit log).
