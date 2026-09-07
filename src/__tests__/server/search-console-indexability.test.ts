@@ -15,6 +15,19 @@ describe('Search Console indexability guards', () => {
     expect(generic?.disallow).toContain('/*?*');
   });
 
+  it('declares the same content-use policy for every crawler group', () => {
+    const rules = robots().rules;
+
+    expect(Array.isArray(rules)).toBe(true);
+    if (!Array.isArray(rules)) return;
+
+    for (const rule of rules) {
+      expect(rule.other).toEqual({
+        'Content-Signal': 'search=yes, ai-input=yes, ai-train=no',
+      });
+    }
+  });
+
   it('does not advertise a WebSite SearchAction without a working site search', () => {
     const layoutSource = fs.readFileSync(
       path.join(process.cwd(), 'src/app/layout.tsx'),

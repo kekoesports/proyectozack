@@ -89,7 +89,7 @@ const jsonLd = {
         height: 512,
       },
       description:
-        'Agencia de talentos gaming y esports fundada en 2012 en Córdoba. Especialistas en iGaming, CS2 y Valorant en España y LatAm. FTD tracking verificado, compliance DGOJ integrado.',
+        'SocialPro es una agencia de marketing y gestión de creadores gaming e iGaming que conecta marcas con talento especializado en España y Latinoamérica, con resultados medibles y compliance DGOJ integrado.',
       foundingDate: '2012',
       foundingLocation: { '@type': 'Place', name: 'Córdoba, España' },
       areaServed: [

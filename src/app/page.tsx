@@ -31,7 +31,7 @@ async function CasesSectionAsync() {
 export const metadata: Metadata = {
   title: 'SocialPro — Agencia Gaming & iGaming | España y LatAm',
   description:
-    'Agencia de talentos gaming e iGaming fundada en 2012. Streamers verificados de CS2, Valorant e iGaming en España y LatAm. FTD tracking, compliance DGOJ y ROI medible desde el panel del operador.',
+    'SocialPro es una agencia de marketing gaming e iGaming para marcas y creadores en España y Latinoamérica, con compliance DGOJ y resultados medibles.',
   alternates: {
     canonical: SITE_URL,
     languages: {

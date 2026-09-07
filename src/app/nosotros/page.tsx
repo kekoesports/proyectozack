@@ -192,9 +192,6 @@ export default async function NosotrosPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }}
       />
-      {/* sr-only H1 para SEO — el visual está en NosotrosHero */}
-      <h1 className="sr-only">Agencia Gaming España desde 2012</h1>
-
       {/* ── Hero 2 columnas ──────────────────────────────────────── */}
       <NosotrosHero brands={brands} />
 
