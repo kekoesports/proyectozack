@@ -40,3 +40,6 @@
 # Una ejecución agrupa hasta 100 logins en una sola consulta Helix y, si Twitch
 # falla, no escribe falsos estados offline en la base de datos.
 */5 * * * *  /usr/bin/curl -fsS -m 110 -H "Authorization: Bearer $CRON_SECRET" http://app:3000/api/cron/poll-live-status           # cada 5 minutos
+# Muestras exclusivas de candidatos activos jugando CS2. La ruta falla cerrada
+# sin permiso de uso derivado/retención >=30 días y deduplica por tramo de 10 min.
+*/10 * * * * /usr/bin/curl -fsS -m 110 -H "Authorization: Bearer $CRON_SECRET" http://app:3000/api/cron/collect-creator-live-audience # cada 10 minutos

@@ -218,6 +218,25 @@ it('retains the legacy array entrypoint on the official route', async () => {
   expect(await getKickCs2LiveCreators()).toHaveLength(1);
 });
 
+it('batches exact official livestream lookups by broadcaster ID', async () => {
+  const fetcher = jest.spyOn(global, 'fetch').mockResolvedValueOnce(token())
+    .mockResolvedValueOnce(json({ data: [stream(1), stream(2, 0)], pagination: { next_cursor: '' } }));
+  const { getKickLiveByBroadcasterIds } = await import('@/lib/services/kick');
+  const report = await getKickLiveByBroadcasterIds([1, 2]);
+  expect(report.items.map(item => [item.userId, item.viewerCount])).toEqual([[1, 42], [2, null]]);
+  const url = new URL(String(fetcher.mock.calls[1]?.[0]));
+  expect(url.pathname).toBe('/public/v2/livestreams');
+  expect(url.searchParams.getAll('broadcaster_user_id')).toEqual(['1', '2']);
+  expect(report.coverage.status).toBe('complete');
+});
+
+it('rejects invalid exact Kick IDs before authentication', async () => {
+  const fetcher = jest.spyOn(global, 'fetch');
+  const { getKickLiveByBroadcasterIds } = await import('@/lib/services/kick');
+  await expect(getKickLiveByBroadcasterIds([0])).rejects.toMatchObject({ code: 'invalid_input' });
+  expect(fetcher).not.toHaveBeenCalled();
+});
+
 it('does not call missing pagination a complete live search', async () => {
   jest.spyOn(global, 'fetch').mockResolvedValueOnce(token()).mockResolvedValueOnce(json({ data: [category] }))
     .mockResolvedValueOnce(json({ data: [stream(1)] }));

@@ -6,6 +6,7 @@ const ROOT = path.resolve(__dirname, '..', '..', '..');
 
 const vercelCronsSchema = z.object({ crons: z.array(z.object({ path: z.string(), schedule: z.string() })) });
 const PROFILE_POLL = '/api/cron/discover-creator-targets';
+const LIVE_AUDIENCE_COLLECTOR = '/api/cron/collect-creator-live-audience';
 
 describe('scheduler VPS', () => {
   const vercel = vercelCronsSchema.parse(JSON.parse(fs.readFileSync(path.join(ROOT, 'vercel.json'), 'utf8')));
@@ -21,7 +22,8 @@ describe('scheduler VPS', () => {
     // Live status is VPS-only. Creator discovery now polls due daily profiles instead of
     // forcing their configurable/local-time schedule to Vercel's legacy fixed UTC minute.
     const inheritedSchedules = [...scheduledOnVps]
-      .filter(([path]) => path !== '/api/cron/poll-live-status' && path !== PROFILE_POLL);
+      .filter(([path]) => path !== '/api/cron/poll-live-status' && path !== PROFILE_POLL
+        && path !== LIVE_AUDIENCE_COLLECTOR);
 
     expect(inheritedSchedules.sort()).toEqual(
       vercel.crons.filter(cron => cron.path !== PROFILE_POLL).map((cron) => [cron.path, cron.schedule] as const).sort(),
@@ -35,6 +37,11 @@ describe('scheduler VPS', () => {
   it('actualiza los directos de Twitch cada cinco minutos solo en el VPS', () => {
     expect(scheduledOnVps.get('/api/cron/poll-live-status')).toBe('*/5 * * * *');
     expect(vercel.crons.some((cron) => cron.path === '/api/cron/poll-live-status')).toBe(false);
+  });
+
+  it('muestrea audiencia de candidatos cada diez minutos solo en el VPS', () => {
+    expect(scheduledOnVps.get(LIVE_AUDIENCE_COLLECTOR)).toBe('*/10 * * * *');
+    expect(vercel.crons.some((cron) => cron.path === LIVE_AUDIENCE_COLLECTOR)).toBe(false);
   });
 
   it('sondea perfiles pendientes cada cinco minutos con una sola petición y timeout HTTP de 240s', () => {

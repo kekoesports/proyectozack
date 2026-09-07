@@ -39,3 +39,4 @@ export const KickDiscoveryInput = z.object({
   maxPages: z.number().int().min(1).max(10).default(5),
 });
 export type KickDiscoveryInput = z.input<typeof KickDiscoveryInput>;
+export const KickBroadcasterIds = z.array(id).min(1).max(1000);

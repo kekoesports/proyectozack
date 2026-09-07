@@ -1,5 +1,5 @@
 import { env } from '@/lib/env';
-import { KickCategories, KickChannels, KickDiscoveryInput, KickLivestreams, KickSlug, KickToken, KickUsers } from '@/lib/schemas/kick-discovery';
+import { KickBroadcasterIds, KickCategories, KickChannels, KickDiscoveryInput, KickLivestreams, KickSlug, KickToken, KickUsers } from '@/lib/schemas/kick-discovery';
 import type { ProviderCoverage, ProviderWarning } from '@/lib/schemas/provider-availability';
 import { DiscoveryReadError, readDiscoveryJson, type DiscoveryReadOptions } from './discovery-http';
 import { CreatorDiscoveryBudgetError, CreatorDiscoveryDeadlineError } from './creator-discovery-deadline';
@@ -121,6 +121,45 @@ export async function getKickLiveCreatorsReport(
 /** Compatibility wrapper. New orchestration must consume the report to retain partial coverage. */
 export async function getKickCs2LiveCreators(limit = 100): Promise<KickLiveCreator[]> {
   return (await getKickLiveCreatorsReport({ limit })).items;
+}
+
+/** Exact official lookup for known creator IDs. Missing rows mean that account is not live. */
+export async function getKickLiveByBroadcasterIds(
+  broadcasterIds: readonly number[], options: DiscoveryReadOptions = {},
+): Promise<KickLiveCreatorsReport> {
+  const parsed = KickBroadcasterIds.safeParse(broadcasterIds);
+  if (!parsed.success) throw new DiscoveryReadError('invalid_input');
+  const items: KickLiveCreator[] = [];
+  const warnings = new Set<ProviderWarning>();
+  const requested = new Set(parsed.data);
+  let pagesRead = 0;
+  try {
+    const token = await appToken(options);
+    const headers = { Authorization: `Bearer ${token}`, Accept: 'application/json' };
+    for (let offset = 0; offset < parsed.data.length; offset += 50) {
+      const ids = parsed.data.slice(offset, offset + 50);
+      const query = new URLSearchParams();
+      ids.forEach(idValue => query.append('broadcaster_user_id', String(idValue)));
+      const response = await readDiscoveryJson(`https://api.kick.com/public/v2/livestreams?${query}`,
+        KickLivestreams, { headers }, options);
+      pagesRead++;
+      if (response.pagination?.next_cursor) warnings.add('coverage_incomplete');
+      for (const stream of response.data) {
+        if (!requested.has(stream.broadcaster_user.id)) throw new DiscoveryReadError('invalid_response');
+        items.push({
+          userId: stream.broadcaster_user.id, username: stream.broadcaster_user.username,
+          slug: stream.channel.slug, profilePicUrl: stream.broadcaster_user.profile_picture || null,
+          category: stream.category.name, language: stream.language_code, title: stream.title,
+          viewerCount: stream.viewer_count > 0 ? stream.viewer_count : null,
+          startedAt: new Date(stream.started_at),
+        });
+      }
+    }
+  } catch (error) { warnings.add(warning(error)); }
+  return { items, coverage: {
+    status: warnings.size ? (pagesRead ? 'partial' : 'unavailable') : 'complete',
+    pagesRead, warnings: [...warnings],
+  } };
 }
 
 /** Exact official channel + user lookup. No private frontend API or invented follower/history metrics. */

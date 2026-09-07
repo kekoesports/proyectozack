@@ -241,6 +241,7 @@ const TwitchLiveStreamSchema = z.object({
     z.object({
       user_id:      z.string(),
       user_login:   z.string(),
+      game_id:      z.string(),
       game_name:    z.string(),
       title:        z.string(),
       viewer_count: z.number(),
@@ -253,6 +254,7 @@ const TwitchLiveStreamSchema = z.object({
 export type TwitchLiveStream = {
   userId:       string;
   userLogin:    string;
+  gameId:       string;
   gameName:     string;
   title:        string;
   viewerCount:  number;
@@ -288,11 +290,14 @@ export async function fetchTwitchLiveByLogins(logins: string[]): Promise<TwitchL
       const text = await res.text();
       throw new Error(`Twitch streams API error (${res.status}): ${text}`);
     }
-    const data = TwitchLiveStreamSchema.parse(await res.json());
+    const parsed = TwitchLiveStreamSchema.safeParse(await res.json());
+    if (!parsed.success) throw new Error('Twitch streams API returned an invalid response');
+    const data = parsed.data;
     for (const s of data.data) {
       results.push({
         userId:      s.user_id,
         userLogin:   s.user_login,
+        gameId:      s.game_id,
         gameName:    s.game_name,
         title:       s.title,
         viewerCount: s.viewer_count,

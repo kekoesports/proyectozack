@@ -15,9 +15,12 @@
 - KickStats, Streams Charts web y otros sitios sin una API/licencia estable no deben convertirse en scrapers de producción.
 - Herramientas open source pueden acelerar el colector o el panel, pero no sustituyen la API oficial ni acreditan por sí solas derechos de retención/comercialización. Antes de activarlo se mantienen los gates de permisos de proveedor ya existentes.
 
-## Siguiente implementación segura
+### Evaluación open source (07-09-2026)
 
-1. Reutilizar el cron/VPS y credenciales oficiales ya validadas para muestrear Twitch y Kick cada 5–10 minutos.
-2. Guardar muestras en una tabla temporal/retencionada con fuente y cobertura explícitas.
-3. Calcular `averageCs2Viewers30d` solo si la cobertura mínima definida se cumple; si no, devolver `null` y mantener amarillo.
-4. Mostrar fuente, ventana, cobertura y última actualización en Leads CC y en la hoja compartida.
+- `stmn/StreamRadar`: aplicación real para alertas de Twitch, 1 estrella y último commit 10-05-2026. El README dice MIT, pero el repositorio no incluye el texto/archivo de licencia. Sirve como referencia funcional, pero no se copia ni integra.
+- `adamwrose/StreamFusion`: 0 estrellas, dos commits del 15-03-2026 y ningún código ejecutable; solo README. Descartado.
+- `AskForDax/KickStreamAnalytics`: su licencia prohíbe expresamente el uso por empresas u organizaciones sin permiso escrito. El uso interno de SocialPro también cae en esa prohibición; no se usa su código ni sus datos.
+
+## Colector propio
+
+El VPS sondea cada diez minutos las cuentas activas conocidas y guarda únicamente observaciones de CS2 con fuente y caducidad. Exige conexión oficial, permiso de métricas derivadas y al menos 30 días de retención. La media sigue siendo desconocida hasta acumular una hora medida; después aplica rojo `<70`, amarillo `70–89` y verde `>=90`.
