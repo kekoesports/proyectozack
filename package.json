@@ -127,7 +127,7 @@
     "tailwindcss": "^4",
     "ts-jest": "^29.4.9",
     "ts-node": "^10.9.2",
-    "typescript": "^5",
+    "typescript": "^7",
     "xlsx": "npm:@e965/xlsx@^0.20.3"
   },
   "overrides": {
