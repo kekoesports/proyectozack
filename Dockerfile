@@ -20,7 +20,7 @@ WORKDIR /app
 # Cabeceras y toolchain para compilar `canvas`. Solo en esta capa: no llegan a
 # la imagen final.
 RUN apt-get update && apt-get install -y --no-install-recommends \
-      build-essential python3 pkg-config \
+      build-essential python3 pkg-config ca-certificates \
       libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev \
     && rm -rf /var/lib/apt/lists/*
 
