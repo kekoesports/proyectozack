@@ -14,8 +14,7 @@ type PartnerLeadDigestInput = {
 
 function escapeDiscordText(value: string): string {
   return value
-    .replaceAll('\\', '\\\\')
-    .replace(/([*_~`|>])/g, '\\$1')
+    .replace(/([\\*_~`|>])/g, '\\$1')
     .replaceAll('@', '@\u200b');
 }
 

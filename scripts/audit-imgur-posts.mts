@@ -3,6 +3,8 @@ import { readFileSync } from 'fs';
 import { join } from 'path';
 import { neon } from '@neondatabase/serverless';
 
+import { isHostOrSubdomain } from '../src/lib/utils/hostnames';
+
 try {
   const envFile = readFileSync(join(process.cwd(), '.env.local'), 'utf8');
   for (const line of envFile.split('\n')) {
@@ -59,8 +61,8 @@ if (rows.length === 0) {
 console.log(`\n⚠️  Posts con imágenes en Imgur: ${rows.length}\n`);
 for (const r of rows) {
   const flags: string[] = [];
-  if (r.cover_url?.includes('imgur.com')) flags.push(`cover_url: ${r.cover_url}`);
-  if (r.og_image_url?.includes('imgur.com')) flags.push(`og_image_url: ${r.og_image_url}`);
+  if (r.cover_url && isHostOrSubdomain(r.cover_url, 'imgur.com')) flags.push(`cover_url: ${r.cover_url}`);
+  if (r.og_image_url && isHostOrSubdomain(r.og_image_url, 'imgur.com')) flags.push(`og_image_url: ${r.og_image_url}`);
   if (r.body_has_imgur) flags.push('body_md: contiene imgur');
 
   console.log(`[${r.id}] ${r.vertical}/${r.status} — ${r.slug}`);

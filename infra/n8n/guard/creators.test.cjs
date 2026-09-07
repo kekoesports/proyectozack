@@ -171,7 +171,7 @@ test('unbounded or malformed pages fail closed before effects', async () => {
 test('1800 characters are allowed and mentions stay disabled in the existing client', async () => {
   const f = fixture([{ ...notification, message: 'x'.repeat(1800) }]);
   assert.equal((await creators(f.ctx)).delivered, 1);
-  const call = f.calls.find(item => item.url?.startsWith('https://discord.com') && item.method === 'POST');
+  const call = f.calls.find(item => item.url && new URL(item.url).origin === 'https://discord.com' && item.method === 'POST');
   assert.equal(call.body.content.length, 1800); assert.deepEqual(call.body.allowed_mentions, { parse: [] });
 });
 test('arbitrary request content cannot bypass the CRM outbox', async () => {

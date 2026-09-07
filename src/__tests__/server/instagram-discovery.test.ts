@@ -50,7 +50,7 @@ it('uses a known username nested under the connected account, token only in head
   expect(result.profile).toMatchObject({ username: 'creator', followers: 0, mediaCount: null,
     profilePicUrl: null, country: null, media: [{ likes: 0, comments: null, views: null }] });
   const url = String(fetcher.mock.calls[0]?.[0]);
-  expect(url).toMatch(/^https:\/\/graph.facebook.com\/v26.0\/123\?/);
+  expect(url).toMatch(/^https:\/\/graph\.facebook\.com\/v26\.0\/123\?/);
   expect(new URL(url).searchParams.get('fields')).toContain('business_discovery.username(creator)');
   expect(url).not.toContain('SYNTHETIC_SECRET');
   expect(fetcher.mock.calls[0]?.[1]?.headers).toEqual({

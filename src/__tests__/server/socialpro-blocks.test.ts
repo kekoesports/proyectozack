@@ -4,6 +4,7 @@ import {
   detectSocialProBlocks,
   suggestDeliverableType,
 } from '@/lib/parsers/socialpro-blocks';
+import { isHostOrSubdomain } from '@/lib/utils/hostnames';
 
 // ── Fixtures ──────────────────────────────────────────────────────────────────
 
@@ -298,7 +299,7 @@ describe('detectSocialProBlocks', () => {
 
       const tarifa = detectSocialProBlocks(TARIFA_GRID, 'TARIFA');
       const tarifaUrls = tarifa.blocks.flatMap((b) => b.links.map((l) => l.originalUrl));
-      expect(tarifaUrls.some((u) => u.includes('youtube.com'))).toBe(true);
+      expect(tarifaUrls.some((u) => isHostOrSubdomain(u, 'youtube.com'))).toBe(true);
     });
 
     it('does not include empty cells as links', () => {

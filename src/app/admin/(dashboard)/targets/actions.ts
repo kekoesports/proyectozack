@@ -7,6 +7,7 @@ import { requirePermission } from '@/lib/permissions';
 import { parseFormData } from '@/lib/forms/parseFormData';
 import { firstError } from '@/lib/forms/firstError';
 import { logRedacted } from '@/lib/log';
+import { isHostOrSubdomain } from '@/lib/utils/hostnames';
 import {
   upsertTargetsFromCSV,
   updateTargetStatus,
@@ -64,10 +65,10 @@ function normalizeHeader(h: string): string {
 }
 
 function detectPlatformFromUrl(url: string): string | undefined {
-  if (url.includes('instagram.com')) return 'instagram';
-  if (url.includes('youtube.com') || url.includes('youtu.be')) return 'youtube';
-  if (url.includes('twitch.tv')) return 'twitch';
-  if (url.includes('kick.com')) return 'kick';
+  if (isHostOrSubdomain(url, 'instagram.com')) return 'instagram';
+  if (isHostOrSubdomain(url, 'youtube.com') || isHostOrSubdomain(url, 'youtu.be')) return 'youtube';
+  if (isHostOrSubdomain(url, 'twitch.tv')) return 'twitch';
+  if (isHostOrSubdomain(url, 'kick.com')) return 'kick';
   return undefined;
 }
 

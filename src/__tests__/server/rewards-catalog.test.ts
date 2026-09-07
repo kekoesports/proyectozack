@@ -155,7 +155,7 @@ describe('[rewards-catalog] doc de política', () => {
   it('los 8 nombres reales están en el doc (tabla + narrativa)', () => {
     for (const name of SKIN_NAMES) {
       // Markdown escapa el pipe `|` como `\|` en tablas. Buscamos ambas variantes.
-      const escapedName = name.replace(/\|/g, '\\|');
+      const escapedName = name.replace(/([\\|])/g, '\\$1');
       const found = doc.includes(name) || doc.includes(escapedName);
       expect(found).toBe(true);
     }
