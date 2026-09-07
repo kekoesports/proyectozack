@@ -7,6 +7,8 @@ import { join, extname } from 'path';
 import { neon } from '@neondatabase/serverless';
 import { put } from '@vercel/blob';
 
+import { isHostOrSubdomain } from '../src/lib/utils/hostnames';
+
 const DRY_RUN = process.argv.includes('--dry-run');
 if (DRY_RUN) console.log('🔍 DRY-RUN — sin cambios en BD ni Blob\n');
 
@@ -57,7 +59,12 @@ let ok = 0;
 let fail = 0;
 
 for (const row of rows) {
-  const imgurUrl = row.cover_url ?? row.og_image_url ?? '';
+  const imgurUrl = [row.cover_url, row.og_image_url]
+    .find((candidate): candidate is string => candidate !== null && isHostOrSubdomain(candidate, 'imgur.com'));
+  if (!imgurUrl) {
+    console.log(`[SKIP] ${row.slug} — ninguna URL pertenece realmente a Imgur`);
+    continue;
+  }
   const ext = extname(new URL(imgurUrl).pathname) || '.jpeg';
   const blobPath = `news/covers/${row.slug}${ext}`;
 
@@ -83,8 +90,8 @@ for (const row of rows) {
     });
 
     // Update DB — both cover_url and og_image_url if they point to Imgur
-    const newCover = row.cover_url?.includes('imgur.com') ? blobUrl : row.cover_url;
-    const newOg = row.og_image_url?.includes('imgur.com') ? blobUrl : row.og_image_url;
+    const newCover = row.cover_url && isHostOrSubdomain(row.cover_url, 'imgur.com') ? blobUrl : row.cover_url;
+    const newOg = row.og_image_url && isHostOrSubdomain(row.og_image_url, 'imgur.com') ? blobUrl : row.og_image_url;
 
     await sql`UPDATE posts SET cover_url = ${newCover}, og_image_url = ${newOg} WHERE id = ${row.id}`;
 

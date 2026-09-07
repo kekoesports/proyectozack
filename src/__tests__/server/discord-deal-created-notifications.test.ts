@@ -51,4 +51,14 @@ describe('confirmación de trato creado para Discord', () => {
     expect(message).toContain('@\u200beveryone \\*Oferta\\*');
     expect(message).not.toContain('@everyone');
   });
+
+  it('escapa barras previas sin permitir que anulen el escape de markdown', () => {
+    const message = formatDiscordDealCreatedMessage({
+      dealName: String.raw`Oferta\*falsa*`,
+      documentUrl: 'https://docs.google.com/spreadsheets/d/sheet-id/edit',
+      sharedWithInfluencer: true,
+    });
+
+    expect(message).toContain(String.raw`Oferta\\\*falsa\*`);
+  });
 });

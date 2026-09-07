@@ -30,17 +30,21 @@ type Props = {
   submitLabel: string;
 };
 
-function isImageUrl(url: string): boolean {
-  if (!url) return true;
+function safeImageUrl(rawUrl: string): string | null {
+  if (!rawUrl) return null;
   try {
-    const u = new URL(url);
-    return /\.(jpg|jpeg|png|webp|gif|avif|svg)(\?.*)?$/i.test(u.pathname);
-  } catch { return false; }
+    const url = new URL(rawUrl);
+    if (url.protocol !== 'https:' || url.username || url.password || !url.hostname) return null;
+    return /\.(jpg|jpeg|png|webp|gif|avif|svg)$/i.test(url.pathname) ? url.href : null;
+  } catch {
+    return null;
+  }
 }
 
 function CoverUrlInput({ name, defaultValue, inputCls }: { name: string; defaultValue: string; inputCls: string }) {
   const [val, setVal] = useState(defaultValue);
-  const warn = val.length > 10 && !isImageUrl(val);
+  const previewUrl = safeImageUrl(val);
+  const warn = val.length > 10 && previewUrl === null;
   return (
     <div>
       <input name={name} type="url" value={val} onChange={e => setVal(e.target.value)} className={inputCls} placeholder="https://...imagen.webp" />
@@ -49,9 +53,9 @@ function CoverUrlInput({ name, defaultValue, inputCls }: { name: string; default
           ⚠ La URL no parece una imagen (.jpg / .webp / .png). Usa la página &ldquo;Subir imagen&rdquo; para obtener una URL correcta.
         </p>
       )}
-      {val && isImageUrl(val) && (
+      {previewUrl && (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={val} alt="preview" className="mt-2 h-16 w-auto rounded object-cover border border-sp-admin-border" onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+        <img src={previewUrl} alt="preview" className="mt-2 h-16 w-auto rounded object-cover border border-sp-admin-border" referrerPolicy="no-referrer" onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
       )}
     </div>
   );
@@ -160,6 +164,8 @@ export function PostForm({ post, action, submitLabel }: Props) {
   const [body, setBody] = useState(post?.bodyMd ?? '');
   const [status, setStatus] = useState<'draft' | 'published'>(post?.status ?? 'draft');
   const [vertical, setVertical] = useState<'blog' | 'news'>(post?.vertical ?? 'news');
+  const persistedSlug = post?.slug ? slugify(post.slug) : '';
+  const persistedVertical = post?.vertical ?? 'news';
 
   function handleTitleBlur() {
     if (!post?.id && slug === '') setSlug(slugify(title));
@@ -403,15 +409,15 @@ export function PostForm({ post, action, submitLabel }: Props) {
           Cancelar
         </Link>
         {/* Ver artículo en web — solo si tiene slug */}
-        {slug && (
-          <a
-            href={`/${vertical}/${slug}`}
+        {persistedSlug && (
+          <Link
+            href={`/${persistedVertical}/${encodeURIComponent(persistedSlug)}`}
             target="_blank"
             rel="noopener noreferrer"
             className="ml-auto text-sm text-sp-admin-accent hover:opacity-70 transition-opacity flex items-center gap-1"
           >
-            Ver en /{vertical} ↗
-          </a>
+            Ver en /{persistedVertical} ↗
+          </Link>
         )}
       </div>
     </form>

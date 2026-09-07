@@ -20,6 +20,8 @@ import { join } from 'path';
 import { neon } from '@neondatabase/serverless';
 import { put } from '@vercel/blob';
 
+import { isHostOrSubdomain } from '../src/lib/utils/hostnames';
+
 // ── Load .env.local ────────────────────────────────────────────────────────────
 try {
   const envPath = join(process.cwd(), '.env.local');
@@ -109,8 +111,13 @@ async function main() {
     const { id, slug, cover_url } = post;
 
     // Doble check: ya fue migrado?
-    if (cover_url.includes('vercel-storage.com') || cover_url.includes('blob.vercel-storage')) {
+    if (isHostOrSubdomain(cover_url, 'vercel-storage.com')) {
       console.log(`  [SKIP] #${id} ${slug} — ya en Vercel Blob`);
+      skipped++;
+      continue;
+    }
+    if (!isHostOrSubdomain(cover_url, 'imgur.com')) {
+      console.log(`  [SKIP] #${id} ${slug} — el origen no pertenece realmente a Imgur`);
       skipped++;
       continue;
     }

@@ -123,7 +123,7 @@ function renderBucket(b: Bucket): string {
   lines.push('| Componente | Path | Kind | LOC | Descripción |');
   lines.push('|---|---|---|---:|---|');
   for (const r of b.rows) {
-    const desc = r.description.replace(/\|/g, '\\|');
+    const desc = r.description.replace(/([\\|])/g, '\\$1');
     const flag = r.loc > 500 ? ` 🚨` : r.loc > 300 ? ` ⚠️` : '';
     lines.push(`| \`${r.name}\` | \`${r.path}\` | ${r.kind} | ${r.loc}${flag} | ${desc} |`);
   }

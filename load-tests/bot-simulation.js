@@ -103,17 +103,19 @@ export function formSpammer() {
 // --- Scenario 2: Credential stuffing against auth ---
 // Tries common email/password combos against sign-in
 export function credentialStuffer() {
+  const accounts = ['admin', 'user', 'test', 'info', 'contact'];
   const passwords = [
     'password123', '123456', 'admin', 'letmein', 'qwerty',
     'password', '12345678', 'abc123', 'monkey', 'master',
     'dragon', 'login', 'princess', 'football', 'shadow',
   ];
+  const attempt = __VU + __ITER;
 
   const res = http.post(
     `${BASE_URL}/api/auth/sign-in/email`,
     JSON.stringify({
-      email: `${randomItem(['admin', 'user', 'test', 'info', 'contact'])}@socialpro.es`,
-      password: randomItem(passwords),
+      email: `${accounts[attempt % accounts.length]}@socialpro.es`,
+      password: passwords[attempt % passwords.length],
     }),
     { headers: jsonHeaders() },
   );

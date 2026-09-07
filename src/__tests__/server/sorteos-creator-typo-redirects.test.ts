@@ -67,8 +67,9 @@ describe('/sorteos/[creatorSlug] — redirect defensivo por typo', () => {
       // Aceptamos con o sin quotes en la key porque las keys tipo
       // `jolucs2:` van sin comillas, y las que llevan guion `'jolu-cs2':`
       // llevan comillas.
-      const withQuotes = new RegExp(`['"]${typo.replace(/-/g, '\\-')}['"]\\s*:`);
-      const bareKey = new RegExp(`\\b${typo.replace(/-/g, '\\-')}\\s*:`);
+      const escapedTypo = typo.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const withQuotes = new RegExp(`['"]${escapedTypo}['"]\\s*:`);
+      const bareKey = new RegExp(`\\b${escapedTypo}\\s*:`);
       const found = withQuotes.test(PAGE_SOURCE) || bareKey.test(PAGE_SOURCE);
       expect(found).toBe(true);
     }

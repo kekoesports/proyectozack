@@ -1,4 +1,5 @@
 import { parseHorizontalTriplets } from '@/lib/parsers/horizontal-triplets';
+import { isHostOrSubdomain } from '@/lib/utils/hostnames';
 
 // TC1 — Layout KEYDROP completo: 3 grupos, 2 filas de datos
 const KEYDROP_GRID: string[][] = [
@@ -29,7 +30,7 @@ describe('parseHorizontalTriplets', () => {
     it('asigna subtype dedicated_video a URLs de YouTube', () => {
       const yt = links.filter((l) => l.subtype === 'dedicated_video');
       expect(yt).toHaveLength(2);
-      expect(yt.every((l) => l.originalUrl.includes('youtube.com'))).toBe(true);
+      expect(yt.every((l) => isHostOrSubdomain(l.originalUrl, 'youtube.com'))).toBe(true);
     });
 
     it('asigna subtype preroll a los prerolls de Twitch', () => {
@@ -149,7 +150,7 @@ describe('parseHorizontalTriplets', () => {
     it('asigna dedicated_video a las 2 URLs de YouTube', () => {
       const yt = links.filter((l) => l.subtype === 'dedicated_video');
       expect(yt).toHaveLength(2);
-      expect(yt.every((l) => l.originalUrl.includes('youtube.com'))).toBe(true);
+      expect(yt.every((l) => isHostOrSubdomain(l.originalUrl, 'youtube.com'))).toBe(true);
     });
 
     it('asigna preroll a los 2 links de Preroll', () => {
