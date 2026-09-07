@@ -24,8 +24,8 @@ export type AgentCatalogEntry = {
   readonly description: string;
   readonly promptVersion: string;
   readonly policyVersion: string;
-  /** `null` = NullProvider. Los agentes activados en shadow usan Gemini. */
-  readonly modelProvider: 'null' | 'gemini';
+  /** `null` = NullProvider. El proveedor real se elige por agente. */
+  readonly modelProvider: 'null' | 'gemini' | 'xai';
   readonly modelName: string | null;
   readonly maxConcurrentRuns: number;
   readonly maxRunsPerDay: number;

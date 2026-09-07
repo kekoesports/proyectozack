@@ -111,6 +111,8 @@ export const env = createEnv({
     AUTOMATION_CONTRACT_TEMPLATE_ID: z.coerce.number().int().positive().optional(),
     GEMINI_API_KEY: z.string().min(1).optional(),
     GEMINI_MODEL: z.string().min(1).optional(),
+    XAI_API_KEY: z.string().min(1).optional(),
+    XAI_MODEL: z.string().min(1).optional(),
     // NewsData.io API key para monitorización de noticias
     NEWSDATA_API_KEY: z.string().min(1).optional(),
     // Slash API — conexión exclusiva de PLAYMAKER MEDIA LLC y solo lectura.
@@ -341,6 +343,8 @@ export const env = createEnv({
     AUTOMATION_CONTRACT_TEMPLATE_ID: process.env.AUTOMATION_CONTRACT_TEMPLATE_ID,
     GEMINI_API_KEY: process.env.GEMINI_API_KEY,
     GEMINI_MODEL: process.env.GEMINI_MODEL,
+    XAI_API_KEY: process.env.XAI_API_KEY,
+    XAI_MODEL: process.env.XAI_MODEL,
     NEWSDATA_API_KEY: process.env.NEWSDATA_API_KEY,
     SLASH_PLAYMAKER_API_KEY: process.env.SLASH_PLAYMAKER_API_KEY,
     SLASH_PLAYMAKER_LEGAL_ENTITY_ID: process.env.SLASH_PLAYMAKER_LEGAL_ENTITY_ID,

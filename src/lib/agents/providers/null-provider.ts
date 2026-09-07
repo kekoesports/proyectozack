@@ -15,13 +15,19 @@ import type {
 export class NullAgentModelProvider implements AgentModelProvider {
   readonly name = 'null';
 
+  private readonly message: string;
+
+  constructor(message = 'No hay proveedor de modelo configurado.') {
+    this.message = message;
+  }
+
   async generate(_request: AgentModelRequest): Promise<AgentModelResult> {
     void _request;
     return {
       ok: false,
       error: {
         code: 'provider_unavailable',
-        message: 'No hay proveedor de modelo configurado (GEMINI_API_KEY ausente).',
+        message: this.message,
         retryable: false,
       },
     };
