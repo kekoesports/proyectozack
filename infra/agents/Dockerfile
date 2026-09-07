@@ -9,7 +9,7 @@
 # fuente más de divergencia con el código que corre en Next.js. El coste es un
 # arranque algo más lento, que en un proceso de larga vida no importa.
 
-FROM node:24-alpine AS base
+FROM node:26-alpine AS base
 
 # dumb-init reenvía las señales correctamente. Sin él, el proceso de Node es el
 # PID 1 y no recibe SIGTERM como se espera, así que el apagado ordenado —el que

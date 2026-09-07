@@ -1,5 +1,5 @@
 # Offline media worker. No public ports and no Higgsfield account in this image.
-FROM node:24-bookworm-slim
+FROM node:26-bookworm-slim
 WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential python3 pkg-config libcairo2-dev libpango1.0-dev \
