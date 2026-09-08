@@ -211,8 +211,13 @@ async function getAccessToken(): Promise<string> {
   return cachedToken.value;
 }
 
-async function readExistingIds(spreadsheetId: string, token: string): Promise<Set<string>> {
-  const range = encodeURIComponent(`'${SHEET_NAME}'!A5:A`);
+type SheetState = {
+  readonly existingIds: Set<string>;
+  readonly nextRow: number;
+};
+
+async function readSheetState(spreadsheetId: string, token: string): Promise<SheetState> {
+  const range = encodeURIComponent(`'${SHEET_NAME}'!A5:Q`);
   const response = await fetch(
     `https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(spreadsheetId)}/values/${range}`,
     { headers: { Authorization: `Bearer ${token}` }, signal: AbortSignal.timeout(TIMEOUT_MS) },
@@ -220,10 +225,12 @@ async function readExistingIds(spreadsheetId: string, token: string): Promise<Se
   if (!response.ok) throw new Error(`google-sheets-read-${response.status}`);
   const parsed = GoogleValuesResponse.safeParse(await response.json());
   if (!parsed.success) throw new Error('invalid-google-sheets-response');
-  return new Set((parsed.data.values ?? []).flatMap((row) => {
+  const rows = parsed.data.values ?? [];
+  const existingIds = new Set(rows.flatMap((row) => {
     const value = row[0];
     return typeof value === 'string' && value ? [value] : [];
   }));
+  return { existingIds, nextRow: 5 + rows.length };
 }
 
 export type CreatorSheetSyncResult = {
@@ -239,7 +246,7 @@ export async function syncCreatorApplicationsToSheet(
   const spreadsheetId = env.CREATOR_APPLICATIONS_SHEET_ID;
   if (!spreadsheetId) throw new Error('missing-creator-applications-sheet-id');
   const token = await getAccessToken();
-  const existingIds = await readExistingIds(spreadsheetId, token);
+  const { existingIds, nextRow } = await readSheetState(spreadsheetId, token);
   const pending = applications.filter((item) => !existingIds.has(item.sourceId));
   const selected = pending.slice(0, maxPerRun);
   const rows: unknown[][] = [];
@@ -268,11 +275,15 @@ export async function syncCreatorApplicationsToSheet(
   }
 
   if (rows.length > 0) {
-    const range = encodeURIComponent(`'${SHEET_NAME}'!A:Q`);
+    // La plantilla tiene títulos combinados en B:P. Sheets desplaza un append
+    // basado en tabla hasta B:R; una actualización con rango exacto mantiene
+    // siempre el contrato A:Q y permite deduplicar por el ID oculto de A.
+    const lastRow = nextRow + rows.length - 1;
+    const range = encodeURIComponent(`'${SHEET_NAME}'!A${nextRow}:Q${lastRow}`);
     const response = await fetch(
-      `https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(spreadsheetId)}/values/${range}:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`,
+      `https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(spreadsheetId)}/values/${range}?valueInputOption=USER_ENTERED`,
       {
-        method: 'POST',
+        method: 'PUT',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ majorDimension: 'ROWS', values: rows }),
         signal: AbortSignal.timeout(TIMEOUT_MS),
