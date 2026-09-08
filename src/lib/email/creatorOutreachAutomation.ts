@@ -4,7 +4,7 @@ import { createHash } from 'node:crypto';
 
 import { env } from '@/lib/env';
 import { sendCreatorOutreach } from '@/lib/email/creatorOutreach';
-import { queueCreatorOutreachReview } from '@/lib/queries/creatorOutreach';
+import { queueCreatorOutreachReview, recordCreatorOutreachQualification } from '@/lib/queries/creatorOutreach';
 import type { InboundCreatorApplication } from '@/lib/queries/inboundCreatorApplications';
 import { getChannelDetails, getChannelRecentPerformance, searchYouTubeChannels } from '@/lib/services/youtube';
 
@@ -93,7 +93,7 @@ export async function qualifyCreatorApplication(
     : { decision: 'green', reason: 'Cumple audiencia, actividad y visitas verificadas; Shorts excluidos.' };
 }
 
-function stableUuid(value: string): string {
+export function creatorOutreachStableUuid(value: string): string {
   const bytes = createHash('sha256').update(value).digest().subarray(0, 16);
   bytes[6] = ((bytes[6] ?? 0) & 0x0f) | 0x50;
   bytes[8] = ((bytes[8] ?? 0) & 0x3f) | 0x80;
@@ -101,7 +101,7 @@ function stableUuid(value: string): string {
   return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
 }
 
-function sourceFor(application: InboundCreatorApplication): {
+export function sourceForCreatorApplication(application: InboundCreatorApplication): {
   readonly sourceType: 'creator_application' | 'contact_submission' | 'target';
   readonly sourceId: number;
 } | null {
@@ -114,7 +114,7 @@ function sourceFor(application: InboundCreatorApplication): {
   return sourceType && Number.isInteger(sourceId) && sourceId > 0 ? { sourceType, sourceId } : null;
 }
 
-function messageFor(application: InboundCreatorApplication, decision: 'green' | 'red'): { readonly subject: string; readonly body: string } {
+export function creatorOutreachMessageFor(application: InboundCreatorApplication, decision: 'green' | 'red'): { readonly subject: string; readonly body: string } {
   const firstName = application.name.trim().split(/\s+/, 1)[0] || application.name.trim();
   if (decision === 'green') {
     const bookingUrl = env.CREATOR_OUTREACH_BOOKING_URL;
@@ -155,7 +155,7 @@ export async function processCreatorOutreachAutomation(
   let errors = 0;
 
   for (const application of eligible) {
-    const source = sourceFor(application);
+    const source = sourceForCreatorApplication(application);
     if (!source) {
       errors += 1;
       continue;
@@ -186,11 +186,12 @@ export async function processCreatorOutreachAutomation(
       continue;
     }
     try {
-      const content = messageFor(application, qualification.decision);
+      await recordCreatorOutreachQualification({ ...source, ...qualification });
+      const content = creatorOutreachMessageFor(application, qualification.decision);
       const result = await sendCreatorOutreach({
         ...source,
         ...content,
-        idempotencyKey: stableUuid(`creator-intake:${application.sourceId}:${qualification.decision}:v1`),
+        idempotencyKey: creatorOutreachStableUuid(`creator-intake:${application.sourceId}:${qualification.decision}:v1`),
       }, null);
       if (result.duplicate) duplicates += 1;
       else if (qualification.decision === 'green') greenSent += 1;

@@ -9,6 +9,7 @@ export type AdminNavKey =
   | 'campanas'
   | 'automation-drafts'
   | 'leads'
+  | 'creator-applications'
   | 'tareas'
   | 'facturacion'
   | 'finanzas'
@@ -64,6 +65,7 @@ export const ADMIN_NAV_CATALOGUE: readonly AdminNavDef[] = [
   { key: 'automation-drafts', href: '/admin/automation-drafts', label: 'Borradores', module: 'campanas',    section: 'more', group: 'Operaciones', prefetch: false },
   { key: 'entregables',     href: '/admin/entregables',     label: 'Entregables',       module: 'campanas',       section: 'more', group: 'Operaciones', prefetch: false },
   { key: 'leads',           href: '/admin/leads',           label: 'Leads emails',      module: 'leads',           section: 'more', group: 'Crecimiento', submenu: 'leads', prefetch: false },
+  { key: 'creator-applications', href: '/admin/candidaturas', label: 'Candidaturas', module: 'leads', section: 'more', group: 'Crecimiento', submenu: 'leads', prefetch: false },
   { key: 'targets',         href: '/admin/targets',         label: 'Leads CC',          module: 'targets',         section: 'more', group: 'Crecimiento', submenu: 'leads', prefetch: false },
   { key: 'prensa-targets',  href: '/admin/prensa-targets',  label: 'Prensa targets',    module: 'prensa_targets',  section: 'more', group: 'Crecimiento', submenu: 'leads', prefetch: false },
   { key: 'partner-leads',   href: '/admin/partner-leads',   label: 'Partners CS2',      module: 'leads',           section: 'more', group: 'Crecimiento', submenu: 'leads', prefetch: false },

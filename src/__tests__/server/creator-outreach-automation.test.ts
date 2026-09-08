@@ -3,6 +3,7 @@ const mockSearch = jest.fn();
 const mockDetails = jest.fn();
 const mockPerformance = jest.fn();
 const mockQueueReview = jest.fn();
+const mockRecordQualification = jest.fn();
 
 jest.mock('server-only', () => ({}));
 jest.mock('@/lib/env', () => ({ env: {
@@ -13,6 +14,7 @@ jest.mock('@/lib/env', () => ({ env: {
 jest.mock('@/lib/email/creatorOutreach', () => ({ sendCreatorOutreach: (...args: unknown[]) => mockSend(...args) }));
 jest.mock('@/lib/queries/creatorOutreach', () => ({
   queueCreatorOutreachReview: (...args: unknown[]) => mockQueueReview(...args),
+  recordCreatorOutreachQualification: (...args: unknown[]) => mockRecordQualification(...args),
 }));
 jest.mock('@/lib/services/youtube', () => ({
   searchYouTubeChannels: (...args: unknown[]) => mockSearch(...args),
@@ -52,6 +54,7 @@ beforeEach(() => {
   mockPerformance.mockResolvedValue(performance);
   mockSend.mockResolvedValue({ providerEmailId: 'email_test', duplicate: false, replyTracking: true });
   mockQueueReview.mockResolvedValue(undefined);
+  mockRecordQualification.mockResolvedValue(undefined);
 });
 
 it('clasifica verde usando solo vídeos largos y actividad reciente', async () => {
@@ -80,6 +83,7 @@ it('envía verde desde el flujo automático con booking e idempotencia estable',
   expect(input).toMatchObject({ sourceType: 'creator_application', sourceId: 101 });
   expect(input.body).toContain('https://calendar.app.google/test-socialpro');
   expect(input.idempotencyKey).toMatch(/^[0-9a-f-]{36}$/);
+  expect(mockRecordQualification).toHaveBeenCalledWith(expect.objectContaining({ decision: 'green' }));
   await processCreatorOutreachAutomation([application()]);
   expect(mockSend.mock.calls[1]?.[0].idempotencyKey).toBe(input.idempotencyKey);
 });

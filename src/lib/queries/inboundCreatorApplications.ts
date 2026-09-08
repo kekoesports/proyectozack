@@ -87,6 +87,7 @@ export async function listInboundCreatorApplications(): Promise<InboundCreatorAp
     lastOutboundAt: creatorOutreachThreads.lastOutboundAt,
     lastInboundAt: creatorOutreachThreads.lastInboundAt,
     lastReplySummary: creatorOutreachThreads.lastReplySummary,
+    qualificationReason: creatorOutreachThreads.qualificationReason,
   }).from(creatorOutreachThreads).where(inArray(creatorOutreachThreads.normalizedEmail, emails));
   const byEmail = new Map(threads.map((thread) => [thread.email, thread]));
   const deduplicated = new Map<string, typeof candidates[number]>();
@@ -100,7 +101,7 @@ export async function listInboundCreatorApplications(): Promise<InboundCreatorAp
       ...item,
       outreachStatus: outreach?.status ?? 'not_contacted',
       lastContactAt: latestDate(outreach?.lastOutboundAt ?? null, outreach?.lastInboundAt ?? null),
-      replySummary: outreach?.lastReplySummary ?? null,
+      replySummary: outreach?.lastReplySummary ?? outreach?.qualificationReason ?? null,
     };
   }).sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
 }

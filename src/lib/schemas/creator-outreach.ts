@@ -20,6 +20,31 @@ export const creatorOutreachStatusSchema = z.enum([
   'unsubscribed',
 ]);
 
+export const creatorReviewSourceTypeSchema = z.enum([
+  'creator_application',
+  'contact_submission',
+]);
+
+export const creatorReviewDecisionSchema = z.enum(['green', 'yellow', 'red']);
+
+const creatorReviewSourceSchema = z.object({
+  sourceType: creatorReviewSourceTypeSchema,
+  sourceId: z.coerce.number().int().positive(),
+});
+
+export const refreshCreatorReviewSchema = creatorReviewSourceSchema;
+
+export const addCreatorReviewNoteSchema = creatorReviewSourceSchema.extend({
+  note: z.string().trim().min(1).max(2_000),
+});
+
+export const discardCreatorReviewSchema = creatorReviewSourceSchema;
+
+export const sendCreatorReviewDecisionSchema = creatorReviewSourceSchema.extend({
+  decision: z.enum(['green', 'red']),
+  idempotencyKey: z.uuid(),
+});
+
 export const sendCreatorOutreachSchema = z.object({
   sourceType: creatorOutreachSourceTypeSchema,
   sourceId: z.coerce.number().int().positive(),
@@ -55,6 +80,8 @@ export const resendReceivedContentSchema = z.object({
 
 export type CreatorOutreachSourceType = z.infer<typeof creatorOutreachSourceTypeSchema>;
 export type CreatorOutreachStatus = z.infer<typeof creatorOutreachStatusSchema>;
+export type CreatorReviewSourceType = z.infer<typeof creatorReviewSourceTypeSchema>;
+export type CreatorReviewDecision = z.infer<typeof creatorReviewDecisionSchema>;
 export type SendCreatorOutreachInput = z.infer<typeof sendCreatorOutreachSchema>;
 export type ResendReceivedWebhookEvent = z.infer<typeof resendReceivedWebhookEventSchema>;
 export type ResendReceivedContent = z.infer<typeof resendReceivedContentSchema>;

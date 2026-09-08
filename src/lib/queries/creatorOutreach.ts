@@ -17,12 +17,16 @@ import { env } from '@/lib/env';
 import type {
   CreatorOutreachSourceType,
   CreatorOutreachStatus,
+  CreatorReviewDecision,
   ResendReceivedContent,
 } from '@/lib/schemas/creator-outreach';
 import { classifyReply, normalizeEmail, receivedText, suggestedReplyFor, summarizeReply } from '@/lib/email/creatorReplyContent';
 
 export type CreatorOutreachView = {
   readonly status: CreatorOutreachStatus;
+  readonly reviewDecision: CreatorReviewDecision | null;
+  readonly qualificationReason: string | null;
+  readonly internalNotes: string | null;
   readonly lastReplySummary: string | null;
   readonly suggestedReply: string | null;
   readonly lastOutboundAt: Date | null;
@@ -76,19 +80,104 @@ export async function queueCreatorOutreachReview(input: {
       normalizedEmail,
       status: 'draft',
       subject: 'Revisión manual de candidatura',
-      lastReplySummary: input.reason.slice(0, 500),
+      reviewDecision: 'yellow',
+      qualificationReason: input.reason.slice(0, 500),
       updatedAt: now,
     }).onConflictDoUpdate({
       target: creatorOutreachThreads.normalizedEmail,
       set: {
         status: 'draft',
         subject: 'Revisión manual de candidatura',
-        lastReplySummary: input.reason.slice(0, 500),
+        reviewDecision: 'yellow',
+        qualificationReason: input.reason.slice(0, 500),
         updatedAt: now,
       },
     }).returning({ id: creatorOutreachThreads.id });
     if (!thread) throw new Error('creator-outreach-review-thread-not-created');
     await attachMatchingSources(tx, thread.id, normalizedEmail, input.sourceType, input.sourceId);
+  });
+}
+
+export async function recordCreatorOutreachQualification(input: {
+  readonly sourceType: CreatorOutreachSourceType;
+  readonly sourceId: number;
+  readonly decision: CreatorReviewDecision;
+  readonly reason: string;
+}): Promise<void> {
+  const recipient = await getCreatorOutreachRecipient(input.sourceType, input.sourceId);
+  const normalizedEmail = recipient ? normalizeEmail(recipient.email) : null;
+  if (!normalizedEmail) throw new Error('creator-outreach-review-recipient-invalid');
+  const now = new Date();
+  await db.transaction(async (tx) => {
+    const [thread] = await tx.insert(creatorOutreachThreads).values({
+      normalizedEmail,
+      status: 'draft',
+      subject: 'Revisión de candidatura',
+      reviewDecision: input.decision,
+      qualificationReason: input.reason.slice(0, 500),
+      updatedAt: now,
+    }).onConflictDoUpdate({
+      target: creatorOutreachThreads.normalizedEmail,
+      set: {
+        reviewDecision: input.decision,
+        qualificationReason: input.reason.slice(0, 500),
+        updatedAt: now,
+      },
+    }).returning({ id: creatorOutreachThreads.id });
+    if (!thread) throw new Error('creator-outreach-review-thread-not-created');
+    await attachMatchingSources(tx, thread.id, normalizedEmail, input.sourceType, input.sourceId);
+  });
+}
+
+export async function appendCreatorOutreachNote(input: {
+  readonly sourceType: CreatorOutreachSourceType;
+  readonly sourceId: number;
+  readonly note: string;
+  readonly actorLabel: string;
+}): Promise<void> {
+  const recipient = await getCreatorOutreachRecipient(input.sourceType, input.sourceId);
+  const normalizedEmail = recipient ? normalizeEmail(recipient.email) : null;
+  if (!normalizedEmail) throw new Error('creator-outreach-note-recipient-invalid');
+  const note = input.note.trim().replace(/\s+/g, ' ');
+  const entry = `[${new Date().toISOString()}] ${input.actorLabel}: ${note}`;
+  await db.transaction(async (tx) => {
+    const [thread] = await tx.insert(creatorOutreachThreads).values({
+      normalizedEmail,
+      status: 'draft',
+      internalNotes: entry,
+    }).onConflictDoUpdate({
+      target: creatorOutreachThreads.normalizedEmail,
+      set: {
+        internalNotes: sql`concat_ws(E'\n', nullif(${creatorOutreachThreads.internalNotes}, ''), ${entry})`,
+        updatedAt: new Date(),
+      },
+    }).returning({ id: creatorOutreachThreads.id });
+    if (!thread) throw new Error('creator-outreach-note-thread-not-created');
+    await attachMatchingSources(tx, thread.id, normalizedEmail, input.sourceType, input.sourceId);
+  });
+}
+
+export async function discardCreatorOutreachReview(
+  sourceType: CreatorOutreachSourceType,
+  sourceId: number,
+): Promise<void> {
+  const recipient = await getCreatorOutreachRecipient(sourceType, sourceId);
+  const normalizedEmail = recipient ? normalizeEmail(recipient.email) : null;
+  if (!normalizedEmail) throw new Error('creator-outreach-discard-recipient-invalid');
+  await db.transaction(async (tx) => {
+    const [thread] = await tx.insert(creatorOutreachThreads).values({
+      normalizedEmail,
+      status: 'not_interested',
+      updatedAt: new Date(),
+    }).onConflictDoUpdate({
+      target: creatorOutreachThreads.normalizedEmail,
+      set: { status: 'not_interested', nextFollowUpAt: null, updatedAt: new Date() },
+    }).returning({ id: creatorOutreachThreads.id });
+    if (!thread) throw new Error('creator-outreach-discard-thread-not-created');
+    await attachMatchingSources(tx, thread.id, normalizedEmail, sourceType, sourceId);
+    if (sourceType === 'contact_submission') {
+      await tx.update(contactSubmissions).set({ status: 'descartado' }).where(eq(contactSubmissions.id, sourceId));
+    }
   });
 }
 
@@ -246,6 +335,9 @@ export async function getCreatorOutreachForSource(
   if (!item) return null;
   return {
     status: item.status as CreatorOutreachStatus,
+    reviewDecision: item.reviewDecision as CreatorReviewDecision | null,
+    qualificationReason: item.qualificationReason,
+    internalNotes: item.internalNotes,
     lastReplySummary: item.lastReplySummary,
     suggestedReply: item.suggestedReply,
     lastOutboundAt: item.lastOutboundAt,

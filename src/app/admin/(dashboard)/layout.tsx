@@ -50,6 +50,7 @@ const NAV_ICONS: Record<AdminNavKey, React.ReactNode> = {
   campanas: <CampaignIcon />,
   'automation-drafts': <DealsIcon />,
   leads: <ContactIcon />,
+  'creator-applications': <TalentIcon />,
   tareas: <TasksIcon />,
   facturacion: <InvoiceIcon />,
   finanzas: <ChartIcon />,
