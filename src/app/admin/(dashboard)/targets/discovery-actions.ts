@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { requirePermission } from '@/lib/permissions';
 import { bulkUpsertTargets } from '@/lib/queries/targets';
 import { getCreatorProviderReadiness } from '@/lib/queries/creatorProviderReadiness';
+import { getRecentLiveAudienceSamplesByExternalIds } from '@/lib/queries/creatorLiveAudienceSamples';
 import type { CreateTargetInput } from '@/lib/schemas/target';
 import { getKickChannel } from '@/lib/services/kick';
 import { runCreatorTargetDiscovery } from '@/lib/services/creatorTargetDiscovery';
@@ -16,16 +17,20 @@ import {
 } from '@/lib/services/twitch';
 import { qualifyTwitchCandidate, type CreatorFit } from '@/lib/targets/qualification';
 import { scoreCreatorFit } from '@/lib/targets/creator-fit-score';
+import { CREATOR_MINIMUM_FOLLOWERS, hasMinimumCreatorFollowers } from '@/lib/targets/audience-thresholds';
+import { MINIMUM_TWITCH_AVERAGE_VIEWERS, MINIMUM_TWITCH_CS2_CONTENT_SHARE, summarizeLiveAudience } from '@/lib/targets/live-audience-samples';
 
 const twitchSearchSchema = z.object({
   query: z.string().trim().min(2).max(100),
   language: z.enum(['any', 'es', 'en', 'pt', 'de', 'fr']).default('any'),
   liveOnly: z.boolean().default(true),
-  minimumFollowers: z.number().int().min(100).max(10_000_000).default(250),
+  minimumFollowers: z.number().int().min(CREATOR_MINIMUM_FOLLOWERS.twitch).max(10_000_000)
+    .default(CREATOR_MINIMUM_FOLLOWERS.twitch),
 });
 
 export type TwitchDiscoveryCandidate = TwitchChannelPreview & CreatorFit & {
-  readonly averageCs2Viewers30d: number | null;
+  readonly averageViewers30d: number | null;
+  readonly cs2ContentShare30d: number | null;
 };
 
 export async function discoverTwitchTargetsAction(input: unknown): Promise<{
@@ -41,21 +46,28 @@ export async function discoverTwitchTargetsAction(input: unknown): Promise<{
 
   try {
     const channels = await searchTwitchChannels(parsed.data.query, parsed.data.liveOnly);
-    const followers = await fetchTwitchFollowerCounts(channels.map((channel) => channel.broadcasterId));
+    const ids = channels.map((channel) => channel.broadcasterId);
+    const [followers, samplesById] = await Promise.all([
+      fetchTwitchFollowerCounts(ids),
+      getRecentLiveAudienceSamplesByExternalIds('twitch', ids, new Date()),
+    ]);
     const followerMap = new Map(followers.map((row) => [row.broadcasterId, row.followerCount]));
     const candidates = channels.map((channel) => {
       const followerCount = followerMap.get(channel.broadcasterId) ?? null;
+      const summary = summarizeLiveAudience(samplesById.get(channel.broadcasterId) ?? []);
       const fit = qualifyTwitchCandidate({
         followers: followerCount,
         viewers: channel.viewerCount,
-        averageCs2Viewers30d: null,
+        averageViewers30d: summary.averageViewers,
+        cs2ContentShare30d: summary.cs2ContentShare,
         language: channel.language,
-        requiredLanguage: parsed.data.language === 'any' ? null : parsed.data.language,
+        requiredLanguage: null,
         game: channel.currentGame,
         isLive: channel.isLive,
         minimumFollowers: parsed.data.minimumFollowers,
       });
-      return { ...channel, followerCount, averageCs2Viewers30d: null, ...fit };
+      return { ...channel, followerCount, averageViewers30d: summary.averageViewers,
+        cs2ContentShare30d: summary.cs2ContentShare, ...fit };
     }).sort((left, right) => Number(right.isQualified) - Number(left.isQualified) || right.score - left.score);
     return { ok: true, candidates, error: null };
   } catch (error) {
@@ -67,9 +79,10 @@ const twitchImportSchema = z.array(z.object({
   broadcasterId: z.string().min(1).max(50),
   login: z.string().min(1).max(100),
   displayName: z.string().min(1).max(200),
-  followerCount: z.number().int().nonnegative().nullable(),
+  followerCount: z.number().int().min(CREATOR_MINIMUM_FOLLOWERS.twitch + 1),
   viewerCount: z.number().int().nonnegative().nullable(),
-  averageCs2Viewers30d: z.number().int().min(90),
+  averageViewers30d: z.number().int().min(MINIMUM_TWITCH_AVERAGE_VIEWERS),
+  cs2ContentShare30d: z.number().min(MINIMUM_TWITCH_CS2_CONTENT_SHARE).max(1),
   language: z.string().max(10),
   currentGame: z.string().max(200),
   thumbnailUrl: z.url().nullable(),
@@ -99,7 +112,7 @@ export async function importTwitchTargetsAction(input: unknown): Promise<{
     profilePicUrl: channel.thumbnailUrl ?? undefined,
     followers: channel.followerCount ?? undefined,
     defaultLanguage: channel.language || undefined,
-    qualificationStatus: 'review',
+    qualificationStatus: 'qualified',
     fitScore: channel.score,
     fitReasons: channel.reasons,
     sourceQuery: channel.currentGame || 'Twitch',
@@ -172,6 +185,11 @@ export async function importKickProfileAction(slugInput: unknown): Promise<{
   if (!lookup.profile) return { inserted: 0, updated: 0, error: lookup.error };
 
   const profile = lookup.profile;
+  if (!hasMinimumCreatorFollowers('kick', profile.followers)) {
+    return { inserted: 0, updated: 0, error: profile.followers === null
+      ? 'Kick no entrega los seguidores mediante su API oficial; no se puede confirmar que supere 2.000 y no se añadirá como lead válido.'
+      : 'El canal no supera los 2.000 seguidores mínimos de Kick.' };
+  }
   const cs2 = profile.categories.some((category) => /counter[- ]?strike|\bcs2\b/i.test(category));
   const activeAt = profile.lastActivityAt ? new Date(profile.lastActivityAt) : undefined;
   const fit = scoreCreatorFit({ contentMatch: cs2 ? true : null, audience: null, targetAudience: 1000,
@@ -191,7 +209,7 @@ export async function importKickProfileAction(slugInput: unknown): Promise<{
       ...fit.reasons,
       profile.followers === null ? 'Seguidores no disponibles en la API oficial' : `${profile.followers.toLocaleString('es-ES')} seguidores`,
       cs2 ? 'CS2 es su categoría actual observada; no constituye un histórico' : 'CS2 no confirmado',
-      'La media de espectadores en CS2 de los últimos 30 días debe verificarse: 70–89 amarillo; 90+ verde',
+      'Kick supera 2.000 seguidores verificados; el encaje de contenido continúa en revisión',
       'Revisar país y encaje legal antes de contactar',
     ],
     sourceQuery: profile.username,

@@ -198,11 +198,6 @@ async function discoverYouTubeTargets(config: CreatorSearchConfig, deadline: Cre
 }
 
 async function discoverTwitchTargets(config: CreatorSearchConfig, deadline: CreatorDiscoveryDeadline, runId: number): Promise<CreatorDiscoveryPlatformResult> {
-  // Helix exposes only the live snapshot for third-party channels, not their
-  // CS2-specific 30-day average. Do not promote a snapshot into a historical lead.
-  if (config.keywords.some(keyword => /counter[- ]?strike|\bcs2\b/i.test(keyword))) {
-    return notRun('twitch', 'CS2_30D_AVERAGE_REQUIRED');
-  }
   if (!config.markets.includes('WORLDWIDE')) return notRun('twitch', 'COUNTRY_FILTER_UNAVAILABLE');
   const evidence = newEvidence();
   try {
@@ -226,12 +221,12 @@ async function discoverTwitchTargets(config: CreatorSearchConfig, deadline: Crea
         visited.add(category.id);
         const pages = Math.min(3, remaining);
         remaining -= pages;
-        const report = await getGameLiveStreams(category.id, pages, { languageCodes: config.languages, minViewerCount: config.minLiveViewers });
+        const report = await getGameLiveStreams(category.id, pages, { languageCodes: [], minViewerCount: config.minLiveViewers });
         deadline.ensure();
         evidence.searchPages += report.coverage.pagesRead;
         recordCoverage(evidence, report.coverage);
         for (const channel of report.items) {
-          if (languageMatches(channel.language, config) && !channels.has(channel.broadcasterId)) {
+          if (!channels.has(channel.broadcasterId)) {
             channels.set(channel.broadcasterId, { channel, query, observedAt: new Date() });
           }
         }
@@ -258,6 +253,7 @@ async function discoverTwitchTargets(config: CreatorSearchConfig, deadline: Crea
     const rows: DiscoveredCreatorInput[] = candidates.flatMap(({ channel, query, observedAt }) => {
       evidence.candidateChecks += 1;
       const count = followerMap.get(channel.broadcasterId) ?? null;
+      if (!hasMinimumCreatorFollowers('twitch', count)) return [];
       // A current live observation is not historical CCV; followers never bypass this threshold.
       if (channel.viewerCount === null || channel.viewerCount < config.minLiveViewers) return [];
       const score = scoreCreatorFit({ contentMatch: true, audience: channel.viewerCount, targetAudience: config.minLiveViewers,

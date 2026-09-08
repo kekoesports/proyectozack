@@ -58,7 +58,8 @@ export function CreatorSearchProfiles({ profiles, canWrite, saveAction, runActio
                 <h3 className="text-sm font-semibold text-sp-admin-text">{profile.name}</h3>
                 <p className="mt-1 text-xs text-sp-admin-muted">{profile.enabled ? 'Activo' : 'Pausado'} · Redes solicitadas: {profile.config.platforms.map((platform) => PLATFORM_LABELS[platform]).join(' + ')} · {profile.config.scheduleTime} ({profile.config.timezone})</p>
                 <p className="mt-1 text-xs text-sp-admin-muted">{profile.config.markets.join(', ')} · {profile.config.languages.length > 0 ? profile.config.languages.join(', ') : 'Cualquier idioma'} · {profile.config.windowDays} días · mediana objetivo {profile.config.targetMedianViews.toLocaleString('es-ES')}</p>
-                <p className="mt-1 text-xs text-sp-admin-muted">Twitch/Kick: mínimo {profile.config.minLiveViewers ?? 20} espectadores en directo. Observación actual; no media histórica.</p>
+                <p className="mt-1 text-xs text-sp-admin-muted">Twitch: más de 10.000 seguidores, media 30d ≥80 y CS2 ≥30%; cualquier idioma. La preselección puntual de directos es {profile.config.minLiveViewers ?? 20}.</p>
+                <p className="mt-1 text-xs text-sp-admin-muted">Kick: más de 2.000 seguidores verificados. Sin cifra oficial, permanece fuera del listado válido.</p>
                 <p className="mt-1 text-xs text-sp-admin-muted">Próxima fecha registrada: {formatProfileDate(profile.nextRunAt)} · Última ejecución registrada: {formatProfileDate(profile.lastRunAt)}</p>
               </div>
               {canWrite && <div className="flex flex-wrap gap-2">

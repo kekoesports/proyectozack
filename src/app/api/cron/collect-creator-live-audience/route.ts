@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 import { assertCronAuth } from '@/lib/security/assertCronAuth';
 import { getCreatorProviderReadiness } from '@/lib/queries/creatorProviderReadiness';
-import { getLiveSamplingPlan, insertLiveAudienceSamples, type LiveSamplePlatform } from '@/lib/queries/creatorLiveAudienceSamples';
+import { getLiveSamplingPlan, insertLiveAudienceSamples, refreshTwitchLiveAudienceQualifications, type LiveSamplePlatform } from '@/lib/queries/creatorLiveAudienceSamples';
 import { twitchAudienceSamples, kickAudienceSamples } from '@/lib/services/creator-live-audience-collector';
 import { fetchTwitchLiveByLogins } from '@/lib/services/twitch';
 import { getKickLiveByBroadcasterIds } from '@/lib/services/kick';
@@ -35,6 +35,7 @@ async function collectPlatform(platform: LiveSamplePlatform, now: Date): Promise
   if (platform === 'twitch') {
     const streams = await fetchTwitchLiveByLogins(plan.accounts.map(account => account.username));
     const inserted = await insertLiveAudienceSamples(twitchAudienceSamples(plan.accounts, streams, context));
+    await refreshTwitchLiveAudienceQualifications(plan.accounts, now);
     return { platform, checked: plan.accounts.length, inserted, status: 'ok' };
   }
   const ids = plan.accounts.map(account => Number(account.externalId))

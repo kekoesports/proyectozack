@@ -4,14 +4,15 @@ import {
 } from '@/lib/targets/qualification';
 
 const candidate = {
-  followers: 5_400,
+  followers: 10_001,
   viewers: 180,
-  averageCs2Viewers30d: 90,
+  averageViewers30d: 80,
+  cs2ContentShare30d: 0.3,
   language: 'es',
-  requiredLanguage: 'es',
+  requiredLanguage: null,
   game: 'Counter-Strike 2',
   isLive: true,
-  minimumFollowers: 1_000,
+  minimumFollowers: 10_000,
 } as const;
 
 describe('qualifyTwitchCandidate', () => {
@@ -19,53 +20,48 @@ describe('qualifyTwitchCandidate', () => {
     const result = qualifyTwitchCandidate(candidate);
 
     expect(result.isQualified).toBe(true);
-    expect(result.status).toBe('review');
+    expect(result.status).toBe('qualified');
     expect(result.score).toBeGreaterThanOrEqual(80);
     expect(result.reasons).toContain('Revisar país y encaje legal antes de contactar');
   });
 
-  it('rechaza y explica una audiencia insuficiente', () => {
-    const result = qualifyTwitchCandidate({ ...candidate, followers: 450, viewers: 5, averageCs2Viewers30d: 69 });
+  it('exige más de 10.000 seguidores', () => {
+    const result = qualifyTwitchCandidate({ ...candidate, followers: 10_000 });
 
     expect(result.isQualified).toBe(false);
     expect(result.status).toBe('rejected');
-    expect(result.reasons[0]).toContain('inferior a 70');
+    expect(result.reasons.join(' ')).toContain('no supera 10.000');
   });
 
-  it('mantiene en amarillo una media de CS2 entre 70 y 89', () => {
-    const result = qualifyTwitchCandidate({ ...candidate, followers: 180, viewers: 35, averageCs2Viewers30d: 70 });
+  it('rechaza una media inferior a 80', () => {
+    const result = qualifyTwitchCandidate({ ...candidate, averageViewers30d: 79 });
 
     expect(result.isQualified).toBe(false);
-    expect(result.status).toBe('review');
-    expect(result.reasons[0]).toContain('nivel amarillo');
+    expect(result.status).toBe('rejected');
+    expect(result.reasons[0]).toContain('inferior a 80');
   });
 
   it('no preselecciona sin una media histórica aunque el directo actual sea grande', () => {
-    const result = qualifyTwitchCandidate({ ...candidate, viewers: 5_000, averageCs2Viewers30d: null });
+    const result = qualifyTwitchCandidate({ ...candidate, viewers: 5_000, averageViewers30d: null });
 
     expect(result.isQualified).toBe(false);
     expect(result.status).toBe('review');
-    expect(result.reasons[0]).toContain('solo revisión amarilla');
+    expect(result.reasons[0]).toContain('requiere medición');
   });
 
-  it('rechaza categorías ajenas a CS2', () => {
-    const result = qualifyTwitchCandidate({ ...candidate, game: 'Just Chatting' });
+  it('rechaza una proporción de CS2 inferior al 30%', () => {
+    const result = qualifyTwitchCandidate({ ...candidate, cs2ContentShare30d: 0.29 });
 
     expect(result.isQualified).toBe(false);
-    expect(result.reasons).toContain('Juego del perfil no confirmado');
-  });
-
-  it('respeta el filtro de idioma cuando está configurado', () => {
-    const result = qualifyTwitchCandidate({ ...candidate, language: 'en' });
-
-    expect(result.isQualified).toBe(false);
-    expect(result.reasons).toContain('Idioma en no coincide');
+    expect(result.status).toBe('rejected');
+    expect(result.reasons.join(' ')).toContain('inferior al 30%');
   });
 
   it('permite cualquier idioma cuando el filtro es global', () => {
     const result = qualifyTwitchCandidate({
       ...candidate,
       language: 'pt',
+      game: 'Just Chatting',
       requiredLanguage: null,
     });
 

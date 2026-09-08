@@ -1,7 +1,7 @@
 import type { TwitchLiveStream } from './twitch';
 import type { KickLiveCreator } from './kick';
 import type { LiveSamplingAccount, NewLiveAudienceSample } from '@/lib/queries/creatorLiveAudienceSamples';
-import { isCs2LiveCategory, liveSampleBucket } from '@/lib/targets/live-audience-samples';
+import { ALL_CATEGORY_SAMPLE_SOURCE_SUFFIX, isCs2LiveCategory, liveSampleBucket } from '@/lib/targets/live-audience-samples';
 
 type SampleContext = Readonly<{
   observedAt: Date;
@@ -15,12 +15,14 @@ export function twitchAudienceSamples(
   const byUsername = new Map(accounts.map(account => [account.username.toLowerCase(), account]));
   return streams.flatMap(stream => {
     const account = byExternalId.get(stream.userId) ?? byUsername.get(stream.userLogin.toLowerCase());
-    if (!account || !isCs2LiveCategory('twitch', stream.gameId, stream.gameName)) return [];
+    if (!account) return [];
+    const categoryName = isCs2LiveCategory('twitch', stream.gameId, stream.gameName)
+      ? 'Counter-Strike 2' : stream.gameName;
     return [{
-      accountId: account.accountId, platform: 'twitch', categoryName: stream.gameName,
+      accountId: account.accountId, platform: 'twitch', categoryName,
       viewerCount: stream.viewerCount, streamStartedAt: stream.startedAt,
       observedAt: liveSampleBucket(context.observedAt), expiresAt: context.expiresAt,
-      source: 'twitch:helix:streams',
+      source: `twitch:helix:streams${ALL_CATEGORY_SAMPLE_SOURCE_SUFFIX}`,
     }];
   });
 }
@@ -32,12 +34,14 @@ export function kickAudienceSamples(
   const byUsername = new Map(accounts.map(account => [account.username.toLowerCase(), account]));
   return streams.flatMap(stream => {
     const account = byExternalId.get(String(stream.userId)) ?? byUsername.get(stream.slug.toLowerCase());
-    if (!account || !isCs2LiveCategory('kick', '', stream.category)) return [];
+    if (!account) return [];
+    const categoryName = isCs2LiveCategory('kick', '', stream.category)
+      ? 'Counter-Strike 2' : stream.category;
     return [{
-      accountId: account.accountId, platform: 'kick', categoryName: stream.category,
+      accountId: account.accountId, platform: 'kick', categoryName,
       viewerCount: stream.viewerCount, streamStartedAt: stream.startedAt,
       observedAt: liveSampleBucket(context.observedAt), expiresAt: context.expiresAt,
-      source: 'kick:public-v2:livestreams',
+      source: `kick:public-v2:livestreams${ALL_CATEGORY_SAMPLE_SOURCE_SUFFIX}`,
     }];
   });
 }

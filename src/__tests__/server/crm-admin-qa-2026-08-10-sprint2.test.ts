@@ -81,6 +81,7 @@ describe('sprint2 — hasPermission + nav R05', () => {
 
     expect(leadItems.map((item) => [item.label, item.href])).toEqual([
       ['Leads emails', '/admin/leads'],
+      ['Candidaturas', '/admin/candidaturas'],
       ['Leads CC', '/admin/targets'],
       ['Prensa targets', '/admin/prensa-targets'],
       ['Partners CS2', '/admin/partner-leads'],
@@ -94,7 +95,7 @@ describe('sprint2 — hasPermission + nav R05', () => {
       .filter((item) => item.submenu === 'leads')
       .map((item) => item.href);
 
-    expect(leadHrefs).toEqual(['/admin/leads', '/admin/partner-leads']);
+    expect(leadHrefs).toEqual(['/admin/leads', '/admin/candidaturas', '/admin/partner-leads']);
   });
 
   it('renders the Leads submenu beside primary navigation instead of hiding it under Más', () => {
