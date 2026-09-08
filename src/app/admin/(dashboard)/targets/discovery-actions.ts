@@ -29,8 +29,8 @@ const twitchSearchSchema = z.object({
 });
 
 export type TwitchDiscoveryCandidate = TwitchChannelPreview & CreatorFit & {
-  readonly averageViewers30d: number | null;
-  readonly cs2ContentShare30d: number | null;
+  readonly averageViewers24h: number | null;
+  readonly cs2ContentShare24h: number | null;
 };
 
 export async function discoverTwitchTargetsAction(input: unknown): Promise<{
@@ -58,16 +58,16 @@ export async function discoverTwitchTargetsAction(input: unknown): Promise<{
       const fit = qualifyTwitchCandidate({
         followers: followerCount,
         viewers: channel.viewerCount,
-        averageViewers30d: summary.averageViewers,
-        cs2ContentShare30d: summary.cs2ContentShare,
+        averageViewers24h: summary.averageViewers,
+        cs2ContentShare24h: summary.cs2ContentShare,
         language: channel.language,
         requiredLanguage: null,
         game: channel.currentGame,
         isLive: channel.isLive,
         minimumFollowers: parsed.data.minimumFollowers,
       });
-      return { ...channel, followerCount, averageViewers30d: summary.averageViewers,
-        cs2ContentShare30d: summary.cs2ContentShare, ...fit };
+      return { ...channel, followerCount, averageViewers24h: summary.averageViewers,
+        cs2ContentShare24h: summary.cs2ContentShare, ...fit };
     }).sort((left, right) => Number(right.isQualified) - Number(left.isQualified) || right.score - left.score);
     return { ok: true, candidates, error: null };
   } catch (error) {
@@ -81,8 +81,8 @@ const twitchImportSchema = z.array(z.object({
   displayName: z.string().min(1).max(200),
   followerCount: z.number().int().min(CREATOR_MINIMUM_FOLLOWERS.twitch + 1),
   viewerCount: z.number().int().nonnegative().nullable(),
-  averageViewers30d: z.number().int().min(MINIMUM_TWITCH_AVERAGE_VIEWERS),
-  cs2ContentShare30d: z.number().min(MINIMUM_TWITCH_CS2_CONTENT_SHARE).max(1),
+  averageViewers24h: z.number().int().min(MINIMUM_TWITCH_AVERAGE_VIEWERS),
+  cs2ContentShare24h: z.number().min(MINIMUM_TWITCH_CS2_CONTENT_SHARE).max(1),
   language: z.string().max(10),
   currentGame: z.string().max(200),
   thumbnailUrl: z.url().nullable(),

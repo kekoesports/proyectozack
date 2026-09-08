@@ -1,5 +1,6 @@
 import {
   isCs2LiveCategory,
+  LIVE_AUDIENCE_WINDOW_DAYS,
   liveSampleBucket,
   summarizeLiveAudience,
 } from '@/lib/targets/live-audience-samples';
@@ -8,7 +9,11 @@ import { kickAudienceSamples, twitchAudienceSamples } from '@/lib/services/creat
 const account = { accountId: 7, targetId: 9, externalId: '42', username: 'creator', followers: 10_001,
   qualificationStatus: 'review', fitReasons: [] };
 const observedAt = new Date('2026-09-07T10:07:00Z');
-const expiresAt = new Date('2026-10-07T10:07:00Z');
+const expiresAt = new Date('2026-09-08T10:07:00Z');
+
+it('limits the rolling measurement to the allowed 24-hour cache', () => {
+  expect(LIVE_AUDIENCE_WINDOW_DAYS).toBe(1);
+});
 
 it('accepts only the verified CS2 category for each provider', () => {
   expect(isCs2LiveCategory('twitch', '32399', 'Counter-Strike')).toBe(true);

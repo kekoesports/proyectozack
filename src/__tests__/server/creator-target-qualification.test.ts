@@ -6,8 +6,8 @@ import {
 const candidate = {
   followers: 10_001,
   viewers: 180,
-  averageViewers30d: 80,
-  cs2ContentShare30d: 0.3,
+  averageViewers24h: 80,
+  cs2ContentShare24h: 0.3,
   language: 'es',
   requiredLanguage: null,
   game: 'Counter-Strike 2',
@@ -34,7 +34,7 @@ describe('qualifyTwitchCandidate', () => {
   });
 
   it('rechaza una media inferior a 80', () => {
-    const result = qualifyTwitchCandidate({ ...candidate, averageViewers30d: 79 });
+    const result = qualifyTwitchCandidate({ ...candidate, averageViewers24h: 79 });
 
     expect(result.isQualified).toBe(false);
     expect(result.status).toBe('rejected');
@@ -42,7 +42,7 @@ describe('qualifyTwitchCandidate', () => {
   });
 
   it('no preselecciona sin una media histórica aunque el directo actual sea grande', () => {
-    const result = qualifyTwitchCandidate({ ...candidate, viewers: 5_000, averageViewers30d: null });
+    const result = qualifyTwitchCandidate({ ...candidate, viewers: 5_000, averageViewers24h: null });
 
     expect(result.isQualified).toBe(false);
     expect(result.status).toBe('review');
@@ -50,7 +50,7 @@ describe('qualifyTwitchCandidate', () => {
   });
 
   it('rechaza una proporción de CS2 inferior al 30%', () => {
-    const result = qualifyTwitchCandidate({ ...candidate, cs2ContentShare30d: 0.29 });
+    const result = qualifyTwitchCandidate({ ...candidate, cs2ContentShare24h: 0.29 });
 
     expect(result.isQualified).toBe(false);
     expect(result.status).toBe('rejected');

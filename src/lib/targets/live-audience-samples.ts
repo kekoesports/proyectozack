@@ -1,7 +1,9 @@
 import { matchesLiveCategory, matchesTwitchCategory } from './live-category';
 
 export const LIVE_SAMPLE_INTERVAL_MINUTES = 10;
-export const LIVE_AUDIENCE_WINDOW_DAYS = 30;
+// Twitch's standard developer terms allow a 24-hour cache. Keep the rolling
+// measurement inside that boundary unless provider-backed evidence changes.
+export const LIVE_AUDIENCE_WINDOW_DAYS = 1;
 export const MINIMUM_MEASURED_MINUTES = 60;
 export const MINIMUM_TWITCH_AVERAGE_VIEWERS = 80;
 export const MINIMUM_TWITCH_CS2_CONTENT_SHARE = 0.3;

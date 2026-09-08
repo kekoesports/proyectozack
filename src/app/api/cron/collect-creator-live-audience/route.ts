@@ -25,7 +25,7 @@ async function collectPlatform(platform: LiveSamplePlatform, now: Date): Promise
   if (!gate?.ready) return { platform, checked: 0, inserted: 0, status: 'skipped', reason: gate?.code ?? 'NOT_READY' };
   const plan = await getLiveSamplingPlan(platform);
   if (plan.retentionDays === null || plan.retentionDays < LIVE_AUDIENCE_WINDOW_DAYS) {
-    return { platform, checked: plan.accounts.length, inserted: 0, status: 'skipped', reason: 'RETENTION_BELOW_30_DAYS' };
+    return { platform, checked: plan.accounts.length, inserted: 0, status: 'skipped', reason: 'RETENTION_BELOW_MEASUREMENT_WINDOW' };
   }
   if (plan.accounts.length === 0) return { platform, checked: 0, inserted: 0, status: 'ok' };
   const context = {

@@ -283,9 +283,10 @@ async function discoverTwitchTargets(config: CreatorSearchConfig, deadline: Crea
 
 async function discoverKickTargets(config: CreatorSearchConfig, deadline: CreatorDiscoveryDeadline, runId: number): Promise<CreatorDiscoveryPlatformResult> {
   // Kick's public API likewise exposes current livestream viewers, not a
-  // CS2-specific 30-day CCV average. Keep discovery fail-closed until verified.
+  // Kick does not expose follower totals or a verified historical CCV average.
+  // Keep discovery fail-closed until both inputs can be verified.
   if (config.keywords.some(keyword => /counter[- ]?strike|\bcs2\b/i.test(keyword))) {
-    return notRun('kick', 'CS2_30D_AVERAGE_REQUIRED');
+    return notRun('kick', 'KICK_FOLLOWERS_AND_AVERAGE_REQUIRED');
   }
   if (!config.markets.includes('WORLDWIDE')) return notRun('kick', 'COUNTRY_FILTER_UNAVAILABLE');
   const evidence = newEvidence();

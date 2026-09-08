@@ -181,7 +181,7 @@ it('passes a generic category and limits to the Kick report contract', async () 
     expect.objectContaining({ signal: expect.any(AbortSignal), maxRetries: 0 }));
   expect(result.status).toBe('success');
 });
-it('seeds qualifying CS2 Twitch channels for hidden 30-day measurement in any language', async () => {
+it('seeds qualifying CS2 Twitch channels for hidden 24-hour measurement in any language', async () => {
   jest.mocked(searchTwitchGameCategories).mockResolvedValue({ items: [{ id: '32399', name: 'Counter-Strike' }], coverage: complete });
   jest.mocked(getGameLiveStreams).mockResolvedValue({ items: [{
     broadcasterId: 'b', streamId: 's', login: 'synthetic', displayName: 'Synthetic', followerCount: null,
@@ -200,9 +200,9 @@ it('seeds qualifying CS2 Twitch channels for hidden 30-day measurement in any la
     externalId: 'b', target: expect.objectContaining({ qualificationStatus: 'review', followers: 10_001 }),
   }));
 });
-it('does not run CS2 Kick discovery without a verified 30-day game average source', async () => {
+it('does not run CS2 Kick discovery without verified followers and audience history', async () => {
   const result = await runCreatorTargetDiscovery('manual', config({ platforms: ['kick'], keywords: ['CS2'], minLiveViewers: 70 }));
-  expect(result.platformResults[0]?.warnings).toContain('CS2_30D_AVERAGE_REQUIRED');
+  expect(result.platformResults[0]?.warnings).toContain('KICK_FOLLOWERS_AND_AVERAGE_REQUIRED');
   expect(result.qualified).toBe(0);
   expect(getKickLiveCreatorsReport).not.toHaveBeenCalled();
   expect(persistDiscoveredCreator).not.toHaveBeenCalled();
