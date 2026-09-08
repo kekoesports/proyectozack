@@ -24,6 +24,15 @@ const GoogleValuesResponse = z.object({
   values: z.array(z.array(z.unknown())).optional(),
 });
 
+const GoogleSpreadsheetResponse = z.object({
+  sheets: z.array(z.object({
+    properties: z.object({
+      sheetId: z.number().int(),
+      title: z.string(),
+    }),
+  })),
+});
+
 type Platform = 'YouTube' | 'Twitch' | 'Kick' | 'TikTok' | 'Instagram' | 'Otra';
 
 type EnrichedApplication = {
@@ -233,6 +242,51 @@ async function readSheetState(spreadsheetId: string, token: string): Promise<She
   return { existingIds, nextRow: 5 + rows.length };
 }
 
+async function getSheetId(spreadsheetId: string, token: string): Promise<number> {
+  const response = await fetch(
+    `https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(spreadsheetId)}?fields=sheets.properties(sheetId,title)`,
+    { headers: { Authorization: `Bearer ${token}` }, signal: AbortSignal.timeout(TIMEOUT_MS) },
+  );
+  if (!response.ok) throw new Error(`google-sheets-metadata-${response.status}`);
+  const parsed = GoogleSpreadsheetResponse.safeParse(await response.json());
+  if (!parsed.success) throw new Error('invalid-google-sheets-metadata-response');
+  const sheet = parsed.data.sheets.find((item) => item.properties.title === SHEET_NAME);
+  if (!sheet) throw new Error('creator-applications-sheet-not-found');
+  return sheet.properties.sheetId;
+}
+
+async function sortSheetByNewest(
+  spreadsheetId: string,
+  token: string,
+  sheetId: number,
+  dataRowCount: number,
+): Promise<void> {
+  if (dataRowCount < 2) return;
+  const response = await fetch(
+    `https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(spreadsheetId)}:batchUpdate`,
+    {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        requests: [{
+          sortRange: {
+            range: {
+              sheetId,
+              startRowIndex: 4,
+              endRowIndex: 4 + dataRowCount,
+              startColumnIndex: 0,
+              endColumnIndex: 17,
+            },
+            sortSpecs: [{ dimensionIndex: 1, sortOrder: 'DESCENDING' }],
+          },
+        }],
+      }),
+      signal: AbortSignal.timeout(TIMEOUT_MS),
+    },
+  );
+  if (!response.ok) throw new Error(`google-sheets-sort-${response.status}`);
+}
+
 export type CreatorSheetSyncResult = {
   readonly discovered: number;
   readonly appended: number;
@@ -246,7 +300,10 @@ export async function syncCreatorApplicationsToSheet(
   const spreadsheetId = env.CREATOR_APPLICATIONS_SHEET_ID;
   if (!spreadsheetId) throw new Error('missing-creator-applications-sheet-id');
   const token = await getAccessToken();
-  const { existingIds, nextRow } = await readSheetState(spreadsheetId, token);
+  const [{ existingIds, nextRow }, sheetId] = await Promise.all([
+    readSheetState(spreadsheetId, token),
+    getSheetId(spreadsheetId, token),
+  ]);
   const pending = applications.filter((item) => !existingIds.has(item.sourceId));
   const selected = pending.slice(0, maxPerRun);
   const rows: unknown[][] = [];
@@ -255,7 +312,7 @@ export async function syncCreatorApplicationsToSheet(
     const enriched = await enrichApplication(application);
     rows.push([
       application.sourceId,
-      application.createdAt.toISOString().slice(0, 10),
+      application.createdAt.toISOString(),
       application.name,
       application.email,
       enriched.gameOrContent,
@@ -291,6 +348,8 @@ export async function syncCreatorApplicationsToSheet(
     );
     if (!response.ok) throw new Error(`google-sheets-append-${response.status}`);
   }
+
+  await sortSheetByNewest(spreadsheetId, token, sheetId, existingIds.size + rows.length);
 
   return {
     discovered: applications.length,
