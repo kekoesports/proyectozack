@@ -35,6 +35,15 @@ describe('creator outreach reply processing', () => {
   });
 
   it('falls back to safe plain text for HTML-only replies', () => {
-    expect(receivedText(null, '<p>Hola &amp; gracias</p><script>bad()</script>')).toBe('Hola & gracias');
+    expect(receivedText(null, '<p>Hola &amp; gracias</p><script>bad()</script>')).toBe('Hola &amp; gracias');
+  });
+
+  it('never reintroduces encoded markup from HTML-only replies', () => {
+    const html = '<div>&lt;script&gt;visible&lt;/script&gt;</div><script type="text/javascript">alert(1)</script>';
+    expect(receivedText(null, html)).toBe('&lt;script&gt;visible&lt;/script&gt;');
+  });
+
+  it('drops script blocks with whitespace in their closing tag', () => {
+    expect(receivedText(null, '<p>Antes</p><script>bad()</script ><p>Después</p>')).toBe('Antes\n\nDespués');
   });
 });

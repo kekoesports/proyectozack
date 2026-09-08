@@ -49,17 +49,39 @@ export function suggestedReplyFor(status: CreatorOutreachStatus): string | null 
 }
 
 function htmlToText(value: string): string {
-  return value
-    .replace(/<(?:br|\/p|\/div|\/li)>/gi, '\n')
-    .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, '')
-    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '')
-    .replace(/<[^>]+>/g, ' ')
+  let output = '';
+  let cursor = 0;
+  let ignoredTag: 'script' | 'style' | null = null;
+
+  while (cursor < value.length) {
+    if (value.at(cursor) !== '<') {
+      if (!ignoredTag) output += value.at(cursor) ?? '';
+      cursor += 1;
+      continue;
+    }
+
+    const tagEnd = value.indexOf('>', cursor + 1);
+    if (tagEnd === -1) break;
+    const rawTag = value.slice(cursor + 1, tagEnd).trim();
+    const isClosing = rawTag.startsWith('/');
+    const normalizedTag = (isClosing ? rawTag.slice(1) : rawTag)
+      .trimStart()
+      .split(/[\s/]/, 1)[0]
+      ?.toLowerCase();
+
+    if (ignoredTag) {
+      if (isClosing && normalizedTag === ignoredTag) ignoredTag = null;
+    } else if (!isClosing && (normalizedTag === 'script' || normalizedTag === 'style')) {
+      ignoredTag = normalizedTag;
+    } else if (normalizedTag && ['br', 'p', 'div', 'li', 'tr'].includes(normalizedTag)) {
+      output += '\n';
+    }
+    cursor = tagEnd + 1;
+  }
+
+  return output
+    // Keep entities encoded. Decoding after stripping tags can reintroduce markup.
     .replace(/&nbsp;/gi, ' ')
-    .replace(/&amp;/gi, '&')
-    .replace(/&lt;/gi, '<')
-    .replace(/&gt;/gi, '>')
-    .replace(/&quot;/gi, '"')
-    .replace(/&#(?:39|x27);/gi, "'")
     .replace(/[ \t]+/g, ' ')
     .replace(/\n{3,}/g, '\n\n')
     .trim();
