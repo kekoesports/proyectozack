@@ -95,6 +95,8 @@ Todas las vars están validadas en `src/lib/env.ts` con `@t3-oss/env-nextjs` y Z
 | `DATABASE_URL` | server | URL Postgres | Connection string de Neon (o Postgres). |
 | `RESEND_API_KEY` | server | string (≥ 1) | API key de Resend para emails transaccionales. |
 | `RESEND_WEBHOOK_SECRET` | server | string (≥ 20) opcional | Firma del webhook de Resend; requerida para procesar rebotes y quejas. |
+| `CREATOR_REPLY_RECEIVING_DOMAIN` | server | hostname opcional | Subdominio receptor de Resend para enlazar respuestas de creators con el CRM; sin él se conserva el buzón operativo como Reply-To. |
+| `CREATOR_OUTREACH_NO_RESPONSE_DAYS` | server | entero 1–30 opcional | Días hasta marcar un contacto sin respuesta; por defecto `7`. |
 | `BETTER_AUTH_SECRET` | server | string (≥ 32) | Secret para firmar sesiones de Better Auth. |
 | `NEXT_PUBLIC_SITE_URL` | client | URL | URL pública (metadata, sitemap, robots, JSON-LD, CORS de auth). |
 | `NEXT_PUBLIC_SENTRY_DSN` | client | URL opcional | Activa la captura de errores de Sentry en navegador, servidor y edge. |

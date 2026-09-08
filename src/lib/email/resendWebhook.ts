@@ -1,6 +1,7 @@
 import { db } from '@/lib/db';
-import { emailDeliveryEvents, emailSuppressions } from '@/db/schema';
+import { creatorOutreachMessages, creatorOutreachThreads, emailDeliveryEvents, emailSuppressions } from '@/db/schema';
 import type { ResendEmailWebhookEvent } from '@/lib/schemas/resend-webhook';
+import { and, eq, inArray } from 'drizzle-orm';
 
 export type SuppressionReason = 'complaint' | 'permanent_bounce' | 'provider_suppressed';
 
@@ -36,6 +37,22 @@ export async function persistResendWebhookEvent(
 
     if (inserted.length === 0) return { duplicate: true, suppressed: 0 };
 
+    const outreachStatus = outreachStatusForEvent(event);
+    if (outreachStatus) {
+      const [message] = await tx.update(creatorOutreachMessages)
+        .set({ status: outreachStatus.message })
+        .where(eq(creatorOutreachMessages.providerEmailId, event.data.email_id))
+        .returning({ threadId: creatorOutreachMessages.threadId });
+      if (message) {
+        await tx.update(creatorOutreachThreads)
+          .set({ status: outreachStatus.thread, updatedAt: new Date() })
+          .where(and(
+            eq(creatorOutreachThreads.id, message.threadId),
+            inArray(creatorOutreachThreads.status, ['draft', 'sent', 'delivered']),
+          ));
+      }
+    }
+
     const reason = suppressionReasonForEvent(event);
     if (!reason) return { duplicate: false, suppressed: 0 };
 
@@ -54,4 +71,16 @@ export async function persistResendWebhookEvent(
 
     return { duplicate: false, suppressed };
   });
+}
+
+function outreachStatusForEvent(event: ResendEmailWebhookEvent): {
+  readonly message: string;
+  readonly thread: string;
+} | null {
+  if (event.type === 'email.delivered') return { message: 'delivered', thread: 'delivered' };
+  if (event.type === 'email.bounced' || event.type === 'email.failed' || event.type === 'email.suppressed') {
+    return { message: 'failed', thread: 'bounced' };
+  }
+  if (event.type === 'email.complained') return { message: 'complained', thread: 'complained' };
+  return null;
 }

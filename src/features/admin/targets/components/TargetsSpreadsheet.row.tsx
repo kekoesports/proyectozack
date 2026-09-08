@@ -29,6 +29,7 @@ type TargetRowProps = Readonly<{
   setStatus: (id: number, status: StatusValue) => void;
   saveNotes: (id: number) => void;
   handleDelete: (ids: number[]) => void;
+  startContact: (target: Target) => void;
   isPending: boolean;
 }>;
 
@@ -46,6 +47,7 @@ export function TargetRow({
   setStatus,
   saveNotes,
   handleDelete,
+  startContact,
   isPending,
 }: TargetRowProps): React.ReactElement {
   const isEditingNotes = editingNotes === target.id;
@@ -256,16 +258,16 @@ export function TargetRow({
         )}
       </td>
       <td className="px-3 py-2.5">
-        <a
-          href={target.contactEmail
-            ? `mailto:${target.contactEmail}?subject=${encodeURIComponent(`Colaboración SocialPro x ${target.fullName ?? target.username}`)}`
-            : (target.contactUrl ?? target.profileUrl)}
-          target={target.contactEmail ? undefined : '_blank'}
-          rel={target.contactEmail ? undefined : 'noopener noreferrer'}
+        {target.contactEmail ? <button
+          type="button"
+          onClick={() => startContact(target)}
           className="inline-flex rounded-lg border border-sp-admin-border px-2.5 py-1.5 text-[11px] font-semibold text-sp-admin-text hover:border-sp-admin-accent hover:text-sp-admin-accent"
-        >
-          Contactar
-        </a>
+        >Contactar</button> : <a
+          href={target.contactUrl ?? target.profileUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex rounded-lg border border-sp-admin-border px-2.5 py-1.5 text-[11px] font-semibold text-sp-admin-text hover:border-sp-admin-accent hover:text-sp-admin-accent"
+        >Abrir perfil</a>}
       </td>
       <td className="px-3 py-2.5 text-center">
         <button

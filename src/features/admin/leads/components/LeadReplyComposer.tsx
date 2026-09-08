@@ -16,6 +16,7 @@ type Props = {
   readonly leadId: number;
   readonly leadName: string;
   readonly recipientEmail: string;
+  readonly initialBody?: string;
 };
 
 const INPUT_CLASS =
@@ -25,6 +26,7 @@ export function LeadReplyComposer({
   leadId,
   leadName,
   recipientEmail,
+  initialBody = '',
 }: Props): React.ReactElement {
   const router = useRouter();
   const [feedback, setFeedback] = useState<string | null>(null);
@@ -40,7 +42,7 @@ export function LeadReplyComposer({
     resolver: zodResolver(leadReplyComposerSchema),
     defaultValues: {
       subject: `Re: Contacto con SocialPro — ${leadName}`,
-      body: '',
+      body: initialBody,
     },
   });
 

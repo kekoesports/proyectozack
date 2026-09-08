@@ -131,11 +131,20 @@ En Resend Dashboard → Webhooks:
 
 1. Crear el endpoint con esa URL.
 2. Suscribir `email.delivered`, `email.delivery_delayed`, `email.complained`,
-   `email.bounced`, `email.failed` y `email.suppressed`.
+   `email.bounced`, `email.failed`, `email.suppressed` y `email.received`.
 3. Guardar el signing secret como `RESEND_WEBHOOK_SECRET` en el entorno de la
    aplicación. Nunca copiarlo a una variable `NEXT_PUBLIC_*`.
 4. Aplicar la migración `0155_email_delivery_observability` antes de activar
    el webhook.
+
+Para las respuestas de creators, aplicar también
+`0159_creator_outreach_replies`, configurar un dominio receptor gestionado por
+Resend (`*.resend.app`) o un subdominio propio dedicado (incluido su registro
+MX), y guardar sólo el hostname en `CREATOR_REPLY_RECEIVING_DOMAIN`. No
+reutilizar el dominio principal si ya recibe correo en Google Workspace.
+Mientras falte esta variable, el CRM sigue
+enviando con el buzón operativo como Reply-To y muestra que la respuesta aún no
+se incorporará automáticamente al historial.
 
 El consumidor usa `svix-id` como clave idempotente. Las entregas repetidas se
 aceptan con 200 sin repetir efectos, y el orden de llegada no puede retirar una
@@ -143,6 +152,9 @@ supresión ya creada. Solo las quejas, los rebotes permanentes y las supresiones
 del proveedor bloquean envíos posteriores de newsletter. Los rebotes
 transitorios quedan como evento para diagnóstico.
 
-Por privacidad, la base guarda únicamente el id de evento, id de email, tipo,
-fecha y —cuando hay que impedir futuros envíos— la dirección normalizada. No
-guarda asunto, cuerpo, cabeceras, IP ni payload completo.
+Los eventos generales de entregabilidad guardan únicamente id de evento, id de
+email, tipo, fecha y —cuando hay que impedir futuros envíos— la dirección
+normalizada. Las conversaciones iniciadas expresamente desde Leads sí guardan
+asunto y cuerpo en `creator_outreach_messages`: es el historial privado del CRM.
+La hoja Candidaturas recibe sólo estado, fecha y resumen breve, nunca el cuerpo
+completo ni las cabeceras.

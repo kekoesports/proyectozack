@@ -23,6 +23,8 @@ export const resendEmailEventTypeSchema = z.enum([
   'email.suppressed',
 ]);
 
+export const resendReceivedEventTypeSchema = z.literal('email.received');
+
 const emailEventDataSchema = z.object({
   email_id: z.string().trim().min(1).max(100),
   to: z.array(z.string().trim().email().max(254)).min(1).max(50),
