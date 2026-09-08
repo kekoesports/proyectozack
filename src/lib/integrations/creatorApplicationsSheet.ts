@@ -408,7 +408,7 @@ function itemStatus(value: string): string {
 function sheetStatus(value: string): string {
   const labels: Record<string, string> = {
     not_contacted: 'Sin contactar',
-    draft: 'Borrador',
+    draft: '🟡 Revisar',
     sent: 'Contactado',
     delivered: 'Entregado',
     replied: 'Respondió',

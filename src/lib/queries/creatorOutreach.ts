@@ -62,6 +62,36 @@ export async function isCreatorEmailSuppressed(normalizedEmail: string): Promise
   return Boolean(row);
 }
 
+export async function queueCreatorOutreachReview(input: {
+  readonly sourceType: CreatorOutreachSourceType;
+  readonly sourceId: number;
+  readonly reason: string;
+}): Promise<void> {
+  const recipient = await getCreatorOutreachRecipient(input.sourceType, input.sourceId);
+  const normalizedEmail = recipient ? normalizeEmail(recipient.email) : null;
+  if (!normalizedEmail) throw new Error('creator-outreach-review-recipient-invalid');
+  const now = new Date();
+  await db.transaction(async (tx) => {
+    const [thread] = await tx.insert(creatorOutreachThreads).values({
+      normalizedEmail,
+      status: 'draft',
+      subject: 'Revisión manual de candidatura',
+      lastReplySummary: input.reason.slice(0, 500),
+      updatedAt: now,
+    }).onConflictDoUpdate({
+      target: creatorOutreachThreads.normalizedEmail,
+      set: {
+        status: 'draft',
+        subject: 'Revisión manual de candidatura',
+        lastReplySummary: input.reason.slice(0, 500),
+        updatedAt: now,
+      },
+    }).returning({ id: creatorOutreachThreads.id });
+    if (!thread) throw new Error('creator-outreach-review-thread-not-created');
+    await attachMatchingSources(tx, thread.id, normalizedEmail, input.sourceType, input.sourceId);
+  });
+}
+
 export async function reserveCreatorOutreach(input: {
   readonly normalizedEmail: string;
   readonly sourceType: CreatorOutreachSourceType;

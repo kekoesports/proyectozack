@@ -4,6 +4,7 @@ import { createHash } from 'node:crypto';
 
 import { env } from '@/lib/env';
 import { sendCreatorOutreach } from '@/lib/email/creatorOutreach';
+import { queueCreatorOutreachReview } from '@/lib/queries/creatorOutreach';
 import type { InboundCreatorApplication } from '@/lib/queries/inboundCreatorApplications';
 import { getChannelDetails, getChannelRecentPerformance, searchYouTubeChannels } from '@/lib/services/youtube';
 
@@ -100,6 +101,19 @@ function stableUuid(value: string): string {
   return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
 }
 
+function sourceFor(application: InboundCreatorApplication): {
+  readonly sourceType: 'creator_application' | 'contact_submission' | 'target';
+  readonly sourceId: number;
+} | null {
+  const [sourceTypeValue, sourceIdValue] = application.sourceId.split(':', 2);
+  const sourceId = Number(sourceIdValue);
+  const sourceType = sourceTypeValue === 'creator' ? 'creator_application'
+    : sourceTypeValue === 'lead' ? 'contact_submission'
+      : sourceTypeValue === 'target' ? 'target'
+        : null;
+  return sourceType && Number.isInteger(sourceId) && sourceId > 0 ? { sourceType, sourceId } : null;
+}
+
 function messageFor(application: InboundCreatorApplication, decision: 'green' | 'red'): { readonly subject: string; readonly body: string } {
   const firstName = application.name.trim().split(/\s+/, 1)[0] || application.name.trim();
   if (decision === 'green') {
@@ -141,6 +155,11 @@ export async function processCreatorOutreachAutomation(
   let errors = 0;
 
   for (const application of eligible) {
+    const source = sourceFor(application);
+    if (!source) {
+      errors += 1;
+      continue;
+    }
     let qualification: CreatorQualification;
     try {
       qualification = await qualifyCreatorApplication(application);
@@ -149,28 +168,27 @@ export async function processCreatorOutreachAutomation(
       // contactar automáticamente: la candidatura queda para revisión humana.
       const reason = error instanceof Error ? error.message : 'unknown-error';
       console.warn('[creator-outreach] qualification deferred', { sourceId: application.sourceId, reason });
-      yellowReview += 1;
+      try {
+        await queueCreatorOutreachReview({ ...source, reason: `Verificación externa pendiente: ${reason}` });
+        yellowReview += 1;
+      } catch {
+        errors += 1;
+      }
       continue;
     }
     if (qualification.decision === 'yellow') {
-      yellowReview += 1;
+      try {
+        await queueCreatorOutreachReview({ ...source, reason: qualification.reason });
+        yellowReview += 1;
+      } catch {
+        errors += 1;
+      }
       continue;
     }
     try {
-      const [sourceTypeValue, sourceIdValue] = application.sourceId.split(':', 2);
-      const sourceId = Number(sourceIdValue);
-      const sourceType = sourceTypeValue === 'creator' ? 'creator_application'
-        : sourceTypeValue === 'lead' ? 'contact_submission'
-          : sourceTypeValue === 'target' ? 'target'
-            : null;
-      if (!sourceType || !Number.isInteger(sourceId) || sourceId <= 0) {
-        errors += 1;
-        continue;
-      }
       const content = messageFor(application, qualification.decision);
       const result = await sendCreatorOutreach({
-        sourceType,
-        sourceId,
+        ...source,
         ...content,
         idempotencyKey: stableUuid(`creator-intake:${application.sourceId}:${qualification.decision}:v1`),
       }, null);

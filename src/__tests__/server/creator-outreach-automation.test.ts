@@ -2,6 +2,7 @@ const mockSend = jest.fn();
 const mockSearch = jest.fn();
 const mockDetails = jest.fn();
 const mockPerformance = jest.fn();
+const mockQueueReview = jest.fn();
 
 jest.mock('server-only', () => ({}));
 jest.mock('@/lib/env', () => ({ env: {
@@ -10,6 +11,9 @@ jest.mock('@/lib/env', () => ({ env: {
   CREATOR_OUTREACH_BOOKING_URL: 'https://calendar.app.google/test-socialpro',
 } }));
 jest.mock('@/lib/email/creatorOutreach', () => ({ sendCreatorOutreach: (...args: unknown[]) => mockSend(...args) }));
+jest.mock('@/lib/queries/creatorOutreach', () => ({
+  queueCreatorOutreachReview: (...args: unknown[]) => mockQueueReview(...args),
+}));
 jest.mock('@/lib/services/youtube', () => ({
   searchYouTubeChannels: (...args: unknown[]) => mockSearch(...args),
   getChannelDetails: (...args: unknown[]) => mockDetails(...args),
@@ -47,6 +51,7 @@ beforeEach(() => {
   mockDetails.mockResolvedValue([channel]);
   mockPerformance.mockResolvedValue(performance);
   mockSend.mockResolvedValue({ providerEmailId: 'email_test', duplicate: false, replyTracking: true });
+  mockQueueReview.mockResolvedValue(undefined);
 });
 
 it('clasifica verde usando solo vídeos largos y actividad reciente', async () => {
@@ -86,6 +91,7 @@ it('no procesa historial ni envía amarillo', async () => {
   ]);
   expect(result).toMatchObject({ eligible: 1, yellowReview: 1, greenSent: 0, redSent: 0 });
   expect(mockSend).not.toHaveBeenCalled();
+  expect(mockQueueReview).toHaveBeenCalledTimes(1);
 });
 
 it('deja en amarillo una candidatura si falla la verificación externa', async () => {
@@ -95,4 +101,7 @@ it('deja en amarillo una candidatura si falla la verificación externa', async (
     eligible: 1, greenSent: 0, redSent: 0, yellowReview: 1, duplicates: 0, errors: 0,
   });
   expect(mockSend).not.toHaveBeenCalled();
+  expect(mockQueueReview).toHaveBeenCalledWith(expect.objectContaining({
+    sourceType: 'creator_application', sourceId: 101,
+  }));
 });
