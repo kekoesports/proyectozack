@@ -138,10 +138,11 @@ En Resend Dashboard → Webhooks:
    el webhook.
 
 Para las respuestas de creators, aplicar también
-`0159_creator_outreach_replies`, configurar en Resend un subdominio dedicado
-de recepción (incluido su registro MX) y guardar sólo el hostname en
-`CREATOR_REPLY_RECEIVING_DOMAIN`. No reutilizar el dominio principal si ya
-recibe correo en Google Workspace. Mientras falte esta variable, el CRM sigue
+`0159_creator_outreach_replies`, configurar un dominio receptor gestionado por
+Resend (`*.resend.app`) o un subdominio propio dedicado (incluido su registro
+MX), y guardar sólo el hostname en `CREATOR_REPLY_RECEIVING_DOMAIN`. No
+reutilizar el dominio principal si ya recibe correo en Google Workspace.
+Mientras falte esta variable, el CRM sigue
 enviando con el buzón operativo como Reply-To y muestra que la respuesta aún no
 se incorporará automáticamente al historial.
 
