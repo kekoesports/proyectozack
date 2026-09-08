@@ -100,7 +100,7 @@ export function TwitchTargetDiscovery(): React.ReactElement {
                       <span className="rounded-full bg-violet-500/10 px-2 py-0.5 text-[10px] font-bold text-violet-300">{candidate.score}/100</span>
                     </div>
                     <p className="mt-1 text-xs text-sp-admin-muted">{candidate.followerCount === null ? 'No disponible' : numberFormat.format(candidate.followerCount)} seguidores · {candidate.language.toUpperCase()} · {candidate.currentGame || 'Sin categoría'}</p>
-                    <p className="mt-1 text-xs text-sp-admin-muted">Media 30d: {candidate.averageViewers30d === null ? 'sin cobertura suficiente' : numberFormat.format(candidate.averageViewers30d)} · CS2: {candidate.cs2ContentShare30d === null ? 'sin cobertura suficiente' : `${Math.round(candidate.cs2ContentShare30d * 100)}%`}</p>
+                    <p className="mt-1 text-xs text-sp-admin-muted">Media 24h: {candidate.averageViewers24h === null ? 'sin cobertura suficiente' : numberFormat.format(candidate.averageViewers24h)} · CS2: {candidate.cs2ContentShare24h === null ? 'sin cobertura suficiente' : `${Math.round(candidate.cs2ContentShare24h * 100)}%`}</p>
                     <p className="mt-2 text-[11px] text-sp-admin-muted">{candidate.reasons.join(' · ')}</p>
                   </div>
                 </div>

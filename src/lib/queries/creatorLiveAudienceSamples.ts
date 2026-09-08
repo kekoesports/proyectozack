@@ -3,7 +3,7 @@ import { and, asc, eq, gt, gte, inArray, ne } from 'drizzle-orm';
 import { creatorAccounts, creatorLiveAudienceSamples, creatorProviderPermissions, targets } from '@/db/schema';
 import { db } from '@/lib/db';
 import type { AudienceSample } from '@/lib/targets/live-audience-samples';
-import { summarizeLiveAudience } from '@/lib/targets/live-audience-samples';
+import { LIVE_AUDIENCE_WINDOW_DAYS, summarizeLiveAudience } from '@/lib/targets/live-audience-samples';
 import { hasMinimumCreatorFollowers } from '@/lib/targets/audience-thresholds';
 
 export type LiveSamplePlatform = 'twitch' | 'kick';
@@ -60,7 +60,7 @@ export async function insertLiveAudienceSamples(samples: readonly NewLiveAudienc
 }
 
 export async function getRecentLiveAudienceSamples(accountId: number, now: Date): Promise<AudienceSample[]> {
-  const since = new Date(now.getTime() - 30 * 86_400_000);
+  const since = new Date(now.getTime() - LIVE_AUDIENCE_WINDOW_DAYS * 86_400_000);
   return db.select({
     platform: creatorLiveAudienceSamples.platform,
     categoryName: creatorLiveAudienceSamples.categoryName,
@@ -95,7 +95,7 @@ export async function refreshTwitchLiveAudienceQualifications(
         ? [`${account.followers.toLocaleString('es-ES')} seguidores; ${summary.measuredMinutes}/60 minutos medidos con el recolector completo.`]
         : [
           `${account.followers.toLocaleString('es-ES')} seguidores ${followerQualified ? '(supera 10.000)' : '(no supera 10.000)'}.`,
-          `Media verificada de 30 días: ${summary.averageViewers ?? 'sin dato'} espectadores.`,
+          `Media verificada de 24 horas: ${summary.averageViewers ?? 'sin dato'} espectadores.`,
           `Contenido CS2: ${Math.round((summary.cs2ContentShare ?? 0) * 100)}% del tiempo medido.`,
           'Cualquier idioma admitido.',
         ];
@@ -123,7 +123,7 @@ export async function getRecentLiveAudienceSamplesByExternalIds(
       inArray(creatorAccounts.externalId, [...new Set(externalIds)]),
     ));
   if (accounts.length === 0) return new Map();
-  const since = new Date(now.getTime() - 30 * 86_400_000);
+  const since = new Date(now.getTime() - LIVE_AUDIENCE_WINDOW_DAYS * 86_400_000);
   const rows = await db.select({
     accountId: creatorLiveAudienceSamples.accountId,
     platform: creatorLiveAudienceSamples.platform,

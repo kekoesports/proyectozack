@@ -3,8 +3,8 @@ import type { TargetQualificationStatus } from '@/lib/schemas/target';
 export type TwitchFitInput = {
   readonly followers: number | null;
   readonly viewers: number | null;
-  readonly averageViewers30d: number | null;
-  readonly cs2ContentShare30d: number | null;
+  readonly averageViewers24h: number | null;
+  readonly cs2ContentShare24h: number | null;
   readonly language: string;
   readonly requiredLanguage: string | null;
   readonly game: string;
@@ -38,9 +38,9 @@ export function qualifyTwitchCandidate(input: TwitchFitInput): CreatorFit {
   const gameMatches = input.requiredGameNames?.length
     ? input.requiredGameNames.some((game) => game.toLowerCase() === input.game.toLowerCase())
     : /counter[- ]?strike|\bcs2\b/i.test(input.game);
-  const audienceMatches = input.averageViewers30d !== null && input.averageViewers30d >= 80;
-  const audienceUnknown = input.averageViewers30d === null;
-  const contentMatches = input.cs2ContentShare30d !== null && input.cs2ContentShare30d >= 0.3;
+  const audienceMatches = input.averageViewers24h !== null && input.averageViewers24h >= 80;
+  const audienceUnknown = input.averageViewers24h === null;
+  const contentMatches = input.cs2ContentShare24h !== null && input.cs2ContentShare24h >= 0.3;
   const followersMatch = input.followers !== null && input.followers > input.minimumFollowers;
 
   let score = 0;
@@ -50,8 +50,8 @@ export function qualifyTwitchCandidate(input: TwitchFitInput): CreatorFit {
   score += audienceMatches ? 25 : 0;
   score += contentMatches ? 20 : 0;
   score += followersMatch ? 10 : 0;
-  if (input.followers !== null && input.followers > 0 && input.averageViewers30d !== null) {
-    const liveEfficiency = input.averageViewers30d / input.followers;
+  if (input.followers !== null && input.followers > 0 && input.averageViewers24h !== null) {
+    const liveEfficiency = input.averageViewers24h / input.followers;
     score += liveEfficiency >= 0.05 ? 10 : liveEfficiency >= 0.01 ? 7 : 3;
   } else if (audienceMatches) {
     score += 8;
@@ -65,17 +65,17 @@ export function qualifyTwitchCandidate(input: TwitchFitInput): CreatorFit {
     && normalizedScore >= 60;
 
   const reasons: string[] = [];
-  if (audienceUnknown) reasons.push('Media verificada de 30 días no disponible: requiere medición');
-  else if (audienceMatches) reasons.push(`${input.averageViewers30d.toLocaleString('es-ES')} espectadores medios (30d): cumple el mínimo de 80`);
-  else reasons.push(`Media de 30 días inferior a 80 (${input.averageViewers30d.toLocaleString('es-ES')})`);
-  if (input.cs2ContentShare30d === null) reasons.push('Porcentaje de contenido CS2 no disponible: requiere medición');
-  else reasons.push(`${Math.round(input.cs2ContentShare30d * 100)}% del tiempo medido en CS2${contentMatches ? ': cumple' : ': inferior al 30%'}`);
+  if (audienceUnknown) reasons.push('Media verificada de 24 horas no disponible: requiere medición');
+  else if (audienceMatches) reasons.push(`${input.averageViewers24h.toLocaleString('es-ES')} espectadores medios (24h): cumple el mínimo de 80`);
+  else reasons.push(`Media de 24 horas inferior a 80 (${input.averageViewers24h.toLocaleString('es-ES')})`);
+  if (input.cs2ContentShare24h === null) reasons.push('Porcentaje de contenido CS2 no disponible: requiere medición');
+  else reasons.push(`${Math.round(input.cs2ContentShare24h * 100)}% del tiempo medido en CS2${contentMatches ? ': cumple' : ': inferior al 30%'}`);
   if (input.followers === null) reasons.push('Seguidores de Twitch no disponibles');
   else reasons.push(`${input.followers.toLocaleString('es-ES')} seguidores${followersMatch
     ? `: supera ${input.minimumFollowers.toLocaleString('es-ES')}`
     : `: no supera ${input.minimumFollowers.toLocaleString('es-ES')}`}`);
   if (input.viewers !== null) reasons.push(`${input.viewers.toLocaleString('es-ES')} espectadores ahora; no se usan como media`);
-  reasons.push(gameMatches ? `Contenido actual: ${input.game}` : 'Categoría actual distinta de CS2; decide el histórico de 30 días');
+  reasons.push(gameMatches ? `Contenido actual: ${input.game}` : 'Categoría actual distinta de CS2; decide la medición de 24 horas');
   if (!languageMatches) reasons.push(`Idioma ${input.language || 'desconocido'} no coincide`);
   if (input.isLive) reasons.push('Canal activo ahora');
   if (isQualified) reasons.push('Revisar país y encaje legal antes de contactar');
@@ -84,7 +84,7 @@ export function qualifyTwitchCandidate(input: TwitchFitInput): CreatorFit {
     isQualified,
     score: normalizedScore,
     status: isQualified ? 'qualified'
-      : audienceUnknown || input.cs2ContentShare30d === null || input.followers === null ? 'review' : 'rejected',
+      : audienceUnknown || input.cs2ContentShare24h === null || input.followers === null ? 'review' : 'rejected',
     reasons,
   };
 }
