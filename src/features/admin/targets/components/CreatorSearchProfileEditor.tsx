@@ -11,7 +11,7 @@ const NUMBERS = [
   { name: 'windowDays', label: 'Ventana de actividad (días)', min: 7, max: 120 },
   { name: 'minRecentVideos', label: 'Mínimo de vídeos recientes', min: 1, max: 30 },
   { name: 'targetMedianViews', label: 'Objetivo de mediana de vistas', min: 0, max: 1_000_000 },
-  { name: 'minLiveViewers', label: 'Mínimo de espectadores en directo (Twitch/Kick)', min: 1, max: 1_000_000 },
+  { name: 'minLiveViewers', label: 'Preselección puntual de directos (no decide validez)', min: 1, max: 1_000_000 },
   { name: 'maxCandidatesPerPlatform', label: 'Máximo de candidatos por red', min: 1, max: 100 },
   { name: 'searchPagesPerDay', label: 'Máximo de páginas de búsqueda al día', min: 1, max: 20 },
 ] as const;
@@ -35,7 +35,7 @@ export function CreatorSearchProfileEditor({ initial, pending, onSave, onCancel 
         {([
           { name: 'keywords', label: 'Palabras clave (una por línea o separadas por comas)' },
           { name: 'markets', label: 'Mercados (WORLDWIDE o códigos de país)' },
-          { name: 'languages', label: 'Idiomas (vacío = cualquiera; es, en, pt…)' },
+          { name: 'languages', label: 'Idiomas para vídeo (Twitch siempre acepta cualquiera)' },
         ] as const).map(({ name, label }) => (
           <label key={name} className="block space-y-1 text-xs text-sp-admin-muted">{label}
             <textarea className={INPUT} rows={3} defaultValue={initial[name].join('\n')} {...register(name, {

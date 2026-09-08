@@ -5,8 +5,14 @@ import { createHash } from 'node:crypto';
 import { env } from '@/lib/env';
 import { sendCreatorOutreach } from '@/lib/email/creatorOutreach';
 import { queueCreatorOutreachReview, recordCreatorOutreachQualification } from '@/lib/queries/creatorOutreach';
+import { getRecentLiveAudienceSamplesByExternalIds } from '@/lib/queries/creatorLiveAudienceSamples';
 import type { InboundCreatorApplication } from '@/lib/queries/inboundCreatorApplications';
+import { getKickChannel } from '@/lib/services/kick';
+import { getTwitchChannelInfo, searchTwitchChannels } from '@/lib/services/twitch';
 import { getChannelDetails, getChannelRecentPerformance, searchYouTubeChannels } from '@/lib/services/youtube';
+import { hasMinimumCreatorFollowers } from '@/lib/targets/audience-thresholds';
+import { summarizeLiveAudience } from '@/lib/targets/live-audience-samples';
+import { normalizeSocialProfileUrl, normalizeTwitchLogin } from '@/lib/utils/social-profile-url';
 
 export type CreatorTrafficLight = 'green' | 'yellow' | 'red';
 
@@ -34,21 +40,93 @@ function identityKey(value: string): string {
   return value.trim().toLowerCase().replace(/^@/, '').replace(/[^a-z0-9]/g, '');
 }
 
+function platformIdentity(application: InboundCreatorApplication, platform: 'twitch' | 'kick'): string | null {
+  const candidates = [application.declaredHandle, ...(application.otherLinks ?? '').split(/[\s,;]+/)]
+    .map(value => value.trim()).filter(Boolean);
+  const profileUrl = candidates.map(value => normalizeSocialProfileUrl({
+    platform, profileUrl: value, handle: value,
+  })).find((value): value is string => value !== null);
+  if (platform === 'twitch') {
+    return normalizeTwitchLogin(profileUrl ?? application.declaredHandle);
+  }
+  const candidate = profileUrl
+    ? new URL(profileUrl).pathname.split('/').filter(Boolean)[0]?.toLowerCase() ?? ''
+    : application.declaredHandle.trim().replace(/^@/, '').toLowerCase();
+  return /^[a-z0-9_-]{1,25}$/.test(candidate) ? candidate : null;
+}
+
+function inferPlatformFromUrls(values: readonly string[]): 'youtube' | 'twitch' | 'kick' | null {
+  for (const value of values.flatMap(item => item.split(/[\s,;]+/)).map(item => item.trim()).filter(Boolean)) {
+    if (normalizeSocialProfileUrl({ platform: 'youtube', profileUrl: value })) return 'youtube';
+    if (normalizeSocialProfileUrl({ platform: 'twitch', profileUrl: value })) return 'twitch';
+    if (normalizeSocialProfileUrl({ platform: 'kick', profileUrl: value })) return 'kick';
+  }
+  return null;
+}
+
+async function qualifyTwitchApplication(application: InboundCreatorApplication, now: Date): Promise<CreatorQualification> {
+  const login = platformIdentity(application, 'twitch');
+  if (!login) return { decision: 'yellow', reason: 'Falta una identidad inequívoca del canal de Twitch.' };
+  const search = await searchTwitchChannels(login, false);
+  const exact = search.find(channel => channel.login.toLowerCase() === login.toLowerCase());
+  if (!exact) return { decision: 'yellow', reason: 'No se pudo confirmar de forma inequívoca el canal de Twitch.' };
+  const [channel] = await getTwitchChannelInfo([exact.broadcasterId]);
+  if (!channel || channel.followerCount === null) {
+    return { decision: 'yellow', reason: 'No se pudo verificar el total de seguidores de Twitch.' };
+  }
+  if (!hasMinimumCreatorFollowers('twitch', channel.followerCount)) {
+    return { decision: 'red', reason: `${channel.followerCount.toLocaleString('es-ES')} seguidores: no supera el mínimo de 10.000 en Twitch.` };
+  }
+  const samples = await getRecentLiveAudienceSamplesByExternalIds('twitch', [channel.broadcasterId], now);
+  const summary = summarizeLiveAudience(samples.get(channel.broadcasterId) ?? []);
+  if (summary.averageViewers === null || summary.cs2ContentShare === null) {
+    return { decision: 'yellow', reason: `Twitch supera 10.000 seguidores, pero faltan observaciones nuevas para completar al menos ${summary.measuredMinutes}/60 minutos medidos.` };
+  }
+  const failures = [
+    summary.averageViewers < 80 ? `media de ${summary.averageViewers} espectadores, inferior a 80` : null,
+    summary.cs2ContentShare < 0.3 ? `${Math.round(summary.cs2ContentShare * 100)}% de contenido CS2, inferior al 30%` : null,
+  ].filter((value): value is string => value !== null);
+  return failures.length > 0
+    ? { decision: 'red', reason: failures.join('; ') }
+    : { decision: 'green', reason: `${channel.followerCount.toLocaleString('es-ES')} seguidores, media ${summary.averageViewers} y ${Math.round(summary.cs2ContentShare * 100)}% de CS2; cualquier idioma admitido.` };
+}
+
+async function qualifyKickApplication(application: InboundCreatorApplication): Promise<CreatorQualification> {
+  const slug = platformIdentity(application, 'kick');
+  if (!slug) return { decision: 'yellow', reason: 'Falta una identidad inequívoca del canal de Kick.' };
+  const channel = await getKickChannel(slug);
+  if (!channel) return { decision: 'yellow', reason: 'No se pudo confirmar el canal de Kick.' };
+  if (channel.followers === null) {
+    return { decision: 'yellow', reason: 'La API oficial de Kick no facilita seguidores; hay que verificar manualmente que supere 2.000.' };
+  }
+  return hasMinimumCreatorFollowers('kick', channel.followers)
+    ? { decision: 'green', reason: `${channel.followers.toLocaleString('es-ES')} seguidores: supera 2.000 en Kick.` }
+    : { decision: 'red', reason: `${channel.followers.toLocaleString('es-ES')} seguidores: no supera 2.000 en Kick.` };
+}
+
 export async function qualifyCreatorApplication(
   application: InboundCreatorApplication,
   now = new Date(),
 ): Promise<CreatorQualification> {
   const platform = application.declaredPlatform.trim().toLowerCase();
-  const handle = application.declaredHandle.toLowerCase();
-  const links = (application.otherLinks ?? '').toLowerCase();
-  const isYouTube = platform.includes('youtube') || handle.includes('youtube.com') || links.includes('youtube.com');
+  const declaredNetwork = platform.includes('youtube') ? 'youtube'
+    : platform.includes('twitch') ? 'twitch'
+      : platform.includes('kick') ? 'kick' : null;
+  const inferredNetwork = inferPlatformFromUrls([
+    application.declaredHandle, application.otherLinks ?? '',
+  ]);
+  const selectedNetwork = declaredNetwork ?? inferredNetwork;
+  const isYouTube = selectedNetwork === 'youtube';
+  const isTwitch = selectedNetwork === 'twitch';
+  const isKick = selectedNetwork === 'kick';
+
+  if (isTwitch) return qualifyTwitchApplication(application, now);
+  if (isKick) return qualifyKickApplication(application);
 
   if (!isYouTube) {
     return {
       decision: 'yellow',
-      reason: platform.includes('twitch') || platform.includes('kick')
-        ? 'Twitch/Kick requiere una media verificada de CS2 de los últimos 30 días; la API oficial no aporta ese historial.'
-        : 'La red o las métricas verificables no permiten una decisión automática segura.',
+      reason: 'La red o las métricas verificables no permiten una decisión automática segura.',
     };
   }
 

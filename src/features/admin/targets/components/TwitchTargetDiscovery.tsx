@@ -14,8 +14,7 @@ const INPUT_CLASS = 'w-full rounded-lg border border-sp-admin-border bg-sp-admin
 
 export function TwitchTargetDiscovery(): React.ReactElement {
   const [query, setQuery] = useState('Counter-Strike');
-  const [language, setLanguage] = useState('any');
-  const [minimumFollowers, setMinimumFollowers] = useState(250);
+  const [minimumFollowers, setMinimumFollowers] = useState(10_000);
   const [results, setResults] = useState<readonly TwitchDiscoveryCandidate[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [message, setMessage] = useState<string | null>(null);
@@ -28,7 +27,7 @@ export function TwitchTargetDiscovery(): React.ReactElement {
     startTransition(async () => {
       const response = await discoverTwitchTargetsAction({
         query,
-        language,
+        language: 'any',
         liveOnly: true,
         minimumFollowers,
       });
@@ -57,22 +56,12 @@ export function TwitchTargetDiscovery(): React.ReactElement {
 
   return (
     <div className="space-y-4">
-      <div className="grid gap-3 lg:grid-cols-[minmax(220px,1fr)_180px_180px_auto]">
+      <div className="grid gap-3 lg:grid-cols-[minmax(220px,1fr)_180px_auto]">
         <Field label="Nombre del canal o creador">
           <input value={query} onChange={(event) => setQuery(event.target.value)} className={INPUT_CLASS} />
         </Field>
-        <Field label="Idioma">
-          <select value={language} onChange={(event) => setLanguage(event.target.value)} className={INPUT_CLASS}>
-            <option value="any">Cualquier idioma</option>
-            <option value="es">Español</option>
-            <option value="en">Inglés</option>
-            <option value="pt">Portugués</option>
-            <option value="de">Alemán</option>
-            <option value="fr">Francés</option>
-          </select>
-        </Field>
         <Field label="Seguidores mínimos">
-          <input type="number" min={100} value={minimumFollowers} onChange={(event) => setMinimumFollowers(Number(event.target.value))} className={INPUT_CLASS} />
+          <input type="number" min={10_000} value={minimumFollowers} onChange={(event) => setMinimumFollowers(Number(event.target.value))} className={INPUT_CLASS} />
         </Field>
         <button type="button" onClick={search} disabled={isPending || query.trim().length < 2} className="self-end rounded-lg bg-[#9146ff] px-5 py-2.5 text-sm font-bold text-white disabled:opacity-40">
           {isPending ? 'Buscando…' : 'Buscar en Twitch'}
@@ -80,7 +69,7 @@ export function TwitchTargetDiscovery(): React.ReactElement {
       </div>
 
       <p className="rounded-lg border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-xs text-amber-200/80">
-        Un directo puntual ya no valida un lead. Solo puede pasar a candidato con una media verificada de CS2 en 30 días: 70–89 se marca en amarillo y 90+ en verde. La API oficial de Twitch no entrega ese histórico, por lo que los resultados sin fuente quedan en revisión.
+        Reglas de Twitch: más de 10.000 seguidores, media verificada mínima de 80 espectadores y al menos un 30% del tiempo medido en CS2. Se acepta cualquier idioma. Sin una hora mínima de medición completa, el perfil queda en revisión y no puede añadirse como candidato válido.
       </p>
       {message && <p className="text-xs text-sp-admin-muted">{message}</p>}
 
@@ -111,6 +100,7 @@ export function TwitchTargetDiscovery(): React.ReactElement {
                       <span className="rounded-full bg-violet-500/10 px-2 py-0.5 text-[10px] font-bold text-violet-300">{candidate.score}/100</span>
                     </div>
                     <p className="mt-1 text-xs text-sp-admin-muted">{candidate.followerCount === null ? 'No disponible' : numberFormat.format(candidate.followerCount)} seguidores · {candidate.language.toUpperCase()} · {candidate.currentGame || 'Sin categoría'}</p>
+                    <p className="mt-1 text-xs text-sp-admin-muted">Media 30d: {candidate.averageViewers30d === null ? 'sin cobertura suficiente' : numberFormat.format(candidate.averageViewers30d)} · CS2: {candidate.cs2ContentShare30d === null ? 'sin cobertura suficiente' : `${Math.round(candidate.cs2ContentShare30d * 100)}%`}</p>
                     <p className="mt-2 text-[11px] text-sp-admin-muted">{candidate.reasons.join(' · ')}</p>
                   </div>
                 </div>

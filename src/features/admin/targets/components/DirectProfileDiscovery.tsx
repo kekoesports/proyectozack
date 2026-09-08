@@ -53,7 +53,10 @@ function KickDiscovery(): React.ReactElement {
             <a href={profile.profileUrl} target="_blank" rel="noreferrer" className="font-bold text-sp-admin-text hover:text-[#53fc18]">{profile.fullName}</a>
             <p className="mt-1 text-xs text-sp-admin-muted">{profile.followers === null ? 'No disponible' : profile.followers.toLocaleString('es-ES')} seguidores · {profile.country ?? 'país sin declarar'}</p>
             <p className="mt-1 text-[11px] text-sp-admin-muted">{profile.categories.join(' · ') || 'Sin categorías recientes'}</p>
-            <button type="button" onClick={save} disabled={isPending} className="mt-3 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white disabled:opacity-40">Añadir a Leads CC</button>
+            {profile.followers === null
+              ? <p className="mt-2 text-[11px] text-amber-300">La API oficial de Kick no facilita seguidores. Sin verificar que supera 2.000 no se puede añadir como lead válido.</p>
+              : null}
+            <button type="button" onClick={save} disabled={isPending || profile.followers === null || profile.followers <= 2_000} className="mt-3 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white disabled:opacity-40">Añadir a Leads CC</button>
           </div>
         </article>
       )}
