@@ -138,12 +138,22 @@ export async function processCreatorOutreachAutomation(
   let errors = 0;
 
   for (const application of eligible) {
+    let qualification: CreatorQualification;
     try {
-      const qualification = await qualifyCreatorApplication(application);
-      if (qualification.decision === 'yellow') {
-        yellowReview += 1;
-        continue;
-      }
+      qualification = await qualifyCreatorApplication(application);
+    } catch (error) {
+      // Una API externa caída o sin cuota no es motivo para rechazar ni para
+      // contactar automáticamente: la candidatura queda para revisión humana.
+      const reason = error instanceof Error ? error.message : 'unknown-error';
+      console.warn('[creator-outreach] qualification deferred', { sourceId: application.sourceId, reason });
+      yellowReview += 1;
+      continue;
+    }
+    if (qualification.decision === 'yellow') {
+      yellowReview += 1;
+      continue;
+    }
+    try {
       const [sourceTypeValue, sourceIdValue] = application.sourceId.split(':', 2);
       const sourceId = Number(sourceIdValue);
       const sourceType = sourceTypeValue === 'creator' ? 'creator_application'

@@ -85,3 +85,12 @@ it('no procesa historial ni envía amarillo', async () => {
   expect(result).toMatchObject({ eligible: 1, yellowReview: 1, greenSent: 0, redSent: 0 });
   expect(mockSend).not.toHaveBeenCalled();
 });
+
+it('deja en amarillo una candidatura si falla la verificación externa', async () => {
+  mockSearch.mockRejectedValue(new Error('youtube-api-unavailable'));
+  const result = await processCreatorOutreachAutomation([application()]);
+  expect(result).toEqual({
+    eligible: 1, greenSent: 0, redSent: 0, yellowReview: 1, duplicates: 0, errors: 0,
+  });
+  expect(mockSend).not.toHaveBeenCalled();
+});
