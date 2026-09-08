@@ -46,6 +46,7 @@ export * from './campaignSplits';
 export * from './newsletterSubscribers';
 export * from './newsletterSends';
 export * from './emailDelivery';
+export * from './creatorOutreach';
 
 export * from './brandCatalog';
 

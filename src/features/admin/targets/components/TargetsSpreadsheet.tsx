@@ -26,6 +26,7 @@ import {
 } from './TargetsSpreadsheet.parts';
 import { TargetRow } from './TargetsSpreadsheet.row';
 import { CreatorFeedbackForm } from './CreatorFeedbackForm';
+import { TargetOutreachComposer } from './TargetOutreachComposer';
 
 /**
  * Tabla editable tipo spreadsheet para gestionar targets de outreach (Twitch + YouTube).
@@ -62,6 +63,7 @@ export function TargetsSpreadsheet({
   const [brandUserId, setBrandUserId] = useState('');
   const [isPending, startTransition] = useTransition();
   const [importResult, setImportResult] = useState<{ inserted: number; updated: number; errors: number } | null>(null);
+  const [contactTarget, setContactTarget] = useState<Target | null>(null);
   const csvInputRef = useRef<HTMLInputElement>(null);
 
   const statusCounts = useMemo(() => {
@@ -319,6 +321,11 @@ export function TargetsSpreadsheet({
       </p>}
 
       {feedbackMessage && <p role="status" className="text-xs text-sp-admin-muted">{feedbackMessage}</p>}
+      {contactTarget?.contactEmail ? <TargetOutreachComposer
+        key={contactTarget.id}
+        target={{ id: contactTarget.id, name: contactTarget.fullName?.trim() || contactTarget.username, email: contactTarget.contactEmail }}
+        onClose={() => setContactTarget(null)}
+      /> : null}
       {feedback && feedbackIds.length > 0 && <CreatorFeedbackForm
         key={`${feedback.status}:${feedbackIds.join(',')}`} targetIds={feedbackIds} status={feedback.status}
         pending={isPending} onSave={saveFeedback} onCancel={() => setFeedback(null)}
@@ -385,6 +392,7 @@ export function TargetsSpreadsheet({
                   setStatus={setStatus}
                   saveNotes={saveNotes}
                   handleDelete={handleDelete}
+                  startContact={setContactTarget}
                   isPending={isPending}
                 />
               ))

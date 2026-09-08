@@ -20,7 +20,13 @@ function fakeTransaction(results: InsertResult[]) {
     })),
   }));
 
-  return { insert };
+  const update = jest.fn(() => ({
+    set: jest.fn(() => ({
+      where: jest.fn(() => ({ returning: jest.fn(async () => []) })),
+    })),
+  }));
+
+  return { insert, update };
 }
 
 describe('Resend webhook persistence', () => {

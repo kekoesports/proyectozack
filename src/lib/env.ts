@@ -35,6 +35,12 @@ export const env = createEnv({
     RESEND_API_KEY: z.string().min(1),
     /** Firma Svix del endpoint /api/webhooks/resend. Sin ella falla en cerrado. */
     RESEND_WEBHOOK_SECRET: z.string().min(20).optional(),
+    /** Dominio receptor de Resend. Sin él, se conserva el Reply-To del buzón operativo. */
+    CREATOR_REPLY_RECEIVING_DOMAIN: z.string().trim().toLowerCase()
+      .regex(/^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/)
+      .optional(),
+    /** Días sin respuesta antes de marcar seguimiento pendiente. */
+    CREATOR_OUTREACH_NO_RESPONSE_DAYS: z.coerce.number().int().min(1).max(30).default(7),
     /** Solo build/CI: credenciales para subir source maps, nunca al navegador. */
     SENTRY_ORG: z.string().min(1).optional(),
     SENTRY_PROJECT: z.string().min(1).optional(),
@@ -306,6 +312,8 @@ export const env = createEnv({
     STORAGE_FALLBACK_TO_VERCEL: process.env.STORAGE_FALLBACK_TO_VERCEL,
     RESEND_API_KEY: process.env.RESEND_API_KEY,
     RESEND_WEBHOOK_SECRET: process.env.RESEND_WEBHOOK_SECRET,
+    CREATOR_REPLY_RECEIVING_DOMAIN: process.env.CREATOR_REPLY_RECEIVING_DOMAIN,
+    CREATOR_OUTREACH_NO_RESPONSE_DAYS: process.env.CREATOR_OUTREACH_NO_RESPONSE_DAYS,
     SENTRY_ORG: process.env.SENTRY_ORG,
     SENTRY_PROJECT: process.env.SENTRY_PROJECT,
     SENTRY_AUTH_TOKEN: process.env.SENTRY_AUTH_TOKEN,

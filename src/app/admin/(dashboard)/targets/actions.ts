@@ -6,6 +6,9 @@ import { randomUUID } from 'crypto';
 import { requirePermission } from '@/lib/permissions';
 import { parseFormData } from '@/lib/forms/parseFormData';
 import { firstError } from '@/lib/forms/firstError';
+import { CreatorOutreachError, sendCreatorOutreach } from '@/lib/email/creatorOutreach';
+import { getCreatorOutreachForSource } from '@/lib/queries/creatorOutreach';
+import { sendTargetOutreachSchema } from '@/lib/schemas/creator-outreach';
 import { logRedacted } from '@/lib/log';
 import { isHostOrSubdomain } from '@/lib/utils/hostnames';
 import {
@@ -28,6 +31,52 @@ import {
 } from '@/lib/schemas/target';
 
 const REVALIDATE = '/admin/targets';
+
+export type TargetOutreachActionResult = { readonly ok: true; readonly replyTracking: boolean } | { readonly ok: false; readonly error: string };
+
+export async function sendTargetOutreachAction(input: unknown): Promise<TargetOutreachActionResult> {
+  const session = await requirePermission('targets', 'write');
+  const parsed = sendTargetOutreachSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: 'Revisa el asunto y el mensaje.' };
+  try {
+    const result = await sendCreatorOutreach({ ...parsed.data, sourceType: 'target' }, session.user.id);
+    revalidatePath(REVALIDATE);
+    return { ok: true, replyTracking: result.replyTracking };
+  } catch (error) {
+    logRedacted('error', '[targets] sendTargetOutreachAction failed:', error);
+    if (error instanceof CreatorOutreachError && error.code === 'suppressed') {
+      return { ok: false, error: 'Este contacto está dado de baja o su dirección está suprimida.' };
+    }
+    if (error instanceof CreatorOutreachError && error.code === 'not_found') {
+      return { ok: false, error: 'El lead no existe o no tiene un email válido.' };
+    }
+    return { ok: false, error: 'No se pudo enviar. El lead no se ha marcado como contactado.' };
+  }
+}
+
+export async function getTargetOutreachAction(input: unknown): Promise<{
+  readonly ok: true;
+  readonly thread: {
+    readonly status: string;
+    readonly lastReplySummary: string | null;
+    readonly suggestedReply: string | null;
+    readonly messages: readonly { readonly id: number; readonly direction: string; readonly status: string; readonly subject: string; readonly textBody: string; readonly occurredAt: string }[];
+  } | null;
+} | { readonly ok: false; readonly error: string }> {
+  await requirePermission('targets', 'read');
+  const parsed = updateTargetStatusSchema.shape.id.safeParse(input);
+  if (!parsed.success) return { ok: false, error: 'Lead inválido.' };
+  const thread = await getCreatorOutreachForSource('target', parsed.data);
+  return {
+    ok: true,
+    thread: thread ? {
+      status: thread.status,
+      lastReplySummary: thread.lastReplySummary,
+      suggestedReply: thread.suggestedReply,
+      messages: thread.messages.map((message) => ({ ...message, occurredAt: message.occurredAt.toISOString() })),
+    } : null,
+  };
+}
 
 // ─── CSV header aliases ───────────────────────────────────────────────────────
 

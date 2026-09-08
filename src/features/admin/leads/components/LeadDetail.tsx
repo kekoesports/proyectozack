@@ -18,6 +18,12 @@ type Props = {
   readonly lead: LeadWithAssignee;
   readonly staff: readonly StaffOption[];
   readonly canWrite: boolean;
+  readonly outreach: {
+    readonly status: string;
+    readonly lastReplySummary: string | null;
+    readonly suggestedReply: string | null;
+    readonly messages: readonly { readonly id: number; readonly direction: string; readonly status: string; readonly subject: string; readonly textBody: string; readonly occurredAt: string }[];
+  } | null;
 };
 
 /** Una línea del log append-only: `[ISO] Autor: cuerpo`. */
@@ -45,7 +51,7 @@ function Field({ label, value }: { label: string; value: string | null }): React
   );
 }
 
-export function LeadDetail({ lead, staff, canWrite }: Props): React.ReactElement {
+export function LeadDetail({ lead, staff, canWrite, outreach }: Props): React.ReactElement {
   const [note, setNote] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -183,8 +189,22 @@ export function LeadDetail({ lead, staff, canWrite }: Props): React.ReactElement
           leadId={lead.id}
           leadName={lead.name}
           recipientEmail={lead.email}
+          initialBody={outreach?.suggestedReply ?? ''}
         />
       ) : null}
+
+      {outreach ? <section className="rounded-lg border border-sp-admin-border bg-sp-admin-card p-4">
+        <h2 className="text-sm font-semibold text-sp-admin-text">Conversación por email · {outreach.status}</h2>
+        {outreach.lastReplySummary ? <p className="mt-2 text-sm text-sp-admin-text">Resumen de la última respuesta: {outreach.lastReplySummary}</p> : null}
+        {outreach.suggestedReply ? <p className="mt-2 rounded border border-sp-admin-border bg-sp-admin-bg p-3 text-sm text-sp-admin-text"><span className="font-semibold">Borrador sugerido:</span> {outreach.suggestedReply}</p> : null}
+        <ol className="mt-3 space-y-2">
+          {outreach.messages.map((message) => <li key={message.id} className="rounded border border-sp-admin-border/70 p-3 text-sm">
+            <p className="text-xs font-semibold uppercase tracking-wide text-sp-admin-muted">{message.direction === 'inbound' ? 'Recibido' : 'Enviado'} · {new Date(message.occurredAt).toLocaleString('es-ES')}</p>
+            <p className="mt-1 font-semibold text-sp-admin-text">{message.subject}</p>
+            <p className="mt-1 whitespace-pre-wrap text-sp-admin-text">{message.textBody}</p>
+          </li>)}
+        </ol>
+      </section> : null}
 
       <section className="rounded-lg border border-sp-admin-border bg-sp-admin-card p-4 space-y-3">
         <h2 className="text-sm font-semibold text-sp-admin-text">Historial y notas internas</h2>

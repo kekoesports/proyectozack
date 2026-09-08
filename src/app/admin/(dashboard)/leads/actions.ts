@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 
-import { sendLeadReplyEmail } from '@/lib/email/leadReply';
+import { CreatorOutreachError, sendCreatorOutreach } from '@/lib/email/creatorOutreach';
 import { requirePermission } from '@/lib/permissions';
 import {
   addLeadNote,
@@ -85,20 +85,24 @@ export async function sendLeadReplyAction(input: unknown): Promise<LeadActionRes
     const lead = await getLeadById(parsed.data.id);
     if (!lead) return { ok: false, error: 'El lead ya no existe' };
 
-    const providerEmailId = await sendLeadReplyEmail({
-      to: lead.email,
+    const result = await sendCreatorOutreach({
+      sourceType: 'contact_submission',
+      sourceId: lead.id,
       subject: parsed.data.subject,
       body: parsed.data.body,
       idempotencyKey: parsed.data.idempotencyKey,
-    });
+    }, session.user.id);
     await recordLeadEmailSent({
       id: lead.id,
       subject: parsed.data.subject,
-      providerEmailId,
+      providerEmailId: result.providerEmailId,
       userId: session.user.id,
     });
   } catch (err) {
     logRedacted('error', '[admin/leads] sendLeadReply error:', err);
+    if (err instanceof CreatorOutreachError && err.code === 'suppressed') {
+      return { ok: false, error: 'Este contacto está dado de baja o su dirección está suprimida.' };
+    }
     return {
       ok: false,
       error: 'No se pudo enviar el email. El lead no se ha marcado como contactado.',

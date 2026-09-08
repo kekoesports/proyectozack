@@ -222,6 +222,8 @@ async function getAccessToken(): Promise<string> {
 
 type SheetState = {
   readonly existingIds: Set<string>;
+  readonly rowByIdentity: ReadonlyMap<string, number>;
+  readonly outreachByRow: ReadonlyMap<number, readonly string[]>;
   readonly nextRow: number;
 };
 
@@ -239,7 +241,17 @@ async function readSheetState(spreadsheetId: string, token: string): Promise<She
     const value = row[0];
     return typeof value === 'string' && value ? [value] : [];
   }));
-  return { existingIds, nextRow: 5 + rows.length };
+  const rowByIdentity = new Map<string, number>();
+  const outreachByRow = new Map<number, readonly string[]>();
+  rows.forEach((row, index) => {
+    const rowNumber = 5 + index;
+    const sourceId = typeof row[0] === 'string' ? row[0] : '';
+    const email = typeof row[3] === 'string' ? row[3].trim().toLowerCase() : '';
+    if (sourceId) rowByIdentity.set(`id:${sourceId}`, rowNumber);
+    if (email && !rowByIdentity.has(`email:${email}`)) rowByIdentity.set(`email:${email}`, rowNumber);
+    outreachByRow.set(rowNumber, [15, 16, 17].map((column) => typeof row[column] === 'string' ? row[column] : ''));
+  });
+  return { existingIds, rowByIdentity, outreachByRow, nextRow: 5 + rows.length };
 }
 
 async function getSheetId(spreadsheetId: string, token: string): Promise<number> {
@@ -290,6 +302,7 @@ async function sortSheetByNewest(
 export type CreatorSheetSyncResult = {
   readonly discovered: number;
   readonly appended: number;
+  readonly updated: number;
   readonly remaining: number;
 };
 
@@ -300,11 +313,13 @@ export async function syncCreatorApplicationsToSheet(
   const spreadsheetId = env.CREATOR_APPLICATIONS_SHEET_ID;
   if (!spreadsheetId) throw new Error('missing-creator-applications-sheet-id');
   const token = await getAccessToken();
-  const [{ existingIds, nextRow }, sheetId] = await Promise.all([
+  const [{ existingIds, rowByIdentity, outreachByRow, nextRow }, sheetId] = await Promise.all([
     readSheetState(spreadsheetId, token),
     getSheetId(spreadsheetId, token),
   ]);
-  const pending = applications.filter((item) => !existingIds.has(item.sourceId));
+  const existingRowFor = (item: InboundCreatorApplication): number | undefined =>
+    rowByIdentity.get(`id:${item.sourceId}`) ?? rowByIdentity.get(`email:${item.email.trim().toLowerCase()}`);
+  const pending = applications.filter((item) => !existingIds.has(item.sourceId) && existingRowFor(item) === undefined);
   const selected = pending.slice(0, maxPerRun);
   const rows: unknown[][] = [];
 
@@ -326,10 +341,36 @@ export async function syncCreatorApplicationsToSheet(
       enriched.verifiedFollowers ?? '',
       application.declaredAverageAudience ?? '',
       enriched.lastActivity?.toISOString().slice(0, 10) ?? '',
-      'Revisar',
-      '',
-      '',
+      sheetStatus(itemStatus(application.outreachStatus)),
+      application.lastContactAt?.toISOString().slice(0, 10) ?? '',
+      application.replySummary ?? '',
     ]);
+  }
+
+  const updates = applications.flatMap((application) => {
+    const row = existingRowFor(application);
+    const values = [
+      sheetStatus(itemStatus(application.outreachStatus)),
+      application.lastContactAt?.toISOString().slice(0, 10) ?? '',
+      application.replySummary ?? '',
+    ];
+    const current = row ? outreachByRow.get(row) : undefined;
+    return row && values.some((value, index) => value !== (current?.[index] ?? '')) ? [{
+      range: `'${SHEET_NAME}'!P${row}:R${row}`,
+      values: [values],
+    }] : [];
+  });
+  if (updates.length > 0) {
+    const response = await fetch(
+      `https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(spreadsheetId)}/values:batchUpdate`,
+      {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ valueInputOption: 'USER_ENTERED', data: updates }),
+        signal: AbortSignal.timeout(TIMEOUT_MS),
+      },
+    );
+    if (!response.ok) throw new Error(`google-sheets-status-update-${response.status}`);
   }
 
   if (rows.length > 0) {
@@ -350,11 +391,34 @@ export async function syncCreatorApplicationsToSheet(
     if (!response.ok) throw new Error(`google-sheets-append-${response.status}`);
   }
 
-  await sortSheetByNewest(spreadsheetId, token, sheetId, existingIds.size + rows.length);
+  await sortSheetByNewest(spreadsheetId, token, sheetId, nextRow - 5 + rows.length);
 
   return {
     discovered: applications.length,
     appended: rows.length,
+    updated: updates.length,
     remaining: Math.max(0, pending.length - rows.length),
   };
+}
+
+function itemStatus(value: string): string {
+  return value.trim().toLowerCase();
+}
+
+function sheetStatus(value: string): string {
+  const labels: Record<string, string> = {
+    not_contacted: 'Sin contactar',
+    draft: 'Borrador',
+    sent: 'Contactado',
+    delivered: 'Entregado',
+    replied: 'Respondió',
+    interested: 'Interesado',
+    needs_info: 'Pide información',
+    not_interested: 'No interesado',
+    no_response: 'Sin respuesta',
+    bounced: 'Email rebotado',
+    complained: 'Queja',
+    unsubscribed: 'Baja',
+  };
+  return labels[value] ?? 'Revisar';
 }
