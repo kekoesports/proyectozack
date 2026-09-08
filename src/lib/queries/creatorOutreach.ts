@@ -148,18 +148,24 @@ export async function appendCreatorOutreachNote(input: {
   const note = input.note.trim().replace(/\s+/g, ' ');
   const entry = `[${new Date().toISOString()}] ${input.actorLabel}: ${note}`;
   await db.transaction(async (tx) => {
-    const [thread] = await tx.insert(creatorOutreachThreads).values({
+    const [inserted] = await tx.insert(creatorOutreachThreads).values({
       normalizedEmail,
       status: 'draft',
       internalNotes: entry,
-    }).onConflictDoUpdate({
-      target: creatorOutreachThreads.normalizedEmail,
-      set: {
-        internalNotes: sql`concat_ws(E'\n', nullif(${creatorOutreachThreads.internalNotes}, ''), ${entry})`,
-        updatedAt: new Date(),
-      },
-    }).returning({ id: creatorOutreachThreads.id });
+    }).onConflictDoNothing({ target: creatorOutreachThreads.normalizedEmail })
+      .returning({ id: creatorOutreachThreads.id, internalNotes: creatorOutreachThreads.internalNotes });
+    const thread = inserted ?? (await tx.select({
+      id: creatorOutreachThreads.id,
+      internalNotes: creatorOutreachThreads.internalNotes,
+    }).from(creatorOutreachThreads)
+      .where(eq(creatorOutreachThreads.normalizedEmail, normalizedEmail)).limit(1))[0];
     if (!thread) throw new Error('creator-outreach-note-thread-not-created');
+    if (!inserted) {
+      await tx.update(creatorOutreachThreads).set({
+        internalNotes: thread.internalNotes ? `${thread.internalNotes}\n${entry}` : entry,
+        updatedAt: new Date(),
+      }).where(eq(creatorOutreachThreads.id, thread.id));
+    }
     await attachMatchingSources(tx, thread.id, normalizedEmail, input.sourceType, input.sourceId);
   });
 }
