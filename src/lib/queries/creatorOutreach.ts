@@ -1,6 +1,6 @@
 import 'server-only';
 
-import { and, asc, eq, inArray, lte, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, inArray, lte, sql } from 'drizzle-orm';
 
 import {
   contactSubmissions,
@@ -122,9 +122,21 @@ export async function completeCreatorOutreach(input: {
   await db.transaction(async (tx) => {
     await tx.update(creatorOutreachMessages).set({ status: 'sent', providerEmailId: input.providerEmailId, occurredAt: now })
       .where(eq(creatorOutreachMessages.id, input.messageId));
+    // Resend puede entregar y llamar al webhook antes de que su ID termine de
+    // asociarse al mensaje. Reconciliar esos eventos ya persistidos evita que
+    // un correo entregado se quede para siempre como solo "enviado".
+    const deliveryEvents = await tx.select({ type: emailDeliveryEvents.eventType })
+      .from(emailDeliveryEvents)
+      .where(eq(emailDeliveryEvents.resendEmailId, input.providerEmailId))
+      .orderBy(desc(emailDeliveryEvents.eventCreatedAt));
+    const delivery = creatorDeliveryState(deliveryEvents.map((event) => event.type));
+    if (delivery.message !== 'sent') {
+      await tx.update(creatorOutreachMessages).set({ status: delivery.message })
+        .where(eq(creatorOutreachMessages.id, input.messageId));
+    }
     await tx.update(creatorOutreachThreads).set({
-      status: 'sent', firstContactAt: sql`coalesce(${creatorOutreachThreads.firstContactAt}, ${now})`,
-      lastOutboundAt: now, nextFollowUpAt, updatedAt: now,
+      status: delivery.thread, firstContactAt: sql`coalesce(${creatorOutreachThreads.firstContactAt}, ${now})`,
+      lastOutboundAt: now, nextFollowUpAt: delivery.thread === 'delivered' || delivery.thread === 'sent' ? nextFollowUpAt : null, updatedAt: now,
     }).where(eq(creatorOutreachThreads.id, input.threadId));
     const sources = await tx.select().from(creatorOutreachSources).where(eq(creatorOutreachSources.threadId, input.threadId));
     const targetIds = sources.filter((item) => item.sourceType === 'target').map((item) => item.sourceId);
@@ -132,6 +144,18 @@ export async function completeCreatorOutreach(input: {
     if (targetIds.length > 0) await tx.update(targets).set({ status: 'contactado', contactedAt: sql`coalesce(${targets.contactedAt}, ${now})`, updatedAt: now }).where(inArray(targets.id, targetIds));
     if (leadIds.length > 0) await tx.update(contactSubmissions).set({ status: 'contactado', respondedAt: sql`coalesce(${contactSubmissions.respondedAt}, ${now})` }).where(inArray(contactSubmissions.id, leadIds));
   });
+}
+
+export function creatorDeliveryState(eventTypes: readonly string[]): {
+  readonly message: 'sent' | 'delivered' | 'failed' | 'complained';
+  readonly thread: 'sent' | 'delivered' | 'bounced' | 'complained';
+} {
+  if (eventTypes.includes('email.complained')) return { message: 'complained', thread: 'complained' };
+  if (eventTypes.some((type) => ['email.bounced', 'email.failed', 'email.suppressed'].includes(type))) {
+    return { message: 'failed', thread: 'bounced' };
+  }
+  if (eventTypes.includes('email.delivered')) return { message: 'delivered', thread: 'delivered' };
+  return { message: 'sent', thread: 'sent' };
 }
 
 export async function failCreatorOutreach(messageId: number): Promise<void> {
