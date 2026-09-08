@@ -67,7 +67,7 @@ function identityKey(value: string): string {
 }
 
 function extractUrls(input: InboundCreatorApplication): string[] {
-  const text = [input.declaredHandle, input.message ?? ''].join(' ');
+  const text = [input.declaredHandle, input.otherLinks ?? '', input.message ?? ''].join(' ');
   return [...new Set(text.match(/https?:\/\/[^\s<>()]+/gi) ?? [])]
     .map((url) => url.replace(/[),.;]+$/, ''));
 }
@@ -118,9 +118,9 @@ async function enrichApplication(input: InboundCreatorApplication): Promise<Enri
         : detected === 'Kick' ? classified.kickUrl || input.declaredHandle
           : input.declaredHandle,
   );
-  const fallbackContent = input.declaredPlatform.toLowerCase() === 'cs2'
+  const fallbackContent = input.declaredContent?.trim() || (input.declaredPlatform.toLowerCase() === 'cs2'
     ? 'Counter-Strike 2'
-    : inferContent(`${input.message ?? ''} ${input.declaredHandle}`);
+    : inferContent(`${input.message ?? ''} ${input.declaredHandle}`));
 
   try {
     if (detected === 'YouTube' && handle) {
@@ -226,7 +226,7 @@ type SheetState = {
 };
 
 async function readSheetState(spreadsheetId: string, token: string): Promise<SheetState> {
-  const range = encodeURIComponent(`'${SHEET_NAME}'!A5:Q`);
+  const range = encodeURIComponent(`'${SHEET_NAME}'!A5:R`);
   const response = await fetch(
     `https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(spreadsheetId)}/values/${range}`,
     { headers: { Authorization: `Bearer ${token}` }, signal: AbortSignal.timeout(TIMEOUT_MS) },
@@ -275,7 +275,7 @@ async function sortSheetByNewest(
               startRowIndex: 4,
               endRowIndex: 4 + dataRowCount,
               startColumnIndex: 0,
-              endColumnIndex: 17,
+              endColumnIndex: 18,
             },
             sortSpecs: [{ dimensionIndex: 1, sortOrder: 'DESCENDING' }],
           },
@@ -315,6 +315,7 @@ export async function syncCreatorApplicationsToSheet(
       application.createdAt.toISOString(),
       application.name,
       application.email,
+      application.country ?? '',
       enriched.gameOrContent,
       enriched.platform,
       enriched.youtubeUrl,
@@ -323,7 +324,7 @@ export async function syncCreatorApplicationsToSheet(
       enriched.otherUrls,
       application.declaredAudience ?? '',
       enriched.verifiedFollowers ?? '',
-      '',
+      application.declaredAverageAudience ?? '',
       enriched.lastActivity?.toISOString().slice(0, 10) ?? '',
       'Revisar',
       '',
@@ -332,11 +333,11 @@ export async function syncCreatorApplicationsToSheet(
   }
 
   if (rows.length > 0) {
-    // La plantilla tiene títulos combinados en B:P. Sheets desplaza un append
-    // basado en tabla hasta B:R; una actualización con rango exacto mantiene
-    // siempre el contrato A:Q y permite deduplicar por el ID oculto de A.
+    // La plantilla tiene títulos combinados sobre la tabla. Sheets puede desplazar
+    // un append basado en esa tabla; una actualización con rango exacto mantiene
+    // siempre el contrato A:R y permite deduplicar por el ID oculto de A.
     const lastRow = nextRow + rows.length - 1;
-    const range = encodeURIComponent(`'${SHEET_NAME}'!A${nextRow}:Q${lastRow}`);
+    const range = encodeURIComponent(`'${SHEET_NAME}'!A${nextRow}:R${lastRow}`);
     const response = await fetch(
       `https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(spreadsheetId)}/values/${range}?valueInputOption=USER_ENTERED`,
       {

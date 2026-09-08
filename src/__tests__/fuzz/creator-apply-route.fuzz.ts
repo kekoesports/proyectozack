@@ -54,10 +54,13 @@ describe('trpc.creatorApply.submit — fuzz', () => {
 
   it('valid payloads always succeed', async () => {
     const validPayload = fc.record({
-      name: fc.string({ minLength: 2, maxLength: 100 }),
+      name: fc.string({ minLength: 2, maxLength: 100 }).filter((value) => value.trim().length >= 2),
       email: fc.constant('test@example.com'),
-      platform: fc.string({ minLength: 1, maxLength: 50 }),
-      handle: fc.string({ minLength: 1, maxLength: 100 }),
+      country: fc.constant('España'),
+      platform: fc.constantFrom('twitch', 'youtube', 'instagram', 'tiktok', 'kick', 'otra'),
+      handle: fc.webUrl({ validSchemes: ['https'] }),
+      contentCategory: fc.string({ minLength: 2, maxLength: 100 })
+        .filter((value) => value.trim().length >= 2),
     });
 
     await fc.assert(
@@ -78,14 +81,17 @@ describe('trpc.creatorApply.submit — fuzz', () => {
     ];
 
     for (const payload of attackPayloads) {
+      const attackInput = {
+        name: 'Test Creator',
+        email: 'test@test.com',
+        country: 'España',
+        platform: payload.slice(0, 50),
+        handle: payload.slice(0, 500),
+        contentCategory: 'Gaming',
+        message: payload.slice(0, 2000),
+      };
       try {
-        await caller.creatorApply.submit({
-          name: 'Test Creator',
-          email: 'test@test.com',
-          platform: payload.slice(0, 50),
-          handle: payload.slice(0, 100),
-          message: payload.slice(0, 2000),
-        });
+        await caller.creatorApply.submit(attackInput as never);
       } catch (err) {
         expect(isAllowedError(err)).toBe(true);
       }
