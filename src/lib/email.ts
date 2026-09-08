@@ -1,6 +1,7 @@
 import { sendResendEmail } from './email/sendResendEmail';
 import { SITE_URL, absoluteUrl } from './site-url';
 import { buildWelcomeEmail, buildNewsletterEmail } from './email/newsletterTemplates';
+import type { ContactBody } from './schemas/contact';
 
 const SITE_HOSTNAME = new URL(SITE_URL).hostname;
 
@@ -14,24 +15,7 @@ function escapeHtml(str: string): string {
     .replace(/'/g, '&#x27;');
 }
 
-type ContactEmailPayload = {
-  name: string;
-  email: string;
-  phone?: string | undefined;
-  type: string;
-  company?: string | undefined;
-  message: string;
-  // Brand-specific
-  budget?: string | undefined;
-  timeline?: string | undefined;
-  audience?: string | undefined;
-  vertical?: string | undefined;
-  campaignType?: string | undefined;
-  // Creator-specific
-  platform?: string | undefined;
-  viewers?: string | undefined;
-  monetization?: string | undefined;
-}
+type ContactEmailPayload = ContactBody;
 
 function row(label: string, value: string | undefined): string {
   if (!value) return '';
@@ -58,7 +42,13 @@ export async function sendContactEmail(payload: ContactEmailPayload): Promise<vo
 
   const creatorSection = isCreator ? `
     <h3 style="margin:16px 0 8px; color:#f5632a;">Datos del canal</h3>
+    ${row('País', payload.country)}
     ${row('Plataforma', payload.platform)}
+    ${row('Canal principal', payload.channelUrl)}
+    ${row('Juego / contenido', payload.contentCategory)}
+    ${row('Seguidores declarados', payload.followers)}
+    ${row('Audiencia media', payload.averageAudience)}
+    ${row('Otras redes', payload.otherLinks)}
     ${row('Viewers / Suscriptores', payload.viewers)}
     ${row('Monetización', payload.monetization)}
   ` : '';

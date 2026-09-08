@@ -35,4 +35,25 @@ describe('contactBodySchema', () => {
   it('rejects missing required fields', () => {
     expect(contactBodySchema.safeParse({}).success).toBe(false);
   });
+
+  it('requires profile details only for creator contacts', () => {
+    const incomplete = contactBodySchema.safeParse({ ...valid, type: 'talent' });
+    expect(incomplete.success).toBe(false);
+    if (!incomplete.success) {
+      expect(incomplete.error.issues.map((issue) => issue.path[0])).toEqual(
+        expect.arrayContaining(['country', 'platform', 'channelUrl', 'contentCategory']),
+      );
+    }
+
+    expect(contactBodySchema.safeParse({
+      ...valid,
+      type: 'talent',
+      country: 'España',
+      platform: 'youtube',
+      channelUrl: 'https://youtube.com/@alice',
+      contentCategory: 'Counter-Strike 2',
+      followers: '50K',
+      averageAudience: '15K visualizaciones',
+    }).success).toBe(true);
+  });
 });

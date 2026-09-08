@@ -162,7 +162,12 @@ export function LeadDetail({ lead, staff, canWrite }: Props): React.ReactElement
             <Field label="Timeline" value={lead.timeline} />
             <Field label="Público objetivo" value={lead.audience} />
             <Field label="Plataforma" value={lead.platform} />
-            <Field label="Viewers / Subs" value={lead.viewers} />
+            <Field label="País" value={lead.country} />
+            <Field label="Canal principal" value={lead.channelUrl} />
+            <Field label="Juego / contenido" value={lead.contentCategory} />
+            <Field label="Seguidores" value={lead.followers ?? lead.viewers} />
+            <Field label="Audiencia media" value={lead.averageAudience} />
+            <Field label="Otras redes" value={lead.otherLinks} />
             <Field label="Monetización" value={lead.monetization} />
           </dl>
         </section>

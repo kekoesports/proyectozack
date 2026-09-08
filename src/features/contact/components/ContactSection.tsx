@@ -51,7 +51,7 @@ export function ContactSection({ defaultValues }: { readonly defaultValues?: Par
   } = useForm<ContactForm>({ resolver: zodResolver(contactSchema), ...(defaultValues ? { defaultValues } : {}) });
 
   // eslint-disable-next-line react-hooks/incompatible-library -- React Hook Form watch() no es memoizable, es el comportamiento esperado
-  const selectedType = watch('type');
+  const [selectedType, selectedPlatform] = watch(['type', 'platform']);
 
   const onSubmit = async (data: ContactForm) => {
     setStatus('sending');
@@ -147,11 +147,13 @@ export function ContactSection({ defaultValues }: { readonly defaultValues?: Par
                   </div>
 
                   <div>
-                    <label htmlFor="contact-company" className={labelClasses}>Empresa / Canal</label>
+                    <label htmlFor="contact-company" className={labelClasses}>
+                      {selectedType === 'brand' ? 'Empresa' : selectedType === 'talent' ? 'Nombre del canal' : 'Empresa / Canal'}
+                    </label>
                     <input
                       {...register('company')}
                       id="contact-company"
-                      placeholder="Nombre de tu empresa o canal"
+                      placeholder={selectedType === 'brand' ? 'Nombre de tu empresa' : selectedType === 'talent' ? 'Nombre público de tu canal' : 'Nombre de tu empresa o canal'}
                       className={inputClasses}
                     />
                   </div>
@@ -166,7 +168,7 @@ export function ContactSection({ defaultValues }: { readonly defaultValues?: Par
                   {/* Creator-specific fields */}
                   <AnimatePresence initial={false}>
                     {selectedType === 'talent' && (
-                      <TalentFields register={register} errors={errors} />
+                      <TalentFields register={register} errors={errors} selectedPlatform={selectedPlatform} />
                     )}
                   </AnimatePresence>
 
@@ -191,8 +193,17 @@ export function ContactSection({ defaultValues }: { readonly defaultValues?: Par
                     disabled={status === 'sending'}
                     className="w-full py-3.5 rounded-full font-bold text-white text-sm disabled:opacity-60 focus:outline-none transition-transform hover:scale-[1.02] active:scale-[0.98] bg-sp-grad"
                   >
-                    {status === 'sending' ? 'Enviando...' : 'Enviar mensaje →'}
+                    {status === 'sending'
+                      ? 'Enviando...'
+                      : selectedType === 'brand'
+                        ? 'Solicitar propuesta →'
+                        : selectedType === 'talent'
+                          ? 'Enviar mi perfil →'
+                          : 'Enviar mensaje →'}
                   </button>
+                  <p className="text-center text-xs text-sp-muted2">
+                    Usaremos tus datos únicamente para responder a esta solicitud.
+                  </p>
                 </form>
                 </m.div>
               )}

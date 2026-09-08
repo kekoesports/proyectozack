@@ -3,29 +3,11 @@
 import Link from 'next/link';
 import * as m from 'motion/react-client';
 import { Target, Gamepad2 } from 'lucide-react';
-import { z } from 'zod';
 import type { UseFormRegister, FieldErrors } from 'react-hook-form';
+import { contactBodySchema, type ContactBody } from '@/lib/schemas/contact';
 
-export const contactSchema = z.object({
-  name: z.string().min(2, 'Nombre requerido').max(100),
-  email: z.email('Email inválido').max(200),
-  phone: z.string().max(30).optional(),
-  type: z.enum(['brand', 'talent', 'other'], { error: 'Tipo requerido' }),
-  company: z.string().max(100).optional(),
-  message: z.string().min(10, 'Mensaje demasiado corto').max(5000),
-  // Brand-specific
-  budget: z.string().max(20).optional(),
-  timeline: z.string().max(30).optional(),
-  audience: z.string().max(200).optional(),
-  vertical: z.string().max(30).optional(),
-  campaignType: z.string().max(50).optional(),
-  // Creator-specific
-  platform: z.string().max(30).optional(),
-  viewers: z.string().max(100).optional(),
-  monetization: z.string().max(200).optional(),
-});
-
-export type ContactForm = z.infer<typeof contactSchema>;
+export const contactSchema = contactBodySchema;
+export type ContactForm = ContactBody;
 
 export const TYPES = [
   { value: 'brand', label: 'Soy una marca / anunciante' },
@@ -72,9 +54,10 @@ export const CAMPAIGN_TYPE_OPTIONS = [
 export const PLATFORM_OPTIONS = [
   { value: 'twitch', label: 'Twitch' },
   { value: 'youtube', label: 'YouTube' },
+  { value: 'kick', label: 'Kick' },
+  { value: 'instagram', label: 'Instagram' },
   { value: 'tiktok', label: 'TikTok' },
-  { value: 'cs2', label: 'CS2' },
-  { value: 'other', label: 'Otra' },
+  { value: 'otra', label: 'Otra' },
 ];
 
 export const INFO_CARDS = [
@@ -99,6 +82,7 @@ export const labelClasses = 'block text-xs font-semibold text-sp-muted2 mb-1.5 u
 type FieldsProps = {
   readonly register: UseFormRegister<ContactForm>;
   readonly errors: FieldErrors<ContactForm>;
+  readonly selectedPlatform?: ContactForm['platform'];
 };
 
 export function BrandFields({ register }: FieldsProps): React.JSX.Element {
@@ -175,7 +159,25 @@ export function BrandFields({ register }: FieldsProps): React.JSX.Element {
   );
 }
 
-export function TalentFields({ register }: FieldsProps): React.JSX.Element {
+export function TalentFields({ register, errors, selectedPlatform }: FieldsProps): React.JSX.Element {
+  const audienceCopy = selectedPlatform === 'youtube'
+    ? {
+        label: 'Visualizaciones medias en vídeos largos',
+        placeholder: 'Ej. 15K visualizaciones',
+        help: 'Usa tus vídeos largos recientes; no cuentes Shorts.',
+      }
+    : selectedPlatform === 'twitch' || selectedPlatform === 'kick'
+      ? {
+          label: 'Espectadores medios en directo (30 días)',
+          placeholder: 'Ej. 120 espectadores',
+          help: 'Indica la media aproximada de los últimos 30 días.',
+        }
+      : {
+          label: 'Visualizaciones medias recientes',
+          placeholder: 'Ej. 15K visualizaciones',
+          help: 'Una cifra aproximada es suficiente.',
+        };
+
   return (
     <m.div
       key="talent-fields"
@@ -189,7 +191,27 @@ export function TalentFields({ register }: FieldsProps): React.JSX.Element {
         <legend className={labelClasses}>Tu canal</legend>
         <div className="grid sm:grid-cols-2 gap-4">
           <div>
-            <label htmlFor="contact-platform" className={labelClasses}>Plataforma principal</label>
+            <label htmlFor="contact-country" className={labelClasses}>País *</label>
+            <input
+              {...register('country')}
+              id="contact-country"
+              list="contact-countries"
+              autoComplete="country-name"
+              placeholder="Ej. España"
+              className={inputClasses}
+            />
+            <datalist id="contact-countries">
+              <option value="España" />
+              <option value="México" />
+              <option value="Argentina" />
+              <option value="Chile" />
+              <option value="Colombia" />
+              <option value="Perú" />
+            </datalist>
+            {errors.country && <p className="text-xs text-red-400 mt-1">{errors.country.message}</p>}
+          </div>
+          <div>
+            <label htmlFor="contact-platform" className={labelClasses}>Plataforma principal *</label>
             <select {...register('platform')} id="contact-platform" className={selectClasses}>
               <option value="" className="bg-sp-black">Selecciona...</option>
               {PLATFORM_OPTIONS.map((p) => (
@@ -198,24 +220,62 @@ export function TalentFields({ register }: FieldsProps): React.JSX.Element {
                 </option>
               ))}
             </select>
+            {errors.platform && <p className="text-xs text-red-400 mt-1">{errors.platform.message}</p>}
+          </div>
+        </div>
+        <div>
+          <label htmlFor="contact-channel-url" className={labelClasses}>Enlace al canal principal *</label>
+          <input
+            {...register('channelUrl')}
+            id="contact-channel-url"
+            type="url"
+            inputMode="url"
+            autoCapitalize="none"
+            placeholder="https://youtube.com/@tucanal"
+            className={inputClasses}
+          />
+          {errors.channelUrl && <p className="text-xs text-red-400 mt-1">{errors.channelUrl.message}</p>}
+        </div>
+        <div className="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="contact-content" className={labelClasses}>Juego o contenido principal *</label>
+            <input
+              {...register('contentCategory')}
+              id="contact-content"
+              placeholder="Ej. Counter-Strike 2"
+              className={inputClasses}
+            />
+            {errors.contentCategory && <p className="text-xs text-red-400 mt-1">{errors.contentCategory.message}</p>}
           </div>
           <div>
-            <label htmlFor="contact-viewers" className={labelClasses}>Viewers / Suscriptores</label>
+            <label htmlFor="contact-followers" className={labelClasses}>Seguidores / suscriptores</label>
             <input
-              {...register('viewers')}
-              id="contact-viewers"
-              placeholder="Ej: 500 viewers avg / 50K subs"
+              {...register('followers')}
+              id="contact-followers"
+              inputMode="numeric"
+              placeholder="Ej. 50K"
               className={inputClasses}
             />
           </div>
         </div>
         <div>
-          <label htmlFor="contact-monetization" className={labelClasses}>Estado de monetización</label>
+          <label htmlFor="contact-average-audience" className={labelClasses}>{audienceCopy.label}</label>
           <input
-            {...register('monetization')}
-            id="contact-monetization"
-            placeholder="Ej: Partner Twitch, sponsors activos, etc."
+            {...register('averageAudience')}
+            id="contact-average-audience"
+            placeholder={audienceCopy.placeholder}
             className={inputClasses}
+          />
+          <p className="mt-1 text-xs text-sp-muted2">{audienceCopy.help}</p>
+        </div>
+        <div>
+          <label htmlFor="contact-other-links" className={labelClasses}>Otras redes</label>
+          <textarea
+            {...register('otherLinks')}
+            id="contact-other-links"
+            rows={2}
+            placeholder={'Un enlace por línea\nhttps://twitch.tv/tucanal'}
+            className={`${inputClasses} resize-none`}
           />
         </div>
       </fieldset>

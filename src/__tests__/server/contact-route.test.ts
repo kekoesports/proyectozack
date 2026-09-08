@@ -53,6 +53,27 @@ describe('trpc.contact.submit', () => {
     expect(sendContactAcknowledgementEmail).toHaveBeenCalledTimes(1);
   });
 
+  it('accepts a qualified creator profile from the main contact form', async () => {
+    const result = await caller.contact.submit({
+      name: 'Creator Test',
+      email: 'creator@example.com',
+      type: 'talent',
+      company: 'Creator Test Channel',
+      country: 'España',
+      platform: 'youtube',
+      channelUrl: 'https://youtube.com/@creator-test',
+      contentCategory: 'Counter-Strike 2',
+      followers: '50K',
+      averageAudience: '15K visualizaciones',
+      otherLinks: 'https://twitch.tv/creator-test',
+      message: 'Quiero colaborar con campañas de gaming.',
+    });
+
+    expect(result).toEqual({ success: true });
+    expect((db.insert as jest.Mock)).toHaveBeenCalledTimes(1);
+    expect(sendContactEmail).toHaveBeenCalledTimes(1);
+  });
+
   it('throws on invalid email', async () => {
     await expect(
       caller.contact.submit({

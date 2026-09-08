@@ -28,7 +28,13 @@ export const contactSubmissions = pgTable('contact_submissions', {
   vertical: varchar('vertical', { length: 30 }),
   campaignType: varchar('campaign_type', { length: 50 }),
   // Creator-specific fields
+  country: varchar('country', { length: 100 }),
   platform: varchar('platform', { length: 30 }),
+  channelUrl: varchar('channel_url', { length: 500 }),
+  contentCategory: varchar('content_category', { length: 100 }),
+  followers: varchar('followers', { length: 50 }),
+  averageAudience: varchar('average_audience', { length: 100 }),
+  otherLinks: text('other_links'),
   viewers: varchar('viewers', { length: 100 }),
   monetization: varchar('monetization', { length: 200 }),
   createdAt: timestamp('created_at').notNull().defaultNow(),

@@ -228,32 +228,45 @@ export function ContactFormEn({ defaultValues }: { readonly defaultValues?: Part
                     <legend className={labelClasses}>Your channel</legend>
                     <div className="grid sm:grid-cols-2 gap-4">
                       <div>
-                        <label htmlFor="contact-en-platform" className={labelClasses}>Main platform</label>
+                        <label htmlFor="contact-en-country" className={labelClasses}>Country *</label>
+                        <input {...register('country')} id="contact-en-country" autoComplete="country-name" placeholder="e.g. Spain" className={inputClasses} />
+                        {errors.country && <p className="text-xs text-red-400 mt-1">Country is required</p>}
+                      </div>
+                      <div>
+                        <label htmlFor="contact-en-platform" className={labelClasses}>Main platform *</label>
                         <select {...register('platform')} id="contact-en-platform" className={selectClasses}>
                           <option value="" className="bg-sp-black">Select...</option>
                           {PLATFORM_OPTIONS.map((p) => (
                             <option key={p.value} value={p.value} className="bg-sp-black">{p.label}</option>
                           ))}
                         </select>
-                      </div>
-                      <div>
-                        <label htmlFor="contact-en-viewers" className={labelClasses}>Viewers / Subscribers</label>
-                        <input
-                          {...register('viewers')}
-                          id="contact-en-viewers"
-                          placeholder="e.g. 500 avg viewers / 50K subs"
-                          className={inputClasses}
-                        />
+                        {errors.platform && <p className="text-xs text-red-400 mt-1">Choose your main platform</p>}
                       </div>
                     </div>
                     <div>
-                      <label htmlFor="contact-en-monetization" className={labelClasses}>Monetisation status</label>
-                      <input
-                        {...register('monetization')}
-                        id="contact-en-monetization"
-                        placeholder="e.g. Twitch Partner, active sponsors, etc."
-                        className={inputClasses}
-                      />
+                      <label htmlFor="contact-en-channel-url" className={labelClasses}>Main channel URL *</label>
+                      <input {...register('channelUrl')} id="contact-en-channel-url" type="url" inputMode="url" autoCapitalize="none" placeholder="https://youtube.com/@yourchannel" className={inputClasses} />
+                      {errors.channelUrl && <p className="text-xs text-red-400 mt-1">Paste the complete channel URL</p>}
+                    </div>
+                    <div className="grid sm:grid-cols-2 gap-4">
+                      <div>
+                        <label htmlFor="contact-en-content" className={labelClasses}>Main game or content *</label>
+                        <input {...register('contentCategory')} id="contact-en-content" placeholder="e.g. Counter-Strike 2" className={inputClasses} />
+                        {errors.contentCategory && <p className="text-xs text-red-400 mt-1">Tell us your main game or content</p>}
+                      </div>
+                      <div>
+                        <label htmlFor="contact-en-followers" className={labelClasses}>Followers / subscribers</label>
+                        <input {...register('followers')} id="contact-en-followers" inputMode="numeric" placeholder="e.g. 50K" className={inputClasses} />
+                      </div>
+                    </div>
+                    <div>
+                      <label htmlFor="contact-en-average-audience" className={labelClasses}>Recent average audience</label>
+                      <input {...register('averageAudience')} id="contact-en-average-audience" placeholder="e.g. 120 viewers or 15K views" className={inputClasses} />
+                      <p className="mt-1 text-xs text-sp-muted2">For YouTube, include long-form videos only; exclude Shorts.</p>
+                    </div>
+                    <div>
+                      <label htmlFor="contact-en-other-links" className={labelClasses}>Other social profiles</label>
+                      <textarea {...register('otherLinks')} id="contact-en-other-links" rows={2} placeholder={'One link per line\nhttps://twitch.tv/yourchannel'} className={`${inputClasses} resize-none`} />
                     </div>
                   </fieldset>
                 )}

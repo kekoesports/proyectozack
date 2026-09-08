@@ -1107,6 +1107,13 @@
       "when": 1788864682111,
       "tag": "0157_creator_application_profile",
       "breakpoints": true
+    },
+    {
+      "idx": 158,
+      "version": "7",
+      "when": 1788866824994,
+      "tag": "0158_contact_creator_profile",
+      "breakpoints": true
     }
   ]
 }
