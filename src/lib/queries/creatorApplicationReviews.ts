@@ -15,6 +15,7 @@ import type {
   CreatorReviewDecision,
   CreatorReviewSourceType,
 } from '@/lib/schemas/creator-outreach';
+import { creatorReviewDecisionSchema } from '@/lib/schemas/creator-outreach';
 
 export type CreatorApplicationReview = {
   readonly sourceType: CreatorReviewSourceType;
@@ -52,6 +53,12 @@ const EMPTY_STATE: ReviewState = {
   lastInboundAt: null,
 };
 
+function reviewDecisionFor(value: string | null, status: string, legacyReason: string | null): CreatorReviewDecision | null {
+  const parsed = creatorReviewDecisionSchema.safeParse(value);
+  if (parsed.success) return parsed.data;
+  return status === 'draft' && legacyReason ? 'yellow' : null;
+}
+
 async function reviewStateBySource(): Promise<Map<string, ReviewState>> {
   const rows = await db.select({
     sourceType: creatorOutreachSources.sourceType,
@@ -59,6 +66,7 @@ async function reviewStateBySource(): Promise<Map<string, ReviewState>> {
     status: creatorOutreachThreads.status,
     reviewDecision: creatorOutreachThreads.reviewDecision,
     qualificationReason: creatorOutreachThreads.qualificationReason,
+    legacyReviewReason: creatorOutreachThreads.lastReplySummary,
     internalNotes: creatorOutreachThreads.internalNotes,
     lastOutboundAt: creatorOutreachThreads.lastOutboundAt,
     lastInboundAt: creatorOutreachThreads.lastInboundAt,
@@ -67,8 +75,8 @@ async function reviewStateBySource(): Promise<Map<string, ReviewState>> {
 
   return new Map(rows.map((row) => [`${row.sourceType}:${row.sourceId}`, {
     outreachStatus: row.status as CreatorOutreachStatus,
-    reviewDecision: row.reviewDecision as CreatorReviewDecision | null,
-    qualificationReason: row.qualificationReason,
+    reviewDecision: reviewDecisionFor(row.reviewDecision, row.status, row.legacyReviewReason),
+    qualificationReason: row.qualificationReason ?? (row.status === 'draft' ? row.legacyReviewReason : null),
     internalNotes: row.internalNotes,
     lastOutboundAt: row.lastOutboundAt,
     lastInboundAt: row.lastInboundAt,

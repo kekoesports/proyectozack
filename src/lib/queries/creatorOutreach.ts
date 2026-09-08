@@ -20,6 +20,7 @@ import type {
   CreatorReviewDecision,
   ResendReceivedContent,
 } from '@/lib/schemas/creator-outreach';
+import { creatorReviewDecisionSchema } from '@/lib/schemas/creator-outreach';
 import { classifyReply, normalizeEmail, receivedText, suggestedReplyFor, summarizeReply } from '@/lib/email/creatorReplyContent';
 
 export type CreatorOutreachView = {
@@ -40,6 +41,12 @@ export type CreatorOutreachView = {
     readonly occurredAt: Date;
   }[];
 };
+
+function reviewDecisionFor(value: string | null, status: string, legacyReason: string | null): CreatorReviewDecision | null {
+  const parsed = creatorReviewDecisionSchema.safeParse(value);
+  if (parsed.success) return parsed.data;
+  return status === 'draft' && legacyReason ? 'yellow' : null;
+}
 
 export async function getCreatorOutreachRecipient(
   sourceType: CreatorOutreachSourceType,
@@ -335,8 +342,8 @@ export async function getCreatorOutreachForSource(
   if (!item) return null;
   return {
     status: item.status as CreatorOutreachStatus,
-    reviewDecision: item.reviewDecision as CreatorReviewDecision | null,
-    qualificationReason: item.qualificationReason,
+    reviewDecision: reviewDecisionFor(item.reviewDecision, item.status, item.lastReplySummary),
+    qualificationReason: item.qualificationReason ?? (item.status === 'draft' ? item.lastReplySummary : null),
     internalNotes: item.internalNotes,
     lastReplySummary: item.lastReplySummary,
     suggestedReply: item.suggestedReply,
