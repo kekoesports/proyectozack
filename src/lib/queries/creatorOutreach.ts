@@ -1,6 +1,6 @@
 import 'server-only';
 
-import { and, asc, desc, eq, inArray, lte, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, inArray, isNotNull, lte, sql } from 'drizzle-orm';
 
 import {
   contactSubmissions,
@@ -156,6 +156,45 @@ export function creatorDeliveryState(eventTypes: readonly string[]): {
   }
   if (eventTypes.includes('email.delivered')) return { message: 'delivered', thread: 'delivered' };
   return { message: 'sent', thread: 'sent' };
+}
+
+/**
+ * Cierra la carrera entre la respuesta de Resend, su webhook y la asociación
+ * del provider ID. Es idempotente y solo toca mensajes todavía en `sent`.
+ */
+export async function reconcileCreatorOutreachDeliveryEvents(): Promise<number> {
+  const pending = await db.select({
+    messageId: creatorOutreachMessages.id,
+    threadId: creatorOutreachMessages.threadId,
+    providerEmailId: creatorOutreachMessages.providerEmailId,
+  }).from(creatorOutreachMessages).where(and(
+    eq(creatorOutreachMessages.status, 'sent'),
+    isNotNull(creatorOutreachMessages.providerEmailId),
+  ));
+  let reconciled = 0;
+  for (const message of pending) {
+    if (!message.providerEmailId) continue;
+    const events = await db.select({ type: emailDeliveryEvents.eventType })
+      .from(emailDeliveryEvents)
+      .where(eq(emailDeliveryEvents.resendEmailId, message.providerEmailId))
+      .orderBy(desc(emailDeliveryEvents.eventCreatedAt));
+    const delivery = creatorDeliveryState(events.map((event) => event.type));
+    if (delivery.message === 'sent') continue;
+    await db.transaction(async (tx) => {
+      await tx.update(creatorOutreachMessages).set({ status: delivery.message })
+        .where(and(eq(creatorOutreachMessages.id, message.messageId), eq(creatorOutreachMessages.status, 'sent')));
+      await tx.update(creatorOutreachThreads).set({
+        status: delivery.thread,
+        nextFollowUpAt: delivery.thread === 'delivered' ? undefined : null,
+        updatedAt: new Date(),
+      }).where(and(
+        eq(creatorOutreachThreads.id, message.threadId),
+        inArray(creatorOutreachThreads.status, ['draft', 'sent', 'delivered']),
+      ));
+    });
+    reconciled += 1;
+  }
+  return reconciled;
 }
 
 export async function failCreatorOutreach(messageId: number): Promise<void> {
