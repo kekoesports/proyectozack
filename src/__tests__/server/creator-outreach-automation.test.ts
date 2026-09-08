@@ -54,9 +54,11 @@ it('clasifica verde usando solo vídeos largos y actividad reciente', async () =
     .resolves.toEqual({ decision: 'green', reason: expect.stringContaining('Shorts excluidos') });
 });
 
-it('clasifica rojo un YouTube verificado e inactivo, aunque tenga Shorts', async () => {
+it('clasifica amarillo un YouTube verificado e inactivo, aunque tenga Shorts', async () => {
   mockPerformance.mockResolvedValue({ ...performance, videoCount: 0, medianViews: 0, lastVideoAt: null, excludedShortCount: 30 });
-  await expect(qualifyCreatorApplication(application())).resolves.toMatchObject({ decision: 'red' });
+  await expect(qualifyCreatorApplication(application())).resolves.toMatchObject({
+    decision: 'yellow', reason: expect.stringContaining('Shorts no cuentan'),
+  });
 });
 
 it('mantiene Twitch y Kick en amarillo sin histórico verificable de 30 días', async () => {

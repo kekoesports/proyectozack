@@ -73,14 +73,17 @@ export async function qualifyCreatorApplication(
   const daysSinceLastLongVideo = performance.lastVideoAt
     ? Math.max(0, Math.floor((now.getTime() - performance.lastVideoAt.getTime()) / 86_400_000))
     : null;
+  if (daysSinceLastLongVideo === null || daysSinceLastLongVideo > MAX_YOUTUBE_INACTIVE_DAYS) {
+    return {
+      decision: 'yellow',
+      reason: 'Sin vídeo largo en los últimos 30 días; requiere revisión humana y los Shorts no cuentan.',
+    };
+  }
   const failures = [
     channel.subscriberCount < MIN_YOUTUBE_SUBSCRIBERS ? `menos de ${MIN_YOUTUBE_SUBSCRIBERS} suscriptores` : null,
     performance.videoCount < MIN_YOUTUBE_LONG_VIDEOS ? `menos de ${MIN_YOUTUBE_LONG_VIDEOS} vídeos largos en 90 días` : null,
     performance.videoCount > 0 && performance.medianViews < MIN_YOUTUBE_MEDIAN_VIEWS
       ? `mediana inferior a ${MIN_YOUTUBE_MEDIAN_VIEWS} visitas en vídeos largos`
-      : null,
-    daysSinceLastLongVideo === null || daysSinceLastLongVideo > MAX_YOUTUBE_INACTIVE_DAYS
-      ? 'sin vídeo largo en los últimos 30 días'
       : null,
   ].filter((value): value is string => value !== null);
 
