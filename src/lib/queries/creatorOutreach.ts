@@ -69,7 +69,7 @@ export async function reserveCreatorOutreach(input: {
   readonly subject: string;
   readonly body: string;
   readonly idempotencyKey: string;
-  readonly actorId: string;
+  readonly actorId: string | null;
 }): Promise<{ readonly threadId: number; readonly replyToken: string; readonly unsubscribeToken: string; readonly messageId: number; readonly providerEmailId: string | null; readonly subject: string; readonly body: string }> {
   return db.transaction(async (tx) => {
     const now = new Date();

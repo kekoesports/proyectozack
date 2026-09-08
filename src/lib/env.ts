@@ -41,6 +41,12 @@ export const env = createEnv({
       .optional(),
     /** Días sin respuesta antes de marcar seguimiento pendiente. */
     CREATOR_OUTREACH_NO_RESPONSE_DAYS: z.coerce.number().int().min(1).max(30).default(7),
+    /** Interruptor de seguridad: desactivado por defecto y sin procesar historial. */
+    CREATOR_OUTREACH_AUTO_SEND_ENABLED: z.enum(['true', 'false']).default('false').transform((v) => v === 'true'),
+    /** Solo candidaturas creadas desde este instante pueden recibir respuesta automática. */
+    CREATOR_OUTREACH_AUTO_SEND_AFTER: z.iso.datetime({ offset: true }).optional(),
+    /** Página pública de Alfonso; obligatoria para enviar una aceptación verde. */
+    CREATOR_OUTREACH_BOOKING_URL: z.string().url().optional(),
     /** Solo build/CI: credenciales para subir source maps, nunca al navegador. */
     SENTRY_ORG: z.string().min(1).optional(),
     SENTRY_PROJECT: z.string().min(1).optional(),
@@ -314,6 +320,9 @@ export const env = createEnv({
     RESEND_WEBHOOK_SECRET: process.env.RESEND_WEBHOOK_SECRET,
     CREATOR_REPLY_RECEIVING_DOMAIN: process.env.CREATOR_REPLY_RECEIVING_DOMAIN,
     CREATOR_OUTREACH_NO_RESPONSE_DAYS: process.env.CREATOR_OUTREACH_NO_RESPONSE_DAYS,
+    CREATOR_OUTREACH_AUTO_SEND_ENABLED: process.env.CREATOR_OUTREACH_AUTO_SEND_ENABLED,
+    CREATOR_OUTREACH_AUTO_SEND_AFTER: process.env.CREATOR_OUTREACH_AUTO_SEND_AFTER,
+    CREATOR_OUTREACH_BOOKING_URL: process.env.CREATOR_OUTREACH_BOOKING_URL,
     SENTRY_ORG: process.env.SENTRY_ORG,
     SENTRY_PROJECT: process.env.SENTRY_PROJECT,
     SENTRY_AUTH_TOKEN: process.env.SENTRY_AUTH_TOKEN,

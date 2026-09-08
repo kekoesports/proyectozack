@@ -4,6 +4,7 @@ import { syncCreatorApplicationsToSheet } from '@/lib/integrations/creatorApplic
 import { listInboundCreatorApplications } from '@/lib/queries/inboundCreatorApplications';
 import { assertCronAuth } from '@/lib/security/assertCronAuth';
 import { markCreatorOutreachNoResponse } from '@/lib/queries/creatorOutreach';
+import { processCreatorOutreachAutomation } from '@/lib/email/creatorOutreachAutomation';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 300;
@@ -16,9 +17,13 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     const noResponse = await markCreatorOutreachNoResponse();
     const applications = await listInboundCreatorApplications();
-    const result = await syncCreatorApplicationsToSheet(applications);
-    console.log('[sync-creator-applications] done', { ...result, noResponse });
-    return NextResponse.json({ ok: true, ...result, noResponse });
+    const outreach = await processCreatorOutreachAutomation(applications);
+    // Releer después de los envíos para que el Excel refleje el estado en la
+    // misma ejecución, no al día siguiente.
+    const refreshedApplications = await listInboundCreatorApplications();
+    const result = await syncCreatorApplicationsToSheet(refreshedApplications);
+    console.log('[sync-creator-applications] done', { ...result, noResponse, outreach });
+    return NextResponse.json({ ok: true, ...result, noResponse, outreach });
   } catch (error) {
     const reason = error instanceof Error ? error.message : 'unknown-error';
     console.error('[sync-creator-applications] failed', { reason });

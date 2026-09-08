@@ -1,6 +1,5 @@
 import 'server-only';
 
-import { OPERATIONAL_EMAIL_FROM, OPERATIONAL_GOOGLE_EMAIL } from '@/lib/constants/operational-email';
 import { env } from '@/lib/env';
 import { sendResendEmail } from '@/lib/email/sendResendEmail';
 import {
@@ -27,7 +26,7 @@ export class CreatorOutreachError extends Error {
 
 export async function sendCreatorOutreach(
   input: SendCreatorOutreachInput,
-  actorId: string,
+  actorId: string | null,
 ): Promise<{ readonly providerEmailId: string; readonly duplicate: boolean; readonly replyTracking: boolean }> {
   const domain = env.CREATOR_REPLY_RECEIVING_DOMAIN;
 
@@ -50,19 +49,19 @@ export async function sendCreatorOutreach(
     return { providerEmailId: reservation.providerEmailId, duplicate: true, replyTracking: Boolean(domain) };
   }
 
-  const replyTo = domain ? `creator-${reservation.replyToken}@${domain}` : OPERATIONAL_GOOGLE_EMAIL;
+  const replyTo = domain ? `creator-${reservation.replyToken}@${domain}` : 'arias@socialpro.es';
   const unsubscribeUrl = new URL(`/api/creator-outreach/unsubscribe/${reservation.unsubscribeToken}`, env.NEXT_PUBLIC_SITE_URL).toString();
   const safeBody = escapeHtml(reservation.body).replace(/\n/g, '<br/>');
   try {
     const providerEmailId = await sendResendEmail('sendCreatorOutreach', {
-      from: OPERATIONAL_EMAIL_FROM,
+      from: 'Alfonso Arias - SocialPro <arias@socialpro.es>',
       to: normalizedEmail,
       replyTo,
       subject: reservation.subject,
       text: `${reservation.body}\n\nSi no quieres recibir más mensajes sobre colaboraciones: ${unsubscribeUrl}`,
       html: `<div style="font-family:Inter,Arial,sans-serif;max-width:620px;color:#171717;line-height:1.6">
         <div>${safeBody}</div>
-        <p style="margin-top:28px;color:#6b6864;font-size:13px">Pablo Camacho<br/>SocialPro</p>
+        <p style="margin-top:28px;color:#6b6864;font-size:13px">Alfonso Arias<br/>SocialPro</p>
         <p style="margin-top:20px;font-size:11px;color:#777"><a href="${escapeHtml(unsubscribeUrl)}">No recibir más mensajes</a></p>
       </div>`,
       headers: {
