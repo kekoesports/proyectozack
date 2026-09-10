@@ -1,6 +1,7 @@
 ﻿import type { Metadata } from 'next';
 import Link from 'next/link';
 import { safeJsonLd } from '@/lib/safeJsonLd';
+import { AGENCY_SAME_AS } from '@/lib/agency-socials';
 import { getTeam, getBrands } from '@/lib/queries/content';
 import { NosotrosHero } from '@/features/marketing-site/components/NosotrosHero';
 import { NosotrosPorQue } from '@/features/marketing-site/components/NosotrosPorQue';
@@ -152,12 +153,7 @@ export default async function NosotrosPage() {
           contactType: 'sales',
           availableLanguage: ['Spanish', 'English'],
         },
-        sameAs: [
-          'https://www.instagram.com/socialproes/',
-          'https://x.com/SocialProES',
-          'https://www.facebook.com/SocialProES',
-          'https://www.linkedin.com/company/socialproes',
-        ],
+        sameAs: AGENCY_SAME_AS,
         subjectOf: [
           {
             '@type': 'PodcastEpisode',

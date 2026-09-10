@@ -24,7 +24,7 @@ const securityHeaders = [
       "font-src 'self' https://fonts.gstatic.com",
       "img-src 'self' blob: data: https://*.vercel-storage.com https://www.googletagmanager.com https://*.twitch.tv https://*.jtvnw.net https://img.youtube.com https://*.ytimg.com https://i.imgur.com https:",
       "connect-src 'self' https://www.google-analytics.com https://www.googletagmanager.com https://va.vercel-scripts.com https://vitals.vercel-insights.com https://*.ingest.sentry.io https://*.ingest.us.sentry.io https://*.ingest.de.sentry.io wss://*.twitch.tv https://*.twitch.tv",
-      "frame-src https://player.twitch.tv https://clips.twitch.tv https://www.youtube.com https://youtube.com",
+      "frame-src https://player.twitch.tv https://clips.twitch.tv https://www.youtube.com https://youtube.com https://www.tiktok.com",
       "object-src 'none'",
       "base-uri 'self'",
       "form-action 'self'",
@@ -164,6 +164,10 @@ const nextConfig: NextConfig = {
   images: {
     formats: ['image/avif', 'image/webp'],
     remotePatterns: [
+      // Official TikTok oEmbed covers, served through the same-origin optimizer.
+      { protocol: 'https', hostname: '**.tiktokcdn-eu.com' },
+      { protocol: 'https', hostname: '**.tiktokcdn.com' },
+      { protocol: 'https', hostname: '**.tiktokcdn-us.com' },
       // Vercel Blob Storage
       { protocol: 'https', hostname: '**.vercel-storage.com' },
       // Twitch CDN — profile pictures from Twitch API and hardcoded avatars

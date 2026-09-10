@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { headers } from 'next/headers';
 import { safeJsonLd } from '@/lib/safeJsonLd';
+import { AGENCY_SAME_AS } from '@/lib/agency-socials';
 import { isEnPathname } from '@/lib/en-routes';
 import { Inter, Barlow_Condensed } from 'next/font/google';
 import './globals.css';
@@ -146,13 +147,7 @@ const jsonLd = {
           worksFor: { '@id': absoluteUrl('/#organization') },
         },
       ],
-      sameAs: [
-        'https://www.instagram.com/socialproes/',
-        'https://x.com/SocialProES',
-        'https://www.facebook.com/SocialProES',
-        'https://www.linkedin.com/company/socialproes',
-        'https://www.tiktok.com/@socialproes',
-      ],
+      sameAs: AGENCY_SAME_AS,
       subjectOf: [
         {
           '@type': 'PodcastEpisode',

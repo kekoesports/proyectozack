@@ -13,6 +13,7 @@ import { BrandsCarousel } from '@/features/marketing-site/components/BrandsCarou
 import { TalentSection } from '@/features/marketing-site/components/TalentSection';
 import { WorkedWithSection } from '@/features/marketing-site/components/WorkedWithSection';
 import { CasesSection } from '@/features/marketing-site/components/CasesSection';
+import { AgencyVideos } from '@/features/marketing-site/components/AgencyVideos';
 import { LiveSection } from '@/features/live/components/LiveSection';
 
 const SHOW_LIVE_SECTION = false;
@@ -97,6 +98,9 @@ export default async function HomePage() {
       </div>
       <Suspense>
         <CasesSectionAsync />
+      </Suspense>
+      <Suspense fallback={<div className="min-h-[760px] bg-sp-off" aria-hidden="true" />}>
+        <AgencyVideos />
       </Suspense>
       <CtaSection />
       <FaqSection />

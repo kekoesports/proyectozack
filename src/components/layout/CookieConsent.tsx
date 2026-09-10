@@ -66,7 +66,7 @@ const CATEGORIES = [
   {
     id: 'marketing' as const,
     label: 'Marketing',
-    description: 'Remarketing y publicidad personalizada. Actualmente no se usan activamente.',
+    description: 'Vídeos de TikTok y contenido externo. TikTok puede usar cookies según sus propias políticas.',
     locked: false,
   },
 ];
@@ -104,7 +104,12 @@ export function CookieBanner({ hidden = false }: { hidden?: boolean }) {
       setVisible(true);
     };
     window.addEventListener('sp:open-consent', handler);
-    return () => window.removeEventListener('sp:open-consent', handler);
+    const onSaved = () => setVisible(false);
+    window.addEventListener('sp:consent-change', onSaved);
+    return () => {
+      window.removeEventListener('sp:open-consent', handler);
+      window.removeEventListener('sp:consent-change', onSaved);
+    };
   }, []);
 
   // Esc cierra el panel de configuración volviendo al banner (no descarta el banner)
