@@ -43,14 +43,32 @@ offer the original TikTok link. The CSP adds only the official player origin.
   not reported as a fresh playback pass for this integration.
 - Temporary review routes and diagnostic configuration are excluded from the commit.
 
-Implemented: yes. Tested: component behavior and browser UI, with the external
-playback limitation above. Active: homepage integration in code; pushing master
-does not itself establish a VPS deployment. Functioning: verified selection,
-images, consent and pause; current external playback remains unconfirmed.
+## Production verification — 2026-09-10 (after publication)
+
+The scoped video patch was applied to the currently published source, preserving
+all other live changes. A read-only guarded production build passed; no database
+migrations or data mutations were executed. The previous container remains
+available for rollback. Public home, about, services, login and liveness checks
+returned 200, and the existing contact phone and social links were preserved.
+
+The earlier playback limitation above did not reproduce on the published HTTPS
+page. The official player and all three videos played in the real homepage.
+The browser observed authenticated-by-origin/source playback messages, loaded
+all four cover images, and kept only one iframe when switching videos. Enabling
+sound changed to unmuted playback; the next video started muted. Scrolling away
+removed the iframe. Revoking marketing consent and returning to the section kept
+zero iframes and restored the activation button. Reactivation restored playback.
+The precise cause of the earlier localhost loading failure was not established.
+
+Implemented: yes. Tested: eight focused tests, CI (lint/types, regression tests,
+build and Docker runtime), guarded production build and real browser journey.
+Active: yes, https://socialpro.es/#contenido. Functioning: all three videos,
+selection, covers, sound controls and consent/offscreen behavior verified live.
 
 The publication worktree was based on current `origin/master`, preserving unrelated
-CRM work in the original checkout. No migrations, CRM mutations, messages or
-production deployment are part of this change. The pre-push press-sync hook must
+CRM work in the original checkout. The subsequent authorized deployment used a
+scoped overlay on live source, not a wholesale replacement from master. No
+migrations, CRM mutations or messages were performed. The pre-push press-sync hook must
 run without database configuration; never provide it production credentials.
 
 Reference: https://developers.tiktok.com/docs/en/embed-player
