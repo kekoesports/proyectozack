@@ -4,6 +4,8 @@ read_when: Operating or deploying the personal tasks, Kanban and quick-notes wor
 
 # Tareas personales y post-it — 2026-09-11
 
+Actualización posterior, 09:55 UTC: [borrado confirmado de notas](quick-note-deletion-2026-09-11.md) documenta el contenedor y la reversión actuales. Se conserva aquí la evidencia de Kanban y privacidad.
+
 ## Decisión vigente
 
 Kanban es la primera vista de `/admin/tareas`. Lista y Calendario siguen disponibles. Las notas rápidas permanecen recogidas en un post-it personal arriba a la derecha; permite desplegar las últimas notas, minimizar y escribir sin abandonar la página.
