@@ -4,7 +4,13 @@ read_when: Reviewing, testing or authorizing activation of CRM quick notes and t
 
 # Notas rápidas y avisos de tareas — 11 septiembre 2026
 
-## Estado y alcance
+## Estado actual
+
+**ACTIVO Y FUNCIONANDO desde el 11-09-2026.** El usuario autorizó expresamente la activación después del commit/push. Se ha desplegado sobre la versión viva, migrado mediante el runner del proyecto y verificado en la web publicada, con limpieza de todos los registros sintéticos. Evidencia y parada reversible: [activación](quick-notes-activation-2026-09-11.md).
+
+**Atención para futuros despliegues:** producción ya tenía `0161_creator_intake`; la migración de notas se generó como **0162** sobre ese esquema y diario. No aplicar la `0161_quick_notes_task_notices` de esta rama contra producción ni desplegar master sobre las mejoras vivas sin integrarlas. El documento de activación identifica el artefacto completo conservado.
+
+## Estado y alcance de la entrega inicial — historial anterior a la activación
 
 - **IMPLEMENTADO:** en `codex/quick-notes-overdue-alerts`, copia separada `socialpro-quick-notes`, basada en `origin/master` `bcb29449a46cb4da265eee16b551a9facfc05a13`.
 - **PROBADO:** lógica con PostgreSQL en memoria, migración incremental, permisos, acciones reales y recorrido de navegador en escritorio/móvil. Detalles y límites abajo.
@@ -79,7 +85,7 @@ npx tsx scripts/test-quick-notes-browser.ts
 
 El primer test usa PostgreSQL en memoria en loopback 55441. El servidor de navegador usa 55442 y Next en `http://127.0.0.1:3451`. El harness rehúsa arrancar si existen archivos de entorno y lanza Next con configuración sintética explícita. El test de navegador verifica las cinco identidades esperadas antes de escribir. Requiere Chrome instalado. Los datos desaparecen al detener el proceso de la base en memoria; nunca se copian a producción.
 
-## Activación posterior — requiere autorización
+## Plan de activación original — autorización ya recibida y trabajo ejecutado
 
 1. Revisar los cambios y resolver/verificar el bloqueo de autenticación en la rama que se vaya a publicar. Comprobar también contención con conexiones independientes en PostgreSQL desechable.
 2. Revisar el esquema y diario reales, copia de seguridad y destino antes de aplicar **`drizzle/0161_quick_notes_task_notices.sql` mediante `npm run migrate`**. No usar `drizzle-kit push` ni marcar migraciones manualmente.
