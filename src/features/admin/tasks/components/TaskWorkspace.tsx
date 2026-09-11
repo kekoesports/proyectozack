@@ -20,6 +20,7 @@ type Props = {
   readonly events?: readonly CrmEvent[] | undefined;
   readonly users: readonly UserOption[];
   readonly currentUserId: string;
+  readonly canDelete?: boolean;
   readonly suggestedCategories?: readonly string[];
   readonly weekLabel: string;
   readonly relatedOptions?: unknown;
@@ -55,7 +56,7 @@ const VIEWS: ReadonlyArray<{ readonly key: ViewMode; readonly label: string; rea
  * @route /admin/tareas
  */
 export function TaskWorkspace(props: Props): React.ReactElement {
-  const [view, setView] = useState<ViewMode>('list');
+  const [view, setView] = useState<ViewMode>('kanban');
   const [modalTask, setModalTask] = useState<CrmTask | null>(null);
   const router = useRouter();
   const pathname = usePathname();
@@ -69,9 +70,13 @@ export function TaskWorkspace(props: Props): React.ReactElement {
     }
   };
 
-  const closeModal = (): void => setModalTask(null);
+  const closeModal = (): void => {
+    setModalTask(null);
+    if (searchParams.has('t')) router.replace(pathname, { scroll: false });
+  };
 
   const activeIdParam = searchParams.get('t');
+  const visibleModalTask = modalTask ?? props.tasks.find(task => String(task.id) === activeIdParam) ?? null;
 
   const todayStr   = new Date().toISOString().slice(0, 10);
   const { pending, inProgress, done, overdue, dueToday, rolledTasks } = useMemo(() => {
@@ -124,13 +129,14 @@ export function TaskWorkspace(props: Props): React.ReactElement {
         </Link>
 
         <div className="flex items-center gap-0.5 bg-sp-admin-card border border-sp-admin-border rounded-lg p-0.5 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
-          {VIEWS.map((v) => {
+          {[...VIEWS].sort((a, b) => Number(b.key === 'kanban') - Number(a.key === 'kanban')).map((v) => {
             const isActive = view === v.key;
             return (
               <button
                 key={v.key}
                 type="button"
                 title={v.label}
+                aria-pressed={isActive}
                 onClick={() => {
                   if (activeIdParam && v.key !== 'list') router.replace(pathname, { scroll: false });
                   setView(v.key);
@@ -174,6 +180,7 @@ export function TaskWorkspace(props: Props): React.ReactElement {
           users={props.users}
           {...(props.relatedLabels !== undefined ? { relatedLabels: props.relatedLabels } : {})}
           onOpenAction={openTask}
+          canDelete={props.canDelete ?? false}
         />
       )}
 
@@ -188,11 +195,11 @@ export function TaskWorkspace(props: Props): React.ReactElement {
       )}
 
       {/* Modal específico para vistas Kanban/Calendario (Lista usa su propio router-driven modal) */}
-      {modalTask && view !== 'list' && (
+      {visibleModalTask && view !== 'list' && (
         <TaskModal
-          key={modalTask.id}
+          key={visibleModalTask.id}
           onCloseAction={closeModal}
-          task={modalTask}
+          task={visibleModalTask}
           users={props.users}
           defaultOwnerId={props.currentUserId}
           {...(props.suggestedCategories !== undefined ? { suggestedCategories: props.suggestedCategories } : {})}

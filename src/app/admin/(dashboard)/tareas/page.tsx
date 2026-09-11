@@ -1,7 +1,7 @@
 ﻿import { Suspense, type ReactElement } from 'react';
 import { AdminPageHeader } from '@/features/admin/_shared/components/AdminPageHeader';
 import type { Metadata } from 'next';
-import { requirePermission } from '@/lib/permissions';
+import { requirePermission, hasPermission } from '@/lib/permissions';
 import {
   getTasksForWeek,
   getTasksForCalendarView,
@@ -23,13 +23,8 @@ export default async function TareasPage(): Promise<ReactElement> {
   const weekLabel  = getIsoWeekLabel(new Date());
   // Rollover is cron-only (/api/cron/rollover-tasks) — no GET side-effect.
 
-  const taskOptions = session.user.role !== 'admin'
-    ? { session: { userId: session.user.id, role: session.user.role } }
-    : {};
-
-  const calendarOptions = session.user.role !== 'admin'
-    ? { session: { userId: session.user.id, role: session.user.role } }
-    : undefined;
+  const taskOptions = { session: { userId: session.user.id, role: session.user.role } };
+  const calendarOptions = taskOptions;
 
   const now = new Date();
   const [tasks, calendarTasks, users, suggestedCategories, relatedOptions, templates, events] = await Promise.all([
@@ -71,6 +66,7 @@ export default async function TareasPage(): Promise<ReactElement> {
           events={events}
           users={userOptions}
           currentUserId={session.user.id}
+          canDelete={hasPermission(session.user.role, 'tareas', 'delete')}
           suggestedCategories={suggestedCategories}
           weekLabel={weekLabel}
           relatedOptions={relatedOptions}

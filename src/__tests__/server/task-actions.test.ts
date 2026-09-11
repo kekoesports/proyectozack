@@ -54,6 +54,7 @@ describe('task actions', () => {
 
   it('legacy edits do not erase work dates or reminders they did not submit', async () => {
     mockRequireAnyRole.mockResolvedValue(makeSession('admin', 'admin-1'));
+    mockGetTaskById.mockResolvedValue({ id: 7, ownerId: 'admin-1', assignedToUserId: 'admin-1' });
     const input = { title: 'Editar texto', description: null, ownerId: 'admin-1', dueDate: null, priority: 'media', status: 'pendiente', category: 'General' };
     await updateTaskAction(7, input);
     expect(mockUpdateTask.mock.calls[0]?.[1]).not.toHaveProperty('startDate');
@@ -89,6 +90,7 @@ describe('task actions', () => {
 
   it('updateTaskAction keeps owner and assignee aligned', async () => {
     mockRequireAnyRole.mockResolvedValue(makeSession('admin', 'admin-1'));
+    mockGetTaskById.mockResolvedValue({ id: 7, ownerId: 'admin-1', assignedToUserId: 'admin-1' });
 
     await updateTaskAction(7, {
       title: 'Actualizar estado',
@@ -134,14 +136,13 @@ describe('task actions', () => {
     expect(mockDeleteTask).toHaveBeenCalledWith(9);
   });
 
-  it('deleteTaskAction deja a un admin borrar sin comprobar propiedad', async () => {
+  it('deleteTaskAction impide también a un admin borrar tareas ajenas', async () => {
     mockRequireAnyRole.mockResolvedValue(makeSession('admin', 'admin-1'));
+    mockGetTaskById.mockResolvedValue({ id: 9, ownerId: 'otro', assignedToUserId: 'otro', createdByUserId: 'admin-1' });
 
     const result = await deleteTaskAction(9);
 
-    expect(result).toEqual({});
-    expect(mockDeleteTask).toHaveBeenCalledWith(9);
-    // Un admin no necesita cargar la tarea para decidir.
-    expect(mockGetTaskById).not.toHaveBeenCalled();
+    expect(result).toEqual({ error: 'Sin permiso para eliminar esta tarea' });
+    expect(mockDeleteTask).not.toHaveBeenCalled();
   });
 });

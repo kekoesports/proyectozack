@@ -1,4 +1,4 @@
-﻿'use server';
+'use server';
 
 import { revalidatePath } from 'next/cache';
 
@@ -149,7 +149,7 @@ export async function updateTaskAction(id: number, input: unknown): Promise<Acti
 
   const prevTask = await getTaskById(id);
 
-  if (session.user.role !== 'admin') {
+  {
     if (!prevTask) return { error: 'Tarea no encontrada' };
     if (prevTask.ownerId !== session.user.id && prevTask.assignedToUserId !== session.user.id) {
       return { error: 'Sin permiso para modificar esta tarea' };
@@ -219,7 +219,7 @@ export async function updateTaskPartialAction(
     if (ownerErr) return { error: ownerErr };
   }
 
-  if (session.user.role !== 'admin') {
+  {
     const task = await getTaskById(parsedId.data);
     if (!task) return { error: 'Tarea no encontrada' };
     if (task.ownerId !== session.user.id && task.assignedToUserId !== session.user.id) {
@@ -250,7 +250,7 @@ export async function updateTaskPartialAction(
 
 export async function completeTaskAction(id: number): Promise<ActionResult> {
   const session = await requirePermission('tareas', 'write');
-  if (session.user.role !== 'admin') {
+  {
     const task = await getTaskById(id);
     if (!task) return { error: 'Tarea no encontrada' };
     if (task.ownerId !== session.user.id && task.assignedToUserId !== session.user.id) {
@@ -264,7 +264,7 @@ export async function completeTaskAction(id: number): Promise<ActionResult> {
 
 export async function deleteTaskAction(id: number): Promise<ActionResult> {
   const session = await requirePermission('tareas', 'delete');
-  if (session.user.role !== 'admin') {
+  {
     const task = await getTaskById(id);
     if (!task) return { error: 'Tarea no encontrada' };
     if (task.ownerId !== session.user.id && task.assignedToUserId !== session.user.id) {
@@ -284,7 +284,7 @@ export async function deleteTaskAction(id: number): Promise<ActionResult> {
 export async function bulkDeleteTasksAction(ids: number[]): Promise<ActionResult> {
   const session = await requirePermission('tareas', 'delete');
   if (ids.length === 0) return {};
-  if (session.user.role !== 'admin') {
+  {
     const tasks = await getTasksByIds(ids);
     if (tasks.length !== ids.length) return { error: 'Una o más tareas no encontradas' };
     const forbidden = tasks.filter(
@@ -405,7 +405,7 @@ export async function resetRolledOverAction(id: unknown): Promise<ActionResult> 
   const session = await requirePermission('tareas', 'write');
   const parsed = IdSchema.safeParse(id);
   if (!parsed.success) return { error: 'ID inválido' };
-  const callerId = session.user.role !== 'admin' ? session.user.id : undefined;
+  const callerId = session.user.id;
   await resetRolledOver(parsed.data, callerId);
   revalidateAll();
   return {};
@@ -416,7 +416,7 @@ export async function resetRolledOverBulkAction(ids: unknown): Promise<ActionRes
   const session = await requirePermission('tareas', 'write');
   const parsed = IdSchema.array().safeParse(ids);
   if (!parsed.success) return { error: 'IDs inválidos' };
-  const callerId = session.user.role !== 'admin' ? session.user.id : undefined;
+  const callerId = session.user.id;
   await resetRolledOverBulk(parsed.data, callerId);
   revalidateAll();
   return {};

@@ -209,13 +209,10 @@ export async function globalSearch(
           and(
             ilike(crmTasks.title, pattern),
             inArray(crmTasks.status, [...CRM_TASK_OPEN_STATUSES]),
-            isStaff(session.role)
-              ? or(
+            or(
                   eq(crmTasks.assignedToUserId, session.userId),
-                  eq(crmTasks.createdByUserId, session.userId),
                   eq(crmTasks.ownerId, session.userId),
-                )
-              : undefined,
+                ),
           ),
         )
         .orderBy(asc(crmTasks.weekLabel))

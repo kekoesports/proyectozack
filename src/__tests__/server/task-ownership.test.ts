@@ -53,7 +53,7 @@ const VALID_TASK_INPUT = {
   category: 'ops', relatedType: 'general' as const,
 };
 
-describe('task ownership guards — admin_limited_tasks', () => {
+describe.each(['admin', 'admin_limited_tasks'])('task ownership guards — %s', (role) => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockIsAssignableTaskUser.mockResolvedValue(true);
@@ -67,7 +67,7 @@ describe('task ownership guards — admin_limited_tasks', () => {
 
   // T1
   it('updateTaskAction: admin_limited_tasks puede editar tarea propia', async () => {
-    mockRequireAnyRole.mockResolvedValue(makeSession('admin_limited_tasks', 'user-1'));
+    mockRequireAnyRole.mockResolvedValue(makeSession(role, 'user-1'));
     mockGetTaskById.mockResolvedValue(OWN_TASK);
 
     const result = await updateTaskAction(1, VALID_TASK_INPUT);
@@ -78,7 +78,7 @@ describe('task ownership guards — admin_limited_tasks', () => {
 
   // T2
   it('updateTaskAction: admin_limited_tasks bloqueado en tarea ajena', async () => {
-    mockRequireAnyRole.mockResolvedValue(makeSession('admin_limited_tasks', 'user-1'));
+    mockRequireAnyRole.mockResolvedValue(makeSession(role, 'user-1'));
     mockGetTaskById.mockResolvedValue(FOREIGN_TASK);
 
     const result = await updateTaskAction(2, VALID_TASK_INPUT);
@@ -89,7 +89,7 @@ describe('task ownership guards — admin_limited_tasks', () => {
 
   // T3
   it('updateTaskPartialAction: admin_limited_tasks puede parchear tarea propia', async () => {
-    mockRequireAnyRole.mockResolvedValue(makeSession('admin_limited_tasks', 'user-1'));
+    mockRequireAnyRole.mockResolvedValue(makeSession(role, 'user-1'));
     mockGetTaskById.mockResolvedValue(OWN_TASK);
 
     const result = await updateTaskPartialAction(1, { status: 'en_progreso' });
@@ -100,7 +100,7 @@ describe('task ownership guards — admin_limited_tasks', () => {
 
   // T4
   it('updateTaskPartialAction: admin_limited_tasks bloqueado en tarea ajena', async () => {
-    mockRequireAnyRole.mockResolvedValue(makeSession('admin_limited_tasks', 'user-1'));
+    mockRequireAnyRole.mockResolvedValue(makeSession(role, 'user-1'));
     mockGetTaskById.mockResolvedValue(FOREIGN_TASK);
 
     const result = await updateTaskPartialAction(2, { status: 'en_progreso' });
@@ -111,7 +111,7 @@ describe('task ownership guards — admin_limited_tasks', () => {
 
   // T5
   it('completeTaskAction: admin_limited_tasks puede completar tarea propia', async () => {
-    mockRequireAnyRole.mockResolvedValue(makeSession('admin_limited_tasks', 'user-1'));
+    mockRequireAnyRole.mockResolvedValue(makeSession(role, 'user-1'));
     mockGetTaskById.mockResolvedValue(OWN_TASK);
 
     const result = await completeTaskAction(1);
@@ -122,7 +122,7 @@ describe('task ownership guards — admin_limited_tasks', () => {
 
   // T6
   it('completeTaskAction: admin_limited_tasks bloqueado en tarea ajena', async () => {
-    mockRequireAnyRole.mockResolvedValue(makeSession('admin_limited_tasks', 'user-1'));
+    mockRequireAnyRole.mockResolvedValue(makeSession(role, 'user-1'));
     mockGetTaskById.mockResolvedValue(FOREIGN_TASK);
 
     const result = await completeTaskAction(2);
@@ -133,7 +133,7 @@ describe('task ownership guards — admin_limited_tasks', () => {
 
   // T7
   it('deleteTaskAction: admin_limited_tasks puede eliminar tarea propia', async () => {
-    mockRequireAnyRole.mockResolvedValue(makeSession('admin_limited_tasks', 'user-1'));
+    mockRequireAnyRole.mockResolvedValue(makeSession(role, 'user-1'));
     mockGetTaskById.mockResolvedValue(OWN_TASK);
 
     const result = await deleteTaskAction(1);
@@ -144,7 +144,7 @@ describe('task ownership guards — admin_limited_tasks', () => {
 
   // T8
   it('deleteTaskAction: admin_limited_tasks bloqueado en tarea ajena', async () => {
-    mockRequireAnyRole.mockResolvedValue(makeSession('admin_limited_tasks', 'user-1'));
+    mockRequireAnyRole.mockResolvedValue(makeSession(role, 'user-1'));
     mockGetTaskById.mockResolvedValue(FOREIGN_TASK);
 
     const result = await deleteTaskAction(2);
@@ -155,7 +155,7 @@ describe('task ownership guards — admin_limited_tasks', () => {
 
   // T9
   it('bulkDeleteTasksAction: admin_limited_tasks puede borrar en lote tareas propias', async () => {
-    mockRequireAnyRole.mockResolvedValue(makeSession('admin_limited_tasks', 'user-1'));
+    mockRequireAnyRole.mockResolvedValue(makeSession(role, 'user-1'));
     mockGetTasksByIds.mockResolvedValue([OWN_TASK, { ...OWN_TASK, id: 2 }]);
 
     const result = await bulkDeleteTasksAction([1, 2]);
@@ -166,7 +166,7 @@ describe('task ownership guards — admin_limited_tasks', () => {
 
   // T10
   it('bulkDeleteTasksAction: rechaza todo el lote si alguna tarea es ajena', async () => {
-    mockRequireAnyRole.mockResolvedValue(makeSession('admin_limited_tasks', 'user-1'));
+    mockRequireAnyRole.mockResolvedValue(makeSession(role, 'user-1'));
     mockGetTasksByIds.mockResolvedValue([OWN_TASK, FOREIGN_TASK]);
 
     const result = await bulkDeleteTasksAction([1, 2]);
@@ -177,7 +177,7 @@ describe('task ownership guards — admin_limited_tasks', () => {
 
   // T11
   it('resetRolledOverAction: rol no-admin pasa callerId al filtro de propiedad', async () => {
-    mockRequireAnyRole.mockResolvedValue(makeSession('admin_limited_tasks', 'user-1'));
+    mockRequireAnyRole.mockResolvedValue(makeSession(role, 'user-1'));
 
     await resetRolledOverAction(5);
 
@@ -186,7 +186,7 @@ describe('task ownership guards — admin_limited_tasks', () => {
 
   // T12
   it('resetRolledOverBulkAction: rol no-admin pasa callerId al filtro de propiedad', async () => {
-    mockRequireAnyRole.mockResolvedValue(makeSession('admin_limited_tasks', 'user-1'));
+    mockRequireAnyRole.mockResolvedValue(makeSession(role, 'user-1'));
 
     await resetRolledOverBulkAction([3, 4]);
 

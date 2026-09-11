@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { and, eq, or } from 'drizzle-orm';
-import { requirePermission } from '@/lib/permissions';
+import { requirePermission, hasPermission } from '@/lib/permissions';
 import { getTaskById } from '@/lib/queries/crmTasks';
 import { db } from '@/lib/db';
 import { env } from '@/lib/env';
@@ -12,6 +12,7 @@ import {
 } from '@/db/schema/quickNotes';
 import { user } from '@/db/schema/auth';
 import { canReadTask, canManageTask } from '@/lib/quick-notes/access';
+import { TaskCardActions } from '@/features/admin/tasks/components/TaskCardActions';
 import { DirectTaskEditor } from '@/features/admin/quick-notes/DirectTaskEditor';
 export default async function TaskDetailPage({
   params,
@@ -81,6 +82,7 @@ export default async function TaskDetailPage({
           </Link>
         </details>
       ))}
+      {canManageTask(actor, task) && <TaskCardActions task={task} canDelete={hasPermission(session.user.role, 'tareas', 'delete')} />}
       {canManageTask(actor, task) && (
         <DirectTaskEditor
           task={task}

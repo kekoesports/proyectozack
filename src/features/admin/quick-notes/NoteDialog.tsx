@@ -8,12 +8,14 @@ export function NoteDialog({
   title,
   children,
   finalFocus,
+  topRight = false,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   title: string;
   children: ReactNode;
   finalFocus?: RefObject<HTMLElement | null>;
+  topRight?: boolean;
 }) {
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
@@ -21,7 +23,7 @@ export function NoteDialog({
         <Dialog.Backdrop className="fixed inset-0 z-[70] bg-black/40" />
         <Dialog.Popup
           {...(finalFocus ? { finalFocus } : {})}
-          className="fixed bottom-3 right-3 z-[71] max-h-[85dvh] w-[calc(100%-1.5rem)] max-w-lg overflow-y-auto rounded-xl border border-sp-admin-border bg-sp-admin-card p-5 text-sp-admin-text shadow-2xl outline-none sm:bottom-5 sm:right-5"
+          className={'fixed right-3 z-[71] max-h-[85dvh] w-[calc(100%-1.5rem)] max-w-lg overflow-y-auto rounded-xl border border-sp-admin-border bg-sp-admin-card p-5 text-sp-admin-text shadow-2xl outline-none sm:right-5 ' + (topRight ? 'top-16 sm:top-20' : 'bottom-3 sm:bottom-5')}
         >
           <div className="mb-3 flex items-center justify-between gap-3">
             <Dialog.Title className="font-display text-xl font-bold">

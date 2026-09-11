@@ -76,12 +76,10 @@ function endOfMonthIso(todayIso: string): string {
 }
 
 function visibilityCondition(session?: TaskSession) {
-  // Solo admin ve todas las tareas del equipo.
-  // Manager y staff ven únicamente sus propias tareas.
-  if (!session || session.role === 'admin') return undefined;
+  // Every personal workspace is scoped, including administrators.
+  if (!session) return undefined;
   return or(
     eq(crmTasks.assignedToUserId, session.userId),
-    eq(crmTasks.createdByUserId, session.userId),
     eq(crmTasks.ownerId, session.userId),
   );
 }

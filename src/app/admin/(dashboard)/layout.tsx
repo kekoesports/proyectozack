@@ -19,7 +19,7 @@ import {
   SettingsIcon,
 } from '@/features/admin/_shared/components/SidebarIcons';
 import type { ReactNode } from 'react';
-import { QuickNotePanel } from '@/features/admin/quick-notes/QuickNotePanel';
+import { QuickNotesDock } from '@/features/admin/quick-notes/QuickNotesDock';
 import { TaskNotices } from '@/features/admin/quick-notes/TaskNotices';
 import { canUseQuickNotes } from '@/lib/quick-notes/access';
 
@@ -173,11 +173,10 @@ export default async function AdminLayout({ children }: AdminLayoutProps): Promi
             emoji: a.emoji,
           }))}
         />
-        {quickNotesEnabled && <TaskNotices userId={session.user.id} />}
-        <main className={'flex-1 p-4 md:p-5 overflow-auto' + (quickNotesEnabled ? ' pb-24 md:pb-24' : '')}>{children}</main>
+        {quickNotesEnabled && <div className="flex flex-wrap items-start justify-end border-b border-sp-admin-border"><div className="min-w-0 flex-1"><TaskNotices userId={session.user.id} /></div><QuickNotesDock userId={session.user.id} role={session.user.role} /></div>}
+        <main className="flex-1 p-4 md:p-5 overflow-auto">{children}</main>
       </div>
       <CompletedDealsModal alerts={completedTrackerAlerts} />
-      {quickNotesEnabled && <QuickNotePanel userId={session.user.id} role={session.user.role} />}
     </div>
   );
 }

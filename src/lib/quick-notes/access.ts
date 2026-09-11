@@ -25,8 +25,7 @@ export function canReadTask(
   task: typeof crmTasks.$inferSelect,
 ): boolean {
   return (
-    actor.role === 'admin' ||
-    [task.ownerId, task.assignedToUserId, task.createdByUserId].includes(
+    [task.ownerId, task.assignedToUserId].includes(
       actor.userId,
     )
   );
@@ -36,7 +35,6 @@ export function canManageTask(
   task: typeof crmTasks.$inferSelect,
 ): boolean {
   return (
-    actor.role === 'admin' ||
     [task.ownerId, task.assignedToUserId].includes(actor.userId)
   );
 }

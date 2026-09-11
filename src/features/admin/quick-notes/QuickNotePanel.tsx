@@ -86,10 +86,10 @@ export function QuickNotePanel({
   });
   return (
     <>
-      <div className="pointer-events-none fixed bottom-[max(1rem,env(safe-area-inset-bottom))] right-4 z-40">
+      <div className="shrink-0">
         <button
           ref={trigger}
-          className={noteButton + ' pointer-events-auto shadow-lg'}
+          className="rounded border border-amber-300 bg-amber-100 px-2 py-1 text-[11px] font-semibold text-amber-950 hover:bg-amber-200"
           onClick={() => setOpen(true)}
         >
           ＋ Nota rápida
@@ -99,6 +99,7 @@ export function QuickNotePanel({
         open={open}
         onOpenChange={changeOpen}
         title="Nota rápida"
+        topRight
         finalFocus={trigger}
       >
         {!saved ? (

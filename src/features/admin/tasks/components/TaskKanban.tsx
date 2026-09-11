@@ -6,12 +6,14 @@ import { updateTaskPartialAction } from '@/app/admin/(dashboard)/tareas/actions'
 import { isOpenTaskStatus } from '@/lib/schemas/task';
 import { Avatar } from '@/features/admin/_shared/components/Avatar';
 import { RecurrenceBadge } from './RecurrenceBadge';
+import { TaskCardActions } from './TaskCardActions';
 import type { RelatedLabel } from '@/lib/queries/crmTasks';
 
 type UserOption = { readonly id: string; readonly name: string };
 
 type Props = {
   readonly tasks: readonly CrmTask[];
+  readonly canDelete?: boolean;
   readonly users: readonly UserOption[];
   readonly relatedLabels?: ReadonlyMap<string, RelatedLabel>;
   readonly onOpenAction: (task: CrmTask) => void;
@@ -45,7 +47,7 @@ const RELATED_BG: Record<string, string> = {
  * @feature admin/tasks
  * @route /admin/tareas
  */
-export function TaskKanban({ tasks, users, relatedLabels, onOpenAction }: Props): React.ReactElement {
+export function TaskKanban({ tasks, users, relatedLabels, onOpenAction, canDelete = false }: Props): React.ReactElement {
   const [draggingId, setDraggingId] = useState<number | null>(null);
   const [hoverCol,   setHoverCol]   = useState<CrmTaskStatus | null>(null);
   const [, startTransition] = useTransition();
@@ -142,6 +144,7 @@ export function TaskKanban({ tasks, users, relatedLabels, onOpenAction }: Props)
                       </span>
                     </div>
                   )}
+                  <TaskCardActions task={t} canDelete={canDelete} />
                   {owner && (
                     <div className="mt-2 flex items-center gap-1.5 pt-2 border-t border-sp-admin-border/40">
                       <Avatar userId={owner.id} name={owner.name} size="sm" />
@@ -239,7 +242,8 @@ export function TaskKanban({ tasks, users, relatedLabels, onOpenAction }: Props)
                         </div>
                       )}
                       {/* Owner */}
-                      {owner && (
+                      <TaskCardActions task={t} canDelete={canDelete} />
+                  {owner && (
                         <div className="mt-2 flex items-center gap-1.5 pt-2 border-t border-sp-admin-border/40">
                           <Avatar userId={owner.id} name={owner.name} size="sm" />
                           <span className="text-[10px] text-sp-admin-muted">{owner.name}</span>
