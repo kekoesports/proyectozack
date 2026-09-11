@@ -12,6 +12,7 @@ export const env = createEnv({
     STUDIO_FFMPEG_BIN: z.string().min(1).default('ffmpeg'),
     STUDIO_FFPROBE_BIN: z.string().min(1).default('ffprobe'),
     STUDIO_ENABLED: z.enum(['true', 'false']).default('false').transform((v) => v === 'true'),
+    QUICK_NOTES_ENABLED: z.enum(['true', 'false']).default('false').transform((v) => v === 'true'),
     DATABASE_URL: z.string().url(),
     /** Endpoint HTTP alternativo para el proxy Neon local de QA. */
     // Se conserva mientras producción siga en Vercel con el driver HTTP de
@@ -305,6 +306,7 @@ export const env = createEnv({
     STUDIO_FFMPEG_BIN: process.env.STUDIO_FFMPEG_BIN,
     STUDIO_FFPROBE_BIN: process.env.STUDIO_FFPROBE_BIN,
     STUDIO_ENABLED: process.env.STUDIO_ENABLED,
+    QUICK_NOTES_ENABLED: process.env.QUICK_NOTES_ENABLED,
     DATABASE_URL: process.env.DATABASE_URL,
     NEON_HTTP_FETCH_ENDPOINT: process.env.NEON_HTTP_FETCH_ENDPOINT,
     DB_POOL_MAX: process.env.DB_POOL_MAX,

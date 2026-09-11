@@ -8,6 +8,7 @@ import {
   timestamp,
   jsonb,
   index,
+  uniqueIndex,
 } from 'drizzle-orm/pg-core';
 import { user } from './auth';
 
@@ -46,6 +47,13 @@ export const alerts = pgTable(
     resolvedAt:  timestamp('resolved_at',  { withTimezone: true }),
     dismissedAt: timestamp('dismissed_at', { withTimezone: true }),
     snoozedUntil: date('snoozed_until'),
+    // Precise, per-user task notices. Legacy date-only snoozing remains unchanged.
+    dedupeKey: varchar('dedupe_key', { length: 200 }),
+    readAt: timestamp('read_at', { withTimezone: true }),
+    snoozedUntilAt: timestamp('snoozed_until_at', { withTimezone: true }),
+    presentedAt: timestamp('presented_at', { withTimezone: true }),
+    deliveryToken: varchar('delivery_token', { length: 36 }),
+    deliveryUntil: timestamp('delivery_until', { withTimezone: true }),
 
     // Metadata adicional (JSON)
     metadata: jsonb('metadata').$type<Record<string, unknown>>(),
@@ -60,5 +68,6 @@ export const alerts = pgTable(
     index('crm_alerts_entity_idx').on(t.relatedEntityType, t.relatedEntityId),
     index('crm_alerts_assigned_idx').on(t.assignedToUserId),
     index('crm_alerts_due_idx').on(t.dueDate),
+    uniqueIndex('crm_alerts_dedupe_key_unique').on(t.dedupeKey),
   ],
 );

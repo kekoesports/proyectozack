@@ -109,10 +109,12 @@ export async function createTaskAction(input: unknown): Promise<ActionResult> {
     createdByUserId: session.user.id,
     recurrenceTemplateId: data.recurrenceTemplateId ?? null,
     dueDate: data.dueDate,
+    startDate: data.startDate ?? null,
+    remindAt: data.remindAt ? new Date(data.remindAt) : null,
     priority: data.priority,
     status: data.status,
     category: data.category,
-    weekLabel: weekLabelForDueDate(data.dueDate),
+    weekLabel: weekLabelForDueDate(data.startDate ?? data.dueDate),
     relatedType: data.relatedType ?? null,
     relatedId: data.relatedId ?? null,
   });
@@ -171,6 +173,8 @@ export async function updateTaskAction(id: number, input: unknown): Promise<Acti
     assignedToUserId: newCoResponsable ?? parsed.data.ownerId,
     recurrenceTemplateId: parsed.data.recurrenceTemplateId ?? null,
     dueDate: parsed.data.dueDate,
+    ...(parsed.data.startDate !== undefined ? { startDate: parsed.data.startDate } : {}),
+    ...(parsed.data.remindAt !== undefined ? { remindAt: parsed.data.remindAt ? new Date(parsed.data.remindAt) : null } : {}),
     priority: parsed.data.priority,
     status: parsed.data.status,
     category: parsed.data.category,
@@ -234,6 +238,7 @@ export async function updateTaskPartialAction(
     parsedId.data,
     compact({
       ...patch,
+      remindAt: patch.remindAt === undefined ? undefined : patch.remindAt ? new Date(patch.remindAt) : null,
       assignedToUserId: patch.ownerId ?? patch.assignedToUserId,
     }),
   );

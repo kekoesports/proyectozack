@@ -94,3 +94,4 @@ export * from './studio';
 export * from './studioProfiles';
 export * from './studioProduction';
 export * from './studioNarrations';
+export * from './quickNotes';

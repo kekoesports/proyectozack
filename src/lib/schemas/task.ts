@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { CivilDate } from './quickNote';
 
 export const CRM_TASK_PRIORITIES = ['alta', 'media', 'baja'] as const;
 export const CRM_TASK_OPEN_STATUSES = ['pendiente', 'en_progreso'] as const;
@@ -37,10 +38,8 @@ export const taskFormSchema = z
       (v) => (v === '' || v === null ? undefined : v),
       z.coerce.number().int().positive().optional(),
     ),
-    startDate: z
-      .union([z.string().regex(/^\d{4}-\d{2}-\d{2}$/), z.null()])
-      .transform((v) => (v === '' ? null : v))
-      .optional(),
+    startDate: CivilDate.nullable().optional(),
+    remindAt: z.iso.datetime({ offset: true }).nullable().optional(),
     dueDate: z
       .union([z.string().regex(/^\d{4}-\d{2}-\d{2}$/), z.null()])
       .transform((v) => (v === '' ? null : v)),
@@ -65,6 +64,8 @@ export const taskFormSchema = z
 export type TaskFormInput = z.infer<typeof taskFormSchema>;
 
 export const taskPatchSchema = z.object({
+  startDate: CivilDate.nullable().optional(),
+  remindAt: z.iso.datetime({ offset: true }).nullable().optional(),
   title: z.string().trim().min(1).max(200).optional(),
   description: z.string().trim().max(2000).nullable().optional(),
   ownerId: z.string().min(1).optional(),

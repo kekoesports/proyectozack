@@ -15,6 +15,9 @@
 
 # min hora dia mes dow  comando
 
+# Notas/avisos: configuración optativa en quick-notes.crontab.example.
+# No añadir al horario activo sin migración 0161 y autorización de activación.
+
 # ── diarias ─────────────────────────────────────────────────────────────────
 0 6 * * *    /usr/bin/curl -fsS -m 110 -H "Authorization: Bearer $CRON_SECRET" http://app:3000/api/cron/snapshot-metrics            # 08:00 Madrid
 # -m 240 limita la petición HTTP; no cancela el trabajo del servidor. Un lote de

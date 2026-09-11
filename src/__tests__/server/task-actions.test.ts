@@ -44,6 +44,25 @@ describe('task actions', () => {
     mockGetTaskById.mockResolvedValue(null);
   });
 
+  it('persists a work date independently of deadline and stores a precise reminder', async () => {
+    mockRequireAnyRole.mockResolvedValue(makeSession('admin', 'admin-1'));
+    await createTaskAction({ title: 'Preparar miniatura', description: null, ownerId: 'admin-1',
+      startDate: '2030-01-10', dueDate: null, remindAt: '2030-01-10T08:30:00Z', priority: 'media', status: 'pendiente', category: 'General' });
+    expect(mockCreateTask).toHaveBeenCalledWith(expect.objectContaining({ startDate: '2030-01-10', dueDate: null,
+      remindAt: new Date('2030-01-10T08:30:00Z'), weekLabel: '2030-W02' }));
+  });
+
+  it('legacy edits do not erase work dates or reminders they did not submit', async () => {
+    mockRequireAnyRole.mockResolvedValue(makeSession('admin', 'admin-1'));
+    const input = { title: 'Editar texto', description: null, ownerId: 'admin-1', dueDate: null, priority: 'media', status: 'pendiente', category: 'General' };
+    await updateTaskAction(7, input);
+    expect(mockUpdateTask.mock.calls[0]?.[1]).not.toHaveProperty('startDate');
+    expect(mockUpdateTask.mock.calls[0]?.[1]).not.toHaveProperty('remindAt');
+    mockUpdateTask.mockClear();
+    await updateTaskAction(7, { ...input, startDate: null, remindAt: null });
+    expect(mockUpdateTask).toHaveBeenCalledWith(7, expect.objectContaining({ startDate: null, remindAt: null }));
+  });
+
   it('createTaskAction writes createdByUserId and syncs owner with assignedTo', async () => {
     mockRequireAnyRole.mockResolvedValue(makeSession('manager', 'mgr-1'));
     mockCreateTask.mockResolvedValue({ id: 1 });

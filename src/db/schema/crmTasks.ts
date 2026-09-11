@@ -45,6 +45,7 @@ export const crmTasks = pgTable(
 
     startDate: date('start_date'),
     dueDate: date('due_date'),
+    remindAt: timestamp('remind_at', { withTimezone: true }),
     priority: crmTaskPriorityEnum('priority').notNull().default('media'),
     status: crmTaskStatusEnum('status').notNull().default('pendiente'),
     category: varchar('category', { length: 40 }).notNull(),

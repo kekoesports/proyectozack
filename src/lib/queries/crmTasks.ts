@@ -25,6 +25,8 @@ type UpdatableFields = Pick<
   | 'title'
   | 'description'
   | 'dueDate'
+  | 'startDate'
+  | 'remindAt'
   | 'priority'
   | 'status'
   | 'category'

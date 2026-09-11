@@ -2,6 +2,7 @@ import type { Role } from '@/lib/auth-guard';
 import { hasPermission, type Module, type Action } from '@/lib/permissions';
 
 export type AdminNavKey =
+  | 'notas'
   | 'studio'
   | 'panel'
   | 'brands'
@@ -60,6 +61,7 @@ export const ADMIN_NAV_CATALOGUE: readonly AdminNavDef[] = [
   { key: 'talents',     href: '/admin/talents',         label: 'Talentos',         module: 'talentos',       section: 'primary', prefetch: false },
   { key: 'finanzas',    href: '/admin/finanzas/resumen',label: 'Finanzas',         module: 'facturacion',    section: 'primary', prefetch: false },
   // more
+  { key: 'notas', href: '/admin/notas', label: 'Notas', module: 'tareas', section: 'more', group: 'Operaciones', prefetch: false },
   { key: 'mi-semana',       href: '/admin/mi-semana',       label: 'Mi semana',         module: 'tareas',          section: 'more', group: 'Operaciones' },
   { key: 'brands',          href: '/admin/brands',          label: 'Marcas',            module: 'campanas',        section: 'more', group: 'Operaciones' },
   { key: 'automation-drafts', href: '/admin/automation-drafts', label: 'Borradores', module: 'campanas',    section: 'more', group: 'Operaciones', prefetch: false },

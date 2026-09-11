@@ -1,0 +1,5 @@
+# Ejemplo pendiente de activación, NO cargado por el scheduler.
+# Añadir esta línea al crontab existente solo tras autorización, migración 0161
+# y QUICK_NOTES_ENABLED=true. Reutiliza su CRON_SECRET y red interna.
+# El horario personal Europe/Madrid se respeta al presentar el aviso en el CRM.
+* * * * * /usr/bin/curl -fsS -m 50 -H "Authorization: Bearer $CRON_SECRET" http://app:3000/api/cron/sync-task-notices

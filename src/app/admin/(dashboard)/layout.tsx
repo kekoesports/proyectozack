@@ -19,6 +19,9 @@ import {
   SettingsIcon,
 } from '@/features/admin/_shared/components/SidebarIcons';
 import type { ReactNode } from 'react';
+import { QuickNotePanel } from '@/features/admin/quick-notes/QuickNotePanel';
+import { TaskNotices } from '@/features/admin/quick-notes/TaskNotices';
+import { canUseQuickNotes } from '@/lib/quick-notes/access';
 
 type AdminLayoutProps = { children: ReactNode };
 
@@ -43,6 +46,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 const NAV_ICONS: Record<AdminNavKey, React.ReactNode> = {
+  notas: <TasksIcon />,
   studio: <LiveIcon />,
   panel: <DashboardIcon />,
   brands: <BrandIcon />,
@@ -94,9 +98,10 @@ export default async function AdminLayout({ children }: AdminLayoutProps): Promi
       } satisfies AdminSidebarBranding
     : null;
   const isStaff = session.user.role === 'staff';
+  const quickNotesEnabled = env.QUICK_NOTES_ENABLED && canUseQuickNotes(session.user.role);
 
   const { primary, more: allMore } = navForRole(session.user.role);
-  const more = allMore.filter((item) => item.key !== 'studio' || (env.STUDIO_ENABLED && !isKekoPilot));
+  const more = allMore.filter((item) => (item.key !== 'studio' || (env.STUDIO_ENABLED && !isKekoPilot)) && (item.key !== 'notas' || quickNotesEnabled));
   const primaryNav = primary.map((item) => ({
     href: item.href,
     label: item.label,
@@ -168,9 +173,11 @@ export default async function AdminLayout({ children }: AdminLayoutProps): Promi
             emoji: a.emoji,
           }))}
         />
-        <main className="flex-1 p-4 md:p-5 overflow-auto">{children}</main>
+        {quickNotesEnabled && <TaskNotices userId={session.user.id} />}
+        <main className={'flex-1 p-4 md:p-5 overflow-auto' + (quickNotesEnabled ? ' pb-24 md:pb-24' : '')}>{children}</main>
       </div>
       <CompletedDealsModal alerts={completedTrackerAlerts} />
+      {quickNotesEnabled && <QuickNotePanel userId={session.user.id} role={session.user.role} />}
     </div>
   );
 }

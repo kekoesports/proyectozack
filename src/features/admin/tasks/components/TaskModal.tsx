@@ -54,6 +54,7 @@ export function TaskModal({
   const [ownerId,     setOwnerId]     = useState(task?.ownerId ?? defaultOwnerId);
   const [coOwnerId,   setCoOwnerId]   = useState<string>(task?.assignedToUserId && task.assignedToUserId !== task.ownerId ? task.assignedToUserId : '');
   const [dueDate,     setDueDate]     = useState(task?.dueDate ?? '');
+  const [startDate, setStartDate] = useState(task?.startDate ?? '');
   const [priority,    setPriority]    = useState<CrmTaskPriority>(task?.priority ?? 'media');
   const [status,      setStatus]      = useState<CrmTaskStatus>(task?.status ?? 'pendiente');
   const [category,    setCategory]    = useState(task?.category ?? defaultCategory ?? 'General');
@@ -141,6 +142,7 @@ export function TaskModal({
       ownerId,
       assignedToUserId: coOwnerId || undefined,
       dueDate:          dueDate || null,
+      startDate:        startDate || null,
       priority,
       status,
       category:         category.trim() || 'General',
@@ -181,7 +183,7 @@ export function TaskModal({
           </button>
         </div>
 
-        <form onSubmit={(e) => { e.preventDefault(); submit(); }} className="p-6 space-y-4">
+        <form onSubmit={(e) => { e.preventDefault(); submit(); }} className="p-6 space-y-4 max-h-[75dvh] overflow-y-auto">
 
           {/* ── Campos primarios ──────────────────────────────── */}
 
@@ -208,6 +210,9 @@ export function TaskModal({
                 <option value="">— Ninguno —</option>
                 {availableCoOwners.map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
               </select>
+            </Field>
+            <Field label="Fecha de trabajo">
+              <input type="date" aria-label="Fecha de trabajo" value={startDate} onChange={(e) => setStartDate(e.target.value)} className={inputCls} />
             </Field>
             <Field label="Fecha límite">
               <input
