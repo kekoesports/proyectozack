@@ -4,6 +4,8 @@ read_when: Operating or redeploying the live CRM quick-notes and task-notices fe
 
 # Activación de notas rápidas — 11 septiembre 2026
 
+Actualización posterior, 09:42 UTC: la web publicada y el procedimiento de reversión actuales están en [Tareas personales y post-it](kanban-private-workspace-2026-09-11.md). Este documento conserva la evidencia de la activación inicial; su contenedor sigue atendiendo el cron de avisos.
+
 ## Estado y autorización
 
 - **IMPLEMENTADO:** commit `ad1894faa6490b1e615c6ab20655b14a24e5ba31`, ya en master.
