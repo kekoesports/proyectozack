@@ -40,6 +40,10 @@ export const EditQuickNote = z
   })
   .strict();
 export const NoteIdentity = z.object({ id: z.uuid() }).strict();
+export const DeleteQuickNote = NoteIdentity.extend({
+  version: z.number().int().positive(),
+  confirmed: z.literal(true),
+});
 export const NoteSharing = z
   .object({ id: z.uuid(), userIds: z.array(z.string().min(1)).max(20) })
   .strict();

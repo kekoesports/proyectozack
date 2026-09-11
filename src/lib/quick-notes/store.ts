@@ -1,5 +1,6 @@
 import { and, desc, eq, ilike, inArray, isNull, isNotNull } from 'drizzle-orm';
 import { crmTasks } from '@/db/schema/crmTasks';
+import { assertCanDelete } from '@/lib/permissions';
 import {
   quickNotes,
   quickNoteShares,
@@ -9,6 +10,7 @@ import {
 import {
   SaveQuickNote,
   EditQuickNote,
+  DeleteQuickNote,
   NoteList,
   NoteSharing,
   type NoteActor,
@@ -220,6 +222,20 @@ export function createQuickNoteStore(database: NoteDatabase) {
             kind: 'sharing_changed',
             detail: { userIds: unique },
           });
+      });
+    },
+    async remove(actor: NoteActor, input: unknown) {
+      assertNotes(actor);
+      assertCanDelete(actor.role);
+      const parsed = DeleteQuickNote.safeParse(input);
+      if (!parsed.success) noteError('Confirma el borrado de una nota válida.');
+      return database.transaction(async (tx) => {
+        const note = await accessibleNote(tx, actor, parsed.data.id, true);
+        if (note.version !== parsed.data.version)
+          noteError('La nota cambió. Revísala antes de eliminarla.', 'CONFLICT');
+        // Cascades remove note shares/history/conversion only; the linked task survives.
+        await tx.delete(quickNotes).where(and(eq(quickNotes.id, note.id), eq(quickNotes.ownerId, actor.userId)));
+        return { id: note.id };
       });
     },
     async archive(actor: NoteActor, id: string, archived: boolean) {

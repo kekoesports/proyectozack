@@ -119,6 +119,12 @@ export async function archiveQuickNoteAction(input: unknown) {
     ),
   );
 }
+export async function deleteQuickNoteAction(input: unknown) {
+  const session = await requirePermission('tareas', 'delete');
+  return execute(() =>
+    store.remove({ userId: session.user.id, role: session.user.role }, input),
+  );
+}
 export async function quickNoteOptionsAction(input: unknown) {
   const session = await requirePermission('tareas', 'write');
   const parsed = z.string().max(500).safeParse(input);

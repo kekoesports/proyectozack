@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { listQuickNotesAction } from '@/app/admin/(dashboard)/notas/actions';
 import { QuickNotePanel } from './QuickNotePanel';
+import { DeleteNoteButton } from './DeleteNoteButton';
 
 /** Compact personal post-it in the header; expanding is explicit and never covers the workspace by default. */
 export function QuickNotesDock({ userId, role }: { userId: string; role: string }) {
@@ -26,7 +27,7 @@ export function QuickNotesDock({ userId, role }: { userId: string; role: string 
       </div>
       <p className="mt-1 truncate text-xs text-amber-900/80">{query.isError ? 'No se pudieron cargar las notas.' : notes[0]?.note.body ?? 'Apunta algo sin salir de aquí.'}</p>
       {expanded && <div className="absolute right-0 top-full mt-1 w-full space-y-2 rounded-lg border border-amber-300 bg-amber-50 p-3 shadow-lg">
-        {notes.slice(0, 3).map(({ note }) => <article key={note.id} className="rounded border border-amber-200 bg-amber-100/70 p-2 text-sm"><p className="line-clamp-4 whitespace-pre-wrap break-words">{note.body}</p></article>)}
+        {notes.slice(0, 3).map(({ note }) => <article key={note.id} className="space-y-2 rounded border border-amber-200 bg-amber-100/70 p-2 text-sm"><p className="line-clamp-4 whitespace-pre-wrap break-words">{note.body}</p><DeleteNoteButton note={note} role={role} /></article>)}
         <Link className="block text-xs font-semibold underline" onClick={() => setExpanded(false)} href="/admin/notas">Ver todas mis notas</Link>
         <button type="button" className="text-xs underline" onClick={() => setExpanded(false)}>Minimizar</button>
       </div>}

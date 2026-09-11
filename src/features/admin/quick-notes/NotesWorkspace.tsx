@@ -9,6 +9,7 @@ import * as actions from '@/app/admin/(dashboard)/notas/actions';
 import { canAssignTasksToOthers } from '@/lib/quick-notes/access';
 import { NoteDialog, noteInput, noteButton, noteSecondary } from './NoteDialog';
 import { TaskConversion } from './TaskConversion';
+import { DeleteNoteButton } from './DeleteNoteButton';
 
 type Detail = Extract<
   Awaited<ReturnType<typeof actions.quickNoteDetailAction>>,
@@ -138,6 +139,7 @@ export function NotesWorkspace({
               >
                 Ver nota
               </button>
+              {note.ownerId === userId && <DeleteNoteButton note={note} role={role} />}
               {task && (
                 <Link
                   className={noteSecondary}
