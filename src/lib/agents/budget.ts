@@ -27,6 +27,7 @@ export type BudgetSnapshot = {
 };
 
 export type BudgetBlockReason =
+  | 'invalid_budget_state'
   | 'global_budget_exceeded'
   | 'agent_budget_exceeded'
   | 'run_budget_exceeded'
@@ -46,6 +47,12 @@ export type BudgetDecision =
  * "sin configurar" con "sin saldo". El techo real lo pone el global.
  */
 export function checkBudget(snapshot: BudgetSnapshot): BudgetDecision {
+  const amounts = [snapshot.globalSpentMicros, snapshot.globalLimitMicros,
+    snapshot.agentSpentMicros, snapshot.agentLimitMicros,
+    snapshot.runSpentMicros, snapshot.runLimitMicros];
+  if (amounts.some((value) => !Number.isSafeInteger(value) || value < 0)) {
+    return { ok: false, reason: 'invalid_budget_state', detail: 'Contabilidad inválida; revisar antes de continuar.' };
+  }
   if (snapshot.globalLimitMicros > 0 && snapshot.globalSpentMicros >= snapshot.globalLimitMicros) {
     return {
       ok: false,
@@ -173,7 +180,11 @@ export function estimateCostMicros(
   outputTokens: number,
   cachedInputTokens: number | null = null,
 ): CostEstimate {
-  const tarifa = model ? MODEL_PRICING[modelPricingKey(provider, model)] : undefined;
+  if (![inputTokens, outputTokens].every((value) => Number.isSafeInteger(value) && value >= 0)) {
+    return { estimatedCostMicros: 0, pricingUnknown: true };
+  }
+  const key = model ? modelPricingKey(provider, model) : null;
+  const tarifa = key && Object.hasOwn(MODEL_PRICING, key) ? MODEL_PRICING[key] : undefined;
   if (!tarifa) return { estimatedCostMicros: 0, pricingUnknown: true };
 
   const longContext = tarifa.longContext && inputTokens >= tarifa.longContext.thresholdTokens
@@ -191,5 +202,7 @@ export function estimateCostMicros(
     (cachedTokens / 1_000_000) * (cachedRate ?? inputRate) +
     (Math.max(outputTokens, 0) / 1_000_000) * outputRate;
 
-  return { estimatedCostMicros: Math.round(coste), pricingUnknown: false };
+  const rounded = Math.round(coste);
+  if (!Number.isSafeInteger(rounded) || rounded < 0) return { estimatedCostMicros: 0, pricingUnknown: true };
+  return { estimatedCostMicros: rounded, pricingUnknown: false };
 }
