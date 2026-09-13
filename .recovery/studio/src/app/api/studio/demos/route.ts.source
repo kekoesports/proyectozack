@@ -1,0 +1,24 @@
+import { demoHttpActor, demoError } from '@/lib/studio/demo-http';
+import { DemoCreateRequest, DemoListQuery } from '@/lib/schemas/studio-demo';
+import { readDemoBody } from '@/lib/studio/demo-storage';
+
+export const runtime = 'nodejs';
+export async function GET(request: Request) {
+  const actor = await demoHttpActor(request, false);
+  if (!actor) return demoError('La subida de demos no está activa en este entorno.', 403);
+  const query = DemoListQuery.safeParse(Object.fromEntries(new URL(request.url).searchParams));
+  if (!query.success || query.data.workspace !== actor.member.talentId) return demoError('El espacio cambió. Actualiza la página.', 409);
+  return Response.json({ jobs: await actor.demos.list() }, { headers: { 'Cache-Control': 'no-store' } });
+}
+export async function POST(request: Request) {
+  const actor = await demoHttpActor(request, true);
+  if (!actor) return demoError('Acceso no disponible.', 403);
+  try {
+    const raw: unknown = JSON.parse((await readDemoBody(request, 4096)).toString('utf8'));
+    const input = DemoCreateRequest.safeParse(raw);
+    if (!input.success) return demoError('Usa una .dem de hasta 500 MB, SteamID64 válido y permiso de uso.');
+    if (input.data.workspace !== actor.member.talentId) return demoError('El espacio cambió. Actualiza la página.', 409);
+    const job = await actor.demos.create(input.data);
+    return job ? Response.json({ ok: true, job }, { headers: { 'Cache-Control': 'no-store' } }) : demoError('Límite alcanzado: 2 trabajos activos, 10 subidas al día o 1 GB temporal por creador. Revisa los trabajos existentes.', 409);
+  } catch { return demoError('No se pudo iniciar la subida. Revisa el archivo y vuelve a intentarlo.'); }
+}

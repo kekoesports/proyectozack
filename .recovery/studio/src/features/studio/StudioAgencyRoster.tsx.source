@@ -1,0 +1,22 @@
+'use client';
+
+import Image from 'next/image';
+import Link from 'next/link';
+import { useState } from 'react';
+import { Search, ArrowUpRight } from 'lucide-react';
+import { StudioWorkspaceButton } from './StudioWorkspaceButton';
+import type { studioAgencyWorkspaces } from '@/lib/studio/agency';
+
+export function StudioAgencyRoster({ roster }: { roster: Awaited<ReturnType<typeof studioAgencyWorkspaces>> }) {
+  const [search, setSearch] = useState('');
+  const [limit, setLimit] = useState(12);
+  const visible = roster.filter((talent) => `${talent.name} ${talent.game}`.toLocaleLowerCase('es').includes(search.toLocaleLowerCase('es')));
+  return <section className="studio-agency-roster"><div className="studio-section-title"><div><p className="studio-eyebrow">MISMA BASE / SIN DUPLICAR FICHAS</p><h2>Los talentos de SocialPro.</h2></div><span className="studio-badge">{roster.length} fichas CRM</span></div>
+    <label className="studio-search"><Search size={17} /><input type="search" aria-label="Buscar talento en Studio" placeholder="Buscar por nombre o juego…" value={search} onChange={(event) => { setSearch(event.target.value); setLimit(12); }} /></label>
+    <p className="studio-muted">Solo deals en curso o de los últimos cuatro meses, de mayor a menor número de tratos. Las fichas y proyectos anteriores se conservan.</p>
+    <div className="studio-roster-grid">{visible.slice(0, limit).map((talent) => <article key={talent.id} className="studio-roster-entry"><Link href={`/admin/talents/${talent.id}`} className="studio-roster-card">{talent.photoUrl ? <Image src={talent.photoUrl} alt="" width={64} height={64} unoptimized /> : <span className="studio-roster-initial">{talent.name.slice(0, 1)}</span>}<div><strong>{talent.name}</strong><small>{talent.game} · {talent.dealCount} tratos · {talent.activeDeals} en curso</small></div><ArrowUpRight size={16} /></Link><StudioWorkspaceButton talentId={talent.id} name={talent.name} /></article>)}</div>
+    {visible.length === 0 && <p>No hay talentos con esa búsqueda.</p>}
+    {visible.length > limit && <button className="studio-secondary" type="button" onClick={() => setLimit(limit + 12)}>Ver más talentos ({visible.length - limit})</button>}
+    <p className="studio-muted">La agencia puede preparar contenido con su propia cuenta. Para que el creador entre, vincula su correo verificado mediante invitación; abrir Studio no modifica sus accesos.</p>
+  </section>;
+}

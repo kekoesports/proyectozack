@@ -1,0 +1,13 @@
+# Overlay on web.yaml. A separate capped filesystem protects the VPS root disk.
+services:
+  web:
+    environment:
+      CLIPPER_ENABLED: 'true'
+      STUDIO_DEMO_ENABLED: 'true'
+      STUDIO_DEMO_STORAGE: local
+      STUDIO_DEMO_ROOT: /srv/storage/private/studio-demos
+    volumes:
+      - type: bind
+        source: /opt/socialpro/data/studio-demos
+        target: /srv/storage/private/studio-demos
+        bind: { create_host_path: false }

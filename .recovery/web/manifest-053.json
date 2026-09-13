@@ -1,0 +1,242 @@
+[
+  {
+    "path": "src/features/studio/StudioVerifyEmail.tsx",
+    "sha256": "f8d0559daff26ea0f45c0cc89e115893e950dc00e20a6c5cf36136b5d2141fbe",
+    "bytes": 1736,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/studio/StudioWorkbench.tsx",
+    "sha256": "90611651dadc8883ff812bb936bbb7f15666f35b4a9ed945f7c2dacca2cb914c",
+    "bytes": 1076,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/studio/StudioWorkspaceButton.tsx",
+    "sha256": "f2c30f7b683eadecb9623eb8bf3377f51fdb49ed130cf828994581a2960055fb",
+    "bytes": 1004,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/studio/StudioWorkspaceContext.tsx",
+    "sha256": "6c656032883a3fcdb64c340aaae0a89bbef8c78ce30cc724ccea4b02b5dac135",
+    "bytes": 502,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/studio/StudioWorkspacePicker.tsx",
+    "sha256": "459f0cadd796cdb417f6bbe788efa58d604159053ec8ab5e6d55a397715cea9e",
+    "bytes": 2168,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/talent-stats-public/components/KpiCards.tsx",
+    "sha256": "7fe72107fea0bac21e7b406632718d7a72b08875123a41a086976ba7b3e18715",
+    "bytes": 1546,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/talent-stats-public/components/StatsTableRow.tsx",
+    "sha256": "0f47caab87ba07a3daf8e9a793304107b6a7b979dece2c640bf11f26a24f846f",
+    "bytes": 2485,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/talent-stats-public/components/StatsView.tsx",
+    "sha256": "3346e3cfa0466d3ebf84cb9042992054c213fd62537d69947fd886551a323a43",
+    "bytes": 2523,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/talents-public/components/TalentCard.tsx",
+    "sha256": "fd0d467d60fdd230e975c6507b6afbb3d4d05216a4f26db0391066033b517299",
+    "bytes": 5943,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/talents-public/components/TalentGrid.tsx",
+    "sha256": "ca90239c5d72521d3d329da8284fe73b2a35f24944e9e02d73ccd110e75c5cb0",
+    "bytes": 2468,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/talents-public/components/TalentModal.tsx",
+    "sha256": "53e0beaddf90096e052be58dc8de5f7abc4332df3c8203f5e9c81e74fae9050d",
+    "bytes": 7549,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/__tests__/server/kekopilot-url.test.ts",
+    "sha256": "a3c5cac33ff0f1c3604865cccec222b0f99aacefe0e979407d5042464806a2bc",
+    "bytes": 1009,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/__tests__/server/studio-access.test.ts",
+    "sha256": "763e53b5729b3f341d704819cca9d8b839e687db157b7d5836b655fb098f2e99",
+    "bytes": 5889,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/__tests__/server/studio-analytics.test.ts",
+    "sha256": "0a1f587254963c8bb19e6877bf979b2def491920af6fcf7a19535857a65f86e5",
+    "bytes": 1525,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/__tests__/server/studio-auth-logger.test.ts",
+    "sha256": "01ee853324842ae21afd321eec79a67fae7b4729916330fba696e6799c4e3984",
+    "bytes": 655,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/__tests__/server/studio-boundaries.test.ts",
+    "sha256": "0201c094472c4bc7e61a51408094a28237cd6393dac9bc9f3cc10b8a5d0fa4ca",
+    "bytes": 3454,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/__tests__/server/studio-host-routing.test.ts",
+    "sha256": "002ba97d2744611f543c9876317d7a111298f2fdc0983605679e62396167c818",
+    "bytes": 1971,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/__tests__/server/studio-motion-preview.test.ts",
+    "sha256": "2b0fafbe59f4495b70339719a0d7622929d883d997d20ec95d78d786556987b5",
+    "bytes": 2821,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/__tests__/server/studio-motion.test.ts",
+    "sha256": "896e6ded7a9fde1529b629c9ac436b3f2d67d471d1e862bceb11977f4430d790",
+    "bytes": 4787,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/__tests__/server/studio-production-boundaries.test.ts",
+    "sha256": "dd0c11139c309cc52ae8d2675dd2d0ebb288010095cd23c74dbe7d9358cb47e3",
+    "bytes": 3690,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/__tests__/server/studio-profile.test.ts",
+    "sha256": "ea9d4722c7d1b0c04e6bb25e2dd95927cf804c400a1a668d06b4bb72384ab7f3",
+    "bytes": 3407,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/__tests__/server/studio-upload-origin.test.ts",
+    "sha256": "80b7ee781dc9f91d817755ecc6cf6259fd2904deebc84e80e173d61165460991",
+    "bytes": 2751,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/__tests__/server/studio-verification-email.test.ts",
+    "sha256": "ae3bd0c84b540ecd2e30c47bb1ed8502bf855b833cbc9a6cf66773d9a653d7c7",
+    "bytes": 1893,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/actions/partner-consent-action.ts",
+    "sha256": "c082d9a517640a9fa37e3361d7bcafb29b8cec0be02d1936fdc6f1d7811b8ac9",
+    "bytes": 4748,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/admin-nav.ts",
+    "sha256": "39146784dd5472b14728f27323d48ba3e33bf0fa269e3dd929a81b960ce877f0",
+    "bytes": 9742,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/lib/agency-socials.ts",
+    "sha256": "3bb98ccef02bba30bd1e03e8e3bd4cfbb45b1672b4842362e1b8c9c7747ccf82",
+    "bytes": 449,
+    "storage": "git-base"
+  },
+  {
+    "path": "src/lib/agency-videos.ts",
+    "sha256": "8efd0f28276fb7c5b6e3a33be65bdf080fd98310908744e02d7787b4162572d2",
+    "bytes": 1299,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/agents/action-hash.ts",
+    "sha256": "5123ad173444428983638effa353bf2de83830ec07b1f6f1034628e56f6f655f",
+    "bytes": 1883,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/agents/agent-loop.ts",
+    "sha256": "cc16ab328138a351510298c0d58ef07b59c7f1220aac8f282c03e2a68f05fcda",
+    "bytes": 10214,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/agents/approval-state.ts",
+    "sha256": "d64a9c58b8cc88194411115dd8aa729028ee9a4eee3192f00869a0b091c02cef",
+    "bytes": 4676,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/agents/budget.ts",
+    "sha256": "7827781ed2f83ca2c87fb714b59c0a197bd4fd3fee582ac7235ec5070dd33f07",
+    "bytes": 7299,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/agents/canonical-json.ts",
+    "sha256": "72faee887d6e87b51230ec8e12fbc9498e8c3938825262199b1ddb7e6acaafc8",
+    "bytes": 4178,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/agents/catalog.ts",
+    "sha256": "198bd2521dcb0fecaf8035c49b22c05372a6fde2354d470b39d6c86f30ee98f4",
+    "bytes": 5667,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/agents/erase-tool.ts",
+    "sha256": "6e4e27904da4e457c3defa2c618c75bd0646f82260d8027c9d2e913ef6d31f9d",
+    "bytes": 2660,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/agents/errors.ts",
+    "sha256": "e38e7cca9dae46d68ce76a4ecac33998ffcb943803a303e7db4b539902fe98f5",
+    "bytes": 895,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/agents/guardian/definition.ts",
+    "sha256": "9a78ee861539c0c0963cfd18189ad7fb874abd852e52919d4c78e610c5d36ab8",
+    "bytes": 3705,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/agents/guardian/prompt.ts",
+    "sha256": "89b85ee39a1f3cae9bcee5ffc1f78cd37b8b4f031b0db042fed34e1df02f9fa2",
+    "bytes": 3508,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/agents/guardian/report.ts",
+    "sha256": "931a6f8fc23c9541f2983fe3e56daf5636996ff50d650c5a370db15648a62122",
+    "bytes": 5930,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/agents/guardian/rules.ts",
+    "sha256": "79b7dd729f714c5672f9c9cb113ea6ede966ee89ff37b78eb190873c1173fcf3",
+    "bytes": 12730,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/agents/guardian/tools.ts",
+    "sha256": "0624ba34dd4a3f2226e9f160660fa9e20add256c27c348392e1d37a5c4eb4052",
+    "bytes": 6494,
+    "storage": "git-base-crlf"
+  }
+]

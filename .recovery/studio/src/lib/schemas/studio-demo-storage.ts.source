@@ -1,0 +1,23 @@
+import { z } from 'zod';
+import { DEMO_PART_BYTES, DemoStorageBackend } from './studio-demo';
+
+// The installed Blob SDK 2.3.1 resolves the store from segment 4 of read/write tokens.
+export const DemoBlobToken = z.string().regex(/^vercel_blob_rw_[a-zA-Z0-9]{3,64}_[a-zA-Z0-9_-]{8,}$/);
+export function demoStorageScope(backend: 'local' | 'blob', token?: string): string | null {
+  if (backend === 'local') return 'local';
+  const parsed = DemoBlobToken.safeParse(token);
+  return parsed.success ? `blob:${parsed.data.split('_')[3]?.toLowerCase()}` : null;
+}
+
+export const DemoStorageConfig = z.object({
+  backend: DemoStorageBackend,
+  root: z.string().min(1).optional(),
+  token: z.string().min(1).optional(),
+  serverless: z.boolean(),
+}).superRefine((config, ctx) => {
+  if (config.backend === 'local' && (!config.root || config.serverless)) ctx.addIssue({ code: 'custom', message: 'storage_unavailable' });
+  if (config.backend === 'blob' && !DemoBlobToken.safeParse(config.token).success) ctx.addIssue({ code: 'custom', message: 'storage_unavailable' });
+});
+export type DemoStorageConfig = z.infer<typeof DemoStorageConfig>;
+export const DemoBlobMeta = z.object({ pathname: z.string().max(160), size: z.number().int().min(1).max(DEMO_PART_BYTES) });
+export const DemoBlobListing = z.object({ blobs: z.array(DemoBlobMeta).max(250), hasMore: z.literal(false) });

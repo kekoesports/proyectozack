@@ -1,0 +1,242 @@
+[
+  {
+    "path": "src/lib/services/discovery-http.ts",
+    "sha256": "b0a8fdd87271daf01c155afb7d9ec59c2a546fb64ec53d41272f4fdd8ff21fe3",
+    "bytes": 5819,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/services/instagram.ts",
+    "sha256": "6b4f01d9faab37695902a8a1001e9a0a96f34b92dd4d6c0a3278ccef5f3781c1",
+    "bytes": 8729,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/services/ipEvidenceGithubSync.ts",
+    "sha256": "724390889557f934f4a5e51e9132abd800f06440ec793d37f5962d8225e90546",
+    "bytes": 4958,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/services/kick.ts",
+    "sha256": "8b5e6496b22284fded6e7cb0b2cf0ad3c93945a0ef2201af48fb336c0ab674d6",
+    "bytes": 9774,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/lib/services/provider-http.ts",
+    "sha256": "2f958b531920149e54c904423d5a253bf85336baaa0b8c8a174e85471fa666be",
+    "bytes": 3394,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/services/slash-accounting/sync.ts",
+    "sha256": "55128857b71c1b3e4f9d5e25f4564017f5676d054c4fa3b4625d30beae7843db",
+    "bytes": 12373,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/services/slash-accounting/webhook.ts",
+    "sha256": "045f130977c31bb43dba963308bf3aee4084014dc706a8c65a0adb9ff6b941a2",
+    "bytes": 1341,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/services/twitch-auth.ts",
+    "sha256": "823499f628d53be541017fa47215485b8247c56e71a24cdbf1b66cad5a3bc30c",
+    "bytes": 1418,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/services/twitch-discovery.ts",
+    "sha256": "93cb1170e30d78a0dbbee0a691bd5d288c4204036133cc58229a9af1d68e63b1",
+    "bytes": 9544,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/services/twitch.ts",
+    "sha256": "67ddcf15ff0f8c7937fc6f6e915cfb1f8816b7ba5ec9dea58295780cfc1fee0e",
+    "bytes": 10209,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/lib/services/youtube-content.ts",
+    "sha256": "d24b4528fbbcfb8a62548b8ea8c3dff1a9c80c26abc0018e8cd9833e99651556",
+    "bytes": 11393,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/lib/services/youtube-discovery.ts",
+    "sha256": "20e45867a0c0141ab941997744c8c3aa67bb5ca6be458361d7b8f58614b82240",
+    "bytes": 3505,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/services/youtube.ts",
+    "sha256": "3faef8b04e4aebdc4d6ed85b727bbd7226310eb4af07a2ebe64ae48e25fe5595",
+    "bytes": 15109,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/services/youtubeQualification.ts",
+    "sha256": "7c48159326bf949160aa6a6d19cc0929d51ba1966bbfe5ceb4bd82886b814b99",
+    "bytes": 5544,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/lib/site-url.ts",
+    "sha256": "0a33b96b44ae660f986152dd1dd2564f5ff1ee11b191ea8670f13f01a46e8d68",
+    "bytes": 2293,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/steam/openid.ts",
+    "sha256": "8e896491ceede43a3fba9d0bca1da693f04d48b7987333b335f88c91feedaf9c",
+    "bytes": 4253,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/steam/plugin.ts",
+    "sha256": "24f8bc8711e9004aef0d155cd732e7260fdde7f5d3daaf28e95e52a7d6dc4cf1",
+    "bytes": 11351,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/steam/profile.ts",
+    "sha256": "3c6d5f6e571153bf327156be5bb4f2f738691bcffe6e34e03851695922093cf4",
+    "bytes": 2473,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/steam/return-to.ts",
+    "sha256": "0060e466309cc754a25d0f9a9b1938c3e91272a48d85274150e024306bc67f0a",
+    "bytes": 2705,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/studio/access.ts",
+    "sha256": "ace758741ae6c1e47062a21f80928bb8aa6ba151c04489642b97c8a3201dbf06",
+    "bytes": 2549,
+    "storage": "git-base"
+  },
+  {
+    "path": "src/lib/studio/agency.ts",
+    "sha256": "179b592e7dfb0cd020bd89929ac1dca9d924a164eebfccc3dc1fb44c72da8609",
+    "bytes": 4751,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/lib/studio/analytics.ts",
+    "sha256": "3e9f5274414970106947d1b6ec315730a796ae24f710230aab9313b8d48a9dde",
+    "bytes": 1622,
+    "storage": "git-base"
+  },
+  {
+    "path": "src/lib/studio/asset-response.ts",
+    "sha256": "9a732fd8ed92a951d492fb808b2316214930ebe516e8b8a88a52111330b5227a",
+    "bytes": 1735,
+    "storage": "git-base"
+  },
+  {
+    "path": "src/lib/studio/assistant.ts",
+    "sha256": "cb38729e1ffc21c61c65eeaa60aeef8372e7d5a2fe618a908f791df35c040f51",
+    "bytes": 2067,
+    "storage": "git-base"
+  },
+  {
+    "path": "src/lib/studio/byte-range.ts",
+    "sha256": "855e0a057691f541d731560f1dd6f8eacbf392ea86eca399a632e347f56392e8",
+    "bytes": 2143,
+    "storage": "git-base"
+  },
+  {
+    "path": "src/lib/studio/channel-repository.ts",
+    "sha256": "de7a8c1e0a57d118b10b1fe219e660067b3d8e950085f39ff7763071d65575c3",
+    "bytes": 4346,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/lib/studio/clip-ranking.ts",
+    "sha256": "ddba56fff281c70faca3718ba0f53588a007ff28aad4f66972ba02c4aef6b994",
+    "bytes": 4777,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/lib/studio/clip-repository.ts",
+    "sha256": "f3bb5e017425820808e67812eb1dea4bffe51dd44ee45c642881fcd9f7c7a20e",
+    "bytes": 7398,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/lib/studio/clip-twitch.ts",
+    "sha256": "3ac3355bc296e7445241f9ec3270e24271757b5b4d5a3d261aaf9b748ac907b2",
+    "bytes": 3675,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/lib/studio/crm-context.ts",
+    "sha256": "75c6090f42f014f667ebeec6c72af1901fab1d8fd2b8d87a8c32c73956af2936",
+    "bytes": 2226,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/lib/studio/crm-photo-source.ts",
+    "sha256": "a9eab8f97125a7abb028618497e1820bdce42ff318436be099a2b19d84973bce",
+    "bytes": 1142,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/lib/studio/deal-activity.ts",
+    "sha256": "fdbaa50d08eca72fe95c4e96eb5b0b85c75bf92d0564720c68f2e0b24011092b",
+    "bytes": 1548,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/lib/studio/demo-blob-storage.ts",
+    "sha256": "0e42bf6b04b0f637a6500c616b808ca949e3f6f0d174cdcd58d47994364062bc",
+    "bytes": 4458,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/lib/studio/demo-http.ts",
+    "sha256": "9c002b9b34ffeaf5cb51337b34fb7bc3a871d43310aea79cee80ca224fc147ab",
+    "bytes": 1094,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/lib/studio/demo-parser.ts",
+    "sha256": "06cbaa13b91e150a66d9280e21493c127a9af058246dcaaf065c8f23ca934a9a",
+    "bytes": 1914,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/lib/studio/demo-repository.ts",
+    "sha256": "16ec0b04fa62bee17b81f363a0aaf0b5543e8fab3b35b7cc36ba68148d2a34b0",
+    "bytes": 11465,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/lib/studio/demo-storage-config.ts",
+    "sha256": "eb78f95066ec482f16ae07fafc6ca596d3d67cb67fc3e5c5cd1de2a645842157",
+    "bytes": 1076,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/lib/studio/demo-storage.ts",
+    "sha256": "7de7d9de8e9437c6a7072cdfac9597b4106abff96e8bbac3f0ee3a4a9e62ad39",
+    "bytes": 6470,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/lib/studio/demo-worker.ts",
+    "sha256": "57410fbc655b27d75ef9f49461f127a998cfcac8f7b7cab84679e281f273b103",
+    "bytes": 2350,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/lib/studio/editorial-assistant.ts",
+    "sha256": "a0295857ef963660f8c420386c94fc59c85297d2b075dc9c3d45261c08b6947f",
+    "bytes": 2561,
+    "storage": "git-base"
+  }
+]

@@ -1,0 +1,242 @@
+[
+  {
+    "path": "src/app/admin/(dashboard)/brands/actions.ts",
+    "sha256": "c56583a4c8791e9f3916b2272051bf5aa61944604bffd0fd696fc2e104b620f6",
+    "bytes": 417,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/brands/brief-actions.ts",
+    "sha256": "d7b8727e5184a7af1914d0bee1f03255dd8dfda0795cb6acb4dcfc4f9dac6f4e",
+    "bytes": 9640,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/brands/crm-actions.ts",
+    "sha256": "a6826f9ef07ab1b8f303c5759a218c2f587bf11dcbd4d5e1b436dac8572007eb",
+    "bytes": 18143,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/brands/logo-action.ts",
+    "sha256": "45d5650c6c269f85717f2b3698e483fd2ac1bc1463151825432c58a22353ad7e",
+    "bytes": 4440,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/brands/page.tsx",
+    "sha256": "0250d34c346803e6667ed640ecf87da639ce024854012f624fdb11422e3ee329",
+    "bytes": 6333,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/campanas/[id]/campaign-actions.ts",
+    "sha256": "d5ef3a622e811a9e7cc0638f1bcf86596700aea1a8823dd0cba3684a4af4e99e",
+    "bytes": 1166,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/campanas/[id]/deliverable-actions.ts",
+    "sha256": "0e4a131691af0086aac7d9389a5a196ef9dd2e58359e0f36a856eec77cf4088f",
+    "bytes": 3795,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/campanas/[id]/files/actions.ts",
+    "sha256": "308086f72df740d7410291053a5ee4464a87437552eac9ae97b30b36089c74fd",
+    "bytes": 4600,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/campanas/[id]/loading.tsx",
+    "sha256": "6b6a90942c7474bdc07768c2ec29220eb39845c22803c45270682169d5e69357",
+    "bytes": 1503,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/campanas/[id]/page.tsx",
+    "sha256": "da8fef935fa4aae3c03fc408e2e0fed659d084f9dfe53c234eba9b31265654a5",
+    "bytes": 4438,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/campanas/actions.ts",
+    "sha256": "8ad4be5128d377d8b14c3c07b4e3a523f59b813b7a624a97355481da0e2e9c0a",
+    "bytes": 8927,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/campanas/campaign-actions.ts",
+    "sha256": "07a697358bc69950b2fb8d7e5501fecaaa7796af70c8a1c386ed03d7a8bb008a",
+    "bytes": 7509,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/campanas/contract-actions.ts",
+    "sha256": "0704f3b649ea14e4be514b921efeb0d2accc2f09ac13377a34464e48862d2d81",
+    "bytes": 9723,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/campanas/create-invoice-from-deal.ts",
+    "sha256": "f61fd057f124d03672fb400e405bc71b240b3b243b4adc801ede2d20f1a08cbe",
+    "bytes": 5288,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/campanas/deal-movimiento-action.ts",
+    "sha256": "b9307aba59e85d291633fdff170288e3f30402bf060fe194e8ec160172a5b22b",
+    "bytes": 3982,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/campanas/generate-contract-action.ts",
+    "sha256": "652834a819a98a15c24e841af757a2d497b6e2caef6d2df94ed5b44bbe74cd23",
+    "bytes": 3530,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/campanas/loading.tsx",
+    "sha256": "68ed51566a60f4e94c029fb4d4fe303829afcd43ed5d9332b5fd64fa326225ac",
+    "bytes": 582,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/campanas/page.tsx",
+    "sha256": "526074c26e487fa1e618596810756cb52ea9a8cd422eff9f031e3344d73a3ca9",
+    "bytes": 5200,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/campanas/plantillas/actions.ts",
+    "sha256": "2158c8dc1946f7f7eddea548ddd85df64adbc65ad08b483e9a7d6f393b36c57f",
+    "bytes": 4766,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/campanas/plantillas/page.tsx",
+    "sha256": "f3adb4db9fc46f554cfc563929632bebf0f6cb9178a7835ccde0c472f304a6ca",
+    "bytes": 610,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/candidaturas/[sourceType]/[id]/page.tsx",
+    "sha256": "58c6e5db62ecbe08466845bd27a222def679405bfb6fed615179185176378b6c",
+    "bytes": 1374,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/candidaturas/actions.ts",
+    "sha256": "3914f353dae6e48721e88ed5bb1a5126de1637d03a93270b7383c15d1165ac15",
+    "bytes": 5726,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/candidaturas/page.tsx",
+    "sha256": "b3d35c2f454c2d7e4e485f7eeb8c52f76551657285bc504f300c27a94dec3986",
+    "bytes": 1796,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/captacion/actions.ts",
+    "sha256": "5e25c2c4565056aefc212be35f3bab043f49d99aff4dfcc10c9e56b4dd09b1b2",
+    "bytes": 1050,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/captacion/page.tsx",
+    "sha256": "0e30f9c202a525becd4466c23884993d7f9356540b4ee4f485b7353d7ce2f46a",
+    "bytes": 5980,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/cases/actions.ts",
+    "sha256": "8415226cc668a554e6df315f5b341dd2cb41b15367470aed219f784e01587abb",
+    "bytes": 546,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/cases/page.tsx",
+    "sha256": "9a8d2601797bcf3415b806b4fcb4931fa5f8600c8231dc31467787f4b39e109b",
+    "bytes": 2469,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/configuracion/page.tsx",
+    "sha256": "66eb1ec031aa08f6c5d9de4e6fc5b03a7af77594fe9107bfd818a949edb84cd2",
+    "bytes": 2423,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/contratos/[id]/page.tsx",
+    "sha256": "4ba01d69e0c78a4580ab0477182d9dc9948b455ea325c2f8e70f3f6be3456ef3",
+    "bytes": 1137,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/contratos/actions.ts",
+    "sha256": "e4f57e3a0f764665bbe7f7e83de7e023b24bf54dde75821640f5cba8764bf037",
+    "bytes": 6002,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/contratos/nuevo/page.tsx",
+    "sha256": "7893ceb82b9e3f80d366851dda24d9470568abaa599ac4ae7b7c526c5e4cdee5",
+    "bytes": 1460,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/contratos/page.tsx",
+    "sha256": "b25f70013acf3dc90c563288c77c6675972e1a47302c83a6e39e8b4608d714d6",
+    "bytes": 1941,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/contratos/plantillas/page.tsx",
+    "sha256": "4a73ec6748e875195c97aaea306fb477827125c2073704128137d4c350bf72c5",
+    "bytes": 413,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/entregables/[trackerId]/page.tsx",
+    "sha256": "5d4ab13dae5897e1bb485d92221a65c470edd57d6718af0dbdb1ef3ebaeee089",
+    "bytes": 1198,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/entregables/fuentes/[sourceId]/page.tsx",
+    "sha256": "8ef187a58c636eca3c904ac554d5e319c75358a9e5858595097a5a96e4e45165",
+    "bytes": 1110,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/entregables/fuentes/page.tsx",
+    "sha256": "67e36d162e8cb15e645a211c5e27da9dcdfdb8da547e21a36b427c7bcd461f44",
+    "bytes": 716,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/entregables/page.tsx",
+    "sha256": "2956b2fdaf4a1a39f6833bcdb65bd7ba8d1aad64737f79d7d0c1ed0a533844b0",
+    "bytes": 1973,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/entregables/reconciliar/page.tsx",
+    "sha256": "f8441befb1e25db24be03f5c73d27a908cad5da953fd2e62f534a7b327f8bf3f",
+    "bytes": 1796,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/entregables/reconciliation-actions.ts",
+    "sha256": "7e6cd18ab3e149c925c81d69aaf5cbcb4cfa7967ffec216eccf3c5c1e1e96488",
+    "bytes": 1975,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/entregables/source-actions.ts",
+    "sha256": "ce2b2f05702369161f0461923f5159d494766010d484fa3b693308dc2b2f4504",
+    "bytes": 14216,
+    "storage": "git-base-crlf"
+  }
+]

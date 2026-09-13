@@ -1,0 +1,242 @@
+[
+  {
+    "path": "src/__tests__/server/agent-worker-row-mapping.test.ts",
+    "sha256": "30df9017390123a328caf0565ea4f8bc9dccc470e1613e146e060296e540a9de",
+    "bytes": 5675,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/agent-worker-scheduler.test.ts",
+    "sha256": "0d91a6c7362c06740059a9cb16967129279371273623d31645b6a6a13e2a1a87",
+    "bytes": 7982,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/ai-assistant.test.ts",
+    "sha256": "3d281fea03bd5c15ac13e83835b900cebb1763bc8a5633b62b0156f237707049",
+    "bytes": 13487,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/allowed-coin-sources.test.ts",
+    "sha256": "a35aab381f17147a81aa227ee96994e09467ccaf34d05dff03a8eca83800415c",
+    "bytes": 2523,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/assert-allowed-coin-source-hooks.test.ts",
+    "sha256": "0557e0f9427541679bc4235595ebfcddac7ced090fd11dcdc43897778e170aa6",
+    "bytes": 4611,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/assertSafeRedirect.test.ts",
+    "sha256": "8ec7a0d0f360780100671abb24e3db71104093028dbcde7735a044d1aa56e157",
+    "bytes": 4311,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/audit-finanzas-1a1-dashboard.test.ts",
+    "sha256": "fc36f9c7030b8329523ec8ee22c19c06d4e745078c0fb2cf484d27e07ef45943",
+    "bytes": 8444,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/audit-finanzas-1a2-dedup.test.ts",
+    "sha256": "170a8111c93d57b5b3336a51e7d49558afae9d88b9c81598e510fbd9ba763f54",
+    "bytes": 6589,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/audit-finanzas-1b-ar-aging.test.ts",
+    "sha256": "fb1587a08fd0c964c64924a6a9c04f78576a70c69d9e8d58d77bb1563ab5756a",
+    "bytes": 18534,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/audit-finanzas-expense-breakdown.test.ts",
+    "sha256": "5d159af63b57caf8f2142ae3c6d256d998183b19eead5217c80d07889d847c8b",
+    "bytes": 25085,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/audit-finanzas-ux.test.ts",
+    "sha256": "b353fda4ce4e702aa0c0aa2d31218deb53a1c517aedeeb4a3a5b4c6a5725840b",
+    "bytes": 6614,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/audit-log-guardrail.test.ts",
+    "sha256": "277be14a821ea64f99e3cbb2a7f5a3c22ac2016584e00a26cdf73b1a4e12175e",
+    "bytes": 1612,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/audit-quick-wins.test.ts",
+    "sha256": "1e6eadfbc012c6b835a642c7899bce498c990bf3c6402a82417d87ef91569e15",
+    "bytes": 3714,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/automatic-contract-draft.test.ts",
+    "sha256": "4ad810aaad9fde15dc728f35b2bdea28ff5ed44d9341d4486e577f86dfb0b857",
+    "bytes": 8401,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/automation-deal-alerts.test.ts",
+    "sha256": "bdf46a85f6c2969f7892bd88b4cfa9c5c3ddf6e44d3a26c303ac05d3ab000904",
+    "bytes": 1238,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/automation-deal-digest.test.ts",
+    "sha256": "db32848164509e26a3748ed22c4fc9da4c194fce9c35bdc68939a4adacc28f94",
+    "bytes": 9227,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/automation-deals-transaction.test.ts",
+    "sha256": "672de95d8e8d95fe5ce1663722f83337d0c146029b45a671c23f3799219e42d7",
+    "bytes": 798,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/automation-deals.test.ts",
+    "sha256": "c45a5575ba1d3db6efe70f18ad8714f2a0cde45f5e33ccb5b1563675d544679c",
+    "bytes": 7071,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/automation-drafts-admin.test.ts",
+    "sha256": "557a7cbbb752dfb6ea2467e85788798fe977da1790c6fb1b1a5b550cc74fd226",
+    "bytes": 7728,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/automation-sheets-batch.test.ts",
+    "sha256": "f7c0a9456bb8c25825a0457350d674c7c9661b019b1711066ad2de7f635fabee",
+    "bytes": 3376,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/automation-telegram-refills.test.ts",
+    "sha256": "b450736604703f9fc10b40211e7ff124c59c3180c927e710b680a619dc4372be",
+    "bytes": 2185,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/bank-close-canonical-payments.test.ts",
+    "sha256": "71081269dcba2e0b4fc02b2d5398ce91d5470f747a714b15b35d1b123b4ac0bf",
+    "bytes": 1095,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/bank-reconciliation-settled-candidates.test.ts",
+    "sha256": "ec74baff7ca8548061e263e6a54a47fdd56e3b28b0fd771506e165ce5f920fcb",
+    "bytes": 579,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/bank-reconciliation.test.ts",
+    "sha256": "fe57f425db2e24033dda7954e4614be40d219d1b60b092b91f7f926ea008a26b",
+    "bytes": 18960,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/banner-ranking-section.test.ts",
+    "sha256": "54c7fe5c99a91ab4a13688aeeee727e8d148ae0385221650784b39ab7ca28378",
+    "bytes": 2164,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/blob-access-audit.test.ts",
+    "sha256": "e94fe83e3de04f0ecd1542195210981daf1110d7d416ecc9013502dd0ad29548",
+    "bytes": 8983,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/blocked-coin-source-audit.test.ts",
+    "sha256": "36a572cd326f06ca636830cbdf59afee0fa76470c657f91cf95bb726cfc6109a",
+    "bytes": 3874,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/blog-utils.test.ts",
+    "sha256": "1efc7f97e71521ff203e62187404816ad1657ee2a83fcc3a75334159a1dfac21",
+    "bytes": 4044,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/brand-card-csgoskins-v2.test.ts",
+    "sha256": "0841ad3922ccaf0429419e13365cff01e341acbafe88017049ab77a356bb9483",
+    "bytes": 7259,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/brand-card-keydrop-ctas.test.ts",
+    "sha256": "d22a88037954e86a070e4aa8e46230893d0291966b58da50bdf9f6325df03b21",
+    "bytes": 5264,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/brand-card-leds.test.ts",
+    "sha256": "b9a11532efba45bb05493c85153e7aa31b2f9da686363f53df49eff47e378044",
+    "bytes": 6745,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/brand-card-skinsmonkey.test.ts",
+    "sha256": "81951d6288803ada141a7d869adda5183eda2462fd38f7dca05aa416afd8d19c",
+    "bytes": 6662,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/brand-portal-idor.test.ts",
+    "sha256": "f785c25b17b672dccf7b8fc48748579a707760123890d96c64f1db9ee698e976",
+    "bytes": 5981,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/campaign-actions.test.ts",
+    "sha256": "019644992b5f6c229159d05f53d2cb490779419628c4fd0d096cca0d4547c758",
+    "bytes": 15682,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/campaign-sheet-deadline.test.ts",
+    "sha256": "272dc266694364d8494f71e146f5df8a2489ffe82f3172641b2816f4da806cc9",
+    "bytes": 7922,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/campaigns.test.ts",
+    "sha256": "adf3f961be9cfb37a02953000c0e11493e487544ac57a489fac0a31b93c3b7cd",
+    "bytes": 20249,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/cleanup-legacy-shop-items.test.ts",
+    "sha256": "2629390c26add580337637332e7051e4bd895f45e5370999ad2528a9643ee300",
+    "bytes": 5413,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/client-ocr-boundary.test.ts",
+    "sha256": "70ba4a634014d125c02e34d4806ad36256be76ab4f2d0757e882c1f10a3426d5",
+    "bytes": 6005,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/client-ocr-self-hosted-assets.test.ts",
+    "sha256": "dafc278f751a4c18e8da5be58e4cd7c03b8cb46e4d35c2be3f5fc99da422f7d6",
+    "bytes": 3766,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/client-server-boundary.test.ts",
+    "sha256": "440d0346f8d0ae93b051ffcbe814458d0a4e0ff5f37c65913565b7e83f652e7e",
+    "bytes": 4267,
+    "storage": "git-base-crlf"
+  }
+]

@@ -1,0 +1,242 @@
+[
+  {
+    "path": "scripts/audit-news-links.ts",
+    "sha256": "6459b76e1b9151bfa39abd11181b4435faf2a3b92011e60f7d41156c78936ef4",
+    "bytes": 5037,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/audit-talent-detail.ts",
+    "sha256": "125853af5e83ab36f4294815e5e8f5e9bf11087c9d26f67b2d7c05be1d6c5d68",
+    "bytes": 1674,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/audit-talent-seo.ts",
+    "sha256": "04af5a36af6e3014053cf994bde9615e227525ae2d7f7f5a38fb0af84063fe38",
+    "bytes": 3068,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/backfill-case-creators.ts",
+    "sha256": "0c2c62304de530b6cf0eb61fdbf286b9fc31a1cb9e489cf46d178cc34533abe3",
+    "bytes": 1009,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/backfill-crm-brand-ids.ts",
+    "sha256": "a1db3e1e168e8bb4443558ce3bd057e6b0f7bc9fbb87b455949693ba55697e3d",
+    "bytes": 4577,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/backfill-entity-asset-index.ts",
+    "sha256": "e225f2baf968c24d86f569a22aaa02ed6a0e0f84b17b615cbec7f819c7015baa",
+    "bytes": 3516,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/backfill-fx-rates.ts",
+    "sha256": "714cafb31745ffdc8a8682a8f826f40c3ba5719e31394ab81c774baba8328a68",
+    "bytes": 6043,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/backfill-giveaway-brands.ts",
+    "sha256": "8fb0be6c89a171d68acb8245c08bac70b597b74d9e2aebec8eaa297cdfcb4224",
+    "bytes": 2647,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/backfill-recurring-expenses.ts",
+    "sha256": "29ae03c152296db2d763684b922a907b249f657141ce2cf2c2af7fa04b3ce382",
+    "bytes": 6132,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/build-catalog.ts",
+    "sha256": "f6fdd6bd8079414b08041ad1fc3e9781c99c64c6c2cd7ba9214efbb91546aaa7",
+    "bytes": 7193,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/build-migration-0106-snapshot.mjs",
+    "sha256": "2afe177f42c88f05efa5a06ab546708a0164401f18ec84cf6c7efd6dbb9bbcff",
+    "bytes": 7427,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/check-invoice-columns.ts",
+    "sha256": "ab80bb0c1e8b3fedff39728272cfbf809cade6bb280b9fc0f8111f46fe76b6a4",
+    "bytes": 661,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/check-migration.ts",
+    "sha256": "9b935fb2ed4ef84195e3ebffd87596fdc91a840979b815181faf8605ea9bf90a",
+    "bytes": 4588,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/check-platform-photos.ts",
+    "sha256": "fab9994e80ee9222b03c2c07bfa904089b38c6d29b99398608d79c6dcb1f3ae3",
+    "bytes": 609,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/check-steam-login.ts",
+    "sha256": "dace733eb00fdd27af5fca9f8a32c235a5c08db33600faf7f4c969bea53e3e98",
+    "bytes": 1830,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/cleanup-legacy-shop-items.ts",
+    "sha256": "a7f0c1358961f05f7d878f232260e2a6f5516322f2c0381c3b5143053ca18899",
+    "bytes": 4186,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/create-admin.ts",
+    "sha256": "fa8229806e7e5316ccddcf4a775cad8a92507b24f46333ea561bcc675355f909",
+    "bytes": 2745,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/delete-talent.ts",
+    "sha256": "7280b545ac13076ed2c4abc6824523945a882e5e979682b39dd811f8524e7263",
+    "bytes": 2069,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/diagnose-tigerr.ts",
+    "sha256": "2e2e4d763ed9177e9ccd389372bfb553130da9b4c23f88e5044edb0210fe6956",
+    "bytes": 1945,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/docker-runtime-env.test.mjs",
+    "sha256": "6a257fc6a948350d6fb97cad6fada922ba6c3b57d01b2ac1676b0a75d0c752ab",
+    "bytes": 1956,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/docker-runtime-smoke.mjs",
+    "sha256": "67dd1df413891de322dc315e555577e37407b3698a324925ee94f06983209fe1",
+    "bytes": 4426,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/enrich-rewards.ts",
+    "sha256": "1e7987450fdd4708596fcf0b7e6133534764b351318adbcb9df7b2a45cfba9bb",
+    "bytes": 7460,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/extract-images.mjs",
+    "sha256": "210a443318414779f359163ef119d7ba2d5b505cf507f96815aea19e9920ec4a",
+    "bytes": 5713,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/fetch-talent-avatars.ts",
+    "sha256": "bb42910b57e650cb7f2691379b274d5c31e88b3a0be1f44a7fe59f1946aed0de",
+    "bytes": 8923,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/fetch-talent-photos.ts",
+    "sha256": "0fc807783cd98bc593e1ba16cf72fcb2984639a3e6cd5ead19a96aba0c4708ae",
+    "bytes": 9178,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/finalize-brands.ts",
+    "sha256": "c9350ab5138d19d498eae2b6debae390a404ef723d31b2c84efd767e776a0bb1",
+    "bytes": 2500,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/fix-audit-data.ts",
+    "sha256": "1d5842e0292b6953a4f1bd02534a3dc07d5e773d0fe549359ab195f2798b8003",
+    "bytes": 5999,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/fix-cta-urls.ts",
+    "sha256": "f0ee804f2e6b73cf019db564572bc59f3925db58a4c761db50ea97a20059ef7a",
+    "bytes": 3653,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/fix-handles.ts",
+    "sha256": "6145741cbf9d82a54bde5d5b87627dfeb81a3dc07e37dd95a1ddf347a9bdfa86",
+    "bytes": 8395,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/fix-tigerr-slug.ts",
+    "sha256": "f3fc784240dad12131223e8ec8ef8c9b00ff8fb924988f6535e09685fb71799f",
+    "bytes": 2942,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/generate-seo-bios.ts",
+    "sha256": "a857b6cdb1ceebf156b4a131f4cbbe83b14533e25e8c31eaf22fe7e381060bdb",
+    "bytes": 15201,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/generate-social-square-icon.mjs",
+    "sha256": "d3bd301de82c5c84c31fb89eb5cffc43d71b7253ae131412c3bdb485cc52ca32",
+    "bytes": 5074,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/insert-9z-playoffs-astana.ts",
+    "sha256": "b0568c1d3eb073c816b17286e07dd14bf82d6ff37b33758c27f279b8b6cbd2ae",
+    "bytes": 5604,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/insert-gentle-mates-astana.ts",
+    "sha256": "dffe2713e6d1d0fd4aad42505d4e9125b607ea212f0102133ad29e00af5180fe",
+    "bytes": 6565,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/insert-gentle-mates-cambio-tono.ts",
+    "sha256": "f38409ece2fa17a8e6b24c420c678a2aaf437c84f75ec12c932f40820feafbb1",
+    "bytes": 6031,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/insert-socialpro-news-manifesto.ts",
+    "sha256": "c1a9b7c04a6700173e7e693ba30b5282c5c83374b05f6a6e74f36c46a002ad10",
+    "bytes": 5775,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/inventory-vercel-blob.ts",
+    "sha256": "44731f85e6d74f8f976a1fb34c019f2f9c722ed08d46710d9f481b59e20f4269",
+    "bytes": 3325,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/libro-mayor-generate-xlsx-fixture.mjs",
+    "sha256": "ad6da882515b07e9d6217b5ef362a1b2f95a6d64556ca20364941d05ff44486d",
+    "bytes": 2556,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/list-generated-bios.ts",
+    "sha256": "4fddf97dce9fc02f5f12d970eddf2ac3c073c639ceefcd35dd48ab075076450b",
+    "bytes": 2727,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/merge-vps-production-env.sh",
+    "sha256": "ef73f147ab0a5765633372827fa99408c07af4f149302c570f21870e3a31b67c",
+    "bytes": 2377,
+    "storage": "git-base"
+  }
+]

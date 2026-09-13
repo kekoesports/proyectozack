@@ -1,0 +1,36 @@
+import { eq, inArray } from 'drizzle-orm';
+import { talents, talentSocials } from '@/db/schema/talents';
+import { normalizePlatform } from '@/lib/utils/platform';
+import { normalizeSocialProfileUrl, normalizeTwitchLogin } from '@/lib/utils/social-profile-url';
+import { visibleStudioTalents } from './talent-scope';
+import type { StudioDatabase } from './repository';
+
+export function studioCrmPhoto(value: string | null) {
+  if (!value) return null;
+  if (/^\/api\/talent-photo\/[1-9]\d*(?:\?[^#\\\s]*)?$/.test(value)) return `https://socialpro.es${value}`;
+  if (value.startsWith('/images/') && !value.includes('..') && !value.includes('\\')) return value;
+  try {
+    const url = new URL(value);
+    return url.protocol === 'https:' && !url.username && !url.password ? url.href : null;
+  } catch { return null; }
+}
+
+/** Read-through CRM context. No duplicate roster, import jobs or OAuth claims. */
+export async function studioCrmContext(database: StudioDatabase, userId: string, agencyTalentId?: number) {
+  const scope = visibleStudioTalents(database, userId, agencyTalentId);
+  const [person] = await database.select({ id: talents.id, name: talents.name, photoUrl: talents.photoUrl,
+    bio: talents.bio, role: talents.role }).from(talents).where(inArray(talents.id, scope)).limit(1);
+  if (!person) return null;
+  const rows = await database.select({ id: talentSocials.id, platform: talentSocials.platform, handle: talentSocials.handle,
+    profileUrl: talentSocials.profileUrl, platformId: talentSocials.platformId }).from(talentSocials)
+    .where(eq(talentSocials.talentId, person.id)).orderBy(talentSocials.sortOrder, talentSocials.id);
+  const socials = rows.flatMap(row => {
+    const platform = normalizePlatform(row.platform), url = normalizeSocialProfileUrl(row);
+    if (!platform || !url) return [];
+    const path = new URL(url).pathname.split('/').filter(Boolean);
+    const handle = platform === 'twitch' ? normalizeTwitchLogin(url)?.toLowerCase() :
+      (platform === 'youtube' && path[0] === 'channel' ? path[1] : path[0]?.replace(/^@/, ''));
+    return handle ? [{ id: `crm:${row.id}`, platform, handle, url }] : [];
+  });
+  return { ...person, photoUrl: studioCrmPhoto(person.photoUrl), socials };
+}

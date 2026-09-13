@@ -1,0 +1,98 @@
+/** Isolated synthetic database; no credentials, network, provider calls or production writes. */
+import assert from 'node:assert/strict';
+import { randomUUID } from 'node:crypto';
+import { PGlite } from '@electric-sql/pglite';
+import { drizzle } from 'drizzle-orm/pglite';
+import { generateDrizzleJson, generateMigration } from 'drizzle-kit/api';
+import { eq, count } from 'drizzle-orm';
+import * as schema from '../src/db/schema';
+import { studioDealActivity, studioDealWindow } from '../src/lib/studio/deal-activity';
+import { studioAgencyWorkspaces } from '../src/lib/studio/agency';
+import { studioCrmContext, studioCrmPhoto } from '../src/lib/studio/crm-context';
+import { studioCrmPhotoSource } from '../src/lib/studio/crm-photo-source';
+import { createChannelRepository } from '../src/lib/studio/channel-repository';
+import { createStudioRepository } from '../src/lib/studio/repository';
+import { saveLibraryReference } from '../src/lib/studio/library-reference';
+
+async function main() {
+  let checks = 0;
+  const check = (value: unknown, label: string) => { assert.ok(value, label); checks++; };
+  const now = new Date('2026-09-07T12:00:00Z'), window = studioDealWindow(now);
+  check(window.since === '2026-05-07' && window.today === '2026-09-07', 'four calendar months');
+  check(studioDealWindow(new Date('2026-06-30T12:00:00Z')).since === '2026-02-28', 'clamp short month');
+  check(studioDealWindow(new Date('2024-06-30T12:00:00Z')).since === '2024-02-29', 'leap year');
+  check(studioDealWindow(new Date('2026-09-06T23:00:00Z')).today === '2026-09-07', 'Madrid date not UTC date');
+  const base = { status: 'completada' as const, startDate: '2026-05-07', endDate: null, createdAt: now, archivedAt: null };
+  check(studioDealActivity(base, window), 'inclusive boundary');
+  check(!studioDealActivity({ ...base, startDate: '2026-05-06' }, window), 'exclude day before');
+  check(studioDealActivity({ ...base, startDate: '2025-01-01', endDate: '2026-05-08' }, window), 'overlapping completed deal');
+  check(studioDealActivity({ ...base, status: 'activa', startDate: '2025-01-01' }, window)?.current, 'old active deal still current');
+  check(!studioDealActivity({ ...base, status: 'cancelada' }, window), 'cancelled excluded');
+  check(!studioDealActivity({ ...base, status: 'propuesta' }, window), 'proposal excluded');
+  check(!studioDealActivity({ ...base, startDate: '2027-01-01' }, window), 'future completed deal excluded');
+  check(studioDealActivity({ ...base, startDate: null }, window), 'missing dates fallback creation');
+  check(studioCrmPhotoSource('/images/team/a.png') === 'https://socialpro.es/images/team/a.png', 'canonical public photo');
+  check(studioCrmPhoto('/api/talent-photo/12') === 'https://socialpro.es/api/talent-photo/12', 'public CRM proxy photo not blocked by app host');
+  check(studioCrmPhotoSource('/api/talent-photo/12') === 'https://socialpro.es/api/talent-photo/12', 'public CRM photo import permitted');
+  for (const url of ['http://127.0.0.1/a', 'https://127.0.0.1/a', 'https://socialpro.es/api/admin', 'https://socialpro.es.evil.test/images/a', '/images/../api/a', '/images/%2e%2e/a', 'https://user:pass@socialpro.es/images/a', 'https://socialpro.es:444/images/a'])
+    check(studioCrmPhotoSource(url) === null, 'reject unsafe image source');
+  const pg = new PGlite(), db = drizzle(pg, { schema });
+  try {
+    for (const sql of await generateMigration(generateDrizzleJson({}), generateDrizzleJson(schema))) await pg.exec(sql);
+    await db.insert(schema.user).values(['admin', 'a', 'b'].map(id => ({ id, name: id, role: id === 'admin' ? 'admin' : 'creator', email: `${id}@fixture.test`, emailVerified: true, createdAt: now, updatedAt: now })));
+    const [a, b, old, archived] = await db.insert(schema.talents).values(['a', 'b', 'old', 'archived'].map(id => ({ slug: `crm-fixture-${id}`, name: id, role: 'Creator', game: 'Gaming', platform: 'twitch' as const, bio: 'Synthetic only', gradientC1: '#f5632a', gradientC2: '#e03070', initials: id.slice(0, 2), photoUrl: '/images/synthetic.png', archivedAt: id === 'archived' ? now : null }))).returning();
+    assert.ok(a && b && old && archived);
+    await db.insert(schema.talentUsers).values([{ talentId: a.id, userId: 'a' }, { talentId: b.id, userId: 'b' }]);
+    const [brand] = await db.insert(schema.crmBrands).values({ name: 'Synthetic' }).returning(); assert.ok(brand);
+    const deal = { name: 'Synthetic', brandId: brand.id, actionType: 'stream' as const, createdAt: now };
+    await db.insert(schema.campaigns).values([
+      { ...deal, talentId: a.id, status: 'pagada', startDate: '2026-06-01' },
+      { ...deal, talentId: a.id, status: 'activa', startDate: '2025-01-01' },
+      { ...deal, talentId: a.id, status: 'cancelada', startDate: '2026-08-01' },
+      { ...deal, talentId: b.id, status: 'completada', startDate: '2026-08-01' },
+      { ...deal, talentId: old.id, status: 'pagada', startDate: '2026-05-06' },
+      { ...deal, talentId: archived.id, status: 'activa', startDate: '2026-08-01' },
+    ]);
+    const social = { followersDisplay: '0', hexColor: '#000000' };
+    await db.insert(schema.talentSocials).values([
+      { ...social, talentId: a.id, platform: 'tw', handle: 'ignored', profileUrl: 'https://www.twitch.tv/RealCreator/about' },
+      { ...social, talentId: a.id, platform: 'ig', handle: '@RealCreator' },
+      { ...social, talentId: a.id, platform: 'kick', handle: 'realcreator' },
+      { ...social, talentId: b.id, platform: 'tw', handle: 'private_b' },
+    ]);
+    const roster = await studioAgencyWorkspaces(db, now);
+    check(roster.length === 2 && roster[0]?.id === a.id && roster[0].dealCount === 2 && roster[0].activeDeals === 1, 'roster filtered, sorted, no social join multiplication');
+    check(roster[1]?.id === b.id && roster[1].dealCount === 1, 'historic recent deal included');
+    const crm = await studioCrmContext(db, 'a');
+    check(crm?.socials.length === 3 && crm.socials.some(s => s.platform === 'twitch' && s.handle === 'realcreator'), 'CRM short aliases and Twitch login normalized');
+    check((await studioCrmContext(db, 'b'))?.socials.length === 1, 'CRM social scope isolated');
+    check(await studioCrmContext(db, 'a', b.id) === null, 'forged agency selection denied');
+    const channels = createChannelRepository(db, 'a');
+    check((await channels.list()).length === 3 && (await channels.list()).every(c => c.source === 'crm'), 'CRM profiles inherited without manual declaration');
+    check(!await channels.declare({ platform: 'twitch', handle: 'override' }), 'Studio cannot overwrite canonical CRM handle');
+    check(await channels.declare({ platform: 'youtube', handle: 'fallback' }), 'missing platform can be declared');
+    const [savedChannels] = await db.select({ total: count() }).from(schema.studioChannels);
+    check(savedChannels?.total === 1, 'read-through does not duplicate CRM records');
+    const repo = createStudioRepository(db, 'a'), foreignRepo = createStudioRepository(db, 'b');
+    const image = await repo.addAsset({ name: 'Portrait', storageKey: 'synthetic/a.png', contentType: 'image/png', size: 20, checksum: 'a', projectId: null });
+    const voice = await repo.addAsset({ name: 'Voice', storageKey: 'synthetic/a.ogg', contentType: 'audio/ogg', size: 20, checksum: 'v', projectId: null });
+    const foreign = await foreignRepo.addAsset({ name: 'Other portrait', storageKey: 'synthetic/b.png', contentType: 'image/png', size: 20, checksum: 'b', projectId: null });
+    assert.ok(image && voice && foreign);
+    const ref = { assetId: image.id, kind: 'portrait', rightsConfirmed: true };
+    check(!await saveLibraryReference(db, 'a', undefined, { ...ref, rightsConfirmed: false }), 'explicit reference rights required');
+    check(!await saveLibraryReference(db, 'a', undefined, { ...ref, assetId: foreign.id }), 'foreign reference denied');
+    check(!await saveLibraryReference(db, 'a', undefined, { ...ref, kind: 'voice' }), 'image cannot become voice');
+    check(await saveLibraryReference(db, 'a', undefined, ref), 'portrait reference stored');
+    const profile = await repo.profile(); assert.ok(profile);
+    const clone = { id: randomUUID(), name: 'Synthetic approved', verifiedAt: now.toISOString() };
+    await db.update(schema.studioProfiles).set({ document: { ...profile, voiceStatus: 'approved_external', higgsfieldVoice: clone } }).where(eq(schema.studioProfiles.talentId, a.id));
+    check(await saveLibraryReference(db, 'a', undefined, { ...ref, kind: 'voice', assetId: voice.id }), 'voice reference stored');
+    const updated = await repo.profile();
+    check(updated?.portraitAssetId === image.id && updated.voiceAssetId === voice.id && updated.higgsfieldVoice?.id === clone.id && updated.voiceStatus === 'approved_external', 'approved clone and portrait preserved');
+    check(await foreignRepo.profile() === null, 'other creator identity not changed');
+    await db.update(schema.talentUsers).set({ active: false }).where(eq(schema.talentUsers.userId, 'a'));
+    check(!await saveLibraryReference(db, 'a', undefined, ref) && await studioCrmContext(db, 'a') === null, 'live revocation removes writes and CRM reads');
+    console.log(JSON.stringify({ ok: true, checks, providerCalls: 0, productionTouched: false }));
+  } finally { await pg.close(); }
+}
+main().catch((error: unknown) => { console.error(error instanceof Error ? error.message : 'CRM fixture failed'); process.exitCode = 1; });

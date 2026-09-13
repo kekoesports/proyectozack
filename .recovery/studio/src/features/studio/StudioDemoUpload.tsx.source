@@ -1,0 +1,115 @@
+'use client';
+
+import Link from 'next/link';
+import { useEffect, useRef, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { UploadCloud, LoaderCircle, ArrowUpRight, Check, Pause, RotateCcw } from 'lucide-react';
+import { DemoCreate, DemoJobView, DemoListReply, DemoReply, DemoUploadFields, DEMO_PART_BYTES } from '@/lib/schemas/studio-demo';
+import { useStudioWorkspace } from './StudioWorkspaceContext';
+
+const statusLabels = { uploading: 'Subida pendiente', queued: 'En cola de análisis', parsing: 'Analizando partida', ready: 'Momentos listos', failed: 'Requiere atención', cancelled: 'Cancelado' };
+const failureLabels = { invalid_demo: 'La demo no es válida.', parser_failed: 'El analizador no pudo leer la partida o encontrar al jugador.',
+  parser_timeout: 'El análisis superó el tiempo disponible.', invalid_plan: 'La respuesta del analizador no coincide con el archivo o el jugador.',
+  integrity: 'El archivo no pasó la comprobación de integridad.', access_revoked: 'El permiso de acceso cambió.', worker_interrupted: 'El analizador se interrumpió.', upload_expired: 'La subida ha caducado.', storage_error: 'No se pudo acceder al almacenamiento temporal.' };
+const megabytes = (bytes: number) => `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+
+async function requestDemo(url: string, init: RequestInit) {
+  const response = await fetch(url, init);
+  const raw: unknown = await response.json(), parsed = DemoReply.safeParse(raw);
+  if (!parsed.success) throw new Error('No se pudo validar la respuesta del servidor.');
+  if (!parsed.data.ok) throw new Error(parsed.data.error);
+  if (!response.ok) throw new Error('No se pudo completar la operación.');
+  return parsed.data.job;
+}
+
+export function StudioDemoUpload({ initialJobs }: { initialJobs: DemoJobView[] }) {
+  const workspace = useStudioWorkspace();
+  const fileInput = useRef<HTMLInputElement>(null), controller = useRef<AbortController | null>(null), draftId = useRef<string | null>(null);
+  useEffect(() => () => controller.current?.abort(), [workspace]);
+  const [resume, setResume] = useState<DemoJobView | null>(null), [transfer, setTransfer] = useState<DemoJobView | null>(null);
+  const [message, setMessage] = useState(''), [busy, setBusy] = useState(false);
+  const { register, handleSubmit, setValue, formState: { errors, isReady } } = useForm<z.infer<typeof DemoUploadFields>>({ resolver: zodResolver(DemoUploadFields) });
+  const jobs = useQuery({ queryKey: ['studio-demo-jobs', workspace], initialData: initialJobs,
+    queryFn: async () => {
+      const response = await fetch(`/api/studio/demos?workspace=${workspace}`, { cache: 'no-store' });
+      if (!response.ok) throw new Error('No se pudo actualizar el estado.');
+      const raw: unknown = await response.json(), parsed = DemoListReply.safeParse(raw);
+      if (!parsed.success) throw new Error('Estado no válido.');
+      return parsed.data.jobs;
+    }, retry: false, refetchOnWindowFocus: true,
+    refetchInterval: (query) => query.state.data?.some((job) => ['queued', 'parsing', 'uploading'].includes(job.status)) ? 2500 : false,
+  });
+  async function command(job: DemoJobView, action: 'queue' | 'cancel' | 'retry') {
+    setBusy(true); setMessage('');
+    try {
+      const updated = await requestDemo(`/api/studio/demos/${job.id}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: job.id, command: action, workspace }) });
+      setMessage(action === 'cancel' ? 'Cancelado. No se guardará ningún resultado pendiente; la limpieza automática retirará la copia temporal tras su caducidad.' : statusLabels[updated.status]);
+      await jobs.refetch();
+    } catch (error) { setMessage(error instanceof Error ? error.message : 'No se pudo actualizar el trabajo.'); }
+    finally { setBusy(false); }
+  }
+  async function upload(fields: z.infer<typeof DemoUploadFields>) {
+    const file = fileInput.current?.files?.[0];
+    if (!file) { setMessage('Selecciona una demo CS2.'); return; }
+    const id = resume?.id ?? draftId.current ?? crypto.randomUUID(); draftId.current = id;
+    const input = DemoCreate.safeParse({ ...fields, id, name: file.name, byteSize: file.size });
+    if (!input.success) { setMessage(input.error.issues[0]?.message ?? 'Revisa el archivo y sus permisos.'); return; }
+    if (resume && (resume.name !== file.name || resume.byteSize !== file.size || resume.targetSteamId !== fields.targetSteamId)) {
+      setMessage('Para reanudar, selecciona el mismo archivo y jugador.'); return;
+    }
+    setBusy(true); setMessage(''); const abort = new AbortController(); controller.current = abort;
+    try {
+      let job = await requestDemo('/api/studio/demos', { method: 'POST', signal: abort.signal, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...input.data, workspace }) });
+      setTransfer(job);
+      // Replayed blocks are verified server-side, preventing mixed files with the same name/size.
+      for (let index = 0; index < Math.ceil(file.size / DEMO_PART_BYTES); index++) {
+        job = await requestDemo(`/api/studio/demos/${id}?index=${index}&workspace=${workspace}`, { method: 'PUT', signal: abort.signal,
+          headers: { 'Content-Type': 'application/octet-stream' }, body: file.slice(index * DEMO_PART_BYTES, (index + 1) * DEMO_PART_BYTES) });
+        setTransfer(job);
+      }
+      job = await requestDemo(`/api/studio/demos/${id}`, { method: 'POST', signal: abort.signal, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, workspace, command: 'queue' }) });
+      setTransfer(job); setResume(null); draftId.current = null;
+      setMessage('Demo recibida. Queda en cola del analizador; no se abrirá el juego ni se grabará vídeo.');
+      if (fileInput.current) fileInput.current.value = '';
+    } catch (error) {
+      setMessage(abort.signal.aborted ? 'Subida pausada. Puedes volver a elegir el mismo archivo y reanudarla.' : error instanceof TypeError ? 'Se interrumpió la conexión. Reanuda la subida desde Tus análisis.' : error instanceof Error ? error.message : 'No se pudo subir la demo.');
+    } finally { controller.current = null; setBusy(false); await jobs.refetch(); }
+  }
+  return <section className="clip-import studio-panel demo-ingest" aria-labelledby="demo-upload-title">
+    <div className="clip-section-head"><span className="clip-step">01</span><div><p className="studio-eyebrow">DE LA PARTIDA AL CONTENIDO</p><h2 id="demo-upload-title">Trae tu demo CS2.</h2></div></div>
+    <div className="demo-stage-rail"><span><b>1</b>Subir</span><span><b>2</b>Analizar</span><span><b>3</b>Elegir jugada</span></div>
+    <form method="post" onSubmit={(event) => { void handleSubmit(upload)(event); }}>
+      {resume && <div className="demo-resume">Reanudar: <strong>{resume.name}</strong><button type="button" disabled={busy} onClick={() => { setResume(null); draftId.current = null; }}>Nueva subida</button></div>}
+      <label className="clip-dropzone"><UploadCloud size={32} /><strong>Tu partida, sin intermediarios.</strong><span>.dem de CS2 · hasta 500 MB · almacenamiento privado</span><input ref={fileInput} aria-label="Demo CS2" type="file" accept=".dem" disabled={busy} onChange={() => { if (!resume) draftId.current = null; }} /></label>
+      <label>SteamID64 del jugador<input {...register('targetSteamId')} inputMode="numeric" placeholder="17 dígitos" maxLength={17} disabled={busy || !!resume} /></label>
+      <p className="clip-note">Indica el identificador del jugador que quieres destacar, no su apodo. No seleccionamos automáticamente a otra persona.</p>
+      <label className="clip-consent"><input type="checkbox" {...register('rightsConfirmed')} disabled={busy} />Tengo permiso para analizar esta partida y utilizar el material del jugador.</label>
+      <p className="clip-note">La copia temporal se elimina tras un análisis correcto. Si falla o se cancela, caduca a las 24 horas de la subida y el servicio de limpieza la retira cuando está activo. Conserva tu original para la futura captura. Sin Higgsfield ni publicación.</p>
+      {Object.values(errors).map((error, i) => <p className="clip-error" key={i}>{error.message}</p>)}
+      <div className="demo-upload-buttons"><button className="studio-btn" disabled={busy || !isReady}>{busy ? <LoaderCircle size={16} className="clip-spinner" /> : <ArrowUpRight size={16} />}{resume ? 'Verificar y reanudar' : 'Subir y analizar'}</button>
+        {busy && controller.current && <button type="button" className="studio-btn secondary" onClick={() => controller.current?.abort()}><Pause size={15} />Pausar subida</button>}</div>
+    </form>
+    {transfer && busy && <div className="demo-transfer"><progress aria-label="Progreso de subida" max={transfer.byteSize} value={transfer.receivedBytes} /><span>{megabytes(transfer.receivedBytes)} / {megabytes(transfer.byteSize)} verificados</span></div>}
+    <p className="clip-feedback" role="status">{message}</p>
+    <div className="demo-jobs"><div className="demo-jobs-head"><h3>Tus análisis</h3><button type="button" aria-label="Actualizar análisis" onClick={() => { void jobs.refetch(); }}><RotateCcw size={14} /></button></div>
+      {jobs.isError && <p className="clip-error">No se pudo actualizar. No se ha perdido tu subida.</p>}
+      {jobs.data.length === 0 && <p className="clip-note">Aquí aparecerán el progreso y el resultado de cada partida. Sin datos de rendimiento inventados.</p>}
+      {jobs.data.map((job) => <article className="demo-job" key={job.id} data-status={job.status}>
+        <div className="demo-job-title"><span>{job.status === 'ready' ? <Check size={17} /> : job.status === 'parsing' ? <LoaderCircle className="clip-spinner" size={17} /> : <UploadCloud size={17} />}</span><div><strong>{job.name}</strong><small>{statusLabels[job.status]} · {megabytes(job.byteSize)}</small></div></div>
+        {job.status === 'uploading' && <progress aria-label={`Subida de ${job.name}`} max={job.byteSize} value={job.receivedBytes} />}
+        {job.status === 'queued' && <p className="clip-note">Esperando al worker CPU. Estar en cola no significa que haya comenzado el análisis.</p>}
+        {job.failureCode && <p className="clip-error">{failureLabels[job.failureCode]}</p>}
+        <div className="demo-job-actions">
+          {job.sourceId && <Link className="clip-source-link" href={`/studio/demos?id=${job.sourceId}`}>Revisar momentos <ArrowUpRight size={14} /></Link>}
+          {job.status === 'uploading' && !job.purged && <button type="button" disabled={busy} onClick={() => { setResume(job); setValue('targetSteamId', job.targetSteamId); setValue('rightsConfirmed', true); setMessage('Elige el mismo archivo; comprobaremos los bloques ya guardados.'); fileInput.current?.focus(); }}>Reanudar</button>}
+          {job.status === 'failed' && !job.purged && job.attempts < 3 && job.receivedBytes === job.byteSize && new Date(job.expiresAt).getTime() > Date.now() && <button type="button" disabled={busy} onClick={() => { void command(job, 'retry'); }}>Reintentar análisis</button>}
+          {['uploading', 'queued', 'parsing', 'failed'].includes(job.status) && <button type="button" disabled={busy} onClick={() => { void command(job, 'cancel'); }}>Cancelar</button>}
+        </div>
+        {job.purged && <p className="clip-note">{job.sourceId ? 'Copia temporal eliminada; se conserva el análisis disponible.' : 'Copia temporal eliminada.'}</p>}
+      </article>)}
+    </div>
+  </section>;
+}

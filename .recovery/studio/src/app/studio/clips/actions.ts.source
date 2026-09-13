@@ -1,0 +1,82 @@
+'use server';
+
+import { revalidatePath } from 'next/cache';
+import { env } from '@/lib/env';
+import { db } from '@/lib/db';
+import { requireStudioWriter } from '@/lib/studio/access';
+import { createClipRepository } from '@/lib/studio/clip-repository';
+import { ClipImport, ClipReport, FragForgePlan } from '@/lib/schemas/studio-clips';
+import { discoverTwitchMoments } from '@/lib/studio/clip-twitch';
+import { reportFromFragForge } from '@/lib/studio/clip-ranking';
+import { checkRateLimit } from '@/lib/security/rateLimit';
+
+async function writer(workspace: unknown) {
+  const actor = await requireStudioWriter(workspace);
+  if (!actor || !env.CLIPPER_ENABLED) return null;
+  return { ...actor, clips: createClipRepository(db, actor.session.user.id, actor.agencyTalentId) };
+}
+function refresh() { revalidatePath('/studio/clips'); revalidatePath('/studio/demos'); }
+const unavailable = { ok: false as const, error: 'El laboratorio no está habilitado o el espacio cambió. Actualiza la página.' };
+
+export async function importClipVod(raw: unknown, workspace: unknown) {
+  const actor = await writer(workspace); if (!actor) return unavailable;
+  const parsed = ClipImport.safeParse(raw);
+  if (!parsed.success) return { ok: false as const, error: parsed.error.issues[0]?.message ?? 'Revisa el enlace y los permisos.' };
+  if (!checkRateLimit({ key: `studio-clips:${actor.session.user.id}`, limit: 6, windowMs: 60_000 }).ok) return { ok: false as const, error: 'Espera un minuto antes de importar otra fuente.' };
+  try {
+    const input = parsed.data;
+    let report: ClipReport;
+    if (new URL(input.url).hostname === 'www.twitch.tv') {
+      if (!env.TWITCH_CLIENT_ID || !env.TWITCH_CLIENT_SECRET) return { ok: false as const, error: 'Falta configurar el acceso oficial a Twitch en este entorno.' };
+      const channel = (await actor.channels.list()).find((c) => c.platform === 'twitch');
+      if (!channel) return { ok: false as const, error: 'Indica primero tu canal Twitch en Mis redes. El VOD debe pertenecer a ese canal.' };
+      report = await discoverTwitchMoments(input.url, channel.handle);
+    } else {
+      report = { version: 1, kind: 'kick', sourceKey: `kick:${new URL(input.url).pathname.split('/').at(-1)}`, title: input.title, duration: input.duration,
+        url: input.url, provenance: 'creator_declared', collectedAt: new Date().toISOString(), moments: [], map: null, player: null,
+        coverage: ['Referencia y duración declaradas por el creador; no verificadas con Kick.', 'Sin descarga ni análisis automáticos. Marca fragmentos y aporta el MP4 autorizado.', 'Chat y audio no analizados.'] };
+    }
+    const source = await actor.clips.import(report);
+    if (!source) return { ok: false as const, error: 'No se pudo guardar: revisa los permisos o el límite de 100 fuentes.' };
+    refresh(); return { ok: true as const, id: source.id };
+  } catch { return { ok: false as const, error: 'No se pudo consultar el VOD. Revisa que siga disponible y pertenezca al canal de este espacio. No se ha descargado vídeo.' }; }
+}
+
+export async function importClipDemo(form: FormData, workspace: unknown) {
+  const actor = await writer(workspace); if (!actor) return unavailable;
+  const file = form.get('file');
+  if (form.get('rightsConfirmed') !== 'true' || !(file instanceof File) || file.size > 512_000 || !file.name.endsWith('.json'))
+    return { ok: false as const, error: 'Adjunta el plan JSON de FragForge (máx. 500 KB) y confirma que puedes utilizarlo.' };
+  if (!checkRateLimit({ key: `studio-demo:${actor.session.user.id}`, limit: 6, windowMs: 60_000 }).ok) return { ok: false as const, error: 'Espera un minuto antes de importar otro análisis.' };
+  try {
+    const raw: unknown = JSON.parse(await file.text());
+    const plan = FragForgePlan.safeParse(raw);
+    if (!plan.success) return { ok: false as const, error: 'El archivo no es un plan FragForge 1.1 válido o sus ticks no son coherentes.' };
+    const source = await actor.clips.import(reportFromFragForge(plan.data));
+    if (!source) return { ok: false as const, error: 'No se pudo guardar el análisis; revisa los permisos y el límite de fuentes.' };
+    refresh(); return { ok: true as const, id: source.id };
+  } catch { return { ok: false as const, error: 'No se pudo leer el análisis. No se guarda el archivo original ni sus rutas locales.' }; }
+}
+
+export async function decideClip(raw: unknown, workspace: unknown) {
+  const actor = await writer(workspace); if (!actor) return unavailable;
+  try {
+    if (!await actor.clips.decide(raw)) return { ok: false as const, error: 'La selección cambió. Actualiza y vuelve a intentarlo.' };
+    refresh(); return { ok: true as const };
+  } catch { return { ok: false as const, error: 'No se pudo guardar tu selección.' }; }
+}
+export async function addManualClip(raw: unknown, workspace: unknown) {
+  const actor = await writer(workspace); if (!actor) return unavailable;
+  try {
+    if (!await actor.clips.addMoment(raw)) return { ok: false as const, error: 'Revisa los segundos (5–60 s, dentro del VOD) y actualiza la versión.' };
+    refresh(); return { ok: true as const };
+  } catch { return { ok: false as const, error: 'No se pudo guardar el fragmento.' }; }
+}
+export async function createClipProject(raw: unknown, workspace: unknown) {
+  const actor = await writer(workspace); if (!actor) return unavailable;
+  try {
+    const id = await actor.clips.project(raw);
+    if (!id) return { ok: false as const, error: 'Selecciona el momento y un MP4 de este espacio. Actualiza si otra persona lo ha editado.' };
+    refresh(); revalidatePath('/studio'); return { ok: true as const, id };
+  } catch { return { ok: false as const, error: 'No se pudo preparar el montaje. No se ha iniciado ningún render.' }; }
+}

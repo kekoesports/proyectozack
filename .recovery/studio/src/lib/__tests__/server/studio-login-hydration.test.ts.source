@@ -1,0 +1,10 @@
+jest.mock('next/navigation', () => ({ useRouter: () => ({ push: jest.fn(), refresh: jest.fn() }) }));
+import { createElement } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
+import { StudioLoginForm } from '@/features/studio/StudioLoginForm';
+
+test('server-rendered login cannot leak credentials through native GET before hydration', () => {
+  const html = renderToStaticMarkup(createElement(StudioLoginForm));
+  expect(html).toContain('method="post"');
+  expect(html).toMatch(/<button[^>]*disabled=""/);
+});

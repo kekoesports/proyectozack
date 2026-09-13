@@ -1,0 +1,64 @@
+import { z } from 'zod';
+import { StudioId } from './studio';
+
+const text = (max: number) => z.string().trim().min(1).max(max).refine((s) => !/[\u0000-\u001f]/.test(s));
+const seconds = z.number().finite().min(0).max(43_200);
+export const ClipKind = z.enum(['twitch', 'kick', 'cs2']);
+export const ClipSourceUrl = z.string().trim().max(300).transform((raw, ctx) => {
+  try {
+    const u = new URL(raw);
+    if (u.protocol !== 'https:' || u.username || u.password || u.port || u.hash) throw new Error();
+    const twitch = /^(?:www\.)?twitch\.tv$/.test(u.hostname) && /^\/videos\/\d{1,24}\/?$/.test(u.pathname);
+    const kick = u.hostname === 'kick.com' && /^\/(?:[a-z0-9_]{2,50}\/)?videos\/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}\/?$/i.test(u.pathname);
+    if (!twitch && !kick) throw new Error();
+    return `https://${twitch ? 'www.twitch.tv' : 'kick.com'}${u.pathname.toLowerCase().replace(/\/$/, '')}`;
+  } catch { ctx.addIssue({ code: 'custom', message: 'Usa el enlace HTTPS de un VOD de Twitch o Kick, no un directo.' }); return z.NEVER; }
+});
+export const ClipImport = z.object({
+  url: ClipSourceUrl, title: text(160), duration: z.coerce.number().int().min(15).max(43_200), rightsConfirmed: z.literal(true),
+});
+export type ClipImport = z.infer<typeof ClipImport>;
+export const ClipSignal = z.object({
+  id: text(100), kind: z.enum(['viewer_clip', 'stream_marker', 'chat_burst', 'audio_peak', 'laughter', 'cheer', 'kill', 'speech_hook']),
+  start: seconds, end: seconds, strength: z.number().finite().min(0).max(1), label: text(160),
+}).refine((v) => v.end > v.start);
+export type ClipSignal = z.infer<typeof ClipSignal>;
+export const ClipMoment = z.object({
+  id: text(100), title: text(160), start: seconds, end: seconds, score: z.number().finite().nonnegative().nullable(),
+  reasons: z.array(text(160)).min(1).max(8), round: z.number().int().positive().nullable().default(null),
+  tickStart: z.number().int().nonnegative().nullable().default(null), tickEnd: z.number().int().positive().nullable().default(null),
+}).refine((v) => v.end > v.start && v.end - v.start <= 60.001);
+export type ClipMoment = z.infer<typeof ClipMoment>;
+export const ClipReport = z.object({
+  version: z.literal(1), kind: ClipKind, sourceKey: text(160), title: text(160), url: ClipSourceUrl.nullable(),
+  duration: seconds.refine((v) => v >= 15), collectedAt: z.iso.datetime(),
+  provenance: z.enum(['twitch_helix', 'creator_declared', 'fragforge_import']),
+  coverage: z.array(text(240)).min(1).max(8), moments: z.array(ClipMoment).max(100),
+  map: text(64).nullable(), player: text(100).nullable(),
+}).refine((r) => r.moments.every((m) => m.end <= r.duration) && new Set(r.moments.map((m) => m.id)).size === r.moments.length);
+export type ClipReport = z.infer<typeof ClipReport>;
+export const ClipDecisions = z.record(z.string().max(100), z.object({
+  decision: z.enum(['selected', 'dismissed']), projectId: StudioId.nullable().default(null),
+}));
+export const ClipDecision = z.object({ id: StudioId, revision: z.number().int().nonnegative(), momentId: text(100), decision: z.enum(['selected', 'dismissed']) });
+export const ClipManualMoment = z.object({ id: StudioId, revision: z.number().int().nonnegative(), title: text(100), start: z.coerce.number().min(0).max(43_200), end: z.coerce.number().max(43_200) })
+  .refine((v) => v.end - v.start >= 5 && v.end - v.start <= 60, { message: 'El fragmento debe durar entre 5 y 60 segundos.' });
+export const ClipProject = z.object({ id: StudioId, revision: z.number().int().nonnegative(), momentId: text(100), assetId: StudioId,
+  duration: z.coerce.number().min(1).max(60), rightsConfirmed: z.literal(true) });
+export const ClipIdQuery = z.object({ id: StudioId.optional() });
+
+/** FragForge 1.1 contract. Strip local paths, opponents, positions and arbitrary rules at the boundary. */
+export const FragForgePlan = z.object({
+  schema_version: z.literal('1.1'), generated_at: z.iso.datetime(),
+  demo: z.object({ sha256: z.string().regex(/^[a-f0-9]{64}$/i), map: text(64), tickrate: z.number().int().min(1).max(256), duration_ticks: z.number().int().positive().max(11_059_200) }),
+  target: z.object({ steamid64: z.string().regex(/^\d{17}$/), name_in_demo: text(100) }),
+  segments: z.array(z.object({ id: text(100), round: z.number().int().min(1).max(500), tick_start: z.number().int().nonnegative(), tick_end: z.number().int().positive(),
+    kills: z.array(z.object({ tick: z.number().int().nonnegative(), weapon: text(50), headshot: z.boolean(),
+      // Used only to distinguish simultaneous kills; never included in the persisted report.
+      victim: z.object({ steamid64: z.string().regex(/^\d{1,20}$/) }).optional(),
+    })).max(100).default([]),
+  })).max(500),
+}).refine((p) => p.demo.duration_ticks / p.demo.tickrate <= 43_200 && p.demo.duration_ticks / p.demo.tickrate >= 15
+  && p.segments.every((s) => s.tick_end > s.tick_start && s.tick_end <= p.demo.duration_ticks && s.kills.every((k) => k.tick >= s.tick_start && k.tick <= s.tick_end)),
+{ message: 'El análisis contiene ticks o duración incoherentes.' });
+export type FragForgePlan = z.infer<typeof FragForgePlan>;

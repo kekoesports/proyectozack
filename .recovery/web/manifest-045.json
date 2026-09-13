@@ -1,0 +1,242 @@
+[
+  {
+    "path": "src/features/admin/talents/components/InfluencerCardsView.tsx",
+    "sha256": "f42c164501e971a9c638ae0f25f2b4afda434e39690cf2e872f7664b7c31d7ac",
+    "bytes": 13924,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/features/admin/talents/components/InfluencerImport.commit.tsx",
+    "sha256": "1c421ef552498edaaaf5a4d2f2324fcc0584a1f78861e5d773b97c420edfd667",
+    "bytes": 15163,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/talents/components/InfluencerImport.parts.tsx",
+    "sha256": "56920f50c8138f05360d6c835cf5888f42e81ce5fdabf690ef9754a21da80a89",
+    "bytes": 7210,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/talents/components/InfluencerImport.preview.tsx",
+    "sha256": "53e1a62f690a6b1a102deefbf45792e499f730f7dc7b495984166a41633e42ad",
+    "bytes": 5619,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/talents/components/InfluencerImport.tsx",
+    "sha256": "1b2ea80472233ac364d2073c3c5706aee313aa2d756beaf7c9a0a2abf658a224",
+    "bytes": 8254,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/talents/components/InfluencerImport.upload.tsx",
+    "sha256": "5ca987c01a8409eae46ec1aea04c5ec16e0671ea287f8ee83cf615737654fea6",
+    "bytes": 6828,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/talents/components/RevokeTalentDialog.tsx",
+    "sha256": "3c8824a45750da5aab2cf5032a5c99118fefc795817815a5b211d7d2198cb30a",
+    "bytes": 5548,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/features/admin/talents/components/RosterSpreadsheet.parts.tsx",
+    "sha256": "91dbae6586fb96896b0163fbbd61d6a53f3f416fc4b54559c36d975fbbf90905",
+    "bytes": 3284,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/talents/components/RosterSpreadsheet.tsx",
+    "sha256": "c43ef15a71a84581228d4af5e73f5f3ce9566bf3d6c6ce4f9c49d07499f76643",
+    "bytes": 25559,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/talents/components/SortableCardGrid.tsx",
+    "sha256": "95eef548009c4818873e5176b097630b207dc0ce088093ad37ba9a891cdf16a5",
+    "bytes": 6747,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/talents/components/TalentBusinessForm.tsx",
+    "sha256": "be888ad78f5538adbfa2a307aa72c2d37ca768aa469da09cdf20a585bef06424",
+    "bytes": 7302,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/talents/components/TalentCampaignsTab.tsx",
+    "sha256": "4d6d7264b93cb770c06faed6d2a1359457c1acccb3c7c494003832f57ccc0f89",
+    "bytes": 6042,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/talents/components/TalentComplianceForm.tsx",
+    "sha256": "70b1ad8d779d1ce49716ed7dd37e93046868b8c01e2f50b7b187caff124b8dca",
+    "bytes": 10429,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/talents/components/TalentDataTools.tsx",
+    "sha256": "4bb6157d5571c3221aa47aaeeaa6dee92460a26cd018add3b4704c8f41bb804b",
+    "bytes": 3668,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/talents/components/TalentDetailTabs.tsx",
+    "sha256": "e32fc566ed0e66e1578930f84f81e55c46aa9889e28b0755c476f7033caeaec5",
+    "bytes": 30510,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/talents/components/TalentEconomiaTab.tsx",
+    "sha256": "f8b8deb5b529357765cfcaf66ade7322051cf1d77b7319f34351cb9197e06caf",
+    "bytes": 7165,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/talents/components/TalentExport.tsx",
+    "sha256": "1786e7c0d4749c268fefa678d88f6f820e2df96d38f9eee66a96272c2cd849f6",
+    "bytes": 5248,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/talents/components/TalentExportView.tsx",
+    "sha256": "d125b81063a8a09d98b565fc3cc3458b750b14d16eba9f26fcd1e94caa04ad7b",
+    "bytes": 10400,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/talents/components/TalentGeoFiles.tsx",
+    "sha256": "536ca3199cdd96e28a421caec63995fd03a816dce93c8381dd8beef7d13d7dc6",
+    "bytes": 8197,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/talents/components/TalentGiveawaysSection.tsx",
+    "sha256": "52b1f6c525ec59c67a2fa12a917eba8d1f25b0acf03d021bf451ba7bb6a51507",
+    "bytes": 15151,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/talents/components/TalentImportPreview.tsx",
+    "sha256": "584fc3506ab63ca998a35c9f7b41178e0f4df89b0c4544363f112120a26bce66",
+    "bytes": 9928,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/talents/components/TalentImporter.tsx",
+    "sha256": "a3229a674fc43b61f405bfc4af950faa1afbc11379a00f437255758e8c84ef09",
+    "bytes": 6889,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/talents/components/TalentIntelligenceDashboard.tsx",
+    "sha256": "a362a6af42b7735d591afc88ddc4176dc4d40eca6ec1a238ec2cf82de58e662e",
+    "bytes": 27607,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/talents/components/TalentPhotoCard.tsx",
+    "sha256": "f5ae11b18fe48c1c49d777565b308234a7a2c067d5642b634e3f1f6669e1253d",
+    "bytes": 9140,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/talents/components/TalentPhotoUpload.tsx",
+    "sha256": "efd5bc8f22483a2d0fe286ebe2d532f5971a6c20a867148846df570b09d275a9",
+    "bytes": 8181,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/talents/components/TalentProfileForm.tsx",
+    "sha256": "c5146b3cf5759baba774852bb4fd2e9352497daf7549c21b33f83fbf8833d254",
+    "bytes": 18166,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/talents/components/TalentProfileTabs.tsx",
+    "sha256": "91927687e82f64b1203d1c63260c587fcbff99b83cc8836811e164aa2b3db493",
+    "bytes": 10874,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/talents/components/TalentSeoBioPanel.tsx",
+    "sha256": "22b1e34e8d202560f92992f14314e8cfc5ec9d1af4a4b89403ba363eaa80737d",
+    "bytes": 17023,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/talents/components/TalentSocialsEditor.tsx",
+    "sha256": "27176e19f8871fce8352f58cf864aecb8b7324ce477e55fec0ed464776e58a27",
+    "bytes": 7836,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/talents/components/TalentStatsByPlatform.tsx",
+    "sha256": "da5893c9f3be71e40e464a229318890b8a855e8f2f406940b47565808040b608",
+    "bytes": 9608,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/talents/components/TalentStatsEditor.tsx",
+    "sha256": "476d1db960df865ec818aaab20f280c9428c91fe4165d6f640bc17d67520ef28",
+    "bytes": 6176,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/talents/components/TalentTagsEditor.tsx",
+    "sha256": "87cd8f41b1bb56c14bbca80aea7720f99acf6208c6a40ef6158bac38a7933514",
+    "bytes": 3043,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/targets/components/CreatorAutomationRegistry.tsx",
+    "sha256": "ca86b76587cbb4d1f9d5fc44d0cfffacf4377cae08b93685dd03e734df60e8c6",
+    "bytes": 2456,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/targets/components/CreatorDiscoveryHub.tsx",
+    "sha256": "5c7a4fc476c246c38045a3fb8547a5caa075e024f2d4bb298a6aa6caff01bad4",
+    "bytes": 4432,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/targets/components/CreatorDiscoveryOverview.tsx",
+    "sha256": "c63728eb98a7de342de70aecb5b56ba39e614987e2338d712ff0cb46993d5832",
+    "bytes": 2585,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/targets/components/CreatorFeedbackForm.tsx",
+    "sha256": "1d71ab0867cc8a12aea4db10909e94eb5e7c7897fd4d48ccf2f95965a83c1633",
+    "bytes": 3382,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/targets/components/CreatorSearchProfileEditor.tsx",
+    "sha256": "6847f4222c21d57ce54205423b540ce6b764ad819e2a214dca511648da89504e",
+    "bytes": 5245,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/targets/components/CreatorSearchProfiles.tsx",
+    "sha256": "f03786da21def10750d5422314364c8746556e56e81bfaea3df470775dccf7ae",
+    "bytes": 6875,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/targets/components/DirectProfileDiscovery.tsx",
+    "sha256": "969f858054b046870f146dacff11558edbf8bcc49425a50e97a2760ace67e5c6",
+    "bytes": 6656,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/targets/components/TargetOutreachComposer.tsx",
+    "sha256": "b607487fdd5ea3a5989bbbbf27a62145587ff071f690a2c03a91c13f9b718db6",
+    "bytes": 5023,
+    "storage": "git-base-crlf"
+  }
+]

@@ -1,0 +1,30 @@
+jest.mock('server-only', () => ({}));
+jest.mock('@/lib/services/twitch-auth', () => ({ getAppAccessToken: jest.fn(async () => ({ clientId: 'fixture', token: 'fixture' })) }));
+jest.mock('@/lib/services/provider-http', () => ({ readProviderJson: jest.fn() }));
+import { readProviderJson } from '@/lib/services/provider-http';
+import { discoverTwitchMoments, twitchDuration } from '@/lib/studio/clip-twitch';
+
+const read = jest.mocked(readProviderJson);
+const vod = { id: '123', user_id: '456', user_login: 'fixture', title: 'Fixture VOD', duration: '10m0s', created_at: '2026-09-06T12:00:00Z', type: 'archive' };
+const clip = { id: 'clip', broadcaster_id: '456', video_id: '123', vod_offset: 0, duration: 20, view_count: 0, title: 'Fixture moment' };
+beforeEach(() => read.mockReset());
+test('duration parsing handles hours, minutes, seconds and malformed input', () => {
+  expect(twitchDuration('2h3m4s')).toBe(7384); expect(twitchDuration('0s')).toBe(0); expect(twitchDuration('bad')).toBe(0);
+});
+test('keeps zero offset/views; excludes null offset, other broadcasters and other VODs', async () => {
+  read.mockResolvedValueOnce({ data: [vod] }).mockResolvedValueOnce({ data: [clip, { ...clip, id: 'null', vod_offset: null }, { ...clip, id: 'other', video_id: '999' }, { ...clip, id: 'foreign', broadcaster_id: '999' }], pagination: {} });
+  const report = await discoverTwitchMoments('https://www.twitch.tv/videos/123', 'fixture');
+  expect(report.moments).toHaveLength(1); expect(report.moments[0]?.start).toBe(0); expect(report.moments[0]?.title).toContain('0 vistas');
+  expect(read.mock.calls.every(([url]) => url.startsWith('https://api.twitch.tv/helix/'))).toBe(true);
+  expect(read.mock.calls.every(([, , , init]) => init?.redirect === 'error' && !init.method)).toBe(true);
+});
+test('does not import a different declared channel or unavailable archive', async () => {
+  read.mockResolvedValueOnce({ data: [vod] }); await expect(discoverTwitchMoments('https://www.twitch.tv/videos/123', 'someoneelse')).rejects.toThrow('vod_channel_mismatch');
+  expect(read).toHaveBeenCalledTimes(1);
+});
+test('bounded pagination declares partial coverage', async () => {
+  read.mockResolvedValueOnce({ data: [vod] });
+  for (let i = 0; i < 3; i++) read.mockResolvedValueOnce({ data: [{ ...clip, id: `clip${i}` }], pagination: { cursor: `next${i}` } });
+  const report = await discoverTwitchMoments('https://www.twitch.tv/videos/123', 'fixture');
+  expect(read).toHaveBeenCalledTimes(4); expect(report.coverage[0]).toContain('parcial');
+});

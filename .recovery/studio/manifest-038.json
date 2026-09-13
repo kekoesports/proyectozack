@@ -1,0 +1,242 @@
+[
+  {
+    "path": "src/db/schema/pressTargets.ts",
+    "sha256": "b428e937f65b9d439747f869801e03de284a579c42c7584f2fa71b855260b4e2",
+    "bytes": 2715,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/db/schema/rankingEntries.ts",
+    "sha256": "76d8633e65f72ab6dc7557c0ff22e3add4bdd1e320a79fae8b7e3a4d7e80a69e",
+    "bytes": 566,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/db/schema/recurringExpenses.ts",
+    "sha256": "b7fa80fbc5301b221515e811dc694430080ca8815cdb8bca2076c166d023b4b9",
+    "bytes": 2117,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/db/schema/shopItems.ts",
+    "sha256": "fde95571663f883e762c3d5e42e3b4b3588feddd3b2df83e0b02d7c4aeaaa2c9",
+    "bytes": 3081,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/db/schema/statsShares.ts",
+    "sha256": "f72cc93abcaf936bcb503b74204b53f3caec0f81432539eae98b25da9936923b",
+    "bytes": 508,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/db/schema/studio.ts",
+    "sha256": "65b5d6d6d9a4c164b6a93ab3d983ec20951e73e791c6c5ccde8809bd1f353b35",
+    "bytes": 5222,
+    "storage": "git-base"
+  },
+  {
+    "path": "src/db/schema/studioClips.ts",
+    "sha256": "b2add5022c2f6286ea386b58d6e5edc45d12559076c7834d093028495089ce2c",
+    "bytes": 1370,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/db/schema/studioDemoJobs.ts",
+    "sha256": "2f280d129708615ceaf09ef0ee4d675aa1efb9d806202b43d73f3b40af7bf4be",
+    "bytes": 2125,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/db/schema/studioNarrations.ts",
+    "sha256": "c071bc7977c71588d7669b9dd9de902e8fac8ecb22c1bf5437c757b5de3a925e",
+    "bytes": 1701,
+    "storage": "git-base"
+  },
+  {
+    "path": "src/db/schema/studioProduction.ts",
+    "sha256": "a2930ec96f469cc07933b27f5fd89cff5a958ce079c39d78aeb849a2e9cc5990",
+    "bytes": 4537,
+    "storage": "git-base"
+  },
+  {
+    "path": "src/db/schema/studioProfiles.ts",
+    "sha256": "dda436b15befda6eacf751b7d0560587a4a617abafc6795072498a860cf22a80",
+    "bytes": 646,
+    "storage": "git-base"
+  },
+  {
+    "path": "src/db/schema/submissions.ts",
+    "sha256": "12924bbd2366bf508afff4d846f6977278cfb69a5b6d9daa31b02fa892611517",
+    "bytes": 1962,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/db/schema/talentBusiness.ts",
+    "sha256": "b848d856e37aed8eb25dcc141ffd30d306b6c7ab218d6a84e2229d2b254f1d54",
+    "bytes": 2489,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/db/schema/talentIntelligence.ts",
+    "sha256": "1ea7dbe1ab37f14c9a6b895fc1e69fc6337ccf6355358993e470f0c36b1db65e",
+    "bytes": 4384,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/db/schema/talentProfileEvents.ts",
+    "sha256": "23249efd77ea1c099ebea89516b7806ef0458fb39df72ef6a79349433aa3a507",
+    "bytes": 1178,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/db/schema/talents.ts",
+    "sha256": "2421026d47b64ef10583587d23cc02aa02be92f551dd9cff87c8493674276d18",
+    "bytes": 9763,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/db/schema/targets.ts",
+    "sha256": "91f78ea429181b3e8a782df5189168be1c2c485a660e296288910a23833f9d12",
+    "bytes": 4401,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/db/schema/trackerEnums.ts",
+    "sha256": "36722e720eafb8e8191b22fd6b62df17558a98524d0003b80f5495a03589c708",
+    "bytes": 492,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/db/schema/userPartnerConsents.ts",
+    "sha256": "5f6feed17cfa2f0601a7cdea8eefb763985793d1e00f12ac51e60d025377ac92",
+    "bytes": 2138,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/db/seeds/taskTemplates.ts",
+    "sha256": "694b011a1affb55f9a004906762c7bc147bfb8d464ed5a8478a98d0546b5ec68",
+    "bytes": 2534,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/_shared/components/AdminHeader.tsx",
+    "sha256": "730c430728314d4f0cdd94e0c325a340249a7d413a8f15183ec274c83e411b38",
+    "bytes": 16077,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/_shared/components/AdminPageHeader.tsx",
+    "sha256": "09841b12a33ef3d51a7a4437cf088a0fb3cd9002231df256394d524da2c85c8a",
+    "bytes": 2598,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/_shared/components/AdminSidebar.tsx",
+    "sha256": "b14aab89b570e42522accc742340fa1f8e225d9f6aa19020d82c77443e57509d",
+    "bytes": 14799,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/_shared/components/AlertList.tsx",
+    "sha256": "8ff794b56edbed394258374f98a85b6247782e20fbcb93eb06943ab66243dc8f",
+    "bytes": 4416,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/_shared/components/Avatar.tsx",
+    "sha256": "a393799b75d5e53d0b52e950d9fec1f7089ffed92d03559f34dcd469aa116cb0",
+    "bytes": 2478,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/_shared/components/CompletedDealsModal.tsx",
+    "sha256": "0bc785bea7ad6eb783ed7707b603fd93f893468eb3f7d140fa3cccd7be546caf",
+    "bytes": 2916,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/_shared/components/EditDrawer.tsx",
+    "sha256": "6ce3f7410a6b6f69a66e2c90522257638f490d04ca9a3505396f6d0b23f782db",
+    "bytes": 5240,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/_shared/components/EmptyState.tsx",
+    "sha256": "a86e212042948c8d16b22076c59db19b8328b37d14b47828b170702291957c3c",
+    "bytes": 1357,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/_shared/components/FilterBar.tsx",
+    "sha256": "598f9f547309521206d03a9de6000cbc050f2efc1534aebea37fb119475c0a82",
+    "bytes": 4728,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/_shared/components/GlobalSearch.tsx",
+    "sha256": "be286f9f1855b87be0e7245556872662cda305ab60bbe9be0201424f2b0614ab",
+    "bytes": 8207,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/_shared/components/KpiCard.tsx",
+    "sha256": "4aa89d9b0b6c8e6e66719181cea9ee60be4270f5650e22c63ac6ef683753e80a",
+    "bytes": 2572,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/_shared/components/MetricsChart.tsx",
+    "sha256": "c9ad25f17bef17c3e51f9734a7e4b049a7b8c3dfafe960d7a2b5d60dd60a3eeb",
+    "bytes": 6092,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/_shared/components/SidebarIcons.tsx",
+    "sha256": "3013125fdac289c53abb05f2f1b594013b33f0482b13348d031d13e67e741720",
+    "bytes": 8240,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/_shared/components/Skeleton.tsx",
+    "sha256": "00480dce072ba7c9fefcf342c68446bd82c2d48b69d10e92b4cdb39014b550a1",
+    "bytes": 2462,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/_shared/components/StateBadge.tsx",
+    "sha256": "965e9b7020eb06863453fa3df2462d73c5508f69c8d0f47d05f4bd767a794e4e",
+    "bytes": 2067,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/_shared/components/campaigns/CampaignsManager.tsx",
+    "sha256": "060d05836c93664ca8f9a1267932c9b0a7e0363bfea0e964f3c456631cbf5884",
+    "bytes": 25842,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/_shared/components/campaigns/ContractGenerator.tsx",
+    "sha256": "72dd8321cb78376fac2684098353b9cb2eb9ac724950cad5e254fd2b507934f7",
+    "bytes": 13270,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/_shared/components/campaigns/ContractTab.tsx",
+    "sha256": "379f7d43c4bced457652570f8219562a081173c161701332ef07553501bea5d8",
+    "bytes": 14944,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/_shared/components/campaigns/DealInvoicePanel.tsx",
+    "sha256": "534fc855625e794aae95107f66ab6e2bd62b8a1b66ae55e7961791b93198982e",
+    "bytes": 9611,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/_shared/components/dashboard/ActivityPanel.tsx",
+    "sha256": "857402633201f6ad96c1c88aae401195ddc50255e51bcbf85f3254fdbb7b8d4a",
+    "bytes": 3114,
+    "storage": "git-base-crlf"
+  }
+]

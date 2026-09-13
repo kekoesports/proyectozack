@@ -1,0 +1,37 @@
+/** In-memory SDK boundary. Never reads env, authenticates, or makes a network request. */
+import assert from 'node:assert/strict';
+import type { DemoBlobClient } from '../src/lib/studio/demo-blob-storage';
+
+export function demoBlobFixture() {
+  const objects = new Map<string, Buffer>();
+  const metrics = { puts: 0, gets: 0, deletes: 0 };
+  const behavior = { rejectReads: false, retainDeletes: false, losePutReply: false };
+  const meta = (pathname: string, bytes: Buffer) => ({ pathname, url: `https://fixture.invalid/${pathname}`, downloadUrl: `https://fixture.invalid/${pathname}`,
+    size: bytes.length, uploadedAt: new Date(), etag: 'fixture', contentType: 'application/octet-stream', contentDisposition: 'attachment', cacheControl: 'private' });
+  const client: DemoBlobClient = {
+    async put(pathname, body, options) {
+      metrics.puts++; assert.equal(options.access, 'private'); assert.equal(options.addRandomSuffix, false); assert.equal(options.allowOverwrite, false);
+      assert.ok(Buffer.isBuffer(body)); assert.ok(options.abortSignal); assert.equal(options.token, 'vercel_blob_rw_fixturestore_syntheticOnly2026');
+      if (objects.has(pathname)) throw new Error('already_exists');
+      objects.set(pathname, Buffer.from(body));
+      if (behavior.losePutReply) throw new Error('ambiguous_transport_response');
+      return meta(pathname, body);
+    },
+    async get(pathname, options) {
+      metrics.gets++; assert.equal(options.access, 'private'); assert.equal(options.useCache, false); assert.ok(options.abortSignal);
+      assert.ok(!pathname.startsWith('http')); assert.equal(options.token, 'vercel_blob_rw_fixturestore_syntheticOnly2026');
+      if (behavior.rejectReads) throw new Error('synthetic-blob-token must never escape');
+      const bytes = objects.get(pathname); if (!bytes) return null;
+      return { statusCode: 200, blob: meta(pathname, bytes), headers: new Headers(), stream: new ReadableStream({ start(controller) { controller.enqueue(bytes); controller.close(); } }) };
+    },
+    async list(options) {
+      assert.ok(options?.prefix && options.prefix.endsWith('/')); assert.equal(options.token, 'vercel_blob_rw_fixturestore_syntheticOnly2026');
+      return { blobs: [...objects].filter(([pathname]) => pathname.startsWith(options.prefix ?? 'never')).map(([pathname, bytes]) => meta(pathname, bytes)), hasMore: false };
+    },
+    async del(paths, options) {
+      metrics.deletes++; assert.equal(options?.token, 'vercel_blob_rw_fixturestore_syntheticOnly2026');
+      if (!behavior.retainDeletes) for (const pathname of typeof paths === 'string' ? [paths] : paths) objects.delete(pathname);
+    },
+  };
+  return { client, objects, metrics, behavior };
+}

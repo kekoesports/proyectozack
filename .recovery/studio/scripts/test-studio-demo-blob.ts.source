@@ -1,0 +1,117 @@
+/** Isolated migration + shared upload/worker round trip with a simulated Blob service. */
+import assert from 'node:assert/strict';
+import { randomUUID } from 'node:crypto';
+import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join, dirname, resolve } from 'node:path';
+import { PGlite } from '@electric-sql/pglite';
+import { drizzle } from 'drizzle-orm/pglite';
+import { generateDrizzleJson, generateMigration } from 'drizzle-kit/api';
+import { eq } from 'drizzle-orm';
+import * as schema from '../src/db/schema';
+import { demoBlobStorage } from '../src/lib/studio/demo-blob-storage';
+import { demoHash, readDemoStream } from '../src/lib/studio/demo-storage';
+import { DemoStorageConfig, demoStorageScope } from '../src/lib/schemas/studio-demo-storage';
+import { createDemoRepository, createDemoWorkerRepository } from '../src/lib/studio/demo-repository';
+import { runDemoJob } from '../src/lib/studio/demo-worker';
+import { DEMO_PART_BYTES } from '../src/lib/schemas/studio-demo';
+import { demoBlobFixture } from './studio-demo-blob-fixture';
+
+async function main() {
+  const pg = new PGlite(), db = drizzle(pg, { schema }), temp = await mkdtemp(join(tmpdir(), 'socialpro-demo-blob-test-'));
+  let checks = 0;
+  const check = (value: unknown, label: string) => { assert.ok(value, label); checks++; };
+  const rejects = async (fn: () => Promise<unknown>) => { await assert.rejects(fn); checks++; };
+  const cloud = demoBlobFixture(), token = 'vercel_blob_rw_fixturestore_syntheticOnly2026', root = join(temp, 'studio-demos');
+  // Web has NO local volume. Worker has a separate scratch; they only share the provider and DB.
+  const upload = demoBlobStorage(token, undefined, cloud.client), storage = demoBlobStorage(token, root, cloud.client);
+  const bytes = Buffer.alloc(DEMO_PART_BYTES + 16); bytes.write('PBDEMS2\0');
+  const steam = '76561198000000000';
+  try {
+    const baseline = Object.fromEntries(Object.entries(schema).filter(([key]) => key !== 'studioDemoJobs'));
+    for (const sql of await generateMigration(generateDrizzleJson({}), generateDrizzleJson(baseline))) await pg.exec(sql);
+    await pg.exec(await readFile('drizzle/0156_studio_demo_ingest.sql', 'utf8'));
+    await pg.exec(await readFile('drizzle/0157_studio_demo_shared_storage.sql', 'utf8')); checks++;
+    await pg.exec(await readFile('drizzle/0158_studio_demo_store_binding.sql', 'utf8')); checks++;
+    const now = new Date();
+    await db.insert(schema.user).values({ id: 'a', name: 'QA', email: 'qa@fixture.test', emailVerified: true, role: 'creator', createdAt: now, updatedAt: now });
+    const [talent] = await db.insert(schema.talents).values({ name: 'QA', slug: 'qa', role: 'creator', game: 'CS2', platform: 'youtube', bio: 'Synthetic', gradientC1: '#111', gradientC2: '#222', initials: 'QA' }).returning(); assert.ok(talent);
+    await db.insert(schema.talentUsers).values({ userId: 'a', talentId: talent.id });
+    const blob = createDemoRepository(db, 'a', undefined, 'blob', storage.scope), local = createDemoRepository(db, 'a');
+    const wrongStore = createDemoRepository(db, 'a', undefined, 'blob', 'blob:otherstore');
+    const make = () => ({ id: randomUUID(), name: 'QA.dem', byteSize: bytes.length, targetSteamId: steam, rightsConfirmed: true });
+    const input = make(), job = await blob.create(input); assert.ok(job);
+    check(await local.create(input) === null, 'backend changes cannot silently migrate an upload');
+    check(await wrongStore.create(input) === null, 'another cloud store cannot take over an upload');
+    let touched = false;
+    check(await local.part(job.id, 0, demoHash(bytes), async () => { touched = true; }) === null && !touched, 'wrong backend cannot persist bytes');
+    for (let index = 0; index < 2; index++) {
+      const part = bytes.subarray(index * DEMO_PART_BYTES, (index + 1) * DEMO_PART_BYTES);
+      check(await blob.part(job.id, index, demoHash(part), () => upload.put(job.id, index, part)), 'cloud chunk persisted');
+    }
+    const first = bytes.subarray(0, DEMO_PART_BYTES);
+    await upload.put(job.id, 0, first); check(cloud.objects.size === 2, 'immutable retry does not duplicate');
+    const changed = Buffer.from(first); changed[20] = 1;
+    await rejects(() => upload.put(job.id, 0, changed));
+    check(await local.command(job.id, 'queue') === null, 'wrong backend cannot enqueue');
+    check((await blob.command(job.id, 'queue'))?.status === 'queued', 'shared queue');
+    check(await createDemoWorkerRepository(db).claim() === null, 'local worker leaves cloud jobs alone');
+    const wrongWorker = createDemoWorkerRepository(db, 'blob', 'blob:otherstore');
+    check(await wrongWorker.claim() === null, 'another cloud store cannot analyze this queue');
+    cloud.behavior.retainDeletes = true;
+    check(await runDemoJob(db, root, 'unused', async (_bin, file, target, hash) => {
+      check(demoHash(await readFile(file)) === demoHash(bytes) && target === steam && hash === demoHash(bytes), 'independent worker downloads and verifies chunks');
+      return { version: 1, kind: 'cs2', sourceKey: `${hash}:${steam}`, title: 'QA', duration: 120, url: null, provenance: 'fragforge_import', collectedAt: now.toISOString(), coverage: ['Simulated parser'], moments: [], map: 'de_mirage', player: 'QA' };
+    }, storage), 'shared positive pipeline, parser simulated');
+    const ready = await blob.get(job.id);
+    check(ready?.status === 'ready' && ready.sourceId && !ready.purged, 'unconfirmed remote cleanup retains quota');
+    check(!JSON.stringify(ready).includes('token') && !JSON.stringify(ready).includes('pathname'), 'no provider internals in browser view');
+    await db.update(schema.studioDemoJobs).set({ expiresAt: new Date(0) }).where(eq(schema.studioDemoJobs.id, job.id));
+    check((await wrongWorker.purgeCandidates()).length === 0, 'another cloud store cannot purge this job');
+    await wrongWorker.markPurged(job.id);
+    check(!(await blob.get(job.id))?.purged, 'wrong-store cleanup cannot release quota');
+    cloud.behavior.retainDeletes = false;
+    await runDemoJob(db, root, 'unused', undefined, storage);
+    check((await blob.get(job.id))?.purged && cloud.objects.size === 0, 'confirmed cleanup releases quota');
+    const stray = randomUUID(); cloud.behavior.losePutReply = true;
+    await upload.put(stray, 0, bytes.subarray(0, 16));
+    check(cloud.objects.size === 1, 'ambiguous upload recovered by matching immutable bytes');
+    cloud.behavior.losePutReply = false;
+    const other = randomUUID(); await upload.put(other, 0, bytes.subarray(0, 16));
+    await storage.purge(stray);
+    check(cloud.objects.size === 1 && [...cloud.objects.keys()][0]?.includes(other), 'cleanup never touches another job');
+    const malformedKey = `studio-demo-ingest/v1/${other}/unexpected`;
+    cloud.objects.set(malformedKey, Buffer.alloc(16));
+    const deletesBefore = cloud.metrics.deletes;
+    await rejects(() => storage.purge(other));
+    check(cloud.metrics.deletes === deletesBefore, 'unexpected listing paths prevent every deletion');
+    cloud.objects.delete(malformedKey);
+    await rejects(() => upload.put('../outside', 0, first));
+    await rejects(() => upload.put(randomUUID(), 250, first));
+    await rejects(() => upload.put(randomUUID(), 0, Buffer.alloc(16)));
+    await rejects(() => upload.assemble(other, randomUUID(), 16, { '0': demoHash(bytes.subarray(0, 16)) }));
+    await rejects(() => storage.assemble(other, randomUUID(), 16, { '0': 'f'.repeat(64) }));
+    await rejects(() => storage.purge('../outside'));
+    check(!DemoStorageConfig.safeParse({ backend: 'local', root, serverless: true }).success, 'ephemeral Vercel disk rejected');
+    check(!DemoStorageConfig.safeParse({ backend: 'blob', serverless: true }).success, 'missing cloud secret rejected');
+    check(DemoStorageConfig.safeParse({ backend: 'blob', token, serverless: true }).success, 'web cloud upload needs no local root');
+    check(demoStorageScope('blob', 'vercel_blob_rw_fixturestore_rotatedCredential2026') === storage.scope, 'credential rotation in same store preserves binding');
+    check(!demoStorageScope('blob', 'invalid') && !demoStorageScope('blob', 'vercel_blob_rw_https://unsafe.invalid_secret123'), 'malformed store references refused');
+    const controller = new AbortController(); controller.abort();
+    await rejects(() => storage.assemble(other, randomUUID(), 16, { '0': demoHash(bytes.subarray(0, 16)) }, controller.signal));
+    await rejects(() => readDemoStream(new ReadableStream({ start(c) { c.enqueue(Buffer.alloc(32)); c.close(); } }), 16));
+    const fault = await blob.create({ ...make(), byteSize: 16 }); assert.ok(fault);
+    await blob.part(fault.id, 0, demoHash(bytes.subarray(0, 16)), () => upload.put(fault.id, 0, bytes.subarray(0, 16)));
+    await blob.command(fault.id, 'queue'); cloud.behavior.rejectReads = true;
+    await runDemoJob(db, root, 'unused', undefined, storage);
+    const failed = await blob.get(fault.id);
+    check(failed?.status === 'failed' && failed.failureCode === 'storage_error', 'provider failure is a bounded retryable job failure');
+    check(!JSON.stringify(failed).includes('synthetic-blob-token'), 'provider errors cannot expose secrets');
+    check((await db.select().from(schema.studioRenders)).length === 0, 'no render or generation');
+    console.log(`PASS: ${checks} shared-storage checks. Blob service and positive parser simulated; no provider credentials, real demo, public migration or network used.`);
+  } finally {
+    await pg.close();
+    if (dirname(resolve(temp)) === resolve(tmpdir()) && temp.includes('socialpro-demo-blob-test-')) await rm(temp, { recursive: true, force: true });
+  }
+}
+main().catch((error: unknown) => { console.error(error instanceof assert.AssertionError ? `Demo blob assertion: ${error.message}` : 'Demo Blob QA failed safely.'); process.exitCode = 1; });

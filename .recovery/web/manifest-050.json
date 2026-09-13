@@ -1,0 +1,242 @@
+[
+  {
+    "path": "src/features/kekopilot-panel/DealDetail.tsx",
+    "sha256": "4308e49d08d4420eb1da2174d87cfc6736299b54e2ec7ce89fff645a65264827",
+    "bytes": 3981,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/kekopilot-panel/DealsPipeline.tsx",
+    "sha256": "899f985f9bfa4f3f697247d62c9a660fcbc5902d4e9328fcf7c721bf212d4f2c",
+    "bytes": 3923,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/kekopilot-panel/KekoPilotPanel.tsx",
+    "sha256": "13650ad88a086734c6384c7f9cfca05f6ef7c9bebd6bd9674ecc435a4aafb810",
+    "bytes": 6019,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/kekopilot-panel/PanelSidebar.tsx",
+    "sha256": "20662fe7c1927b2483f4b58baabce7e138e22b0457c4b94f0da50a7a4010fad5",
+    "bytes": 4911,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/kekopilot-panel/branding.ts",
+    "sha256": "1bad8a6101fb2fcb68a80a61b40489a6c8b1bf161ecc92f14bdfce0b5600f294",
+    "bytes": 1952,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/kekopilot-panel/data.ts",
+    "sha256": "e2c171b7c2b815fc5939bed91b8c4c311aee36877d30f1651c87db1fce871803",
+    "bytes": 5937,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/kekopilot-panel/demo-data.ts",
+    "sha256": "38300d0ae43f771c829c166753d5b755f98ee3bdc05a65b0b1643c65b25cbe2f",
+    "bytes": 7811,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/kekopilot-panel/metadata.ts",
+    "sha256": "e863382ccff45cb76e02b0ca650942fe8dede9b15e7500d6e813098218a9110a",
+    "bytes": 1539,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/kekopilot-panel/panel.module.css",
+    "sha256": "fe2f1b9922573a7ff5522afd112687350b0d3ee663f312711e046765328ee41b",
+    "bytes": 15754,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/kekopilot-panel/product.module.css",
+    "sha256": "059f47453ec41031519c98683f7676919e0e619b479a07c027de4481bcc47e5d",
+    "bytes": 10720,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/libro-mayor/__fixtures__/load-sample.ts",
+    "sha256": "110fd11647d0b2c9f7236a084dee8df557332642acc4cec27fb5a992c0191efb",
+    "bytes": 853,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/libro-mayor/__fixtures__/sample-ledger.json",
+    "sha256": "0d4015126eff7e9862e084b9bf0b653e044fdfe788f41dd6bcddc0668af60224",
+    "bytes": 7331,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/libro-mayor/components/AccountsTable.tsx",
+    "sha256": "7a0b47828efb9525fd17e51d0284bc6f9d94f1196b9cba24702999928a7de5e5",
+    "bytes": 7019,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/libro-mayor/components/LedgerAlerts.tsx",
+    "sha256": "52a4972c91d29cbfe7488a220d77d61b579714ebe28c2390a2a6974be4796c28",
+    "bytes": 2744,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/libro-mayor/components/LedgerBanner.tsx",
+    "sha256": "8518fe7784248f8ecb3b57ef8147e173f63884609c725e8daa2c596828f6cdd4",
+    "bytes": 1752,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/libro-mayor/components/LedgerSummary.tsx",
+    "sha256": "61860cc9393eb06d4ebb554d9846b8fec1593c7e69fbc70d652c510e57c8032e",
+    "bytes": 3620,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/libro-mayor/components/MovementsTable.tsx",
+    "sha256": "a7f22d1025ec896b93074a0c4ad7202fa4ba2ae25a051c3253651c982143cb6a",
+    "bytes": 11520,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/libro-mayor/mapping/account-map.ts",
+    "sha256": "30f0dda77b9db265163a10ab8e90ce2458cff33b542baa46e4252fc2e6ef292b",
+    "bytes": 7259,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/libro-mayor/mapping/resolve-category.ts",
+    "sha256": "c5997db8a417ee6ee2c7b1547ea2c0dee07a55cce39574772e44e88d62dd8462",
+    "bytes": 1131,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/libro-mayor/normalizer/aggregate.ts",
+    "sha256": "fb1f58500ee1ae50922d089b1b2ed3daaeaee98bf21243660a8cacd9608ae48a",
+    "bytes": 976,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/libro-mayor/normalizer/alerts.ts",
+    "sha256": "d4ac41c8029eff84ad58d8d216dbb1732135ab05ef216908543a0e866c927ea5",
+    "bytes": 4746,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/libro-mayor/normalizer/kpis.ts",
+    "sha256": "bf5fd5bd0dd612b2c3a5ea0e496fc7afdc7e7e777b00df1bcc3fca06852c0098",
+    "bytes": 3255,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/libro-mayor/parser/parse-amount.ts",
+    "sha256": "361b0b55d2d5198fbfb014dcc18e221a59d1648143426d111385fb27c4451f3c",
+    "bytes": 2968,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/libro-mayor/parser/types.ts",
+    "sha256": "fba1cc26150c60db22a1a02fcae13a58b3a073b16dcf7e3e6a0068427281f81a",
+    "bytes": 1614,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/libro-mayor/parser/xlsx-parser.ts",
+    "sha256": "56fb6733cdae404c47ef3a899c8fb9e5cd3e4b1e708d0ae2e74041eff1954a39",
+    "bytes": 8035,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/live/components/LiveCard.tsx",
+    "sha256": "d2fdd710ca0b943866d9a6315f271445415250b343171c557fe4364136096095",
+    "bytes": 1909,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/live/components/LivePlayer.tsx",
+    "sha256": "5b672baa69287f2b20df199cd3211467e50025d9d06788ca8ddb7621e05ad96e",
+    "bytes": 2973,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/live/components/LiveSection.tsx",
+    "sha256": "f5332ecda7fb61c19a235f11b0262e1d49e6a924819e6f6a1350b24dd68a0365",
+    "bytes": 12276,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/marketing-site/components/AboutCard.tsx",
+    "sha256": "85b3b97064ec1cbe8c77a8f72cc2a8ce8966f3d45e3056bee38f1f947e590801",
+    "bytes": 1087,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/marketing-site/components/AboutSection.tsx",
+    "sha256": "ec2c14cb49d5393cc3c0f69f97860fea0d8d09d496da55b32552ce827bd2f3e0",
+    "bytes": 6227,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/marketing-site/components/AgencyTikTokPlayer.tsx",
+    "sha256": "2e21b993aa53361fb2a9a7e292769a33d629cb99546a2693621c2b50332a7b9e",
+    "bytes": 2744,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/marketing-site/components/AgencyVideoShowcase.tsx",
+    "sha256": "4694b15d9e285dc642337bc7b545b6e41fbc489d55496322a6a2bb63c0bbbeb6",
+    "bytes": 4496,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/marketing-site/components/AgencyVideos.tsx",
+    "sha256": "f44e58eb1c386178ae9328e7cd474f7c9d36f8987b45261897d783d092cd865b",
+    "bytes": 231,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/marketing-site/components/BrandsCarousel.tsx",
+    "sha256": "56de85370f92e293afceefd64663ee4377753f38454495faf6db94648ab0b8dc",
+    "bytes": 4724,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/marketing-site/components/CasesSection.tsx",
+    "sha256": "c43ab98693f24451f7d6d94db3232479c27ffd01561e17dc751b39aa3d84bac5",
+    "bytes": 1593,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/marketing-site/components/CollabsSection.tsx",
+    "sha256": "faeeba22a33179de74c57faf1a8be3fe15411249fd567c558eae5eab47f46f26",
+    "bytes": 4114,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/marketing-site/components/CtaSection.tsx",
+    "sha256": "674eaa2ceaf5f240e855cc36079c785b652609db9ab3af369537f4f6691b2103",
+    "bytes": 3784,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/marketing-site/components/FaqSection.tsx",
+    "sha256": "9decac8163ff7b25619dd3dd2ea43eb6beb989c809ffcbf6718cb07b58b8f4eb",
+    "bytes": 5149,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/marketing-site/components/Hero.tsx",
+    "sha256": "a554d85c0a9136e46387ae37d2e3fa4c65316bc0960cd6ef239643b38a60b5f7",
+    "bytes": 7578,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/marketing-site/components/HeroBackground.tsx",
+    "sha256": "335bf58710b052c8890f8e02b2946266fd68b4c1887b660677a9b826849ab599",
+    "bytes": 5290,
+    "storage": "git-base-crlf"
+  }
+]

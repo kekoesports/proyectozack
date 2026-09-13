@@ -1,0 +1,38 @@
+'use client';
+
+import { useState, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { ArrowUpRight, FileJson, Link2, LoaderCircle } from 'lucide-react';
+import { ClipImport } from '@/lib/schemas/studio-clips';
+import { importClipDemo, importClipVod } from '@/app/studio/clips/actions';
+import { useStudioWorkspace } from './StudioWorkspaceContext';
+
+export function StudioClipImport({ demo, enabled }: { demo: boolean; enabled: boolean }) {
+  const workspace = useStudioWorkspace(), router = useRouter();
+  const [pending, startTransition] = useTransition(), [message, setMessage] = useState('');
+  const { register, handleSubmit, formState: { errors } } = useForm<z.input<typeof ClipImport>, unknown, z.output<typeof ClipImport>>({ resolver: zodResolver(ClipImport), defaultValues: { title: 'Mi directo', duration: 3600 } });
+  function finish(result: { ok: boolean; id?: string; error?: string }) {
+    if (result.ok && result.id) { setMessage('Fuente guardada.'); router.push(`/studio/${demo ? 'demos' : 'clips'}?id=${result.id}`); router.refresh(); }
+    else setMessage(result.error ?? 'No se pudo guardar.');
+  }
+  return <section className="clip-import studio-panel" aria-labelledby="clip-import-title">
+    <div className="clip-section-head"><span className="clip-step">01</span><div><p className="studio-eyebrow">TU PUNTO DE PARTIDA</p><h2 id="clip-import-title">{demo ? 'Trae tu análisis de partida.' : 'Un directo. Muchas posibilidades.'}</h2></div></div>
+    {demo ? <form action={(form) => startTransition(async () => { try { finish(await importClipDemo(form, workspace)); } catch { setMessage('La conexión falló. Puedes reintentar sin duplicar el análisis.'); } })}>
+      <label className="clip-dropzone"><FileJson size={32} /><strong>Plan de FragForge · .json</strong><span>Versión 1.1 · hasta 500 KB · sin subir la demo completa</span><input aria-label="Análisis JSON de FragForge" type="file" name="file" accept=".json,application/json" required disabled={!enabled || pending} /></label>
+      <label className="clip-consent"><input type="checkbox" name="rightsConfirmed" value="true" required disabled={!enabled || pending} />Tengo permiso para usar esta partida y el material del jugador.</label>
+      <button className="studio-btn" disabled={!enabled || pending}>{pending ? <LoaderCircle className="clip-spinner" size={16} /> : <ArrowUpRight size={16} />}Importar momentos</button>
+      <p className="clip-note">Esta vía importa un análisis ya generado en FragForge. La subida de .dem requiere activar el worker CPU; la captura de vídeo con CS2/HLAE sigue siendo un paso independiente. No reconstruimos tu partida con IA.</p>
+    </form> : <form method="post" onSubmit={(event) => { void handleSubmit((input) => startTransition(async () => { try { finish(await importClipVod(input, workspace)); } catch { setMessage('La conexión falló. Vuelve a intentarlo.'); } }))(event); }}>
+      <label>Enlace de tu VOD<div className="clip-url"><Link2 size={18} /><input {...register('url')} placeholder="https://www.twitch.tv/videos/… o kick.com/…" disabled={!enabled || pending} /></div></label>
+      <div className="clip-form-pair"><label>Nombre de referencia<input {...register('title')} maxLength={160} disabled={!enabled || pending} /></label><label>Duración en segundos<input type="number" {...register('duration')} min={15} max={43200} disabled={!enabled || pending} /></label></div>
+      <p className="clip-note">En Twitch obtenemos título y duración de la API. En Kick utilizamos estos campos como datos declarados.</p>
+      <label className="clip-consent"><input type="checkbox" {...register('rightsConfirmed')} disabled={!enabled || pending} />Soy el titular o tengo autorización para utilizar este contenido.</label>
+      <button className="studio-btn" disabled={!enabled || pending}>{pending ? <LoaderCircle className="clip-spinner" size={16} /> : <ArrowUpRight size={16} />}Añadir fuente</button>
+      {Object.values(errors).map((error, i) => <p className="clip-error" key={i}>{error.message}</p>)}
+    </form>}
+    <p className="clip-feedback" role="status">{message}</p>
+  </section>;
+}

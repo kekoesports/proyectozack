@@ -1,0 +1,23 @@
+import { sql } from 'drizzle-orm';
+import { pgTable, uuid, integer, text, jsonb, timestamp, index, uniqueIndex, check } from 'drizzle-orm/pg-core';
+import { talents } from './talents';
+import { user } from './auth';
+
+/** An immutable, provenance-bearing analysis. No raw chat, tokens, local paths or demo bytes. */
+export const studioClipSources = pgTable('studio_clip_sources', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  talentId: integer('talent_id').notNull().references(() => talents.id, { onDelete: 'restrict' }),
+  sourceKey: text('source_key').notNull(),
+  kind: text('kind').notNull(),
+  document: jsonb('document').notNull(),
+  decisions: jsonb('decisions').notNull().default({}),
+  revision: integer('revision').notNull().default(0),
+  rightsAcceptedBy: text('rights_accepted_by').notNull().references(() => user.id, { onDelete: 'restrict' }),
+  rightsAcceptedAt: timestamp('rights_accepted_at', { withTimezone: true }).notNull().defaultNow(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [
+  uniqueIndex('studio_clip_source_talent_key_uq').on(t.talentId, t.sourceKey),
+  index('studio_clip_source_talent_created_idx').on(t.talentId, t.createdAt),
+  check('studio_clip_source_kind_ck', sql`${t.kind} in ('twitch','kick','cs2')`),
+  check('studio_clip_source_revision_ck', sql`${t.revision} >= 0`),
+]);

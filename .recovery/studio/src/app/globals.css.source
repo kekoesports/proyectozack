@@ -1,0 +1,386 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@layer base {
+  button, [role="button"], select { cursor: pointer; }
+
+  /* Skip navigation — visually hidden until focused (WCAG 2.4.1) */
+  .skip-nav {
+    position: absolute;
+    top: -100%;
+    left: 0.5rem;
+    z-index: 9999;
+    padding: 0.5rem 1rem;
+    border-radius: 0 0 0.5rem 0.5rem;
+    background: var(--color-sp-orange);
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.875rem;
+    text-decoration: none;
+    transition: top 0.1s;
+  }
+  .skip-nav:focus {
+    top: 0;
+  }
+}
+
+/* ── SocialPro brand tokens ──────────────────────────────────────────────── */
+@theme {
+  /* Brand palette */
+  --color-sp-orange: #f5632a;
+  --color-sp-pink: #e03070;
+  --color-sp-dpink: #c42880;
+  --color-sp-purple: #8b3aad;
+  --color-sp-blue: #5b9bd5;
+  --color-sp-dark: #1a1a1a;
+  --color-sp-black: #0e0e0e;
+  --color-sp-muted: #6b6864;
+  --color-sp-muted2: #a8a39d;
+  --color-sp-border: #e2ddd8;
+  --color-sp-off: #f5f4f1;
+  --color-sp-bg2: #eceae6;
+
+  /* Brand gradient */
+  --background-image-sp-grad: linear-gradient(135deg, #f5632a 0%, #e03070 35%, #c42880 62%, #8b3aad 100%);
+
+  /* Admin — contenido */
+  --color-sp-admin-bg: #eeeef5;
+  --color-sp-admin-card: #ffffff;
+  --color-sp-admin-border: #e2e2ec;
+  --color-sp-admin-text: #16161f;
+  --color-sp-admin-muted: #72728a;
+  --color-sp-admin-accent: #f5632a;
+  --color-sp-admin-hover: #f5f5fa;
+
+  /* Admin — sidebar navy */
+  --color-sp-admin-sidebar: #1e2235;
+  --color-sp-admin-sidebar-text: #c4c4d8;
+  --color-sp-admin-sidebar-muted: #565670;
+  --color-sp-admin-sidebar-border: #272b42;
+  --color-sp-admin-sidebar-hover: #252940;
+  --color-sp-admin-sidebar-active: #2e3350;
+
+  /* Semantic state tokens */
+  --color-sp-success: #16a34a;
+  --color-sp-success-bg: rgba(22, 163, 74, 0.14);
+  --color-sp-warning: #d97706;
+  --color-sp-warning-bg: rgba(217, 119, 6, 0.14);
+  --color-sp-danger: #dc2626;
+  --color-sp-danger-bg: rgba(220, 38, 38, 0.14);
+  --color-sp-neutral: #52525b;
+  --color-sp-neutral-bg: rgba(82, 82, 91, 0.10);
+  --color-sp-info: #2563eb;
+  --color-sp-info-bg: rgba(37, 99, 235, 0.12);
+
+  /* Brand fonts */
+  --font-display: "Barlow Condensed", sans-serif;
+  --font-body: Inter, sans-serif;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-geist-mono);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+:root {
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.809 0.105 251.813);
+  --chart-2: oklch(0.623 0.214 259.815);
+  --chart-3: oklch(0.546 0.245 262.881);
+  --chart-4: oklch(0.488 0.243 264.376);
+  --chart-5: oklch(0.424 0.199 265.638);
+  --radius: 0.625rem;
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.809 0.105 251.813);
+  --chart-2: oklch(0.623 0.214 259.815);
+  --chart-3: oklch(0.546 0.245 262.881);
+  --chart-4: oklch(0.488 0.243 264.376);
+  --chart-5: oklch(0.424 0.199 265.638);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
+}
+
+/* ── Admin dark mode token overrides ─────────────────────────────── */
+html.dark {
+  --color-sp-admin-bg:     #111524;
+  --color-sp-admin-card:   #1a1e32;
+  --color-sp-admin-border: #272b42;
+  --color-sp-admin-text:   #ddddf0;
+  --color-sp-admin-muted:  #8888a0;
+  --color-sp-admin-hover:  #252940;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  /* SocialPro: dark base prevents white flash on overscroll / between sections */
+  html {
+    @apply font-sans;
+    background-color: var(--color-sp-black);
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply text-foreground;
+    background-color: var(--color-sp-black);
+    font-family: var(--font-body);
+    /* Avoid bouncy white area on iOS / trackpads exposing the html bg */
+    overscroll-behavior-y: none;
+  }
+}
+
+/*
+ * Motion safety net.
+ *
+ * Components using `initial="hidden"` / `initial={{ opacity: 0 }}` serialize
+ * `style="opacity: 0"` into the SSR HTML. A JS fail-safe (useVisibilityFailSafe)
+ * already covers the case where motion hydrates late or IntersectionObserver
+ * never fires. This CSS rule covers the worst case: motion chunk fails to load
+ * at all (CSP block, ad-blocker, network drop). After 3s the keyframe forces
+ * opacity/transform to their final state. CSS animation styles override inline
+ * styles, but WAAPI (motion's runtime) overrides CSS animation, so normal
+ * motion playback wins during the first 3s and this is invisible.
+ *
+ * Apply to any wrapper that sets opacity:0 via `initial`.
+ */
+@keyframes motion-fallback-reveal {
+  to { opacity: 1; transform: none; }
+}
+[data-motion-fallback] {
+  animation: motion-fallback-reveal 1ms linear 3s forwards;
+}
+
+/* ── Marquee animation ───────────────────────────────────────────────────── */
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee 20s linear infinite;
+  will-change: transform;
+  contain: layout style;
+}
+
+.marquee-track--slow {
+  display: flex;
+  width: max-content;
+  animation: marquee 40s linear infinite;
+  will-change: transform;
+  contain: layout style;
+}
+
+.marquee-track:hover,
+.marquee-track--slow:hover {
+  animation-play-state: paused;
+}
+
+/* ── Hero aura animations (CSS-driven, no JS rAF) ────────────────────────── */
+@keyframes hero-aura-pink {
+  0%, 100% { transform: scale(1);   opacity: 0.15; }
+  50%       { transform: scale(1.1); opacity: 0.25; }
+}
+@keyframes hero-aura-orange {
+  0%, 100% { transform: scale(1.1); opacity: 0.1; }
+  50%       { transform: scale(1);   opacity: 0.2; }
+}
+
+.hero-aura-pink {
+  animation: hero-aura-pink 10s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+.hero-aura-orange {
+  animation: hero-aura-orange 15s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+/* Aura radial backgrounds (extracted from inline styles) */
+.hero-aura-pink-bg  { background: radial-gradient(circle, #e03070 0%, transparent 60%); }
+.hero-aura-orange-bg { background: radial-gradient(circle, #f5632a 0%, transparent 70%); }
+
+/* Hero logo float — CSS-driven, no JS rAF */
+@keyframes hero-logo-float {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-10px); }
+}
+.hero-logo-float { animation: hero-logo-float 4s ease-in-out infinite; }
+
+/* Hero headline gradient (90deg + drop-shadow — differs from .gradient-text) */
+.hero-headline-gradient {
+  background: linear-gradient(90deg, #f5632a 0%, #e03070 50%, #8b3aad 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 20px rgba(245,99,42,0.2));
+}
+
+/* ── Gradient text utility ───────────────────────────────────────────────── */
+.gradient-text {
+  background: var(--background-image-sp-grad);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+/* ── Modal backdrop ──────────────────────────────────────────────────────── */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(14, 14, 14, 0.85);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+/* ── Status badge colors ─────────────────────────────────────────────────── */
+.badge-active {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.badge-available {
+  background: rgba(245, 99, 42, 0.15);
+  color: #f5632a;
+  border: 1px solid rgba(245, 99, 42, 0.3);
+}
+
+.badge-inactive {
+  background: rgba(100, 116, 139, 0.15);
+  color: #94a3b8;
+  border: 1px solid rgba(100, 116, 139, 0.3);
+}
+
+/* ── Admin sidebar hero ──────────────────────────────────────────────────── */
+
+@keyframes sp-admin-glow-breathe {
+  0%, 100% { opacity: 0.18; }
+  50%       { opacity: 0.28; }
+}
+
+.sp-admin-glow-breathe {
+  animation: sp-admin-glow-breathe 6s ease-in-out infinite;
+}
+
+.sp-admin-hero-bg {
+  background: linear-gradient(135deg, #1a1a2e 0%, #2d1b4e 100%);
+}
+
+/* ── Reduced motion — suavizar animaciones de landing ───────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track {
+    animation-duration: 80s;   /* muy lento en vez de parado */
+  }
+  .marquee-track--slow {
+    animation-duration: 120s;
+  }
+  .hero-aura-pink,
+  .hero-aura-orange {
+    animation: none;
+  }
+  .hero-logo-float,
+  .sp-admin-hero-bg,
+  .sp-admin-hero-blob-a,
+  .sp-admin-hero-blob-b {
+    animation: none;
+  }
+}

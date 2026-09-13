@@ -1,0 +1,242 @@
+[
+  {
+    "path": "src/features/admin/targets/components/TargetsEmptyState.tsx",
+    "sha256": "a6e56d5d3f28b1409aacfeab308cf2645a18291f3d2b6864c6b132a6b6492e19",
+    "bytes": 3564,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/targets/components/TargetsSpreadsheet.parts.tsx",
+    "sha256": "685f4134e7830dff46f79815fb490cdab88d4bdfb08751dd54e9b8e2397eccd1",
+    "bytes": 16681,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/targets/components/TargetsSpreadsheet.row.tsx",
+    "sha256": "9784fdf2f624ca5bd0b4a74734af0d3d1c11fbb37e6b203e97f81d32fe341ab2",
+    "bytes": 15910,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/targets/components/TargetsSpreadsheet.tsx",
+    "sha256": "d31c571b000c58d2bdf991c38e69d87ee01685bf136fda7226ca22afe4cf4e8c",
+    "bytes": 15854,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/targets/components/TargetsWorkspace.tsx",
+    "sha256": "ac59344b35508a8a63e16adb7843e5919b5b0dc98e5c67f824bc15ffb4ba2ce7",
+    "bytes": 2031,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/targets/components/ThSortable.tsx",
+    "sha256": "a8900e7d8447d04a59542c560bb2e5bc1d07c65a1464ccfd096548e5bb3dd833",
+    "bytes": 1437,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/targets/components/TwitchTargetDiscovery.tsx",
+    "sha256": "fb80e97a0b7d4fa5092ed3e1c4f20f872a72b16e0fbc252aafbcbb1e132fe275",
+    "bytes": 6912,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/targets/components/YouTubeTargetDiscovery.tsx",
+    "sha256": "ec2bad506f673557f79e02f0f8552aa52e49e09a89cb3e4e920976c8d1f408b8",
+    "bytes": 13016,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/targets/components/export-csv.ts",
+    "sha256": "b7f833f014b001ce88fa35bcb92604095bcfef2824a244bcac94e46895a0e50a",
+    "bytes": 1147,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/targets/components/target-platform-filter.ts",
+    "sha256": "61b3ea4a3f45fe4f92ae3a85903981ea1943f94694e87f6a49500d96a9298fe9",
+    "bytes": 867,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/targets/components/targets-constants.ts",
+    "sha256": "d10439b5e5a49232973667d43ede8e72465ca2691d0b537cf157549b123a84de",
+    "bytes": 2325,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/tasks/components/EventModal.tsx",
+    "sha256": "5bec395a2ad80745009e46bc9f6cc005317b63604425eb7828cce468cc007366",
+    "bytes": 5986,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/tasks/components/PriorityBadge.tsx",
+    "sha256": "c80bdc1c528beea88986b30af1584b2ada3621c7a86ee7d1b44931101c6b0b1a",
+    "bytes": 880,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/tasks/components/RecurrenceBadge.tsx",
+    "sha256": "7f609397345143dc4374322d018e016328cbdb15d8c2854fbb0fa13c2369ac06",
+    "bytes": 797,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/tasks/components/RelatedSelector.tsx",
+    "sha256": "7d9393f2b22c82e4e251be284925d46302c4513ad4ecc104219e1cef752a2c7c",
+    "bytes": 4305,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/tasks/components/RolledOverBanner.tsx",
+    "sha256": "9bac324584af2ecd7950c865dc24c088b9558fd0fc1b040d0cbba05d5222be49",
+    "bytes": 5396,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/tasks/components/TaskCalendar.tsx",
+    "sha256": "7798bceb00cf12c53659599b8b3a67b8e994693376515aa5e6862130dbe9ab4d",
+    "bytes": 20360,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/tasks/components/TaskCardActions.tsx",
+    "sha256": "01eda18ba377bb3b7833a97449ae607f6a6cbfdc977a67be822939279546306e",
+    "bytes": 2580,
+    "storage": "git-base"
+  },
+  {
+    "path": "src/features/admin/tasks/components/TaskKanban.tsx",
+    "sha256": "43400ed5ed9a30a4006eb65894d189e51762eddbaba028cdd08125bef43a52d8",
+    "bytes": 13452,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/features/admin/tasks/components/TaskList.parts.tsx",
+    "sha256": "940741df23e9ba4661fd8da3f76f0c6af85e04b35ca70df0c9c7ebf5d2348314",
+    "bytes": 21639,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/tasks/components/TaskList.tsx",
+    "sha256": "8d6c485c54444992c7a15926984cd6ec647d28596acb98654bf91dfd3a116e85",
+    "bytes": 13143,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/tasks/components/TaskModal.parts.tsx",
+    "sha256": "a425ee6bda35897e7fd1ec13721480106875c9c1500ce8e1d5efafc75ce939a1",
+    "bytes": 1109,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/tasks/components/TaskModal.tsx",
+    "sha256": "f038b193f515c2e229d51e5c87de02c0832c76de31d8ced4503a22035d1fb48b",
+    "bytes": 17483,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/tasks/components/TaskSanitationClient.tsx",
+    "sha256": "bdd8859ff5a2450d4c2f180438823cf78eaa8469f49d41eaef5d82bc3b6813a2",
+    "bytes": 4927,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/tasks/components/TaskStatusBadge.tsx",
+    "sha256": "aafb6170d0f92273a3c0b66459497c6e594564ecb9d5df4038d4b46ce309345e",
+    "bytes": 1090,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/tasks/components/TaskTemplatesManager.tsx",
+    "sha256": "1465dcd6f88348542532e27c178e5e013b753fb6a5fcc16858fa18aa3a456f48",
+    "bytes": 9908,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/tasks/components/TaskTemplatesPanel.tsx",
+    "sha256": "e5cba74ba09aa39c21742d7f18e22f54569bdeefb9fdc1eecd831b8fc7949292",
+    "bytes": 15816,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/tasks/components/TaskWorkspace.tsx",
+    "sha256": "8e2115dce762993984cd3c5fb90da7601307e0a59f9d621d9eaa582e761098f4",
+    "bytes": 9181,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/features/admin/trackers/components/BrandSheetSourceDetailClient.tsx",
+    "sha256": "9a49cdbdda5a0608c4ec30ab9ec921327941493dc13136670573547a6770b073",
+    "bytes": 11507,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/trackers/components/BrandSheetSourcesClient.tsx",
+    "sha256": "283d3872a0513bee0ca9078a1cf13b6aa0998f8e719d4a3f97c109a6cd925778",
+    "bytes": 8588,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/trackers/components/CreateTrackerForm.tsx",
+    "sha256": "82f20a7664778488137e91ab30ed4ae2098401423df208724f354d042a302aac",
+    "bytes": 9937,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/trackers/components/ImportLinksModal.tsx",
+    "sha256": "8a620d29adc127180ce82421f17644ceb9657c36be828bce52ca0b3fffb44f76",
+    "bytes": 11937,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/trackers/components/SheetDetectionPreview.tsx",
+    "sha256": "1c7f2131406ff377cb81e340cf38b940d5fa3c8e7399a1c8053f357726d0537c",
+    "bytes": 7209,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/trackers/components/SubtypeBreakdown.tsx",
+    "sha256": "0ecfdab4c4a1c1272d8b2bec1a9366dab82d9e2dceaf6c5e3e4f2fd2fb570cb4",
+    "bytes": 2071,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/trackers/components/TrackerDetailClient.tsx",
+    "sha256": "4590d56d1c32287c8e2bec7b6fc93acf00730e6097775ccd4f8469612a79cb99",
+    "bytes": 16663,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/trackers/components/TrackerItemsTable.tsx",
+    "sha256": "c8de82ddead6be2c9d0c0fa2435be30f1dfc11f46426b19b78f44c80a7f525e9",
+    "bytes": 6601,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/trackers/components/TrackerProgressBar.tsx",
+    "sha256": "739c2baeb6d709f9e2bf8a351e9168a7c527f34ef95ea9dd620e01729bcabfba",
+    "bytes": 1016,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/trackers/components/TrackerReconciliationClient.tsx",
+    "sha256": "10214e3b42fe2a804cd4038ae2417948151f73bf61be677e8262f11d1fe85f71",
+    "bytes": 9545,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/trackers/components/TrackerStatusBadge.tsx",
+    "sha256": "7167de10ffe58829c5398c6f9af204986bfcaaf79f0e75572a635179f811ca01",
+    "bytes": 1026,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/trackers/components/TrackersListClient.tsx",
+    "sha256": "c030e28c42df4c50777adb6e8a15de1374bff06d1d8a49abd8ffba60edf2eafe",
+    "bytes": 10392,
+    "storage": "git-base-crlf"
+  }
+]

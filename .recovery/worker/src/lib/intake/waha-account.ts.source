@@ -1,0 +1,4 @@
+/** A named, isolated pilot run preserves earlier TEST conversation history. */
+export function wahaIntakeAccount(phone: string, run?: string): string {
+  return `waha:${phone}${run ? `:${run}` : ''}`;
+}

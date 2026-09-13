@@ -1,0 +1,83 @@
+import { get, put, list, del } from '@vercel/blob';
+import { DemoBlobListing, DemoBlobMeta, demoStorageScope } from '@/lib/schemas/studio-demo-storage';
+import { DEMO_PART_BYTES } from '@/lib/schemas/studio-demo';
+import { StudioId } from '@/lib/schemas/studio';
+import { demoHash, demoStorage, isCs2Demo, readDemoStream, type DemoStorage } from './demo-storage';
+
+// Only the SDK transport is injectable; callers cannot supply object paths or remote URLs.
+export type DemoBlobClient = { get: typeof get; put: typeof put; del: typeof del; list: (options: Parameters<typeof list>[0]) => ReturnType<typeof list> };
+const sdk: DemoBlobClient = { get, put, list, del };
+function prefix(id: string) {
+  if (!StudioId.safeParse(id).success) throw new Error('storage_error');
+  return `studio-demo-ingest/v1/${id}/`;
+}
+function key(id: string, index: number) {
+  if (!Number.isInteger(index) || index < 0 || index > 249) throw new Error('integrity');
+  return `${prefix(id)}part-${index}`;
+}
+
+/** Immutable private chunks shared by Vercel and a CPU worker. No public URLs or credentials leave the server. */
+export function demoBlobStorage(token: string, scratchRoot?: string, client: DemoBlobClient = sdk): DemoStorage {
+  const scope = demoStorageScope('blob', token); if (!scope) throw new Error('storage_error');
+  const workspace = () => {
+    if (!scratchRoot) throw new Error('storage_error');
+    return demoStorage(scratchRoot);
+  };
+  const options = (signal?: AbortSignal) => ({ token, abortSignal: signal ? AbortSignal.any([signal, AbortSignal.timeout(30_000)]) : AbortSignal.timeout(30_000) });
+  async function read(pathname: string, signal?: AbortSignal) {
+    const opts = options(signal);
+    const result = await client.get(pathname, { ...opts, access: 'private', useCache: false });
+    if (!result) return null;
+    if (result.statusCode !== 200) throw new Error('storage_error');
+    const meta = DemoBlobMeta.safeParse(result.blob);
+    if (!meta.success || meta.data.pathname !== pathname) {
+      await result.stream.cancel().catch(() => undefined); throw new Error('integrity');
+    }
+    const bytes = await readDemoStream(result.stream, DEMO_PART_BYTES, opts.abortSignal);
+    if (bytes.length !== meta.data.size) throw new Error('integrity');
+    return bytes;
+  }
+  async function inventory(id: string) {
+    const base = prefix(id);
+    const result = DemoBlobListing.safeParse(await client.list({ ...options(), prefix: base, limit: 251 }));
+    if (!result.success) throw new Error('storage_error');
+    const paths = result.data.blobs.map((blob) => blob.pathname);
+    const allowed = new Set(Array.from({ length: 250 }, (_, index) => key(id, index)));
+    if (new Set(paths).size !== paths.length || paths.some((path) => !allowed.has(path))) throw new Error('integrity');
+    return paths;
+  }
+  return {
+    backend: 'blob',
+    scope,
+    async put(id, index, bytes) {
+      const pathname = key(id, index);
+      if (!bytes.length || bytes.length > DEMO_PART_BYTES) throw new Error('integrity');
+      if (index === 0 && !isCs2Demo(bytes)) throw new Error('invalid_demo');
+      try {
+        const result = await client.put(pathname, Buffer.from(bytes), { ...options(), access: 'private', contentType: 'application/octet-stream',
+          addRandomSuffix: false, allowOverwrite: false, cacheControlMaxAge: 60 });
+        if (result.pathname !== pathname) throw new Error('integrity');
+      } catch {
+        // A lost response/rolled-back manifest may leave the same immutable object. Never overwrite it.
+        const existing = await read(pathname);
+        if (!existing || demoHash(existing) !== demoHash(bytes)) throw new Error('integrity');
+      }
+    },
+    async assemble(id, leaseToken, size, parts, signal) {
+      prefix(id);
+      return workspace().assembleFrom(id, leaseToken, size, parts, async (index) => {
+        const bytes = await read(key(id, index), signal);
+        if (!bytes) throw new Error('integrity');
+        return bytes;
+      }, signal);
+    },
+    async removeAssembly(id, leaseToken) { await workspace().removeAssembly(id, leaseToken); },
+    async purge(id) {
+      const paths = await inventory(id);
+      if (paths.length) await client.del(paths, options());
+      // Accepted deletion is not evidence of completed cleanup; retain quota until the prefix is empty.
+      if ((await inventory(id)).length) throw new Error('storage_error');
+      await workspace().purge(id);
+    },
+  };
+}

@@ -1,0 +1,41 @@
+import { createDemoWorkerRepository } from './demo-repository';
+import { demoStorage, type DemoStorage } from './demo-storage';
+import { parseDemo } from './demo-parser';
+import type { StudioDatabase } from './repository';
+
+export async function runDemoJob(database: StudioDatabase, root: string, binary: string, parser = parseDemo, configuredStorage?: DemoStorage) {
+  const storage = configuredStorage ?? demoStorage(root), jobs = createDemoWorkerRepository(database, storage.backend, storage.scope);
+  await jobs.expire();
+  for (const old of await jobs.purgeCandidates()) {
+    try { await storage.purge(old.id); await jobs.markPurged(old.id); }
+    catch { break; /* Retain quota and stop this maintenance pass on a provider error. */ }
+  }
+  // Acquire a lease only after maintenance, so slow remote cleanup cannot consume an analysis lease.
+  const row = await jobs.claim();
+  if (!row?.leaseToken) return false;
+  const controller = new AbortController();
+  let checking = false;
+  const watchdog = setInterval(() => {
+    if (checking) return;
+    checking = true;
+    void jobs.allowed(row).then((allowed) => { if (!allowed) controller.abort(); }).catch(() => controller.abort()).finally(() => { checking = false; });
+  }, 2000);
+  const timeout = setTimeout(() => controller.abort(), 10 * 60_000);
+  try {
+    if (!await jobs.allowed(row)) throw new Error('access_revoked');
+    const file = await storage.assemble(row.id, row.leaseToken, row.byteSize, row.parts, controller.signal);
+    if (controller.signal.aborted) throw new Error('access_revoked');
+    const report = await parser(binary, file.path, row.targetSteamId, file.checksum, controller.signal);
+    if (!await jobs.finish(row, report)) throw new Error('access_revoked');
+    try { await storage.purge(row.id); await jobs.markPurged(row.id); }
+    catch { /* Result stays ready. Cleanup remains pending and quota is not released. */ }
+  } catch (error) {
+    const code = error instanceof Error ? error.message : '';
+    const known = ['invalid_demo', 'parser_failed', 'parser_timeout', 'invalid_plan', 'integrity', 'access_revoked'];
+    await jobs.fail(row, known.includes(code) ? code : 'storage_error');
+  } finally {
+    clearInterval(watchdog); clearTimeout(timeout);
+    await storage.removeAssembly(row.id, row.leaseToken).catch(() => undefined);
+  }
+  return true;
+}

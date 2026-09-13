@@ -1,0 +1,117 @@
+import { createHash, randomUUID } from 'node:crypto';
+import { mkdir, lstat, realpath, readFile, writeFile, rename, open, rm, statfs } from 'node:fs/promises';
+import { basename, dirname, join, resolve, parse } from 'node:path';
+import { DEMO_PART_BYTES, DEMO_MAX_BYTES, demoPartSize, DemoParts, type DemoStorageBackend } from '@/lib/schemas/studio-demo';
+import { StudioId } from '@/lib/schemas/studio';
+
+export const demoHash = (bytes: Uint8Array) => createHash('sha256').update(bytes).digest('hex');
+export const isCs2Demo = (bytes: Uint8Array) => Buffer.from(bytes.subarray(0, 8)).equals(Buffer.from('PBDEMS2\0'));
+export type DemoStorage = Pick<ReturnType<typeof demoStorage>, 'put' | 'assemble' | 'removeAssembly' | 'purge'> & { backend: DemoStorageBackend; scope: string };
+
+/** Dedicated private directory only. Browser filenames/paths are never used on disk. */
+export function demoStorage(configuredRoot: string) {
+  const configured = resolve(configuredRoot);
+  if (configured === parse(configured).root || basename(configured) !== 'studio-demos') throw new Error('storage_error');
+  async function root() {
+    await mkdir(configured, { recursive: true, mode: 0o700 });
+    if ((await lstat(configured)).isSymbolicLink()) throw new Error('storage_error');
+    return realpath(configured);
+  }
+  async function directory(id: string, create = true) {
+    if (!StudioId.safeParse(id).success) throw new Error('storage_error');
+    const base = await root(), path = join(base, id);
+    if (create) await mkdir(path, { recursive: true, mode: 0o700 });
+    if ((await lstat(path)).isSymbolicLink()) throw new Error('storage_error');
+    const resolved = await realpath(path);
+    if (dirname(resolved) !== base) throw new Error('storage_error');
+    return resolved;
+  }
+  async function safeRead(file: string) {
+    const stat = await lstat(file);
+    if (!stat.isFile() || stat.isSymbolicLink() || stat.size > DEMO_PART_BYTES) throw new Error('integrity');
+    return readFile(file);
+  }
+  async function space(path: string, bytes: number) {
+    const fs = await statfs(path);
+    if (fs.bavail * fs.bsize < bytes + 256 * 1024 * 1024) throw new Error('storage_error');
+  }
+  async function assembleFrom(id: string, token: string, size: number, rawParts: unknown, readPart: (index: number) => Promise<Buffer>, signal?: AbortSignal) {
+    const parts = DemoParts.safeParse(rawParts);
+    if (!parts.success || !StudioId.safeParse(token).success || !Number.isInteger(size) || size < 16 || size > DEMO_MAX_BYTES) throw new Error('integrity');
+    const dir = await directory(id); await space(dir, size);
+    const path = join(dir, `source-${token}.dem`), hash = createHash('sha256');
+    const handle = await open(path, 'wx', 0o600);
+    try {
+      for (let i = 0; i < Math.ceil(size / DEMO_PART_BYTES); i++) {
+        signal?.throwIfAborted();
+        const bytes = await readPart(i);
+        signal?.throwIfAborted();
+        if (bytes.length !== demoPartSize(size, i) || demoHash(bytes) !== parts.data[String(i)] || (i === 0 && !isCs2Demo(bytes))) throw new Error('integrity');
+        hash.update(bytes); await handle.writeFile(bytes);
+      }
+      return { path, checksum: hash.digest('hex') };
+    } finally { await handle.close(); }
+  }
+  return {
+    backend: 'local' as const,
+    scope: 'local',
+    assembleFrom,
+    async put(id: string, index: number, bytes: Uint8Array) {
+      if (!Number.isInteger(index) || index < 0 || index > 249 || !bytes.length || bytes.length > DEMO_PART_BYTES) throw new Error('integrity');
+      if (index === 0 && !isCs2Demo(bytes)) throw new Error('invalid_demo');
+      const dir = await directory(id), file = join(dir, `part-${index}`);
+      try {
+        const old = await safeRead(file);
+        if (demoHash(old) !== demoHash(bytes)) throw new Error('integrity');
+        return;
+      } catch (error) {
+        if (!(error instanceof Error && 'code' in error && error.code === 'ENOENT')) throw error;
+      }
+      await space(dir, bytes.length);
+      const temporary = join(dir, `pending-${randomUUID()}`);
+      try { await writeFile(temporary, bytes, { flag: 'wx', mode: 0o600 }); await rename(temporary, file); }
+      finally { await rm(temporary, { force: true }); }
+    },
+    async assemble(id: string, token: string, size: number, rawParts: unknown, signal?: AbortSignal) {
+      const dir = await directory(id, false);
+      return assembleFrom(id, token, size, rawParts, (i) => safeRead(join(dir, `part-${i}`)), signal);
+    },
+    async removeAssembly(id: string, token: string) {
+      if (!StudioId.safeParse(token).success) throw new Error('storage_error');
+      await rm(join(await directory(id, false), `source-${token}.dem`), { force: true });
+    },
+    async purge(id: string) {
+      try {
+        const base = await root(), dir = await directory(id, false);
+        // Resolve and validate the exact UUID child before recursive removal. Never the storage root.
+        if (dirname(dir) !== base || basename(dir) !== id || dir === base) throw new Error('storage_error');
+        await rm(dir, { recursive: true, force: true });
+      } catch (error) {
+        if (!(error instanceof Error && 'code' in error && error.code === 'ENOENT')) throw error;
+      }
+    },
+  };
+}
+
+/** Actual streamed bytes, not Content-Length. A stalled upload cannot occupy a slot indefinitely. */
+export async function readDemoBody(request: Request, limit: number): Promise<Buffer> {
+  if (!request.body) throw new Error('invalid_body');
+  return readDemoStream(request.body, limit, request.signal);
+}
+export async function readDemoStream(stream: ReadableStream<Uint8Array>, limit: number, signal?: AbortSignal): Promise<Buffer> {
+  const reader = stream.getReader();
+  const chunks: Uint8Array[] = []; let total = 0;
+  const deadline = AbortSignal.any([AbortSignal.timeout(30_000), ...(signal ? [signal] : [])]);
+  const cancel = () => { void reader.cancel().catch(() => undefined); };
+  deadline.addEventListener('abort', cancel, { once: true });
+  try {
+    deadline.throwIfAborted();
+    while (true) {
+      const { done, value } = await reader.read(); deadline.throwIfAborted(); if (done) break;
+      total += value.length;
+      if (total > limit) { await reader.cancel(); throw new Error('body_limit'); }
+      chunks.push(value);
+    }
+    return Buffer.concat(chunks);
+  } finally { deadline.removeEventListener('abort', cancel); await reader.cancel().catch(() => undefined); reader.releaseLock(); }
+}

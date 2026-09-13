@@ -1,0 +1,242 @@
+[
+  {
+    "path": "src/features/admin/invoices/components/InvoicesManager.parts.tsx",
+    "sha256": "f8772b0b702977dca87dcb17b5c7e9a38fcde9fc2f2c20eb42a6b1c8850f7cae",
+    "bytes": 8950,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/invoices/components/InvoicesManager.tsx",
+    "sha256": "b2109e1d15992b8c963685446fdf542d3579f60975ee223eafb9e0f1fdb741f4",
+    "bytes": 10757,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/invoices/components/IssuedInvoiceForm.tsx",
+    "sha256": "ae6272abf4cb6cf9cce20dd2d5d1bb0ed4832986c13eaaf0dc9f5db1d2f5288a",
+    "bytes": 22976,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/invoices/components/IssuedInvoicesTab.tsx",
+    "sha256": "908458eb3080b4b62f2ba828f64a5ccc883055f608e806bba0d00950cf2a64bd",
+    "bytes": 17388,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/invoices/components/IssuersManagerTab.tsx",
+    "sha256": "111563cd63323951e659995017bff503aed305593dbcd5726405795a2760d872",
+    "bytes": 14894,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/invoices/components/RectifyInvoiceModal.tsx",
+    "sha256": "1d7c2364ae7f8a9a2603824cd96a26aa4b20a1a1e5243ad9d0cb0132833b4694",
+    "bytes": 9681,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/invoices/pages/IngresosCompoundPage.tsx",
+    "sha256": "4a851ad0325114992b85bdde2673ae0fa1f79636712729490ead5367764cb911",
+    "bytes": 11420,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/leads/components/LeadDetail.tsx",
+    "sha256": "61393085ec8898f47edacffdc83c07c94e8e475227130612d4a35f453cbe7b5e",
+    "bytes": 9092,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/features/admin/leads/components/LeadReplyComposer.tsx",
+    "sha256": "c4b60fa3501f34aab6ff989b78867877d7efdbccd12455422c2742da566dc4aa",
+    "bytes": 4930,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/features/admin/leads/components/LeadsTable.tsx",
+    "sha256": "1a74ad9f5c9438c397ba15eebbedbd68406e261086da38f7d98ef09aa3629adc",
+    "bytes": 10182,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/leads/components/leadMeta.ts",
+    "sha256": "bf1ac7255fc80fc4c7606751b487db7d0bbbfe156d6abfdf6385c367f1e3c5a6",
+    "bytes": 1444,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/newsAlerts/components/NewsAlertsView.tsx",
+    "sha256": "f87f31257b8a3eabd059b8116c8d8cab978b82e039ea79997dc607b4f6462257",
+    "bytes": 6676,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/newsAlerts/components/NewsAlertsWidget.tsx",
+    "sha256": "735530c2d0bfe9d62ff59facbad8fb136396f9b3f770b4383a8c2e0ab4955502",
+    "bytes": 2734,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/partnerLeads/components/PartnerLeadsTable.tsx",
+    "sha256": "86f804bf8cfed4918d59e05c3fdce23822ab26eb3f5ca39c5e0684f4bd96b478",
+    "bytes": 12496,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/pnl/components/AnnualExpenseBreakdown.tsx",
+    "sha256": "40f79a78a6e8deee97ca40d603be1bfdb77ac2eeac7a3ac0fdad0ff5d5f6ce3b",
+    "bytes": 12416,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/pnl/components/PnLBreakdownTable.tsx",
+    "sha256": "bed07d19f403b65b515de18fed5be64e43e136898ad91ea57d24b7bb178f89b9",
+    "bytes": 2559,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/pnl/components/PnLCategoryList.tsx",
+    "sha256": "1165e73527a8b171361907ca6b10b8295badf8aa0c83412be7940b8bbc68834d",
+    "bytes": 2123,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/pnl/components/PnLFilters.tsx",
+    "sha256": "d5eedadbe83d557208635aeee7053951a187fb5935aa5c906edc1bc69292dd33",
+    "bytes": 4744,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/pnl/components/PnLOverviewCards.tsx",
+    "sha256": "0db1be7a4cb7ccdd55e90a6e3952569d8f15aab6398713ae72838bcdc30a57ea",
+    "bytes": 2480,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/pressTargets/components/PressTargetsTable.tsx",
+    "sha256": "67e7a9b7eef3cf7253f8c5d49a2716434ab4ab06d49b2979aefdebc1ca308773",
+    "bytes": 10398,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/stats/components/RankingTable.tsx",
+    "sha256": "02cdf1693ecf97c3d024fbed30294f7b71159603de6940c8a85df452ba41e41f",
+    "bytes": 5661,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/stats/components/ShareLinkPanel.tsx",
+    "sha256": "f55845245cd0a5cad50b5116fd78282a58f4dcf9c1ab259573a44ef609aa5280",
+    "bytes": 3642,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/talents/components/AddTalentModal.tsx",
+    "sha256": "ad43e586b813c4fc09d144a1abac7d64301dc4fff039d390cc437eeecb344e40",
+    "bytes": 18635,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/talents/components/ArchiveTalentDialog.tsx",
+    "sha256": "15ccc610f7e127c96994d7633405ddad555d17baf23919c3d3a7cfc16d773b1b",
+    "bytes": 6669,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/talents/components/InfluencerCardsView.parts.tsx",
+    "sha256": "f1b67bffc6e397f7d700a1eec4acee36e037f548ec43c442750f90457ad1c539",
+    "bytes": 14274,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/talents/components/InfluencerCardsView.tsx",
+    "sha256": "169d200c30f269e018a18f281c217a1b74d9bb8f58ce2d6e07998a1817627039",
+    "bytes": 13438,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/talents/components/InfluencerImport.commit.tsx",
+    "sha256": "1c421ef552498edaaaf5a4d2f2324fcc0584a1f78861e5d773b97c420edfd667",
+    "bytes": 15163,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/talents/components/InfluencerImport.parts.tsx",
+    "sha256": "56920f50c8138f05360d6c835cf5888f42e81ce5fdabf690ef9754a21da80a89",
+    "bytes": 7210,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/talents/components/InfluencerImport.preview.tsx",
+    "sha256": "53e1a62f690a6b1a102deefbf45792e499f730f7dc7b495984166a41633e42ad",
+    "bytes": 5619,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/talents/components/InfluencerImport.tsx",
+    "sha256": "1b2ea80472233ac364d2073c3c5706aee313aa2d756beaf7c9a0a2abf658a224",
+    "bytes": 8254,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/talents/components/InfluencerImport.upload.tsx",
+    "sha256": "5ca987c01a8409eae46ec1aea04c5ec16e0671ea287f8ee83cf615737654fea6",
+    "bytes": 6828,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/talents/components/RosterSpreadsheet.parts.tsx",
+    "sha256": "91dbae6586fb96896b0163fbbd61d6a53f3f416fc4b54559c36d975fbbf90905",
+    "bytes": 3284,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/talents/components/RosterSpreadsheet.tsx",
+    "sha256": "c43ef15a71a84581228d4af5e73f5f3ce9566bf3d6c6ce4f9c49d07499f76643",
+    "bytes": 25559,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/talents/components/SortableCardGrid.tsx",
+    "sha256": "95eef548009c4818873e5176b097630b207dc0ce088093ad37ba9a891cdf16a5",
+    "bytes": 6747,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/talents/components/TalentBusinessForm.tsx",
+    "sha256": "be888ad78f5538adbfa2a307aa72c2d37ca768aa469da09cdf20a585bef06424",
+    "bytes": 7302,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/talents/components/TalentCampaignsTab.tsx",
+    "sha256": "4d6d7264b93cb770c06faed6d2a1359457c1acccb3c7c494003832f57ccc0f89",
+    "bytes": 6042,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/talents/components/TalentComplianceForm.tsx",
+    "sha256": "70b1ad8d779d1ce49716ed7dd37e93046868b8c01e2f50b7b187caff124b8dca",
+    "bytes": 10429,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/talents/components/TalentDataTools.tsx",
+    "sha256": "4bb6157d5571c3221aa47aaeeaa6dee92460a26cd018add3b4704c8f41bb804b",
+    "bytes": 3668,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/talents/components/TalentDetailTabs.tsx",
+    "sha256": "e32fc566ed0e66e1578930f84f81e55c46aa9889e28b0755c476f7033caeaec5",
+    "bytes": 30510,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/talents/components/TalentEconomiaTab.tsx",
+    "sha256": "f8b8deb5b529357765cfcaf66ade7322051cf1d77b7319f34351cb9197e06caf",
+    "bytes": 7165,
+    "storage": "git-base-crlf"
+  }
+]

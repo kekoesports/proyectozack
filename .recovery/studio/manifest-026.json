@@ -1,0 +1,242 @@
+[
+  {
+    "path": "src/app/admin/(dashboard)/giveaways/actions.ts",
+    "sha256": "757d5d6b76a5cc6dd51bc8bf20b90e8607ed43d038e2dd81bc8a16fe28d82010",
+    "bytes": 7297,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/giveaways/auditoria/AuditoriaFilters.tsx",
+    "sha256": "627f69731bb3f1da8aa33120396e8b0a7ddf41e2fa24f4cba2bb7ad8b86c6069",
+    "bytes": 6186,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/giveaways/auditoria/AuditoriaRow.tsx",
+    "sha256": "7be5f7b09610661c2605ea90872f22045440ee24b3ca157d4fb6baa9aac67158",
+    "bytes": 2970,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/giveaways/auditoria/page.tsx",
+    "sha256": "f1c5133a36bbb5588eeba89aacba8e8e33197c7716c9f0fbbfd0ce905660f9a5",
+    "bytes": 6354,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/giveaways/brand-actions.ts",
+    "sha256": "c651e66632b551aacfbda82a295a9d359f7a87f16fe10bfecbc41da006134835",
+    "bytes": 3459,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/giveaways/codes-actions.ts",
+    "sha256": "5fd630fdf170a515848d0b94d55332725bf2578e889d876e65a02952d5ecfc5e",
+    "bytes": 5714,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/giveaways/page.tsx",
+    "sha256": "062534c7a0d92c5cb65e8566aa4f66c67f5de80c351701cd3c6b36111d38adf6",
+    "bytes": 1094,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/giveaways/redemptions/actions.ts",
+    "sha256": "cd1c9eafc9e9653f524f9425677604ecfc92fcf32f39696f118620b13d415613",
+    "bytes": 2081,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/giveaways/redemptions/page.tsx",
+    "sha256": "e8beb92f14bd149cd37e4119b700f4ff138f2e0c58ae5896e1e6a01a88e57c18",
+    "bytes": 4387,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/giveaways/winners-actions.ts",
+    "sha256": "953594d586b371ef320d17569baf54c441ff40dc1eb6f7254b542d6626bfc08d",
+    "bytes": 2139,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/layout.tsx",
+    "sha256": "85ce45ff7e3dcc59d68ba9e98dc4bf50696a9af55c7dbce7dbae3cf9ab9670a5",
+    "bytes": 6589,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/leads/[id]/page.tsx",
+    "sha256": "65977bbb1a072b2eb6b4d5c411b51b2c4c3c5cad49a1532309e607e6e992c403",
+    "bytes": 1052,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/leads/actions.ts",
+    "sha256": "88f12a64767efb2f3ba42284d3b814bce948045e994cece981b937118b77d75d",
+    "bytes": 3596,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/leads/page.tsx",
+    "sha256": "d8d5baae5baa986e52b0272d4b58406dbac4dc791228d4fe6edb9e8add2f5a95",
+    "bytes": 1520,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/live/actions.ts",
+    "sha256": "bac0d56a9f8c030c8f480b072df97c8d7e30164388aab1db1209f67f482023a5",
+    "bytes": 2260,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/live/page.tsx",
+    "sha256": "498782bceaefc31e3806f0e1c4bfea378e17aac290f8f775471dae09191260c8",
+    "bytes": 9056,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/mi-semana/page.tsx",
+    "sha256": "3cda572b5009c7de1b7c2b019a9466a3dd32b3bb08cfdb16a1740f1ed3793f67",
+    "bytes": 4039,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/noticias/BlocksForm.tsx",
+    "sha256": "4b834f88ce3acf7a879503b9423fdc08897299ec9bd7191656a51c71ee92f350",
+    "bytes": 17752,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/noticias/EditorialCadencePanel.tsx",
+    "sha256": "41cc2aaf1b0f6f58a95784b6701e6ee2d26fb203a61765419320dd9291ca14f8",
+    "bytes": 3011,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/noticias/PostForm.tsx",
+    "sha256": "de5014317754584fa10ed586d54d15ee552862c91239ce2cfb4953f082df1098",
+    "bytes": 16949,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/noticias/SendNewsletterButton.tsx",
+    "sha256": "047a10ca966f77639afc991a12af07b80287023a22970e3d15bc1fa5b7ce5a45",
+    "bytes": 4285,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/noticias/[id]/edit/page.tsx",
+    "sha256": "50b5baa2183296ffaa4870631acc96a6785df31e8ba013d7c092fa545b8cb7f3",
+    "bytes": 2133,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/noticias/actions.ts",
+    "sha256": "ad66091905c6860ccad7bee2a4ca815a7db7adb3cc5666325137801dd9edda91",
+    "bytes": 7594,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/noticias/agenda/actions.ts",
+    "sha256": "a0399c5f763d475972e8f080d0881b63b870fe4d3ca951f3c8d8da8e1a9a4399",
+    "bytes": 1896,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/noticias/agenda/page.tsx",
+    "sha256": "75594da532d0d69f1abfb7439ffdbb5516a69153f2768e7e346f5d5573373744",
+    "bytes": 6713,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/noticias/imagenes/ImageCard.tsx",
+    "sha256": "70c40dd67f461e20526dcd6b4b1aef0f906e7814fa949e917851944427de5cfc",
+    "bytes": 4041,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/noticias/imagenes/UploadForm.tsx",
+    "sha256": "b447505dcdaccb5c187f45d473ac8a1dac1da295dbb62a3f3023528e8480b097",
+    "bytes": 4062,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/noticias/imagenes/actions.ts",
+    "sha256": "435c575164720760794426230d950063b73369dda14d54f69153275db2b96a99",
+    "bytes": 1644,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/noticias/imagenes/page.tsx",
+    "sha256": "c91d436580446ff02031ea83a65aed8769548fe9ae8341fc73dd1f1115e21336",
+    "bytes": 2525,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/noticias/new/page.tsx",
+    "sha256": "62c82bd40518cd1392df7ce9bf31ce6a22ac419d7e348ac9085943adb94e3724",
+    "bytes": 1502,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/noticias/page.tsx",
+    "sha256": "0eb43e6c01ad6aec3b02561150180b0dad90f54cae6ee265ba7f3636779981cc",
+    "bytes": 12241,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/noticias/partidos/MatchForm.tsx",
+    "sha256": "190eb58970ad5f9112bcef515b17029a88f9bb55ab195fce9022a45ab74c5e4a",
+    "bytes": 7524,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/noticias/partidos/[id]/edit/page.tsx",
+    "sha256": "6f150aba1c7d69ee093c0c392a9835ea0b62b11627a92c9be27f4ede7b403bd8",
+    "bytes": 1267,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/noticias/partidos/actions.ts",
+    "sha256": "ca0b00441cf1048c0cb97ee8663af19e1d6f254815005675f847f1c632e9199f",
+    "bytes": 4077,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/noticias/partidos/new/page.tsx",
+    "sha256": "4cf907ca8a0be62770cbc39aa16606cfee6ade31890cda011a793b5216931a0b",
+    "bytes": 868,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/noticias/partidos/page.tsx",
+    "sha256": "d78711beea68846028cc1cd86275a45116d1fc779a4266826350cac4d13bc52d",
+    "bytes": 7211,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/noticias/ranking/RankingTable.tsx",
+    "sha256": "6e76bbe89e0163bc1f00b455364c8180047699c576fb2b034edaf62bfabb6e1a",
+    "bytes": 5820,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/noticias/ranking/actions.ts",
+    "sha256": "5c375615108296f1b4a70f1cbb3ee9886988cea0cec913266f6493a815418320",
+    "bytes": 2346,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/noticias/ranking/page.tsx",
+    "sha256": "f03d03269a550b41d5b62bf21f12cfd5585ad68ee0a3ecac017bd566e2c94515",
+    "bytes": 3408,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/noticias/slots/page.tsx",
+    "sha256": "c73872a6574fedc115377b0fa354d11d4280f865ae7745562f5cf2b198c25ecc",
+    "bytes": 10444,
+    "storage": "git-base-crlf"
+  }
+]

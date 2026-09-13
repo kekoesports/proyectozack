@@ -1,0 +1,26 @@
+[
+  {
+    "path": "src/types/target.ts",
+    "sha256": "17a53d7a65d3c4841547ae7680dd658cf6677cbfde32ff0fbd63947fde14ea91",
+    "bytes": 157,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/worker/agent-worker.ts",
+    "sha256": "9e41db505905b898897d9fe73de465e80bad094256a6d5cc0db21d61d76d1cbb",
+    "bytes": 2300,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "tsconfig.jest.json",
+    "sha256": "3ae08fb84cb7371a82b31bbc6a538e0d074ed18d86f69635fc84e01861b78f6a",
+    "bytes": 232,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "tsconfig.json",
+    "sha256": "0c78464791b77b469d2d8a26ca17d9941d6aa4e848ae9948ae72af3c3dbf325c",
+    "bytes": 960,
+    "storage": "git-base-crlf"
+  }
+]

@@ -1,0 +1,43 @@
+import type { StudioBoard, StudioScene } from '@/lib/schemas/studio-production';
+import type { MotionResources } from './motion-collection-document';
+import { motionDesign } from './motion-catalog';
+import { motionDimensions } from './motion-dimensions';
+import { motionBrandStyles } from './motion-brand';
+import { advancedMotionStyles } from './motion-advanced-styles';
+import { advancedMotionTimeline } from './motion-advanced-timeline';
+import { validMotionTable } from '@/lib/schemas/studio-motion';
+
+const esc = (text: string) => text.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#39;');
+
+export function advancedMotionDocument(scene: StudioScene, board: Pick<StudioBoard, 'format' | 'palette'>, resources: MotionResources, preview: boolean) {
+  if (!scene.motion || !resources.logo) throw new Error('branded_motion_resources_required');
+  const design = motionDesign(scene.motion);
+  const variant = scene.motion.split('-')[0] ?? '';
+  const [width, height] = motionDimensions[board.format];
+  const dark = board.palette === 'dark';
+  const lines = scene.body.split('\n').map((line) => line.trim()).filter(Boolean);
+  const item = (line: string, marker: string) => `<div class="item"><b class="marker">${marker}</b><span>${esc(line)}</span></div>`;
+  const contents: Record<string, () => string> = {
+    steps: () => `<div class="items steps">${lines.map((line, i) => item(line, `0${i + 1}`)).join('')}</div>`,
+    compare: () => `<div class="items compare">${lines.map((line, i) => item(line, i === 0 ? 'A' : 'B')).join('')}</div>`,
+    checklist: () => `<div class="items checklist">${lines.map((line) => item(line, '<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M7 16l6 6L26 9"/></svg>')).join('')}</div>`,
+    quiz: () => `<div class="items quiz">${lines.map((line, i) => item(line, ['A', 'B', 'C'][i] ?? '')).join('')}</div>`,
+    timeline: () => `<div class="items timeline"><i class="connector"></i>${lines.map((line, i) => item(line, `0${i + 1}`)).join('')}</div>`,
+    live: () => `<div class="live"><div class="waves" aria-hidden="true">${'<i></i>'.repeat(11)}</div><div class="items">${lines.map((line) => item(line, '—')).join('')}</div></div>`,
+    contact: () => `<div class="contact"><span>${esc(scene.body)}</span><b aria-hidden="true">↗</b></div>`,
+    table: () => {
+      if (!validMotionTable(scene.body)) throw new Error('invalid_motion_table');
+      return `<div class="data-table" role="table" aria-label="${esc(scene.title)}"><div class="table-head" role="row"><span role="columnheader">ASPECTO</span><span role="columnheader">DETALLE</span></div>${lines.map((line) => `<div class="table-row" role="row">${line.split('|').map((cell) => `<div class="table-cell" role="cell">${esc(cell.trim())}</div>`).join('')}</div>`).join('')}</div>`;
+    },
+  };
+  const details = contents[variant]?.() ?? `<div class="description">${esc(scene.body)}</div>`;
+  const title = scene.title.split(/\s+/).map((word) => `<span class="word-mask"><span class="word">${esc(word)}</span></span>`).join(' ');
+  return `<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=${width}">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' 'self'; style-src 'unsafe-inline'; font-src 'self' data:; img-src 'self' data:; connect-src 'none'; base-uri 'none'; form-action 'none'">
+<style>@font-face{font-family:Display;src:url('${resources.display}')}@font-face{font-family:Body;src:url('${resources.body}')}${advancedMotionStyles(width, height, dark)}${motionBrandStyles(dark)}</style></head>
+<body><main id="socialpro-motion" class="design-${variant}" data-composition-id="socialpro-motion" data-start="0" data-duration="${scene.duration}" data-width="${width}" data-height="${height}">
+<div class="depth" aria-hidden="true"><i></i><i></i><i></i></div><div class="rail"><img src="${resources.logo}" alt="SocialPro"/><span>CREATOR STUDIO</span></div>
+<div class="content"><div class="eyebrow">${design.label}</div><h1 aria-label="${esc(scene.title)}">${title}</h1><div class="signature"></div>${details}</div>
+<div class="rule"></div><footer>SOCIALPRO <span>PEOPLE / STORIES / WORK</span></footer><div class="curtain" aria-hidden="true"><i></i><i></i><i></i></div></main>
+<script>${advancedMotionTimeline(scene.duration, preview)}</script></body></html>`;
+}

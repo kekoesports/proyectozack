@@ -1,0 +1,242 @@
+[
+  {
+    "path": "src/__tests__/server/external-providers-inventory.test.ts",
+    "sha256": "67f6b56f00c4ca9acd53862025f980138a01d3e9e380a9c4806e52122595aeee",
+    "bytes": 5614,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/finance-dashboard.test.ts",
+    "sha256": "1da96a8daab74708dcdf7778b14e54b24f035537a5973783bc2862ddcd908bca",
+    "bytes": 11599,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/finance-resumen.test.ts",
+    "sha256": "baa290f6adfbad8ba07276296721ffb0ed1eabc9cda0efcc9e890ef9b1f643c2",
+    "bytes": 10820,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/finance-summary-labels.test.ts",
+    "sha256": "91dbf53e9abd1ad968c427edb96828200e28de3ed22cdad592a34f410901c0bb",
+    "bytes": 3964,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/finance-td14-invoice-payments.test.ts",
+    "sha256": "d5085a8130683c87e18007d5f8ec638207d557f6d68638b5d441b3bde854fa8c",
+    "bytes": 5264,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/financial-security-policy.test.ts",
+    "sha256": "9599feb00998d82a8e19e72c796a61b8086795d9714987e48608f4cd3af11978",
+    "bytes": 1656,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/finanzas-gastos.test.ts",
+    "sha256": "f14be2245e80337dfa3aa21677429ebb2fa9051d82e58b2056b0b9c5326b0072",
+    "bytes": 6859,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/finanzas-ingresos.test.ts",
+    "sha256": "aa8c2941f0f4d44f86a8fb8c530a98a37372ae589f659c9b2b96599e2e5fe798",
+    "bytes": 5713,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/finanzas-nav-and-routing.test.ts",
+    "sha256": "77fb38eda24d1cce1ddfd0530bb0de72042361c4d4b77a7d9ede043574e480e1",
+    "bytes": 6143,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/finanzas-nominas-creadores.test.ts",
+    "sha256": "e809c8b26a1fcee89555ff63813fdca639dd591d0f20d654a9b85b1c84f4cd88",
+    "bytes": 7031,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/finanzas-rentabilidad-6b.test.ts",
+    "sha256": "16a024cb172d9f1d1718db9777942e6dec1251ebb5abb010f1826a54ce7b2139",
+    "bytes": 10289,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/finanzas-rentabilidad.test.ts",
+    "sha256": "aed9fd71f4b59f758aaa4c822ee35671cd7398f6cba7ea1ab076d22166d23ec1",
+    "bytes": 9955,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/finanzas-resumen-v2-filtros-pendientes.test.ts",
+    "sha256": "26794e191501a2a23813eb66d131c01482ccd9016f76b67890c117011a2b3460",
+    "bytes": 6246,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/finanzas-resumen-v2-ui.test.ts",
+    "sha256": "6bad2918df89aa295a2cb7730f6acce32efd71f857dc9a619ff879e6f71922bb",
+    "bytes": 7582,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/finanzas-resumen-v2.test.ts",
+    "sha256": "ff5d15b1bd71791db4895d16369c0df7a95b7ab1e6c90b5b48b21371bd1c6f01",
+    "bytes": 18854,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/finanzas-resumen-v3.test.ts",
+    "sha256": "a09266416436bbdec279e1953ee28229964192c147f475241e9760686c89571b",
+    "bytes": 5189,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/forgot-password-endpoint.test.ts",
+    "sha256": "8ee2569c878ce10833ee4576ff53da667390a930d099650bef4a241f006a57ea",
+    "bytes": 1220,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/format.test.ts",
+    "sha256": "8e7e405580f58c0468040003b49b9a584c0cd5e212179e477401cb6948c9e8f2",
+    "bytes": 8424,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/gemini-default-model.test.ts",
+    "sha256": "1c6492618babf8a66b110f978f83950f107161022dffc9ad485c6f9226f33197",
+    "bytes": 688,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/geo-legal-config.test.ts",
+    "sha256": "79590dc047224835ad61bd83d314908832535ff040ee7a85da2d982028a2d9b0",
+    "bytes": 3263,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/giveaway-platform-v2-shell.test.ts",
+    "sha256": "e82a609eeb9de258d5dbbeccf4b30e465120e7addc6168df98ebf411d8ab01bf",
+    "bytes": 6483,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/globalSearch.test.ts",
+    "sha256": "0ae2b9f2e494d5eeffdebe5ed3bc35a069c6e6455042b4be48d56001e411f013",
+    "bytes": 4968,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/google-sheets-admission.test.ts",
+    "sha256": "be90e657c6757b990701b9c6ad264dc8eb7b93becc87fc895c33070a0222d653",
+    "bytes": 8443,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/google-sheets-auth.test.ts",
+    "sha256": "d2808c30bf9be66841800b7ae8fd62ea9f0560826680099f1ccb6fb889932eb0",
+    "bytes": 4815,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/google-sheets-retry.test.ts",
+    "sha256": "e476b7684a99f8d64ddbdfd2956fd92feb3c006653b93532ee303ebf823bb4d1",
+    "bytes": 5857,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/gradient.test.ts",
+    "sha256": "9294bf5e5ce324f0e2640399a755f366f6073c27596f5b6fa8554e70a3daf776",
+    "bytes": 548,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/guardian-definition-loadable.test.ts",
+    "sha256": "83c6e4a16c1e6fdbd64cfcad0bba5e7522e5c7a13c32b2aae4a268e214a9afbf",
+    "bytes": 3234,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/guardian-replay.test.ts",
+    "sha256": "198194203b336b45e7332d814cfacceeeda0bd8323fba4aab5eb5724978987c1",
+    "bytes": 7822,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/guardian-report.test.ts",
+    "sha256": "6a5f37ae1f771f8b59a36af5b8949c307f3070085fd3d17a1ad553c3fbefdddc",
+    "bytes": 8964,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/guardian-rules.test.ts",
+    "sha256": "9ac3de5c3ddc91a4381b75230fdb3286fa06db883d927e3db54f8c6781d9dcf8",
+    "bytes": 8430,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/homeForRole.test.ts",
+    "sha256": "308fcd075957a6b53f5a467857e38884521a4ecd5fcfdcb92d35268a1823930c",
+    "bytes": 2779,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/horizontal-triplets.test.ts",
+    "sha256": "1411b8ae88e5e6b1896db3a1ca82e0e9d37f1e4ae05ef795ec569d8301cd4846",
+    "bytes": 7353,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/hostnames.test.ts",
+    "sha256": "3c17e055bcefaf143e07abf96be9e27eadb77d2382a38d21f37a4a6cf6c2303a",
+    "bytes": 930,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/import-utils.test.ts",
+    "sha256": "47d2b71653879dbf3b554bfd73e259b31ab7f108e52272fea109548c8ea2d725",
+    "bytes": 9017,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/ingresos-status-display.test.ts",
+    "sha256": "cefe4e96ba365f04a1bc3ff9b70d6217f07106875310559fd3f3b82d3049d6fc",
+    "bytes": 3140,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/instagram-discovery.test.ts",
+    "sha256": "3ea8c00dbfe123ceb1b159820f240b98d880bef6f7fb84697e58e41f89be82c4",
+    "bytes": 7249,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/invoice-draft-schema.test.ts",
+    "sha256": "ed6a7c32c2ae8790bc579d3ed998fd6b3af44e7c79a04325d596063f7559cdee",
+    "bytes": 18676,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/invoice-payments-lock.test.ts",
+    "sha256": "9cad90ee2f5631b3f495818e993099fb6e7b6ebabba0ed50f530d1a68d7de9de",
+    "bytes": 9206,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/invoice-payments.test.ts",
+    "sha256": "997581e9b2a7f1ec1d259f54de9f25e52d88e8deefc4842371cd07a2b75d6177",
+    "bytes": 14014,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/invoice-pdf-i18n.test.ts",
+    "sha256": "358d0fce312e368d9ba78049d23f2748632ad0dd9472c2230ab76d3425782575",
+    "bytes": 10339,
+    "storage": "git-base-crlf"
+  }
+]

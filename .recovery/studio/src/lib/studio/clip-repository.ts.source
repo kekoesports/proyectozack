@@ -1,0 +1,94 @@
+import { randomUUID } from 'node:crypto';
+import { and, count, desc, eq, inArray } from 'drizzle-orm';
+import { studioClipSources } from '@/db/schema/studioClips';
+import { studioAssets } from '@/db/schema/studio';
+import { talents } from '@/db/schema/talents';
+import { ClipReport, ClipDecisions, ClipMoment, ClipDecision, ClipManualMoment, ClipProject } from '@/lib/schemas/studio-clips';
+import { createStudioRepository, type StudioDatabase } from './repository';
+import { createProductionRepository } from './production-repository';
+import { visibleStudioTalents, lockStudioMember } from './talent-scope';
+
+export function createClipRepository(database: StudioDatabase, userId: string, agencyTalentId?: number) {
+  const scope = (id: string) => and(eq(studioClipSources.id, id), inArray(studioClipSources.talentId, visibleStudioTalents(database, userId, agencyTalentId)));
+  function read(row: typeof studioClipSources.$inferSelect) {
+    const document = ClipReport.safeParse(row.document), decisions = ClipDecisions.safeParse(row.decisions);
+    return document.success && decisions.success ? { id: row.id, revision: row.revision, document: document.data, decisions: decisions.data } : null;
+  }
+  return {
+    async list() {
+      const rows = await database.select().from(studioClipSources).where(inArray(studioClipSources.talentId, visibleStudioTalents(database, userId, agencyTalentId)))
+        .orderBy(desc(studioClipSources.createdAt)).limit(100);
+      return rows.flatMap((row) => { const valid = read(row); return valid ? [valid] : []; });
+    },
+    async get(id: string) {
+      const [row] = await database.select().from(studioClipSources).where(scope(id));
+      return row ? read(row) : null;
+    },
+    async import(raw: unknown) {
+      const parsed = ClipReport.safeParse(raw); if (!parsed.success) return null;
+      return database.transaction(async (tx) => {
+        const member = await lockStudioMember(tx, userId, agencyTalentId); if (!member) return null;
+        await tx.select({ id: talents.id }).from(talents).where(eq(talents.id, member.talentId)).for('update');
+        const [existing] = await tx.select().from(studioClipSources).where(and(eq(studioClipSources.talentId, member.talentId), eq(studioClipSources.sourceKey, parsed.data.sourceKey)));
+        // Retrying an import must not reset curation or replace evidence silently.
+        if (existing) return read(existing);
+        const [usage] = await tx.select({ total: count() }).from(studioClipSources).where(eq(studioClipSources.talentId, member.talentId));
+        if ((usage?.total ?? 0) >= 100) return null;
+        const [row] = await tx.insert(studioClipSources).values({ talentId: member.talentId, kind: parsed.data.kind, sourceKey: parsed.data.sourceKey,
+          document: parsed.data, rightsAcceptedBy: userId }).returning();
+        return row ? read(row) : null;
+      });
+    },
+    async decide(raw: unknown) {
+      const input = ClipDecision.safeParse(raw); if (!input.success) return false;
+      return database.transaction(async (tx) => {
+        if (!await lockStudioMember(tx, userId, agencyTalentId)) return false;
+        const [row] = await tx.select().from(studioClipSources).where(scope(input.data.id)).for('update');
+        const item = row ? read(row) : null;
+        if (!item || item.revision !== input.data.revision || !item.document.moments.some((m) => m.id === input.data.momentId)) return false;
+        const decisions = { ...item.decisions, [input.data.momentId]: { decision: input.data.decision, projectId: item.decisions[input.data.momentId]?.projectId ?? null } };
+        await tx.update(studioClipSources).set({ decisions, revision: item.revision + 1 }).where(eq(studioClipSources.id, item.id));
+        return true;
+      });
+    },
+    async addMoment(raw: unknown) {
+      const input = ClipManualMoment.safeParse(raw); if (!input.success) return false;
+      return database.transaction(async (tx) => {
+        if (!await lockStudioMember(tx, userId, agencyTalentId)) return false;
+        const [row] = await tx.select().from(studioClipSources).where(scope(input.data.id)).for('update');
+        const item = row ? read(row) : null;
+        if (!item || item.revision !== input.data.revision || item.document.kind === 'cs2' || item.document.moments.length >= 100 || input.data.end > item.document.duration) return false;
+        const moment = ClipMoment.safeParse({ ...input.data, id: `manual-${randomUUID()}`, score: null, reasons: ['Selección manual del equipo; no detectada por IA.'] });
+        if (!moment.success) return false;
+        await tx.update(studioClipSources).set({ document: { ...item.document, moments: [...item.document.moments, moment.data] }, revision: item.revision + 1 }).where(eq(studioClipSources.id, item.id));
+        return true;
+      });
+    },
+    async project(raw: unknown) {
+      const input = ClipProject.safeParse(raw); if (!input.success) return null;
+      return database.transaction(async (tx) => {
+        const member = await lockStudioMember(tx, userId, agencyTalentId); if (!member) return null;
+        const [row] = await tx.select().from(studioClipSources).where(scope(input.data.id)).for('update');
+        const item = row ? read(row) : null;
+        const moment = item?.document.moments.find((m) => m.id === input.data.momentId);
+        if (!item || !moment) return null;
+        const previous = item.decisions[moment.id];
+        // Lost HTTP responses may be retried with the old revision, returning the same project.
+        if (previous?.projectId) return previous.projectId;
+        if (item.revision !== input.data.revision || previous?.decision !== 'selected') return null;
+        const [asset] = await tx.select().from(studioAssets).where(and(eq(studioAssets.id, input.data.assetId), eq(studioAssets.talentId, member.talentId), eq(studioAssets.contentType, 'video/mp4')));
+        if (!asset) return null;
+        const project = await createStudioRepository(tx, userId, agencyTalentId).save({ title: moment.title, template: 'educational', platform: 'tiktok',
+          brief: `Clip revisado de ${item.document.title}. Ventana de referencia: ${moment.start.toFixed(2)}–${moment.end.toFixed(2)} s. El archivo adjunto es el fragmento ya recortado, desde su segundo 0. Revisar encuadre, derechos, sonido y patrocinio antes de publicar.`, script: '', cta: '' });
+        if (!project) return null;
+        const board = await createProductionRepository(tx, userId, agencyTalentId).saveBoard(project.id, -1, { version: 1, format: '9:16', palette: 'dark', audioAssetId: null,
+          scenes: [{ id: randomUUID(), kind: 'video', assetId: asset.id, title: '', body: '', duration: input.data.duration, start: 0 },
+            { id: randomUUID(), kind: 'title', assetId: null, title: 'NOS VEMOS EN EL DIRECTO.', body: 'SOCIALPRO / CREATORS', duration: 3, start: 0, motion: 'contact-v3' }] });
+        if (!board) throw new Error('clip_board_failed'); // Roll back the whole transaction, including the new project.
+        await tx.update(studioClipSources).set({ decisions: { ...item.decisions, [moment.id]: { decision: 'selected', projectId: project.id } }, revision: item.revision + 1 }).where(eq(studioClipSources.id, item.id));
+        return project.id;
+      });
+    },
+  };
+}
+export type ClipSourceView = NonNullable<Awaited<ReturnType<ReturnType<typeof createClipRepository>['get']>>>;

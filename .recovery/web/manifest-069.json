@@ -1,0 +1,86 @@
+[
+  {
+    "path": "src/types/invoiceExtract.ts",
+    "sha256": "8e3d575e268b8c360d0c28e249214b993dad7b24ddc255df5212399575707eeb",
+    "bytes": 813,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/types/invoiceImport.ts",
+    "sha256": "cf7f7485417e29e3686d3ea95a8ceb55dff4b4d8aa0c7520dcffc66a7fc5c4ea",
+    "bytes": 916,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/types/invoicePayment.ts",
+    "sha256": "2a2a6e0f57ab7496b62b24e0917c02748b807417e71752a88b02864ab5d52817",
+    "bytes": 256,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/types/issuedInvoice.ts",
+    "sha256": "236e9672c44764a7c3eb8ed31cb93f566976e85dd78e3342ae857df795c5cd0e",
+    "bytes": 1561,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/types/lead.ts",
+    "sha256": "87cfc5170725c87306c53c4d26526d38286adc6169e884370028f723c2a4b017",
+    "bytes": 594,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/types/partnerLead.ts",
+    "sha256": "1a0186cbea66444cb0fd2e3fe4fd2244f147f62e1da8f2dfa153a27aa1e43932",
+    "bytes": 537,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/types/pdfjs.d.ts",
+    "sha256": "587b1b376314e3ad1163346076038ef86c65e51288861595c4817cd6bbbad5b3",
+    "bytes": 285,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/types/pressTarget.ts",
+    "sha256": "e9d60dc98ca69e9ad52a7dfbef154c186669e6ae9b9c947e2af055c970485862",
+    "bytes": 306,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/types/talent.ts",
+    "sha256": "4cb1c88e180258ee9b63b3982465a3946bfe6053b4e8576386967ca3f619f787",
+    "bytes": 517,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/types/talentBusiness.ts",
+    "sha256": "8b958fa206d0edbd1ca127c3b0c71417a23b7ea2719fa6f944e3712146fec8cc",
+    "bytes": 428,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/types/target.ts",
+    "sha256": "17a53d7a65d3c4841547ae7680dd658cf6677cbfde32ff0fbd63947fde14ea91",
+    "bytes": 157,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/worker/agent-worker.ts",
+    "sha256": "9e41db505905b898897d9fe73de465e80bad094256a6d5cc0db21d61d76d1cbb",
+    "bytes": 2300,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "tsconfig.jest.json",
+    "sha256": "3ae08fb84cb7371a82b31bbc6a538e0d074ed18d86f69635fc84e01861b78f6a",
+    "bytes": 232,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "tsconfig.json",
+    "sha256": "0c78464791b77b469d2d8a26ca17d9941d6aa4e848ae9948ae72af3c3dbf325c",
+    "bytes": 960,
+    "storage": "git-base-crlf"
+  }
+]

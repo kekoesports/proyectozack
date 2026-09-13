@@ -1,0 +1,242 @@
+[
+  {
+    "path": "src/features/brand-portal/components/ProposalModal.tsx",
+    "sha256": "afff9273618afe953fad46646f47910a1ee9b56f45109a9d3dd470c0fa126e78",
+    "bytes": 6413,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/cases/case-config.ts",
+    "sha256": "641cefb9db7747450227f2370dcaff71917e8053357f58b4f9e166dcdf4f3f52",
+    "bytes": 4116,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/cases/components/CaseCard.tsx",
+    "sha256": "d36774f61e792892d0cc0de22d2e0fef793085d83f02d5e0df5c2d550e9b59bf",
+    "bytes": 3652,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/contact/components/ContactFormEn.tsx",
+    "sha256": "e5f9e923464f7afa1da689f366c9dd38faef608fc1487f3353dbac1aedb1b03d",
+    "bytes": 15250,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/features/contact/components/ContactSection.parts.tsx",
+    "sha256": "0609ddad33d1c6a7a705d5cf645d6805989a4ad3f1cbb7c64f8e98fda74d42a1",
+    "bytes": 14314,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/contact/components/ContactSection.tsx",
+    "sha256": "61cf3a332f247e13af24f411f1b7c6690a95f439be73dc396fdfcc607ba5dcdd",
+    "bytes": 8922,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/contact/components/CreatorApplyForm.tsx",
+    "sha256": "568e9ac351b71633136471bea136834e530f1748148d24883aa68a0775a7486b",
+    "bytes": 11275,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/creator-codes/components/CountdownTimer.tsx",
+    "sha256": "a41016efadc5a60a7b578b01674da5fb0dd3d1cd2883d4bee3b60938653599b4",
+    "bytes": 3520,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/creator-codes/components/CreatorHero.tsx",
+    "sha256": "3ae7f3124edd3f444e1fe0187cb800f150acb2b6a5694ce51db1b3374601044b",
+    "bytes": 7151,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/creator-codes/components/GiveawayCard.tsx",
+    "sha256": "92f08ac8f77bd73a156ad090cfb0d2de408075607b1016c46c2ec41a53b60f38",
+    "bytes": 4800,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/creator-codes/components/GiveawayGrid.tsx",
+    "sha256": "fc8952e0e59a18f317713cf3798692004fd5675d103bd9c9e333eb57a04b923f",
+    "bytes": 1479,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/creator-codes/components/UnboxReveal.tsx",
+    "sha256": "f5462d7c8cc00c6eefae2788724d7433311f420c466b2b9c2e7d0c49fb92ba33",
+    "bytes": 6108,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/giveaway-platform/actions/steamLogout.ts",
+    "sha256": "86640aabdcdc5b2c8d02cb0ce5a807606a5dc067bc8b6c09cc7dfba89611d941",
+    "bytes": 410,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/giveaway-platform/actions/updateProfile.ts",
+    "sha256": "58b96de03854b9f702412c281d92dd15d9be4c0d5d3af96ee77724965188376c",
+    "bytes": 3271,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/giveaway-platform/components/AdultAttestationCard.tsx",
+    "sha256": "2ba9a2db711013bcd60f06c2aa87059d06327e981100c151adc20983ed3866a8",
+    "bytes": 1960,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/giveaway-platform/components/BrandBonusesSection.tsx",
+    "sha256": "b576d9df0804bddbeeb89418f5438944bce2dd086c702bc0756de2e3dced339e",
+    "bytes": 4780,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/giveaway-platform/components/BrandCardCsgoskins.tsx",
+    "sha256": "9a06a6db341a9acd4dc188e57df357079b28878d022d0dfee5a555a65bbf6840",
+    "bytes": 4064,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/giveaway-platform/components/BrandCardKeyDrop.tsx",
+    "sha256": "0442680d2c7e8dd85b4087510d307f76ace9710763620c88327a30016c1d5995",
+    "bytes": 4057,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/giveaway-platform/components/BrandCardSkinClub.tsx",
+    "sha256": "15c4dda53691d979367edf23faff61b1a973aa40e4f6b11258e9330bf3650403",
+    "bytes": 2759,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/giveaway-platform/components/BrandCardSkinsMonkey.tsx",
+    "sha256": "800230b89be99e55c1cbd74464c5a3e4b7b772137e53cf60dffccebe2a4ea11b",
+    "bytes": 2891,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/giveaway-platform/components/CreatorDropdown.tsx",
+    "sha256": "cefea1e44d0287d15c482c9325057251c0ee084a91afb9969973453e645e25da",
+    "bytes": 4155,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/giveaway-platform/components/CreatorSwitcher.tsx",
+    "sha256": "7d3a513c533c2d1081bd5e8b1a276e5408dd53da87a2d512ecc5620c9fdeebdb",
+    "bytes": 1304,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/giveaway-platform/components/CsgoskinsRoadtripCountdown.tsx",
+    "sha256": "391c604c21a2a853363c12af4c6c02098414454b1a129f4c845e39fdb48b2f6c",
+    "bytes": 2506,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/giveaway-platform/components/DailyStreakCard.tsx",
+    "sha256": "4ce999057bcfd1e19fcb45dc98a626012b91774a73edeb6a87d84cd860a1c8d0",
+    "bytes": 3847,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/giveaway-platform/components/DiscordMissionCard.tsx",
+    "sha256": "671194b15302c32681d16122c4ed1172a4fbfbdad7baa73f2265a9af789e4311",
+    "bytes": 7391,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/giveaway-platform/components/EntryButton.tsx",
+    "sha256": "5b5bb65c7cd00962b5c3237f75cc8c07481c16168a47be2380140f11310139d7",
+    "bytes": 1822,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/giveaway-platform/components/ExternalGiveawayCard.tsx",
+    "sha256": "dc7888c4e32bd07c02824c6f70a23275150b9f969b20cb51007b583b79e16a9c",
+    "bytes": 5942,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/giveaway-platform/components/ExternalGiveawaysSection.tsx",
+    "sha256": "88e7d1d7cecac895b1e4425f4bab0e1640f07fb5321f88132fdfdf44d51cf32e",
+    "bytes": 7389,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/giveaway-platform/components/FreeRaffleCard.tsx",
+    "sha256": "6ebe70bfa62df96e770d293a99623a06fa1a7ac4eeffb8fd1ff2b30e4f0a828a",
+    "bytes": 5231,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/giveaway-platform/components/HistoricalWinnersPlaceholder.tsx",
+    "sha256": "b784e2c8a23fc3023311a30d840d219fa133ad1bb7ad289e2572d50e2fad2bae",
+    "bytes": 638,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/giveaway-platform/components/LegalDraftBanner.tsx",
+    "sha256": "dbf02427e6f682de0903dccd411c838b09f4bbf902958140b39b6521d000f2c8",
+    "bytes": 1146,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/giveaway-platform/components/MissionsGrid.tsx",
+    "sha256": "3798952881bf3bb2a8c57d4edf4f2a62e807e749900285e1353a4d8435e212e9",
+    "bytes": 11803,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/giveaway-platform/components/MonthlyPointsRanking.tsx",
+    "sha256": "ca118705bc2fc2e504b71c90e196b37a66ae7bb9885e977e79ba846791d72036",
+    "bytes": 10941,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/giveaway-platform/components/MonthlyRanking.tsx",
+    "sha256": "372ca744ce43df9aefe1e169bf20d66f4ded30e28025d498fda0531c4013a74d",
+    "bytes": 3582,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/giveaway-platform/components/ParticipantsModal.tsx",
+    "sha256": "53a53fc9883f4c376ef9b2f8f1577ad04c544e72d6cca0205b7c9a4231475f94",
+    "bytes": 4312,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/giveaway-platform/components/PartnerConsentGate.tsx",
+    "sha256": "4cbb6e2f438e33be7cd55835dd9d70fadf2397c5d77a061f8f7989ff89ab5c49",
+    "bytes": 4575,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/giveaway-platform/components/PartnerConsentModal.tsx",
+    "sha256": "c38b19815c761f7578d365fb88c556d859240b3e74c53f5f736d48c610d092b4",
+    "bytes": 10277,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/giveaway-platform/components/PlatformCreatorLanding.tsx",
+    "sha256": "7edf05c797ecbd815b9392247f39b42d7d6cb89867fe066f4f1cadf809de97bb",
+    "bytes": 15785,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/giveaway-platform/components/PlatformFooter.tsx",
+    "sha256": "ff114fb018c19dcafab2cf517e7df5c6ed9fa53a4dd02e2a616274feed4c5610",
+    "bytes": 1510,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/giveaway-platform/components/PlatformHero.tsx",
+    "sha256": "4fd729c7fd87f1e122382ee06ae057fd316c68fbbcc4c1da9ebf2844187d972c",
+    "bytes": 841,
+    "storage": "git-base-crlf"
+  }
+]

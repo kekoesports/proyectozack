@@ -1,0 +1,242 @@
+[
+  {
+    "path": "src/app/api/internal/agents/events/route.ts",
+    "sha256": "51d2a07e960b3a9e4bd4dc07ba15bd4d62c73b6af9a1358cc12a1918b4bcdef3",
+    "bytes": 3913,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/api/internal/agents/heartbeat/route.ts",
+    "sha256": "4ecc18e2ad760af3b5293e7ea509bbb05337506905c7dc5b0a50853d27603198",
+    "bytes": 2203,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/api/internal/drive-relay/route.ts",
+    "sha256": "2ff2883cbea9e7d3041ab3da9f9afd20dac515b43afa98a06b80e31f0638a4ff",
+    "bytes": 2132,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/api/internal/email-relay/route.ts",
+    "sha256": "3c04086d7dc2cd8b4c2f6669ed90861b2b058b56729f7e388d6d3b05cfa90727",
+    "bytes": 2704,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/api/internal/security/rotate-token-encryption/route.ts",
+    "sha256": "953e5e3a638272fa0913d63906b3f4bbb4b14c51b0c42c50c8e37e44fc69377d",
+    "bytes": 2916,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/api/live/[slug]/route.ts",
+    "sha256": "20c5abddaaa189e369477cf45a27ef1a052700fafeab0e5cd9d51d41abaaf0bd",
+    "bytes": 2962,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/api/live/route.ts",
+    "sha256": "098773beeacaecb0626516024af5a64c01b0f8a89af3b195b9d3ad333438db69",
+    "bytes": 7361,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/api/marcas/facturas/[id]/pdf/route.ts",
+    "sha256": "bc38bbbce27e54079adbb8f899704c5fdfc0aa0c0c8ade2540ffc5385b18d36f",
+    "bytes": 3160,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/api/newsletter/send/route.ts",
+    "sha256": "e65834b44e5e3742d359674cae6a3af3f129181ba4f67fc81f06e452f08aef35",
+    "bytes": 5024,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/api/newsletter/subscribe/route.ts",
+    "sha256": "63bd8ad7d11cc9d44b265ea757b1d9f7a2cd4510de0da01052f970808c07fb47",
+    "bytes": 3516,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/api/newsletter/unsubscribe/route.ts",
+    "sha256": "a3787cbcaf8ed114c41521f86439a5bb839bfa879666aa73f79b887a6b1c8fac",
+    "bytes": 2111,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/api/og-image/blog/route.tsx",
+    "sha256": "fec8a7e8ff546c4a6f8706bfba2ed166cd95c88ecd5c559d95a43c1164c469e7",
+    "bytes": 13608,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/api/og-image/case/route.tsx",
+    "sha256": "a8d111e71df8e5261376326773865b87e96d0e8e1aa60aee4f02667a2e9440bf",
+    "bytes": 8839,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/api/og-image/ganadores/route.tsx",
+    "sha256": "164b8bbca8340bec5634723c035f82b50e3c11688df59e91c2bfed74df645080",
+    "bytes": 5527,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/api/og-image/giveaway/route.tsx",
+    "sha256": "68cc723ca8e43cbc955ed0efec264724d135e1c84e6b5a4f3466d00142ffa811",
+    "bytes": 7157,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/api/og-image/talent/[slug]/route.tsx",
+    "sha256": "f6fdcd016abd8d0225b6b589de2203d64a6c8713dbc8814339c1cf68c4a66101",
+    "bytes": 300,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/api/og-image/talent-img/route.tsx",
+    "sha256": "5f7e0f6d6bb3e367b44fad4b8e09f312dc1705fafe8bb7ec28660cdeca25e29e",
+    "bytes": 5044,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/api/posts/view/route.ts",
+    "sha256": "4ad33dbcd4439ef96007efbe2bd11128742e146ac3976a8e3e4880e49ff990ec",
+    "bytes": 2774,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/api/sorteos/participants/[raffleId]/route.ts",
+    "sha256": "0d36492e77889f5a4d064e1451efce9478b9f6bea31893c851932a3537ad1755",
+    "bytes": 1729,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/api/studio/assets/[id]/route.ts",
+    "sha256": "01b9aa3d93b484e587c95d06732e63d69ff0e0f54d05bc05fd2059793707bea6",
+    "bytes": 2274,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/api/studio/assets/route.ts",
+    "sha256": "c0092029515ac30974cfcbf5f89248b12fb4ca1ca41a1b86ea63d9d124367fef",
+    "bytes": 3899,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/api/talent-photo/[id]/route.ts",
+    "sha256": "620a60b32fdbb6fa986b6265ea80254b80d62670f0cddb240b02a5c45e4fcead",
+    "bytes": 772,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/api/talents/view/route.ts",
+    "sha256": "911d6f859858ad9d024277217af3b5fd62891de10a304e996b49d65257c0bb1c",
+    "bytes": 2817,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/api/team-photo/[id]/route.ts",
+    "sha256": "035ec68dd56de2fa9f0e2bf06ce308d91c30514ed49c366c2fe445e1789322d5",
+    "bytes": 847,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/api/trpc/[trpc]/route.ts",
+    "sha256": "64ba551350fae82dd11bec6310c42b7ddabe3ee5437fcfe6baf8461aee7fb762",
+    "bytes": 639,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/api/webhooks/creator-intake/telegram/route.ts",
+    "sha256": "7b08be8bb18102183042ffc768eb348de6dce085e50c5a126904c2a2564541e2",
+    "bytes": 3109,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/app/api/webhooks/creator-intake/waha/route.ts",
+    "sha256": "100076375f57e742528b33e1b410d781ae12715031b3df07c9a90857948e86d1",
+    "bytes": 2876,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/app/api/webhooks/creator-intake/whatsapp/route.ts",
+    "sha256": "ec11a84906993d8d6384cfdc8a840f4044d8356e714c50160b0276a9326d9ae2",
+    "bytes": 3858,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/app/api/webhooks/resend/route.ts",
+    "sha256": "83821019b27db335297bc930b41c1515ffc61fa1b7054959aca6211896f24bf7",
+    "bytes": 4958,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/api/webhooks/slash/route.ts",
+    "sha256": "7bca2a6e723088339098a925a97182ba73089a5313b69c0fec98d6ad0c7782ed",
+    "bytes": 2391,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/apuesta-segura-cs2/_components/AttributionCapture.tsx",
+    "sha256": "b95bd5d46ebc3afcacaece05830f546a5ef68ece8064de081f4c4258232574f6",
+    "bytes": 396,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/apuesta-segura-cs2/_components/BlogabetValidation.tsx",
+    "sha256": "a710557ff2c1a49e43ff51de81eac32ea490c6aa871abd2c93018ecb2cb8d52a",
+    "bytes": 10829,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/apuesta-segura-cs2/_components/CoverageMarquee.tsx",
+    "sha256": "ec8358505c8ade117427ab9f34a0fbc38003071e28d29cdbf199fa98f673e20e",
+    "bytes": 1687,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/apuesta-segura-cs2/_components/CtaButton.tsx",
+    "sha256": "cd7b33e0fe7dd6d5bb3bf790e751ecf5f0e1418f3e6ba1a3bf7520ede72ad66e",
+    "bytes": 1420,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/apuesta-segura-cs2/_components/Faq.tsx",
+    "sha256": "522f3e652842e2c3ee78b453c8b608cf819954b313b9fd398162d23acf72f190",
+    "bytes": 4640,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/apuesta-segura-cs2/_components/FinalCta.tsx",
+    "sha256": "5bcb594ba7545ca7a92424f88210ebe3ceb49374f2ecb2caebd9b62666f64480",
+    "bytes": 4408,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/apuesta-segura-cs2/_components/FloatingTelegramCta.tsx",
+    "sha256": "fa5772902e092db5282d7ac1b9378ed2bf54078ab33a661f85eee8d3f9fcce44",
+    "bytes": 2870,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/apuesta-segura-cs2/_components/Hero.tsx",
+    "sha256": "5867ba435e3c416eaad9ae4029fa8bf4f1bf3beef86feaf25de59c31352c200a",
+    "bytes": 7282,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/apuesta-segura-cs2/_components/HowWeWork.tsx",
+    "sha256": "52fecdac024c9ca011d9147a5a08a1830639b4fe4a053fb71f15cd1d55b5e132",
+    "bytes": 3026,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/apuesta-segura-cs2/_components/MonthlyResults.tsx",
+    "sha256": "4944682fa9d38ffef3739f45a0e7aa6162ce3d94d504d2b9e64327c3dd5def16",
+    "bytes": 6265,
+    "storage": "git-base-crlf"
+  }
+]

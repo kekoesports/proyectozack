@@ -1,0 +1,52 @@
+/** Real FFmpeg + transparent pixels. Synthetic media only, no database or provider. */
+import assert from 'node:assert/strict';
+import { mkdtemp, mkdir, writeFile, stat } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { randomUUID } from 'node:crypto';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
+import { createCanvas, loadImage } from '@napi-rs/canvas';
+import { StudioBoard } from '../src/lib/schemas/studio-production';
+import { renderStudioTimeline, probeStudioMedia } from '../src/lib/studio/render-engine';
+import { createWidgetOverlay, loadSponsorPng, widgetAudioFilter } from '../src/lib/studio/render-widgets';
+
+const run = promisify(execFile);
+async function main() {
+  const directory = await mkdtemp(join(tmpdir(), 'studio-widget-test-'));
+  const videoId = randomUUID(), musicId = randomUUID(), logoId = randomUUID();
+  const video = join(directory, 'source.mp4'), music = join(directory, 'music.wav'), logo = join(directory, 'logo.png'), opaque = join(directory, 'opaque.png');
+  await run('/usr/bin/ffmpeg', ['-v', 'error', '-f', 'lavfi', '-i', 'color=c=0x24384f:s=640x360:r=30', '-f', 'lavfi', '-i', 'sine=frequency=800:sample_rate=48000', '-t', '3', '-c:v', 'libx264', '-threads', '2', '-c:a', 'aac', '-pix_fmt', 'yuv420p', video]);
+  await run('/usr/bin/ffmpeg', ['-v', 'error', '-f', 'lavfi', '-i', 'sine=frequency=180:sample_rate=48000', '-t', '1', music]);
+  const canvas = createCanvas(300, 100), context = canvas.getContext('2d');
+  context.fillStyle = '#e03070'; context.fillRect(15, 15, 270, 70); await writeFile(logo, canvas.toBuffer('image/png'));
+  context.fillRect(0, 0, 300, 100); await writeFile(opaque, canvas.toBuffer('image/png'));
+  await assert.rejects(() => loadSponsorPng(opaque), /sponsor_requires_transparent_png/);
+  await loadSponsorPng(logo);
+  const files = new Map([[videoId, video], [musicId, music], [logoId, logo]]);
+  for (const format of ['9:16', '1:1', '16:9'] as const) {
+    const folder = join(directory, format.replace(':', '-')); await mkdir(folder);
+    const board = StudioBoard.safeParse({ version: 1, format, palette: 'dark', audioAssetId: null, scenes: [{ id: randomUUID(), kind: 'video', assetId: videoId, title: '', body: '', start: 0, duration: 3 }],
+      widgets: { music: { assetId: musicId, volume: .12, ducking: true }, channel: { platform: 'twitch', handle: 'fixture_creator' }, sponsor: { assetId: logoId }, position: 'top', licensed: true } }); assert.ok(board.success);
+    const output = await renderStudioTimeline(board.data, files, folder);
+    const info = await probeStudioMedia(join(folder, 'render.mp4'));
+    assert.ok(output.length > 5000 && Math.abs(info.format.duration - 3) < .2);
+    assert.ok(info.streams.some((stream) => stream.codec_type === 'audio'));
+    const overlay = await loadImage(join(folder, 'branding-overlay.png'));
+    const pixels = createCanvas(overlay.width, overlay.height), ctx = pixels.getContext('2d'); ctx.drawImage(overlay, 0, 0);
+    assert.equal(ctx.getImageData(Math.floor(overlay.width / 2), Math.floor(overlay.height / 2), 1, 1).data[3], 0, 'center stays transparent');
+    assert.ok((await stat(join(folder, 'render.mp4'))).size < 20971520);
+  }
+  // Exercise audio-only mixing without reencoding video, narration + music and channel-only overlays.
+  for (const mode of ['music-only', 'narration-music', 'channel-only', 'legacy'] as const) {
+    const folder = join(directory, mode); await mkdir(folder);
+    const board = StudioBoard.parse({ version: 1, format: '9:16', palette: 'dark', audioAssetId: mode === 'narration-music' ? musicId : null,
+      scenes: [{ id: randomUUID(), kind: 'video', assetId: videoId, title: '', body: '', start: 0, duration: 3 }],
+      ...(mode === 'legacy' ? {} : { widgets: { music: mode === 'channel-only' ? null : { assetId: musicId, volume: .12, ducking: false }, channel: mode === 'channel-only' ? { platform: 'kick', handle: 'fixture' } : null, sponsor: null, position: 'bottom', licensed: true } }) });
+    await renderStudioTimeline(board, files, folder);
+  }
+  assert.equal(await createWidgetOverlay({ music: null, channel: null, sponsor: null, position: 'top', licensed: false }, files, directory, 720, 1280), null);
+  assert.match(widgetAudioFilter(0, 1, 3, { assetId: musicId, volume: .12, ducking: true }), /asplit=2/);
+  console.log('PASS: 7 real exports; 3 formats; narration preserved; music loops; transparent center; opaque sponsor rejected.');
+}
+main().catch((error: unknown) => { console.error('Studio widget render verification failed', error); process.exitCode = 1; });

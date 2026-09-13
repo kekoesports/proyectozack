@@ -1,0 +1,17 @@
+/** Fixed public media hosts only. Never turn a CRM value into an arbitrary server request. */
+export function studioCrmPhotoSource(value: string | null) {
+  if (!value || /[\\\u0000-\u0020]/.test(value)) return null;
+  try {
+    const url = new URL(value, 'https://socialpro.es');
+    if (url.protocol !== 'https:' || url.username || url.password || url.port) return null;
+    const own = ['socialpro.es', 'app.socialpro.es'].includes(url.hostname);
+    const cdn = ['.public.blob.vercel-storage.com', '.jtvnw.net', '.ytimg.com'].some(suffix => url.hostname.endsWith(suffix));
+    const publicPhoto = url.pathname.startsWith('/images/') || /^\/api\/talent-photo\/[1-9]\d*$/.test(url.pathname);
+    if (!(own && publicPhoto) && !cdn) return null;
+    // The app host intentionally blocks CRM APIs; this public photo stays on the CRM host.
+    if (own && url.pathname.startsWith('/api/talent-photo/')) url.hostname = 'socialpro.es';
+    // Disallow encoded separators/dot-segments as well as literal traversal.
+    if (/%(?:2e|2f|5c)/i.test(url.pathname) || value.includes('..')) return null;
+    return url.href;
+  } catch { return null; }
+}

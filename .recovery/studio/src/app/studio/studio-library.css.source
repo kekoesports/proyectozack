@@ -1,0 +1,9 @@
+.studio-library-crm { display: flex; align-items: center; gap: 24px; margin-block: 24px; }
+.studio-library-crm > img { width: 140px; height: 160px; object-fit: cover; border-radius: 16px; flex-shrink: 0; }
+.studio-library-filters { display: flex; flex-wrap: wrap; gap: 10px; margin-block: 18px; }
+.studio-library-filters [aria-pressed="true"] { background: var(--studio-ink); color: white; border-color: var(--studio-ink); }
+.studio-library-reference { padding: 16px; background: white; border: 1px solid var(--studio-border); border-radius: 14px; margin-block: 8px 20px; }
+.studio-library-reference label { display: flex; align-items: flex-start; gap: 10px; font-size: 13px; line-height: 1.5; margin-bottom: 12px; }
+.studio-library-reference input { margin-top: 4px; accent-color: #c42880; }
+.studio-library-reference [role="status"] { font-size: 13px; }
+@media (max-width: 600px) { .studio-library-crm { align-items: flex-start; flex-direction: column; } }

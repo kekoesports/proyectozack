@@ -1,0 +1,242 @@
+[
+  {
+    "path": "src/__tests__/server/vps-env-merge.test.ts",
+    "sha256": "0dd06198bc6199a1d55a1afe994cb2671a2e51beb58935b90afe168cad75f976",
+    "bytes": 1230,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/week.test.ts",
+    "sha256": "956635a85f85b9593df6121328efe5a9c70e06fe9bd39841c5fd6c12934d449b",
+    "bytes": 5389,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/winners-actions.test.ts",
+    "sha256": "6c57611a0dc2435afb0544ed4ca0d537b3d6b8f060bba088c2daf645f77c4061",
+    "bytes": 2809,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/youtube-channel-content.test.ts",
+    "sha256": "e1dfcf9883f02929b6a37f4b49dcd29d561cad157d4b2c10b60a8d0c75478f7a",
+    "bytes": 10923,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/youtube-data-availability.test.ts",
+    "sha256": "b0763aa9c6341b3e6a152c68d4841187c9f36abe5724e3b1b289f0ac74587ddd",
+    "bytes": 12404,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/youtube-discovery-coverage.test.ts",
+    "sha256": "d5807b4ca50d3c6f040dcfb9482f7633d462c3d00fa99ebb4fd68ad3c6140ee7",
+    "bytes": 5582,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/youtube-missions-verification-doc.test.ts",
+    "sha256": "af4d29c9680ece98b9b419f01def4847f6c7af864730472576ba0ba49aebe60c",
+    "bytes": 7980,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/youtube-qualification.test.ts",
+    "sha256": "727efe597b61019eecae548a534d0fefd519a50eae7b5c55d044d332205007ab",
+    "bytes": 6821,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/youtube-service.test.ts",
+    "sha256": "e82c1b5d2b5cd0385a49d2adeeb664bae782d06b37aeb30bb362c18f8c49541d",
+    "bytes": 15573,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/(en)/cases/page.tsx",
+    "sha256": "73795b081e2b309d962f38f32f44052ef122e3dc4829adc7575ea98ba1aa96c3",
+    "bytes": 7185,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/(en)/contact/page.tsx",
+    "sha256": "6a6e79f0c621b4b79877afaec2d3ba0fcf6d3ce8ae8d432e1b327013c17eeb1f",
+    "bytes": 3638,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/(en)/en/page.tsx",
+    "sha256": "ce9349e65a3ae3db225ead20bf7f8a7c63bd41276c01c9de292588e934942bc4",
+    "bytes": 3335,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/(en)/layout.tsx",
+    "sha256": "995178ce0a1c5fc110daeeacec4be7b881d254b700bc5b086e249dbf6539fba7",
+    "bytes": 591,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/(en)/services/page.tsx",
+    "sha256": "dd5c982988ae0e1dae100c9afedff5adc0b83ea990c4042ecceb0baa878ee641",
+    "bytes": 12058,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/app/(en)/talents/page.tsx",
+    "sha256": "17fb8f7587c64c74fde3f57f8a9c9245d82a06ffdbfd4656ff76371bee7e861f",
+    "bytes": 7075,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/[creatorSlug]/layout.tsx",
+    "sha256": "1d6bf4d79cbc53e88f48a984c09ff301e7930075527ef09e4893280837461915",
+    "bytes": 303,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/[creatorSlug]/page.tsx",
+    "sha256": "48de29293213c995eb4308d8d0d86f56fac8cf0510b658cf9d625d86c9f61e52",
+    "bytes": 17795,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/actions.ts",
+    "sha256": "30d999e5a568cf5fd895b17dce42d4b31a8ade903853df4a6c820aeaab01ac22",
+    "bytes": 1449,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/agents/actions.ts",
+    "sha256": "0a6d1ac7641268fa85efe7ca704195665ceab094232c3f96d3fcde9a0d955990",
+    "bytes": 13793,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/agents/approvals/page.tsx",
+    "sha256": "94af98fccb9b5162161ec46bf1d26e07d8371a12022e8e7236362d8db24d6204",
+    "bytes": 1508,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/agents/memory/page.tsx",
+    "sha256": "e571bb1fb356faa2c56dd400029a7287d0683964c14793a3c4f905719ced0b8a",
+    "bytes": 6106,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/agents/page.tsx",
+    "sha256": "3794a51ab18b568361fca387bab5367e03f8ababcb1e3913aa1731e703697d9a",
+    "bytes": 1971,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/agents/runs/[id]/page.tsx",
+    "sha256": "1c8c9b42d374d56ac0ffa64f5d2403cfa1044a6e9fa60e6f880e3a6db22e5cc9",
+    "bytes": 1344,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/agents/runs/page.tsx",
+    "sha256": "1d40f9de2bd7f3471788bdbfabbc5d6d46a142eb7cd65709251a082acda139e8",
+    "bytes": 2359,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/agents/schedules/page.tsx",
+    "sha256": "0affc3cb03e856ed9bf24dd95a02844d2b11bab8844d28d2a4a09a1c457af202",
+    "bytes": 4842,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/agents/settings/page.tsx",
+    "sha256": "71e33ab2a60b7d7621a22ad97ada8456e8dacc5caad9be50ed40d1a36c9d06d5",
+    "bytes": 7928,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/alertas/actions.ts",
+    "sha256": "be549a46aa68f655e155b4463c4d9fe1813dd025bd1705742149d44580d43e43",
+    "bytes": 1252,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/alertas/page.tsx",
+    "sha256": "b7eeb88db33436822fe3a4c7f0e2a0b427caaa2a6f99936034724bef85e4a7e8",
+    "bytes": 2032,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/analytics/loading.tsx",
+    "sha256": "feac2564d8746c80bbb5aed996d958f0ab073169f0ef333705ef347c59ee422a",
+    "bytes": 1328,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/analytics/page.tsx",
+    "sha256": "57f7e963fc17f7bed73a62d69036ede8f64fd4ce7110e6311917ea3c29bdb4be",
+    "bytes": 4780,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/analytics/report/[talentSlug]/page.tsx",
+    "sha256": "b683b67d5c43cac877712b6206a55b06ae9215626f023decd20cf45d4d79126e",
+    "bytes": 1485,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/asistente/ip/actions.ts",
+    "sha256": "97f6f788fec51e24993e5a4f4756c6c32e41166c16d7ce33dfeaf0091a6e9b14",
+    "bytes": 10220,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/asistente/ip/page.tsx",
+    "sha256": "eff72e1783a84f8b6cbc411549f6f74c4b7f30a2659a111d1694809ab171d631",
+    "bytes": 36130,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/asistente/page.tsx",
+    "sha256": "8340f08fcdaa46fe5650e5e604a2ea40f882060e096fc05c8c6eab5c0ee945ac",
+    "bytes": 2219,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/automation-drafts/[id]/page.tsx",
+    "sha256": "825cbe79ac5cd2d2e58506d30a08f0b418dd8c13b5224dd4a419a2458c0d6adf",
+    "bytes": 947,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/automation-drafts/actions.ts",
+    "sha256": "1bb736de930c355e0aeb5868fd03095352465a8eed13419898aa100a6fb0be94",
+    "bytes": 5129,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/automation-drafts/page.tsx",
+    "sha256": "bec8fd2e5588fdcb9cd1d07af86657181f4c7a58dd14c341ed1fc13c55ef0705",
+    "bytes": 1428,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/brands/[id]/loading.tsx",
+    "sha256": "97ef2933d5b9ddf3a87c5df7964c4e43e404bb39397470b10b8f2102401accf2",
+    "bytes": 945,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/brands/[id]/page.tsx",
+    "sha256": "bc663d88541863440bbd774fc971aed7480ef1dd4e68f4a600a80edc68f3b278",
+    "bytes": 20058,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/brands/actions.ts",
+    "sha256": "c56583a4c8791e9f3916b2272051bf5aa61944604bffd0fd696fc2e104b620f6",
+    "bytes": 417,
+    "storage": "git-base-crlf"
+  }
+]

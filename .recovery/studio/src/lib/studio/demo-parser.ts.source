@@ -1,0 +1,28 @@
+import { spawn } from 'node:child_process';
+import { isAbsolute } from 'node:path';
+import { FragForgePlan, type ClipReport } from '@/lib/schemas/studio-clips';
+import { reportFromFragForge } from './clip-ranking';
+
+/** CPU-only CLI boundary. No shell, arbitrary options, user rules, HLAE, credentials or network setup. */
+export async function parseDemo(binary: string, file: string, target: string, checksum: string, signal: AbortSignal): Promise<ClipReport> {
+  if (!isAbsolute(binary) || !isAbsolute(file) || !/^7656119\d{10}$/.test(target)) throw new Error('invalid_demo');
+  const output = await new Promise<Buffer>((resolve, reject) => {
+    const child = spawn(binary, ['parse', '--demo', file, '--steamid', target, '--segment-mode', 'kills', '--out', '-'], {
+      shell: false, windowsHide: true, stdio: ['ignore', 'pipe', 'ignore'], signal,
+      // The statically built Go parser receives no application/provider credentials.
+      env: { NODE_ENV: 'production', GOMAXPROCS: '2', GOMEMLIMIT: '768MiB' },
+    });
+    const chunks: Buffer[] = []; let size = 0, exceeded = false;
+    child.stdout.on('data', (chunk: Buffer) => {
+      size += chunk.length;
+      if (size > 512_000) { exceeded = true; child.kill(); } else chunks.push(chunk);
+    });
+    child.once('error', () => reject(new Error(signal.aborted ? 'parser_timeout' : 'parser_failed')));
+    child.once('close', (code) => code === 0 && !exceeded ? resolve(Buffer.concat(chunks)) : reject(new Error(exceeded ? 'invalid_plan' : signal.aborted ? 'parser_timeout' : 'parser_failed')));
+  });
+  let raw: unknown;
+  try { raw = JSON.parse(output.toString('utf8')); } catch { throw new Error('invalid_plan'); }
+  const plan = FragForgePlan.safeParse(raw);
+  if (!plan.success || plan.data.demo.sha256.toLowerCase() !== checksum || plan.data.target.steamid64 !== target) throw new Error('invalid_plan');
+  return reportFromFragForge(plan.data);
+}

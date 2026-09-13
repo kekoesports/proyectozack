@@ -1,0 +1,242 @@
+[
+  {
+    "path": "drizzle/0076_easy_lilandra.sql",
+    "sha256": "276fe388080c17ff946c5080f1c4b8cdc5767ef914dab2efbc173e28645f6ab6",
+    "bytes": 813,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "drizzle/0077_material_fallen_one.sql",
+    "sha256": "6157c2a7caa1753965439e261631cb330813138bc85fc3a9121f721dff2a0232",
+    "bytes": 67,
+    "storage": "git-base"
+  },
+  {
+    "path": "drizzle/0078_tricky_molecule_man.sql",
+    "sha256": "8f8f71b4b0e5a4833b23601f7cd3a6ecd2c913c0201b4cfa489d1a7838663de3",
+    "bytes": 915,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "drizzle/0079_split_amount_in_kind.sql",
+    "sha256": "5a2acf190b91ee5c5e417c46bef939321e9eee9897985c32d628a11c362f81b2",
+    "bytes": 359,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "drizzle/0080_invoice_scope.sql",
+    "sha256": "2ab72cf697ef5d4b0b4acc7f1c56e34ee53062a59677f559a2e5ad350783b068",
+    "bytes": 1017,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "drizzle/0081_freezing_thunderball.sql",
+    "sha256": "9b376f77b4484cfcbc905c4413619ae3f6740fc3ca28f89c5ee29bcba14bfabb",
+    "bytes": 904,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "drizzle/0082_loose_the_hood.sql",
+    "sha256": "f230b953c6b37850c642d59c156c7c8af6e138796105709b87331921b1b6c897",
+    "bytes": 1010,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "drizzle/0083_familiar_talisman.sql",
+    "sha256": "2a25c123ed441cf9b1301b3711bfd5fb0572792790369431b1d8ae25f0a5a72d",
+    "bytes": 348,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "drizzle/0084_tiny_beyonder.sql",
+    "sha256": "61f2c1a11e53b159db6ccf67e5079731c98ece38083ba6e8d3fb9cf50e88dac3",
+    "bytes": 150,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "drizzle/0085_open_old_lace.sql",
+    "sha256": "7b92061d0c4d009fb023984cd654856a5c05cc86ec21b68db930e55fed626ba3",
+    "bytes": 68,
+    "storage": "git-base"
+  },
+  {
+    "path": "drizzle/0086_stormy_umar.sql",
+    "sha256": "617414addf299c689d755af4a3d4d68ef5499c0a4ab413d9e8ac74a3abe8f58f",
+    "bytes": 73,
+    "storage": "git-base"
+  },
+  {
+    "path": "drizzle/0087_low_imperial_guard.sql",
+    "sha256": "9e0fc63949f2515d33f87c92f8bf25195bc44001a57c14f65775362f4fde220f",
+    "bytes": 1045,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "drizzle/0088_graceful_sebastian_shaw.sql",
+    "sha256": "e2f3171c8096d2697ac37ddccdccafeb4eef7dd88358a884bc9b2080f78effbb",
+    "bytes": 202,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "drizzle/0089_rectificativas.sql",
+    "sha256": "12ebf084b8cea884ea7c0f38d6aca0b64c0f016fdc9c03c788e613803102966a",
+    "bytes": 642,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "drizzle/0090_productive_moira_mactaggert.sql",
+    "sha256": "19bba68945677a12dd3d5e2c01f6c0e4a00e5693345945624644e3a79fd4c894",
+    "bytes": 3049,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "drizzle/0091_real_harrier.sql",
+    "sha256": "8cce225a11bc6e8dc5289eca12378f39b0631d2a07d6873f40aa1227459ae028",
+    "bytes": 8092,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "drizzle/0092_melodic_mentor.sql",
+    "sha256": "0527161b1bf0f89225423bf5e7e530345541c25c971e987a82f2ec0451fa14e5",
+    "bytes": 1900,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "drizzle/0093_lean_magdalene.sql",
+    "sha256": "a231875a812ed9adade590c1a38b68414b966a0cf35f684049534ea8f25cf645",
+    "bytes": 2475,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "drizzle/0094_tired_mathemanic.sql",
+    "sha256": "891708171d7df9a44f07eaaa56bc2c9d3ca15c4226fae0a3b69356e3bb4ed5ca",
+    "bytes": 4055,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "drizzle/0095_brave_bishop.sql",
+    "sha256": "deb937ecd1ae07784eb1de38329f453ff7d7dee6dfe75952f5536bb498577d43",
+    "bytes": 2494,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "drizzle/0096_bitter_marrow.sql",
+    "sha256": "6af5e793fb6754406df7a38b587649c12414001053fdfaf2ea70ea4576f6c207",
+    "bytes": 1972,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "drizzle/0097_fluffy_black_tom.sql",
+    "sha256": "c6bf2ad5d36c6c0fa36109a7902d9853c200dfbfd841c21adc7281d8da517fe2",
+    "bytes": 238,
+    "storage": "git-base"
+  },
+  {
+    "path": "drizzle/0098_volatile_kabuki.sql",
+    "sha256": "7228be7983c580072d3ca6f68e2c8d1f4344d540076d92cca61668e7d4081c1c",
+    "bytes": 185,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "drizzle/0099_watery_wilson_fisk.sql",
+    "sha256": "49dee421ed027a5607d1814f8702f1657bb3a0f9c675599cbd391d399d1c08a6",
+    "bytes": 1023,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "drizzle/0100_curious_doomsday.sql",
+    "sha256": "efef1d1aec18ca88df499df08fd2d9e7f97f2cd133565ce18d98afc4d91c3fa5",
+    "bytes": 339,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "drizzle/0101_heavy_fat_cobra.sql",
+    "sha256": "ebf003acbf0dbcbc6be94e181c5a727d6051c84b612389433f4c830975b86acc",
+    "bytes": 308,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "drizzle/0102_dry_fabian_cortez.sql",
+    "sha256": "08bef400361bafcc25f1a4b4068e0c9e84f6cf605f08a48606c85bbd3e37ea25",
+    "bytes": 86,
+    "storage": "git-base"
+  },
+  {
+    "path": "drizzle/0103_giveaway_platform.sql",
+    "sha256": "272fd587258b8f6161a87bf2e1d3fa87d4f53d39f8f9b6f5273e0485f9220a30",
+    "bytes": 6731,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "drizzle/0104_discord_missions_fase_a.sql",
+    "sha256": "bbf387137fc7de7ff3c74313cb67b536414ed9dd26661cd8935569b92beaf9bc",
+    "bytes": 3471,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "drizzle/0105_fix_connected_social_accounts_schema.sql",
+    "sha256": "d57d5e6fd1e89fd06a0a20ff546e8b29014d7883cb2d6e820bd03777432df031",
+    "bytes": 2979,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "drizzle/0106_user_partner_consents_and_audit.sql",
+    "sha256": "9f46b1a2d83b31ca836746eaf4d55065b37d5df0381b13d4ee73f5f53c717c51",
+    "bytes": 3190,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "drizzle/0107_creator_codes_is_hidden.sql",
+    "sha256": "b23c83e8b2f604a08072d6a30998739e31290b8d1a8ab7182f094890525202b8",
+    "bytes": 545,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "drizzle/0108_free_raffles.sql",
+    "sha256": "c9d4e02e11e26c12f7ed963f75e6e6170f2e8ff9a5ffb3b3ec7656359ca7a016",
+    "bytes": 1909,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "drizzle/0109_billing_clients_pdf_language.sql",
+    "sha256": "7511d5e3388af7b01d1ca11663d1fb4166010c4e10abe80b289b92029bf83820",
+    "bytes": 553,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "drizzle/0110_add_preroll_to_deliverable_type.sql",
+    "sha256": "4cb658cc269b60e989841c4ba60c9bdd82464b073eb2accb4c9261e95c401013",
+    "bytes": 676,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "drizzle/0111_add_tracking_sheet_to_campaigns.sql",
+    "sha256": "4ecd404e48a86a4a043d3f8f0a416fc9f351c186cfb1a9949a136ad8fbe81f9a",
+    "bytes": 1504,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "drizzle/0112_sorteos_integrity_hardening.sql",
+    "sha256": "dad66483e9d4d074f60bb4efcbc6ba113935364e91163484d82cf3ece3efb635",
+    "bytes": 1871,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "drizzle/0113_add_creator_notes_to_campaigns.sql",
+    "sha256": "d3b7b724582ea221c1d6ecd37198084b9350932bfb644c5196f1e310f009a04c",
+    "bytes": 459,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "drizzle/0114_seed_twitch_mission_zacketizor.sql",
+    "sha256": "0729c60d305efa1aa6136ff9120ccd55bb5243f33715838f9436e4a38a59bb25",
+    "bytes": 1675,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "drizzle/0115_automation_deals_api.sql",
+    "sha256": "95139f645a4284783f29c070422fbd4dd7bbe14b19226ca685c8a47b8577b11a",
+    "bytes": 1082,
+    "storage": "git-base-crlf"
+  }
+]

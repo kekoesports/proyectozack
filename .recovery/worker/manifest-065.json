@@ -1,0 +1,242 @@
+[
+  {
+    "path": "src/lib/services/ai-assistant/tools/index.ts",
+    "sha256": "ad6854e2e18ce1b8fab157a9711a07b6d7390e36b5fff68698cc9528536d7ff5",
+    "bytes": 11220,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/services/ai-assistant/tools/ipReadiness.ts",
+    "sha256": "0cfb6601d8c2eb929f4f0fa50df75586fc9f58eb2c212a943e3205243560a9a5",
+    "bytes": 296,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/services/ai-assistant/tools/operations.ts",
+    "sha256": "3522c2873fddee61035c672eabfcb7c88d7e90c32ba4f4337a5ddcaf2cde07c1",
+    "bytes": 3892,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/services/ai-assistant/tools/talentPerformance.ts",
+    "sha256": "fea81dfde88aaad0c27052f44e0784e55c53e3f3254719cc8e940f6f18158aa3",
+    "bytes": 2702,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/services/bank-reconciliation/invoicePaymentGuards.ts",
+    "sha256": "dd2ea7fb47b2895917e21d8631c373edfdbb878faacb5760a22ba1b059de56b2",
+    "bytes": 5468,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/services/bank-reconciliation/matcher.ts",
+    "sha256": "a1fbba7fd9f6069261ce5a524ef67a4facff99d7e194d5c554a2c6e6c136fe17",
+    "bytes": 6157,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/services/creator-discovery-deadline.ts",
+    "sha256": "d2027fdc2b4fcce87ae6c4c0335bbf009a8fd7bf4e525bbc66c9e6ec9eb6981d",
+    "bytes": 2582,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/services/creator-live-audience-collector.ts",
+    "sha256": "f7d39dd6e0043f6d587f12c47b60b78d5ed79f729f35e1db8f70a61b52ece43b",
+    "bytes": 2435,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/services/creator-reporting-recovery.ts",
+    "sha256": "cf5e520ff9f63406e2ac2470ee1ac174f5a2212f8064d382fc8fb8975d31b68c",
+    "bytes": 2744,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/services/creator-reporting-status.ts",
+    "sha256": "2aa7a07479fa3b92d64c71fab111d8974d2fea0ff6e70706ea8970a7532d4ae9",
+    "bytes": 342,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/services/creatorSearchProfiles.ts",
+    "sha256": "c57a753404ff701919f1e47117f9df45f6120f34b6909ee5a5a8db0d7db31ef8",
+    "bytes": 4015,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/services/creatorTargetDiscovery.ts",
+    "sha256": "0596897221c28152ddca8b2af019d0522c8c15a211ef63bb84903c3e1020c2a0",
+    "bytes": 29445,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/services/dealInvoiceDrafts.ts",
+    "sha256": "2bb281318bbfebd19e3f8c9ad6bba950febf06da7daa05d2d1b555506b703877",
+    "bytes": 10175,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/services/dealTrackingReminders.ts",
+    "sha256": "b05238bbf2a7ef3ac25e0a889d200650608f0635e57ecd4db11681365c509a6c",
+    "bytes": 7784,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/services/discovery-http.ts",
+    "sha256": "b0a8fdd87271daf01c155afb7d9ec59c2a546fb64ec53d41272f4fdd8ff21fe3",
+    "bytes": 5819,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/services/instagram.ts",
+    "sha256": "6b4f01d9faab37695902a8a1001e9a0a96f34b92dd4d6c0a3278ccef5f3781c1",
+    "bytes": 8729,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/services/ipEvidenceGithubSync.ts",
+    "sha256": "724390889557f934f4a5e51e9132abd800f06440ec793d37f5962d8225e90546",
+    "bytes": 4958,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/services/kick.ts",
+    "sha256": "f448723dc2adc9f1839daf10425942cbcb6851394b904168bc83d32df30aaa9d",
+    "bytes": 11838,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/services/provider-http.ts",
+    "sha256": "2f958b531920149e54c904423d5a253bf85336baaa0b8c8a174e85471fa666be",
+    "bytes": 3394,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/services/slash-accounting/sync.ts",
+    "sha256": "55128857b71c1b3e4f9d5e25f4564017f5676d054c4fa3b4625d30beae7843db",
+    "bytes": 12373,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/services/slash-accounting/webhook.ts",
+    "sha256": "045f130977c31bb43dba963308bf3aee4084014dc706a8c65a0adb9ff6b941a2",
+    "bytes": 1341,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/services/twitch-auth.ts",
+    "sha256": "823499f628d53be541017fa47215485b8247c56e71a24cdbf1b66cad5a3bc30c",
+    "bytes": 1418,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/services/twitch-discovery.ts",
+    "sha256": "93cb1170e30d78a0dbbee0a691bd5d288c4204036133cc58229a9af1d68e63b1",
+    "bytes": 9544,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/services/twitch.ts",
+    "sha256": "db95b78383d32cce3770c1f3f2ec6d26e04b5358212a88f6a78b36542cc03710",
+    "bytes": 10431,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/services/youtube-content.ts",
+    "sha256": "ae981478e029a891f737a229390ea64651bdedf2e4455eada348d20b930b2d4a",
+    "bytes": 13093,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/services/youtube-discovery.ts",
+    "sha256": "20e45867a0c0141ab941997744c8c3aa67bb5ca6be458361d7b8f58614b82240",
+    "bytes": 3505,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/services/youtube.ts",
+    "sha256": "3faef8b04e4aebdc4d6ed85b727bbd7226310eb4af07a2ebe64ae48e25fe5595",
+    "bytes": 15109,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/services/youtubeQualification.ts",
+    "sha256": "fc0bd3ca81eb53c7bf468dee679a252705e0af2caf3d125f7de8a674e15cbb42",
+    "bytes": 6198,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/site-url.ts",
+    "sha256": "0a33b96b44ae660f986152dd1dd2564f5ff1ee11b191ea8670f13f01a46e8d68",
+    "bytes": 2293,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/steam/openid.ts",
+    "sha256": "8e896491ceede43a3fba9d0bca1da693f04d48b7987333b335f88c91feedaf9c",
+    "bytes": 4253,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/steam/plugin.ts",
+    "sha256": "24f8bc8711e9004aef0d155cd732e7260fdde7f5d3daaf28e95e52a7d6dc4cf1",
+    "bytes": 11351,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/steam/profile.ts",
+    "sha256": "3c6d5f6e571153bf327156be5bb4f2f738691bcffe6e34e03851695922093cf4",
+    "bytes": 2473,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/steam/return-to.ts",
+    "sha256": "0060e466309cc754a25d0f9a9b1938c3e91272a48d85274150e024306bc67f0a",
+    "bytes": 2705,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/studio/access.ts",
+    "sha256": "b78e10d0592e59f2a944befa361ef93380935dd10e7842a283a1688a3c642d62",
+    "bytes": 2607,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/studio/agency.ts",
+    "sha256": "bf58b0c6d1a36a16886369aae5f1ef1cc20ee2a8c120c517ccb6eb47bf7508ac",
+    "bytes": 3178,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/studio/analytics.ts",
+    "sha256": "985a4833297f22bdb13b3b8fafcbaf6e976008528be2f6c035d2780ddb6ec805",
+    "bytes": 1666,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/studio/asset-response.ts",
+    "sha256": "7afb196839a4b605c0e8d62be0cd94aad24cda6d213cc45fb6a9bace57b3d397",
+    "bytes": 1755,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/studio/assistant.ts",
+    "sha256": "4cc11b55ac3a00d6088b000a08f5a2f935baae2133b1f9a8b35cd642e5b07c0d",
+    "bytes": 2094,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/studio/byte-range.ts",
+    "sha256": "d8ddc936be21b96beb229c31213300e7e92b9b20b9648c7496e5ae5aaf3db551",
+    "bytes": 2207,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/studio/channel-repository.ts",
+    "sha256": "b73319e5f4a7bd885e955cf0f759d8801eee17a65c43f6cb102fcd4f4311b0dc",
+    "bytes": 3579,
+    "storage": "git-base-crlf"
+  }
+]

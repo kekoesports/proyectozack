@@ -1,0 +1,242 @@
+[
+  {
+    "path": "src/lib/queries/contractTemplates.ts",
+    "sha256": "2dbfb7f324252ba1ff43ba012747d4e23c160a10c81ec99fa290369ddbbcf8ae",
+    "bytes": 2088,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/contracts.ts",
+    "sha256": "d5c5b4c32ce5f2c7023849c226acece0e2a5e27bcda89e36d05cb88006fc9a8a",
+    "bytes": 2891,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/creatorCodes.ts",
+    "sha256": "929a5e7dbfe810805bc13011d75107c88435626519d4f2e225ace5b029a5d018",
+    "bytes": 6308,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/creatorDigest.ts",
+    "sha256": "540d4fc066ac9268457bc3543a116174809ecfc31ddcfa6dc6a5adc826843c4b",
+    "bytes": 3362,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/creatorDiscardReevaluation.ts",
+    "sha256": "1159e8c976e5f6685ff2f7dbad2cd2448b062b93a9a25f6442cf5e109106bf7e",
+    "bytes": 3368,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/creatorDiscoveryBudget.ts",
+    "sha256": "07db685b19b81ee1ccd0ee25f211e5bdd65974dd82a11eb354ce76b163391de8",
+    "bytes": 1990,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/creatorDiscoveryRecovery.ts",
+    "sha256": "db8d2e8cacdf79fd6f02e512f7f1e5a4ca4356fd3cf3bcd835ec69509d147353",
+    "bytes": 1509,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/creatorDiscoveryReporting.ts",
+    "sha256": "1526cc50a4bfedad495422d7d5bc2e947e28a8a4ec17d0bfc5e37550ec3a0a28",
+    "bytes": 9331,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/creatorDiscoveryRuns.ts",
+    "sha256": "d2dedf5b08a032a09bec809e77a6fc56c47dc04b6912d05890a2e56aafbd8c2c",
+    "bytes": 2259,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/creatorIdentity.ts",
+    "sha256": "3f8701dd73e2ead71e9594f95c468394a4abf0e0ee94c6c86e8d8a772ff6fe9c",
+    "bytes": 8319,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/creatorProviderReadiness.ts",
+    "sha256": "ae7cd79babcdf5fed74f84f74560505f7e6d7f74b95a1b8931af35ddb9a4a1ef",
+    "bytes": 1935,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/creatorRetention.ts",
+    "sha256": "dd5bbae38251d5ce146a2166eb3d2a095061cce571dd43d5e15e7646e2b7f7bc",
+    "bytes": 6291,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/creatorSearchProfiles.ts",
+    "sha256": "60f354fb929c866fbe4dfd21fcacf57cfed08740276f73a5d134b964fce805d5",
+    "bytes": 3721,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/creatorTargetViews.ts",
+    "sha256": "e0802f6e9702a872a6ecffeee0b5081c0c6ea322b80e648224459168cc8dc42e",
+    "bytes": 1116,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/creatorTargetsApi.ts",
+    "sha256": "2a581a7dba0e97f1d50463c0cc633cd44cca1e7f74473eae441d43c8e13ad719",
+    "bytes": 6166,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/crmBrands.ts",
+    "sha256": "bbad5208af43fbcb84544ff9515268fa5166516f89a7c6ceafdf867532d89694",
+    "bytes": 19505,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/crmEvents.ts",
+    "sha256": "b040def5218b7d5e5634ed9234b795e83a10844c47fc80abf6d3c458ab7fd9ff",
+    "bytes": 1771,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/crmTasks.ts",
+    "sha256": "a8231e255e8cef51f7e9ae4ea73b8249bc3b6291cf4f6b5c0a954d704361b40c",
+    "bytes": 25581,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/lib/queries/dashboard.ts",
+    "sha256": "2836f6573d46c766764852b82149fa0bf824821032a75a67ae8284b447bc7de6",
+    "bytes": 29621,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/deal-trackers.ts",
+    "sha256": "42468c20eaa48182dcea6e2fb88bd4b8962f18ea2587ed8ad78484ff3e504c89",
+    "bytes": 19616,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/deliverables.ts",
+    "sha256": "bbe88c17e568f44b36e468f3cc11bfabe04e630774e10ca72e7886a0f693c99d",
+    "bytes": 5368,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/editorialSlots.ts",
+    "sha256": "cdeb88e593b6c7457192dea1f499661e2aa8543de457fcde4bea8f45ad4b7937",
+    "bytes": 7465,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/ensureCampaignContractDraft.ts",
+    "sha256": "112db2f538682338950d0cb2ca88475ff4d4723d4c1ad5dc3f442b9584cd070a",
+    "bytes": 7905,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/ensureDealTrackingSheet.ts",
+    "sha256": "c546b21a5c0d523aff1a3f7afecab136af271cfa8e191d86b178776bf1915c2c",
+    "bytes": 4670,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/entityAssets.ts",
+    "sha256": "d96e174fde67312f3d8a06fb8bca5b3473961791c29ed647565d7ce5b0d9f42a",
+    "bytes": 1455,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/externalGiveaways.ts",
+    "sha256": "02b9ec24e2260180151e0041f1bba0f96a2eee31f2588829ff818f69d9d2290f",
+    "bytes": 1631,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/files.ts",
+    "sha256": "faa28fd549b07cf2945d2913c0a7f5d339b5f7c4ed9164647cbc5747d0431117",
+    "bytes": 2046,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/financeDashboard/alerts.ts",
+    "sha256": "f465102c27cf4013ccb4aaea5a9fac0923f819d1f190f72a8fac13d78dc88ebe",
+    "bytes": 2534,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/financeDashboard/arAging.shared.ts",
+    "sha256": "e9d40ac394f1896cfc1d72172630f4e1cd88e85203d4a6799a7f22207d3cb3c3",
+    "bytes": 9100,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/financeDashboard/arAging.ts",
+    "sha256": "b085c35c8a2096f69568b63d14cd255ebaa3f0fd9f185c92e2b44df6b31e0856",
+    "bytes": 8355,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/financeDashboard/bankDataStatus.ts",
+    "sha256": "27cd73244723544629497c8c4617fe263aedd4797d7f4fa0fe66fc75e76a79a6",
+    "bytes": 1562,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/financeDashboard/campaignMargins.ts",
+    "sha256": "99e5b2456209ccc1cacbe738b83d6ba1221f3931a6dd67255543cb37c93aee58",
+    "bytes": 853,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/financeDashboard/cashflow.ts",
+    "sha256": "657a7f48b41ff66aad4d1f073ed4d4a215be8aecc9b7188235feaff1aca3b063",
+    "bytes": 3115,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/financeDashboard/expenseSubgroups.ts",
+    "sha256": "bc788975ab8a3ea1918f1826c896cdbbd215eecf102199da53856146c16729c2",
+    "bytes": 11864,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/financeDashboard/financeResumen.shared.ts",
+    "sha256": "0fdf34020eb9473dde1e2ae5dcbf86d592ba2f3057b6c303a778bd616ed4e4e8",
+    "bytes": 5389,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/financeDashboard/financeResumen.ts",
+    "sha256": "5e1cb6187048ed5b1369a23f061edf7b0302621c82f12ba7b5a3e1d042808435",
+    "bytes": 12768,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/financeDashboard/finanzasResumenV2.shared.ts",
+    "sha256": "faac6776e0b02eb0681ef59595fc455ded7cd203b8778d8e4c3d1d2108152ef7",
+    "bytes": 10144,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/financeDashboard/finanzasResumenV2.ts",
+    "sha256": "5ba40d93cd0c92c0556f81de1f17d9f6907a77e1601db64c43f55f22bad62a0b",
+    "bytes": 15973,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/financeDashboard/gastos.ts",
+    "sha256": "e882ffd93933c3732cd63605563ede72968239fff042255de0524cf769711609",
+    "bytes": 11394,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/financeDashboard/index.ts",
+    "sha256": "efe6121887d1ae709b5fe8586dd5b43075aac75a0e81378fa1a92851ad40ba3f",
+    "bytes": 1790,
+    "storage": "git-base-crlf"
+  }
+]

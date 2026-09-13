@@ -1,0 +1,50 @@
+import { env } from '@/lib/env';
+import { db } from '@/lib/db';
+import { creatorIntake } from '@/lib/queries/creatorIntake';
+import { IntakeWahaUpdate } from '@/lib/schemas/intakeWaha';
+import { timingSafeEqual } from '@/lib/security/timingSafeEqual';
+import { normalizeWahaIntake } from '@/lib/intake/waha-normalize';
+import { extractCreatorIntake } from '@/lib/intake/extractor';
+import { deliverIntake } from '@/lib/intake/delivery';
+import { sendIntakeWaha } from '@/lib/intake/waha-send';
+import { readIntakeBody } from '@/lib/intake/request-body';
+import { resolveWahaPeer } from '@/lib/intake/waha-peer';
+import { captureWhatsAppContact } from '@/lib/intake/contact-capture';
+import { contactCaptureConfig } from '@/lib/intake/contact-capture-config';
+
+export const dynamic = 'force-dynamic';
+export const maxDuration = 60;
+
+export async function POST(request: Request): Promise<Response> {
+  const secret = env.CREATOR_INTAKE_WAHA_SECRET;
+  const session = env.CREATOR_INTAKE_WAHA_SESSION;
+  const phone = env.CREATOR_INTAKE_WHATSAPP_PHONE;
+  const chats = env.CREATOR_INTAKE_WHATSAPP_CHATS;
+  const startAt = env.CREATOR_INTAKE_WAHA_START_AT;
+  if (!env.CREATOR_INTAKE_ENABLED || !env.CREATOR_INTAKE_WAHA_ENABLED
+    || !secret || !session || !phone || !chats || !startAt) return Response.json({ ok: false }, { status: 503 });
+  // Dedicated transport secret, sent as WAHA customHeaders on the private network.
+  const header = request.headers.get('x-socialpro-waha-secret');
+  if (!header || !timingSafeEqual(header, secret)) return Response.json({ ok: false }, { status: 401 });
+  const body = await readIntakeBody(request);
+  if (!body.ok) return Response.json({ ok: false }, { status: body.status });
+  const parsed = IntakeWahaUpdate.safeParse(body.value);
+  if (!parsed.success) return Response.json({ ok: false }, { status: 400 });
+  try {
+    const resolved = await resolveWahaPeer(parsed.data);
+    const event = normalizeWahaIntake(resolved, { session, phone, chats: chats.split(','), startAt, now: new Date(),
+      ...(env.CREATOR_INTAKE_WAHA_RUN ? { run: env.CREATOR_INTAKE_WAHA_RUN } : {}),
+    });
+    if (!event) {
+      if (!contactCaptureConfig.enabled) return Response.json({ ok: true, ignored: true });
+      const capture = await captureWhatsAppContact(db, resolved, { session, phone,
+        startAt: contactCaptureConfig.startAt, now: new Date(), excludedChats: chats.split(',') });
+      return Response.json({ ok: true, ignored: !capture.captured, ...capture });
+    }
+    const result = await creatorIntake.ingest(event, extractCreatorIntake);
+    if (env.CREATOR_INTAKE_SEND_ENABLED) await deliverIntake(db, result.id, sendIntakeWaha, new Date(startAt), 'whatsapp');
+    return Response.json({ ok: true, duplicate: result.duplicate });
+  } catch {
+    return Response.json({ ok: false, error: 'processing-failed' }, { status: 500 });
+  }
+}

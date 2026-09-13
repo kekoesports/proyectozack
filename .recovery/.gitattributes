@@ -1,0 +1,5 @@
+# Preserve captured source bytes, including original line endings.
+*.source -text -diff
+*.json text eol=lf
+*.md text eol=lf
+*.cjs text eol=lf

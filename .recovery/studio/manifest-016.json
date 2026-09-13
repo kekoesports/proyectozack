@@ -1,0 +1,242 @@
+[
+  {
+    "path": "src/__tests__/server/creator-live-category.test.ts",
+    "sha256": "ded99bb160d9283756019546727fcf9143921764397fada4a879343b5c6c414d",
+    "bytes": 2179,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/creator-observation-ordering.test.ts",
+    "sha256": "ac92d0b1aeba0411feda6a9af223e062289070489b9e0d36893dcd91c270477c",
+    "bytes": 3412,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/creator-profile-execution-boundary.test.ts",
+    "sha256": "acdbc765043cb84048407fdb3b0fa725c43e5c98b600ab47f7e9d4ead41664bf",
+    "bytes": 7105,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/creator-profile-placeholder.test.ts",
+    "sha256": "ae31efcfc818a4053403d6147aa8c520c1e17c69775b235c4921a09820d170e1",
+    "bytes": 3163,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/creator-profile-query-boundary.test.ts",
+    "sha256": "5ceba42c70ac5bf66ff0e1e1da0698e3d72a48a0d81d50c25a94b8b158bf14ef",
+    "bytes": 7366,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/creator-profile-save-authority.test.ts",
+    "sha256": "6e0ee4a5bb7757b074e04127909018776db9d05af29e9ad95d81c4549375ee3e",
+    "bytes": 3645,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/creator-reporting-recovery-cron.test.ts",
+    "sha256": "9ec18a953fe15958abdc40b77adecfcbdd7ce16bad10dfad9891f7d7bfbcb2f6",
+    "bytes": 4047,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/creator-reporting-recovery-query.test.ts",
+    "sha256": "13b581ff9b59afb3c30b794bcb2f4499719413919a8805c6d5f29f11f50a0b6f",
+    "bytes": 2560,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/creator-reporting-recovery.test.ts",
+    "sha256": "c3be39a822c41fdea7fd19bd65a6ce36b781ddff222e88379a4137b92d4eed28",
+    "bytes": 6232,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/creator-reporting-state.test.ts",
+    "sha256": "0b32df5dce6b13c8a240de3a2d727944fe22130073fac00cf5e2a4a1616be4de",
+    "bytes": 17616,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/creator-retention-fixtures.ts",
+    "sha256": "87a9e2caf3a0f7ca1762410ac8160491ca01ba30d7fdc29676532ff4fb813551",
+    "bytes": 1905,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/creator-retention-query.test.ts",
+    "sha256": "ab15cbede8c1266489103b873f8a7f151b1d6e9003da3b4c08f567ebaf158f32",
+    "bytes": 7861,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/creator-retention.test.ts",
+    "sha256": "5a94a243f91be5ecbff5fcf9e482ce3fbf2252ba57101a5d37e3c60846311049",
+    "bytes": 6505,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/creator-search-profile.test.ts",
+    "sha256": "88539332e30344dd806a9637e9c2a62d047d1774bd741e5eb2b1d82b640a7323",
+    "bytes": 2884,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/creator-target-discovery-cron.test.ts",
+    "sha256": "56b397dc88bbff5f2f5ae786ba285d0961f3d8b92cfda1dfe70a43fd2316a948",
+    "bytes": 1697,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/creator-target-discovery-error.test.ts",
+    "sha256": "87ff87cc002cc8f1e1a42102434c6e685040a753e0ff5deee89ab0be88bb6f89",
+    "bytes": 951,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/creator-target-discovery-profiles.test.ts",
+    "sha256": "bb17047e5874cb7695787d2fb0ff76ce1f85682b0bc4888103778716696974c4",
+    "bytes": 25875,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/__tests__/server/creator-target-qualification.test.ts",
+    "sha256": "5e5f2e1e6435de971245f9dd0622e24a56b7028cd39facae9b01502445bf2a00",
+    "bytes": 2704,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/__tests__/server/creator-zacketizor.test.ts",
+    "sha256": "497924e1243b1d685da24fa302b9b02b189ab1e747d6384a1b416dd147ed280c",
+    "bytes": 3331,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/crm-admin-qa-2026-08-01.test.ts",
+    "sha256": "a4b9a97c0de1fa4f318fc423d4705c28461d380cd6cc36406b6ace5d8f517e94",
+    "bytes": 4493,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/crm-admin-qa-2026-08-10-sprint2.test.ts",
+    "sha256": "f937ca0747200f66c7128cf576db73086c7add1a4f170928f0a762ae10f70a4c",
+    "bytes": 10043,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/__tests__/server/crm-admin-qa-2026-08-10-sprint3.test.ts",
+    "sha256": "d680dc82b2fe6f0cdae4048c0767f6ca2d2a5f4d726bbd2f73b14804c2aef588",
+    "bytes": 3576,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/crm-admin-qa-2026-08-10-sprint4.test.ts",
+    "sha256": "7ce05d0f2de5dc3db3596a3c02de2adca9d66bac22b820e05283e39a5361490f",
+    "bytes": 4802,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/crm-admin-qa-2026-08-10.test.ts",
+    "sha256": "1534997decc8cc13bca1be95cf66ead0f8c7d136beb51aa4a83f74919cc49f0e",
+    "bytes": 3810,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/crm-admin-qa-critical-residuals.test.ts",
+    "sha256": "5d5f0aa47c00eff6803a8608af0e57b03bd64c2a269059a2896cae1c55f799fe",
+    "bytes": 7337,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/crmBrands.test.ts",
+    "sha256": "c00a56659ddb9cf9dfb13b0defe72d31cf5b1c2af702ebef9a495e513d0035ce",
+    "bytes": 13204,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/crmTasks.test.ts",
+    "sha256": "94a6ca6406cd84e3f9d77a2cf8d369e2130d93919dbdbe07b42bb41e7869226b",
+    "bytes": 8166,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/cron-rollover.test.ts",
+    "sha256": "5c9c3d79dbdbdc3ea430366f5da87fd2bfd6fb675d2e64a8fd6dfada7d53b29c",
+    "bytes": 3074,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/csp-wasm-policy.test.ts",
+    "sha256": "2f371ec1ce622e9ccfd97070dbd807d5644ee26e403f091d482cb9feade6be1b",
+    "bytes": 2682,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/csv-parser.test.ts",
+    "sha256": "9539f03ec09779e88dd71b95c05e804abcc67596e0aa679e7f2679ae3809e222",
+    "bytes": 7629,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/daily-streak.test.ts",
+    "sha256": "f66fc5d74479ed741cb52c699c825c7a3838fdff40c09fcbe49b9dda9119408c",
+    "bytes": 5278,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/date-utils.test.ts",
+    "sha256": "aaac1524c4978243ac8401ad9ecbf67b9b00ff83fe86e6682bbc299488cc8eb0",
+    "bytes": 1894,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/deal-invoice-copy.test.ts",
+    "sha256": "cecf58751e1f261c656ea04f1d97be2ff47f493f45f8bcbf8cb8f90022d9f1f4",
+    "bytes": 2393,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/deal-invoice-drafts.test.ts",
+    "sha256": "b2d7ed179a477bbbdf8d9b29836d0b6a96031362e7b4dc0baf0ffddcfd49ccec",
+    "bytes": 5552,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/deal-tracker-import.test.ts",
+    "sha256": "34878f7aa1e4c6d6a53b2fa8939f513d67e014fa491f0c82ca24cb87876db073",
+    "bytes": 10325,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/deal-tracking-drive.test.ts",
+    "sha256": "fbcded70168226cefa5e64a5d59c1b312665fcf8dcbea9b0c12600b3a2527a41",
+    "bytes": 11587,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/deal-tracking-reminders.test.ts",
+    "sha256": "99ee3d4446db0561503e04d4a2f2a3542d7d21e1db1f14e5652c7b7f2bff96c0",
+    "bytes": 3576,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/deal-tracking-sheet.test.ts",
+    "sha256": "efe8fe7a079f3221fe76c7482c10027f91f8b3eb70bfc68b3c43dfdab9fb85b5",
+    "bytes": 6732,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/dedupe-deliverable-items-migration.test.ts",
+    "sha256": "677a022625247b0373179b71bc317dd0bafb127097fe8044cda6887a518dd039",
+    "bytes": 2344,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/deploy-env.test.ts",
+    "sha256": "bed9cf6e4100225ec6c68d923d71fa1924d7572f1d4c4a306ee6f84441ba2fdb",
+    "bytes": 2875,
+    "storage": "git-base-crlf"
+  }
+]

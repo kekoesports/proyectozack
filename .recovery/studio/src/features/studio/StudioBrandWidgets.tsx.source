@@ -1,0 +1,54 @@
+'use client';
+
+import Image from 'next/image';
+import Link from 'next/link';
+import { useWatch, type Control, type UseFormSetValue } from 'react-hook-form';
+import { Music2, Radio, BadgeCheck } from 'lucide-react';
+import type { StudioBoard } from '@/lib/schemas/studio-production';
+import type { StudioWidgets } from '@/lib/schemas/studio-widgets';
+import type { StudioMediaAsset } from './StudioMedia';
+
+const emptyWidgets: StudioWidgets = { music: null, channel: null, sponsor: null, position: 'top', licensed: false };
+
+export function StudioBrandWidgets({ control, setValue, assets }: {
+  control: Control<StudioBoard>; setValue: UseFormSetValue<StudioBoard>; assets: StudioMediaAsset[];
+}) {
+  const widgets = useWatch({ control, name: 'widgets' }) ?? emptyWidgets;
+  function update(change: Partial<StudioWidgets>) { setValue('widgets', { ...widgets, ...change }, { shouldDirty: true, shouldValidate: true }); }
+  const music = assets.filter((asset) => asset.contentType.startsWith('audio/'));
+  const logos = assets.filter((asset) => asset.contentType === 'image/png');
+  return <section className="studio-brand-widgets" aria-label="Widgets de música, canal y patrocinador">
+    <header><p className="studio-eyebrow">WIDGETS / TU IDENTIDAD</p><h3>El clip es tuyo. El acabado también.</h3><p>Capas opcionales para el MP4 final. No modifican rostros ni consumen créditos de generación.</p></header>
+    <div className="studio-widget-grid">
+      <fieldset><legend><Music2 size={17} />Música de fondo</legend>
+        <label>Pista de tu biblioteca<select value={widgets.music?.assetId ?? ''} onChange={(event) => update({ music: event.target.value ? { assetId: event.target.value, volume: .12, ducking: true } : null, licensed: false })}>
+          <option value="">Sin música añadida</option>{music.map((asset) => <option key={asset.id} value={asset.id}>{asset.name}</option>)}</select></label>
+        {widgets.music ? <><label>Volumen · {Math.round(widgets.music.volume * 100)}%<input aria-label="Volumen de música" type="range" min="0.04" max="0.4" step="0.01" value={widgets.music.volume} onChange={(event) => { if (widgets.music) update({ music: { ...widgets.music, volume: Number(event.target.value) } }); }} /></label>
+          <label className="studio-widget-check"><input type="checkbox" checked={widgets.music.ducking} onChange={(event) => { if (widgets.music) update({ music: { ...widgets.music, ducking: event.target.checked } }); }} />Bajar la música cuando suena la voz o el juego</label>
+          <audio key={widgets.music.assetId} src={`/api/studio/assets/${widgets.music.assetId}`} controls preload="none" aria-label="Escuchar la pista original, sin mezcla" /><small>Escucha de la pista original. La mezcla y el volumen se comprueban en el MP4 exportado.</small></> : <p>La voz y el sonido del juego se conservan. La música tendrá entrada y salida suaves.</p>}
+      </fieldset>
+      <fieldset><legend><Radio size={17} />Canal del creador</legend>
+        <label>Plataforma<select value={widgets.channel?.platform ?? ''} onChange={(event) => { const platform = event.target.value; update({ channel: platform === 'twitch' || platform === 'kick' ? { platform, handle: widgets.channel?.handle ?? '' } : null }); }}>
+          <option value="">Sin overlay de canal</option><option value="twitch">Twitch</option><option value="kick">Kick</option></select></label>
+        {widgets.channel ? <label>Nombre del canal · sin @<input value={widgets.channel.handle} maxLength={25} placeholder="kekoesports" onChange={(event) => { if (widgets.channel) update({ channel: { ...widgets.channel, handle: event.target.value.replace(/^@/, '') } }); }} /></label> : <p>Una placa discreta con la plataforma y el nombre del canal. Entrada animada, sin tapar el centro.</p>}
+      </fieldset>
+      <fieldset><legend><BadgeCheck size={17} />Patrocinador</legend>
+        <label>Logo PNG de tu biblioteca<select value={widgets.sponsor?.assetId ?? ''} onChange={(event) => update({ sponsor: event.target.value ? { assetId: event.target.value } : null, licensed: false })}>
+          <option value="">Sin patrocinador</option>{logos.map((asset) => <option key={asset.id} value={asset.id}>{asset.name}</option>)}</select></label>
+        <p>PNG con fondo transparente. Si tiene un fondo opaco, la exportación lo rechazará y pedirá el archivo correcto. No se estira ni se recorta.</p>
+      </fieldset>
+    </div>
+    {(widgets.channel || widgets.sponsor) && <label className="studio-widget-position">Posición de los overlays<select value={widgets.position} onChange={(event) => { if (event.target.value === 'top' || event.target.value === 'bottom') update({ position: event.target.value }); }}><option value="top">Arriba · margen de seguridad</option><option value="bottom">Abajo · por encima de los controles</option></select></label>}
+    {(widgets.music || widgets.sponsor) && <label className="studio-widget-check"><input type="checkbox" checked={widgets.licensed} onChange={(event) => update({ licensed: event.target.checked })} />Tengo permiso para usar esta música y/o este logo en la pieza y sus redes de destino.</label>}
+    <p className="studio-widget-footnote">Añade tus pistas y logos en <Link href="/studio/library">Biblioteca</Link>. El contrato del creador no sustituye la licencia de una canción de terceros.</p>
+  </section>;
+}
+
+export function StudioWidgetPreview({ control }: { control: Control<StudioBoard> }) {
+  const widgets = useWatch({ control, name: 'widgets' });
+  if (!widgets?.channel && !widgets?.sponsor) return null;
+  return <div className={`studio-widget-overlay ${widgets.position}`} aria-hidden="true">
+    {widgets.channel && <div className={`studio-widget-channel ${widgets.channel.platform}`}><small>{widgets.channel.platform.toUpperCase()}</small><strong>@{widgets.channel.handle || 'tu_canal'}</strong></div>}
+    {widgets.sponsor && <div className="studio-widget-sponsor"><small>PATROCINADOR</small><Image src={`/api/studio/assets/${widgets.sponsor.assetId}`} alt="" width={180} height={65} unoptimized /></div>}
+  </div>;
+}

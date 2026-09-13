@@ -1,0 +1,242 @@
+[
+  {
+    "path": "src/features/admin/finance-dashboard/components/rentabilidad/RentabilidadKpis.tsx",
+    "sha256": "99d23cc927671448061b853ebcbbdbebefe514afcffd66a3c326f494b84af430",
+    "bytes": 2879,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/finance-dashboard/components/rentabilidad/RentabilidadLecturaRapida.tsx",
+    "sha256": "0dc0049ccaedcbea0e1f0c1422488513b95dd34762287f1e1948eb7c5cca239e",
+    "bytes": 2768,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/finance-dashboard/components/rentabilidad/RentabilidadRankings.tsx",
+    "sha256": "fac647b5ceaa93d172cfdbb50d2849a2dbf650a6e9b096cc763d2bd1f9d32e84",
+    "bytes": 10731,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/finance-dashboard/components/rentabilidad/RentabilidadServicioAparcado.tsx",
+    "sha256": "42d98a54531beebeffd82a520ee1d193e12f8e3be8d4ae9f1e625d3364f28fc5",
+    "bytes": 1397,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/finance-dashboard/components/rentabilidad/RentabilidadTabla.tsx",
+    "sha256": "9ed0d7725b68b08a6b7a17e05b7ddd16aeb2787e62356dcd4dadfad5ea55b5a4",
+    "bytes": 7223,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/finance-dashboard/components/resumen-v2/ResumenCostesMargenBlock.tsx",
+    "sha256": "228a285d159bb220d7f839f52a727fe0c6a2c6a12ad049c83d2d673c4f9586ea",
+    "bytes": 3514,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/finance-dashboard/components/resumen-v2/ResumenFilters.tsx",
+    "sha256": "55892dc2c357da81943584d7cebe0f4cbe231210546d7557f0102c099db6968e",
+    "bytes": 3560,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/finance-dashboard/components/resumen-v2/ResumenImpuestosBlock.tsx",
+    "sha256": "4f33579a9571998b1f22672eca77f37ad797b8f915f11d7fd6f2b5600dc95618",
+    "bytes": 2394,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/finance-dashboard/components/resumen-v2/ResumenIngresosBlock.tsx",
+    "sha256": "7e99434b678d100d0bfd01f40109a5b83de1dd2a86e19f904bc06026c8816832",
+    "bytes": 2851,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/finance-dashboard/components/resumen-v2/ResumenIvaBlock.tsx",
+    "sha256": "0616b8296b09e7edd6ca580546b9303d1acbe3b3a9f9ad89659ae9d0f3b5712a",
+    "bytes": 3901,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/finance-dashboard/components/resumen-v2/ResumenNominasBlock.tsx",
+    "sha256": "814cff1dad436cc39ced15e6fbf1e983beca04ae8ecd0b453aacfbd87590b680",
+    "bytes": 1903,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/finance-dashboard/components/resumen-v2/ResumenOperativosBlock.tsx",
+    "sha256": "efa94b2ce73c22706720634ef9f8dadce4d884776d9c829e3df9ce9843768926",
+    "bytes": 2390,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/finance-dashboard/components/resumen-v2/ResumenPendientesBlock.tsx",
+    "sha256": "ff9bd88bcced1be28ea0bd1268ecf4eb96d8fe78ba2638164e353a2c287bebd4",
+    "bytes": 5072,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/finance-dashboard/components/resumen-v2/ResumenResultadoBlock.tsx",
+    "sha256": "c92c08376a5b56f9f63b94eca0ea60904131a8b99a9abc59ddde236804ce6944",
+    "bytes": 3189,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/finance-dashboard/components/resumen-v2/SectionCard.tsx",
+    "sha256": "b127d812d7d4611869e754430a637f4a511d739cc3e62030d6223b4e17de10ff",
+    "bytes": 828,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/finance-dashboard/components/resumen-v3/AgingChart.tsx",
+    "sha256": "ca2c946bedf606f36bd449ab9eefc65dbbbd513963ab3086e51f7a33453d9dc1",
+    "bytes": 3051,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/finance-dashboard/components/resumen-v3/AlertasBloque.tsx",
+    "sha256": "d864c01ae0c086420e972cba3bec55d006a5c5a470c6247c7fcfc8709eb3752c",
+    "bytes": 2946,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/finance-dashboard/components/resumen-v3/BankDataWarning.tsx",
+    "sha256": "3519079136c401c3a846d3b6e8b2de5625b4e14907e7563fbf2eec186deca003",
+    "bytes": 1484,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/finance-dashboard/components/resumen-v3/ExpensesByCategoryChart.tsx",
+    "sha256": "6ec27c4dd84b4beb4dd1c856ac0c77aada2316f7b4fdf92fd26910a5518ea868",
+    "bytes": 2634,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/finance-dashboard/components/resumen-v3/IncomeExpenseChart.tsx",
+    "sha256": "121123e2dd6b9f4d7f03c110c786ef00be9f097cd511dba7e91a6702347c6acf",
+    "bytes": 3358,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/finance-dashboard/components/resumen-v3/InvoicedVsCollectedChart.tsx",
+    "sha256": "d855993e50885656fcc15e0b87bfd5dec4a9f771bd61663596fd500d0fa92e78",
+    "bytes": 3777,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/finance-dashboard/components/resumen-v3/KpisPrincipales.tsx",
+    "sha256": "f1660395b84976b96f5d1b58c4d5783f827a44650af36e421c3aacaa691a2a77",
+    "bytes": 4778,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/finance-dashboard/components/resumen-v3/LecturaRapida.tsx",
+    "sha256": "a570c0fd6d6017ca0e63ece04923f1107677b9131ceff2aed6bdc679b6be91c8",
+    "bytes": 5249,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/finance-payroll/PayrollImportWizard.tsx",
+    "sha256": "b932ffab987d8ef266289ed8719f658a9aec99984aea7275e1c77c115f2d9d6f",
+    "bytes": 38434,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/finance-payroll/client-ocr/parseOcrText.ts",
+    "sha256": "f2931c6187488710ffeb61dbeddf2ab005284a0a57b865ebc2d630fbc85d63d9",
+    "bytes": 11492,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/finance-payroll/client-ocr/runClientOcr.ts",
+    "sha256": "3ae5ff31fe20e36a825a0f368ba724392c928c8d049ba742a39082262fb8e99e",
+    "bytes": 9309,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/finance-setup/Setup2026Wizard.tsx",
+    "sha256": "4cab6f47549bddd467a0d7889579fd85265db1c89ea91d4fa33ef0d5f6001e5d",
+    "bytes": 31143,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/invoices/components/AccountingImporter.tsx",
+    "sha256": "9ebe562b980c62dc247e5f3c70a83ab478fc1d6a87a89c9f927a27b601794f6c",
+    "bytes": 38180,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/invoices/components/BillingClientsManager.tsx",
+    "sha256": "f41641bf439c0dac22f04a1fad823eb060fbbeabb67b745e1580e28e316240cb",
+    "bytes": 19770,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/invoices/components/BillingMovementModal.tsx",
+    "sha256": "c0491dd404765031c0d72a7912595338060ce0b54b69913149154c15da87cf2b",
+    "bytes": 21036,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/invoices/components/BillingStatusBadge.tsx",
+    "sha256": "da72962447f3ca173a46bb96d018755ada8e27d81481bd298adf0c982054310c",
+    "bytes": 2004,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/invoices/components/ColumnMappingModal.parts.tsx",
+    "sha256": "b88efa4b438df8d31cd7b5a14c05fbdd258e4f15e7cfa1cf8d27bc32027b734c",
+    "bytes": 2063,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/invoices/components/ColumnMappingModal.tsx",
+    "sha256": "a5710bfc7d59618ef2a1d52c7697a3d8bdf9b763343932279c82768aab98f2c6",
+    "bytes": 11079,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/invoices/components/ExtractionPreview.tsx",
+    "sha256": "1eaf451f921be332717f1785133ed9df785cd4c20641534f70657d95e8bb31ed",
+    "bytes": 7327,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/invoices/components/FiscalExports.tsx",
+    "sha256": "8bdc83bf1c9931d282fac7badd0dfeb6dd56903fcea9d4cff7a02afc0bd41080",
+    "bytes": 5715,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/invoices/components/ImportInbox.parts.tsx",
+    "sha256": "0f1da161bdafdb82f454145208004b87ec40a8de11912ab5d28f79b749ceb494",
+    "bytes": 22328,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/invoices/components/ImportInbox.tsx",
+    "sha256": "2689ef1e5d969deacc7047b84e04087f8d370c6490c45e1f5260abc8e0e69f57",
+    "bytes": 6572,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/invoices/components/InvoiceCategoryField.tsx",
+    "sha256": "36aa6f11330d14bee678ce0a70584a8663f382668bfe1fca03657bd9b080a81d",
+    "bytes": 2938,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/invoices/components/InvoiceDrawer.tsx",
+    "sha256": "70add5fc541caa1a52fe576c06b75c99656b3d23b1ff6c51d45533158e48e030",
+    "bytes": 20359,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/invoices/components/InvoiceFileFields.tsx",
+    "sha256": "67ae21ba0c95d5fc40a8d8a3fc55c9fe4ff19ce6124c5f4ab6ead06788f75335",
+    "bytes": 2557,
+    "storage": "git-base-crlf"
+  }
+]

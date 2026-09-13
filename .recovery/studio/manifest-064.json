@@ -1,0 +1,242 @@
+[
+  {
+    "path": "src/lib/studio/higgsfield-cli.ts",
+    "sha256": "0e1bd5d5c100f392926a9461d92ef8a7af3c33d0fd5193aca12191343b2d485e",
+    "bytes": 2629,
+    "storage": "git-base"
+  },
+  {
+    "path": "src/lib/studio/host-routing.ts",
+    "sha256": "86dde0ce9095471aab1e9820a5877e5040a5177ca60166842a460a06c4bdbc27",
+    "bytes": 1347,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/lib/studio/import-crm-photo.ts",
+    "sha256": "cfb0a2f369e4ce7e3bda87eb3fc8ab4934bc577d972d9956f67654a7accedb29",
+    "bytes": 2739,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/lib/studio/invitations.ts",
+    "sha256": "05617168663f2ecdef8030997a220c92939c202682a123d769c0359fed4900a9",
+    "bytes": 2442,
+    "storage": "git-base"
+  },
+  {
+    "path": "src/lib/studio/job-access.ts",
+    "sha256": "09bf06e6d6470ef7dab7614d1eb8c6fcea34df7f1fb0bff9f53a09f012f8ed6c",
+    "bytes": 884,
+    "storage": "git-base"
+  },
+  {
+    "path": "src/lib/studio/library-reference.ts",
+    "sha256": "adbc198d1b6bd81dfb2a991ede29d0e11264cc41941c0694e41da89e32933ae8",
+    "bytes": 3034,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/lib/studio/limits.ts",
+    "sha256": "690abb8697fc584d82e921efed570bba25ebace4b4b0b00d01624f10416dcf48",
+    "bytes": 220,
+    "storage": "git-base"
+  },
+  {
+    "path": "src/lib/studio/media.ts",
+    "sha256": "328b18b9ebbbb4b71cff374c9f554e0cdd9288a1b85c4d9b5908d2fec606e5b2",
+    "bytes": 1324,
+    "storage": "git-base"
+  },
+  {
+    "path": "src/lib/studio/motion-advanced-catalog.ts",
+    "sha256": "dc2732f361f1dbcfbf8084cb4a4ca459972ba171ff0b975863ce92e913187a95",
+    "bytes": 3753,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/lib/studio/motion-advanced-document.ts",
+    "sha256": "3f84d3e2bffc116dad4da56834d3cb5bd921025eaef9db4d92ab6be63524aa70",
+    "bytes": 4431,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/lib/studio/motion-advanced-styles.ts",
+    "sha256": "a0f43ed16f558dd1e63367167b1462d7a7ca31a908cc9cddcdbfb21fcdbbc071",
+    "bytes": 6563,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/lib/studio/motion-advanced-timeline.ts",
+    "sha256": "a871bd7658ece644ba64676b78b766677fabcb616404eafc47926ec1f66cb1a4",
+    "bytes": 4593,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/lib/studio/motion-brand.ts",
+    "sha256": "129bd11634aec8e66f0c9b85cf4c9e6432d290c30dbbaff400693825a082eeb1",
+    "bytes": 364,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/lib/studio/motion-catalog.ts",
+    "sha256": "4d270ed83efed22b2142639fc73838033b3cd4e83e10bad6ebc1d42d40df6edd",
+    "bytes": 5771,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/lib/studio/motion-collection-document.ts",
+    "sha256": "65f8fab670052ae35fe112ff485e0c28a55654146bea7ca16ec1dcf441c6ca46",
+    "bytes": 5854,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/lib/studio/motion-collection-styles.ts",
+    "sha256": "4d0919e046ec8033b6604098964d8ffe802809777462b5c1c0170f61cad09766",
+    "bytes": 5490,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/lib/studio/motion-dimensions.ts",
+    "sha256": "c8aaa746fc4d31f9a75565e75fcaed650a10d3fd5e44a15730942da3d8d54582",
+    "bytes": 223,
+    "storage": "git-base"
+  },
+  {
+    "path": "src/lib/studio/motion-document.ts",
+    "sha256": "1f3bac4ed0164696d2a220c30ea2e836d0e6053a9008adbc591f96a2a1146548",
+    "bytes": 7650,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/lib/studio/motion-examples.ts",
+    "sha256": "051bb446aaf571ffb7feaac27679dca7166a342ae25a99511f70ef15fccd61d8",
+    "bytes": 2056,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/lib/studio/motion-preview.ts",
+    "sha256": "7662ec205412ab24668125b30f6784c34126c7ada358f612afdcf0a89a8f5a62",
+    "bytes": 686,
+    "storage": "git-base"
+  },
+  {
+    "path": "src/lib/studio/motion-renderer.ts",
+    "sha256": "369cc8614b4b1f1d4a7e60f670ee9649f0872a2c66f858ea35f674fff5d1c734",
+    "bytes": 1813,
+    "storage": "git-base"
+  },
+  {
+    "path": "src/lib/studio/narration-repository.ts",
+    "sha256": "7cd4eef4cbefd745bde94f3f8e0c01495f0432817267f51e268f8d016a816c9b",
+    "bytes": 4364,
+    "storage": "git-base"
+  },
+  {
+    "path": "src/lib/studio/origins.ts",
+    "sha256": "16a5a788dae88ff6967dc98398e9578fac63939d0b1bc5becd6b07a5031f293c",
+    "bytes": 386,
+    "storage": "git-base"
+  },
+  {
+    "path": "src/lib/studio/production-repository.ts",
+    "sha256": "68af8adb85d2dead4be84a08d47fcb8a912c6a8d636efc8282cc57bb7ba81290",
+    "bytes": 8685,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/lib/studio/profile.ts",
+    "sha256": "1974abd39b873eb2eb4cc686148d8af83d139ffdcbb0f416c53834756630f5be",
+    "bytes": 804,
+    "storage": "git-base"
+  },
+  {
+    "path": "src/lib/studio/render-engine.ts",
+    "sha256": "c784fa3cda6873f412bd6bea2c2eeca7ef4cdd4ba72f131a08abeccee5c18e64",
+    "bytes": 6304,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/lib/studio/render-review.ts",
+    "sha256": "4b4b3e00e2e12ee4363a6aebdc93adbdaa1c66dc5aaa2340188fefa15d1bc213",
+    "bytes": 2485,
+    "storage": "git-base"
+  },
+  {
+    "path": "src/lib/studio/render-widgets.ts",
+    "sha256": "e52539696bf898cbd535adc533c6c9581e2711427400c3f0dbeae87165c4daf6",
+    "bytes": 4379,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/lib/studio/repository.ts",
+    "sha256": "a6a3cc0a7ea8cd7df230dbb76d04ad4f087c85c085969e142813b3063fb7cda5",
+    "bytes": 9525,
+    "storage": "git-base"
+  },
+  {
+    "path": "src/lib/studio/talent-scope.ts",
+    "sha256": "8a0e1e48b73ecc372338b172412766d6d43b8bf5734fb3c5919c24fe12e63663",
+    "bytes": 1849,
+    "storage": "git-base"
+  },
+  {
+    "path": "src/lib/studio/templates.ts",
+    "sha256": "fba50f54a5bb6a26cdc367e6c514640fad22b9df53cc396aded95615d5382c54",
+    "bytes": 1641,
+    "storage": "git-base"
+  },
+  {
+    "path": "src/lib/studio/title-card.ts",
+    "sha256": "b1c7f7f492c75a713c324b206dc15d5e61900a4070ba5b3bedc0c58f1e75d18b",
+    "bytes": 3705,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/lib/studio/verification-email.ts",
+    "sha256": "d73a16b4e36874753bb405df265a14135ec36792fdc7b286eb8537aced42dfb7",
+    "bytes": 1886,
+    "storage": "git-base"
+  },
+  {
+    "path": "src/lib/studio/youtube-channel.ts",
+    "sha256": "4da00732c2bdc76c9dc7ec3b1b9da8508391e0369455417f1e3ba82b945a8758",
+    "bytes": 2365,
+    "storage": "git-base"
+  },
+  {
+    "path": "src/lib/sync/sheet-sync.ts",
+    "sha256": "0137753cd781aa5c3d25146c188c1e755331be502004550640a65fac30500488",
+    "bytes": 3681,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/sync/syncMetrics.ts",
+    "sha256": "517ab543ac7a1b3a95e66faac39f3fd4b830f10e6834bb3e598bbfb1b7321780",
+    "bytes": 6428,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/talent-intelligence/growth.ts",
+    "sha256": "b6f44af66d12244247afde83802b5566ccc596ec3d33341d30ac58fe7ad15472",
+    "bytes": 5071,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/talentSeo.ts",
+    "sha256": "226745dac47a0a5a2d66bbf7840aac3a4c0dff0c64c01b51665239d3a4231ba9",
+    "bytes": 6295,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/targets/creator-api-budget.ts",
+    "sha256": "06c54e0d74304a9f65c2ec03a75e9f6ab8eb30722e9dac1abaf0ffc25902a1cd",
+    "bytes": 1706,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/targets/creator-digest.ts",
+    "sha256": "b5282c7d51cb1fe7431f8ecd703cda27fd296fe427ea49db2d5154319ee15a1e",
+    "bytes": 1756,
+    "storage": "git-base-crlf"
+  }
+]

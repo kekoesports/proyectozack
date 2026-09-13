@@ -1,0 +1,242 @@
+[
+  {
+    "path": "src/app/admin/(dashboard)/entregables/tracker-actions.ts",
+    "sha256": "f3eabf69f721ae25099573825e041dde60e357f2b811698f51886694836998c3",
+    "bytes": 19359,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/equipo/actions.ts",
+    "sha256": "10396d4d92d8e5fecf92fe9d904b2a9b99120de3c0996c87a7228d21c172b763",
+    "bytes": 4697,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/equipo/fotos/actions.ts",
+    "sha256": "67f681a9f4e784cd2faa9f31019d5863c8f6cde6cff303fbbc8aba322ec966f7",
+    "bytes": 2422,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/equipo/fotos/page.tsx",
+    "sha256": "e7f8c2290fd2692fcffc83f7386400c1989fc506af2a80f3f06970195c1eacf9",
+    "bytes": 1884,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/equipo/page.tsx",
+    "sha256": "b990a6e22de2850d9389dd3e48cb008474d30819f25a292571d348468a7cc770",
+    "bytes": 10371,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/error.tsx",
+    "sha256": "74260edc7705631818ede22de45cca778c728a2ffe59c676e4b6604025d1da22",
+    "bytes": 2387,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/estadisticas/page.tsx",
+    "sha256": "4ab008323a68be9a9865f85e5e648ae9ddb91e245d44f6b089b0296075ea8421",
+    "bytes": 6992,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/facturacion/bancos/BankAccountForm.tsx",
+    "sha256": "b51bb8ff83227ae4e378899681b702edf3323ee384c37e258d7588d1e2d44ce7",
+    "bytes": 6024,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/facturacion/bancos/actions.ts",
+    "sha256": "0e9df9a16ff7d63bb43cc2e2ab04564a4e9a1862cf9906be3e8e0b57379b7792",
+    "bytes": 2515,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/facturacion/bancos/cierre/page.tsx",
+    "sha256": "86ce7930b8936b9923e6327de6e7d59890db077595eb5d4f4534d3c44af2cdf3",
+    "bytes": 10040,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/facturacion/bancos/conciliacion/MatchedTransactionList.tsx",
+    "sha256": "99030cd8814d7143a33e2fac0f89d7bf54b5f6aeb3b02d25af9e764fff8fc40e",
+    "bytes": 14337,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/facturacion/bancos/conciliacion/TransactionReviewList.tsx",
+    "sha256": "9d2bd05a17dfbb8d1f6b986e8c82b12d4c050b69e740faf1cab972e3e39b67d4",
+    "bytes": 9522,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/facturacion/bancos/conciliacion/actions.ts",
+    "sha256": "caa876d113872eae65b3e9ee9a14d6d46c642e9eb32bbb066edc96ebacdf180a",
+    "bytes": 4183,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/facturacion/bancos/conciliacion/page.tsx",
+    "sha256": "88db86f092defd8af40386d8480d7ca1ca7ef0e7553971e6d0c563390ad5b459",
+    "bytes": 7516,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/facturacion/bancos/conciliacion/paymentActions.ts",
+    "sha256": "a06232ab00c17f6798d53d32a904d51673a8afd936662c6588a103b896aa2f58",
+    "bytes": 3083,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/facturacion/bancos/importar/BankImportWizard.tsx",
+    "sha256": "c16f3563e1e44446cc85f5777b6db24d1ba5fe11f74070bfb434da862c06d55c",
+    "bytes": 10105,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/facturacion/bancos/importar/import-actions.ts",
+    "sha256": "74d0b9e0a338f1075836f3ee7a80a0ccf0744494779a32668f324e2af745b533",
+    "bytes": 10155,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/facturacion/bancos/importar/page.tsx",
+    "sha256": "5c14847f1d8486eae635ae49574c6a9a0cc6e8d05611728ba985e15f86a96a45",
+    "bytes": 2190,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/facturacion/bancos/page.tsx",
+    "sha256": "01e32fb1db3fbd556da8822a382f27f459dcbf0d49e6f1844519c884d1950072",
+    "bytes": 8267,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/facturacion/bancos/slash/actions.ts",
+    "sha256": "f14a58fa53bde3f8a405db755c16ae4a156ae1ed222abb238133e25438b8ac81",
+    "bytes": 861,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/facturacion/bancos/slash/page.tsx",
+    "sha256": "0cbb0ec9ed6c60cadc40bb5ca20459ec3f18d9e75068179fac2f24e2e915c412",
+    "bytes": 7674,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/facturacion/dashboard/page.tsx",
+    "sha256": "c2a9759da8558150bc007f341a0a7b9fd9f2ffd290ce60755eb0fb4e1b76cbd1",
+    "bytes": 175,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/facturacion/exports/page.tsx",
+    "sha256": "dc2327e7b2a06d09251e34700996d529acfc0eb3fbba9f16b313c0ba1e2c5944",
+    "bytes": 1452,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/facturacion/extract-action.ts",
+    "sha256": "143a1324921ad792d4367d74d92751155db542243ca1d001f1bd17fd12572822",
+    "bytes": 3655,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/facturacion/import/import-actions.ts",
+    "sha256": "2c8df4e4e7726d42d06d1f1541222351bcc8933ca4c1d9321182dcdd9f0b6912",
+    "bytes": 19500,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/facturacion/import/page.tsx",
+    "sha256": "7d9de528d990b56719f95a102973d8237203c9fb7a5a89262044834c5bb352a2",
+    "bytes": 2307,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/facturacion/invoices-actions.ts",
+    "sha256": "4a99dab8b467a16d396ab5919e6fc65e157e369106e684a49d666ee5ebd25622",
+    "bytes": 11320,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/facturacion/issued-invoices-actions.ts",
+    "sha256": "11e94025fd71e0520a15d08dfe4fb7d85fe069623f4ef39b60f938ef40ab2bc3",
+    "bytes": 23346,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/facturacion/loading.tsx",
+    "sha256": "121dcd1979b04658a9a9e277158a675a235318c2fd14fddfa6ed487369bfb5fc",
+    "bytes": 794,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/facturacion/page.tsx",
+    "sha256": "68dad5c2cb98c3912dd71ff95b4a92361ae405da3146875276874f72c0c4e3e8",
+    "bytes": 947,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/finanzas/FinanzasNav.tsx",
+    "sha256": "8fe674d486febf824fe8fdec61553c149147fc5e03e5a4a7207e80377b816e2b",
+    "bytes": 3768,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/finanzas/caja/page.tsx",
+    "sha256": "1680ed19affacc0276e172ad5484ae2253aa5354cad55ffb6558c1f1fd0480f7",
+    "bytes": 13893,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/finanzas/cobros/page.tsx",
+    "sha256": "48998151fd3b1124686bc5b351e004db6f1125f3433649d319af09abbc784247",
+    "bytes": 3172,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/finanzas/configuracion/page.tsx",
+    "sha256": "ac83b7f56c794da0a2396949cddef303ed97a1e2672affa4164e55e7ee412718",
+    "bytes": 2405,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/finanzas/contabilidad/page.tsx",
+    "sha256": "fa15e86f110cfd87f052e18de4574c7156b48a88161c361d4520533efba99d94",
+    "bytes": 2126,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/finanzas/costes/page.tsx",
+    "sha256": "6cd7f6842b14f7ee0a8cc9eb1dd4b5efa3840daeb94485ca3c2d85017e6228e2",
+    "bytes": 2121,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/finanzas/desglose/page.tsx",
+    "sha256": "d4d3cdca45d312d7ce0e0793f91dc859c00cf5e8c4ea16257e8253a85eecfacc",
+    "bytes": 2507,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/finanzas/documentos/page.tsx",
+    "sha256": "4507a53918b8b46e409e6d95edd796a1a25fc12b06d11128766957116e57e694",
+    "bytes": 1234,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/finanzas/finanzas-actions.ts",
+    "sha256": "a65b92d390dd6dbbad8943f3e517c024ceab430902b16a446f4e87a92571538a",
+    "bytes": 4272,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/finanzas/gastos/page.tsx",
+    "sha256": "ae1d54d1b4f7595a6bf3a2f467a4f97b17cd2e314abdfdd57075706d9f5926ad",
+    "bytes": 4781,
+    "storage": "git-base-crlf"
+  }
+]

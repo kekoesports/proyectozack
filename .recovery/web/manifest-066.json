@@ -1,0 +1,242 @@
+[
+  {
+    "path": "src/lib/steam/plugin.ts",
+    "sha256": "24f8bc8711e9004aef0d155cd732e7260fdde7f5d3daaf28e95e52a7d6dc4cf1",
+    "bytes": 11351,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/steam/profile.ts",
+    "sha256": "3c6d5f6e571153bf327156be5bb4f2f738691bcffe6e34e03851695922093cf4",
+    "bytes": 2473,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/steam/return-to.ts",
+    "sha256": "0060e466309cc754a25d0f9a9b1938c3e91272a48d85274150e024306bc67f0a",
+    "bytes": 2705,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/studio/access.ts",
+    "sha256": "b78e10d0592e59f2a944befa361ef93380935dd10e7842a283a1688a3c642d62",
+    "bytes": 2607,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/studio/agency.ts",
+    "sha256": "bf58b0c6d1a36a16886369aae5f1ef1cc20ee2a8c120c517ccb6eb47bf7508ac",
+    "bytes": 3178,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/studio/analytics.ts",
+    "sha256": "985a4833297f22bdb13b3b8fafcbaf6e976008528be2f6c035d2780ddb6ec805",
+    "bytes": 1666,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/studio/asset-response.ts",
+    "sha256": "7afb196839a4b605c0e8d62be0cd94aad24cda6d213cc45fb6a9bace57b3d397",
+    "bytes": 1755,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/studio/assistant.ts",
+    "sha256": "4cc11b55ac3a00d6088b000a08f5a2f935baae2133b1f9a8b35cd642e5b07c0d",
+    "bytes": 2094,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/studio/byte-range.ts",
+    "sha256": "d8ddc936be21b96beb229c31213300e7e92b9b20b9648c7496e5ae5aaf3db551",
+    "bytes": 2207,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/studio/channel-repository.ts",
+    "sha256": "b73319e5f4a7bd885e955cf0f759d8801eee17a65c43f6cb102fcd4f4311b0dc",
+    "bytes": 3579,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/studio/editorial-assistant.ts",
+    "sha256": "9023dd3d405eb369c925e76523397a0a43f482d76bb9e1aaf6bdcf8adf0d41fc",
+    "bytes": 2580,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/studio/higgsfield-cli.ts",
+    "sha256": "625364a0bb33816d1351455903779c7075e990c44d3449b4c64833d45fb30d9d",
+    "bytes": 2666,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/studio/host-routing.ts",
+    "sha256": "b1d2b8507b18a708e967233263e908571455bcd90e06632ccfb7413713095576",
+    "bytes": 1345,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/studio/invitations.ts",
+    "sha256": "e5a4f508679b2029a513d95ee85f126f079e438c68f4d33e416d0b9767df0450",
+    "bytes": 2525,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/studio/job-access.ts",
+    "sha256": "bfdb5cd2c14588c85ab67f6aefde97b0be081bb29b17ec6553b4f9e1d91756d0",
+    "bytes": 897,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/studio/limits.ts",
+    "sha256": "711adb3a758e82525639e2530f46a8a320908c574635ec7781965ec407dda044",
+    "bytes": 224,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/studio/media.ts",
+    "sha256": "2373c28708730f49156b9b6a47cc7c4f50f5046904678b8270754c451273a787",
+    "bytes": 1354,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/studio/motion-catalog.ts",
+    "sha256": "5123ad195abbf643ae66a756f44fa39ef1d321294e08dc00566d83c54d235fac",
+    "bytes": 5525,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/studio/motion-collection-document.ts",
+    "sha256": "d3d8b6f116c467483f0aeb16bf4a1bd9c5d896825cc6d87f23533887e960cdd7",
+    "bytes": 5800,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/studio/motion-collection-styles.ts",
+    "sha256": "8c26c0bc97b7e83d86d2bb8b67dcffa28b010bff3d6f8c7ea89a5261982b8552",
+    "bytes": 5521,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/studio/motion-dimensions.ts",
+    "sha256": "797b7c720d7dd825c663bafa023761129b4f6ca2082c99934bf6cbbbff35e4da",
+    "bytes": 225,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/studio/motion-document.ts",
+    "sha256": "3ecda8f3e39205431997d7efd29f93910ee44555591c2e471f39d87af02cb478",
+    "bytes": 7329,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/studio/motion-examples.ts",
+    "sha256": "ad97ef3d34b71fdadb8e40b549efe0999a3b302bde540fae2c485cb80d4fc616",
+    "bytes": 2066,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/studio/motion-preview.ts",
+    "sha256": "54f440cf20a29f29eecd0fc5c8516004e420d4b5460b820dd8ac5b8865f8a259",
+    "bytes": 699,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/studio/motion-renderer.ts",
+    "sha256": "0780bae09aeabb0ec01f11467fea168ca6de2fdea02f398183c1187a105ca96e",
+    "bytes": 1841,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/studio/narration-repository.ts",
+    "sha256": "af364b428a53e4428a8cc04014e89b1a4e2ea72f0659f83686da23bb1ebd3a7d",
+    "bytes": 4419,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/studio/origins.ts",
+    "sha256": "52e3b6ca74c5ac714b7640ee3e647a2f9285337835b062dbd9c2512511871029",
+    "bytes": 393,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/studio/production-repository.ts",
+    "sha256": "f1e74e2dd076a7be5ace06f8486e9d361d058cef268fe3365c83055b9451b1a8",
+    "bytes": 8266,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/studio/profile.ts",
+    "sha256": "ecef17b3a2c3b4909397edd64c9503c5df7690cacf5f29b0e080e86220324359",
+    "bytes": 824,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/studio/render-engine.ts",
+    "sha256": "a60aef37991c7572ba3489835f09fcfdc5d5861e7cd752e7d509e0f399b2ad03",
+    "bytes": 5099,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/studio/render-review.ts",
+    "sha256": "d69725474131f467fec51eb34badf3450ccaa539eb456bc987bfb17670455ba8",
+    "bytes": 2517,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/studio/repository.ts",
+    "sha256": "4ed1047d7dbc9c3ffa0601e51be34e3bb09a28f91abe10c69e70fea17ebf4a2a",
+    "bytes": 9812,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/studio/talent-scope.ts",
+    "sha256": "1d1a58ed960bb1984a8962da4684121cf3d3edc633bcfc0a9ad674beb0cc34ae",
+    "bytes": 1884,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/studio/templates.ts",
+    "sha256": "a7c684dae82eea40f0c7e9f86e7bd3143dda93af14496ec3d3952abaa8804af7",
+    "bytes": 1698,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/studio/title-card.ts",
+    "sha256": "5bac8b03d92d296bc6550ce4f679e9bed651ceeaf81be1448a4cbf4723262b70",
+    "bytes": 3590,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/studio/verification-email.ts",
+    "sha256": "49b19eb26542ab1d073222080e7c2a12ac9e91e6081e31baf5ebbf066b0bd95c",
+    "bytes": 1918,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/studio/youtube-channel.ts",
+    "sha256": "3c5959535778cce8750a4e7f56bae0d1eead70ddbb027d0fa6de0948cbf5085c",
+    "bytes": 2394,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/sync/sheet-sync.ts",
+    "sha256": "0137753cd781aa5c3d25146c188c1e755331be502004550640a65fac30500488",
+    "bytes": 3681,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/sync/syncMetrics.ts",
+    "sha256": "517ab543ac7a1b3a95e66faac39f3fd4b830f10e6834bb3e598bbfb1b7321780",
+    "bytes": 6428,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/talent-intelligence/growth.ts",
+    "sha256": "b6f44af66d12244247afde83802b5566ccc596ec3d33341d30ac58fe7ad15472",
+    "bytes": 5071,
+    "storage": "git-base-crlf"
+  }
+]

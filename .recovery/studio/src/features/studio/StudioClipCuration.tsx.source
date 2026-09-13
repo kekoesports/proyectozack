@@ -1,0 +1,79 @@
+'use client';
+
+import Link from 'next/link';
+import { useState, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { Check, X, ArrowUpRight, Play, Scissors, ShieldCheck, Target } from 'lucide-react';
+import type { ClipSourceView } from '@/lib/studio/clip-repository';
+import { clipTime } from '@/lib/studio/clip-ranking';
+import { ClipManualMoment } from '@/lib/schemas/studio-clips';
+import { addManualClip, createClipProject, decideClip } from '@/app/studio/clips/actions';
+import { useStudioWorkspace } from './StudioWorkspaceContext';
+
+type Media = { id: string; name: string };
+export function StudioClipCuration({ source, assets }: { source: ClipSourceView; assets: Media[] }) {
+  const router = useRouter(), workspace = useStudioWorkspace();
+  const [activeId, setActiveId] = useState(source.document.moments[0]?.id ?? '');
+  const [assetId, setAssetId] = useState(''), [message, setMessage] = useState('');
+  const [pending, startTransition] = useTransition();
+  const active = source.document.moments.find((m) => m.id === activeId) ?? source.document.moments[0], report = source.document;
+  const decision = active ? source.decisions[active.id] : undefined;
+  const selectedCount = report.moments.filter((m) => source.decisions[m.id]?.decision === 'selected').length;
+  async function choose(momentId: string, choice: 'selected' | 'dismissed') {
+    try {
+      const result = await decideClip({ id: source.id, revision: source.revision, momentId, decision: choice }, workspace);
+      setMessage(result.ok ? 'Selección guardada.' : result.error); if (result.ok) router.refresh();
+    } catch { setMessage('No se pudo guardar. Actualiza antes de reintentar.'); }
+  }
+  return <section className="clip-review" aria-label="Revisión de momentos">
+    <header className="clip-section-head"><span className="clip-step">02</span><div><p className="studio-eyebrow">REVISIÓN EDITORIAL</p><h2>{report.title}</h2><p>{clipTime(report.duration)} · {report.moments.length} {report.moments.length === 1 ? 'momento' : 'momentos'} · {selectedCount} {selectedCount === 1 ? 'seleccionado' : 'seleccionados'}</p></div></header>
+    <div className="clip-evidence-strip"><span><ShieldCheck size={15} />{report.provenance === 'twitch_helix' ? 'Fuente: Twitch Helix' : report.provenance === 'fragforge_import' ? 'Fuente: plan importado' : 'Fuente: declaración manual'}</span><span>Datos del {new Date(report.collectedAt).toLocaleDateString('es-ES', { timeZone: 'UTC' })}</span></div>
+    {report.moments.length > 0 && <div className="clip-time-map"><p className="studio-eyebrow">{report.kind === 'cs2' ? 'MAPA DE MOMENTOS / TIEMPO DE DEMO' : 'MAPA DE MOMENTOS / TIEMPO DE VOD'}</p><div className="clip-time-rail" aria-label="Momentos situados en la duración de la fuente">{report.moments.map((moment) => <button type="button" key={moment.id} style={{ left: `${moment.start / report.duration * 100}%` }} aria-label={`${moment.title}, ${clipTime(moment.start)}`} aria-pressed={active?.id === moment.id} title={`${moment.title} · ${clipTime(moment.start)}`} onClick={() => { setActiveId(moment.id); setAssetId(''); setMessage(''); }}><span /></button>)}</div><div className="clip-time-labels"><span>00:00</span><span>{clipTime(report.duration / 2)}</span><span>{clipTime(report.duration)}</span></div></div>}
+    <div className="clip-review-grid"><div className="clip-moment-list">
+      {report.moments.length === 0 && <div className="clip-empty"><Scissors size={26} /><h3>Aún no hay momentos.</h3><p>{report.kind === 'kick' ? 'Marca tus fragmentos a continuación. El audio y el chat no se han analizado.' : 'No se han encontrado eventos utilizables en esta fuente. No significa que el contenido no tenga buenos momentos.'}</p></div>}
+      {report.moments.map((moment, i) => <button type="button" className="clip-moment" aria-pressed={active?.id === moment.id} onClick={() => { setActiveId(moment.id); setAssetId(''); setMessage(''); }} key={moment.id}>
+        <span className="clip-moment-rank">{String(i + 1).padStart(2, '0')}</span><span><strong>{moment.title}</strong><small>{clipTime(moment.start)} — {clipTime(moment.end)} · {Math.round(moment.end - moment.start)} s</small><span className="clip-moment-tag">{source.decisions[moment.id]?.decision === 'selected' ? 'Seleccionado' : source.decisions[moment.id]?.decision === 'dismissed' ? 'Descartado' : moment.score === null ? 'Manual' : 'Por revisar'}</span></span><Play size={15} />
+      </button>)}
+    </div><aside className="clip-inspector">
+      {active ? <>
+        <div className="clip-preview">{assetId ? <video key={`${active.id}:${assetId}`} controls playsInline preload="metadata" src={`/api/studio/assets/${assetId}`} aria-label="Vista previa del fragmento aportado" /> : <div className="clip-preview-placeholder"><Target size={36} /><span>{report.kind === 'cs2' ? `RONDA ${active.round ?? '—'}` : 'MOMENTO'}</span><strong>{clipTime(active.start)}</strong><p>{report.kind === 'cs2' ? 'Ticks de la demo, no un vídeo capturado.' : 'Abre la fuente o aporta el fragmento para verlo aquí.'}</p></div>}</div>
+        <div className="clip-inspector-body"><h3>{active.title}</h3><p className="studio-eyebrow">POR QUÉ ESTÁ AQUÍ</p><ul className="clip-reasons">{active.reasons.map((reason) => <li key={reason}><Check size={14} />{reason}</li>)}</ul>
+          {active.tickStart !== null && <p className="clip-note">Tick {active.tickStart} → {active.tickEnd}. Conserva HUD, radar y killfeed en la captura.</p>}
+          {report.url && <a className="clip-source-link" href={`${report.url}${report.kind === 'twitch' ? `?t=${Math.floor(active.start)}s` : ''}`} target="_blank" rel="noreferrer">Abrir VOD original <ArrowUpRight size={14} /></a>}
+          <div className="clip-decision-buttons"><button className="studio-btn" disabled={pending} onClick={() => startTransition(() => choose(active.id, 'selected'))}><Check size={16} />Seleccionar</button><button className="studio-btn secondary" disabled={pending} onClick={() => startTransition(() => choose(active.id, 'dismissed'))}><X size={16} />Descartar</button></div>
+          {decision?.projectId ? <Link className="studio-btn" href={`/studio/projects/${decision.projectId}`}>Abrir montaje <ArrowUpRight size={16} /></Link> : decision?.decision === 'selected' && <form className="clip-export-form" key={active.id} action={(form) => startTransition(async () => {
+            try {
+              const result = await createClipProject({ id: source.id, revision: source.revision, momentId: active.id, assetId: form.get('assetId'), duration: Number(form.get('duration')), rightsConfirmed: form.get('rightsConfirmed') === 'on' }, workspace);
+              if (result.ok) router.push(`/studio/projects/${result.id}`); else setMessage(result.error);
+            } catch { setMessage('No se pudo crear el montaje. Puedes reintentar sin duplicarlo.'); }
+          })}>
+            <h4>03 / Llevar al editor</h4><p className="clip-note">Sube a <Link href="/studio/library">Biblioteca</Link> el MP4 de este fragmento ya recortado (máx. 20 MB). No selecciones el VOD completo.</p>
+            <label>Fragmento de tu biblioteca<select name="assetId" value={assetId} onChange={(e) => setAssetId(e.target.value)} required><option value="">Seleccionar MP4…</option>{assets.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}</select></label>
+            <label>Segundos del archivo que usar (desde 0)<input type="number" name="duration" min={1} max={60} step="0.1" defaultValue={Math.round((active.end - active.start) * 10) / 10} required /></label>
+            <label className="clip-consent"><input type="checkbox" name="rightsConfirmed" required />He comprobado que el archivo corresponde a este momento.</label>
+            <button className="studio-btn" disabled={pending || !assetId}>Preparar montaje <ArrowUpRight size={16} /></button><p className="clip-note">Crea un borrador 9:16 con cierre SocialPro. No renderiza, no publica ni gasta créditos de generación.</p>
+          </form>}
+          <p role="status" className="clip-feedback">{message}</p>
+        </div>
+      </> : <div className="clip-empty"><Target size={28} /><h3>Tu criterio decide.</h3><p>Selecciona un momento para ver su origen, revisarlo y preparar el montaje.</p></div>}
+    </aside></div>
+    {report.kind !== 'cs2' && <ManualMoment source={source} />}
+    <details className="clip-coverage"><summary>Cobertura y límites de este análisis</summary><ul>{report.coverage.map((line) => <li key={line}>{line}</li>)}</ul><p>No se publica contenido automáticamente. Música, patrocinios y derechos requieren revisión humana.</p></details>
+  </section>;
+}
+
+function ManualMoment({ source }: { source: ClipSourceView }) {
+  const workspace = useStudioWorkspace(), router = useRouter();
+  const [pending, startTransition] = useTransition(), [message, setMessage] = useState('');
+  const { register, handleSubmit, formState: { errors } } = useForm<z.input<typeof ClipManualMoment>, unknown, z.output<typeof ClipManualMoment>>({ resolver: zodResolver(ClipManualMoment), values: { id: source.id, revision: source.revision, title: '', start: 0, end: 30 } });
+  return <details className="clip-manual"><summary><Scissors size={16} />Marcar otro fragmento manualmente</summary><form method="post" onSubmit={(event) => { void handleSubmit((value) => startTransition(async () => {
+    try { const result = await addManualClip(value, workspace); setMessage(result.ok ? 'Fragmento guardado.' : result.error); if (result.ok) router.refresh(); }
+    catch { setMessage('No se pudo guardar. Actualiza la página.'); }
+  }))(event); }}>
+    <label>Nombre del momento<input {...register('title')} maxLength={100} /></label><div className="clip-form-pair"><label>Inicio (segundos)<input type="number" step="0.1" {...register('start')} /></label><label>Final (segundos)<input type="number" step="0.1" {...register('end')} /></label></div>
+    <button className="studio-btn secondary" disabled={pending}>Guardar fragmento</button>{Object.values(errors).map((error, i) => <p className="clip-error" key={i}>{error.message}</p>)}<p role="status">{message}</p>
+  </form></details>;
+}

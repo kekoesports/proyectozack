@@ -1,0 +1,45 @@
+import 'server-only';
+import { getAppAccessToken } from '@/lib/services/twitch-auth';
+import { readProviderJson } from '@/lib/services/provider-http';
+import { TwitchClipPage, TwitchClipVideos } from '@/lib/schemas/studio-clips-twitch';
+import { ClipReport, ClipSourceUrl, type ClipSignal } from '@/lib/schemas/studio-clips';
+import { rankClipSignals } from './clip-ranking';
+
+export function twitchDuration(value: string): number {
+  const m = /^(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s)?$/.exec(value);
+  return m ? Number(m[1] ?? 0) * 3600 + Number(m[2] ?? 0) * 60 + Number(m[3] ?? 0) : 0;
+}
+
+/** Fixed official origins; never fetch the submitted URL or a provider redirect. At most four Helix reads. */
+export async function discoverTwitchMoments(rawUrl: string, declaredHandle: string): Promise<ClipReport> {
+  const parsed = ClipSourceUrl.safeParse(rawUrl);
+  if (!parsed.success || new URL(parsed.data).hostname !== 'www.twitch.tv') throw new Error('invalid_vod');
+  const id = new URL(parsed.data).pathname.split('/').at(-1) ?? '';
+  const { clientId, token } = await getAppAccessToken();
+  const init: RequestInit = { headers: { 'Client-Id': clientId, Authorization: `Bearer ${token}` }, cache: 'no-store', redirect: 'error', signal: AbortSignal.timeout(25_000) };
+  const video = (await readProviderJson(`https://api.twitch.tv/helix/videos?id=${encodeURIComponent(id)}`, TwitchClipVideos, 'Clip VOD', init)).data[0];
+  if (!video || video.id !== id || video.type !== 'archive' || video.user_login.toLowerCase() !== declaredHandle.toLowerCase()) throw new Error('vod_channel_mismatch');
+  const duration = twitchDuration(video.duration);
+  if (duration < 15 || duration > 43_200) throw new Error('vod_duration');
+  const clips: (typeof TwitchClipPage._output.data) = [];
+  let cursor: string | undefined;
+  for (let page = 0; page < 3; page++) {
+    const query = new URLSearchParams({ broadcaster_id: video.user_id, first: '100', started_at: video.created_at,
+      ended_at: new Date(new Date(video.created_at).getTime() + duration * 1000).toISOString() });
+    if (cursor) query.set('after', cursor);
+    const response = await readProviderJson(`https://api.twitch.tv/helix/clips?${query}`, TwitchClipPage, 'Clip moments', init);
+    clips.push(...response.data.filter((c) => c.broadcaster_id === video.user_id && c.video_id === id && c.vod_offset !== null && c.vod_offset < duration));
+    cursor = response.pagination.cursor; if (!cursor) break;
+  }
+  const maxViews = Math.max(1, ...clips.map((c) => c.view_count));
+  const signals: ClipSignal[] = clips.flatMap((c) => c.vod_offset === null ? [] : [{ id: c.id, kind: 'viewer_clip', start: c.vod_offset,
+    end: Math.min(duration, c.vod_offset + c.duration), strength: .2 + .8 * Math.log1p(c.view_count) / Math.log1p(maxViews),
+    label: `${c.title || 'Clip de la audiencia'} · ${c.view_count} vistas`.slice(0, 160) }]);
+  const report = ClipReport.safeParse({ version: 1, kind: 'twitch', sourceKey: `twitch:${id}`, title: video.title.slice(0, 160) || 'VOD Twitch',
+    url: parsed.data, duration, collectedAt: new Date().toISOString(), provenance: 'twitch_helix', map: null, player: null,
+    coverage: [cursor ? 'Muestra parcial: límite de 300 clips consultados.' : 'Clips devueltos por Helix en la ventana temporal del VOD.',
+      'Solo clips con video_id y vod_offset válidos. Los offsets pueden tardar en aparecer.', 'Sin chat histórico, audio, marcadores ni predicción de viralidad.',
+      'Coincidencia con el canal declarado del espacio; no es verificación OAuth.'], moments: rankClipSignals(signals, duration) });
+  if (!report.success) throw new Error('invalid_clip_report');
+  return report.data;
+}

@@ -1,0 +1,21 @@
+// Read-only health check. No content, account data, SQL errors or credentials in logs.
+import { statfs } from 'node:fs/promises';
+import pg from 'pg';
+
+const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL, max: 1,
+  connectionTimeoutMillis: 3000, statement_timeout: 3000, allowExitOnIdle: true });
+try {
+  const disk = await statfs('/srv/storage/private/studio-demos');
+  if (disk.bavail * disk.bsize < 256 * 1024 * 1024) throw new Error('storage');
+  const result = await pool.query(`SELECT count(*)::integer AS stalled FROM studio_demo_jobs
+    WHERE storage_backend = 'local' AND storage_scope = 'local' AND (
+      (status = 'queued' AND created_at < now() - interval '30 minutes') OR
+      (status = 'parsing' AND lease_until < now() - interval '2 minutes') OR
+      (purged_at IS NULL AND expires_at < now() - interval '1 hour')
+    )`);
+  if (result.rows[0]?.stalled !== 0) throw new Error('queue');
+  console.log('Demo Lab: database, queue, cleanup and disk checks passed.');
+} catch {
+  console.error('Demo Lab requires an operational review.');
+  process.exitCode = 1;
+} finally { await pool.end(); }

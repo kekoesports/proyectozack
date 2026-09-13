@@ -1,0 +1,241 @@
+{
+  "containers": [
+    {
+      "container": "socialpro-crm-keydrop-curly-zack-20260911",
+      "id": "59ced4e8478f29a843eccd6408fcbc6f4282e1888805c1aa3a823dda827014bd",
+      "image": "socialpro:keydrop-curly-zack-20260911",
+      "imageId": "sha256:59b342f9931ab291c1acf05a80a27cd559a28e3fa31d304db68a25136bb51201",
+      "repoDigests": [
+        "socialpro@sha256:59b342f9931ab291c1acf05a80a27cd559a28e3fa31d304db68a25136bb51201"
+      ],
+      "sourceLabels": {},
+      "ports": {
+        "3000/tcp": null
+      },
+      "networks": [
+        "socialpro-crm_crm_backend",
+        "socialpro_edge"
+      ],
+      "mounts": [
+        {
+          "type": "bind",
+          "source": "/opt/socialpro/data/storage-private",
+          "destination": "/srv/storage/private",
+          "rw": true
+        },
+        {
+          "type": "bind",
+          "source": "/opt/socialpro/data/storage-public",
+          "destination": "/srv/storage/public",
+          "rw": true
+        }
+      ],
+      "health": {
+        "status": "healthy",
+        "intervalNanoseconds": 30000000000,
+        "testSha256": "cea2006808631a3af91590a39d9eb409b566bbf911dec58afc494c2723a450b0"
+      },
+      "consumersByLiteralConfigReference": [],
+      "consumerCoverage": "Literal references only; not DNS aliases or database-stored workflows",
+      "entrypointSha256": "809186e7e59486e621e87d1f558d94dc7cf78f51cfd2a1099bd0f37f07a66341"
+    },
+    {
+      "container": "socialpro-waha-worker",
+      "id": "0fb0f65719920aa4b122cb892db49a458b5d75327a0e966ba5437d09bbc227fd",
+      "image": "socialpro:creator-intake-migrator-20260910",
+      "imageId": "sha256:3e8cc11aee727a2640c9137ecdeead9f34b6b860874dfa3ad36df7e9288899c8",
+      "repoDigests": [
+        "socialpro@sha256:3e8cc11aee727a2640c9137ecdeead9f34b6b860874dfa3ad36df7e9288899c8"
+      ],
+      "sourceLabels": {},
+      "ports": {
+        "3000/tcp": [
+          {
+            "HostIp": "127.0.0.1",
+            "HostPort": "3032"
+          }
+        ]
+      },
+      "networks": [
+        "socialpro-crm_crm_backend",
+        "socialpro_intake_waha"
+      ],
+      "mounts": [
+        {
+          "type": "bind",
+          "source": "/home/deploy/socialpro-waha-onboarding-v2-20260910/src",
+          "destination": "/app/src",
+          "rw": false
+        },
+        {
+          "type": "bind",
+          "source": "/home/deploy/socialpro-waha-onboarding-v2-20260910/tsconfig.json",
+          "destination": "/app/tsconfig.json",
+          "rw": false
+        },
+        {
+          "type": "bind",
+          "source": "/home/deploy/socialpro-waha-onboarding-v2-20260910/infra/creator-intake",
+          "destination": "/app/infra/creator-intake",
+          "rw": false
+        },
+        {
+          "type": "bind",
+          "source": "/opt/socialpro/data/storage-private/creator-intake-pilot-20260910",
+          "destination": "/srv/storage/private/creator-intake-pilot-20260910",
+          "rw": true
+        }
+      ],
+      "health": {
+        "status": null,
+        "intervalNanoseconds": null,
+        "testSha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"
+      },
+      "consumersByLiteralConfigReference": [],
+      "consumerCoverage": "Literal references only; not DNS aliases or database-stored workflows",
+      "entrypointSha256": "5e67b4df549d2d2e868469b3119511fe36d55cabfd74a0c340fb7f51827072d5"
+    },
+    {
+      "container": "socialpro-waha-pilot",
+      "id": "48959714d7b459379c959aef4455f81e59018f288a1f59a3c56f5fe6b6915b33",
+      "image": "devlikeapro/waha@sha256:23f2d002d262b54c711af02b5fe79b1948bbf31e6b64cf7776cd6bd2f7477b47",
+      "imageId": "sha256:23f2d002d262b54c711af02b5fe79b1948bbf31e6b64cf7776cd6bd2f7477b47",
+      "repoDigests": [
+        "devlikeapro/waha@sha256:23f2d002d262b54c711af02b5fe79b1948bbf31e6b64cf7776cd6bd2f7477b47"
+      ],
+      "sourceLabels": {
+        "org.opencontainers.image.revision": "8ab642b20d7c2f0dd8589d8b56b09a428ef1c1cd",
+        "org.opencontainers.image.source": "https://github.com/devlikeapro/waha"
+      },
+      "ports": {
+        "3000/tcp": [
+          {
+            "HostIp": "127.0.0.1",
+            "HostPort": "3031"
+          }
+        ]
+      },
+      "networks": [
+        "socialpro_intake_waha"
+      ],
+      "mounts": [
+        {
+          "type": "bind",
+          "source": "/home/deploy/.config/socialpro/waha-pilot-20260910/sessions",
+          "destination": "/app/.sessions",
+          "rw": true
+        }
+      ],
+      "health": {
+        "status": null,
+        "intervalNanoseconds": null,
+        "testSha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"
+      },
+      "consumersByLiteralConfigReference": [
+        "socialpro-waha-worker"
+      ],
+      "consumerCoverage": "Literal references only; not DNS aliases or database-stored workflows",
+      "entrypointSha256": "31bd89a0b83151d4b48c93d5b44e6f2aa4cc4d2cbd9557fb00b753f8bdfde001"
+    },
+    {
+      "container": "socialpro-crm-f8f97825-candidate-app-1",
+      "id": "633080077cb6c22ee7b0c264d741fd33697e801638a87aa39385eea17b186da5",
+      "image": "sha256:512ace50069c1d1939b8c8be3449cb085c1a93d8085b27d5cfe59bb585eac6e6",
+      "imageId": "sha256:512ace50069c1d1939b8c8be3449cb085c1a93d8085b27d5cfe59bb585eac6e6",
+      "repoDigests": [
+        "socialpro@sha256:512ace50069c1d1939b8c8be3449cb085c1a93d8085b27d5cfe59bb585eac6e6"
+      ],
+      "sourceLabels": {
+        "com.docker.compose.project.config_files": "/home/deploy/socialpro-f8f97825/infra/crm/compose.candidate.yaml",
+        "com.docker.compose.project.working_dir": "/home/deploy/socialpro-f8f97825/infra/crm"
+      },
+      "ports": {
+        "3000/tcp": null
+      },
+      "networks": [
+        "socialpro-crm_crm_backend",
+        "socialpro_creator_outreach",
+        "socialpro_edge"
+      ],
+      "mounts": [
+        {
+          "type": "bind",
+          "source": "/opt/socialpro/data/storage-public",
+          "destination": "/srv/storage/public",
+          "rw": true
+        },
+        {
+          "type": "bind",
+          "source": "/opt/socialpro/data/storage-private",
+          "destination": "/srv/storage/private",
+          "rw": true
+        }
+      ],
+      "health": {
+        "status": "healthy",
+        "intervalNanoseconds": 30000000000,
+        "testSha256": "505a29ef10614875dad6e514ca6073e84647c20c9e8e763c41c59960bbdd4c29"
+      },
+      "consumersByLiteralConfigReference": [],
+      "consumerCoverage": "Literal references only; not DNS aliases or database-stored workflows",
+      "entrypointSha256": "809186e7e59486e621e87d1f558d94dc7cf78f51cfd2a1099bd0f37f07a66341"
+    },
+    {
+      "container": "socialpro-studio-widgets-web-1",
+      "id": "3266bb779bde6f19ddf8207a181c0ec04ffdb35fd6f700bfbf4f2723fdfcd6d8",
+      "image": "socialpro:studio-widgets-cc6bb03ad1c7",
+      "imageId": "sha256:545bd90c361ed7fa137cf5c6623c62f888b539f8e5d317b7840a13163203869b",
+      "repoDigests": [
+        "socialpro@sha256:545bd90c361ed7fa137cf5c6623c62f888b539f8e5d317b7840a13163203869b"
+      ],
+      "sourceLabels": {
+        "com.docker.compose.project.config_files": "/opt/socialpro/studio-widgets-release-20260907/source/infra/studio/web.yaml,/opt/socialpro/studio-widgets-release-20260907/source/infra/studio/labs-web.yaml",
+        "com.docker.compose.project.working_dir": "/opt/socialpro/studio-widgets-release-20260907/source/infra/studio"
+      },
+      "ports": {
+        "3000/tcp": null
+      },
+      "networks": [
+        "socialpro-crm_crm_backend",
+        "socialpro_edge"
+      ],
+      "mounts": [
+        {
+          "type": "bind",
+          "source": "/opt/socialpro/data/storage-public",
+          "destination": "/srv/storage/public",
+          "rw": true
+        },
+        {
+          "type": "bind",
+          "source": "/opt/socialpro/data/storage-private",
+          "destination": "/srv/storage/private",
+          "rw": true
+        },
+        {
+          "type": "bind",
+          "source": "/opt/socialpro/data/studio-demos",
+          "destination": "/srv/storage/private/studio-demos",
+          "rw": true
+        }
+      ],
+      "health": {
+        "status": "healthy",
+        "intervalNanoseconds": 30000000000,
+        "testSha256": "505a29ef10614875dad6e514ca6073e84647c20c9e8e763c41c59960bbdd4c29"
+      },
+      "consumersByLiteralConfigReference": [],
+      "consumerCoverage": "Literal references only; not DNS aliases or database-stored workflows",
+      "entrypointSha256": "809186e7e59486e621e87d1f558d94dc7cf78f51cfd2a1099bd0f37f07a66341"
+    }
+  ],
+  "cron": [],
+  "timers": [
+    "socialpro-backup-remote.service",
+    "socialpro-backup-remote.timer",
+    "socialpro-guardian-collector.service",
+    "socialpro-guardian-collector.timer"
+  ],
+  "excluded": "Environment, tokens, session files, volumes contents, logs and database data not exported",
+  "capturedAt": "2026-09-13T10:22:25.910Z"
+}

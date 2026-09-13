@@ -1,0 +1,8 @@
+import { z } from 'zod';
+const id = z.string().regex(/^\d{1,24}$/);
+export const TwitchClipVideos = z.object({ data: z.array(z.object({ id, user_id: id, user_login: z.string().regex(/^[a-z0-9_]{1,50}$/i),
+  title: z.string().max(500), duration: z.string().regex(/^(?:\d+h)?(?:\d+m)?(?:\d+s)?$/).min(2), created_at: z.iso.datetime(), type: z.string(),
+})).max(100) });
+export const TwitchClipPage = z.object({ data: z.array(z.object({ id: z.string().regex(/^[a-zA-Z0-9_-]{1,100}$/), video_id: z.string().max(24),
+  broadcaster_id: id, vod_offset: z.number().int().nonnegative().nullable(), duration: z.number().positive().max(60), view_count: z.number().int().nonnegative(), title: z.string().max(500),
+})).max(100), pagination: z.object({ cursor: z.string().max(1000).optional() }).default({}) });

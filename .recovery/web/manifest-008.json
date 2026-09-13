@@ -1,0 +1,242 @@
+[
+  {
+    "path": "infra/crm/compose.candidate.yaml",
+    "sha256": "4f68c70b75211a305093950a9e452be1f97ac9918ddae7895bd688053366f113",
+    "bytes": 1367,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "infra/crm/compose.yaml",
+    "sha256": "82a82a938cf028d24dc2fafc5111fbbb2a045be185c00190f972cefcf0c8cdb6",
+    "bytes": 5806,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "infra/crm/initdb/00-scram.sql",
+    "sha256": "9ae1a854541cfdfaf45331655579ed0866793d0d7c42c6b7be56ec94f52b9b42",
+    "bytes": 257,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "infra/crm/initdb/01-roles.sh",
+    "sha256": "5b6bdc9f1e2385279508ecc45a85b16fc11a796f579d1ac5caaa72bd6340e536",
+    "bytes": 530,
+    "storage": "git-base"
+  },
+  {
+    "path": "infra/crm/provision-secrets.sh",
+    "sha256": "dd7bbe4ab1596bd9ba69aad3fefb1a80efa440502f391c7dfe5d98442e374485",
+    "bytes": 1107,
+    "storage": "git-base"
+  },
+  {
+    "path": "infra/n8n/compose.yaml",
+    "sha256": "351d526763ee58719a3a921faa29beb38325c5a8bef3d0f6489fc21bf74d294e",
+    "bytes": 2825,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "infra/n8n/guard/clients.cjs",
+    "sha256": "40920810de1d982116ad3ab88056a638e4c59d4290fad6a3f06c4b3cd57043a0",
+    "bytes": 8949,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "infra/n8n/guard/clients.test.cjs",
+    "sha256": "5a23e727d6dcfd6a19dd92914de3b7075afa46c097f064393b7c2e45eba12dfd",
+    "bytes": 9911,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "infra/n8n/guard/creators.cjs",
+    "sha256": "a0cfc702eb7510153160a84444c6133606138e7447b64b9ce6333f5dc07fef84",
+    "bytes": 6726,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "infra/n8n/guard/creators.test.cjs",
+    "sha256": "7921b38fbfc82ab646bad5638a6a27ef2861948eb6c0df19b0e43c5ddc82357e",
+    "bytes": 13318,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "infra/n8n/guard/gates.cjs",
+    "sha256": "229c9c3bc79b929d22d850cc6b8f4e784ca2dcb7948478ae3da536278236a549",
+    "bytes": 16618,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "infra/n8n/guard/gates.test.cjs",
+    "sha256": "fe3f102129954eacf8cffd3bada86a7df6837eb5922a809611b7bfdb09d2e5a1",
+    "bytes": 16451,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "infra/n8n/guard/handlers.cjs",
+    "sha256": "3df6d0468dc3fbd788f8eabefe74f60b7d67148da14a1066ab527108e13d04e7",
+    "bytes": 9842,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "infra/n8n/guard/initialize.cjs",
+    "sha256": "414abc2b693e62087c6b2a9188d329ec40ec427434e4990e9ad2dbfacf2faa8d",
+    "bytes": 1708,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "infra/n8n/guard/kpi-passthrough.test.cjs",
+    "sha256": "12df689b2d3a4ef1d464819223efa8c0000717f8ef600f794a6f340d574e4353",
+    "bytes": 6361,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "infra/n8n/guard/lint.test.cjs",
+    "sha256": "c03968b9cea220ee0ba6010a232d07d5ad43aeb1f5ed00c265747e46668398ff",
+    "bytes": 1862,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "infra/n8n/guard/partners.cjs",
+    "sha256": "e1edfe7bf35a69eccd2c1e489d5202ceb5fba2747ce3cfe9e73455de03002c8c",
+    "bytes": 9012,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "infra/n8n/guard/partners.test.cjs",
+    "sha256": "c7739c7db5e6378de381cbddcd812b244b8e787f136b72b0464c6a827a963300",
+    "bytes": 11244,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "infra/n8n/guard/pollers.cjs",
+    "sha256": "d336b3a56749245493a3245b639dcc34f876eb8a11565c90a384e5eef495b5f1",
+    "bytes": 13816,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "infra/n8n/guard/pollers.test.cjs",
+    "sha256": "1afb9186358a7e8b9875c2f110590cdf8a2a1884473de6b78a4d8b48284e2d59",
+    "bytes": 15063,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "infra/n8n/guard/progress.cjs",
+    "sha256": "5e51208e60f480f8f1cf94f4a80312c9d16111b78bf9aeaea04d01553e889342",
+    "bytes": 13580,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "infra/n8n/guard/progress.test.cjs",
+    "sha256": "d534702d1e528db6bb6fe62f0bacc18cec3b40810022adb4b1c70375970af7f3",
+    "bytes": 17463,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "infra/n8n/guard/routing.cjs",
+    "sha256": "02322ba72d73575f1518a97f5f6e7feea0e729d3c7b7736f80efd4380bf57ee1",
+    "bytes": 3973,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "infra/n8n/guard/routing.test.cjs",
+    "sha256": "58b19246c3d46eaaae470ef925eccba2319e700ad6c4b10d2ea3524a5b7569a2",
+    "bytes": 17934,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "infra/n8n/guard/runtime.test.cjs",
+    "sha256": "89a62a875d70d5dee1bd9c3461313910901c28c30659f2be6d867f60add0c80e",
+    "bytes": 8482,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "infra/n8n/guard/server.cjs",
+    "sha256": "e684d5edaff19f80167c013b5ba768145b424c18d2e77084de9e0996e25a3dc5",
+    "bytes": 4994,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "infra/n8n/guard/server.test.cjs",
+    "sha256": "6b03c17e196abd56dfe636480599135cc053eba43d1ccaec36ace36fa843f030",
+    "bytes": 10552,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "infra/n8n/guard/store.cjs",
+    "sha256": "e0299c0aefb44af7f7a393621dd807afdfb5f5001f4da22115a83f004e25e105",
+    "bytes": 2549,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "infra/n8n/guard/workflow-patch.cjs",
+    "sha256": "d1d182e8711075f2bd43e101f31a5875660eb1ef5ef4bfd065d0635e711bf78d",
+    "bytes": 3413,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "infra/n8n/guard/workflow-templates.test.cjs",
+    "sha256": "70154243bcd255691f06329fb688451f61211f6674d212b52e6033234f89b5ad",
+    "bytes": 2193,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "infra/n8n/workflows/socialpro-creator-discovery-digest.json",
+    "sha256": "ac4e8648c9a8d89d9001f50ed6618f0fdadd05ae6d7e5dae2e64016b81f5c532",
+    "bytes": 2235,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "infra/n8n/workflows/socialpro-deal-digest.json",
+    "sha256": "0c47cd73656607fe96df56df07bcc3442fa3828ead1e027e566b996a2563ca81",
+    "bytes": 3655,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "infra/n8n/workflows/socialpro-deal-intake.json",
+    "sha256": "7dcacfe7f6781922c82259cd6c014b377ba9699d87c6f7625182baa1d2d52d32",
+    "bytes": 3044,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "infra/n8n/workflows/socialpro-discord-channel-guides.json",
+    "sha256": "3f50ac1919e6833ad022e680df763c1b1e0880146fc89efd02649a5a54748bc4",
+    "bytes": 5219,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "infra/n8n/workflows/socialpro-discord-deal-created-notifications.json",
+    "sha256": "22809a50c905faca1aef09476b4b02d33d36bcbd557c820480a46fe8d5e2a8a7",
+    "bytes": 3699,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "infra/n8n/workflows/socialpro-discord-partner-leads.json",
+    "sha256": "6e6532468deb158a776b1bc7a866b9ed3ed6ac653be863c682220c0065a0afe5",
+    "bytes": 5216,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "infra/n8n/workflows/socialpro-drive-copy-creator-folder.json",
+    "sha256": "2fd1a36ca5976af621822c7e6a87ff243a89eae3c8b087f2749decd9c5ffd374",
+    "bytes": 3415,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "infra/n8n/workflows/socialpro-kpi-reporting-bot.json",
+    "sha256": "7b076dd2f69f4c9276b7c11255c8f779853aba18e68b7ae51f02bf594c39c9db",
+    "bytes": 3731,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "infra/n8n/workflows/socialpro-pipeline-deals-reader.json",
+    "sha256": "6602d2e7c99960a3f5974d0c63d2a61f8bd2aa410768183f9e803260a31ce7c3",
+    "bytes": 3810,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "infra/n8n/workflows/socialpro-progress-alerts.json",
+    "sha256": "1c8c4531380cab7d2f16073f4031b2bcc4b3301e367f33fe655619106863a1ba",
+    "bytes": 3620,
+    "storage": "git-base-crlf"
+  }
+]

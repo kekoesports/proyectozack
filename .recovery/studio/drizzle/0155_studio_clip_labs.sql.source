@@ -1,0 +1,19 @@
+CREATE TABLE "studio_clip_sources" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"talent_id" integer NOT NULL,
+	"source_key" text NOT NULL,
+	"kind" text NOT NULL,
+	"document" jsonb NOT NULL,
+	"decisions" jsonb DEFAULT '{}'::jsonb NOT NULL,
+	"revision" integer DEFAULT 0 NOT NULL,
+	"rights_accepted_by" text NOT NULL,
+	"rights_accepted_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	CONSTRAINT "studio_clip_source_kind_ck" CHECK ("studio_clip_sources"."kind" in ('twitch','kick','cs2')),
+	CONSTRAINT "studio_clip_source_revision_ck" CHECK ("studio_clip_sources"."revision" >= 0)
+);
+--> statement-breakpoint
+ALTER TABLE "studio_clip_sources" ADD CONSTRAINT "studio_clip_sources_talent_id_talents_id_fk" FOREIGN KEY ("talent_id") REFERENCES "public"."talents"("id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "studio_clip_sources" ADD CONSTRAINT "studio_clip_sources_rights_accepted_by_user_id_fk" FOREIGN KEY ("rights_accepted_by") REFERENCES "public"."user"("id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
+CREATE UNIQUE INDEX "studio_clip_source_talent_key_uq" ON "studio_clip_sources" USING btree ("talent_id","source_key");--> statement-breakpoint
+CREATE INDEX "studio_clip_source_talent_created_idx" ON "studio_clip_sources" USING btree ("talent_id","created_at");

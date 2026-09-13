@@ -1,0 +1,36 @@
+import { sql } from 'drizzle-orm';
+import { pgTable, uuid, integer, text, timestamp, jsonb, boolean, index, check } from 'drizzle-orm/pg-core';
+import { talents } from './talents';
+import { user } from './auth';
+import { studioClipSources } from './studioClips';
+
+/** Private, bounded upload + CPU analysis. Never authorizes recording or publishing. */
+export const studioDemoJobs = pgTable('studio_demo_jobs', {
+  id: uuid('id').primaryKey(),
+  talentId: integer('talent_id').notNull().references(() => talents.id, { onDelete: 'restrict' }),
+  requestedBy: text('requested_by').notNull().references(() => user.id, { onDelete: 'restrict' }),
+  agencyRequest: boolean('agency_request').notNull(),
+  name: text('name').notNull(),
+  byteSize: integer('byte_size').notNull(),
+  storageBackend: text('storage_backend').notNull().default('local'),
+  storageScope: text('storage_scope').notNull().default('local'),
+  targetSteamId: text('target_steam_id').notNull(),
+  parts: jsonb('parts').notNull().default({}),
+  status: text('status').notNull().default('uploading'),
+  sourceId: uuid('source_id').references(() => studioClipSources.id, { onDelete: 'restrict' }),
+  attempts: integer('attempts').notNull().default(0),
+  leaseToken: uuid('lease_token'),
+  leaseUntil: timestamp('lease_until', { withTimezone: true }),
+  failureCode: text('failure_code'),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+  finishedAt: timestamp('finished_at', { withTimezone: true }),
+  purgedAt: timestamp('purged_at', { withTimezone: true }),
+}, (t) => [
+  index('studio_demo_talent_created_idx').on(t.talentId, t.createdAt),
+  index('studio_demo_queue_idx').on(t.status, t.createdAt),
+  check('studio_demo_size_ck', sql`${t.byteSize} between 16 and 524288000`),
+  check('studio_demo_storage_ck', sql`${t.storageBackend} in ('local','blob')`),
+  check('studio_demo_status_ck', sql`${t.status} in ('uploading','queued','parsing','ready','failed','cancelled')`),
+  check('studio_demo_attempts_ck', sql`${t.attempts} between 0 and 3`),
+]);

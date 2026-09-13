@@ -1,0 +1,242 @@
+[
+  {
+    "path": "src/features/admin/_shared/components/dashboard/AlertResolveButton.tsx",
+    "sha256": "5841e80db02724b3b98dc3d8bbf3bfab1bbe2d5ff118bfe7bead761bb72e47fb",
+    "bytes": 2261,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/_shared/components/dashboard/DashboardAlerts.tsx",
+    "sha256": "9d50175ef5431c0c2ce686286550e5ae85a3578cbfb2e13c0f1bc36e8ce9e661",
+    "bytes": 18112,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/_shared/components/dashboard/FollowUpPanel.tsx",
+    "sha256": "ce86934796f870071315dcc988d262d392a5a86e3c666440df8312ceddb3d5db",
+    "bytes": 5618,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/_shared/components/dashboard/InsightsPanel.tsx",
+    "sha256": "790929022a140d54b02482cff3a61ee1ce3ceaeb913f22b150da912d08b00b90",
+    "bytes": 2948,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/_shared/components/dashboard/PipelineChartCard.tsx",
+    "sha256": "14e239335e616fc235a7c9bd4d8ec8f573e463a65099af649622abf4948bbdbe",
+    "bytes": 5249,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/_shared/components/dashboard/StatCard.tsx",
+    "sha256": "10925c3ee8fe93c4b8c1e2916c63179557f5f8bc41eb0b25686c5e2662386a58",
+    "bytes": 2830,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/_shared/components/dashboard/TaskPanel.tsx",
+    "sha256": "3b6e65eacdae5462a3190dff31e88358cec22de575f6d3618e7a1dc20adcb2c0",
+    "bytes": 4941,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/agents/components/ActionButton.tsx",
+    "sha256": "6f5a1ff570f1d4e6689ec1429e3451eb8d74a1c309c9dbcee38d19ce7ba32cd9",
+    "bytes": 3097,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/agents/components/AgentBadges.tsx",
+    "sha256": "de3e00b09822866c5b93f4767ece5f5c579cbe8cf9fe1f97e7c7419ad96b527c",
+    "bytes": 2527,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/agents/components/AgentsCatalogue.tsx",
+    "sha256": "aa311973a784722862f219dfb102eb140572a4d898efc8c1e45d14b8b8378047",
+    "bytes": 5518,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/agents/components/ApprovalsQueue.tsx",
+    "sha256": "b5a188eaa5527eebdc85f79fb2ab036a1489f7ffba59c316d2bd55fdc5340a9c",
+    "bytes": 5740,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/agents/components/RunTimeline.tsx",
+    "sha256": "2d7381dd621486bf835bac9a8c2775280b01814565f288501a87531f1781f128",
+    "bytes": 9407,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/agents/components/RunsTable.tsx",
+    "sha256": "ac5834b249513b865a62a889d0653ad2c33cf883fc46fceb1b31a2347420bd03",
+    "bytes": 4583,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/agents/format.ts",
+    "sha256": "937c81f796d042df74ac6aefba7ef28bcee0eca4e775cabf4f59b06072c18bd9",
+    "bytes": 6013,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/ai-assistant/components/ChatClient.tsx",
+    "sha256": "69d5978c3b62b90faa39bfec493ac8a2fca19de89566939ba1de610be8efdbd7",
+    "bytes": 22605,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/analytics/components/AnalyticsDashboard.tsx",
+    "sha256": "2961b2b07673746a7423fc92428396e95d0a08506499f8921ffb0bcc31bf309d",
+    "bytes": 28305,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/analytics/components/AnalyticsPendingSection.tsx",
+    "sha256": "16bf0dd9bfd1d62d3dcfa329c614e264640a9026b93000006d65e307b542e5e3",
+    "bytes": 10987,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/analytics/components/AnalyticsPipelineSection.tsx",
+    "sha256": "b8f3bdfdd13b0036a6bb6a09e4069a20e18fdfc2f6840b51a97b296d9fdd25b2",
+    "bytes": 10471,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/analytics/components/AnalyticsRevenueChart.tsx",
+    "sha256": "0cf5e114dbafbfb18cae2311b4093f54104915aa28a3aa61a20623c0baea58f0",
+    "bytes": 7881,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/analytics/components/BrandRankingTable.tsx",
+    "sha256": "b132d5955b4048309e5edb83c961077dbd87e7922c67734ea810cab00128b2de",
+    "bytes": 8888,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/analytics/components/CampaignsRevenueTable.tsx",
+    "sha256": "04321c86f4b383214da0c392a83423db6a91e940abcccace7caa361e956e720f",
+    "bytes": 13731,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/analytics/components/CodeClicksSection.tsx",
+    "sha256": "f658442bfff43675bd5f973ac2a0c8b9ceee10a03c8261a251714a4310eed331",
+    "bytes": 9902,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/analytics/components/GiveawayEventsSection.tsx",
+    "sha256": "32965ccc1917152ef4b3fb9ae68837747e08aef141c4bac2c28dd741b8227bb8",
+    "bytes": 6401,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/analytics/components/GrowthReport.tsx",
+    "sha256": "ed9be6d3ed5bd00e7e8eb0f67e3a258e059d783d14be648bfc7c94f8fe17ba38",
+    "bytes": 5508,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/analytics/components/PostEventsSection.tsx",
+    "sha256": "ce23f42db55dd14e7f0f3a95dc35dbe9dd326716077ad54f4c78d26401cb376e",
+    "bytes": 6957,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/analytics/components/PostNewsAnalyticsDashboard.tsx",
+    "sha256": "97a45ab2234d9ba8d66fb3b051b4a949a8750fbb5d052ea1a34347da5c4575e2",
+    "bytes": 26790,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/analytics/components/TalentRankingTable.tsx",
+    "sha256": "3ab6be51abfab78f87351e6b6103bfcaa5cdfae5d65f0f2bab821b505cf5d0fc",
+    "bytes": 8893,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/automation-drafts/components/DraftDealEditor.tsx",
+    "sha256": "3bf7ef24981c41eb6c2cf139e5f2df3e3fde2bafd1bfbc71b81696cb7a84d3e8",
+    "bytes": 15854,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/automation-drafts/components/DraftDetail.tsx",
+    "sha256": "50cf3478d8665b28a0499489406ae048a5e62cb3f10c3c7198ab8e8aa76ac9a0",
+    "bytes": 6211,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/automation-drafts/components/DraftsTable.tsx",
+    "sha256": "b17360f7ca9530016b3ae1fae238fa65d1d2cac7cb60c26b8a61486749edebce",
+    "bytes": 9570,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/automation-drafts/components/draftMeta.ts",
+    "sha256": "540396f1c3d7fcc5132370481efe3fb5987b6baced9a46e852b0e63b4a9b37ea",
+    "bytes": 2632,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/brands/components/BrandBriefsTab.tsx",
+    "sha256": "f3010a413bd83187cd2ebe0099f0a9d24eb2c2fc0c41fea0cb8856b2d23b6681",
+    "bytes": 31737,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/brands/components/BrandCampaignsTab.tsx",
+    "sha256": "5cca029683f350897fb3752e9fc1f9c3ab422e8e1c42aab5e0df2634c4d5f59e",
+    "bytes": 6429,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/brands/components/BrandContactForm.tsx",
+    "sha256": "77ae3d450a5273547ee25436fd5a5174b2a4bd06ab405ca83b1c6e44eee2f36b",
+    "bytes": 7780,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/brands/components/BrandFollowupForm.tsx",
+    "sha256": "a147aebd5fac56945b732cb167ed3bf23f8ea27fc054f69b1d2daa3daec2e11a",
+    "bytes": 9191,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/brands/components/BrandFormDrawer.parts.tsx",
+    "sha256": "c95cc1f42c51b631fba346f4fb26ad1cc4b53265277fea7f02b677cc07745d29",
+    "bytes": 1537,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/brands/components/BrandFormDrawer.tsx",
+    "sha256": "0f3a78db0fbad8678e5d3632b2a884dac115c1fd701f8957971b8d9184f3aafe",
+    "bytes": 20426,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/brands/components/BrandFormModal.tsx",
+    "sha256": "a6c106930d8657d838daabd039a8e869dbd811d3e8850823ecc95880a04d75a5",
+    "bytes": 14136,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/brands/components/BrandLogoUpload.tsx",
+    "sha256": "6b581427edd79e2126e6300eed8eaf3fd26d1a78f0c78ae80ce70dc1d6f75fa2",
+    "bytes": 7499,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/brands/components/BrandsCrmManager.brand-row.tsx",
+    "sha256": "00896a472eb38c0a2d01a0e79b3d39af47cff590884667a092ec3a2cb31ea3fa",
+    "bytes": 9712,
+    "storage": "git-base-crlf"
+  }
+]

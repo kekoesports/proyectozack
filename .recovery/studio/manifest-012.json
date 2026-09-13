@@ -1,0 +1,242 @@
+[
+  {
+    "path": "scripts/seeds/news/seed-news-thumbs.ts",
+    "sha256": "b007df4681e80a80e1bfd908e3b984dfc24664d7b6ef781dcc392ec55f260266",
+    "bytes": 17015,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/seeds/news/seed-news.ts",
+    "sha256": "f01b7ba2469de11eb24a72973c5d00a54c8f19d0f0ebfd0f28e4acf1ea3927a6",
+    "bytes": 21609,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/seeds/reorder-brands.ts",
+    "sha256": "5afd71226c6d6782510a19d2105cfc78c8d3f61446a773fde44496cd7ba27b24",
+    "bytes": 2008,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/seeds/sync-brands-to-assets.ts",
+    "sha256": "e8415e6e865f70bcfbeae60bdda021b976f7e31d709755b9bac920319666f646",
+    "bytes": 3993,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/strip-terrorist-bg.mjs",
+    "sha256": "e71a7935479b377ce4635cea968b9191713b422488cfe6eb8adcb6107e2f7e22",
+    "bytes": 2394,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/studio-demo-blob-fixture.ts",
+    "sha256": "702d86c1772436901f2e02c9d2a9905821dca080f3b2e538c2d31ca5596593da",
+    "bytes": 2705,
+    "storage": "overlay"
+  },
+  {
+    "path": "scripts/studio-demo-worker.ts",
+    "sha256": "e49e5c753230042eb71e02d10f1022bf84fd61e3a14ca50a196efd44279cc3cc",
+    "bytes": 1198,
+    "storage": "overlay"
+  },
+  {
+    "path": "scripts/studio-fixture-server.ts",
+    "sha256": "24add40e71d330eb253e4d98feac78db3c673ff91a176e640764e51f1ac9b400",
+    "bytes": 3433,
+    "storage": "git-base"
+  },
+  {
+    "path": "scripts/studio-higgsfield-worker.ts",
+    "sha256": "6c3aac8f32a4648c88f996151b217a626b02b7d85b34b3318ecbb7a267c39d03",
+    "bytes": 5599,
+    "storage": "git-base"
+  },
+  {
+    "path": "scripts/studio-render-worker.ts",
+    "sha256": "d8347d8acfa1f2eb21d30d192510da6fae9112fd57779dce3bafc6b71421b857",
+    "bytes": 5280,
+    "storage": "overlay"
+  },
+  {
+    "path": "scripts/sync-followers.ts",
+    "sha256": "78f7efdfa5a66a43c7a588f07871410d6cd2a2453644343639323776826b5298",
+    "bytes": 19995,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/sync-geo.ts",
+    "sha256": "4ec7a8c2c0c9b8fe807dfdc32c4e582dd90da75e30d970e0e0ab0da899b4120d",
+    "bytes": 19142,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/sync-press-targets.ts",
+    "sha256": "19594e53570a7036260973ca56d22b1a3b0e714e4eb079e2cb82f2a89681103f",
+    "bytes": 5892,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/test-create-talent.ts",
+    "sha256": "a315ce0485b70fd5c0fd5361c6e1d8e55da8df084c4ce6aac89c52e818a4dfbf",
+    "bytes": 2431,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/test-studio-agency.ts",
+    "sha256": "f89388d5c4a4246b68dc9f8eff644687bbe11d4791842906ac87016499d79ed5",
+    "bytes": 10583,
+    "storage": "git-base"
+  },
+  {
+    "path": "scripts/test-studio-clips.ts",
+    "sha256": "2e9f277f22befc1d8dd9a1e925190bd0f1f4f7f6fd241a411b22299757f9703e",
+    "bytes": 6337,
+    "storage": "overlay"
+  },
+  {
+    "path": "scripts/test-studio-crm.ts",
+    "sha256": "6f8009c1a2056b38f3c0518a3369485eb90cf8f9af4f79a7216f6fe49b98582e",
+    "bytes": 9417,
+    "storage": "overlay"
+  },
+  {
+    "path": "scripts/test-studio-demo-blob.ts",
+    "sha256": "5f0268a560ce3dece6affd093d7324459ec390366fb94ae5780d6c86a10864aa",
+    "bytes": 9871,
+    "storage": "overlay"
+  },
+  {
+    "path": "scripts/test-studio-demo.ts",
+    "sha256": "fc4923ff842c51fcb5ddcc212b1e2b6a8227b654919daa1e60c0d4c253938062",
+    "bytes": 10976,
+    "storage": "overlay"
+  },
+  {
+    "path": "scripts/test-studio-isolation.ts",
+    "sha256": "d12ddafe0ad1be57a1b9d48bd8f89931cb42f1fa2294edc6bf406a12cdf5f4df",
+    "bytes": 13661,
+    "storage": "git-base"
+  },
+  {
+    "path": "scripts/test-studio-motion-layout.ts",
+    "sha256": "ffbc3fe36da33ef368fb98617092360f601658c0c8b7e621db9f7cf61da55100",
+    "bytes": 5565,
+    "storage": "overlay"
+  },
+  {
+    "path": "scripts/test-studio-motion.ts",
+    "sha256": "f7a38f7e7cfb66c8c27057d4703c71dbbce7aed690780b307099cfb972afe398",
+    "bytes": 1657,
+    "storage": "git-base"
+  },
+  {
+    "path": "scripts/test-studio-production.ts",
+    "sha256": "ee946b6064748a6aa9be4795b6df0ddf1d68f2b1bd4aa8b0cb10dd8133f43e5f",
+    "bytes": 13911,
+    "storage": "overlay"
+  },
+  {
+    "path": "scripts/test-studio-render.ts",
+    "sha256": "a3197026fbb29c08b5c8b3b0a5497a5ef586e3c189c165b57d7e42d7ad2de5c0",
+    "bytes": 2583,
+    "storage": "git-base"
+  },
+  {
+    "path": "scripts/test-studio-widgets.ts",
+    "sha256": "e599b3e2cfc895ce687546b2c1250d787b9c749e0c2c934dd56cc054cb09555b",
+    "bytes": 4640,
+    "storage": "overlay"
+  },
+  {
+    "path": "scripts/update-team-names.ts",
+    "sha256": "b97805355969cd8ee0b22555afeb81e08707371a67c7cd4fcc10a327bf9be0f7",
+    "bytes": 2702,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/update-todocs2-bio.ts",
+    "sha256": "e161c264069bdaf149c80ab409468aaf87b53985f78c6c2acad67ae7a4ee7915",
+    "bytes": 3411,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/upload-cover.ts",
+    "sha256": "97b23495632ac55e1bf2167a2bdc93466b18b873c1e45a79958315de573f5a61",
+    "bytes": 2174,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/verify-new-cases.ts",
+    "sha256": "bed6dcb0a3508ec64d051a82ad86a6b3a620fc96fd8d1bf463041676ed161ee2",
+    "bytes": 2486,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/verify-sorteos-concurrency.ts",
+    "sha256": "9d390c57bcd499edcb2f17a06bb5ba9fc4a9a8a7e1233cec4e5f3892379ccf2a",
+    "bytes": 7225,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/verify-studio-clips.mjs",
+    "sha256": "eb5ce30a2d72afdccac463b2bbfaded2bfadd0a06234c5fcc9fb4548184ac261",
+    "bytes": 8196,
+    "storage": "overlay"
+  },
+  {
+    "path": "scripts/verify-studio-demo.mjs",
+    "sha256": "87ed1221e80c364639ea8fee088b3f7b0e6a92dcfb51f904ad9c882f6257d9e6",
+    "bytes": 8045,
+    "storage": "overlay"
+  },
+  {
+    "path": "scripts/vps-capacity-audit.sh",
+    "sha256": "7dc60a7394480c886788ab6a3c32d4d42d7c90d0263fe7983b2b7ff2de9589b6",
+    "bytes": 1514,
+    "storage": "git-base"
+  },
+  {
+    "path": "scripts/worker-preload.cjs",
+    "sha256": "c6c66837064fd4c7ca44e336271a2589a0e5cd2328c87c9a1f960f5f2a4b4dda",
+    "bytes": 1836,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__mocks__/lib/db.ts",
+    "sha256": "d567f879de1b2c0061694653442980c6d8ad0d6fec4b7e6a485b679996064d54",
+    "bytes": 640,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__mocks__/lib/email.ts",
+    "sha256": "0eae6c23e84853f46bf53844e4574370f48191429d9af7c7eca09d5fe199f754",
+    "bytes": 173,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/client/DailyStreakCard.test.tsx",
+    "sha256": "85a5afe83e6afa92be070e0cf10679df047e2c4e0c247ac1b6239411e74be366",
+    "bytes": 8805,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/client/EditDrawer.test.tsx",
+    "sha256": "8b01d8b61096a318ad15b0c878f1c57dabcf6e930c63843a187df5c2cee27752",
+    "bytes": 5733,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/client/FadeInOnScroll.test.tsx",
+    "sha256": "fb77929a5a6638f9ec8dd75fb6f91d8ec86cd21ceab914046904fab35009a02a",
+    "bytes": 5230,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/client/FilterTabs.test.tsx",
+    "sha256": "8753e013449474e2661b230fa0163feaa612f606888a0d0fcbdbf8e08b19e0cc",
+    "bytes": 1552,
+    "storage": "git-base-crlf"
+  }
+]

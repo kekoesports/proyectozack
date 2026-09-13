@@ -1,0 +1,46 @@
+import { ClipImport, ClipSourceUrl, FragForgePlan } from '@/lib/schemas/studio-clips';
+import { rankClipSignals, reportFromFragForge } from '@/lib/studio/clip-ranking';
+
+const plan = { schema_version: '1.1', generated_at: '2026-09-06T12:00:00Z', demo: { path: 'PRIVATE-PATH', sha256: 'a'.repeat(64), map: 'de_mirage', tickrate: 64, duration_ticks: 64000 },
+  target: { steamid64: '76561198000000000', name_in_demo: 'Jugador de prueba' }, segments: [{ id: 'seg-001', round: 1, tick_start: 1000, tick_end: 5000,
+    kills: [{ tick: 1500, weapon: 'ak47', headshot: true, victim: { steamid64: '76561198000000001' } }, { tick: 2100, weapon: 'ak47', headshot: false }] }] };
+
+describe('Clip Labs boundaries', () => {
+  it.each(['http://www.twitch.tv/videos/123', 'https://www.twitch.tv.evil.com/videos/123', 'https://127.0.0.1/videos/123', 'https://user:pass@www.twitch.tv/videos/123', 'https://www.twitch.tv:444/videos/123', 'https://www.twitch.tv/channel', 'file:///video.mp4', 'https://kick.com/api/v2/videos/123'])('rejects non-VOD/unsafe URL %s', (url) => expect(ClipSourceUrl.safeParse(url).success).toBe(false));
+  it('canonicalizes share query strings without ever downloading the submitted URL', () => expect(ClipSourceUrl.safeParse('https://twitch.tv/videos/123?t=10s').data).toBe('https://www.twitch.tv/videos/123'));
+  it('requires consent and bounded duration', () => {
+    expect(ClipImport.safeParse({ url: 'https://twitch.tv/videos/123', title: 'Source', duration: 50000, rightsConfirmed: true }).success).toBe(false);
+    expect(ClipImport.safeParse({ url: 'https://twitch.tv/videos/123', title: 'Source', duration: 300, rightsConfirmed: false }).success).toBe(false);
+  });
+  it('accepts FragForge 1.1, strips local paths and does not persist opponent identity', () => {
+    const parsed = FragForgePlan.safeParse(plan); expect(parsed.success).toBe(true); if (!parsed.success) return;
+    const report = reportFromFragForge(parsed.data);
+    expect(JSON.stringify(report)).not.toContain('PRIVATE-PATH'); expect(JSON.stringify(report)).not.toContain('76561198000000001');
+    expect(report.moments[0]?.title).toBe('2 bajas · ronda 1'); expect(report.moments[0]?.tickStart).toBe(1116);
+    expect(report.moments[0]?.tickEnd).toBe(2292); expect(report.moments[0]?.reasons).toContain('1 headshots');
+  });
+  it('rejects unsupported parser versions and corrupt ticks', () => {
+    expect(FragForgePlan.safeParse({ ...plan, schema_version: '0.1' }).success).toBe(false);
+    expect(FragForgePlan.safeParse({ ...plan, segments: [{ ...plan.segments[0], tick_end: 1000 }] }).success).toBe(false);
+  });
+  it('keeps simultaneous grenade kills against different players', () => {
+    const original = plan.segments[0]; if (!original) throw new Error('fixture');
+    const parsed = FragForgePlan.safeParse({ ...plan, segments: [{ ...original, kills: [
+      { tick: 1500, weapon: 'hegrenade', headshot: false, victim: { steamid64: '1' } },
+      { tick: 1500, weapon: 'hegrenade', headshot: false, victim: { steamid64: '2' } },
+    ] }] });
+    expect(parsed.success).toBe(true); if (!parsed.success) return;
+    expect(reportFromFragForge(parsed.data).moments[0]?.title).toBe('2 bajas · ronda 1');
+  });
+  it('does not turn missing events into invented recommendations', () => expect(rankClipSignals([], 1000)).toEqual([]));
+  it('deduplicates provider IDs, caps a family and separates moments', () => {
+    const signal = { id: 'clip1', kind: 'viewer_clip' as const, start: 1, end: 10, strength: 1, label: 'Real clip' };
+    const ranked = rankClipSignals([signal, signal, { ...signal, id: 'clip2', start: 100, end: 110 }], 112);
+    expect(ranked).toHaveLength(2); expect(ranked[0]?.score).toBe(1);
+    expect(ranked.every((m) => m.start >= 0 && m.end <= 112 && m.end - m.start <= 60)).toBe(true);
+  });
+  it('rewards independent evidence without pretending a probability', () => {
+    const ranked = rankClipSignals([{ id: '1', kind: 'viewer_clip', start: 10, end: 20, strength: 1, label: 'Audience' }, { id: '2', kind: 'laughter', start: 10, end: 20, strength: 1, label: 'Laughter' }], 100);
+    expect(ranked[0]?.score).toBe(1.95); expect(ranked[0]?.reasons).toEqual(['Audience', 'Laughter']);
+  });
+});

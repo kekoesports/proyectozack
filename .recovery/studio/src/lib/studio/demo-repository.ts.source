@@ -1,0 +1,149 @@
+import { randomUUID } from 'node:crypto';
+import { and, asc, desc, eq, gt, inArray, isNull, lt, or } from 'drizzle-orm';
+import { studioDemoJobs } from '@/db/schema/studioDemoJobs';
+import { talents } from '@/db/schema/talents';
+import { DemoCreate, DemoJobView, DemoParts, DemoFailure, DemoStorageBackend, DEMO_PART_BYTES, DEMO_MAX_BYTES, demoPartSize } from '@/lib/schemas/studio-demo';
+import { StudioId } from '@/lib/schemas/studio';
+import { ClipReport } from '@/lib/schemas/studio-clips';
+import { lockStudioMember, visibleStudioTalents } from './talent-scope';
+import { createClipRepository } from './clip-repository';
+import type { StudioDatabase } from './repository';
+
+type Row = typeof studioDemoJobs.$inferSelect;
+const active = ['uploading', 'queued', 'parsing'];
+const completeParts = (row: Row, parts: DemoParts) => Array.from({ length: Math.ceil(row.byteSize / DEMO_PART_BYTES) }, (_, i) => parts[String(i)]).every(Boolean);
+export function demoJobView(row: Row): DemoJobView | null {
+  const parts = DemoParts.safeParse(row.parts); if (!parts.success) return null;
+  const receivedParts = Object.keys(parts.data).map(Number).sort((a, b) => a - b);
+  const result = DemoJobView.safeParse({ id: row.id, name: row.name, byteSize: row.byteSize, targetSteamId: row.targetSteamId,
+    status: row.status, sourceId: row.sourceId, attempts: row.attempts, failureCode: row.failureCode,
+    receivedParts, receivedBytes: receivedParts.reduce((n, i) => n + demoPartSize(row.byteSize, i), 0),
+    createdAt: row.createdAt.toISOString(), expiresAt: row.expiresAt.toISOString(), purged: row.purgedAt !== null });
+  return result.success ? result.data : null;
+}
+
+export function createDemoRepository(database: StudioDatabase, userId: string, agencyTalentId?: number, storageBackend: DemoStorageBackend = 'local', storageScope = 'local') {
+  const scope = (id?: string) => and(id ? eq(studioDemoJobs.id, id) : undefined,
+    inArray(studioDemoJobs.talentId, visibleStudioTalents(database, userId, agencyTalentId)));
+  return {
+    async list() {
+      const rows = await database.select().from(studioDemoJobs).where(scope()).orderBy(desc(studioDemoJobs.createdAt)).limit(20);
+      return rows.flatMap((row) => { const view = demoJobView(row); return view ? [view] : []; });
+    },
+    async get(id: string) {
+      if (!StudioId.safeParse(id).success) return null;
+      const [row] = await database.select().from(studioDemoJobs).where(scope(id));
+      return row ? demoJobView(row) : null;
+    },
+    async create(raw: unknown) {
+      const input = DemoCreate.safeParse(raw); if (!input.success) return null;
+      return database.transaction(async (tx) => {
+        const member = await lockStudioMember(tx, userId, agencyTalentId); if (!member) return null;
+        // A per-talent lock serializes quota reservations across agency and creator accounts.
+        await tx.select({ id: talents.id }).from(talents).where(eq(talents.id, member.talentId)).for('update');
+        const [old] = await tx.select().from(studioDemoJobs).where(eq(studioDemoJobs.id, input.data.id));
+        if (old) return old.storageBackend === storageBackend && old.storageScope === storageScope && old.talentId === member.talentId && old.name === input.data.name && old.byteSize === input.data.byteSize && old.targetSteamId === input.data.targetSteamId ? demoJobView(old) : null;
+        const rows = await tx.select().from(studioDemoJobs).where(and(eq(studioDemoJobs.talentId, member.talentId),
+          or(isNull(studioDemoJobs.purgedAt), inArray(studioDemoJobs.status, active), gt(studioDemoJobs.createdAt, new Date(Date.now() - 86400000)))));
+        if (rows.filter((r) => active.includes(r.status)).length >= 2 ||
+          rows.filter((r) => r.createdAt.getTime() > Date.now() - 86400000).length >= 10 ||
+          rows.filter((r) => !r.purgedAt).reduce((sum, r) => sum + r.byteSize, 0) + input.data.byteSize > DEMO_MAX_BYTES * 2) return null;
+        const { id, name, byteSize, targetSteamId } = input.data;
+        const [row] = await tx.insert(studioDemoJobs).values({ id, name, byteSize, targetSteamId, talentId: member.talentId,
+          requestedBy: userId, storageBackend, storageScope, agencyRequest: agencyTalentId !== undefined, expiresAt: new Date(Date.now() + 86400000) }).returning();
+        return row ? demoJobView(row) : null;
+      });
+    },
+    async part(id: string, index: number, hash: string, persist: () => Promise<void>) {
+      if (!StudioId.safeParse(id).success || !Number.isInteger(index) || index < 0 || index > 249 || !/^[a-f0-9]{64}$/.test(hash)) return null;
+      return database.transaction(async (tx) => {
+        if (!await lockStudioMember(tx, userId, agencyTalentId)) return null;
+        const [row] = await tx.select().from(studioDemoJobs).where(scope(id)).for('update');
+        if (!row || row.storageBackend !== storageBackend || row.storageScope !== storageScope || row.expiresAt <= new Date() || row.purgedAt || demoPartSize(row.byteSize, index) === 0) return null;
+        const parts = DemoParts.safeParse(row.parts); if (!parts.success) return null;
+        const old = parts.data[String(index)]; if (old && old !== hash) return null;
+        if (row.status !== 'uploading') return old === hash && ['queued', 'parsing', 'ready'].includes(row.status) ? demoJobView(row) : null;
+        // File is persisted before its manifest entry. A retry validates/reuses an orphan file.
+        await persist();
+        const [saved] = await tx.update(studioDemoJobs).set({ parts: { ...parts.data, [String(index)]: hash } }).where(eq(studioDemoJobs.id, id)).returning();
+        return saved ? demoJobView(saved) : null;
+      });
+    },
+    async command(id: string, command: 'queue' | 'cancel' | 'retry') {
+      if (!StudioId.safeParse(id).success) return null;
+      return database.transaction(async (tx) => {
+        if (!await lockStudioMember(tx, userId, agencyTalentId)) return null;
+        const [row] = await tx.select().from(studioDemoJobs).where(scope(id)).for('update');
+        if (!row) return null;
+        if (command === 'cancel') {
+          if (row.status === 'ready') return null;
+          const [saved] = await tx.update(studioDemoJobs).set({ status: 'cancelled', failureCode: null, finishedAt: new Date() }).where(eq(studioDemoJobs.id, id)).returning();
+          return saved ? demoJobView(saved) : null;
+        }
+        if (row.storageBackend !== storageBackend || row.storageScope !== storageScope) return null;
+        if (row.status === 'ready' || row.status === 'parsing' || row.status === 'queued') return demoJobView(row);
+        const parts = DemoParts.safeParse(row.parts);
+        if (row.purgedAt || row.expiresAt <= new Date() || !parts.success || !completeParts(row, parts.data) ||
+          (command === 'queue' ? row.status !== 'uploading' : row.status !== 'failed' || row.attempts >= 3)) return null;
+        const [saved] = await tx.update(studioDemoJobs).set({ status: 'queued', failureCode: null, finishedAt: null }).where(eq(studioDemoJobs.id, id)).returning();
+        return saved ? demoJobView(saved) : null;
+      });
+    },
+  };
+}
+
+/** Worker-only repository. Leases fence late responses; the queue itself grants no access. */
+export function createDemoWorkerRepository(database: StudioDatabase, storageBackend: DemoStorageBackend = 'local', storageScope = 'local') {
+  const location = and(eq(studioDemoJobs.storageBackend, storageBackend), eq(studioDemoJobs.storageScope, storageScope));
+  async function expire() {
+      await database.update(studioDemoJobs).set({ status: 'failed', failureCode: 'worker_interrupted', finishedAt: new Date() })
+        .where(and(location, eq(studioDemoJobs.status, 'parsing'), lt(studioDemoJobs.leaseUntil, new Date())));
+      await database.update(studioDemoJobs).set({ status: 'failed', failureCode: 'upload_expired', finishedAt: new Date() })
+        .where(and(location, inArray(studioDemoJobs.status, ['uploading', 'queued']), lt(studioDemoJobs.expiresAt, new Date())));
+  }
+  return {
+    expire,
+    async claim() {
+      await expire();
+      return database.transaction(async (tx) => {
+        const [row] = await tx.select().from(studioDemoJobs).where(and(location, eq(studioDemoJobs.status, 'queued'), gt(studioDemoJobs.expiresAt, new Date()), lt(studioDemoJobs.attempts, 3)))
+          .orderBy(asc(studioDemoJobs.createdAt)).limit(1).for('update', { skipLocked: true });
+        if (!row) return null;
+        const [claimed] = await tx.update(studioDemoJobs).set({ status: 'parsing', leaseToken: randomUUID(),
+          leaseUntil: new Date(Date.now() + 12 * 60_000), attempts: row.attempts + 1 }).where(eq(studioDemoJobs.id, row.id)).returning();
+        return claimed ?? null;
+      });
+    },
+    async allowed(row: Row) {
+      if (!row.leaseToken || row.storageBackend !== storageBackend || row.storageScope !== storageScope) return false;
+      const [live] = await database.select({ id: studioDemoJobs.id }).from(studioDemoJobs).where(and(eq(studioDemoJobs.id, row.id),
+        eq(studioDemoJobs.status, 'parsing'), eq(studioDemoJobs.leaseToken, row.leaseToken), gt(studioDemoJobs.leaseUntil, new Date()),
+        inArray(studioDemoJobs.talentId, visibleStudioTalents(database, row.requestedBy, row.agencyRequest ? row.talentId : undefined))));
+      return !!live;
+    },
+    async finish(row: Row, raw: unknown) {
+      const report = ClipReport.safeParse(raw); if (!report.success || !row.leaseToken || row.storageBackend !== storageBackend || row.storageScope !== storageScope || report.data.kind !== 'cs2' || !report.data.sourceKey.endsWith(`:${row.targetSteamId}`)) return false;
+      const token = row.leaseToken;
+      return database.transaction(async (tx) => {
+        const agencyTalentId = row.agencyRequest ? row.talentId : undefined;
+        const member = await lockStudioMember(tx, row.requestedBy, agencyTalentId);
+        if (member?.talentId !== row.talentId) return false;
+        const [live] = await tx.select().from(studioDemoJobs).where(and(eq(studioDemoJobs.id, row.id), eq(studioDemoJobs.status, 'parsing'), eq(studioDemoJobs.leaseToken, token), gt(studioDemoJobs.leaseUntil, new Date()))).for('update');
+        if (!live) return false;
+        const source = await createClipRepository(tx, row.requestedBy, agencyTalentId).import(report.data);
+        if (!source) return false;
+        await tx.update(studioDemoJobs).set({ status: 'ready', sourceId: source.id, finishedAt: new Date(), failureCode: null }).where(eq(studioDemoJobs.id, row.id));
+        return true;
+      });
+    },
+    async fail(row: Row, code: unknown) {
+      const failure = DemoFailure.safeParse(code); if (!row.leaseToken || row.storageBackend !== storageBackend || row.storageScope !== storageScope || !failure.success) return;
+      await database.update(studioDemoJobs).set({ status: 'failed', failureCode: failure.data, finishedAt: new Date() })
+        .where(and(eq(studioDemoJobs.id, row.id), eq(studioDemoJobs.status, 'parsing'), eq(studioDemoJobs.leaseToken, row.leaseToken)));
+    },
+    async purgeCandidates() {
+      return database.select().from(studioDemoJobs).where(and(location, isNull(studioDemoJobs.purgedAt), lt(studioDemoJobs.expiresAt, new Date()), inArray(studioDemoJobs.status, ['failed', 'cancelled', 'ready']))).limit(3);
+    },
+    async markPurged(id: string) { await database.update(studioDemoJobs).set({ purgedAt: new Date() }).where(and(eq(studioDemoJobs.id, id), location)); },
+  };
+}

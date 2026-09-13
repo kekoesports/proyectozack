@@ -1,0 +1,242 @@
+[
+  {
+    "path": "src/features/studio/StudioClipLab.tsx",
+    "sha256": "e61d5cca33c9e71f22774a695f057f8178fd97d6af9c19613500b39033d9f273",
+    "bytes": 6863,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/features/studio/StudioConnection.tsx",
+    "sha256": "b7f41b35cfb61e2e7ba99a45e0ad7d7fda4ad15604224978b47b52cf653024d7",
+    "bytes": 3145,
+    "storage": "git-base"
+  },
+  {
+    "path": "src/features/studio/StudioCrmPhotoImport.tsx",
+    "sha256": "5984d5841c4bae53fb39394d6465825e7f682761937da0c10761b7e39896e143",
+    "bytes": 1212,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/features/studio/StudioDemoUpload.tsx",
+    "sha256": "4d2758dd795a2d04a9743a28ac19f8ae05c982939b657a683738b56d73e51752",
+    "bytes": 11609,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/features/studio/StudioDepthCard.tsx",
+    "sha256": "e938487474b73b8f7b6f29c2baab004234f0569b072e642731b0afaa0fb9337c",
+    "bytes": 1377,
+    "storage": "git-base"
+  },
+  {
+    "path": "src/features/studio/StudioExportReview.tsx",
+    "sha256": "fe1ad063a80ecf940d1a19b9c01f689ca131cd9adc3965d402e7b98279c7c33b",
+    "bytes": 1493,
+    "storage": "git-base"
+  },
+  {
+    "path": "src/features/studio/StudioLibraryCatalog.tsx",
+    "sha256": "c147a73319b722bb7a9ade08b2f0f31d9aabbd38f11919df8d19b0f05d52ff5e",
+    "bytes": 3193,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/features/studio/StudioLoginForm.tsx",
+    "sha256": "83e45bdc7c0a714dd778f4db164f3b6c41b08331267f4888a685b8aa01e6ce44",
+    "bytes": 3940,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/features/studio/StudioMedia.tsx",
+    "sha256": "db5e756c89551e2a59cddb7d9e47ffdd4dc728b85401c30909e0471c5ed7c4cc",
+    "bytes": 1159,
+    "storage": "git-base"
+  },
+  {
+    "path": "src/features/studio/StudioMetricChart.tsx",
+    "sha256": "b146b900bd49c5d384088a7db66bb0817c7a6f9be068d3e442ee2f9dca6f9144",
+    "bytes": 6652,
+    "storage": "git-base"
+  },
+  {
+    "path": "src/features/studio/StudioMotionPreview.tsx",
+    "sha256": "ceb7c2ab3d2afec95dd219597abd6b5d4086d3f4a3126ba3b96fe97f10207782",
+    "bytes": 1913,
+    "storage": "git-base"
+  },
+  {
+    "path": "src/features/studio/StudioNarration.tsx",
+    "sha256": "882da92aa6c565ce2d1732688030a58b5a62ff1f6e6e4cef8f48452c90ca11c8",
+    "bytes": 3147,
+    "storage": "git-base"
+  },
+  {
+    "path": "src/features/studio/StudioNarrationApproval.tsx",
+    "sha256": "6a9ece32f59a65dde14cfbc8fb2d5a6ed65d37049422209e6efb38b27ddf6b4e",
+    "bytes": 1102,
+    "storage": "git-base"
+  },
+  {
+    "path": "src/features/studio/StudioNavigation.tsx",
+    "sha256": "70c0ca7ec4a2cced8ea74c36fffbd83c91d6b711d43ca66584131061abc0dba8",
+    "bytes": 2662,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/features/studio/StudioOverview.tsx",
+    "sha256": "21b3190226329e861c112fa376e6a5ce8f9ad5a2c57c6952f9f3995c8b6ec442",
+    "bytes": 2580,
+    "storage": "git-base"
+  },
+  {
+    "path": "src/features/studio/StudioPlanCard.tsx",
+    "sha256": "bf0ed8e23e49a8fcf8d0a9014791d6ece47e88715646465adb75290f3781c483",
+    "bytes": 2072,
+    "storage": "git-base"
+  },
+  {
+    "path": "src/features/studio/StudioProjectBrowser.tsx",
+    "sha256": "2c9cedf78546fe3d9258866e754c4590e5edcf9334ba911e55219e60368efb4c",
+    "bytes": 2919,
+    "storage": "git-base"
+  },
+  {
+    "path": "src/features/studio/StudioProjectEditor.tsx",
+    "sha256": "afdf3dd3af8097c000cd1978d58f2fea6ad58e7a2b200cbdb15ad2bfa93468e7",
+    "bytes": 5825,
+    "storage": "git-base"
+  },
+  {
+    "path": "src/features/studio/StudioReference.tsx",
+    "sha256": "49a1fcf7784b4b309db7f9b21c556c80333d5958f171a8c9128fbcaf0cef3298",
+    "bytes": 2062,
+    "storage": "git-base"
+  },
+  {
+    "path": "src/features/studio/StudioRenderList.tsx",
+    "sha256": "81e7c4165edca4b95ab71f3b190f039bcee459613c31ab9d02cb0f3458c4695c",
+    "bytes": 3257,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/features/studio/StudioShell.tsx",
+    "sha256": "013ba9fb73217f320c8a2b0fae71c56a0f150f23d96f617270b5c0e7fbf1d4d2",
+    "bytes": 1722,
+    "storage": "git-base"
+  },
+  {
+    "path": "src/features/studio/StudioSignOut.tsx",
+    "sha256": "5f8bcb5363917d71ed303136f5191dce80ee6188074926958ab155fe4d78a7ed",
+    "bytes": 1076,
+    "storage": "git-base"
+  },
+  {
+    "path": "src/features/studio/StudioSubmit.tsx",
+    "sha256": "192fec81ec4309f2451873affaf50c43a6676663968eb588d0ea9d51417e9b6d",
+    "bytes": 1217,
+    "storage": "git-base"
+  },
+  {
+    "path": "src/features/studio/StudioTemplateGallery.tsx",
+    "sha256": "31a2fc0ad11bc479dec45339f6a9f3d3afc0f9287fef0bdebeca05fd7c7ae9d4",
+    "bytes": 3144,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/features/studio/StudioTimeline.tsx",
+    "sha256": "9d35e6716269ad6ba08e3b9148e61a3b8e2afafc7f35ab71ef3a486ef866c8b9",
+    "bytes": 13234,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/features/studio/StudioVerifyEmail.tsx",
+    "sha256": "e110a68cee85d6c10499c70f21233002d13ac20e71f770e60261bf809855a6c7",
+    "bytes": 1684,
+    "storage": "git-base"
+  },
+  {
+    "path": "src/features/studio/StudioWorkbench.tsx",
+    "sha256": "29c1740cd391a7bbaa57c593366acf87d588b56696ab39434858390c3167c4ab",
+    "bytes": 1066,
+    "storage": "git-base"
+  },
+  {
+    "path": "src/features/studio/StudioWorkspaceButton.tsx",
+    "sha256": "0ebc8f9d331fb8ee92db6d61963e08f2cfb49b61e5d4c0c821a9c970c05ffdaa",
+    "bytes": 982,
+    "storage": "git-base"
+  },
+  {
+    "path": "src/features/studio/StudioWorkspaceContext.tsx",
+    "sha256": "6c6340d311d2505460a6928feecbef415b3a6030b0379b01e01cd2a157487993",
+    "bytes": 491,
+    "storage": "git-base"
+  },
+  {
+    "path": "src/features/studio/StudioWorkspacePicker.tsx",
+    "sha256": "6b9ba5c6cf1c6ea4db597ca1e4cd2c2a100c308897513ade6fb2c7bb902c0f67",
+    "bytes": 2447,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/features/talent-stats-public/components/KpiCards.tsx",
+    "sha256": "7fe72107fea0bac21e7b406632718d7a72b08875123a41a086976ba7b3e18715",
+    "bytes": 1546,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/talent-stats-public/components/StatsTableRow.tsx",
+    "sha256": "0f47caab87ba07a3daf8e9a793304107b6a7b979dece2c640bf11f26a24f846f",
+    "bytes": 2485,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/talent-stats-public/components/StatsView.tsx",
+    "sha256": "3346e3cfa0466d3ebf84cb9042992054c213fd62537d69947fd886551a323a43",
+    "bytes": 2523,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/talents-public/components/TalentCard.tsx",
+    "sha256": "fd0d467d60fdd230e975c6507b6afbb3d4d05216a4f26db0391066033b517299",
+    "bytes": 5943,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/talents-public/components/TalentGrid.tsx",
+    "sha256": "ca90239c5d72521d3d329da8284fe73b2a35f24944e9e02d73ccd110e75c5cb0",
+    "bytes": 2468,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/talents-public/components/TalentModal.tsx",
+    "sha256": "53e0beaddf90096e052be58dc8de5f7abc4332df3c8203f5e9c81e74fae9050d",
+    "bytes": 7549,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/__tests__/server/kekopilot-url.test.ts",
+    "sha256": "a3c5cac33ff0f1c3604865cccec222b0f99aacefe0e979407d5042464806a2bc",
+    "bytes": 1009,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/__tests__/server/studio-access.test.ts",
+    "sha256": "192d56cd4608d8e5db2818e17e15e298371d87a3234be115532e2f8f11d0b65b",
+    "bytes": 5755,
+    "storage": "git-base"
+  },
+  {
+    "path": "src/lib/__tests__/server/studio-analytics.test.ts",
+    "sha256": "e7d1e41809ad0000088f6f5773f86f60e8ced3aa6123da6b9c82f19200bb9fd4",
+    "bytes": 1504,
+    "storage": "git-base"
+  },
+  {
+    "path": "src/lib/__tests__/server/studio-auth-logger.test.ts",
+    "sha256": "54b5415c862f04ead0d5f61d068224b9f674f670fb84461843aefe35767a9770",
+    "bytes": 644,
+    "storage": "git-base"
+  }
+]

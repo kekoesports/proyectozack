@@ -1,0 +1,242 @@
+[
+  {
+    "path": "scripts/test-studio-render.ts",
+    "sha256": "046d19bacfd1e313376e6f060aadad39749cbc1386a99c188cd2dbe9e64ab0ed",
+    "bytes": 2622,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/update-team-names.ts",
+    "sha256": "b97805355969cd8ee0b22555afeb81e08707371a67c7cd4fcc10a327bf9be0f7",
+    "bytes": 2702,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/update-todocs2-bio.ts",
+    "sha256": "e161c264069bdaf149c80ab409468aaf87b53985f78c6c2acad67ae7a4ee7915",
+    "bytes": 3411,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/upload-cover.ts",
+    "sha256": "97b23495632ac55e1bf2167a2bdc93466b18b873c1e45a79958315de573f5a61",
+    "bytes": 2174,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/verify-new-cases.ts",
+    "sha256": "bed6dcb0a3508ec64d051a82ad86a6b3a620fc96fd8d1bf463041676ed161ee2",
+    "bytes": 2486,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/verify-sorteos-concurrency.ts",
+    "sha256": "9d390c57bcd499edcb2f17a06bb5ba9fc4a9a8a7e1233cec4e5f3892379ccf2a",
+    "bytes": 7225,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/vps-capacity-audit.sh",
+    "sha256": "7dc60a7394480c886788ab6a3c32d4d42d7c90d0263fe7983b2b7ff2de9589b6",
+    "bytes": 1514,
+    "storage": "git-base"
+  },
+  {
+    "path": "scripts/worker-preload.cjs",
+    "sha256": "c6c66837064fd4c7ca44e336271a2589a0e5cd2328c87c9a1f960f5f2a4b4dda",
+    "bytes": 1836,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "sentry.edge.config.ts",
+    "sha256": "760bdd8acef812b6c7dac1b3a38265ee81d30356fdfd4d559bad5f99551b2589",
+    "bytes": 455,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "sentry.server.config.ts",
+    "sha256": "05c5cc11e9a8fe53dbf8d7fe1ca5b225e6fceef5e2fe2295deab65c41b9cfeeb",
+    "bytes": 488,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__mocks__/lib/db.ts",
+    "sha256": "d567f879de1b2c0061694653442980c6d8ad0d6fec4b7e6a485b679996064d54",
+    "bytes": 640,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__mocks__/lib/email.ts",
+    "sha256": "0eae6c23e84853f46bf53844e4574370f48191429d9af7c7eca09d5fe199f754",
+    "bytes": 173,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/client/DailyStreakCard.test.tsx",
+    "sha256": "85a5afe83e6afa92be070e0cf10679df047e2c4e0c247ac1b6239411e74be366",
+    "bytes": 8805,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/client/EditDrawer.test.tsx",
+    "sha256": "8b01d8b61096a318ad15b0c878f1c57dabcf6e930c63843a187df5c2cee27752",
+    "bytes": 5733,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/client/FadeInOnScroll.test.tsx",
+    "sha256": "fb77929a5a6638f9ec8dd75fb6f91d8ec86cd21ceab914046904fab35009a02a",
+    "bytes": 5230,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/client/FilterTabs.test.tsx",
+    "sha256": "8753e013449474e2661b230fa0163feaa612f606888a0d0fcbdbf8e08b19e0cc",
+    "bytes": 1552,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/client/LandingFailSafe.test.tsx",
+    "sha256": "2eecc7d244e2435e583d76e8d77e306c10aa553c1aa2c2328e0330aed199b3d8",
+    "bytes": 3667,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/client/MatchedTransactionList.test.tsx",
+    "sha256": "d8777584c3fbe49963a0448390f476201b929ca37380431dd5b37a4cca4c699c",
+    "bytes": 8810,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/client/MissionsGrid-total.test.tsx",
+    "sha256": "587ecfeb652f13e5d181796cdb3421c1db10c715c2d458ff0a0373e3064adba6",
+    "bytes": 2767,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/client/MonthlyPointsRanking-prizes.test.tsx",
+    "sha256": "09d0a1911d8248b4b3ccd157a85ea06b16e3918f24fff43347bacca9d19b425c",
+    "bytes": 7879,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/client/PayrollStepNeedsOcr.test.tsx",
+    "sha256": "be79740d2a6271ab5c95eca762bcdbc7f526efbfcaaca06bbf75b89df6b3bed8",
+    "bytes": 5687,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/client/SteamLoginButton.test.tsx",
+    "sha256": "90b0f3eb1788d956f56227e59642066d21c1ef421260d1f9613b760c4c8c9636",
+    "bytes": 3945,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/client/campaign-kpis.test.ts",
+    "sha256": "89e473ae752bbb5aa1a5782f2930511c6cb8f294bdde733766794946c8dfb839",
+    "bytes": 6896,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/client/creator-search-profile-ui.test.tsx",
+    "sha256": "fcdc98333af15c44da8a7037cddbc9f4bf85c86c11b143ce361da1c633623fd9",
+    "bytes": 7610,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/client/error-boundaries-render.test.tsx",
+    "sha256": "9354f3abe5069151f9d7c28016f0ba19b6c0de6214824b03f7f76816d87f3803",
+    "bytes": 3627,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/client/studio-experience.test.tsx",
+    "sha256": "4c780bd3628bb7e9f6dac338d5a1de78fd1e08f97baaa8c0642dd515c3ecb345",
+    "bytes": 2766,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/client/target-outreach-composer.test.tsx",
+    "sha256": "6f9262b8dfbb1d1e9afda10fc0f4dd51ca9ae1d3ac450600c1ce62c5088cb011",
+    "bytes": 1722,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/client/targets-platform-filter.test.tsx",
+    "sha256": "6918bc0df7c417c7ebcd660793707f8f0abee584155953140a498be56a528259",
+    "bytes": 21876,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/fuzz/agent-loop-limits.fuzz.ts",
+    "sha256": "3f9ee98a88da5f0bd41e31f36d527f9ec2ab1afac9823f860a2039fab18273dc",
+    "bytes": 5672,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/fuzz/assertSafeRedirect.fuzz.ts",
+    "sha256": "c3b1b2106e5891a111b6fbbc400cb160d421a65f37994c864d85d278cb7bbcf1",
+    "bytes": 2884,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/fuzz/campaigns.fuzz.ts",
+    "sha256": "71cd3938b98b58c099ef1086a65ecac557f9fcaae14adeb169c09ddcbf34e765",
+    "bytes": 5714,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/fuzz/contact-route.fuzz.ts",
+    "sha256": "e48b71bc868a504a3988be20f1e4cba2cf1b92e4af84e0084cc588337eeb009b",
+    "bytes": 3464,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/fuzz/contact-schema.fuzz.ts",
+    "sha256": "55e38377d19556681aed5cf914737e5da97abdb7905a400459f6858bc7a5fdfb",
+    "bytes": 5768,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/fuzz/creator-apply-route.fuzz.ts",
+    "sha256": "0ab7604a0e28ede2bbb1b13c7f03d1216a120bf4546759bc2c67294fc6e7af6d",
+    "bytes": 3409,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/fuzz/email-escape.fuzz.ts",
+    "sha256": "3c87dd6b22790f22f4e94dffab90241210d99de60245a5828f50d5e078a9fc06",
+    "bytes": 4849,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/fuzz/open-redirect.fuzz.ts",
+    "sha256": "946bc8a88f287e53c37626477fdafb1afb1a3f8574fb8190c1e3d13a8f9961db",
+    "bytes": 3932,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/fuzz/payload-boundary.fuzz.ts",
+    "sha256": "6d61ef7f13e2f0d9a94405f9525e86032d2a598f7c43d3088ad81354d75bc58e",
+    "bytes": 7369,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/fuzz/pnl.fuzz.ts",
+    "sha256": "c33937cf1829cabbb02337484e5e7fd5ef30d3555cc1b45edb89c6d4f2a5f8c3",
+    "bytes": 3854,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/fuzz/proposal-schema.fuzz.ts",
+    "sha256": "9fb0c2c3b48a7459abda15989c8a02c02cef2c2faa6041a27c6572091b59e112",
+    "bytes": 5534,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/fuzz/rate-limiting.fuzz.ts",
+    "sha256": "b533a307bfa0861b0331fc15cb2eed9601dad331e5855df2825b09e23f88d066",
+    "bytes": 6361,
+    "storage": "git-base-crlf"
+  }
+]

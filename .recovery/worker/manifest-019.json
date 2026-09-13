@@ -1,0 +1,242 @@
+[
+  {
+    "path": "src/__tests__/server/invoice-schema.test.ts",
+    "sha256": "5c561449ff37cbf02745d09295f2bcc14104a4df7abc57948d870a2bae4966b4",
+    "bytes": 22165,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/invoice-status.test.ts",
+    "sha256": "1b926a043b933c2461abdeebbe0ef3710632e03c9a48aada853a82ea17ce2aec",
+    "bytes": 6429,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/ip-data-room-policy.test.ts",
+    "sha256": "589e17e22df9cff6e509d782c134aeb1136cb856f9a6700ff9c502eab2c86759",
+    "bytes": 1370,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/ip-evidence-crm.test.ts",
+    "sha256": "b3624d220f640c93e5af25257b69e95dc387086f5f8dda8bf5944611b11cd941",
+    "bytes": 5132,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/ip-evidence-github-sync.test.ts",
+    "sha256": "dda538d10ac0d346fda8910df0185aad3ec07df7085a70ec38f5ae6ae83fcb90",
+    "bytes": 4333,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/ip-evidence-policy.test.ts",
+    "sha256": "dcf4e6aed8b544728087941abf0c94a13508cea6d974ea694dce35f88cbc4d97",
+    "bytes": 2075,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/issuer-company-default.test.ts",
+    "sha256": "9d678e435bb5fdda61e68fccebbd4117f7961c626c8a6892d3d8345d768de46d",
+    "bytes": 3280,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/kekopilot-panel-branding.test.ts",
+    "sha256": "170c8c9062ba777e7abc4d9803149e5b650708a9bb40d779ebcb6e84a2feb78a",
+    "bytes": 3391,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/kekopilot-panel-navigation.test.ts",
+    "sha256": "9dee0f770b342c9f311c206d686bf17dc9d01ccedf772912d7fa7838ee52a7a0",
+    "bytes": 1972,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/kekopilot-panel-professional.test.ts",
+    "sha256": "182ee122fa34dbddbf531ccf8f8f28f84617efe680af0aff6deab71520dea9db",
+    "bytes": 2264,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/keydrop-daily-report.test.ts",
+    "sha256": "99e09a5d8738197ffea545548049b97e83a34099cee0c6d189095f2e03773740",
+    "bytes": 4866,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/keydrop-provider-mapper.test.ts",
+    "sha256": "59ce69a5cebf591fde6b487c539ae4c5cfd04ae643477ecb8b56dd362ad3cd61",
+    "bytes": 14395,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/keydrop-provider-security.test.ts",
+    "sha256": "6a71c681cfaaff6c3b17b92fbc75571d99760b2d1edd60a3112fbef12341dd3d",
+    "bytes": 6137,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/kick-discovery-contract.test.ts",
+    "sha256": "a14725043830a1755c664fe1001555a03047c1a7f27db4d63ed45da2cad83958",
+    "bytes": 2200,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/kick-service.test.ts",
+    "sha256": "9d34d7728760a9c5deda729fdd82f15a4c616a19492d4b5c6cff38a93c3a80cc",
+    "bytes": 16372,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/lead-email-reply.test.ts",
+    "sha256": "316759125611750ce2e2fd13dacd73dda25aa519227969f7038364ce31964c75",
+    "bytes": 2087,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/leads.test.ts",
+    "sha256": "85ed4fadf175325d27ce23fbdb6462ab256e142f4ddafc822491a6ff9720f583",
+    "bytes": 11244,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/legal-pages.test.ts",
+    "sha256": "2c8f203821a1a62a5d929f339d0bb5396aadb2f18374f763024c5339c5d183ed",
+    "bytes": 16403,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/legal-review-spain-draft.test.ts",
+    "sha256": "98a191ef4c397734447755a1598ff9787191225d4451afc2af52a7238215bb39",
+    "bytes": 6517,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/legal-terminos-6-manual-review.test.ts",
+    "sha256": "990249a8b281403c9cdfdc6613eff8a2e9e327fc5cc5355679193beb491ee5c6",
+    "bytes": 4301,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/libro-mayor-alerts.test.ts",
+    "sha256": "d18672bf2078fc0b01ae2066440869c0e48dcbba5c1bafc3947a181796aefc08",
+    "bytes": 4539,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/libro-mayor-kpis.test.ts",
+    "sha256": "8b665f779c104bdd5e817322cc88c6e6c179754b0ebe0c92467100bbcbd86091",
+    "bytes": 1461,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/libro-mayor-mapping.test.ts",
+    "sha256": "75fc9bda7c9864da4559449b1c73b0d3d441f8350c4e10aae4ad8ac9f9079877",
+    "bytes": 6292,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/libro-mayor-no-migration.test.ts",
+    "sha256": "224972de57e23a7ab536418c526a4eb671358035c04f4a1ce38368914a3f2d66",
+    "bytes": 1110,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/libro-mayor-no-real-excel.test.ts",
+    "sha256": "f7d1e1d6d1a04cd7dbeb0cf6c0af0893709da92d1ad3623d8723afb89e762fbb",
+    "bytes": 2113,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/libro-mayor-no-writes.test.ts",
+    "sha256": "e1ea3f67f67e77814b58f0304446c59b8b2662c22f99cd68055393035b65eeec",
+    "bytes": 2892,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/libro-mayor-parser.test.ts",
+    "sha256": "f0d99611b3b25e6e7408398ae936ed5c93deff93eb865ce4130aef60681d4398",
+    "bytes": 6572,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/libro-mayor-permissions.test.ts",
+    "sha256": "dc8581bad2d9c457e1ef608b111b6102c35417e3b241e43dba4bdcf6b9e53442",
+    "bytes": 1726,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/log-redactPII.test.ts",
+    "sha256": "f2cc2b499ae7135e85106718cd139d3f2499f4cac8a8d152b82371ecbe1e2556",
+    "bytes": 5330,
+    "storage": "git-base"
+  },
+  {
+    "path": "src/__tests__/server/marcas-portal-invoice-proxy.test.ts",
+    "sha256": "6001d5e1bdf2fcd94156588efc0862f472b88030485a1de7b9cc924fe629da43",
+    "bytes": 11344,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/middleware.test.ts",
+    "sha256": "d9acee0501aa5b2825e1f595aece979a8695799ce9c693e00503a7bf39cd4657",
+    "bytes": 9102,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/migration-skip-guard.test.ts",
+    "sha256": "46d77670cff9edfa1795666dd82599e53c476031a4aec01394fa6dcd2de6c8c0",
+    "bytes": 5179,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/mission-engine.test.ts",
+    "sha256": "187b621d4a1ecf61b1b8d342612c3161c5a3c76174a5b1b6a9e2b17a767808a6",
+    "bytes": 10001,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/missions-youtube-placeholder.test.ts",
+    "sha256": "b79d1c6ca3c90be6e76d00fa299d026a5f7f850788993a2bd947b5d4b69ff683",
+    "bytes": 8744,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/multiprize-ui.test.ts",
+    "sha256": "eac166341a23eabf7edf650eb157b423243b4593913f7907de3354ae6b658b5f",
+    "bytes": 2238,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/n8n-creator-discovery-workflow.test.ts",
+    "sha256": "8b8e18978ed6e3a13965606dd740daa7caf7962fce741e2ec3c3979d7a927f43",
+    "bytes": 4568,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/n8n-deal-created-notifications-workflow.test.ts",
+    "sha256": "8f7249f4e03daec68796cd8f19f7767367a90f350b45ed7a94be4b88c908c4a9",
+    "bytes": 2131,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/n8n-deal-created-trigger.test.ts",
+    "sha256": "91198e3303c65ad93c44712107bfa552638d5d4342d72d74a5d6a4e3843db07a",
+    "bytes": 2142,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/n8n-discord-guides-workflow.test.ts",
+    "sha256": "ecefe1f704490bf81ebd850e2ba8675a25b15d1346d50b93474bce9f797321db",
+    "bytes": 2372,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/n8n-drive-copy-workflow.test.ts",
+    "sha256": "fef35f61c0844f7c3805963f5a65c6fc6bfdb8e45d164cb48fa94891b5320ae8",
+    "bytes": 1578,
+    "storage": "git-base-crlf"
+  }
+]

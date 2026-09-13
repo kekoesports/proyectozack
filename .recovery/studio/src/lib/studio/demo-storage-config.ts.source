@@ -1,0 +1,18 @@
+import 'server-only';
+import { env } from '@/lib/env';
+import { DemoStorageConfig } from '@/lib/schemas/studio-demo-storage';
+import { demoStorage, type DemoStorage } from './demo-storage';
+import { demoBlobStorage } from './demo-blob-storage';
+
+/** Configured means upload-capable, not that the parser worker is running. Never expose the config to clients. */
+export function demoUploadStorageConfig(): DemoStorageConfig | null {
+  if (!env.STUDIO_ENABLED || !env.CLIPPER_ENABLED || !env.STUDIO_DEMO_ENABLED) return null;
+  const config = DemoStorageConfig.safeParse({ backend: env.STUDIO_DEMO_STORAGE, root: env.STUDIO_DEMO_ROOT,
+    token: env.STUDIO_DEMO_BLOB_TOKEN, serverless: env.VERCEL === '1' });
+  return config.success ? config.data : null;
+}
+export function configuredDemoStorage(config: DemoStorageConfig): DemoStorage {
+  if (config.backend === 'blob' && config.token) return demoBlobStorage(config.token, config.root);
+  if (config.backend === 'local' && config.root && !config.serverless) return demoStorage(config.root);
+  throw new Error('storage_error');
+}

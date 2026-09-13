@@ -1,0 +1,242 @@
+[
+  {
+    "path": "src/__tests__/client/LandingFailSafe.test.tsx",
+    "sha256": "2eecc7d244e2435e583d76e8d77e306c10aa553c1aa2c2328e0330aed199b3d8",
+    "bytes": 3667,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/client/MatchedTransactionList.test.tsx",
+    "sha256": "d8777584c3fbe49963a0448390f476201b929ca37380431dd5b37a4cca4c699c",
+    "bytes": 8810,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/client/MissionsGrid-total.test.tsx",
+    "sha256": "587ecfeb652f13e5d181796cdb3421c1db10c715c2d458ff0a0373e3064adba6",
+    "bytes": 2767,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/client/MonthlyPointsRanking-prizes.test.tsx",
+    "sha256": "09d0a1911d8248b4b3ccd157a85ea06b16e3918f24fff43347bacca9d19b425c",
+    "bytes": 7879,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/client/PayrollStepNeedsOcr.test.tsx",
+    "sha256": "be79740d2a6271ab5c95eca762bcdbc7f526efbfcaaca06bbf75b89df6b3bed8",
+    "bytes": 5687,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/client/SteamLoginButton.test.tsx",
+    "sha256": "90b0f3eb1788d956f56227e59642066d21c1ef421260d1f9613b760c4c8c9636",
+    "bytes": 3945,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/client/campaign-kpis.test.ts",
+    "sha256": "89e473ae752bbb5aa1a5782f2930511c6cb8f294bdde733766794946c8dfb839",
+    "bytes": 6896,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/client/creator-search-profile-ui.test.tsx",
+    "sha256": "fcdc98333af15c44da8a7037cddbc9f4bf85c86c11b143ce361da1c633623fd9",
+    "bytes": 7610,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/client/error-boundaries-render.test.tsx",
+    "sha256": "9354f3abe5069151f9d7c28016f0ba19b6c0de6214824b03f7f76816d87f3803",
+    "bytes": 3627,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/client/studio-experience.test.tsx",
+    "sha256": "3b1b28fec591ca9939e0e7d7930b1c8ee4821a93711d633fd21dc864aceb4e7d",
+    "bytes": 2726,
+    "storage": "git-base"
+  },
+  {
+    "path": "src/__tests__/client/targets-platform-filter.test.tsx",
+    "sha256": "6918bc0df7c417c7ebcd660793707f8f0abee584155953140a498be56a528259",
+    "bytes": 21876,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/fuzz/agent-loop-limits.fuzz.ts",
+    "sha256": "3f9ee98a88da5f0bd41e31f36d527f9ec2ab1afac9823f860a2039fab18273dc",
+    "bytes": 5672,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/fuzz/assertSafeRedirect.fuzz.ts",
+    "sha256": "c3b1b2106e5891a111b6fbbc400cb160d421a65f37994c864d85d278cb7bbcf1",
+    "bytes": 2884,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/fuzz/campaigns.fuzz.ts",
+    "sha256": "71cd3938b98b58c099ef1086a65ecac557f9fcaae14adeb169c09ddcbf34e765",
+    "bytes": 5714,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/fuzz/contact-route.fuzz.ts",
+    "sha256": "e48b71bc868a504a3988be20f1e4cba2cf1b92e4af84e0084cc588337eeb009b",
+    "bytes": 3464,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/fuzz/contact-schema.fuzz.ts",
+    "sha256": "55e38377d19556681aed5cf914737e5da97abdb7905a400459f6858bc7a5fdfb",
+    "bytes": 5768,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/fuzz/creator-apply-route.fuzz.ts",
+    "sha256": "efa40a59f09e0ae1b041ca51b62c2d47289ef7c0f24d9a5f9aab6522ce1b6a01",
+    "bytes": 3072,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/__tests__/fuzz/email-escape.fuzz.ts",
+    "sha256": "3c87dd6b22790f22f4e94dffab90241210d99de60245a5828f50d5e078a9fc06",
+    "bytes": 4849,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/fuzz/open-redirect.fuzz.ts",
+    "sha256": "946bc8a88f287e53c37626477fdafb1afb1a3f8574fb8190c1e3d13a8f9961db",
+    "bytes": 3932,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/fuzz/payload-boundary.fuzz.ts",
+    "sha256": "6d61ef7f13e2f0d9a94405f9525e86032d2a598f7c43d3088ad81354d75bc58e",
+    "bytes": 7369,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/fuzz/pnl.fuzz.ts",
+    "sha256": "c33937cf1829cabbb02337484e5e7fd5ef30d3555cc1b45edb89c6d4f2a5f8c3",
+    "bytes": 3854,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/fuzz/proposal-schema.fuzz.ts",
+    "sha256": "9fb0c2c3b48a7459abda15989c8a02c02cef2c2faa6041a27c6572091b59e112",
+    "bytes": 5534,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/fuzz/rate-limiting.fuzz.ts",
+    "sha256": "b533a307bfa0861b0331fc15cb2eed9601dad331e5855df2825b09e23f88d066",
+    "bytes": 6361,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/fuzz/sql-injection.fuzz.ts",
+    "sha256": "68767bc82b5f99c0e51184a6a0082068d0bfc801397516fdf7d3c118362290f1",
+    "bytes": 7093,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/fuzz/validateUploadedFile.fuzz.ts",
+    "sha256": "6b82e364bb8d50805944582c0bbf35a3287ab6934a168f5e0b0c3f8335d6f86a",
+    "bytes": 3463,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/fuzz/xss-injection.fuzz.ts",
+    "sha256": "bd3874a1dc896ec580795e52b3aec9c6e18797da2d1c4da5f7063d4f4dce104f",
+    "bytes": 6008,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/admin-contracts-pdf-proxy.test.ts",
+    "sha256": "f51465e7d1c1f1ca50e4af342ad239069c94685144625b8aa97bab567adacca4",
+    "bytes": 12772,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/admin-facturacion-pdf-proxy.test.ts",
+    "sha256": "e0173ec0570172ad0f38d4f8622745bbda2bd977684679401e4f9d9fd75c1480",
+    "bytes": 10482,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/admin-facturacion-restore.test.ts",
+    "sha256": "51f3554c66e9c7f9a38bdeae42b1001c41101a9882c7a03838cb53edabc4cce9",
+    "bytes": 3045,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/admin-grant-points-script.test.ts",
+    "sha256": "af5fd61d7a8a03f61423022e50de556da8ac2d1f07b85497b831a15e24aa2369",
+    "bytes": 7843,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/admin-invoices-ui-uses-proxy.test.ts",
+    "sha256": "387555842a79a0e5c513f941ddf3b681b880355f90d9bccc8c5440f097d7cd16",
+    "bytes": 2210,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/admin-limited-tasks-visibility.test.ts",
+    "sha256": "d1ad579081f826e4a30ad35d99bc91dcce9250000432ef178f2781d3394e3b37",
+    "bytes": 4511,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/admin-limited-tasks.test.ts",
+    "sha256": "5b96eef1d433268b1cf0cdc795661a56f0494514fe0e12db4c465b7b3dbb1a49",
+    "bytes": 6817,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/admin-login-password-visibility.test.ts",
+    "sha256": "fe526b68065d3fd37965c95c890ccbb4f41364116801976dcee290ae18fae634",
+    "bytes": 631,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/admin-private-files-proxies.test.ts",
+    "sha256": "bce0541aa4a6e2a4adb16be3c10a5cdf40bb68889a1f7ca5856966867b5434ae",
+    "bytes": 14540,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/admin-private-files-ui-uses-proxy.test.ts",
+    "sha256": "4788efe6089fd24611d486061c2bab5604995f9acba85adb435d90179e1cda32",
+    "bytes": 5461,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/agent-admin-approve-resume.test.ts",
+    "sha256": "2a0952c38660298c6543c0c6ace285bc31d6f4212be935f553f18e1116776e3a",
+    "bytes": 9045,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/agent-admin-format.test.ts",
+    "sha256": "fbe6e23fe681f0cf3b357fd005221a823b5b1ebf0e0ec2f5164e022717a5c819",
+    "bytes": 3838,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/agent-admin-rbac.test.ts",
+    "sha256": "f6591f669ca70b7a6aedcbab95f8a972818b57c1d92e98ac4dbc107d4a4256d0",
+    "bytes": 5231,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/agent-admin-unstick.test.ts",
+    "sha256": "29b0eaa2e8ab7896e9111c80ecdbdbd15c26ead14be8ba84f74565226558fca2",
+    "bytes": 5976,
+    "storage": "git-base-crlf"
+  }
+]

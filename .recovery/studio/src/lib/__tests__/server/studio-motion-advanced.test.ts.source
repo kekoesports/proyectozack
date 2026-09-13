@@ -1,0 +1,31 @@
+import { randomUUID } from 'node:crypto';
+import sharp from 'sharp';
+import { StudioScene } from '@/lib/schemas/studio-production';
+import { ALL_MOTION_DESIGNS } from '@/lib/studio/motion-catalog';
+import { studioMotionDocument } from '@/lib/studio/motion-document';
+
+const base = { id: randomUUID(), kind: 'title', assetId: null, start: 0, duration: 5, title: 'Un acuerdo claro.', body: '', motion: 'table-v1' };
+test.each(['', 'Sin separador', ' | Vacío', 'Vacío | ', 'A | B | C', 'a'.repeat(33) + ' | b', 'A | B\nC | D\nE | F\nG | H'])('rejects malformed table %s', (body) => {
+  expect(StudioScene.safeParse({ ...base, body }).success).toBe(false);
+});
+test('renders only supplied table cells, safely escaped', () => {
+  const scene = StudioScene.parse({ ...base, body: 'Formato | <video>\nFecha | Por acordar' });
+  const html = studioMotionDocument(scene, { format: '9:16', palette: 'dark' }, { display: 'display.ttf', body: 'body.ttf', logo: 'socialpro.png' });
+  expect(html).toContain('role="table"'); expect(html).toContain('&lt;video&gt;'); expect(html).not.toContain('<video>');
+  expect(html).not.toContain('requestAnimationFrame'); expect(html).not.toContain('Math.random');
+  expect(html).toContain('word-mask'); expect(html).toContain('rotateX'); expect(html).toContain('clipPath');
+});
+test.each(ALL_MOTION_DESIGNS)('preserves $id and removes logo plates', (design) => {
+  const scene = StudioScene.parse({ ...base, motion: design.id, title: design.title, body: design.body });
+  for (const palette of ['light', 'dark'] as const) {
+    const html = studioMotionDocument(scene, { format: '9:16', palette }, { display: 'display.ttf', body: 'body.ttf', logo: 'socialpro.png' });
+    expect(html).toContain('src="socialpro.png" alt="SocialPro"');
+    expect(html).toContain('background:transparent;padding:0');
+  }
+});
+test('official PNG has real transparency, including all four corners', async () => {
+  const { data, info } = await sharp('public/images/logos/socialpro-full.png').raw().toBuffer({ resolveWithObject: true });
+  expect(info.channels).toBe(4);
+  for (const pixel of [0, info.width - 1, (info.height - 1) * info.width, info.height * info.width - 1]) expect(data[pixel * 4 + 3]).toBe(0);
+  expect((await sharp('public/images/logos/socialpro-full.png').stats()).channels[3]?.min).toBe(0);
+});

@@ -1,0 +1,130 @@
+/** Fresh PGlite + UUID temp files only. No persistent DB, provider, game or render. */
+import assert from 'node:assert/strict';
+import { randomUUID } from 'node:crypto';
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join, dirname, resolve } from 'node:path';
+import { PGlite } from '@electric-sql/pglite';
+import { drizzle } from 'drizzle-orm/pglite';
+import { eq } from 'drizzle-orm';
+import { generateDrizzleJson, generateMigration } from 'drizzle-kit/api';
+import * as schema from '../src/db/schema';
+import { createDemoRepository, createDemoWorkerRepository } from '../src/lib/studio/demo-repository';
+import { demoHash, demoStorage, readDemoBody, isCs2Demo } from '../src/lib/studio/demo-storage';
+import { DemoCreate, DEMO_PART_BYTES, DEMO_MAX_BYTES } from '../src/lib/schemas/studio-demo';
+import { runDemoJob } from '../src/lib/studio/demo-worker';
+import { parseDemo } from '../src/lib/studio/demo-parser';
+import type { ClipReport } from '../src/lib/schemas/studio-clips';
+
+async function main() {
+  const pg = new PGlite(), db = drizzle(pg, { schema }), temporary = await mkdtemp(join(tmpdir(), 'socialpro-demo-test-'));
+  const root = join(temporary, 'studio-demos'), storage = demoStorage(root); let checks = 0;
+  const check = (value: unknown, label: string) => { assert.ok(value, label); checks++; };
+  const rejects = async (fn: () => Promise<unknown>, label: string) => { await assert.rejects(fn); checks++; void label; };
+  const steamId = '76561198000000000';
+  const bytes = Buffer.alloc(DEMO_PART_BYTES + 64); bytes.write('PBDEMS2\0');
+  const make = (size = bytes.length) => ({ id: randomUUID(), name: 'partida-sintetica.dem', byteSize: size, targetSteamId: steamId, rightsConfirmed: true });
+  const report = (checksum: string): ClipReport => ({ version: 1, kind: 'cs2', sourceKey: `${checksum}:${steamId}`, title: 'QA sintética', duration: 120,
+    url: null, provenance: 'fragforge_import', collectedAt: new Date().toISOString(), coverage: ['Analizador simulado, no es una partida real.'], moments: [], map: 'de_mirage', player: 'QA' });
+  try {
+    const baseline = Object.fromEntries(Object.entries(schema).filter(([key]) => key !== 'studioDemoJobs'));
+    for (const sql of await generateMigration(generateDrizzleJson({}), generateDrizzleJson(baseline))) await pg.exec(sql);
+    await pg.exec(await readFile('drizzle/0156_studio_demo_ingest.sql', 'utf8')); checks++;
+    await pg.exec(await readFile('drizzle/0157_studio_demo_shared_storage.sql', 'utf8')); checks++;
+    await pg.exec(await readFile('drizzle/0158_studio_demo_store_binding.sql', 'utf8')); checks++;
+    const now = new Date();
+    await db.insert(schema.user).values(['a', 'b', 'agency'].map((id) => ({ id, name: 'QA', email: `${id}@fixture.test`, emailVerified: true, role: id === 'agency' ? 'admin' : 'creator', createdAt: now, updatedAt: now })));
+    const [ta, tb] = await db.insert(schema.talents).values(['a', 'b'].map((id) => ({ name: 'QA', slug: id, role: 'creator', game: 'CS2', platform: 'youtube' as const, bio: 'Fixture only', gradientC1: '#111111', gradientC2: '#222222', initials: id }))).returning(); assert.ok(ta && tb);
+    await db.insert(schema.talentUsers).values([{ userId: 'a', talentId: ta.id }, { userId: 'b', talentId: tb.id }]);
+    const a = createDemoRepository(db, 'a'), b = createDemoRepository(db, 'b'), worker = createDemoWorkerRepository(db);
+    check(!DemoCreate.safeParse({ ...make(), rightsConfirmed: false }).success, 'consent');
+    check(!DemoCreate.safeParse({ ...make(), name: '../a.dem' }).success, 'path');
+    check(!DemoCreate.safeParse({ ...make(), name: 'a.dem.exe' }).success, 'extension');
+    check(!DemoCreate.safeParse({ ...make(), targetSteamId: 'KEKO' }).success, 'target');
+    check(!DemoCreate.safeParse(make(DEMO_MAX_BYTES + 1)).success, 'size');
+    check(isCs2Demo(bytes) && !isCs2Demo(Buffer.from('HL2DEMO\0')), 'CS2-only magic');
+    await rejects(() => readDemoBody(new Request('http://fixture.test', { method: 'POST', body: '123456' }), 5), 'stream cap');
+    await rejects(() => storage.put(randomUUID(), 0, Buffer.alloc(16)), 'bad magic');
+    await rejects(() => storage.put('../escape', 0, bytes.subarray(0, 16)), 'storage traversal');
+    const input = make(), job = await a.create(input); assert.ok(job); checks++;
+    check((await a.create(input))?.id === job.id, 'idempotent creation');
+    check(await b.get(job.id) === null && await b.create(input) === null, 'foreign source');
+    check(await a.create({ ...input, targetSteamId: '76561198000000001' }) === null, 'no changed replay');
+    check(await a.command(job.id, 'queue') === null, 'cannot queue missing chunks');
+    let wrote = false;
+    check(await b.part(job.id, 0, demoHash(bytes), async () => { wrote = true; }) === null && !wrote, 'foreign chunk never reaches storage');
+    for (let index = 0; index < 2; index++) {
+      const part = bytes.subarray(index * DEMO_PART_BYTES, (index + 1) * DEMO_PART_BYTES);
+      check(await a.part(job.id, index, demoHash(part), () => storage.put(job.id, index, part)), 'chunk accepted');
+    }
+    check((await a.get(job.id))?.receivedBytes === bytes.length, 'actual progress');
+    const first = bytes.subarray(0, DEMO_PART_BYTES);
+    check(await a.part(job.id, 0, demoHash(first), () => storage.put(job.id, 0, first)), 'same chunk replay');
+    check(await a.part(job.id, 0, 'f'.repeat(64), async () => {}) === null, 'changed chunk rejected');
+    check((await a.command(job.id, 'queue'))?.status === 'queued', 'enqueue');
+    check((await a.command(job.id, 'queue'))?.status === 'queued', 'enqueue replay');
+    let calls = 0;
+    check(await runDemoJob(db, root, 'unused', async (_binary, path, target, hash) => {
+      calls++; check(target === steamId && demoHash(await readFile(path)) === hash, 'assembled bytes and target'); return report(hash);
+    }), 'worker completes mock analysis');
+    const finished = await a.get(job.id);
+    check(finished?.status === 'ready' && finished.sourceId && finished.purged, 'ready source and temporary purge');
+    check(!await runDemoJob(db, root, 'unused', async () => { calls++; return report(demoHash(bytes)); }) && calls === 1, 'no double parse');
+    check((await db.select().from(schema.studioRenders)).length === 0, 'never auto renders');
+    check(await a.command(job.id, 'cancel') === null, 'ready analysis preserved');
+    const queueSmall = async () => {
+      const input = make(64), created = await a.create(input); assert.ok(created);
+      const part = bytes.subarray(0, 64);
+      await a.part(created.id, 0, demoHash(part), () => storage.put(created.id, 0, part)); await a.command(created.id, 'queue'); return created;
+    };
+    const cancelJob = await queueSmall(), lease = await worker.claim(); assert.ok(lease);
+    check(await a.command(cancelJob.id, 'cancel'), 'cancel active');
+    check(!await worker.allowed(lease) && !await worker.finish(lease, report(demoHash(bytes))), 'cancel fences late output');
+    const revokeJob = await queueSmall(), revokeLease = await worker.claim(); assert.ok(revokeLease);
+    await db.update(schema.talentUsers).set({ active: false }).where(eq(schema.talentUsers.userId, 'a'));
+    check(!await worker.allowed(revokeLease) && !await worker.finish(revokeLease, report(demoHash(bytes))), 'revoked member fences output');
+    await worker.fail(revokeLease, 'access_revoked');
+    check(await a.get(revokeJob.id) === null, 'revoked reads');
+    await db.update(schema.talentUsers).set({ active: true }).where(eq(schema.talentUsers.userId, 'a'));
+    const expireJob = await queueSmall(), expireLease = await worker.claim(); assert.ok(expireLease);
+    await db.update(schema.studioDemoJobs).set({ leaseUntil: new Date(0) }).where(eq(schema.studioDemoJobs.id, expireJob.id));
+    check(await worker.claim() === null, 'stale lease failed not automatically retried');
+    check((await a.get(expireJob.id))?.failureCode === 'worker_interrupted', 'interruption visible');
+    check((await a.command(expireJob.id, 'retry'))?.status === 'queued', 'manual retry');
+    const secondLease = await worker.claim(); assert.ok(secondLease);
+    check(!await worker.finish(expireLease, report(demoHash(bytes))), 'stale token cannot finish new attempt');
+    await worker.fail(secondLease, 'parser_failed');
+    check((await a.command(expireJob.id, 'retry'))?.status === 'queued', 'third attempt explicitly requested');
+    const thirdLease = await worker.claim(); assert.ok(thirdLease);
+    await worker.fail(thirdLease, 'parser_failed');
+    check(thirdLease.attempts === 3 && await a.command(expireJob.id, 'retry') === null, 'three-attempt cap');
+    const agency = createDemoRepository(db, 'agency', ta.id), agencyJob = await agency.create(make(16)); assert.ok(agencyJob);
+    await db.update(schema.user).set({ role: 'staff' }).where(eq(schema.user.id, 'agency'));
+    check(await agency.get(agencyJob.id) === null && await agency.command(agencyJob.id, 'cancel') === null, 'agency demotion');
+    const q1 = await b.create(make(64)), q2 = await b.create(make(64)); assert.ok(q1 && q2);
+    check(await b.create(make(64)) === null, 'two active job cap');
+    await db.update(schema.studioDemoJobs).set({ expiresAt: new Date(0) }).where(eq(schema.studioDemoJobs.id, q1.id));
+    await runDemoJob(db, root, 'unused');
+    check((await b.get(q1.id))?.purged && (await b.get(q1.id))?.failureCode === 'upload_expired', 'expiry cleanup');
+    await b.command(q2.id, 'cancel');
+    for (let i = 0; i < 8; i++) {
+      const daily = await b.create(make(16)); assert.ok(daily);
+      await b.command(daily.id, 'cancel');
+    }
+    check(await b.create(make(16)) === null, 'ten daily creates, even when cancelled');
+    const reservation = await a.create(make(DEMO_MAX_BYTES)); assert.ok(reservation);
+    await a.command(reservation.id, 'cancel');
+    check(await a.create(make(DEMO_MAX_BYTES)) === null, 'cancelled payload retains quota until purged');
+    // Optional real, already-built parser: malformed synthetic demo must fail, not invent moments.
+    const binary = process.argv.find((arg) => arg.startsWith('--parser='))?.slice(9);
+    if (binary) {
+      const invalid = join(temporary, 'invalid.dem'); await writeFile(invalid, bytes.subarray(0, 64));
+      await rejects(() => parseDemo(binary, invalid, steamId, demoHash(bytes.subarray(0, 64)), AbortSignal.timeout(15000)), 'real parser refuses corrupt data');
+    }
+    console.log(`PASS: ${checks} demo migration/upload/isolation/worker/retention checks. Positive analysis mocked; real gameplay not supplied.`);
+  } finally {
+    await pg.close();
+    if (dirname(resolve(temporary)) === resolve(tmpdir()) && temporary.includes('socialpro-demo-test-')) await rm(temporary, { recursive: true, force: true });
+  }
+}
+main().catch((error: unknown) => { console.error(error instanceof assert.AssertionError ? `Demo assertion: ${error.message}` : 'Demo QA failed safely.'); process.exitCode = 1; });

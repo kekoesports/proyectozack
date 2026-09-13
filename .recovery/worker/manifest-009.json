@@ -1,0 +1,242 @@
+[
+  {
+    "path": "infra/studio/compose.yaml",
+    "sha256": "b6a7ff9ecf0202819863535ebdf41d13267af7b3add1f0e1610da08d839189f8",
+    "bytes": 1257,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "infra/studio/rehearse.sh",
+    "sha256": "d49c5a961daef4bdb53b747dfa8508ab415f0348d84f10d40738127fd6d269d4",
+    "bytes": 3204,
+    "storage": "git-base"
+  },
+  {
+    "path": "infra/studio/web.yaml",
+    "sha256": "9db39f5bc22fbbe450be3c2bf98095d0faa76417b353446b8309d13d2814505a",
+    "bytes": 1383,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "instrumentation-client.ts",
+    "sha256": "948a159953a0c11b50d926d2d91baeab424149c90bac1101c3f4f7f645955e26",
+    "bytes": 534,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "instrumentation.ts",
+    "sha256": "98622e70311d8737ab8034328912e14e7012b725caa65b905fd66ff5a6d5590d",
+    "bytes": 1618,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "jest.config.cjs",
+    "sha256": "69b2fa9f63b352caa7569b1b55315867decea18a54a85bc290ba0e66f983c79f",
+    "bytes": 2643,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "jest.setup.ts",
+    "sha256": "0ffdca12c2d587352c92d52e5c857aa284ba178cdb7fe965d83a3e5a3bc3a197",
+    "bytes": 2116,
+    "storage": "git-base"
+  },
+  {
+    "path": "next.config.ts",
+    "sha256": "220218eff538d4f9ba9ad844e8d1abb58b97d85f647e095e29eaffff72cb4777",
+    "bytes": 13453,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "package-lock.json",
+    "sha256": "36c4aeb0a33b12385fe3e57b21ddcfe995c1c839213f276a38aaa47fdfeea1f9",
+    "bytes": 746609,
+    "storage": "overlay"
+  },
+  {
+    "path": "package.json",
+    "sha256": "530b209726f0577e84d3ca4b36446578bee2d86def96a8fc7d8db31d9b4821f9",
+    "bytes": 5904,
+    "storage": "overlay"
+  },
+  {
+    "path": "postcss.config.mjs",
+    "sha256": "7b299d3d3b16699ddda397c0b2373b3af4f25f8fc9ccc9b3d9e64ef083bc1c21",
+    "bytes": 101,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scraper/__init__.py",
+    "sha256": "352b73a0b8ac3155f0d75ac1cb8fde2cea7bd8c78faab21fa8de5b86a5b8b65a",
+    "bytes": 19,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scraper/config.py",
+    "sha256": "79254fa40aa0cf37d5a3323fdba8b6ff82133029930e5149ceba2ef284560889",
+    "bytes": 5139,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scraper/db.py",
+    "sha256": "9434b7d9278ee23da7bd6945ac82979e536f9542317e447b854e71bf8f2a814c",
+    "bytes": 5001,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scraper/enrich.py",
+    "sha256": "48b7226a9cfb7dc1a76816c051ff158a9cc29bd746f71a961ff15d3a149fa75a",
+    "bytes": 7227,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scraper/firecrawl_client.py",
+    "sha256": "c09f7a5ac63eee3ddcc0bad73da4818e4290406e92653754c9abed72220bdc41",
+    "bytes": 3775,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scraper/main.py",
+    "sha256": "cb58ad705d5e0e63b55c1a5b7a6e2e4fc5060a35299d63d85721673a8df43cf2",
+    "bytes": 5134,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scraper/models.py",
+    "sha256": "5a9cce8f8ea4b829f36821686c0377ae89ba4520b1717def0273d53b92199714",
+    "bytes": 1096,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scraper/sources/__init__.py",
+    "sha256": "d4c4f81df0042cc7005a3bd5147e9a8a948963d083fa5837e24da832ccff27b0",
+    "bytes": 19,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scraper/sources/hltv.py",
+    "sha256": "8e988aa0320b533964f3aa94bf0969b9007daf9552fef63d41d3fd2ee4c3a624",
+    "bytes": 3619,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scraper/sources/influencer_lists.py",
+    "sha256": "e052505d13524237a6e925d9a1ba28a901f0de9297159d1f9241ffe4d58586c8",
+    "bytes": 8063,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scraper/sources/known_handles.py",
+    "sha256": "780bced5e1c9fd44a9faeec61ebd8c2368c3705d5e92eeaf681bd3f16a8c8be3",
+    "bytes": 6628,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scraper/sources/liquipedia.py",
+    "sha256": "58551cb229f15699e5a7a4a09418c63d7fb61fe15b0a56158707c607e4966585",
+    "bytes": 3947,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scraper/sources/reddit.py",
+    "sha256": "138ce555255da284f6069407f52503f6b9d71a815f5f8552efc7efbc694ed517",
+    "bytes": 6932,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scraper/sources/sullygnome.py",
+    "sha256": "d9ae956e689c2a7e68e6316950c6505a8956b72f0712ada6ff3aadf3f0a8e33d",
+    "bytes": 2488,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scraper/sources/twitchtracker.py",
+    "sha256": "49650624460bde751885010b9c7c1174c7e8a813658ba13f6f52daf09c6f8138",
+    "bytes": 3522,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scraper/sources/vlr.py",
+    "sha256": "a660565f4c73c89fad32fc49713713a7be818658644308abdec7618ec114fb9e",
+    "bytes": 3329,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/add-prozis-brand.ts",
+    "sha256": "eb05d8dc4058da56487b2c5158e8ad45d31c6d7c06cfd5cea0c92c2857446fcd",
+    "bytes": 1901,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/admin-create-free-raffle.ts",
+    "sha256": "5c64d2e34bf4aa495d237f60aaefcd80d3d63ef3b2a50c1388f8c64544edd901",
+    "bytes": 6095,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/admin-grant-points.ts",
+    "sha256": "2afa1e7c6ac2dda144de2dedfa5dd207e8dcbad9a2b02d80a654b85c51c340b1",
+    "bytes": 8947,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/apply-collab-migration.ts",
+    "sha256": "426c96ed72dc973f17c72ff74622a63ebcaaa2b3920c9bf8d51c4319f954a727",
+    "bytes": 1864,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/apply-internal-links.mjs",
+    "sha256": "ca8d2ad2d83c85be90cd7429bfd5a90799b7a5f97d9370ebe6584cf563ff9091",
+    "bytes": 11413,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/assert-readonly-build.cjs",
+    "sha256": "3e9521532af7b2be3e8ac7e6a029746c987035c2573da766931e7ca4d9630ce9",
+    "bytes": 1074,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/assert-vercel-build-target.cjs",
+    "sha256": "04c3d1f29492e2ca9111754ddacd43ea19b763fb9de9c170f8cd52f3e6635a43",
+    "bytes": 803,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/audit-casos.ts",
+    "sha256": "2b4b0e70054ddedce47b91ec0259abd232e4fc4a1638ff2633f35421cf3032f7",
+    "bytes": 2584,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/audit-casos2.ts",
+    "sha256": "0dcf1b37acc90b34a0986ad649ad583c3ce91f0f09e892296851afcd1e194ef2",
+    "bytes": 1211,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/audit-cta-urls.ts",
+    "sha256": "cb1a6ad0b05c00d54b46a5575e393b1d8bfb3632272469bd4c68a530960e9d02",
+    "bytes": 21530,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/audit-finanzas-consistency.ts",
+    "sha256": "9f76ed04e25e7f31336d7c1b156955c7dc9ef8c987f6f21d839e2f2a63cc64fe",
+    "bytes": 10257,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/audit-googlebot-redirect.ts",
+    "sha256": "1281b05ac03738195d029853d8410a108d3055572b69f394214521adf5fc33d2",
+    "bytes": 3099,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/audit-news-links.ts",
+    "sha256": "6459b76e1b9151bfa39abd11181b4435faf2a3b92011e60f7d41156c78936ef4",
+    "bytes": 5037,
+    "storage": "git-base-crlf"
+  }
+]

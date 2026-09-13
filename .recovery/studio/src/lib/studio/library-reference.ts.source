@@ -1,0 +1,39 @@
+import { and, eq } from 'drizzle-orm';
+import { studioAssets } from '@/db/schema/studio';
+import { studioProfiles } from '@/db/schema/studioProfiles';
+import { talents } from '@/db/schema/talents';
+import { StudioLibraryReference } from '@/lib/schemas/studio-library';
+import { StudioProfileDocument } from '@/lib/schemas/studio-profile';
+import { lockStudioMember } from './talent-scope';
+import type { StudioDatabase } from './repository';
+
+/** Associate an explicitly confirmed reference, not biometric recognition or training. */
+export async function saveLibraryReference(database: StudioDatabase, userId: string, agencyTalentId: number | undefined, raw: unknown) {
+  const input = StudioLibraryReference.safeParse(raw); if (!input.success) return false;
+  return database.transaction(async tx => {
+    const member = await lockStudioMember(tx, userId, agencyTalentId); if (!member) return false;
+    const [person] = await tx.select({ name: talents.name, bio: talents.bio, role: talents.role }).from(talents)
+      .where(eq(talents.id, member.talentId)).for('update');
+    const [asset] = await tx.select({ contentType: studioAssets.contentType }).from(studioAssets)
+      .where(and(eq(studioAssets.id, input.data.assetId), eq(studioAssets.talentId, member.talentId)));
+    if (!person || !asset || !asset.contentType.startsWith(input.data.kind === 'voice' ? 'audio/' : 'image/')) return false;
+    const [existing] = await tx.select().from(studioProfiles).where(eq(studioProfiles.talentId, member.talentId)).for('update');
+    const previous = StudioProfileDocument.safeParse(existing?.document);
+    if (existing && !previous.success) return false; // Never erase an unrecognized editorial document.
+    const base = previous.success ? previous.data : {
+      version: 1, displayName: person.name, role: person.role, bio: person.bio.slice(0, 1500) || person.name,
+      pronunciation: 'Pronunciación pendiente de revisión con el creador.', voiceStatus: 'reference_only',
+      usageScope: 'Referencia privada confirmada por el usuario autorizado de este espacio. No autoriza clonación ni publicación.',
+      portraitAssetId: null, voiceAssetId: null, approvedVideoAssetId: null, logoAssetId: null,
+      guidelines: [], team: [], currentCreators: [], collaborators: [], cases: [],
+      sources: [{ label: 'Ficha del CRM y referencia confirmada en la biblioteca', kind: 'production_record', date: new Date().toISOString().slice(0, 10) }],
+      publicationNotes: 'Revisar derechos, identidad y resultado antes de publicar.',
+    };
+    const document = StudioProfileDocument.safeParse({ ...base,
+      [input.data.kind === 'voice' ? 'voiceAssetId' : 'portraitAssetId']: input.data.assetId });
+    if (!document.success) return false;
+    await tx.insert(studioProfiles).values({ talentId: member.talentId, document: document.data, recordedBy: userId })
+      .onConflictDoUpdate({ target: studioProfiles.talentId, set: { document: document.data, recordedBy: userId, updatedAt: new Date() } });
+    return true;
+  });
+}

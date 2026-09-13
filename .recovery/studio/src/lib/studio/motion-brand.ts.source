@@ -1,0 +1,4 @@
+/** The fixed RGBA PNG, never a white/black plate. White ink on dark scenes preserves alpha. */
+export function motionBrandStyles(dark: boolean) {
+  return `.rail img{width:156px;height:auto;aspect-ratio:3146/1638;object-fit:contain;background:transparent;padding:0;border:0;border-radius:0;box-shadow:none;filter:${dark ? 'brightness(0) invert(1)' : 'none'}}`;
+}

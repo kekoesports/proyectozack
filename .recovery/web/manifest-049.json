@@ -1,0 +1,242 @@
+[
+  {
+    "path": "src/features/giveaways/components/FeaturedCodesSection.tsx",
+    "sha256": "322d73d9737f4808fc0effc48e636f1506dd82d0d29211b6bc13eaf1d7003aae",
+    "bytes": 3938,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/giveaways/components/FiltersBar.tsx",
+    "sha256": "360c9f5c6b1d72f0d340b1d99f21528d3f18dfbf0f14c84539b80d911cb1d2fa",
+    "bytes": 4858,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/giveaways/components/GiveawayCarousel.tsx",
+    "sha256": "9b455adf9dd0e6edff41516df7935a8da60d5a6a7e910bd4c00d9df043815b3e",
+    "bytes": 2744,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/giveaways/components/GiveawayFeatured.tsx",
+    "sha256": "bedd26c83af21c0563b557246ffd9d73ac9109b10ffdd3cbe036423bbad9197f",
+    "bytes": 10219,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/giveaways/components/GiveawayHubCard.tsx",
+    "sha256": "bee7a605d8562669c2736006268e234aee5403a3bf3fe2470fde0079b569330b",
+    "bytes": 8437,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/giveaways/components/GiveawayPrizePlaceholder.tsx",
+    "sha256": "29d5552b98822309275ab0180e06f5ca1fd7814bda8513fb07d2b450c8751440",
+    "bytes": 1998,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/giveaways/components/GiveawayRow.tsx",
+    "sha256": "a3f08ecc416cd4055c2ededce0191b31b73a4dab4650f8f797365cbd9918289a",
+    "bytes": 8284,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/giveaways/components/GiveawaySidebarPanel.tsx",
+    "sha256": "14bc488649bbf5859414b517f429cd1fb25aed992733258b1d3973044501cc55",
+    "bytes": 6053,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/giveaways/components/GiveawaysHub.tsx",
+    "sha256": "8676d3c804261b7356d46cae25526ac51827fa975d63bdced62c2d927c758ccb",
+    "bytes": 5435,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/giveaways/components/HeroSponsorCard.tsx",
+    "sha256": "860f99b509e023348baca7dc32853d6a609485ee68ca19f7a123d8456ccf9b80",
+    "bytes": 6006,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/giveaways/components/SorteoCard.tsx",
+    "sha256": "58f853556a94b4b579080fcda54cc750f013a4d379e73a16cf69f59d1ea47861",
+    "bytes": 7673,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/giveaways/components/SorteosHub.tsx",
+    "sha256": "877dc83bfc71344d9a42221d7e75e7f805b2ac6198394c9805b495f3684ab327",
+    "bytes": 21925,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/giveaways/components/TalentGiveawaysContent.tsx",
+    "sha256": "591ccec519e49e40b509bae4cc62f3108e9172d665d315d3f4cabcef40168e86",
+    "bytes": 9459,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/giveaways/components/TalentLiveWidget.tsx",
+    "sha256": "7d70fc71f3ff4799b319dc0338836e1477d1b4d52cf2ec97ba43e65dc9734999",
+    "bytes": 9561,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/giveaways/components/TalentProfileIcon.tsx",
+    "sha256": "7ec0ee7e93a207c3eed69456f534f1d1fc0aed05728603ee041f05182eefc37d",
+    "bytes": 4702,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/giveaways/components/TalentSeoSection.tsx",
+    "sha256": "6547159dbf863204b2cbf066fa6474d5e6a84a3734967875b93d8c2916ffe1b9",
+    "bytes": 11122,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/giveaways/components/WinnersList.tsx",
+    "sha256": "4abebf71137455683a7ec64178e0b66b679c70879c81be64e84af6e594a814f7",
+    "bytes": 5479,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/giveaways/talent-profile-data.ts",
+    "sha256": "8c90da5ea8569ceabfe4f70fe2cd0ec042c723b46c01000ab92b9b5bbb503666",
+    "bytes": 4858,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/kekopilot/components/KekoPilotControls.tsx",
+    "sha256": "3de0c793559eeba8cb8c19609fb2f16c85387c4ec4f26cd932302ef7e3c9ffe7",
+    "bytes": 4629,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/kekopilot/components/KekoPilotExperience.tsx",
+    "sha256": "fbf83f5c957dbc1968673b14d88237ebe37a0a2e806fe59b784c61f35f4fbbd0",
+    "bytes": 1858,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/kekopilot/components/KekoPilotFacets.tsx",
+    "sha256": "d48d36db8562e9d5e07617cea74ec2f92ae61ce26533f3a272b42ab3c67105dc",
+    "bytes": 2697,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/kekopilot/components/KekoPilotHero.tsx",
+    "sha256": "d993359bf8bb046f44b4910eeca04bdd66be61b35aafeba6a2e29ccebd981396",
+    "bytes": 3485,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/kekopilot/components/KekoPilotMotion.tsx",
+    "sha256": "ab2c4857610dcacb29acbdb657578ce3798c761d2f96439d0eed00169f55c619",
+    "bytes": 7771,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/kekopilot/components/KekoPilotProduct.tsx",
+    "sha256": "98466c5a9f103bc9b6aeb5012e943d2e8ccfcd18fc89b0c3b164f7ca2aa179a5",
+    "bytes": 2955,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/kekopilot/components/KekoPilotProductConsole.tsx",
+    "sha256": "eb13eb45df101bb619a35a78ef3fc489cfd0a233ff58ce88d6263caaeb7f6f20",
+    "bytes": 6718,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/kekopilot/components/KekoPilotSections.tsx",
+    "sha256": "a31cd91fbbebc4daa9a7806487d53920edea07dbe7fd7e42fc59b64d26372d56",
+    "bytes": 8261,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/kekopilot/components/KekoPilotStory.tsx",
+    "sha256": "d87271c0b3bbc4e6be54c29f1461a33be689647f357528dcab70fe5bbf8118e7",
+    "bytes": 1778,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/kekopilot/components/KekoPilotValue.tsx",
+    "sha256": "6a1b718822283a6afad1bf7fb4f7e282e7539654471f6f6fd943663d1396ac5e",
+    "bytes": 2082,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/kekopilot/content.ts",
+    "sha256": "993118a5fe7bd1a6622ea58f0a4e804acbd71c5a20b3919da21e5f43c930acec",
+    "bytes": 26025,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/kekopilot/kekopilot-controls.module.css",
+    "sha256": "0d15beafd8e2afbe2fa30f8d1dc0a48c06e0324cc48e5714b4bf1c1708c40fb7",
+    "bytes": 6516,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/kekopilot/kekopilot-facets.module.css",
+    "sha256": "b997cbbd25dc2e8f977ff68e8bc428dbdea691bddf0a8c57c441ce9831595e6c",
+    "bytes": 1647,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/kekopilot/kekopilot-motion.module.css",
+    "sha256": "c12ad50b9b7f9bf8101d70a9509b57d1c4b38c5ec366c93d17b8b5be84bba867",
+    "bytes": 657,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/kekopilot/kekopilot-product-console.module.css",
+    "sha256": "d3abf56092f93817a5151dd9b3882b39073882ebc702053636fb140057056dd3",
+    "bytes": 9692,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/kekopilot/kekopilot-product.module.css",
+    "sha256": "ea1134eccf73ace641ad5fc1b6709195f02f527e09bd776873beaebc08b49f1d",
+    "bytes": 4440,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/kekopilot/kekopilot-sales.module.css",
+    "sha256": "ace194cf8a6aaaf95f9da2941b71cf332328b5ca55aefdc43f4a2c6d35f1e7be",
+    "bytes": 7473,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/kekopilot/kekopilot-sections.module.css",
+    "sha256": "393b5ced8d7161c8348c80ac65d9544e37a2f13d993f15de0235186c9f49458b",
+    "bytes": 6502,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/kekopilot/kekopilot-static.module.css",
+    "sha256": "eb5690cbefbb07e5d17af5fb3c18ed91fd4fe8f4046a1c657b934f153d12f23f",
+    "bytes": 8047,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/kekopilot/kekopilot.module.css",
+    "sha256": "eb9805698881f760110aeae127fa20800d00727191410229dec203cf1d03233f",
+    "bytes": 11808,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/kekopilot/product-content.ts",
+    "sha256": "4a239ba09a3e8cdc270b82f2fb225fa5bb0398bb56ef4f77a1476659c86b724b",
+    "bytes": 16497,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/kekopilot-panel/CommandCenter.tsx",
+    "sha256": "54f49f1a3084755830ae4ba226e89aaf289f8d1e6be05b4866069f253e50f45e",
+    "bytes": 4172,
+    "storage": "git-base-crlf"
+  }
+]

@@ -1,0 +1,242 @@
+[
+  {
+    "path": "src/lib/agents/run-state.ts",
+    "sha256": "b2c35ed5a2d57ef34cc6fc21660b4f525a2bac4500f5823c1c41d006884d0095",
+    "bytes": 5925,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/agents/runtime-flags.ts",
+    "sha256": "a1b0433dd9289e91354a0f731ae47071582c3451d5427d6e23d6e6de0596086d",
+    "bytes": 1332,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/agents/tool-executor.ts",
+    "sha256": "c6056dd66059bd4cc5e22bc86b456ebf6abe61197c266f5127a4076e334c4984",
+    "bytes": 14131,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/agents/tool-registry.ts",
+    "sha256": "d9b04a09b2dc7e08dc73d560d9ec4693e0b3a249048dd5b99cea18ff14261d72",
+    "bytes": 3733,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/agents/tools/define.ts",
+    "sha256": "bbab44f9adfcec38f4fea87c0ee41c38e7acaa9ee7ff8d5f49029db6b4a9b6c2",
+    "bytes": 2698,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/agents/tools/index.ts",
+    "sha256": "e91e7898cf5f812b40534e1a398617c82ad77881913e1d1aedc9171fb7357acc",
+    "bytes": 3183,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/agents/tools/legacy-read-adapter.ts",
+    "sha256": "587f29f063f12161d10f5830ebaaff0d9682a7bdc660e5f0a2724ef74e389bcd",
+    "bytes": 10352,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/agents/types.ts",
+    "sha256": "b5da8673f27499a7fe85d6a858e2f1cd3f36cc20f306e735ba953ef78604b747",
+    "bytes": 7477,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/agents/worker/claim.ts",
+    "sha256": "27ddd9dd19936c79173d21ade439a6709458a3aa3c10a5562d6723eecf48a1e0",
+    "bytes": 8301,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/agents/worker/cron.ts",
+    "sha256": "ba6365087fd5563b305b4b867343b5e725a56122ad089cd13ab8497d8ead8a01",
+    "bytes": 10122,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/agents/worker/event-processor.ts",
+    "sha256": "1ffd03d7c03ef85c72c1fbe9248cf1102f2b0f36e81fe5ab0bbb4ef304d2cfce",
+    "bytes": 7856,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/agents/worker/execute-run.ts",
+    "sha256": "5a48ae5edec5bc86e40db5e81d724416abba57e8d5424de5da228db20b6c5dfe",
+    "bytes": 5859,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/agents/worker/finish-run.ts",
+    "sha256": "3353da8a9d344fa11e12c824f5269002721cef3856dfe3f23978773552fe870e",
+    "bytes": 4611,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/agents/worker/lease.ts",
+    "sha256": "1c95b5e94bd9e5199039a7a7163ef424d68ca00da941d0a30ac4dc42e2857e5e",
+    "bytes": 4468,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/agents/worker/persistence.ts",
+    "sha256": "0a34f66f6f5892212cd81e136bfd1e4a0ed65b5cf5ce6e3aa22b5d3ac0c98b88",
+    "bytes": 10923,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/lib/agents/worker/presence-heartbeat.ts",
+    "sha256": "6d837c13e17ce92a954fac9f7575af7daed706c509fbe6646c9db6e8b63511e7",
+    "bytes": 2168,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/agents/worker/retry-policy.ts",
+    "sha256": "78cffde2f95f21dcbf881226fb97f46bab130c475b09ab6dff30d36fed33b40e",
+    "bytes": 3008,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/agents/worker/scheduler.ts",
+    "sha256": "90a46de95d0d7e5373c7036186a1773aa90c3c20149302e261a9ff07ff3b071b",
+    "bytes": 8722,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/agents/worker/shutdown.ts",
+    "sha256": "1b1ad9d769610d9b685ab8c1a69ea6f1ed114f145330078452c8149b19512309",
+    "bytes": 3266,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/agents/worker/worker.ts",
+    "sha256": "02d40c2ceaef2d80cef2c8d973e4c9ec666581ad7ed09fe5d9b23498900eecd4",
+    "bytes": 10710,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/ai/seoBioGenerator.ts",
+    "sha256": "471b635acc578abb55b32c8cffcebd3ae86da7f9311099da2f5c0b57b16b6b2b",
+    "bytes": 13070,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/analytics.ts",
+    "sha256": "a68de762ca5dad4e0f7348466f295d44c1ac4890920cec6f4b5004351aa5535b",
+    "bytes": 1364,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/attribution.ts",
+    "sha256": "c88a9cb7480f9a3386ea63f89a109f27b3f95e8f04b7f26e83c3cd5fba2a7b4b",
+    "bytes": 1335,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/audit/logBlockedCoinSource.ts",
+    "sha256": "719bdb78cbb251f49bdc83410e84bf309b44cae3d98609c81d78dd8b8530187a",
+    "bytes": 1625,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/audit/logGiveawayEvent.ts",
+    "sha256": "91bdb9dcad31b0707348eb85a4c5674aeb572956da995107f3248bda0e17ccb2",
+    "bytes": 2843,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/audit/redactMetadata.ts",
+    "sha256": "cdcab475e8651e98f3e109458e78fb8509ac58e5ab0026f357e1d5f309580b19",
+    "bytes": 2917,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/auth/resetStaffPassword.ts",
+    "sha256": "03a564d93ac68c6db0cbdf0868f433da8f0672cb00c3cd2dc02197c227495e2c",
+    "bytes": 2259,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/auth/sanitize-social-return.ts",
+    "sha256": "1c74bf206266fbfdf8324780f86e1cdab666313df80c8b168bd2614bb5d165d5",
+    "bytes": 835,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/auth-guard.ts",
+    "sha256": "9bc740ad73fcec6631ffc54b683139b8eb25bee1ae04f70f3da9658405487a5d",
+    "bytes": 4901,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/lib/auth-logger.ts",
+    "sha256": "5e2ed1aeaf36166c73eba88d1a6808f62b00a8a81d3f777e50386a3b619ed2a5",
+    "bytes": 440,
+    "storage": "git-base"
+  },
+  {
+    "path": "src/lib/auth-targets-import.ts",
+    "sha256": "ba8f572d00b27aa721b15d64722b530a997ed119b744e949452aeec461d82c77",
+    "bytes": 1471,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/auth.ts",
+    "sha256": "0b39ef3fc3a1e4d810c7e96af66436496c0a63ad2bd285f18dca37d55fed9584",
+    "bytes": 4590,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/lib/automation/telegramRefills.ts",
+    "sha256": "733dd19f692265cf953fe1c0f634200f82482605f0bef149dec51ebd5436bf54",
+    "bytes": 1357,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/automationDealValidation.ts",
+    "sha256": "3ca51d12b3b76d1f25dd1e01afc11f1d4c32f342051ef1ca1cadaea9e2e2d714",
+    "bytes": 3056,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/backup/drive-auth.ts",
+    "sha256": "5db4bc2f80efc3029aaf60d0ec218f534b3f31bc7f0ba4dbe7350824a362dde9",
+    "bytes": 2145,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/backup/drive-upload.ts",
+    "sha256": "f093f58abd2b7ca29855d52da0d163b65d269a28186fc6c12351617cd7b2d5a3",
+    "bytes": 3002,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/backup/export-data.ts",
+    "sha256": "dc5449c99e58a3e9f1c2152ecbd991cbc3a628aa95a35545cdc6f2b7a425dc9f",
+    "bytes": 4091,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/backup/getDriveConfig.ts",
+    "sha256": "c948c9a2b91142d32ce2d63afb02c64632bcb2a2bf788c15526c88778ae54fb9",
+    "bytes": 1297,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/brandAssets.ts",
+    "sha256": "35f2a032c51d5b5423d5f8d8a8e3838dc1daba0cd59cea0307214de3c573dd19",
+    "bytes": 1994,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/brands.ts",
+    "sha256": "334e996fd4d321642137a7d56e4b0e6f07c679c35a2e523caaaa0f7049163f89",
+    "bytes": 13245,
+    "storage": "git-base-crlf"
+  }
+]

@@ -1,0 +1,242 @@
+[
+  {
+    "path": "scripts/seed-operation-agent-schedules.ts",
+    "sha256": "6eca9369edcb934fa35f4c74d5eef97bae7441abe22e9fb52ea8570fb7a8b9cc",
+    "bytes": 2196,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/seed-representacion-template.ts",
+    "sha256": "b77e5af949b5a2f40bbc9b6fe4b33fa98035e4619c621ca2e6829d33f350550a",
+    "bytes": 29558,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/seed-skinplace-template.ts",
+    "sha256": "10518061c23b2227e5fb35cafc66858b66572147dc99b85aff2ca14ed7786095",
+    "bytes": 19562,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/seed-socialpro-rewards-steam.ts",
+    "sha256": "834cbcbc3a71a112b6f813414a08eb54cd2466f68471e45c8250ba541302e734",
+    "bytes": 4933,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/seed-tags.ts",
+    "sha256": "994d263c5cbae71482d763c464a2373b068807968afa3b59eecd3aae7e2cef69",
+    "bytes": 2962,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/seed-targets-cs2.ts",
+    "sha256": "8e65227a2337f80eabdc2c79dfef2ebfea89966ab0bf20d8662366bc34f2bc0f",
+    "bytes": 8312,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/seed-targets-fps-valorant-2026-04.ts",
+    "sha256": "d8f7d550b7049be56e32351329d68c27ffecd8ac248c6aef96e5f186f979d46f",
+    "bytes": 7549,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/seed-targets.ts",
+    "sha256": "541e1d879685abe72f4b0ab3d67e4b0635e0ae6c1b4f7267d03aa0a629cd5392",
+    "bytes": 8029,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/seed-task-templates.ts",
+    "sha256": "93fb3bc9c0cedb14d0674811d34cdd68a06fae6eea9099f97cf9d6d7896bc1b1",
+    "bytes": 973,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/seed-twitch-mission-zacketizor.ts",
+    "sha256": "c202ec43d3b8be3509c7b4245d0dd1ef2099acf629438ccccd9301d7f23da03b",
+    "bytes": 3923,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/seed.ts",
+    "sha256": "e3a4e4cefa83c874f418d12c7b96ca94dcf5c6cf6a635a746d259e0eaf2c6fa6",
+    "bytes": 41376,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/seeds/backfill-giveaway-brand-logos.ts",
+    "sha256": "4e5f59badc52a250b8a93e158a82d7ad4c63b92eddecdc44fda7f686864286af",
+    "bytes": 2769,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/seeds/blog/expand-new-posts.ts",
+    "sha256": "7b946d2176a2f9a43a900d9a8e902ddee446c0fe0d17024435ec4756c1692762",
+    "bytes": 5689,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/seeds/blog/expand-posts.ts",
+    "sha256": "d6fc1c6de1900f367fe587a793c139299cbf0fce39d4976266c0f0ab77f8828d",
+    "bytes": 36916,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/seeds/blog/new-posts.ts",
+    "sha256": "cdb2eb3f5e8a6a42bc4c649b81f86eb8fb0ba24e98fa32f71ba845f753a48a3a",
+    "bytes": 26588,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/seeds/blog/razer-post.ts",
+    "sha256": "209bec250dd67710709193e8318b05163805aa9ff69d8f2158f6c13df646c448",
+    "bytes": 11295,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/seeds/blog/seed-blog-post-1-streamer-tarifas.ts",
+    "sha256": "30cb199a47ce54ee7f28c5a810c3ed41f720aa596687667156096d0fdc95d132",
+    "bytes": 11987,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/seeds/blog/seed-blog-post-2-ftds-igaming.ts",
+    "sha256": "6c2d4055f5be79bdb3abe10b34eadacfe50e19f24333f917c0595f15c0cd81b4",
+    "bytes": 13677,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/seeds/blog/update-priority-covers.ts",
+    "sha256": "b4adc415be4d2592719c42323fa6385198cc52bdddc16fd0480c910a724e5c45",
+    "bytes": 5279,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/seeds/news/process-thumbs.ts",
+    "sha256": "fc8aba6193f17570df1962ca359132b917e1f710372fe991d47b1650159476bb",
+    "bytes": 3309,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/seeds/news/seed-news-templates.ts",
+    "sha256": "8fd2576b9c1c93f58cb2eb7bb7473068db4e43525a2c24552d9bea7e0fc1a8dc",
+    "bytes": 11235,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/seeds/news/seed-news-thumbs.ts",
+    "sha256": "b007df4681e80a80e1bfd908e3b984dfc24664d7b6ef781dcc392ec55f260266",
+    "bytes": 17015,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/seeds/news/seed-news.ts",
+    "sha256": "f01b7ba2469de11eb24a72973c5d00a54c8f19d0f0ebfd0f28e4acf1ea3927a6",
+    "bytes": 21609,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/seeds/reorder-brands.ts",
+    "sha256": "5afd71226c6d6782510a19d2105cfc78c8d3f61446a773fde44496cd7ba27b24",
+    "bytes": 2008,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/seeds/sync-brands-to-assets.ts",
+    "sha256": "e8415e6e865f70bcfbeae60bdda021b976f7e31d709755b9bac920319666f646",
+    "bytes": 3993,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/strip-terrorist-bg.mjs",
+    "sha256": "e71a7935479b377ce4635cea968b9191713b422488cfe6eb8adcb6107e2f7e22",
+    "bytes": 2394,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/studio-fixture-server.ts",
+    "sha256": "840ccc50380b0ef42cd82a34409858ec0a8569e2f40134d6ef61ab8f69a5c1ef",
+    "bytes": 3531,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/studio-higgsfield-worker.ts",
+    "sha256": "d267dfae4da1f588c298759dc15d203078ea56d57d1f88cf1d1eec1472ac49be",
+    "bytes": 5669,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/studio-render-worker.ts",
+    "sha256": "85cb03ac68f523278349dba1901de28e293bbb5e016d2446cdb27f5d1824dcb2",
+    "bytes": 5193,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/sync-followers.ts",
+    "sha256": "78f7efdfa5a66a43c7a588f07871410d6cd2a2453644343639323776826b5298",
+    "bytes": 19995,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/sync-geo.ts",
+    "sha256": "4ec7a8c2c0c9b8fe807dfdc32c4e582dd90da75e30d970e0e0ab0da899b4120d",
+    "bytes": 19142,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/sync-press-targets.ts",
+    "sha256": "19594e53570a7036260973ca56d22b1a3b0e714e4eb079e2cb82f2a89681103f",
+    "bytes": 5892,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/test-create-talent.ts",
+    "sha256": "a315ce0485b70fd5c0fd5361c6e1d8e55da8df084c4ce6aac89c52e818a4dfbf",
+    "bytes": 2431,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/test-creator-outreach-migration.ts",
+    "sha256": "29a97ee4a5851e08ed795c499645364e4edb42cf06fe1c1e33bc02bd07216a40",
+    "bytes": 1654,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/test-studio-agency.ts",
+    "sha256": "88f5e18397a304cb81e114a72d9f509c36f96ff39639e1fa6054e43cc0ca0d90",
+    "bytes": 10683,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/test-studio-isolation.ts",
+    "sha256": "dd26bd6c3ec5077e03309e4d449f2916ae6a646def610bf7150204fb350eca7e",
+    "bytes": 14111,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/test-studio-motion-layout.ts",
+    "sha256": "f65c8007e9275ccf0eb3c2a36a93b44e34c79142615bc2e167185945a5efd1ca",
+    "bytes": 5033,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/test-studio-motion.ts",
+    "sha256": "f0d7296308380fc2cb3a6a12231c3460a463cd79b7c898b75c488db7e3dcd13c",
+    "bytes": 1685,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/test-studio-production.ts",
+    "sha256": "ecdc7ca593f608bc8207d1773d2a0b0873eaf7d806a335cf64ced60ef74bacb2",
+    "bytes": 10145,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/test-studio-render.ts",
+    "sha256": "046d19bacfd1e313376e6f060aadad39749cbc1386a99c188cd2dbe9e64ab0ed",
+    "bytes": 2622,
+    "storage": "git-base-crlf"
+  }
+]

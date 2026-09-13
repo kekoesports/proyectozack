@@ -1,0 +1,279 @@
+import type { Metadata } from 'next';
+import { CONTACT_PHONE } from '@/lib/utils/constants';
+import { headers } from 'next/headers';
+import { safeJsonLd } from '@/lib/safeJsonLd';
+import { AGENCY_SAME_AS } from '@/lib/agency-socials';
+import { isEnPathname } from '@/lib/en-routes';
+import { Inter, Barlow_Condensed } from 'next/font/google';
+import './globals.css';
+import { Nav } from '@/components/layout/Nav';
+import { Footer } from '@/components/layout/Footer';
+import { PublicChrome } from '@/components/layout/PublicChrome';
+import { CookieBanner } from '@/components/layout/CookieConsent';
+import { MotionRoot } from '@/components/layout/MotionRoot';
+import { TRPCProvider } from '@/components/layout/TRPCProvider';
+import { ConsentedScripts } from '@/components/layout/ConsentedScripts';
+import { SpeedInsights } from '@vercel/speed-insights/next';
+import { SITE_URL, absoluteUrl } from '@/lib/site-url';
+import { isKekoPilotHost } from '@/lib/kekopilot-url';
+
+const inter = Inter({
+  variable: '--font-body',
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  display: 'swap',
+});
+
+const barlowCondensed = Barlow_Condensed({
+  variable: '--font-display',
+  subsets: ['latin'],
+  weight: ['400', '600', '700', '800', '900'],
+  display: 'swap',
+});
+
+export const metadata: Metadata = {
+  title: {
+    default: 'SocialPro | Agencia de Performance Marketing Gaming y Esports',
+    template: '%s | SocialPro',
+  },
+  description:
+    'Agencia de performance marketing gaming y esports. Streamers verificados de CS2, Valorant e iGaming en España y LatAm. FTD tracking, compliance y ROI demostrable.',
+  metadataBase: new URL(SITE_URL),
+  alternates: {
+    canonical: '/',
+    languages: {
+      es: SITE_URL,
+      en: absoluteUrl('/en'),
+      'x-default': SITE_URL,
+    },
+  },
+  openGraph: {
+    title: 'SocialPro | Agencia de Performance Marketing Gaming y Esports',
+    description:
+      'Performance marketing gaming: streamers de CS2, Valorant e iGaming en España y LatAm. FTD tracking, compliance DGOJ y ROI demostrable. +13 años, +15M views/mes.',
+    url: SITE_URL,
+    siteName: 'SocialPro',
+    locale: 'es_ES',
+    type: 'website',
+    images: [{ url: absoluteUrl('/og-socialpro.png'), width: 1200, height: 630, alt: 'SocialPro | Agencia de Marketing Gaming y Esports' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'SocialPro | Agencia de Performance Marketing Gaming y Esports',
+    description:
+      'Performance gaming marketing: streamers CS2, Valorant e iGaming en España y LatAm. FTD tracking y ROI demostrable.',
+    images: [absoluteUrl('/og-socialpro.png')],
+  },
+  icons: {
+    icon: [
+      { url: '/icon.png', sizes: '32x32', type: 'image/png' },
+      { url: '/icon-social-square-512.png', sizes: '192x192', type: 'image/png' },
+      { url: '/icon-social-square-512.png', sizes: '512x512', type: 'image/png' },
+    ],
+    apple: '/apple-icon.png',
+    shortcut: '/favicon.ico',
+  },
+  manifest: '/manifest.json',
+};
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'Organization',
+      '@id': absoluteUrl('/#organization'),
+      name: 'SocialPro',
+      url: SITE_URL,
+      logo: {
+        '@type': 'ImageObject',
+        url: absoluteUrl('/icon-social-square-512.png'),
+        width: 512,
+        height: 512,
+      },
+      description:
+        'SocialPro es una agencia de marketing y gestión de creadores gaming e iGaming que conecta marcas con talento especializado en España y Latinoamérica, con resultados medibles y compliance DGOJ integrado.',
+      foundingDate: '2012',
+      foundingLocation: { '@type': 'Place', name: 'Córdoba, España' },
+      areaServed: [
+        { '@type': 'Country', name: 'España' },
+        { '@type': 'Country', name: 'México' },
+        { '@type': 'Country', name: 'Argentina' },
+        { '@type': 'Country', name: 'Colombia' },
+        { '@type': 'Country', name: 'Chile' },
+        { '@type': 'Country', name: 'Perú' },
+      ],
+      knowsAbout: [
+        'iGaming influencer marketing',
+        'CS2 esports',
+        'Valorant esports',
+        'DGOJ compliance Spain',
+        'Hispanic gaming market',
+        'FTD tracking',
+        'Twitch streaming',
+        'YouTube gaming',
+      ],
+      contactPoint: {
+        '@type': 'ContactPoint',
+        telephone: CONTACT_PHONE,
+        email: 'marketing@socialpro.es',
+        contactType: 'sales',
+        availableLanguage: ['Spanish', 'English'],
+      },
+      founder: [
+        {
+          '@type': 'Person',
+          '@id': absoluteUrl('/#founder-pablo'),
+          name: 'Pablo Camacho',
+          alternateName: ['Keko', 'Kekō', 'Pablo Camacho Carrión'],
+          jobTitle: 'CEO',
+          description: 'Ex-profesional de CS:GO con más de una década en esports y gaming. Fundador y CEO de SocialPro.',
+          url: 'https://kekoesports.es',
+          sameAs: [
+            absoluteUrl('/keko'),
+            'https://kekoesports.es',
+            'https://www.linkedin.com/in/pablocamachocarrion/',
+            'https://x.com/kekOesports',
+            'https://www.instagram.com/kekoesports/',
+          ],
+          worksFor: { '@id': absoluteUrl('/#organization') },
+        },
+        {
+          '@type': 'Person',
+          '@id': absoluteUrl('/#founder-alfonso'),
+          name: 'Alfonso Arias',
+          alternateName: 'Zack',
+          jobTitle: 'COO',
+          description: 'Ex-streamer y creador de contenido gaming. 7+ años en iGaming y esports marketing en España y LatAm. Co-fundador de SocialPro.',
+          sameAs: ['https://www.youtube.com/@zacketizor1'],
+          worksFor: { '@id': absoluteUrl('/#organization') },
+        },
+      ],
+      sameAs: AGENCY_SAME_AS,
+      subjectOf: [
+        {
+          '@type': 'PodcastEpisode',
+          name: "'Keko', un referente andaluz de los eSports, lanza la agencia SocialPro",
+          url: 'https://open.spotify.com/episode/1NroRDxOt87HJsTEAYBVdt',
+          datePublished: '2026-06-13',
+          partOfSeries: {
+            '@type': 'PodcastSeries',
+            name: 'Todo e-Games',
+            url: 'https://www.canalsur.es/radio/programas/todo-egames/podcast/19795725.html',
+            publisher: {
+              '@type': 'Organization',
+              name: 'Canal Sur Radio',
+              url: 'https://www.canalsur.es',
+            },
+          },
+        },
+        {
+          '@type': 'WebPage',
+          name: 'SocialPro en Canal Sur — Todo e-Games (kekoesports.es)',
+          url: 'https://kekoesports.es/medios/canal-sur-todo-egames',
+          isPartOf: { '@type': 'WebSite', url: 'https://kekoesports.es' },
+          about: { '@id': absoluteUrl('/#organization') },
+        },
+      ],
+    },
+    {
+      '@type': 'WebSite',
+      '@id': absoluteUrl('/#website'),
+      url: SITE_URL,
+      name: 'SocialPro',
+      publisher: { '@id': absoluteUrl('/#organization') },
+      inLanguage: 'es',
+    },
+    {
+      '@type': 'LocalBusiness',
+      '@id': absoluteUrl('/#localbusiness'),
+      sameAs: [absoluteUrl('/#organization')],
+      name: 'SocialPro',
+      url: SITE_URL,
+      image: absoluteUrl('/icon-social-square-512.png'),
+      telephone: CONTACT_PHONE,
+      email: 'marketing@socialpro.es',
+      priceRange: '$$',
+      address: {
+        '@type': 'PostalAddress',
+        streetAddress: 'Calle Teruel 19, 3º3',
+        postalCode: '14011',
+        addressLocality: 'Córdoba',
+        addressRegion: 'Córdoba',
+        addressCountry: 'ES',
+      },
+      areaServed: [
+        { '@type': 'Country', name: 'España' },
+        { '@type': 'Country', name: 'México' },
+        { '@type': 'Country', name: 'Argentina' },
+        { '@type': 'Country', name: 'Colombia' },
+        { '@type': 'Country', name: 'Chile' },
+        { '@type': 'Continent', name: 'Europa' },
+        { '@type': 'Country', name: 'Turquía' },
+      ],
+      makesOffer: [
+        { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Gestión de Talentos Gaming' } },
+        { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Campañas para Marcas iGaming' } },
+        { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Gestión de Canales YouTube' } },
+      ],
+    },
+    {
+      '@type': 'SiteNavigationElement',
+      '@id': absoluteUrl('/#navigation'),
+      name: 'Main Navigation',
+      hasPart: [
+        { '@type': 'WebPage', name: 'Talentos', url: absoluteUrl('/talentos') },
+        { '@type': 'WebPage', name: 'Servicios', url: absoluteUrl('/servicios') },
+        { '@type': 'WebPage', name: 'Casos de Éxito', url: absoluteUrl('/casos') },
+        { '@type': 'WebPage', name: 'Blog', url: absoluteUrl('/blog') },
+        { '@type': 'WebPage', name: 'Nosotros', url: absoluteUrl('/nosotros') },
+        { '@type': 'WebPage', name: 'Contacto', url: absoluteUrl('/contacto') },
+        { '@type': 'WebPage', name: 'Metodología', url: absoluteUrl('/metodologia') },
+        { '@type': 'WebPage', name: 'Para Creadores', url: absoluteUrl('/para-creadores') },
+      ],
+    },
+  ],
+};
+
+export default async function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  // `x-pathname` lo inyecta src/proxy.ts en TODA request HTML (necesario porque
+  // Next.js no expone el pathname a Server Component layouts de forma nativa).
+  // Con él decidimos el lang correcto del <html>. Fallback 'es' si por alguna
+  // razón el header no llega (dev sin proxy corriendo, tests…).
+  const h = await headers();
+  const pathname = h.get('x-pathname');
+  const requestHost = h.get('host') ?? h.get('x-forwarded-host');
+  const isKekoPilotDomain = isKekoPilotHost(requestHost);
+  const lang = isEnPathname(pathname) ? 'en' : 'es';
+  const isKekoPilot = isKekoPilotDomain
+    || pathname?.startsWith('/kekopilot') === true
+    || pathname?.startsWith('/en/kekopilot') === true;
+
+  return (
+    <html lang={lang}>
+      <head>
+        {isKekoPilot ? null : (
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }}
+          />
+        )}
+      </head>
+      <body className={`${inter.variable} ${barlowCondensed.variable} antialiased`}>
+        <TRPCProvider>
+          <MotionRoot>
+            <PublicChrome nav={<Nav />} footer={<Footer />} forcePortal={isKekoPilotDomain}>
+              {children}
+            </PublicChrome>
+            <CookieBanner hidden={isKekoPilotDomain} />
+            <ConsentedScripts disabled={isKekoPilotDomain} />
+            <SpeedInsights />
+          </MotionRoot>
+        </TRPCProvider>
+      </body>
+    </html>
+  );
+}

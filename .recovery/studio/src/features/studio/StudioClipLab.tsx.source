@@ -1,0 +1,56 @@
+import Link from 'next/link';
+import { notFound } from 'next/navigation';
+import { Activity, ArrowUpRight, Crosshair, Film, Scissors, ShieldCheck } from 'lucide-react';
+import { requireCreator } from '@/lib/studio/access';
+import { createClipRepository } from '@/lib/studio/clip-repository';
+import { ClipIdQuery } from '@/lib/schemas/studio-clips';
+import { db } from '@/lib/db';
+import { env } from '@/lib/env';
+import { clipTime } from '@/lib/studio/clip-ranking';
+import { StudioShell } from './StudioShell';
+import { StudioClipImport } from './StudioClipImport';
+import { StudioClipCuration } from './StudioClipCuration';
+import { createDemoRepository } from '@/lib/studio/demo-repository';
+import { StudioDemoUpload } from './StudioDemoUpload';
+import { demoUploadStorageConfig } from '@/lib/studio/demo-storage-config';
+
+export async function StudioClipLab({ demo, query }: { demo: boolean; query: unknown }) {
+  const actor = await requireCreator();
+  const parsed = ClipIdQuery.safeParse(query); if (!parsed.success) notFound();
+  const clips = createClipRepository(db, actor.session.user.id, actor.agencyTalentId);
+  const [all, assets] = env.CLIPPER_ENABLED ? await Promise.all([clips.list(), actor.repository.assets()]) : [[], []];
+  const sources = all.filter((s) => demo ? s.document.kind === 'cs2' : s.document.kind !== 'cs2');
+  const selected = parsed.data.id ? sources.find((s) => s.id === parsed.data.id) : sources[0];
+  if (parsed.data.id && !selected && env.CLIPPER_ENABLED) notFound();
+  const path = demo ? '/studio/demos' : '/studio/clips';
+  const demoEnabled = demo && demoUploadStorageConfig() !== null;
+  const demoJobs = demoEnabled ? await createDemoRepository(db, actor.session.user.id, actor.agencyTalentId).list() : [];
+  return <StudioShell name={actor.member.name} active={path}>
+    <nav className="clip-lab-tabs" aria-label="Laboratorios de contenido"><Link href="/studio/clips" aria-current={!demo ? 'page' : undefined}><Scissors size={16} />Clip Lab <small>Twitch / Kick</small></Link><Link href="/studio/demos" aria-current={demo ? 'page' : undefined}><Crosshair size={16} />Demo Lab <small>CS2</small></Link></nav>
+    <header className="clip-hero"><div><p className="studio-eyebrow">SOCIALPRO / {demo ? 'DEMO LAB' : 'CLIP LAB'} / PILOTO</p><h1>{demo ? <>Tu partida.<br /><em>Tu mejor jugada.</em></> : <>No dejes tu contenido<br /><em>en el directo.</em></>}</h1><p>{demo ? 'De los ticks a la historia. Revisa las bajas de tu partida, elige qué contar y prepara una pieza con identidad propia.' : 'Encuentra el momento, conserva el contexto y conviértelo en una pieza que merezca salir al feed.'}</p><div className="clip-hero-pills"><span><ShieldCheck size={14} />Espacio privado</span><span><Film size={14} />Revisión antes del render</span></div></div>
+      <div className="clip-hero-graphic" aria-hidden="true"><span className="clip-orbit-label">{demo ? 'DEMO → MOMENTO → SHORT' : 'LIVE → MOMENTO → SHORT'}</span><div className="clip-orbit"><div className="clip-orbit-card back">{demo ? 'TICKS' : 'DIRECTO'}<Activity size={32} /></div><div className="clip-orbit-card front"><span>{demo ? '01 / RONDA' : '01 / MOMENTO'}</span><strong>{demo ? 'PLAY.' : 'CUT.'}</strong><div className="clip-mini-track"><i /><i /><i /><i /><i /><i /><i /></div><small>SOCIALPRO / CREATORS</small></div></div><span className="clip-orbit-caption">El contenido manda. El diseño lo acompaña.</span></div>
+    </header>
+    <div className="clip-flow-strip">{['Añade una fuente', 'Revisa los momentos', 'Llévalo al editor'].map((label, i) => <span key={label}><b>0{i + 1}</b>{label}{i < 2 && <ArrowUpRight size={15} />}</span>)}</div>
+    {!env.CLIPPER_ENABLED && <div className="clip-notice" role="status"><strong>Piloto pendiente de activar en este entorno.</strong><p>La interfaz está disponible, pero la importación y el guardado permanecen desactivados hasta aplicar y verificar la migración. No hay trabajos en ejecución.</p></div>}
+    <div className="clip-start-grid"><div>{demoEnabled ? <><StudioDemoUpload initialJobs={demoJobs} /><details className="clip-manual"><summary>Importación avanzada: ya tengo el JSON de FragForge</summary><StudioClipImport demo enabled={env.CLIPPER_ENABLED} /></details></> : <StudioClipImport demo={demo} enabled={env.CLIPPER_ENABLED} />}</div><aside className="clip-capabilities"><p className="studio-eyebrow">QUÉ PUEDES HACER HOY</p><h2>{demo ? 'La demo es la fuente.' : 'Señales, no adivinación.'}</h2>
+      {(demo ? [
+        ['Análisis de FragForge', demoEnabled ? 'Sube una demo y elige el jugador. El worker CPU genera su plan: mapa, rondas, bajas y ticks.' : 'Importa su plan 1.1: mapa, jugador, rondas, bajas y ticks. Sin duplicar el parser.'],
+        ['Selecciona la historia', 'Orden por bajas y headshots presentes en el plan. No inventamos clutches.'],
+        ['Captura automática · versión 2.0', 'La preparación del portátil y la grabación con CS2 quedan para la versión 2.0. El análisis de demos sigue disponible; si ya tienes un MP4, puedes editarlo.'],
+      ] : [
+        ['Twitch · clips de audiencia', env.TWITCH_CLIENT_ID && env.TWITCH_CLIENT_SECRET ? 'API configurada. Busca clips asociados al VOD del canal declarado; cada importación valida su respuesta.' : 'Conector preparado; faltan las credenciales oficiales en este entorno.'],
+        ['Kick · selección manual', 'Guarda el VOD autorizado y marca intervalos. No se consulta una API privada ni se descarga el directo.'],
+        ['Audio y chat · siguiente fase', 'No analizados todavía. Las señales futuras aparecerán con su fuente y su cobertura, nunca como datos simulados.'],
+      ]).map(([title, description]) => <div className="clip-capability" key={title}><span /><div><h3>{title}</h3><p>{description}</p></div></div>)}
+      <Link href="/studio/tools" className="clip-source-link">Ver herramientas y costes <ArrowUpRight size={15} /></Link>
+    </aside></div>
+    {sources.length > 0 && <section className="clip-sources" aria-label="Fuentes guardadas">
+      <div className="clip-section-head"><h2>Tus fuentes</h2><span>{sources.length} {sources.length === 1 ? 'guardada' : 'guardadas'}</span></div>
+      <div className="clip-source-grid">{sources.map((s) => <Link href={`${path}?id=${s.id}`} key={s.id} aria-current={selected?.id === s.id ? 'true' : undefined}>
+        <span className="clip-source-kind">{s.document.kind.toUpperCase()}</span><h3>{s.document.title}</h3>
+        <p>{clipTime(s.document.duration)} · {s.document.moments.length} {s.document.moments.length === 1 ? 'momento' : 'momentos'}</p><ArrowUpRight size={18} />
+      </Link>)}</div>
+    </section>}
+    {selected && <StudioClipCuration key={selected.id} source={selected} assets={assets.filter((a) => a.contentType === 'video/mp4').map((a) => ({ id: a.id, name: a.name }))} />}
+  </StudioShell>;
+}

@@ -1,0 +1,49 @@
+import 'server-only';
+import { createHash, randomUUID } from 'node:crypto';
+import { and, eq, inArray } from 'drizzle-orm';
+import { studioAssets } from '@/db/schema/studio';
+import { uploadFile, deleteFile } from '@/lib/storage';
+import { detectStudioMedia, MAX_STUDIO_UPLOAD } from './media';
+import { studioCrmPhotoSource } from './crm-photo-source';
+import { studioCrmContext } from './crm-context';
+import { createStudioRepository, type StudioDatabase } from './repository';
+import { visibleStudioTalents } from './talent-scope';
+
+export async function importStudioCrmPhoto(database: StudioDatabase, userId: string, agencyTalentId?: number) {
+  const crm = await studioCrmContext(database, userId, agencyTalentId);
+  const url = studioCrmPhotoSource(crm?.photoUrl ?? null);
+  if (!crm || !url) return null;
+  const repository = createStudioRepository(database, userId, agencyTalentId);
+  // No redirects, credentials, external cookies, arbitrary URLs or unlimited reads.
+  const response = await fetch(url, { redirect: 'error', cache: 'no-store', signal: AbortSignal.timeout(15000) });
+  if (!response.ok || !response.body) return null;
+  const reader = response.body.getReader(), chunks: Uint8Array[] = [];
+  let size = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read(); if (done) break;
+      size += value.byteLength;
+      if (size > MAX_STUDIO_UPLOAD) return null;
+      chunks.push(value);
+    }
+  } finally { await reader.cancel().catch(() => undefined); reader.releaseLock(); }
+  const data = Buffer.concat(chunks), media = detectStudioMedia(data);
+  if (!media?.contentType.startsWith('image/')) return null;
+  const checksum = createHash('sha256').update(data).digest('hex');
+  const [existing] = await database.select({ id: studioAssets.id }).from(studioAssets).where(and(
+    inArray(studioAssets.talentId, visibleStudioTalents(database, userId, agencyTalentId)),
+    eq(studioAssets.checksum, checksum), eq(studioAssets.contentType, media.contentType))).limit(1);
+  if (existing) return existing.id;
+  const uploaded = await uploadFile({ filename: `${randomUUID()}.${media.extension}`, data, contentType: media.contentType, visibility: 'private', prefix: 'studio' });
+  try {
+    const asset = await repository.addAsset({ name: `${crm.name} · Foto del CRM`.slice(0, 160), storageKey: uploaded.storageKey,
+      checksum: uploaded.checksum, contentType: media.contentType, size: uploaded.size, projectId: null });
+    if (asset) return asset.id;
+  } catch {
+    // Only compensate the new object allocated by this request.
+    await deleteFile(uploaded.storageKey).catch(() => undefined);
+    return null;
+  }
+  await deleteFile(uploaded.storageKey).catch(() => undefined);
+  return null;
+}

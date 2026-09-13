@@ -1,0 +1,242 @@
+[
+  {
+    "path": "src/__tests__/server/google-sheets-retry.test.ts",
+    "sha256": "e476b7684a99f8d64ddbdfd2956fd92feb3c006653b93532ee303ebf823bb4d1",
+    "bytes": 5857,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/gradient.test.ts",
+    "sha256": "9294bf5e5ce324f0e2640399a755f366f6073c27596f5b6fa8554e70a3daf776",
+    "bytes": 548,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/guardian-definition-loadable.test.ts",
+    "sha256": "83c6e4a16c1e6fdbd64cfcad0bba5e7522e5c7a13c32b2aae4a268e214a9afbf",
+    "bytes": 3234,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/guardian-replay.test.ts",
+    "sha256": "198194203b336b45e7332d814cfacceeeda0bd8323fba4aab5eb5724978987c1",
+    "bytes": 7822,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/guardian-report.test.ts",
+    "sha256": "6a5f37ae1f771f8b59a36af5b8949c307f3070085fd3d17a1ad553c3fbefdddc",
+    "bytes": 8964,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/guardian-rules.test.ts",
+    "sha256": "9ac3de5c3ddc91a4381b75230fdb3286fa06db883d927e3db54f8c6781d9dcf8",
+    "bytes": 8430,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/homeForRole.test.ts",
+    "sha256": "308fcd075957a6b53f5a467857e38884521a4ecd5fcfdcb92d35268a1823930c",
+    "bytes": 2779,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/horizontal-triplets.test.ts",
+    "sha256": "59bf3b8070c49e20e6f8b8a87216882ddf1229ce51be80d450b651ecff354db7",
+    "bytes": 7273,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/__tests__/server/import-utils.test.ts",
+    "sha256": "47d2b71653879dbf3b554bfd73e259b31ab7f108e52272fea109548c8ea2d725",
+    "bytes": 9017,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/ingresos-status-display.test.ts",
+    "sha256": "cefe4e96ba365f04a1bc3ff9b70d6217f07106875310559fd3f3b82d3049d6fc",
+    "bytes": 3140,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/instagram-discovery.test.ts",
+    "sha256": "b2d2449708f0d540f1d8021c042c5c3bcabf44059dfbac279214a6dbc5b0ebac",
+    "bytes": 7246,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/__tests__/server/invoice-draft-schema.test.ts",
+    "sha256": "ed6a7c32c2ae8790bc579d3ed998fd6b3af44e7c79a04325d596063f7559cdee",
+    "bytes": 18676,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/invoice-payments-lock.test.ts",
+    "sha256": "9cad90ee2f5631b3f495818e993099fb6e7b6ebabba0ed50f530d1a68d7de9de",
+    "bytes": 9206,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/invoice-payments.test.ts",
+    "sha256": "997581e9b2a7f1ec1d259f54de9f25e52d88e8deefc4842371cd07a2b75d6177",
+    "bytes": 14014,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/invoice-pdf-i18n.test.ts",
+    "sha256": "358d0fce312e368d9ba78049d23f2748632ad0dd9472c2230ab76d3425782575",
+    "bytes": 10339,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/invoice-schema.test.ts",
+    "sha256": "5c561449ff37cbf02745d09295f2bcc14104a4df7abc57948d870a2bae4966b4",
+    "bytes": 22165,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/invoice-status.test.ts",
+    "sha256": "1b926a043b933c2461abdeebbe0ef3710632e03c9a48aada853a82ea17ce2aec",
+    "bytes": 6429,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/ip-data-room-policy.test.ts",
+    "sha256": "589e17e22df9cff6e509d782c134aeb1136cb856f9a6700ff9c502eab2c86759",
+    "bytes": 1370,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/ip-evidence-crm.test.ts",
+    "sha256": "b3624d220f640c93e5af25257b69e95dc387086f5f8dda8bf5944611b11cd941",
+    "bytes": 5132,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/ip-evidence-github-sync.test.ts",
+    "sha256": "dda538d10ac0d346fda8910df0185aad3ec07df7085a70ec38f5ae6ae83fcb90",
+    "bytes": 4333,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/ip-evidence-policy.test.ts",
+    "sha256": "dcf4e6aed8b544728087941abf0c94a13508cea6d974ea694dce35f88cbc4d97",
+    "bytes": 2075,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/issuer-company-default.test.ts",
+    "sha256": "9d678e435bb5fdda61e68fccebbd4117f7961c626c8a6892d3d8345d768de46d",
+    "bytes": 3280,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/kekopilot-panel-branding.test.ts",
+    "sha256": "170c8c9062ba777e7abc4d9803149e5b650708a9bb40d779ebcb6e84a2feb78a",
+    "bytes": 3391,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/kekopilot-panel-navigation.test.ts",
+    "sha256": "9dee0f770b342c9f311c206d686bf17dc9d01ccedf772912d7fa7838ee52a7a0",
+    "bytes": 1972,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/kekopilot-panel-professional.test.ts",
+    "sha256": "182ee122fa34dbddbf531ccf8f8f28f84617efe680af0aff6deab71520dea9db",
+    "bytes": 2264,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/keydrop-daily-report.test.ts",
+    "sha256": "99e09a5d8738197ffea545548049b97e83a34099cee0c6d189095f2e03773740",
+    "bytes": 4866,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/keydrop-provider-mapper.test.ts",
+    "sha256": "59ce69a5cebf591fde6b487c539ae4c5cfd04ae643477ecb8b56dd362ad3cd61",
+    "bytes": 14395,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/keydrop-provider-security.test.ts",
+    "sha256": "6a71c681cfaaff6c3b17b92fbc75571d99760b2d1edd60a3112fbef12341dd3d",
+    "bytes": 6137,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/kick-discovery-contract.test.ts",
+    "sha256": "a14725043830a1755c664fe1001555a03047c1a7f27db4d63ed45da2cad83958",
+    "bytes": 2200,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/kick-service.test.ts",
+    "sha256": "1ebaf27603d508bd08c09984954740605c68f6b92a73ffe665257e5afb920ce7",
+    "bytes": 15261,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/__tests__/server/lead-email-reply.test.ts",
+    "sha256": "316759125611750ce2e2fd13dacd73dda25aa519227969f7038364ce31964c75",
+    "bytes": 2087,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/leads.test.ts",
+    "sha256": "85ed4fadf175325d27ce23fbdb6462ab256e142f4ddafc822491a6ff9720f583",
+    "bytes": 11244,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/legal-pages.test.ts",
+    "sha256": "2c8f203821a1a62a5d929f339d0bb5396aadb2f18374f763024c5339c5d183ed",
+    "bytes": 16403,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/legal-review-spain-draft.test.ts",
+    "sha256": "98a191ef4c397734447755a1598ff9787191225d4451afc2af52a7238215bb39",
+    "bytes": 6517,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/legal-terminos-6-manual-review.test.ts",
+    "sha256": "990249a8b281403c9cdfdc6613eff8a2e9e327fc5cc5355679193beb491ee5c6",
+    "bytes": 4301,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/libro-mayor-alerts.test.ts",
+    "sha256": "d18672bf2078fc0b01ae2066440869c0e48dcbba5c1bafc3947a181796aefc08",
+    "bytes": 4539,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/libro-mayor-kpis.test.ts",
+    "sha256": "8b665f779c104bdd5e817322cc88c6e6c179754b0ebe0c92467100bbcbd86091",
+    "bytes": 1461,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/libro-mayor-mapping.test.ts",
+    "sha256": "75fc9bda7c9864da4559449b1c73b0d3d441f8350c4e10aae4ad8ac9f9079877",
+    "bytes": 6292,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/libro-mayor-no-migration.test.ts",
+    "sha256": "224972de57e23a7ab536418c526a4eb671358035c04f4a1ce38368914a3f2d66",
+    "bytes": 1110,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/libro-mayor-no-real-excel.test.ts",
+    "sha256": "f7d1e1d6d1a04cd7dbeb0cf6c0af0893709da92d1ad3623d8723afb89e762fbb",
+    "bytes": 2113,
+    "storage": "git-base-crlf"
+  }
+]

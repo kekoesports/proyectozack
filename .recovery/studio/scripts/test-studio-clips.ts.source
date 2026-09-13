@@ -1,0 +1,65 @@
+/** Disposable PGlite only. Applies the generated 0155 SQL, not production migrations. */
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+import { PGlite } from '@electric-sql/pglite';
+import { drizzle } from 'drizzle-orm/pglite';
+import { generateDrizzleJson, generateMigration } from 'drizzle-kit/api';
+import { eq } from 'drizzle-orm';
+import * as schema from '../src/db/schema';
+import { createClipRepository } from '../src/lib/studio/clip-repository';
+import { createStudioRepository } from '../src/lib/studio/repository';
+import { createProductionRepository } from '../src/lib/studio/production-repository';
+import { ClipReport } from '../src/lib/schemas/studio-clips';
+
+async function main() {
+  const pg = new PGlite(), db = drizzle(pg, { schema }); let checks = 0;
+  const check = (value: unknown, label: string) => { assert.ok(value, label); checks++; };
+  try {
+    const baseline = Object.fromEntries(Object.entries(schema).filter(([key]) => !['studioClipSources', 'studioDemoJobs'].includes(key)));
+    for (const statement of await generateMigration(generateDrizzleJson({}), generateDrizzleJson(baseline))) await pg.exec(statement);
+    await pg.exec(await readFile('drizzle/0155_studio_clip_labs.sql', 'utf8'));
+    await pg.exec(await readFile('drizzle/0156_studio_demo_ingest.sql', 'utf8'));
+    await pg.exec(await readFile('drizzle/0157_studio_demo_shared_storage.sql', 'utf8'));
+    await pg.exec(await readFile('drizzle/0158_studio_demo_store_binding.sql', 'utf8'));
+    const now = new Date();
+    await db.insert(schema.user).values(['a', 'b', 'agency'].map((id) => ({ id, name: id, email: `${id}@fixture.test`, emailVerified: true, role: id === 'agency' ? 'admin' : 'creator', createdAt: now, updatedAt: now })));
+    const [ta, tb] = await db.insert(schema.talents).values(['a', 'b'].map((id) => ({ name: id, slug: id, role: 'creator', game: 'CS2', platform: 'youtube' as const, bio: 'Fixture only', gradientC1: '#111111', gradientC2: '#222222', initials: id }))).returning();
+    assert.ok(ta && tb);
+    await db.insert(schema.talentUsers).values([{ userId: 'a', talentId: ta.id }, { userId: 'b', talentId: tb.id }]);
+    const a = createClipRepository(db, 'a'), b = createClipRepository(db, 'b');
+    const raw = { version: 1, kind: 'kick', sourceKey: 'kick:fixture', title: 'Fuente sintética de QA', url: 'https://kick.com/videos/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee', duration: 120,
+      collectedAt: now.toISOString(), provenance: 'creator_declared', coverage: ['Fixture aislada sin datos reales.'], moments: [], map: null, player: null };
+    const report = ClipReport.safeParse(raw); assert.ok(report.success);
+    const source = await a.import(report.data); assert.ok(source); checks++;
+    check((await a.import(report.data))?.id === source.id, 'same source import is idempotent');
+    check(await b.get(source.id) === null && (await b.list()).length === 0, 'cross-creator reads denied');
+    check(await b.addMoment({ id: source.id, revision: 0, title: 'Foreign', start: 0, end: 20 }) === false, 'cross-creator write denied');
+    check(await a.addMoment({ id: source.id, revision: 0, title: 'Mi fragmento', start: 12, end: 32 }), 'manual window persisted');
+    check(!await a.addMoment({ id: source.id, revision: 0, title: 'Stale', start: 0, end: 20 }), 'stale revision rejected');
+    check(!await a.addMoment({ id: source.id, revision: 1, title: 'Outside VOD', start: 115, end: 130 }), 'out-of-source window rejected');
+    const current = await a.get(source.id), moment = current?.document.moments[0]; assert.ok(moment);
+    check(!await a.decide({ id: source.id, revision: 1, momentId: 'missing', decision: 'selected' }), 'unknown moment rejected');
+    check(await a.decide({ id: source.id, revision: 1, momentId: moment.id, decision: 'selected' }), 'selection persisted');
+    const own = await createStudioRepository(db, 'a').addAsset({ name: 'window.mp4', storageKey: 'fixture/a.mp4', contentType: 'video/mp4', size: 20, checksum: 'fixture', projectId: null });
+    const foreign = await createStudioRepository(db, 'b').addAsset({ name: 'window.mp4', storageKey: 'fixture/b.mp4', contentType: 'video/mp4', size: 20, checksum: 'fixture', projectId: null }); assert.ok(own && foreign);
+    const input = { id: source.id, revision: 2, momentId: moment.id, assetId: foreign.id, duration: 20, rightsConfirmed: true };
+    check(await a.project(input) === null, 'foreign media cannot be mounted');
+    check(await b.project({ ...input, assetId: own.id }) === null, 'foreign source cannot create project');
+    const project = await a.project({ ...input, assetId: own.id }); assert.ok(project); checks++;
+    check(await a.project({ ...input, assetId: own.id }) === project, 'retry returns same project without duplicates');
+    const board = await createProductionRepository(db, 'a').board(project);
+    check(board?.document.scenes[0]?.assetId === own.id && board.document.scenes[0].start === 0, 'trimmed window starts at zero, not VOD offset');
+    check(board?.document.scenes[1]?.motion === 'contact-v3', 'transparent branded closing uses installed renderer');
+    check((await db.select().from(schema.studioRenders)).length === 0, 'preparation never auto-renders');
+    const render = await createProductionRepository(db, 'a').enqueue(project, 0, 0); check(render, 'existing render queue accepts the actual board');
+    check((await createProductionRepository(db, 'b').renders(project)).length === 0, 'render remains private');
+    const agency = createClipRepository(db, 'agency', ta.id);
+    check((await agency.get(source.id))?.id === source.id, 'agency narrowed workspace access');
+    await db.update(schema.user).set({ role: 'staff' }).where(eq(schema.user.id, 'agency'));
+    check(await agency.get(source.id) === null, 'live agency demotion revokes access');
+    await db.update(schema.talentUsers).set({ active: false }).where(eq(schema.talentUsers.userId, 'a'));
+    check(await a.get(source.id) === null && await a.import(report.data) === null, 'membership revocation blocks reads and writes');
+    console.log(`${checks} Clip Lab isolation/migration checks passed. No production DB or external calls.`);
+  } finally { await pg.close(); }
+}
+main().catch(() => { console.error('Clip Lab integration check failed.'); process.exitCode = 1; });

@@ -1,0 +1,242 @@
+[
+  {
+    "path": "src/lib/files/streamPrivateBlob.ts",
+    "sha256": "8b257c89385e37e49e91da802c6ce134d4ec02cb56eab94653b2ee97e4a72bea",
+    "bytes": 2884,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/files/validateUploadedFile.ts",
+    "sha256": "8e93ab6b04b2bcd392466179cab4a4156fecd0f62a1cf52de9390aadd7ea0b1e",
+    "bytes": 3165,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/finance/__tests__/server/data-health.test.ts",
+    "sha256": "e404a237616c84eb3dfe60c62f224ca8c97b808df2f860223b0ed3cda4671d4c",
+    "bytes": 4083,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/finance/__tests__/server/expense-assistant.test.ts",
+    "sha256": "9cf590382aa728578bb3f10f2836ffac68cde707d42966fec81d481fd9a740d3",
+    "bytes": 13448,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/finance/__tests__/server/money-sql-canary.test.ts",
+    "sha256": "77a5c80d72f36cb3db81cb908120969fd64f44fa1219fd5454234a64255f6f40",
+    "bytes": 2668,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/finance/__tests__/server/payment-direction-canary.test.ts",
+    "sha256": "c77425ecd5f3d69bc40d7b0e128a77be806568e03acfb25f9440a0aa6ad833b1",
+    "bytes": 2822,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/finance/__tests__/server/revenue-real-2026.test.ts",
+    "sha256": "2ef2ebee2ec381563f2ad5aa1fbb3f7e2827041a5b1b2fc21909fac96ccd8ae6",
+    "bytes": 5485,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/finance/__tests__/server/revenue.test.ts",
+    "sha256": "a1c6cc60f60d350ed00e789c664010336579c4a3f14c1e211acdb66af62ecd34",
+    "bytes": 11409,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/finance/__tests__/server/talent-economics.test.ts",
+    "sha256": "1edc98b47eaa3722d1776e5009f8372812891170181deec0babefed15faba494",
+    "bytes": 4049,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/finance/__tests__/server/tax-tables-agree.test.ts",
+    "sha256": "1b68faf82438d22101100c99b608e2e4a56cc204dbe8ae0fe83328a1b02d0324",
+    "bytes": 1444,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/finance/__tests__/server/tax.test.ts",
+    "sha256": "3a00f81111c85aa15e225ce4ebf662ce38aa35bb44a0ba51d4302d060dfa6e92",
+    "bytes": 1787,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/finance/dataHealth.shared.ts",
+    "sha256": "434caba8efcbe772eee41b9130e3d957331bffedfe9762ee51de335edffbb7a5",
+    "bytes": 4511,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/finance/dataHealth.ts",
+    "sha256": "36ea03e49079f8d8beac2d2344b4276d82403992f5ee30e0dbe81597ea6b95c6",
+    "bytes": 13453,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/finance/expenseAssistant.shared.ts",
+    "sha256": "0244acfeb50450d83dec99208af7e88f4d1e7b85e54b9c8b629884916c8bda0e",
+    "bytes": 16677,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/finance/expenseAssistant.ts",
+    "sha256": "0f7aaa8c9588bd73056b59254c3bfcee619504089cdbcfc7c2cc120be851aaad",
+    "bytes": 4463,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/finance/expenseReview.ts",
+    "sha256": "dac189c952e15985f4cddc11353c96a2cfcd3bf2d0f2586f28a3e3989dd10818",
+    "bytes": 9298,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/finance/money.ts",
+    "sha256": "06f98790943e11db5d6e6261f15c37abb8cf58bda8d329a2260337fc0eb5911e",
+    "bytes": 3237,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/finance/payroll/manualRow.ts",
+    "sha256": "165540506ae0a4f85c568c1cb6dfea5be3c77a529b2521360d4608faa79f6f2c",
+    "bytes": 2980,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/finance/payroll/types.ts",
+    "sha256": "e26f75b6284b1ecf88a88ffcdbc0900db44d3c16754ecac81c29f92fb66827f5",
+    "bytes": 1320,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/finance/revenue.shared.ts",
+    "sha256": "88fdd6895d8dc0cc627dc92740e38c0baf0fcd78bfa0d438e14ccad559b83e9e",
+    "bytes": 13801,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/finance/revenue.ts",
+    "sha256": "7616a08a6d28027da4898d27316d7c1bbb947066c29938b7dec6dc452fe2be08",
+    "bytes": 8285,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/finance/setup2026/generator.ts",
+    "sha256": "d557d4764fd92e1621b67754767f80644e6eeb266ceb50e87427c1a2598bfb84",
+    "bytes": 10326,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/finance/setup2026/types.ts",
+    "sha256": "8e5389ab154e34ff14aee6722a57c84526ecc32b77ed1575feb818eeb788a637",
+    "bytes": 3722,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/finance/talentEconomics.shared.ts",
+    "sha256": "9d6fe401cf57b7f34e7c7e001041e2c43b7e19055d02455baf14ca715d7a9ae7",
+    "bytes": 4760,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/finance/talentEconomics.ts",
+    "sha256": "6da0575d7695dd10994e4e27dc0ba04f4a75eaf8634494806926da84a85dbb92",
+    "bytes": 7826,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/finance/tax.shared.ts",
+    "sha256": "b6abc657adcdb8b02ab1b902884082c2d2bc7e8e92d666cb14f49bed85487a3c",
+    "bytes": 2740,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/finance/tax.ts",
+    "sha256": "251044053b66d1d0b53071ead10b2d1aaff72f3264379c94348950b00ede8458",
+    "bytes": 2970,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/flag-images.ts",
+    "sha256": "4474bde39f442ff249360af17d647da5a1b1e32921768469ef8368785b8b4b44",
+    "bytes": 919,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/forms/firstError.ts",
+    "sha256": "5d5ae3e2cb898e41d3671eeee48c858c6792cd1e7cc825ea2a3f0960b33152d4",
+    "bytes": 458,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/forms/parseFormData.ts",
+    "sha256": "9b2792b5e6f3eb268b0f628ea5a8c0a67c56a15fe547f5ecc33c8ac2bce920d3",
+    "bytes": 1418,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/geo-legal-config.ts",
+    "sha256": "b608f137396fc68d047fcfa25c0e271442cffaa43f04cf068450760bb37986ff",
+    "bytes": 5779,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/giveaway-platform/atomicOperations.ts",
+    "sha256": "2b46e08700be7f1da88d04119d45cdd20eb8a9df86f0e67e783e410857be0925",
+    "bytes": 13564,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/giveaway-platform/constants.ts",
+    "sha256": "4e898b55d531addb2052a0bf04d69c18773a31152b5e9974ce36cc905807b225",
+    "bytes": 4841,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/giveaway-platform/missions.ts",
+    "sha256": "2c5a8c56f4fe5ef0e63cb37cbed3c68fe2d4c480570c1c5d8727e93b85c7e421",
+    "bytes": 5203,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/glosario.ts",
+    "sha256": "07c56631c39c1afbe10231bc6b1c366a2382735ce181ed809cc1bee427183eff",
+    "bytes": 39653,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/home-for-role.ts",
+    "sha256": "62155dd153acfe4c2ed8fdc1ea017a48bde7643ee70158eaf3f9a4ce36ea12c8",
+    "bytes": 1329,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/igaming.ts",
+    "sha256": "6bea6dace64d9999b8dea25bc59e5b954ffb46660105ca29089fb4bfe811cfff",
+    "bytes": 543,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/intake/contact-capture-config.ts",
+    "sha256": "61b616af82c88713ba5a5a476e35b61d276319ceb13f0ea910ac5f8d1607f169",
+    "bytes": 264,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/lib/intake/contact-capture.ts",
+    "sha256": "345f07e6b8cc4763263cf126811f8990ac3a0d07d10e3a0833a9f7fe557111ca",
+    "bytes": 6124,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/lib/intake/decision.ts",
+    "sha256": "4e814d450b36bb2f4164af6eacd18550ee4ed20d368b8c9e75479e0f35cabd79",
+    "bytes": 4380,
+    "storage": "overlay"
+  }
+]

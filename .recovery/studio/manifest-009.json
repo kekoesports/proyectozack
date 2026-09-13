@@ -1,0 +1,242 @@
+[
+  {
+    "path": "jest.config.cjs",
+    "sha256": "69b2fa9f63b352caa7569b1b55315867decea18a54a85bc290ba0e66f983c79f",
+    "bytes": 2643,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "jest.setup.ts",
+    "sha256": "0ffdca12c2d587352c92d52e5c857aa284ba178cdb7fe965d83a3e5a3bc3a197",
+    "bytes": 2116,
+    "storage": "git-base"
+  },
+  {
+    "path": "next.config.ts",
+    "sha256": "e1f7952136891f07aaf615155f57735939f7ea7df4574d42c7c2920da6e7ef26",
+    "bytes": 12747,
+    "storage": "overlay"
+  },
+  {
+    "path": "package-lock.json",
+    "sha256": "0002658b20f4ce3ba82c82a89560668aee8572e433faa5b5c68d321c2c88e29b",
+    "bytes": 692390,
+    "storage": "overlay"
+  },
+  {
+    "path": "package.json",
+    "sha256": "a56d305ca0e4f02533d48163a0e7802cd07538bf787c043bdaaebac2f70ef80c",
+    "bytes": 6316,
+    "storage": "overlay"
+  },
+  {
+    "path": "postcss.config.mjs",
+    "sha256": "7b299d3d3b16699ddda397c0b2373b3af4f25f8fc9ccc9b3d9e64ef083bc1c21",
+    "bytes": 101,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/add-prozis-brand.ts",
+    "sha256": "eb05d8dc4058da56487b2c5158e8ad45d31c6d7c06cfd5cea0c92c2857446fcd",
+    "bytes": 1901,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/admin-create-free-raffle.ts",
+    "sha256": "5c64d2e34bf4aa495d237f60aaefcd80d3d63ef3b2a50c1388f8c64544edd901",
+    "bytes": 6095,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/admin-grant-points.ts",
+    "sha256": "2afa1e7c6ac2dda144de2dedfa5dd207e8dcbad9a2b02d80a654b85c51c340b1",
+    "bytes": 8947,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/apply-collab-migration.ts",
+    "sha256": "426c96ed72dc973f17c72ff74622a63ebcaaa2b3920c9bf8d51c4319f954a727",
+    "bytes": 1864,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/apply-internal-links.mjs",
+    "sha256": "ca8d2ad2d83c85be90cd7429bfd5a90799b7a5f97d9370ebe6584cf563ff9091",
+    "bytes": 11413,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/assert-readonly-build.cjs",
+    "sha256": "3e9521532af7b2be3e8ac7e6a029746c987035c2573da766931e7ca4d9630ce9",
+    "bytes": 1074,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/assert-vercel-build-target.cjs",
+    "sha256": "04c3d1f29492e2ca9111754ddacd43ea19b763fb9de9c170f8cd52f3e6635a43",
+    "bytes": 803,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/audit-casos.ts",
+    "sha256": "2b4b0e70054ddedce47b91ec0259abd232e4fc4a1638ff2633f35421cf3032f7",
+    "bytes": 2584,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/audit-casos2.ts",
+    "sha256": "0dcf1b37acc90b34a0986ad649ad583c3ce91f0f09e892296851afcd1e194ef2",
+    "bytes": 1211,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/audit-cta-urls.ts",
+    "sha256": "cb1a6ad0b05c00d54b46a5575e393b1d8bfb3632272469bd4c68a530960e9d02",
+    "bytes": 21530,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/audit-finanzas-consistency.ts",
+    "sha256": "9f76ed04e25e7f31336d7c1b156955c7dc9ef8c987f6f21d839e2f2a63cc64fe",
+    "bytes": 10257,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/audit-googlebot-redirect.ts",
+    "sha256": "1281b05ac03738195d029853d8410a108d3055572b69f394214521adf5fc33d2",
+    "bytes": 3099,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/audit-news-links.ts",
+    "sha256": "6459b76e1b9151bfa39abd11181b4435faf2a3b92011e60f7d41156c78936ef4",
+    "bytes": 5037,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/audit-talent-detail.ts",
+    "sha256": "125853af5e83ab36f4294815e5e8f5e9bf11087c9d26f67b2d7c05be1d6c5d68",
+    "bytes": 1674,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/audit-talent-seo.ts",
+    "sha256": "04af5a36af6e3014053cf994bde9615e227525ae2d7f7f5a38fb0af84063fe38",
+    "bytes": 3068,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/backfill-case-creators.ts",
+    "sha256": "0c2c62304de530b6cf0eb61fdbf286b9fc31a1cb9e489cf46d178cc34533abe3",
+    "bytes": 1009,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/backfill-crm-brand-ids.ts",
+    "sha256": "a1db3e1e168e8bb4443558ce3bd057e6b0f7bc9fbb87b455949693ba55697e3d",
+    "bytes": 4577,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/backfill-entity-asset-index.ts",
+    "sha256": "e225f2baf968c24d86f569a22aaa02ed6a0e0f84b17b615cbec7f819c7015baa",
+    "bytes": 3516,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/backfill-fx-rates.ts",
+    "sha256": "714cafb31745ffdc8a8682a8f826f40c3ba5719e31394ab81c774baba8328a68",
+    "bytes": 6043,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/backfill-giveaway-brands.ts",
+    "sha256": "8fb0be6c89a171d68acb8245c08bac70b597b74d9e2aebec8eaa297cdfcb4224",
+    "bytes": 2647,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/backfill-recurring-expenses.ts",
+    "sha256": "29ae03c152296db2d763684b922a907b249f657141ce2cf2c2af7fa04b3ce382",
+    "bytes": 6132,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/build-catalog.ts",
+    "sha256": "905398f54a36286c6095c1eb45927c85f0ebd3b5b8cbb16d859caa3e16516c9f",
+    "bytes": 7187,
+    "storage": "overlay"
+  },
+  {
+    "path": "scripts/build-migration-0106-snapshot.mjs",
+    "sha256": "2afe177f42c88f05efa5a06ab546708a0164401f18ec84cf6c7efd6dbb9bbcff",
+    "bytes": 7427,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/check-invoice-columns.ts",
+    "sha256": "ab80bb0c1e8b3fedff39728272cfbf809cade6bb280b9fc0f8111f46fe76b6a4",
+    "bytes": 661,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/check-migration.ts",
+    "sha256": "9b935fb2ed4ef84195e3ebffd87596fdc91a840979b815181faf8605ea9bf90a",
+    "bytes": 4588,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/check-platform-photos.ts",
+    "sha256": "fab9994e80ee9222b03c2c07bfa904089b38c6d29b99398608d79c6dcb1f3ae3",
+    "bytes": 609,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/check-steam-login.ts",
+    "sha256": "dace733eb00fdd27af5fca9f8a32c235a5c08db33600faf7f4c969bea53e3e98",
+    "bytes": 1830,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/cleanup-legacy-shop-items.ts",
+    "sha256": "a7f0c1358961f05f7d878f232260e2a6f5516322f2c0381c3b5143053ca18899",
+    "bytes": 4186,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/create-admin.ts",
+    "sha256": "fa8229806e7e5316ccddcf4a775cad8a92507b24f46333ea561bcc675355f909",
+    "bytes": 2745,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/delete-talent.ts",
+    "sha256": "7280b545ac13076ed2c4abc6824523945a882e5e979682b39dd811f8524e7263",
+    "bytes": 2069,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/diagnose-tigerr.ts",
+    "sha256": "2e2e4d763ed9177e9ccd389372bfb553130da9b4c23f88e5044edb0210fe6956",
+    "bytes": 1945,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/docker-runtime-env.test.mjs",
+    "sha256": "6a257fc6a948350d6fb97cad6fada922ba6c3b57d01b2ac1676b0a75d0c752ab",
+    "bytes": 1956,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/docker-runtime-smoke.mjs",
+    "sha256": "67dd1df413891de322dc315e555577e37407b3698a324925ee94f06983209fe1",
+    "bytes": 4426,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "scripts/enrich-rewards.ts",
+    "sha256": "1e7987450fdd4708596fcf0b7e6133534764b351318adbcb9df7b2a45cfba9bb",
+    "bytes": 7460,
+    "storage": "git-base-crlf"
+  }
+]

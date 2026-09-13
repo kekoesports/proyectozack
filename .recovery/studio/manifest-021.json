@@ -1,0 +1,242 @@
+[
+  {
+    "path": "src/__tests__/server/sorteos-auditoria-page-guard.test.ts",
+    "sha256": "a89df3b0db3b35b637e703cb4a2f6001d40f69a69c785d01ce12d18871bb734a",
+    "bytes": 2247,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/sorteos-creator-typo-redirects.test.ts",
+    "sha256": "4177943a27e555bac482812ed4c98646af76159986234ca0a3cabe2d1f8e428d",
+    "bytes": 3826,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/__tests__/server/sorteos-fase1-pr2-no-migration.test.ts",
+    "sha256": "a2f3058e281983886d4d4f5255e5996d7fd4719ddad4869f71b1be8c398241d2",
+    "bytes": 1188,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/sorteos-mobile-responsive.test.ts",
+    "sha256": "194dcbf56a6828c9743bd577d2f04b15c7d049be1964202f5f48e77ba4c70362",
+    "bytes": 7666,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/sorteos-public-routes.test.ts",
+    "sha256": "162281cf8e703f184c8da624718778b0df3cc0c502ed5aa76d4d700fc0424bf5",
+    "bytes": 10118,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/staff-visibility.test.ts",
+    "sha256": "604ebea977495411401c2f49dcd9b643c735944307000f04ef74eb3c795b9495",
+    "bytes": 1640,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/steam-openid.test.ts",
+    "sha256": "176689b3f4d1baddf0d85a17c71e7c63b229151dcded917a9aa46f6df787eb1d",
+    "bytes": 7127,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/steam-plugin-integration.test.ts",
+    "sha256": "7761fc7a59a4daf61dc3f18e2c633d7e8336cc3831767c64f11b736f1fdeb79b",
+    "bytes": 7285,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/steam-plugin-return-to.test.ts",
+    "sha256": "35ab7dab3e59dbf5fb196a36876690fd858779a7e06199a9e105bd4c83b953e2",
+    "bytes": 5406,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/steam-profile.test.ts",
+    "sha256": "b2e3518c5cbe2e885a92b6e59dd1fd2513e5bc4bc8b128c55cb61bf3429b858b",
+    "bytes": 3686,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/steam-return-to.test.ts",
+    "sha256": "c8b33850267a8fe5582ae96c339eeff3de32091e63398744ba838f60359dd4c8",
+    "bytes": 5959,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/storage-entity-asset-index.test.ts",
+    "sha256": "b0ced5aa1a25a94a89b0769320616258ebe6fc2f95ecc31b3c9ef67192e0b68a",
+    "bytes": 1765,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/storage-local.test.ts",
+    "sha256": "bdc78b46714becfd9db60d04cc2b5ba7cb02b5624ac022465592993d35b9bebf",
+    "bytes": 6461,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/sync-sheet-sources-cron.test.ts",
+    "sha256": "b574571a95f0ed8da1906e8f4e4825a4c8e149f3fa331f66837fc57ea46d1de4",
+    "bytes": 8502,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/talent-drive-folder.test.ts",
+    "sha256": "c075403a834fd5ee606c775789d4b48c2fb9412e1654c9538fc3381770f5ddd8",
+    "bytes": 1115,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/talent-intelligence-crm.test.ts",
+    "sha256": "f8c62925f16085b4c1c11fdfb1712a079fb748f6c1d61ed64545f9eb6e14cc4d",
+    "bytes": 5477,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/talent-intelligence-growth.test.ts",
+    "sha256": "b682588040023abd4c1f9883a7f4b08dfd1bed23528d796595ecbd9a4042d096",
+    "bytes": 2808,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/talent-seo.test.ts",
+    "sha256": "d0ef3f48649dc2cebafbd7f2ba7b57561440f8a2a7b431884570e420762bbbae",
+    "bytes": 2339,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/talent-slug-editable.test.ts",
+    "sha256": "f43d3037de8cf77e6e0b3a0cc62702f7c5f537fad3a38443d266c9f8dc16d203",
+    "bytes": 7370,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/talent-socials-schema.test.ts",
+    "sha256": "ff2ebd08a5679f5b59d6728e34dea69529404d38e45b3ccc642523f9c14fd3cb",
+    "bytes": 1438,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/target-archive.test.ts",
+    "sha256": "b0153d2867cd0fb28a7f5519944013ad4572e07be10aa80c6ec549412b677865",
+    "bytes": 7739,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/targets-page-profile-projection.test.ts",
+    "sha256": "2612ded2d69b0d5a61ccfe02c88817a248e4b6743e255f9f503abe9a7f40400c",
+    "bytes": 2245,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/task-actions.test.ts",
+    "sha256": "3b21ff623740a390f43970ededdd9976d90080c3c013c899f0ffad0ab6a5b442",
+    "bytes": 4426,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/__tests__/server/task-ownership.test.ts",
+    "sha256": "ffba0fb8a97a78a5da2e6758315d664f06fe39557d55d7eb028a244da53eb246",
+    "bytes": 7601,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/__tests__/server/task-rollover-policy.test.ts",
+    "sha256": "6006416b29224001b5d0b8165e28f2ad1d932507f9a89b7f3f695d022dd073ef",
+    "bytes": 2005,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/task-rollover-ui.test.ts",
+    "sha256": "7440b73d8b049bac79423df7588c9e08f4c4fd6e719668689983ae4a9c23dca9",
+    "bytes": 1610,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/text.test.ts",
+    "sha256": "1b1099c3a8cfc97c1c1c46d2468aef1679aada495ade3684d902d1cc69cf2938",
+    "bytes": 2797,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/timingSafeEqual.test.ts",
+    "sha256": "1fe0fefc81d64df9fc3d9ed71303d67e17023d9776480b3b9189559ddb862d36",
+    "bytes": 1651,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/token-encryption-rotation.test.ts",
+    "sha256": "05bdb1ecc2aea2d51746f52e94e6c4d71218728265d8d58fcc2821520f63937b",
+    "bytes": 2099,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/tracker-reconciliation-match.test.ts",
+    "sha256": "8917be4211461da6509e6dc102060475c47079d11b3b50583b32de2f77407064",
+    "bytes": 4689,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/tracker-reconciliation-ui.test.ts",
+    "sha256": "f00272dcad4f7bd67d6e83a2a79644a680f48732a38ad5ccbc16b6c161da02e9",
+    "bytes": 2090,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/tracker-sheet-connect.test.ts",
+    "sha256": "d3588d821cd5cf878a1e47974fae4009dee56fbed2480c6af3dc6f14bb12e3a4",
+    "bytes": 2931,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/tratos-entregables-drawer.test.ts",
+    "sha256": "ea87602d664d27e5517df6211b94abddf55426019a31f1c0b17e3daa38209f03",
+    "bytes": 6937,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/tratos-entregables-migration.test.ts",
+    "sha256": "e0b204dfb01223cfa2476a0b92c7b047b3e50ecc0da9a4289b768ba0a70a6600",
+    "bytes": 1803,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/tratos-entregables-parser.test.ts",
+    "sha256": "75f2cc028c9db3d2f87bfaa2573d82f543f35ede001a342fffcda0a0b721364a",
+    "bytes": 2876,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/tratos-sheet-link-migration.test.ts",
+    "sha256": "34e09c0398084a5d50a51a6dc61291e7903422d2351bc2ef30b9ac8f46a5ef7c",
+    "bytes": 2917,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/tratos-sheet-link-parser.test.ts",
+    "sha256": "95445c2d9b311a5d8f5d7e41a7f5d85643f647f59e742a21fd6be443426f06d8",
+    "bytes": 16466,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/tratos-sheet-link-static.test.ts",
+    "sha256": "b529853de317573c2aa9dc50d4cb615a0a47ec4e7fd57557752bffc0f1cd61a6",
+    "bytes": 9493,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/trpc-giveaways.test.ts",
+    "sha256": "6a1ad49a5c99ba8d595d8d4f74dcbfad5dc6b951be4290eceddfbec60c9fd53e",
+    "bytes": 2231,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/trpc-invoices.test.ts",
+    "sha256": "15db4535cb5110ffafa220cb8d8cc148838d92ff4873ed2fb52b738f303fc2b0",
+    "bytes": 4088,
+    "storage": "git-base-crlf"
+  }
+]

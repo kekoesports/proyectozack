@@ -1,0 +1,242 @@
+[
+  {
+    "path": "src/lib/queries/pnl.ts",
+    "sha256": "0e0fc66b08a90f51963e4050468c9133009965eb4d1903a2a977c0b81ab1da0b",
+    "bytes": 10630,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/portfolio.ts",
+    "sha256": "0f6d4943663eb2f48f20051f335db4eb59d90322747df4596efa79fc9d734bf3",
+    "bytes": 692,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/postAnalytics.ts",
+    "sha256": "2b6ed3404eea16370f22ec1d161a2acf0161eb0c8a39c6bbb30236cd8a3ace28",
+    "bytes": 14944,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/posts.ts",
+    "sha256": "a49ec8677f6034e5033344ed96dc01fccbe4815e400cf322d7153b45ac70df67",
+    "bytes": 9248,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/pressTargets.ts",
+    "sha256": "5f0ca18ecf4343a98aea193048ab8bb364ebac6d38c424d03b5f7a4fb06a650c",
+    "bytes": 1889,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/lib/queries/rankingEntries.ts",
+    "sha256": "4ae811b8b3801a8fabaef16409853e62f425f973d44c2cf37176b644f8fd4dd5",
+    "bytes": 470,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/recurringExpenses.ts",
+    "sha256": "77793be7394416f946915a35416a6fed98ef7e123d96052702067d167e8b9352",
+    "bytes": 4161,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/revokeTalent.ts",
+    "sha256": "5870c30037bc95e7859fbf740e44ee6fb4d95cf8f818666b618581545cf2362d",
+    "bytes": 2848,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/lib/queries/search.ts",
+    "sha256": "c1a91866c2f53463759190912ef6fe0685299a858c5d811ed11d8b1ed8d1bdfd",
+    "bytes": 9427,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/lib/queries/setup2026.ts",
+    "sha256": "f8d6717006a15048ccaa75fa81cd7cacc6b32f4d36911add58cd2cd1e505a6bb",
+    "bytes": 4231,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/slashAccounting.ts",
+    "sha256": "f4302af6a91931bc31d1b9273ad0b73385691ef8662841349f02324573eb045c",
+    "bytes": 11135,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/staffUsers.ts",
+    "sha256": "7543895a5d00c1747752e95b287f098791ec5449b5700ade347e2454f5602823",
+    "bytes": 875,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/stats.ts",
+    "sha256": "62859bba55448dd7eb0fba29ef07f2f9fb5bbfb60d8f768395b4d4bb3375feed",
+    "bytes": 5383,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/talentBusiness.ts",
+    "sha256": "908b870284abdbd64cfa3123d2b26abd37659de38d3cbbce7ed972050907c613",
+    "bytes": 3738,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/talentIntelligence.ts",
+    "sha256": "f44b6c7da00446e8a632639bd04808123d781619272d1828b221d0fc89b8cad9",
+    "bytes": 18179,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/talents.ts",
+    "sha256": "7d1ed31917985f0372d015fbdbabd5a36add02037cb71f662778bccf797509ce",
+    "bytes": 23010,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/targetStatusHistory.ts",
+    "sha256": "c13347394a142502d8658d35ff6d8442b6e5dd3ed501fae23a9d42d42b346776",
+    "bytes": 2587,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/targets.ts",
+    "sha256": "6fe46c7f1cfa0223e7eaeb4795a1d20a0274261d911fc221982faf31dcddfbf1",
+    "bytes": 20579,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/task-rollover.ts",
+    "sha256": "43262c0dd53eadbb4fe00748c8ce71c86af0404522156511a9dff435b3c92c7c",
+    "bytes": 1439,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/task-sanitation.ts",
+    "sha256": "5b6f40a0b7c9dfcd2bb121f52d37ecbf2ff88afd9248c72933664529f850fc01",
+    "bytes": 5047,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/taskTemplates.ts",
+    "sha256": "521e2be7adbbafa442ba3d713b54dff719228f061a4362f95a0d59ef8c69c744",
+    "bytes": 1919,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/tracker-reconciliation-preflight.ts",
+    "sha256": "3f149949c174328890093a171a2787c4d591d13eb01ef1de4d4f66cd3983fda2",
+    "bytes": 3050,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/tracker-reconciliation.ts",
+    "sha256": "afd791dcf9b4efacc64fcf8b7d674631df363d7a87c5d508aa77dd910961443a",
+    "bytes": 8644,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/quick-notes/access.ts",
+    "sha256": "2158467102bb8ef8a1026d2d29daeebb4c13cc45369b134e0a6dc1094fe2a76c",
+    "bytes": 1033,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/lib/quick-notes/conversion.ts",
+    "sha256": "ede58c0ae4707d272825894e940b4ff1435238ee1d98fb149094b6002cea9f8c",
+    "bytes": 5760,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/quick-notes/interpret.ts",
+    "sha256": "37598021b9c8074e7d3f2a4b392dbbc67ef2e20f27839f8a1afd62410e805b8b",
+    "bytes": 5575,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/quick-notes/notices.ts",
+    "sha256": "37d2e53e3fbfceb2d86e692bd38c7f48b42405100a19094c682910383b8e5700",
+    "bytes": 10635,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/quick-notes/store-shared.ts",
+    "sha256": "e50eb88bc88ff300f56e2fa80f484ca24dcfe5ec502f911d01da7664c6403bfc",
+    "bytes": 4534,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/quick-notes/store.ts",
+    "sha256": "1281d3c6cae4dfa13d74859e24562da1679f4670e25a3e8f493b73fe34f4d003",
+    "bytes": 11671,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/lib/quick-notes/time.ts",
+    "sha256": "daefe19729b8992ab99a3847f16d55bce6dc6fd4dd3ef4953d4e7a3e3ad7d16c",
+    "bytes": 1872,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/rewards/allowed-coin-sources.ts",
+    "sha256": "fb4a25c999907ee128b198e0e248b63e4ab151316410b26d7651f4763dd2a609",
+    "bytes": 3319,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/safeJsonLd.ts",
+    "sha256": "ca3628fdb7d76cb888bf9d4574b732fae41ea82fee9fb866fbfc55ef86f58a7e",
+    "bytes": 600,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/schema.ts",
+    "sha256": "f5d4f6caea067fb39c27470ca9ac2be7a15bc8aef8bdcb97ea099e0daf8b8b38",
+    "bytes": 4567,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/schemas/admin-auth.ts",
+    "sha256": "7f21f917e14e1f4ceda07975db465eb79430980a395a684c260a3481f3794b82",
+    "bytes": 566,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/lib/schemas/agencyVideo.ts",
+    "sha256": "a59865f613ef3196f8eb60abcde894e87fb295e0d8a92917b4d44ade3f39976a",
+    "bytes": 893,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/schemas/agentEvent.ts",
+    "sha256": "2b80345ee2f34afad3a6cd696504f293856177e34f761463641437e3382ae51f",
+    "bytes": 4031,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/schemas/aiAssistant.ts",
+    "sha256": "7d931e3812dccb0f1493c9e9388e22b78e48dd59e1815e69e339fe1f487f5ffc",
+    "bytes": 1186,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/schemas/automationDeal.ts",
+    "sha256": "e6d0a361cf9a9f8517184512beb556e62e383d3be7c76f1c78852c6064fc59bb",
+    "bytes": 5058,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/schemas/automationDealDraftEditor.ts",
+    "sha256": "e9ca9ddbf431326f38738efd91f7d48f043563fba267e338e15ff7e3f6635c48",
+    "bytes": 8568,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/schemas/automationDealDraftReview.ts",
+    "sha256": "04b629d2159da931b0f338fdab605f79316012202dc338a43cc542730f4feb5a",
+    "bytes": 563,
+    "storage": "git-base-crlf"
+  }
+]

@@ -1,0 +1,76 @@
+.sp-studio .clip-lab-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
+.sp-studio .clip-lab-tabs a{display:flex;align-items:center;gap:9px;border:1px solid #d8d7df;padding:11px 16px;border-radius:100px;font-size:13px;font-weight:700;color:#373341}
+.sp-studio .clip-lab-tabs a[aria-current=page]{background:#17141e;color:#fff;border-color:#17141e}
+.sp-studio .clip-lab-tabs small{font-size:10px;opacity:.75;font-weight:500}
+.sp-studio .clip-hero{display:grid;grid-template-columns:1.25fr 1fr;align-items:center;padding:clamp(26px,4vw,52px);border-radius:24px;background:#15121c;color:#fff;overflow:hidden;position:relative}
+.sp-studio .clip-hero:after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#f5632a,#e03070,#8b3aad,#5b9bd5)}
+.sp-studio .clip-hero h1{font-family:var(--font-display),sans-serif;font-size:clamp(42px,4.4vw,70px);line-height:.96;text-transform:uppercase;font-weight:800;letter-spacing:-1.3px;margin:20px 0}
+.sp-studio .clip-hero h1 em{font-style:normal;color:#fa8a69}
+.sp-studio .clip-hero p:not(.studio-eyebrow){font-size:14px;line-height:1.75;color:#c7c2d1;max-width:500px}
+.sp-studio .clip-hero-pills{display:flex;gap:18px;flex-wrap:wrap;margin-top:25px;font-size:11px;color:#e0dce5}
+.sp-studio .clip-hero-pills span,.sp-studio .clip-evidence-strip span{display:flex;align-items:center;gap:7px}
+.sp-studio .clip-hero-graphic{min-width:0;display:flex;flex-direction:column;align-items:center;perspective:900px;gap:10px}
+.sp-studio .clip-orbit-label{font-size:9px;letter-spacing:2px;color:#c7bdce}
+.sp-studio .clip-orbit{position:relative;width:260px;height:270px;transform-style:preserve-3d;animation:clip-float 9s ease-in-out infinite}
+.sp-studio .clip-orbit-card{position:absolute;border-radius:18px;box-shadow:0 24px 45px #0005;display:flex;flex-direction:column;justify-content:space-between}
+.sp-studio .clip-orbit-card.back{width:225px;height:145px;background:#272230;border:1px solid #716478;left:0;top:32px;transform:translateZ(-30px) rotateY(-17deg) rotateZ(-10deg);color:#bbafc5;padding:20px;font-size:10px;letter-spacing:2px}
+.sp-studio .clip-orbit-card.front{width:150px;height:215px;left:91px;top:40px;padding:19px 15px;background:#faf7f2;color:#221722;transform:translateZ(30px) rotateY(-14deg) rotateZ(7deg);border-bottom:4px solid #e03070}
+.sp-studio .clip-orbit-card.front>span{font-size:8px;letter-spacing:1px;font-weight:700}
+.sp-studio .clip-orbit-card.front strong{font-family:var(--font-display),sans-serif;font-size:66px;line-height:1;font-weight:900}
+.sp-studio .clip-orbit-card.front small{font-size:7px;letter-spacing:.8px}
+.sp-studio .clip-mini-track{display:flex;gap:5px;align-items:center;height:38px}
+.sp-studio .clip-mini-track i{width:11px;height:12px;background:#df386f;border-radius:3px;animation:clip-pulse 2.5s ease-in-out infinite alternate}
+.sp-studio .clip-mini-track i:nth-child(2n){height:28px;animation-delay:-.8s;background:#f5632a}
+.sp-studio .clip-mini-track i:nth-child(3n){height:38px;animation-delay:-1.4s;background:#8b3aad}
+.sp-studio .clip-orbit-caption{color:#a9a1b5;font-size:9px}
+.sp-studio .clip-flow-strip{display:flex;gap:22px;flex-wrap:wrap;margin:22px 0 32px;border-bottom:1px solid #d9d7df;padding-bottom:20px}
+.sp-studio .clip-flow-strip span{display:flex;gap:12px;align-items:center;font-size:12px;color:#5e586c}
+.sp-studio .clip-flow-strip b{font-family:var(--font-display),sans-serif;font-size:23px;color:#17121e}
+.sp-studio .clip-start-grid{display:grid;grid-template-columns:1.3fr 1fr;gap:24px;align-items:start}
+.sp-studio .clip-import{margin-top:0!important;padding:28px}
+.sp-studio .clip-section-head{display:flex;gap:14px;align-items:center;margin-bottom:24px;justify-content:space-between}
+.sp-studio .clip-import .clip-section-head,.sp-studio .clip-review>.clip-section-head{justify-content:flex-start}
+.sp-studio .clip-section-head h2{margin:3px 0;font-family:var(--font-display),sans-serif;font-size:27px;text-transform:uppercase;font-weight:800;line-height:1.1}
+.sp-studio .clip-section-head p:not(.studio-eyebrow),.sp-studio .clip-section-head>span:not(.clip-step){font-size:12px;color:#71687b}
+.sp-studio .clip-step{display:flex;align-items:center;justify-content:center;background:#f8e8e6;color:#a34431;width:38px;height:42px;border-radius:10px;font-weight:800;flex-shrink:0}
+.sp-studio .clip-import form,.sp-studio .clip-export-form,.sp-studio .clip-manual form{display:grid;gap:16px}
+.sp-studio .clip-import label,.sp-studio .clip-export-form label,.sp-studio .clip-manual label{display:grid;gap:8px;font-size:12px;font-weight:600;line-height:1.5;color:#454050}
+.sp-studio .clip-import input:not([type=checkbox]),.sp-studio .clip-export-form input:not([type=checkbox]),.sp-studio .clip-export-form select,.sp-studio .clip-manual input{width:100%;min-width:0;background:#fff;border:1px solid #d6d2dc;border-radius:9px;padding:11px 12px;font-size:13px;color:#201b28}
+.sp-studio .clip-url{position:relative;display:flex;align-items:center}.sp-studio .clip-url svg{position:absolute;left:10px;color:#9a8fa8}.sp-studio .clip-url input{padding-left:37px!important}
+.sp-studio .clip-form-pair{display:grid;grid-template-columns:1.3fr 1fr;gap:12px}
+.sp-studio label.clip-consent{display:flex;align-items:flex-start;gap:9px;font-weight:400;font-size:11px}
+.sp-studio .clip-consent input{margin-top:3px;accent-color:#b52b62}
+.sp-studio .clip-note{font-size:11px!important;line-height:1.7!important;color:#70677b!important;margin:0}
+.sp-studio .clip-note a{color:#aa2d5e;text-decoration:underline}
+.sp-studio .clip-dropzone{border:1px dashed #bdb0c7;min-height:164px;background:#f9f7fa;border-radius:15px;text-align:center;justify-items:center;padding:20px;cursor:pointer}
+.sp-studio .clip-dropzone svg{color:#aa3567}.sp-studio .clip-dropzone span{font-size:10px;color:#756b7f;font-weight:400}
+.sp-studio .clip-dropzone input{padding:7px!important;font-size:10px!important}
+.sp-studio .clip-capabilities{padding:25px 14px}.sp-studio .clip-capabilities h2{font-family:var(--font-display),sans-serif;font-size:32px;text-transform:uppercase;font-weight:800;margin:12px 0 24px}
+.sp-studio .clip-capability{display:flex;gap:12px;margin:20px 0}.sp-studio .clip-capability>span{width:7px;height:7px;border-radius:50%;background:#c24266;flex-shrink:0;margin-top:6px}
+.sp-studio .clip-capability h3{font-size:13px;font-weight:700;margin:0 0 5px}.sp-studio .clip-capability p{font-size:12px;line-height:1.65;color:#71677c;margin:0}
+.sp-studio .clip-source-link{font-size:12px;display:inline-flex;align-items:center;gap:8px;color:#9d315e;font-weight:700;margin:10px 0}
+.sp-studio .clip-notice{padding:20px;border:1px solid #ebc795;background:#fff7e9;border-radius:14px;margin-bottom:24px;font-size:13px}.sp-studio .clip-notice p{margin-top:6px;font-size:12px;color:#786042}
+.sp-studio .clip-sources{margin:30px 0}.sp-studio .clip-source-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;max-height:340px;overflow:auto;padding:3px}
+.sp-studio .clip-source-grid>a{position:relative;padding:20px;border:1px solid #dfdae4;border-radius:14px;background:#fff;transition:transform .2s,border-color .2s}.sp-studio .clip-source-grid>a:hover{transform:translateY(-2px)}
+.sp-studio .clip-source-grid>a[aria-current=true]{border-color:#c53672;box-shadow:0 0 0 1px #c53672}.sp-studio .clip-source-grid h3{font-size:13px;margin:10px 0;overflow-wrap:anywhere}.sp-studio .clip-source-grid p{font-size:11px;color:#756e7d}.sp-studio .clip-source-grid svg{position:absolute;right:15px;top:18px;color:#ab5175}
+.sp-studio .clip-source-kind{font-size:9px;letter-spacing:1.5px;font-weight:700;color:#a53961}
+.sp-studio .clip-review{background:#fff;border:1px solid #ded9e5;border-radius:20px;padding:28px;margin-top:28px}
+.sp-studio .clip-evidence-strip{display:flex;gap:18px;flex-wrap:wrap;font-size:10px;color:#746c7d;padding-bottom:18px;border-bottom:1px solid #e8e4ec;margin-bottom:22px}
+.sp-studio .clip-review-grid{display:grid;grid-template-columns:1fr 1.1fr;gap:24px;align-items:start;min-width:0}
+.sp-studio .clip-time-map{padding:8px 14px 20px;margin-bottom:16px;border-bottom:1px solid #e8e4ec}.sp-studio .clip-time-rail{position:relative;height:42px;margin:8px 0;background:linear-gradient(#e5dfe9,#e5dfe9) center/100% 3px no-repeat}.sp-studio .clip-time-rail button{position:absolute;top:0;height:42px;width:24px;transform:translateX(-50%);display:grid;place-items:center;border:0;background:transparent;border-radius:6px}.sp-studio .clip-time-rail button span{display:block;width:7px;height:17px;border-radius:3px;background:#bba6bf;transition:height .2s,background .2s}.sp-studio .clip-time-rail button[aria-pressed=true] span{height:29px;background:#c53672}.sp-studio .clip-time-labels{display:flex;justify-content:space-between;font-size:9px;color:#7b7085;font-variant-numeric:tabular-nums}
+.sp-studio .clip-moment-list{display:grid;gap:8px;max-height:800px;overflow:auto;padding:2px}
+.sp-studio .clip-moment{display:flex;gap:12px;width:100%;align-items:center;padding:16px 12px;text-align:left;border:1px solid #e4dfe8;background:#fff;border-radius:12px;transition:background .2s,border-color .2s}
+.sp-studio .clip-moment[aria-pressed=true]{border-color:#c94370;background:#fcf3f6}.sp-studio .clip-moment>span:nth-child(2){flex:1;min-width:0}.sp-studio .clip-moment strong{font-size:12px;display:block;overflow-wrap:anywhere}.sp-studio .clip-moment small{display:block;font-size:10px;color:#7b7185;margin:6px 0}
+.sp-studio .clip-moment-rank{font-size:23px;font-family:var(--font-display),sans-serif;font-weight:800;color:#b896a6}.sp-studio .clip-moment-tag{font-size:9px;font-weight:600;color:#913759}
+.sp-studio .clip-inspector{border:1px solid #e6e0eb;border-radius:16px;overflow:hidden;min-width:0}.sp-studio .clip-preview{aspect-ratio:16/9;background:#17131f;color:#fff;display:grid;place-items:center}
+.sp-studio .clip-preview video{width:100%;height:100%;max-height:320px;object-fit:contain}.sp-studio .clip-preview-placeholder{text-align:center;padding:20px}.sp-studio .clip-preview-placeholder svg{color:#e4828f;display:block;margin:0 auto 10px}.sp-studio .clip-preview-placeholder span{font-size:9px;letter-spacing:2px}.sp-studio .clip-preview-placeholder strong{display:block;font-size:36px;font-family:var(--font-display),sans-serif}.sp-studio .clip-preview-placeholder p{font-size:10px;color:#c5bccd;max-width:220px}
+.sp-studio .clip-inspector-body{padding:22px}.sp-studio .clip-inspector-body h3{font-size:17px;overflow-wrap:anywhere;margin-bottom:18px}.sp-studio .clip-reasons{list-style:none;padding:0;margin:12px 0;display:grid;gap:8px}.sp-studio .clip-reasons li{display:flex;gap:8px;align-items:flex-start;font-size:11px;color:#665a71}.sp-studio .clip-reasons svg{color:#b63b65;flex-shrink:0;margin-top:2px}
+.sp-studio .clip-decision-buttons{display:flex;gap:8px;flex-wrap:wrap;margin:20px 0}.sp-studio .clip-decision-buttons button{font-size:11px!important;padding:9px 12px!important}
+.sp-studio .clip-export-form{border-top:1px solid #e5dfe9;padding-top:20px;margin-top:16px}.sp-studio .clip-export-form h4{font-size:12px;font-weight:700}.sp-studio .clip-empty{padding:35px 22px;text-align:center;color:#776a80}.sp-studio .clip-empty svg{display:block;margin:0 auto 15px}.sp-studio .clip-empty h3{color:#3e3449;font-size:17px;margin-bottom:10px}.sp-studio .clip-empty p{font-size:12px;line-height:1.7}
+.sp-studio .clip-manual,.sp-studio .clip-coverage{border-top:1px solid #e5e0ea;margin-top:24px;padding-top:18px;font-size:12px}.sp-studio .clip-manual summary,.sp-studio .clip-coverage summary{font-weight:700;cursor:pointer}.sp-studio .clip-manual summary svg{display:inline;vertical-align:middle;margin-right:8px}.sp-studio .clip-manual form{margin-top:20px;max-width:540px}.sp-studio .clip-coverage ul{padding-left:18px;line-height:1.85;color:#6f6478}.sp-studio .clip-coverage p{color:#786880;font-size:11px}
+.sp-studio .clip-feedback{font-size:12px;color:#77516d;min-height:18px;margin:8px 0}.sp-studio .clip-error{font-size:11px;color:#9c233e}.sp-studio .clip-spinner{animation:clip-spin 1s linear infinite}
+@keyframes clip-float{0%,100%{transform:rotateY(0) translateY(0)}50%{transform:rotateY(8deg) translateY(-7px)}}
+@keyframes clip-pulse{to{transform:scaleY(.45)}}@keyframes clip-spin{to{transform:rotate(360deg)}}
+@media(max-width:1100px){.sp-studio .clip-start-grid{grid-template-columns:1fr}.sp-studio .clip-capabilities{padding:4px 0 16px}.sp-studio .clip-hero{grid-template-columns:1.3fr .8fr}.sp-studio .clip-orbit{transform:scale(.8);width:225px}.sp-studio .clip-hero-graphic{overflow:hidden}.sp-studio .clip-review-grid{gap:14px}}
+@media(max-width:700px){.sp-studio .clip-hero{grid-template-columns:1fr;padding:26px}.sp-studio .clip-hero-graphic{display:none}.sp-studio .clip-hero h1{font-size:44px}.sp-studio .clip-import,.sp-studio .clip-review{padding:20px}.sp-studio .clip-review-grid{grid-template-columns:1fr}.sp-studio .clip-moment-list{max-height:320px}.sp-studio .clip-source-grid{grid-template-columns:1fr 1fr}.sp-studio .clip-flow-strip{gap:12px}.sp-studio .clip-flow-strip span{font-size:10px;gap:5px}.sp-studio .clip-flow-strip svg{display:none}.sp-studio .clip-form-pair{grid-template-columns:1fr}.sp-studio .clip-lab-tabs small{display:none}}
+@media(prefers-reduced-motion:reduce){.sp-studio .clip-orbit,.sp-studio .clip-mini-track i,.sp-studio .clip-spinner{animation:none}.sp-studio .clip-source-grid>a,.sp-studio .clip-moment,.sp-studio .clip-time-rail button span{transition:none}}

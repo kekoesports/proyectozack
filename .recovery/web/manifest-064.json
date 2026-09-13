@@ -1,0 +1,242 @@
+[
+  {
+    "path": "src/lib/schemas/proposal.ts",
+    "sha256": "87c5a559b69b2af7c90a719bc9d118e7ff19ae25cac838dff5e65779874bd4d1",
+    "bytes": 455,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/schemas/provider-availability.ts",
+    "sha256": "8a57937605edc516ea724c50dfd0ffed4123cebfd7d1b1abfccce499629f1fc4",
+    "bytes": 718,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/schemas/quickNote.ts",
+    "sha256": "08af06136dfd5ddf2cf8b1d473c6f2567356f006761f4317197b6c2b78851fc0",
+    "bytes": 3557,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/lib/schemas/quickNoteForms.ts",
+    "sha256": "79b2d57c84e946b03c5d0f1f7ef8eb40d0f75c43c02c5dee5949eb0aab17a978",
+    "bytes": 1518,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/schemas/resend-webhook.ts",
+    "sha256": "a987e926f720c33dc1c1da6dcbc7eb653dc8e92d3a0875b56330d14caa74c314",
+    "bytes": 1315,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/schemas/revokeTalent.ts",
+    "sha256": "6e7ea6bb27f8435f7a9431c908c4f00d4f24dac2a2ac0e940573e75a11475eb6",
+    "bytes": 567,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/lib/schemas/searchConsoleAutomation.ts",
+    "sha256": "9d9f7f5ec40877f11cea7ce2e0565058da42d035697e81aa3ab840c092fc9ff3",
+    "bytes": 2084,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/schemas/staffInvite.ts",
+    "sha256": "c8a5e04f049b699bd88f920d7bb4e3957ba411ce043a8530418e920e0acc4028",
+    "bytes": 435,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/schemas/studio-host.ts",
+    "sha256": "0d6cbe3eb235d582f11722704a0ba17a853fbbca67319c44cc03bb99f024ecde",
+    "bytes": 123,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/schemas/studio-motion.ts",
+    "sha256": "bfe5e7dc9729f541e0b101342499892c27dfdb3cf85cf4875016aa29e4c8af87",
+    "bytes": 717,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/schemas/studio-production.ts",
+    "sha256": "6d3bece82034ca0e44d2f4ed851d3e799ad7886a3a00550c5da40354189a5310",
+    "bytes": 4139,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/schemas/studio-profile.ts",
+    "sha256": "1ab859b41aa2858c46036214b0c32825a054cfcd38376aa28ce2b3e6962853be",
+    "bytes": 1636,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/schemas/studio.ts",
+    "sha256": "73d7b44e2af2d8b02fa6178f16c96994eb436f7b721854f4c7293901ee7b4957",
+    "bytes": 2416,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/schemas/talentBusiness.ts",
+    "sha256": "1c9e3afe984c2d8881a76286ab18323fe63e80bec38e8c5103c8e7b43da6e753",
+    "bytes": 2511,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/schemas/talentCompliance.ts",
+    "sha256": "d26d9c9785db431fb71cf20eef9a5439bd9c03f15986ffe71a0eda4127098961",
+    "bytes": 5867,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/schemas/talentSocials.ts",
+    "sha256": "c55d82ba772fab9c51b58c9c213a901c6f1e7251873faecd97934c0f8a5908b3",
+    "bytes": 1927,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/schemas/target.ts",
+    "sha256": "ba79fd1283bc0084f3852b594caf1a10908602eece2665b8205401aba07960a5",
+    "bytes": 7941,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/schemas/task-sanitation.ts",
+    "sha256": "0a8ca232210c3453098ea3170330f970d1f3977eaff582243cba845ab4f73d91",
+    "bytes": 796,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/schemas/task.ts",
+    "sha256": "71f3dcd610f44b34026630830c14b2f2ad46cfe52a77112ea255fccbc16f5988",
+    "bytes": 3219,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/schemas/taskTemplate.ts",
+    "sha256": "0457db1d0c70e66e1a20052bae21f48fc1df26e36c541cf9f655fccb45c3c386",
+    "bytes": 1331,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/schemas/tracker-reconciliation.ts",
+    "sha256": "b8305e3c1eca8565865793a89a3e9346d4f0bc5173a4ecdddbcc20654550a0ee",
+    "bytes": 952,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/schemas/twitch-discovery.ts",
+    "sha256": "2de8505e3219e227bb9e9b34722d979cfc7b62436aad8f0fea52c686114eb58c",
+    "bytes": 1901,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/schemas/xai-chat.ts",
+    "sha256": "591e39936ff7b7b5b19e5cae5336a29954c28406423283e22ec2c1937b99db9a",
+    "bytes": 1187,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/schemas/youtube-metrics.ts",
+    "sha256": "8b6345bfaa0e1e0c87080c36ff7e632dc3bbcc202c4724cb8ae8d80a423e0d06",
+    "bytes": 2624,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/security/allowed-redirect-hosts.ts",
+    "sha256": "4dfb1de92f8ddc0c795e6d4ed45a3dd3b62a2a369f5b15afba3b7b671c3e4897",
+    "bytes": 1048,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/security/assertAgentInternalAuth.ts",
+    "sha256": "d0def2944ddf3a90b8e40d05ee5d7dcd389dfad7eef1ab911965200701894c64",
+    "bytes": 4405,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/security/assertAutomationAuth.ts",
+    "sha256": "6886398541197230101cf664d8141536b1c54246ee5c9426f3f47586e80fdc40",
+    "bytes": 1101,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/security/assertCronAuth.ts",
+    "sha256": "ed4ae5250b8a168bb2736ae3b2d5871316dc0d3d1d8e1e9112349918263f7072",
+    "bytes": 1281,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/security/assertSafeRedirect.ts",
+    "sha256": "1da3970b83c1ca10a2ed92efa66c0a394ace0aba015e4d3ef1715ab0f761fd2c",
+    "bytes": 1867,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/security/financial-security-policy.ts",
+    "sha256": "54dceba092122930b8e24c9550553a43089188b73ce1655841c3f9ea6b388f3d",
+    "bytes": 741,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/security/financial-security.ts",
+    "sha256": "92fff3e04bc3f9e4d920e9838de3323942b3c315636f7d51beff00e31ea8c90f",
+    "bytes": 2191,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/security/rateLimit.ts",
+    "sha256": "818eb2b6e13089af1fcaa8fa4e3f524dad8332581fee9644406b22049b9a586d",
+    "bytes": 1870,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/security/safeImageFetch.ts",
+    "sha256": "f2ee32c4f8ca7520a9c4a6a8dfae4e0a48022a967b060eee3847f743d71dfffd",
+    "bytes": 2298,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/security/timingSafeEqual.ts",
+    "sha256": "eea8a2e6e54ca955554fa7472210bca4da88b59fef6873f07da0a823cf5c9ffb",
+    "bytes": 699,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/security/two-factor-enrollment.ts",
+    "sha256": "5d005f4056f197153d182f7be0e26d9ee19ecf69800efa015f9abfce0a9d1d60",
+    "bytes": 362,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/lib/security/validateRedirectField.ts",
+    "sha256": "2fa6f06849eba5e3b21d77098a79b478bf51777226efe4c3f00814b50b4f3666",
+    "bytes": 968,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/seo/biosBatch.ts",
+    "sha256": "cfa5b8fd705f2097ba361dc855a1e85a61c1814af9a8bc551f459300e6bc09fb",
+    "bytes": 16166,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/seo/deterministicBioGenerator.ts",
+    "sha256": "3c6159e255e16a6f3516966cddd8bc8bdcb7e66b49a9adeb6a7affb5097d3f8b",
+    "bytes": 26698,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/services/ai-assistant/context.ts",
+    "sha256": "ff5dbdcbb210915724e5b65697c9fdf4547637fecdcc5b3581a114e9b4ce35d5",
+    "bytes": 2828,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/services/ai-assistant/guardrails.ts",
+    "sha256": "dd3ef981fd7dda2d020dcb81d6bf4870b6ee5a11bb087f2b8d68db16f9ae7396",
+    "bytes": 3476,
+    "storage": "git-base-crlf"
+  }
+]

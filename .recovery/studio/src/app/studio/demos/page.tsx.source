@@ -1,0 +1,4 @@
+import { StudioClipLab } from '@/features/studio/StudioClipLab';
+export default async function DemosPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  return <StudioClipLab demo query={await searchParams} />;
+}

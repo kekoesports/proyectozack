@@ -1,0 +1,242 @@
+[
+  {
+    "path": "src/features/admin/brands/components/BrandsCrmManager.contacts.tsx",
+    "sha256": "d91f1f15a047d842c8a5f8b2e2a10555f1ba34da10d93f211c625f1ffaec5c65",
+    "bytes": 5357,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/brands/components/BrandsCrmManager.followups.tsx",
+    "sha256": "d10b6612b37188595c6069918905d60f5407158c2f7d56f85b852720b5116dd1",
+    "bytes": 7462,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/brands/components/BrandsCrmManager.parts.tsx",
+    "sha256": "6a8b2a94ec568fa92ad22e6e6e1e7ff8369ed21f1168c09a4af632698ad941f9",
+    "bytes": 3921,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/brands/components/BrandsCrmManager.tsx",
+    "sha256": "e9efe74d91abb259f9eabebca2f5d0330e4b01710e6be7f7547cf39e40d4363d",
+    "bytes": 12186,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/brands/components/BrandsTabs.tsx",
+    "sha256": "6f72204bce552224fedfdd392c9c3ab47f7d83f76c1d613aab27968a30bd2629",
+    "bytes": 1450,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/brands/components/invite-form.tsx",
+    "sha256": "bcad289bfedb2af7f88f51af69f386ab7b86a57289bdee7da5de569183c4b250",
+    "bytes": 1953,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/campaigns/components/CampaignActivity.tsx",
+    "sha256": "616292c4735220ec03736859d853382c381ce61324700fa746a14f75d4e63f65",
+    "bytes": 10525,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/campaigns/components/CampaignArchiveButton.tsx",
+    "sha256": "2bcf21f485298406a710d91aea6e91d363f2f64f82028f3b38136fc01a482211",
+    "bytes": 2003,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/campaigns/components/CampaignCnmcChecklist.tsx",
+    "sha256": "76384ec4803e4ee569cccb71911102e5e6cb9790cd358b22a4b4907c3c59ea23",
+    "bytes": 5187,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/campaigns/components/CampaignDeliverables.tsx",
+    "sha256": "cc5ee2d862f7a66abd5cdedae664f487991dc67918ac52d127bfffb9cf599733",
+    "bytes": 16230,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/campaigns/components/CampaignDetailTabs.tsx",
+    "sha256": "18ab3cc1c4e3f1a0415beb909656481dc3b6c0da72ab418d702540263554d277",
+    "bytes": 24684,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/campaigns/components/CampaignDrawer.parts.tsx",
+    "sha256": "757c2978e6f9380e86831caac9c90ced635718a1a2f16f63cf03b51d842d19b6",
+    "bytes": 19671,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/campaigns/components/CampaignDrawer.tsx",
+    "sha256": "74dbc5d0ff2191e43671bb28a6843c42532bfa85964bfd4261387a8510c8d023",
+    "bytes": 2108,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/campaigns/components/CampaignFiles.parts.tsx",
+    "sha256": "6344a7e292b2273ff46cdd02932b60a483ed1f8d6e751c5c3b2beb0bc7c1be5c",
+    "bytes": 7897,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/campaigns/components/CampaignFiles.tsx",
+    "sha256": "ebe797fd532eeb8fb65bfca9758782326ada1faef6534edc0c4960eb91445b44",
+    "bytes": 2920,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/campaigns/components/CampaignFilters.tsx",
+    "sha256": "5aee2a239e052e42b0cda5892c7209c2bb97b018347f86e4a2a5b64ff49ff204",
+    "bytes": 7580,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/campaigns/components/CampaignPayments.tsx",
+    "sha256": "57fd5db719d3869b9eb3ad9455be63935be98eed70a6eba121c3cf46997cb004",
+    "bytes": 31624,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/campaigns/components/CampaignSplitPanel.tsx",
+    "sha256": "3aef4f8ae756d347c7b5686aedbc658c718193a0f6e7940abdce1616a72571a4",
+    "bytes": 6046,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/campaigns/components/CampaignSummaryCard.tsx",
+    "sha256": "7a14ea84e601bfe31e3d15b7a109e0e4228f3b7d01cb31ea3d3324f76bdd5813",
+    "bytes": 12957,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/campaigns/components/CampaignsList.parts.tsx",
+    "sha256": "04871ec21012a78e518eba9cdde7c4e8f041831c9eff3363634a62ea177df0b5",
+    "bytes": 9861,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/campaigns/components/CampaignsList.tsx",
+    "sha256": "6886e292a24e6356636a402c813956abb2cd945f83850213704932e51a98d7eb",
+    "bytes": 22533,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/campaigns/components/ContractTemplatesManager.tsx",
+    "sha256": "3e6d9fc37e98e6f43cfa21b619f5e3955e38da5e4a373e65ae23d9f1b04f2208",
+    "bytes": 19408,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/campaigns/components/DeliverablesEditor.tsx",
+    "sha256": "08b2bedfd785161afe95d53e690d992ea95fa8d37660ae8356b83ce9c04e5f4f",
+    "bytes": 13331,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/contratos/components/ContratoDetailPanel.tsx",
+    "sha256": "1d4076d61ef45b0be63c5745d48ad3b0787830497c1179dd77417869ab229651",
+    "bytes": 9970,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/contratos/components/ContratosTable.tsx",
+    "sha256": "fde431c6c17139b9741d95f72cda7dce3c67881bafe1619eb425779cdaeb9ef8",
+    "bytes": 9273,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/contratos/components/NuevoContratoForm.tsx",
+    "sha256": "d21804a6921a2fc29bc638b79bf87a3dc2795c38d3678069d1fa709ae6463293",
+    "bytes": 19826,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/dashboard/components/ActiveCampaignsWidget.tsx",
+    "sha256": "a23bf8361d3b2c0899376aa2bd48d713a6db987c26ed0fb8dfd0b06e80ad4a48",
+    "bytes": 549,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/dashboard/components/AlertsWidget.tsx",
+    "sha256": "a42a62659a34bf4b861d59b5d1343e4b1835c1d589a9e809c8784fcaf4ab483f",
+    "bytes": 1975,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/dashboard/components/PendingPaymentsWidget.tsx",
+    "sha256": "0cf7b4a8a9d236a445ca61df745a510b085c936e30b1ed4d44abe610ecbc4d4e",
+    "bytes": 1328,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/dashboard/components/RevenueMonthWidget.tsx",
+    "sha256": "cb9c9425120159b86f39c24b8b77b3f6de2fe3dab259964cf49bd44bc359df80",
+    "bytes": 1338,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/dashboard/components/RevenueTrendChart.tsx",
+    "sha256": "34f139b1a8dd147f67db5a9c10c8102c521018e2ef199ccb47ed2058f534ca68",
+    "bytes": 3959,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/dashboard/components/StaleStatsWidget.tsx",
+    "sha256": "0764a5c503c8752b113c7483acdead5b2f6225b0b6c3cb078ddf1ce239296a7f",
+    "bytes": 3396,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/dashboard/components/UpcomingFollowupsWidget.tsx",
+    "sha256": "bc500fa2aee81cab7045d9916bd19acc44bec031e160760108666f570dfad0d2",
+    "bytes": 3131,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/dashboard/components/UrgentTasksWidget.tsx",
+    "sha256": "8b823549cb841dcfd17c9b30d6d92fff5bd5eae6b514c838ccf9c3926c121e18",
+    "bytes": 4051,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/equipo/components/InviteStaffForm.tsx",
+    "sha256": "08c5f2aff280a17b62a252a20b615869a48e34684a66d0b8bbe2ec01ae0ab695",
+    "bytes": 2611,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/equipo/components/UploadForm.tsx",
+    "sha256": "c694f59f9ae2e130faba7b6bdb20179c3f699759e945dd73b02be1b24454d742",
+    "bytes": 4027,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/equipo/components/UserManageMenu.tsx",
+    "sha256": "5ddc1381b4816d4a5d110370f0f1df64a544c661cb1748fbec50e644307283b6",
+    "bytes": 10643,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/files/components/FilesList.tsx",
+    "sha256": "0d47968bc55d756538f6710e5b72f4df7bbe3ed3afb97d09a80e7a323380ee53",
+    "bytes": 4012,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/finance-dashboard/components/ArAgingBuckets.tsx",
+    "sha256": "7818ebec658b172c3b14afba510ea93f7b09d77363ce78eaac90248aec6b482e",
+    "bytes": 2792,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/finance-dashboard/components/ArAgingFilters.tsx",
+    "sha256": "6fc372167c0c6661a2f5713af734a8356d50edd625eb11674db410c779442cb3",
+    "bytes": 5148,
+    "storage": "git-base-crlf"
+  }
+]

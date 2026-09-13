@@ -1,0 +1,2 @@
+ALTER TABLE "studio_demo_jobs" ADD COLUMN "storage_backend" text DEFAULT 'local' NOT NULL;--> statement-breakpoint
+ALTER TABLE "studio_demo_jobs" ADD CONSTRAINT "studio_demo_storage_ck" CHECK ("studio_demo_jobs"."storage_backend" in ('local','blob'));

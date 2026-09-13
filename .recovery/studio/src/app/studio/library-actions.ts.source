@@ -1,0 +1,27 @@
+'use server';
+import { revalidatePath } from 'next/cache';
+import { requireStudioWriter } from '@/lib/studio/access';
+import { db } from '@/lib/db';
+import { saveLibraryReference } from '@/lib/studio/library-reference';
+import { importStudioCrmPhoto } from '@/lib/studio/import-crm-photo';
+import { z } from 'zod';
+
+export async function importCrmPortrait(rights: unknown, workspace: unknown) {
+  const actor = await requireStudioWriter(workspace);
+  if (!actor || !z.literal(true).safeParse(rights).success) return { ok: false, error: 'Confirma los derechos y el espacio de trabajo.' };
+  try {
+    const id = await importStudioCrmPhoto(db, actor.session.user.id, actor.agencyTalentId);
+    if (id) revalidatePath('/studio/library');
+    return { ok: Boolean(id), error: id ? '' : 'No se pudo importar esta foto. Puedes subir el archivo original a la biblioteca (máximo 20 MB).' };
+  } catch { return { ok: false, error: 'No se pudo obtener la foto del CRM. Puedes subir el archivo original.' }; }
+}
+
+export async function setStudioLibraryReference(input: unknown, workspace: unknown) {
+  const actor = await requireStudioWriter(workspace);
+  if (!actor) return { ok: false, error: 'El espacio cambió. Actualiza antes de guardar.' };
+  try {
+    const ok = await saveLibraryReference(db, actor.session.user.id, actor.agencyTalentId, input);
+    if (ok) { revalidatePath('/studio/library'); revalidatePath('/studio/identity'); }
+    return { ok, error: ok ? '' : 'Comprueba el archivo, el espacio y el permiso para asociarlo a este creador.' };
+  } catch { return { ok: false, error: 'No se pudo guardar la referencia.' }; }
+}

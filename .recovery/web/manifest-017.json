@@ -1,0 +1,242 @@
+[
+  {
+    "path": "src/__tests__/server/creator-target-discovery-error.test.ts",
+    "sha256": "87ff87cc002cc8f1e1a42102434c6e685040a753e0ff5deee89ab0be88bb6f89",
+    "bytes": 951,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/creator-target-discovery-profiles.test.ts",
+    "sha256": "789019a3d6fe44ddd9c706649e3487084f8956ea30ebb32cfa63519a0a645d0d",
+    "bytes": 26630,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/creator-target-qualification.test.ts",
+    "sha256": "4c48d4470faffece14b16872df24c90ea6b798ba5576c8cf0ba0ec55449b0d3f",
+    "bytes": 2846,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/creator-zacketizor.test.ts",
+    "sha256": "497924e1243b1d685da24fa302b9b02b189ab1e747d6384a1b416dd147ed280c",
+    "bytes": 3331,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/crm-admin-qa-2026-08-01.test.ts",
+    "sha256": "a4b9a97c0de1fa4f318fc423d4705c28461d380cd6cc36406b6ace5d8f517e94",
+    "bytes": 4493,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/crm-admin-qa-2026-08-10-sprint2.test.ts",
+    "sha256": "8e78b90884e8e18f779da68d83603bec03257c2713da5ec39c62291b7f9aa582",
+    "bytes": 10114,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/crm-admin-qa-2026-08-10-sprint3.test.ts",
+    "sha256": "d680dc82b2fe6f0cdae4048c0767f6ca2d2a5f4d726bbd2f73b14804c2aef588",
+    "bytes": 3576,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/crm-admin-qa-2026-08-10-sprint4.test.ts",
+    "sha256": "7ce05d0f2de5dc3db3596a3c02de2adca9d66bac22b820e05283e39a5361490f",
+    "bytes": 4802,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/crm-admin-qa-2026-08-10.test.ts",
+    "sha256": "1534997decc8cc13bca1be95cf66ead0f8c7d136beb51aa4a83f74919cc49f0e",
+    "bytes": 3810,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/crm-admin-qa-critical-residuals.test.ts",
+    "sha256": "5d5f0aa47c00eff6803a8608af0e57b03bd64c2a269059a2896cae1c55f799fe",
+    "bytes": 7337,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/crmBrands.test.ts",
+    "sha256": "c00a56659ddb9cf9dfb13b0defe72d31cf5b1c2af702ebef9a495e513d0035ce",
+    "bytes": 13204,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/crmTasks.test.ts",
+    "sha256": "94a6ca6406cd84e3f9d77a2cf8d369e2130d93919dbdbe07b42bb41e7869226b",
+    "bytes": 8166,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/cron-rollover.test.ts",
+    "sha256": "5c9c3d79dbdbdc3ea430366f5da87fd2bfd6fb675d2e64a8fd6dfada7d53b29c",
+    "bytes": 3074,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/csp-wasm-policy.test.ts",
+    "sha256": "2f371ec1ce622e9ccfd97070dbd807d5644ee26e403f091d482cb9feade6be1b",
+    "bytes": 2682,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/csv-parser.test.ts",
+    "sha256": "9539f03ec09779e88dd71b95c05e804abcc67596e0aa679e7f2679ae3809e222",
+    "bytes": 7629,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/daily-streak.test.ts",
+    "sha256": "f66fc5d74479ed741cb52c699c825c7a3838fdff40c09fcbe49b9dda9119408c",
+    "bytes": 5278,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/date-utils.test.ts",
+    "sha256": "aaac1524c4978243ac8401ad9ecbf67b9b00ff83fe86e6682bbc299488cc8eb0",
+    "bytes": 1894,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/deal-invoice-copy.test.ts",
+    "sha256": "cecf58751e1f261c656ea04f1d97be2ff47f493f45f8bcbf8cb8f90022d9f1f4",
+    "bytes": 2393,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/deal-invoice-drafts.test.ts",
+    "sha256": "b2d7ed179a477bbbdf8d9b29836d0b6a96031362e7b4dc0baf0ffddcfd49ccec",
+    "bytes": 5552,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/deal-tracker-import.test.ts",
+    "sha256": "34878f7aa1e4c6d6a53b2fa8939f513d67e014fa491f0c82ca24cb87876db073",
+    "bytes": 10325,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/deal-tracking-drive.test.ts",
+    "sha256": "fbcded70168226cefa5e64a5d59c1b312665fcf8dcbea9b0c12600b3a2527a41",
+    "bytes": 11587,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/deal-tracking-reminders.test.ts",
+    "sha256": "99ee3d4446db0561503e04d4a2f2a3542d7d21e1db1f14e5652c7b7f2bff96c0",
+    "bytes": 3576,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/deal-tracking-sheet.test.ts",
+    "sha256": "efe8fe7a079f3221fe76c7482c10027f91f8b3eb70bfc68b3c43dfdab9fb85b5",
+    "bytes": 6732,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/dedupe-deliverable-items-migration.test.ts",
+    "sha256": "677a022625247b0373179b71bc317dd0bafb127097fe8044cda6887a518dd039",
+    "bytes": 2344,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/deploy-env.test.ts",
+    "sha256": "bed9cf6e4100225ec6c68d923d71fa1924d7572f1d4c4a306ee6f84441ba2fdb",
+    "bytes": 2875,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/discord-deal-created-notifications.test.ts",
+    "sha256": "d63ead6944db09b37c66bab4019bc1ce61c0545c1c0fa8f47cacd0710205004e",
+    "bytes": 2449,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/discord-deal-created-route.test.ts",
+    "sha256": "e625657abc04ba1b03a797e6f879764bda3378e2e390bc41829ce0fc146c9be3",
+    "bytes": 3616,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/discord-deal-parser.test.ts",
+    "sha256": "998606c6c3669b455892cdb56ee19e9b97e879972a83425f049d6c24ffaeab25",
+    "bytes": 10610,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/discord-mission-fase-a.test.ts",
+    "sha256": "15daa3d656eff48d46f9df83e3d0bf47c17d2e45332775995d709d0359163244",
+    "bytes": 15787,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/discord-pipeline-deals-route.test.ts",
+    "sha256": "59baa612c84abaecd3f2f00b054877fa0ad3eb364d134ad0cfd8d397c518eb16",
+    "bytes": 9550,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/discovery-http.test.ts",
+    "sha256": "e82f8a0dee0fd466d4ee076b8bd6d42662704e3a7b7d2036f88afb29c9983040",
+    "bytes": 5017,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/docs-finance-dashboard.test.ts",
+    "sha256": "99cc130fde9cd56418bb2bfed5833d62936b44a44ad69a7d3e2360362bec39f9",
+    "bytes": 3527,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/drizzle-journal-monotonic.test.ts",
+    "sha256": "4256f7ee9b4fb4661723ec651b69b54f4898e3bdd21cdbd72995acac0b199ea2",
+    "bytes": 3205,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/equipo-password-reset-action.test.ts",
+    "sha256": "e44c899d6fd2726a285f70038b2a6a499e7b55faac5cadf1de652a52860399e7",
+    "bytes": 3667,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/error-boundaries-static.test.ts",
+    "sha256": "1f9ad37fc9ea2701945eedbee4fb0b182ad8981e501b2d0c9473cca641b7c296",
+    "bytes": 3741,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/event-actions.test.ts",
+    "sha256": "c20e2567ab6d3dc34e6fc601ff63c90e9699675981a6944089b861dc505c4049",
+    "bytes": 3370,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/expense-classification.test.ts",
+    "sha256": "053582da5b283a0dab74603fda2e702000cdb4bb7999a0a76ddffb5af6800795",
+    "bytes": 5416,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/expense-status-display.test.ts",
+    "sha256": "9986f564c79bc4101e48380018038cf31238e2afb1d9bc43fc0003ead2ed4bb2",
+    "bytes": 1951,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/expense-suggestion.test.ts",
+    "sha256": "9e7ed53f62ba01dc6cc942bb92ab5842eca65c5643cda770087490d1486ca88d",
+    "bytes": 5137,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/external-giveaways-common.test.ts",
+    "sha256": "3f42fcd50fd1e2420fd3a4ffd37f1dedcef96b9a0e52a0255f577742751c0868",
+    "bytes": 5491,
+    "storage": "git-base-crlf"
+  }
+]

@@ -1,0 +1,47 @@
+# CPU-only demo analysis. No game, public port, provider key or Docker socket.
+name: socialpro-studio-demo
+services:
+  parser:
+    image: ${STUDIO_DEMO_IMAGE:?Immutable tested parser image required}
+    restart: unless-stopped
+    stop_grace_period: 30s
+    env_file:
+      - ${STUDIO_DEMO_ENV:?Dedicated limited-role environment required}
+    environment:
+      NODE_ENV: production
+      STUDIO_ENABLED: 'true'
+      CLIPPER_ENABLED: 'true'
+      STUDIO_DEMO_ENABLED: 'true'
+      STUDIO_DEMO_STORAGE: local
+      STUDIO_DEMO_ROOT: /srv/storage/private/studio-demos
+      STUDIO_DEMO_PARSER_BIN: /usr/local/bin/zv-parser
+      DB_POOL_MAX: '2'
+      TZ: Europe/Madrid
+    volumes:
+      - ./demo-health.mjs:/app/demo-health.mjs:ro
+      - type: bind
+        source: /opt/socialpro/data/studio-demos
+        target: /srv/storage/private/studio-demos
+        bind: { create_host_path: false }
+    networks: [crm_backend]
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ['no-new-privileges:true']
+    pids_limit: 64
+    cpus: '2.0'
+    mem_limit: 1536m
+    memswap_limit: 1536m
+    tmpfs: ['/tmp:size=64M,uid=1000,gid=1000']
+    healthcheck:
+      test: [CMD, node, /app/demo-health.mjs]
+      interval: 60s
+      timeout: 8s
+      retries: 3
+      start_period: 15s
+    logging:
+      driver: json-file
+      options: { max-size: '5m', max-file: '3' }
+networks:
+  crm_backend:
+    external: true
+    name: socialpro-crm_crm_backend

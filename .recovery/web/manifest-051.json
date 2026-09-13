@@ -1,0 +1,242 @@
+[
+  {
+    "path": "src/features/marketing-site/components/Marquee.tsx",
+    "sha256": "d82f1ce8504b1ceac650f2fa639ce31c81a24aea7d2809e8b7306276b48777e1",
+    "bytes": 1180,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/marketing-site/components/MetricsSection.tsx",
+    "sha256": "81bab30723095a735b9bd083715bf082e3fca35d132df3ee936647954097cac2",
+    "bytes": 3647,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/marketing-site/components/NosotrosHero.tsx",
+    "sha256": "6b73b56da9241c376203b7a5c4ca614d778f9883bac36f15b128d2153d4fea67",
+    "bytes": 6144,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/marketing-site/components/NosotrosPorQue.tsx",
+    "sha256": "172b7b956087a3d4b9b7009b518b85aae80674b298da444d30a98b518fb2918e",
+    "bytes": 2970,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/marketing-site/components/PortfolioGrid.tsx",
+    "sha256": "80ba55fccc4213d00e2227cc45aa3b1a7338e66eb9ee7dd17fbeee45097e3026",
+    "bytes": 4130,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/marketing-site/components/PortfolioSection.tsx",
+    "sha256": "7bb96d5cd45ff580d30921fa842ae3db7db954678c03071ad3135b99a21f1fa7",
+    "bytes": 1256,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/marketing-site/components/PressSection.tsx",
+    "sha256": "04932db63aea1db2b77eb53ee06c8aad249f51924ff288f95d8a1a740efc3586",
+    "bytes": 6267,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/marketing-site/components/ServicesSection.tsx",
+    "sha256": "a3453475e67530cea691c79f8c3512548c0a1600d0e0f981512d81a742cfdcf1",
+    "bytes": 7729,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/marketing-site/components/TalentSection.tsx",
+    "sha256": "98567bb53739a17678bec71941551bd5f9fc726dc345be105d203b4ced844bbf",
+    "bytes": 1606,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/marketing-site/components/TeamCard.tsx",
+    "sha256": "bbb66771913fcac2c2979e7adfb4c3b9277692c98b8876cf2dea885d0ef7d249",
+    "bytes": 3340,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/marketing-site/components/TeamGrid.tsx",
+    "sha256": "c22a1f0b601d5c32325b6f6c8883b6d1dcdbdcb15f7a5a771f306341486df979",
+    "bytes": 1551,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/marketing-site/components/WorkedWithSection.tsx",
+    "sha256": "f7366283a9a4d8b580562ff19eb233f47fc33f931d01e40c9e0335a4e64936ce",
+    "bytes": 4748,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/marketing-site/components/useAgencyVideoVisibility.ts",
+    "sha256": "93a8295d0bfbff17430b164a5ef874e5ca89cfa257fe6a283f77bfc679413ce5",
+    "bytes": 1270,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/news/components/CodigosCtaCard.tsx",
+    "sha256": "582a3d5483736571f3c5646e8d78162e238b5c86a1fd1ddd49df2f27db89a5d9",
+    "bytes": 1646,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/news/components/Cs2CreatorsAside.tsx",
+    "sha256": "2df01bbbba1112381086b25a81f322d8d44e47a18d4a5b450beb0fc32b11ba91",
+    "bytes": 7982,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/news/components/EcosystemPanel.tsx",
+    "sha256": "9a78b1dad27a423d3608eef842d47e5f4d53105216ccbf4da90e4bf540bd551a",
+    "bytes": 10582,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/news/components/EditorialPickRail.tsx",
+    "sha256": "522f4ccf77e6f9378bbdbf96da4a86dcf1010e476602475b5e2e9db37e8aa6cd",
+    "bytes": 6585,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/news/components/FeaturedMatchCard.tsx",
+    "sha256": "2a5e5c427739267c9c9fb7fa2eb33c0eb1232f81f2734e2c955ab734d34998d3",
+    "bytes": 5654,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/news/components/NewsArticleBody.tsx",
+    "sha256": "1a1e8b7493e3b554398820c5257cac3b8a8441901632d139e8ba783cc8dc4a0c",
+    "bytes": 7308,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/news/components/NewsAside.tsx",
+    "sha256": "dc2e39b9c93bf70ce5e4c430f5e9e4fcc62a2a93243c857de821285192fd0782",
+    "bytes": 2516,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/news/components/NewsCard.tsx",
+    "sha256": "27ed6987779a5e3ccef23aae8240f7f08011c1ac7f3c32a764f554334e808592",
+    "bytes": 4862,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/news/components/NewsCrossBlogLink.tsx",
+    "sha256": "c06e5db89d00dc20242236a6cd914f4e5becb051a64251063d7ceca975c4e3ca",
+    "bytes": 1615,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/news/components/NewsFilters.tsx",
+    "sha256": "d7396ddae6fda0f69cfb920af01aae441d97a25833e1188acd8361c83141ca53",
+    "bytes": 2582,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/news/components/NewsGrid.tsx",
+    "sha256": "d1708b4db484d305fe26dcb2623a0c216f0226ffcf29c08bbfa3ffd662c55b41",
+    "bytes": 1355,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/news/components/NewsHero.tsx",
+    "sha256": "2fa8a9b1aa47430030fbf1c1d87e5dc096c5296c50e0154bbcb90a610c9be0a8",
+    "bytes": 11079,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/news/components/NewsHubBottomBlocks.tsx",
+    "sha256": "61f3aa3cefccf7eab41fa38cb45db8958583376bfbc8746540ad5371b76b8c7c",
+    "bytes": 6716,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/news/components/NewsHubEditorialZone.tsx",
+    "sha256": "9e9c202b5942df8ab752926e0c3a08cc834092e140fa5661ee614a3761ca0de9",
+    "bytes": 12336,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/news/components/NewsHubSidebar.tsx",
+    "sha256": "a7d192598dd3ccb28fe8dcce9b76f626b680341b51ba56aaee2dbf3751e51720",
+    "bytes": 3161,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/news/components/NewsLatestModule.tsx",
+    "sha256": "4fd366881f248bf397efd48eeee7faf19578b10dfb209f5b0042ee9457d8c0ad",
+    "bytes": 7640,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/news/components/NewsletterPopup.tsx",
+    "sha256": "234bf59f8f40d2c787c782c5c83937b107dae633411019bd9ab812869c90075e",
+    "bytes": 8543,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/news/components/SorteosCtaCard.tsx",
+    "sha256": "8a0f5f2a8c601eaf9f9bfe06b8aeb63e66f1c61c9d3aff6d548a541dd82e7463",
+    "bytes": 1762,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/news/components/article-blocks/ArticleEmbedBlock.tsx",
+    "sha256": "67cd60695b612fa8fcd243a041728bde0f33861214d5d0a657362c8042376c5d",
+    "bytes": 5096,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/news/components/article-blocks/EditorialQuoteBlock.tsx",
+    "sha256": "6be27ea79d7f41f4d6c4c4e8a03c533b866efdeb8b68c15ea50c0356620152e4",
+    "bytes": 1718,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/news/components/article-blocks/InterleavedArticleBody.tsx",
+    "sha256": "06d65ac4b678673be1fa50aeffad8dc9cf7dc4780d09c427005c15e08984cf00",
+    "bytes": 3054,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/news/components/article-blocks/MatchContextBlock.tsx",
+    "sha256": "0d82277817287891bcb06583634f2a52a8eedb191f40079e7137af156bc37f7a",
+    "bytes": 5393,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/news/components/article-blocks/RosterBlock.tsx",
+    "sha256": "fa1de6ac43dbd9d6fc668679bccf470926c45fe4af394e2c3e330078d986c53d",
+    "bytes": 6073,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/news/components/article-blocks/types.ts",
+    "sha256": "47b5b5e4f85be6a3222ae00dc0bdf67fd468dc0a9a2466427e5c1266dbc9cd5a",
+    "bytes": 2890,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/news/live-bar/LiveBar.tsx",
+    "sha256": "04fc33fb7f70424ce0b3a6cc37655b18709be78430d2a82d15a6738cb2c24d73",
+    "bytes": 5727,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/news/live-bar/buildLiveBarItems.ts",
+    "sha256": "e6e6b5a77460368ee79c94b3dc50e1d84d9fceca7062460a6db568a650a77de5",
+    "bytes": 5214,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/news/live-bar/types.ts",
+    "sha256": "1eb89b1f408bc1d148e706cf92c1315efe1c1b0417fc0c101b435136df571128",
+    "bytes": 1494,
+    "storage": "git-base-crlf"
+  }
+]

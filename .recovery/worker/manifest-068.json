@@ -1,0 +1,242 @@
+[
+  {
+    "path": "src/proxy.ts",
+    "sha256": "d21bdddab1b29fea3cf014251306860cd635bfbf9c9f63bf47df1552083ce57c",
+    "bytes": 9099,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/server/routers/_app.ts",
+    "sha256": "4148735d09b94ea753254c88ddbcd699d72da6bf9e9543457cb528e81f73e6c3",
+    "bytes": 590,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/server/routers/contact.ts",
+    "sha256": "cccc216d5dd63c1226f364af69224c923b143df183b086af4a9114f42417fab4",
+    "bytes": 5193,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/server/routers/creatorApply.ts",
+    "sha256": "a70e790290510d7c39a8db6902c19ba927d5ddad9d4105d961282f512315dd4c",
+    "bytes": 1358,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/server/routers/giveaways.ts",
+    "sha256": "d2e2c3431a4d46673d9c41606b4b442645f493226bb59aa313ee5bde55e10559",
+    "bytes": 2506,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/server/routers/invoices.ts",
+    "sha256": "844c777eae829c0389407f282b1784086ba68d20c27f808e39778e5fa400afba",
+    "bytes": 2130,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/server/routers/proposals.ts",
+    "sha256": "0d531aed792d5fe1e446f73cbae6d3dd01db1107438fa010d96f2748717fb1e3",
+    "bytes": 2019,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/server/routers/search.ts",
+    "sha256": "98e3f8d38db1c5c63cb5a7180664186274ccc89b996262a4ca8e3cd735229373",
+    "bytes": 583,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/server/trpc.ts",
+    "sha256": "6de376012fe790de4226311226090c0736103baf3c4d2a13795c8623dae8ffc4",
+    "bytes": 3489,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/types/agent.ts",
+    "sha256": "04fb2801d966b7901b858ff1d71b0d62e629504ed71b368b9a9ce163e8ffcd83",
+    "bytes": 1231,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/types/aiAssistant.ts",
+    "sha256": "0fa0cc685a77c9cabde272bbfb7c4d7873e12ad7a490fc4c30d57de31a5e799c",
+    "bytes": 636,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/types/analytics.ts",
+    "sha256": "7038335a0af19722a54b74514da3b6f7e256ae166efdd7f42e81e5f6f1ed82b5",
+    "bytes": 199,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/types/arAging.ts",
+    "sha256": "5d03e05c5689c1992e5ccf8ab63754104843e1b0ced7809622ce160cae5c0a36",
+    "bytes": 2184,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/types/bankReconciliation.ts",
+    "sha256": "a3edfb5b983357e1388fab990eac1619349a3710e5b727c62317c8d601fca332",
+    "bytes": 5090,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/types/brand.ts",
+    "sha256": "5fcd412230c0fa325a14a692e131abc8869bc0bf9c1fae14c0a13c1d08a1f88a",
+    "bytes": 613,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/types/brandBrief.ts",
+    "sha256": "50e881367b80f9777c64fb3d846c187e3c7168a7ea6ba7176a0833d57fc324e0",
+    "bytes": 476,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/types/campaign.ts",
+    "sha256": "ab2018f3e3176ac9bc412e4699b573c0bf1811b54e4bdbdae6ebb6072b17bb13",
+    "bytes": 1426,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/types/case.ts",
+    "sha256": "a86ef6b1599b540c88fe27e110ac8d0bce2f9011e42da07ff5295298daf8c65f",
+    "bytes": 753,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/types/content.ts",
+    "sha256": "0064b9372a364580066f339ca18431909a178a20e4b49d7dc1d0bf53ac779e31",
+    "bytes": 512,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/types/contract.ts",
+    "sha256": "c37e20506e3b1ea51f27b5d34448230ea5f4e65456642e6c16ed710808820d5a",
+    "bytes": 661,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/types/crmBrand.ts",
+    "sha256": "dc41775720e2c29477e28ca7e12a105efaf1a61556e4d16d42f2f5d55ec9029c",
+    "bytes": 1203,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/types/crmEvent.ts",
+    "sha256": "eab77ee70e8601d95a675cad1c12ff19107c7d9cb692fe737e927eef92ed777e",
+    "bytes": 247,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/types/crmTask.ts",
+    "sha256": "7cab62c09957345d0b16caf626404c542ab3690b9f2614506f0424ac56ea6ae7",
+    "bytes": 774,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/types/crmTaskTemplate.ts",
+    "sha256": "a3f07a9f4e794d9ac36d39f197c6bf0126a4449b079c2d2e2f8c35addc35ce1c",
+    "bytes": 362,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/types/financeDashboard.ts",
+    "sha256": "15d84cd707724c49a60c2babb940df41da5527751bfbd29230ab1785dca1ebcd",
+    "bytes": 3633,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/types/finanzasResumen.ts",
+    "sha256": "83a07d142be4a01c0115d602c6c8181e9fea827c3e7685d8a4483327a040ef89",
+    "bytes": 5872,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/types/giveaway.ts",
+    "sha256": "1309e3ae07332317c56f31a4cf3053f806e65c0633d86941b1aa3f9adef280d5",
+    "bytes": 1018,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/types/giveawayPlatform.ts",
+    "sha256": "a755069d317cd5264ef8b75be4f99a427168f045423714291f242a1d9a264026",
+    "bytes": 3383,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/types/index.ts",
+    "sha256": "b49b45e239823a61c14441f40da0494f0c3435798626e0f675fb74bca617a843",
+    "bytes": 1900,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/types/invoice.ts",
+    "sha256": "4b4b050a653149ed67f29ed62855290ddae5ef43f1139a2964ede52ac2f5d586",
+    "bytes": 1431,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/types/invoiceExtract.ts",
+    "sha256": "8e3d575e268b8c360d0c28e249214b993dad7b24ddc255df5212399575707eeb",
+    "bytes": 813,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/types/invoiceImport.ts",
+    "sha256": "cf7f7485417e29e3686d3ea95a8ceb55dff4b4d8aa0c7520dcffc66a7fc5c4ea",
+    "bytes": 916,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/types/invoicePayment.ts",
+    "sha256": "2a2a6e0f57ab7496b62b24e0917c02748b807417e71752a88b02864ab5d52817",
+    "bytes": 256,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/types/issuedInvoice.ts",
+    "sha256": "236e9672c44764a7c3eb8ed31cb93f566976e85dd78e3342ae857df795c5cd0e",
+    "bytes": 1561,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/types/lead.ts",
+    "sha256": "87cfc5170725c87306c53c4d26526d38286adc6169e884370028f723c2a4b017",
+    "bytes": 594,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/types/partnerLead.ts",
+    "sha256": "1a0186cbea66444cb0fd2e3fe4fd2244f147f62e1da8f2dfa153a27aa1e43932",
+    "bytes": 537,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/types/pdfjs.d.ts",
+    "sha256": "587b1b376314e3ad1163346076038ef86c65e51288861595c4817cd6bbbad5b3",
+    "bytes": 285,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/types/pressTarget.ts",
+    "sha256": "e9d60dc98ca69e9ad52a7dfbef154c186669e6ae9b9c947e2af055c970485862",
+    "bytes": 306,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/types/talent.ts",
+    "sha256": "4cb1c88e180258ee9b63b3982465a3946bfe6053b4e8576386967ca3f619f787",
+    "bytes": 517,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/types/talentBusiness.ts",
+    "sha256": "8b958fa206d0edbd1ca127c3b0c71417a23b7ea2719fa6f944e3712146fec8cc",
+    "bytes": 428,
+    "storage": "git-base-crlf"
+  }
+]

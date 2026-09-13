@@ -1,0 +1,242 @@
+[
+  {
+    "path": "src/features/admin/finance-dashboard/components/ArAgingFilters.tsx",
+    "sha256": "6fc372167c0c6661a2f5713af734a8356d50edd625eb11674db410c779442cb3",
+    "bytes": 5148,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/finance-dashboard/components/ArAgingKPIs.tsx",
+    "sha256": "b10ab553025f1f95835a62d5fe26da55a0a2ac9fedd91d24fbd1f45aaba155b9",
+    "bytes": 3495,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/finance-dashboard/components/ArAgingTable.tsx",
+    "sha256": "3b421b78713bf6a1b58232e78a6bc70f2299b9a0cc7c656feb107443ed7bcdd6",
+    "bytes": 7506,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/finance-dashboard/components/BulkClassifyPanel.tsx",
+    "sha256": "50c6d221aac9a629bbc5060c79fb76a5d33341779327f310c77d28fbe2441dcd",
+    "bytes": 4982,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/finance-dashboard/components/ExpenseClassifyInline.tsx",
+    "sha256": "45dd7b733f2e04477f1d8c57085ae81132077d4127d863929af8e0e9d29b6de0",
+    "bytes": 2993,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/finance-dashboard/components/ExpensesClassifyTable.tsx",
+    "sha256": "a091b29e94f98e8adca9dc60d47e604bdbdd831f7aa3e76a18aa48625a0c4b5c",
+    "bytes": 6635,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/finance-dashboard/components/FinanceAlertsList.tsx",
+    "sha256": "076a57acc767531765e127ac87c5dd532697f5805beeda307f7dbd4ae25785ab",
+    "bytes": 1742,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/finance-dashboard/components/FinanceMonthlyControl.tsx",
+    "sha256": "e505750a5b6625e9985508be98620ea1166f3811d12a89a1b383b22e5ea78784",
+    "bytes": 14287,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/finance-dashboard/components/FinanceResumenBlocks.tsx",
+    "sha256": "1d9b12d1b4ec91207183f49e7f5ca88571e36a90c856af487aff7fc1d7a6715a",
+    "bytes": 12656,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/finance-dashboard/components/PlaceholderSection.tsx",
+    "sha256": "fa07d32be5fb695c3d2d12214e64f534165cb3617f8dd0910a2b0a27ec7f21d7",
+    "bytes": 3017,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/finance-dashboard/components/ReceivablesTable.tsx",
+    "sha256": "7c5fbe684b58c6fc2038ffb8395e490834479f06e988b4d481fbd174df40d6cf",
+    "bytes": 4051,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/finance-dashboard/components/SaludDelDatoPanel.tsx",
+    "sha256": "91467ab6ec70761b9015508bb12a9ccd068cc6779813230aa7c039b66b3fdf1b",
+    "bytes": 5109,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/finance-dashboard/components/desglose/DesgloseTabla.tsx",
+    "sha256": "0d6e7443bdac49aaf3f811d0a30ca42710e4f5dec26806cad56c60768727ffa6",
+    "bytes": 7118,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/finance-dashboard/components/gastos/GastosAccesosRapidos.tsx",
+    "sha256": "2c3dcc57c1fc629d603b08f440847c957a875b3ab2ebc82dc7f2a19e089cfd8d",
+    "bytes": 2414,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/finance-dashboard/components/gastos/GastosBreakdownCharts.tsx",
+    "sha256": "e65b6ac38db9bbb4d3d1a5591a47e53a965c7f8be0fa409148b28e175b13c466",
+    "bytes": 6078,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/finance-dashboard/components/gastos/GastosFilters.tsx",
+    "sha256": "70d3164d58f33871c08e0d6c19d2b32c5a12749c0e214b432442d392274cbb69",
+    "bytes": 5950,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/finance-dashboard/components/gastos/GastosKpis.tsx",
+    "sha256": "c6516e165501ecf5f12cf6482660dec4565cf23d01449ceb3a343760e6a9aa7b",
+    "bytes": 3756,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/finance-dashboard/components/gastos/GastosLecturaRapida.tsx",
+    "sha256": "9645bb4fa42bd8d34bcc1113c0536ea352df339aaedc171e4bed0b231b1436a6",
+    "bytes": 3331,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/finance-dashboard/components/gastos/GastosSinClasificarBloque.tsx",
+    "sha256": "f118bdbafcdc2e4b61c83e3382f4a95969ff8623acf021f20398d8bd399043a8",
+    "bytes": 5354,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/finance-dashboard/components/gastos/GastosTabla.tsx",
+    "sha256": "2e1bae5618556d33a11d422792f98ed206f5558eb0dad4f298608d132261ca21",
+    "bytes": 6958,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/finance-dashboard/components/gastos/GastosTopProveedores.tsx",
+    "sha256": "c7e8def12ca74a0af5e8466fcf5e59511c1f37e906db04f6c04ce271fc8395ed",
+    "bytes": 1984,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/finance-dashboard/components/gastos/RevisionFiscalGastos.tsx",
+    "sha256": "4d2223925017ef4381c335e87bca7935986e86773379f6b7981d40167cb3aed2",
+    "bytes": 10179,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/finance-dashboard/components/ingresos/IngresosAccesosRapidos.tsx",
+    "sha256": "ea7a4dace341c579a00a7cac603ec144d3736c5070edf31e82227586ff3db578",
+    "bytes": 2508,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/finance-dashboard/components/ingresos/IngresosFilters.tsx",
+    "sha256": "f3b535f2760103526e5e54a038d2130e7056578ed6290b3dba291ee70e282e87",
+    "bytes": 5330,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/finance-dashboard/components/ingresos/IngresosKpis.tsx",
+    "sha256": "af816be53a63246b97bcbb2278f31e6d00d2e67bd2f7a62cf4ef1082fecf1808",
+    "bytes": 4254,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/finance-dashboard/components/ingresos/IngresosTabla.tsx",
+    "sha256": "83e2ff643c2f240013fd5de10080271f2738c86aa6796b4d04cfdf3e42948b9d",
+    "bytes": 8014,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/finance-dashboard/components/ingresos/TopClientesBloque.tsx",
+    "sha256": "593a1440d47dfeac416e6300dd607dd0f89a7297539073612d7dec42a672aa7e",
+    "bytes": 2152,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/finance-dashboard/components/ingresos/TopMarcasBloque.tsx",
+    "sha256": "2b5c3ce887219acc7f385c4f721a9ebed487fdfa66174f440a521482bf1a75f0",
+    "bytes": 2801,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/finance-dashboard/components/nominas-creadores/NominasAccesosRapidos.tsx",
+    "sha256": "25889100a6c5cb75168b52824c25afbad834ed8f5e9d9856bb8deca5a19878b9",
+    "bytes": 1908,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/finance-dashboard/components/nominas-creadores/NominasBreakdownCharts.tsx",
+    "sha256": "30fc123a9bf4f32975679358f2495d6f68a207124d8bbe437c5033e8ec658577",
+    "bytes": 4398,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/finance-dashboard/components/nominas-creadores/NominasFilters.tsx",
+    "sha256": "23854cca57563b18da77f359ffe0d07cb0359e5135744c4814c7c1f8b628626a",
+    "bytes": 5787,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/finance-dashboard/components/nominas-creadores/NominasInternasTabla.tsx",
+    "sha256": "7eeb9dabab634bfda864c7a02be40a1afe1d533b4572191c49937915c43c6ff6",
+    "bytes": 5795,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/finance-dashboard/components/nominas-creadores/NominasKpis.tsx",
+    "sha256": "5aa781bfbf4931eae9bd7b0ffc526d571fc8144c3b41cbbd3705c86eef8070c4",
+    "bytes": 4555,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/finance-dashboard/components/nominas-creadores/NominasLecturaRapida.tsx",
+    "sha256": "7b7b3d2344fc85e732453357d0a2f5ebd839f0cd4bc229e8e183e80df273734d",
+    "bytes": 3809,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/finance-dashboard/components/nominas-creadores/NominasTabsSwitcher.tsx",
+    "sha256": "c3e28b7a7868338c3e87e0be7948441da2231a8effc356dfd45880c40460d1dc",
+    "bytes": 2539,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/finance-dashboard/components/nominas-creadores/NominasTopRankings.tsx",
+    "sha256": "8ff5be2719a920c7a51a364aa5ce2cea197fbca99a7da89f1d5793ee4fb26ca6",
+    "bytes": 4275,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/finance-dashboard/components/nominas-creadores/PagosTalentosTabla.tsx",
+    "sha256": "1c3bf811b48aea576f40ec0533148a1beb2ab1d73a6a646aa2aa9bf6575f9f6a",
+    "bytes": 6042,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/finance-dashboard/components/rentabilidad/RentabilidadAccesosRapidos.tsx",
+    "sha256": "e1e8851b165ec3337a3ad317707a547d87899c3a0ec356042b807201bb5933c3",
+    "bytes": 1373,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/finance-dashboard/components/rentabilidad/RentabilidadCharts.tsx",
+    "sha256": "a584030da0da816fa85845e193e0cec16b1b273df88d02a05556cf103a260cda",
+    "bytes": 9625,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/admin/finance-dashboard/components/rentabilidad/RentabilidadFilters.tsx",
+    "sha256": "7bf960a4bb36bb60fc16bed5fd21a233ca0054966ac5cd35a6ea4f14438e054c",
+    "bytes": 6002,
+    "storage": "git-base-crlf"
+  }
+]

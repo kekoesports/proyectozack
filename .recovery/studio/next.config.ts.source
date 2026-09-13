@@ -1,0 +1,245 @@
+import type { NextConfig } from "next";
+import path from "node:path";
+
+const devEvalSource = process.env.NODE_ENV === 'development' ? " 'unsafe-eval'" : '';
+
+const securityHeaders = [
+  { key: 'X-Frame-Options', value: 'DENY' },
+  { key: 'X-Content-Type-Options', value: 'nosniff' },
+  { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+  { key: 'X-DNS-Prefetch-Control', value: 'on' },
+  { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
+  {
+    key: 'Content-Security-Policy',
+    value: [
+      "default-src 'self'",
+      // 'wasm-unsafe-eval' permite WebAssembly.instantiate() — necesario para el OCR cliente
+      // de nóminas (tesseract.js core). Es el sub-permiso mínimo: NO habilita eval() ni
+      // dynamic code; solo compilación/instanciación de WASM. Ver CSP3 §6.1.
+      // Sin esto, el WASM de tesseract-core lanza:
+      //   "Compiling or instantiating WebAssembly module violates the following CSP directive"
+      `script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'${devEvalSource} https://www.googletagmanager.com https://va.vercel-scripts.com`,
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+      "font-src 'self' https://fonts.gstatic.com",
+      "img-src 'self' blob: data: https://*.vercel-storage.com https://www.googletagmanager.com https://*.twitch.tv https://*.jtvnw.net https://img.youtube.com https://*.ytimg.com https://i.imgur.com https:",
+      "connect-src 'self' https://www.google-analytics.com https://www.googletagmanager.com https://va.vercel-scripts.com https://vitals.vercel-insights.com wss://*.twitch.tv https://*.twitch.tv",
+      "frame-src https://player.twitch.tv https://clips.twitch.tv https://www.youtube.com https://youtube.com",
+      "object-src 'none'",
+      "base-uri 'self'",
+      "form-action 'self'",
+      "frame-ancestors 'none'",
+      "upgrade-insecure-requests",
+    ].join('; '),
+  },
+  {
+    key: 'Strict-Transport-Security',
+    value: 'max-age=63072000; includeSubDomains; preload',
+  },
+  { key: 'X-Permitted-Cross-Domain-Policies', value: 'none' },
+  { key: 'Cross-Origin-Opener-Policy', value: 'same-origin' },
+  { key: 'Cross-Origin-Resource-Policy', value: 'same-origin' },
+];
+
+const nextConfig: NextConfig = {
+  // Empaqueta el servidor con sus dependencias en .next/standalone, para que
+  // la imagen Docker no necesite node_modules completo ni `next start`.
+  //
+  // Solo fuera de Vercel: allí el empaquetado lo hace su propia plataforma y
+  // pedirle además la salida standalone no aporta nada. Mientras dure la
+  // transición los dos destinos tienen que seguir funcionando.
+  ...(process.env.VERCEL ? {} : { output: 'standalone' as const }),
+  poweredByHeader: false,
+  // pdfjs-dist uses DOMMatrix at module init — exclude from Turbopack SSR bundle
+  // so Node.js loads it natively at runtime instead of bundling it.
+  serverExternalPackages: ['pdfjs-dist', 'mupdf', 'tesseract.js'],
+  async redirects() {
+    return [
+      // /gaming/cs2 → /influencers-cs2 (301 permanent)
+      // Both pages are in Spanish. /influencers-cs2 has better schema, hreflang and structure.
+      // Created 2026-05-03 — no external backlinks, safe to redirect.
+      {
+        source: '/gaming/cs2',
+        destination: '/influencers-cs2',
+        permanent: true,
+      },
+      // /gaming/betting → /servicios/igaming (301 permanent — direct, no chain)
+      // Originally pointed to /influencers-betting, which itself now redirects to /servicios/igaming.
+      // Shortcutting to the final destination avoids a 301→301 chain and passes authority directly.
+      {
+        source: '/gaming/betting',
+        destination: '/servicios/igaming',
+        permanent: true,
+      },
+      // /influencers-betting → /servicios/igaming (301 permanent)
+      // Opción A: consolidate ES betting/iGaming authority in /servicios/igaming (the hub page).
+      // /influencers-betting was cannibalising /servicios/igaming for Spanish-language searches.
+      // /betting-influencers (EN) is kept as an independent EN landing.
+      {
+        source: '/influencers-betting',
+        destination: '/servicios/igaming',
+        permanent: true,
+      },
+      // /talento/naow-ivan-gonzalez → /talentos/naow (301 permanent — specific before generic)
+      // Old WordPress slug used full name; current slug is short handle.
+      { source: '/talento/naow-ivan-gonzalez',  destination: '/talentos/naow', permanent: true },
+      { source: '/talento/naow-ivan-gonzalez/', destination: '/talentos/naow', permanent: true },
+      // /talento/:slug → /talentos/:slug (301 permanent)
+      // Old URL structure used singular /talento/; current is /talentos/.
+      { source: '/talento/:slug/',              destination: '/talentos/:slug', permanent: true },
+      { source: '/talento/:slug',               destination: '/talentos/:slug', permanent: true },
+      // /en/talents → /talents (308 permanent)
+      // Old EN talent listing URL; current canonical is /talents.
+      { source: '/en/talents/',                 destination: '/talents', permanent: true },
+      { source: '/en/talents',                  destination: '/talents', permanent: true },
+      // /en/services → /services (308 permanent)
+      // /en/contact → /contact (308 permanent)
+      // /en/cases → /cases (308 permanent)
+      // Regulariza rutas /en/* sin página propia para que coincidan con /en/talents.
+      { source: '/en/services/',                destination: '/services', permanent: true },
+      { source: '/en/services',                 destination: '/services', permanent: true },
+      { source: '/en/contact/',                 destination: '/contact',  permanent: true },
+      { source: '/en/contact',                  destination: '/contact',  permanent: true },
+      { source: '/en/cases/',                   destination: '/cases',    permanent: true },
+      { source: '/en/cases',                    destination: '/cases',    permanent: true },
+      // /marcas/login → /admin/login (308 permanent)
+      // /marcas/login page was removed in the CRM refactor; brand users log in via /admin/login
+      // and are redirected to /marcas after successful auth. Keeps bookmarks and backlinks working.
+      {
+        source: '/marcas/login',
+        destination: '/admin/login',
+        permanent: true,
+      },
+      // /giveaways → /codigos (301 permanent — ruta renombrada 2026-06-04)
+      // Preserva SEO authority y backlinks externos que apunten a /giveaways.
+      {
+        source: '/giveaways',
+        destination: '/codigos',
+        permanent: true,
+      },
+      // /talentos/tiger → /talentos/tigerr (301 permanent — slug corregido 2026-06-30)
+      // Slug en DB actualizado de "tiger" a "tigerr". Redirect preserva cualquier
+      // enlace externo o caché que apunte a la URL antigua de una r.
+      {
+        source: '/talentos/tiger',
+        destination: '/talentos/tigerr',
+        permanent: true,
+      },
+      // /sorteos/juego-responsable → /sorteos/participacion-responsable (301)
+      // Fase 0 legal: no autocalificar SocialPro como operador de juego.
+      // Ver docs/legal-risk-matrix.md.
+      {
+        source: '/sorteos/juego-responsable',
+        destination: '/sorteos/participacion-responsable',
+        permanent: true,
+      },
+      {
+        source: '/sorteos/juego-responsable/',
+        destination: '/sorteos/participacion-responsable',
+        permanent: true,
+      },
+      // /quienes-somos → /nosotros (301 permanent)
+      // Legacy slug de WordPress previo a la migración. Todo el contenido
+      // "sobre nosotros" vive hoy en /nosotros. Cubrimos con y sin trailing
+      // slash porque WordPress solía servir ambas y aún puede haber enlaces
+      // externos con la barra final.
+      { source: '/quienes-somos',  destination: '/nosotros', permanent: true },
+      { source: '/quienes-somos/', destination: '/nosotros', permanent: true },
+    ];
+  },
+  async headers() {
+    return [
+      { source: '/(.*)', headers: securityHeaders },
+      // Studio embeds only trusted, sandboxed srcdoc templates. The public site
+      // keeps its original frame/font policy; no external frame host is added.
+      { source: '/studio/:path*', headers: securityHeaders.filter((header) => header.key === 'Content-Security-Policy').map((header) => ({
+        ...header, value: header.value.replace("frame-src ", "frame-src 'self' ").replace("font-src 'self' ", "font-src 'self' data: "),
+      })) },
+      {
+        source: '/api/:path*',
+        headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }],
+      },
+    ];
+  },
+  images: {
+    formats: ['image/avif', 'image/webp'],
+    remotePatterns: [
+      // Vercel Blob Storage
+      { protocol: 'https', hostname: '**.vercel-storage.com' },
+      // Twitch CDN — profile pictures from Twitch API and hardcoded avatars
+      { protocol: 'https', hostname: '*.jtvnw.net' },
+      { protocol: 'https', hostname: '*.twitch.tv' },
+      // Kick CDN — profile pictures (WorkedWithSection)
+      { protocol: 'https', hostname: 'files.kick.com' },
+      // YouTube — thumbnails stored in DB or referenced from posts
+      { protocol: 'https', hostname: 'img.youtube.com' },
+      { protocol: 'https', hostname: '*.ytimg.com' },
+      // YouTube Data API devuelve los avatares de canal desde yt3.ggpht.com.
+      { protocol: 'https', hostname: 'yt3.ggpht.com' },
+      // Imgur — brand logos entered via admin panel
+      { protocol: 'https', hostname: 'i.imgur.com' },
+      // KeyDrop CDN — imágenes de premios de sorteos (PR-1c-1)
+      { protocol: 'https', hostname: 'cdnkd.com' },
+      { protocol: 'https', hostname: '*.cdnkd.com' },
+      // Steam CDN — avatares de user.image (Better Auth guarda avatarfull
+      // en el callback OpenID). Actualmente UserPill usa <img> nativo, así
+      // que esto es defensivo por si algún día migramos a next/image.
+      { protocol: 'https', hostname: 'avatars.steamstatic.com' },
+      { protocol: 'https', hostname: '*.steamstatic.com' },
+      { protocol: 'https', hostname: 'avatars.akamai.steamstatic.com' },
+    ],
+  },
+  // pdfjs-dist, mupdf y tesseract.js son externos y se cargan dinámicamente.
+  // La ruta exacta conserva los assets junto a la Server Action; el patrón
+  // global garantiza además que la salida standalone contenga los entrypoints
+  // y dependencias que Node resuelve en runtime (y que valida el smoke de CI).
+  outputFileTracingIncludes: {
+    '/studio/**': ['./public/fonts/studio/*.ttf'],
+    '/*': [
+      './node_modules/pdfjs-dist/**/*',
+      './node_modules/mupdf/**/*',
+      './node_modules/tesseract.js/**/*',
+      './node_modules/tesseract.js-core/**/*',
+      // Dependencias CommonJS que el worker de Tesseract resuelve desde un
+      // hilo secundario. NFT no ve esos require() al trazar el import dinámico.
+      './node_modules/bmp-js/**/*',
+      './node_modules/data-uri-to-buffer/**/*',
+      './node_modules/fetch-blob/**/*',
+      './node_modules/formdata-polyfill/**/*',
+      './node_modules/idb-keyval/**/*',
+      './node_modules/is-url/**/*',
+      './node_modules/node-domexception/**/*',
+      './node_modules/node-fetch/**/*',
+      './node_modules/opencollective-postinstall/**/*',
+      './node_modules/regenerator-runtime/**/*',
+      './node_modules/wasm-feature-detect/**/*',
+      './node_modules/web-streams-polyfill/**/*',
+      './node_modules/zlibjs/**/*',
+    ],
+    '/admin/finanzas/nominas/importar': [
+      './node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs',
+      './node_modules/mupdf/dist/mupdf-wasm.wasm',
+      './node_modules/tesseract.js/**/*',
+      './node_modules/tesseract.js-core/tesseract-core*.wasm',
+      './node_modules/tesseract.js-core/tesseract-core*.wasm.js',
+      './eng.traineddata',
+      './spa.traineddata',
+    ],
+  },
+  experimental: {
+    // Studio accepts 20 MiB media + multipart headers. Next's default 10 MiB
+    // proxy buffer silently truncates bigger bodies before the route validates them.
+    // Caddy retains 12 MB elsewhere; Studio also enforces its own streamed cap.
+    proxyClientMaxBodySize: '22mb',
+    optimizePackageImports: ['motion', 'recharts'],
+    serverActions: {
+      // Default is 1MB — photos can be up to 5MB (PHOTO_TYPES.maxBytes)
+      // Without this, Next.js returns 400 before the action even runs
+      bodySizeLimit: '6mb',
+    },
+  },
+  turbopack: {
+    root: path.resolve(__dirname),
+  },
+};
+
+export default nextConfig;

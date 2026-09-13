@@ -1,0 +1,35 @@
+import { demoHttpActor, demoError } from '@/lib/studio/demo-http';
+import { DemoCommand, DemoPartQuery, DemoRouteParams, DEMO_PART_BYTES, demoPartSize } from '@/lib/schemas/studio-demo';
+import { demoHash, readDemoBody } from '@/lib/studio/demo-storage';
+
+export const runtime = 'nodejs';
+type Context = { params: Promise<{ id: string }> };
+export async function PUT(request: Request, context: Context) {
+  const actor = await demoHttpActor(request, true);
+  if (!actor) return demoError('Acceso no disponible.', 403);
+  const route = DemoRouteParams.safeParse(await context.params);
+  const url = new URL(request.url), input = DemoPartQuery.safeParse(Object.fromEntries(url.searchParams));
+  if (!route.success || !input.success || input.data.workspace !== actor.member.talentId) return demoError('Fuente o espacio no válidos.', 409);
+  const job = await actor.demos.get(route.data.id); if (!job) return demoError('No encontrado.', 404);
+  try {
+    if (request.headers.get('content-type') !== 'application/octet-stream') return demoError('Formato de bloque no admitido.', 415);
+    const bytes = await readDemoBody(request, DEMO_PART_BYTES);
+    if (bytes.length !== demoPartSize(job.byteSize, input.data.index)) return demoError('Bloque incompleto o fuera del archivo.');
+    const saved = await actor.demos.part(job.id, input.data.index, demoHash(bytes), () => actor.storage.put(job.id, input.data.index, bytes));
+    return saved ? Response.json({ ok: true, job: saved }, { headers: { 'Cache-Control': 'no-store' } }) : demoError('La subida ha cambiado, caducado o contiene un bloque diferente.', 409);
+  } catch (error) {
+    return demoError(error instanceof Error && error.message === 'invalid_demo' ? 'El archivo no tiene una cabecera válida de demo CS2.' : 'No se pudo guardar el bloque. Puedes reanudar la subida.', 400);
+  }
+}
+export async function POST(request: Request, context: Context) {
+  const actor = await demoHttpActor(request, true);
+  if (!actor) return demoError('Acceso no disponible.', 403);
+  try {
+    const route = DemoRouteParams.safeParse(await context.params);
+    const raw: unknown = JSON.parse((await readDemoBody(request, 4096)).toString('utf8'));
+    const input = DemoCommand.safeParse(raw);
+    if (!route.success || !input.success || input.data.id !== route.data.id || input.data.workspace !== actor.member.talentId) return demoError('Fuente o espacio no válidos.', 409);
+    const job = await actor.demos.command(input.data.id, input.data.command);
+    return job ? Response.json({ ok: true, job }, { headers: { 'Cache-Control': 'no-store' } }) : demoError('Acción no disponible. Actualiza el estado; la subida puede estar incompleta o caducada.', 409);
+  } catch { return demoError('No se pudo actualizar el análisis.'); }
+}

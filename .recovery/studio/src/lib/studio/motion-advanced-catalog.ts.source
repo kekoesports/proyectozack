@@ -1,0 +1,21 @@
+import type { StudioMotionId } from '@/lib/schemas/studio-motion';
+
+/** New IDs: saved Collection 01/02 boards keep their choreography. */
+export const ADVANCED_MOTION_DESIGNS = [
+  { id: 'statement-v3', name: 'H1 cinético', label: 'UNA IDEA CON FUERZA', title: 'El contexto cambia la jugada.', body: 'Antes del momento clave, cuenta qué está en juego.', description: 'Palabras reveladas con máscaras, profundidad y cortinilla de tres planos.' },
+  { id: 'steps-v3', name: 'Proceso en profundidad', label: 'DEL MOMENTO A LA HISTORIA', title: 'Un clip que se entiende.', body: 'Contexto\nJugada\nAprendizaje', description: 'Tarjetas 3D escalonadas, conexión progresiva y foco en cada paso.' },
+  { id: 'contact-v3', name: 'CTA magnético', label: 'EL SIGUIENTE PASO', title: 'Hablemos de tu idea.', body: 'marketing@socialpro.es', description: 'Banner panorámico con máscara de entrada, recorrido de luz y flecha en movimiento.' },
+  { id: 'compare-v2', name: 'Comparativa editorial', label: 'DOS FORMAS DE CONTARLO', title: 'Del clip a la historia.', body: 'Solo la jugada\nLa jugada con contexto', description: 'Paneles en perspectiva, apertura enfrentada y foco alterno sin tapar el texto.' },
+  { id: 'checklist-v2', name: 'Checklist trazado', label: 'ANTES DE PUBLICAR', title: 'Un brief claro.', body: 'Objetivo concreto\nAudiencia definida\nUna acción al final', description: 'Filas reveladas por barrido, checks trazados y subrayado progresivo.' },
+  { id: 'metric-v2', name: 'Foco orbital', label: 'MENOS RUIDO. MÁS FOCO.', title: 'Una idea por pieza.', body: 'Elige qué quieres que recuerden y construye el vídeo alrededor.', description: 'Anillos en perspectiva, acercamiento de cámara y titular con foco óptico.' },
+  { id: 'quiz-v2', name: 'Pregunta interactiva', label: 'ABRE LA CONVERSACIÓN', title: '¿Qué habrías hecho tú?', body: 'Esperar al equipo\nBuscar información\nTomar la iniciativa', description: 'Opciones desplegables con profundidad y selección visual; no simula respuestas reales.' },
+  { id: 'live-v2', name: 'Directo en movimiento', label: 'DISEÑA TU PRÓXIMO LIVE', title: 'Un directo con intención.', body: 'Una pregunta de apertura\nUn momento para explicar\nUn cierre con la comunidad', description: 'Escenario de emisión, ondas decorativas y agenda desplegada en tres tiempos.' },
+  { id: 'timeline-v2', name: 'Ruta animada', label: 'EL DIRECTO NO TERMINA AL SALIR', title: 'Dale otra vida.', body: 'Elige un momento\nConviértelo en un clip\nRecoge las preguntas', description: 'Ruta que se dibuja, nodos activos y tarjetas que avanzan en profundidad.' },
+  { id: 'quote-v2', name: 'Cita en pantalla', label: 'UNA IDEA PARA RECORDAR', title: 'No todo momento necesita ser un clip.', body: 'Prioriza los que aportan contexto, emoción o aprendizaje. — SocialPro', description: 'Comillas en parallax, marco que se construye y tipografía por palabras.' },
+  { id: 'table-v1', name: 'Tabla dinámica', label: 'BAJAR LA IDEA A TIERRA', title: 'Un acuerdo claro.', body: 'Formato | Qué pieza creamos\nFecha | Revisión y publicación\nMedición | Señal del objetivo', description: 'Dos columnas editables, filas escalonadas y foco secuencial. Una fila por línea: Aspecto | Detalle.' },
+  { id: 'cinema-v1', name: 'Apertura cinematográfica', label: 'GAMING CON CRITERIO', title: 'Detrás de cada jugada.', body: 'Una persona. Una comunidad. Una historia.', description: 'Paneles en perspectiva, parallax y apertura con cortinilla de tres planos.' },
+] satisfies { id: StudioMotionId; name: string; label: string; title: string; body: string; description: string }[];
+
+export function isAdvancedMotion(id: StudioMotionId) {
+  return ADVANCED_MOTION_DESIGNS.some((design) => design.id === id);
+}

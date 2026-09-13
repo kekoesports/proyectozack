@@ -1,0 +1,29 @@
+CREATE TABLE "studio_demo_jobs" (
+	"id" uuid PRIMARY KEY NOT NULL,
+	"talent_id" integer NOT NULL,
+	"requested_by" text NOT NULL,
+	"agency_request" boolean NOT NULL,
+	"name" text NOT NULL,
+	"byte_size" integer NOT NULL,
+	"target_steam_id" text NOT NULL,
+	"parts" jsonb DEFAULT '{}'::jsonb NOT NULL,
+	"status" text DEFAULT 'uploading' NOT NULL,
+	"source_id" uuid,
+	"attempts" integer DEFAULT 0 NOT NULL,
+	"lease_token" uuid,
+	"lease_until" timestamp with time zone,
+	"failure_code" text,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"expires_at" timestamp with time zone NOT NULL,
+	"finished_at" timestamp with time zone,
+	"purged_at" timestamp with time zone,
+	CONSTRAINT "studio_demo_size_ck" CHECK ("studio_demo_jobs"."byte_size" between 16 and 524288000),
+	CONSTRAINT "studio_demo_status_ck" CHECK ("studio_demo_jobs"."status" in ('uploading','queued','parsing','ready','failed','cancelled')),
+	CONSTRAINT "studio_demo_attempts_ck" CHECK ("studio_demo_jobs"."attempts" between 0 and 3)
+);
+--> statement-breakpoint
+ALTER TABLE "studio_demo_jobs" ADD CONSTRAINT "studio_demo_jobs_talent_id_talents_id_fk" FOREIGN KEY ("talent_id") REFERENCES "public"."talents"("id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "studio_demo_jobs" ADD CONSTRAINT "studio_demo_jobs_requested_by_user_id_fk" FOREIGN KEY ("requested_by") REFERENCES "public"."user"("id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "studio_demo_jobs" ADD CONSTRAINT "studio_demo_jobs_source_id_studio_clip_sources_id_fk" FOREIGN KEY ("source_id") REFERENCES "public"."studio_clip_sources"("id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
+CREATE INDEX "studio_demo_talent_created_idx" ON "studio_demo_jobs" USING btree ("talent_id","created_at");--> statement-breakpoint
+CREATE INDEX "studio_demo_queue_idx" ON "studio_demo_jobs" USING btree ("status","created_at");

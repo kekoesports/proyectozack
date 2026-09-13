@@ -1,0 +1,242 @@
+[
+  {
+    "path": "src/lib/locale.ts",
+    "sha256": "cc2fd6a11be553e05c1a95ed08e5705a302f5fa2541765cfb754333c45992c02",
+    "bytes": 752,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/log.ts",
+    "sha256": "03ab50aa33edea584d94c62b530763b5467883ca20823acc3c7916ffe92aabb0",
+    "bytes": 4165,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/mock-dashboard-data.ts",
+    "sha256": "693c249b1e89aa9d1b360fe74ef955bf77ccdeeab5d894023d8f6f7b111450e3",
+    "bytes": 181,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/n8n/triggerDiscordDealCreated.ts",
+    "sha256": "cb67517522e08fb225ad54b5e242bf3fca7bc65f726026c86b664b92acfff9bd",
+    "bytes": 1089,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/n8n/triggerPartnerLeadNotifications.ts",
+    "sha256": "10d64e16a59608cc53af49985e01e6e5ed124310b5e868ae91ef33c614b1a530",
+    "bytes": 878,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/news/ecosystem.ts",
+    "sha256": "df5cb4c38198fe89dd02305201940af066beb2425400260e2c78be720455a098",
+    "bytes": 3121,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/news/images.ts",
+    "sha256": "807a52d885a2cbf4e73bf2156c2b76c07e4a6a2aaa33b7c2bf6419d55e1e38ae",
+    "bytes": 4750,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/news/pipeline.types.ts",
+    "sha256": "9e63eadd38e2c42bdeacaf778bab4ebaf21f2998fefe9df06931e48df2c85518",
+    "bytes": 4546,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/news/tags.ts",
+    "sha256": "2cd556773c81cecbbce16a5ccb81e3b675062db14199ba2a6f007f4f7d607d83",
+    "bytes": 1814,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/news/templates/creatorHighlight.ts",
+    "sha256": "bd8dab4fac0390b278dbf87a7329593a10f4664f826ab89341496d3ecb5e51d1",
+    "bytes": 2513,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/news/templates/helpers.ts",
+    "sha256": "21b5b24d0a504f049dbd52dc896377e85592cf52c26bce5c4044b65f30ec1e91",
+    "bytes": 1736,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/news/templates/index.ts",
+    "sha256": "2caed2a9b03ae688e8f3b47169a6615330170546fe3c0a9d34b026304cb3f117",
+    "bytes": 1220,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/news/templates/patchAnalysis.ts",
+    "sha256": "ec816309f9b18868c35509ca65d5ddce090e0f231d7f3222c5ad6128563dbb18",
+    "bytes": 3523,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/news/templates/rosterMoves.ts",
+    "sha256": "b00cff2256fc67f5cc4b416c41dc641a17c8d6f8ac921c93d214946e17862bc4",
+    "bytes": 2885,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/news/templates/tier2Watchlist.ts",
+    "sha256": "fb971119beb8e5e5523fe018e0d67e5c514be6e1c203bd5995526747986a25ad",
+    "bytes": 3072,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/news/templates/types.ts",
+    "sha256": "efd441c2b12bfe152a26669e22e188cbb9cd04890114554d82364d489b3e975d",
+    "bytes": 1982,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/news/templates/weeklyWatch.ts",
+    "sha256": "bca0cb2f9b1bd61982494af91d9e23593cef077189c956364f00d806f65a27cd",
+    "bytes": 2604,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/now-context.tsx",
+    "sha256": "1f635350bbe211f8a0fb89a126e7e692adb407b7e73c1497de2475915f24b4d7",
+    "bytes": 1192,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/observability/sentry-privacy.ts",
+    "sha256": "52d89075355d451a4f5e6d47a90830fb4f568396c25d469d7ba2767f07cc138d",
+    "bytes": 1148,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/parsers/bankTransaction.ts",
+    "sha256": "92562a5ac112a6007f4e35a14b13ed9398bfafe04665d145c366ba5d4bb7ddff",
+    "bytes": 13328,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/parsers/common.ts",
+    "sha256": "9718ad3e8a00e0f50291601c0fc04e2548d7821b087d7034834704b3a8df8c3d",
+    "bytes": 7959,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/parsers/csv.ts",
+    "sha256": "eeaa7b655f8c97626db5e10d7679f0352a15de16e0a836e7eb88506f6f37ead1",
+    "bytes": 2346,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/parsers/discordDeal.ts",
+    "sha256": "e36d687724076ac04a5164c800d6f5bfadb5b83a4f9067406e03b10622e3b2ee",
+    "bytes": 17262,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/lib/parsers/discordDealInline.ts",
+    "sha256": "cfd5a32aebc32c53068012bbb5beb5ada96f085dd3a173937b1b5ffd4f7feca2",
+    "bytes": 3057,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/lib/parsers/discordDealParagraph.ts",
+    "sha256": "cf49eab8888cfea959f032512d778288d9be15b1011fd9a93d37262ef98cc774",
+    "bytes": 4532,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/lib/parsers/horizontal-triplets.ts",
+    "sha256": "665f8a0f1ea33f32ecae0f718064d1ec6decf82e5dee50d1ce362856e21ee6c3",
+    "bytes": 2770,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/parsers/payrollOcr.ts",
+    "sha256": "733bf7f386487926f5b5cabfd6c27667d1391ca86295207137c5fbd42f48e3bb",
+    "bytes": 7117,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/parsers/payrollPdf.ts",
+    "sha256": "4809155bc347a55d11d07a07484944734b044573442901927984ec036e298998",
+    "bytes": 13851,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/parsers/pdf.ts",
+    "sha256": "dbe4d3e8698e3b6b681051c82048c516da1030cfb2a462e596d051e9cfa6a7c1",
+    "bytes": 5750,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/parsers/pdfAi.ts",
+    "sha256": "0b63baa529e6cffe91ffb3296c87e3b0712f2848cb859ae55bf6fe23f13b8391",
+    "bytes": 16833,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/parsers/pdfHeuristics.ts",
+    "sha256": "327f84a79a4123ba6c6eb1e93a85563f5e2513df7274e1f5c314c825d79dc243",
+    "bytes": 11804,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/parsers/socialpro-blocks.ts",
+    "sha256": "54088d8761841733239dcc8da83259c948ab956599dd667ada74fd6175765b4e",
+    "bytes": 14746,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/parsers/xlsx.ts",
+    "sha256": "5739ebd63223c01a8d89664764cbd27c72c82e2d40515e4f6ac78753aab8cc85",
+    "bytes": 1147,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/partner-consent.ts",
+    "sha256": "f274865d3db9b9b717ca89c02c5b90a76c244a23a5e158c9e91cf361a820e8ca",
+    "bytes": 1485,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/partner-leads/discord.ts",
+    "sha256": "1c993a335b4f1311e3647bd54a9e12d99a3ff5ed7f36806c14bd7250ec938187",
+    "bytes": 2599,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/pdf/generateContractPdf.ts",
+    "sha256": "1e5776e8fd206f4a06bdf97b5d1b17141b47f17c11a2b3155b090f94f8095cdf",
+    "bytes": 4944,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/pdf/generateInvoicePdf.ts",
+    "sha256": "6491b0a15a779a1e00523ea04129a126bc57db0f0cb78292a330571d037555bb",
+    "bytes": 23349,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/permissions.ts",
+    "sha256": "785203de990e2cc9cff8d8bc4ea979b6533c0680e586fe4761003b0e0061e635",
+    "bytes": 9870,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/postgres-url.ts",
+    "sha256": "81d6a4bd25e159e2830e2c613a573f6faef6627b309d8f3b279066cbf5e2babc",
+    "bytes": 1057,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/adminRedemptions.ts",
+    "sha256": "cedac71ae208ae8cc2de00dfd857115b2007bf18e02af08f695bd474c09a5160",
+    "bytes": 518,
+    "storage": "git-base-crlf"
+  }
+]

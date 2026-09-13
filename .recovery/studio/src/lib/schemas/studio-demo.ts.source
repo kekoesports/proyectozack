@@ -1,0 +1,40 @@
+import { z } from 'zod';
+import { StudioId, StudioTalentId } from './studio';
+
+export const DEMO_PART_BYTES = 2 * 1024 * 1024;
+export const DEMO_MAX_BYTES = 500 * 1024 * 1024;
+export const DemoStorageBackend = z.enum(['local', 'blob']);
+export type DemoStorageBackend = z.infer<typeof DemoStorageBackend>;
+export const DemoStatus = z.enum(['uploading', 'queued', 'parsing', 'ready', 'failed', 'cancelled']);
+export const DemoFailure = z.enum(['invalid_demo', 'parser_failed', 'parser_timeout', 'invalid_plan', 'integrity', 'access_revoked', 'worker_interrupted', 'upload_expired', 'storage_error']);
+export const DemoCreate = z.object({
+  id: StudioId,
+  name: z.string().trim().min(5).max(160).regex(/\.dem$/i).refine((s) => !/[\u0000-\u001f/\\]/.test(s)),
+  byteSize: z.number().int().min(16).max(DEMO_MAX_BYTES),
+  targetSteamId: z.string().trim().regex(/^7656119\d{10}$/, 'Usa el SteamID64 de 17 dígitos del jugador.'),
+  rightsConfirmed: z.literal(true),
+});
+export type DemoCreate = z.infer<typeof DemoCreate>;
+export const DemoCreateRequest = DemoCreate.extend({ workspace: StudioTalentId });
+export const DemoUploadFields = DemoCreate.pick({ targetSteamId: true, rightsConfirmed: true });
+export const DemoListQuery = z.object({ workspace: StudioTalentId });
+export const DemoCommand = z.object({ id: StudioId, command: z.enum(['queue', 'cancel', 'retry']), workspace: StudioTalentId });
+export const DemoPartQuery = z.object({ index: z.coerce.number().int().min(0).max(249), workspace: StudioTalentId });
+export const DemoRouteParams = z.object({ id: StudioId });
+export const DemoParts = z.record(z.string().regex(/^(?:0|[1-9]\d{0,2})$/), z.string().regex(/^[a-f0-9]{64}$/));
+export type DemoParts = z.infer<typeof DemoParts>;
+export const DemoJobView = z.object({
+  id: StudioId, name: z.string().max(160), byteSize: z.number().int(), targetSteamId: z.string(),
+  status: DemoStatus, receivedBytes: z.number().int(), receivedParts: z.array(z.number().int()),
+  sourceId: StudioId.nullable(), attempts: z.number().int(), failureCode: DemoFailure.nullable(),
+  createdAt: z.iso.datetime(), expiresAt: z.iso.datetime(), purged: z.boolean(),
+});
+export type DemoJobView = z.infer<typeof DemoJobView>;
+export const DemoReply = z.discriminatedUnion('ok', [
+  z.object({ ok: z.literal(true), job: DemoJobView }),
+  z.object({ ok: z.literal(false), error: z.string().max(250) }),
+]);
+export const DemoListReply = z.object({ jobs: z.array(DemoJobView).max(20) });
+export function demoPartSize(size: number, index: number) {
+  return Math.max(0, Math.min(DEMO_PART_BYTES, size - index * DEMO_PART_BYTES));
+}

@@ -1,0 +1,113 @@
+/** Synthetic upload/recovery journey on loopback only. Never uploads a user's demo. */
+import { chromium, expect } from '@playwright/test';
+import { mkdir } from 'node:fs/promises';
+import { spawnSync } from 'node:child_process';
+import { randomUUID } from 'node:crypto';
+import path from 'node:path';
+
+const base = 'http://localhost:3107';
+if (process.env.DATABASE_URL !== 'postgresql://postgres:postgres@127.0.0.1:55439/postgres') throw new Error('Only the isolated fixture is allowed.');
+if (!process.env.STUDIO_DEMO_PARSER_BIN) throw new Error('Pass the compiled local parser for the negative test.');
+const output = path.resolve('.scratch/clip-lab-qa');
+await mkdir(output, { recursive: true });
+const browser = await chromium.launch({ headless: true });
+const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
+await context.route('**/*', (route) => new URL(route.request().url()).origin === base ? route.continue() : route.abort());
+const page = await context.newPage();
+const errors = [];
+page.on('pageerror', (error) => errors.push(error.name));
+const headers = { Origin: base };
+const buffer = Buffer.alloc(2 * 1024 * 1024 + 128);
+buffer.write('PBDEMS2\0', 0, 'ascii');
+const name = `QA-sintetica-invalida-${randomUUID().slice(0, 8)}.dem`;
+const file = { name, mimeType: 'application/octet-stream', buffer };
+async function login(email) {
+  await page.goto(`${base}/studio/login`);
+  await expect(page.getByRole('button', { name: 'Entrar a Studio' })).toBeEnabled();
+  await page.getByLabel('Correo de tu cuenta SocialPro').fill(email);
+  await page.getByLabel('Contraseña', { exact: true }).fill('Studio-fixture-only-2026!');
+  const signIn = page.waitForResponse((response) => response.url() === `${base}/api/auth/sign-in/email` && response.request().method() === 'POST');
+  await page.getByRole('button', { name: 'Entrar a Studio' }).click();
+  expect((await signIn).status(), 'Fixture login; if rate-limited, wait for its window without disabling protection').toBe(200);
+  await page.waitForURL(`${base}/studio`);
+  await page.waitForLoadState('networkidle');
+  const reject = page.getByRole('button', { name: 'Rechazar', exact: true });
+  if (await reject.isVisible()) await reject.click();
+}
+async function command(id, action, workspace = 1) {
+  return context.request.post(`${base}/api/studio/demos/${id}`, { headers, data: { id, command: action, workspace } });
+}
+try {
+  await login('creator@studio.test');
+  await page.goto(`${base}/studio/demos`);
+  await expect(page.getByRole('button', { name: 'Subir y analizar', exact: true })).toBeEnabled();
+  await page.waitForLoadState('networkidle');
+  let interrupted = false;
+  await page.route('**/api/studio/demos/*?**', (route) => {
+    if (!interrupted && route.request().method() === 'PUT' && new URL(route.request().url()).searchParams.get('index') === '1') {
+      interrupted = true;
+      return route.abort('connectionfailed');
+    }
+    return route.continue();
+  });
+  await page.getByLabel('Demo CS2', { exact: true }).setInputFiles(file);
+  await page.getByLabel('SteamID64 del jugador').fill('76561198000000000');
+  await page.getByRole('checkbox', { name: 'Tengo permiso para analizar esta partida y utilizar el material del jugador.' }).check();
+  await page.getByRole('button', { name: 'Subir y analizar', exact: true }).click();
+  const jobCard = page.locator('.demo-job').filter({ hasText: name });
+  await expect(jobCard.getByRole('button', { name: 'Reanudar', exact: true })).toBeEnabled({ timeout: 20000 });
+  expect(interrupted).toBe(true);
+  await expect(jobCard.locator('progress')).toHaveAttribute('value', String(2 * 1024 * 1024));
+  await jobCard.getByRole('button', { name: 'Reanudar', exact: true }).click();
+  await page.getByLabel('Demo CS2', { exact: true }).setInputFiles(file);
+  await page.getByRole('button', { name: 'Verificar y reanudar', exact: true }).click();
+  await expect(jobCard).toHaveAttribute('data-status', 'queued', { timeout: 20000 });
+  await expect(jobCard).toHaveCount(1);
+  const list = await (await context.request.get(`${base}/api/studio/demos?workspace=1`)).json();
+  const job = list.jobs.find((item) => item.name === name);
+  expect(job.receivedParts).toEqual([0, 1]);
+  expect(job.receivedBytes).toBe(buffer.length);
+  expect(job).not.toHaveProperty('parts');
+  expect(job).not.toHaveProperty('leaseToken');
+  const partUrl = `${base}/api/studio/demos/${job.id}?workspace=1&index=0`;
+  const putHeaders = { ...headers, 'Content-Type': 'application/octet-stream' };
+  expect((await context.request.put(partUrl, { headers: putHeaders, data: buffer.subarray(0, 2 * 1024 * 1024) })).status()).toBe(200);
+  const different = Buffer.from(buffer.subarray(0, 2 * 1024 * 1024)); different[100] = 1;
+  expect((await context.request.put(partUrl, { headers: putHeaders, data: different })).status()).toBe(409);
+  expect((await command(job.id, 'queue')).status()).toBe(200);
+  expect((await command(job.id, 'cancel', 2)).status()).toBe(409);
+  expect((await context.request.post(`${base}/api/studio/demos/${job.id}`, { headers: { Origin: 'https://untrusted.invalid' }, data: { id: job.id, command: 'cancel', workspace: 1 } })).status()).toBe(403);
+  await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
+  await page.screenshot({ path: path.join(output, 'demo-upload-desktop.png'), fullPage: true });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
+  expect(await page.locator('.studio-skip-link').evaluate((e) => e.getBoundingClientRect().bottom)).toBeLessThan(0);
+  await page.screenshot({ path: path.join(output, 'demo-upload-mobile.png'), fullPage: true });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  expect(await page.locator('.clip-orbit').evaluate((e) => getComputedStyle(e).animationName)).toBe('none');
+
+  // This is deliberately NOT a positive gameplay test: valid magic, corrupt payload.
+  const worker = spawnSync(process.execPath, ['--require', './scripts/worker-preload.cjs', '--import', 'tsx', 'scripts/studio-demo-worker.ts', '--once'], {
+    cwd: process.cwd(), env: process.env, windowsHide: true, timeout: 30000, encoding: 'utf8',
+  });
+  expect(worker.status, 'The isolated worker must finish normally').toBe(0);
+  await expect(jobCard).toHaveAttribute('data-status', 'failed', { timeout: 15000 });
+  await expect(jobCard).toContainText('El analizador no pudo leer la partida o encontrar al jugador.');
+  await expect(jobCard.getByRole('link', { name: 'Revisar momentos' })).toHaveCount(0);
+  await jobCard.getByRole('button', { name: 'Reintentar análisis', exact: true }).click();
+  await expect(jobCard).toHaveAttribute('data-status', 'queued');
+  await jobCard.getByRole('button', { name: 'Cancelar', exact: true }).click();
+  await expect(jobCard).toHaveAttribute('data-status', 'cancelled');
+  await page.reload();
+  await expect(jobCard).toHaveAttribute('data-status', 'cancelled');
+  await page.getByRole('button', { name: 'Salir', exact: true }).click();
+  await login('other@studio.test');
+  await page.goto(`${base}/studio/demos`);
+  await expect(page.getByText(name, { exact: true })).toHaveCount(0);
+  const denied = await context.request.put(`${base}/api/studio/demos/${job.id}?workspace=2&index=0`, { headers: putHeaders, data: buffer.subarray(0, 2 * 1024 * 1024) });
+  expect(denied.status()).toBe(404);
+  expect((await context.request.get(`${base}/api/studio/demos?workspace=1`)).status()).toBe(409);
+  expect(errors).toEqual([]);
+  console.log('PASS: real fixture login, interrupted 2-part upload, resume without duplicates, hash replay/conflict, queue idempotency, origin/workspace isolation, actual parser rejection of corrupt synthetic .dem, retry/cancel persistence, mobile/reduced motion. No real gameplay validation, external calls, game launch or render.');
+} finally { await context.close(); await browser.close(); }

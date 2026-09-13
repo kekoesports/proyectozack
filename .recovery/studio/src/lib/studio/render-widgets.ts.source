@@ -1,0 +1,62 @@
+import { createCanvas, GlobalFonts, loadImage } from '@napi-rs/canvas';
+import { readFile, writeFile } from 'node:fs/promises';
+import { join, resolve } from 'node:path';
+import type { StudioWidgets } from '@/lib/schemas/studio-widgets';
+
+/** Decode local, scoped PNG only. Reject opaque logos, never erase their backgrounds silently. */
+export async function loadSponsorPng(path: string) {
+  const data = await readFile(path);
+  if (data.length < 33 || !data.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10])) || data.toString('ascii', 12, 16) !== 'IHDR'
+    || !data.readUInt32BE(16) || !data.readUInt32BE(20) || data.readUInt32BE(16) * data.readUInt32BE(20) > 16777216) throw new Error('sponsor_requires_transparent_png');
+  const image = await loadImage(data);
+  const check = createCanvas(64, 64), context = check.getContext('2d');
+  context.drawImage(image, 0, 0, 64, 64);
+  const pixels = context.getImageData(0, 0, 64, 64).data;
+  let transparentBorder = 0;
+  for (let x = 0; x < 64; x++) {
+    for (const index of [x, 63 * 64 + x, x * 64, x * 64 + 63]) if ((pixels[index * 4 + 3] ?? 255) < 32) transparentBorder++;
+  }
+  if (transparentBorder < 128) throw new Error('sponsor_requires_transparent_png');
+  return image;
+}
+
+/** Lettering goes through Canvas, never interpolated into a shell or FFmpeg expression. */
+export async function createWidgetOverlay(widgets: StudioWidgets, files: Map<string, string>, directory: string, width: number, height: number) {
+  if (!widgets.channel && !widgets.sponsor) return null;
+  GlobalFonts.registerFromPath(resolve('public/fonts/studio/Inter.ttf'), 'Studio Body');
+  const canvas = createCanvas(width, height), ctx = canvas.getContext('2d');
+  const unit = width / 720, pad = width * .06, bandHeight = 82 * unit;
+  const y = widgets.position === 'top' ? height * .10 : height * .76 - bandHeight;
+  if (widgets.channel) {
+    const w = width * .51;
+    ctx.fillStyle = '#15131eea'; ctx.beginPath(); ctx.roundRect(pad, y, w, bandHeight, 16 * unit); ctx.fill();
+    ctx.fillStyle = widgets.channel.platform === 'twitch' ? '#bf94ff' : '#53fc18';
+    ctx.fillRect(pad + 16 * unit, y + 18 * unit, 3 * unit, 46 * unit);
+    ctx.font = `600 ${13 * unit}px Studio Body`; ctx.fillText(widgets.channel.platform.toUpperCase(), pad + 30 * unit, y + 30 * unit);
+    const text = `@${widgets.channel.handle}`;
+    let size = 23 * unit; ctx.font = `700 ${size}px Studio Body`;
+    while (ctx.measureText(text).width > w - 48 * unit && size > 11 * unit) { size -= unit; ctx.font = `700 ${size}px Studio Body`; }
+    ctx.fillStyle = '#fff'; ctx.fillText(text, pad + 30 * unit, y + 59 * unit);
+  }
+  if (widgets.sponsor) {
+    const path = files.get(widgets.sponsor.assetId); if (!path) throw new Error('missing_widget_asset');
+    const image = await loadSponsorPng(path);
+    const boxWidth = width * .28, boxHeight = bandHeight * .70, x = width - pad - boxWidth;
+    ctx.font = `600 ${11 * unit}px Studio Body`; ctx.fillStyle = '#fff';
+    ctx.shadowColor = '#000'; ctx.shadowBlur = 4 * unit; ctx.fillText('PATROCINADOR', x, y + 12 * unit); ctx.shadowBlur = 0;
+    const scale = Math.min(boxWidth / image.width, boxHeight / image.height);
+    ctx.drawImage(image, x + (boxWidth - image.width * scale) / 2, y + bandHeight - image.height * scale, image.width * scale, image.height * scale);
+  }
+  const path = join(directory, 'branding-overlay.png');
+  await writeFile(path, canvas.toBuffer('image/png')); return path;
+}
+
+/** The voice/gameplay stays at unity. Music loops, fades and optionally ducks to it. */
+export function widgetAudioFilter(voiceIndex: number, musicIndex: number | null, total: number, music: StudioWidgets['music']) {
+  if (musicIndex === null || !music) return `[${voiceIndex}:a:0]apad,atrim=duration=${total}[mixed]`;
+  const fade = Math.min(.6, total / 3), end = Math.max(0, total - fade);
+  const base = `[${voiceIndex}:a:0]aresample=48000,apad,atrim=duration=${total}[voice];[${musicIndex}:a:0]aresample=48000,volume=${music.volume},atrim=duration=${total},afade=t=in:d=${fade},afade=t=out:st=${end}:d=${fade}[music]`;
+  const mix = music.ducking ? ';[voice]asplit=2[main][side];[music][side]sidechaincompress=threshold=0.04:ratio=8:attack=20:release=350[bed];[main][bed]'
+    : ';[voice][music]';
+  return `${base}${mix}amix=inputs=2:duration=first:normalize=0,alimiter=limit=0.95:level=0[mixed]`;
+}

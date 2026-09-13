@@ -1,0 +1,65 @@
+import type { ClipSignal, ClipMoment, ClipReport, FragForgePlan } from '@/lib/schemas/studio-clips';
+
+const weights = { viewer_clip: 1, stream_marker: .9, chat_burst: .6, audio_peak: .35, laughter: .5, cheer: .45, kill: .25, speech_hook: .4 };
+const families = { viewer_clip: 'audience', stream_marker: 'editor', chat_burst: 'audience', audio_peak: 'audio', laughter: 'audio', cheer: 'audio', kill: 'game', speech_hook: 'speech' };
+
+/** Relative evidence ranking, NOT predicted engagement. Cap each family to resist duplicate signals. */
+export function rankClipSignals(signals: readonly ClipSignal[], duration: number): ClipMoment[] {
+  const unique = [...new Map(signals.filter((s) => s.end > s.start && s.start < duration && s.strength > 0).map((s) => [s.id, s])).values()];
+  const peaks: { time: number; score: number; signals: ClipSignal[] }[] = [];
+  for (let time = 0; time < duration; time += 5) {
+    const hits = unique.filter((s) => s.start < time + 5 && s.end > time);
+    const byFamily = new Map<string, number>();
+    for (const s of hits) byFamily.set(families[s.kind], Math.min(1, (byFamily.get(families[s.kind]) ?? 0) + s.strength * weights[s.kind]));
+    const score = [...byFamily.values()].reduce((a, b) => a + b, 0) * (byFamily.size >= 3 ? 1.6 : byFamily.size === 2 ? 1.3 : 1);
+    if (score > 0) peaks.push({ time, score, signals: hits });
+  }
+  peaks.sort((a, b) => b.score - a.score || a.time - b.time);
+  const selected: ClipMoment[] = [];
+  for (const peak of peaks) {
+    const first = peak.signals[0]; if (!first) continue;
+    const start = Math.max(0, Math.min(...peak.signals.map((s) => s.start)) - 6);
+    const end = Math.min(duration, start + 60, Math.max(start + 15, ...peak.signals.map((s) => s.end + 3)));
+    if (selected.some((m) => Math.abs(m.start - start) < 45 || (start < m.end && end > m.start))) continue;
+    selected.push({ id: `moment-${Math.round(start * 100)}`, title: first.label, start, end,
+      score: Math.round(peak.score * 100) / 100, reasons: [...new Set(peak.signals.map((s) => s.label))].slice(0, 8), round: null, tickStart: null, tickEnd: null });
+    if (selected.length === 15) break;
+  }
+  return selected;
+}
+
+export function reportFromFragForge(plan: FragForgePlan): ClipReport {
+  const rate = plan.demo.tickrate, duration = plan.demo.duration_ticks / rate;
+  const moments: ClipMoment[] = [];
+  const seenKills = new Set<string>();
+  for (const segment of plan.segments) {
+    const kills = [...segment.kills].sort((a, b) => a.tick - b.tick).filter((k, index) => {
+      const identity = `${k.tick}:${k.weapon}:${k.victim?.steamid64 ?? `${segment.id}:${index}`}`;
+      if (seenKills.has(identity)) return false;
+      seenKills.add(identity); return true;
+    });
+    let cursor = 0;
+    while (cursor < kills.length) {
+      const first = kills[cursor]; if (!first) break;
+      const start = Math.max(segment.tick_start / rate, first.tick / rate - 6);
+      const limit = Math.min(duration, start + 60);
+      const group = kills.slice(cursor).filter((k) => k.tick / rate < limit);
+      cursor += Math.max(1, group.length);
+      const last = group.at(-1); if (!last) continue;
+      const end = Math.min(limit, Math.max(start + 15, last.tick / rate + 3));
+      const headshots = group.filter((k) => k.headshot).length;
+      moments.push({ id: `round-${segment.round}-tick-${first.tick}`, title: `${group.length} ${group.length === 1 ? 'baja' : 'bajas'} · ronda ${segment.round}`,
+        start, end, score: group.length + headshots * .2, reasons: [`${group.length} bajas registradas en el análisis`, `${headshots} headshots`, `Armas: ${[...new Set(group.map((k) => k.weapon))].join(', ').slice(0, 130)}`],
+        round: segment.round, tickStart: Math.floor(start * rate), tickEnd: Math.ceil(end * rate) });
+    }
+  }
+  return { version: 1, kind: 'cs2', sourceKey: `${plan.demo.sha256.toLowerCase()}:${plan.target.steamid64}`, title: `${plan.demo.map} · ${plan.target.name_in_demo}`.slice(0, 160),
+    url: null, duration, collectedAt: plan.generated_at, provenance: 'fragforge_import', map: plan.demo.map, player: plan.target.name_in_demo,
+    coverage: ['Análisis FragForge 1.1 importado por el usuario; no acredita identidad Steam ni autoría.', 'Ticks relativos a la demo. No están sincronizados con un VOD.', 'Solo bajas presentes en el plan; no se infieren aces ni clutches.', 'La captura de vídeo requiere FragForge + CS2/HLAE en Windows.'],
+    moments: moments.sort((a, b) => (b.score ?? 0) - (a.score ?? 0) || a.start - b.start).slice(0, 100) };
+}
+
+export function clipTime(seconds: number) {
+  const s = Math.floor(seconds);
+  return `${Math.floor(s / 3600) ? `${Math.floor(s / 3600)}:` : ''}${String(Math.floor(s / 60) % 60).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+}

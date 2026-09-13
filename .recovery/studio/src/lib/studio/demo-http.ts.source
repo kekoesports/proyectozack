@@ -1,0 +1,18 @@
+import 'server-only';
+import { db } from '@/lib/db';
+import { requireCreator } from './access';
+import { StudioOrigin } from '@/lib/schemas/studio';
+import { isStudioUploadOrigin } from './origins';
+import { SITE_URL } from '@/lib/site-url';
+import { createDemoRepository } from './demo-repository';
+import { configuredDemoStorage, demoUploadStorageConfig } from './demo-storage-config';
+
+export async function demoHttpActor(request: Request, mutation: boolean) {
+  const actor = await requireCreator();
+  const config = demoUploadStorageConfig(); if (!config) return null;
+  const origin = StudioOrigin.safeParse(request.headers.get('origin'));
+  if (mutation && (!origin.success || !isStudioUploadOrigin(origin.data, SITE_URL))) return null;
+  const storage = configuredDemoStorage(config);
+  return { ...actor, demos: createDemoRepository(db, actor.session.user.id, actor.agencyTalentId, storage.backend, storage.scope), storage };
+}
+export function demoError(error: string, status = 400) { return Response.json({ ok: false, error }, { status, headers: { 'Cache-Control': 'no-store' } }); }

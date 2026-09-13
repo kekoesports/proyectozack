@@ -1,0 +1,242 @@
+[
+  {
+    "path": "src/__tests__/server/n8n-guard-workflow-fixture.ts",
+    "sha256": "1a8c44430ba3de7ead6244f6c40778534028eddbb824588aa46a64a73d43d203",
+    "bytes": 3964,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/n8n-kpi-reporting-workflows.test.ts",
+    "sha256": "34f7bcc19a95687c32b4d9febe0e8c91bd5b7daceae868ea6e8c244be7672b67",
+    "bytes": 2267,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/n8n-pipeline-feedback-workflow.test.ts",
+    "sha256": "638953c80477960e8f7af5606837e53adfe6cc26a90503ce6a577aac8703f8a6",
+    "bytes": 2076,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/n8n-search-console-workflow.test.ts",
+    "sha256": "2e768ffbc4886d1d1b629cd0aa02bd0c14bdb55bc328b8c5c6d84f3f142d9afc",
+    "bytes": 2267,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/news-post-image-validation.test.ts",
+    "sha256": "7fa180cbe85f8e05f04e6687f53f38b3fdcf0e5a4075aba4573884bf4e3206d0",
+    "bytes": 1185,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/next-config-redirects.test.ts",
+    "sha256": "83254d2a59fb3b0d065bcea5d01b7602b899ece36f91ccb7e27f485458dcaea5",
+    "bytes": 1354,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/operation-agents-definition.test.ts",
+    "sha256": "9e3fe7fd3a1e4e42dddd8223a93d923aef0029e818e9a330ae54edf744225b17",
+    "bytes": 1151,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/parseFormData.test.ts",
+    "sha256": "a979d56ac584931c622932d5c27a7b51f0340f4c36989819540fd3dfe83a3a01",
+    "bytes": 3819,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/parsePayrollOcrText.test.ts",
+    "sha256": "ec703208e02e0b6d5de40066cc5609662d11b4a6cfff12d857c7c6e896cf8d5a",
+    "bytes": 12475,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/parser-common.test.ts",
+    "sha256": "3e8c1ccb24d0b49f7a57e7868ef9c8338d9295a27970f4d26ea75ee41ade00d8",
+    "bytes": 17660,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/participants-visual.test.ts",
+    "sha256": "04545dcb1f01a942bf6b0b6c66b72d01b9300b7beef701e4329c794f6ccbcf06",
+    "bytes": 3200,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/partner-lead-radar.test.ts",
+    "sha256": "917663bf2ed566648585a785ccb23b98ea3d3d3b66d35e08affd48e15b33e52f",
+    "bytes": 4036,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/payroll-actions-killswitch.test.ts",
+    "sha256": "6efd9721704c046f7d2500ded7775630b7f50465a1a56fbcc919c1d51b805ae5",
+    "bytes": 8544,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/payroll-manual-rows.test.ts",
+    "sha256": "fa7e4f281b67bed5830ff38a9cf57dc4e34119877d27bf6b29b034d71dd48e34",
+    "bytes": 7337,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/payroll-ocr-action.test.ts",
+    "sha256": "99ba144f1417e6c72e1e28ed92b198aa51115a8a643c56ae382f7cc873c67e82",
+    "bytes": 7394,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/payroll-ocr.test.ts",
+    "sha256": "53f089e9e29aebd195e556794a1cd62e88768f1e66f4e87f44b1f744a7e1b82d",
+    "bytes": 3501,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/payroll-pdf-parser.test.ts",
+    "sha256": "f3362208db5516943465d6af67d3775a455fe0bf9ad38e54b809028fadb70627",
+    "bytes": 21442,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/pdfjs-security.test.ts",
+    "sha256": "6f0223e7e48538142efa5b61d4ba92e521f80d0d6613cdd9d6a4dd1715850804",
+    "bytes": 1653,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/permissions.test.ts",
+    "sha256": "30e1a4818ff604f6578279e1d798466007732e44f245251665344621bbae87f1",
+    "bytes": 2175,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/platform.test.ts",
+    "sha256": "5f018d63e9fe687ba32d046fbe259a1a52499f9a4dfd1e3ee4a338529b37c6af",
+    "bytes": 8183,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/pnl-detail.test.ts",
+    "sha256": "2f9327951a2eec04bdfecff722aca56ae22150b62553835bb962f712057d1507",
+    "bytes": 2180,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/pnl.test.ts",
+    "sha256": "1e33f55e8e3c8f3de93d2b2add92bdf1cdc410446b5cd3a4b137aa71f66b039e",
+    "bytes": 9711,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/post-170-fixes.test.ts",
+    "sha256": "0eb38c4f6bf40ab354d9433eed8ec70467eba6dff9bb5846ceb1b1c6766ac38e",
+    "bytes": 6137,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/postgres-url.test.ts",
+    "sha256": "c991900efa1fc7d08bf2c02c0164b653caa9a5f979725e1b33c0bb61d0537593",
+    "bytes": 1186,
+    "storage": "git-base"
+  },
+  {
+    "path": "src/__tests__/server/profile-page.test.ts",
+    "sha256": "e8658060206ad9e8aa4d0f80c49080c54e3d1cadda442ea114f1a0f36ab54300",
+    "bytes": 5852,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/provider-http.test.ts",
+    "sha256": "ac32ce0cd07593ee9f35b73b81101de9f5906642e5e956bdc90edccd5d0a0e8b",
+    "bytes": 2887,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/provider-ranking-placeholder.test.ts",
+    "sha256": "d20c9adfc1972c7e3ff360315cf60ccc1755fb326aeea8fd836e3d528839f416",
+    "bytes": 2780,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/proxy-locale.test.ts",
+    "sha256": "3ee17b0d0468bd53648c2330d4d9cf03ad399f69d8942d32b118a85076a75904",
+    "bytes": 6703,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/proxy-studio-host.test.ts",
+    "sha256": "70a49c5fbc60e0728fdd527af972113223f4c788d0162bdfac7cad3c0aa4b265",
+    "bytes": 1289,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/public-copy-points-rebrand.test.ts",
+    "sha256": "cdd33b3e950ffbfde55b508fbaec7d622b5604e10c9348d212c57123fa973b2e",
+    "bytes": 7436,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/publication-build-guard.test.ts",
+    "sha256": "28af13652561da9ad6f9dc576ea9cf48e9f69bdff80d8c1bb5bb201bc0106a61",
+    "bytes": 1618,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/purge-audit-events-guard.test.ts",
+    "sha256": "e721815563e395b64656f6cd448b2666a57b621ed5bff6b798a05f1792e27569",
+    "bytes": 3686,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/queries-brand.test.ts",
+    "sha256": "201c55838ae196dfdb3d6d00c8625dc5e3d8982afb194c0eb7788b7923786402",
+    "bytes": 12055,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/queries-invoices.test.ts",
+    "sha256": "6142541f17af80ee715be2569143aac0ba2b8688945adfe94de812f6d998d635",
+    "bytes": 21453,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/queries-talents.test.ts",
+    "sha256": "31ff9fcc1749d548b41fdf5aafe405fe0ab37de5fb113bfbe9a66785f4b91186",
+    "bytes": 32591,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/raffle-winner-audit.test.ts",
+    "sha256": "dbdc6ad17963897b9eeed0087bf96a3010a2f615efd7491fb22533f484c46704",
+    "bytes": 2241,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/ranking-global.test.ts",
+    "sha256": "d465c0e6b18319913f91c0916d9c3d643787c02ec5c4c4202e8d9368d826549a",
+    "bytes": 3513,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/ranking-prizes.test.ts",
+    "sha256": "4d4f0739448d93270cdd36e9dc2afa3fdc04d30627b7c4a93f4c0b410e0c5553",
+    "bytes": 4321,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/recurring-expenses.test.ts",
+    "sha256": "9404823a1915e56fb0a5a6f5679156da0963116643985dcea64c9b9b49614958",
+    "bytes": 11528,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/resendWebhook.test.ts",
+    "sha256": "4b3e4a827a2db211f7c6d669b41cfd913f371e1d86ac45dee3a02259e827dfa6",
+    "bytes": 1618,
+    "storage": "git-base-crlf"
+  }
+]

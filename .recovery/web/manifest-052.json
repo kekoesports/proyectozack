@@ -1,0 +1,242 @@
+[
+  {
+    "path": "src/features/news/live-page/components/Calendar7Days.tsx",
+    "sha256": "23bcffbe856060cdaa2ed789a8d0f93d76d2e15544936fc5c34e1f6346ca0035",
+    "bytes": 3873,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/news/live-page/components/LatestRosterMoves.tsx",
+    "sha256": "3940b69738a2768b77cf55db255f3206b95e0696344eaef20bff1cf4c9e2fd70",
+    "bytes": 4296,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/news/live-page/components/MatchesToday.tsx",
+    "sha256": "3243437fbecc21251e8da56b019e9ee08b20f667bd65f6f5da79af1dacac7c11",
+    "bytes": 5525,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/news/live-page/components/NewsLiveFilters.tsx",
+    "sha256": "f37aa8c5ac49401601c2e348ae6641809e09b2a31933f793ff37ccb224c8da1e",
+    "bytes": 3987,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/news/live-page/components/StreamsLiveGrid.tsx",
+    "sha256": "a0c78810975404c9700581af5f1d28096fad235d251c87995a58404f6daec5c5",
+    "bytes": 6431,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/news/live-page/data/seedCalendar.ts",
+    "sha256": "e359f194a59d5d2787edf57ed79f03b0ed24312d174d77e7c8a35b9e497f69c6",
+    "bytes": 2179,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/news/live-page/data/seedMatches.ts",
+    "sha256": "21d318f436e7f03173aa347ffa5890fbe91675b14ca0f1d4cf123d907fba947d",
+    "bytes": 3694,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/news/live-page/data/seedRosterMoves.ts",
+    "sha256": "c7cedfa234273acd07cd2647072d5900db1380f9a7b58bbf1bf60ee013ddefca",
+    "bytes": 1960,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/news/posts/9z-playoffs-astana-mouz.ts",
+    "sha256": "bd959267610c83a0465675ffdff29bf1d6709c178c2a1c1d5551b9662e751890",
+    "bytes": 1611,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/news/posts/gentle-mates-alex-astana.ts",
+    "sha256": "61f0a5b80d17f797d90e7bcff82638714a3299574e153977a0fcf008a308f97f",
+    "bytes": 2372,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/news/posts/gentle-mates-cambio-tono-astana.ts",
+    "sha256": "7642ff075daecb1ae348737a9c239e17d058fb58589c28c8b6b1daa45a0f3110",
+    "bytes": 2441,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/news/posts/index.ts",
+    "sha256": "699f729462944a3868b7f0b1e4c2e3ab19528695e8b6271de73a75e52529ff6d",
+    "bytes": 1535,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/studio/StudioAccessForm.tsx",
+    "sha256": "da9196e7de03ab313fe78e71cd390c1cac1cfab23289824039bbecd95b4a98fa",
+    "bytes": 2399,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/studio/StudioAgencyForms.tsx",
+    "sha256": "834f08601b8bf3ca6c014c1311626e78bf77e9f2d8e0073be567e9e610769573",
+    "bytes": 4726,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/studio/StudioAgencyRoster.tsx",
+    "sha256": "f6eecbede96572f5454522f85136d4efa43a1e43d8666b9eeed32720b9339d86",
+    "bytes": 2193,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/studio/StudioAssetUpload.tsx",
+    "sha256": "42d642b38eada154484c799ed4a33f5f91001b89b3490e903b2751561d521348",
+    "bytes": 2729,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/studio/StudioAuthCard.tsx",
+    "sha256": "5a008621fae0d7509a9b9abab6c7ad8e4e1bd41c4ddf3ae1cbbb0c3892ccb81a",
+    "bytes": 470,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/studio/StudioChannelMetrics.tsx",
+    "sha256": "773f4108e46a10712459d2c1987d95a9f12def0a981bb15dc8628b178ba9b56c",
+    "bytes": 2408,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/studio/StudioChat.tsx",
+    "sha256": "8840fb2e9d810f5cba029882eb6d7b2c2479c30d8abf779c0aa6fc0a871716e6",
+    "bytes": 5233,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/studio/StudioConnection.tsx",
+    "sha256": "ce720b8dc1e38d530fe68d1cad4d0859aeaaf77b0ef198a67592d320e872ed00",
+    "bytes": 3176,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/studio/StudioDepthCard.tsx",
+    "sha256": "9fca8ade7e1db5f960c8f636082efcbc932714c73c63800ff3dca4f11044b450",
+    "bytes": 1395,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/studio/StudioExportReview.tsx",
+    "sha256": "68e5c88d259e55749749abbb46e20a64e806cc725f19ce278c3d34741ea5880a",
+    "bytes": 1513,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/studio/StudioLoginForm.tsx",
+    "sha256": "767aac027d7d599bf6973df6edb8daf56b985ca220ee7cbc9f37b43b1dd68659",
+    "bytes": 3922,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/studio/StudioMedia.tsx",
+    "sha256": "c2b33c8ad8c431282a203fd4f3ab0deb79a59c65198945c5dc1a2c553cd7101d",
+    "bytes": 1200,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/studio/StudioMetricChart.tsx",
+    "sha256": "1045e99481ba0f67c525a0f2c88636cad8eed2eb2cca4a2b98ad4b651b7be295",
+    "bytes": 6718,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/studio/StudioMotionPreview.tsx",
+    "sha256": "277af37f1a83eb402764251b645864c9875b704e8a332be7e2ce0565dcb24eb6",
+    "bytes": 1942,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/studio/StudioNarration.tsx",
+    "sha256": "f318c6d71d0e7246286bc8501363864caade08d5068fdde11e0715fc779859ce",
+    "bytes": 3174,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/studio/StudioNarrationApproval.tsx",
+    "sha256": "b892489ab723059bacce5ff02893af16a0c506774e6dd0696a67f0b4a163e78a",
+    "bytes": 1114,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/studio/StudioNavigation.tsx",
+    "sha256": "5e9ef877cf69eaf87862ed0b96b3bd7b815a078481c608f555cd5f5b56724d25",
+    "bytes": 2474,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/studio/StudioOverview.tsx",
+    "sha256": "64c8a20d816c52fc4e8fca5ff83a7ec250f1372d83310699463e6639e0b687e7",
+    "bytes": 2599,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/studio/StudioPlanCard.tsx",
+    "sha256": "e63e0e3d78cdf6a311061d1c1eeb1fba8de307f6b2bff7f932d1e2122e6feb67",
+    "bytes": 2096,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/studio/StudioProjectBrowser.tsx",
+    "sha256": "1c6d8feb09a00d3260d9a2a3312dd53f9fd7d3cefea648b6408406caba851962",
+    "bytes": 2945,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/studio/StudioProjectEditor.tsx",
+    "sha256": "3ad722a1939a3c3d5b2fb73dabbbcf2923b965ecafadc2ba3909b81d93bdc92e",
+    "bytes": 6005,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/studio/StudioReference.tsx",
+    "sha256": "a4ec4412261da16b08909154e550343d886eb963663ccd40f16a281b607f4107",
+    "bytes": 2122,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/studio/StudioRenderList.tsx",
+    "sha256": "823526977264bcac1ec64f6fdcceed333bdb30ffbd585ac3b8513f2c04aed807",
+    "bytes": 3098,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/studio/StudioShell.tsx",
+    "sha256": "4b59f0d7da61466b9fd6bbac4bdbd59494431677a816a75d974837e2d6dbf098",
+    "bytes": 1740,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/studio/StudioSignOut.tsx",
+    "sha256": "c8c8046a4c4116aa2df459d2f87e3371670f14e93b604d91add5270a9d0d733c",
+    "bytes": 1114,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/studio/StudioSubmit.tsx",
+    "sha256": "138ab03c9fd0e742a3011349b662f7ebb7f80c3bc0651b28c18fc8a19277d9b2",
+    "bytes": 1262,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/studio/StudioTemplateGallery.tsx",
+    "sha256": "a9a4738d66f2d84ebe141d37ff3893eed150b27d236de195992ae826a352507d",
+    "bytes": 3153,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/studio/StudioTimeline.tsx",
+    "sha256": "4895d161373698a4c6d972846ac90aca19a99c3c87c6a720d3c9563b4bf34625",
+    "bytes": 12356,
+    "storage": "git-base-crlf"
+  }
+]

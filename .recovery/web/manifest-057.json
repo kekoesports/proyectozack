@@ -1,0 +1,242 @@
+[
+  {
+    "path": "src/lib/finance/tax.shared.ts",
+    "sha256": "b6abc657adcdb8b02ab1b902884082c2d2bc7e8e92d666cb14f49bed85487a3c",
+    "bytes": 2740,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/finance/tax.ts",
+    "sha256": "251044053b66d1d0b53071ead10b2d1aaff72f3264379c94348950b00ede8458",
+    "bytes": 2970,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/flag-images.ts",
+    "sha256": "4474bde39f442ff249360af17d647da5a1b1e32921768469ef8368785b8b4b44",
+    "bytes": 919,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/forms/firstError.ts",
+    "sha256": "5d5ae3e2cb898e41d3671eeee48c858c6792cd1e7cc825ea2a3f0960b33152d4",
+    "bytes": 458,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/forms/parseFormData.ts",
+    "sha256": "9b2792b5e6f3eb268b0f628ea5a8c0a67c56a15fe547f5ecc33c8ac2bce920d3",
+    "bytes": 1418,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/geo-legal-config.ts",
+    "sha256": "b608f137396fc68d047fcfa25c0e271442cffaa43f04cf068450760bb37986ff",
+    "bytes": 5779,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/giveaway-platform/atomicOperations.ts",
+    "sha256": "2b46e08700be7f1da88d04119d45cdd20eb8a9df86f0e67e783e410857be0925",
+    "bytes": 13564,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/giveaway-platform/constants.ts",
+    "sha256": "41d64067e31e69e4e0c8c90962d787e12049e2865a2473ca9538b6f9ab8ac30c",
+    "bytes": 4785,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/lib/giveaway-platform/missions.ts",
+    "sha256": "2c5a8c56f4fe5ef0e63cb37cbed3c68fe2d4c480570c1c5d8727e93b85c7e421",
+    "bytes": 5203,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/glosario.ts",
+    "sha256": "07c56631c39c1afbe10231bc6b1c366a2382735ce181ed809cc1bee427183eff",
+    "bytes": 39653,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/home-for-role.ts",
+    "sha256": "62155dd153acfe4c2ed8fdc1ea017a48bde7643ee70158eaf3f9a4ce36ea12c8",
+    "bytes": 1329,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/igaming.ts",
+    "sha256": "6bea6dace64d9999b8dea25bc59e5b954ffb46660105ca29089fb4bfe811cfff",
+    "bytes": 543,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/intake/decision.ts",
+    "sha256": "4e814d450b36bb2f4164af6eacd18550ee4ed20d368b8c9e75479e0f35cabd79",
+    "bytes": 4380,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/lib/intake/delivery.ts",
+    "sha256": "84379cc55411a4f97fe7a56988d1717cd54d1f08e130f8df0d1151ccb3297f47",
+    "bytes": 4613,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/lib/intake/extractor.ts",
+    "sha256": "7cc23eb21cbe19d3fd343e8d3343c7862f317add20848450a0e43fbc2f586cfe",
+    "bytes": 7154,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/lib/intake/knowledge.ts",
+    "sha256": "c31cd1573a5afa97832a529c3d6ee7f3f63a4bde79cb486469ccb0020eb05de9",
+    "bytes": 9752,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/lib/intake/metrics-request.ts",
+    "sha256": "02005c5f43d181034a03fa6cddb532a7e4c70be118b5aa2c547e07ce32240e8c",
+    "bytes": 1469,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/lib/intake/owner-alert.ts",
+    "sha256": "4f82ef9d8009c56b3184c72e534954fa2a97268e05e387c6cdd7f6f82fa68e00",
+    "bytes": 2052,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/lib/intake/pilot-budget.ts",
+    "sha256": "3ced0c1d1572906b068b6986a1606103e229a74c70ae46e2c21d71a5b4080544",
+    "bytes": 835,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/lib/intake/qualification.ts",
+    "sha256": "b4e7cef2a6b4b485f2928865e5112f1f13b661da7b6bb526fa4d82410c2fb21a",
+    "bytes": 1930,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/lib/intake/repository.ts",
+    "sha256": "ecccd65c90ef0da51b779614c16b85114944f4288c0833178b09b58435af4230",
+    "bytes": 10426,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/lib/intake/request-body.ts",
+    "sha256": "85902091a8b4a713be6ea30caf30a49e5c4507c2178d1497150419fd254fb8c3",
+    "bytes": 881,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/lib/intake/summary.ts",
+    "sha256": "f3b7dcda67d96b1de96c0810e4766b11920feab2d91ecf199cd9f88282d3fe28",
+    "bytes": 1320,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/lib/intake/telegram-normalize.ts",
+    "sha256": "c3094ed3e3c0752f72669eb62d11bce61388fbacf4bdb83bb3d2db40b5c415bd",
+    "bytes": 1458,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/lib/intake/telegram-send.ts",
+    "sha256": "14b44c4bd7c42267c8f87d7e1af412fa85fce940152bad3e249dd73e0c6bed97",
+    "bytes": 2356,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/lib/intake/welcome.ts",
+    "sha256": "6e1ae08c1c7c8f660dca2fdad29fd1519130c1bd506b653f83a35dcc9a595d76",
+    "bytes": 2189,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/lib/intake/whatsapp-normalize.ts",
+    "sha256": "c53f11ea8afdc052eba2d29728734fabb1cbb48b9d6bba6be416cc5fce56f51c",
+    "bytes": 2065,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/lib/intake/whatsapp-send.ts",
+    "sha256": "7ea038a1a6a4b300c309a40380b1dbdd8f067f5cba9ba475316beb243d4b68a2",
+    "bytes": 2289,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/lib/intake/whatsapp-signature.ts",
+    "sha256": "fa6268cd79c561c14262ba2fc03b83b8ce97b5c5e72c3a46d6123a5837da8147",
+    "bytes": 981,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/lib/integrations/creatorApplicationsSheet.ts",
+    "sha256": "6074deef7a362f0a9b130260e0a5fcf700ef5ccdfb86ff7089d7220e2c5d692c",
+    "bytes": 17126,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/integrations/google-sheets-policy.ts",
+    "sha256": "62d4d1293ce8d0f69f62daec82ac655f5fb0559c2bcc61f656d04e1eda7117e1",
+    "bytes": 4823,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/integrations/google-sheets.ts",
+    "sha256": "75f7fa2daab8a6aedcbbf9c1894210c18c2ec8e41c7e54f70b18a2f5e1d7412f",
+    "bytes": 14244,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/integrations/slash/client.ts",
+    "sha256": "26973a300f52f28b8aa8102750805f78fcc8c4fea2a526d93f3f39c24b1822e2",
+    "bytes": 6251,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/invoices/dealInvoiceCopy.ts",
+    "sha256": "373895f18c9e71da5f101440201ab2b2939dcb04bf54b7f621e8fb6be228365e",
+    "bytes": 3067,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/ip-evidence/data-room.ts",
+    "sha256": "c2fbf695ea40378f884fc139e78d2eb297a324dbf4f4212577602a576110d319",
+    "bytes": 5324,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/ip-evidence/policy.ts",
+    "sha256": "c7ebf7a223aef5c1a4692e233be5a4fc2e005efd870fb9cf5923baa6dfc58992",
+    "bytes": 3522,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/kekopilot-host.ts",
+    "sha256": "f18a765752922283e1ed1a0f8a65e810e6ae1bbd3edd0a09c1fcdf9436b13e66",
+    "bytes": 294,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/kekopilot-panel-config.ts",
+    "sha256": "22e8d43cb4e8c2c917dc135dd0fa8ef4ab3e1926ef3b9fbb47cc3fe38a5a7061",
+    "bytes": 1076,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/kekopilot-url.ts",
+    "sha256": "73e9498acf64b89ec9b26bb7dd992fc756599985bdea87dd4bc6b392abce1a9a",
+    "bytes": 697,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/locale-detection.ts",
+    "sha256": "2d77f6c1b33eec077417cffd052e7c2df38b67dae1b8ca196e6b496b4e7c09e5",
+    "bytes": 3878,
+    "storage": "git-base-crlf"
+  }
+]

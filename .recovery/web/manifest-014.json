@@ -1,0 +1,242 @@
+[
+  {
+    "path": "src/__tests__/fuzz/sql-injection.fuzz.ts",
+    "sha256": "68767bc82b5f99c0e51184a6a0082068d0bfc801397516fdf7d3c118362290f1",
+    "bytes": 7093,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/fuzz/validateUploadedFile.fuzz.ts",
+    "sha256": "6b82e364bb8d50805944582c0bbf35a3287ab6934a168f5e0b0c3f8335d6f86a",
+    "bytes": 3463,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/fuzz/xss-injection.fuzz.ts",
+    "sha256": "bd3874a1dc896ec580795e52b3aec9c6e18797da2d1c4da5f7063d4f4dce104f",
+    "bytes": 6008,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/admin-contracts-pdf-proxy.test.ts",
+    "sha256": "f51465e7d1c1f1ca50e4af342ad239069c94685144625b8aa97bab567adacca4",
+    "bytes": 12772,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/admin-facturacion-pdf-proxy.test.ts",
+    "sha256": "e0173ec0570172ad0f38d4f8622745bbda2bd977684679401e4f9d9fd75c1480",
+    "bytes": 10482,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/admin-facturacion-restore.test.ts",
+    "sha256": "51f3554c66e9c7f9a38bdeae42b1001c41101a9882c7a03838cb53edabc4cce9",
+    "bytes": 3045,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/admin-grant-points-script.test.ts",
+    "sha256": "af5fd61d7a8a03f61423022e50de556da8ac2d1f07b85497b831a15e24aa2369",
+    "bytes": 7843,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/admin-invoices-ui-uses-proxy.test.ts",
+    "sha256": "387555842a79a0e5c513f941ddf3b681b880355f90d9bccc8c5440f097d7cd16",
+    "bytes": 2210,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/admin-limited-tasks-visibility.test.ts",
+    "sha256": "d1ad579081f826e4a30ad35d99bc91dcce9250000432ef178f2781d3394e3b37",
+    "bytes": 4511,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/admin-limited-tasks.test.ts",
+    "sha256": "5b96eef1d433268b1cf0cdc795661a56f0494514fe0e12db4c465b7b3dbb1a49",
+    "bytes": 6817,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/admin-login-password-visibility.test.ts",
+    "sha256": "fe526b68065d3fd37965c95c890ccbb4f41364116801976dcee290ae18fae634",
+    "bytes": 631,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/admin-private-files-proxies.test.ts",
+    "sha256": "bce0541aa4a6e2a4adb16be3c10a5cdf40bb68889a1f7ca5856966867b5434ae",
+    "bytes": 14540,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/admin-private-files-ui-uses-proxy.test.ts",
+    "sha256": "4788efe6089fd24611d486061c2bab5604995f9acba85adb435d90179e1cda32",
+    "bytes": 5461,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/agent-admin-approve-resume.test.ts",
+    "sha256": "2a0952c38660298c6543c0c6ace285bc31d6f4212be935f553f18e1116776e3a",
+    "bytes": 9045,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/agent-admin-format.test.ts",
+    "sha256": "fbe6e23fe681f0cf3b357fd005221a823b5b1ebf0e0ec2f5164e022717a5c819",
+    "bytes": 3838,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/agent-admin-rbac.test.ts",
+    "sha256": "f6591f669ca70b7a6aedcbab95f8a972818b57c1d92e98ac4dbc107d4a4256d0",
+    "bytes": 5231,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/agent-admin-unstick.test.ts",
+    "sha256": "29b0eaa2e8ab7896e9111c80ecdbdbd15c26ead14be8ba84f74565226558fca2",
+    "bytes": 5976,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/agent-approval-state.test.ts",
+    "sha256": "ad72569ad557b046a4105d50257c817d0213aaaa10e1268486b2545425986aef",
+    "bytes": 9337,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/agent-budget.test.ts",
+    "sha256": "7eee3623a55b4bb45fb9d64be165a832233afa53a1c4ceaa71016aa815c9b68b",
+    "bytes": 6428,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/agent-canonical-json.test.ts",
+    "sha256": "6f6c08afc73ee52dc837100c1967dc674d25706e621ffcce3be2f9b275832391",
+    "bytes": 5486,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/agent-event-dedupe.test.ts",
+    "sha256": "02384d1dadbc5fcc4b84973417cc3de60e3a854c728ac549036624b463c266e4",
+    "bytes": 6416,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/agent-loop.test.ts",
+    "sha256": "92c635c59ee83e20710da942c4df17168cce9f82cedce1310338d5e14c510209",
+    "bytes": 14177,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/agent-memory-assembly.test.ts",
+    "sha256": "1d366757dab0f5c3d9ca5da2c12302d8771aeae13b465395d26e42e96a63f59a",
+    "bytes": 4130,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/agent-memory-scope.test.ts",
+    "sha256": "9d2e88b3e609e374a0d1d55424fc36262f8ba6d6fdadab06d27f5b7e94cab215",
+    "bytes": 4657,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/agent-policy.test.ts",
+    "sha256": "28672645e3b5ed3a51bccf6bbdbdba2ba42d537c8a490e9eaac64ce179b5ffe5",
+    "bytes": 7243,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/agent-provider-output.test.ts",
+    "sha256": "630553f318e09439f15f9cab7fbcbf4b25b5287da15aa7b845629315685e710d",
+    "bytes": 7625,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/agent-provider-xai.test.ts",
+    "sha256": "fbd6b8329bc4ac15e78db98949bb6d650756e2f099682aac5026c880914b0913",
+    "bytes": 8062,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/agent-redaction.test.ts",
+    "sha256": "a3a9e59c60000c08fd0e158c4565ae35f0e9d49e4d726fd88e5e76ac65650a6d",
+    "bytes": 5859,
+    "storage": "git-base"
+  },
+  {
+    "path": "src/__tests__/server/agent-run-repository.test.ts",
+    "sha256": "e96eec2901b0571362bcb42aace82372069ac10dd43660f880ddfcb88c9bb63e",
+    "bytes": 6083,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/agent-run-state.test.ts",
+    "sha256": "b5a126c337cb74218619675a2594b8241eb5e6e0efa5572a0da3485dcfc03034",
+    "bytes": 5482,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/agent-schema-constraints.test.ts",
+    "sha256": "3d1ac468bad7cd955ba6f052b3e72e02a71f64f189dd2962459fae2b99abbf0e",
+    "bytes": 7227,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/agent-seed-catalog.test.ts",
+    "sha256": "3c0fcc60b5d6bf15918fd1eef2c03ffd5845c0d56dd108f57a53fd4a5d8abef3",
+    "bytes": 6640,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/agent-telemetry-auth.test.ts",
+    "sha256": "5a50e6f9af01a59af3e79a524ef2478c19e6b9f0991a4a6ab6e9a2835243c805",
+    "bytes": 7153,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/agent-telemetry-schema.test.ts",
+    "sha256": "dea1ad557b31044adccf37136865fc6dd5e00382fa75a88b23881c662fe693c1",
+    "bytes": 7073,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/agent-tool-executor.test.ts",
+    "sha256": "7d7174d4262451afcbaa4697330e753abc9c4cad82274bca8e2bc9d9d9f5c9fb",
+    "bytes": 19757,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/agent-tool-parity.test.ts",
+    "sha256": "3551be3e36125577442e33eaf895ffc1d6e0d65a3b0573739dc0e28370f50b4f",
+    "bytes": 7960,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/agent-worker-crash-recovery.test.ts",
+    "sha256": "fb34bf408bc54f089dca784003819011b94de9f18ff509f97d4e492e7a6f01ec",
+    "bytes": 9269,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/agent-worker-cron.test.ts",
+    "sha256": "f589c630f8258fd63c8950830e625456614dbf16d68f2463529ecc9b4d749c3d",
+    "bytes": 7163,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/agent-worker-presence-heartbeat.test.ts",
+    "sha256": "0c413dd77722cd5f63bb0097ca3530cda2a27c4096f5c442d5d533b751fe8cb9",
+    "bytes": 1283,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/agent-worker-queue.test.ts",
+    "sha256": "47facc0d113d419450fc36803875e78ffbc48d9a461b7adbc553208fdfd7a9eb",
+    "bytes": 11076,
+    "storage": "git-base-crlf"
+  }
+]

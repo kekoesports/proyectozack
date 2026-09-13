@@ -1,0 +1,18 @@
+import { z } from 'zod';
+import { StudioId } from './studio';
+
+/** Optional v1 extension: old montages retain exactly their original audio/branding. */
+export const StudioWidgets = z.object({
+  music: z.object({ assetId: StudioId, volume: z.number().min(.04).max(.4), ducking: z.boolean() }).nullable(),
+  channel: z.object({ platform: z.enum(['twitch', 'kick']), handle: z.string().trim().regex(/^[a-zA-Z0-9_]{2,25}$/, 'Usa el nombre del canal, sin enlace ni @.') }).nullable(),
+  sponsor: z.object({ assetId: StudioId }).nullable(),
+  position: z.enum(['top', 'bottom']),
+  licensed: z.boolean(),
+}).refine((value) => !(value.music || value.sponsor) || value.licensed, {
+  message: 'Confirma el uso de la música y del logo del patrocinador en esta pieza.', path: ['licensed'],
+});
+export type StudioWidgets = z.infer<typeof StudioWidgets>;
+
+export function widgetAssetIds(widgets: StudioWidgets | undefined): string[] {
+  return [widgets?.music?.assetId, widgets?.sponsor?.assetId].filter((id): id is string => Boolean(id));
+}

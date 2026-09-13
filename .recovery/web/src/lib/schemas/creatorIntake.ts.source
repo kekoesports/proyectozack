@@ -1,0 +1,75 @@
+import { z } from 'zod';
+import { IntakeKnowledgeTopic } from './intakeKnowledge';
+
+export const IntakeChannel = z.enum(['telegram', 'whatsapp']);
+export const IntakeState = z.enum(['bot', 'waiting_human', 'human', 'closed']);
+export const IntakePlatform = z.enum(['twitch', 'youtube', 'kick', 'tiktok', 'instagram', 'other']);
+const Count = z.number().finite().min(0).max(1_000_000_000);
+export const IntakeMetric = z.object({
+  value: Count,
+  periodDays: z.number().int().min(1).max(365),
+  // All conversational extraction is declared, never verified by an LLM.
+  source: z.literal('declared'),
+}).strict();
+export const IntakeProfile = z.object({
+  interested: z.boolean().optional(),
+  contactType: z.enum(['creator', 'brand']).optional(),
+  gamblingPreferences: z.object({
+    casinos: z.enum(['yes', 'no', 'discuss']).optional(),
+    sportsBetting: z.enum(['yes', 'no', 'discuss']).optional(),
+    cs2Gambling: z.enum(['yes', 'no', 'discuss']).optional(),
+  }).strict().optional(),
+  instagramMetrics: z.object({
+    followers: Count.optional(), reach: Count.optional(), averageReelViews: Count.optional(),
+    periodDays: z.number().int().min(1).max(365).optional(), source: z.literal('declared'),
+  }).strict().optional(),
+  // Internal conversational state: the model cannot set this field.
+  metricsRequested: z.boolean().optional(),
+  name: z.string().trim().min(1).max(100).optional(),
+  country: z.string().trim().min(1).max(80).optional(),
+  adult: z.boolean().optional(),
+  email: z.string().email().max(200).optional(),
+  goal: z.string().trim().min(1).max(500).optional(),
+  socials: z.array(z.object({
+    platform: IntakePlatform,
+    url: z.string().url().max(500).refine((v) => new URL(v).protocol === 'https:'),
+    followers: Count.optional(),
+  }).strict()).max(12).optional(),
+  streamPlatform: IntakePlatform.optional(),
+  doesStream: z.boolean().optional(),
+  averageViewers: IntakeMetric.optional(),
+  // Combined share of unique content: a CS2 casino piece counts only once.
+  focusPercent: z.number().finite().min(0).max(100).optional(),
+  focusPeriodDays: z.number().int().min(1).max(365).optional(),
+  tiktokLive: z.boolean().optional(),
+  tiktokBattles: z.boolean().optional(),
+  tiktokAverageViewers: IntakeMetric.optional(),
+}).strict();
+export type IntakeProfile = z.infer<typeof IntakeProfile>;
+
+export const IntakeExtraction = z.object({
+  profile: IntakeProfile.omit({ metricsRequested: true }),
+  evidence: z.record(z.string(), z.string().trim().min(1).max(2000)),
+  intent: z.enum(['intake', 'criteria', 'agency', 'knowledge', 'human', 'commercial', 'upset', 'stop', 'uncertain']),
+  topics: z.array(IntakeKnowledgeTopic).max(3).optional(),
+  topicEvidence: z.record(z.string(), z.string().trim().min(1).max(2000)).optional(),
+}).strict();
+export type IntakeExtraction = z.infer<typeof IntakeExtraction>;
+
+export const IntakeEvent = z.object({
+  channel: IntakeChannel,
+  accountId: z.string().min(1).max(200),
+  chatId: z.string().min(1).max(100),
+  externalId: z.string().min(1).max(160),
+  occurredAt: z.iso.datetime(),
+  actor: z.enum(['creator', 'owner']),
+  text: z.string().trim().min(1).max(4000),
+}).strict();
+export type IntakeEvent = z.infer<typeof IntakeEvent>;
+
+export const IntakeControl = z.object({
+  id: z.string().uuid(),
+  version: z.coerce.number().int().min(0),
+  action: z.enum(['take', 'resume', 'close']),
+});
+export const IntakeSearch = z.object({ id: z.string().uuid().optional() });

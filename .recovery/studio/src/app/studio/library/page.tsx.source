@@ -1,0 +1,34 @@
+import { requireCreator } from "@/lib/studio/access";
+import { StudioShell } from "@/features/studio/StudioShell";
+import { StudioAssetUpload } from "@/features/studio/StudioAssetUpload";
+import Image from 'next/image';
+import Link from 'next/link';
+import { db } from '@/lib/db';
+import { studioCrmContext } from '@/lib/studio/crm-context';
+import { StudioLibraryCatalog } from '@/features/studio/StudioLibraryCatalog';
+import { StudioCrmPhotoImport } from '@/features/studio/StudioCrmPhotoImport';
+import { studioCrmPhotoSource } from '@/lib/studio/crm-photo-source';
+export default async function LibraryPage() {
+  const { member, repository, session, agencyTalentId } = await requireCreator();
+  const [assets, profile, crm] = await Promise.all([repository.assets(), repository.profile(), studioCrmContext(db, session.user.id, agencyTalentId)]);
+  return (
+    <StudioShell name={member.name} active="/studio/library">
+      <p className="studio-eyebrow">TUS RECURSOS</p>
+      <h1 className="studio-page-title">Todo empieza aquí.</h1>
+      <p className="studio-lead">
+        Clips, fotos y audio que puedes usar. Privados y bajo tu control.
+      </p>
+      <StudioAssetUpload />
+      {crm && <section className="studio-panel studio-library-crm">
+        {crm.photoUrl && <Image src={crm.photoUrl} alt={`Foto del CRM de ${crm.name}`} width={180} height={180} unoptimized />}
+        <div><p className="studio-eyebrow">MISMA FICHA DEL CRM</p><h2>{crm.name}</h2>
+          <p>Foto y perfiles originales de SocialPro. Los archivos que añadas aquí quedan en la biblioteca privada de este creador y disponibles en el editor.</p>
+          <div className="studio-library-filters">{crm.socials.map(social => <a className="studio-secondary" key={social.id} href={social.url} target="_blank" rel="noreferrer">{social.platform} ↗</a>)}</div>
+          {studioCrmPhotoSource(crm.photoUrl) ? <StudioCrmPhotoImport /> : crm.photoUrl && <p>Para usar esta foto externa en el editor, sube el archivo original con permiso del creador.</p>}
+        </div>
+      </section>}
+      <section className="studio-panel"><h2>Fotos y voz, listas para reutilizar.</h2><p>Sube fotos del jugador o una grabación y márcalas como referencia. Se guardan en <Link href="/studio/identity">Identidad</Link>, sin sobrescribir su clon aprobado. No identifica automáticamente voces dentro de clips ni crea clones: eso requiere una integración y consentimiento específicos.</p></section>
+      <StudioLibraryCatalog name={member.name} assets={assets.map(({ id, name, contentType, size }) => ({ id, name, contentType, size }))} portraitId={profile?.portraitAssetId ?? null} voiceId={profile?.voiceAssetId ?? null} />
+    </StudioShell>
+  );
+}

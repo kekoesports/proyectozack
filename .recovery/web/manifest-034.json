@@ -1,0 +1,242 @@
+[
+  {
+    "path": "src/app/sitemap.ts",
+    "sha256": "938511ae8934ea8b4a649c3ba5637fc99274358b17191d5f3d375a45b3d4c581",
+    "bytes": 9748,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/sorteos/(legal)/faq/page.tsx",
+    "sha256": "e2025d2b3e33a274cb4284bb3472097e1d6ab118879ca25657592448e66c0ce8",
+    "bytes": 9604,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/sorteos/(legal)/juego-responsable/page.tsx",
+    "sha256": "9c5ded6be336edba589f69fa96d4288dc29fdaca35fa7ca99c23fcd09c494f54",
+    "bytes": 562,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/sorteos/(legal)/layout.tsx",
+    "sha256": "d1a8bfd03b30ad737f1c95e7746ae645f3bffae247268024df7e0b6de732d02c",
+    "bytes": 2730,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/sorteos/(legal)/participacion-responsable/page.tsx",
+    "sha256": "449ad550b2675a9d8f10ba415778da5dca92a3f71a520617c22de525f20ca1cf",
+    "bytes": 7344,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/sorteos/(legal)/partners-externos/page.tsx",
+    "sha256": "229372af5bcf38060753eb4bae0d00db103b0ee8e1e4da3948d8a3254e56237b",
+    "bytes": 4786,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/sorteos/(legal)/privacidad/page.tsx",
+    "sha256": "09b9e1204019b3ccff8438c17de7d7a7dca2c23e22f22d9bff930b6c054c4ada",
+    "bytes": 8978,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/sorteos/(legal)/recompensas-y-puntos/page.tsx",
+    "sha256": "9c8ec81ec8c2ffc464a0c7b71363550c63bf6222a2ec3c9d5043c966bc2d90bd",
+    "bytes": 6944,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/sorteos/(legal)/terminos/page.tsx",
+    "sha256": "5646c3aee4e3cd35f4c1a7530ce1d68ba34a8a0a335cae887402cad534289886",
+    "bytes": 9049,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/sorteos/[creatorSlug]/page.tsx",
+    "sha256": "eb5f6d2d66cfa35c288bb53d08d497f6b5dffd77dc576274f241787947823a77",
+    "bytes": 3914,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/app/sorteos/layout.tsx",
+    "sha256": "31ee328a52baa6da47e5b4cb3624aa55cb86857f5ed3dd4f6c6141b91cfded0d",
+    "bytes": 2395,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/sorteos/page.tsx",
+    "sha256": "e48beae44354972febde863607cb4fbc87247f6ee525ec93ba31e45261fd9520",
+    "bytes": 8110,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/sorteos/perfil/page.tsx",
+    "sha256": "64738755da180ee54e3e22baad9c11052e7c7a0ae2d61ffb42c75cf0365146db",
+    "bytes": 7793,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/sorteos/perfil/permisos/page.tsx",
+    "sha256": "afb4751f156852cfa1d340fc9dfcf197c1a90f09897d4fa1b479837a39d92436",
+    "bytes": 7077,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/sorteos/plataforma/actions.ts",
+    "sha256": "eb5ba3942bc4e48227ec5e77cc2942fce645ce6163940132f25cf44829dbc127",
+    "bytes": 16969,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/sorteos/plataforma/creadores/[slug]/page.tsx",
+    "sha256": "863b7503310a2bcb2b22f698eb91548f9fba3c9d827399f781f8e9fba6eb391e",
+    "bytes": 486,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/sorteos/plataforma/discord-mission-action.ts",
+    "sha256": "a487291b0fd103bb41ac84a8429770bc8a249911c0d198bc2c2360a195bfe74f",
+    "bytes": 6426,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/sorteos/plataforma/layout.tsx",
+    "sha256": "66bb24681d26ce868ac469cd088b6507988f1d0209bb4de8e561ff9c28ad8bb1",
+    "bytes": 664,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/sorteos/plataforma/page.tsx",
+    "sha256": "0ee24800b09de0c2a279fa6816b92a2cd4160e9fe8cae827b27c8a91c18f5a33",
+    "bytes": 762,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/sorteos/plataforma/perfil/page.tsx",
+    "sha256": "d093e1980325417aecfcfa9114a89ef1e01779bc9fcd36f5266909b423ba3303",
+    "bytes": 335,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/sorteos/plataforma/platform-brand-cards.css",
+    "sha256": "8e58c7c9634d5dc4a333ff7e4211dbcc9b4afbe8414757d4b01a91113119f3a3",
+    "bytes": 13775,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/sorteos/plataforma/platform-brand-csgo.css",
+    "sha256": "49ab7bbb4b6e605221ebd779aaf369d15af0334c43f186cd747d1d02b11bf2be",
+    "bytes": 4376,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/sorteos/plataforma/platform-brand-leds.css",
+    "sha256": "a61813a62a70a9c17a62e5fff528fa3af257a0f04db8247abfd74ca5a5128c76",
+    "bytes": 3131,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/sorteos/plataforma/platform-creator-profile.css",
+    "sha256": "6d8372c8b26e907680040c71b360f10793999ef08b41e6536aa3c611730cbaef",
+    "bytes": 5405,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/sorteos/plataforma/platform-discord-mission.css",
+    "sha256": "d27978e729353eac0a57452dd9d392fb902f60a1eb5e6110f5f51a04228a2487",
+    "bytes": 3522,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/sorteos/plataforma/platform-dropdown.css",
+    "sha256": "cb5d0edef18e72b34a1fb2bec2a7b5ba99dc0dcacd5912e162f1fd8acab1397b",
+    "bytes": 5029,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/sorteos/plataforma/platform-external-giveaways.css",
+    "sha256": "68d52ae5ceeb9c077212103c8ea340237121376c0180a6805ac171ecc04ba786",
+    "bytes": 9302,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/sorteos/plataforma/platform-fx.css",
+    "sha256": "9130c1659dfade4a6fd15718342b65ce5ac394ef9d63cc756932d867e0f76d5d",
+    "bytes": 5246,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/sorteos/plataforma/platform-hero.css",
+    "sha256": "8994267651b6c34c0cb4ddba9be6edaad83163e85d57a26bcbeed11e6155f988",
+    "bytes": 1921,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/sorteos/plataforma/platform-legal.css",
+    "sha256": "cdf1510cdd93f98a1707d4b8db527289c38b0e10f48de27203917c5a3656bde6",
+    "bytes": 7064,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/sorteos/plataforma/platform-mini-placeholders.css",
+    "sha256": "a781954a1462a3fcd3494d5c0160e7bd73fd4b5290cf00dc9442cb076f423b0f",
+    "bytes": 2165,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/sorteos/plataforma/platform-missions-social-placeholder.css",
+    "sha256": "113fc849dcb2c6e6729abc43ed7aa8939e443fbb7d3e27ff0b7aad2949818d7d",
+    "bytes": 2769,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/sorteos/plataforma/platform-missions-yt-placeholder.css",
+    "sha256": "88b2ab788df58e95ed6867e8ae9b4dcc7d299dbd7e0940617216a7b55505c9f2",
+    "bytes": 2563,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/sorteos/plataforma/platform-mobile-responsive.css",
+    "sha256": "b2c96ee2744fca4469cd20475b126bcfa35727817aeef56e8adda0c670168f33",
+    "bytes": 6991,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/sorteos/plataforma/platform-profile.css",
+    "sha256": "2c83cd2532a3febcf2f644778fa7168b60a2303ad52d2d2b90a3974040075947",
+    "bytes": 7749,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/sorteos/plataforma/platform-rewards-hub.css",
+    "sha256": "d7ddcf26f3bfcdb294006a81db4f288c1b995cb43f191b4d0ed21a1e1b092d47",
+    "bytes": 27112,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/sorteos/plataforma/platform-rewards-upcoming.css",
+    "sha256": "adce62d7474bbd1e616181c8c2d586723e5d7d47ad0f2767fecbaf23c0374c67",
+    "bytes": 5100,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/sorteos/plataforma/platform-steam-avatar.css",
+    "sha256": "0bea302941891aed010bacfe2f531e14e6bbfd92003d2eb6d8a8265dcec62c6f",
+    "bytes": 1756,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/sorteos/plataforma/platform-steam-login.css",
+    "sha256": "4c01602f5ac414f8358523556193ebab72f72902cdc8aa84ca8afc2f411b753e",
+    "bytes": 2844,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/sorteos/plataforma/platform-twitch-mission.css",
+    "sha256": "13765215ec1fdcdf7b62c94433bfe668ba73a350caa751a6d7c03a152b80633a",
+    "bytes": 3027,
+    "storage": "git-base-crlf"
+  }
+]

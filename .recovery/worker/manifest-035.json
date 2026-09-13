@@ -1,0 +1,242 @@
+[
+  {
+    "path": "src/app/sorteos/sorteos-index.css",
+    "sha256": "832e4b4b47af71ae29bb21f2441d352134fcf83c88a388d332166acd42f9154c",
+    "bytes": 6358,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/stats/[token]/page.tsx",
+    "sha256": "5273d57755cad5f07c73c6365f16ef86e880436609eb96cd54446506816a93bf",
+    "bytes": 2062,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/streamers-apuestas-deportivas/page.tsx",
+    "sha256": "e27a296e4836d89e629b903dbcd51d517d9a62a45ee4d2fd2ceb2ff0fcafaa44",
+    "bytes": 22949,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/studio/access/page.tsx",
+    "sha256": "80ee32e8e55742df52a0b38df1bc2faa9e724c15a3b4b0831d754b6798f3e7ce",
+    "bytes": 813,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/studio/actions.ts",
+    "sha256": "59f1d3e4c1cff5a15a41d27244d9e2b173ec4ae0e03f45486161fa9521d86601",
+    "bytes": 3640,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/studio/calendar/page.tsx",
+    "sha256": "4f81e4d5ad943a1530aa4732bfa96e09a7bea8defa8d45ed0d5c205a13018567",
+    "bytes": 1543,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/studio/campaigns/page.tsx",
+    "sha256": "049eccdca5a374a71b5bfb29ca2776eee0df60eea1dafd273c9196c5923ea261",
+    "bytes": 2295,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/studio/channel-actions.ts",
+    "sha256": "0e4c63db9b9b1ff176ea1f6e571f90a1d3ba7b8730ac1ae9ff954a03585abc8d",
+    "bytes": 2288,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/studio/connections/page.tsx",
+    "sha256": "4bf01680a7622a1e58a5017f9593a69caefe61c2900707722dc2ed5a13b1a604",
+    "bytes": 1582,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/studio/create/page.tsx",
+    "sha256": "3fac0d9acd7fb007f937a6d3b5d3b99f88f09cb3d5fd688be6185742cddecc85",
+    "bytes": 663,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/studio/error.tsx",
+    "sha256": "bdf27be75622e3ee9205f3090e53aa9215d527fd3e06bc79a41d23eb6d1e63de",
+    "bytes": 451,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/studio/forgot-password/page.tsx",
+    "sha256": "0a5dccc96a4a3770955d16cf053be8a902785551d66aeaf92a1f94ad2bd8e194",
+    "bytes": 61,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/studio/ideas/page.tsx",
+    "sha256": "2f9fa6f311e02cd18bef7c482fe62bf17aefe4953a0428bcda5635f20607b9a3",
+    "bytes": 2572,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/studio/identity/page.tsx",
+    "sha256": "210885d935700b3b50b30e6fd93e1c31c814928d5df259352944b0021634c99d",
+    "bytes": 4142,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/studio/layout.tsx",
+    "sha256": "7072705a9e78b202ecf4129434e47a523414f8a4f453c7f0e2ec262bae3f20ef",
+    "bytes": 706,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/studio/library/page.tsx",
+    "sha256": "f4fab84037b9b656e82ff0b9bc33318ed134d80ca737171436c9b4f2811f0b62",
+    "bytes": 1020,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/studio/loading.tsx",
+    "sha256": "de6fe9cae84311848a473f597ac183a6aa19f151b7860ce7f3659390cb0bd87a",
+    "bytes": 239,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/studio/login/page.tsx",
+    "sha256": "253f854cd3c50fa5b7f4c91e4b8fa61a1ef1f4ad9e0ff5b7bb99f9d5fb2dc99b",
+    "bytes": 627,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/studio/motion-actions.ts",
+    "sha256": "59f5732307fc5327055a7dbccae941433baa1e0b5a48ad4c20464f4a92a8f8ae",
+    "bytes": 1893,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/studio/narration-actions.ts",
+    "sha256": "11cb2c4d05ccf87ae82c6b2698249a3abea20cb527c6b5cd38600b607531db28",
+    "bytes": 1126,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/studio/page.tsx",
+    "sha256": "4bf12954542b841ffa27af6dad92e047ab3ba4037b66be7c9ef7949356971083",
+    "bytes": 2613,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/studio/production-actions.ts",
+    "sha256": "ca8f3c7f278ca4652423161036148f6ffb076625add1134eb07da82f9d9b0fc0",
+    "bytes": 6740,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/studio/projects/[id]/page.tsx",
+    "sha256": "a7876f2528f734d71632e7e6783f8f376f537e63e3dca76c3397c07cef030efd",
+    "bytes": 5092,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/studio/reset-password/page.tsx",
+    "sha256": "ff348efc129a0c2d6a450b5e4e9cecfbfe05ec5ba65e525e0172226ee8a8159d",
+    "bytes": 60,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/studio/stats/page.tsx",
+    "sha256": "b4d3713675a1bb7b44cf8483105a7c61602e5a61327ea86f21bb283eba93b888",
+    "bytes": 2567,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/studio/studio-analytics.css",
+    "sha256": "75be91b2edf80bbb3559410031f650770fa81ec4231ee25519b73894bfa1e760",
+    "bytes": 5327,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/studio/studio-editor.css",
+    "sha256": "07c5f1994e389b4cd96f298b8aee4995938815990bac7e3665279521d94bbd5a",
+    "bytes": 6320,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/studio/studio-entry.css",
+    "sha256": "8871b294578b27f37d1538ed79c0c31ffe6129e07b4d685acb2ce87bf70d8014",
+    "bytes": 3567,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/studio/studio-experience.css",
+    "sha256": "e0751f3338f31341e674ae3514df164d1ed06920640af6b0b2ee61eee4503dc3",
+    "bytes": 12356,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/studio/studio-media.css",
+    "sha256": "d4380ebf507879f74ccfaf3dab7c4df01c37a7a93ee46182a6623092cde18e24",
+    "bytes": 2746,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/studio/studio-motion.css",
+    "sha256": "a12df02f20fe9526a68062339c5142907f793e092f4230cccd19f213d00993fa",
+    "bytes": 5944,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/studio/studio-production.css",
+    "sha256": "e2e54e7b6917601007d0cef023b0d8cea2246f00edd1bc9f86b254dace107491",
+    "bytes": 11851,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/studio/studio.css",
+    "sha256": "1cfe808944374c50390aac72309dac832162a3ce8d000d48a9d8cdf8092e60bd",
+    "bytes": 7714,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/studio/templates/page.tsx",
+    "sha256": "2e2823f5a2b689aae517f6fa862dd67234f65825ac2d9dd33a311ff403fe13a3",
+    "bytes": 3141,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/studio/tools/page.tsx",
+    "sha256": "c44d2c6c01ea8194f631622bdfb73c6c5f841c9333194e749a640dfaafd9d04d",
+    "bytes": 3408,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/studio/two-factor/page.tsx",
+    "sha256": "2fc62f7d8015ad525483c5510a3f818d0079e7d16b7be2c1de809b2b9dd30ef9",
+    "bytes": 56,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/studio/workspace-actions.ts",
+    "sha256": "0ba1e5fece58aef914332360ab37e2b1fe9b8c342ca34ff1d09a5ab1a450d44c",
+    "bytes": 1352,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/studio/workspaces/page.tsx",
+    "sha256": "24a3c281460b69455825ed50291856f214c60fa3de45d0614563596fa02c587a",
+    "bytes": 2246,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/talentos/[slug]/page.tsx",
+    "sha256": "8948557aca6021a6568677e3d5e03c07ac74e114d10842d6748af9390b68e9ea",
+    "bytes": 26045,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/talentos/page.tsx",
+    "sha256": "c3b740751affbcd85d066ae6e3ea49c55fb8b6d6ffc227d1f2a25b79b3b72b12",
+    "bytes": 4443,
+    "storage": "git-base-crlf"
+  }
+]

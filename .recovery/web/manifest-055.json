@@ -1,0 +1,242 @@
+[
+  {
+    "path": "src/lib/auth/resetStaffPassword.ts",
+    "sha256": "03a564d93ac68c6db0cbdf0868f433da8f0672cb00c3cd2dc02197c227495e2c",
+    "bytes": 2259,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/auth/sanitize-social-return.ts",
+    "sha256": "1c74bf206266fbfdf8324780f86e1cdab666313df80c8b168bd2614bb5d165d5",
+    "bytes": 835,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/auth-guard.ts",
+    "sha256": "b45a6f22d98b573cdacb6214061c10578436870f1a2296254633e0579991ba2d",
+    "bytes": 4903,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/auth-logger.ts",
+    "sha256": "06da3a09a11b4658bc07b5148cc2dd62323a586f9dd0bf4108a0a91a34790196",
+    "bytes": 449,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/auth-targets-import.ts",
+    "sha256": "ba8f572d00b27aa721b15d64722b530a997ed119b744e949452aeec461d82c77",
+    "bytes": 1471,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/auth.ts",
+    "sha256": "6ae46dff490cdd6301a9b3b529de2d6daf496d4cb20f143d03d144ac6023dcd9",
+    "bytes": 4637,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/automation/telegramRefills.ts",
+    "sha256": "733dd19f692265cf953fe1c0f634200f82482605f0bef149dec51ebd5436bf54",
+    "bytes": 1357,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/automationDealValidation.ts",
+    "sha256": "3ca51d12b3b76d1f25dd1e01afc11f1d4c32f342051ef1ca1cadaea9e2e2d714",
+    "bytes": 3056,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/backup/drive-auth.ts",
+    "sha256": "5db4bc2f80efc3029aaf60d0ec218f534b3f31bc7f0ba4dbe7350824a362dde9",
+    "bytes": 2145,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/backup/drive-upload.ts",
+    "sha256": "f093f58abd2b7ca29855d52da0d163b65d269a28186fc6c12351617cd7b2d5a3",
+    "bytes": 3002,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/backup/export-data.ts",
+    "sha256": "dc5449c99e58a3e9f1c2152ecbd991cbc3a628aa95a35545cdc6f2b7a425dc9f",
+    "bytes": 4091,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/backup/getDriveConfig.ts",
+    "sha256": "c948c9a2b91142d32ce2d63afb02c64632bcb2a2bf788c15526c88778ae54fb9",
+    "bytes": 1297,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/brandAssets.ts",
+    "sha256": "35f2a032c51d5b5423d5f8d8a8e3838dc1daba0cd59cea0307214de3c573dd19",
+    "bytes": 1994,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/brands.ts",
+    "sha256": "334e996fd4d321642137a7d56e4b0e6f07c679c35a2e523caaaa0f7049163f89",
+    "bytes": 13245,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/campaignHelpers.tsx",
+    "sha256": "684ad5ed1b3ca76db9e0bef84041c0f1711dab9188d8702a908cfca11bb778eb",
+    "bytes": 2492,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/compliance/cs2Markets.ts",
+    "sha256": "e1eb1f78ac544aa35a6105f332186ba620e97262bdd0dc264366498db0795abd",
+    "bytes": 5630,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/consent/consentStore.ts",
+    "sha256": "0d7bdb2846270a682ce7eb043f66a5f32bfaf718f5b974d40335c9f1e11dbfa6",
+    "bytes": 4044,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/constants/operational-email.ts",
+    "sha256": "141fea3b5443b29a953701495aae6a51186aa976519a244754776db9a7c2cba0",
+    "bytes": 401,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/constants/tracking-template.ts",
+    "sha256": "90abad4026032e8214c7493abcd45f9218677e54039c162ad7ce664ce6499897",
+    "bytes": 710,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/contractTemplateSeeds.ts",
+    "sha256": "d265c846d7cef8195cbfae872e2c1fa34a302a21c2440cf344065473c09a2be8",
+    "bytes": 14662,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/contractVariables.ts",
+    "sha256": "e0636a414a2a8854bfe41c94575c0f958c9b32de45e5428434dd4713ed56ba55",
+    "bytes": 6245,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/countries.ts",
+    "sha256": "95ba251814f590a6f42561683f6a45e2e8a7262b7d5586e9a9a399ec51f34554",
+    "bytes": 2087,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/crypto/token-encryption.ts",
+    "sha256": "3ab842d3207d86bc5836169d7e999d9225119b928e84a166451f996e56cb3626",
+    "bytes": 5880,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/currency.ts",
+    "sha256": "c7b9a5f337b920b36a24438e3cb7cc6c086df5a06ce61f257225823c332d7c5e",
+    "bytes": 657,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/db.ts",
+    "sha256": "c275678d63e3d1ad065e82d83e43a887641c6ee02cc5ee26eb5d39d2d47e1c29",
+    "bytes": 3314,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/deploy-env.ts",
+    "sha256": "d7f73c033322c61d7fff2bc91bceca6185a61a3841ca82a131d99a65c56cd970",
+    "bytes": 2046,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/discord/claim-guild-missions.ts",
+    "sha256": "cd7247768fcb078f24c4df8add78d235ac8e943a02818ad31216eedd35fac5f4",
+    "bytes": 4151,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/discord/fetch-user-guild-ids.ts",
+    "sha256": "615dd42e4db1e943bc44ff7dd283fdc775609743feda68bce6d95b1fcf569fc0",
+    "bytes": 2024,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/discord/keydropDailyReport.ts",
+    "sha256": "04f10fd491597e04fd2dcc11e3689f580da16371df2bc335f93f28193bc5695c",
+    "bytes": 5506,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/drive/deal-sheet-name.ts",
+    "sha256": "42eeedde0b69dfa4bed9c211a9ea4d5bf48ed4b7a868b63f1444f3cce49f5d77",
+    "bytes": 769,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/drive/deal-tracking-sheet.ts",
+    "sha256": "ac763aa5d9093f01d7dfc998a9379057231e2f4539d8dadc72a7d8b29159d19b",
+    "bytes": 21559,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/email/creatorOutreach.ts",
+    "sha256": "5009deecf058844434ca00fb2d9960bee745c94cf05a93b85e59f30ba41c56de",
+    "bytes": 3596,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/email/creatorOutreachAutomation.ts",
+    "sha256": "b23d50a4edb90d8f88130e476f83987d543c21384594c82a249c3ad53ef2d39f",
+    "bytes": 14523,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/email/creatorReplyContent.ts",
+    "sha256": "e8a861ca92a5cafe2c8d6e841d42e019a3add9dd23764aec6e7851d1fd923d96",
+    "bytes": 3611,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/email/dealTrackingReminder.ts",
+    "sha256": "020d2c571604b02f183d460d0272f13d997f2a469890f3037ad7905fb5c54dd9",
+    "bytes": 2689,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/email/leadReply.ts",
+    "sha256": "6d465b0880fb8e21b7e1731bc00a1bdb3c617429f938bde916224f826a02a7d3",
+    "bytes": 1228,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/email/newsletterTemplates.ts",
+    "sha256": "d79b73765e1329a8c5751084832bbb7eddd4f6a2cc3c548e69d60e808c14d8a2",
+    "bytes": 5565,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/email/resendWebhook.ts",
+    "sha256": "c532658c79312f5f5be80b6f9281966bf61e81cac4e4ad20b32c4ee22949cccf",
+    "bytes": 3452,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/email/sendResendEmail.ts",
+    "sha256": "a6a06a4e2d047902d7be92f06ca3041fe92ce7ee6f14ffdf867683132e52314c",
+    "bytes": 5034,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/email.ts",
+    "sha256": "6f7f014412e193821f1cc0dbb5ec1f6428099147cb611f48c7c54e0c18d856c2",
+    "bytes": 18805,
+    "storage": "git-base-crlf"
+  }
+]

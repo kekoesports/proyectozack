@@ -1,0 +1,33 @@
+import { createServer } from 'node:http';
+import { Readable } from 'node:stream';
+import { POST } from '../../src/app/api/webhooks/creator-intake/waha/route.ts';
+import { closeDbPool } from '../../src/lib/db.ts';
+
+// Private worker: exposes only this authenticated webhook, never the CRM itself.
+const server = createServer(async (incoming, outgoing) => {
+  if (incoming.method === 'GET' && incoming.url === '/health') {
+    outgoing.writeHead(200, { 'Content-Type': 'application/json' });
+    outgoing.end('{"ok":true}');
+    return;
+  }
+  if (incoming.method !== 'POST' || incoming.url !== '/api/webhooks/creator-intake/waha') {
+    outgoing.writeHead(404); outgoing.end(); return;
+  }
+  try {
+    const headers = new Headers();
+    for (const [key, value] of Object.entries(incoming.headers)) {
+      if (typeof value === 'string') headers.set(key, value);
+    }
+    const response = await POST(new Request('http://intake-worker/api/webhooks/creator-intake/waha', {
+      method: 'POST', headers, body: Readable.toWeb(incoming), duplex: 'half',
+    }));
+    outgoing.writeHead(response.status, Object.fromEntries(response.headers));
+    outgoing.end(await response.text());
+  } catch {
+    outgoing.writeHead(500); outgoing.end('{"ok":false}');
+  }
+});
+server.requestTimeout = 60_000;
+server.headersTimeout = 10_000;
+server.listen(3000, '0.0.0.0', () => console.log('Private WhatsApp intake worker ready'));
+process.on('SIGTERM', () => server.close(async () => { await closeDbPool(); process.exit(0); }));

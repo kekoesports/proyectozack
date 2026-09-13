@@ -1,0 +1,29 @@
+import { z } from 'zod';
+
+export const StudioMotionId = z.enum([
+  'statement-v1', 'steps-v1', 'contact-v1',
+  'statement-v2', 'steps-v2', 'contact-v2', 'compare-v1', 'checklist-v1',
+  'metric-v1', 'quiz-v1', 'live-v1', 'timeline-v1', 'quote-v1',
+  'statement-v3', 'steps-v3', 'contact-v3', 'compare-v2', 'checklist-v2',
+  'metric-v2', 'quiz-v2', 'live-v2', 'timeline-v2', 'quote-v2', 'table-v1', 'cinema-v1',
+]);
+export type StudioMotionId = z.infer<typeof StudioMotionId>;
+
+export function motionLineLimit(id: StudioMotionId | undefined) {
+  if (id === 'compare-v1' || id === 'compare-v2') return 2;
+  return id && ['steps-v1', 'steps-v2', 'steps-v3', 'checklist-v1', 'checklist-v2', 'quiz-v1', 'quiz-v2', 'live-v1', 'live-v2', 'timeline-v1', 'timeline-v2', 'table-v1'].includes(id) ? 3 : 0;
+}
+
+export function validMotionTable(body: string) {
+  const rows = body.split('\n').map((line) => line.trim()).filter(Boolean);
+  return rows.length > 0 && rows.every((line) => {
+    const cells = line.split('|').map((cell) => cell.trim());
+    return cells.length === 2 && cells.every((cell) => cell.length > 0 && cell.length <= 32);
+  });
+}
+
+export const StudioTemplatePreviewInput = z.object({
+  motion: StudioMotionId,
+  format: z.enum(['9:16', '1:1', '16:9']),
+  palette: z.enum(['light', 'dark']),
+});

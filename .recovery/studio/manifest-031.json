@@ -1,0 +1,242 @@
+[
+  {
+    "path": "src/app/apuesta-segura-cs2/_components/PickCard.tsx",
+    "sha256": "567550ab8aac7a8ca67caa16b5cd140cf8a82760744307df129b6d757e785ea3",
+    "bytes": 4198,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/apuesta-segura-cs2/_components/TelegramMockup.tsx",
+    "sha256": "636eaed4b0cf0d65f7b281785ea146f814694c3961055e3a656bc5d0b7a87a7d",
+    "bytes": 3259,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/apuesta-segura-cs2/_components/TelegramSection.tsx",
+    "sha256": "e890d9b2a54178cff58c5a4ef0e5aa7b3afe5f90997fc873db8cc892635610f3",
+    "bytes": 4256,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/apuesta-segura-cs2/_components/TrustBlock.tsx",
+    "sha256": "51812f78bc0271975c2a5f01186d64493668654f7428b74dfc51d837c4881b40",
+    "bytes": 8358,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/apuesta-segura-cs2/_components/tokens.ts",
+    "sha256": "3e7856061c7218b7a336d5fb642e4c0f87128a40e47793ec0b18127f7f129245",
+    "bytes": 4162,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/apuesta-segura-cs2/layout.tsx",
+    "sha256": "8066390ce7a919315418ae618f05b54f7cd996c041123ed59a07e53b01aef7d0",
+    "bytes": 6299,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/apuesta-segura-cs2/page.tsx",
+    "sha256": "62abb1a0fcc5b730c8c8f2aaead960f8616fe0cd8734614b930ae55c2c015a79",
+    "bytes": 2168,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/betting-influencers/page.tsx",
+    "sha256": "7f82b7c7241186163d823eaddd24e951efc5317f2a1e5cfd6b33ad0eb16031a9",
+    "bytes": 11369,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/blog/[slug]/page.tsx",
+    "sha256": "ec25bc1b3bdc6a7329c48bf980e6850ba6dff55432e9e6da3f7d53b6831bfd52",
+    "bytes": 10655,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/blog/feed.xml/route.ts",
+    "sha256": "ad450e2b5c23727b480429e278866211790d2759c48d16f4858da1f36430470c",
+    "bytes": 1568,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/blog/page.tsx",
+    "sha256": "2befee2861032dccef310484c0cd3d1b6e56ad0be0914b2cfa638fd600c43d7d",
+    "bytes": 8607,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/c/[slug]/page.tsx",
+    "sha256": "02bc450b1c66866a37c310c359cbe5800de72414c521fcfc8b3d8f843f89931a",
+    "bytes": 343,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/c/layout.tsx",
+    "sha256": "d097db3fe326f6c63ad85862a40dbe7e7d8ba1666866eb441a0180a08bb8bc1c",
+    "bytes": 302,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/casos/[slug]/page.tsx",
+    "sha256": "b6c22ea98b933ac5a5ce2e5e60c69d5fe30a40aaa6b3328f8868dffd0fe83776",
+    "bytes": 17908,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/casos/page.tsx",
+    "sha256": "7e79ea476cd153b21605a7302ddc7e4d0472fea63a219e29a704439af8d86daf",
+    "bytes": 5131,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/codigos/giveaways-animations.css",
+    "sha256": "3474ebbff80c545df41d90382082b364917c49508f2c5fd3a4289ea19a7b95b4",
+    "bytes": 8949,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/codigos/layout.tsx",
+    "sha256": "a0c2d72dab6c256fd5870f3be841399cc1874705052fb4e30c55bf1c0087f86f",
+    "bytes": 1165,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/codigos/page.tsx",
+    "sha256": "96bb6db9d5c728f10f6801aa54b843dc25c79480b377651a15c3d162761a2244",
+    "bytes": 11375,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/contacto/page.tsx",
+    "sha256": "1f9d6e0b5211ec07a492896c0a405a0dc532c9fe5c5559ba80966b74d89635f9",
+    "bytes": 3132,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/cookies/page.tsx",
+    "sha256": "8dfde1d1415729ac88ce551676727c2f1c4f5e299509a25dc8182a4bb1a88e01",
+    "bytes": 12932,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/creadores/[slug]/page.tsx",
+    "sha256": "e0e8f5728b15a708d8857c665dcecd7a518abde62cb3f51f43e7de708a1e291b",
+    "bytes": 6960,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/creadores/layout.tsx",
+    "sha256": "fd9ae06fd8e37963f7d4d06062bf322bebaae6663766b7fb80092a69117068bd",
+    "bytes": 425,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/cs2-influencer-marketing/page.tsx",
+    "sha256": "9de3f9b5e26d754a0fbb1f5398af198891d11f74b44a8c1e618fbbe323f6fb3a",
+    "bytes": 11256,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/en/kekopilot/page.tsx",
+    "sha256": "b6fe2145c7360f9484d917f407221ebd15863a944ea4e813af638226d2773263",
+    "bytes": 1551,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/error.tsx",
+    "sha256": "d4a9815494934d1b48d12eedef51b5c4161de4d6f3ffeb6d2aa424d117d49275",
+    "bytes": 2479,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/app/esports-marketing-agency/page.tsx",
+    "sha256": "b6e8c7df8ac54f93a010e51db5981957f1d154628a4c4d222a95a417133752ba",
+    "bytes": 10504,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/estadisticas/page.tsx",
+    "sha256": "2ce038d8ae56f31ca2c64ae4e3c7b945e053b81f809ef60ca67abad7e33a5a8c",
+    "bytes": 15966,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/faq/FaqClient.tsx",
+    "sha256": "4a9c3d414cae2b847cefd593104c13a9980f23b10c17d1a18dd24c2ce4660ad9",
+    "bytes": 4076,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/faq/page.tsx",
+    "sha256": "bdf8411c26a7d588c2f9760636dcdc0dd01d112fd0e924f1463d838864d7dd6d",
+    "bytes": 9414,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/firmar/[token]/SignatureForm.tsx",
+    "sha256": "6b3a790cc1e59d6d11038942c1b6b40f8985770e5215e35a7129c4f543eeeb43",
+    "bytes": 2912,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/firmar/[token]/page.tsx",
+    "sha256": "592b5865127a55cffadf464bb19198c15d4b30659192249448cf42b42f9a221b",
+    "bytes": 3827,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/firmar/[token]/sign-action.ts",
+    "sha256": "2e74d5396d82db35ce9a2849b41f22f2ed4e6f6aa0070a61063956c18a0b2380",
+    "bytes": 2138,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/gaming/betting/page.tsx",
+    "sha256": "c5e2a1d9de2133d921c0499032d42d0e6a6b103b94efadc0d786e9baaf5d57f4",
+    "bytes": 11645,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/gaming/cs2/page.tsx",
+    "sha256": "d945264b99d15f09bf73ecd6c4f869cdda4a04ebd2dcae0d240bd14466e704c5",
+    "bytes": 10762,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/ganadores/page.tsx",
+    "sha256": "772dd21d80158719d7e0c78f2d3e6efb9d83829652cf2566176bf33f903dcf6f",
+    "bytes": 8100,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/global-error.tsx",
+    "sha256": "17c89f34928f5861227b47de58f175c62253afa02001943986b1015e72ea3dca",
+    "bytes": 3346,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/app/globals.css",
+    "sha256": "2d3f157a86a40f7cee31e3d6298df3935d79d4e1986ead2e1b6149d365b6e79e",
+    "bytes": 13103,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/app/guia-dgoj-igaming-influencers/page.tsx",
+    "sha256": "4d3bdbfa9a6c5194b86fa3a694c0ae6a805b0fd89c1fbe4d39cd6f7b3491eadf",
+    "bytes": 25512,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/influencers-betting/page.tsx",
+    "sha256": "a16dd595edcb3238f4f456151202cac9e9e6d722e6ca236904005a89ba1e8062",
+    "bytes": 7521,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/influencers-cs2/opengraph-image.tsx",
+    "sha256": "9fef1b3c5da2e8d47165bff95a6555a32f61a6e1c849f367ae7c7d1f03cdcb9b",
+    "bytes": 2253,
+    "storage": "git-base-crlf"
+  }
+]

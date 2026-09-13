@@ -1,0 +1,242 @@
+[
+  {
+    "path": "src/app/terminos-sorteos/page.tsx",
+    "sha256": "6b7c1a171672df6793fbd3bab850b816840a05f0517653d09dba4ff6ba40d15d",
+    "bytes": 7364,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/twitch-streamers-agency/page.tsx",
+    "sha256": "7f44fc91cf98529e5a0338b8323d89d31535c1f452d97f2c7fe41f2ea3ef80a9",
+    "bytes": 11524,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/unsubscribe/UnsubscribeClient.tsx",
+    "sha256": "71e742edcbd97864bef11862628bbfe6f3a30e4f590af30497af78b145357c2a",
+    "bytes": 3111,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/unsubscribe/page.tsx",
+    "sha256": "c01e90beea5f74d4649125a7e4e63face6bad4a06c925aff408d9a83219b69b8",
+    "bytes": 1617,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/valorant-influencers-agency/page.tsx",
+    "sha256": "f8495336067c08ac8a2ed65dce950ac476c0c8b855116ec067696f15daafd468",
+    "bytes": 10514,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/components/cs2-lab/Cs2LabCard.tsx",
+    "sha256": "d4aa2f6933eaae468ddf13f52ebe76f6d0236d18de7ce6f05863847cbdfaddab",
+    "bytes": 9888,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/components/layout/Analytics.tsx",
+    "sha256": "9da751bde76fd6860f9013f0b3c91e5b0b7c7e99ae51f6589feaa38b249f5836",
+    "bytes": 1334,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/components/layout/ConsentedScripts.tsx",
+    "sha256": "52c220daf17b93da2887d51eb9a4f3749d90da3535944ddede51cf4ec93fa474",
+    "bytes": 1987,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/components/layout/CookieConsent.tsx",
+    "sha256": "4772ec2fa5cc7b19e077f28e1cf1a46575568fedcbe9609ecffa63b33e975417",
+    "bytes": 12271,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/components/layout/Footer.tsx",
+    "sha256": "a00f50db57e1f9a204bbc3dac59b3dbf57f54b394d948b33e1e15b12c6694e64",
+    "bytes": 20473,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/components/layout/LangSwitch.tsx",
+    "sha256": "1d5a1671dade93d97f3744836da8c24b8436ec7b3ce4c8e1cac38420a96783e7",
+    "bytes": 4238,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/components/layout/MotionRoot.tsx",
+    "sha256": "52e50b225f189d413e10b37eca8686b3904163772760a7c319565a9ff400f1fd",
+    "bytes": 1423,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/components/layout/Nav.tsx",
+    "sha256": "5b9f99b4d4029cd456fc5fb46915313f5c6c0c2f7edccaa8f3f645d49ed332ea",
+    "bytes": 9970,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/components/layout/PortalSidebar.tsx",
+    "sha256": "8b97146163308e756e541a6dcf4a767df21e63280b0aea7bfffbf9f43dfa2995",
+    "bytes": 8480,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/components/layout/PublicChrome.tsx",
+    "sha256": "7bcf869e62add3f27444dd5ac9a8fa0737d3e5fc1f3313a16e441671fc4af6e6",
+    "bytes": 3318,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/components/layout/TRPCProvider.tsx",
+    "sha256": "7929e8ed9a2327c6b6eef0e8705342ed8afb8725aa3d2c7bfc2951c39c57e43b",
+    "bytes": 998,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/components/layout/WhatsAppWidget.tsx",
+    "sha256": "3d6354b26373f5c024e3bde6dc2ea923f25dccc0f836734aa9e215ddd47662b3",
+    "bytes": 3121,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/components/layout/motion-features.ts",
+    "sha256": "b33086a2c85057c678f6fb6f332d18a7ba27144b69cda449e8c8d9fed0b46720",
+    "bytes": 863,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/components/partner/PartnerExternalNotice.tsx",
+    "sha256": "218ee92ed467d4ecc0d2d678703a036cf0a57271dc37d0201b367ca8ca6e4d21",
+    "bytes": 2904,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/components/rewards/RewardTypeBadge.tsx",
+    "sha256": "126497992b23f9d0a4234ab34dff21fe041dd2c5e22c0558bcf0f453286d55ef",
+    "bytes": 2426,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/components/tracking/PostViewTracker.tsx",
+    "sha256": "dec077b3d7ee4c3cd3cfd2e5964f57447cb783932a460d97ba3bb3e73240dd5b",
+    "bytes": 986,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/components/tracking/TalentViewTracker.tsx",
+    "sha256": "73da3e13eaf2afcd34d56f997e3f63d734c3c646a112c1a033f61ec06a4b8247",
+    "bytes": 1002,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/components/ui/AuthCard.tsx",
+    "sha256": "cfe7e5db753923b54c34d5892687b82fbdf342807f548d4a50026c0d6933757e",
+    "bytes": 2398,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/components/ui/AuthorByline.tsx",
+    "sha256": "bd4be81afc2cf939c3040dbd74e1b7604353e0989daf3562808868b167d336f6",
+    "bytes": 1255,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/components/ui/BrandLogo.tsx",
+    "sha256": "76196775bff933e1f3cbb22ab2fd68c5d6075c12cc588c86239116902fd0bb2d",
+    "bytes": 5376,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/components/ui/DeleteButton.tsx",
+    "sha256": "56425a34794847839c658114b29b1dba2950b5e20984b45e634b30da3641e8af",
+    "bytes": 680,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/components/ui/FadeInOnScroll.tsx",
+    "sha256": "63a652e2e10d5ddc044b6e0f507e1788e1e4c8be4d6d0ec6d90e9a15479c7457",
+    "bytes": 1320,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/components/ui/FilterTabs.tsx",
+    "sha256": "5df9665512ab40b496a564bb9c31a6a5f525df27790d1d070067b97b8cb98e1d",
+    "bytes": 1891,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/components/ui/GlossaryText.tsx",
+    "sha256": "442832ee9a15aba054f428cdbb079ea3cbb264ea264422ab6987371d7a76a130",
+    "bytes": 4439,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/components/ui/GradientText.tsx",
+    "sha256": "f90f2addeff68909b6c2da2a987dfc29e674d30389dbaf042bd21eb85b714d21",
+    "bytes": 546,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/components/ui/ResponsibleGamingFooter.tsx",
+    "sha256": "18c05ec6ffac64cbd3316fa168cfd3913eb272c9d0662756488ef187a4132c0e",
+    "bytes": 1545,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/components/ui/SectionHeading.tsx",
+    "sha256": "a87d66a43022ff1e07f372143dcb82c5ee4ab533c9bfbdd31e3944a129706ff0",
+    "bytes": 654,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/components/ui/SectionTag.tsx",
+    "sha256": "6b9999a98058291ff9bec4c2196bc5f928a046014b4dca3569b5f13ae7c782f3",
+    "bytes": 1303,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/components/ui/SocialIcon.tsx",
+    "sha256": "a6f25eccdc08dd489f957abef64d44685135586fd043f4f7520ea45102014bb5",
+    "bytes": 4535,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/components/ui/StaffLogin.tsx",
+    "sha256": "49626fb0b427abafb205ceb26c7402c9d0cb580da28f55810e944d00badec00d",
+    "bytes": 5451,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/components/ui/StatusBadge.tsx",
+    "sha256": "70089ea9dce99221dae8ec4f4edea4eff40859eb90cf197da43489e1ba17076d",
+    "bytes": 863,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/components/ui/StickyCtaMobile.tsx",
+    "sha256": "2ebeb22396d270ae43d4583f6fbfef5143e1bcc80b40097c10f984881f91d691",
+    "bytes": 2724,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/components/ui/TrackedCtaLink.tsx",
+    "sha256": "d4172b842806c7a925f7236df3c7f6e4d4f50fdb16646875985a903016856eb4",
+    "bytes": 920,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/components/ui/brand-bg-map.ts",
+    "sha256": "3c3a0127a9052c0d64b171276cb8fa1cb5f419e4513c42d0ace2387da251252a",
+    "bytes": 1704,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/components/ui/button.tsx",
+    "sha256": "9d228ca7eac0a65fe054d3954c24a645fe4029041844166a034422d9b493c6da",
+    "bytes": 3568,
+    "storage": "git-base-crlf"
+  }
+]

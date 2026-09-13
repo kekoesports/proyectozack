@@ -1,0 +1,242 @@
+[
+  {
+    "path": "src/lib/__tests__/server/studio-boundaries.test.ts",
+    "sha256": "0201c094472c4bc7e61a51408094a28237cd6393dac9bc9f3cc10b8a5d0fa4ca",
+    "bytes": 3454,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/__tests__/server/studio-host-routing.test.ts",
+    "sha256": "002ba97d2744611f543c9876317d7a111298f2fdc0983605679e62396167c818",
+    "bytes": 1971,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/__tests__/server/studio-motion-preview.test.ts",
+    "sha256": "2b0fafbe59f4495b70339719a0d7622929d883d997d20ec95d78d786556987b5",
+    "bytes": 2821,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/__tests__/server/studio-motion.test.ts",
+    "sha256": "896e6ded7a9fde1529b629c9ac436b3f2d67d471d1e862bceb11977f4430d790",
+    "bytes": 4787,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/__tests__/server/studio-production-boundaries.test.ts",
+    "sha256": "dd0c11139c309cc52ae8d2675dd2d0ebb288010095cd23c74dbe7d9358cb47e3",
+    "bytes": 3690,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/__tests__/server/studio-profile.test.ts",
+    "sha256": "ea9d4722c7d1b0c04e6bb25e2dd95927cf804c400a1a668d06b4bb72384ab7f3",
+    "bytes": 3407,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/__tests__/server/studio-upload-origin.test.ts",
+    "sha256": "80b7ee781dc9f91d817755ecc6cf6259fd2904deebc84e80e173d61165460991",
+    "bytes": 2751,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/__tests__/server/studio-verification-email.test.ts",
+    "sha256": "ae3bd0c84b540ecd2e30c47bb1ed8502bf855b833cbc9a6cf66773d9a653d7c7",
+    "bytes": 1893,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/actions/partner-consent-action.ts",
+    "sha256": "c082d9a517640a9fa37e3361d7bcafb29b8cec0be02d1936fdc6f1d7811b8ac9",
+    "bytes": 4748,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/admin-nav.ts",
+    "sha256": "10e346dfb29d59d72bfe0f4e72d61c1bc85b0d9b55d9ba02b6e4623244fe2f5a",
+    "bytes": 9598,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/lib/agency-socials.ts",
+    "sha256": "3bb98ccef02bba30bd1e03e8e3bd4cfbb45b1672b4842362e1b8c9c7747ccf82",
+    "bytes": 449,
+    "storage": "git-base"
+  },
+  {
+    "path": "src/lib/agency-videos.ts",
+    "sha256": "8efd0f28276fb7c5b6e3a33be65bdf080fd98310908744e02d7787b4162572d2",
+    "bytes": 1299,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/agents/action-hash.ts",
+    "sha256": "5123ad173444428983638effa353bf2de83830ec07b1f6f1034628e56f6f655f",
+    "bytes": 1883,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/agents/agent-loop.ts",
+    "sha256": "cc16ab328138a351510298c0d58ef07b59c7f1220aac8f282c03e2a68f05fcda",
+    "bytes": 10214,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/agents/approval-state.ts",
+    "sha256": "d64a9c58b8cc88194411115dd8aa729028ee9a4eee3192f00869a0b091c02cef",
+    "bytes": 4676,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/agents/budget.ts",
+    "sha256": "7827781ed2f83ca2c87fb714b59c0a197bd4fd3fee582ac7235ec5070dd33f07",
+    "bytes": 7299,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/agents/canonical-json.ts",
+    "sha256": "72faee887d6e87b51230ec8e12fbc9498e8c3938825262199b1ddb7e6acaafc8",
+    "bytes": 4178,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/agents/catalog.ts",
+    "sha256": "198bd2521dcb0fecaf8035c49b22c05372a6fde2354d470b39d6c86f30ee98f4",
+    "bytes": 5667,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/agents/erase-tool.ts",
+    "sha256": "6e4e27904da4e457c3defa2c618c75bd0646f82260d8027c9d2e913ef6d31f9d",
+    "bytes": 2660,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/agents/errors.ts",
+    "sha256": "e38e7cca9dae46d68ce76a4ecac33998ffcb943803a303e7db4b539902fe98f5",
+    "bytes": 895,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/agents/guardian/definition.ts",
+    "sha256": "9a78ee861539c0c0963cfd18189ad7fb874abd852e52919d4c78e610c5d36ab8",
+    "bytes": 3705,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/agents/guardian/prompt.ts",
+    "sha256": "89b85ee39a1f3cae9bcee5ffc1f78cd37b8b4f031b0db042fed34e1df02f9fa2",
+    "bytes": 3508,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/agents/guardian/report.ts",
+    "sha256": "931a6f8fc23c9541f2983fe3e56daf5636996ff50d650c5a370db15648a62122",
+    "bytes": 5930,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/agents/guardian/rules.ts",
+    "sha256": "79b7dd729f714c5672f9c9cb113ea6ede966ee89ff37b78eb190873c1173fcf3",
+    "bytes": 12730,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/agents/guardian/tools.ts",
+    "sha256": "0624ba34dd4a3f2226e9f160660fa9e20add256c27c348392e1d37a5c4eb4052",
+    "bytes": 6494,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/agents/keys.ts",
+    "sha256": "69188fb9c3434e07b86efa65142d504fcdc58977e58f0ca62a7f24a84f6c3ef7",
+    "bytes": 4214,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/agents/memory-scope.ts",
+    "sha256": "5f58b4e12d7d20474f9f396eed3309f3fd8548deec2d1b6c55cc9e70e393ad98",
+    "bytes": 3641,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/agents/memory.ts",
+    "sha256": "9aefa705f5f45a43dca84deb9a20cb10d511ec877e2c62af46e9679056b4ca2b",
+    "bytes": 3834,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/agents/model-provider.ts",
+    "sha256": "0adffe24640d5e3c7df756907bf7c89cf63825f8e95bec16d5dcc17e6d798417",
+    "bytes": 4592,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/agents/operations/definition.ts",
+    "sha256": "3001a186f87ae572175859b1e6aa682c91d18d31abbae33398bdb62a79e3a014",
+    "bytes": 2455,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/agents/operations/prompts.ts",
+    "sha256": "788dd8f20359330ab6a5ce1e5b5014e9730ac6d1a070c55278839cbda15aa35d",
+    "bytes": 2684,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/agents/operations/tools.ts",
+    "sha256": "43b3fd814ffa81e125e85920fdc8f6ce5d44b246ed21acaf8fb64d9388ab7d23",
+    "bytes": 10196,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/agents/policy.ts",
+    "sha256": "1be039a37365a63660cc52ef568ca18e3e0cd69e54d90f04bee996108d3feea4",
+    "bytes": 5613,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/agents/providers/fake-provider.ts",
+    "sha256": "1832893ced685aedaf3f6404563cd5114932c4de2787bb2c6b7e014bec1d87b9",
+    "bytes": 2032,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/agents/providers/gemini-provider.ts",
+    "sha256": "c1521fb2dbd950b26d45c2c7b2ac510b0eac7beaf64b70ef58e258dd3abb5bfa",
+    "bytes": 10665,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/agents/providers/index.ts",
+    "sha256": "8138c71206b8dc3c522f4bd0328b9242b27dff56553f5d5aa68a3947aa36058b",
+    "bytes": 1619,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/agents/providers/null-provider.ts",
+    "sha256": "662f2e454b2428a9cf0014ae02b21232bab0c0839fd13ae38668e741899d78c6",
+    "bytes": 950,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/agents/providers/xai-provider.ts",
+    "sha256": "1749090f400e7cdbfc4bffa4078aed0e8ca485d5f22b21a93658352798279c60",
+    "bytes": 8928,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/agents/redaction.ts",
+    "sha256": "aef641b3ae09c8e6bb7abbfb50926c3bba05c0ef1fb0ed35ac67960862c53e16",
+    "bytes": 6477,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/agents/run-state.ts",
+    "sha256": "b2c35ed5a2d57ef34cc6fc21660b4f525a2bac4500f5823c1c41d006884d0095",
+    "bytes": 5925,
+    "storage": "git-base-crlf"
+  }
+]

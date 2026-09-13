@@ -1,0 +1,17 @@
+'use client';
+import { useState, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
+import { importCrmPortrait } from '@/app/studio/library-actions';
+import { useStudioWorkspace } from './StudioWorkspaceContext';
+
+export function StudioCrmPhotoImport() {
+  const [rights, setRights] = useState(false), [message, setMessage] = useState('');
+  const [pending, startTransition] = useTransition();
+  const workspace = useStudioWorkspace(), router = useRouter();
+  return <div className="studio-library-reference"><label><input type="checkbox" checked={rights} onChange={event => setRights(event.target.checked)} /> Tengo permiso para usar esta foto del CRM en contenido.</label>
+    <button type="button" className="studio-secondary" disabled={!rights || pending} onClick={() => startTransition(async () => {
+      try { const result = await importCrmPortrait(rights, workspace); setMessage(result.ok ? 'Foto disponible en la biblioteca y en el editor.' : result.error); if (result.ok) router.refresh(); }
+      catch { setMessage('No se pudo importar la foto.'); }
+    })}>{pending ? 'Guardando foto…' : 'Añadir foto del CRM al editor'}</button><p role="status">{message}</p>
+  </div>;
+}

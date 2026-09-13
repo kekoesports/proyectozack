@@ -1,0 +1,5 @@
+import { z } from 'zod';
+export const StudioLibraryReference = z.object({
+  assetId: z.uuid(), kind: z.enum(['portrait', 'voice']), rightsConfirmed: z.literal(true),
+});
+export type StudioLibraryReference = z.infer<typeof StudioLibraryReference>;

@@ -1,0 +1,242 @@
+[
+  {
+    "path": "src/app/admin/(dashboard)/finanzas/gastos-operativos/page.tsx",
+    "sha256": "f4b8cb10be5e62581e77e9714030316753b13a1f35086bbcef6aa3755a65e71b",
+    "bytes": 1196,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/finanzas/herramientas/page.tsx",
+    "sha256": "0929ede74a8d2ccbaaf78966888e12c85fa8b774afbd5ee7e3b362c5de1965cf",
+    "bytes": 2376,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/finanzas/informes/page.tsx",
+    "sha256": "eb72af321a065bdc681307a9f9c53415ef9e18873aedac174e5f7c1eb610c9b4",
+    "bytes": 1183,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/finanzas/ingresos/gestor/page.tsx",
+    "sha256": "ddf34ce9b674bfd0cec4becf44ccb2d862bb83805b35da44e535fe045acba350",
+    "bytes": 496,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/finanzas/ingresos/page.tsx",
+    "sha256": "5086dbb7a125fcfc549d75a16a78969590f54e175a0c3b3249211fb470eea95f",
+    "bytes": 6374,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/finanzas/layout.tsx",
+    "sha256": "d7acbc6d8af23ccc15766c6dc017f7422d9578dcdaf47d81378ee7b8c74f0959",
+    "bytes": 297,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/finanzas/mes/page.tsx",
+    "sha256": "ce39da1a6719c9002ceae0582b6da49eb0ca82f5b0b3a6f396ede08887b49e4b",
+    "bytes": 1524,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/finanzas/nominas/importar/actions.ts",
+    "sha256": "0af2178756f31c10894c6e0618243c0fbcc899ea02907f7abed85327a6954df5",
+    "bytes": 7888,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/finanzas/nominas/importar/page.tsx",
+    "sha256": "9d6777a0462c43c27ac3a270f2a05a5f8d0ad6781a43c635a6cd0ebd106f519f",
+    "bytes": 1297,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/finanzas/nominas-creadores/page.tsx",
+    "sha256": "0eb6adde7256e51f72b7372368a6a0b09cb3f1d2e369b83531abf34b8b2401f3",
+    "bytes": 6450,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/finanzas/page.tsx",
+    "sha256": "9149097857edbecf658d749e5bf3c8f63d2b5ecc7997f49071ba5cf21870a720",
+    "bytes": 374,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/finanzas/pl/page.tsx",
+    "sha256": "2ffda4939e5b688e5b565012eaf5c8a045a845c30172dbbd8b094ee20f55041b",
+    "bytes": 6142,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/finanzas/rentabilidad/page.tsx",
+    "sha256": "2c01cf7d705abc85bbe7c6271b329e2a34294131100c24c6e2b085956dc6b128",
+    "bytes": 4833,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/finanzas/resumen/page.tsx",
+    "sha256": "8e5097cab31a2d1316108982abd981ecdc79b8b87cbba6546afb1e2b557c77b4",
+    "bytes": 6463,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/finanzas/salud/page.tsx",
+    "sha256": "3ea840171e4d3abb1b7f288bc45fa508f53d7a29589e4f7485e21f3e81eb2cc9",
+    "bytes": 1898,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/finanzas/setup-2026/actions.ts",
+    "sha256": "409437bd570c649f21357331a522a044a3fd0f919b538e029edddabe675fbc4b",
+    "bytes": 5034,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/finanzas/setup-2026/page.tsx",
+    "sha256": "8256ca98f72db0961941a6b8383a362ca796bf388821801a0ae6ef6ac58719de",
+    "bytes": 958,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/gastos/page.tsx",
+    "sha256": "86ca8456c0729528baa8a5a6425ddeeea122925fa3a06b678e0f94ec665657bd",
+    "bytes": 337,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/giveaways/BrandCatalogManager.tsx",
+    "sha256": "02c3c17b28bb4ac16a3f21c79ee55017bdfe66aae5c684936915412ae829920a",
+    "bytes": 8068,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/giveaways/BrandPicker.tsx",
+    "sha256": "1d4392e1021e0e336f44becc374d425a942102a213b855c0cce135f7e549cb5a",
+    "bytes": 3483,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/giveaways/BrandsTab.tsx",
+    "sha256": "bb359bddb314f5596d3736c81f944e2497bd614b553a0cc9193f62a4cbeb0990",
+    "bytes": 650,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/giveaways/CodesTab.tsx",
+    "sha256": "4203b9854d02ec4d3a49d5b0443b7710663dc48f0d3298d534713fcd183a3010",
+    "bytes": 1140,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/giveaways/CodesTable.tsx",
+    "sha256": "d04b012edb9924ada996348f89b78bda713c474f727eedd0d69ff7ac9dbbb8ad",
+    "bytes": 7861,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/giveaways/CreateCodeForm.tsx",
+    "sha256": "4e3a3080f67f8ac297a904eea1e8ab109b88036dd9fa9aa6e240958fd3bfea54",
+    "bytes": 13275,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/giveaways/CreateGiveawayForm.tsx",
+    "sha256": "ed7868f795a7f69ad1c3b8b0a7cd6aac1e098dd8d5975f9e9b3ad28bd331b94d",
+    "bytes": 8293,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/giveaways/CreateWinnerForm.tsx",
+    "sha256": "1bb13f7c89a6604674d9bd66b3ac86eb707c1e07d62caead5c0817c3112e197e",
+    "bytes": 2379,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/giveaways/DeleteConfirmButton.tsx",
+    "sha256": "bdaaa67087c6ae18782cfcb3b8a1fcdf96d3a8fd9026ac46de5925f446e982da",
+    "bytes": 2274,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/giveaways/EditCodeModal.tsx",
+    "sha256": "613abebf4dec5d8d02f0259a75ae466a613300643756069a595684c8f8a0e5e6",
+    "bytes": 9338,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/giveaways/EditGiveawayModal.tsx",
+    "sha256": "34adb60900cbdc7658a2f2988dc6a9dc89f8513577210ad751b41741cf2dd6eb",
+    "bytes": 11171,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/giveaways/GiveawaysDashboard.tsx",
+    "sha256": "e566295ec6e33449efb307c28935628cf2fb03784801483ad88ff7f0c947cb50",
+    "bytes": 5998,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/giveaways/GiveawaysTab.tsx",
+    "sha256": "24f7d9472b7eaabc16886211357142b0573fcfffdcca1021a0f1b6adf4a0d6c3",
+    "bytes": 13474,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/giveaways/PickWinnerButton.tsx",
+    "sha256": "3bdb98bbae3f43691ca5c381b49326389fbb4fbed51605059bbaa15ae308529f",
+    "bytes": 954,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/giveaways/StatsCards.tsx",
+    "sha256": "2e9aafe4af8b1f16830a4cf6a06361b09654c5874897ca995d5b24124ed6aad1",
+    "bytes": 4306,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/giveaways/WinnersTab.tsx",
+    "sha256": "15cb8bb938e11105de23f4c1160baad664d0018aca84607a511845ea51975617",
+    "bytes": 4206,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/giveaways/actions.ts",
+    "sha256": "757d5d6b76a5cc6dd51bc8bf20b90e8607ed43d038e2dd81bc8a16fe28d82010",
+    "bytes": 7297,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/giveaways/auditoria/AuditoriaFilters.tsx",
+    "sha256": "627f69731bb3f1da8aa33120396e8b0a7ddf41e2fa24f4cba2bb7ad8b86c6069",
+    "bytes": 6186,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/giveaways/auditoria/AuditoriaRow.tsx",
+    "sha256": "7be5f7b09610661c2605ea90872f22045440ee24b3ca157d4fb6baa9aac67158",
+    "bytes": 2970,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/giveaways/auditoria/page.tsx",
+    "sha256": "f1c5133a36bbb5588eeba89aacba8e8e33197c7716c9f0fbbfd0ce905660f9a5",
+    "bytes": 6354,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/giveaways/brand-actions.ts",
+    "sha256": "c651e66632b551aacfbda82a295a9d359f7a87f16fe10bfecbc41da006134835",
+    "bytes": 3459,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/app/admin/(dashboard)/giveaways/codes-actions.ts",
+    "sha256": "5fd630fdf170a515848d0b94d55332725bf2578e889d876e65a02952d5ecfc5e",
+    "bytes": 5714,
+    "storage": "git-base-crlf"
+  }
+]

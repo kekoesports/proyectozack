@@ -1,0 +1,242 @@
+[
+  {
+    "path": "src/features/news/components/NewsFilters.tsx",
+    "sha256": "d7396ddae6fda0f69cfb920af01aae441d97a25833e1188acd8361c83141ca53",
+    "bytes": 2582,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/news/components/NewsGrid.tsx",
+    "sha256": "d1708b4db484d305fe26dcb2623a0c216f0226ffcf29c08bbfa3ffd662c55b41",
+    "bytes": 1355,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/news/components/NewsHero.tsx",
+    "sha256": "2fa8a9b1aa47430030fbf1c1d87e5dc096c5296c50e0154bbcb90a610c9be0a8",
+    "bytes": 11079,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/news/components/NewsHubBottomBlocks.tsx",
+    "sha256": "61f3aa3cefccf7eab41fa38cb45db8958583376bfbc8746540ad5371b76b8c7c",
+    "bytes": 6716,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/news/components/NewsHubEditorialZone.tsx",
+    "sha256": "9e9c202b5942df8ab752926e0c3a08cc834092e140fa5661ee614a3761ca0de9",
+    "bytes": 12336,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/news/components/NewsHubSidebar.tsx",
+    "sha256": "a7d192598dd3ccb28fe8dcce9b76f626b680341b51ba56aaee2dbf3751e51720",
+    "bytes": 3161,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/news/components/NewsLatestModule.tsx",
+    "sha256": "4fd366881f248bf397efd48eeee7faf19578b10dfb209f5b0042ee9457d8c0ad",
+    "bytes": 7640,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/news/components/NewsletterPopup.tsx",
+    "sha256": "234bf59f8f40d2c787c782c5c83937b107dae633411019bd9ab812869c90075e",
+    "bytes": 8543,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/news/components/SorteosCtaCard.tsx",
+    "sha256": "8a0f5f2a8c601eaf9f9bfe06b8aeb63e66f1c61c9d3aff6d548a541dd82e7463",
+    "bytes": 1762,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/news/components/article-blocks/ArticleEmbedBlock.tsx",
+    "sha256": "67cd60695b612fa8fcd243a041728bde0f33861214d5d0a657362c8042376c5d",
+    "bytes": 5096,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/news/components/article-blocks/EditorialQuoteBlock.tsx",
+    "sha256": "6be27ea79d7f41f4d6c4c4e8a03c533b866efdeb8b68c15ea50c0356620152e4",
+    "bytes": 1718,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/news/components/article-blocks/InterleavedArticleBody.tsx",
+    "sha256": "06d65ac4b678673be1fa50aeffad8dc9cf7dc4780d09c427005c15e08984cf00",
+    "bytes": 3054,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/news/components/article-blocks/MatchContextBlock.tsx",
+    "sha256": "0d82277817287891bcb06583634f2a52a8eedb191f40079e7137af156bc37f7a",
+    "bytes": 5393,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/news/components/article-blocks/RosterBlock.tsx",
+    "sha256": "fa1de6ac43dbd9d6fc668679bccf470926c45fe4af394e2c3e330078d986c53d",
+    "bytes": 6073,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/news/components/article-blocks/types.ts",
+    "sha256": "47b5b5e4f85be6a3222ae00dc0bdf67fd468dc0a9a2466427e5c1266dbc9cd5a",
+    "bytes": 2890,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/news/live-bar/LiveBar.tsx",
+    "sha256": "04fc33fb7f70424ce0b3a6cc37655b18709be78430d2a82d15a6738cb2c24d73",
+    "bytes": 5727,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/news/live-bar/buildLiveBarItems.ts",
+    "sha256": "e6e6b5a77460368ee79c94b3dc50e1d84d9fceca7062460a6db568a650a77de5",
+    "bytes": 5214,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/news/live-bar/types.ts",
+    "sha256": "1eb89b1f408bc1d148e706cf92c1315efe1c1b0417fc0c101b435136df571128",
+    "bytes": 1494,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/news/live-page/components/Calendar7Days.tsx",
+    "sha256": "23bcffbe856060cdaa2ed789a8d0f93d76d2e15544936fc5c34e1f6346ca0035",
+    "bytes": 3873,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/news/live-page/components/LatestRosterMoves.tsx",
+    "sha256": "3940b69738a2768b77cf55db255f3206b95e0696344eaef20bff1cf4c9e2fd70",
+    "bytes": 4296,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/news/live-page/components/MatchesToday.tsx",
+    "sha256": "3243437fbecc21251e8da56b019e9ee08b20f667bd65f6f5da79af1dacac7c11",
+    "bytes": 5525,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/news/live-page/components/NewsLiveFilters.tsx",
+    "sha256": "f37aa8c5ac49401601c2e348ae6641809e09b2a31933f793ff37ccb224c8da1e",
+    "bytes": 3987,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/news/live-page/components/StreamsLiveGrid.tsx",
+    "sha256": "a0c78810975404c9700581af5f1d28096fad235d251c87995a58404f6daec5c5",
+    "bytes": 6431,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/news/live-page/data/seedCalendar.ts",
+    "sha256": "e359f194a59d5d2787edf57ed79f03b0ed24312d174d77e7c8a35b9e497f69c6",
+    "bytes": 2179,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/news/live-page/data/seedMatches.ts",
+    "sha256": "21d318f436e7f03173aa347ffa5890fbe91675b14ca0f1d4cf123d907fba947d",
+    "bytes": 3694,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/news/live-page/data/seedRosterMoves.ts",
+    "sha256": "c7cedfa234273acd07cd2647072d5900db1380f9a7b58bbf1bf60ee013ddefca",
+    "bytes": 1960,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/news/posts/9z-playoffs-astana-mouz.ts",
+    "sha256": "bd959267610c83a0465675ffdff29bf1d6709c178c2a1c1d5551b9662e751890",
+    "bytes": 1611,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/news/posts/gentle-mates-alex-astana.ts",
+    "sha256": "61f0a5b80d17f797d90e7bcff82638714a3299574e153977a0fcf008a308f97f",
+    "bytes": 2372,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/news/posts/gentle-mates-cambio-tono-astana.ts",
+    "sha256": "7642ff075daecb1ae348737a9c239e17d058fb58589c28c8b6b1daa45a0f3110",
+    "bytes": 2441,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/news/posts/index.ts",
+    "sha256": "699f729462944a3868b7f0b1e4c2e3ab19528695e8b6271de73a75e52529ff6d",
+    "bytes": 1535,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/features/studio/StudioAccessForm.tsx",
+    "sha256": "7a11a1313364d6bf8e54666006e5f082d12abb4c4d8635145225ef330f1792dd",
+    "bytes": 2322,
+    "storage": "git-base"
+  },
+  {
+    "path": "src/features/studio/StudioAgencyForms.tsx",
+    "sha256": "010b26d18b50c0d0224aded5fa3923555dd794a2439d96291b9ce86c2f0644c4",
+    "bytes": 4557,
+    "storage": "git-base"
+  },
+  {
+    "path": "src/features/studio/StudioAgencyRoster.tsx",
+    "sha256": "c9386f172920926d97fddac2172199f3956801f7fd1dcb2da189841a24fd480c",
+    "bytes": 2439,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/features/studio/StudioAssetUpload.tsx",
+    "sha256": "39abcbc111214c44dba1deeb9aebf10ff799e60e230339189067d8fe26e5bf7f",
+    "bytes": 2670,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/features/studio/StudioAuthCard.tsx",
+    "sha256": "4b00975b52872adc3bf85ff478652965d3736d153fcb2386ecf03ab83938d9e3",
+    "bytes": 465,
+    "storage": "git-base"
+  },
+  {
+    "path": "src/features/studio/StudioBrandWidgets.tsx",
+    "sha256": "d27722e8c7ee7703e02dd720837320a0dd421097e1ce2e029be1e0277688e570",
+    "bytes": 6090,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/features/studio/StudioChannelMetrics.tsx",
+    "sha256": "395357f27eedbebeb77941eb497f14fcde42888a3e3d8ae40f3d52c5e7b41166",
+    "bytes": 2388,
+    "storage": "git-base"
+  },
+  {
+    "path": "src/features/studio/StudioChat.tsx",
+    "sha256": "b096a1359595385aaa72ab6f7db0d1c4a679bd0e3e4870d471c094a0506aa1d0",
+    "bytes": 5169,
+    "storage": "git-base"
+  },
+  {
+    "path": "src/features/studio/StudioClipCuration.tsx",
+    "sha256": "fad75976332413645227c2a5d7bc19d1afcf3202f5a86720edb99a44705b6790",
+    "bytes": 10312,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/features/studio/StudioClipImport.tsx",
+    "sha256": "99fe857e4cd3399f2f068d071c193c8703998ea06ec035a8103ac17173774c99",
+    "bytes": 4298,
+    "storage": "overlay"
+  }
+]

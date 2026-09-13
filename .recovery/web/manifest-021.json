@@ -1,0 +1,242 @@
+[
+  {
+    "path": "src/__tests__/server/resendWebhook.test.ts",
+    "sha256": "4b3e4a827a2db211f7c6d669b41cfd913f371e1d86ac45dee3a02259e827dfa6",
+    "bytes": 1618,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/resendWebhookPersistence.test.ts",
+    "sha256": "0d3f8f8a8a4846ab92e39ce863387c9a8b862a3dd504091a9152a4b3983bdf06",
+    "bytes": 1859,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/resendWebhookRoute.test.ts",
+    "sha256": "81de7e47cff82956e779e4e1e33a91a793d9c15231c61ac8c62d4d59421b3a99",
+    "bytes": 4528,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/reset-staff-password.test.ts",
+    "sha256": "09e62494df817d44ebafc3b56ed995e077bae5abe91daa3a943428cc70173312",
+    "bytes": 3364,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/rewards-catalog.test.ts",
+    "sha256": "2b817eb07e3860dd927301ecdcb8ecac538c50cb8fd8a2e1e539dad40c2a2149",
+    "bytes": 13922,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/rewards-hub-copy.test.ts",
+    "sha256": "50302b029d51feae6808202265fd3c7fbfa5839f48bb19ad3b459be9b5c187d2",
+    "bytes": 3771,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/rewards-hub-queries.test.ts",
+    "sha256": "00497fda36559148d63ada94563bed3d052819a4e9879bf12482847b3671a3f5",
+    "bytes": 6818,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/rewards-unified-canjeable.test.ts",
+    "sha256": "8e0ae1eb3fb6fb2455a838c46eb06213e238283b1c7755146f6864f96e68fbbe",
+    "bytes": 10891,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/search-console-automation-route.test.ts",
+    "sha256": "91c0191b34a5dc6d3521d1095fc5f53ae3e6f5dc4a18dcb8b69c9d16b60b337a",
+    "bytes": 2580,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/search-console-indexability.test.ts",
+    "sha256": "4c93118ad310a34c0aaff4a75d542d93fbae970e6f82e86bba64bae80a3eed1d",
+    "bytes": 1256,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/security-audit.test.ts",
+    "sha256": "0829e206cb2c69f841d9ce35868277dbe22077938bd2aa62913cfd3331715e92",
+    "bytes": 16076,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/security-hardening-pr-b.test.ts",
+    "sha256": "6bc639b55fdbcde6bb62358d2cea7d4502921fbb4a7ed2b27959797f4d875984",
+    "bytes": 4759,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/sendResendEmail.test.ts",
+    "sha256": "18a9951db185924570bb3b99e73d629791d1f53aa39f1e3154a5b8d79b48604c",
+    "bytes": 5987,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/sensitive-copy-allowlist.test.ts",
+    "sha256": "25bbed1c22809a18c2b42f54d7ec60b9f386770ae6cd2d7f38ee8444a7672cf5",
+    "bytes": 5304,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/sentryPrivacy.test.ts",
+    "sha256": "acd6623c612785daeb71226b5998533b793a51a564fcff2f69b784516f8329d5",
+    "bytes": 1024,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/setup2026-generator.test.ts",
+    "sha256": "921af23b9533f7a5f57406b2b35d041b6f6ad2c2e983254168dfdf632d46f2cd",
+    "bytes": 7086,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/sheet-evidence-validity.test.ts",
+    "sha256": "c6821a68a7417c37590eb476985a95a33259379467b2e6516ba8df42361e2270",
+    "bytes": 3063,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/shop-enhancement.test.ts",
+    "sha256": "2eb029c3d7a22d00ade2a37548828dc6bbf5257416392cf1b6c505ab9665cd16",
+    "bytes": 3730,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/sign-action.test.ts",
+    "sha256": "acc2c5747b6c205eede7cda3a8deeb001864d2f2695d57940ea3d593ec34c214",
+    "bytes": 6263,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/site-url.test.ts",
+    "sha256": "4d124ea6437ff91dcaad540a81d794493751c29ce4891da9aa5488d22c515377",
+    "bytes": 2836,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/slash-client.test.ts",
+    "sha256": "e427913f1e7139bb14ad6db0c4324913a6903a2495131f04a871a1f88ebe1033",
+    "bytes": 1921,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/social-missions-audit-doc.test.ts",
+    "sha256": "c358bf27211dd56a1cc2ccf3b0921782c52a07477748fd6b3f218c458845e29f",
+    "bytes": 10177,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/social-missions-coming-soon.test.ts",
+    "sha256": "e02c66abd9a6b20ad58879f67b721a5df9df90779bd130f48881233329998e5f",
+    "bytes": 11534,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/social-missions-ux-polish.test.ts",
+    "sha256": "cd0694b7cf0f505d3ff3ea42cd457e70bbd8c4f991c1c12faa7ac8eb36476bc7",
+    "bytes": 6813,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/social-preview-square-icon.test.ts",
+    "sha256": "ba93a792103e8a2164941c20ef4838e2ec6eca3d61fa4cf557f78540e2f7cf2d",
+    "bytes": 5460,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/social-profile-url.test.ts",
+    "sha256": "15670c23e3ddcf306e792ac27a9a06bcc674f002e7a3b99c62eba8d1a4b0531a",
+    "bytes": 3336,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/socialpro-blocks.test.ts",
+    "sha256": "439c15c8b6a43ad11e3563d9a54d03dbda99fd796520a5cc63b4cb7a5314cf15",
+    "bytes": 16237,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/socialpro-prizes-catalog.test.ts",
+    "sha256": "b27c85e7cb186f675214a821925ae946735219a965331376b1a53fa8a15ddbe9",
+    "bytes": 10071,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/sorteos-audit-permissions.test.ts",
+    "sha256": "0470e1a7f665d3058651f8ed725e520e63ed74d9d0e28f5c0459cdea9a1c73c6",
+    "bytes": 2289,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/sorteos-audit-redact-metadata.test.ts",
+    "sha256": "86cb1c69db34269afda45d171c9c904ab09e82586de9c6ff4c133ede70aa0f1a",
+    "bytes": 4362,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/sorteos-auditoria-page-guard.test.ts",
+    "sha256": "a89df3b0db3b35b637e703cb4a2f6001d40f69a69c785d01ce12d18871bb734a",
+    "bytes": 2247,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/sorteos-creator-typo-redirects.test.ts",
+    "sha256": "ae2efb7a18ab8c7500d39b203eaf358553bc3775af9fd1168d8af61ee5c1e317",
+    "bytes": 3870,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/sorteos-fase1-pr2-no-migration.test.ts",
+    "sha256": "a2f3058e281983886d4d4f5255e5996d7fd4719ddad4869f71b1be8c398241d2",
+    "bytes": 1188,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/sorteos-mobile-responsive.test.ts",
+    "sha256": "194dcbf56a6828c9743bd577d2f04b15c7d049be1964202f5f48e77ba4c70362",
+    "bytes": 7666,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/sorteos-public-routes.test.ts",
+    "sha256": "162281cf8e703f184c8da624718778b0df3cc0c502ed5aa76d4d700fc0424bf5",
+    "bytes": 10118,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/staff-visibility.test.ts",
+    "sha256": "604ebea977495411401c2f49dcd9b643c735944307000f04ef74eb3c795b9495",
+    "bytes": 1640,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/steam-openid.test.ts",
+    "sha256": "176689b3f4d1baddf0d85a17c71e7c63b229151dcded917a9aa46f6df787eb1d",
+    "bytes": 7127,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/steam-plugin-integration.test.ts",
+    "sha256": "7761fc7a59a4daf61dc3f18e2c633d7e8336cc3831767c64f11b736f1fdeb79b",
+    "bytes": 7285,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/steam-plugin-return-to.test.ts",
+    "sha256": "35ab7dab3e59dbf5fb196a36876690fd858779a7e06199a9e105bd4c83b953e2",
+    "bytes": 5406,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/__tests__/server/steam-profile.test.ts",
+    "sha256": "b2e3518c5cbe2e885a92b6e59dd1fd2513e5bc4bc8b128c55cb61bf3429b858b",
+    "bytes": 3686,
+    "storage": "git-base-crlf"
+  }
+]

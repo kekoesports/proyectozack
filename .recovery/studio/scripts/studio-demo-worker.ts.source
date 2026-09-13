@@ -1,0 +1,20 @@
+/** CPU worker: shared local volume OR private Blob + dedicated local scratch. Never launches the game. */
+import { db, closeDbPool } from '../src/lib/db';
+import { env } from '../src/lib/env';
+import { runDemoJob } from '../src/lib/studio/demo-worker';
+import { configuredDemoStorage, demoUploadStorageConfig } from '../src/lib/studio/demo-storage-config';
+
+async function main() {
+  const config = demoUploadStorageConfig();
+  if (!config || !env.STUDIO_DEMO_ROOT || !env.STUDIO_DEMO_PARSER_BIN) throw new Error('disabled');
+  const storage = configuredDemoStorage(config);
+  let running = true;
+  process.once('SIGINT', () => { running = false; }); process.once('SIGTERM', () => { running = false; });
+  do {
+    const worked = await runDemoJob(db, env.STUDIO_DEMO_ROOT, env.STUDIO_DEMO_PARSER_BIN, undefined, storage);
+    if (worked) console.log('Studio: análisis de demo procesado; consulta su estado privado.');
+    if (process.argv.includes('--once')) break;
+    if (!worked) await new Promise<void>((done) => setTimeout(done, 5000));
+  } while (running);
+}
+main().catch(() => { console.error('Studio: analizador detenido de forma segura.'); process.exitCode = 1; }).finally(closeDbPool);

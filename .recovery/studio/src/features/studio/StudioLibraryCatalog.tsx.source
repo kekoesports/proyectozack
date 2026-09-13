@@ -1,0 +1,41 @@
+'use client';
+
+import { useState, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
+import { setStudioLibraryReference } from '@/app/studio/library-actions';
+import { StudioMedia, type StudioMediaAsset } from './StudioMedia';
+import { useStudioWorkspace } from './StudioWorkspaceContext';
+
+const filters = [{ id: 'all', label: 'Todo' }, { id: 'image/', label: 'Fotos' }, { id: 'audio/', label: 'Voces y audio' }, { id: 'video/', label: 'Vídeos' }];
+function ReferenceButton({ asset, selected, name }: { asset: StudioMediaAsset; selected: boolean; name: string }) {
+  const [confirmed, setConfirmed] = useState(false), [message, setMessage] = useState('');
+  const [pending, startTransition] = useTransition();
+  const workspace = useStudioWorkspace(), router = useRouter();
+  const kind = asset.contentType.startsWith('audio/') ? 'voice' : 'portrait';
+  return <div className="studio-library-reference">
+    {selected ? <p className="studio-badge">{kind === 'voice' ? 'Voz de referencia guardada' : 'Retrato de referencia guardado'}</p> : <>
+      <label><input type="checkbox" checked={confirmed} onChange={e => setConfirmed(e.target.checked)} /> Confirmo que {kind === 'voice' ? 'esta voz' : 'este retrato'} es de {name} y tengo permiso para usarlo como referencia.</label>
+      <button type="button" className="studio-secondary" disabled={!confirmed || pending} onClick={() => startTransition(async () => {
+        try { const result = await setStudioLibraryReference({ assetId: asset.id, kind, rightsConfirmed: confirmed }, workspace);
+          setMessage(result.ok ? 'Referencia guardada. No se ha generado ni entrenado ningún modelo.' : result.error);
+          if (result.ok) router.refresh();
+        } catch { setMessage('No se pudo guardar. Vuelve a intentarlo.'); }
+      })}>{pending ? 'Guardando…' : kind === 'voice' ? 'Usar como voz de referencia' : 'Usar como retrato'}</button>
+    </>}
+    <p role="status">{message}</p>
+  </div>;
+}
+export function StudioLibraryCatalog({ assets, name, portraitId, voiceId }: {
+  assets: StudioMediaAsset[]; name: string; portraitId: string | null; voiceId: string | null;
+}) {
+  const [filter, setFilter] = useState('all');
+  const visible = assets.filter(asset => filter === 'all' || asset.contentType.startsWith(filter));
+  return <section aria-label={`Biblioteca de ${name}`}>
+    <div className="studio-library-filters" aria-label="Tipo de recurso">{filters.map(item => <button type="button" key={item.id} className="studio-secondary" aria-pressed={filter === item.id} onClick={() => setFilter(item.id)}>{item.label} · {assets.filter(a => item.id === 'all' || a.contentType.startsWith(item.id)).length}</button>)}</div>
+    <div className="studio-media-grid">{visible.map(asset => <article key={asset.id}>
+      <StudioMedia asset={asset} />
+      {(asset.contentType.startsWith('image/') || asset.contentType.startsWith('audio/')) && <ReferenceButton asset={asset} name={name} selected={asset.id === portraitId || asset.id === voiceId} />}
+    </article>)}</div>
+    {!visible.length && <p>Aún no hay recursos de este tipo. Añade fotos, clips o una grabación autorizada de {name}.</p>}
+  </section>;
+}

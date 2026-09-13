@@ -1,0 +1,242 @@
+[
+  {
+    "path": "src/lib/queries/adminRedemptions.ts",
+    "sha256": "cedac71ae208ae8cc2de00dfd857115b2007bf18e02af08f695bd474c09a5160",
+    "bytes": 518,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/agencyCreators.ts",
+    "sha256": "d4c5db13d4d54829104cfee9ed14eace0ec774cbfaae47a4c7e382bf186dd3a1",
+    "bytes": 505,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/agendaItems.ts",
+    "sha256": "d65903dddf6da17980cbdbd76f1e8d3daf6c577f9fda24c74f96ce2bf23bff04",
+    "bytes": 738,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/agents/admin.ts",
+    "sha256": "711fedb37bf0741898a82919b14f728d83b9252137fcc2857587a8bbc7a811ce",
+    "bytes": 11127,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/agents/approvals.ts",
+    "sha256": "8616eb4d78d5d838fbda26b411cc1dfde8b5dc5ded7d9658e41c0ced09f98de1",
+    "bytes": 7081,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/agents/definitions.ts",
+    "sha256": "7958f2e6a0868f4ad867b3ccec0f27be69b2b793242a0b8e9152f012476d92b5",
+    "bytes": 2243,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/agents/events.ts",
+    "sha256": "9d1043d254701979ec080277baff072ec896d4e6eb5919bf53afc7fd38582e88",
+    "bytes": 3986,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/agents/memories.ts",
+    "sha256": "5f41c96937789880a84ede49e5a0894c3855ac3916b7b31e72832560c3b59868",
+    "bytes": 4759,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/agents/resume.ts",
+    "sha256": "ddc11da61f703193bea87a51d2af12bab6912058daacc675971cdd3007ac151f",
+    "bytes": 6796,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/agents/runs.ts",
+    "sha256": "667f15a21c1c6e96066edffd30f807ae7ac1adeb31d788a5dbd31bb58010567b",
+    "bytes": 6167,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/agents/schedules.ts",
+    "sha256": "b82cc520fbe82f41096d06679a59e5af7adaaef8d9ee53e55076d160dd2ea5b8",
+    "bytes": 3983,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/agents/steps.ts",
+    "sha256": "11f14ea676d4e82954de8909890deeeb4f8408e7157d3d563ebbd400f4af987c",
+    "bytes": 3388,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/agents/toolCalls.ts",
+    "sha256": "ce6dc632e0046a156a2330f34f8cc08b7ba99054305ef285536bc6942464299e",
+    "bytes": 3839,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/agents/usage.ts",
+    "sha256": "4409219f4dbe5da8b20bcf415195652e913a3d4eee511b1b71612fca825f1df4",
+    "bytes": 5037,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/agents/workers.ts",
+    "sha256": "83351b52ad71a27764e654118ed4c63e52402ac085b6b140665f0cbf3246e609",
+    "bytes": 3261,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/aiAssistant.ts",
+    "sha256": "ebf574557df24163f36fbf38ed2d98a78608f6fc989eea0d6265d7fad855c48b",
+    "bytes": 3894,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/alerts.ts",
+    "sha256": "b32c48cbd715a9f242b459d4e300756d28507312ad63d764e3a2da547eabde7f",
+    "bytes": 26879,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/analytics.ts",
+    "sha256": "7a45a3d586486a43fa4f387822243be54a093d757baaa3a9d56b21f50a2df1b4",
+    "bytes": 12732,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/automationDealDigest.ts",
+    "sha256": "751412278d746ad72da35382cfc1aec28c49cdde61b9ca4d430e72768b0798bb",
+    "bytes": 16341,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/automationDealDrafts.ts",
+    "sha256": "deba8557883215d3c2409eaa5c9b6abf9c4c731f42610c189a2567b293bc0c7d",
+    "bytes": 12704,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/automationDeals.ts",
+    "sha256": "eadc1123dddc711f4ff7771cef5e1a28ff18885cb718c02a7c1d00ca6ddf781b",
+    "bytes": 17804,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/automationDiscordDealNotifications.ts",
+    "sha256": "f2d31bcbbd8f89ef3cbe9eb639a66fc97ba5fc2c7ea84f692db05e015eeec6b3",
+    "bytes": 4317,
+    "storage": "overlay"
+  },
+  {
+    "path": "src/lib/queries/automationTelegramRefills.ts",
+    "sha256": "1fac30b05dabca482a4ecfcd1b1973a6dc473fa8fcb7ea7f5be61988e485e65f",
+    "bytes": 2771,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/bankReconciliation.ts",
+    "sha256": "a072f5a8a1f36af167ab3cf7d1bcbffea552ad4f99dec1b30234948d190e1b60",
+    "bytes": 31833,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/bankReconciliationCandidates.ts",
+    "sha256": "3ffdd4ac7c3be04c46cb064dca15026daa26bf7afeecf92dc5fd21a78962af4d",
+    "bytes": 7394,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/bankReconciliationMatched.ts",
+    "sha256": "6c14a1dfb2a09cdb9e45c48adfac991897d04393a5052144734d62a37349457e",
+    "bytes": 9102,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/brand-sheet-sources.ts",
+    "sha256": "a4e540bced6bf1751b88d9edf0e859b1ed8d0a6539c95bfa3a15a493aeb0fc7e",
+    "bytes": 5605,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/brandBriefs.ts",
+    "sha256": "0072149165e8c6860500b4302b2722b6a75e5589ac25035a7af7a04e3a16fc5d",
+    "bytes": 2597,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/brandUsers.ts",
+    "sha256": "2017a34c169d402d2467ee6d4668773c25638a29f49cfe79d197f838d4deec90",
+    "bytes": 695,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/brands.ts",
+    "sha256": "6da80c409e389678692a59c03b19778416586cf3b3a2a1572ad47cc5840a150c",
+    "bytes": 2181,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/campaign-deliverables-sync.ts",
+    "sha256": "dc52a2cdf6e740fca691957d9d7b473a05ed598a42e360e5dfe7cee3179e9d90",
+    "bytes": 7428,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/campaign-sheet-aggregation.ts",
+    "sha256": "d2a2bf98a515d8af6b8339edb02bbfbddf2fc090daca412489b9cf318ce8e2cf",
+    "bytes": 6446,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/campaign-sheet-evidence.ts",
+    "sha256": "baa138dce33800fe62a09951fdb2cc9fc96302b79bd4ee13133f76918ac9aa6e",
+    "bytes": 6903,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/campaign-sheet-sync.ts",
+    "sha256": "a39a17130d9b54e5562bf67b5759153d557ed2bd1fdf4021f2edd1d60afe0c32",
+    "bytes": 13596,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/campaignSplits.ts",
+    "sha256": "5ae7b073e207edb7432099468db1c33d3553ca2665e5c9ed8cf7d153f7880f98",
+    "bytes": 3483,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/campaigns.ts",
+    "sha256": "5724c7c0094539ebae68ac3434140f1ab075fe57ea22980791bae16d12d86bad",
+    "bytes": 26518,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/cases.ts",
+    "sha256": "7fdb3b164d3c4b7c30604044401ec5c12d1d5e257a83b6b3e7cd004003bb7732",
+    "bytes": 3666,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/codeAnalytics.ts",
+    "sha256": "6057f6162fbc04d6b641673980783571f3eb54f5c7d590a813bf632ea1924c3c",
+    "bytes": 1664,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/connectedSocialAccounts.ts",
+    "sha256": "614d7c3674e66d0d3b2ace84aca1f1043e7aa62f34f982f65b5d4bc42566bd8d",
+    "bytes": 3623,
+    "storage": "git-base-crlf"
+  },
+  {
+    "path": "src/lib/queries/content.ts",
+    "sha256": "82ce5ea5354c57ab3d5394644a9998381f315e68ad1a0c5ed1177156ca28d99e",
+    "bytes": 1587,
+    "storage": "git-base-crlf"
+  }
+]
