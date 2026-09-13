@@ -150,7 +150,7 @@ def pause(paused=True):
     print(json.dumps({'processing_paused':paused,'durable_reception_preserved':True}))
 
 def refresh_worker():
-    previous=WORKER+'-previous-20260913'
+    previous=WORKER+'-previous-'+datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%dT%H%M%S')
     cutoff=datetime.datetime.fromtimestamp((ROOT/'session-before-activation.json').stat().st_mtime,datetime.timezone.utc).isoformat(timespec='milliseconds').replace('+00:00','Z')
     run(['docker','stop','--time','30',WORKER])
     run(['docker','rename',WORKER,previous])
@@ -199,7 +199,9 @@ def main():
               overrides={'CREATOR_INTAKE_WHATSAPP_CHATS':scope},
               command=['node','--conditions=react-server','--import','tsx','infra/contact-register/worker.mjs'])
         except Exception:
-            run(['docker','start','socialpro-contact-register']); raise
+            # The previous writer was already failing readback. Preserve it stopped;
+            # restarting it would resume ambiguous writes, not restore a healthy service.
+            raise
         print('Contact register replacement started; inspect persisted readback evidence')
     elif phase=='activate': activate()
     elif phase=='pause': pause()
