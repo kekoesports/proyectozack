@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { CONTACT_PHONE_DISPLAY } from '@/lib/utils/constants';
 import { safeJsonLd } from '@/lib/safeJsonLd';
 import Link from 'next/link';
 import { absoluteUrl, SITE_URL } from '@/lib/site-url';
@@ -54,7 +55,7 @@ export default function AvisoLegalPage() {
                     marketing@socialpro.es
                   </a>
                 </li>
-                <li><strong>Teléfono:</strong> +34 604 868 426</li>
+                <li><strong>Teléfono:</strong> {CONTACT_PHONE_DISPLAY}</li>
                 <li><strong>Actividad:</strong> Agencia de representación de talentos y creadores de contenido en los sectores gaming y esports. Gestión de campañas con marcas, sorteos y contenido editorial.</li>
               </ul>
             </section>

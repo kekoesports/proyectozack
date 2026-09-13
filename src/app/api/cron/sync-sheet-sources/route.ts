@@ -37,7 +37,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
   try {
     const trackers = await db
-      .select({ id: dealDeliverableTrackers.id })
+      .select({ id: dealDeliverableTrackers.id, sourceId: dealDeliverableTrackers.brandSheetSourceId })
       .from(dealDeliverableTrackers)
       .where(isNotNull(dealDeliverableTrackers.brandSheetSourceId));
 
@@ -103,18 +103,23 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       }
     }
 
-    // Actualizar `lastSyncedAt` solo para las sources activas (mismo comportamiento previo).
-    // Esto es un set de UPDATEs a DB, no toca Google.
+    // A source is fresh only if every one of its trackers completed successfully.
+    // Preserve the previous successful timestamp on partial or failed reads.
     const activeSources = await db
       .select({ id: brandSheetSources.id })
       .from(brandSheetSources)
       .where(eq(brandSheetSources.status, 'active'));
 
-    await Promise.allSettled(
-      activeSources.map((s) =>
-        updateSheetSourceTimestamps(s.id, { lastSyncedAt: new Date() }),
-      ),
-    );
+    const completedSources = activeSources.filter((source) => {
+      const indexes = trackers.flatMap((tracker, index) => tracker.sourceId === source.id ? [index] : []);
+      return indexes.length > 0 && indexes.every((index) => {
+        const result = settled[index];
+        return result?.status === 'fulfilled' && result.value.outcome === 'ok';
+      });
+    });
+    await Promise.all(completedSources.map((source) =>
+      updateSheetSourceTimestamps(source.id, { lastSyncedAt: new Date() }),
+    ));
 
     const total = trackers.length;
     console.log('[sync-sheet-sources] done', {
@@ -128,13 +133,13 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     });
 
     return NextResponse.json({
-      success: true,
+      success: failed === 0 && rateLimited === 0,
       total,
       ok,
       failed,
       rate_limited: rateLimited,
       inserted,
-    });
+    }, { status: failed === 0 && rateLimited === 0 ? 200 : 503 });
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'Unknown error';
     console.error('[sync-sheet-sources] fatal:', msg);

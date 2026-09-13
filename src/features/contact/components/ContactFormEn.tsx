@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { CONTACT_PHONE_DISPLAY, WA_HREF } from '@/lib/utils/constants';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
@@ -39,7 +40,7 @@ const TIMELINE_OPTIONS_EN = [
 const INFO_CARDS = [
   {
     title: 'Reply within 24 hours',
-    desc: 'No bots, no auto-responders. A real person reads every enquiry and follows up the same business day.',
+    desc: 'Our team reviews every enquiry and helps you find the right next step. You can ask to speak with a person at any time.',
   },
   {
     title: 'No commitment',
@@ -102,7 +103,7 @@ export function ContactFormEn({ defaultValues }: { readonly defaultValues?: Part
               <h3 className="font-display text-lg font-black uppercase mb-2">Other channels</h3>
               <ul className="space-y-2 text-sm text-white/60">
                 <li>Email: <a href="mailto:marketing@socialpro.es" className="text-sp-orange hover:underline">marketing@socialpro.es</a></li>
-                <li>WhatsApp: <a href="https://wa.me/34604868426" target="_blank" rel="noopener noreferrer" className="text-sp-orange hover:underline">+34 604 868 426</a></li>
+                <li>WhatsApp: <a href={WA_HREF} target="_blank" rel="noopener noreferrer" className="text-sp-orange hover:underline">{CONTACT_PHONE_DISPLAY}</a></li>
               </ul>
             </div>
           </div>

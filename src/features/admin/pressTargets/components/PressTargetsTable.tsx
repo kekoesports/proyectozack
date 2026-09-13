@@ -22,6 +22,13 @@ const STATUS_META: Record<PressTargetOutreachStatus, { label: string; color: str
   descartado: { label: 'Descartado', color: 'border-zinc-500/40 text-zinc-400'     },
 };
 
+const COST_LABELS: Record<PressTarget['costModel'], string> = {
+  'gratuito-editorial': 'Propuesta editorial gratuita',
+  'gratuito-autopublicacion': 'Autopublicación gratuita',
+  pago: 'De pago',
+  desconocido: 'Coste pendiente de verificar',
+};
+
 type CategoryFilter = PressTargetCategory | 'all';
 type StatusFilter = PressTargetOutreachStatus | 'all';
 
@@ -41,7 +48,7 @@ export function PressTargetsTable({ items }: { items: PressTarget[] }): React.Re
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>('all');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
-  const [freeOnly, setFreeOnly] = useState(true);
+  const [freeOnly, setFreeOnly] = useState(false);
   const [, startTransition] = useTransition();
 
   const filtered = useMemo(() => {
@@ -66,7 +73,7 @@ export function PressTargetsTable({ items }: { items: PressTarget[] }): React.Re
   if (items.length === 0) {
     return (
       <div className="rounded-lg border border-sp-admin-border bg-sp-admin-card p-8 text-center text-sm text-sp-admin-muted">
-        Sin entradas todavía. Ejecuta <code className="text-sp-admin-text">/socialpro-press-targets</code> en Claude, valida candidatos en <code className="text-sp-admin-text">~/.claude/skills/socialpro-press-targets/targets.md</code> moviéndolos a las secciones <code className="text-sp-admin-text">## Curados —</code>, y haz <code className="text-sp-admin-text">git push</code> — el hook sincroniza esta tabla.
+        Todavía no hay medios guardados. Aquí aparecerán las oportunidades de prensa y sus propuestas.
       </div>
     );
   }
@@ -123,7 +130,7 @@ export function PressTargetsTable({ items }: { items: PressTarget[] }): React.Re
               <th className="text-left px-3 py-2 font-semibold">Nombre</th>
               <th className="text-left px-3 py-2 font-semibold">Categoría</th>
               <th className="text-left px-3 py-2 font-semibold">Región</th>
-              <th className="text-left px-3 py-2 font-semibold">Submission</th>
+              <th className="text-left px-3 py-2 font-semibold">Contacto y propuesta</th>
               <th className="text-left px-3 py-2 font-semibold">Encaje</th>
               <th className="text-left px-3 py-2 font-semibold">Estado</th>
               <th className="text-left px-3 py-2 font-semibold">Validado</th>
@@ -150,6 +157,12 @@ export function PressTargetsTable({ items }: { items: PressTarget[] }): React.Re
                 <td className="px-3 py-2 align-top text-sp-admin-text">{it.region}</td>
                 <td className="px-3 py-2 align-top text-sp-admin-text font-mono text-xs break-all max-w-[260px]">
                   <p className="font-sans text-sp-admin-muted">{it.submission}</p>
+                  {it.notes && (
+                    <details className="mt-3 min-w-64 max-w-lg font-sans text-sm">
+                      <summary className="cursor-pointer font-semibold text-sp-admin-accent">Ver preparación y notas</summary>
+                      <div className="mt-2 whitespace-pre-wrap break-words leading-relaxed">{it.notes}</div>
+                    </details>
+                  )}
                   <div className="mt-2 flex flex-wrap gap-2">
                     {it.contactEmail && (
                       <a
@@ -168,7 +181,7 @@ export function PressTargetsTable({ items }: { items: PressTarget[] }): React.Re
                 </td>
                 <td className="px-3 py-2 align-top">
                   <span className="rounded-full bg-emerald-500/10 px-2 py-1 text-xs font-bold text-emerald-300">{it.fitScore}/100</span>
-                  <p className="mt-2 text-[11px] text-sp-admin-muted">Editorial · gratuito</p>
+                  <p className="mt-2 text-[11px] text-sp-admin-muted">{COST_LABELS[it.costModel]}</p>
                 </td>
                 <td className="px-3 py-2 align-top">
                   <select

@@ -1,0 +1,1 @@
+ALTER TABLE "intake_inbox" ADD COLUMN "sequence" bigserial NOT NULL;

@@ -1,3 +1,4 @@
+import { cronMaintenanceSchema } from '@/lib/schemas/cron-maintenance';
 import { NextRequest, NextResponse } from 'next/server';
 import { createHash } from 'crypto';
 import { db } from '@/lib/db';
@@ -103,16 +104,14 @@ async function fetchGroup(apiKey: string, group: Group): Promise<NewsDataArticle
   });
 
   if (!res.ok) {
-    console.warn(`[sync-news-alerts] NewsData HTTP ${res.status} for group ${group.key}`);
-    return [];
+    throw new Error(`NewsData HTTP ${res.status} for group ${group.key}`);
   }
 
   // safe: input comes from NewsData.io API, validated by shape checks below
   const data = await res.json() as NewsDataResponse;
 
   if (data.status !== 'success') {
-    console.warn(`[sync-news-alerts] NewsData error for ${group.key}:`, data.message);
-    return [];
+    throw new Error(`NewsData rejected group ${group.key}`);
   }
 
   return data.results ?? [];
@@ -147,8 +146,8 @@ async function upsertArticle(article: NewsDataArticle, group: Group): Promise<bo
     // rows.length === 0 → conflicto (ya existía), no insertado
     return rows.length > 0;
   } catch (err) {
-    console.warn('[sync-news-alerts] upsert failed:', err);
-    return false;
+    console.warn('[sync-news-alerts] article persistence failed');
+    throw err;
   }
 }
 
@@ -157,6 +156,8 @@ async function upsertArticle(article: NewsDataArticle, group: Group): Promise<bo
 export async function GET(req: NextRequest): Promise<NextResponse> {
   const authError = assertCronAuth(req);
   if (authError) return authError;
+  const parsed = cronMaintenanceSchema.safeParse({ maintenance: req.nextUrl.searchParams.get('maintenance') ?? undefined });
+  if (!parsed.success) return NextResponse.json({ success: false, error: 'Invalid maintenance option' }, { status: 400 });
 
   const apiKey = env.NEWSDATA_API_KEY;
   if (!apiKey) {
@@ -166,26 +167,35 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
   const results: Record<string, number> = {};
   let totalInserted = 0;
+  const failedGroups: string[] = [];
 
   for (const group of QUERY_GROUPS) {
-    const articles = await fetchGroup(apiKey, group);
     let inserted = 0;
-    for (const article of articles) {
-      if (await upsertArticle(article, group)) inserted++;
+    try {
+      const articles = await fetchGroup(apiKey, group);
+      for (const article of articles) {
+        if (await upsertArticle(article, group)) inserted++;
+      }
+    } catch {
+      failedGroups.push(group.key);
+      console.warn('[sync-news-alerts] group incomplete', { group: group.key });
     }
     results[group.key] = inserted;
     totalInserted += inserted;
   }
 
   // Limpieza de alertas antiguas según política de retención
-  const { deleted } = await cleanupOldNewsAlerts();
+  const cleanupSkipped = parsed.data.maintenance === 'skip';
+  const { deleted } = cleanupSkipped ? { deleted: 0 } : await cleanupOldNewsAlerts();
 
   console.info(`[sync-news-alerts] inserted=${totalInserted} deleted=${deleted}`, results);
 
   return NextResponse.json({
-    success: true,
+    success: failedGroups.length === 0,
     inserted: totalInserted,
     deleted,
+    cleanupSkipped,
+    failedGroups,
     byCategory: results,
-  });
+  }, { status: failedGroups.length === 0 ? 200 : 503 });
 }

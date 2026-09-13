@@ -53,8 +53,8 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   if (hasTW && twId && twSec) {
     try {
       twitchToken = await getTwitchToken(twId, twSec);
-    } catch (err) {
-      console.error('[sync-metrics] Twitch auth failed:', (err as Error).message);
+    } catch {
+      console.error('[sync-metrics] Twitch auth failed');
     }
   }
 
@@ -87,7 +87,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         if (r) fetched = { count: r.count, platformId: r.userId };
       }
 
-      if (!fetched) {
+      if (!fetched || !Number.isSafeInteger(fetched.count) || fetched.count < 0 || !fetched.platformId) {
         results.push({ id: row.id, name: row.name, platform: row.platform, status: 'failed' });
         return;
       }
@@ -123,7 +123,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
       const metricType = row.platform === 'youtube' ? 'subscribers' : 'followers';
       const dataSource = row.platform === 'youtube' ? 'youtube_api' : 'twitch_api';
-      try {
+      {
         await sql`
           INSERT INTO talent_metric_snapshots
             (talent_id, platform, metric_type, value, snapshot_date, data_source)
@@ -132,7 +132,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
           ON CONFLICT (talent_id, platform, metric_type, snapshot_date)
           DO UPDATE SET value = EXCLUDED.value, data_source = EXCLUDED.data_source
         `;
-      } catch {}
+      }
 
       results.push({
         id: row.id, name: row.name, platform: row.platform, status: 'updated',
@@ -140,8 +140,8 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         newPlatformId: platformIdChanged ? fetched.platformId : undefined,
       });
 
-    } catch (err) {
-      console.error(`[sync-metrics] error for ${row.name} [${row.platform}]:`, (err as Error).message);
+    } catch {
+      console.error('[sync-metrics] channel sync failed', { socialId: row.id, platform: row.platform });
       results.push({ id: row.id, name: row.name, platform: row.platform, status: 'failed' });
     }
 
@@ -161,11 +161,11 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
   console.log(`[sync-metrics] done: ${updated} updated, ${unchanged} unchanged, ${failed} failed, ${skipped} skipped (no creds)`);
   if (failedNames.length > 0) {
-    console.warn(`[sync-metrics] failed channels:`, failedNames.join(', '));
+    console.warn('[sync-metrics] unavailable channels', { count: failedNames.length });
   }
 
   return NextResponse.json({
-    success: true,
+    success: failed === 0 && skipped === 0,
     date: today,
     stats: {
       youtube: { enabled: hasYT, rows: ytRows.length },
@@ -173,5 +173,5 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     },
     results: { updated, unchanged, failed, skipped },
     failedChannels: failedNames,
-  });
+  }, { status: failed === 0 && skipped === 0 ? 200 : 503 });
 }

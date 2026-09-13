@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { CONTACT_PHONE } from '@/lib/utils/constants';
 import { headers } from 'next/headers';
 import { safeJsonLd } from '@/lib/safeJsonLd';
 import { AGENCY_SAME_AS } from '@/lib/agency-socials';
@@ -113,7 +114,7 @@ const jsonLd = {
       ],
       contactPoint: {
         '@type': 'ContactPoint',
-        telephone: '+34-604-868-426',
+        telephone: CONTACT_PHONE,
         email: 'marketing@socialpro.es',
         contactType: 'sales',
         availableLanguage: ['Spanish', 'English'],
@@ -189,7 +190,7 @@ const jsonLd = {
       name: 'SocialPro',
       url: SITE_URL,
       image: absoluteUrl('/icon-social-square-512.png'),
-      telephone: '+34-604-868-426',
+      telephone: CONTACT_PHONE,
       email: 'marketing@socialpro.es',
       priceRange: '$$',
       address: {

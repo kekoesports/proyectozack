@@ -24,9 +24,9 @@ describe('[creator-zacketizor] server whitelist', () => {
     expect([...PLATFORM_CREATOR_SLUGS]).toContain('zacketizor');
   });
 
-  it('roster actual (2026-09-04): 7 slugs sin martinez, incluido eruby', () => {
+  it('roster publicado (2026-09-11): creadores confirmados, sin martinez', () => {
     expect([...PLATFORM_CREATOR_SLUGS].sort()).toEqual(
-      ['eruby', 'huasopeek', 'imantado', 'jolu', 'naow', 'todocs2', 'zacketizor'],
+      ['curlydidsaster', 'eruby', 'huasopeek', 'imantado', 'jolucs2', 'jospo', 'naow', 'orroxx', 'todocs2', 'zacketizor'],
     );
     // martinez fue retirado.
     expect([...PLATFORM_CREATOR_SLUGS]).not.toContain('martinez');
@@ -42,7 +42,7 @@ describe('[creator-zacketizor] visual config', () => {
 
   it('display name / code / sub esperados', () => {
     const v = PLATFORM_CREATOR_VISUALS.zacketizor;
-    expect(v?.code).toBe('ZACKCSGO');
+    expect(v?.code).toBe('ZACK');
     expect(v?.sub).toMatch(/CS/i);
     expect(typeof v?.emoji).toBe('string');
     expect(typeof v?.color).toBe('string');
@@ -51,7 +51,7 @@ describe('[creator-zacketizor] visual config', () => {
 
   it('getCreatorVisual(zacketizor) devuelve la config real, no fallback', () => {
     const v = getCreatorVisual('zacketizor');
-    expect(v.code).toBe('ZACKCSGO');
+    expect(v.code).toBe('ZACK');
     // El fallback usaría code = slug.toUpperCase() = 'ZACKETIZOR'.
     expect(v.code).not.toBe('ZACKETIZOR');
   });

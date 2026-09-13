@@ -10,6 +10,7 @@ export type AdminNavKey =
   | 'campanas'
   | 'automation-drafts'
   | 'leads'
+  | 'captacion'
   | 'creator-applications'
   | 'tareas'
   | 'facturacion'
@@ -62,6 +63,7 @@ export const ADMIN_NAV_CATALOGUE: readonly AdminNavDef[] = [
   { key: 'finanzas',    href: '/admin/finanzas/resumen',label: 'Finanzas',         module: 'facturacion',    section: 'primary', prefetch: false },
   // more
   { key: 'notas', href: '/admin/notas', label: 'Notas', module: 'tareas', section: 'more', group: 'Operaciones', prefetch: false },
+  { key: 'captacion', href: '/admin/captacion', label: 'Captación', module: null, roles: ['admin', 'manager'], section: 'more', group: 'Operaciones', prefetch: false },
   { key: 'mi-semana',       href: '/admin/mi-semana',       label: 'Mi semana',         module: 'tareas',          section: 'more', group: 'Operaciones' },
   { key: 'brands',          href: '/admin/brands',          label: 'Marcas',            module: 'campanas',        section: 'more', group: 'Operaciones' },
   { key: 'automation-drafts', href: '/admin/automation-drafts', label: 'Borradores', module: 'campanas',    section: 'more', group: 'Operaciones', prefetch: false },

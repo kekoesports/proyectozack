@@ -56,12 +56,12 @@ const eslintConfig = defineConfig([
   {
     // Standalone Node guard: real CommonJS, not part of the CRM TS project.
     // Keep recommended JavaScript checks; do not relax any src/ TS rule.
-    files: ["infra/n8n/guard/*.cjs"],
+    files: ["infra/n8n/guard/*.cjs", "infra/creator-intake/*.mjs", "infra/contact-register/*.mjs"],
     languageOptions: {
       parser: espree,
       ecmaVersion: "latest",
-      sourceType: "commonjs",
-      globals: { ...globals.node, fetch: "readonly", Response: "readonly" },
+      sourceType: "module",
+      globals: { ...globals.node, fetch: "readonly", Response: "readonly", Request: "readonly", Headers: "readonly" },
       parserOptions: { projectService: false },
     },
     rules: {

@@ -82,7 +82,8 @@ export async function findAutomationDealDraftByExternalId(
   externalId: string,
 ) {
   const [draft] = await db
-    .select({ id: automationDealDrafts.id, status: automationDealDrafts.status })
+    .select({ id: automationDealDrafts.id, status: automationDealDrafts.status,
+      error: automationDealDrafts.error, sheetShareStatus: automationDealDrafts.sheetShareStatus })
     .from(automationDealDrafts)
     .where(and(
       eq(automationDealDrafts.source, source),

@@ -1,0 +1,41 @@
+name: WhatsApp intake reliability
+on:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  isolated-intake:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: fixture
+          POSTGRES_PASSWORD: fixture
+          POSTGRES_DB: fixture
+        ports:
+          - 55447:5432
+        options: >-
+          --health-cmd "pg_isready -U fixture"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7.0.0
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Auth, transport and approved conversation regression tests
+        run: npx jest --runInBand --testPathPatterns=creator-intake
+      - name: Persistent queue, concurrency, replay and handoff
+        # Fixed localhost fixture credentials; the script refuses a nonempty DB.
+        # Providers and LLMs are mocked. No production connection or paid account.
+        run: node --import tsx --require ./scripts/worker-preload.cjs scripts/qa-whatsapp-reliability.mjs
+      - name: Sheet identity conflicts and repeat safety
+        run: node --test infra/contact-register/sheets.test.mjs
+      - name: Watchdog alert and recovery rules
+        run: python3 infra/creator-intake/watchdog.test.py

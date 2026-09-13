@@ -11,8 +11,6 @@
  *   imantado   → KeyDrop → IMANTADO
  *   naow       → KeyDrop → NAOW
  *   todocs2    → KeyDrop → TODO (código real registrado, no TODOCS2)
- * 2026-09-04: eruby → KeyDrop → ERUBY tiene binding/UI preparados;
- * la disponibilidad de la credencial y el primer fetch no se prueban aquí.
  */
 
 import * as fs from 'fs';
@@ -21,7 +19,7 @@ import * as path from 'path';
 const ROOT = path.resolve(__dirname, '..', '..', '..');
 const read = (rel: string) => fs.readFileSync(path.join(ROOT, rel), 'utf-8');
 
-describe('[external-providers-inventory] configuración en código 2026-09-04', () => {
+describe('[external-providers-inventory] estado real 2026-07-06', () => {
   it('ProviderKey enum en types.ts SOLO incluye providers en producción — csgoroll/hellcase siguen comentados', () => {
     const src = read('src/lib/external-giveaways/types.ts');
     // Enum activo: solo keydrop hoy.
@@ -43,15 +41,15 @@ describe('[external-providers-inventory] configuración en código 2026-09-04', 
     expect(registryBlock).not.toMatch(/\b(csgoroll|hellcase|datdrop|csgoempire|skinsmonkey|gamerpay)\s*:/);
   });
 
-  it('creator-bindings.ts solo incluye los cinco bindings documentados de KeyDrop', () => {
+  it('creator-bindings.ts incluye los creadores confirmados y excluye slugs antiguos', () => {
     const src = read('src/lib/external-giveaways/creator-bindings.ts');
     expect(src).toMatch(/^\s*zacketizor\s*:/m);
     expect(src).toMatch(/^\s*imantado\s*:/m);
     expect(src).toMatch(/^\s*naow\s*:/m);
     expect(src).toMatch(/^\s*todocs2\s*:/m);
-    expect(src).toMatch(/^\s*eruby\s*:/m);
-    const boundSlugs = Array.from(src.matchAll(/^  ([a-z][a-z0-9]*)\s*:\s*\{/gm)).map((match) => match[1]).sort();
-    expect(boundSlugs).toEqual(['eruby', 'imantado', 'naow', 'todocs2', 'zacketizor']);
+    expect(src).toMatch(/^\s*orroxx\s*:/m);
+    expect(src).toMatch(/^\s*jolucs2\s*:/m);
+    expect(src).toMatch(/^\s*jospo\s*:/m);
     expect(src).toMatch(/provider:\s*'keydrop'/);
     // Ni bindings "de prueba" para otros creadores.
     for (const slug of ['huasopeek', 'jolu']) {
@@ -60,22 +58,25 @@ describe('[external-providers-inventory] configuración en código 2026-09-04', 
     }
   });
 
-  it('env.ts solo declara las cinco credenciales KeyDrop documentadas, opcionales y no vacías', () => {
+  it('env.ts declara KEYDROP_ZACKETIZOR + IMANTADO + NAOW + TODOCS2 (patrón <PROVIDER>_<CREATOR>_API_KEY)', () => {
     const src = read('src/lib/env.ts');
     expect(src).toMatch(/KEYDROP_ZACKETIZOR_API_KEY:\s*z\.string\(\)\.min\(1\)\.optional\(\)/);
     expect(src).toMatch(/KEYDROP_IMANTADO_API_KEY:\s*z\.string\(\)\.min\(1\)\.optional\(\)/);
     expect(src).toMatch(/KEYDROP_NAOW_API_KEY:\s*z\.string\(\)\.min\(1\)\.optional\(\)/);
     expect(src).toMatch(/KEYDROP_TODOCS2_API_KEY:\s*z\.string\(\)\.min\(1\)\.optional\(\)/);
-    expect(src).toMatch(/KEYDROP_ERUBY_API_KEY:\s*z\.string\(\)\.min\(1\)\.optional\(\)/);
     // No debe haber otras claves siguiendo el patrón sin OK del owner.
     const keys = Array.from(src.matchAll(/^\s*([A-Z][A-Z0-9_]+_API_KEY)\s*:/gm)).map((m) => m[1]!);
     // dedupe — env.ts declara cada key dos veces: en `server:` y en `runtimeEnv:`.
     const unique = Array.from(new Set(keys));
     const external = unique.filter((k) => /^(KEYDROP|CSGOROLL|HELLCASE|DATDROP|CSGOEMPIRE|SKINSMONKEY|GAMERPAY)_/.test(k)).sort();
     expect(external).toEqual([
+      'KEYDROP_CURLYDISASTER_API_KEY',
       'KEYDROP_ERUBY_API_KEY',
       'KEYDROP_IMANTADO_API_KEY',
+      'KEYDROP_JOLU_API_KEY',
+      'KEYDROP_JOSPO_API_KEY',
       'KEYDROP_NAOW_API_KEY',
+      'KEYDROP_ORROXX_API_KEY',
       'KEYDROP_TODOCS2_API_KEY',
       'KEYDROP_ZACKETIZOR_API_KEY',
     ]);
@@ -90,9 +91,8 @@ describe('[external-providers-inventory] configuración en código 2026-09-04', 
     // TODOCS2 registró su código en KeyDrop como "TODO" (no TODOCS2) —
     // asertamos el estado real, no el nombre del creador.
     expect(doc).toMatch(/todocs2[\s\S]{0,140}KeyDrop[\s\S]{0,40}\|[^|]*TODO[^|]*\|/);
-    expect(doc).toMatch(/\|\s*eruby\s*\|\s*KeyDrop\s*\|\s*ERUBY\s*\|[^\n]*falta configurar/);
     // Los creadores sin deal siguen explícitamente pendientes.
-    for (const slug of ['huasopeek', 'jolu']) {
+    for (const slug of ['huasopeek']) {
       expect(doc).toMatch(new RegExp(`\\|\\s*${slug}\\s*\\|[^|]*\\|[^|]*\\|[^|]*Pendiente`, 'i'));
     }
     // Regla dura visible.

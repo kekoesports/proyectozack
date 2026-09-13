@@ -83,9 +83,10 @@ type CardProps = {
   readonly selectMode?:    boolean;
   readonly selected?:      boolean;
   readonly onToggleSelect?: (id: number) => void;
+  readonly onRevoke?: (creator: AdminRosterRow) => void;
 };
 
-export function TalentCard({ creator, verticals, selectMode, selected, onToggleSelect }: CardProps): React.ReactElement {
+export function TalentCard({ creator, verticals, selectMode, selected, onToggleSelect, onRevoke }: CardProps): React.ReactElement {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [optimisticStatus, setOptimisticStatus] = useState<TalentStatus>(creator.status as TalentStatus);
@@ -138,7 +139,7 @@ export function TalentCard({ creator, verticals, selectMode, selected, onToggleS
       onClick={handleCardClick}
       role="button"
       tabIndex={0}
-      onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && handleCardClick()}
+      onKeyDown={(e) => { if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); handleCardClick(); } }}
       aria-label={selectMode ? `Seleccionar ${creator.name}` : `Ver perfil de ${creator.name}`}
     >
 
@@ -161,6 +162,12 @@ export function TalentCard({ creator, verticals, selectMode, selected, onToggleS
         style={{ background: `linear-gradient(135deg, ${creator.gradientC1}, ${creator.gradientC2})` }}
       >
         <Avatar creator={creator} />
+
+        {!selectMode && onRevoke && <button type="button" aria-label={`Revocar perfil de ${creator.name}`}
+          onClick={event => { event.stopPropagation(); onRevoke(creator); }}
+          className="absolute left-2 top-2 z-20 rounded-lg border border-white/30 bg-black/75 px-2.5 py-1.5 text-[11px] font-semibold text-white shadow-sm hover:bg-red-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
+          Revocar perfil
+        </button>}
 
         {/* Bandera — solo emoji/img, sin texto, esquina superior derecha */}
         {creator.creatorCountry && (() => {

@@ -61,7 +61,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
         let content: Awaited<ReturnType<typeof getChannelRecentContent>>;
         try {
-          content = await getChannelRecentContent(social.platformId, 365, 100);
+          content = await getChannelRecentContent(social.platformId, 30, 100);
         } catch {
           errors.push(`YouTube: contenido del canal ${social.socialId} no disponible`);
           return;
@@ -167,7 +167,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     youtube: { channels: youtubeCount, content: contentCount },
     twitch: { channels: twitchCount },
     errors,
-  });
+  }, { status: errors.length === 0 ? 200 : 503 });
 }
 
 function safePlatformError(error: unknown): string {

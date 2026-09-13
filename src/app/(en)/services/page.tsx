@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { CONTACT_PHONE } from '@/lib/utils/constants';
 import { safeJsonLd } from '@/lib/safeJsonLd';
 import Link from 'next/link';
 
@@ -83,7 +84,7 @@ const serviceJsonLd = {
   description: 'Performance influencer marketing for gaming, esports and iGaming brands in Spain and LatAm.',
   url: absoluteUrl('/services'),
   inLanguage: 'en',
-  telephone: '+34-604-868-426',
+  telephone: CONTACT_PHONE,
   email: 'marketing@socialpro.es',
   priceRange: '$$',
   provider: { '@type': 'Organization', name: 'SocialPro', url: SITE_URL },

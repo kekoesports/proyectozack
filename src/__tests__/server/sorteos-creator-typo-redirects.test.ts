@@ -1,20 +1,4 @@
-/**
- * Regresión anti-borrado del redirect `jolucs2 → jolu`.
- *
- * El audit del 2026-07-10 (bug B2) reportó `/sorteos/jolucs2` como 404,
- * pero al auditar el estado real: el redirect YA está configurado en
- * `SLUG_TYPO_REDIRECTS['jolucs2'] = 'jolu'` desde 2026-07-03 (misma PR
- * que introdujo el resto del roster), y `jolu` es un talent válido en DB
- * (id=87). El bug estaba obsoleto en el informe.
- *
- * Estos tests bloquean que:
- *   - Alguien borre por accidente la entrada `jolucs2` del mapa de typos.
- *   - Alguien saque `jolu` de `PLATFORM_CREATOR_SLUGS` sin quitar el
- *     redirect (dejaría un enlace a un slug que ya no pinta nada).
- *
- * No verifican la existencia de la fila en DB — eso vive en el seed y
- * está fuera del scope de un test unitario.
- */
+/** The published September route uses jolucs2 as canonical and preserves old links. */
 
 import * as fs from 'fs';
 import * as path from 'path';
@@ -27,21 +11,21 @@ const PAGE_SOURCE = fs.readFileSync(
 );
 
 describe('/sorteos/[creatorSlug] — redirect defensivo por typo', () => {
-  it('SLUG_TYPO_REDIRECTS mantiene jolucs2 → jolu', () => {
+  it('SLUG_TYPO_REDIRECTS mantiene jolu → jolucs2', () => {
     // Buscamos la entrada explícita del mapa, sea con comillas simples o
     // dobles. Tolerante a formato pero estricto en la relación typo→slug.
-    expect(PAGE_SOURCE).toMatch(/jolucs2\s*:\s*['"]jolu['"]/);
+    expect(PAGE_SOURCE).toMatch(/jolu\s*:\s*['"]jolucs2['"]/);
   });
 
   it('SLUG_TYPO_REDIRECTS mantiene también jolucs y jolu-cs2 apuntando a jolu', () => {
-    expect(PAGE_SOURCE).toMatch(/['"]?jolucs['"]?\s*:\s*['"]jolu['"]/);
-    expect(PAGE_SOURCE).toMatch(/['"]jolu-cs2['"]\s*:\s*['"]jolu['"]/);
+    expect(PAGE_SOURCE).toMatch(/['"]?jolucs['"]?\s*:\s*['"]jolucs2['"]/);
+    expect(PAGE_SOURCE).toMatch(/['"]jolu-cs2['"]\s*:\s*['"]jolucs2['"]/);
   });
 
   it('el slug canónico "jolu" está en PLATFORM_CREATOR_SLUGS', () => {
     // Si alguien saca jolu del roster sin quitar el redirect,
     // /sorteos/jolucs2 → redirect /sorteos/jolu → notFound (regresión).
-    expect(PLATFORM_CREATOR_SLUGS).toContain('jolu');
+    expect(PLATFORM_CREATOR_SLUGS).toContain('jolucs2');
   });
 
   it('la page hace `redirect(target ? ... : "/sorteos")` — no notFound directo', () => {
@@ -56,7 +40,7 @@ describe('/sorteos/[creatorSlug] — redirect defensivo por typo', () => {
     // Regresión anti-cleanup accidental de los defensivos que ya se han
     // demostrado útiles en tráfico real.
     const requiredTypos: readonly string[] = [
-      'jolucs2', 'jolucs', 'jolu-cs2',
+      'jolu', 'jolucs', 'jolu-cs2',
       'todo', 'todocs', 'todo-cs2',
       'imantao', 'imanta',
       'zackezitor', 'zacketizador',

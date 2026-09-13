@@ -6,6 +6,7 @@ import { TALENT_VERTICAL_LABELS, TALENT_VERTICALS } from '@/lib/schemas/talentBu
 import { AddTalentModal } from './AddTalentModal';
 import { exportTalentsToExcel } from './TalentExport';
 import { SortableCardGrid } from './SortableCardGrid';
+import { RevokeTalentDialog } from './RevokeTalentDialog';
 import type { AdminRosterRow } from '@/lib/queries/talents';
 import type { TalentVertical } from '@/types';
 import {
@@ -19,11 +20,14 @@ import {
 type Props = {
   readonly creators: readonly AdminRosterRow[];
   readonly verticalsByTalent: Readonly<Record<number, readonly TalentVertical[]>>;
+  readonly canRevoke?: boolean;
 };
 
 // ── Main component ───────────────────────────────────────────────────
 
-export function InfluencerCardsView({ creators, verticalsByTalent }: Props): React.ReactElement {
+export function InfluencerCardsView({ creators, verticalsByTalent, canRevoke = false }: Props): React.ReactElement {
+  // Shared only within this view: one selected card owns the single confirmation dialog.
+  const [revokeTarget, setRevokeTarget] = useState<AdminRosterRow | null>(null);
   const [search, setSearch]               = useState('');
   const [statusFilter, setStatusFilter]   = useState<TalentStatus | 'all'>('all');
   const [verticalFilter, setVerticalFilter] = useState<TalentVertical | ''>('');
@@ -281,12 +285,14 @@ export function InfluencerCardsView({ creators, verticalsByTalent }: Props): Rea
               selectMode={selectMode}
               selected={selectedIds.has(c.id)}
               onToggleSelect={toggleSelect}
+              {...(canRevoke ? { onRevoke: setRevokeTarget } : {})}
             />
           ))}
         </div>
       )}
 
       {!isOrdering && showAdd && <AddTalentModal onClose={() => setShowAdd(false)} />}
+      {canRevoke && revokeTarget && <RevokeTalentDialog key={revokeTarget.id} talent={revokeTarget} onClose={() => setRevokeTarget(null)} />}
     </div>
   );
 }

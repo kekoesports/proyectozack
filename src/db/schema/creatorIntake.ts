@@ -1,0 +1,52 @@
+import { index, integer, jsonb, pgEnum, pgTable, text, timestamp, uniqueIndex, uuid, varchar } from 'drizzle-orm/pg-core';
+import type { IntakeProfile } from '@/lib/schemas/creatorIntake';
+import { user } from './auth';
+
+export const intakeChannel = pgEnum('intake_channel', ['telegram', 'whatsapp']);
+export const intakeState = pgEnum('intake_state', ['bot', 'waiting_human', 'human', 'closed']);
+export const intakeDelivery = pgEnum('intake_delivery', ['pending', 'sending', 'accepted', 'uncertain', 'cancelled']);
+export const intakeConversations = pgTable('intake_conversations', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  channel: intakeChannel('channel').notNull(),
+  accountId: varchar('account_id', { length: 200 }).notNull(),
+  // Linked legacy threads retain their messages and audit trail; only the root is actionable.
+  canonicalId: uuid('canonical_id'),
+  chatId: varchar('chat_id', { length: 100 }).notNull(),
+  state: intakeState('state').notNull().default('bot'),
+  profile: jsonb('profile').$type<IntakeProfile>().notNull().default({}),
+  qualification: varchar('qualification', { length: 40 }).notNull().default('pending'),
+  reason: varchar('reason', { length: 200 }),
+  assignedTo: text('assigned_to').references(() => user.id),
+  version: integer('version').notNull().default(0),
+  lastInboundAt: timestamp('last_inbound_at', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [
+  uniqueIndex('intake_conversation_identity_uq').on(t.channel, t.accountId, t.chatId),
+  index('intake_conversation_queue_idx').on(t.state, t.updatedAt),
+  index('intake_conversation_canonical_idx').on(t.canonicalId),
+]);
+
+export const intakeMessages = pgTable('intake_messages', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  conversationId: uuid('conversation_id').notNull().references(() => intakeConversations.id),
+  externalId: varchar('external_id', { length: 160 }).notNull(),
+  fingerprint: varchar('fingerprint', { length: 64 }).notNull(),
+  actor: varchar('actor', { length: 20 }).notNull(),
+  text: text('text').notNull(),
+  occurredAt: timestamp('occurred_at', { withTimezone: true }).notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [uniqueIndex('intake_message_identity_uq').on(t.conversationId, t.externalId)]);
+
+export const intakeOutbox = pgTable('intake_outbox', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  conversationId: uuid('conversation_id').notNull().references(() => intakeConversations.id),
+  messageId: uuid('message_id').notNull().references(() => intakeMessages.id),
+  kind: varchar('kind', { length: 20 }).notNull(),
+  conversationVersion: integer('conversation_version').notNull(),
+  text: text('text').notNull(),
+  status: intakeDelivery('status').notNull().default('pending'),
+  receipt: varchar('receipt', { length: 160 }),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  acceptedAt: timestamp('accepted_at', { withTimezone: true }),
+}, (t) => [uniqueIndex('intake_outbox_effect_uq').on(t.messageId, t.kind)]);
