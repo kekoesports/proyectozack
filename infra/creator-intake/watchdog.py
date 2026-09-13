@@ -1,5 +1,5 @@
 """Host-side watchdog. Run as deploy; private state, fixed containers, no raw errors."""
-import json, os, pathlib, subprocess, sys, time, urllib.request
+import datetime, json, os, pathlib, subprocess, sys, time, urllib.request
 from kernel_health import kernel_health
 
 ROOT = pathlib.Path.home() / '.config/socialpro/whatsapp-reliability'
@@ -57,6 +57,14 @@ def main(self_test=False):
         issues.append('sesión de WhatsApp: ' + session_state)
     if health.get('queueOldestSeconds', 0) > 120 or health.get('queue', 0) > 20:
         issues.append('cola de mensajes acumulada')
+    budget_dir=env.get('CREATOR_INTAKE_AI_PILOT_DIR')
+    if budget_dir and not self_test:
+        mount=next((m for m in worker.get('Mounts',[]) if m['Destination']==budget_dir),None)
+        if mount and pathlib.Path(mount['Source']).is_dir():
+            reserved=sum(1 for slot in range(1,31) if (pathlib.Path(mount['Source'])/f'request-{slot}.reserved').exists())
+            state['ai_reserved_requests']=reserved
+            if reserved>=27: issues.append('límite de IA agotado' if reserved>=30 else 'quedan tres o menos solicitudes de IA')
+        else: issues.append('contador persistente de IA no disponible')
     for name, data in [(WORKER, worker), (PROVIDER, provider)]:
         prior_restarts = state.get(name + '_restarts', data['RestartCount'])
         if data['RestartCount'] > prior_restarts or data['State'].get('OOMKilled'):
@@ -88,9 +96,10 @@ def main(self_test=False):
     if register.exists() and not self_test:
         try:
             contact_state=json.loads(register.read_text())
-            if not contact_state.get('ok') or contact_state.get('conflicts',0):
+            observed=datetime.datetime.fromisoformat(contact_state['at'].replace('Z','+00:00')).timestamp()
+            if not contact_state.get('ok') or contact_state.get('conflicts',0) or now-observed>600:
                 issues.append('registro de contactos en Drive requiere revisión')
-        except (ValueError,OSError): issues.append('estado del registro de Drive no disponible')
+        except (ValueError,OSError,KeyError,TypeError): issues.append('estado del registro de Drive no disponible')
     restarts = [stamp for stamp in state.get('recovery_attempts', []) if now - stamp < 3600]
     # At most three recovery attempts per hour, no logout/reset or QR replacement.
     if len(restarts) < 3 and not self_test:

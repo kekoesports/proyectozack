@@ -90,5 +90,29 @@ class WatchdogTests(unittest.TestCase):
         self.session = 'WORKING'; watchdog.main()
         self.assertIn('recuperado', self.sent()[-1][1]['text'])
 
+    def test_missing_budget_counter_alerts_without_reset(self):
+        self.env.append('CREATOR_INTAKE_AI_PILOT_DIR=/missing-test-counter')
+        watchdog.main(); watchdog.main()
+        self.assertEqual(len(self.sent()),1)
+        self.assertIn('contador persistente',self.sent()[0][1]['text'])
+        self.assertEqual(self.restarts(),[])
+
+    def test_stale_contact_readback_alerts(self):
+        target=pathlib.Path(self.temp.name)/'.config/socialpro/contact-register-20260912/last-result.json'
+        target.parent.mkdir(parents=True)
+        target.write_text(json.dumps({'ok':True,'conflicts':0,'at':'2026-01-01T00:00:00Z'}))
+        watchdog.main()
+        self.assertIn('registro de contactos',self.sent()[0][1]['text'])
+
+    def test_thirtieth_reservation_is_counted_and_preserved(self):
+        self.env.append('CREATOR_INTAKE_AI_PILOT_DIR=/budget')
+        for slot in range(1,31): (watchdog.ROOT/f'request-{slot}.reserved').touch()
+        data={'Image':'TEST','Config':{'Env':self.env},'State':{},'RestartCount':0,
+            'Mounts':[{'Destination':'/budget','Source':str(watchdog.ROOT)}]}
+        with patch.object(watchdog,'container',return_value=data): watchdog.main()
+        self.assertEqual(json.loads(watchdog.STATE.read_text())['ai_reserved_requests'],30)
+        self.assertIn('límite de IA agotado',self.sent()[0][1]['text'])
+        self.assertEqual(len(list(watchdog.ROOT.glob('*.reserved'))),30)
+
 if __name__ == '__main__':
     unittest.main()

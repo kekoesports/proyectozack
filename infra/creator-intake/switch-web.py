@@ -3,9 +3,12 @@ import hashlib, json, os, pathlib, subprocess, sys, urllib.request
 os.umask(0o077)
 root=pathlib.Path('/home/deploy/.config/socialpro/whatsapp-audit-20260913')
 config=pathlib.Path('/opt/socialpro/n8n/Caddyfile')
-backup=root/'Caddyfile.before-whatsapp'
-old='socialpro-crm-keydrop-curly-zack-20260911:3000'
-new='socialpro-crm-whatsapp-reliability:3000'
+final=len(sys.argv)>2 and sys.argv[2]=='final'
+assert len(sys.argv)<=2 or final, 'Unknown release selector'
+backup=root/('Caddyfile.before-final-whatsapp' if final else 'Caddyfile.before-whatsapp')
+old='socialpro-crm-whatsapp-reliability:3000' if final else 'socialpro-crm-keydrop-curly-zack-20260911:3000'
+new='socialpro-crm-whatsapp-5fe20fe7:3000' if final else 'socialpro-crm-whatsapp-reliability:3000'
+port=3035 if final else 3034
 mode=sys.argv[1]
 assert mode in ('activate','rollback')
 before=config.read_bytes()
@@ -16,7 +19,7 @@ original=backup.read_bytes()
 expected=original.replace(old.encode(),new.encode())
 assert before in (original,expected), 'Unrelated Caddy change requires reconciliation'
 if mode=='activate':
-    with urllib.request.urlopen('http://127.0.0.1:3034/api/health/ready',timeout=5) as r: assert r.status==200
+    with urllib.request.urlopen(f'http://127.0.0.1:{port}/api/health/ready',timeout=5) as r: assert r.status==200
     candidate=expected
 else: candidate=original
 temp=root/'Caddyfile.candidate'
@@ -40,5 +43,5 @@ if reload.returncode:
     raise SystemExit('Reload failed; previous configuration restored')
 receipt={'mode':mode,'at':__import__('datetime').datetime.now(__import__('datetime').timezone.utc).isoformat(),
  'original_sha256':hashlib.sha256(original).hexdigest(),'current_sha256':hashlib.sha256(candidate).hexdigest(),'other_routes_unchanged':True}
-(root/('web-'+mode+'.json')).write_text(json.dumps(receipt))
+(root/(('web-final-' if final else 'web-')+mode+'.json')).write_text(json.dumps(receipt))
 print(json.dumps({'web_switch':mode,'other_routes_unchanged':True,'validated':True}))

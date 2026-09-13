@@ -83,7 +83,13 @@ def clone(name, old, image, port, mounts=None, overrides=None, command=None, res
         'LogConfig':{'Type':'json-file','Config':{'max-size':'10m','max-file':'3'}},
         'PortBindings':{'3000/tcp':[{'HostIp':'127.0.0.1','HostPort':str(port)}]} if port else {}},
       'ExposedPorts':{'3000/tcp':{}}}
-    if command: config['Cmd']=command
+    if command:
+        config['Cmd']=command
+        if 'infra/contact-register/worker.mjs' in command:
+            # This scheduled worker has no HTTP server. Check persisted readback instead.
+            config['Healthcheck']={'Test':['CMD','node','-e',
+              "const s=JSON.parse(require('fs').readFileSync('/evidence/last-result.json','utf8'));process.exit(s.ok&&Date.now()-Date.parse(s.at)<600000?0:1)"],
+              'Interval':60000000000,'Timeout':5000000000,'StartPeriod':60000000000,'Retries':3}
     # Unix socket preserves multiline credentials without argv or env-file escaping.
     connection=http.client.HTTPConnection('localhost')
     connection.sock=socket.socket(socket.AF_UNIX,socket.SOCK_STREAM)
