@@ -180,7 +180,8 @@ export function estimateCostMicros(
   outputTokens: number,
   cachedInputTokens: number | null = null,
 ): CostEstimate {
-  if (![inputTokens, outputTokens].every((value) => Number.isSafeInteger(value) && value >= 0)) {
+  if (![inputTokens, outputTokens].every((value) => Number.isSafeInteger(value) && value >= 0)
+    || (cachedInputTokens !== null && (!Number.isSafeInteger(cachedInputTokens) || cachedInputTokens < 0))) {
     return { estimatedCostMicros: 0, pricingUnknown: true };
   }
   const key = model ? modelPricingKey(provider, model) : null;

@@ -16,7 +16,7 @@ let lastSweep = 0;
 
 function sweep(now: number): void {
   // Bound work too: an attacker must not trigger a full scan on every new key.
-  if (now - lastSweep < 1_000) return;
+  if (now >= lastSweep && now - lastSweep < 1_000) return;
   lastSweep = now;
   for (const [key, b] of buckets) {
     if (b.resetAt <= now) buckets.delete(key);
