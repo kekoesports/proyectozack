@@ -16,6 +16,9 @@ updates:
       # eslint-plugin-react 7.37.5 does not support ESLint 10 yet.
       - dependency-name: "eslint"
         update-types: ["version-update:semver-major"]
+      # Keep recommended rules on the same major as the supported ESLint engine.
+      - dependency-name: "@eslint/js"
+        update-types: ["version-update:semver-major"]
     groups:
       production-dependencies:
         dependency-type: production
