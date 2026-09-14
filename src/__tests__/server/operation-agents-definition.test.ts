@@ -12,7 +12,10 @@ it('cada agente operativo tiene una tool propia y un prompt de shadow', () => {
     expect(OPERATION_AGENT_TOOL_NAMES[slug]).toHaveLength(1);
     expect(operationSystemPrompt(slug, 'shadow')).toMatch(/modo shadow/i);
   }
-  expect(operationSystemPrompt('dev', 'shadow')).toBeNull();
+  expect(operationSystemPrompt('dev', 'shadow')).toMatch(/modo shadow/i);
+  expect(operationSystemPrompt('dev', 'shadow')).toContain('getDevelopmentEvidence');
+  expect(operationSystemPrompt('dev', 'shadow')).toContain('getSentryIssues');
+  expect(operationSystemPrompt('dev', 'shadow')).toContain('No modifiques código ni abras incidencias');
 });
 
 it('el agente SEO no confunde datos ausentes del colector con incidencias confirmadas', () => {
